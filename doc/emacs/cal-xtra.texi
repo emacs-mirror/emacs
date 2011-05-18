@@ -616,6 +616,20 @@ first within each day.  Note how the sort command is placed at the end
 of the hook list, in case earlier members of the list change the order
 of the diary entries, or add items.
 
+@vindex diary-comment-start
+  You can write @samp{comments} in diary entries, by setting the
+variables @code{diary-comment-start} and @code{diary-comment-end} to
+strings that delimit comments.  The fancy display does not print
+comments.  You might want to put meta-data for the use of other packages
+(e.g. the appointment package,
+@iftex
+@pxref{Appointments,,,emacs, the Emacs Manual})
+@end iftex
+@ifnottex
+@pxref{Appointments})
+@end ifnottex
+inside comments.
+
 @vindex diary-include-string
   Your main diary file can include other files.  This permits a group of
 people to share a diary file for events that apply to all of them.
@@ -876,6 +890,7 @@ diary entries:
 @findex diary-hebrew-omer
 @cindex yahrzeits
 @findex diary-hebrew-yahrzeit
+@findex diary-hebrew-birthday
 @table @code
 @item %%(diary-hebrew-rosh-hodesh)
 Make a diary entry that tells the occurrence and ritual announcement of each
@@ -893,6 +908,8 @@ is the @emph{Gregorian} (civil) date of death.  The diary entry appears
 on the proper Hebrew calendar anniversary and on the day before.  (The
 order of the parameters changes according to the calendar date style;
 for example in the European style to @var{day}, @var{month}, @var{year}.)
+@item %%(diary-hebrew-birthday @var{month} @var{day} @var{year})
+Make a diary entry for a birthday on the Hebrew calendar.
 @end table
 
   All the functions documented above take an optional argument

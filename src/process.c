@@ -28,12 +28,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <setjmp.h>
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h>
-#endif
 
 #include <unistd.h>
 #include <fcntl.h>
+
+#include "lisp.h"
 
 /* Only MS-DOS does not define `subprocesses'.  */
 #ifdef subprocesses
@@ -79,7 +78,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #endif	/* subprocesses */
 
-#include "lisp.h"
 #include "systime.h"
 #include "systty.h"
 
@@ -237,7 +235,9 @@ static int process_output_skip;
 
 static Lisp_Object Fget_process (Lisp_Object);
 static void create_process (Lisp_Object, char **, Lisp_Object);
+#ifdef SIGIO
 static int keyboard_bit_set (SELECT_TYPE *);
+#endif
 static void deactivate_process (Lisp_Object);
 static void status_notify (struct Lisp_Process *);
 static int read_process_output (Lisp_Object, int);
@@ -1186,25 +1186,26 @@ Returns nil if format of ADDRESS is invalid.  */)
   if (VECTORP (address))  /* AF_INET or AF_INET6 */
     {
       register struct Lisp_Vector *p = XVECTOR (address);
+      EMACS_UINT size = p->header.size;
       Lisp_Object args[10];
       int nargs, i;
 
-      if (p->size == 4 || (p->size == 5 && !NILP (omit_port)))
+      if (size == 4 || (size == 5 && !NILP (omit_port)))
 	{
 	  args[0] = build_string ("%d.%d.%d.%d");
 	  nargs = 4;
 	}
-      else if (p->size == 5)
+      else if (size == 5)
 	{
 	  args[0] = build_string ("%d.%d.%d.%d:%d");
 	  nargs = 5;
 	}
-      else if (p->size == 8 || (p->size == 9 && !NILP (omit_port)))
+      else if (size == 8 || (size == 9 && !NILP (omit_port)))
 	{
 	  args[0] = build_string ("%x:%x:%x:%x:%x:%x:%x:%x");
 	  nargs = 8;
 	}
-      else if (p->size == 9)
+      else if (size == 9)
 	{
 	  args[0] = build_string ("[%x:%x:%x:%x:%x:%x:%x:%x]:%d");
 	  nargs = 9;
@@ -1384,7 +1385,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
       {
 	if (EQ (coding_systems, Qt))
 	  {
-	    args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof args2);
+	    args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
 	    args2[0] = Qstart_process;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	    GCPRO2 (proc, current_dir);
@@ -2062,13 +2063,13 @@ get_lisp_to_sockaddr_size (Lisp_Object address, int *familyp)
   if (VECTORP (address))
     {
       p = XVECTOR (address);
-      if (p->size == 5)
+      if (p->header.size == 5)
 	{
 	  *familyp = AF_INET;
 	  return sizeof (struct sockaddr_in);
 	}
 #ifdef AF_INET6
-      else if (p->size == 9)
+      else if (p->header.size == 9)
 	{
 	  *familyp = AF_INET6;
 	  return sizeof (struct sockaddr_in6);
@@ -2087,7 +2088,7 @@ get_lisp_to_sockaddr_size (Lisp_Object address, int *familyp)
       struct sockaddr *sa;
       *familyp = XINT (XCAR (address));
       p = XVECTOR (XCDR (address));
-      return p->size + sizeof (sa->sa_family);
+      return p->header.size + sizeof (sa->sa_family);
     }
   return 0;
 }
@@ -3039,7 +3040,7 @@ usage: (make-network-process &rest ARGS)  */)
 	portstring = "0";
       else if (INTEGERP (service))
 	{
-	  sprintf (portbuf, "%ld", (long) XINT (service));
+	  sprintf (portbuf, "%"pI"d", XINT (service));
 	  portstring = portbuf;
 	}
       else
@@ -3721,9 +3722,9 @@ FLAGS is the current flags of the interface.  */)
 	      flags -= fp->flag_bit;
 	    }
 	}
-      for (fnum = 0; flags && fnum < 32; fnum++)
+      for (fnum = 0; flags && fnum < 32; flags >>= 1, fnum++)
 	{
-	  if (flags & (1 << fnum))
+	  if (flags & 1)
 	    {
 	      elt = Fcons (make_number (fnum), elt);
 	    }
@@ -4530,6 +4531,22 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
              &Available,
              (check_write ? &Writeok : (SELECT_TYPE *)0),
              (SELECT_TYPE *)0, &timeout);
+
+#ifdef HAVE_GNUTLS
+          /* GnuTLS buffers data internally.  In lowat mode it leaves
+             some data in the TCP buffers so that select works, but
+             with custom pull/push functions we need to check if some
+             data is available in the buffers manually.  */
+          if (nfds == 0 &&
+              wait_proc && wait_proc->gnutls_p /* Check for valid process.  */
+              /* Do we have pending data?  */
+              && emacs_gnutls_record_check_pending (wait_proc->gnutls_state) > 0)
+          {
+              nfds = 1;
+              /* Set to Available.  */
+              FD_SET (wait_proc->infd, &Available);
+          }
+#endif
 	}
 
       xerrno = errno;
@@ -4934,7 +4951,7 @@ read_process_output (Lisp_Object proc, register int channel)
 	}
 #ifdef HAVE_GNUTLS
       if (XPROCESS (proc)->gnutls_p)
-	nbytes = emacs_gnutls_read (channel, XPROCESS (proc),
+	nbytes = emacs_gnutls_read (XPROCESS (proc),
 				    chars + carryover + buffered,
 				    readmax - buffered);
       else
@@ -5220,6 +5237,10 @@ read_process_output (Lisp_Object proc, register int channel)
 static jmp_buf send_process_frame;
 static Lisp_Object process_sent_to;
 
+#ifndef FORWARD_SIGNAL_TO_MAIN_THREAD
+static void send_process_trap (int) NO_RETURN;
+#endif
+
 static void
 send_process_trap (int ignore)
 {
@@ -5360,6 +5381,8 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
      when returning with longjmp despite being declared volatile.  */
   if (!setjmp (send_process_frame))
     {
+      p = XPROCESS (proc);  /* Repair any setjmp clobbering.  */
+
       process_sent_to = proc;
       while (len > 0)
 	{
@@ -5368,6 +5391,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 	  /* Send this batch, using one or more write calls.  */
 	  while (this > 0)
 	    {
+	      EMACS_INT written = 0;
 	      int outfd = p->outfd;
 	      old_sigpipe = (void (*) (int)) signal (SIGPIPE, send_process_trap);
 #ifdef DATAGRAM_SOCKETS
@@ -5376,7 +5400,9 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 		  rv = sendto (outfd, buf, this,
 			       0, datagram_address[outfd].sa,
 			       datagram_address[outfd].len);
-		  if (rv < 0 && errno == EMSGSIZE)
+		  if (0 <= rv)
+		    written = rv;
+		  else if (errno == EMSGSIZE)
 		    {
 		      signal (SIGPIPE, old_sigpipe);
 		      report_file_error ("sending datagram",
@@ -5388,12 +5414,12 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 		{
 #ifdef HAVE_GNUTLS
 		  if (XPROCESS (proc)->gnutls_p)
-		    rv = emacs_gnutls_write (outfd,
-					     XPROCESS (proc),
-					     buf, this);
+		    written = emacs_gnutls_write (XPROCESS (proc),
+                                                  buf, this);
 		  else
 #endif
-		    rv = emacs_write (outfd, buf, this);
+		    written = emacs_write (outfd, buf, this);
+		  rv = (written ? 0 : -1);
 #ifdef ADAPTIVE_READ_BUFFERING
 		  if (p->read_output_delay > 0
 		      && p->adaptive_read_buffering == 1)
@@ -5420,7 +5446,7 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 		       that may allow the program
 		       to finish doing output and read more.  */
 		    {
-		      int offset = 0;
+		      EMACS_INT offset = 0;
 
 #ifdef BROKEN_PTY_READ_AFTER_EAGAIN
 		      /* A gross hack to work around a bug in FreeBSD.
@@ -5466,16 +5492,14 @@ send_process (volatile Lisp_Object proc, const char *volatile buf,
 							 offset);
 		      else if (STRINGP (object))
 			buf = offset + SSDATA (object);
-
-		      rv = 0;
 		    }
 		  else
 		    /* This is a real error.  */
 		    report_file_error ("writing to process", Fcons (proc, Qnil));
 		}
-	      buf += rv;
-	      len -= rv;
-	      this -= rv;
+	      buf += written;
+	      len -= written;
+	      this -= written;
 	    }
 	}
     }
@@ -6581,6 +6605,8 @@ delete_gpm_wait_descriptor (int desc)
   delete_keyboard_wait_descriptor (desc);
 }
 
+# ifdef SIGIO
+
 /* Return nonzero if *MASK has a bit set
    that corresponds to one of the keyboard input descriptors.  */
 
@@ -6596,6 +6622,7 @@ keyboard_bit_set (fd_set *mask)
 
   return 0;
 }
+# endif
 
 #else  /* not subprocesses */
 

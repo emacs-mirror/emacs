@@ -800,7 +800,7 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 ;; Function to be set as an outline-isearch-open-invisible' property
 ;; to the overlay that makes the outline invisible (see
 ;; `outline-flag-region').
-(defun outline-isearch-open-invisible (overlay)
+(defun outline-isearch-open-invisible (_overlay)
   ;; We rely on the fact that isearch places point on the matched text.
   (show-entry))
 

@@ -18,6 +18,7 @@
 
 #include "XMenuInt.h"
 
+void
 XMenuSetAEQ(register XMenu *menu, register int aeq)
                          	/* Menu object to be modified. */
                      		/* AEQ mode? */
@@ -27,4 +28,3 @@ XMenuSetAEQ(register XMenu *menu, register int aeq)
      */
     menu->aeq = aeq;
 }
-

@@ -294,7 +294,7 @@ if test x$ac_gc_check_stringbytes != x ; then
    strings is redundantly recorded in sdata structures so that it can
    be compared to the sizes recorded in Lisp strings.])
 fi
-if test x$ac_gc_check_stringoverrun != x ; then
+if test x$ac_gc_check_string_overrun != x ; then
   AC_DEFINE(GC_CHECK_STRING_OVERRUN, 1,
 [Define this to check for short string overrun.])
 fi
@@ -987,6 +987,9 @@ else
   CPPFLAGS="$C_SWITCH_SYSTEM $C_SWITCH_MACHINE $CPPFLAGS"
 fi
 
+# Suppress obsolescent Autoconf test for size_t; Emacs assumes C89 or better.
+AC_DEFUN([AC_TYPE_SIZE_T])
+
 dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
 
@@ -1631,7 +1634,7 @@ fi
 
 use_mmap_for_buffers=no
 case "$opsys" in
-  freebsd|irix6-5) use_mmap_for_buffers=yes ;;
+  cygwin|freebsd|irix6-5) use_mmap_for_buffers=yes ;;
 esac
 
 AC_FUNC_MMAP
@@ -1972,12 +1975,22 @@ fi
 AC_SUBST(LIBSELINUX_LIBS)
 
 HAVE_GNUTLS=no
+HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY=no
 if test "${with_gnutls}" = "yes" ; then
-  PKG_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.2.4], HAVE_GNUTLS=yes, HAVE_GNUTLS=no)
+  PKG_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.6.0], HAVE_GNUTLS=yes, HAVE_GNUTLS=no)
   if test "${HAVE_GNUTLS}" = "yes"; then
     AC_DEFINE(HAVE_GNUTLS, 1, [Define if using GnuTLS.])
   fi
+
+  CFLAGS="$CFLAGS $LIBGNUTLS_CFLAGS"
+  LIBS="$LIBGNUTLS_LIBS $LIBS"
+  AC_CHECK_FUNCS(gnutls_certificate_set_verify_function, HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY=yes)
+
+  if test "${HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY}" = "yes"; then
+    AC_DEFINE(HAVE_GNUTLS_CALLBACK_CERTIFICATE_VERIFY, 1, [Define if using GnuTLS certificate verification callbacks.])
+  fi
 fi
+
 AC_SUBST(LIBGNUTLS_LIBS)
 AC_SUBST(LIBGNUTLS_CFLAGS)
 
@@ -2023,8 +2036,11 @@ if test x"${USE_X_TOOLKIT}" = xmaybe || test x"${USE_X_TOOLKIT}" = xLUCID; then
     elif test x"${USE_X_TOOLKIT}" = xLUCID; then
       AC_MSG_ERROR([Lucid toolkit requires X11/Xaw include files])
     else
-      AC_MSG_RESULT([no; do not use toolkit by default])
-      USE_X_TOOLKIT=none
+      AC_MSG_ERROR([No X toolkit could be found.
+If you are sure you want Emacs compiled without an X toolkit, pass
+  --with-x-toolkit=no
+to configure.  Otherwise, install the development libraries for the toolkit
+that you want to use (e.g. Gtk+) and re-run configure.])
     fi
   fi
 fi
@@ -3026,8 +3042,6 @@ if test $emacs_cv_langinfo_codeset = yes; then
     [Define if you have <langinfo.h> and nl_langinfo(CODESET).])
 fi
 
-AC_CHECK_TYPES(size_t)
-
 AC_TYPE_MBSTATE_T
 
 AC_CACHE_CHECK([for C restricted array declarations], emacs_cv_c_restrict_arr,
@@ -3507,7 +3521,8 @@ AH_BOTTOM([
 #endif
 
 /* These default definitions are good for almost all machines.
-   The exceptions override them in m/MACHINE.h.  */
+   Any exceptions should override them in m/MACHINE.h.
+   They must be usable in preprocessor conditionals.  */
 
 #ifndef BITS_PER_CHAR
 #define BITS_PER_CHAR 8
@@ -3517,9 +3532,6 @@ AH_BOTTOM([
 #define BITS_PER_SHORT 16
 #endif
 
-/* Note that lisp.h uses this in a preprocessor conditional, so it
-   would not work to use sizeof.  That being so, we do all of them
-   without sizeof, for uniformity's sake.  */
 #ifndef BITS_PER_INT
 #define BITS_PER_INT 32
 #endif
@@ -3530,6 +3542,10 @@ AH_BOTTOM([
 #else
 #define BITS_PER_LONG 32
 #endif
+#endif
+
+#if !defined BITS_PER_LONG_LONG && HAVE_LONG_LONG_INT
+#define BITS_PER_LONG_LONG 64
 #endif
 
 /* Define if the compiler supports function prototypes.  It may do so but
@@ -3551,10 +3567,6 @@ AH_BOTTOM([
 extern "C"
 # endif
 void *alloca (size_t);
-#endif
-
-#ifndef HAVE_SIZE_T
-typedef unsigned size_t;
 #endif
 
 #ifndef HAVE_STRCHR
@@ -3674,7 +3686,7 @@ echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
-echo "  Does Emacs use -lgnutls?                                ${HAVE_GNUTLS}"
+echo "  Does Emacs use -lgnutls (2.6.x or higher)?              ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"
 
 echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"

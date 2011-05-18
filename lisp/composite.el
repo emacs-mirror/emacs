@@ -289,9 +289,7 @@ A composition rule is a cons of glyph reference points of the form
   (let (str components)
     (if (consp (car (cdr args)))
 	;; Rule-base composition.
-	(let ((len (length args))
-	      (tail (encode-composition-components args 'nocopy)))
-
+	(let ((tail (encode-composition-components args 'nocopy)))
 	  (while tail
 	    (setq str (cons (car tail) str))
 	    (setq tail (nthcdr 2 tail)))
@@ -448,8 +446,8 @@ after a sequence of character events."
 
 (defun lgstring-insert-glyph (gstring idx glyph)
   (let ((nglyphs (lgstring-glyph-len gstring))
-	(i idx) g)
-    (while (and (< i nglyphs) (setq g (lgstring-glyph gstring i)))
+	(i idx))
+    (while (and (< i nglyphs) (lgstring-glyph gstring i))
       (setq i (1+ i)))
     (if (= i nglyphs)
 	(setq gstring (vconcat gstring (vector glyph)))
@@ -463,8 +461,7 @@ after a sequence of character events."
 
 (defun compose-glyph-string (gstring from to)
   (let ((glyph (lgstring-glyph gstring from))
-	from-pos to-pos
-	ascent descent lbearing rbearing)
+	from-pos to-pos)
     (setq from-pos (lglyph-from glyph)
 	  to-pos (lglyph-to (lgstring-glyph gstring (1- to))))
     (lglyph-set-from-to glyph from-pos to-pos)
@@ -482,7 +479,7 @@ after a sequence of character events."
   (let ((font-object (lgstring-font gstring))
 	(glyph (lgstring-glyph gstring from))
 	from-pos to-pos
-	ascent descent lbearing rbearing)
+	ascent descent)
     (if gap
 	(setq gap (floor (* (font-get font-object :size) gap)))
       (setq gap 0))
@@ -497,7 +494,7 @@ after a sequence of character events."
       (lglyph-set-from-to glyph from-pos to-pos)
       (let ((this-ascent (lglyph-ascent glyph))
 	    (this-descent (lglyph-descent glyph))
-	    xoff yoff wadjust)
+	    xoff yoff)
 	(setq xoff (if (<= (lglyph-rbearing glyph) 0) 0
 		     (- (lglyph-width glyph))))
 	(if (> this-ascent 0)
@@ -521,17 +518,16 @@ a padding space before and/or after the character.
 
 All non-spacing characters have this function in
 `composition-function-table' unless overwritten."
-  (let* ((header (lgstring-header gstring))
-	 (nchars (lgstring-char-len gstring))
-	 (nglyphs (lgstring-glyph-len gstring))
-	 (glyph (lgstring-glyph gstring 0)))
+  (let ((nchars (lgstring-char-len gstring))
+        (nglyphs (lgstring-glyph-len gstring))
+        (glyph (lgstring-glyph gstring 0)))
     (cond
      ;; A non-spacing character not following a proper base character.
      ((= nchars 1)
       (let ((lbearing (lglyph-lbearing glyph))
 	    (rbearing (lglyph-rbearing glyph))
 	    (width (lglyph-width glyph))
-	    xoff wadjust)
+	    xoff)
 	(if (< lbearing 0)
 	    (setq xoff (- lbearing))
 	  (setq xoff 0 lbearing 0))
@@ -561,8 +557,7 @@ All non-spacing characters have this function in
 		 (rbearing (lglyph-rbearing glyph))
 		 (lbearing (lglyph-lbearing glyph))
 		 (center (/ (+ lbearing rbearing) 2))
-		 (gap (round (* (font-get (lgstring-font gstring) :size) 0.1)))
-		 xoff yoff)
+		 (gap (round (* (font-get (lgstring-font gstring) :size) 0.1))))
 	    (dotimes (i nchars)
 	      (setq glyph (lgstring-glyph gstring i))
 	      (when (> i 0)
@@ -652,12 +647,10 @@ Non-spacing characters are composed with the preceding base
 character.  If the preceding character is not a base character,
 each non-spacing character is composed as a spacing character by
 prepending a space before it."
-  (let* ((header (lgstring-header gstring))
-	 (nchars (lgstring-char-len gstring))
-	 (nglyphs (lgstring-glyph-len gstring))
-	 (i 0)
-	 (coding (lgstring-font gstring))
-	 glyph)
+  (let ((nglyphs (lgstring-glyph-len gstring))
+        (i 0)
+        (coding (lgstring-font gstring))
+        glyph)
     (while (and (< i nglyphs)
 		(setq glyph (lgstring-glyph gstring i)))
       (if (not (char-charset (lglyph-char glyph) coding))

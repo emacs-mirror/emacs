@@ -96,7 +96,7 @@
   "Non-nil means `set-fringe-mode' should really do something.
 This is nil while loading `fringe.el', and t afterward.")
 
-(defun set-fringe-mode-1 (ignore value)
+(defun set-fringe-mode-1 (_ignore value)
   "Call `set-fringe-mode' with VALUE.
 See `fringe-mode' for valid values and their effect.
 This is usually invoked when setting `fringe-mode' via customize."

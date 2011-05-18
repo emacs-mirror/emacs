@@ -1071,6 +1071,8 @@ coding_set_destination (struct coding_system *coding)
 static void
 coding_alloc_by_realloc (struct coding_system *coding, EMACS_INT bytes)
 {
+  if (coding->dst_bytes >= MOST_POSITIVE_FIXNUM - bytes)
+    error ("Maximum size of buffer or string exceeded");
   coding->destination = (unsigned char *) xrealloc (coding->destination,
 						    coding->dst_bytes + bytes);
   coding->dst_bytes += bytes;
@@ -2333,7 +2335,9 @@ decode_coding_emacs_mule (struct coding_system *coding)
   /* We may produce two annotations (charset and composition) in one
      loop and one more charset annotation at the end.  */
   int *charbuf_end
-    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 3);
+    = coding->charbuf + coding->charbuf_size - (MAX_ANNOTATION_LENGTH * 3)
+      /* We can produce up to 2 characters in a loop.  */
+      - 1;
   EMACS_INT consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   EMACS_INT char_offset = coding->produced_char;
@@ -2348,6 +2352,8 @@ decode_coding_emacs_mule (struct coding_system *coding)
     {
       int i;
 
+      if (charbuf_end - charbuf < cmp_status->length)
+	abort ();
       for (i = 0; i < cmp_status->length; i++)
 	*charbuf++ = cmp_status->carryover[i];
       coding->annotated = 1;
@@ -3479,6 +3485,8 @@ decode_coding_iso_2022 (struct coding_system *coding)
 
   if (cmp_status->state != COMPOSING_NO)
     {
+      if (charbuf_end - charbuf < cmp_status->length)
+	abort ();
       for (i = 0; i < cmp_status->length; i++)
 	*charbuf++ = cmp_status->carryover[i];
       coding->annotated = 1;
@@ -5360,8 +5368,8 @@ detect_coding_charset (struct coding_system *coding,
 	      if (src == src_end)
 		goto too_short;
 	      ONE_MORE_BYTE (c);
-	      if (c < charset->code_space[(dim - 1 - idx) * 2]
-		  || c > charset->code_space[(dim - 1 - idx) * 2 + 1])
+	      if (c < charset->code_space[(dim - 1 - idx) * 4]
+		  || c > charset->code_space[(dim - 1 - idx) * 4 + 1])
 		break;
 	    }
 	  if (idx < dim)
@@ -7125,7 +7133,7 @@ handle_composition_annotation (EMACS_INT pos, EMACS_INT limit,
 	      components = COMPOSITION_COMPONENTS (prop);
 	      if (VECTORP (components))
 		{
-		  len = XVECTOR (components)->size;
+		  len = ASIZE (components);
 		  for (i = 0; i < len; i++)
 		    *buf++ = XINT (AREF (components, i));
 		}
@@ -9037,14 +9045,14 @@ Return the corresponding character.  */)
 
       if (c1 < 0x81 || (c1 > 0x9F && c1 < 0xE0) || c1 > 0xEF
 	  || c2 < 0x40 || c2 == 0x7F || c2 > 0xFC)
-	error ("Invalid code: %"pEd, ch);
+	error ("Invalid code: %"pI"d", ch);
       c = ch;
       SJIS_TO_JIS (c);
       charset = charset_kanji;
     }
   c = DECODE_CHAR (charset, c);
   if (c < 0)
-    error ("Invalid code: %"pEd, ch);
+    error ("Invalid code: %"pI"d", ch);
   return make_number (c);
 }
 
@@ -9071,7 +9079,7 @@ Return the corresponding code in SJIS.  */)
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);
   charset = char_charset (c, charset_list, &code);
   if (code == CHARSET_INVALID_CODE (charset))
-    error ("Can't encode by shift_jis encoding: %d", c);
+    error ("Can't encode by shift_jis encoding: %c", c);
   JIS_TO_SJIS (code);
 
   return make_number (code);
@@ -9111,13 +9119,13 @@ Return the corresponding character.  */)
       int b2 = ch & 0x7F;
       if (b1 < 0xA1 || b1 > 0xFE
 	  || b2 < 0x40 || (b2 > 0x7E && b2 < 0xA1) || b2 > 0xFE)
-	error ("Invalid code: %"pEd, ch);
+	error ("Invalid code: %"pI"d", ch);
       c = ch;
       charset = charset_big5;
     }
   c = DECODE_CHAR (charset, c);
   if (c < 0)
-    error ("Invalid code: %"pEd, ch);
+    error ("Invalid code: %"pI"d", ch);
   return make_number (c);
 }
 
@@ -9142,7 +9150,7 @@ Return the corresponding character code in Big5.  */)
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);
   charset = char_charset (c, charset_list, &code);
   if (code == CHARSET_INVALID_CODE (charset))
-    error ("Can't encode by Big5 encoding: %d", c);
+    error ("Can't encode by Big5 encoding: %c", c);
 
   return make_number (code);
 }
@@ -9282,14 +9290,15 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
       || !NATNUMP (target_idx = Fget (operation, Qtarget_idx)))
     error ("Invalid first argument");
   if (nargs < 1 + XFASTINT (target_idx))
-    error ("Too few arguments for operation: %s",
+    error ("Too few arguments for operation `%s'",
 	   SDATA (SYMBOL_NAME (operation)));
   target = args[XFASTINT (target_idx) + 1];
   if (!(STRINGP (target)
 	|| (EQ (operation, Qinsert_file_contents) && CONSP (target)
 	    && STRINGP (XCAR (target)) && BUFFERP (XCDR (target)))
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
-    error ("Invalid %"pEd"th argument", XFASTINT (target_idx) + 1);
+    error ("Invalid argument %"pI"d of operation `%s'",
+	   XFASTINT (target_idx) + 1, SDATA (SYMBOL_NAME (operation)));
   if (CONSP (target))
     target = XCAR (target);
 
@@ -9765,7 +9774,7 @@ usage: (define-coding-system-internal ...)  */)
 	  CHECK_CHARSET_GET_ID (tmp1, id);
 	  CHECK_NATNUM_CDR (val);
 	  if (XINT (XCDR (val)) >= 4)
-	    error ("Invalid graphic register number: %"pEd, XINT (XCDR (val)));
+	    error ("Invalid graphic register number: %"pI"d", XINT (XCDR (val)));
 	  XSETCAR (val, make_number (id));
 	}
 

@@ -1631,7 +1631,7 @@ and returns whatever that function returns.  */)
   enum scroll_bar_part party_dummy;
   Lisp_Object x, y, retval;
   int col, row;
-  unsigned long long_dummy;
+  Time long_dummy;
   struct gcpro gcpro1;
 
   f = SELECTED_FRAME ();
@@ -1676,7 +1676,7 @@ and nil for X and Y.  */)
   Lisp_Object lispy_dummy;
   enum scroll_bar_part party_dummy;
   Lisp_Object x, y;
-  unsigned long long_dummy;
+  Time long_dummy;
 
   f = SELECTED_FRAME ();
   x = y = Qnil;
@@ -2154,16 +2154,12 @@ store_in_alist (Lisp_Object *alistptr, Lisp_Object prop, Lisp_Object val)
 static int
 frame_name_fnn_p (char *str, EMACS_INT len)
 {
-  if (len > 1 && str[0] == 'F')
+  if (len > 1 && str[0] == 'F' && '0' <= str[1] && str[1] <= '9')
     {
-      char *end_ptr;
-      long int n;
-      errno = 0;
-      n = strtol (str + 1, &end_ptr, 10);
-
-      if (end_ptr == str + len
-	  && INT_MIN <= n && n <= INT_MAX
-	  && ((LONG_MIN < n && n < LONG_MAX) || errno != ERANGE))
+      char *p = str + 2;
+      while ('0' <= *p && *p <= '9')
+	p++;
+      if (p == str + len)
 	return 1;
     }
   return 0;
@@ -3844,6 +3840,31 @@ display_x_get_resource (Display_Info *dpyinfo, Lisp_Object attribute, Lisp_Objec
   return xrdb_get_resource (dpyinfo->xrdb,
 			    attribute, class, component, subclass);
 }
+
+#if defined HAVE_X_WINDOWS && !defined USE_X_TOOLKIT
+/* Used when C code wants a resource value.  */
+/* Called from oldXMenu/Create.c.  */
+char *
+x_get_resource_string (const char *attribute, const char *class)
+{
+  char *name_key;
+  char *class_key;
+  struct frame *sf = SELECTED_FRAME ();
+
+  /* Allocate space for the components, the dots which separate them,
+     and the final '\0'.  */
+  name_key = (char *) alloca (SBYTES (Vinvocation_name)
+			      + strlen (attribute) + 2);
+  class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
+			       + strlen (class) + 2);
+
+  sprintf (name_key, "%s.%s", SSDATA (Vinvocation_name), attribute);
+  sprintf (class_key, "%s.%s", EMACS_CLASS, class);
+
+  return x_get_string_resource (FRAME_X_DISPLAY_INFO (sf)->xrdb,
+				name_key, class_key);
+}
+#endif
 
 /* Return the value of parameter PARAM.
 

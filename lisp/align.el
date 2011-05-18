@@ -1106,7 +1106,7 @@ documentation for `align-region-separate' for more details."
 	     (setq seps (cdr seps))))
 	   yes))))
 
-(defun align-adjust-col-for-rule (column rule spacing tab-stop)
+(defun align-adjust-col-for-rule (column _rule spacing tab-stop)
   "Adjust COLUMN according to the given RULE.
 SPACING specifies how much spacing to use.
 TAB-STOP specifies whether SPACING refers to tab-stop boundaries."
@@ -1161,7 +1161,7 @@ have been aligned.  No changes will be made to the buffer."
 	 (justify (cdr (assq 'justify rule)))
 	 (col (or fixed 0))
 	 (width 0)
-	 ecol change look)
+	 ecol change)
 
     ;; Determine the alignment column.
     (let ((a areas))
@@ -1285,7 +1285,6 @@ purpose where you might want to know where the regions that the
 aligner would have dealt with are."
   (let ((end-mark (and end (copy-marker end t)))
 	(real-beg beg)
-	(real-end end)
 	(report (and (not func) align-large-region beg end
 		     (>= (- end beg) align-large-region)))
 	(rule-index 1)
@@ -1314,7 +1313,7 @@ aligner would have dealt with are."
 		 tab-stop tab-stop-c
 		 repeat repeat-c
 		 valid valid-c
-		 pos-list first
+		 first
 		 regions index
 		 last-point b e
 		 save-match-data

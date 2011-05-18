@@ -1,3 +1,19 @@
+2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Static checks with GCC 4.6.0 and non-default toolkits.
+
+	* lwlib-Xm.c (make_dialog): Rename local to avoid shadowing.
+	(make_menu_in_widget): Add cast to avoid warning.
+	* lwlib-utils.c (XtCompositeChildren): Likewise.
+
+	* lwlib.c (EXPLAIN, destroy_one_instance): Avoid "else;".
+	(first_child) [USE_MOTIF]: Protoize.
+
+	* lwlib-utils.h, lwlib-utils.c (XtSafelyDestroyWidget): Remove; unused.
+
+	* xlwmenu.c (XlwMenuSetValues): Rename/ move locals to avoid shadowing.
+	(MINL): Define only if not emacs.
+
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.3 released.

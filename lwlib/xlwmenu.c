@@ -1220,9 +1220,9 @@ display_menu (XlwMenuWidget mw,
 	{
 	  if (val->enabled)
 	    *hit_return = val;
-	  else 
+	  else
             no_return = 1;
-          if (mw->menu.inside_entry != val) 
+          if (mw->menu.inside_entry != val)
             {
               if (mw->menu.inside_entry)
                 XtCallCallbackList ((Widget)mw, mw->menu.leave,
@@ -1426,7 +1426,7 @@ fit_to_screen (XlwMenuWidget mw,
 static void
 create_pixmap_for_menu (window_state* ws, XlwMenuWidget mw)
 {
-  if (ws->pixmap != None) 
+  if (ws->pixmap != None)
     {
       XFreePixmap (XtDisplay (ws->w), ws->pixmap);
       ws->pixmap = None;
@@ -1592,9 +1592,9 @@ map_event_to_widget_value (XlwMenuWidget mw,
 	}
     }
 
-  if (!inside) 
+  if (!inside)
     {
-      if (mw->menu.inside_entry != NULL) 
+      if (mw->menu.inside_entry != NULL)
         XtCallCallbackList ((Widget)mw, mw->menu.leave,
                             (XtPointer) mw->menu.inside_entry);
       mw->menu.inside_entry = NULL;
@@ -1693,8 +1693,10 @@ release_drawing_gcs (XlwMenuWidget mw)
   mw->menu.background_gc = (GC) -1;
 }
 
+#ifndef emacs
 #define MINL(x,y) ((((unsigned long) (x)) < ((unsigned long) (y))) \
 		   ? ((unsigned long) (x)) : ((unsigned long) (y)))
+#endif
 
 static void
 make_shadow_gcs (XlwMenuWidget mw)
@@ -1881,7 +1883,7 @@ openXftFont (XlwMenuWidget mw)
       if (!mw->menu.font)
         {
           mw->menu.xft_font = XftFontOpenName (XtDisplay (mw), screen, fname);
-          if (!mw->menu.xft_font) 
+          if (!mw->menu.xft_font)
             {
               fprintf (stderr, "Can't find font '%s'\n", fname);
               mw->menu.xft_font = getDefaultXftFont (mw);
@@ -1930,19 +1932,19 @@ XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
       if (!mw->menu.font)
         {
           mw->menu.font = XLoadQueryFont (display, "fixed");
-          if (!mw->menu.font) 
+          if (!mw->menu.font)
             {
               fprintf (stderr, "Menu font fixed not found, can't continue.\n");
               abort ();
             }
         }
     }
-  
+
 #ifdef HAVE_X_I18N
   if (mw->menu.fontSet)
     mw->menu.font_extents = XExtentsOfFontSet (mw->menu.fontSet);
 #endif
-      
+
   make_drawing_gcs (mw);
   make_shadow_gcs (mw);
 
@@ -2118,12 +2120,12 @@ XlwMenuDestroy (Widget w)
     XftFontClose (XtDisplay (mw), mw->menu.xft_font);
 #endif
 
-  if (mw->menu.windows [0].pixmap != None) 
+  if (mw->menu.windows [0].pixmap != None)
     XFreePixmap (XtDisplay (mw), mw->menu.windows [0].pixmap);
   /* start from 1 because the one in slot 0 is w->core.window */
   for (i = 1; i < mw->menu.windows_length; i++)
     {
-      if (mw->menu.windows [i].pixmap != None) 
+      if (mw->menu.windows [i].pixmap != None)
         XFreePixmap (XtDisplay (mw), mw->menu.windows [i].pixmap);
 #ifdef HAVE_XFT
       if (mw->menu.windows [i].xft_draw)
@@ -2153,18 +2155,17 @@ XlwMenuSetValues (Widget current, Widget request, Widget new,
 {
   XlwMenuWidget oldmw = (XlwMenuWidget)current;
   XlwMenuWidget newmw = (XlwMenuWidget)new;
-  Boolean redisplay = False;
-  int i;
+  Boolean do_redisplay = False;
 
   if (newmw->menu.contents
       && newmw->menu.contents->contents
       && newmw->menu.contents->contents->change >= VISIBLE_CHANGE)
-    redisplay = True;
+    do_redisplay = True;
   /* Do redisplay if the contents are entirely eliminated.  */
   if (newmw->menu.contents
       && newmw->menu.contents->contents == 0
       && newmw->menu.contents->change >= VISIBLE_CHANGE)
-    redisplay = True;
+    do_redisplay = True;
 
   if (newmw->core.background_pixel != oldmw->core.background_pixel
       || newmw->menu.foreground != oldmw->menu.foreground
@@ -2179,6 +2180,7 @@ XlwMenuSetValues (Widget current, Widget request, Widget new,
 #endif
       )
     {
+      int i;
       release_drawing_gcs (newmw);
       make_drawing_gcs (newmw);
 
@@ -2188,7 +2190,7 @@ XlwMenuSetValues (Widget current, Widget request, Widget new,
       newmw->menu.bottom_shadow_color = -1;
       make_shadow_gcs (newmw);
 
-      redisplay = True;
+      do_redisplay = True;
 
       if (XtIsRealized (current))
 	/* If the menu is currently displayed, change the display.  */
@@ -2229,12 +2231,12 @@ XlwMenuSetValues (Widget current, Widget request, Widget new,
 #ifdef HAVE_X_I18N
   if (newmw->menu.fontSet != oldmw->menu.fontSet && newmw->menu.fontSet != NULL)
     {
-      redisplay = True;
+      do_redisplay = True;
       newmw->menu.font_extents = XExtentsOfFontSet (newmw->menu.fontSet);
     }
 #endif
 
-  return redisplay;
+  return do_redisplay;
 }
 
 static void

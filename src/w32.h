@@ -143,5 +143,20 @@ extern void syms_of_fontset (void);
 extern int _sys_read_ahead (int fd);
 extern int _sys_wait_accept (int fd);
 
+extern Lisp_Object Vlibrary_cache, QCloaded_from;
+extern HMODULE w32_delayed_load (Lisp_Object, Lisp_Object);
+
+#ifdef HAVE_GNUTLS
+#include <gnutls/gnutls.h>
+
+/* GnuTLS pull (read from remote) interface.  */
+extern ssize_t emacs_gnutls_pull (gnutls_transport_ptr_t p,
+                                  void* buf, size_t sz);
+
+/* GnuTLS push (write to remote) interface.  */
+extern ssize_t emacs_gnutls_push (gnutls_transport_ptr_t p,
+                                  const void* buf, size_t sz);
+#endif /* HAVE_GNUTLS */
+
 #endif /* EMACS_W32_H */
 

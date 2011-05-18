@@ -246,6 +246,7 @@ Table is maintained iff `allout-widgets-maintain-tally' is non-nil.
 The table contents will be out of sync if any widgets are created
 or deleted while this variable is nil.")
 (make-variable-buffer-local 'allout-widgets-tally)
+(defvar allout-widgets-mode-inhibit)    ; defined below
 ;;;_   > allout-widgets-tally-string
 (defun allout-widgets-tally-string ()
   "Return a string giving the number of tracked widgets, or empty string if not tracking.

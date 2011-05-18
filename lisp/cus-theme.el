@@ -112,13 +112,13 @@ remove them from your saved Custom file.\n\n"))
   (widget-create 'push-button
 		 :tag " Visit Theme "
 		 :help-echo "Insert the settings of a pre-defined theme."
-		 :action (lambda (widget &optional event)
+		 :action (lambda (_widget &optional _event)
 			   (call-interactively 'custom-theme-visit-theme)))
   (widget-insert "  ")
   (widget-create 'push-button
 		 :tag " Merge Theme "
 		 :help-echo "Merge in the settings of a pre-defined theme."
-		 :action (lambda (widget &optional event)
+		 :action (lambda (_widget &optional _event)
 			   (call-interactively 'custom-theme-merge-theme)))
   (widget-insert "  ")
   (widget-create 'push-button
@@ -182,7 +182,7 @@ remove them from your saved Custom file.\n\n"))
 		   :button-face 'custom-link
 		   :mouse-face 'highlight
 		   :pressed-face 'highlight
-		   :action (lambda (widget &optional event)
+		   :action (lambda (_widget &optional _event)
 			     (call-interactively 'custom-theme-add-face)))
 
     ;; If THEME is non-nil, insert all of that theme's variables.
@@ -201,14 +201,14 @@ remove them from your saved Custom file.\n\n"))
 		   :button-face 'custom-link
 		   :mouse-face 'highlight
 		   :pressed-face 'highlight
-		   :action (lambda (widget &optional event)
+		   :action (lambda (_widget &optional _event)
 			     (call-interactively 'custom-theme-add-variable)))
     (widget-insert ?\n)
     (widget-setup)
     (goto-char (point-min))
     (message "")))
 
-(defun custom-theme-revert (ignore-auto noconfirm)
+(defun custom-theme-revert (_ignore-auto noconfirm)
   (when (or noconfirm (y-or-n-p "Discard current changes? "))
     (customize-create-theme custom-theme--save-name (current-buffer))))
 
@@ -336,7 +336,11 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
 	       (nth 3 setting))))
   theme)
 
-(defun custom-theme-write (&rest ignore)
+;; From cus-edit.el
+(defvar custom-reset-standard-faces-list)
+(defvar custom-reset-standard-variables-list)
+
+(defun custom-theme-write (&rest _ignore)
   "Write the current custom theme to its theme file."
   (interactive)
   (let* ((name (widget-value custom-theme-name))
@@ -533,7 +537,7 @@ Do not call this mode function yourself.  It is meant for internal use."
   (use-local-map custom-theme-choose-mode-map)
   (custom--initialize-widget-variables)
   (set (make-local-variable 'revert-buffer-function)
-       (lambda (ignore-auto noconfirm)
+       (lambda (_ignore-auto noconfirm)
 	 (when (or noconfirm (y-or-n-p "Discard current choices? "))
 	   (customize-themes (current-buffer))))))
 (put 'custom-theme-choose-mode 'mode-class 'special)
@@ -566,7 +570,7 @@ Theme files are named *-theme.el in `"))
 		 :help-echo "Describe `custom-theme-load-path'."
 		 :keymap custom-mode-link-map
 		 :follow-link 'mouse-face
-		 :action (lambda (widget &rest ignore)
+		 :action (lambda (_widget &rest _ignore)
 			   (describe-variable 'custom-theme-load-path)))
   (widget-insert "'.\n\n")
 
@@ -589,7 +593,7 @@ Theme files are named *-theme.el in `"))
 		     :help-echo "Migrate."
 		     :keymap custom-mode-link-map
 		     :follow-link 'mouse-face
-		     :action (lambda (widget &rest ignore)
+		     :action (lambda (_widget &rest _ignore)
 			       (customize-create-theme 'user)))
       (widget-insert ".\n\n")))
 
@@ -653,7 +657,7 @@ Theme files are named *-theme.el in `"))
     (and widget
 	 (describe-theme (widget-get widget :theme-name)))))
 
-(defun custom-theme-save (&rest ignore)
+(defun custom-theme-save (&rest _ignore)
   (interactive)
   (customize-save-variable 'custom-enabled-themes custom-enabled-themes)
   (message "Custom themes saved for future sessions."))

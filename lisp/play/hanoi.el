@@ -355,7 +355,6 @@ BITS must be of length nrings.  Start at START-TIME."
 	 (fly-steps (abs (/ (- (cdr to) (cdr from)) fly-step)))
 	 (directed-fly-step (/ (- (cdr to) (cdr from)) fly-steps))
 	 (baseward-steps (/ (- (car to) (cdr to)) baseward-step))
-	 (total-steps (+ flyward-steps fly-steps baseward-steps))
 	 ;; A step is a character cell.  A tick is a time-unit.  To
 	 ;; make horizontal and vertical motion appear roughly the
 	 ;; same speed, we allow one tick per horizontal step and two

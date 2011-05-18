@@ -29,6 +29,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include <unistd.h>
 
+#include "lisp.h"
+
 #ifdef WINDOWSNT
 #include <fcntl.h>
 #include <windows.h> /* just for w32.h */
@@ -41,7 +43,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <GNUstepBase/GSConfig.h>
 #endif
 
-#include "lisp.h"
 #include "commands.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -163,10 +164,6 @@ static void *my_heap_start;
 
 /* The gap between BSS end and heap start as far as we can tell.  */
 static unsigned long heap_bss_diff;
-
-/* If the gap between BSS end and heap start is larger than this
-   output a warning in dump-emacs.  */
-#define MAX_HEAP_BSS_DIFF (1024*1024)
 
 /* Nonzero means running Emacs without interactive terminal.  */
 int noninteractive;
@@ -2100,7 +2097,6 @@ This is used in the file `loadup.el' when building Emacs.
 You must run Emacs in batch mode in order to dump it.  */)
   (Lisp_Object filename, Lisp_Object symfile)
 {
-  extern char my_edata[];
   Lisp_Object tem;
   Lisp_Object symbol;
   int count = SPECPDL_INDEX ();
@@ -2111,6 +2107,10 @@ You must run Emacs in batch mode in order to dump it.  */)
     error ("Dumping Emacs works only in batch mode");
 
 #ifdef GNU_LINUX
+
+  /* Warn if the gap between BSS end and heap start is larger than this.  */
+# define MAX_HEAP_BSS_DIFF (1024*1024)
+
   if (heap_bss_diff > MAX_HEAP_BSS_DIFF)
     {
       fprintf (stderr, "**************************************************\n");
@@ -2157,7 +2157,10 @@ You must run Emacs in batch mode in order to dump it.  */)
 #ifndef WINDOWSNT
   /* On Windows, this was done before dumping, and that once suffices.
      Meanwhile, my_edata is not valid on Windows.  */
-  memory_warnings (my_edata, malloc_warning);
+  {
+    extern char my_edata[];
+    memory_warnings (my_edata, malloc_warning);
+  }
 #endif /* not WINDOWSNT */
 #if defined (HAVE_GTK_AND_PTHREAD) && !defined SYNC_INPUT
   /* Pthread may call malloc before main, and then we will get an endless

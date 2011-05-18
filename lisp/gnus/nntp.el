@@ -364,19 +364,6 @@ be restored and the command retried."
 
   (throw 'nntp-with-open-group-error t))
 
-(defmacro nntp-insert-buffer-substring (buffer &optional start end)
-  "Copy string from unibyte buffer to multibyte current buffer."
-  (if (featurep 'xemacs)
-      `(insert-buffer-substring ,buffer ,start ,end)
-    `(if enable-multibyte-characters
-	 (insert (with-current-buffer ,buffer
-		   (mm-string-to-multibyte
-		    ,(if (or start end)
-			 `(buffer-substring (or ,start (point-min))
-					    (or ,end (point-max)))
-		       '(buffer-string)))))
-       (insert-buffer-substring ,buffer ,start ,end))))
-
 (defmacro nntp-copy-to-buffer (buffer start end)
   "Copy string from unibyte current buffer to multibyte buffer."
   (if (featurep 'xemacs)
@@ -434,7 +421,7 @@ be restored and the command retried."
 	  (unless discard
 	    (with-current-buffer buffer
 	      (goto-char (point-max))
-	      (nntp-insert-buffer-substring (process-buffer process))
+	      (nnheader-insert-buffer-substring (process-buffer process))
 	      ;; Nix out "nntp reading...." message.
 	      (when nntp-have-messaged
 		(setq nntp-have-messaged nil)
@@ -996,7 +983,7 @@ command whose response triggered the error."
           (narrow-to-region
            (setq point (goto-char (point-max)))
            (progn
-	     (nntp-insert-buffer-substring buf last-point (cdr entry))
+	     (nnheader-insert-buffer-substring buf last-point (cdr entry))
              (point-max)))
           (setq last-point (cdr entry))
           (nntp-decode-text)
@@ -1028,16 +1015,15 @@ command whose response triggered the error."
 
 (deffoo nntp-request-article (article &optional group server buffer command)
   (nntp-with-open-group
-    group server
+      group server
     (when (nntp-send-command-and-decode
            "\r?\n\\.\r?\n" "ARTICLE"
            (if (numberp article) (int-to-string article) article))
-      (if (and buffer
-               (not (equal buffer nntp-server-buffer)))
-          (with-current-buffer nntp-server-buffer
-            (copy-to-buffer buffer (point-min) (point-max))
-            (nntp-find-group-and-number group))
-        (nntp-find-group-and-number group)))))
+      (when (and buffer
+		 (not (equal buffer nntp-server-buffer)))
+	(with-current-buffer nntp-server-buffer
+	  (copy-to-buffer buffer (point-min) (point-max))))
+      (nntp-find-group-and-number group))))
 
 (deffoo nntp-request-head (article &optional group server)
   (nntp-with-open-group
@@ -1376,6 +1362,12 @@ password contained in '~/.nntp-authinfo'."
       (nntp-kill-buffer pbuffer))
     (when (and (buffer-name pbuffer)
 	       process)
+      (when (and (fboundp 'set-network-process-option) ;; Unavailable in XEmacs.
+		 (fboundp 'process-type) ;; Emacs 22 doesn't provide it.
+                 (eq (process-type process) 'network))
+        ;; Use TCP-keepalive so that connections that pass through a NAT router
+        ;; don't hang when left idle.
+        (set-network-process-option process :keepalive t))
       (gnus-set-process-query-on-exit-flag process nil)
       (if (and (nntp-wait-for process "^2.*\n" buffer nil t)
 	       (memq (process-status process) '(open run)))
@@ -1473,7 +1465,7 @@ password contained in '~/.nntp-authinfo'."
 		(goto-char (point-max))
 		(save-restriction
 		  (narrow-to-region (point) (point))
-		  (nntp-insert-buffer-substring buf start)
+		  (nnheader-insert-buffer-substring buf start)
 		  (when decode
 		    (nntp-decode-text))))))
 	  ;; report it.
@@ -1701,7 +1693,7 @@ password contained in '~/.nntp-authinfo'."
 	(when in-process-buffer-p
 	  (set-buffer buf)
 	  (goto-char (point-max))
-	  (nntp-insert-buffer-substring process-buffer)
+	  (nnheader-insert-buffer-substring process-buffer)
 	  (set-buffer process-buffer)
 	  (erase-buffer)
 	  (set-buffer buf))

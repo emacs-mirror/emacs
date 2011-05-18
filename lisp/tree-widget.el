@@ -657,6 +657,8 @@ This hook should be local in the buffer setup to display widgets.")
                                    (widget-get tree :dynargs)))
     tree))
 
+(defvar widget-glyph-enable) ; XEmacs
+
 (defun tree-widget-value-create (tree)
   "Create the TREE tree-widget."
   (let* ((node   (tree-widget-node tree))
@@ -792,7 +794,7 @@ Each function is passed a tree-widget.  If the value of the :open
 property is non-nil the tree has been expanded, else collapsed.
 This hook should be local in the buffer setup to display widgets.")
 
-(defun tree-widget-action (tree &optional event)
+(defun tree-widget-action (tree &optional _event)
   "Handle the :action of the TREE tree-widget.
 That is, toggle expansion of the TREE tree-widget.
 Ignore the EVENT argument."

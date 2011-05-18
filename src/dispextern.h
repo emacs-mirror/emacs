@@ -62,7 +62,7 @@ typedef HDC XImagePtr_or_DC;
 
 #ifdef HAVE_NS
 #include "nsgui.h"
-/* following typedef needed to accomodate the MSDOS port, believe it or not */
+/* Following typedef needed to accommodate the MSDOS port, believe it or not.  */
 typedef struct ns_display_info Display_Info;
 typedef Pixmap XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
@@ -1752,6 +1752,7 @@ struct face_cache
 
 #else /* not HAVE_WINDOW_SYSTEM */
 
+#define FACE_SUITABLE_FOR_ASCII_CHAR_P(FACE, CHAR) 1
 #define FACE_SUITABLE_FOR_CHAR_P(FACE, CHAR) 1
 #define FACE_FOR_CHAR(F, FACE, CHAR, POS, OBJECT) ((FACE)->id)
 
@@ -2650,9 +2651,9 @@ struct redisplay_interface
                               int cursor_type, int cursor_width,
                               int on_p, int active_p);
 
-/* Draw vertical border for window W from (X,Y0) to (X,Y1).  */
+/* Draw vertical border for window W from (X,Y_0) to (X,Y_1).  */
   void (*draw_vertical_window_border) (struct window *w,
-                                       int x, int y0, int y1);
+                                       int x, int y_0, int y_1);
 
 /* Shift display of frame F to make room for inserted glyphs.
    The area at pixel (X,Y) of width WIDTH and height HEIGHT is
@@ -2708,7 +2709,7 @@ struct image
 {
   /* The time in seconds at which the image was last displayed.  Set
      in prepare_image_for_display.  */
-  unsigned long timestamp;
+  time_t timestamp;
 
   /* Pixmaps of the image.  */
   Pixmap pixmap, mask;
@@ -2953,6 +2954,9 @@ int line_bottom_y (struct it *);
 int display_prop_intangible_p (Lisp_Object);
 void resize_echo_area_exactly (void);
 int resize_mini_window (struct window *, int);
+#if defined USE_TOOLKIT_SCROLL_BARS && !defined USE_GTK
+void set_vertical_scroll_bar (struct window *);
+#endif
 int try_window (Lisp_Object, struct text_pos, int);
 void window_box (struct window *, int, int *, int *, int *, int *);
 int window_box_height (struct window *);

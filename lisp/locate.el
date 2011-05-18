@@ -588,7 +588,7 @@ do not work in subdirectories.
     (message "This command only works inside main listing.")))
 
 ;; From Stephen Eglen <stephen@cns.ed.ac.uk>
-(defun locate-update (ignore1 ignore2)
+(defun locate-update (_ignore1 _ignore2)
   "Revert the *Locate* buffer.
 If `locate-update-when-revert' is non-nil, offer to update the
 locate database using the shell command in `locate-update-command'."

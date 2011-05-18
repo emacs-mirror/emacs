@@ -660,7 +660,7 @@ already exist."
 
 
 
-(defun tcl-indent-command (&optional arg)
+(defun tcl-indent-command (&optional _arg)
   "Indent current line as Tcl code, or in some cases insert a tab character.
 If `tcl-tab-always-indent' is t (the default), always indent current line.
 If `tcl-tab-always-indent' is nil and point is not in the indentation
@@ -1506,7 +1506,7 @@ The first line is assumed to look like \"#!.../program ...\"."
 ;; loading the XEmacs menu emulation code.
 ;;
 
-(defun tcl-popup-menu (e)
+(defun tcl-popup-menu (_e)
   (interactive "@e")
   (popup-menu tcl-mode-menu))
 

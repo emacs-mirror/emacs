@@ -565,10 +565,9 @@ and then further adjusted to be at the end of the line."
   (if comment-reg
       (hs-hide-comment-region (car comment-reg) (cadr comment-reg) end)
     (when (looking-at hs-block-start-regexp)
-      (let* ((mdata (match-data t))
-	     (header-beg (match-beginning 0))
-             (header-end (match-end 0))
-	     p q ov)
+      (let ((mdata (match-data t))
+            (header-end (match-end 0))
+            p q ov)
 	;; `p' is the point at the end of the block beginning, which
 	;; may need to be adjusted
 	(save-excursion

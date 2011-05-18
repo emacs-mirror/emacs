@@ -632,7 +632,7 @@ f2, f3, h0, h1, and H0 respectively."
 	    (ps-output "]"))))))
   (ps-output " ] " (if (nth 3 composition) "RLC" "RBC") "\n"))
 
-(defun ps-mule-plot-string (from to &optional bg-color)
+(defun ps-mule-plot-string (from to &optional _bg-color)
   "Generate PostScript code for plotting characters in the region FROM and TO.
 
 Optional argument BG-COLOR is ignored.

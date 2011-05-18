@@ -1691,7 +1691,7 @@ match for some possibility; @code{nil} otherwise.
 @item
 @code{(boundaries . SUFFIX)} specifies @code{completion-boundaries}.
 The function should return a value of the form @code{(boundaries
-START . END)} where START is the position of the beginning boundary in
+START . END)} where START is the position of the beginning boundary
 in the string to complete, and END is the position of the end boundary
 in SUFFIX.
 @end itemize

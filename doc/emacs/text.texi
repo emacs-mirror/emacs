@@ -2809,20 +2809,20 @@ following three paragraphs (the latter two are indented with header
 lines):
 
 @example
-@samp{table-capture} is a powerful command, but mastering its
-power requires some practice.  Here are some things it can do:
+table-capture is a powerful command.
+Here are some things it can do:
 
-Parse Cell Items      By using column delimiter regular
-                      expression and raw delimiter regular
-                      expression, it parses the specified text
-                      area and extracts cell items from
-                      non-table text and then forms a table out
-                      of them.
+Parse Cell Items  By using column delimiter regular
+                  expression and raw delimiter regular
+                  expression, it parses the specified text
+                  area and extracts cell items from
+                  non-table text and then forms a table out
+                  of them.
 
-Capture Text Area     When no delimiters are specified it
-                      creates a single cell table.  The text in
-                      the specified region is placed in that
-                      cell.
+Capture Text Area When no delimiters are specified it
+                  creates a single cell table.  The text in
+                  the specified region is placed in that
+                  cell.
 @end example
 
 @noindent
@@ -2836,22 +2836,22 @@ following one.
 @c produced output!!
 @smallexample
 @group
-+-----------------------------------------------------------------+
-|@samp{table-capture} is a powerful command, but mastering its         |
-|power requires some practice.  Here are some things it can do:   |
-|                                                                 |
-|Parse Cell Items      By using column delimiter regular          |
-|                      expression and raw delimiter regular       |
-|                      expression, it parses the specified text   |
-|                      area and extracts cell items from          |
-|                      non-table text and then forms a table out  |
-|                      of them.                                   |
-|                                                                 |
-|Capture Text Area     When no delimiters are specified it        |
-|                      creates a single cell table.  The text in  |
-|                      the specified region is placed in that     |
-|                      cell.                                      |
-+-----------------------------------------------------------------+
++-------------------------------------------------------------+
+|table-capture is a powerful command.                         |
+|Here are some things it can do:                              |
+|                                                             |
+|Parse Cell Items  By using column delimiter regular          |
+|                  expression and raw delimiter regular       |
+|                  expression, it parses the specified text   |
+|                  area and extracts cell items from          |
+|                  non-table text and then forms a table out  |
+|                  of them.                                   |
+|                                                             |
+|Capture Text Area When no delimiters are specified it        |
+|                  creates a single cell table.  The text in  |
+|                  the specified region is placed in that     |
+|                  cell.                                      |
++-------------------------------------------------------------+
 @end group
 @end smallexample
 
@@ -2861,22 +2861,22 @@ paragraphs occupying its own cell.  Each cell can now be edited
 independently without affecting the layout of other cells.
 
 @smallexample
-+-----------------------------------------------------------------+
-|@samp{table-capture} is a powerful command, but mastering its         |
-|power requires some practice.  Here are some things it can do:   |
-+---------------------+-------------------------------------------+
-|Parse Cell Items     |By using column delimiter regular          |
-|                     |expression and raw delimiter regular       |
-|                     |expression, it parses the specified text   |
-|                     |area and extracts cell items from          |
-|                     |non-table text and then forms a table out  |
-|                     |of them.                                   |
-+---------------------+-------------------------------------------+
-|Capture Text Area    |When no delimiters are specified it        |
-|                     |creates a single cell table.  The text in  |
-|                     |the specified region is placed in that     |
-|                     |cell.                                      |
-+---------------------+-------------------------------------------+
++--------------------------------------------------------------+
+|table-capture is a powerful command.                          |
+|Here are some things it can do:                               |
++------------------+-------------------------------------------+
+|Parse Cell Items  |By using column delimiter regular          |
+|                  |expression and raw delimiter regular       |
+|                  |expression, it parses the specified text   |
+|                  |area and extracts cell items from          |
+|                  |non-table text and then forms a table out  |
+|                  |of them.                                   |
++------------------+-------------------------------------------+
+|Capture Text Area |When no delimiters are specified it        |
+|                  |creates a single cell table.  The text in  |
+|                  |the specified region is placed in that     |
+|                  |cell.                                      |
++------------------+-------------------------------------------+
 @end smallexample
 
 @noindent

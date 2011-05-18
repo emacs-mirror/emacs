@@ -497,6 +497,8 @@ and the hook `eshell-exit-hook'."
       (if intercept
 	  (setq this-command 'eshell-self-insert-command)))))
 
+(declare-function find-tag-interactive "etags" (prompt &optional no-default))
+
 (defun eshell-find-tag (&optional tagname next-p regexp-p)
   "A special version of `find-tag' that ignores read-onlyness."
   (interactive)
@@ -504,8 +506,7 @@ and the hook `eshell-exit-hook'."
   (let ((inhibit-read-only t)
 	(no-default (eobp))
 	(find-tag-default-function 'ignore))
-    (with-no-warnings
-      (setq tagname (car (find-tag-interactive "Find tag: "))))
+    (setq tagname (car (find-tag-interactive "Find tag: " no-default)))
     (find-tag tagname next-p regexp-p)))
 
 (defun eshell-move-argument (limit func property arg)

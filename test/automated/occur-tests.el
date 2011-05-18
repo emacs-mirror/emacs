@@ -1,4 +1,4 @@
-;;; occur-testsuite.el --- Test suite for occur.
+;;; occur-tests.el --- Test suite for occur.
 
 ;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
@@ -20,11 +20,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; Commentary:
-
-;; Type M-x test-occur RET to test the functionality of `occur'.
-
 ;;; Code:
+
+(require 'ert)
 
 (defconst occur-tests
   '(
@@ -37,7 +35,7 @@ xd
 xex
 fx
 " "\
-5 matches for \"x\" in buffer:  *temp*
+5 matches for \"x\" in buffer:  *temp*<2>
       1:xa
       3:cx
       4:xd
@@ -54,7 +52,7 @@ a
 a
 a
 " "\
-2 matches for \"a^Ja\" in buffer:  *temp*
+2 matches for \"a^Ja\" in buffer:  *temp*<2>
       1:a
        :a
       3:a
@@ -70,7 +68,7 @@ c
 a
 b
 " "\
-2 matches for \"a^Jb\" in buffer:  *temp*
+2 matches for \"a^Jb\" in buffer:  *temp*<2>
       1:a
        :b
       4:a
@@ -84,7 +82,7 @@ c
 a
 
 " "\
-2 matches for \"a^J\" in buffer:  *temp*
+2 matches for \"a^J\" in buffer:  *temp*<2>
       1:a
        :
       4:a
@@ -99,7 +97,7 @@ d
 ex
 fx
 " "\
-2 matches for \"x^J.x^J\" in buffer:  *temp*
+2 matches for \"x^J.x^J\" in buffer:  *temp*<2>
       1:ax
        :bx
        :c
@@ -118,7 +116,7 @@ f
 g
 hx
 " "\
-3 matches for \"x\" in buffer:  *temp*
+3 matches for \"x\" in buffer:  *temp*<2>
       1:ax
        :b
 -------
@@ -138,7 +136,7 @@ d
 ex
 f
 " "\
-2 matches for \"x\" in buffer:  *temp*
+2 matches for \"x\" in buffer:  *temp*<2>
        :a
       2:bx
        :c
@@ -161,7 +159,7 @@ i
 j
 kx
 " "\
-5 matches for \"x\" in buffer:  *temp*
+5 matches for \"x\" in buffer:  *temp*<2>
       1:ax
       2:bx
        :c
@@ -186,7 +184,7 @@ gx
 h
 i
 " "\
-2 matches for \"x\" in buffer:  *temp*
+2 matches for \"x\" in buffer:  *temp*<2>
        :a
        :b
       3:cx
@@ -209,7 +207,7 @@ gx
 h
 
 " "\
-2 matches for \"x\" in buffer:  *temp*
+2 matches for \"x\" in buffer:  *temp*<2>
        :
        :b
       3:cx
@@ -234,7 +232,7 @@ i
 jx
 kx
 " "\
-3 matches for \"x^J.x\" in buffer:  *temp*
+3 matches for \"x^J.x\" in buffer:  *temp*<2>
       1:ax
        :bx
        :c
@@ -258,7 +256,7 @@ f
 gx
 hx
 " "\
-2 matches for \"x^J.x\" in buffer:  *temp*
+2 matches for \"x^J.x\" in buffer:  *temp*<2>
       1:ax
        :bx
        :c
@@ -281,7 +279,7 @@ g
 h
 ix
 " "\
-3 matches for \"x\" in buffer:  *temp*
+3 matches for \"x\" in buffer:  *temp*<2>
        :a
       2:bx
 -------
@@ -304,7 +302,7 @@ f
 gx
 h
 " "\
-3 matches for \"x\" in buffer:  *temp*
+3 matches for \"x\" in buffer:  *temp*<2>
        :a
       2:bx
        :c
@@ -319,29 +317,26 @@ h
 Each element has the format:
 \(REGEXP NLINES INPUT-BUFFER-STRING OUTPUT-BUFFER-STRING).")
 
-(defun test-occur ()
-  (interactive)
-  (let ((count 1)
-        failed
-        (occur-hook nil))
+(defun occur-test-case (test)
+  (let ((regexp (nth 0 test))
+        (nlines (nth 1 test))
+        (input-buffer-string (nth 2 test))
+        (output-buffer-string (nth 3 test)))
+    (save-window-excursion
+      (with-temp-buffer
+        (insert input-buffer-string)
+        (occur regexp nlines)
+        (equal output-buffer-string
+               (with-current-buffer "*Occur*"
+                 (buffer-string)))))))
+
+(ert-deftest occur-tests ()
+  "Test the functionality of `occur'.
+The test data is in the `occur-tests' constant."
+  (let ((occur-hook nil))
     (dolist (test occur-tests)
-      (let ((regexp (nth 0 test))
-            (nlines (nth 1 test))
-            (input-buffer-string (nth 2 test))
-            (output-buffer-string (nth 3 test)))
-        (save-excursion
-          (with-temp-buffer
-            (insert input-buffer-string)
-            (occur regexp nlines)
-            (unless (equal output-buffer-string
-                           (with-current-buffer "*Occur*"
-                             (buffer-string)))
-              (setq failed (cons count failed))))))
-      (setq count (1+ count)))
-    (if failed
-        (message "FAILED TESTS: %S" (reverse failed))
-      (message "SUCCESS"))))
+      (should (occur-test-case test)))))
 
-(provide 'occur-testsuite)
+(provide 'occur-tests)
 
-;;; occur-testsuite.el ends here
+;;; occur-tests.el ends here

@@ -31,21 +31,9 @@
 ;;
 ;; (setq lisp-indent-function 'common-lisp-indent-function)
 
-;;>> TODO
-;; :foo
-;;   bar
-;; :baz
-;;   zap
-;; &key (like &body)??
-
-;; &rest 1 in lambda-lists doesn't work
-;;  -- really want (foo bar
-;;                  baz)
-;;     not (foo bar
-;;              baz)
-;;  Need something better than &rest for such cases
-
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (defgroup lisp-indent nil
   "Indentation in Lisp."
@@ -101,9 +89,55 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
   :type 'integer
   :group 'lisp-indent)
 
+(defcustom lisp-lambda-list-keyword-alignment nil
+  "Whether to vertically align lambda-list keywords together.
+If nil (the default), keyworded lambda-list parts are aligned
+with the initial mandatory arguments, like this:
+
+\(defun foo (arg1 arg2 &rest rest
+            &key key1 key2)
+  #|...|#)
+
+If non-nil, alignment is done with the first keyword
+\(or falls back to the previous case), as in:
+
+\(defun foo (arg1 arg2 &rest rest
+                      &key key1 key2)
+  #|...|#)"
+  :type 'boolean
+  :group 'lisp-indent)
+
+(defcustom lisp-lambda-list-keyword-parameter-indentation 2
+  "Indentation of lambda list keyword parameters.
+See `lisp-lambda-list-keyword-parameter-alignment'
+for more information."
+  :type 'integer
+  :group 'lisp-indent)
+
+(defcustom lisp-lambda-list-keyword-parameter-alignment nil
+  "Whether to vertically align lambda-list keyword parameters together.
+If nil (the default), the parameters are aligned
+with their corresponding keyword, plus the value of
+`lisp-lambda-list-keyword-parameter-indentation', like this:
+
+\(defun foo (arg1 arg2 &key key1 key2
+                        key3 key4)
+  #|...|#)
+
+If non-nil, alignment is done with the first parameter
+\(or falls back to the previous case), as in:
+
+\(defun foo (arg1 arg2 &key key1 key2
+                            key3 key4)
+  #|...|#)"
+  :type 'boolean
+  :group 'lisp-indent)
+
 
 (defvar lisp-indent-defun-method '(4 &lambda &body)
-  "Indentation for function with `common-lisp-indent-function' property `defun'.")
+  "Defun-like indentation method.
+This applies when the value of the `common-lisp-indent-function' property
+is set to `defun'.")
 
 
 (defun extended-loop-p (loop-start)
@@ -144,7 +178,7 @@ indentation function is called, and STATE is the
 of this function.
 
 If the indentation point is in a call to a Lisp function, that
-function's common-lisp-indent-function property specifies how
+function's `common-lisp-indent-function' property specifies how
 this function should indent it.  Possible values for this
 property are:
 
@@ -217,8 +251,7 @@ For example, the function `case' has an indent property
     (let ((depth 0)
           ;; Path describes the position of point in terms of
           ;;  list-structure with respect to containing lists.
-          ;; `foo' has a path of (0 4 1) in `((a b c (d foo) f) g)'
-          ;; (Surely (0 3 1)?).
+          ;; `foo' has a path of (0 3 1) in `((a b c (d foo) f) g)'.
           (path ())
           ;; set non-nil when somebody works out the indentation to use
           calculated
@@ -381,10 +414,74 @@ For example, the function `case' has an indent property
          ;; Love those free variable references!!
          lisp-indent-error-function 'common-lisp-indent-function m))
 
+
+;; Lambda-list indentation is now done in LISP-INDENT-LAMBDA-LIST.
+;; See also `lisp-lambda-list-keyword-alignment',
+;; `lisp-lambda-list-keyword-parameter-alignment' and
+;; `lisp-lambda-list-keyword-parameter-indentation' -- dvl
+
+(defvar lisp-indent-lambda-list-keywords-regexp
+  "&\\(\
+optional\\|rest\\|key\\|allow-other-keys\\|aux\\|whole\\|body\\|environment\
+\\)\\([ \t]\\|$\\)"
+  "Regular expression matching lambda-list keywords.")
+
+(defun lisp-indent-lambda-list
+    (indent-point sexp-column containing-form-start)
+  (let (limit)
+    (cond ((save-excursion
+	     (goto-char indent-point)
+	     (beginning-of-line)
+	     (skip-chars-forward " \t")
+	     (setq limit (point))
+	     (looking-at lisp-indent-lambda-list-keywords-regexp))
+	   ;; We're facing a lambda-list keyword.
+	   (if lisp-lambda-list-keyword-alignment
+	       ;; Align to the first keyword if any, or to the beginning of
+	       ;; the lambda-list.
+	       (save-excursion
+		 (goto-char containing-form-start)
+		 (save-match-data
+		   (if (re-search-forward
+			lisp-indent-lambda-list-keywords-regexp
+			limit t)
+		       (progn
+			 (goto-char (match-beginning 0))
+			 (current-column))
+		       (1+ sexp-column))))
+	       ;; Align to the beginning of the lambda-list.
+	       (1+ sexp-column)))
+	  (t
+	   ;; Otherwise, align to the first argument of the last lambda-list
+	   ;; keyword, the keyword itself, or the beginning of the
+	   ;; lambda-list.
+	   (save-excursion
+	     (goto-char indent-point)
+	     (forward-line -1)
+	     (end-of-line)
+	     (save-match-data
+	       (if (re-search-backward lisp-indent-lambda-list-keywords-regexp
+				       containing-form-start t)
+		   (let* ((keyword-posn
+			   (progn
+			     (goto-char (match-beginning 0))
+			     (current-column)))
+			  (indented-keyword-posn
+			   (+ keyword-posn
+			      lisp-lambda-list-keyword-parameter-indentation)))
+		     (goto-char (match-end 0))
+		     (skip-chars-forward " \t")
+		     (if (eolp)
+			 indented-keyword-posn
+			 (if lisp-lambda-list-keyword-parameter-alignment
+			     (current-column)
+			     indented-keyword-posn)))
+		   (1+ sexp-column))))))))
+
 ;; Blame the crufty control structure on dynamic scoping
 ;;  -- not on me!
-(defun lisp-indent-259 (method path state indent-point
-                        sexp-column normal-indent)
+(defun lisp-indent-259
+    (method path state indent-point sexp-column normal-indent)
   (catch 'exit
     (let ((p path)
           (containing-form-start (elt state 1))
@@ -452,8 +549,14 @@ For example, the function `case' has an indent property
 			(cond ((null p)
 			       (list (+ sexp-column 4) containing-form-start))
 			      ((null (cdr p))
-			       (+ sexp-column 1))
-			      (t normal-indent))))
+                               ;; Indentation within a lambda-list. -- dvl
+                               (list (lisp-indent-lambda-list
+                                      indent-point
+                                      sexp-column
+                                      containing-form-start)
+                                     containing-form-start))
+                              (t
+                               normal-indent))))
                 ((integerp tem)
                  (throw 'exit
                    (if (null p)         ;not in subforms
@@ -523,19 +626,26 @@ For example, the function `case' has an indent property
              path state indent-point sexp-column normal-indent)))
 
 
-(defun lisp-indent-defmethod (path state indent-point sexp-column
-				   normal-indent)
-  "Indentation function defmethod."
-  (lisp-indent-259 (if (and (>= (car path) 3)
-                            (null (cdr path))
-			    (save-excursion (goto-char (elt state 1))
-					    (forward-char 1)
-                                            (forward-sexp 3)
-                                            (backward-sexp)
-					    (looking-at ":\\|\\sw+")))
-		       '(4 4 (&whole 4 &rest 4) &body)
-		     (get 'defun 'common-lisp-indent-function))
-		   path state indent-point sexp-column normal-indent))
+;; LISP-INDENT-DEFMETHOD now supports the presence of more than one method
+;; qualifier and indents the method's lambda list properly. -- dvl
+(defun lisp-indent-defmethod
+    (path state indent-point sexp-column normal-indent)
+  (lisp-indent-259
+   (let ((nqual 0))
+     (if (and (>= (car path) 3)
+	      (save-excursion
+		(beginning-of-defun)
+		(forward-char 1)
+		(forward-sexp 2)
+		(skip-chars-forward " \t\n")
+		(while (looking-at "\\sw\\|\\s_")
+		  (incf nqual)
+		  (forward-sexp)
+		  (skip-chars-forward " \t\n"))
+		(> nqual 0)))
+         (append '(4) (make-list nqual 4) '(&lambda &body))
+	 (get 'defun 'common-lisp-indent-function)))
+   path state indent-point sexp-column normal-indent))
 
 
 (defun lisp-indent-function-lambda-hack (path state indent-point
@@ -577,6 +687,7 @@ For example, the function `case' has an indent property
            (define-modify-macro (4 &lambda &body))
            (defsetf     (4 &lambda 4 &body))
            (defun       (4 &lambda &body))
+	   (defgeneric  (4 &lambda &body))
            (define-setf-method . defun)
            (define-setf-expander . defun)
            (defmacro . defun)

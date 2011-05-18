@@ -120,6 +120,7 @@ MISC= \
 	$(srcdir)/quail/ipa.elc \
 	$(srcdir)/quail/hebrew.elc \
 	$(srcdir)/quail/georgian.elc \
+	$(srcdir)/quail/persian.elc \
 	$(srcdir)/quail/sisheng.elc
 
 MISC_DIC=\

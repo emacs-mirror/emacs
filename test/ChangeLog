@@ -1,3 +1,23 @@
+2011-05-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* automated/gnus-tests.el: Add wrapper for Gnus tests.
+	Require CL.
+
+2011-05-09  Juri Linkov  <juri@jurta.org>
+
+	* automated/occur-tests.el: Move from test/occur-testsuite.el.
+	Convert to ERT.
+
+2011-05-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* automated/compile-tests.el: New file.
+
+2011-05-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* automated/font-parse-tests.el: Don't byte-compile.
+
+	* automated/comint-testsuite.el: Move from test/.  Convert to ERT.
+
 2011-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* automated/lexbind-tests.el: New file.

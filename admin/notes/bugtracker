@@ -63,13 +63,16 @@ quiet@debbugs.gnu.org.
 ** How do I reply to an existing bug report?
 Reply to 123@debbugs.gnu.org, replacing 123 with the number
 of the bug you are interested in.  NB this only sends mail to the
-bug-list, it does NOT (?) send a CC to the original bug submitter.
+bug-list, it does NOT send a CC to the original bug submitter.
 So you need to explicitly CC him/her (and anyone else you like).
+(This works the same way as all the Emacs mailing lists.  We generally
+don't assume anyone who posts to a list is subscribed to it, so we
+cc everyone on replies.)
 
 (Many people think the submitter SHOULD be automatically subscribed
 to subsequent discussion, but this does not seem to be implemented.
-See http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=37078)
-See also http://debbugs.gnu.org/5439
+See http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=37078
+See also http://debbugs.gnu.org/5439 )
 
 Do NOT send a separate copy to the bug list address, since this may
 generate a new report.  The only time to send mail to the bug list
@@ -85,9 +88,9 @@ The "owner@debbugs.gnu.org" entry is there because it appears in the
 "Resent-To" header.  For a long time Rmail erroneously included such
 headers in replies.  If you correspond with an Rmail user on a bug,
 these addresses may end up in the Cc.  Mailing to them does nothing
-but create duplicates and errors.  (It is possible you might want to
-have a dialog with the owner address, outside of normal bug
-reporting.)
+but create duplicates and errors.  (It is possible, but unlikely, that
+you might want to have a dialog with the owner address, outside of
+normal bug reporting.)
 
 ** When reporting a bug, to send a Cc to another address
 (e.g. bug-cc-mode@gnu.org), do NOT just use a Cc: header.

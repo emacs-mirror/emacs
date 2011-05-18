@@ -50,6 +50,7 @@ lib/deps/
 lib/arg-nonnull.h
 lib/c++defs.h
 lib/getopt.h
+lib/inttypes.h
 lib/stdio.h
 lib/stdlib.h
 lib/sys/

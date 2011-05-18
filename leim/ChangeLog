@@ -1,3 +1,21 @@
+2011-05-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (OTHERS): Add $(srcdir)/quail/persian.elc.
+
+	* makefile.w32-in (MISC): Add $(srcdir)/quail/persian.elc.
+
+2011-05-16  Mohsen BANAN  <libre@mohsen.banan.1.byname.net>
+
+	* quail/persian.el: New file.
+
+2011-05-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* quail/latin-ltx.el <\beth, \gimel, \daleth>: Produce
+	corresponding symbols rather than Hebrew letters.  (Bug#8563)
+
+	* quail/latin-ltx.el <\aleph>: Produce ALEF SYMBOL instead of
+	HEBREW LETTER ALEF.  (Bug#8563)
+
 2011-03-23  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install): Use `install-sh -d' rather than mkinstalldirs.

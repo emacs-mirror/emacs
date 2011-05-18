@@ -129,7 +129,7 @@ XtCompositeChildren (Widget widget, unsigned int *number)
       return NULL;
     }
   n = cw->composite.num_children;
-  result = (Widget*)XtMalloc (n * sizeof (Widget));
+  result = (Widget*)(void*)XtMalloc (n * sizeof (Widget));
   *number = n;
   for (i = 0; i < n; i++)
     result [i] = cw->composite.children [i];
@@ -140,30 +140,4 @@ Boolean
 XtWidgetBeingDestroyedP (Widget widget)
 {
   return widget->core.being_destroyed;
-}
-
-void
-XtSafelyDestroyWidget (Widget widget)
-{
-#if 0
-
-  /* this requires IntrinsicI.h (actually, InitialI.h) */
-
-  XtAppContext app = XtWidgetToApplicationContext(widget);
-
-  if (app->dispatch_level == 0)
-    {
-      app->dispatch_level = 1;
-      XtDestroyWidget (widget);
-      /* generates an event so that the event loop will be called */
-      XChangeProperty (XtDisplay (widget), XtWindow (widget),
-		       XA_STRING, XA_STRING, 32, PropModeAppend, NULL, 0);
-      app->dispatch_level = 0;
-    }
-  else
-    XtDestroyWidget (widget);
-
-#else
-  abort ();
-#endif
 }

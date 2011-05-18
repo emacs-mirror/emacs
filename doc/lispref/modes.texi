@@ -3174,7 +3174,7 @@ subsequent lines.
 
 @menu
 * Font Lock Multiline::         Marking multiline chunks with a text property.
-* Region to Fontify::           Controlling which region gets refontified
+* Region to Refontify::         Controlling which region gets refontified
                                   after a buffer change.
 @end menu
 
@@ -3226,7 +3226,7 @@ place the @code{font-lock-multiline} property on the text before
 Font-Lock looks at it, or use
 @code{font-lock-fontify-region-function}.
 
-@node Region to Fontify
+@node Region to Refontify
 @subsubsection Region to Fontify after a Buffer Change
 
   When a buffer is changed, the region that Font Lock refontifies is
@@ -3235,15 +3235,15 @@ While this works well most of the time, sometimes it doesn't---for
 example, when a change alters the syntactic meaning of text on an
 earlier line.
 
-  You can enlarge (or even reduce) the region to fontify by setting
-one the following variables:
+  You can enlarge (or even reduce) the region to refontify by setting
+the following variable:
 
 @defvar font-lock-extend-after-change-region-function
 This buffer-local variable is either @code{nil} or a function for
 Font-Lock to call to determine the region to scan and fontify.
 
 The function is given three parameters, the standard @var{beg},
-@var{end}, and @var{old-len} from after-change-functions
+@var{end}, and @var{old-len} from @code{after-change-functions}
 (@pxref{Change Hooks}).  It should return either a cons of the
 beginning and end buffer positions (in that order) of the region to
 fontify, or @code{nil} (which means choose the region in the standard

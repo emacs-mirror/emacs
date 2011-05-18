@@ -365,6 +365,25 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
 	size
       nil)))
 
+(with-no-warnings
+  ;; Warnings are suppresed to avoid "global/dynamic var `X' lacks a prefix".
+  (defvar now)
+  (defvar time)
+  (defvar load)
+  (defvar mail)
+  (defvar 24-hours)
+  (defvar hour)
+  (defvar 12-hours)
+  (defvar am-pm)
+  (defvar minutes)
+  (defvar seconds)
+  (defvar time-zone)
+  (defvar day)
+  (defvar year)
+  (defvar monthname)
+  (defvar month)
+  (defvar dayname))
+
 (defun display-time-update ()
   "Update the display-time info for the mode line.
 However, don't redisplay right now.

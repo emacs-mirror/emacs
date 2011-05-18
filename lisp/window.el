@@ -251,7 +251,7 @@ The optional argument MINIBUF specifies whether the minibuffer
 window shall be counted.  See `walk-windows' for the precise
 meaning of this argument."
    (let ((count 0))
-     (walk-windows (lambda (w) (setq count (+ count 1)))
+     (walk-windows (lambda (_w) (setq count (+ count 1)))
 		   minibuf)
      count))
 
@@ -423,7 +423,7 @@ subtree is balanced."
 Arguments WINDOW, DELTA and HORIZONTAL are passed on to that function."
   ;; `adjust-window-trailing-edge' may fail if delta is too large.
   (while (>= (abs delta) 1)
-    (condition-case err
+    (condition-case nil
         (progn
           (adjust-window-trailing-edge window delta horizontal)
           (setq delta 0))

@@ -290,8 +290,7 @@ in order, to:\n
   :group 'htmlfontify
   :tag   "html-quote-map"
   :type  '(alist :key-type (string)))
-(eval-and-compile
-  (defconst hfy-e2x-etags-cmd "for src in `find . -type f`;
+(defconst hfy-e2x-etags-cmd "for src in `find . -type f`;
 do
   ETAGS=%s;
   case ${src} in
@@ -322,17 +321,17 @@ do
   esac;
 done;")
 
-  (defconst hfy-etags-cmd-alist-default
-    `(("emacs etags"     . ,hfy-e2x-etags-cmd)
-      ("exuberant ctags" . "%s -R -f -"   )))
+(defconst hfy-etags-cmd-alist-default
+  `(("emacs etags"     . ,hfy-e2x-etags-cmd)
+    ("exuberant ctags" . "%s -R -f -"   )))
 
-  (defcustom hfy-etags-cmd-alist
-    hfy-etags-cmd-alist-default
-    "Alist of possible shell commands that will generate etags output that
+(defcustom hfy-etags-cmd-alist
+  hfy-etags-cmd-alist-default
+  "Alist of possible shell commands that will generate etags output that
 `htmlfontify' can use.  '%s' will be replaced by `hfy-etags-bin'."
-    :group 'htmlfontify
-    :tag   "etags-cmd-alist"
-    :type  '(alist :key-type (string) :value-type (string)) ))
+  :group 'htmlfontify
+  :tag   "etags-cmd-alist"
+  :type  '(alist :key-type (string) :value-type (string)))
 
 (defcustom hfy-etags-bin "etags"
   "Location of etags binary (we begin by assuming it's in your path).\n
@@ -367,7 +366,13 @@ commands in `hfy-etags-cmd-alist'."
           ((string-match "GNU E" v) "emacs etags"    )) ))
 
 (defcustom hfy-etags-cmd
-  (eval-and-compile (cdr (assoc (hfy-which-etags) hfy-etags-cmd-alist)))
+  ;; We used to wrap this in a `eval-and-compile', but:
+  ;; - it had no effect because this expression was not seen by the
+  ;;   byte-compiler (defcustom used to quote this argument).
+  ;; - it signals an error (`hfy-which-etags' is not defined at compile-time).
+  ;; - we want this auto-detection to reflect the system on which Emacs is run
+  ;;   rather than the one on which it's compiled.
+  (cdr (assoc (hfy-which-etags) hfy-etags-cmd-alist))
   "The etags equivalent command to run in a source directory to generate a tags
 file for the whole source tree from there on down.  The command should emit
 the etags output on stdout.\n
@@ -375,11 +380,10 @@ Two canned commands are provided - they drive Emacs' etags and
 exuberant-ctags' etags respectively."
   :group 'htmlfontify
   :tag   "etags-command"
-  :type (eval-and-compile
-          (let ((clist (list '(string))))
-            (dolist (C hfy-etags-cmd-alist)
-              (push (list 'const :tag (car C) (cdr C)) clist))
-            (cons 'choice clist)) ))
+  :type (let ((clist (list '(string))))
+          (dolist (C hfy-etags-cmd-alist)
+            (push (list 'const :tag (car C) (cdr C)) clist))
+          (cons 'choice clist)))
 
 (defcustom hfy-istext-command "file %s | sed -e 's@^[^:]*:[ \t]*@@'"
   "Command to run with the name of a file, to see whether it is a text file
@@ -706,7 +710,7 @@ STYLE is the inline CSS stylesheet (or tag referring to an external sheet)."
   <body onload=\"stripe('index'); return true;\">\n"
           file style))
 
-(defun hfy-default-footer (file)
+(defun hfy-default-footer (_file)
   "Default value for `hfy-page-footer'.
 FILE is the name of the file being rendered, in case it is needed."
   "\n </body>\n</html>\n")
@@ -821,7 +825,7 @@ regular specifiers."
        ((stringp  box) (list (cons "border" (format "solid %s 1px" box))))
        ((listp    box) (hfy-box-to-style box)                            ))) )
 
-(defun hfy-decor (tag val)
+(defun hfy-decor (tag _val)
   "Derive CSS text-decoration specifiers from various Emacs font attributes.
 TAG is an Emacs font attribute key (eg :underline).
 VAL is ignored."
@@ -832,7 +836,7 @@ VAL is ignored."
      (:overline       (cons "text-decoration" "overline"    ))
      (:strike-through (cons "text-decoration" "line-through")))))
 
-(defun hfy-invisible (&optional val)
+(defun hfy-invisible (&optional _val)
   "This text should be invisible.
 Do something in CSS to make that happen.
 VAL is ignored here."
@@ -1145,7 +1149,7 @@ See also `hfy-face-to-style'."
         (setq p (next-char-property-change p)))
       ;; still invisible at buffer end?
       (when i
-        (setq invisible (cons (cons s (point-max)) invisible))) 
+        (setq invisible (cons (cons s (point-max)) invisible)))
       invisible)))
 
 (defun hfy-invisible-name (point map)
@@ -1755,7 +1759,7 @@ hyperlinks as appropriate."
   (if (not (hfy-opt 'skip-refontification))
       (save-excursion ;; Keep region
         (hfy-force-fontification)))
-  (if (interactive-p) ;; display the buffer in interactive mode:
+  (if (called-interactively-p 'any) ;; display the buffer in interactive mode:
       (switch-to-buffer (hfy-fontify-buffer srcdir file))
     (hfy-fontify-buffer srcdir file)))
 
@@ -2057,7 +2061,7 @@ FILE is the specific file we are rendering."
                   (puthash tag-string hash-entry cache-hash)))) )))
 
     ;; cache a list of tags in descending length order:
-    (maphash (lambda (K V) (push K tags-list)) cache-hash)
+    (maphash (lambda (K _V) (push K tags-list)) cache-hash)
     (setq tags-list (sort tags-list (lambda (A B) (< (length B) (length A)))))
 
     ;; put the tag list into the cache:
@@ -2088,7 +2092,7 @@ DSTDIR is the output directory, where files will be written."
                   (setq cache-hash (cadr cache-entry))
                   (setq index-buf  (get-buffer-create index-file))))
         nil ;; noop
-      (maphash (lambda (K V) (push K tag-list)) cache-hash)
+      (maphash (lambda (K _V) (push K tag-list)) cache-hash)
       (setq tag-list (sort tag-list 'string<))
       (set-buffer index-buf)
       (erase-buffer)
@@ -2132,7 +2136,7 @@ SRCDIR and DSTDIR are the source and output directories respectively."
           (cache-entry  (assoc srcdir hfy-tags-cache)))
       (if (and cache-entry (setq cache-hash (cadr cache-entry)))
           (maphash
-           (lambda (K V)
+           (lambda (K _V)
              (let ((stub (upcase (substring K 0 1))))
                (if (member stub stub-list)
                    nil ;; seen this already: NOOP
@@ -2165,7 +2169,7 @@ See also `hfy-prepare-index', `hfy-split-index'."
 
       (if (and cache-entry (setq cache-hash (cadr cache-entry)))
           (maphash
-           (lambda (K V)
+           (lambda (K _V)
              (let ((stub (upcase (substring K 0 1))))
                (if (member stub stub-list)
                    nil ;; seen this already: NOOP

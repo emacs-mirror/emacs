@@ -844,7 +844,7 @@ Return the result of evaluation."
 	   (end-of-defun)
 	   (beginning-of-defun)
 	   (setq beg (point))
-	   (setq form (read (current-buffer)))
+	   (setq form (eval-sexp-add-defvars (read (current-buffer))))
 	   (setq end (point)))
 	 ;; Alter the form if necessary.
 	 (setq form (eval-defun-1 (macroexpand form)))

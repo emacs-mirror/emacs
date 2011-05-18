@@ -35,6 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <sys/types.h>
 #include <setjmp.h>
+#include <intprops.h>
 #include "lisp.h"
 #include "character.h"
 #include "buffer.h"
@@ -156,17 +157,17 @@ char_string (unsigned int c, unsigned char *p)
       bytes = BYTE8_STRING (c, p);
     }
   else
-    error ("Invalid character: %d", c);
+    error ("Invalid character: %x", c);
 
   return bytes;
 }
 
 
-/* Return a character whose multibyte form is at P.  Set LEN is not
+/* Return a character whose multibyte form is at P.  If LEN is not
    NULL, it must be a pointer to integer.  In that case, set *LEN to
-   the byte length of the multibyte form.  If ADVANCED is not NULL, is
+   the byte length of the multibyte form.  If ADVANCED is not NULL, it
    must be a pointer to unsigned char.  In that case, set *ADVANCED to
-   the ending address (i.e. the starting address of the next
+   the ending address (i.e., the starting address of the next
    character) of the multibyte form.  */
 
 int
@@ -206,11 +207,10 @@ string_char (const unsigned char *p, const unsigned char **advanced, int *len)
 }
 
 
-/* Translate character C by translation table TABLE.  If C is
-   negative, translate a character specified by CHARSET and CODE.  If
-   no translation is found in TABLE, return the untranslated
-   character.  If TABLE is a list, elements are char tables.  In this
-   case, translace C by all tables.  */
+/* Translate character C by translation table TABLE.  If no translation is
+   found in TABLE, return the untranslated character.  If TABLE is a list,
+   elements are char tables.  In that case, recursively translate C by all the
+   tables in the list.  */
 
 int
 translate_char (Lisp_Object table, int c)
@@ -357,7 +357,7 @@ c_string_width (const unsigned char *str, EMACS_INT len, int precision,
 	{
 	  val = DISP_CHAR_VECTOR (dp, c);
 	  if (VECTORP (val))
-	    thiswidth = XVECTOR (val)->size;
+	    thiswidth = ASIZE (val);
 	  else
 	    thiswidth = CHAR_WIDTH (c);
 	}
@@ -405,7 +405,7 @@ strwidth (const char *str, EMACS_INT len)
    in *NCHARS and *NBYTES respectively.  */
 
 EMACS_INT
-lisp_string_width (Lisp_Object string, int precision,
+lisp_string_width (Lisp_Object string, EMACS_INT precision,
 		   EMACS_INT *nchars, EMACS_INT *nbytes)
 {
   EMACS_INT len = SCHARS (string);
@@ -420,7 +420,7 @@ lisp_string_width (Lisp_Object string, int precision,
 
   while (i < len)
     {
-      int chars, bytes, thiswidth;
+      EMACS_INT chars, bytes, thiswidth;
       Lisp_Object val;
       int cmp_id;
       EMACS_INT ignore, end;
@@ -438,7 +438,11 @@ lisp_string_width (Lisp_Object string, int precision,
 	  int c;
 
 	  if (multibyte)
-	    c = STRING_CHAR_AND_LENGTH (str + i_byte, bytes);
+	    {
+	      int cbytes;
+	      c = STRING_CHAR_AND_LENGTH (str + i_byte, cbytes);
+	      bytes = cbytes;
+	    }
 	  else
 	    c = str[i_byte], bytes = 1;
 	  chars = 1;
@@ -446,7 +450,7 @@ lisp_string_width (Lisp_Object string, int precision,
 	    {
 	      val = DISP_CHAR_VECTOR (dp, c);
 	      if (VECTORP (val))
-		thiswidth = XVECTOR (val)->size;
+		thiswidth = ASIZE (val);
 	      else
 		thiswidth = CHAR_WIDTH (c);
 	    }
@@ -456,8 +460,14 @@ lisp_string_width (Lisp_Object string, int precision,
 	    }
 	}
 
-      if (precision > 0
-	  && (width + thiswidth > precision))
+      if (precision <= 0)
+	{
+#ifdef emacs
+	  if (INT_ADD_OVERFLOW (width, thiswidth))
+	    string_overflow ();
+#endif
+	}
+      else if (precision - width < thiswidth)
 	{
 	  *nchars = i;
 	  *nbytes = i_byte;
@@ -466,7 +476,7 @@ lisp_string_width (Lisp_Object string, int precision,
       i += chars;
       i_byte += bytes;
       width += thiswidth;
-  }
+    }
 
   if (precision > 0)
     {
@@ -492,19 +502,6 @@ usage: (string-width STRING)  */)
   CHECK_STRING (str);
   XSETFASTINT (val, lisp_string_width (str, -1, NULL, NULL));
   return val;
-}
-
-DEFUN ("char-direction", Fchar_direction, Schar_direction, 1, 1, 0,
-       doc: /* Return the direction of CHAR.
-The returned value is 0 for left-to-right and 1 for right-to-left.
-usage: (char-direction CHAR)  */)
-  (Lisp_Object ch)
-{
-  int c;
-
-  CHECK_CHARACTER (ch);
-  c = XINT (ch);
-  return CHAR_TABLE_REF (Vchar_direction_table, c);
 }
 
 /* Return the number of characters in the NBYTES bytes at PTR.
@@ -686,7 +683,7 @@ parse_str_to_multibyte (const unsigned char *str, EMACS_INT len)
 }
 
 
-/* Convert unibyte text at STR of NBYTES bytes to a multibyte text
+/* Convert unibyte text at STR of BYTES bytes to a multibyte text
    that contains the same single-byte characters.  It actually
    converts all 8-bit characters to multibyte forms.  It is assured
    that we can use LEN bytes at STR as a work area and that is
@@ -837,7 +834,7 @@ string_escape_byte8 (Lisp_Object string)
     {
       if ((MOST_POSITIVE_FIXNUM - nchars) / 3 < byte8_count
 	  || (MOST_POSITIVE_FIXNUM - nbytes) / 2 < byte8_count)
-	error ("Maximum string size exceeded");
+	string_overflow ();
 
       /* Convert 2-byte sequence of byte8 chars to 4-byte octal.  */
       val = make_uninit_multibyte_string (nchars + byte8_count * 3,
@@ -846,7 +843,8 @@ string_escape_byte8 (Lisp_Object string)
   else
     {
       if ((MOST_POSITIVE_FIXNUM - nchars) / 3 < byte8_count)
-	error ("Maximum string size exceeded");
+	string_overflow ();
+
       /* Convert 1-byte sequence of byte8 chars to 4-byte octal.  */
       val = make_uninit_string (nbytes + byte8_count * 3);
     }
@@ -1038,7 +1036,6 @@ syms_of_character (void)
   defsubr (&Smultibyte_char_to_unibyte);
   defsubr (&Schar_width);
   defsubr (&Sstring_width);
-  defsubr (&Schar_direction);
   defsubr (&Sstring);
   defsubr (&Sunibyte_string);
   defsubr (&Schar_resolve_modifiers);
@@ -1066,10 +1063,6 @@ A char-table for width (columns) of each character.  */);
   char_table_set_range (Vchar_width_table, 0x80, 0x9F, make_number (4));
   char_table_set_range (Vchar_width_table, MAX_5_BYTE_CHAR + 1, MAX_CHAR,
 			make_number (4));
-
-  DEFVAR_LISP ("char-direction-table", Vchar_direction_table,
-	       doc: /* A char-table for direction of each character.  */);
-  Vchar_direction_table = Fmake_char_table (Qnil, make_number (1));
 
   DEFVAR_LISP ("printable-chars", Vprintable_chars,
 	       doc: /* A char-table for each printable character.  */);

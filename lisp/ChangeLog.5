@@ -5484,12 +5484,12 @@
 1994-10-27  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* man.el (Man-fontify-manpage-flag): defvar put at outer level.
-	(manual-program, Man-untabify-command, Man-untabify-command-args,
-	Man-sed-command, Man-awk-command, Man-mode-line-format,
-	Man-mode-map, Man-mode-hook, Man-cooked-hook, Man-name-regexp,
-	Man-section-regexp, Man-page-header-regexp, Man-heading-regexp,
-	Man-see-also-regexp, Man-first-heading-regexp,
-	Man-reference-regexp, Man-switches, Man-specified-section-option):
+	(manual-program, Man-untabify-command, Man-untabify-command-args)
+	(Man-sed-command, Man-awk-command, Man-mode-line-format)
+	(Man-mode-map, Man-mode-hook, Man-cooked-hook, Man-name-regexp)
+	(Man-section-regexp, Man-page-header-regexp, Man-heading-regexp)
+	(Man-see-also-regexp, Man-first-heading-regexp)
+	(Man-reference-regexp, Man-switches, Man-specified-section-option):
 	Make them normal defvars, no more user options.
 	(Man-overstrike-face, Man-underline-face): New user options.
 	(Man-init-defvars): Man-fontify-manpage-flag removed from here.
@@ -6228,10 +6228,10 @@
 
 1994-10-05  Francesco Potortì  (pot@cnuce.cnr.it)
 
-	* man.el (Man-notify, Man-current-page, Man-page-list,
-	Man-filter-list, Man-original-frame, Man-arguments,
-	Man-fontify-manpage-flag, Man-sections-alist, Man-refpages-alist,
-	Man-uses-untabify-flag, Man-page-mode-string, Man-sed-script):
+	* man.el (Man-notify, Man-current-page, Man-page-list)
+	(Man-filter-list, Man-original-frame, Man-arguments)
+	(Man-fontify-manpage-flag, Man-sections-alist, Man-refpages-alist)
+	(Man-uses-untabify-flag, Man-page-mode-string, Man-sed-script):
 	Added defvar's to keep the compiler quiet.
 	(Man-getpage-in-background): Start buffer name with "*Man ".
 	instead of "*man " to avoid conflict with "*mail*".
@@ -6425,8 +6425,7 @@
 
 1994-09-29  Francesco Potortì  (pot@cnuce.cnr.it)
 
-	* man.el
-	(Man-init-defvars, Man-cleanup-manpage, Man-fontify-manpage):
+	* man.el (Man-init-defvars, Man-cleanup-manpage, Man-fontify-manpage):
 	added support for the big cross present in the ksh manpage.
 
 1994-09-29  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -6884,8 +6883,8 @@
 	(Man-bgproc-sentinel): Cleanup, call Man-fontify-manpage and
 	Man-cleanup-page when necessary.
 	(Man-mode): Call Man-strip-page-headers and Man-unindent.
-	(Man-build-section-alist, Man-build-references-alist,
-	Man-build-page-list): substs instead of functions.
+	(Man-build-section-alist, Man-build-references-alist)
+	(Man-build-page-list): substs instead of functions.
 	(Man-build-references-alist): Cleanup.
 	(Man-build-page-list): New algorithm.
 	(Man-strip-page-headers, Man-unindent): New substs.

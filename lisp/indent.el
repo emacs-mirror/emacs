@@ -561,8 +561,8 @@ Use \\[edit-tab-stops] to edit them interactively."
     (while (and tabs (>= (current-column) (car tabs)))
       (setq tabs (cdr tabs)))
     (if tabs
-	(let ((opoint (point)))
-	  (delete-horizontal-space t)
+        (progn
+          (delete-horizontal-space t)
 	  (indent-to (car tabs)))
       (insert ?\s))))
 

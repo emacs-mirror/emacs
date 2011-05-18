@@ -64,8 +64,8 @@ Level :debug is ignored by default (see `warning-minimum-level').")
     (critical . :emergency)
     (alarm . :emergency))
   "Alist of aliases for severity levels for `display-warning'.
-Each element looks like (ALIAS . LEVEL) and defines
-ALIAS as equivalent to LEVEL.  LEVEL must be defined in `warning-levels';
+Each element looks like (ALIAS . LEVEL) and defines ALIAS as
+equivalent to LEVEL.  LEVEL must be defined in `warning-levels';
 it may not itself be an alias.")
 
 (defcustom warning-minimum-level :warning
@@ -141,7 +141,7 @@ the beginning of the warning.")
 A marker indicates a position in the warnings buffer
 which is the start of the current series; it means that
 additional warnings in the same buffer should not move point.
-t means the next warning begins a series (and stores a marker here).
+If t, the next warning begins a series (and stores a marker here).
 A symbol with a function definition is like t, except
 also call that function before the next warning.")
 (put 'warning-series 'risky-local-variable t)
@@ -235,7 +235,7 @@ See also `warning-series', `warning-prefix-function' and
       (warning-suppress-p type warning-suppress-log-types)
       (let* ((typename (if (consp type) (car type) type))
              (old (get-buffer buffer-name))
-	     (buffer (get-buffer-create buffer-name))
+	     (buffer (or old (get-buffer-create buffer-name)))
 	     (level-info (assq level warning-levels))
 	     start end)
 	(with-current-buffer buffer
@@ -251,60 +251,60 @@ See also `warning-series', `warning-prefix-function' and
 		    (unless (eq warning-series t)
 		      (funcall warning-series)))))
           (let ((inhibit-read-only t))
-	  (unless (bolp)
-	    (newline))
-	  (setq start (point))
-	  (if warning-prefix-function
-	      (setq level-info (funcall warning-prefix-function
-					level level-info)))
-	  (insert (format (nth 1 level-info)
-                          (format warning-type-format typename))
-		  message)
-	  (newline)
-	  (when (and warning-fill-prefix (not (string-match "\n" message)))
-	    (let ((fill-prefix warning-fill-prefix)
-		  (fill-column 78))
-	      (fill-region start (point))))
-            (setq end (point)))
+	    (unless (bolp)
+	      (newline))
+	    (setq start (point))
+	    (if warning-prefix-function
+		(setq level-info (funcall warning-prefix-function
+					  level level-info)))
+	    (insert (format (nth 1 level-info)
+			    (format warning-type-format typename))
+		    message)
+	    (newline)
+	    (when (and warning-fill-prefix (not (string-match "\n" message)))
+	      (let ((fill-prefix warning-fill-prefix)
+		    (fill-column 78))
+		(fill-region start (point))))
+	    (setq end (point)))
 	  (when (and (markerp warning-series)
 		     (eq (marker-buffer warning-series) buffer))
 	    (goto-char warning-series)))
 	(if (nth 2 level-info)
 	    (funcall (nth 2 level-info)))
-     (cond (noninteractive
-	    ;; Noninteractively, take the text we inserted
-	    ;; in the warnings buffer and print it.
-	    ;; Do this unconditionally, since there is no way
-	    ;; to view logged messages unless we output them.
-	    (with-current-buffer buffer
-	      (save-excursion
-		;; Don't include the final newline in the arg
-		;; to `message', because it adds a newline.
-		(goto-char end)
-		(if (bolp)
-		    (forward-char -1))
-		(message "%s" (buffer-substring start (point))))))
-	   ((and (daemonp) (null after-init-time))
-	    ;; Warnings assigned during daemon initialization go into
-	    ;; the messages buffer.
-	    (message "%s"
-		     (with-current-buffer buffer
-		       (save-excursion
-			 (goto-char end)
-			 (if (bolp)
-			     (forward-char -1))
-			 (buffer-substring start (point))))))
-	   (t
-	    ;; Interactively, decide whether the warning merits
-	    ;; immediate display.
-	    (or (< (warning-numeric-level level)
-		   (warning-numeric-level warning-minimum-level))
-		(warning-suppress-p type warning-suppress-types)
-		(let ((window (display-buffer buffer)))
-		  (when (and (markerp warning-series)
-			     (eq (marker-buffer warning-series) buffer))
-		    (set-window-start window warning-series))
-		  (sit-for 0))))))))
+	(cond (noninteractive
+	       ;; Noninteractively, take the text we inserted
+	       ;; in the warnings buffer and print it.
+	       ;; Do this unconditionally, since there is no way
+	       ;; to view logged messages unless we output them.
+	       (with-current-buffer buffer
+		 (save-excursion
+		   ;; Don't include the final newline in the arg
+		   ;; to `message', because it adds a newline.
+		   (goto-char end)
+		   (if (bolp)
+		       (forward-char -1))
+		   (message "%s" (buffer-substring start (point))))))
+	      ((and (daemonp) (null after-init-time))
+	       ;; Warnings assigned during daemon initialization go into
+	       ;; the messages buffer.
+	       (message "%s"
+			(with-current-buffer buffer
+			  (save-excursion
+			    (goto-char end)
+			    (if (bolp)
+				(forward-char -1))
+			    (buffer-substring start (point))))))
+	      (t
+	       ;; Interactively, decide whether the warning merits
+	       ;; immediate display.
+	       (or (< (warning-numeric-level level)
+		      (warning-numeric-level warning-minimum-level))
+		   (warning-suppress-p type warning-suppress-types)
+		   (let ((window (display-buffer buffer)))
+		     (when (and (markerp warning-series)
+				(eq (marker-buffer warning-series) buffer))
+		       (set-window-start window warning-series))
+		     (sit-for 0))))))))
 
 ;;;###autoload
 (defun lwarn (type level message &rest args)

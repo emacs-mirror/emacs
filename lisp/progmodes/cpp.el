@@ -308,7 +308,6 @@ A prefix arg suppresses display of that buffer."
   ;; Pop top of cpp-state-stack and create overlay.
   (let ((entry (assoc (nth 1 (car cpp-state-stack)) cpp-edit-list))
 	(branch (nth 0 (car cpp-state-stack)))
-	(begin (nth 2 (car cpp-state-stack)))
 	(end (nth 3 (car cpp-state-stack))))
     (setq cpp-state-stack (cdr cpp-state-stack))
     (if entry
@@ -398,7 +397,7 @@ A prefix arg suppresses display of that buffer."
   (overlay-put overlay 'insert-in-front-hooks '(cpp-grow-overlay))
   (overlay-put overlay 'insert-behind-hooks '(cpp-grow-overlay)))
 
-(defun cpp-signal-read-only (overlay after start end &optional len)
+(defun cpp-signal-read-only (overlay after start end &optional _len)
   ;; Only allow deleting the whole overlay.
   ;; Trying to change a read-only overlay.
   (if (and (not after)
@@ -406,7 +405,7 @@ A prefix arg suppresses display of that buffer."
 	       (> (overlay-end overlay) end)))
       (error "This text is read only")))
 
-(defun cpp-grow-overlay (overlay after start end &optional len)
+(defun cpp-grow-overlay (overlay after start end &optional _len)
   ;; Make OVERLAY grow to contain range START to END.
   (if after
       (move-overlay overlay

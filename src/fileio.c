@@ -3245,15 +3245,10 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   record_unwind_protect (close_file_unwind, make_number (fd));
 
 
-  /* Arithmetic overflow can occur if an Emacs integer cannot represent the
-     file size, or if the calculations below overflow.  The calculations below
-     double the file size twice, so check that it can be multiplied by 4
-     safely.
-
-     Also check whether the size is negative, which can happen on a platform
-     that allows file sizes greater than the maximum off_t value.  */
+  /* Check whether the size is too large or negative, which can happen on a
+     platform that allows file sizes greater than the maximum off_t value.  */
   if (! not_regular
-      && ! (0 <= st.st_size && st.st_size <= MOST_POSITIVE_FIXNUM / 4))
+      && ! (0 <= st.st_size && st.st_size <= MOST_POSITIVE_FIXNUM))
     error ("Maximum buffer size exceeded");
 
   /* Prevent redisplay optimizations.  */

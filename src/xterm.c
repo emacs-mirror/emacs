@@ -102,7 +102,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef USE_X_TOOLKIT
 #if !defined(NO_EDITRES)
 #define HACK_EDITRES
-extern void _XEditResCheckMessages ();
+extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
 #endif /* not NO_EDITRES */
 
 /* Include toolkit specific headers for the scroll bar widget.  */
@@ -187,11 +187,11 @@ static struct {
 /* The application context for Xt use.  */
 XtAppContext Xt_app_con;
 static String Xt_default_resources[] = {0};
-#endif /* USE_X_TOOLKIT */
 
 /* Non-zero means user is interacting with a toolkit scroll bar.  */
 
 static int toolkit_scroll_bar_interaction;
+#endif /* USE_X_TOOLKIT */
 
 /* Non-zero timeout value means ignore next mouse click if it arrives
    before that timeout elapses (i.e. as part of the same sequence of
@@ -342,14 +342,14 @@ static struct scroll_bar *x_window_to_scroll_bar (Display *, Window);
 static void x_scroll_bar_report_motion (struct frame **, Lisp_Object *,
                                         enum scroll_bar_part *,
                                         Lisp_Object *, Lisp_Object *,
-                                        unsigned long *);
+                                        Time *);
 static void x_handle_net_wm_state (struct frame *, XPropertyEvent *);
 static void x_check_fullscreen (struct frame *);
 static void x_check_expected_move (struct frame *, int, int);
 static void x_sync_with_move (struct frame *, int, int, int);
 static int handle_one_xevent (struct x_display_info *, XEvent *,
                               int *, struct input_event *);
-#if ! (defined USE_MOTIF || defined USE_X_TOOLKIT)
+#ifdef USE_GTK
 static int x_dispatch_event (XEvent *, Display *);
 #endif
 /* Don't declare this NO_RETURN because we want no
@@ -453,11 +453,6 @@ x_set_frame_alpha (struct frame *f)
   double alpha = 1.0;
   double alpha_min = 1.0;
   unsigned long opac;
-
-  if (FRAME_X_DISPLAY_INFO (f)->root_window != FRAME_X_OUTPUT (f)->parent_desc)
-    /* Since the WM decoration lies under the FRAME_OUTER_WINDOW,
-       we must treat the former instead of the latter. */
-    win = FRAME_X_OUTPUT (f)->parent_desc;
 
   if (dpyinfo->x_highlight_frame == f)
     alpha = f->alpha[0];
@@ -758,22 +753,22 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
 
 	  if (sb_width > 0)
 	    {
-	      int left = WINDOW_SCROLL_BAR_AREA_X (w);
-	      int width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
-			   * FRAME_COLUMN_WIDTH (f));
+	      int bar_area_x = WINDOW_SCROLL_BAR_AREA_X (w);
+	      int bar_area_width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
+				    * FRAME_COLUMN_WIDTH (f));
 
 	      if (bx < 0)
 		{
 		  /* Bitmap fills the fringe.  */
-		  if (left + width == p->x)
-		    bx = left + sb_width;
-		  else if (p->x + p->wd == left)
-		    bx = left;
+		  if (bar_area_x + bar_area_width == p->x)
+		    bx = bar_area_x + sb_width;
+		  else if (p->x + p->wd == bar_area_x)
+		    bx = bar_area_x;
 		  if (bx >= 0)
 		    {
 		      int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
 
-		      nx = width - sb_width;
+		      nx = bar_area_width - sb_width;
 		      by = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
 							    row->y));
 		      ny = row->visible_height;
@@ -781,13 +776,13 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
 		}
 	      else
 		{
-		  if (left + width == bx)
+		  if (bar_area_x + bar_area_width == bx)
 		    {
-		      bx = left + sb_width;
-		      nx += width - sb_width;
+		      bx = bar_area_x + sb_width;
+		      nx += bar_area_width - sb_width;
 		    }
-		  else if (bx + nx == left)
-		    nx += width - sb_width;
+		  else if (bx + nx == bar_area_x)
+		    nx += bar_area_width - sb_width;
 		}
 	    }
 	}
@@ -1448,19 +1443,6 @@ x_frame_of_widget (Widget widget)
       return f;
 
   abort ();
-}
-
-
-/* Allocate the color COLOR->pixel on the screen and display of
-   widget WIDGET in colormap CMAP.  If an exact match cannot be
-   allocated, try the nearest color available.  Value is non-zero
-   if successful.  This is called from lwlib.  */
-
-int
-x_alloc_nearest_color_for_widget (Widget widget, Colormap cmap, XColor *color)
-{
-  struct frame *f = x_frame_of_widget (widget);
-  return x_alloc_nearest_color (f, cmap, color);
 }
 
 
@@ -2937,9 +2919,8 @@ x_clear_frame (struct frame *f)
      follow an explicit cursor_to.  */
   BLOCK_INPUT;
 
-  /* The following calls have been commented out because they do not
-     seem to accomplish anything, apart from causing flickering during
-     window resize.  */
+  /* The following call is commented out because it does not seem to accomplish
+     anything, apart from causing flickering during window resize.  */
   /* XClearWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f)); */
 
   /* We have to clear the scroll bars.  If we have changed colors or
@@ -3251,6 +3232,34 @@ x_scroll_run (struct window *w, struct run *run)
      fringe of W.  */
   window_box (w, -1, &x, &y, &width, &height);
 
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  /* If the fringe is adjacent to the left (right) scroll bar of a
+     leftmost (rightmost, respectively) window, then extend its
+     background to the gap between the fringe and the bar.  */
+  if ((WINDOW_LEFTMOST_P (w)
+       && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w))
+      || (WINDOW_RIGHTMOST_P (w)
+	  && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w)))
+    {
+      int sb_width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
+
+      if (sb_width > 0)
+	{
+	  int bar_area_x = WINDOW_SCROLL_BAR_AREA_X (w);
+	  int bar_area_width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
+				* FRAME_COLUMN_WIDTH (f));
+
+	  if (bar_area_x + bar_area_width == x)
+	    {
+	      x = bar_area_x + sb_width;
+	      width += bar_area_width - sb_width;
+	    }
+	  else if (x + width == bar_area_x)
+	    width += bar_area_width - sb_width;
+	}
+    }
+#endif
+
   from_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->current_y);
   to_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->desired_y);
   bottom_y = y + height;
@@ -3459,6 +3468,16 @@ x_detect_focus_change (struct x_display_info *dpyinfo, XEvent *event, struct inp
 }
 
 
+#if defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK
+/* Handle an event saying the mouse has moved out of an Emacs frame.  */
+
+void
+x_mouse_leave (struct x_display_info *dpyinfo)
+{
+  x_new_focus_frame (dpyinfo, dpyinfo->x_focus_event_frame);
+}
+#endif
+
 /* The focus has changed, or we have redirected a frame's focus to
    another frame (this happens when a frame uses a surrogate
    mini-buffer frame).  Shift the highlight as appropriate.
@@ -3618,23 +3637,23 @@ x_find_modifier_meanings (struct x_display_info *dpyinfo)
 /* Convert between the modifier bits X uses and the modifier bits
    Emacs uses.  */
 
-unsigned int
-x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, unsigned int state)
+EMACS_INT
+x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, int state)
 {
-  EMACS_UINT mod_meta = meta_modifier;
-  EMACS_UINT mod_alt  = alt_modifier;
-  EMACS_UINT mod_hyper = hyper_modifier;
-  EMACS_UINT mod_super = super_modifier;
+  EMACS_INT mod_meta = meta_modifier;
+  EMACS_INT mod_alt  = alt_modifier;
+  EMACS_INT mod_hyper = hyper_modifier;
+  EMACS_INT mod_super = super_modifier;
   Lisp_Object tem;
 
   tem = Fget (Vx_alt_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_alt = XUINT (tem);
+  if (INTEGERP (tem)) mod_alt = XINT (tem);
   tem = Fget (Vx_meta_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_meta = XUINT (tem);
+  if (INTEGERP (tem)) mod_meta = XINT (tem);
   tem = Fget (Vx_hyper_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_hyper = XUINT (tem);
+  if (INTEGERP (tem)) mod_hyper = XINT (tem);
   tem = Fget (Vx_super_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_super = XUINT (tem);
+  if (INTEGERP (tem)) mod_super = XINT (tem);
 
 
   return (  ((state & (ShiftMask | dpyinfo->shift_lock_mask)) ? shift_modifier : 0)
@@ -3645,24 +3664,24 @@ x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, unsigned int state)
             | ((state & dpyinfo->hyper_mod_mask)	? mod_hyper	: 0));
 }
 
-static unsigned int
-x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, unsigned int state)
+static int
+x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, EMACS_INT state)
 {
-  EMACS_UINT mod_meta = meta_modifier;
-  EMACS_UINT mod_alt  = alt_modifier;
-  EMACS_UINT mod_hyper = hyper_modifier;
-  EMACS_UINT mod_super = super_modifier;
+  int mod_meta = meta_modifier;
+  int mod_alt  = alt_modifier;
+  int mod_hyper = hyper_modifier;
+  int mod_super = super_modifier;
 
   Lisp_Object tem;
 
   tem = Fget (Vx_alt_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_alt = XUINT (tem);
+  if (INTEGERP (tem)) mod_alt = XINT (tem);
   tem = Fget (Vx_meta_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_meta = XUINT (tem);
+  if (INTEGERP (tem)) mod_meta = XINT (tem);
   tem = Fget (Vx_hyper_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_hyper = XUINT (tem);
+  if (INTEGERP (tem)) mod_hyper = XINT (tem);
   tem = Fget (Vx_super_keysym, Qmodifier_value);
-  if (! EQ (tem, Qnil)) mod_super = XUINT (tem);
+  if (INTEGERP (tem)) mod_super = XINT (tem);
 
 
   return (  ((state & mod_alt)		? dpyinfo->alt_mod_mask   : 0)
@@ -3808,7 +3827,7 @@ redo_mouse_highlight (void)
 static void
 XTmouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window,
 		  enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
-		  long unsigned int *timestamp)
+		  Time *timestamp)
 {
   FRAME_PTR f1;
 
@@ -4221,8 +4240,8 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
   ev->data.l[4] = (long) whole;
 
   /* Make Xt timeouts work while the scroll bar is active.  */
-  toolkit_scroll_bar_interaction = 1;
 #ifdef USE_X_TOOLKIT
+  toolkit_scroll_bar_interaction = 1;
   x_activate_timeout_atimer ();
 #endif
 
@@ -4535,7 +4554,7 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
   Widget widget;
   Arg av[20];
   int ac = 0;
-  char *scroll_bar_name = SCROLL_BAR_NAME;
+  char const *scroll_bar_name = SCROLL_BAR_NAME;
   unsigned long pixel;
 
   BLOCK_INPUT;
@@ -4687,8 +4706,8 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
 			   f->output_data.x->edit_widget, av, ac);
 
   {
-    char *initial = "";
-    char *val = initial;
+    char const *initial = "";
+    char const *val = initial;
     XtVaGetValues (widget, XtNscrollVCursor, (XtPointer) &val,
 #ifdef XtNarrowScrollbars
 		   XtNarrowScrollbars, (XtPointer) &xaw3d_arrow_scroll,
@@ -5543,7 +5562,7 @@ x_scroll_bar_note_movement (struct scroll_bar *bar, XEvent *event)
 static void
 x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window,
 			    enum scroll_bar_part *part, Lisp_Object *x,
-			    Lisp_Object *y, long unsigned int *timestamp)
+			    Lisp_Object *y, Time *timestamp)
 {
   struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
   Window w = bar->x_window;
@@ -5668,6 +5687,7 @@ static struct x_display_info *XTread_socket_fake_io_error;
 
 static struct x_display_info *next_noop_dpyinfo;
 
+#if defined USE_X_TOOLKIT || defined USE_GTK
 #define SET_SAVED_BUTTON_EVENT                                          \
      do									\
        {								\
@@ -5679,6 +5699,7 @@ static struct x_display_info *next_noop_dpyinfo;
 	 XSETFRAME (inev.ie.frame_or_window, f);			\
        }								\
      while (0)
+#endif
 
 enum
 {
@@ -5764,8 +5785,8 @@ event_handler_gdk (GdkXEvent *gxev, GdkEvent *ev, gpointer data)
 #endif /* USE_GTK */
 
 
-static void xembed_send_message (struct frame *f, Time time,
-                                 enum xembed_message message,
+static void xembed_send_message (struct frame *f, Time,
+                                 enum xembed_message,
                                  long detail, long data1, long data2);
 
 /* Handles the XEvent EVENT on display DPYINFO.
@@ -6978,15 +6999,13 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
   return count;
 }
 
+#if defined USE_GTK || defined USE_X_TOOLKIT
 
 /* Handles the XEvent EVENT on display DISPLAY.
    This is used for event loops outside the normal event handling,
    i.e. looping while a popup menu or a dialog is posted.
 
    Returns the value handle_one_xevent sets in the finish argument.  */
-#if ! (defined USE_MOTIF || defined USE_X_TOOLKIT)
-static
-#endif
 int
 x_dispatch_event (XEvent *event, Display *display)
 {
@@ -7000,6 +7019,7 @@ x_dispatch_event (XEvent *event, Display *display)
 
   return finish;
 }
+#endif
 
 
 /* Read events coming from the X server.
@@ -10273,10 +10293,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
 #ifdef USE_LUCID
   {
-    Display *dpy = dpyinfo->display;
     XrmValue d, fr, to;
     Font font;
 
+    dpy = dpyinfo->display;
     d.addr = (XPointer)&dpy;
     d.size = sizeof (Display *);
     fr.addr = XtDefaultFont;

@@ -485,12 +485,11 @@ FILE is created there."
 (defvar gamegrid-shared-game-dir)
 
 (defun gamegrid-add-score-with-update-game-score (file score)
-  (let* ((result nil) ;; What is this good for? -- os
-	 (gamegrid-shared-game-dir
-	  (not (zerop (logand (file-modes
-			       (expand-file-name "update-game-score"
-						 exec-directory))
-			      #o4000)))))
+  (let ((gamegrid-shared-game-dir
+	 (not (zerop (logand (file-modes
+			      (expand-file-name "update-game-score"
+						exec-directory))
+			     #o4000)))))
     (cond ((file-name-absolute-p file)
 	   (gamegrid-add-score-insecure file score))
 	  ((and gamegrid-shared-game-dir

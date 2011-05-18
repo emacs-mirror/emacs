@@ -1491,6 +1491,8 @@ If SCAN, request a scan of that group as well."
 	     ;; Return the new active info.
 	     active)))))
 
+(defvar gnus-propagate-marks)		; gnus-sum
+
 (defun gnus-get-unread-articles-in-group (info active &optional update)
   (when (and info active)
     ;; Allow the backend to update the info in the group.

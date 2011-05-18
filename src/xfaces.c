@@ -273,6 +273,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/Xos.h>
 #define USG
 #define __TIMEVAL__
+#if defined USG || defined __TIMEVAL__ /* Don't warn about unused macros.  */
+#endif
 #else /* not XOS_NEEDS_TIME_H */
 #include <X11/Xos.h>
 #endif /* not XOS_NEEDS_TIME_H */
@@ -317,15 +319,19 @@ static Lisp_Object QCfontset;
 /* Symbols used for attribute values.  */
 
 Lisp_Object Qnormal;
-static Lisp_Object Qbold, Qultra_light, Qextra_light, Qlight;
+Lisp_Object Qbold;
+static Lisp_Object Qultra_light, Qextra_light, Qlight;
 static Lisp_Object Qsemi_light, Qsemi_bold, Qextra_bold, Qultra_bold;
-static Lisp_Object Qoblique, Qitalic, Qreverse_oblique, Qreverse_italic;
-static Lisp_Object Qultra_condensed, Qextra_condensed, Qcondensed;
-static Lisp_Object Qsemi_condensed, Qsemi_expanded, Qexpanded, Qextra_expanded;
+static Lisp_Object Qoblique, Qreverse_oblique, Qreverse_italic;
+Lisp_Object Qitalic;
+static Lisp_Object Qultra_condensed, Qextra_condensed;
+Lisp_Object Qcondensed;
+static Lisp_Object Qsemi_condensed, Qsemi_expanded, Qextra_expanded;
+Lisp_Object Qexpanded;
 static Lisp_Object Qultra_expanded;
 static Lisp_Object Qreleased_button, Qpressed_button;
 static Lisp_Object QCstyle, QCcolor, QCline_width;
-static Lisp_Object Qunspecified;
+Lisp_Object Qunspecified;	/* used in dosfns.c */
 static Lisp_Object Qignore_defface;
 
 char unspecified_fg[] = "unspecified-fg", unspecified_bg[] = "unspecified-bg";
@@ -1842,7 +1848,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 
 #define LFACEP(LFACE)					\
      (VECTORP (LFACE)					\
-      && XVECTOR (LFACE)->size == LFACE_VECTOR_SIZE	\
+      && ASIZE (LFACE) == LFACE_VECTOR_SIZE		\
       && EQ (AREF (LFACE, 0), Qface))
 #endif
 

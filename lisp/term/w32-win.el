@@ -202,13 +202,14 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 	 '(png "libpng12d.dll" "libpng12.dll" "libpng3.dll" "libpng.dll"
 	       ;; these are libpng 1.2.8 from GTK+
 	       "libpng13d.dll" "libpng13.dll"))
-        '(jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
-        '(tiff "libtiff3.dll" "libtiff.dll")
-        '(gif "giflib4.dll" "libungif4.dll" "libungif.dll")
-        '(svg "librsvg-2-2.dll")
-        '(gdk-pixbuf "libgdk_pixbuf-2.0-0.dll")
-        '(glib "libglib-2.0-0.dll")
-	'(gobject "libgobject-2.0-0.dll")))
+       '(jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
+       '(tiff "libtiff3.dll" "libtiff.dll")
+       '(gif "giflib4.dll" "libungif4.dll" "libungif.dll")
+       '(svg "librsvg-2-2.dll")
+       '(gdk-pixbuf "libgdk_pixbuf-2.0-0.dll")
+       '(glib "libglib-2.0-0.dll")
+       '(gobject "libgobject-2.0-0.dll")
+       '(gnutls "libgnutls-26.dll")))
 
 ;;; multi-tty support
 (defvar w32-initialized nil

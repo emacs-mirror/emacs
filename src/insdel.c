@@ -20,6 +20,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <setjmp.h>
+
+#include <intprops.h>
+
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -404,11 +407,7 @@ make_gap_larger (EMACS_INT nbytes_added)
   { EMACS_INT total_size = Z_BYTE - BEG_BYTE + GAP_SIZE + nbytes_added;
     if (total_size < 0
 	/* Don't allow a buffer size that won't fit in a Lisp integer.  */
-	|| total_size != XINT (make_number (total_size))
-	/* Don't allow a buffer size that won't fit in an int
-	   even if it will fit in a Lisp integer.
-	   That won't work because so many places still use `int'.  */
-	|| total_size != (EMACS_INT) (int) total_size)
+	|| total_size != XINT (make_number (total_size)))
       error ("Buffer exceeds maximum size");
   }
 
@@ -442,6 +441,7 @@ make_gap_larger (EMACS_INT nbytes_added)
   Vinhibit_quit = tem;
 }
 
+#if defined USE_MMAP_FOR_BUFFERS || defined REL_ALLOC || defined DOUG_LEA_MALLOC
 
 /* Make the gap NBYTES_REMOVED bytes shorter.  */
 
@@ -500,6 +500,8 @@ make_gap_smaller (EMACS_INT nbytes_removed)
 
   Vinhibit_quit = tem;
 }
+
+#endif /* USE_MMAP_FOR_BUFFERS || REL_ALLOC || DOUG_LEA_MALLOC */
 
 void
 make_gap (EMACS_INT nbytes_added)
@@ -582,14 +584,19 @@ count_size_as_multibyte (const unsigned char *ptr, EMACS_INT nbytes)
   for (i = 0; i < nbytes; i++)
     {
       unsigned int c = *ptr++;
+      int n;
 
       if (ASCII_CHAR_P (c))
-	outgoing_nbytes++;
+	n = 1;
       else
 	{
 	  c = BYTE8_TO_CHAR (c);
-	  outgoing_nbytes += CHAR_BYTES (c);
+	  n = CHAR_BYTES (c);
 	}
+
+      if (INT_ADD_OVERFLOW (outgoing_nbytes, n))
+	string_overflow ();
+      outgoing_nbytes += n;
     }
 
   return outgoing_nbytes;

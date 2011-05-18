@@ -82,8 +82,7 @@ struct font_driver_list;
 
 struct frame
 {
-  EMACS_UINT size;
-  struct Lisp_Vector *next;
+  struct vectorlike_header header;
 
   /* All Lisp_Object components must come first.
      That ensures they are all aligned normally.  */
@@ -193,7 +192,7 @@ struct frame
   struct face_cache *face_cache;
 
   /* Number of elements in `menu_bar_vector' that have meaningful data.  */
-  EMACS_INT menu_bar_items_used;
+  int menu_bar_items_used;
 
   /* A buffer to hold the frame's name.  We can't use the Lisp
      string's pointer (`name', above) because it might get relocated.  */
@@ -1132,6 +1131,10 @@ extern Lisp_Object display_x_get_resource (Display_Info *,
 					   Lisp_Object class,
 					   Lisp_Object component,
 					   Lisp_Object subclass);
+
+#if defined HAVE_X_WINDOWS && !defined USE_X_TOOLKIT
+extern char *x_get_resource_string (const char *, const char *);
+#endif
 
 /* In xmenu.c */
 extern void set_frame_menubar (FRAME_PTR, int, int);

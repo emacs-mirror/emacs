@@ -410,7 +410,7 @@ Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Digit}.  The value is an
 integer number.
 
-@item digit
+@item digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Decimal}.  The value is
 an integer number.  Examples of such characters include compatibility
@@ -471,11 +471,11 @@ This function returns the value of @var{char}'s @var{propname} property.
 @end group
 @group
 (get-char-code-property ?\u2155 'numeric-value) ; one fifth
-     @result{} 1/5
+     @result{} 0.2
 @end group
 @group
 (get-char-code-property ?\u2163 'numeric-value) ; Roman IV
-     @result{} \4
+     @result{} 4
 @end group
 @end example
 @end defun

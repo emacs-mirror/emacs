@@ -105,6 +105,7 @@ OBJ2 =  $(BLD)/sysdep.$(O)		\
 	$(BLD)/floatfns.$(O)		\
 	$(BLD)/frame.$(O)		\
 	$(BLD)/gmalloc.$(O)		\
+	$(BLD)/gnutls.$(O)		\
 	$(BLD)/intervals.$(O)		\
 	$(BLD)/composite.$(O)		\
 	$(BLD)/ralloc.$(O)		\
@@ -150,6 +151,7 @@ LIBS =  $(TLIB0)	\
 	$(OLE32)	\
 	$(COMCTL32)	\
 	$(UNISCRIBE)    \
+	$(USER_LIBS)    \
 	$(libc)
 
 #
@@ -225,6 +227,7 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
 obj = $(GLOBAL_SOURCES:.c=.o)
 
 globals.h: gl-stamp
+	@cmd /c rem true
 
 gl-stamp: ../lib-src/$(BLD)/make-docfile.exe $(GLOBAL_SOURCES)
 	- $(DEL) gl-tmp
@@ -241,8 +244,14 @@ bootstrap: bootstrap-emacs
 #
 # WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
-bootstrap-temacs:
+bootstrap-temacs-CMD:
+	$(MAKE) $(MFLAGS) $(XMFLAGS) temacs CFLAGS=$(ARGQUOTE)$(ESC_CFLAGS) -DPURESIZE=5000000$(ARGQUOTE)
+
+bootstrap-temacs-SH:
 	$(MAKE) $(MFLAGS) $(XMFLAGS) temacs CFLAGS=$(ARGQUOTE)$(CFLAGS) -DPURESIZE=5000000$(ARGQUOTE)
+
+bootstrap-temacs:
+	$(MAKE) $(MFLAGS) bootstrap-temacs-$(SHELLTYPE)
 
 #
 # Dump an Emacs executable named bootstrap-emacs containing the
@@ -329,7 +338,7 @@ cleanall:	clean
 ##
 ## This works only with GNU Make.
 
-TAGS: $(OBJ0) $(OBJ1) $(OBJ2)
+TAGS: $(OBJ0) $(OBJ1) $(OBJ2) $(CURDIR)/m/intel386.h $(CURDIR)/s/ms-w32.h
 	$(MAKE) $(MFLAGS) TAGS-$(MAKETYPE)
 
 TAGS-LISP: $(OBJ0) $(OBJ1) $(OBJ2)
@@ -343,7 +352,7 @@ TAGS-gmake:
 	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ1))
 	../lib-src/$(BLD)/etags.exe -a --regex=@../nt/emacs-src.tags \
 	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ2)) \
-	  $(CURDIR)/*.h
+	  $(CURDIR)/*.h $(CURDIR)/m/intel386.h $(CURDIR)/s/ms-w32.h
 
 TAGS-nmake:
 	echo This target is not supported with NMake
@@ -377,13 +386,17 @@ CONFIG_H   = $(EMACS_ROOT)/src/s/ms-w32.h \
 	     $(EMACS_ROOT)/src/m/intel386.h \
 	     $(EMACS_ROOT)/src/config.h \
 	     $(EMACS_ROOT)/nt/inc/sys/stat.h
-LISP_H     = $(SRC)/lisp.h $(SRC)/globals.h
-PROCESS_H  = $(SRC)/process.h $(SRC)/gnutls.h
+LISP_H     = $(SRC)/lisp.h \
+	     $(SRC)/globals.h \
+	     $(EMACS_ROOT)/nt/inc/inttypes.h \
+	     $(EMACS_ROOT)/nt/inc/stdint.h
+PROCESS_H  = $(SRC)/process.h \
+	     $(EMACS_ROOT)/nt/inc/unistd.h \
+	     $(SRC)/gnutls.h
 
 $(BLD)/alloc.$(O) : \
 	$(SRC)/alloc.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
 	$(PROCESS_H) \
@@ -469,6 +482,7 @@ $(BLD)/callint.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
 	$(SRC)/buffer.h \
+	$(SRC)/character.h \
 	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
@@ -482,7 +496,6 @@ $(BLD)/callint.$(O) : \
 $(BLD)/callproc.$(O) : \
 	$(SRC)/callproc.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
@@ -671,7 +684,6 @@ $(BLD)/dired.$(O) : \
 $(BLD)/dispnew.$(O) : \
 	$(SRC)/dispnew.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
 	$(PROCESS_H) \
@@ -746,7 +758,6 @@ $(BLD)/editfns.$(O) : \
 $(BLD)/emacs.$(O) : \
 	$(SRC)/emacs.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
@@ -839,7 +850,6 @@ $(BLD)/fns.$(O) : \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/langinfo.h \
 	$(EMACS_ROOT)/nt/inc/nl_types.h \
-	$(EMACS_ROOT)/nt/inc/stdint.h \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(EMACS_ROOT)/lib/md5.h \
@@ -948,6 +958,13 @@ $(BLD)/gmalloc.$(O) : \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(SRC)/getpagesize.h
 
+$(BLD)/gnutls.$(O) : \
+	$(SRC)/gnutls.c \
+	$(CONFIG_H) \
+	$(LISP_H) \
+	$(PROCESS_H) \
+	$(SRC)/w32.h
+
 $(BLD)/image.$(O) : \
 	$(SRC)/image.c \
 	$(CONFIG_H) \
@@ -966,6 +983,7 @@ $(BLD)/image.$(O) : \
 	$(SRC)/frame.h \
 	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
+	$(SRC)/w32.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h \
 	$(SRC)/window.h
@@ -1014,6 +1032,7 @@ $(BLD)/intervals.$(O) : \
 	$(SRC)/intervals.c \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(EMACS_ROOT)/lib/intprops.h \
 	$(LISP_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/coding.h \
@@ -1029,7 +1048,6 @@ $(BLD)/intervals.$(O) : \
 $(BLD)/keyboard.$(O) : \
 	$(SRC)/keyboard.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
@@ -1180,10 +1198,11 @@ $(BLD)/w32.$(O) : \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/grp.h \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/socket.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(EMACS_ROOT)/lib/allocator.h \
+	$(EMACS_ROOT)/lib/careadlinkat.h \
 	$(LISP_H) \
 	$(PROCESS_H) \
 	$(SRC)/coding.h \
@@ -1224,7 +1243,6 @@ $(BLD)/w32proc.$(O) : \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/langinfo.h \
 	$(EMACS_ROOT)/nt/inc/nl_types.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
@@ -1259,7 +1277,6 @@ $(BLD)/w32console.$(O) : \
 $(BLD)/print.$(O) : \
 	$(SRC)/print.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(EMACS_ROOT)/lib/ftoastr.h \
 	$(EMACS_ROOT)/lib/intprops.h \
@@ -1288,7 +1305,6 @@ $(BLD)/process.$(O) : \
 	$(SRC)/process.c \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/netdb.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/arpa/inet.h \
 	$(EMACS_ROOT)/nt/inc/netinet/in.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
@@ -1417,11 +1433,12 @@ $(BLD)/sysdep.$(O) : \
 	$(EMACS_ROOT)/nt/inc/grp.h \
 	$(EMACS_ROOT)/nt/inc/netdb.h \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
 	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/socket.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(EMACS_ROOT)/lib/allocator.h \
+	$(EMACS_ROOT)/lib/careadlinkat.h \
 	$(EMACS_ROOT)/lib/ignore-value.h \
 	$(LISP_H) \
 	$(PROCESS_H) \
@@ -1560,7 +1577,6 @@ $(BLD)/window.$(O) : \
 $(BLD)/xdisp.$(O) : \
 	$(SRC)/xdisp.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
 	$(PROCESS_H) \
@@ -1673,7 +1689,6 @@ $(BLD)/w32menu.$(O) : \
 $(BLD)/w32term.$(O) : \
 	$(SRC)/w32term.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \

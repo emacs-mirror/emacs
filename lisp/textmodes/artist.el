@@ -1942,7 +1942,7 @@ Return a list (RETURN-CODE STDOUT STDERR)."
   ;;
   ;;	Example: In the figure below, the `X' is the very last
   ;;		 character in the buffer ("a non-empty line at the
-  ;;             end"). Suppose point is at at P. Then (forward-line 1)
+  ;;             end"). Suppose point is at P. Then (forward-line 1)
   ;;             returns 0 and puts point after the `X'.
   ;;
   ;;			--------top of buffer--------
@@ -4030,7 +4030,7 @@ The 2-point shape SHAPE is drawn from X1, Y1 to X2, Y2."
 (defun artist-draw-region-trim-line-endings (min-y max-y)
   "Trim lines in current draw-region from MIN-Y to MAX-Y.
 Trimming here means removing white space at end of a line."
-  ;; Safetyc check: switch min-y and max-y if if max-y is smaller
+  ;; Safety check: switch min-y and max-y if max-y is smaller
   (if (< max-y min-y)
       (let ((tmp min-y))
 	(setq min-y max-y)

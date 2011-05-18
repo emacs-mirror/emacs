@@ -251,7 +251,7 @@ literally, i.e. without conversions of any kind.  The command
 @code{find-file-literally} sets this variable's local value, but other
 equivalent functions and commands can do that as well, e.g.@: to avoid
 automatic addition of a newline at the end of the file.  This variable
-us permanent local, so it is unaffected by changes of major modes.
+is permanent local, so it is unaffected by changes of major modes.
 @end defvar
 
 @node Subroutines of Visiting

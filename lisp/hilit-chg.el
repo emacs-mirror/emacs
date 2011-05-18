@@ -385,7 +385,7 @@ This command does not itself set highlight-changes mode."
   )
 
 
-(defun hilit-chg-cust-fix-changes-face-list (w wc &optional event)
+(defun hilit-chg-cust-fix-changes-face-list (w _wc &optional event)
   ;; When customization function `highlight-changes-face-list' inserts a new
   ;; face it uses the default face.  We don't want the user to modify this
   ;; face, so we rename the faces in the list on an insert.  The rename is
@@ -557,9 +557,9 @@ This allows you to manually remove highlighting from uninteresting changes."
   ;; otherwise an undone change shows up as changed.  While the properties
   ;; are automatically restored by undo, we must fix up the overlay.
   (save-match-data
-    (let ((beg-decr 1) (end-incr 1)
-	  (type 'hilit-chg)
-	  old)
+    (let (;;(beg-decr 1)
+          (end-incr 1)
+	  (type 'hilit-chg))
       (if undo-in-progress
 	  (if (and highlight-changes-mode
 		   highlight-changes-visible-mode)
@@ -632,7 +632,7 @@ This removes all saved change information."
     (highlight-save-buffer-state
       (hilit-chg-hide-changes)
       (hilit-chg-map-changes
-       (lambda (prop start stop)
+       (lambda (_prop start stop)
          (remove-text-properties start stop '(hilit-chg nil)))))
     (setq highlight-changes-mode nil)
     (force-mode-line-update)))
@@ -911,8 +911,7 @@ changes are made, so \\[highlight-changes-next-change] and
 	 (file-a (buffer-file-name))
 	 (existing-buf (get-file-buffer file-b))
 	 (buf-b (or existing-buf
-		    (find-file-noselect file-b)))
-	 (buf-b-read-only (with-current-buffer buf-b buffer-read-only)))
+		    (find-file-noselect file-b))))
     (highlight-markup-buffers buf-a file-a buf-b file-b (not existing-buf))
     (unless existing-buf
       (kill-buffer buf-b))

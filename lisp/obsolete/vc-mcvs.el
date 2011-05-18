@@ -4,6 +4,7 @@
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  None
+;; Obsolete-since: 23.1
 
 ;; This file is part of GNU Emacs.
 
@@ -29,9 +30,6 @@
 ;; can maintain this file and update it to work correctly.
 ;;
 ;; ********** READ THIS! **********
-
-;; This file has been obsolete and unsupported since Emacs 23.1.
-
 
 ;; The home page of the Meta-CVS version control system is at
 ;;

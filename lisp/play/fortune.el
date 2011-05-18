@@ -282,7 +282,7 @@ and choose the directory as the fortune-file."
 
 ;;; **************
 ;;; Display fortune
-(defun fortune-in-buffer (interactive &optional file)
+(defun fortune-in-buffer (_interactive &optional file)
   "Put a fortune cookie in the *fortune* buffer.
 INTERACTIVE is ignored.  Optional argument FILE, when supplied,
 specifies the file to choose the fortune from."

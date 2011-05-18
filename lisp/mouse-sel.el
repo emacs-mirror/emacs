@@ -548,7 +548,6 @@ See documentation for mouse-select-internal for more details."
 	  (let* ((thing-symbol (mouse-sel-selection-thing selection))
 		 (overlay (mouse-sel-selection-overlay selection))
 		 (orig-window (selected-window))
-		 (orig-window-frame (window-frame orig-window))
 		 (top (nth 1 (window-edges orig-window)))
 		 (bottom (nth 3 (window-edges orig-window)))
 		 (mark-active nil)	; inhibit normal region highlight

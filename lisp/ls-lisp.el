@@ -329,7 +329,7 @@ not contain `d', so that a full listing is expected."
 	     (max-gid-len 0)
 	     (max-file-size 0)
 	     ;; do all bindings here for speed
-	     total-line files elt short file-size fil attr
+	     total-line files elt short file-size attr
 	     fuid fgid uid-len gid-len)
 	(cond ((memq ?A switches)
 	       (setq file-alist

@@ -76,7 +76,7 @@ If the buffer is locked, signal error and display its name."
   (set-process-sentinel
    (get-buffer-process (buffer-name)) (function emacs-lock-clear-sentinel)))
 
-(defun emacs-lock-clear-sentinel (proc str)
+(defun emacs-lock-clear-sentinel (_proc _str)
   (if emacs-lock-from-exiting
       (progn
 	(setq emacs-lock-from-exiting nil)

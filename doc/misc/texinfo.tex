@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2011-03-25.11}
+\def\texinfoversion{2011-05-11.16}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -8424,7 +8424,7 @@ directory should work if nowhere else does.}
 %
 % Latin1 (ISO-8859-1) character definitions.
 \def\latonechardefs{%
-  \gdef^^a0{~}
+  \gdef^^a0{\tie}
   \gdef^^a1{\exclamdown}
   \gdef^^a2{\missingcharmsg{CENT SIGN}}
   \gdef^^a3{{\pounds}}
@@ -8546,7 +8546,7 @@ directory should work if nowhere else does.}
 
 % Latin2 (ISO-8859-2) character definitions.
 \def\lattwochardefs{%
-  \gdef^^a0{~}
+  \gdef^^a0{\tie}
   \gdef^^a1{\ogonek{A}}
   \gdef^^a2{\u{}}
   \gdef^^a3{\L}
@@ -9394,6 +9394,8 @@ directory should work if nowhere else does.}
 
 
 \message{and turning on texinfo input format.}
+
+\def^^L{\par} % remove \outer, so ^L can appear in an @comment
 
 % DEL is a comment character, in case @c does not suffice.
 \catcode`\^^? = 14

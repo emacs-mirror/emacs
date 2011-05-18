@@ -420,6 +420,7 @@ It creates an autoload function for CNAME's constructor."
     (load-library (car (cdr (symbol-function cname))))))
 
 (defun eieio-defclass (cname superclasses slots options-and-doc)
+  ;; FIXME: Most of this should be moved to the `defclass' macro.
   "Define CNAME as a new subclass of SUPERCLASSES.
 SLOTS are the slots residing in that class definition, and options or
 documentation OPTIONS-AND-DOC is the toplevel documentation for this class.
@@ -656,14 +657,14 @@ See `defclass' for more information."
 	;; so that users can `setf' the space returned by this function
 	(if acces
 	    (progn
-	      (eieio-defmethod acces
-		(list (if (eq alloc :class) :static :primary)
-		      (list (list 'this cname))
-		      (format
+	      (eieio--defmethod
+               acces (if (eq alloc :class) :static :primary) cname
+               `(lambda (this)
+                  ,(format
 		       "Retrieves the slot `%s' from an object of class `%s'"
 		       name cname)
-		      (list 'if (list 'slot-boundp 'this (list 'quote name))
-			    (list 'eieio-oref 'this (list 'quote name))
+                  (if (slot-boundp this ',name)
+                      (eieio-oref this ',name)
 			    ;; Else - Some error?  nil?
 			    nil)))
 
@@ -683,22 +684,21 @@ See `defclass' for more information."
 	;; If a writer is defined, then create a generic method of that
 	;; name whose purpose is to set the value of the slot.
 	(if writer
-	    (progn
-	      (eieio-defmethod writer
-		(list (list (list 'this cname) 'value)
-		      (format "Set the slot `%s' of an object of class `%s'"
+            (eieio--defmethod
+             writer nil cname
+             `(lambda (this value)
+                ,(format "Set the slot `%s' of an object of class `%s'"
 			      name cname)
-		      `(setf (slot-value this ',name) value)))
-	      ))
+                (setf (slot-value this ',name) value))))
 	;; If a reader is defined, then create a generic method
 	;; of that name whose purpose is to access this slot value.
 	(if reader
-	    (progn
-	      (eieio-defmethod reader
-		(list (list (list 'this cname))
-		      (format "Access the slot `%s' from object of class `%s'"
+            (eieio--defmethod
+             reader nil cname
+             `(lambda (this)
+                ,(format "Access the slot `%s' from object of class `%s'"
 			      name cname)
-		      `(slot-value this ',name)))))
+                (slot-value this ',name))))
 	)
       (setq slots (cdr slots)))
 
@@ -1140,6 +1140,17 @@ a string."
 
 ;;; CLOS methods and generics
 ;;
+
+(put 'eieio--defalias 'byte-hunk-handler
+     #'byte-compile-file-form-defalias) ;;(get 'defalias 'byte-hunk-handler)
+(defun eieio--defalias (name body)
+  "Like `defalias', but with less side-effects.
+More specifically, it has no side-effects at all when the new function
+definition is the same (`eq') as the old one."
+  (unless (and (fboundp name)
+               (eq (symbol-function name) body))
+    (defalias name body)))
+
 (defmacro defgeneric (method args &optional doc-string)
   "Create a generic function METHOD.
 DOC-STRING is the base documentation for this class.  A generic
@@ -1148,7 +1159,21 @@ is appropriate to use.  Uses `defmethod' to create methods, and calls
 `defgeneric' for you.  With this implementation the ARGS are
 currently ignored.  You can use `defgeneric' to apply specialized
 top level documentation to a method."
-  `(eieio-defgeneric (quote ,method) ,doc-string))
+  `(eieio--defalias ',method
+                    (eieio--defgeneric-init-form ',method ,doc-string)))
+
+(defun eieio--defgeneric-init-form (method doc-string)
+  "Form to use for the initial definition of a generic."
+  (cond
+   ((or (not (fboundp method))
+        (eq 'autoload (car-safe (symbol-function method))))
+    ;; Make sure the method tables are installed.
+    (eieiomt-install method)
+    ;; Construct the actual body of this function.
+    (eieio-defgeneric-form method doc-string))
+   ((generic-p method) (symbol-function method))           ;Leave it as-is.
+   (t (error "You cannot create a generic/method over an existing symbol: %s"
+             method))))
 
 (defun eieio-defgeneric-form (method doc-string)
   "The lambda form that would be used as the function defined on METHOD.
@@ -1238,26 +1263,6 @@ IMPL is the symbol holding the method implementation."
 		  (cdr entry)
 		  ))))
 
-(defun eieio-defgeneric (method doc-string)
-  "Engine part to `defgeneric' macro defining METHOD with DOC-STRING."
-  (if (and (fboundp method) (not (generic-p method))
-	   (or (byte-code-function-p (symbol-function method))
-	       (not (eq 'autoload (car (symbol-function method)))))
-	   )
-      (error "You cannot create a generic/method over an existing symbol: %s"
-	     method))
-  ;; Don't do this over and over.
-  (unless (fboundp 'method)
-    ;; This defun tells emacs where the first definition of this
-    ;; method is defined.
-    `(defun ,method nil)
-    ;; Make sure the method tables are installed.
-    (eieiomt-install method)
-    ;; Apply the actual body of this function.
-    (fset method (eieio-defgeneric-form method doc-string))
-    ;; Return the method
-    'method))
-
 (defun eieio-unbind-method-implementations (method)
   "Make the generic method METHOD have no implementations.
 It will leave the original generic function in place,
@@ -1290,83 +1295,53 @@ Summary:
                      ((typearg class-name) arg2 &optional opt &rest rest)
     \"doc-string\"
      body)"
-  (let* ((key (cond ((or (eq ':BEFORE (car args))
-                         (eq ':before (car args)))
-                     (setq args (cdr args))
-                     :before)
-                    ((or (eq ':AFTER (car args))
-                         (eq ':after (car args)))
-                     (setq args (cdr args))
-                     :after)
-                    ((or (eq ':PRIMARY (car args))
-                         (eq ':primary (car args)))
-                     (setq args (cdr args))
-                     :primary)
-                    ((or (eq ':STATIC (car args))
-                         (eq ':static (car args)))
-                     (setq args (cdr args))
-                     :static)
-                    (t nil)))
+  (let* ((key (if (keywordp (car args)) (pop args)))
 	 (params (car args))
-	 (lamparams
-          (mapcar (lambda (param) (if (listp param) (car param) param))
-                  params))
 	 (arg1 (car params))
-	 (class (if (listp arg1) (nth 1 arg1) nil)))
-    `(eieio-defmethod ',method
-                      '(,@(if key (list key))
-                        ,params)
-                      (lambda ,lamparams ,@(cdr args)))))
+         (fargs (if (consp arg1)
+                   (cons (car arg1) (cdr params))
+                 params))
+	 (class (if (consp arg1) (nth 1 arg1)))
+         (code `(lambda ,fargs ,@(cdr args))))
+    `(progn
+       ;; Make sure there is a generic and the byte-compiler sees it.
+       (defgeneric ,method ,args
+         ,(or (documentation code)
+              (format "Generically created method `%s'." method)))
+       (eieio--defmethod ',method ',key ',class #',code))))
 
-(defun eieio-defmethod (method args &optional code)
+(defun eieio--defmethod (method kind argclass code)
   "Work part of the `defmethod' macro defining METHOD with ARGS."
-  (let ((key nil) (body nil) (firstarg nil) (argfix nil) (argclass nil) loopa)
+  (let ((key
     ;; find optional keys
-    (setq key
-	  (cond ((or (eq ':BEFORE (car args))
-		     (eq ':before (car args)))
-		 (setq args (cdr args))
+         (cond ((or (eq ':BEFORE kind)
+                    (eq ':before kind))
 		 method-before)
-		((or (eq ':AFTER (car args))
-		     (eq ':after (car args)))
-		 (setq args (cdr args))
+               ((or (eq ':AFTER kind)
+                    (eq ':after kind))
 		 method-after)
-		((or (eq ':PRIMARY (car args))
-		     (eq ':primary (car args)))
-		 (setq args (cdr args))
+               ((or (eq ':PRIMARY kind)
+                    (eq ':primary kind))
 		 method-primary)
-		((or (eq ':STATIC (car args))
-		     (eq ':static (car args)))
-		 (setq args (cdr args))
+               ((or (eq ':STATIC kind)
+                    (eq ':static kind))
 		 method-static)
 		;; Primary key
-		(t method-primary)))
-    ;; get body, and fix contents of args to be the arguments of the fn.
-    (setq body (cdr args)
-	  args (car args))
-    (setq loopa args)
-    ;; Create a fixed version of the arguments
-    (while loopa
-      (setq argfix (cons (if (listp (car loopa)) (car (car loopa)) (car loopa))
-			 argfix))
-      (setq loopa (cdr loopa)))
-    ;; make sure there is a generic
-    (eieio-defgeneric
-     method
-     (if (stringp (car body))
-	 (car body) (format "Generically created method `%s'." method)))
+               (t method-primary))))
+    ;; Make sure there is a generic (when called from defclass).
+    (eieio--defalias
+     method (eieio--defgeneric-init-form
+             method (or (documentation code)
+                        (format "Generically created method `%s'." method))))
     ;; create symbol for property to bind to.  If the first arg is of
     ;; the form (varname vartype) and `vartype' is a class, then
     ;; that class will be the type symbol.  If not, then it will fall
     ;; under the type `primary' which is a non-specific calling of the
     ;; function.
-    (setq firstarg (car args))
-    (if (listp firstarg)
-	(progn
-	  (setq argclass  (nth 1 firstarg))
+    (if argclass
 	  (if (not (class-p argclass))
 	      (error "Unknown class type %s in method parameters"
-		     (nth 1 firstarg))))
+                   argclass))
       (if (= key -1)
 	  (signal 'wrong-type-argument (list :static 'non-class-arg)))
       ;; generics are higher
@@ -1884,11 +1859,11 @@ OBJECT can be an instance or a class."
   ;; Skip typechecking while retrieving this value.
   (let ((eieio-skip-typecheck t))
     ;; Return nil if the magic symbol is in there.
-    (if (eieio-object-p object)
-	(if (eq (eieio-oref object slot) eieio-unbound) nil t)
-      (if (class-p object)
-	  (if (eq (eieio-oref-default object slot) eieio-unbound) nil t)
-	(signal 'wrong-type-argument (list 'eieio-object-p object))))))
+    (not (eq (cond
+	      ((eieio-object-p object) (eieio-oref object slot))
+	      ((class-p object)        (eieio-oref-default object slot))
+	      (t (signal 'wrong-type-argument (list 'eieio-object-p object))))
+	     eieio-unbound))))
 
 (defun slot-makeunbound (object slot)
   "In OBJECT, make SLOT unbound."

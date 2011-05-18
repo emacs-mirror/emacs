@@ -1484,6 +1484,45 @@ only these files will be asked to be saved."
   ;; continue standard unloading
   nil)
 
+(defun server-eval-at (server form)
+  "Eval FORM on Emacs Server SERVER."
+  (let ((auth-file (expand-file-name server server-auth-dir))
+	(coding-system-for-read 'binary)
+	(coding-system-for-write 'binary)
+	address port secret process)
+    (unless (file-exists-p auth-file)
+      (error "No such server definition: %s" auth-file))
+    (with-temp-buffer
+      (insert-file-contents auth-file)
+      (unless (looking-at "\\([0-9.]+\\):\\([0-9]+\\)")
+	(error "Invalid auth file"))
+      (setq address (match-string 1)
+	    port (string-to-number (match-string 2)))
+      (forward-line 1)
+      (setq secret (buffer-substring (point) (line-end-position)))
+      (erase-buffer)
+      (unless (setq process (open-network-stream "eval-at" (current-buffer)
+						 address port))
+	(error "Unable to contact the server"))
+      (set-process-query-on-exit-flag process nil)
+      (process-send-string
+       process
+       (concat "-auth " secret " -eval "
+	       (replace-regexp-in-string
+		" " "&_" (format "%S" form))
+	       "\n"))
+      (while (memq (process-status process) '(open run))
+	(accept-process-output process 0 10))
+      (goto-char (point-min))
+      ;; If the result is nil, there's nothing in the buffer.  If the
+      ;; result is non-nil, it's after "-print ".
+      (when (search-forward "\n-print" nil t)
+	(let ((start (point)))
+	  (while (search-forward "&_" nil t)
+	    (replace-match " " t t))
+	  (goto-char start)
+	  (read (current-buffer)))))))
+
 
 (provide 'server)
 

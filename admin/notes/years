@@ -6,6 +6,14 @@ rolls around, add that year to every FSF (and AIST) copyright notice.
 There's no need to worry about whether an individual file has changed
 in a given year - it's sufficient that Emacs as a whole has changed.
 
+Therefore the years are updated en-masse near the start of each year,
+so basically there is no need for most people to do any updating of them.
+
+The current (in 2011) version of "Information for Maintainers of GNU
+Software" (see that document for more details) says that it is OK to use
+ranges in copyright years, so in early 2011 the years were changed to use
+ranges, which occupy less space and do not grow in length every year.
+
 For more detailed information on maintaining copyright, see the file
 "copyright" in this directory.
 

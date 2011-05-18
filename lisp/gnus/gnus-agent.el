@@ -3876,6 +3876,15 @@ has been fetched."
           (insert-file-contents file))
         t))))
 
+(defun gnus-agent-store-article (article group)
+  (let* ((gnus-command-method (gnus-find-method-for-group group))
+	 (file (gnus-agent-article-name (number-to-string article) group))
+	 (file-name-coding-system nnmail-pathname-coding-system)
+	 (coding-system-for-write gnus-cache-coding-system))
+    (when (not (file-exists-p file))
+      (gnus-make-directory (file-name-directory file))
+      (write-region (point-min) (point-max) file nil 'silent))))
+
 (defun gnus-agent-regenerate-group (group &optional reread)
   "Regenerate GROUP.
 If REREAD is t, all articles in the .overview are marked as unread.

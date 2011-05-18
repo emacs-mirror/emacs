@@ -1005,7 +1005,7 @@ move to start of new line, clear to end of line."
 	(unwind-protect
 	    (progn
 	      (set-process-filter te-process
-				  (function (lambda (p s)
+				  (function (lambda (_p s)
                                     (or (eq (length s) 1)
                                         (setq te-pending-output (list 1 s)))
                                     (throw 'char (aref s 0)))))
@@ -1327,7 +1327,7 @@ in the directory specified by `te-terminfo-directory'."
 	  "im=:ei=:dm=:ed=:mi:do=^p^j:nl=^p^j:bs:")
 )
 
-(defun te-tic-sentinel (proc state-change)
+(defun te-tic-sentinel (_proc state-change)
   "If tic has finished, delete the .tif file"
   (if (equal state-change "finished
 ")

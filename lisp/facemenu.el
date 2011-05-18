@@ -825,19 +825,13 @@ MENU should be `facemenu-foreground-menu' or `facemenu-background-menu'.
 Return the event type (a symbol) of the added menu entry.
 
 This is called whenever you use a new color."
-  (let (symbol docstring)
+  (let (symbol)
     (unless (color-defined-p color)
       (error "Color `%s' undefined" color))
     (cond ((eq menu 'facemenu-foreground-menu)
-	   (setq docstring
-		 (format "Select foreground color %s for subsequent insertion."
-			 color)
-		 symbol (intern (concat "fg:" color))))
+	   (setq symbol (intern (concat "fg:" color))))
 	  ((eq menu 'facemenu-background-menu)
-	   (setq docstring
-		 (format "Select background color %s for subsequent insertion."
-			 color)
-		 symbol (intern (concat "bg:" color))))
+	   (setq symbol (intern (concat "bg:" color))))
 	  (t (error "MENU should be `facemenu-foreground-menu' or `facemenu-background-menu'")))
     (unless (facemenu-iterate ; Check if color is already in the menu.
 	     (lambda (m) (and (listp m)

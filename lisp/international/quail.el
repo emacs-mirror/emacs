@@ -818,7 +818,7 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	  (bar "|")
 	  lower upper row)
       ;; Make table without horizontal lines.  Each column for a key
-      ;; has the form "| LU |" where L is for lower key and and U is
+      ;; has the form "| LU |" where L is for lower key and U is
       ;; for a upper key.  If width of L (U) is greater than 1,
       ;; preceding (following) space is not inserted.
       (put-text-property 0 1 'face 'bold bar)

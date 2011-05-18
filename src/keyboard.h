@@ -16,7 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include "systime.h"		/* for EMACS_TIME */
+#include "systime.h"		/* for EMACS_TIME, Time */
 #include "coding.h"             /* for ENCODE_UTF_8 and ENCODE_SYSTEM */
 
 /* Lisp fields in struct keyboard are hidden from most code and accessed
@@ -459,7 +459,7 @@ extern Lisp_Object Qevent_symbol_element_mask;
 
 /* The timestamp of the last input event we received from the X server.
    X Windows wants this for selection ownership.  */
-extern unsigned long last_event_timestamp;
+extern Time last_event_timestamp;
 
 extern int quit_char;
 

@@ -1,3 +1,1121 @@
+2011-05-18  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* menu.c: Include limits.h (fixes the MS-Windows build broken by
+	revision 104625).
+
+2011-05-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some integer overflow issues, such as string length overflow.
+
+	* insdel.c (count_size_as_multibyte): Check for string overflow.
+
+	* character.c (lisp_string_width): Check for string overflow.
+	Use EMACS_INT, not int, for string indexes and lengths; in
+	particular, 2nd arg is now EMACS_INT, not int.  Do not crash if
+	the resulting string length overflows an EMACS_INT; instead,
+	report a string overflow if no precision given.  When checking for
+	precision exhaustion, use a check that cannot possibly have
+	integer overflow.  (Bug#8675)
+	* character.h (lisp_string_width): Adjust to new signature.
+
+	* alloc.c (string_overflow): New function.
+	(Fmake_string): Use it.  This doesn't change behavior, but saves
+	a few bytes and will simplify future changes.
+	* character.c (string_escape_byte8): Likewise.
+	* lisp.h (string_overflow): New decl.
+
+	Fixups, following up to the user-interface timestamp change.
+	* nsterm.m (last_mouse_movement_time, ns_mouse_position): Use Time
+	for UI timestamps, instead of unsigned long.
+	* msdos.c (mouse_get_pos): Likewise.
+	* w32inevt.c (movement_time, w32_console_mouse_position): Likewise.
+	* w32gui.h (Time): Define by including "systime.h" rather than by
+	declaring it ourselves.  (Bug#8664)
+
+	* dispextern.h (struct image): Don't assume time_t <= unsigned long.
+	* image.c (clear_image_cache): Likewise.
+
+	* term.c (term_mouse_position): Don't assume time_t wraparound.
+
+	Be more systematic about user-interface timestamps.
+	Before, the code sometimes used 'Time', sometimes 'unsigned long',
+	and sometimes 'EMACS_UINT', to represent these timestamps.  This
+	change causes it to use 'Time' uniformly, as that's what X uses.
+	This makes the code easier to follow, and makes it easier to catch
+	integer overflow bugs such as Bug#8664.
+	* frame.c (Fmouse_position, Fmouse_pixel_position):
+	Use Time, not unsigned long, for user-interface timestamps.
+	* keyboard.c (last_event_timestamp, kbd_buffer_get_event): Likewise.
+	(button_down_time, make_lispy_position, make_lispy_movement): Likewise.
+	* keyboard.h (last_event_timestamp): Likewise.
+	* menu.c (Fx_popup_menu) [!HAVE_X_WINDOWS]: Likewise.
+	* menu.h (xmenu_show): Likewise.
+	* term.c (term_mouse_position): Likewise.
+	* termhooks.h (struct input_event.timestamp): Likewise.
+	(struct terminal.mouse_position_hook): Likewise.
+	* xmenu.c (create_and_show_popup_menu, xmenu_show): Likewise.
+	* xterm.c (XTmouse_position, x_scroll_bar_report_motion): Likewise.
+	* systime.h (Time): New decl.  Pull it in from <X11/X.h> if
+	HAVE_X_WINDOWS, otherwise define it as unsigned long, which is
+	what it was before.
+	* menu.h, termhooks.h: Include "systime.h", for Time.
+
+	* keyboard.c (make_lispy_event): Fix problem in integer overflow.
+	Don't assume that the difference between two unsigned long values
+	can fit into an integer.  At this point, we know button_down_time
+	<= event->timestamp, so the difference must be nonnegative, so
+	there's no need to cast the result if double-click-time is
+	nonnegative, as it should be; check that it's nonnegative, just in
+	case.  This bug is triggered when events are more than 2**31 ms
+	apart (about 25 days).  (Bug#8664)
+
+	* xselect.c (last_event_timestamp): Remove duplicate decl.
+	(x_own_selection): Remove needless cast to unsigned long.
+
+	* xmenu.c (set_frame_menubar): Use int, not EMACS_UINT, for indexes
+	that always fit in int.  Use a sentinel instead of a counter, to
+	avoid a temp and to allay GCC's concerns about possible int overflow.
+	* frame.h (struct frame): Use int for menu_bar_items_used
+	instead of EMACS_INT, since it always fits in int.
+
+	* menu.c (grow_menu_items): Check for int overflow.
+
+	* xmenu.c (set_frame_menubar): Don't mishandle vectors with no nils.
+
+	* xterm.c: Use EMACS_INT for Emacs modifiers, and int for X modifiers.
+	Before, the code was not consistent.  These values cannot exceed
+	2**31 - 1 so there's no need to make them unsigned.
+	(x_x_to_emacs_modifiers): Accept int and return EMACS_INT.
+	(x_emacs_to_x_modifiers): Accept EMACS_INT and return int.
+	(x_x_to_emacs_modifiers, x_emacs_to_x_modifiers): Reject non-integers
+	as modifiers.
+	* xterm.h (x_x_to_emacs_modifiers): Adjust to signature change.
+
+	* lisp.h (XINT) [USE_LISP_UNION_TYPE]: Cast to EMACS_INT.
+	(XUINT) [USE_LISP_UNION_TYPE]: Cast to EMACS_UINT.
+	Otherwise, GCC 4.6.0 warns about printf (pI, XINT (...)),
+	presumably because the widths might not match.
+
+	* window.c (size_window): Avoid needless test at loop start.
+
+2011-05-18  Courtney Bane  <emacs-bugs-7626@cbane.org>  (tiny change)
+
+	* term.c (Fresume_tty): Restore hooks before reinitializing (bug#8687).
+
+2011-05-12  Drew Adams  <drew.adams@oracle.com>
+
+	* textprop.c (Fprevious_single_char_property_change): Doc fix (bug#8655).
+
+2011-05-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* w32term.c (w32_draw_fringe_bitmap): Rename local vars `left' and
+	`width' to `bar_area_x' and `bar_area_width', respectively.
+	(x_scroll_run): Take account of fringe background extension.
+
+	* xterm.c (x_draw_fringe_bitmap) [USE_TOOLKIT_SCROLL_BARS]:
+	Rename local vars `left' and `width' to `bar_area_x' and
+	`bar_area_width', respectively.
+	(x_scroll_run) [USE_TOOLKIT_SCROLL_BARS]: Take account of fringe
+	background extension.
+
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	* xdisp.c (x_intersect_rectangles): Fix typo "the the -> the".
+
+2011-05-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (Finit_image_library): Return t for built-in image types,
+	like pbm and xbm.  (Bug#8640)
+
+2011-05-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* w32menu.c (set_frame_menubar): Fix submenu allocation.
+
+2011-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32console.c (Fset_screen_color): Doc fix.
+	(Fget_screen_color): New function.
+	(syms_of_ntterm): Defsubr it.
+
+	* callproc.c (call_process_cleanup): Don't close and unlink the
+	temporary file if Fcall_process didn't create it in the first
+	place.
+	(Fcall_process): Don't create tempfile if stdout of the child
+	process will be redirected to a file specified with `:file'.
+	Don't try to re-open tempfile in that case, and set fd[0] to -1 as
+	cue to call_process_cleanup not to close that handle.
+
+2011-05-07  Ben Key  <bkey76@gmail.com>
+
+	* makefile.w32-in: The bootstrap-temacs rule now makes use of
+	one of two shell specific rules, either bootstrap-temacs-CMD or
+	bootstrap-temacs-SH.  The bootstrap-temacs-SH rule is identical
+	to the previous implementation of the bootstrap-temacs rule.
+	The bootstrap-temacs-CMD rule is similar to the previous
+	implementation of the bootstrap-temacs rule except that it
+	makes use of the ESC_CFLAGS variable instead of the CFLAGS
+	variable.
+
+	These changes, along with some changes to nt/configure.bat,
+	nt/gmake.defs, and nt/nmake.defs, are required to extend my
+	earlier fix to add support for --cflags and --ldflags options
+	that include quotes so that it works whether make uses cmd or
+	sh as the shell.
+
+2011-05-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (QCdbus_type_unix_fd): Declare static.
+	(xd_remove_watch): Don't check QCdbus_type_unix_fd for SYMBOLP, it
+	is a constant.
+	(Fdbus_init_bus, xd_read_queued_messages): Bus can be a symbol or
+	a string.  Handle both cases.
+	(Fdbus_call_method_asynchronously, Fdbus_register_signal)
+	(Fdbus_register_method): Use Qinvalid_function.
+
+2011-05-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies.
+	(LISP_H): Add inttypes.h and stdin.h.
+	(PROCESS_H): Add unistd.h.
+
+2011-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* lread.c: Include limits.h (fixes the MS-Windows build broken by
+	revision 104134).
+
+2011-05-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (Finit_image_library) [!HAVE_NTGUI]: Omit unused local.
+
+	* term.c (vfatal): Remove stray call to va_end.
+	It's not needed and the C Standard doesn't allow it here anyway.
+
+	Use C99's va_copy to avoid undefined behavior on x86-64 GNU/Linux.
+	* eval.c (verror): doprnt a copy of ap, not the original.  (Bug#8545)
+
+	* eval.c (verror): OK to create a string of up to MOST_POSITIVE_FIXNUM
+	bytes.
+
+	* term.c: Don't include <stdarg.h>, as <lisp.h> does that.
+
+	* callproc.c (Fcall_process): Use 'volatile' to avoid vfork clobbering.
+
+	* process.c (Fformat_network_address): Fix typo: args2 -> *args2.
+
+	* xmenu.c (set_frame_menubar): Fix typo: int * -> int (3 times).
+
+	* coding.c (detect_coding_charset): Fix typo: * 2 -> *4 (Bug#8601).
+
+	* charset.h (struct charset.code_space): Now has 15 elements, not 16.
+	* charset.c (Fdefine_charset_internal): Don't initialize
+	charset.code_space[15].  The value was garbage, on hosts with
+	32-bit int (Bug#8600).
+
+	* lread.c (read_integer): Be more consistent with string-to-number.
+	Use string_to_number to do the actual conversion; this avoids
+	rounding errors and fixes some other screwups.  Without this fix,
+	for example, #x1fffffffffffffff was misread as -2305843009213693952.
+	(digit_to_number): Move earlier, for benefit of read_integer.
+	Return -1 if the digit is out of range for the base, -2 if it is
+	not a digit in any supported base.  (Bug#8602)
+
+	* doprnt.c (doprnt): Support arbitrary pI values, such as "I64".
+
+	* dispnew.c (scrolling_window): Return 1 if we scrolled,
+	to match comment at start of function.  This also removes a
+	GCC warning about overflow in a 32+64-bit port.
+
+	* lisp.h (EMACS_INT, EMACS_UINT, BITS_PER_EMACS_INT, pI): Simplify.
+
+	* dbusbind.c: Do not use XPNTR on a value that may be an integer.
+	Reported by Stefan Monnier in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00919.html>.
+	(xd_remove_watch, Fdbus_init_bus, xd_read_queued_messages):
+	Use SYMBOLP-guarded XSYMBOL, not XPNTR.
+
+	* lisp.h (EMACS_INTPTR): Remove.  All uses changed to intptr_t.
+	(EMACS_UINTPTR): Likewise, with uintptr_t.
+
+	* lisp.h: Prefer 64-bit EMACS_INT if available.
+	(EMACS_INT, EMACS_UINT, BITS_PER_EMACS_INT, pI): Define to 64-bit
+	on 32-bit hosts that have 64-bit int, so that they can access
+	large files.
+	However, temporarily disable this change unless the temporary
+	symbol WIDE_EMACS_INT is defined.
+
+	* lread.c, process.c: Do not include <inttypes.h>; lisp.h does it now.
+
+	Prefer intptr_t/uintptr_t for integers the same widths as pointers.
+	This removes an assumption that EMACS_INT and long are the same
+	width as pointers.  The assumption is true for Emacs porting targets
+	now, but we want to make other targets possible.
+	* lisp.h: Include <inttypes.h>, for INTPTR_MAX, UINTPTR_MAX.
+	(EMACS_INTPTR, EMACS_UINTPTR): New macros.
+	In the rest of the code, change types of integers that hold casted
+	pointers to EMACS_INTPTR and EMACS_UINTPTR, systematically
+	replacing EMACS_INT, long, EMACS_UINT, and unsigned long.
+	(XTYPE): Don't cast arg to EMACS_UINT; normally is not needed.
+	(XSET): Cast type of XTYPE arg to EMACS_INTPTR; it is needed here.
+	No need to cast type when ORing.
+	(XPNTR): Return a value of type EMACS_INTPTR or EMACS_UINTPTR.
+	* alloc.c (lisp_align_malloc): Remove a no-longer-needed cast.
+	* doc.c (store_function_docstring): Use EMACS_INTPTR, so as not to
+	assume EMACS_INT is the same width as char *.
+	* gtkutil.c (xg_gtk_scroll_destroy, xg_tool_bar_button_cb):
+	(xg_tool_bar_callback, xg_tool_bar_help_callback, xg_make_tool_item):
+	Remove no-longer-needed casts.
+	(xg_create_scroll_bar, xg_tool_bar_button_cb, xg_tool_bar_callback):
+	(xg_tool_bar_help_callback, xg_make_tool_item):
+	Use EMACS_INTPTR to hold an integer
+	that will be cast to void *; this can avoid a GCC warning
+	if EMACS_INT is not the same width as void *.
+	* menu.c (find_and_call_menu_selection): Remove no-longer-needed cast.
+	* xdisp.c (display_echo_area_1, resize_mini_window_1):
+	(current_message_1, set_message_1):
+	Use a local to convert to proper width without a cast.
+	* xmenu.c (dialog_selection_callback): Likewise.
+
+	* sysdep.c (get_random): Don't assume EMACS_INT is no wider than long.
+	Also, don't assume VALBITS / RAND_BITS is less than 5,
+	and don't rely on undefined behavior when shifting a 1 left into
+	the sign bit.
+	* lisp.h (get_random): Change signature to match.
+
+	* lread.c (hash_string): Use size_t, not int, for hash computation.
+	Normally we prefer signed values; but hashing is special, because
+	it's better to use unsigned division on hash table sizes so that
+	the remainder is nonnegative.  Also, size_t is the natural width
+	for hashing into memory.  The previous code used 'int', which doesn't
+	retain enough info to hash well into very large tables.
+	(oblookup, oblookup_last_bucket_number, Funintern): Likewise.
+
+	* dbusbind.c: Don't possibly lose pointer info when converting.
+	(xd_remove_watch, Fdbus_init_bus, xd_read_queued_messages):
+	Use XPNTR rather than XHASH, so that the high-order bits of
+	the pointer aren't lost when converting through void *.
+
+	* eval.c (Fautoload): Don't double-shift a pointer.
+
+	* fns.c (Frandom): Let EMACS_UINT be wider than unsigned long.
+
+2011-05-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnutls.c (DEF_GNUTLS_FN):
+	* image.c (DEF_IMGLIB_FN): Make function pointers static.
+
+2011-05-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lread.c (lisp_file_lexically_bound_p): Stop scanning at end
+	marker.  (Bug#8610)
+
+2011-05-05 Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.c (allocate_heap) [USE_LISP_UNION_TYPE || USE_LSB_TAG]:
+	New version that can reserve upto 2GB of heap space.
+
+2011-05-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m (Fns_read_file_name): Doc fix (Bug#8534).
+
+2011-05-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (fn_gnutls_certificate_set_x509_key_file): Add alias to
+	`gnutls_certificate_set_x509_key_file'.
+
+2011-05-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/image.$(O), $(BLD)/process.$(O)):
+	Update dependencies.
+
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnutls.h (emacs_gnutls_write, emacs_gnutls_read):
+	* gnutls.c (emacs_gnutls_write, emacs_gnutls_read):
+	Remove unused parameter `fildes'.
+	* process.c (read_process_output, send_process): Don't pass it.
+
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix previous change: the library cache is defined in w32.c.
+	* image.c (CACHE_IMAGE_TYPE) [!HAVE_NTGUI]: Define to noop.
+	(Finit_image_library): Wrap Vlibrary_cache on "#ifdef HAVE_NTGUI".
+
+2011-05-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	Implement dynamic loading of GnuTLS on Windows.
+
+	* gnutls.h (GNUTLS_EMACS_ERROR_NOT_LOADED): New macro.
+	(emacs_gnutls_write, emacs_gnutls_read): Mark as extern.
+	(emacs_gnutls_record_check_pending, emacs_gnutls_transport_set_errno):
+	Declare.
+
+	* gnutls.c (Qgnutls_dll): Define.
+	(DEF_GNUTLS_FN, LOAD_GNUTLS_FN): New macros.
+	(gnutls_*): Declare function pointers.
+	(init_gnutls_functions): New function to initialize function pointers.
+	(emacs_gnutls_handshake, Fgnutls_error_string, Fgnutls_deinit)
+	(emacs_gnutls_global_init, Fgnutls_bye): Use function pointers.
+	(emacs_gnutls_record_check_pending, emacs_gnutls_transport_set_errno):
+	Wrappers for gnutls_record_check_pending and gnutls_transport_set_errno.
+	(emacs_gnutls_write, emacs_gnutls_read)
+	(emacs_gnutls_handle_error, Fgnutls_error_fatalp)
+	(Fgnutls_available_p): New function.
+	(Fgnutls_boot): Call Fgnutls_available_p.  Use function pointers.
+	(syms_of_gnutls) <Qgnutls_dll>: Initialize and staticpro it.
+	(syms_of_gnutls) <Sgnutls_available_p>: defsubr it.
+
+	* image.c: Include w32.h.
+	(Vimage_type_cache): Delete.
+	(syms_of_image) <Vimage_type_cache>: Don't initialize and staticpro it.
+	(CACHE_IMAGE_TYPE, Finit_image_library): Use Vlibrary_cache instead.
+	(w32_delayed_load): Move to w32.c.
+
+	* w32.h (VlibraryCache, QCloaded_from, w32_delayed_load): Declare.
+
+	* w32.c (QCloaded_from, Vlibrary_cache): Define.
+	(w32_delayed_load): Move from image.c.  When loading a library, record
+	its filename in the :loaded-from property of the library id.
+	(globals_of_w32) <QCloaded_from, Vlibrary_cache>:
+	Initialize and staticpro them.
+	(emacs_gnutls_pull, emacs_gnutls_push): Call emacs_gnutls_* functions.
+
+	* process.c: Include lisp.h before w32.h, not after.
+	(wait_reading_process_output): Call emacs_gnutls_record_check_pending
+	instead of gnutls_record_check_pending.
+
+	* callproc.c, emacs.c: Include lisp.h before w32.h, not after.
+
+2011-05-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (Fgnutls_boot): Support :keylist and :crlfiles options
+	instead of :keyfiles.  Give GnuTLS the keylist and the CRL lists
+	as passed in.
+
+2011-05-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_set_frame_alpha): Do not set property on anything
+	else than FRAME_X_OUTER_WINDOW (Bug#8608).
+
+2011-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* sysdep.c (get_tty_size) [WINDOWSNT]: Implement.  (Bug#8596)
+
+2011-05-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnutls.c (Qgnutls_log_level, Qgnutls_code, Qgnutls_anon)
+	(Qgnutls_x509pki, Qgnutls_e_interrupted, Qgnutls_e_again)
+	(Qgnutls_e_invalid_session, Qgnutls_e_not_ready_for_handshake)
+	(gnutls_global_initialized, Qgnutls_bootprop_priority)
+	(Qgnutls_bootprop_trustfiles, Qgnutls_bootprop_keyfiles)
+	(Qgnutls_bootprop_callbacks, Qgnutls_bootprop_loglevel)
+	(Qgnutls_bootprop_hostname, Qgnutls_bootprop_verify_flags)
+	(Qgnutls_bootprop_verify_error, Qgnutls_bootprop_verify_hostname_error)
+	(Qgnutls_bootprop_callbacks_verify): Make static.
+
+2011-05-01  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* callproc.c: Indentation fixup.
+
+	* sysdep.c (wait_for_termination_1): Make static.
+	(wait_for_termination, interruptible_wait_for_termination):
+	Move after wait_for_termination_1.
+
+2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* sysdep.c (interruptible_wait_for_termination): New function
+	which is like wait_for_termination, but allows keyboard
+	interruptions.
+
+	* callproc.c (Fcall_process): Add (:file "file") as an option for
+	the STDOUT buffer.
+	(Fcall_process_region): Ditto.
+
+2011-04-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* dosfns.c (Fint86, Fdos_memget, Fdos_memput): Use `ASIZE (FOO)'
+	rather than `XVECTOR (FOO)->size'.
+
+	* process.c: Remove HAVE_INTTYPES_H condition from inclusion of
+	inttypes.h, as a gnulib replacement is used if it not available in
+	system headers.
+
+2011-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	Lift the MOST_POSITIVE_FIXNUM/4 limitation on visited files.
+	* fileio.c (Finsert_file_contents): Don't limit file size to 1/4
+	of MOST_POSITIVE_FIXNUM.  (Bug#8528)
+
+	* coding.c (coding_alloc_by_realloc): Error out if destination
+	will grow beyond MOST_POSITIVE_FIXNUM.
+	(decode_coding_emacs_mule): Abort if there isn't enough place in
+	charbuf for the composition carryover bytes.  Reserve an extra
+	space for up to 2 characters produced in a loop.
+	(decode_coding_iso_2022): Abort if there isn't enough place in
+	charbuf for the composition carryover bytes.
+
+2011-04-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* doprnt.c (doprnt) [!HAVE_LONG_LONG_INT]: Error out instead of
+	aborting when %lld or %lll format is passed.
+	[!HAVE_UNSIGNED_LONG_LONG_INT]: Error out instead of aborting when
+	%llo or %llx format is passed.  (Bug#8545)
+
+	* window.c (window_scroll_line_based): Use a marker instead of
+	simple variables to record original value of point.  (Bug#7952)
+
+	* doprnt.c (doprnt): Fix the case where a multibyte sequence
+	produced by %s or %c overflows available buffer space.  (Bug#8545)
+
+2011-04-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doprnt.c (doprnt): Omit useless test; int overflow check (Bug#8545).
+	(SIZE_MAX): Move defn after all includes, as they might #define it.
+
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (init_environment): Warn about defaulting HOME to C:\.
+
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (Qdelayed_warnings_hook): Define.
+	(command_loop_1): Run `delayed-warnings-hook'
+	if Vdelayed_warnings_list is non-nil.
+	(syms_of_keyboard) <delayed-warnings-hook>: DEFSYM it.
+	(syms_of_keyboard) <delayed-warnings-list>: DEFVAR_LISP it.
+
+2011-04-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* doprnt.c (doprnt): Don't return value smaller than the buffer
+	size if the message was truncated.  (Bug#8545).
+
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (Fx_change_window_property, Fx_delete_window_property)
+	(Fx_window_property): #if-0 the whole functions, not just the bodies.
+
+2011-04-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doprnt.c (doprnt): Support "ll" length modifier, for long long.
+
+2011-04-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies.
+
+2011-04-27  Eli Zaretskii  <eliz@gnu.org>
+
+	Improve `doprnt' and its usage.  (Bug#8545)
+	* doprnt.c (doprnt): Make sure `format' is never accessed beyond
+	`format_end'.  Remove support for %l as a conversion specifier.
+	Don't use xrealloc.  Improve diagnostics when the %l size modifier
+	is used.  Update the commentary.
+
+	* eval.c (verror): Simplify calculation of size_t.
+
+	* coding.c (Ffind_operation_coding_system): Fix diagnostic error
+	messages.
+
+2011-04-27  Yoshiaki Kasahara  <kasahara@nc.kyushu-u.ac.jp>  (tiny change)
+
+	* buffer.c (init_buffer) [USE_MMAP_FOR_BUFFERS]: Adjust to aliasing
+	change.
+
+2011-04-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* nsmenu.m: Replace all uses of XVECTOR with ASIZE and AREF.
+	This makes this file independent of the recent pseudovector change.
+
+2011-04-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keyboard.c (handle_user_signal): Fix pointer signedness problem.
+
+	* gnutls.c (emacs_gnutls_handle_error): Remove unused local.
+	(Fgnutls_boot): gnutls_certificate_verify_peers2 wants unsigned *.
+	Remove unused local.
+	(emacs_gnutls_write): Don't use uninitialized rtnval if nbyte <= 0.
+
+	* lisp.h: Fix a problem with aliasing and vector headers.  (Bug#8546)
+	GCC 4.6.0 optimizes based on type-based alias analysis.
+	For example, if b is of type struct buffer * and v of type struct
+	Lisp_Vector *, then gcc -O2 was incorrectly assuming that &b->size
+	!= &v->size, and therefore "v->size = 1; b->size = 2; return
+	v->size;" must therefore return 1.  This assumption is incorrect
+	for Emacs, since it type-puns struct Lisp_Vector * with many other
+	types.  To fix this problem, this patch adds a new type struct
+	vectorlike_header that documents the constraints on layout of vectors
+	and pseudovectors, and helps optimizing compilers not get fooled
+	by Emacs's type punning.  It also adds the macros XSETTYPED_PVECTYPE
+	XSETTYPED_PSEUDOVECTOR, TYPED_PSEUDOVECTORP, for similar reasons.
+	* lisp.h (XSETTYPED_PVECTYPE): New macro, specifying the name of
+	the size member.
+	(XSETPVECTYPE): Rewrite in terms of new macro.
+	(XSETPVECTYPESIZE): New macro, specifying both type and size.
+	This is a bit clearer, and further avoids the possibility of
+	undesirable aliasing.
+	(XSETTYPED_PSEUDOVECTOR): New macro, specifying the size.
+	(XSETPSEUDOVECTOR): Rewrite in terms of XSETTYPED_PSEUDOVECTOR.
+	(XSETSUBR): Rewrite in terms of XSETTYPED_PSEUDOVECTOR and XSIZE,
+	since Lisp_Subr is a special case (no "next" field).
+	(ASIZE): Now uses header.size rather than size.
+	All previous uses of XVECTOR (foo)->size replaced to use this macro,
+	to avoid the hassle of writing XVECTOR (foo)->header.size.
+	(struct vectorlike_header): New type.
+	(TYPED_PSEUDOVECTORP): New macro, also specifying the C type of the
+	object, to help avoid aliasing.
+	(PSEUDOVECTORP): Rewrite in terms of TYPED_PSEUDOVECTORP.
+	(SUBRP): Likewise, since Lisp_Subr is a special case.
+	* lisp.h (struct Lisp_Vector, struct Lisp_Char_Table):
+	(struct Lisp_Sub_Char_Table, struct Lisp_Bool_Vector):
+	(struct Lisp_Hash_Table): Combine first two members into a single
+	struct vectorlike_header member.  All uses of "size" and "next" members
+	changed to be "header.size" and "header.next".
+	* buffer.h (struct buffer): Likewise.
+	* font.h (struct font_spec, struct font_entity, struct font): Likewise.
+	* frame.h (struct frame): Likewise.
+	* process.h (struct Lisp_Process): Likewise.
+	* termhooks.h (struct terminal): Likewise.
+	* window.c (struct save_window_data, struct saved_window): Likewise.
+	* window.h (struct window): Likewise.
+	* alloc.c (allocate_buffer, Fmake_bool_vector, allocate_pseudovector):
+	Use XSETPVECTYPESIZE, not XSETPVECTYPE, to avoid aliasing problems.
+	* buffer.c (init_buffer_once): Likewise.
+	* lread.c (defsubr): Use XSETTYPED_PVECTYPE, since Lisp_Subr is a
+	special case.
+	* process.c (Fformat_network_address): Use local var for size,
+	for brevity.
+
+	* bytecode.c (exec_byte_code): Don't use XVECTOR before CHECK_VECTOR.
+
+	Make the Lisp reader and string-to-float more consistent (Bug#8525)
+	* data.c (atof): Remove decl; no longer used or needed.
+	(digit_to_number): Move to lread.c.
+	(Fstring_to_number): Use new string_to_number function, to be
+	consistent with how the Lisp reader treats infinities and NaNs.
+	Do not assume that floating-point numbers represent EMACS_INT
+	without losing information; this is not true on most 64-bit hosts.
+	Avoid double-rounding errors, by insisting on integers when
+	parsing non-base-10 numbers, as the documentation specifies.
+	* lisp.h (string_to_number): New decl, replacing ...
+	(isfloat_string): Remove.
+	* lread.c: Include <inttypes.h>, for uintmax_t and strtoumax.
+	(read1): Do not accept +. and -. as integers; this
+	appears to have been a coding error.  Similarly, do not accept
+	strings like +-1e0 as floating point numbers.  Do not report
+	overflow for integer overflows unless the base is not 10 which
+	means we have no simple and reliable way to continue.
+	Break out the floating-point parsing into a new
+	function string_to_number, so that Fstring_to_number parses
+	floating point numbers consistently with the Lisp reader.
+	(digit_to_number): Move here from data.c.  Make it static inline.
+	(E_CHAR, EXP_INT): Remove, replacing with ...
+	(E_EXP): New macro, to solve the "1.0e+" problem mentioned below.
+	(string_to_number): New function, replacing isfloat_string.
+	This function checks for valid syntax and produces the resulting
+	Lisp float number too.  Rework it so that string-to-number
+	no longer mishandles examples like "1.0e+".  Use strtoumax,
+	so that overflow for non-base-10 numbers is reported only when
+	there's no portable and simple way to convert to floating point.
+
+	* textprop.c (set_text_properties_1): Rewrite for clarity,
+	and to avoid GCC warning about integer overflow.
+
+	* intervals.h (struct interval): Use EMACS_INT for members
+	where EMACS_UINT might cause problems.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00514.html>.
+	(CHECK_TOTAL_LENGTH): Remove cast to EMACS_INT; no longer needed.
+	* intervals.c (interval_deletion_adjustment): Now returns EMACS_INT.
+	All uses changed.
+	(offset_intervals): Tell GCC not to worry about length overflow
+	when negating a negative length.
+
+	* alloc.c (overrun_check_malloc, overrun_check_realloc): Now static.
+	(overrun_check_free): Likewise.
+
+	* alloc.c (SDATA_SIZE) [!GC_CHECK_STRING_BYTES]: Avoid runtime check
+	in the common case where SDATA_DATA_OFFSET is a multiple of Emacs
+	word size.
+
+	* gnutls.c: Fix problems found by GCC 4.6.0 on Ubuntu 10.10.
+	(gnutls_make_error): Rename local to avoid shadowing.
+	(gnutls_emacs_global_deinit): ifdef out; not used.
+	(Fgnutls_boot): Use const for pointer to readonly storage.
+	Comment out unused local.  Fix pointer signedness problems.
+
+	* lread.c (openp): Don't stuff size_t into an 'int'.
+	Use <= on length, not < on length + 1, to avoid GCC 4.6.0 warning
+	about possible signed overflow.
+
+	* gtkutil.c: Fix problems found by GCC 4.6.0 on Ubuntu 10.10.
+	(GDK_KEY_g): Don't define if already defined.
+	(xg_prepare_tooltip): Avoid pointer signedness problem.
+	(xg_set_toolkit_scroll_bar_thumb): Redo to avoid two casts.
+
+	* process.c (Fnetwork_interface_info): Avoid left-shift undefined
+	behavior with 1 << 31.  GCC 4.6.0 warns about this on 32-bit hosts.
+
+	* xfns.c (Fx_window_property): Simplify a bit,
+	to make a bit faster and to avoid GCC 4.6.0 warning.
+	* xselect.c (x_get_window_property, x_handle_dnd_message): Likewise.
+
+	* fns.c (internal_equal): Don't assume size_t fits in int.
+
+	* alloc.c (compact_small_strings): Tighten assertion a little.
+
+	Replace pEd with more-general pI, and fix some printf arg casts.
+	* lisp.h (pI): New macro, generalizing old pEd macro to other
+	conversion specifiers.  For example, use "...%"pI"d..." rather
+	than "...%"pEd"...".
+	(pEd): Remove.  All uses replaced with similar uses of pI.
+	* src/m/amdx86-64.h, src/m/ia64.h, src/m/ibms390x.h: Likewise.
+	* alloc.c (check_pure_size): Don't overflow by converting size to int.
+	* bidi.c (bidi_dump_cached_states): Use pI to avoid cast.
+	* data.c (Fnumber_to_string): Use pI instead of if-then-else-abort.
+	* dbusbind.c (xd_append_arg): Use pI to avoid cast.
+	(Fdbus_method_return_internal, Fdbus_method_error_internal): Likewise.
+	* font.c (font_unparse_xlfd): Avoid potential buffer overrun on
+	64-bit hosts.
+	(font_unparse_xlfd, font_unparse_fcname): Use pI to avoid casts.
+	* keyboard.c (record_char, modify_event_symbol): Use pI to avoid casts.
+	* print.c (safe_debug_print, print_object): Likewise.
+	(print_object): Don't overflow by converting EMACS_INT or EMACS_UINT
+	to int.
+	Use pI instead of if-then-else-abort.  Use %p to avoid casts,
+	avoiding the 0 flag, which is not portable.
+	* process.c (Fmake_network_process): Use pI to avoid cast.
+	* region-cache.c (pp_cache): Likewise.
+	* xdisp.c (decode_mode_spec): Likewise.
+	* xrdb.c (x_load_resources) [USE_MOTIF]: Use pI to avoid undefined
+	behavior on 64-bit hosts with printf arg.
+	* xselect.c (x_queue_event): Use %p to avoid casts, avoiding 0 flag.
+	(x_stop_queuing_selection_requests): Likewise.
+	(x_get_window_property): Don't truncate byte count to an 'int'
+	when tracing.
+
+	* frame.c (frame_name_fnn_p): Get rid of strtol, which isn't right
+	here, since it parses constructs like leading '-' and spaces,
+	which are not wanted; and it overflows with large numbers.
+	Instead, simply match F[0-9]+, which is what is wanted anyway.
+
+	* alloc.c: Remove unportable assumptions about struct layout.
+	(SDATA_SELECTOR, SDATA_DATA_OFFSET): New macros.
+	(SDATA_OF_STRING, SDATA_SIZE, allocate_string_data):
+	(allocate_vectorlike, make_pure_vector): Use the new macros,
+	plus offsetof, to remove unportable assumptions about struct layout.
+	These assumptions hold on all porting targets that I know of, but
+	they are not guaranteed, they're easy to remove, and removing them
+	makes further changes easier.
+
+	* alloc.c (BLOCK BYTES): Fix typo by changing "ablock" to "ablocks".
+	This doesn't fix a bug but makes the code clearer.
+	(string_overrun_cookie): Now const.  Use initializers that
+	don't formally overflow signed char, to avoid warnings.
+	(allocate_string_data) [GC_CHECK_STRING_OVERRUN]: Fix typo that
+	can cause Emacs to crash when string overrun checking is enabled.
+	(allocate_buffer): Don't assume sizeof (struct buffer) is a
+	multiple of sizeof (EMACS_INT); it need not be, if
+	alignof(EMACS_INT) < sizeof (EMACS_INT).
+	(check_sblock, check_string_bytes, check_string_free_list): Protoize.
+
+2011-04-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (QCrtl): Rename from Qrtl.  All uses changed.
+
+2011-04-26  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (emacs_gnutls_handshake): Return an error if we're not
+	supposed to be handshaking.  (Bug#8556)
+	Reported by Paul Eggert <eggert@cs.ucla.edu>.
+
+2011-04-26  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* lisp.h (Qdebug): List symbol.
+	* eval.c (Qdebug): Restore global linkage.
+	* keyboard.c (debug-on-event): New variable.
+	(handle_user_signal): Break into debugger when debug-on-event
+	matches the current signal symbol.
+
+2011-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* alloc.c (check_sblock, check_string_bytes)
+	(check_string_free_list): Convert to standard C.
+
+2011-04-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* w32.c (emacs_gnutls_push): Fix typo.
+
+2011-04-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* gnutls.c (emacs_gnutls_handshake): Avoid compiler warnings about
+	"cast to pointer from integer of different size".
+
+	Improve doprnt and its use in verror.  (Bug#8545)
+	* doprnt.c (doprnt): Document the set of format control sequences
+	supported by the function.  Use SAFE_ALLOCA instead of always
+	using `alloca'.
+
+	* eval.c (verror): Don't limit the buffer size at size_max-1, that
+	is one byte too soon.  Don't use xrealloc; instead xfree and
+	xmalloc anew.
+
+2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.h: Add GNUTLS_STAGE_CALLBACKS enum to denote we're in the
+	callbacks stage.
+
+	* gnutls.c: Renamed global_initialized to
+	gnutls_global_initialized.  Added internals for the
+	:verify-hostname-error, :verify-error, and :verify-flags
+	parameters of `gnutls-boot' and documented those parameters in the
+	docstring.  Start callback support.
+	(emacs_gnutls_handshake): Add Woe32 support. Retry handshake
+	unless a fatal error occured. Call gnutls_alert_send_appropriate
+	on error. Return error code.
+	(emacs_gnutls_write): Call emacs_gnutls_handle_error.
+	(emacs_gnutls_read): Likewise.
+	(Fgnutls_boot): Return handshake error code.
+	(emacs_gnutls_handle_error): New function.
+	(wsaerror_to_errno): Likewise.
+
+	* w32.h (emacs_gnutls_pull): Add prototype.
+	(emacs_gnutls_push): Likewise.
+
+	* w32.c (emacs_gnutls_pull): New function for GnuTLS on Woe32.
+	(emacs_gnutls_push): Likewise.
+
+2011-04-24  Claudio Bley  <claudio.bley@gmail.com>  (tiny change)
+
+	* process.c (wait_reading_process_output): Check if GnuTLS
+	buffered some data internally if no FDs are set for TLS
+	connections.
+
+	* makefile.w32-in (OBJ2): Add gnutls.$(O).
+	(LIBS): Link to USER_LIBS.
+	($(BLD)/gnutls.$(0)): New target.
+
+2011-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_single_display_spec): Rename the
+	display_replaced_before_p argument into display_replaced_p, to
+	make it consistent with the commentary.  Fix typos in the
+	commentary.
+
+	* textprop.c (syms_of_textprop): Remove dead code.
+	(copy_text_properties): Delete obsolete commentary about an
+	interface that was deleted long ago.  Fix typos in the description
+	of arguments.
+
+	* msdos.c (XMenuActivate, XMenuAddSelection): Adjust argument list
+	to changes in oldXMenu/XMenu.h from 2011-04-16.
+	<menu_help_message, prev_menu_help_message>: Constify.
+	(IT_menu_make_room): menu->help_text is now `const char **';
+	adjust.
+
+	* msdos.h (XMenuActivate, XMenuAddSelection): Adjust prototypes
+	to changes in oldXMenu/XMenu.h from 2011-04-16.
+	(struct XMenu): Declare `help_text' `const char **'.
+
+	* xfaces.c <Qunspecified>: Make extern again.
+
+	* syntax.c: Include sys/types.h before including regex.h, as
+	required by Posix.
+
+	* doc.c (get_doc_string): Improve the format passed to `error'.
+
+	* doprnt.c (doprnt): Improve commentary.
+
+	* term.c (init_tty) [MSDOS]: Fix 1st argument to maybe_fatal.
+
+	* Makefile.in (TAGS): Depend on $(M_FILE) and $(S_FILE), and scan
+	them with etags.
+
+	* makefile.w32-in (globals.h): Add a dummy recipe, to make any
+	changes in globals.h immediately force recompilation.
+	(TAGS): Depend on $(CURDIR)/m/intel386.h and
+	$(CURDIR)/s/ms-w32.h.
+	(TAGS-gmake): Scan $(CURDIR)/m/intel386.h and $(CURDIR)/s/ms-w32.h.
+
+	* character.c (Fchar_direction): Function deleted.
+	(syms_of_character): Don't defsubr it.
+	<char-direction-table>: Deleted.
+
+2011-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix doprnt so it could be used again safely in `verror'.  (Bug#8435)
+	* doprnt.c: Include limits.h.
+	(SIZE_MAX): New macro.
+	(doprnt): Return a size_t value.  2nd arg is now size_t.
+	Many local variables are now size_t instead of int or unsigned.
+	Improve overflow protection.  Support `l' modifier for integer
+	conversions.  Support %l conversion.  Don't assume an EMACS_INT
+	argument for integer conversions and for %c.
+
+	* lisp.h (doprnt): Restore prototype.
+
+	* makefile.w32-in ($(BLD)/callint.$(O)): Depend on
+	$(SRC)/character.h.
+
+	* Makefile.in (base_obj): Add back doprnt.o.
+
+	* deps.mk (doprnt.o): Add back prerequisites.
+	(callint.o): Depend on character.h.
+
+	* eval.c (internal_lisp_condition_case): Include the handler
+	representation in the error message.
+	(verror): Call doprnt instead of vsnprintf.  Fix an off-by-one bug
+	when breaking from the loop.
+
+	* xdisp.c (vmessage): Call doprnt instead of vsnprintf.
+
+	* callint.c (Fcall_interactively): When displaying error message
+	about invalid control letter, pass the character's codepoint, not
+	a pointer to its multibyte form.  Improve display of the character
+	in octal and display also its hex code.
+
+	* character.c (char_string): Use %x to display the (unsigned)
+	codepoint of an invalid character, to avoid displaying a bogus
+	negative value.
+
+	* font.c (check_otf_features): Pass SDATA of SYMBOL_NAME to
+	`error', not SYMBOL_NAME itself.
+
+	* coding.c (Fencode_sjis_char, Fencode_big5_char): Use %c for
+	character arguments to `error'.
+
+	* charset.c (check_iso_charset_parameter): Fix incorrect argument
+	to `error' in error message about FINAL_CHAR argument.  Make sure
+	FINAL_CHAR is a character, and use %c when it is passed as
+	argument to `error'.
+
+2011-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (localtime): Redirect to sys_localtime.
+
+	* w32.c: Include <time.h>.
+	(sys_localtime): New function.
+
+2011-04-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (init_xdisp): Initialize echo_area_window (Bug#6451).
+
+	* buffer.c (syms_of_buffer): Doc fix (Bug#6902).
+
+2011-04-23  Samuel Thibault  <sthibault@debian.org>  (tiny change)
+
+	* sysdep.c (wait_for_termination): On GNU Hurd, kill returns -1 on
+	zombies (Bug#8467).
+
+2011-04-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* syntax.h (SETUP_SYNTAX_TABLE_FOR_OBJECT): Fix setting of
+	gl_state.e_property when gl_state.object is Qt.
+
+	* insdel.c (make_gap_larger): Remove limitation of buffer size
+	to <= INT_MAX.
+
+2011-04-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (lookup_glyphless_char_display)
+	(produce_glyphless_glyph): Handle cons cell entry in
+	glyphless-char-display.
+	(Vglyphless_char_display): Document it.
+
+	* term.c (produce_glyphless_glyph): Handle cons cell entry in
+	glyphless-char-display.
+
+2011-04-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (get_next_display_element): Remove unnecessary ifdefs.
+
+	* termhooks.h (FRAME_WINDOW_P): Remove duplicated definitions.
+
+	* dispextern.h (FACE_SUITABLE_FOR_ASCII_CHAR_P): Add missing
+	definition for no-X builds.
+
+2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Static checks with GCC 4.6.0 and non-default toolkits.
+
+	* s/sol2-6.h, s/unixware.h (PTY_TTY_NAME_SPRINTF): Protoize decl.
+
+	* process.c (keyboard_bit_set): Define only if SIGIO.
+	(send_process_trap): Mark it with NO_RETURN if it doesn't return.
+	(send_process): Repair possible setjmp clobbering.
+
+	* s/usg5-4-common.h (SETUP_SLAVE_PTY): Don't pass extra arg to 'fatal'.
+
+	* eval.c: Include <stdio.h>, for vsnprintf on non-GNU/Linux hosts.
+
+	* data.c (arith_error): Mark with NO_RETURN if it doesn't return.
+
+	* alloc.c (bytes_used_when_full, SPARE_MEMORY, BYTES_USED):
+	Define only if needed.
+
+	* sysdep.c (_FILE_OFFSET_BITS): Make this hack even uglier
+	by pacifying GCC about it.  Maybe it's time to retire it?
+	* xfaces.c (USG, __TIMEVAL__): Likewise.
+
+	* dispextern.h (struct redisplay_interface): Rename param
+	to avoid shadowing.
+	* termhooks.h (struct terminal): Likewise.
+	* xterm.c (xembed_send_message): Likewise.
+
+	* insdel.c (make_gap_smaller): Define only if
+	USE_MMAP_FOR_BUFFERS || REL_ALLOC || DOUG_LEA_MALLOC.
+
+	* keyboard.c (read_char): Make a var volatile so longjmp won't clobber
+	it.
+
+	* emacs.c (MAX_HEAP_BSS_DIFF, my_edata): Move to where they're used,
+	so that we aren't warned about unused symbols.
+
+	* xfns.c (Fx_file_dialog): Rename local to avoid shadowing.
+
+	* xdisp.c (x_produce_glyphs): Mark var as initialized (Bug#8512).
+
+	* xfns.c (x_real_positions): Mark locals as initialized.
+
+	* xmenu.c (xmenu_show): Don't use uninitialized vars.
+
+	* xterm.c: Fix problems found by static analysis with other toolkits.
+	(toolkit_scroll_bar_interaction): Define and use only if USE_X_TOOLKIT.
+	(x_dispatch_event): Declare static if USE_GTK, and
+	define if USE_GTK || USE_X_TOOLKIT.
+	(SET_SAVED_BUTTON_EVENT): Define only if USE_X_TOOLKIT || USE_GTK.
+	* xterm.h (x_dispatch_event): Extern only if USE_X_TOOLKIT.
+	* xterm.c, xterm.h (x_mouse_leave): Bring this function back, but only
+	if defined HAVE_MENUS && !defined USE_X_TOOLKIT && !defined USE_GTK.
+
+	* xmenu.c (menu_help_callback): Pointer type fixes.
+	Use const pointers when pointing at readonly data.  Avoid pointer
+	signedness clashes.
+	(FALSE): Remove unused macro.
+	(update_frame_menubar): Remove unused decl.
+
+	* xfns.c (Fx_hide_tip): Move locals to avoid shadowing.
+
+	* menu.c (push_submenu_start, push_submenu_end): Do not define unless
+	USE_X_TOOLKIT || USE_GTK || HAVE_NS || defined HAVE_NTGUI.
+	(single_menu_item): Rename local to avoid shadowing.
+
+	* keyboard.c (make_lispy_event): Remove unused local var.
+
+	* frame.c, frame.h (x_get_resource_string): Bring this back, but
+	only if HAVE_X_WINDOWS && !USE_X_TOOLKIT.
+
+	* bitmaps: Change bitmaps from unsigned char back to the X11
+	compatible char.  Avoid the old compiler warnings about
+	out-of-range initializers by using, for example, '\xab' rather
+	than 0xab.
+
+	* xgselect.c (xgselect_initialize): Check vs interface
+	even if ! (defined (USE_GTK) || defined (HAVE_GCONF)).
+
+	* xmenu.c (xmenu_show): Rename parm to avoid shadowing.
+
+	* xterm.c (x_create_toolkit_scroll_bar): Use const * for pointers
+	to read-only memory.
+
+	* fns.c (vector): Remove; this old hack is no longer needed.
+
+	* xsmfns.c (create_client_leader_window): Rename shadowing arg.
+	Remove unused var.
+	(gdk_x11_set_sm_client_id) [!USE_GTK]: Don't define.
+
+	* xrdb.c (x_load_resources): Omit unused local.
+
+	* xfns.c (free_frame_menubar, atof): Remove duplicate decls.
+	(x_window): Rename locals to avoid shadowing.
+	(USG): Use the kludged USG macro, to pacify gcc.
+
+	* xterm.c (x_alloc_nearest_color_for_widget): Remove; unused.
+	(x_term_init): Remove local to avoid shadowing.
+
+	* xfns.c, xterm.c (_XEditResCheckMessages): Protoize decl.
+
+	* xdisp.c, dispextern.h (set_vertical_scroll_bar): Now extern if
+	USE_TOOLKIT_SCROLL_BARS && !USE_GTK, as xterm.c needs it then.
+
+2011-04-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* gnutls.c (Fgnutls_boot): Don't pass Lisp_Object to `error'.
+
+	Fix regex.c, syntax.c and friends for buffers > 2GB.
+	* syntax.h (struct gl_state_s): Declare character position members
+	EMACS_INT.
+
+	* syntax.c (update_syntax_table): Declare 2nd argument EMACS_INT.
+
+	* textprop.c (verify_interval_modification, interval_of):
+	Declare arguments EMACS_INT.
+
+	* intervals.c (adjust_intervals_for_insertion): Declare arguments
+	EMACS_INT.
+
+	* intervals.h (CHECK_TOTAL_LENGTH): Cast to EMACS_INT, not `int'.
+
+	* indent.c (Fvertical_motion): Local variable it_start is now
+	EMACS_INT.
+
+	* regex.c (re_match, re_match_2, re_match_2_internal)
+	(bcmp_translate, regcomp, regexec, print_double_string)
+	(group_in_compile_stack, re_search, re_search_2, regex_compile)
+	(re_compile_pattern, re_exec): Declare arguments and local
+	variables `size_t' and `ssize_t' and return values `regoff_t', as
+	appropriate.
+	(POP_FAILURE_REG_OR_COUNT) <pfreg>: Declare `long'.
+	(CHECK_INFINITE_LOOP) <failure>: Declare `ssize_t'.
+	<compile_stack_type>: `size' and `avail' are now `size_t'.
+
+	* regex.h <regoff_t>: Use ssize_t, not int.
+	(re_search, re_search_2, re_match, re_match_2): Arguments that
+	specify buffer/string position and length are now ssize_t and
+	size_t.  Return type is regoff_t.
+
+2011-04-16  Ben Key  <bkey76@gmail.com>
+
+	* nsfont.m: Fixed bugs in ns_get_family and
+	ns_descriptor_to_entity that were caused by using free to
+	deallocate memory blocks that were allocated by xmalloc (via
+	xstrdup).  This caused Emacs to crash when compiled with
+	XMALLOC_OVERRUN_CHECK defined (when Emacs was configured with
+	--enable-checking=xmallocoverrun).  xfree is now used to
+	deallocate these memory blocks.
+
+2011-04-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sysdep.c (emacs_read): Remove unnecessary check vs MAX_RW_COUNT.
+
+	emacs_write: Accept and return EMACS_INT for sizes.
+	See http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00514.html
+	et seq.
+	* gnutls.c, gnutls.h (emacs_gnutls_read, emacs_gnutls_write):
+	Accept and return EMACS_INT.
+	(emacs_gnutls_write): Return the number of bytes written on
+	partial writes.
+	* sysdep.c, lisp.h (emacs_read, emacs_write): Likewise.
+	(emacs_read, emacs_write): Remove check for negative size, as the
+	Emacs source code has been audited now.
+	* sysdep.c (MAX_RW_COUNT): New macro, to work around kernel bugs.
+	(emacs_read, emacs_write): Use it.
+	* process.c (send_process): Adjust to the new signatures of
+	emacs_write and emacs_gnutls_write.  Do not attempt to store
+	a byte offset into an 'int'; it might overflow.
+	See http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00483.html
+
+	* sound.c: Don't assume sizes fit in 'int'.
+	(struct sound_device.period_size, alsa_period_size):
+	Return EMACS_INT, not int.
+	(struct sound_device.write, vox_write, alsa_write):
+	Accept EMACS_INT, not int.
+	(wav_play, au_play): Use EMACS_INT to store sizes and to
+	record read return values.
+
+2011-04-15  Ben Key  <bkey76@gmail.com>
+
+	* keyboard.c (Qundefined): Don't declare static since it is used
+	in nsfns.m.
+	* xfaces.c (Qbold, Qexpanded, Qitalic, Qcondensed): Don't declare
+	static since they are used in nsfont.m.
+
 2011-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.c (Qprocessp): Don't declare static.
@@ -178,8 +1296,8 @@
 	(free_realized_fontset) #if-0 the body, which does nothing.
 	(face_suitable_for_char_p): #if-0, as it's never called.
 	* fontset.h (face_suitable_for_char_p): Remove decl.
-	* xfaces.c (face_at_string_position): Use
-	FACE_SUITABLE_FOR_ASCII_CHAR_P, not FACE_SUITABLE_FOR_CHAR_P,
+	* xfaces.c (face_at_string_position):
+	Use FACE_SUITABLE_FOR_ASCII_CHAR_P, not FACE_SUITABLE_FOR_CHAR_P,
 	since 0 is always ASCII.
 
 	* fns.c (weak_hash_tables): Now static.
@@ -288,8 +1406,8 @@
 	(last_point_position_window): Remove decls.
 	* keyboard.c: Make these variables static.
 
-	* coding.h (coding, code_convert_region, encode_coding_gap): Remove
-	decls.
+	* coding.h (coding, code_convert_region, encode_coding_gap):
+	Remove decls.
 	* coding.c (Vsjis_coding_system, Vbig5_coding_system):
 	(iso_code_class, detect_coding, code_convert_region): Now static.
 	(encode_coding_gap): Remove; unused.
@@ -320,7 +1438,7 @@
 	exported only to the debugger.
 
 	* atimer.c (alarm_signal_handler, run_all_atimers): Now static.
-	* atimer.h (run_all_atimers): Removed; not exported.
+	* atimer.h (run_all_atimers): Remove; not exported.
 
 	font.c: Make copy_font_spec and merge_font_spec ordinary C functions.
 	* font.c (copy_font_spec): Rename from Fcopy_font_spec, since it
@@ -348,7 +1466,7 @@
 	(mark_backtrace): Define only if BYTE_MARK_STACK.
 	* xdisp.c (message_enable_multibyte): Now static.
 
-	Declare Lisp_Object Q* variables to be 'static' if not exproted.
+	Declare Lisp_Object Q* variables to be 'static' if not exported.
 	This makes it easier for human readers (and static analyzers)
 	to see whether these variables are used from other modules.
 	* alloc.c, buffer.c, bytecode.c, callint.c, casetab.c, category.c:
@@ -575,8 +1693,8 @@
 
 2011-04-09  Chong Yidong  <cyd@stupidchicken.com>
 
-	* ftfont.c (get_adstyle_property, ftfont_pattern_entity): Use
-	unsigned char, to match FcChar8 type definition.
+	* ftfont.c (get_adstyle_property, ftfont_pattern_entity):
+	Use unsigned char, to match FcChar8 type definition.
 
 	* xterm.c (handle_one_xevent):
 	* xmenu.c (create_and_show_popup_menu):
@@ -649,8 +1767,8 @@
 
 2011-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
-	* process.c (Flist_processes): Removed to Lisp.
-	(list_processes_1): Deleted.
+	* process.c (Flist_processes): Remove to Lisp.
+	(list_processes_1): Delete.
 
 2011-04-06  Eli Zaretskii  <eliz@gnu.org>
 
@@ -908,8 +2026,8 @@
 	* callint.c (Fcall_interactively): Preserve lexical-binding mode for
 	interactive spec.
 
-	* bytecode.c (Bstack_ref, Bstack_set, Bstack_set2, BdiscardN): New
-	byte-codes.
+	* bytecode.c (Bstack_ref, Bstack_set, Bstack_set2, BdiscardN):
+	New byte-codes.
 	(exec_byte_code): New function extracted from Fbyte_code to handle new
 	calling convention for byte-code-functions.  Add new byte-codes.
 
@@ -924,8 +2042,8 @@
 2011-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (SCROLL_LIMIT): New macro.
-	(try_scrolling): Use it when setting scroll_limit.  Limit
-	scrolling to 100 screen lines.
+	(try_scrolling): Use it when setting scroll_limit.
+	Limit scrolling to 100 screen lines.
 	(redisplay_window): Even when falling back on "recentering",
 	position point in the window according to scroll-conservatively,
 	scroll-margin, and scroll-*-aggressively variables.  (Bug#6671)
@@ -2133,7 +3251,7 @@
 	Call gdk_x11_window_lookup_for_display.
 	(xg_set_widget_bg): New function.
 	(delete_cb): New function.
-	(xg_create_frame_widgets): connect delete-event to delete_cb.
+	(xg_create_frame_widgets): Connect delete-event to delete_cb.
 	Call xg_set_widget_bg.  Only set backgrund pixmap for ! HAVE_GTK3
 	(xg_set_background_color): Call xg_set_widget_bg.
 	(xg_set_frame_icon): Call xg_get_pixbuf_from_pix_and_mask.

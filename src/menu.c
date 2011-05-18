@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <setjmp.h>
+#include <limits.h> /* for INT_MAX */
 
 #include "lisp.h"
 #include "keyboard.h"
@@ -176,9 +177,14 @@ save_menu_items (void)
 static void
 grow_menu_items (void)
 {
+  if ((INT_MAX - MENU_ITEMS_PANE_LENGTH) / 2 < menu_items_allocated)
+    memory_full ();
   menu_items_allocated *= 2;
   menu_items = larger_vector (menu_items, menu_items_allocated, Qnil);
 }
+
+#if (defined USE_X_TOOLKIT || defined USE_GTK || defined HAVE_NS \
+     || defined HAVE_NTGUI)
 
 /* Begin a submenu.  */
 
@@ -203,6 +209,8 @@ push_submenu_end (void)
   XVECTOR (menu_items)->contents[menu_items_used++] = Qlambda;
   menu_items_submenu_depth--;
 }
+
+#endif /* USE_X_TOOLKIT || USE_GTK || HAVE_NS || defined HAVE_NTGUI */
 
 /* Indicate boundary between left and right.  */
 
@@ -368,34 +376,34 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
 	if (skp->notbuttons)
 	  /* The first button. Line up previous items in this menu.  */
 	  {
-	    int index = skp->notbuttons; /* Index for first item this menu.  */
+	    int idx = skp->notbuttons; /* Index for first item this menu.  */
 	    int submenu = 0;
 	    Lisp_Object tem;
-	    while (index < menu_items_used)
+	    while (idx < menu_items_used)
 	      {
 		tem
-		  = XVECTOR (menu_items)->contents[index + MENU_ITEMS_ITEM_NAME];
+		  = XVECTOR (menu_items)->contents[idx + MENU_ITEMS_ITEM_NAME];
 		if (NILP (tem))
 		  {
-		    index++;
+		    idx++;
 		    submenu++;		/* Skip sub menu.  */
 		  }
 		else if (EQ (tem, Qlambda))
 		  {
-		    index++;
+		    idx++;
 		    submenu--;		/* End sub menu.  */
 		  }
 		else if (EQ (tem, Qt))
-		  index += 3;		/* Skip new pane marker. */
+		  idx += 3;		/* Skip new pane marker. */
 		else if (EQ (tem, Qquote))
-		  index++;		/* Skip a left, right divider. */
+		  idx++;		/* Skip a left, right divider. */
 		else
 		  {
 		    if (!submenu && SREF (tem, 0) != '\0'
 			&& SREF (tem, 0) != '-')
-		      XVECTOR (menu_items)->contents[index + MENU_ITEMS_ITEM_NAME]
+		      XVECTOR (menu_items)->contents[idx + MENU_ITEMS_ITEM_NAME]
 			= concat2 (build_string ("    "), tem);
-		    index += MENU_ITEMS_ITEM_LENGTH;
+		    idx += MENU_ITEMS_ITEM_LENGTH;
 		  }
 	      }
 	    skp->notbuttons = 0;
@@ -795,9 +803,9 @@ digest_single_submenu (int start, int end, int top_level_items)
 	  if (!NILP (descrip))
 	    wv->lkey = descrip;
 	  wv->value = 0;
-	  /* The EMACS_INT cast avoids a warning.  There's no problem
+	  /* The intptr_t cast avoids a warning.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
-	  wv->call_data = (!NILP (def) ? (void *) (EMACS_INT) i : 0);
+	  wv->call_data = (!NILP (def) ? (void *) (intptr_t) i : 0);
 	  wv->enabled = !NILP (enable);
 
 	  if (NILP (type))
@@ -906,9 +914,9 @@ find_and_call_menu_selection (FRAME_PTR f, int menu_bar_items_used, Lisp_Object 
       else
 	{
 	  entry = XVECTOR (vector)->contents[i + MENU_ITEMS_ITEM_VALUE];
-	  /* The EMACS_INT cast avoids a warning.  There's no problem
+	  /* Treat the pointer as an integer.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
-	  if ((int) (EMACS_INT) client_data == i)
+	  if ((intptr_t) client_data == i)
 	    {
 	      int j;
 	      struct input_event buf;
@@ -1140,13 +1148,13 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 #else /* not HAVE_X_WINDOWS */
 	Lisp_Object bar_window;
 	enum scroll_bar_part part;
-	unsigned long time;
+	Time time;
         void (*mouse_position_hook) (struct frame **, int,
                                      Lisp_Object *,
                                      enum scroll_bar_part *,
                                      Lisp_Object *,
                                      Lisp_Object *,
-                                     unsigned long *) =
+                                     Time *) =
 	  FRAME_TERMINAL (new_f)->mouse_position_hook;
 
 	if (mouse_position_hook)

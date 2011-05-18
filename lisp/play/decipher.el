@@ -353,7 +353,7 @@ The most useful commands are:
       (let ((char-a (following-char))
             (char-b (decipher-last-command-char)))
         (or (and (not (= ?w (char-syntax char-a)))
-                 (= char-b ?\ )) ;Spacebar just advances on non-letters
+                 (= char-b ?\s)) ;Spacebar just advances on non-letters
             (funcall decipher-function char-a char-b)))))
   (forward-char))
 
@@ -366,10 +366,10 @@ The most useful commands are:
          (decipher-set-map a b))
         ((and (>= a ?a) (<= a ?z))
          ;; If A is lowercase, then it is in the plaintext alphabet:
-         (if (= b ?\ )
+         (if (= b ?\s)
              ;; We are clearing the association (if any):
-             (if (/= ?\  (setq b (cdr (assoc a decipher-alphabet))))
-                 (decipher-set-map b ?\ ))
+             (if (/= ?\s (setq b (cdr (assoc a decipher-alphabet))))
+                 (decipher-set-map b ?\s))
            ;; Associate the plaintext char with the char pressed:
            (decipher-set-map b a)))
         (t
@@ -432,12 +432,12 @@ The most useful commands are:
   ;; modified using setcdr.
   (let ((cipher-map (decipher-copy-cons (rassoc cipher-char decipher-alphabet)))
         (plain-map  (decipher-copy-cons (assoc  plain-char  decipher-alphabet))))
-    (cond ((equal ?\  plain-char)
+    (cond ((equal ?\s plain-char)
            cipher-map)
           ((equal cipher-char (cdr plain-map))
            nil)                         ;We aren't changing anything
-          ((equal ?\  (cdr plain-map))
-           (or cipher-map (cons ?\  cipher-char)))
+          ((equal ?\s (cdr plain-map))
+           (or cipher-map (cons ?\s cipher-char)))
           (cipher-map
            (list plain-map cipher-map))
           (t
@@ -466,15 +466,15 @@ The most useful commands are:
       (goto-char (point-min))
       (if (setq mapping (rassoc cipher-char decipher-alphabet))
           (progn
-            (setcdr mapping ?\ )
+            (setcdr mapping ?\s)
             (search-forward-regexp (concat "^([a-z]*"
                                            (char-to-string (car mapping))))
-            (decipher-insert ?\ )
+            (decipher-insert ?\s)
             (beginning-of-line)))
       (if (setq mapping (assoc plain-char decipher-alphabet))
           (progn
-            (if (/= ?\  (cdr mapping))
-                (decipher-set-map (cdr mapping) ?\  t))
+            (if (/= ?\s (cdr mapping))
+                (decipher-set-map (cdr mapping) ?\s t))
             (setcdr mapping cipher-char)
             (search-forward-regexp (concat "^([a-z]*" plain-string))
             (decipher-insert cipher-char)
@@ -527,8 +527,7 @@ Type `\\[decipher-restore-checkpoint]' to restore a checkpoint."
   (or (stringp desc)
       (setq desc ""))
   (let (alphabet
-        buffer-read-only                ;Make buffer writable
-        mapping)
+        buffer-read-only)               ;Make buffer writable
     (goto-char (point-min))
     (re-search-forward "^)")
     (move-to-column 27 t)
@@ -585,12 +584,12 @@ you have determined the keyword."
         buffer-read-only                ;Make buffer writable
         plain-map undo-rec)
     (while (setq plain-map (pop ptr))
-      (if (equal ?\  (cdr plain-map))
+      (if (equal ?\s (cdr plain-map))
           (progn
             (while (rassoc cipher-char decipher-alphabet)
               ;; Find the next unused letter
               (incf cipher-char))
-            (push (cons ?\  cipher-char) undo-rec)
+            (push (cons ?\s cipher-char) undo-rec)
             (decipher-set-map cipher-char (car plain-map) t))))
     (decipher-add-undo undo-rec)))
 
@@ -624,7 +623,7 @@ You should use this if you edit the ciphertext."
         (replace-match ">" nil nil))
       (decipher-read-alphabet)
       (while (setq mapping (pop alphabet))
-        (or (equal ?\  (cdr mapping))
+        (or (equal ?\s (cdr mapping))
             (decipher-set-map (cdr mapping) (car mapping))))))
   (setq decipher-undo-list       nil
         decipher-undo-list-size  0)
@@ -751,8 +750,8 @@ FUNC is called exactly once between words, with `decipher-char' set to
 a space.
 
 See `decipher-loop-no-breaks' if you do not care about word divisions."
-  (let ((decipher-char ?\ )
-        (decipher--loop-prev-char ?\ ))
+  (let ((decipher-char ?\s)
+        (decipher--loop-prev-char ?\s))
     (save-excursion
       (goto-char (point-min))
       (funcall func)              ;Space marks beginning of first word
@@ -760,16 +759,16 @@ See `decipher-loop-no-breaks' if you do not care about word divisions."
         (while (not (eolp))
           (setq decipher-char (upcase (following-char)))
           (or (and (>= decipher-char ?A) (<= decipher-char ?Z))
-              (setq decipher-char ?\ ))
-          (or (and (equal decipher-char ?\ )
-                   (equal decipher--loop-prev-char ?\ ))
+              (setq decipher-char ?\s))
+          (or (and (equal decipher-char ?\s)
+                   (equal decipher--loop-prev-char ?\s))
               (funcall func))
           (setq decipher--loop-prev-char decipher-char)
           (forward-char))
-        (or (equal decipher-char ?\ )
+        (or (equal decipher-char ?\s)
             (progn
               (setq decipher-char ?\s
-                    decipher--loop-prev-char ?\ )
+                    decipher--loop-prev-char ?\s)
               (funcall func)))))))
 
 (defun decipher-loop-no-breaks (func)
@@ -844,13 +843,13 @@ TOTAL is the total number of letters in the ciphertext."
                             decipher--digram-list)))))
   (and (>= decipher--prev-char ?A)
        (incf (aref (aref decipher--before (- decipher--prev-char ?A))
-                   (if (equal decipher-char ?\ )
+                   (if (equal decipher-char ?\s)
                        26
                      (- decipher-char ?A)))))
   (and (>= decipher-char ?A)
        (incf (aref decipher--freqs (- decipher-char ?A)))
        (incf (aref (aref decipher--after (- decipher-char ?A))
-                   (if (equal decipher--prev-char ?\ )
+                   (if (equal decipher--prev-char ?\s)
                        26
                      (- decipher--prev-char ?A)))))
   (setq decipher--prev-char decipher-char))
@@ -883,7 +882,7 @@ TOTAL is the total number of letters in the ciphertext."
 (defun decipher-analyze-buffer ()
   "Perform frequency analysis and store results in statistics buffer.
 Creates the statistics buffer if it doesn't exist."
-  (let ((decipher--prev-char (if decipher-ignore-spaces ?\  ?\*))
+  (let ((decipher--prev-char (if decipher-ignore-spaces ?\s ?\*))
         (decipher--before (make-vector 26 nil))
         (decipher--after  (make-vector 26 nil))
         (decipher--freqs   (make-vector 26 0))
@@ -1057,7 +1056,7 @@ if it can't, it signals an error."
 ;;              (setq undo-rec (list undo-rec)))
 ;;          (insert ?\()
 ;;          (while (setq undo-map (pop undo-rec))
-;;            (insert (cdr undo-map) (car undo-map) ?\ ))
+;;            (insert (cdr undo-map) (car undo-map) ?\s))
 ;;          (delete-char -1)
 ;;          (insert ")\n"))))))
 

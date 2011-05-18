@@ -30,6 +30,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
+#ifdef HAVE_X_WINDOWS
+# include <X11/X.h>
+#else
+typedef unsigned long Time;
+#endif
+
 #ifdef HAVE_TZNAME
 #ifndef tzname		/* For SGI.  */
 extern char *tzname[];	/* RS6000 and others want it this way.  */

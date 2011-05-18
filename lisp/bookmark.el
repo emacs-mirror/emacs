@@ -1504,9 +1504,7 @@ method buffers use to resolve name collisions."
     (define-key map "a" 'bookmark-bmenu-show-annotation)
     (define-key map "A" 'bookmark-bmenu-show-all-annotations)
     (define-key map "e" 'bookmark-bmenu-edit-annotation)
-    ;; The original binding of M-g hides the M-g prefix map.
-    ;; If someone has a better idea than M-g s, I'm open to suggestions.
-    (define-key map [?\M-g ?s] 'bookmark-bmenu-search)
+    (define-key map "/" 'bookmark-bmenu-search)
     (define-key map [mouse-2] 'bookmark-bmenu-other-window-with-mouse)
     map))
 

@@ -122,7 +122,7 @@ XMenuActivate(
     int y_pos,				/* Y coordinate of menu position. */
     unsigned int event_mask,		/* Mouse button event mask. */
     char **data,			/* Pointer to return data value. */
-    void (* help_callback) (char *, int, int)) /* Help callback.  */
+    void (*help_callback) (char const *, int, int)) /* Help callback.  */
 {
     int status;				/* X routine call status. */
     int orig_x;				/* Upper left menu origin X coord. */

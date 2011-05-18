@@ -744,6 +744,13 @@ is neither visiting a version-controlled file nor a VC directory
 buffer, these commands generate a diff of all registered files in the
 current directory and its subdirectories.
 
+@findex vc-ediff
+The function @code{vc-ediff} works like @code{vc-diff} and provides a way to
+visually compare two revisions of a file in an Ediff session, @pxref{Top,
+Ediff, ediff, The Ediff Manual}.  It compares the file associated with the
+current buffer with the last repository revision.  To compare two arbitrary
+revisions of the current file, call @code{vc-ediff} with a prefix argument.
+
 @vindex vc-diff-switches
 @vindex vc-rcs-diff-switches
   @kbd{C-x v =} works by running a variant of the @code{diff} utility
@@ -2318,6 +2325,12 @@ details.
 
   You can also use the collection of tag names to complete a symbol
 name in the buffer.  @xref{Symbol Completion}.
+
+  You can use @kbd{M-x next-file} to visit the files in the selected
+tags table.  The first time this command is called, it visits the
+first file in the tags table.  Each subsequent call visits the next
+file in the table, unless a prefix argument is supplied, in which case
+it returns to the first file.
 
 @node EDE
 @section Emacs Development Environment

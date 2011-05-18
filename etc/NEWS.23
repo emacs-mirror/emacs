@@ -15,11 +15,7 @@ You can narrow news to a specific version by calling `view-emacs-news'
 with a prefix argument or by typing C-u C-h C-n.
 
 
-* Installation Changes in Emacs 23.3
-
-** New configure option --with-crt-dir specifies the location of your
-crt*.o files, if they are in a non-standard location.  This is only
-used on x86-64 and s390x GNU/Linux architectures.
+* Installation Changes in Emacs 23.4
 
 ** The MS-Windows build prefers libpng version 1.14 or later.
 Versions of libpng before 1.14 had security issues, so we now
@@ -27,6 +23,21 @@ recommend to use version 1.14 or later.  Precompiled Windows binaries
 require version 1.14 or later.  See README.W32 and nt/INSTALL for
 details and pointers to URLs where the latest libpng can be
 downloaded.
+
+
+* Changes in Emacs 23.4 on non-free operating systems
+
+** The MS-Windows port can now use more than 500MB of heap.
+Depending on the available virtual memory, Emacs on Windows can now
+have up to 2GB of heap space.  This allows, e.g., to visit several
+large (> 256MB) files in the same session.
+
+
+* Installation Changes in Emacs 23.3
+
+** New configure option --with-crt-dir specifies the location of your
+crt*.o files, if they are in a non-standard location.  This is only
+used on x86-64 and s390x GNU/Linux architectures.
 
 * Changes in Emacs 23.3
 

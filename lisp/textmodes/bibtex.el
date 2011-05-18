@@ -4313,8 +4313,7 @@ If optional arg MOVE is non-nil move point to end of field."
       (goto-char (bibtex-start-of-field bounds))
       (forward-char) ; leading comma
       (bibtex-delete-whitespace)
-      (open-line 1)
-      (forward-char)
+      (insert "\n")
       (indent-to-column (+ bibtex-entry-offset
                            bibtex-field-indentation))
       (re-search-forward "[ \t\n]*=" end-field)
@@ -4352,7 +4351,6 @@ column `bibtex-text-indentation' and continuation lines start here, too.
 If `bibtex-align-at-equal-sign' is non-nil, align equal signs, too."
   (interactive "*")
   (let ((pnt (copy-marker (point)))
-        (end (copy-marker (bibtex-end-of-entry)))
         (beg (bibtex-beginning-of-entry)) ; move point
         bounds)
     (bibtex-delete-whitespace)
@@ -4364,8 +4362,7 @@ If `bibtex-align-at-equal-sign' is non-nil, align equal signs, too."
         (forward-char))
     (skip-chars-backward " \t\n")
     (bibtex-delete-whitespace)
-    (open-line 1)
-    (forward-char)
+    (insert "\n")
     (indent-to-column bibtex-entry-offset)
     (goto-char pnt)))
 

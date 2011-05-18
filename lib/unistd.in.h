@@ -97,7 +97,8 @@
 # include <netdb.h>
 #endif
 
-#if (@GNULIB_WRITE@ || @GNULIB_READLINK@ || @GNULIB_READLINKAT@ \
+#if (@GNULIB_READ@ || @GNULIB_WRITE@ \
+     || @GNULIB_READLINK@ || @GNULIB_READLINKAT@ \
      || @GNULIB_PREAD@ || @GNULIB_PWRITE@ || defined GNULIB_POSIXCHECK)
 /* Get ssize_t.  */
 # include <sys/types.h>
@@ -870,6 +871,22 @@ _GL_WARN_ON_USE (endusershell, "endusershell is unportable - "
 #endif
 
 
+#if @GNULIB_GROUP_MEMBER@
+/* Determine whether group id is in calling user's group list.  */
+# if !@HAVE_GROUP_MEMBER@
+_GL_FUNCDECL_SYS (group_member, int, (gid_t gid));
+# endif
+_GL_CXXALIAS_SYS (group_member, int, (gid_t gid));
+_GL_CXXALIASWARN (group_member);
+#elif defined GNULIB_POSIXCHECK
+# undef group_member
+# if HAVE_RAW_DECL_GROUP_MEMBER
+_GL_WARN_ON_USE (group_member, "group_member is unportable - "
+                 "use gnulib module group-member for portability");
+# endif
+#endif
+
+
 #if @GNULIB_LCHOWN@
 /* Change the owner of FILE to UID (if UID is not -1) and the group of FILE
    to GID (if GID is not -1).  Do not follow symbolic links.
@@ -1102,6 +1119,28 @@ _GL_CXXALIASWARN (pwrite);
 _GL_WARN_ON_USE (pwrite, "pwrite is unportable - "
                  "use gnulib module pwrite for portability");
 # endif
+#endif
+
+
+#if @GNULIB_READ@
+/* Read up to COUNT bytes from file descriptor FD into the buffer starting
+   at BUF.  See the POSIX:2001 specification
+   <http://www.opengroup.org/susv3xsh/read.html>.  */
+# if @REPLACE_READ@ && @GNULIB_UNISTD_H_NONBLOCKING@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef read
+#   define read rpl_read
+#  endif
+_GL_FUNCDECL_RPL (read, ssize_t, (int fd, void *buf, size_t count)
+                                 _GL_ARG_NONNULL ((2)));
+_GL_CXXALIAS_RPL (read, ssize_t, (int fd, void *buf, size_t count));
+# else
+/* Need to cast, because on mingw, the third parameter is
+                                                          unsigned int count
+   and the return type is 'int'.  */
+_GL_CXXALIAS_SYS_CAST (read, ssize_t, (int fd, void *buf, size_t count));
+# endif
+_GL_CXXALIASWARN (read);
 #endif
 
 
@@ -1359,7 +1398,7 @@ _GL_WARN_ON_USE (usleep, "usleep is unportable - "
 /* Write up to COUNT bytes starting at BUF to file descriptor FD.
    See the POSIX:2001 specification
    <http://www.opengroup.org/susv3xsh/write.html>.  */
-# if @REPLACE_WRITE@ && @GNULIB_UNISTD_H_SIGPIPE@
+# if @REPLACE_WRITE@ && (@GNULIB_UNISTD_H_NONBLOCKING@ || @GNULIB_UNISTD_H_SIGPIPE@)
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   undef write
 #   define write rpl_write

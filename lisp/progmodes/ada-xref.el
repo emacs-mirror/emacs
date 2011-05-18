@@ -1043,7 +1043,7 @@ existing buffer `*gnatfind*', if there is one."
 	  (setq old-contents (buffer-string))))
 
     (let ((compilation-error "reference"))
-      (compilation-start command 'compilation-mode (lambda (mode) ada-gnatfind-buffer-name)))
+      (compilation-start command 'compilation-mode (lambda (_mode) ada-gnatfind-buffer-name)))
 
     ;;  Hide the "Compilation" menu
     (with-current-buffer ada-gnatfind-buffer-name
@@ -1384,7 +1384,7 @@ project file."
 
       ;;  Do not add -fullname, since we can have a 'rsh' command in front.
       ;;  FIXME: This is evil but luckily a nop under Emacs-21.3.50 !  -stef
-      (fset 'gud-gdb-massage-args (lambda (file args) args))
+      (fset 'gud-gdb-massage-args (lambda (_file args) args))
 
       (set 'pre-cmd  (mapconcat 'identity pre-cmd  ada-command-separator))
       (if (not (equal pre-cmd ""))

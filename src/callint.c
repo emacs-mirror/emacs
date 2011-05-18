@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "window.h"
 #include "keymap.h"
+#include "character.h"
 
 Lisp_Object Qminus, Qplus;
 Lisp_Object Qcall_interactively;
@@ -293,7 +294,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
   else
     {
       CHECK_VECTOR (keys);
-      key_count = XVECTOR (keys)->size;
+      key_count = ASIZE (keys);
     }
 
   /* Save this now, since use of minibuffer will clobber it. */
@@ -786,8 +787,10 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	     if anyone tries to define one here.  */
 	case '+':
 	default:
-	  error ("Invalid control letter `%c' (%03o) in interactive calling string",
-		 *tem, (unsigned char) *tem);
+	  error ("Invalid control letter `%c' (#o%03o, #x%04x) in interactive calling string",
+		 STRING_CHAR ((unsigned char *) tem),
+		 (unsigned) STRING_CHAR ((unsigned char *) tem),
+		 (unsigned) STRING_CHAR ((unsigned char *) tem));
 	}
 
       if (varies[i] == 0)

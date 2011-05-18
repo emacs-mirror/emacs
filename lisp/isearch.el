@@ -473,7 +473,7 @@ This is like `describe-bindings', but displays only Isearch keys."
 
     (define-key map "\M-n" 'isearch-ring-advance)
     (define-key map "\M-p" 'isearch-ring-retreat)
-    (define-key map "\M-y" 'isearch-yank-kill)
+    (define-key map "\M-y" 'isearch-yank-pop)
 
     (define-key map "\M-\t" 'isearch-complete)
 
@@ -637,6 +637,8 @@ Type \\[isearch-yank-char] to yank char from buffer onto end of search\
 Type \\[isearch-yank-line] to yank rest of line onto end of search string\
  and search for it.
 Type \\[isearch-yank-kill] to yank the last string of killed text.
+Type \\[isearch-yank-pop] to replace string just yanked into search prompt
+ with string killed before it.
 Type \\[isearch-quote-char] to quote control character to search for it.
 \\[isearch-abort] while searching or when search has failed cancels input\
  back to what has
@@ -1058,6 +1060,7 @@ nonincremental search instead via `isearch-edit-string'."
   (isearch-done)
   (isearch-clean-overlays))
 
+(defvar minibuffer-history-symbol) ;; from external package gmhist.el
 
 (defun isearch-edit-string ()
   "Edit the search string in the minibuffer.
@@ -1077,7 +1080,7 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
   ;; this could be simplified greatly.
   ;; Editing doesn't back up the search point.  Should it?
   (interactive)
-  (condition-case err
+  (condition-case nil
       (progn
 	(let ((isearch-nonincremental isearch-nonincremental)
 
@@ -1122,7 +1125,7 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 	  ;; Actually terminate isearching until editing is done.
 	  ;; This is so that the user can do anything without failure,
 	  ;; like switch buffers and start another isearch, and return.
-	  (condition-case err
+	  (condition-case nil
 	      (isearch-done t t)
 	    (exit nil))			; was recursive editing
 
@@ -1495,6 +1498,18 @@ If search string is empty, just beep."
   "Pull string from kill ring into search string."
   (interactive)
   (isearch-yank-string (current-kill 0)))
+
+(defun isearch-yank-pop ()
+  "Replace just-yanked search string with previously killed string."
+  (interactive)
+  (if (not (memq last-command '(isearch-yank-kill isearch-yank-pop)))
+      ;; Fall back on `isearch-yank-kill' for the benefits of people
+      ;; who are used to the old behavior of `M-y' in isearch mode. In
+      ;; future, this fallback may be changed if we ever change
+      ;; `yank-pop' to do something like the kill-ring-browser.
+      (isearch-yank-kill)
+    (isearch-pop-state)
+    (isearch-yank-string (current-kill 1))))
 
 (defun isearch-yank-x-selection ()
   "Pull current X selection into search string."
@@ -2151,7 +2166,7 @@ If there is no completion possible, say so and continue searching."
 	     (isearch-message-suffix c-q-hack ellipsis)))
     (if c-q-hack m (let ((message-log-max nil)) (message "%s" m)))))
 
-(defun isearch-message-prefix (&optional c-q-hack ellipsis nonincremental)
+(defun isearch-message-prefix (&optional _c-q-hack ellipsis nonincremental)
   ;; If about to search, and previous search regexp was invalid,
   ;; check that it still is.  If it is valid now,
   ;; let the message we display while searching say that it is valid.
@@ -2184,7 +2199,7 @@ If there is no completion possible, say so and continue searching."
     (propertize (concat (upcase (substring m 0 1)) (substring m 1))
 		'face 'minibuffer-prompt)))
 
-(defun isearch-message-suffix (&optional c-q-hack ellipsis)
+(defun isearch-message-suffix (&optional c-q-hack _ellipsis)
   (concat (if c-q-hack "^Q" "")
 	  (if isearch-error
 	      (concat " [" isearch-error "]")

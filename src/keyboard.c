@@ -134,7 +134,7 @@ static Lisp_Object raw_keybuf;
 static int raw_keybuf_count;
 
 #define GROW_RAW_KEYBUF							\
- if (raw_keybuf_count == XVECTOR (raw_keybuf)->size)			\
+ if (raw_keybuf_count == ASIZE (raw_keybuf))				\
    raw_keybuf = larger_vector (raw_keybuf, raw_keybuf_count * 2, Qnil)  \
 
 /* Number of elements of this_command_keys
@@ -238,7 +238,7 @@ Lisp_Object internal_last_event_frame;
 
 /* The timestamp of the last input event we received from the X server.
    X Windows wants this for selection ownership.  */
-unsigned long last_event_timestamp;
+Time last_event_timestamp;
 
 static Lisp_Object Qx_set_selection, Qhandle_switch_frame;
 Lisp_Object QPRIMARY;
@@ -246,7 +246,7 @@ Lisp_Object QPRIMARY;
 static Lisp_Object Qself_insert_command;
 static Lisp_Object Qforward_char;
 static Lisp_Object Qbackward_char;
-static Lisp_Object Qundefined;
+Lisp_Object Qundefined;
 static Lisp_Object Qtimer_event_handler;
 
 /* read_key_sequence stores here the command definition of the
@@ -266,6 +266,8 @@ static Lisp_Object Qpre_command_hook;
 static Lisp_Object Qpost_command_hook;
 
 static Lisp_Object Qdeferred_action_function;
+
+static Lisp_Object Qdelayed_warnings_hook;
 
 static Lisp_Object Qinput_method_exit_on_first_char;
 static Lisp_Object Qinput_method_use_echo_area;
@@ -1356,6 +1358,10 @@ command_loop_1 (void)
       if (!NILP (echo_area_buffer[0]))
 	resize_echo_area_exactly ();
 
+      /* If there are warnings waiting, process them.  */
+      if (!NILP (Vdelayed_warnings_list))
+        safe_run_hooks (Qdelayed_warnings_hook);
+
       if (!NILP (Vdeferred_action_list))
 	safe_run_hooks (Qdeferred_action_function);
     }
@@ -1572,6 +1578,10 @@ command_loop_1 (void)
 	 that message's size exactly.  */
       if (!NILP (echo_area_buffer[0]))
 	resize_echo_area_exactly ();
+
+      /* If there are warnings waiting, process them.  */
+      if (!NILP (Vdelayed_warnings_list))
+        safe_run_hooks (Qdelayed_warnings_hook);
 
       safe_run_hooks (Qdeferred_action_function);
 
@@ -2259,7 +2269,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
   volatile Lisp_Object also_record;
   volatile int reread;
   struct gcpro gcpro1, gcpro2;
-  int polling_stopped_here = 0;
+  int volatile polling_stopped_here = 0;
   struct kboard *orig_kboard = current_kboard;
 
   also_record = Qnil;
@@ -2898,7 +2908,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
       if ((STRINGP (KVAR (current_kboard, Vkeyboard_translate_table))
 	   && SCHARS (KVAR (current_kboard, Vkeyboard_translate_table)) > (unsigned) XFASTINT (c))
 	  || (VECTORP (KVAR (current_kboard, Vkeyboard_translate_table))
-	      && XVECTOR (KVAR (current_kboard, Vkeyboard_translate_table))->size > (unsigned) XFASTINT (c))
+	      && ASIZE (KVAR (current_kboard, Vkeyboard_translate_table)) > (unsigned) XFASTINT (c))
 	  || (CHAR_TABLE_P (KVAR (current_kboard, Vkeyboard_translate_table))
 	      && CHARACTERP (c)))
 	{
@@ -3313,7 +3323,7 @@ record_char (Lisp_Object c)
 	  if (XUINT (c) < 0x100)
 	    putc (XINT (c), dribble);
 	  else
-	    fprintf (dribble, " 0x%x", (int) XUINT (c));
+	    fprintf (dribble, " 0x%"pI"x", XUINT (c));
 	}
       else
 	{
@@ -4075,7 +4085,7 @@ kbd_buffer_get_event (KBOARD **kbp,
       Lisp_Object bar_window;
       enum scroll_bar_part part;
       Lisp_Object x, y;
-      unsigned long t;
+      Time t;
 
       *kbp = current_kboard;
       /* Note that this uses F to determine which terminal to look at.
@@ -4198,7 +4208,7 @@ timer_start_idle (void)
 
       timer = XCAR (timers);
 
-      if (!VECTORP (timer) || XVECTOR (timer)->size != 8)
+      if (!VECTORP (timer) || ASIZE (timer) != 8)
 	continue;
       XVECTOR (timer)->contents[0] = Qnil;
     }
@@ -4293,7 +4303,7 @@ timer_check_2 (void)
       if (CONSP (timers))
 	{
 	  timer = XCAR (timers);
-	  if (!VECTORP (timer) || XVECTOR (timer)->size != 8)
+	  if (!VECTORP (timer) || ASIZE (timer) != 8)
 	    {
 	      timers = XCDR (timers);
 	      continue;
@@ -4311,7 +4321,7 @@ timer_check_2 (void)
       if (CONSP (idle_timers))
 	{
 	  timer = XCAR (idle_timers);
-	  if (!VECTORP (timer) || XVECTOR (timer)->size != 8)
+	  if (!VECTORP (timer) || ASIZE (timer) != 8)
 	    {
 	      idle_timers = XCDR (idle_timers);
 	      continue;
@@ -5078,7 +5088,7 @@ static Lisp_Object button_down_location;
 static int last_mouse_button;
 static int last_mouse_x;
 static int last_mouse_y;
-static unsigned long button_down_time;
+static Time button_down_time;
 
 /* The number of clicks in this multiple-click. */
 
@@ -5089,7 +5099,7 @@ static int double_click_count;
 
 static Lisp_Object
 make_lispy_position (struct frame *f, Lisp_Object x, Lisp_Object y,
-		     unsigned long t)
+		     Time t)
 {
   enum window_part part;
   Lisp_Object posn = Qnil;
@@ -5455,12 +5465,11 @@ make_lispy_event (struct input_event *event)
 		&& (event->modifiers & down_modifier))
 	      {
 		Lisp_Object items, item;
-		int i;
 
 		/* Find the menu bar item under `column'.  */
 		item = Qnil;
 		items = FRAME_MENU_BAR_ITEMS (f);
-		for (i = 0; i < XVECTOR (items)->size; i += 4)
+		for (i = 0; i < ASIZE (items); i += 4)
 		  {
 		    Lisp_Object pos, string;
 		    string = AREF (items, i + 1);
@@ -5547,9 +5556,9 @@ make_lispy_event (struct input_event *event)
 		       && (eabs (XINT (event->y) - last_mouse_y) <= fuzz)
 		       && button_down_time != 0
 		       && (EQ (Vdouble_click_time, Qt)
-			   || (INTEGERP (Vdouble_click_time)
-			       && ((int)(event->timestamp - button_down_time)
-				   < XINT (Vdouble_click_time)))));
+			   || (NATNUMP (Vdouble_click_time)
+			       && (event->timestamp - button_down_time
+				   < XFASTINT (Vdouble_click_time)))));
 	}
 
 	last_mouse_button = button;
@@ -5653,7 +5662,7 @@ make_lispy_event (struct input_event *event)
 				      Qmouse_click, Vlispy_mouse_stem,
 				      NULL,
 				      &mouse_syms,
-				      XVECTOR (mouse_syms)->size);
+				      ASIZE (mouse_syms));
 	  if (event->modifiers & drag_modifier)
 	    return Fcons (head,
 			  Fcons (start_pos,
@@ -5733,9 +5742,9 @@ make_lispy_event (struct input_event *event)
 		       && (eabs (XINT (event->y) - last_mouse_y) <= fuzz)
 		       && button_down_time != 0
 		       && (EQ (Vdouble_click_time, Qt)
-			   || (INTEGERP (Vdouble_click_time)
-			       && ((int)(event->timestamp - button_down_time)
-				   < XINT (Vdouble_click_time)))));
+			   || (NATNUMP (Vdouble_click_time)
+			       && (event->timestamp - button_down_time
+				   < XFASTINT (Vdouble_click_time)))));
 	  if (is_double)
 	    {
 	      double_click_count++;
@@ -5824,7 +5833,7 @@ make_lispy_event (struct input_event *event)
 				    Qmouse_click,
 				    Vlispy_mouse_stem,
 				    NULL, &mouse_syms,
-				    XVECTOR (mouse_syms)->size);
+				    ASIZE (mouse_syms));
 	return Fcons (head, Fcons (position, Qnil));
       }
 
@@ -5944,7 +5953,7 @@ make_lispy_event (struct input_event *event)
 				    Qmouse_click, Vlispy_mouse_stem,
 				    NULL,
 				    &mouse_syms,
-				    XVECTOR (mouse_syms)->size);
+				    ASIZE (mouse_syms));
 
 	if (event->modifiers & drag_modifier)
 	  return Fcons (head,
@@ -5978,7 +5987,7 @@ make_lispy_event (struct input_event *event)
 
 static Lisp_Object
 make_lispy_movement (FRAME_PTR frame, Lisp_Object bar_window, enum scroll_bar_part part,
-		     Lisp_Object x, Lisp_Object y, unsigned long t)
+		     Lisp_Object x, Lisp_Object y, Time t)
 {
   /* Is it a scroll bar movement?  */
   if (frame && ! NILP (bar_window))
@@ -6423,7 +6432,7 @@ modify_event_symbol (EMACS_INT symbol_num, unsigned int modifiers, Lisp_Object s
   else
     {
       if (! VECTORP (*symbol_table)
-	  || XVECTOR (*symbol_table)->size != table_size)
+	  || ASIZE (*symbol_table) != table_size)
 	{
 	  Lisp_Object size;
 
@@ -6444,8 +6453,8 @@ modify_event_symbol (EMACS_INT symbol_num, unsigned int modifiers, Lisp_Object s
 	{
 	  int len = SBYTES (name_alist_or_stem);
 	  char *buf = (char *) alloca (len + 50);
-          sprintf (buf, "%s-%ld", SDATA (name_alist_or_stem),
-                   (long) XINT (symbol_int) + 1);
+          sprintf (buf, "%s-%"pI"d", SDATA (name_alist_or_stem),
+                   XINT (symbol_int) + 1);
 	  value = intern (buf);
 	}
       else if (name_table != 0 && name_table[symbol_num])
@@ -6463,7 +6472,7 @@ modify_event_symbol (EMACS_INT symbol_num, unsigned int modifiers, Lisp_Object s
       if (NILP (value))
 	{
 	  char buf[20];
-	  sprintf (buf, "key-%ld", (long)symbol_num);
+	  sprintf (buf, "key-%"pI"d", symbol_num);
 	  value = intern (buf);
 	}
 
@@ -7229,12 +7238,29 @@ handle_user_signal (int sig)
 {
   int old_errno = errno;
   struct user_signal_info *p;
+  const char *special_event_name = NULL;
 
   SIGNAL_THREAD_CHECK (sig);
+
+  if (SYMBOLP (Vdebug_on_event))
+    special_event_name = SSDATA (SYMBOL_NAME (Vdebug_on_event));
 
   for (p = user_signals; p; p = p->next)
     if (p->sig == sig)
       {
+        if (special_event_name &&
+            strcmp (special_event_name, p->name) == 0)
+          {
+            /* Enter the debugger in many ways.  */
+            debug_on_next_call = 1;
+            debug_on_quit = 1;
+            Vquit_flag = Qt;
+            Vinhibit_quit = Qnil;
+
+            /* Eat the event.  */
+            break;
+          }
+
 	p->npending++;
 #ifdef SIGIO
 	if (interrupt_input)
@@ -7480,7 +7506,7 @@ menu_bar_items (Lisp_Object old)
   /* Add nil, nil, nil, nil at the end.  */
   {
     int i = menu_bar_items_index;
-    if (i + 4 > XVECTOR (menu_bar_items_vector)->size)
+    if (i + 4 > ASIZE (menu_bar_items_vector))
       menu_bar_items_vector =
 	larger_vector (menu_bar_items_vector, 2 * i, Qnil);
     /* Add this item.  */
@@ -7552,7 +7578,7 @@ menu_bar_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy1, void *dumm
   if (i == menu_bar_items_index)
     {
       /* If vector is too small, get a bigger one.  */
-      if (i + 4 > XVECTOR (menu_bar_items_vector)->size)
+      if (i + 4 > ASIZE (menu_bar_items_vector))
 	menu_bar_items_vector = larger_vector (menu_bar_items_vector, 2 * i, Qnil);
       /* Add this item.  */
       XVECTOR (menu_bar_items_vector)->contents[i++] = key;
@@ -7907,7 +7933,7 @@ static int ntool_bar_items;
 /* The symbols `:image' and `:rtl'.  */
 
 static Lisp_Object QCimage;
-static Lisp_Object Qrtl;
+static Lisp_Object QCrtl;
 
 /* Function prototypes.  */
 
@@ -8220,11 +8246,11 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 	}
       else if (EQ (ikey, QCimage)
 	       && (CONSP (value)
-		   || (VECTORP (value) && XVECTOR (value)->size == 4)))
+		   || (VECTORP (value) && ASIZE (value) == 4)))
 	/* Value is either a single image specification or a vector
 	   of 4 such specifications for the different button states.  */
 	PROP (TOOL_BAR_ITEM_IMAGES) = value;
-      else if (EQ (ikey, Qrtl))
+      else if (EQ (ikey, QCrtl))
         /* ':rtl STRING' */
 	PROP (TOOL_BAR_ITEM_RTL_IMAGE) = value;
     }
@@ -8324,10 +8350,10 @@ append_tool_bar_item (void)
 
   /* Enlarge tool_bar_items_vector if necessary.  */
   if (ntool_bar_items + TOOL_BAR_ITEM_NSLOTS
-      >= XVECTOR (tool_bar_items_vector)->size)
+      >= ASIZE (tool_bar_items_vector))
     tool_bar_items_vector
       = larger_vector (tool_bar_items_vector,
-		       2 * XVECTOR (tool_bar_items_vector)->size, Qnil);
+		       2 * ASIZE (tool_bar_items_vector), Qnil);
 
   /* Append entries from tool_bar_item_properties to the end of
      tool_bar_items_vector.  */
@@ -8649,7 +8675,7 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
 		}
 
 	      /* Move past this element.  */
-	      if (idx >= 0 && idx + 1 >= XVECTOR (vector)->size)
+	      if (idx >= 0 && idx + 1 >= ASIZE (vector))
 		/* Handle reaching end of dense table.  */
 		idx = -1;
 	      if (idx >= 0)
@@ -9927,7 +9953,7 @@ read_key_sequence (Lisp_Object *keybuf, size_t bufsize, Lisp_Object prompt,
 	      /* Treat uppercase keys as shifted.  */
 	      || (INTEGERP (key)
 		  && (KEY_TO_CHAR (key)
-		      < XCHAR_TABLE (BVAR (current_buffer, downcase_table))->size)
+		      < XCHAR_TABLE (BVAR (current_buffer, downcase_table))->header.size)
 		  && uppercasep (KEY_TO_CHAR (key))))
 	    {
 	      Lisp_Object new_key
@@ -10293,7 +10319,7 @@ give to the command you invoke, if it asks for an argument.  */)
     this_single_command_key_start = 0;
 
     keys = XVECTOR (saved_keys)->contents;
-    for (i = 0; i < XVECTOR (saved_keys)->size; i++)
+    for (i = 0; i < ASIZE (saved_keys); i++)
       add_command_key (keys[i]);
 
     for (i = 0; i < SCHARS (function); i++)
@@ -10586,7 +10612,7 @@ KEEP-RECORD is non-nil.  */)
 
   if (NILP (keep_record))
     {
-      for (i = 0; i < XVECTOR (recent_keys)->size; ++i)
+      for (i = 0; i < ASIZE (recent_keys); ++i)
 	XVECTOR (recent_keys)->contents[i] = Qnil;
       total_keys = 0;
       recent_keys_index = 0;
@@ -11459,7 +11485,7 @@ syms_of_keyboard (void)
   /* Tool-bars.  */
   DEFSYM (QCimage, ":image");
   DEFSYM (Qhelp_echo, "help-echo");
-  DEFSYM (Qrtl, ":rtl");
+  DEFSYM (QCrtl, ":rtl");
 
   staticpro (&item_properties);
   item_properties = Qnil;
@@ -11482,6 +11508,7 @@ syms_of_keyboard (void)
   DEFSYM (Qpre_command_hook, "pre-command-hook");
   DEFSYM (Qpost_command_hook, "post-command-hook");
   DEFSYM (Qdeferred_action_function, "deferred-action-function");
+  DEFSYM (Qdelayed_warnings_hook, "delayed-warnings-hook");
   DEFSYM (Qfunction_key, "function-key");
   DEFSYM (Qmouse_click, "mouse-click");
   DEFSYM (Qdrag_n_drop, "drag-n-drop");
@@ -12053,6 +12080,14 @@ This function is called with no arguments after each command
 whenever `deferred-action-list' is non-nil.  */);
   Vdeferred_action_function = Qnil;
 
+  DEFVAR_LISP ("delayed-warnings-list", Vdelayed_warnings_list,
+               doc: /* List of warnings to be displayed as soon as possible.
+Each element must be a list (TYPE MESSAGE [LEVEL [BUFFER-NAME]]),
+as per the args of `display-warning' (which see).
+If this variable is non-nil, `delayed-warnings-hook' will be run
+immediately after running `post-command-hook'.  */);
+  Vdelayed_warnings_list = Qnil;
+
   DEFVAR_LISP ("suggest-key-bindings", Vsuggest_key_bindings,
 	       doc: /* *Non-nil means show the equivalent key-binding when M-x command has one.
 The value can be a length of time to show the message for.
@@ -12165,6 +12200,17 @@ If `select-active-regions' is non-nil, Emacs sets this to the
 text in the region before modifying the buffer.  The next
 `deactivate-mark' call uses this to set the window selection.  */);
   Vsaved_region_selection = Qnil;
+
+  DEFVAR_LISP ("debug-on-event",
+               Vdebug_on_event,
+               doc: /* Enter debugger on this event.  When Emacs
+receives the special event specifed by this variable, it will try to
+break into the debugger as soon as possible instead of processing the
+event normally through `special-event-map'.
+
+Currently, the only supported values for this
+variable are `sigusr1' and `sigusr2'.  */);
+  Vdebug_on_event = intern_c_string ("sigusr2");
 
   /* Create the initial keyboard. */
   initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));

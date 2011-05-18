@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <limits.h>
 #include <setjmp.h>
+#include <stdio.h>
 #include "lisp.h"
 #include "blockinput.h"
 #include "commands.h"
@@ -87,7 +88,7 @@ static Lisp_Object Qdebug_on_error;
 static Lisp_Object Qdeclare;
 Lisp_Object Qinternal_interpreter_environment, Qclosure;
 
-static Lisp_Object Qdebug;
+Lisp_Object Qdebug;
 
 /* This holds either the symbol `run-hooks' or nil.
    It is nil at an early stage of startup, and when Emacs
@@ -1415,7 +1416,8 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
 	     || (CONSP (tem)
 		 && (SYMBOLP (XCAR (tem))
 		     || CONSP (XCAR (tem))))))
-	error ("Invalid condition handler");
+	error ("Invalid condition handler: %s",
+	       SDATA (Fprin1_to_string (tem, Qt)));
     }
 
   c.tag = Qnil;
@@ -1992,29 +1994,30 @@ verror (const char *m, va_list ap)
 {
   char buf[4000];
   size_t size = sizeof buf;
-  size_t size_max =
-    min (MOST_POSITIVE_FIXNUM, min (INT_MAX, SIZE_MAX - 1)) + 1;
+  size_t size_max = min (MOST_POSITIVE_FIXNUM + 1, SIZE_MAX);
+  size_t mlen = strlen (m);
   char *buffer = buf;
-  int used;
+  size_t used;
   Lisp_Object string;
 
   while (1)
     {
-      used = vsnprintf (buffer, size, m, ap);
+      va_list ap_copy;
+      va_copy (ap_copy, ap);
+      used = doprnt (buffer, size, m, m + mlen, ap_copy);
+      va_end (ap_copy);
 
-      if (used < 0)
-	{
-	  /* Non-C99 vsnprintf, such as w32, returns -1 when SIZE is too small.
-	     Guess a larger USED to work around the incompatibility.  */
-	  used = (size <= size_max / 2 ? 2 * size
-		  : size < size_max ? size_max - 1
-		  : size_max);
-	}
-      else if (used < size)
+      /* Note: the -1 below is because `doprnt' returns the number of bytes
+	 excluding the terminating null byte, and it always terminates with a
+	 null byte, even when producing a truncated message.  */
+      if (used < size - 1)
 	break;
-      if (size_max <= used)
-	memory_full ();
-      size = used + 1;
+      if (size <= size_max / 2)
+	size *= 2;
+      else if (size < size_max)
+	size = size_max;
+      else
+	break;	/* and leave the message truncated */
 
       if (buffer != buf)
 	xfree (buffer);
@@ -2144,7 +2147,7 @@ this does nothing and returns nil.  */)
        We used to use 0 here, but that leads to accidental sharing in
        purecopy's hash-consing, so we use a (hopefully) unique integer
        instead.  */
-    docstring = make_number (XHASH (function));
+    docstring = make_number (XPNTR (function));
   return Ffset (function,
 		Fpurecopy (list5 (Qautoload, file, docstring,
 				  interactive, type)));

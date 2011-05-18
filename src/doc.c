@@ -156,7 +156,7 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
   if (0 > lseek (fd, position - offset, 0))
     {
       emacs_close (fd);
-      error ("Position %"pEd" out of range in doc string file \"%s\"",
+      error ("Position %"pI"d out of range in doc string file \"%s\"",
 	     position, name);
     }
 
@@ -253,7 +253,9 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
 	  else if (c == '_')
 	    *to++ = 037;
 	  else
-	    error ("Invalid data in documentation file -- ^A followed by code 0%o", c);
+	    error ("\
+Invalid data in documentation file -- %c followed by code %03o",
+		   1, (unsigned)c);
 	}
       else
 	*to++ = *from++;
@@ -345,10 +347,12 @@ string is passed through `substitute-command-keys'.  */)
     {
       if (XSUBR (fun)->doc == 0)
 	return Qnil;
-      else if ((EMACS_INT) XSUBR (fun)->doc >= 0)
+      /* FIXME: This is not portable, as it assumes that string
+	 pointers have the top bit clear.  */
+      else if ((intptr_t) XSUBR (fun)->doc >= 0)
 	doc = build_string (XSUBR (fun)->doc);
       else
-	doc = make_number ((EMACS_INT) XSUBR (fun)->doc);
+	doc = make_number ((intptr_t) XSUBR (fun)->doc);
     }
   else if (COMPILEDP (fun))
     {
@@ -503,7 +507,10 @@ store_function_docstring (Lisp_Object fun, EMACS_INT offset)
 
   /* Lisp_Subrs have a slot for it.  */
   if (SUBRP (fun))
-    XSUBR (fun)->doc = (char *) - offset;
+    {
+      intptr_t negative_offset = - offset;
+      XSUBR (fun)->doc = (char *) negative_offset;
+    }
 
   /* If it's a lisp form, stick it in the form.  */
   else if (CONSP (fun))
@@ -671,7 +678,7 @@ the same file name is found in the `doc-directory'.  */)
 		; /* Just a source file name boundary marker.  Ignore it.  */
 
 	      else
-		error ("DOC file invalid at position %"pEd, pos);
+		error ("DOC file invalid at position %"pI"d", pos);
 	    }
 	}
       pos += end - buf;
@@ -787,7 +794,7 @@ a new string, without any text properties, is returned.  */)
 	do_remap:
 	  tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qnil);
 
-	  if (VECTORP (tem) && XVECTOR (tem)->size > 1
+	  if (VECTORP (tem) && ASIZE (tem) > 1
 	      && EQ (AREF (tem, 0), Qremap) && SYMBOLP (AREF (tem, 1))
 	      && follow_remap)
 	    {

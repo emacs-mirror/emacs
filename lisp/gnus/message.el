@@ -1882,7 +1882,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 (defvar message-send-mail-real-function nil
   "Internal send mail function.")
 
-(defvar message-bogus-system-names "^localhost\\.\\|\\.local$"
+(defvar message-bogus-system-names "\\`localhost\\.\\|\\.local\\'"
   "The regexp of bogus system names.")
 
 (defcustom message-valid-fqdn-regexp
@@ -4621,6 +4621,8 @@ If you always want Gnus to send messages in one piece, set
     (set-buffer mailbuf)
     (push 'mail message-sent-message-via)))
 
+(defvar sendmail-program)
+
 (defun message-send-mail-with-sendmail ()
   "Send off the prepared buffer with sendmail."
   (require 'sendmail)
@@ -4656,16 +4658,7 @@ If you always want Gnus to send messages in one piece, set
 		 (cpr (apply
 		       'call-process-region
 		       (append
-			(list (point-min) (point-max)
-			      (cond ((boundp 'sendmail-program)
-				     sendmail-program)
-				    ((file-exists-p "/usr/sbin/sendmail")
-				     "/usr/sbin/sendmail")
-				    ((file-exists-p "/usr/lib/sendmail")
-				     "/usr/lib/sendmail")
-				    ((file-exists-p "/usr/ucblib/sendmail")
-				     "/usr/ucblib/sendmail")
-				    (t "fakemail"))
+			(list (point-min) (point-max) sendmail-program
 			      nil errbuf nil "-oi")
 			message-sendmail-extra-arguments
 			;; Always specify who from,

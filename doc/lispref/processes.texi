@@ -299,6 +299,9 @@ function returns.
 MS-DOS doesn't support asynchronous subprocesses, so this option doesn't
 work there.
 
+@item @code{(:file @var{file-name})}
+Send the output to the file name specified.
+
 @item @code{(@var{real-destination} @var{error-destination})}
 Keep the standard output stream separate from the standard error stream;
 deal with the ordinary output as specified by @var{real-destination},

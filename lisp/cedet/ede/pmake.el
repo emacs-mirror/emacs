@@ -478,7 +478,7 @@ These are removed with make clean."
 (defmethod ede-proj-makefile-garbage-patterns ((this ede-proj-target))
   "Return a list of patterns that are considered garbage to THIS.
 These are removed with make clean."
-  ;; Get the  the source object from THIS, and use the specified garbage.
+  ;; Get the source object from THIS, and use the specified garbage.
   (let ((src (ede-target-sourcecode this))
 	(garb nil))
     (while src

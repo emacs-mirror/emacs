@@ -1,3 +1,17 @@
+2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el: New file.
+	(url-queue-run-queue): Pick the first waiting job, and not the
+	last.
+	(url-queue-parallel-processes): Lower the concurrency level, since
+	Emacs doesn't seem to like too many async processes.
+	(url-queue-prune-old-entries): Fix up the pruning code.
+
+2011-04-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-http.el (url-http-wait-for-headers-change-function): Protect
+	against malformed headerless responses from servers.
+
 2011-04-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-gw.el (url-open-stream): Use new open-network-stream

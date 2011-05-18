@@ -1217,7 +1217,7 @@ be carried out at the same time:
 2) If the connection is very slow, you might also want to consider
    switching off scroll bars, menu bar, and tool bar.  Adding the
    following forms to your .emacs file will accomplish that, but only
-   after the the initial frame is displayed:
+   after the initial frame is displayed:
 
     (scroll-bar-mode -1)
     (menu-bar-mode -1)

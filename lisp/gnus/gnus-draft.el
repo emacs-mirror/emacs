@@ -149,7 +149,7 @@ Obeys the standard process/prefix convention."
                                      gnus-agent-queue-mail))
 	 (rfc2047-encode-encoded-words nil)
          type method move-to)
-    (gnus-draft-setup article (or group "nndraft:queue"))
+    (gnus-draft-setup article (or group "nndraft:queue") nil 'dont-pop)
     ;; We read the meta-information that says how and where
     ;; this message is to be sent.
     (save-restriction
@@ -245,11 +245,15 @@ Obeys the standard process/prefix convention."
   :type 'hook)
 
 
-(defun gnus-draft-setup (narticle group &optional restore)
+(defun gnus-draft-setup (narticle group &optional restore dont-pop)
+  "Setup a mail draft buffer.
+If DONT-POP is nil, display the buffer after setting it up."
   (let (ga)
     (gnus-setup-message 'forward
       (let ((article narticle))
-        (message-mail)
+        (message-mail nil nil nil nil
+                      (if dont-pop
+                          (lambda (buf) (set-buffer (get-buffer-create buf)))))
         (let ((inhibit-read-only t))
           (erase-buffer))
         (if (not (gnus-request-restore-buffer article group))

@@ -1,3 +1,60 @@
+2011-05-14  Ulf Jasper  <ulf.jasper@web.de>
+
+	* images/newsticker/README: Added.
+
+2011-05-13  Ulf Jasper  <ulf.jasper@web.de>
+
+	* images/newsticker: Added.
+	* images/newsticker/browse-url.xpm: Added.
+	* images/newsticker/get-all.xpm: Added.
+	* images/newsticker/mark-immortal.xpm: Added.
+	* images/newsticker/mark-read.xpm: Added.
+	* images/newsticker/narrow.xpm: Added.
+	* images/newsticker/next-feed.xpm: Added.
+	* images/newsticker/next-item.xpm: Added.
+	* images/newsticker/prev-feed.xpm: Added.
+	* images/newsticker/prev-item.xpm: Added.
+	* images/newsticker/update.xpm: Added.
+
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	* MH-E-NEWS, PROBLEMS: Fix typo "the the -> the".
+
+2011-05-03  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention the new command isearch-yank-pop.
+
+2011-05-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* NEWS: Mention new library gnutls.el and explain GnuTLS
+	functionality.  Mention new configure.bat options --without-gnutls
+	and --lib for W32.
+
+2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Mention `url-retrieve-queue', (:file "file") and
+	`server-eval-at'.
+
+2011-04-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document `delayed-warnings-list' and `delayed-warnings-hook'.
+	Document new "default HOME" warning.
+
+2011-04-26  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* DEBUG: Document debug-on-event default behavior and utility for
+	debugging.
+
+2011-04-22  Noah Friedman  <friedman@splode.com>
+
+	* emacs-buffer.gdb: Add trailing underscores to appropriate member
+	names, per change tromey@redhat.com-20110214153919-bxkckrdmmg4qhyyj
+	of src/lisp.h.
+
+2011-04-08  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* NEWS: Document new function `vc-ediff'.
+
 2011-04-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: New variable `revert-buffer-in-progress-p'.

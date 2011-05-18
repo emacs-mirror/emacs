@@ -1,3 +1,30 @@
+2011-05-03  Debarshi Ray  <rishi@gnu.org>  (tiny change)
+
+	* erc-backend.el (671): New response handler.
+	* erc.el (english): Add 671 to catalog.
+
+2011-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-pcomplete.el (erc-pcomplete-nick-postfix): Remove the " " in the
+	suffix that's added by pcomplete-termination-string anyway.
+	(pcomplete-erc-setup): Remove pcomplete-suffix-list setting now that
+	it's not needed any more.
+
+2011-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el (erc-mode-map): Use completion-at-point.
+	(erc-mode): Tell completion-at-point to obey erc-complete-functions.
+	(erc-complete-word-at-point): New function.
+	(erc-complete-word): Make it obsolete.
+	* erc-pcomplete.el (erc-pcompletions-at-point): New function.
+	(pcomplete): Use it.
+	* erc-dcc.el (erc-dcc-chat-mode-map): Use completion-at-point.
+	(erc-dcc-chat-mode): Tell completion-at-point to obey
+	erc-complete-functions.
+	* erc-button.el (erc-button-next-function): New function extracted from
+	erc-button-next.
+	(button, erc-button-next): Use it.
+
 2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.3 released.

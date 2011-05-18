@@ -662,8 +662,7 @@ There is some minimal font-lock support (see vars
 (defun dcl-end-of-command ()
   "Move point to end of current command or next command if not on a command."
   (interactive)
-  (let ((type (dcl-get-line-type))
-	(start (point)))
+  (let ((type (dcl-get-line-type)))
     (if (or (eq type '$)
 	    (eq type '-))
 	(progn
@@ -941,7 +940,7 @@ Returns one of the following symbols:
 
 ;;;---------------------------------------------------------------------------
 (defun dcl-calc-command-indent-multiple
-  (indent-type cur-indent extra-indent last-point this-point)
+  (indent-type cur-indent extra-indent _last-point _this-point)
   "Indent lines to a multiple of dcl-basic-offset.
 
 Set dcl-calc-command-indent-function to this function to customize
@@ -1185,7 +1184,7 @@ The indent-type classification could probably be expanded upon.
 
 
 ;;;---------------------------------------------------------------------------
-(defun dcl-calc-cont-indent-relative (cur-indent extra-indent)
+(defun dcl-calc-cont-indent-relative (_cur-indent _extra-indent)
   "Indent continuation lines to align with words on previous line.
 
 Indent continuation lines to a position relative to preceding
@@ -1540,7 +1539,7 @@ Also remove the continuation mark if easily detected."
 
 
 ;;;-------------------------------------------------------------------------
-(defun dcl-option-value-basic (option-assoc)
+(defun dcl-option-value-basic (_option-assoc)
   "Guess a value for basic-offset."
   (save-excursion
     (dcl-beginning-of-command)
@@ -1575,7 +1574,7 @@ Also remove the continuation mark if easily detected."
 
 
 ;;;-------------------------------------------------------------------------
-(defun dcl-option-value-offset (option-assoc)
+(defun dcl-option-value-offset (_option-assoc)
   "Guess a value for an offset.
 Find the column of the first non-blank character on the line.
 Returns the column offset."
@@ -1586,7 +1585,7 @@ Returns the column offset."
 
 
 ;;;-------------------------------------------------------------------------
-(defun dcl-option-value-margin-offset (option-assoc)
+(defun dcl-option-value-margin-offset (_option-assoc)
   "Guess a value for margin offset.
 Find the column of the first non-blank character on the line, not
 counting labels.
@@ -1598,7 +1597,7 @@ Returns a number as a string."
 
 
 ;;;-------------------------------------------------------------------------
-(defun dcl-option-value-comment-line (option-assoc)
+(defun dcl-option-value-comment-line (_option-assoc)
   "Guess a value for `dcl-comment-line-regexp'.
 Must return a string."
   ;; Should we set comment-start and comment-start-skip as well?
@@ -1789,8 +1788,7 @@ Set or update the value of VAR in the current buffers
 	    (if (eolp) (error "Missing colon in local variables entry"))
 	    (skip-chars-backward " \t")
 	    (let* ((str (buffer-substring beg (point)))
-		   (found-var (read str))
-		   val)
+		   (found-var (read str)))
 	      ;; Setting variable named "end" means end of list.
 	      (if (string-equal (downcase str) "end")
 		  (progn
@@ -1895,6 +1893,10 @@ section at the end of the current buffer."
 
 
 ;;;-------------------------------------------------------------------------
+(with-no-warnings
+  ;; Dynamically bound in `dcl-save-mode'.
+  (defvar mode))
+
 (defun dcl-save-mode ()
   "Save the current mode for this buffer.
 Save the current mode in a `Local Variables:'
@@ -1902,7 +1904,7 @@ section at the end of the current buffer."
   (interactive)
   (let ((mode (prin1-to-string major-mode)))
     (if (string-match "-mode$" mode)
-	(let ((mode (intern (substring mode  0 (match-beginning 0)))))
+	(let ((mode (intern (substring mode 0 (match-beginning 0)))))
 	  (dcl-save-option 'mode))
       (message "Strange mode: %s" mode))))
 

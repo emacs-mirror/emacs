@@ -1903,7 +1903,7 @@ setup_ccl_program (struct ccl_program *ccl, Lisp_Object ccl_prog)
       if (! VECTORP (ccl_prog))
 	return -1;
       vp = XVECTOR (ccl_prog);
-      ccl->size = vp->size;
+      ccl->size = vp->header.size;
       ccl->prog = vp->contents;
       ccl->eof_ic = XINT (vp->contents[CCL_HEADER_EOF]);
       ccl->buf_magnification = XINT (vp->contents[CCL_HEADER_BUF_MAG]);

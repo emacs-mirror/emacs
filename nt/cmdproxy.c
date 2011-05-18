@@ -309,6 +309,84 @@ make_absolute (const char *prog)
   return NULL;
 }
 
+/* Try to decode the given command line the way cmd would do it.  On
+   success, return 1 with cmdline dequoted.  Otherwise, when we've
+   found constructs only cmd can properly interpret, return 0 and
+   leave cmdline unchanged.  */
+int
+try_dequote_cmdline (char* cmdline)
+{
+  /* Dequoting can only subtract characters, so the length of the
+     original command line is a bound on the amount of scratch space
+     we need.  This length, in turn, is bounded by the 32k
+     CreateProces limit.  */
+  char * old_pos = cmdline;
+  char * new_cmdline = alloca (strlen(cmdline));
+  char * new_pos = new_cmdline;
+  char c;
+
+  enum {
+    NORMAL,
+    AFTER_CARET,
+    INSIDE_QUOTE
+  } state = NORMAL;
+
+  while ((c = *old_pos++))
+    {
+      switch (state)
+        {
+        case NORMAL:
+          switch(c)
+            {
+            case '"':
+              *new_pos++ = c;
+              state = INSIDE_QUOTE;
+              break;
+            case '^':
+              state = AFTER_CARET;
+              break;
+            case '<': case '>':
+            case '&': case '|':
+            case '(': case ')':
+            case '%': case '!':
+              /* We saw an unquoted shell metacharacter and we don't
+                 understand it. Bail out.  */
+              return 0;
+            default:
+              *new_pos++ = c;
+              break;
+            }
+          break;
+        case AFTER_CARET:
+          *new_pos++ = c;
+          state = NORMAL;
+          break;
+        case INSIDE_QUOTE:
+          switch (c)
+            {
+            case '"':
+              *new_pos++ = c;
+              state = NORMAL;
+              break;
+            case '%':
+            case '!':
+              /* Variable substitution inside quote.  Bail out.  */
+              return 0;
+            default:
+              *new_pos++ = c;
+              break;
+            }
+          break;
+        }
+    }
+
+  /* We were able to dequote the entire string.  Copy our scratch
+     buffer on top of the original buffer and return success.  */
+  memcpy (cmdline, new_cmdline, new_pos - new_cmdline);
+  cmdline[new_pos - new_cmdline] = '\0';
+  return 1;
+}
+
 /*****************************************************************/
 
 #if 0
@@ -574,30 +652,26 @@ main (int argc, char ** argv)
      execute the command directly ourself.  */
   if (cmdline)
     {
-      /* If no redirection or piping, and if program can be found, then
-	 run program directly.  Otherwise invoke a real shell. */
+      const char *args;
 
-      static char copout_chars[] = "|<>&";
+      /* The program name is the first token of cmdline.  Since
+         filenames cannot legally contain embedded quotes, the value
+         of escape_char doesn't matter.  */
+      args = cmdline;
+      if (!get_next_token (path, &args))
+        fail ("error: no program name specified.\n");
 
-      if (strpbrk (cmdline, copout_chars) == NULL)
-	{
- 	  const char *args;
+      canon_filename (path);
+      progname = make_absolute (path);
 
-	  /* The program name is the first token of cmdline.  Since
-	     filenames cannot legally contain embedded quotes, the value
-	     of escape_char doesn't matter.  */
-	  args = cmdline;
-	  if (!get_next_token (path, &args))
-	    fail ("error: no program name specified.\n");
-
-	  canon_filename (path);
-	  progname = make_absolute (path);
-
-	  /* If we found the program, run it directly (if not found it
-             might be an internal shell command, so don't fail).  */
-	  if (progname != NULL)
-	    need_shell = FALSE;
-	}
+      /* If we found the program and the rest of the command line does
+         not contain unquoted shell metacharacters, run the program
+         directly (if not found it might be an internal shell command,
+         so don't fail).  */
+      if (progname != NULL && try_dequote_cmdline (cmdline))
+        need_shell = FALSE;
+      else
+        progname = NULL;
     }
 
  pass_to_shell:

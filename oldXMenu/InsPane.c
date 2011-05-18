@@ -26,7 +26,7 @@ XMenuInsertPane(register XMenu *menu, register int p_num, char *label, int activ
 {
     register XMPane *p_ptr;	/* XMPane pointer. */
     register XMPane *pane;	/* Newly created pane. */
-    register XMSelect *select;	/* Initial selection for the new pane. */
+    register XMSelect *sel;	/* Initial selection for the new pane. */
 
     int label_length;		/* Label length in characters. */
     int label_width;		/* Label width in pixels. */
@@ -54,8 +54,8 @@ XMenuInsertPane(register XMenu *menu, register int p_num, char *label, int activ
 	_XMErrorCode = XME_CALLOC;
 	return(XM_FAILURE);
     }
-    select = (XMSelect *)calloc(1, sizeof(XMSelect));
-    if (select == NULL) {
+    sel = (XMSelect *)calloc(1, sizeof(XMSelect));
+    if (sel == NULL) {
 	_XMErrorCode = XME_CALLOC;
 	return(XM_FAILURE);
     }
@@ -70,11 +70,11 @@ XMenuInsertPane(register XMenu *menu, register int p_num, char *label, int activ
      * Set up the initial selection.
      * Values not explicitly set are zeroed by calloc.
      */
-    select->next = select;
-    select->prev = select;
-    select->type = SL_HEADER;
-    select->serial = -1;
-    select->parent_p = pane;
+    sel->next = sel;
+    sel->prev = sel;
+    sel->type = SL_HEADER;
+    sel->serial = -1;
+    sel->parent_p = pane;
 
     /*
      * Fill the XMPane structure.
@@ -85,7 +85,7 @@ XMenuInsertPane(register XMenu *menu, register int p_num, char *label, int activ
     pane->label = label;
     pane->label_width = label_width;
     pane->label_length = label_length;
-    pane->s_list = select;
+    pane->s_list = sel;
 
     /*
      * Insert the pane after the pane with the pane
@@ -110,4 +110,3 @@ XMenuInsertPane(register XMenu *menu, register int p_num, char *label, int activ
     _XMErrorCode = XME_NO_ERROR;
     return(p_num);
 }
-

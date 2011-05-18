@@ -511,7 +511,7 @@ make_menu_in_widget (widget_instance* instance,
   /* Allocate the children array */
   for (num_children = 0, cur = val; cur; num_children++, cur = cur->next)
     ;
-  children = (Widget*)XtMalloc (num_children * sizeof (Widget));
+  children = (Widget*)(void*)XtMalloc (num_children * sizeof (Widget));
 
   /* WIDGET should be a RowColumn.  */
   if (!XmIsRowColumn (widget))
@@ -1020,10 +1020,10 @@ dialog_key_cb (Widget widget,
 {
   KeySym sym = 0;
   Modifiers modif_ret;
-  
+
   XtTranslateKeycode (event->xkey.display, event->xkey.keycode, 0,
                       &modif_ret, &sym);
-                      
+
   if (sym == osfXK_Cancel)
     {
       Widget w = *((Widget *) closure);
@@ -1055,7 +1055,7 @@ make_dialog (char* name,
   Widget row;
   Widget icon;
   Widget icon_separator;
-  Widget message;
+  Widget message_label;
   Widget value = 0;
   Widget separator;
   Widget button = 0;
@@ -1269,7 +1269,7 @@ make_dialog (char* name,
   XtSetArg(al[ac], XmNleftWidget, icon); ac++;
   XtSetArg(al[ac], XmNrightAttachment, XmATTACH_FORM); ac++;
   XtSetArg(al[ac], XmNrightOffset, 13); ac++;
-  message = XmCreateLabel (form, "message", al, ac);
+  message_label = XmCreateLabel (form, "message", al, ac);
 
   if (list)
     XtManageChild (value);
@@ -1281,7 +1281,7 @@ make_dialog (char* name,
     {
       children [i] = value; i++;
     }
-  children [i] = message; i++;
+  children [i] = message_label; i++;
   children [i] = icon; i++;
   children [i] = icon_separator; i++;
   XtManageChildren (children, i);

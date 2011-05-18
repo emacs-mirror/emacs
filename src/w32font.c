@@ -165,7 +165,7 @@ intern_font_name (char * string)
 
   /* The following code is copied from the function intern (in lread.c).  */
   obarray = Vobarray;
-  if (!VECTORP (obarray) || XVECTOR (obarray)->size == 0)
+  if (!VECTORP (obarray) || ASIZE (obarray) == 0)
     obarray = check_obarray (obarray);
   tem = oblookup (obarray, SDATA (str), len, len);
   if (SYMBOLP (tem))
@@ -2581,4 +2581,3 @@ versions of Windows) characters.  */);
   w32font_driver.type = Qgdi;
   register_font_driver (&w32font_driver, NULL);
 }
-

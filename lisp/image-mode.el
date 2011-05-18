@@ -296,8 +296,7 @@ This function assumes the current frame has only one window."
 ;;; Image Mode setup
 
 (defvar image-type nil
-  "Current image type.
-This variable is used to display the current image type in the mode line.")
+  "The image type for the current Image mode buffer.")
 (make-variable-buffer-local 'image-type)
 
 (defvar image-mode-previous-major-mode nil
@@ -324,13 +323,13 @@ This variable is used to display the current image type in the mode line.")
     (define-key map [remap beginning-of-buffer] 'image-bob)
     (define-key map [remap end-of-buffer] 'image-eob)
     map)
-  "Major mode keymap for viewing images in Image mode.")
+  "Mode keymap for `image-mode'.")
 
 (defvar image-minor-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-c" 'image-toggle-display)
     map)
-  "Minor mode keymap for viewing images as text in Image mode.")
+  "Mode keymap for `image-minor-mode'.")
 
 (defvar bookmark-make-record-function)
 
@@ -520,9 +519,10 @@ was inserted."
 	(message "Repeat this command to go back to displaying the file as text"))))
 
 (defun image-toggle-display ()
-  "Start or stop displaying an image file as the actual image.
-This command toggles between `image-mode-as-text' showing the text of
-the image file and `image-mode' showing the image as an image."
+  "Toggle between image and text display.
+If the current buffer is displaying an image file as an image,
+call `image-mode-as-text' to switch to text.  Otherwise, display
+the image by calling `image-mode'."
   (interactive)
   (if (image-get-display-property)
       (image-mode-as-text)
