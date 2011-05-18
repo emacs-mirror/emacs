@@ -1,3 +1,8 @@
+2011-05-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-process-actions): Set "first-password-request"
+	property for the correct connection in case of multihops.
+
 2011-05-18  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-fixed-entries): Remove fakemail.c.
