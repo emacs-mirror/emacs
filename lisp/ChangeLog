@@ -1,6 +1,6 @@
 2011-05-18  Glenn Morris  <rgm@gnu.org>
 
-	* emacs-lisp/authors.el (authors-fixed-entries): Remove fakemail.c
+	* emacs-lisp/authors.el (authors-fixed-entries): Remove fakemail.c.
 	* mail/sendmail.el (sendmail-program): Fall back to just "sendmail".
 
 	Rationalize calendar handling of day and month abbrev-arrays.
@@ -109,7 +109,7 @@
 	(feedmail-debug-sit-for, feedmail-queue-express-hook): New options.
 	(feedmail-sender-line, feedmail-from-line)
 	(feedmail-fiddle-headers-upwardly, feedmail-enable-spray)
-	(feedmail-spray-this-address, )
+	(feedmail-spray-this-address)
 	(feedmail-spray-address-fiddle-plex-list)
 	(feedmail-queue-use-send-time-for-date)
 	(feedmail-queue-use-send-time-for-message-id)
@@ -194,20 +194,20 @@
 
 2011-05-13  Ulf Jasper  <ulf.jasper@web.de>
 
-	* net/newst-treeview.el (newsticker-treeview-face): Changed default
+	* net/newst-treeview.el (newsticker-treeview-face): Change default
 	family from helvetica to sans.
-	(newsticker-treeview-tool-bar-map): Moved tool-bar icons to
+	(newsticker-treeview-tool-bar-map): Move tool-bar icons to
 	etc/images/newsticker.
 
-	* net/newst-reader.el (newsticker-feed-face): Changed default
+	* net/newst-reader.el (newsticker-feed-face): Change default
 	family from helvetica to sans.
 
 	* net/newst-plainview.el (newsticker-new-item-face)
 	(newsticker-old-item-face, newsticker-immortal-item-face)
 	(newsticker-obsolete-item-face, newsticker-date-face)
-	(newsticker-statistics-face): Changed default family from
+	(newsticker-statistics-face): Change default family from
 	helvetica to sans.
-	(newsticker--plainview-tool-bar-map): Moved tool-bar icons to
+	(newsticker--plainview-tool-bar-map): Move tool-bar icons to
 	etc/images/newsticker.
 
 	* net/newst-backend.el (newsticker--do-run-auto-mark-filter),
@@ -338,7 +338,7 @@
 	* textmodes/reftex-dcr.el (reftex-view-crossref): at at -> at a
 
 2011-05-10  Glenn Morris  <rgm@gnu.org>
-	   Stefan Monnier  <monnier@iro.umontreal.ca>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (hack-one-local-variable-eval-safep):
 	Consider "eval: (foo-mode)" to be safe.  (Bug#8613)
