@@ -1,3 +1,23 @@
+2011-05-18  Glenn Morris  <rgm@gnu.org>
+
+	Rationalize calendar handling of day and month abbrev-arrays.
+	* calendar/calendar.el (calendar-customized-p): New function.
+	(calendar-abbrev-construct, calendar-make-alist): Change what it does.
+	(calendar-day-name-array, calendar-month-name-array): Doc fix.
+	Add :set function.
+	(calendar-abbrev-length, calendar-day-abbrev-array)
+	(calendar-month-abbrev-array): Make defcustoms, with appropriate :set.
+	(calendar-day-abbrev-array, calendar-month-abbrev-array):
+	Elements may no longer be nil.
+	(calendar-day-name, calendar-month-name):
+	Update for changed nature of abbrev arrays.
+	* calendar/diary-lib.el (diary-name-pattern):
+	Update for changed nature of abbrev arrays.
+	(diary-mark-entries-1): Update calendar-make-alist calls.
+	(diary-font-lock-date-forms): Doc fix for changed abbrev arrays.
+	* calendar/cal-html.el (cal-html-day-abbrev-array):
+	Simply inherit from calendar-day-abbrev-array.
+
 2011-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/grep.el (grep-mode): Disable default
