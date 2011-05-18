@@ -2595,6 +2595,7 @@ frame's terminal). */)
 	  FRAME_SET_VISIBLE (XFRAME (t->display_info.tty->top_frame), 1);
 	}
 
+      set_tty_hooks (t);
       init_sys_modes (t->display_info.tty);
 
       {
