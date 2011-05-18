@@ -1,11 +1,11 @@
 2011-05-17  Paul Eggert  <eggert@cs.ucla.edu>
 
-	lib/gnulib.mk:
-	lib/intprops.h:
-	lib/unistd.in.h:
-	m4/inttypes.m4:
-	m4/stdint.m4:
-	m4/unistd_h.m4: Sync from gnulib.
+	* lib/gnulib.mk:
+	* lib/intprops.h:
+	* lib/unistd.in.h:
+	* m4/inttypes.m4:
+	* m4/stdint.m4:
+	* m4/unistd_h.m4: Sync from gnulib.
 
 2011-05-14  Glenn Morris  <rgm@gnu.org>
 

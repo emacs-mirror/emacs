@@ -1,6 +1,6 @@
 2011-05-17  Paul Eggert  <eggert@cs.ucla.edu>
 
-	texinfo.tex: Sync from gnulib, version 2011-05-11.16.
+	* texinfo.tex: Sync from gnulib, version 2011-05-11.16.
 
 2011-05-17  Glenn Morris  <rgm@gnu.org>
 
