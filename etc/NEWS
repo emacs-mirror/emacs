@@ -278,6 +278,10 @@ to enable a minor-mode is deprecated.  Instead, use "eval: (minor-mode)".
 ** The standalone programs lib-src/digest-doc and sorted-doc have been
 replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 
+---
+** The standalone program `fakemail' has been removed.
+If you need it, feedmail.el ought to provide a superset of the functionality.
+
 ** The variable `focus-follows-mouse' now always defaults to nil.
 
 

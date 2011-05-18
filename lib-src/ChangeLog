@@ -1,3 +1,11 @@
+2011-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* fakemail.c: Remove file.
+	* makefile.w32-in ($(BLD)/fakemail.exe, fakemail)
+	($(BLD)/fakemail.$(O)): Remove.
+	* Makefile.in (UTILITIES): Remove fakemail${EXEEXT}.
+	(fakemail${EXEEXT}): Remove rule.
+
 2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* makefile.w32-in (obj): Add gnutls.o.

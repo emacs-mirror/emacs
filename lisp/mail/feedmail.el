@@ -13,9 +13,8 @@
 ;; A replacement for parts of Emacs' sendmail.el (specifically,
 ;; it's what handles your outgoing mail after you hit C-c C-c in mail
 ;; mode).  See below for a list of additional features, including the
-;; ability to queue messages for later sending.  If you are using
-;; fakemail as a subprocess, you can switch to feedmail and eliminate
-;; the use of fakemail.
+;; ability to queue messages for later sending.  This replaces
+;; the standalone fakemail program that used to be distributed with Emacs.
 
 ;; feedmail works with recent versions of Emacs (20.x series) and
 ;; XEmacs (tested with 20.4 and later betas).  It probably no longer
@@ -90,12 +89,11 @@
 ;; This code does in elisp a superset of the stuff that used to be done
 ;; by the separate program "fakemail" for processing outbound email.
 ;; In other words, it takes over after you hit "C-c C-c" in mail mode.
-;; By appropriate setting of options, you can still use "fakemail",
-;; or you can even revert to sendmail (which is not too popular
-;; locally).  See the variables at the top of the elisp for how to
-;; achieve these effects (there are more features than in this bullet
-;; list, so trolling through the variable and function doc strings may
-;; be worth your while):
+;; By appropriate setting of options, you can even revert to sendmail
+;; (which is not too popular locally).  See the variables at the top
+;; of the elisp for how to achieve these effects (there are more
+;; features than in this bullet list, so trolling through the variable
+;; and function doc strings may be worth your while):
 ;;
 ;;    --- you can park outgoing messages into a disk-based queue and
 ;;        stimulate sending them all later (handy for laptop users);

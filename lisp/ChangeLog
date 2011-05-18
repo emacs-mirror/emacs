@@ -1,5 +1,7 @@
 2011-05-18  Glenn Morris  <rgm@gnu.org>
 
+	* mail/sendmail.el (sendmail-program): Fall back to just "sendmail".
+
 	Rationalize calendar handling of day and month abbrev-arrays.
 	* calendar/calendar.el (calendar-customized-p): New function.
 	(calendar-abbrev-construct, calendar-make-alist): Change what it does.
