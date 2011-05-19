@@ -1,3 +1,7 @@
+2011-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* lists.texi (Sets And Lists): Mention cl provides union etc.
+
 2011-05-19  Nix  <nix@esperi.org.uk>
 
 	* windows.texi (Displaying Buffers): pop-to-buffer is not a command.
