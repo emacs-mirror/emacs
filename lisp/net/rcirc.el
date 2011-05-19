@@ -971,7 +971,7 @@ This number is independent of the number of lines in the buffer.")
   (set (make-local-variable 'rcirc-current-line) 0)
 
   (set (make-local-variable 'rcirc-short-buffer-name) nil)
-  (set (make-local-variable 'rcirc-urls) t)
+  (set (make-local-variable 'rcirc-urls) nil)
 
   ;; setup for omitting responses
   (setq buffer-invisibility-spec '())

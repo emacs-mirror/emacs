@@ -1,3 +1,7 @@
+2011-05-19  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-mode): Initialize rcirc-urls to nil.
+
 2011-05-19  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-type-def-re):
