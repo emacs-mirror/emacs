@@ -603,9 +603,6 @@ am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
-WINDOW_SUPPORT
-TOOLTIP_SUPPORT
-MOUSE_SUPPORT
 LIB_GCC
 LD_FIRSTFLAG
 LD_SWITCH_SYSTEM_TEMACS
@@ -1118,7 +1115,6 @@ VMLIMIT_OBJ
 GMALLOC_OBJ
 HAVE_XSERVER
 LIB_STANDARD
-NS_SUPPORT
 NS_OBJC_OBJ
 NS_OBJ
 TEMACS_LDFLAGS2
@@ -9460,7 +9456,6 @@ fi
 ns_frag=/dev/null
 NS_OBJ=
 NS_OBJC_OBJ=
-NS_SUPPORT=
 if test "${HAVE_NS}" = yes; then
   window_system=nextstep
   with_xft=no
@@ -9473,11 +9468,9 @@ if test "${HAVE_NS}" = yes; then
   ns_frag=$srcdir/src/ns.mk
   NS_OBJ="fontset.o fringe.o image.o"
   NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o"
-  NS_SUPPORT="\${lispsource}/emacs-lisp/easymenu.elc \${lispsource}/term/ns-win.elc"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
-
 
 
 
@@ -12929,7 +12922,6 @@ fi
 ### Use -lgpm if available, unless `--with-gpm=no'.
 HAVE_GPM=no
 LIBGPM=
-MOUSE_SUPPORT=
 if test "${with_gpm}" != "no"; then
   ac_fn_c_check_header_mongrel "$LINENO" "gpm.h" "ac_cv_header_gpm_h" "$ac_includes_default"
 if test "x$ac_cv_header_gpm_h" = x""yes; then :
@@ -12982,8 +12974,6 @@ fi
 $as_echo "#define HAVE_GPM 1" >>confdefs.h
 
     LIBGPM=-lgpm
-    ## May be reset below.
-    MOUSE_SUPPORT="\$(GPM_MOUSE_SUPPORT)"
   fi
 fi
 
@@ -20810,8 +20800,6 @@ if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
 fi
 
 
-TOOLTIP_SUPPORT=
-WINDOW_SUPPORT=
 ## If we're using X11/GNUstep, define some consequences.
 if test "$HAVE_X_WINDOWS" = "yes" || test "$HAVE_NS" = "yes"; then
 
@@ -20820,17 +20808,7 @@ $as_echo "#define HAVE_WINDOW_SYSTEM 1" >>confdefs.h
 
 $as_echo "#define HAVE_MOUSE 1" >>confdefs.h
 
-  MOUSE_SUPPORT="\$(REAL_MOUSE_SUPPORT)"
-  TOOLTIP_SUPPORT="\${lispsource}/mouse.elc"
-
-  WINDOW_SUPPORT="\$(BASE_WINDOW_SUPPORT)"
-  test "$HAVE_X_WINDOWS" = "yes" && \
-    WINDOW_SUPPORT="$WINDOW_SUPPORT \$(X_WINDOW_SUPPORT)"
-
 fi
-
-
-
 
 
 
