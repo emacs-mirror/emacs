@@ -1016,7 +1016,7 @@ Markus Rost wrote @file{cus-test.el}, a testing framework for customize.
 
 @item
 Guillermo J.@: Rozas wrote @file{scheme.el}, a mode for editing Scheme and
-DSSSL code, and @file{fakemail.c}, an interface to the System V mailer.
+DSSSL code.
 
 @item
 Ivar Rummelhoff wrote @file{winner.el}, which records recent window

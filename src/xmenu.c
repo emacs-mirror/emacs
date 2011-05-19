@@ -240,7 +240,7 @@ for instance using the window manager, then this produces a quit and
       FRAME_PTR new_f = SELECTED_FRAME ();
       Lisp_Object bar_window;
       enum scroll_bar_part part;
-      unsigned long time;
+      Time time;
       Lisp_Object x, y;
 
       (*mouse_position_hook) (&new_f, 1, &bar_window, &part, &x, &y, &time);
@@ -922,7 +922,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 #endif
   Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
-  EMACS_UINT i, last_i = 0;
+  int i;
   int *submenu_start, *submenu_end;
   int *submenu_top_level_items, *submenu_n_panes;
 
@@ -966,7 +966,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
       Lisp_Object *previous_items
 	= (Lisp_Object *) alloca (previous_menu_items_used
 				  * sizeof (Lisp_Object));
-      EMACS_UINT subitems;
+      int subitems;
 
       /* If we are making a new widget, its contents are empty,
 	 do always reinitialize them.  */
@@ -1012,7 +1012,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
       subitems = ASIZE (items) / 4;
-      submenu_start = (int *) alloca (subitems * sizeof (int));
+      submenu_start = (int *) alloca ((subitems + 1) * sizeof (int));
       submenu_end = (int *) alloca (subitems * sizeof (int));
       submenu_n_panes = (int *) alloca (subitems * sizeof (int));
       submenu_top_level_items = (int *) alloca (subitems * sizeof (int));
@@ -1020,8 +1020,6 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
       for (i = 0; i < subitems; i++)
 	{
 	  Lisp_Object key, string, maps;
-
-	  last_i = i;
 
 	  key = XVECTOR (items)->contents[4 * i];
 	  string = XVECTOR (items)->contents[4 * i + 1];
@@ -1039,6 +1037,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 	  submenu_end[i] = menu_items_used;
 	}
 
+      submenu_start[i] = -1;
       finish_menu_items ();
 
       /* Convert menu_items into widget_value trees
@@ -1052,7 +1051,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
       wv->help = Qnil;
       first_wv = wv;
 
-      for (i = 0; i < last_i; i++)
+      for (i = 0; 0 <= submenu_start[i]; i++)
 	{
 	  menu_items_n_panes = submenu_n_panes[i];
 	  wv = digest_single_submenu (submenu_start[i], submenu_end[i],
@@ -1421,7 +1420,8 @@ pop_down_menu (Lisp_Object arg)
    menu pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y, int for_click, EMACS_UINT timestamp)
+create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y,
+			    int for_click, Time timestamp)
 {
   int i;
   GtkWidget *menu;
@@ -1465,7 +1465,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y, i
   gtk_widget_show_all (menu);
 
   gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i,
-		  timestamp > 0 ? timestamp : gtk_get_current_event_time());
+		  timestamp ? timestamp : gtk_get_current_event_time ());
 
   record_unwind_protect (pop_down_menu, make_save_value (menu, 0));
 
@@ -1525,7 +1525,7 @@ pop_down_menu (Lisp_Object arg)
    menu_item_selection will be set to the selection.  */
 static void
 create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
-			    int x, int y, int for_click, EMACS_UINT timestamp)
+			    int x, int y, int for_click, Time timestamp)
 {
   int i;
   Arg av[2];
@@ -1599,7 +1599,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
 
 Lisp_Object
 xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
-	    Lisp_Object title, const char **error_name, EMACS_UINT timestamp)
+	    Lisp_Object title, const char **error_name, Time timestamp)
 {
   int i;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
@@ -2242,7 +2242,7 @@ pop_down_menu (Lisp_Object arg)
 
 Lisp_Object
 xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
-	    Lisp_Object title, const char **error_name, EMACS_UINT timestamp)
+	    Lisp_Object title, const char **error_name, Time timestamp)
 {
   Window root;
   XMenu *menu;

@@ -1227,17 +1227,20 @@ If SEND-IF-FORCE, only send authinfo to the server if the
   (require 'netrc)
   (let* ((list (netrc-parse nntp-authinfo-file))
 	 (alist (netrc-machine list nntp-address "nntp"))
-	 (force (or (netrc-get alist "force") nntp-authinfo-force))
          (auth-info
           (nth 0 (auth-source-search :max 1
                                      ;; TODO: allow the virtual server name too
                                      :host nntp-address
                                      :port '("119" "nntp"))))
          (auth-user (plist-get auth-info :user))
+         (auth-force (plist-get auth-info :force))
          (auth-passwd (plist-get auth-info :secret))
          (auth-passwd (if (functionp auth-passwd)
                           (funcall auth-passwd)
                         auth-passwd))
+	 (force (or (netrc-get alist "force")
+                    nntp-authinfo-force
+                    auth-force))
 	 (user (or
 		;; this is preferred to netrc-*
 		auth-user

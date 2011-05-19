@@ -1,3 +1,7 @@
+2011-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments): Remove fakemail.c.
+
 2011-05-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	Fixes for fitting text into 7x9 printed manual.

@@ -20,6 +20,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_W32GUI_H
 #include <windows.h>
 
+#include "systime.h" /* for Time */
+
 /* Local memory management for menus.  */
 #define local_heap (GetProcessHeap ())
 #define local_alloc(n) (HeapAlloc (local_heap, HEAP_ZERO_MEMORY, (n)))
@@ -47,7 +49,6 @@ typedef char * XrmDatabase;
 
 typedef XGCValues * GC;
 typedef COLORREF Color;
-typedef DWORD Time;
 typedef HWND Window;
 typedef HDC Display;  /* HDC so it doesn't conflict with xpm lib.  */
 typedef HCURSOR Cursor;
@@ -147,4 +148,3 @@ typedef struct {
 
 
 #endif /* EMACS_W32GUI_H */
-

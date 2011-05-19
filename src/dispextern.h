@@ -2709,7 +2709,7 @@ struct image
 {
   /* The time in seconds at which the image was last displayed.  Set
      in prepare_image_for_display.  */
-  unsigned long timestamp;
+  time_t timestamp;
 
   /* Pixmaps of the image.  */
   Pixmap pixmap, mask;

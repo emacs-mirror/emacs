@@ -54,11 +54,16 @@
   :type 'integer
   :group 'calendar-html)
 
-(defcustom cal-html-day-abbrev-array
-  (calendar-abbrev-construct calendar-day-abbrev-array
-                             calendar-day-name-array)
+(defcustom cal-html-day-abbrev-array calendar-day-abbrev-array
   "Array of seven strings for abbreviated day names (starting with Sunday)."
-  :type '(vector string string string string string string string)
+  :set-after '(calendar-day-abbrev-array)
+  :type '(vector (string :tag "Sun")
+                 (string :tag "Mon")
+                 (string :tag "Tue")
+                 (string :tag "Wed")
+                 (string :tag "Thu")
+                 (string :tag "Fri")
+                 (string :tag "Sat"))
   :group 'calendar-html)
 
 (defcustom cal-html-css-default

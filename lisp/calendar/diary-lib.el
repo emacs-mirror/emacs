@@ -1250,19 +1250,15 @@ should ensure that all relevant variables are set.
 
 (defun diary-name-pattern (string-array &optional abbrev-array paren)
   "Return a regexp matching the strings in the array STRING-ARRAY.
-If the optional argument ABBREV-ARRAY is present, then the function
-`calendar-abbrev-construct' is used to construct abbreviations from the
-two supplied arrays.  The returned regexp will then also match these
-abbreviations, with or without final `.' characters.  If the optional
-argument PAREN is non-nil, the regexp is surrounded by parentheses."
+If the optional argument ABBREV-ARRAY is present, the regexp
+also matches the supplied abbreviations, with or without final `.'
+characters.  If the optional argument PAREN is non-nil, surrounds
+the regexp with parentheses."
   (regexp-opt (append string-array
+                      abbrev-array
                       (if abbrev-array
-                          (calendar-abbrev-construct abbrev-array
-                                                     string-array))
-                      (if abbrev-array
-                          (calendar-abbrev-construct abbrev-array
-                                                     string-array
-                                                     'period))
+                          (mapcar (lambda (e) (format "%s." e))
+                                  abbrev-array))
                       nil)
               paren))
 
@@ -1363,7 +1359,11 @@ function that converts absolute dates to dates of the appropriate type.  "
                  (cdr (assoc-string dd-name
                                     (calendar-make-alist
                                      calendar-day-name-array
-                                     0 nil calendar-day-abbrev-array) t)) marks)
+                                     0 nil calendar-day-abbrev-array
+                                     (mapcar (lambda (e)
+                                               (format "%s." e))
+                                             calendar-day-abbrev-array))
+                                    t)) marks)
               (if mm-name
                   (setq mm
                         (if (string-equal mm-name "*") 0
@@ -1372,7 +1372,11 @@ function that converts absolute dates to dates of the appropriate type.  "
                                 (if months (calendar-make-alist months)
                                   (calendar-make-alist
                                    calendar-month-name-array
-                                   1 nil calendar-month-abbrev-array)) t)))))
+                                   1 nil calendar-month-abbrev-array
+                                   (mapcar (lambda (e)
+                                             (format "%s." e))
+                                           calendar-month-abbrev-array)))
+                                t)))))
               (funcall markfunc mm dd yy marks))))))))
 
 ;;;###cal-autoload
@@ -2307,11 +2311,10 @@ Prefix argument ARG makes the entry nonmarking."
 
 (defun diary-font-lock-date-forms (month-array &optional symbol abbrev-array)
   "Create font-lock patterns for `diary-date-forms' using MONTH-ARRAY.
-If given, optional SYMBOL must be a prefix to entries.
-If optional ABBREV-ARRAY is present, the abbreviations constructed
-from this array by the function `calendar-abbrev-construct' are
-matched (with or without a final `.'), in addition to the full month
-names."
+If given, optional SYMBOL must be a prefix to entries.  If
+optional ABBREV-ARRAY is present, also matches the abbreviations
+from this array (with or without a final `.'), in addition to the
+full month names."
   (let ((dayname (diary-name-pattern calendar-day-name-array
                                      calendar-day-abbrev-array t))
         (monthname (format "\\(%s\\|\\*\\)"

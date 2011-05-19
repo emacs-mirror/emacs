@@ -25906,15 +25906,15 @@ of all messages matching a particular set of criteria.
 @end enumerate
 
 @menu
-* Setup::
+* Gnus Registry Setup::
 * Fancy splitting to parent::
 * Registry Article Refer Method::
 * Store custom flags and keywords::
 * Store arbitrary data::
 @end menu
 
-@node Setup
-@subsection Setup
+@node Gnus Registry Setup
+@subsection Gnus Registry Setup
 
 Fortunately, setting up the Gnus registry is pretty easy:
 
@@ -26085,6 +26085,21 @@ letter.
 Call this function to mark an article with a custom registry mark.  It
 will offer the available marks for completion.
 @end defun
+
+You can use @code{defalias} to install a summary line formatting
+function that will show the registry marks.  There are two flavors of
+this function, either showing the marks as single characters, using
+their @code{:char} property, or showing the marks as full strings.
+
+@lisp
+;; show the marks as single characters (see the :char property in
+;; `gnus-registry-marks'):
+;; (defalias 'gnus-user-format-function-M 'gnus-registry-user-format-function-M)
+
+;; show the marks by name (see `gnus-registry-marks'):
+;; (defalias 'gnus-user-format-function-M 'gnus-registry-user-format-function-M2)
+@end lisp
+
 
 @node Store arbitrary data
 @subsection Store arbitrary data

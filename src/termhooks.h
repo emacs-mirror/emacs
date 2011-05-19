@@ -20,6 +20,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Miscellanea.   */
 
+#include "systime.h" /* for Time */
+
 struct glyph;
 struct frame;
 
@@ -233,7 +235,7 @@ struct input_event
   int modifiers;		/* See enum below for interpretation.  */
 
   Lisp_Object x, y;
-  unsigned long timestamp;
+  Time timestamp;
 
   /* This is padding just to put the frame_or_window field
      past the size of struct selection_input_event.  */
@@ -463,7 +465,7 @@ struct terminal
                                enum scroll_bar_part *part,
                                Lisp_Object *x,
                                Lisp_Object *y,
-                               unsigned long *);
+                               Time *);
 
   /* The window system handling code should set this if the mouse has
      moved since the last call to the mouse_position_hook.  Calling that

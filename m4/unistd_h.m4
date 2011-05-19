@@ -1,4 +1,4 @@
-# unistd_h.m4 serial 55
+# unistd_h.m4 serial 56
 dnl Copyright (C) 2006-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -36,8 +36,8 @@ AC_DEFUN([gl_UNISTD_H],
     ]], [chown dup2 dup3 environ euidaccess faccessat fchdir fchownat
     fsync ftruncate getcwd getdomainname getdtablesize getgroups
     gethostname getlogin getlogin_r getpagesize getusershell setusershell
-    endusershell lchown link linkat lseek pipe pipe2 pread pwrite readlink
-    readlinkat rmdir sleep symlink symlinkat ttyname_r unlink unlinkat
+    endusershell group_member lchown link linkat lseek pipe pipe2 pread pwrite
+    readlink readlinkat rmdir sleep symlink symlinkat ttyname_r unlink unlinkat
     usleep])
 ])
 
@@ -72,6 +72,7 @@ AC_DEFUN([gl_UNISTD_H_DEFAULTS],
   GNULIB_GETLOGIN_R=0;           AC_SUBST([GNULIB_GETLOGIN_R])
   GNULIB_GETPAGESIZE=0;          AC_SUBST([GNULIB_GETPAGESIZE])
   GNULIB_GETUSERSHELL=0;         AC_SUBST([GNULIB_GETUSERSHELL])
+  GNULIB_GROUP_MEMBER=0;         AC_SUBST([GNULIB_GROUP_MEMBER])
   GNULIB_LCHOWN=0;               AC_SUBST([GNULIB_LCHOWN])
   GNULIB_LINK=0;                 AC_SUBST([GNULIB_LINK])
   GNULIB_LINKAT=0;               AC_SUBST([GNULIB_LINKAT])
@@ -110,6 +111,7 @@ AC_DEFUN([gl_UNISTD_H_DEFAULTS],
   HAVE_GETHOSTNAME=1;     AC_SUBST([HAVE_GETHOSTNAME])
   HAVE_GETLOGIN=1;        AC_SUBST([HAVE_GETLOGIN])
   HAVE_GETPAGESIZE=1;     AC_SUBST([HAVE_GETPAGESIZE])
+  HAVE_GROUP_MEMBER=1;    AC_SUBST([HAVE_GROUP_MEMBER])
   HAVE_LCHOWN=1;          AC_SUBST([HAVE_LCHOWN])
   HAVE_LINK=1;            AC_SUBST([HAVE_LINK])
   HAVE_LINKAT=1;          AC_SUBST([HAVE_LINKAT])
