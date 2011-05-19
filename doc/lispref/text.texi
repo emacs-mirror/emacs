@@ -4099,17 +4099,16 @@ coding instead.
 @node Parsing HTML
 @section Parsing HTML
 @cindex parsing html
-@cindex parsing xml
 
-Emacs provides an interface to the @code{libxml2} library via two
-functions: @code{html-parse-buffer} and @code{xml-parse-buffer}.  The
-HTML function will parse ``real world'' HTML and try to return a
-sensible parse tree, while the XML function is somewhat stricter about
-syntax.
+@defun libxml-parse-html-region start end &optional base-url
+This function provides HTML parsing via the @code{libxml2} library.
+It parses ``real world'' HTML and tries to return a sensible parse tree
+regardless.
 
-They both take a two optional parameter.  The first is a buffer, and
-the second is a base URL to be used to expand relative URLs in the
-document, if any.
+In addition to @var{start} and @var{end} (specifying the start and end
+of the region to act on), it takes an optional parameter,
+@var{base-url}, which is used to expand relative URLs in the document,
+if any.
 
 Here's an example demonstrating the structure of the parsed data you
 get out.  Given this HTML document:
@@ -4138,12 +4137,21 @@ values.
 
 Attributes are coded the same way as child nodes, but with @samp{:} as
 the first character.
+@end defun
+
+@cindex parsing xml
+@defun libxml-parse-xml-region start end &optional base-url
+
+This is much the same as @code{libxml-parse-html-region} above, but
+operates on XML instead of HTML, and is correspondingly stricter about
+syntax.
+@end defun
 
 @node Atomic Changes
 @section Atomic Change Groups
 @cindex atomic changes
 
-  In data base terminology, an @dfn{atomic} change is an indivisible
+  In database terminology, an @dfn{atomic} change is an indivisible
 change---it can succeed entirely or it can fail entirely, but it
 cannot partly succeed.  A Lisp program can make a series of changes to
 one or several buffers as an @dfn{atomic change group}, meaning that

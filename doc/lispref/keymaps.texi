@@ -686,7 +686,7 @@ bindings, as in @code{lookup-key} (@pxref{Functions for Key Lookup}).
 
 When commands are remapped (@pxref{Remapping Commands}),
 @code{key-binding} normally processes command remappings so as to
-returns the remapped command that will actually be executed.  However,
+return the remapped command that will actually be executed.  However,
 if @var{no-remap} is non-@code{nil}, @code{key-binding} ignores
 remappings and returns the binding directly specified for @var{key}.
 
@@ -1239,7 +1239,7 @@ local map, that usually affects all buffers using the same major mode.
 The @code{global-set-key} and @code{local-set-key} functions are
 convenient interfaces for these operations (@pxref{Key Binding
 Commands}).  You can also use @code{define-key}, a more general
-function; then you must specify explicitly the map to change.
+function; then you must explicitly specify the map to change.
 
   When choosing the key sequences for Lisp programs to rebind, please
 follow the Emacs conventions for use of various keys (@pxref{Key

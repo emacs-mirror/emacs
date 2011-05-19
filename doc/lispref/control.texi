@@ -623,7 +623,7 @@ error is signaled with data @code{(@var{tag} @var{value})}.
 @subsection Examples of @code{catch} and @code{throw}
 
   One way to use @code{catch} and @code{throw} is to exit from a doubly
-nested loop.  (In most languages, this would be done with a ``go to.'')
+nested loop.  (In most languages, this would be done with a ``goto.'')
 Here we compute @code{(foo @var{i} @var{j})} for @var{i} and @var{j}
 varying from 0 to 9:
 

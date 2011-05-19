@@ -374,7 +374,7 @@ character, @samp{/}, does not have the @samp{b} flag.
 
 @item @samp{*/}
 This is a comment-end sequence for ``b'' style because the first
-character, @samp{*}, does have the @samp{b} flag.
+character, @samp{*}, has the @samp{b} flag.
 
 @item newline
 This is a comment-end sequence for ``a'' style, because the newline
