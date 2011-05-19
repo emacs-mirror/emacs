@@ -1,5 +1,8 @@
 2011-05-19  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/f90.el (f90-type-def-re):
+	Handle "type, bind(c)".  (Bug#8691)
+
 	* emacs-lisp/autoload.el (batch-update-autoloads):
 	Set autoload-excludes by parsing loadup.el rather than Makefiles.
 

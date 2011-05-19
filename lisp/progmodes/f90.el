@@ -809,8 +809,10 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
   ;; type word
   ;; type :: word
   ;; type, stuff :: word
+  ;; type, bind(c) :: word
   ;; NOT "type ("
-  "\\<\\(type\\)\\>\\(?:[^()\n]*::\\)?[ \t]*\\(\\sw+\\)"
+  "\\<\\(type\\)\\>\\(?:\\(?:[^()\n]*\\|\
+.*,[ \t]*bind[ \t]*([ \t]*c[ \t]*)[ \t]*\\)::\\)?[ \t]*\\(\\sw+\\)"
   "Regexp matching the definition of a derived type.")
 
 (defconst f90-typeis-re
