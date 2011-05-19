@@ -1,3 +1,14 @@
+2011-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MSDOS_SUPPORT_REAL, MSDOS_SUPPORT, NS_SUPPORT)
+	(REAL_MOUSE_SUPPORT, GPM_MOUSE_SUPPORT, MOUSE_SUPPORT, TOOLTIP_SUPPORT)
+	(BASE_WINDOW_SUPPORT, X_WINDOW_SUPPORT, WINDOW_SUPPORT): Remove.
+	(lisp): Set the order to that of loadup.el.
+	(shortlisp): Make it a copy of $lisp.
+	(SOME_MACHINE_LISP): Remove.
+	($(etc)/DOC): Depend just on $lisp, not $SOME_MACHINE_LISP too.
+	Use just $shortlisp, not $SOME_MACHINE_LISP too.
+
 2011-05-18  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (CHAR_COMPOSABLE_P): Add more check for efficiency.

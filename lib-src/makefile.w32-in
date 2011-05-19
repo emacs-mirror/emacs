@@ -269,11 +269,6 @@ lisp2 = \
 	$(lispsource)window.elc \
 	$(lispsource)version.el
 
-# Used by batch-update-autoloads.
-echolisp:
-	@echo $(lisp1)
-	@echo $(lisp2)
-
 # This is needed the first time we build the tree, since temacs.exe
 # does not exist yet, and the DOC rule needs it to rebuild DOC whenever
 # Emacs is rebuilt.
@@ -330,7 +325,6 @@ clean:
 		- $(DEL) ctags.c
 		- $(DEL_TREE) $(OBJDIR)
 		- $(DEL) stamp_BLD
-		- $(DEL) echolisp.tmp
 
 distclean: cleanall
 	- $(DEL) TAGS

@@ -1,3 +1,8 @@
+2011-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/autoload.el (batch-update-autoloads):
+	Set autoload-excludes by parsing loadup.el rather than Makefiles.
+
 2011-05-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-process-actions): Set "first-password-request"
