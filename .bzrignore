@@ -51,7 +51,9 @@ lib/arg-nonnull.h
 lib/c++defs.h
 lib/getopt.h
 lib/inttypes.h
+lib/stdbool.h
 lib/stdio.h
+lib/stdint.h
 lib/stdlib.h
 lib/sys/
 lib/time.h
@@ -61,6 +63,7 @@ lib/getopt.in-h
 lib/stdbool.in-h
 lib/stddef.in-h
 lib/stdint.in-h
+lib/stdio.in-h
 lib/stdlib.in-h
 lib/sys_stat.in-h
 lib/time.in-h

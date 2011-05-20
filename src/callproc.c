@@ -577,7 +577,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	    unlink (tempfile);
 	    emacs_close (filefd);
 	    report_file_error ("Cannot re-open temporary file",
-			       Fcons (tempfile, Qnil));
+			       Fcons (build_string (tempfile), Qnil));
 	  }
       }
     else

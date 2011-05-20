@@ -127,9 +127,10 @@ s/\.h\.in/.h-in/
 /^M_FILE *=/s!@M_FILE@!$(srcdir)/m/intel386.h!
 /^S_FILE *=/s!@S_FILE@!$(srcdir)/s/msdos.h!
 /^@SET_MAKE@$/s/@SET_MAKE@//
-/^.\$(libsrc)\/make-docfile.*>.*\/DOC/s!make-docfile!make-docfile -o ../etc/DOC!
-/^.\$(libsrc)\/make-docfile.*>.*gl-tmp/s!make-docfile!make-docfile -o gl-tmp!
+/^	[ 	]*\$(libsrc)\/make-docfile.*>.*\/DOC/s!make-docfile!make-docfile -o $(etc)/DOC!
+/^	[ 	]*\$(libsrc)\/make-docfile.*>.*gl-tmp/s!make-docfile!make-docfile -o gl-tmp!
 /^.\$(libsrc)\/make-doc/s!>.*$!!
+/^	[ 	]*\$(libsrc)\/make-docfile /s!`[^`]*`!$(lisp)!
 /^[ 	]*$/d
 /^	if test -f/,/^	fi$/c\
 	command.com /c if exist .gdbinit rm -f _gdbinit
@@ -161,6 +162,7 @@ s/^	[^ 	]*move-if-change /	update /
 /^	-\{0,1\} *ln -/s/ln -f/cp -pf/
 /^[ 	]touch /s/touch/djecho $@ >/
 s/@YMF_PASS_LDFLAGS@/flags/
+s/@lisp_frag@//
 s/@deps_frag@//
 s/@ns_frag@//
 s/@PRE_EDIT_LDFLAGS@//
