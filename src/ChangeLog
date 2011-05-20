@@ -1,3 +1,10 @@
+2011-05-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* systime.h (Time): Define only if emacs is defined.
+	This is to allow ../lib-src/profile.c to be compiled on FreeBSD,
+	where the include path doesn't have X11/X.h by default.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-05/msg00561.html>.
+
 2011-05-20 Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (find_automatic_composition): Fix previous change.
