@@ -1,5 +1,8 @@
 2011-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/checkdoc.el (checkdoc-sentencespace-region-engine):
+	Also allow singlespace after single-letter capitals followed by a dot.
+
 	* nxml/nxml-mode.el (nxml-electric-slash): Reindent when completion is
 	enabled.  Suggested by James Ahlborn <jahlborn@gmail.com> (bug#8704).
 

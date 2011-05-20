@@ -2046,7 +2046,7 @@ If the offending word is in a piece of quoted text, then it is skipped."
                                     ;; piece of an abbreviation
                                     ;; FIXME etc
                                     (looking-at
-                                     "\\([a-z]\\|[iI]\\.?e\\|[eE]\\.?g\\)\\."))
+                                     "\\([a-zA-Z]\\|[iI]\\.?e\\|[eE]\\.?g\\)\\."))
                                 (error t))))
                   (if (checkdoc-autofix-ask-replace
                        b e
