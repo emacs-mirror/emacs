@@ -1234,6 +1234,7 @@ PACKAGE_NAME
 PATH_SEPARATOR
 SHELL'
 ac_subst_files='deps_frag
+lisp_frag
 ns_frag'
 ac_user_opts='
 enable_option_checking
@@ -9076,6 +9077,10 @@ fi
 deps_frag=$srcdir/src/$deps_frag
 
 
+
+
+
+lisp_frag=$srcdir/src/lisp.mk
 
 
 
