@@ -358,249 +358,10 @@ POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
   $(POST_ALLOC_OBJ) $(VMLIMIT_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
-## This is the list of all Lisp files that might be loaded into the
-## dumped Emacs.  Some of them are not loaded on all platforms, but
-## the DOC file on every platform uses them (because the DOC file is
-## supposed to be platform-independent).
-## It is arranged like this because it is easier to generate it
-## semi-mechanically from loadup.el this way.
-## Eg something like:
-##   sed -e 's/"[ )].*//' -n -e '/(load "/ s/.*load "//p' loadup.el | \
-##   grep -vE 'site-|ldefs-boot'
-## minus any duplicates.
-## Note that you cannot just add a ".elc" extension to every file,
-## since some of them are no-byte-compile (eg some language/ ones).
-##
-## Confusingly, term/internal is not in loadup, but is unconditionally
-## loaded by pc-win, which is.
-##
-## Note that this list should not include lisp files which might not
-## be present, like site-load.el and site-init.el; this makefile
-## expects them all to be either present or buildable.
-##
-## Place loaddefs.el first, so it gets generated first, since it is on
-## the critical path (relevant in parallel compilations).
-lisp= \
-	$(lispsource)/loaddefs.el \
-	$(lispsource)/loadup.el \
-	$(lispsource)/emacs-lisp/byte-run.elc \
-	$(lispsource)/emacs-lisp/backquote.elc \
-	$(lispsource)/subr.elc \
-	$(lispsource)/version.el \
-	$(lispsource)/widget.elc \
-	$(lispsource)/custom.elc \
-	$(lispsource)/emacs-lisp/map-ynp.elc \
-	$(lispsource)/cus-start.elc \
-	$(lispsource)/international/mule.elc \
-	$(lispsource)/international/mule-conf.elc \
-	$(lispsource)/env.elc \
-	$(lispsource)/format.elc \
-	$(lispsource)/bindings.elc \
-	$(lispsource)/files.elc \
-	$(lispsource)/cus-face.elc \
-	$(lispsource)/faces.elc \
-	$(lispsource)/button.elc \
-	$(lispsource)/startup.elc \
-	$(lispsource)/minibuffer.elc \
-	$(lispsource)/abbrev.elc \
-	$(lispsource)/simple.elc \
-	$(lispsource)/help.elc \
-	$(lispsource)/jka-cmpr-hook.elc \
-	$(lispsource)/epa-hook.elc \
-	$(lispsource)/international/mule-cmds.elc \
-	$(lispsource)/case-table.elc \
-	$(lispsource)/international/characters.elc \
-	$(lispsource)/composite.elc \
-	$(lispsource)/international/charprop.el \
-	$(lispsource)/language/chinese.elc \
-	$(lispsource)/language/cyrillic.elc \
-	$(lispsource)/language/indian.elc \
-	$(lispsource)/language/sinhala.el \
-	$(lispsource)/language/english.el \
-	$(lispsource)/language/ethiopic.elc \
-	$(lispsource)/language/european.elc \
-	$(lispsource)/language/czech.el \
-	$(lispsource)/language/slovak.el \
-	$(lispsource)/language/romanian.el \
-	$(lispsource)/language/greek.el \
-	$(lispsource)/language/hebrew.elc \
-	$(lispsource)/language/japanese.el \
-	$(lispsource)/language/korean.el \
-	$(lispsource)/language/lao.el \
-	$(lispsource)/language/tai-viet.el \
-	$(lispsource)/language/thai.el \
-	$(lispsource)/language/tibetan.elc \
-	$(lispsource)/language/vietnamese.elc \
-	$(lispsource)/language/misc-lang.el \
-	$(lispsource)/language/utf-8-lang.el \
-	$(lispsource)/language/georgian.el \
-	$(lispsource)/language/khmer.el \
-	$(lispsource)/language/burmese.el \
-	$(lispsource)/language/cham.el \
-	$(lispsource)/indent.elc \
-	$(lispsource)/window.elc \
-	$(lispsource)/frame.elc \
-	$(lispsource)/term/tty-colors.elc \
-	$(lispsource)/font-core.elc \
-	$(lispsource)/facemenu.elc \
-	$(lispsource)/emacs-lisp/syntax.elc \
-	$(lispsource)/font-lock.elc \
-	$(lispsource)/jit-lock.elc \
-	$(lispsource)/mouse.elc \
-	$(lispsource)/scroll-bar.elc \
-	$(lispsource)/select.elc \
-	$(lispsource)/emacs-lisp/timer.elc \
-	$(lispsource)/isearch.elc \
-	$(lispsource)/rfn-eshadow.elc \
-	$(lispsource)/menu-bar.elc \
-	$(lispsource)/paths.el \
-	$(lispsource)/emacs-lisp/lisp.elc \
-	$(lispsource)/textmodes/page.elc \
-	$(lispsource)/register.elc \
-	$(lispsource)/textmodes/paragraphs.elc \
-	$(lispsource)/emacs-lisp/lisp-mode.elc \
-	$(lispsource)/textmodes/text-mode.elc \
-	$(lispsource)/textmodes/fill.elc \
-	$(lispsource)/replace.elc \
-	$(lispsource)/buff-menu.elc \
-	$(lispsource)/fringe.elc \
-	$(lispsource)/image.elc \
-	$(lispsource)/international/fontset.elc \
-	$(lispsource)/dnd.elc \
-	$(lispsource)/tool-bar.elc \
-	$(lispsource)/dynamic-setting.elc \
-	$(lispsource)/x-dnd.elc \
-	$(lispsource)/term/common-win.elc \
-	$(lispsource)/term/x-win.elc \
-	$(lispsource)/w32-vars.elc \
-	$(lispsource)/term/w32-win.elc \
-	$(lispsource)/ls-lisp.elc \
-	$(lispsource)/disp-table.elc \
-	$(lispsource)/dos-w32.elc \
-	$(lispsource)/w32-fns.elc \
-	$(lispsource)/dos-fns.elc \
-	$(lispsource)/dos-vars.elc \
-	$(lispsource)/term/pc-win.elc \
-	$(lispsource)/term/internal.elc \
-	$(lispsource)/term/ns-win.elc \
-	$(lispsource)/mwheel.elc \
-	$(lispsource)/emacs-lisp/float-sup.elc \
-	$(lispsource)/vc/vc-hooks.elc \
-	$(lispsource)/vc/ediff-hook.elc \
-	$(lispsource)/tooltip.elc
 
-## The same as $lisp, but using relative file names.  The only reason
-## this variable exists is to prevent the make-docfile command-line
-## getting too long for some systems.  Unfortunately, no-one has any
-## idea how long "too long" is.
-shortlisp= \
-	../lisp/loaddefs.el \
-	../lisp/loadup.el \
-	../lisp/emacs-lisp/byte-run.elc \
-	../lisp/emacs-lisp/backquote.elc \
-	../lisp/subr.elc \
-	../lisp/version.el \
-	../lisp/widget.elc \
-	../lisp/custom.elc \
-	../lisp/emacs-lisp/map-ynp.elc \
-	../lisp/cus-start.elc \
-	../lisp/international/mule.elc \
-	../lisp/international/mule-conf.elc \
-	../lisp/env.elc \
-	../lisp/format.elc \
-	../lisp/bindings.elc \
-	../lisp/files.elc \
-	../lisp/cus-face.elc \
-	../lisp/faces.elc \
-	../lisp/button.elc \
-	../lisp/startup.elc \
-	../lisp/minibuffer.elc \
-	../lisp/abbrev.elc \
-	../lisp/simple.elc \
-	../lisp/help.elc \
-	../lisp/jka-cmpr-hook.elc \
-	../lisp/epa-hook.elc \
-	../lisp/international/mule-cmds.elc \
-	../lisp/case-table.elc \
-	../lisp/international/characters.elc \
-	../lisp/composite.elc \
-	../lisp/international/charprop.el \
-	../lisp/language/chinese.elc \
-	../lisp/language/cyrillic.elc \
-	../lisp/language/indian.elc \
-	../lisp/language/sinhala.el \
-	../lisp/language/english.el \
-	../lisp/language/ethiopic.elc \
-	../lisp/language/european.elc \
-	../lisp/language/czech.el \
-	../lisp/language/slovak.el \
-	../lisp/language/romanian.el \
-	../lisp/language/greek.el \
-	../lisp/language/hebrew.elc \
-	../lisp/language/japanese.el \
-	../lisp/language/korean.el \
-	../lisp/language/lao.el \
-	../lisp/language/tai-viet.el \
-	../lisp/language/thai.el \
-	../lisp/language/tibetan.elc \
-	../lisp/language/vietnamese.elc \
-	../lisp/language/misc-lang.el \
-	../lisp/language/utf-8-lang.el \
-	../lisp/language/georgian.el \
-	../lisp/language/khmer.el \
-	../lisp/language/burmese.el \
-	../lisp/language/cham.el \
-	../lisp/indent.elc \
-	../lisp/window.elc \
-	../lisp/frame.elc \
-	../lisp/term/tty-colors.elc \
-	../lisp/font-core.elc \
-	../lisp/facemenu.elc \
-	../lisp/emacs-lisp/syntax.elc \
-	../lisp/font-lock.elc \
-	../lisp/jit-lock.elc \
-	../lisp/mouse.elc \
-	../lisp/scroll-bar.elc \
-	../lisp/select.elc \
-	../lisp/emacs-lisp/timer.elc \
-	../lisp/isearch.elc \
-	../lisp/rfn-eshadow.elc \
-	../lisp/menu-bar.elc \
-	../lisp/paths.el \
-	../lisp/emacs-lisp/lisp.elc \
-	../lisp/textmodes/page.elc \
-	../lisp/register.elc \
-	../lisp/textmodes/paragraphs.elc \
-	../lisp/emacs-lisp/lisp-mode.elc \
-	../lisp/textmodes/text-mode.elc \
-	../lisp/textmodes/fill.elc \
-	../lisp/replace.elc \
-	../lisp/buff-menu.elc \
-	../lisp/fringe.elc \
-	../lisp/image.elc \
-	../lisp/international/fontset.elc \
-	../lisp/dnd.elc \
-	../lisp/tool-bar.elc \
-	../lisp/dynamic-setting.elc \
-	../lisp/x-dnd.elc \
-	../lisp/term/common-win.elc \
-	../lisp/term/x-win.elc \
-	../lisp/w32-vars.elc \
-	../lisp/term/w32-win.elc \
-	../lisp/ls-lisp.elc \
-	../lisp/disp-table.elc \
-	../lisp/dos-w32.elc \
-	../lisp/w32-fns.elc \
-	../lisp/dos-fns.elc \
-	../lisp/dos-vars.elc \
-	../lisp/term/pc-win.elc \
-	../lisp/term/internal.elc \
-	../lisp/term/ns-win.elc \
-	../lisp/mwheel.elc \
-	../lisp/emacs-lisp/float-sup.elc \
-	../lisp/vc/vc-hooks.elc \
-	../lisp/vc/ediff-hook.elc \
-	../lisp/tooltip.elc
+## Configure inserts the file lisp.mk at this point, defining $lisp.
+@lisp_frag@
+
 
 ## Construct full set of libraries to be linked.
 ## Note that SunOS needs -lm to come before -lc; otherwise, you get
@@ -634,21 +395,23 @@ emacs$(EXEEXT): temacs$(EXEEXT) $(etc)/DOC $(lisp)
 	fi
 
 ## We run make-docfile twice because the command line may get too long
-## on some systems.
+## on some systems.  The sed command operating on lisp.mk also reduces
+## the length of the command line.  Unfortunately, no-one has any idea
+## exactly how long the maximum safe command line length is on all the
+## various systems that Emacs supports.  Obviously, the length depends
+## on what your value of $srcdir is.  If the length restriction goes
+## away, lisp.mk can be merged back into this file.
+##
 ## $(SOME_MACHINE_OBJECTS) comes before $(obj) because some files may
 ## or may not be included in $(obj), but they are always included in
 ## $(SOME_MACHINE_OBJECTS).  Since a file is processed when it is mentioned
 ## for the first time, this prevents any variation between configurations
 ## in the contents of the DOC file.
-## Most of this Makefile refers to Lisp files via $(lispsource), so
-## we also use $(lisp) rather than $(shortlisp) for the dependency since
-## the Makefile uses string equality to decide when we talk about identical
-## files.  Apparently we pass $(shortlisp) rather than $(lisp) to make-docfile
-## only in order to reduce the command line length.  --Stef
+##
 $(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(obj) $(lisp)
 	-rm -f $(etc)/DOC
 	$(libsrc)/make-docfile -d $(srcdir) $(SOME_MACHINE_OBJECTS) $(obj) > $(etc)/DOC
-	$(libsrc)/make-docfile -a $(etc)/DOC -d $(srcdir) $(shortlisp)
+	$(libsrc)/make-docfile -a $(etc)/DOC -d $(srcdir) `sed -n -e 's| \\\\||' -e 's|^[ 	]*$$(lispsource)|../lisp|p' $(srcdir)/lisp.mk`
 
 $(libsrc)/make-docfile$(EXEEXT):
 	cd $(libsrc); $(MAKE) $(MFLAGS) make-docfile$(EXEEXT)

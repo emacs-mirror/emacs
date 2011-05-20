@@ -1370,6 +1370,10 @@ AC_SUBST(DEPFLAGS)
 AC_SUBST_FILE(deps_frag)
 
 
+lisp_frag=$srcdir/src/lisp.mk
+AC_SUBST_FILE(lisp_frag)
+
+
 dnl checks for operating system services
 AC_SYS_LONG_FILE_NAMES
 

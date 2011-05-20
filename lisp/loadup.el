@@ -29,9 +29,8 @@
 ;; If you add/remove Lisp files to be loaded here, consider the
 ;; following issues:
 
-;; i) Any file loaded on any platform should appear in $lisp and
-;; $shortlisp in src/Makefile.in.  Use the .el or .elc version as
-;; appropriate.
+;; i) Any file loaded on any platform should appear in $lisp in src/lisp.mk.
+;; Use the .el or .elc version as appropriate.
 
 ;; This ensures both that the Lisp files are compiled (if necessary)
 ;; before the emacs executable is dumped, and that they are passed to
