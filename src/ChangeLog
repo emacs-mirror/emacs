@@ -1,3 +1,8 @@
+2011-05-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* callproc.c (Fcall_process) [MSDOS]: Fix arguments to
+	report_file_error introduced by the change from 2011-05-07.
+
 2011-05-20  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* systime.h (Time): Define only if emacs is defined.
@@ -176,11 +181,11 @@
 	(Fget_screen_color): New function.
 	(syms_of_ntterm): Defsubr it.
 
-	* callproc.c (call_process_cleanup): Don't close and unlink the
-	temporary file if Fcall_process didn't create it in the first
-	place.
-	(Fcall_process): Don't create tempfile if stdout of the child
-	process will be redirected to a file specified with `:file'.
+	* callproc.c (call_process_cleanup) [MSDOS]: Don't close and
+	unlink the temporary file if Fcall_process didn't create it in the
+	first place.
+	(Fcall_process) [MSDOS]: Don't create tempfile if stdout of the
+	child process will be redirected to a file specified with `:file'.
 	Don't try to re-open tempfile in that case, and set fd[0] to -1 as
 	cue to call_process_cleanup not to close that handle.
 

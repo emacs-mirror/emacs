@@ -1,3 +1,7 @@
+2011-05-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Concatenate lisp.mk onto the end of src/Makefile.
+
 2011-05-20  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (lisp_frag): New output file.
