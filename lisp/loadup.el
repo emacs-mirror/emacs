@@ -29,21 +29,15 @@
 ;; If you add/remove Lisp files to be loaded here, consider the
 ;; following issues:
 
-;; i) Any file loaded on all platforms should appear in $lisp
-;; and $shortlisp in src/Makefile.in.  Use the .el or .elc version as
-;; appropriate.
+;; i) Any file loaded on any platform should appear in $lisp in src/lisp.mk.
+;; Use the .el or .elc version as appropriate.
 
-;; ii) Any file that is only loaded on some platforms should appear
-;; in the version of $lisp in the generated Makefile on that platform.
-;; At the present time, this is achieved by use of #ifdefs.
-;; It should also appear in $SOME_MACHINE_LISP on all platforms.
+;; This ensures both that the Lisp files are compiled (if necessary)
+;; before the emacs executable is dumped, and that they are passed to
+;; make-docfile.  (Any that are not processed for DOC will not have
+;; doc strings in the dumped Emacs.)  Because of this:
 
-;; The above steps ensure both that the Lisp files are compiled (if
-;; necessary) before the emacs executable is dumped, and that they are
-;; passed to make-docfile.  (Any that are not processed for DOC will
-;; not have doc strings in the dumped Emacs.)  Because of this:
-
-;; iii) If the file is loaded uncompiled, it should (where possible)
+;; ii) If the file is loaded uncompiled, it should (where possible)
 ;; obey the doc-string conventions expected by make-docfile.
 
 ;;; Code:

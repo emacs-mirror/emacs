@@ -197,7 +197,8 @@ If TYPE is `text/plain' CRLF->LF translation may occur."
 	       (while (re-search-forward "^[\t ]*\r?\n" nil t)
 		 (delete-region (match-beginning 0) (match-end 0)))
 	       (goto-char (point-max))
-	       (when (re-search-backward "^[A-Za-z0-9+/]+=*[\t ]*$" nil t)
+	       (when (re-search-backward "^[\t ]*[A-Za-z0-9+/]+=*[\t ]*$"
+					 nil t)
 		 (forward-line))
 	       (point))))
 	   ((memq encoding '(nil 7bit 8bit binary))

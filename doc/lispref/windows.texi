@@ -826,8 +826,8 @@ This function updates the buffer list just like @code{switch-to-buffer}
 unless @var{norecord} is non-@code{nil}.
 @end deffn
 
-@deffn Command pop-to-buffer buffer-or-name &optional other-window norecord
-This command makes @var{buffer-or-name} the current buffer and switches
+@defun pop-to-buffer buffer-or-name &optional other-window norecord
+This function makes @var{buffer-or-name} the current buffer and switches
 to it in some window, preferably not the window previously selected.
 The ``popped-to'' window becomes the selected window.  Its frame is
 given the X server's focus, if possible; see @ref{Input Focus}.  The
@@ -866,7 +866,7 @@ All the variables that affect @code{display-buffer} affect
 
 This function updates the buffer list just like @code{switch-to-buffer}
 unless @var{norecord} is non-@code{nil}.
-@end deffn
+@end defun
 
 @deffn Command replace-buffer-in-windows &optional buffer-or-name
 This function replaces @var{buffer-or-name} in all windows displaying

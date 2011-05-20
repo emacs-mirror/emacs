@@ -201,7 +201,7 @@ characters.
 @defun byte-to-string byte
 @cindex byte to string
 This function returns a unibyte string containing a single byte of
-character data, @var{character}.  It signals a error if
+character data, @var{character}.  It signals an error if
 @var{character} is not an integer between 0 and 255.
 @end defun
 

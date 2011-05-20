@@ -1,3 +1,8 @@
+2011-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (echolisp): Remove rule that is no longer needed.
+	(clean): No more echolisp.tmp.
+
 2011-05-18  Glenn Morris  <rgm@gnu.org>
 
 	* fakemail.c: Remove file.

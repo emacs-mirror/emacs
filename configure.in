@@ -1370,6 +1370,10 @@ AC_SUBST(DEPFLAGS)
 AC_SUBST_FILE(deps_frag)
 
 
+lisp_frag=$srcdir/src/lisp.mk
+AC_SUBST_FILE(lisp_frag)
+
+
 dnl checks for operating system services
 AC_SYS_LONG_FILE_NAMES
 
@@ -1503,7 +1507,6 @@ AC_SUBST(TEMACS_LDFLAGS2)
 ns_frag=/dev/null
 NS_OBJ=
 NS_OBJC_OBJ=
-NS_SUPPORT=
 if test "${HAVE_NS}" = yes; then
   window_system=nextstep
   with_xft=no
@@ -1516,13 +1519,11 @@ if test "${HAVE_NS}" = yes; then
   ns_frag=$srcdir/src/ns.mk
   NS_OBJ="fontset.o fringe.o image.o"
   NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o"
-  NS_SUPPORT="\${lispsource}/emacs-lisp/easymenu.elc \${lispsource}/term/ns-win.elc"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
 AC_SUBST(NS_OBJ)
 AC_SUBST(NS_OBJC_OBJ)
-AC_SUBST(NS_SUPPORT)
 AC_SUBST(LIB_STANDARD)
 AC_SUBST_FILE(ns_frag)
 
@@ -2476,7 +2477,6 @@ fi
 ### Use -lgpm if available, unless `--with-gpm=no'.
 HAVE_GPM=no
 LIBGPM=
-MOUSE_SUPPORT=
 if test "${with_gpm}" != "no"; then
   AC_CHECK_HEADER(gpm.h,
     [AC_CHECK_LIB(gpm, Gpm_Open, HAVE_GPM=yes)])
@@ -2484,8 +2484,6 @@ if test "${with_gpm}" != "no"; then
   if test "${HAVE_GPM}" = "yes"; then
     AC_DEFINE(HAVE_GPM, 1, [Define to 1 if you have the gpm library (-lgpm).])
     LIBGPM=-lgpm
-    ## May be reset below.
-    MOUSE_SUPPORT="\$(GPM_MOUSE_SUPPORT)"
   fi
 fi
 AC_SUBST(LIBGPM)
@@ -3421,23 +3419,11 @@ fi                              dnl if $GCC
 AC_SUBST(LIB_GCC)
 
 
-TOOLTIP_SUPPORT=
-WINDOW_SUPPORT=
 ## If we're using X11/GNUstep, define some consequences.
 if test "$HAVE_X_WINDOWS" = "yes" || test "$HAVE_NS" = "yes"; then
   AC_DEFINE(HAVE_WINDOW_SYSTEM, 1, [Define if you have a window system.])
   AC_DEFINE(HAVE_MOUSE, 1, [Define if you have mouse support.])
-  MOUSE_SUPPORT="\$(REAL_MOUSE_SUPPORT)"
-  TOOLTIP_SUPPORT="\${lispsource}/mouse.elc"
-
-  WINDOW_SUPPORT="\$(BASE_WINDOW_SUPPORT)"
-  test "$HAVE_X_WINDOWS" = "yes" && \
-    WINDOW_SUPPORT="$WINDOW_SUPPORT \$(X_WINDOW_SUPPORT)"
-
 fi
-AC_SUBST(MOUSE_SUPPORT)
-AC_SUBST(TOOLTIP_SUPPORT)
-AC_SUBST(WINDOW_SUPPORT)
 
 
 AH_TOP([/* GNU Emacs site configuration template file.

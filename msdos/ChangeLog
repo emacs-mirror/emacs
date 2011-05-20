@@ -1,3 +1,9 @@
+2011-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* sed1x.inp (TOOLTIP_SUPPORT, WINDOW_SUPPORT):
+	* sed1v2.inp (MSDOS_SUPPORT, NS_SUPPORT, MOUSE_SUPPORT)
+	(TOOLTIP_SUPPORT, WINDOW_SUPPORT): No need to edit these any more.
+
 2011-05-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* inttypes.h: Include stdint.h.

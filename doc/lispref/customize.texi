@@ -174,7 +174,7 @@ For example, the MH-E package updates this alist with the following:
 
 The value of @var{package} needs to be unique and it needs to match
 the @var{package} value appearing in the @code{:package-version}
-keyword.  Since the user might see the value in a error message, a good
+keyword.  Since the user might see the value in an error message, a good
 choice is the official name of the package, such as MH-E or Gnus.
 @end defvar
 

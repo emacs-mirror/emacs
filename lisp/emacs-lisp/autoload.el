@@ -769,52 +769,21 @@ Calls `update-directory-autoloads' on the command line arguments.
 Definitions are written to `generated-autoload-file' (which
 should be non-nil)."
   ;; For use during the Emacs build process only.
+  ;; Exclude those files that are preloaded on ALL platforms.
+  ;; These are the ones in loadup.el where "(load" is at the start
+  ;; of the line (crude, but it works).
   (unless autoload-excludes
-    (let* ((ldir (file-name-directory generated-autoload-file))
-	   (default-directory
-	     (file-name-as-directory
-	      (expand-file-name (if (eq system-type 'windows-nt)
-				    "../lib-src"
-				  "../src") ldir)))
-	   (mfile "Makefile")
-	   (tmpfile "echolisp.tmp")
-	   lim)
-      ;; Windows uses the 'echolisp' approach because:
-      ;; i) It does not have $lisp as a single simple definition, so
-      ;; it would be harder to parse the Makefile.
-      ;; ii) It can, since it already has $lisp broken up into pieces
-      ;; that the command-line can handle.
-      ;; Non-Windows builds do not use the 'echolisp' approach because
-      ;; no-one knows (?) the maximum safe command-line length on all
-      ;; supported systems.  $lisp is much longer there since it uses
-      ;; absolute paths, and it would seem a shame to split it just for this.
-      (when (file-readable-p mfile)
-	(if (eq system-type 'windows-nt)
-	    (when (ignore-errors
-		   (if (file-exists-p tmpfile) (delete-file tmpfile))
-		   ;; FIXME call-process is better, if it works.
-		   (shell-command (format "%s echolisp > %s"
-					  autoload-make-program tmpfile))
-		   (file-readable-p tmpfile))
-	      (with-temp-buffer
-		(insert-file-contents tmpfile)
-		;; FIXME could be a single while loop.
-		(while (not (eobp))
-		  (setq lim (line-end-position))
-		  (while (re-search-forward "\\([^ ]+\\.el\\)c?\\>" lim t)
-		    (push (expand-file-name (match-string 1))
-			  autoload-excludes))
-		  (forward-line 1))))
-	  (with-temp-buffer
-	    (insert-file-contents mfile)
-	    (when (re-search-forward "^shortlisp= " nil t)
-	      (while (and (not lim)
-			  (re-search-forward "\\.\\./lisp/\\([^ ]+\\.el\\)c?\\>"
-					     nil t))
-		(push (expand-file-name (match-string 1) ldir)
-		      autoload-excludes)
-		(skip-chars-forward " \t")
-		(if (eolp) (setq lim t)))))))))
+    (let ((default-directory (file-name-directory generated-autoload-file))
+	  file)
+      (when (file-readable-p "loadup.el")
+	(with-temp-buffer
+	  (insert-file-contents "loadup.el")
+	  (while (re-search-forward "^(load \"\\([^\"]+\\)\"" nil t)
+	    (setq file (match-string 1))
+	    (or (string-match "\\.el\\'" file)
+		(setq file (format "%s.el" file)))
+	    (or (string-match "\\`site-" file)
+		(push (expand-file-name file) autoload-excludes)))))))
   (let ((args command-line-args-left))
     (setq command-line-args-left nil)
     (apply 'update-directory-autoloads args)))

@@ -70,7 +70,6 @@ lib-src/stamp-*
 lib-src/ctags
 lib-src/ctags.c
 lib-src/ebrowse
-lib-src/echolisp.tmp
 lib-src/emacsclient
 lib-src/etags
 lib-src/fakemail
