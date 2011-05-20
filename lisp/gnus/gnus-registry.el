@@ -57,6 +57,16 @@
 ;; You should also consider using the nnregistry backend to look up
 ;; articles.  See the Gnus manual for more information.
 
+;; Finally, you can put %uM in your summary line format to show the
+;; registry marks if you do this:
+
+;; show the marks as single characters (see the :char property in
+;; `gnus-registry-marks'):
+;; (defalias 'gnus-user-format-function-M 'gnus-registry-user-format-function-M)
+
+;; show the marks by name (see `gnus-registry-marks'):
+;; (defalias 'gnus-user-format-function-M 'gnus-registry-user-format-function-M2)
+
 ;; TODO:
 
 ;; - get the correct group on spool actions
@@ -887,22 +897,26 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
                  nil
                  (cons "Registry Marks" gnus-registry-misc-menus))))))
 
-;;; use like this:
-;;; (defalias 'gnus-user-format-function-M
-;;;           'gnus-registry-user-format-function-M)
+;; use like this:
+;; (defalias 'gnus-user-format-function-M 'gnus-registry-user-format-function-M)
 (defun gnus-registry-user-format-function-M (headers)
+  "Show the marks for an article by the :char property"
   (let* ((id (mail-header-message-id headers))
          (marks (when id (gnus-registry-get-id-key id 'mark))))
-    (apply 'concat (mapcar (lambda (mark)
-                             (let ((c
-                                    (plist-get
-                                     (cdr-safe
-                                      (assoc mark gnus-registry-marks))
-                                     :char)))
-                               (if c
-                                   (list c)
-                                 nil)))
-                           marks))))
+    (mapconcat (lambda (mark)
+                 (plist-get
+                  (cdr-safe
+                   (assoc mark gnus-registry-marks))
+                  :char))
+               marks "")))
+
+;; use like this:
+;; (defalias 'gnus-user-format-function-M 'gnus-registry-user-format-function-M2)
+(defun gnus-registry-user-format-function-M2 (headers)
+  "Show the marks for an article by name"
+  (let* ((id (mail-header-message-id headers))
+         (marks (when id (gnus-registry-get-id-key id 'mark))))
+    (mapconcat (lambda (mark) (symbol-name mark)) marks ",")))
 
 (defun gnus-registry-read-mark ()
   "Read a mark name from the user with completion."
