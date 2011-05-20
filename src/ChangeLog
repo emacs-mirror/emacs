@@ -1,3 +1,7 @@
+2011-05-20  handa  <handa@m17n.org>
+
+	* composite.c (find_automatic_composition): Fix previous change.
+
 2011-05-18  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (CHAR_COMPOSABLE_P): Add more check for efficiency.

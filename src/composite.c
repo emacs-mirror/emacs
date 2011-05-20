@@ -1565,7 +1565,7 @@ find_automatic_composition (EMACS_INT pos, EMACS_INT limit,
 	  if (limit <= pos)	/* case (1)  */
 	    {
 	      do {
-		if (cur.pos == limit)
+		if (cur.pos <= limit)
 		  return 0;
 		BACKWARD_CHAR (cur, stop);
 		c = STRING_CHAR (cur.p);
