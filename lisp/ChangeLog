@@ -1,3 +1,7 @@
+2011-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/grep.el (grep-mode): Fix last change (bug#8684).
+
 2011-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (hack-local-variables-prop-line, hack-local-variables):
