@@ -1,3 +1,8 @@
+2011-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* wid-edit.el (widget-checklist-match-inline):
+	Fix 2011-04-19 change.  (Bug#8649)
+
 2011-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/checkdoc.el (checkdoc-sentencespace-region-engine):
