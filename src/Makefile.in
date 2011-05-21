@@ -411,7 +411,7 @@ emacs$(EXEEXT): temacs$(EXEEXT) $(etc)/DOC $(lisp)
 $(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(obj) $(lisp)
 	-rm -f $(etc)/DOC
 	$(libsrc)/make-docfile -d $(srcdir) $(SOME_MACHINE_OBJECTS) $(obj) > $(etc)/DOC
-	$(libsrc)/make-docfile -a $(etc)/DOC -d $(srcdir) `sed -n -e 's| \\\\||' -e 's|^[ 	]*$$(lispsource)|../lisp|p' $(srcdir)/lisp.mk`
+	$(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) `sed -n -e 's| \\\\||' -e 's|^[ 	]*$$(lispsource)/||p' $(srcdir)/lisp.mk`
 
 $(libsrc)/make-docfile$(EXEEXT):
 	cd $(libsrc); $(MAKE) $(MFLAGS) make-docfile$(EXEEXT)

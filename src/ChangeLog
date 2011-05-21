@@ -1,3 +1,7 @@
+2011-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(etc)/DOC): Make second command line even shorter.
+
 2011-05-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* callproc.c (Fcall_process) [MSDOS]: Fix arguments to
