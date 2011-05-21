@@ -1,3 +1,27 @@
+2011-05-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* .bzrignore: Add lib/stdio.in-h, lib/stdbool.h, and lib/stdint.h.
+
+	* config.bat: Concatenate lisp.mk onto the end of src/Makefile.
+
+2011-05-20  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (lisp_frag): New output file.
+
+2011-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (NS_SUPPORT, MOUSE_SUPPORT, TOOLTIP_SUPPORT)
+	(WINDOW_SUPPORT): Remove output variables that are no longer used.
+
+2011-05-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/gnulib.mk:
+	* lib/intprops.h:
+	* lib/unistd.in.h:
+	* m4/inttypes.m4:
+	* m4/stdint.m4:
+	* m4/unistd_h.m4: Sync from gnulib.
+
 2011-05-14  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Treat failure to find an X toolkit the same way we treat

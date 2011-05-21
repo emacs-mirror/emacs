@@ -31,8 +31,6 @@ $(BLD)/make-docfile.exe: 	$(BLD)/make-docfile.$(O) $(BLD)/ntlib.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/make-docfile.$(O) $(BLD)/ntlib.$(O) $(LIBS)
 $(BLD)/hexl.exe:		$(BLD)/hexl.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/hexl.$(O) $(LIBS)
-$(BLD)/fakemail.exe: 		$(BLD)/fakemail.$(O) $(BLD)/ntlib.$(O)
-		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/fakemail.$(O) $(BLD)/ntlib.$(O) $(LIBS)
 $(BLD)/test-distrib.exe: $(BLD)/test-distrib.$(O)
 		$(LINK) $(LINK_OUT)$@ $(LINK_FLAGS) $(BLD)/test-distrib.$(O) $(LIBS)
 
@@ -42,7 +40,6 @@ etags:		stamp_BLD $(BLD)/etags.exe
 ebrowse:        stamp_BLD $(BLD)/ebrowse.exe
 hexl:		stamp_BLD $(BLD)/hexl.exe
 movemail:	stamp_BLD $(BLD)/movemail.exe
-fakemail:	stamp_BLD $(BLD)/fakemail.exe
 emacsclient:	stamp_BLD $(BLD)/emacsclient.exe $(BLD)/emacsclientw.exe
 
 test-distrib:	stamp_BLD $(BLD)/test-distrib.exe
@@ -272,11 +269,6 @@ lisp2 = \
 	$(lispsource)window.elc \
 	$(lispsource)version.el
 
-# Used by batch-update-autoloads.
-echolisp:
-	@echo $(lisp1)
-	@echo $(lisp2)
-
 # This is needed the first time we build the tree, since temacs.exe
 # does not exist yet, and the DOC rule needs it to rebuild DOC whenever
 # Emacs is rebuilt.
@@ -333,7 +325,6 @@ clean:
 		- $(DEL) ctags.c
 		- $(DEL_TREE) $(OBJDIR)
 		- $(DEL) stamp_BLD
-		- $(DEL) echolisp.tmp
 
 distclean: cleanall
 	- $(DEL) TAGS
@@ -406,14 +397,6 @@ $(BLD)/etags.$(O) : \
 	$(SRC)/ntlib.h \
 	$(EMACS_ROOT)/lib/getopt.h
 
-$(BLD)/fakemail.$(O) : \
-	$(SRC)/fakemail.c \
-	$(SRC)/ntlib.h \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/lib-src/../src/config.h \
-	$(EMACS_ROOT)/nt/inc/pwd.h
-
 $(BLD)/getdate.$(O) : \
 	$(SRC)/getdate.c \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
@@ -483,7 +466,7 @@ $(BLD)/timer.$(O) : \
 # The following dependencies are for supporting parallel builds, where
 # we must make sure $(BLD) exists before any compilation starts.
 #
-$(BLD)/make-docfile.$(O) $(BLD)/hexl.$(O) $(BLD)/fakemail.$(O): stamp_BLD
+$(BLD)/make-docfile.$(O) $(BLD)/hexl.$(O): stamp_BLD
 
 $(BLD)/test-distrib.$(O) $(MOVEMAILOBJS): stamp_BLD
 

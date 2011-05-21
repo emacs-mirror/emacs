@@ -1,3 +1,23 @@
+2011-05-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-sum.el (gnus-summary-hide-thread): Fix bug where moving to hide
+	the thread moves us backwards and so we loop forever.
+
+2011-05-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-bodies.el (mm-decode-content-transfer-encoding): Allow leading
+	whitespace in base64 data lines.
+
+2011-05-18  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-user-format-function-M):
+	Use `mapconcat'.
+	(gnus-registry-user-format-function-M2): Use to see the full text of
+	the marks.  Make "," the mark text separator.
+
+	* nntp.el (nntp-send-authinfo): Use the "force" token for NNTP
+	authentication with auth-source.
+
 2011-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-group.el (gnus-import-other-newsrc-file):

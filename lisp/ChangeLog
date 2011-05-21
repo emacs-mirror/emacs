@@ -1,3 +1,78 @@
+2011-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* image-mode.el (image-after-revert-hook):
+	Redraw all frames on which the image is visible.  (Bug#8567)
+
+	* dired-aux.el (dired-touch-initial): Just use current-time.  (Bug#6887)
+
+	* wid-edit.el (widget-checklist-match-inline):
+	Fix 2011-04-19 change.  (Bug#8649)
+
+2011-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/checkdoc.el (checkdoc-sentencespace-region-engine):
+	Also allow singlespace after single-letter capitals followed by a dot.
+
+	* nxml/nxml-mode.el (nxml-electric-slash): Reindent when completion is
+	enabled.  Suggested by James Ahlborn <jahlborn@gmail.com> (bug#8704).
+
+2011-05-20  Nix  <nix@esperi.org.uk>
+
+	* files.el (basic-save-buffer-2):
+	Fix handling of break-hardlink-on-save with non-existent files.
+
+2011-05-19  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-mode): Initialize rcirc-urls to nil.
+	(rcirc-markup-urls): Check if rcirc-url-regexp is nil.
+
+2011-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-type-def-re):
+	Handle "type, bind(c)".  (Bug#8691)
+
+	* emacs-lisp/autoload.el (batch-update-autoloads):
+	Set autoload-excludes by parsing loadup.el rather than Makefiles.
+
+2011-05-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-process-actions): Set "first-password-request"
+	property for the correct connection in case of multihops.
+
+2011-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-fixed-entries): Remove fakemail.c.
+	* mail/sendmail.el (sendmail-program): Fall back to just "sendmail".
+
+	Rationalize calendar handling of day and month abbrev-arrays.
+	* calendar/calendar.el (calendar-customized-p): New function.
+	(calendar-abbrev-construct, calendar-make-alist): Change what it does.
+	(calendar-day-name-array, calendar-month-name-array): Doc fix.
+	Add :set function.
+	(calendar-abbrev-length, calendar-day-abbrev-array)
+	(calendar-month-abbrev-array): Make defcustoms, with appropriate :set.
+	(calendar-day-abbrev-array, calendar-month-abbrev-array):
+	Elements may no longer be nil.
+	(calendar-day-name, calendar-month-name):
+	Update for changed nature of abbrev arrays.
+	* calendar/diary-lib.el (diary-name-pattern):
+	Update for changed nature of abbrev arrays.
+	(diary-mark-entries-1): Update calendar-make-alist calls.
+	(diary-font-lock-date-forms): Doc fix for changed abbrev arrays.
+	* calendar/cal-html.el (cal-html-day-abbrev-array):
+	Simply inherit from calendar-day-abbrev-array.
+
+2011-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/grep.el (grep-mode): Disable default
+	compilation-directory-matcher setting (bug#8684).
+
+2011-05-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-insert-file-contents): Use "dd"
+	instead of "head" and "tail".  There were problems with SunOS 5.9,
+	and it performs better.
+
 2011-05-17  Glenn Morris  <rgm@gnu.org>
 
 	* mail/mail-utils.el (mail-dont-reply-to): Silence compiler.
@@ -124,7 +199,7 @@
 	(feedmail-debug-sit-for, feedmail-queue-express-hook): New options.
 	(feedmail-sender-line, feedmail-from-line)
 	(feedmail-fiddle-headers-upwardly, feedmail-enable-spray)
-	(feedmail-spray-this-address, )
+	(feedmail-spray-this-address)
 	(feedmail-spray-address-fiddle-plex-list)
 	(feedmail-queue-use-send-time-for-date)
 	(feedmail-queue-use-send-time-for-message-id)
@@ -209,20 +284,20 @@
 
 2011-05-13  Ulf Jasper  <ulf.jasper@web.de>
 
-	* net/newst-treeview.el (newsticker-treeview-face): Changed default
+	* net/newst-treeview.el (newsticker-treeview-face): Change default
 	family from helvetica to sans.
-	(newsticker-treeview-tool-bar-map): Moved tool-bar icons to
+	(newsticker-treeview-tool-bar-map): Move tool-bar icons to
 	etc/images/newsticker.
 
-	* net/newst-reader.el (newsticker-feed-face): Changed default
+	* net/newst-reader.el (newsticker-feed-face): Change default
 	family from helvetica to sans.
 
 	* net/newst-plainview.el (newsticker-new-item-face)
 	(newsticker-old-item-face, newsticker-immortal-item-face)
 	(newsticker-obsolete-item-face, newsticker-date-face)
-	(newsticker-statistics-face): Changed default family from
+	(newsticker-statistics-face): Change default family from
 	helvetica to sans.
-	(newsticker--plainview-tool-bar-map): Moved tool-bar icons to
+	(newsticker--plainview-tool-bar-map): Move tool-bar icons to
 	etc/images/newsticker.
 
 	* net/newst-backend.el (newsticker--do-run-auto-mark-filter),
@@ -353,7 +428,7 @@
 	* textmodes/reftex-dcr.el (reftex-view-crossref): at at -> at a
 
 2011-05-10  Glenn Morris  <rgm@gnu.org>
-	   Stefan Monnier  <monnier@iro.umontreal.ca>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (hack-one-local-variable-eval-safep):
 	Consider "eval: (foo-mode)" to be safe.  (Bug#8613)

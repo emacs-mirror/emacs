@@ -26,7 +26,5 @@ s/DOC/DOC-X/g
 /^LIBS_SYSTEM *=/s!= *!= -lxext -lsys!
 /^MSDOS_X_OBJ *=/s!= *!= w16select.o termcap.o!
 /^FONT_OBJ *=/s!= *!= xfont.o!
-/^TOOLTIP_SUPPORT *=/s!= *!= ${lispsource}tooltip.elc!
-/^WINDOW_SUPPORT *=/s!= *!= $(BASE_WINDOW_SUPPORT) $(X_WINDOW_SUPPORT)!
 /^temacs *:/s!OLDXMENU!LIBXMENU!
 

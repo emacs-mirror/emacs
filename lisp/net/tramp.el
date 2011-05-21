@@ -2838,16 +2838,16 @@ User is always nil."
 		 v
 		 (cond
 		  ((and beg end)
-		   (format "tail -c +%d %s | head -c +%d >%s"
-			   (1+ beg) (tramp-shell-quote-argument localname)
+		   (format "dd bs=1 skip=%d if=%s count=%d of=%s"
+			   beg (tramp-shell-quote-argument localname)
 			   (- end beg) remote-copy))
 		  (beg
-		   (format "tail -c +%d %s >%s"
-			   (1+ beg) (tramp-shell-quote-argument localname)
+		   (format "dd bs=1 skip=%d if=%s of=%s"
+			   beg (tramp-shell-quote-argument localname)
 			   remote-copy))
 		  (end
-		   (format "head -c +%d %s >%s"
-			   (1+ end) (tramp-shell-quote-argument localname)
+		   (format "dd bs=1 count=%d if=%s of=%s"
+			   end (tramp-shell-quote-argument localname)
 			   remote-copy)))))
 
 	      ;; `insert-file-contents-literally' takes care to avoid
@@ -3105,8 +3105,13 @@ set, is the starting point of the region to be deleted in the
 connection buffer."
   ;; Preserve message for `progress-reporter'.
   (tramp-compat-with-temp-message ""
-    ;; Enable auth-source and password-cache.
-    (tramp-set-connection-property vec "first-password-request" t)
+    ;; Enable auth-source and password-cache.  We must use
+    ;; tramp-current-* variables in case we have several hops.
+    (tramp-set-connection-property
+     (tramp-dissect-file-name
+      (tramp-make-tramp-file-name
+       tramp-current-method tramp-current-user tramp-current-host ""))
+     "first-password-request" t)
     (save-restriction
       (let (exit)
 	(while (not exit)
@@ -3544,16 +3549,16 @@ Invokes `password-read' if available, `read-passwd' else."
 		;; Try with Tramp's current method.
                 (if (fboundp 'auth-source-search)
 		    (setq auth-info
-                            (tramp-compat-funcall
-                             'auth-source-search
-                             :max 1
-                             :user (or tramp-current-user t)
-                             :host tramp-current-host
-                             :port tramp-current-method)
-			    auth-passwd (plist-get (nth 0 auth-info) :secret)
-			    auth-passwd (if (functionp auth-passwd)
-                                            (funcall auth-passwd)
-                                          auth-passwd))
+			  (tramp-compat-funcall
+			   'auth-source-search
+			   :max 1
+			   :user (or tramp-current-user t)
+			   :host tramp-current-host
+			   :port tramp-current-method)
+			  auth-passwd (plist-get (nth 0 auth-info) :secret)
+			  auth-passwd (if (functionp auth-passwd)
+					  (funcall auth-passwd)
+					auth-passwd))
                   (tramp-compat-funcall
                    'auth-source-user-or-password
                    "password" tramp-current-host tramp-current-method)))

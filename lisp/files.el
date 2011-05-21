@@ -4423,6 +4423,7 @@ Before and after saving the buffer, this function runs
            (dir-writable (file-writable-p dir)))
       (if (or (and file-precious-flag dir-writable)
               (and break-hardlink-on-save
+                   (file-exists-p buffer-file-name)
                    (> (file-nlinks buffer-file-name) 1)
                    (or dir-writable
                        (error (concat (format

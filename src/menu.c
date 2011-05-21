@@ -21,6 +21,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <setjmp.h>
+#include <limits.h> /* for INT_MAX */
 
 #include "lisp.h"
 #include "keyboard.h"
@@ -176,6 +177,8 @@ save_menu_items (void)
 static void
 grow_menu_items (void)
 {
+  if ((INT_MAX - MENU_ITEMS_PANE_LENGTH) / 2 < menu_items_allocated)
+    memory_full ();
   menu_items_allocated *= 2;
   menu_items = larger_vector (menu_items, menu_items_allocated, Qnil);
 }
@@ -1145,13 +1148,13 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 #else /* not HAVE_X_WINDOWS */
 	Lisp_Object bar_window;
 	enum scroll_bar_part part;
-	unsigned long time;
+	Time time;
         void (*mouse_position_hook) (struct frame **, int,
                                      Lisp_Object *,
                                      enum scroll_bar_part *,
                                      Lisp_Object *,
                                      Lisp_Object *,
-                                     unsigned long *) =
+                                     Time *) =
 	  FRAME_TERMINAL (new_f)->mouse_position_hook;
 
 	if (mouse_position_hook)

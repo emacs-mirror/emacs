@@ -1321,7 +1321,7 @@ minibuffer-window}).
 
 However, you can also create a frame with no minibuffer.  Such a frame
 must use the minibuffer window of some other frame.  When you create the
-frame, you can specify explicitly the minibuffer window to use (in some
+frame, you can explicitly specify the minibuffer window to use (in some
 other frame).  If you don't, then the minibuffer is found in the frame
 which is the value of the variable @code{default-minibuffer-frame}.  Its
 value should be a frame that does have a minibuffer.
@@ -1971,8 +1971,8 @@ clipboard as empty.
 If this is non-@code{nil}, the Emacs yank functions consult the
 clipboard before the primary selection, and the kill functions store in
 the clipboard as well as the primary selection.  Otherwise they do not
-access the clipboard at all.  The default is @code{nil} on most systems,
-but @code{t} on MS-Windows.
+access the clipboard at all.  The default is @code{t} on systems with
+clipboards.
 @end defopt
 
 @node Drag and Drop

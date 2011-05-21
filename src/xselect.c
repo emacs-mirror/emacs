@@ -121,10 +121,6 @@ static Lisp_Object Qforeign_selection;
 
 #define SELECTION_QUANTUM(dpy) ((XMaxRequestSize(dpy) << 2) - 100)
 
-/* The timestamp of the last input event Emacs received from the X server.  */
-/* Defined in keyboard.c.  */
-extern unsigned long last_event_timestamp;
-
 /* This is an association list whose elements are of the form
      ( SELECTION-NAME SELECTION-VALUE SELECTION-TIMESTAMP FRAME)
    SELECTION-NAME is a lisp symbol, whose name is the name of an X Atom.
@@ -356,7 +352,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value)
     Lisp_Object selection_data;
     Lisp_Object prev_value;
 
-    selection_time = long_to_cons ((unsigned long) timestamp);
+    selection_time = long_to_cons (timestamp);
     selection_data = list4 (selection_name, selection_value,
 			    selection_time, selected_frame);
     prev_value = assq_no_quit (selection_name, Vselection_alist);

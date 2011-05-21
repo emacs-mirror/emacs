@@ -5210,7 +5210,7 @@ element value into the current buffer.
   Typically, you define an ewoc with @code{ewoc-create}, and then pass
 the resulting ewoc structure to other functions in the Ewoc package to
 build nodes within it, and display it in the buffer.  Once it is
-displayed in the buffer, other functions determine the correspondance
+displayed in the buffer, other functions determine the correspondence
 between buffer positions and nodes, move point from one node's textual
 representation to another, and so forth.  @xref{Abstract Display
 Functions}.

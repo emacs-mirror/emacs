@@ -149,11 +149,13 @@ M17N_FLT_LIBS = @M17N_FLT_LIBS@
 
 DBUS_CFLAGS = @DBUS_CFLAGS@
 DBUS_LIBS = @DBUS_LIBS@
+## dbusbind.o if HAVE_DBUS, else empty.
 DBUS_OBJ = @DBUS_OBJ@
 
 GCONF_CFLAGS = @GCONF_CFLAGS@
 GCONF_LIBS = @GCONF_LIBS@
 
+## gtkutil.o if USE_GTK, else empty.
 GTK_OBJ=@GTK_OBJ@
 
 ## -ltermcap, or -lncurses, or -lcurses, or "".
@@ -198,7 +200,10 @@ OLDXMENU_DEPS=@OLDXMENU_DEPS@
 ## Else $(OLDXMENU).
 LIBXMENU=@LIBXMENU@
 
+## xmenu.o if HAVE_X_WINDOWS, else empty.
 XMENU_OBJ=@XMENU_OBJ@
+## xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o
+## xsettings.o xgselect.o if HAVE_X_WINDOWS, else empty.
 XOBJ=@XOBJ@
 
 TOOLKIT_LIBW=@TOOLKIT_LIBW@
@@ -237,18 +242,14 @@ CYGWIN_OBJ=@CYGWIN_OBJ@
 MSDOS_OBJ =
 ## w16select.o termcap.o if MSDOS && HAVE_X_WINDOWS.
 MSDOS_X_OBJ =
-MSDOS_SUPPORT_REAL = $(lispsource)/ls-lisp.elc $(lispsource)/disp-table.elc \
- $(lispsource)/dos-fns.elc $(lispsource)/dos-w32.elc $(lispsource)/dos-vars.elc \
- $(lispsource)/term/internal.elc $(lispsource)/term/pc-win.elc
-## $MSDOS_SUPPORT_REAL if MSDOS.
-MSDOS_SUPPORT =
 
 ns_appdir=@ns_appdir@
 ns_appbindir=@ns_appbindir@
 ns_appsrc=@ns_appsrc@
+## fontset.o fringe.o image.o if HAVE_NS, else empty.
 NS_OBJ=@NS_OBJ@
+## nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o if HAVE_NS.
 NS_OBJC_OBJ=@NS_OBJC_OBJ@
-NS_SUPPORT=@NS_SUPPORT@
 ## Only set if NS_IMPL_GNUSTEP.
 GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
 
@@ -258,28 +259,7 @@ GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
 ## else xfont.o
 FONT_OBJ=@FONT_OBJ@
 
-## Used if HAVE_MOUSE.
-REAL_MOUSE_SUPPORT=$(lispsource)/mouse.elc $(lispsource)/select.elc \
-  $(lispsource)/scroll-bar.elc
-## Used if HAVE_GPM && !HAVE_MOUSE
-GPM_MOUSE_SUPPORT=$(lispsource)/mouse.elc
 LIBGPM = @LIBGPM@
-## Either of the two preceding options, or empty.
-MOUSE_SUPPORT=@MOUSE_SUPPORT@
-
-## $(lispsource)/tooltip.elc if HAVE_WINDOW_SYSTEM, else empty.
-TOOLTIP_SUPPORT=@TOOLTIP_SUPPORT@
-
-BASE_WINDOW_SUPPORT=$(lispsource)/fringe.elc $(lispsource)/image.elc \
-  $(lispsource)/international/fontset.elc $(lispsource)/dnd.elc \
-  $(lispsource)/tool-bar.elc $(lispsource)/mwheel.elc
-
-X_WINDOW_SUPPORT=$(lispsource)/x-dnd.elc $(lispsource)/term/common-win.elc \
-  $(lispsource)/term/x-win.elc $(lispsource)/dynamic-setting.elc
-
-## If HAVE_X_WINDOWS, both the above
-## else if HAVE_WINDOW_SYSTEM (ie, HAVE_NS) just the former; else empty.
-WINDOW_SUPPORT=@WINDOW_SUPPORT@
 
 ## -lresolv, or empty.
 LIBRESOLV = @LIBRESOLV@
@@ -360,12 +340,16 @@ obj = $(base_obj) $(NS_OBJC_OBJ)
 
 ## Object files used on some machine or other.
 ## These go in the DOC file on all machines in case they are needed.
+## Some of them have no DOC entries, but it does no harm to have them
+## in the list, in case they ever add any such entries.
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   fontset.o dbusbind.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
   w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
-  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONT_OBJ)
+  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
+  w16select.o widget.o xfont.o ftfont.o xftfont.o ftxfont.o gtkutil.o \
+  xsettings.o xgselect.o termcap.o
 
 ## gmalloc.o if !SYSTEM_MALLOC && !DOUG_LEA_MALLOC, else empty.
 GMALLOC_OBJ=@GMALLOC_OBJ@
@@ -385,215 +369,10 @@ POST_ALLOC_OBJ=@POST_ALLOC_OBJ@
 otherobj= $(TERMCAP_OBJ) $(PRE_ALLOC_OBJ) $(GMALLOC_OBJ) $(RALLOC_OBJ) \
   $(POST_ALLOC_OBJ) $(VMLIMIT_OBJ) $(WIDGET_OBJ) $(LIBOBJS)
 
-## This is the platform-specific list of Lisp files loaded into the
-## dumped Emacs.  It is arranged like this because it is easier to generate
-## it semi-mechanically from loadup.el this way.
-##
-## Note that this list should not include lisp files which might not
-## be present, like site-load.el and site-init.el; this makefile
-## expects them all to be either present or buildable.
-##
-## Files which are loaded unconditionally (i.e., on all platforms) should
-## also be in shortlisp.  Files which are loaded conditionally (i.e., only
-## on some platforms) should instead be in SOME_MACHINE_LISP.
-##
-## Place loaddefs.el first, so it gets generated first, since it is on
-## the critical path (relevant in parallel compilations).
-lisp= \
-	$(lispsource)/loaddefs.el \
-	$(lispsource)/abbrev.elc \
-	$(lispsource)/buff-menu.elc \
-	$(lispsource)/button.elc \
-	$(lispsource)/emacs-lisp/byte-run.elc \
-	$(lispsource)/composite.elc \
-	$(lispsource)/cus-face.elc \
-	$(lispsource)/cus-start.elc \
-	$(lispsource)/custom.elc \
-	$(lispsource)/emacs-lisp/backquote.elc \
-	$(lispsource)/emacs-lisp/lisp-mode.elc \
-	$(lispsource)/emacs-lisp/lisp.elc \
-	$(lispsource)/env.elc \
-	$(lispsource)/faces.elc \
-	$(lispsource)/files.elc \
-	$(lispsource)/format.elc \
-	$(lispsource)/facemenu.elc \
-	$(MOUSE_SUPPORT) \
-	$(lispsource)/emacs-lisp/float-sup.elc \
-	$(lispsource)/frame.elc \
-	$(lispsource)/help.elc \
-	$(lispsource)/indent.elc \
-	$(lispsource)/isearch.elc \
-	$(lispsource)/rfn-eshadow.elc \
-	$(lispsource)/loadup.el \
-	$(lispsource)/bindings.elc \
-	$(lispsource)/emacs-lisp/map-ynp.elc \
-	$(lispsource)/menu-bar.elc \
-	$(lispsource)/international/mule.elc \
-	$(lispsource)/international/mule-conf.elc \
-	$(lispsource)/international/mule-cmds.elc \
-	$(lispsource)/international/characters.elc \
-	$(lispsource)/international/charprop.el \
-	$(lispsource)/case-table.elc \
-	$(lispsource)/language/chinese.elc \
-	$(lispsource)/language/cyrillic.elc \
-	$(lispsource)/language/indian.elc \
-	$(lispsource)/language/sinhala.el \
-	$(lispsource)/language/english.el \
-	$(lispsource)/language/ethiopic.elc \
-	$(lispsource)/language/european.elc \
-	$(lispsource)/language/czech.el \
-	$(lispsource)/language/slovak.el \
-	$(lispsource)/language/romanian.el \
-	$(lispsource)/language/greek.el \
-	$(lispsource)/language/hebrew.elc \
-	$(lispsource)/language/japanese.el \
-	$(lispsource)/language/korean.el \
-	$(lispsource)/language/lao.el \
-	$(lispsource)/language/cham.el \
-	$(lispsource)/language/tai-viet.el \
-	$(lispsource)/language/thai.el \
-	$(lispsource)/language/tibetan.elc \
-	$(lispsource)/language/vietnamese.elc \
-	$(lispsource)/language/misc-lang.el \
-	$(lispsource)/language/utf-8-lang.el \
-	$(lispsource)/language/georgian.el \
-	$(lispsource)/language/khmer.el \
-	$(lispsource)/language/burmese.el \
-	$(lispsource)/paths.el \
-	$(lispsource)/register.elc \
-	$(lispsource)/replace.elc \
-	$(lispsource)/simple.elc \
-	$(lispsource)/minibuffer.elc \
-	$(lispsource)/startup.elc \
-	$(lispsource)/subr.elc \
-	$(lispsource)/term/tty-colors.elc \
-	$(lispsource)/font-core.elc \
-	$(lispsource)/emacs-lisp/syntax.elc \
-	$(lispsource)/font-lock.elc \
-	$(lispsource)/jit-lock.elc \
-	$(lispsource)/textmodes/fill.elc \
-	$(lispsource)/textmodes/page.elc \
-	$(lispsource)/textmodes/paragraphs.elc \
-	$(lispsource)/textmodes/text-mode.elc \
-	$(lispsource)/emacs-lisp/timer.elc \
-	$(lispsource)/jka-cmpr-hook.elc \
-	$(lispsource)/vc/vc-hooks.elc \
-	$(lispsource)/vc/ediff-hook.elc \
-	$(lispsource)/epa-hook.elc \
-	$(TOOLTIP_SUPPORT) \
-	$(MSDOS_SUPPORT) \
-	$(WINDOW_SUPPORT) \
-	$(NS_SUPPORT) \
-	$(lispsource)/widget.elc \
-	$(lispsource)/window.elc \
-	$(lispsource)/version.el
 
-## List of relative names for those files from $lisp that are loaded
-## unconditionally (i.e. on all platforms).  Files from $lisp that
-## are only loaded on some platforms should instead be placed in
-## SOME_MACHINE_LISP.  The only reason this variable exists is to prevent
-## the make-docfile command-line getting too long for some systems.
-shortlisp= \
-	../lisp/loaddefs.el \
-	../lisp/abbrev.elc \
-	../lisp/buff-menu.elc \
-	../lisp/button.elc \
-	../lisp/emacs-lisp/byte-run.elc \
-	../lisp/composite.elc \
-	../lisp/cus-face.elc \
-	../lisp/cus-start.elc \
-	../lisp/custom.elc \
-	../lisp/emacs-lisp/backquote.elc \
-	../lisp/emacs-lisp/lisp-mode.elc \
-	../lisp/emacs-lisp/lisp.elc \
-	../lisp/facemenu.elc \
-	../lisp/faces.elc \
-	../lisp/files.elc \
-	../lisp/emacs-lisp/float-sup.elc \
-	../lisp/format.elc \
-	../lisp/frame.elc \
-	../lisp/help.elc \
-	../lisp/indent.elc \
-	../lisp/isearch.elc \
-	../lisp/rfn-eshadow.elc \
-	../lisp/loadup.el \
-	../lisp/bindings.elc \
-	../lisp/emacs-lisp/map-ynp.elc \
-	../lisp/env.elc \
-	../lisp/international/mule.elc \
-	../lisp/international/mule-conf.elc \
-	../lisp/international/mule-cmds.elc \
-	../lisp/international/characters.elc \
-	../lisp/case-table.elc \
-	../lisp/language/chinese.elc \
-	../lisp/language/cyrillic.elc \
-	../lisp/language/indian.elc \
-	../lisp/language/sinhala.el \
-	../lisp/language/english.el \
-	../lisp/language/ethiopic.elc \
-	../lisp/language/european.elc \
-	../lisp/language/czech.el \
-	../lisp/language/slovak.el \
-	../lisp/language/romanian.el \
-	../lisp/language/greek.el \
-	../lisp/language/hebrew.elc \
-	../lisp/language/japanese.el \
-	../lisp/language/korean.el \
-	../lisp/language/lao.el \
-	../lisp/language/cham.el \
-	../lisp/language/tai-viet.el \
-	../lisp/language/thai.el \
-	../lisp/language/tibetan.elc \
-	../lisp/language/vietnamese.elc \
-	../lisp/language/misc-lang.el \
-	../lisp/language/utf-8-lang.el \
-	../lisp/language/georgian.el \
-	../lisp/language/khmer.el \
-	../lisp/language/burmese.el \
-	../lisp/menu-bar.elc \
-	../lisp/paths.el \
-	../lisp/register.elc \
-	../lisp/replace.elc \
-	../lisp/simple.elc \
-	../lisp/minibuffer.elc \
-	../lisp/startup.elc \
-	../lisp/subr.elc \
-	../lisp/term/tty-colors.elc \
-	../lisp/font-core.elc \
-	../lisp/emacs-lisp/syntax.elc \
-	../lisp/font-lock.elc \
-	../lisp/jit-lock.elc \
-	../lisp/textmodes/fill.elc \
-	../lisp/textmodes/page.elc \
-	../lisp/textmodes/paragraphs.elc \
-	../lisp/textmodes/text-mode.elc \
-	../lisp/emacs-lisp/timer.elc \
-	../lisp/vc/vc-hooks.elc \
-	../lisp/vc/ediff-hook.elc \
-	../lisp/jka-cmpr-hook.elc \
-	../lisp/epa-hook.elc \
-	../lisp/widget.elc \
-	../lisp/window.elc \
-	../lisp/version.el
+## Configure inserts the file lisp.mk at this point, defining $lisp.
+@lisp_frag@
 
-## Like $shortlisp, but includes only those files from $lisp that are loaded
-## conditionally (i.e., only on some platforms).
-## Confusingly, term/internal is not in loadup, but is unconditionally
-## loaded by pc-win, which is.
-SOME_MACHINE_LISP = ../lisp/mouse.elc \
-  ../lisp/select.elc ../lisp/scroll-bar.elc \
-  ../lisp/ls-lisp.elc ../lisp/dos-fns.elc \
-  ../lisp/w32-fns.elc ../lisp/dos-w32.elc \
-  ../lisp/disp-table.elc ../lisp/dos-vars.elc ../lisp/w32-vars.elc \
-  ../lisp/tooltip.elc ../lisp/image.elc \
-  ../lisp/fringe.elc ../lisp/dnd.elc \
-  ../lisp/mwheel.elc ../lisp/tool-bar.elc \
-  ../lisp/x-dnd.elc ../lisp/dynamic-setting.elc \
-  ../lisp/international/fontset.elc \
-  ../lisp/term/common-win.elc \
-  ../lisp/term/x-win.elc \
-  ../lisp/term/pc-win.elc ../lisp/term/internal.elc \
-  ../lisp/term/ns-win.elc ../lisp/term/w32-win.elc
 
 ## Construct full set of libraries to be linked.
 ## Note that SunOS needs -lm to come before -lc; otherwise, you get
@@ -612,6 +391,9 @@ all: emacs$(EXEEXT) $(OTHER_FILES)
 ## Does anyone ever pay attention to the load-path-shadows output here?
 ## The dumped Emacs is as functional and more efficient than
 ## bootstrap-emacs, so we replace the latter with the former.
+## Strictly speaking, emacs does not depend directly on all of $lisp,
+## since not all pieces are used on all platforms.  But DOC depends
+## on all of $lisp, and emacs depends on DOC, so it is ok to use $lisp here.
 emacs$(EXEEXT): temacs$(EXEEXT) $(etc)/DOC $(lisp)
 	if test "$(CANNOT_DUMP)" = "yes"; then \
 	  ln -f temacs$(EXEEXT) emacs$(EXEEXT); \
@@ -624,22 +406,23 @@ emacs$(EXEEXT): temacs$(EXEEXT) $(etc)/DOC $(lisp)
 	fi
 
 ## We run make-docfile twice because the command line may get too long
-## on some systems.
+## on some systems.  The sed command operating on lisp.mk also reduces
+## the length of the command line.  Unfortunately, no-one has any idea
+## exactly how long the maximum safe command line length is on all the
+## various systems that Emacs supports.  Obviously, the length depends
+## on what your value of $srcdir is.  If the length restriction goes
+## away, lisp.mk can be merged back into this file.
+##
 ## $(SOME_MACHINE_OBJECTS) comes before $(obj) because some files may
 ## or may not be included in $(obj), but they are always included in
 ## $(SOME_MACHINE_OBJECTS).  Since a file is processed when it is mentioned
 ## for the first time, this prevents any variation between configurations
 ## in the contents of the DOC file.
-## Likewise for $(SOME_MACHINE_LISP).
-## Most of this Makefile refers to Lisp files via $(lispsource), so
-## we also use $(lisp) rather than $(shortlisp) for the dependency since
-## the Makefile uses string equality to decide when we talk about identical
-## files.  Apparently we pass $(shortlisp) rather than $(lisp) to make-docfile
-## only in order to reduce the command line length.  --Stef
-$(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(obj) $(lisp) $(SOME_MACHINE_LISP)
+##
+$(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(obj) $(lisp)
 	-rm -f $(etc)/DOC
 	$(libsrc)/make-docfile -d $(srcdir) $(SOME_MACHINE_OBJECTS) $(obj) > $(etc)/DOC
-	$(libsrc)/make-docfile -a $(etc)/DOC -d $(srcdir) $(SOME_MACHINE_LISP) $(shortlisp)
+	$(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) `sed -n -e 's| \\\\||' -e 's|^[ 	]*$$(lispsource)/||p' $(srcdir)/lisp.mk`
 
 $(libsrc)/make-docfile$(EXEEXT):
 	cd $(libsrc); $(MAKE) $(MFLAGS) make-docfile$(EXEEXT)
@@ -797,7 +580,7 @@ tags: TAGS TAGS-LISP $(lwlibdir)/TAGS
 	                     THEFILE=$< EMACS=$(bootstrap_exe)
 
 ## Since the .el.elc rule cannot specify an extra dependency, we do it here.
-$(lisp) $(SOME_MACHINE_LISP): $(BOOTSTRAPEMACS)
+$(lisp): $(BOOTSTRAPEMACS)
 
 ## VCSWITNESS points to the file that holds info about the current checkout.
 ## We use it as a heuristic to decide when to rebuild loaddefs.el.

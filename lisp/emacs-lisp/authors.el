@@ -437,7 +437,7 @@ Changes to files in this list are not listed.")
      ;; No longer distributed.
 ;;;     "vmspaths.h" "build.com" "compile.com" "kepteditor.com" "precomp.com"
 ;;;     "vmsproc.el" :wrote "logout.com" "mailemacs.com")
-    ("Guillermo J. Rozas" :wrote "fakemail.c")
+;;;    ("Guillermo J. Rozas" :wrote "fakemail.c")
     ("Wolfgang Rupprecht" :changed "lisp-mode.el" "loadup.el"
      "sort.el" "alloc.c" "callint.c"
      ;; config.in renamed from config.h.in; ecrt0.c from crt0.c.

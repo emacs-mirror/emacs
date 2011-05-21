@@ -1,3 +1,28 @@
+2011-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* lists.texi (Sets And Lists): Mention cl provides union etc.
+
+2011-05-19  Nix  <nix@esperi.org.uk>
+
+	* windows.texi (Displaying Buffers): pop-to-buffer is not a command.
+
+	* text.texi (Parsing HTML): Update for function name changes.
+
+	* syntax.texi (Syntax Flags): Small fix.
+
+	* keymaps.texi (Active Keymaps): Typo fix.
+	(Changing Key Bindings): Grammar fix.
+
+	* frames.texi (Minibuffers and Frames): Grammar fix.
+	(Window System Selections): x-select-enable-clipboard now defaults to t.
+
+	* customize.texi (Common Keywords):
+	* display.texi (Abstract Display):
+	* modes.texi (Auto-Indentation):
+	* nonascii.texi (Converting Representations): Typo fixes.
+
+	* control.texi (Examples of Catch): Call it "goto" not "go to".
+
 2011-05-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi (Basic Windows): Remove description of

@@ -1,3 +1,16 @@
+2011-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (echolisp): Remove rule that is no longer needed.
+	(clean): No more echolisp.tmp.
+
+2011-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* fakemail.c: Remove file.
+	* makefile.w32-in ($(BLD)/fakemail.exe, fakemail)
+	($(BLD)/fakemail.$(O)): Remove.
+	* Makefile.in (UTILITIES): Remove fakemail${EXEEXT}.
+	(fakemail${EXEEXT}): Remove rule.
+
 2011-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* makefile.w32-in (obj): Add gnutls.o.

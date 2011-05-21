@@ -1,3 +1,162 @@
+2011-05-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (scrolling_window): Don't exclude the case that the
+	last enabled row in the desired matrix touches the bottom boundary.
+
+2011-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(etc)/DOC): Make second command line even shorter.
+	(SOME_MACHINE_OBJECTS): Replace FONT_OBJ by its maximal expansion,
+	and add some more files.
+
+2011-05-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* callproc.c (Fcall_process) [MSDOS]: Fix arguments to
+	report_file_error introduced by the change from 2011-05-07.
+
+2011-05-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* systime.h (Time): Define only if emacs is defined.
+	This is to allow ../lib-src/profile.c to be compiled on FreeBSD,
+	where the include path doesn't have X11/X.h by default.  See
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-05/msg00561.html>.
+
+2011-05-20 Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (find_automatic_composition): Fix previous change.
+
+2011-05-20  Glenn Morris  <rgm@gnu.org>
+
+	* lisp.mk: New file, split from Makefile.in.
+	* Makefile.in (lisp): Move to separate file, inserted by @lisp_frag@.
+	(shortlisp): Remove.
+	($(etc)/DOC): Edit lisp.mk rather than using $shortlisp.
+
+2011-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (MSDOS_SUPPORT_REAL, MSDOS_SUPPORT, NS_SUPPORT)
+	(REAL_MOUSE_SUPPORT, GPM_MOUSE_SUPPORT, MOUSE_SUPPORT, TOOLTIP_SUPPORT)
+	(BASE_WINDOW_SUPPORT, X_WINDOW_SUPPORT, WINDOW_SUPPORT): Remove.
+	(lisp): Set the order to that of loadup.el.
+	(shortlisp): Make it a copy of $lisp.
+	(SOME_MACHINE_LISP): Remove.
+	($(etc)/DOC): Depend just on $lisp, not $SOME_MACHINE_LISP too.
+	Use just $shortlisp, not $SOME_MACHINE_LISP too.
+
+2011-05-18  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (CHAR_COMPOSABLE_P): Add more check for efficiency.
+	(BACKWARD_CHAR): Wrap the arg STOP by parenthesis.
+	(find_automatic_composition): Mostly rewrite for efficiency.
+
+2011-05-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies.
+
+2011-05-18  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* menu.c: Include limits.h (fixes the MS-Windows build broken by
+	revision 104625).
+
+2011-05-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix some integer overflow issues, such as string length overflow.
+
+	* insdel.c (count_size_as_multibyte): Check for string overflow.
+
+	* character.c (lisp_string_width): Check for string overflow.
+	Use EMACS_INT, not int, for string indexes and lengths; in
+	particular, 2nd arg is now EMACS_INT, not int.  Do not crash if
+	the resulting string length overflows an EMACS_INT; instead,
+	report a string overflow if no precision given.  When checking for
+	precision exhaustion, use a check that cannot possibly have
+	integer overflow.  (Bug#8675)
+	* character.h (lisp_string_width): Adjust to new signature.
+
+	* alloc.c (string_overflow): New function.
+	(Fmake_string): Use it.  This doesn't change behavior, but saves
+	a few bytes and will simplify future changes.
+	* character.c (string_escape_byte8): Likewise.
+	* lisp.h (string_overflow): New decl.
+
+	Fixups, following up to the user-interface timestamp change.
+	* nsterm.m (last_mouse_movement_time, ns_mouse_position): Use Time
+	for UI timestamps, instead of unsigned long.
+	* msdos.c (mouse_get_pos): Likewise.
+	* w32inevt.c (movement_time, w32_console_mouse_position): Likewise.
+	* w32gui.h (Time): Define by including "systime.h" rather than by
+	declaring it ourselves.  (Bug#8664)
+
+	* dispextern.h (struct image): Don't assume time_t <= unsigned long.
+	* image.c (clear_image_cache): Likewise.
+
+	* term.c (term_mouse_position): Don't assume time_t wraparound.
+
+	Be more systematic about user-interface timestamps.
+	Before, the code sometimes used 'Time', sometimes 'unsigned long',
+	and sometimes 'EMACS_UINT', to represent these timestamps.  This
+	change causes it to use 'Time' uniformly, as that's what X uses.
+	This makes the code easier to follow, and makes it easier to catch
+	integer overflow bugs such as Bug#8664.
+	* frame.c (Fmouse_position, Fmouse_pixel_position):
+	Use Time, not unsigned long, for user-interface timestamps.
+	* keyboard.c (last_event_timestamp, kbd_buffer_get_event): Likewise.
+	(button_down_time, make_lispy_position, make_lispy_movement): Likewise.
+	* keyboard.h (last_event_timestamp): Likewise.
+	* menu.c (Fx_popup_menu) [!HAVE_X_WINDOWS]: Likewise.
+	* menu.h (xmenu_show): Likewise.
+	* term.c (term_mouse_position): Likewise.
+	* termhooks.h (struct input_event.timestamp): Likewise.
+	(struct terminal.mouse_position_hook): Likewise.
+	* xmenu.c (create_and_show_popup_menu, xmenu_show): Likewise.
+	* xterm.c (XTmouse_position, x_scroll_bar_report_motion): Likewise.
+	* systime.h (Time): New decl.  Pull it in from <X11/X.h> if
+	HAVE_X_WINDOWS, otherwise define it as unsigned long, which is
+	what it was before.
+	* menu.h, termhooks.h: Include "systime.h", for Time.
+
+	* keyboard.c (make_lispy_event): Fix problem in integer overflow.
+	Don't assume that the difference between two unsigned long values
+	can fit into an integer.  At this point, we know button_down_time
+	<= event->timestamp, so the difference must be nonnegative, so
+	there's no need to cast the result if double-click-time is
+	nonnegative, as it should be; check that it's nonnegative, just in
+	case.  This bug is triggered when events are more than 2**31 ms
+	apart (about 25 days).  (Bug#8664)
+
+	* xselect.c (last_event_timestamp): Remove duplicate decl.
+	(x_own_selection): Remove needless cast to unsigned long.
+
+	* xmenu.c (set_frame_menubar): Use int, not EMACS_UINT, for indexes
+	that always fit in int.  Use a sentinel instead of a counter, to
+	avoid a temp and to allay GCC's concerns about possible int overflow.
+	* frame.h (struct frame): Use int for menu_bar_items_used
+	instead of EMACS_INT, since it always fits in int.
+
+	* menu.c (grow_menu_items): Check for int overflow.
+
+	* xmenu.c (set_frame_menubar): Don't mishandle vectors with no nils.
+
+	* xterm.c: Use EMACS_INT for Emacs modifiers, and int for X modifiers.
+	Before, the code was not consistent.  These values cannot exceed
+	2**31 - 1 so there's no need to make them unsigned.
+	(x_x_to_emacs_modifiers): Accept int and return EMACS_INT.
+	(x_emacs_to_x_modifiers): Accept EMACS_INT and return int.
+	(x_x_to_emacs_modifiers, x_emacs_to_x_modifiers): Reject non-integers
+	as modifiers.
+	* xterm.h (x_x_to_emacs_modifiers): Adjust to signature change.
+
+	* lisp.h (XINT) [USE_LISP_UNION_TYPE]: Cast to EMACS_INT.
+	(XUINT) [USE_LISP_UNION_TYPE]: Cast to EMACS_UINT.
+	Otherwise, GCC 4.6.0 warns about printf (pI, XINT (...)),
+	presumably because the widths might not match.
+
+	* window.c (size_window): Avoid needless test at loop start.
+
+2011-05-18  Courtney Bane  <emacs-bugs-7626@cbane.org>  (tiny change)
+
+	* term.c (Fresume_tty): Restore hooks before reinitializing (bug#8687).
+
 2011-05-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (make_frame): Use other_buffer_safely.
@@ -29,8 +188,8 @@
 	`width' to `bar_area_x' and `bar_area_width', respectively.
 	(x_scroll_run): Take account of fringe background extension.
 
-	* xterm.c (x_draw_fringe_bitmap) [USE_TOOLKIT_SCROLL_BARS]: Rename
-	local vars `left' and `width' to `bar_area_x' and
+	* xterm.c (x_draw_fringe_bitmap) [USE_TOOLKIT_SCROLL_BARS]:
+	Rename local vars `left' and `width' to `bar_area_x' and
 	`bar_area_width', respectively.
 	(x_scroll_run) [USE_TOOLKIT_SCROLL_BARS]: Take account of fringe
 	background extension.
@@ -54,11 +213,11 @@
 	(Fget_screen_color): New function.
 	(syms_of_ntterm): Defsubr it.
 
-	* callproc.c (call_process_cleanup): Don't close and unlink the
-	temporary file if Fcall_process didn't create it in the first
-	place.
-	(Fcall_process): Don't create tempfile if stdout of the child
-	process will be redirected to a file specified with `:file'.
+	* callproc.c (call_process_cleanup) [MSDOS]: Don't close and
+	unlink the temporary file if Fcall_process didn't create it in the
+	first place.
+	(Fcall_process) [MSDOS]: Don't create tempfile if stdout of the
+	child process will be redirected to a file specified with `:file'.
 	Don't try to re-open tempfile in that case, and set fd[0] to -1 as
 	cue to call_process_cleanup not to close that handle.
 
@@ -147,8 +306,8 @@
 	* dbusbind.c: Do not use XPNTR on a value that may be an integer.
 	Reported by Stefan Monnier in
 	<http://lists.gnu.org/archive/html/emacs-devel/2011-04/msg00919.html>.
-	(xd_remove_watch, Fdbus_init_bus, xd_read_queued_messages): Use
-	SYMBOLP-guarded XSYMBOL, not XPNTR.
+	(xd_remove_watch, Fdbus_init_bus, xd_read_queued_messages):
+	Use SYMBOLP-guarded XSYMBOL, not XPNTR.
 
 	* lisp.h (EMACS_INTPTR): Remove.  All uses changed to intptr_t.
 	(EMACS_UINTPTR): Likewise, with uintptr_t.
@@ -334,8 +493,8 @@
 	* callproc.c: Indentation fixup.
 
 	* sysdep.c (wait_for_termination_1): Make static.
-	(wait_for_termination, interruptible_wait_for_termination): Move
-	after wait_for_termination_1.
+	(wait_for_termination, interruptible_wait_for_termination):
+	Move after wait_for_termination_1.
 
 2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -451,8 +610,8 @@
 	(emacs_gnutls_write): Don't use uninitialized rtnval if nbyte <= 0.
 
 	* lisp.h: Fix a problem with aliasing and vector headers.  (Bug#8546)
-	GCC 4.6.0 optimizes based on type-based alias analysis.  For
-	example, if b is of type struct buffer * and v of type struct
+	GCC 4.6.0 optimizes based on type-based alias analysis.
+	For example, if b is of type struct buffer * and v of type struct
 	Lisp_Vector *, then gcc -O2 was incorrectly assuming that &b->size
 	!= &v->size, and therefore "v->size = 1; b->size = 2; return
 	v->size;" must therefore return 1.  This assumption is incorrect
@@ -472,8 +631,8 @@
 	(XSETPSEUDOVECTOR): Rewrite in terms of XSETTYPED_PSEUDOVECTOR.
 	(XSETSUBR): Rewrite in terms of XSETTYPED_PSEUDOVECTOR and XSIZE,
 	since Lisp_Subr is a special case (no "next" field).
-	(ASIZE): Now uses header.size rather than size.  All
-	previous uses of XVECTOR (foo)->size replaced to use this macro,
+	(ASIZE): Now uses header.size rather than size.
+	All previous uses of XVECTOR (foo)->size replaced to use this macro,
 	to avoid the hassle of writing XVECTOR (foo)->header.size.
 	(struct vectorlike_header): New type.
 	(TYPED_PSEUDOVECTORP): New macro, also specifying the C type of the
@@ -522,7 +681,7 @@
 	Break out the floating-point parsing into a new
 	function string_to_number, so that Fstring_to_number parses
 	floating point numbers consistently with the Lisp reader.
-	(digit_to_number): Moved here from data.c.  Make it static inline.
+	(digit_to_number): Move here from data.c.  Make it static inline.
 	(E_CHAR, EXP_INT): Remove, replacing with ...
 	(E_EXP): New macro, to solve the "1.0e+" problem mentioned below.
 	(string_to_number): New function, replacing isfloat_string.
@@ -759,8 +918,8 @@
 	Fix doprnt so it could be used again safely in `verror'.  (Bug#8435)
 	* doprnt.c: Include limits.h.
 	(SIZE_MAX): New macro.
-	(doprnt): Return a size_t value.  2nd arg is now size_t.  Many
-	local variables are now size_t instead of int or unsigned.
+	(doprnt): Return a size_t value.  2nd arg is now size_t.
+	Many local variables are now size_t instead of int or unsigned.
 	Improve overflow protection.  Support `l' modifier for integer
 	conversions.  Support %l conversion.  Don't assume an EMACS_INT
 	argument for integer conversions and for %c.
@@ -961,8 +1120,8 @@
 
 	* syntax.c (update_syntax_table): Declare 2nd argument EMACS_INT.
 
-	* textprop.c (verify_interval_modification, interval_of): Declare
-	arguments EMACS_INT.
+	* textprop.c (verify_interval_modification, interval_of):
+	Declare arguments EMACS_INT.
 
 	* intervals.c (adjust_intervals_for_insertion): Declare arguments
 	EMACS_INT.
@@ -1213,8 +1372,8 @@
 	(free_realized_fontset) #if-0 the body, which does nothing.
 	(face_suitable_for_char_p): #if-0, as it's never called.
 	* fontset.h (face_suitable_for_char_p): Remove decl.
-	* xfaces.c (face_at_string_position): Use
-	FACE_SUITABLE_FOR_ASCII_CHAR_P, not FACE_SUITABLE_FOR_CHAR_P,
+	* xfaces.c (face_at_string_position):
+	Use FACE_SUITABLE_FOR_ASCII_CHAR_P, not FACE_SUITABLE_FOR_CHAR_P,
 	since 0 is always ASCII.
 
 	* fns.c (weak_hash_tables): Now static.
@@ -1323,8 +1482,8 @@
 	(last_point_position_window): Remove decls.
 	* keyboard.c: Make these variables static.
 
-	* coding.h (coding, code_convert_region, encode_coding_gap): Remove
-	decls.
+	* coding.h (coding, code_convert_region, encode_coding_gap):
+	Remove decls.
 	* coding.c (Vsjis_coding_system, Vbig5_coding_system):
 	(iso_code_class, detect_coding, code_convert_region): Now static.
 	(encode_coding_gap): Remove; unused.
@@ -1355,7 +1514,7 @@
 	exported only to the debugger.
 
 	* atimer.c (alarm_signal_handler, run_all_atimers): Now static.
-	* atimer.h (run_all_atimers): Removed; not exported.
+	* atimer.h (run_all_atimers): Remove; not exported.
 
 	font.c: Make copy_font_spec and merge_font_spec ordinary C functions.
 	* font.c (copy_font_spec): Rename from Fcopy_font_spec, since it
@@ -1615,8 +1774,8 @@
 
 2011-04-09  Chong Yidong  <cyd@stupidchicken.com>
 
-	* ftfont.c (get_adstyle_property, ftfont_pattern_entity): Use
-	unsigned char, to match FcChar8 type definition.
+	* ftfont.c (get_adstyle_property, ftfont_pattern_entity):
+	Use unsigned char, to match FcChar8 type definition.
 
 	* xterm.c (handle_one_xevent):
 	* xmenu.c (create_and_show_popup_menu):
@@ -1726,8 +1885,8 @@
 
 2011-04-06  Chong Yidong  <cyd@stupidchicken.com>
 
-	* process.c (Flist_processes): Removed to Lisp.
-	(list_processes_1): Deleted.
+	* process.c (Flist_processes): Remove to Lisp.
+	(list_processes_1): Delete.
 
 2011-04-06  Eli Zaretskii  <eliz@gnu.org>
 
@@ -1985,8 +2144,8 @@
 	* callint.c (Fcall_interactively): Preserve lexical-binding mode for
 	interactive spec.
 
-	* bytecode.c (Bstack_ref, Bstack_set, Bstack_set2, BdiscardN): New
-	byte-codes.
+	* bytecode.c (Bstack_ref, Bstack_set, Bstack_set2, BdiscardN):
+	New byte-codes.
 	(exec_byte_code): New function extracted from Fbyte_code to handle new
 	calling convention for byte-code-functions.  Add new byte-codes.
 
@@ -2001,8 +2160,8 @@
 2011-03-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (SCROLL_LIMIT): New macro.
-	(try_scrolling): Use it when setting scroll_limit.  Limit
-	scrolling to 100 screen lines.
+	(try_scrolling): Use it when setting scroll_limit.
+	Limit scrolling to 100 screen lines.
 	(redisplay_window): Even when falling back on "recentering",
 	position point in the window according to scroll-conservatively,
 	scroll-margin, and scroll-*-aggressively variables.  (Bug#6671)

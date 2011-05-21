@@ -1263,9 +1263,9 @@ on the line, reindent the line."
 		(nxml-scan-error nil))
 	    (when (and (eq (nxml-token-before) (point))
 		       (eq xmltok-type 'partial-empty-element))
-	      (insert ">")))
-	(when (and end-tag-p at-indentation)
-	  (nxml-indent-line))))))
+	      (insert ">"))))
+      (when (and end-tag-p at-indentation)
+        (nxml-indent-line)))))
 
 (defun nxml-balanced-close-start-tag-block ()
   "Close the start-tag before point with `>' and insert a balancing end-tag.

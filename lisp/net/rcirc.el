@@ -971,7 +971,7 @@ This number is independent of the number of lines in the buffer.")
   (set (make-local-variable 'rcirc-current-line) 0)
 
   (set (make-local-variable 'rcirc-short-buffer-name) nil)
-  (set (make-local-variable 'rcirc-urls) t)
+  (set (make-local-variable 'rcirc-urls) nil)
 
   ;; setup for omitting responses
   (setq buffer-invisibility-spec '())
@@ -2394,7 +2394,8 @@ keywords when no KEYWORD is given."
 	(rcirc-record-activity (current-buffer) 'nick)))))
 
 (defun rcirc-markup-urls (sender response)
-  (while (re-search-forward rcirc-url-regexp nil t)
+  (while (and rcirc-url-regexp ;; nil means disable URL catching
+              (re-search-forward rcirc-url-regexp nil t))
     (let ((start (match-beginning 0))
 	  (end (match-end 0)))
       (rcirc-add-face start end 'rcirc-url)

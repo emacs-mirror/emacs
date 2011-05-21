@@ -117,8 +117,8 @@ STAMP_INST_SCRIPTS = stamp-rcs-checkin stamp-grep-changelog
 
 # Things that Emacs runs internally, or during the build process,
 #  which should not be installed in bindir.
-UTILITIES = profile${EXEEXT} movemail${EXEEXT} fakemail${EXEEXT} \
-            hexl${EXEEXT} update-game-score${EXEEXT}
+UTILITIES = profile${EXEEXT} movemail${EXEEXT} hexl${EXEEXT} \
+            update-game-score${EXEEXT}
 
 DONT_INSTALL= test-distrib${EXEEXT} make-docfile${EXEEXT}
 
@@ -352,9 +352,6 @@ movemail.o: ${srcdir}/movemail.c ../src/config.h
 
 pop.o: ${srcdir}/pop.c ${srcdir}/../lib/min-max.h ../src/config.h
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/pop.c
-
-fakemail${EXEEXT}: ${srcdir}/fakemail.c ../src/config.h
-	$(CC) ${ALL_CFLAGS} ${srcdir}/fakemail.c $(LOADLIBES) -o fakemail
 
 emacsclient${EXEEXT}: ${srcdir}/emacsclient.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c \

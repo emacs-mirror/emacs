@@ -603,9 +603,6 @@ am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
-WINDOW_SUPPORT
-TOOLTIP_SUPPORT
-MOUSE_SUPPORT
 LIB_GCC
 LD_FIRSTFLAG
 LD_SWITCH_SYSTEM_TEMACS
@@ -947,6 +944,7 @@ HAVE_PIPE
 HAVE_LINKAT
 HAVE_LINK
 HAVE_LCHOWN
+HAVE_GROUP_MEMBER
 HAVE_GETPAGESIZE
 HAVE_GETLOGIN
 HAVE_GETHOSTNAME
@@ -984,6 +982,7 @@ GNULIB_LSEEK
 GNULIB_LINKAT
 GNULIB_LINK
 GNULIB_LCHOWN
+GNULIB_GROUP_MEMBER
 GNULIB_GETUSERSHELL
 GNULIB_GETPAGESIZE
 GNULIB_GETLOGIN_R
@@ -1116,7 +1115,6 @@ VMLIMIT_OBJ
 GMALLOC_OBJ
 HAVE_XSERVER
 LIB_STANDARD
-NS_SUPPORT
 NS_OBJC_OBJ
 NS_OBJ
 TEMACS_LDFLAGS2
@@ -1236,6 +1234,7 @@ PACKAGE_NAME
 PATH_SEPARATOR
 SHELL'
 ac_subst_files='deps_frag
+lisp_frag
 ns_frag'
 ac_user_opts='
 enable_option_checking
@@ -9081,6 +9080,10 @@ deps_frag=$srcdir/src/$deps_frag
 
 
 
+lisp_frag=$srcdir/src/lisp.mk
+
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for long file names" >&5
 $as_echo_n "checking for long file names... " >&6; }
 if test "${ac_cv_sys_long_file_names+set}" = set; then :
@@ -9458,7 +9461,6 @@ fi
 ns_frag=/dev/null
 NS_OBJ=
 NS_OBJC_OBJ=
-NS_SUPPORT=
 if test "${HAVE_NS}" = yes; then
   window_system=nextstep
   with_xft=no
@@ -9471,11 +9473,9 @@ if test "${HAVE_NS}" = yes; then
   ns_frag=$srcdir/src/ns.mk
   NS_OBJ="fontset.o fringe.o image.o"
   NS_OBJC_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o"
-  NS_SUPPORT="\${lispsource}/emacs-lisp/easymenu.elc \${lispsource}/term/ns-win.elc"
 fi
 CFLAGS="$tmp_CFLAGS"
 CPPFLAGS="$tmp_CPPFLAGS"
-
 
 
 
@@ -12927,7 +12927,6 @@ fi
 ### Use -lgpm if available, unless `--with-gpm=no'.
 HAVE_GPM=no
 LIBGPM=
-MOUSE_SUPPORT=
 if test "${with_gpm}" != "no"; then
   ac_fn_c_check_header_mongrel "$LINENO" "gpm.h" "ac_cv_header_gpm_h" "$ac_includes_default"
 if test "x$ac_cv_header_gpm_h" = x""yes; then :
@@ -12980,8 +12979,6 @@ fi
 $as_echo "#define HAVE_GPM 1" >>confdefs.h
 
     LIBGPM=-lgpm
-    ## May be reset below.
-    MOUSE_SUPPORT="\$(GPM_MOUSE_SUPPORT)"
   fi
 fi
 
@@ -14390,6 +14387,7 @@ _ACEOF
   GNULIB_GETLOGIN_R=0;
   GNULIB_GETPAGESIZE=0;
   GNULIB_GETUSERSHELL=0;
+  GNULIB_GROUP_MEMBER=0;
   GNULIB_LCHOWN=0;
   GNULIB_LINK=0;
   GNULIB_LINKAT=0;
@@ -14427,6 +14425,7 @@ _ACEOF
   HAVE_GETHOSTNAME=1;
   HAVE_GETLOGIN=1;
   HAVE_GETPAGESIZE=1;
+  HAVE_GROUP_MEMBER=1;
   HAVE_LCHOWN=1;
   HAVE_LINK=1;
   HAVE_LINKAT=1;
@@ -15923,6 +15922,81 @@ fi
   UINT64_MAX_EQ_ULONG_MAX='defined _LP64';
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+     if test $gl_cv_have_include_next = yes; then
+       gl_cv_next_inttypes_h='<'inttypes.h'>'
+     else
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute name of <inttypes.h>" >&5
+$as_echo_n "checking absolute name of <inttypes.h>... " >&6; }
+if test "${gl_cv_next_inttypes_h+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+             if test $ac_cv_header_inttypes_h = yes; then
+
+
+               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <inttypes.h>
+
+_ACEOF
+                                                                                                                        case "$host_os" in
+                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
+                 *)    gl_absname_cpp="$ac_cpp" ;;
+               esac
+                                                            gl_cv_next_inttypes_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
+                  sed -n '\#/inttypes.h#{
+                    s#.*"\(.*/inttypes.h\)".*#\1#
+                    s#^/[^/]#//&#
+                    p
+                    q
+                  }'`'"'
+          else
+               gl_cv_next_inttypes_h='<'inttypes.h'>'
+             fi
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_inttypes_h" >&5
+$as_echo "$gl_cv_next_inttypes_h" >&6; }
+     fi
+     NEXT_INTTYPES_H=$gl_cv_next_inttypes_h
+
+     if test $gl_cv_have_include_next = yes || test $gl_cv_have_include_next = buggy; then
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include_next'
+       gl_next_as_first_directive='<'inttypes.h'>'
+     else
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include'
+       gl_next_as_first_directive=$gl_cv_next_inttypes_h
+     fi
+     NEXT_AS_FIRST_DIRECTIVE_INTTYPES_H=$gl_next_as_first_directive
+
+
+
+
+
+
+
+
+$as_echo "#define GL_TRIGGER_STDC_LIMIT_MACROS 1" >>confdefs.h
+
+
+
+
+
+
      GNULIB_FCHMODAT=0;
   GNULIB_FSTATAT=0;
   GNULIB_FUTIMENS=0;
@@ -17214,80 +17288,6 @@ fi
 
 
 
-
-
-
-
-
-
-
-
-
-
-     if test $gl_cv_have_include_next = yes; then
-       gl_cv_next_inttypes_h='<'inttypes.h'>'
-     else
-       { $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute name of <inttypes.h>" >&5
-$as_echo_n "checking absolute name of <inttypes.h>... " >&6; }
-if test "${gl_cv_next_inttypes_h+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-
-             if test $ac_cv_header_inttypes_h = yes; then
-
-
-               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <inttypes.h>
-
-_ACEOF
-                                                                                                                        case "$host_os" in
-                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
-                 *)    gl_absname_cpp="$ac_cpp" ;;
-               esac
-                                                            gl_cv_next_inttypes_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-                  sed -n '\#/inttypes.h#{
-                    s#.*"\(.*/inttypes.h\)".*#\1#
-                    s#^/[^/]#//&#
-                    p
-                    q
-                  }'`'"'
-          else
-               gl_cv_next_inttypes_h='<'inttypes.h'>'
-             fi
-
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_inttypes_h" >&5
-$as_echo "$gl_cv_next_inttypes_h" >&6; }
-     fi
-     NEXT_INTTYPES_H=$gl_cv_next_inttypes_h
-
-     if test $gl_cv_have_include_next = yes || test $gl_cv_have_include_next = buggy; then
-       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include_next'
-       gl_next_as_first_directive='<'inttypes.h'>'
-     else
-       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include'
-       gl_next_as_first_directive=$gl_cv_next_inttypes_h
-     fi
-     NEXT_AS_FIRST_DIRECTIVE_INTTYPES_H=$gl_next_as_first_directive
-
-
-
-
-
-
-
-
-$as_echo "#define GL_TRIGGER_STDC_LIMIT_MACROS 1" >>confdefs.h
-
-
-
-
-
-
-
-
   if test $ac_cv_func_lstat = yes; then
 
     if test $ac_cv_func_lstat_dereferences_slashed_symlink = no; then
@@ -18072,717 +18072,6 @@ $as_echo "$gl_cv_next_stddef_h" >&6; }
 
 
   fi
-
-
-
-
-  if test $ac_cv_type_long_long_int = yes; then
-    HAVE_LONG_LONG_INT=1
-  else
-    HAVE_LONG_LONG_INT=0
-  fi
-
-
-  if test $ac_cv_type_unsigned_long_long_int = yes; then
-    HAVE_UNSIGNED_LONG_LONG_INT=1
-  else
-    HAVE_UNSIGNED_LONG_LONG_INT=0
-  fi
-
-
-
-  if test $ac_cv_header_wchar_h = yes; then
-    HAVE_WCHAR_H=1
-  else
-    HAVE_WCHAR_H=0
-  fi
-
-
-      if test $ac_cv_header_inttypes_h = yes; then
-    HAVE_INTTYPES_H=1
-  else
-    HAVE_INTTYPES_H=0
-  fi
-
-
-      if test $ac_cv_header_sys_types_h = yes; then
-    HAVE_SYS_TYPES_H=1
-  else
-    HAVE_SYS_TYPES_H=0
-  fi
-
-
-
-
-
-
-
-
-
-
-
-     if test $gl_cv_have_include_next = yes; then
-       gl_cv_next_stdint_h='<'stdint.h'>'
-     else
-       { $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute name of <stdint.h>" >&5
-$as_echo_n "checking absolute name of <stdint.h>... " >&6; }
-if test "${gl_cv_next_stdint_h+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-
-             if test $ac_cv_header_stdint_h = yes; then
-
-
-               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <stdint.h>
-
-_ACEOF
-                                                                                                                        case "$host_os" in
-                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
-                 *)    gl_absname_cpp="$ac_cpp" ;;
-               esac
-                                                            gl_cv_next_stdint_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-                  sed -n '\#/stdint.h#{
-                    s#.*"\(.*/stdint.h\)".*#\1#
-                    s#^/[^/]#//&#
-                    p
-                    q
-                  }'`'"'
-          else
-               gl_cv_next_stdint_h='<'stdint.h'>'
-             fi
-
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_stdint_h" >&5
-$as_echo "$gl_cv_next_stdint_h" >&6; }
-     fi
-     NEXT_STDINT_H=$gl_cv_next_stdint_h
-
-     if test $gl_cv_have_include_next = yes || test $gl_cv_have_include_next = buggy; then
-       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include_next'
-       gl_next_as_first_directive='<'stdint.h'>'
-     else
-       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include'
-       gl_next_as_first_directive=$gl_cv_next_stdint_h
-     fi
-     NEXT_AS_FIRST_DIRECTIVE_STDINT_H=$gl_next_as_first_directive
-
-
-
-
-  if test $ac_cv_header_stdint_h = yes; then
-    HAVE_STDINT_H=1
-  else
-    HAVE_STDINT_H=0
-  fi
-
-
-    if test $ac_cv_header_stdint_h = yes; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether stdint.h conforms to C99" >&5
-$as_echo_n "checking whether stdint.h conforms to C99... " >&6; }
-if test "${gl_cv_header_working_stdint_h+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  gl_cv_header_working_stdint_h=no
-       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-#define __STDC_LIMIT_MACROS 1 /* to make it work also in C++ mode */
-#define __STDC_CONSTANT_MACROS 1 /* to make it work also in C++ mode */
-#define _GL_JUST_INCLUDE_SYSTEM_STDINT_H 1 /* work if build isn't clean */
-#include <stdint.h>
-/* Dragonfly defines WCHAR_MIN, WCHAR_MAX only in <wchar.h>.  */
-#if !(defined WCHAR_MIN && defined WCHAR_MAX)
-#error "WCHAR_MIN, WCHAR_MAX not defined in <stdint.h>"
-#endif
-
-
-  /* BSD/OS 4.0.1 has a bug: <stddef.h>, <stdio.h> and <time.h> must be
-     included before <wchar.h>.  */
-  #include <stddef.h>
-  #include <signal.h>
-  #if HAVE_WCHAR_H
-  # include <stdio.h>
-  # include <time.h>
-  # include <wchar.h>
-  #endif
-
-
-#ifdef INT8_MAX
-int8_t a1 = INT8_MAX;
-int8_t a1min = INT8_MIN;
-#endif
-#ifdef INT16_MAX
-int16_t a2 = INT16_MAX;
-int16_t a2min = INT16_MIN;
-#endif
-#ifdef INT32_MAX
-int32_t a3 = INT32_MAX;
-int32_t a3min = INT32_MIN;
-#endif
-#ifdef INT64_MAX
-int64_t a4 = INT64_MAX;
-int64_t a4min = INT64_MIN;
-#endif
-#ifdef UINT8_MAX
-uint8_t b1 = UINT8_MAX;
-#else
-typedef int b1[(unsigned char) -1 != 255 ? 1 : -1];
-#endif
-#ifdef UINT16_MAX
-uint16_t b2 = UINT16_MAX;
-#endif
-#ifdef UINT32_MAX
-uint32_t b3 = UINT32_MAX;
-#endif
-#ifdef UINT64_MAX
-uint64_t b4 = UINT64_MAX;
-#endif
-int_least8_t c1 = INT8_C (0x7f);
-int_least8_t c1max = INT_LEAST8_MAX;
-int_least8_t c1min = INT_LEAST8_MIN;
-int_least16_t c2 = INT16_C (0x7fff);
-int_least16_t c2max = INT_LEAST16_MAX;
-int_least16_t c2min = INT_LEAST16_MIN;
-int_least32_t c3 = INT32_C (0x7fffffff);
-int_least32_t c3max = INT_LEAST32_MAX;
-int_least32_t c3min = INT_LEAST32_MIN;
-int_least64_t c4 = INT64_C (0x7fffffffffffffff);
-int_least64_t c4max = INT_LEAST64_MAX;
-int_least64_t c4min = INT_LEAST64_MIN;
-uint_least8_t d1 = UINT8_C (0xff);
-uint_least8_t d1max = UINT_LEAST8_MAX;
-uint_least16_t d2 = UINT16_C (0xffff);
-uint_least16_t d2max = UINT_LEAST16_MAX;
-uint_least32_t d3 = UINT32_C (0xffffffff);
-uint_least32_t d3max = UINT_LEAST32_MAX;
-uint_least64_t d4 = UINT64_C (0xffffffffffffffff);
-uint_least64_t d4max = UINT_LEAST64_MAX;
-int_fast8_t e1 = INT_FAST8_MAX;
-int_fast8_t e1min = INT_FAST8_MIN;
-int_fast16_t e2 = INT_FAST16_MAX;
-int_fast16_t e2min = INT_FAST16_MIN;
-int_fast32_t e3 = INT_FAST32_MAX;
-int_fast32_t e3min = INT_FAST32_MIN;
-int_fast64_t e4 = INT_FAST64_MAX;
-int_fast64_t e4min = INT_FAST64_MIN;
-uint_fast8_t f1 = UINT_FAST8_MAX;
-uint_fast16_t f2 = UINT_FAST16_MAX;
-uint_fast32_t f3 = UINT_FAST32_MAX;
-uint_fast64_t f4 = UINT_FAST64_MAX;
-#ifdef INTPTR_MAX
-intptr_t g = INTPTR_MAX;
-intptr_t gmin = INTPTR_MIN;
-#endif
-#ifdef UINTPTR_MAX
-uintptr_t h = UINTPTR_MAX;
-#endif
-intmax_t i = INTMAX_MAX;
-uintmax_t j = UINTMAX_MAX;
-
-#include <limits.h> /* for CHAR_BIT */
-#define TYPE_MINIMUM(t) \
-  ((t) ((t) 0 < (t) -1 ? (t) 0 : ~ TYPE_MAXIMUM (t)))
-#define TYPE_MAXIMUM(t) \
-  ((t) ((t) 0 < (t) -1 \
-        ? (t) -1 \
-        : ((((t) 1 << (sizeof (t) * CHAR_BIT - 2)) - 1) * 2 + 1)))
-struct s {
-  int check_PTRDIFF:
-      PTRDIFF_MIN == TYPE_MINIMUM (ptrdiff_t)
-      && PTRDIFF_MAX == TYPE_MAXIMUM (ptrdiff_t)
-      ? 1 : -1;
-  /* Detect bug in FreeBSD 6.0 / ia64.  */
-  int check_SIG_ATOMIC:
-      SIG_ATOMIC_MIN == TYPE_MINIMUM (sig_atomic_t)
-      && SIG_ATOMIC_MAX == TYPE_MAXIMUM (sig_atomic_t)
-      ? 1 : -1;
-  int check_SIZE: SIZE_MAX == TYPE_MAXIMUM (size_t) ? 1 : -1;
-  int check_WCHAR:
-      WCHAR_MIN == TYPE_MINIMUM (wchar_t)
-      && WCHAR_MAX == TYPE_MAXIMUM (wchar_t)
-      ? 1 : -1;
-  /* Detect bug in mingw.  */
-  int check_WINT:
-      WINT_MIN == TYPE_MINIMUM (wint_t)
-      && WINT_MAX == TYPE_MAXIMUM (wint_t)
-      ? 1 : -1;
-
-  /* Detect bugs in glibc 2.4 and Solaris 10 stdint.h, among others.  */
-  int check_UINT8_C:
-        (-1 < UINT8_C (0)) == (-1 < (uint_least8_t) 0) ? 1 : -1;
-  int check_UINT16_C:
-        (-1 < UINT16_C (0)) == (-1 < (uint_least16_t) 0) ? 1 : -1;
-
-  /* Detect bugs in OpenBSD 3.9 stdint.h.  */
-#ifdef UINT8_MAX
-  int check_uint8: (uint8_t) -1 == UINT8_MAX ? 1 : -1;
-#endif
-#ifdef UINT16_MAX
-  int check_uint16: (uint16_t) -1 == UINT16_MAX ? 1 : -1;
-#endif
-#ifdef UINT32_MAX
-  int check_uint32: (uint32_t) -1 == UINT32_MAX ? 1 : -1;
-#endif
-#ifdef UINT64_MAX
-  int check_uint64: (uint64_t) -1 == UINT64_MAX ? 1 : -1;
-#endif
-  int check_uint_least8: (uint_least8_t) -1 == UINT_LEAST8_MAX ? 1 : -1;
-  int check_uint_least16: (uint_least16_t) -1 == UINT_LEAST16_MAX ? 1 : -1;
-  int check_uint_least32: (uint_least32_t) -1 == UINT_LEAST32_MAX ? 1 : -1;
-  int check_uint_least64: (uint_least64_t) -1 == UINT_LEAST64_MAX ? 1 : -1;
-  int check_uint_fast8: (uint_fast8_t) -1 == UINT_FAST8_MAX ? 1 : -1;
-  int check_uint_fast16: (uint_fast16_t) -1 == UINT_FAST16_MAX ? 1 : -1;
-  int check_uint_fast32: (uint_fast32_t) -1 == UINT_FAST32_MAX ? 1 : -1;
-  int check_uint_fast64: (uint_fast64_t) -1 == UINT_FAST64_MAX ? 1 : -1;
-  int check_uintptr: (uintptr_t) -1 == UINTPTR_MAX ? 1 : -1;
-  int check_uintmax: (uintmax_t) -1 == UINTMAX_MAX ? 1 : -1;
-  int check_size: (size_t) -1 == SIZE_MAX ? 1 : -1;
-};
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-                                                    if test "$cross_compiling" = yes; then :
-                 gl_cv_header_working_stdint_h=yes
-
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-#define __STDC_LIMIT_MACROS 1 /* to make it work also in C++ mode */
-#define __STDC_CONSTANT_MACROS 1 /* to make it work also in C++ mode */
-#define _GL_JUST_INCLUDE_SYSTEM_STDINT_H 1 /* work if build isn't clean */
-#include <stdint.h>
-
-
-  /* BSD/OS 4.0.1 has a bug: <stddef.h>, <stdio.h> and <time.h> must be
-     included before <wchar.h>.  */
-  #include <stddef.h>
-  #include <signal.h>
-  #if HAVE_WCHAR_H
-  # include <stdio.h>
-  # include <time.h>
-  # include <wchar.h>
-  #endif
-
-
-#include <stdio.h>
-#include <string.h>
-#define MVAL(macro) MVAL1(macro)
-#define MVAL1(expression) #expression
-static const char *macro_values[] =
-  {
-#ifdef INT8_MAX
-    MVAL (INT8_MAX),
-#endif
-#ifdef INT16_MAX
-    MVAL (INT16_MAX),
-#endif
-#ifdef INT32_MAX
-    MVAL (INT32_MAX),
-#endif
-#ifdef INT64_MAX
-    MVAL (INT64_MAX),
-#endif
-#ifdef UINT8_MAX
-    MVAL (UINT8_MAX),
-#endif
-#ifdef UINT16_MAX
-    MVAL (UINT16_MAX),
-#endif
-#ifdef UINT32_MAX
-    MVAL (UINT32_MAX),
-#endif
-#ifdef UINT64_MAX
-    MVAL (UINT64_MAX),
-#endif
-    NULL
-  };
-
-int
-main ()
-{
-
-  const char **mv;
-  for (mv = macro_values; *mv != NULL; mv++)
-    {
-      const char *value = *mv;
-      /* Test whether it looks like a cast expression.  */
-      if (strncmp (value, "((unsigned int)"/*)*/, 15) == 0
-          || strncmp (value, "((unsigned short)"/*)*/, 17) == 0
-          || strncmp (value, "((unsigned char)"/*)*/, 16) == 0
-          || strncmp (value, "((int)"/*)*/, 6) == 0
-          || strncmp (value, "((signed short)"/*)*/, 15) == 0
-          || strncmp (value, "((signed char)"/*)*/, 14) == 0)
-        return mv - macro_values + 1;
-    }
-  return 0;
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  gl_cv_header_working_stdint_h=yes
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_header_working_stdint_h" >&5
-$as_echo "$gl_cv_header_working_stdint_h" >&6; }
-  fi
-  if test "$gl_cv_header_working_stdint_h" = yes; then
-    STDINT_H=
-  else
-            for ac_header in sys/inttypes.h sys/bitypes.h
-do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-eval as_val=\$$as_ac_Header
-   if test "x$as_val" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
-_ACEOF
-
-fi
-
-done
-
-    if test $ac_cv_header_sys_inttypes_h = yes; then
-      HAVE_SYS_INTTYPES_H=1
-    else
-      HAVE_SYS_INTTYPES_H=0
-    fi
-
-    if test $ac_cv_header_sys_bitypes_h = yes; then
-      HAVE_SYS_BITYPES_H=1
-    else
-      HAVE_SYS_BITYPES_H=0
-    fi
-
-
-
-
-  if test $APPLE_UNIVERSAL_BUILD = 0; then
-
-
-  for gltype in ptrdiff_t size_t ; do
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for bit size of $gltype" >&5
-$as_echo_n "checking for bit size of $gltype... " >&6; }
-if { as_var=gl_cv_bitsizeof_${gltype}; eval "test \"\${$as_var+set}\" = set"; }; then :
-  $as_echo_n "(cached) " >&6
-else
-  if ac_fn_c_compute_int "$LINENO" "sizeof ($gltype) * CHAR_BIT" "result"        "
-  /* BSD/OS 4.0.1 has a bug: <stddef.h>, <stdio.h> and <time.h> must be
-     included before <wchar.h>.  */
-  #include <stddef.h>
-  #include <signal.h>
-  #if HAVE_WCHAR_H
-  # include <stdio.h>
-  # include <time.h>
-  # include <wchar.h>
-  #endif
-
-#include <limits.h>"; then :
-
-else
-  result=unknown
-fi
-
-       eval gl_cv_bitsizeof_${gltype}=\$result
-
-fi
-eval ac_res=\$gl_cv_bitsizeof_${gltype}
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-    eval result=\$gl_cv_bitsizeof_${gltype}
-    if test $result = unknown; then
-                                                result=0
-    fi
-    GLTYPE=`echo "$gltype" | tr 'abcdefghijklmnopqrstuvwxyz ' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'`
-    cat >>confdefs.h <<_ACEOF
-#define BITSIZEOF_${GLTYPE} $result
-_ACEOF
-
-    eval BITSIZEOF_${GLTYPE}=\$result
-  done
-
-
-  fi
-
-
-  for gltype in sig_atomic_t wchar_t wint_t ; do
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for bit size of $gltype" >&5
-$as_echo_n "checking for bit size of $gltype... " >&6; }
-if { as_var=gl_cv_bitsizeof_${gltype}; eval "test \"\${$as_var+set}\" = set"; }; then :
-  $as_echo_n "(cached) " >&6
-else
-  if ac_fn_c_compute_int "$LINENO" "sizeof ($gltype) * CHAR_BIT" "result"        "
-  /* BSD/OS 4.0.1 has a bug: <stddef.h>, <stdio.h> and <time.h> must be
-     included before <wchar.h>.  */
-  #include <stddef.h>
-  #include <signal.h>
-  #if HAVE_WCHAR_H
-  # include <stdio.h>
-  # include <time.h>
-  # include <wchar.h>
-  #endif
-
-#include <limits.h>"; then :
-
-else
-  result=unknown
-fi
-
-       eval gl_cv_bitsizeof_${gltype}=\$result
-
-fi
-eval ac_res=\$gl_cv_bitsizeof_${gltype}
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-    eval result=\$gl_cv_bitsizeof_${gltype}
-    if test $result = unknown; then
-                                                result=0
-    fi
-    GLTYPE=`echo "$gltype" | tr 'abcdefghijklmnopqrstuvwxyz ' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'`
-    cat >>confdefs.h <<_ACEOF
-#define BITSIZEOF_${GLTYPE} $result
-_ACEOF
-
-    eval BITSIZEOF_${GLTYPE}=\$result
-  done
-
-
-
-
-  for gltype in sig_atomic_t wchar_t wint_t ; do
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $gltype is signed" >&5
-$as_echo_n "checking whether $gltype is signed... " >&6; }
-if { as_var=gl_cv_type_${gltype}_signed; eval "test \"\${$as_var+set}\" = set"; }; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-  /* BSD/OS 4.0.1 has a bug: <stddef.h>, <stdio.h> and <time.h> must be
-     included before <wchar.h>.  */
-  #include <stddef.h>
-  #include <signal.h>
-  #if HAVE_WCHAR_H
-  # include <stdio.h>
-  # include <time.h>
-  # include <wchar.h>
-  #endif
-
-            int verify[2 * (($gltype) -1 < ($gltype) 0) - 1];
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  result=yes
-else
-  result=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-       eval gl_cv_type_${gltype}_signed=\$result
-
-fi
-eval ac_res=\$gl_cv_type_${gltype}_signed
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-    eval result=\$gl_cv_type_${gltype}_signed
-    GLTYPE=`echo $gltype | tr 'abcdefghijklmnopqrstuvwxyz ' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'`
-    if test "$result" = yes; then
-      cat >>confdefs.h <<_ACEOF
-#define HAVE_SIGNED_${GLTYPE} 1
-_ACEOF
-
-      eval HAVE_SIGNED_${GLTYPE}=1
-    else
-      eval HAVE_SIGNED_${GLTYPE}=0
-    fi
-  done
-
-
-  gl_cv_type_ptrdiff_t_signed=yes
-  gl_cv_type_size_t_signed=no
-  if test $APPLE_UNIVERSAL_BUILD = 0; then
-
-
-  for gltype in ptrdiff_t size_t ; do
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $gltype integer literal suffix" >&5
-$as_echo_n "checking for $gltype integer literal suffix... " >&6; }
-if { as_var=gl_cv_type_${gltype}_suffix; eval "test \"\${$as_var+set}\" = set"; }; then :
-  $as_echo_n "(cached) " >&6
-else
-  eval gl_cv_type_${gltype}_suffix=no
-       eval result=\$gl_cv_type_${gltype}_signed
-       if test "$result" = yes; then
-         glsufu=
-       else
-         glsufu=u
-       fi
-       for glsuf in "$glsufu" ${glsufu}l ${glsufu}ll ${glsufu}i64; do
-         case $glsuf in
-           '')  gltype1='int';;
-           l)   gltype1='long int';;
-           ll)  gltype1='long long int';;
-           i64) gltype1='__int64';;
-           u)   gltype1='unsigned int';;
-           ul)  gltype1='unsigned long int';;
-           ull) gltype1='unsigned long long int';;
-           ui64)gltype1='unsigned __int64';;
-         esac
-         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-  /* BSD/OS 4.0.1 has a bug: <stddef.h>, <stdio.h> and <time.h> must be
-     included before <wchar.h>.  */
-  #include <stddef.h>
-  #include <signal.h>
-  #if HAVE_WCHAR_H
-  # include <stdio.h>
-  # include <time.h>
-  # include <wchar.h>
-  #endif
-
-              extern $gltype foo;
-              extern $gltype1 foo;
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  eval gl_cv_type_${gltype}_suffix=\$glsuf
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-         eval result=\$gl_cv_type_${gltype}_suffix
-         test "$result" != no && break
-       done
-fi
-eval ac_res=\$gl_cv_type_${gltype}_suffix
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-    GLTYPE=`echo $gltype | tr 'abcdefghijklmnopqrstuvwxyz ' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'`
-    eval result=\$gl_cv_type_${gltype}_suffix
-    test "$result" = no && result=
-    eval ${GLTYPE}_SUFFIX=\$result
-    cat >>confdefs.h <<_ACEOF
-#define ${GLTYPE}_SUFFIX $result
-_ACEOF
-
-  done
-
-
-  fi
-
-
-  for gltype in sig_atomic_t wchar_t wint_t ; do
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $gltype integer literal suffix" >&5
-$as_echo_n "checking for $gltype integer literal suffix... " >&6; }
-if { as_var=gl_cv_type_${gltype}_suffix; eval "test \"\${$as_var+set}\" = set"; }; then :
-  $as_echo_n "(cached) " >&6
-else
-  eval gl_cv_type_${gltype}_suffix=no
-       eval result=\$gl_cv_type_${gltype}_signed
-       if test "$result" = yes; then
-         glsufu=
-       else
-         glsufu=u
-       fi
-       for glsuf in "$glsufu" ${glsufu}l ${glsufu}ll ${glsufu}i64; do
-         case $glsuf in
-           '')  gltype1='int';;
-           l)   gltype1='long int';;
-           ll)  gltype1='long long int';;
-           i64) gltype1='__int64';;
-           u)   gltype1='unsigned int';;
-           ul)  gltype1='unsigned long int';;
-           ull) gltype1='unsigned long long int';;
-           ui64)gltype1='unsigned __int64';;
-         esac
-         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-  /* BSD/OS 4.0.1 has a bug: <stddef.h>, <stdio.h> and <time.h> must be
-     included before <wchar.h>.  */
-  #include <stddef.h>
-  #include <signal.h>
-  #if HAVE_WCHAR_H
-  # include <stdio.h>
-  # include <time.h>
-  # include <wchar.h>
-  #endif
-
-              extern $gltype foo;
-              extern $gltype1 foo;
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  eval gl_cv_type_${gltype}_suffix=\$glsuf
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-         eval result=\$gl_cv_type_${gltype}_suffix
-         test "$result" != no && break
-       done
-fi
-eval ac_res=\$gl_cv_type_${gltype}_suffix
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-    GLTYPE=`echo $gltype | tr 'abcdefghijklmnopqrstuvwxyz ' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ_'`
-    eval result=\$gl_cv_type_${gltype}_suffix
-    test "$result" = no && result=
-    eval ${GLTYPE}_SUFFIX=\$result
-    cat >>confdefs.h <<_ACEOF
-#define ${GLTYPE}_SUFFIX $result
-_ACEOF
-
-  done
-
-
-
-    STDINT_H=stdint.h
-  fi
-
-   if test -n "$STDINT_H"; then
-  GL_GENERATE_STDINT_H_TRUE=
-  GL_GENERATE_STDINT_H_FALSE='#'
-else
-  GL_GENERATE_STDINT_H_TRUE='#'
-  GL_GENERATE_STDINT_H_FALSE=
-fi
 
 
 
@@ -21516,8 +20805,6 @@ if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
 fi
 
 
-TOOLTIP_SUPPORT=
-WINDOW_SUPPORT=
 ## If we're using X11/GNUstep, define some consequences.
 if test "$HAVE_X_WINDOWS" = "yes" || test "$HAVE_NS" = "yes"; then
 
@@ -21526,17 +20813,7 @@ $as_echo "#define HAVE_WINDOW_SYSTEM 1" >>confdefs.h
 
 $as_echo "#define HAVE_MOUSE 1" >>confdefs.h
 
-  MOUSE_SUPPORT="\$(REAL_MOUSE_SUPPORT)"
-  TOOLTIP_SUPPORT="\${lispsource}/mouse.elc"
-
-  WINDOW_SUPPORT="\$(BASE_WINDOW_SUPPORT)"
-  test "$HAVE_X_WINDOWS" = "yes" && \
-    WINDOW_SUPPORT="$WINDOW_SUPPORT \$(X_WINDOW_SUPPORT)"
-
 fi
-
-
-
 
 
 
@@ -21776,10 +21053,6 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${GL_GENERATE_STDDEF_H_TRUE}" && test -z "${GL_GENERATE_STDDEF_H_FALSE}"; then
   as_fn_error "conditional \"GL_GENERATE_STDDEF_H\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${GL_GENERATE_STDINT_H_TRUE}" && test -z "${GL_GENERATE_STDINT_H_FALSE}"; then
-  as_fn_error "conditional \"GL_GENERATE_STDINT_H\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${gl_GNULIB_ENABLED_dosname_TRUE}" && test -z "${gl_GNULIB_ENABLED_dosname_FALSE}"; then

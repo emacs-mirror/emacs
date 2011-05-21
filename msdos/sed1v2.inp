@@ -94,13 +94,11 @@ s/\.h\.in/.h-in/
 /^WIDGET_OBJ *=/s/@WIDGET_OBJ@//
 /^CYGWIN_OBJ *=/s/@CYGWIN_OBJ@//
 /^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o w16select.o/
-/^MSDOS_SUPPORT *=/s/= */= $(MSDOS_SUPPORT_REAL)/
 /^ns_appdir *=/s/@ns_appdir@//
 /^ns_appbindir *=/s/@ns_appbindir@//
 /^ns_appsrc *=/s/@ns_appsrc@//
 /^NS_OBJ *=/s/@NS_OBJ@//
 /^NS_OBJC_OBJ *=/s/@NS_OBJC_OBJ@//
-/^NS_SUPPORT *=/s/@NS_SUPPORT@//
 /^GNU_OBJC_CFLAGS*=/s/@GNU_OBJC_CFLAGS@//
 /^LIBRESOLV *=/s/@LIBRESOLV@//
 /^LIBSELINUX_LIBS *=/s/@LIBSELINUX_LIBS@//
@@ -111,9 +109,6 @@ s/\.h\.in/.h-in/
 /^OTHER_FILES *=/s/@OTHER_FILES@//
 /^XMENU_OBJ *=/s/@XMENU_OBJ@/xmenu.o/
 /^FONT_OBJ *=/s/@FONT_OBJ@//
-/^MOUSE_SUPPORT *=/s/@MOUSE_SUPPORT@/$(REAL_MOUSE_SUPPORT)/
-/^TOOLTIP_SUPPORT *=/s/@TOOLTIP_SUPPORT@//
-/^WINDOW_SUPPORT *=/s/@WINDOW_SUPPORT@//
 /^LIBGPM *=/s/@LIBGPM@//
 /^EXEEXT *=/s/@EXEEXT@/.exe/
 /^OLDXMENU *=/s/@OLDXMENU@/nothing/
@@ -132,9 +127,10 @@ s/\.h\.in/.h-in/
 /^M_FILE *=/s!@M_FILE@!$(srcdir)/m/intel386.h!
 /^S_FILE *=/s!@S_FILE@!$(srcdir)/s/msdos.h!
 /^@SET_MAKE@$/s/@SET_MAKE@//
-/^.\$(libsrc)\/make-docfile.*>.*\/DOC/s!make-docfile!make-docfile -o ../etc/DOC!
-/^.\$(libsrc)\/make-docfile.*>.*gl-tmp/s!make-docfile!make-docfile -o gl-tmp!
+/^	[ 	]*\$(libsrc)\/make-docfile.*>.*\/DOC/s!make-docfile!make-docfile -o $(etc)/DOC!
+/^	[ 	]*\$(libsrc)\/make-docfile.*>.*gl-tmp/s!make-docfile!make-docfile -o gl-tmp!
 /^.\$(libsrc)\/make-doc/s!>.*$!!
+/^	[ 	]*\$(libsrc)\/make-docfile /s!`[^`]*`!$(lisp)!
 /^[ 	]*$/d
 /^	if test -f/,/^	fi$/c\
 	command.com /c if exist .gdbinit rm -f _gdbinit
@@ -166,6 +162,7 @@ s/^	[^ 	]*move-if-change /	update /
 /^	-\{0,1\} *ln -/s/ln -f/cp -pf/
 /^[ 	]touch /s/touch/djecho $@ >/
 s/@YMF_PASS_LDFLAGS@/flags/
+s/@lisp_frag@//
 s/@deps_frag@//
 s/@ns_frag@//
 s/@PRE_EDIT_LDFLAGS@//

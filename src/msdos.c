@@ -287,7 +287,7 @@ mouse_button_depressed (int b, int *xp, int *yp)
 void
 mouse_get_pos (FRAME_PTR *f, int insist, Lisp_Object *bar_window,
 	       enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
-	       unsigned long *time)
+	       Time *time)
 {
   int ix, iy;
   Lisp_Object frame, tail;

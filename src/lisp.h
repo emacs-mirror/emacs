@@ -470,8 +470,8 @@ enum pvec_type
 
 #define XHASH(a) ((a).i)
 #define XTYPE(a) ((enum Lisp_Type) (a).u.type)
-#define XINT(a) ((a).s.val)
-#define XUINT(a) ((a).u.val)
+#define XINT(a) ((EMACS_INT) (a).s.val)
+#define XUINT(a) ((EMACS_UINT) (a).u.val)
 
 #ifdef USE_LSB_TAG
 
@@ -2710,6 +2710,7 @@ EXFUN (Fmake_vector, 2);
 EXFUN (Fvector, MANY);
 EXFUN (Fmake_symbol, 1);
 EXFUN (Fmake_marker, 0);
+extern void string_overflow (void) NO_RETURN;
 EXFUN (Fmake_string, 2);
 extern Lisp_Object build_string (const char *);
 extern Lisp_Object make_string (const char *, EMACS_INT);

@@ -158,7 +158,7 @@ long context_menu_value = 0;
 /* display update */
 NSPoint last_mouse_motion_position;
 static NSRect last_mouse_glyph;
-static unsigned long last_mouse_movement_time = 0;
+static Time last_mouse_movement_time = 0;
 static Lisp_Object last_mouse_motion_frame;
 static EmacsScroller *last_mouse_scroll_bar = nil;
 static struct frame *ns_updating_frame;
@@ -1789,7 +1789,7 @@ note_mouse_movement (struct frame *frame, float x, float y)
 static void
 ns_mouse_position (struct frame **fp, int insist, Lisp_Object *bar_window,
                    enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
-                   unsigned long *time)
+                   Time *time)
 /* --------------------------------------------------------------------------
     External (hook): inform emacs about mouse position and hit parts.
     If a scrollbar is being dragged, set bar_window, part, x, y, time.
@@ -6531,5 +6531,3 @@ baseline level.  The default value is nil.  */);
   /* Tell emacs about this window system. */
   Fprovide (intern ("ns"), Qnil);
 }
-
-

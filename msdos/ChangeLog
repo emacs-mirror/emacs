@@ -1,3 +1,19 @@
+2011-05-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (make-docfile commands): Recognize only if the line
+	begins with a TAB.  Use $(etc) rather than a literal "../etc".
+	(`sed SED-COMMAND $(srcdir)/lisp.mk`): Edit to replace with "$(lisp).
+	(@lisp_frag@): Edit out.
+
+	* sedlibmk.inp (GNULIB_GROUP_MEMBER, HAVE_GROUP_MEMBER): Edit to
+	zero.
+
+2011-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* sed1x.inp (TOOLTIP_SUPPORT, WINDOW_SUPPORT):
+	* sed1v2.inp (MSDOS_SUPPORT, NS_SUPPORT, MOUSE_SUPPORT)
+	(TOOLTIP_SUPPORT, WINDOW_SUPPORT): No need to edit these any more.
+
 2011-05-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* inttypes.h: Include stdint.h.

@@ -28,7 +28,7 @@ srcdir=@srcdir@
 # Note the other doc Makefiles do not use VPATH anymore, instead
 # they set infodir to an absolute path.  Not doing that here in
 # case INFO_TARGETS gets too long for some feeble shells.
-# (cf src/Makefile.in's shortlisp)
+# (cf src/Makefile.in's passing of $lisp to make-docfile)
 VPATH=@srcdir@
 
 ## Where the output files go.

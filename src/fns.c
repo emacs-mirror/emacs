@@ -457,10 +457,10 @@ concat (size_t nargs, Lisp_Object *args,
   Lisp_Object prev;
   int some_multibyte;
   /* When we make a multibyte string, we can't copy text properties
-     while concatinating each string because the length of resulting
-     string can't be decided until we finish the whole concatination.
+     while concatenating each string because the length of resulting
+     string can't be decided until we finish the whole concatenation.
      So, we record strings that have text properties to be copied
-     here, and copy the text properties after the concatination.  */
+     here, and copy the text properties after the concatenation.  */
   struct textprop_rec  *textprops = NULL;
   /* Number of elements in textprops.  */
   int num_textprops = 0;
@@ -704,7 +704,7 @@ concat (size_t nargs, Lisp_Object *args,
 				      make_number (0),
 				      make_number (SCHARS (this)),
 				      Qnil);
-	  /* If successive arguments have properites, be sure that the
+	  /* If successive arguments have properties, be sure that the
 	     value of `composition' property be the copy.  */
 	  if (last_to_end == textprops[argnum].to)
 	    make_composition_value_copy (props);
@@ -2076,7 +2076,7 @@ internal_equal (register Lisp_Object o1, register Lisp_Object o2, int depth, int
 	  return compare_window_configurations (o1, o2, 0);
 
 	/* Aside from them, only true vectors, char-tables, compiled
-	   functions, and fonts (font-spec, font-entity, font-ojbect)
+	   functions, and fonts (font-spec, font-entity, font-object)
 	   are sensible to compare, so eliminate the others now.  */
 	if (size & PSEUDOVECTOR_FLAG)
 	  {
@@ -2782,7 +2782,7 @@ ITEM should be one of the following:
 `months', returning a 12-element vector of month names (locale items MON_n);
 
 `paper', returning a list (WIDTH HEIGHT) for the default paper size,
-  both measured in milimeters (locale items PAPER_WIDTH, PAPER_HEIGHT).
+  both measured in millimeters (locale items PAPER_WIDTH, PAPER_HEIGHT).
 
 If the system can't provide such information through a call to
 `nl_langinfo', or if ITEM isn't from the list above, return nil.

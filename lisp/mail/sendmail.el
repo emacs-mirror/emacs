@@ -48,9 +48,9 @@
        ((file-exists-p "/usr/sbin/sendmail") "/usr/sbin/sendmail")
        ((file-exists-p "/usr/lib/sendmail") "/usr/lib/sendmail")
        ((file-exists-p "/usr/ucblib/sendmail") "/usr/ucblib/sendmail")
-       (t "fakemail")))	       ; in lib-src, to interface to /bin/mail
+       (t "sendmail")))
   "Program used to send messages."
-  :version "24.1"			; added executable-find
+  :version "24.1"		; add executable-find, remove fakemail
   :group 'mail
   :type 'file)
 

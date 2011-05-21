@@ -2028,18 +2028,40 @@ is a string to insert in the minibuffer before reading."
     value))
 
 
-(defvar calendar-abbrev-length 3
-  "*Length of abbreviations to be used for day and month names.
-See also `calendar-day-abbrev-array' and `calendar-month-abbrev-array'.")
+(defun calendar-customized-p (symbol)
+  "Return non-nil if SYMBOL has been customized."
+  (and (default-boundp symbol)
+       (let ((standard (get symbol 'standard-value)))
+         (and standard
+              (not (equal (eval (car standard)) (default-value symbol)))))))
 
-;; FIXME does it have to start from Sunday?
+(defun calendar-abbrev-construct (full)
+  "From sequence FULL, return a vector of abbreviations.
+Each abbreviation is no longer than `calendar-abbrev-length' characters."
+  (apply 'vector (mapcar
+                  (lambda (f)
+                    (substring f 0 (min calendar-abbrev-length (length f))))
+                  full)))
+
 (defcustom calendar-day-name-array
   ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"]
-  "Array of capitalized strings giving, in order, the day names.
+  "Array of capitalized strings giving, in order from Sunday, the day names.
 The first two characters of each string will be used to head the
-day columns in the calendar.  See also the variable
-`calendar-day-abbrev-array'."
+day columns in the calendar.
+If you change this without using customize after the calendar has loaded,
+then you may also want to change `calendar-day-abbrev-array'."
   :group 'calendar
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+         (let ((dcustomized (calendar-customized-p 'calendar-day-abbrev-array))
+               (hcustomized (calendar-customized-p 'cal-html-day-abbrev-array)))
+           (set symbol value)
+           (or dcustomized
+               (setq calendar-day-abbrev-array
+                     (calendar-abbrev-construct calendar-day-name-array)))
+           (and (not hcustomized)
+                (boundp 'cal-html-day-abbrev-array)
+                (setq cal-html-day-abbrev-array calendar-day-abbrev-array))))
   :type '(vector (string :tag "Sunday")
                  (string :tag "Monday")
                  (string :tag "Tuesday")
@@ -2048,23 +2070,74 @@ day columns in the calendar.  See also the variable
                  (string :tag "Friday")
                  (string :tag "Saturday")))
 
-(defvar calendar-day-abbrev-array
-  [nil nil nil nil nil nil nil]
-  "*Array of capitalized strings giving the abbreviated day names.
+(defcustom calendar-abbrev-length 3
+  "Default length of abbreviations to use for day and month names.
+If you change this without using customize after the calendar has loaded,
+then you may also want to change `calendar-day-abbrev-array' and
+`calendar-month-abbrev-array'."
+  :group 'calendar
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+         (let ((dcustomized (calendar-customized-p 'calendar-day-abbrev-array))
+               (mcustomized (calendar-customized-p
+                             'calendar-month-abbrev-array))
+               (hcustomized (calendar-customized-p 'cal-html-day-abbrev-array)))
+           (set symbol value)
+           (or dcustomized
+               (setq calendar-day-abbrev-array
+                     (calendar-abbrev-construct calendar-day-name-array)))
+           (or mcustomized
+               (setq calendar-month-abbrev-array
+                     (calendar-abbrev-construct calendar-month-name-array)))
+           (and (not hcustomized)
+                (boundp 'cal-html-day-abbrev-array)
+                (setq cal-html-day-abbrev-array calendar-day-abbrev-array))))
+  :type 'integer)
+
+(defcustom calendar-day-abbrev-array
+  (calendar-abbrev-construct calendar-day-name-array)
+  "Array of capitalized strings giving the abbreviated day names.
 The order should be the same as that of the full names specified
 in `calendar-day-name-array'.  These abbreviations may be used
 instead of the full names in the diary file.  Do not include a
 trailing `.' in the strings specified in this variable, though
-you may use such in the diary file.  If any element of this array
-is nil, then the abbreviation will be constructed as the first
-`calendar-abbrev-length' characters of the corresponding full name.")
+you may use such in the diary file.  By default, each string is
+the first `calendar-abbrev-length' characters of the corresponding
+full name."
+  :group 'calendar
+  :initialize 'custom-initialize-default
+  :set-after '(calendar-abbrev-length calendar-day-name-array)
+  :set (lambda (symbol value)
+         (let ((hcustomized (calendar-customized-p 'cal-html-day-abbrev-array)))
+           (set symbol value)
+           (and (not hcustomized)
+                (boundp 'cal-html-day-abbrev-array)
+                (setq cal-html-day-abbrev-array calendar-day-abbrev-array))))
+  :type '(vector (string :tag "Sun")
+                 (string :tag "Mon")
+                 (string :tag "Tue")
+                 (string :tag "Wed")
+                 (string :tag "Thu")
+                 (string :tag "Fri")
+                 (string :tag "Sat"))
+  ;; Made defcustom, changed defaults from nil nil...
+  :version "24.1")
 
 (defcustom calendar-month-name-array
   ["January" "February" "March"     "April"   "May"      "June"
    "July"    "August"   "September" "October" "November" "December"]
   "Array of capitalized strings giving, in order, the month names.
-See also the variable `calendar-month-abbrev-array'."
+If you change this without using customize after the calendar has loaded,
+then you may also want to change `calendar-month-abbrev-array'."
   :group 'calendar
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+         (let ((mcustomized (calendar-customized-p
+                            'calendar-month-abbrev-array)))
+           (set symbol value)
+           (or mcustomized
+               (setq calendar-month-abbrev-array
+                     (calendar-abbrev-construct calendar-month-name-array)))))
   :type '(vector (string :tag "January")
                  (string :tag "February")
                  (string :tag "March")
@@ -2078,46 +2151,54 @@ See also the variable `calendar-month-abbrev-array'."
                  (string :tag "November")
                  (string :tag "December")))
 
-(defvar calendar-month-abbrev-array
-  [nil nil nil nil nil nil nil nil nil nil nil nil]
- "*Array of capitalized strings giving the abbreviated month names.
+(defcustom calendar-month-abbrev-array
+  (calendar-abbrev-construct calendar-month-name-array)
+ "Array of capitalized strings giving the abbreviated month names.
 The order should be the same as that of the full names specified
 in `calendar-month-name-array'.  These abbreviations are used in
 the calendar menu entries, and can also be used in the diary
 file.  Do not include a trailing `.' in the strings specified in
-this variable, though you may use such in the diary file.  If any
-element of this array is nil, then the abbreviation will be
-constructed as the first `calendar-abbrev-length' characters of the
-corresponding full name.")
+this variable, though you may use such in the diary file.  By
+default, each string is the first ``calendar-abbrev-length'
+characters of the corresponding full name."
+ :group 'calendar
+ :set-after '(calendar-abbrev-length calendar-month-name-array)
+ :type '(vector (string :tag "Jan")
+                (string :tag "Feb")
+                (string :tag "Mar")
+                (string :tag "Apr")
+                (string :tag "May")
+                (string :tag "Jun")
+                (string :tag "Jul")
+                (string :tag "Aug")
+                (string :tag "Sep")
+                (string :tag "Oct")
+                (string :tag "Nov")
+                (string :tag "Dec"))
+ ;; Made defcustom, changed defaults from nil nil...
+ :version "24.1")
 
-(defun calendar-make-alist (sequence &optional start-index filter abbrevs)
-  "Make an assoc list corresponding to SEQUENCE.
-Each element of sequence will be associated with an integer, starting
-from 1, or from START-INDEX if that is non-nil.  If a sequence ABBREVS
-is supplied, the function `calendar-abbrev-construct' is used to
-construct abbreviations corresponding to the elements in SEQUENCE.
-Each abbreviation is entered into the alist with the same
-association index as the full name it represents.
-If FILTER is provided, apply it to each key in the alist."
-  (let ((index 0)
-        (offset (or start-index 1))
-        (aseq (if abbrevs (calendar-abbrev-construct abbrevs sequence)))
-        (aseqp (if abbrevs (calendar-abbrev-construct abbrevs sequence
-                                                      'period)))
-        alist elem)
-    (dotimes (i (length sequence) (reverse alist))
-      (setq index (+ i offset)
-            elem (elt sequence i)
-            alist
-            (cons (cons (if filter (funcall filter elem) elem) index) alist))
-      (if aseq
-          (setq elem (elt aseq i)
-                alist (cons (cons (if filter (funcall filter elem) elem)
-                                  index) alist)))
-      (if aseqp
-          (setq elem (elt aseqp i)
-                alist (cons (cons (if filter (funcall filter elem) elem)
-                                  index) alist))))))
+(defun calendar-make-alist (sequence &optional start-index filter
+                                     &rest sequences)
+  "Return an association list corresponding to SEQUENCE.
+Associates each element of SEQUENCE with an incremented integer,
+starting from START-INDEX (default 1).  Applies the function FILTER,
+if provided, to each key in the alist.  Repeats the process, with
+indices starting from START-INDEX each time, for any remaining
+arguments SEQUENCES."
+  (or start-index (setq start-index 1))
+  (let (index alist)
+    (mapc (lambda (seq)
+            (setq index start-index)
+            (mapc (lambda (elem)
+                    (setq alist (cons
+                                 (cons (if filter (funcall filter elem) elem)
+                                       index)
+                                 alist)
+                          index (1+ index)))
+                  seq))
+          (append (list sequence) sequences))
+    (reverse alist)))
 
 (defun calendar-read-date (&optional noday)
   "Prompt for Gregorian date.  Return a list (month day year).
@@ -2156,23 +2237,6 @@ Negative years are interpreted as years BC; -1 being 1 BC, and so on."
   (+ (* 12 (- yr2 yr1))
      (- mon2 mon1)))
 
-(defun calendar-abbrev-construct (abbrev full &optional period)
-  "Internal calendar function to return a complete abbreviation array.
-ABBREV is an array of abbreviations, FULL the corresponding array
-of full names.  The return value is the ABBREV array, with any nil
-elements replaced by the first three characters taken from the
-corresponding element of FULL.  If optional argument PERIOD is non-nil,
-each element returned has a final `.' character."
-  (let (elem array name)
-    (dotimes (i (length full))
-      (setq name (aref full i)
-            elem (or (aref abbrev i)
-                     (substring name 0
-                                (min calendar-abbrev-length (length name))))
-            elem (format "%s%s" elem (if period "." ""))
-            array (append array (list elem))))
-    (vconcat array)))
-
 (defvar calendar-font-lock-keywords
   `((,(concat (regexp-opt (mapcar 'identity calendar-month-name-array) t)
               " -?[0-9]+")
@@ -2198,10 +2262,7 @@ be an integer in the range 0 to 6 corresponding to the day of the
 week.  Day names are taken from the variable `calendar-day-name-array',
 unless the optional argument ABBREV is non-nil, in which case
 the variable `calendar-day-abbrev-array' is used."
-  (aref (if abbrev
-            (calendar-abbrev-construct calendar-day-abbrev-array
-                                       calendar-day-name-array)
-          calendar-day-name-array)
+  (aref (if abbrev calendar-day-abbrev-array calendar-day-name-array)
         (if absolute date (calendar-day-of-week date))))
 
 (defun calendar-month-name (month &optional abbrev)
@@ -2210,10 +2271,7 @@ Months are numbered from one.  Month names are taken from the
 variable `calendar-month-name-array', unless the optional
 argument ABBREV is non-nil, in which case
 `calendar-month-abbrev-array' is used."
-  (aref (if abbrev
-            (calendar-abbrev-construct calendar-month-abbrev-array
-                                       calendar-month-name-array)
-          calendar-month-name-array)
+  (aref (if abbrev calendar-month-abbrev-array calendar-month-name-array)
         (1- month)))
 
 (defun calendar-day-of-week (date)

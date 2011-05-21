@@ -48,7 +48,6 @@ host_triplet = @host@
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(srcdir)/gnulib.mk COPYING
 @gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_TRUE@am__append_1 = gettext.h
-@gl_GNULIB_ENABLED_verify_TRUE@am__append_2 = verify.h
 subdir = lib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/00gnulib.m4 \
@@ -83,10 +82,10 @@ ARFLAGS = cru
 libgnu_a_AR = $(AR) $(ARFLAGS)
 am__DEPENDENCIES_1 =
 am__libgnu_a_SOURCES_DIST = allocator.c careadlinkat.c dtoastr.c \
-	gettext.h ignore-value.h verify.h
+	gettext.h
 am__objects_1 =
 am_libgnu_a_OBJECTS = allocator.$(OBJEXT) careadlinkat.$(OBJEXT) \
-	dtoastr.$(OBJEXT) $(am__objects_1) $(am__objects_1)
+	dtoastr.$(OBJEXT) $(am__objects_1)
 libgnu_a_OBJECTS = $(am_libgnu_a_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -208,6 +207,7 @@ GNULIB_GETS = @GNULIB_GETS@
 GNULIB_GETSUBOPT = @GNULIB_GETSUBOPT@
 GNULIB_GETUSERSHELL = @GNULIB_GETUSERSHELL@
 GNULIB_GRANTPT = @GNULIB_GRANTPT@
+GNULIB_GROUP_MEMBER = @GNULIB_GROUP_MEMBER@
 GNULIB_IMAXABS = @GNULIB_IMAXABS@
 GNULIB_IMAXDIV = @GNULIB_IMAXDIV@
 GNULIB_LCHMOD = @GNULIB_LCHMOD@
@@ -354,6 +354,7 @@ HAVE_GETOPT_H = @HAVE_GETOPT_H@
 HAVE_GETPAGESIZE = @HAVE_GETPAGESIZE@
 HAVE_GETSUBOPT = @HAVE_GETSUBOPT@
 HAVE_GRANTPT = @HAVE_GRANTPT@
+HAVE_GROUP_MEMBER = @HAVE_GROUP_MEMBER@
 HAVE_INTTYPES_H = @HAVE_INTTYPES_H@
 HAVE_LCHMOD = @HAVE_LCHMOD@
 HAVE_LCHOWN = @HAVE_LCHOWN@
@@ -480,7 +481,6 @@ MAINT = @MAINT@
 MAKEINFO = @MAKEINFO@
 MKDEPDIR = @MKDEPDIR@
 MKDIR_P = @MKDIR_P@
-MOUSE_SUPPORT = @MOUSE_SUPPORT@
 M_FILE = @M_FILE@
 NEXT_AS_FIRST_DIRECTIVE_GETOPT_H = @NEXT_AS_FIRST_DIRECTIVE_GETOPT_H@
 NEXT_AS_FIRST_DIRECTIVE_INTTYPES_H = @NEXT_AS_FIRST_DIRECTIVE_INTTYPES_H@
@@ -504,7 +504,6 @@ NEXT_TIME_H = @NEXT_TIME_H@
 NEXT_UNISTD_H = @NEXT_UNISTD_H@
 NS_OBJ = @NS_OBJ@
 NS_OBJC_OBJ = @NS_OBJC_OBJ@
-NS_SUPPORT = @NS_SUPPORT@
 OBJEXT = @OBJEXT@
 OLDXMENU = @OLDXMENU@
 OLDXMENU_DEPS = @OLDXMENU_DEPS@
@@ -631,7 +630,6 @@ TEMACS_LDFLAGS2 = @TEMACS_LDFLAGS2@
 TERMCAP_OBJ = @TERMCAP_OBJ@
 TIME_H_DEFINES_STRUCT_TIMESPEC = @TIME_H_DEFINES_STRUCT_TIMESPEC@
 TOOLKIT_LIBW = @TOOLKIT_LIBW@
-TOOLTIP_SUPPORT = @TOOLTIP_SUPPORT@
 UINT32_MAX_LT_UINTMAX_MAX = @UINT32_MAX_LT_UINTMAX_MAX@
 UINT64_MAX_EQ_ULONG_MAX = @UINT64_MAX_EQ_ULONG_MAX@
 UNEXEC_OBJ = @UNEXEC_OBJ@
@@ -641,7 +639,6 @@ VERSION = @VERSION@
 VMLIMIT_OBJ = @VMLIMIT_OBJ@
 WCHAR_T_SUFFIX = @WCHAR_T_SUFFIX@
 WIDGET_OBJ = @WIDGET_OBJ@
-WINDOW_SUPPORT = @WINDOW_SUPPORT@
 WINT_T_SUFFIX = @WINT_T_SUFFIX@
 XFT_CFLAGS = @XFT_CFLAGS@
 XFT_LIBS = @XFT_LIBS@
@@ -737,13 +734,13 @@ BUILT_SOURCES = arg-nonnull.h c++defs.h $(GETOPT_H) inttypes.h \
 EXTRA_DIST = allocator.h $(top_srcdir)/./arg-nonnull.h \
 	$(top_srcdir)/./c++defs.h careadlinkat.h md5.c md5.h dosname.h \
 	ftoastr.c ftoastr.h filemode.c filemode.h getloadavg.c \
-	getopt.c getopt.in.h getopt1.c getopt_int.h intprops.h \
-	inttypes.in.h lstat.c mktime-internal.h mktime.c readlink.c \
-	stat.c stdarg.in.h stdbool.in.h stddef.in.h stdint.in.h \
-	stdio.in.h stdlib.in.h strftime.c strftime.h strtol.c \
-	strtoul.c strtoull.c strtoimax.c strtoumax.c symlink.c \
-	sys_stat.in.h time.in.h time_r.c unistd.in.h \
-	$(top_srcdir)/./warn-on-use.h
+	getopt.c getopt.in.h getopt1.c getopt_int.h ignore-value.h \
+	intprops.h inttypes.in.h lstat.c mktime-internal.h mktime.c \
+	readlink.c stat.c stdarg.in.h stdbool.in.h stddef.in.h \
+	stdint.in.h stdio.in.h stdlib.in.h strftime.c strftime.h \
+	strtol.c strtoul.c strtoull.c strtoimax.c strtoumax.c \
+	symlink.c sys_stat.in.h time.in.h time_r.c unistd.in.h \
+	verify.h $(top_srcdir)/./warn-on-use.h
 MOSTLYCLEANDIRS = sys
 MOSTLYCLEANFILES = core *.stackdump arg-nonnull.h arg-nonnull.h-t \
 	c++defs.h c++defs.h-t getopt.h getopt.h-t inttypes.h \
@@ -754,7 +751,7 @@ MOSTLYCLEANFILES = core *.stackdump arg-nonnull.h arg-nonnull.h-t \
 noinst_LIBRARIES = libgnu.a
 DEFAULT_INCLUDES = -I. -I../src -I$(top_srcdir)/src
 libgnu_a_SOURCES = allocator.c careadlinkat.c dtoastr.c \
-	$(am__append_1) ignore-value.h $(am__append_2)
+	$(am__append_1)
 libgnu_a_LIBADD = $(gl_LIBOBJS)
 libgnu_a_DEPENDENCIES = $(gl_LIBOBJS)
 EXTRA_libgnu_a_SOURCES = md5.c ftoastr.c filemode.c getloadavg.c \
@@ -1499,6 +1496,7 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''GNULIB_GETLOGIN_R''@|$(GNULIB_GETLOGIN_R)|g' \
 	      -e 's|@''GNULIB_GETPAGESIZE''@|$(GNULIB_GETPAGESIZE)|g' \
 	      -e 's|@''GNULIB_GETUSERSHELL''@|$(GNULIB_GETUSERSHELL)|g' \
+	      -e 's|@''GNULIB_GROUP_MEMBER''@|$(GNULIB_GROUP_MEMBER)|g' \
 	      -e 's|@''GNULIB_LCHOWN''@|$(GNULIB_LCHOWN)|g' \
 	      -e 's|@''GNULIB_LINK''@|$(GNULIB_LINK)|g' \
 	      -e 's|@''GNULIB_LINKAT''@|$(GNULIB_LINKAT)|g' \
@@ -1537,6 +1535,7 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''HAVE_GETHOSTNAME''@|$(HAVE_GETHOSTNAME)|g' \
 	      -e 's|@''HAVE_GETLOGIN''@|$(HAVE_GETLOGIN)|g' \
 	      -e 's|@''HAVE_GETPAGESIZE''@|$(HAVE_GETPAGESIZE)|g' \
+	      -e 's|@''HAVE_GROUP_MEMBER''@|$(HAVE_GROUP_MEMBER)|g' \
 	      -e 's|@''HAVE_LCHOWN''@|$(HAVE_LCHOWN)|g' \
 	      -e 's|@''HAVE_LINK''@|$(HAVE_LINK)|g' \
 	      -e 's|@''HAVE_LINKAT''@|$(HAVE_LINKAT)|g' \

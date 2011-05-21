@@ -1532,7 +1532,7 @@ and returns whatever that function returns.  */)
   enum scroll_bar_part party_dummy;
   Lisp_Object x, y, retval;
   int col, row;
-  unsigned long long_dummy;
+  Time long_dummy;
   struct gcpro gcpro1;
 
   f = SELECTED_FRAME ();
@@ -1577,7 +1577,7 @@ and nil for X and Y.  */)
   Lisp_Object lispy_dummy;
   enum scroll_bar_part party_dummy;
   Lisp_Object x, y;
-  unsigned long long_dummy;
+  Time long_dummy;
 
   f = SELECTED_FRAME ();
   x = y = Qnil;
