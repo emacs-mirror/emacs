@@ -2574,7 +2574,6 @@ extern void move_gap_both (EMACS_INT, EMACS_INT);
 extern void make_gap (EMACS_INT);
 extern EMACS_INT copy_text (const unsigned char *, unsigned char *,
 			    EMACS_INT, int, int);
-extern EMACS_INT count_size_as_multibyte (const unsigned char *, EMACS_INT);
 extern int count_combining_before (const unsigned char *,
 				   EMACS_INT, EMACS_INT, EMACS_INT);
 extern int count_combining_after (const unsigned char *,

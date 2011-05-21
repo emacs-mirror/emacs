@@ -381,7 +381,7 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	  EMACS_INT bytes;
 
 	  chars = SBYTES (string);
-	  bytes = parse_str_to_multibyte (SDATA (string), chars);
+	  bytes = count_size_as_multibyte (SDATA (string), chars);
 	  if (chars < bytes)
 	    {
 	      newstr = make_uninit_multibyte_string (chars, bytes);

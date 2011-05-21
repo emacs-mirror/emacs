@@ -672,13 +672,18 @@ str_as_multibyte (unsigned char *str, EMACS_INT len, EMACS_INT nbytes,
    `str_to_multibyte'.  */
 
 EMACS_INT
-parse_str_to_multibyte (const unsigned char *str, EMACS_INT len)
+count_size_as_multibyte (const unsigned char *str, EMACS_INT len)
 {
   const unsigned char *endp = str + len;
   EMACS_INT bytes;
 
   for (bytes = 0; str < endp; str++)
-    bytes += (*str < 0x80) ? 1 : 2;
+    {
+      int n = *str < 0x80 ? 1 : 2;
+      if (INT_ADD_OVERFLOW (bytes, n))
+        string_overflow ();
+      bytes += n;
+    }
   return bytes;
 }
 

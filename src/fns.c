@@ -898,7 +898,7 @@ string_to_multibyte (Lisp_Object string)
   if (STRING_MULTIBYTE (string))
     return string;
 
-  nbytes = parse_str_to_multibyte (SDATA (string), SBYTES (string));
+  nbytes = count_size_as_multibyte (SDATA (string), SBYTES (string));
   /* If all the chars are ASCII, they won't need any more bytes once
      converted.  */
   if (nbytes == SBYTES (string))

@@ -1,3 +1,14 @@
+2011-05-20  Paul Eggert  <eggert@cs.ucla.edu>
+
+	merge count_size_as_multibyte, parse_str_to_multibyte
+	* character.c, character.h (count_size_as_multibyte):
+	Renamed from parse_str_to_multibyte; all uses changed.
+	Check for integer overflow.
+	* insdel.c, lisp.h (count_size_as_multibyte): Remove,
+	since it's now a duplicate of the other.  This is more of
+	a character than a buffer op, so better that it's in character.c.
+	* fns.c, print.c: Adjust to above changes.
+
 2011-05-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* callproc.c (Fcall_process) [MSDOS]: Fix arguments to
