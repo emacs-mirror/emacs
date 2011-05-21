@@ -1,6 +1,8 @@
 2011-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in ($(etc)/DOC): Make second command line even shorter.
+	(SOME_MACHINE_OBJECTS): Replace FONT_OBJ by its maximal expansion,
+	and add some more files.
 
 2011-05-20  Eli Zaretskii  <eliz@gnu.org>
 
