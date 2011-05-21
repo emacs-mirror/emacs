@@ -1,3 +1,8 @@
+2011-05-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (scrolling_window): Don't exclude the case that the
+	last enabled row in the desired matrix touches the bottom boundary.
+
 2011-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in ($(etc)/DOC): Make second command line even shorter.
