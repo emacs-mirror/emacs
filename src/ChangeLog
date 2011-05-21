@@ -1,3 +1,8 @@
+2011-05-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (scrolling_window): Don't exclude the case that the
+	last enabled row in the desired matrix touches the bottom boundary.
+
 2011-05-11  Drew Adams  <drew.adams@oracle.com>
 
 	* textprop.c (Fprevious_single_char_property_change): Doc fix (bug#8655).
