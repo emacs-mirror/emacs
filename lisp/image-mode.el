@@ -532,7 +532,8 @@ the image by calling `image-mode'."
   (when (image-get-display-property)
     (image-toggle-display-text)
     ;; Update image display.
-    (redraw-frame (selected-frame))
+    (mapc (lambda (window) (redraw-frame (window-frame window)))
+          (get-buffer-window-list (current-buffer) 'nomini 'visible))
     (image-toggle-display-image)))
 
 

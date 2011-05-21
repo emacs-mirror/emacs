@@ -1,5 +1,8 @@
 2011-05-21  Glenn Morris  <rgm@gnu.org>
 
+	* image-mode.el (image-after-revert-hook):
+	Redraw all frames on which the image is visible.  (Bug#8567)
+
 	* dired-aux.el (dired-touch-initial): Just use current-time.  (Bug#6887)
 
 	* wid-edit.el (widget-checklist-match-inline):
