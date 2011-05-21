@@ -229,14 +229,17 @@ List has a form of (file-name full-file-name (attribute-list))."
 
 (defun dired-touch-initial (files)
   "Create initial input value for `touch' command."
-  (let (initial)
-    (while files
-      (let ((current (nth 5 (file-attributes (car files)))))
-        (if (and initial (not (equal initial current)))
-            (setq initial (current-time) files nil)
-          (setq initial current))
-        (setq files (cdr files))))
-    (format-time-string "%Y%m%d%H%M.%S" initial)))
+  ;; Nobody can explain what this version is supposed to do.  (Bug#6887)
+  ;; Also, the manual says it uses "the present time".
+  ;;; (let (initial)
+  ;;;   (while files
+  ;;;     (let ((current (nth 5 (file-attributes (car files)))))
+  ;;;       (if (and initial (not (equal initial current)))
+  ;;;           (setq initial (current-time) files nil)
+  ;;;         (setq initial current))
+  ;;;       (setq files (cdr files))))
+  ;;;   (format-time-string "%Y%m%d%H%M.%S" initial)))
+  (format-time-string "%Y%m%d%H%M.%S" (current-time)))
 
 (defun dired-do-chxxx (attribute-name program op-symbol arg)
   ;; Change file attributes (mode, group, owner, timestamp) of marked files and

@@ -1,5 +1,7 @@
 2011-05-21  Glenn Morris  <rgm@gnu.org>
 
+	* dired-aux.el (dired-touch-initial): Just use current-time.  (Bug#6887)
+
 	* wid-edit.el (widget-checklist-match-inline):
 	Fix 2011-04-19 change.  (Bug#8649)
 
