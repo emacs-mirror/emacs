@@ -1,5 +1,8 @@
 2011-05-21  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (hack-local-variables-prop-line, hack-local-variables):
+	If only interested in the mode, don't bother doing the other stuff.
+
 	* image-mode.el (image-after-revert-hook):
 	Redraw all frames on which the image is visible.  (Bug#8567)
 
