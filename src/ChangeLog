@@ -1,3 +1,26 @@
+2011-05-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_display_spec): New function, refactored from the
+	last portion of handle_display_prop.
+	(compute_display_string_pos): Accept additional argument
+	FRAME_WINDOW_P.  Call handle_display_spec to determine whether the
+	value of a `display' property is a "replacing spec".
+	(handle_single_display_spec): Accept 2 additional arguments BUFPOS
+	and FRAME_WINDOW_P.  If IT is NULL, don't set up the iterator from
+	the display property, but just return a value indicating whether
+	the display property will replace the characters it covers.
+	(Fcurrent_bidi_paragraph_direction): Initialize the nchars and
+	frame_window_p members of struct bidi_it.
+
+	* bidi.c (bidi_fetch_char): Accept additional argument
+	FRAME_WINDOW_P and pass it to compute_display_string_pos.  All
+	callers changed.
+	(bidi_init_it): Accept additional argument FRAME_WINDOW_P and use
+	it to initialize the frame_window_p member of struct bidi_it.
+
+	* dispextern.h (struct bidi_it): New member frame_window_p.
+	(bidi_init_it, compute_display_string_pos): Update prototypes.
+
 2011-05-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (compute_display_string_pos): Non-trivial implementation.

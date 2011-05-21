@@ -581,7 +581,7 @@ bidi_line_init (struct bidi_it *bidi_it)
    string.  */
 static INLINE int
 bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
-		 EMACS_INT *ch_len, EMACS_INT *nchars)
+		 int frame_window_p, EMACS_INT *ch_len, EMACS_INT *nchars)
 {
   int ch;
 
@@ -589,7 +589,7 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
   /* If we got past the last known position of display string, compute
      the position of the next one.  That position could be at BYTEPOS.  */
   if (charpos < ZV && charpos > *disp_pos)
-    *disp_pos = compute_display_string_pos (charpos);
+    *disp_pos = compute_display_string_pos (charpos, frame_window_p);
 
   /* Fetch the character at BYTEPOS.  */
   if (bytepos >= ZV_BYTE)
@@ -625,7 +625,7 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
   /* If we just entered a run of characters covered by a display
      string, compute the position of the next display string.  */
   if (charpos + *nchars <= ZV && charpos + *nchars > *disp_pos)
-    *disp_pos = compute_display_string_pos (charpos + *nchars);
+    *disp_pos = compute_display_string_pos (charpos + *nchars, frame_window_p);
 
   return ch;
 }
@@ -754,7 +754,8 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
       do {
 	bytepos = pstartbyte;
 	pos = BYTE_TO_CHAR (bytepos);
-	ch = bidi_fetch_char (bytepos, pos, &disp_pos, &ch_len, &nchars);
+	ch = bidi_fetch_char (bytepos, pos, &disp_pos, bidi_it->frame_window_p,
+			      &ch_len, &nchars);
 	type = bidi_get_type (ch, NEUTRAL_DIR);
 
 	for (pos += nchars, bytepos += ch_len;
@@ -778,7 +779,8 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 		break;
 	      }
 	    /* Fetch next character and advance to get past it.  */
-	    ch = bidi_fetch_char (bytepos, pos, &disp_pos, &ch_len, &nchars);
+	    ch = bidi_fetch_char (bytepos, pos, &disp_pos,
+				  bidi_it->frame_window_p, &ch_len, &nchars);
 	    pos += nchars;
 	    bytepos += ch_len;
 	  }
@@ -840,12 +842,14 @@ bidi_set_paragraph_end (struct bidi_it *bidi_it)
 
 /* Initialize the bidi iterator from buffer/string position CHARPOS.  */
 void
-bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, struct bidi_it *bidi_it)
+bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, int frame_window_p,
+	      struct bidi_it *bidi_it)
 {
   if (! bidi_initialized)
     bidi_initialize ();
   bidi_it->charpos = charpos;
   bidi_it->bytepos = bytepos;
+  bidi_it->frame_window_p = frame_window_p;
   bidi_it->nchars = -1;	/* to be computed in bidi_resolve_explicit_1 */
   bidi_it->first_elt = 1;
   bidi_set_paragraph_end (bidi_it);
@@ -996,7 +1000,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	 display string, treat the entire run of covered characters as
 	 a single character u+FFFC.  */
       curchar = bidi_fetch_char (bidi_it->bytepos, bidi_it->charpos,
-				 &bidi_it->disp_pos,
+				 &bidi_it->disp_pos, bidi_it->frame_window_p,
 				 &bidi_it->ch_len, &bidi_it->nchars);
     }
   bidi_it->ch = curchar;
@@ -1674,11 +1678,13 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       EMACS_INT disp_pos = bidi_it->disp_pos;
       EMACS_INT nc = bidi_it->nchars;
       bidi_type_t chtype;
+      int fwp = bidi_it->frame_window_p;
 
       if (bidi_it->nchars <= 0)
 	abort ();
       do {
-	ch = bidi_fetch_char (bpos += clen, cpos += nc, &disp_pos, &clen, &nc);
+	ch = bidi_fetch_char (bpos += clen, cpos += nc, &disp_pos, fwp,
+			      &clen, &nc);
 	if (ch == '\n' || ch == BIDI_EOB /* || ch == LINESEP_CHAR */)
 	  chtype = NEUTRAL_B;
 	else

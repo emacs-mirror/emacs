@@ -1847,6 +1847,7 @@ struct bidi_it {
   int first_elt;		/* if non-zero, examine current char first */
   bidi_dir_t paragraph_dir;	/* current paragraph direction */
   int new_paragraph;		/* if non-zero, we expect a new paragraph */
+  int frame_window_p;		/* non-zero if displaying on a GUI frame */
   EMACS_INT separator_limit;	/* where paragraph separator should end */
   EMACS_INT disp_pos;		/* position of display string after ch */
 };
@@ -2945,7 +2946,7 @@ enum tool_bar_item_image
 
 /* Defined in bidi.c */
 
-extern void bidi_init_it (EMACS_INT, EMACS_INT, struct bidi_it *);
+extern void bidi_init_it (EMACS_INT, EMACS_INT, int, struct bidi_it *);
 extern void bidi_move_to_visually_next (struct bidi_it *);
 extern void bidi_paragraph_init (bidi_dir_t, struct bidi_it *, int);
 extern int  bidi_mirror_char (int);
@@ -3006,7 +3007,7 @@ extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
 extern int calc_pixel_width_or_height (double *, struct it *, Lisp_Object,
                                        struct font *, int, int *);
-extern EMACS_INT compute_display_string_pos (EMACS_INT);
+extern EMACS_INT compute_display_string_pos (EMACS_INT, int);
 extern EMACS_INT compute_display_string_end (EMACS_INT);
 
 #ifdef HAVE_WINDOW_SYSTEM
