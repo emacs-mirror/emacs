@@ -22,6 +22,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
+
+#include <intprops.h>
+
 #include "lisp.h"
 #include "puresize.h"
 #include "character.h"
@@ -2431,6 +2434,10 @@ arith_driver (enum arithop code, size_t nargs, register Lisp_Object *args)
   register EMACS_INT accum = 0;
   register EMACS_INT next;
 
+  int overflow = 0;
+  size_t ok_args;
+  EMACS_INT ok_accum;
+
   switch (SWITCH_ENUM_CAST (code))
     {
     case Alogior:
@@ -2451,25 +2458,47 @@ arith_driver (enum arithop code, size_t nargs, register Lisp_Object *args)
 
   for (argnum = 0; argnum < nargs; argnum++)
     {
+      if (! overflow)
+	{
+	  ok_args = argnum;
+	  ok_accum = accum;
+	}
+
       /* Using args[argnum] as argument to CHECK_NUMBER_... */
       val = args[argnum];
       CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (val);
 
       if (FLOATP (val))
-	return float_arith_driver ((double) accum, argnum, code,
+	return float_arith_driver (ok_accum, ok_args, code,
 				   nargs, args);
       args[argnum] = val;
       next = XINT (args[argnum]);
       switch (SWITCH_ENUM_CAST (code))
 	{
 	case Aadd:
+	  if (INT_ADD_OVERFLOW (accum, next))
+	    {
+	      overflow = 1;
+	      accum &= INTMASK;
+	    }
 	  accum += next;
 	  break;
 	case Asub:
+	  if (INT_SUBTRACT_OVERFLOW (accum, next))
+	    {
+	      overflow = 1;
+	      accum &= INTMASK;
+	    }
 	  accum = argnum ? accum - next : nargs == 1 ? - next : next;
 	  break;
 	case Amult:
-	  accum *= next;
+	  if (INT_MULTIPLY_OVERFLOW (accum, next))
+	    {
+	      overflow = 1;
+	      accum = (EMACS_UINT) accum * (EMACS_UINT) next & INTMASK;
+	    }
+	  else
+	    accum *= next;
 	  break;
 	case Adiv:
 	  if (!argnum)
@@ -2501,6 +2530,9 @@ arith_driver (enum arithop code, size_t nargs, register Lisp_Object *args)
 	}
     }
 
+  accum &= INTMASK;
+  if (MOST_POSITIVE_FIXNUM < accum)
+    accum += MOST_NEGATIVE_FIXNUM - (MOST_POSITIVE_FIXNUM + 1);
   XSETINT (val, accum);
   return val;
 }
