@@ -1,3 +1,8 @@
+2011-01-22  Jari Aalto  <jari.aalto@cante.net>
+
+	* vc/vc-dir.el (vc-default-dir-printer): Give edited tag a
+	different face (Bug#8178).
+
 2011-05-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc/diff-mode.el (diff-changed): Don't use terminal specs for
