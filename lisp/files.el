@@ -3049,7 +3049,7 @@ mode, if there is one, otherwise nil."
 	    ((looking-at "[ \t]*\\([^ \t\n\r:;]+\\)\\([ \t]*-\\*-\\)")
 	     ;; Simple form: "-*- MODENAME -*-".
 	     (if mode-only
-		 (intern (match-string 1))))
+		 (intern (concat (match-string 1) "-mode"))))
 	    (t
 	     ;; Hairy form: '-*-' [ <variable> ':' <value> ';' ]* '-*-'
 	     ;; (last ";" is optional).
@@ -3077,7 +3077,8 @@ mode, if there is one, otherwise nil."
 		      (keyname (downcase (symbol-name key))))
 		 (if mode-only
 		     (and (equal keyname "mode")
-			  (setq result val))
+			  (setq result
+				(intern (concat (symbol-name val) "-mode"))))
 		   (or (equal keyname "coding")
 		       (condition-case nil
 			   (push (cons (if (eq key 'eval)
@@ -3233,7 +3234,9 @@ is specified, and return the corresponding mode symbol, or nil."
 			(setq val (read (current-buffer))))
 		      (if mode-only
 			  (if (eq var 'mode)
-			      (setq result val))
+			      (setq result
+				    (intern (concat (symbol-name val)
+						    "-mode"))))
 			(unless (eq var 'coding)
 			  (condition-case nil
 			      (push (cons (if (eq var 'eval)
