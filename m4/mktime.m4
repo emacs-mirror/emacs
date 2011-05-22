@@ -1,4 +1,4 @@
-# serial 19
+# serial 20
 dnl Copyright (C) 2002-2003, 2005-2007, 2009-2011 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
@@ -231,6 +231,23 @@ AC_DEFUN([gl_FUNC_MKTIME],
     gl_PREREQ_MKTIME
   else
     REPLACE_MKTIME=0
+  fi
+])
+
+AC_DEFUN([gl_FUNC_MKTIME_INTERNAL], [
+  AC_REQUIRE([gl_FUNC_MKTIME])
+  if test $REPLACE_MKTIME = 0; then
+    dnl BeOS has __mktime_internal in libc, but other platforms don't.
+    AC_CHECK_FUNC([__mktime_internal],
+      [AC_DEFINE([mktime_internal], [__mktime_internal],
+         [Define to the real name of the mktime_internal function.])
+      ],
+      [dnl mktime works but it doesn't export __mktime_internal,
+       dnl so we need to substitute our own mktime implementation.
+       REPLACE_MKTIME=1
+       AC_LIBOBJ([mktime])
+       gl_PREREQ_MKTIME
+      ])
   fi
 ])
 
