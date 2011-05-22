@@ -544,11 +544,10 @@ extern Lisp_Object make_number (EMACS_INT);
 
 /* Value is non-zero if I doesn't fit into a Lisp fixnum.  It is
    written this way so that it also works if I is of unsigned
-   type.  */
+   type or if I is a NaN.  */
 
 #define FIXNUM_OVERFLOW_P(i) \
-  ((i) > MOST_POSITIVE_FIXNUM \
-   || ((i) < 0 && (i) < MOST_NEGATIVE_FIXNUM))
+  (! ((0 <= (i) || MOST_NEGATIVE_FIXNUM <= (i)) && (i) <= MOST_POSITIVE_FIXNUM))
 
 /* Extract a value or address from a Lisp_Object.  */
 

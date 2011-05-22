@@ -1,3 +1,7 @@
+2011-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (FIXNUM_OVERFLOW_P): Work even if arg is a NaN.
+
 2011-05-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* data.c: Avoid integer truncation in expressions involving floats.
