@@ -3147,7 +3147,9 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 (defun hack-local-variables (&optional mode-only)
   "Parse and put into effect this buffer's local variables spec.
 If MODE-ONLY is non-nil, all we do is check whether a \"mode:\"
-is specified, and return the corresponding mode symbol, or nil."
+is specified, and return the corresponding mode symbol, or nil.
+In this case, we try to ignore minor-modes, and only return a
+major-mode."
   (let ((enable-local-variables
 	 (and local-enable-local-variables enable-local-variables))
 	result)
@@ -3226,17 +3228,20 @@ is specified, and return the corresponding mode symbol, or nil."
 		    (let* ((str (buffer-substring beg (point)))
 			   (var (let ((read-circle nil))
 				  (read str)))
-			   val)
+			   val val2)
 		      ;; Read the variable value.
 		      (skip-chars-forward "^:")
 		      (forward-char 1)
 		      (let ((read-circle nil))
 			(setq val (read (current-buffer))))
 		      (if mode-only
-			  (if (eq var 'mode)
-			      (setq result
-				    (intern (concat (symbol-name val)
-						    "-mode"))))
+			  (and (eq var 'mode)
+			       ;; Specifying minor-modes via mode: is
+			       ;; deprecated, but try to reject them anyway.
+			       (not (string-match
+				     "-minor\\'"
+				     (setq val2 (symbol-name val))))
+			       (setq result (intern (concat val2 "-mode"))))
 			(unless (eq var 'coding)
 			  (condition-case nil
 			      (push (cons (if (eq var 'eval)
