@@ -3032,63 +3032,61 @@ n  -- to ignore the local variables list.")
 
 (defun hack-local-variables-prop-line (&optional mode-only)
   "Return local variables specified in the -*- line.
-Ignore any specification for `mode:' and `coding:';
-`set-auto-mode' should already have handled `mode:',
-`set-auto-coding' should already have handled `coding:'.
+Returns an alist of elements (VAR . VAL), where VAR is a variable
+and VAL is the specified value.  Ignores any specification for
+`mode:' and `coding:' (which should have already been handled
+by `set-auto-mode' and `set-auto-coding', respectively).
+Throws an error if the -*- line is malformed.
 
-If MODE-ONLY is non-nil, all we do is check whether the major
-mode is specified, returning t if it is specified.  Otherwise,
-return an alist of elements (VAR . VAL), where VAR is a variable
-and VAL is the specified value."
+If MODE-ONLY is non-nil, just returns the symbol specifying the
+mode, if there is one, otherwise nil."
   (save-excursion
     (goto-char (point-min))
     (let ((end (set-auto-mode-1))
-	  result mode-specified)
-      ;; Parse the -*- line into the RESULT alist.
-      ;; Also set MODE-SPECIFIED if we see a spec or `mode'.
+	  result)
       (cond ((not end)
 	     nil)
 	    ((looking-at "[ \t]*\\([^ \t\n\r:;]+\\)\\([ \t]*-\\*-\\)")
-	     ;; Simple form: "-*- MODENAME -*-".  Already handled.
-	     (setq mode-specified t)
-	     nil)
+	     ;; Simple form: "-*- MODENAME -*-".
+	     (if mode-only
+		 (intern (match-string 1))))
 	    (t
 	     ;; Hairy form: '-*-' [ <variable> ':' <value> ';' ]* '-*-'
 	     ;; (last ";" is optional).
-	     (while (and (< (point) end)
-			 (or (not mode-only)
-			     (not mode-specified)))
+	     ;; If MODE-ONLY, just check for `mode'.
+	     ;; Otherwise, parse the -*- line into the RESULT alist.
+	     (while (and (or (not mode-only)
+			     (not result))
+			 (< (point) end))
 	       (or (looking-at "[ \t]*\\([^ \t\n:]+\\)[ \t]*:[ \t]*")
 		   (error "Malformed -*- line"))
 	       (goto-char (match-end 0))
 	       ;; There used to be a downcase here,
 	       ;; but the manual didn't say so,
 	       ;; and people want to set var names that aren't all lc.
-	       (let ((key (intern (match-string 1)))
-		     (val (save-restriction
-			    (narrow-to-region (point) end)
-			    (let ((read-circle nil))
-			      (read (current-buffer))))))
-		 ;; It is traditional to ignore
-		 ;; case when checking for `mode' in set-auto-mode,
-		 ;; so we must do that here as well.
-		 ;; That is inconsistent, but we're stuck with it.
-		 ;; The same can be said for `coding' in set-auto-coding.
-		 (or (and (equal (downcase (symbol-name key)) "mode")
-			  (setq mode-specified t))
-		     mode-only
-		     (equal (downcase (symbol-name key)) "coding")
-		     (condition-case nil
-			 (push (cons (if (eq key 'eval)
-					 'eval
-				       (indirect-variable key))
-				     val) result)
-		       (error nil)))
-		 (skip-chars-forward " \t;")))))
-
-      (if mode-only
-	  mode-specified
-	result))))
+	       (let* ((key (intern (match-string 1)))
+		      (val (save-restriction
+			     (narrow-to-region (point) end)
+			     (let ((read-circle nil))
+			       (read (current-buffer)))))
+		      ;; It is traditional to ignore
+		      ;; case when checking for `mode' in set-auto-mode,
+		      ;; so we must do that here as well.
+		      ;; That is inconsistent, but we're stuck with it.
+		      ;; The same can be said for `coding' in set-auto-coding.
+		      (keyname (downcase (symbol-name key))))
+		 (if mode-only
+		     (and (equal keyname "mode")
+			  (setq result val))
+		   (or (equal keyname "coding")
+		       (condition-case nil
+			   (push (cons (if (eq key 'eval)
+					   'eval
+					 (indirect-variable key))
+				       val) result)
+			 (error nil))))
+		 (skip-chars-forward " \t;")))
+	     result)))))
 
 (defun hack-local-variables-filter (variables dir-name)
   "Filter local variable settings, querying the user if necessary.
@@ -3147,8 +3145,8 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 
 (defun hack-local-variables (&optional mode-only)
   "Parse and put into effect this buffer's local variables spec.
-If MODE-ONLY is non-nil, all we do is check whether the major mode
-is specified, returning t if it is specified."
+If MODE-ONLY is non-nil, all we do is check whether a \"mode:\"
+is specified, and return the corresponding mode symbol, or nil."
   (let ((enable-local-variables
 	 (and local-enable-local-variables enable-local-variables))
 	result)
@@ -3235,7 +3233,7 @@ is specified, returning t if it is specified."
 			(setq val (read (current-buffer))))
 		      (if mode-only
 			  (if (eq var 'mode)
-			      (setq result t))
+			      (setq result val))
 			(unless (eq var 'coding)
 			  (condition-case nil
 			      (push (cons (if (eq var 'eval)
