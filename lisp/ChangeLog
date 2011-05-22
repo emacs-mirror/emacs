@@ -1,4 +1,4 @@
-2011-05-22  Sean Neakums  <sneakums@zork.net>
+2011-05-22  Sean Neakums  <sneakums@zork.net>  (tiny change)
 
 	* mail/supercite.el (sc-default-cite-frame): Handle
 	sc-nested-citation-p when sc-cite-blank-lines-p is non-nil.
