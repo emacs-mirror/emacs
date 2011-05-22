@@ -103,7 +103,7 @@ static Lisp_Object clean_local_selection_data (Lisp_Object);
 
 static Lisp_Object QSECONDARY, QSTRING, QINTEGER, QCLIPBOARD, QTIMESTAMP,
   QTEXT, QDELETE, QMULTIPLE, QINCR, QEMACS_TMP, QTARGETS, QATOM, QNULL,
-  QATOM_PAIR, QSAVE_TARGETS;
+  QATOM_PAIR;
 
 static Lisp_Object QCOMPOUND_TEXT;	/* This is a type of selection.  */
 static Lisp_Object QUTF8_STRING;	/* This is a type of selection.  */
@@ -1996,18 +1996,18 @@ x_handle_selection_notify (XSelectionEvent *event)
 
 DEFUN ("x-own-selection-internal", Fx_own_selection_internal,
        Sx_own_selection_internal, 2, 2, 0,
-       doc: /* Assert an X selection of the given TYPE with the given VALUE.
-TYPE is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+       doc: /* Assert an X selection of type SELECTION and value VALUE.
+SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 VALUE is typically a string, or a cons of two markers, but may be
 anything that the functions on `selection-converter-alist' know about.  */)
-  (Lisp_Object selection_name, Lisp_Object selection_value)
+  (Lisp_Object selection, Lisp_Object value)
 {
   check_x ();
-  CHECK_SYMBOL (selection_name);
-  if (NILP (selection_value)) error ("SELECTION-VALUE may not be nil");
-  x_own_selection (selection_name, selection_value);
-  return selection_value;
+  CHECK_SYMBOL (selection);
+  if (NILP (value)) error ("VALUE may not be nil");
+  x_own_selection (selection, value);
+  return value;
 }
 
 
@@ -2046,22 +2046,16 @@ selections.  If omitted, defaults to the time for the last event.  */)
   val = x_get_local_selection (selection_symbol, target_type, 1);
 
   if (NILP (val))
-    {
-      val = x_get_foreign_selection (selection_symbol, target_type, time_stamp);
-      goto DONE;
-    }
+    RETURN_UNGCPRO (x_get_foreign_selection (selection_symbol,
+					     target_type, time_stamp));
 
-  if (CONSP (val)
-      && SYMBOLP (XCAR (val)))
+  if (CONSP (val) && SYMBOLP (XCAR (val)))
     {
       val = XCDR (val);
       if (CONSP (val) && NILP (XCDR (val)))
 	val = XCAR (val);
     }
-  val = clean_local_selection_data (val);
- DONE:
-  UNGCPRO;
-  return val;
+  RETURN_UNGCPRO (clean_local_selection_data (val));
 }
 
 DEFUN ("x-disown-selection-internal", Fx_disown_selection_internal,
@@ -2656,7 +2650,6 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   DEFSYM (QTARGETS, "TARGETS");
   DEFSYM (QATOM, "ATOM");
   DEFSYM (QATOM_PAIR, "ATOM_PAIR");
-  DEFSYM (QSAVE_TARGETS, "SAVE_TARGETS");
   DEFSYM (QNULL, "NULL");
   DEFSYM (Qcompound_text_with_extensions, "compound-text-with-extensions");
   DEFSYM (Qforeign_selection, "foreign-selection");
