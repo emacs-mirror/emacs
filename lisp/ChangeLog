@@ -1,5 +1,9 @@
 2011-05-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Convert ' to #' for
+	funcall as well (bug#8712).  Warn when performing those conversions.
+	* emacs-lisp/bytecomp.el (byte-compile-form): Fix error report.
+
 	* progmodes/grep.el (grep-mode): Fix it for good (bug#8684)!
 
 2011-05-22  Glenn Morris  <rgm@gnu.org>
