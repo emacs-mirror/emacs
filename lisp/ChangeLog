@@ -1,3 +1,8 @@
+2011-05-22  Sean Neakums  <sneakums@zork.net>
+
+	* mail/supercite.el (sc-default-cite-frame): Handle
+	sc-nested-citation-p when sc-cite-blank-lines-p is non-nil.
+
 2011-05-16  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* diff-mode.el (diff-fixup-modifs): Fix last change.
