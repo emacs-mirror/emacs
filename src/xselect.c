@@ -38,6 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "process.h"
 #include "termhooks.h"
 #include "keyboard.h"
+#include "character.h"
 
 #include <X11/Xproto.h>
 
@@ -400,17 +401,6 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type, in
       handler_fn = Qnil;
       value = XCAR (XCDR (XCDR (local_value)));
     }
-#if 0
-  else if (EQ (target_type, QDELETE))
-    {
-      handler_fn = Qnil;
-      Fx_disown_selection_internal
-	(selection_symbol,
-	 XCAR (XCDR (XCDR (local_value))));
-      value = QNULL;
-    }
-#endif
-
 #if 0 /* #### MULTIPLE doesn't work yet */
   else if (CONSP (target_type)
 	   && XCAR (target_type) == QMULTIPLE)
@@ -2651,25 +2641,23 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   x_selection_timeout = 0;
 
   /* QPRIMARY is defined in keyboard.c.  */
-  QSECONDARY = intern_c_string ("SECONDARY");	staticpro (&QSECONDARY);
-  QSTRING    = intern_c_string ("STRING");	staticpro (&QSTRING);
-  QINTEGER   = intern_c_string ("INTEGER");	staticpro (&QINTEGER);
-  QCLIPBOARD = intern_c_string ("CLIPBOARD");	staticpro (&QCLIPBOARD);
-  QTIMESTAMP = intern_c_string ("TIMESTAMP");	staticpro (&QTIMESTAMP);
-  QTEXT      = intern_c_string ("TEXT"); 	staticpro (&QTEXT);
-  QCOMPOUND_TEXT = intern_c_string ("COMPOUND_TEXT"); staticpro (&QCOMPOUND_TEXT);
-  QUTF8_STRING = intern_c_string ("UTF8_STRING"); staticpro (&QUTF8_STRING);
-  QDELETE    = intern_c_string ("DELETE");	staticpro (&QDELETE);
-  QMULTIPLE  = intern_c_string ("MULTIPLE");	staticpro (&QMULTIPLE);
-  QINCR      = intern_c_string ("INCR");		staticpro (&QINCR);
-  QEMACS_TMP = intern_c_string ("_EMACS_TMP_");	staticpro (&QEMACS_TMP);
-  QTARGETS   = intern_c_string ("TARGETS");	staticpro (&QTARGETS);
-  QATOM	     = intern_c_string ("ATOM");		staticpro (&QATOM);
-  QATOM_PAIR = intern_c_string ("ATOM_PAIR");	staticpro (&QATOM_PAIR);
-  QNULL	     = intern_c_string ("NULL");		staticpro (&QNULL);
-  Qcompound_text_with_extensions = intern_c_string ("compound-text-with-extensions");
-  staticpro (&Qcompound_text_with_extensions);
-
-  Qforeign_selection = intern_c_string ("foreign-selection");
-  staticpro (&Qforeign_selection);
+  DEFSYM (QSECONDARY, "SECONDARY");
+  DEFSYM (QSTRING, "STRING");
+  DEFSYM (QINTEGER, "INTEGER");
+  DEFSYM (QCLIPBOARD, "CLIPBOARD");
+  DEFSYM (QTIMESTAMP, "TIMESTAMP");
+  DEFSYM (QTEXT, "TEXT");
+  DEFSYM (QCOMPOUND_TEXT, "COMPOUND_TEXT");
+  DEFSYM (QUTF8_STRING, "UTF8_STRING");
+  DEFSYM (QDELETE, "DELETE");
+  DEFSYM (QMULTIPLE, "MULTIPLE");
+  DEFSYM (QINCR, "INCR");
+  DEFSYM (QEMACS_TMP, "_EMACS_TMP_");
+  DEFSYM (QTARGETS, "TARGETS");
+  DEFSYM (QATOM, "ATOM");
+  DEFSYM (QATOM_PAIR, "ATOM_PAIR");
+  DEFSYM (QSAVE_TARGETS, "SAVE_TARGETS");
+  DEFSYM (QNULL, "NULL");
+  DEFSYM (Qcompound_text_with_extensions, "compound-text-with-extensions");
+  DEFSYM (Qforeign_selection, "foreign-selection");
 }
