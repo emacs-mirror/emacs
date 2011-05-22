@@ -916,11 +916,12 @@ written in the Emacs internal character code).
 @section Specifying a File's Coding System
 
   If Emacs recognizes the encoding of a file incorrectly, you can
-reread the file using the correct coding system by typing @kbd{C-x
-@key{RET} r @var{coding-system} @key{RET}}.  To see what coding system
-Emacs actually used to decode the file, look at the coding system
-mnemonic letter near the left edge of the mode line (@pxref{Mode
-Line}), or type @kbd{C-h C @key{RET}}.
+reread the file using the correct coding system with @kbd{C-x
+@key{RET} r} (@code{revert-buffer-with-coding-system}).  This command
+prompts for the coding system to use.  To see what coding system Emacs
+actually used to decode the file, look at the coding system mnemonic
+letter near the left edge of the mode line (@pxref{Mode Line}), or
+type @kbd{C-h C} (@code{describe-coding-system}).
 
 @vindex coding
   You can specify the coding system for a particular file in the file
@@ -994,15 +995,16 @@ one:
 
 @table @kbd
 @item C-x @key{RET} f @var{coding} @key{RET}
-Use coding system @var{coding} for saving or revisiting the visited
-file in the current buffer.
+Use coding system @var{coding} to save or revisit the visited file in
+the current buffer (@code{set-buffer-file-coding-system})
 
 @item C-x @key{RET} c @var{coding} @key{RET}
 Specify coding system @var{coding} for the immediately following
-command.
+command (@code{universal-coding-system-argument}).
 
 @item C-x @key{RET} r @var{coding} @key{RET}
-Revisit the current file using the coding system @var{coding}.
+Revisit the current file using the coding system @var{coding}
+(@code{revert-buffer-with-coding-system}).
 
 @item M-x recode-region @key{RET} @var{right} @key{RET} @var{wrong} @key{RET}
 Convert a region that was decoded using coding system @var{wrong},
@@ -1084,19 +1086,17 @@ in communication with other processes.
 @table @kbd
 @item C-x @key{RET} x @var{coding} @key{RET}
 Use coding system @var{coding} for transferring selections to and from
-other window-based applications.
+other window-based applications (@code{set-selection-coding-system}).
 
 @item C-x @key{RET} X @var{coding} @key{RET}
 Use coding system @var{coding} for transferring @emph{one}
-selection---the next one---to or from another window-based application.
+selection---the next one---to or from another window-based application
+(@code{set-next-selection-coding-system}).
 
 @item C-x @key{RET} p @var{input-coding} @key{RET} @var{output-coding} @key{RET}
 Use coding systems @var{input-coding} and @var{output-coding} for
-subprocess input and output in the current buffer.
-
-@item C-x @key{RET} c @var{coding} @key{RET}
-Specify coding system @var{coding} for the immediately following
-command.
+subprocess input and output in the current buffer
+(@code{set-buffer-process-coding-system}).
 @end table
 
 @kindex C-x RET x
@@ -1134,9 +1134,10 @@ own buffer, and thus you can use this command to specify translation to
 and from a particular subprocess by giving the command in the
 corresponding buffer.
 
-  You can also use @kbd{C-x @key{RET} c} just before the command that
-runs or starts a subprocess, to specify the coding system to use for
-communication with that subprocess.
+  You can also use @kbd{C-x @key{RET} c}
+(@code{universal-coding-system-argument}) just before the command that
+runs or starts a subprocess, to specify the coding system for
+communicating with that subprocess.  @xref{Text Coding}.
 
   The default for translation of process input and output depends on the
 current language environment.
@@ -1160,7 +1161,7 @@ the text representation.)
 @table @kbd
 @item C-x @key{RET} F @var{coding} @key{RET}
 Use coding system @var{coding} for encoding and decoding file
-@emph{names}.
+@emph{names} (@code{set-file-name-coding-system}).
 @end table
 
 @vindex file-name-coding-system
@@ -1205,10 +1206,12 @@ system, and the coding system to which you wish to convert.
 
 @table @kbd
 @item C-x @key{RET} k @var{coding} @key{RET}
-Use coding system @var{coding} for keyboard input.
+Use coding system @var{coding} for keyboard input
+(@code{set-keyboard-coding-system}).
 
 @item C-x @key{RET} t @var{coding} @key{RET}
-Use coding system @var{coding} for terminal output.
+Use coding system @var{coding} for terminal output
+(@code{set-terminal-coding-system}).
 @end table
 
 @kindex C-x RET t
