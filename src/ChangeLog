@@ -1,3 +1,7 @@
+2011-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xselect.c (QSAVE_TARGETS): New static var, to fix build failure.
+
 2011-05-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xselect.c (syms_of_xselect): Include character.h; use DEFSYM.
