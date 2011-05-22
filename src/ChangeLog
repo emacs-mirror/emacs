@@ -1,5 +1,25 @@
 2011-05-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Rework Fformat to avoid integer overflow issues.
+	* editfns.c: Include <float.h> unconditionally, as it's everywhere
+	now (part of C89).  Include <verify.h>.
+	(MAX_10_EXP, CONVERTED_BYTE_SIZE): Remove; no longer needed.
+	(pWIDE, pWIDElen, signed_wide, unsigned_wide): New defns.
+	(Fformat): Avoid the prepass trying to compute sizes; it was only
+	approximate and thus did not catch overflow reliably.  Instead, walk
+	through the format just once, formatting and computing sizes as we go,
+	checking for integer overflow at every step, and allocating a larger
+	buffer as needed.  Keep track separately whether the format is
+	multibyte.  Keep only the most-recently calculated precision, rather
+	than them all.  Record whether each argument has been converted to
+	string.  Use EMACS_INT, not int, for byte and char and arg counts.
+	Support field widths and precisions larger than INT_MAX.  Avoid
+	sprintf's undefined behavior with conversion specifications such as %#d
+	and %.0c.  Fix bug with strchr succeeding on '\0' when looking for
+	flags.  Fix bug with (format "%c" 256.0).  Avoid integer overflow when
+	formatting out-of-range floating point numbers with int
+	formats. (Bug#8668)
+
 	* lisp.h (FIXNUM_OVERFLOW_P): Work even if arg is a NaN.
 
 2011-05-21  Paul Eggert  <eggert@cs.ucla.edu>
