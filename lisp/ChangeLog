@@ -1,3 +1,8 @@
+2011-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio.el (eieio-defgeneric-form-primary-only-one):
+	Fix function quoting.  Use backquote better.
+
 2011-05-22  Yuanle Song  <sylecn@gmail.com>
 
 	* nxml/rng-xsd.el (rng-xsd-check-pattern): Use case-sensitive
