@@ -399,6 +399,12 @@ else allout's special hanging-indent maintaining auto-fill function,
   :type 'boolean
   :group 'allout)
 (make-variable-buffer-local 'allout-inhibit-auto-fill)
+;;;_  = allout-inhibit-auto-fill-on-headline
+(defcustom allout-inhibit-auto-fill-on-headline nil
+  "If non-nil, auto-fill will be inhibited while on topic's header line."
+  :type 'boolean
+  :group 'allout)
+(make-variable-buffer-local 'allout-inhibit-auto-fill-on-headline)
 ;;;_  = allout-use-hanging-indents
 (defcustom allout-use-hanging-indents t
   "If non-nil, topic body text auto-indent defaults to indent of the header.
@@ -3848,7 +3854,9 @@ topic prior to the current one."
 Maintains outline hanging topic indentation if
 `allout-use-hanging-indents' is set."
 
-  (when (not allout-inhibit-auto-fill)
+  (when (and (not allout-inhibit-auto-fill)
+             (or (not allout-inhibit-auto-fill-on-headline)
+                 (not (allout-on-current-heading-p))))
     (let ((fill-prefix (if allout-use-hanging-indents
                            ;; Check for topic header indentation:
                            (save-match-data

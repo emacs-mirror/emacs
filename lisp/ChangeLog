@@ -1,3 +1,9 @@
+2011-05-23  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-inhibit-auto-fill-on-headline): Create new
+	customization variable and implement: If non-nil, auto-fill will
+	be inhibited while on topic's header line.
+
 2011-05-23  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* play/5x5.el: I/ Add an arithmetic solver to suggest positions to
