@@ -38,6 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "process.h"
 #include "termhooks.h"
 #include "keyboard.h"
+#include "character.h"
 
 #include <X11/Xproto.h>
 
@@ -400,17 +401,6 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type, in
       handler_fn = Qnil;
       value = XCAR (XCDR (XCDR (local_value)));
     }
-#if 0
-  else if (EQ (target_type, QDELETE))
-    {
-      handler_fn = Qnil;
-      Fx_disown_selection_internal
-	(selection_symbol,
-	 XCAR (XCDR (XCDR (local_value))));
-      value = QNULL;
-    }
-#endif
-
 #if 0 /* #### MULTIPLE doesn't work yet */
   else if (CONSP (target_type)
 	   && XCAR (target_type) == QMULTIPLE)
@@ -2006,18 +1996,18 @@ x_handle_selection_notify (XSelectionEvent *event)
 
 DEFUN ("x-own-selection-internal", Fx_own_selection_internal,
        Sx_own_selection_internal, 2, 2, 0,
-       doc: /* Assert an X selection of the given TYPE with the given VALUE.
-TYPE is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
+       doc: /* Assert an X selection of type SELECTION and value VALUE.
+SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 VALUE is typically a string, or a cons of two markers, but may be
 anything that the functions on `selection-converter-alist' know about.  */)
-  (Lisp_Object selection_name, Lisp_Object selection_value)
+  (Lisp_Object selection, Lisp_Object value)
 {
   check_x ();
-  CHECK_SYMBOL (selection_name);
-  if (NILP (selection_value)) error ("SELECTION-VALUE may not be nil");
-  x_own_selection (selection_name, selection_value);
-  return selection_value;
+  CHECK_SYMBOL (selection);
+  if (NILP (value)) error ("VALUE may not be nil");
+  x_own_selection (selection, value);
+  return value;
 }
 
 
@@ -2056,22 +2046,16 @@ selections.  If omitted, defaults to the time for the last event.  */)
   val = x_get_local_selection (selection_symbol, target_type, 1);
 
   if (NILP (val))
-    {
-      val = x_get_foreign_selection (selection_symbol, target_type, time_stamp);
-      goto DONE;
-    }
+    RETURN_UNGCPRO (x_get_foreign_selection (selection_symbol,
+					     target_type, time_stamp));
 
-  if (CONSP (val)
-      && SYMBOLP (XCAR (val)))
+  if (CONSP (val) && SYMBOLP (XCAR (val)))
     {
       val = XCDR (val);
       if (CONSP (val) && NILP (XCDR (val)))
 	val = XCAR (val);
     }
-  val = clean_local_selection_data (val);
- DONE:
-  UNGCPRO;
-  return val;
+  RETURN_UNGCPRO (clean_local_selection_data (val));
 }
 
 DEFUN ("x-disown-selection-internal", Fx_disown_selection_internal,
@@ -2651,25 +2635,22 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   x_selection_timeout = 0;
 
   /* QPRIMARY is defined in keyboard.c.  */
-  QSECONDARY = intern_c_string ("SECONDARY");	staticpro (&QSECONDARY);
-  QSTRING    = intern_c_string ("STRING");	staticpro (&QSTRING);
-  QINTEGER   = intern_c_string ("INTEGER");	staticpro (&QINTEGER);
-  QCLIPBOARD = intern_c_string ("CLIPBOARD");	staticpro (&QCLIPBOARD);
-  QTIMESTAMP = intern_c_string ("TIMESTAMP");	staticpro (&QTIMESTAMP);
-  QTEXT      = intern_c_string ("TEXT"); 	staticpro (&QTEXT);
-  QCOMPOUND_TEXT = intern_c_string ("COMPOUND_TEXT"); staticpro (&QCOMPOUND_TEXT);
-  QUTF8_STRING = intern_c_string ("UTF8_STRING"); staticpro (&QUTF8_STRING);
-  QDELETE    = intern_c_string ("DELETE");	staticpro (&QDELETE);
-  QMULTIPLE  = intern_c_string ("MULTIPLE");	staticpro (&QMULTIPLE);
-  QINCR      = intern_c_string ("INCR");		staticpro (&QINCR);
-  QEMACS_TMP = intern_c_string ("_EMACS_TMP_");	staticpro (&QEMACS_TMP);
-  QTARGETS   = intern_c_string ("TARGETS");	staticpro (&QTARGETS);
-  QATOM	     = intern_c_string ("ATOM");		staticpro (&QATOM);
-  QATOM_PAIR = intern_c_string ("ATOM_PAIR");	staticpro (&QATOM_PAIR);
-  QNULL	     = intern_c_string ("NULL");		staticpro (&QNULL);
-  Qcompound_text_with_extensions = intern_c_string ("compound-text-with-extensions");
-  staticpro (&Qcompound_text_with_extensions);
-
-  Qforeign_selection = intern_c_string ("foreign-selection");
-  staticpro (&Qforeign_selection);
+  DEFSYM (QSECONDARY, "SECONDARY");
+  DEFSYM (QSTRING, "STRING");
+  DEFSYM (QINTEGER, "INTEGER");
+  DEFSYM (QCLIPBOARD, "CLIPBOARD");
+  DEFSYM (QTIMESTAMP, "TIMESTAMP");
+  DEFSYM (QTEXT, "TEXT");
+  DEFSYM (QCOMPOUND_TEXT, "COMPOUND_TEXT");
+  DEFSYM (QUTF8_STRING, "UTF8_STRING");
+  DEFSYM (QDELETE, "DELETE");
+  DEFSYM (QMULTIPLE, "MULTIPLE");
+  DEFSYM (QINCR, "INCR");
+  DEFSYM (QEMACS_TMP, "_EMACS_TMP_");
+  DEFSYM (QTARGETS, "TARGETS");
+  DEFSYM (QATOM, "ATOM");
+  DEFSYM (QATOM_PAIR, "ATOM_PAIR");
+  DEFSYM (QNULL, "NULL");
+  DEFSYM (Qcompound_text_with_extensions, "compound-text-with-extensions");
+  DEFSYM (Qforeign_selection, "foreign-selection");
 }

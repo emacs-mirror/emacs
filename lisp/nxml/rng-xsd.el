@@ -238,7 +238,7 @@ must be equal."
 	 obj)))
 
 (defun rng-xsd-check-pattern (str regexp convert &rest args)
-  (and (string-match regexp str)
+  (and (let ((case-fold-search nil)) (string-match regexp str))
        (apply convert (cons str args))))
 
 

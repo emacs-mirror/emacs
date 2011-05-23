@@ -22,8 +22,6 @@
 
 	* lisp.h (FIXNUM_OVERFLOW_P): Work even if arg is a NaN.
 
-2011-05-21  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* data.c: Avoid integer truncation in expressions involving floats.
 	* data.c: Include <intprops.h>.
 	(arith_driver): When there's an integer overflow in an expression
@@ -33,8 +31,6 @@
 	most-negative-fixnum 0.5) should yield about -4.6e+18, not zero.
 	Do not rely on undefined behavior after integer overflow.
 
-2011-05-20  Paul Eggert  <eggert@cs.ucla.edu>
-
 	merge count_size_as_multibyte, parse_str_to_multibyte
 	* character.c, character.h (count_size_as_multibyte):
 	Renamed from parse_str_to_multibyte; all uses changed.
@@ -43,6 +39,40 @@
 	since it's now a duplicate of the other.  This is more of
 	a character than a buffer op, so better that it's in character.c.
 	* fns.c, print.c: Adjust to above changes.
+
+2011-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gnutls.c: Remove unused macros.
+	(fn_gnutls_transport_set_lowat, fn_gnutls_transport_set_pull_function):
+	(fn_gnutls_transport_set_push_function) [!WINDOWSNT]:
+	Remove macros that are defined and never used.
+	Caught by gcc -Wunused-macros (GCC 4.6.0, Fedora 14).
+
+2011-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c (syms_of_xselect): Remove unused symbol SAVE_TARGETS.
+	(Fx_get_selection_internal): Minor cleanup.
+	(Fx_own_selection_internal): Rename arguments for consistency with
+	select.el.
+
+2011-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xselect.c (QSAVE_TARGETS): New static var, to fix build failure.
+
+2011-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c (syms_of_xselect): Include character.h; use DEFSYM.
+
+2011-05-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (scrolling_window): Don't exclude the case that the
+	last enabled row in the desired matrix touches the bottom boundary.
+
+2011-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in ($(etc)/DOC): Make second command line even shorter.
+	(SOME_MACHINE_OBJECTS): Replace FONT_OBJ by its maximal expansion,
+	and add some more files.
 
 2011-05-20  Eli Zaretskii  <eliz@gnu.org>
 

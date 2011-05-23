@@ -149,11 +149,13 @@ M17N_FLT_LIBS = @M17N_FLT_LIBS@
 
 DBUS_CFLAGS = @DBUS_CFLAGS@
 DBUS_LIBS = @DBUS_LIBS@
+## dbusbind.o if HAVE_DBUS, else empty.
 DBUS_OBJ = @DBUS_OBJ@
 
 GCONF_CFLAGS = @GCONF_CFLAGS@
 GCONF_LIBS = @GCONF_LIBS@
 
+## gtkutil.o if USE_GTK, else empty.
 GTK_OBJ=@GTK_OBJ@
 
 ## -ltermcap, or -lncurses, or -lcurses, or "".
@@ -198,7 +200,10 @@ OLDXMENU_DEPS=@OLDXMENU_DEPS@
 ## Else $(OLDXMENU).
 LIBXMENU=@LIBXMENU@
 
+## xmenu.o if HAVE_X_WINDOWS, else empty.
 XMENU_OBJ=@XMENU_OBJ@
+## xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o
+## xsettings.o xgselect.o if HAVE_X_WINDOWS, else empty.
 XOBJ=@XOBJ@
 
 TOOLKIT_LIBW=@TOOLKIT_LIBW@
@@ -241,7 +246,9 @@ MSDOS_X_OBJ =
 ns_appdir=@ns_appdir@
 ns_appbindir=@ns_appbindir@
 ns_appsrc=@ns_appsrc@
+## fontset.o fringe.o image.o if HAVE_NS, else empty.
 NS_OBJ=@NS_OBJ@
+## nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o if HAVE_NS.
 NS_OBJC_OBJ=@NS_OBJC_OBJ@
 ## Only set if NS_IMPL_GNUSTEP.
 GNU_OBJC_CFLAGS=@GNU_OBJC_CFLAGS@
@@ -333,12 +340,16 @@ obj = $(base_obj) $(NS_OBJC_OBJ)
 
 ## Object files used on some machine or other.
 ## These go in the DOC file on all machines in case they are needed.
+## Some of them have no DOC entries, but it does no harm to have them
+## in the list, in case they ever add any such entries.
 SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   fontset.o dbusbind.o \
   nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o \
   w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
-  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONT_OBJ)
+  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
+  w16select.o widget.o xfont.o ftfont.o xftfont.o ftxfont.o gtkutil.o \
+  xsettings.o xgselect.o termcap.o
 
 ## gmalloc.o if !SYSTEM_MALLOC && !DOUG_LEA_MALLOC, else empty.
 GMALLOC_OBJ=@GMALLOC_OBJ@
@@ -411,7 +422,7 @@ emacs$(EXEEXT): temacs$(EXEEXT) $(etc)/DOC $(lisp)
 $(etc)/DOC: $(libsrc)/make-docfile$(EXEEXT) $(obj) $(lisp)
 	-rm -f $(etc)/DOC
 	$(libsrc)/make-docfile -d $(srcdir) $(SOME_MACHINE_OBJECTS) $(obj) > $(etc)/DOC
-	$(libsrc)/make-docfile -a $(etc)/DOC -d $(srcdir) `sed -n -e 's| \\\\||' -e 's|^[ 	]*$$(lispsource)|../lisp|p' $(srcdir)/lisp.mk`
+	$(libsrc)/make-docfile -a $(etc)/DOC -d $(lispsource) `sed -n -e 's| \\\\||' -e 's|^[ 	]*$$(lispsource)/||p' $(srcdir)/lisp.mk`
 
 $(libsrc)/make-docfile$(EXEEXT):
 	cd $(libsrc); $(MAKE) $(MFLAGS) make-docfile$(EXEEXT)

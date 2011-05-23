@@ -4330,23 +4330,29 @@ scrolling_window (struct window *w, int header_line_p)
 
   first_old = first_new = i;
 
-  /* Set last_new to the index + 1 of the last enabled row in the
-     desired matrix.  */
+  /* Set last_new to the index + 1 of the row that reaches the
+     bottom boundary in the desired matrix.  Give up if we find a
+     disabled row before we reach the bottom boundary.  */
   i = first_new + 1;
-  while (i < desired_matrix->nrows - 1
-	 && MATRIX_ROW (desired_matrix, i)->enabled_p
-	 && MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (desired_matrix, i)) <= yb)
-    ++i;
+  while (i < desired_matrix->nrows - 1)
+    {
+      int bottom;
 
-  if (!MATRIX_ROW (desired_matrix, i)->enabled_p)
-    return 0;
+      if (!MATRIX_ROW (desired_matrix, i)->enabled_p)
+	return 0;
+      bottom = MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (desired_matrix, i));
+      if (bottom <= yb)
+	++i;
+      if (bottom >= yb)
+	break;
+    }
 
   last_new = i;
 
-  /* Set last_old to the index + 1 of the last enabled row in the
-     current matrix.  We don't look at the enabled flag here because
-     we plan to reuse part of the display even if other parts are
-     disabled.  */
+  /* Set last_old to the index + 1 of the row that reaches the bottom
+     boundary in the current matrix.  We don't look at the enabled
+     flag here because we plan to reuse part of the display even if
+     other parts are disabled.  */
   i = first_old + 1;
   while (i < current_matrix->nrows - 1)
     {

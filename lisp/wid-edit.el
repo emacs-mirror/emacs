@@ -2283,9 +2283,9 @@ If the item is checked, CHOSEN is a cons whose cdr is the value."
     (while vals
       (let ((answer (widget-checklist-match-up args vals)))
 	(cond (answer
-	       (let ((vals (widget-match-inline answer vals)))
-		 (setq found (append found (car vals))
-		       vals (cdr vals)
+	       (let ((vals2 (widget-match-inline answer vals)))
+		 (setq found (append found (car vals2))
+		       vals (cdr vals2)
 		       args (delq answer args))))
 	      (greedy
 	       (setq rest (append rest (list (car vals)))

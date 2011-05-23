@@ -93,7 +93,7 @@
 
 #undef _GL_JUST_INCLUDE_SYSTEM_INTTYPES_H
 
-/* Minimum and maximum values for a integer type under the usual assumption.
+/* Minimum and maximum values for an integer type under the usual assumption.
    Return an unspecified value if BITS == 0, adding a check to pacify
    picky compilers.  */
 

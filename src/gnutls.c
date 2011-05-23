@@ -221,10 +221,7 @@ init_gnutls_functions (Lisp_Object libraries)
 #define fn_gnutls_record_send			gnutls_record_send
 #define fn_gnutls_strerror			gnutls_strerror
 #define fn_gnutls_transport_set_errno		gnutls_transport_set_errno
-#define fn_gnutls_transport_set_lowat		gnutls_transport_set_lowat
 #define fn_gnutls_transport_set_ptr2		gnutls_transport_set_ptr2
-#define fn_gnutls_transport_set_pull_function	gnutls_transport_set_pull_function
-#define fn_gnutls_transport_set_push_function	gnutls_transport_set_push_function
 #define fn_gnutls_x509_crt_check_hostname	gnutls_x509_crt_check_hostname
 #define fn_gnutls_x509_crt_deinit		gnutls_x509_crt_deinit
 #define fn_gnutls_x509_crt_import		gnutls_x509_crt_import

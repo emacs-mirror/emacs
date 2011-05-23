@@ -1,3 +1,49 @@
+2011-05-22  Yuanle Song  <sylecn@gmail.com>
+
+	* nxml/rng-xsd.el (rng-xsd-check-pattern): Use case-sensitive
+	matching (Bug#8516).
+
+2011-01-22  Jari Aalto  <jari.aalto@cante.net>
+
+	* vc/vc-dir.el (vc-default-dir-printer): Give edited tag a
+	different face (Bug#8178).
+
+2011-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/diff-mode.el (diff-changed): Don't use terminal specs for
+	defface (Bug#8144).
+
+2011-05-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Convert ' to #' for
+	funcall as well (bug#8712).  Warn when performing those conversions.
+	* emacs-lisp/bytecomp.el (byte-compile-form): Fix error report.
+
+	* progmodes/grep.el (grep-mode): Fix it for good (bug#8684)!
+
+2011-05-22  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (hack-local-variables-prop-line): Small simplifications.
+	(hack-local-variables, hack-local-variables-prop-line):
+	If MODE-ONLY, return the mode, rather than just `t'.
+
+2011-05-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/grep.el (grep-mode): Fix last change (bug#8684).
+
+2011-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (hack-local-variables-prop-line, hack-local-variables):
+	If only interested in the mode, don't bother doing the other stuff.
+
+	* image-mode.el (image-after-revert-hook):
+	Redraw all frames on which the image is visible.  (Bug#8567)
+
+	* dired-aux.el (dired-touch-initial): Just use current-time.  (Bug#6887)
+
+	* wid-edit.el (widget-checklist-match-inline):
+	Fix 2011-04-19 change.  (Bug#8649)
+
 2011-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/checkdoc.el (checkdoc-sentencespace-region-engine):

@@ -93,8 +93,11 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
-  /* On some systems, Emacs defines static as nothing for the sake
-     of unexec.  We don't want that here since we don't use unexec. */
+  /* This is probably not necessary any more.  On some systems, config.h
+     used to define static as nothing for the sake of unexec.  We don't
+     want that here since we don't use unexec.  None of these systems
+     are supported any more, but the idea is still mentioned in
+     etc/PROBLEMS.  */
 # undef static
 # ifndef PTR			/* for XEmacs */
 #   define PTR void *

@@ -1,3 +1,8 @@
+2011-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mule.texi (Specify Coding, Text Coding, Communication Coding):
+	(File Name Coding, Terminal Coding): Add command names (Bug#8312).
+
 2011-05-18  Glenn Morris  <rgm@gnu.org>
 
 	* ack.texi (Acknowledgments): Remove fakemail.c.
