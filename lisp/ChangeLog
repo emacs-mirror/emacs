@@ -1,3 +1,19 @@
+2011-05-23  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* play/5x5.el: I/ Add an arithmetic solver to suggest positions to
+	click on. II/ Make 5x5 multisession. III/ Ensure that random grids
+	always have a solution in grid size = 5 cases.
+	(5x5-mode-map): Add keybinding to function `5x5-solve-suggest'.
+	(5x5-solver-output, 5x5-log-buffer): New vars.
+	(5x5-grid, 5x5-x-pos, 5x5-y-pos, 5x5-moves, 5x5-cracking):
+	Make these variables buffer local to achieve 5x5 multi-session-ness.
+	(5x5): Set 5x5-grid-size only if SIZE is non-negative.
+	(5x5-grid-to-vec, 5x5-vec-to-grid, 5x5-log-init, 5x5-log, 5x5-solver)
+	(5x5-solve-suggest): New funs.
+	(5x5-randomize): Use 5x5-make-move instead of 5x5-flip-cell to
+	randomize a grid so that we ensure that there is always a solution.
+	(5x5-make-random-grid): Allow other movement than flipping.
+
 2011-05-23  Kevin Ryde  <user42@zip.com.au>
 
 	* emacs-lisp/advice.el (ad-read-advised-function):
