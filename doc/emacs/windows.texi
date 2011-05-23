@@ -343,10 +343,10 @@ to an adjacent window.  The minimum size is specified by the variables
 
 @kindex C-x -
 @findex shrink-window-if-larger-than-buffer
-  The command @kbd{C-x -} (@code{shrink-window-if-larger-than-buffer})
-reduces the height of the selected window, if it is taller than
-necessary to show the whole text of the buffer it is displaying.  It
-gives the extra lines to other windows in the frame.
+  @kbd{C-x -} (@code{shrink-window-if-larger-than-buffer}) reduces the
+height of the selected window, if it is taller than necessary to show
+the whole text of the buffer it is displaying.  It gives the extra
+lines to other windows in the frame.
 
 @kindex C-x +
 @findex balance-windows

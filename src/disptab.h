@@ -62,7 +62,7 @@ extern Lisp_Object Vglyph_table;
 /* Return the current length of the GLYPH table,
    or 0 if the table isn't currently valid.  */
 #define GLYPH_TABLE_LENGTH  \
-  ((VECTORP (Vglyph_table)) ? XVECTOR (Vglyph_table)->size : 0)
+  ((VECTORP (Vglyph_table)) ? XVECTOR_SIZE (Vglyph_table) : 0)
 
 /* Return the current base (for indexing) of the GLYPH table,
    or 0 if the table isn't currently valid.  */

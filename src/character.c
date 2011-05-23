@@ -411,7 +411,7 @@ c_string_width (const unsigned char *str, int len, int precision, int *nchars, i
 	{
 	  val = DISP_CHAR_VECTOR (dp, c);
 	  if (VECTORP (val))
-	    thiswidth = XVECTOR (val)->size;
+	    thiswidth = XVECTOR_SIZE (val);
 	  else
 	    thiswidth = CHAR_WIDTH (c);
 	}
@@ -503,7 +503,7 @@ lisp_string_width (string, precision, nchars, nbytes)
 	    {
 	      val = DISP_CHAR_VECTOR (dp, c);
 	      if (VECTORP (val))
-		thiswidth = XVECTOR (val)->size;
+		thiswidth = XVECTOR_SIZE (val);
 	      else
 		thiswidth = CHAR_WIDTH (c);
 	    }

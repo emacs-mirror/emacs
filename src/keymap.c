@@ -421,7 +421,7 @@ Return PARENT.  PARENT should be nil or another keymap.  */)
 				XCDR (XCAR (list)));
 
       if (VECTORP (XCAR (list)))
-	for (i = 0; i < XVECTOR (XCAR (list))->size; i++)
+	for (i = 0; i < XVECTOR_SIZE (XCAR (list)); i++)
 	  if (CONSP (XVECTOR (XCAR (list))->contents[i]))
 	    fix_submap_inheritance (keymap, make_number (i),
 				    XVECTOR (XCAR (list))->contents[i]);
@@ -2337,7 +2337,7 @@ spaces are put between sequence elements, etc.  */)
   if (STRINGP (list))
     size = SCHARS (list);
   else if (VECTORP (list))
-    size = XVECTOR (list)->size;
+    size = XVECTOR_SIZE (list);
   else if (CONSP (list))
     size = XINT (Flength (list));
   else
@@ -3257,7 +3257,7 @@ key             binding\n\
 
 	  elt = XCAR (list);
 	  prefix = Fcar (elt);
-	  if (XVECTOR (prefix)->size >= 1)
+	  if (XVECTOR_SIZE (prefix) >= 1)
 	    {
 	      tem = Faref (prefix, make_number (0));
 	      if (EQ (tem, Qmenu_bar))
@@ -3300,7 +3300,7 @@ key             binding\n\
 	  /* If the sequence by which we reach this keymap is zero-length,
 	     then the shadow map for this keymap is just SHADOW.  */
 	  if ((STRINGP (prefix) && SCHARS (prefix) == 0)
-	      || (VECTORP (prefix) && XVECTOR (prefix)->size == 0))
+	      || (VECTORP (prefix) && XVECTOR_SIZE (prefix) == 0))
 	    ;
 	  /* If the sequence by which we reach this keymap actually has
 	     some elements, then the sequence's definition in SHADOW is
@@ -3748,7 +3748,7 @@ describe_vector (vector, prefix, args, elt_describer,
   if (CHAR_TABLE_P (vector))
     stop = MAX_5_BYTE_CHAR + 1, to = MAX_CHAR + 1;
   else
-    stop = to = XVECTOR (vector)->size;
+    stop = to = XVECTOR_SIZE (vector);
 
   for (i = from; ; i++)
     {

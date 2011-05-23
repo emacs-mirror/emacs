@@ -7339,7 +7339,7 @@ handle_composition_annotation (pos, limit, coding, buf, stop)
 	      components = COMPOSITION_COMPONENTS (prop);
 	      if (VECTORP (components))
 		{
-		  len = XVECTOR (components)->size;
+		  len = XVECTOR_SIZE (components);
 		  for (i = 0; i < len; i++)
 		    *buf++ = XINT (AREF (components, i));
 		}

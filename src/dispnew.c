@@ -4990,23 +4990,29 @@ scrolling_window (w, header_line_p)
 
   first_old = first_new = i;
 
-  /* Set last_new to the index + 1 of the last enabled row in the
-     desired matrix.  */
+  /* Set last_new to the index + 1 of the row that reaches the
+     bottom boundary in the desired matrix.  Give up if we find a
+     disabled row before we reach the bottom boundary.  */
   i = first_new + 1;
-  while (i < desired_matrix->nrows - 1
-	 && MATRIX_ROW (desired_matrix, i)->enabled_p
-	 && MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (desired_matrix, i)) <= yb)
-    ++i;
+  while (i < desired_matrix->nrows - 1)
+    {
+      int bottom;
 
-  if (!MATRIX_ROW (desired_matrix, i)->enabled_p)
-    return 0;
+      if (!MATRIX_ROW (desired_matrix, i)->enabled_p)
+	return 0;
+      bottom = MATRIX_ROW_BOTTOM_Y (MATRIX_ROW (desired_matrix, i));
+      if (bottom <= yb)
+	++i;
+      if (bottom >= yb)
+	break;
+    }
 
   last_new = i;
 
-  /* Set last_old to the index + 1 of the last enabled row in the
-     current matrix.  We don't look at the enabled flag here because
-     we plan to reuse part of the display even if other parts are
-     disabled.  */
+  /* Set last_old to the index + 1 of the row that reaches the bottom
+     boundary in the current matrix.  We don't look at the enabled
+     flag here because we plan to reuse part of the display even if
+     other parts are disabled.  */
   i = first_old + 1;
   while (i < current_matrix->nrows - 1)
     {
@@ -6729,7 +6735,7 @@ pass nil for VARIABLE.  */)
     state = frame_and_buffer_state;
 
   vecp = XVECTOR (state)->contents;
-  end = vecp + XVECTOR (state)->size;
+  end = vecp + XVECTOR_SIZE (state);
 
   FOR_EACH_FRAME (tail, frame)
     {
@@ -6780,8 +6786,8 @@ pass nil for VARIABLE.  */)
   /* Reallocate the vector if data has grown to need it,
      or if it has shrunk a lot.  */
   if (! VECTORP (state)
-      || n > XVECTOR (state)->size
-      || n + 20 < XVECTOR (state)->size / 2)
+      || n > XVECTOR_SIZE (state)
+      || n + 20 < XVECTOR_SIZE (state) / 2)
     /* Add 20 extra so we grow it less often.  */
     {
       state = Fmake_vector (make_number (n + 20), Qlambda);
@@ -6811,11 +6817,11 @@ pass nil for VARIABLE.  */)
   /* Fill up the vector with lambdas (always at least one).  */
   *vecp++ = Qlambda;
   while (vecp - XVECTOR (state)->contents
-	 < XVECTOR (state)->size)
+	 < XVECTOR_SIZE (state))
     *vecp++ = Qlambda;
   /* Make sure we didn't overflow the vector.  */
   if (vecp - XVECTOR (state)->contents
-      > XVECTOR (state)->size)
+      > XVECTOR_SIZE (state))
     abort ();
   return Qt;
 }

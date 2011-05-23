@@ -89,10 +89,9 @@ struct cursor_pos
 
 struct window
   {
-    /* The first two fields are really the header of a vector */
-    /* The window code does not refer to them.  */
-    EMACS_UINT size;
-    struct Lisp_Vector *vec_next;
+    /* This is for Lisp; the terminal code does not refer to it.  */
+    struct vectorlike_header header;
+
     /* The frame this window is on.  */
     Lisp_Object frame;
     /* t if this window is a minibuffer window.  */

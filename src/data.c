@@ -1402,7 +1402,7 @@ for this variable.  */)
 	{
 	  struct buffer *b;
 
-	  for (b = all_buffers; b; b = b->next)
+	  for (b = all_buffers; b; b = b->header.next.buffer)
 	    if (!PER_BUFFER_VALUE_P (b, idx))
 	      PER_BUFFER_VALUE (b, offset) = value;
 	}
@@ -2029,9 +2029,9 @@ or a byte-code object.  IDX starts at 0.  */)
     {
       int size = 0;
       if (VECTORP (array))
-	size = XVECTOR (array)->size;
+	size = XVECTOR_SIZE (array);
       else if (COMPILEDP (array))
-	size = XVECTOR (array)->size & PSEUDOVECTOR_SIZE_MASK;
+	size = XVECTOR_SIZE (array) & PSEUDOVECTOR_SIZE_MASK;
       else
 	wrong_type_argument (Qarrayp, array);
 
@@ -2058,7 +2058,7 @@ bool-vector.  IDX starts at 0.  */)
 
   if (VECTORP (array))
     {
-      if (idxval < 0 || idxval >= XVECTOR (array)->size)
+      if (idxval < 0 || idxval >= XVECTOR_SIZE (array))
 	args_out_of_range (array, idx);
       XVECTOR (array)->contents[idxval] = newelt;
     }

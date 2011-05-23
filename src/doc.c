@@ -809,7 +809,7 @@ a new string, without any text properties, is returned.  */)
 	do_remap:
 	  tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qnil);
 
-	  if (VECTORP (tem) && XVECTOR (tem)->size > 1
+	  if (VECTORP (tem) && XVECTOR_SIZE (tem) > 1
 	      && EQ (AREF (tem, 0), Qremap) && SYMBOLP (AREF (tem, 1))
 	      && follow_remap)
 	    {

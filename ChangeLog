@@ -1,6 +1,6 @@
 2011-03-13  Glenn Morris  <rgm@gnu.org>
 
- 	* configure.in (FREETYPE_LIBS): Actually set it to something.
+	* configure.in (FREETYPE_LIBS): Actually set it to something.
 
 2011-03-13  Miles Bader  <miles@gnu.org>
 

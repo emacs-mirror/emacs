@@ -2459,7 +2459,7 @@ xbm_image_p (object)
 	  int i;
 
 	  /* Number of elements of the vector must be >= height.  */
-	  if (XVECTOR (data)->size < height)
+	  if (XVECTOR_SIZE (data) < height)
 	    return 0;
 
 	  /* Each string or bool-vector in data must be large enough
@@ -8083,7 +8083,7 @@ gs_image_p (object)
     }
   else if (VECTORP (tem))
     {
-      if (XVECTOR (tem)->size != 4)
+      if (XVECTOR_SIZE (tem) != 4)
 	return 0;
       for (i = 0; i < 4; ++i)
 	if (!INTEGERP (XVECTOR (tem)->contents[i]))

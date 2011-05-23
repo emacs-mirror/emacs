@@ -1,3 +1,165 @@
+2011-05-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (scrolling_window): Don't exclude the case that the
+	last enabled row in the desired matrix touches the bottom boundary.
+
+2011-05-11  Drew Adams  <drew.adams@oracle.com>
+
+	* textprop.c (Fprevious_single_char_property_change): Doc fix (bug#8655).
+
+2011-05-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* w32term.c (w32_draw_fringe_bitmap): Rename local vars `left' and
+	`width' to `bar_area_x' and `bar_area_width', respectively.
+	(x_scroll_run): Take account of fringe background extension.
+
+	* xterm.c (x_draw_fringe_bitmap) [USE_TOOLKIT_SCROLL_BARS]: Rename
+	local vars `left' and `width' to `bar_area_x' and
+	`bar_area_width', respectively.
+	(x_scroll_run) [USE_TOOLKIT_SCROLL_BARS]: Take account of fringe
+	background extension.
+
+2011-05-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xmenu.c (set_frame_menubar): Fix submenu loops.
+
+2011-05-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Backport revisions 103939.1.41..103939.1.44 (inclusive) from trunk.
+	(bug#8623)
+	The next log entry shows the actual changes by Paul Eggert.
+
+2011-05-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix a problem with aliasing and vector headers.
+	GCC 4.6.0 optimizes based on type-based alias analysis.  For
+	example, if b is of type struct buffer * and v of type struct
+	Lisp_Vector *, then gcc -O2 was incorrectly assuming that &b->size
+	!= &v->size, and therefore "v->size = 1; b->size = 2; return
+	v->size;" must therefore return 1.  This assumption is incorrect
+	for Emacs, since it type-puns struct Lisp_Vector * with many other
+	types.  To fix this problem, this patch adds a new type struct
+	vector_header that documents the constraints on layout of vectors
+	and pseudovectors, and helps optimizing compilers not get fooled
+	by Emacs's type punning.  It also adds the macros XSETTYPED_PVECTYPE
+	XSETTYPED_PSEUDOVECTOR, TYPED_PSEUDOVECTORP, for similar reasons.
+	* lisp.h (XVECTOR_SIZE): New convenience macro.  All previous uses of
+	XVECTOR (foo)->size replaced to use this macro, to avoid the hassle
+	of writing XVECTOR (foo)->header.size.
+	* lisp.h: Say "vectorlike header" rather than "vector header.
+	(struct vectorlike_header): Rename from struct vector_header.
+	(XVECTORLIKE_HEADER_SIZE): Renamed from XVECTOR_HEADER_SIZE.
+	All uses changed.
+	(XVECTOR_HEADER_SIZE): New macro, for use in XSETPSEUDOVECTOR.
+	(XSETTYPED_PVECTYPE): New macro, specifying the name of the size
+	member.
+	(XSETPVECTYPE): Rewrite in terms of new macro.
+	(XSETPVECTYPESIZE): New macro, specifying both type and size.
+	This is a bit clearer, and further avoids the possibility of
+	undesirable aliasing.
+	(XSETTYPED_PSEUDOVECTOR): New macro, specifying the size.
+	(XSETPSEUDOVECTOR): Rewrite in terms of XSETTYPED_PSEUDOVECTOR
+	and XVECTOR_HEADER_SIZE.
+	(XSETSUBR): Rewrite in terms of XSETTYPED_PSEUDOVECTOR and XSIZE,
+	since Lisp_Subr is a special case (no "next" field).
+	(ASIZE): Rewrite in terms of XVECTOR_SIZE.
+	(struct vector_header): New type.
+	(TYPED_PSEUDOVECTORP): New macro, also specifying the C type of the
+	object, to help avoid aliasing.
+	(PSEUDOVECTORP): Rewrite in terms of TYPED_PSEUDOVECTORP.
+	(SUBRP): Likewise, since Lisp_Subr is a special case.
+
+	* lisp.h (struct Lisp_Vector, struct Lisp_Char_Table):
+	(struct Lisp_Sub_Char_Table, struct Lisp_Bool_Vector):
+	(struct Lisp_Hash_Table): Combine first two members into a single
+	struct vector_header member.  All uses of "size" and "next" members
+	changed to be "header.size" and "header.next".
+	* buffer.h (struct buffer): Likewise.
+	* font.h (struct font_spec, struct font_entity, struct font): Likewise.
+	* frame.h (struct frame): Likewise.
+	* process.h (struct Lisp_Process): Likewise.
+	* termhooks.h (struct terminal): Likewise.
+	* window.c (struct save_window_data, struct saved_window): Likewise.
+	* window.h (struct window): Likewise.
+	* alloc.c (allocate_buffer, Fmake_bool_vector, allocate_pseudovector):
+	Use XSETPVECTYPESIZE, not XSETPVECTYPE, to avoid aliasing problems.
+	* buffer.c (init_buffer_once): Likewise.
+	* lread.c (defsubr): Use XSETTYPED_PVECTYPE, since Lisp_Subr is a
+	special case.
+	* process.c (Fformat_network_address): Use local var for size,
+	for brevity.
+	* fns.c (vector): Remove; this old hack is no longer needed.
+	* bytecode.c (exec_byte_code): Don't use XVECTOR before CHECK_VECTOR.
+
+2011-04-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.c (allocate_heap) [USE_LISP_UNION_TYPE || USE_LSB_TAG]:
+	New version that can reserve upto 2GB of heap space.
+
+2011-04-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfns.m (Fns_read_file_name): Doc fix (Bug#8534).
+
+2011-04-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* s/ms-w32.h (localtime): Redirect to sys_localtime.
+
+	* w32.c: Include <time.h>.
+	(sys_localtime): New function.
+
+2011-04-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (init_xdisp): Initialize echo_area_window (Bug#6451).
+
+2011-04-10  Samuel Thibault  <sthibault@debian.org>  (tiny change)
+
+	* sysdep.c (wait_for_termination): On GNU Hurd, kill returns -1 on
+	zombies (Bug#8467).
+
+2011-04-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffer.c (syms_of_buffer): Doc fix (Bug#6902).
+
+2011-04-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ftfont.c (get_adstyle_property, ftfont_pattern_entity): Use
+	unsigned char, to match FcChar8 type definition.
+
+	* xterm.c (handle_one_xevent):
+	* xmenu.c (create_and_show_popup_menu):
+	* xselect.c (x_decline_selection_request)
+	(x_reply_selection_request): Avoid type-punned deref of X events.
+
+2011-04-08  Samuel Thibault  <sthibault@debian.org>  (tiny change)
+
+	* term.c (init_tty): Fix incorrect ifdef placement (Bug#8450).
+
+2011-03-19  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* process.c (Fformat_network_address): Doc fix.
+
+2011-03-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buffer.h (BUF_BEGV, BUF_BEGV_BYTE, BUF_ZV, BUF_ZV_BYTE, BUF_PT)
+	(BUF_PT_BYTE): Rewrite to handle indirect buffers (Bug#8219).
+	These macros can no longer be used for assignment.
+
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer): Assign
+	struct members directly, instead of using BUF_BEGV etc.
+	(record_buffer_markers, fetch_buffer_markers): New functions for
+	recording and fetching special buffer markers.
+	(set_buffer_internal_1, set_buffer_temp): Use them.
+
+	* lread.c (unreadchar): Use SET_BUF_PT_BOTH.
+
+	* insdel.c (adjust_point): Use SET_BUF_PT_BOTH.
+
+	* intervals.c (temp_set_point_both): Use SET_BUF_PT_BOTH.
+	(get_local_map): Use SET_BUF_BEGV_BOTH and SET_BUF_ZV_BOTH.
+
+	* xdisp.c (hscroll_window_tree):
+	(reconsider_clip_changes): Use PT instead of BUF_PT.
+
 2011-03-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xfaces.c (Fx_load_color_file):

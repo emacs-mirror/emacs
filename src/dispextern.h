@@ -63,7 +63,7 @@ typedef HDC XImagePtr_or_DC;
 
 #ifdef HAVE_NS
 #include "nsgui.h"
-/* following typedef needed to accomodate the MSDOS port, believe it or not */
+/* Following typedef needed to accommodate the MSDOS port, believe it or not.  */
 typedef struct ns_display_info Display_Info;
 typedef Pixmap XImagePtr;
 typedef XImagePtr XImagePtr_or_DC;
@@ -368,7 +368,7 @@ struct glyph
      doesn't have a glyph in a font.  */
   unsigned glyph_not_available_p : 1;
 
- 
+
   /* Non-zero means don't display cursor here.  */
   unsigned avoid_cursor_p : 1;
 

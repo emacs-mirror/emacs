@@ -1365,7 +1365,7 @@ print_preprocess (obj)
 	      /* Initialize the table.  */
 	      Vprint_number_table = Fmake_vector (make_number (40), Qnil);
 	    }
-	  else if (XVECTOR (Vprint_number_table)->size == print_number_index * 2)
+	  else if (XVECTOR_SIZE (Vprint_number_table) == print_number_index * 2)
 	    {
 	      /* Reallocate the table.  */
 	      int i = print_number_index * 4;
@@ -1411,7 +1411,7 @@ print_preprocess (obj)
 	  goto loop;
 
 	case Lisp_Vectorlike:
-	  size = XVECTOR (obj)->size;
+	  size = XVECTOR_SIZE (obj);
 	  if (size & PSEUDOVECTOR_FLAG)
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  for (i = 0; i < size; i++)
@@ -2051,7 +2051,7 @@ print_object (obj, printcharfun, escapeflag)
 	      strout (SDATA (SYMBOL_NAME (h->weak)), -1, -1, printcharfun, 0);
 	      PRINTCHAR (' ');
 	      sprintf (buf, "%ld/%ld", (long) h->count,
-		       (long) XVECTOR (h->next)->size);
+		       (long) XVECTOR_SIZE (h->next));
 	      strout (buf, -1, -1, printcharfun, 0);
 	    }
 	  sprintf (buf, " 0x%lx", (unsigned long) h);
@@ -2062,7 +2062,7 @@ print_object (obj, printcharfun, escapeflag)
 	    #s(hash-table size 2 test equal data (k1 v1 k2 v2)) */
 	  /* Always print the size. */
 	  sprintf (buf, "#s(hash-table size %ld",
-		   (long) XVECTOR (h->next)->size);
+		   (long) XVECTOR_SIZE (h->next));
 	  strout (buf, -1, -1, printcharfun, 0);
 
 	  if (!NILP (h->test))
@@ -2174,7 +2174,7 @@ print_object (obj, printcharfun, escapeflag)
 	}
       else
 	{
-	  EMACS_INT size = XVECTOR (obj)->size;
+	  EMACS_INT size = XVECTOR_SIZE (obj);
 	  if (COMPILEDP (obj))
 	    {
 	      PRINTCHAR ('#');
@@ -2354,7 +2354,7 @@ print_object (obj, printcharfun, escapeflag)
 	if (MISCP (obj))
 	  sprintf (buf, "(MISC 0x%04x)", (int) XMISCTYPE (obj));
 	else if (VECTORLIKEP (obj))
-	  sprintf (buf, "(PVEC 0x%08x)", (int) XVECTOR (obj)->size);
+	  sprintf (buf, "(PVEC 0x%08lx)", (unsigned long) XVECTOR_SIZE (obj));
 	else
 	  sprintf (buf, "(0x%02x)", (int) XTYPE (obj));
 	strout (buf, -1, -1, printcharfun, 0);

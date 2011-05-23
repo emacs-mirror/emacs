@@ -347,8 +347,7 @@ Quit interactive spell checking and move point back to where it was
 when you started spell checking.
 
 @item q
-Quit interactive spell checking and kill the Aspell/Ispell/Hunspell
-subprocess.
+Quit interactive spell checking and kill the spell-checker subprocess.
 
 @item ?
 Show the list of options.
