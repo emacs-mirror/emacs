@@ -1,5 +1,8 @@
 2011-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/smerge-mode.el (smerge-refine-subst): Don't deactivate the mark
+	(bug#8710).
+
 	* emacs-lisp/lisp.el (up-list): Fix forward movement (bug#8708).
 
 2011-05-23  Ken Manheimer  <ken.manheimer@gmail.com>
