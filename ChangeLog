@@ -1,3 +1,7 @@
+2011-05-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/verify.h: Merge from gnulib.
+
 2011-05-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lib/intprops.h, lib/stdint.in.h, m4/mktime.m4, m4/readlink.m4:

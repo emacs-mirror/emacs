@@ -204,7 +204,9 @@ template <int w>
 #  if !defined _GL_HAVE_STATIC_ASSERT && !defined static_assert
 #   define static_assert _Static_assert /* Draft C1X requires this #define.  */
 #  endif
-# else
+# endif
+
+# ifdef _GL_VERIFY_H
 
 /* Each of these macros verifies that its argument R is nonzero.  To
    be portable, R should be an integer constant expression.  Unlike
