@@ -588,15 +588,15 @@ in `Info-file-supports-index-cookies-list'."
 (defun info-initialize ()
   "Initialize `Info-directory-list', if that hasn't been done yet."
   (unless Info-directory-list
-    (let ((path (getenv "INFOPATH")))
+    (let ((path (getenv "INFOPATH"))
+	  (sep (regexp-quote path-separator)))
       (setq Info-directory-list
 	    (prune-directory-list
 	     (if path
-		 (if (string-match ":\\'" path)
-		     (append (split-string (substring path 0 -1)
-					   (regexp-quote path-separator))
+		 (if (string-match-p (concat sep "\\'") path)
+		     (append (split-string (substring path 0 -1) sep)
 			     (Info-default-dirs))
-		   (split-string path (regexp-quote path-separator)))
+		   (split-string path sep))
 	       (Info-default-dirs)))))))
 
 ;;;###autoload

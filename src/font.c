@@ -3042,7 +3042,7 @@ font_open_entity (f, entity, pixel_size)
   Lisp_Object objlist, size, val, font_object;
   struct font *font;
   int min_width, height;
-  int scaled_pixel_size;
+  int scaled_pixel_size = pixel_size;
 
   font_assert (FONT_ENTITY_P (entity));
   size = AREF (entity, FONT_SIZE_INDEX);
@@ -3422,7 +3422,7 @@ font_find_for_lface (f, attrs, spec, c)
   XSETFRAME (frame, f);
   size = AREF (spec, FONT_SIZE_INDEX);
   pixel_size = font_pixel_size (f, spec);
-  if (pixel_size == 0)
+  if (pixel_size == 0 && INTEGERP (attrs[LFACE_HEIGHT_INDEX]))
     {
       double pt = XINT (attrs[LFACE_HEIGHT_INDEX]);
 

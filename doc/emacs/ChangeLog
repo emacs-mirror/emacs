@@ -1,3 +1,17 @@
+2011-03-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows HOME): Fix the wording to clarify how Emacs sets
+	HOME on Windows and where it looks for init files.  (Bug#8221)
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-02-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* search.texi (Regexp Search): Move index entries about regexps to the
+	"Regexps" node.  Add index entries for regexp search.  (Bug#8096)
+
 2011-02-19  Glenn Morris  <rgm@gnu.org>
 
 	* dired.texi (Dired): Dired-X version number was dropped.

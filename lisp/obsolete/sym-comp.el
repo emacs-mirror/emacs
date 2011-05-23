@@ -51,7 +51,7 @@ Uses `current-word' with the buffer narrowed to the part before
 point."
   (save-restriction
     ;; Narrow in case point is in the middle of a symbol -- we want
-    ;; just the preceeding part.
+    ;; just the preceding part.
     (narrow-to-region (point-min) (point))
     (current-word)))
 

@@ -1,3 +1,20 @@
+2011-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* strings.texi (String Conversion): Don't mention
+	string-make-(uni|multi)byte (bug#8262).
+	* nonascii.texi (Converting Representations): Fix up range.
+	* keymaps.texi (Key Binding Commands): Update code point, avoid
+	"unibyte character" and remove mention of unibyte bindings.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-02-25  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (Directory Local Variables): Mention the optional
+	mtime argument of dir-locals-set-directory-class.  (Bug#3577)
+
 2011-02-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* elisp.texi: Sync @dircategory with ../../info/dir.

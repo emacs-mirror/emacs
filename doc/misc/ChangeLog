@@ -1,3 +1,30 @@
+2011-03-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* trampver.texi: Update release number.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* dbus.texi (Type Conversion): Grammar fix.
+
+	* dired-x.texi (Features, Local Variables): Fix typos.
+	(Features): Minor rephrasing.
+
+2011-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* edt.texi, erc.texi, gnus.texi, idlwave.texi, mh-e.texi:
+	Standardize some Emacs/XEmacs terminology.
+
+2011-02-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi: Use consistently "Emacs" (instead of "GNU Emacs") and
+	"Debian GNU/Linux".
+
+	* trampver.texi [xemacs]: Set emacsothername to "Emacs".
+
 2011-02-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* ada-mode.texi: Sync @dircategory with ../../info/dir.

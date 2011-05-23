@@ -1746,7 +1746,7 @@ directories in which `ffap-rfc' will first search for RFCs.
 *** hide-ifdef-mode allows shadowing ifdef-blocks instead of hiding them.
 See option `hide-ifdef-shadow' and function `hide-ifdef-toggle-shadowing'.
 
-*** `icomplete-prospects-height' now supercedes `icomplete-prospects-length'.
+*** `icomplete-prospects-height' now supersedes `icomplete-prospects-length'.
 
 *** Info displays breadcrumbs in the header of the page.
 See Info-breadcrumbs-depth to control it.

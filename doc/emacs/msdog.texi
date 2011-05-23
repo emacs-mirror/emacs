@@ -404,36 +404,45 @@ names, which might cause misalignment of columns in Dired display.
 @dfn{user-specific application data directory}.  The actual location
 depends on your Windows version and system configuration; typical values
 are @file{C:\Documents and Settings\@var{username}\Application Data} on
-Windows 2K/XP and later, and either @file{C:\WINDOWS\Application Data}
+Windows 2K/XP/2K3, @file{C:\Users\@var{username}\AppData\Roaming} on
+Windows Vista/7/2K8, and either @file{C:\WINDOWS\Application Data}
 or @file{C:\WINDOWS\Profiles\@var{username}\Application Data} on the
-older Windows 9X/ME systems.
+older Windows 9X/ME systems.  If this directory does not exist or
+cannot be accessed, Emacs falls back to @file{C:\} as the default
+value of @code{HOME}.
 
-  @code{HOME} can also be set in the system registry, for details see
+  You can override this default value of @code{HOME} by explicitly
+setting the environment variable @env{HOME} to point to any directory
+on your system.  @env{HOME} can be set either from the command shell
+prompt or from the @samp{My Computer}s @samp{Properties} dialog.
+@code{HOME} can also be set in the system registry, for details see
 @ref{MS-Windows Registry}.
 
-@cindex init file @file{.emacs} on MS-Windows
-  The home directory is where your init file @file{.emacs} is stored.
-When Emacs starts, it first checks whether the environment variable
-@env{HOME} is set.  If it is, it looks for the init file in the
-directory pointed by @env{HOME}.  If @env{HOME} is not defined, Emacs
-checks for an existing @file{.emacs} file in @file{C:\}, the root
-directory of drive @file{C:}@footnote{
-The check in @file{C:\} is for compatibility with older versions of Emacs,
-which didn't check the application data directory.
-}.  If there's no such file in @file{C:\}, Emacs next uses the Windows
-system calls to find out the exact location of your application data
-directory.  If that system call fails, Emacs falls back to @file{C:\}.
+  For compatibility with older versions of Emacs@footnote{
+Older versions of Emacs didn't check the application data directory.
+}, if there is a file named @file{.emacs} in @file{C:\}, the root
+directory of drive @file{C:}, and @env{HOME} is set neither in the
+environment nor in the Registry, Emacs will treat @file{C:\} as the
+default @code{HOME} location, and will not look in the application
+data directory, even if it exists.  Note that only @file{.emacs} is
+looked for in @file{C:\}; the older name @file{_emacs} (see below) is
+not.  This use of @file{C:\.emacs} to define @code{HOME} is
+deprecated.
 
-  Whatever the final place is, Emacs sets the value of the @env{HOME}
-environment variable to point to it, and it will use that location for
-other files and directories it normally creates in the user's home
-directory.
+  Whatever the final place is, Emacs sets the internal value of the
+@env{HOME} environment variable to point to it, and it will use that
+location for other files and directories it normally looks for or
+creates in the user's home directory.
 
   You can always find out where Emacs thinks is your home directory's
 location by typing @kbd{C-x d ~/ @key{RET}}.  This should present the
 list of files in the home directory, and show its full name on the
 first line.  Likewise, to visit your init file, type @kbd{C-x C-f
-~/.emacs @key{RET}}.
+~/.emacs @key{RET}} (assuming the file's name is @file{.emacs}).
+
+@cindex init file @file{.emacs} on MS-Windows
+  The home directory is where your init file is stored.  It can have
+any name mentioned in @ref{Init File}.
 
 @cindex @file{_emacs} init file, MS-Windows
   Because MS-DOS does not allow file names with leading dots, and

@@ -1402,7 +1402,7 @@ N     (match-string N)           (where N is a string of digits)
 #&    (string-to-number (match-string 0))
 #     replace-count
 
-Note that these symbols must be preceeded by a backslash in order to
+Note that these symbols must be preceded by a backslash in order to
 type them using Lisp syntax."
   (while (consp n)
     (cond

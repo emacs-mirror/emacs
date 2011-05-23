@@ -3623,12 +3623,12 @@ usage: (format STRING &rest OBJECTS)  */)
   int multibyte = 0;
   /* When we make a multibyte string, we must pay attention to the
      byte combining problem, i.e., a byte may be combined with a
-     multibyte charcter of the previous string.  This flag tells if we
+     multibyte character of the previous string.  This flag tells if we
      must consider such a situation or not.  */
   int maybe_combine_byte;
   unsigned char *this_format;
   /* Precision for each spec, or -1, a flag value meaning no precision
-     was given in that spec.  Element 0, corresonding to the format
+     was given in that spec.  Element 0, corresponding to the format
      string itself, will not be used.  Element NARGS, corresponding to
      no argument, *will* be assigned to in the case that a `%' and `.'
      occur after the final format specifier.  */

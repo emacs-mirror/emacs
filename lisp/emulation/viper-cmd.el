@@ -2376,7 +2376,7 @@ problems."
     (if (eq viper-intermediate-command 'viper-repeat)
 	(viper-change-subr (mark t) (point))
       (viper-change (mark t) (point)))
-    ;; com is set to ?r when we repeat this comand with dot
+    ;; com is set to ?r when we repeat this command with dot
     (viper-set-destructive-command (list 'viper-substitute val ?r nil nil nil))
     ))
 

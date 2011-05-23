@@ -1,3 +1,35 @@
+2011-03-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (Fx_load_color_file):
+	Read color file from absolute filename (bug#8250).
+
+2011-03-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	Backport revno:103582 from trunk.
+	* w32xfns.c (select_palette): Check success of RealizePalette against
+	GDI_ERROR, not zero.
+
+2011-03-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* fringe.c (update_window_fringes): Remove unused variables.
+
+	* unexmacosx.c (copy_data_segment): Also copy __got section.
+	(Bug#8223)
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-02-22  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_open_entity): Be sure to set scaled_pixel_size.
+	(font_find_for_lface): Check if attrs[LFACE_HEIGHT_INDEX] is
+	integer.
+
+2011-02-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Makefile.in (prefix-args${EXEEXT}): Compile with ALL_CFLAGS.
+
 2011-02-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (redisplay_internal): Resynchronize `w' if the selected
@@ -15950,7 +15982,7 @@
 
 	* search.c (search_buffer): Give up BM search on case-fold-search
 	if one of a target character has a case-equivalence of different
-	byte length even if that target charcter is an ASCII.
+	byte length even if that target character is an ASCII.
 	(simple_search): Fix calculation of byte length of matched text.
 	(boyer_moore): Fix handling of case-equivalent multibyte characters.
 
