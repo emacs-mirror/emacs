@@ -7,7 +7,7 @@
 	decoding a CCL program.  Many of the new checks are whether XINT (x)
 	fits in int; it doesn't always, on 64-bit hosts.  The new version
 	doesn't catch all possible integer overflows, but it's an
-	improvement.
+	improvement.  (Bug#8719)
 
 	* alloc.c (make_event_array): Use XINT, not XUINT.
 	There's no need for unsigned here.
