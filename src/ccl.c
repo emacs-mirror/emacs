@@ -946,7 +946,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	case CCL_SetArray:	/* CCCCCCCCCCCCCCCCCCCCRRRrrrXXXXX */
 	  i = reg[RRR];
 	  j = field1 >> 3;
-	  if ((unsigned int) i < j)
+	  if (0 <= i && i < j)
 	    GET_CCL_INT (reg[rrr], ccl_prog, ic + i);
 	  ic += j;
 	  break;
@@ -997,7 +997,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	case CCL_WriteArrayReadJump: /* A--D--D--R--E--S--S-rrrXXXXX */
 	  i = reg[rrr];
 	  GET_CCL_INT (j, ccl_prog, ic);
-	  if ((unsigned int) i < j)
+	  if (0 <= i && i < j)
 	    {
 	      GET_CCL_INT (i, ccl_prog, ic + 1 + i);
 	      CCL_WRITE_CHAR (i);
@@ -1019,7 +1019,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	{
 	  int incr;
 	  GET_CCL_INT (incr, ccl_prog,
-		       ic + ((unsigned int) reg[rrr] < field1
+		       ic + (0 <= reg[rrr] && reg[rrr] < field1
 			     ? reg[rrr]
 			     : field1));
 	  ic += incr;
@@ -1114,7 +1114,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 	case CCL_WriteArray:	/* CCCCCCCCCCCCCCCCCCCCrrrXXXXX */
 	  i = reg[rrr];
-	  if ((unsigned int) i < field1)
+	  if (0 <= i && i < field1)
 	    {
 	      GET_CCL_INT (j, ccl_prog, ic + i);
 	      CCL_WRITE_CHAR (j);

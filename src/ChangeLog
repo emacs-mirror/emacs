@@ -1,5 +1,7 @@
 2011-05-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* ccl.c (ccl_driver): Redo slightly to avoid the need for 'unsigned'.
+
 	ccl: add integer overflow checks
 	* ccl.c (CCL_CODE_MAX, GET_CCL_RANGE, GET_CCL_CODE, GET_CCL_INT):
 	(IN_INT_RANGE): New macros.
