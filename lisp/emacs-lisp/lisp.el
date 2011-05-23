@@ -145,12 +145,12 @@ This command assumes point is not in a string or comment."
     (while (/= arg 0)
       (if (null forward-sexp-function)
           (goto-char (or (scan-lists (point) inc 1) (buffer-end arg)))
-          (condition-case err
-              (while (progn (setq pos (point))
-                       (forward-sexp inc)
-                       (/= (point) pos)))
-            (scan-error (goto-char (nth 2 err))))
-        (if (= (point) pos)
+	(condition-case err
+	    (while (progn (setq pos (point))
+			  (forward-sexp inc)
+			  (/= (point) pos)))
+	  (scan-error (goto-char (nth (if (> arg 0) 3 2) err))))
+	(if (= (point) pos)
             (signal 'scan-error
                     (list "Unbalanced parentheses" (point) (point)))))
       (setq arg (- arg inc)))))

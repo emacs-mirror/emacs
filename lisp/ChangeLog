@@ -1,3 +1,7 @@
+2011-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (up-list): Fix forward movement (bug#8708).
+
 2011-05-23  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-inhibit-auto-fill-on-headline): Create new
