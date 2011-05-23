@@ -27,11 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 #include <setjmp.h>
 
-/* Note on some machines this defines `vector' as a typedef,
-   so make sure we don't use that name in this file.  */
-#undef vector
-#define vector *****
-
 #include "lisp.h"
 #include "commands.h"
 #include "character.h"
@@ -4022,9 +4017,9 @@ copy_hash_table (h1)
   struct Lisp_Vector *next;
 
   h2 = allocate_hash_table ();
-  next = h2->vec_next;
+  next = h2->header.next.vector;
   bcopy (h1, h2, sizeof *h2);
-  h2->vec_next = next;
+  h2->header.next.vector = next;
   h2->key_and_value = Fcopy_sequence (h1->key_and_value);
   h2->hash = Fcopy_sequence (h1->hash);
   h2->next = Fcopy_sequence (h1->next);
@@ -4379,7 +4374,7 @@ sweep_weak_hash_tables ()
       marked = 0;
       for (h = weak_hash_tables; h; h = h->next_weak)
 	{
-	  if (h->size & ARRAY_MARK_FLAG)
+	  if (h->header.size & ARRAY_MARK_FLAG)
 	    marked |= sweep_weak_table (h, 0);
 	}
     }
@@ -4390,7 +4385,7 @@ sweep_weak_hash_tables ()
     {
       next = h->next_weak;
 
-      if (h->size & ARRAY_MARK_FLAG)
+      if (h->header.size & ARRAY_MARK_FLAG)
 	{
 	  /* TABLE is marked as used.  Sweep its contents.  */
 	  if (h->count > 0)
@@ -4513,7 +4508,7 @@ sxhash_bool_vector (vec)
   unsigned hash = XBOOL_VECTOR (vec)->size;
   int i, n;
 
-  n = min (SXHASH_MAX_LEN, XBOOL_VECTOR (vec)->vector_size);
+  n = min (SXHASH_MAX_LEN, XBOOL_VECTOR (vec)->header.size);
   for (i = 0; i < n; ++i)
     hash = SXHASH_COMBINE (hash, XBOOL_VECTOR (vec)->data[i]);
 

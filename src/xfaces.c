@@ -1966,7 +1966,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 
 #define LFACEP(LFACE)					\
      (VECTORP (LFACE)					\
-      && XVECTOR (LFACE)->size == LFACE_VECTOR_SIZE	\
+      && XVECTOR_SIZE (LFACE) == LFACE_VECTOR_SIZE	\
       && EQ (AREF (LFACE, 0), Qface))
 
 
@@ -6625,7 +6625,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
   CHECK_STRING (filename);
   abspath = Fexpand_file_name (filename, Qnil);
 
-  fp = fopen (SDATA (filename), "rt");
+  fp = fopen (SDATA (abspath), "rt");
   if (fp)
     {
       char buf[512];

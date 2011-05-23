@@ -195,7 +195,7 @@ from the original mouse click to the current mouse location.  Try it;
 you'll like it.  It's easier to observe than to explain.
 
 If the mouse is clicked and released in the same place of time we
-assume that the user didn't want to scdebugroll but wanted to whatever
+assume that the user didn't want to scroll but wanted to whatever
 mouse-2 used to do, so we pass it through.
 
 Throw scrolling was inspired (but is not identical to) the \"hand\"

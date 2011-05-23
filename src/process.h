@@ -27,13 +27,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* This structure records information about a subprocess
    or network connection.
 
-   Every field in this structure except for the first two
+   Every field in this structure except for the header
    must be a Lisp_Object, for GC's sake.  */
 
 struct Lisp_Process
   {
-    EMACS_UINT size;
-    struct Lisp_Vector *v_next;
+    struct vectorlike_header header;
+
     /* Name of subprocess terminal.  */
     Lisp_Object tty_name;
     /* Name of this process */

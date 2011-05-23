@@ -305,11 +305,11 @@ outside the table.")
   "Alist with locations of named fields.")
 
 (defvar org-table-current-line-types nil
-  "Table row types, non-nil only for the duration of a comand.")
+  "Table row types, non-nil only for the duration of a command.")
 (defvar org-table-current-begin-line nil
-  "Table begin line, non-nil only for the duration of a comand.")
+  "Table begin line, non-nil only for the duration of a command.")
 (defvar org-table-current-begin-pos nil
-  "Table begin position, non-nil only for the duration of a comand.")
+  "Table begin position, non-nil only for the duration of a command.")
 (defvar org-table-dlines nil
   "Vector of data line line numbers in the current table.")
 (defvar org-table-hlines nil
@@ -1787,7 +1787,7 @@ If NLAST is a number, only the NLAST fields will actually be summed."
   "Return the formula active for the current field.
 Assumes that specials are in place.
 If KEY is given, return the key to this formula.
-Otherwise return the formula preceeded with \"=\" or \":=\"."
+Otherwise return the formula preceded with \"=\" or \":=\"."
   (let* ((name (car (rassoc (list (org-current-line)
 				  (org-table-current-column))
 			    org-table-named-field-locations)))

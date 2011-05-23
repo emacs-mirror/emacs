@@ -3413,13 +3413,12 @@ init_tty (char *name, char *terminal_type, int must_succeed)
          if we don't have one at the moment.  */
       fd = emacs_open (name, O_RDWR | O_IGNORE_CTTY | O_NOCTTY, 0);
     else
-#else
+#endif /* O_IGNORE_CTTY */
       /* Alas, O_IGNORE_CTTY is a GNU extension that seems to be only
          defined on Hurd.  On other systems, we need to explicitly
          dissociate ourselves from the controlling tty when we want to
          open a frame on the same terminal.  */
       fd = emacs_open (name, O_RDWR | O_NOCTTY, 0);
-#endif /* O_IGNORE_CTTY */
 
     tty->name = xstrdup (name);
     terminal->name = xstrdup (name);

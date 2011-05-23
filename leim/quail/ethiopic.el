@@ -62,7 +62,7 @@ S-SPC or `M-x ethio-insert-ethio-space'
 
 C-' or `M-x ethio-gemination'
   Compose the character before the point with the Ethiopic gemination mark.
-  If the characater is already composed, decompose it and remove the
+  If the character is already composed, decompose it and remove the
   gemination mark."
 
  ;; The following keys should work as defined in lisp/language/ethio-util,

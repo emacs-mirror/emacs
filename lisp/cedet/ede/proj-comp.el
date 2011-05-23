@@ -236,7 +236,7 @@ This will prevent rules from creating duplicate variables or rules."
 
 ;;; Methods:
 (defmethod ede-proj-tweak-autoconf ((this ede-compilation-program))
-  "Tweak the configure file (current buffer) to accomodate THIS."
+  "Tweak the configure file (current buffer) to accommodate THIS."
   (mapcar
    (lambda (obj)
      (cond ((stringp obj)
@@ -248,7 +248,7 @@ This will prevent rules from creating duplicate variables or rules."
    (oref this autoconf)))
 
 (defmethod ede-proj-flush-autoconf ((this ede-compilation-program))
-  "Flush the configure file (current buffer) to accomodate THIS."
+  "Flush the configure file (current buffer) to accommodate THIS."
   nil)
 
 (defmacro proj-comp-insert-variable-once (varname &rest body)

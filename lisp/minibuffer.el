@@ -574,9 +574,10 @@ E = after completion we now have an Exact match.
               ;; Show the completion table, if requested.
               (cond
                ((not exact)
-                (if (case completion-auto-help
-                      (lazy (eq this-command last-command))
-                      (t completion-auto-help))
+		(if (cond (icomplete-mode t)
+			  ((eq completion-auto-help 'lazy)
+			   (eq this-command last-command))
+			  (t completion-auto-help))
                     (minibuffer-completion-help)
                   (minibuffer-message "Next char not unique")))
                ;; If the last exact completion and this one were the same, it

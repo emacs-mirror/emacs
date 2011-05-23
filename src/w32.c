@@ -35,6 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <mbstring.h>	/* for _mbspbrk */
 #include <math.h>
 #include <setjmp.h>
+#include <time.h>
 
 /* must include CRT headers *before* config.h */
 
@@ -64,6 +65,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef write
 
 #undef strerror
+
+#undef localtime
 
 #include "lisp.h"
 
@@ -1961,6 +1964,12 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
 
   tv->tv_sec = tb.time;
   tv->tv_usec = tb.millitm * 1000L;
+  /* Implementation note: _ftime sometimes doesn't update the dstflag
+     according to the new timezone when the system timezone is
+     changed.  We could fix that by using GetSystemTime and
+     GetTimeZoneInformation, but that doesn't seem necessary, since
+     Emacs always calls gettimeofday with the 2nd argument NULL (see
+     EMACS_GET_TIME).  */
   if (tz)
     {
       tz->tz_minuteswest = tb.timezone;	/* minutes west of Greenwich  */
@@ -5674,6 +5683,19 @@ sys_write (int fd, const void * buffer, unsigned int count)
     nchars = _write (fd, buffer, count);
 
   return nchars;
+}
+
+/* The Windows CRT functions are "optimized for speed", so they don't
+   check for timezone and DST changes if they were last called less
+   than 1 minute ago (see http://support.microsoft.com/kb/821231).  So
+   all Emacs features that repeatedly call time functions (e.g.,
+   display-time) are in real danger of missing timezone and DST
+   changes.  Calling tzset before each localtime call fixes that.  */
+struct tm *
+sys_localtime (const time_t *t)
+{
+  tzset ();
+  return localtime (t);
 }
 
 static void

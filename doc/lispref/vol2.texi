@@ -27,7 +27,7 @@
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
 @set VERSION  3.0
-@set EMACSVER 23.2.94
+@set EMACSVER 23.3.50
 @set DATE July 2009
 
 @dircategory Emacs
@@ -845,7 +845,7 @@ Font Lock Mode
 Multiline Font Lock Constructs
 
 * Font Lock Multiline::     Marking multiline chunks with a text property.
-* Region to Fontify::       Controlling which region gets refontified
+* Region to Refontify::     Controlling which region gets refontified
                               after a buffer change.
 
 Documentation

@@ -156,9 +156,9 @@ thus showing a page other than the one point was originally in."
           (if (= (match-beginning 0) (match-end 0))
               (forward-char 1))
 	  (setq count (1+ count)))
-	(message "Page %d, line %d"
-		 count
-		 (1+ (count-lines (point) opoint)))))))
+	(message "Page %d, line %d" count (line-number-at-pos opoint))))))
+
+
 
 ;;; Place `provide' at end of file.
 (provide 'page)

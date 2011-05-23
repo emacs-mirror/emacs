@@ -61,11 +61,11 @@
 (defun doc// (x) x)
 
 (defmacro doc$ (what)
-  "quoted arg form of doctor-$"
+  "Quoted arg form of doctor-$."
   (list 'doctor-$ (list 'quote what)))
 
 (defun doctor-$ (what)
-  "Return the car of a list, rotating the list each time"
+  "Return the car of a list, rotating the list each time."
   (let* ((vv (symbol-value what))
 	(first (car vv))
 	(ww (append (cdr vv) (list first))))
@@ -562,8 +562,8 @@ reads the sentence before point, and prints the Doctor's answer."
 (defun doctor-meaning (x) (get x 'doctor-meaning))
 
 (defmacro doctor-put-meaning (symb val)
-    "Store the base meaning of a word on the property list."
-    (list 'put (list 'quote symb) ''doctor-meaning val))
+  "Store the base meaning of a word on the property list."
+  (list 'put (list 'quote symb) ''doctor-meaning val))
 
 (doctor-put-meaning howdy 'howdy)
 (doctor-put-meaning hi 'howdy)
@@ -851,7 +851,7 @@ Otherwise call the Doctor to parse preceding sentence."
     (newline arg)))
 
 (defun doctor-read-print nil
-  "top level loop"
+  "Top level loop."
   (interactive)
   (let ((sent (doctor-readin)))
     (insert "\n")
@@ -869,7 +869,7 @@ Otherwise call the Doctor to parse preceding sentence."
     sentence))
 
 (defun doctor-read-token ()
-  "read one word from buffer"
+  "Read one word from buffer."
   (prog1 (intern (downcase (buffer-substring (point)
 					     (progn
 					       (forward-word 1)
@@ -1039,7 +1039,7 @@ the subject noun, and return the portion of the sentence following it."
 	   nil))))
 
 (defun doctor-nounp (x)
-  "Returns t if the symbol argument is a noun."
+  "Return t if the symbol argument is a noun."
 	(or (doctor-pronounp x)
 	    (not (or (doctor-verbp x)
 		     (equal x 'not)
@@ -1047,7 +1047,7 @@ the subject noun, and return the portion of the sentence following it."
 		     (doctor-modifierp x) )) ))
 
 (defun doctor-pronounp (x)
-  "Returns t if the symbol argument is a pronoun."
+  "Return t if the symbol argument is a pronoun."
   (memq x '(
 	i me mine myself
 	we us ours ourselves ourself

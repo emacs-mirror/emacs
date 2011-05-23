@@ -486,7 +486,7 @@ x_get_local_selection (selection_symbol, target_type, local_request)
       int size;
       int i;
       pairs = XCDR (target_type);
-      size = XVECTOR (pairs)->size;
+      size = XVECTOR_SIZE (pairs);
       /* If the target is MULTIPLE, then target_type looks like
 	  (MULTIPLE . [[SELECTION1 TARGET1] [SELECTION2 TARGET2] ... ])
 	 We modify the second element of each pair in the vector and
@@ -564,22 +564,23 @@ static void
 x_decline_selection_request (event)
      struct input_event *event;
 {
-  XSelectionEvent reply;
+  XEvent reply_base;
+  XSelectionEvent *reply = &(reply_base.xselection);
 
-  reply.type = SelectionNotify;
-  reply.display = SELECTION_EVENT_DISPLAY (event);
-  reply.requestor = SELECTION_EVENT_REQUESTOR (event);
-  reply.selection = SELECTION_EVENT_SELECTION (event);
-  reply.time = SELECTION_EVENT_TIME (event);
-  reply.target = SELECTION_EVENT_TARGET (event);
-  reply.property = None;
+  reply->type = SelectionNotify;
+  reply->display = SELECTION_EVENT_DISPLAY (event);
+  reply->requestor = SELECTION_EVENT_REQUESTOR (event);
+  reply->selection = SELECTION_EVENT_SELECTION (event);
+  reply->time = SELECTION_EVENT_TIME (event);
+  reply->target = SELECTION_EVENT_TARGET (event);
+  reply->property = None;
 
   /* The reason for the error may be that the receiver has
      died in the meantime.  Handle that case.  */
   BLOCK_INPUT;
-  x_catch_errors (reply.display);
-  XSendEvent (reply.display, reply.requestor, False, 0L, (XEvent *) &reply);
-  XFlush (reply.display);
+  x_catch_errors (reply->display);
+  XSendEvent (reply->display, reply->requestor, False, 0L, &reply_base);
+  XFlush (reply->display);
   x_uncatch_errors ();
   UNBLOCK_INPUT;
 }
@@ -690,7 +691,8 @@ x_reply_selection_request (event, format, data, size, type)
      unsigned char *data;
      Atom type;
 {
-  XSelectionEvent reply;
+  XEvent reply_base;
+  XSelectionEvent *reply = &(reply_base.xselection);
   Display *display = SELECTION_EVENT_DISPLAY (event);
   Window window = SELECTION_EVENT_REQUESTOR (event);
   int bytes_remaining;
@@ -702,15 +704,15 @@ x_reply_selection_request (event, format, data, size, type)
   if (max_bytes > MAX_SELECTION_QUANTUM)
     max_bytes = MAX_SELECTION_QUANTUM;
 
-  reply.type = SelectionNotify;
-  reply.display = display;
-  reply.requestor = window;
-  reply.selection = SELECTION_EVENT_SELECTION (event);
-  reply.time = SELECTION_EVENT_TIME (event);
-  reply.target = SELECTION_EVENT_TARGET (event);
-  reply.property = SELECTION_EVENT_PROPERTY (event);
-  if (reply.property == None)
-    reply.property = reply.target;
+  reply->type = SelectionNotify;
+  reply->display = display;
+  reply->requestor = window;
+  reply->selection = SELECTION_EVENT_SELECTION (event);
+  reply->time = SELECTION_EVENT_TIME (event);
+  reply->target = SELECTION_EVENT_TARGET (event);
+  reply->property = SELECTION_EVENT_PROPERTY (event);
+  if (reply->property == None)
+    reply->property = reply->target;
 
   BLOCK_INPUT;
   /* The protected block contains wait_for_property_change, which can
@@ -721,8 +723,8 @@ x_reply_selection_request (event, format, data, size, type)
 
 #ifdef TRACE_SELECTION
   {
-    char *sel = XGetAtomName (display, reply.selection);
-    char *tgt = XGetAtomName (display, reply.target);
+    char *sel = XGetAtomName (display, reply->selection);
+    char *tgt = XGetAtomName (display, reply->target);
     TRACE3 ("%s, target %s (%d)", sel, tgt, ++x_reply_selection_request_cnt);
     if (sel) XFree (sel);
     if (tgt) XFree (tgt);
@@ -737,10 +739,10 @@ x_reply_selection_request (event, format, data, size, type)
     {
       /* Send all the data at once, with minimal handshaking.  */
       TRACE1 ("Sending all %d bytes", bytes_remaining);
-      XChangeProperty (display, window, reply.property, type, format,
+      XChangeProperty (display, window, reply->property, type, format,
 		       PropModeReplace, data, size);
       /* At this point, the selection was successfully stored; ack it.  */
-      XSendEvent (display, window, False, 0L, (XEvent *) &reply);
+      XSendEvent (display, window, False, 0L, &reply_base);
     }
   else
     {
@@ -766,19 +768,19 @@ x_reply_selection_request (event, format, data, size, type)
 	error ("Attempt to transfer an INCR to ourself!");
 
       TRACE2 ("Start sending %d bytes incrementally (%s)",
-	      bytes_remaining,  XGetAtomName (display, reply.property));
-      wait_object = expect_property_change (display, window, reply.property,
+	      bytes_remaining,  XGetAtomName (display, reply->property));
+      wait_object = expect_property_change (display, window, reply->property,
 					    PropertyDelete);
 
       TRACE1 ("Set %s to number of bytes to send",
-	      XGetAtomName (display, reply.property));
+	      XGetAtomName (display, reply->property));
       {
         /* XChangeProperty expects an array of long even if long is more than
            32 bits.  */
         long value[1];
 
         value[0] = bytes_remaining;
-        XChangeProperty (display, window, reply.property, dpyinfo->Xatom_INCR,
+        XChangeProperty (display, window, reply->property, dpyinfo->Xatom_INCR,
                          32, PropModeReplace,
                          (unsigned char *) value, 1);
       }
@@ -787,7 +789,7 @@ x_reply_selection_request (event, format, data, size, type)
 
       /* Tell 'em the INCR data is there...  */
       TRACE0 ("Send SelectionNotify event");
-      XSendEvent (display, window, False, 0L, (XEvent *) &reply);
+      XSendEvent (display, window, False, 0L, &reply_base);
       XFlush (display);
 
       had_errors = x_had_errors_p (display);
@@ -798,7 +800,7 @@ x_reply_selection_request (event, format, data, size, type)
       if (! had_errors)
 	{
 	  TRACE1 ("Waiting for ACK (deletion of %s)",
-		  XGetAtomName (display, reply.property));
+		  XGetAtomName (display, reply->property));
 	  wait_for_property_change (wait_object);
 	}
       else
@@ -814,15 +816,15 @@ x_reply_selection_request (event, format, data, size, type)
 	  BLOCK_INPUT;
 
 	  wait_object
-	    = expect_property_change (display, window, reply.property,
+	    = expect_property_change (display, window, reply->property,
 				      PropertyDelete);
 
 	  TRACE1 ("Sending increment of %d elements", i);
 	  TRACE1 ("Set %s to increment data",
-		  XGetAtomName (display, reply.property));
+		  XGetAtomName (display, reply->property));
 
 	  /* Append the next chunk of data to the property.  */
-	  XChangeProperty (display, window, reply.property, type, format,
+	  XChangeProperty (display, window, reply->property, type, format,
 			   PropModeAppend, data, i);
 	  bytes_remaining -= i * format_bytes;
 	  if (format == 32)
@@ -839,7 +841,7 @@ x_reply_selection_request (event, format, data, size, type)
 	  /* Now wait for the requester to ack this chunk by deleting the
 	     property.  This can run random lisp code or signal.  */
 	  TRACE1 ("Waiting for increment ACK (deletion of %s)",
-		  XGetAtomName (display, reply.property));
+		  XGetAtomName (display, reply->property));
 	  wait_for_property_change (wait_object);
 	}
 
@@ -850,8 +852,8 @@ x_reply_selection_request (event, format, data, size, type)
 	XSelectInput (display, window, 0L);
 
       TRACE1 ("Set %s to a 0-length chunk to indicate EOF",
-	      XGetAtomName (display, reply.property));
-      XChangeProperty (display, window, reply.property, type, format,
+	      XGetAtomName (display, reply->property));
+      XChangeProperty (display, window, reply->property, type, format,
 		       PropModeReplace, data, 0);
       TRACE0 ("Done sending incrementally");
     }
@@ -1349,12 +1351,12 @@ copy_multiple_data (obj)
     return Fcons (XCAR (obj), copy_multiple_data (XCDR (obj)));
 
   CHECK_VECTOR (obj);
-  vec = Fmake_vector (size = XVECTOR (obj)->size, Qnil);
+  vec = Fmake_vector (size = XVECTOR_SIZE (obj), Qnil);
   for (i = 0; i < size; i++)
     {
       Lisp_Object vec2 = XVECTOR (obj)->contents [i];
       CHECK_VECTOR (vec2);
-      if (XVECTOR (vec2)->size != 2)
+      if (XVECTOR_SIZE (vec2) != 2)
 	/* ??? Confusing error message */
 	signal_error ("Vectors must be of length 2", vec2);
       XVECTOR (vec)->contents [i] = Fmake_vector (2, Qnil);
@@ -1994,7 +1996,7 @@ lisp_data_to_selection_data (display, obj,
 	/* This vector is an ATOM set */
 	{
 	  if (NILP (type)) type = QATOM;
-	  *size_ret = XVECTOR (obj)->size;
+	  *size_ret = XVECTOR_SIZE (obj);
 	  *format_ret = 32;
 	  *data_ret = (unsigned char *) xmalloc ((*size_ret) * sizeof (Atom));
 	  for (i = 0; i < *size_ret; i++)
@@ -2009,7 +2011,7 @@ lisp_data_to_selection_data (display, obj,
 	/* This vector is an ATOM_PAIR set */
 	{
 	  if (NILP (type)) type = QATOM_PAIR;
-	  *size_ret = XVECTOR (obj)->size;
+	  *size_ret = XVECTOR_SIZE (obj);
 	  *format_ret = 32;
 	  *data_ret = (unsigned char *)
 	    xmalloc ((*size_ret) * sizeof (Atom) * 2);
@@ -2017,7 +2019,7 @@ lisp_data_to_selection_data (display, obj,
 	    if (VECTORP (XVECTOR (obj)->contents [i]))
 	      {
 		Lisp_Object pair = XVECTOR (obj)->contents [i];
-		if (XVECTOR (pair)->size != 2)
+		if (XVECTOR_SIZE (pair) != 2)
 		  signal_error (
 	"Elements of the vector must be vectors of exactly two elements",
 				pair);
@@ -2039,7 +2041,7 @@ lisp_data_to_selection_data (display, obj,
 	/* This vector is an INTEGER set, or something like it */
 	{
           int data_size = 2;
-	  *size_ret = XVECTOR (obj)->size;
+	  *size_ret = XVECTOR_SIZE (obj);
 	  if (NILP (type)) type = QINTEGER;
 	  *format_ret = 16;
 	  for (i = 0; i < *size_ret; i++)
@@ -2093,7 +2095,7 @@ clean_local_selection_data (obj)
   if (VECTORP (obj))
     {
       int i;
-      int size = XVECTOR (obj)->size;
+      int size = XVECTOR_SIZE (obj);
       Lisp_Object copy;
       if (size == 1)
 	return clean_local_selection_data (XVECTOR (obj)->contents [0]);

@@ -100,7 +100,9 @@
 	     "import" "in" "is" "lambda" "not" "or" "pass" "print"
 	     "raise" "return" "try" "while" "with" "yield"
              ;; Not real keywords, but close enough to be fontified as such
-             "self" "True" "False")
+             "self" "True" "False"
+             ;; Python 3
+             "nonlocal")
 	 symbol-end)
     (,(rx symbol-start "None" symbol-end)	; see § Keywords in 2.7 manual
      . font-lock-constant-face)

@@ -1134,12 +1134,14 @@ else cover the whole buffer."
 		     (old2 (match-string 4))
 		     (new1 (number-to-string (+ space minus)))
 		     (new2 (number-to-string (+ space plus))))
-                (if old2
-                    (unless (string= new2 old2) (replace-match new2 t t nil 4))
-                  (goto-char (match-end 4)) (insert "," new2))
-                (if old1
-                    (unless (string= new1 old1) (replace-match new1 t t nil 2))
-                  (goto-char (match-end 2)) (insert "," new1))))
+		(if old2
+		    (unless (string= new2 old2) (replace-match new2 t t nil 4))
+		  (goto-char (match-end 3))
+		  (insert "," new2))
+		(if old1
+		    (unless (string= new1 old1) (replace-match new1 t t nil 2))
+		  (goto-char (match-end 1))
+		  (insert "," new1))))
 	     ((looking-at diff-context-mid-hunk-header-re)
 	      (when (> (+ space bang plus) 0)
 		(let* ((old1 (match-string 1))

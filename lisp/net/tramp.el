@@ -2313,7 +2313,7 @@ FILE must be a local file name on a connection identified via VEC."
   (let* ((parameters (cdr reporter))
 	 (message (aref parameters 3)))
     (when (string-match message (or (current-message) ""))
-      (funcall 'progress-reporter-update reporter value))))
+      (tramp-compat-funcall 'progress-reporter-update reporter value))))
 
 (defmacro with-progress-reporter (vec level message &rest body)
   "Executes BODY, spinning a progress reporter with MESSAGE.
@@ -4098,7 +4098,8 @@ The method used must be an out-of-band method."
 		  (tramp-message
 		   v 6 "%s" (mapconcat 'identity (process-command p) " "))
 		  (tramp-set-process-query-on-exit-flag p nil)
-		  (tramp-process-actions p v tramp-actions-copy-out-of-band))))
+		  (tramp-process-actions
+		   p v nil tramp-actions-copy-out-of-band))))
 
 	  ;; Reset the transfer process properties.
 	  (tramp-set-connection-property v "process-name" nil)
@@ -4570,7 +4571,7 @@ beginning of local filename are not substituted."
 		      (tramp-send-command v command nil t) ; nooutput
 		    ;; Check, whether a pty is associated.
 		    (tramp-maybe-open-connection v)
-		    (unless (process-get
+		    (unless (tramp-compat-process-get
 			     (tramp-get-connection-process v) 'remote-tty)
 		      (tramp-error
 		       v 'file-error
@@ -5025,7 +5026,9 @@ coding system might not be determined.  This function repairs it."
 	    (set-visited-file-modtime)
 	    (set-buffer-modified-p nil)
 	    ;; For root, preserve owner and group when editing files.
-	    (when (string-equal (file-remote-p filename 'user) "root")
+	    (when (string-equal
+		   (tramp-file-name-handler 'file-remote-p filename 'user)
+		   "root")
 	      (set (make-local-variable 'backup-by-copying-when-mismatch) t)))
 	  (when (and (stringp local-copy)
 		     (or remote-copy (null tramp-temp-buffer-file-name)))
@@ -6819,8 +6822,11 @@ The terminal type can be configured with `tramp-terminal-type'."
 	  (setq found (funcall action proc vec)))))
     found))
 
-(defun tramp-process-actions (proc vec actions &optional timeout)
-  "Perform actions until success or TIMEOUT."
+(defun tramp-process-actions (proc vec pos actions &optional timeout)
+  "Perform ACTIONS until success or TIMEOUT.
+PROC and VEC indicate the remote connection to be used.  POS, if
+set, is the starting point of the region to be deleted in the
+connection buffer."
   ;; Preserve message for `progress-reporter'.
   (with-temp-message ""
     ;; Enable auth-source and password-cache.
@@ -6845,7 +6851,10 @@ The terminal type can be configured with `tramp-terminal-type'."
 	   (cond
 	    ((eq exit 'permission-denied) "Permission denied")
 	    ((eq exit 'process-died) "Process died")
-	    (t "Login failed"))))))))
+	    (t "Login failed"))))
+	(when (numberp pos)
+	  (with-current-buffer (tramp-get-connection-buffer vec)
+	    (let (buffer-read-only) (delete-region pos (point)))))))))
 
 ;; Utility functions.
 
@@ -7111,7 +7120,8 @@ process to set up.  VEC specifies the connection."
   ;; Set `remote-tty' process property.
   (ignore-errors
     (let ((tty (tramp-send-command-and-read vec "echo \\\"`tty`\\\"")))
-      (unless (zerop (length tty)) (process-put proc 'remote-tty tty))))
+      (unless (zerop (length tty))
+	(tramp-compat-process-put proc 'remote-tty tty))))
 
   ;; Dump stty settings in the traces.
   (when (>= tramp-verbose 9)
@@ -7520,7 +7530,8 @@ connection if a previous connection has died for some reason."
   (catch 'uname-changed
     (let ((p (tramp-get-connection-process vec))
 	  (process-name (tramp-get-connection-property vec "process-name" nil))
-	  (process-environment (copy-sequence process-environment)))
+	  (process-environment (copy-sequence process-environment))
+	  (pos (with-current-buffer (tramp-get-connection-buffer vec) (point))))
 
       ;; If too much time has passed since last command was sent, look
       ;; whether process is still alive.  If it isn't, kill it.  When
@@ -7674,7 +7685,7 @@ connection if a previous connection has died for some reason."
 		;; Send the command.
 		(tramp-message vec 3 "Sending command `%s'" command)
 		(tramp-send-command vec command t t)
-		(tramp-process-actions p vec tramp-actions-before-shell 60)
+		(tramp-process-actions p vec pos tramp-actions-before-shell 60)
 		(tramp-message
 		 vec 3 "Found remote shell prompt on `%s'" l-host))
 	      ;; Next hop.

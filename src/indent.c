@@ -101,7 +101,7 @@ character_width (c, dp)
   /* Everything can be handled by the display table, if it's
      present and the element is right.  */
   if (dp && (elt = DISP_CHAR_VECTOR (dp, c), VECTORP (elt)))
-    return XVECTOR (elt)->size;
+    return XVECTOR_SIZE (elt);
 
   /* Some characters are special.  */
   if (c == '\n' || c == '\t' || c == '\015')
@@ -131,7 +131,7 @@ disptab_matches_widthtab (disptab, widthtab)
 {
   int i;
 
-  if (widthtab->size != 256)
+  if (widthtab->header.size != 256)
     abort ();
 
   for (i = 0; i < 256; i++)
@@ -155,7 +155,7 @@ recompute_width_table (buf, disptab)
   if (!VECTORP (buf->width_table))
     buf->width_table = Fmake_vector (make_number (256), make_number (0));
   widthtab = XVECTOR (buf->width_table);
-  if (widthtab->size != 256)
+  if (widthtab->header.size != 256)
     abort ();
 
   for (i = 0; i < 256; i++)
@@ -301,7 +301,7 @@ skip_invisible (pos, next_boundary_p, to, window)
     else								\
       {									\
 	if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))		\
-	  width = XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;		\
+	  width = XVECTOR_SIZE (DISP_CHAR_VECTOR (dp, c));		\
 	else								\
 	  width = CHAR_WIDTH (c);					\
 	if (width > 1)							\
@@ -786,7 +786,7 @@ string_display_width (string, beg, end)
 
       c = *--ptr;
       if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
-	col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
+	col += XVECTOR_SIZE (DISP_CHAR_VECTOR (dp, c));
       else if (c >= 040 && c < 0177)
 	col++;
       else if (c == '\n')
@@ -1159,7 +1159,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
        : !NILP (current_buffer->selective_display) ? -1 : 0);
   int selective_rlen
     = (selective && dp && VECTORP (DISP_INVIS_VECTOR (dp))
-       ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
+       ? XVECTOR_SIZE (DISP_INVIS_VECTOR (dp)) : 0);
   /* The next location where the `invisible' property changes, or an
      overlay starts or ends.  */
   EMACS_INT next_boundary = from;

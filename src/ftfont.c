@@ -162,7 +162,7 @@ extern Lisp_Object Qc, Qm, Qp, Qd;
 static Lisp_Object
 get_adstyle_property (FcPattern *p)
 {
-  char *str, *end;
+  unsigned char *str, *end;
   Lisp_Object adstyle;
 
   if (FcPatternGetString (p, FC_STYLE, 0, (FcChar8 **) &str) != FcResultMatch)
@@ -193,7 +193,7 @@ ftfont_pattern_entity (p, extra)
      Lisp_Object extra;
 {
   Lisp_Object key, cache, entity;
-  char *file, *str;
+  unsigned char *file, *str;
   int index;
   int numeric;
   double dbl;
