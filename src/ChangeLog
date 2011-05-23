@@ -1,3 +1,11 @@
+2011-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gnutls.c: Remove unused macros.
+	(fn_gnutls_transport_set_lowat, fn_gnutls_transport_set_pull_function):
+	(fn_gnutls_transport_set_push_function) [!WINDOWSNT]:
+	Remove macros that are defined and never used.
+	Caught by gcc -Wunused-macros (GCC 4.6.0, Fedora 14).
+
 2011-05-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xselect.c (syms_of_xselect): Remove unused symbol SAVE_TARGETS.
