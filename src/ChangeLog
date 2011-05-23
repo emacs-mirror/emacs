@@ -1,5 +1,14 @@
 2011-05-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	ccl: add integer overflow checks
+	* ccl.c (CCL_CODE_MAX, GET_CCL_RANGE, GET_CCL_CODE, GET_CCL_INT):
+	(IN_INT_RANGE): New macros.
+	(ccl_driver): Use them to check for integer overflow when
+	decoding a CCL program.  Many of the new checks are whether XINT (x)
+	fits in int; it doesn't always, on 64-bit hosts.  The new version
+	doesn't catch all possible integer overflows, but it's an
+	improvement.
+
 	* alloc.c (make_event_array): Use XINT, not XUINT.
 	There's no need for unsigned here.
 
