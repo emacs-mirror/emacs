@@ -296,7 +296,7 @@ If this variable is nil, all regions are treated as small."
 ;;*    using flyspell with mail-mode add the following expression       */
 ;;*    in your .emacs file:                                             */
 ;;*       (add-hook 'mail-mode                                          */
-;;*    	     '(lambda () (setq flyspell-generic-check-word-predicate    */
+;;*    	     (lambda () (setq flyspell-generic-check-word-predicate    */
 ;;*    			       'mail-mode-flyspell-verify)))            */
 ;;*---------------------------------------------------------------------*/
 (defvar flyspell-generic-check-word-predicate nil

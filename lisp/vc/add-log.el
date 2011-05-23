@@ -578,7 +578,7 @@ It takes the same format as the TZ argument of `set-time-zone-rule'.
 If nil, use local time.
 If t, use universal time.")
 (put 'add-log-time-zone-rule 'safe-local-variable
-     '(lambda (x) (or (booleanp x) (stringp x))))
+     (lambda (x) (or (booleanp x) (stringp x))))
 
 (defun add-log-iso8601-time-zone (&optional time)
   (let* ((utc-offset (or (car (current-time-zone time)) 0))
@@ -1051,8 +1051,8 @@ Runs `change-log-mode-hook'.
   (set (make-local-variable 'fill-indent-according-to-mode) t)
   ;; Avoid that filling leaves behind a single "*" on a line.
   (add-hook 'fill-nobreak-predicate
-	    '(lambda ()
-	       (looking-back "^\\s *\\*\\s *" (line-beginning-position)))
+	    (lambda ()
+              (looking-back "^\\s *\\*\\s *" (line-beginning-position)))
 	    nil t)
   (set (make-local-variable 'indent-line-function) 'change-log-indent)
   (set (make-local-variable 'tab-always-indent) nil)

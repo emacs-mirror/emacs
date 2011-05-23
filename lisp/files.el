@@ -278,7 +278,7 @@ The value `never' means do not make them."
   :group 'backup
   :group 'vc)
 (put 'version-control 'safe-local-variable
-     '(lambda (x) (or (booleanp x) (equal x 'never))))
+     (lambda (x) (or (booleanp x) (equal x 'never))))
 
 (defcustom dired-kept-versions 2
   "When cleaning directory, number of versions to keep."

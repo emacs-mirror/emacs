@@ -50,7 +50,7 @@ Must produce output compatible with Unix's diff3 program."
 
 ;; The following functions must precede all defcustom-defined variables.
 
-(fset 'ediff-set-actual-diff-options '(lambda () nil))
+(fset 'ediff-set-actual-diff-options (lambda () nil))
 
 (defcustom ediff-shell
   (cond ((memq system-type '(ms-dos windows-nt))

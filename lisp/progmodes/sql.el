@@ -1207,13 +1207,13 @@ Based on `comint-mode-map'.")
 
 (mapc
  ;; In Emacs 22+, provide SYSTEM-FLAG to define-abbrev.
- '(lambda (abbrev)
-    (let ((name (car abbrev))
-          (expansion (cdr abbrev)))
-      (condition-case nil
-          (define-abbrev sql-mode-abbrev-table name expansion nil 0 t)
-        (error
-         (define-abbrev sql-mode-abbrev-table name expansion)))))
+ (lambda (abbrev)
+   (let ((name (car abbrev))
+         (expansion (cdr abbrev)))
+     (condition-case nil
+         (define-abbrev sql-mode-abbrev-table name expansion nil 0 t)
+       (error
+        (define-abbrev sql-mode-abbrev-table name expansion)))))
  '(("ins"  . "insert")
    ("upd"  . "update")
    ("del"  . "delete")

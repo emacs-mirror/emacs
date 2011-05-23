@@ -638,10 +638,10 @@ filing messages."
         (message "Making passwd aliases...")
         (setq passwd-matches
               (mapconcat
-               '(lambda (elem)
-                  (if (or (string-match regexp (car elem))
-                          (string-match regexp (cadr elem)))
-                      (format "%s: %s\n" (car elem) (cadr elem))))
+               (lambda (elem)
+                 (if (or (string-match regexp (car elem))
+                         (string-match regexp (cadr elem)))
+                     (format "%s: %s\n" (car elem) (cadr elem))))
                mh-alias-passwd-alist ""))
         (message "Making passwd aliases...done")))
     (if (and (string-equal "" matches)

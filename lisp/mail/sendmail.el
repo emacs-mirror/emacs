@@ -864,9 +864,9 @@ the user from the mailer."
 			  (let ((l))
 			    (mapc
 			     ;; remove duplicates
-			     '(lambda (e)
-				(unless (member e l)
-				  (push e l)))
+			     (lambda (e)
+                               (unless (member e l)
+                                 (push e l)))
 			     (split-string new-header-values
 					   ",[[:space:]]+" t))
 			    (mapconcat 'identity l ", "))

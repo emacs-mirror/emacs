@@ -851,19 +851,19 @@ It also can't undo some Viper settings."
   ;; over misspelled words (due to the overlay keymaps)
   (defvar flyspell-mode-hook)
   (add-hook 'flyspell-mode-hook
-	    '(lambda ()
-	       (define-key flyspell-mouse-map viper-ESC-key nil)))
+	    (lambda ()
+              (define-key flyspell-mouse-map viper-ESC-key nil)))
   ;; if viper is started from .emacs, it might be impossible to get certain
   ;; info about the display and windows until emacs initialization is complete
   ;; So do it via the window-setup-hook
   (add-hook 'window-setup-hook
-  	    '(lambda ()
-	       (modify-frame-parameters
-		(selected-frame)
-		(list (cons 'viper-vi-state-cursor-color
-			    (viper-get-cursor-color))))
-	       (setq viper-vi-state-cursor-color (viper-get-cursor-color))
-	       ))
+  	    (lambda ()
+              (modify-frame-parameters
+               (selected-frame)
+               (list (cons 'viper-vi-state-cursor-color
+                           (viper-get-cursor-color))))
+              (setq viper-vi-state-cursor-color (viper-get-cursor-color))
+              ))
 
   ;; Tell vc-diff to put *vc* in Vi mode
   (eval-after-load

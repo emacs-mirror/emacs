@@ -1,5 +1,7 @@
 2011-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* <lots-of-files>.el: Don't quote lambda expressions with `quote'.
+
 	* vc/smerge-mode.el (smerge-refine-subst): Don't deactivate the mark
 	(bug#8710).
 

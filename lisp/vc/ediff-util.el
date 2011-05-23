@@ -1682,7 +1682,7 @@ the width of the A/B/C windows."
 			    'ediff-get-lines-to-region-start)
 			   ((eq op 'scroll-up)
 			    'ediff-get-lines-to-region-end)
-			   (t '(lambda (a b c) 0))))
+			   (t (lambda (a b c) 0))))
 	       (max-lines (max (funcall func 'A n ctl-buf)
 			       (funcall func 'B n ctl-buf)
 			       (if (ediff-buffer-live-p ediff-buffer-C)

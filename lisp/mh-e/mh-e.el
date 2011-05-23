@@ -933,7 +933,7 @@ finally GNU mailutils MH."
      (t
       (message "Unknown variant %s; use %s"
                variant
-               (mapconcat '(lambda (x) (format "%s" (car x)))
+               (mapconcat (lambda (x) (format "%s" (car x)))
                           (mh-variants) " or "))))))
 
 (defcustom-mh mh-variant 'autodetect

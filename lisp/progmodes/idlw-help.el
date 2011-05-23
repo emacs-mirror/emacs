@@ -835,7 +835,7 @@ see if a link is set for it.  Try extra help functions if necessary."
 
      ((or idlwave-help-browser-is-local
 	  (string-match "w3" (symbol-name idlwave-help-browser-function)))
-      (idlwave-help-display-help-window '(lambda () (browse-url full-link))))
+      (idlwave-help-display-help-window (lambda () (browse-url full-link))))
 
      (t (browse-url full-link)))))
 

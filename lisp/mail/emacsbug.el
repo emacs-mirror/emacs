@@ -227,8 +227,8 @@ usually do not have translators to read other languages for them.\n\n")
 		system-configuration-options "'\n\n"))
     (insert "Important settings:\n")
     (mapc
-     '(lambda (var)
-	(insert (format "  value of $%s: %s\n" var (getenv var))))
+     (lambda (var)
+       (insert (format "  value of $%s: %s\n" var (getenv var))))
      '("LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
        "LC_MONETARY" "LC_NUMERIC" "LC_TIME" "LANG" "XMODIFIERS"))
     (insert (format "  locale-coding-system: %s\n" locale-coding-system))

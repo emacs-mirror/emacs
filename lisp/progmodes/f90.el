@@ -78,9 +78,9 @@
 ;; To customize f90-mode for your taste, use, for example:
 ;; (you don't have to specify values for all the parameters below)
 ;;
-;;(add-hook 'f90-mode-hook
-;;      ;; These are the default values.
-;;      '(lambda () (setq f90-do-indent 3
+;; (add-hook 'f90-mode-hook
+;;       ;; These are the default values.
+;;       (lambda () (setq f90-do-indent 3
 ;;                        f90-if-indent 3
 ;;                        f90-type-indent 3
 ;;                        f90-program-indent 2

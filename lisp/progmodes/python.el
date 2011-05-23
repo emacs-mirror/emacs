@@ -2380,7 +2380,7 @@ without confirmation."
 	      (features (cons 'python-mode features))) ; and requires this
 	  (brm-init)			; second line of normal recipe
 	  (remove-hook 'python-mode-hook ; undo this from `brm-init'
-		       '(lambda () (easy-menu-add brm-menu)))
+		       (lambda () (easy-menu-add brm-menu)))
 	  (easy-menu-define
 	    python-brm-menu python-mode-map
 	    "Bicycle Repair Man"

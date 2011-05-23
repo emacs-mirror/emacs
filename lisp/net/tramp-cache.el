@@ -176,7 +176,7 @@ Remove also properties of all files in subdirectories."
 		    'directory-file-name (list directory))))
   (tramp-message vec 8 "%s" directory)
     (maphash
-     '(lambda (key value)
+     (lambda (key value)
 	(when (and (stringp (tramp-file-name-localname key))
 		   (string-match directory (tramp-file-name-localname key)))
 	  (remhash key tramp-cache-data)))
@@ -199,7 +199,7 @@ Remove also properties of all files in subdirectories."
 (add-hook 'eshell-pre-command-hook 'tramp-flush-file-function)
 (add-hook 'kill-buffer-hook 'tramp-flush-file-function)
 (add-hook 'tramp-cache-unload-hook
-	  '(lambda ()
+	  (lambda ()
 	     (remove-hook 'before-revert-hook
 			  'tramp-flush-file-function)
 	     (remove-hook 'eshell-pre-command-hook
@@ -289,7 +289,7 @@ KEY identifies the connection, it is either a process or a vector."
   (when (hash-table-p table)
     (let (result)
       (maphash
-       '(lambda (key value)
+       (lambda (key value)
 	  (let ((tmp (format
 		      "(%s %s)"
 		      (if (processp key)
@@ -309,7 +309,7 @@ KEY identifies the connection, it is either a process or a vector."
   "Return a list of all known connection vectors according to `tramp-cache'."
     (let (result)
       (maphash
-       '(lambda (key value)
+       (lambda (key value)
 	  (when (and (vectorp key) (null (aref key 3)))
 	    (add-to-list 'result key)))
        tramp-cache-data)
@@ -326,7 +326,7 @@ KEY identifies the connection, it is either a process or a vector."
       (let ((cache (copy-hash-table tramp-cache-data)))
 	;; Remove temporary data.
 	(maphash
-	 '(lambda (key value)
+	 (lambda (key value)
 	    (if (and (vectorp key) (not (tramp-file-name-localname key)))
 		(progn
 		  (remhash "process-name" value)
@@ -356,7 +356,7 @@ KEY identifies the connection, it is either a process or a vector."
 (unless noninteractive
   (add-hook 'kill-emacs-hook 'tramp-dump-connection-properties))
 (add-hook 'tramp-cache-unload-hook
-	  '(lambda ()
+	  (lambda ()
 	     (remove-hook 'kill-emacs-hook
 			  'tramp-dump-connection-properties)))
 
@@ -367,7 +367,7 @@ This function is added always in `tramp-get-completion-function'
 for all methods.  Resulting data are derived from connection history."
   (let (res)
     (maphash
-     '(lambda (key value)
+     (lambda (key value)
 	(if (and (vectorp key)
 		 (string-equal method (tramp-file-name-method key))
 		 (not (tramp-file-name-localname key)))

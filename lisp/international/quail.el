@@ -2458,10 +2458,10 @@ should be made by `quail-build-decode-map' (which see)."
 
 (define-button-type 'quail-keyboard-layout-button
   :supertype 'help-xref
-  'help-function '(lambda (layout)
-		    (help-setup-xref `(quail-keyboard-layout-button ,layout)
-				     nil)
-		    (quail-show-keyboard-layout layout))
+  'help-function (lambda (layout)
+                   (help-setup-xref `(quail-keyboard-layout-button ,layout)
+                                    nil)
+                   (quail-show-keyboard-layout layout))
   'help-echo (purecopy "mouse-2, RET: show keyboard layout"))
 
 (define-button-type 'quail-keyboard-customize-button

@@ -315,7 +315,7 @@ No buffers at all if less than 1 or nil (or any non-number)."
   :set 'msb-custom-set
   :group 'msb)
 
-(defvar msb-horizontal-shift-function '(lambda () 0)
+(defvar msb-horizontal-shift-function (lambda () 0)
   "*Function that specifies how many pixels to shift the top menu leftwards.")
 
 (defcustom msb-display-invisible-buffers-p nil

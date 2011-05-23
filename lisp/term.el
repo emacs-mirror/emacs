@@ -4254,8 +4254,8 @@ special identifiers such as COM1."
     (setq x
          (sort
           (copy-sequence serial-speed-history)
-          '(lambda (a b) (when (and (stringp a) (stringp b))
-                           (> (string-to-number a) (string-to-number b))))))
+          (lambda (a b) (when (and (stringp a) (stringp b))
+                     (> (string-to-number a) (string-to-number b))))))
     (dolist (i x) (when (not (equal i (car y))) (push i y)))
     y))
 

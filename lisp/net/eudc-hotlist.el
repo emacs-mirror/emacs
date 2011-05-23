@@ -89,7 +89,7 @@ These are the special commands of this mode:
 	    "------" gap "--------\n"
 	    "\n")
     (setq eudc-hotlist-list-beginning (point))
-    (mapc '(lambda (entry)
+    (mapc (lambda (entry)
 	     (insert (car entry))
 	     (indent-to proto-col)
 	     (insert (symbol-name (cdr entry)) "\n"))
@@ -103,7 +103,7 @@ These are the special commands of this mode:
       (error "Not in a EUDC hotlist edit buffer"))
   (let ((server (read-from-minibuffer "Server: "))
 	(protocol (completing-read "Protocol: "
-				   (mapcar '(lambda (elt)
+				   (mapcar (lambda (elt)
 					      (cons (symbol-name elt)
 						    elt))
 					   eudc-known-protocols)))

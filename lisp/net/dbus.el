@@ -121,7 +121,7 @@ See `dbus-registered-objects-table' for a description of the
 hash table."
   (let (result)
     (maphash
-     '(lambda (key value) (add-to-list 'result (cons key value) 'append))
+     (lambda (key value) (add-to-list 'result (cons key value) 'append))
      dbus-registered-objects-table)
     result))
 
@@ -271,20 +271,20 @@ usage: (dbus-name-owner-changed-handler service old-owner new-owner)"
 	  ;; Check whether SERVICE is a known name.
 	  (when (not (string-match "^:" service))
 	    (maphash
-	     '(lambda (key value)
-		(dolist (elt value)
-		  ;; key has the structure (BUS INTERFACE MEMBER).
-		  ;; elt has the structure (UNAME SERVICE PATH HANDLER).
-		  (when (string-equal old-owner (car elt))
-		    ;; Remove old key, and add new entry with changed name.
-		    (dbus-unregister-object (list key (cdr elt)))
-		    ;; Maybe we could arrange the lists a little bit better
-		    ;; that we don't need to extract every single element?
-		    (dbus-register-signal
-		     ;; BUS      SERVICE     PATH
-		     (nth 0 key) (nth 1 elt) (nth 2 elt)
-		     ;; INTERFACE MEMBER     HANDLER
-		     (nth 1 key) (nth 2 key) (nth 3 elt)))))
+	     (lambda (key value)
+               (dolist (elt value)
+                 ;; key has the structure (BUS INTERFACE MEMBER).
+                 ;; elt has the structure (UNAME SERVICE PATH HANDLER).
+                 (when (string-equal old-owner (car elt))
+                   ;; Remove old key, and add new entry with changed name.
+                   (dbus-unregister-object (list key (cdr elt)))
+                   ;; Maybe we could arrange the lists a little bit better
+                   ;; that we don't need to extract every single element?
+                   (dbus-register-signal
+                    ;; BUS      SERVICE     PATH
+                    (nth 0 key) (nth 1 elt) (nth 2 elt)
+                    ;; INTERFACE MEMBER     HANDLER
+                    (nth 1 key) (nth 2 key) (nth 3 elt)))))
 	     (copy-hash-table dbus-registered-objects-table))))
       ;; The error is reported only in debug mode.
       (when  dbus-debug
@@ -825,15 +825,15 @@ be \"out\"."
       (setq direction nil))
     ;; Collect the signatures.
     (mapconcat
-     '(lambda (x)
-	(let ((arg (dbus-introspect-get-argument
-		    bus service path interface name x)))
-	  (if (or (not (stringp direction))
-		  (string-equal
-		   direction
-		   (dbus-introspect-get-attribute arg "direction")))
-	      (dbus-introspect-get-attribute arg "type")
-	    "")))
+     (lambda (x)
+       (let ((arg (dbus-introspect-get-argument
+                   bus service path interface name x)))
+         (if (or (not (stringp direction))
+                 (string-equal
+                  direction
+                  (dbus-introspect-get-attribute arg "direction")))
+             (dbus-introspect-get-attribute arg "type")
+           "")))
      (dbus-introspect-get-argument-names bus service path interface name)
      "")))
 

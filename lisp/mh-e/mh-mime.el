@@ -1637,8 +1637,8 @@ This action can be undone by running \\[undo]."
     ;; Do an alias lookup on recipients
     (message-options-set 'message-recipients
                          (mapconcat
-                          '(lambda (ali)
-                             (mail-strip-quoted-names (mh-alias-expand ali)))
+                          (lambda (ali)
+                            (mail-strip-quoted-names (mh-alias-expand ali)))
                           (split-string (message-options-get 'message-recipients) "[, ]+")
                           ", ")))
   (let ((saved-text (buffer-string))

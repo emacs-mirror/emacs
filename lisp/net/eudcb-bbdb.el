@@ -73,32 +73,29 @@
   "Return RECORD if it matches `eudc-bbdb-current-query', nil otherwise."
   (catch 'unmatch
     (progn
-      (mapc
-       (function
-	(lambda (condition)
-	  (let ((attr (car condition))
-		(val (cdr condition))
-		(case-fold-search t)
-		bbdb-val)
-	    (or (and (memq attr '(firstname lastname aka company phones addresses net))
-		     (progn
-		       (setq bbdb-val
-			     (eval (list (intern (concat "bbdb-record-"
-							 (symbol-name attr)))
-					 'record)))
-		       (if (listp bbdb-val)
-			   (if eudc-bbdb-enable-substring-matches
-			       (eval `(or ,@(mapcar '(lambda (subval)
-						       (string-match val
-								     subval))
-						  bbdb-val)))
-			     (member (downcase val)
-				     (mapcar 'downcase bbdb-val)))
-			 (if eudc-bbdb-enable-substring-matches
-			     (string-match val bbdb-val)
-			   (string-equal (downcase val) (downcase bbdb-val))))))
-		(throw 'unmatch nil)))))
-       eudc-bbdb-current-query)
+      (dolist (condition eudc-bbdb-current-query)
+        (let ((attr (car condition))
+              (val (cdr condition))
+              (case-fold-search t)
+              bbdb-val)
+          (or (and (memq attr '(firstname lastname aka company phones
+                                addresses net))
+                   (progn
+                     (setq bbdb-val
+                           (eval (list (intern (concat "bbdb-record-"
+                                                       (symbol-name attr)))
+                                       'record)))
+                     (if (listp bbdb-val)
+                         (if eudc-bbdb-enable-substring-matches
+                             (eval `(or ,@(mapcar (lambda (subval)
+                                                    (string-match val subval))
+                                                  bbdb-val)))
+                           (member (downcase val)
+                                   (mapcar 'downcase bbdb-val)))
+                       (if eudc-bbdb-enable-substring-matches
+                           (string-match val bbdb-val)
+                         (string-equal (downcase val) (downcase bbdb-val))))))
+              (throw 'unmatch nil))))
       record)))
 
 ;; External.
