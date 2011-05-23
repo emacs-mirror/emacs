@@ -1,5 +1,8 @@
 2011-05-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c (make_event_array): Use XINT, not XUINT.
+	There's no need for unsigned here.
+
 	* mem-limits.h (EXCEEDS_LISP_PTR) [!USE_LSB_TAG]: EMACS_UINT -> uintptr_t
 	This follows up to the 2011-05-06 change that substituted uintptr_t
 	for EMACS_INT.  This case wasn't caught back then.

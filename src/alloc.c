@@ -3244,7 +3244,7 @@ make_event_array (register int nargs, Lisp_Object *args)
        are characters that are in 0...127,
        after discarding the meta bit and all the bits above it.  */
     if (!INTEGERP (args[i])
-	|| (XUINT (args[i]) & ~(-CHAR_META)) >= 0200)
+	|| (XINT (args[i]) & ~(-CHAR_META)) >= 0200)
       return Fvector (nargs, args);
 
   /* Since the loop exited, we know that all the things in it are
