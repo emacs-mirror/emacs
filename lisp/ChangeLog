@@ -1,5 +1,8 @@
 2011-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-function-form): Only call
+	byte-compile-lambda if it's actually a lambda.
+
 	* emacs-lisp/eieio.el (eieio-defgeneric-form-primary-only-one):
 	Fix function quoting.  Use backquote better.
 

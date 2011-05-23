@@ -3525,9 +3525,9 @@ discarding."
 ;; and (funcall (function foo)) will lose with autoloads.
 
 (defun byte-compile-function-form (form)
-  (byte-compile-constant (if (symbolp (nth 1 form))
-                             (nth 1 form)
-                           (byte-compile-lambda (nth 1 form)))))
+  (byte-compile-constant (if (eq 'lambda (car-safe (nth 1 form)))
+                             (byte-compile-lambda (nth 1 form))
+                           (nth 1 form))))
 
 (defun byte-compile-indent-to (form)
   (let ((len (length form)))
