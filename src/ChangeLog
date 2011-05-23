@@ -1,3 +1,9 @@
+2011-05-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* mem-limits.h (EXCEEDS_LISP_PTR) [!USE_LSB_TAG]: EMACS_UINT -> uintptr_t
+	This follows up to the 2011-05-06 change that substituted uintptr_t
+	for EMACS_INT.  This case wasn't caught back then.
+
 2011-05-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Rework Fformat to avoid integer overflow issues.
