@@ -1,3 +1,9 @@
+2011-05-23  Kevin Ryde  <user42@zip.com.au>
+
+	* emacs-lisp/advice.el (ad-read-advised-function):
+	Use `function-called-at-point' as the default default, if it has
+	advice and passes PREDICATE.
+
 2011-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-function-form): Only call
