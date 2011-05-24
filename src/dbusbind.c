@@ -242,6 +242,31 @@ xd_symbol_to_dbus_type (Lisp_Object object)
 #define XD_NEXT_VALUE(object)						\
   ((XD_DBUS_TYPE_P (CAR_SAFE (object))) ? CDR_SAFE (object) : object)
 
+/* Check whether X is a valid dbus serial number.  If valid, set
+   SERIAL to its value.  Otherwise, signal an error. */
+#define CHECK_DBUS_SERIAL_GET_SERIAL(x, serial)				\
+  do									\
+    {									\
+      dbus_uint32_t DBUS_SERIAL_MAX = -1;				\
+      if (NATNUMP (x) && XINT (x) <= DBUS_SERIAL_MAX)			\
+	serial = XINT (x);						\
+      else if (MOST_POSITIVE_FIXNUM < DBUS_SERIAL_MAX			\
+	       && FLOATP (x)						\
+	       && 0 <= XFLOAT_DATA (x)					\
+	       && XFLOAT_DATA (x) <= DBUS_SERIAL_MAX)			\
+	serial = XFLOAT_DATA (x);					\
+      else								\
+	xd_invalid_serial (x);						\
+    }									\
+  while (0)
+
+static void xd_invalid_serial (Lisp_Object) NO_RETURN;
+static void
+xd_invalid_serial (Lisp_Object x)
+{
+  signal_error ("Invalid dbus serial", x);
+}
+
 /* Compute SIGNATURE of OBJECT.  It must have a form that it can be
    used in dbus_message_iter_open_container.  DTYPE is the DBusType
    the object is related to.  It is passed as argument, because it
@@ -1251,6 +1276,7 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
   DBusMessage *dmessage;
   DBusMessageIter iter;
   unsigned int dtype;
+  dbus_uint32_t serial;
   int timeout = -1;
   size_t i = 6;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
@@ -1335,7 +1361,8 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
 	XD_SIGNAL1 (build_string ("Cannot send message"));
 
       /* The result is the key in Vdbus_registered_objects_table.  */
-      result = (list2 (bus, make_number (dbus_message_get_serial (dmessage))));
+      serial = dbus_message_get_serial (dmessage);
+      result = list2 (bus, make_fixnum_or_float (serial));
 
       /* Create a hash table entry.  */
       Fputhash (result, handler, Vdbus_registered_objects_table);
@@ -1368,25 +1395,26 @@ This is an internal function, it shall not be used outside dbus.el.
 usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
   (size_t nargs, register Lisp_Object *args)
 {
-  Lisp_Object bus, serial, service;
-  struct gcpro gcpro1, gcpro2, gcpro3;
+  Lisp_Object bus, service;
+  struct gcpro gcpro1, gcpro2;
   DBusConnection *connection;
   DBusMessage *dmessage;
   DBusMessageIter iter;
-  unsigned int dtype;
+  dbus_uint32_t serial;
+  unsigned int ui_serial, dtype;
   size_t i;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Check parameters.  */
   bus = args[0];
-  serial = args[1];
   service = args[2];
 
-  CHECK_NATNUM (serial);
+  CHECK_DBUS_SERIAL_GET_SERIAL (args[1], serial);
   CHECK_STRING (service);
-  GCPRO3 (bus, serial, service);
+  GCPRO2 (bus, service);
 
-  XD_DEBUG_MESSAGE ("%"pI"d %s ", XFASTINT (serial), SSDATA (service));
+  ui_serial = serial;
+  XD_DEBUG_MESSAGE ("%u %s ", ui_serial, SSDATA (service));
 
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus, TRUE);
@@ -1394,7 +1422,7 @@ usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
   /* Create the message.  */
   dmessage = dbus_message_new (DBUS_MESSAGE_TYPE_METHOD_RETURN);
   if ((dmessage == NULL)
-      || (!dbus_message_set_reply_serial (dmessage, XFASTINT (serial)))
+      || (!dbus_message_set_reply_serial (dmessage, serial))
       || (!dbus_message_set_destination (dmessage, SSDATA (service))))
     {
       UNGCPRO;
@@ -1456,25 +1484,26 @@ This is an internal function, it shall not be used outside dbus.el.
 usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
   (size_t nargs, register Lisp_Object *args)
 {
-  Lisp_Object bus, serial, service;
-  struct gcpro gcpro1, gcpro2, gcpro3;
+  Lisp_Object bus, service;
+  struct gcpro gcpro1, gcpro2;
   DBusConnection *connection;
   DBusMessage *dmessage;
   DBusMessageIter iter;
-  unsigned int dtype;
+  dbus_uint32_t serial;
+  unsigned int ui_serial, dtype;
   size_t i;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Check parameters.  */
   bus = args[0];
-  serial = args[1];
   service = args[2];
 
-  CHECK_NATNUM (serial);
+  CHECK_DBUS_SERIAL_GET_SERIAL (args[1], serial);
   CHECK_STRING (service);
-  GCPRO3 (bus, serial, service);
+  GCPRO2 (bus, service);
 
-  XD_DEBUG_MESSAGE ("%"pI"d %s ", XFASTINT (serial), SSDATA (service));
+  ui_serial = serial;
+  XD_DEBUG_MESSAGE ("%u %s ", ui_serial, SSDATA (service));
 
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus, TRUE);
@@ -1483,7 +1512,7 @@ usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
   dmessage = dbus_message_new (DBUS_MESSAGE_TYPE_ERROR);
   if ((dmessage == NULL)
       || (!dbus_message_set_error_name (dmessage, DBUS_ERROR_FAILED))
-      || (!dbus_message_set_reply_serial (dmessage, XFASTINT (serial)))
+      || (!dbus_message_set_reply_serial (dmessage, serial))
       || (!dbus_message_set_destination (dmessage, SSDATA (service))))
     {
       UNGCPRO;
@@ -1665,7 +1694,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
   unsigned int dtype;
   int mtype;
   dbus_uint32_t serial;
-  unsigned int userial;
+  unsigned int ui_serial;
   const char *uname, *path, *interface, *member;
 
   dmessage = dbus_connection_pop_message (connection);
@@ -1694,7 +1723,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
   /* Read message type, message serial, unique name, object path,
      interface and member from the message.  */
   mtype = dbus_message_get_type (dmessage);
-  userial = serial =
+  ui_serial = serial =
     ((mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN)
      || (mtype == DBUS_MESSAGE_TYPE_ERROR))
     ? dbus_message_get_reply_serial (dmessage)
@@ -1714,14 +1743,14 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 		    : (mtype == DBUS_MESSAGE_TYPE_ERROR)
 		    ? "DBUS_MESSAGE_TYPE_ERROR"
 		    : "DBUS_MESSAGE_TYPE_SIGNAL",
-		    userial, uname, path, interface, member,
+		    ui_serial, uname, path, interface, member,
 		    SDATA (format2 ("%s", args, Qnil)));
 
   if ((mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN)
       || (mtype == DBUS_MESSAGE_TYPE_ERROR))
     {
       /* Search for a registered function of the message.  */
-      key = list2 (bus, make_number (serial));
+      key = list2 (bus, make_fixnum_or_float (serial));
       value = Fgethash (key, Vdbus_registered_objects_table, Qnil);
 
       /* There shall be exactly one entry.  Construct an event.  */
@@ -1787,7 +1816,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 		     event.arg);
   event.arg = Fcons ((uname == NULL ? Qnil : build_string (uname)),
 		     event.arg);
-  event.arg = Fcons (make_number (serial), event.arg);
+  event.arg = Fcons (make_fixnum_or_float (serial), event.arg);
   event.arg = Fcons (make_number (mtype), event.arg);
 
   /* Add the bus symbol to the event.  */

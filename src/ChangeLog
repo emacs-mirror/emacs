@@ -1,5 +1,14 @@
 2011-05-24  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dbusbind.c: Serial number integer overflow fixes.
+	(CHECK_DBUS_SERIAL_GET_SERIAL): New macro.
+	(xd_invalid_serial): New static function.
+	(Fdbus_call_method_asynchronously, xd_read_message_1): Use a float
+	to hold a serial number that is too large for a fixnum.
+	(Fdbus_method_return_internal, Fdbus_method_error_internal):
+	Check for serial numbers out of range.  Decode any serial number
+	that was so large that it became a float.
+
 	* dbusbind.c: Use XFASTINT rather than XUINT, and check for nonneg.
 	(Fdbus_call_method, Fdbus_call_method_asynchronously):
 	Use XFASTINT rather than XUINT when numbers are nonnegative.
