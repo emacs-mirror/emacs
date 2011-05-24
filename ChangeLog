@@ -1,5 +1,7 @@
 2011-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (check): Just give a message if no test/ directory.
+
 	* configure.in: Avoid using variables inside AC_CONFIG_FILES.
 
 	* configure.in (OPT_MAKEFILES_IN): Remove.

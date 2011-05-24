@@ -859,9 +859,11 @@ TAGS tags: lib lib-src src
 
 check:
 	@if test ! -d test/automated; then \
-	  echo "You do not seem to have the test/ directory."; exit 1; \
-	else true; fi
-	cd test/automated && $(MAKE) $(MFLAGS) check
+	  echo "You do not seem to have the test/ directory."; \
+	  echo "Maybe you are using a release tarfile, rather than a repository checkout."; \
+	else \
+	  cd test/automated && $(MAKE) $(MFLAGS) check; \
+	fi
 
 dist:
 	cd ${srcdir}; ./make-dist
