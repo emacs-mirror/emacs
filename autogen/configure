@@ -20913,7 +20913,7 @@ ac_config_files="$ac_config_files Makefile lib/Makefile lib-src/Makefile oldXMen
 
 
 if test -f $srcdir/test/automated/Makefile.in; then
-  OPT_MAKEFILES_IN=test/automated/Makefile.in
+  OPT_MAKEFILES_IN="\$(srcdir)/test/automated/Makefile.in"
   ac_config_files="$ac_config_files test/automated/Makefile"
 
 else
