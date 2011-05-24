@@ -15,12 +15,6 @@
 
 	* Makefile.in (TAGS, tags, check): Pass MFLAGS to sub-makes.
 
-	* configure.in (OPT_MAKEFILES_IN): Remove.
-	(SUBDIR_MAKEFILES): New variable, passed to AC_CONFIG_FILES.
-	(SUBDIR_MAKEFILES_IN): New output variable.
-	* Makefile.in (OPT_MAKEFILES_IN): Remove.
-	(SUBDIR_MAKEFILES_IN): Let configure set it.
-
 2011-05-24  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Don't distribute test/.  (Bug#8107)
