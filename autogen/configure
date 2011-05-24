@@ -4216,23 +4216,6 @@ case "${srcdir}" in
   *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
 esac
 
-#### Check if the source directory already has a configured system in it.
-if test `pwd` != `(cd ${srcdir} && pwd)` \
-   && test -f "${srcdir}/src/config.h" ; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: The directory tree \`${srcdir}' is being used
-   as a build directory right now; it has been configured in its own
-   right.  To configure in another directory as well, you MUST
-   use GNU make.  If you do not have GNU make, then you must
-   now do \`make distclean' in ${srcdir},
-   and then run $0 again." >&5
-$as_echo "$as_me: WARNING: The directory tree \`${srcdir}' is being used
-   as a build directory right now; it has been configured in its own
-   right.  To configure in another directory as well, you MUST
-   use GNU make.  If you do not have GNU make, then you must
-   now do \`make distclean' in ${srcdir},
-   and then run $0 again." >&2;}
-fi
-
 #### Given the configuration name, set machfile and opsysfile to the
 #### names of the m/*.h and s/*.h files we should use.
 
@@ -6541,6 +6524,7 @@ esac
   # Code from module c++defs:
   # Code from module careadlinkat:
   # Code from module crypto/md5:
+  # Code from module crypto/sha1:
   # Code from module dosname:
   # Code from module dtoastr:
   # Code from module extensions:
@@ -16684,6 +16668,22 @@ fi
 
 
   gl_LIBOBJS="$gl_LIBOBJS md5.$ac_objext"
+
+
+
+
+  :
+
+
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS sha1.$ac_objext"
 
 
 
