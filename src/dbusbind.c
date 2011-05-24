@@ -256,16 +256,9 @@ xd_symbol_to_dbus_type (Lisp_Object object)
 	       && XFLOAT_DATA (x) <= DBUS_SERIAL_MAX)			\
 	serial = XFLOAT_DATA (x);					\
       else								\
-	xd_invalid_serial (x);						\
+	XD_SIGNAL2 (build_string ("Invalid dbus serial"), x);		\
     }									\
   while (0)
-
-static void xd_invalid_serial (Lisp_Object) NO_RETURN;
-static void
-xd_invalid_serial (Lisp_Object x)
-{
-  signal_error ("Invalid dbus serial", x);
-}
 
 /* Compute SIGNATURE of OBJECT.  It must have a form that it can be
    used in dbus_message_iter_open_container.  DTYPE is the DBusType

@@ -2,7 +2,6 @@
 
 	* dbusbind.c: Serial number integer overflow fixes.
 	(CHECK_DBUS_SERIAL_GET_SERIAL): New macro.
-	(xd_invalid_serial): New static function.
 	(Fdbus_call_method_asynchronously, xd_read_message_1): Use a float
 	to hold a serial number that is too large for a fixnum.
 	(Fdbus_method_return_internal, Fdbus_method_error_internal):
