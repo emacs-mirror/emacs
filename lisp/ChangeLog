@@ -1,3 +1,7 @@
+2011-05-24  Dmitry Kurochkin  <dmitry.kurochkin@gmail.com>  (tiny change)
+
+	* isearch.el (isearch-range-invisible): Use invisible-p (bug#8721).
+
 2011-05-24  Leo Liu  <sdl.web@gmail.com>
 
 	* vc/vc-bzr.el (vc-bzr-sha1-program): Rename from sha1-program.
@@ -13,15 +17,15 @@
 	(mail-insert-from-field): Do not perform RFC2047 encoding.
 	(mail-encode-header): New function.
 	(sendmail-send-it): Set buffer-file-coding-system of the work
-	buffer to the return value of select-message-coding-system.  Call
-	mail-encode-header.
+	buffer to the return value of select-message-coding-system.
+	Call mail-encode-header.
 
 	* mail/smtpmail.el (smtpmail-send-it): Call mail-encode-header.
 
 2011-05-24  Sean Neakums  <sneakums@zork.net>  (tiny change)
 
-	* mail/supercite.el (sc-default-cite-frame): Handle
-	sc-nested-citation-p when sc-cite-blank-lines-p is non-nil.
+	* mail/supercite.el (sc-default-cite-frame):
+	Handle sc-nested-citation-p when sc-cite-blank-lines-p is non-nil.
 
 2011-05-24  Glenn Morris  <rgm@gnu.org>
 

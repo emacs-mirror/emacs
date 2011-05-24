@@ -2434,13 +2434,7 @@ update the match data, and return point."
 	;; If the following character is currently invisible,
 	;; skip all characters with that same `invisible' property value.
 	;; Do that over and over.
-	(while (and (< (point) end)
-		    (let ((prop
-			   (get-char-property (point) 'invisible)))
-		      (if (eq buffer-invisibility-spec t)
-			  prop
-			(or (memq prop buffer-invisibility-spec)
-			    (assq prop buffer-invisibility-spec)))))
+	(while (and (< (point) end) (invisible-p (point)))
 	  (if (get-text-property (point) 'invisible)
 	      (progn
 		(goto-char (next-single-property-change (point) 'invisible
@@ -2456,10 +2450,7 @@ update the match data, and return point."
 		(while overlays
 		  (setq o (car overlays)
 			invis-prop (overlay-get o 'invisible))
-		  (if (if (eq buffer-invisibility-spec t)
-			  invis-prop
-			(or (memq invis-prop buffer-invisibility-spec)
-			    (assq invis-prop buffer-invisibility-spec)))
+		  (if (invisible-p invis-prop)
 		      (if (overlay-get o 'isearch-open-invisible)
 			  (setq ov-list (cons o ov-list))
 			;; We found one overlay that cannot be
