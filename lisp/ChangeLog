@@ -1,3 +1,40 @@
+2011-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add an :exit-function for completion-at-point.
+
+	* minibuffer.el (completion--done): New fun.
+	(completion--do-completion): Use it.  New arg `expect-exact'.
+	(minibuffer-complete, minibuffer-complete-word): Don't output message,
+	since completion--do-completion does it for us now.
+	(minibuffer-force-complete): Use completion--done and
+	completion--replace.  Handle sole-completion case with more care.
+	(minibuffer-complete-and-exit): Use new `expect-exact' arg.
+	(completion-extra-properties): New var.
+	(completion-annotate-function): Make obsolete.
+	(minibuffer-completion-help): Adjust accordingly.
+	Use completion-list-insert-choice-function.
+	(completion-at-point, completion-help-at-point):
+	Bind completion-extra-properties.
+	(completion-pcm-word-delimiters): Add | (for uniquify, for example).
+	* simple.el (completion-list-insert-choice-function): New var.
+	(completion-setup-function): Preserve it.
+	(choose-completion): Pay attention to it, shuffle the code a bit.
+	(choose-completion-string): New arg `insert-function'.
+
+	* textmodes/bibtex.el: Convert to lexical binding.
+	(bibtex-mode-map): Use completion-at-point.
+	(bibtex-mode): Use define-derived-mode&completion-at-point-functions.
+	(bibtex-completion-at-point-function): New fun, from bibtex-complete.
+	(bibtex-complete): Define as obsolete alias.
+	(bibtex-complete-internal): Remove.
+	(bibtex-format-entry): Remove unused sub-group in regexp.
+	* shell.el (shell--command-completion-data)
+	(shell-environment-variable-completion):
+	* pcomplete.el (pcomplete-completions-at-point):
+	* comint.el (comint--complete-file-name-data): Use :exit-function
+	instead of completion-table-with-terminator so it also works for
+	choose-completion.
+
 2011-05-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* <lots-of-files>.el: Don't quote lambda expressions with `quote'.

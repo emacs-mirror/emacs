@@ -68,9 +68,6 @@ and also when HOME is set to C:\ by default.
 
 * Changes in Emacs 24.1
 
-** Completion in a non-minibuffer now tries to detect the end of completion
-and pops down the *Completions* buffer accordingly.
-
 ** emacsclient changes
 
 *** New emacsclient argument --parent-id ID can be used to open a
@@ -83,9 +80,18 @@ client frame in parent X window ID, via XEmbed.  This works like the
 *** If emacsclient shuts down as a result of Emacs signalling an
 error, its exit status is 1.
 
-** Completion can cycle, depending on completion-cycle-threshold.
+** Completion
+*** Many packages have been changed to use completion-at-point rather than
+their own completion code.
 
-** `completing-read' can be customized using the new variable
+*** Completion in a non-minibuffer now tries to detect the end of completion
+and pops down the *Completions* buffer accordingly.
+
+*** Completion can cycle, depending on completion-cycle-threshold.
+
+*** New completion style `substring'.
+
+*** `completing-read' can be customized using the new variable
 `completing-read-function'.
 
 ** auto-mode-case-fold is now enabled by default.
@@ -833,6 +839,17 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 * Lisp changes in Emacs 24.1
 
+** Completion
+*** New variable completion-extra-properties used to specify extra properties
+of the current completion:
+- :annotate-function, same as the old completion-annotate-function.
+- :exit-function, function to call after completion took place.
+
+*** Functions on completion-at-point-functions can return any of the properties
+valid for completion-extra-properties.
+
+*** completion-annotate-function is obsolete.
+
 ** `glyphless-char-display' can now distinguish between graphical and
 text terminal display, via a char-table entry that is a cons cell.
 
@@ -908,8 +925,6 @@ both non-nil.  Interactively, TRASH defaults to t, unless a prefix
 argument is supplied (see Trash changes, above).
 
 ** buffer-substring-filters is obsoleted by filter-buffer-substring-functions.
-
-** New completion style `substring'.
 
 ** `facemenu-read-color' is now an alias for `read-color'.
 The command `read-color' now requires a match for a color name or RGB
