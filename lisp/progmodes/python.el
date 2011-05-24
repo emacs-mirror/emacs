@@ -2361,6 +2361,7 @@ Interactively, prompt for the name with completion."
 
 (autoload 'pymacs-load "pymacs" nil t)
 (autoload 'brm-init "bikemacs")
+(defvar brm-menu)
 
 ;; I'm not sure how useful BRM really is, and it's certainly dangerous
 ;; the way it modifies files outside Emacs...  Also note that the

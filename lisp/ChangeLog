@@ -1,5 +1,7 @@
 2011-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/python.el (brm-menu): Declare.
+
 	* emulation/viper.el (viper-set-hooks): Declare.
 
 	* play/5x5.el (5x5-log-init, 5x5-log): Evaluate when compiling.
