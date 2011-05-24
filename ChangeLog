@@ -1,3 +1,13 @@
+2011-05-24  Leo Liu  <sdl.web@gmail.com>
+
+	* m4/sha1.m4:
+	* m4/gl-comp.m4:
+	* lib/sha1.h:
+	* lib/sha1.c:
+	* lib/makefile.w32-in (GNULIBOBJS):
+	* lib/gnulib.mk:
+	* Makefile.in (GNULIB_MODULES): Add crypto/sha1 module.
+
 2011-05-24  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (TAGS, tags, check): Pass MFLAGS to sub-makes.
