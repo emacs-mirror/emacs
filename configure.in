@@ -364,17 +364,6 @@ case "${srcdir}" in
   *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
 esac
 
-#### Check if the source directory already has a configured system in it.
-if test `pwd` != `(cd ${srcdir} && pwd)` \
-   && test -f "${srcdir}/src/config.h" ; then
-  AC_MSG_WARN([[The directory tree `${srcdir}' is being used
-   as a build directory right now; it has been configured in its own
-   right.  To configure in another directory as well, you MUST
-   use GNU make.  If you do not have GNU make, then you must
-   now do `make distclean' in ${srcdir},
-   and then run $0 again.]])
-fi
-
 #### Given the configuration name, set machfile and opsysfile to the
 #### names of the m/*.h and s/*.h files we should use.
 

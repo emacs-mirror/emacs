@@ -10,6 +10,9 @@
 
 2011-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in: Remove test for already configured source directory.
+	AM_INIT_AUTOMAKE has already done a more stringent test.  (Bug#953)
+
 	* Makefile.in (TAGS, tags, check): Pass MFLAGS to sub-makes.
 
 	* configure.in (OPT_MAKEFILES_IN): Remove.
