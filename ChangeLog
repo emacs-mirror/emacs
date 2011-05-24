@@ -1,5 +1,12 @@
 2011-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* make-dist: Don't distribute test/.  (Bug#8107)
+	* configure.in (OPT_MAKEFILES_IN): New output variable.
+	(AC_CONFIG_FILES): Conditionally include test/automated/Makefile.
+	* Makefile.in (OPT_MAKEFILES_IN): New, set by configure.
+	(SUBDIR_MAKEFILES_IN): Use $OPT_MAKEFILES_IN.
+	(check): Give an explicit error if test/ is not present.
+
 	* Makefile.in (SUBDIR_MAKEFILES_IN): New variable.
 	(SUBDIR_MAKEFILES): Derive from $SUBDIR_MAKEFILES_IN.
 	(Makefile): Use $SUBDIR_MAKEFILES_IN.

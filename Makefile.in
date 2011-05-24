@@ -264,11 +264,14 @@ EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
 # checked out from a VCS.
 SUBDIR = lib lib-src src lisp
 
+# test/automated/Makefile.in, if you have it (test/ is not in the release).
+OPT_MAKEFILES_IN = @OPT_MAKEFILES_IN@
+
 # The subdir makefiles created by config.status.
 SUBDIR_MAKEFILES_IN = lib/Makefile.in lib-src/Makefile.in \
   doc/emacs/Makefile.in doc/misc/Makefile.in doc/lispref/Makefile.in \
   doc/lispintro/Makefile.in src/Makefile.in oldXMenu/Makefile.in \
-  lwlib/Makefile.in leim/Makefile.in lisp/Makefile.in test/automated/Makefile.in
+  lwlib/Makefile.in leim/Makefile.in lisp/Makefile.in $(OPT_MAKEFILES_IN)
 
 SUBDIR_MAKEFILES = $(SUBDIR_MAKEFILES_IN:.in=)
 
@@ -862,7 +865,10 @@ TAGS tags: lib lib-src src
 	cd src; $(MAKE) tags
 
 check:
-	cd test/automated; $(MAKE) check
+	@if test ! -d test/automated; then \
+	  echo "You do not seem to have the test/ directory."; exit 1; \
+	else true; fi
+	cd test/automated && $(MAKE) check
 
 dist:
 	cd ${srcdir}; ./make-dist

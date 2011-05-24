@@ -3715,7 +3715,16 @@ test "${exec_prefix}" != NONE &&
 AC_CONFIG_FILES([Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile \
 	doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile \
 	doc/lispref/Makefile src/Makefile \
-	lwlib/Makefile lisp/Makefile leim/Makefile test/automated/Makefile])
+	lwlib/Makefile lisp/Makefile leim/Makefile])
+
+dnl test/ is not present in release tarfiles.
+if test -f $srcdir/test/automated/Makefile.in; then
+  OPT_MAKEFILES_IN=test/automated/Makefile.in
+  AC_CONFIG_FILES([test/automated/Makefile])
+else
+  OPT_MAKEFILES_IN=
+fi
+AC_SUBST(OPT_MAKEFILES_IN)
 
 dnl Make the necessary directories, if they don't exist.
 AC_CONFIG_COMMANDS([mkdirs], [
