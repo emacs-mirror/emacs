@@ -1,3 +1,11 @@
+2011-05-24  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (OPT_MAKEFILES_IN): Remove.
+	(SUBDIR_MAKEFILES): New variable, passed to AC_CONFIG_FILES.
+	(SUBDIR_MAKEFILES_IN): New output variable.
+	* Makefile.in (OPT_MAKEFILES_IN): Remove.
+	(SUBDIR_MAKEFILES_IN): Let configure set it.
+
 2011-05-24  Leo Liu  <sdl.web@gmail.com>
 
 	* m4/sha1.m4:
