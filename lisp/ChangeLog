@@ -1,5 +1,7 @@
 2011-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* emulation/viper.el (viper-set-hooks): Declare.
+
 	* play/5x5.el (5x5-log-init, 5x5-log): Evaluate when compiling.
 	(5x5-log-init, 5x5-log, 5x5-solver): Doc fixes.
 	(math-map-vec, math-sub, math-mul, math-make-intv, math-reduce-vec)
