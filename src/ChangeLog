@@ -7,7 +7,7 @@
 	to hold a serial number that is too large for a fixnum.
 	(Fdbus_method_return_internal, Fdbus_method_error_internal):
 	Check for serial numbers out of range.  Decode any serial number
-	that was so large that it became a float.
+	that was so large that it became a float.  (Bug#8722)
 
 	* dbusbind.c: Use XFASTINT rather than XUINT, and check for nonneg.
 	(Fdbus_call_method, Fdbus_call_method_asynchronously):
@@ -15,8 +15,9 @@
 	(xd_append_arg, Fdbus_method_return_internal):
 	(Fdbus_method_error_internal): Likewise.  Also, for unsigned
 	arguments, check that Lisp number is nonnegative, rather than
-	silently wrapping negative numbers around.
+	silently wrapping negative numbers around.  (Bug#8722)
 	(xd_read_message_1): Don't assume dbus_uint32_t can fit in int.
+	(Bug#8722)
 
 	* data.c (arith_driver, Flsh): Avoid unnecessary casts to EMACS_UINT.
 
