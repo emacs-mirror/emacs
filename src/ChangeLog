@@ -7,6 +7,7 @@
 	(Fdbus_method_error_internal): Likewise.  Also, for unsigned
 	arguments, check that Lisp number is nonnegative, rather than
 	silently wrapping negative numbers around.
+	(xd_read_message_1): Don't assume dbus_uint32_t can fit in int.
 
 	* data.c (arith_driver, Flsh): Avoid unnecessary casts to EMACS_UINT.
 

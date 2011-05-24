@@ -1663,7 +1663,9 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
   DBusMessage *dmessage;
   DBusMessageIter iter;
   unsigned int dtype;
-  int mtype, serial;
+  int mtype;
+  dbus_uint32_t serial;
+  unsigned int userial;
   const char *uname, *path, *interface, *member;
 
   dmessage = dbus_connection_pop_message (connection);
@@ -1692,7 +1694,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
   /* Read message type, message serial, unique name, object path,
      interface and member from the message.  */
   mtype = dbus_message_get_type (dmessage);
-  serial =
+  userial = serial =
     ((mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN)
      || (mtype == DBUS_MESSAGE_TYPE_ERROR))
     ? dbus_message_get_reply_serial (dmessage)
@@ -1702,7 +1704,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
   interface = dbus_message_get_interface (dmessage);
   member = dbus_message_get_member (dmessage);
 
-  XD_DEBUG_MESSAGE ("Event received: %s %d %s %s %s %s %s",
+  XD_DEBUG_MESSAGE ("Event received: %s %u %s %s %s %s %s",
 		    (mtype == DBUS_MESSAGE_TYPE_INVALID)
 		    ? "DBUS_MESSAGE_TYPE_INVALID"
 		    : (mtype == DBUS_MESSAGE_TYPE_METHOD_CALL)
@@ -1712,7 +1714,7 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 		    : (mtype == DBUS_MESSAGE_TYPE_ERROR)
 		    ? "DBUS_MESSAGE_TYPE_ERROR"
 		    : "DBUS_MESSAGE_TYPE_SIGNAL",
-		    serial, uname, path, interface, member,
+		    userial, uname, path, interface, member,
 		    SDATA (format2 ("%s", args, Qnil)));
 
   if ((mtype == DBUS_MESSAGE_TYPE_METHOD_RETURN)
