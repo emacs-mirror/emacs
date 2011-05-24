@@ -1,5 +1,7 @@
 2011-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in: Avoid using variables inside AC_CONFIG_FILES.
+
 	* configure.in (OPT_MAKEFILES_IN): Remove.
 	(SUBDIR_MAKEFILES): New variable, passed to AC_CONFIG_FILES.
 	(SUBDIR_MAKEFILES_IN): New output variable.
