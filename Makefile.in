@@ -265,7 +265,12 @@ EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
 SUBDIR = lib lib-src src lisp
 
 # The subdir makefiles created by config.status.
-SUBDIR_MAKEFILES = lib/Makefile lib-src/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispref/Makefile doc/lispintro/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile lisp/Makefile test/automated/Makefile
+SUBDIR_MAKEFILES_IN = lib/Makefile.in lib-src/Makefile.in \
+  doc/emacs/Makefile.in doc/misc/Makefile.in doc/lispref/Makefile.in \
+  doc/lispintro/Makefile.in src/Makefile.in oldXMenu/Makefile.in \
+  lwlib/Makefile.in leim/Makefile.in lisp/Makefile.in test/automated/Makefile.in
+
+SUBDIR_MAKEFILES = $(SUBDIR_MAKEFILES_IN:.in=)
 
 # Subdirectories to install, and where they'll go.
 # lib-src's makefile knows how to install it, so we don't do that here.
@@ -388,19 +393,7 @@ blessmail: Makefile src FRC
 # conditions with parallel makes, so let's assume that the time stamp on
 # ./Makefile is representative of the time stamp on all the other Makefiles.
 Makefile: config.status $(srcdir)/src/config.in \
-          $(srcdir)/Makefile.in \
-          $(srcdir)/src/Makefile.in \
-          $(srcdir)/lib/Makefile.in \
-          $(srcdir)/lib-src/Makefile.in \
-          $(srcdir)/doc/emacs/Makefile.in \
-          $(srcdir)/doc/misc/Makefile.in \
-          $(srcdir)/doc/lispref/Makefile.in \
-          $(srcdir)/doc/lispintro/Makefile.in \
-          $(srcdir)/oldXMenu/Makefile.in \
-          $(srcdir)/lwlib/Makefile.in \
-          $(srcdir)/leim/Makefile.in \
-          $(srcdir)/lisp/Makefile.in \
-          $(srcdir)/test/automated/Makefile.in
+          $(srcdir)/Makefile.in $(SUBDIR_MAKEFILES_IN)
 	./config.status
 
 # Don't erase config.status if make is interrupted while refreshing it.
