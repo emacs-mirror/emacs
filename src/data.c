@@ -2494,8 +2494,9 @@ arith_driver (enum arithop code, size_t nargs, register Lisp_Object *args)
 	case Amult:
 	  if (INT_MULTIPLY_OVERFLOW (accum, next))
 	    {
+	      EMACS_UINT a = accum, b = next, ab = a * b;
 	      overflow = 1;
-	      accum = (EMACS_UINT) accum * (EMACS_UINT) next & INTMASK;
+	      accum = ab & INTMASK;
 	    }
 	  else
 	    accum *= next;
@@ -2792,11 +2793,11 @@ In this case, zeros are shifted in on the left.  */)
   if (XINT (count) >= BITS_PER_EMACS_INT)
     XSETINT (val, 0);
   else if (XINT (count) > 0)
-    XSETINT (val, (EMACS_UINT) XUINT (value) << XFASTINT (count));
+    XSETINT (val, XUINT (value) << XFASTINT (count));
   else if (XINT (count) <= -BITS_PER_EMACS_INT)
     XSETINT (val, 0);
   else
-    XSETINT (val, (EMACS_UINT) XUINT (value) >> -XINT (count));
+    XSETINT (val, XUINT (value) >> -XINT (count));
   return val;
 }
 
