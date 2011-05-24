@@ -239,7 +239,8 @@ Quit current game         \\[5x5-quit-game]"
     (setq 5x5-x-pos (/ 5x5-grid-size 2)
           5x5-y-pos (/ 5x5-grid-size 2)
           5x5-moves 0
-          5x5-grid  (5x5-make-move (5x5-make-new-grid) 5x5-y-pos 5x5-x-pos))
+          5x5-grid  (5x5-make-move (5x5-make-new-grid) 5x5-y-pos 5x5-x-pos)
+	  5x5-solver-output nil)
     (5x5-draw-grid (list 5x5-grid))
     (5x5-position-cursor)))
 
@@ -492,6 +493,9 @@ position."
 
 (eval-and-compile
 (if nil; set to t to enable solver logging
+    ;; Note these logging facilities were not cleaned out as the arithmetic
+    ;; solver is not yet complete --- it works only for grid size = 5.
+    ;; So they may be useful again to design a more generic solution.
     (progn
       (defvar 5x5-log-buffer nil)
       (defun 5x5-log-init ()
@@ -516,8 +520,8 @@ easy to log a value with minimal rewrite of code."
 	    (with-current-buffer 5x5-log-buffer
 	      (insert name ?= value-to-log ?\n))))
 	value))
-  (defmacro 5x5-log-init ())
-  (defmacro 5x5-log (name value) value)))
+  (defsubst 5x5-log-init ())
+  (defsubst 5x5-log (name value) value)))
 
 (declare-function math-map-vec "calc-vec" (f a))
 (declare-function math-sub "calc" (a b))
@@ -861,7 +865,8 @@ Argument N is ignored."
     (setq 5x5-x-pos (/ 5x5-grid-size 2)
           5x5-y-pos (/ 5x5-grid-size 2)
           5x5-moves 0
-          5x5-grid  (5x5-make-random-grid (symbol-function '5x5-make-move)))
+          5x5-grid  (5x5-make-random-grid (symbol-function '5x5-make-move))
+	  5x5-solver-output nil)
     (unless 5x5-cracking
       (5x5-draw-grid (list 5x5-grid)))
     (5x5-position-cursor)))

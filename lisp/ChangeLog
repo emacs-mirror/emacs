@@ -1,3 +1,10 @@
+2011-05-24  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* play/5x5.el (5x5-new-game, 5x5-randomize):
+	Reset 5x5-solver-output to nil when a new grid is cast.
+	(5x5-log-init, 5x5-log): Use defsubst instead of defmacro to shunt
+	these debugging traces, as defmacro breaks the compiled code.
+
 2011-05-24  Dmitry Kurochkin  <dmitry.kurochkin@gmail.com>  (tiny change)
 
 	* isearch.el (isearch-range-invisible): Use invisible-p (bug#8721).
