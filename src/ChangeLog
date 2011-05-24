@@ -1,5 +1,13 @@
 2011-05-24  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dbusbind.c: Use XFASTINT rather than XUINT, and check for nonneg.
+	(Fdbus_call_method, Fdbus_call_method_asynchronously):
+	Use XFASTINT rather than XUINT when numbers are nonnegative.
+	(xd_append_arg, Fdbus_method_return_internal):
+	(Fdbus_method_error_internal): Likewise.  Also, for unsigned
+	arguments, check that Lisp number is nonnegative, rather than
+	silently wrapping negative numbers around.
+
 	* data.c (arith_driver, Flsh): Avoid unnecessary casts to EMACS_UINT.
 
 2011-05-23  Paul Eggert  <eggert@cs.ucla.edu>

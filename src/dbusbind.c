@@ -431,9 +431,9 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
     switch (dtype)
       {
       case DBUS_TYPE_BYTE:
-	CHECK_NUMBER (object);
+	CHECK_NATNUM (object);
 	{
-	  unsigned char val = XUINT (object) & 0xFF;
+	  unsigned char val = XFASTINT (object) & 0xFF;
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
@@ -460,9 +460,9 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	}
 
       case DBUS_TYPE_UINT16:
-	CHECK_NUMBER (object);
+	CHECK_NATNUM (object);
 	{
-	  dbus_uint16_t val = XUINT (object);
+	  dbus_uint16_t val = XFASTINT (object);
 	  XD_DEBUG_MESSAGE ("%c %u", dtype, (unsigned int) val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
@@ -483,9 +483,9 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 #ifdef DBUS_TYPE_UNIX_FD
       case DBUS_TYPE_UNIX_FD:
 #endif
-	CHECK_NUMBER (object);
+	CHECK_NATNUM (object);
 	{
-	  dbus_uint32_t val = XUINT (object);
+	  dbus_uint32_t val = XFASTINT (object);
 	  XD_DEBUG_MESSAGE ("%c %u", dtype, val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
@@ -503,10 +503,10 @@ xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 	}
 
       case DBUS_TYPE_UINT64:
-	CHECK_NUMBER (object);
+	CHECK_NATNUM (object);
 	{
-	  dbus_uint64_t val = XUINT (object);
-	  XD_DEBUG_MESSAGE ("%c %"pI"u", dtype, XUINT (object));
+	  dbus_uint64_t val = XFASTINT (object);
+	  XD_DEBUG_MESSAGE ("%c %"pI"d", dtype, XFASTINT (object));
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);
 	  return;
@@ -1110,7 +1110,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TI
   if ((i+2 <= nargs) && (EQ ((args[i]), QCdbus_timeout)))
     {
       CHECK_NATNUM (args[i+1]);
-      timeout = XUINT (args[i+1]);
+      timeout = XFASTINT (args[i+1]);
       i = i+2;
     }
 
@@ -1186,7 +1186,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TI
 
   /* Return the result.  If there is only one single Lisp object,
      return it as-it-is, otherwise return the reversed list.  */
-  if (XUINT (Flength (result)) == 1)
+  if (XFASTINT (Flength (result)) == 1)
     RETURN_UNGCPRO (CAR_SAFE (result));
   else
     RETURN_UNGCPRO (Fnreverse (result));
@@ -1292,7 +1292,7 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
   if ((i+2 <= nargs) && (EQ ((args[i]), QCdbus_timeout)))
     {
       CHECK_NATNUM (args[i+1]);
-      timeout = XUINT (args[i+1]);
+      timeout = XFASTINT (args[i+1]);
       i = i+2;
     }
 
@@ -1382,11 +1382,11 @@ usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
   serial = args[1];
   service = args[2];
 
-  CHECK_NUMBER (serial);
+  CHECK_NATNUM (serial);
   CHECK_STRING (service);
   GCPRO3 (bus, serial, service);
 
-  XD_DEBUG_MESSAGE ("%"pI"u %s ", XUINT (serial), SDATA (service));
+  XD_DEBUG_MESSAGE ("%"pI"d %s ", XFASTINT (serial), SSDATA (service));
 
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus, TRUE);
@@ -1394,7 +1394,7 @@ usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
   /* Create the message.  */
   dmessage = dbus_message_new (DBUS_MESSAGE_TYPE_METHOD_RETURN);
   if ((dmessage == NULL)
-      || (!dbus_message_set_reply_serial (dmessage, XUINT (serial)))
+      || (!dbus_message_set_reply_serial (dmessage, XFASTINT (serial)))
       || (!dbus_message_set_destination (dmessage, SSDATA (service))))
     {
       UNGCPRO;
@@ -1470,11 +1470,11 @@ usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
   serial = args[1];
   service = args[2];
 
-  CHECK_NUMBER (serial);
+  CHECK_NATNUM (serial);
   CHECK_STRING (service);
   GCPRO3 (bus, serial, service);
 
-  XD_DEBUG_MESSAGE ("%"pI"u %s ", XUINT (serial), SDATA (service));
+  XD_DEBUG_MESSAGE ("%"pI"d %s ", XFASTINT (serial), SSDATA (service));
 
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus, TRUE);
@@ -1483,7 +1483,7 @@ usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
   dmessage = dbus_message_new (DBUS_MESSAGE_TYPE_ERROR);
   if ((dmessage == NULL)
       || (!dbus_message_set_error_name (dmessage, DBUS_ERROR_FAILED))
-      || (!dbus_message_set_reply_serial (dmessage, XUINT (serial)))
+      || (!dbus_message_set_reply_serial (dmessage, XFASTINT (serial)))
       || (!dbus_message_set_destination (dmessage, SSDATA (service))))
     {
       UNGCPRO;
