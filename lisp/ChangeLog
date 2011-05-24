@@ -1,3 +1,12 @@
+2011-05-24  Glenn Morris  <rgm@gnu.org>
+
+	* play/5x5.el (5x5-log-init, 5x5-log): Evaluate when compiling.
+	(5x5-log-init, 5x5-log, 5x5-solver): Doc fixes.
+	(math-map-vec, math-sub, math-mul, math-make-intv, math-reduce-vec)
+	(math-format-number, math-pow, calcFunc-arrange, calcFunc-cvec)
+	(calcFunc-diag, calcFunc-trn, calcFunc-inv, calcFunc-mrow)
+	(calcFunc-mcol, calcFunc-vconcat, calcFunc-index): Declare.
+
 2011-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Add an :exit-function for completion-at-point.

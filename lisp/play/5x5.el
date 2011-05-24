@@ -490,6 +490,7 @@ position."
 	(cdr x))))
     (cdr grid-matrix))))
 
+(eval-and-compile
 (if nil; set to t to enable solver logging
     (progn
       (defvar 5x5-log-buffer nil)
@@ -499,7 +500,7 @@ position."
 	  (setq 5x5-log-buffer (get-buffer-create "*5x5 LOG*"))))
 
       (defun 5x5-log (name value)
-	"Debug purpuse only.
+	"Debug purposes only.
 
 Log a matrix VALUE of (mod B 2) forms, only B is output and
 Scilab matrix notation is used.  VALUE is returned so that it is
@@ -516,19 +517,36 @@ easy to log a value with minimal rewrite of code."
 	      (insert name ?= value-to-log ?\n))))
 	value))
   (defmacro 5x5-log-init ())
-  (defmacro 5x5-log (name value) value))
+  (defmacro 5x5-log (name value) value)))
+
+(declare-function math-map-vec "calc-vec" (f a))
+(declare-function math-sub "calc" (a b))
+(declare-function math-mul "calc" (a b))
+(declare-function math-make-intv "calc-forms" (mask lo hi))
+(declare-function math-reduce-vec "calc-vec" (a b))
+(declare-function math-format-number "calc" (a &optional prec))
+(declare-function math-pow "calc-misc" (a b))
+(declare-function calcFunc-arrange "calc-vec" (vec cols))
+(declare-function calcFunc-cvec "calc-vec" (obj &rest dims))
+(declare-function calcFunc-diag "calc-vec" (a &optional n))
+(declare-function calcFunc-trn "calc-vec" (mat))
+(declare-function calcFunc-inv "calc-misc" (m))
+(declare-function calcFunc-mrow "calc-vec" (mat n))
+(declare-function calcFunc-mcol "calc-vec" (mat n))
+(declare-function calcFunc-vconcat "calc-vec" (a b))
+(declare-function calcFunc-index "calc-vec" (n &optional start incr))
 
 (defun 5x5-solver (grid)
   "Return a list of solutions for GRID.
 
 Given some grid GRID, the returned a list of solution LIST is
-sorted from least Hamming weight to geatest one.
+sorted from least Hamming weight to greatest one.
 
    LIST = (SOLUTION-1 ... SOLUTION-N)
 
 Each solution SOLUTION-I is a cons cell (HW . G) where HW is the
 Hamming weight of the solution --- ie the number of strokes to
-achieves it --- and G is the grid of positions to click in order
+achieve it --- and G is the grid of positions to click in order
 to complete the 5x5.
 
 Solutions are sorted from least to greatest Hamming weight."
