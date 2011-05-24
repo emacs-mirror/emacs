@@ -855,13 +855,13 @@ extraclean:
 # The src subdir knows how to do the right thing
 # even when the build directory and source dir are different.
 TAGS tags: lib lib-src src
-	cd src; $(MAKE) tags
+	cd src; $(MAKE) $(MFLAGS) tags
 
 check:
 	@if test ! -d test/automated; then \
 	  echo "You do not seem to have the test/ directory."; exit 1; \
 	else true; fi
-	cd test/automated && $(MAKE) check
+	cd test/automated && $(MAKE) $(MFLAGS) check
 
 dist:
 	cd ${srcdir}; ./make-dist

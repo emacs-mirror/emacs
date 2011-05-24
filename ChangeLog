@@ -1,5 +1,7 @@
 2011-05-24  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (TAGS, tags, check): Pass MFLAGS to sub-makes.
+
 	* configure.in (OPT_MAKEFILES_IN): Remove.
 	(SUBDIR_MAKEFILES): New variable, passed to AC_CONFIG_FILES.
 	(SUBDIR_MAKEFILES_IN): New output variable.
