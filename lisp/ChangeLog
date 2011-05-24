@@ -1,3 +1,19 @@
+2011-05-24  Kenichi Handa  <handa@m17n.org>
+
+	* mail/sendmail.el: Require `rfc2047'.
+	(mail-insert-from-field): Do not perform RFC2047 encoding.
+	(mail-encode-header): New function.
+	(sendmail-send-it): Set buffer-file-coding-system of the work
+	buffer to the return value of select-message-coding-system.  Call
+	mail-encode-header.
+
+	* mail/smtpmail.el (smtpmail-send-it): Call mail-encode-header.
+
+2011-05-24  Sean Neakums  <sneakums@zork.net>  (tiny change)
+
+	* mail/supercite.el (sc-default-cite-frame): Handle
+	sc-nested-citation-p when sc-cite-blank-lines-p is non-nil.
+
 2011-05-24  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/python.el (brm-menu): Declare.

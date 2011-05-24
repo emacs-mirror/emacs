@@ -184,7 +184,9 @@ See the variable `sc-cite-frame-alist' for details."
     ;; paragraph, unless sc-cite-blank-lines-p is non-nil, in which
     ;; case we treat blank lines just like any other line.
     ("^[ \t]*$"                 (if sc-cite-blank-lines-p
-				    (sc-cite-line)
+				    (if sc-nested-citation-p
+					(sc-add-citation-level)
+				      (sc-cite-line))
 				  (sc-fill-if-different "")))
     ;; do nothing if looking at a reference tag. make sure that the
     ;; tag string isn't the empty string since this will match every
