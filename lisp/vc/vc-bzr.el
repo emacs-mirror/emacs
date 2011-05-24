@@ -65,6 +65,14 @@
   :group 'vc-bzr
   :type 'string)
 
+(defcustom vc-bzr-sha1-program '("sha1sum")
+  "Name of program to compute SHA1.
+It must be a string \(program name\) or list of strings \(name and its args\)."
+  :type '(repeat string)
+  :group 'vc-bzr)
+
+(define-obsolete-variable-alias 'sha1-program 'vc-bzr-sha1-program "24.1")
+
 (defcustom vc-bzr-diff-switches nil
   "String or list of strings specifying switches for bzr diff under VC.
 If nil, use the value of `vc-diff-switches'.  If t, use no switches."
@@ -156,12 +164,10 @@ in the repository root directory of FILE."
 	(push (cons (match-string 1) (match-string 2)) settings)))
     settings))
 
-(require 'sha1)                         ;For sha1-program
-
 (defun vc-bzr-sha1 (file)
   (with-temp-buffer
     (set-buffer-multibyte nil)
-    (let ((prog sha1-program)
+    (let ((prog vc-bzr-sha1-program)
           (args nil)
 	  process-file-side-effects)
       (when (consp prog)

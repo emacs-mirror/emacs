@@ -4514,42 +4514,17 @@ including negative integers.  */)
 
 
 /************************************************************************
-				 MD5
+			     MD5 and SHA1
  ************************************************************************/
 
 #include "md5.h"
+#include "sha1.h"
 
-DEFUN ("md5", Fmd5, Smd5, 1, 5, 0,
-       doc: /* Return MD5 message digest of OBJECT, a buffer or string.
+/* TYPE: 0 for md5, 1 for sha1. */
 
-A message digest is a cryptographic checksum of a document, and the
-algorithm to calculate it is defined in RFC 1321.
-
-The two optional arguments START and END are character positions
-specifying for which part of OBJECT the message digest should be
-computed.  If nil or omitted, the digest is computed for the whole
-OBJECT.
-
-The MD5 message digest is computed from the result of encoding the
-text in a coding system, not directly from the internal Emacs form of
-the text.  The optional fourth argument CODING-SYSTEM specifies which
-coding system to encode the text with.  It should be the same coding
-system that you used or will use when actually writing the text into a
-file.
-
-If CODING-SYSTEM is nil or omitted, the default depends on OBJECT.  If
-OBJECT is a buffer, the default for CODING-SYSTEM is whatever coding
-system would be chosen by default for writing this text into a file.
-
-If OBJECT is a string, the most preferred coding system (see the
-command `prefer-coding-system') is used.
-
-If NOERROR is non-nil, silently assume the `raw-text' coding if the
-guesswork fails.  Normally, an error is signaled in such case.  */)
-  (Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror)
+Lisp_Object
+crypto_hash_function (int type, Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror, Lisp_Object binary)
 {
-  unsigned char digest[16];
-  char value[33];
   int i;
   EMACS_INT size;
   EMACS_INT size_byte = 0;
@@ -4558,6 +4533,7 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
   register EMACS_INT b, e;
   register struct buffer *bp;
   EMACS_INT temp;
+  Lisp_Object res=Qnil;
 
   if (STRINGP (object))
     {
@@ -4728,15 +4704,93 @@ guesswork fails.  Normally, an error is signaled in such case.  */)
 	object = code_convert_string (object, coding_system, Qnil, 1, 0, 0);
     }
 
-  md5_buffer (SSDATA (object) + start_byte,
-	      SBYTES (object) - (size_byte - end_byte),
-	      digest);
+  switch (type)
+    {
+    case 0:			/* MD5 */
+      {
+	unsigned char digest[16];
+	md5_buffer (SSDATA (object) + start_byte,
+		    SBYTES (object) - (size_byte - end_byte),
+		    digest);
 
-  for (i = 0; i < 16; i++)
-    sprintf (&value[2 * i], "%02x", digest[i]);
-  value[32] = '\0';
+	if (NILP(binary))
+	  {
+	    unsigned char value[33];
+	    for (i = 0; i < 16; i++)
+	      sprintf (&value[2 * i], "%02x", digest[i]);
+	    value[32] = '\0';
+	    res = make_string (value, 32);
+	  }
+	else
+	  res = make_string (digest, 16);
+	break;
+      }
 
-  return make_string (value, 32);
+    case 1:			/* SHA1 */
+      {
+	unsigned char digest[20];
+	sha1_buffer (SDATA (object) + start_byte,
+		     SBYTES (object) - (size_byte - end_byte),
+		     digest);
+	if (NILP(binary))
+	  {
+	    unsigned char value[41];
+	    for (i = 0; i < 20; i++)
+	      sprintf (&value[2 * i], "%02x", digest[i]);
+	    value[40] = '\0';
+	    res = make_string (value, 40);
+	  }
+	else
+	  res = make_string (digest, 20);
+	break;
+      }
+    }
+
+  return res;
+}
+
+DEFUN ("md5", Fmd5, Smd5, 1, 5, 0,
+       doc: /* Return MD5 message digest of OBJECT, a buffer or string.
+
+A message digest is a cryptographic checksum of a document, and the
+algorithm to calculate it is defined in RFC 1321.
+
+The two optional arguments START and END are character positions
+specifying for which part of OBJECT the message digest should be
+computed.  If nil or omitted, the digest is computed for the whole
+OBJECT.
+
+The MD5 message digest is computed from the result of encoding the
+text in a coding system, not directly from the internal Emacs form of
+the text.  The optional fourth argument CODING-SYSTEM specifies which
+coding system to encode the text with.  It should be the same coding
+system that you used or will use when actually writing the text into a
+file.
+
+If CODING-SYSTEM is nil or omitted, the default depends on OBJECT.  If
+OBJECT is a buffer, the default for CODING-SYSTEM is whatever coding
+system would be chosen by default for writing this text into a file.
+
+If OBJECT is a string, the most preferred coding system (see the
+command `prefer-coding-system') is used.
+
+If NOERROR is non-nil, silently assume the `raw-text' coding if the
+guesswork fails.  Normally, an error is signaled in such case.  */)
+  (Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror)
+{
+  return crypto_hash_function (0, object, start, end, coding_system, noerror, Qnil);
+}
+
+DEFUN ("sha1", Fsha1, Ssha1, 1, 4, 0,
+       doc: /* Return the SHA-1 (Secure Hash Algorithm) of an OBJECT.
+
+OBJECT is either a string or a buffer.  Optional arguments START and
+END are character positions specifying which portion of OBJECT for
+computing the hash.  If BINARY is non-nil, return a string in binary
+form.  */)
+     (Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object binary)
+{
+  return crypto_hash_function (1, object, start, end, Qnil, Qnil, binary);
 }
 
 
@@ -4911,6 +4965,7 @@ this variable.  */);
   defsubr (&Sbase64_encode_string);
   defsubr (&Sbase64_decode_string);
   defsubr (&Smd5);
+  defsubr (&Ssha1);
   defsubr (&Slocale_info);
 }
 

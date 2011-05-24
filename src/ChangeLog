@@ -1,3 +1,12 @@
+2011-05-24  Leo Liu  <sdl.web@gmail.com>
+
+	* deps.mk (fns.o):
+	* makefile.w32-in ($(BLD)/fns.$(O)): Include sha1.h.
+
+	* fns.c (crypto_hash_function, Fsha1): New function.
+	(Fmd5): Use crypto_hash_function.
+	(syms_of_fns): Add Ssha1.
+
 2011-05-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* gnutls.c: Remove unused macros.
