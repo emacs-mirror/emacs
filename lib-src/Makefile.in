@@ -361,12 +361,8 @@ emacsclient${EXEEXT}: ${srcdir}/emacsclient.c ../src/config.h
 hexl${EXEEXT}: ${srcdir}/hexl.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
 
-update-game-score${EXEEXT}: update-game-score.o
-	$(CC) ${LINK_CFLAGS} update-game-score.o \
-	  $(LOADLIBES) -o update-game-score
-
-update-game-score.o: ${srcdir}/update-game-score.c ../src/config.h
-	$(CC) -c ${CPP_CFLAGS} ${srcdir}/update-game-score.c \
-	  -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\""
+update-game-score${EXEEXT}: ${srcdir}/update-game-score.c ../src/config.h
+	$(CC) ${ALL_CFLAGS} -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\"" \
+	  ${srcdir}/update-game-score.c $(LOADLIBES) -o update-game-score
 
 ## Makefile ends here.
