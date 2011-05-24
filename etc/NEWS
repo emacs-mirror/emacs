@@ -290,6 +290,10 @@ If you need it, feedmail.el ought to provide a superset of the functionality.
 
 ** The variable `focus-follows-mouse' now always defaults to nil.
 
+** Function `sha1' is now implemented in C for speed.
+The elisp implementation sha1.el is removed. Feature sha1 is provided
+by default.
+
 
 * Editing Changes in Emacs 24.1
 

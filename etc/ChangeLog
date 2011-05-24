@@ -1,3 +1,7 @@
+2011-05-24  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention the new primitive sha1 and the removal of sha1.el.
+
 2011-05-14  Ulf Jasper  <ulf.jasper@web.de>
 
 	* images/newsticker/README: Added.
