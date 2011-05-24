@@ -3719,7 +3719,7 @@ AC_CONFIG_FILES([Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile \
 
 dnl test/ is not present in release tarfiles.
 if test -f $srcdir/test/automated/Makefile.in; then
-  OPT_MAKEFILES_IN=test/automated/Makefile.in
+  OPT_MAKEFILES_IN="\$(srcdir)/test/automated/Makefile.in"
   AC_CONFIG_FILES([test/automated/Makefile])
 else
   OPT_MAKEFILES_IN=
