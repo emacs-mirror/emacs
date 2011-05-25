@@ -1,5 +1,7 @@
 2011-05-25  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (movemail${EXEEXT}): Build in one step, not via .o file.
+
 	* Makefile.in (REGEXPOBJ, REGEXPDEPS): Remove.  Replace by expansion.
 	(etags${EXEEXT}): Just depend on regex.o, not regex.h as well.
 

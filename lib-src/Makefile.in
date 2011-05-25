@@ -340,12 +340,9 @@ make-docfile${EXEEXT}: ${srcdir}/make-docfile.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) \
 	  -o make-docfile
 
-movemail${EXEEXT}: movemail.o pop.o
-	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o \
+movemail${EXEEXT}: ${srcdir}/movemail.c pop.o ../src/config.h
+	$(CC) ${ALL_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c pop.o \
 	  $(LOADLIBES) $(LIBS_MOVE) -o movemail
-
-movemail.o: ${srcdir}/movemail.c ../src/config.h
-	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c
 
 pop.o: ${srcdir}/pop.c ${srcdir}/../lib/min-max.h ../src/config.h
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/pop.c
