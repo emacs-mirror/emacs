@@ -178,33 +178,27 @@ CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
 LOADLIBES = ../lib/libgnu.a $(LIBS_SYSTEM)
 $(EXE_FILES): ../lib/libgnu.a
 
-## This is the default compilation command.
-## But we should never rely on it, because some make version failed to
-## find it for getopt.o.
-## Using an explicit command made it work.
-.c.o:
-	${CC} -c ${CPP_CFLAGS} $<
-
 all: ${DONT_INSTALL} ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}  ${STAMP_INST_SCRIPTS} ${STAMP_SCRIPTS}
 
 ## These targets copy the scripts into the build directory so that
 ## they can be run from there in an uninstalled Emacs.
-## The "-" is prepended because some versions of cp barf when srcdir
-## is the current directory, and thus the file will be copied into itself.
+## Nothing to do if pwd = srcdir.
+insrcdir=[ "`/bin/pwd`" = "`(cd $(srcdir) && /bin/pwd)`" ]
+
 stamp-rcs2log: $(srcdir)/rcs2log
-	-cp -p $(srcdir)/rcs2log rcs2log
+	$(insrcdir) || cp -p $(srcdir)/rcs2log rcs2log
 	touch $@
 
 stamp-rcs-checkin: $(srcdir)/rcs-checkin
-	-cp -p $(srcdir)/rcs-checkin rcs-checkin
+	$(insrcdir) || cp -p $(srcdir)/rcs-checkin rcs-checkin
 	touch $@
 
 stamp-grep-changelog: $(srcdir)/grep-changelog
-	-cp -p $(srcdir)/grep-changelog grep-changelog
+	$(insrcdir) || cp -p $(srcdir)/grep-changelog grep-changelog
 	touch $@
 
 stamp-vcdiff: $(srcdir)/vcdiff
-	-cp -p $(srcdir)/vcdiff vcdiff
+	$(insrcdir) || cp -p $(srcdir)/vcdiff vcdiff
 	touch $@
 
 ## Only used if we need blessmail, but no harm in always defining.
@@ -282,7 +276,7 @@ mostlyclean:
 
 clean: mostlyclean
 	-rm -f ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
-	-rm -f fns*.el *.tab.c *.tab.h stamp-*
+	-rm -f ${STAMP_INST_SCRIPTS} ${STAMP_SCRIPTS}
 
 distclean: clean
 	-rm -f TAGS

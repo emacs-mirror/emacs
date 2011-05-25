@@ -1,5 +1,11 @@
 2011-05-25  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (.c.o): Remove (every .o file has an explicit rule).
+	(insrcdir): New.
+	(stamp-rcs2log, stamp-rcs-checkin, stamp-grep-changelog, stamp-vcdiff):
+	Use $insrcdir to suppress unaesthetic ignored errors.
+	(clean): Simplify list of things to delete.
+
 	* Makefile.in (movemail${EXEEXT}): Build in one step, not via .o file.
 
 	* Makefile.in (REGEXPOBJ, REGEXPDEPS): Remove.  Replace by expansion.
