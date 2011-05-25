@@ -313,17 +313,14 @@ test-distrib${EXEEXT}: ${srcdir}/test-distrib.c
 ../lib/libgnu.a: ../src/config.h
 	cd ../lib && $(MAKE) libgnu.a
 
-REGEXPOBJ = regex.o
-REGEXPDEPS = $(REGEXPOBJ) $(srcdir)/../src/regex.h
-
 regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h ../src/config.h
 	${CC} -c ${CPP_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER \
 	  ${srcdir}/../src/regex.c
 
-etags${EXEEXT}: ${srcdir}/etags.c $(REGEXPDEPS) ../src/config.h
+etags${EXEEXT}: ${srcdir}/etags.c regex.o ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DEMACS_NAME="\"GNU Emacs\"" \
 	  -DVERSION="\"${version}\"" ${srcdir}/etags.c \
-	  $(REGEXPOBJ) $(LOADLIBES) -o etags
+	  regex.o $(LOADLIBES) -o etags
 
 ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" \
@@ -334,7 +331,7 @@ ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h ../src/config.h
 ctags${EXEEXT}: etags${EXEEXT}
 	$(CC) ${ALL_CFLAGS} -DCTAGS -DEMACS_NAME="\"GNU Emacs\"" \
 	  -DVERSION="\"${version}\"" ${srcdir}/etags.c \
-	  $(REGEXPOBJ) $(LOADLIBES) -o ctags
+	  regex.o $(LOADLIBES) -o ctags
 
 profile${EXEEXT}: ${srcdir}/profile.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/profile.c $(LOADLIBES) -o profile
