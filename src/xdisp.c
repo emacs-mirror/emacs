@@ -5922,9 +5922,21 @@ get_next_display_element (it)
 	  int pos = (it->s ? -1
 		     : STRINGP (it->string) ? IT_STRING_CHARPOS (*it)
 		     : IT_CHARPOS (*it));
+	  int c;
 
-	  it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display, pos,
-				       it->string);
+	  if (it->what == IT_CHARACTER)
+	    c = it->char_to_display;
+	  else
+	    {
+	      struct composition *cmp = composition_table[it->cmp_it.id];
+	      int i;
+
+	      c = ' ';
+	      for (i = 0; i < cmp->glyph_len; i++)
+		if ((c = COMPOSITION_GLYPH (cmp, i)) != '\t')
+		  break;
+	    }
+	  it->face_id = FACE_FOR_CHAR (it->f, face, c, pos, it->string);
 	}
     }
 #endif

@@ -1,3 +1,8 @@
+2011-05-25  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (get_next_display_element): Set correct it->face_id for
+	a static composition.
+
 2011-05-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* dispnew.c (scrolling_window): Don't exclude the case that the
