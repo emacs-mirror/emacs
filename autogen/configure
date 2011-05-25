@@ -20909,17 +20909,21 @@ test "${prefix}" != NONE &&
 test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 
-SUBDIR_MAKEFILES="lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile"
+SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile"
+
+ac_config_files="$ac_config_files Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile"
+
 
 opt_makefile=test/automated/Makefile
 
-test -f $srcdir/${opt_makefile}.in && \
+if test -f $srcdir/${opt_makefile}.in; then
   SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
+      ac_config_files="$ac_config_files test/automated/Makefile"
 
-SUBDIR_MAKEFILES_IN=`echo " lib/Makefile ${SUBDIR_MAKEFILES}" | sed -e 's| | $(srcdir)/|g' -e 's|Makefile|Makefile.in|g'`
+fi
 
+SUBDIR_MAKEFILES_IN=`echo " ${SUBDIR_MAKEFILES}" | sed -e 's| | $(srcdir)/|g' -e 's|Makefile|Makefile.in|g'`
 
-ac_config_files="$ac_config_files Makefile lib/Makefile ${SUBDIR_MAKEFILES}"
 
 
 ac_config_commands="$ac_config_commands mkdirs"
@@ -21720,7 +21724,17 @@ do
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "lib/Makefile") CONFIG_FILES="$CONFIG_FILES lib/Makefile" ;;
-    "${SUBDIR_MAKEFILES}") CONFIG_FILES="$CONFIG_FILES ${SUBDIR_MAKEFILES}" ;;
+    "lib-src/Makefile") CONFIG_FILES="$CONFIG_FILES lib-src/Makefile" ;;
+    "oldXMenu/Makefile") CONFIG_FILES="$CONFIG_FILES oldXMenu/Makefile" ;;
+    "doc/emacs/Makefile") CONFIG_FILES="$CONFIG_FILES doc/emacs/Makefile" ;;
+    "doc/misc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/misc/Makefile" ;;
+    "doc/lispintro/Makefile") CONFIG_FILES="$CONFIG_FILES doc/lispintro/Makefile" ;;
+    "doc/lispref/Makefile") CONFIG_FILES="$CONFIG_FILES doc/lispref/Makefile" ;;
+    "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
+    "lwlib/Makefile") CONFIG_FILES="$CONFIG_FILES lwlib/Makefile" ;;
+    "lisp/Makefile") CONFIG_FILES="$CONFIG_FILES lisp/Makefile" ;;
+    "leim/Makefile") CONFIG_FILES="$CONFIG_FILES leim/Makefile" ;;
+    "test/automated/Makefile") CONFIG_FILES="$CONFIG_FILES test/automated/Makefile" ;;
     "mkdirs") CONFIG_COMMANDS="$CONFIG_COMMANDS mkdirs" ;;
     "epaths") CONFIG_COMMANDS="$CONFIG_COMMANDS epaths" ;;
     "gdbinit") CONFIG_COMMANDS="$CONFIG_COMMANDS gdbinit" ;;
