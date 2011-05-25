@@ -1,3 +1,25 @@
+2011-05-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (struct glyph_row): New member fringe_bitmap_periodic_p.
+
+	* dispnew.c (shift_glyph_matrix, scrolling_window): Mark scrolled row
+	for fringe update if it has periodic bitmap.
+	(row_equal_p): Also compare left_fringe_offset,	right_fringe_offset,
+	and fringe_bitmap_periodic_p.
+
+	* fringe.c (get_fringe_bitmap_data): New function.
+	(draw_fringe_bitmap_1, update_window_fringes): Use it.
+	(update_window_fringes): Record periodicity of fringe bitmap in glyph
+	row.  Mark glyph row for fringe update if periodicity changed.
+
+	* xdisp.c (try_window_reusing_current_matrix): Don't mark scrolled row
+	for fringe update unless it has periodic bitmap.
+
+2011-05-25  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (get_next_display_element): Set correct it->face_id for
+	a static composition.
+
 2011-05-24  Leo Liu  <sdl.web@gmail.com>
 
 	* deps.mk (fns.o):

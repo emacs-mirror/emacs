@@ -5890,11 +5890,23 @@ get_next_display_element (struct it *it)
       else
 	{
 	  EMACS_INT pos = (it->s ? -1
-			   : STRINGP (it->string) ? IT_STRING_CHARPOS (*it)
-			   : IT_CHARPOS (*it));
+		     : STRINGP (it->string) ? IT_STRING_CHARPOS (*it)
+		     : IT_CHARPOS (*it));
+	  int c;
 
-	  it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display, pos,
-				       it->string);
+	  if (it->what == IT_CHARACTER)
+	    c = it->char_to_display;
+	  else
+	    {
+	      struct composition *cmp = composition_table[it->cmp_it.id];
+	      int i;
+
+	      c = ' ';
+	      for (i = 0; i < cmp->glyph_len; i++)
+		if ((c = COMPOSITION_GLYPH (cmp, i)) != '\t')
+		  break;
+	    }
+	  it->face_id = FACE_FOR_CHAR (it->f, face, c, pos, it->string);
 	}
     }
 
@@ -14817,7 +14829,8 @@ try_window_reusing_current_matrix (struct window *w)
 		row->visible_height -= min_y - row->y;
 	      if (row->y + row->height > max_y)
 		row->visible_height -= row->y + row->height - max_y;
-	      row->redraw_fringe_bitmaps_p = 1;
+	      if (row->fringe_bitmap_periodic_p)
+		row->redraw_fringe_bitmaps_p = 1;
 
 	      it.current_y += row->height;
 
@@ -14979,7 +14992,8 @@ try_window_reusing_current_matrix (struct window *w)
 	    row->visible_height -= min_y - row->y;
 	  if (row->y + row->height > max_y)
 	    row->visible_height -= row->y + row->height - max_y;
-	  row->redraw_fringe_bitmaps_p = 1;
+	  if (row->fringe_bitmap_periodic_p)
+	    row->redraw_fringe_bitmaps_p = 1;
 	}
 
       /* Scroll the current matrix.  */
