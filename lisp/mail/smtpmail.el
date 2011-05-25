@@ -362,6 +362,8 @@ The list is in preference order.")
 	    (if mail-interactive
 		(with-current-buffer errbuf
 		  (erase-buffer))))
+	  ;; Encode the header according to RFC2047.
+	  (mail-encode-header (point-min) delimline)
 	  ;;
 	  (setq smtpmail-address-buffer (generate-new-buffer "*smtp-mail*"))
 	  (setq smtpmail-recipient-address-list
