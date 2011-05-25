@@ -178,7 +178,7 @@ CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
 LOADLIBES = ../lib/libgnu.a $(LIBS_SYSTEM)
 $(EXE_FILES): ../lib/libgnu.a
 
-all: ${DONT_INSTALL} ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}  ${STAMP_INST_SCRIPTS} ${STAMP_SCRIPTS}
+all: ${EXE_FILES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS} ${STAMP_INST_SCRIPTS} ${STAMP_SCRIPTS}
 
 ## These targets copy the scripts into the build directory so that
 ## they can be run from there in an uninstalled Emacs.
@@ -275,7 +275,7 @@ mostlyclean:
 	-rm -f core *.o
 
 clean: mostlyclean
-	-rm -f ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
+	-rm -f ${EXE_FILES}
 	-rm -f ${STAMP_INST_SCRIPTS} ${STAMP_SCRIPTS}
 
 distclean: clean
