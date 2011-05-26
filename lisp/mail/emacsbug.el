@@ -352,8 +352,9 @@ usually do not have translators to read other languages for them.\n\n")
 		   ;; This is the default user-mail-address.  On today's
 		   ;; systems, it seems more likely to be wrong than right,
 		   ;; since most people don't run their own mail server.
-		   (string-match (format "\\<%s@%s\\>" (user-login-name)
-					 (system-name))
+		   (string-match (format "\\<%s@%s\\>"
+					 (regexp-quote (user-login-name))
+					 (regexp-quote (system-name)))
 				 from))
 	       (not (yes-or-no-p
 		     (format "Is `%s' really your email address? " from)))
