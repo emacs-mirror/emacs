@@ -1,3 +1,8 @@
+2011-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (File Local Variables):
+	Update hack-local-variables `mode-only' return value.
+
 2011-05-19  Glenn Morris  <rgm@gnu.org>
 
 	* lists.texi (Sets And Lists): Mention cl provides union etc.
