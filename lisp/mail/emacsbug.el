@@ -355,9 +355,8 @@ usually do not have translators to read other languages for them.\n\n")
 		   (string-match (format "\\<%s@%s\\>" (user-login-name)
 					 (system-name))
 				 from))
-	       (yes-or-no-p
-		(format "From address (`%s') looks suspicious.  Edit it? "
-			from))
+	       (not (yes-or-no-p
+		     (format "Is `%s' really your email address? " from)))
 	       (error "Please edit the From address and try again"))))
     ;; The last warning for novice users.
     (unless (or report-emacs-bug-no-confirmation
