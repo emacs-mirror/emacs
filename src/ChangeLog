@@ -1,3 +1,7 @@
+2011-05-26  Leo Liu  <sdl.web@gmail.com>
+
+	* editfns.c (Ftranspose_regions): Allow empty regions.  (Bug#8699)
+
 2011-05-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* dispextern.h (struct glyph_row): New member fringe_bitmap_periodic_p.

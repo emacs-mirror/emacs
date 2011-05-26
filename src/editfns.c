@@ -4353,8 +4353,9 @@ Transposing beyond buffer boundaries is an error.  */)
 
   if (start2 < end1)
     error ("Transposed regions overlap");
-  else if (start1 == end1 || start2 == end2)
-    error ("Transposed region has length 0");
+  /* Nothing to change for adjacent regions with one being empty */
+  else if ((start1 == end1 || start2 == end2) && end1 == start2)
+    return Qnil;
 
   /* The possibilities are:
      1. Adjacent (contiguous) regions, or separate but equal regions
