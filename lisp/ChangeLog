@@ -1,5 +1,8 @@
 2011-05-26  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (hack-local-variables-prop-line, hack-local-variables):
+	Downcase mode names, as seems to be traditional.
+
 	* mail/emacsbug.el (report-emacs-bug): Mention checking From address.
 	(report-emacs-bug-hook): Try to validate the From address.  (Bug#8038)
 

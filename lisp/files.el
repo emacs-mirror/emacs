@@ -3078,7 +3078,8 @@ mode, if there is one, otherwise nil."
 		 (if mode-only
 		     (and (equal keyname "mode")
 			  (setq result
-				(intern (concat (symbol-name val) "-mode"))))
+				(intern (concat (downcase (symbol-name val))
+						"-mode"))))
 		   (or (equal keyname "coding")
 		       (condition-case nil
 			   (push (cons (if (eq key 'eval)
@@ -3240,7 +3241,7 @@ major-mode."
 			       ;; deprecated, but try to reject them anyway.
 			       (not (string-match
 				     "-minor\\'"
-				     (setq val2 (symbol-name val))))
+				     (setq val2 (downcase (symbol-name val)))))
 			       (setq result (intern (concat val2 "-mode"))))
 			(unless (eq var 'coding)
 			  (condition-case nil
