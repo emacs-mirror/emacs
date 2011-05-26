@@ -811,10 +811,6 @@ x_handle_selection_request (struct input_event *event)
   int success = 0;
   int count = SPECPDL_INDEX ();
 
-  TRACE2 ("x_handle_selection_request, from=0x%08lx time=%lu",
-	  (unsigned long) SELECTION_EVENT_REQUESTOR (event),
-	  (unsigned long) SELECTION_EVENT_TIME (event));
-
   GCPRO2 (local_selection_data, target_symbol);
 
   /* Decline if we don't own any selections.  */
@@ -836,6 +832,10 @@ x_handle_selection_request (struct input_event *event)
   x_start_queuing_selection_requests ();
   record_unwind_protect (queue_selection_requests_unwind, Qnil);
 
+  TRACE2 ("x_handle_selection_request: selection=%s, target=%s",
+	  SDATA (SYMBOL_NAME (selection_symbol)),
+	  SDATA (SYMBOL_NAME (target_symbol)));
+
   if (EQ (target_symbol, QMULTIPLE))
     {
       /* For MULTIPLE targets, the event property names a list of atom
@@ -849,7 +849,7 @@ x_handle_selection_request (struct input_event *event)
       multprop = x_get_window_property_as_lisp_data (display, requestor, property,
 						     QMULTIPLE, selection);
 
-      if (!VECTORP (multprop) || !(ASIZE (multprop) % 2))
+      if (!VECTORP (multprop) || ASIZE (multprop) % 2)
 	goto DONE;
 
       nselections = ASIZE (multprop) / 2;
