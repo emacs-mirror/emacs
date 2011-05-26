@@ -1,3 +1,21 @@
+2011-05-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c: ICCCM-compliant handling of MULTIPLE targets.
+	(converted_selections, conversion_fail_tag): New global variables.
+	(x_selection_request_lisp_error): Free the above.
+	(x_get_local_selection): Remove unnecessary code.
+	(x_reply_selection_request): Args changed; handle arbitrary array
+	of converted selections stored in converted_selections.  Separate
+	the XChangeProperty and SelectionNotify steps.
+	(x_handle_selection_request): Rewrite to handle MULTIPLE target.
+	(x_convert_selection): New function.
+	(x_handle_selection_event): Simplify.
+	(x_get_foreign_selection): Don't ignore incoming requests while
+	waiting for an answer; this will fail when we implement
+	SAVE_TARGETS, and seems unnecessary anyway.
+	(selection_data_to_lisp_data): Recognize ATOM_PAIR type.
+	(Vx_sent_selection_functions): Doc fix.
+
 2011-05-26  Leo Liu  <sdl.web@gmail.com>
 
 	* editfns.c (Ftranspose_regions): Allow empty regions.  (Bug#8699)
