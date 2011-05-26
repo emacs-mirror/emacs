@@ -1,3 +1,8 @@
+2011-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Mention checking From address.
+	(report-emacs-bug-hook): Try to validate the From address.  (Bug#8038)
+
 2011-05-25  Julien Danjou  <julien@danjou.info>
 
 	* textmodes/rst.el (rst-define-level-faces): Do not define face

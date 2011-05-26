@@ -126,7 +126,7 @@ Used for querying duplicates and linking to existing bugs.")
       (if (and to subject body)
 	  (if (report-emacs-bug-can-use-osx-open)
 	      (start-process "/usr/bin/open" nil "open"
-			     (concat "mailto:" to 
+			     (concat "mailto:" to
 				     "?subject=" (url-hexify-string subject)
 				     "&body=" (url-hexify-string body)))
 	    (start-process "xdg-email" nil "xdg-email"
@@ -188,6 +188,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
         (overlay-put (make-overlay pos (point)) 'face 'highlight))
       (insert " if possible, because the Emacs maintainers
 usually do not have translators to read other languages for them.\n\n")
+      (insert "Please check that the From: line gives an address where you can be reached.\n")
       (insert (format "Your report will be posted to the %s mailing list"
 		      report-emacs-bug-address))
       (insert "\nand the gnu.emacs.bug news group, and at http://debbugs.gnu.org.\n\n"))
@@ -330,6 +331,9 @@ usually do not have translators to read other languages for them.\n\n")
   (interactive)
   (info "(emacs)Bugs"))
 
+;; It's the default mail mode, so it seems OK to use its features.
+(autoload 'message-bogus-recipient-p "message")
+
 (defun report-emacs-bug-hook ()
   "Do some checking before sending a bug report."
   (save-excursion
@@ -340,11 +344,25 @@ usually do not have translators to read other languages for them.\n\n")
          (string-equal (buffer-substring-no-properties (point-min) (point))
                        report-emacs-bug-orig-text)
          (error "No text entered in bug report"))
-
+    (or report-emacs-bug-no-confirmation
+	;; Not narrowing to the headers, but that's OK.
+	(let ((from (mail-fetch-field "From")))
+	  (and (or (not from)
+		   (message-bogus-recipient-p from)
+		   ;; This is the default user-mail-address.  On today's
+		   ;; systems, it seems more likely to be wrong than right,
+		   ;; since most people don't run their own mail server.
+		   (string-match (format "\\<%s@%s\\>" (user-login-name)
+					 (system-name))
+				 from))
+	       (yes-or-no-p
+		(format "From address (`%s') looks suspicious.  Edit it? "
+			from))
+	       (error "Please edit the From address and try again"))))
     ;; The last warning for novice users.
     (unless (or report-emacs-bug-no-confirmation
-                (yes-or-no-p
-                 "Send this bug report to the Emacs maintainers? "))
+		(yes-or-no-p
+		 "Send this bug report to the Emacs maintainers? "))
       (goto-char (point-min))
       (if (search-forward "To: ")
           (delete-region (point) (line-end-position)))
