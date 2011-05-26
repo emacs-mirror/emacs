@@ -1,3 +1,8 @@
+2011-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-bug-group-download-format-alist):
+	Use the "maintainer" version of debbugs.gnu.org reports.
+
 2011-05-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mime-delete-part): Fix mm-handle-filename usage.
