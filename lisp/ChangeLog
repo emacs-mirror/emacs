@@ -2,6 +2,7 @@
 
 	* files.el (hack-local-variables-prop-line, hack-local-variables):
 	Downcase mode names, as seems to be traditional.
+	(hack-local-variables, hack-local-variables-apply): Doc fixes.
 
 	* mail/emacsbug.el (report-emacs-bug): Mention checking From address.
 	(report-emacs-bug-hook): Try to validate the From address.  (Bug#8038)

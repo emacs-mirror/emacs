@@ -3147,6 +3147,8 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 
 (defun hack-local-variables (&optional mode-only)
   "Parse and put into effect this buffer's local variables spec.
+Uses `hack-local-variables-apply' to apply the variables.
+
 If MODE-ONLY is non-nil, all we do is check whether a \"mode:\"
 is specified, and return the corresponding mode symbol, or nil.
 In this case, we try to ignore minor-modes, and only return a
@@ -3260,6 +3262,14 @@ major-mode."
 	   (hack-local-variables-apply)))))
 
 (defun hack-local-variables-apply ()
+  "Apply the elements of `file-local-variables-alist'.
+If there are any elements, runs `before-hack-local-variables-hook',
+then calls `hack-one-local-variable' to apply the alist elements one by one.
+Finishes by running `hack-local-variables-hook', regardless of whether
+the alist is empty or not.
+
+Note that this function ignores a `mode' entry if it specifies the same
+major mode as the buffer already has."
   (when file-local-variables-alist
     ;; Any 'evals must run in the Right sequence.
     (setq file-local-variables-alist
