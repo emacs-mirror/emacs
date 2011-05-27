@@ -1,3 +1,9 @@
+2011-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fns.c: Fix minor problems prompted by GCC 4.6.0 warnings.
+	(crypto_hash_function): Now static.
+	Fix pointer signedness problems.  Avoid unnecessary initializations.
+
 2011-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* termhooks.h (Vselection_alist): Make it terminal-local.

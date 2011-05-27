@@ -4522,7 +4522,7 @@ including negative integers.  */)
 
 /* TYPE: 0 for md5, 1 for sha1. */
 
-Lisp_Object
+static Lisp_Object
 crypto_hash_function (int type, Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror, Lisp_Object binary)
 {
   int i;
@@ -4708,17 +4708,16 @@ crypto_hash_function (int type, Lisp_Object object, Lisp_Object start, Lisp_Obje
     {
     case 0:			/* MD5 */
       {
-	unsigned char digest[16];
+	char digest[16];
 	md5_buffer (SSDATA (object) + start_byte,
 		    SBYTES (object) - (size_byte - end_byte),
 		    digest);
 
-	if (NILP(binary))
+	if (NILP (binary))
 	  {
-	    unsigned char value[33];
+	    char value[33];
 	    for (i = 0; i < 16; i++)
 	      sprintf (&value[2 * i], "%02x", digest[i]);
-	    value[32] = '\0';
 	    res = make_string (value, 32);
 	  }
 	else
@@ -4728,16 +4727,15 @@ crypto_hash_function (int type, Lisp_Object object, Lisp_Object start, Lisp_Obje
 
     case 1:			/* SHA1 */
       {
-	unsigned char digest[20];
-	sha1_buffer (SDATA (object) + start_byte,
+	char digest[20];
+	sha1_buffer (SSDATA (object) + start_byte,
 		     SBYTES (object) - (size_byte - end_byte),
 		     digest);
-	if (NILP(binary))
+	if (NILP (binary))
 	  {
-	    unsigned char value[41];
+	    char value[41];
 	    for (i = 0; i < 20; i++)
 	      sprintf (&value[2 * i], "%02x", digest[i]);
-	    value[40] = '\0';
 	    res = make_string (value, 40);
 	  }
 	else
