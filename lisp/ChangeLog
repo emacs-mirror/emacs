@@ -1,3 +1,7 @@
+2011-05-27  David Michael  <fedora.dm0@gmail.com>
+
+	* files.el (interpreter-mode-alist): Add rbash (bug#8745).
+
 2011-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* select.el: Support clipboard managers with built-in function
