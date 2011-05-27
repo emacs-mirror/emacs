@@ -32,8 +32,6 @@
 
 ;;; Code:
 
-(require 'url-util)
-
 (defgroup emacsbug nil
   "Sending Emacs bug reports."
   :group 'maint

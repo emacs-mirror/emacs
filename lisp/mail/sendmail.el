@@ -1022,7 +1022,8 @@ Return non-nil if and only if some part of the header is encoded."
 	    (if (and selected (coding-system-get selected :mime-charset))
 		(cons selected mm-coding-system-priorities)
 	      mm-coding-system-priorities))
-	   (tick (buffer-chars-modified-tick)))
+	   (tick (buffer-chars-modified-tick))
+	   (rfc2047-encode-encoded-words nil))
       (rfc2047-encode-message-header)
       (= tick (buffer-chars-modified-tick)))))
 

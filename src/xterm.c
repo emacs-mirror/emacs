@@ -10186,7 +10186,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       { "_EMACS_TMP_",  &dpyinfo->Xatom_EMACS_TMP },
       { "TARGETS", &dpyinfo->Xatom_TARGETS },
       { "NULL", &dpyinfo->Xatom_NULL },
+      { "ATOM", &dpyinfo->Xatom_ATOM },
       { "ATOM_PAIR", &dpyinfo->Xatom_ATOM_PAIR },
+      { "CLIPBOARD_MANAGER", &dpyinfo->Xatom_CLIPBOARD_MANAGER },
       { "_XEMBED_INFO", &dpyinfo->Xatom_XEMBED_INFO },
       /* For properties of font.  */
       { "PIXEL_SIZE", &dpyinfo->Xatom_PIXEL_SIZE },

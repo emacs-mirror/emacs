@@ -2412,13 +2412,13 @@ Valid input formats include:
 (defcustom gnus-bug-group-download-format-alist
   '((emacs . "http://debbugs.gnu.org/%s;mbox=yes;mboxmaint=yes")
     (debian
-     . "http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s&mbox=yes"))
+     . "http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s&mbox=yes;mboxmaint=yes"))
   "Alist of symbols for bug trackers and the corresponding URL format string.
 The URL format string must contain a single \"%s\", specifying
 the bug number, and browsing the URL must return mbox output."
   :group 'gnus-group-foreign
-  ;; Added mboxmaint=yes for Emacs.  This gets the version with the
-  ;; messages as they went out, not as they came in.
+  ;; Added mboxmaint=yes.  This gets the version with the messages as
+  ;; they went out, not as they came in.
   ;; Eg bug-gnu-emacs is replaced by ###@debbugs.
   :version "24.1"
   :type '(repeat (cons (symbol) (string :tag "URL format string"))))
