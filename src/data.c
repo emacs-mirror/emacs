@@ -2531,9 +2531,6 @@ arith_driver (enum arithop code, size_t nargs, register Lisp_Object *args)
 	}
     }
 
-  accum &= INTMASK;
-  if (MOST_POSITIVE_FIXNUM < accum)
-    accum += MOST_NEGATIVE_FIXNUM - (MOST_POSITIVE_FIXNUM + 1);
   XSETINT (val, accum);
   return val;
 }
