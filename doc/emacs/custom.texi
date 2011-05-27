@@ -1130,7 +1130,10 @@ the file is divided into pages.
 
   If a file has both a local variables list and a @samp{-*-} line,
 Emacs processes @emph{everything} in the @samp{-*-} line first, and
-@emph{everything} in the local variables list afterward.
+@emph{everything} in the local variables list afterward.  The exception
+to this is a major mode specification.  Emacs applies this first,
+wherever it appears, since most major modes kill all local variables as
+part of their initialization.
 
   A local variables list starts with a line containing the string
 @samp{Local Variables:}, and ends with a line containing the string
@@ -1204,11 +1207,6 @@ value is @code{t}.  @xref{Enabling Multibyte}.
 @noindent
 These four ``variables'' are not really variables; setting them in any
 other context has no special meaning.
-
-  @emph{If @code{mode} is used to set a major mode, it should be the
-first ``variable'' in the list.}  Otherwise, the entries that precede
-it will usually have no effect, since most major modes kill all local
-variables as part of their initialization.
 
   You can use the @code{mode} ``variable'' to enable minor modes as
 well as the major modes; in fact, you can use it more than once, first

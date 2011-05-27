@@ -1,3 +1,8 @@
+2011-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Specifying File Variables):
+	Major modes no longer need come first.
+
 2011-05-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mule.texi (Specify Coding, Text Coding, Communication Coding):

@@ -993,6 +993,10 @@ being reverted, even if the buffer has a local `revert-buffer-function'.
 ** New variables `delayed-warnings-list' and `delayed-warnings-hook' allow
 deferring warnings until the main command loop is executed.
 
++++
+** `set-auto-mode' now respects mode: local variables at the end of files,
+as well as those in the -*- line.
+
 
 * Changes in Emacs 24.1 on non-free operating systems
 

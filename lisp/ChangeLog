@@ -1,3 +1,8 @@
+2011-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (set-auto-mode):
+	Also respect mode: entries at the end of the file.  (Bug#8586)
+
 2011-05-26  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (hack-local-variables-prop-line, hack-local-variables):

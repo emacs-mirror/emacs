@@ -2241,6 +2241,8 @@ in that case, this function acts as if `enable-local-variables' were t."
   (interactive)
   (funcall (or (default-value 'major-mode) 'fundamental-mode))
   (let ((enable-local-variables (or (not find-file) enable-local-variables)))
+    ;; FIXME this is less efficient than it could be, since both
+    ;; s-a-m and h-l-v may parse the same regions, looking for "mode:".
     (report-errors "File mode specification error: %s"
       (set-auto-mode))
     (report-errors "File local-variables error: %s"
@@ -2616,23 +2618,24 @@ Also applies to `magic-fallback-mode-alist'.")
   "Select major mode appropriate for current buffer.
 
 To find the right major mode, this function checks for a -*- mode tag,
+checks for a `mode:' entry in the Local Variables section of the file,
 checks if it uses an interpreter listed in `interpreter-mode-alist',
 matches the buffer beginning against `magic-mode-alist',
 compares the filename against the entries in `auto-mode-alist',
 then matches the buffer beginning against `magic-fallback-mode-alist'.
 
-It does not check for the `mode:' local variable in the
-Local Variables section of the file; for that, use `hack-local-variables'.
-
-If `enable-local-variables' is nil, this function does not check for a
--*- mode tag.
+If `enable-local-variables' is nil, this function does not check for
+any mode: tag anywhere in the file.
 
 If the optional argument KEEP-MODE-IF-SAME is non-nil, then we
 set the major mode only if that would change it.  In other words
 we don't actually set it to the same mode the buffer already has."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
   (let (end done mode modes)
-    ;; Find a -*- mode tag
+    ;; Once we drop the deprecated feature where mode: is also allowed to
+    ;; specify minor-modes (ie, there can be more than one "mode:), we can
+    ;; remove this section and just let (hack-local-variables t) handle it.
+    ;; Find a -*- mode tag.
     (save-excursion
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
@@ -2667,6 +2670,14 @@ we don't actually set it to the same mode the buffer already has."
 	      (or (set-auto-mode-0 mode keep-mode-if-same)
 		  ;; continuing would call minor modes again, toggling them off
 		  (throw 'nop nil))))))
+    (and (not done)
+	 enable-local-variables
+	 (setq mode (hack-local-variables t))
+	 (not (memq mode modes))	; already tried and failed
+	 (if (not (functionp mode))
+	     (message "Ignoring unknown mode `%s'" mode)
+	   (setq done t)
+	   (set-auto-mode-0 mode keep-mode-if-same)))
     ;; If we didn't, look for an interpreter specified in the first line.
     ;; As a special case, allow for things like "#!/bin/env perl", which
     ;; finds the interpreter anywhere in $PATH.
