@@ -822,7 +822,6 @@ x_handle_selection_request (struct input_event *event)
       /* Perform conversions.  This can signal.  */
       for (j = 0; j < nselections; j++)
 	{
-	  struct selection_data *cs = converted_selections + j;
 	  Lisp_Object subtarget = AREF (multprop, 2*j);
 	  Atom subproperty = symbol_to_x_atom (dpyinfo,
 					       AREF (multprop, 2*j+1));
@@ -1878,7 +1877,7 @@ x_handle_selection_notify (XSelectionEvent *event)
 static struct frame *
 frame_for_x_selection (Lisp_Object object)
 {
-  Lisp_Object tail, frame;
+  Lisp_Object tail;
   struct frame *f;
 
   if (NILP (object))
@@ -2110,7 +2109,7 @@ frame's display, or the first available X display.  */)
    UTF8_STRING property, as described by
    http://www.freedesktop.org/wiki/ClipboardManager */
 
-void
+static void
 x_clipboard_manager_save (struct x_display_info *dpyinfo,
 			  Lisp_Object frame)
 {
@@ -2157,7 +2156,7 @@ FRAME is nil, save all clipboard contents owned by Emacs.  */)
     {
       /* Loop through all X displays, saving owned clipboards.  */
       struct x_display_info *dpyinfo;
-      Lisp_Object local_selection, frame;
+      Lisp_Object local_selection, local_frame;
       for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
 	{
 	  local_selection = LOCAL_SELECTION (QCLIPBOARD, dpyinfo);
@@ -2166,9 +2165,9 @@ FRAME is nil, save all clipboard contents owned by Emacs.  */)
 				      dpyinfo->Xatom_CLIPBOARD_MANAGER))
 	    continue;
 
-	  frame = XCAR (XCDR (XCDR (XCDR (local_selection))));
-	  if (FRAME_LIVE_P (XFRAME (frame)))
-	    x_clipboard_manager_save (dpyinfo, frame);
+	  local_frame = XCAR (XCDR (XCDR (XCDR (local_selection))));
+	  if (FRAME_LIVE_P (XFRAME (local_frame)))
+	    x_clipboard_manager_save (dpyinfo, local_frame);
 	}
     }
 

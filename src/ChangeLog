@@ -1,5 +1,10 @@
 2011-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xselect.c: Fix minor problems prompted by GCC 4.6.0 warnings.
+	(x_handle_selection_request, frame_for_x_selection): Remove unused vars.
+	(x_clipboard_manager_save): Now static.
+	(Fx_clipboard_manager_save): Rename local to avoid shadowing.
+
 	* fns.c: Fix minor problems prompted by GCC 4.6.0 warnings.
 	(crypto_hash_function): Now static.
 	Fix pointer signedness problems.  Avoid unnecessary initializations.
