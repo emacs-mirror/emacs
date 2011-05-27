@@ -1,3 +1,15 @@
+2009-11-23  Toby Cubitt  <toby-predictive@dr-qubit.org>
+
+	* emacs-lisp/avl-tree.el (avl-tree--del-balance): Rename from
+	avl-tree--del-balance1 and make it work both ways.
+	(avl-tree--del-balance2): Remove.
+	(avl-tree--enter-balance): Rename from avl-tree--enter-balance1 and
+	make it work both ways.
+	(avl-tree--enter-balance2): Remove.
+	(avl-tree--switch-dir, avl-tree--dir-to-sign, avl-tree--sign-to-dir):
+	New macros.
+	(avl-tree--mapc, avl-tree-map): Add direction argument.
+
 2011-05-27  David Michael  <fedora.dm0@gmail.com>
 
 	* files.el (interpreter-mode-alist): Add rbash (bug#8745).
