@@ -904,7 +904,8 @@ x_convert_selection (struct input_event *event, Lisp_Object selection_symbol,
 	  converted_selections = cs;
 	}
 
-      RETURN_UNGCPRO (0);
+      UNGCPRO;
+      return 0;
     }
 
   /* Otherwise, record the converted selection to binary.  */
@@ -919,7 +920,8 @@ x_convert_selection (struct input_event *event, Lisp_Object selection_symbol,
 			       &(cs->data), &(cs->type),
 			       &(cs->size), &(cs->format),
 			       &(cs->nofree));
-  RETURN_UNGCPRO (1);
+  UNGCPRO;
+  return 1;
 }
 
 /* Handle a SelectionClear event EVENT, which indicates that some
