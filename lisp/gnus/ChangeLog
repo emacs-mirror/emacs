@@ -1,3 +1,8 @@
+2011-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-bug-group-download-format-alist):
+	Use the "maintainer" version of debian reports as well.
+
 2011-05-26  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-group.el (gnus-bug-group-download-format-alist):
