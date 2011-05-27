@@ -570,37 +570,6 @@ copy_text (const unsigned char *from_addr, unsigned char *to_addr,
       return to_addr - initial_to_addr;
     }
 }
-
-/* Return the number of bytes it would take
-   to convert some single-byte text to multibyte.
-   The single-byte text consists of NBYTES bytes at PTR.  */
-
-EMACS_INT
-count_size_as_multibyte (const unsigned char *ptr, EMACS_INT nbytes)
-{
-  EMACS_INT i;
-  EMACS_INT outgoing_nbytes = 0;
-
-  for (i = 0; i < nbytes; i++)
-    {
-      unsigned int c = *ptr++;
-      int n;
-
-      if (ASCII_CHAR_P (c))
-	n = 1;
-      else
-	{
-	  c = BYTE8_TO_CHAR (c);
-	  n = CHAR_BYTES (c);
-	}
-
-      if (INT_ADD_OVERFLOW (outgoing_nbytes, n))
-	string_overflow ();
-      outgoing_nbytes += n;
-    }
-
-  return outgoing_nbytes;
-}
 
 /* Insert a string of specified length before point.
    This function judges multibyteness based on

@@ -1,5 +1,87 @@
 2011-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Integer overflow fixes.
+
+	* dbusbind.c: Serial number integer overflow fixes.
+	(CHECK_DBUS_SERIAL_GET_SERIAL): New macro.
+	(Fdbus_call_method_asynchronously, xd_read_message_1): Use a float
+	to hold a serial number that is too large for a fixnum.
+	(Fdbus_method_return_internal, Fdbus_method_error_internal):
+	Check for serial numbers out of range.  Decode any serial number
+	that was so large that it became a float.  (Bug#8722)
+
+	* dbusbind.c: Use XFASTINT rather than XUINT, and check for nonneg.
+	(Fdbus_call_method, Fdbus_call_method_asynchronously):
+	Use XFASTINT rather than XUINT when numbers are nonnegative.
+	(xd_append_arg, Fdbus_method_return_internal):
+	(Fdbus_method_error_internal): Likewise.  Also, for unsigned
+	arguments, check that Lisp number is nonnegative, rather than
+	silently wrapping negative numbers around.  (Bug#8722)
+	(xd_read_message_1): Don't assume dbus_uint32_t can fit in int.
+	(Bug#8722)
+
+	* data.c (arith_driver, Flsh): Avoid unnecessary casts to EMACS_UINT.
+
+	* ccl.c (ccl_driver): Redo slightly to avoid the need for 'unsigned'.
+
+	ccl: add integer overflow checks
+	* ccl.c (CCL_CODE_MAX, GET_CCL_RANGE, GET_CCL_CODE, GET_CCL_INT):
+	(IN_INT_RANGE): New macros.
+	(ccl_driver): Use them to check for integer overflow when
+	decoding a CCL program.  Many of the new checks are whether XINT (x)
+	fits in int; it doesn't always, on 64-bit hosts.  The new version
+	doesn't catch all possible integer overflows, but it's an
+	improvement.  (Bug#8719)
+
+	* alloc.c (make_event_array): Use XINT, not XUINT.
+	There's no need for unsigned here.
+
+	* mem-limits.h (EXCEEDS_LISP_PTR) [!USE_LSB_TAG]: EMACS_UINT -> uintptr_t
+	This follows up to the 2011-05-06 change that substituted uintptr_t
+	for EMACS_INT.  This case wasn't caught back then.
+
+	Rework Fformat to avoid integer overflow issues.
+	* editfns.c: Include <float.h> unconditionally, as it's everywhere
+	now (part of C89).  Include <verify.h>.
+	(MAX_10_EXP, CONVERTED_BYTE_SIZE): Remove; no longer needed.
+	(pWIDE, pWIDElen, signed_wide, unsigned_wide): New defns.
+	(Fformat): Avoid the prepass trying to compute sizes; it was only
+	approximate and thus did not catch overflow reliably.  Instead, walk
+	through the format just once, formatting and computing sizes as we go,
+	checking for integer overflow at every step, and allocating a larger
+	buffer as needed.  Keep track separately whether the format is
+	multibyte.  Keep only the most-recently calculated precision, rather
+	than them all.  Record whether each argument has been converted to
+	string.  Use EMACS_INT, not int, for byte and char and arg counts.
+	Support field widths and precisions larger than INT_MAX.  Avoid
+	sprintf's undefined behavior with conversion specifications such as %#d
+	and %.0c.  Fix bug with strchr succeeding on '\0' when looking for
+	flags.  Fix bug with (format "%c" 256.0).  Avoid integer overflow when
+	formatting out-of-range floating point numbers with int
+	formats. (Bug#8668)
+
+	* lisp.h (FIXNUM_OVERFLOW_P): Work even if arg is a NaN.
+
+	* data.c: Avoid integer truncation in expressions involving floats.
+	* data.c: Include <intprops.h>.
+	(arith_driver): When there's an integer overflow in an expression
+	involving floating point, convert the integers to floating point
+	so that the resulting value does not suffer from catastrophic
+	integer truncation.  For example, on a 64-bit host (* 4
+	most-negative-fixnum 0.5) should yield about -4.6e+18, not zero.
+	Do not rely on undefined behavior after integer overflow.
+
+	merge count_size_as_multibyte, parse_str_to_multibyte
+	* character.c, character.h (count_size_as_multibyte):
+	Renamed from parse_str_to_multibyte; all uses changed.
+	Check for integer overflow.
+	* insdel.c, lisp.h (count_size_as_multibyte): Remove,
+	since it's now a duplicate of the other.  This is more of
+	a character than a buffer op, so better that it's in character.c.
+	* fns.c, print.c: Adjust to above changes.
+
+2011-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
 	* xselect.c: Fix minor problems prompted by GCC 4.6.0 warnings.
 	(x_handle_selection_request, frame_for_x_selection): Remove unused vars.
 	(x_clipboard_manager_save): Now static.
