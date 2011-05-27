@@ -200,36 +200,52 @@ Return t if the height of the tree has shrunk."
               (avl-tree--node-left br))
       t)))
 
-(defun avl-tree--do-delete (cmpfun root branch data)
-  ;; Return t if the height of the tree has shrunk.
+(defun avl-tree--do-delete (cmpfun root branch data test nilflag)
+  "Delete DATA from BRANCH of node ROOT.
+\(See `avl-tree-delete' for TEST and NILFLAG).
+
+Return cons cell (SHRUNK . DATA), where SHRUNK is t if the
+height of the tree has shrunk and nil otherwise, and DATA is
+the releted data."
   (let ((br (avl-tree--node-branch root branch)))
     (cond
+     ;; DATA not in tree.
      ((null br)
-      nil)
+      (cons nil nilflag))
 
      ((funcall cmpfun data (avl-tree--node-data br))
-      (if (avl-tree--do-delete cmpfun br 0 data)
-	  (avl-tree--del-balance root branch 0)))
+      (let ((ret (avl-tree--do-delete cmpfun br 0 data test nilflag)))
+	(cons (if (car ret) (avl-tree--del-balance root branch 0))
+	      (cdr ret))))
 
      ((funcall cmpfun (avl-tree--node-data br) data)
-      (if (avl-tree--do-delete cmpfun br 1 data)
-	  (avl-tree--del-balance root branch 1)))
+      (let ((ret (avl-tree--do-delete cmpfun br 1 data test nilflag)))
+	(cons (if (car ret) (avl-tree--del-balance root branch 1))
+	      (cdr ret))))
 
-     (t
-      ;; Found it.  Let's delete it.
-      (cond
-       ((null (avl-tree--node-right br))
-	(setf (avl-tree--node-branch root branch) (avl-tree--node-left br))
-	t)
+     (t  ; Found it.
+      ;; if it fails TEST, do nothing
+      (if (and test (not (funcall test (avl-tree--node-data br))))
+	  (cons nil nilflag)
+	(cond
+	 ((null (avl-tree--node-right br))
+	  (setf (avl-tree--node-branch root branch)
+		(avl-tree--node-left br))
+	  (cons t (avl-tree--node-data br)))
 
-       ((null (avl-tree--node-left br))
-	(setf (avl-tree--node-branch root branch)
-	      (avl-tree--node-right br))
-	t)
+	 ((null (avl-tree--node-left br))
+	  (setf (avl-tree--node-branch root branch)
+		(avl-tree--node-right br))
+	  (cons t (avl-tree--node-data br)))
 
-       (t
-	(if (avl-tree--do-del-internal br 0 br)
-	    (avl-tree--del-balance root branch 0))))))))
+	 (t
+	  (if (avl-tree--do-del-internal br 0 br)
+	      (cons (avl-tree--del-balance root branch 0)
+		    (avl-tree--node-data br))
+	    (cons nil (avl-tree--node-data br))))
+	 ))))))
+
+
 
 ;; ----------------------------------------------------------------
 ;;                           Entering data
@@ -284,27 +300,44 @@ Return t if the height of the tree has grown."
 	       (avl-tree--node-branch node branch)) 0))
       nil))))
 
-(defun avl-tree--do-enter (cmpfun root branch data)
-  ;; Return t if height of tree ROOT has grown.  INTERNAL USE ONLY.
+(defun avl-tree--do-enter (cmpfun root branch data &optional updatefun)
+  "Enter DATA in BRANCH of ROOT node.
+\(See `avl-tree-enter' for UPDATEFUN).
+
+Return cons cell (GREW . DATA), where GREW is t if height
+of tree ROOT has grown and nil otherwise, and DATA is the
+inserted data."
   (let ((br (avl-tree--node-branch root branch)))
     (cond
      ((null br)
       ;; Data not in tree, insert it.
       (setf (avl-tree--node-branch root branch)
             (avl-tree--node-create nil nil data 0))
-      t)
+      (cons t data))
 
      ((funcall cmpfun data (avl-tree--node-data br))
-      (and (avl-tree--do-enter cmpfun br 0 data)
-	   (avl-tree--enter-balance root branch 0)))
+      (let ((ret (avl-tree--do-enter cmpfun br 0 data updatefun)))
+	(cons (and (car ret) (avl-tree--enter-balance root branch 0))
+	      (cdr ret))))
 
      ((funcall cmpfun (avl-tree--node-data br) data)
-      (and (avl-tree--do-enter cmpfun br 1 data)
-	   (avl-tree--enter-balance root branch 1)))
+      (let ((ret (avl-tree--do-enter cmpfun br 1 data updatefun)))
+	(cons (and (car ret) (avl-tree--enter-balance root branch 1))
+	      (cdr ret))))
 
+     ;; Data already in tree, update it.
      (t
-      (setf (avl-tree--node-data br) data)
-      nil))))
+      (let ((newdata
+	     (if updatefun
+		 (funcall updatefun data (avl-tree--node-data br))
+	       data)))
+	(if (or (funcall cmpfun newdata data)
+		(funcall cmpfun data newdata))
+	    (error "avl-tree-enter:\
+ updated data does not match existing data"))
+	(setf (avl-tree--node-data br) newdata)
+	(cons nil newdata))  ; return value
+      ))))
 
 ;; ----------------------------------------------------------------
 
@@ -348,6 +381,30 @@ itself."
      (avl-tree--node-data root)
      (avl-tree--node-balance root))))
 
+(defstruct (avl-tree--stack
+	    (:constructor nil)
+	    (:constructor avl-tree--stack-create
+			  (tree &optional reverse
+				&aux
+				(store
+				 (if (avl-tree-empty tree)
+				     nil
+				   (list (avl-tree--root tree))))))
+	    (:copier nil))
+  reverse store)
+
+(defalias 'avl-tree-stack-p 'avl-tree--stack-p
+  "Return t if argument is an avl-tree-stack, nil otherwise.")
+
+(defun avl-tree--stack-repopulate (stack)
+  ;; Recursively push children of the node at the head of STACK onto the
+  ;; front of the STACK, until a leaf is reached.
+  (let ((node (car (avl-tree--stack-store stack)))
+	(dir (if (avl-tree--stack-reverse stack) 1 0)))
+    (when node  ; check for emtpy stack
+      (while (setq node (avl-tree--node-branch node dir))
+	(push node (avl-tree--stack-store stack))))))
+
 
 ;; ================================================================
 ;;; The public functions which operate on AVL trees.
@@ -367,30 +424,56 @@ and returns non-nil if A is less than B, and nil otherwise.")
   "Return t if avl tree TREE is emtpy, otherwise return nil."
   (null (avl-tree--root tree)))
 
-(defun avl-tree-enter (tree data)
-  "In the avl tree TREE insert DATA.
-Return DATA."
-  (avl-tree--do-enter (avl-tree--cmpfun tree)
-		      (avl-tree--dummyroot tree)
-		      0
-		      data)
-  data)
+(defun avl-tree-enter (tree data &optional updatefun)
+  "Insert DATA into the avl tree TREE.
 
-(defun avl-tree-delete (tree data)
-  "From the avl tree TREE, delete DATA.
-Return the element in TREE which matched DATA,
-nil if no element matched."
-  (avl-tree--do-delete (avl-tree--cmpfun tree)
-                       (avl-tree--dummyroot tree)
-                       0
-                       data))
+If an element that matches DATA (according to the tree's
+comparison function, see `avl-tree-create') already exists in
+TREE, it will be replaced by DATA by default.
 
-(defun avl-tree-member (tree data)
-  "Return the element in the avl tree TREE which matches DATA.
-Matching uses the compare function previously specified in
+If UPDATEFUN is supplied and an element matching DATA already
+exists in TREE, UPDATEFUN is called with two arguments: DATA, and
+the matching element. Its return value replaces the existing
+element. This value *must* itself match DATA (and hence the
+pre-existing data), or an error will occur.
+
+Returns the new data."
+  (cdr (avl-tree--do-enter (avl-tree--cmpfun tree)
+			   (avl-tree--dummyroot tree)
+			   0 data updatefun)))
+
+(defun avl-tree-delete (tree data &optional test nilflag)
+  "Delete the element matching DATA from the avl tree TREE.
+Matching uses the comparison function previously specified in
 `avl-tree-create' when TREE was created.
 
-If there is no such element in the tree, the value is nil."
+Returns the deleted element, or nil if no matching element was
+found.
+
+Optional argument NILFLAG specifies a value to return instead of
+nil if nothing was deleted, so that this case can be
+distinguished from the case of a successfully deleted null
+element.
+
+If supplied, TEST specifies a test that a matching element must
+pass before it is deleted. If a matching element is found, it is
+passed as an argument to TEST, and is deleted only if the return
+value is non-nil."
+  (cdr (avl-tree--do-delete (avl-tree--cmpfun tree)
+			    (avl-tree--dummyroot tree)
+			    0 data test nilflag)))
+
+
+(defun avl-tree-member (tree data &optional nilflag)
+  "Return the element in the avl tree TREE which matches DATA.
+Matching uses the comparison function previously specified in
+`avl-tree-create' when TREE was created.
+
+If there is no such element in the tree, nil is
+returned. Optional argument NILFLAG specifies a value to return
+instead of nil in this case. This allows non-existent elements to
+be distinguished from a null element. (See also
+`avl-tree-member-p', which does this for you.)"
   (let ((node (avl-tree--root tree))
 	(compare-function (avl-tree--cmpfun tree)))
     (catch 'found
@@ -401,7 +484,16 @@ If there is no such element in the tree, the value is nil."
 	 ((funcall compare-function (avl-tree--node-data node) data)
 	  (setq node (avl-tree--node-right node)))
 	 (t (throw 'found (avl-tree--node-data node)))))
-      nil)))
+      nilflag)))
+
+
+(defun avl-tree-member-p (tree data)
+  "Return t if an element matching DATA exists in the avl tree TREE,
+otherwise return nil. Matching uses the comparison function
+previously specified in `avl-tree-create' when TREE was created."
+  (let ((flag '(nil)))
+    (not (eq (avl-tree-member tree data flag) flag))))
+
 
 (defun avl-tree-map (__map-function__ tree &optional reverse)
   "Modify all elements in the avl tree TREE by applying FUNCTION.
@@ -417,6 +509,57 @@ descending order if REVERSE is non-nil."
            (funcall __map-function__ (avl-tree--node-data node))))
    (avl-tree--root tree)
    (if reverse 1 0)))
+
+
+(defun avl-tree-mapc (__map-function__ tree &optional reverse)
+  "Apply FUNCTION to all elements in avl tree TREE,
+for side-effect only.
+
+FUNCTION is applied to the elements in ascending order, or
+descending order if REVERSE is non-nil."
+  (avl-tree--mapc
+   (lambda (node)
+     (funcall __map-function__ (avl-tree--node-data node)))
+   (avl-tree--root tree)
+   (if reverse 1 0)))
+
+
+(defun avl-tree-mapf
+  (__map-function__ combinator tree &optional reverse)
+  "Apply FUNCTION to all elements in avl tree TREE,
+and combine the results using COMBINATOR.
+
+The FUNCTION is applied and the results are combined in ascending
+order, or descending order if REVERSE is non-nil."
+  (let (avl-tree-mapf--accumulate)
+    (avl-tree--mapc
+     (lambda (node)
+       (setq avl-tree-mapf--accumulate
+	     (funcall combinator
+		      (funcall __map-function__
+			       (avl-tree--node-data node))
+		      avl-tree-mapf--accumulate)))
+     (avl-tree--root tree)
+     (if reverse 0 1))
+    (nreverse avl-tree-mapf--accumulate)))
+
+
+(defun avl-tree-mapcar (__map-function__ tree &optional reverse)
+  "Apply FUNCTION to all elements in avl tree TREE,
+and make a list of the results.
+
+The FUNCTION is applied and the list constructed in ascending
+order, or descending order if REVERSE is non-nil.
+
+Note that if you don't care about the order in which FUNCTION is
+applied, just that the resulting list is in the correct order,
+then
+
+  (avl-tree-mapf function 'cons tree (not reverse))
+
+is more efficient."
+  (nreverse (avl-tree-mapf __map-function__ 'cons tree reverse)))
+
 
 (defun avl-tree-first (tree)
   "Return the first element in TREE, or nil if TREE is empty."
@@ -459,6 +602,65 @@ descending order if REVERSE is non-nil."
 (defun avl-tree-clear (tree)
   "Clear the avl tree TREE."
   (setf (avl-tree--root tree) nil))
+
+
+(defun avl-tree-stack (tree &optional reverse)
+  "Return an object that behaves like a sorted stack
+of all elements of TREE.
+
+If REVERSE is non-nil, the stack is sorted in reverse order.
+\(See also `avl-tree-stack-pop'\).
+
+Note that any modification to TREE *immediately* invalidates all
+avl-tree-stacks created before the modification (in particular,
+calling `avl-tree-stack-pop' will give unpredictable results).
+
+Operations on these objects are significantly more efficient than
+constructing a real stack with `avl-tree-flatten' and using
+standard stack functions. As such, they can be useful in
+implementing efficient algorithms of AVL trees. However, in cases
+where mapping functions `avl-tree-mapc', `avl-tree-mapcar' or
+`avl-tree-mapf' would be sufficient, it is better to use one of
+those instead."
+  (let ((stack (avl-tree--stack-create tree reverse)))
+    (avl-tree--stack-repopulate stack)
+    stack))
+
+
+(defun avl-tree-stack-pop (avl-tree-stack &optional nilflag)
+  "Pop the first element from AVL-TREE-STACK.
+\(See also `avl-tree-stack'\).
+
+Returns nil if the stack is empty, or NILFLAG if specified. (The
+latter allows an empty stack to be distinguished from a null
+element stored in the AVL tree.)"
+  (let (node next)
+    (if (not (setq node (pop (avl-tree--stack-store avl-tree-stack))))
+	nilflag
+      (when (setq next
+		  (avl-tree--node-branch
+		   node
+		   (if (avl-tree--stack-reverse avl-tree-stack) 0 1)))
+	(push next (avl-tree--stack-store avl-tree-stack))
+	(avl-tree--stack-repopulate avl-tree-stack))
+      (avl-tree--node-data node))))
+
+
+(defun avl-tree-stack-first (avl-tree-stack &optional nilflag)
+  "Return the first element of AVL-TREE-STACK, without removing it
+from the stack.
+
+Returns nil if the stack is empty, or NILFLAG if specified. (The
+latter allows an empty stack to be distinguished from a null
+element stored in the AVL tree.)"
+  (or (car (avl-tree--stack-store avl-tree-stack))
+      nilflag))
+
+
+(defun avl-tree-stack-empty-p (avl-tree-stack)
+  "Return t if AVL-TREE-STACK is empty, nil otherwise."
+  (null (avl-tree--stack-store avl-tree-stack)))
+
 
 (provide 'avl-tree)
 
