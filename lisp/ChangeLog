@@ -1,5 +1,7 @@
 2011-05-27  Glenn Morris  <rgm@gnu.org>
 
+	* mail/emacsbug.el: Don't require url-util.
+
 	* shell.el (shell-directory-tracker): Case matters.  (Bug#8735)
 
 	* files.el (set-auto-mode):
