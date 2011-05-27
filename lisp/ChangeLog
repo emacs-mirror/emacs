@@ -1,4 +1,34 @@
-2011-05-27  David Michael  <fedora.dm0@gmail.com>
+2009-11-23  Toby Cubitt  <toby-predictive@dr-qubit.org>
+
+	* emacs-lisp/avl-tree.el: New avl-tree-stack datatype.  Add new
+	traversal functions for avl-trees.
+	(avl-tree--stack): New struct.
+	(avl-tree-stack-p, avl-tree--stack-repopulate): New funs.
+	(avl-tree-enter): Add optional `updatefun' arg.
+	(avl-tree--do-enter): Add optional `updatefun' arg.
+	Change return value.
+	(avl-tree-delete): Add optional `test' and `nilflag' args.
+	(avl-tree--do-delete): Add `test' and `nilflag' args.
+	Change return value.
+	(avl-tree-member): Add optional `nilflag'
+	(avl-tree-member-p): New function.
+	(avl-tree-mapc, avl-tree-mapf, avl-tree-mapcar): New functions.
+	(avl-tree-stack, avl-tree-stack-pop, avl-tree-stack-first)
+	(avl-tree-stack-empty-p): New functions.
+
+2009-11-23  Toby Cubitt  <toby-predictive@dr-qubit.org>
+
+	* emacs-lisp/avl-tree.el (avl-tree--del-balance): Rename from
+	avl-tree--del-balance1 and make it work both ways.
+	(avl-tree--del-balance2): Remove.
+	(avl-tree--enter-balance): Rename from avl-tree--enter-balance1 and
+	make it work both ways.
+	(avl-tree--enter-balance2): Remove.
+	(avl-tree--switch-dir, avl-tree--dir-to-sign, avl-tree--sign-to-dir):
+	New macros.
+	(avl-tree--mapc, avl-tree-map): Add direction argument.
+
+2011-05-27  David Michael  <fedora.dm0@gmail.com>  (tiny change)
 
 	* files.el (interpreter-mode-alist): Add rbash (bug#8745).
 
