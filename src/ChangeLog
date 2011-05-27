@@ -1,7 +1,3 @@
-2011-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* xselect.c (x_convert_selection): Yet another int/Lisp_Object mixup.
-
 2011-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer overflow fixes.
@@ -83,6 +79,10 @@
 	since it's now a duplicate of the other.  This is more of
 	a character than a buffer op, so better that it's in character.c.
 	* fns.c, print.c: Adjust to above changes.
+
+2011-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xselect.c (x_convert_selection): Yet another int/Lisp_Object mixup.
 
 2011-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 
