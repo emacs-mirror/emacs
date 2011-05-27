@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2011-05-11.16}
+\def\texinfoversion{2011-05-23.16}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -692,15 +692,6 @@ where each line of input produces a line of output.}
 % forces a page break if there is not space-in-mils remaining.
 
 \newdimen\mil  \mil=0.001in
-
-% Old definition--didn't work.
-%\parseargdef\need{\par %
-%% This method tries to make TeX break the page naturally
-%% if the depth of the box does not fit.
-%{\baselineskip=0pt%
-%\vtop to #1\mil{\vfil}\kern -#1\mil\nobreak
-%\prevdepth=-1000pt
-%}}
 
 \parseargdef\need{%
   % Ensure vertical mode, so we don't make a big box in the middle of a
@@ -3227,7 +3218,7 @@ end
   \finishedtitlepagetrue
 }
 
-%%% Macros to be used within @titlepage:
+% Macros to be used within @titlepage:
 
 \let\subtitlerm=\tenrm
 \def\subtitlefont{\subtitlerm \normalbaselineskip = 13pt \normalbaselines}
@@ -3260,7 +3251,7 @@ end
 }
 
 
-%%% Set up page headings and footings.
+% Set up page headings and footings.
 
 \let\thispage=\folio
 
@@ -3959,9 +3950,9 @@ end
 \setbox0=\vbox{X}\global\multitablelinespace=\the\baselineskip
 \global\advance\multitablelinespace by-\ht0
 \fi
-%% Test to see if parskip is larger than space between lines of
-%% table. If not, do nothing.
-%%        If so, set to same dimension as multitablelinespace.
+% Test to see if parskip is larger than space between lines of
+% table. If not, do nothing.
+%        If so, set to same dimension as multitablelinespace.
 \ifdim\multitableparskip>\multitablelinespace
 \global\multitableparskip=\multitablelinespace
 \global\advance\multitableparskip-7pt %% to keep parskip somewhat smaller
@@ -5536,14 +5527,13 @@ end
 % (including whitespace, linebreaking, etc. around it),
 % given all the information in convenient, parsed form.
 
-%%% Args are the skip and penalty (usually negative)
+% Args are the skip and penalty (usually negative)
 \def\dobreak#1#2{\par\ifdim\lastskip<#1\removelastskip\penalty#2\vskip#1\fi}
 
-%%% Define plain chapter starts, and page on/off switching for it
 % Parameter controlling skip before chapter headings (if needed)
-
 \newskip\chapheadingskip
 
+% Define plain chapter starts, and page on/off switching for it.
 \def\chapbreak{\dobreak \chapheadingskip {-4000}}
 \def\chappager{\par\vfill\supereject}
 % Because \domark is called before \chapoddpage, the filler page will
@@ -6702,7 +6692,7 @@ end
     % commands also insert a nobreak penalty, and we don't want to allow
     % a break between a section heading and a defun.
     %
-    % As a minor refinement, we avoid "club" headers by signalling
+    % As a further refinement, we avoid "club" headers by signalling
     % with penalty of 10003 after the very first @deffn in the
     % sequence (see above), and penalty of 10002 after any following
     % @def command.
@@ -6769,13 +6759,36 @@ end
 \def\domakedefun#1#2#3{%
   \envdef#1{%
     \startdefun
+    \doingtypefnfalse    % distinguish typed functions from all else
     \parseargusing\activeparens{\printdefunline#3}%
   }%
   \def#2{\dodefunx#1}%
   \def#3%
 }
 
-%%% Untyped functions:
+\newif\ifdoingtypefn       % doing typed function?
+\newif\ifrettypeownline    % typeset return type on its own line?
+
+% @deftypefnnewline on|off says whether the return type of typed functions
+% are printed on their own line.  This affects @deftypefn, @deftypefun,
+% @deftypeop, and @deftypemethod.
+% 
+\parseargdef\deftypefnnewline{%
+  \def\temp{#1}%
+  \ifx\temp\onword
+    \expandafter\let\csname SETtxideftypefnnl\endcsname
+      = \empty
+  \else\ifx\temp\offword
+    \expandafter\let\csname SETtxideftypefnnl\endcsname
+      = \relax
+  \else
+    \errhelp = \EMsimple
+    \errmessage{Unknown @txideftypefnnl value `\temp',
+                must be on|off}%
+  \fi\fi
+}
+
+% Untyped functions:
 
 % @deffn category name args
 \makedefun{deffn}{\deffngeneral{}}
@@ -6794,7 +6807,7 @@ end
   \defname{#2}{}{#3}\magicamp\defunargs{#4\unskip}%
 }
 
-%%% Typed functions:
+% Typed functions:
 
 % @deftypefn category type name args
 \makedefun{deftypefn}{\deftypefngeneral{}}
@@ -6809,10 +6822,11 @@ end
 %
 \def\deftypefngeneral#1#2 #3 #4 #5\endheader{%
   \dosubind{fn}{\code{#4}}{#1}%
+  \doingtypefntrue
   \defname{#2}{#3}{#4}\defunargs{#5\unskip}%
 }
 
-%%% Typed variables:
+% Typed variables:
 
 % @deftypevr category type var args
 \makedefun{deftypevr}{\deftypecvgeneral{}}
@@ -6830,7 +6844,7 @@ end
   \defname{#2}{#3}{#4}\defunargs{#5\unskip}%
 }
 
-%%% Untyped variables:
+% Untyped variables:
 
 % @defvr category var args
 \makedefun{defvr}#1 {\deftypevrheader{#1} {} }
@@ -6841,7 +6855,8 @@ end
 % \defcvof {category of}class var args
 \def\defcvof#1#2 {\deftypecvof{#1}#2 {} }
 
-%%% Type:
+% Types:
+
 % @deftp category name args
 \makedefun{deftp}#1 #2 #3\endheader{%
   \doind{tp}{\code{#2}}%
@@ -6869,25 +6884,49 @@ end
 % We are followed by (but not passed) the arguments, if any.
 %
 \def\defname#1#2#3{%
+  \par
   % Get the values of \leftskip and \rightskip as they were outside the @def...
   \advance\leftskip by -\defbodyindent
   %
-  % How we'll format the type name.  Putting it in brackets helps
+  % Determine if we are typesetting the return type of a typed function
+  % on a line by itself.
+  \rettypeownlinefalse
+  \ifdoingtypefn  % doing a typed function specifically?
+    % then check user option for putting return type on its own line:
+    \expandafter\ifx\csname SETtxideftypefnnl\endcsname\relax \else
+      \rettypeownlinetrue
+    \fi
+  \fi
+  %
+  % How we'll format the category name.  Putting it in brackets helps
   % distinguish it from the body text that may end up on the next line
   % just below it.
   \def\temp{#1}%
   \setbox0=\hbox{\kern\deflastargmargin \ifx\temp\empty\else [\rm\temp]\fi}
   %
-  % Figure out line sizes for the paragraph shape.
+  % Figure out line sizes for the paragraph shape.  We'll always have at
+  % least two.
+  \tempnum = 2
+  %
   % The first line needs space for \box0; but if \rightskip is nonzero,
   % we need only space for the part of \box0 which exceeds it:
   \dimen0=\hsize  \advance\dimen0 by -\wd0  \advance\dimen0 by \rightskip
+  %
+  % If doing a return type on its own line, we'll have another line.
+  \ifrettypeownline
+    \advance\tempnum by 1
+    \def\maybeshapeline{0in \hsize}%
+  \else
+    \def\maybeshapeline{}%
+  \fi
+  %
   % The continuations:
   \dimen2=\hsize  \advance\dimen2 by -\defargsindent
-  % (plain.tex says that \dimen1 should be used only as global.)
-  \parshape 2 0in \dimen0 \defargsindent \dimen2
   %
-  % Put the type name to the right margin.
+  % The final paragraph shape:
+  \parshape \tempnum  0in \dimen0  \maybeshapeline  \defargsindent \dimen2
+  %
+  % Put the category name at the right margin.
   \noindent
   \hbox to 0pt{%
     \hfil\box0 \kern-\hsize
@@ -6909,8 +6948,16 @@ end
     % . this still does not fix the ?` and !` ligatures, but so far no
     %   one has made identifiers using them :).
     \df \tt
-    \def\temp{#2}% return value type
-    \ifx\temp\empty\else \tclose{\temp} \fi
+    \def\temp{#2}% text of the return type
+    \ifx\temp\empty\else
+      \tclose{\temp}% typeset the return type
+      \ifrettypeownline
+        % put return type on its own line; prohibit line break following:
+        \hfil\vadjust{\nobreak}\break  
+      \else
+        \space  % type on same line, so just followed by a space
+      \fi
+    \fi           % no return type
     #3% output function name
   }%
   {\rm\enskip}% hskip 0.5 em of \tenrm
