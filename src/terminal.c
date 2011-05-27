@@ -256,6 +256,8 @@ create_terminal (void)
   setup_coding_system (terminal_coding, terminal->terminal_coding);
 
   terminal->param_alist = Qnil;
+  terminal->charset_list = Qnil;
+  terminal->Vselection_alist = Qnil;
   return terminal;
 }
 

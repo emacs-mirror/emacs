@@ -254,7 +254,7 @@ struct x_display_info
   Atom Xatom_CLIPBOARD, Xatom_TIMESTAMP, Xatom_TEXT, Xatom_DELETE,
   Xatom_COMPOUND_TEXT, Xatom_UTF8_STRING,
   Xatom_MULTIPLE, Xatom_INCR, Xatom_EMACS_TMP, Xatom_TARGETS, Xatom_NULL,
-  Xatom_ATOM_PAIR;
+  Xatom_ATOM, Xatom_ATOM_PAIR, Xatom_CLIPBOARD_MANAGER;
 
   /* More atoms for font properties.  The last three are private
      properties, see the comments in src/fontset.h.  */
@@ -1027,7 +1027,7 @@ extern Lisp_Object x_property_data_to_lisp (struct frame *,
 
 /* Defined in xfns.c */
 
-extern struct x_display_info * check_x_display_info (Lisp_Object frame);
+extern struct x_display_info * check_x_display_info (Lisp_Object);
 extern Lisp_Object x_get_focus_frame (struct frame *);
 
 #ifdef USE_GTK

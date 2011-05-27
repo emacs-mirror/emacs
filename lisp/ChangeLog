@@ -1,3 +1,11 @@
+2011-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* select.el: Support clipboard managers with built-in function
+	x-clipboard-manager-save, via delete-frame-functions and
+	kill-emacs-hook.
+	(xselect-convert-to-targets): Add MULTIPLE target to list.
+	(xselect-convert-to-save-targets): New function.
+
 2011-05-27  Kenichi Handa  <handa@m17n.org>
 
 	* mail/sendmail.el (mail-encode-header): Avoid double encoding by

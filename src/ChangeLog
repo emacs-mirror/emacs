@@ -1,3 +1,31 @@
+2011-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* termhooks.h (Vselection_alist): Make it terminal-local.
+
+	* terminal.c (create_terminal): Initialize it.
+
+	* xselect.c: Support for clipboard managers.
+	(Vselection_alist): Move to termhooks.h as terminal-local var.
+	(LOCAL_SELECTION): New macro.
+	(x_atom_to_symbol): Handle x_display_info_for_display fail case.
+	(symbol_to_x_atom): Remove gratuitous arg.
+	(x_handle_selection_request, lisp_data_to_selection_data)
+	(x_get_foreign_selection, Fx_register_dnd_atom): Callers changed.
+	(x_own_selection, x_get_local_selection, x_convert_selection): New
+	arg, specifying work frame.  Use terminal-local Vselection_alist.
+	(some_frame_on_display): Delete unused function.
+	(Fx_own_selection_internal, Fx_get_selection_internal)
+	(Fx_disown_selection_internal, Fx_selection_owner_p)
+	(Fx_selection_exists_p): New optional frame arg.
+	(frame_for_x_selection, Fx_clipboard_manager_save): New functions.
+	(x_handle_selection_clear): Don't treat other terminals with the
+	same keyboard specially.  Use the terminal-local Vselection_alist.
+	(x_clear_frame_selections): Use Frun_hook_with_args.
+
+	* xterm.c (x_term_init): Intern ATOM and CLIPBOARD_MANAGER atoms.
+
+	* xterm.h: Add support for those atoms.
+
 2011-05-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xselect.c: ICCCM-compliant handling of MULTIPLE targets.
