@@ -1,3 +1,8 @@
+2011-05-27  Kenichi Handa  <handa@m17n.org>
+
+	* mail/sendmail.el (mail-encode-header): Avoid double encoding by
+	let-binding rfc2047-encode-encoded-words to nil.
+
 2011-05-23  Kenichi Handa  <handa@m17n.org>
 
 	* mail/sendmail.el: Require `rfc2047'.
