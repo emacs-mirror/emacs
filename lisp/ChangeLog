@@ -1,5 +1,7 @@
 2011-05-27  Glenn Morris  <rgm@gnu.org>
 
+	* shell.el (shell-directory-tracker): Case matters.  (Bug#8735)
+
 	* files.el (set-auto-mode):
 	Also respect mode: entries at the end of the file.  (Bug#8586)
 

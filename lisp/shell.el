@@ -704,6 +704,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 			       (concat "^" shell-command-separator-regexp)
 			       str) ; skip whitespace
 			      (match-end 0)))
+		(case-fold-search)
 		end cmd arg1)
 	    (while (string-match shell-command-regexp str start)
 	      (setq end (match-end 0)
