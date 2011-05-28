@@ -1,3 +1,7 @@
+2011-05-28  Kevin Ryde  <user42@zip.com.au>
+
+	* subr.el (def-edebug-spec): Doc fix (Bug#8430).
+
 2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (auto-mode-alist): Move config rule after the
