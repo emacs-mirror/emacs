@@ -1,3 +1,8 @@
+2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cc-mode.el (c-mode, c++-mode, objc-mode, java-mode)
+	(idl-mode, pike-mode, awk-mode): Inherit from prog-mode.
+
 2011-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--capf-wrapper): Check applicability before

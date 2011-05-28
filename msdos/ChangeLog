@@ -1,3 +1,11 @@
+2011-05-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp: Edit "make-docfile -d FOO" commands to chdir back to
+	src/.  Make editing of RUN_TEMACS commands less sensitive to
+	leading whitespace.
+
+	* sedlibmk.inp (gl_LIBOBJS): Add sha1.o.
+
 2011-05-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp (make-docfile commands): Recognize only if the line
