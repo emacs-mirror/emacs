@@ -2437,8 +2437,6 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("\\.ppd\\'" . conf-ppd-mode)
      ("java.+\\.conf\\'" . conf-javaprop-mode)
      ("\\.properties\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-javaprop-mode)
-     ;; *.cf, *.cfg, *.conf, *.config[.local|.de_DE.UTF8|...], */config
-     ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode-maybe)
      ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|pam\\.d/.*\\|permissions\\(?:\\.d/.+\\)?\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
      ("\\`/etc/\\(?:acpid?/.+\\|aliases\\(?:\\.d/.+\\)?\\|default/.+\\|group-?\\|hosts\\..+\\|inittab\\|ksysguarddrc\\|opera6rc\\|passwd-?\\|shadow-?\\|sysconfig/.+\\)\\'" . conf-mode)
      ;; ChangeLog.old etc.  Other change-log-mode entries are above;
@@ -2460,11 +2458,14 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ;; Using mode nil rather than `ignore' would let the search continue
      ;; through this list (with the shortened name) rather than start over.
      ("\\.~?[0-9]+\\.[0-9][-.0-9]*~?\\'" nil t)
+     ("\\.\\(?:orig\\|in\\|[bB][aA][kK]\\)\\'" nil t)
+     ;; This should come after "in" stripping (e.g. config.h.in).
+     ;; *.cf, *.cfg, *.conf, *.config[.local|.de_DE.UTF8|...], */config
+     ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode-maybe)
      ;; The following should come after the ChangeLog pattern
      ;; for the sake of ChangeLog.1, etc.
      ;; and after the .scm.[0-9] and CVS' <file>.<rev> patterns too.
-     ("\\.[1-9]\\'" . nroff-mode)
-     ("\\.\\(?:orig\\|in\\|[bB][aA][kK]\\)\\'" nil t)))
+     ("\\.[1-9]\\'" . nroff-mode)))
   "Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
 \(NON-NIL stands for anything that is not nil; the value does not matter.)

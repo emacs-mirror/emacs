@@ -1,3 +1,8 @@
+2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (auto-mode-alist): Move config rule after the
+	in-stripping one (Bug#8547).
+
 2011-05-28  Alp Aker  <aker@pitt.edu>  (tiny change)
 
 	* buff-menu.el (Buffer-menu-revert-function, Buffer-menu-sort):
