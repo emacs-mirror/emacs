@@ -1,3 +1,9 @@
+2011-05-28  Drew Adams  <drew.adams@oracle.com>
+
+	* isearch.el: Let M-e start with point at the first mismatched char.
+	(isearch-fail-pos): New function.
+	(isearch-edit-string): Use it.
+
 2011-05-28  Dmitry Kurochkin  <dmitry.kurochkin@gmail.com>  (tiny change)
 
 	* isearch.el (isearch-range-invisible): Use invisible-p (bug#8721).
