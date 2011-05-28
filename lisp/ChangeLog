@@ -1,5 +1,8 @@
 2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
 
+	* help-fns.el (describe-function-1): If the function is a derived
+	major mode, print the parent mode.
+
 	* progmodes/cc-mode.el (c-mode, c++-mode, objc-mode, java-mode)
 	(idl-mode, pike-mode, awk-mode): Inherit from prog-mode.
 
