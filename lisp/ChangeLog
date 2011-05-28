@@ -1,3 +1,11 @@
+2011-05-28  Leo Liu  <sdl.web@gmail.com>
+
+	* replace.el (occur-menu-map, occur-edit-mode-map): New vars.
+	(occur-mode-map): Bind occur-edit-mode.  Use occur-menu-map.
+	(occur-edit-mode): New major mode (Bug#8463).
+	(occur-after-change-function): New function.
+	(occur-engine): Give Occur tags a read-only property.
+
 2011-05-28  Kevin Ryde  <user42@zip.com.au>
 
 	* subr.el (def-edebug-spec): Doc fix (Bug#8430).
