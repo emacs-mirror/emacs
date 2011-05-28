@@ -688,7 +688,9 @@ For more information, see the function `buffer-menu'."
     (concat name
 	    (propertize (make-string (- name+space-width (string-width name))
 				     ?\s)
-			'display `(space :align-to ,(+ 4 name+space-width)))
+			'display `(space :align-to
+					 ,(+ Buffer-menu-buffer-column
+					     name+space-width)))
 	    size)))
 
 (defun Buffer-menu-sort (column)

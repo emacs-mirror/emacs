@@ -9,8 +9,9 @@
 
 2011-05-28  Alp Aker  <aker@pitt.edu>  (tiny change)
 
-	* buff-menu.el (Buffer-menu-revert-function, Buffer-menu-sort):
-	Use Buffer-menu-buffer-column (Bug#8539).
+	* buff-menu.el (Buffer-menu-revert-function, Buffer-menu-sort)
+	(Buffer-menu-buffer+size): Use Buffer-menu-buffer-column
+	(Bug#8539).
 
 2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
 
