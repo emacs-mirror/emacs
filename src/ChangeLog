@@ -1,3 +1,8 @@
+2011-05-28  William Xu  <william.xwl@gmail.com>
+
+	* nsterm.m (ns_term_shutdown): Synchronize user defaults before
+	exiting (Bug#8239).
+
 2011-05-28  Jim Meyering  <meyering@redhat.com>
 
 	Avoid a sign-extension bug in crypto_hash_function.
