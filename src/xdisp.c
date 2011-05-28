@@ -3116,7 +3116,7 @@ compute_display_string_pos (EMACS_INT charpos, int frame_window_p)
       && (charpos <= BEGV
 	  || !EQ (Fget_char_property (make_number (charpos - 1), Qdisplay,
 				      object),
-		  spec)))
+		  spec))
       && handle_display_spec (NULL, spec, object, Qnil, &position, bufpos,
 			      frame_window_p))
     return charpos;
