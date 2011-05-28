@@ -1,5 +1,7 @@
 2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
 
+	* minibuf.texi (Reading File Names): Clarify (Bug#8480).
+
 	* tips.texi (Coding Conventions): Remove antediluvian filename
 	limit recommendation (Bug#8538).
 
