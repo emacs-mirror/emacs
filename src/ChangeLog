@@ -1,3 +1,13 @@
+2011-05-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use 'inline', not 'INLINE'.
+	* alloc.c, fontset.c (INLINE): Remove.
+	* alloc.c, bidi.c, charset.c, coding.c, dispnew.c, fns.c, image.c:
+	* intervals.c, keyboard.c, process.c, syntax.c, textprop.c, w32term.c:
+	* xdisp.c, xfaces.c, xterm.c: Replace all uses of INLINE with inline.
+	* gmalloc.c (register_heapinfo): Use inline unconditionally.
+	* lisp.h (LISP_MAKE_RVALUE): Use inline, not __inline__.
+
 2011-05-28  William Xu  <william.xwl@gmail.com>
 
 	* nsterm.m (ns_term_shutdown): Synchronize user defaults before

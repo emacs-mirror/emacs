@@ -1101,7 +1101,7 @@ swap_glyphs_in_rows (a, b)
 
 /* Exchange pointers to glyph memory between glyph rows A and B.  */
 
-static INLINE void
+static inline void
 swap_glyph_pointers (struct glyph_row *a, struct glyph_row *b)
 {
   int i;
@@ -1117,7 +1117,7 @@ swap_glyph_pointers (struct glyph_row *a, struct glyph_row *b)
 /* Copy glyph row structure FROM to glyph row structure TO, except
    that glyph pointers in the structures are left unchanged.  */
 
-static INLINE void
+static inline void
 copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
 {
   struct glyph *pointers[1 + LAST_AREA];
@@ -1138,7 +1138,7 @@ copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
    exchanged between TO and FROM.  Pointers must be exchanged to avoid
    a memory leak.  */
 
-static INLINE void
+static inline void
 assign_row (struct glyph_row *to, struct glyph_row *from)
 {
   swap_glyph_pointers (to, from);
@@ -1304,7 +1304,7 @@ line_draw_cost (struct glyph_matrix *matrix, int vpos)
    and B have equal contents.  MOUSE_FACE_P non-zero means compare the
    mouse_face_p flags of A and B, too.  */
 
-static INLINE int
+static inline int
 row_equal_p (struct glyph_row *a, struct glyph_row *b, int mouse_face_p)
 {
   if (a == b)
@@ -2729,7 +2729,7 @@ fill_up_frame_row_with_spaces (struct glyph_row *row, int upto)
    function must be called before updates to make explicit that we are
    working on frame matrices or not.  */
 
-static INLINE void
+static inline void
 set_frame_matrix_frame (struct frame *f)
 {
   frame_matrix_frame = f;
@@ -2744,7 +2744,7 @@ set_frame_matrix_frame (struct frame *f)
    done in frame matrices, and that we have to perform analogous
    operations in window matrices of frame_matrix_frame.  */
 
-static INLINE void
+static inline void
 make_current (struct glyph_matrix *desired_matrix, struct glyph_matrix *current_matrix, int row)
 {
   struct glyph_row *current_row = MATRIX_ROW (current_matrix, row);
@@ -4246,7 +4246,7 @@ static struct run **runs;
 
 /* Add glyph row ROW to the scrolling hash table.  */
 
-static INLINE struct row_entry *
+static inline struct row_entry *
 add_row_entry (struct glyph_row *row)
 {
   struct row_entry *entry;

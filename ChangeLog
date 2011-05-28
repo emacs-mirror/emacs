@@ -1,3 +1,8 @@
+2011-05-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use 'inline', not 'INLINE'.
+	* configure.in, autogen/config.in (INLINE): Remove.
+
 2011-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* doc/misc/texinfo.tex, lib/getopt.c, lib/intprops.h: Merge from gnulib.

@@ -4162,7 +4162,7 @@ wait_reading_process_output_1 (void)
    impossible to step through wait_reading_process_output.  */
 
 #ifndef select
-static INLINE int
+static inline int
 select_wrapper (int n, fd_set *rfd, fd_set *wfd, fd_set *xfd, struct timeval *tmo)
 {
   return select (n, rfd, wfd, xfd, tmo);
