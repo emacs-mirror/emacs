@@ -667,7 +667,8 @@ Return nil if there is nothing appropriate in the buffer near point."
               (end-of-line)
               (while (and (search-backward try nil t)
                           (< start (point))))
-              (list (match-beginning 0) (match-end 0) completions))))))))
+              (list (match-beginning 0) (match-end 0) completions
+                    :exclusive 'no))))))))
 
 (defun info-complete (topic mode)
   "Try to complete a help item."
@@ -675,7 +676,7 @@ Return nil if there is nothing appropriate in the buffer near point."
   (let ((data (info-lookup-completions-at-point topic mode)))
     (if (null data)
         (error "No %s completion available for `%s' at point" topic mode)
-      (apply #'completion-in-region data))))
+      (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)))))
 
 
 ;;; Initialize some common modes.

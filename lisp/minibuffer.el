@@ -1433,12 +1433,19 @@ or a list of the form (START END COLLECTION &rest PROPS) where
  PROPS is a property list for additional information.
 Currently supported properties are all the properties that can appear in
 `completion-extra-properties' plus:
- `:predicate'           a predicate that completion candidates need to satisfy.")
+ `:predicate'	a predicate that completion candidates need to satisfy.
+ `:exclusive'	If `no', means that if the completion data does not match the
+   text at point failure, then instead of reporting a completion failure,
+   the completion should try the next completion function.")
 
 (defvar completion--capf-misbehave-funs nil
-  "List of functions found on `completion-at-point-functions' that misbehave.")
+  "List of functions found on `completion-at-point-functions' that misbehave.
+These are functions that neither return completion data nor a completion
+function but instead perform completion right away.")
 (defvar completion--capf-safe-funs nil
-  "List of well-behaved functions found on `completion-at-point-functions'.")
+  "List of well-behaved functions found on `completion-at-point-functions'.
+These are functions which return proper completion data rather than
+a completion function or god knows what else.")
 
 (defun completion--capf-wrapper (fun which)
   ;; FIXME: The safe/misbehave handling assumes that a given function will
@@ -1451,9 +1458,23 @@ Currently supported properties are all the properties that can appear in
         (optimist (not (member fun completion--capf-misbehave-funs))))
       (let ((res (funcall fun)))
         (cond
-         ((consp res)
+         ((and (consp res) (not (functionp res)))
           (unless (member fun completion--capf-safe-funs)
-            (push fun completion--capf-safe-funs)))
+            (push fun completion--capf-safe-funs))
+          (and (eq 'no (plist-get (nthcdr 3 res) :exclusive))
+               ;; FIXME: Here we'd need to decide whether there are
+               ;; valid completions against the current text.  But this depends
+               ;; on the actual completion UI (e.g. with the default completion
+               ;; it depends on completion-style) ;-(
+               ;; We approximate this result by checking whether prefix
+               ;; completion might work, which means that non-prefix completion
+               ;; will not work (or not right) for completion functions that
+               ;; are non-exclusive.
+               (null (try-completion (buffer-substring-no-properties
+                                      (car res) (point))
+                                     (nth 2 res)
+                                     (plist-get (nthcdr 3 res) :predicate)))
+               (setq res nil)))
          ((not (or (listp res) (functionp res)))
           (unless (member fun completion--capf-misbehave-funs)
             (message

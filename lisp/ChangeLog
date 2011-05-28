@@ -1,5 +1,12 @@
 2011-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (completion--capf-wrapper): Check applicability before
+	retuning non-nil for non-exclusive completion data.
+	* progmodes/etags.el (tags-completion-at-point-function):
+	* info-look.el (info-lookup-completions-at-point): Mark as
+	non-exclusive.
+	(info-complete): Adjust accordingly.
+
 	* info-look.el: Convert to lexical-binding and completion-at-point.
 	(info-lookup-completions-at-point): New function.
 	(info-complete): Use it and completion-in-region.
