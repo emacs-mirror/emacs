@@ -1,3 +1,7 @@
+2011-05-28  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (fancy-about-screen): Use standard mode line.  (Bug#8740)
+
 2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help-fns.el (describe-function-1): If the function is a derived

@@ -1676,11 +1676,7 @@ splash screen in another window."
     (save-selected-window
       (select-frame frame)
       (switch-to-buffer "*About GNU Emacs*")
-      (setq buffer-undo-list t
-	    mode-line-format
-	    (concat "----"
-		    (propertize "%b" 'face 'mode-line-buffer-id)
-		    "%-"))
+      (setq buffer-undo-list t)
       (let ((inhibit-read-only t))
 	(erase-buffer)
 	(if pure-space-overflow
