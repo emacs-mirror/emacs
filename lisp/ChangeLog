@@ -1,3 +1,7 @@
+2011-05-28  Dmitry Kurochkin  <dmitry.kurochkin@gmail.com>  (tiny change)
+
+	* isearch.el (isearch-range-invisible): Use invisible-p (bug#8721).
+
 2009-11-23  Toby Cubitt  <toby-predictive@dr-qubit.org>
 
 	* emacs-lisp/avl-tree.el: New avl-tree-stack datatype.  Add new

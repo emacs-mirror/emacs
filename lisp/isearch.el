@@ -2435,7 +2435,7 @@ update the match data, and return point."
 	;; skip all characters with that same `invisible' property value.
 	;; Do that over and over.
 	(while (and (< (point) end) (invisible-p (point)))
-	  (if (get-text-property (point) 'invisible)
+	  (if (invisible-p (get-text-property (point) 'invisible))
 	      (progn
 		(goto-char (next-single-property-change (point) 'invisible
 							nil end))
