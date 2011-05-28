@@ -1,3 +1,9 @@
+2011-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* info-look.el: Convert to lexical-binding and completion-at-point.
+	(info-lookup-completions-at-point): New function.
+	(info-complete): Use it and completion-in-region.
+
 2011-05-28  Drew Adams  <drew.adams@oracle.com>
 
 	* isearch.el: Let M-e start with point at the first mismatched char.
