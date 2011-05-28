@@ -179,3 +179,24 @@ where revision N+1 is the one where file was removed.
 
 You could also try `bzr add --file-ids-from', if you have a copy of
 another branch where file still exists.
+
+* Loggerhead
+
+Loggerhead is the bzr tool for viewing a repository over http (similar
+to ViewVC).  The central version is at http://bzr.savannah.gnu.org/lh/emacs,
+but if you just like the way this interface presents data, then if
+you have your own copy of the repository, you can operate your own
+Loggerhead server in stand-alone mode, and so help to reduce the load
+on Savannah:
+
+  bzr branch lp:loggerhead ~/.bazaar/plugins/loggerhead
+  cd /path/to/emacs/bzr
+  bzr serve --http
+
+You may need to install some Python dependencies to get this command to work.
+For example, on RHEL6 I needed:
+
+  yum install python-paste python-simplejson
+  yum --enablerepo=epel install python-simpletal
+
+Then point your web-browser to http://127.0.0.1:8080/ .
