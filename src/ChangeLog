@@ -1,3 +1,14 @@
+2011-05-28  Jim Meyering  <meyering@redhat.com>
+
+	avoid a sign-extension bug in crypto_hash_function
+	* fns.c (to_uchar): Define.
+	(crypto_hash_function): Use it to convert some newly-signed
+	variables to unsigned, to avoid sign-extension bugs.  For example,
+	without this change, (md5 "truc") would evaluate to
+	45723a2aff78ff4fff7fff1114760e62 rather than the expected
+	45723a2af3788c4ff17f8d1114760e62.  Reported by Antoine Levitt in
+	http://thread.gmane.org/gmane.emacs.devel/139824
+
 2011-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer overflow fixes.
