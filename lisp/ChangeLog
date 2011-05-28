@@ -12,6 +12,9 @@
 
 2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
 
+	* bindings.el (help-echo): Make the initial non-indicator dash
+	empty on graphical terminals (Bug#7295).
+
 	* files.el (auto-mode-alist): Move config rule after the
 	in-stripping one (Bug#8547).
 
