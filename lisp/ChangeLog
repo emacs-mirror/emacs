@@ -1,3 +1,7 @@
+2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/re-builder.el (re-builder): Improve doc (Bug#8286).
+
 2011-05-28  Dima Kogan  <dkogan@cds.caltech.edu>  (tiny change)
 
 	* progmodes/hideshow.el (hs-looking-at-block-start-p): New fun.

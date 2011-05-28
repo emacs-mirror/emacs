@@ -351,9 +351,14 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 
 ;;;###autoload
 (defun re-builder ()
-  "Construct a regexp interactively."
-  (interactive)
+  "Construct a regexp interactively.
+This command makes the current buffer the \"target\" buffer of
+the regexp builder.  It displays a buffer named \"*RE-Builder*\"
+in another window, initially containing an empty regexp.
 
+As you edit the regexp in the \"*RE-Builder*\" buffer, the
+matching parts of the target buffer will be highlighted."
+  (interactive)
   (if (and (string= (buffer-name) reb-buffer)
 	   (reb-mode-buffer-p))
       (message "Already in the RE Builder")
