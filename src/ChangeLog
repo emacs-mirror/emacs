@@ -1,3 +1,9 @@
+2011-05-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Set start and stop points of the
+	loop that looks for the glyph on which to display cursor according
+	to the row's direction.
+
 2011-05-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (handle_display_spec): New function, refactored from the

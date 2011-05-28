@@ -12818,11 +12818,30 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	     GLYPH_BEFORE and GLYPH_AFTER, and it came from a string
 	     positioned between POS_BEFORE and POS_AFTER in the
 	     buffer.  */
-	  struct glyph *stop = glyph_after;
+	  struct glyph *start, *stop;
 	  EMACS_INT pos = pos_before;
 
 	  x = -1;
-	  for (glyph = glyph_before + incr;
+
+	  /* GLYPH_BEFORE and GLYPH_AFTER are the glyphs that
+	     correspond to POS_BEFORE and POS_AFTER, respectively.  We
+	     need START and STOP in the order that corresponds to the
+	     row's direction as given by its reversed_p flag.  If the
+	     directionality of characters between POS_BEFORE and
+	     POS_AFTER is the opposite of the row's base direction,
+	     these characters will have been reordered for display,
+	     and we need to reverse START and STOP.  */
+	  if (!row->reversed_p)
+	    {
+	      start = min (glyph_before, glyph_after);
+	      stop = max (glyph_before, glyph_after);
+	    }
+	  else
+	    {
+	      start = max (glyph_before, glyph_after);
+	      stop = min (glyph_before, glyph_after);
+	    }
+	  for (glyph = start + incr;
 	       row->reversed_p ? glyph > stop : glyph < stop; )
 	    {
 
