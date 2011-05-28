@@ -2957,7 +2957,7 @@ struct glyph_row *row_containing_pos (struct window *, EMACS_INT,
                                       struct glyph_row *,
                                       struct glyph_row *, int);
 int line_bottom_y (struct it *);
-int display_prop_intangible_p (Lisp_Object);
+int display_prop_intangible_p (Lisp_Object, Lisp_Object, EMACS_INT, EMACS_INT);
 void resize_echo_area_exactly (void);
 int resize_mini_window (struct window *, int);
 #if defined USE_TOOLKIT_SCROLL_BARS && !defined USE_GTK

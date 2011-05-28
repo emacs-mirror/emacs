@@ -1729,7 +1729,7 @@ adjust_point_for_property (EMACS_INT last_pt, int modified)
 	  && PT > BEGV && PT < ZV
 	  && !NILP (val = get_char_property_and_overlay
 		              (make_number (PT), Qdisplay, Qnil, &overlay))
-	  && display_prop_intangible_p (val)
+	  && display_prop_intangible_p (val, overlay, PT, PT_BYTE)
 	  && (!OVERLAYP (overlay)
 	      ? get_property_and_range (PT, Qdisplay, &val, &beg, &end, Qnil)
 	      : (beg = OVERLAY_POSITION (OVERLAY_START (overlay)),

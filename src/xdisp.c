@@ -4375,83 +4375,31 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
   return 0;
 }
 
-
-/* Check if SPEC is a display sub-property value whose text should be
-   treated as intangible.  */
-
-static int
-single_display_spec_intangible_p (Lisp_Object prop)
-{
-  /* Skip over `when FORM'.  */
-  if (CONSP (prop) && EQ (XCAR (prop), Qwhen))
-    {
-      prop = XCDR (prop);
-      if (!CONSP (prop))
-	return 0;
-      prop = XCDR (prop);
-    }
-
-  if (STRINGP (prop))
-    return 1;
-
-  if (!CONSP (prop))
-    return 0;
-
-  /* Skip over `margin LOCATION'.  If LOCATION is in the margins,
-     we don't need to treat text as intangible.  */
-  if (EQ (XCAR (prop), Qmargin))
-    {
-      prop = XCDR (prop);
-      if (!CONSP (prop))
-	return 0;
-
-      prop = XCDR (prop);
-      if (!CONSP (prop)
-	  || EQ (XCAR (prop), Qleft_margin)
-	  || EQ (XCAR (prop), Qright_margin))
-	return 0;
-    }
-
-  return (CONSP (prop)
-	  && (EQ (XCAR (prop), Qimage)
-	      || EQ (XCAR (prop), Qspace)));
-}
-
-
 /* Check if PROP is a display property value whose text should be
-   treated as intangible.  */
+   treated as intangible.  OVERLAY is the overlay from which PROP
+   came, or nil if it came from a text property.  CHARPOS and BYTEPOS
+   specify the buffer position covered by PROP.  */
 
 int
-display_prop_intangible_p (Lisp_Object prop)
+display_prop_intangible_p (Lisp_Object prop, Lisp_Object overlay,
+			   EMACS_INT charpos, EMACS_INT bytepos)
 {
-  if (CONSP (prop)
-      && CONSP (XCAR (prop))
-      && !EQ (Qmargin, XCAR (XCAR (prop))))
-    {
-      /* A list of sub-properties.  */
-      while (CONSP (prop))
-	{
-	  if (single_display_spec_intangible_p (XCAR (prop)))
-	    return 1;
-	  prop = XCDR (prop);
-	}
-    }
-  else if (VECTORP (prop))
-    {
-      /* A vector of sub-properties.  */
-      int i;
-      for (i = 0; i < ASIZE (prop); ++i)
-	if (single_display_spec_intangible_p (AREF (prop, i)))
-	  return 1;
-    }
-  else
-    return single_display_spec_intangible_p (prop);
+  int frame_window_p = FRAME_WINDOW_P (XFRAME (selected_frame));
+  struct text_pos position;
 
-  return 0;
+  SET_TEXT_POS (position, charpos, bytepos);
+  return handle_display_spec (NULL, prop, Qnil, overlay,
+			      &position, charpos, frame_window_p);
 }
 
 
-/* Return 1 if PROP is a display sub-property value containing STRING.  */
+/* Return 1 if PROP is a display sub-property value containing STRING.
+
+   Implementation note: this and the following function are really
+   special cases of handle_display_spec and
+   handle_single_display_spec, and should ideally use the same code.
+   Until they do, these two pairs must be consistent and must be
+   modified in sync.  */
 
 static int
 single_display_spec_string_p (Lisp_Object prop, Lisp_Object string)
@@ -4465,6 +4413,9 @@ single_display_spec_string_p (Lisp_Object prop, Lisp_Object string)
       prop = XCDR (prop);
       if (!CONSP (prop))
 	return 0;
+      /* FIXME: We should eval the condition following `when', like
+	 handle_single_display_spec does, and retrun zero if it
+	 evaluates to nil.  */
       prop = XCDR (prop);
     }
 
@@ -4481,7 +4432,7 @@ single_display_spec_string_p (Lisp_Object prop, Lisp_Object string)
 	  return 0;
       }
 
-  return CONSP (prop) && EQ (XCAR (prop), string);
+  return EQ (prop, string) || (CONSP (prop) && EQ (XCAR (prop), string));
 }
 
 
@@ -4491,8 +4442,8 @@ static int
 display_prop_string_p (Lisp_Object prop, Lisp_Object string)
 {
   if (CONSP (prop)
-      && CONSP (XCAR (prop))
-      && !EQ (Qmargin, XCAR (XCAR (prop))))
+      && !EQ (XCAR (prop), Qwhen)
+      && !(CONSP (XCAR (prop)) && EQ (Qmargin, XCAR (XCAR (prop)))))
     {
       /* A list of sub-properties.  */
       while (CONSP (prop))

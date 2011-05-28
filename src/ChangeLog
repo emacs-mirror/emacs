@@ -1,8 +1,23 @@
 2011-05-28  Eli Zaretskii  <eliz@gnu.org>
 
-	* xdisp.c (set_cursor_from_row): Set start and stop points of the
-	loop that looks for the glyph on which to display cursor according
-	to the row's direction.
+	* xdisp.c (set_cursor_from_row): Set start and stop points
+	according to the row's direction when priming the loop that looks
+	for the glyph on which to display cursor.
+	(single_display_spec_intangible_p): Function deleted.
+	(display_prop_intangible_p): Reimplement to call
+	handle_display_spec instead of single_display_spec_intangible_p.
+	Accept 3 additional arguments needed by handle_display_spec.  This
+	fixes incorrect cursor motion across display property with complex
+	values: lists, `(when COND...)' forms, etc.
+	(single_display_spec_string_p): Support property values that are
+	lists with the argument STRING its top-level element.
+	(display_prop_string_p): Fix the condition for processing a
+	property that is a list to be consistent with handle_display_spec.
+
+	* keyboard.c (adjust_point_for_property): Adjust the call to
+	display_prop_intangible_p to its new signature.
+
+	* dispextern.h (display_prop_intangible_p): Adjust prototype.
 
 2011-05-21  Eli Zaretskii  <eliz@gnu.org>
 
