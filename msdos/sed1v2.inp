@@ -130,13 +130,13 @@ s/\.h\.in/.h-in/
 /^	[ 	]*\$(libsrc)\/make-docfile.*>.*\/DOC/s!make-docfile!make-docfile -o $(etc)/DOC!
 /^	[ 	]*\$(libsrc)\/make-docfile.*>.*gl-tmp/s!make-docfile!make-docfile -o gl-tmp!
 /^.\$(libsrc)\/make-doc/s!>.*$!!
-/^	[ 	]*\$(libsrc)\/make-docfile /s!`[^`]*`!$(lisp)!
+/^	[ 	]*\$(libsrc)\/make-docfile /s!`[^`]*`!$(lisp); cd ../src!
 /^[ 	]*$/d
 /^	if test -f/,/^	fi$/c\
 	command.com /c if exist .gdbinit rm -f _gdbinit
 /^	if test "\$(CANNOT_DUMP)" =/,/^	else /d
 /^	fi/d
-/^	LC_ALL=C \$(RUN_TEMACS)/i\
+/^	 *LC_ALL=C \$(RUN_TEMACS)/i\
 	stubedit temacs.exe minstack=1024k
 /^	 *LC_ALL=C.*\$(RUN_TEMACS)/s/LC_ALL=C/set &;/
 /-batch -l loadup/a\
