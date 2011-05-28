@@ -17,6 +17,9 @@
 
 	* newcomment.el (comment-end-skip): Doc fix (Bug#8659).
 
+	* startup.el (normal-splash-screen): Remove gratuitous mode-line
+	setting (Bug#8740).
+
 2011-05-28  Alp Aker  <aker@pitt.edu>  (tiny change)
 
 	* buff-menu.el (Buffer-menu-revert-function, Buffer-menu-sort)
