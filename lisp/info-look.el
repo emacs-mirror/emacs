@@ -1,4 +1,4 @@
-;;; info-look.el --- major-mode-sensitive Info index lookup facility
+;;; info-look.el --- major-mode-sensitive Info index lookup facility -*- lexical-binding: t -*-
 ;; An older version of this was known as libc.el.
 
 ;; Copyright (C) 1995-1999, 2001-2011 Free Software Foundation, Inc.
@@ -357,7 +357,7 @@ If optional argument QUERY is non-nil, query for the help mode."
 	(setq node (nth 0 (car doc-spec))
 	      prefix (nth 2 (car doc-spec))
 	      suffix (nth 3 (car doc-spec)))
-	(when (condition-case error-data
+	(when (condition-case nil
 		  (progn
 		    ;; Don't need Index menu fontifications here, and
 		    ;; they slow down the lookup.
@@ -473,7 +473,7 @@ If optional argument QUERY is non-nil, query for the help mode."
 			(t (nth 1 (car doc-spec)))))
       (with-current-buffer buffer
 	(message "Processing Info node `%s'..." node)
-	(when (condition-case error-data
+	(when (condition-case nil
 		  (progn
 		    (Info-goto-node node)
 		    (setq doc-found t))
@@ -641,44 +641,42 @@ Return nil if there is nothing appropriate in the buffer near point."
 			 info-lookup-mode
 		       (info-lookup-change-mode 'file)))))
 
+(defun info-lookup-completions-at-point (topic mode)
+  "Try to complete a help item."
+  (or mode (setq mode (info-lookup-select-mode)))
+  (when (info-lookup->mode-value topic mode)
+    (let ((modes (info-lookup-quick-all-modes topic mode))
+          (start (point))
+          try)
+      (while (and (not try) modes)
+        (setq mode (car modes)
+              modes (cdr modes)
+              try (info-lookup-guess-default* topic mode))
+        (goto-char start))
+      (when try
+        (let ((completions (info-lookup->completions topic mode)))
+          (when completions
+            (when (info-lookup->ignore-case topic mode)
+              (setq completions
+                    (lambda (string pred action)
+                      (let ((completion-ignore-case t))
+                        (complete-with-action
+                         action completions string pred)))))
+            (save-excursion
+              ;; Find the original symbol and zap it.
+              (end-of-line)
+              (while (and (search-backward try nil t)
+                          (< start (point))))
+              (list (match-beginning 0) (match-end 0) completions
+                    :exclusive 'no))))))))
+
 (defun info-complete (topic mode)
   "Try to complete a help item."
   (barf-if-buffer-read-only)
-  (or mode (setq mode (info-lookup-select-mode)))
-  (or (info-lookup->mode-value topic mode)
-      (error "No %s completion available for `%s'" topic mode))
-  (let ((modes (info-lookup-quick-all-modes topic mode))
-	(start (point))
-	try)
-    (while (and (not try) modes)
-      (setq mode (car modes)
-	    modes (cdr modes)
-	    try (info-lookup-guess-default* topic mode))
-      (goto-char start))
-    (and (not try)
-	 (error "Found no %S to complete" topic))
-    (let ((completions (info-lookup->completions topic mode))
-	  (completion-ignore-case (info-lookup->ignore-case topic mode))
-	  completion)
-      (setq completion (try-completion try completions))
-      (cond ((not completion)
-	     (ding)
-	     (message "No match"))
-	    ((stringp completion)
-	     (or (assoc completion completions)
-		 (setq completion (completing-read
-				   (format "Complete %S: " topic)
-				   completions nil t completion
-				   info-lookup-history)))
-	     ;; Find the original symbol and zap it.
-	     (end-of-line)
-	     (while (and (search-backward try nil t)
-			 (< start (point))))
-	     (replace-match "")
-	     (insert completion))
-	    (t
-	     (message "%s is complete"
-		      (capitalize (prin1-to-string topic))))))))
+  (let ((data (info-lookup-completions-at-point topic mode)))
+    (if (null data)
+        (error "No %s completion available for `%s' at point" topic mode)
+      (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)))))
 
 
 ;;; Initialize some common modes.
