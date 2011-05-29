@@ -35,7 +35,7 @@
 #else
 /* Normal invocation convention.  */
 
-#ifndef _GL_STDIO_H
+#ifndef _@GUARD_PREFIX@_STDIO_H
 
 #define _GL_ALREADY_INCLUDING_STDIO_H
 
@@ -44,8 +44,8 @@
 
 #undef _GL_ALREADY_INCLUDING_STDIO_H
 
-#ifndef _GL_STDIO_H
-#define _GL_STDIO_H
+#ifndef _@GUARD_PREFIX@_STDIO_H
+#define _@GUARD_PREFIX@_STDIO_H
 
 /* Get va_list.  Needed on many systems, including glibc 2.8.  */
 #include <stdarg.h>
@@ -1345,6 +1345,6 @@ _GL_WARN_ON_USE (vsprintf, "vsprintf is not always POSIX compliant - "
 #endif
 
 
-#endif /* _GL_STDIO_H */
-#endif /* _GL_STDIO_H */
+#endif /* _@GUARD_PREFIX@_STDIO_H */
+#endif /* _@GUARD_PREFIX@_STDIO_H */
 #endif
