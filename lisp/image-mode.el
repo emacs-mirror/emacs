@@ -484,18 +484,26 @@ was inserted."
 			    (buffer-substring-no-properties (point-min) (point-max)))
 			 filename))
 	 (type (image-type file-or-data nil data-p))
-         (image0 (create-animated-image file-or-data type data-p))
-	 (image (append image0
-                        (image-transform-properties image0)))
-	 (props
+	 ;; Don't use create-animated-image here; that would start the
+	 ;; timer, which works by altering the spec destructively.
+	 ;; But we still need to append the transformation properties,
+	 ;; which would make a new list.
+	 (image (create-image file-or-data type data-p))
+	 (inhibit-read-only t)
+	 (buffer-undo-list t)
+	 (modified (buffer-modified-p))
+	 props)
+
+    (setq image (append image (image-transform-properties image)))
+    (setq props
 	  `(display ,image
 		    intangible ,image
 		    rear-nonsticky (display intangible)
 		    read-only t front-sticky (read-only)))
-	 (inhibit-read-only t)
-	 (buffer-undo-list t)
-	 (modified (buffer-modified-p)))
     (image-flush image)
+    ;; Begin the animation, if any.
+    (image-animate-start image)
+
     (let ((buffer-file-truename nil)) ; avoid changing dir mtime by lock_file
       (add-text-properties (point-min) (point-max) props)
       (restore-buffer-modified-p modified))
@@ -584,10 +592,13 @@ Its value should be one of the following:
 (defvar image-transform-rotation 0.0)
 
 (defun image-transform-properties (display)
-  "Rescale and/or rotate the current image.
-The scale factor and rotation angle are given by the variables
-`image-transform-resize' and `image-transform-rotation'.  This
-takes effect only if Emacs is compiled with ImageMagick support."
+  "Return rescaling/rotation properties for the Image mode buffer.
+These properties are suitable for appending to an image spec;
+they are determined by the variables `image-transform-resize' and
+`image-transform-rotation'.
+
+Recaling and rotation properties only take effect if Emacs is
+compiled with ImageMagick support."
   (let* ((size (image-size display t))
 	 (height
 	  (cond

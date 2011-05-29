@@ -590,9 +590,13 @@ Example:
 
 ;;; Animated image API
 
-(defcustom image-animate-max-time 30
-  "Time in seconds to animate images."
-  :type 'integer
+(defcustom image-animate-max-time nil
+  "Time in seconds to animate images.
+If the value is nil, play animations once.
+If the value is t, loop forever."
+  :type '(choice (const :tag "Play once" nil)
+		 (const :tag "Loop forever" t)
+		 integer)
   :version "24.1"
   :group 'image)
 
@@ -601,7 +605,7 @@ Example:
 
 ;;;###autoload
 (defun create-animated-image (file-or-data &optional type data-p &rest props)
-  "Create an animated image.
+  "Create an animated image, and begin animating it.
 FILE-OR-DATA is an image file name or image data.
 Optional TYPE is a symbol describing the image type.  If TYPE is omitted
 or nil, try to determine the image type from its first few bytes
@@ -638,22 +642,20 @@ Images should not be larger than specified by `max-image-size'."
 	(setq timer nil)))
     timer))
 
-(defun image-animate-start (image &optional max-time)
-  "Start animation of image IMAGE.
-Optional second arg MAX-TIME is number of seconds to animate image,
-or t to animate infinitely."
+(defun image-animate-start (image)
+  "Start animating the image IMAGE.
+The variable `image-animate-max-time' determines how long to
+animate for."
   (let ((anim (image-animated-p image))
-	timer tmo)
+	delay ; in seconds
+	timer)
     (when anim
       (if (setq timer (image-animate-timer image))
-	  (setcar (nthcdr 3 (aref timer 6)) max-time)
-	(setq tmo (* (cdr anim) 0.01))
-	(setq max-time (or max-time image-animate-max-time))
-	(run-with-timer tmo nil #'image-animate-timeout
-			image 1 (car anim)
-			(if (numberp max-time)
-			    (- max-time tmo)
-			  max-time))))))
+	  (cancel-timer timer))
+      (setq delay (max (* (cdr anim) 0.01) 0.025))
+      (run-with-timer 0.2 nil #'image-animate-timeout
+		      image 0 (car anim)
+		      delay 0 image-animate-max-time))))
 
 (defun image-animate-stop (image)
   "Stop animation of image."
@@ -661,20 +663,31 @@ or t to animate infinitely."
     (when timer
       (cancel-timer timer))))
 
-(defun image-animate-timeout (image ino count time-left)
-  (if (>= ino count)
-      (setq ino 0))
-  (plist-put (cdr image) :index ino)
-  (force-window-update)
-  (let ((anim (image-animated-p image)) tmo)
-    (when anim
-      (setq tmo (* (cdr anim) 0.01))
-      (unless (and (= ino 0) (numberp time-left) (< time-left tmo))
-	(run-with-timer tmo nil #'image-animate-timeout
-			image (1+ ino) count
-			(if (numberp time-left)
-			    (- time-left tmo)
-			  time-left))))))
+(defun image-animate-timeout (image n count delay time-elapsed max)
+  "Display animation frame N of IMAGE.
+N=0 refers to the initial animation frame.
+COUNT is the total number of frames in the animation.
+DELAY is the time between animation frames, in seconds.
+TIME-ELAPSED is the total time that has elapsed since
+`image-animate-start' was called.
+MAX determines when to stop.  If t, loop forever.  If nil, stop
+ after displaying the last animation frame.  Otherwise, stop
+ after MAX seconds have elapsed."
+  (let (done)
+    (plist-put (cdr image) :index n)
+    (force-window-update)
+    (setq n (1+ n))
+    (if (>= n count)
+	(if max
+	    (setq n 0)
+	  (setq done t)))
+    (setq time-elapsed (+ delay time-elapsed))
+    (if (numberp max)
+	(setq done (>= time-elapsed max)))
+    (unless done
+      (run-with-timer delay nil 'image-animate-timeout
+		      image n count delay
+		      time-elapsed max))))
 
 (defun image-animated-p (image)
   "Return non-nil if image is animated.

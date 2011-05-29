@@ -1,3 +1,19 @@
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (image-animate-max-time): Allow nil and t values.
+	Default to nil.
+	(create-animated-image): Doc fix.
+	(image-animate-start): Remove second arg; just use
+	image-animate-max-time.
+	(image-animate-timeout): Doc fix.  Args changed.
+
+	* image-mode.el (image-toggle-display-image): Ensure that the
+	image spec passed to the animate timer is the same object as in
+	the the buffer's display property (Bug#6981).
+	(image-transform-properties): Doc fix.
+
+	* image.el (image-animate-max-time): Default to nil.
+
 2011-05-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* menu-bar.el (kill-this-buffer-enabled-p): Avoid looping over
