@@ -1,3 +1,8 @@
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (imagemagick-types-inhibit)
+	(imagemagick-register-types): Doc fix.
+
 2011-05-29  Deniz Dogan  <deniz@dogan.se>
 
 	* net/rcirc.el (rcirc): Use the user's stored encryption method by

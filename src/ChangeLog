@@ -1,3 +1,8 @@
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c: Various fixes to ImageMagick code comments.
+	(Fimagemagick_types): Doc fix.
+
 2011-05-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Minor fixes prompted by GCC 4.6.0 warnings.

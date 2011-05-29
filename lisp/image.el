@@ -698,31 +698,38 @@ shall be displayed."
 
 (defcustom imagemagick-types-inhibit
   '(C HTML HTM TXT PDF)
-  ;; FIXME what are the possible options?
-  ;; Are these actually file-name extensions?
-  ;; Why are these upper-case when eg image-types is lower-case?
-  "Types the ImageMagick loader should not try to handle."
-  :type '(choice (const :tag "Let ImageMagick handle all the types it can" nil)
+  "ImageMagick types that Emacs should not use ImageMagick to handle.
+This should be a list of symbols, each of which has the same
+names as one of the format tags used internally by ImageMagick;
+see `imagemagick-types'.  Entries in this list are excluded from
+being registered by `imagemagick-register-types'.
+
+If Emacs is compiled without ImageMagick, this variable has no effect."
+  :type '(choice (const :tag "Let ImageMagick handle all types it can" nil)
 		 (repeat symbol))
   :version "24.1"
   :group 'image)
 
 ;;;###autoload
 (defun imagemagick-register-types ()
-  "Register the file types that ImageMagick is able to handle."
-  (if (fboundp 'imagemagick-types)
-      (let ((im-types (imagemagick-types)))
-	(dolist (im-inhibit imagemagick-types-inhibit)
-	  (setq im-types (remove im-inhibit im-types)))
-	(dolist (im-type im-types)
-	  (let ((extension (downcase (symbol-name im-type))))
-	    (push
-	     (cons (concat "\\." extension "\\'") 'image-mode)
-	     auto-mode-alist)
-	    (push
-	     (cons (concat "\\." extension "\\'") 'imagemagick)
-	     image-type-file-name-regexps))))
-    (error "Emacs was not built with ImageMagick support")))
+  "Register file types that can be handled by ImageMagick.
+This adds the file types returned by `imagemagick-types'
+\(excluding the ones in `imagemagick-types-inhibit') to
+`auto-mode-alist' and `image-type-file-name-regexps', so that
+Emacs visits them in Image mode.
+
+If Emacs is compiled without ImageMagick support, do nothing."
+  (when (fboundp 'imagemagick-types)
+    (let ((im-types (imagemagick-types)))
+      (dolist (im-inhibit imagemagick-types-inhibit)
+	(setq im-types (delq im-inhibit im-types)))
+      (dolist (im-type im-types)
+	(let ((extension
+	       (concat "\\." (downcase (symbol-name im-type))
+		       "\\'")))
+	  (push (cons extension 'image-mode) auto-mode-alist)
+	  (push (cons extension 'imagemagick)
+		image-type-file-name-regexps))))))
 
 (provide 'image)
 
