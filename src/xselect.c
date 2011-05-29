@@ -489,10 +489,10 @@ struct selection_data
 
 /* Linked list of the above (in support of MULTIPLE targets).  */
 
-struct selection_data *converted_selections;
+static struct selection_data *converted_selections;
 
 /* "Data" to send a requestor for a failed MULTIPLE subtarget.  */
-Atom conversion_fail_tag;
+static Atom conversion_fail_tag;
 
 /* Used as an unwind-protect clause so that, if a selection-converter signals
    an error, we tell the requester that we were unable to do what they wanted

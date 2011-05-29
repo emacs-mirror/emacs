@@ -1,5 +1,9 @@
 2011-05-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Minor fixes prompted by GCC 4.6.0 warnings.
+
+	* xselect.c (converted_selections, conversion_fail_tag): Now static.
+
 	* emacs.c [HAVE_X_WINDOWS]: Include "xterm.h".
 	(x_clipboard_manager_save_all): Move extern decl to ...
 	* xterm.h: ... here, so that it can be checked for consistency.
