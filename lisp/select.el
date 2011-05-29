@@ -395,10 +395,6 @@ This function returns the string \"emacs\"."
 	(SAVE_TARGETS . xselect-convert-to-save-targets)
 	(_EMACS_INTERNAL . xselect-convert-to-identity)))
 
-(when (fboundp 'x-clipboard-manager-save)
-  (add-hook 'delete-frame-functions 'x-clipboard-manager-save)
-  (add-hook 'kill-emacs-hook 'x-clipboard-manager-save))
-
 (provide 'select)
 
 ;;; select.el ends here

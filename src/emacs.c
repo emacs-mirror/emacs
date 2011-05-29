@@ -1959,6 +1959,11 @@ sort_args (int argc, char **argv)
   xfree (priority);
 }
 
+#ifdef HAVE_X_WINDOWS
+/* Defined in xselect.c.  */
+extern void x_clipboard_manager_save_all (void);
+#endif
+
 DEFUN ("kill-emacs", Fkill_emacs, Skill_emacs, 0, 1, "P",
        doc: /* Exit the Emacs job and kill it.
 If ARG is an integer, return ARG as the exit program code.
@@ -1984,6 +1989,11 @@ all of which are called before Emacs is actually killed.  */)
   Frun_hooks (1, &hook);
 
   UNGCPRO;
+
+#ifdef HAVE_X_WINDOWS
+  /* Transfer any clipboards we own to the clipboard manager.  */
+  x_clipboard_manager_save_all ();
+#endif
 
   shut_down_emacs (0, 0, STRINGP (arg) ? arg : Qnil);
 

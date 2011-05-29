@@ -1,3 +1,14 @@
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c (x_clipboard_manager_save_frame)
+	(x_clipboard_manager_save_all): New functions.
+	(Fx_clipboard_manager_save): Lisp function deleted.
+
+	* emacs.c (Fkill_emacs): Call x_clipboard_manager_save_all.
+	* frame.c (delete_frame): Call x_clipboard_manager_save_frame.
+
+	* xterm.h: Update prototype.
+
 2011-05-28  William Xu  <william.xwl@gmail.com>
 
 	* nsterm.m (ns_term_shutdown): Synchronize user defaults before

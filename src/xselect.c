@@ -2107,6 +2107,7 @@ frame's display, or the first available X display.  */)
   return (owner ? Qt : Qnil);
 }
 
+
 /* Send the clipboard manager a SAVE_TARGETS request with a
    UTF8_STRING property, as described by
    http://www.freedesktop.org/wiki/ClipboardManager */
@@ -2126,54 +2127,53 @@ x_clipboard_manager_save (struct x_display_info *dpyinfo,
 			   Qnil, frame);
 }
 
-DEFUN ("x-clipboard-manager-save", Fx_clipboard_manager_save,
-       Sx_clipboard_manager_save, 0, 1, 0,
-       doc: /* Save the clipboard contents to the clipboard manager.
-This function is intended to run from `delete-frame-functions' and
-`kill-emacs-hook', to transfer clipboard data owned by Emacs to a
-clipboard manager prior to deleting a frame or killing Emacs.
+/* Called from delete_frame: save any clipboard owned by FRAME to the
+   clipboard manager.  Do nothing if FRAME does not own the clipboard,
+   or if no clipboard manager is present.  */
 
-FRAME specifies a frame owning a clipboard; do nothing if FRAME does
-not own the clipboard, or if no clipboard manager is present.  If
-FRAME is nil, save all clipboard contents owned by Emacs.  */)
-  (Lisp_Object frame)
+void
+x_clipboard_manager_save_frame (Lisp_Object frame)
 {
-  if (FRAMEP (frame))
+  struct frame *f;
+
+  if (FRAMEP (frame)
+      && (f = XFRAME (frame), FRAME_X_P (f))
+      && FRAME_LIVE_P (f))
     {
-      struct frame *f = XFRAME (frame);
-      if (FRAME_LIVE_P (f) && FRAME_X_P (f))
-	{
-	  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-	  Lisp_Object local_selection
-	    = LOCAL_SELECTION (QCLIPBOARD, dpyinfo);
+      struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+      Lisp_Object local_selection
+	= LOCAL_SELECTION (QCLIPBOARD, dpyinfo);
 
-	  if (!NILP (local_selection)
-	      && EQ (frame, XCAR (XCDR (XCDR (XCDR (local_selection)))))
-	      && XGetSelectionOwner (dpyinfo->display,
-				     dpyinfo->Xatom_CLIPBOARD_MANAGER))
-	    x_clipboard_manager_save (dpyinfo, frame);
-	}
+      if (!NILP (local_selection)
+	  && EQ (frame, XCAR (XCDR (XCDR (XCDR (local_selection)))))
+	  && XGetSelectionOwner (dpyinfo->display,
+				 dpyinfo->Xatom_CLIPBOARD_MANAGER))
+	x_clipboard_manager_save (dpyinfo, frame);
     }
-  else if (NILP (frame))
+}
+
+/* Called from Fkill_emacs: save any clipboard owned by FRAME to the
+   clipboard manager.  Do nothing if FRAME does not own the clipboard,
+   or if no clipboard manager is present.  */
+
+void
+x_clipboard_manager_save_all (void)
+{
+  /* Loop through all X displays, saving owned clipboards.  */
+  struct x_display_info *dpyinfo;
+  Lisp_Object local_selection, local_frame;
+  for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
     {
-      /* Loop through all X displays, saving owned clipboards.  */
-      struct x_display_info *dpyinfo;
-      Lisp_Object local_selection, local_frame;
-      for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
-	{
-	  local_selection = LOCAL_SELECTION (QCLIPBOARD, dpyinfo);
-	  if (NILP (local_selection)
-	      || !XGetSelectionOwner (dpyinfo->display,
-				      dpyinfo->Xatom_CLIPBOARD_MANAGER))
-	    continue;
+      local_selection = LOCAL_SELECTION (QCLIPBOARD, dpyinfo);
+      if (NILP (local_selection)
+	  || !XGetSelectionOwner (dpyinfo->display,
+				  dpyinfo->Xatom_CLIPBOARD_MANAGER))
+	continue;
 
-	  local_frame = XCAR (XCDR (XCDR (XCDR (local_selection))));
-	  if (FRAME_LIVE_P (XFRAME (local_frame)))
-	    x_clipboard_manager_save (dpyinfo, local_frame);
-	}
+      local_frame = XCAR (XCDR (XCDR (XCDR (local_selection))));
+      if (FRAME_LIVE_P (XFRAME (local_frame)))
+	x_clipboard_manager_save (dpyinfo, local_frame);
     }
-
-  return Qnil;
 }
 
 
@@ -2586,7 +2586,6 @@ syms_of_xselect (void)
   defsubr (&Sx_disown_selection_internal);
   defsubr (&Sx_selection_owner_p);
   defsubr (&Sx_selection_exists_p);
-  defsubr (&Sx_clipboard_manager_save);
 
   defsubr (&Sx_get_atom_name);
   defsubr (&Sx_send_client_message);
