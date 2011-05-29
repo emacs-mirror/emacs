@@ -1024,8 +1024,8 @@ Turning on text-mode runs the hook `text-mode-hook'."
 @end group
 @group
   ;; @r{These four lines are absent from the current version}
-  ;; @r{not because this is done some other way, but rather}
-  ;; @r{because nowadays Text mode uses the normal definition of paragraphs.}
+  ;; @r{not because this is done some other way, but because}
+  ;; @r{nowadays Text mode uses the normal definition of paragraphs.}
   (set (make-local-variable 'paragraph-start)
        (concat "[ \t]*$\\|" page-delimiter))
   (set (make-local-variable 'paragraph-separate) paragraph-start)
@@ -1117,12 +1117,15 @@ modes should understand the Lisp conventions for comments.  The rest of
 
 @smallexample
 @group
-  (set (make-local-variable 'paragraph-start) (concat page-delimiter "\\|$" ))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
+  (set (make-local-variable 'paragraph-start)
+       (concat page-delimiter "\\|$" ))
+  (set (make-local-variable 'paragraph-separate)
+       paragraph-start)
   @dots{}
 @end group
 @group
-  (set (make-local-variable 'comment-indent-function) 'lisp-comment-indent))
+  (set (make-local-variable 'comment-indent-function)
+       'lisp-comment-indent))
   @dots{}
 @end group
 @end smallexample
@@ -3590,7 +3593,9 @@ natural to have a BNF grammar that looks like this:
   (inst ("IF" exp "THEN" insts "ELSE" insts "END")
         ("CASE" exp "OF" cases "END")
         ...)
-  (cases (cases "|" cases) (caselabel ":" insts) ("ELSE" insts))
+  (cases (cases "|" cases)
+         (caselabel ":" insts)
+         ("ELSE" insts))
   ...
 @end example
 
@@ -3791,7 +3796,9 @@ block).
 Here is an example of an indentation function:
 
 @example
-(eval-when-compile (require 'cl))       ;For the `case' macro.
+;; For the `case' macro.
+(eval-when-compile (require 'cl))
+
 (defun sample-smie-rules (kind token)
   (case kind
     (:elem (case token
@@ -3872,9 +3879,10 @@ and is always at the beginning of a line, we can use a more efficient
 rule:
 @example
 ((equal token "if")
- (and (not (smie-rule-bolp)) (smie-rule-prev-p "else")
+ (and (not (smie-rule-bolp))
+      (smie-rule-prev-p "else")
       (save-excursion
-        (sample-smie-backward-token)  ;Jump before the "else".
+        (sample-smie-backward-token)
         (cons 'column (current-column)))))
 @end example
 

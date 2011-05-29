@@ -1,3 +1,20 @@
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.texi (Accessing Documentation):
+	* display.texi (Pixel Specification):
+	* processes.texi (Serial Ports, Serial Ports):
+	* nonascii.texi (Character Properties, Default Coding Systems):
+	* text.texi (Changing Properties, Special Properties):
+	* windows.texi (Window Start and End):
+	* modes.texi (SMIE Indentation Example, SMIE Tricks):
+	* keymaps.texi (Searching Keymaps, Tool Bar):
+	* minibuf.texi (Basic Completion):
+	* compile.texi (Eval During Compile):
+	* strings.texi (Formatting Strings): Tweaks to avoid overflowing
+	7x9 paper in printed manual.
+
+	* lists.texi (Sets And Lists): Fix misplaced text.
+
 2011-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* modes.texi (Region to Refontify): Rename from "Region to Fontify".
