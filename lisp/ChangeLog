@@ -1,3 +1,8 @@
+2011-05-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* menu-bar.el (kill-this-buffer-enabled-p): Avoid looping over
+	entire buffer list (Bug#8184).
+
 2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.el (imagemagick-types-inhibit)
