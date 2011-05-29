@@ -7,22 +7,18 @@
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-#serial 2
+#serial 3
 
 # Autoconf defines AC_FUNC_GETLOADAVG, but that is obsolescent.
 # New applications should use gl_GETLOADAVG instead.
 
-# gl_GETLOADAVG(LIBOBJDIR)
-# ------------------------
+# gl_GETLOADAVG
+# -------------
 AC_DEFUN([gl_GETLOADAVG],
 [AC_REQUIRE([gl_STDLIB_H_DEFAULTS])
 
 # Persuade glibc <stdlib.h> to declare getloadavg().
 AC_REQUIRE([AC_USE_SYSTEM_EXTENSIONS])
-
-# Make sure getloadavg.c is where it belongs, at configure-time.
-test -f "$srcdir/$1/getloadavg.c" ||
-  AC_MSG_ERROR([$srcdir/$1/getloadavg.c is missing])
 
 gl_save_LIBS=$LIBS
 
