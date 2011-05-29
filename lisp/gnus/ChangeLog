@@ -1,3 +1,12 @@
+2011-05-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-urlify): Use shr-add-font to make underlines be less ugly
+	at the end of lines.
+
+2011-05-29  Julien Danjou  <julien@danjou.info>
+
+	* smiley.el (gnus-smiley-file-types): Add gif as supported file type.
+
 2011-05-27  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-group.el (gnus-bug-group-download-format-alist):

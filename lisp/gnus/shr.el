@@ -601,7 +601,7 @@ START, and END.  Note that START and END should be merkers."
    :help-echo (if title (format "%s (%s)" url title) url)
    :keymap shr-map
    url)
-  (put-text-property start (point) 'face 'shr-link)
+  (shr-add-font start (point) 'shr-link)
   (put-text-property start (point) 'shr-url url))
 
 (defun shr-encode-url (url)
