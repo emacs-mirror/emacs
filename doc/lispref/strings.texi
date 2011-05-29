@@ -828,12 +828,12 @@ is not truncated.
 
 @example
 @group
-(format "The word `%7s' actually has %d letters in it."
+(format "The word `%7s' has %d letters in it."
         "foo" (length "foo"))
-     @result{} "The word `    foo' actually has 3 letters in it."
-(format "The word `%7s' actually has %d letters in it."
+     @result{} "The word `    foo' has 3 letters in it."
+(format "The word `%7s' has %d letters in it."
         "specification" (length "specification"))
-     @result{} "The word `specification' actually has 13 letters in it."
+     @result{} "The word `specification' has 13 letters in it."
 @end group
 @end example
 

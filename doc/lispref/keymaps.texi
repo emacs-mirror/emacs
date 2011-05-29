@@ -718,17 +718,18 @@ pseudo-Lisp description of the order and conditions for searching
 them:
 
 @lisp
-(or (if overriding-terminal-local-map
-        (@var{find-in} overriding-terminal-local-map)
-      (if overriding-local-map
-          (@var{find-in} overriding-local-map)
-        (or (@var{find-in} (get-char-property (point) 'keymap))
-            (@var{find-in-any} emulation-mode-map-alists)
-            (@var{find-in-any} minor-mode-overriding-map-alist)
-            (@var{find-in-any} minor-mode-map-alist)
-            (if (get-text-property (point) 'local-map)
-                (@var{find-in} (get-char-property (point) 'local-map))
-              (@var{find-in} (current-local-map))))))
+(or (cond
+     (overriding-terminal-local-map
+      (@var{find-in} overriding-terminal-local-map))
+     (overriding-local-map
+      (@var{find-in} overriding-local-map))
+     (or (@var{find-in} (get-char-property (point) 'keymap))
+	 (@var{find-in-any} emulation-mode-map-alists)
+	 (@var{find-in-any} minor-mode-overriding-map-alist)
+	 (@var{find-in-any} minor-mode-map-alist)
+	 (if (get-text-property (point) 'local-map)
+	     (@var{find-in} (get-char-property (point) 'local-map))
+	   (@var{find-in} (current-local-map)))))
     (@var{find-in} (current-global-map)))
 @end lisp
 
@@ -2635,8 +2636,8 @@ using an indirection through @code{tool-bar-map}.
 By default, the global map binds @code{[tool-bar]} as follows:
 @example
 (global-set-key [tool-bar]
-                '(menu-item "tool bar" ignore
-                            :filter (lambda (ignore) tool-bar-map)))
+  '(menu-item "tool bar" ignore
+              :filter (lambda (ignore) tool-bar-map)))
 @end example
 @noindent
 Thus the tool bar map is derived dynamically from the value of variable

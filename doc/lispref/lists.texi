@@ -1355,10 +1355,10 @@ and the @code{(4)} in the @code{sample-list} are not @code{eq}:
 (delq '(4) sample-list)
      @result{} (a c (4))
 @end group
+@end example
 
 If you want to delete elements that are @code{equal} to a given value,
 use @code{delete} (see below).
-@end example
 
 @defun remq object list
 This function returns a copy of @var{list}, with all elements removed
