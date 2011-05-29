@@ -1739,9 +1739,6 @@ splash screen in another window."
       (erase-buffer)
       (setq default-directory command-line-default-directory)
       (set (make-local-variable 'tab-width) 8)
-      (if (not startup)
-	  (set (make-local-variable 'mode-line-format)
-	       (propertize "---- %b %-" 'face 'mode-line-buffer-id)))
 
       (if pure-space-overflow
 	  (insert pure-space-overflow-message))

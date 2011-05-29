@@ -1,4 +1,36 @@
+2011-05-28  Leo Liu  <sdl.web@gmail.com>
+
+	* replace.el (occur-menu-map, occur-edit-mode-map): New vars.
+	(occur-mode-map): Bind occur-edit-mode.  Use occur-menu-map.
+	(occur-edit-mode): New major mode (Bug#8463).
+	(occur-after-change-function): New function.
+	(occur-engine): Give Occur tags a read-only property.
+
+2011-05-28  Kevin Ryde  <user42@zip.com.au>
+
+	* subr.el (def-edebug-spec): Doc fix (Bug#8430).
+
 2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el (help-echo): Make the initial non-indicator dash
+	empty on graphical terminals (Bug#7295).
+
+	* files.el (auto-mode-alist): Move config rule after the
+	in-stripping one (Bug#8547).
+
+	* newcomment.el (comment-end-skip): Doc fix (Bug#8659).
+
+	* startup.el (normal-splash-screen): Remove gratuitous mode-line
+	setting (Bug#8740).
+
+2011-05-28  Alp Aker  <aker@pitt.edu>  (tiny change)
+
+	* buff-menu.el (Buffer-menu-revert-function, Buffer-menu-sort)
+	(Buffer-menu-buffer+size): Use Buffer-menu-buffer-column
+	(Bug#8539).
+
+2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
 
 	* emacs-lisp/re-builder.el (re-builder): Improve doc (Bug#8286).
 
