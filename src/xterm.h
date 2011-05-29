@@ -1025,6 +1025,7 @@ extern Lisp_Object x_property_data_to_lisp (struct frame *,
                                             int,
                                             unsigned long);
 extern void x_clipboard_manager_save_frame (Lisp_Object);
+extern void x_clipboard_manager_save_all (void);
 
 /* Defined in xfns.c */
 

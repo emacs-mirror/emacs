@@ -65,6 +65,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
+#ifdef HAVE_X_WINDOWS
+#include "xterm.h"
+#endif
+
 #ifdef HAVE_SETLOCALE
 #include <locale.h>
 #endif
@@ -1959,11 +1963,6 @@ sort_args (int argc, char **argv)
   xfree (priority);
 }
 
-#ifdef HAVE_X_WINDOWS
-/* Defined in xselect.c.  */
-extern void x_clipboard_manager_save_all (void);
-#endif
-
 DEFUN ("kill-emacs", Fkill_emacs, Skill_emacs, 0, 1, "P",
        doc: /* Exit the Emacs job and kill it.
 If ARG is an integer, return ARG as the exit program code.

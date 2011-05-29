@@ -1,3 +1,9 @@
+2011-05-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs.c [HAVE_X_WINDOWS]: Include "xterm.h".
+	(x_clipboard_manager_save_all): Move extern decl to ...
+	* xterm.h: ... here, so that it can be checked for consistency.
+
 2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xselect.c (x_clipboard_manager_save_frame)
