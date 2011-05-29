@@ -536,6 +536,11 @@ property of an overlay."
         (overlay-put ov 'display nil))))
   (overlay-put ov 'invisible (and hide-p 'hs)))
 
+(defun hs-looking-at-block-start-p ()
+  "Return non-nil if the point is at the block start."
+  (and (looking-at hs-block-start-regexp)
+       (save-match-data (not (nth 4 (syntax-ppss))))))
+
 (defun hs-forward-sexp (match-data arg)
   "Adjust point based on MATCH-DATA and call `hs-forward-sexp-func' w/ ARG.
 Original match data is restored upon return."
@@ -564,7 +569,7 @@ The block beginning is adjusted by `hs-adjust-block-beginning'
 and then further adjusted to be at the end of the line."
   (if comment-reg
       (hs-hide-comment-region (car comment-reg) (cadr comment-reg) end)
-    (when (looking-at hs-block-start-regexp)
+    (when (hs-looking-at-block-start-p)
       (let ((mdata (match-data t))
             (header-end (match-end 0))
             p q ov)
@@ -684,16 +689,16 @@ Return point, or nil if original point was not in a block."
   (let ((done nil)
         (here (point)))
     ;; look if current line is block start
-    (if (looking-at hs-block-start-regexp)
+    (if (hs-looking-at-block-start-p)
         (point)
       ;; look backward for the start of a block that contains the cursor
       (while (and (re-search-backward hs-block-start-regexp nil t)
-		  (save-match-data
-		    (not (nth 4 (syntax-ppss)))) ; not inside comments
-                  (not (setq done
-                             (< here (save-excursion
-                                       (hs-forward-sexp (match-data t) 1)
-                                       (point)))))))
+		  ;; go again if in a comment
+		  (or (save-match-data (nth 4 (syntax-ppss)))
+		      (not (setq done
+				 (< here (save-excursion
+					   (hs-forward-sexp (match-data t) 1)
+					   (point))))))))
       (if done
           (point)
         (goto-char here)
@@ -750,7 +755,7 @@ and `case-fold-search' are both t."
         (end-of-line)
         (when (and (not c-reg)
                    (hs-find-block-beginning)
-                   (looking-at hs-block-start-regexp))
+		   (hs-looking-at-block-start-p))
           ;; point is inside a block
           (goto-char (match-end 0)))))
     (end-of-line)
@@ -835,7 +840,7 @@ Upon completion, point is repositioned and the normal hook
                       (<= (count-lines (car c-reg) (nth 1 c-reg)) 1)))
        (message "(not enough comment lines to hide)"))
       ((or c-reg
-           (looking-at hs-block-start-regexp)
+	   (hs-looking-at-block-start-p)
            (hs-find-block-beginning))
        (hs-hide-block-at-point end c-reg)
        (run-hooks 'hs-hide-hook))))))
@@ -867,7 +872,7 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
                      q (cadr c-reg))))
             ((and (hs-find-block-beginning)
                   ;; ugh, fresh match-data
-                  (looking-at hs-block-start-regexp))
+                  (hs-looking-at-block-start-p))
              (setq p (point)
                    q (progn (hs-forward-sexp (match-data t) 1) (point)))))
       (when (and p q)

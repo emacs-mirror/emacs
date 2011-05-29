@@ -73,7 +73,10 @@ the most recent speakers are listed first."
   "ERC completion data from pcomplete.
 for use on `completion-at-point-function'."
   (when (> (point) (erc-beg-of-input-line))
-    (pcomplete-completions-at-point)))
+    (or (let ((pcomplete-default-completion-function #'ignore))
+          (pcomplete-completions-at-point))
+        (let ((c (pcomplete-completions-at-point)))
+          (if c (nconc c '(:exclusive no)))))))
 
 (defun erc-pcomplete ()
   "Complete the nick before point."
@@ -94,7 +97,7 @@ for use on `completion-at-point-function'."
   (set (make-local-variable 'pcomplete-use-paring)
        nil)
   (set (make-local-variable 'pcomplete-parse-arguments-function)
-       'pcomplete-parse-erc-arguments)
+       'pcomplete-erc-parse-arguments)
   (set (make-local-variable 'pcomplete-command-completion-function)
        'pcomplete/erc-mode/complete-command)
   (set (make-local-variable 'pcomplete-command-name-function)
@@ -254,7 +257,7 @@ If optional argument IGNORE-SELF is non-nil, don't return the current nick."
       (upcase (substring (pcomplete-arg 'first) 1))
     "SAY"))
 
-(defun pcomplete-parse-erc-arguments ()
+(defun pcomplete-erc-parse-arguments ()
   "Returns a list of parsed whitespace-separated arguments.
 These are the words from the beginning of the line after the prompt
 up to where point is right now."

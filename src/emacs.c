@@ -65,6 +65,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
+#ifdef HAVE_X_WINDOWS
+#include "xterm.h"
+#endif
+
 #ifdef HAVE_SETLOCALE
 #include <locale.h>
 #endif
@@ -1984,6 +1988,11 @@ all of which are called before Emacs is actually killed.  */)
   Frun_hooks (1, &hook);
 
   UNGCPRO;
+
+#ifdef HAVE_X_WINDOWS
+  /* Transfer any clipboards we own to the clipboard manager.  */
+  x_clipboard_manager_save_all ();
+#endif
 
   shut_down_emacs (0, 0, STRINGP (arg) ? arg : Qnil);
 

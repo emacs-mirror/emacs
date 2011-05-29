@@ -1062,6 +1062,22 @@ nonincremental search instead via `isearch-edit-string'."
 
 (defvar minibuffer-history-symbol) ;; from external package gmhist.el
 
+(defun isearch-fail-pos ()
+  "Position of first mismatch in search string, or its length if none."
+  (let ((cmds isearch-cmds))
+    (if (and isearch-success (not isearch-error))
+        (length isearch-message)
+      (while (or (not (isearch-success-state (car cmds)))
+                 (isearch-error-state (car cmds)))
+        (pop cmds))
+      (let ((succ-msg (and cmds (isearch-message-state (car cmds)))))
+        (if (and (stringp succ-msg)
+                 (< (length succ-msg) (length isearch-message))
+                 (equal succ-msg
+                        (substring isearch-message 0 (length succ-msg))))
+            (length succ-msg)
+          0)))))
+
 (defun isearch-edit-string ()
   "Edit the search string in the minibuffer.
 The following additional command keys are active while editing.
@@ -1141,7 +1157,7 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 		(setq isearch-new-string
                       (read-from-minibuffer
                        (isearch-message-prefix nil nil isearch-nonincremental)
-                       isearch-string
+                        (cons isearch-string (1+ (isearch-fail-pos)))
                        minibuffer-local-isearch-map nil
                        (if isearch-regexp
 			   (cons 'regexp-search-ring
@@ -2435,7 +2451,7 @@ update the match data, and return point."
 	;; skip all characters with that same `invisible' property value.
 	;; Do that over and over.
 	(while (and (< (point) end) (invisible-p (point)))
-	  (if (get-text-property (point) 'invisible)
+	  (if (invisible-p (get-text-property (point) 'invisible))
 	      (progn
 		(goto-char (next-single-property-change (point) 'invisible
 							nil end))

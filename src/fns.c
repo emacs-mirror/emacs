@@ -4520,6 +4520,11 @@ including negative integers.  */)
 #include "md5.h"
 #include "sha1.h"
 
+/* Convert a possibly-signed character to an unsigned character.  This is
+   a bit safer than casting to unsigned char, since it catches some type
+   errors that the cast doesn't.  */
+static inline unsigned char to_uchar (char ch) { return ch; }
+
 /* TYPE: 0 for md5, 1 for sha1. */
 
 static Lisp_Object
@@ -4717,7 +4722,7 @@ crypto_hash_function (int type, Lisp_Object object, Lisp_Object start, Lisp_Obje
 	  {
 	    char value[33];
 	    for (i = 0; i < 16; i++)
-	      sprintf (&value[2 * i], "%02x", digest[i]);
+	      sprintf (&value[2 * i], "%02x", to_uchar (digest[i]));
 	    res = make_string (value, 32);
 	  }
 	else
@@ -4735,7 +4740,7 @@ crypto_hash_function (int type, Lisp_Object object, Lisp_Object start, Lisp_Obje
 	  {
 	    char value[41];
 	    for (i = 0; i < 20; i++)
-	      sprintf (&value[2 * i], "%02x", digest[i]);
+	      sprintf (&value[2 * i], "%02x", to_uchar (digest[i]));
 	    res = make_string (value, 40);
 	  }
 	else

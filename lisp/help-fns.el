@@ -557,6 +557,21 @@ suitable file is found, return nil."
 		(insert (car high) "\n")
 		(fill-region fill-begin (point)))
 	      (setq doc (cdr high))))
+
+	  ;; If this is a derived mode, link to the parent.
+	  (let ((parent-mode (and (symbolp real-function)
+				  (get real-function
+				       'derived-mode-parent))))
+	    (when parent-mode
+	      (with-current-buffer standard-output
+		(insert "\nParent mode: `")
+		(let ((beg (point)))
+		  (insert (format "%s" parent-mode))
+		  (make-text-button beg (point)
+				    'type 'help-function
+				    'help-args (list parent-mode))))
+	      (princ "'.\n")))
+
 	  (let* ((obsolete (and
 			    ;; function might be a lambda construct.
 			    (symbolp function)

@@ -1,3 +1,10 @@
+2011-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-pcomplete.el (erc-pcompletions-at-point): Mark the completion
+	data as non-exclusive if it's using the default-completion-function.
+	(pcomplete-erc-parse-arguments): Rename pcomplete-parse-erc-arguments.
+	(pcomplete-erc-setup): Use new name.
+
 2011-05-03  Debarshi Ray  <rishi@gnu.org>  (tiny change)
 
 	* erc-backend.el (671): New response handler.

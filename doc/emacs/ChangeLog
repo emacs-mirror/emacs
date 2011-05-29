@@ -1,3 +1,10 @@
+2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Hooks): Reorganize.  Mention Prog mode.
+
+	* fixit.texi (Spelling): Mention using prog-mode-hook for flypsell
+	prog mode (Bug#8240).
+
 2011-05-27  Glenn Morris  <rgm@gnu.org>
 
 	* custom.texi (Specifying File Variables):

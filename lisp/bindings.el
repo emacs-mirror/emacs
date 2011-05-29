@@ -321,7 +321,9 @@ mouse-3: Remove current window from display")
        (standard-mode-line-format
 	(list
 	 "%e"
-	 (propertize "-" 'help-echo help-echo)
+	 `(:eval (if (display-graphic-p)
+		     ,(propertize " " 'help-echo help-echo)
+		   ,(propertize "-" 'help-echo help-echo)))
 	 'mode-line-mule-info
 	 'mode-line-client
 	 'mode-line-modified
