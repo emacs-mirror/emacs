@@ -1,3 +1,8 @@
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* select.el: Don't perform clipboard-manager saving in hooks;
+	leave the hooks empty.
+
 2011-05-28  Leo Liu  <sdl.web@gmail.com>
 
 	* replace.el (occur-menu-map, occur-edit-mode-map): New vars.
