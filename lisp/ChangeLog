@@ -1,3 +1,8 @@
+2011-05-29  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc): Use the user's stored encryption method by
+	default.
+
 2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* select.el: Don't perform clipboard-manager saving in hooks;
