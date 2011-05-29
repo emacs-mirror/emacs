@@ -1,3 +1,8 @@
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Remapping Commands): Emphasize that the keymap
+	needs to be active (Bug#8350).
+
 2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.texi (Reading File Names): Clarify (Bug#8480).
