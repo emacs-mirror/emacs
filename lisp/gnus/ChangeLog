@@ -1,3 +1,28 @@
+2011-05-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-mark-article-read): It's possible that we
+	want to have `gnus-newsgroup-unselected' kept sorted.  If this isn't
+	done, then unselected articles may be marked as read.
+
+	* pop3.el (pop3-open-server): Erase the buffer after the greeting,
+	since not doing this seems to lead to a race condition in pop3-logon.
+
+	* nnvirtual.el (nnvirtual-request-article): Bind `gnus-command-method'
+	so that the call chain it correct when we call "upwards".
+
+	* gnus-sum.el (gnus-select-newsgroup): Auto-expiry doesn't make sense
+	in read-only groups.
+
+	* gnus-group.el (gnus-group-mark-article-read): Ditto.
+
+	* message.el (message-cite-reply-position): Doc string fix.
+
+	* nnimap.el (nnimap-transform-headers): Simplify regexp to hopefully
+	avoid regexp overflow.
+	(nnimap-transform-split-mail): Ditto.
+
+	* pop3.el (pop3-retr): Error out if the server closes the connection.
+
 2011-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mml1991.el (mml1991-mailcrypt-encrypt): Remove use of ill-designed

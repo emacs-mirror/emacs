@@ -3567,7 +3567,8 @@ or nil if no action could be taken."
 	(gnus-add-marked-articles group 'tick nil nil 'force)
 	(gnus-add-marked-articles group 'dormant nil nil 'force))
       ;; Do auto-expirable marks if that's required.
-      (when (gnus-group-auto-expirable-p group)
+      (when (and (gnus-group-auto-expirable-p group)
+		 (not (gnus-group-read-only-p group)))
         (gnus-range-map
 	 (lambda (article)
 	   (gnus-add-marked-articles group 'expire (list article))
@@ -4630,10 +4631,11 @@ This command may read the active file."
 		  (push n gnus-newsgroup-unselected))
 		(setq n (1+ n)))
 	      (setq gnus-newsgroup-unselected
-		    (nreverse gnus-newsgroup-unselected)))))
+		    (sort gnus-newsgroup-unselected '<)))))
       (gnus-activate-group group)
       (gnus-group-make-articles-read group (list article))
-      (when (gnus-group-auto-expirable-p group)
+      (when (and (gnus-group-auto-expirable-p group)
+		 (not (gnus-group-read-only-p group)))
 	(gnus-add-marked-articles
 	 group 'expire (list article))))))
 
