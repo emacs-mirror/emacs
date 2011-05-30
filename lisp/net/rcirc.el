@@ -616,7 +616,7 @@ last ping."
     (setq header-line-format (format "%f" (- (rcirc-float-time)
 					     (string-to-number message))))))
 
-(defvar rcirc-debug-buffer " *rcirc debug*")
+(defvar rcirc-debug-buffer "*rcirc debug*")
 (defvar rcirc-debug-flag nil
   "If non-nil, write information to `rcirc-debug-buffer'.")
 (defun rcirc-debug (process text)

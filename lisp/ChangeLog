@@ -1,3 +1,7 @@
+2011-05-30  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-debug-buffer): Use visible buffer name.
+
 2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.el (image-animate-max-time): Allow nil and t values.
