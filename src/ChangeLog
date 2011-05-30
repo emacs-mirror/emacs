@@ -1,5 +1,11 @@
 2011-05-30  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Malloc failure behavior now depends on size of allocation.
+	* alloc.c (buffer_memory_full, memory_full): New arg NBYTES.
+	* lisp.h: Change signatures accordingly.
+	* alloc.c, buffer.c, editfns.c, menu.c, minibuf.c, xterm.c:
+	All callers changed.
+
 	* gnutls.c: Use Emacs's memory allocators.
 	Without this change, the gnutls library would invoke malloc etc.
 	directly, which causes problems on non-SYNC_INPUT hosts, and which

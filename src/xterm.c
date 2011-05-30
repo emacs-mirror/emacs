@@ -4225,7 +4225,7 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
       size_t old_nbytes = scroll_bar_windows_size * sizeof *scroll_bar_windows;
 
       if ((size_t) -1 / sizeof *scroll_bar_windows < new_size)
-	memory_full ();
+	memory_full (SIZE_MAX);
       scroll_bar_windows = (struct window **) xrealloc (scroll_bar_windows,
 							nbytes);
       memset (&scroll_bar_windows[i], 0, nbytes - old_nbytes);

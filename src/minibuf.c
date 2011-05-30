@@ -245,7 +245,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 	     len == size - 1 && line[len - 1] != '\n'))
     {
       if ((size_t) -1 / 2 < size)
-	memory_full ();
+	memory_full (SIZE_MAX);
       size *= 2;
       line = (char *) xrealloc (line, size);
     }

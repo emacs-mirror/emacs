@@ -471,7 +471,7 @@ display_malloc_warning (void)
 /* Called if we can't allocate relocatable space for a buffer.  */
 
 void
-buffer_memory_full (void)
+buffer_memory_full (EMACS_INT nbytes)
 {
   /* If buffers use the relocating allocator, no need to free
      spare_memory, because we may have plenty of malloc space left
@@ -481,7 +481,7 @@ buffer_memory_full (void)
      malloc.  */
 
 #ifndef REL_ALLOC
-  memory_full ();
+  memory_full (nbytes);
 #endif
 
   /* This used to call error, but if we've run out of memory, we could
@@ -677,7 +677,7 @@ xmalloc (size_t size)
   MALLOC_UNBLOCK_INPUT;
 
   if (!val && size)
-    memory_full ();
+    memory_full (size);
   return val;
 }
 
@@ -698,7 +698,8 @@ xrealloc (POINTER_TYPE *block, size_t size)
     val = (POINTER_TYPE *) realloc (block, size);
   MALLOC_UNBLOCK_INPUT;
 
-  if (!val && size) memory_full ();
+  if (!val && size)
+    memory_full (size);
   return val;
 }
 
@@ -791,7 +792,7 @@ lisp_malloc (size_t nbytes, enum mem_type type)
 
   MALLOC_UNBLOCK_INPUT;
   if (!val && nbytes)
-    memory_full ();
+    memory_full (nbytes);
   return val;
 }
 
@@ -938,7 +939,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
       if (base == 0)
 	{
 	  MALLOC_UNBLOCK_INPUT;
-	  memory_full ();
+	  memory_full (ABLOCKS_BYTES);
 	}
 
       aligned = (base == abase);
@@ -964,7 +965,7 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
 	      lisp_malloc_loser = base;
 	      free (base);
 	      MALLOC_UNBLOCK_INPUT;
-	      memory_full ();
+	      memory_full (SIZE_MAX);
 	    }
 	}
 #endif
@@ -3270,35 +3271,58 @@ make_event_array (register int nargs, Lisp_Object *args)
  ************************************************************************/
 
 
-/* Called if malloc returns zero.  */
+/* Called if malloc (NBYTES) returns zero.  If NBYTES == SIZE_MAX,
+   there may have been size_t overflow so that malloc was never
+   called, or perhaps malloc was invoked successfully but the
+   resulting pointer had problems fitting into a tagged EMACS_INT.  In
+   either case this counts as memory being full even though malloc did
+   not fail.  */
 
 void
-memory_full (void)
+memory_full (size_t nbytes)
 {
-  int i;
+  /* Do not go into hysterics merely because a large request failed.  */
+  int enough_free_memory = 0;
+  if (SPARE_MEMORY < nbytes)
+    {
+      void *p = malloc (SPARE_MEMORY);
+      if (p)
+	{
+	  if (spare_memory[0])
+	    free (p);
+	  else
+	    spare_memory[0] = p;
+	  enough_free_memory = 1;
+	}
+    }
 
-  Vmemory_full = Qt;
+  if (! enough_free_memory)
+    {
+      int i;
 
-  memory_full_cons_threshold = sizeof (struct cons_block);
+      Vmemory_full = Qt;
 
-  /* The first time we get here, free the spare memory.  */
-  for (i = 0; i < sizeof (spare_memory) / sizeof (char *); i++)
-    if (spare_memory[i])
-      {
-	if (i == 0)
-	  free (spare_memory[i]);
-	else if (i >= 1 && i <= 4)
-	  lisp_align_free (spare_memory[i]);
-	else
-	  lisp_free (spare_memory[i]);
-	spare_memory[i] = 0;
-      }
+      memory_full_cons_threshold = sizeof (struct cons_block);
 
-  /* Record the space now used.  When it decreases substantially,
-     we can refill the memory reserve.  */
+      /* The first time we get here, free the spare memory.  */
+      for (i = 0; i < sizeof (spare_memory) / sizeof (char *); i++)
+	if (spare_memory[i])
+	  {
+	    if (i == 0)
+	      free (spare_memory[i]);
+	    else if (i >= 1 && i <= 4)
+	      lisp_align_free (spare_memory[i]);
+	    else
+	      lisp_free (spare_memory[i]);
+	    spare_memory[i] = 0;
+	  }
+
+      /* Record the space now used.  When it decreases substantially,
+	 we can refill the memory reserve.  */
 #if !defined SYSTEM_MALLOC && !defined SYNC_INPUT
-  bytes_used_when_full = BYTES_USED;
+      bytes_used_when_full = BYTES_USED;
 #endif
+    }
 
   /* This used to call error, but if we've run out of memory, we could
      get infinite recursion trying to build the string.  */
