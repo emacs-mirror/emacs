@@ -3,7 +3,7 @@
 	* gnutls.c: Use Emacs's memory allocators.
 	Without this change, the gnutls library would invoke malloc etc.
 	directly, which causes problems on non-SYNC_INPUT hosts, and which
-	runs afoul of improving memory_full behavior.
+	runs afoul of improving memory_full behavior.  (Bug#8761)
 	(fn_gnutls_global_set_mem_functions): New macro or function pointer.
 	(emacs_gnutls_global_init): Use it to specify xmalloc, xrealloc,
 	xfree instead of the default malloc, realloc, free.
