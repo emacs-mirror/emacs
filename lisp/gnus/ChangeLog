@@ -1,3 +1,9 @@
+2011-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mml1991.el (mml1991-mailcrypt-encrypt): Remove use of ill-designed
+	mm-with-unibyte-current-buffer.  The buffer should not contain any
+	multibyte chars anyway at this stage.
+
 2011-05-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-urlify): Use shr-add-font to make underlines be less ugly
