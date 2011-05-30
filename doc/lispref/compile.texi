@@ -445,7 +445,7 @@ used to load it for compiling, but not executing.  For example,
 
 @lisp
 (eval-when-compile
-  (require 'my-macro-package))  ;; only macros needed from this
+  (require 'my-macro-package))
 @end lisp
 
 The same sort of thing goes for macros and @code{defsubst} functions

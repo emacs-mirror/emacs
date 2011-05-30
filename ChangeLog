@@ -1,7 +1,14 @@
-2011-05-28  Paul Eggert  <eggert@cs.ucla.edu>
+2011-05-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use 'inline', not 'INLINE'.
 	* configure.in, autogen/config.in (INLINE): Remove.
+
+2011-05-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Adjust to recent gnulib change for @GUARD_PREFIX@.
+	* lib/makefile.w32-in (getopt_h): Substitute @GUARD_PREFIX@, too.
+	All uses of _GL_ for guard prefixes in lib/*.h replaced with
+	_@GUARD_PREFIX@_.
 
 2011-05-27  Paul Eggert  <eggert@cs.ucla.edu>
 

@@ -1,11 +1,63 @@
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (image-animate-max-time): Allow nil and t values.
+	Default to nil.
+	(create-animated-image): Doc fix.
+	(image-animate-start): Remove second arg; just use
+	image-animate-max-time.
+	(image-animate-timeout): Doc fix.  Args changed.
+
+	* image-mode.el (image-toggle-display-image): Ensure that the
+	image spec passed to the animate timer is the same object as in
+	the the buffer's display property (Bug#6981).
+	(image-transform-properties): Doc fix.
+
+	* image.el (image-animate-max-time): Default to nil.
+
+2011-05-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* menu-bar.el (kill-this-buffer-enabled-p): Avoid looping over
+	entire buffer list (Bug#8184).
+
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (imagemagick-types-inhibit)
+	(imagemagick-register-types): Doc fix.
+
+2011-05-29  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc): Use the user's stored encryption method by
+	default.
+
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* select.el: Don't perform clipboard-manager saving in hooks;
+	leave the hooks empty.
+
+2011-05-28  Leo Liu  <sdl.web@gmail.com>
+
+	* replace.el (occur-menu-map, occur-edit-mode-map): New vars.
+	(occur-mode-map): Bind occur-edit-mode.  Use occur-menu-map.
+	(occur-edit-mode): New major mode (Bug#8463).
+	(occur-after-change-function): New function.
+	(occur-engine): Give Occur tags a read-only property.
+
 2011-05-28  Kevin Ryde  <user42@zip.com.au>
 
 	* subr.el (def-edebug-spec): Doc fix (Bug#8430).
 
 2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
 
+	* bindings.el (help-echo): Make the initial non-indicator dash
+	empty on graphical terminals (Bug#7295).
+
 	* files.el (auto-mode-alist): Move config rule after the
 	in-stripping one (Bug#8547).
+
+	* newcomment.el (comment-end-skip): Doc fix (Bug#8659).
+
+	* startup.el (normal-splash-screen): Remove gratuitous mode-line
+	setting (Bug#8740).
 
 2011-05-28  Alp Aker  <aker@pitt.edu>  (tiny change)
 

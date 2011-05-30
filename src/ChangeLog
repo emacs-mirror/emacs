@@ -1,4 +1,4 @@
-2011-05-28  Paul Eggert  <eggert@cs.ucla.edu>
+2011-05-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use 'inline', not 'INLINE'.
 	* alloc.c, fontset.c (INLINE): Remove.
@@ -7,6 +7,32 @@
 	* xdisp.c, xfaces.c, xterm.c: Replace all uses of INLINE with inline.
 	* gmalloc.c (register_heapinfo): Use inline unconditionally.
 	* lisp.h (LISP_MAKE_RVALUE): Use inline, not __inline__.
+
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c: Various fixes to ImageMagick code comments.
+	(Fimagemagick_types): Doc fix.
+
+2011-05-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor fixes prompted by GCC 4.6.0 warnings.
+
+	* xselect.c (converted_selections, conversion_fail_tag): Now static.
+
+	* emacs.c [HAVE_X_WINDOWS]: Include "xterm.h".
+	(x_clipboard_manager_save_all): Move extern decl to ...
+	* xterm.h: ... here, so that it can be checked for consistency.
+
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c (x_clipboard_manager_save_frame)
+	(x_clipboard_manager_save_all): New functions.
+	(Fx_clipboard_manager_save): Lisp function deleted.
+
+	* emacs.c (Fkill_emacs): Call x_clipboard_manager_save_all.
+	* frame.c (delete_frame): Call x_clipboard_manager_save_frame.
+
+	* xterm.h: Update prototype.
 
 2011-05-28  William Xu  <william.xwl@gmail.com>
 

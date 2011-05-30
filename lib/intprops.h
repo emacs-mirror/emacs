@@ -22,9 +22,8 @@
 
 #include <limits.h>
 
-/* Return a integer value, converted to the same type as the integer
-   expression E after integer type promotion.  V is the unconverted value.
-   E should not have side effects.  */
+/* Return an integer value, converted to the same type as the integer
+   expression E after integer type promotion.  V is the unconverted value.  */
 #define _GL_INT_CONVERT(e, v) (0 * (e) + (v))
 
 /* Act like _GL_INT_CONVERT (E, -V) but work around a bug in IRIX 6.5 cc; see
@@ -53,7 +52,7 @@
 #define TYPE_SIGNED(t) (! ((t) 0 < (t) -1))
 
 /* Return 1 if the integer expression E, after integer promotion, has
-   a signed type.  E should not have side effects.  */
+   a signed type.  */
 #define _GL_INT_SIGNED(e) (_GL_INT_NEGATE_CONVERT (e, 1) < 0)
 
 

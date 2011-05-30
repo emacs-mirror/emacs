@@ -456,7 +456,12 @@ If ARG is non-nil, instead prompt for connection parameters."
              (encryption
               (intern (completing-read "Encryption (default plain): "
                                        '("plain" "tls")
-                                       nil t nil nil "plain"))))
+                                       nil t
+                                       (let ((choice (plist-get server-plist
+                                                                :encryption)))
+                                         (when choice
+                                           (symbol-name choice)))
+                                       nil "plain"))))
 	(rcirc-connect server port nick user-name
 		       rcirc-default-full-name
 		       channels password encryption))

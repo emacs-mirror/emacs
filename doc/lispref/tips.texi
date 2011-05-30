@@ -249,7 +249,8 @@ file if you distribute copies.  Use a notice like this one:
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see
+;; <http://www.gnu.org/licenses/>.
 @end smallexample
 
 If you have signed papers to assign the copyright to the Foundation,

@@ -55,8 +55,8 @@ CODING SYSTEM
   character sequence of emacs-utf-8 to a byte sequence of a specific
   coding system.
 
-  In Emacs Lisp, a coding system is represented by a Lisp symbol.  In
-  C level, a coding system is represented by a vector of attributes
+  In Emacs Lisp, a coding system is represented by a Lisp symbol.  On
+  the C level, a coding system is represented by a vector of attributes
   stored in the hash table Vcharset_hash_table.  The conversion from
   coding system symbol to attributes vector is done by looking up
   Vcharset_hash_table by the symbol.
