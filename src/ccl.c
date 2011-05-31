@@ -79,9 +79,8 @@ static Lisp_Object Vccl_program_table;
 #define CCL_HEADER_EOF		1
 #define CCL_HEADER_MAIN		2
 
-/* CCL code is a sequence of 28-bit non-negative integers (i.e. the
-   MSB is always 0), each contains CCL command and/or arguments in the
-   following format:
+/* CCL code is a sequence of 28-bit integers.  Each contains a CCL
+   command and/or arguments in the following format:
 
 	|----------------- integer (28-bit) ------------------|
 	|------- 17-bit ------|- 3-bit --|- 3-bit --|- 5-bit -|
@@ -94,12 +93,14 @@ static Lisp_Object Vccl_program_table;
 	|------------- constant or other args ----------------|
                      cccccccccccccccccccccccccccc
 
-   where, `cc...c' is a non-negative integer indicating constant value
-   (the left most `c' is always 0) or an absolute jump address, `RRR'
+   where `cc...c' is an integer indicating a constant value or an
+   absolute jump address.  The context determines whether `cc...c' is
+   considered to be unsigned, or a signed two's complement number.  `RRR'
    and `rrr' are CCL register number, `XXXXX' is one of the following
    CCL commands.  */
 
 #define CCL_CODE_MAX ((1 << (28 - 1)) - 1)
+#define CCL_CODE_MIN (-1 - CCL_CODE_MAX)
 
 /* CCL commands
 
@@ -756,7 +757,7 @@ while(0)
   while (0)
 
 #define GET_CCL_CODE(code, ccl_prog, ic)			\
-  GET_CCL_RANGE (code, ccl_prog, ic, 0, CCL_CODE_MAX)
+  GET_CCL_RANGE (code, ccl_prog, ic, CCL_CODE_MIN, CCL_CODE_MAX)
 
 #define GET_CCL_INT(var, ccl_prog, ic)				\
   GET_CCL_RANGE (var, ccl_prog, ic, INT_MIN, INT_MAX)
