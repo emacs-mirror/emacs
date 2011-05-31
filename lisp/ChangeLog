@@ -1,3 +1,8 @@
+2011-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debug): Save&restore not just the buffer's
+	content but also its previous major mode.
+
 2011-05-31  Helmut Eller  <eller.helmut@gmail.com>
 
 	* debug.el (debug): Restore the previous content of the
