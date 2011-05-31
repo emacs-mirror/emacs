@@ -1,3 +1,8 @@
+2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* dispnew.c (add_window_display_history): Use const for the string
+	pointer.  Remove declaration, not needed.
+
 2011-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use 'inline', not 'INLINE'.
