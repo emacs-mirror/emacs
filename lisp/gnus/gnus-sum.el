@@ -5715,7 +5715,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
       (gnus-summary-remove-list-identifiers)
       ;; Check whether auto-expire is to be done in this group.
       (setq gnus-newsgroup-auto-expire
-	    (gnus-group-auto-expirable-p group))
+	    (and (gnus-group-auto-expirable-p group)
+		 (not (gnus-group-read-only-p group))))
       ;; Set up the article buffer now, if necessary.
       (unless (and gnus-single-article-buffer
 		   (equal gnus-article-buffer "*Article*"))

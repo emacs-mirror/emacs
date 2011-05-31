@@ -88,7 +88,7 @@ static Lisp_Object Qdebug_on_error;
 static Lisp_Object Qdeclare;
 Lisp_Object Qinternal_interpreter_environment, Qclosure;
 
-Lisp_Object Qdebug;
+static Lisp_Object Qdebug;
 
 /* This holds either the symbol `run-hooks' or nil.
    It is nil at an early stage of startup, and when Emacs

@@ -1091,7 +1091,7 @@ Note: Many newsgroups frown upon nontraditional reply styles. You
 probably want to set this variable only for specific groups,
 e.g. using `gnus-posting-styles':
 
-  (eval (set (make-local-variable 'message-cite-reply-above) 'above))"
+  (eval (set (make-local-variable 'message-cite-reply-position) 'above))"
   :type '(choice (const :tag "Reply inline" 'traditional)
 		 (const :tag "Reply above" 'above)
 		 (const :tag "Reply below" 'below))

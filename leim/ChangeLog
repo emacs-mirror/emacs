@@ -1,3 +1,7 @@
+2011-05-30  Oliver Scholz  <epameinondas@gmx.de>
+
+	* quail/ipa-praat.el: New input method.
+
 2011-05-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (OTHERS): Add $(srcdir)/quail/persian.elc.

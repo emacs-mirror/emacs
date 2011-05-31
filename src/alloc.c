@@ -989,13 +989,11 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
   free_ablock = free_ablock->x.next_free;
 
 #if GC_MARK_STACK && !defined GC_MALLOC_CHECK
-  if (val && type != MEM_TYPE_NON_LISP)
+  if (type != MEM_TYPE_NON_LISP)
     mem_insert (val, (char *) val + nbytes, type);
 #endif
 
   MALLOC_UNBLOCK_INPUT;
-  if (!val && nbytes)
-    memory_full ();
 
   eassert (0 == ((uintptr_t) val) % BLOCK_ALIGN);
   return val;
