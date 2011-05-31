@@ -367,7 +367,7 @@ char_quoted (EMACS_INT charpos, EMACS_INT bytepos)
 /* Return the bytepos one character before BYTEPOS.
    We assume that BYTEPOS is not at the start of the buffer.  */
 
-static INLINE EMACS_INT
+static inline EMACS_INT
 dec_bytepos (EMACS_INT bytepos)
 {
   if (NILP (BVAR (current_buffer, enable_multibyte_characters)))

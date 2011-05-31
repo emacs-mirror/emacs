@@ -136,7 +136,7 @@ Lisp_Object Qja, Qko;
 
 static Lisp_Object QCuser_spec;
 
-/* Alist of font registry symbol and the corresponding charsets
+/* Alist of font registry symbols and the corresponding charset
    information.  The information is retrieved from
    Vfont_encoding_alist on demand.
 
@@ -226,9 +226,9 @@ static int num_font_drivers;
 
 
 /* Return a Lispy value of a font property value at STR and LEN bytes.
-   If STR is "*", it returns nil.
-   If FORCE_SYMBOL is zero and all characters in STR are digits, it
-   returns an integer.  Otherwise, it returns a symbol interned from
+   If STR is "*", return nil.
+   If FORCE_SYMBOL is zero and all characters in STR are digits,
+   return an integer.  Otherwise, return a symbol interned from
    STR.  */
 
 Lisp_Object
@@ -251,7 +251,7 @@ font_intern_prop (const char *str, int len, int force_symbol)
     }
 
   /* The following code is copied from the function intern (in
-     lread.c), and modified to suite our purpose.  */
+     lread.c), and modified to suit our purpose.  */
   obarray = Vobarray;
   if (!VECTORP (obarray) || ASIZE (obarray) == 0)
     obarray = check_obarray (obarray);
@@ -305,7 +305,7 @@ font_pixel_size (FRAME_PTR f, Lisp_Object spec)
    font vector.  If VAL is not valid (i.e. not registered in
    font_style_table), return -1 if NOERROR is zero, and return a
    proper index if NOERROR is nonzero.  In that case, register VAL in
-   font_style_table if VAL is a symbol, and return a closest index if
+   font_style_table if VAL is a symbol, and return the closest index if
    VAL is an integer.  */
 
 int
@@ -473,7 +473,7 @@ font_registry_charsets (Lisp_Object registry, struct charset **encoding, struct 
 }
 
 
-/* Font property value validaters.  See the comment of
+/* Font property value validators.  See the comment of
    font_property_table for the meaning of the arguments.  */
 
 static Lisp_Object font_prop_validate (int, Lisp_Object, Lisp_Object);
@@ -591,7 +591,7 @@ font_prop_validate_otf (Lisp_Object prop, Lisp_Object val)
   return val;
 }
 
-/* Structure of known font property keys and validater of the
+/* Structure of known font property keys and validator of the
    values.  */
 static const struct
 {
@@ -742,7 +742,7 @@ enum xlfd_field_mask
 };
 
 
-/* Parse P pointing the pixel/point size field of the form
+/* Parse P pointing to the pixel/point size field of the form
    `[A B C D]' which specifies a transformation matrix:
 
 	A  B  0
@@ -775,7 +775,7 @@ parse_matrix (const char *p)
 }
 
 /* Expand a wildcard field in FIELD (the first N fields are filled) to
-   multiple fields to fill in all 14 XLFD fields while restring a
+   multiple fields to fill in all 14 XLFD fields while restricting a
    field position by its contents.  */
 
 static int
@@ -2054,14 +2054,14 @@ font_rescale_ratio (Lisp_Object font_entity)
    font-spec.  The score value is 32 bit (`unsigned'), and the smaller
    the value is, the closer the font is to the font-spec.
 
-   The lowest 2 bits of the score is used for driver type.  The font
+   The lowest 2 bits of the score are used for driver type.  The font
    available by the most preferred font driver is 0.
 
-   Each 7-bit in the higher 28 bits are used for numeric properties
+   The 4 7-bit fields in the higher 28 bits are used for numeric properties
    WEIGHT, SLANT, WIDTH, and SIZE.  */
 
 /* How many bits to shift to store the difference value of each font
-   property in a score.  Note that flots for FONT_TYPE_INDEX and
+   property in a score.  Note that floats for FONT_TYPE_INDEX and
    FONT_REGISTRY_INDEX are not used.  */
 static int sort_shift_bits[FONT_SIZE_INDEX + 1];
 
@@ -2598,7 +2598,7 @@ font_clear_cache (FRAME_PTR f, Lisp_Object cache, struct font_driver *driver)
 static Lisp_Object scratch_font_spec, scratch_font_prefer;
 
 /* Check each font-entity in VEC, and return a list of font-entities
-   that satisfy this condition:
+   that satisfy these conditions:
      (1) matches with SPEC and SIZE if SPEC is not nil, and
      (2) doesn't match with any regexps in Vface_ignored_fonts (if non-nil).
 */
@@ -3018,8 +3018,8 @@ font_clear_prop (Lisp_Object *attrs, enum font_property_index prop)
   attrs[LFACE_FONT_INDEX] = font;
 }
 
-/* Selecte a font from ENTITIES (list of font-entity vectors) that
-   supports C and matches best with ATTRS and PIXEL_SIZE.  */
+/* Select a font from ENTITIES (list of font-entity vectors) that
+   supports C and is the best match for ATTRS and PIXEL_SIZE.  */
 
 static Lisp_Object
 font_select_entity (Lisp_Object frame, Lisp_Object entities, Lisp_Object *attrs, int pixel_size, int c)
@@ -3062,8 +3062,8 @@ font_select_entity (Lisp_Object frame, Lisp_Object entities, Lisp_Object *attrs,
   return font_sort_entities (entities, prefer, frame, c);
 }
 
-/* Return a font-entity satisfying SPEC and best matching with face's
-   font related attributes in ATTRS.  C, if not negative, is a
+/* Return a font-entity that satisfies SPEC and is the best match for
+   face's font related attributes in ATTRS.  C, if not negative, is a
    character that the entity must support.  */
 
 Lisp_Object
@@ -3254,8 +3254,8 @@ font_open_for_lface (FRAME_PTR f, Lisp_Object entity, Lisp_Object *attrs, Lisp_O
 }
 
 
-/* Find a font satisfying SPEC and best matching with face's
-   attributes in ATTRS on FRAME, and return the opened
+/* Find a font that satisfies SPEC and is the best match for
+   face's attributes in ATTRS on FRAME, and return the opened
    font-object.  */
 
 Lisp_Object
@@ -3267,8 +3267,7 @@ font_load_for_lface (FRAME_PTR f, Lisp_Object *attrs, Lisp_Object spec)
   if (NILP (entity))
     {
       /* No font is listed for SPEC, but each font-backend may have
-	 the different criteria about "font matching".  So, try
-	 it.  */
+	 different criteria about "font matching".  So, try it.  */
       entity = font_matching_entity (f, attrs, spec);
       if (NILP (entity))
 	return Qnil;
@@ -3307,7 +3306,7 @@ font_done_for_face (FRAME_PTR f, struct face *face)
 }
 
 
-/* Open a font matching with font-spec SPEC on frame F.  If no proper
+/* Open a font that is a match for font-spec SPEC on frame F.  If no proper
    font is found, return Qnil.  */
 
 Lisp_Object
@@ -3331,7 +3330,7 @@ font_open_by_spec (FRAME_PTR f, Lisp_Object spec)
 }
 
 
-/* Open a font matching with NAME on frame F.  If no proper font is
+/* Open a font that matches NAME on frame F.  If no proper font is
    found, return Qnil.  */
 
 Lisp_Object
@@ -3355,7 +3354,7 @@ font_open_by_name (FRAME_PTR f, const char *name)
 /* Register font-driver DRIVER.  This function is used in two ways.
 
    The first is with frame F non-NULL.  In this case, make DRIVER
-   available (but not yet activated) on F.  All frame creaters
+   available (but not yet activated) on F.  All frame creators
    (e.g. Fx_create_frame) must call this function at least once with
    an available font-driver.
 
@@ -3682,7 +3681,7 @@ font_at (int c, EMACS_INT pos, struct face *face, struct window *w,
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* Check how many characters after POS (at most to *LIMIT) can be
-   displayed by the same font on the window W.  FACE, if non-NULL, is
+   displayed by the same font in the window W.  FACE, if non-NULL, is
    the face selected for the character at POS.  If STRING is not nil,
    it is the string to check instead of the current buffer.  In that
    case, FACE must be not NULL.
@@ -3826,7 +3825,7 @@ GSUB and GPOS may contain `nil' element.  In such a case, the font
 must not have any of the remaining elements.
 
 For instance, if the VALUE is `(thai nil nil (mark))', the font must
-be an OpenType font, and whose GPOS table of `thai' script's default
+be an OpenType font whose GPOS table of `thai' script's default
 language system must contain `mark' feature.
 
 usage: (font-spec ARGS...)  */)
@@ -4189,7 +4188,7 @@ DEFUN ("font-xlfd-name", Ffont_xlfd_name, Sfont_xlfd_name, 1, 2, 0,
 FONT is a font-spec, font-entity, or font-object.
 If the name is too long for XLFD (maximum 255 chars), return nil.
 If the 2nd optional arg FOLD-WILDCARDS is non-nil,
-the consecutive wildcards are folded to one.  */)
+the consecutive wildcards are folded into one.  */)
   (Lisp_Object font, Lisp_Object fold_wildcards)
 {
   char name[256];
@@ -4436,7 +4435,7 @@ the value is 0.
 If GSTRING-OUT is too short to hold produced glyphs, no glyphs are
 produced in GSTRING-OUT, and the value is nil.
 
-See the documentation of `font-make-gstring' for the format of
+See the documentation of `composition-get-gstring' for the format of
 glyph-string.  */)
   (Lisp_Object otf_features, Lisp_Object gstring_in, Lisp_Object from, Lisp_Object to, Lisp_Object gstring_out, Lisp_Object index)
 {
@@ -4571,10 +4570,10 @@ The value is a vector:
   [ NAME FILENAME PIXEL-SIZE SIZE ASCENT DESCENT SPACE-WIDTH AVERAGE-WIDTH
     CAPABILITY ]
 
-NAME is a string of the font name (or nil if the font backend doesn't
+NAME is the font name, a string (or nil if the font backend doesn't
 provide a name).
 
-FILENAME is a string of the font file (or nil if the font backend
+FILENAME is the font file name, a string (or nil if the font backend
 doesn't provide a file name).
 
 PIXEL-SIZE is a pixel size by which the font is opened.

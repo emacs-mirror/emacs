@@ -137,33 +137,32 @@ Whether the passphrase is cached at all is controlled by
     (while (looking-at "^Content[^ ]+:") (forward-line))
     (unless (bobp)
       (delete-region (point-min) (point)))
-    (mm-with-unibyte-current-buffer
-      (with-temp-buffer
-	(inline (mm-disable-multibyte))
-	(setq cipher (current-buffer))
-	(insert-buffer-substring text)
-	(unless (mc-encrypt-generic
-		 (or
-		  (message-options-get 'message-recipients)
-		  (message-options-set 'message-recipients
-				       (read-string "Recipients: ")))
-		 nil
-		 (point-min) (point-max)
-		 (message-options-get 'message-sender)
-		 'sign)
-	  (unless (> (point-max) (point-min))
-	    (pop-to-buffer result-buffer)
-	    (error "Encrypt error")))
-	(goto-char (point-min))
-	(while (re-search-forward "\r+$" nil t)
-	  (replace-match "" t t))
-	(set-buffer text)
-	(delete-region (point-min) (point-max))
-	;;(insert "Content-Type: application/pgp-encrypted\n\n")
-	;;(insert "Version: 1\n\n")
-	(insert "\n")
-	(insert-buffer-substring cipher)
-	(goto-char (point-max))))))
+    (with-temp-buffer
+      (inline (mm-disable-multibyte))
+      (setq cipher (current-buffer))
+      (insert-buffer-substring text)
+      (unless (mc-encrypt-generic
+               (or
+                (message-options-get 'message-recipients)
+                (message-options-set 'message-recipients
+                                     (read-string "Recipients: ")))
+               nil
+               (point-min) (point-max)
+               (message-options-get 'message-sender)
+               'sign)
+        (unless (> (point-max) (point-min))
+          (pop-to-buffer result-buffer)
+          (error "Encrypt error")))
+      (goto-char (point-min))
+      (while (re-search-forward "\r+$" nil t)
+        (replace-match "" t t))
+      (set-buffer text)
+      (delete-region (point-min) (point-max))
+      ;;(insert "Content-Type: application/pgp-encrypted\n\n")
+      ;;(insert "Version: 1\n\n")
+      (insert "\n")
+      (insert-buffer-substring cipher)
+      (goto-char (point-max)))))
 
 ;; pgg wrapper
 

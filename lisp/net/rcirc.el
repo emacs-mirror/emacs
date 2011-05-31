@@ -314,9 +314,11 @@ Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
   :type 'boolean
   :group 'rcirc)
 
-(defcustom rcirc-decode-coding-system 'utf-8
-  "Coding system used to decode incoming irc messages."
+(defcustom rcirc-decode-coding-system nil
+  "Coding system used to decode incoming irc messages.
+If nil automatically detect the coding system."
   :type 'coding-system
+  :version "24.1"
   :group 'rcirc)
 
 (defcustom rcirc-encode-coding-system 'utf-8
@@ -456,7 +458,12 @@ If ARG is non-nil, instead prompt for connection parameters."
              (encryption
               (intern (completing-read "Encryption (default plain): "
                                        '("plain" "tls")
-                                       nil t nil nil "plain"))))
+                                       nil t
+                                       (let ((choice (plist-get server-plist
+                                                                :encryption)))
+                                         (when choice
+                                           (symbol-name choice)))
+                                       nil "plain"))))
 	(rcirc-connect server port nick user-name
 		       rcirc-default-full-name
 		       channels password encryption))
@@ -611,7 +618,7 @@ last ping."
     (setq header-line-format (format "%f" (- (rcirc-float-time)
 					     (string-to-number message))))))
 
-(defvar rcirc-debug-buffer " *rcirc debug*")
+(defvar rcirc-debug-buffer "*rcirc debug*")
 (defvar rcirc-debug-flag nil
   "If non-nil, write information to `rcirc-debug-buffer'.")
 (defun rcirc-debug (process text)
@@ -1475,9 +1482,9 @@ record activity."
 	      (old-point (point-marker))
 	      (fill-start (marker-position rcirc-prompt-start-marker)))
 
+	  (setq text (decode-coding-string text (or rcirc-decode-coding-system
+						    (detect-coding-string text t))))
 	  (unless (string= sender (rcirc-nick process))
-	    ;; only decode text from other senders, not ours
-	    (setq text (decode-coding-string text rcirc-decode-coding-system))
 	    ;; mark the line with overlay arrow
 	    (unless (or (marker-position overlay-arrow-position)
 			(get-buffer-window (current-buffer))

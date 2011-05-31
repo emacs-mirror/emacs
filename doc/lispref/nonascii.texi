@@ -374,18 +374,18 @@ properties that Emacs knows about:
 
 @table @code
 @item name
-This property corresponds to the Unicode @code{Name} property.  The
-value is a string consisting of upper-case Latin letters A to Z,
-digits, spaces, and hyphen @samp{-} characters.
+Corresponds to the @code{Name} Unicode property.  The value is a
+string consisting of upper-case Latin letters A to Z, digits, spaces,
+and hyphen @samp{-} characters.
 
 @cindex unicode general category
 @item general-category
-This property corresponds to the Unicode @code{General_Category}
-property.  The value is a symbol whose name is a 2-letter abbreviation
-of the character's classification.
+Corresponds to the @code{General_Category} Unicode property.  The
+value is a symbol whose name is a 2-letter abbreviation of the
+character's classification.
 
 @item canonical-combining-class
-Corresponds to the Unicode @code{Canonical_Combining_Class} property.
+Corresponds to the @code{Canonical_Combining_Class} Unicode property.
 The value is an integer number.
 
 @item bidi-class
@@ -466,15 +466,18 @@ This function returns the value of @var{char}'s @var{propname} property.
      @result{} Nd
 @end group
 @group
-(get-char-code-property ?\u2084 'digit-value) ; subscript 4
+;; subscript 4
+(get-char-code-property ?\u2084 'digit-value)
      @result{} 4
 @end group
 @group
-(get-char-code-property ?\u2155 'numeric-value) ; one fifth
+;; one fifth
+(get-char-code-property ?\u2155 'numeric-value)
      @result{} 0.2
 @end group
 @group
-(get-char-code-property ?\u2163 'numeric-value) ; Roman IV
+;; Roman IV
+(get-char-code-property ?\u2163 'numeric-value)
      @result{} 4
 @end group
 @end example
@@ -1449,11 +1452,11 @@ for decoding (in case @var{operation} does decoding), and
 @var{encoding-system} is the coding system for encoding (in case
 @var{operation} does encoding).
 
-The argument @var{operation} is a symbol, one of @code{write-region},
-@code{start-process}, @code{call-process}, @code{call-process-region},
-@code{insert-file-contents}, or @code{open-network-stream}.  These are
-the names of the Emacs I/O primitives that can do character code and
-eol conversion.
+The argument @var{operation} is a symbol; it should be one of
+@code{write-region}, @code{start-process}, @code{call-process},
+@code{call-process-region}, @code{insert-file-contents}, or
+@code{open-network-stream}.  These are the names of the Emacs I/O
+primitives that can do character code and eol conversion.
 
 The remaining arguments should be the same arguments that might be given
 to the corresponding I/O primitive.  Depending on the primitive, one

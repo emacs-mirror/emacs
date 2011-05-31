@@ -138,9 +138,9 @@ unless @var{verbatim} is non-@code{nil}.
 @end defun
 
 @defun documentation function &optional verbatim
-This function returns the documentation string of @var{function}.
-@code{documentation} handles macros, named keyboard macros, and
-special forms, as well as ordinary functions.
+This function returns the documentation string of @var{function}.  It
+handles macros, named keyboard macros, and special forms, as well as
+ordinary functions.
 
 If @var{function} is a symbol, this function first looks for the
 @code{function-documentation} property of that symbol; if that has a

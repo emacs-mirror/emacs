@@ -2360,14 +2360,7 @@ and replace lines between %< and %> with its output, then:
 struct C_stab_entry { const char *name; int c_ext; enum sym_type type; };
 /* maximum key range = 33, duplicates = 0 */
 
-#ifdef __GNUC__
-__inline
-#else
-#ifdef __cplusplus
-inline
-#endif
-#endif
-static unsigned int
+static inline unsigned int
 hash (register const char *str, register unsigned int len)
 {
   static unsigned char asso_values[] =

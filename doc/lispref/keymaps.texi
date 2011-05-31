@@ -718,17 +718,18 @@ pseudo-Lisp description of the order and conditions for searching
 them:
 
 @lisp
-(or (if overriding-terminal-local-map
-        (@var{find-in} overriding-terminal-local-map)
-      (if overriding-local-map
-          (@var{find-in} overriding-local-map)
-        (or (@var{find-in} (get-char-property (point) 'keymap))
-            (@var{find-in-any} emulation-mode-map-alists)
-            (@var{find-in-any} minor-mode-overriding-map-alist)
-            (@var{find-in-any} minor-mode-map-alist)
-            (if (get-text-property (point) 'local-map)
-                (@var{find-in} (get-char-property (point) 'local-map))
-              (@var{find-in} (current-local-map))))))
+(or (cond
+     (overriding-terminal-local-map
+      (@var{find-in} overriding-terminal-local-map))
+     (overriding-local-map
+      (@var{find-in} overriding-local-map))
+     (or (@var{find-in} (get-char-property (point) 'keymap))
+	 (@var{find-in-any} emulation-mode-map-alists)
+	 (@var{find-in-any} minor-mode-overriding-map-alist)
+	 (@var{find-in-any} minor-mode-map-alist)
+	 (if (get-text-property (point) 'local-map)
+	     (@var{find-in} (get-char-property (point) 'local-map))
+	   (@var{find-in} (current-local-map)))))
     (@var{find-in} (current-global-map)))
 @end lisp
 
@@ -1468,33 +1469,33 @@ Dired mode is set up:
 @section Remapping Commands
 @cindex remapping commands
 
-  A special kind of key binding, using a special ``key sequence''
-which includes a command name, has the effect of @dfn{remapping} that
-command into another.  Here's how it works.  You make a key binding
-for a key sequence that starts with the dummy event @code{remap},
-followed by the command name you want to remap.  Specify the remapped
-definition as the definition in this binding.  The remapped definition
-is usually a command name, but it can be any valid definition for
-a key binding.
+  A special kind of key binding can be used to @dfn{remap} one command
+to another, without having to refer to the key sequence(s) bound to
+the original command.  To use this feature, make a key binding for a
+key sequence that starts with the dummy event @code{remap}, followed
+by the command name you want to remap; for the binding, specify the
+new definition (usually a command name, but possibly any other valid
+definition for a key binding).
 
-  Here's an example.  Suppose that My mode uses special commands
-@code{my-kill-line} and @code{my-kill-word}, which should be invoked
-instead of @code{kill-line} and @code{kill-word}.  It can establish
-this by making these two command-remapping bindings in its keymap:
+  For example, suppose My mode provides a special command
+@code{my-kill-line}, which should be invoked instead of
+@code{kill-line}.  To establish this, its mode keymap should contain
+the following remapping:
 
 @smallexample
 (define-key my-mode-map [remap kill-line] 'my-kill-line)
-(define-key my-mode-map [remap kill-word] 'my-kill-word)
 @end smallexample
 
-Whenever @code{my-mode-map} is an active keymap, if the user types
-@kbd{C-k}, Emacs will find the standard global binding of
-@code{kill-line} (assuming nobody has changed it).  But
-@code{my-mode-map} remaps @code{kill-line} to @code{my-kill-line},
-so instead of running @code{kill-line}, Emacs runs
-@code{my-kill-line}.
+@noindent
+Then, whenever @code{my-mode-map} is active, if the user types
+@kbd{C-k} (the default global key sequence for @code{kill-line}) Emacs
+will instead run @code{my-kill-line}.
 
-Remapping only works through a single level.  In other words,
+  Note that remapping only takes place through active keymaps; for
+example, putting a remapping in a prefix keymap like @code{ctl-x-map}
+typically has no effect, as such keymaps are not themselves active.
+In addition, remapping only works through a single level; in the
+following example,
 
 @smallexample
 (define-key my-mode-map [remap kill-line] 'my-kill-line)
@@ -1502,11 +1503,10 @@ Remapping only works through a single level.  In other words,
 @end smallexample
 
 @noindent
-does not have the effect of remapping @code{kill-line} into
-@code{my-other-kill-line}.  If an ordinary key binding specifies
-@code{kill-line}, this keymap will remap it to @code{my-kill-line};
-if an ordinary binding specifies @code{my-kill-line}, this keymap will
-remap it to @code{my-other-kill-line}.
+@code{kill-line} is @emph{not} remapped to @code{my-other-kill-line}.
+Instead, if an ordinary key binding specifies @code{kill-line}, it is
+remapped to @code{my-kill-line}; if an ordinary binding specifies
+@code{my-kill-line}, it is remapped to @code{my-other-kill-line}.
 
 To undo the remapping of a command, remap it to @code{nil}; e.g.
 
@@ -2636,8 +2636,8 @@ using an indirection through @code{tool-bar-map}.
 By default, the global map binds @code{[tool-bar]} as follows:
 @example
 (global-set-key [tool-bar]
-                '(menu-item "tool bar" ignore
-                            :filter (lambda (ignore) tool-bar-map)))
+  '(menu-item "tool bar" ignore
+              :filter (lambda (ignore) tool-bar-map)))
 @end example
 @noindent
 Thus the tool bar map is derived dynamically from the value of variable

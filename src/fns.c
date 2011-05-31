@@ -3704,7 +3704,7 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
 /* Resize hash table H if it's too full.  If H cannot be resized
    because it's already too large, throw an error.  */
 
-static INLINE void
+static inline void
 maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 {
   if (NILP (h->next_free))

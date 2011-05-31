@@ -362,14 +362,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* End of gnulib-related stuff.  */
 
-/* If using GNU, then support inline function declarations. */
-#ifdef __GNUC__
-#define INLINE __inline__
-#define inline __inline__
-#else
-#define INLINE
-#endif
-
 #if __GNUC__ >= 3  /* On GCC 3.0 we might get a warning.  */
 #define NO_INLINE __attribute__((noinline))
 #else

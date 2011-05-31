@@ -1823,14 +1823,17 @@ using `abort-recursive-edit'."
     (abort-recursive-edit)))
 
 (defun kill-this-buffer-enabled-p ()
-  (let ((count 0)
-	(buffers (buffer-list)))
-    (while buffers
-      (or (string-match "^ " (buffer-name (car buffers)))
-	  (setq count (1+ count)))
-      (setq buffers (cdr buffers)))
-    (or (not (menu-bar-non-minibuffer-window-p))
-	(> count 1))))
+  "Return non-nil if the `kill-this-buffer' menu item should be enabled."
+  (or (not (menu-bar-non-minibuffer-window-p))
+      (let (found-1)
+	;; Instead of looping over entire buffer list, stop once we've
+	;; found two "killable" buffers (Bug#8184).
+	(catch 'found-2
+	  (dolist (buffer (buffer-list))
+	    (unless (string-match-p "^ " (buffer-name buffer))
+	      (if (not found-1)
+		  (setq found-1 t)
+		(throw 'found-2 t))))))))
 
 (put 'dired 'menu-enable '(menu-bar-non-minibuffer-window-p))
 

@@ -15,7 +15,7 @@
    along with this program; if not, write to the Free Software Foundation,
    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
-#ifndef _GL_STDARG_H
+#ifndef _@GUARD_PREFIX@_STDARG_H
 
 #if __GNUC__ >= 3
 @PRAGMA_SYSTEM_HEADER@
@@ -25,12 +25,12 @@
 /* The include_next requires a split double-inclusion guard.  */
 #@INCLUDE_NEXT@ @NEXT_STDARG_H@
 
-#ifndef _GL_STDARG_H
-#define _GL_STDARG_H
+#ifndef _@GUARD_PREFIX@_STDARG_H
+#define _@GUARD_PREFIX@_STDARG_H
 
 #ifndef va_copy
 # define va_copy(a,b) ((a) = (b))
 #endif
 
-#endif /* _GL_STDARG_H */
-#endif /* _GL_STDARG_H */
+#endif /* _@GUARD_PREFIX@_STDARG_H */
+#endif /* _@GUARD_PREFIX@_STDARG_H */

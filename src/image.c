@@ -623,7 +623,7 @@ define_image_type (struct image_type *type, int loaded)
 /* Look up image type SYMBOL, and return a pointer to its image_type
    structure.  Value is null if SYMBOL is not a known image type.  */
 
-static INLINE struct image_type *
+static inline struct image_type *
 lookup_image_type (Lisp_Object symbol)
 {
   struct image_type *type;
@@ -7352,6 +7352,10 @@ gif_load (struct frame *f, struct image *img)
 
 Lisp_Object Qimagemagick;
 
+static int imagemagick_image_p (Lisp_Object);
+static int imagemagick_load (struct frame *, struct image *);
+static void imagemagick_clear_image (struct frame *, struct image *);
+
 /* Indices of image specification fields in imagemagick_format.  */
 
 enum imagemagick_keyword_index
@@ -7394,6 +7398,18 @@ static struct image_keyword imagemagick_format[IMAGEMAGICK_LAST] =
     {":crop",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
   };
 
+/* Structure describing the image type for any image handled via
+   ImageMagick.  */
+
+static struct image_type imagemagick_type =
+  {
+    &Qimagemagick,
+    imagemagick_image_p,
+    imagemagick_load,
+    imagemagick_clear_image,
+    NULL
+  };
+
 /* Free X resources of imagemagick image IMG which is used on frame F.  */
 
 static void
@@ -7425,34 +7441,27 @@ imagemagick_image_p (Lisp_Object object)
 #define DrawRectangle DrawRectangleGif
 #include <wand/MagickWand.h>
 
-/* imagemagick_load_image is a helper function for imagemagick_load,
-   which does the actual loading given contents and size, apart from
-   frame and image structures, passed from imagemagick_load.
+/* Helper function for imagemagick_load, which does the actual loading
+   given contents and size, apart from frame and image structures,
+   passed from imagemagick_load.  Uses librimagemagick to do most of
+   the image processing.
 
-   Uses librimagemagick to do most of the image processing.
+   F is a pointer to the Emacs frame; IMG to the image structure to
+   prepare; CONTENTS is the string containing the IMAGEMAGICK data to
+   be parsed; SIZE is the number of bytes of data; and FILENAME is
+   either the file name or the image data.
 
-   Return non-zero if successful.
-*/
+   Return non-zero if successful.  */
 
 static int
-imagemagick_load_image (/* Pointer to emacs frame structure.  */
-                        struct frame *f,
-                        /* Pointer to emacs image structure.  */
-                        struct image *img,
-                        /* String containing the IMAGEMAGICK data to
-                           be parsed.  */
-                        unsigned char *contents,
-                        /* Size of data in bytes.  */
-                        unsigned int size,
-                        /* Filename, either pass filename or
-                           contents/size.  */
-                        unsigned char *filename)
+imagemagick_load_image (struct frame *f, struct image *img,
+			unsigned char *contents, unsigned int size,
+			unsigned char *filename)
 {
   unsigned long width;
   unsigned long height;
 
-  MagickBooleanType
-    status;
+  MagickBooleanType status;
 
   XImagePtr ximg;
   Lisp_Object specified_bg;
@@ -7514,8 +7523,8 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
 
   DestroyMagickWand (ping_wand);
 
-  /* Now, after pinging, we know how many images are inside the
-     file.  If it's not a bundle, the number is one.  */
+  /* Now we know how many images are inside the file.  If it's not a
+     bundle, the number is one.  */
 
   if (filename != NULL)
     {
@@ -7628,8 +7637,8 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
         }
     }
 
-  /* Finaly we are done manipulating the image, figure out resulting
-     width, height, and then transfer ownerwship to Emacs.  */
+  /* Finally we are done manipulating the image.  Figure out the
+     resulting width/height and transfer ownerwship to Emacs.  */
   height = MagickGetImageHeight (image_wand);
   width = MagickGetImageWidth (image_wand);
 
@@ -7784,8 +7793,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
    the prototype thus needs to be compatible with that structure.  */
 
 static int
-imagemagick_load (struct frame *f,
-                  struct image *img)
+imagemagick_load (struct frame *f, struct image *img)
 {
   int success_p = 0;
   Lisp_Object file_name;
@@ -7823,36 +7831,18 @@ imagemagick_load (struct frame *f,
   return success_p;
 }
 
-/* Structure describing the image type `imagemagick'.  Its the same
-   type of structure defined for all image formats, handled by Emacs
-   image functions.  See struct image_type in dispextern.h.  */
-
-static struct image_type imagemagick_type =
-  {
-    /* An identifier showing that this is an image structure for the
-       IMAGEMAGICK format.  */
-    &Qimagemagick,
-    /* Handle to a function that can be used to identify a IMAGEMAGICK
-       file.  */
-    imagemagick_image_p,
-    /* Handle to function used to load a IMAGEMAGICK file.  */
-    imagemagick_load,
-    /* Handle to function to free resources for IMAGEMAGICK.  */
-    imagemagick_clear_image,
-    /* An internal field to link to the next image type in a list of
-       image types, will be filled in when registering the format.  */
-    NULL
-  };
-
-
 DEFUN ("imagemagick-types", Fimagemagick_types, Simagemagick_types, 0, 0, 0,
-       doc: /* Return the image types supported by ImageMagick.
-Note that ImageMagick recognizes many file-types that Emacs does not recognize
-as images, such as .c.  */)
+       doc: /* Return a list of image types supported by ImageMagick.
+Each entry in this list is a symbol named after an ImageMagick format
+tag.  See the ImageMagick manual for a list of ImageMagick formats and
+their descriptions (http://www.imagemagick.org/script/formats.php).
+
+Note that ImageMagick recognizes many file-types that Emacs does not
+recognize as images, such as C.  See `imagemagick-types-inhibit'.  */)
   (void)
 {
   Lisp_Object typelist = Qnil;
-  unsigned long numf;
+  unsigned long numf = 0;
   ExceptionInfo ex;
   char **imtypes = GetMagickList ("*", &numf, &ex);
   int i;

@@ -1603,20 +1603,13 @@ init_callproc (void)
 void
 set_initial_environment (void)
 {
-  register char **envp;
-#ifdef CANNOT_DUMP
-  Vprocess_environment = Qnil;
-#else
-  if (initialized)
-#endif
-    {
-      for (envp = environ; *envp; envp++)
-	Vprocess_environment = Fcons (build_string (*envp),
-				      Vprocess_environment);
-      /* Ideally, the `copy' shouldn't be necessary, but it seems it's frequent
-	 to use `delete' and friends on process-environment.  */
-      Vinitial_environment = Fcopy_sequence (Vprocess_environment);
-    }
+  char **envp;
+  for (envp = environ; *envp; envp++)
+    Vprocess_environment = Fcons (build_string (*envp),
+				  Vprocess_environment);
+  /* Ideally, the `copy' shouldn't be necessary, but it seems it's frequent
+     to use `delete' and friends on process-environment.  */
+  Vinitial_environment = Fcopy_sequence (Vprocess_environment);
 }
 
 void

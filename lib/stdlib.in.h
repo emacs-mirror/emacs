@@ -28,13 +28,13 @@
 #else
 /* Normal invocation convention.  */
 
-#ifndef _GL_STDLIB_H
+#ifndef _@GUARD_PREFIX@_STDLIB_H
 
 /* The include_next requires a split double-inclusion guard.  */
 #@INCLUDE_NEXT@ @NEXT_STDLIB_H@
 
-#ifndef _GL_STDLIB_H
-#define _GL_STDLIB_H
+#ifndef _@GUARD_PREFIX@_STDLIB_H
+#define _@GUARD_PREFIX@_STDLIB_H
 
 /* NetBSD 5.0 mis-defines NULL.  */
 #include <stddef.h>
@@ -761,6 +761,6 @@ _GL_CXXALIASWARN (wctomb);
 #endif
 
 
-#endif /* _GL_STDLIB_H */
-#endif /* _GL_STDLIB_H */
+#endif /* _@GUARD_PREFIX@_STDLIB_H */
+#endif /* _@GUARD_PREFIX@_STDLIB_H */
 #endif

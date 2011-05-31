@@ -418,7 +418,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 /* Read a hexadecimal number (preceded by "0x") from the file FP while
    paying attention to comment character '#'.  */
 
-static INLINE unsigned
+static inline unsigned
 read_hex (FILE *fp, int *eof)
 {
   int c;

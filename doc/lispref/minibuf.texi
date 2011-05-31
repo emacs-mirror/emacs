@@ -837,12 +837,13 @@ variable as ``risky'' with a non-@code{nil}
 @code{risky-local-variable} property.  @xref{File Local Variables}.
 
 @defvar completion-ignore-case
-If the value of this variable is non-@code{nil}, Emacs does not
-consider case significant in completion.  Note, however, that this
-variable is overridden by @code{read-file-name-completion-ignore-case}
-within @code{read-file-name} (@pxref{Reading File Names}), and by
-@code{read-buffer-completion-ignore-case} within @code{read-buffer}
-(@pxref{High-Level Completion}).
+If the value of this variable is non-@code{nil}, case is not
+considered significant in completion.  Within @code{read-file-name},
+this variable is overridden by
+@code{read-file-name-completion-ignore-case} (@pxref{Reading File
+Names}); within @code{read-buffer}, it is overridden by
+@code{read-buffer-completion-ignore-case} (@pxref{High-Level
+Completion}).
 @end defvar
 
 @defvar completion-regexp-list
