@@ -7,6 +7,9 @@
 	malloc failure, fail with errno == ENAMETOOLONG instead of calling
 	'die'.  (Bug#8762)
 
+	Use 'inline', not 'INLINE'.
+	* configure.in (INLINE): Remove.
+
 2011-05-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Adjust to recent gnulib change for @GUARD_PREFIX@.

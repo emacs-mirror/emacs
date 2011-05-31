@@ -623,7 +623,7 @@ define_image_type (struct image_type *type, int loaded)
 /* Look up image type SYMBOL, and return a pointer to its image_type
    structure.  Value is null if SYMBOL is not a known image type.  */
 
-static INLINE struct image_type *
+static inline struct image_type *
 lookup_image_type (Lisp_Object symbol)
 {
   struct image_type *type;

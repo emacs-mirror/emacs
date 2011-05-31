@@ -91,6 +91,10 @@ and pops down the *Completions* buffer accordingly.
 
 *** New completion style `substring'.
 
+*** Completion style can be set per-category `completion-category-overrides'.
+
+*** Completion of buffers now uses substring completion by default.
+
 *** `completing-read' can be customized using the new variable
 `completing-read-function'.
 
@@ -860,6 +864,14 @@ of the current completion:
 valid for completion-extra-properties.
 
 *** completion-annotate-function is obsolete.
+
+*** New `metadata' method for completion tables.  The metadata thus returned
+can specify various details of the data returned by `all-completions':
+- `category' is the kind of objects returned (e.g., `buffer', `file', ...),
+  used to select a style in completion-category-overrides.
+- `annotation-function' to add annotations in *Completions*.
+- `display-sort-function' to specify how to sort entries in *Completions*.
+- `cycle-sort-function' to specify how to sort entries when cycling.
 
 ** `glyphless-char-display' can now distinguish between graphical and
 text terminal display, via a char-table entry that is a cons cell.

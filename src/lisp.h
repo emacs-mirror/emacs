@@ -317,7 +317,7 @@ Lisp_Object;
 #endif /* WORDS_BIGENDIAN */
 
 #ifdef __GNUC__
-static __inline__ Lisp_Object
+static inline Lisp_Object
 LISP_MAKE_RVALUE (Lisp_Object o)
 {
     return o;

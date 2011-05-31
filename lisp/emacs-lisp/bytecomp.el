@@ -4155,6 +4155,8 @@ binding slots have been popped."
 	    (if (eq fun 'defconst)
 		;; `defconst' sets `var' unconditionally.
 		(let ((tmp (make-symbol "defconst-tmp-var")))
+                  ;; Quote with `quote' to prevent byte-compiling the body,
+                  ;; which would lead to an inf-loop.
 		  `(funcall '(lambda (,tmp) (defconst ,var ,tmp))
 			    ,value))
 	      ;; `defvar' sets `var' only when unbound.

@@ -1,3 +1,28 @@
+2011-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el: Add metadata method to completion tables.
+	(completion-category-overrides): New defcustom.
+	(completion-metadata, completion--field-metadata)
+	(completion-metadata-get, completion--styles)
+	(completion--cycle-threshold): New functions.
+	(completion-try-completion, completion-all-completions):
+	Add `metadata' argument to choose completion-styles.
+	(completion--do-completion): Use metadata to choose cycling.
+	(completion-all-sorted-completions): Use metadata for sorting.
+	Remove :completion-cycle-penalty which is not needed any more.
+	(completion--try-word-completion): Add `metadata' argument.
+	(minibuffer-completion-help): Check metadata for annotation function
+	and sorting.
+	(completion-file-name-table): Return `category' metadata.
+	(minibuffer-completing-file-name): Make obsolete.
+	* simple.el (minibuffer-completing-symbol): Make obsolete.
+	* icomplete.el (icomplete-completions): Pass new `metadata' param to
+	completion-try-completion.
+
+2011-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/smtpmail.el (smtpmail-send-data): Add progress reporter.
+
 2011-05-30  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-debug-buffer): Use visible buffer name.
