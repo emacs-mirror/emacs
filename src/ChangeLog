@@ -6,6 +6,16 @@
 	* alloc.c, buffer.c, editfns.c, menu.c, minibuf.c, xterm.c:
 	All callers changed.  (Bug#8762)
 
+	* gnutls.c: Use Emacs's memory allocators.
+	Without this change, the gnutls library would invoke malloc etc.
+	directly, which causes problems on non-SYNC_INPUT hosts, and which
+	runs afoul of improving memory_full behavior.  (Bug#8761)
+	(fn_gnutls_global_set_mem_functions): New macro or function pointer.
+	(emacs_gnutls_global_init): Use it to specify xmalloc, xrealloc,
+	xfree instead of the default malloc, realloc, free.
+	(Fgnutls_boot): No need to check for memory allocation failure,
+	since xmalloc does that for us.
+
 	Use 'inline', not 'INLINE'.
 	<http://lists.gnu.org/archive/html/emacs-devel/2011-05/msg00914.html>
 	* alloc.c, fontset.c (INLINE): Remove.
@@ -37,18 +47,6 @@
 
 	* ccl.c (CCL_CODE_RANGE): Allow negative numbers.  (Bug#8751)
 	(CCL_CODE_MIN): New macro.
-
-2011-05-30  Paul Eggert  <eggert@cs.ucla.edu>
-
-	* gnutls.c: Use Emacs's memory allocators.
-	Without this change, the gnutls library would invoke malloc etc.
-	directly, which causes problems on non-SYNC_INPUT hosts, and which
-	runs afoul of improving memory_full behavior.  (Bug#8761)
-	(fn_gnutls_global_set_mem_functions): New macro or function pointer.
-	(emacs_gnutls_global_init): Use it to specify xmalloc, xrealloc,
-	xfree instead of the default malloc, realloc, free.
-	(Fgnutls_boot): No need to check for memory allocation failure,
-	since xmalloc does that for us.
 
 2011-05-30  Paul Eggert  <eggert@cs.ucla.edu>
 
