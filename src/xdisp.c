@@ -4413,9 +4413,16 @@ single_display_spec_string_p (Lisp_Object prop, Lisp_Object string)
       prop = XCDR (prop);
       if (!CONSP (prop))
 	return 0;
-      /* FIXME: We should eval the condition following `when', like
-	 handle_single_display_spec does, and retrun zero if it
-	 evaluates to nil.  */
+      /* Actually, the condition following `when' should be eval'ed,
+	 like handle_single_display_spec does, and we should return
+	 zero if it evaluates to nil.  However, this function is
+	 called only when the buffer was already displayed and some
+	 glyph in the glyph matrix was found to come from a display
+	 string.  Therefore, the condition was already evaluated, and
+	 the result was non-nil, otherwise the display string wouldn't
+	 have been displayed and we would have never been called for
+	 this property.  Thus, we can skip the evaluation and assume
+	 its result is non-nil.  */
       prop = XCDR (prop);
     }
 
