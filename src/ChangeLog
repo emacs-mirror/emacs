@@ -1,6 +1,6 @@
 2011-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Remove arbitrary limit of 2**31 entries in hash tables.
+	Remove arbitrary limit of 2**31 entries in hash tables.  (Bug#8771)
 	* category.c (hash_get_category_set): Use 'EMACS_UINT' and 'EMACS_INT'
 	for hashes and hash indexes, instead of 'unsigned' and 'int'.
 	* ccl.c (ccl_driver): Likewise.
