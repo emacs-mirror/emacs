@@ -1,29 +1,27 @@
 2011-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove arbitrary limit of 2**31 entries in hash tables.  (Bug#8771)
-	* category.c (hash_get_category_set): Use 'EMACS_UINT' and 'EMACS_INT'
-	for hashes and hash indexes, instead of 'unsigned' and 'int'.
-	* ccl.c (ccl_driver): Likewise.
-	* charset.c (Fdefine_charset_internal): Likewise.
-	* charset.h (struct charset.hash_index): Likewise.
-	* composite.c (get_composition_id, gstring_lookup_cache):
-	(composition_gstring_put_cache): Likewise.
-	* composite.h (struct composition.hash_index): Likewise.
-	* dispextern.h (struct image.hash): Likewise.
-	* fns.c (next_almost_prime, larger_vector, cmpfn_eql):
-	(cmpfn_equal, cmpfn_user_defined, hashfn_eq, hashfn_eql):
-	(hashfn_equal, hashfn_user_defined, make_hash_table):
-	(maybe_resize_hash_table, hash_lookup, hash_put):
-	(hash_remove_from_table, hash_clear, sweep_weak_table, SXHASH_COMBINE):
-	(sxhash_string, sxhash_list, sxhash_vector, sxhash_bool_vector):
-	(Fsxhash, Fgethash, Fputhash, Fmaphash): Likewise.
-	* image.c (make_image, search_image_cache, lookup_image):
-	(xpm_put_color_table_h): Likewise.
-	* lisp.h (struct Lisp_Hash_Table): Likewise, for 'count', 'cmpfn',
-	and 'hashfn' members.
+	* category.c (hash_get_category_set):
+	* ccl.c (ccl_driver):
+	* charset.c (Fdefine_charset_internal):
+	* charset.h (struct charset.hash_index):
+	* composite.c (get_composition_id, gstring_lookup_cache)
+	(composition_gstring_put_cache):
+	* composite.h (struct composition.hash_index):
+	* dispextern.h (struct image.hash):
+	* fns.c (next_almost_prime, larger_vector, cmpfn_eql)
+	(cmpfn_equal, cmpfn_user_defined, hashfn_eq, hashfn_eql)
+	(hashfn_equal, hashfn_user_defined, make_hash_table)
+	(maybe_resize_hash_table, hash_lookup, hash_put)
+	(hash_remove_from_table, hash_clear, sweep_weak_table, SXHASH_COMBINE)
+	(sxhash_string, sxhash_list, sxhash_vector, sxhash_bool_vector)
+	(Fsxhash, Fgethash, Fputhash, Fmaphash):
+	* image.c (make_image, search_image_cache, lookup_image)
+	(xpm_put_color_table_h):
+	* lisp.h (struct Lisp_Hash_Table):
 	* minibuf.c (Ftry_completion, Fall_completions, Ftest_completion):
-	Likewise.
-	* print.c (print): Likewise.
+	* print.c (print):  Use 'EMACS_UINT' and 'EMACS_INT'
+	for hashes and hash indexes, instead of 'unsigned' and 'int'.
 	* alloc.c (allocate_vectorlike): Check for overflow in vector size
 	calculations.
 	* ccl.c (ccl_driver): Check for overflow when converting EMACS_INT
