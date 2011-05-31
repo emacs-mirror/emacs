@@ -1209,7 +1209,7 @@ is used to further constrain the set of candidates.  */)
 		    && (!SYMBOLP (XCAR (collection))
 			|| NILP (XCAR (collection)))))
 	       ? list_table : function_table));
-  int idx = 0, obsize = 0;
+  EMACS_INT idx = 0, obsize = 0;
   int matchcount = 0;
   int bindcount = -1;
   Lisp_Object bucket, zero, end, tem;
@@ -1474,7 +1474,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
     : NILP (collection) || (CONSP (collection)
 			    && (!SYMBOLP (XCAR (collection))
 				|| NILP (XCAR (collection))));
-  int idx = 0, obsize = 0;
+  EMACS_INT idx = 0, obsize = 0;
   int bindcount = -1;
   Lisp_Object bucket, tem, zero;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
@@ -1770,7 +1770,7 @@ the values STRING, PREDICATE and `lambda'.  */)
   (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate)
 {
   Lisp_Object regexps, tail, tem = Qnil;
-  int i = 0;
+  EMACS_INT i = 0;
 
   CHECK_STRING (string);
 

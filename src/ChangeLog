@@ -1,5 +1,54 @@
 2011-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Remove arbitrary limit of 2**31 entries in hash tables.
+	* category.c (hash_get_category_set): Use 'EMACS_UINT' and 'EMACS_INT'
+	for hashes and hash indexes, instead of 'unsigned' and 'int'.
+	* ccl.c (ccl_driver): Likewise.
+	* charset.c (Fdefine_charset_internal): Likewise.
+	* charset.h (struct charset.hash_index): Likewise.
+	* composite.c (get_composition_id, gstring_lookup_cache):
+	(composition_gstring_put_cache): Likewise.
+	* composite.h (struct composition.hash_index): Likewise.
+	* dispextern.h (struct image.hash): Likewise.
+	* fns.c (next_almost_prime, larger_vector, cmpfn_eql):
+	(cmpfn_equal, cmpfn_user_defined, hashfn_eq, hashfn_eql):
+	(hashfn_equal, hashfn_user_defined, make_hash_table):
+	(maybe_resize_hash_table, hash_lookup, hash_put):
+	(hash_remove_from_table, hash_clear, sweep_weak_table, SXHASH_COMBINE):
+	(sxhash_string, sxhash_list, sxhash_vector, sxhash_bool_vector):
+	(Fsxhash, Fgethash, Fputhash, Fmaphash): Likewise.
+	* image.c (make_image, search_image_cache, lookup_image):
+	(xpm_put_color_table_h): Likewise.
+	* lisp.h (struct Lisp_Hash_Table): Likewise, for 'count', 'cmpfn',
+	and 'hashfn' members.
+	* minibuf.c (Ftry_completion, Fall_completions, Ftest_completion):
+	Likewise.
+	* print.c (print): Likewise.
+	* alloc.c (allocate_vectorlike): Check for overflow in vector size
+	calculations.
+	* ccl.c (ccl_driver): Check for overflow when converting EMACS_INT
+	to int.
+	* fns.c, image.c: Remove unnecessary static decls that would otherwise
+	need to be updated by these changes.
+	* fns.c (make_hash_table, maybe_resize_hash_table): Check for integer
+	overflow with large hash tables.
+	(make_hash_table, maybe_resize_hash_table, Fmake_hash_table):
+	Prefer the faster XFLOAT_DATA to XFLOATINT where either will do.
+	(SXHASH_REDUCE): New macro.
+	(sxhash_string, sxhash_list, sxhash_vector, sxhash_bool_vector):
+	Use it instead of discarding useful hash info with large hash values.
+	(sxhash_float): New function.
+	(sxhash): Use it.  No more need for "& INTMASK" due to above changes.
+	* lisp.h (FIXNUM_BITS): New macro, useful for SXHASH_REDUCE etc.
+	(MOST_NEGATIVE_FIXNUM, MOST_POSITIVE_FIXNUM, INTMASK): Rewrite
+	to use FIXNUM_BITS, as this simplifies things.
+	(next_almost_prime, larger_vector, sxhash, hash_lookup, hash_put):
+	Adjust signatures to match updated version of code.
+	(consing_since_gc): Now EMACS_INT, since a single hash table can
+	use more than INT_MAX bytes.
+
+2011-05-31  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Use 'inline', not 'INLINE'.
 	<http://lists.gnu.org/archive/html/emacs-devel/2011-05/msg00914.html>
 	* alloc.c, fontset.c (INLINE): Remove.

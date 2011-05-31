@@ -3358,21 +3358,6 @@ static Lisp_Object Qhash_table_test, Qkey_or_value, Qkey_and_value;
 static struct Lisp_Hash_Table *check_hash_table (Lisp_Object);
 static size_t get_key_arg (Lisp_Object, size_t, Lisp_Object *, char *);
 static void maybe_resize_hash_table (struct Lisp_Hash_Table *);
-static int cmpfn_eql (struct Lisp_Hash_Table *, Lisp_Object, unsigned,
-                      Lisp_Object, unsigned);
-static int cmpfn_equal (struct Lisp_Hash_Table *, Lisp_Object, unsigned,
-                        Lisp_Object, unsigned);
-static int cmpfn_user_defined (struct Lisp_Hash_Table *, Lisp_Object,
-                               unsigned, Lisp_Object, unsigned);
-static unsigned hashfn_eq (struct Lisp_Hash_Table *, Lisp_Object);
-static unsigned hashfn_eql (struct Lisp_Hash_Table *, Lisp_Object);
-static unsigned hashfn_equal (struct Lisp_Hash_Table *, Lisp_Object);
-static unsigned hashfn_user_defined (struct Lisp_Hash_Table *,
-                                     Lisp_Object);
-static unsigned sxhash_string (unsigned char *, int);
-static unsigned sxhash_list (Lisp_Object, int);
-static unsigned sxhash_vector (Lisp_Object, int);
-static unsigned sxhash_bool_vector (Lisp_Object);
 static int sweep_weak_table (struct Lisp_Hash_Table *, int);
 
 
@@ -3395,8 +3380,8 @@ check_hash_table (Lisp_Object obj)
 /* Value is the next integer I >= N, N >= 0 which is "almost" a prime
    number.  */
 
-int
-next_almost_prime (int n)
+EMACS_INT
+next_almost_prime (EMACS_INT n)
 {
   if (n % 2 == 0)
     n += 1;
@@ -3436,10 +3421,10 @@ get_key_arg (Lisp_Object key, size_t nargs, Lisp_Object *args, char *used)
    vector that are not copied from VEC are set to INIT.  */
 
 Lisp_Object
-larger_vector (Lisp_Object vec, int new_size, Lisp_Object init)
+larger_vector (Lisp_Object vec, EMACS_INT new_size, Lisp_Object init)
 {
   struct Lisp_Vector *v;
-  int i, old_size;
+  EMACS_INT i, old_size;
 
   xassert (VECTORP (vec));
   old_size = ASIZE (vec);
@@ -3463,7 +3448,9 @@ larger_vector (Lisp_Object vec, int new_size, Lisp_Object init)
    KEY2 are the same.  */
 
 static int
-cmpfn_eql (struct Lisp_Hash_Table *h, Lisp_Object key1, unsigned int hash1, Lisp_Object key2, unsigned int hash2)
+cmpfn_eql (struct Lisp_Hash_Table *h,
+	   Lisp_Object key1, EMACS_UINT hash1,
+	   Lisp_Object key2, EMACS_UINT hash2)
 {
   return (FLOATP (key1)
 	  && FLOATP (key2)
@@ -3476,7 +3463,9 @@ cmpfn_eql (struct Lisp_Hash_Table *h, Lisp_Object key1, unsigned int hash1, Lisp
    KEY2 are the same.  */
 
 static int
-cmpfn_equal (struct Lisp_Hash_Table *h, Lisp_Object key1, unsigned int hash1, Lisp_Object key2, unsigned int hash2)
+cmpfn_equal (struct Lisp_Hash_Table *h,
+	     Lisp_Object key1, EMACS_UINT hash1,
+	     Lisp_Object key2, EMACS_UINT hash2)
 {
   return hash1 == hash2 && !NILP (Fequal (key1, key2));
 }
@@ -3487,7 +3476,9 @@ cmpfn_equal (struct Lisp_Hash_Table *h, Lisp_Object key1, unsigned int hash1, Li
    if KEY1 and KEY2 are the same.  */
 
 static int
-cmpfn_user_defined (struct Lisp_Hash_Table *h, Lisp_Object key1, unsigned int hash1, Lisp_Object key2, unsigned int hash2)
+cmpfn_user_defined (struct Lisp_Hash_Table *h,
+		    Lisp_Object key1, EMACS_UINT hash1,
+		    Lisp_Object key2, EMACS_UINT hash2)
 {
   if (hash1 == hash2)
     {
@@ -3507,10 +3498,10 @@ cmpfn_user_defined (struct Lisp_Hash_Table *h, Lisp_Object key1, unsigned int ha
    `eq' to compare keys.  The hash code returned is guaranteed to fit
    in a Lisp integer.  */
 
-static unsigned
+static EMACS_UINT
 hashfn_eq (struct Lisp_Hash_Table *h, Lisp_Object key)
 {
-  unsigned hash = XUINT (key) ^ XTYPE (key);
+  EMACS_UINT hash = XUINT (key) ^ XTYPE (key);
   xassert ((hash & ~INTMASK) == 0);
   return hash;
 }
@@ -3520,10 +3511,10 @@ hashfn_eq (struct Lisp_Hash_Table *h, Lisp_Object key)
    `eql' to compare keys.  The hash code returned is guaranteed to fit
    in a Lisp integer.  */
 
-static unsigned
+static EMACS_UINT
 hashfn_eql (struct Lisp_Hash_Table *h, Lisp_Object key)
 {
-  unsigned hash;
+  EMACS_UINT hash;
   if (FLOATP (key))
     hash = sxhash (key, 0);
   else
@@ -3537,10 +3528,10 @@ hashfn_eql (struct Lisp_Hash_Table *h, Lisp_Object key)
    `equal' to compare keys.  The hash code returned is guaranteed to fit
    in a Lisp integer.  */
 
-static unsigned
+static EMACS_UINT
 hashfn_equal (struct Lisp_Hash_Table *h, Lisp_Object key)
 {
-  unsigned hash = sxhash (key, 0);
+  EMACS_UINT hash = sxhash (key, 0);
   xassert ((hash & ~INTMASK) == 0);
   return hash;
 }
@@ -3550,7 +3541,7 @@ hashfn_equal (struct Lisp_Hash_Table *h, Lisp_Object key)
    user-defined function to compare keys.  The hash code returned is
    guaranteed to fit in a Lisp integer.  */
 
-static unsigned
+static EMACS_UINT
 hashfn_user_defined (struct Lisp_Hash_Table *h, Lisp_Object key)
 {
   Lisp_Object args[2], hash;
@@ -3593,26 +3584,33 @@ make_hash_table (Lisp_Object test, Lisp_Object size, Lisp_Object rehash_size,
 {
   struct Lisp_Hash_Table *h;
   Lisp_Object table;
-  int index_size, i, sz;
+  EMACS_INT index_size, i, sz;
+  double index_float;
 
   /* Preconditions.  */
   xassert (SYMBOLP (test));
   xassert (INTEGERP (size) && XINT (size) >= 0);
   xassert ((INTEGERP (rehash_size) && XINT (rehash_size) > 0)
-	   || (FLOATP (rehash_size) && XFLOATINT (rehash_size) > 1.0));
+	   || (FLOATP (rehash_size) && 1 < XFLOAT_DATA (rehash_size)));
   xassert (FLOATP (rehash_threshold)
-	   && XFLOATINT (rehash_threshold) > 0
-	   && XFLOATINT (rehash_threshold) <= 1.0);
+	   && 0 < XFLOAT_DATA (rehash_threshold)
+	   && XFLOAT_DATA (rehash_threshold) <= 1.0);
 
   if (XFASTINT (size) == 0)
     size = make_number (1);
+
+  sz = XFASTINT (size);
+  index_float = sz / XFLOAT_DATA (rehash_threshold);
+  index_size = (index_float < MOST_POSITIVE_FIXNUM + 1
+		? next_almost_prime (index_float)
+		: MOST_POSITIVE_FIXNUM + 1);
+  if (MOST_POSITIVE_FIXNUM < max (index_size, 2 * sz))
+    error ("Hash table too large");
 
   /* Allocate a table and initialize it.  */
   h = allocate_hash_table ();
 
   /* Initialize hash table slots.  */
-  sz = XFASTINT (size);
-
   h->test = test;
   if (EQ (test, Qeql))
     {
@@ -3644,8 +3642,6 @@ make_hash_table (Lisp_Object test, Lisp_Object size, Lisp_Object rehash_size,
   h->key_and_value = Fmake_vector (make_number (2 * sz), Qnil);
   h->hash = Fmake_vector (size, Qnil);
   h->next = Fmake_vector (size, Qnil);
-  /* Cast to int here avoids losing with gcc 2.95 on Tru64/Alpha...  */
-  index_size = next_almost_prime ((int) (sz / XFLOATINT (rehash_threshold)));
   h->index = Fmake_vector (make_number (index_size), Qnil);
 
   /* Set up the free list.  */
@@ -3709,20 +3705,29 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
 {
   if (NILP (h->next_free))
     {
-      int old_size = HASH_TABLE_SIZE (h);
-      int i, new_size, index_size;
+      EMACS_INT old_size = HASH_TABLE_SIZE (h);
+      EMACS_INT i, new_size, index_size;
       EMACS_INT nsize;
+      double index_float;
 
       if (INTEGERP (h->rehash_size))
 	new_size = old_size + XFASTINT (h->rehash_size);
       else
-	new_size = old_size * XFLOATINT (h->rehash_size);
-      new_size = max (old_size + 1, new_size);
-      index_size = next_almost_prime ((int)
-				      (new_size
-				       / XFLOATINT (h->rehash_threshold)));
-      /* Assignment to EMACS_INT stops GCC whining about limited range
-	 of data type.  */
+	{
+	  double float_new_size = old_size * XFLOAT_DATA (h->rehash_size);
+	  if (float_new_size < MOST_POSITIVE_FIXNUM + 1)
+	    {
+	      new_size = float_new_size;
+	      if (new_size <= old_size)
+		new_size = old_size + 1;
+	    }
+	  else
+	    new_size = MOST_POSITIVE_FIXNUM + 1;
+	}
+      index_float = new_size / XFLOAT_DATA (h->rehash_threshold);
+      index_size = (index_float < MOST_POSITIVE_FIXNUM + 1
+		    ? next_almost_prime (index_float)
+		    : MOST_POSITIVE_FIXNUM + 1);
       nsize = max (index_size, 2 * new_size);
       if (nsize > MOST_POSITIVE_FIXNUM)
 	error ("Hash table too large to resize");
@@ -3756,8 +3761,8 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
       for (i = 0; i < old_size; ++i)
 	if (!NILP (HASH_HASH (h, i)))
 	  {
-	    unsigned hash_code = XUINT (HASH_HASH (h, i));
-	    int start_of_bucket = hash_code % ASIZE (h->index);
+	    EMACS_UINT hash_code = XUINT (HASH_HASH (h, i));
+	    EMACS_INT start_of_bucket = hash_code % ASIZE (h->index);
 	    HASH_NEXT (h, i) = HASH_INDEX (h, start_of_bucket);
 	    HASH_INDEX (h, start_of_bucket) = make_number (i);
 	  }
@@ -3769,11 +3774,11 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
    the hash code of KEY.  Value is the index of the entry in H
    matching KEY, or -1 if not found.  */
 
-int
-hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, unsigned int *hash)
+EMACS_INT
+hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, EMACS_UINT *hash)
 {
-  unsigned hash_code;
-  int start_of_bucket;
+  EMACS_UINT hash_code;
+  EMACS_INT start_of_bucket;
   Lisp_Object idx;
 
   hash_code = h->hashfn (h, key);
@@ -3786,7 +3791,7 @@ hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, unsigned int *hash)
   /* We need not gcpro idx since it's either an integer or nil.  */
   while (!NILP (idx))
     {
-      int i = XFASTINT (idx);
+      EMACS_INT i = XFASTINT (idx);
       if (EQ (key, HASH_KEY (h, i))
 	  || (h->cmpfn
 	      && h->cmpfn (h, key, hash_code,
@@ -3803,10 +3808,11 @@ hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, unsigned int *hash)
    HASH is a previously computed hash code of KEY.
    Value is the index of the entry in H matching KEY.  */
 
-int
-hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value, unsigned int hash)
+EMACS_INT
+hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
+	  EMACS_UINT hash)
 {
-  int start_of_bucket, i;
+  EMACS_INT start_of_bucket, i;
 
   xassert ((hash & ~INTMASK) == 0);
 
@@ -3836,8 +3842,8 @@ hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value, unsigne
 static void
 hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
 {
-  unsigned hash_code;
-  int start_of_bucket;
+  EMACS_UINT hash_code;
+  EMACS_INT start_of_bucket;
   Lisp_Object idx, prev;
 
   hash_code = h->hashfn (h, key);
@@ -3848,7 +3854,7 @@ hash_remove_from_table (struct Lisp_Hash_Table *h, Lisp_Object key)
   /* We need not gcpro idx, prev since they're either integers or nil.  */
   while (!NILP (idx))
     {
-      int i = XFASTINT (idx);
+      EMACS_INT i = XFASTINT (idx);
 
       if (EQ (key, HASH_KEY (h, i))
 	  || (h->cmpfn
@@ -3886,7 +3892,7 @@ hash_clear (struct Lisp_Hash_Table *h)
 {
   if (h->count > 0)
     {
-      int i, size = HASH_TABLE_SIZE (h);
+      EMACS_INT i, size = HASH_TABLE_SIZE (h);
 
       for (i = 0; i < size; ++i)
 	{
@@ -3924,7 +3930,8 @@ init_weak_hash_tables (void)
 static int
 sweep_weak_table (struct Lisp_Hash_Table *h, int remove_entries_p)
 {
-  int bucket, n, marked;
+  EMACS_INT bucket, n;
+  int marked;
 
   n = ASIZE (h->index) & ~ARRAY_MARK_FLAG;
   marked = 0;
@@ -3938,7 +3945,7 @@ sweep_weak_table (struct Lisp_Hash_Table *h, int remove_entries_p)
       prev = Qnil;
       for (idx = HASH_INDEX (h, bucket); !NILP (idx); idx = next)
 	{
-	  int i = XFASTINT (idx);
+	  EMACS_INT i = XFASTINT (idx);
 	  int key_known_to_survive_p = survives_gc_p (HASH_KEY (h, i));
 	  int value_known_to_survive_p = survives_gc_p (HASH_VALUE (h, i));
 	  int remove_p;
@@ -4067,43 +4074,68 @@ sweep_weak_hash_tables (void)
 
 #define SXHASH_MAX_LEN   7
 
-/* Combine two integers X and Y for hashing.  */
+/* Combine two integers X and Y for hashing.  The result might not fit
+   into a Lisp integer.  */
 
 #define SXHASH_COMBINE(X, Y)						\
-     ((((unsigned)(X) << 4) + (((unsigned)(X) >> 24) & 0x0fffffff))	\
-      + (unsigned)(Y))
+  ((((EMACS_UINT) (X) << 4) + ((EMACS_UINT) (X) >> (BITS_PER_EMACS_INT - 4))) \
+   + (EMACS_UINT) (Y))
 
+/* Hash X, returning a value that fits into a Lisp integer.  */
+#define SXHASH_REDUCE(X) \
+  ((((X) ^ (X) >> (BITS_PER_EMACS_INT - FIXNUM_BITS))) & INTMASK)
 
 /* Return a hash for string PTR which has length LEN.  The hash
    code returned is guaranteed to fit in a Lisp integer.  */
 
-static unsigned
-sxhash_string (unsigned char *ptr, int len)
+static EMACS_UINT
+sxhash_string (unsigned char *ptr, EMACS_INT len)
 {
   unsigned char *p = ptr;
   unsigned char *end = p + len;
   unsigned char c;
-  unsigned hash = 0;
+  EMACS_UINT hash = 0;
 
   while (p != end)
     {
       c = *p++;
       if (c >= 0140)
 	c -= 40;
-      hash = ((hash << 4) + (hash >> 28) + c);
+      hash = SXHASH_COMBINE (hash, c);
     }
 
-  return hash & INTMASK;
+  return SXHASH_REDUCE (hash);
 }
 
+/* Return a hash for the floating point value VAL.  */
+
+static EMACS_INT
+sxhash_float (double val)
+{
+  EMACS_UINT hash = 0;
+  enum {
+    WORDS_PER_DOUBLE = (sizeof val / sizeof hash
+			+ (sizeof val % sizeof hash != 0))
+  };
+  union {
+    double val;
+    EMACS_UINT word[WORDS_PER_DOUBLE];
+  } u;
+  int i;
+  u.val = val;
+  memset (&u.val + 1, 0, sizeof u - sizeof u.val);
+  for (i = 0; i < WORDS_PER_DOUBLE; i++)
+    hash = SXHASH_COMBINE (hash, u.word[i]);
+  return SXHASH_REDUCE (hash);
+}
 
 /* Return a hash for list LIST.  DEPTH is the current depth in the
    list.  We don't recurse deeper than SXHASH_MAX_DEPTH in it.  */
 
-static unsigned
+static EMACS_UINT
 sxhash_list (Lisp_Object list, int depth)
 {
-  unsigned hash = 0;
+  EMACS_UINT hash = 0;
   int i;
 
   if (depth < SXHASH_MAX_DEPTH)
@@ -4111,63 +4143,62 @@ sxhash_list (Lisp_Object list, int depth)
 	 CONSP (list) && i < SXHASH_MAX_LEN;
 	 list = XCDR (list), ++i)
       {
-	unsigned hash2 = sxhash (XCAR (list), depth + 1);
+	EMACS_UINT hash2 = sxhash (XCAR (list), depth + 1);
 	hash = SXHASH_COMBINE (hash, hash2);
       }
 
   if (!NILP (list))
     {
-      unsigned hash2 = sxhash (list, depth + 1);
+      EMACS_UINT hash2 = sxhash (list, depth + 1);
       hash = SXHASH_COMBINE (hash, hash2);
     }
 
-  return hash;
+  return SXHASH_REDUCE (hash);
 }
 
 
 /* Return a hash for vector VECTOR.  DEPTH is the current depth in
    the Lisp structure.  */
 
-static unsigned
+static EMACS_UINT
 sxhash_vector (Lisp_Object vec, int depth)
 {
-  unsigned hash = ASIZE (vec);
+  EMACS_UINT hash = ASIZE (vec);
   int i, n;
 
   n = min (SXHASH_MAX_LEN, ASIZE (vec));
   for (i = 0; i < n; ++i)
     {
-      unsigned hash2 = sxhash (AREF (vec, i), depth + 1);
+      EMACS_UINT hash2 = sxhash (AREF (vec, i), depth + 1);
       hash = SXHASH_COMBINE (hash, hash2);
     }
 
-  return hash;
+  return SXHASH_REDUCE (hash);
 }
-
 
 /* Return a hash for bool-vector VECTOR.  */
 
-static unsigned
+static EMACS_UINT
 sxhash_bool_vector (Lisp_Object vec)
 {
-  unsigned hash = XBOOL_VECTOR (vec)->size;
+  EMACS_UINT hash = XBOOL_VECTOR (vec)->size;
   int i, n;
 
   n = min (SXHASH_MAX_LEN, XBOOL_VECTOR (vec)->header.size);
   for (i = 0; i < n; ++i)
     hash = SXHASH_COMBINE (hash, XBOOL_VECTOR (vec)->data[i]);
 
-  return hash;
+  return SXHASH_REDUCE (hash);
 }
 
 
 /* Return a hash code for OBJ.  DEPTH is the current depth in the Lisp
    structure.  Value is an unsigned integer clipped to INTMASK.  */
 
-unsigned
+EMACS_UINT
 sxhash (Lisp_Object obj, int depth)
 {
-  unsigned hash;
+  EMACS_UINT hash;
 
   if (depth > SXHASH_MAX_DEPTH)
     return 0;
@@ -4211,20 +4242,14 @@ sxhash (Lisp_Object obj, int depth)
       break;
 
     case Lisp_Float:
-      {
-	double val = XFLOAT_DATA (obj);
-	unsigned char *p = (unsigned char *) &val;
-	size_t i;
-	for (hash = 0, i = 0; i < sizeof val; i++)
-	  hash = SXHASH_COMBINE (hash, p[i]);
-	break;
-      }
+      hash = sxhash_float (XFLOAT_DATA (obj));
+      break;
 
     default:
       abort ();
     }
 
-  return hash & INTMASK;
+  return hash;
 }
 
 
@@ -4238,7 +4263,7 @@ DEFUN ("sxhash", Fsxhash, Ssxhash, 1, 1, 0,
        doc: /* Compute a hash code for OBJ and return it as integer.  */)
   (Lisp_Object obj)
 {
-  unsigned hash = sxhash (obj, 0);
+  EMACS_UINT hash = sxhash (obj, 0);
   return make_number (hash);
 }
 
@@ -4315,17 +4340,16 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   /* Look for `:rehash-size SIZE'.  */
   i = get_key_arg (QCrehash_size, nargs, args, used);
   rehash_size = i ? args[i] : make_float (DEFAULT_REHASH_SIZE);
-  if (!NUMBERP (rehash_size)
-      || (INTEGERP (rehash_size) && XINT (rehash_size) <= 0)
-      || XFLOATINT (rehash_size) <= 1.0)
+  if (! ((INTEGERP (rehash_size) && 0 < XINT (rehash_size))
+	 || (FLOATP (rehash_size) && 1 < XFLOAT_DATA (rehash_size))))
     signal_error ("Invalid hash table rehash size", rehash_size);
 
   /* Look for `:rehash-threshold THRESHOLD'.  */
   i = get_key_arg (QCrehash_threshold, nargs, args, used);
   rehash_threshold = i ? args[i] : make_float (DEFAULT_REHASH_THRESHOLD);
-  if (!FLOATP (rehash_threshold)
-      || XFLOATINT (rehash_threshold) <= 0.0
-      || XFLOATINT (rehash_threshold) > 1.0)
+  if (! (FLOATP (rehash_threshold)
+	 && 0 < XFLOAT_DATA (rehash_threshold)
+	 && XFLOAT_DATA (rehash_threshold) <= 1))
     signal_error ("Invalid hash table rehash threshold", rehash_threshold);
 
   /* Look for `:weakness WEAK'.  */
@@ -4437,7 +4461,7 @@ If KEY is not found, return DFLT which defaults to nil.  */)
   (Lisp_Object key, Lisp_Object table, Lisp_Object dflt)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
-  int i = hash_lookup (h, key, NULL);
+  EMACS_INT i = hash_lookup (h, key, NULL);
   return i >= 0 ? HASH_VALUE (h, i) : dflt;
 }
 
@@ -4449,8 +4473,8 @@ VALUE.  */)
   (Lisp_Object key, Lisp_Object value, Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
-  int i;
-  unsigned hash;
+  EMACS_INT i;
+  EMACS_UINT hash;
 
   i = hash_lookup (h, key, &hash);
   if (i >= 0)
@@ -4479,7 +4503,7 @@ FUNCTION is called with two arguments, KEY and VALUE.  */)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
   Lisp_Object args[3];
-  int i;
+  EMACS_INT i;
 
   for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
     if (!NILP (HASH_HASH (h, i)))
