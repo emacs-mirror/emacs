@@ -120,6 +120,7 @@ first will be printed into the backtrace buffer."
 	  (debug-on-quit nil)
 	  (debugger-buffer (get-buffer-create "*Backtrace*"))
 	  (debugger-old-buffer (current-buffer))
+	  (debugger-previous-contents nil)
 	  (debugger-step-after-exit nil)
           (debugger-will-be-back nil)
 	  ;; Don't keep reading from an executing kbd macro!
@@ -181,6 +182,7 @@ first will be printed into the backtrace buffer."
 		  (when (eq 'lambda (car-safe (cadr (backtrace-frame 4))))
 		    (backtrace-debug 5 t)))
                 (pop-to-buffer debugger-buffer)
+		(setq debugger-previous-contents (buffer-string))
 		(debugger-mode)
 		(debugger-setup-buffer debugger-args)
 		(when noninteractive
@@ -215,6 +217,7 @@ first will be printed into the backtrace buffer."
 	      ;; erase it (and maybe hide it) but keep it alive.
 	      (with-current-buffer debugger-buffer
 		(erase-buffer)
+		(insert debugger-previous-contents)
 		(fundamental-mode)
 		(with-selected-window (get-buffer-window debugger-buffer 0)
                   (when (and (window-dedicated-p (selected-window))

@@ -1,3 +1,8 @@
+2011-05-31  Helmut Eller  <eller.helmut@gmail.com>
+
+	* debug.el (debug): Restore the previous content of the
+	*Backtrace* buffer when we exit with C-M-c.
+
 2011-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el: Add metadata method to completion tables.
