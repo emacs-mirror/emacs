@@ -4,7 +4,7 @@
 	* alloc.c (buffer_memory_full, memory_full): New arg NBYTES.
 	* lisp.h: Change signatures accordingly.
 	* alloc.c, buffer.c, editfns.c, menu.c, minibuf.c, xterm.c:
-	All callers changed.
+	All callers changed.  (Bug#8762)
 
 	* gnutls.c: Use Emacs's memory allocators.
 	Without this change, the gnutls library would invoke malloc etc.

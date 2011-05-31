@@ -4,7 +4,8 @@
 	* lib/allocator.h (struct allocator.die): New size arg.
 	* lib/careadlinkat.c (careadlinkat): Pass size to 'die' function.
 	If the actual problem is an ssize_t limitation, not a size_t or
-	malloc failure, fail with errno == ENAMETOOLONG instead of calling 'die'.
+	malloc failure, fail with errno == ENAMETOOLONG instead of calling
+	'die'.  (Bug#8762)
 
 2011-05-29  Paul Eggert  <eggert@cs.ucla.edu>
 
