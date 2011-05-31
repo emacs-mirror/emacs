@@ -1,3 +1,12 @@
+2011-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Finternal_complete_buffer): Return `category' metadata.
+	(read_minibuf): Use get_minibuffer.
+	(syms_of_minibuf): Use DEFSYM.
+	(Qmetadata): New var.
+	* data.c (Qbuffer): Don't make it static.
+	(syms_of_data): Use DEFSYM.
+
 2011-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* ccl.c (CCL_CODE_RANGE): Allow negative numbers.  (Bug#8751)
@@ -164,8 +173,8 @@
 	(symbol_to_x_atom): Remove gratuitous arg.
 	(x_handle_selection_request, lisp_data_to_selection_data)
 	(x_get_foreign_selection, Fx_register_dnd_atom): Callers changed.
-	(x_own_selection, x_get_local_selection, x_convert_selection): New
-	arg, specifying work frame.  Use terminal-local Vselection_alist.
+	(x_own_selection, x_get_local_selection, x_convert_selection):
+	New arg, specifying work frame.  Use terminal-local Vselection_alist.
 	(some_frame_on_display): Delete unused function.
 	(Fx_own_selection_internal, Fx_get_selection_internal)
 	(Fx_disown_selection_internal, Fx_selection_owner_p)
@@ -186,8 +195,8 @@
 	(x_selection_request_lisp_error): Free the above.
 	(x_get_local_selection): Remove unnecessary code.
 	(x_reply_selection_request): Args changed; handle arbitrary array
-	of converted selections stored in converted_selections.  Separate
-	the XChangeProperty and SelectionNotify steps.
+	of converted selections stored in converted_selections.
+	Separate the XChangeProperty and SelectionNotify steps.
 	(x_handle_selection_request): Rewrite to handle MULTIPLE target.
 	(x_convert_selection): New function.
 	(x_handle_selection_event): Simplify.
@@ -351,8 +360,8 @@
 
 	Be more systematic about user-interface timestamps.
 	Before, the code sometimes used 'Time', sometimes 'unsigned long',
-	and sometimes 'EMACS_UINT', to represent these timestamps.  This
-	change causes it to use 'Time' uniformly, as that's what X uses.
+	and sometimes 'EMACS_UINT', to represent these timestamps.
+	This change causes it to use 'Time' uniformly, as that's what X uses.
 	This makes the code easier to follow, and makes it easier to catch
 	integer overflow bugs such as Bug#8664.
 	* frame.c (Fmouse_position, Fmouse_pixel_position):
