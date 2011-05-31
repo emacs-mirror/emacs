@@ -313,7 +313,7 @@ root_interval (interval)
      c		  c
 */
 
-static INLINE INTERVAL
+static inline INTERVAL
 rotate_right (INTERVAL interval)
 {
   INTERVAL i;
@@ -360,7 +360,7 @@ rotate_right (INTERVAL interval)
     c               c
 */
 
-static INLINE INTERVAL
+static inline INTERVAL
 rotate_left (INTERVAL interval)
 {
   INTERVAL i;
@@ -438,7 +438,7 @@ balance_an_interval (INTERVAL i)
 /* Balance INTERVAL, potentially stuffing it back into its parent
    Lisp Object.  */
 
-static INLINE INTERVAL
+static inline INTERVAL
 balance_possible_root_interval (register INTERVAL interval)
 {
   Lisp_Object parent;
@@ -1427,7 +1427,7 @@ adjust_intervals_for_deletion (struct buffer *buffer,
    at position START.  Addition or deletion is indicated by the sign
    of LENGTH.  */
 
-INLINE void
+inline void
 offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
 {
   if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)) || length == 0)
@@ -1883,7 +1883,7 @@ lookup_char_property (Lisp_Object plist, register Lisp_Object prop, int textprop
 /* Set point in BUFFER "temporarily" to CHARPOS, which corresponds to
    byte position BYTEPOS.  */
 
-INLINE void
+inline void
 temp_set_point_both (struct buffer *buffer,
 		     EMACS_INT charpos, EMACS_INT bytepos)
 {
@@ -1903,7 +1903,7 @@ temp_set_point_both (struct buffer *buffer,
 
 /* Set point "temporarily", without checking any text properties.  */
 
-INLINE void
+inline void
 temp_set_point (struct buffer *buffer, EMACS_INT charpos)
 {
   temp_set_point_both (buffer, charpos,
@@ -2392,7 +2392,7 @@ copy_intervals (INTERVAL tree, EMACS_INT start, EMACS_INT length)
 
 /* Give STRING the properties of BUFFER from POSITION to LENGTH.  */
 
-INLINE void
+inline void
 copy_intervals_to_string (Lisp_Object string, struct buffer *buffer,
 			  EMACS_INT position, EMACS_INT length)
 {

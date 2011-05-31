@@ -1,3 +1,9 @@
+2011-05-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use 'inline', not 'INLINE'.
+	* etags.c (hash): Now inline unconditionally.
+	* make-docfile.c (put_char): inline, not INLINE.
+
 2011-05-25  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (.c.o): Remove (every .o file has an explicit rule).

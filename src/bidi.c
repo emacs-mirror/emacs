@@ -137,7 +137,7 @@ bidi_initialize (void)
 
 /* Return the bidi type of a character CH, subject to the current
    directional OVERRIDE.  */
-static INLINE bidi_type_t
+static inline bidi_type_t
 bidi_get_type (int ch, bidi_dir_t override)
 {
   bidi_type_t default_type;
@@ -188,7 +188,7 @@ bidi_check_type (bidi_type_t type)
 }
 
 /* Given a bidi TYPE of a character, return its category.  */
-static INLINE bidi_category_t
+static inline bidi_category_t
 bidi_get_category (bidi_type_t type)
 {
   switch (type)
@@ -252,7 +252,7 @@ bidi_mirror_char (int c)
 
 /* Copy the bidi iterator from FROM to TO.  To save cycles, this only
    copies the part of the level stack that is actually in use.  */
-static INLINE void
+static inline void
 bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
 {
   int i;
@@ -275,14 +275,14 @@ static size_t elsz = sizeof (struct bidi_it);
 static int bidi_cache_idx;	/* next unused cache slot */
 static int bidi_cache_last_idx;	/* slot of last cache hit */
 
-static INLINE void
+static inline void
 bidi_cache_reset (void)
 {
   bidi_cache_idx = 0;
   bidi_cache_last_idx = -1;
 }
 
-static INLINE void
+static inline void
 bidi_cache_shrink (void)
 {
   if (bidi_cache_size > BIDI_CACHE_CHUNK)
@@ -294,7 +294,7 @@ bidi_cache_shrink (void)
   bidi_cache_reset ();
 }
 
-static INLINE void
+static inline void
 bidi_cache_fetch_state (int idx, struct bidi_it *bidi_it)
 {
   int current_scan_dir = bidi_it->scan_dir;
@@ -311,7 +311,7 @@ bidi_cache_fetch_state (int idx, struct bidi_it *bidi_it)
    level less or equal to LEVEL.  if LEVEL is -1, disregard the
    resolved levels in cached states.  DIR, if non-zero, means search
    in that direction from the last cache hit.  */
-static INLINE int
+static inline int
 bidi_cache_search (EMACS_INT charpos, int level, int dir)
 {
   int i, i_start;
@@ -402,7 +402,7 @@ bidi_cache_find_level_change (int level, int dir, int before)
   return -1;
 }
 
-static INLINE void
+static inline void
 bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
 {
   int idx;
@@ -460,7 +460,7 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
     bidi_cache_idx = idx + 1;
 }
 
-static INLINE bidi_type_t
+static inline bidi_type_t
 bidi_cache_find (EMACS_INT charpos, int level, struct bidi_it *bidi_it)
 {
   int i = bidi_cache_search (charpos, level, bidi_it->scan_dir);
@@ -480,7 +480,7 @@ bidi_cache_find (EMACS_INT charpos, int level, struct bidi_it *bidi_it)
   return UNKNOWN_BT;
 }
 
-static INLINE int
+static inline int
 bidi_peek_at_next_level (struct bidi_it *bidi_it)
 {
   if (bidi_cache_idx == 0 || bidi_cache_last_idx == -1)
@@ -519,7 +519,7 @@ bidi_at_paragraph_end (EMACS_INT charpos, EMACS_INT bytepos)
    embedding levels on either side of the run boundary.  Also, update
    the saved info about previously seen characters, since that info is
    generally valid for a single level run.  */
-static INLINE void
+static inline void
 bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
 {
   int higher_level = level_before > level_after ? level_before : level_after;
@@ -729,7 +729,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 
 /* Do whatever UAX#9 clause X8 says should be done at paragraph's
    end.  */
-static INLINE void
+static inline void
 bidi_set_paragraph_end (struct bidi_it *bidi_it)
 {
   bidi_it->invalid_levels = 0;
@@ -772,7 +772,7 @@ bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, struct bidi_it *bidi_it)
 
 /* Push the current embedding level and override status; reset the
    current level to LEVEL and the current override status to OVERRIDE.  */
-static INLINE void
+static inline void
 bidi_push_embedding_level (struct bidi_it *bidi_it,
 			   int level, bidi_dir_t override)
 {
@@ -785,7 +785,7 @@ bidi_push_embedding_level (struct bidi_it *bidi_it,
 
 /* Pop the embedding level and directional override status from the
    stack, and return the new level.  */
-static INLINE int
+static inline int
 bidi_pop_embedding_level (struct bidi_it *bidi_it)
 {
   /* UAX#9 says to ignore invalid PDFs.  */
@@ -795,7 +795,7 @@ bidi_pop_embedding_level (struct bidi_it *bidi_it)
 }
 
 /* Record in SAVED_INFO the information about the current character.  */
-static INLINE void
+static inline void
 bidi_remember_char (struct bidi_saved_info *saved_info,
 		    struct bidi_it *bidi_it)
 {
@@ -811,7 +811,7 @@ bidi_remember_char (struct bidi_saved_info *saved_info,
 
 /* Resolve the type of a neutral character according to the type of
    surrounding strong text and the current embedding level.  */
-static INLINE bidi_type_t
+static inline bidi_type_t
 bidi_resolve_neutral_1 (bidi_type_t prev_type, bidi_type_t next_type, int lev)
 {
   /* N1: European and Arabic numbers are treated as though they were R.  */
@@ -828,7 +828,7 @@ bidi_resolve_neutral_1 (bidi_type_t prev_type, bidi_type_t next_type, int lev)
     return STRONG_R;
 }
 
-static INLINE int
+static inline int
 bidi_explicit_dir_char (int c)
 {
   /* FIXME: this should be replaced with a lookup table with suitable

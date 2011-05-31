@@ -646,7 +646,7 @@ x_free_dpy_colors (Display *dpy, Screen *screen, Colormap cmap, long unsigned in
 /* Create and return a GC for use on frame F.  GC values and mask
    are given by XGCV and MASK.  */
 
-static INLINE GC
+static inline GC
 x_create_gc (struct frame *f, long unsigned int mask, XGCValues *xgcv)
 {
   GC gc;
@@ -660,7 +660,7 @@ x_create_gc (struct frame *f, long unsigned int mask, XGCValues *xgcv)
 
 /* Free GC which was used on frame F.  */
 
-static INLINE void
+static inline void
 x_free_gc (struct frame *f, GC gc)
 {
   eassert (interrupt_input_blocked);
@@ -673,7 +673,7 @@ x_free_gc (struct frame *f, GC gc)
 #ifdef WINDOWSNT
 /* W32 emulation of GCs */
 
-static INLINE GC
+static inline GC
 x_create_gc (struct frame *f, unsigned long mask, XGCValues *xgcv)
 {
   GC gc;
@@ -687,7 +687,7 @@ x_create_gc (struct frame *f, unsigned long mask, XGCValues *xgcv)
 
 /* Free GC which was used on frame F.  */
 
-static INLINE void
+static inline void
 x_free_gc (struct frame *f, GC gc)
 {
   IF_DEBUG (xassert (--ngcs >= 0));
@@ -699,7 +699,7 @@ x_free_gc (struct frame *f, GC gc)
 #ifdef HAVE_NS
 /* NS emulation of GCs */
 
-static INLINE GC
+static inline GC
 x_create_gc (struct frame *f,
              unsigned long mask,
              XGCValues *xgcv)
@@ -710,7 +710,7 @@ x_create_gc (struct frame *f,
   return gc;
 }
 
-static INLINE void
+static inline void
 x_free_gc (struct frame *f, GC gc)
 {
   xfree (gc);
@@ -746,7 +746,7 @@ xstrcasecmp (const char *s1, const char *s2)
    CHECK_LIVE_FRAME.  This is here because it's a frequent pattern in
    Lisp function definitions.  */
 
-static INLINE struct frame *
+static inline struct frame *
 frame_or_selected_frame (Lisp_Object frame, int nparam)
 {
   if (NILP (frame))
@@ -1976,7 +1976,7 @@ struct named_merge_point
    FACE_NAME and NAMED_MERGE_POINT_KIND, as the head of the linked list
    pointed to by NAMED_MERGE_POINTS, and return 1.  */
 
-static INLINE int
+static inline int
 push_named_merge_point (struct named_merge_point *new_named_merge_point,
 			Lisp_Object face_name,
 			enum named_merge_point_kind named_merge_point_kind,
@@ -2078,7 +2078,7 @@ resolve_face_name (Lisp_Object face_name, int signal_p)
    face text properties; Ediff uses that).  If SIGNAL_P is non-zero,
    signal an error if FACE_NAME is not a valid face name.  If SIGNAL_P
    is zero, value is nil if FACE_NAME is not a valid face name.  */
-static INLINE Lisp_Object
+static inline Lisp_Object
 lface_from_face_name_no_resolve (struct frame *f, Lisp_Object face_name, int signal_p)
 {
   Lisp_Object lface;
@@ -2106,7 +2106,7 @@ lface_from_face_name_no_resolve (struct frame *f, Lisp_Object face_name, int sig
    non-zero, signal an error if FACE_NAME is not a valid face name.
    If SIGNAL_P is zero, value is nil if FACE_NAME is not a valid face
    name.  */
-static INLINE Lisp_Object
+static inline Lisp_Object
 lface_from_face_name (struct frame *f, Lisp_Object face_name, int signal_p)
 {
   face_name = resolve_face_name (face_name, signal_p);
@@ -2120,7 +2120,7 @@ lface_from_face_name (struct frame *f, Lisp_Object face_name, int signal_p)
    is non-zero, signal an error if FACE_NAME does not name a face.
    Otherwise, value is zero if FACE_NAME is not a face.  */
 
-static INLINE int
+static inline int
 get_lface_attributes_no_remap (struct frame *f, Lisp_Object face_name, Lisp_Object *attrs, int signal_p)
 {
   Lisp_Object lface;
@@ -2141,7 +2141,7 @@ get_lface_attributes_no_remap (struct frame *f, Lisp_Object face_name, Lisp_Obje
    non-zero, signal an error if FACE_NAME does not name a face.
    Otherwise, value is zero if FACE_NAME is not a face.  */
 
-static INLINE int
+static inline int
 get_lface_attributes (struct frame *f, Lisp_Object face_name, Lisp_Object *attrs, int signal_p, struct named_merge_point *named_merge_points)
 {
   Lisp_Object face_remapping;
@@ -2307,7 +2307,7 @@ merge_face_heights (Lisp_Object from, Lisp_Object to, Lisp_Object invalid)
    loops in face inheritance/remapping; it should be 0 when called from
    other places.  */
 
-static INLINE void
+static inline void
 merge_face_vectors (struct frame *f, Lisp_Object *from, Lisp_Object *to, struct named_merge_point *named_merge_points)
 {
   int i;
@@ -3903,7 +3903,7 @@ return the font name used for CHARACTER.  */)
    all attributes are `equal'.  Tries to be fast because this function
    is called quite often.  */
 
-static INLINE int
+static inline int
 face_attr_equal_p (Lisp_Object v1, Lisp_Object v2)
 {
   /* Type can differ, e.g. when one attribute is unspecified, i.e. nil,
@@ -3936,7 +3936,7 @@ face_attr_equal_p (Lisp_Object v1, Lisp_Object v2)
    all attributes are `equal'.  Tries to be fast because this function
    is called quite often.  */
 
-static INLINE int
+static inline int
 lface_equal_p (Lisp_Object *v1, Lisp_Object *v2)
 {
   int i, equal_p = 1;
@@ -4021,7 +4021,7 @@ For internal use only.  */)
 /* Return a hash code for Lisp string STRING with case ignored.  Used
    below in computing a hash value for a Lisp face.  */
 
-static INLINE unsigned
+static inline unsigned
 hash_string_case_insensitive (Lisp_Object string)
 {
   const unsigned char *s;
@@ -4035,7 +4035,7 @@ hash_string_case_insensitive (Lisp_Object string)
 
 /* Return a hash code for face attribute vector V.  */
 
-static INLINE unsigned
+static inline unsigned
 lface_hash (Lisp_Object *v)
 {
   return (hash_string_case_insensitive (v[LFACE_FAMILY_INDEX])
@@ -4054,7 +4054,7 @@ lface_hash (Lisp_Object *v)
    family, point size, weight, width, slant, and font.  Both
    LFACE1 and LFACE2 must be fully-specified.  */
 
-static INLINE int
+static inline int
 lface_same_font_attributes_p (Lisp_Object *lface1, Lisp_Object *lface2)
 {
   xassert (lface_fully_specified_p (lface1)
@@ -4460,7 +4460,7 @@ uncache_face (struct face_cache *c, struct face *face)
    Value is the ID of the face found.  If no suitable face is found,
    realize a new one.  */
 
-static INLINE int
+static inline int
 lookup_face (struct frame *f, Lisp_Object *attr)
 {
   struct face_cache *cache = FRAME_FACE_CACHE (f);
