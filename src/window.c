@@ -3690,27 +3690,29 @@ resize_frame_windows (struct frame *f, int size, int horflag)
 }
 
 
-DEFUN ("split-window-internal", Fsplit_window_internal, Ssplit_window_internal, 2, 4, 0,
-       doc: /* Split window OLD vertically giving the new window SIZE lines.
-Optional argument SIDE non-nil means split OLD giving the new
-window SIZE columns.  In any case SIZE must be a positive integer.
+DEFUN ("split-window-internal", Fsplit_window_internal, Ssplit_window_internal, 4, 4, 0,
+       doc: /* Split window OLD.
+Second argument TOTAL-SIZE specifies the number of lines or columns of the
+new window.  In any case TOTAL-SIZE must be a positive integer 
 
-Optional third argument SIDE nil (or `below') specifies that the
-new window shall be located below WINDOW.  SIDE `above' means the
-new window shall be located above WINDOW.  In these cases SIZE specifies
-the new number of lines for WINDOW (or the new window provided SIZE is
-negative) including space reserved for the mode and/or header line.
+Third argument SIDE nil (or `below') specifies that the new window shall
+be located below WINDOW.  SIDE `above' means the new window shall be
+located above WINDOW.  In both cases TOTAL-SIZE specifies the number of
+lines of the new window including space reserved for the mode and/or
+header line.
 
-SIDE t (or `right') specifies that the new window shall be located
-on the right side of WINDOW.  SIDE `left' means the new window
-shall be located on the left of WINDOW.  In these cases SIZE specifies
-the new number of columns for WINDOW (or the new window provided SIZE is
-negative) including space reserved for fringes and the scrollbar or a
-divder column.
+SIDE t (or `right') specifies that the new window shall be located on
+the right side of WINDOW.  SIDE `left' means the new window shall be
+located on the left of WINDOW.  In both cases TOTAL-SIZE specifies the
+number of columns of the new window including space reserved for fringes
+and the scrollbar or a divider column.
 
-Optional fourth argument NORMAL-SIZE specifies the normal size of the
-new window.  */)
-  (Lisp_Object old, Lisp_Object size, Lisp_Object side, Lisp_Object normal_size)
+Fourth argument NORMAL-SIZE specifies the normal size of the new window
+according to the SIDE argument.
+
+The new total and normal sizes of all involved windows must have been
+set correctly.  See the code of `split-window' for how this is done.  */)
+  (Lisp_Object old, Lisp_Object total_size, Lisp_Object side, Lisp_Object normal_size)
 {
   /* OLD (*o) is the window we have to split.  (*p) is either OLD's
      parent window or an internal window we have to install as OLD's new
@@ -3724,7 +3726,6 @@ new window.  */)
   int horflag
     /* HORFLAG is 1 when we split side-by-side, 0 otherwise.  */
     = EQ (side, Qt) || EQ (side, Qleft) || EQ (side, Qright);
-  int do_resize = 0;
   int do_nest = 0;
 
   CHECK_WINDOW (old);
@@ -3732,10 +3733,11 @@ new window.  */)
   frame = WINDOW_FRAME (o);
   f = XFRAME (frame);
 
-  CHECK_NUMBER (size);
+  CHECK_NUMBER (total_size);
 
-  /* Set do_nest to 1 if either Vwindow_nest is non-nil, OLD has no
-     parent, or OLD is ortho-combined.  */
+  /* Set do_nest to 1 if we have to make a new parent window.  We do
+     that if either `window-nest' is non-nil, or OLD has no parent, or
+     OLD is ortho-combined.  */
   do_nest =
     !NILP (Vwindow_nest)
     || NILP (o->parent)
@@ -3743,31 +3745,31 @@ new window.  */)
 	     ? (XWINDOW (o->parent)->hchild)
 	     : (XWINDOW (o->parent)->vchild));
 
-  /* Set do_resize to 1 iff do_nest was not set and Vwindow_splits is
-     non-nil.  */
-  do_resize = !do_nest && !NILP (Vwindow_splits);
-
-  /* We may need a live reference window to copy some parameters.  */
+  /* We need a live reference window to initialize some parameters.  */
   if (WINDOW_LIVE_P (old))
+    /* OLD is live, use it as reference window.  */
     reference = old;
-  else /* Neither REFERENCE nor OLD are alive.  Use the frame's
-	  selected window as reference window.  */
+  else
+    /* Use the frame's selected window as reference window.  */
     reference = FRAME_SELECTED_WINDOW (f);
   r = XWINDOW (reference);
 
   /* The following bugs are caught by `split-window'.  */
   if (MINI_WINDOW_P (o))
     error ("Attempt to split minibuffer window");
-  else if (XINT (size) < (horflag ? 2 : 1))
+  else if (XINT (total_size) < (horflag ? 2 : 1))
     error ("Size of new window too small (after split)");
-  else if (do_resize)
+  else if (!do_nest && !NILP (Vwindow_splits))
+    /* `window-splits' non-nil means try to resize OLD's siblings
+       proportionally.  */
     {
       p = XWINDOW (o->parent);
       /* Temporarily pretend we split the parent window.  */
       XSETINT (p->new_total,
-	       XINT (horflag ? p->total_cols : p->total_lines) - XINT (size));
+	       XINT (horflag ? p->total_cols : p->total_lines)
+	       - XINT (total_size));
       if (!resize_window_check (p, horflag))
-	error ("Sum of window sizes won't fit");
+	error ("Window sizes don't fit");
       else
 	/* Undo the temporary pretension.  */
 	p->new_total = horflag ? p->total_cols : p->total_lines;
@@ -3776,40 +3778,26 @@ new window.  */)
     {
       if (!resize_window_check (o, horflag))
 	error ("Resizing old window failed");
-      else if (XINT (size) + XINT (o->new_total)
+      else if (XINT (total_size) + XINT (o->new_total)
 	       != XINT (horflag ? o->total_cols : o->total_lines))
 	error ("Sum of sizes of old and new window don't fit");
     }
 
   /* This is our point of no return. */
-  if (NILP (o->parent)
-      || NILP (horflag
-	       ? (XWINDOW (o->parent)->hchild)
-	       : (XWINDOW (o->parent)->vchild))
-      || !NILP (Vwindow_nest))
-    /* Make a new parent window in the following cases:
-
-       - OLD doesn't have a parent window, or
-
-       - OLD is in a vertical (horizontal) combination and shall be
-         split side-by-side (above-each-other), or
-
-       - we want to nest the new parent window.
-
-       Note that the new parent window is a matrjoshka window; so any
-       matrjoshka window invariants are temporarily invalid now.  */
+  if (do_nest)
     {
       /* Save the old value of o->normal_cols/lines.  It gets corrupted
 	 by make_parent_window and we need it below for assigning it to
 	 p->new_normal.  */
       Lisp_Object new_normal = horflag ? o->normal_cols : o->normal_lines;
+
       make_parent_window (old, horflag);
       p = XWINDOW (o->parent);
-      /* Store nesting in parent.  */
+      /* Store value of `window-nest' in new parent's nest slot.  */
       p->nest = Vwindow_nest;
-      /* Inherit splits from old.  */
+      /* Have PARENT inherit splits slot value from OLD.  */
       p->splits = o->splits;
-      /* Set splits in old window.  */
+      /* Store value of `window-splits' in OLD's splits slot.  */
       o->splits = Vwindow_splits;
       /* These get applied below.  */
       p->new_total = horflag ? o->total_cols : o->total_lines;
@@ -3861,6 +3849,10 @@ new window.  */)
   n->scroll_bar_width = r->scroll_bar_width;
   n->vertical_scroll_bar_type = r->vertical_scroll_bar_type;
 
+  /* Store `window-splits' in NEW's splits slot.  */
+  n->splits = Vwindow_splits;
+
+  /* Directly assign orthogonal coordinates and sizes.  */
   if (horflag)
     {
       n->top_line = o->top_line;
@@ -3872,31 +3864,25 @@ new window.  */)
       n->total_cols = o->total_cols;
     }
 
-  n->new_total = size;
+  /* Iso-coordinates and sizes are assigned by resize_window_apply,
+     get them ready here.  */
+  n->new_total = total_size;
+  n->new_normal = normal_size;
 
   BLOCK_INPUT;
   resize_window_apply (p, horflag);
-
-  /* Store actual value of `window-splits' for NEW.  */
-  n->splits = Vwindow_splits;
-
-  /* Assign normal size of NEW.  */
-  if (horflag)
-    n->normal_cols = normal_size;
-  else
-    n->normal_lines = normal_size;
-
   adjust_glyphs (f);
-  UNBLOCK_INPUT;
-
-  /* Set buffer of new window to buffer of reference window.  Don't run
+  /* Set buffer of NEW to buffer of reference window.  Don't run
      any hooks.  */
   set_window_buffer (new, r->buffer, 0, 1);
+  UNBLOCK_INPUT;
+
   /* Maybe we should run the scroll functions in Elisp (which already
      runs the configuration change hook).  */
   if (! NILP (Vwindow_scroll_functions))
     run_hook_with_args_2 (Qwindow_scroll_functions, new,
 			  Fmarker_position (n->start));
+  /* Return NEW.  */
   return new;
 }
 
@@ -4001,7 +3987,8 @@ when WINDOW is the only window on its frame.  */)
 	{
 	  /* Put SIBLING into PARENT's place.  */
 	  replace_window (parent, sibling, 0);
-	  /* Inherit these three.  */
+	  /* Have SIBLING inherit the following three slot values from
+	     PARENT (the nest slot is not inherited).  */
 	  s->normal_cols = p->normal_cols;
 	  s->normal_lines = p->normal_lines;
 	  s->splits = p->splits;

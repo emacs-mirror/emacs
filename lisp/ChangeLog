@@ -1,3 +1,25 @@
+2011-05-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (ignore-window-parameters, window-size-fixed):
+	Rewrite doc-strings.
+	(window-min-delta-1, window-min-delta): Reorder.  Minor rewrite.
+	(resize-subwindows-normal): Use zerop when checking other-delta.
+	Call window-min-delta with NODOWN argument nil.
+	(adjust-window-trailing-edge): Fix doc-string.
+	(other-window): Fix doc-string and respect
+	ignore-window-parameters.
+	(delete-window, delete-other-windows): Fix doc-strings.  Remove
+	-function postfix from associated window parameters.
+	(quit-restore-window): Resize only if buffer was in
+	temp-buffer-resize-mode.
+	(window-split-min-size): Rewrite doc-string.
+	(split-window): Rewrite doc-string.  Rename horflag to
+	horizontal.  Major rewrite of size calculations.  Remove
+	-function postfix from associated window parameter.
+	(window-state-put-1, display-buffer-split-window-1): Rename
+	horflag to horizontal.
+	(same-window-p): Remove call to non-existent function.
+
 2011-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* image-mode.el (image-after-revert-hook):

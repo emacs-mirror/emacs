@@ -227,7 +227,7 @@ combination of windows.  A @dfn{vertical combination} is a set of
 windows arranged one above each other.  A @dfn{horizontal combination}
 is a set of windows arranged side by side.  Consider the frame shown
 below (for simplicity we assume that the frame does not contain a
-minibuffer):
+minibuffer window):
 
 @smallexample
 @group
@@ -284,7 +284,7 @@ example above @code{(window-hchild W4)} is @code{W6} while
 @defun window-child window
 This function return @var{window}'s first child window.  The return
 value is @code{nil} if @var{window} is a leaf window.  In the example
-above @code{(window-child W3)} is @code{W4} while @code{(window-vchild
+above @code{(window-child W3)} is @code{W4} while @code{(window-child
 W4)} is @code{W6}.
 @end defun
 
@@ -301,10 +301,6 @@ If the optional argument @var{horizontal} is non-@code{nil}, this means
 to return non-@code{nil} if and only if @var{window} is horizontally
 combined.  The actual return value is the first horizontal child of
 window.
-
-In our canonical example @code{(window-iso-combined-p W5)} and
-@code{(window-iso-combined-p W6 t)} both evaluate to @code{t} while
-@code{(window-iso-combined-p W6)} is @code{nil}.
 @end defun
 
 @cindex sibling window
@@ -462,7 +458,7 @@ otherwise.
 @end defun
 
 Alternatively, the following two functions can be used to retrieve
-either the total height of the total width of a window:
+either the total height or the total width of a window:
 
 @defun window-total-height &optional window
 This function returns the total number of lines of @var{window}.
@@ -548,7 +544,7 @@ included in a window's body height.
 @cindex body width of a window
 The @dfn{body width of a window} denotes the total number of columns
 occupied by the window's text area.  Scroll bars or columns of @samp{|}
-characters that separates side-by-side windows are not included in a
+characters that separate side-by-side windows are not included in a
 window's body width.
 
 @cindex body size of a window
@@ -722,7 +718,7 @@ return value of zero means that @var{window} is not resizable.
 
 If @var{delta} is a positive number, this means that @var{window} shall
 be enlarged by @var{delta} lines or columns.  If @var{window} cannot be
-enlarged by @var{delta} lines or columns this function returns the
+enlarged by @var{delta} lines or columns, this function returns the
 maximum value in the range from 0 to @var{delta} by which @var{window}
 can be enlarged.
 
@@ -748,7 +744,7 @@ Optional argument @var{noup} non-@code{nil} means don't go up in the
 window tree but try to steal or distribute the space needed for the
 resize operation among the other windows within @var{window}'s
 combination.  Optional argument @var{nodown} non-@code{nil} means don't
-check whether @var{window} and its subwindows can be resized.
+check whether @var{window} itself and its subwindows can be resized.
 @end defun
 
 The function @code{window-resizable} does not change any window sizes.
@@ -773,10 +769,12 @@ A negative @var{delta} means @var{window} shall be shrunk by
 Optional argument @var{ignore} has the same meaning as for the function
 @code{window-resizable} above.
 
-This function resizes other windows proportionally and never deletes any
-windows.  If only the low (right) edge of @var{window} shall be moved,
-the function @code{adjust-window-trailing-edge} described below should
-be used.
+This function can simultaneously move two edges of WINDOW.  Exactly
+which edges of @var{window} are moved and which other windows are
+resized along with @var{window} is determined by the splits and nest
+status of the involved windows (@pxref{Splitting Windows}).  If only the
+low (right) edge of @var{window} shall be moved, the function
+@code{adjust-window-trailing-edge} described below should be used.
 @end defun
 
 The next four commands are simple interfaces to @code{resize-window}.
@@ -821,20 +819,32 @@ Optional argument @var{horizontal} non-@code{nil} means to move
 @var{window}'s right edge by @var{delta} columns.  The argument
 @var{window} defaults to the selected window.
 
-If the edge can't be moved by @var{delta} lines, move it as far as
-possible in the desired direction.
+If @var{delta} is greater zero, this moves the edge downwards or to the
+right.  If @var{delta} is less than zero, this moves the edge upwards or
+to the left. If the edge can't be moved by @var{delta} lines or columns,
+it is moved as far as possible in the desired direction but no error is
+signalled.
+
+This function tries to resize windows adjacent to the edge that is
+moved.  Only if this is insufficient, it will also resize windows not
+adjacent to that edge.  As a consequence, if you move an edge in one
+direction and back in the other direction by the same amount, the
+resulting window configuration will not be necessarily identical to the
+one before the first move.  So if your intend to just resize
+@var{window}, you should not use this function but call
+@code{resize-window} (see above) instead.
 @end defun
 
 @deffn Command fit-window-to-buffer &optional window max-height min-height override
 This command makes @var{window} the right height to display its
 contents exactly.  The default for @var{window} is the selected window.
 
-The optional argument @var{max-height} specifies the maximum height the
-window is allowed to be; @code{nil} means use the maximum permissible
-height of a window on @var{window}'s frame.  The optional argument
-@var{min-height} specifies the minimum height for the window; @code{nil}
-means use @code{window-min-height}.  All these height values include the
-mode line and/or header line.
+The optional argument @var{max-height} specifies the maximum total
+height the window is allowed to be; @code{nil} means use the maximum
+permissible height of a window on @var{window}'s frame.  The optional
+argument @var{min-height} specifies the minimum toatl height for the
+window; @code{nil} means use @code{window-min-height}.  All these height
+values include the mode line and/or header line.
 
 If the optional argument @var{override} is non-@code{nil}, this means to
 ignore any restrictions imposed by @code{window-min-height} and
@@ -861,7 +871,7 @@ and @code{nil} otherwise.
 
 @cindex balancing window sizes
 Emacs provides two functions to balance windows, that is, to even out
-the sizes of windows on the same frame.  The minibuffer window and
+the sizes of all windows on the same frame.  The minibuffer window and
 fixed-size windows are not resized by these functions.
 
 @deffn Command balance-windows &optional window-or-frame
@@ -958,12 +968,11 @@ frame.
 
 If @code{ignore-window-parameters} is non-@code{nil}, this function
 ignores window parameters (@pxref{Window Parameters}).  Otherwise, if
-the @code{split-window-function} parameter of @var{window} is @code{t},
-it splits the window disregarding any other window parameters.  If the
-@code{split-window-function} parameter specifies a function, that
-function is called with the arguments @var{window}, @var{size}, and
-@var{side} to split @var{window}.  If that function is @code{ignore},
-nothing is done.
+the @code{split-window} parameter of @var{window} is @code{t}, it splits
+the window disregarding any other window parameters.  If the
+@code{split-window} parameter specifies a function, that function is
+called with the arguments @var{window}, @var{size}, and @var{side} to
+split @var{window}.  If that function is @code{ignore}, nothing is done.
 
 Otherwise, if @var{window} is a subwindow of an atomic window
 (@pxref{Atomic Windows}) this function splits the root of the atomic
@@ -1054,30 +1063,10 @@ window configuration from our earlier example (@pxref{Windows and
 Frames}) and how internal windows are created for this purpose.  We
 start with a frame containing one leaf window @code{W2} (in the
 following scenarios window names are assigned in an arbitrary manner in
-order to match the names of the example).
-@smallexample
-@group
-     ______________________________________
-    |                                      |
-    |                                      |
-    |                                      |
-    |                                      |
-    |                                      |
-    |                                      |
-    |                                      |
-    |                                      |
-    |                                      |
-    |                                      |
-    |                                      |
-    |                                      |
-    |__________________W2__________________|
-
-@end group
-@end smallexample
-
-Evaluating the form @code{(split-window W2 8 t)} creates a new internal
-window @code{W1} with two children---@code{W2} (the window we've split)
-and a new leaf window @code{W6}:
+order to match the names of the example).  Evaluating the form
+@code{(split-window W2 8 t)} creates a new internal window @code{W1}
+with two children---@code{W2} (the window we've split) and a new leaf
+window @code{W6}:
 @smallexample
 @group
      ______________________________________
@@ -1171,29 +1160,9 @@ following vertical combination:
 @end smallexample
 
 Evaluating now @code{(split-window (window-parent W6) -8 'left)} or,
-equivalently, @code{(split-window W3 -8 'left)} should produce the
-familiar configuration
-@smallexample
-@group
-     ______________________________________
-    | ______  ____________________________ |
-    ||      || __________________________ ||
-    ||      |||                          |||
-    ||      |||                          |||
-    ||      |||                          |||
-    ||      |||                          |||
-    ||      |||                          |||
-    ||      |||____________W6____________|||
-    ||      || __________________________ ||
-    ||      |||                          |||
-    ||      |||____________W5____________|||
-    ||__W2__||_____________W3_____________ |
-    |__________________W1__________________|
-
-@end group
-@end smallexample
-
-from where we can continue as described in the previous scenario.
+equivalently, @code{(split-window W3 -8 'left)} should now produce the
+penultimate configuration from the previous scenario from where we can
+continue as described before.
 
    Another strategy starts with splitting an inital window @code{W6} by
 evaluating @code{(split-window W6 nil nil t)} with the following result:
@@ -1270,29 +1239,124 @@ Evaluating now @code{(split-window W4 -3)} or, for example,
 @code{(split-window (window-parent W6) -3)} should produce the desired
 configuration.
 
-  The following two option can be used to tune the operation of
+  The two options described next can be used to tune the operation of
 @code{split-window}.
 
 @defopt window-splits
 If this variable is nil, the function @code{split-window} can split a
 window if and only if that window's screen estate is sufficiently large
-to accomodate both itself and the new window.
+to accomodate both--itself and the new window.
 
 If this variable is non-@code{nil}, @code{split-window} tries to resize
-all windows belonging to the same combination as the old window in order
-to accomodate the new window.  Hence, the new window can be also created
-if the old window is otherwise too small to split.
+all windows that are part of the same combination as the old window to
+accomodate the new window.  Hence, the new window can be also created if
+the old window is of fixed size or too small to split (@pxref{Window
+Sizes}).
 
 In any case, the value of this variable is assigned to the splits status
 of the new window and, provided old and new window form a new
 combination, of the old window as well.  The splits status of a window
 can be retrieved by invoking the function @code{window-splits} and
-altered by the function @code{set-window-splits}, see below.
+altered by the function @code{set-window-splits} described next.
 
 If @code{window-nest} (see below) is non-@code{nil}, the space for the
 new window is exclusively taken from the old window, but the splits
-status of any involved window is nevertheless set as descibed above.
+status of the involved windows is nevertheless set as described here.
 @end defopt
+
+@defun window-splits &optional window
+This function returns the splits status of @var{window}.  The argument
+@var{window} can be any window and defaults to the selected one.
+
+@cindex splits status
+The @dfn{splits status} of a window specifies how resizing and deleting
+that window may affect the size of other windows in the same window
+combination.  More precisely, if @var{window}'s splits status is
+@code{nil} and @var{window} is resized, the corresponding space is
+preferably taken from (or given to) @var{window}'s right sibling.  When
+@var{window} is deleted, its space is given to its left sibling.  If
+@var{window}'s splits status is non-@code{nil}, resizing and deleting
+@var{window} may resize @emph{all} windows in @var{window}'s
+combination.
+
+The splits status is initially set by @code{split-window}
+from the current value of the variable @code{window-splits} (see above)
+and can be reset by the function @code{set-window-splits} (see below).
+@end defun
+
+@defun set-window-splits window &optional status
+This function sets the splits status (see above) of @var{window} to
+@var{status}.  The argument @var{window} can be any window and defaults
+to the selected one.  The return value is @var{status}.
+@end defun
+
+To illustrate the use of @code{window-splits} consider the following
+window configuration:
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||_________________W2_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||_________________W3_________________||
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+Splitting window @code{W3} with @code{window-splits} @code{nil}
+produces a configuration where the size of @code{W2} remains unchanged:
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||_________________W2_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||_________________W3_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||_________________W4_________________||
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+Splitting @code{W3} with @code{window-splits} non-@code{nil} instead
+produces a configuration where all windows have approximately the same
+height:
+
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W2_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W3_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W4_________________||
+    |__________________W1__________________|
+
+@end group
+@end smallexample
 
 @defopt window-nest
 If this variable is @code{nil}, @code{split-window} creates a new parent
@@ -1309,31 +1373,6 @@ the function @code{window-nest} and altered by the function
 @code{set-window-nest}, see below.
 @end defopt
 
-@defun window-splits &optional window
-This function returns the splits status of @var{window}.  The argument
-@var{window} can be any window and defaults to the selected one.
-
-@cindex splits status
-The @dfn{splits status} of a window specifies how resizing and deleting
-that window may affect the size of other windows in the same window
-combination.  The splits status is initially set by @code{split-window}
-to the current value of the variable @code{window-splits} (see above)
-and can be reset by the function @code{set-window-splits} (see below).
-
-More precisely, if @var{window}'s splits status is @code{nil} and
-@var{window} is resized, the corresponding space is preferably taken
-from (or given to) @var{window}'s right sibling.  When @var{window} is
-deleted, its space is given to its left sibling.  If @var{window}'s
-splits status is non-@code{nil}, resizing and deleting @var{window} may
-resize all windows in @var{window}'s combination.
-@end defun
-
-@defun set-window-splits window &optional status
-This function sets the splits status (see above) of @var{window} to
-@var{status}.  The argument @var{window} can be any window and defaults
-to the selected one.  The return value is @var{status}.
-@end defun
-
 @defun window-nest &optional window
 This function returns the nest status of @var{window}.  The argument
 @var{window} can be any window and defaults to the selected one.  Note,
@@ -1341,10 +1380,10 @@ however, that the nest status is currently meaningful for internal
 windows only.
 
 @cindex nest status
-The @dfn{nest status} of a window secifies whether that window may be
+The @dfn{nest status} of a window specifies whether that window may be
 removed and its subwindows recombined with that window's siblings when
 such a sibling's subwindow is deleted.  The nest status is initially
-assigned by @code{split-window} to the current value of the variable
+assigned by @code{split-window} from the current value of the variable
 @code{window-nest} (see above) and can be reset by the function
 @code{set-window-nest} (see below).
 
@@ -1360,6 +1399,148 @@ This functions sets the nest status (see above) of @var{window} to
 to the selected one.  Note that setting the nest status is meaningful
 for internal windows only.  The return value is @var{status}.
 @end defun
+
+To illustrate the use of @code{window-nest} consider the following
+configuration (throughout the following examples we shall assume that
+@code{window-splits} invariantly is @code{nil}).
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||_________________W2_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W3_________________||
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+Splitting @code{W2} into two windows above each other with
+@code{window-nest} equal @code{nil} will get you a configuration like:
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W2_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W4_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W3_________________||
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+If you now enlarge window @code{W4}, Emacs steals the necessary space
+from window @code{W3} resulting in a configuration like:
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W2_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||_________________W4_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||_________________W3_________________||
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+Deleting window @code{W4}, will return its space to @code{W2} as
+follows:
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||                                    ||
+    ||_________________W2_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||_________________W3_________________||
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+Hence, with respect to the initial configuration, window @code{W2} has
+grown at the expense of window @code{W3}.  If, however, in the initial
+configuration you had split @code{W2} with @code{window-nest} bound to
+@code{t}, a new internal window @code{W5} would have been created as
+depicted below.
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    || __________________________________ ||
+    |||                                  |||
+    |||________________W2________________|||
+    || __________________________________ ||
+    |||                                  |||
+    |||________________W4________________|||
+    ||_________________W5_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W3_________________||
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+Enlarging @code{W4} would now have stolen the necessary space from
+@code{W2} instead of @code{W3} as
+@smallexample
+@group
+     ______________________________________
+    | ____________________________________ |
+    || __________________________________ ||
+    |||________________W2________________|||
+    || __________________________________ ||
+    |||                                  |||
+    |||                                  |||
+    |||________________W4________________|||
+    ||_________________W5_________________||
+    | ____________________________________ |
+    ||                                    ||
+    ||                                    ||
+    ||_________________W3_________________||
+    |__________________W1__________________|
+
+@end group
+@end smallexample
+
+and the subsequent deletion of @code{W4} would have restored the initial
+configuration.
+
+For interactive use, Emacs provides two commands which always split the
+selected window.
 
 @deffn Command split-window-above-each-other &optional size
 This function splits the selected window into two windows, one above the
@@ -1415,26 +1596,26 @@ selected one.  An error is signaled if @var{window} is the only window
 on its frame.  Hence @var{window} must have at least one sibling window
 (@pxref{Windows and Frames}) in order to get deleted.
 
-If @code{window-splits} is @code{nil}, the space @var{window} took up is
-given to its left sibling if such a window exists and to its right
-sibling otherwise.  If @code{window-splits} equals @code{nest} that
-space is given to the remaining sibling of @var{window}.  If
-@code{window-splits} equals @code{resize}, the space occupied by
-@var{window} is proportionally distributed among the remaining windows
-in the same combination.
+If the variable @code{ignore-window-parameters} (@pxref{Window
+Parameters}) is non-@code{nil}, this function ignores all parameters of
+@var{window}.  Otherwise, if the @code{delete-window} parameter of
+@var{window} is @code{t}, it deletes the window disregarding other
+window parameters.  If the @code{delete-window} parameter specifies a
+function, that function is called with @var{window} as its sole
+argument.
 
-If @code{ignore-window-parameters} (@pxref{Window Parameters}) is
-non-@code{nil}, this function ignores window parameters.  Otherwise, if
-the @code{delete-window-function} parameter of @var{window} is @code{t},
-it deletes the window disregarding other window parameters.  If the
-@code{delete-window-function} parameter specifies a function, that
-function is called with @var{window} as its sole argument.
-
-If @var{window} is part of an atomic window (@pxref{Atomic Windows}),
-this function is called with the root of the atomic window as its
-argument.  If that window is the root window of its frame, an error is
-signalled.  If @var{window} is the last non-side window on its frame
+Otherwise, if @var{window} is part of an atomic window (@pxref{Atomic
+Windows}), this function is called with the root of the atomic window as
+its argument.  If that window is the root window of its frame, an error
+is signalled.  If @var{window} is the last non-side window on its frame
 (@pxref{Side Windows}), this function signals an error too.
+
+If the splits status of @var{window} (@pxref{Splitting Windows}) is
+@code{nil}, the space @var{window} took up is given to its left sibling
+if such a window exists and to its right sibling otherwise.  If the
+splits status of @var{window} is non-@code{nil}, its space is
+proportionally distributed among the remaining windows in the same
+combination.
 @end deffn
 
 @deffn Command delete-other-windows &optional window
@@ -1442,19 +1623,20 @@ This function makes @var{window} fill its frame and returns @code{nil}.
 The argument @var{window} can denote an arbitrary window and defaults to
 the selected one.
 
-If @code{ignore-window-parameters} (@pxref{Window Parameters}) is
-non-@code{nil}, this function ignores window parameters.  Otherwise, if
-the @code{delete-other-windows-function} parameter equals @code{t}, it
-deletes all other windows disregarding any remaining window parameters.
-If the @code{delete-other-windows-function} parameter specifies a
+If the variable @code{ignore-window-parameters} (@pxref{Window
+Parameters}) is non-@code{nil}, this function ignores all parameters of
+@var{window}.  Otherwise, if the @code{delete-other-windows} parameter
+of @var{window} equals @code{t}, it deletes all other windows
+disregarding any remaining window parameters.  If the
+@code{delete-other-windows} parameter of @var{window} specifies a
 function, it calls that function with @var{window} as its sole argument.
 
-If @var{window} is part of an atomic window (@pxref{Atomic Windows}), it
-calls this function with the root of the atomic window as its argument.
-If @var{window} is a non-side window (@pxref{Side Windows}), it makes
-@var{window} the only non-side window on its frame and leaves side
-windows alone.  If @var{window} is a side window, this function signals
-an error.
+Otherwise, if @var{window} is part of an atomic window (@pxref{Atomic
+Windows}), it calls this function with the root of the atomic window as
+its argument.  If @var{window} is a non-side window (@pxref{Side
+Windows}), it makes @var{window} the only non-side window on its frame
+and leaves side windows alone.  If @var{window} is a side window, this
+function signals an error.
 @end deffn
 
 @deffn Command delete-windows-on &optional buffer-or-name frame
@@ -1468,12 +1650,16 @@ The function @code{delete-windows-on} operates by calling
 @code{delete-window} for each window showing @var{buffer-or-name}.  If a
 frame has several windows showing different buffers, then those showing
 @var{buffer-or-name} are removed, and the other windows expand to fill
-the space.  If all windows in some frame are showing
-@var{buffer-or-name} (including the case where there is only one
-window), then the frame winds up with a single window showing another
-buffer.  If, however, that last remaining window is dedicated to the
-buffer specified by @var{buffer-or-name} (@pxref{Dedicated Windows}),
-and there are other frames left, that window's frame is deleted.
+the space.
+
+If all windows in some frame are showing @var{buffer-or-name} (including
+the case where there is only one window), then that frame winds up with
+a single window showing another buffer.  If, however, that last
+remaining window is dedicated to the buffer specified by
+@var{buffer-or-name} (@pxref{Dedicated Windows}) or that window's
+@code{quit-restore} parameter (@pxref{Window Parameters}) is set
+appropriately, that window's frame is deleted provided there are other
+frames left.
 
 The optional argument @var{frame} specifies which frames to operate on.
 This function does not use it in quite the same way as the other
@@ -1822,14 +2008,16 @@ The basic, low-level function to associate a window with a buffer is
 @code{display-buffer} try to obey a number of user customizations
 regulating which windows are supposed to display which buffers.  When
 writing an application, programmers should therefore carefully evaluate
-whether they really need the power of this @code{set-window-buffer}.
+whether they really need the power of @code{set-window-buffer}.
 
 @defun set-window-buffer window buffer-or-name &optional keep-margins
 This function makes @var{window} display @var{buffer-or-name} and
 returns @code{nil}.  The argument @var{window} has to denote a live
 window and defaults to the selected one.  The argument
 @var{buffer-or-name} must specify a buffer or the name of an existing
-buffer.
+buffer.  An error is signalled when @var{window} is @dfn{strongly}
+dedicated to its buffer (@pxref{Dedicated Windows}) and does not already
+display @var{buffer-or-name}.
 
 Normally, displaying @var{buffer-or-name} in @var{window} resets the
 window's position, display margins, fringe widths, and scroll bar
@@ -1838,14 +2026,10 @@ if the optional argument @var{keep-margins} is non-@code{nil}, display
 margins and fringe widths of @var{window} remain unchanged.
 @xref{Fringes}.
 
-@code{set-window-buffer} is the fundamental primitive for changing which
-buffer is displayed in a window, and all ways of doing that call this
-function.  Neither the selected window nor the current buffer are
-changed by this function.
-
-@code{set-window-buffer} signals an error when @var{window} is
-@dfn{strongly} dedicated to its buffer (@pxref{Dedicated Windows}) and
-does not already display @var{buffer-or-name}.
+This function is the fundamental primitive for changing which buffer is
+displayed in a window, and all ways of doing that call this function.
+Neither the selected window nor the current buffer are changed by this
+function.
 
 This function runs @code{window-scroll-functions} before running
 @code{window-configuration-change-hook}, see @ref{Window Hooks}.
@@ -1918,11 +2102,12 @@ The argument @var{buffer-or-name} may be a buffer or the name of an
 existing buffer and defaults to the current buffer.
 
 If a window displaying @var{buffer-or-name} is dedicated
-(@pxref{Dedicated Windows}), and is not the only window on its frame,
-that window is deleted.  If that window is the only window on its frame
-and there are other frames left, the window's frame is deleted too.  If
-there are no other frames left, some other buffer is displayed in that
-window as explained above.
+(@pxref{Dedicated Windows}) or its @code{quit-restore} parameter
+(@pxref{Window Parameters}) is set appropriately, and the window is not
+the only window on its frame, that window is deleted.  If that window is
+the only window on its frame and there are other frames left, the
+window's frame is deleted too.  If there are no other frames left, some
+other buffer is displayed in that window as explained above.
 
 This function returns @code{nil}.
 @end deffn
@@ -2372,7 +2557,7 @@ passed as second argument to that function---the first argument is the
 buffer that shall be displayed.  The function is not passed any
 specifiers.
 
-The function shoul choose or create a window, display the specified
+The function should choose or create a window, display the specified
 buffer in it, and return the window.  It is also responsible for giving
 the variable @code{display-buffer-window} a meaningful value, see below
 for an explanation.  Moreover, the function should set up the
@@ -4161,27 +4346,26 @@ only return a window whose @var{parameter} equals @var{value}
 too.
 @end defun
 
-Some functions, notably @code{split-window}, @code{delete-window}, and
-@code{delete-other-windows} behave specially when their @var{window}
-argument has a parameter set.  For example, @code{delete-window} when
-invoked on the main window of an atomic window (@pxref{Atomic Windows})
-calls @code{delete-window} with the root window of the atomic window as
-argument instead.  The entire information for retrieving the appropriate
-root window is maintained with the help of window parameters.
+Some functions, notably @code{delete-window},
+@code{delete-other-windows} and @code{split-window} may behave specially
+when their @var{window} argument has a parameter set.  For example,
+@code{delete-window}, when invoked on a subwindow of an atomic window
+(@pxref{Atomic Windows}), calls itself with the root of the atomic
+window as argument instead.
 
-You can override that special behavior by binding the following variable
+You can override such special behavior by binding the following variable
 to a non-@code{nil} value:
 
 @defvar ignore-window-parameters
-If this variable is non-@code{nil}, some standard functions ignore
-window parameters.  The functions currently affected by this are
+If this variable is non-@code{nil}, some standard functions do not
+process window parameters.  The functions currently affected by this are
 @code{split-window}, @code{delete-window}, @code{delete-other-windows}
 and @code{other-window}.
 
 An application can bind this variable to a non-@code{nil} value around
 calls to these functions.  If it does so, the application is fully
-responsible for correctly assigning the parameters of windows when
-exiting that function.
+responsible for correctly assigning the parameters of all involved
+windows when exiting that function.
 @end defvar
 
 The following parameters are currently used by the window management
@@ -4189,28 +4373,28 @@ code.
 
 @table @asis
 @item @code{window-atom}
-This symbol designates the associated window as part of an atomic
+This parameter designates the associated window as part of an atomic
 window (@pxref{Atomic Windows}).
 
 @item @code{window-side}
-This symbol designates the associated window as part of a side or
+This parameter designates the associated window as part of a side or
 non-side window (@pxref{Side Windows}).
 
-@item @code{delete-window-function}
-This parameter is used by @code{delete-window} (@pxref{Deleting
-Windows}).
+@item @code{delete-window}
+This parameter affects the execution of @code{delete-window}
+(@pxref{Deleting Windows}).
 
-@item @code{delete-other-windows-function}
-This parameter is used by @code{delete-other-windows} (@pxref{Deleting
-Windows}).
+@item @code{delete-other-windows}
+This parameter affects the execution of @code{delete-other-windows}
+(@pxref{Deleting Windows}).
 
-@item @code{split-window-function}
-This parameter is used by @code{split-window} (@pxref{Splitting
-Windows}).
+@item @code{split-window}
+This parameter affects the execution of @code{split-window}
+(@pxref{Splitting Windows}).
 
-@item @code{other-window-function}
-This parameter is used by @code{other-window} (@pxref{Cyclic Window
-Ordering}).
+@item @code{other-window}
+This parameter affects the execution of @code{other-window}
+(@pxref{Cyclic Window Ordering}).
 
 @item @code{no-other-window}
 This parameter marks the window as not selectable by @code{other-window}
@@ -4218,41 +4402,33 @@ This parameter marks the window as not selectable by @code{other-window}
 @end table
 
 The @code{quit-restore} parameter tells how to proceed with a window
-when the user ``quits'' it by invoking @code{quit-restore-window}, see
-@ref{Displaying Buffers}.  The following non-@code{nil} values of this
-parameter have a special meaning.
+when the buffer it shows is no more needed.  This parameter is installed
+by the buffer display functions (@pxref{Displaying Buffers}) and
+consulted by functions that remove a buffer from display like
+@code{delete-windows-on} (@pxref{Deleting Windows}),
+@code{replace-buffer-in-windows} (@pxref{Buffers and Windows}), and
+@code{quit-restore-window} (@pxref{Displaying Buffers}).  The parameter
+should be a list which is interpreted as sketched next.
 
-@table @asis
-@item @code{t}
-This means to delete the associated window.  By default, @code{t} is
-used for a ``temporary'' window that was obtained by splitting an
-existing window.
+   If the first element of the list is the symbol @code{new-window},
+this means that the window was specially created for displaying a
+buffer.  The second element of the list specifies that buffer, and the
+third element is the window selected at the time this window was
+created.  The standard action in this case is to delete the window
+provided its frame contains at least on other window.
 
-@item @code{frame}
-This means to delete the associated window's frame.  This value
-indicates that the associated windows was obtained by popping up a new
-frame showing just this window.  If the window is no more needed, it
-should be deleted together with the containing frame.
+  If the first element of the list is the symbol @code{new-frame}, this
+means that the associated frame was created for displaying a buffer.
+The remaining elements are as above.  The standard action in this case
+is to delete the frame provided there are other frames left.
 
-@item A list
-This option is useful when the associated window was borrowed to
-temporarily display some buffer and quitting shall ``restore'' the
-previous contents of the window.  The first three elements of the list
-must specify a buffer, a window start position, and a window point.
-Quitting the window will then try to display the indicated buffer with
-the given start position and point in that window.
-
-  The fourth element, if non-@code{nil}, must denote a live buffer.  If
-specified, quitting will restore the previous window contents if and
-only if the buffer shown in the window is the buffer named by this
-element.
-
-  The fifth element, if non-@code{nil}, should specify the desired
-height of the window when its buffer is restored.  This value is applied
-if the buffer temporarily shown in the window was in
-@code{temp-buffer-resize-mode} to restore the original height of the
-window.
-@end table
+  In any other case, the list should consist of five elements: A buffer
+that was shown in the window before, the start position of that buffer
+in the window, the position of @code{window-point} for that buffer in
+the window, the total height of the window before another buffer was
+displayed in it, and the window selected at the time that other buffer
+was displayed.  The standard action here is to keep the window alive and
+to restore its contents to the state provided by these elements.
 
 
 @node Atomic Windows
@@ -4502,8 +4678,20 @@ dominating side window on the left, for example, use the function
 
    If you create side windows by calling @code{display-buffer}
 (@pxref{Displaying Buffers}) with the @code{use-side-window} specifier,
-this will set up these parameters automatically.  If you want to manage
-side windows manually, you should preserve the following invariants:
+this will set up these parameters automatically.  For example
+
+@example
+(display-buffer
+ (get-buffer-create "*bar*")
+ '((use-side-window bottom 0)
+   (pop-up-window-set-height . 6)))
+@end example
+
+can be used to display a buffer ``*bar*'' in a six lines high
+side-window at the bottom of the selected frame.
+
+If you intend to manage side windows manually, you should preserve the
+following invariants:
 
 @itemize @bullet
 @item
@@ -4525,8 +4713,9 @@ parameter set to such a value and have a parent window whose
 @code{window-side} parameter is @code{nil}.
 
 @item
-Live windows whose @code{window-side} parameter is @code{nil} are
-invalid.
+If a frame contains at least one window with a non-@code{nil}
+@code{window-side} parameter, the @code{window-side} parameter of all
+other live windows must be non-@code{nil} as well.
 @end itemize
 
 If a setup of @code{window-side} parameters fails to satisfy these

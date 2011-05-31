@@ -1,3 +1,12 @@
+2011-05-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Windows and Frames, Window Sizes)
+	(Resizing Windows): Minor rewrites.
+	(Splitting Windows): Provide additional examples.  Rewrite
+	parts on window-splits and window-nest.
+	(Deleting Windows, Window Parameters, Side Windows): Minor
+	rewrites.
+
 2011-05-19  Glenn Morris  <rgm@gnu.org>
 
 	* lists.texi (Sets And Lists): Mention cl provides union etc.

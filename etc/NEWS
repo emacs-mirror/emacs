@@ -284,6 +284,141 @@ If you need it, feedmail.el ought to provide a superset of the functionality.
 
 ** The variable `focus-follows-mouse' now always defaults to nil.
 
++++
+** Window handling code.
+
+*** Window tree functions accessible in Elisp.
+You can use functions to return the parent, siblings or child windows of
+any window including internal windows (windows not associated with a
+buffer) in the window tree.  `walk-window-tree' is a new function for
+traversing window trees.
+
+*** Window handling code moved to Elisp.
+Splitting, resizing, and deleting window is mostly done in Elisp now.
+The parts remaining in C deal only with checking the validity of these
+operations wrt the window tree and window sizes.
+
+*** Window manipulations can deal with internal windows.
+Many window handling functions like `split-window', `delete-window', or
+`delete-other-windows' as well as the window resizing functions can now
+act on any window including internal ones.
+
+*** window-total-height/-width vs window-body-height/-width.
+The function `window-height' has been renamed to `window-total-height'
+and `window-width' has been renamed to `window-body-width'.  Two new
+functions `window-total-width' and `window-body-height' are provided.
+
+*** Window parameters specific to window handling functions.
+For each window you can specify a parameter to override the default
+behavior of a number of functions like `split-window', `delete-window'
+and `delete-other-windows'.
+
+*** New semantics of third argument of `split-window'.
+The third argument of `split-window' can be set to any of the values
+'below, 'right, 'above, or 'left to make the new window appear on the
+corresponding side of the window that shall be split.
+
+*** New option `window-nest'.
+The new option `window-nest' allows to return the space obtained for
+resizing or creating a window more reliably to the window from which
+such space was obtained.
+
+*** New option `window-splits'.
+The new option `window-splits' allows to split a window that otherwise
+cannot be split because it's too small by stealing space from other
+windows in the same combination.
+
+*** `split-window-above-each-other' and `split-window-side-by-side'.
+The commands `split-window-vertically' and `split-window-horizontally'
+have been renamed to `split-window-above-each-other' and
+`split-window-side-by-side' respectively.  The old names are provided as
+aliases.
+
+*** Window resizing functions.
+A new standard function for resizing windows called `resize-window' has
+been introduced.  This and all other functions for resizing windows no
+longer delete any windows when they become too small.
+
+*** Frame/window resizing.
+Resizing an Emacs frame now preserves the proportional sizes of
+subwindows modulo restrictions imposed by window minimum sizes and
+fixed-size windows.
+
+*** `adjust-window-trailing-edge' adjustments.
+`adjust-window-trailing-edge' can now deal with fixed-size windows and
+is able to resize other windows if a window adjacent to the trailing
+edge cannot be shrunk any more.  This makes its behavior more similar to
+that of Emacs 21 without compromising, however, the latter's inability
+to delete windows which was introduced in Emacs 22.
+
+*** Commands for maximizing and minimizing windows.
+New functions to maximize and minimize a window within its frame are
+provided, namely `maximize-window' and `minimize-window'.
+
+*** Window-local buffer lists.
+Windows now have local buffer lists.  This means that removing a buffer
+from display in a window will preferably show the buffer previously
+shown in that window with its previous window-start and window-point
+positions.  This also means that the same buffer may be automatically
+shown twice even if it already appears in another window.
+
+*** New commands `switch-to-prev-buffer' and `switch-to-next-buffer'.
+These functions allow to navigate through the live buffers that have
+been shown in a specific window.
+
+*** New window parameter `quit-restore'.
+Functions to remove a buffer from display like `delete-windows-on' or
+`replace-buffer-in-windows' now respect the `quit-restore' window
+parameter which tells how to proceed with the window: Delete it, delete
+its frame, or display some previously shown buffer in it.  This means
+that you don't have to dedicate a window to its buffer to obtain the
+corresponding behavior, setting its `quit-restore' parameter suffices.
+
+*** New command `quit-restore-window'.
+This function explicitly restores the state of one specific window
+consulting its `quit-restore' window parameter.  Among others, it is
+now also called when exiting view-mode.
+
+*** Buffer display specifiers.
+Customizing the display of buffers is now handled with the help of
+buffer display specifiers.  These specifiers are customizable via the
+option `display-buffer-alist' and completely obsolete all existing
+`display-buffer' related options like, `pop-up-windows', `pop-up-frames'
+`display-buffer-reuse-frames' or `split-height-threshold'.  Buffer
+display specifiers also allow to specify a number of new options to
+choose, for example, the desired position of a new window or its size.
+
+*** Arguments of `display-buffer'.
+The second argument of `display-buffer' now accepts a list of buffer
+display specifiers.  A new third argument accepts a label to identify
+buffers whose names are not expressive enough.
+
+*** Functions for displaying and popping and switching to buffers.
+The `display-buffer', `pop-to-buffer' and `switch-to-buffer' families of
+functions are all based on buffer display specifiers now.  A number of
+new functions with unified mnemnonics like `display-buffer-same-frame',
+`pop-to-buffer-same-frame' and `switch-to-buffer-same-frame' have been
+added.  By convention, functions in the `switch-to-buffer' family are
+now recommended for interactive use only.  Application are supposed to
+use function from the `pop-to-buffer' family instead.
+
+*** Atomic windows.
+Atomic windows are internal windows that are treated by a number of
+functions like `split-window', `delete-window' and
+`delete-other-windows' atomically.  This means that any of these
+operations when applied to a subwindow of the atomic window is applied
+to the entire atomic window instead.  Atomic windows can be either
+created automatically with the help of buffer display specifiers or
+manually via the `window-atom' window parameter.
+
+*** Side windows.
+Side windows are special windows located at one of the four sides of a
+frame.  Side windows are useful for assigning buffers always the same
+location within a frame whenever they are shown there.  Side windows are
+by default semi-permanent which means that functions like
+`delete-other-windows' do not delete them.  Side windows can be either
+created automatically with the help of buffer display specifiers or
+manually via the `window-side' window parameter.
 
 * Editing Changes in Emacs 24.1
 
