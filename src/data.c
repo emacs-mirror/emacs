@@ -3220,8 +3220,4 @@ init_data (void)
     return;
 #endif /* CANNOT_DUMP */
   signal (SIGFPE, arith_error);
-
-#ifdef uts
-  signal (SIGEMT, arith_error);
-#endif /* uts */
 }

@@ -1,5 +1,10 @@
 2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* data.c (init_data): Remove code for UTS, this system is not
+	supported anymore.
+
+2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
 	Don't force ./temacs to start in terminal mode.
 
 	* frame.c (make_initial_frame): Initialize faces in all cases, not
