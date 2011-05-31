@@ -1,3 +1,12 @@
+2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Make it possible to run ./temacs.
+
+	* callproc.c (set_initial_environment): Remove CANNOT_DUMP code,
+	syms_of_callproc does the same thing.  Remove test for
+	"initialized", do it in the caller.
+	* emacs.c (main): Avoid calling set_initial_environment when dumping.
+
 2011-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (Finternal_complete_buffer): Return `category' metadata.
