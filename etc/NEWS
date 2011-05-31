@@ -432,6 +432,9 @@ by default semi-permanent which means that functions like
 created automatically with the help of buffer display specifiers or
 manually via the `window-side' window parameter.
 
+*** Window configurations can be saved to/restored from Elisp objects.
+The functions to do that are `window-state-get' and `window-state-put'.
+
 ** Function `sha1' is now implemented in C for speed.
 The elisp implementation sha1.el is removed. Feature sha1 is provided
 by default.
