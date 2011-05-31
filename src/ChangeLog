@@ -1,3 +1,8 @@
+2011-05-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/data.$(O), $(BLD)/editfns.$(O)):
+	Update dependencies.
+
 2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* data.c (init_data): Remove code for UTS, this system is not
