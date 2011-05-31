@@ -93,9 +93,8 @@ static Lisp_Object Vccl_program_table;
 	|------------- constant or other args ----------------|
                      cccccccccccccccccccccccccccc
 
-   where `cc...c' is an integer indicating a constant value or an
-   absolute jump address.  The context determines whether `cc...c' is
-   considered to be unsigned, or a signed two's complement number.  `RRR'
+   where `cc...c' is a 17-bit, 20-bit, or 28-bit integer indicating a
+   constant value or a relative/absolute jump address, `RRR'
    and `rrr' are CCL register number, `XXXXX' is one of the following
    CCL commands.  */
 
