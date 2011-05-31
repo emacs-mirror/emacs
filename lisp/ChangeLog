@@ -1,3 +1,7 @@
+2011-05-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* subr.el (process-alive-p): New tiny convenience function.
+
 2011-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/debug.el (debug): Save&restore not just the buffer's

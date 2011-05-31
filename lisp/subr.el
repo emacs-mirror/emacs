@@ -1805,6 +1805,13 @@ Signal an error if the program returns with a non-zero exit status."
 	  (forward-line 1))
 	(nreverse lines)))))
 
+(defun process-alive-p (process)
+  "Returns non-nil if PROCESS is alive.
+A process is considered alive if its status is `run', `open',
+`listen', `connect' or `stop'."
+  (memq (process-status process)
+        '(run open listen connect stop)))
+
 ;; compatibility
 
 (make-obsolete
