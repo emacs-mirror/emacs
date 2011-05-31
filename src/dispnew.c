@@ -6233,8 +6233,7 @@ init_display (void)
 	}
     }
 
-  if (!inhibit_window_system && display_arg
-     )
+  if (!inhibit_window_system && display_arg)
     {
       Vinitial_window_system = Qx;
 #ifdef HAVE_X11

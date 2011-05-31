@@ -1,5 +1,13 @@
 2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Don't force ./temacs to start in terminal mode.
+
+	* frame.c (make_initial_frame): Initialize faces in all cases, not
+	only when CANNOT_DUMP is defined.
+	* dispnew.c (init_display): Remove CANNOT_DUMP condition.
+
+2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
 	* dispnew.c (add_window_display_history): Use const for the string
 	pointer.  Remove declaration, not needed.
 
