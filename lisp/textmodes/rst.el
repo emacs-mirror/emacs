@@ -2800,11 +2800,12 @@ details check the Rst Faces Defaults group."
 			 rst-level-face-base-color
 			 (+ (* (1- i) rst-level-face-step-light)
 			    rst-level-face-base-light))))
-	(make-empty-face sym)
-	(set-face-doc-string sym doc)
-	(set-face-background sym col)
-	(set sym sym)
-	(setq i (1+ i))))))
+        (unless (boundp sym)
+          (make-empty-face sym)
+          (set-face-doc-string sym doc)
+          (set-face-background sym col)
+          (set sym sym))
+        (setq i (1+ i))))))
 
 (rst-define-level-faces)
 

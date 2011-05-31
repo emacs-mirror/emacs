@@ -1025,9 +1025,8 @@ This is called when `global-highlight-changes-mode' is turned on."
 ;; (defun hilit-chg-debug-show (&optional beg end)
 ;;   (interactive)
 ;;   (message "--- hilit-chg-debug-show ---")
-;;   (hilit-chg-map-changes '(lambda (prop start end)
-;; 			      (message "%d-%d: %s" start end prop)
-;; 			      )
+;;   (hilit-chg-map-changes (lambda (prop start end)
+;; 			     (message "%d-%d: %s" start end prop))
 ;; 			   beg end
 ;; 			   ))
 ;;

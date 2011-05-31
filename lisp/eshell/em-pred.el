@@ -84,16 +84,16 @@ ordinary strings."
     (?s . (eshell-pred-file-mode 4000)) ; setuid
     (?S . (eshell-pred-file-mode 2000)) ; setgid
     (?t . (eshell-pred-file-mode 1000)) ; sticky bit
-    (?U . '(lambda (file)               ; owned by effective uid
-	     (if (file-exists-p file)
-		 (= (nth 2 (file-attributes file)) (user-uid)))))
-;;; (?G . '(lambda (file)               ; owned by effective gid
-;;;          (if (file-exists-p file)
-;;;              (= (nth 2 (file-attributes file)) (user-uid)))))
-    (?* . '(lambda (file)
-	     (and (file-regular-p file)
-		  (not (file-symlink-p file))
-		  (file-executable-p file))))
+    (?U . #'(lambda (file)                   ; owned by effective uid
+              (if (file-exists-p file)
+                  (= (nth 2 (file-attributes file)) (user-uid)))))
+    ;; (?G . #'(lambda (file)               ; owned by effective gid
+    ;;          (if (file-exists-p file)
+    ;;              (= (nth 2 (file-attributes file)) (user-uid)))))
+    (?* . #'(lambda (file)
+              (and (file-regular-p file)
+                   (not (file-symlink-p file))
+                   (file-executable-p file))))
     (?l . (eshell-pred-file-links))
     (?u . (eshell-pred-user-or-group ?u "user" 2 'eshell-user-id))
     (?g . (eshell-pred-user-or-group ?g "group" 3 'eshell-group-id))
@@ -111,36 +111,25 @@ The format of each entry is
 (put 'eshell-predicate-alist 'risky-local-variable t)
 
 (defcustom eshell-modifier-alist
-  '((?E . '(lambda (lst)
-	     (mapcar
-	      (function
-	       (lambda (str)
-		 (eshell-stringify
-		  (car (eshell-parse-argument str))))) lst)))
-    (?L . '(lambda (lst)
-	     (mapcar 'downcase lst)))
-    (?U . '(lambda (lst)
-	     (mapcar 'upcase lst)))
-    (?C . '(lambda (lst)
-	     (mapcar 'capitalize lst)))
-    (?h . '(lambda (lst)
-	     (mapcar 'file-name-directory lst)))
+  '((?E . #'(lambda (lst)
+              (mapcar
+               (function
+                (lambda (str)
+                  (eshell-stringify
+                   (car (eshell-parse-argument str))))) lst)))
+    (?L . #'(lambda (lst) (mapcar 'downcase lst)))
+    (?U . #'(lambda (lst) (mapcar 'upcase lst)))
+    (?C . #'(lambda (lst) (mapcar 'capitalize lst)))
+    (?h . #'(lambda (lst) (mapcar 'file-name-directory lst)))
     (?i . (eshell-include-members))
     (?x . (eshell-include-members t))
-    (?r . '(lambda (lst)
-	     (mapcar 'file-name-sans-extension lst)))
-    (?e . '(lambda (lst)
-	     (mapcar 'file-name-extension lst)))
-    (?t . '(lambda (lst)
-	     (mapcar 'file-name-nondirectory lst)))
-    (?q . '(lambda (lst)
-	     (mapcar 'eshell-escape-arg lst)))
-    (?u . '(lambda (lst)
-	     (eshell-uniqify-list lst)))
-    (?o . '(lambda (lst)
-	     (sort lst 'string-lessp)))
-    (?O . '(lambda (lst)
-	     (nreverse (sort lst 'string-lessp))))
+    (?r . #'(lambda (lst) (mapcar 'file-name-sans-extension lst)))
+    (?e . #'(lambda (lst) (mapcar 'file-name-extension lst)))
+    (?t . #'(lambda (lst) (mapcar 'file-name-nondirectory lst)))
+    (?q . #'(lambda (lst) (mapcar 'eshell-escape-arg lst)))
+    (?u . #'(lambda (lst) (eshell-uniqify-list lst)))
+    (?o . #'(lambda (lst) (sort lst 'string-lessp)))
+    (?O . #'(lambda (lst) (nreverse (sort lst 'string-lessp))))
     (?j . (eshell-join-members))
     (?S . (eshell-split-members))
     (?R . 'reverse)

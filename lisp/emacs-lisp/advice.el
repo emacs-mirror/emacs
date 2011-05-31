@@ -2135,16 +2135,27 @@ Redefining advices affect the construction of an advised definition."
 ;; @@ Interactive input functions:
 ;; ===============================
 
+(declare-function 'function-called-at-point "help")
+
 (defun ad-read-advised-function (&optional prompt predicate default)
   "Read name of advised function with completion from the minibuffer.
 An optional PROMPT will be used to prompt for the function.  PREDICATE
 plays the same role as for `try-completion' (which see).  DEFAULT will
-be returned on empty input (defaults to the first advised function for
-which PREDICATE returns non-nil)."
+be returned on empty input (defaults to the first advised function or
+function at point for which PREDICATE returns non-nil)."
   (if (null ad-advised-functions)
       (error "ad-read-advised-function: There are no advised functions"))
   (setq default
 	(or default
+	    ;; Prefer func name at point, if it's in ad-advised-functions etc.
+	    (let ((function (progn
+			      (require 'help)
+			      (function-called-at-point))))
+	      (and function
+		   (assoc (symbol-name function) ad-advised-functions)
+		   (or (null predicate)
+		       (funcall predicate function))
+		   function))
 	    (ad-do-advised-functions (function)
 	      (if (or (null predicate)
 		      (funcall predicate function))

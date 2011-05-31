@@ -3903,7 +3903,7 @@ This is to make them appear as if they were \"virtual buffers\"."
 		  (funcall f completion-list
 			   :help-string "ido "
 			   :activate-callback
-			   '(lambda (x y z) (message "Doesn't work yet, sorry!"))))
+			   (lambda (x y z) (message "Doesn't work yet, sorry!"))))
 	      ;; else running Emacs
 	      ;;(add-hook 'completion-setup-hook 'completion-setup-function)
 	      (display-completion-list completion-list)))))))

@@ -4058,6 +4058,8 @@ ns_term_init (Lisp_Object display_name)
 void
 ns_term_shutdown (int sig)
 {
+  [[NSUserDefaults standardUserDefaults] synchronize];
+
   /* code not reached in emacs.c after this is called by shut_down_emacs: */
   if (STRINGP (Vauto_save_list_file_name))
     unlink (SDATA (Vauto_save_list_file_name));

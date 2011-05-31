@@ -361,6 +361,8 @@ The list is in preference order.")
 	    (if mail-interactive
 		(with-current-buffer errbuf
 		  (erase-buffer))))
+	  ;; Encode the header according to RFC2047.
+	  (mail-encode-header (point-min) delimline)
 	  ;;
 	  (setq smtpmail-address-buffer (generate-new-buffer "*smtp-mail*"))
 	  (setq smtpmail-recipient-address-list
@@ -941,15 +943,20 @@ The list is in preference order.")
   (process-send-string process "\r\n"))
 
 (defun smtpmail-send-data (process buffer)
-  (let ((data-continue t) sending-data)
+  (let ((data-continue t) sending-data
+        (pr (with-current-buffer buffer
+              (make-progress-reporter "Sending email"
+                                      (point-min) (point-max)))))
     (with-current-buffer buffer
       (goto-char (point-min)))
     (while data-continue
       (with-current-buffer buffer
+        (progress-reporter-update pr (point))
         (setq sending-data (buffer-substring (point-at-bol) (point-at-eol)))
 	(end-of-line 2)
         (setq data-continue (not (eobp))))
-      (smtpmail-send-data-1 process sending-data))))
+      (smtpmail-send-data-1 process sending-data))
+    (progress-reporter-done pr)))
 
 (defun smtpmail-deduce-address-list (smtpmail-text-buffer header-start header-end)
   "Get address list suitable for smtp RCPT TO: <address>."

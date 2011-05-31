@@ -2136,7 +2136,7 @@ TYPE must be a string, any of:
 	    markup (org-symname-or-string (pop params))
 	    lang (and (member markup '("src" "SRC"))
 		      (org-symname-or-string (pop params)))
-	    switches (mapconcat '(lambda (x) (format "%s" x)) params " ")
+	    switches (mapconcat (lambda (x) (format "%s" x)) params " ")
 	    start nil end nil)
       (delete-region (match-beginning 0) (match-end 0))
       (if (or (not file)

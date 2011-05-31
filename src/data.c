@@ -22,6 +22,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
+
+#include <intprops.h>
+
 #include "lisp.h"
 #include "puresize.h"
 #include "character.h"
@@ -29,14 +32,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "frame.h"
 #include "syssignal.h"
-#include "termhooks.h"  /* For FRAME_KBOARD reference in y-or-n-p. */
+#include "termhooks.h"  /* For FRAME_KBOARD reference in y-or-n-p.  */
 #include "font.h"
 
 #ifdef STDC_HEADERS
 #include <float.h>
 #endif
 
-/* If IEEE_FLOATING_POINT isn't defined, default it from FLT_*. */
+/* If IEEE_FLOATING_POINT isn't defined, default it from FLT_*.  */
 #ifndef IEEE_FLOATING_POINT
 #if (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
      && FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128)
@@ -87,7 +90,7 @@ static Lisp_Object Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
 Lisp_Object Qwindow;
 static Lisp_Object Qfloat, Qwindow_configuration;
 static Lisp_Object Qprocess;
-static Lisp_Object Qcompiled_function, Qbuffer, Qframe, Qvector;
+Lisp_Object Qcompiled_function, Qbuffer, Qframe, Qvector;
 static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
 static Lisp_Object Qsubrp, Qmany, Qunevalled;
 Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
@@ -2431,6 +2434,10 @@ arith_driver (enum arithop code, size_t nargs, register Lisp_Object *args)
   register EMACS_INT accum = 0;
   register EMACS_INT next;
 
+  int overflow = 0;
+  size_t ok_args;
+  EMACS_INT ok_accum;
+
   switch (SWITCH_ENUM_CAST (code))
     {
     case Alogior:
@@ -2451,25 +2458,48 @@ arith_driver (enum arithop code, size_t nargs, register Lisp_Object *args)
 
   for (argnum = 0; argnum < nargs; argnum++)
     {
+      if (! overflow)
+	{
+	  ok_args = argnum;
+	  ok_accum = accum;
+	}
+
       /* Using args[argnum] as argument to CHECK_NUMBER_... */
       val = args[argnum];
       CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (val);
 
       if (FLOATP (val))
-	return float_arith_driver ((double) accum, argnum, code,
+	return float_arith_driver (ok_accum, ok_args, code,
 				   nargs, args);
       args[argnum] = val;
       next = XINT (args[argnum]);
       switch (SWITCH_ENUM_CAST (code))
 	{
 	case Aadd:
+	  if (INT_ADD_OVERFLOW (accum, next))
+	    {
+	      overflow = 1;
+	      accum &= INTMASK;
+	    }
 	  accum += next;
 	  break;
 	case Asub:
+	  if (INT_SUBTRACT_OVERFLOW (accum, next))
+	    {
+	      overflow = 1;
+	      accum &= INTMASK;
+	    }
 	  accum = argnum ? accum - next : nargs == 1 ? - next : next;
 	  break;
 	case Amult:
-	  accum *= next;
+	  if (INT_MULTIPLY_OVERFLOW (accum, next))
+	    {
+	      EMACS_UINT a = accum, b = next, ab = a * b;
+	      overflow = 1;
+	      accum = ab & INTMASK;
+	    }
+	  else
+	    accum *= next;
 	  break;
 	case Adiv:
 	  if (!argnum)
@@ -2760,11 +2790,11 @@ In this case, zeros are shifted in on the left.  */)
   if (XINT (count) >= BITS_PER_EMACS_INT)
     XSETINT (val, 0);
   else if (XINT (count) > 0)
-    XSETINT (val, (EMACS_UINT) XUINT (value) << XFASTINT (count));
+    XSETINT (val, XUINT (value) << XFASTINT (count));
   else if (XINT (count) <= -BITS_PER_EMACS_INT)
     XSETINT (val, 0);
   else
-    XSETINT (val, (EMACS_UINT) XUINT (value) >> -XINT (count));
+    XSETINT (val, XUINT (value) >> -XINT (count));
   return val;
 }
 
@@ -2824,74 +2854,75 @@ syms_of_data (void)
 {
   Lisp_Object error_tail, arith_tail;
 
-  Qquote = intern_c_string ("quote");
-  Qlambda = intern_c_string ("lambda");
-  Qsubr = intern_c_string ("subr");
-  Qerror_conditions = intern_c_string ("error-conditions");
-  Qerror_message = intern_c_string ("error-message");
-  Qtop_level = intern_c_string ("top-level");
+  DEFSYM (Qquote, "quote");
+  DEFSYM (Qlambda, "lambda");
+  DEFSYM (Qsubr, "subr");
+  DEFSYM (Qerror_conditions, "error-conditions");
+  DEFSYM (Qerror_message, "error-message");
+  DEFSYM (Qtop_level, "top-level");
 
-  Qerror = intern_c_string ("error");
-  Qquit = intern_c_string ("quit");
-  Qwrong_type_argument = intern_c_string ("wrong-type-argument");
-  Qargs_out_of_range = intern_c_string ("args-out-of-range");
-  Qvoid_function = intern_c_string ("void-function");
-  Qcyclic_function_indirection = intern_c_string ("cyclic-function-indirection");
-  Qcyclic_variable_indirection = intern_c_string ("cyclic-variable-indirection");
-  Qvoid_variable = intern_c_string ("void-variable");
-  Qsetting_constant = intern_c_string ("setting-constant");
-  Qinvalid_read_syntax = intern_c_string ("invalid-read-syntax");
+  DEFSYM (Qerror, "error");
+  DEFSYM (Qquit, "quit");
+  DEFSYM (Qwrong_type_argument, "wrong-type-argument");
+  DEFSYM (Qargs_out_of_range, "args-out-of-range");
+  DEFSYM (Qvoid_function, "void-function");
+  DEFSYM (Qcyclic_function_indirection, "cyclic-function-indirection");
+  DEFSYM (Qcyclic_variable_indirection, "cyclic-variable-indirection");
+  DEFSYM (Qvoid_variable, "void-variable");
+  DEFSYM (Qsetting_constant, "setting-constant");
+  DEFSYM (Qinvalid_read_syntax, "invalid-read-syntax");
 
-  Qinvalid_function = intern_c_string ("invalid-function");
-  Qwrong_number_of_arguments = intern_c_string ("wrong-number-of-arguments");
-  Qno_catch = intern_c_string ("no-catch");
-  Qend_of_file = intern_c_string ("end-of-file");
-  Qarith_error = intern_c_string ("arith-error");
-  Qbeginning_of_buffer = intern_c_string ("beginning-of-buffer");
-  Qend_of_buffer = intern_c_string ("end-of-buffer");
-  Qbuffer_read_only = intern_c_string ("buffer-read-only");
-  Qtext_read_only = intern_c_string ("text-read-only");
-  Qmark_inactive = intern_c_string ("mark-inactive");
+  DEFSYM (Qinvalid_function, "invalid-function");
+  DEFSYM (Qwrong_number_of_arguments, "wrong-number-of-arguments");
+  DEFSYM (Qno_catch, "no-catch");
+  DEFSYM (Qend_of_file, "end-of-file");
+  DEFSYM (Qarith_error, "arith-error");
+  DEFSYM (Qbeginning_of_buffer, "beginning-of-buffer");
+  DEFSYM (Qend_of_buffer, "end-of-buffer");
+  DEFSYM (Qbuffer_read_only, "buffer-read-only");
+  DEFSYM (Qtext_read_only, "text-read-only");
+  DEFSYM (Qmark_inactive, "mark-inactive");
 
-  Qlistp = intern_c_string ("listp");
-  Qconsp = intern_c_string ("consp");
-  Qsymbolp = intern_c_string ("symbolp");
-  Qkeywordp = intern_c_string ("keywordp");
-  Qintegerp = intern_c_string ("integerp");
-  Qnatnump = intern_c_string ("natnump");
-  Qwholenump = intern_c_string ("wholenump");
-  Qstringp = intern_c_string ("stringp");
-  Qarrayp = intern_c_string ("arrayp");
-  Qsequencep = intern_c_string ("sequencep");
-  Qbufferp = intern_c_string ("bufferp");
-  Qvectorp = intern_c_string ("vectorp");
-  Qchar_or_string_p = intern_c_string ("char-or-string-p");
-  Qmarkerp = intern_c_string ("markerp");
-  Qbuffer_or_string_p = intern_c_string ("buffer-or-string-p");
-  Qinteger_or_marker_p = intern_c_string ("integer-or-marker-p");
-  Qboundp = intern_c_string ("boundp");
-  Qfboundp = intern_c_string ("fboundp");
+  DEFSYM (Qlistp, "listp");
+  DEFSYM (Qconsp, "consp");
+  DEFSYM (Qsymbolp, "symbolp");
+  DEFSYM (Qkeywordp, "keywordp");
+  DEFSYM (Qintegerp, "integerp");
+  DEFSYM (Qnatnump, "natnump");
+  DEFSYM (Qwholenump, "wholenump");
+  DEFSYM (Qstringp, "stringp");
+  DEFSYM (Qarrayp, "arrayp");
+  DEFSYM (Qsequencep, "sequencep");
+  DEFSYM (Qbufferp, "bufferp");
+  DEFSYM (Qvectorp, "vectorp");
+  DEFSYM (Qchar_or_string_p, "char-or-string-p");
+  DEFSYM (Qmarkerp, "markerp");
+  DEFSYM (Qbuffer_or_string_p, "buffer-or-string-p");
+  DEFSYM (Qinteger_or_marker_p, "integer-or-marker-p");
+  DEFSYM (Qboundp, "boundp");
+  DEFSYM (Qfboundp, "fboundp");
 
-  Qfloatp = intern_c_string ("floatp");
-  Qnumberp = intern_c_string ("numberp");
-  Qnumber_or_marker_p = intern_c_string ("number-or-marker-p");
+  DEFSYM (Qfloatp, "floatp");
+  DEFSYM (Qnumberp, "numberp");
+  DEFSYM (Qnumber_or_marker_p, "number-or-marker-p");
 
-  Qchar_table_p = intern_c_string ("char-table-p");
-  Qvector_or_char_table_p = intern_c_string ("vector-or-char-table-p");
+  DEFSYM (Qchar_table_p, "char-table-p");
+  DEFSYM (Qvector_or_char_table_p, "vector-or-char-table-p");
 
-  Qsubrp = intern_c_string ("subrp");
-  Qunevalled = intern_c_string ("unevalled");
-  Qmany = intern_c_string ("many");
+  DEFSYM (Qsubrp, "subrp");
+  DEFSYM (Qunevalled, "unevalled");
+  DEFSYM (Qmany, "many");
 
-  Qcdr = intern_c_string ("cdr");
+  DEFSYM (Qcdr, "cdr");
 
-  /* Handle automatic advice activation */
-  Qad_advice_info = intern_c_string ("ad-advice-info");
-  Qad_activate_internal = intern_c_string ("ad-activate-internal");
+  /* Handle automatic advice activation.  */
+  DEFSYM (Qad_advice_info, "ad-advice-info");
+  DEFSYM (Qad_activate_internal, "ad-activate-internal");
 
   error_tail = pure_cons (Qerror, Qnil);
 
-  /* ERROR is used as a signaler for random errors for which nothing else is right */
+  /* ERROR is used as a signaler for random errors for which nothing else is
+     right.  */
 
   Fput (Qerror, Qerror_conditions,
 	error_tail);
@@ -2928,8 +2959,7 @@ syms_of_data (void)
   Fput (Qcyclic_variable_indirection, Qerror_message,
 	make_pure_c_string ("Symbol's chain of variable indirections contains a loop"));
 
-  Qcircular_list = intern_c_string ("circular-list");
-  staticpro (&Qcircular_list);
+  DEFSYM (Qcircular_list, "circular-list");
   Fput (Qcircular_list, Qerror_conditions,
 	pure_cons (Qcircular_list, error_tail));
   Fput (Qcircular_list, Qerror_message,
@@ -2996,11 +3026,11 @@ syms_of_data (void)
   Fput (Qtext_read_only, Qerror_message,
 	make_pure_c_string ("Text is read-only"));
 
-  Qrange_error = intern_c_string ("range-error");
-  Qdomain_error = intern_c_string ("domain-error");
-  Qsingularity_error = intern_c_string ("singularity-error");
-  Qoverflow_error = intern_c_string ("overflow-error");
-  Qunderflow_error = intern_c_string ("underflow-error");
+  DEFSYM (Qrange_error, "range-error");
+  DEFSYM (Qdomain_error, "domain-error");
+  DEFSYM (Qsingularity_error, "singularity-error");
+  DEFSYM (Qoverflow_error, "overflow-error");
+  DEFSYM (Qunderflow_error, "underflow-error");
 
   Fput (Qdomain_error, Qerror_conditions,
 	pure_cons (Qdomain_error, arith_tail));
@@ -3027,118 +3057,35 @@ syms_of_data (void)
   Fput (Qunderflow_error, Qerror_message,
 	make_pure_c_string ("Arithmetic underflow error"));
 
-  staticpro (&Qrange_error);
-  staticpro (&Qdomain_error);
-  staticpro (&Qsingularity_error);
-  staticpro (&Qoverflow_error);
-  staticpro (&Qunderflow_error);
-
   staticpro (&Qnil);
   staticpro (&Qt);
-  staticpro (&Qquote);
-  staticpro (&Qlambda);
-  staticpro (&Qsubr);
   staticpro (&Qunbound);
-  staticpro (&Qerror_conditions);
-  staticpro (&Qerror_message);
-  staticpro (&Qtop_level);
-
-  staticpro (&Qerror);
-  staticpro (&Qquit);
-  staticpro (&Qwrong_type_argument);
-  staticpro (&Qargs_out_of_range);
-  staticpro (&Qvoid_function);
-  staticpro (&Qcyclic_function_indirection);
-  staticpro (&Qcyclic_variable_indirection);
-  staticpro (&Qvoid_variable);
-  staticpro (&Qsetting_constant);
-  staticpro (&Qinvalid_read_syntax);
-  staticpro (&Qwrong_number_of_arguments);
-  staticpro (&Qinvalid_function);
-  staticpro (&Qno_catch);
-  staticpro (&Qend_of_file);
-  staticpro (&Qarith_error);
-  staticpro (&Qbeginning_of_buffer);
-  staticpro (&Qend_of_buffer);
-  staticpro (&Qbuffer_read_only);
-  staticpro (&Qtext_read_only);
-  staticpro (&Qmark_inactive);
-
-  staticpro (&Qlistp);
-  staticpro (&Qconsp);
-  staticpro (&Qsymbolp);
-  staticpro (&Qkeywordp);
-  staticpro (&Qintegerp);
-  staticpro (&Qnatnump);
-  staticpro (&Qwholenump);
-  staticpro (&Qstringp);
-  staticpro (&Qarrayp);
-  staticpro (&Qsequencep);
-  staticpro (&Qbufferp);
-  staticpro (&Qvectorp);
-  staticpro (&Qchar_or_string_p);
-  staticpro (&Qmarkerp);
-  staticpro (&Qbuffer_or_string_p);
-  staticpro (&Qinteger_or_marker_p);
-  staticpro (&Qfloatp);
-  staticpro (&Qnumberp);
-  staticpro (&Qnumber_or_marker_p);
-  staticpro (&Qchar_table_p);
-  staticpro (&Qvector_or_char_table_p);
-  staticpro (&Qsubrp);
-  staticpro (&Qmany);
-  staticpro (&Qunevalled);
-
-  staticpro (&Qboundp);
-  staticpro (&Qfboundp);
-  staticpro (&Qcdr);
-  staticpro (&Qad_advice_info);
-  staticpro (&Qad_activate_internal);
 
   /* Types that type-of returns.  */
-  Qinteger = intern_c_string ("integer");
-  Qsymbol = intern_c_string ("symbol");
-  Qstring = intern_c_string ("string");
-  Qcons = intern_c_string ("cons");
-  Qmarker = intern_c_string ("marker");
-  Qoverlay = intern_c_string ("overlay");
-  Qfloat = intern_c_string ("float");
-  Qwindow_configuration = intern_c_string ("window-configuration");
-  Qprocess = intern_c_string ("process");
-  Qwindow = intern_c_string ("window");
-  /* Qsubr = intern_c_string ("subr"); */
-  Qcompiled_function = intern_c_string ("compiled-function");
-  Qbuffer = intern_c_string ("buffer");
-  Qframe = intern_c_string ("frame");
-  Qvector = intern_c_string ("vector");
-  Qchar_table = intern_c_string ("char-table");
-  Qbool_vector = intern_c_string ("bool-vector");
-  Qhash_table = intern_c_string ("hash-table");
+  DEFSYM (Qinteger, "integer");
+  DEFSYM (Qsymbol, "symbol");
+  DEFSYM (Qstring, "string");
+  DEFSYM (Qcons, "cons");
+  DEFSYM (Qmarker, "marker");
+  DEFSYM (Qoverlay, "overlay");
+  DEFSYM (Qfloat, "float");
+  DEFSYM (Qwindow_configuration, "window-configuration");
+  DEFSYM (Qprocess, "process");
+  DEFSYM (Qwindow, "window");
+  /* DEFSYM (Qsubr, "subr"); */
+  DEFSYM (Qcompiled_function, "compiled-function");
+  DEFSYM (Qbuffer, "buffer");
+  DEFSYM (Qframe, "frame");
+  DEFSYM (Qvector, "vector");
+  DEFSYM (Qchar_table, "char-table");
+  DEFSYM (Qbool_vector, "bool-vector");
+  DEFSYM (Qhash_table, "hash-table");
 
   DEFSYM (Qfont_spec, "font-spec");
   DEFSYM (Qfont_entity, "font-entity");
   DEFSYM (Qfont_object, "font-object");
 
   DEFSYM (Qinteractive_form, "interactive-form");
-
-  staticpro (&Qinteger);
-  staticpro (&Qsymbol);
-  staticpro (&Qstring);
-  staticpro (&Qcons);
-  staticpro (&Qmarker);
-  staticpro (&Qoverlay);
-  staticpro (&Qfloat);
-  staticpro (&Qwindow_configuration);
-  staticpro (&Qprocess);
-  staticpro (&Qwindow);
-  /* staticpro (&Qsubr); */
-  staticpro (&Qcompiled_function);
-  staticpro (&Qbuffer);
-  staticpro (&Qframe);
-  staticpro (&Qvector);
-  staticpro (&Qchar_table);
-  staticpro (&Qbool_vector);
-  staticpro (&Qhash_table);
 
   defsubr (&Sindirect_variable);
   defsubr (&Sinteractive_form);

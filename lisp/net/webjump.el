@@ -447,11 +447,11 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
   (or (null str) (string-match "^[ \t]*$" str)))
 
 (defun webjump-url-encode (str)
-  (mapconcat '(lambda (c)
-                (let ((s (char-to-string c)))
-                  (cond ((string= s " ") "+")
-                        ((string-match "[a-zA-Z_.-/]" s) s)
-                        (t (upcase (format "%%%02x" c))))))
+  (mapconcat (lambda (c)
+               (let ((s (char-to-string c)))
+                 (cond ((string= s " ") "+")
+                       ((string-match "[a-zA-Z_.-/]" s) s)
+                       (t (upcase (format "%%%02x" c))))))
              (encode-coding-string str 'utf-8)
              ""))
 

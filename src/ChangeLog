@@ -1,7 +1,293 @@
+2011-05-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use 'inline', not 'INLINE'.
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-05/msg00914.html>
+	* alloc.c, fontset.c (INLINE): Remove.
+	* alloc.c, bidi.c, charset.c, coding.c, dispnew.c, fns.c, image.c:
+	* intervals.c, keyboard.c, process.c, syntax.c, textprop.c, w32term.c:
+	* xdisp.c, xfaces.c, xterm.c: Replace all uses of INLINE with inline.
+	* gmalloc.c (register_heapinfo): Use inline unconditionally.
+	* lisp.h (LISP_MAKE_RVALUE): Use inline, not __inline__.
+
+2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Make it possible to run ./temacs.
+
+	* callproc.c (set_initial_environment): Remove CANNOT_DUMP code,
+	syms_of_callproc does the same thing.  Remove test for
+	"initialized", do it in the caller.
+	* emacs.c (main): Avoid calling set_initial_environment when dumping.
+
+2011-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Finternal_complete_buffer): Return `category' metadata.
+	(read_minibuf): Use get_minibuffer.
+	(syms_of_minibuf): Use DEFSYM.
+	(Qmetadata): New var.
+	* data.c (Qbuffer): Don't make it static.
+	(syms_of_data): Use DEFSYM.
+
+2011-05-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* ccl.c (CCL_CODE_RANGE): Allow negative numbers.  (Bug#8751)
+	(CCL_CODE_MIN): New macro.
+
 2011-05-30  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fsplit_window_internal): Make all arguments
 	mandatory.  Rewrite doc-string.  Simplify code.
+
+2011-05-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (lisp_align_malloc): Omit unnecessary val==NULL tests.
+
+	* eval.c (Qdebug): Now static.
+	* lisp.h (Qdebug): Remove decl.  This reverts a part of the
+	2011-04-26T11:26:05Z!dan.colascione@gmail.com that inadvertently undid part of
+	2011-04-14T06:48:41Z!eggert@cs.ucla.edu.
+
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c: Various fixes to ImageMagick code comments.
+	(Fimagemagick_types): Doc fix.
+
+2011-05-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor fixes prompted by GCC 4.6.0 warnings.
+
+	* xselect.c (converted_selections, conversion_fail_tag): Now static.
+
+	* emacs.c [HAVE_X_WINDOWS]: Include "xterm.h".
+	(x_clipboard_manager_save_all): Move extern decl to ...
+	* xterm.h: ... here, so that it can be checked for consistency.
+
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c (x_clipboard_manager_save_frame)
+	(x_clipboard_manager_save_all): New functions.
+	(Fx_clipboard_manager_save): Lisp function deleted.
+
+	* emacs.c (Fkill_emacs): Call x_clipboard_manager_save_all.
+	* frame.c (delete_frame): Call x_clipboard_manager_save_frame.
+
+	* xterm.h: Update prototype.
+
+2011-05-28  William Xu  <william.xwl@gmail.com>
+
+	* nsterm.m (ns_term_shutdown): Synchronize user defaults before
+	exiting (Bug#8239).
+
+2011-05-28  Jim Meyering  <meyering@redhat.com>
+
+	Avoid a sign-extension bug in crypto_hash_function.
+	* fns.c (to_uchar): Define.
+	(crypto_hash_function): Use it to convert some newly-signed
+	variables to unsigned, to avoid sign-extension bugs.  For example,
+	without this change, (md5 "truc") would evaluate to
+	45723a2aff78ff4fff7fff1114760e62 rather than the expected
+	45723a2af3788c4ff17f8d1114760e62.  Reported by Antoine Levitt in
+	https://lists.gnu.org/archive/html/emacs-devel/2011-05/msg00883.html.
+
+2011-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Integer overflow fixes.
+
+	* dbusbind.c: Serial number integer overflow fixes.
+	(CHECK_DBUS_SERIAL_GET_SERIAL): New macro.
+	(Fdbus_call_method_asynchronously, xd_read_message_1): Use a float
+	to hold a serial number that is too large for a fixnum.
+	(Fdbus_method_return_internal, Fdbus_method_error_internal):
+	Check for serial numbers out of range.  Decode any serial number
+	that was so large that it became a float.  (Bug#8722)
+
+	* dbusbind.c: Use XFASTINT rather than XUINT, and check for nonneg.
+	(Fdbus_call_method, Fdbus_call_method_asynchronously):
+	Use XFASTINT rather than XUINT when numbers are nonnegative.
+	(xd_append_arg, Fdbus_method_return_internal):
+	(Fdbus_method_error_internal): Likewise.  Also, for unsigned
+	arguments, check that Lisp number is nonnegative, rather than
+	silently wrapping negative numbers around.  (Bug#8722)
+	(xd_read_message_1): Don't assume dbus_uint32_t can fit in int.
+	(Bug#8722)
+
+	* data.c (arith_driver, Flsh): Avoid unnecessary casts to EMACS_UINT.
+
+	* ccl.c (ccl_driver): Redo slightly to avoid the need for 'unsigned'.
+
+	ccl: add integer overflow checks
+	* ccl.c (CCL_CODE_MAX, GET_CCL_RANGE, GET_CCL_CODE, GET_CCL_INT):
+	(IN_INT_RANGE): New macros.
+	(ccl_driver): Use them to check for integer overflow when
+	decoding a CCL program.  Many of the new checks are whether XINT (x)
+	fits in int; it doesn't always, on 64-bit hosts.  The new version
+	doesn't catch all possible integer overflows, but it's an
+	improvement.  (Bug#8719)
+
+	* alloc.c (make_event_array): Use XINT, not XUINT.
+	There's no need for unsigned here.
+
+	* mem-limits.h (EXCEEDS_LISP_PTR) [!USE_LSB_TAG]: EMACS_UINT -> uintptr_t
+	This follows up to the 2011-05-06 change that substituted uintptr_t
+	for EMACS_INT.  This case wasn't caught back then.
+
+	Rework Fformat to avoid integer overflow issues.
+	* editfns.c: Include <float.h> unconditionally, as it's everywhere
+	now (part of C89).  Include <verify.h>.
+	(MAX_10_EXP, CONVERTED_BYTE_SIZE): Remove; no longer needed.
+	(pWIDE, pWIDElen, signed_wide, unsigned_wide): New defns.
+	(Fformat): Avoid the prepass trying to compute sizes; it was only
+	approximate and thus did not catch overflow reliably.  Instead, walk
+	through the format just once, formatting and computing sizes as we go,
+	checking for integer overflow at every step, and allocating a larger
+	buffer as needed.  Keep track separately whether the format is
+	multibyte.  Keep only the most-recently calculated precision, rather
+	than them all.  Record whether each argument has been converted to
+	string.  Use EMACS_INT, not int, for byte and char and arg counts.
+	Support field widths and precisions larger than INT_MAX.  Avoid
+	sprintf's undefined behavior with conversion specifications such as %#d
+	and %.0c.  Fix bug with strchr succeeding on '\0' when looking for
+	flags.  Fix bug with (format "%c" 256.0).  Avoid integer overflow when
+	formatting out-of-range floating point numbers with int
+	formats. (Bug#8668)
+
+	* lisp.h (FIXNUM_OVERFLOW_P): Work even if arg is a NaN.
+
+	* data.c: Avoid integer truncation in expressions involving floats.
+	* data.c: Include <intprops.h>.
+	(arith_driver): When there's an integer overflow in an expression
+	involving floating point, convert the integers to floating point
+	so that the resulting value does not suffer from catastrophic
+	integer truncation.  For example, on a 64-bit host (* 4
+	most-negative-fixnum 0.5) should yield about -4.6e+18, not zero.
+	Do not rely on undefined behavior after integer overflow.
+
+	merge count_size_as_multibyte, parse_str_to_multibyte
+	* character.c, character.h (count_size_as_multibyte):
+	Renamed from parse_str_to_multibyte; all uses changed.
+	Check for integer overflow.
+	* insdel.c, lisp.h (count_size_as_multibyte): Remove,
+	since it's now a duplicate of the other.  This is more of
+	a character than a buffer op, so better that it's in character.c.
+	* fns.c, print.c: Adjust to above changes.
+
+2011-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xselect.c (x_convert_selection): Yet another int/Lisp_Object mixup.
+
+2011-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xselect.c: Fix minor problems prompted by GCC 4.6.0 warnings.
+	(x_handle_selection_request, frame_for_x_selection): Remove unused vars.
+	(x_clipboard_manager_save): Now static.
+	(Fx_clipboard_manager_save): Rename local to avoid shadowing.
+
+	* fns.c: Fix minor problems prompted by GCC 4.6.0 warnings.
+	(crypto_hash_function): Now static.
+	Fix pointer signedness problems.  Avoid unnecessary initializations.
+
+2011-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* termhooks.h (Vselection_alist): Make it terminal-local.
+
+	* terminal.c (create_terminal): Initialize it.
+
+	* xselect.c: Support for clipboard managers.
+	(Vselection_alist): Move to termhooks.h as terminal-local var.
+	(LOCAL_SELECTION): New macro.
+	(x_atom_to_symbol): Handle x_display_info_for_display fail case.
+	(symbol_to_x_atom): Remove gratuitous arg.
+	(x_handle_selection_request, lisp_data_to_selection_data)
+	(x_get_foreign_selection, Fx_register_dnd_atom): Callers changed.
+	(x_own_selection, x_get_local_selection, x_convert_selection):
+	New arg, specifying work frame.  Use terminal-local Vselection_alist.
+	(some_frame_on_display): Delete unused function.
+	(Fx_own_selection_internal, Fx_get_selection_internal)
+	(Fx_disown_selection_internal, Fx_selection_owner_p)
+	(Fx_selection_exists_p): New optional frame arg.
+	(frame_for_x_selection, Fx_clipboard_manager_save): New functions.
+	(x_handle_selection_clear): Don't treat other terminals with the
+	same keyboard specially.  Use the terminal-local Vselection_alist.
+	(x_clear_frame_selections): Use Frun_hook_with_args.
+
+	* xterm.c (x_term_init): Intern ATOM and CLIPBOARD_MANAGER atoms.
+
+	* xterm.h: Add support for those atoms.
+
+2011-05-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c: ICCCM-compliant handling of MULTIPLE targets.
+	(converted_selections, conversion_fail_tag): New global variables.
+	(x_selection_request_lisp_error): Free the above.
+	(x_get_local_selection): Remove unnecessary code.
+	(x_reply_selection_request): Args changed; handle arbitrary array
+	of converted selections stored in converted_selections.
+	Separate the XChangeProperty and SelectionNotify steps.
+	(x_handle_selection_request): Rewrite to handle MULTIPLE target.
+	(x_convert_selection): New function.
+	(x_handle_selection_event): Simplify.
+	(x_get_foreign_selection): Don't ignore incoming requests while
+	waiting for an answer; this will fail when we implement
+	SAVE_TARGETS, and seems unnecessary anyway.
+	(selection_data_to_lisp_data): Recognize ATOM_PAIR type.
+	(Vx_sent_selection_functions): Doc fix.
+
+2011-05-26  Leo Liu  <sdl.web@gmail.com>
+
+	* editfns.c (Ftranspose_regions): Allow empty regions.  (Bug#8699)
+
+2011-05-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (struct glyph_row): New member fringe_bitmap_periodic_p.
+
+	* dispnew.c (shift_glyph_matrix, scrolling_window): Mark scrolled row
+	for fringe update if it has periodic bitmap.
+	(row_equal_p): Also compare left_fringe_offset,	right_fringe_offset,
+	and fringe_bitmap_periodic_p.
+
+	* fringe.c (get_fringe_bitmap_data): New function.
+	(draw_fringe_bitmap_1, update_window_fringes): Use it.
+	(update_window_fringes): Record periodicity of fringe bitmap in glyph
+	row.  Mark glyph row for fringe update if periodicity changed.
+
+	* xdisp.c (try_window_reusing_current_matrix): Don't mark scrolled row
+	for fringe update unless it has periodic bitmap.
+
+2011-05-25  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (get_next_display_element): Set correct it->face_id for
+	a static composition.
+
+2011-05-24  Leo Liu  <sdl.web@gmail.com>
+
+	* deps.mk (fns.o):
+	* makefile.w32-in ($(BLD)/fns.$(O)): Include sha1.h.
+
+	* fns.c (crypto_hash_function, Fsha1): New function.
+	(Fmd5): Use crypto_hash_function.
+	(syms_of_fns): Add Ssha1.
+
+2011-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gnutls.c: Remove unused macros.
+	(fn_gnutls_transport_set_lowat, fn_gnutls_transport_set_pull_function):
+	(fn_gnutls_transport_set_push_function) [!WINDOWSNT]:
+	Remove macros that are defined and never used.
+	Caught by gcc -Wunused-macros (GCC 4.6.0, Fedora 14).
+
+2011-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c (syms_of_xselect): Remove unused symbol SAVE_TARGETS.
+	(Fx_get_selection_internal): Minor cleanup.
+	(Fx_own_selection_internal): Rename arguments for consistency with
+	select.el.
+
+2011-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xselect.c (QSAVE_TARGETS): New static var, to fix build failure.
+
+2011-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c (syms_of_xselect): Include character.h; use DEFSYM.
 
 2011-05-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -99,8 +385,8 @@
 
 	Be more systematic about user-interface timestamps.
 	Before, the code sometimes used 'Time', sometimes 'unsigned long',
-	and sometimes 'EMACS_UINT', to represent these timestamps.  This
-	change causes it to use 'Time' uniformly, as that's what X uses.
+	and sometimes 'EMACS_UINT', to represent these timestamps.
+	This change causes it to use 'Time' uniformly, as that's what X uses.
 	This makes the code easier to follow, and makes it easier to catch
 	integer overflow bugs such as Bug#8664.
 	* frame.c (Fmouse_position, Fmouse_pixel_position):

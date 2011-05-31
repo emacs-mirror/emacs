@@ -1794,9 +1794,9 @@ nice values get scheduled more favorably.)
 The number of threads in the process.
 
 @item start
-The time the process was started, in the @w{@code{(@var{high}
-@var{low} @var{microsec})}} format used by @code{current-time} and
-@code{file-attributes}.
+The time when the process was started, in the same
+@w{@code{(@var{high} @var{low} @var{microsec})}} format used by
+@code{current-time} and @code{file-attributes}.
 
 @item etime
 The time elapsed since the process started, in the @w{@code{(@var{high}
@@ -2482,25 +2482,17 @@ Install @var{plist} as the initial plist of the process.
 @itemx :parity
 @itemx :stopbits
 @itemx :flowcontrol
-These arguments are handled by @code{serial-process-configure}, which
-is called by @code{make-serial-process}.
+These are handled by @code{serial-process-configure}, which is called
+by @code{make-serial-process}.
 @end table
 
 The original argument list, possibly modified by later configuration,
 is available via the function @code{process-contact}.
 
-Examples:
+Here is an example:
 
 @example
 (make-serial-process :port "/dev/ttyS0" :speed 9600)
-
-(make-serial-process :port "COM1" :speed 115200 :stopbits 2)
-
-(make-serial-process :port "\\\\.\\COM13" :speed 1200
-                     :bytesize 7 :parity 'odd)
-
-(make-serial-process :port "/dev/tty.BlueConsole-SPP-1"
-                     :speed nil)
 @end example
 @end defun
 
@@ -2560,19 +2552,9 @@ flow control).  If @var{flowcontrol} is not given, it defaults to no
 flow control.
 @end table
 
-@code{serial-process-configure} is called by @code{make-serial-process} for the
-initial configuration of the serial port.
-
-Examples:
-
-@example
-(serial-process-configure :process "/dev/ttyS0" :speed 1200)
-
-(serial-process-configure :buffer "COM1" :stopbits 1
-                          :parity 'odd :flowcontrol 'hw)
-
-(serial-process-configure :port "\\\\.\\COM13" :bytesize 7)
-@end example
+@code{serial-process-configure} is called by
+@code{make-serial-process} for the initial configuration of the serial
+port.
 @end defun
 
 @node Byte Packing

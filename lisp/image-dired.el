@@ -2590,7 +2590,7 @@ tags to their respective image file.  Internal function used by
 ;;                 `(,(nth 4 fattribs) ,(nth 7 fattribs) ,f)))
 ;;             (directory-files (image-dired-dir) t ".+\.thumb\..+$"))
 ;;            ;; Sort function. Compare time between two files.
-;;            '(lambda (l1 l2)
+;;            (lambda (l1 l2)
 ;;               (time-less-p (car l1) (car l2)))))
 ;;          (dirsize (apply '+ (mapcar (lambda (x) (cadr x)) files))))
 ;;     (while (> dirsize image-dired-dir-max-size)

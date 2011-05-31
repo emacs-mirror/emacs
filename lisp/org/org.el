@@ -1576,7 +1576,7 @@ single keystroke rather than having to type \"yes\"."
 	  (const :tag "no confirmation (dangerous)" nil)))
 (put 'org-confirm-shell-link-function
      'safe-local-variable
-     '(lambda (x) (member x '(yes-or-no-p y-or-n-p))))
+     (lambda (x) (member x '(yes-or-no-p y-or-n-p))))
 
 (defcustom org-confirm-elisp-link-function 'yes-or-no-p
   "Non-nil means ask for confirmation before executing Emacs Lisp links.
@@ -1596,7 +1596,7 @@ single keystroke rather than having to type \"yes\"."
 	  (const :tag "no confirmation (dangerous)" nil)))
 (put 'org-confirm-shell-link-function
      'safe-local-variable
-     '(lambda (x) (member x '(yes-or-no-p y-or-n-p))))
+     (lambda (x) (member x '(yes-or-no-p y-or-n-p))))
 
 (defconst org-file-apps-defaults-gnu
   '((remote . emacs)
@@ -2519,7 +2519,7 @@ a double prefix argument to a time stamp command like `C-c .' or `C-c !',
 and by using a prefix arg to `S-up/down' to specify the exact number
 of minutes to shift."
   :group 'org-time
-  :get '(lambda (var) ; Make sure both elements are there
+  :get (lambda (var) ; Make sure both elements are there
 	  (if (integerp (default-value var))
 	      (list (default-value var) 5)
 	    (default-value var)))
@@ -3021,7 +3021,7 @@ or contain a special line
 If the file does not specify a category, then file's base name
 is used instead.")
 (make-variable-buffer-local 'org-category)
-(put 'org-category 'safe-local-variable '(lambda (x) (or (symbolp x) (stringp x))))
+(put 'org-category 'safe-local-variable (lambda (x) (or (symbolp x) (stringp x))))
 
 (defcustom org-agenda-files nil
   "The files to be used for agenda display.

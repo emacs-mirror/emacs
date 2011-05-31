@@ -178,33 +178,27 @@ CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
 LOADLIBES = ../lib/libgnu.a $(LIBS_SYSTEM)
 $(EXE_FILES): ../lib/libgnu.a
 
-## This is the default compilation command.
-## But we should never rely on it, because some make version failed to
-## find it for getopt.o.
-## Using an explicit command made it work.
-.c.o:
-	${CC} -c ${CPP_CFLAGS} $<
-
-all: ${DONT_INSTALL} ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}  ${STAMP_INST_SCRIPTS} ${STAMP_SCRIPTS}
+all: ${EXE_FILES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS} ${STAMP_INST_SCRIPTS} ${STAMP_SCRIPTS}
 
 ## These targets copy the scripts into the build directory so that
 ## they can be run from there in an uninstalled Emacs.
-## The "-" is prepended because some versions of cp barf when srcdir
-## is the current directory, and thus the file will be copied into itself.
+## Nothing to do if pwd = srcdir.
+insrcdir=[ "`/bin/pwd`" = "`(cd $(srcdir) && /bin/pwd)`" ]
+
 stamp-rcs2log: $(srcdir)/rcs2log
-	-cp -p $(srcdir)/rcs2log rcs2log
+	$(insrcdir) || cp -p $(srcdir)/rcs2log rcs2log
 	touch $@
 
 stamp-rcs-checkin: $(srcdir)/rcs-checkin
-	-cp -p $(srcdir)/rcs-checkin rcs-checkin
+	$(insrcdir) || cp -p $(srcdir)/rcs-checkin rcs-checkin
 	touch $@
 
 stamp-grep-changelog: $(srcdir)/grep-changelog
-	-cp -p $(srcdir)/grep-changelog grep-changelog
+	$(insrcdir) || cp -p $(srcdir)/grep-changelog grep-changelog
 	touch $@
 
 stamp-vcdiff: $(srcdir)/vcdiff
-	-cp -p $(srcdir)/vcdiff vcdiff
+	$(insrcdir) || cp -p $(srcdir)/vcdiff vcdiff
 	touch $@
 
 ## Only used if we need blessmail, but no harm in always defining.
@@ -281,8 +275,8 @@ mostlyclean:
 	-rm -f core *.o
 
 clean: mostlyclean
-	-rm -f ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
-	-rm -f fns*.el *.tab.c *.tab.h stamp-*
+	-rm -f ${EXE_FILES}
+	-rm -f ${STAMP_INST_SCRIPTS} ${STAMP_SCRIPTS}
 
 distclean: clean
 	-rm -f TAGS
@@ -313,17 +307,14 @@ test-distrib${EXEEXT}: ${srcdir}/test-distrib.c
 ../lib/libgnu.a: ../src/config.h
 	cd ../lib && $(MAKE) libgnu.a
 
-REGEXPOBJ = regex.o
-REGEXPDEPS = $(REGEXPOBJ) $(srcdir)/../src/regex.h
-
 regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h ../src/config.h
 	${CC} -c ${CPP_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER \
 	  ${srcdir}/../src/regex.c
 
-etags${EXEEXT}: ${srcdir}/etags.c $(REGEXPDEPS) ../src/config.h
+etags${EXEEXT}: ${srcdir}/etags.c regex.o ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DEMACS_NAME="\"GNU Emacs\"" \
 	  -DVERSION="\"${version}\"" ${srcdir}/etags.c \
-	  $(REGEXPOBJ) $(LOADLIBES) -o etags
+	  regex.o $(LOADLIBES) -o etags
 
 ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" \
@@ -334,7 +325,7 @@ ebrowse${EXEEXT}: ${srcdir}/ebrowse.c ${srcdir}/../lib/min-max.h ../src/config.h
 ctags${EXEEXT}: etags${EXEEXT}
 	$(CC) ${ALL_CFLAGS} -DCTAGS -DEMACS_NAME="\"GNU Emacs\"" \
 	  -DVERSION="\"${version}\"" ${srcdir}/etags.c \
-	  $(REGEXPOBJ) $(LOADLIBES) -o ctags
+	  regex.o $(LOADLIBES) -o ctags
 
 profile${EXEEXT}: ${srcdir}/profile.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/profile.c $(LOADLIBES) -o profile
@@ -343,12 +334,9 @@ make-docfile${EXEEXT}: ${srcdir}/make-docfile.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) \
 	  -o make-docfile
 
-movemail${EXEEXT}: movemail.o pop.o
-	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o \
+movemail${EXEEXT}: ${srcdir}/movemail.c pop.o ../src/config.h
+	$(CC) ${ALL_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c pop.o \
 	  $(LOADLIBES) $(LIBS_MOVE) -o movemail
-
-movemail.o: ${srcdir}/movemail.c ../src/config.h
-	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c
 
 pop.o: ${srcdir}/pop.c ${srcdir}/../lib/min-max.h ../src/config.h
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/pop.c
@@ -361,12 +349,8 @@ emacsclient${EXEEXT}: ${srcdir}/emacsclient.c ../src/config.h
 hexl${EXEEXT}: ${srcdir}/hexl.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
 
-update-game-score${EXEEXT}: update-game-score.o
-	$(CC) ${LINK_CFLAGS} update-game-score.o \
-	  $(LOADLIBES) -o update-game-score
-
-update-game-score.o: ${srcdir}/update-game-score.c ../src/config.h
-	$(CC) -c ${CPP_CFLAGS} ${srcdir}/update-game-score.c \
-	  -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\""
+update-game-score${EXEEXT}: ${srcdir}/update-game-score.c ../src/config.h
+	$(CC) ${ALL_CFLAGS} -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\"" \
+	  ${srcdir}/update-game-score.c $(LOADLIBES) -o update-game-score
 
 ## Makefile ends here.

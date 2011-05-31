@@ -198,11 +198,11 @@ For example, use this to define the golden ratio number:
   (setq calculator-user-registers '((?g .  1.61803398875)))
 before you load calculator."
   :type  '(repeat (cons character number))
-  :set   '(lambda (_ val)
-            (and (boundp 'calculator-registers)
-                 (setq calculator-registers
-                       (append val calculator-registers)))
-            (setq calculator-user-registers val))
+  :set   (lambda (_ val)
+           (and (boundp 'calculator-registers)
+                (setq calculator-registers
+                      (append val calculator-registers)))
+           (setq calculator-user-registers val))
   :group 'calculator)
 
 (defcustom calculator-user-operators nil
@@ -482,7 +482,7 @@ Used for repeating operations in calculator-repR/L.")
             ["Electric mode"
              (progn (calculator-quit)
                     (setq calculator-restart-other-mode t)
-                    (run-with-timer 0.1 nil '(lambda () (message nil)))
+                    (run-with-timer 0.1 nil (lambda () (message nil)))
                     ;; the message from the menu will be visible,
                     ;; couldn't make it go away...
                     (calculator))
@@ -706,7 +706,7 @@ See the documentation for `calculator-mode' for more information."
               (Electric-command-loop
                'calculator-done
                ;; can't use 'noprompt, bug in electric.el
-               '(lambda () 'noprompt)
+               (lambda () 'noprompt)
                nil
                (lambda (x y) (calculator-update-display))))
           (and calculator-buffer

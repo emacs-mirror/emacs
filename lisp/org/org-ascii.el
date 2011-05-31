@@ -369,55 +369,55 @@ publishing directory."
 	  (push (concat (nth 3 lang-words) "\n") thetoc)
 	  (push (concat (make-string (string-width (nth 3 lang-words)) ?=)
 			"\n") thetoc)
-	  (mapc '(lambda (line)
-		   (if (string-match org-todo-line-regexp
-				     line)
-		       ;; This is a headline
-		       (progn
-			 (setq have-headings t)
-			 (setq level (- (match-end 1) (match-beginning 1)
-					level-offset)
-			       level (org-tr-level level)
-			       txt (match-string 3 line)
-			       todo
-			       (or (and org-export-mark-todo-in-toc
-					(match-beginning 2)
-					(not (member (match-string 2 line)
-						     org-done-keywords)))
+	  (mapc (lambda (line)
+                  (if (string-match org-todo-line-regexp
+                                    line)
+                      ;; This is a headline
+                      (progn
+                        (setq have-headings t)
+                        (setq level (- (match-end 1) (match-beginning 1)
+                                       level-offset)
+                              level (org-tr-level level)
+                              txt (match-string 3 line)
+                              todo
+                              (or (and org-export-mark-todo-in-toc
+                                       (match-beginning 2)
+                                       (not (member (match-string 2 line)
+                                                    org-done-keywords)))
 					; TODO, not DONE
-				   (and org-export-mark-todo-in-toc
-					(= level umax-toc)
-					(org-search-todo-below
-					 line lines level))))
-			 (setq txt (org-html-expand-for-ascii txt))
+                                  (and org-export-mark-todo-in-toc
+                                       (= level umax-toc)
+                                       (org-search-todo-below
+                                        line lines level))))
+                        (setq txt (org-html-expand-for-ascii txt))
 
-			 (while (string-match org-bracket-link-regexp txt)
-			   (setq txt
-				 (replace-match
-				  (match-string (if (match-end 2) 3 1) txt)
-				  t t txt)))
+                        (while (string-match org-bracket-link-regexp txt)
+                          (setq txt
+                                (replace-match
+                                 (match-string (if (match-end 2) 3 1) txt)
+                                 t t txt)))
 
-			 (if (and (memq org-export-with-tags '(not-in-toc nil))
-				  (string-match
-				   (org-re "[ \t]+:[[:alnum:]_@#%:]+:[ \t]*$")
-				   txt))
-			     (setq txt (replace-match "" t t txt)))
-			 (if (string-match quote-re0 txt)
-			     (setq txt (replace-match "" t t txt)))
+                        (if (and (memq org-export-with-tags '(not-in-toc nil))
+                                 (string-match
+                                  (org-re "[ \t]+:[[:alnum:]_@#%:]+:[ \t]*$")
+                                  txt))
+                            (setq txt (replace-match "" t t txt)))
+                        (if (string-match quote-re0 txt)
+                            (setq txt (replace-match "" t t txt)))
 
-			 (if org-export-with-section-numbers
-			     (setq txt (concat (org-section-number level)
-					       " " txt)))
-			 (if (<= level umax-toc)
-			     (progn
-			       (push
-				(concat
-				 (make-string
-				  (* (max 0 (- level org-min-level)) 4) ?\ )
-				 (format (if todo "%s (*)\n" "%s\n") txt))
-				thetoc)
-			       (setq org-last-level level))
-			   ))))
+                        (if org-export-with-section-numbers
+                            (setq txt (concat (org-section-number level)
+                                              " " txt)))
+                        (if (<= level umax-toc)
+                            (progn
+                              (push
+                               (concat
+                                (make-string
+                                 (* (max 0 (- level org-min-level)) 4) ?\ )
+                                (format (if todo "%s (*)\n" "%s\n") txt))
+                               thetoc)
+                              (setq org-last-level level))
+                          ))))
 		lines)
 	  (setq thetoc (if have-headings (nreverse thetoc) nil))))
 

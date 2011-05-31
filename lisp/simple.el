@@ -1105,6 +1105,7 @@ in *Help* buffer.  See also the command `describe-char'."
 
 (defvar minibuffer-completing-symbol nil
   "Non-nil means completing a Lisp symbol in the minibuffer.")
+(make-obsolete-variable 'minibuffer-completing-symbol nil "24.1")
 
 (defvar minibuffer-default nil
   "The current default value or list of default values in the minibuffer.
@@ -5914,6 +5915,12 @@ Its value is a list of the form (START END) where START is the place
 where the completion should be inserted and END (if non-nil) is the end
 of the text to replace.  If END is nil, point is used instead.")
 
+(defvar completion-list-insert-choice-function #'completion--replace
+  "Function to use to insert the text chosen in *Completions*.
+Called with 3 arguments (BEG END TEXT), it should replace the text
+between BEG and END with TEXT.  Expected to be set buffer-locally
+in the *Completions* buffer.")
+
 (defvar completion-base-size nil
   "Number of chars before point not involved in completion.
 This is a local variable in the completion list buffer.
@@ -5977,26 +5984,30 @@ With prefix argument N, move N items (negative N means move backward)."
   ;; In case this is run via the mouse, give temporary modes such as
   ;; isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
-  (let (buffer base-size base-position choice)
-    (with-current-buffer (window-buffer (posn-window (event-start event)))
-      (setq buffer completion-reference-buffer)
-      (setq base-size completion-base-size)
-      (setq base-position completion-base-position)
-      (save-excursion
-        (goto-char (posn-point (event-start event)))
-        (let (beg end)
-          (if (and (not (eobp)) (get-text-property (point) 'mouse-face))
-              (setq end (point) beg (1+ (point))))
-          (if (and (not (bobp)) (get-text-property (1- (point)) 'mouse-face))
-              (setq end (1- (point)) beg (point)))
-          (if (null beg)
-              (error "No completion here"))
-          (setq beg (previous-single-property-change beg 'mouse-face))
-          (setq end (or (next-single-property-change end 'mouse-face)
-                        (point-max)))
-          (setq choice (buffer-substring-no-properties beg end)))))
+  (with-current-buffer (window-buffer (posn-window (event-start event)))
+    (let ((buffer completion-reference-buffer)
+          (base-size completion-base-size)
+          (base-position completion-base-position)
+          (insert-function completion-list-insert-choice-function)
+          (choice
+           (save-excursion
+             (goto-char (posn-point (event-start event)))
+             (let (beg end)
+               (cond
+                ((and (not (eobp)) (get-text-property (point) 'mouse-face))
+                 (setq end (point) beg (1+ (point))))
+                ((and (not (bobp))
+                      (get-text-property (1- (point)) 'mouse-face))
+                 (setq end (1- (point)) beg (point)))
+                (t (error "No completion here")))
+               (setq beg (previous-single-property-change beg 'mouse-face))
+               (setq end (or (next-single-property-change end 'mouse-face)
+                             (point-max)))
+               (buffer-substring-no-properties beg end))))
+          (owindow (selected-window)))
 
-    (let ((owindow (selected-window)))
+      (unless (buffer-live-p buffer)
+        (error "Destination buffer is dead"))
       (select-window (posn-window (event-start event)))
       (if (and (one-window-p t 'selected-frame)
 	       (window-dedicated-p (selected-window)))
@@ -6005,20 +6016,20 @@ With prefix argument N, move N items (negative N means move backward)."
 	(or (window-dedicated-p (selected-window))
 	    (bury-buffer)))
       (select-window
-       (or (and (buffer-live-p buffer)
-		(get-buffer-window buffer 0))
-	   owindow)))
+       (or (get-buffer-window buffer 0)
+           owindow))
 
-    (choose-completion-string
-     choice buffer
-     (or base-position
-         (when base-size
-           ;; Someone's using old completion code that doesn't know
-           ;; about base-position yet.
-           (list (+ base-size (with-current-buffer buffer (field-beginning)))))
-         ;; If all else fails, just guess.
-         (with-current-buffer buffer
-           (list (choose-completion-guess-base-position choice)))))))
+      (with-current-buffer buffer
+        (choose-completion-string
+         choice buffer
+         (or base-position
+             (when base-size
+               ;; Someone's using old completion code that doesn't know
+               ;; about base-position yet.
+               (list (+ base-size (field-beginning))))
+             ;; If all else fails, just guess.
+             (list (choose-completion-guess-base-position choice)))
+         insert-function)))))
 
 ;; Delete the longest partial match for STRING
 ;; that can be found before POINT.
@@ -6064,7 +6075,8 @@ the minibuffer; no further functions will be called.
 If all functions in the list return nil, that means to use
 the default method of inserting the completion in BUFFER.")
 
-(defun choose-completion-string (choice &optional buffer base-position)
+(defun choose-completion-string (choice &optional
+                                        buffer base-position insert-function)
   "Switch to BUFFER and insert the completion choice CHOICE.
 BASE-POSITION, says where to insert the completion."
 
@@ -6084,8 +6096,8 @@ BASE-POSITION, says where to insert the completion."
     ;; If BUFFER is a minibuffer, barf unless it's the currently
     ;; active minibuffer.
     (if (and mini-p
-	     (or (not (active-minibuffer-window))
-		 (not (equal buffer
+             (not (and (active-minibuffer-window)
+                       (equal buffer
 			     (window-buffer (active-minibuffer-window))))))
 	(error "Minibuffer is not active for completion")
       ;; Set buffer so buffer-local choose-completion-string-functions works.
@@ -6097,13 +6109,15 @@ BASE-POSITION, says where to insert the completion."
                ;; and indeed unused.  The last used to be `base-size', so we
                ;; keep it to try and avoid breaking old code.
 	       choice buffer base-position nil)
+        ;; This remove-text-properties should be unnecessary since `choice'
+        ;; comes from buffer-substring-no-properties.
+        ;;(remove-text-properties 0 (lenth choice) '(mouse-face nil) choice)
 	;; Insert the completion into the buffer where it was requested.
-        (delete-region (or (car base-position) (point))
-                       (or (cadr base-position) (point)))
-	(insert choice)
-	(remove-text-properties (- (point) (length choice)) (point)
-				'(mouse-face nil))
-	;; Update point in the window that BUFFER is showing in.
+        (funcall (or insert-function completion-list-insert-choice-function)
+                 (or (car base-position) (point))
+                 (or (cadr base-position) (point))
+                 choice)
+        ;; Update point in the window that BUFFER is showing in.
 	(let ((window (get-buffer-window buffer t)))
 	  (set-window-point window (point)))
 	;; If completing for the minibuffer, exit it with this choice.
@@ -6169,10 +6183,13 @@ Called from `temp-buffer-show-hook'."
                            0 (or completion-base-size 0)))))))
     (with-current-buffer standard-output
       (let ((base-size completion-base-size) ;Read before killing localvars.
-            (base-position completion-base-position))
+            (base-position completion-base-position)
+            (insert-fun completion-list-insert-choice-function))
         (completion-list-mode)
         (set (make-local-variable 'completion-base-size) base-size)
-        (set (make-local-variable 'completion-base-position) base-position))
+        (set (make-local-variable 'completion-base-position) base-position)
+        (set (make-local-variable 'completion-list-insert-choice-function)
+	     insert-fun))
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
       (if base-dir (setq default-directory base-dir))
       ;; Maybe insert help string.

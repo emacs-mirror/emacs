@@ -1,3 +1,8 @@
+2011-05-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use 'inline', not 'INLINE'.
+	* config.nt (INLINE): Remove.
+
 2011-05-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* README.W32: Add information about GnuTLS libraries.

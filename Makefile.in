@@ -265,7 +265,8 @@ EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
 SUBDIR = lib lib-src src lisp
 
 # The subdir makefiles created by config.status.
-SUBDIR_MAKEFILES = lib/Makefile lib-src/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispref/Makefile doc/lispintro/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile lisp/Makefile test/automated/Makefile
+SUBDIR_MAKEFILES_IN = @SUBDIR_MAKEFILES_IN@
+SUBDIR_MAKEFILES = `echo $(SUBDIR_MAKEFILES_IN:.in=) | sed 's|$(srcdir)/||g'`
 
 # Subdirectories to install, and where they'll go.
 # lib-src's makefile knows how to install it, so we don't do that here.
@@ -331,8 +332,8 @@ DOS_gnulib_comp.m4 = gl-comp.m4
 # $(gnulib_srcdir) (relative to $(srcdir) and should have build tools
 # as per $(gnulib_srcdir)/DEPENDENCIES.
 GNULIB_MODULES = \
-  careadlinkat crypto/md5 dtoastr filemode getloadavg getopt-gnu \
-  ignore-value intprops lstat mktime readlink \
+  careadlinkat crypto/md5 crypto/sha1 dtoastr filemode getloadavg \
+  getopt-gnu ignore-value intprops lstat mktime readlink \
   socklen stdarg stdio strftime strtoumax symlink sys_stat
 GNULIB_TOOL_FLAGS = \
  --conditional-dependencies --import --no-changelog --no-vc-files \
@@ -388,19 +389,7 @@ blessmail: Makefile src FRC
 # conditions with parallel makes, so let's assume that the time stamp on
 # ./Makefile is representative of the time stamp on all the other Makefiles.
 Makefile: config.status $(srcdir)/src/config.in \
-          $(srcdir)/Makefile.in \
-          $(srcdir)/src/Makefile.in \
-          $(srcdir)/lib/Makefile.in \
-          $(srcdir)/lib-src/Makefile.in \
-          $(srcdir)/doc/emacs/Makefile.in \
-          $(srcdir)/doc/misc/Makefile.in \
-          $(srcdir)/doc/lispref/Makefile.in \
-          $(srcdir)/doc/lispintro/Makefile.in \
-          $(srcdir)/oldXMenu/Makefile.in \
-          $(srcdir)/lwlib/Makefile.in \
-          $(srcdir)/leim/Makefile.in \
-          $(srcdir)/lisp/Makefile.in \
-          $(srcdir)/test/automated/Makefile.in
+          $(srcdir)/Makefile.in $(SUBDIR_MAKEFILES_IN)
 	./config.status
 
 # Don't erase config.status if make is interrupted while refreshing it.
@@ -422,7 +411,7 @@ ACLOCAL_INPUTS = @MAINT@ $(srcdir)/m4/$(DOS_gnulib_comp.m4)
 $(srcdir)/aclocal.m4: $(ACLOCAL_INPUTS)
 	cd $(srcdir) && aclocal -I m4
 
-AUTOMAKE_INPUTS = @MAINT@ $(srcdir)/aclocal.m4 $(srcdir)/lib/Makefile.am
+AUTOMAKE_INPUTS = @MAINT@ $(srcdir)/aclocal.m4 $(srcdir)/lib/Makefile.am $(srcdir)/lib/gnulib.mk
 $(srcdir)/lib/Makefile.in: $(AUTOMAKE_INPUTS)
 	cd $(srcdir) && automake --gnu -a -c lib/Makefile
 am--refresh: $(srcdir)/aclocal.m4 $(srcdir)/configure $(srcdir)/src/config.in
@@ -866,10 +855,15 @@ extraclean:
 # The src subdir knows how to do the right thing
 # even when the build directory and source dir are different.
 TAGS tags: lib lib-src src
-	cd src; $(MAKE) tags
+	cd src; $(MAKE) $(MFLAGS) tags
 
 check:
-	cd test/automated; $(MAKE) check
+	@if test ! -d test/automated; then \
+	  echo "You do not seem to have the test/ directory."; \
+	  echo "Maybe you are using a release tarfile, rather than a repository checkout."; \
+	else \
+	  cd test/automated && $(MAKE) $(MFLAGS) check; \
+	fi
 
 dist:
 	cd ${srcdir}; ./make-dist

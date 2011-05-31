@@ -38,8 +38,7 @@
 ;;      or [menu-bar emacs-lisp eval-buffer].  Additional key-bindings
 ;;      are also provided under C-c ? KEY
 ;;        (require 'checkdoc)
-;;        (add-hook 'emacs-lisp-mode-hook
-;;	             '(lambda () (checkdoc-minor-mode 1)))
+;;        (add-hook 'emacs-lisp-mode-hook 'checkdoc-minor-mode)
 ;;
 ;; Using `checkdoc':
 ;;

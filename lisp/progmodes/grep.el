@@ -698,7 +698,9 @@ This function is called from `compilation-filter-hook'."
        grep-hit-face)
   (set (make-local-variable 'compilation-error-regexp-alist)
        grep-regexp-alist)
-  (set (make-local-variable 'compilation-directory-matcher) nil)
+  ;; compilation-directory-matcher can't be nil, so we set it to a regexp that
+  ;; can never match.
+  (set (make-local-variable 'compilation-directory-matcher) '("\\`a\\`"))
   (set (make-local-variable 'compilation-process-setup-function)
        'grep-process-setup)
   (set (make-local-variable 'compilation-disable-input) t)

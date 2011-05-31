@@ -194,10 +194,11 @@ component group will show up when you enter the virtual group.")
 	    (when buffer
 	      (set-buffer buffer))
 	    (let* ((gnus-override-method nil)
-		   (method (gnus-find-method-for-group
-			    nnvirtual-last-accessed-component-group)))
-	      (funcall (gnus-get-function method 'request-article)
-		       article nil (nth 1 method) buffer)))))
+		   (gnus-command-method
+		    (gnus-find-method-for-group
+		     nnvirtual-last-accessed-component-group)))
+	      (funcall (gnus-get-function gnus-command-method 'request-article)
+		       article nil (nth 1 gnus-command-method) buffer)))))
       ;; This is a fetch by number.
       (let* ((amap (nnvirtual-map-article article))
 	     (cgroup (car amap)))

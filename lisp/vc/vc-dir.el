@@ -1242,6 +1242,7 @@ These are the commands available for use in the file status buffer:
       (format "%-20s" state)
       'face (cond ((eq state 'up-to-date) 'font-lock-builtin-face)
 		  ((memq state '(missing conflict)) 'font-lock-warning-face)
+		  ((eq state 'edited) 'font-lock-constant-face)
 		  (t 'font-lock-variable-name-face))
       'mouse-face 'highlight)
      " "

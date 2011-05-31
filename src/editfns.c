@@ -45,9 +45,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <ctype.h>
+#include <float.h>
 #include <limits.h>
 #include <intprops.h>
 #include <strftime.h>
+#include <verify.h>
 
 #include "intervals.h"
 #include "buffer.h"
@@ -56,13 +58,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "frame.h"
 #include "window.h"
 #include "blockinput.h"
-
-#ifdef STDC_HEADERS
-#include <float.h>
-#define MAX_10_EXP	DBL_MAX_10_EXP
-#else
-#define MAX_10_EXP	310
-#endif
 
 #ifndef NULL
 #define NULL 0
@@ -3525,14 +3520,21 @@ usage: (propertize STRING &rest PROPERTIES)  */)
   RETURN_UNGCPRO (string);
 }
 
-
-/* Number of bytes that STRING will occupy when put into the result.
-   MULTIBYTE is nonzero if the result should be multibyte.  */
-
-#define CONVERTED_BYTE_SIZE(MULTIBYTE, STRING)				\
-  (((MULTIBYTE) && ! STRING_MULTIBYTE (STRING))				\
-   ? count_size_as_multibyte (SDATA (STRING), SBYTES (STRING))		\
-   : SBYTES (STRING))
+/* pWIDE is a conversion for printing large decimal integers (possibly with a
+   trailing "d" that is ignored).  pWIDElen is its length.  signed_wide and
+   unsigned_wide are signed and unsigned types for printing them.  Use widest
+   integers if available so that more floating point values can be converted.  */
+#ifdef PRIdMAX
+# define pWIDE PRIdMAX
+enum { pWIDElen = sizeof PRIdMAX - 2 }; /* Don't count trailing "d".  */
+typedef intmax_t signed_wide;
+typedef uintmax_t unsigned_wide;
+#else
+# define pWIDE pI
+enum { pWIDElen = sizeof pI - 1 };
+typedef EMACS_INT signed_wide;
+typedef EMACS_UINT unsigned_wide;
+#endif
 
 DEFUN ("format", Fformat, Sformat, 1, MANY, 0,
        doc: /* Format a string out of a format-string and arguments.
@@ -3583,11 +3585,17 @@ specifier truncates the string to the given width.
 usage: (format STRING &rest OBJECTS)  */)
   (size_t nargs, register Lisp_Object *args)
 {
-  register size_t n;		/* The number of the next arg to substitute */
-  register size_t total;	/* An estimate of the final length */
-  char *buf, *p;
+  EMACS_INT n;		/* The number of the next arg to substitute */
+  char initial_buffer[4000];
+  char *buf = initial_buffer;
+  EMACS_INT bufsize = sizeof initial_buffer;
+  EMACS_INT max_bufsize = min (MOST_POSITIVE_FIXNUM + 1, SIZE_MAX);
+  char *p;
+  Lisp_Object buf_save_value IF_LINT (= {0});
   register char *format, *end, *format_start;
-  int nchars;
+  EMACS_INT formatlen, nchars;
+  /* Nonzero if the format is multibyte.  */
+  int multibyte_format = 0;
   /* Nonzero if the output should be a multibyte string,
      which is true if any of the inputs is one.  */
   int multibyte = 0;
@@ -3596,14 +3604,6 @@ usage: (format STRING &rest OBJECTS)  */)
      multibyte character of the previous string.  This flag tells if we
      must consider such a situation or not.  */
   int maybe_combine_byte;
-  char *this_format;
-  /* Precision for each spec, or -1, a flag value meaning no precision
-     was given in that spec.  Element 0, corresponding to the format
-     string itself, will not be used.  Element NARGS, corresponding to
-     no argument, *will* be assigned to in the case that a `%' and `.'
-     occur after the final format specifier.  */
-  int *precision = (int *) (alloca ((nargs + 1) * sizeof (int)));
-  int longest_format;
   Lisp_Object val;
   int arg_intervals = 0;
   USE_SAFE_ALLOCA;
@@ -3611,312 +3611,212 @@ usage: (format STRING &rest OBJECTS)  */)
   /* discarded[I] is 1 if byte I of the format
      string was not copied into the output.
      It is 2 if byte I was not the first byte of its character.  */
-  char *discarded = 0;
+  char *discarded;
 
   /* Each element records, for one argument,
      the start and end bytepos in the output string,
+     whether the argument has been converted to string (e.g., due to "%S"),
      and whether the argument is a string with intervals.
      info[0] is unused.  Unused elements have -1 for start.  */
   struct info
   {
-    int start, end, intervals;
+    EMACS_INT start, end;
+    int converted_to_string;
+    int intervals;
   } *info = 0;
 
   /* It should not be necessary to GCPRO ARGS, because
      the caller in the interpreter should take care of that.  */
 
+  CHECK_STRING (args[0]);
+  format_start = SSDATA (args[0]);
+  formatlen = SBYTES (args[0]);
+
+  /* Allocate the info and discarded tables.  */
+  {
+    EMACS_INT i;
+    if ((SIZE_MAX - formatlen) / sizeof (struct info) <= nargs)
+      memory_full ();
+    SAFE_ALLOCA (info, struct info *, (nargs + 1) * sizeof *info + formatlen);
+    discarded = (char *) &info[nargs + 1];
+    for (i = 0; i < nargs + 1; i++)
+      {
+	info[i].start = -1;
+	info[i].intervals = info[i].converted_to_string = 0;
+      }
+    memset (discarded, 0, formatlen);
+  }
+
   /* Try to determine whether the result should be multibyte.
      This is not always right; sometimes the result needs to be multibyte
      because of an object that we will pass through prin1,
      and in that case, we won't know it here.  */
-  for (n = 0; n < nargs; n++)
-    {
-      if (STRINGP (args[n]) && STRING_MULTIBYTE (args[n]))
-	multibyte = 1;
-      /* Piggyback on this loop to initialize precision[N]. */
-      precision[n] = -1;
-    }
-  precision[nargs] = -1;
-
-  CHECK_STRING (args[0]);
-  /* We may have to change "%S" to "%s". */
-  args[0] = Fcopy_sequence (args[0]);
-
-  /* GC should never happen here, so abort if it does.  */
-  abort_on_gc++;
+  multibyte_format = STRING_MULTIBYTE (args[0]);
+  multibyte = multibyte_format;
+  for (n = 1; !multibyte && n < nargs; n++)
+    if (STRINGP (args[n]) && STRING_MULTIBYTE (args[n]))
+      multibyte = 1;
 
   /* If we start out planning a unibyte result,
-     then discover it has to be multibyte, we jump back to retry.
-     That can only happen from the first large while loop below.  */
+     then discover it has to be multibyte, we jump back to retry.  */
  retry:
-
-  format = SSDATA (args[0]);
-  format_start = format;
-  end = format + SBYTES (args[0]);
-  longest_format = 0;
-
-  /* Make room in result for all the non-%-codes in the control string.  */
-  total = 5 + CONVERTED_BYTE_SIZE (multibyte, args[0]) + 1;
-
-  /* Allocate the info and discarded tables.  */
-  {
-    size_t nbytes = (nargs+1) * sizeof *info;
-    size_t i;
-    if (!info)
-      info = (struct info *) alloca (nbytes);
-    memset (info, 0, nbytes);
-    for (i = 0; i < nargs + 1; i++)
-      info[i].start = -1;
-    if (!discarded)
-      SAFE_ALLOCA (discarded, char *, SBYTES (args[0]));
-    memset (discarded, 0, SBYTES (args[0]));
-  }
-
-  /* Add to TOTAL enough space to hold the converted arguments.  */
-
-  n = 0;
-  while (format != end)
-    if (*format++ == '%')
-      {
-	EMACS_INT thissize = 0;
-	EMACS_INT actual_width = 0;
-	char *this_format_start = format - 1;
-	int field_width = 0;
-
-	/* General format specifications look like
-
-	   '%' [flags] [field-width] [precision] format
-
-	   where
-
-	   flags	::= [-+ #0]+
-	   field-width	::= [0-9]+
-	   precision	::= '.' [0-9]*
-
-	   If a field-width is specified, it specifies to which width
-	   the output should be padded with blanks, if the output
-	   string is shorter than field-width.
-
-	   If precision is specified, it specifies the number of
-	   digits to print after the '.' for floats, or the max.
-	   number of chars to print from a string.  */
-
-	while (format != end
-	       && (*format == '-' || *format == '0' || *format == '#'
-		   || * format == ' ' || *format == '+'))
-	  ++format;
-
-	if (*format >= '0' && *format <= '9')
-	  {
-	    for (field_width = 0; *format >= '0' && *format <= '9'; ++format)
-	      field_width = 10 * field_width + *format - '0';
-	  }
-
-	/* N is not incremented for another few lines below, so refer to
-	   element N+1 (which might be precision[NARGS]). */
-	if (*format == '.')
-	  {
-	    ++format;
-	    for (precision[n+1] = 0; *format >= '0' && *format <= '9'; ++format)
-	      precision[n+1] = 10 * precision[n+1] + *format - '0';
-	  }
-
-	/* Extra +1 for 'l' that we may need to insert into the
-	   format.  */
-	if (format - this_format_start + 2 > longest_format)
-	  longest_format = format - this_format_start + 2;
-
-	if (format == end)
-	  error ("Format string ends in middle of format specifier");
-	if (*format == '%')
-	  format++;
-	else if (++n >= nargs)
-	  error ("Not enough arguments for format string");
-	else if (*format == 'S')
-	  {
-	    /* For `S', prin1 the argument and then treat like a string.  */
-	    register Lisp_Object tem;
-	    tem = Fprin1_to_string (args[n], Qnil);
-	    if (STRING_MULTIBYTE (tem) && ! multibyte)
-	      {
-		multibyte = 1;
-		goto retry;
-	      }
-	    args[n] = tem;
-	    /* If we restart the loop, we should not come here again
-	       because args[n] is now a string and calling
-	       Fprin1_to_string on it produces superflous double
-	       quotes.  So, change "%S" to "%s" now.  */
-	    *format = 's';
-	    goto string;
-	  }
-	else if (SYMBOLP (args[n]))
-	  {
-	    args[n] = SYMBOL_NAME (args[n]);
-	    if (STRING_MULTIBYTE (args[n]) && ! multibyte)
-	      {
-		multibyte = 1;
-		goto retry;
-	      }
-	    goto string;
-	  }
-	else if (STRINGP (args[n]))
-	  {
-	  string:
-	    if (*format != 's' && *format != 'S')
-	      error ("Format specifier doesn't match argument type");
-	    /* In the case (PRECISION[N] > 0), THISSIZE may not need
-	       to be as large as is calculated here.  Easy check for
-	       the case PRECISION = 0. */
-	    thissize = precision[n] ? CONVERTED_BYTE_SIZE (multibyte, args[n]) : 0;
-	    /* The precision also constrains how much of the argument
-	       string will finally appear (Bug#5710). */
-	    actual_width = lisp_string_width (args[n], -1, NULL, NULL);
-	    if (precision[n] != -1)
-	      actual_width = min (actual_width, precision[n]);
-	  }
-	/* Would get MPV otherwise, since Lisp_Int's `point' to low memory.  */
-	else if (INTEGERP (args[n]) && *format != 's')
-	  {
-	    /* The following loop assumes the Lisp type indicates
-	       the proper way to pass the argument.
-	       So make sure we have a flonum if the argument should
-	       be a double.  */
-	    if (*format == 'e' || *format == 'f' || *format == 'g')
-	      args[n] = Ffloat (args[n]);
-	    else
-	      if (*format != 'd' && *format != 'o' && *format != 'x'
-		  && *format != 'i' && *format != 'X' && *format != 'c')
-		error ("Invalid format operation %%%c", *format);
-
-	    thissize = 30 + (precision[n] > 0 ? precision[n] : 0);
-	    if (*format == 'c')
-	      {
-		if (! ASCII_CHAR_P (XINT (args[n]))
-		    /* Note: No one can remember why we have to treat
-		       the character 0 as a multibyte character here.
-		       But, until it causes a real problem, let's
-		       don't change it.  */
-		    || XINT (args[n]) == 0)
-		  {
-		    if (! multibyte)
-		      {
-			multibyte = 1;
-			goto retry;
-		      }
-		    args[n] = Fchar_to_string (args[n]);
-		    thissize = SBYTES (args[n]);
-		  }
-	      }
-	  }
-	else if (FLOATP (args[n]) && *format != 's')
-	  {
-	    if (! (*format == 'e' || *format == 'f' || *format == 'g'))
-	      {
-		if (*format != 'd' && *format != 'o' && *format != 'x'
-		    && *format != 'i' && *format != 'X' && *format != 'c')
-		  error ("Invalid format operation %%%c", *format);
-		/* This fails unnecessarily if args[n] is bigger than
-		   most-positive-fixnum but smaller than MAXINT.
-		   These cases are important because we sometimes use floats
-		   to represent such integer values (typically such values
-		   come from UIDs or PIDs).  */
-		/* args[n] = Ftruncate (args[n], Qnil); */
-	      }
-
-	    /* Note that we're using sprintf to print floats,
-	       so we have to take into account what that function
-	       prints.  */
-	    /* Filter out flag value of -1.  */
-	    thissize = (MAX_10_EXP + 100
-			+ (precision[n] > 0 ? precision[n] : 0));
-	  }
-	else
-	  {
-	    /* Anything but a string, convert to a string using princ.  */
-	    register Lisp_Object tem;
-	    tem = Fprin1_to_string (args[n], Qt);
-	    if (STRING_MULTIBYTE (tem) && ! multibyte)
-	      {
-		multibyte = 1;
-		goto retry;
-	      }
-	    args[n] = tem;
-	    goto string;
-	  }
-
-	thissize += max (0, field_width - actual_width);
-	total += thissize + 4;
-      }
-
-  abort_on_gc--;
-
-  /* Now we can no longer jump to retry.
-     TOTAL and LONGEST_FORMAT are known for certain.  */
-
-  this_format = (char *) alloca (longest_format + 1);
-
-  /* Allocate the space for the result.
-     Note that TOTAL is an overestimate.  */
-  SAFE_ALLOCA (buf, char *, total);
 
   p = buf;
   nchars = 0;
   n = 0;
 
   /* Scan the format and store result in BUF.  */
-  format = SSDATA (args[0]);
-  format_start = format;
-  end = format + SBYTES (args[0]);
+  format = format_start;
+  end = format + formatlen;
   maybe_combine_byte = 0;
+
   while (format != end)
     {
+      /* The values of N and FORMAT when the loop body is entered.  */
+      EMACS_INT n0 = n;
+      char *format0 = format;
+
+      /* Bytes needed to represent the output of this conversion.  */
+      EMACS_INT convbytes;
+
       if (*format == '%')
 	{
-	  int minlen;
-	  int negative = 0;
-	  char *this_format_start = format;
+	  /* General format specifications look like
 
+	     '%' [flags] [field-width] [precision] format
+
+	     where
+
+	     flags ::= [-+0# ]+
+	     field-width ::= [0-9]+
+	     precision ::= '.' [0-9]*
+
+	     If a field-width is specified, it specifies to which width
+	     the output should be padded with blanks, if the output
+	     string is shorter than field-width.
+
+	     If precision is specified, it specifies the number of
+	     digits to print after the '.' for floats, or the max.
+	     number of chars to print from a string.  */
+
+	  int minus_flag = 0;
+	  int  plus_flag = 0;
+	  int space_flag = 0;
+	  int sharp_flag = 0;
+	  int  zero_flag = 0;
+	  EMACS_INT field_width;
+	  int precision_given;
+	  uintmax_t precision = UINTMAX_MAX;
+	  char *num_end;
+	  char conversion;
+
+	  while (1)
+	    {
+	      switch (*++format)
+		{
+		case '-': minus_flag = 1; continue;
+		case '+':  plus_flag = 1; continue;
+		case ' ': space_flag = 1; continue;
+		case '#': sharp_flag = 1; continue;
+		case '0':  zero_flag = 1; continue;
+		}
+	      break;
+	    }
+
+	  /* Ignore flags when sprintf ignores them.  */
+	  space_flag &= ~ plus_flag;
+	  zero_flag &= ~ minus_flag;
+
+	  {
+	    uintmax_t w = strtoumax (format, &num_end, 10);
+	    if (max_bufsize <= w)
+	      string_overflow ();
+	    field_width = w;
+	  }
+	  precision_given = *num_end == '.';
+	  if (precision_given)
+	    precision = strtoumax (num_end + 1, &num_end, 10);
+	  format = num_end;
+
+	  if (format == end)
+	    error ("Format string ends in middle of format specifier");
+
+	  memset (&discarded[format0 - format_start], 1, format - format0);
+	  conversion = *format;
+	  if (conversion == '%')
+	    goto copy_char;
 	  discarded[format - format_start] = 1;
 	  format++;
 
-	  while (strchr ("-+0# ", *format))
-	    {
-	      if (*format == '-')
-		{
-		  negative = 1;
-		}
-	      discarded[format - format_start] = 1;
-	      ++format;
-	    }
-
-	  minlen = atoi (format);
-
-	  while ((*format >= '0' && *format <= '9') || *format == '.')
-	    {
-	      discarded[format - format_start] = 1;
-	      format++;
-	    }
-
-	  if (*format++ == '%')
-	    {
-	      *p++ = '%';
-	      nchars++;
-	      continue;
-	    }
-
 	  ++n;
+	  if (! (n < nargs))
+	    error ("Not enough arguments for format string");
 
-	  discarded[format - format_start - 1] = 1;
-	  info[n].start = nchars;
+	  /* For 'S', prin1 the argument, and then treat like 's'.
+	     For 's', princ any argument that is not a string or
+	     symbol.  But don't do this conversion twice, which might
+	     happen after retrying.  */
+	  if ((conversion == 'S'
+	       || (conversion == 's'
+		   && ! STRINGP (args[n]) && ! SYMBOLP (args[n]))))
+	    {
+	      if (! info[n].converted_to_string)
+		{
+		  Lisp_Object noescape = conversion == 'S' ? Qnil : Qt;
+		  args[n] = Fprin1_to_string (args[n], noescape);
+		  info[n].converted_to_string = 1;
+		  if (STRING_MULTIBYTE (args[n]) && ! multibyte)
+		    {
+		      multibyte = 1;
+		      goto retry;
+		    }
+		}
+	      conversion = 's';
+	    }
+	  else if (conversion == 'c')
+	    {
+	      if (FLOATP (args[n]))
+		{
+		  double d = XFLOAT_DATA (args[n]);
+		  args[n] = make_number (FIXNUM_OVERFLOW_P (d) ? -1 : d);
+		}
 
-	  if (STRINGP (args[n]))
+	      if (INTEGERP (args[n]) && ! ASCII_CHAR_P (XINT (args[n])))
+		{
+		  if (!multibyte)
+		    {
+		      multibyte = 1;
+		      goto retry;
+		    }
+		  args[n] = Fchar_to_string (args[n]);
+		  info[n].converted_to_string = 1;
+		}
+
+	      if (info[n].converted_to_string)
+		conversion = 's';
+	      zero_flag = 0;
+	    }
+
+	  if (SYMBOLP (args[n]))
+	    {
+	      args[n] = SYMBOL_NAME (args[n]);
+	      if (STRING_MULTIBYTE (args[n]) && ! multibyte)
+		{
+		  multibyte = 1;
+		  goto retry;
+		}
+	    }
+
+	  if (conversion == 's')
 	    {
 	      /* handle case (precision[n] >= 0) */
 
-	      int width, padding;
-	      EMACS_INT nbytes, start;
+	      EMACS_INT width, padding, nbytes;
 	      EMACS_INT nchars_string;
+
+	      EMACS_INT prec = -1;
+	      if (precision_given && precision <= TYPE_MAXIMUM (EMACS_INT))
+		prec = precision;
 
 	      /* lisp_string_width ignores a precision of 0, but GNU
 		 libc functions print 0 characters when the precision
@@ -3924,145 +3824,390 @@ usage: (format STRING &rest OBJECTS)  */)
 		 lisp_string_width is the right thing, and will be
 		 done, but meanwhile we work with it. */
 
-	      if (precision[n] == 0)
+	      if (prec == 0)
 		width = nchars_string = nbytes = 0;
-	      else if (precision[n] > 0)
-		width = lisp_string_width (args[n], precision[n],
-					   &nchars_string, &nbytes);
-	      else
-		{		/* no precision spec given for this argument */
-		  width = lisp_string_width (args[n], -1, NULL, NULL);
-		  nbytes = SBYTES (args[n]);
-		  nchars_string = SCHARS (args[n]);
-		}
-
-	      /* If spec requires it, pad on right with spaces.  */
-	      padding = minlen - width;
-	      if (! negative)
-		while (padding-- > 0)
-		  {
-		    *p++ = ' ';
-		    ++nchars;
-		  }
-
-	      info[n].start = start = nchars;
-	      nchars += nchars_string;
-
-	      if (p > buf
-		  && multibyte
-		  && !ASCII_BYTE_P (*((unsigned char *) p - 1))
-		  && STRING_MULTIBYTE (args[n])
-		  && !CHAR_HEAD_P (SREF (args[n], 0)))
-		maybe_combine_byte = 1;
-
-	      p += copy_text (SDATA (args[n]), (unsigned char *) p,
-			      nbytes,
-			      STRING_MULTIBYTE (args[n]), multibyte);
-
-	      info[n].end = nchars;
-
-	      if (negative)
-		while (padding-- > 0)
-		  {
-		    *p++ = ' ';
-		    nchars++;
-		  }
-
-	      /* If this argument has text properties, record where
-		 in the result string it appears.  */
-	      if (STRING_INTERVALS (args[n]))
-		info[n].intervals = arg_intervals = 1;
-	    }
-	  else if (INTEGERP (args[n]) || FLOATP (args[n]))
-	    {
-	      int this_nchars;
-
-	      memcpy (this_format, this_format_start,
-		      format - this_format_start);
-	      this_format[format - this_format_start] = 0;
-
-	      if (format[-1] == 'e' || format[-1] == 'f' || format[-1] == 'g')
-		sprintf (p, this_format, XFLOAT_DATA (args[n]));
 	      else
 		{
-		  if (sizeof (EMACS_INT) > sizeof (int)
-		      && format[-1] != 'c')
+		  EMACS_INT nch, nby;
+		  width = lisp_string_width (args[n], prec, &nch, &nby);
+		  if (prec < 0)
 		    {
-		      /* Insert 'l' before format spec.  */
-		      this_format[format - this_format_start]
-			= this_format[format - this_format_start - 1];
-		      this_format[format - this_format_start - 1] = 'l';
-		      this_format[format - this_format_start + 1] = 0;
+		      nchars_string = SCHARS (args[n]);
+		      nbytes = SBYTES (args[n]);
 		    }
-
-		  if (INTEGERP (args[n]))
-		    {
-		      if (format[-1] == 'c')
-			sprintf (p, this_format, (int) XINT (args[n]));
-		      else if (format[-1] == 'd')
-			sprintf (p, this_format, XINT (args[n]));
-		      /* Don't sign-extend for octal or hex printing.  */
-		      else
-			sprintf (p, this_format, XUINT (args[n]));
-		    }
-		  else if (format[-1] == 'c')
-		    sprintf (p, this_format, (int) XFLOAT_DATA (args[n]));
-		  else if (format[-1] == 'd')
-		    /* Maybe we should use "%1.0f" instead so it also works
-		       for values larger than MAXINT.  */
-		    sprintf (p, this_format, (EMACS_INT) XFLOAT_DATA (args[n]));
 		  else
-		    /* Don't sign-extend for octal or hex printing.  */
-		    sprintf (p, this_format, (EMACS_UINT) XFLOAT_DATA (args[n]));
+		    {
+		      nchars_string = nch;
+		      nbytes = nby;
+		    }
 		}
 
-	      if (p > buf
-		  && multibyte
-		  && !ASCII_BYTE_P (*((unsigned char *) p - 1))
-		  && !CHAR_HEAD_P (*((unsigned char *) p)))
-		maybe_combine_byte = 1;
-	      this_nchars = strlen (p);
-	      if (multibyte)
-		p += str_to_multibyte ((unsigned char *) p,
-				       buf + total - 1 - p, this_nchars);
-	      else
-		p += this_nchars;
-	      nchars += this_nchars;
-	      info[n].end = nchars;
-	    }
+	      convbytes = nbytes;
+	      if (convbytes && multibyte && ! STRING_MULTIBYTE (args[n]))
+		convbytes = count_size_as_multibyte (SDATA (args[n]), nbytes);
 
-	}
-      else if (STRING_MULTIBYTE (args[0]))
-	{
-	  /* Copy a whole multibyte character.  */
-	  if (p > buf
-	      && multibyte
-	      && !ASCII_BYTE_P (*((unsigned char *) p - 1))
-	      && !CHAR_HEAD_P (*format))
-	    maybe_combine_byte = 1;
-	  *p++ = *format++;
-	  while (! CHAR_HEAD_P (*format))
+	      padding = width < field_width ? field_width - width : 0;
+
+	      if (max_bufsize - padding <= convbytes)
+		string_overflow ();
+	      convbytes += padding;
+	      if (convbytes <= buf + bufsize - p)
+		{
+		  if (! minus_flag)
+		    {
+		      memset (p, ' ', padding);
+		      p += padding;
+		      nchars += padding;
+		    }
+
+		  if (p > buf
+		      && multibyte
+		      && !ASCII_BYTE_P (*((unsigned char *) p - 1))
+		      && STRING_MULTIBYTE (args[n])
+		      && !CHAR_HEAD_P (SREF (args[n], 0)))
+		    maybe_combine_byte = 1;
+
+		  p += copy_text (SDATA (args[n]), (unsigned char *) p,
+				  nbytes,
+				  STRING_MULTIBYTE (args[n]), multibyte);
+
+                  info[n].start = nchars;
+		  nchars += nchars_string;
+		  info[n].end = nchars;
+
+		  if (minus_flag)
+		    {
+		      memset (p, ' ', padding);
+		      p += padding;
+		      nchars += padding;
+		    }
+
+		  /* If this argument has text properties, record where
+		     in the result string it appears.  */
+		  if (STRING_INTERVALS (args[n]))
+		    info[n].intervals = arg_intervals = 1;
+
+		  continue;
+		}
+	    }
+	  else if (! (conversion == 'c' || conversion == 'd'
+		      || conversion == 'e' || conversion == 'f'
+		      || conversion == 'g' || conversion == 'i'
+		      || conversion == 'o' || conversion == 'x'
+		      || conversion == 'X'))
+	    error ("Invalid format operation %%%c",
+		   STRING_CHAR ((unsigned char *) format - 1));
+	  else if (! (INTEGERP (args[n]) || FLOATP (args[n])))
+	    error ("Format specifier doesn't match argument type");
+	  else
 	    {
-	      discarded[format - format_start] = 2;
-	      *p++ = *format++;
-	    }
-	  nchars++;
-	}
-      else if (multibyte)
-	{
-	  /* Convert a single-byte character to multibyte.  */
-	  int len = copy_text ((unsigned char *) format, (unsigned char *) p,
-			       1, 0, 1);
+	      enum
+	      {
+		/* Maximum precision for a %f conversion such that the
+		   trailing output digit might be nonzero.  Any precisions
+		   larger than this will not yield useful information.  */
+		USEFUL_PRECISION_MAX =
+		  ((1 - DBL_MIN_EXP)
+		   * (FLT_RADIX == 2 || FLT_RADIX == 10 ? 1
+		      : FLT_RADIX == 16 ? 4
+		      : -1)),
 
-	  p += len;
-	  format++;
-	  nchars++;
+		/* Maximum number of bytes generated by any format, if
+		   precision is no more than DBL_USEFUL_PRECISION_MAX.
+		   On all practical hosts, %f is the worst case.  */
+		SPRINTF_BUFSIZE =
+		  sizeof "-." + (DBL_MAX_10_EXP + 1) + USEFUL_PRECISION_MAX
+	      };
+	      verify (0 < USEFUL_PRECISION_MAX);
+
+	      int prec;
+	      EMACS_INT padding, sprintf_bytes;
+	      uintmax_t excess_precision, numwidth;
+	      uintmax_t leading_zeros = 0, trailing_zeros = 0;
+
+	      char sprintf_buf[SPRINTF_BUFSIZE];
+
+	      /* Copy of conversion specification, modified somewhat.
+		 At most three flags F can be specified at once.  */
+	      char convspec[sizeof "%FFF.*d" + pWIDElen];
+
+	      /* Avoid undefined behavior in underlying sprintf.  */
+	      if (conversion == 'd' || conversion == 'i')
+		sharp_flag = 0;
+
+	      /* Create the copy of the conversion specification, with
+		 any width and precision removed, with ".*" inserted,
+		 and with pWIDE inserted for integer formats.  */
+	      {
+		char *f = convspec;
+		*f++ = '%';
+		*f = '-'; f += minus_flag;
+		*f = '+'; f +=  plus_flag;
+		*f = ' '; f += space_flag;
+		*f = '#'; f += sharp_flag;
+		*f = '0'; f +=  zero_flag;
+                *f++ = '.';
+                *f++ = '*';
+		if (conversion == 'd' || conversion == 'i'
+		    || conversion == 'o' || conversion == 'x'
+		    || conversion == 'X')
+		  {
+		    memcpy (f, pWIDE, pWIDElen);
+		    f += pWIDElen;
+		    zero_flag &= ~ precision_given;
+		  }
+		*f++ = conversion;
+		*f = '\0';
+	      }
+
+	      prec = -1;
+	      if (precision_given)
+		prec = min (precision, USEFUL_PRECISION_MAX);
+
+	      /* Use sprintf to format this number into sprintf_buf.  Omit
+		 padding and excess precision, though, because sprintf limits
+		 output length to INT_MAX.
+
+		 There are four types of conversion: double, unsigned
+		 char (passed as int), wide signed int, and wide
+		 unsigned int.  Treat them separately because the
+		 sprintf ABI is sensitive to which type is passed.  Be
+		 careful about integer overflow, NaNs, infinities, and
+		 conversions; for example, the min and max macros are
+		 not suitable here.  */
+	      if (conversion == 'e' || conversion == 'f' || conversion == 'g')
+		{
+		  double x = (INTEGERP (args[n])
+			      ? XINT (args[n])
+			      : XFLOAT_DATA (args[n]));
+		  sprintf_bytes = sprintf (sprintf_buf, convspec, prec, x);
+		}
+	      else if (conversion == 'c')
+		{
+		  /* Don't use sprintf here, as it might mishandle prec.  */
+		  sprintf_buf[0] = XINT (args[n]);
+		  sprintf_bytes = prec != 0;
+		}
+	      else if (conversion == 'd')
+		{
+		  /* For float, maybe we should use "%1.0f"
+		     instead so it also works for values outside
+		     the integer range.  */
+		  signed_wide x;
+		  if (INTEGERP (args[n]))
+		    x = XINT (args[n]);
+		  else
+		    {
+		      double d = XFLOAT_DATA (args[n]);
+		      if (d < 0)
+			{
+			  x = TYPE_MINIMUM (signed_wide);
+			  if (x < d)
+			    x = d;
+			}
+		      else
+			{
+			  x = TYPE_MAXIMUM (signed_wide);
+			  if (d < x)
+			    x = d;
+			}
+		    }
+		  sprintf_bytes = sprintf (sprintf_buf, convspec, prec, x);
+		}
+	      else
+		{
+		  /* Don't sign-extend for octal or hex printing.  */
+		  unsigned_wide x;
+		  if (INTEGERP (args[n]))
+		    x = XUINT (args[n]);
+		  else
+		    {
+		      double d = XFLOAT_DATA (args[n]);
+		      if (d < 0)
+			x = 0;
+		      else
+			{
+			  x = TYPE_MAXIMUM (unsigned_wide);
+			  if (d < x)
+			    x = d;
+			}
+		    }
+		  sprintf_bytes = sprintf (sprintf_buf, convspec, prec, x);
+		}
+
+	      /* Now the length of the formatted item is known, except it omits
+		 padding and excess precision.  Deal with excess precision
+		 first.  This happens only when the format specifies
+		 ridiculously large precision.  */
+	      excess_precision = precision - prec;
+	      if (excess_precision)
+		{
+		  if (conversion == 'e' || conversion == 'f'
+		      || conversion == 'g')
+		    {
+		      if ((conversion == 'g' && ! sharp_flag)
+			  || ! ('0' <= sprintf_buf[sprintf_bytes - 1]
+				&& sprintf_buf[sprintf_bytes - 1] <= '9'))
+			excess_precision = 0;
+		      else
+			{
+			  if (conversion == 'g')
+			    {
+			      char *dot = strchr (sprintf_buf, '.');
+			      if (!dot)
+				excess_precision = 0;
+			    }
+			}
+		      trailing_zeros = excess_precision;
+		    }
+		  else
+		    leading_zeros = excess_precision;
+		}
+
+	      /* Compute the total bytes needed for this item, including
+		 excess precision and padding.  */
+	      numwidth = sprintf_bytes + excess_precision;
+	      padding = numwidth < field_width ? field_width - numwidth : 0;
+	      if (max_bufsize - sprintf_bytes <= excess_precision
+		  || max_bufsize - padding <= numwidth)
+		string_overflow ();
+	      convbytes = numwidth + padding;
+
+	      if (convbytes <= buf + bufsize - p)
+		{
+		  /* Copy the formatted item from sprintf_buf into buf,
+		     inserting padding and excess-precision zeros.  */
+
+                  char *src = sprintf_buf;
+		  char src0 = src[0];
+		  int exponent_bytes = 0;
+		  int signedp = src0 == '-' || src0 == '+' || src0 == ' ';
+		  int significand_bytes;
+		  if (zero_flag && '0' <= src[signedp] && src[signedp] <= '9')
+		    {
+		      leading_zeros += padding;
+		      padding = 0;
+		    }
+
+		  if (excess_precision
+		      && (conversion == 'e' || conversion == 'g'))
+		    {
+		      char *e = strchr (src, 'e');
+		      if (e)
+			exponent_bytes = src + sprintf_bytes - e;
+		    }
+
+		  if (! minus_flag)
+		    {
+		      memset (p, ' ', padding);
+		      p += padding;
+		      nchars += padding;
+		    }
+
+		  *p = src0;
+		  src += signedp;
+		  p += signedp;
+		  memset (p, '0', leading_zeros);
+		  p += leading_zeros;
+		  significand_bytes = sprintf_bytes - signedp - exponent_bytes;
+		  memcpy (p, src, significand_bytes);
+                  p += significand_bytes;
+		  src += significand_bytes;
+		  memset (p, '0', trailing_zeros);
+		  p += trailing_zeros;
+		  memcpy (p, src, exponent_bytes);
+		  p += exponent_bytes;
+
+                  info[n].start = nchars;
+		  nchars += leading_zeros + sprintf_bytes + trailing_zeros;
+		  info[n].end = nchars;
+
+		  if (minus_flag)
+		    {
+		      memset (p, ' ', padding);
+		      p += padding;
+		      nchars += padding;
+		    }
+
+		  continue;
+		}
+	    }
 	}
       else
-	*p++ = *format++, nchars++;
+      copy_char:
+	{
+	  /* Copy a single character from format to buf.  */
+
+	  char *src = format;
+	  unsigned char str[MAX_MULTIBYTE_LENGTH];
+
+	  if (multibyte_format)
+	    {
+	      /* Copy a whole multibyte character.  */
+	      if (p > buf
+		  && !ASCII_BYTE_P (*((unsigned char *) p - 1))
+		  && !CHAR_HEAD_P (*format))
+		maybe_combine_byte = 1;
+
+	      do
+		format++;
+	      while (! CHAR_HEAD_P (*format));
+
+	      convbytes = format - format0;
+	      memset (&discarded[format0 + 1 - format_start], 2, convbytes - 1);
+	    }
+	  else
+	    {
+	      unsigned char uc = *format++;
+	      if (! multibyte || ASCII_BYTE_P (uc))
+		convbytes = 1;
+	      else
+		{
+		  int c = BYTE8_TO_CHAR (uc);
+		  convbytes = CHAR_STRING (c, str);
+		  src = (char *) str;
+		}
+	    }
+
+	  if (convbytes <= buf + bufsize - p)
+	    {
+	      memcpy (p, src, convbytes);
+	      p += convbytes;
+	      nchars++;
+	      continue;
+	    }
+	}
+
+      /* There wasn't enough room to store this conversion or single
+	 character.  CONVBYTES says how much room is needed.  Allocate
+	 enough room (and then some) and do it again.  */
+      {
+	EMACS_INT used = p - buf;
+
+	if (max_bufsize - used < convbytes)
+	  string_overflow ();
+	bufsize = used + convbytes;
+	bufsize = bufsize < max_bufsize / 2 ? bufsize * 2 : max_bufsize;
+
+	if (buf == initial_buffer)
+	  {
+	    buf = xmalloc (bufsize);
+	    sa_must_free = 1;
+	    buf_save_value = make_save_value (buf, 0);
+	    record_unwind_protect (safe_alloca_unwind, buf_save_value);
+	    memcpy (buf, initial_buffer, used);
+	  }
+	else
+	  XSAVE_VALUE (buf_save_value)->pointer = buf = xrealloc (buf, bufsize);
+
+	p = buf + used;
+      }
+
+      format = format0;
+      n = n0;
     }
 
-  if (p > buf + total)
+  if (bufsize < p - buf)
     abort ();
 
   if (maybe_combine_byte)
@@ -4089,7 +4234,7 @@ usage: (format STRING &rest OBJECTS)  */)
       if (CONSP (props))
 	{
 	  EMACS_INT bytepos = 0, position = 0, translated = 0;
-	  int argn = 1;
+	  EMACS_INT argn = 1;
 	  Lisp_Object list;
 
 	  /* Adjust the bounds of each text property
@@ -4353,8 +4498,9 @@ Transposing beyond buffer boundaries is an error.  */)
 
   if (start2 < end1)
     error ("Transposed regions overlap");
-  else if (start1 == end1 || start2 == end2)
-    error ("Transposed region has length 0");
+  /* Nothing to change for adjacent regions with one being empty */
+  else if ((start1 == end1 || start2 == end2) && end1 == start2)
+    return Qnil;
 
   /* The possibilities are:
      1. Adjacent (contiguous) regions, or separate but equal regions

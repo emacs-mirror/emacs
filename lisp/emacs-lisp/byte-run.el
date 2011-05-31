@@ -72,7 +72,7 @@ The return value of this function is not used."
 ;;   "Cause the named functions to be open-coded when called from compiled code.
 ;; They will only be compiled open-coded when byte-compile-optimize is true."
 ;;   (cons 'eval-and-compile
-;; 	(mapcar '(lambda (x)
+;; 	(mapcar (lambda (x)
 ;; 		   (or (memq (get x 'byte-optimizer)
 ;; 			     '(nil byte-compile-inline-expand))
 ;; 		       (error
@@ -85,7 +85,7 @@ The return value of this function is not used."
 ;; (defmacro proclaim-notinline (&rest fns)
 ;;   "Cause the named functions to no longer be open-coded."
 ;;   (cons 'eval-and-compile
-;; 	(mapcar '(lambda (x)
+;; 	(mapcar (lambda (x)
 ;; 		   (if (eq (get x 'byte-optimizer) 'byte-compile-inline-expand)
 ;; 		       (put x 'byte-optimizer nil))
 ;; 		   (list 'if (list 'eq (list 'get (list 'quote x) ''byte-optimizer)

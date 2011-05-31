@@ -415,17 +415,14 @@
 
 
 (defmacro math-defsimplify (funcs &rest code)
-  (append '(progn)
-          (mapcar (function
-                   (lambda (func)
-                     (list 'put (list 'quote func) ''math-simplify
-                           (list 'nconc
-                                 (list 'get (list 'quote func) ''math-simplify)
-                                 (list 'list
-                                       (list 'function
-                                             (append '(lambda (math-simplify-expr))
-                                                     code)))))))
-                  (if (symbolp funcs) (list funcs) funcs))))
+  (cons 'progn
+        (mapcar #'(lambda (func)
+                    `(put ',func 'math-simplify
+                          (nconc
+                           (get ',func 'math-simplify)
+                           (list
+                            #'(lambda (math-simplify-expr) ,@code)))))
+                (if (symbolp funcs) (list funcs) funcs))))
 (put 'math-defsimplify 'lisp-indent-hook 1)
 
 ;; The function created by math-defsimplify uses the variable

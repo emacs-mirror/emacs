@@ -364,17 +364,6 @@ case "${srcdir}" in
   *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
 esac
 
-#### Check if the source directory already has a configured system in it.
-if test `pwd` != `(cd ${srcdir} && pwd)` \
-   && test -f "${srcdir}/src/config.h" ; then
-  AC_MSG_WARN([[The directory tree `${srcdir}' is being used
-   as a build directory right now; it has been configured in its own
-   right.  To configure in another directory as well, you MUST
-   use GNU make.  If you do not have GNU make, then you must
-   now do `make distclean' in ${srcdir},
-   and then run $0 again.]])
-fi
-
 #### Given the configuration name, set machfile and opsysfile to the
 #### names of the m/*.h and s/*.h files we should use.
 
@@ -1297,9 +1286,6 @@ dnl and void *.
 AC_C_PROTOTYPES
 AC_C_VOLATILE
 AC_C_CONST
-dnl This isn't useful because we can't turn on use of `inline' unless
-dnl the compiler groks `extern inline'.
-dnl AC_C_INLINE
 AC_CACHE_CHECK([for void * support], emacs_cv_void_star,
   [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [[void * foo;]])],
                    emacs_cv_void_star=yes, emacs_cv_void_star=no)])
@@ -3460,16 +3446,6 @@ AH_BOTTOM([
 /* Turned on June 1996 supposing nobody will mind it.  */
 #define AMPERSAND_FULL_NAME
 
-/* If using GNU, then support inline function declarations.  */
-/* Don't try to switch on inline handling as detected by AC_C_INLINE
-   generally, because even if non-gcc compilers accept `inline', they
-   may reject `extern inline'.  */
-#if defined (__GNUC__)
-#define INLINE __inline__
-#else
-#define INLINE
-#endif
-
 /* `subprocesses' should be defined if you want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
@@ -3712,10 +3688,34 @@ fi
 test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`]
 
+dnl Obviously there is duplication here wrt $SUBDIR_MAKEFILES.
+dnl You _can_ use that variable in AC_CONFIG_FILES, so long as any directory
+dnl using automake (ie lib/) is explicitly listed and not "hidden" in a variable
+dnl (else you get "no `Makefile.am' found for any configure output").
+dnl This will work, but you get a config.status that is not quite right
+dnl (see http://lists.gnu.org/archive/html/bug-autoconf/2008-08/msg00028.html).
+dnl That doesn't have any obvious consequences for Emacs, but on the whole
+dnl it seems better to just live with the duplication.
+SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile"
+
 AC_CONFIG_FILES([Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile \
-	doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile \
-	doc/lispref/Makefile src/Makefile \
-	lwlib/Makefile lisp/Makefile leim/Makefile test/automated/Makefile])
+       doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile \
+       doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile \
+       leim/Makefile])
+
+dnl test/ is not present in release tarfiles.
+opt_makefile=test/automated/Makefile
+
+if test -f $srcdir/${opt_makefile}.in; then
+  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
+  dnl Again, it's best not to use a variable.  Though you can add
+  dnl ", [], [opt_makefile='$opt_makefile']" and it should work.
+  AC_CONFIG_FILES([test/automated/Makefile])
+fi
+
+SUBDIR_MAKEFILES_IN=`echo " ${SUBDIR_MAKEFILES}" | sed -e 's| | $(srcdir)/|g' -e 's|Makefile|Makefile.in|g'`
+
+AC_SUBST(SUBDIR_MAKEFILES_IN)
 
 dnl Make the necessary directories, if they don't exist.
 AC_CONFIG_COMMANDS([mkdirs], [

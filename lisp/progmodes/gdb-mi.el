@@ -2539,7 +2539,7 @@ If not in a source or disassembly buffer just set point."
     ;; Don't bind "q" to kill-this-buffer as we need it for breakpoint icons.
     (define-key map "q" 'gdb-delete-frame-or-window)
     (define-key map "\r" 'gdb-goto-breakpoint)
-    (define-key map "\t" '(lambda ()
+    (define-key map "\t" (lambda ()
                             (interactive)
                             (gdb-set-window-buffer
                              (gdb-get-buffer-create 'gdb-threads-buffer) t)))
@@ -2626,7 +2626,7 @@ corresponding to the mode line clicked."
     (define-key map "i" 'gdb-interrupt-thread)
     (define-key map "c" 'gdb-continue-thread)
     (define-key map "s" 'gdb-step-thread)
-    (define-key map "\t" '(lambda ()
+    (define-key map "\t" (lambda ()
                             (interactive)
                             (gdb-set-window-buffer
                              (gdb-get-buffer-create 'gdb-breakpoints-buffer) t)))
@@ -3582,7 +3582,7 @@ member."
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
     (define-key map "q" 'kill-this-buffer)
-    (define-key map "\t" '(lambda ()
+    (define-key map "\t" (lambda ()
                             (interactive)
                             (gdb-set-window-buffer
                              (gdb-get-buffer-create
@@ -3670,7 +3670,7 @@ member."
     (define-key map "\r" 'gdb-edit-register-value)
     (define-key map [mouse-2] 'gdb-edit-register-value)
     (define-key map "q" 'kill-this-buffer)
-    (define-key map "\t" '(lambda ()
+    (define-key map "\t" (lambda ()
                             (interactive)
                             (gdb-set-window-buffer
                              (gdb-get-buffer-create

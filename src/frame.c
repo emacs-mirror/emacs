@@ -1248,7 +1248,14 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       = Fcons (list3 (Qrun_hook_with_args, Qdelete_frame_functions, frame),
 	       pending_funcalls);
   else
-    safe_call2 (Qrun_hook_with_args, Qdelete_frame_functions, frame);
+    {
+#ifdef HAVE_X_WINDOWS
+      /* Also, save clipboard to the the clipboard manager.  */
+      x_clipboard_manager_save_frame (frame);
+#endif
+
+      safe_call2 (Qrun_hook_with_args, Qdelete_frame_functions, frame);
+    }
 
   /* The hook may sometimes (indirectly) cause the frame to be deleted.  */
   if (! FRAME_LIVE_P (f))

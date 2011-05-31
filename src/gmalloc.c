@@ -552,12 +552,8 @@ get_contiguous_space (size, position)
 /* This is called when `_heapinfo' and `heapsize' have just
    been set to describe a new info table.  Set up the table
    to describe itself and account for it in the statistics.  */
-static void register_heapinfo PP ((void));
-#ifdef __GNUC__
-__inline__
-#endif
-static void
-register_heapinfo ()
+static inline void
+register_heapinfo (void)
 {
   __malloc_size_t block, blocks;
 
@@ -2170,4 +2166,3 @@ mprobe (__ptr_t ptr)
 }
 
 #endif /* GC_MCHECK */
-

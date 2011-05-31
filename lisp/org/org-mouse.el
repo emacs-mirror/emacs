@@ -526,7 +526,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ("Check Tags"
       ,@(org-mouse-keyword-menu
 	 (sort (mapcar 'car (org-get-buffer-tags)) 'string-lessp)
-	 '(lambda (tag) (org-tags-sparse-tree nil tag)))
+	 (lambda (tag) (org-tags-sparse-tree nil tag)))
       "--"
       ["Custom Tag ..." org-tags-sparse-tree t])
      ["Check Phrase ..." org-occur]
@@ -537,18 +537,18 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ("Display Tags"
       ,@(org-mouse-keyword-menu
 	 (sort (mapcar 'car (org-get-buffer-tags)) 'string-lessp)
-	 '(lambda (tag) (org-tags-view nil tag)))
+	 (lambda (tag) (org-tags-view nil tag)))
       "--"
       ["Custom Tag ..." org-tags-view t])
      ["Display Calendar" org-goto-calendar t]
      "--"
      ,@(org-mouse-keyword-menu
 	(mapcar 'car org-agenda-custom-commands)
-	'(lambda (key)
+	(lambda (key)
 	   (eval `(flet ((read-char-exclusive () (string-to-char ,key)))
 		      (org-agenda nil))))
 	nil
-	'(lambda (key)
+	(lambda (key)
 	   (let ((entry (assoc key org-agenda-custom-commands)))
 	     (org-mouse-clip-text
 	      (cond
@@ -832,7 +832,7 @@ This means, between the beginning of line and the point."
 	 ("Tags and Priorities"
 	  ,@(org-mouse-keyword-menu
 	     (org-mouse-priority-list)
-	     '(lambda (keyword)
+	     (lambda (keyword)
 		(org-mouse-set-priority (string-to-char keyword)))
 	     priority "Priority %s")
 	  "--"
@@ -905,7 +905,7 @@ This means, between the beginning of line and the point."
     (mouse-drag-region event)))
 
 (add-hook 'org-mode-hook
-  '(lambda ()
+  (lambda ()
      (setq org-mouse-context-menu-function 'org-mouse-context-menu)
 
      (when (memq 'context-menu org-mouse-features)
@@ -1129,14 +1129,14 @@ This means, between the beginning of line and the point."
 
 ; (setq org-agenda-mode-hook nil)
 (add-hook 'org-agenda-mode-hook
-   '(lambda ()
+   (lambda ()
      (setq org-mouse-context-menu-function 'org-mouse-agenda-context-menu)
      (org-defkey org-agenda-mode-map [mouse-3] 'org-mouse-show-context-menu)
      (org-defkey org-agenda-mode-map [down-mouse-3] 'org-mouse-move-tree-start)
      (org-defkey org-agenda-mode-map [C-mouse-4] 'org-agenda-earlier)
      (org-defkey org-agenda-mode-map [C-mouse-5] 'org-agenda-later)
      (org-defkey org-agenda-mode-map [drag-mouse-3]
-       '(lambda (event) (interactive "e")
+       (lambda (event) (interactive "e")
 	  (case (org-mouse-get-gesture event)
 	    (:left (org-agenda-earlier 1))
 	    (:right (org-agenda-later 1)))))))

@@ -44,7 +44,7 @@ If SILENT is non-nil then the created BBDB record is not displayed."
   ;; This function runs in a special context where lisp symbols corresponding
   ;; to field names in record are bound to the corresponding values
   (eval
-   `(let* (,@(mapcar '(lambda (c)
+   `(let* (,@(mapcar (lambda (c)
 			(list (car c) (if (listp (cdr c))
 					  (list 'quote (cdr c))
 					(cdr c))))
@@ -108,7 +108,7 @@ If RECURSE is non-nil then SPEC may be a list of atomic specs."
       (void-variable nil)))
    ((and recurse
 	 (listp spec))
-    (mapcar '(lambda (spec-elem)
+    (mapcar (lambda (spec-elem)
 	       (eudc-parse-spec spec-elem record nil))
 	    spec))
    (t

@@ -35,17 +35,13 @@
   :group 'url)
 
 ;; A cookie is stored internally as a vector of 7 slots
-;; [ cookie NAME VALUE EXPIRES LOCALPART DOMAIN SECURE ]
+;; [ url-cookie NAME VALUE EXPIRES LOCALPART DOMAIN SECURE ]
 
 (defstruct (url-cookie
             (:constructor url-cookie-create)
             (:copier nil)
-            ;; For compatibility with a previous version which did not use
-            ;; defstruct, and also in order to make sure that the printed
-            ;; representation does not depend on CL internals, we use an
-            ;; explicitly managed tag.
-            (:type vector))
-  (tag 'cookie :read-only t)
+            (:type vector)
+            :named)
   name value expires localpart domain secure)
 
 (defvar url-cookie-storage nil         "Where cookies are stored.")
@@ -76,8 +72,6 @@ telling Microsoft that."
   "Load FNAME, default `url-cookie-file'."
   ;; It's completely normal for the cookies file not to exist yet.
   (load (or fname url-cookie-file) t t))
-
-(declare-function url-cookie-p "url-cookie" t t) ; defstruct
 
 (defun url-cookie-clean-up (&optional secure)
   (let ((var (if secure 'url-cookie-secure-storage 'url-cookie-storage))

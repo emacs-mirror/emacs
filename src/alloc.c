@@ -22,10 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>		/* For CHAR_BIT.  */
 #include <setjmp.h>
 
-#ifdef ALLOC_DEBUG
-#undef INLINE
-#endif
-
 #include <signal.h>
 
 #ifdef HAVE_GTK_AND_PTHREAD
@@ -408,7 +404,7 @@ static void mem_rotate_left (struct mem_node *);
 static void mem_rotate_right (struct mem_node *);
 static void mem_delete (struct mem_node *);
 static void mem_delete_fixup (struct mem_node *);
-static INLINE struct mem_node *mem_find (void *);
+static inline struct mem_node *mem_find (void *);
 
 
 #if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
@@ -993,13 +989,11 @@ lisp_align_malloc (size_t nbytes, enum mem_type type)
   free_ablock = free_ablock->x.next_free;
 
 #if GC_MARK_STACK && !defined GC_MALLOC_CHECK
-  if (val && type != MEM_TYPE_NON_LISP)
+  if (type != MEM_TYPE_NON_LISP)
     mem_insert (val, (char *) val + nbytes, type);
 #endif
 
   MALLOC_UNBLOCK_INPUT;
-  if (!val && nbytes)
-    memory_full ();
 
   eassert (0 == ((uintptr_t) val) % BLOCK_ALIGN);
   return val;
@@ -3244,7 +3238,7 @@ make_event_array (register int nargs, Lisp_Object *args)
        are characters that are in 0...127,
        after discarding the meta bit and all the bits above it.  */
     if (!INTEGERP (args[i])
-	|| (XUINT (args[i]) & ~(-CHAR_META)) >= 0200)
+	|| (XINT (args[i]) & ~(-CHAR_META)) >= 0200)
       return Fvector (nargs, args);
 
   /* Since the loop exited, we know that all the things in it are
@@ -3376,7 +3370,7 @@ mem_init (void)
 /* Value is a pointer to the mem_node containing START.  Value is
    MEM_NIL if there is no node in the tree containing START.  */
 
-static INLINE struct mem_node *
+static inline struct mem_node *
 mem_find (void *start)
 {
   struct mem_node *p;
@@ -3752,7 +3746,7 @@ mem_delete_fixup (struct mem_node *x)
 /* Value is non-zero if P is a pointer to a live Lisp string on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static INLINE int
+static inline int
 live_string_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_STRING)
@@ -3775,7 +3769,7 @@ live_string_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp cons on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static INLINE int
+static inline int
 live_cons_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_CONS)
@@ -3801,7 +3795,7 @@ live_cons_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp symbol on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static INLINE int
+static inline int
 live_symbol_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_SYMBOL)
@@ -3827,7 +3821,7 @@ live_symbol_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp float on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static INLINE int
+static inline int
 live_float_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_FLOAT)
@@ -3851,7 +3845,7 @@ live_float_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live Lisp Misc on
    the heap.  M is a pointer to the mem_block for P.  */
 
-static INLINE int
+static inline int
 live_misc_p (struct mem_node *m, void *p)
 {
   if (m->type == MEM_TYPE_MISC)
@@ -3877,7 +3871,7 @@ live_misc_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live vector-like object.
    M is a pointer to the mem_block for P.  */
 
-static INLINE int
+static inline int
 live_vector_p (struct mem_node *m, void *p)
 {
   return (p == m->start && m->type == MEM_TYPE_VECTORLIKE);
@@ -3887,7 +3881,7 @@ live_vector_p (struct mem_node *m, void *p)
 /* Value is non-zero if P is a pointer to a live buffer.  M is a
    pointer to the mem_block for P.  */
 
-static INLINE int
+static inline int
 live_buffer_p (struct mem_node *m, void *p)
 {
   /* P must point to the start of the block, and the buffer
@@ -3953,7 +3947,7 @@ DEFUN ("gc-status", Fgc_status, Sgc_status, 0, 0, "",
 
 /* Mark OBJ if we can prove it's a Lisp_Object.  */
 
-static INLINE void
+static inline void
 mark_maybe_object (Lisp_Object obj)
 {
   void *po;
@@ -4022,7 +4016,7 @@ mark_maybe_object (Lisp_Object obj)
 /* If P points to Lisp data, mark that as live if it isn't already
    marked.  */
 
-static INLINE void
+static inline void
 mark_maybe_pointer (void *p)
 {
   struct mem_node *m;

@@ -1450,9 +1450,9 @@ specify a particular attribute for certain text.  @xref{Face
 Attributes}.
 
 @item
-A cons cell, either of the form @code{(foreground-color . @var{color-name})} or
-@code{(background-color . @var{color-name})}.  These elements specify
-just the foreground color or just the background color.
+A cons cell, either of the form @code{(fg-color . @var{color-name})}
+or @code{(bg-color . @var{color-name})}.  These elements specify just
+the foreground color or just the background color.
 
 @code{(foreground-color . @var{color-name})} has the same effect as
 @code{(:foreground @var{color-name})}; likewise for the background.
@@ -3830,9 +3830,10 @@ pixels per inch, millimeter, and centimeter, respectively.  The
 and height of the current face.  An image specification @code{image}
 corresponds to the width or height of the image.
 
-  The @code{left-fringe}, @code{right-fringe}, @code{left-margin},
-@code{right-margin}, @code{scroll-bar}, and @code{text} elements
-specify to the width of the corresponding area of the window.
+  The elements @code{left-fringe}, @code{right-fringe},
+@code{left-margin}, @code{right-margin}, @code{scroll-bar}, and
+@code{text} specify to the width of the corresponding area of the
+window.
 
   The @code{left}, @code{center}, and @code{right} positions can be
 used with @code{:align-to} to specify a position relative to the left
@@ -4661,16 +4662,14 @@ If @var{no-error} is non-@code{nil} and a suitable path can't be
 found, don't signal an error.  Instead, return a list of directories as
 before, except that @code{nil} appears in place of the image directory.
 
-Here is an example that uses a common idiom to provide compatibility
-with versions of Emacs that lack the variable @code{image-load-path}:
+Here is an example of using @code{image-load-path-for-library}:
 
 @example
 (defvar image-load-path) ; shush compiler
 (let* ((load-path (image-load-path-for-library
-                        "mh-e" "mh-logo.xpm"))
+                    "mh-e" "mh-logo.xpm"))
        (image-load-path (cons (car load-path)
-                              (when (boundp 'image-load-path)
-                                image-load-path))))
+                              image-load-path)))
   (mh-tool-bar-folder-buttons-init))
 @end example
 @end defun
@@ -5408,8 +5407,10 @@ value) in various ways.
                         (aref colorcomp-data 2)))
           (samp " (sample text) "))
       (insert "Color\t: "
-              (propertize samp 'face `(foreground-color . ,cstr))
-              (propertize samp 'face `(background-color . ,cstr))
+              (propertize samp 'face
+                          `(foreground-color . ,cstr))
+              (propertize samp 'face
+                          `(background-color . ,cstr))
               "\n"))))
 
 (defun colorcomp (color)

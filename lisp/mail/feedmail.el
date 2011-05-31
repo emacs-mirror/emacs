@@ -1437,7 +1437,7 @@ internal buffers will be reused and things will get confused."
   )
 
 (defcustom feedmail-queue-runner-mode-setter
-  '(lambda (&optional arg) (mail-mode))
+  (lambda (&optional arg) (mail-mode))
   "A function to set the proper mode of a message file.
 Called when the message is read back out of the queue directory with a single
 argument, the optional argument used in the call to
@@ -1473,7 +1473,7 @@ set `mail-header-separator' to the value of
 
 
 (defcustom feedmail-queue-runner-message-sender
-  '(lambda (&optional arg) (mail-send))
+  (lambda (&optional arg) (mail-send))
   "Function to initiate sending a message file.
 Called for each message read back out of the queue directory with a
 single argument, the optional argument used in the call to
@@ -1491,7 +1491,7 @@ you really don't need that.  Called with funcall, not call-interactively."
 
 
 (defcustom feedmail-queue-runner-cleaner-upper
-  '(lambda (fqm-file &optional arg)
+  (lambda (fqm-file &optional arg)
      (delete-file fqm-file)
      (if arg (feedmail-say-chatter "Nuked %s" fqm-file)))
   "Function that will be called after a message has been sent.
@@ -1642,7 +1642,7 @@ local gurus."
 	      ;; don't be overconfident about the name of the trace buffer
 	      (tracer (concat "trace.*smtp.*" (regexp-quote smtpmail-smtp-server))))
 	  (mapcar
-	   '(lambda (buffy)
+	   (lambda (buffy)
 	      (if (string-match tracer (buffer-name buffy))
 		  (progn
 		    (insert "SMTP Trace from " (buffer-name buffy) "\n---------------")
@@ -1667,7 +1667,7 @@ local gurus."
 			  ;; don't be overconfident about the name of the trace buffer
 			  (tracer (concat "trace.*smtp.*" (regexp-quote smtp-server))))
 		  (mapcar
-		   '(lambda (buffy)
+		   (lambda (buffy)
 			  (if (string-match tracer (buffer-name buffy))
 				  (progn
 					(insert "SMTP Trace from " (buffer-name buffy) "\n---------------")
@@ -1996,7 +1996,7 @@ backup file names and the like)."
 	(if feedmail-queue-run-orderer
 	    (setq list-of-possible-fqms (funcall feedmail-queue-run-orderer list-of-possible-fqms)))
 	(mapc
-	 '(lambda (blobby)
+	 (lambda (blobby)
 	    (setq maybe-file (expand-file-name blobby feedmail-queue-directory))
 	    (cond
 	     ((file-directory-p maybe-file) nil) ; don't care about subdirs
@@ -2238,7 +2238,7 @@ the counts."
     ;; iterate, counting things we find along the way in the directory
     (if (file-directory-p queue-directory)
 	(mapc
-	 '(lambda (blobby)
+	 (lambda (blobby)
 	    (cond
 	     ((file-directory-p blobby) nil) ; don't care about subdirs
 	     ((feedmail-fqm-p blobby)
@@ -2665,7 +2665,7 @@ fiddle-plex, as described in the documentation for the variable
   (save-excursion
     (if feedmail-enable-spray
 	(mapcar
-	 '(lambda (feedmail-spray-this-address)
+	 (lambda (feedmail-spray-this-address)
 	    (let ((spray-buffer (get-buffer-create " *FQM Outgoing Email Spray*")))
 	      (with-current-buffer spray-buffer
 		(erase-buffer)

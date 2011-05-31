@@ -31,6 +31,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module c++defs:
   # Code from module careadlinkat:
   # Code from module crypto/md5:
+  # Code from module crypto/sha1:
   # Code from module dosname:
   # Code from module dtoastr:
   # Code from module extensions:
@@ -92,9 +93,10 @@ AC_DEFUN([gl_INIT],
   gl_source_base='lib'
 AC_CHECK_FUNCS_ONCE([readlinkat])
 gl_MD5
+gl_SHA1
 AC_REQUIRE([gl_C99_STRTOLD])
 gl_FILEMODE
-gl_GETLOADAVG([$gl_source_base])
+gl_GETLOADAVG
 gl_STDLIB_MODULE_INDICATOR([getloadavg])
 gl_FUNC_GETOPT_GNU
 gl_MODULE_INDICATOR_FOR_TESTS([getopt-gnu])
@@ -364,6 +366,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/mktime-internal.h
   lib/mktime.c
   lib/readlink.c
+  lib/sha1.c
+  lib/sha1.h
   lib/stat.c
   lib/stdarg.in.h
   lib/stdbool.in.h
@@ -399,6 +403,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/mktime.m4
   m4/multiarch.m4
   m4/readlink.m4
+  m4/sha1.m4
   m4/socklen.m4
   m4/ssize_t.m4
   m4/st_dm_mode.m4

@@ -399,6 +399,12 @@ else allout's special hanging-indent maintaining auto-fill function,
   :type 'boolean
   :group 'allout)
 (make-variable-buffer-local 'allout-inhibit-auto-fill)
+;;;_  = allout-inhibit-auto-fill-on-headline
+(defcustom allout-inhibit-auto-fill-on-headline nil
+  "If non-nil, auto-fill will be inhibited while on topic's header line."
+  :type 'boolean
+  :group 'allout)
+(make-variable-buffer-local 'allout-inhibit-auto-fill-on-headline)
 ;;;_  = allout-use-hanging-indents
 (defcustom allout-use-hanging-indents t
   "If non-nil, topic body text auto-indent defaults to indent of the header.
@@ -410,7 +416,7 @@ where auto-fill occurs."
 (make-variable-buffer-local 'allout-use-hanging-indents)
 ;;;###autoload
 (put 'allout-use-hanging-indents 'safe-local-variable
-     (if (fboundp 'booleanp) 'booleanp '(lambda (x) (member x '(t nil)))))
+     (if (fboundp 'booleanp) 'booleanp (lambda (x) (member x '(t nil)))))
 ;;;_  = allout-reindent-bodies
 (defcustom allout-reindent-bodies (if allout-use-hanging-indents
 				    'text)
@@ -429,7 +435,7 @@ those that do not have the variable `comment-start' set.  A value of
 (make-variable-buffer-local 'allout-reindent-bodies)
 ;;;###autoload
 (put 'allout-reindent-bodies 'safe-local-variable
-     '(lambda (x) (memq x '(nil t text force))))
+     (lambda (x) (memq x '(nil t text force))))
 
 ;;;_  = allout-show-bodies
 (defcustom allout-show-bodies nil
@@ -440,7 +446,7 @@ just the header."
 (make-variable-buffer-local 'allout-show-bodies)
 ;;;###autoload
 (put 'allout-show-bodies 'safe-local-variable
-     (if (fboundp 'booleanp) 'booleanp '(lambda (x) (member x '(t nil)))))
+     (if (fboundp 'booleanp) 'booleanp (lambda (x) (member x '(t nil)))))
 
 ;;;_  = allout-beginning-of-line-cycles
 (defcustom allout-beginning-of-line-cycles t
@@ -632,7 +638,7 @@ undesired.]"
   :group 'allout)
 ;;;###autoload
 (put 'allout-use-mode-specific-leader 'safe-local-variable
-     '(lambda (x) (or (memq x '(t nil allout-mode-leaders comment-start))
+     (lambda (x) (or (memq x '(t nil allout-mode-leaders comment-start))
                       (stringp x))))
 ;;;_  = allout-mode-leaders
 (defvar allout-mode-leaders '()
@@ -662,7 +668,7 @@ are always respected by the topic maneuvering functions."
 (make-variable-buffer-local 'allout-old-style-prefixes)
 ;;;###autoload
 (put 'allout-old-style-prefixes 'safe-local-variable
-     (if (fboundp 'booleanp) 'booleanp '(lambda (x) (member x '(t nil)))))
+     (if (fboundp 'booleanp) 'booleanp (lambda (x) (member x '(t nil)))))
 ;;;_  = allout-stylish-prefixes -- alternating bullets
 (defcustom allout-stylish-prefixes t
   "Do fancy stuff with topic prefix bullets according to level, etc.
@@ -711,7 +717,7 @@ is non-nil."
 (make-variable-buffer-local 'allout-stylish-prefixes)
 ;;;###autoload
 (put 'allout-stylish-prefixes 'safe-local-variable
-     (if (fboundp 'booleanp) 'booleanp '(lambda (x) (member x '(t nil)))))
+     (if (fboundp 'booleanp) 'booleanp (lambda (x) (member x '(t nil)))))
 
 ;;;_  = allout-numbered-bullet
 (defcustom allout-numbered-bullet "#"
@@ -728,7 +734,7 @@ disables numbering maintenance."
 (put 'allout-numbered-bullet 'safe-local-variable
      (if (fboundp 'string-or-null-p)
          'string-or-null-p
-       '(lambda (x) (or (stringp x) (null x)))))
+       (lambda (x) (or (stringp x) (null x)))))
 ;;;_  = allout-file-xref-bullet
 (defcustom allout-file-xref-bullet "@"
   "Bullet signifying file cross-references, for `allout-resolve-xref'.
@@ -740,7 +746,7 @@ Set this var to the bullet you want to use for file cross-references."
 (put 'allout-file-xref-bullet 'safe-local-variable
      (if (fboundp 'string-or-null-p)
          'string-or-null-p
-       '(lambda (x) (or (stringp x) (null x)))))
+       (lambda (x) (or (stringp x) (null x)))))
 ;;;_  = allout-presentation-padding
 (defcustom allout-presentation-padding 2
   "Presentation-format white-space padding factor, for greater indent."
@@ -935,7 +941,7 @@ case the value of `allout-default-layout' is used.")
 (make-variable-buffer-local 'allout-layout)
 ;;;###autoload
 (put 'allout-layout 'safe-local-variable
-     '(lambda (x) (or (numberp x) (listp x) (memq x '(: * + -)))))
+     (lambda (x) (or (numberp x) (listp x) (memq x '(: * + -)))))
 
 ;;;_  : Topic header format
 ;;;_   = allout-regexp
@@ -3848,7 +3854,9 @@ topic prior to the current one."
 Maintains outline hanging topic indentation if
 `allout-use-hanging-indents' is set."
 
-  (when (not allout-inhibit-auto-fill)
+  (when (and (not allout-inhibit-auto-fill)
+             (or (not allout-inhibit-auto-fill-on-headline)
+                 (not (allout-on-current-heading-p))))
     (let ((fill-prefix (if allout-use-hanging-indents
                            ;; Check for topic header indentation:
                            (save-match-data

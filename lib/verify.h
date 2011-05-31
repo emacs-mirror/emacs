@@ -164,10 +164,13 @@
     (!!sizeof (_GL_VERIFY_TYPE (R, DIAGNOSTIC)))
 
 # ifdef __cplusplus
+#  if !GNULIB_defined_struct__gl_verify_type
 template <int w>
   struct _gl_verify_type {
     unsigned int _gl_verify_error_if_negative: w;
   };
+#   define GNULIB_defined_struct__gl_verify_type 1
+#  endif
 #  define _GL_VERIFY_TYPE(R, DIAGNOSTIC) \
     _gl_verify_type<(R) ? 1 : -1>
 # elif defined _GL_HAVE__STATIC_ASSERT
@@ -204,7 +207,9 @@ template <int w>
 #  if !defined _GL_HAVE_STATIC_ASSERT && !defined static_assert
 #   define static_assert _Static_assert /* Draft C1X requires this #define.  */
 #  endif
-# else
+# endif
+
+/* @assert.h omit start@  */
 
 /* Each of these macros verifies that its argument R is nonzero.  To
    be portable, R should be an integer constant expression.  Unlike
@@ -218,13 +223,13 @@ template <int w>
 /* Verify requirement R at compile-time, as an integer constant expression.
    Return 1.  */
 
-#  define verify_true(R) _GL_VERIFY_TRUE (R, "verify_true (" #R ")")
+# define verify_true(R) _GL_VERIFY_TRUE (R, "verify_true (" #R ")")
 
 /* Verify requirement R at compile-time, as a declaration without a
    trailing ';'.  */
 
-#  define verify(R) _GL_VERIFY (R, "verify (" #R ")")
+# define verify(R) _GL_VERIFY (R, "verify (" #R ")")
 
-# endif
+/* @assert.h omit end@  */
 
 #endif

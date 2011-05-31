@@ -2872,33 +2872,25 @@ If X is not an error form, return 1."
 
 (defmacro math-defintegral (funcs &rest code)
   (setq math-integral-cache nil)
-  (append '(progn)
-	  (mapcar (function
-		   (lambda (func)
-		     (list 'put (list 'quote func) ''math-integral
-			   (list 'nconc
-				 (list 'get (list 'quote func) ''math-integral)
-				 (list 'list
-				       (list 'function
-					     (append '(lambda (u))
-						     code)))))))
-		  (if (symbolp funcs) (list funcs) funcs))))
+  (cons 'progn
+        (mapcar #'(lambda (func)
+                    `(put ',func 'math-integral
+                          (nconc
+                           (get ',func 'math-integral)
+                           (list
+                            #'(lambda (u) ,@code)))))
+                (if (symbolp funcs) (list funcs) funcs))))
 (put 'math-defintegral 'lisp-indent-hook 1)
 
 (defmacro math-defintegral-2 (funcs &rest code)
   (setq math-integral-cache nil)
-  (append '(progn)
-	  (mapcar (function
-		   (lambda (func)
-		     (list 'put (list 'quote func) ''math-integral-2
-			   (list 'nconc
-				 (list 'get (list 'quote func)
-				       ''math-integral-2)
-				 (list 'list
-				       (list 'function
-					     (append '(lambda (u v))
-						     code)))))))
-		  (if (symbolp funcs) (list funcs) funcs))))
+  (cons 'progn
+        (mapcar #'(lambda (func)
+                    `(put ',func 'math-integral-2
+                          `(nconc
+                            (get ',func 'math-integral-2)
+                            (list #'(lambda (u v) ,@code)))))
+                (if (symbolp funcs) (list funcs) funcs))))
 (put 'math-defintegral-2 'lisp-indent-hook 1)
 
 (defvar var-IntegAfterRules 'calc-IntegAfterRules)

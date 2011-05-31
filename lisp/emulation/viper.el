@@ -1,4 +1,4 @@
-;;; viper.el --- A full-featured Vi emulator for GNU Emacs and XEmacs,
+;;; viper.el --- A full-featured Vi emulator for Emacs and XEmacs,
 ;;		 a VI Plan for Emacs Rescue,
 ;;		 and a venomous VI PERil.
 ;;		 Viper Is also a Package for Emacs Rebels.
@@ -547,7 +547,7 @@ If Viper is enabled, turn it off.  Otherwise, turn it on."
 		      "Viper Is a Package for Emacs Rebels,
 a VI Plan for Emacs Rescue, and a venomous VI PERil.
 
-Incidentally, Viper emulates Vi under GNU Emacs 20 and XEmacs 20.
+Incidentally, Viper emulates Vi under Emacs/XEmacs 20.
 It supports all of what is good in Vi and Ex, while extending
 and improving upon much of it.
 
@@ -850,20 +850,21 @@ It also can't undo some Viper settings."
   ;; Zap bad bindings in flyspell-mouse-map, which prevent ESC from working
   ;; over misspelled words (due to the overlay keymaps)
   (defvar flyspell-mode-hook)
+  (defvar flyspell-mouse-map)
   (add-hook 'flyspell-mode-hook
-	    '(lambda ()
-	       (define-key flyspell-mouse-map viper-ESC-key nil)))
+	    (lambda ()
+              (define-key flyspell-mouse-map viper-ESC-key nil)))
   ;; if viper is started from .emacs, it might be impossible to get certain
   ;; info about the display and windows until emacs initialization is complete
   ;; So do it via the window-setup-hook
   (add-hook 'window-setup-hook
-  	    '(lambda ()
-	       (modify-frame-parameters
-		(selected-frame)
-		(list (cons 'viper-vi-state-cursor-color
-			    (viper-get-cursor-color))))
-	       (setq viper-vi-state-cursor-color (viper-get-cursor-color))
-	       ))
+  	    (lambda ()
+              (modify-frame-parameters
+               (selected-frame)
+               (list (cons 'viper-vi-state-cursor-color
+                           (viper-get-cursor-color))))
+              (setq viper-vi-state-cursor-color (viper-get-cursor-color))
+              ))
 
   ;; Tell vc-diff to put *vc* in Vi mode
   (eval-after-load

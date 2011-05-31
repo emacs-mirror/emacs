@@ -68,9 +68,6 @@ and also when HOME is set to C:\ by default.
 
 * Changes in Emacs 24.1
 
-** Completion in a non-minibuffer now tries to detect the end of completion
-and pops down the *Completions* buffer accordingly.
-
 ** emacsclient changes
 
 *** New emacsclient argument --parent-id ID can be used to open a
@@ -83,9 +80,22 @@ client frame in parent X window ID, via XEmbed.  This works like the
 *** If emacsclient shuts down as a result of Emacs signalling an
 error, its exit status is 1.
 
-** Completion can cycle, depending on completion-cycle-threshold.
+** Completion
+*** Many packages have been changed to use completion-at-point rather than
+their own completion code.
 
-** `completing-read' can be customized using the new variable
+*** Completion in a non-minibuffer now tries to detect the end of completion
+and pops down the *Completions* buffer accordingly.
+
+*** Completion can cycle, depending on completion-cycle-threshold.
+
+*** New completion style `substring'.
+
+*** Completion style can be set per-category `completion-category-overrides'.
+
+*** Completion of buffers now uses substring completion by default.
+
+*** `completing-read' can be customized using the new variable
 `completing-read-function'.
 
 ** auto-mode-case-fold is now enabled by default.
@@ -171,6 +181,8 @@ with Xft.  To change font, use the X resource font, for example:
 Emacs.pane.menubar.font:  Courier-12
 
 ** On graphical displays, the mode-line no longer ends in dashes.
+Also, the first dash (which does not indicate anything) is just
+displayed as a space.
 
 ** On Nextstep/OSX, the menu bar can be hidden by customizing
 ns-auto-hide-menu-bar.
@@ -419,6 +431,10 @@ by default semi-permanent which means that functions like
 `delete-other-windows' do not delete them.  Side windows can be either
 created automatically with the help of buffer display specifiers or
 manually via the `window-side' window parameter.
+
+** Function `sha1' is now implemented in C for speed.
+The elisp implementation sha1.el is removed. Feature sha1 is provided
+by default.
 
 * Editing Changes in Emacs 24.1
 
@@ -510,6 +526,8 @@ between applications.
 **** Bind `mouse-yank-at-click' to mouse-2.
 
 *** Support for X cut buffers has been removed.
+
+*** Support for X clipboard managers has been added.
 
 ** New command `rectangle-number-lines', bound to `C-x r N', numbers
 the lines in the current rectangle.  With an prefix argument, this
@@ -872,6 +890,9 @@ consult.
 
 * New Modes and Packages in Emacs 24.1
 
+** Occur Edit mode applies edits made in *Occur* buffers to the
+original buffers.  It is bound to C-x C-q in Occur mode.
+
 ** New global minor modes electric-pair-mode, electric-indent-mode,
 and electric-layout-mode.
 
@@ -968,6 +989,25 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 * Lisp changes in Emacs 24.1
 
+** Completion
+*** New variable completion-extra-properties used to specify extra properties
+of the current completion:
+- :annotate-function, same as the old completion-annotate-function.
+- :exit-function, function to call after completion took place.
+
+*** Functions on completion-at-point-functions can return any of the properties
+valid for completion-extra-properties.
+
+*** completion-annotate-function is obsolete.
+
+*** New `metadata' method for completion tables.  The metadata thus returned
+can specify various details of the data returned by `all-completions':
+- `category' is the kind of objects returned (e.g., `buffer', `file', ...),
+  used to select a style in completion-category-overrides.
+- `annotation-function' to add annotations in *Completions*.
+- `display-sort-function' to specify how to sort entries in *Completions*.
+- `cycle-sort-function' to specify how to sort entries when cycling.
+
 ** `glyphless-char-display' can now distinguish between graphical and
 text terminal display, via a char-table entry that is a cons cell.
 
@@ -1044,8 +1084,6 @@ argument is supplied (see Trash changes, above).
 
 ** buffer-substring-filters is obsoleted by filter-buffer-substring-functions.
 
-** New completion style `substring'.
-
 ** `facemenu-read-color' is now an alias for `read-color'.
 The command `read-color' now requires a match for a color name or RGB
 triplet, instead of signalling an error if the user provides a invalid
@@ -1108,6 +1146,10 @@ being reverted, even if the buffer has a local `revert-buffer-function'.
 
 ** New variables `delayed-warnings-list' and `delayed-warnings-hook' allow
 deferring warnings until the main command loop is executed.
+
++++
+** `set-auto-mode' now respects mode: local variables at the end of files,
+as well as those in the -*- line.
 
 
 * Changes in Emacs 24.1 on non-free operating systems

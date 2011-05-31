@@ -65,6 +65,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
+#ifdef HAVE_X_WINDOWS
+#include "xterm.h"
+#endif
+
 #ifdef HAVE_SETLOCALE
 #include <locale.h>
 #endif
@@ -1419,8 +1423,11 @@ main (int argc, char **argv)
     syms_of_callproc ();
   /* egetenv is a pretty low-level facility, which may get called in
      many circumstances; it seems flimsy to put off initializing it
-     until calling init_callproc.  */
-  set_initial_environment ();
+     until calling init_callproc.  Do not do it when dumping.  */
+  if (initialized || ((strcmp (argv[argc-1], "dump") != 0
+		       && strcmp (argv[argc-1], "bootstrap") != 0)))
+    set_initial_environment ();
+
   /* AIX crashes are reported in system versions 3.2.3 and 3.2.4
      if this is not done.  Do it after set_global_environment so that we
      don't pollute Vglobal_environment.  */
@@ -1984,6 +1991,11 @@ all of which are called before Emacs is actually killed.  */)
   Frun_hooks (1, &hook);
 
   UNGCPRO;
+
+#ifdef HAVE_X_WINDOWS
+  /* Transfer any clipboards we own to the clipboard manager.  */
+  x_clipboard_manager_save_all ();
+#endif
 
   shut_down_emacs (0, 0, STRINGP (arg) ? arg : Qnil);
 

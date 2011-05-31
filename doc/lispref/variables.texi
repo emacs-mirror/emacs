@@ -1670,12 +1670,16 @@ This function works by walking the alist stored in
 @code{file-local-variables-alist} and applying each local variable in
 turn.  It calls @code{before-hack-local-variables-hook} and
 @code{hack-local-variables-hook} before and after applying the
-variables, respectively.
+variables, respectively.  It only calls the before-hook if the alist
+is non-@code{nil}; it always calls the other hook.  This
+function ignores a @samp{mode} element if it specifies the same major
+mode as the buffer already has.
 
 If the optional argument @var{mode-only} is non-@code{nil}, then all
-this function does is return @code{t} if the @w{@samp{-*-}} line or
-the local variables list specifies a mode and @code{nil} otherwise.
-It does not set the mode nor any other file-local variable.
+this function does is return a symbol specifying the major mode,
+if the @w{@samp{-*-}} line or the local variables list specifies one,
+and @code{nil} otherwise.  It does not set the mode nor any other
+file-local variable.
 @end defun
 
 @defvar file-local-variables-alist

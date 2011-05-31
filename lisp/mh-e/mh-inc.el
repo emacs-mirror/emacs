@@ -39,12 +39,12 @@
   "Help text for `mh-inc-spool-map'.")
 
 (define-key mh-inc-spool-map "?"
-  '(lambda ()
-     (interactive)
-     (if mh-inc-spool-map-help
-         (mh-help mh-inc-spool-map-help)
-       (mh-ephem-message
-        "There are no keys defined yet; customize `mh-inc-spool-list'"))))
+  (lambda ()
+    (interactive)
+    (if mh-inc-spool-map-help
+        (mh-help mh-inc-spool-map-help)
+      (mh-ephem-message
+       "There are no keys defined yet; customize `mh-inc-spool-list'"))))
 
 ;;;###mh-autoload
 (defun mh-inc-spool-make ()

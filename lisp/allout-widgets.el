@@ -302,7 +302,7 @@ buffers where this is set to enable and disable widget
 enhancements, directly.")
 ;;;###autoload
 (put 'allout-widgets-mode-inhibit 'safe-local-variable
-     (if (fboundp 'booleanp) 'booleanp '(lambda (x) (member x '(t nil)))))
+     (if (fboundp 'booleanp) 'booleanp (lambda (x) (member x '(t nil)))))
 (make-variable-buffer-local 'allout-widgets-mode-inhibit)
 ;;;_    = allout-inhibit-body-modification-hook
 (defvar allout-inhibit-body-modification-hook nil

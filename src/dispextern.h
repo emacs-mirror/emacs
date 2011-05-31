@@ -845,6 +845,10 @@ struct glyph_row
   /* Vertical offset of the right fringe bitmap.  */
   signed right_fringe_offset : FRINGE_HEIGHT_BITS;
 
+  /* 1 means that at least one of the left and right fringe bitmaps is
+     periodic and thus depends on the y-position of the row.  */
+  unsigned fringe_bitmap_periodic_p : 1;
+
   /* 1 means that we must draw the bitmaps of this row.  */
   unsigned redraw_fringe_bitmaps_p : 1;
 

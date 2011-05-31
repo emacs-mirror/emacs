@@ -3493,10 +3493,10 @@ to the current position of point in @var{window}; @var{window}, to the
 selected window.  If @var{position} is @code{t}, that means to check the
 last visible position in @var{window}.
 
-The @code{pos-visible-in-window-p} function considers only vertical
-scrolling.  If @var{position} is out of view only because @var{window}
-has been scrolled horizontally, @code{pos-visible-in-window-p} returns
-non-@code{nil} anyway.  @xref{Horizontal Scrolling}.
+This function considers only vertical scrolling.  If @var{position} is
+out of view only because @var{window} has been scrolled horizontally,
+@code{pos-visible-in-window-p} returns non-@code{nil} anyway.
+@xref{Horizontal Scrolling}.
 
 If @var{position} is visible, @code{pos-visible-in-window-p} returns
 @code{t} if @var{partially} is @code{nil}; if @var{partially} is

@@ -207,7 +207,7 @@
 ;;    (delete-minibuffer-contents))
 ;;
 ;; (add-hook 'iswitchb-define-mode-map-hook
-;; 	  '(lambda () (define-key
+;; 	     (lambda () (define-key
 ;; 			iswitchb-mode-map "\C-o"
 ;; 			'iswitchb-exclude-nonmatching)))
 

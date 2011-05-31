@@ -837,12 +837,13 @@ variable as ``risky'' with a non-@code{nil}
 @code{risky-local-variable} property.  @xref{File Local Variables}.
 
 @defvar completion-ignore-case
-If the value of this variable is non-@code{nil}, Emacs does not
-consider case significant in completion.  Note, however, that this
-variable is overridden by @code{read-file-name-completion-ignore-case}
-within @code{read-file-name} (@pxref{Reading File Names}), and by
-@code{read-buffer-completion-ignore-case} within @code{read-buffer}
-(@pxref{High-Level Completion}).
+If the value of this variable is non-@code{nil}, case is not
+considered significant in completion.  Within @code{read-file-name},
+this variable is overridden by
+@code{read-file-name-completion-ignore-case} (@pxref{Reading File
+Names}); within @code{read-buffer}, it is overridden by
+@code{read-buffer-completion-ignore-case} (@pxref{High-Level
+Completion}).
 @end defvar
 
 @defvar completion-regexp-list
@@ -1383,17 +1384,19 @@ Files, emacs, The GNU Emacs Manual}).  The exact behavior when using a
 graphical file dialog is platform-dependent.  Here, we simply document
 the behavior when using the minibuffer.
 
-The optional argument @var{require-match} has the same meaning as in
-@code{completing-read}.  @xref{Minibuffer Completion}.
+@code{read-file-name} does not automatically expand the returned file
+name.  You must call @code{expand-file-name} yourself if an absolute
+file name is required.
 
-@code{read-file-name} uses
-@code{minibuffer-local-filename-completion-map} as the keymap if
-@var{require-match} is @code{nil}, and uses
-@code{minibuffer-local-filename-must-match-map} if @var{require-match}
-is non-@code{nil}.  @xref{Completion Commands}.
+The optional argument @var{require-match} has the same meaning as in
+@code{completing-read}.  @xref{Minibuffer Completion}.  If
+@var{require-match} is @code{nil}, the local keymap in the minibuffer
+is @code{minibuffer-local-filename-completion-map}; otherwise, it is
+@code{minibuffer-local-filename-must-match-map}.  @xref{Completion
+Commands}.
 
 The argument @var{directory} specifies the directory to use for
-completion of relative file names.  It should be an absolute directory
+completing relative file names.  It should be an absolute directory
 name.  If @code{insert-default-directory} is non-@code{nil},
 @var{directory} is also inserted in the minibuffer as initial input.
 It defaults to the current buffer's value of @code{default-directory}.
@@ -1441,11 +1444,7 @@ argument that decides which file names are acceptable completion
 possibilities.  A file name is an acceptable value if @var{predicate}
 returns non-@code{nil} for it.
 
-@code{read-file-name} does not automatically expand file names.  You
-must call @code{expand-file-name} yourself if an absolute file name is
-required.
-
-Here is an example:
+Here is an example of using @code{read-file-name}:
 
 @example
 @group

@@ -27,6 +27,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <stdio.h>
 #include <setjmp.h>
+#include <limits.h>
 
 #include "lisp.h"
 #include "character.h"
@@ -78,9 +79,8 @@ static Lisp_Object Vccl_program_table;
 #define CCL_HEADER_EOF		1
 #define CCL_HEADER_MAIN		2
 
-/* CCL code is a sequence of 28-bit non-negative integers (i.e. the
-   MSB is always 0), each contains CCL command and/or arguments in the
-   following format:
+/* CCL code is a sequence of 28-bit integers.  Each contains a CCL
+   command and/or arguments in the following format:
 
 	|----------------- integer (28-bit) ------------------|
 	|------- 17-bit ------|- 3-bit --|- 3-bit --|- 5-bit -|
@@ -93,10 +93,13 @@ static Lisp_Object Vccl_program_table;
 	|------------- constant or other args ----------------|
                      cccccccccccccccccccccccccccc
 
-   where, `cc...c' is a non-negative integer indicating constant value
-   (the left most `c' is always 0) or an absolute jump address, `RRR'
+   where `cc...c' is a 17-bit, 20-bit, or 28-bit integer indicating a
+   constant value or a relative/absolute jump address, `RRR'
    and `rrr' are CCL register number, `XXXXX' is one of the following
    CCL commands.  */
+
+#define CCL_CODE_MAX ((1 << (28 - 1)) - 1)
+#define CCL_CODE_MIN (-1 - CCL_CODE_MAX)
 
 /* CCL commands
 
@@ -742,6 +745,24 @@ while(0)
 
 #endif
 
+#define GET_CCL_RANGE(var, ccl_prog, ic, lo, hi)		\
+  do								\
+    {								\
+      EMACS_INT prog_word = XINT ((ccl_prog)[ic]);		\
+      if (! ((lo) <= prog_word && prog_word <= (hi)))		\
+	CCL_INVALID_CMD;					\
+      (var) = prog_word;					\
+    }								\
+  while (0)
+
+#define GET_CCL_CODE(code, ccl_prog, ic)			\
+  GET_CCL_RANGE (code, ccl_prog, ic, CCL_CODE_MIN, CCL_CODE_MAX)
+
+#define GET_CCL_INT(var, ccl_prog, ic)				\
+  GET_CCL_RANGE (var, ccl_prog, ic, INT_MIN, INT_MAX)
+
+#define IN_INT_RANGE(val) (INT_MIN <= (val) && (val) <= INT_MAX)
+
 /* Encode one character CH to multibyte form and write to the current
    output buffer.  If CH is less than 256, CH is written as is.  */
 #define CCL_WRITE_CHAR(ch)			\
@@ -899,7 +920,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	}
 
       this_ic = ic;
-      code = XINT (ccl_prog[ic]); ic++;
+      GET_CCL_CODE (code, ccl_prog, ic++);
       field1 = code >> 8;
       field2 = (code & 0xFF) >> 5;
 
@@ -920,15 +941,14 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	  break;
 
 	case CCL_SetConst:	/* 00000000000000000000rrrXXXXX */
-	  reg[rrr] = XINT (ccl_prog[ic]);
-	  ic++;
+	  GET_CCL_INT (reg[rrr], ccl_prog, ic++);
 	  break;
 
 	case CCL_SetArray:	/* CCCCCCCCCCCCCCCCCCCCRRRrrrXXXXX */
 	  i = reg[RRR];
 	  j = field1 >> 3;
-	  if ((unsigned int) i < j)
-	    reg[rrr] = XINT (ccl_prog[ic + i]);
+	  if (0 <= i && i < j)
+	    GET_CCL_INT (reg[rrr], ccl_prog, ic + i);
 	  ic += j;
 	  break;
 
@@ -956,13 +976,13 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	  break;
 
 	case CCL_WriteConstJump: /* A--D--D--R--E--S--S-000XXXXX */
-	  i = XINT (ccl_prog[ic]);
+	  GET_CCL_INT (i, ccl_prog, ic);
 	  CCL_WRITE_CHAR (i);
 	  ic += ADDR;
 	  break;
 
 	case CCL_WriteConstReadJump: /* A--D--D--R--E--S--S-rrrXXXXX */
-	  i = XINT (ccl_prog[ic]);
+	  GET_CCL_INT (i, ccl_prog, ic);
 	  CCL_WRITE_CHAR (i);
 	  ic++;
 	  CCL_READ_CHAR (reg[rrr]);
@@ -970,18 +990,17 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	  break;
 
 	case CCL_WriteStringJump: /* A--D--D--R--E--S--S-000XXXXX */
-	  j = XINT (ccl_prog[ic]);
-	  ic++;
+	  GET_CCL_INT (j, ccl_prog, ic++);
 	  CCL_WRITE_STRING (j);
 	  ic += ADDR - 1;
 	  break;
 
 	case CCL_WriteArrayReadJump: /* A--D--D--R--E--S--S-rrrXXXXX */
 	  i = reg[rrr];
-	  j = XINT (ccl_prog[ic]);
-	  if ((unsigned int) i < j)
+	  GET_CCL_INT (j, ccl_prog, ic);
+	  if (0 <= i && i < j)
 	    {
-	      i = XINT (ccl_prog[ic + 1 + i]);
+	      GET_CCL_INT (i, ccl_prog, ic + 1 + i);
 	      CCL_WRITE_CHAR (i);
 	    }
 	  ic += j + 2;
@@ -998,10 +1017,14 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	  CCL_READ_CHAR (reg[rrr]);
 	  /* fall through ... */
 	case CCL_Branch:	/* CCCCCCCCCCCCCCCCCCCCrrrXXXXX */
-	  if ((unsigned int) reg[rrr] < field1)
-	    ic += XINT (ccl_prog[ic + reg[rrr]]);
-	  else
-	    ic += XINT (ccl_prog[ic + field1]);
+	{
+	  int incr;
+	  GET_CCL_INT (incr, ccl_prog,
+		       ic + (0 <= reg[rrr] && reg[rrr] < field1
+			     ? reg[rrr]
+			     : field1));
+	  ic += incr;
+	}
 	  break;
 
 	case CCL_ReadRegister:	/* CCCCCCCCCCCCCCCCCCCCrrXXXXX */
@@ -1009,7 +1032,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	    {
 	      CCL_READ_CHAR (reg[rrr]);
 	      if (!field1) break;
-	      code = XINT (ccl_prog[ic]); ic++;
+	      GET_CCL_CODE (code, ccl_prog, ic++);
 	      field1 = code >> 8;
 	      field2 = (code & 0xFF) >> 5;
 	    }
@@ -1018,7 +1041,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	case CCL_WriteExprConst:  /* 1:00000OPERATION000RRR000XXXXX */
 	  rrr = 7;
 	  i = reg[RRR];
-	  j = XINT (ccl_prog[ic]);
+	  GET_CCL_INT (j, ccl_prog, ic);
 	  op = field1 >> 6;
 	  jump_address = ic + 1;
 	  goto ccl_set_expr;
@@ -1029,7 +1052,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	      i = reg[rrr];
 	      CCL_WRITE_CHAR (i);
 	      if (!field1) break;
-	      code = XINT (ccl_prog[ic]); ic++;
+	      GET_CCL_CODE (code, ccl_prog, ic++);
 	      field1 = code >> 8;
 	      field2 = (code & 0xFF) >> 5;
 	    }
@@ -1051,10 +1074,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	    /* If FFF is nonzero, the CCL program ID is in the
                following code.  */
 	    if (rrr)
-	      {
-		prog_id = XINT (ccl_prog[ic]);
-		ic++;
-	      }
+	      GET_CCL_INT (prog_id, ccl_prog, ic++);
 	    else
 	      prog_id = field1;
 
@@ -1095,9 +1115,9 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 	case CCL_WriteArray:	/* CCCCCCCCCCCCCCCCCCCCrrrXXXXX */
 	  i = reg[rrr];
-	  if ((unsigned int) i < field1)
+	  if (0 <= i && i < field1)
 	    {
-	      j = XINT (ccl_prog[ic + i]);
+	      GET_CCL_INT (j, ccl_prog, ic + i);
 	      CCL_WRITE_CHAR (j);
 	    }
 	  ic += field1;
@@ -1122,8 +1142,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	  CCL_SUCCESS;
 
 	case CCL_ExprSelfConst: /* 00000OPERATION000000rrrXXXXX */
-	  i = XINT (ccl_prog[ic]);
-	  ic++;
+	  GET_CCL_INT (i, ccl_prog, ic++);
 	  op = field1 >> 6;
 	  goto ccl_expr_self;
 
@@ -1159,9 +1178,9 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 	case CCL_SetExprConst:	/* 00000OPERATION000RRRrrrXXXXX */
 	  i = reg[RRR];
-	  j = XINT (ccl_prog[ic]);
+	  GET_CCL_INT (j, ccl_prog, ic++);
 	  op = field1 >> 6;
-	  jump_address = ++ic;
+	  jump_address = ic;
 	  goto ccl_set_expr;
 
 	case CCL_SetExprReg:	/* 00000OPERATIONRrrRRRrrrXXXXX */
@@ -1175,10 +1194,9 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	  CCL_READ_CHAR (reg[rrr]);
 	case CCL_JumpCondExprConst: /* A--D--D--R--E--S--S-rrrXXXXX */
 	  i = reg[rrr];
-	  op = XINT (ccl_prog[ic]);
-	  jump_address = ic++ + ADDR;
-	  j = XINT (ccl_prog[ic]);
-	  ic++;
+	  jump_address = ic + ADDR;
+	  GET_CCL_INT (op, ccl_prog, ic++);
+	  GET_CCL_INT (j, ccl_prog, ic++);
 	  rrr = 7;
 	  goto ccl_set_expr;
 
@@ -1186,10 +1204,10 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	  CCL_READ_CHAR (reg[rrr]);
 	case CCL_JumpCondExprReg:
 	  i = reg[rrr];
-	  op = XINT (ccl_prog[ic]);
-	  jump_address = ic++ + ADDR;
-	  j = reg[XINT (ccl_prog[ic])];
-	  ic++;
+	  jump_address = ic + ADDR;
+	  GET_CCL_INT (op, ccl_prog, ic++);
+	  GET_CCL_RANGE (j, ccl_prog, ic++, 0, 7);
+	  j = reg[j];
 	  rrr = 7;
 
 	ccl_set_expr:
@@ -1267,18 +1285,27 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	      break;
 
 	    case CCL_TranslateCharacterConstTbl:
-	      op = XINT (ccl_prog[ic]); /* table */
-	      ic++;
-	      i = CCL_DECODE_CHAR (reg[RRR], reg[rrr]);
-	      op = translate_char (GET_TRANSLATION_TABLE (op), i);
-	      CCL_ENCODE_CHAR (op, charset_list, reg[RRR], reg[rrr]);
+	      {
+		EMACS_INT eop;
+		GET_CCL_RANGE (eop, ccl_prog, ic++, 0,
+			       (VECTORP (Vtranslation_table_vector)
+				? ASIZE (Vtranslation_table_vector)
+				: -1));
+		i = CCL_DECODE_CHAR (reg[RRR], reg[rrr]);
+		op = translate_char (GET_TRANSLATION_TABLE (eop), i);
+		CCL_ENCODE_CHAR (op, charset_list, reg[RRR], reg[rrr]);
+	      }
 	      break;
 
 	    case CCL_LookupIntConstTbl:
-	      op = XINT (ccl_prog[ic]); /* table */
-	      ic++;
 	      {
-		struct Lisp_Hash_Table *h = GET_HASH_TABLE (op);
+		EMACS_INT eop;
+		struct Lisp_Hash_Table *h;
+		GET_CCL_RANGE (eop, ccl_prog, ic++, 0,
+			       (VECTORP (Vtranslation_hash_table_vector)
+				? ASIZE (Vtranslation_hash_table_vector)
+				: -1));
+		h = GET_HASH_TABLE (eop);
 
 		op = hash_lookup (h, make_number (reg[RRR]), NULL);
 		if (op >= 0)
@@ -1297,18 +1324,22 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	      break;
 
 	    case CCL_LookupCharConstTbl:
-	      op = XINT (ccl_prog[ic]); /* table */
-	      ic++;
-	      i = CCL_DECODE_CHAR (reg[RRR], reg[rrr]);
 	      {
-		struct Lisp_Hash_Table *h = GET_HASH_TABLE (op);
+		EMACS_INT eop;
+		struct Lisp_Hash_Table *h;
+		GET_CCL_RANGE (eop, ccl_prog, ic++, 0,
+			       (VECTORP (Vtranslation_hash_table_vector)
+				? ASIZE (Vtranslation_hash_table_vector)
+				: -1));
+		i = CCL_DECODE_CHAR (reg[RRR], reg[rrr]);
+		h = GET_HASH_TABLE (eop);
 
 		op = hash_lookup (h, make_number (i), NULL);
 		if (op >= 0)
 		  {
 		    Lisp_Object opl;
 		    opl = HASH_VALUE (h, op);
-		    if (!INTEGERP (opl))
+		    if (! (INTEGERP (opl) && IN_INT_RANGE (XINT (opl))))
 		      CCL_INVALID_CMD;
 		    reg[RRR] = XINT (opl);
 		    reg[7] = 1; /* r7 true for success */
@@ -1321,9 +1352,10 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	    case CCL_IterateMultipleMap:
 	      {
 		Lisp_Object map, content, attrib, value;
-		int point, size, fin_ic;
+		EMACS_INT point, size;
+		int fin_ic;
 
-		j = XINT (ccl_prog[ic++]); /* number of maps. */
+		GET_CCL_INT (j, ccl_prog, ic++); /* number of maps. */
 		fin_ic = ic + j;
 		op = reg[rrr];
 		if ((j > reg[RRR]) && (j >= 0))
@@ -1343,7 +1375,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 		    size = ASIZE (Vcode_conversion_map_vector);
 		    point = XINT (ccl_prog[ic++]);
-		    if (point >= size) continue;
+		    if (! (0 <= point && point < size)) continue;
 		    map = AREF (Vcode_conversion_map_vector, point);
 
 		    /* Check map validity.  */
@@ -1358,18 +1390,19 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		    /* check map type,
 		       [STARTPOINT VAL1 VAL2 ...] or
 		       [t ELEMENT STARTPOINT ENDPOINT]  */
-		    if (NUMBERP (content))
+		    if (INTEGERP (content))
 		      {
-			point = XUINT (content);
-			point = op - point + 1;
-			if (!((point >= 1) && (point < size))) continue;
-			content = AREF (map, point);
+			point = XINT (content);
+			if (!(point <= op && op - point + 1 < size)) continue;
+			content = AREF (map, op - point + 1);
 		      }
 		    else if (EQ (content, Qt))
 		      {
 			if (size != 4) continue;
-			if ((op >= XUINT (AREF (map, 2)))
-			    && (op < XUINT (AREF (map, 3))))
+			if (INTEGERP (AREF (map, 2))
+			    && XINT (AREF (map, 2)) <= op
+			    && INTEGERP (AREF (map, 3))
+			    && op < XINT (AREF (map, 3)))
 			  content = AREF (map, 1);
 			else
 			  continue;
@@ -1379,7 +1412,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 		    if (NILP (content))
 		      continue;
-		    else if (NUMBERP (content))
+		    else if (INTEGERP (content) && IN_INT_RANGE (XINT (content)))
 		      {
 			reg[RRR] = i;
 			reg[rrr] = XINT(content);
@@ -1394,10 +1427,11 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		      {
 			attrib = XCAR (content);
 			value = XCDR (content);
-			if (!NUMBERP (attrib) || !NUMBERP (value))
+			if (! (INTEGERP (attrib) && INTEGERP (value)
+			       && IN_INT_RANGE (XINT (value))))
 			  continue;
 			reg[RRR] = i;
-			reg[rrr] = XUINT (value);
+			reg[rrr] = XINT (value);
 			break;
 		      }
 		    else if (SYMBOLP (content))
@@ -1432,8 +1466,9 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		  mapping_stack_pointer = mapping_stack;
 		stack_idx_of_map_multiple = 0;
 
-		map_set_rest_length =
-		  XINT (ccl_prog[ic++]); /* number of maps and separators. */
+		/* Get number of maps and separators.  */
+		GET_CCL_INT (map_set_rest_length, ccl_prog, ic++);
+
 		fin_ic = ic + map_set_rest_length;
 		op = reg[rrr];
 
@@ -1501,7 +1536,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		do {
 		  for (;map_set_rest_length > 0;i++, ic++, map_set_rest_length--)
 		    {
-		      point = XINT(ccl_prog[ic]);
+		      GET_CCL_INT (point, ccl_prog, ic);
 		      if (point < 0)
 			{
 			  /* +1 is for including separator. */
@@ -1531,18 +1566,19 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		      /* check map type,
 			 [STARTPOINT VAL1 VAL2 ...] or
 			 [t ELEMENT STARTPOINT ENDPOINT]  */
-		      if (NUMBERP (content))
+		      if (INTEGERP (content))
 			{
-			  point = XUINT (content);
-			  point = op - point + 1;
-			  if (!((point >= 1) && (point < size))) continue;
-			  content = AREF (map, point);
+			  point = XINT (content);
+			  if (!(point <= op && op - point + 1 < size)) continue;
+			  content = AREF (map, op - point + 1);
 			}
 		      else if (EQ (content, Qt))
 			{
 			  if (size != 4) continue;
-			  if ((op >= XUINT (AREF (map, 2))) &&
-			      (op < XUINT (AREF (map, 3))))
+			  if (INTEGERP (AREF (map, 2))
+			      && XINT (AREF (map, 2)) <= op
+			      && INTEGERP (AREF (map, 3))
+			      && op < XINT (AREF (map, 3)))
 			    content = AREF (map, 1);
 			  else
 			    continue;
@@ -1554,7 +1590,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 			continue;
 
 		      reg[RRR] = i;
-		      if (NUMBERP (content))
+		      if (INTEGERP (content) && IN_INT_RANGE (XINT (content)))
 			{
 			  op = XINT (content);
 			  i += map_set_rest_length - 1;
@@ -1566,9 +1602,10 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 			{
 			  attrib = XCAR (content);
 			  value = XCDR (content);
-			  if (!NUMBERP (attrib) || !NUMBERP (value))
+			  if (! (INTEGERP (attrib) && INTEGERP (value)
+				 && IN_INT_RANGE (XINT (value))))
 			    continue;
-			  op = XUINT (value);
+			  op = XINT (value);
 			  i += map_set_rest_length - 1;
 			  ic += map_set_rest_length - 1;
 			  POP_MAPPING_STACK (map_set_rest_length, reg[rrr]);
@@ -1613,7 +1650,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	    case CCL_MapSingle:
 	      {
 		Lisp_Object map, attrib, value, content;
-		int size, point;
+		int point;
 		j = XINT (ccl_prog[ic++]); /* map_id */
 		op = reg[rrr];
 		if (j >= ASIZE (Vcode_conversion_map_vector))
@@ -1628,41 +1665,36 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		    break;
 		  }
 		map = XCDR (map);
-		if (!VECTORP (map))
+		if (! (VECTORP (map)
+		       && INTEGERP (AREF (map, 0))
+		       && XINT (AREF (map, 0)) <= op
+		       && op - XINT (AREF (map, 0)) + 1 < ASIZE (map)))
 		  {
 		    reg[RRR] = -1;
 		    break;
 		  }
-		size = ASIZE (map);
-		point = XUINT (AREF (map, 0));
+		point = XINT (AREF (map, 0));
 		point = op - point + 1;
 		reg[RRR] = 0;
-		if ((size <= 1) ||
-		    (!((point >= 1) && (point < size))))
+		content = AREF (map, point);
+		if (NILP (content))
 		  reg[RRR] = -1;
-		else
+		else if (INTEGERP (content))
+		  reg[rrr] = XINT (content);
+		else if (EQ (content, Qt));
+		else if (CONSP (content))
 		  {
-		    reg[RRR] = 0;
-		    content = AREF (map, point);
-		    if (NILP (content))
-		      reg[RRR] = -1;
-		    else if (NUMBERP (content))
-		      reg[rrr] = XINT (content);
-		    else if (EQ (content, Qt));
-		    else if (CONSP (content))
-		      {
-			attrib = XCAR (content);
-			value = XCDR (content);
-			if (!NUMBERP (attrib) || !NUMBERP (value))
-			  continue;
-			reg[rrr] = XUINT(value);
-			break;
-		      }
-		    else if (SYMBOLP (content))
-		      CCL_CALL_FOR_MAP_INSTRUCTION (content, ic);
-		    else
-		      reg[RRR] = -1;
+		    attrib = XCAR (content);
+		    value = XCDR (content);
+		    if (!INTEGERP (attrib) || !INTEGERP (value))
+		      continue;
+		    reg[rrr] = XINT(value);
+		    break;
 		  }
+		else if (SYMBOLP (content))
+		  CCL_CALL_FOR_MAP_INSTRUCTION (content, ic);
+		else
+		  reg[RRR] = -1;
 	      }
 	      break;
 

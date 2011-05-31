@@ -228,10 +228,10 @@ dealing with untranslated filesystems."
       ;; directory separators changed to directory-sep-char.
       (let ((name nil))
 	(setq name (mapconcat
-		    '(lambda (char)
-		       (if (and (<= ?A char) (<= char ?Z))
-			   (char-to-string (+ (- char ?A) ?a))
-			 (char-to-string char)))
+		    (lambda (char)
+                      (if (and (<= ?A char) (<= char ?Z))
+                          (char-to-string (+ (- char ?A) ?a))
+                        (char-to-string char)))
 		    filename nil))
 	;; Use expand-file-name to canonicalize directory separators, except
 	;; with bare drive letters (which would have the cwd appended).

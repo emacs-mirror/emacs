@@ -2410,14 +2410,17 @@ Valid input formats include:
     (gnus-read-ephemeral-gmane-group group start range)))
 
 (defcustom gnus-bug-group-download-format-alist
-  '((emacs . "http://debbugs.gnu.org/%s;mbox=yes")
+  '((emacs . "http://debbugs.gnu.org/%s;mbox=yes;mboxmaint=yes")
     (debian
-     . "http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s&mbox=yes"))
+     . "http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s&mbox=yes;mboxmaint=yes"))
   "Alist of symbols for bug trackers and the corresponding URL format string.
 The URL format string must contain a single \"%s\", specifying
 the bug number, and browsing the URL must return mbox output."
   :group 'gnus-group-foreign
-  :version "23.2" ;; No Gnus
+  ;; Added mboxmaint=yes.  This gets the version with the messages as
+  ;; they went out, not as they came in.
+  ;; Eg bug-gnu-emacs is replaced by ###@debbugs.
+  :version "24.1"
   :type '(repeat (cons (symbol) (string :tag "URL format string"))))
 
 (defun gnus-read-ephemeral-bug-group (number mbox-url)
@@ -3564,7 +3567,8 @@ or nil if no action could be taken."
 	(gnus-add-marked-articles group 'tick nil nil 'force)
 	(gnus-add-marked-articles group 'dormant nil nil 'force))
       ;; Do auto-expirable marks if that's required.
-      (when (gnus-group-auto-expirable-p group)
+      (when (and (gnus-group-auto-expirable-p group)
+		 (not (gnus-group-read-only-p group)))
         (gnus-range-map
 	 (lambda (article)
 	   (gnus-add-marked-articles group 'expire (list article))
@@ -4627,10 +4631,11 @@ This command may read the active file."
 		  (push n gnus-newsgroup-unselected))
 		(setq n (1+ n)))
 	      (setq gnus-newsgroup-unselected
-		    (nreverse gnus-newsgroup-unselected)))))
+		    (sort gnus-newsgroup-unselected '<)))))
       (gnus-activate-group group)
       (gnus-group-make-articles-read group (list article))
-      (when (gnus-group-auto-expirable-p group)
+      (when (and (gnus-group-auto-expirable-p group)
+		 (not (gnus-group-read-only-p group)))
 	(gnus-add-marked-articles
 	 group 'expire (list article))))))
 

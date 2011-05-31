@@ -58,8 +58,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef xassert
 #ifdef FONTSET_DEBUG
 #define xassert(X)	do {if (!(X)) abort ();} while (0)
-#undef INLINE
-#define INLINE
 #else   /* not FONTSET_DEBUG */
 #define xassert(X)	(void) 0
 #endif	/* not FONTSET_DEBUG */

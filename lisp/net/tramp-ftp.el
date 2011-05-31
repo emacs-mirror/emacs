@@ -121,12 +121,12 @@ present for backward compatibility."
 ;; handling.
 (put 'substitute-in-file-name 'ange-ftp 'tramp-handle-substitute-in-file-name)
 (add-hook 'tramp-ftp-unload-hook
-	  '(lambda ()
-	     (setplist 'substitute-in-file-name
-		       (delete 'ange-ftp
-			       (delete 'tramp-handle-substitute-in-file-name
-				       (symbol-plist
-					'substitute-in-file-name))))))
+	  (lambda ()
+            (setplist 'substitute-in-file-name
+                      (delete 'ange-ftp
+                              (delete 'tramp-handle-substitute-in-file-name
+                                      (symbol-plist
+                                       'substitute-in-file-name))))))
 
 ;;;###tramp-autoload
 (defun tramp-ftp-file-name-handler (operation &rest args)

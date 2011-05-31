@@ -1,3 +1,57 @@
+2011-05-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-mark-article-read): It's possible that we
+	want to have `gnus-newsgroup-unselected' kept sorted.  If this isn't
+	done, then unselected articles may be marked as read.
+
+	* pop3.el (pop3-open-server): Erase the buffer after the greeting,
+	since not doing this seems to lead to a race condition in pop3-logon.
+
+	* nnvirtual.el (nnvirtual-request-article): Bind `gnus-command-method'
+	so that the call chain it correct when we call "upwards".
+
+	* gnus-sum.el (gnus-select-newsgroup): Auto-expiry doesn't make sense
+	in read-only groups.
+
+	* gnus-group.el (gnus-group-mark-article-read): Ditto.
+
+	* message.el (message-cite-reply-position): Doc string fix.
+
+	* nnimap.el (nnimap-transform-headers): Simplify regexp to hopefully
+	avoid regexp overflow.
+	(nnimap-transform-split-mail): Ditto.
+
+	* pop3.el (pop3-retr): Error out if the server closes the connection.
+
+2011-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mml1991.el (mml1991-mailcrypt-encrypt): Remove use of ill-designed
+	mm-with-unibyte-current-buffer.  The buffer should not contain any
+	multibyte chars anyway at this stage.
+
+2011-05-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-urlify): Use shr-add-font to make underlines be less ugly
+	at the end of lines.
+
+2011-05-29  Julien Danjou  <julien@danjou.info>
+
+	* smiley.el (gnus-smiley-file-types): Add gif as supported file type.
+
+2011-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-bug-group-download-format-alist):
+	Use the "maintainer" version of debian reports as well.
+
+2011-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-bug-group-download-format-alist):
+	Use the "maintainer" version of debbugs.gnu.org reports.
+
+2011-05-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-delete-part): Fix mm-handle-filename usage.
+
 2011-05-20  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-sum.el (gnus-summary-hide-thread): Fix bug where moving to hide

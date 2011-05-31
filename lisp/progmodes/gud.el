@@ -116,11 +116,11 @@ Used to grey out relevant toolbar icons.")
 	(display-buffer-reuse-frames t))
     (catch 'info-found
       (walk-windows
-       '(lambda (window)
-	  (if (eq (window-buffer window) (get-buffer "*info*"))
-	      (progn
-		(setq same-window-regexps nil)
-		(throw 'info-found nil))))
+       (lambda (window)
+         (if (eq (window-buffer window) (get-buffer "*info*"))
+             (progn
+               (setq same-window-regexps nil)
+               (throw 'info-found nil))))
        nil 0)
       (select-frame (make-frame)))
     (if (eq gud-minor-mode 'gdbmi)

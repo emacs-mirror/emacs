@@ -317,7 +317,7 @@ Lisp_Object;
 #endif /* WORDS_BIGENDIAN */
 
 #ifdef __GNUC__
-static __inline__ Lisp_Object
+static inline Lisp_Object
 LISP_MAKE_RVALUE (Lisp_Object o)
 {
     return o;
@@ -544,11 +544,10 @@ extern Lisp_Object make_number (EMACS_INT);
 
 /* Value is non-zero if I doesn't fit into a Lisp fixnum.  It is
    written this way so that it also works if I is of unsigned
-   type.  */
+   type or if I is a NaN.  */
 
 #define FIXNUM_OVERFLOW_P(i) \
-  ((i) > MOST_POSITIVE_FIXNUM \
-   || ((i) < 0 && (i) < MOST_NEGATIVE_FIXNUM))
+  (! ((0 <= (i) || MOST_NEGATIVE_FIXNUM <= (i)) && (i) <= MOST_POSITIVE_FIXNUM))
 
 /* Extract a value or address from a Lisp_Object.  */
 
@@ -2574,7 +2573,6 @@ extern void move_gap_both (EMACS_INT, EMACS_INT);
 extern void make_gap (EMACS_INT);
 extern EMACS_INT copy_text (const unsigned char *, unsigned char *,
 			    EMACS_INT, int, int);
-extern EMACS_INT count_size_as_multibyte (const unsigned char *, EMACS_INT);
 extern int count_combining_before (const unsigned char *,
 				   EMACS_INT, EMACS_INT, EMACS_INT);
 extern int count_combining_after (const unsigned char *,
@@ -2838,7 +2836,7 @@ extern void syms_of_lread (void);
 
 /* Defined in eval.c.  */
 extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qdefun, Qmacro;
-extern Lisp_Object Qinhibit_quit, Qclosure, Qdebug;
+extern Lisp_Object Qinhibit_quit, Qclosure;
 extern Lisp_Object Qand_rest;
 extern Lisp_Object Vautoload_queue;
 extern Lisp_Object Vsignaling_function;

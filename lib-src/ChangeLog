@@ -1,3 +1,27 @@
+2011-05-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use 'inline', not 'INLINE'.
+	* etags.c (hash): Now inline unconditionally.
+	* make-docfile.c (put_char): inline, not INLINE.
+
+2011-05-25  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (.c.o): Remove (every .o file has an explicit rule).
+	(insrcdir): New.
+	(stamp-rcs2log, stamp-rcs-checkin, stamp-grep-changelog, stamp-vcdiff):
+	Use $insrcdir to suppress unaesthetic ignored errors.
+	(clean): Simplify list of things to delete.
+	(all, clean): Use $EXE_FILES.
+
+	* Makefile.in (movemail${EXEEXT}): Build in one step, not via .o file.
+
+	* Makefile.in (REGEXPOBJ, REGEXPDEPS): Remove.  Replace by expansion.
+	(etags${EXEEXT}): Just depend on regex.o, not regex.h as well.
+
+2011-05-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (update-game-score${EXEEXT}): Use a single rule.
+
 2011-05-19  Glenn Morris  <rgm@gnu.org>
 
 	* makefile.w32-in (echolisp): Remove rule that is no longer needed.

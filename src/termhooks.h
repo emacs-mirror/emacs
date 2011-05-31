@@ -335,6 +335,22 @@ struct terminal
      the member terminal_coding.  */
   Lisp_Object charset_list;
 
+  /* This is an association list containing the X selections that
+     Emacs might own on this terminal.  Each element has the form
+       (SELECTION-NAME SELECTION-VALUE SELECTION-TIMESTAMP FRAME)
+     SELECTION-NAME is a lisp symbol, whose name is the name of an X Atom.
+     SELECTION-VALUE is the value that emacs owns for that selection.
+      It may be any kind of Lisp object.
+     SELECTION-TIMESTAMP is the time at which emacs began owning this
+      selection, as a cons of two 16-bit numbers (making a 32 bit
+      time.)
+     FRAME is the frame for which we made the selection.  If there is
+      an entry in this alist, then it can be assumed that Emacs owns
+      that selection.
+     The only (eq) parts of this list that are visible from Lisp are
+    the selection-values.  */
+  Lisp_Object Vselection_alist;
+
   /* All fields before `next_terminal' should be Lisp_Object and are traced
      by the GC.  All fields afterwards are ignored by the GC.  */
 

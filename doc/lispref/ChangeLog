@@ -7,6 +7,45 @@
 	(Deleting Windows, Window Parameters, Side Windows): Minor
 	rewrites.
 
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.texi (Accessing Documentation):
+	* display.texi (Pixel Specification):
+	* processes.texi (Serial Ports, Serial Ports):
+	* nonascii.texi (Character Properties, Default Coding Systems):
+	* text.texi (Changing Properties, Special Properties):
+	* windows.texi (Window Start and End):
+	* modes.texi (SMIE Indentation Example, SMIE Tricks):
+	* keymaps.texi (Searching Keymaps, Tool Bar):
+	* minibuf.texi (Basic Completion):
+	* compile.texi (Eval During Compile):
+	* strings.texi (Formatting Strings): Tweaks to avoid overflowing
+	7x9 paper in printed manual.
+
+	* lists.texi (Sets And Lists): Fix misplaced text.
+
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Remapping Commands): Emphasize that the keymap
+	needs to be active (Bug#8350).
+
+2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.texi (Reading File Names): Clarify (Bug#8480).
+
+	* tips.texi (Coding Conventions): Remove antediluvian filename
+	limit recommendation (Bug#8538).
+
+2011-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* modes.texi (Auto Major Mode): Update for set-auto-mode changes.
+
+2011-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* variables.texi (File Local Variables):
+	Update hack-local-variables `mode-only' return value.
+	Add some more details on what this function does in the other case.
+
 2011-05-19  Glenn Morris  <rgm@gnu.org>
 
 	* lists.texi (Sets And Lists): Mention cl provides union etc.

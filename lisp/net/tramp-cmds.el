@@ -258,8 +258,8 @@ buffer in your bug report.
   (dolist (buffer
 	   (delq nil
 		 (mapcar
-		  '(lambda (b)
-		     (when (string-match "\\*tramp/" (buffer-name b)) b))
+		  (lambda (b)
+                    (when (string-match "\\*tramp/" (buffer-name b)) b))
 		  (buffer-list))))
     (let ((reporter-eval-buffer buffer)
 	  (buffer-name (buffer-name buffer))

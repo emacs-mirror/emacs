@@ -527,19 +527,19 @@ Same as `pcomplete' but using the standard completion UI."
                            (funcall pcomplete-norm-func
                                     (directory-file-name f))
                            pcomplete-seen)))))))
-          (unless (zerop (length pcomplete-termination-string))
-            ;; Add a space at the end of completion.  Use a terminator-regexp
-            ;; that never matches since the terminator cannot appear
-            ;; within the completion field anyway.
-            (setq table
-                  (apply-partially #'completion-table-with-terminator
-                                   (cons pcomplete-termination-string
-                                         "\\`a\\`")
-                                   table)))
           (when pcomplete-ignore-case
             (setq table
                   (apply-partially #'completion-table-case-fold table)))
-          (list beg (point) table :predicate pred))))))
+          (list beg (point) table
+                :predicate pred
+                :exit-function
+                (unless (zerop (length pcomplete-termination-string))
+                  (lambda (_s finished)
+                    (when (memq finished '(sole finished))
+                      (if (looking-at
+                           (regexp-quote pcomplete-termination-string))
+                          (goto-char (match-end 0))
+                        (insert pcomplete-termination-string)))))))))))
 
  ;; I don't think such commands are usable before first setting up buffer-local
  ;; variables to parse args, so there's no point autoloading it.

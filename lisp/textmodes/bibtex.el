@@ -1,4 +1,4 @@
-;;; bibtex.el --- BibTeX mode for GNU Emacs
+;;; bibtex.el --- BibTeX mode for GNU Emacs -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1992, 1994-1999, 2001-2011  Free Software Foundation, Inc.
 
@@ -204,7 +204,7 @@ See also `bibtex-sort-ignore-string-entries'."
                  (const entry-class)
                  (const t)))
 (put 'bibtex-maintain-sorted-entries 'safe-local-variable
-     '(lambda (a) (memq a '(nil t plain crossref entry-class))))
+     (lambda (a) (memq a '(nil t plain crossref entry-class))))
 
 (defcustom bibtex-sort-entry-class
   '(("String")
@@ -968,7 +968,7 @@ Set this variable before loading BibTeX mode."
     (modify-syntax-entry ?\" "\"" st)
     (modify-syntax-entry ?$ "$$  " st)
     (modify-syntax-entry ?% "<   " st)
-    (modify-syntax-entry ?' "w   " st)
+    (modify-syntax-entry ?' "w   " st)	;FIXME: Not allowed in @string keys.
     (modify-syntax-entry ?@ "w   " st)
     (modify-syntax-entry ?\\ "\\" st)
     (modify-syntax-entry ?\f ">   " st)
@@ -984,7 +984,7 @@ Set this variable before loading BibTeX mode."
     ;; The Key `C-c&' is reserved for reftex.el
     (define-key km "\t" 'bibtex-find-text)
     (define-key km "\n" 'bibtex-next-field)
-    (define-key km "\M-\t" 'bibtex-complete)
+    (define-key km "\M-\t" 'completion-at-point)
     (define-key km "\C-c\"" 'bibtex-remove-delimiters)
     (define-key km "\C-c{" 'bibtex-remove-delimiters)
     (define-key km "\C-c}" 'bibtex-remove-delimiters)
@@ -2018,7 +2018,7 @@ Formats current entry according to variable `bibtex-entry-format'."
                     ;; remove delimiters from purely numerical fields
                     (when (and (memq 'numerical-fields format)
                                (progn (goto-char beg-text)
-                                      (looking-at "\\(\"[0-9]+\"\\)\\|\\({[0-9]+}\\)")))
+                                      (looking-at "\"[0-9]+\"\\|{[0-9]+}")))
                       (goto-char end-text)
                       (delete-char -1)
                       (goto-char beg-text)
@@ -2247,10 +2247,11 @@ applied to the content of FIELD.  It is an alist with pairs
          (content (bibtex-text-in-field field bibtex-autokey-use-crossref))
         case-fold-search)
     (unless content (setq content ""))
-    (dolist (pattern change-list content)
+    (dolist (pattern change-list)
       (setq content (replace-regexp-in-string (car pattern)
                                               (cdr pattern)
-                                              content t)))))
+                                              content t)))
+    content))
 
 (defun bibtex-autokey-get-names ()
   "Get contents of the name field of the current entry.
@@ -2521,7 +2522,7 @@ for parsing BibTeX keys.  If parsing fails, try to set this variable to nil."
                       (bibtex-sort-ignore-string-entries t)
                       bounds)
                   (bibtex-map-entries
-                   (lambda (key beg end)
+                   (lambda (key _beg end)
                      (if (and abortable
                               (input-pending-p))
                          ;; user has aborted by typing a key: return `aborted'
@@ -2713,20 +2714,6 @@ When called interactively, FORCE is t, CURRENT is t if current buffer uses
                               (if current (buffer-name (current-buffer)))))
           (message "No BibTeX buffers defined")))
     buffer-list))
-
-(defun bibtex-complete-internal (completions)
-  "Complete word fragment before point to longest prefix of COMPLETIONS.
-COMPLETIONS is an alist of strings.  If point is not after the part
-of a word, all strings are listed.  Return completion."
-  ;; Return value is used by cleanup functions.
-  ;; Code inspired by `lisp-complete-symbol'.
-  (let ((beg (save-excursion
-                (re-search-backward "[ \t{\"]")
-                (forward-char)
-                (point)))
-        (end (point)))
-    (when (completion-in-region beg end completions)
-      (buffer-substring beg (point)))))
 
 (defun bibtex-complete-string-cleanup (str compl)
   "Cleanup after inserting string STR.
@@ -2941,7 +2928,7 @@ BOUND limits the search."
 ;; Interactive Functions:
 
 ;;;###autoload
-(defun bibtex-mode ()
+(define-derived-mode bibtex-mode nil "BibTeX"
   "Major mode for editing BibTeX files.
 
 General information on working with BibTeX mode:
@@ -2953,7 +2940,7 @@ new entry with the command \\[bibtex-clean-entry].
 
 Some features of BibTeX mode are available only by setting the variable
 `bibtex-maintain-sorted-entries' to non-nil.  However, then BibTeX mode
-works only with buffers containing valid (syntactical correct) and sorted
+works only with buffers containing valid (syntactically correct) and sorted
 entries.  This is usually the case, if you have created a buffer completely
 with BibTeX mode and finished every new entry with \\[bibtex-clean-entry].
 
@@ -2975,7 +2962,7 @@ the name of a field with \\[bibtex-remove-OPT-or-ALT].
 \\[bibtex-remove-delimiters] removes the double-quotes or braces around the text of the current field.
 \\[bibtex-empty-field] replaces the text of the current field with the default \"\" or {}.
 \\[bibtex-find-text] moves point to the end of the current field.
-\\[bibtex-complete] completes word fragment before point according to context.
+\\[completion-at-point] completes word fragment before point according to context.
 
 The command \\[bibtex-clean-entry] cleans the current entry, i.e. it removes OPT/ALT
 from the names of all non-empty optional or alternative fields, checks that
@@ -2993,12 +2980,8 @@ Entry to BibTeX mode calls the value of `bibtex-mode-hook'
 if that value is non-nil.
 
 \\{bibtex-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map bibtex-mode-map)
-  (setq major-mode 'bibtex-mode)
-  (setq mode-name "BibTeX")
-  (set-syntax-table bibtex-mode-syntax-table)
+  (add-hook 'completion-at-point-functions
+            'bibtex-completion-at-point-function nil 'local)
   (make-local-variable 'bibtex-buffer-last-parsed-tick)
   ;; Install stealthy parse function if not already installed
   (unless bibtex-parse-idle-timer
@@ -3013,9 +2996,8 @@ if that value is non-nil.
   (set (make-local-variable 'defun-prompt-regexp) "^[ \t]*@[[:alnum:]]+[ \t]*")
   (set (make-local-variable 'outline-regexp) "[ \t]*@")
   (set (make-local-variable 'fill-paragraph-function) 'bibtex-fill-field)
-  (set (make-local-variable 'fill-prefix) (make-string (+ bibtex-entry-offset
-                                                          bibtex-contline-indentation)
-                                                       ?\s))
+  (set (make-local-variable 'fill-prefix)
+       (make-string (+ bibtex-entry-offset bibtex-contline-indentation) ?\s))
   (set (make-local-variable 'font-lock-defaults)
        '(bibtex-font-lock-keywords
          nil t ((?$ . "\"")
@@ -3037,11 +3019,9 @@ if that value is non-nil.
   (setq imenu-generic-expression
         (list (list nil bibtex-entry-head bibtex-key-in-head))
         imenu-case-fold-search t)
-  (make-local-variable 'choose-completion-string-functions)
   ;; XEmacs needs `easy-menu-add', Emacs does not care
   (easy-menu-add bibtex-edit-menu)
-  (easy-menu-add bibtex-entry-menu)
-  (run-mode-hooks 'bibtex-mode-hook))
+  (easy-menu-add bibtex-entry-menu))
 
 (defun bibtex-field-list (entry-type)
   "Return list of allowed fields for entry ENTRY-TYPE.
@@ -3383,7 +3363,7 @@ If mark is active count entries in region, if not in whole buffer."
         (bibtex-sort-ignore-string-entries (not count-string-entries)))
     (save-restriction
       (if mark-active (narrow-to-region (region-beginning) (region-end)))
-      (bibtex-map-entries (lambda (key beg end) (setq number (1+ number)))))
+      (bibtex-map-entries (lambda (_key _beg _end) (setq number (1+ number)))))
     (message "%s contains %d entries."
              (if mark-active "Region" "Buffer")
              number)))
@@ -3438,12 +3418,13 @@ of the head of the entry found.  Return nil if no entry found."
   (unless (local-variable-p 'bibtex-sort-entry-class-alist)
     (set (make-local-variable 'bibtex-sort-entry-class-alist)
          (let ((i -1) alist)
-           (dolist (class bibtex-sort-entry-class alist)
+           (dolist (class bibtex-sort-entry-class)
              (setq i (1+ i))
              (dolist (entry class)
                ;; All entry types should be downcase (for ease of comparison).
                (push (cons (if (stringp entry) (downcase entry) entry) i)
-                     alist)))))))
+                     alist)))
+           alist))))
 
 (defun bibtex-lessp (index1 index2)
   "Predicate for sorting BibTeX entries with indices INDEX1 and INDEX2.
@@ -3734,7 +3715,7 @@ Return t if test was successful, nil otherwise."
           (let (previous current key-list)
             (bibtex-progress-message "Checking for duplicate keys")
             (bibtex-map-entries
-             (lambda (key beg end)
+             (lambda (key _beg _end)
                (bibtex-progress-message)
                (setq current (bibtex-entry-index))
                (cond ((not previous))
@@ -3772,7 +3753,7 @@ Return t if test was successful, nil otherwise."
              "Checking required fields and month fields")
             (let ((bibtex-sort-ignore-string-entries t))
               (bibtex-map-entries
-               (lambda (key beg end)
+               (lambda (_key beg _end)
                  (bibtex-progress-message)
                  (let* ((entry-list (assoc-string (bibtex-type-in-head)
                                                   bibtex-entry-field-alist t))
@@ -4439,7 +4420,7 @@ If mark is active reformat entries in region, if not in whole buffer."
       (if (memq 'realign bibtex-entry-format)
           (bibtex-realign))
       (bibtex-progress-message "Formatting" 1)
-      (bibtex-map-entries (lambda (key beg end)
+      (bibtex-map-entries (lambda (_key _beg _end)
                             (bibtex-progress-message)
                             (bibtex-clean-entry reformat-reference-keys t)))
       (bibtex-progress-message 'done))
@@ -4472,17 +4453,15 @@ entries from minibuffer."
     (goto-char (point-max))
     (message "Buffer is now parsable.  Please save it.")))
 
-(defun bibtex-complete ()
-  "Complete word fragment before point according to context.
-If point is inside key or crossref field perform key completion based on
-`bibtex-reference-keys'.  Inside a month field perform key completion
-based on `bibtex-predefined-month-strings'.  Inside any other field
-\(including a String or Preamble definition) perform string completion
-based on `bibtex-strings'.
-An error is signaled if point is outside key or BibTeX field."
-  (interactive)
+(define-obsolete-function-alias 'bibtex-complete 'completion-at-point "24.1")
+(defun bibtex-completion-at-point-function ()
   (let ((pnt (point))
         (case-fold-search t)
+        (beg (save-excursion
+               (re-search-backward "[ \t{\"]")
+               (forward-char)
+               (point)))
+        (end (point))
         bounds name compl)
     (save-excursion
       (if (and (setq bounds (bibtex-enclosing-field nil t))
@@ -4523,49 +4502,56 @@ An error is signaled if point is outside key or BibTeX field."
                (setq compl 'key)))))
 
     (cond ((eq compl 'key)
-           ;; key completion: no cleanup needed
-           (setq choose-completion-string-functions nil)
-           (let (completion-ignore-case)
-             (bibtex-complete-internal (bibtex-global-key-alist))))
+           ;; Key completion: no cleanup needed.
+           (list beg end
+                 (lambda (s p a)
+                   (let (completion-ignore-case)
+                     (complete-with-action a (bibtex-global-key-alist) s p)))))
 
           ((eq compl 'crossref-key)
-           ;; crossref key completion
-           ;;
-           ;; If we quit the *Completions* buffer without requesting
-           ;; a completion, `choose-completion-string-functions' is still
-           ;; non-nil.  Therefore, `choose-completion-string-functions' is
-           ;; always set (either to non-nil or nil) when a new completion
-           ;; is requested.
-           (let (completion-ignore-case)
-             (setq choose-completion-string-functions
-                   (lambda (choice buffer base-position &rest ignored)
-                     (setq choose-completion-string-functions nil)
-                     (choose-completion-string choice buffer base-position)
-                     (bibtex-complete-crossref-cleanup choice)
-                     t)) ; needed by choose-completion-string-functions
-             (bibtex-complete-crossref-cleanup
-              (bibtex-complete-internal (bibtex-global-key-alist)))))
+           ;; Crossref key completion.
+           (let* ((buf (current-buffer)))
+             (list beg end
+                   (lambda (s p a)
+                     (cond
+                      ((eq a 'metadata) `(metadata (category . bibtex-key)))
+                      (t (let ((completion-ignore-case nil))
+                           (complete-with-action
+                            a (bibtex-global-key-alist) s p)))))
+                   :exit-function
+                   (lambda (string status)
+                     (when (memq status '(exact sole finished))
+                       (let ((summary
+                              (with-current-buffer buf
+                                (save-excursion
+                                  (if (bibtex-search-entry string)
+                                      (funcall bibtex-summary-function))))))
+                         (when summary
+                           (message "%s %s" string summary))))))))
 
           ((eq compl 'string)
-           ;; string key completion: no cleanup needed
-           (setq choose-completion-string-functions nil)
-           (let ((completion-ignore-case t))
-             (bibtex-complete-internal bibtex-strings)))
+           ;; String key completion: no cleanup needed.
+           (list beg end
+                 (lambda (s p a)
+                   (let ((completion-ignore-case t))
+                     (complete-with-action a bibtex-strings s p)))))
 
           (compl
-           ;; string completion
-           (let ((completion-ignore-case t))
-             (setq choose-completion-string-functions
-                   `(lambda (choice buffer base-position &rest ignored)
-                      (setq choose-completion-string-functions nil)
-                      (choose-completion-string choice buffer base-position)
-                      (bibtex-complete-string-cleanup choice ',compl)
-                      t)) ; needed by `choose-completion-string-functions'
-             (bibtex-complete-string-cleanup (bibtex-complete-internal compl)
-                                             compl)))
-
-          (t (setq choose-completion-string-functions nil)
-             (error "Point outside key or BibTeX field")))))
+           ;; String completion.
+           (list beg end
+                 (lambda (s p a)
+                   (cond
+                    ((eq a 'metadata) `(metadata (category . bibtex-string)))
+                    (t (let ((completion-ignore-case t))
+                         (complete-with-action a compl s p)))))
+                 :exit-function
+                 (lambda (string status)
+                   (when (memq status '(exact finished sole))
+                     (let ((abbr (cdr (assoc-string string compl t))))
+                       (when abbr
+                         (message "%s = abbreviation for `%s'" string abbr))))
+                   (when (eq status 'finished)
+                     (save-excursion (bibtex-remove-delimiters)))))))))
 
 (defun bibtex-Article ()
   "Insert a new BibTeX @Article entry; see also `bibtex-entry'."
@@ -4771,5 +4757,4 @@ Return the URL or nil if none can be generated."
 ;; Make BibTeX a Feature
 
 (provide 'bibtex)
-
 ;;; bibtex.el ends here

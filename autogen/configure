@@ -603,6 +603,7 @@ am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
+SUBDIR_MAKEFILES_IN
 LIB_GCC
 LD_FIRSTFLAG
 LD_SWITCH_SYSTEM_TEMACS
@@ -4215,23 +4216,6 @@ case "${srcdir}" in
   *  ) srcdir="`(cd ${srcdir}; pwd)`" ;;
 esac
 
-#### Check if the source directory already has a configured system in it.
-if test `pwd` != `(cd ${srcdir} && pwd)` \
-   && test -f "${srcdir}/src/config.h" ; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: The directory tree \`${srcdir}' is being used
-   as a build directory right now; it has been configured in its own
-   right.  To configure in another directory as well, you MUST
-   use GNU make.  If you do not have GNU make, then you must
-   now do \`make distclean' in ${srcdir},
-   and then run $0 again." >&5
-$as_echo "$as_me: WARNING: The directory tree \`${srcdir}' is being used
-   as a build directory right now; it has been configured in its own
-   right.  To configure in another directory as well, you MUST
-   use GNU make.  If you do not have GNU make, then you must
-   now do \`make distclean' in ${srcdir},
-   and then run $0 again." >&2;}
-fi
-
 #### Given the configuration name, set machfile and opsysfile to the
 #### names of the m/*.h and s/*.h files we should use.
 
@@ -6540,6 +6524,7 @@ esac
   # Code from module c++defs:
   # Code from module careadlinkat:
   # Code from module crypto/md5:
+  # Code from module crypto/sha1:
   # Code from module dosname:
   # Code from module dtoastr:
   # Code from module extensions:
@@ -16698,6 +16683,22 @@ fi
 
 
 
+  gl_LIBOBJS="$gl_LIBOBJS sha1.$ac_objext"
+
+
+
+
+  :
+
+
+
+
+
+
+
+
+
+
 
 
   gl_LIBOBJS="$gl_LIBOBJS filemode.$ac_objext"
@@ -16708,10 +16709,6 @@ fi
 
 # Persuade glibc <stdlib.h> to declare getloadavg().
 
-
-# Make sure getloadavg.c is where it belongs, at configure-time.
-test -f "$srcdir/$gl_source_base/getloadavg.c" ||
-  as_fn_error "$srcdir/$gl_source_base/getloadavg.c is missing" "$LINENO" 5
 
 gl_save_LIBS=$LIBS
 
@@ -20908,7 +20905,21 @@ test "${prefix}" != NONE &&
 test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 
-ac_config_files="$ac_config_files Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile test/automated/Makefile"
+SUBDIR_MAKEFILES="lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile"
+
+ac_config_files="$ac_config_files Makefile lib/Makefile lib-src/Makefile oldXMenu/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile doc/lispref/Makefile src/Makefile lwlib/Makefile lisp/Makefile leim/Makefile"
+
+
+opt_makefile=test/automated/Makefile
+
+if test -f $srcdir/${opt_makefile}.in; then
+  SUBDIR_MAKEFILES="$SUBDIR_MAKEFILES $opt_makefile"
+      ac_config_files="$ac_config_files test/automated/Makefile"
+
+fi
+
+SUBDIR_MAKEFILES_IN=`echo " ${SUBDIR_MAKEFILES}" | sed -e 's| | $(srcdir)/|g' -e 's|Makefile|Makefile.in|g'`
+
 
 
 ac_config_commands="$ac_config_commands mkdirs"

@@ -926,7 +926,7 @@ static int coords_in_mouse_face_p (struct window *, int, int);
 
    This is the height of W minus the height of a mode line, if any.  */
 
-INLINE int
+inline int
 window_text_bottom_y (struct window *w)
 {
   int height = WINDOW_TOTAL_HEIGHT (w);
@@ -940,7 +940,7 @@ window_text_bottom_y (struct window *w)
    means return the total width of W, not including fringes to
    the left and right of the window.  */
 
-INLINE int
+inline int
 window_box_width (struct window *w, int area)
 {
   int cols = XFASTINT (w->total_cols);
@@ -979,7 +979,7 @@ window_box_width (struct window *w, int area)
 /* Return the pixel height of the display area of window W, not
    including mode lines of W, if any.  */
 
-INLINE int
+inline int
 window_box_height (struct window *w)
 {
   struct frame *f = XFRAME (w->frame);
@@ -1026,7 +1026,7 @@ window_box_height (struct window *w)
    area AREA of window W.  AREA < 0 means return the left edge of the
    whole window, to the right of the left fringe of W.  */
 
-INLINE int
+inline int
 window_box_left_offset (struct window *w, int area)
 {
   int x;
@@ -1058,7 +1058,7 @@ window_box_left_offset (struct window *w, int area)
    area AREA of window W.  AREA < 0 means return the right edge of the
    whole window, to the left of the right fringe of W.  */
 
-INLINE int
+inline int
 window_box_right_offset (struct window *w, int area)
 {
   return window_box_left_offset (w, area) + window_box_width (w, area);
@@ -1068,7 +1068,7 @@ window_box_right_offset (struct window *w, int area)
    area AREA of window W.  AREA < 0 means return the left edge of the
    whole window, to the right of the left fringe of W.  */
 
-INLINE int
+inline int
 window_box_left (struct window *w, int area)
 {
   struct frame *f = XFRAME (w->frame);
@@ -1088,7 +1088,7 @@ window_box_left (struct window *w, int area)
    area AREA of window W.  AREA < 0 means return the right edge of the
    whole window, to the left of the right fringe of W.  */
 
-INLINE int
+inline int
 window_box_right (struct window *w, int area)
 {
   return window_box_left (w, area) + window_box_width (w, area);
@@ -1101,7 +1101,7 @@ window_box_right (struct window *w, int area)
    coordinates of the upper-left corner of the box.  Return in
    *BOX_WIDTH, and *BOX_HEIGHT the pixel width and height of the box.  */
 
-INLINE void
+inline void
 window_box (struct window *w, int area, int *box_x, int *box_y,
 	    int *box_width, int *box_height)
 {
@@ -1128,7 +1128,7 @@ window_box (struct window *w, int area, int *box_x, int *box_y,
    *BOTTOM_RIGHT_Y the coordinates of the bottom-right corner of the
    box.  */
 
-static INLINE void
+static inline void
 window_box_edges (struct window *w, int area, int *top_left_x, int *top_left_y,
 		   int *bottom_right_x, int *bottom_right_y)
 {
@@ -1328,7 +1328,7 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
    returns an invalid character.  If we find one, we return a `?', but
    with the length of the invalid character.  */
 
-static INLINE int
+static inline int
 string_char_and_length (const unsigned char *str, int *len)
 {
   int c;
@@ -1376,7 +1376,7 @@ string_pos_nchars_ahead (struct text_pos pos, Lisp_Object string, EMACS_INT ncha
 /* Value is the text position, i.e. character and byte position,
    for character position CHARPOS in STRING.  */
 
-static INLINE struct text_pos
+static inline struct text_pos
 string_pos (EMACS_INT charpos, Lisp_Object string)
 {
   struct text_pos pos;
@@ -5890,11 +5890,23 @@ get_next_display_element (struct it *it)
       else
 	{
 	  EMACS_INT pos = (it->s ? -1
-			   : STRINGP (it->string) ? IT_STRING_CHARPOS (*it)
-			   : IT_CHARPOS (*it));
+		     : STRINGP (it->string) ? IT_STRING_CHARPOS (*it)
+		     : IT_CHARPOS (*it));
+	  int c;
 
-	  it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display, pos,
-				       it->string);
+	  if (it->what == IT_CHARACTER)
+	    c = it->char_to_display;
+	  else
+	    {
+	      struct composition *cmp = composition_table[it->cmp_it.id];
+	      int i;
+
+	      c = ' ';
+	      for (i = 0; i < cmp->glyph_len; i++)
+		if ((c = COMPOSITION_GLYPH (cmp, i)) != '\t')
+		  break;
+	    }
+	  it->face_id = FACE_FOR_CHAR (it->f, face, c, pos, it->string);
 	}
     }
 
@@ -11049,7 +11061,7 @@ debug_method_add (w, fmt, a1, a2, a3, a4, a5, a6, a7, a8, a9)
    buffer position, END is given as a distance from Z.  Used in
    redisplay_internal for display optimization.  */
 
-static INLINE int
+static inline int
 text_outside_line_unchanged_p (struct window *w,
 			       EMACS_INT start, EMACS_INT end)
 {
@@ -11310,7 +11322,7 @@ check_point_in_composition (struct buffer *prev_buf, EMACS_INT prev_pt,
 /* Reconsider the setting of B->clip_changed which is displayed
    in window W.  */
 
-static INLINE void
+static inline void
 reconsider_clip_changes (struct window *w, struct buffer *b)
 {
   if (b->clip_changed
@@ -12871,7 +12883,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 
    We assume that the window's buffer is really current.  */
 
-static INLINE struct text_pos
+static inline struct text_pos
 run_window_scroll_functions (Lisp_Object window, struct text_pos startp)
 {
   struct window *w = XWINDOW (window);
@@ -14817,7 +14829,8 @@ try_window_reusing_current_matrix (struct window *w)
 		row->visible_height -= min_y - row->y;
 	      if (row->y + row->height > max_y)
 		row->visible_height -= row->y + row->height - max_y;
-	      row->redraw_fringe_bitmaps_p = 1;
+	      if (row->fringe_bitmap_periodic_p)
+		row->redraw_fringe_bitmaps_p = 1;
 
 	      it.current_y += row->height;
 
@@ -14979,7 +14992,8 @@ try_window_reusing_current_matrix (struct window *w)
 	    row->visible_height -= min_y - row->y;
 	  if (row->y + row->height > max_y)
 	    row->visible_height -= row->y + row->height - max_y;
-	  row->redraw_fringe_bitmaps_p = 1;
+	  if (row->fringe_bitmap_periodic_p)
+	    row->redraw_fringe_bitmaps_p = 1;
 	}
 
       /* Scroll the current matrix.  */
@@ -20403,7 +20417,7 @@ init_glyph_string (struct glyph_string *s,
 /* Append the list of glyph strings with head H and tail T to the list
    with head *HEAD and tail *TAIL.  Set *HEAD and *TAIL to the result.  */
 
-static INLINE void
+static inline void
 append_glyph_string_lists (struct glyph_string **head, struct glyph_string **tail,
 			   struct glyph_string *h, struct glyph_string *t)
 {
@@ -20423,7 +20437,7 @@ append_glyph_string_lists (struct glyph_string **head, struct glyph_string **tai
    list with head *HEAD and tail *TAIL.  Set *HEAD and *TAIL to the
    result.  */
 
-static INLINE void
+static inline void
 prepend_glyph_string_lists (struct glyph_string **head, struct glyph_string **tail,
 			    struct glyph_string *h, struct glyph_string *t)
 {
@@ -20442,7 +20456,7 @@ prepend_glyph_string_lists (struct glyph_string **head, struct glyph_string **ta
 /* Append glyph string S to the list with head *HEAD and tail *TAIL.
    Set *HEAD and *TAIL to the resulting list.  */
 
-static INLINE void
+static inline void
 append_glyph_string (struct glyph_string **head, struct glyph_string **tail,
 		     struct glyph_string *s)
 {
@@ -20457,7 +20471,7 @@ append_glyph_string (struct glyph_string **head, struct glyph_string **tail,
    Value is a pointer to a realized face that is ready for display if
    DISPLAY_P is non-zero.  */
 
-static INLINE struct face *
+static inline struct face *
 get_char_face_and_encoding (struct frame *f, int c, int face_id,
 			    XChar2b *char2b, int display_p)
 {
@@ -20490,7 +20504,7 @@ get_char_face_and_encoding (struct frame *f, int c, int face_id,
    The encoding of GLYPH->u.ch is returned in *CHAR2B.  Value is
    a pointer to a realized face that is ready for display.  */
 
-static INLINE struct face *
+static inline struct face *
 get_glyph_face_and_encoding (struct frame *f, struct glyph *glyph,
 			     XChar2b *char2b, int *two_byte_p)
 {
@@ -20527,7 +20541,7 @@ get_glyph_face_and_encoding (struct frame *f, struct glyph *glyph,
 /* Get glyph code of character C in FONT in the two-byte form CHAR2B.
    Retunr 1 if FONT has a glyph for C, otherwise return 0.  */
 
-static INLINE int
+static inline int
 get_char_glyph_code (int c, struct font *font, XChar2b *char2b)
 {
   unsigned code;
@@ -20991,7 +21005,7 @@ right_overwriting (struct glyph_string *s)
    first glyph following S.  LAST_X is the right-most x-position + 1
    in the drawing area.  */
 
-static INLINE void
+static inline void
 set_glyph_string_background_width (struct glyph_string *s, int start, int last_x)
 {
   /* If the face of this glyph string has to be drawn to the end of
@@ -21553,7 +21567,7 @@ draw_glyphs (struct window *w, int x, struct glyph_row *row,
 /* Store one glyph for IT->char_to_display in IT->glyph_row.
    Called from x_produce_glyphs when IT->glyph_row is non-null.  */
 
-static INLINE void
+static inline void
 append_glyph (struct it *it)
 {
   struct glyph *glyph;
@@ -21627,7 +21641,7 @@ append_glyph (struct it *it)
    IT->glyph_row.  Called from x_produce_glyphs when IT->glyph_row is
    non-null.  */
 
-static INLINE void
+static inline void
 append_composite_glyph (struct it *it)
 {
   struct glyph *glyph;
@@ -21696,7 +21710,7 @@ append_composite_glyph (struct it *it)
 /* Change IT->ascent and IT->height according to the setting of
    IT->voffset.  */
 
-static INLINE void
+static inline void
 take_vertical_position_into_account (struct it *it)
 {
   if (it->voffset)

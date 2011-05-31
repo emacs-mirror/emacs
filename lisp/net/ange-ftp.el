@@ -5447,7 +5447,7 @@ Other orders of $ and _ seem to all work just fine.")
 ;;				   base-versions
 ;;				   (file-name-directory fn)))
 ;;		   (versions (mapcar
-;;			      '(lambda (arg)
+;;			      (lambda (arg)
 ;;				 (if (and (string-match
 ;;					   "[0-9]+$" arg bv-length)
 ;;					  (= (match-beginning 0) bv-length))

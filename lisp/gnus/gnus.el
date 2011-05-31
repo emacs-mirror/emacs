@@ -4357,11 +4357,11 @@ current display is used."
 	  (switch-to-buffer gnus-group-buffer)
 	(funcall gnus-other-frame-function arg)
 	(add-hook 'gnus-exit-gnus-hook
-		  '(lambda nil
-		     (when (and (frame-live-p gnus-other-frame-object)
-				(cdr (frame-list)))
-		       (delete-frame gnus-other-frame-object))
-		     (setq gnus-other-frame-object nil)))))))
+		  (lambda nil
+                    (when (and (frame-live-p gnus-other-frame-object)
+                               (cdr (frame-list)))
+                      (delete-frame gnus-other-frame-object))
+                    (setq gnus-other-frame-object nil)))))))
 
 ;;;###autoload
 (defun gnus (&optional arg dont-connect slave)

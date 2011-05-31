@@ -701,6 +701,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 			       (concat "^" shell-command-separator-regexp)
 			       str) ; skip whitespace
 			      (match-end 0)))
+		(case-fold-search)
 		end cmd arg1)
 	    (while (string-match shell-command-regexp str start)
 	      (setq end (match-end 0)
@@ -1071,12 +1072,15 @@ Returns t if successful."
     (list
      start end
      (lambda (string pred action)
-       (completion-table-with-terminator
-        " " (lambda (string pred action)
-              (if (string-match "/" string)
-                  (completion-file-name-table string pred action)
-                (complete-with-action action completions string pred)))
-        string pred action)))))
+       (if (string-match "/" string)
+           (completion-file-name-table string pred action)
+         (complete-with-action action completions string pred)))
+     :exit-function
+     (lambda (_string finished)
+       (when (memq finished '(sole finished))
+         (if (looking-at " ")
+             (goto-char (match-end 0))
+           (insert " ")))))))
 
 ;; (defun shell-dynamic-complete-as-command ()
 ;;    "Dynamically complete at point as a command.
@@ -1147,18 +1151,17 @@ Returns non-nil if successful."
                                   (substring x 0 (string-match "=" x)))
                                 process-environment))
              (suffix (case (char-before start) (?\{ "}") (?\( ")") (t ""))))
-        (list
-         start end
-         (apply-partially
-          #'completion-table-with-terminator
-          (cons (lambda (comp)
-                  (concat comp
-                          suffix
-                          (if (file-directory-p
-                               (comint-directory (getenv comp)))
-                              "/")))
-                "\\`a\\`")
-          variables))))))
+        (list start end variables
+              :exit-function
+              (lambda (s finished)
+                (when (memq finished '(sole finished))
+                  (let ((suf (concat suffix
+                                     (if (file-directory-p
+                                          (comint-directory (getenv s)))
+                                         "/"))))
+                    (if (looking-at (regexp-quote suf))
+                        (goto-char (match-end 0))
+                      (insert suf))))))))))
 
 
 (defun shell-c-a-p-replace-by-expanded-directory ()

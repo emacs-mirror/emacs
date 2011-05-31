@@ -888,53 +888,48 @@ your initialization file to set it those sessions (@pxref{Init File}).
 hook is a Lisp variable which holds a list of functions, to be called
 on some well-defined occasion.  (This is called @dfn{running the
 hook}.)  The individual functions in the list are called the @dfn{hook
-functions} of the hook.  With rare exceptions, hooks in Emacs are
-empty when Emacs starts up, so the only hook functions in any given
-hook are the ones you explicitly put there as customization.
-
-  Most major modes run one or more @dfn{mode hooks} as the last step
-of initialization.  This makes it easy for you to customize the
-behavior of the mode, by setting up a hook function to override the
-local variable assignments already made by the mode.  But hooks are
-also used in other contexts.  For example, the hook
-@code{kill-emacs-hook} runs just before quitting the Emacs job
-(@pxref{Exiting}).
+functions} of the hook.  For example, the hook @code{kill-emacs-hook}
+runs just before exiting Emacs (@pxref{Exiting}).
 
 @cindex normal hook
-  Most Emacs hooks are @dfn{normal hooks}.  This means that running the
-hook operates by calling all the hook functions, unconditionally, with
-no arguments.  We have made an effort to keep most hooks normal so that
-you can use them in a uniform way.  Every variable in Emacs whose name
-ends in @samp{-hook} is a normal hook.
+  Most hooks are @dfn{normal hooks}.  This means that when Emacs runs
+the hook, it calls each hook function in turn, with no arguments.  We
+have made an effort to keep most hooks normal, so that you can use
+them in a uniform way.  Every variable whose name ends in @samp{-hook}
+is a normal hook.
 
 @cindex abnormal hook
-  There are also a few @dfn{abnormal hooks}.  These variables' names end
-in @samp{-hooks} or @samp{-functions}, instead of @samp{-hook}.  What
-makes these hooks abnormal is that there is something peculiar about the
-way its functions are called---perhaps they are given arguments, or
-perhaps the values they return are used in some way.  For example,
-@code{find-file-not-found-functions} (@pxref{Visiting}) is abnormal because
-as soon as one hook function returns a non-@code{nil} value, the rest
-are not called at all.  The documentation of each abnormal hook variable
-explains in detail what is peculiar about it.
+  A few hooks are @dfn{abnormal hooks}.  Their names end in
+@samp{-hooks} or @samp{-functions}, instead of @samp{-hook}.  What
+makes these hooks abnormal is the way its functions are
+called---perhaps they are given arguments, or perhaps the values they
+return are used in some way.  For example,
+@code{find-file-not-found-functions} is abnormal because as soon as
+one hook function returns a non-@code{nil} value, the rest are not
+called at all (@pxref{Visiting}).  The documentation of each abnormal
+hook variable explains how its functions are used.
 
 @findex add-hook
   You can set a hook variable with @code{setq} like any other Lisp
-variable, but the recommended way to add a hook function to a hook
-(either normal or abnormal) is by calling @code{add-hook}.
-@xref{Hooks,,, elisp, The Emacs Lisp Reference Manual}.
+variable, but the recommended way to add a function to a hook (either
+normal or abnormal) is to use @code{add-hook}, as shown by the
+following examples.  @xref{Hooks,,, elisp, The Emacs Lisp Reference
+Manual}, for details.
 
-  For example, here's how to set up a hook to turn on Auto Fill mode
-when entering Text mode and other modes based on Text mode:
+  Most major modes run one or more @dfn{mode hooks} as the last step
+of initialization.  Mode hooks are a convenient way to customize the
+behavior of individual modes; they are always normal.  For example,
+here's how to set up a hook to turn on Auto Fill mode when entering
+Text mode and other modes based on Text mode:
 
 @example
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
 @end example
 
-  The next example shows how to use a hook to customize the indentation
-of C code.  (People often have strong personal preferences for one
-format compared to another.)  Here the hook function is an anonymous
-lambda expression.
+  Here is another example, showing how to use a hook to customize the
+indentation of C code.  The hook function uses an anonymous lambda
+expression (@pxref{Lambda Expressions,,, elisp, The Emacs Lisp
+Reference Manual}).
 
 @example
 @group
@@ -944,24 +939,32 @@ lambda expression.
 @group
     (c-cleanup-list . (scope-operator
                        empty-defun-braces
-                       defun-close-semi))
-@end group
-@group
-    (c-offsets-alist . ((arglist-close . c-lineup-arglist)
-                        (substatement-open . 0)))))
+                       defun-close-semi))))
 @end group
 
 @group
 (add-hook 'c-mode-common-hook
-  '(lambda ()
-     (c-add-style "my-style" my-c-style t)))
+  (lambda () (c-add-style "my-style" my-c-style t)))
 @end group
 @end example
 
+@cindex Prog mode
+@cindex program editing
+  Major mode hooks also apply to other major modes @dfn{derived} from
+the original mode (@pxref{Derived Modes,,, elisp, The Emacs Lisp
+Reference Manual}).  For instance, HTML mode (@pxref{HTML Mode})
+inherits from Text mode; when HTML mode is enabled, it runs
+@code{text-mode-hook} before running @code{html-mode-hook}.  This
+provides a convenient way to use a single hook to affect several
+related modes.  In particular, if you want to apply a hook function to
+any programming language mode, add it to @code{prog-mode-hook}; Prog
+mode is a major mode that does little else than to let other major
+modes inherit from it, exactly for this purpose.
+
   It is best to design your hook functions so that the order in which
 they are executed does not matter.  Any dependence on the order is
-``asking for trouble.''  However, the order is predictable: the most
-recently added hook functions are executed first.
+asking for trouble.  However, the order is predictable: the hook
+functions are executed in the order they appear in the hook.
 
 @findex remove-hook
   If you play with adding various different versions of a hook
@@ -1130,7 +1133,10 @@ the file is divided into pages.
 
   If a file has both a local variables list and a @samp{-*-} line,
 Emacs processes @emph{everything} in the @samp{-*-} line first, and
-@emph{everything} in the local variables list afterward.
+@emph{everything} in the local variables list afterward.  The exception
+to this is a major mode specification.  Emacs applies this first,
+wherever it appears, since most major modes kill all local variables as
+part of their initialization.
 
   A local variables list starts with a line containing the string
 @samp{Local Variables:}, and ends with a line containing the string
@@ -1204,11 +1210,6 @@ value is @code{t}.  @xref{Enabling Multibyte}.
 @noindent
 These four ``variables'' are not really variables; setting them in any
 other context has no special meaning.
-
-  @emph{If @code{mode} is used to set a major mode, it should be the
-first ``variable'' in the list.}  Otherwise, the entries that precede
-it will usually have no effect, since most major modes kill all local
-variables as part of their initialization.
 
   You can use the @code{mode} ``variable'' to enable minor modes as
 well as the major modes; in fact, you can use it more than once, first

@@ -81,7 +81,7 @@
 
 ;; Do it after subr, since both after-load-functions and add-hook are
 ;; implemented in subr.el.
-(add-hook 'after-load-functions '(lambda (f) (garbage-collect)))
+(add-hook 'after-load-functions (lambda (f) (garbage-collect)))
 
 ;; We specify .el in case someone compiled version.el by mistake.
 (load "version.el")
@@ -304,7 +304,7 @@
 	(equal (nth 4 command-line-args) "bootstrap"))
     (setcdr load-path nil))
 
-(remove-hook 'after-load-functions '(lambda (f) (garbage-collect)))
+(remove-hook 'after-load-functions (lambda (f) (garbage-collect)))
 
 (setq inhibit-load-charset-map nil)
 (clear-charset-maps)

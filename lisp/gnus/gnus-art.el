@@ -5048,7 +5048,7 @@ Deleting parts may malfunction or destroy the article; continue? "))
 	    (let ((desc (mm-handle-description data)))
 	      (when desc
 		(mail-decode-encoded-word-string desc))))
-	   (filename (or (mm-handle-filename (mm-handle-disposition data)) "(none)"))
+	   (filename (or (mm-handle-filename data) "(none)"))
 	   (type (mm-handle-media-type data)))
       (unless data
 	(error "No MIME part under point"))

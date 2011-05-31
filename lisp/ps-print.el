@@ -975,7 +975,7 @@ Please send all bug fixes and enhancements to
 ;;	(setq ps-font-info-database '(<your stuff> <the standard stuff>))
 ;;   or, use `ps-print-hook' (see section Hooks):
 ;;	(add-hook 'ps-print-hook
-;;		  '(lambda ()
+;;		  (lambda ()
 ;;		     (or (assq 'Helvetica ps-font-info-database)
 ;;			 (setq ps-font-info-database (append ...)))))
 ;;

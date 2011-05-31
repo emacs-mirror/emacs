@@ -55,8 +55,8 @@ CODING SYSTEM
   character sequence of emacs-utf-8 to a byte sequence of a specific
   coding system.
 
-  In Emacs Lisp, a coding system is represented by a Lisp symbol.  In
-  C level, a coding system is represented by a vector of attributes
+  In Emacs Lisp, a coding system is represented by a Lisp symbol.  On
+  the C level, a coding system is represented by a vector of attributes
   stored in the hash table Vcharset_hash_table.  The conversion from
   coding system symbol to attributes vector is done by looking up
   Vcharset_hash_table by the symbol.
@@ -864,21 +864,21 @@ static void decode_eol (struct coding_system *);
 static Lisp_Object get_translation_table (Lisp_Object, int, int *);
 static Lisp_Object get_translation (Lisp_Object, int *, int *);
 static int produce_chars (struct coding_system *, Lisp_Object, int);
-static INLINE void produce_charset (struct coding_system *, int *,
+static inline void produce_charset (struct coding_system *, int *,
                                     EMACS_INT);
 static void produce_annotation (struct coding_system *, EMACS_INT);
 static int decode_coding (struct coding_system *);
-static INLINE int *handle_composition_annotation (EMACS_INT, EMACS_INT,
+static inline int *handle_composition_annotation (EMACS_INT, EMACS_INT,
                                                   struct coding_system *,
                                                   int *, EMACS_INT *);
-static INLINE int *handle_charset_annotation (EMACS_INT, EMACS_INT,
+static inline int *handle_charset_annotation (EMACS_INT, EMACS_INT,
                                               struct coding_system *,
                                               int *, EMACS_INT *);
 static void consume_chars (struct coding_system *, Lisp_Object, int);
 static int encode_coding (struct coding_system *);
 static Lisp_Object make_conversion_work_buffer (int);
 static Lisp_Object code_conversion_restore (Lisp_Object);
-static INLINE int char_encodable_p (int, Lisp_Object);
+static inline int char_encodable_p (int, Lisp_Object);
 static Lisp_Object make_subsidiaries (Lisp_Object);
 
 static void
@@ -6829,7 +6829,7 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
      [ -LENGTH ANNOTATION_MASK NCHARS NBYTES METHOD [ COMPONENTS... ] ]
  */
 
-static INLINE void
+static inline void
 produce_composition (struct coding_system *coding, int *charbuf, EMACS_INT pos)
 {
   int len;
@@ -6873,7 +6873,7 @@ produce_composition (struct coding_system *coding, int *charbuf, EMACS_INT pos)
      [ -LENGTH ANNOTATION_MASK NCHARS CHARSET-ID ]
  */
 
-static INLINE void
+static inline void
 produce_charset (struct coding_system *coding, int *charbuf, EMACS_INT pos)
 {
   EMACS_INT from = pos - charbuf[2];
@@ -7101,7 +7101,7 @@ decode_coding (struct coding_system *coding)
    position of a composition after POS (if any) or to LIMIT, and
    return BUF.  */
 
-static INLINE int *
+static inline int *
 handle_composition_annotation (EMACS_INT pos, EMACS_INT limit,
 			       struct coding_system *coding, int *buf,
 			       EMACS_INT *stop)
@@ -7184,7 +7184,7 @@ handle_composition_annotation (EMACS_INT pos, EMACS_INT limit,
    If the property value is nil, set *STOP to the position where the
    property value is non-nil (limiting by LIMIT), and return BUF.  */
 
-static INLINE int *
+static inline int *
 handle_charset_annotation (EMACS_INT pos, EMACS_INT limit,
 			   struct coding_system *coding, int *buf,
 			   EMACS_INT *stop)
@@ -8435,7 +8435,7 @@ highest priority.  */)
 }
 
 
-static INLINE int
+static inline int
 char_encodable_p (int c, Lisp_Object attrs)
 {
   Lisp_Object tail;

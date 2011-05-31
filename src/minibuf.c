@@ -43,7 +43,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Vminibuffer_list;
 
-/* Data to remember during recursive minibuffer invocations  */
+/* Data to remember during recursive minibuffer invocations.  */
 
 static Lisp_Object minibuf_save_list;
 
@@ -55,7 +55,7 @@ int minibuf_level;
 
 static Lisp_Object Qhistory_length;
 
-/* Fread_minibuffer leaves the input here as a string. */
+/* Fread_minibuffer leaves the input here as a string.  */
 
 Lisp_Object last_minibuf_string;
 
@@ -596,7 +596,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
   /* Empty out the minibuffers of all frames other than the one
      where we are going to display one now.
      Set them to point to ` *Minibuf-0*', which is always empty.  */
-  empty_minibuf = Fget_buffer (build_string (" *Minibuf-0*"));
+  empty_minibuf = get_minibuffer (0);
 
   FOR_EACH_FRAME (dummy, frame)
     {
@@ -1145,8 +1145,8 @@ function, instead of the usual behavior.  */)
 	}
 
       result = Fcompleting_read (prompt, intern ("internal-complete-buffer"),
-				 Qnil, require_match, Qnil, Qbuffer_name_history,
-				 def, Qnil);
+				 Qnil, require_match, Qnil,
+				 Qbuffer_name_history, def, Qnil);
     }
   else
     {
@@ -1886,6 +1886,9 @@ the values STRING, PREDICATE and `lambda'.  */)
     return Qt;
 }
 
+Lisp_Object Qmetadata;
+extern Lisp_Object Qbuffer;
+
 DEFUN ("internal-complete-buffer", Finternal_complete_buffer, Sinternal_complete_buffer, 3, 3, 0,
        doc: /* Perform completion on buffer names.
 If the argument FLAG is nil, invoke `try-completion', if it's t, invoke
@@ -1920,8 +1923,12 @@ The arguments STRING and PREDICATE are as in `try-completion',
 	  return res;
 	}
     }
-  else				/* assume `lambda' */
+  else if (EQ (flag, Qlambda))
     return Ftest_completion (string, Vbuffer_alist, predicate);
+  else if (EQ (flag, Qmetadata))
+    return Fcons (Qmetadata, Fcons (Fcons (Qcategory, Qbuffer), Qnil));
+  else
+    return Qnil;
 }
 
 /* Like assoc but assumes KEY is a string, and ignores case if appropriate.  */
@@ -1997,66 +2004,38 @@ syms_of_minibuf (void)
   minibuf_save_list = Qnil;
   staticpro (&minibuf_save_list);
 
-  Qcompleting_read_default = intern_c_string ("completing-read-default");
-  staticpro (&Qcompleting_read_default);
-
-  Qcompletion_ignore_case = intern_c_string ("completion-ignore-case");
-  staticpro (&Qcompletion_ignore_case);
-
-  Qread_file_name_internal = intern_c_string ("read-file-name-internal");
-  staticpro (&Qread_file_name_internal);
-
-  Qminibuffer_default = intern_c_string ("minibuffer-default");
-  staticpro (&Qminibuffer_default);
+  DEFSYM (Qcompleting_read_default, "completing-read-default");
+  DEFSYM (Qcompletion_ignore_case, "completion-ignore-case");
+  DEFSYM (Qread_file_name_internal, "read-file-name-internal");
+  DEFSYM (Qminibuffer_default, "minibuffer-default");
   Fset (Qminibuffer_default, Qnil);
 
-  Qminibuffer_completion_table = intern_c_string ("minibuffer-completion-table");
-  staticpro (&Qminibuffer_completion_table);
-
-  Qminibuffer_completion_confirm = intern_c_string ("minibuffer-completion-confirm");
-  staticpro (&Qminibuffer_completion_confirm);
-
-  Qminibuffer_completion_predicate = intern_c_string ("minibuffer-completion-predicate");
-  staticpro (&Qminibuffer_completion_predicate);
+  DEFSYM (Qminibuffer_completion_table, "minibuffer-completion-table");
+  DEFSYM (Qminibuffer_completion_confirm, "minibuffer-completion-confirm");
+  DEFSYM (Qminibuffer_completion_predicate, "minibuffer-completion-predicate");
 
   staticpro (&last_minibuf_string);
   last_minibuf_string = Qnil;
 
-  Quser_variable_p = intern_c_string ("user-variable-p");
-  staticpro (&Quser_variable_p);
-
-  Qminibuffer_history = intern_c_string ("minibuffer-history");
-  staticpro (&Qminibuffer_history);
-
-  Qbuffer_name_history = intern_c_string ("buffer-name-history");
-  staticpro (&Qbuffer_name_history);
+  DEFSYM (Quser_variable_p, "user-variable-p");
+  DEFSYM (Qminibuffer_history, "minibuffer-history");
+  DEFSYM (Qbuffer_name_history, "buffer-name-history");
   Fset (Qbuffer_name_history, Qnil);
 
-  Qminibuffer_setup_hook = intern_c_string ("minibuffer-setup-hook");
-  staticpro (&Qminibuffer_setup_hook);
-
-  Qminibuffer_exit_hook = intern_c_string ("minibuffer-exit-hook");
-  staticpro (&Qminibuffer_exit_hook);
-
-  Qhistory_length = intern_c_string ("history-length");
-  staticpro (&Qhistory_length);
-
-  Qcurrent_input_method = intern_c_string ("current-input-method");
-  staticpro (&Qcurrent_input_method);
-
-  Qactivate_input_method = intern_c_string ("activate-input-method");
-  staticpro (&Qactivate_input_method);
-
-  Qcase_fold_search = intern_c_string ("case-fold-search");
-  staticpro (&Qcase_fold_search);
+  DEFSYM (Qminibuffer_setup_hook, "minibuffer-setup-hook");
+  DEFSYM (Qminibuffer_exit_hook, "minibuffer-exit-hook");
+  DEFSYM (Qhistory_length, "history-length");
+  DEFSYM (Qcurrent_input_method, "current-input-method");
+  DEFSYM (Qactivate_input_method, "activate-input-method");
+  DEFSYM (Qcase_fold_search, "case-fold-search");
+  DEFSYM (Qmetadata, "metadata");
 
   DEFVAR_LISP ("read-expression-history", Vread_expression_history,
 	       doc: /* A history list for arguments that are Lisp expressions to evaluate.
 For example, `eval-expression' uses this.  */);
   Vread_expression_history = Qnil;
 
-  Qread_expression_history = intern_c_string ("read-expression-history");
-  staticpro (&Qread_expression_history);
+  DEFSYM (Qread_expression_history, "read-expression-history");
 
   DEFVAR_LISP ("read-buffer-function", Vread_buffer_function,
 	       doc: /* If this is non-nil, `read-buffer' does its work by calling this function.

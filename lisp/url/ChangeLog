@@ -1,3 +1,8 @@
+2011-05-29  Leo Liu  <sdl.web@gmail.com>
+
+	* url-cookie.el (url-cookie): Add option :named so that
+	url-cookie-p is defined.  (Bug#8747)
+
 2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* url-queue.el: New file.

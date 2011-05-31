@@ -1,3 +1,74 @@
+2011-05-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use 'inline', not 'INLINE'.
+	* configure.in (INLINE): Remove.
+
+2011-05-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Adjust to recent gnulib change for @GUARD_PREFIX@.
+	* lib/makefile.w32-in (getopt_h): Substitute @GUARD_PREFIX@, too.
+	All uses of _GL_ for guard prefixes in lib/*.h replaced with
+	_@GUARD_PREFIX@_.
+
+2011-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* doc/misc/texinfo.tex, lib/getopt.c, lib/intprops.h: Merge from gnulib.
+
+2011-05-24  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (check): Just give a message if no test/ directory.
+
+	* configure.in: Avoid using variables inside AC_CONFIG_FILES.
+
+	* configure.in (OPT_MAKEFILES_IN): Remove.
+	(SUBDIR_MAKEFILES): New variable, passed to AC_CONFIG_FILES.
+	(SUBDIR_MAKEFILES_IN): New output variable.
+	* Makefile.in (OPT_MAKEFILES_IN): Remove.
+	(SUBDIR_MAKEFILES_IN): Let configure set it.
+
+2011-05-24  Leo Liu  <sdl.web@gmail.com>
+
+	* m4/sha1.m4:
+	* m4/gl-comp.m4:
+	* lib/sha1.h:
+	* lib/sha1.c:
+	* lib/makefile.w32-in (GNULIBOBJS):
+	* lib/gnulib.mk:
+	* Makefile.in (GNULIB_MODULES): Add crypto/sha1 module.
+
+2011-05-24  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Remove test for already configured source directory.
+	AM_INIT_AUTOMAKE has already done a more stringent test.  (Bug#953)
+
+	* Makefile.in (TAGS, tags, check): Pass MFLAGS to sub-makes.
+
+2011-05-24  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Don't distribute test/.  (Bug#8107)
+	* configure.in (OPT_MAKEFILES_IN): New output variable.
+	(AC_CONFIG_FILES): Conditionally include test/automated/Makefile.
+	* Makefile.in (OPT_MAKEFILES_IN): New, set by configure.
+	(SUBDIR_MAKEFILES_IN): Use $OPT_MAKEFILES_IN.
+	(check): Give an explicit error if test/ is not present.
+
+	* Makefile.in (SUBDIR_MAKEFILES_IN): New variable.
+	(SUBDIR_MAKEFILES): Derive from $SUBDIR_MAKEFILES_IN.
+	(Makefile): Use $SUBDIR_MAKEFILES_IN.
+
+2011-05-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/verify.h: Merge from gnulib.
+
+2011-05-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/intprops.h, lib/stdint.in.h, m4/mktime.m4, m4/readlink.m4:
+	Merge from gnulib.
+
+2011-05-21  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (AUTOMAKE_INPUTS): Add $(srcdir)/lib/gnulib.mk.
+
 2011-05-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* .bzrignore: Add lib/stdio.in-h, lib/stdbool.h, and lib/stdint.h.

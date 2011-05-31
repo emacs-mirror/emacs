@@ -2806,9 +2806,9 @@ construct each part with @code{propertize} and then combine them with
 @end smallexample
 @end defun
 
-  See also the function @code{buffer-substring-no-properties}
-(@pxref{Buffer Contents}) which copies text from the buffer
-but does not copy its properties.
+  @xref{Buffer Contents}, for the function
+@code{buffer-substring-no-properties}, which copies text from the
+buffer but does not copy its properties.
 
 @node Property Search
 @subsection Text Property Search Functions
@@ -2992,13 +2992,6 @@ face attribute name and @var{value} is a meaningful value for that
 attribute.  With this feature, you do not need to create a face each
 time you want to specify a particular attribute for certain text.
 @xref{Face Attributes}.
-
-@item
-A cons cell with the form @code{(foreground-color . @var{color-name})}
-or @code{(background-color . @var{color-name})}.  These are old,
-deprecated equivalents for @code{(:foreground @var{color-name})} and
-@code{(:background @var{color-name})}.  Please convert code that uses
-them.
 @end itemize
 
 It works to use the latter two forms directly as the value
