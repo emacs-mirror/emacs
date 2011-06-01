@@ -1,5 +1,11 @@
 2011-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (minibuffer-inactive-mode-map): New var.
+	(minibuffer-inactive-mode): New major mode.
+	* mouse.el (mouse-drag-region): Remove the "mouse-1 pops up
+	the *Messages* buffer" hack.
+	(mouse-popup-menubar): Don't burp if the event is a normal key.
+
 	Miscellaneous tweaks.
 	* emacs-lisp/cl-macs.el (dolist, dotimes): Use the same strategy for
 	lexical scoping as in subr.el's dolist and dotimes.

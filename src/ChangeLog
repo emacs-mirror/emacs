@@ -1,3 +1,8 @@
+2011-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (get_minibuffer, read_minibuf_unwind):
+	Call minibuffer-inactive-mode.
+
 2011-05-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/data.$(O), $(BLD)/editfns.$(O)):
@@ -181,7 +186,7 @@
 
 	merge count_size_as_multibyte, parse_str_to_multibyte
 	* character.c, character.h (count_size_as_multibyte):
-	Renamed from parse_str_to_multibyte; all uses changed.
+	Rename from parse_str_to_multibyte; all uses changed.
 	Check for integer overflow.
 	* insdel.c, lisp.h (count_size_as_multibyte): Remove,
 	since it's now a duplicate of the other.  This is more of
