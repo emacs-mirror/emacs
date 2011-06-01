@@ -15,6 +15,10 @@
 	* gnus-sum.el (gnus-summary-exit): Make sure to kill article buffer in
 	ephemeral group.
 
+2011-05-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-browse-image): Copy the URL if called interactively.
+
 2011-05-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-group.el (gnus-group-mark-article-read): It's possible that we
