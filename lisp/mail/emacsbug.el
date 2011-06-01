@@ -345,7 +345,7 @@ usually do not have translators to read other languages for them.\n\n")
          (error "No text entered in bug report"))
     (or report-emacs-bug-no-confirmation
 	;; mailclient.el does not handle From (at present).
-	(if (eq major-mode 'message-mode)
+	(if (derived-mode-p 'message-mode)
 	    (eq message-send-mail-function 'message-send-mail-with-mailclient)
 	  (eq send-mail-function 'mailclient-send-it))
 	;; Not narrowing to the headers, but that's OK.
