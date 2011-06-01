@@ -1,5 +1,33 @@
 2011-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Silence various byte-compiler warnings.
+	* emacs-lisp/byte-run.el (make-obsolete-variable): New argument
+	`access-type' and new obsolescence format.
+	* emacs-lisp/bytecomp.el (byte-compile-warn-obsolete): Adjust to
+	new format.
+	(byte-compile-check-variable): New `access-type' argument.
+	Only warn if the access-type is obsolete.
+	(byte-compile-dynamic-variable-bind, byte-compile-variable-ref)
+	(byte-compile-variable-set): Adjust callers.
+	* help-fns.el (describe-variable): Adjust to new obsolescence format.
+	* mail/sendmail.el (mail-mailer-swallows-blank-line): Only mark
+	setting it as obsolete.
+	* simple.el (minibuffer-completing-symbol):
+	* font-lock.el (font-lock-beginning-of-syntax-function): Only mark read
+	access as obsolete.
+	* minibuffer.el (minibuffer-completing-file-name): Don't make it
+	obsolete yet.
+	* international/quail.el (quail-mouse-choose-completion): Remove unused
+	code referring to obsolete var.
+	(quail-choose-completion-string): Remove.
+	* server.el (server-clients-with, server-kill-buffer-query-function)
+	(server-kill-emacs-query-function): Silence "unused `proc'" warnings.
+	* proced.el (proced-send-signal):
+	* emacs-lisp/lisp.el (lisp-complete-symbol):
+	Replace completion-annotate-function with completion-extra-properties.
+
+2011-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* simple.el (goto-line): Use read-number.
 	(overriding-map-is-bound): Remove.
 	(saved-overriding-map): Change default.

@@ -235,9 +235,10 @@ If local sockets are not supported, this is nil.")
 (defun server-clients-with (property value)
   "Return a list of clients with PROPERTY set to VALUE."
   (let (result)
-    (dolist (proc server-clients result)
+    (dolist (proc server-clients)
       (when (equal value (process-get proc property))
-	(push proc result)))))
+	(push proc result)))
+    result))
 
 (defun server-add-client (proc)
   "Create a client for process PROC, if it doesn't already have one.
@@ -1322,10 +1323,11 @@ specifically for the clients and did not exist before their request for it."
   "Ask before killing a server buffer."
   (or (not server-buffer-clients)
       (let ((res t))
-	(dolist (proc server-buffer-clients res)
+	(dolist (proc server-buffer-clients)
           (when (and (memq proc server-clients)
                      (eq (process-status proc) 'open))
-            (setq res nil))))
+            (setq res nil)))
+         res)
       (yes-or-no-p (format "Buffer `%s' still has clients; kill it? "
 			   (buffer-name (current-buffer))))))
 
@@ -1333,10 +1335,11 @@ specifically for the clients and did not exist before their request for it."
   "Ask before exiting Emacs if it has live clients."
   (or (not server-clients)
       (let (live-client)
-	(dolist (proc server-clients live-client)
+	(dolist (proc server-clients)
 	  (when (memq t (mapcar 'buffer-live-p (process-get
 						proc 'buffers)))
-	    (setq live-client t))))
+	    (setq live-client t)))
+        live-client)
       (yes-or-no-p "This Emacs session has clients; exit anyway? ")))
 
 (defun server-kill-buffer ()

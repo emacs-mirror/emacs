@@ -1156,7 +1156,7 @@ in *Help* buffer.  See also the command `describe-char'."
 
 (defvar minibuffer-completing-symbol nil
   "Non-nil means completing a Lisp symbol in the minibuffer.")
-(make-obsolete-variable 'minibuffer-completing-symbol nil "24.1")
+(make-obsolete-variable 'minibuffer-completing-symbol nil "24.1" 'get)
 
 (defvar minibuffer-default nil
   "The current default value or list of default values in the minibuffer.

@@ -1735,8 +1735,9 @@ After sending the signal, this command runs the normal hook
                    (pnum (if (= 1 (length process-alist))
                              "1 process"
                            (format "%d processes" (length process-alist))))
-                   (completion-annotate-function
-                    (lambda (s) (cdr (assoc s proced-signal-list)))))
+                   (completion-extra-properties
+                    '(:annotation-function
+                      (lambda (s) (cdr (assoc s proced-signal-list))))))
               (setq signal
                     (completing-read (concat "Send signal [" pnum
                                              "] (default TERM): ")

@@ -805,7 +805,8 @@ it is displayed along with the global value."
               (when obsolete
                 (setq extra-line t)
                 (princ "  This variable is obsolete")
-                (if (cdr obsolete) (princ (format " since %s" (cdr obsolete))))
+                (if (nth 2 obsolete)
+                    (princ (format " since %s" (nth 2 obsolete))))
 		(princ (cond ((stringp use) (concat ";\n  " use))
 			     (use (format ";\n  use `%s' instead." (car obsolete)))
 			     (t ".")))

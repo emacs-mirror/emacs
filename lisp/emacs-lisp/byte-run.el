@@ -153,24 +153,21 @@ See the docstrings of `defalias' and `make-obsolete' for more details."
  'define-obsolete-function-alias
  '(obsolete-name current-name when &optional docstring) "23.1")
 
-(defun make-obsolete-variable (obsolete-name current-name &optional when)
+(defun make-obsolete-variable (obsolete-name current-name &optional when access-type)
   "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
 The warning will say that CURRENT-NAME should be used instead.
 If CURRENT-NAME is a string, that is the `use instead' message.
-If provided, WHEN should be a string indicating when the variable
-was first made obsolete, for example a date or a release number."
-  (interactive
-   (list
-    (let ((str (completing-read "Make variable obsolete: " obarray 'boundp t)))
-      (if (equal str "") (error ""))
-      (intern str))
-    (car (read-from-string (read-string "Obsoletion replacement: ")))))
+WHEN should be a string indicating when the variable
+was first made obsolete, for example a date or a release number.
+ACCESS-TYPE if non-nil should specify the kind of access that will trigger
+  obsolescence warnings; it can be either `get' or `set'."
   (put obsolete-name 'byte-obsolete-variable
-       (purecopy (cons current-name when)))
+       (purecopy (list current-name access-type when)))
   obsolete-name)
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.
- 'make-obsolete-variable '(obsolete-name current-name when) "23.1")
+ 'make-obsolete-variable
+ '(obsolete-name current-name when &optional access-type) "23.1")
 
 (defmacro define-obsolete-variable-alias (obsolete-name current-name
 						 &optional when docstring)

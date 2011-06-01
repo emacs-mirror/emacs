@@ -563,7 +563,7 @@ we recommend setting `syntax-begin-function' instead.
 
 This is normally set via `font-lock-defaults'.")
 (make-obsolete-variable 'font-lock-beginning-of-syntax-function
-                        'syntax-begin-function "23.3")
+                        'syntax-begin-function "23.3" 'set)
 
 (defvar font-lock-mark-block-function nil
   "*Non-nil means use this function to mark a block of text.
