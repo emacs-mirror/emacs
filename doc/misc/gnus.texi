@@ -26094,10 +26094,10 @@ their @code{:char} property, or showing the marks as full strings.
 @lisp
 ;; show the marks as single characters (see the :char property in
 ;; `gnus-registry-marks'):
-;; (defalias 'gnus-user-format-function-M 'gnus-registry-user-format-function-M)
+;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-chars)
 
 ;; show the marks by name (see `gnus-registry-marks'):
-;; (defalias 'gnus-user-format-function-M 'gnus-registry-user-format-function-M2)
+;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-names)
 @end lisp
 
 

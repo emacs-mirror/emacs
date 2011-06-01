@@ -1278,16 +1278,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
 #define AMPERSAND_FULL_NAME
 
-/* If using GNU, then support inline function declarations.  */
-/* Don't try to switch on inline handling as detected by AC_C_INLINE
-   generally, because even if non-gcc compilers accept `inline', they
-   may reject `extern inline'.  */
-#if defined (__GNUC__)
-#define INLINE __inline__
-#else
-#define INLINE
-#endif
-
 /* `subprocesses' should be defined if you want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).

@@ -183,14 +183,23 @@ redirects somewhere else."
 	(message "No image under point")
       (message "%s" text))))
 
-(defun shr-browse-image ()
-  "Browse the image under point."
-  (interactive)
+(defun shr-browse-image (&optional copy-url)
+  "Browse the image under point.
+If COPY-URL (the prefix if called interactively) is non-nil, copy
+the URL of the image to the kill buffer instead."
+  (interactive "P")
   (let ((url (get-text-property (point) 'image-url)))
-    (if (not url)
-	(message "No image under point")
+    (cond
+     ((not url)
+      (message "No image under point"))
+     (copy-url
+      (with-temp-buffer
+	(insert url)
+	(copy-region-as-kill (point-min) (point-max))
+	(message "Copied %s" url)))
+     (t
       (message "Browsing %s..." url)
-      (browse-url url))))
+      (browse-url url)))))
 
 (defun shr-insert-image ()
   "Insert the image under point into the buffer."
@@ -524,8 +533,9 @@ redirects somewhere else."
 (defun shr-rescale-image (data)
   (if (or (not (fboundp 'imagemagick-types))
 	  (not (get-buffer-window (current-buffer))))
-      (create-image data nil t)
-    (let* ((image (create-image data nil t))
+      (create-image data nil t
+		    :ascent 100)
+    (let* ((image (create-image data nil t :ascent 100))
 	   (size (image-size image t))
 	   (width (car size))
 	   (height (cdr size))
@@ -544,11 +554,13 @@ redirects somewhere else."
       (when (> (car size) window-width)
 	(setq image (or
 		     (create-image data 'imagemagick t
-				   :width window-width)
+				   :width window-width
+				   :ascent 100)
 		     image)))
       (when (and (fboundp 'create-animated-image)
 		 (eq (image-type data nil t) 'gif))
-	(setq image (create-animated-image data 'gif t)))
+	(setq image (create-animated-image data 'gif t
+					   :ascent 100)))
       image)))
 
 ;; url-cache-extract autoloads url-cache.

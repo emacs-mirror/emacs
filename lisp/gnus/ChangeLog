@@ -1,3 +1,24 @@
+2011-05-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-rescale-image): Add an :ascent of 100 to images so that
+	the underline comes at the bottom.
+
+2011-05-31  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-article-marks-to-chars): Rename from
+	`gnus-registry-user-format-function-M' and declare the latter obsolete.
+	(gnus-registry-article-marks-to-names): Rename from
+	`gnus-registry-user-format-function-M2'.
+
+2011-05-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-exit): Make sure to kill article buffer in
+	ephemeral group.
+
+2011-05-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-browse-image): Copy the URL if called interactively.
+
 2011-05-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-group.el (gnus-group-mark-article-read): It's possible that we
