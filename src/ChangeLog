@@ -1,3 +1,8 @@
+2011-06-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* fringe.c (update_window_fringes): Don't update overlay arrow bitmap
+	in the current matrix if keep_current_p is non-zero.
+
 2011-05-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* dispextern.h (struct glyph_row): New member fringe_bitmap_periodic_p.
