@@ -544,7 +544,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 	Lisp_Object val;				\
 	val = CHAR_TABLE_REF (Vchar_unify_table, c);	\
 	if (INTEGERP (val))				\
-	  c = XINT (val);				\
+	  c = XFASTINT (val);				\
 	else if (! NILP (val))				\
 	  c = maybe_unify_char (c, val);		\
       }							\
