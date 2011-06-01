@@ -1,3 +1,10 @@
+2011-06-01  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-decode-coding-system): Revert last change;
+	improve doc-string as suggested by Marco Pessotto
+	<melmothx@gmail.com>.
+	(rcirc-print): Fix last change.
+
 2011-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (complete-with-action): Return nil for the metadata and
