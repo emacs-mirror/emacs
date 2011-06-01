@@ -1,3 +1,19 @@
+2011-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Miscellaneous tweaks.
+	* emacs-lisp/cl-macs.el (dolist, dotimes): Use the same strategy for
+	lexical scoping as in subr.el's dolist and dotimes.
+	* emacs-lisp/bytecomp.el (byte-compile-unfold-bcf):
+	Silence compiler warning.
+	* thingatpt.el (forward-whitespace): Trivial coding style fix.
+	* subr.el (with-output-to-temp-buffer): Provide an edebug spec.
+	* international/ccl.el (ccl-compile): Trivial simplification.
+	* help-fns.el (help-do-arg-highlight): Silence compiler warning.
+	* emacs-lisp/testcover.el (testcover-end): Remove spurious
+	`printflag' argument.
+	* emacs-lisp/byte-run.el (make-obsolete, make-obsolete-variable):
+	Purecopy the whole obsolescence data.
+
 2011-06-01  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-decode-coding-system): Revert last change;

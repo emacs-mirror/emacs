@@ -222,7 +222,7 @@ if the variable `help-downcase-arguments' is non-nil."
 (defun help-do-arg-highlight (doc args)
   (with-syntax-table (make-syntax-table emacs-lisp-mode-syntax-table)
     (modify-syntax-entry ?\- "w")
-    (dolist (arg args doc)
+    (dolist (arg args)
       (setq doc (replace-regexp-in-string
                  ;; This is heuristic, but covers all common cases
                  ;; except ARG1-ARG2
@@ -236,7 +236,8 @@ if the variable `help-downcase-arguments' is non-nil."
                          "\\(?:-[{([<`\"].*?\\)?"; for ARG-{x}, (x), <x>, [x], `x'
                          "\\>")                  ; end of word
                  (help-highlight-arg arg)
-                 doc t t 1)))))
+                 doc t t 1)))
+    doc))
 
 (defun help-highlight-arguments (usage doc &rest args)
   (when (and usage (string-match "^(" usage))

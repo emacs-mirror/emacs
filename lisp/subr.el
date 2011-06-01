@@ -2926,6 +2926,7 @@ with the buffer BUFNAME temporarily current.  It runs the hook
 buffer temporarily current, and the window that was used to display it
 temporarily selected.  But it doesn't run `temp-buffer-show-hook'
 if it uses `temp-buffer-show-function'."
+  (declare (debug t))
   (let ((old-dir (make-symbol "old-dir"))
         (buf (make-symbol "buf")))
     `(let* ((,old-dir default-directory)

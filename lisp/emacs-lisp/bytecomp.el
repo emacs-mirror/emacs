@@ -2991,7 +2991,7 @@ That command is designed for interactive use only" fn))
     (cond
      ((<= (+ alen alen) fmax2)
       ;; Add missing &optional (or &rest) arguments.
-      (dotimes (i (- (/ (1+ fmax2) 2) alen))
+      (dotimes (_ (- (/ (1+ fmax2) 2) alen))
         (byte-compile-push-constant nil)))
      ((zerop (logand fmax2 1))
       (byte-compile-log-warning "Too many arguments for inlined function"

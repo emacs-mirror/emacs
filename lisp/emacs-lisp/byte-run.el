@@ -120,13 +120,13 @@ convention was modified."
 The warning will say that CURRENT-NAME should be used instead.
 If CURRENT-NAME is a string, that is the `use instead' message
 \(it should end with a period, and not start with a capital).
-If provided, WHEN should be a string indicating when the function
+WHEN should be a string indicating when the function
 was first made obsolete, for example a date or a release number."
   (interactive "aMake function obsolete: \nxObsoletion replacement: ")
   (put obsolete-name 'byte-obsolete-info
        ;; The second entry used to hold the `byte-compile' handler, but
        ;; is not used any more nowadays.
-       (list (purecopy current-name) nil (purecopy when)))
+       (purecopy (list current-name nil when)))
   obsolete-name)
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.
@@ -166,10 +166,7 @@ was first made obsolete, for example a date or a release number."
       (intern str))
     (car (read-from-string (read-string "Obsoletion replacement: ")))))
   (put obsolete-name 'byte-obsolete-variable
-       (cons
-	(if (stringp current-name)
-	    (purecopy current-name)
-	  current-name) (purecopy when)))
+       (purecopy (cons current-name when)))
   obsolete-name)
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.
