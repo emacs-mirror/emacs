@@ -1,3 +1,9 @@
+2011-06-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Make it possible to build with GCC-4.6+ -O2 -flto.
+
+	* emacs.c (__malloc_initialize_hook): Mark as EXTERNALLY_VISIBLE.
+
 2011-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (get_minibuffer, read_minibuf_unwind):
