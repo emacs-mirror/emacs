@@ -1,5 +1,15 @@
 2011-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (goto-line): Use read-number.
+	(overriding-map-is-bound): Remove.
+	(saved-overriding-map): Change default.
+	(save&set-overriding-map): Rename from ensure-overriding-map-is-bound;
+	Take the map as argument.
+	(universal-argument, negative-argument, digit-argument): Use it.
+	(restore-overriding-map): Adjust.
+	(do-auto-fill): Use fill-forward-paragraph.
+	(keyboard-quit): Don't signal an error when debug-on-quit is non-nil.
+
 	* minibuffer.el (minibuffer-inactive-mode-map): New var.
 	(minibuffer-inactive-mode): New major mode.
 	* mouse.el (mouse-drag-region): Remove the "mouse-1 pops up
