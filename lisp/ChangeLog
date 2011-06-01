@@ -56,6 +56,10 @@
 	(rcirc-decode-coding-system): Allow value nil for automatic coding
 	system detection.
 
+2011-06-01  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug-hook): Mailclient ignores From.
+
 2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.el (image-animate-max-time): Allow nil and t values.
