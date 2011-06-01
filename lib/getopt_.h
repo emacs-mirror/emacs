@@ -279,5 +279,5 @@ extern int getopt_long_only (int ___argc, char *__getopt_argv_const *___argv,
 /* Make sure we later can get all the definitions and declarations.  */
 #undef __need_getopt
 
-#endif /* _@GUARD_PREFIX@_GETOPT_H */
-#endif /* _@GUARD_PREFIX@_GETOPT_H */
+#endif /* _GL_GETOPT_H */
+#endif /* _GL_GETOPT_H */

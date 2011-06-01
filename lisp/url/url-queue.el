@@ -31,7 +31,7 @@
 (eval-when-compile (require 'cl))
 (require 'browse-url)
 
-(defcustom url-queue-parallel-processes 2
+(defcustom url-queue-parallel-processes 6
   "The number of concurrent processes."
   :type 'integer
   :group 'url)

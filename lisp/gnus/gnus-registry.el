@@ -62,10 +62,10 @@
 
 ;; show the marks as single characters (see the :char property in
 ;; `gnus-registry-marks'):
-;; (defalias 'gnus-user-format-function-M 'gnus-registry-user-format-function-M)
+;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-chars)
 
 ;; show the marks by name (see `gnus-registry-marks'):
-;; (defalias 'gnus-user-format-function-M 'gnus-registry-user-format-function-M2)
+;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-names)
 
 ;; TODO:
 
@@ -897,9 +897,12 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
                  nil
                  (cons "Registry Marks" gnus-registry-misc-menus))))))
 
+(make-obsolete 'gnus-registry-user-format-function-M
+               'gnus-registry-article-marks-to-chars "24.1") ?
+
 ;; use like this:
-;; (defalias 'gnus-user-format-function-M 'gnus-registry-user-format-function-M)
-(defun gnus-registry-user-format-function-M (headers)
+;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-chars)
+(defun gnus-registry-article-marks-to-chars (headers)
   "Show the marks for an article by the :char property"
   (let* ((id (mail-header-message-id headers))
          (marks (when id (gnus-registry-get-id-key id 'mark))))
@@ -911,8 +914,8 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
                marks "")))
 
 ;; use like this:
-;; (defalias 'gnus-user-format-function-M 'gnus-registry-user-format-function-M2)
-(defun gnus-registry-user-format-function-M2 (headers)
+;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-names)
+(defun gnus-registry-article-marks-to-names (headers)
   "Show the marks for an article by name"
   (let* ((id (mail-header-message-id headers))
          (marks (when id (gnus-registry-get-id-key id 'mark))))

@@ -1,5 +1,31 @@
 2011-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (complete-with-action): Return nil for the metadata and
+	boundaries of non-functional tables.
+	(completion-table-dynamic): Return nil for the metadata.
+	(completion-table-with-terminator): Add default case, using
+	complete-with-action.
+	(completion--metadata): New function.
+	(completion-all-sorted-completions, minibuffer-completion-help): Use it
+	to try and avoid pathological performance problems.
+	(completion--embedded-envvar-table): Return `category' metadata.
+
+2011-05-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* subr.el (process-alive-p): New tiny convenience function.
+
+2011-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debug): Save&restore not just the buffer's
+	content but also its previous major mode.
+
+2011-05-31  Helmut Eller  <eller.helmut@gmail.com>
+
+	* debug.el (debug): Restore the previous content of the
+	*Backtrace* buffer when we exit with C-M-c.
+
+2011-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* minibuffer.el: Add metadata method to completion tables.
 	(completion-category-overrides): New defcustom.
 	(completion-metadata, completion--field-metadata)
@@ -51,6 +77,10 @@
 	(rcirc-print): Decode all incoming messages (bug#8744).
 	(rcirc-decode-coding-system): Allow value nil for automatic coding
 	system detection.
+
+2011-06-01  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug-hook): Mailclient ignores From.
 
 2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
 

@@ -290,7 +290,6 @@ static int history_idx;
 static unsigned history_tick;
 
 static void add_frame_display_history (struct frame *, int);
-static void add_window_display_history (struct window *, char *, int);
 
 /* Add to the redisplay history how window W has been displayed.
    MSG is a trace containing the information how W's glyph matrix
@@ -298,7 +297,7 @@ static void add_window_display_history (struct window *, char *, int);
    has been interrupted for pending input.  */
 
 static void
-add_window_display_history (struct window *w, char *msg, int paused_p)
+add_window_display_history (struct window *w, const char *msg, int paused_p)
 {
   char *buf;
 
@@ -6215,11 +6214,7 @@ init_display (void)
 	}
     }
 
-  if (!inhibit_window_system && display_arg
-#ifndef CANNOT_DUMP
-     && initialized
-#endif
-     )
+  if (!inhibit_window_system && display_arg)
     {
       Vinitial_window_system = Qx;
 #ifdef HAVE_X11

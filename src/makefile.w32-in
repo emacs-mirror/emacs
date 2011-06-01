@@ -654,6 +654,7 @@ $(BLD)/data.$(O) : \
 	$(SRC)/data.c \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(EMACS_ROOT)/lib/intprops.h \
 	$(LISP_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
@@ -753,6 +754,7 @@ $(BLD)/editfns.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(EMACS_ROOT)/lib/intprops.h \
 	$(EMACS_ROOT)/lib/strftime.h \
+	$(EMACS_ROOT)/lib/verify.h \
 	$(LISP_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \

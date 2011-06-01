@@ -1,3 +1,12 @@
+2011-05-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-queue.el (url-queue-parallel-processes): Increase the
+	default to 6, since 2 seems too conservative for normal usage.
+
+2011-05-31  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* url-future.el: Add general futures facility.
+
 2011-05-29  Leo Liu  <sdl.web@gmail.com>
 
 	* url-cookie.el (url-cookie): Add option :named so that

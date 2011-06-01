@@ -1,3 +1,26 @@
+2011-05-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/data.$(O), $(BLD)/editfns.$(O)):
+	Update dependencies.
+
+2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* data.c (init_data): Remove code for UTS, this system is not
+	supported anymore.
+
+2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Don't force ./temacs to start in terminal mode.
+
+	* frame.c (make_initial_frame): Initialize faces in all cases, not
+	only when CANNOT_DUMP is defined.
+	* dispnew.c (init_display): Remove CANNOT_DUMP condition.
+
+2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* dispnew.c (add_window_display_history): Use const for the string
+	pointer.  Remove declaration, not needed.
+
 2011-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use 'inline', not 'INLINE'.

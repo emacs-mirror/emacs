@@ -539,10 +539,8 @@ make_initial_frame (void)
   /* The default value of menu-bar-mode is t.  */
   set_menu_bar_lines (f, make_number (1), Qnil);
 
-#ifdef CANNOT_DUMP
   if (!noninteractive)
     init_frame_faces (f);
-#endif
 
   return f;
 }
