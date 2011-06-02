@@ -21,8 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <setjmp.h>
 
-#include <intprops.h>
-
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"

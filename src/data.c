@@ -23,8 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <setjmp.h>
 
-#include <intprops.h>
-
 #include "lisp.h"
 #include "puresize.h"
 #include "character.h"
