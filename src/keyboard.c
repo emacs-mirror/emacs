@@ -2395,8 +2395,8 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
 
       c = Faref (Vexecuting_kbd_macro, make_number (executing_kbd_macro_index));
       if (STRINGP (Vexecuting_kbd_macro)
-	  && (XINT (c) & 0x80) && (XUINT (c) <= 0xff))
-	XSETFASTINT (c, CHAR_META | (XINT (c) & ~0x80));
+	  && (XFASTINT (c) & 0x80) && (XFASTINT (c) <= 0xff))
+	XSETFASTINT (c, CHAR_META | (XFASTINT (c) & ~0x80));
 
       executing_kbd_macro_index++;
 
@@ -3321,7 +3321,7 @@ record_char (Lisp_Object c)
       if (INTEGERP (c))
 	{
 	  if (XUINT (c) < 0x100)
-	    putc (XINT (c), dribble);
+	    putc (XUINT (c), dribble);
 	  else
 	    fprintf (dribble, " 0x%"pI"x", XUINT (c));
 	}
@@ -6370,7 +6370,7 @@ reorder_modifiers (Lisp_Object symbol)
   Lisp_Object parsed;
 
   parsed = parse_modifiers (symbol);
-  return apply_modifiers ((int) XINT (XCAR (XCDR (parsed))),
+  return apply_modifiers (XFASTINT (XCAR (XCDR (parsed))),
 			  XCAR (parsed));
 }
 

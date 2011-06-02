@@ -462,7 +462,7 @@ access_keymap (Lisp_Object map, Lisp_Object idx, int t_ok, int noinherit, int au
     XSETFASTINT (idx, XINT (idx) & (CHAR_META | (CHAR_META - 1)));
 
   /* Handle the special meta -> esc mapping. */
-  if (INTEGERP (idx) && XUINT (idx) & meta_modifier)
+  if (INTEGERP (idx) && XFASTINT (idx) & meta_modifier)
     {
       /* See if there is a meta-map.  If there's none, there is
          no binding for IDX, unless a default binding exists in MAP.  */
@@ -480,7 +480,7 @@ access_keymap (Lisp_Object map, Lisp_Object idx, int t_ok, int noinherit, int au
       if (CONSP (event_meta_map))
 	{
 	  map = event_meta_map;
-	  idx = make_number (XUINT (idx) & ~meta_modifier);
+	  idx = make_number (XFASTINT (idx) & ~meta_modifier);
 	}
       else if (t_ok)
 	/* Set IDX to t, so that we only find a default binding.  */
@@ -529,7 +529,7 @@ access_keymap (Lisp_Object map, Lisp_Object idx, int t_ok, int noinherit, int au
 	  }
 	else if (VECTORP (binding))
 	  {
-	    if (NATNUMP (idx) && XFASTINT (idx) < ASIZE (binding))
+	    if (INTEGERP (idx) && XFASTINT (idx) < ASIZE (binding))
 	      val = AREF (binding, XFASTINT (idx));
 	  }
 	else if (CHAR_TABLE_P (binding))
@@ -537,7 +537,7 @@ access_keymap (Lisp_Object map, Lisp_Object idx, int t_ok, int noinherit, int au
 	    /* Character codes with modifiers
 	       are not included in a char-table.
 	       All character codes without modifiers are included.  */
-	    if (NATNUMP (idx) && (XFASTINT (idx) & CHAR_MODIFIER_MASK) == 0)
+	    if (INTEGERP (idx) && (XFASTINT (idx) & CHAR_MODIFIER_MASK) == 0)
 	      {
 		val = Faref (binding, idx);
 		/* `nil' has a special meaning for char-tables, so
@@ -1357,7 +1357,7 @@ silly_event_symbol_error (Lisp_Object c)
   int modifiers;
 
   parsed = parse_modifiers (c);
-  modifiers = (int) XUINT (XCAR (XCDR (parsed)));
+  modifiers = XFASTINT (XCAR (XCDR (parsed)));
   base = XCAR (parsed);
   name = Fsymbol_name (base);
   /* This alist includes elements such as ("RET" . "\\r").  */
@@ -2416,7 +2416,7 @@ around function keys and event symbols.  */)
     {
       char tem[KEY_DESCRIPTION_SIZE];
 
-      *push_key_description (XUINT (key), tem, 1) = 0;
+      *push_key_description (XINT (key), tem, 1) = 0;
       return build_string (tem);
     }
   else if (SYMBOLP (key))	/* Function key or event-symbol */
@@ -2515,7 +2515,7 @@ preferred_sequence_p (Lisp_Object seq)
 	return 0;
       else
 	{
-	  int modifiers = XUINT (elt) & (CHAR_MODIFIER_MASK & ~CHAR_META);
+	  int modifiers = XINT (elt) & (CHAR_MODIFIER_MASK & ~CHAR_META);
 	  if (modifiers == where_is_preferred_modifier)
 	    result = 2;
 	  else if (modifiers)
