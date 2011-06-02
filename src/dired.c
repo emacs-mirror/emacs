@@ -1013,12 +1013,11 @@ so last access time will always be midnight of that day.  */)
 	 The code on the next line avoids a compiler warning on
 	 systems where st_ino is 32 bit wide. (bug#766).  */
       EMACS_INT high_ino = s.st_ino >> 31 >> 1;
-      EMACS_INT low_ino  = s.st_ino & 0xffffffff;
 
       values[10] = Fcons (make_number (high_ino >> 8),
 			  Fcons (make_number (((high_ino & 0xff) << 16)
-					      + (low_ino >> 16)),
-				 make_number (low_ino & 0xffff)));
+					      + (s.st_ino >> 16 & 0xffff)),
+				 make_number (s.st_ino & 0xffff)));
     }
 
   /* Likewise for device.  */

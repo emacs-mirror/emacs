@@ -1,5 +1,7 @@
 2011-06-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dired.c (Ffile_attributes): Don't assume EMACS_INT has >32 bits.
+
 	* lisp.h: Include <intprops.h>, as it'll useful in later changes.
 	* character.c, data.c, editfns.c, insdel.c, intervals.c:
 	Don't include <intprops.h>, since lisp.h does.
