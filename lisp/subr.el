@@ -3702,6 +3702,8 @@ echo area updates (default is 0.2 seconds.)  If the function
 `float-time' is not present, time is not tracked at all.  If the
 OS is not capable of measuring fractions of seconds, this
 parameter is effectively rounded up."
+  (when (string-match "[[:alnum:]]\\'" message)
+    (setq message (concat message "...")))
   (unless min-time
     (setq min-time 0.2))
   (let ((reporter
