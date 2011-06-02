@@ -178,7 +178,7 @@ static void
 grow_menu_items (void)
 {
   if ((INT_MAX - MENU_ITEMS_PANE_LENGTH) / 2 < menu_items_allocated)
-    memory_full ();
+    memory_full (SIZE_MAX);
   menu_items_allocated *= 2;
   menu_items = larger_vector (menu_items, menu_items_allocated, Qnil);
 }
