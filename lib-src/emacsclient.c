@@ -1098,7 +1098,7 @@ find_tty (const char **tty_type, const char **tty_name, int noabort)
    0 - success: none of the above */
 
 static int
-socket_status (char *name)
+socket_status (const char *name)
 {
   struct stat statbfr;
 

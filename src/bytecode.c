@@ -144,7 +144,7 @@ Lisp_Object Qbytecode;
 #define Bcurrent_column 0151
 #define Bindent_to 0152
 #ifdef BYTE_CODE_SAFE
-#define Bscan_buffer 0153 /* No longer generated as of v18 */
+#define Bscan_buffer 0153 /* No longer generated as of v18.  */
 #endif
 #define Beolp 0154
 #define Beobp 0155
@@ -956,7 +956,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 				 save_restriction_save ());
 	  break;
 
-	case Bcatch:		/* FIXME: ill-suited for lexbind */
+	case Bcatch:		/* FIXME: ill-suited for lexbind.  */
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
@@ -966,11 +966,11 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    break;
 	  }
 
-	case Bunwind_protect:	/* FIXME: avoid closure for lexbind */
+	case Bunwind_protect:	/* FIXME: avoid closure for lexbind.  */
 	  record_unwind_protect (Fprogn, POP);
 	  break;
 
-	case Bcondition_case:	/* FIXME: ill-suited for lexbind */
+	case Bcondition_case:	/* FIXME: ill-suited for lexbind.  */
 	  {
 	    Lisp_Object handlers, body;
 	    handlers = POP;
@@ -1779,8 +1779,8 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    PUSH (*ptr);
 	    break;
 	  }
-	  /* stack-set-0 = discard; stack-set-1 = discard-1-preserve-tos.  */
 	case Bstack_set:
+	  /* stack-set-0 = discard; stack-set-1 = discard-1-preserve-tos.  */
 	  {
 	    Lisp_Object *ptr = top - (FETCH);
 	    *ptr = POP;

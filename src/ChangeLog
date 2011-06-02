@@ -1,3 +1,84 @@
+2011-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove arbitrary limit of 2**31 entries in hash tables.  (Bug#8771)
+	* category.c (hash_get_category_set):
+	* ccl.c (ccl_driver):
+	* charset.c (Fdefine_charset_internal):
+	* charset.h (struct charset.hash_index):
+	* composite.c (get_composition_id, gstring_lookup_cache)
+	(composition_gstring_put_cache):
+	* composite.h (struct composition.hash_index):
+	* dispextern.h (struct image.hash):
+	* fns.c (next_almost_prime, larger_vector, cmpfn_eql)
+	(cmpfn_equal, cmpfn_user_defined, hashfn_eq, hashfn_eql)
+	(hashfn_equal, hashfn_user_defined, make_hash_table)
+	(maybe_resize_hash_table, hash_lookup, hash_put)
+	(hash_remove_from_table, hash_clear, sweep_weak_table, SXHASH_COMBINE)
+	(sxhash_string, sxhash_list, sxhash_vector, sxhash_bool_vector)
+	(Fsxhash, Fgethash, Fputhash, Fmaphash):
+	* image.c (make_image, search_image_cache, lookup_image)
+	(xpm_put_color_table_h):
+	* lisp.h (struct Lisp_Hash_Table):
+	* minibuf.c (Ftry_completion, Fall_completions, Ftest_completion):
+	* print.c (print):  Use 'EMACS_UINT' and 'EMACS_INT'
+	for hashes and hash indexes, instead of 'unsigned' and 'int'.
+	* alloc.c (allocate_vectorlike):
+	Check for overflow in vector size calculations.
+	* ccl.c (ccl_driver):
+	Check for overflow when converting EMACS_INT to int.
+	* fns.c, image.c: Remove unnecessary static decls that would otherwise
+	need to be updated by these changes.
+	* fns.c (make_hash_table, maybe_resize_hash_table):
+	Check for integer overflow with large hash tables.
+	(make_hash_table, maybe_resize_hash_table, Fmake_hash_table):
+	Prefer the faster XFLOAT_DATA to XFLOATINT where either will do.
+	(SXHASH_REDUCE): New macro.
+	(sxhash_string, sxhash_list, sxhash_vector, sxhash_bool_vector):
+	Use it instead of discarding useful hash info with large hash values.
+	(sxhash_float): New function.
+	(sxhash): Use it.  No more need for "& INTMASK" due to above changes.
+	* lisp.h (FIXNUM_BITS): New macro, useful for SXHASH_REDUCE etc.
+	(MOST_NEGATIVE_FIXNUM, MOST_POSITIVE_FIXNUM, INTMASK):
+	Rewrite to use FIXNUM_BITS, as this simplifies things.
+	(next_almost_prime, larger_vector, sxhash, hash_lookup, hash_put):
+	Adjust signatures to match updated version of code.
+	(consing_since_gc): Now EMACS_INT, since a single hash table can
+	use more than INT_MAX bytes.
+
+2011-06-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Make it possible to build with GCC-4.6+ -O2 -flto.
+
+	* emacs.c (__malloc_initialize_hook): Mark as EXTERNALLY_VISIBLE.
+
+2011-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (get_minibuffer, read_minibuf_unwind):
+	Call minibuffer-inactive-mode.
+
+2011-05-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/data.$(O), $(BLD)/editfns.$(O)):
+	Update dependencies.
+
+2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* data.c (init_data): Remove code for UTS, this system is not
+	supported anymore.
+
+2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Don't force ./temacs to start in terminal mode.
+
+	* frame.c (make_initial_frame): Initialize faces in all cases, not
+	only when CANNOT_DUMP is defined.
+	* dispnew.c (init_display): Remove CANNOT_DUMP condition.
+
+2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* dispnew.c (add_window_display_history): Use const for the string
+	pointer.  Remove declaration, not needed.
+
 2011-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Malloc failure behavior now depends on size of allocation.
@@ -174,7 +255,7 @@
 
 	merge count_size_as_multibyte, parse_str_to_multibyte
 	* character.c, character.h (count_size_as_multibyte):
-	Renamed from parse_str_to_multibyte; all uses changed.
+	Rename from parse_str_to_multibyte; all uses changed.
 	Check for integer overflow.
 	* insdel.c, lisp.h (count_size_as_multibyte): Remove,
 	since it's now a duplicate of the other.  This is more of

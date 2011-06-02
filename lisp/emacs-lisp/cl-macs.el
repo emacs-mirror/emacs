@@ -1236,14 +1236,29 @@ Then evaluate RESULT to get return value, default nil.
 
 \(fn (VAR LIST [RESULT]) BODY...)"
   (let ((temp (make-symbol "--cl-dolist-temp--")))
-    (list 'block nil
-	  (list* 'let (list (list temp (nth 1 spec)) (car spec))
-		 (list* 'while temp (list 'setq (car spec) (list 'car temp))
-			(append body (list (list 'setq temp
-						 (list 'cdr temp)))))
-		 (if (cdr (cdr spec))
-		     (cons (list 'setq (car spec) nil) (cdr (cdr spec)))
-		   '(nil))))))
+    ;; FIXME: Copy&pasted from subr.el.
+    `(block nil
+       ;; This is not a reliable test, but it does not matter because both
+       ;; semantics are acceptable, tho one is slightly faster with dynamic
+       ;; scoping and the other is slightly faster (and has cleaner semantics)
+       ;; with lexical scoping.
+       ,(if lexical-binding
+            `(let ((,temp ,(nth 1 spec)))
+               (while ,temp
+                 (let ((,(car spec) (car ,temp)))
+                   ,@body
+                   (setq ,temp (cdr ,temp))))
+               ,@(if (cdr (cdr spec))
+                     ;; FIXME: This let often leads to "unused var" warnings.
+                     `((let ((,(car spec) nil)) ,@(cdr (cdr spec))))))
+          `(let ((,temp ,(nth 1 spec))
+                 ,(car spec))
+             (while ,temp
+               (setq ,(car spec) (car ,temp))
+               ,@body
+               (setq ,temp (cdr ,temp)))
+             ,@(if (cdr (cdr spec))
+                   `((setq ,(car spec) nil) ,@(cddr spec))))))))
 
 ;;;###autoload
 (defmacro dotimes (spec &rest body)
@@ -1253,12 +1268,30 @@ to COUNT, exclusive.  Then evaluate RESULT to get return value, default
 nil.
 
 \(fn (VAR COUNT [RESULT]) BODY...)"
-  (let ((temp (make-symbol "--cl-dotimes-temp--")))
-    (list 'block nil
-	  (list* 'let (list (list temp (nth 1 spec)) (list (car spec) 0))
-		 (list* 'while (list '< (car spec) temp)
-			(append body (list (list 'incf (car spec)))))
-		 (or (cdr (cdr spec)) '(nil))))))
+  (let ((temp (make-symbol "--cl-dotimes-temp--"))
+	(end (nth 1 spec)))
+    ;; FIXME: Copy&pasted from subr.el.
+    `(block nil
+       ;; This is not a reliable test, but it does not matter because both
+       ;; semantics are acceptable, tho one is slightly faster with dynamic
+       ;; scoping and the other has cleaner semantics.
+       ,(if lexical-binding
+            (let ((counter '--dotimes-counter--))
+              `(let ((,temp ,end)
+                     (,counter 0))
+                 (while (< ,counter ,temp)
+                   (let ((,(car spec) ,counter))
+                     ,@body)
+                   (setq ,counter (1+ ,counter)))
+                 ,@(if (cddr spec)
+                       ;; FIXME: This let often leads to "unused var" warnings.
+                       `((let ((,(car spec) ,counter)) ,@(cddr spec))))))
+          `(let ((,temp ,end)
+                 (,(car spec) 0))
+             (while (< ,(car spec) ,temp)
+               ,@body
+               (incf ,(car spec)))
+             ,@(cdr (cdr spec)))))))
 
 ;;;###autoload
 (defmacro do-symbols (spec &rest body)

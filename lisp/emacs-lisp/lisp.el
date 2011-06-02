@@ -636,9 +636,8 @@ considered."
          (plist (nthcdr 3 data)))
     (if (null data)
         (minibuffer-message "Nothing to complete")
-    (let ((completion-annotate-function
-           (plist-get plist :annotation-function)))
-      (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)
+      (let ((completion-extra-properties plist))
+        (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)
                               (plist-get plist :predicate))))))
 
 

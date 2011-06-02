@@ -1945,7 +1945,7 @@ file names."
 	(tramp-error
 	 v 'file-already-exists "File %s already exists" newname))
 
-      (with-progress-reporter
+      (tramp-with-progress-reporter
 	  v 0 (format "%s %s to %s"
 		      (if (eq op 'copy) "Copying" "Renaming")
 		      filename newname)
@@ -2454,7 +2454,8 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	       nil)
 	      ((and suffix (nth 2 suffix))
 	       ;; We found an uncompression rule.
-	       (with-progress-reporter v 0 (format "Uncompressing %s" file)
+	       (tramp-with-progress-reporter
+                   v 0 (format "Uncompressing %s" file)
 		 (when (tramp-send-command-and-check
 			v (concat (nth 2 suffix) " "
 				  (tramp-shell-quote-argument localname)))
@@ -2465,7 +2466,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	      (t
 	       ;; We don't recognize the file as compressed, so compress it.
 	       ;; Try gzip.
-	       (with-progress-reporter v 0 (format "Compressing %s" file)
+	       (tramp-with-progress-reporter v 0 (format "Compressing %s" file)
 		 (when (tramp-send-command-and-check
 			v (concat "gzip -f "
 				  (tramp-shell-quote-argument localname)))
@@ -2948,7 +2949,7 @@ the result will be a local, non-Tramp, filename."
 	   ;; Use inline encoding for file transfer.
 	   (rem-enc
 	    (save-excursion
-	      (with-progress-reporter
+	      (tramp-with-progress-reporter
 	       v 3 (format "Encoding remote file %s" filename)
 	       (tramp-barf-unless-okay
 		v (format rem-enc (tramp-shell-quote-argument localname))
@@ -2962,7 +2963,7 @@ the result will be a local, non-Tramp, filename."
 		  (with-temp-buffer
 		    (set-buffer-multibyte nil)
 		    (insert-buffer-substring (tramp-get-buffer v))
-		    (with-progress-reporter
+		    (tramp-with-progress-reporter
 			v 3 (format "Decoding remote file %s with function %s"
 				    filename loc-dec)
 		      (funcall loc-dec (point-min) (point-max))
@@ -2980,7 +2981,7 @@ the result will be a local, non-Tramp, filename."
 		  (let (file-name-handler-alist
 			(coding-system-for-write 'binary))
 		    (write-region (point-min) (point-max) tmpfile2))
-		  (with-progress-reporter
+		  (tramp-with-progress-reporter
 		      v 3 (format "Decoding remote file %s with command %s"
 				  filename loc-dec)
 		    (unwind-protect
@@ -3205,7 +3206,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		    (set-buffer-multibyte nil)
 		    ;; Use encoding function or command.
 		    (if (functionp loc-enc)
-			(with-progress-reporter
+			(tramp-with-progress-reporter
 			    v 3 (format "Encoding region using function `%s'"
 					loc-enc)
 			  (let ((coding-system-for-read 'binary))
@@ -3223,7 +3224,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 				  (tramp-compat-temporary-file-directory)))
 			    (funcall loc-enc (point-min) (point-max))))
 
-		      (with-progress-reporter
+		      (tramp-with-progress-reporter
 			  v 3 (format "Encoding region using command `%s'"
 				      loc-enc)
 			(unless (zerop (tramp-call-local-coding-command
@@ -3237,7 +3238,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		    ;; Send buffer into remote decoding command which
 		    ;; writes to remote file.  Because this happens on
 		    ;; the remote host, we cannot use the function.
-		    (with-progress-reporter
+		    (tramp-with-progress-reporter
 			v 3
 			(format "Decoding region into remote file %s" filename)
 		      (goto-char (point-max))
@@ -3337,7 +3338,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
   "Like `vc-registered' for Tramp files."
   (tramp-compat-with-temp-message ""
     (with-parsed-tramp-file-name file nil
-      (with-progress-reporter
+      (tramp-with-progress-reporter
 	  v 3 (format "Checking `vc-registered' for %s" file)
 
 	;; There could be new files, created by the vc backend.  We
@@ -3431,7 +3432,7 @@ Only send the definition if it has not already been done."
   (let* ((p (tramp-get-connection-process vec))
 	 (scripts (tramp-get-connection-property p "scripts" nil)))
     (unless (member name scripts)
-      (with-progress-reporter vec 5 (format "Sending script `%s'" name)
+      (tramp-with-progress-reporter vec 5 (format "Sending script `%s'" name)
 	;; The script could contain a call of Perl.  This is masked with `%s'.
 	(tramp-barf-unless-okay
 	 vec
@@ -3595,7 +3596,8 @@ file exists and nonzero exit status otherwise."
 
 (defun tramp-open-shell (vec shell)
   "Opens shell SHELL."
-  (with-progress-reporter vec 5 (format "Opening remote shell `%s'" shell)
+  (tramp-with-progress-reporter
+      vec 5 (format "Opening remote shell `%s'" shell)
     ;; Find arguments for this shell.
     (let ((tramp-end-of-output tramp-initial-end-of-output)
 	  (alist tramp-sh-extra-args)
@@ -4247,7 +4249,7 @@ connection if a previous connection has died for some reason."
 	;; We call `tramp-get-buffer' in order to get a debug buffer for
 	;; messages from the beginning.
 	(tramp-get-buffer vec)
-	(with-progress-reporter
+	(tramp-with-progress-reporter
 	    vec 3
 	    (if (zerop (length (tramp-file-name-user vec)))
 		(format "Opening connection for %s using %s"

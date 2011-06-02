@@ -678,7 +678,7 @@ malloc_initialize_hook (void)
     }
 }
 
-void (*__malloc_initialize_hook) (void) = malloc_initialize_hook;
+void (*__malloc_initialize_hook) (void) EXTERNALLY_VISIBLE = malloc_initialize_hook;
 
 #endif /* DOUG_LEA_MALLOC */
 
