@@ -4990,7 +4990,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
 {
   if (! current_buffer->modtime)
     return make_number (0);
-  return make_time ((time_t) current_buffer->modtime);
+  return make_time (current_buffer->modtime);
 }
 
 DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,

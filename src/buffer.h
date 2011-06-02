@@ -545,7 +545,7 @@ struct buffer
      -1 means visited file was nonexistent.
      0 means visited file modtime unknown; in no case complain
      about any mismatch on next save attempt.  */
-  int modtime;
+  time_t modtime;
   /* Size of the file when modtime was set.  This is used to detect the
      case where the file grew while we were reading it, so the modtime
      is still the same (since it's rounded up to seconds) but we're actually

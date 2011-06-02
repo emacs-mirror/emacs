@@ -1,5 +1,10 @@
 2011-06-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Don't assume time_t can fit into int.
+	* buffer.h (struct buffer.modtime): Now time_t, not int.
+	* fileio.c (Fvisited_file_modtime): No need for time_t cast now.
+	* undo.c (Fprimitive_undo): Use time_t, not int, for time_t value.
+
 	Minor fixes for signed vs unsigned integers.
 	* character.h (MAYBE_UNIFY_CHAR):
 	* charset.c (maybe_unify_char):
