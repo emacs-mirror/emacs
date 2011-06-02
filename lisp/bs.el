@@ -865,7 +865,7 @@ the status of buffer on current line."
 (defun bs--mark-unmark (count fun)
   "Call FUN on COUNT consecutive buffers of *buffer-selection*."
   (let ((dir (if (> count 0) 1 -1)))
-    (dotimes (i (abs count))
+    (dotimes (_i (abs count))
       (let ((buffer (bs--current-buffer)))
 	(when buffer (funcall fun buffer))
 	(bs--update-current-line)
@@ -976,7 +976,7 @@ Uses function `toggle-read-only'."
 
 (defun bs--nth-wrapper (count fun &rest args)
   "Call COUNT times function FUN with arguments ARGS."
-  (dotimes (i (or count 1))
+  (dotimes (_i (or count 1))
     (apply fun args)))
 
 (defun bs-up (arg)

@@ -443,7 +443,7 @@ BUF contains a plain diff between match-1 and match-3."
             (setq othertext
                   (if (null otherlines) ""
                     (let ((pos (point)))
-                      (dotimes (i otherlines) (delete-char 2) (forward-line 1))
+                      (dotimes (_i otherlines) (delete-char 2) (forward-line 1))
                       (buffer-substring pos (point)))))
             (with-current-buffer textbuf
               (forward-line (- startline line))
@@ -910,7 +910,7 @@ It has the following disadvantages:
                ;; whitespace changes, it'll report added/removed lines :-(
                (not smerge-refine-weight-hack))
       (setq re (concat "[ \t]*\\(?:" re "\\)")))
-    (dotimes (i n)
+    (dotimes (_i n)
       (unless (looking-at re) (error "Smerge refine internal error"))
       (goto-char (match-end 0)))))
 
@@ -948,7 +948,7 @@ chars to try and eliminate some spurious differences."
           (unless (eq (char-before) ?\n) (insert ?\n))
           ;; HACK ALERT!!
           (if smerge-refine-weight-hack
-              (dotimes (i (1- (length s))) (insert s "\n")))))
+              (dotimes (_i (1- (length s))) (insert s "\n")))))
       (unless (bolp) (error "Smerge refine internal error"))
       (let ((coding-system-for-write 'emacs-mule))
         (write-region (point-min) (point-max) file nil 'nomessage)))))

@@ -1,3 +1,12 @@
+2011-06-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--mark-unmark, bs--nth-wrapper):
+	* mpc.el (mpc-select-extend, mpc-songpointer-context):
+	* vc/log-view.el (log-view-beginning-of-defun):
+	* vc/smerge-mode.el (smerge-apply-resolution-patch)
+	(smerge-refine-forward, smerge-refine-chopup-region):
+	Silence warning for unused `dotimes' counter variables.
+
 2011-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/tramp.el (tramp-with-progress-reporter): Rename from
