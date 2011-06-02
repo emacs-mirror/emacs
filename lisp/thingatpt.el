@@ -402,7 +402,7 @@ with angle brackets.")
       (re-search-forward "[ \t]+\\|\n" nil 'move arg)
     (while (< arg 0)
       (if (re-search-backward "[ \t]+\\|\n" nil 'move)
-	  (or (eq (char-after (match-beginning 0)) 10)
+	  (or (eq (char-after (match-beginning 0)) ?\n)
 	      (skip-chars-backward " \t")))
       (setq arg (1+ arg)))))
 

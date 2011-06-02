@@ -331,6 +331,7 @@ usually do not have translators to read other languages for them.\n\n")
 
 ;; It's the default mail mode, so it seems OK to use its features.
 (autoload 'message-bogus-recipient-p "message")
+(defvar message-send-mail-function)
 
 (defun report-emacs-bug-hook ()
   "Do some checking before sending a bug report."
@@ -343,6 +344,10 @@ usually do not have translators to read other languages for them.\n\n")
                        report-emacs-bug-orig-text)
          (error "No text entered in bug report"))
     (or report-emacs-bug-no-confirmation
+	;; mailclient.el does not handle From (at present).
+	(if (derived-mode-p 'message-mode)
+	    (eq message-send-mail-function 'message-send-mail-with-mailclient)
+	  (eq send-mail-function 'mailclient-send-it))
 	;; Not narrowing to the headers, but that's OK.
 	(let ((from (mail-fetch-field "From")))
 	  (and (or (not from)

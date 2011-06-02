@@ -1,3 +1,37 @@
+2011-06-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Make it possible to build with GCC-4.6+ -O2 -flto.
+
+	* emacs.c (__malloc_initialize_hook): Mark as EXTERNALLY_VISIBLE.
+
+2011-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (get_minibuffer, read_minibuf_unwind):
+	Call minibuffer-inactive-mode.
+
+2011-05-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/data.$(O), $(BLD)/editfns.$(O)):
+	Update dependencies.
+
+2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* data.c (init_data): Remove code for UTS, this system is not
+	supported anymore.
+
+2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Don't force ./temacs to start in terminal mode.
+
+	* frame.c (make_initial_frame): Initialize faces in all cases, not
+	only when CANNOT_DUMP is defined.
+	* dispnew.c (init_display): Remove CANNOT_DUMP condition.
+
+2011-05-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* dispnew.c (add_window_display_history): Use const for the string
+	pointer.  Remove declaration, not needed.
+
 2011-05-31  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove arbitrary limit of 2**31 entries in hash tables.  (Bug#8771)
@@ -205,7 +239,7 @@
 
 	merge count_size_as_multibyte, parse_str_to_multibyte
 	* character.c, character.h (count_size_as_multibyte):
-	Renamed from parse_str_to_multibyte; all uses changed.
+	Rename from parse_str_to_multibyte; all uses changed.
 	Check for integer overflow.
 	* insdel.c, lisp.h (count_size_as_multibyte): Remove,
 	since it's now a duplicate of the other.  This is more of

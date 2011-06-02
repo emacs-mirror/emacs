@@ -7194,7 +7194,11 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	 (article-buffer gnus-article-buffer)
 	 (mode major-mode)
 	 (group-point nil)
-	 (buf (current-buffer)))
+	 (buf (current-buffer))
+	 ;; `gnus-single-article-buffer' is nil buffer-locally in
+	 ;; ephemeral group of which summary buffer will be killed,
+	 ;; but the global value may be non-nil.
+	 (single-article-buffer gnus-single-article-buffer))
     (unless quit-config
       ;; Do adaptive scoring, and possibly save score files.
       (when gnus-newsgroup-adaptive
@@ -7257,7 +7261,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	  (gnus-configure-windows 'group 'force)))
 
       ;; If we have several article buffers, we kill them at exit.
-      (unless gnus-single-article-buffer
+      (unless single-article-buffer
 	(when (gnus-buffer-live-p article-buffer)
 	  (with-current-buffer article-buffer
 	    ;; Don't kill sticky article buffers

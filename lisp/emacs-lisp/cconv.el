@@ -112,16 +112,6 @@
 ;;     ,@(mapcar (lambda (binder) (if (consp binder) (cadr binder)))
 ;;               binders)))
 
-;; (defmacro letrec (binders &rest body)
-;;   ;; Only useful in lexical-binding mode.
-;;   ;; As a special-form, we could implement it more efficiently (and cleanly,
-;;   ;; making the vars actually unbound during evaluation of the binders).
-;;   `(let ,(mapcar (lambda (binder) (if (consp binder) (car binder) binder))
-;;                  binders)
-;;      ,@(delq nil (mapcar (lambda (binder) (if (consp binder) `(setq ,@binder)))
-;;                          binders))
-;;      ,@body))
-
 (eval-when-compile (require 'cl))
 
 (defconst cconv-liftwhen 6

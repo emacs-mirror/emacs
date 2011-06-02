@@ -68,6 +68,10 @@ and also when HOME is set to C:\ by default.
 
 * Changes in Emacs 24.1
 
+** The inactive minibuffer has its own major mode `minibuffer-inactive-mode'.
+This is handy for minibuffer-only frames, and is also used for the "mouse-1
+pops up *Messages*" feature, which can now easily be changed.
+
 ** emacsclient changes
 
 *** New emacsclient argument --parent-id ID can be used to open a
