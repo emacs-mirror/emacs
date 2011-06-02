@@ -2798,7 +2798,7 @@ struct image
   } data;
 
   /* Hash value of image specification to speed up comparisons.  */
-  unsigned hash;
+  EMACS_UINT hash;
 
   /* Image id of this image.  */
   int id;

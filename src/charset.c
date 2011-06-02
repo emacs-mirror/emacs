@@ -849,7 +849,7 @@ usage: (define-charset-internal ...)  */)
   /* Charset attr vector.  */
   Lisp_Object attrs;
   Lisp_Object val;
-  unsigned hash_code;
+  EMACS_UINT hash_code;
   struct Lisp_Hash_Table *hash_table = XHASH_TABLE (Vcharset_hash_table);
   int i, j;
   struct charset charset;

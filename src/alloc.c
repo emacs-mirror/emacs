@@ -157,7 +157,7 @@ struct emacs_globals globals;
 
 /* Number of bytes of consing done since the last gc.  */
 
-int consing_since_gc;
+EMACS_INT consing_since_gc;
 
 /* Similar minimum, computed from Vgc_cons_percentage.  */
 
@@ -2788,6 +2788,11 @@ allocate_vectorlike (EMACS_INT len)
 {
   struct Lisp_Vector *p;
   size_t nbytes;
+  int header_size = offsetof (struct Lisp_Vector, contents);
+  int word_size = sizeof p->contents[0];
+
+  if ((SIZE_MAX - header_size) / word_size < len)
+    memory_full ();
 
   MALLOC_BLOCK_INPUT;
 
@@ -2801,8 +2806,7 @@ allocate_vectorlike (EMACS_INT len)
   /* This gets triggered by code which I haven't bothered to fix.  --Stef  */
   /* eassert (!handling_signal); */
 
-  nbytes = (offsetof (struct Lisp_Vector, contents)
-	    + len * sizeof p->contents[0]);
+  nbytes = header_size + len * word_size;
   p = (struct Lisp_Vector *) lisp_malloc (nbytes, MEM_TYPE_VECTORLIKE);
 
 #ifdef DOUG_LEA_MALLOC

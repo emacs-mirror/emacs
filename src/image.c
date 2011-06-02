@@ -982,7 +982,6 @@ or omitted means use the selected frame.  */)
 		 Image type independent image structures
  ***********************************************************************/
 
-static struct image *make_image (Lisp_Object spec, unsigned hash);
 static void free_image (struct frame *f, struct image *img);
 static int check_image_size (struct frame *f, int width, int height);
 
@@ -991,7 +990,7 @@ static int check_image_size (struct frame *f, int width, int height);
    SPEC.  SPEC has a hash value of HASH.  */
 
 static struct image *
-make_image (Lisp_Object spec, unsigned int hash)
+make_image (Lisp_Object spec, EMACS_UINT hash)
 {
   struct image *img = (struct image *) xmalloc (sizeof *img);
   Lisp_Object file = image_spec_value (spec, QCfile, NULL);
@@ -1388,7 +1387,6 @@ x_alloc_image_color (struct frame *f, struct image *img, Lisp_Object color_name,
 			     Image Cache
  ***********************************************************************/
 
-static struct image *search_image_cache (struct frame *, Lisp_Object, unsigned);
 static void cache_image (struct frame *f, struct image *img);
 static void postprocess_image (struct frame *, struct image *);
 
@@ -1414,7 +1412,7 @@ make_image_cache (void)
 /* Find an image matching SPEC in the cache, and return it.  If no
    image is found, return NULL.  */
 static struct image *
-search_image_cache (struct frame *f, Lisp_Object spec, unsigned int hash)
+search_image_cache (struct frame *f, Lisp_Object spec, EMACS_UINT hash)
 {
   struct image *img;
   struct image_cache *c = FRAME_IMAGE_CACHE (f);
@@ -1714,7 +1712,7 @@ int
 lookup_image (struct frame *f, Lisp_Object spec)
 {
   struct image *img;
-  unsigned hash;
+  EMACS_UINT hash;
   EMACS_TIME now;
 
   /* F must be a window-system frame, and SPEC must be a valid image
@@ -3751,7 +3749,7 @@ xpm_put_color_table_h (Lisp_Object color_table,
                        Lisp_Object color)
 {
   struct Lisp_Hash_Table *table = XHASH_TABLE (color_table);
-  unsigned hash_code;
+  EMACS_UINT hash_code;
   Lisp_Object chars = make_unibyte_string (chars_start, chars_len);
 
   hash_lookup (table, chars, &hash_code);
