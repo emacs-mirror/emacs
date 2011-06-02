@@ -1,3 +1,8 @@
+2011-06-02  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-kill-stack-buffer): Make sure that the trail
+	buffer isn't killed before making it current.
+
 2011-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Silence various byte-compiler warnings.
