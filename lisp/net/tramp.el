@@ -1452,11 +1452,12 @@ If VAR is nil, then we bind `v' to the structure and `method', `user',
     (when (string-match message (or (current-message) ""))
       (tramp-compat-funcall 'progress-reporter-update reporter value))))
 
-(defmacro with-progress-reporter (vec level message &rest body)
+(defmacro tramp-with-progress-reporter (vec level message &rest body)
   "Executes BODY, spinning a progress reporter with MESSAGE.
 If LEVEL does not fit for visible messages, or if this is a
 nested call of the macro, there are only traces without a visible
 progress reporter."
+  (declare (indent 3) (debug t))
   `(let (pr tm)
      (tramp-message ,vec ,level "%s..." ,message)
      ;; We start a pulsing progress reporter after 3 seconds.  Feature
@@ -1479,10 +1480,8 @@ progress reporter."
        (if tm (tramp-compat-funcall 'cancel-timer tm))
        (tramp-message ,vec ,level "%s...done" ,message))))
 
-(put 'with-progress-reporter 'lisp-indent-function 3)
-(put 'with-progress-reporter 'edebug-form-spec t)
 (tramp-compat-font-lock-add-keywords
- 'emacs-lisp-mode '("\\<with-progress-reporter\\>"))
+ 'emacs-lisp-mode '("\\<tramp-with-progress-reporter\\>"))
 
 (eval-and-compile			;; Silence compiler.
   (if (memq system-type '(cygwin windows-nt))
@@ -2881,7 +2880,7 @@ User is always nil."
 		;; useful for "rsync".
 		(setq tramp-temp-buffer-file-name local-copy))
 
-	      (with-progress-reporter
+	      (tramp-with-progress-reporter
 		  v 3 (format "Inserting local temp file `%s'" local-copy)
 		;; We must ensure that `file-coding-system-alist'
 		;; matches `local-copy'.
@@ -2932,7 +2931,7 @@ User is always nil."
     (if (not (file-exists-p file))
 	nil
       (let ((tramp-message-show-message (not nomessage)))
-	(with-progress-reporter v 0 (format "Loading %s" file)
+	(tramp-with-progress-reporter v 0 (format "Loading %s" file)
 	  (let ((local-copy (file-local-copy file)))
 	    ;; MUST-SUFFIX doesn't exist on XEmacs, so let it default to nil.
 	    (unwind-protect
