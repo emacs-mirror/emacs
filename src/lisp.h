@@ -36,13 +36,14 @@ extern void check_cons_list (void);
 #define CHECK_CONS_LIST() ((void) 0)
 #endif
 
-/* Temporarily disable wider-than-pointer integers until they're tested more.
-   Build with CFLAGS='-DWIDE_EMACS_INT' to try them out.  */
-/* #undef WIDE_EMACS_INT */
+/* To disable wider-than-pointer integers, build with -DWIDE_EMACS_INT=0.  */
+#ifndef WIDE_EMACS_INT
+#define WIDE_EMACS_INT 1
+#endif
 
 /* These are default choices for the types to use.  */
 #ifndef EMACS_INT
-# if BITS_PER_LONG < BITS_PER_LONG_LONG && defined WIDE_EMACS_INT
+# if BITS_PER_LONG < BITS_PER_LONG_LONG && WIDE_EMACS_INT
 #  define EMACS_INT long long
 #  define BITS_PER_EMACS_INT BITS_PER_LONG_LONG
 #  define pI "ll"

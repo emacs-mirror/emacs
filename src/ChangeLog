@@ -1,5 +1,7 @@
 2011-06-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (WIDE_EMACS_INT): Now defaults to 1.
+
 	* fileio.c (Fverify_visited_file_modtime): Avoid time overflow
 	if b->modtime has its maximal value.
 
