@@ -1,5 +1,8 @@
 2011-06-02  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fileio.c (Fverify_visited_file_modtime): Avoid time overflow
+	if b->modtime has its maximal value.
+
 	* dired.c (Ffile_attributes): Don't assume EMACS_INT has >32 bits.
 
 	* lisp.h: Include <intprops.h>, as it'll useful in later changes.
