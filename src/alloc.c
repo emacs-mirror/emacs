@@ -2793,7 +2793,7 @@ allocate_vectorlike (EMACS_INT len)
   int word_size = sizeof p->contents[0];
 
   if ((SIZE_MAX - header_size) / word_size < len)
-    memory_full ();
+    memory_full (SIZE_MAX);
 
   MALLOC_BLOCK_INPUT;
 
