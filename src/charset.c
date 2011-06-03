@@ -1637,7 +1637,7 @@ maybe_unify_char (int c, Lisp_Object val)
   struct charset *charset;
 
   if (INTEGERP (val))
-    return XINT (val);
+    return XFASTINT (val);
   if (NILP (val))
     return c;
 
@@ -1647,7 +1647,7 @@ maybe_unify_char (int c, Lisp_Object val)
     {
       val = CHAR_TABLE_REF (Vchar_unify_table, c);
       if (! NILP (val))
-	c = XINT (val);
+	c = XFASTINT (val);
     }
   else
     {

@@ -1,3 +1,19 @@
+2011-06-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Minor fixes for signed vs unsigned integers.
+	* character.h (MAYBE_UNIFY_CHAR):
+	* charset.c (maybe_unify_char):
+	* keyboard.c (read_char, reorder_modifiers):
+	XINT -> XFASTINT, since the integer must be nonnegative.
+	* ftfont.c (ftfont_spec_pattern):
+	* keymap.c (access_keymap, silly_event_symbol_error):
+	XUINT -> XFASTINT, since the integer must be nonnegative.
+	(Fsingle_key_description, preferred_sequence_p): XUINT -> XINT,
+	since it makes no difference and we prefer signed.
+	* keyboard.c (record_char): Use XUINT when all the neighbors do.
+	(access_keymap): NATNUMP -> INTEGERP, since the integer must be
+	nonnegative.
+
 2011-06-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Malloc failure behavior now depends on size of allocation.

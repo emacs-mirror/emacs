@@ -815,7 +815,7 @@ ftfont_spec_pattern (Lisp_Object spec, char *otlayout, struct OpenTypeSpec **ots
 	    goto err;
 	  for (chars = XCDR (chars); CONSP (chars); chars = XCDR (chars))
 	    if (CHARACTERP (XCAR (chars))
-		&& ! FcCharSetAddChar (charset, XUINT (XCAR (chars))))
+		&& ! FcCharSetAddChar (charset, XFASTINT (XCAR (chars))))
 	      goto err;
 	}
     }
