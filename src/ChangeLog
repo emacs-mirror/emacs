@@ -1,3 +1,8 @@
+2011-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_fetch_char_advance): Remove unused and
+	unimplemented function.
+
 2011-05-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Set start and stop points

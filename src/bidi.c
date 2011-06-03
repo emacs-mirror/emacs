@@ -630,31 +630,6 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
   return ch;
 }
 
-/* Looks like we won't need this one.  */
-#if 0
-/* Fetch character at CHARPOS/BYTEPOS.  Return the character, and
-   advance CHARPOS and BYTEPOS to the next character in logical
-   order.  */
-static INLINE int
-bidi_fetch_char_advance (EMACS_INT *charpos, EMACS_INT *bytepos)
-{
-  int ch;
-
-  /* FIXME: Support strings in addition to buffers.  */
-  FETCH_CHAR_ADVANCE_NO_CHECK (ch, charpos, bytepos);
-
-#if 0
-  if (...)
-    {
-      /* FIXME: Support characters covered by display strings.  */
-      ch = 0xFFFC;
-    }
-#endif
-
-  return ch;
-}
-#endif
-
 /* Find the beginning of this paragraph by looking back in the buffer.
    Value is the byte position of the paragraph's beginning.  */
 static EMACS_INT
