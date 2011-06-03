@@ -1,3 +1,9 @@
+2011-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Document wide integers better.
+	* buffers.texi (Buffers):
+	* files.texi (Visiting): Default buffer maximum is now 2 EiB typically.
+
 2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.texi (Hooks): Reorganize.  Mention Prog mode.
