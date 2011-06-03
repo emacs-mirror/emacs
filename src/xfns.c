@@ -4295,18 +4295,9 @@ no value of TYPE (always string in the MS Windows case).  */)
 
   if (! NILP (source))
     {
-      if (NUMBERP (source))
-        {
-          if (FLOATP (source))
-            target_window = (Window) XFLOAT (source);
-          else
-            target_window = XFASTINT (source);
-
-          if (target_window == 0)
-            target_window = FRAME_X_DISPLAY_INFO (f)->root_window;
-        }
-      else if (CONSP (source))
-        target_window = cons_to_long (source);
+      CONS_TO_INTEGER (source, Window, target_window);
+      if (! target_window)
+	target_window = FRAME_X_DISPLAY_INFO (f)->root_window;
     }
 
   BLOCK_INPUT;

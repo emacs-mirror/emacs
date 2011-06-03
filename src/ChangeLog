@@ -1,5 +1,32 @@
 2011-06-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Check for overflow when converting integer to cons and back.
+	* charset.c (Fdefine_charset_internal, Fdecode_char):
+	Use cons_to_unsigned to catch overflow.
+	(Fencode_char): Use INTEGER_TO_CONS.
+	* composite.h (LGLYPH_CODE): Use cons_to_unsigned.
+	(LGLYPH_SET_CODE): Use INTEGER_TO_CONS.
+	* data.c (long_to_cons, cons_to_long): Remove.
+	(cons_to_unsigned, cons_to_signed): New functions.
+	These signal an error for invalid or out-of-range values.
+	* dired.c (Ffile_attributes): Use INTEGER_TO_CONS.
+	* fileio.c (Fset_visited_file_modtime): Use CONS_TO_INTEGER.
+	* font.c (Ffont_variation_glyphs):
+	* fontset.c (Finternal_char_font): Use INTEGER_TO_CONS.
+	* lisp.h (INTEGER_TO_CONS, CONS_TO_INTEGER): New macros.
+	(cons_to_signed, cons_to_unsigned): New decls.
+	(long_to_cons, cons_to_long): Remove decls.
+	* undo.c (record_first_change): Use INTEGER_TO_CONS.
+	(Fprimitive_undo): Use CONS_TO_INTEGER.
+	* xfns.c (Fx_window_property): Likewise.
+	* xselect.c (x_own_selection, selection_data_to_lisp_data):
+	Use INTEGER_TO_CONS.
+	(x_handle_selection_request, x_handle_selection_clear)
+	(x_get_foreign_selection, Fx_disown_selection_internal)
+	(Fx_get_atom_name, x_send_client_event): Use CONS_TO_INTEGER.
+	(lisp_data_to_selection_data): Use cons_to_unsigned.
+	(x_fill_property_data): Use cons_to_signed.  Report values out of range.
+
 	Fix doc for machines with wider system times such as time_t.
 	On such machines, it's now safe to assume that EMACS_INT is as
 	wide as the system times, so that shifting right by 16 will

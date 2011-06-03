@@ -2324,33 +2324,89 @@ DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0,
   return Qnil;
 }
 
-/* Convert between long values and pairs of Lisp integers.
-   Note that long_to_cons returns a single Lisp integer
-   when the value fits in one.  */
-
-Lisp_Object
-long_to_cons (long unsigned int i)
+/* Convert the cons-of-integers, integer, or float value C to an
+   unsigned value with maximum value MAX.  Signal an error if C does not
+   have a valid format or is out of range.  */
+uintmax_t
+cons_to_unsigned (Lisp_Object c, uintmax_t max)
 {
-  unsigned long top = i >> 16;
-  unsigned int bot = i & 0xFFFF;
-  if (top == 0)
-    return make_number (bot);
-  if (top == (unsigned long)-1 >> 16)
-    return Fcons (make_number (-1), make_number (bot));
-  return Fcons (make_number (top), make_number (bot));
+  int valid = 0;
+  uintmax_t val IF_LINT (= 0);
+  if (INTEGERP (c))
+    {
+      valid = 0 <= XINT (c);
+      val = XINT (c);
+    }
+  else if (FLOATP (c))
+    {
+      double d = XFLOAT_DATA (c);
+      if (0 <= d
+	  && d < (max == UINTMAX_MAX ? (double) UINTMAX_MAX + 1 : max + 1))
+	{
+	  val = d;
+	  valid = 1;
+	}
+    }
+  else if (CONSP (c))
+    {
+      Lisp_Object top = XCAR (c);
+      Lisp_Object bot = XCDR (c);
+      if (CONSP (bot))
+	bot = XCAR (bot);
+      if (NATNUMP (top) && XFASTINT (top) <= UINTMAX_MAX >> 16 && NATNUMP (bot))
+	{
+	  uintmax_t utop = XFASTINT (top);
+	  val = (utop << 16) | XFASTINT (bot);
+	  valid = 1;
+	}
+    }
+
+  if (! (valid && val <= max))
+    error ("Not an in-range integer, float, or cons of integers");
+  return val;
 }
 
-unsigned long
-cons_to_long (Lisp_Object c)
+/* Convert the cons-of-integers, integer, or float value C to a signed
+   value with extrema MIN and MAX.  Signal an error if C does not have
+   a valid format or is out of range.  */
+intmax_t
+cons_to_signed (Lisp_Object c, intmax_t min, intmax_t max)
 {
-  Lisp_Object top, bot;
+  int valid = 0;
+  intmax_t val IF_LINT (= 0);
   if (INTEGERP (c))
-    return XINT (c);
-  top = XCAR (c);
-  bot = XCDR (c);
-  if (CONSP (bot))
-    bot = XCAR (bot);
-  return ((XINT (top) << 16) | XINT (bot));
+    {
+      val = XINT (c);
+      valid = 1;
+    }
+  else if (FLOATP (c))
+    {
+      double d = XFLOAT_DATA (c);
+      if (min <= d
+	  && d < (max == INTMAX_MAX ? (double) INTMAX_MAX + 1 : max + 1))
+	{
+	  val = d;
+	  valid = 1;
+	}
+    }
+  else if (CONSP (c))
+    {
+      Lisp_Object top = XCAR (c);
+      Lisp_Object bot = XCDR (c);
+      if (CONSP (bot))
+	bot = XCAR (bot);
+      if (INTEGERP (top) && INTMAX_MIN >> 16 <= XINT (top)
+	  && XINT (top) <= INTMAX_MAX >> 16 && INTEGERP (bot))
+	{
+	  intmax_t itop = XINT (top);
+	  val = (itop << 16) | XINT (bot);
+	  valid = 1;
+	}
+    }
+
+  if (! (valid && min <= val && val <= max))
+    error ("Not an in-range integer, float, or cons of integers");
+  return val;
 }
 
 DEFUN ("number-to-string", Fnumber_to_string, Snumber_to_string, 1, 1, 0,
