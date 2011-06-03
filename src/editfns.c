@@ -47,7 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <ctype.h>
 #include <float.h>
 #include <limits.h>
-#include <intprops.h>
 #include <strftime.h>
 #include <verify.h>
 

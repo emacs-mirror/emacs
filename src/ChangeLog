@@ -1,5 +1,9 @@
 2011-06-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h: Include <intprops.h>, as it'll useful in later changes.
+	* character.c, data.c, editfns.c, insdel.c, intervals.c:
+	Don't include <intprops.h>, since lisp.h does.
+
 	Don't assume time_t can fit into int.
 	* buffer.h (struct buffer.modtime): Now time_t, not int.
 	* fileio.c (Fvisited_file_modtime): No need for time_t cast now.

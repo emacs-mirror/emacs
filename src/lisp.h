@@ -24,6 +24,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stddef.h>
 #include <inttypes.h>
 
+#include <intprops.h>
+
 /* Use the configure flag --enable-checking[=LIST] to enable various
    types of run time checks for Lisp objects.  */
 
