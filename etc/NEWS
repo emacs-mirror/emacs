@@ -902,6 +902,14 @@ of function value which looks like (closure ENV ARGS &rest BODY).
 *** New function `special-variable-p' to check whether a variable is
 declared as dynamically bound.
 
+** Emacs integers have a wider range on typical 32-bit hosts.
+Previously, they were limited to a 30-bit range (-2**29 .. 2**29-1).
+Now, they are limited to a 62-bit range (-2**61 .. 2**61-1), the
+same as on 64-bit hosts.  This increased range comes from the Emacs
+interpreter using 64-bit native integer types that are available
+on typical modern 32-bit platforms.  Older 32-bit hosts that lack
+64-bit integers have the same 30-bit range as before.
+
 ** pre/post-command-hook are not reset to nil upon error.
 Instead, the offending function is removed.
 

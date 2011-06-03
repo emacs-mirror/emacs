@@ -1,3 +1,7 @@
+2011-06-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* NEWS: 62-bit integers are typical now.
+
 2011-05-24  Leo Liu  <sdl.web@gmail.com>
 
 	* NEWS: Mention the new primitive sha1 and the removal of sha1.el.
