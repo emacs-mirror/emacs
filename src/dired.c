@@ -901,10 +901,10 @@ Elements of the attribute list are:
  8. File modes, as a string of ten letters or dashes as in ls -l.
  9. t if file's gid would change if file were deleted and recreated.
 10. inode number.  If inode number is larger than what Emacs integer
-  can hold, but still fits into a 32-bit number, this is a cons cell
+  can hold, but all but the bottom 16 bits still fits, this is a cons cell
   containing two integers: first the high part, then the low 16 bits.
-  If the inode number is wider than 32 bits, this is of the form
-  (HIGH MIDDLE . LOW): first the high 24 bits, then middle 24 bits,
+  If the inode number is still wider, this is of the form
+  (HIGH MIDDLE . LOW): first the high bits, then the middle 24 bits,
   and finally the low 16 bits.
 11. Filesystem device number.  If it is larger than what the Emacs
   integer can hold, this is a cons cell, similar to the inode number.
@@ -1008,8 +1008,8 @@ so last access time will always be midnight of that day.  */)
 			make_number ((EMACS_INT)(s.st_ino & 0xffff)));
   else
     {
-      /* To allow inode numbers beyond 32 bits, separate into 2 24-bit
-	 high parts and a 16-bit bottom part.
+      /* To allow inode numbers beyond what INTEGER_TO_CONS can handle,
+	 separate into 2 24-bit high parts and a 16-bit bottom part.
 	 The code on the next line avoids a compiler warning on
 	 systems where st_ino is 32 bit wide. (bug#766).  */
       EMACS_INT high_ino = s.st_ino >> 31 >> 1;

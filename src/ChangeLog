@@ -1,5 +1,12 @@
 2011-06-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix doc for machines with wider system times such as time_t.
+	On such machines, it's now safe to assume that EMACS_INT is as
+	wide as the system times, so that shifting right by 16 will
+	result in an integer that always fits in EMACS_INT.
+	* dired.c (Ffile_attributes): Document large inode number handling.
+	* termhooks.h: Fix comment for large time stamp handling.
+
 	* lisp.h (WIDE_EMACS_INT): Now defaults to 1.
 
 	* xselect.c: Use 'unsigned' more consistently.

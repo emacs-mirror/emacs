@@ -342,8 +342,8 @@ struct terminal
      SELECTION-VALUE is the value that emacs owns for that selection.
       It may be any kind of Lisp object.
      SELECTION-TIMESTAMP is the time at which emacs began owning this
-      selection, as a cons of two 16-bit numbers (making a 32 bit
-      time.)
+      selection, as an Emacs integer; or if that doesn't fit, as a
+      cons of two 16-bit integers (making a 32 bit time.)
      FRAME is the frame for which we made the selection.  If there is
       an entry in this alist, then it can be assumed that Emacs owns
       that selection.
