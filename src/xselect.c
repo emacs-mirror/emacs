@@ -1651,9 +1651,9 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
      If the number is 32 bits and won't fit in a Lisp_Int,
      convert it to a cons of integers, 16 bits in each half.
    */
-  else if (format == 32 && size == sizeof (int))
+  else if (format == 32 && size == sizeof (unsigned int))
     return long_to_cons (((unsigned int *) data) [0]);
-  else if (format == 16 && size == sizeof (short))
+  else if (format == 16 && size == sizeof (unsigned short))
     return make_number ((int) (((unsigned short *) data) [0]));
 
   /* Convert any other kind of data to a vector of numbers, represented
@@ -1753,8 +1753,8 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
     {
       *format_ret = 32;
       *size_ret = 1;
-      *data_ret = (unsigned char *) xmalloc (sizeof (long) + 1);
-      (*data_ret) [sizeof (long)] = 0;
+      *data_ret = (unsigned char *) xmalloc (sizeof (unsigned long) + 1);
+      (*data_ret) [sizeof (unsigned long)] = 0;
       (*(unsigned long **) data_ret) [0] = cons_to_long (obj);
       if (NILP (type)) type = QINTEGER;
     }

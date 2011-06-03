@@ -1,5 +1,9 @@
 2011-06-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xselect.c: Use 'unsigned' more consistently.
+	(selection_data_to_lisp_data, lisp_data_to_selection_data):
+	Use 'unsigned' consistently when computing sizes of unsigned objects.
+
 	* fileio.c (Fverify_visited_file_modtime): Avoid time overflow
 	if b->modtime has its maximal value.
 
