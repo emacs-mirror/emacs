@@ -2,6 +2,8 @@
 
 	Document wide integers better.
 	* files.texi (File Attributes): Document ino_t values better.
+	ino_t values no longer map to anything larger than a single cons.
+
 	* numbers.texi (Integer Basics, Integer Basics, Arithmetic Operations):
 	(Bitwise Operations):
 	* objects.texi (Integer Type): Integers are typically 62 bits now.

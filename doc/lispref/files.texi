@@ -1237,13 +1237,9 @@ deleted and recreated; @code{nil} otherwise.
 @item
 The file's inode number.  If possible, this is an integer.  If the
 inode number @math{N} is too large to be represented as an integer in
-Emacs Lisp, but @math{N / 2^16} is representable, then the value has
-the form @code{(@var{high} . @var{low})}, where @var{high} holds the
-high bits (i.e., excluding the low-order bits) and @var{low} the low
-16 bits.  If the inode number is even larger, the value is of the form
-@code{(@var{high} @var{middle} . @var{low})}, where @code{high} holds
-the high bits, @var{middle} the next 24 bits, and @var{low} the low
-16 bits.
+Emacs Lisp, then the value has the form @code{(@var{high}
+. @var{low})}, where @var{high} holds the high bits (i.e., all but the
+low 16 bits) and @var{low} the low 16 bits.
 
 @item
 The filesystem number of the device that the file is on.  Depending on
