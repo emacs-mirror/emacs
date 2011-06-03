@@ -19,7 +19,8 @@
 	* undo.c (record_first_change): Use INTEGER_TO_CONS.
 	(Fprimitive_undo): Use CONS_TO_INTEGER.
 	* xfns.c (Fx_window_property): Likewise.
-	* xselect.c (x_own_selection, selection_data_to_lisp_data):
+	* xselect.c: Include <limits.h>.
+	(x_own_selection, selection_data_to_lisp_data):
 	Use INTEGER_TO_CONS.
 	(x_handle_selection_request, x_handle_selection_clear)
 	(x_get_foreign_selection, Fx_disown_selection_internal)

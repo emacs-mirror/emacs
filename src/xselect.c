@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Rewritten by jwz */
 
 #include <config.h>
+#include <limits.h>
 #include <stdio.h>      /* termhooks.h needs this */
 #include <setjmp.h>
 
