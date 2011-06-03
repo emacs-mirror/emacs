@@ -1,5 +1,7 @@
 2011-06-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (WIDE_EMACS_INT): Now defaults to 1.
+
 	* xselect.c: Use 'unsigned' more consistently.
 	(selection_data_to_lisp_data, lisp_data_to_selection_data):
 	Use 'unsigned' consistently when computing sizes of unsigned objects.
