@@ -1,3 +1,12 @@
+2011-06-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Document wide integers better.
+	* files.texi (File Attributes): Document ino_t values better.
+	* numbers.texi (Integer Basics, Integer Basics, Arithmetic Operations):
+	(Bitwise Operations):
+	* objects.texi (Integer Type): Integers are typically 62 bits now.
+	* os.texi (Time Conversion): Document time_t values better.
+
 2011-05-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* processes.texi (Process Information): Document

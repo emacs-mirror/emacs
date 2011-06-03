@@ -164,25 +164,25 @@ latter are unique to Emacs Lisp.
 @node Integer Type
 @subsection Integer Type
 
-  The range of values for integers in Emacs Lisp is @minus{}536870912 to
-536870911 (30 bits; i.e.,
+  The range of values for integers in Emacs Lisp is
+@minus{}2305843009213693952 to 2305843009213693951 (62 bits; i.e.,
 @ifnottex
--2**29
+-2**61
 @end ifnottex
 @tex
-@math{-2^{29}}
+@math{-2^{61}}
 @end tex
 to
 @ifnottex
-2**29 - 1)
+2**61 - 1)
 @end ifnottex
 @tex
-@math{2^{29}-1})
+@math{2^{61}-1})
 @end tex
-on most machines.  (Some machines may provide a wider range.)  It is
-important to note that the Emacs Lisp arithmetic functions do not check
-for overflow.  Thus @code{(1+ 536870911)} is @minus{}536870912 on most
-machines.
+on most machines.  Some machines may provide a narrower or wider
+range; all machines provide at least 30 bits.  Emacs Lisp arithmetic
+functions do not check for overflow.  Thus @code{(1+
+2305843009213693951)} is @minus{}2305843009213693952 on most machines.
 
   The read syntax for integers is a sequence of (base ten) digits with an
 optional sign at the beginning and an optional period at the end.  The
@@ -195,7 +195,6 @@ leading @samp{+} or a final @samp{.}.
 1                ; @r{The integer 1.}
 1.               ; @r{Also the integer 1.}
 +1               ; @r{Also the integer 1.}
-1073741825       ; @r{Also the integer 1 on a 30-bit implementation.}
 @end group
 @end example
 
@@ -203,8 +202,8 @@ leading @samp{+} or a final @samp{.}.
 As a special exception, if a sequence of digits specifies an integer
 too large or too small to be a valid integer object, the Lisp reader
 reads it as a floating-point number (@pxref{Floating Point Type}).
-For instance, on most machines @code{536870912} is read as the
-floating-point number @code{536870912.0}.
+For instance, on most machines @code{2305843009213693952} is read as the
+floating-point number @code{2.305843009213694e+18}.
 
   @xref{Numbers}, for more information.
 

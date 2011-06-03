@@ -1193,11 +1193,11 @@ to calendrical information and vice versa.  You can get time values
 from the functions @code{current-time} (@pxref{Time of Day}) and
 @code{file-attributes} (@pxref{Definition of file-attributes}).
 
-  Many operating systems are limited to time values that contain 32 bits
+  Many 32-bit operating systems are limited to time values that contain 32 bits
 of information; these systems typically handle only the times from
-1901-12-13 20:45:52 UTC through 2038-01-19 03:14:07 UTC.  However, some
-operating systems have larger time values, and can represent times far
-in the past or future.
+1901-12-13 20:45:52 UTC through 2038-01-19 03:14:07 UTC.  However, 64-bit
+and some 32-bit operating systems have larger time values, and can
+represent times far in the past or future.
 
   Time conversion functions always use the Gregorian calendar, even
 for dates before the Gregorian calendar was introduced.  Year numbers

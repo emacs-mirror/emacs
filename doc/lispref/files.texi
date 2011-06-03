@@ -1236,12 +1236,13 @@ deleted and recreated; @code{nil} otherwise.
 
 @item
 The file's inode number.  If possible, this is an integer.  If the
-inode number is too large to be represented as an integer in Emacs
-Lisp, but still fits into a 32-bit integer, then the value has the
-form @code{(@var{high} . @var{low})}, where @var{low} holds the low 16
-bits.  If the inode is wider than 32 bits, the value is of the form
+inode number @math{N} is too large to be represented as an integer in
+Emacs Lisp, but @math{N / 2^16} is representable, then the value has
+the form @code{(@var{high} . @var{low})}, where @var{high} holds the
+high bits (i.e., excluding the low-order bits) and @var{low} the low
+16 bits.  If the inode number is even larger, the value is of the form
 @code{(@var{high} @var{middle} . @var{low})}, where @code{high} holds
-the high 24 bits, @var{middle} the next 24 bits, and @var{low} the low
+the high bits, @var{middle} the next 24 bits, and @var{low} the low
 16 bits.
 
 @item
