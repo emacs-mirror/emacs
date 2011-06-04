@@ -488,7 +488,6 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
         struct option_list *next;
       } *ambig_list = NULL;
       int exact = 0;
-      int ambig = 0;
       int indfound = -1;
       int option_index;
 
