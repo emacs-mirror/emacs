@@ -1,3 +1,8 @@
+2011-06-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-feature-special-hooks):
+	Add `comint-output-filter-functions'.
+
 2011-05-27  Kenichi Handa  <handa@m17n.org>
 
 	* mail/sendmail.el (mail-encode-header): Avoid double encoding by
