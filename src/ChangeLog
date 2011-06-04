@@ -1,3 +1,12 @@
+2011-06-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.c (main): Warn when starting a GTK emacs in daemon mode.
+
+2011-06-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* fringe.c (update_window_fringes): Don't update overlay arrow bitmap
+	in the current matrix if keep_current_p is non-zero.
+
 2011-06-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_level_of_next_char): Fix last change.
