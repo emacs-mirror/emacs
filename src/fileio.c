@@ -3248,7 +3248,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   /* Check whether the size is too large or negative, which can happen on a
      platform that allows file sizes greater than the maximum off_t value.  */
   if (! not_regular
-      && ! (0 <= st.st_size && st.st_size <= MOST_POSITIVE_FIXNUM))
+      && ! (0 <= st.st_size && st.st_size <= BUF_BYTES_MAX))
     error ("Maximum buffer size exceeded");
 
   /* Prevent redisplay optimizations.  */

@@ -1,5 +1,20 @@
 2011-06-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Check for buffer and string overflow more precisely.
+	* buffer.h (BUF_BYTES_MAX): New macro.
+	* lisp.h (STRING_BYTES_MAX): New macro.
+	* alloc.c (Fmake_string):
+	* character.c (string_escape_byte8):
+	* coding.c (coding_alloc_by_realloc):
+	* doprnt.c (doprnt):
+	* editfns.c (Fformat):
+	* eval.c (verror):
+	Use STRING_BYTES_MAX, not MOST_POSITIVE_FIXNUM,
+	since they may not be the same number.
+	* editfns.c (Finsert_char):
+	* fileio.c (Finsert_file_contents):
+	Likewise for BUF_BYTES_MAX.
+
 	Use ptrdiff_t, not int, for sizes.
 	* image.c (slurp_file): Switch from int to ptrdiff_t.
 	All uses changed.

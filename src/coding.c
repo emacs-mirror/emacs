@@ -1071,8 +1071,8 @@ coding_set_destination (struct coding_system *coding)
 static void
 coding_alloc_by_realloc (struct coding_system *coding, EMACS_INT bytes)
 {
-  if (coding->dst_bytes >= MOST_POSITIVE_FIXNUM - bytes)
-    error ("Maximum size of buffer or string exceeded");
+  if (STRING_BYTES_MAX - coding->dst_bytes < bytes)
+    string_overflow ();
   coding->destination = (unsigned char *) xrealloc (coding->destination,
 						    coding->dst_bytes + bytes);
   coding->dst_bytes += bytes;

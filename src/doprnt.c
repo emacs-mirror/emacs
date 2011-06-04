@@ -329,7 +329,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		minlen = atoi (&fmtcpy[1]);
 	      string = va_arg (ap, char *);
 	      tem = strlen (string);
-	      if (tem > MOST_POSITIVE_FIXNUM)
+	      if (tem > STRING_BYTES_MAX)
 		error ("String for %%s or %%S format is too long");
 	      width = strwidth (string, tem);
 	      goto doit1;
@@ -338,7 +338,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 	    doit:
 	      /* Coming here means STRING contains ASCII only.  */
 	      tem = strlen (string);
-	      if (tem > MOST_POSITIVE_FIXNUM)
+	      if (tem > STRING_BYTES_MAX)
 		error ("Format width or precision too large");
 	      width = tem;
 	    doit1:

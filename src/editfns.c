@@ -2341,7 +2341,7 @@ from adjoining text, if those properties are sticky.  */)
     len = CHAR_STRING (XFASTINT (character), str);
   else
     str[0] = XFASTINT (character), len = 1;
-  if (MOST_POSITIVE_FIXNUM / len < XINT (count))
+  if (BUF_BYTES_MAX / len < XINT (count))
     error ("Maximum buffer size would be exceeded");
   n = XINT (count) * len;
   if (n <= 0)
@@ -3588,7 +3588,7 @@ usage: (format STRING &rest OBJECTS)  */)
   char initial_buffer[4000];
   char *buf = initial_buffer;
   EMACS_INT bufsize = sizeof initial_buffer;
-  EMACS_INT max_bufsize = min (MOST_POSITIVE_FIXNUM + 1, SIZE_MAX);
+  EMACS_INT max_bufsize = STRING_BYTES_MAX + 1;
   char *p;
   Lisp_Object buf_save_value IF_LINT (= {0});
   register char *format, *end, *format_start;
