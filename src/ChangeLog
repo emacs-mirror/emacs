@@ -1,3 +1,77 @@
+2011-06-03  Eli Zaretskii  <eliz@gnu.org>
+
+	Support bidi reordering of text covered by display properties.
+
+	* bidi.c (bidi_copy_it): Use offsetof instead of emulating it.
+	(bidi_fetch_char, bidi_fetch_char_advance): New functions.
+	(bidi_cache_search, bidi_cache_iterator_state)
+	(bidi_paragraph_init, bidi_resolve_explicit, bidi_resolve_weak)
+	(bidi_level_of_next_char, bidi_move_to_visually_next): Support
+	character positions inside a run of characters covered by a
+	display string.
+	(bidi_paragraph_init, bidi_resolve_explicit_1)
+	(bidi_level_of_next_char): Call bidi_fetch_char and
+	bidi_fetch_char_advance instead of FETCH_CHAR and
+	FETCH_CHAR_ADVANCE.
+	(bidi_init_it): Initialize new members.
+	(LRE_CHAR, RLE_CHAR, PDF_CHAR, LRO_CHAR, RLO_CHAR): Remove macro
+	definitions.
+	(bidi_explicit_dir_char): Lookup character type in bidi_type_table,
+	instead of using explicit *_CHAR codes.
+	(bidi_resolve_explicit, bidi_resolve_weak): Use
+	FETCH_MULTIBYTE_CHAR instead of FETCH_CHAR, as reordering of
+	bidirectional text is supported only in multibyte buffers.
+	(bidi_init_it): Accept additional argument FRAME_WINDOW_P and use
+	it to initialize the frame_window_p member of struct bidi_it.
+	(bidi_cache_iterator_state, bidi_resolve_explicit_1)
+	(bidi_resolve_explicit, bidi_resolve_weak)
+	(bidi_level_of_next_char, bidi_move_to_visually_next): Abort if
+	bidi_it->nchars is non-positive.
+	(bidi_level_of_next_char): Don't try to lookup the cache for the
+	next/previous character if nothing is cached there yet, or if we
+	were just reseat()'ed to a new position.
+
+	* xdisp.c (set_cursor_from_row): Set start and stop points
+	according to the row's direction when priming the loop that looks
+	for the glyph on which to display cursor.
+	(single_display_spec_intangible_p): Function deleted.
+	(display_prop_intangible_p): Reimplement to call
+	handle_display_spec instead of single_display_spec_intangible_p.
+	Accept 3 additional arguments needed by handle_display_spec.  This
+	fixes incorrect cursor motion across display property with complex
+	values: lists, `(when COND...)' forms, etc.
+	(single_display_spec_string_p): Support property values that are
+	lists with the argument STRING its top-level element.
+	(display_prop_string_p): Fix the condition for processing a
+	property that is a list to be consistent with handle_display_spec.
+	(handle_display_spec): New function, refactored from the
+	last portion of handle_display_prop.
+	(compute_display_string_pos): Accept additional argument
+	FRAME_WINDOW_P.  Call handle_display_spec to determine whether the
+	value of a `display' property is a "replacing spec".
+	(handle_single_display_spec): Accept 2 additional arguments BUFPOS
+	and FRAME_WINDOW_P.  If IT is NULL, don't set up the iterator from
+	the display property, but just return a value indicating whether
+	the display property will replace the characters it covers.
+	(Fcurrent_bidi_paragraph_direction): Initialize the nchars and
+	frame_window_p members of struct bidi_it.
+	(compute_display_string_pos, compute_display_string_end): New
+	functions.
+	(push_it): Accept second argument POSITION, where pop_it should
+	jump to continue iteration.
+	(reseat_1): Initialize bidi_it.disp_pos.
+
+	* keyboard.c (adjust_point_for_property): Adjust the call to
+	display_prop_intangible_p to its new signature.
+
+	* dispextern.h (struct bidi_it): New member frame_window_p.
+	(bidi_init_it): Update prototypes.
+	(display_prop_intangible_p): Update prototype.
+	(compute_display_string_pos, compute_display_string_end): Declare
+	prototypes.
+	(struct bidi_it): New members nchars and disp_pos.  ch_len is now
+	EMACS_INT.
+
 2011-06-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Malloc failure behavior now depends on size of allocation.
