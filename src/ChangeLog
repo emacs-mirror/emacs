@@ -1,3 +1,7 @@
+2011-06-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_level_of_next_char): clen should be EMACS_NT, not int.
+
 2011-06-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_fetch_char_advance): Remove unused and
