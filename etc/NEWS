@@ -85,6 +85,8 @@ client frame in parent X window ID, via XEmbed.  This works like the
 error, its exit status is 1.
 
 ** Completion
+*** shell-mode uses pcomplete rules, with the standard completion UI.
+
 *** Many packages have been changed to use completion-at-point rather than
 their own completion code.
 
