@@ -1647,7 +1647,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       && bidi_it->next_for_ws.type == UNKNOWN_BT)
     {
       int ch;
-      int clen = bidi_it->ch_len;
+      EMACS_INT clen = bidi_it->ch_len;
       EMACS_INT bpos = bidi_it->bytepos;
       EMACS_INT cpos = bidi_it->charpos;
       EMACS_INT disp_pos = bidi_it->disp_pos;
