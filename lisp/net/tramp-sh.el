@@ -3641,9 +3641,11 @@ file exists and nonzero exit status otherwise."
 	(tramp-send-command vec "echo ~root" t)
 	(cond
 	 ((or (string-match "^~root$" (buffer-string))
-	      ;; The default shell (ksh93) of OpenSolaris is buggy.
-	      (string-equal (tramp-get-connection-property vec "uname" "")
-			    "SunOS 5.11"))
+	      ;; The default shell (ksh93) of OpenSolaris and Solaris
+	      ;; is buggy.  We've got reports for "SunOS 5.10" and
+	      ;; "SunOS 5.11" so far.
+	      (string-match (regexp-opt '("SunOS 5.10" "SunOS 5.11"))
+			    (tramp-get-connection-property vec "uname" "")))
 	  (setq shell
 		(or (tramp-find-executable
 		     vec "bash" (tramp-get-remote-path vec) t t)
