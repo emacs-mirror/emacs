@@ -1,3 +1,8 @@
+2011-06-04  Reuben Thomas <rrt@sc3d.org>
+
+	* progmodes/flymake.el (flymake-compilation-prevents-syntax-check):
+	Doc fix (Bug#8713).
+
 2011-06-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* repeat.el (repeat-on-final-keystroke): Fix type (Bug#8696).
