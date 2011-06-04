@@ -400,11 +400,13 @@ detected as prompt when being sent on echoing hosts, therefore.")
 		 "\\'")
 	       nil ,(user-login-name)))
 
+;;;###tramp-autoload
 (defconst tramp-completion-function-alist-rsh
   '((tramp-parse-rhosts "/etc/hosts.equiv")
     (tramp-parse-rhosts "~/.rhosts"))
   "Default list of (FUNCTION FILE) pairs to be examined for rsh methods.")
 
+;;;###tramp-autoload
 (defconst tramp-completion-function-alist-ssh
   '((tramp-parse-rhosts      "/etc/hosts.equiv")
     (tramp-parse-rhosts      "/etc/shosts.equiv")
@@ -420,47 +422,60 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-parse-sknownhosts "~/.ssh2/knownhosts"))
   "Default list of (FUNCTION FILE) pairs to be examined for ssh methods.")
 
+;;;###tramp-autoload
 (defconst tramp-completion-function-alist-telnet
   '((tramp-parse-hosts "/etc/hosts"))
   "Default list of (FUNCTION FILE) pairs to be examined for telnet methods.")
 
+;;;###tramp-autoload
 (defconst tramp-completion-function-alist-su
   '((tramp-parse-passwd "/etc/passwd"))
   "Default list of (FUNCTION FILE) pairs to be examined for su methods.")
 
+;;;###tramp-autoload
 (defconst tramp-completion-function-alist-putty
   '((tramp-parse-putty
      "HKEY_CURRENT_USER\\Software\\SimonTatham\\PuTTY\\Sessions"))
   "Default list of (FUNCTION REGISTRY) pairs to be examined for putty methods.")
 
-(tramp-set-completion-function "rcp" tramp-completion-function-alist-rsh)
-(tramp-set-completion-function "remcp" tramp-completion-function-alist-rsh)
-(tramp-set-completion-function "scp" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "scp1" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "scp2" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "scpc" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "scpx" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "sftp" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "rsync" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "rsyncc" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "rsh" tramp-completion-function-alist-rsh)
-(tramp-set-completion-function "remsh" tramp-completion-function-alist-rsh)
-(tramp-set-completion-function "ssh" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "ssh1" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "ssh2" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "ssh1_old" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "ssh2_old" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "sshx" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "telnet" tramp-completion-function-alist-telnet)
-(tramp-set-completion-function "su" tramp-completion-function-alist-su)
-(tramp-set-completion-function "sudo" tramp-completion-function-alist-su)
-(tramp-set-completion-function "ksu" tramp-completion-function-alist-su)
-(tramp-set-completion-function "krlogin" tramp-completion-function-alist-rsh)
-(tramp-set-completion-function "plink" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "plink1" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "plinkx" tramp-completion-function-alist-putty)
-(tramp-set-completion-function "pscp" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "fcp" tramp-completion-function-alist-ssh)
+;;;###tramp-autoload
+(eval-after-load 'tramp
+  '(progn
+     (tramp-set-completion-function "rcp" tramp-completion-function-alist-rsh)
+     (tramp-set-completion-function "remcp" tramp-completion-function-alist-rsh)
+     (tramp-set-completion-function "scp" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "scp1" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "scp2" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "scpc" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "scpx" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "sftp" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "rsync" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function
+      "rsyncc" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "rsh" tramp-completion-function-alist-rsh)
+     (tramp-set-completion-function "remsh" tramp-completion-function-alist-rsh)
+     (tramp-set-completion-function "ssh" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "ssh1" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "ssh2" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function
+      "ssh1_old" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function
+      "ssh2_old" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "sshx" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function
+      "telnet" tramp-completion-function-alist-telnet)
+     (tramp-set-completion-function "su" tramp-completion-function-alist-su)
+     (tramp-set-completion-function "sudo" tramp-completion-function-alist-su)
+     (tramp-set-completion-function "ksu" tramp-completion-function-alist-su)
+     (tramp-set-completion-function
+      "krlogin" tramp-completion-function-alist-rsh)
+     (tramp-set-completion-function "plink" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function
+      "plink1" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function
+      "plinkx" tramp-completion-function-alist-putty)
+     (tramp-set-completion-function "pscp" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "fcp" tramp-completion-function-alist-ssh)))
 
 ;; "getconf PATH" yields:
 ;; HP-UX: /usr/bin:/usr/ccs/bin:/opt/ansic/bin:/opt/langtools/bin:/opt/fortran/bin

@@ -53,9 +53,11 @@
 	     `(,(concat "\\`" tramp-smb-method "\\'") nil nil))
 
 ;; Add completion function for SMB method.
-(tramp-set-completion-function
- tramp-smb-method
- '((tramp-parse-netrc "~/.netrc")))
+;;;###tramp-autoload
+(eval-after-load 'tramp
+  '(tramp-set-completion-function
+    tramp-smb-method
+    '((tramp-parse-netrc "~/.netrc"))))
 
 (defcustom tramp-smb-program "smbclient"
   "*Name of SMB client to run."
