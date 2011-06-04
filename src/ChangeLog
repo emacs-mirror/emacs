@@ -1,3 +1,14 @@
+2011-06-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c (x_clipboard_manager_save): Remove redundant arg.
+	(x_clipboard_manager_save): Add return value.
+	(x_clipboard_manager_error_1, x_clipboard_manager_error_2): New
+	error handlers.
+	(x_clipboard_manager_save_frame, x_clipboard_manager_save_all):
+	Obey Vx_select_enable_clipboard_manager.  Catch errors in
+	x_clipboard_manager_save (Bug#8779).
+	(Vx_select_enable_clipboard_manager): New variable.
+
 2011-06-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs.c (main): Warn when starting a GTK emacs in daemon mode.

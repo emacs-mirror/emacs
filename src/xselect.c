@@ -2108,15 +2108,14 @@ frame's display, or the first available X display.  */)
 }
 
 
-/* Send the clipboard manager a SAVE_TARGETS request with a
-   UTF8_STRING property, as described by
-   http://www.freedesktop.org/wiki/ClipboardManager */
+/* Send clipboard manager a SAVE_TARGETS request with a UTF8_STRING
+   property (http://www.freedesktop.org/wiki/ClipboardManager).  */
 
-static void
-x_clipboard_manager_save (struct x_display_info *dpyinfo,
-			  Lisp_Object frame)
+static Lisp_Object
+x_clipboard_manager_save (Lisp_Object frame)
 {
   struct frame *f = XFRAME (frame);
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Atom data = dpyinfo->Xatom_UTF8_STRING;
 
   XChangeProperty (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -2125,6 +2124,31 @@ x_clipboard_manager_save (struct x_display_info *dpyinfo,
 		   (unsigned char *) &data, 1);
   x_get_foreign_selection (QCLIPBOARD_MANAGER, QSAVE_TARGETS,
 			   Qnil, frame);
+  return Qt;
+}
+
+/* Error handler for x_clipboard_manager_save_frame.  */
+
+static Lisp_Object
+x_clipboard_manager_error_1 (Lisp_Object err)
+{
+  Lisp_Object args[2];
+  args[0] = build_string ("X clipboard manager error: %s\n\
+If the problem persists, set `x-select-enable-clipboard-manager' to nil.");
+  args[1] = CAR (CDR (err));
+  Fmessage (2, args);
+  return Qnil;
+}
+
+/* Error handler for x_clipboard_manager_save_all.  */
+
+static Lisp_Object
+x_clipboard_manager_error_2 (Lisp_Object err)
+{
+  fprintf (stderr, "Error saving to X clipboard manager.\n\
+If the problem persists, set `x-select-enable-clipboard-manager' \
+to nil.\n");
+  return Qnil;
 }
 
 /* Called from delete_frame: save any clipboard owned by FRAME to the
@@ -2136,7 +2160,8 @@ x_clipboard_manager_save_frame (Lisp_Object frame)
 {
   struct frame *f;
 
-  if (FRAMEP (frame)
+  if (!NILP (Vx_select_enable_clipboard_manager)
+      && FRAMEP (frame)
       && (f = XFRAME (frame), FRAME_X_P (f))
       && FRAME_LIVE_P (f))
     {
@@ -2148,7 +2173,8 @@ x_clipboard_manager_save_frame (Lisp_Object frame)
 	  && EQ (frame, XCAR (XCDR (XCDR (XCDR (local_selection)))))
 	  && XGetSelectionOwner (dpyinfo->display,
 				 dpyinfo->Xatom_CLIPBOARD_MANAGER))
-	x_clipboard_manager_save (dpyinfo, frame);
+	internal_condition_case_1 (x_clipboard_manager_save, frame, Qt,
+				   x_clipboard_manager_error_1);
     }
 }
 
@@ -2162,6 +2188,10 @@ x_clipboard_manager_save_all (void)
   /* Loop through all X displays, saving owned clipboards.  */
   struct x_display_info *dpyinfo;
   Lisp_Object local_selection, local_frame;
+
+  if (NILP (Vx_select_enable_clipboard_manager))
+    return;
+
   for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
     {
       local_selection = LOCAL_SELECTION (QCLIPBOARD, dpyinfo);
@@ -2172,7 +2202,8 @@ x_clipboard_manager_save_all (void)
 
       local_frame = XCAR (XCDR (XCDR (XCDR (local_selection))));
       if (FRAME_LIVE_P (XFRAME (local_frame)))
-	x_clipboard_manager_save (dpyinfo, local_frame);
+	internal_condition_case_1 (x_clipboard_manager_save, local_frame,
+				   Qt, x_clipboard_manager_error_2);
     }
 }
 
@@ -2640,6 +2671,14 @@ to convert into a type that we don't know about or that is inappropriate.
 This hook doesn't let you change the behavior of Emacs's selection replies,
 it merely informs you that they have happened.  */);
   Vx_sent_selection_functions = Qnil;
+
+  DEFVAR_LISP ("x-select-enable-clipboard-manager",
+	       Vx_select_enable_clipboard_manager,
+	       doc: /* Whether to enable X clipboard manager support.
+If non-nil, then whenever Emacs is killed or an Emacs frame is deleted
+while owning the X clipboard, the clipboard contents are saved to the
+clipboard manager if one is present.  */);
+  Vx_select_enable_clipboard_manager = Qt;
 
   DEFVAR_INT ("x-selection-timeout", x_selection_timeout,
 	      doc: /* Number of milliseconds to wait for a selection reply.

@@ -400,6 +400,9 @@ between applications.
 
 *** Support for X clipboard managers has been added.
 
+**** To inhibit use of the clipboard manager, set
+`x-select-enable-clipboard-manager' to nil.
+
 ** New command `rectangle-number-lines', bound to `C-x r N', numbers
 the lines in the current rectangle.  With an prefix argument, this
 prompts for a number to count from and for a format string.
