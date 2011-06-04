@@ -189,35 +189,35 @@ fire repeatedly that many seconds apart."
 	      (setcdr reuse-cell timers))
 	  (setq reuse-cell (cons timer timers)))
 	;; Insert new timer after last which possibly means in front of queue.
-	(if last
-	    (setcdr last reuse-cell)
-          (if idle
-              (setq timer-idle-list reuse-cell)
-            (setq timer-list reuse-cell)))
+	(cond (last (setcdr last reuse-cell))
+	      (idle (setq timer-idle-list reuse-cell))
+	      (t    (setq timer-list reuse-cell)))
 	(setf (timer--triggered timer) triggered-p)
 	(setf (timer--idle-delay timer) idle)
 	nil)
     (error "Invalid or uninitialized timer")))
 
-(defun timer-activate (timer &optional triggered-p reuse-cell idle)
-  "Put TIMER on the list of active timers.
+(defun timer-activate (timer &optional triggered-p reuse-cell)
+  "Insert TIMER into `timer-list'.
+If TRIGGERED-P is t, make TIMER inactive (put it on the list, but
+mark it as already triggered).  To remove it, use `cancel-timer'.
 
-If TRIGGERED-P is t, that means to make the timer inactive
-\(put it on the list, but mark it as already triggered).
-To remove from the list, use `cancel-timer'.
-
-REUSE-CELL, if non-nil, is a cons cell to reuse instead
-of allocating a new one."
+REUSE-CELL, if non-nil, is a cons cell to reuse when inserting
+TIMER into `timer-list' (usually a cell removed from that list by
+`cancel-timer-internal'; using this reduces consing for repeat
+timers).  If nil, allocate a new cell."
   (timer--activate timer triggered-p reuse-cell nil))
 
 (defun timer-activate-when-idle (timer &optional dont-wait reuse-cell)
-  "Arrange to activate TIMER whenever Emacs is next idle.
-If optional argument DONT-WAIT is non-nil, then enable the
-timer to activate immediately, or at the right time, if Emacs
-is already idle.
+  "Insert TIMER into `timer-idle-list'.
+This arranges to activate TIMER whenever Emacs is next idle.
+If optional argument DONT-WAIT is non-nil, set TIMER to activate
+immediately, or at the right time, if Emacs is already idle.
 
-REUSE-CELL, if non-nil, is a cons cell to reuse instead
-of allocating a new one."
+REUSE-CELL, if non-nil, is a cons cell to reuse when inserting
+TIMER into `timer-idle-list' (usually a cell removed from that
+list by `cancel-timer-internal'; using this reduces consing for
+repeat timers).  If nil, allocate a new cell."
   (timer--activate timer (not dont-wait) reuse-cell 'idle))
 
 (defalias 'disable-timeout 'cancel-timer)
