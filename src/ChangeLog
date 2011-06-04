@@ -8,6 +8,7 @@
 	Obey Vx_select_enable_clipboard_manager.  Catch errors in
 	x_clipboard_manager_save (Bug#8779).
 	(Vx_select_enable_clipboard_manager): New variable.
+	(x_get_foreign_selection): Reduce scope of x_catch_errors (Bug#8790).
 
 2011-06-04  Dan Nicolaescu  <dann@ics.uci.edu>
 

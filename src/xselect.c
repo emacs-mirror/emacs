@@ -1207,7 +1207,6 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
 		    ? symbol_to_x_atom (dpyinfo, XCAR (target_type))
 		    : symbol_to_x_atom (dpyinfo, target_type));
   int secs, usecs;
-  int count = SPECPDL_INDEX ();
 
   if (!FRAME_LIVE_P (f))
     return Qnil;
@@ -1225,20 +1224,15 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
     }
 
   BLOCK_INPUT;
-
-  /* The protected block contains wait_reading_process_output, which
-     can run random lisp code (process handlers) or signal.
-     Therefore, we put the x_uncatch_errors call in an unwind.  */
-  record_unwind_protect (x_catch_errors_unwind, Qnil);
-  x_catch_errors (display);
-
   TRACE2 ("Get selection %s, type %s",
 	  XGetAtomName (display, type_atom),
 	  XGetAtomName (display, target_property));
 
+  x_catch_errors (display);
   XConvertSelection (display, selection_atom, type_atom, target_property,
 		     requestor_window, requestor_time);
-  XFlush (display);
+  x_check_errors (display, "Can't convert selection: %s");
+  x_uncatch_errors ();
 
   /* Prepare to block until the reply has been read.  */
   reading_selection_window = requestor_window;
@@ -1263,13 +1257,6 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
   wait_reading_process_output (secs, usecs, 0, 0,
 			       reading_selection_reply, NULL, 0);
   TRACE1 ("  Got event = %d", !NILP (XCAR (reading_selection_reply)));
-
-  BLOCK_INPUT;
-  if (x_had_errors_p (display))
-    error ("Cannot get selection");
-  /* This calls x_uncatch_errors.  */
-  unbind_to (count, Qnil);
-  UNBLOCK_INPUT;
 
   if (NILP (XCAR (reading_selection_reply)))
     error ("Timed out waiting for reply from selection owner");
