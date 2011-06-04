@@ -18,8 +18,8 @@
 	Use ptrdiff_t, not int, for sizes.
 	* image.c (slurp_file): Switch from int to ptrdiff_t.
 	All uses changed.
-	(slurp_file, svg_load): Check that file size fits in both
-	size_t (for malloc) and ptrdiff_t (for sanity and safety).
+	(slurp_file): Check that file size fits in both size_t (for
+	malloc) and ptrdiff_t (for sanity and safety).
 
 2011-06-03  Paul Eggert  <eggert@cs.ucla.edu>
 

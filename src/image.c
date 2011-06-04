@@ -8073,7 +8073,7 @@ svg_load (struct frame *f, struct image *img)
       Lisp_Object data;
 
       data = image_spec_value (img->spec, QCdata, NULL);
-      if (! (STRINGP (data) && SBYTES (data) <= min (PTRDIFF_MAX, SIZE_MAX)))
+      if (!STRINGP (data))
 	{
 	  image_error ("Invalid image data `%s'", data, Qnil);
 	  return 0;
