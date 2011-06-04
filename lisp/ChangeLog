@@ -1,3 +1,7 @@
+2011-06-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* repeat.el (repeat-on-final-keystroke): Fix type (Bug#8696).
+
 2011-06-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* loadhist.el (unload-feature-special-hooks):
