@@ -968,6 +968,11 @@ Set this variable before loading BibTeX mode."
   :group 'bibtex
   :type 'boolean)
 
+(defcustom bibtex-search-buffer "*BibTeX Search*"
+  "Buffer for BibTeX search results."
+  :group 'bibtex
+  :type 'string)
+
 ;; `bibtex-font-lock-keywords' is a user option, too.  But since the
 ;; patterns used to define this variable are defined in a later
 ;; section of this file, it is defined later.
@@ -1025,6 +1030,7 @@ Set this variable before loading BibTeX mode."
     (define-key km "\C-c\C-rn" 'bibtex-narrow-to-entry)
     (define-key km "\C-c\C-rw" 'widen)
     (define-key km "\C-c\C-l" 'bibtex-url)
+    (define-key km "\C-c\C-a" 'bibtex-search-entries)
     (define-key km "\C-c\C-o" 'bibtex-remove-OPT-or-ALT)
     (define-key km "\C-c\C-e\C-i" 'bibtex-InProceedings)
     (define-key km "\C-c\C-ei" 'bibtex-InCollection)
@@ -1102,6 +1108,8 @@ Set this variable before loading BibTeX mode."
      ["View Cite Locations (RefTeX)" reftex-view-crossref-from-bibtex
       (fboundp 'reftex-view-crossref-from-bibtex)])
     ("Operating on Buffer or Region"
+     ["Search Entries" bibtex-search-entries t]
+     "--"
      ["Validate Entries" bibtex-validate t]
      ["Sort Entries" bibtex-sort-buffer t]
      ["Reformat Entries" bibtex-reformat t]
@@ -4788,6 +4796,118 @@ Return the URL or nil if none can be generated."
       (if (and (not url) (called-interactively-p 'interactive))
 	  (message "No URL known."))
       url)))
+
+;; We could combine multiple seach results with set operations
+;; AND, OR, MINUS, and NOT.  Would this be useful?
+;; How complicated are searches in real life?
+;; We could also have other searches such as "publication year newer than...".
+(defun bibtex-search-entries (field regexp &optional global display)
+  "Search BibTeX entries for FIELD matching REGEXP.
+REGEXP may be a regexp to search for.
+If REGEXP is a function, it is called for each entry with two args,
+the buffer positions of beginning and end of entry.  Then an entry
+is accepted if this function returns non-nil.
+If FIELD is an empty string perform search for REGEXP in whole entry.
+With GLOBAL non-nil, search in `bibtex-files'.  Otherwise the search
+is limited to the current buffer.
+If DISPLAY is non-nil, display search results in `bibtex-search-buffer'.
+When called interactively, DISPLAY is t.
+Also, GLOBAL is t if `bibtex-search-entry-globally' is non-nil.
+A prefix arg negates the value of `bibtex-search-entry-globally'.
+Return alist with elements (KEY FILE ENTRY),
+where FILE is the BibTeX file of ENTRY."
+  (interactive
+   (list (completing-read
+          "Field: "
+          (delete-dups
+           (apply 'append
+                  bibtex-user-optional-fields
+                  (mapcar (lambda (x)
+                            (append (mapcar 'car (nth 0 (nth 1 x)))
+                                    (mapcar 'car (nth 1 (nth 1 x)))))
+                          bibtex-entry-field-alist))) nil t)
+         (read-string "Regexp: ")
+         (if bibtex-search-entry-globally
+             (not current-prefix-arg)
+           current-prefix-arg)
+         t))
+  (let ((funp (functionp regexp))
+        entries text file)
+    ;; If REGEXP is a function, the value of FIELD is ignored anyway.
+    ;; Yet to ensure the code below does not fail, we make FIELD
+    ;; a non-empty string.
+    (if (and funp (string= "" field)) (setq field "unrestricted"))
+    (dolist (buffer (if (and global bibtex-files)
+                        (bibtex-initialize t)
+                      (list (current-buffer))))
+      (with-current-buffer buffer
+        (setq file (if buffer-file-name
+                       (file-name-nondirectory buffer-file-name)
+                     (buffer-name buffer)))
+        (save-excursion
+          (goto-char (point-min))
+          (if (string= "" field)
+              ;; Unrestricted search.
+              (while (re-search-forward regexp nil t)
+                (let ((beg (bibtex-beginning-of-entry))
+                      (end (bibtex-end-of-entry))
+                      key)
+                  (if (and (<= beg (match-beginning 0))
+                           (<= (match-end 0) end)
+                           (save-excursion
+                             (goto-char beg)
+                             (and (looking-at bibtex-entry-head)
+                                  (setq key (bibtex-key-in-head)))))
+                      (add-to-list 'entries
+                                   (list key file
+                                         (buffer-substring-no-properties
+                                          beg end))))))
+            ;; The following is slow.  But it works reliably even in more
+            ;; complicated cases with BibTeX string constants and crossrefed
+            ;; entries.  If you prefer speed over reliability, perform an
+            ;; unrestricted search.
+            (bibtex-map-entries
+             (lambda (key beg end)
+               (if (cond (funp (funcall regexp beg end))
+                         ((and (setq text (bibtex-text-in-field field t))
+                               (string-match regexp text))))
+                   (add-to-list 'entries
+                                (list key file
+                                      (buffer-substring-no-properties
+                                       beg end))))))))))
+    (if display
+        (if entries
+            (bibtex-display-entries entries)
+          (message "No BibTeX entries %smatching `%s'"
+                   (if (string= "" field) ""
+                     (format "with field `%s' " field))
+                   regexp)))
+    entries))
+
+(defun bibtex-display-entries (entries &optional append)
+  "Display BibTeX ENTRIES in `bibtex-search-buffer'.
+ENTRIES is an alist with elements (KEY FILE ENTRY),
+where FILE is the BibTeX file of ENTRY.
+If APPEND is non-nil, append ENTRIES to those already displayed."
+  (pop-to-buffer (get-buffer-create bibtex-search-buffer))
+  ;; It would be nice if this buffer was editable, though editing
+  ;; can be meaningful only for individual existing entries
+  ;; (unlike reordering or creating new entries).
+  ;; Fancy workaround: Editing commands in the virtual buffer could
+  ;; jump to the real entry in the real buffer.
+  (let (buffer-read-only)
+    (if append (goto-char (point-max)) (erase-buffer))
+    (dolist (entry (sort entries (lambda (x y) (string< (car x) (car y)))))
+      (insert "% " (nth 1 entry) "\n" (nth 2 entry) "\n\n")))
+    ;; `bibtex-sort-buffer' fails with the file names associated with
+    ;; each entry.  Prior to sorting we could make the file name
+    ;; a BibTeX field of each entry (using `bibtex-make-field').
+    ;; Or we could make it a text property that we unfold afterwards.
+    ;; (bibtex-sort-buffer)
+  (bibtex-mode)
+  (set-buffer-modified-p nil)
+  (setq buffer-read-only t)
+  (goto-char (point-min)))
 
 
 ;; Make BibTeX a Feature

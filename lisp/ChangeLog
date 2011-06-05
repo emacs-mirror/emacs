@@ -1,5 +1,11 @@
 2011-06-05  Roland Winkler  <winkler@gnu.org>
 
+	* textmodes/bibtex.el (bibtex-search-buffer): New variable.
+	(bibtex-search-entries): New command bound to C-c C-a.
+	(bibtex-display-entries): New function.
+
+2011-06-05  Roland Winkler  <winkler@gnu.org>
+
 	* textmodes/bibtex.el (bibtex-generate-url-list): Fix docstring.
 	(bibtex-insert-kill): After yanking insert newline if necessary.
 	(bibtex-initialize): Call bibtex-string-files-init only once.

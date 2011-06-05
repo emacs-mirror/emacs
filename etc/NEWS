@@ -438,6 +438,8 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 
 ** BibTeX mode
 
+*** New command `bibtex-search-entries' bound to C-c C-a.
+
 *** New `bibtex-entry-format' option `sort-fields', disabled by default.
 
 *** New variable `bibtex-search-entry-globally'.
