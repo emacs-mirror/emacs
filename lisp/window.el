@@ -435,151 +435,7 @@ number of slots on that side."
      :format "%[Bottom%] %v\n"
      (const :tag "Unlimited" :format "%t" nil)
      (integer :tag "Number" :value 3 :size 5)))
-  :group 'windows
-  :group 'display-buffer)
-
-(defcustom window-sides-alist nil
-  "Association list for side windows.
-Each entry of this list must be a list whose first element is
-either `left', `top', `right' or`bottom'.  The second element of
-each entry specifies the minimum size of windows on that side
-\(either the default value, a number of lines or columns, or a
-fraction of the frame size).  The third element specifies the
-desired size of windows on that side \(either the default value,
-a number of lines or columns, or a fraction of the frame size).
-The fourth element specifies the upper bound on the number of
-slots on that side, nil if there's no bound."
-  :risky t
-  :type
-  '(set
-    ;;; :format "%v %t"
-    :inline t
-    ;; Left side window.
-    (list
-     :value (left nil nil nil)
-     :format "Left:   %v\n"
-     (const :format "" left)
-     ;; Minimum width of left side windows.
-     (choice
-      :tag "Minimum width"
-      :help-echo "The minimum width of left side windows."
-      :value nil
-      :format "%[Minimum%] %v"
-      (const :tag "Default" :format "%t" nil)
-      (integer :tag "Columns" :value 12 :size 5)
-      (float :tag "Fraction" :value .25 :size 5))
-     ;; Desired width of left side windows.
-     (choice
-      :tag "Desired width"
-      :help-echo "The desired width of left side windows."
-      :value nil
-      :format "  %[Desired%] %v"
-      (const :tag "Default" :format "%t" nil)
-      (integer :tag "Columns" :value 12 :size 5)
-      (float :tag "Fraction" :value .25 :size 5))
-     ;; The maximum number of slots of left side windows.
-     (choice
-      :tag "Slots"
-      :help-echo "The maximum number of slots in left side windows."
-      :value nil
-      :format "  %[Slots%] %v"
-      (const :tag "Unspecified" :format "%t" nil)
-      (integer :tag "Number" :format "%v" :value 3 :size 5)))
-    ;; Top side windows.
-    (list
-     :value (top nil nil nil)
-     :format "Top:    %v\n"
-     (const :format "" top)
-     ;; Minimum height of top windows.
-     (choice
-      :tag "Minimum height"
-      :help-echo "The minimum height of top windows."
-      :value nil
-      :format "%[Minimum%]  %v"
-      (const :tag "Default" :format "%t" nil)
-      (integer :tag "Lines" :value 6 :size 5)
-      (float :tag "Fraction" :value .25 :size 5))
-     ;; Desired size of left side windows.
-     (choice
-      :tag "Desired height"
-      :help-echo "The desired height of top windows."
-      :value nil
-      :format "  %[Desired%]  %v"
-      (const :tag "Default" :format "%t" nil)
-      (integer :tag "Lines" :value 6 :size 5)
-      (float :tag "Fraction" :value .25 :size 5))
-     ;; The maximum number of slots of top windows.
-     (choice
-      :tag "Slots"
-      :help-echo "The maximum number of slots in top windows."
-      :value nil
-      :format "  %[Slots%] %v"
-      (const :tag "Unspecified" :format "%t" nil)
-      (integer :tag "Number" :value 3 :format "%v" :size 5)))
-    ;; Right side windows.
-    (list
-     :value (right nil nil nil)
-     :format "Right:  %v\n"
-     (const :format "" right)
-     ;; Minimum width of right side windows.
-     (choice
-      :tag "Minimum width"
-      :help-echo "The minimum width of windows on the right."
-      :value nil
-      :format "%[Minimum%]  %v"
-      (const :tag "Default" :format "%t" nil)
-      (integer :tag "Columns" :value 12 :size 5)
-      (float :tag "Fraction" :value .25 :size 5))
-     ;; Desired width of right side windows.
-     (choice
-      :tag "Desired width"
-      :help-echo "The desired width of windows on the left."
-      :value nil
-      :format "  %[Desired%]  %v"
-      (const :tag "Default" :format "%t" nil)
-      (integer :tag "Columns" :value 12 :size 5)
-      (float :tag "Fraction" :value .25 :size 5))
-     ;; The maximum number of slots of right side windows.
-     (choice
-      :tag "Slots"
-      :help-echo "The maximum number of slots in right side windows."
-      :value nil
-      :format "  %[Slots%] %v"
-      (const :tag "Unspecified" :format "%t" nil)
-      (integer :tag "Number" :value 3 :format "%v" :size 5)))
-    ;; Bottom side windows.
-    (list
-     :value (bottom nil nil nil)
-     :format "Bottom: %v\n"
-     (const :format "" bottom)
-     ;; Minimum height of bottom windows.
-     (choice
-      :tag "Minimum height"
-      :help-echo "The minimum height of bottom windows."
-      :value nil
-      :format "%[Minimum%]  %v"
-      (const :tag "Default" :format "%t" nil)
-      (integer :tag "Lines" :value 6 :size 5)
-      (float :tag "Fraction" :value .25 :size 5))
-     ;; Desired height of bottom windows.
-     (choice
-      :tag "Desired height"
-      :help-echo "The desired height of bottom windows."
-      :value nil
-      :format "  %[Desired%]  %v"
-      (const :tag "Default" :format "%t" nil)
-      (integer :tag "Lines" :value 6 :size 5)
-      (float :tag "Fraction" :value .25 :size 5))
-     ;; The maximum number of slots of bottom windows.
-     (choice
-      :tag "Slots"
-      :help-echo "The maximum number of slots in botom windows."
-      :value nil
-      :format "  %[Slots%] %v"
-      (const :tag "Unspecified" :format "%t" nil)
-      (integer :tag "Number" :value 3 :format "%v" :size 5))))
-  :group 'windows
-  :group 'display-buffer)
+  :group 'windows)
 
 (defun window-side-check (&optional frame)
   "Check the window-side parameter of all windows on FRAME.
@@ -3936,12 +3792,6 @@ subwindows can get as small as `window-safe-min-height' and
 	(window-state-put-2 ignore))
       (window-check frame))))
 
-;;; Displaying buffers.
-(defgroup display-buffer nil
-  "Displaying buffers in windows."
-  :version "24.1"
-  :group 'windows)
-
 (defconst display-buffer-default-specifiers
   '((reuse-window nil same visible)
     (pop-up-window (largest . nil) (lru . nil))
@@ -4506,7 +4356,7 @@ using the location specifiers `same-window' or `other-frame'."
 	    :format "%[Display%] %v\n" :size 15
 	    (const :tag "On any display" :format "%t" nil)
 	    (const :tag "On graphic displays only" :format "%t" t)))
-	  ;; Pop-up frame function
+	  ;; Pop-up frame function.
 	  (cons
 	   :format "%v\n"
 	   (const :format "" pop-up-frame-function)
@@ -4732,7 +4582,7 @@ call to avoid that the function recursively calls itself."
   :type '(choice
 	  (const nil)
 	  (function :tag "Function"))
-  :group 'display-buffer)
+  :group 'windows)
 
 ;; The following is a global variable which is used externally (by
 ;; help.el) to (1) know which window was used for displaying a buffer
@@ -4938,9 +4788,9 @@ none was found."
       ;; Otherwise, sort windows according to their use-time.
       (setq windows
 	    (sort windows
-		  '(lambda (window-1 window-2)
-		     (<= (window-use-time window-1)
-			 (window-use-time window-2)))))
+		  #'(lambda (window-1 window-2)
+		      (<= (window-use-time window-1)
+			  (window-use-time window-2)))))
       (setq best-window
 	    ;; Try to get a full-width window (this is silly and can
 	    ;; get us to another frame but let's ignore these issues
@@ -5395,7 +5245,8 @@ BUFFER-OR-NAME and return that buffer."
     (current-buffer)))
 
 (defun display-buffer-normalize-specifiers-1 (specifiers)
-  "Subroutine of `display-buffer-normalize-specifiers'."
+  "Subroutine of `display-buffer-normalize-specifiers'.
+SPECIFIERS is the SPECIFIERS argument of `display-buffer'."
   (let (normalized)
     (cond
      ((listp specifiers)
@@ -5426,6 +5277,198 @@ BUFFER-OR-NAME and return that buffer."
 	(when entry (setq normalized (cdr entry))))))
 
     normalized))
+
+(defun display-buffer-normalize-specifiers-2 (&optional buffer-or-name)
+  "Subroutine of `display-buffer-normalize-specifiers'.
+BUFFER-OR-NAME is the buffer to display.  This routine provides a
+compatibility layer for the now obsolete Emacs 23 buffer display
+options."
+  (let* ((buffer (normalize-live-buffer buffer-or-name))
+	 (buffer-name (buffer-name buffer))
+	 specifiers)
+    ;; Disable warnings, there are too many obsolete options here.
+    (with-no-warnings
+      ;; `display-buffer-mark-dedicated'
+      (unless (memq display-buffer-mark-dedicated '(nil unset))
+	(setq specifiers
+	      (cons (cons 'dedicate display-buffer-mark-dedicated)
+		    specifiers)))
+
+      ;; `pop-up-window' group.  Anything is added here iff
+      ;; `pop-up-windows' is neither nil nor unset.
+      (let ((pop-up-window (not (memq pop-up-windows '(nil unset))))
+	    (fun (unless (eq split-window-preferred-function
+			     'split-window-sensibly)
+		   split-window-preferred-function))
+	    (min-height (if (numberp split-height-threshold)
+			    (/ split-height-threshold 2)
+			  1.0))
+	    (min-width (if (numberp split-width-threshold)
+			   (/ split-width-threshold 2)
+			 1.0)))
+	(when pop-up-window
+	  ;; `split-height-threshold'
+	  (setq specifiers
+		(cons (cons 'pop-up-window-min-height min-height)
+		      specifiers))
+	  ;; `split-width-threshold'
+	  (setq specifiers
+		(cons (cons 'pop-up-window-min-width min-width)
+		      specifiers))
+	  ;; `pop-up-window'
+	  (setq specifiers
+		(cons (list 'pop-up-window
+			    (cons 'largest fun) (cons 'lru fun))
+		      specifiers))))
+
+      ;; `pop-up-frame' group.  Anything is added here iff
+      ;; `pop-up-frames' is neither nil nor unset (we ignore the problem
+      ;; that callers usually don't care about graphic-only).
+      (unless (memq pop-up-frames '(nil unset))
+	;; `pop-up-frame-function'.  If `pop-up-frame-function' uses the
+	;; now obsolete `pop-up-frame-alist' it will continue to do so.
+	(setq specifiers
+	      (cons (cons 'pop-up-frame-function pop-up-frame-function)
+		    specifiers))
+	;; `pop-up-frame'
+	(setq specifiers
+	      (cons (list 'pop-up-frame pop-up-frames) specifiers)))
+
+      ;; `special-display-regexps'
+      (dolist (entry special-display-regexps)
+	(cond
+	 ((stringp entry)
+	  ;; Plain string.
+	  (when (string-match-p entry buffer-name)
+	    (setq specifiers
+		  (cons
+		   (list 'fun-with-args special-display-function
+			 special-display-frame-alist)
+		   specifiers))))
+	 ((consp entry)
+	  (let ((name (car entry))
+		(rest (cdr entry)))
+	    (cond
+	     ((not (string-match-p name buffer-name)))
+	     ((functionp (car rest))
+	      ;; A function.
+	      (setq specifiers
+		    (cons (list 'fun-with-args (car rest) (cadr rest))
+			  specifiers)))
+	     ((listp rest)
+	      ;; A list of parameters.
+	      (cond
+	       ((assq 'same-window rest)
+		(setq specifiers
+		      (cons (list 'reuse-window 'same) specifiers))
+		(setq specifiers
+		      (cons (list 'reuse-window-dedicated 'weak)
+			    specifiers)))
+	       ((assq 'same-frame rest)
+		(setq specifiers
+		      (setq specifiers
+			    (cons (list 'same-frame) specifiers))))
+	       (t
+		(setq specifiers
+		      (cons (list 'fun-with-args special-display-function
+				  special-display-frame-alist)
+			    specifiers))))))))))
+
+      ;; `special-display-buffer-names'
+      (dolist (entry special-display-buffer-names)
+	(cond
+	 ((stringp entry)
+	  ;; Plain string.
+	  (when (string-equal entry buffer-name)
+	    (setq specifiers
+		  (cons
+		   (list 'fun-with-args special-display-function
+			 special-display-frame-alist)
+		   specifiers))))
+	 ((consp entry)
+	  (let ((name (car entry))
+		(rest (cdr entry)))
+	    (cond
+	     ((not (string-equal name buffer-name)))
+	     ((functionp (car rest))
+	      ;; A function.
+	      (setq specifiers
+		    (cons (list 'fun-with-args (car rest) (cadr rest))
+			  specifiers)))
+	     ((listp rest)
+	      ;; A list of parameters.
+	      (cond
+	       ((assq 'same-window rest)
+		(setq specifiers
+		      (cons (list 'reuse-window 'same) specifiers))
+		(setq specifiers
+		      (cons (list 'reuse-window-dedicated 'weak)
+			    specifiers)))
+	       ((assq 'same-frame rest)
+		(setq specifiers
+		      (setq specifiers
+			    (cons (list 'same-frame) specifiers))))
+	       (t
+		(setq specifiers
+		      (cons (list 'fun-with-args special-display-function
+				  special-display-frame-alist)
+			    specifiers))))))))))
+
+      ;; `same-window-regexps'
+      (dolist (entry same-window-regexps)
+	(cond
+	 ((stringp entry)
+	  (when (string-match-p entry buffer-name)
+	    (setq specifiers
+		  (cons (list 'reuse-window 'same) specifiers))))
+	 ((consp entry)
+	  (when (string-match-p (car entry) buffer-name)
+	    (setq specifiers
+		  (cons (list 'reuse-window 'same) specifiers))))))
+
+      ;; `same-window-buffer-names'
+      (dolist (entry same-window-buffer-names)
+	(cond
+	 ((stringp entry)
+	  (when (string-equal entry buffer-name)
+	    (setq specifiers
+		  (cons (list 'reuse-window 'same) specifiers))))
+	 ((consp entry)
+	  (when (string-equal (car entry) buffer-name)
+	    (setq specifiers
+		  (cons (list 'reuse-window 'same) specifiers))))))
+
+      ;; `pop-up-windows' and `pop-up-frames' nil means means we
+      ;; are supposed to reuse any window (unless we find one showing
+      ;; the same buffer already).
+
+      ;; This clause is needed because Emacs 23 options can be used to
+      ;; suppress a certain behavior while `display-buffer-alist' can be
+      ;; only used to enforce some behavior.
+      (when (and (not pop-up-windows) (memq pop-up-frames '(nil unset)))
+	;; `even-window-heights'
+	(when even-window-heights
+	  (setq specifiers
+		(cons (cons 'reuse-window-even-sizes t) specifiers)))
+	;; `reuse-window' showing any buffer on same frame.
+	(setq specifiers
+	      (cons (list 'reuse-window nil nil nil)
+		    specifiers)))
+
+      ;; `display-buffer-reuse-frames' or `pop-up-frames' set means we
+      ;; are supposed to reuse a window showing the same buffer.
+      (unless (and (memq display-buffer-reuse-frames '(nil unset))
+		   (memq pop-up-frames '(nil unset)))
+	;; `even-window-heights'
+	(when even-window-heights
+	  (setq specifiers
+		(cons (cons 'reuse-window-even-sizes t) specifiers)))
+	;; `reuse-window' showing same buffer on visible frame.
+	(setq specifiers
+	      (cons (list 'reuse-window nil 'same 0)
+		    specifiers)))
+
+      specifiers)))
 
 (defun display-buffer-normalize-specifiers (buffer-name specifiers label)
   "Return normalized specifiers for a buffer matching BUFFER-NAME or LABEL.
@@ -5475,10 +5518,15 @@ specifiers:
 		    normalized))))))
 
     (append
+     ;; Overriding user specifiers.
      list-1
+     ;; Application specifiers.
      (display-buffer-normalize-specifiers-1 specifiers)
+     ;; Emacs 23 compatibility specifiers.
+     (display-buffer-normalize-specifiers-2 buffer-name)
+     ;; Non-overriding user specifiers.
      list-2
-     ;; Append the default specifiers.
+     ;; Default specifiers.
      display-buffer-default-specifiers)))
 
 ;; Minibuffer-only frames should be documented better.  They really
@@ -5845,41 +5893,68 @@ functions should call `pop-to-buffer-other-frame' instead."
     (pop-to-buffer buffer 'other-frame norecord)))
 
 ;;; Obsolete definitions of `display-buffer' below.
-(defcustom pop-up-frame-alist nil
-  "Alist of parameters for automatically generated new frames.
-You can set this in your init file; for example,
+(defcustom same-window-buffer-names nil
+  "List of names of buffers that should appear in the \"same\" window.
+`display-buffer' and `pop-to-buffer' show a buffer whose name is
+on this list in the selected rather than some other window.
 
-  (setq pop-up-frame-alist '((width . 80) (height . 20)))
+An element of this list can be a cons cell instead of just a
+string.  In that case, the cell's car must be a string specifying
+the buffer name.  This is for compatibility with
+`special-display-buffer-names'; the cdr of the cons cell is
+ignored.
 
-If non-nil, the value you specify here is used by the default
-`pop-up-frame-function' for the creation of new frames.
-
-Since `pop-up-frame-function' is used by `display-buffer' for
-making new frames, any value specified here by default affects
-the automatic generation of new frames via `display-buffer' and
-all functions based on it.  The behavior of `make-frame' is not
-affected by this variable."
-  :type '(repeat (cons :format "%v"
-		       (symbol :tag "Parameter")
-		       (sexp :tag "Value")))
-  :group 'frames)
+See also `same-window-regexps'."
+ :type '(repeat (string :format "%v"))
+ :group 'windows)
 (make-obsolete-variable
- 'pop-up-frame-alist
+ 'same-window-buffer-names
  "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
-(defcustom pop-up-frame-function
-  (lambda () (make-frame pop-up-frame-alist))
-  "Function used by `display-buffer' for creating a new frame.
-This function is called with no arguments and should return a new
-frame.  The default value calls `make-frame' with the argument
-`pop-up-frame-alist'."
-  :type 'function
-  :group 'frames)
+(defcustom same-window-regexps nil
+  "List of regexps saying which buffers should appear in the \"same\" window.
+`display-buffer' and `pop-to-buffer' show a buffer whose name
+matches a regexp on this list in the selected rather than some
+other window.
+
+An element of this list can be a cons cell instead of just a
+string.  In that case, the cell's car must be a regexp matching
+the buffer name.  This is for compatibility with
+`special-display-regexps'; the cdr of the cons cell is ignored.
+
+See also `same-window-buffer-names'."
+  :type '(repeat (regexp :format "%v"))
+  :group 'windows)
 (make-obsolete-variable
- 'pop-up-frame-function
+ 'same-window-regexps
  "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
+
+(defun same-window-p (buffer-name)
+  "Return non-nil if a buffer named BUFFER-NAME would be shown in the \"same\" window.
+This function returns non-nil if `display-buffer' or
+`pop-to-buffer' would show a buffer named BUFFER-NAME in the
+selected rather than \(as usual\) some other window.  See
+`same-window-buffer-names' and `same-window-regexps'."
+  (let ((buffer-names (with-no-warnings special-display-buffer-names))
+	(regexps (with-no-warnings special-display-regexps)))
+    (cond
+     ((not (stringp buffer-name)))
+     ;; The elements of `same-window-buffer-names' can be buffer
+     ;; names or cons cells whose cars are buffer names.
+     ((member buffer-name buffer-names))
+     ((assoc buffer-name buffer-names))
+     ((catch 'found
+	(dolist (regexp regexps)
+	  ;; The elements of `same-window-regexps' can be regexps
+	  ;; or cons cells whose cars are regexps.
+	  (when (or (and (stringp regexp)
+			 (string-match regexp buffer-name))
+		    (and (consp regexp) (stringp (car regexp))
+			 (string-match-p (car regexp) buffer-name)))
+	    (throw 'found t))))))))
+(make-obsolete 'same-window-p "pass argument to buffer display function instead." "24.1")
 
 (defcustom special-display-frame-alist
   '((height . 14) (width . 80) (unsplittable . t))
@@ -5951,6 +6026,26 @@ and (cdr ARGS) as second."
  "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
+(defcustom special-display-function 'special-display-popup-frame
+  "Function to call for displaying special buffers.
+This function is called with two arguments - the buffer and,
+optionally, a list - and should return a window displaying that
+buffer.  The default value usually makes a separate frame for the
+buffer using `special-display-frame-alist' to specify the frame
+parameters.  See the definition of `special-display-popup-frame'
+for how to specify such a function.
+
+A buffer is special when its name is either listed in
+`special-display-buffer-names' or matches a regexp in
+`special-display-regexps'."
+  :type 'function
+  :group 'windows
+  :group 'frames)
+(make-obsolete-variable
+ 'special-display-function
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
+ "24.1")
+
 (defcustom special-display-buffer-names nil
   "List of names of buffers that should be displayed specially.
 Displaying a buffer with `display-buffer' or `pop-to-buffer', if
@@ -6012,7 +6107,7 @@ See also `special-display-regexps'."
 			(string :format "%v")
 			(function :tag "Function")
 			(repeat :tag "Arguments" (sexp)))))
-  :group 'display-buffer
+  :group 'windows
   :group 'frames)
 (make-obsolete-variable
  'special-display-buffer-names
@@ -6026,14 +6121,12 @@ See also `special-display-regexps'."
   "List of regexps saying which buffers should be displayed specially.
 Displaying a buffer with `display-buffer' or `pop-to-buffer', if
 any regexp in this list matches its name, displays it specially
-using `special-display-function'.
-
-The function `special-display-popup-frame' \(the default for
-`special-display-function') usually displays the buffer in a
-separate frame made with the parameters specified by
-`special-display-frame-alist'.  If `special-display-function' has
-been set to some other function, that function is called with the
-buffer as first, and nil as second argument.
+using `special-display-function'.  `special-display-popup-frame'
+\(the default for `special-display-function') usually displays
+the buffer in a separate frame made with the parameters specified
+by `special-display-frame-alist'.  If `special-display-function'
+has been set to some other function, that function is called with
+the buffer as first, and nil as second argument.
 
 Alternatively, an element of this list can be specified as
 \(REGEXP FRAME-PARAMETERS), where REGEXP is a regexp as above and
@@ -6086,7 +6179,7 @@ See also `special-display-buffer-names'."
 			(regexp :format "%v")
 			(function :tag "Function")
 			(repeat :tag "Arguments" (sexp)))))
-  :group 'display-buffer
+  :group 'windows
   :group 'frames)
 (make-obsolete-variable
  'special-display-regexps
@@ -6121,142 +6214,81 @@ entry."
 	    (throw 'found (cdr regexp))))))))))
 (make-obsolete 'special-display-p "pass argument to buffer display function instead." "24.1")
 
-(defcustom special-display-function 'special-display-popup-frame
-  "Function to call for displaying special buffers.
-This function is called with two arguments - the buffer and,
-optionally, a list - and should return a window displaying that
-buffer.  The default value usually makes a separate frame for the
-buffer using `special-display-frame-alist' to specify the frame
-parameters.  See the definition of `special-display-popup-frame'
-for how to specify such a function.
+(defcustom pop-up-frame-alist nil
+  "Alist of parameters for automatically generated new frames.
+You can set this in your init file; for example,
 
-A buffer is special when its name is either listed in
-`special-display-buffer-names' or matches a regexp in
-`special-display-regexps'."
+  (setq pop-up-frame-alist '((width . 80) (height . 20)))
+
+If non-nil, the value you specify here is used by the default
+`pop-up-frame-function' for the creation of new frames.
+
+Since `pop-up-frame-function' is used by `display-buffer' for
+making new frames, any value specified here by default affects
+the automatic generation of new frames via `display-buffer' and
+all functions based on it.  The behavior of `make-frame' is not
+affected by this variable."
+  :type '(repeat (cons :format "%v"
+		       (symbol :tag "Parameter")
+		       (sexp :tag "Value")))
+  :group 'frames)
+(make-obsolete-variable
+ 'pop-up-frame-alist
+ "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
+ "24.1")
+
+(defcustom pop-up-frame-function
+  (lambda () (make-frame pop-up-frame-alist))
+  "Function used by `display-buffer' for creating a new frame.
+This function is called with no arguments and should return a new
+frame.  The default value calls `make-frame' with the argument
+`pop-up-frame-alist'."
   :type 'function
   :group 'frames)
 (make-obsolete-variable
- 'special-display-function
+ 'pop-up-frame-function
  "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
-(defcustom same-window-buffer-names nil
-  "List of names of buffers that should appear in the \"same\" window.
-`display-buffer' and `pop-to-buffer' show a buffer whose name is
-on this list in the selected rather than some other window.
-
-An element of this list can be a cons cell instead of just a
-string.  In that case, the cell's car must be a string specifying
-the buffer name.  This is for compatibility with
-`special-display-buffer-names'; the cdr of the cons cell is
-ignored.
-
-See also `same-window-regexps'."
- :type '(repeat (string :format "%v"))
- :group 'display-buffer)
-(make-obsolete-variable
- 'same-window-buffer-names
- "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
- "24.1")
-
-(defcustom same-window-regexps nil
-  "List of regexps saying which buffers should appear in the \"same\" window.
-`display-buffer' and `pop-to-buffer' show a buffer whose name
-matches a regexp on this list in the selected rather than some
-other window.
-
-An element of this list can be a cons cell instead of just a
-string.  In that case, the cell's car must be a regexp matching
-the buffer name.  This is for compatibility with
-`special-display-regexps'; the cdr of the cons cell is ignored.
-
-See also `same-window-buffer-names'."
-  :type '(repeat (regexp :format "%v"))
-  :group 'display-buffer)
-(make-obsolete-variable
- 'same-window-regexps
- "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
- "24.1")
-
-(defun same-window-p (buffer-name)
-  "Return non-nil if a buffer named BUFFER-NAME would be shown in the \"same\" window.
-This function returns non-nil if `display-buffer' or
-`pop-to-buffer' would show a buffer named BUFFER-NAME in the
-selected rather than \(as usual\) some other window.  See
-`same-window-buffer-names' and `same-window-regexps'."
-  (let ((buffer-names (with-no-warnings special-display-buffer-names))
-	(regexps (with-no-warnings special-display-regexps)))
-    (cond
-     ((not (stringp buffer-name)))
-     ;; The elements of `same-window-buffer-names' can be buffer
-     ;; names or cons cells whose cars are buffer names.
-     ((member buffer-name buffer-names))
-     ((assoc buffer-name buffer-names))
-     ((catch 'found
-	(dolist (regexp regexps)
-	  ;; The elements of `same-window-regexps' can be regexps
-	  ;; or cons cells whose cars are regexps.
-	  (when (or (and (stringp regexp)
-			 (string-match regexp buffer-name))
-		    (and (consp regexp) (stringp (car regexp))
-			 (string-match-p (car regexp) buffer-name)))
-	    (throw 'found t))))))))
-(make-obsolete 'same-window-p "pass argument to buffer display function instead." "24.1")
-
-(defcustom pop-up-frames nil
+(defcustom pop-up-frames 'unset ; nil
   "Whether `display-buffer' should make a separate frame.
 If nil, never make a separate frame.
 If the value is `graphic-only', make a separate frame
 on graphic displays only.
+If this is the symbol unset, the option was not set and is
+ignored.
 Any other non-nil value means always make a separate frame."
   :type '(choice
+	  (const :tag "Unset" unset)
 	  (const :tag "Never" nil)
 	  (const :tag "On graphic displays only" graphic-only)
 	  (const :tag "Always" t))
-  :group 'display-buffer
+  :version "24.1"
+  :group 'windows
   :group 'frames)
 (make-obsolete-variable
  'pop-up-frames
  "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
-(defcustom display-buffer-reuse-frames nil
-  "Non-nil means `display-buffer' should reuse frames.
+(defcustom display-buffer-reuse-frames 'unset ; nil
+  "Set and non-nil means `display-buffer' should reuse frames.
 If the buffer in question is already displayed in a frame, raise
 that frame."
   :type 'boolean
-  :version "21.1"
-  :group 'display-buffer
+  :version "24.1"
+  :group 'windows
   :group 'frames)
 (make-obsolete-variable
  'display-buffer-reuse-frames
  "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
-(defcustom pop-up-windows t
-  "Non-nil means `display-buffer' is allowed to make a new window.
-A non-empty list specifies the windows `display-buffer' will
-consider for splitting.  The following entries are supported
-where \"frame\" refers to the frame chosen to display the buffer:
-
- largest ...... largest window
- lru .......... least recently used window
- selected ..... frame's selected window
- root ......... frame's root window 
-
-The default value t stands for the list `(largest lru)'.  This
-means that `display-buffer' will first try to split the largest
-window and, if that fails, the least recently used window."
-  :type '(choice
-	  (const :tag "Disallow" nil)
-	  (const :tag "Allow" t)
-	  (repeat :tag "Preferences"
-		  (choice
-		   (const :tag "Largest" largest)
-		   (const :tag "Least Recently Used" lru)
-		   (const :tag "Selected" selected)
-		   (const :tag "Frame Root Window" root))))
-  :group 'display-buffer)
+(defcustom pop-up-windows 'unset ; t
+  "Set and non-nil means `display-buffer' should make a new window."
+  :type 'boolean
+  :version "24.1"
+  :group 'windows)
 (make-obsolete-variable
  'pop-up-windows
  "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
@@ -6286,7 +6318,7 @@ if you intend to split the selected window instead or if you do
 not want to split the selected window."
   :type 'function
   :version "23.1"
-  :group 'display-buffer)
+  :group 'windows)
 (make-obsolete-variable
  'split-window-preferred-function
  "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
@@ -6301,7 +6333,7 @@ window is the only window on its frame, `display-buffer' may
 split it vertically disregarding the value of this variable."
   :type '(choice (const nil) (integer :tag "lines"))
   :version "23.1"
-  :group 'display-buffer)
+  :group 'windows)
 (make-obsolete-variable
  'split-height-threshold
  "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
@@ -6314,7 +6346,7 @@ horizontally only if it has at least this many columns.  If this
 is nil, `display-buffer' cannot split windows horizontally."
   :type '(choice (const nil) (integer :tag "columns"))
   :version "23.1"
-  :group 'display-buffer)
+  :group 'windows)
 (make-obsolete-variable
  'split-width-threshold
  "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
@@ -6326,14 +6358,15 @@ Otherwise `display-buffer' will leave the window configuration
 alone.  Heights are evened only when `display-buffer' reuses a
 window that appears above or below the selected window."
   :type 'boolean
-  :group 'display-buffer)
+  :version "23.1"
+  :group 'windows)
 (make-obsolete-variable
  'even-window-heights
  "use `display-buffer-alist' or 2nd arg of `display-buffer' instead."
  "24.1")
 
-(defvar display-buffer-mark-dedicated nil
-  "If non-nil, `display-buffer' marks the windows it creates as dedicated.
+(defvar display-buffer-mark-dedicated 'unset ; nil
+  "Set and non-nil means `display-buffer' marks the windows it creates as dedicated.
 The actual non-nil value of this variable will be copied to the
 `window-dedicated-p' flag.")
 (make-obsolete-variable
@@ -6394,7 +6427,7 @@ value of `display-buffer-alist'."
 	      1.0)))
        (list
 	'pop-up-window
-	(when pop-up-windows
+	(when pop-up-windows ; unset qualifies as t
 	  (list
 	   'pop-up-window
 	   (cons 'largest fun)
@@ -6408,20 +6441,21 @@ value of `display-buffer-alist'."
      nil
      (list
       'pop-up-frame
-      (when pop-up-frames (list 'pop-up-frame pop-up-frames))
+      (unless (memq pop-up-frames '(nil unset))
+	(list 'pop-up-frame pop-up-frames))
       (when pop-up-frame-function
 	(cons 'pop-up-frame-function pop-up-frame-function))
       (when pop-up-frame-alist
 	(cons 'pop-up-frame-alist pop-up-frame-alist)))
      no-custom)
 
-    ;; `special-display-buffer-names'
-    (dolist (entry special-display-buffer-names)
+    ;; `special-display-regexps'
+    (dolist (entry special-display-regexps)
       (cond
        ((stringp entry)
 	;; Plain string.
 	(display-buffer-alist-add
-	 `((name . ,entry))
+	 `((regexp . ,entry))
 	 (list
 	  'fun-with-args
 	  (list 'fun-with-args special-display-function
@@ -6462,13 +6496,13 @@ value of `display-buffer-alist'."
 		      special-display-frame-alist))
 	       no-custom)))))))))
 
-    ;; `special-display-regexps'
-    (dolist (entry special-display-regexps)
+    ;; `special-display-buffer-names'
+    (dolist (entry special-display-buffer-names)
       (cond
        ((stringp entry)
 	;; Plain string.
 	(display-buffer-alist-add
-	 `((regexp . ,entry))
+	 `((name . ,entry))
 	 (list
 	  'fun-with-args
 	  (list 'fun-with-args special-display-function
@@ -6543,12 +6577,22 @@ value of `display-buffer-alist'."
      (list
       'reuse-window
       (list 'reuse-window nil 'same
-	    ;; "0" (all visible and iconified frames) is hardcoded in
-	    ;; Emacs 23.
-	    (if (or display-buffer-reuse-frames pop-up-frames) 0 nil))
+	    (unless (and (memq display-buffer-reuse-frames '(nil unset))
+			 (memq pop-up-frames '(nil unset)))
+	      ;; "0" (all visible and iconified frames) is hardcoded in
+	      ;; Emacs 23.
+		0))
       (when even-window-heights
 	(cons 'reuse-window-even-sizes t)))
-     no-custom))
+     no-custom)
+
+    ;; `display-buffer-mark-dedicated'
+    (unless (memq display-buffer-mark-dedicated '(nil unset))
+      (display-buffer-alist-add
+       nil
+       (list
+	(cons 'dedicated display-buffer-mark-dedicated))
+       no-custom)))
 
   display-buffer-alist)
 
