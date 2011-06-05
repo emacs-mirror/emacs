@@ -1,3 +1,8 @@
+2011-06-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xfns.c (x_set_scroll_bar_default_width): Move declarations
+	before statements.
+
 2011-06-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_default_scrollbar_width): New function.
