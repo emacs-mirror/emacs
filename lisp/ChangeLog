@@ -1,3 +1,8 @@
+2011-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/python.el (python-after-info-look): Add autoload cookie.
+	(python-unload-function): New function. (Bug#8730, bug#8781)
+
 2011-06-04  Reuben Thomas <rrt@sc3d.org>
 
 	* progmodes/flymake.el (flymake-compilation-prevents-syntax-check):
