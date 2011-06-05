@@ -1,3 +1,10 @@
+2011-06-05  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-entry-format): New option
+	sort-fields.
+	(bibtex-format-entry, bibtex-reformat): Honor this option.
+	(bibtex-parse-entry): Return fields in proper order.
+
 2011-06-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* doc-view.el (doc-view-remove-if): Move computation of result out

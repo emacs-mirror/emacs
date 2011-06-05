@@ -436,6 +436,10 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 
 ** Modula-2 mode provides auto-indentation.
 
+** BibTeX mode
+
+*** New `bibtex-entry-format' option `sort-fields', disabled by default.
+
 ** latex-electric-env-pair-mode keeps \begin..\end matched on the fly.
 
 ** FIXME: xdg-open for browse-url and reportbug, 2010/08.

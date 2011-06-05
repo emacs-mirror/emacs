@@ -126,6 +126,8 @@ braces              Enclose parts of field entries by braces according to
                       `bibtex-field-braces-alist'.
 strings             Replace parts of field entries by string constants
                       according to `bibtex-field-strings-alist'.
+sort-fields         Sort fields to match the field order in
+                    `bibtex-entry-field-alist'.
 
 The value t means do all of the above formatting actions.
 The value nil means do no formatting at all."
@@ -144,7 +146,8 @@ The value nil means do no formatting at all."
                       (const delimiters)
                       (const unify-case)
                       (const braces)
-                      (const strings))))
+                      (const strings)
+                      (const sort-fields))))
 (put 'bibtex-entry-format 'safe-local-variable
      (lambda (x)
        (or (eq x t)
@@ -153,7 +156,8 @@ The value nil means do no formatting at all."
                (unless (memq (pop x)
                              '(opts-or-alts required-fields numerical-fields
                                page-dashes whitespace inherit-booktitle realign
-                               last-comma delimiters unify-case braces strings))
+                               last-comma delimiters unify-case braces strings
+                               sort-fields))
                  (setq OK nil)))
              (unless (null x) (setq OK nil))
              OK))))
@@ -1906,7 +1910,7 @@ Formats current entry according to variable `bibtex-entry-format'."
                     '(realign opts-or-alts required-fields numerical-fields
                               page-dashes whitespace inherit-booktitle
                               last-comma delimiters unify-case braces
-                              strings)
+                              strings sort-fields)
                   bibtex-entry-format))
         (left-delim-re (regexp-quote (bibtex-field-left-delimiter)))
         bounds crossref-key req-field-list default-field-list field-list
@@ -1962,7 +1966,21 @@ Formats current entry according to variable `bibtex-entry-format'."
                       ;; default list of fields that may appear in this entry
                       default-field-list (append (nth 0 (nth 1 entry-list))
                                                  (nth 1 (nth 1 entry-list))
-                                                 bibtex-user-optional-fields)))
+                                                 bibtex-user-optional-fields))
+
+                (when (memq 'sort-fields format)
+                  (goto-char (point-min))
+                  (let ((beg-fields (save-excursion (bibtex-beginning-first-field)))
+                        (fields-alist (bibtex-parse-entry))
+                        bibtex-help-message elt)
+                    (delete-region beg-fields (point))
+                    (dolist (field default-field-list)
+                      (when (setq elt (assoc-string (car field) fields-alist t))
+                        (setq fields-alist (delete elt fields-alist))
+                        (bibtex-make-field (list (car elt) "" (cdr elt)) nil nil t)))
+                    (dolist (field fields-alist)
+                      (unless (member (car field) '("=key=" "=type="))
+                        (bibtex-make-field (list (car field) "" (cdr field)) nil nil t))))))
 
               ;; process all fields
               (bibtex-beginning-first-field (point-min))
@@ -3139,7 +3157,7 @@ If optional arg CONTENT is non-nil extract content of text fields."
 		    (bibtex-text-in-field-bounds bounds content))
 	      alist)
 	(goto-char (bibtex-end-of-field bounds))))
-    alist))
+    (nreverse alist)))
 
 (defun bibtex-autofill-entry ()
   "Try to fill fields of current BibTeX entry based on neighboring entries.
@@ -4397,14 +4415,15 @@ If mark is active reformat entries in region, if not in whole buffer."
                                    ("Force delimiters? " . 'delimiters)
                                    ("Unify case of entry types and field names? " . 'unify-case)
                                    ("Enclose parts of field entries by braces? " . 'braces)
-                                   ("Replace parts of field entries by string constants? " . 'strings))))))
+                                   ("Replace parts of field entries by string constants? " . 'strings)
+                                   ("Sort fields? " . 'sort-fields))))))
                 ;; Do not include required-fields because `bibtex-reformat'
                 ;; cannot handle the error messages of `bibtex-format-entry'.
                 ;; Use `bibtex-validate' to check for required fields.
                 ((eq t bibtex-entry-format)
                  '(realign opts-or-alts numerical-fields delimiters
                            last-comma page-dashes unify-case inherit-booktitle
-                           whitespace braces strings))
+                           whitespace braces strings sort-fields))
                 (t
                  (cons 'realign (remove 'required-fields bibtex-entry-format)))))
          (reformat-reference-keys
