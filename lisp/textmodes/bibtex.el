@@ -923,7 +923,7 @@ The following is a complex example, see URL `http://link.aps.org/'.
 
    (((\"journal\" . \"\\\\=<\\(PR[ABCDEL]?\\|RMP\\)\\\\=>\")
      \"http://link.aps.org/abstract/%s/v%s/p%s\"
-     (\"journal\" \".*\" downcase)
+     (\"journal\" \".*\" upcase)
      (\"volume\" \".*\" 0)
      (\"pages\" \"\\`[A-Z]?[0-9]+\" 0)))"
   :group 'bibtex
@@ -1892,6 +1892,9 @@ Optional arg COMMA is as in `bibtex-enclosing-field'."
       (push-mark)
       (insert (funcall fun 'bibtex-entry-kill-ring-yank-pointer
                        bibtex-entry-kill-ring))
+      ;; If we copied an entry from a buffer containing only this one entry,
+      ;; it can be missing the second "\n".
+      (unless (looking-back "\n\n") (insert "\n"))
       (unless (functionp bibtex-reference-keys)
         ;; update `bibtex-reference-keys'
         (save-excursion
@@ -2723,12 +2726,14 @@ When called interactively, FORCE is t, CURRENT is t if current buffer uses
           ((and (not current) (memq (current-buffer) buffer-list))
            (setq buffer-list (delq (current-buffer) buffer-list))))
     ;; parse keys
-    (dolist (buffer buffer-list)
-      (with-current-buffer buffer
-        (if (or force (functionp bibtex-reference-keys))
-            (bibtex-parse-keys))
-        (unless (functionp bibtex-strings)
-          (bibtex-parse-strings (bibtex-string-files-init)))))
+    (let (string-init)
+      (dolist (buffer buffer-list)
+        (with-current-buffer buffer
+          (if (or force (functionp bibtex-reference-keys))
+              (bibtex-parse-keys))
+          (when (or force (functionp bibtex-strings))
+            (unless string-init (setq string-init (bibtex-string-files-init)))
+            (bibtex-parse-strings string-init)))))
     ;; select BibTeX buffer
     (if select
         (if buffer-list
@@ -3043,10 +3048,7 @@ if that value is non-nil.
         bibtex-font-lock-syntactic-keywords))
   (setq imenu-generic-expression
         (list (list nil bibtex-entry-head bibtex-key-in-head))
-        imenu-case-fold-search t)
-  ;; XEmacs needs `easy-menu-add', Emacs does not care
-  (easy-menu-add bibtex-edit-menu)
-  (easy-menu-add bibtex-entry-menu))
+        imenu-case-fold-search t))
 
 (defun bibtex-field-list (entry-type)
   "Return list of allowed fields for entry ENTRY-TYPE.
@@ -3873,20 +3875,21 @@ Return t if test was successful, nil otherwise."
     ;; Check for duplicate keys within BibTeX buffer
     (dolist (buffer buffer-list)
       (with-current-buffer buffer
-        (let (entry-type key key-list)
-          (goto-char (point-min))
-          (while (re-search-forward bibtex-entry-head nil t)
-            (setq entry-type (bibtex-type-in-head)
-                  key (bibtex-key-in-head))
-            (if (or (and strings (bibtex-string= entry-type "string"))
-                    (assoc-string entry-type bibtex-entry-field-alist t))
-                (if (member key key-list)
-                    (push (format "%s:%d: Duplicate key `%s'\n"
-                                  (buffer-file-name)
-                                  (bibtex-current-line) key)
-                          error-list)
-                  (push key key-list))))
-          (push (cons buffer key-list) buffer-key-list))))
+        (save-excursion
+          (let (entry-type key key-list)
+            (goto-char (point-min))
+            (while (re-search-forward bibtex-entry-head nil t)
+              (setq entry-type (bibtex-type-in-head)
+                    key (bibtex-key-in-head))
+              (if (or (and strings (bibtex-string= entry-type "string"))
+                      (assoc-string entry-type bibtex-entry-field-alist t))
+                  (if (member key key-list)
+                      (push (format "%s:%d: Duplicate key `%s'\n"
+                                    (buffer-file-name)
+                                    (bibtex-current-line) key)
+                            error-list)
+                    (push key key-list))))
+            (push (cons buffer key-list) buffer-key-list)))))
 
     ;; Check for duplicate keys among BibTeX buffers
     (while (setq current-buf (pop buffer-list))
@@ -4148,6 +4151,7 @@ More precisely, reinsert the field or entry killed or yanked most recently.
 With argument N, reinsert the Nth most recently killed BibTeX item.
 See also the command \\[bibtex-yank-pop]."
   (interactive "*p")
+  (unless n (setq n 1))
   (bibtex-insert-kill (1- n) t)
   (setq this-command 'bibtex-yank))
 

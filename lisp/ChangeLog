@@ -1,5 +1,14 @@
 2011-06-05  Roland Winkler  <winkler@gnu.org>
 
+	* textmodes/bibtex.el (bibtex-generate-url-list): Fix docstring.
+	(bibtex-insert-kill): After yanking insert newline if necessary.
+	(bibtex-initialize): Call bibtex-string-files-init only once.
+	(bibtex-mode): Do not call easy-menu-add.
+	(bibtex-validate-globally): Use save-excursion in bibtex buffers.
+	(bibtex-yank): Set arg properly if nil.
+
+2011-06-05  Roland Winkler  <winkler@gnu.org>
+
 	* textmodes/bibtex.el (bibtex-search-entry-globally): New
 	variable.
 	(bibtex-search-entry): Use it.
