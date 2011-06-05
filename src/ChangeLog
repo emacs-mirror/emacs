@@ -1,5 +1,8 @@
 2011-06-05  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* editfns.c (Fformat): Correctly handle zero flag with hexadecimal
+	format.  (Bug#8806)
+
 	* gtkutil.c (xg_get_default_scrollbar_width): Avoid warning.
 
 	* xfns.c (x_set_scroll_bar_default_width): Move declarations

@@ -4083,7 +4083,10 @@ usage: (format STRING &rest OBJECTS)  */)
 		  int exponent_bytes = 0;
 		  int signedp = src0 == '-' || src0 == '+' || src0 == ' ';
 		  int significand_bytes;
-		  if (zero_flag && '0' <= src[signedp] && src[signedp] <= '9')
+		  if (zero_flag
+		      && ((src[signedp] >= '0' && src[signedp] <= '9')
+			  || (src[signedp] >= 'a' && src[signedp] <= 'f')
+			  || (src[signedp] >= 'A' && src[signedp] <= 'F')))
 		    {
 		      leading_zeros += padding;
 		      padding = 0;
