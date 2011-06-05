@@ -3326,6 +3326,21 @@ xg_get_widget_from_map (int idx)
   return 0;
 }
 
+int
+xg_get_default_scrollbar_width (FRAME_PTR f)
+{
+  GtkWidget *wscroll = gtk_vscrollbar_new (gtk_adjustment_new (XG_SB_MIN,
+                                                               XG_SB_MIN,
+                                                               XG_SB_MAX,
+                                                               0.1, 0.1, 0.1));
+  int w = 0, b = 0;
+  gtk_widget_style_get (wscroll, "slider-width", &w, "trough-border", &b, NULL);
+  gtk_widget_destroy (wscroll);
+  w += 2*b;
+  if (w < 16) w = 16;
+  return w;
+}
+
 /* Return the scrollbar id for X Window WID on display DPY.
    Return -1 if WID not in id_to_widget.  */
 
