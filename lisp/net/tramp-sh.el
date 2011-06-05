@@ -400,11 +400,13 @@ detected as prompt when being sent on echoing hosts, therefore.")
 		 "\\'")
 	       nil ,(user-login-name)))
 
+;;;###tramp-autoload
 (defconst tramp-completion-function-alist-rsh
   '((tramp-parse-rhosts "/etc/hosts.equiv")
     (tramp-parse-rhosts "~/.rhosts"))
   "Default list of (FUNCTION FILE) pairs to be examined for rsh methods.")
 
+;;;###tramp-autoload
 (defconst tramp-completion-function-alist-ssh
   '((tramp-parse-rhosts      "/etc/hosts.equiv")
     (tramp-parse-rhosts      "/etc/shosts.equiv")
@@ -420,47 +422,60 @@ detected as prompt when being sent on echoing hosts, therefore.")
     (tramp-parse-sknownhosts "~/.ssh2/knownhosts"))
   "Default list of (FUNCTION FILE) pairs to be examined for ssh methods.")
 
+;;;###tramp-autoload
 (defconst tramp-completion-function-alist-telnet
   '((tramp-parse-hosts "/etc/hosts"))
   "Default list of (FUNCTION FILE) pairs to be examined for telnet methods.")
 
+;;;###tramp-autoload
 (defconst tramp-completion-function-alist-su
   '((tramp-parse-passwd "/etc/passwd"))
   "Default list of (FUNCTION FILE) pairs to be examined for su methods.")
 
+;;;###tramp-autoload
 (defconst tramp-completion-function-alist-putty
   '((tramp-parse-putty
      "HKEY_CURRENT_USER\\Software\\SimonTatham\\PuTTY\\Sessions"))
   "Default list of (FUNCTION REGISTRY) pairs to be examined for putty methods.")
 
-(tramp-set-completion-function "rcp" tramp-completion-function-alist-rsh)
-(tramp-set-completion-function "remcp" tramp-completion-function-alist-rsh)
-(tramp-set-completion-function "scp" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "scp1" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "scp2" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "scpc" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "scpx" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "sftp" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "rsync" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "rsyncc" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "rsh" tramp-completion-function-alist-rsh)
-(tramp-set-completion-function "remsh" tramp-completion-function-alist-rsh)
-(tramp-set-completion-function "ssh" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "ssh1" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "ssh2" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "ssh1_old" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "ssh2_old" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "sshx" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "telnet" tramp-completion-function-alist-telnet)
-(tramp-set-completion-function "su" tramp-completion-function-alist-su)
-(tramp-set-completion-function "sudo" tramp-completion-function-alist-su)
-(tramp-set-completion-function "ksu" tramp-completion-function-alist-su)
-(tramp-set-completion-function "krlogin" tramp-completion-function-alist-rsh)
-(tramp-set-completion-function "plink" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "plink1" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "plinkx" tramp-completion-function-alist-putty)
-(tramp-set-completion-function "pscp" tramp-completion-function-alist-ssh)
-(tramp-set-completion-function "fcp" tramp-completion-function-alist-ssh)
+;;;###tramp-autoload
+(eval-after-load 'tramp
+  '(progn
+     (tramp-set-completion-function "rcp" tramp-completion-function-alist-rsh)
+     (tramp-set-completion-function "remcp" tramp-completion-function-alist-rsh)
+     (tramp-set-completion-function "scp" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "scp1" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "scp2" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "scpc" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "scpx" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "sftp" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "rsync" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function
+      "rsyncc" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "rsh" tramp-completion-function-alist-rsh)
+     (tramp-set-completion-function "remsh" tramp-completion-function-alist-rsh)
+     (tramp-set-completion-function "ssh" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "ssh1" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "ssh2" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function
+      "ssh1_old" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function
+      "ssh2_old" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "sshx" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function
+      "telnet" tramp-completion-function-alist-telnet)
+     (tramp-set-completion-function "su" tramp-completion-function-alist-su)
+     (tramp-set-completion-function "sudo" tramp-completion-function-alist-su)
+     (tramp-set-completion-function "ksu" tramp-completion-function-alist-su)
+     (tramp-set-completion-function
+      "krlogin" tramp-completion-function-alist-rsh)
+     (tramp-set-completion-function "plink" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function
+      "plink1" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function
+      "plinkx" tramp-completion-function-alist-putty)
+     (tramp-set-completion-function "pscp" tramp-completion-function-alist-ssh)
+     (tramp-set-completion-function "fcp" tramp-completion-function-alist-ssh)))
 
 ;; "getconf PATH" yields:
 ;; HP-UX: /usr/bin:/usr/ccs/bin:/opt/ansic/bin:/opt/langtools/bin:/opt/fortran/bin
@@ -1945,7 +1960,7 @@ file names."
 	(tramp-error
 	 v 'file-already-exists "File %s already exists" newname))
 
-      (with-progress-reporter
+      (tramp-with-progress-reporter
 	  v 0 (format "%s %s to %s"
 		      (if (eq op 'copy) "Copying" "Renaming")
 		      filename newname)
@@ -2454,7 +2469,8 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	       nil)
 	      ((and suffix (nth 2 suffix))
 	       ;; We found an uncompression rule.
-	       (with-progress-reporter v 0 (format "Uncompressing %s" file)
+	       (tramp-with-progress-reporter
+                   v 0 (format "Uncompressing %s" file)
 		 (when (tramp-send-command-and-check
 			v (concat (nth 2 suffix) " "
 				  (tramp-shell-quote-argument localname)))
@@ -2465,7 +2481,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	      (t
 	       ;; We don't recognize the file as compressed, so compress it.
 	       ;; Try gzip.
-	       (with-progress-reporter v 0 (format "Compressing %s" file)
+	       (tramp-with-progress-reporter v 0 (format "Compressing %s" file)
 		 (when (tramp-send-command-and-check
 			v (concat "gzip -f "
 				  (tramp-shell-quote-argument localname)))
@@ -2948,7 +2964,7 @@ the result will be a local, non-Tramp, filename."
 	   ;; Use inline encoding for file transfer.
 	   (rem-enc
 	    (save-excursion
-	      (with-progress-reporter
+	      (tramp-with-progress-reporter
 	       v 3 (format "Encoding remote file %s" filename)
 	       (tramp-barf-unless-okay
 		v (format rem-enc (tramp-shell-quote-argument localname))
@@ -2962,7 +2978,7 @@ the result will be a local, non-Tramp, filename."
 		  (with-temp-buffer
 		    (set-buffer-multibyte nil)
 		    (insert-buffer-substring (tramp-get-buffer v))
-		    (with-progress-reporter
+		    (tramp-with-progress-reporter
 			v 3 (format "Decoding remote file %s with function %s"
 				    filename loc-dec)
 		      (funcall loc-dec (point-min) (point-max))
@@ -2980,7 +2996,7 @@ the result will be a local, non-Tramp, filename."
 		  (let (file-name-handler-alist
 			(coding-system-for-write 'binary))
 		    (write-region (point-min) (point-max) tmpfile2))
-		  (with-progress-reporter
+		  (tramp-with-progress-reporter
 		      v 3 (format "Decoding remote file %s with command %s"
 				  filename loc-dec)
 		    (unwind-protect
@@ -3205,7 +3221,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		    (set-buffer-multibyte nil)
 		    ;; Use encoding function or command.
 		    (if (functionp loc-enc)
-			(with-progress-reporter
+			(tramp-with-progress-reporter
 			    v 3 (format "Encoding region using function `%s'"
 					loc-enc)
 			  (let ((coding-system-for-read 'binary))
@@ -3223,7 +3239,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 				  (tramp-compat-temporary-file-directory)))
 			    (funcall loc-enc (point-min) (point-max))))
 
-		      (with-progress-reporter
+		      (tramp-with-progress-reporter
 			  v 3 (format "Encoding region using command `%s'"
 				      loc-enc)
 			(unless (zerop (tramp-call-local-coding-command
@@ -3237,7 +3253,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		    ;; Send buffer into remote decoding command which
 		    ;; writes to remote file.  Because this happens on
 		    ;; the remote host, we cannot use the function.
-		    (with-progress-reporter
+		    (tramp-with-progress-reporter
 			v 3
 			(format "Decoding region into remote file %s" filename)
 		      (goto-char (point-max))
@@ -3337,7 +3353,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
   "Like `vc-registered' for Tramp files."
   (tramp-compat-with-temp-message ""
     (with-parsed-tramp-file-name file nil
-      (with-progress-reporter
+      (tramp-with-progress-reporter
 	  v 3 (format "Checking `vc-registered' for %s" file)
 
 	;; There could be new files, created by the vc backend.  We
@@ -3431,7 +3447,7 @@ Only send the definition if it has not already been done."
   (let* ((p (tramp-get-connection-process vec))
 	 (scripts (tramp-get-connection-property p "scripts" nil)))
     (unless (member name scripts)
-      (with-progress-reporter vec 5 (format "Sending script `%s'" name)
+      (tramp-with-progress-reporter vec 5 (format "Sending script `%s'" name)
 	;; The script could contain a call of Perl.  This is masked with `%s'.
 	(tramp-barf-unless-okay
 	 vec
@@ -3595,7 +3611,8 @@ file exists and nonzero exit status otherwise."
 
 (defun tramp-open-shell (vec shell)
   "Opens shell SHELL."
-  (with-progress-reporter vec 5 (format "Opening remote shell `%s'" shell)
+  (tramp-with-progress-reporter
+      vec 5 (format "Opening remote shell `%s'" shell)
     ;; Find arguments for this shell.
     (let ((tramp-end-of-output tramp-initial-end-of-output)
 	  (alist tramp-sh-extra-args)
@@ -3624,9 +3641,11 @@ file exists and nonzero exit status otherwise."
 	(tramp-send-command vec "echo ~root" t)
 	(cond
 	 ((or (string-match "^~root$" (buffer-string))
-	      ;; The default shell (ksh93) of OpenSolaris is buggy.
-	      (string-equal (tramp-get-connection-property vec "uname" "")
-			    "SunOS 5.11"))
+	      ;; The default shell (ksh93) of OpenSolaris and Solaris
+	      ;; is buggy.  We've got reports for "SunOS 5.10" and
+	      ;; "SunOS 5.11" so far.
+	      (string-match (regexp-opt '("SunOS 5.10" "SunOS 5.11"))
+			    (tramp-get-connection-property vec "uname" "")))
 	  (setq shell
 		(or (tramp-find-executable
 		     vec "bash" (tramp-get-remote-path vec) t t)
@@ -4247,7 +4266,7 @@ connection if a previous connection has died for some reason."
 	;; We call `tramp-get-buffer' in order to get a debug buffer for
 	;; messages from the beginning.
 	(tramp-get-buffer vec)
-	(with-progress-reporter
+	(tramp-with-progress-reporter
 	    vec 3
 	    (if (zerop (length (tramp-file-name-user vec)))
 		(format "Opening connection for %s using %s"

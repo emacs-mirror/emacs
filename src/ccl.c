@@ -1307,15 +1307,15 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 				: -1));
 		h = GET_HASH_TABLE (eop);
 
-		op = hash_lookup (h, make_number (reg[RRR]), NULL);
-		if (op >= 0)
+		eop = hash_lookup (h, make_number (reg[RRR]), NULL);
+		if (eop >= 0)
 		  {
 		    Lisp_Object opl;
-		    opl = HASH_VALUE (h, op);
-		    if (! CHARACTERP (opl))
+		    opl = HASH_VALUE (h, eop);
+		    if (! (IN_INT_RANGE (eop) && CHARACTERP (opl)))
 		      CCL_INVALID_CMD;
 		    reg[RRR] = charset_unicode;
-		    reg[rrr] = op;
+		    reg[rrr] = eop;
 		    reg[7] = 1; /* r7 true for success */
 		  }
 		else
@@ -1334,11 +1334,11 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		i = CCL_DECODE_CHAR (reg[RRR], reg[rrr]);
 		h = GET_HASH_TABLE (eop);
 
-		op = hash_lookup (h, make_number (i), NULL);
-		if (op >= 0)
+		eop = hash_lookup (h, make_number (i), NULL);
+		if (eop >= 0)
 		  {
 		    Lisp_Object opl;
-		    opl = HASH_VALUE (h, op);
+		    opl = HASH_VALUE (h, eop);
 		    if (! (INTEGERP (opl) && IN_INT_RANGE (XINT (opl))))
 		      CCL_INVALID_CMD;
 		    reg[RRR] = XINT (opl);

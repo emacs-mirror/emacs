@@ -186,7 +186,7 @@ struct composition {
   enum composition_method method;
 
   /* Index to the composition hash table.  */
-  int hash_index;
+  EMACS_INT hash_index;
 
   /* For which font we have calculated the remaining members.  The
      actual type is device dependent.  */

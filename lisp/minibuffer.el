@@ -1657,6 +1657,34 @@ The completion method is determined by `completion-at-point-functions'."
   (define-key map "\t" 'exit-minibuffer)
   (define-key map "?" 'self-insert-and-exit))
 
+(defvar minibuffer-inactive-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (define-key map "e" 'find-file-other-frame)
+    (define-key map "f" 'find-file-other-frame)
+    (define-key map "b" 'switch-to-buffer-other-frame)
+    (define-key map "i" 'info)
+    (define-key map "m" 'mail)
+    (define-key map "n" 'make-frame)
+    (define-key map [mouse-1] (lambda () (interactive)
+				(with-current-buffer "*Messages*"
+				  (goto-char (point-max))
+				  (display-buffer (current-buffer)))))
+    ;; So the global down-mouse-1 binding doesn't clutter the execution of the
+    ;; above mouse-1 binding.
+    (define-key map [down-mouse-1] #'ignore)
+    map)
+  "Keymap for use in the minibuffer when it is not active.
+The non-mouse bindings in this keymap can only be used in minibuffer-only
+frames, since the minibuffer can normally not be selected when it is
+not active.")
+
+(define-derived-mode minibuffer-inactive-mode nil "InactiveMinibuffer"
+  :abbrev-table nil          ;abbrev.el is not loaded yet during dump.
+  ;; Note: this major mode is called from minibuf.c.
+  "Major mode to use in the minibuffer when it is not active.
+This is only used when the minibuffer area has no active minibuffer.")
+
 ;;; Completion tables.
 
 (defun minibuffer--double-dollars (str)
@@ -1946,7 +1974,11 @@ and `read-file-name-function'."
 ;; minibuffer-completing-file-name is a variable used internally in minibuf.c
 ;; to determine whether to use minibuffer-local-filename-completion-map or
 ;; minibuffer-local-completion-map.  It shouldn't be exported to Elisp.
-(make-obsolete-variable 'minibuffer-completing-file-name nil "24.1")
+;; FIXME: Actually, it is also used in rfn-eshadow.el we'd otherwise have to
+;; use (eq minibuffer-completion-table #'read-file-name-internal), which is
+;; probably even worse.  Maybe We should add some read-file-name-setup-hook
+;; instead, but for now, let's keep this non-obsolete.
+;;(make-obsolete-variable 'minibuffer-completing-file-name nil "24.1" 'get)
 
 (defun read-file-name-default (prompt &optional dir default-filename mustmatch initial predicate)
   "Default method for reading file names.

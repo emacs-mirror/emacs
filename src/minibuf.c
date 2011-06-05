@@ -168,7 +168,7 @@ without invoking the usual minibuffer commands.  */)
 }
 
 
-/* Actual minibuffer invocation. */
+/* Actual minibuffer invocation.  */
 
 static Lisp_Object read_minibuf_unwind (Lisp_Object);
 static Lisp_Object run_exit_minibuf_hook (Lisp_Object);
@@ -253,7 +253,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 	     len == size - 1 && line[len - 1] != '\n'))
     {
       if ((size_t) -1 / 2 < size)
-	memory_full ();
+	memory_full (SIZE_MAX);
       size *= 2;
       line = (char *) xrealloc (line, size);
     }
@@ -274,7 +274,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
       error ("Error reading from stdin");
     }
 
-  /* If Lisp form desired instead of string, parse it. */
+  /* If Lisp form desired instead of string, parse it.  */
   if (expflag)
     val = string_to_object (val, CONSP (defalt) ? XCAR (defalt) : defalt);
 
@@ -751,7 +751,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 	}
     }
 
-  /* If Lisp form desired instead of string, parse it. */
+  /* If Lisp form desired instead of string, parse it.  */
   if (expflag)
     val = string_to_object (val, defalt);
 
@@ -763,7 +763,7 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
 /* Return a buffer to be used as the minibuffer at depth `depth'.
  depth = 0 is the lowest allowed argument, and that is the value
- used for nonrecursive minibuffer invocations */
+ used for nonrecursive minibuffer invocations.  */
 
 Lisp_Object
 get_minibuffer (int depth)
@@ -801,7 +801,10 @@ get_minibuffer (int depth)
       reset_buffer (XBUFFER (buf));
       record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
       Fset_buffer (buf);
-      Fkill_all_local_variables ();
+      if (!NILP (Ffboundp (intern ("minibuffer-inactive-mode"))))
+	call0 (intern ("minibuffer-inactive-mode"));
+      else
+        Fkill_all_local_variables ();
       unbind_to (count, Qnil);
     }
 
@@ -816,7 +819,7 @@ run_exit_minibuf_hook (Lisp_Object data)
 }
 
 /* This function is called on exiting minibuffer, whether normally or
-   not, and it restores the current window, buffer, etc. */
+   not, and it restores the current window, buffer, etc.  */
 
 static Lisp_Object
 read_minibuf_unwind (Lisp_Object data)
@@ -876,6 +879,12 @@ read_minibuf_unwind (Lisp_Object data)
   windows_or_buffers_changed++;
   XSETFASTINT (XWINDOW (window)->last_modified, 0);
   XSETFASTINT (XWINDOW (window)->last_overlay_modified, 0);
+
+  /* In case the previous minibuffer displayed in this miniwindow is
+     dead, we may keep displaying this buffer (tho it's inactive), so reset it,
+     to make sure we don't leave around bindings and stuff which only
+     made sense during the read_minibuf invocation.  */
+  call0 (intern ("minibuffer-inactive-mode"));
   return Qnil;
 }
 
@@ -986,7 +995,7 @@ Such arguments are used as in `read-from-minibuffer'.)  */)
 		Qnil);
 }
 
-/* Functions that use the minibuffer to read various things. */
+/* Functions that use the minibuffer to read various things.  */
 
 DEFUN ("read-string", Fread_string, Sread_string, 1, 5, 0,
        doc: /* Read a string from the minibuffer, prompting with string PROMPT.
@@ -1154,7 +1163,7 @@ function, instead of the usual behavior.  */)
       args[1] = prompt;
       args[2] = def;
       args[3] = require_match;
-      result = Ffuncall(4, args);
+      result = Ffuncall (4, args);
     }
   return unbind_to (count, result);
 }
@@ -1217,7 +1226,7 @@ is used to further constrain the set of candidates.  */)
 		    && (!SYMBOLP (XCAR (collection))
 			|| NILP (XCAR (collection)))))
 	       ? list_table : function_table));
-  int idx = 0, obsize = 0;
+  EMACS_INT idx = 0, obsize = 0;
   int matchcount = 0;
   int bindcount = -1;
   Lisp_Object bucket, zero, end, tem;
@@ -1241,10 +1250,10 @@ is used to further constrain the set of candidates.  */)
 
   while (1)
     {
-      /* Get the next element of the alist, obarray, or hash-table. */
-      /* Exit the loop if the elements are all used up. */
+      /* Get the next element of the alist, obarray, or hash-table.  */
+      /* Exit the loop if the elements are all used up.  */
       /* elt gets the alist element or symbol.
-	 eltstring gets the name to check as a completion. */
+	 eltstring gets the name to check as a completion.  */
 
       if (type == list_table)
 	{
@@ -1286,7 +1295,7 @@ is used to further constrain the set of candidates.  */)
 	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), idx++);
 	}
 
-      /* Is this element a possible completion? */
+      /* Is this element a possible completion?  */
 
       if (SYMBOLP (eltstring))
 	eltstring = Fsymbol_name (eltstring);
@@ -1299,7 +1308,7 @@ is used to further constrain the set of candidates.  */)
 				      completion_ignore_case ? Qt : Qnil),
 	      EQ (Qt, tem)))
 	{
-	  /* Yes. */
+	  /* Yes.  */
 	  Lisp_Object regexps;
 
 	  /* Ignore this element if it fails to match all the regexps.  */
@@ -1321,7 +1330,7 @@ is used to further constrain the set of candidates.  */)
 	  }
 
 	  /* Ignore this element if there is a predicate
-	     and the predicate doesn't like it. */
+	     and the predicate doesn't like it.  */
 
 	  if (!NILP (predicate))
 	    {
@@ -1423,7 +1432,7 @@ is used to further constrain the set of candidates.  */)
   }
 
   if (NILP (bestmatch))
-    return Qnil;		/* No completions found */
+    return Qnil;		/* No completions found.  */
   /* If we are ignoring case, and there is no exact match,
      and no additional text was supplied,
      don't change the case of what the user typed.  */
@@ -1437,7 +1446,7 @@ is used to further constrain the set of candidates.  */)
     return Qt;
 
   XSETFASTINT (zero, 0);		/* Else extract the part in which */
-  XSETFASTINT (end, bestmatchsize);	/* all completions agree */
+  XSETFASTINT (end, bestmatchsize);	/* all completions agree.  */
   return Fsubstring (bestmatch, zero, end);
 }
 
@@ -1482,7 +1491,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
     : NILP (collection) || (CONSP (collection)
 			    && (!SYMBOLP (XCAR (collection))
 				|| NILP (XCAR (collection))));
-  int idx = 0, obsize = 0;
+  EMACS_INT idx = 0, obsize = 0;
   int bindcount = -1;
   Lisp_Object bucket, tem, zero;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
@@ -1504,10 +1513,10 @@ with a space are ignored unless STRING itself starts with a space.  */)
 
   while (1)
     {
-      /* Get the next element of the alist, obarray, or hash-table. */
-      /* Exit the loop if the elements are all used up. */
+      /* Get the next element of the alist, obarray, or hash-table.  */
+      /* Exit the loop if the elements are all used up.  */
       /* elt gets the alist element or symbol.
-	 eltstring gets the name to check as a completion. */
+	 eltstring gets the name to check as a completion.  */
 
       if (type == 1)
 	{
@@ -1549,7 +1558,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	    elt = eltstring = HASH_KEY (XHASH_TABLE (collection), idx++);
 	}
 
-      /* Is this element a possible completion? */
+      /* Is this element a possible completion?  */
 
       if (SYMBOLP (eltstring))
 	eltstring = Fsymbol_name (eltstring);
@@ -1569,7 +1578,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
 				      completion_ignore_case ? Qt : Qnil),
 	      EQ (Qt, tem)))
 	{
-	  /* Yes. */
+	  /* Yes.  */
 	  Lisp_Object regexps;
 
 	  /* Ignore this element if it fails to match all the regexps.  */
@@ -1591,7 +1600,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	  }
 
 	  /* Ignore this element if there is a predicate
-	     and the predicate doesn't like it. */
+	     and the predicate doesn't like it.  */
 
 	  if (!NILP (predicate))
 	    {
@@ -1612,7 +1621,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
 		}
 	      if (NILP (tem)) continue;
 	    }
-	  /* Ok => put it on the list. */
+	  /* Ok => put it on the list.  */
 	  allmatches = Fcons (eltstring, allmatches);
 	}
     }
@@ -1778,7 +1787,7 @@ the values STRING, PREDICATE and `lambda'.  */)
   (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate)
 {
   Lisp_Object regexps, tail, tem = Qnil;
-  int i = 0;
+  EMACS_INT i = 0;
 
   CHECK_STRING (string);
 
@@ -1818,9 +1827,9 @@ the values STRING, PREDICATE and `lambda'.  */)
 	      if (SYMBOLP (tail))
 		while (1)
 		  {
-		    if (EQ((Fcompare_strings (string, make_number (0), Qnil,
+		    if (EQ (Fcompare_strings (string, make_number (0), Qnil,
 					      Fsymbol_name (tail),
-					      make_number (0) , Qnil, Qt)),
+					      make_number (0) , Qnil, Qt),
 			   Qt))
 		      {
 			tem = tail;
@@ -1844,11 +1853,11 @@ the values STRING, PREDICATE and `lambda'.  */)
 	tem = HASH_KEY (h, i);
       else
 	for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
-	  if (!NILP (HASH_HASH (h, i)) &&
-	      EQ (Fcompare_strings (string, make_number (0), Qnil,
-				    HASH_KEY (h, i), make_number (0) , Qnil,
-				    completion_ignore_case ? Qt : Qnil),
-		  Qt))
+	  if (!NILP (HASH_HASH (h, i))
+	      && EQ (Fcompare_strings (string, make_number (0), Qnil,
+				       HASH_KEY (h, i), make_number (0) , Qnil,
+				       completion_ignore_case ? Qt : Qnil),
+		     Qt))
 	    {
 	      tem = HASH_KEY (h, i);
 	      break;
@@ -1895,7 +1904,7 @@ If the argument FLAG is nil, invoke `try-completion', if it's t, invoke
 `all-completions', otherwise invoke `test-completion'.
 
 The arguments STRING and PREDICATE are as in `try-completion',
-`all-completions', and `test-completion'. */)
+`all-completions', and `test-completion'.  */)
   (Lisp_Object string, Lisp_Object predicate, Lisp_Object flag)
 {
   if (NILP (flag))

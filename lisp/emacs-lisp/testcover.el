@@ -430,7 +430,7 @@ FUN should be `testcover-reinstrument' for compositional functions,
   "Turn off instrumentation of all macros and functions in FILENAME."
   (interactive "fStop covering file: ")
   (let ((buf (find-file-noselect filename)))
-    (eval-buffer buf t)))
+    (eval-buffer buf)))
 
 
 ;;;=========================================================================

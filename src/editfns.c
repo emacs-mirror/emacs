@@ -3636,7 +3636,7 @@ usage: (format STRING &rest OBJECTS)  */)
   {
     EMACS_INT i;
     if ((SIZE_MAX - formatlen) / sizeof (struct info) <= nargs)
-      memory_full ();
+      memory_full (SIZE_MAX);
     SAFE_ALLOCA (info, struct info *, (nargs + 1) * sizeof *info + formatlen);
     discarded = (char *) &info[nargs + 1];
     for (i = 0; i < nargs + 1; i++)

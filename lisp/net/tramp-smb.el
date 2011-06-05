@@ -53,9 +53,11 @@
 	     `(,(concat "\\`" tramp-smb-method "\\'") nil nil))
 
 ;; Add completion function for SMB method.
-(tramp-set-completion-function
- tramp-smb-method
- '((tramp-parse-netrc "~/.netrc")))
+;;;###tramp-autoload
+(eval-after-load 'tramp
+  '(tramp-set-completion-function
+    tramp-smb-method
+    '((tramp-parse-netrc "~/.netrc"))))
 
 (defcustom tramp-smb-program "smbclient"
   "*Name of SMB client to run."
@@ -342,7 +344,7 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server.
 PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
-  (with-progress-reporter
+  (tramp-with-progress-reporter
       (tramp-dissect-file-name (if (file-remote-p filename) filename newname))
       0 (format "Copying %s to %s" filename newname)
 
@@ -600,7 +602,7 @@ PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
        v 'file-error
        "Cannot make local copy of non-existing file `%s'" filename))
     (let ((tmpfile (tramp-compat-make-temp-file filename)))
-      (with-progress-reporter
+      (tramp-with-progress-reporter
 	  v 3 (format "Fetching %s to tmp file %s" filename tmpfile)
 	(unless (tramp-smb-send-command
 		 v (format "get \"%s\" \"%s\""
@@ -837,7 +839,7 @@ target of the symlink differ."
   "Like `rename-file' for Tramp files."
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
-  (with-progress-reporter
+  (tramp-with-progress-reporter
       (tramp-dissect-file-name (if (file-remote-p filename) filename newname))
       0 (format "Renaming %s to %s" filename newname)
 
@@ -926,7 +928,7 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 	   (list start end tmpfile append 'no-message lockname confirm)
 	 (list start end tmpfile append 'no-message lockname)))
 
-      (with-progress-reporter
+      (tramp-with-progress-reporter
 	  v 3 (format "Moving tmp file %s to %s" tmpfile filename)
 	(unwind-protect
 	    (unless (tramp-smb-send-command
@@ -1289,7 +1291,7 @@ connection if a previous connection has died for some reason."
 	    (setq args (append args (list "-s" tramp-smb-conf))))
 
 	  ;; OK, let's go.
-	  (with-progress-reporter
+	  (tramp-with-progress-reporter
 	      vec 3
 	      (format "Opening connection for //%s%s/%s"
 		      (if (not (zerop (length user))) (concat user "@") "")

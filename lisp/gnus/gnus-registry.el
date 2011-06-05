@@ -321,6 +321,20 @@ This is not required after changing `gnus-registry-cache-file'."
     (gnus-message 5 "Saving Gnus registry (size %d) to %s...done"
                   (registry-size db) file)))
 
+(defun gnus-registry-remove-ignored ()
+  (interactive)
+  (let* ((db gnus-registry-db)
+         (grouphashtb (registry-lookup-secondary db 'group))
+         (old-size (registry-size db)))
+    (registry-reindex db)
+    (loop for k being the hash-keys of grouphashtb
+          using (hash-values v)
+          when (gnus-registry-ignore-group-p k)
+          do (registry-delete db v nil))
+    (registry-reindex db)
+    (gnus-message 4 "Removed %d ignored entries from the Gnus registry"
+                  (- old-size (registry-size db)))))
+
 ;; article move/copy/spool/delete actions
 (defun gnus-registry-action (action data-header from &optional to method)
   (let* ((id (mail-header-id data-header))

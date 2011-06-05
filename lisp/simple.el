@@ -913,13 +913,11 @@ rather than line counts."
 		 (concat " in " (buffer-name buffer))
 	       "")))
        ;; Read the argument, offering that number (if any) as default.
-       (list (read-from-minibuffer (format (if default "Goto line%s (%s): "
-					     "Goto line%s: ")
-					   buffer-prompt
-					   default)
-				   nil nil t
-				   'minibuffer-history
-				   default)
+       (list (read-number (format (if default "Goto line%s (%s): "
+                                    "Goto line%s: ")
+                                  buffer-prompt
+                                  default)
+                          default)
 	     buffer))))
   ;; Switch to the desired buffer, one way or another.
   (if buffer
@@ -1105,7 +1103,7 @@ in *Help* buffer.  See also the command `describe-char'."
 
 (defvar minibuffer-completing-symbol nil
   "Non-nil means completing a Lisp symbol in the minibuffer.")
-(make-obsolete-variable 'minibuffer-completing-symbol nil "24.1")
+(make-obsolete-variable 'minibuffer-completing-symbol nil "24.1" 'get)
 
 (defvar minibuffer-default nil
   "The current default value or list of default values in the minibuffer.
@@ -2762,25 +2760,21 @@ The return value is always nil."
 `universal-argument-other-key' uses this to discard those events
 from (this-command-keys), and reread only the final command.")
 
-(defvar overriding-map-is-bound nil
-  "Non-nil when `overriding-terminal-local-map' is `universal-argument-map'.")
-
-(defvar saved-overriding-map nil
+(defvar saved-overriding-map t
   "The saved value of `overriding-terminal-local-map'.
 That variable gets restored to this value on exiting \"universal
 argument mode\".")
 
-(defun ensure-overriding-map-is-bound ()
-  "Check `overriding-terminal-local-map' is `universal-argument-map'."
-  (unless overriding-map-is-bound
+(defun save&set-overriding-map (map)
+  "Set `overriding-terminal-local-map' to MAP."
+  (when (eq saved-overriding-map t)
     (setq saved-overriding-map overriding-terminal-local-map)
-    (setq overriding-terminal-local-map universal-argument-map)
-    (setq overriding-map-is-bound t)))
+    (setq overriding-terminal-local-map map)))
 
 (defun restore-overriding-map ()
   "Restore `overriding-terminal-local-map' to its saved value."
   (setq overriding-terminal-local-map saved-overriding-map)
-  (setq overriding-map-is-bound nil))
+  (setq saved-overriding-map t))
 
 (defun universal-argument ()
   "Begin a numeric argument for the following command.
@@ -2795,7 +2789,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   (interactive)
   (setq prefix-arg (list 4))
   (setq universal-argument-num-events (length (this-command-keys)))
-  (ensure-overriding-map-is-bound))
+  (save&set-overriding-map universal-argument-map))
 
 ;; A subsequent C-u means to multiply the factor by 4 if we've typed
 ;; nothing but C-u's; otherwise it means to terminate the prefix arg.
@@ -2820,7 +2814,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 	(t
 	 (setq prefix-arg '-)))
   (setq universal-argument-num-events (length (this-command-keys)))
-  (ensure-overriding-map-is-bound))
+  (save&set-overriding-map universal-argument-map))
 
 (defun digit-argument (arg)
   "Part of the numeric argument for the next command.
@@ -2839,7 +2833,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 	  (t
 	   (setq prefix-arg digit))))
   (setq universal-argument-num-events (length (this-command-keys)))
-  (ensure-overriding-map-is-bound))
+  (save&set-overriding-map universal-argument-map))
 
 ;; For backward compatibility, minus with no modifiers is an ordinary
 ;; command if digits have already been entered.
@@ -5124,8 +5118,8 @@ Returns t if it really did any work."
 		 (or (null fill-prefix) (string= fill-prefix "")))
 	(let ((prefix
 	       (fill-context-prefix
-		(save-excursion (backward-paragraph 1) (point))
-		(save-excursion (forward-paragraph 1) (point)))))
+		(save-excursion (fill-forward-paragraph -1) (point))
+		(save-excursion (fill-forward-paragraph 1) (point)))))
 	  (and prefix (not (equal prefix ""))
 	       ;; Use auto-indentation rather than a guessed empty prefix.
 	       (not (and fill-indent-according-to-mode
@@ -5607,7 +5601,8 @@ At top-level, as an editor command, this simply beeps."
   (if (fboundp 'kmacro-keyboard-quit)
       (kmacro-keyboard-quit))
   (setq defining-kbd-macro nil)
-  (signal 'quit nil))
+  (let ((debug-on-quit nil))
+    (signal 'quit nil)))
 
 (defvar buffer-quit-function nil
   "Function to call to \"quit\" the current buffer, or nil if none.

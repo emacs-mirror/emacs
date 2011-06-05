@@ -1293,19 +1293,20 @@ the trail buffer."
     (if (not info-list)
         (progn
           (setq calc-buffer-list (delete cb calc-buffer-list))
-          (with-current-buffer calc-trail-buffer
-            (if (eq cb calc-main-buffer)
-                ;; If there are other Calc stacks, make another one
-                ;; the calc-main-buffer ...
-                (if calc-buffer-list
-                    (setq calc-main-buffer (car calc-buffer-list))
-                  ;; ... otherwise kill the trail and its windows.
-                  (let ((wl (get-buffer-window-list calc-trail-buffer)))
-                    (while wl
-                      (delete-window (car wl))
-                      (setq wl (cdr wl))))
-                  (kill-buffer calc-trail-buffer)
-                  (setq calc-trail-buffer nil))))
+          (if (buffer-live-p calc-trail-buffer)
+              (with-current-buffer calc-trail-buffer
+                (if (eq cb calc-main-buffer)
+                    ;; If there are other Calc stacks, make another one
+                    ;; the calc-main-buffer ...
+                    (if calc-buffer-list
+                        (setq calc-main-buffer (car calc-buffer-list))
+                      ;; ... otherwise kill the trail and its windows.
+                      (let ((wl (get-buffer-window-list calc-trail-buffer)))
+                        (while wl
+                          (delete-window (car wl))
+                          (setq wl (cdr wl))))
+                      (kill-buffer calc-trail-buffer)))))
+          (setq calc-trail-buffer nil)
           t))))
 
 (defun calc-mode ()

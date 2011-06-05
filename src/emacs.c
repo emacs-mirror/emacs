@@ -678,7 +678,7 @@ malloc_initialize_hook (void)
     }
 }
 
-void (*__malloc_initialize_hook) (void) = malloc_initialize_hook;
+void (*__malloc_initialize_hook) (void) EXTERNALLY_VISIBLE = malloc_initialize_hook;
 
 #endif /* DOUG_LEA_MALLOC */
 
@@ -1002,6 +1002,11 @@ main (int argc, char **argv)
 	}
 
 #ifndef NS_IMPL_COCOA
+#ifdef USE_GTK
+      fprintf (stderr, "\nWarning: due to a long standing Gtk+ bug\nhttp://bugzilla.gnome.org/show_bug.cgi?id=85715\n\
+Emacs might crash when run in daemon mode and the X11 connection is unexpectedly lost.\n\
+Using an Emacs configured with --with-x-toolkit=lucid does not have this problem.\n");
+#endif
       f = fork ();
 #else /* NS_IMPL_COCOA */
       /* Under Cocoa we must do fork+exec as CoreFoundation lib fails in

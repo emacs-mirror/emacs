@@ -1,3 +1,7 @@
+2011-06-02  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/allocator.h, lib/careadlinkat.c: Merge from gnulib.
+
 2011-05-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use 'inline', not 'INLINE'.

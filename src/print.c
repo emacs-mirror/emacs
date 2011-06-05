@@ -1082,7 +1082,7 @@ print (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag)
 	     Maybe a better way to do that is to copy elements to
 	     a new hash table.  */
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (Vprint_number_table);
-	  int i;
+	  EMACS_INT i;
 
 	  for (i = 0; i < HASH_TABLE_SIZE (h); ++i)
 	    if (!NILP (HASH_HASH (h, i))

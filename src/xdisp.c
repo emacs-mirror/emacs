@@ -779,7 +779,6 @@ static void store_mode_line_noprop_char (char);
 static int store_mode_line_noprop (const char *, int, int);
 static void handle_stop (struct it *);
 static void handle_stop_backwards (struct it *, EMACS_INT);
-static int single_display_spec_intangible_p (Lisp_Object);
 static void vmessage (const char *, va_list) ATTRIBUTE_FORMAT_PRINTF (1, 0);
 static void ensure_echo_area_buffers (void);
 static Lisp_Object unwind_with_echo_area_buffer (Lisp_Object);
@@ -812,7 +811,7 @@ static int try_scrolling (Lisp_Object, int, EMACS_INT, EMACS_INT, int, int);
 static int try_cursor_movement (Lisp_Object, struct text_pos, int *);
 static int trailing_whitespace_p (EMACS_INT);
 static unsigned long int message_log_check_duplicate (EMACS_INT, EMACS_INT);
-static void push_it (struct it *);
+static void push_it (struct it *, struct text_pos *);
 static void pop_it (struct it *);
 static void sync_frame_with_window_matrix_rows (struct window *);
 static void select_frame_for_redisplay (Lisp_Object);
@@ -884,9 +883,11 @@ static void compute_string_pos (struct text_pos *, struct text_pos,
                                 Lisp_Object);
 static int face_before_or_after_it_pos (struct it *, int);
 static EMACS_INT next_overlay_change (EMACS_INT);
+static int handle_display_spec (struct it *, Lisp_Object, Lisp_Object,
+				Lisp_Object, struct text_pos *, EMACS_INT, int);
 static int handle_single_display_spec (struct it *, Lisp_Object,
                                        Lisp_Object, Lisp_Object,
-                                       struct text_pos *, int);
+                                       struct text_pos *, EMACS_INT, int, int);
 static int underlying_face_id (struct it *);
 static int in_ellipses_for_invisible_text_p (struct display_pos *,
                                              struct window *);
@@ -2564,7 +2565,7 @@ init_iterator (struct it *it, struct window *w,
 	it->paragraph_embedding = R2L;
       else
 	it->paragraph_embedding = NEUTRAL_DIR;
-      bidi_init_it (charpos, bytepos, &it->bidi_it);
+      bidi_init_it (charpos, bytepos, FRAME_WINDOW_P (it->f), &it->bidi_it);
     }
 
   /* If a buffer position was specified, set the iterator there,
@@ -3083,6 +3084,82 @@ next_overlay_change (EMACS_INT pos)
     }
 
   return endpos;
+}
+
+/* Return the character position of a display string at or after CHARPOS.
+   If no display string exists at or after CHARPOS, return ZV.  A
+   display string is either an overlay with `display' property whose
+   value is a string, or a `display' text property whose value is a
+   string.  FRAME_WINDOW_P is non-zero when we are displaying a window
+   on a GUI frame.  */
+EMACS_INT
+compute_display_string_pos (EMACS_INT charpos, int frame_window_p)
+{
+  /* FIXME: Support display properties on strings (object = Qnil means
+     current buffer).  */
+  Lisp_Object object = Qnil;
+  Lisp_Object pos, spec;
+  struct text_pos position;
+  EMACS_INT bufpos;
+
+  if (charpos >= ZV)
+    return ZV;
+
+  /* If the character at CHARPOS is where the display string begins,
+     return CHARPOS.  */
+  pos = make_number (charpos);
+  CHARPOS (position) = charpos;
+  BYTEPOS (position) = CHAR_TO_BYTE (charpos);
+  bufpos = charpos;	/* FIXME! support strings as well */
+  if (!NILP (spec = Fget_char_property (pos, Qdisplay, object))
+      && (charpos <= BEGV
+	  || !EQ (Fget_char_property (make_number (charpos - 1), Qdisplay,
+				      object),
+		  spec))
+      && handle_display_spec (NULL, spec, object, Qnil, &position, bufpos,
+			      frame_window_p))
+    return charpos;
+
+  /* Look forward for the first character with a `display' property
+     that will replace the underlying text when displayed.  */
+  do {
+    pos = Fnext_single_char_property_change (pos, Qdisplay, object, Qnil);
+    CHARPOS (position) = XFASTINT (pos);
+    BYTEPOS (position) = CHAR_TO_BYTE (CHARPOS (position));
+    if (CHARPOS (position) >= ZV)
+      break;
+    spec = Fget_char_property (pos, Qdisplay, object);
+    bufpos = CHARPOS (position);	/* FIXME! support strings as well */
+  } while (NILP (spec)
+	   || !handle_display_spec (NULL, spec, object, Qnil, &position, bufpos,
+				    frame_window_p));
+
+  return CHARPOS (position);
+}
+
+/* Return the character position of the end of the display string that
+   started at CHARPOS.  A display string is either an overlay with
+   `display' property whose value is a string or a `display' text
+   property whose value is a string.  */
+EMACS_INT
+compute_display_string_end (EMACS_INT charpos)
+{
+  /* FIXME: Support display properties on strings (object = Qnil means
+     current buffer).  */
+  Lisp_Object object = Qnil;
+  Lisp_Object pos = make_number (charpos);
+
+  if (charpos >= ZV)
+    return ZV;
+
+  if (NILP (Fget_char_property (pos, Qdisplay, object)))
+    abort ();
+
+  /* Look forward for the first character where the `display' property
+     changes.  */
+  pos = Fnext_single_char_property_change (pos, Qdisplay, object, Qnil);
+
+  return XFASTINT (pos);
 }
 
 
@@ -3743,8 +3820,9 @@ setup_for_ellipsis (struct it *it, int len)
 static enum prop_handled
 handle_display_prop (struct it *it)
 {
-  Lisp_Object prop, object, overlay;
+  Lisp_Object propval, object, overlay;
   struct text_pos *position;
+  EMACS_INT bufpos;
   /* Nonzero if some property replaces the display of the text itself.  */
   int display_replaced_p = 0;
 
@@ -3752,11 +3830,13 @@ handle_display_prop (struct it *it)
     {
       object = it->string;
       position = &it->current.string_pos;
+      bufpos = CHARPOS (it->current.pos);
     }
   else
     {
       XSETWINDOW (object, it->w);
       position = &it->current.pos;
+      bufpos = CHARPOS (*position);
     }
 
   /* Reset those iterator values set from display property values.  */
@@ -3771,9 +3851,9 @@ handle_display_prop (struct it *it)
   if (!it->string_from_display_prop_p)
     it->area = TEXT_AREA;
 
-  prop = get_char_property_and_overlay (make_number (position->charpos),
-					Qdisplay, object, &overlay);
-  if (NILP (prop))
+  propval = get_char_property_and_overlay (make_number (position->charpos),
+					   Qdisplay, object, &overlay);
+  if (NILP (propval))
     return HANDLED_NORMALLY;
   /* Now OVERLAY is the overlay that gave us this property, or nil
      if it was a text property.  */
@@ -3781,58 +3861,87 @@ handle_display_prop (struct it *it)
   if (!STRINGP (it->string))
     object = it->w->buffer;
 
-  if (CONSP (prop)
-      /* Simple properties.  */
-      && !EQ (XCAR (prop), Qimage)
-      && !EQ (XCAR (prop), Qspace)
-      && !EQ (XCAR (prop), Qwhen)
-      && !EQ (XCAR (prop), Qslice)
-      && !EQ (XCAR (prop), Qspace_width)
-      && !EQ (XCAR (prop), Qheight)
-      && !EQ (XCAR (prop), Qraise)
+  display_replaced_p = handle_display_spec (it, propval, object, overlay,
+					    position, bufpos,
+					    FRAME_WINDOW_P (it->f));
+
+  return display_replaced_p ? HANDLED_RETURN : HANDLED_NORMALLY;
+}
+
+/* Subroutine of handle_display_prop.  Returns non-zero if the display
+   specification in SPEC is a replacing specification, i.e. it would
+   replace the text covered by `display' property with something else,
+   such as an image or a display string.
+
+   See handle_single_display_spec for documentation of arguments.
+   frame_window_p is non-zero if the window being redisplayed is on a
+   GUI frame; this argument is used only if IT is NULL, see below.
+
+   IT can be NULL, if this is called by the bidi reordering code
+   through compute_display_string_pos, which see.  In that case, this
+   function only examines SPEC, but does not otherwise "handle" it, in
+   the sense that it doesn't set up members of IT from the display
+   spec.  */
+static int
+handle_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
+		     Lisp_Object overlay, struct text_pos *position,
+		     EMACS_INT bufpos, int frame_window_p)
+{
+  int replacing_p = 0;
+
+  if (CONSP (spec)
+      /* Simple specerties.  */
+      && !EQ (XCAR (spec), Qimage)
+      && !EQ (XCAR (spec), Qspace)
+      && !EQ (XCAR (spec), Qwhen)
+      && !EQ (XCAR (spec), Qslice)
+      && !EQ (XCAR (spec), Qspace_width)
+      && !EQ (XCAR (spec), Qheight)
+      && !EQ (XCAR (spec), Qraise)
       /* Marginal area specifications.  */
-      && !(CONSP (XCAR (prop)) && EQ (XCAR (XCAR (prop)), Qmargin))
-      && !EQ (XCAR (prop), Qleft_fringe)
-      && !EQ (XCAR (prop), Qright_fringe)
-      && !NILP (XCAR (prop)))
+      && !(CONSP (XCAR (spec)) && EQ (XCAR (XCAR (spec)), Qmargin))
+      && !EQ (XCAR (spec), Qleft_fringe)
+      && !EQ (XCAR (spec), Qright_fringe)
+      && !NILP (XCAR (spec)))
     {
-      for (; CONSP (prop); prop = XCDR (prop))
+      for (; CONSP (spec); spec = XCDR (spec))
 	{
-	  if (handle_single_display_spec (it, XCAR (prop), object, overlay,
-					  position, display_replaced_p))
+	  if (handle_single_display_spec (it, XCAR (spec), object, overlay,
+					  position, bufpos, replacing_p,
+					  frame_window_p))
 	    {
-	      display_replaced_p = 1;
+	      replacing_p = 1;
 	      /* If some text in a string is replaced, `position' no
 		 longer points to the position of `object'.  */
-	      if (STRINGP (object))
+	      if (!it || STRINGP (object))
 		break;
 	    }
 	}
     }
-  else if (VECTORP (prop))
+  else if (VECTORP (spec))
     {
       int i;
-      for (i = 0; i < ASIZE (prop); ++i)
-	if (handle_single_display_spec (it, AREF (prop, i), object, overlay,
-					position, display_replaced_p))
+      for (i = 0; i < ASIZE (spec); ++i)
+	if (handle_single_display_spec (it, AREF (spec, i), object, overlay,
+					position, bufpos, replacing_p,
+					frame_window_p))
 	  {
-	    display_replaced_p = 1;
+	    replacing_p = 1;
 	    /* If some text in a string is replaced, `position' no
 	       longer points to the position of `object'.  */
-	    if (STRINGP (object))
+	    if (!it || STRINGP (object))
 	      break;
 	  }
     }
   else
     {
-      if (handle_single_display_spec (it, prop, object, overlay,
-				      position, 0))
-	display_replaced_p = 1;
+      if (handle_single_display_spec (it, spec, object, overlay,
+				      position, bufpos, 0, frame_window_p))
+	replacing_p = 1;
     }
 
-  return display_replaced_p ? HANDLED_RETURN : HANDLED_NORMALLY;
+  return replacing_p;
 }
-
 
 /* Value is the position of the end of the `display' property starting
    at START_POS in OBJECT.  */
@@ -3857,10 +3966,12 @@ display_prop_end (struct it *it, Lisp_Object object, struct text_pos start_pos)
 
 /* Set up IT from a single `display' property specification SPEC.  OBJECT
    is the object in which the `display' property was found.  *POSITION
-   is the position at which it was found.  DISPLAY_REPLACED_P non-zero
-   means that we previously saw a display specification which already
-   replaced text display with something else, for example an image;
-   we ignore such properties after the first one has been processed.
+   is the position in OBJECT at which the `display' property was found.
+   BUFPOS is the buffer position of OBJECT (different from POSITION if
+   OBJECT is not a buffer).  DISPLAY_REPLACED_P non-zero means that we
+   previously saw a display specification which already replaced text
+   display with something else, for example an image; we ignore such
+   properties after the first one has been processed.
 
    OVERLAY is the overlay this `display' property came from,
    or nil if it was a text property.
@@ -3869,17 +3980,22 @@ display_prop_end (struct it *it, Lisp_Object object, struct text_pos start_pos)
    cases too, set *POSITION to the position where the `display'
    property ends.
 
+   If IT is NULL, only examine the property specification in SPEC, but
+   don't set up IT.  In that case, FRAME_WINDOW_P non-zero means SPEC
+   is intended to be displayed in a window on a GUI frame.
+
    Value is non-zero if something was found which replaces the display
    of buffer or string text.  */
 
 static int
 handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 			    Lisp_Object overlay, struct text_pos *position,
-			    int display_replaced_p)
+			    EMACS_INT bufpos, int display_replaced_p,
+			    int frame_window_p)
 {
   Lisp_Object form;
   Lisp_Object location, value;
-  struct text_pos start_pos, save_pos;
+  struct text_pos start_pos = *position;
   int valid_p;
 
   /* If SPEC is a list of the form `(when FORM . VALUE)', evaluate FORM.
@@ -3903,11 +4019,12 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	 buffer or string.  Bind `position' to the position in the
 	 object where the property was found, and `buffer-position'
 	 to the current position in the buffer.  */
+
+      if (NILP (object))
+	XSETBUFFER (object, current_buffer);
       specbind (Qobject, object);
       specbind (Qposition, make_number (CHARPOS (*position)));
-      specbind (Qbuffer_position,
-		make_number (STRINGP (object)
-			     ? IT_CHARPOS (*it) : CHARPOS (*position)));
+      specbind (Qbuffer_position, make_number (bufpos));
       GCPRO1 (form);
       form = safe_eval (form);
       UNGCPRO;
@@ -3922,63 +4039,66 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
       && EQ (XCAR (spec), Qheight)
       && CONSP (XCDR (spec)))
     {
-      if (!FRAME_WINDOW_P (it->f))
-	return 0;
-
-      it->font_height = XCAR (XCDR (spec));
-      if (!NILP (it->font_height))
+      if (it)
 	{
-	  struct face *face = FACE_FROM_ID (it->f, it->face_id);
-	  int new_height = -1;
+	  if (!FRAME_WINDOW_P (it->f))
+	    return 0;
 
-	  if (CONSP (it->font_height)
-	      && (EQ (XCAR (it->font_height), Qplus)
-		  || EQ (XCAR (it->font_height), Qminus))
-	      && CONSP (XCDR (it->font_height))
-	      && INTEGERP (XCAR (XCDR (it->font_height))))
+	  it->font_height = XCAR (XCDR (spec));
+	  if (!NILP (it->font_height))
 	    {
-	      /* `(+ N)' or `(- N)' where N is an integer.  */
-	      int steps = XINT (XCAR (XCDR (it->font_height)));
-	      if (EQ (XCAR (it->font_height), Qplus))
-		steps = - steps;
-	      it->face_id = smaller_face (it->f, it->face_id, steps);
-	    }
-	  else if (FUNCTIONP (it->font_height))
-	    {
-	      /* Call function with current height as argument.
-		 Value is the new height.  */
-	      Lisp_Object height;
-	      height = safe_call1 (it->font_height,
-				   face->lface[LFACE_HEIGHT_INDEX]);
-	      if (NUMBERP (height))
-		new_height = XFLOATINT (height);
-	    }
-	  else if (NUMBERP (it->font_height))
-	    {
-	      /* Value is a multiple of the canonical char height.  */
-	      struct face *f;
+	      struct face *face = FACE_FROM_ID (it->f, it->face_id);
+	      int new_height = -1;
 
-	      f = FACE_FROM_ID (it->f,
-				lookup_basic_face (it->f, DEFAULT_FACE_ID));
-	      new_height = (XFLOATINT (it->font_height)
-			    * XINT (f->lface[LFACE_HEIGHT_INDEX]));
+	      if (CONSP (it->font_height)
+		  && (EQ (XCAR (it->font_height), Qplus)
+		      || EQ (XCAR (it->font_height), Qminus))
+		  && CONSP (XCDR (it->font_height))
+		  && INTEGERP (XCAR (XCDR (it->font_height))))
+		{
+		  /* `(+ N)' or `(- N)' where N is an integer.  */
+		  int steps = XINT (XCAR (XCDR (it->font_height)));
+		  if (EQ (XCAR (it->font_height), Qplus))
+		    steps = - steps;
+		  it->face_id = smaller_face (it->f, it->face_id, steps);
+		}
+	      else if (FUNCTIONP (it->font_height))
+		{
+		  /* Call function with current height as argument.
+		     Value is the new height.  */
+		  Lisp_Object height;
+		  height = safe_call1 (it->font_height,
+				       face->lface[LFACE_HEIGHT_INDEX]);
+		  if (NUMBERP (height))
+		    new_height = XFLOATINT (height);
+		}
+	      else if (NUMBERP (it->font_height))
+		{
+		  /* Value is a multiple of the canonical char height.  */
+		  struct face *f;
+
+		  f = FACE_FROM_ID (it->f,
+				    lookup_basic_face (it->f, DEFAULT_FACE_ID));
+		  new_height = (XFLOATINT (it->font_height)
+				* XINT (f->lface[LFACE_HEIGHT_INDEX]));
+		}
+	      else
+		{
+		  /* Evaluate IT->font_height with `height' bound to the
+		     current specified height to get the new height.  */
+		  int count = SPECPDL_INDEX ();
+
+		  specbind (Qheight, face->lface[LFACE_HEIGHT_INDEX]);
+		  value = safe_eval (it->font_height);
+		  unbind_to (count, Qnil);
+
+		  if (NUMBERP (value))
+		    new_height = XFLOATINT (value);
+		}
+
+	      if (new_height > 0)
+		it->face_id = face_with_height (it->f, it->face_id, new_height);
 	    }
-	  else
-	    {
-	      /* Evaluate IT->font_height with `height' bound to the
-		 current specified height to get the new height.  */
-	      int count = SPECPDL_INDEX ();
-
-	      specbind (Qheight, face->lface[LFACE_HEIGHT_INDEX]);
-	      value = safe_eval (it->font_height);
-	      unbind_to (count, Qnil);
-
-	      if (NUMBERP (value))
-		new_height = XFLOATINT (value);
-	    }
-
-	  if (new_height > 0)
-	    it->face_id = face_with_height (it->f, it->face_id, new_height);
 	}
 
       return 0;
@@ -3989,12 +4109,15 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
       && EQ (XCAR (spec), Qspace_width)
       && CONSP (XCDR (spec)))
     {
-      if (!FRAME_WINDOW_P (it->f))
-	return 0;
+      if (it)
+	{
+	  if (!FRAME_WINDOW_P (it->f))
+	    return 0;
 
-      value = XCAR (XCDR (spec));
-      if (NUMBERP (value) && XFLOATINT (value) > 0)
-	it->space_width = value;
+	  value = XCAR (XCDR (spec));
+	  if (NUMBERP (value) && XFLOATINT (value) > 0)
+	    it->space_width = value;
+	}
 
       return 0;
     }
@@ -4005,20 +4128,23 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
     {
       Lisp_Object tem;
 
-      if (!FRAME_WINDOW_P (it->f))
-	return 0;
-
-      if (tem = XCDR (spec), CONSP (tem))
+      if (it)
 	{
-	  it->slice.x = XCAR (tem);
-	  if (tem = XCDR (tem), CONSP (tem))
+	  if (!FRAME_WINDOW_P (it->f))
+	    return 0;
+
+	  if (tem = XCDR (spec), CONSP (tem))
 	    {
-	      it->slice.y = XCAR (tem);
+	      it->slice.x = XCAR (tem);
 	      if (tem = XCDR (tem), CONSP (tem))
 		{
-		  it->slice.width = XCAR (tem);
+		  it->slice.y = XCAR (tem);
 		  if (tem = XCDR (tem), CONSP (tem))
-		    it->slice.height = XCAR (tem);
+		    {
+		      it->slice.width = XCAR (tem);
+		      if (tem = XCDR (tem), CONSP (tem))
+			it->slice.height = XCAR (tem);
+		    }
 		}
 	    }
 	}
@@ -4031,36 +4157,43 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
       && EQ (XCAR (spec), Qraise)
       && CONSP (XCDR (spec)))
     {
-      if (!FRAME_WINDOW_P (it->f))
-	return 0;
+      if (it)
+	{
+	  if (!FRAME_WINDOW_P (it->f))
+	    return 0;
 
 #ifdef HAVE_WINDOW_SYSTEM
-      value = XCAR (XCDR (spec));
-      if (NUMBERP (value))
-	{
-	  struct face *face = FACE_FROM_ID (it->f, it->face_id);
-	  it->voffset = - (XFLOATINT (value)
-			   * (FONT_HEIGHT (face->font)));
-	}
+	  value = XCAR (XCDR (spec));
+	  if (NUMBERP (value))
+	    {
+	      struct face *face = FACE_FROM_ID (it->f, it->face_id);
+	      it->voffset = - (XFLOATINT (value)
+			       * (FONT_HEIGHT (face->font)));
+	    }
 #endif /* HAVE_WINDOW_SYSTEM */
+	}
 
       return 0;
     }
 
   /* Don't handle the other kinds of display specifications
      inside a string that we got from a `display' property.  */
-  if (it->string_from_display_prop_p)
+  if (it && it->string_from_display_prop_p)
     return 0;
 
   /* Characters having this form of property are not displayed, so
      we have to find the end of the property.  */
-  start_pos = *position;
-  *position = display_prop_end (it, object, start_pos);
+  if (it)
+    {
+      start_pos = *position;
+      *position = display_prop_end (it, object, start_pos);
+    }
   value = Qnil;
 
   /* Stop the scan at that end position--we assume that all
      text properties change there.  */
-  it->stop_charpos = position->charpos;
+  if (it)
+    it->stop_charpos = position->charpos;
 
   /* Handle `(left-fringe BITMAP [FACE])'
      and `(right-fringe BITMAP [FACE])'.  */
@@ -4069,12 +4202,16 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	  || EQ (XCAR (spec), Qright_fringe))
       && CONSP (XCDR (spec)))
     {
-      int face_id = lookup_basic_face (it->f, DEFAULT_FACE_ID);
       int fringe_bitmap;
 
-      if (!FRAME_WINDOW_P (it->f))
-	/* If we return here, POSITION has been advanced
-	   across the text with this property.  */
+      if (it)
+	{
+	  if (!FRAME_WINDOW_P (it->f))
+	    /* If we return here, POSITION has been advanced
+	       across the text with this property.  */
+	    return 0;
+	}
+      else if (!frame_window_p)
 	return 0;
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -4085,46 +4222,47 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	   across the text with this property.  */
 	return 0;
 
-      if (CONSP (XCDR (XCDR (spec))))
+      if (it)
 	{
-	  Lisp_Object face_name = XCAR (XCDR (XCDR (spec)));
-	  int face_id2 = lookup_derived_face (it->f, face_name,
-					      FRINGE_FACE_ID, 0);
-	  if (face_id2 >= 0)
-	    face_id = face_id2;
-	}
+	  int face_id = lookup_basic_face (it->f, DEFAULT_FACE_ID);;
 
-      /* Save current settings of IT so that we can restore them
-	 when we are finished with the glyph property value.  */
+	  if (CONSP (XCDR (XCDR (spec))))
+	    {
+	      Lisp_Object face_name = XCAR (XCDR (XCDR (spec)));
+	      int face_id2 = lookup_derived_face (it->f, face_name,
+						  FRINGE_FACE_ID, 0);
+	      if (face_id2 >= 0)
+		face_id = face_id2;
+	    }
 
-      save_pos = it->position;
-      it->position = *position;
-      push_it (it);
-      it->position = save_pos;
+	  /* Save current settings of IT so that we can restore them
+	     when we are finished with the glyph property value.  */
+	  push_it (it, position);
 
-      it->area = TEXT_AREA;
-      it->what = IT_IMAGE;
-      it->image_id = -1; /* no image */
-      it->position = start_pos;
-      it->object = NILP (object) ? it->w->buffer : object;
-      it->method = GET_FROM_IMAGE;
-      it->from_overlay = Qnil;
-      it->face_id = face_id;
+	  it->area = TEXT_AREA;
+	  it->what = IT_IMAGE;
+	  it->image_id = -1; /* no image */
+	  it->position = start_pos;
+	  it->object = NILP (object) ? it->w->buffer : object;
+	  it->method = GET_FROM_IMAGE;
+	  it->from_overlay = Qnil;
+	  it->face_id = face_id;
 
-      /* Say that we haven't consumed the characters with
-	 `display' property yet.  The call to pop_it in
-	 set_iterator_to_next will clean this up.  */
-      *position = start_pos;
+	  /* Say that we haven't consumed the characters with
+	     `display' property yet.  The call to pop_it in
+	     set_iterator_to_next will clean this up.  */
+	  *position = start_pos;
 
-      if (EQ (XCAR (spec), Qleft_fringe))
-	{
-	  it->left_user_fringe_bitmap = fringe_bitmap;
-	  it->left_user_fringe_face_id = face_id;
-	}
-      else
-        {
-	  it->right_user_fringe_bitmap = fringe_bitmap;
-	  it->right_user_fringe_face_id = face_id;
+	  if (EQ (XCAR (spec), Qleft_fringe))
+	    {
+	      it->left_user_fringe_bitmap = fringe_bitmap;
+	      it->left_user_fringe_face_id = face_id;
+	    }
+	  else
+	    {
+	      it->right_user_fringe_bitmap = fringe_bitmap;
+	      it->right_user_fringe_face_id = face_id;
+	    }
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
       return 1;
@@ -4167,18 +4305,19 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 
   valid_p = (STRINGP (value)
 #ifdef HAVE_WINDOW_SYSTEM
-             || (FRAME_WINDOW_P (it->f) && valid_image_p (value))
+             || ((it ? FRAME_WINDOW_P (it->f) : frame_window_p)
+		 && valid_image_p (value))
 #endif /* not HAVE_WINDOW_SYSTEM */
              || (CONSP (value) && EQ (XCAR (value), Qspace)));
 
   if (valid_p && !display_replaced_p)
     {
+      if (!it)
+	return 1;
+
       /* Save current settings of IT so that we can restore them
 	 when we are finished with the glyph property value.  */
-      save_pos = it->position;
-      it->position = *position;
-      push_it (it);
-      it->position = save_pos;
+      push_it (it, position);
       it->from_overlay = overlay;
 
       if (NILP (location))
@@ -4235,83 +4374,31 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
   return 0;
 }
 
-
-/* Check if SPEC is a display sub-property value whose text should be
-   treated as intangible.  */
-
-static int
-single_display_spec_intangible_p (Lisp_Object prop)
-{
-  /* Skip over `when FORM'.  */
-  if (CONSP (prop) && EQ (XCAR (prop), Qwhen))
-    {
-      prop = XCDR (prop);
-      if (!CONSP (prop))
-	return 0;
-      prop = XCDR (prop);
-    }
-
-  if (STRINGP (prop))
-    return 1;
-
-  if (!CONSP (prop))
-    return 0;
-
-  /* Skip over `margin LOCATION'.  If LOCATION is in the margins,
-     we don't need to treat text as intangible.  */
-  if (EQ (XCAR (prop), Qmargin))
-    {
-      prop = XCDR (prop);
-      if (!CONSP (prop))
-	return 0;
-
-      prop = XCDR (prop);
-      if (!CONSP (prop)
-	  || EQ (XCAR (prop), Qleft_margin)
-	  || EQ (XCAR (prop), Qright_margin))
-	return 0;
-    }
-
-  return (CONSP (prop)
-	  && (EQ (XCAR (prop), Qimage)
-	      || EQ (XCAR (prop), Qspace)));
-}
-
-
 /* Check if PROP is a display property value whose text should be
-   treated as intangible.  */
+   treated as intangible.  OVERLAY is the overlay from which PROP
+   came, or nil if it came from a text property.  CHARPOS and BYTEPOS
+   specify the buffer position covered by PROP.  */
 
 int
-display_prop_intangible_p (Lisp_Object prop)
+display_prop_intangible_p (Lisp_Object prop, Lisp_Object overlay,
+			   EMACS_INT charpos, EMACS_INT bytepos)
 {
-  if (CONSP (prop)
-      && CONSP (XCAR (prop))
-      && !EQ (Qmargin, XCAR (XCAR (prop))))
-    {
-      /* A list of sub-properties.  */
-      while (CONSP (prop))
-	{
-	  if (single_display_spec_intangible_p (XCAR (prop)))
-	    return 1;
-	  prop = XCDR (prop);
-	}
-    }
-  else if (VECTORP (prop))
-    {
-      /* A vector of sub-properties.  */
-      int i;
-      for (i = 0; i < ASIZE (prop); ++i)
-	if (single_display_spec_intangible_p (AREF (prop, i)))
-	  return 1;
-    }
-  else
-    return single_display_spec_intangible_p (prop);
+  int frame_window_p = FRAME_WINDOW_P (XFRAME (selected_frame));
+  struct text_pos position;
 
-  return 0;
+  SET_TEXT_POS (position, charpos, bytepos);
+  return handle_display_spec (NULL, prop, Qnil, overlay,
+			      &position, charpos, frame_window_p);
 }
 
 
-/* Return 1 if PROP is a display sub-property value containing STRING.  */
+/* Return 1 if PROP is a display sub-property value containing STRING.
+
+   Implementation note: this and the following function are really
+   special cases of handle_display_spec and
+   handle_single_display_spec, and should ideally use the same code.
+   Until they do, these two pairs must be consistent and must be
+   modified in sync.  */
 
 static int
 single_display_spec_string_p (Lisp_Object prop, Lisp_Object string)
@@ -4325,6 +4412,16 @@ single_display_spec_string_p (Lisp_Object prop, Lisp_Object string)
       prop = XCDR (prop);
       if (!CONSP (prop))
 	return 0;
+      /* Actually, the condition following `when' should be eval'ed,
+	 like handle_single_display_spec does, and we should return
+	 zero if it evaluates to nil.  However, this function is
+	 called only when the buffer was already displayed and some
+	 glyph in the glyph matrix was found to come from a display
+	 string.  Therefore, the condition was already evaluated, and
+	 the result was non-nil, otherwise the display string wouldn't
+	 have been displayed and we would have never been called for
+	 this property.  Thus, we can skip the evaluation and assume
+	 its result is non-nil.  */
       prop = XCDR (prop);
     }
 
@@ -4341,7 +4438,7 @@ single_display_spec_string_p (Lisp_Object prop, Lisp_Object string)
 	  return 0;
       }
 
-  return CONSP (prop) && EQ (XCAR (prop), string);
+  return EQ (prop, string) || (CONSP (prop) && EQ (XCAR (prop), string));
 }
 
 
@@ -4351,8 +4448,8 @@ static int
 display_prop_string_p (Lisp_Object prop, Lisp_Object string)
 {
   if (CONSP (prop)
-      && CONSP (XCAR (prop))
-      && !EQ (Qmargin, XCAR (XCAR (prop))))
+      && !EQ (XCAR (prop), Qwhen)
+      && !(CONSP (XCAR (prop)) && EQ (Qmargin, XCAR (XCAR (prop)))))
     {
       /* A list of sub-properties.  */
       while (CONSP (prop))
@@ -4852,7 +4949,7 @@ get_overlay_strings_1 (struct it *it, EMACS_INT charpos, int compute_stop_p)
       /* When called from handle_stop, there might be an empty display
          string loaded.  In that case, don't bother saving it.  */
       if (!STRINGP (it->string) || SCHARS (it->string))
-	push_it (it);
+	push_it (it, NULL);
 
       /* Set up IT to deliver display elements from the first overlay
 	 string.  */
@@ -4894,10 +4991,11 @@ get_overlay_strings (struct it *it, EMACS_INT charpos)
 /* Save current settings of IT on IT->stack.  Called, for example,
    before setting up IT for an overlay string, to be able to restore
    IT's settings to what they were after the overlay string has been
-   processed.  */
+   processed.  If POSITION is non-NULL, it is the position to save on
+   the stack instead of IT->position.  */
 
 static void
-push_it (struct it *it)
+push_it (struct it *it, struct text_pos *position)
 {
   struct iterator_stack_entry *p;
 
@@ -4924,7 +5022,7 @@ push_it (struct it *it)
       p->u.stretch.object = it->object;
       break;
     }
-  p->position = it->position;
+  p->position = position ? *position : it->position;
   p->current = it->current;
   p->end_charpos = it->end_charpos;
   p->string_nchars = it->string_nchars;
@@ -5382,6 +5480,7 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
     {
       it->bidi_it.first_elt = 1;
       it->bidi_it.paragraph_dir = NEUTRAL_DIR;
+      it->bidi_it.disp_pos = -1;
     }
 
   if (set_stop_p)
@@ -12688,11 +12787,30 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	     GLYPH_BEFORE and GLYPH_AFTER, and it came from a string
 	     positioned between POS_BEFORE and POS_AFTER in the
 	     buffer.  */
-	  struct glyph *stop = glyph_after;
+	  struct glyph *start, *stop;
 	  EMACS_INT pos = pos_before;
 
 	  x = -1;
-	  for (glyph = glyph_before + incr;
+
+	  /* GLYPH_BEFORE and GLYPH_AFTER are the glyphs that
+	     correspond to POS_BEFORE and POS_AFTER, respectively.  We
+	     need START and STOP in the order that corresponds to the
+	     row's direction as given by its reversed_p flag.  If the
+	     directionality of characters between POS_BEFORE and
+	     POS_AFTER is the opposite of the row's base direction,
+	     these characters will have been reordered for display,
+	     and we need to reverse START and STOP.  */
+	  if (!row->reversed_p)
+	    {
+	      start = min (glyph_before, glyph_after);
+	      stop = max (glyph_before, glyph_after);
+	    }
+	  else
+	    {
+	      start = max (glyph_before, glyph_after);
+	      stop = min (glyph_before, glyph_after);
+	    }
+	  for (glyph = start + incr;
 	       row->reversed_p ? glyph > stop : glyph < stop; )
 	    {
 
@@ -17111,7 +17229,7 @@ cursor_row_p (struct glyph_row *row)
 static int
 push_display_prop (struct it *it, Lisp_Object prop)
 {
-  push_it (it);
+  push_it (it, NULL);
 
   if (STRINGP (prop))
     {
@@ -18040,6 +18158,8 @@ See also `bidi-paragraph-direction'.  */)
 	bytepos--;
       itb.charpos = pos;
       itb.bytepos = bytepos;
+      itb.nchars = -1;
+      itb.frame_window_p = FRAME_WINDOW_P (SELECTED_FRAME ()); /* guesswork */
       itb.first_elt = 1;
       itb.separator_limit = -1;
       itb.paragraph_dir = NEUTRAL_DIR;

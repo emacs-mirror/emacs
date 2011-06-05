@@ -2253,12 +2253,10 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
   (let ((buffer (window-buffer))
-        choice
-	base-size)
+        choice)
     (with-current-buffer (window-buffer (posn-window (event-start event)))
       (if completion-reference-buffer
 	  (setq buffer completion-reference-buffer))
-      (setq base-size completion-base-size)
       (save-excursion
 	(goto-char (posn-point (event-start event)))
 	(let (beg end)
@@ -2272,25 +2270,22 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	  (setq end (or (next-single-property-change end 'mouse-face)
 			(point-max)))
 	  (setq choice (buffer-substring beg end)))))
-;    (let ((owindow (selected-window)))
-;      (select-window (posn-window (event-start event)))
-;      (if (and (one-window-p t 'selected-frame)
-;	       (window-dedicated-p (selected-window)))
-;	  ;; This is a special buffer's frame
-;	  (iconify-frame (selected-frame))
-;	(or (window-dedicated-p (selected-window))
-;	    (bury-buffer)))
-;      (select-window owindow))
+    ;; (let ((owindow (selected-window)))
+    ;;   (select-window (posn-window (event-start event)))
+    ;;   (if (and (one-window-p t 'selected-frame)
+    ;;            (window-dedicated-p (selected-window)))
+    ;;       ;; This is a special buffer's frame
+    ;;       (iconify-frame (selected-frame))
+    ;;     (or (window-dedicated-p (selected-window))
+    ;;         (bury-buffer)))
+    ;;   (select-window owindow))
     (quail-delete-region)
-    (quail-choose-completion-string choice buffer base-size)
+    (setq quail-current-str choice)
+    ;; FIXME: We need to pass `base-position' here.
+    ;; FIXME: why do we need choose-completion-string with all its
+    ;; completion-specific logic?
+    (choose-completion-string choice buffer)
     (quail-terminate-translation)))
-
-;; BASE-SIZE here is for compatibility with an (unused) arg of a
-;; previous implementation.
-(defun quail-choose-completion-string (choice &optional buffer base-size)
-  (setq quail-current-str choice)
-  ;; FIXME: We need to pass `base-position' here.
-  (choose-completion-string choice buffer))
 
 (defun quail-build-decode-map (map-list key decode-map num
 					&optional maxnum ignores)

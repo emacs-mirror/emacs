@@ -21,6 +21,171 @@
 	customization groups.  Initialize value to 'unset.
 	(display-buffer-reuse-window): Quote lambda with #'.
 
+2011-06-05  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-search-buffer): New variable.
+	(bibtex-search-entries): New command bound to C-c C-a.
+	(bibtex-display-entries): New function.
+
+2011-06-05  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-generate-url-list): Fix docstring.
+	(bibtex-insert-kill): After yanking insert newline if necessary.
+	(bibtex-initialize): Call bibtex-string-files-init only once.
+	(bibtex-mode): Do not call easy-menu-add.
+	(bibtex-validate-globally): Use save-excursion in bibtex buffers.
+	(bibtex-yank): Set arg properly if nil.
+
+2011-06-05  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-search-entry-globally): New
+	variable.
+	(bibtex-search-entry): Use it.
+
+2011-06-05  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-entry-format): New option
+	sort-fields.
+	(bibtex-format-entry, bibtex-reformat): Honor this option.
+	(bibtex-parse-entry): Return fields in proper order.
+
+2011-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* doc-view.el (doc-view-remove-if): Move computation of result out
+	of `dolist' to silence misleading lexical-binding warning.
+
+2011-06-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/timer.el (timer-activate): Remove unused arg.
+	(timer-activate, timer-activate-when-idle): Doc fix (Bug#8793).
+
+2011-06-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-find-shell): Apply workaround also for
+	"SunOS 5.10".
+
+2011-06-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-set-completion-function, tramp-parse-rhosts)
+	(tramp-parse-shosts, tramp-parse-sconfig, tramp-parse-shostkeys)
+	(tramp-parse-hosts, tramp-parse-passwd, tramp-parse-netrc)
+	(tramp-parse-putty):
+	* net/tramp-sh.el (tramp-completion-function-alist-rsh)
+	(tramp-completion-function-alist-ssh)
+	(tramp-completion-function-alist-telnet)
+	(tramp-completion-function-alist-su)
+	(tramp-completion-function-alist-putty): Set `tramp-autoload'
+	cookie.
+
+	* net/tramp-ftp.el:
+	* net/tramp-sh.el:
+	* net/tramp-smb.el: Set `tramp-autoload' cookie, and eval after
+	load "tramp.el" `tramp-set-completion-function'.
+
+2011-06-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el: Require and use pcomplete.
+	(shell-dynamic-complete-functions): Add pcomplete-completions-at-point.
+	(shell-completion-vars): Set pcomplete-default-completion-function.
+
+2011-06-04  Deniz Dogan  <deniz@dogan.se>
+
+	* iswitchb.el (iswitchb-window-buffer-p): Use `member' instead of
+	`memq' (Bug#8799).
+
+2011-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (make-progress-reporter): Add "..." by default (bug#8785).
+
+2011-06-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--mark-unmark, bs--nth-wrapper):
+	* mpc.el (mpc-select-extend, mpc-songpointer-context):
+	* vc/log-view.el (log-view-beginning-of-defun):
+	* vc/smerge-mode.el (smerge-apply-resolution-patch)
+	(smerge-refine-forward, smerge-refine-chopup-region):
+	Silence warning for unused `dotimes' counter variables.
+
+2011-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/tramp.el (tramp-with-progress-reporter): Rename from
+	with-progress-reporter.  Use `declare'.
+	* net/tramp-smb.el:
+	* net/tramp-sh.el:
+	* net/tramp-gvfs.el: Update all uses.
+
+2011-06-02  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-kill-stack-buffer): Make sure that the trail
+	buffer isn't killed before making it current.
+
+2011-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Silence various byte-compiler warnings.
+	* emacs-lisp/byte-run.el (make-obsolete-variable): New argument
+	`access-type' and new obsolescence format.
+	* emacs-lisp/bytecomp.el (byte-compile-warn-obsolete): Adjust to
+	new format.
+	(byte-compile-check-variable): New `access-type' argument.
+	Only warn if the access-type is obsolete.
+	(byte-compile-dynamic-variable-bind, byte-compile-variable-ref)
+	(byte-compile-variable-set): Adjust callers.
+	* help-fns.el (describe-variable): Adjust to new obsolescence format.
+	* mail/sendmail.el (mail-mailer-swallows-blank-line): Only mark
+	setting it as obsolete.
+	* simple.el (minibuffer-completing-symbol):
+	* font-lock.el (font-lock-beginning-of-syntax-function): Only mark read
+	access as obsolete.
+	* minibuffer.el (minibuffer-completing-file-name): Don't make it
+	obsolete yet.
+	* international/quail.el (quail-mouse-choose-completion): Remove unused
+	code referring to obsolete var.
+	(quail-choose-completion-string): Remove.
+	* server.el (server-clients-with, server-kill-buffer-query-function)
+	(server-kill-emacs-query-function): Silence "unused `proc'" warnings.
+	* proced.el (proced-send-signal):
+	* emacs-lisp/lisp.el (lisp-complete-symbol):
+	Replace completion-annotate-function with completion-extra-properties.
+
+2011-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (goto-line): Use read-number.
+	(overriding-map-is-bound): Remove.
+	(saved-overriding-map): Change default.
+	(save&set-overriding-map): Rename from ensure-overriding-map-is-bound;
+	Take the map as argument.
+	(universal-argument, negative-argument, digit-argument): Use it.
+	(restore-overriding-map): Adjust.
+	(do-auto-fill): Use fill-forward-paragraph.
+	(keyboard-quit): Don't signal an error when debug-on-quit is non-nil.
+
+	* minibuffer.el (minibuffer-inactive-mode-map): New var.
+	(minibuffer-inactive-mode): New major mode.
+	* mouse.el (mouse-drag-region): Remove the "mouse-1 pops up
+	the *Messages* buffer" hack.
+	(mouse-popup-menubar): Don't burp if the event is a normal key.
+
+	Miscellaneous tweaks.
+	* emacs-lisp/cl-macs.el (dolist, dotimes): Use the same strategy for
+	lexical scoping as in subr.el's dolist and dotimes.
+	* emacs-lisp/bytecomp.el (byte-compile-unfold-bcf):
+	Silence compiler warning.
+	* thingatpt.el (forward-whitespace): Trivial coding style fix.
+	* subr.el (with-output-to-temp-buffer): Provide an edebug spec.
+	* international/ccl.el (ccl-compile): Trivial simplification.
+	* help-fns.el (help-do-arg-highlight): Silence compiler warning.
+	* emacs-lisp/testcover.el (testcover-end): Remove spurious
+	`printflag' argument.
+	* emacs-lisp/byte-run.el (make-obsolete, make-obsolete-variable):
+	Purecopy the whole obsolescence data.
+
+2011-06-01  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-decode-coding-system): Revert last change;
+	improve doc-string as suggested by Marco Pessotto
+	<melmothx@gmail.com>.
+	(rcirc-print): Fix last change.
+
 2011-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (complete-with-action): Return nil for the metadata and

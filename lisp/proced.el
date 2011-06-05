@@ -1733,8 +1733,9 @@ After sending the signal, this command runs the normal hook
 		 (pnum (if (= 1 (length process-alist))
 			   "1 process"
 			 (format "%d processes" (length process-alist))))
-		 (completion-annotate-function
-		  (lambda (s) (cdr (assoc s proced-signal-list)))))
+		 (completion-extra-properties
+		  '(:annotation-function
+		    (lambda (s) (cdr (assoc s proced-signal-list))))))
             (fit-window-to-buffer window nil 1)
 	    (select-window window t)
 	    (setq signal

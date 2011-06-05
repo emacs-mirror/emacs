@@ -525,22 +525,20 @@ extern Lisp_Object make_number (EMACS_INT);
 
 #define EQ(x, y) (XHASH (x) == XHASH (y))
 
+/* Number of bits in a fixnum, including the sign bit.  */
+#ifdef USE_2_TAGS_FOR_INTS
+# define FIXNUM_BITS (VALBITS + 1)
+#else
+# define FIXNUM_BITS VALBITS
+#endif
+
+/* Mask indicating the significant bits of a fixnum.  */
+#define INTMASK (((EMACS_INT) 1 << FIXNUM_BITS) - 1)
+
 /* Largest and smallest representable fixnum values.  These are the C
    values.  */
-
-#ifdef USE_2_TAGS_FOR_INTS
-# define MOST_NEGATIVE_FIXNUM	- ((EMACS_INT) 1 << VALBITS)
-# define MOST_POSITIVE_FIXNUM	(((EMACS_INT) 1 << VALBITS) - 1)
-/* Mask indicating the significant bits of a Lisp_Int.
-   I.e. (x & INTMASK) == XUINT (make_number (x)).  */
-# define INTMASK ((((EMACS_INT) 1) << (VALBITS + 1)) - 1)
-#else
-# define MOST_NEGATIVE_FIXNUM	- ((EMACS_INT) 1 << (VALBITS - 1))
-# define MOST_POSITIVE_FIXNUM	(((EMACS_INT) 1 << (VALBITS - 1)) - 1)
-/* Mask indicating the significant bits of a Lisp_Int.
-   I.e. (x & INTMASK) == XUINT (make_number (x)).  */
-# define INTMASK ((((EMACS_INT) 1) << VALBITS) - 1)
-#endif
+#define MOST_POSITIVE_FIXNUM (INTMASK / 2)
+#define MOST_NEGATIVE_FIXNUM (-1 - MOST_POSITIVE_FIXNUM)
 
 /* Value is non-zero if I doesn't fit into a Lisp fixnum.  It is
    written this way so that it also works if I is of unsigned
@@ -1179,7 +1177,7 @@ struct Lisp_Hash_Table
      a special way (e.g. because of weakness).  */
 
   /* Number of key/value entries in the table.  */
-  unsigned int count;
+  EMACS_INT count;
 
   /* Vector of keys and values.  The key of item I is found at index
      2 * I, the value is found at index 2 * I + 1.
@@ -1191,11 +1189,12 @@ struct Lisp_Hash_Table
   struct Lisp_Hash_Table *next_weak;
 
   /* C function to compare two keys.  */
-  int (* cmpfn) (struct Lisp_Hash_Table *, Lisp_Object,
-                 unsigned, Lisp_Object, unsigned);
+  int (*cmpfn) (struct Lisp_Hash_Table *,
+		Lisp_Object, EMACS_UINT,
+		Lisp_Object, EMACS_UINT);
 
   /* C function to compute hash code.  */
-  unsigned (* hashfn) (struct Lisp_Hash_Table *, Lisp_Object);
+  EMACS_UINT (*hashfn) (struct Lisp_Hash_Table *, Lisp_Object);
 };
 
 
@@ -2093,7 +2092,7 @@ extern Lisp_Object Vascii_canon_table;
 
 /* Number of bytes of structure consed since last GC.  */
 
-extern int consing_since_gc;
+extern EMACS_INT consing_since_gc;
 
 extern EMACS_INT gc_relative_threshold;
 
@@ -2468,19 +2467,19 @@ extern void syms_of_syntax (void);
 
 /* Defined in fns.c */
 extern Lisp_Object QCrehash_size, QCrehash_threshold;
-extern int next_almost_prime (int);
-extern Lisp_Object larger_vector (Lisp_Object, int, Lisp_Object);
+extern EMACS_INT next_almost_prime (EMACS_INT);
+extern Lisp_Object larger_vector (Lisp_Object, EMACS_INT, Lisp_Object);
 extern void sweep_weak_hash_tables (void);
 extern Lisp_Object Qcursor_in_echo_area;
 extern Lisp_Object Qstring_lessp;
 extern Lisp_Object QCsize, QCtest, QCweakness, Qequal, Qeq, Qeql;
-unsigned sxhash (Lisp_Object, int);
+EMACS_UINT sxhash (Lisp_Object, int);
 Lisp_Object make_hash_table (Lisp_Object, Lisp_Object, Lisp_Object,
                              Lisp_Object, Lisp_Object, Lisp_Object,
                              Lisp_Object);
-int hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, unsigned *);
-int hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
-              unsigned);
+EMACS_INT hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, EMACS_UINT *);
+EMACS_INT hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
+		    EMACS_UINT);
 void init_weak_hash_tables (void);
 extern void init_fns (void);
 EXFUN (Fmake_hash_table, MANY);
@@ -2685,8 +2684,8 @@ extern void allocate_string_data (struct Lisp_String *, EMACS_INT, EMACS_INT);
 extern void reset_malloc_hooks (void);
 extern void uninterrupt_malloc (void);
 extern void malloc_warning (const char *);
-extern void memory_full (void) NO_RETURN;
-extern void buffer_memory_full (void) NO_RETURN;
+extern void memory_full (size_t) NO_RETURN;
+extern void buffer_memory_full (EMACS_INT) NO_RETURN;
 extern int survives_gc_p (Lisp_Object);
 extern void mark_object (Lisp_Object);
 #if defined REL_ALLOC && !defined SYSTEM_MALLOC

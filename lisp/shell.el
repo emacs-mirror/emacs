@@ -98,6 +98,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'comint)
+(require 'pcomplete)
 
 ;;; Customization and Buffer Variables
 
@@ -186,7 +187,9 @@ This is a fine thing to set in your `.emacs' file.")
     shell-environment-variable-completion
     shell-command-completion
     shell-c-a-p-replace-by-expanded-directory
+    pcomplete-completions-at-point
     shell-filename-completion
+    ;; Not sure when this one would still be useful.  --Stef
     comint-filename-completion)
   "List of functions called to perform completion.
 This variable is used to initialize `comint-dynamic-complete-functions' in the
@@ -380,7 +383,6 @@ to `dirtrack-mode'."
   :group 'shell
   :type '(choice (const nil) regexp))
 
-(defvar pcomplete-parse-arguments-function)
 
 (defun shell-completion-vars ()
   "Setup completion vars for `shell-mode' and `read-shell-command'."
@@ -396,6 +398,9 @@ to `dirtrack-mode'."
   (set (make-local-variable 'pcomplete-parse-arguments-function)
        ;; FIXME: This function should be moved to shell.el.
        #'pcomplete-parse-comint-arguments)
+  ;; Don't use pcomplete's defaulting mechanism, rely on
+  ;; shell-dynamic-complete-functions instead.
+  (set (make-local-variable 'pcomplete-default-completion-function) #'ignore)
   (setq comint-input-autoexpand shell-input-autoexpand)
   ;; Not needed in shell-mode because it's inherited from comint-mode, but
   ;; placed here for read-shell-command.

@@ -1318,7 +1318,7 @@ If PLAYLIST is t or nil or missing, use the main playlist."
             (setq count before)
             (setq dir -1))
           (goto-char start)
-          (dotimes (i (1+ (or count 0)))
+          (dotimes (_i (1+ (or count 0)))
             (mpc-select-make-overlay)
             (forward-line dir))))))
     (when mpc-tag
@@ -2114,12 +2114,12 @@ This is used so that they can be compared with `eq', which is needed for
     (let ((context-before '())
           (context-after '()))
       (save-excursion
-        (dotimes (i size)
+        (dotimes (_i size)
           (when (re-search-backward "^[0-9]+:\\(.*\\)" nil t)
             (push (mpc-songs-hashcons (match-string 1)) context-before))))
       ;; Skip the actual current song.
       (forward-line 1)
-      (dotimes (i size)
+      (dotimes (_i size)
         (when (re-search-forward "^[0-9]+:\\(.*\\)" nil t)
           (push (mpc-songs-hashcons (match-string 1)) context-after)))
       ;; If there isn't `size' context, then return nil.

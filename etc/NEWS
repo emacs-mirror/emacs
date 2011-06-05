@@ -68,6 +68,10 @@ and also when HOME is set to C:\ by default.
 
 * Changes in Emacs 24.1
 
+** The inactive minibuffer has its own major mode `minibuffer-inactive-mode'.
+This is handy for minibuffer-only frames, and is also used for the "mouse-1
+pops up *Messages*" feature, which can now easily be changed.
+
 ** emacsclient changes
 
 *** New emacsclient argument --parent-id ID can be used to open a
@@ -81,6 +85,8 @@ client frame in parent X window ID, via XEmbed.  This works like the
 error, its exit status is 1.
 
 ** Completion
+*** shell-mode uses pcomplete rules, with the standard completion UI.
+
 *** Many packages have been changed to use completion-at-point rather than
 their own completion code.
 
@@ -532,6 +538,9 @@ between applications.
 
 *** Support for X clipboard managers has been added.
 
+**** To inhibit use of the clipboard manager, set
+`x-select-enable-clipboard-manager' to nil.
+
 ** New command `rectangle-number-lines', bound to `C-x r N', numbers
 the lines in the current rectangle.  With an prefix argument, this
 prompts for a number to count from and for a format string.
@@ -564,6 +573,14 @@ more variants, including Mercury, and a lot more.
 Just set shell-dir-cookie-re to an appropriate regexp.
 
 ** Modula-2 mode provides auto-indentation.
+
+** BibTeX mode
+
+*** New command `bibtex-search-entries' bound to C-c C-a.
+
+*** New `bibtex-entry-format' option `sort-fields', disabled by default.
+
+*** New variable `bibtex-search-entry-globally'.
 
 ** latex-electric-env-pair-mode keeps \begin..\end matched on the fly.
 

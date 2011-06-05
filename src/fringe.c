@@ -1279,8 +1279,12 @@ update_window_fringes (struct window *w, int keep_current_p)
 
       if (row->overlay_arrow_bitmap != cur->overlay_arrow_bitmap)
 	{
-	  redraw_p = row->redraw_fringe_bitmaps_p = cur->redraw_fringe_bitmaps_p = 1;
-	  cur->overlay_arrow_bitmap = row->overlay_arrow_bitmap;
+	  redraw_p = row->redraw_fringe_bitmaps_p = 1;
+	  if (!keep_current_p)
+	    {
+	      cur->redraw_fringe_bitmaps_p = 1;
+	      cur->overlay_arrow_bitmap = row->overlay_arrow_bitmap;
+	    }
 	}
 
       row->left_fringe_bitmap = left;

@@ -470,7 +470,8 @@ by Emacs.)")
 
 (put 'mail-mailer-swallows-blank-line 'risky-local-variable t) ; gets evalled
 (make-obsolete-variable 'mail-mailer-swallows-blank-line
-			"no need to set this on any modern system." "24.1")
+			"no need to set this on any modern system."
+                        "24.1" 'set)
 
 (defvar mail-mode-syntax-table
   ;; define-derived-mode will make it inherit from text-mode-syntax-table.

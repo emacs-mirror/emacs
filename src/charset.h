@@ -146,7 +146,7 @@ struct charset
   int id;
 
   /* Index to Vcharset_hash_table.  */
-  int hash_index;
+  EMACS_INT hash_index;
 
   /* Dimension of the charset: 1, 2, 3, or 4.  */
   int dimension;

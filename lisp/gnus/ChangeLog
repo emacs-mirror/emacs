@@ -1,3 +1,8 @@
+2011-06-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-remove-ignored): New function to
+	remove entries with groups we ignore.
+
 2011-05-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-rescale-image): Add an :ascent of 100 to images so that

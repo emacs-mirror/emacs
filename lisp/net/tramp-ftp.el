@@ -113,9 +113,11 @@ present for backward compatibility."
 	       (list nil "\\`\\(anonymous\\|ftp\\)\\'" tramp-ftp-method)))
 
 ;; Add completion function for FTP method.
-(tramp-set-completion-function
- tramp-ftp-method
- '((tramp-parse-netrc "~/.netrc")))
+;;;###tramp-autoload
+(eval-after-load 'tramp
+  '(tramp-set-completion-function
+     tramp-ftp-method
+     '((tramp-parse-netrc "~/.netrc"))))
 
 ;; If there is URL syntax, `substitute-in-file-name' needs special
 ;; handling.

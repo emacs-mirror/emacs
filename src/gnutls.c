@@ -110,6 +110,10 @@ DEF_GNUTLS_FN (int, gnutls_error_is_fatal, (int));
 DEF_GNUTLS_FN (int, gnutls_global_init, (void));
 DEF_GNUTLS_FN (void, gnutls_global_set_log_function, (gnutls_log_func));
 DEF_GNUTLS_FN (void, gnutls_global_set_log_level, (int));
+DEF_GNUTLS_FN (void, gnutls_global_set_mem_functions,
+	       (gnutls_alloc_function, gnutls_alloc_function,
+		gnutls_is_secure_function, gnutls_realloc_function,
+		gnutls_free_function));
 DEF_GNUTLS_FN (int, gnutls_handshake, (gnutls_session_t));
 DEF_GNUTLS_FN (int, gnutls_init, (gnutls_session_t *, gnutls_connection_end_t));
 DEF_GNUTLS_FN (int, gnutls_priority_set_direct,
@@ -168,6 +172,7 @@ init_gnutls_functions (Lisp_Object libraries)
   LOAD_GNUTLS_FN (library, gnutls_global_init);
   LOAD_GNUTLS_FN (library, gnutls_global_set_log_function);
   LOAD_GNUTLS_FN (library, gnutls_global_set_log_level);
+  LOAD_GNUTLS_FN (library, gnutls_global_set_mem_functions);
   LOAD_GNUTLS_FN (library, gnutls_handshake);
   LOAD_GNUTLS_FN (library, gnutls_init);
   LOAD_GNUTLS_FN (library, gnutls_priority_set_direct);
@@ -213,6 +218,7 @@ init_gnutls_functions (Lisp_Object libraries)
 #define fn_gnutls_global_init			gnutls_global_init
 #define fn_gnutls_global_set_log_function	gnutls_global_set_log_function
 #define fn_gnutls_global_set_log_level		gnutls_global_set_log_level
+#define fn_gnutls_global_set_mem_functions	gnutls_global_set_mem_functions
 #define fn_gnutls_handshake			gnutls_handshake
 #define fn_gnutls_init				gnutls_init
 #define fn_gnutls_priority_set_direct		gnutls_priority_set_direct
@@ -582,7 +588,11 @@ emacs_gnutls_global_init (void)
   int ret = GNUTLS_E_SUCCESS;
 
   if (!gnutls_global_initialized)
-    ret = fn_gnutls_global_init ();
+    {
+      fn_gnutls_global_set_mem_functions (xmalloc, xmalloc, NULL,
+					  xrealloc, xfree);
+      ret = fn_gnutls_global_init ();
+    }
   gnutls_global_initialized = 1;
 
   return gnutls_make_error (ret);
@@ -768,8 +778,7 @@ one trustfile (usually a CA bundle).  */)
     {
       GNUTLS_LOG (2, max_log_level, "allocating x509 credentials");
       x509_cred = XPROCESS (proc)->gnutls_x509_cred;
-      if (fn_gnutls_certificate_allocate_credentials (&x509_cred) < 0)
-        memory_full ();
+      fn_gnutls_certificate_allocate_credentials (&x509_cred);
 
       if (NUMBERP (verify_flags))
         {
@@ -792,8 +801,7 @@ one trustfile (usually a CA bundle).  */)
     {
       GNUTLS_LOG (2, max_log_level, "allocating anon credentials");
       anon_cred = XPROCESS (proc)->gnutls_anon_cred;
-      if (fn_gnutls_anon_allocate_client_credentials (&anon_cred) < 0)
-        memory_full ();
+      fn_gnutls_anon_allocate_client_credentials (&anon_cred);
     }
   else
     {

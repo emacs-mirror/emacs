@@ -330,7 +330,7 @@ even if it is dead.  The return value is never nil.  */)
   alloc_buffer_text (b, BUF_GAP_SIZE (b) + 1);
   UNBLOCK_INPUT;
   if (! BUF_BEG_ADDR (b))
-    buffer_memory_full ();
+    buffer_memory_full (BUF_GAP_SIZE (b) + 1);
 
   b->pt = BEG;
   b->begv = BEG;
@@ -4835,7 +4835,7 @@ alloc_buffer_text (struct buffer *b, size_t nbytes)
   if (p == NULL)
     {
       UNBLOCK_INPUT;
-      memory_full ();
+      memory_full (nbytes);
     }
 
   b->text->beg = (unsigned char *) p;
@@ -4863,7 +4863,7 @@ enlarge_buffer_text (struct buffer *b, EMACS_INT delta)
   if (p == NULL)
     {
       UNBLOCK_INPUT;
-      memory_full ();
+      memory_full (nbytes);
     }
 
   BUF_BEG_ADDR (b) = (unsigned char *) p;
