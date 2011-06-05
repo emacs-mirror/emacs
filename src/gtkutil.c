@@ -3329,11 +3329,15 @@ xg_get_widget_from_map (int idx)
 int
 xg_get_default_scrollbar_width (FRAME_PTR f)
 {
-  GtkWidget *wscroll = gtk_vscrollbar_new (gtk_adjustment_new (XG_SB_MIN,
-                                                               XG_SB_MIN,
-                                                               XG_SB_MAX,
-                                                               0.1, 0.1, 0.1));
+#ifdef HAVE_GTK3
+  GtkAdjustment *vadj;
+#else
+  GtkObject *vadj;
+#endif
+  GtkWidget *wscroll;
   int w = 0, b = 0;
+  vadj = gtk_adjustment_new (XG_SB_MIN, XG_SB_MIN, XG_SB_MAX, 0.1, 0.1, 0.1);
+  wscroll = gtk_vscrollbar_new (GTK_ADJUSTMENT (vadj));
   gtk_widget_style_get (wscroll, "slider-width", &w, "trough-border", &b, NULL);
   gtk_widget_destroy (wscroll);
   w += 2*b;
