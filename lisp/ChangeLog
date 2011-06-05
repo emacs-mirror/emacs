@@ -1,3 +1,8 @@
+2011-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* doc-view.el (doc-view-remove-if): Move computation of result out
+	of `dolist' to silence misleading lexical-binding warning.
+
 2011-06-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/timer.el (timer-activate): Remove unused arg.

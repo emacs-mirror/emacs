@@ -614,9 +614,10 @@ It's a subdirectory of `doc-view-cache-directory'."
 (defun doc-view-remove-if (predicate list)
   "Return LIST with all items removed that satisfy PREDICATE."
   (let (new-list)
-    (dolist (item list (nreverse new-list))
+    (dolist (item list)
       (when (not (funcall predicate item))
-	(setq new-list (cons item new-list))))))
+	(setq new-list (cons item new-list))))
+     (nreverse new-list)))
 
 ;;;###autoload
 (defun doc-view-mode-p (type)
