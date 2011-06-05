@@ -597,13 +597,20 @@ to the directories specified in `bibtex-string-file-path'."
 List elements can be absolute file names or file names relative to the
 directories specified in `bibtex-file-path'.  If an element is a directory,
 check all BibTeX files in this directory.  If an element is the symbol
-`bibtex-file-path', check all BibTeX files in `bibtex-file-path'."
+`bibtex-file-path', check all BibTeX files in `bibtex-file-path'.
+See also `bibtex-search-entry-globally'."
   :group 'bibtex
   :type '(repeat (choice (const :tag "bibtex-file-path" bibtex-file-path)
                          directory file)))
 
 (defvar bibtex-file-path (getenv "BIBINPUTS")
   "*Colon separated list of paths to search for `bibtex-files'.")
+
+(defcustom bibtex-search-entry-globally nil
+  "If non-nil, interactive calls of `bibtex-search-entry' search globally.
+A global search includes all files in `bibtex-files'."
+  :group 'bibtex
+  :type 'boolean)
 
 (defcustom bibtex-help-message t
   "If non-nil print help messages in the echo area on entering a new field."
@@ -3585,10 +3592,15 @@ is limited to the current buffer.  Optional arg START is buffer position
 where the search starts.  If it is nil, start search at beginning of buffer.
 If DISPLAY is non-nil, display the buffer containing KEY.
 Otherwise, use `set-buffer'.
-When called interactively, GLOBAL is t if there is a prefix arg or the current
-mode is not `bibtex-mode', START is nil, and DISPLAY is t."
+When called interactively, START is nil, DISPLAY is t.
+Also, GLOBAL is t if the current mode is not `bibtex-mode'
+or `bibtex-search-entry-globally' is non-nil.
+A prefix arg negates the value of `bibtex-search-entry-globally'."
   (interactive
-   (let ((global (or current-prefix-arg (not (eq major-mode 'bibtex-mode)))))
+   (let ((global (or (not (eq major-mode 'bibtex-mode))
+                     (if bibtex-search-entry-globally
+                         (not current-prefix-arg)
+                       current-prefix-arg))))
      (list (bibtex-read-key "Find key: " nil global) global nil t)))
   (if (and global bibtex-files)
       (let ((buffer-list (bibtex-initialize t))

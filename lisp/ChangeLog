@@ -1,5 +1,11 @@
 2011-06-05  Roland Winkler  <winkler@gnu.org>
 
+	* textmodes/bibtex.el (bibtex-search-entry-globally): New
+	variable.
+	(bibtex-search-entry): Use it.
+
+2011-06-05  Roland Winkler  <winkler@gnu.org>
+
 	* textmodes/bibtex.el (bibtex-entry-format): New option
 	sort-fields.
 	(bibtex-format-entry, bibtex-reformat): Honor this option.
