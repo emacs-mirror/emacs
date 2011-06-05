@@ -1,5 +1,10 @@
 2011-06-05  Deniz Dogan  <deniz@dogan.se>
 
+	* net/rcirc.el (rcirc-prompt-for-encryption): Fix bug introduced
+	in last change.
+
+2011-06-05  Deniz Dogan  <deniz@dogan.se>
+
 	* net/rcirc.el (rcirc-prompt-for-encryption): New function.
 	(rcirc): Use it to prompt for encryption.
 
