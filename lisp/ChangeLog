@@ -1,3 +1,8 @@
+2011-06-05  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-prompt-for-encryption): New function.
+	(rcirc): Use it to prompt for encryption.
+
 2011-06-05  Roland Winkler  <winkler@gnu.org>
 
 	* textmodes/bibtex.el (bibtex-search-buffer): New variable.
