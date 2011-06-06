@@ -1,3 +1,8 @@
+2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (ALL_CFLAGS): Add -I$(srcdir)/../lib.
+	This is needed because lisp.h includes intprops.h now.
+
 2011-04-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Static checks with GCC 4.6.0 and non-default toolkits.
