@@ -30,15 +30,6 @@
 
 (eval-when-compile (require 'cl))
 
-(defvar window-size-fixed nil
- "*Non-nil in a buffer means windows displaying the buffer are fixed-size.
-If the value is `height', then only the window's height is fixed.
-If the value is `width', then only the window's width is fixed.
-Any other non-nil value fixes both the width and the height.
-Emacs won't change the size of any window displaying that buffer,
-unless you explicitly change the size, or Emacs has no other choice.")
-(make-variable-buffer-local 'window-size-fixed)
-
 (defmacro save-selected-window (&rest body)
   "Execute BODY, then select the previously selected window.
 The value returned is the value of the last form in BODY.
@@ -71,6 +62,434 @@ are not altered by this macro (unless they are altered in BODY)."
 		(set-frame-selected-window (car elt) (cdr elt) 'norecord)))
 	 (when (window-live-p save-selected-window-window)
 	   (select-window save-selected-window-window 'norecord))))))
+
+;; The following two functions are like `window-next' and `window-prev'
+;; but the WINDOW argument is _not_ optional (so they don't substitute
+;; the selected window for nil), and they return nil when WINDOW doesn't
+;; have a parent (like a frame's root window or a minibuffer window).
+(defsubst window-right (window)
+  "Return WINDOW's right sibling.
+Return nil if WINDOW is the root window of its frame.  WINDOW can
+be any window."
+  (and window (window-parent window) (window-next window)))
+
+(defsubst window-left (window)
+  "Return WINDOW's left sibling.
+Return nil if WINDOW is the root window of its frame.  WINDOW can
+be any window."
+  (and window (window-parent window) (window-prev window)))
+
+(defsubst window-child (window)
+  "Return WINDOW's first child window."
+  (or (window-vchild window) (window-hchild window)))
+
+(defun window-child-count (window)
+  "Return number of WINDOW's child windows."
+  (let ((count 0))
+    (when (and (windowp window) (setq window (window-child window)))
+      (while window
+	(setq count (1+ count))
+	(setq window (window-next window))))
+    count))
+
+(defun window-last-child (window)
+  "Return last child window of WINDOW."
+  (when (and (windowp window) (setq window (window-child window)))
+    (while (window-next window)
+      (setq window (window-next window))))
+  window)
+
+(defsubst window-any-p (object)
+  "Return t if OBJECT denotes a live or internal window."
+  (and (windowp object)
+       (or (window-buffer object) (window-child object))
+       t))
+
+;; The following four functions should probably go to subr.el.
+(defsubst normalize-live-buffer (buffer-or-name)
+  "Return buffer specified by BUFFER-OR-NAME.
+BUFFER-OR-NAME must be either a buffer or a string naming a live
+buffer and defaults to the current buffer."
+  (cond
+   ((not buffer-or-name)
+    (current-buffer))
+   ((bufferp buffer-or-name)
+    (if (buffer-live-p buffer-or-name)
+	buffer-or-name
+      (error "Buffer %s is not a live buffer" buffer-or-name)))
+   ((get-buffer buffer-or-name))
+   (t
+    (error "No such buffer %s" buffer-or-name))))
+
+(defsubst normalize-live-frame (frame)
+  "Return frame specified by FRAME.
+FRAME must be a live frame and defaults to the selected frame."
+  (if frame
+      (if (frame-live-p frame)
+	  frame
+	(error "%s is not a live frame" frame))
+    (selected-frame)))
+
+(defsubst normalize-any-window (window)
+  "Return window specified by WINDOW.
+WINDOW must be a window that has not been deleted and defaults to
+the selected window."
+  (if window
+      (if (window-any-p window)
+	  window
+	(error "%s is not a window" window))
+    (selected-window)))
+
+(defsubst normalize-live-window (window)
+  "Return live window specified by WINDOW.
+WINDOW must be a live window and defaults to the selected one."
+  (if window
+      (if (and (windowp window) (window-buffer window))
+	  window
+	(error "%s is not a live window" window))
+    (selected-window)))
+
+(defvar ignore-window-parameters nil
+  "If non-nil, standard functions ignore window parameters.
+The functions currently affected by this are `split-window',
+`delete-window', `delete-other-windows' and `other-window'.
+
+An application may bind this to a non-nil value around calls to
+these functions to inhibit processing of window parameters.")
+
+(defun window-iso-combination-p (&optional window horizontal)
+  "If WINDOW is a vertical combination return WINDOW's first child.
+WINDOW can be any window and defaults to the selected one.
+Optional argument HORIZONTAL non-nil means return WINDOW's first
+child if WINDOW is a horizontal combination."
+  (setq window (normalize-any-window window))
+  (if horizontal
+      (window-hchild window)
+    (window-vchild window)))
+
+(defsubst window-iso-combined-p (&optional window horizontal)
+  "Return non-nil if and only if WINDOW is vertically combined.
+WINDOW can be any window and defaults to the selected one.
+Optional argument HORIZONTAL non-nil means return non-nil if and
+only if WINDOW is horizontally combined."
+  (setq window (normalize-any-window window))
+  (let ((parent (window-parent window)))
+    (and parent (window-iso-combination-p parent horizontal))))
+
+(defun window-iso-combinations (&optional window horizontal)
+  "Return largest number of vertically arranged subwindows of WINDOW.
+WINDOW can be any window and defaults to the selected one.
+Optional argument HORIZONTAL non-nil means to return the largest
+number of horizontally arranged subwindows of WINDOW."
+  (setq window (normalize-any-window window))
+  (cond
+   ((window-live-p window)
+    ;; If WINDOW is live, return 1.
+    1)
+   ((window-iso-combination-p window horizontal)
+    ;; If WINDOW is iso-combined, return the sum of the values for all
+    ;; subwindows of WINDOW.
+    (let ((child (window-child window))
+	  (count 0))
+      (while child
+	(setq count
+	      (+ (window-iso-combinations child horizontal)
+		 count))
+	(setq child (window-right child)))
+      count))
+   (t
+    ;; If WINDOW is not iso-combined, return the maximum value of any
+    ;; subwindow of WINDOW.
+    (let ((child (window-child window))
+	  (count 1))
+      (while child
+	(setq count
+	      (max (window-iso-combinations child horizontal)
+		   count))
+	(setq child (window-right child)))
+      count))))
+
+(defun walk-window-tree-1 (proc walk-window-tree-window any &optional sub-only)
+  "Helper function for `walk-window-tree' and `walk-window-subtree'."
+  (let (walk-window-tree-buffer)
+    (while walk-window-tree-window
+      (setq walk-window-tree-buffer
+	    (window-buffer walk-window-tree-window))
+      (when (or walk-window-tree-buffer any)
+	(funcall proc walk-window-tree-window))
+      (unless walk-window-tree-buffer
+	(walk-window-tree-1
+	 proc (window-hchild walk-window-tree-window) any)
+	(walk-window-tree-1
+	 proc (window-vchild walk-window-tree-window) any))
+      (if sub-only
+	  (setq walk-window-tree-window nil)
+	(setq walk-window-tree-window
+	      (window-right walk-window-tree-window))))))
+
+(defun walk-window-tree (proc &optional frame any)
+  "Run function PROC on each live window of FRAME.
+PROC must be a function with one argument - a window.  FRAME must
+be a live frame and defaults to the selected one.  ANY, if
+non-nil means to run PROC on all live and internal windows of
+FRAME.
+
+This function performs a pre-order, depth-first traversal of the
+window tree.  If PROC changes the window tree, the result is
+unpredictable."
+  (let ((walk-window-tree-frame (normalize-live-frame frame)))
+    (walk-window-tree-1
+     proc (frame-root-window walk-window-tree-frame) any)))
+
+(defun walk-window-subtree (proc &optional window any)
+  "Run function PROC on each live subwindow of WINDOW.
+WINDOW defaults to the selected window.  PROC must be a function
+with one argument - a window.  ANY, if non-nil means to run PROC
+on all live and internal subwindows of WINDOW.
+
+This function performs a pre-order, depth-first traversal of the
+window tree rooted at WINDOW.  If PROC changes that window tree,
+the result is unpredictable."
+  (setq window (normalize-any-window window))
+  (walk-window-tree-1 proc window any t))
+
+(defun windows-with-parameter (parameter &optional value frame any values)
+  "Return a list of all windows on FRAME with PARAMETER non-nil.
+FRAME defaults to the selected frame.  Optional argument VALUE
+non-nil means only return windows whose window-parameter value of
+PARAMETER equals VALUE \(comparison is done using `equal').
+Optional argument ANY non-nil means consider internal windows
+too.  Optional argument VALUES non-nil means return a list of cons
+cells whose car is the value of the parameter and whose cdr is
+the window."
+  (let (this-value windows)
+    (walk-window-tree
+     (lambda (window)
+       (when (and (setq this-value (window-parameter window parameter))
+		  (or (not value) (or (equal value this-value))))
+	   (setq windows
+		 (if values
+		     (cons (cons this-value window) windows)
+		   (cons window windows)))))
+     frame any)
+
+    (nreverse windows)))
+
+(defun window-with-parameter (parameter &optional value frame any)
+  "Return first window on FRAME with PARAMETER non-nil.
+FRAME defaults to the selected frame.  Optional argument VALUE
+non-nil means only return a window whose window-parameter value
+for PARAMETER equals VALUE \(comparison is done with `equal').
+Optional argument ANY non-nil means consider internal windows
+too."
+  (let (this-value windows)
+    (catch 'found
+      (walk-window-tree
+       (lambda (window)
+	 (when (and (setq this-value (window-parameter window parameter))
+		    (or (not value) (equal value this-value)))
+	   (throw 'found window)))
+       frame any))))
+
+;;; Atomic windows.
+(defun window-atom-root (&optional window)
+  "Return root of atomic window WINDOW is a part of.
+WINDOW can be any window and defaults to the selected one.
+Return nil if WINDOW is not part of a atomic window."
+  (setq window (normalize-any-window window))
+  (let (root)
+    (while (and window (window-parameter window 'window-atom))
+      (setq root window)
+      (setq window (window-parent window)))
+    root))
+
+(defun make-window-atom (window)
+  "Make WINDOW an atomic window.
+WINDOW must be an internal window.  Return WINDOW."
+  (if (not (window-child window))
+      (error "Window %s is not an internal window" window)
+    (walk-window-subtree
+     (lambda (window)
+       (set-window-parameter window 'window-atom t))
+     window t)
+    window))
+
+(defun window-atom-check-1 (window)
+  "Subroutine of `window-atom-check'."
+  (when window
+    (if (window-parameter window 'window-atom)
+	(let ((count 0))
+	  (when (or (catch 'reset
+		      (walk-window-subtree
+		       (lambda (window)
+			 (if (window-parameter window 'window-atom)
+			     (setq count (1+ count))
+			   (throw 'reset t)))
+		       window t))
+		    ;; count >= 1 must hold here.  If there's no other
+		    ;; window around dissolve this atomic window.
+		    (= count 1))
+	    ;; Dissolve atomic window.
+	    (walk-window-subtree
+	     (lambda (window)
+	       (set-window-parameter window 'window-atom nil))
+	     window t)))
+      ;; Check children.
+      (unless (window-buffer window)
+	(window-atom-check-1 (window-hchild window))
+	(window-atom-check-1 (window-vchild window))))
+    ;; Check right sibling
+    (window-atom-check-1 (window-right window))))
+
+(defun window-atom-check (&optional frame)
+  "Check atomicity of all windows on FRAME.
+FRAME defaults to the selected frame.  If an atomic window is
+wrongly configured, reset the atomicity of all its subwindows to
+nil.  An atomic window is wrongly configured if it has no
+subwindows or one of its subwindows is not atomic."
+  (window-atom-check-1 (frame-root-window frame)))
+
+;; Side windows.
+(defvar window-sides '(left top right bottom)
+  "Window sides.")
+
+(defcustom window-sides-vertical nil
+  "If non-nil, left and right side windows are full height.
+Otherwise, top and bottom side windows are full width."
+  :type 'boolean
+  :group 'windows
+  :version "24.1")
+
+(defcustom window-sides-slots '(nil nil nil nil)
+  "Maximum number of side window slots.
+The value is a list of four elements specifying the number of
+side window slots on \(in this order) the left, top, right and
+bottom side of each frame.  If an element is a number, this means
+to display at most that many side windows on the corresponding
+side.  If an element is nil, this means there's no bound on the
+number of slots on that side."
+  :risky t
+  :type
+  '(list
+    :value (nil nil nil nil)
+    (choice
+     :tag "Left"
+     :help-echo "Maximum slots of left side window."
+     :value nil
+     :format "%[Left%] %v\n"
+     (const :tag "Unlimited" :format "%t" nil)
+     (integer :tag "Number" :value 2 :size 5))
+    (choice
+     :tag "Top"
+     :help-echo "Maximum slots of top side window."
+     :value nil
+     :format "%[Top%] %v\n"
+     (const :tag "Unlimited" :format "%t" nil)
+     (integer :tag "Number" :value 3 :size 5))
+    (choice
+     :tag "Right"
+     :help-echo "Maximum slots of right side window."
+     :value nil
+     :format "%[Right%] %v\n"
+     (const :tag "Unlimited" :format "%t" nil)
+     (integer :tag "Number" :value 2 :size 5))
+    (choice
+     :tag "Bottom"
+     :help-echo "Maximum slots of bottom side window."
+     :value nil
+     :format "%[Bottom%] %v\n"
+     (const :tag "Unlimited" :format "%t" nil)
+     (integer :tag "Number" :value 3 :size 5)))
+  :group 'windows)
+
+(defun window-side-check (&optional frame)
+  "Check the window-side parameter of all windows on FRAME.
+FRAME defaults to the selected frame.  If the configuration is
+invalid, reset all window-side parameters to nil.
+
+A valid configuration has to preserve the following invariant:
+
+- If a window has a non-nil window-side parameter, it must have a
+  parent window and the parent window's window-side parameter
+  must be either nil or the same as for window.
+
+- If windows with non-nil window-side parameters exist, there
+  must be at most one window of each side and non-side with a
+  parent whose window-side parameter is nil and there must be no
+  leaf window whose window-side parameter is nil."
+  (let (normal none left top right bottom
+	side parent parent-side code)
+    (when (or (catch 'reset
+		(walk-window-tree
+		 (lambda (window)
+		   (setq side (window-parameter window 'window-side))
+		   (setq parent (window-parent window))
+		   (setq parent-side
+			 (and parent (window-parameter parent 'window-side)))
+		   ;; The following `cond' seems a bit tedious, but I'd
+		   ;; rather stick to using just the stack.
+		   (cond
+		    (parent-side
+		     (when (not (eq parent-side side))
+		       ;; A parent whose window-side is non-nil must
+		       ;; have a child with the same window-side.
+		       (throw 'reset t)))
+		    ;; Now check that there's more than one main window
+		    ;; for any of none, left, top, right and bottom.
+		    ((eq side 'none)
+		     (if none
+			 (throw 'reset t)
+		       (setq none t)))
+		    ((eq side 'left)
+		     (if left
+			 (throw 'reset t)
+		       (setq left t)))
+		    ((eq side 'top)
+		     (if top
+			 (throw 'reset t)
+		       (setq top t)))
+		    ((eq side 'right)
+		     (if right
+			 (throw 'reset t)
+		       (setq right t)))
+		    ((eq side 'bottom)
+		     (if bottom
+			 (throw 'reset t)
+		       (setq bottom t)))
+		    ((window-buffer window)
+		     ;; A leaf window without window-side parameter,
+		     ;; record its existence.
+		     (setq normal t))))
+		 frame t))
+	      (if none
+		  ;; At least one non-side window exists, so there must
+		  ;; be at least one side-window and no normal window.
+		  (or (not (or left top right bottom)) normal)
+		;; No non-side window exists, so there must be no side
+		;; window either.
+		(or left top right bottom)))
+      (walk-window-tree
+       (lambda (window)
+	 (set-window-parameter window 'window-side nil))
+       frame t))))
+
+(defun window-check (&optional frame)
+  "Check atomic and side windows on FRAME.
+FRAME defaults to the selected frame."
+  (window-side-check frame)
+  (window-atom-check frame))
+
+;;; Window sizes.
+(defvar window-size-fixed nil
+  "Non-nil in a buffer means windows displaying the buffer are fixed-size.
+If the value is `height', then only the window's height is fixed.
+If the value is `width', then only the window's width is fixed.
+Any other non-nil value fixes both the width and the height.
+
+Emacs won't change the size of any window displaying that buffer,
+unless it has no other choice \(like when deleting a neighboring
+window).")
+(make-variable-buffer-local 'window-size-fixed)
 
 (defun window-body-height (&optional window)
   "Return number of lines in WINDOW available for actual buffer text.

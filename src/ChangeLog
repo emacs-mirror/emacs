@@ -1,5 +1,7 @@
 2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Integer overflow fixes.
+
 	Check for overflow when converting integer to cons and back.
 	* charset.c (Fdefine_charset_internal, Fdecode_char):
 	Use cons_to_unsigned to catch overflow.
@@ -75,6 +77,52 @@
 	(access_keymap): NATNUMP -> INTEGERP, since the integer must be
 	nonnegative.
 
+2011-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.h (Fwindow_frame): Declare.
+
+2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c: Simplify handling of large-request failures (Bug#8800).
+	(SPARE_MEMORY): Always define.
+	(LARGE_REQUEST): Remove.
+	(memory_full): Use SPARE_MEMORY rather than LARGE_REQUEST.
+
+2011-06-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* lisp.h: Move EXFUNS for Fframe_root_window,
+	Fframe_first_window and Fset_frame_selected_window to window.h.
+
+	* window.h: Move EXFUNS for Fframe_root_window,
+	Fframe_first_window and Fset_frame_selected_window here from
+	lisp.h.
+
+	* frame.c (Fwindow_frame, Fframe_first_window)
+	(Fframe_root_window, Fframe_selected_window)
+	(Fset_frame_selected_window): Move to window.c.
+	(Factive_minibuffer_window): Move to minibuf.c.
+	(Fother_visible_frames_p): New function.
+
+	* minibuf.c (Factive_minibuffer_window): Move here from frame.c.
+
+	* window.c (decode_window, decode_any_window): Move up in code.
+	(Fwindowp, Fwindow_live_p): Rewrite doc-strings.
+	(inhibit_frame_unsplittable): Remove unused variable.
+	(Fwindow_buffer): Move up and rewrite doc-string.
+	(Fwindow_parent, Fwindow_vchild, Fwindow_hchild, Fwindow_next)
+	(Fwindow_prev): New functions.
+	(Fwindow_frame): Move here from frame.c.  Accept any window as
+	argument.
+	(Fframe_root_window, Fframe_first_window)
+	(Fframe_selected_window): Move here from frame.c.  Accept frame
+	or arbitrary window as argument.  Update doc-strings.
+	(Fminibuffer_window): Move up in code.
+	(Fwindow_minibuffer_p): Move up in code and simplify.
+	(Fset_frame_selected_window): Move here from frame.c.
+	Marginal rewrite.
+	(Fselected_window, select_window, Fselect_window): Move up in
+	code.  Minor doc-string fixes.
+
 2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (memory_full) [SYSTEM_MALLOC]: Port to MacOS (Bug#8800).
@@ -110,8 +158,8 @@
 
 	* xselect.c (x_clipboard_manager_save): Remove redundant arg.
 	(x_clipboard_manager_save): Add return value.
-	(x_clipboard_manager_error_1, x_clipboard_manager_error_2): New
-	error handlers.
+	(x_clipboard_manager_error_1, x_clipboard_manager_error_2):
+	New error handlers.
 	(x_clipboard_manager_save_frame, x_clipboard_manager_save_all):
 	Obey Vx_select_enable_clipboard_manager.  Catch errors in
 	x_clipboard_manager_save (Bug#8779).
@@ -139,8 +187,8 @@
 	(bidi_fetch_char, bidi_fetch_char_advance): New functions.
 	(bidi_cache_search, bidi_cache_iterator_state)
 	(bidi_paragraph_init, bidi_resolve_explicit, bidi_resolve_weak)
-	(bidi_level_of_next_char, bidi_move_to_visually_next): Support
-	character positions inside a run of characters covered by a
+	(bidi_level_of_next_char, bidi_move_to_visually_next):
+	Support character positions inside a run of characters covered by a
 	display string.
 	(bidi_paragraph_init, bidi_resolve_explicit_1)
 	(bidi_level_of_next_char): Call bidi_fetch_char and
@@ -151,8 +199,8 @@
 	definitions.
 	(bidi_explicit_dir_char): Lookup character type in bidi_type_table,
 	instead of using explicit *_CHAR codes.
-	(bidi_resolve_explicit, bidi_resolve_weak): Use
-	FETCH_MULTIBYTE_CHAR instead of FETCH_CHAR, as reordering of
+	(bidi_resolve_explicit, bidi_resolve_weak):
+	Use FETCH_MULTIBYTE_CHAR instead of FETCH_CHAR, as reordering of
 	bidirectional text is supported only in multibyte buffers.
 	(bidi_init_it): Accept additional argument FRAME_WINDOW_P and use
 	it to initialize the frame_window_p member of struct bidi_it.
@@ -170,8 +218,8 @@
 	(single_display_spec_intangible_p): Function deleted.
 	(display_prop_intangible_p): Reimplement to call
 	handle_display_spec instead of single_display_spec_intangible_p.
-	Accept 3 additional arguments needed by handle_display_spec.  This
-	fixes incorrect cursor motion across display property with complex
+	Accept 3 additional arguments needed by handle_display_spec.
+	This fixes incorrect cursor motion across display property with complex
 	values: lists, `(when COND...)' forms, etc.
 	(single_display_spec_string_p): Support property values that are
 	lists with the argument STRING its top-level element.
@@ -188,8 +236,8 @@
 	the display property will replace the characters it covers.
 	(Fcurrent_bidi_paragraph_direction): Initialize the nchars and
 	frame_window_p members of struct bidi_it.
-	(compute_display_string_pos, compute_display_string_end): New
-	functions.
+	(compute_display_string_pos, compute_display_string_end):
+	New functions.
 	(push_it): Accept second argument POSITION, where pop_it should
 	jump to continue iteration.
 	(reseat_1): Initialize bidi_it.disp_pos.
@@ -200,8 +248,8 @@
 	* dispextern.h (struct bidi_it): New member frame_window_p.
 	(bidi_init_it): Update prototypes.
 	(display_prop_intangible_p): Update prototype.
-	(compute_display_string_pos, compute_display_string_end): Declare
-	prototypes.
+	(compute_display_string_pos, compute_display_string_end):
+	Declare prototypes.
 	(struct bidi_it): New members nchars and disp_pos.  ch_len is now
 	EMACS_INT.
 

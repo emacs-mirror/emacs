@@ -904,111 +904,6 @@ DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
   return selected_frame;
 }
 
-DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
-       doc: /* Return the frame object that window WINDOW is on.  */)
-  (Lisp_Object window)
-{
-  CHECK_LIVE_WINDOW (window);
-  return XWINDOW (window)->frame;
-}
-
-DEFUN ("frame-first-window", Fframe_first_window, Sframe_first_window, 0, 1, 0,
-       doc: /* Returns the topmost, leftmost window of FRAME.
-If omitted, FRAME defaults to the currently selected frame.  */)
-  (Lisp_Object frame)
-{
-  Lisp_Object w;
-
-  if (NILP (frame))
-    w = SELECTED_FRAME ()->root_window;
-  else
-    {
-      CHECK_LIVE_FRAME (frame);
-      w = XFRAME (frame)->root_window;
-    }
-  while (NILP (XWINDOW (w)->buffer))
-    {
-      if (! NILP (XWINDOW (w)->hchild))
-	w = XWINDOW (w)->hchild;
-      else if (! NILP (XWINDOW (w)->vchild))
-	w = XWINDOW (w)->vchild;
-      else
-	abort ();
-    }
-  return w;
-}
-
-DEFUN ("active-minibuffer-window", Factive_minibuffer_window,
-       Sactive_minibuffer_window, 0, 0, 0,
-       doc: /* Return the currently active minibuffer window, or nil if none.  */)
-  (void)
-{
-  return minibuf_level ? minibuf_window : Qnil;
-}
-
-DEFUN ("frame-root-window", Fframe_root_window, Sframe_root_window, 0, 1, 0,
-       doc: /* Returns the root-window of FRAME.
-If omitted, FRAME defaults to the currently selected frame.  */)
-  (Lisp_Object frame)
-{
-  Lisp_Object window;
-
-  if (NILP (frame))
-    window = SELECTED_FRAME ()->root_window;
-  else
-    {
-      CHECK_LIVE_FRAME (frame);
-      window = XFRAME (frame)->root_window;
-    }
-
-  return window;
-}
-
-DEFUN ("frame-selected-window", Fframe_selected_window,
-       Sframe_selected_window, 0, 1, 0,
-       doc: /* Return the selected window of FRAME.
-FRAME defaults to the currently selected frame.  */)
-  (Lisp_Object frame)
-{
-  Lisp_Object window;
-
-  if (NILP (frame))
-    window = SELECTED_FRAME ()->selected_window;
-  else
-    {
-      CHECK_LIVE_FRAME (frame);
-      window = XFRAME (frame)->selected_window;
-    }
-
-  return window;
-}
-
-DEFUN ("set-frame-selected-window", Fset_frame_selected_window,
-       Sset_frame_selected_window, 2, 3, 0,
-       doc: /* Set selected window of FRAME to WINDOW.
-If FRAME is nil, use the selected frame.  If FRAME is the
-selected frame, this makes WINDOW the selected window.
-Optional argument NORECORD non-nil means to neither change the
-order of recently selected windows nor the buffer list.
-Return WINDOW.  */)
-  (Lisp_Object frame, Lisp_Object window, Lisp_Object norecord)
-{
-  if (NILP (frame))
-    frame = selected_frame;
-
-  CHECK_LIVE_FRAME (frame);
-  CHECK_LIVE_WINDOW (window);
-
-  if (! EQ (frame, WINDOW_FRAME (XWINDOW (window))))
-    error ("In `set-frame-selected-window', WINDOW is not on FRAME");
-
-  if (EQ (frame, selected_frame))
-    return Fselect_window (window, norecord);
-
-  return XFRAME (frame)->selected_window = window;
-}
-
-
 DEFUN ("frame-list", Fframe_list, Sframe_list,
        0, 0, 0,
        doc: /* Return a list of all live frames.  */)
@@ -1263,6 +1158,17 @@ other_visible_frames (FRAME_PTR f)
       return count > 1;
     }
   return 1;
+}
+
+DEFUN ("other-visible-frames-p", Fother_visible_frames_p, Sother_visible_frames_p, 0, 1, 0,
+       doc: /* Return t if there are other visible frames beside FRAME.
+FRAME defaults to the selected frame.  */)
+  (Lisp_Object frame)
+{
+  if (NILP (frame))
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame);
+  return other_visible_frames (XFRAME (frame)) ? Qt : Qnil;
 }
 
 /* Delete FRAME.  When FORCE equals Qnoelisp, delete FRAME
@@ -4605,7 +4511,6 @@ automatically.  See also `mouse-autoselect-window'.  */);
 
   staticpro (&Vframe_list);
 
-  defsubr (&Sactive_minibuffer_window);
   defsubr (&Sframep);
   defsubr (&Sframe_live_p);
   defsubr (&Swindow_system);
@@ -4613,14 +4518,10 @@ automatically.  See also `mouse-autoselect-window'.  */);
   defsubr (&Shandle_switch_frame);
   defsubr (&Sselect_frame);
   defsubr (&Sselected_frame);
-  defsubr (&Swindow_frame);
-  defsubr (&Sframe_root_window);
-  defsubr (&Sframe_first_window);
-  defsubr (&Sframe_selected_window);
-  defsubr (&Sset_frame_selected_window);
   defsubr (&Sframe_list);
   defsubr (&Snext_frame);
   defsubr (&Sprevious_frame);
+  defsubr (&Sother_visible_frames_p);
   defsubr (&Sdelete_frame);
   defsubr (&Smouse_position);
   defsubr (&Smouse_pixel_position);

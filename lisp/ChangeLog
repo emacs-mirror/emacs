@@ -1,3 +1,20 @@
+2011-06-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-right, window-left, window-child)
+	(window-child-count, window-last-child, window-any-p)
+	(normalize-live-buffer, normalize-live-frame)
+	(normalize-any-window, normalize-live-window)
+	(window-iso-combination-p, window-iso-combined-p)
+	(window-iso-combinations)
+	(walk-window-tree-1, walk-window-tree, walk-window-subtree)
+	(windows-with-parameter, window-with-parameter)
+	(window-atom-root, make-window-atom, window-atom-check-1)
+	(window-atom-check, window-side-check, window-check): New
+	functions.
+	(ignore-window-parameters, window-sides, window-sides-vertical)
+	(window-sides-slots): New variables.
+	(window-size-fixed): Move down in code.  Minor doc-string fix.
+
 2011-06-05  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* comint.el (comint-dynamic-complete-as-filename)
