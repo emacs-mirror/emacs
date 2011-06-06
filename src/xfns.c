@@ -1699,10 +1699,14 @@ void
 x_set_scroll_bar_default_width (struct frame *f)
 {
   int wid = FRAME_COLUMN_WIDTH (f);
-
+  int minw = 16;
+  int width;
 #ifdef USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_GTK
+  minw = xg_get_default_scrollbar_width (f);
+#endif
   /* A minimum width of 14 doesn't look good for toolkit scroll bars.  */
-  int width = 16 + 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM;
+  width = minw + 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM;
   FRAME_CONFIG_SCROLL_BAR_COLS (f) = (width + wid - 1) / wid;
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = width;
 #else

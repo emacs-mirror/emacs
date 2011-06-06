@@ -1,3 +1,30 @@
+2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (memory_full) [SYSTEM_MALLOC]: Port to MacOS (Bug#8800).
+	Do not assume that spare memory exists; that assumption is valid
+	only if SYSTEM_MALLOC.
+	(LARGE_REQUEST): New macro, so that the issue of large requests
+	is separated from the issue of spare memory.
+
+2011-06-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* editfns.c (Fformat): Correctly handle zero flag with hexadecimal
+	format.  (Bug#8806)
+
+	* gtkutil.c (xg_get_default_scrollbar_width): Avoid warning.
+
+	* xfns.c (x_set_scroll_bar_default_width): Move declarations
+	before statements.
+
+2011-06-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_default_scrollbar_width): New function.
+
+	* gtkutil.h: Declare xg_get_default_scrollbar_width.
+
+	* xfns.c (x_set_scroll_bar_default_width): If USE_GTK, get
+	min width by calling x_set_scroll_bar_default_width (Bug#8505).
+
 2011-06-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xdisp.c (single_display_spec_intangible_p): Remove declaration.

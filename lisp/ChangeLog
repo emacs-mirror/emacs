@@ -21,6 +21,22 @@
 	customization groups.  Initialize value to 'unset.
 	(display-buffer-reuse-window): Quote lambda with #'.
 
+2011-06-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* comint.el (comint-dynamic-complete-as-filename)
+	(comint-dynamic-complete-filename): Correctly call
+	completion-in-region.
+
+2011-06-05  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-prompt-for-encryption): Fix bug introduced
+	in last change.
+
+2011-06-05  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-prompt-for-encryption): New function.
+	(rcirc): Use it to prompt for encryption.
+
 2011-06-05  Roland Winkler  <winkler@gnu.org>
 
 	* textmodes/bibtex.el (bibtex-search-buffer): New variable.

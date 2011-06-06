@@ -455,15 +455,7 @@ If ARG is non-nil, instead prompt for connection parameters."
 							   :channels)
 						" "))
 			"[, ]+" t))
-             (encryption
-              (intern (completing-read "Encryption (default plain): "
-                                       '("plain" "tls")
-                                       nil t
-                                       (let ((choice (plist-get server-plist
-                                                                :encryption)))
-                                         (when choice
-                                           (symbol-name choice)))
-                                       nil "plain"))))
+             (encryption (rcirc-prompt-for-encryption server-plist)))
 	(rcirc-connect server port nick user-name
 		       rcirc-default-full-name
 		       channels password encryption))
@@ -595,6 +587,17 @@ If ARG is non-nil, instead prompt for connection parameters."
   (if (featurep 'xemacs)
       (time-to-seconds (current-time))
     (float-time)))
+
+(defun rcirc-prompt-for-encryption (server-plist)
+  "Prompt the user for the encryption method to use.
+SERVER-PLIST is the property list for the server."
+  (let ((msg "Encryption (default %s): ")
+        (choices '("plain" "tls"))
+        (default (or (plist-get server-plist :encryption)
+                     'plain)))
+    (intern
+     (completing-read (format msg default)
+                      choices nil t nil nil (symbol-name default)))))
 
 (defun rcirc-keepalive ()
   "Send keep alive pings to active rcirc processes.

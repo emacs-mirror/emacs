@@ -3035,7 +3035,8 @@ Returns t if successful."
   (when (comint--match-partial-filename)
     (unless (window-minibuffer-p (selected-window))
       (message "Completing file name..."))
-    (apply #'completion-in-region (comint--complete-file-name-data))))
+    (let ((data (comint--complete-file-name-data)))
+      (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)))))
 
 (defun comint-filename-completion ()
   "Return completion data for filename at point, if any."
@@ -3152,7 +3153,8 @@ in the same way as TABLE completes strings of the form (concat S2 S)."
 (defun comint-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
 See `comint-dynamic-complete-filename'.  Returns t if successful."
-  (apply #'completion-in-region (comint--complete-file-name-data)))
+  (let ((data (comint--complete-file-name-data)))
+    (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data))))
 (make-obsolete 'comint-dynamic-complete-as-filename
                'comint-filename-completion "24.1")
 
