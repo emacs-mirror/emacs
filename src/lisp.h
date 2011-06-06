@@ -763,6 +763,12 @@ extern EMACS_INT string_bytes (struct Lisp_String *);
 
 #endif /* not GC_CHECK_STRING_BYTES */
 
+/* A string cannot contain more bytes than a fixnum can represent,
+   nor can it be so long that C pointer arithmetic stops working on
+   the string plus a terminating null.  */
+#define STRING_BYTES_MAX  \
+  min (MOST_POSITIVE_FIXNUM, min (SIZE_MAX, PTRDIFF_MAX) - 1)
+
 /* Mark STR as a unibyte string.  */
 #define STRING_SET_UNIBYTE(STR)  \
   do { if (EQ (STR, empty_multibyte_string))  \

@@ -306,6 +306,11 @@ do								\
   }								\
 while (0)
 
+/* Maximum number of bytes in a buffer.
+   A buffer cannot contain more bytes than a 1-origin fixnum can represent,
+   nor can it be so large that C pointer arithmetic stops working.  */
+#define BUF_BYTES_MAX min (MOST_POSITIVE_FIXNUM - 1, min (SIZE_MAX, PTRDIFF_MAX))
+
 /* Return the address of byte position N in current buffer.  */
 
 #define BYTE_POS_ADDR(n) \
