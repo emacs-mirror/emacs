@@ -3248,7 +3248,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   /* Check whether the size is too large or negative, which can happen on a
      platform that allows file sizes greater than the maximum off_t value.  */
   if (! not_regular
-      && ! (0 <= st.st_size && st.st_size <= MOST_POSITIVE_FIXNUM))
+      && ! (0 <= st.st_size && st.st_size <= BUF_BYTES_MAX))
     error ("Maximum buffer size exceeded");
 
   /* Prevent redisplay optimizations.  */
@@ -4960,7 +4960,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
   if ((st.st_mtime == b->modtime
        /* If both are positive, accept them if they are off by one second.  */
        || (st.st_mtime > 0 && b->modtime > 0
-	   && (st.st_mtime == b->modtime + 1
+	   && (st.st_mtime - 1 == b->modtime
 	       || st.st_mtime == b->modtime - 1)))
       && (st.st_size == b->modtime_size
           || b->modtime_size < 0))
@@ -4990,7 +4990,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
 {
   if (! current_buffer->modtime)
     return make_number (0);
-  return make_time ((time_t) current_buffer->modtime);
+  return make_time (current_buffer->modtime);
 }
 
 DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,
@@ -5005,7 +5005,7 @@ An argument specifies the modification time value to use
 {
   if (!NILP (time_list))
     {
-      current_buffer->modtime = cons_to_long (time_list);
+      CONS_TO_INTEGER (time_list, time_t, current_buffer->modtime);
       current_buffer->modtime_size = -1;
     }
   else

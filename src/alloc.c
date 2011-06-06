@@ -2204,7 +2204,7 @@ INIT must be an integer that represents a character.  */)
       int len = CHAR_STRING (c, str);
       EMACS_INT string_len = XINT (length);
 
-      if (string_len > MOST_POSITIVE_FIXNUM / len)
+      if (string_len > STRING_BYTES_MAX / len)
 	string_overflow ();
       nbytes = len * string_len;
       val = make_uninit_multibyte_string (string_len, nbytes);

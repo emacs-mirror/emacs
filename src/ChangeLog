@@ -1,3 +1,82 @@
+2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Cons<->int and similar integer overflow fixes.
+
+	Check for overflow when converting integer to cons and back.
+	* charset.c (Fdefine_charset_internal, Fdecode_char):
+	Use cons_to_unsigned to catch overflow.
+	(Fencode_char): Use INTEGER_TO_CONS.
+	* composite.h (LGLYPH_CODE): Use cons_to_unsigned.
+	(LGLYPH_SET_CODE): Use INTEGER_TO_CONS.
+	* data.c (long_to_cons, cons_to_long): Remove.
+	(cons_to_unsigned, cons_to_signed): New functions.
+	These signal an error for invalid or out-of-range values.
+	* dired.c (Ffile_attributes): Use INTEGER_TO_CONS.
+	* fileio.c (Fset_visited_file_modtime): Use CONS_TO_INTEGER.
+	* font.c (Ffont_variation_glyphs):
+	* fontset.c (Finternal_char_font): Use INTEGER_TO_CONS.
+	* lisp.h: Include <intprops.h>.
+	(INTEGER_TO_CONS, CONS_TO_INTEGER): New macros.
+	(cons_to_signed, cons_to_unsigned): New decls.
+	(long_to_cons, cons_to_long): Remove decls.
+	* undo.c (record_first_change): Use INTEGER_TO_CONS.
+	(Fprimitive_undo): Use CONS_TO_INTEGER.
+	* xfns.c (Fx_window_property): Likewise.
+	* xselect.c: Include <limits.h>.
+	(x_own_selection, selection_data_to_lisp_data):
+	Use INTEGER_TO_CONS.
+	(x_handle_selection_request, x_handle_selection_clear)
+	(x_get_foreign_selection, Fx_disown_selection_internal)
+	(Fx_get_atom_name, x_send_client_event): Use CONS_TO_INTEGER.
+	(lisp_data_to_selection_data): Use cons_to_unsigned.
+	(x_fill_property_data): Use cons_to_signed.
+	Report values out of range.
+
+	Check for buffer and string overflow more precisely.
+	* buffer.h (BUF_BYTES_MAX): New macro.
+	* lisp.h (STRING_BYTES_MAX): New macro.
+	* alloc.c (Fmake_string):
+	* character.c (string_escape_byte8):
+	* coding.c (coding_alloc_by_realloc):
+	* doprnt.c (doprnt):
+	* editfns.c (Fformat):
+	* eval.c (verror):
+	Use STRING_BYTES_MAX, not MOST_POSITIVE_FIXNUM,
+	since they may not be the same number.
+	* editfns.c (Finsert_char):
+	* fileio.c (Finsert_file_contents):
+	Likewise for BUF_BYTES_MAX.
+
+	* image.c: Use ptrdiff_t, not int, for sizes.
+	(slurp_file): Switch from int to ptrdiff_t.
+	All uses changed.
+	(slurp_file): Check that file size fits in both size_t (for
+	malloc) and ptrdiff_t (for sanity and safety).
+
+	* fileio.c (Fverify_visited_file_modtime): Avoid time overflow
+	if b->modtime has its maximal value.
+
+	* dired.c (Ffile_attributes): Don't assume EMACS_INT has >32 bits.
+
+	Don't assume time_t can fit into int.
+	* buffer.h (struct buffer.modtime): Now time_t, not int.
+	* fileio.c (Fvisited_file_modtime): No need for time_t cast now.
+	* undo.c (Fprimitive_undo): Use time_t, not int, for time_t value.
+
+	Minor fixes for signed vs unsigned integers.
+	* character.h (MAYBE_UNIFY_CHAR):
+	* charset.c (maybe_unify_char):
+	* keyboard.c (read_char, reorder_modifiers):
+	XINT -> XFASTINT, since the integer must be nonnegative.
+	* ftfont.c (ftfont_spec_pattern):
+	* keymap.c (access_keymap, silly_event_symbol_error):
+	XUINT -> XFASTINT, since the integer must be nonnegative.
+	(Fsingle_key_description, preferred_sequence_p): XUINT -> XINT,
+	since it makes no difference and we prefer signed.
+	* keyboard.c (record_char): Use XUINT when all the neighbors do.
+	(access_keymap): NATNUMP -> INTEGERP, since the integer must be
+	nonnegative.
+
 2011-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.h (Fwindow_frame): Declare.

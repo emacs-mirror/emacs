@@ -306,6 +306,11 @@ do								\
   }								\
 while (0)
 
+/* Maximum number of bytes in a buffer.
+   A buffer cannot contain more bytes than a 1-origin fixnum can represent,
+   nor can it be so large that C pointer arithmetic stops working.  */
+#define BUF_BYTES_MAX min (MOST_POSITIVE_FIXNUM - 1, min (SIZE_MAX, PTRDIFF_MAX))
+
 /* Return the address of byte position N in current buffer.  */
 
 #define BYTE_POS_ADDR(n) \
@@ -545,7 +550,7 @@ struct buffer
      -1 means visited file was nonexistent.
      0 means visited file modtime unknown; in no case complain
      about any mismatch on next save attempt.  */
-  int modtime;
+  time_t modtime;
   /* Size of the file when modtime was set.  This is used to detect the
      case where the file grew while we were reading it, so the modtime
      is still the same (since it's rounded up to seconds) but we're actually

@@ -900,11 +900,10 @@ Elements of the attribute list are:
   This is a floating point number if the size is too large for an integer.
  8. File modes, as a string of ten letters or dashes as in ls -l.
  9. t if file's gid would change if file were deleted and recreated.
-10. inode number.  If inode number is larger than what Emacs integer
-  can hold, but still fits into a 32-bit number, this is a cons cell
-  containing two integers: first the high part, then the low 16 bits.
-  If the inode number is wider than 32 bits, this is of the form
-  (HIGH MIDDLE . LOW): first the high 24 bits, then middle 24 bits,
+10. inode number.  If it is larger than what an Emacs integer can hold,
+  this is of the form (HIGH . LOW): first the high bits, then the low 16 bits.
+  If even HIGH is too large for an Emacs integer, this is instead of the form
+  (HIGH MIDDLE . LOW): first the high bits, then the middle 24 bits,
   and finally the low 16 bits.
 11. Filesystem device number.  If it is larger than what the Emacs
   integer can hold, this is a cons cell, similar to the inode number.
@@ -998,35 +997,8 @@ so last access time will always be midnight of that day.  */)
 #else					/* file gid will be egid */
   values[9] = (s.st_gid != getegid ()) ? Qt : Qnil;
 #endif	/* not BSD4_2 */
-  if (!FIXNUM_OVERFLOW_P (s.st_ino))
-    /* Keep the most common cases as integers.  */
-    values[10] = make_number (s.st_ino);
-  else if (!FIXNUM_OVERFLOW_P (s.st_ino >> 16))
-    /* To allow inode numbers larger than VALBITS, separate the bottom
-       16 bits.  */
-    values[10] = Fcons (make_number ((EMACS_INT)(s.st_ino >> 16)),
-			make_number ((EMACS_INT)(s.st_ino & 0xffff)));
-  else
-    {
-      /* To allow inode numbers beyond 32 bits, separate into 2 24-bit
-	 high parts and a 16-bit bottom part.
-	 The code on the next line avoids a compiler warning on
-	 systems where st_ino is 32 bit wide. (bug#766).  */
-      EMACS_INT high_ino = s.st_ino >> 31 >> 1;
-      EMACS_INT low_ino  = s.st_ino & 0xffffffff;
-
-      values[10] = Fcons (make_number (high_ino >> 8),
-			  Fcons (make_number (((high_ino & 0xff) << 16)
-					      + (low_ino >> 16)),
-				 make_number (low_ino & 0xffff)));
-    }
-
-  /* Likewise for device.  */
-  if (FIXNUM_OVERFLOW_P (s.st_dev))
-    values[11] = Fcons (make_number (s.st_dev >> 16),
-			make_number (s.st_dev & 0xffff));
-  else
-    values[11] = make_number (s.st_dev);
+  values[10] = INTEGER_TO_CONS (s.st_ino);
+  values[11] = INTEGER_TO_CONS (s.st_dev);
 
   return Flist (sizeof(values) / sizeof(values[0]), values);
 }

@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Rewritten by jwz */
 
 #include <config.h>
+#include <limits.h>
 #include <stdio.h>      /* termhooks.h needs this */
 #include <setjmp.h>
 
@@ -335,7 +336,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value,
     Lisp_Object prev_value;
 
     selection_data = list4 (selection_name, selection_value,
-			    long_to_cons (timestamp), frame);
+			    INTEGER_TO_CONS (timestamp), frame);
     prev_value = LOCAL_SELECTION (selection_name, dpyinfo);
 
     dpyinfo->terminal->Vselection_alist
@@ -419,7 +420,7 @@ x_get_local_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
       || INTEGERP (check)
       || NILP (value))
     return value;
-  /* Check for a value that cons_to_long could handle.  */
+  /* Check for a value that CONS_TO_INTEGER could handle.  */
   else if (CONSP (check)
 	   && INTEGERP (XCAR (check))
 	   && (INTEGERP (XCDR (check))
@@ -782,8 +783,8 @@ x_handle_selection_request (struct input_event *event)
   if (NILP (local_selection_data)) goto DONE;
 
   /* Decline requests issued prior to our acquiring the selection.  */
-  local_selection_time
-    = (Time) cons_to_long (XCAR (XCDR (XCDR (local_selection_data))));
+  CONS_TO_INTEGER (XCAR (XCDR (XCDR (local_selection_data))),
+		   Time, local_selection_time);
   if (SELECTION_EVENT_TIME (event) != CurrentTime
       && local_selection_time > SELECTION_EVENT_TIME (event))
     goto DONE;
@@ -950,8 +951,8 @@ x_handle_selection_clear (struct input_event *event)
   /* Well, we already believe that we don't own it, so that's just fine.  */
   if (NILP (local_selection_data)) return;
 
-  local_selection_time = (Time)
-    cons_to_long (XCAR (XCDR (XCDR (local_selection_data))));
+  CONS_TO_INTEGER (XCAR (XCDR (XCDR (local_selection_data))),
+		   Time, local_selection_time);
 
   /* We have reasserted the selection since this SelectionClear was
      generated, so we can disregard it.  */
@@ -1212,16 +1213,7 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type,
     return Qnil;
 
   if (! NILP (time_stamp))
-    {
-      if (CONSP (time_stamp))
-        requestor_time = (Time) cons_to_long (time_stamp);
-      else if (INTEGERP (time_stamp))
-        requestor_time = (Time) XUINT (time_stamp);
-      else if (FLOATP (time_stamp))
-        requestor_time = (Time) XFLOAT_DATA (time_stamp);
-      else
-        error ("TIME_STAMP must be cons or number");
-    }
+    CONS_TO_INTEGER (time_stamp, Time, requestor_time);
 
   BLOCK_INPUT;
   TRACE2 ("Get selection %s, type %s",
@@ -1639,7 +1631,7 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
      convert it to a cons of integers, 16 bits in each half.
    */
   else if (format == 32 && size == sizeof (int))
-    return long_to_cons (((unsigned int *) data) [0]);
+    return INTEGER_TO_CONS (((unsigned int *) data) [0]);
   else if (format == 16 && size == sizeof (short))
     return make_number ((int) (((unsigned short *) data) [0]));
 
@@ -1665,7 +1657,7 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
       for (i = 0; i < size / 4; i++)
 	{
 	  unsigned int j = ((unsigned int *) data) [i];
-	  Faset (v, make_number (i), long_to_cons (j));
+	  Faset (v, make_number (i), INTEGER_TO_CONS (j));
 	}
       return v;
     }
@@ -1742,7 +1734,7 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
       *size_ret = 1;
       *data_ret = (unsigned char *) xmalloc (sizeof (long) + 1);
       (*data_ret) [sizeof (long)] = 0;
-      (*(unsigned long **) data_ret) [0] = cons_to_long (obj);
+      (*(unsigned long **) data_ret) [0] = cons_to_unsigned (obj, ULONG_MAX);
       if (NILP (type)) type = QINTEGER;
     }
   else if (VECTORP (obj))
@@ -1790,11 +1782,11 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 	  *data_ret = (unsigned char *) xmalloc (*size_ret * data_size);
 	  for (i = 0; i < *size_ret; i++)
 	    if (*format_ret == 32)
-	      (*((unsigned long **) data_ret)) [i]
-		= cons_to_long (XVECTOR (obj)->contents [i]);
+	      (*((unsigned long **) data_ret)) [i] =
+		cons_to_unsigned (XVECTOR (obj)->contents [i], ULONG_MAX);
 	    else
-	      (*((unsigned short **) data_ret)) [i]
-		= (unsigned short) cons_to_long (XVECTOR (obj)->contents [i]);
+	      (*((unsigned short **) data_ret)) [i] =
+		cons_to_unsigned (XVECTOR (obj)->contents [i], USHRT_MAX);
 	}
     }
   else
@@ -2012,8 +2004,10 @@ frame's display, or the first available X display.  */)
   selection_atom = symbol_to_x_atom (dpyinfo, selection);
 
   BLOCK_INPUT;
-  timestamp = (NILP (time_object) ? last_event_timestamp
-	       : cons_to_long (time_object));
+  if (NILP (time_object))
+    timestamp = last_event_timestamp;
+  else
+    CONS_TO_INTEGER (time_object, Time, timestamp);
   XSetSelectionOwner (dpyinfo->display, selection_atom, None, timestamp);
   UNBLOCK_INPUT;
 
@@ -2250,12 +2244,8 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
     {
       Lisp_Object o = XCAR (iter);
 
-      if (INTEGERP (o))
-        val = (long) XFASTINT (o);
-      else if (FLOATP (o))
-        val = (long) XFLOAT_DATA (o);
-      else if (CONSP (o))
-        val = (long) cons_to_long (o);
+      if (INTEGERP (o) || FLOATP (o) || CONSP (o))
+	val = cons_to_signed (o, LONG_MIN, LONG_MAX);
       else if (STRINGP (o))
         {
           BLOCK_INPUT;
@@ -2266,9 +2256,19 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
         error ("Wrong type, must be string, number or cons");
 
       if (format == 8)
-        *d08++ = (char) val;
+	{
+	  if (CHAR_MIN <= val && val <= CHAR_MAX)
+	    *d08++ = val;
+	  else
+	    error ("Out of 'char' range");
+	}
       else if (format == 16)
-        *d16++ = (short) val;
+	{
+	  if (SHRT_MIN <= val && val <= SHRT_MAX)
+	    *d16++ = val;
+	  else
+	    error ("Out of 'short' range");
+	}
       else
         *d32++ = val;
     }
@@ -2352,14 +2352,7 @@ If the value is 0 or the atom is not known, return the empty string.  */)
   Atom atom;
   int had_errors;
 
-  if (INTEGERP (value))
-    atom = (Atom) XUINT (value);
-  else if (FLOATP (value))
-    atom = (Atom) XFLOAT_DATA (value);
-  else if (CONSP (value))
-    atom = (Atom) cons_to_long (value);
-  else
-    error ("Wrong type, value must be number or cons");
+  CONS_TO_INTEGER (value, Atom, atom);
 
   BLOCK_INPUT;
   x_catch_errors (dpy);
@@ -2549,17 +2542,8 @@ x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from, At
       else
         error ("DEST as a string must be one of PointerWindow or InputFocus");
     }
-  else if (INTEGERP (dest))
-    wdest = (Window) XFASTINT (dest);
-  else if (FLOATP (dest))
-    wdest =  (Window) XFLOAT_DATA (dest);
-  else if (CONSP (dest))
-    {
-      if (! NUMBERP (XCAR (dest)) || ! NUMBERP (XCDR (dest)))
-        error ("Both car and cdr for DEST must be numbers");
-      else
-        wdest = (Window) cons_to_long (dest);
-    }
+  else if (INTEGERP (dest) || FLOATP (dest) || CONSP (dest))
+    CONS_TO_INTEGER (dest, Window, wdest);
   else
     error ("DEST must be a frame, nil, string, number or cons");
 

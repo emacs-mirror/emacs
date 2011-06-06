@@ -265,10 +265,7 @@ enum lglyph_indices
 #define LGLYPH_CODE(g)						\
   (NILP (AREF ((g), LGLYPH_IX_CODE))				\
    ? FONT_INVALID_CODE						\
-   : CONSP (AREF ((g), LGLYPH_IX_CODE))				\
-   ? ((XFASTINT (XCAR (AREF ((g), LGLYPH_IX_CODE))) << 16)	\
-      | (XFASTINT (XCDR (AREF ((g), LGLYPH_IX_CODE)))))		\
-   : XFASTINT (AREF ((g), LGLYPH_IX_CODE)))
+   : cons_to_unsigned (AREF (g, LGLYPH_IX_CODE), TYPE_MAXIMUM (unsigned)))
 #define LGLYPH_WIDTH(g) XINT (AREF ((g), LGLYPH_IX_WIDTH))
 #define LGLYPH_LBEARING(g) XINT (AREF ((g), LGLYPH_IX_LBEARING))
 #define LGLYPH_RBEARING(g) XINT (AREF ((g), LGLYPH_IX_RBEARING))
@@ -280,15 +277,8 @@ enum lglyph_indices
 #define LGLYPH_SET_CHAR(g, val) ASET ((g), LGLYPH_IX_CHAR, make_number (val))
 /* Callers must assure that VAL is not negative!  */
 #define LGLYPH_SET_CODE(g, val)						\
-  do {									\
-    if (val == FONT_INVALID_CODE)					\
-      ASET ((g), LGLYPH_IX_CODE, Qnil);					\
-    else if ((EMACS_INT)val > MOST_POSITIVE_FIXNUM)			\
-      ASET ((g), LGLYPH_IX_CODE, Fcons (make_number ((val) >> 16),	\
-					make_number ((val) & 0xFFFF)));	\
-    else								\
-      ASET ((g), LGLYPH_IX_CODE, make_number (val));			\
-  } while (0)
+  ASET (g, LGLYPH_IX_CODE,						\
+	val == FONT_INVALID_CODE ? Qnil : INTEGER_TO_CONS (val))
 
 #define LGLYPH_SET_WIDTH(g, val) ASET ((g), LGLYPH_IX_WIDTH, make_number (val))
 #define LGLYPH_SET_LBEARING(g, val) ASET ((g), LGLYPH_IX_LBEARING, make_number (val))

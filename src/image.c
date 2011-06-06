@@ -2112,9 +2112,6 @@ x_put_x_image (struct frame *f, XImagePtr ximg, Pixmap pixmap, int width, int he
 			      File Handling
  ***********************************************************************/
 
-static unsigned char *slurp_file (char *, int *);
-
-
 /* Find image file FILE.  Look in data-directory/images, then
    x-bitmap-file-path.  Value is the encoded full name of the file
    found, or nil if not found.  */
@@ -2151,7 +2148,7 @@ x_find_image_file (Lisp_Object file)
    occurred.  *SIZE is set to the size of the file.  */
 
 static unsigned char *
-slurp_file (char *file, int *size)
+slurp_file (char *file, ptrdiff_t *size)
 {
   FILE *fp = NULL;
   unsigned char *buf = NULL;
@@ -2159,6 +2156,7 @@ slurp_file (char *file, int *size)
 
   if (stat (file, &st) == 0
       && (fp = fopen (file, "rb")) != NULL
+      && 0 <= st.st_size && st.st_size <= min (PTRDIFF_MAX, SIZE_MAX)
       && (buf = (unsigned char *) xmalloc (st.st_size),
 	  fread (buf, 1, st.st_size, fp) == st.st_size))
     {
@@ -2814,7 +2812,7 @@ xbm_load (struct frame *f, struct image *img)
     {
       Lisp_Object file;
       unsigned char *contents;
-      int size;
+      ptrdiff_t size;
 
       file = x_find_image_file (file_name);
       if (!STRINGP (file))
@@ -4039,7 +4037,7 @@ xpm_load (struct frame *f,
     {
       Lisp_Object file;
       unsigned char *contents;
-      int size;
+      ptrdiff_t size;
 
       file = x_find_image_file (file_name);
       if (!STRINGP (file))
@@ -5021,6 +5019,7 @@ pbm_read_file (file, size)
 
   if (stat (SDATA (file), &st) == 0
       && (fp = fopen (SDATA (file), "rb")) != NULL
+      && 0 <= st.st_size && st.st_size <= min (PTRDIFF_MAX, SIZE_MAX)
       && (buf = (char *) xmalloc (st.st_size),
 	  fread (buf, 1, st.st_size, fp) == st.st_size))
     {
@@ -5055,7 +5054,7 @@ pbm_load (struct frame *f, struct image *img)
   enum {PBM_MONO, PBM_GRAY, PBM_COLOR} type;
   unsigned char *contents = NULL;
   unsigned char *end, *p;
-  int size;
+  ptrdiff_t size;
 
   specified_file = image_spec_value (img->spec, QCfile, NULL);
 
@@ -7869,7 +7868,7 @@ static int svg_image_p (Lisp_Object object);
 static int svg_load (struct frame *f, struct image *img);
 
 static int svg_load_image (struct frame *, struct image *,
-                           unsigned char *, unsigned int);
+                           unsigned char *, ptrdiff_t);
 
 /* The symbol `svg' identifying images of this type. */
 
@@ -8047,7 +8046,7 @@ svg_load (struct frame *f, struct image *img)
     {
       Lisp_Object file;
       unsigned char *contents;
-      int size;
+      ptrdiff_t size;
 
       file = x_find_image_file (file_name);
       if (!STRINGP (file))
@@ -8096,7 +8095,7 @@ static int
 svg_load_image (struct frame *f,         /* Pointer to emacs frame structure.  */
 		struct image *img,       /* Pointer to emacs image structure.  */
 		unsigned char *contents, /* String containing the SVG XML data to be parsed.  */
-		unsigned int size)       /* Size of data in bytes.  */
+		ptrdiff_t size)          /* Size of data in bytes.  */
 {
   RsvgHandle *rsvg_handle;
   RsvgDimensionData dimension_data;

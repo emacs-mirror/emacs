@@ -212,7 +212,6 @@ record_change (EMACS_INT beg, EMACS_INT length)
 void
 record_first_change (void)
 {
-  Lisp_Object high, low;
   struct buffer *base_buffer = current_buffer;
 
   if (EQ (BVAR (current_buffer, undo_list), Qt))
@@ -225,9 +224,9 @@ record_first_change (void)
   if (base_buffer->base_buffer)
     base_buffer = base_buffer->base_buffer;
 
-  XSETFASTINT (high, (base_buffer->modtime >> 16) & 0xffff);
-  XSETFASTINT (low, base_buffer->modtime & 0xffff);
-  BVAR (current_buffer, undo_list) = Fcons (Fcons (Qt, Fcons (high, low)), BVAR (current_buffer, undo_list));
+  BVAR (current_buffer, undo_list) =
+    Fcons (Fcons (Qt, INTEGER_TO_CONS (base_buffer->modtime)),
+	   BVAR (current_buffer, undo_list));
 }
 
 /* Record a change in property PROP (whose old value was VAL)
@@ -499,13 +498,9 @@ Return what remains of the list.  */)
 	      if (EQ (car, Qt))
 		{
 		  /* Element (t high . low) records previous modtime.  */
-		  Lisp_Object high, low;
-		  int mod_time;
 		  struct buffer *base_buffer = current_buffer;
-
-		  high = Fcar (cdr);
-		  low = Fcdr (cdr);
-		  mod_time = (XFASTINT (high) << 16) + XFASTINT (low);
+		  time_t mod_time;
+		  CONS_TO_INTEGER (cdr, time_t, mod_time);
 
 		  if (current_buffer->base_buffer)
 		    base_buffer = current_buffer->base_buffer;

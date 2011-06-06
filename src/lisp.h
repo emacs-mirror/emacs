@@ -24,6 +24,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stddef.h>
 #include <inttypes.h>
 
+#include <intprops.h>
+
 /* Use the configure flag --enable-checking[=LIST] to enable various
    types of run time checks for Lisp objects.  */
 
@@ -762,6 +764,12 @@ extern EMACS_INT string_bytes (struct Lisp_String *);
   ((STR)->size_byte < 0 ? (STR)->size : (STR)->size_byte)
 
 #endif /* not GC_CHECK_STRING_BYTES */
+
+/* A string cannot contain more bytes than a fixnum can represent,
+   nor can it be so long that C pointer arithmetic stops working on
+   the string plus a terminating null.  */
+#define STRING_BYTES_MAX  \
+  min (MOST_POSITIVE_FIXNUM, min (SIZE_MAX, PTRDIFF_MAX) - 1)
 
 /* Mark STR as a unibyte string.  */
 #define STRING_SET_UNIBYTE(STR)  \
@@ -2402,9 +2410,35 @@ EXFUN (Fadd1, 1);
 EXFUN (Fsub1, 1);
 EXFUN (Fmake_variable_buffer_local, 1);
 
+/* Convert the integer I to an Emacs representation, either the integer
+   itself, or a cons of two or three integers, or if all else fails a float.
+   I should not have side effects.  */
+#define INTEGER_TO_CONS(i)					    \
+  (! FIXNUM_OVERFLOW_P (i)					    \
+   ? make_number (i)						    \
+   : ! ((FIXNUM_OVERFLOW_P (INTMAX_MIN >> 16)			    \
+	 || FIXNUM_OVERFLOW_P (UINTMAX_MAX >> 16))		    \
+	&& FIXNUM_OVERFLOW_P ((i) >> 16))			    \
+   ? Fcons (make_number ((i) >> 16), make_number ((i) & 0xffff))    \
+   : ! ((FIXNUM_OVERFLOW_P (INTMAX_MIN >> 16 >> 24)		    \
+	 || FIXNUM_OVERFLOW_P (UINTMAX_MAX >> 16 >> 24))	    \
+	&& FIXNUM_OVERFLOW_P ((i) >> 16 >> 24))			    \
+   ? Fcons (make_number ((i) >> 16 >> 24),			    \
+	    Fcons (make_number ((i) >> 16 & 0xffffff),		    \
+		   make_number ((i) & 0xffff)))			    \
+   : make_float (i))
+
+/* Convert the Emacs representation CONS back to an integer of type
+   TYPE, storing the result the variable VAR.  Signal an error if CONS
+   is not a valid representation or is out of range for TYPE.  */
+#define CONS_TO_INTEGER(cons, type, var)				\
+ (TYPE_SIGNED (type)							\
+  ? ((var) = cons_to_signed (cons, TYPE_MINIMUM (type), TYPE_MAXIMUM (type))) \
+  : ((var) = cons_to_unsigned (cons, TYPE_MAXIMUM (type))))
+extern intmax_t cons_to_signed (Lisp_Object, intmax_t, intmax_t);
+extern uintmax_t cons_to_unsigned (Lisp_Object, uintmax_t);
+
 extern struct Lisp_Symbol *indirect_variable (struct Lisp_Symbol *);
-extern Lisp_Object long_to_cons (unsigned long);
-extern unsigned long cons_to_long (Lisp_Object);
 extern void args_out_of_range (Lisp_Object, Lisp_Object) NO_RETURN;
 extern void args_out_of_range_3 (Lisp_Object, Lisp_Object,
                                  Lisp_Object) NO_RETURN;
