@@ -1,3 +1,7 @@
+2011-06-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (gif_load): Implement gif89a spec "no disposal" method.
+
 2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Cons<->int and similar integer overflow fixes (Bug#8794).

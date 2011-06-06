@@ -7074,22 +7074,19 @@ static const int interlace_increment[] = {8, 8, 4, 2};
 static int
 gif_load (struct frame *f, struct image *img)
 {
-  Lisp_Object file, specified_file;
-  Lisp_Object specified_data;
-  int rc, width, height, x, y, i;
-  boolean transparent_p = 0;
+  Lisp_Object file;
+  int rc, width, height, x, y, i, j;
   XImagePtr ximg;
   ColorMapObject *gif_color_map;
   unsigned long pixel_colors[256];
   GifFileType *gif;
-  Lisp_Object image;
-  int ino, image_height, image_width;
+  int image_height, image_width;
   gif_memory_source memsrc;
-  unsigned char *raster;
-  unsigned int transparency_color_index IF_LINT (= 0);
-
-  specified_file = image_spec_value (img->spec, QCfile, NULL);
-  specified_data = image_spec_value (img->spec, QCdata, NULL);
+  Lisp_Object specified_bg = image_spec_value (img->spec, QCbackground, NULL);
+  Lisp_Object specified_file = image_spec_value (img->spec, QCfile, NULL);
+  Lisp_Object specified_data = image_spec_value (img->spec, QCdata, NULL);
+  unsigned long bgcolor = 0;
+  int idx;
 
   if (NILP (specified_data))
     {
@@ -7140,40 +7137,31 @@ gif_load (struct frame *f, struct image *img)
 
   /* Read entire contents.  */
   rc = fn_DGifSlurp (gif);
-  if (rc == GIF_ERROR)
+  if (rc == GIF_ERROR || gif->ImageCount <= 0)
     {
       image_error ("Error reading `%s'", img->spec, Qnil);
       fn_DGifCloseFile (gif);
       return 0;
     }
 
-  image = image_spec_value (img->spec, QCindex, NULL);
-  ino = INTEGERP (image) ? XFASTINT (image) : 0;
-  if (ino >= gif->ImageCount)
-    {
-      image_error ("Invalid image number `%s' in image `%s'",
-		   image, img->spec);
-      fn_DGifCloseFile (gif);
-      return 0;
-    }
-
-  for (i = 0; i < gif->SavedImages[ino].ExtensionBlockCount; i++)
-    if ((gif->SavedImages[ino].ExtensionBlocks[i].Function
-	 == GIF_LOCAL_DESCRIPTOR_EXTENSION)
-	&& gif->SavedImages[ino].ExtensionBlocks[i].ByteCount == 4
-	/* Transparency enabled?  */
-	&& gif->SavedImages[ino].ExtensionBlocks[i].Bytes[0] & 1)
+  /* Which sub-image are we to display?  */
+  {
+    Lisp_Object index = image_spec_value (img->spec, QCindex, NULL);
+    idx = INTEGERP (index) ? XFASTINT (index) : 0;
+    if (idx < 0 || idx >= gif->ImageCount)
       {
-	transparent_p = 1;
-	transparency_color_index
-	  = (unsigned char) gif->SavedImages[ino].ExtensionBlocks[i].Bytes[3];
+	image_error ("Invalid image number `%s' in image `%s'",
+		     index, img->spec);
+	fn_DGifCloseFile (gif);
+	return 0;
       }
+  }
 
-  img->corners[TOP_CORNER] = gif->SavedImages[ino].ImageDesc.Top;
-  img->corners[LEFT_CORNER] = gif->SavedImages[ino].ImageDesc.Left;
-  image_height = gif->SavedImages[ino].ImageDesc.Height;
+  img->corners[TOP_CORNER] = gif->SavedImages[idx].ImageDesc.Top;
+  img->corners[LEFT_CORNER] = gif->SavedImages[idx].ImageDesc.Left;
+  image_height = gif->SavedImages[idx].ImageDesc.Height;
   img->corners[BOT_CORNER] = img->corners[TOP_CORNER] + image_height;
-  image_width = gif->SavedImages[ino].ImageDesc.Width;
+  image_width = gif->SavedImages[idx].ImageDesc.Width;
   img->corners[RIGHT_CORNER] = img->corners[LEFT_CORNER] + image_width;
 
   width = img->width = max (gif->SWidth,
@@ -7197,44 +7185,10 @@ gif_load (struct frame *f, struct image *img)
       return 0;
     }
 
-  /* Allocate colors.  */
-  gif_color_map = gif->SavedImages[ino].ImageDesc.ColorMap;
-  if (!gif_color_map)
-    gif_color_map = gif->SColorMap;
-  init_color_table ();
-  memset (pixel_colors, 0, sizeof pixel_colors);
-
-  if (gif_color_map)
-    for (i = 0; i < gif_color_map->ColorCount; ++i)
-      {
-	if (transparent_p && transparency_color_index == i)
-	  {
-	    Lisp_Object specified_bg
-	      = image_spec_value (img->spec, QCbackground, NULL);
-	    pixel_colors[i] = STRINGP (specified_bg)
-	      ? x_alloc_image_color (f, img, specified_bg,
-				     FRAME_BACKGROUND_PIXEL (f))
-	      : FRAME_BACKGROUND_PIXEL (f);
-	  }
-	else
-	  {
-	    int r = gif_color_map->Colors[i].Red << 8;
-	    int g = gif_color_map->Colors[i].Green << 8;
-	    int b = gif_color_map->Colors[i].Blue << 8;
-	    pixel_colors[i] = lookup_rgb_color (f, r, g, b);
-	  }
-      }
-
-#ifdef COLOR_TABLE_SUPPORT
-  img->colors = colors_in_color_table (&img->ncolors);
-  free_color_table ();
-#endif /* COLOR_TABLE_SUPPORT */
-
-  /* Clear the part of the screen image that are not covered by
-     the image from the GIF file.  Full animated GIF support
-     requires more than can be done here (see the gif89 spec,
-     disposal methods).  Let's simply assume that the part
-     not covered by a sub-image is in the frame's background color.  */
+  /* Clear the part of the screen image not covered by the image.
+     Full animated GIF support requires more here (see the gif89 spec,
+     disposal methods).  Let's simply assume that the part not covered
+     by a sub-image is in the frame's background color.  */
   for (y = 0; y < img->corners[TOP_CORNER]; ++y)
     for (x = 0; x < width; ++x)
       XPutPixel (ximg, x, y, FRAME_BACKGROUND_PIXEL (f));
@@ -7251,55 +7205,119 @@ gif_load (struct frame *f, struct image *img)
 	XPutPixel (ximg, x, y, FRAME_BACKGROUND_PIXEL (f));
     }
 
-  /* Read the GIF image into the X image.  We use a local variable
-     `raster' here because RasterBits below is a char *, and invites
-     problems with bytes >= 0x80.  */
-  raster = (unsigned char *) gif->SavedImages[ino].RasterBits;
+  /* Read the GIF image into the X image.   */
 
-  if (gif->SavedImages[ino].ImageDesc.Interlace)
+  /* FIXME: With the current implementation, loading an animated gif
+     is quadratic in the number of animation frames, since each frame
+     is a separate struct image.  We must provide a way for a single
+     gif_load call to construct and save all animation frames.  */
+
+  init_color_table ();
+  if (STRINGP (specified_bg))
+    bgcolor = x_alloc_image_color (f, img, specified_bg,
+				   FRAME_BACKGROUND_PIXEL (f));
+  for (j = 0; j <= idx; ++j)
     {
-      int pass;
-      int row = interlace_start[0];
+      /* We use a local variable `raster' here because RasterBits is a
+	 char *, which invites problems with bytes >= 0x80.  */
+      struct SavedImage *subimage = gif->SavedImages + j;
+      unsigned char *raster = (unsigned char *) subimage->RasterBits;
+      int transparency_color_index = -1;
+      int disposal = 0;
 
-      pass = 0;
-
-      for (y = 0; y < image_height; y++)
+      /* Find the Graphic Control Extension block for this sub-image.
+	 Extract the disposal method and transparency color.  */
+      for (i = 0; i < subimage->ExtensionBlockCount; i++)
 	{
-	  if (row >= image_height)
-	    {
-	      row = interlace_start[++pass];
-	      while (row >= image_height)
-		row = interlace_start[++pass];
-	    }
+	  ExtensionBlock *extblock = subimage->ExtensionBlocks + i;
 
-	  for (x = 0; x < image_width; x++)
+	  if ((extblock->Function == GIF_LOCAL_DESCRIPTOR_EXTENSION)
+	      && extblock->ByteCount == 4
+	      && extblock->Bytes[0] & 1)
 	    {
-	      int c = raster[(y * image_width) + x];
-	      XPutPixel (ximg, x + img->corners[LEFT_CORNER],
-			 row + img->corners[TOP_CORNER], pixel_colors[c]);
+	      /* From gif89a spec: 1 = "keep in place", 2 = "restore
+		 to background".  Treat any other value like 2.  */
+	      disposal = (extblock->Bytes[0] >> 2) & 7;
+	      transparency_color_index = extblock->Bytes[3];
+	      break;
 	    }
+	}
 
-	  row += interlace_increment[pass];
+      /* We can't "keep in place" the first subimage.  */
+      if (j == 0)
+	disposal = 2;
+
+      /* Allocate subimage colors.  */
+      memset (pixel_colors, 0, sizeof pixel_colors);
+      gif_color_map = subimage->ImageDesc.ColorMap;
+      if (!gif_color_map)
+	gif_color_map = gif->SColorMap;
+
+      if (gif_color_map)
+	for (i = 0; i < gif_color_map->ColorCount; ++i)
+	  {
+	    if (transparency_color_index == i)
+	      pixel_colors[i] = STRINGP (specified_bg)
+		? bgcolor : FRAME_BACKGROUND_PIXEL (f);
+	    else
+	      {
+		int r = gif_color_map->Colors[i].Red << 8;
+		int g = gif_color_map->Colors[i].Green << 8;
+		int b = gif_color_map->Colors[i].Blue << 8;
+		pixel_colors[i] = lookup_rgb_color (f, r, g, b);
+	      }
+	  }
+
+      /* Apply the pixel values.  */
+      if (gif->SavedImages[j].ImageDesc.Interlace)
+	{
+	  int row, pass;
+
+	  for (y = 0, row = interlace_start[0], pass = 0;
+	       y < image_height;
+	       y++, row += interlace_increment[pass])
+	    {
+	      if (row >= image_height)
+		{
+		  row = interlace_start[++pass];
+		  while (row >= image_height)
+		    row = interlace_start[++pass];
+		}
+
+	      for (x = 0; x < image_width; x++)
+		{
+		  int c = raster[y * image_width + x];
+		  if (transparency_color_index != c || disposal != 1)
+		    XPutPixel (ximg, x + img->corners[LEFT_CORNER],
+			       row + img->corners[TOP_CORNER], pixel_colors[c]);
+		}
+	    }
+	}
+      else
+	{
+	  for (y = 0; y < image_height; ++y)
+	    for (x = 0; x < image_width; ++x)
+	      {
+		int c = raster[y * image_width + x];
+		if (transparency_color_index != c || disposal != 1)
+		  XPutPixel (ximg, x + img->corners[LEFT_CORNER],
+			     y + img->corners[TOP_CORNER], pixel_colors[c]);
+	      }
 	}
     }
-  else
-    {
-      for (y = 0; y < image_height; ++y)
-	for (x = 0; x < image_width; ++x)
-	  {
-	    int c = raster[y * image_width + x];
-	    XPutPixel (ximg, x + img->corners[LEFT_CORNER],
-		       y + img->corners[TOP_CORNER], pixel_colors[c]);
-	  }
-    }
+
+#ifdef COLOR_TABLE_SUPPORT
+  img->colors = colors_in_color_table (&img->ncolors);
+  free_color_table ();
+#endif /* COLOR_TABLE_SUPPORT */
 
   /* Save GIF image extension data for `image-metadata'.
      Format is (count IMAGES extension-data (FUNCTION "BYTES" ...)).  */
   img->data.lisp_val = Qnil;
-  if (gif->SavedImages[ino].ExtensionBlockCount > 0)
+  if (gif->SavedImages[idx].ExtensionBlockCount > 0)
     {
-      ExtensionBlock *ext = gif->SavedImages[ino].ExtensionBlocks;
-      for (i = 0; i < gif->SavedImages[ino].ExtensionBlockCount; i++, ext++)
+      ExtensionBlock *ext = gif->SavedImages[idx].ExtensionBlocks;
+      for (i = 0; i < gif->SavedImages[idx].ExtensionBlockCount; i++, ext++)
 	/* Append (... FUNCTION "BYTES") */
 	img->data.lisp_val = Fcons (make_unibyte_string (ext->Bytes, ext->ByteCount),
 				    Fcons (make_number (ext->Function),
