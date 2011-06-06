@@ -120,8 +120,8 @@ static int window_initialized;
 
 /* Hook to run when window config changes.  */
 static Lisp_Object Qwindow_configuration_change_hook;
-/* Incremented by 1 whenever a window is deleted.  */
 
+/* Incremented by 1 whenever a window is deleted.  */
 static int window_deletion_count;
 
 /* Used by the function window_scroll_pixel_based */
