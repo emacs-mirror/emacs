@@ -1,11 +1,37 @@
 2011-06-06  Martin Rudalics  <rudalics@gmx.at>
 
+	* lisp.h: Move EXFUNS for Fframe_root_window,
+	Fframe_first_window and Fset_frame_selected_window to window.h.
+
+	* window.h: Move EXFUNS for Fframe_root_window,
+	Fframe_first_window and Fset_frame_selected_window here from
+	lisp.h.
+
+	* frame.c (Fwindow_frame, Fframe_first_window)
+	(Fframe_root_window, Fframe_selected_window)
+	(Fset_frame_selected_window): Move to window.c.
+	(Factive_minibuffer_window): Move to minibuf.c.
+	(Fother_visible_frames_p): New function.
+
+	* minibuf.c (Factive_minibuffer_window): Move here from frame.c.
+
 	* window.c (decode_window, decode_any_window): Move up in code.
 	(Fwindowp, Fwindow_live_p): Rewrite doc-strings.
 	(inhibit_frame_unsplittable): Remove unused variable.
 	(Fwindow_buffer): Move up and rewrite doc-string.
 	(Fwindow_parent, Fwindow_vchild, Fwindow_hchild, Fwindow_next)
 	(Fwindow_prev): New functions.
+	(Fwindow_frame): Move here from frame.c.  Accept any window as
+	argument.
+	(Fframe_root_window, Fframe_first_window)
+	(Fframe_selected_window): Move here from frame.c.  Accept frame
+	or arbitrary window as argument.  Update doc-strings.
+	(Fminibuffer_window): Move up in code.
+	(Fwindow_minibuffer_p): Move up in code and simplify.
+	(Fset_frame_selected_window): Move here from frame.c.  Marginal
+	rewrite.
+	(Fselected_window, select_window, Fselect_window): Move up in
+	code.  Minor doc-string fixes.
 
 2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
 

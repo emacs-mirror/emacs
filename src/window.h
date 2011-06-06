@@ -844,11 +844,14 @@ struct glyph *get_phys_cursor_glyph (struct window *w);
 extern Lisp_Object Qwindowp, Qwindow_live_p;
 extern Lisp_Object Vwindow_list;
 
-EXFUN (Fselected_window, 0);
-EXFUN (Fwindow_minibuffer_p, 1);
-EXFUN (Fdelete_window, 1);
 EXFUN (Fwindow_buffer, 1);
 EXFUN (Fget_buffer_window, 2);
+EXFUN (Fwindow_minibuffer_p, 1);
+EXFUN (Fselected_window, 0);
+EXFUN (Fframe_root_window, 1);
+EXFUN (Fframe_first_window, 1);
+EXFUN (Fset_frame_selected_window, 3);
+EXFUN (Fdelete_window, 1);
 EXFUN (Fset_window_configuration, 1);
 EXFUN (Fcurrent_window_configuration, 1);
 extern int compare_window_configurations (Lisp_Object, Lisp_Object, int);

@@ -168,7 +168,248 @@ A live window is a window that displays a buffer.  */)
 {
   return WINDOW_LIVE_P (object) ? Qt : Qnil;
 }
+
+/* Frames and windows.  */
+DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
+       doc: /* Return the frame that window WINDOW is on.
+WINDOW can be any window and defaults to the selected one.  */)
+  (Lisp_Object window)
+{
+  return decode_any_window (window)->frame;
+}
 
+DEFUN ("frame-root-window", Fframe_root_window, Sframe_root_window, 0, 1, 0,
+       doc: /* Return the root window of FRAME_OR_WINDOW.
+If omitted, FRAME_OR_WINDOW defaults to the currently selected frame.
+Else if FRAME_OR_WINDOW denotes any window, return the root window of
+that window's frame.  If FRAME_OR_WINDOW denotes a live frame, return
+the root window of that frame.  */)
+  (Lisp_Object frame_or_window)
+{
+  Lisp_Object window;
+
+  if (NILP (frame_or_window))
+    window = SELECTED_FRAME ()->root_window;
+  else if (WINDOWP (frame_or_window))
+    window = XFRAME (WINDOW_FRAME (XWINDOW (frame_or_window)))->root_window;
+  else
+    {
+      CHECK_LIVE_FRAME (frame_or_window);
+      window = XFRAME (frame_or_window)->root_window;
+    }
+
+  return window;
+}
+
+DEFUN ("minibuffer-window", Fminibuffer_window, Sminibuffer_window, 0, 1, 0,
+       doc: /* Return the window used now for minibuffers.
+If the optional argument FRAME is specified, return the minibuffer window
+used by that frame.  */)
+  (Lisp_Object frame)
+{
+  if (NILP (frame))
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame);
+  return FRAME_MINIBUF_WINDOW (XFRAME (frame));
+}
+
+DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p,
+       Swindow_minibuffer_p, 0, 1, 0,
+       doc: /* Return non-nil if WINDOW is a minibuffer window.
+WINDOW can be any window and defaults to the selected one.  */)
+  (Lisp_Object window)
+{
+  return MINI_WINDOW_P (decode_any_window (window)) ? Qt : Qnil;
+}
+
+/* Don't move this to window.el - this must be a safe routine.  */
+DEFUN ("frame-first-window", Fframe_first_window, Sframe_first_window, 0, 1, 0,
+       doc: /* Return the topmost, leftmost live window on FRAME_OR_WINDOW.
+If omitted, FRAME_OR_WINDOW defaults to the currently selected frame.
+Else if FRAME_OR_WINDOW denotes any window, return the first window of
+that window's frame.  If FRAME_OR_WINDOW denotes a live frame, return
+the first window of that frame.  */)
+  (Lisp_Object frame_or_window)
+{
+  Lisp_Object window;
+
+  if (NILP (frame_or_window))
+    window = SELECTED_FRAME ()->root_window;
+  else if (WINDOWP (frame_or_window))
+    window = XFRAME (WINDOW_FRAME (XWINDOW (frame_or_window)))->root_window;
+  else
+    {
+      CHECK_LIVE_FRAME (frame_or_window);
+      window = XFRAME (frame_or_window)->root_window;
+    }
+
+  while (NILP (XWINDOW (window)->buffer))
+    {
+      if (! NILP (XWINDOW (window)->hchild))
+	window = XWINDOW (window)->hchild;
+      else if (! NILP (XWINDOW (window)->vchild))
+	window = XWINDOW (window)->vchild;
+      else
+	abort ();
+    }
+
+  return window;
+}
+
+DEFUN ("frame-selected-window", Fframe_selected_window,
+       Sframe_selected_window, 0, 1, 0,
+       doc: /* Return the selected window of FRAME_OR_WINDOW.
+If omitted, FRAME_OR_WINDOW defaults to the currently selected frame.
+Else if FRAME_OR_WINDOW denotes any window, return the selected window
+of that window's frame.  If FRAME_OR_WINDOW denotes a live frame, return
+the selected window of that frame.  */)
+  (Lisp_Object frame_or_window)
+{
+  Lisp_Object window;
+
+  if (NILP (frame_or_window))
+    window = SELECTED_FRAME ()->selected_window;
+  else if (WINDOWP (frame_or_window))
+    window = XFRAME (WINDOW_FRAME (XWINDOW (frame_or_window)))->selected_window;
+  else
+    {
+      CHECK_LIVE_FRAME (frame_or_window);
+      window = XFRAME (frame_or_window)->selected_window;
+    }
+
+  return window;
+}
+
+DEFUN ("set-frame-selected-window", Fset_frame_selected_window,
+       Sset_frame_selected_window, 2, 3, 0,
+       doc: /* Set selected window of FRAME to WINDOW.
+FRAME must be a live frame and defaults to the selected one.  If FRAME
+is the selected frame, this makes WINDOW the selected window.  Optional
+argument NORECORD non-nil means to neither change the order of recently
+selected windows nor the buffer list.  WINDOW must denote a live window.
+Return WINDOW.  */)
+  (Lisp_Object frame, Lisp_Object window, Lisp_Object norecord)
+{
+  if (NILP (frame))
+    frame = selected_frame;
+
+  CHECK_LIVE_FRAME (frame);
+  CHECK_LIVE_WINDOW (window);
+
+  if (! EQ (frame, WINDOW_FRAME (XWINDOW (window))))
+    error ("In `set-frame-selected-window', WINDOW is not on FRAME");
+
+  if (EQ (frame, selected_frame))
+    return Fselect_window (window, norecord);
+  else
+    return XFRAME (frame)->selected_window = window;
+}
+
+DEFUN ("selected-window", Fselected_window, Sselected_window, 0, 0, 0,
+       doc: /* Return the selected window.
+The selected window is the window in which the standard cursor for
+selected windows appears and to which many commands apply.  */)
+  (void)
+{
+  return selected_window;
+}
+
+/* If select_window is called with inhibit_point_swap non-zero it will
+   not store point of the old selected window's buffer back into that
+   window's pointm slot.  This is needed by Fset_window_configuration to
+   avoid that the display routine is called with selected_window set to
+   Qnil causing a subsequent crash.  */
+static Lisp_Object
+select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
+{
+  register struct window *w;
+  register struct window *ow;
+  struct frame *sf;
+
+  CHECK_LIVE_WINDOW (window);
+
+  w = XWINDOW (window);
+  w->frozen_window_start_p = 0;
+
+  if (NILP (norecord))
+    {
+      ++window_select_count;
+      XSETFASTINT (w->use_time, window_select_count);
+      record_buffer (w->buffer);
+    }
+
+  if (EQ (window, selected_window) && !inhibit_point_swap)
+    return window;
+
+  sf = SELECTED_FRAME ();
+  if (XFRAME (WINDOW_FRAME (w)) != sf)
+    {
+      XFRAME (WINDOW_FRAME (w))->selected_window = window;
+      /* Use this rather than Fhandle_switch_frame
+	 so that FRAME_FOCUS_FRAME is moved appropriately as we
+	 move around in the state where a minibuffer in a separate
+	 frame is active.  */
+      Fselect_frame (WINDOW_FRAME (w), norecord);
+      /* Fselect_frame called us back so we've done all the work already.  */
+      eassert (EQ (window, selected_window));
+      return window;
+    }
+  else
+    sf->selected_window = window;
+
+  /* Store the current buffer's actual point into the
+     old selected window.  It belongs to that window,
+     and when the window is not selected, must be in the window.  */
+  if (!inhibit_point_swap)
+    {
+      ow = XWINDOW (selected_window);
+      if (! NILP (ow->buffer))
+	set_marker_both (ow->pointm, ow->buffer,
+			 BUF_PT (XBUFFER (ow->buffer)),
+			 BUF_PT_BYTE (XBUFFER (ow->buffer)));
+    }
+
+  selected_window = window;
+
+  Fset_buffer (w->buffer);
+
+  BVAR (XBUFFER (w->buffer), last_selected_window) = window;
+
+  /* Go to the point recorded in the window.
+     This is important when the buffer is in more
+     than one window.  It also matters when
+     redisplay_window has altered point after scrolling,
+     because it makes the change only in the window.  */
+  {
+    register EMACS_INT new_point = marker_position (w->pointm);
+    if (new_point < BEGV)
+      SET_PT (BEGV);
+    else if (new_point > ZV)
+      SET_PT (ZV);
+    else
+      SET_PT (new_point);
+  }
+
+  windows_or_buffers_changed++;
+  return window;
+}
+
+DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
+       doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
+Also make WINDOW's buffer current and make WINDOW the frame's selected
+window.  Return WINDOW.
+
+Optional second arg NORECORD non-nil means do not put this buffer at the
+front of the buffer list and do not make this window the most recently
+selected one.
+
+Note that the main editor command loop sets the current buffer to the
+buffer of the selected window before each command.  */)
+  (register Lisp_Object window, Lisp_Object norecord)
+{
+  return select_window (window, norecord, 0);
+}
+
 DEFUN ("window-buffer", Fwindow_buffer, Swindow_buffer, 0, 1, 0,
        doc: /* Return the buffer that WINDOW is displaying.
 WINDOW can be any window and defaults to the selected one.
@@ -275,36 +516,6 @@ make_window (void)
   Vwindow_list = Qnil;
   return val;
 }
-
-DEFUN ("selected-window", Fselected_window, Sselected_window, 0, 0, 0,
-       doc: /* Return the window that the cursor now appears in and commands apply to.  */)
-  (void)
-{
-  return selected_window;
-}
-
-DEFUN ("minibuffer-window", Fminibuffer_window, Sminibuffer_window, 0, 1, 0,
-       doc: /* Return the window used now for minibuffers.
-If the optional argument FRAME is specified, return the minibuffer window
-used by that frame.  */)
-  (Lisp_Object frame)
-{
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  return FRAME_MINIBUF_WINDOW (XFRAME (frame));
-}
-
-DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p,
-       Swindow_minibuffer_p, 0, 1, 0,
-       doc: /* Return non-nil if WINDOW is a minibuffer window.
-WINDOW defaults to the selected window.  */)
-  (Lisp_Object window)
-{
-  struct window *w = decode_window (window);
-  return MINI_WINDOW_P (w) ? Qt : Qnil;
-}
-
 
 DEFUN ("pos-visible-in-window-p", Fpos_visible_in_window_p,
        Spos_visible_in_window_p, 0, 3, 0,
@@ -3525,106 +3736,6 @@ This function runs `window-scroll-functions' before running
 
   set_window_buffer (window, buffer, 1, !NILP (keep_margins));
   return Qnil;
-}
-
-/* If select_window is called with inhibit_point_swap non-zero it will
-   not store point of the old selected window's buffer back into that
-   window's pointm slot.  This is needed by Fset_window_configuration to
-   avoid that the display routine is called with selected_window set to
-   Qnil causing a subsequent crash.  */
-
-static Lisp_Object
-select_window (Lisp_Object window, Lisp_Object norecord, int inhibit_point_swap)
-{
-  register struct window *w;
-  register struct window *ow;
-  struct frame *sf;
-
-  CHECK_LIVE_WINDOW (window);
-
-  w = XWINDOW (window);
-  w->frozen_window_start_p = 0;
-
-  if (NILP (norecord))
-    {
-      ++window_select_count;
-      XSETFASTINT (w->use_time, window_select_count);
-      record_buffer (w->buffer);
-    }
-
-  if (EQ (window, selected_window) && !inhibit_point_swap)
-    return window;
-
-  sf = SELECTED_FRAME ();
-  if (XFRAME (WINDOW_FRAME (w)) != sf)
-    {
-      XFRAME (WINDOW_FRAME (w))->selected_window = window;
-      /* Use this rather than Fhandle_switch_frame
-	 so that FRAME_FOCUS_FRAME is moved appropriately as we
-	 move around in the state where a minibuffer in a separate
-	 frame is active.  */
-      Fselect_frame (WINDOW_FRAME (w), norecord);
-      /* Fselect_frame called us back so we've done all the work already.  */
-      eassert (EQ (window, selected_window));
-      return window;
-    }
-  else
-    sf->selected_window = window;
-
-  /* Store the current buffer's actual point into the
-     old selected window.  It belongs to that window,
-     and when the window is not selected, must be in the window.  */
-  if (!inhibit_point_swap)
-    {
-      ow = XWINDOW (selected_window);
-      if (! NILP (ow->buffer))
-	set_marker_both (ow->pointm, ow->buffer,
-			 BUF_PT (XBUFFER (ow->buffer)),
-			 BUF_PT_BYTE (XBUFFER (ow->buffer)));
-    }
-
-  selected_window = window;
-
-  Fset_buffer (w->buffer);
-
-  BVAR (XBUFFER (w->buffer), last_selected_window) = window;
-
-  /* Go to the point recorded in the window.
-     This is important when the buffer is in more
-     than one window.  It also matters when
-     redisplay_window has altered point after scrolling,
-     because it makes the change only in the window.  */
-  {
-    register EMACS_INT new_point = marker_position (w->pointm);
-    if (new_point < BEGV)
-      SET_PT (BEGV);
-    else if (new_point > ZV)
-      SET_PT (ZV);
-    else
-      SET_PT (new_point);
-  }
-
-  windows_or_buffers_changed++;
-  return window;
-}
-
-
-/* Note that selected_window can be nil when this is called from
-   Fset_window_configuration.  */
-
-DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
-       doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
-If WINDOW is not already selected, make WINDOW's buffer current
-and make WINDOW the frame's selected window.  Return WINDOW.
-Optional second arg NORECORD non-nil means do not put this buffer
-at the front of the list of recently selected ones and do not
-make this window the most recently selected one.
-
-Note that the main editor command loop selects the buffer of the
-selected window before each command.  */)
-     (register Lisp_Object window, Lisp_Object norecord)
-{
-  return select_window (window, norecord, 0);
 }
 
 static Lisp_Object
@@ -7156,6 +7267,11 @@ frame to be redrawn only if it is a tty frame.  */);
   defsubr (&Swindow_minibuffer_p);
   defsubr (&Swindowp);
   defsubr (&Swindow_live_p);
+  defsubr (&Swindow_frame);
+  defsubr (&Sframe_root_window);
+  defsubr (&Sframe_first_window);
+  defsubr (&Sframe_selected_window);
+  defsubr (&Sset_frame_selected_window);
   defsubr (&Spos_visible_in_window_p);
   defsubr (&Swindow_line_height);
   defsubr (&Swindow_buffer);
