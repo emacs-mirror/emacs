@@ -56,8 +56,7 @@ char *careadlinkat (int fd, char const *filename,
    when doing a plain readlink:
    Pass FD = AT_FDCWD and PREADLINKAT = careadlinkatcwd.  */
 #if HAVE_READLINKAT
-/* AT_FDCWD is declared in <fcntl.h>, readlinkat in <unistd.h>.  */
-# define careadlinkatcwd readlinkat
+/* AT_FDCWD is declared in <fcntl.h>.  */
 #else
 /* Define AT_FDCWD independently, so that the careadlinkat module does
    not depend on the fcntl-h module.  The value does not matter, since
@@ -66,8 +65,8 @@ char *careadlinkat (int fd, char const *filename,
 # ifndef AT_FDCWD
 #  define AT_FDCWD (-3041965)
 # endif
+#endif
 ssize_t careadlinkatcwd (int fd, char const *filename,
                          char *buffer, size_t buffer_size);
-#endif
 
 #endif /* _GL_CAREADLINKAT_H */

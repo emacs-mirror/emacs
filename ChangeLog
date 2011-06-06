@@ -1,3 +1,8 @@
+2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+	* lib/careadlinkat.c, lib/careadlinkat.h, m4/gnulib-common.m4: Merge.
+
 2011-06-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lib/allocator.h, lib/careadlinkat.c: Merge from gnulib.

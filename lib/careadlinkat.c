@@ -39,7 +39,6 @@
 
 #include "allocator.h"
 
-#if ! HAVE_READLINKAT
 /* Get the symbolic link value of FILENAME and put it into BUFFER, with
    size BUFFER_SIZE.  This function acts like readlink  but has
    readlinkat's signature.  */
@@ -53,7 +52,6 @@ careadlinkatcwd (int fd, char const *filename, char *buffer,
     abort ();
   return readlink (filename, buffer, buffer_size);
 }
-#endif
 
 /* Assuming the current directory is FD, get the symbolic link value
    of FILENAME as a null-terminated string and put it into a buffer.
