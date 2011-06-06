@@ -4960,7 +4960,7 @@ See Info node `(elisp)Modification Time' for more details.  */)
   if ((st.st_mtime == b->modtime
        /* If both are positive, accept them if they are off by one second.  */
        || (st.st_mtime > 0 && b->modtime > 0
-	   && (st.st_mtime == b->modtime + 1
+	   && (st.st_mtime - 1 == b->modtime
 	       || st.st_mtime == b->modtime - 1)))
       && (st.st_size == b->modtime_size
           || b->modtime_size < 0))
