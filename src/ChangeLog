@@ -1,5 +1,7 @@
 2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dired.c (Ffile_attributes): Don't assume EMACS_INT has >32 bits.
+
 	Don't assume time_t can fit into int.
 	* buffer.h (struct buffer.modtime): Now time_t, not int.
 	* fileio.c (Fvisited_file_modtime): No need for time_t cast now.
