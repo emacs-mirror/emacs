@@ -1,3 +1,11 @@
+2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (memory_full) [SYSTEM_MALLOC]: Port to MacOS (Bug#8800).
+	Do not assume that spare memory exists; that assumption is valid
+	only if SYSTEM_MALLOC.
+	(LARGE_REQUEST): New macro, so that the issue of large requests
+	is separated from the issue of spare memory.
+
 2011-06-05  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* editfns.c (Fformat): Correctly handle zero flag with hexadecimal

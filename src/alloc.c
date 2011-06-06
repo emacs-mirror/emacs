@@ -196,6 +196,12 @@ static char *spare_memory[7];
 #define SPARE_MEMORY (1 << 14)
 #endif
 
+#ifdef SYSTEM_MALLOC
+# define LARGE_REQUEST (1 << 14)
+#else
+# define LARGE_REQUEST SPARE_MEMORY
+#endif
+
 /* Number of extra blocks malloc should get when it needs more core.  */
 
 static int malloc_hysteresis;
@@ -3283,15 +3289,12 @@ memory_full (size_t nbytes)
 {
   /* Do not go into hysterics merely because a large request failed.  */
   int enough_free_memory = 0;
-  if (SPARE_MEMORY < nbytes)
+  if (LARGE_REQUEST < nbytes)
     {
-      void *p = malloc (SPARE_MEMORY);
+      void *p = malloc (LARGE_REQUEST);
       if (p)
 	{
-	  if (spare_memory[0])
-	    free (p);
-	  else
-	    spare_memory[0] = p;
+	  free (p);
 	  enough_free_memory = 1;
 	}
     }
