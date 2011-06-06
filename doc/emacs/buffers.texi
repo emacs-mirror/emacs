@@ -43,8 +43,11 @@ can be different from the value in other buffers.  @xref{Locals}.
   A buffer's size cannot be larger than some maximum, which is defined
 by the largest buffer position representable by the @dfn{Emacs
 integer} data type.  This is because Emacs tracks buffer positions
-using that data type.  For 32-bit machines, the largest buffer size is
-512 megabytes.
+using that data type.  For typical 64-bit machines, the maximum buffer size
+enforced by the data types is @math{2^61 - 2} bytes, or about 2 EiB.
+For typical 32-bit machines, the maximum is @math{2^29 - 2} bytes, or
+about 512 MiB.  Buffer sizes are also limited by the size of Emacs's
+virtual memory.
 
 @menu
 * Select Buffer::       Creating a new buffer or reselecting an old one.

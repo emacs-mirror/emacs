@@ -1,3 +1,15 @@
+2011-06-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Document wide integers better.
+	* files.texi (File Attributes): Document ino_t values better.
+	ino_t values no longer map to anything larger than a single cons.
+	* numbers.texi (Integer Basics, Integer Basics, Arithmetic Operations):
+	(Bitwise Operations):
+	* objects.texi (Integer Type): Use a binary notation that is a bit easier
+	to read, and that will port better if 62-bits becomes the default.
+	Fix or remove incorrect examples.
+	* os.texi (Time Conversion): Document time_t values better.
+
 2011-05-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* processes.texi (Process Information): Document

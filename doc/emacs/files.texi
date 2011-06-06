@@ -209,7 +209,8 @@ to reread it.
 about 10 megabytes), Emacs asks you for confirmation first.  You can
 answer @kbd{y} to proceed with visiting the file.  Note, however, that
 Emacs cannot visit files that are larger than the maximum Emacs buffer
-size, which is around 512 megabytes on 32-bit machines
+size, which is limited by the amount of memory Emacs can allocate
+and by the integers that Emacs can represent
 (@pxref{Buffers}).  If you try, Emacs will display an error message
 saying that the maximum buffer size has been exceeded.
 
