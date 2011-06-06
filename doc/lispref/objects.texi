@@ -179,10 +179,9 @@ to
 @tex
 @math{2^{29}-1})
 @end tex
-on most machines.  (Some machines may provide a wider range.)  It is
-important to note that the Emacs Lisp arithmetic functions do not check
-for overflow.  Thus @code{(1+ 536870911)} is @minus{}536870912 on most
-machines.
+on typical 32-bit machines.  (Some machines provide a wider range.)
+Emacs Lisp arithmetic functions do not check for overflow.  Thus
+@code{(1+ 536870911)} is @minus{}536870912 if Emacs integers are 30 bits.
 
   The read syntax for integers is a sequence of (base ten) digits with an
 optional sign at the beginning and an optional period at the end.  The
@@ -195,7 +194,6 @@ leading @samp{+} or a final @samp{.}.
 1                ; @r{The integer 1.}
 1.               ; @r{Also the integer 1.}
 +1               ; @r{Also the integer 1.}
-1073741825       ; @r{Also the integer 1 on a 30-bit implementation.}
 @end group
 @end example
 
@@ -203,8 +201,8 @@ leading @samp{+} or a final @samp{.}.
 As a special exception, if a sequence of digits specifies an integer
 too large or too small to be a valid integer object, the Lisp reader
 reads it as a floating-point number (@pxref{Floating Point Type}).
-For instance, on most machines @code{536870912} is read as the
-floating-point number @code{536870912.0}.
+For instance, if Emacs integers are 30 bits, @code{536870912} is read
+as the floating-point number @code{536870912.0}.
 
   @xref{Numbers}, for more information.
 

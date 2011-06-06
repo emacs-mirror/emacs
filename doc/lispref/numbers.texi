@@ -50,8 +50,9 @@ to
 @tex
 @math{2^{29}-1}),
 @end tex
-but some machines may provide a wider range.  Many examples in this
-chapter assume an integer has 30 bits.
+but some machines provide a wider range.  Many examples in this
+chapter assume that an integer has 30 bits and that floating point
+numbers are IEEE double precision.
 @cindex overflow
 
   The Lisp reader reads an integer as a sequence of digits with optional
@@ -97,17 +98,18 @@ view the numbers in their binary form.
   In 30-bit binary, the decimal integer 5 looks like this:
 
 @example
-00 0000  0000 0000  0000 0000  0000 0101
+0000...000101 (30 bits total)
 @end example
 
 @noindent
-(We have inserted spaces between groups of 4 bits, and two spaces
-between groups of 8 bits, to make the binary integer easier to read.)
+(The @samp{...} stands for enough bits to fill out a 30-bit word; in
+this case, @samp{...} stands for twenty 0 bits.  Later examples also
+use the @samp{...} notation to make binary integers easier to read.)
 
   The integer @minus{}1 looks like this:
 
 @example
-11 1111  1111 1111  1111 1111  1111 1111
+1111...111111 (30 bits total)
 @end example
 
 @noindent
@@ -120,14 +122,14 @@ complement} notation.)
 @minus{}5 looks like this:
 
 @example
-11 1111  1111 1111  1111 1111  1111 1011
+1111...111011 (30 bits total)
 @end example
 
   In this implementation, the largest 30-bit binary integer value is
 536,870,911 in decimal.  In binary, it looks like this:
 
 @example
-01 1111  1111 1111  1111 1111  1111 1111
+0111...111111 (30 bits total)
 @end example
 
   Since the arithmetic functions do not check whether integers go
@@ -137,7 +139,7 @@ negative integer @minus{}536,870,912:
 @example
 (+ 1 536870911)
      @result{} -536870912
-     @result{} 10 0000  0000 0000  0000 0000  0000 0000
+     @result{} 1000...000000 (30 bits total)
 @end example
 
   Many of the functions described in this chapter accept markers for
@@ -508,8 +510,8 @@ commonly used.
 if any argument is floating.
 
   It is important to note that in Emacs Lisp, arithmetic functions
-do not check for overflow.  Thus @code{(1+ 268435455)} may evaluate to
-@minus{}268435456, depending on your hardware.
+do not check for overflow.  Thus @code{(1+ 536870911)} may evaluate to
+@minus{}536870912, depending on your hardware.
 
 @defun 1+ number-or-marker
 This function returns @var{number-or-marker} plus 1.
@@ -829,19 +831,19 @@ value of a positive integer by two, rounding downward.
 The function @code{lsh}, like all Emacs Lisp arithmetic functions, does
 not check for overflow, so shifting left can discard significant bits
 and change the sign of the number.  For example, left shifting
-536,870,911 produces @minus{}2 on a 30-bit machine:
+536,870,911 produces @minus{}2 in the 30-bit implementation:
 
 @example
 (lsh 536870911 1)          ; @r{left shift}
      @result{} -2
 @end example
 
-In binary, in the 30-bit implementation, the argument looks like this:
+In binary, the argument looks like this:
 
 @example
 @group
 ;; @r{Decimal 536,870,911}
-01 1111  1111 1111  1111 1111  1111 1111
+0111...111111 (30 bits total)
 @end group
 @end example
 
@@ -851,7 +853,7 @@ which becomes the following when left shifted:
 @example
 @group
 ;; @r{Decimal @minus{}2}
-11 1111  1111 1111  1111 1111  1111 1110
+1111...111110 (30 bits total)
 @end group
 @end example
 @end defun
@@ -874,9 +876,9 @@ looks like this:
 @group
 (ash -6 -1) @result{} -3
 ;; @r{Decimal @minus{}6 becomes decimal @minus{}3.}
-11 1111  1111 1111  1111 1111  1111 1010
+1111...111010 (30 bits total)
      @result{}
-11 1111  1111 1111  1111 1111  1111 1101
+1111...111101 (30 bits total)
 @end group
 @end example
 
@@ -887,9 +889,9 @@ In contrast, shifting the pattern of bits one place to the right with
 @group
 (lsh -6 -1) @result{} 536870909
 ;; @r{Decimal @minus{}6 becomes decimal 536,870,909.}
-11 1111  1111 1111  1111 1111  1111 1010
+1111...111010 (30 bits total)
      @result{}
-01 1111  1111 1111  1111 1111  1111 1101
+0111...111101 (30 bits total)
 @end group
 @end example
 
@@ -899,34 +901,35 @@ Here are other examples:
 @c     with smallbook but not with regular book! --rjc 16mar92
 @smallexample
 @group
-                   ;  @r{             30-bit binary values}
+                   ;  @r{       30-bit binary values}
 
-(lsh 5 2)          ;   5  =  @r{00 0000  0000 0000  0000 0000  0000 0101}
-     @result{} 20         ;      =  @r{00 0000  0000 0000  0000 0000  0001 0100}
+(lsh 5 2)          ;   5  =  @r{0000...000101}
+     @result{} 20         ;      =  @r{0000...010100}
 @end group
 @group
 (ash 5 2)
      @result{} 20
-(lsh -5 2)         ;  -5  =  @r{11 1111  1111 1111  1111 1111  1111 1011}
-     @result{} -20        ;      =  @r{11 1111  1111 1111  1111 1111  1110 1100}
+(lsh -5 2)         ;  -5  =  @r{1111...111011}
+     @result{} -20        ;      =  @r{1111...101100}
 (ash -5 2)
      @result{} -20
 @end group
 @group
-(lsh 5 -2)         ;   5  =  @r{00 0000  0000 0000  0000 0000  0000 0101}
-     @result{} 1          ;      =  @r{00 0000  0000 0000  0000 0000  0000 0001}
+(lsh 5 -2)         ;   5  =  @r{0000...000101}
+     @result{} 1          ;      =  @r{0000...000001}
 @end group
 @group
 (ash 5 -2)
      @result{} 1
 @end group
 @group
-(lsh -5 -2)        ;  -5  =  @r{11 1111  1111 1111  1111 1111  1111 1011}
-     @result{} 268435454  ;      =  @r{00 0111  1111 1111  1111 1111  1111 1110}
+(lsh -5 -2)        ;  -5  =  @r{1111...111011}
+     @result{} 268435454
+                   ;      =  @r{0011...111110}
 @end group
 @group
-(ash -5 -2)        ;  -5  =  @r{11 1111  1111 1111  1111 1111  1111 1011}
-     @result{} -2         ;      =  @r{11 1111  1111 1111  1111 1111  1111 1110}
+(ash -5 -2)        ;  -5  =  @r{1111...111011}
+     @result{} -2         ;      =  @r{1111...111110}
 @end group
 @end smallexample
 @end defun
@@ -961,23 +964,23 @@ because its binary representation consists entirely of ones.  If
 
 @smallexample
 @group
-                   ; @r{               30-bit binary values}
+                   ; @r{       30-bit binary values}
 
-(logand 14 13)     ; 14  =  @r{00 0000  0000 0000  0000 0000  0000 1110}
-                   ; 13  =  @r{00 0000  0000 0000  0000 0000  0000 1101}
-     @result{} 12         ; 12  =  @r{00 0000  0000 0000  0000 0000  0000 1100}
+(logand 14 13)     ; 14  =  @r{0000...001110}
+                   ; 13  =  @r{0000...001101}
+     @result{} 12         ; 12  =  @r{0000...001100}
 @end group
 
 @group
-(logand 14 13 4)   ; 14  =  @r{00 0000  0000 0000  0000 0000  0000 1110}
-                   ; 13  =  @r{00 0000  0000 0000  0000 0000  0000 1101}
-                   ;  4  =  @r{00 0000  0000 0000  0000 0000  0000 0100}
-     @result{} 4          ;  4  =  @r{00 0000  0000 0000  0000 0000  0000 0100}
+(logand 14 13 4)   ; 14  =  @r{0000...001110}
+                   ; 13  =  @r{0000...001101}
+                   ;  4  =  @r{0000...000100}
+     @result{} 4          ;  4  =  @r{0000...000100}
 @end group
 
 @group
 (logand)
-     @result{} -1         ; -1  =  @r{11 1111  1111 1111  1111 1111  1111 1111}
+     @result{} -1         ; -1  =  @r{1111...111111}
 @end group
 @end smallexample
 @end defun
@@ -991,18 +994,18 @@ passed just one argument, it returns that argument.
 
 @smallexample
 @group
-                   ; @r{              30-bit binary values}
+                   ; @r{       30-bit binary values}
 
-(logior 12 5)      ; 12  =  @r{00 0000  0000 0000  0000 0000  0000 1100}
-                   ;  5  =  @r{00 0000  0000 0000  0000 0000  0000 0101}
-     @result{} 13         ; 13  =  @r{00 0000  0000 0000  0000 0000  0000 1101}
+(logior 12 5)      ; 12  =  @r{0000...001100}
+                   ;  5  =  @r{0000...000101}
+     @result{} 13         ; 13  =  @r{0000...001101}
 @end group
 
 @group
-(logior 12 5 7)    ; 12  =  @r{00 0000  0000 0000  0000 0000  0000 1100}
-                   ;  5  =  @r{00 0000  0000 0000  0000 0000  0000 0101}
-                   ;  7  =  @r{00 0000  0000 0000  0000 0000  0000 0111}
-     @result{} 15         ; 15  =  @r{00 0000  0000 0000  0000 0000  0000 1111}
+(logior 12 5 7)    ; 12  =  @r{0000...001100}
+                   ;  5  =  @r{0000...000101}
+                   ;  7  =  @r{0000...000111}
+     @result{} 15         ; 15  =  @r{0000...001111}
 @end group
 @end smallexample
 @end defun
@@ -1016,18 +1019,18 @@ result is 0, which is an identity element for this operation.  If
 
 @smallexample
 @group
-                   ; @r{              30-bit binary values}
+                   ; @r{       30-bit binary values}
 
-(logxor 12 5)      ; 12  =  @r{00 0000  0000 0000  0000 0000  0000 1100}
-                   ;  5  =  @r{00 0000  0000 0000  0000 0000  0000 0101}
-     @result{} 9          ;  9  =  @r{00 0000  0000 0000  0000 0000  0000 1001}
+(logxor 12 5)      ; 12  =  @r{0000...001100}
+                   ;  5  =  @r{0000...000101}
+     @result{} 9          ;  9  =  @r{0000...001001}
 @end group
 
 @group
-(logxor 12 5 7)    ; 12  =  @r{00 0000  0000 0000  0000 0000  0000 1100}
-                   ;  5  =  @r{00 0000  0000 0000  0000 0000  0000 0101}
-                   ;  7  =  @r{00 0000  0000 0000  0000 0000  0000 0111}
-     @result{} 14         ; 14  =  @r{00 0000  0000 0000  0000 0000  0000 1110}
+(logxor 12 5 7)    ; 12  =  @r{0000...001100}
+                   ;  5  =  @r{0000...000101}
+                   ;  7  =  @r{0000...000111}
+     @result{} 14         ; 14  =  @r{0000...001110}
 @end group
 @end smallexample
 @end defun
@@ -1040,9 +1043,9 @@ bit is one in the result if, and only if, the @var{n}th bit is zero in
 @example
 (lognot 5)
      @result{} -6
-;;  5  =  @r{00 0000  0000 0000  0000 0000  0000 0101}
+;;  5  =  @r{0000...000101} (30 bits total)
 ;; @r{becomes}
-;; -6  =  @r{11 1111  1111 1111  1111 1111  1111 1010}
+;; -6  =  @r{1111...111010} (30 bits total)
 @end example
 @end defun
 
