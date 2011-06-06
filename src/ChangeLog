@@ -1,5 +1,11 @@
 2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* image.c: Use ptrdiff_t, not int, for sizes.
+	(slurp_file): Switch from int to ptrdiff_t.
+	All uses changed.
+	(slurp_file): Check that file size fits in both size_t (for
+	malloc) and ptrdiff_t (for sanity and safety).
+
 	* fileio.c (Fverify_visited_file_modtime): Avoid time overflow
 	if b->modtime has its maximal value.
 
