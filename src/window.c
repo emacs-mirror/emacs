@@ -94,71 +94,76 @@ static Lisp_Object select_window (Lisp_Object, Lisp_Object, int);
 
    This value is always the same as
    FRAME_SELECTED_WINDOW (selected_frame).  */
-
 Lisp_Object selected_window;
 
 /* A list of all windows for use by next_window and Fwindow_list.
    Functions creating or deleting windows should invalidate this cache
    by setting it to nil.  */
-
 Lisp_Object Vwindow_list;
 
 /* The mini-buffer window of the selected frame.
    Note that you cannot test for mini-bufferness of an arbitrary window
    by comparing against this; but you can test for mini-bufferness of
    the selected window.  */
-
 Lisp_Object minibuf_window;
 
 /* Non-nil means it is the window whose mode line should be
    shown as the selected window when the minibuffer is selected.  */
-
 Lisp_Object minibuf_selected_window;
 
 /* Hook run at end of temp_output_buffer_show.  */
-
 static Lisp_Object Qtemp_buffer_show_hook;
 
 /* Incremented for each window created.  */
-
 static int sequence_number;
 
 /* Nonzero after init_window_once has finished.  */
-
 static int window_initialized;
 
 /* Hook to run when window config changes.  */
-
 static Lisp_Object Qwindow_configuration_change_hook;
-/* Incremented by 1 whenever a window is deleted.  */
 
+/* Incremented by 1 whenever a window is deleted.  */
 static int window_deletion_count;
 
 /* Used by the function window_scroll_pixel_based */
-
 static int window_scroll_pixel_based_preserve_x;
 static int window_scroll_pixel_based_preserve_y;
 
 /* Same for window_scroll_line_based.  */
-
 static int window_scroll_preserve_hpos;
 static int window_scroll_preserve_vpos;
-
-#if 0 /* This isn't used anywhere.  */
-/* Nonzero means we can split a frame even if it is "unsplittable".  */
-static int inhibit_frame_unsplittable;
-#endif
-
 
+static struct window *
+decode_window (register Lisp_Object window)
+{
+  if (NILP (window))
+    return XWINDOW (selected_window);
+
+  CHECK_LIVE_WINDOW (window);
+  return XWINDOW (window);
+}
+
+static struct window *
+decode_any_window (register Lisp_Object window)
+{
+  if (NILP (window))
+    return XWINDOW (selected_window);
+
+  CHECK_WINDOW (window);
+  return XWINDOW (window);
+}
+
 DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
-       doc: /* Return t if OBJECT is a window.  */)
+       doc: /* Return t if OBJECT is a window and nil otherwise.  */)
   (Lisp_Object object)
 {
   return WINDOWP (object) ? Qt : Qnil;
 }
 
 DEFUN ("window-live-p", Fwindow_live_p, Swindow_live_p, 1, 1, 0,
-       doc: /* Return t if OBJECT is a window which is currently visible.  */)
+       doc: /* Return t if OBJECT is a live window and nil otherwise.
+A live window is a window that displays a buffer.  */)
   (Lisp_Object object)
 {
   return WINDOW_LIVE_P (object) ? Qt : Qnil;
@@ -424,26 +429,6 @@ Return nil if window display is not up-to-date.  In that case, use
 
 
 
-static struct window *
-decode_window (register Lisp_Object window)
-{
-  if (NILP (window))
-    return XWINDOW (selected_window);
-
-  CHECK_LIVE_WINDOW (window);
-  return XWINDOW (window);
-}
-
-static struct window *
-decode_any_window (register Lisp_Object window)
-{
-  if (NILP (window))
-    return XWINDOW (selected_window);
-
-  CHECK_WINDOW (window);
-  return XWINDOW (window);
-}
-
 DEFUN ("window-buffer", Fwindow_buffer, Swindow_buffer, 0, 1, 0,
        doc: /* Return the buffer that WINDOW is displaying.
 WINDOW defaults to the selected window.  */)

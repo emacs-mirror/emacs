@@ -1,3 +1,9 @@
+2011-06-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (decode_window, decode_any_window): Move up in code.
+	(Fwindowp, Fwindow_live_p): Rewrite doc-strings.
+	(inhibit_frame_unsplittable): Remove unused variable.
+
 2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (memory_full) [SYSTEM_MALLOC]: Port to MacOS (Bug#8800).
