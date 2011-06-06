@@ -500,7 +500,7 @@ Return what remains of the list.  */)
 		{
 		  /* Element (t high . low) records previous modtime.  */
 		  Lisp_Object high, low;
-		  int mod_time;
+		  time_t mod_time;
 		  struct buffer *base_buffer = current_buffer;
 
 		  high = Fcar (cdr);
