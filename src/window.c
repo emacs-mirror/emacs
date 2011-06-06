@@ -169,6 +169,60 @@ A live window is a window that displays a buffer.  */)
   return WINDOW_LIVE_P (object) ? Qt : Qnil;
 }
 
+DEFUN ("window-buffer", Fwindow_buffer, Swindow_buffer, 0, 1, 0,
+       doc: /* Return the buffer that WINDOW is displaying.
+WINDOW can be any window and defaults to the selected one.
+If WINDOW is an internal window return nil.  */)
+  (Lisp_Object window)
+{
+  return decode_any_window (window)->buffer;
+}
+
+DEFUN ("window-parent", Fwindow_parent, Swindow_parent, 0, 1, 0,
+       doc: /* Return WINDOW's parent window.
+WINDOW can be any window and defaults to the selected one.
+Return nil if WINDOW has no parent.  */)
+  (Lisp_Object window)
+{
+  return decode_any_window (window)->parent;
+}
+
+DEFUN ("window-vchild", Fwindow_vchild, Swindow_vchild, 0, 1, 0,
+       doc: /* Return WINDOW's first vertical child window.
+WINDOW can be any window and defaults to the selected one.
+Return nil if WINDOW has no vertical child.  */)
+  (Lisp_Object window)
+{
+  return decode_any_window (window)->vchild;
+}
+
+DEFUN ("window-hchild", Fwindow_hchild, Swindow_hchild, 0, 1, 0,
+       doc: /* Return WINDOW's first horizontal child window.
+WINDOW can be any window and defaults to the selected one.
+Return nil if WINDOW has no horizontal child.  */)
+  (Lisp_Object window)
+{
+  return decode_any_window (window)->hchild;
+}
+
+DEFUN ("window-next", Fwindow_next, Swindow_next, 0, 1, 0,
+       doc: /* Return WINDOW's right sibling window.
+WINDOW can be any window and defaults to the selected one.
+Return nil if WINDOW has no right sibling.  */)
+  (Lisp_Object window)
+{
+  return decode_any_window (window)->next;
+}
+
+DEFUN ("window-prev", Fwindow_prev, Swindow_prev, 0, 1, 0,
+       doc: /* Return WINDOW's left sibling window.
+WINDOW can be any window and defaults to the selected one.
+Return nil if WINDOW has no left sibling.  */)
+  (Lisp_Object window)
+{
+  return decode_any_window (window)->prev;
+}
+
 Lisp_Object
 make_window (void)
 {
@@ -429,14 +483,6 @@ Return nil if window display is not up-to-date.  In that case, use
 
 
 
-DEFUN ("window-buffer", Fwindow_buffer, Swindow_buffer, 0, 1, 0,
-       doc: /* Return the buffer that WINDOW is displaying.
-WINDOW defaults to the selected window.  */)
-  (Lisp_Object window)
-{
-  return decode_window (window)->buffer;
-}
-
 DEFUN ("window-height", Fwindow_height, Swindow_height, 0, 1, 0,
        doc: /* Return the number of lines in WINDOW.
 WINDOW defaults to the selected window.
@@ -7113,6 +7159,11 @@ frame to be redrawn only if it is a tty frame.  */);
   defsubr (&Spos_visible_in_window_p);
   defsubr (&Swindow_line_height);
   defsubr (&Swindow_buffer);
+  defsubr (&Swindow_parent);
+  defsubr (&Swindow_vchild);
+  defsubr (&Swindow_hchild);
+  defsubr (&Swindow_next);
+  defsubr (&Swindow_prev);
   defsubr (&Swindow_height);
   defsubr (&Swindow_width);
   defsubr (&Swindow_full_width_p);

@@ -3,6 +3,9 @@
 	* window.c (decode_window, decode_any_window): Move up in code.
 	(Fwindowp, Fwindow_live_p): Rewrite doc-strings.
 	(inhibit_frame_unsplittable): Remove unused variable.
+	(Fwindow_buffer): Move up and rewrite doc-string.
+	(Fwindow_parent, Fwindow_vchild, Fwindow_hchild, Fwindow_next)
+	(Fwindow_prev): New functions.
 
 2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
 
