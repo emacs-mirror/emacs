@@ -845,6 +845,7 @@ extern Lisp_Object Qwindowp, Qwindow_live_p;
 extern Lisp_Object Vwindow_list;
 
 EXFUN (Fwindow_buffer, 1);
+EXFUN (Fwindow_frame, 1);
 EXFUN (Fget_buffer_window, 2);
 EXFUN (Fwindow_minibuffer_p, 1);
 EXFUN (Fselected_window, 0);
