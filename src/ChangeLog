@@ -1,3 +1,10 @@
+2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c: Simplify handling of large-request failures (Bug#8800).
+	(SPARE_MEMORY): Always define.
+	(LARGE_REQUEST): Remove.
+	(memory_full): Use SPARE_MEMORY rather than LARGE_REQUEST.
+
 2011-06-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* lisp.h: Move EXFUNS for Fframe_root_window,

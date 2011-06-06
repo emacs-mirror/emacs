@@ -190,17 +190,10 @@ static int total_free_floats, total_floats;
 
 static char *spare_memory[7];
 
-#ifndef SYSTEM_MALLOC
-/* Amount of spare memory to keep in large reserve block.  */
+/* Amount of spare memory to keep in large reserve block, or to see
+   whether this much is available when malloc fails on a larger request.  */
 
 #define SPARE_MEMORY (1 << 14)
-#endif
-
-#ifdef SYSTEM_MALLOC
-# define LARGE_REQUEST (1 << 14)
-#else
-# define LARGE_REQUEST SPARE_MEMORY
-#endif
 
 /* Number of extra blocks malloc should get when it needs more core.  */
 
@@ -3289,9 +3282,9 @@ memory_full (size_t nbytes)
 {
   /* Do not go into hysterics merely because a large request failed.  */
   int enough_free_memory = 0;
-  if (LARGE_REQUEST < nbytes)
+  if (SPARE_MEMORY < nbytes)
     {
-      void *p = malloc (LARGE_REQUEST);
+      void *p = malloc (SPARE_MEMORY);
       if (p)
 	{
 	  free (p);
