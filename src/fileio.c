@@ -5005,7 +5005,7 @@ An argument specifies the modification time value to use
 {
   if (!NILP (time_list))
     {
-      current_buffer->modtime = cons_to_long (time_list);
+      CONS_TO_INTEGER (time_list, time_t, current_buffer->modtime);
       current_buffer->modtime_size = -1;
     }
   else

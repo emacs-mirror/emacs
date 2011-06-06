@@ -4388,16 +4388,8 @@ where
   for (i = 0; i < 255; i++)
     if (variations[i])
       {
-	Lisp_Object code;
 	int vs = (i < 16 ? 0xFE00 + i : 0xE0100 + (i - 16));
-	/* Stops GCC whining about limited range of data type.	*/
-	EMACS_INT var = variations[i];
-
-	if (var > MOST_POSITIVE_FIXNUM)
-	  code = Fcons (make_number ((variations[i]) >> 16),
-			make_number ((variations[i]) & 0xFFFF));
-	else
-	  code = make_number (variations[i]);
+	Lisp_Object code = INTEGER_TO_CONS (variations[i]);
 	val = Fcons (Fcons (make_number (vs), code), val);
       }
   return val;

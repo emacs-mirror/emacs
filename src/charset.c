@@ -932,17 +932,8 @@ usage: (define-charset-internal ...)  */)
   val = args[charset_arg_min_code];
   if (! NILP (val))
     {
-      unsigned code;
+      unsigned code = cons_to_unsigned (val, UINT_MAX);
 
-      if (INTEGERP (val))
-	code = XINT (val);
-      else
-	{
-	  CHECK_CONS (val);
-	  CHECK_NUMBER_CAR (val);
-	  CHECK_NUMBER_CDR (val);
-	  code = (XINT (XCAR (val)) << 16) | (XINT (XCDR (val)));
-	}
       if (code < charset.min_code
 	  || code > charset.max_code)
 	args_out_of_range_3 (make_number (charset.min_code),
@@ -954,17 +945,8 @@ usage: (define-charset-internal ...)  */)
   val = args[charset_arg_max_code];
   if (! NILP (val))
     {
-      unsigned code;
+      unsigned code = cons_to_unsigned (val, UINT_MAX);
 
-      if (INTEGERP (val))
-	code = XINT (val);
-      else
-	{
-	  CHECK_CONS (val);
-	  CHECK_NUMBER_CAR (val);
-	  CHECK_NUMBER_CDR (val);
-	  code = (XINT (XCAR (val)) << 16) | (XINT (XCDR (val)));
-	}
       if (code < charset.min_code
 	  || code > charset.max_code)
 	args_out_of_range_3 (make_number (charset.min_code),
@@ -1865,17 +1847,7 @@ and CODE-POINT to a character.  Currently not supported and just ignored.  */)
   struct charset *charsetp;
 
   CHECK_CHARSET_GET_ID (charset, id);
-  if (CONSP (code_point))
-    {
-      CHECK_NATNUM_CAR (code_point);
-      CHECK_NATNUM_CDR (code_point);
-      code = (XINT (XCAR (code_point)) << 16) | (XINT (XCDR (code_point)));
-    }
-  else
-    {
-      CHECK_NATNUM (code_point);
-      code = XINT (code_point);
-    }
+  code = cons_to_unsigned (code_point, UINT_MAX);
   charsetp = CHARSET_FROM_ID (id);
   c = DECODE_CHAR (charsetp, code);
   return (c >= 0 ? make_number (c) : Qnil);
@@ -1900,9 +1872,7 @@ code-point in CCS.  Currently not supported and just ignored.  */)
   code = ENCODE_CHAR (charsetp, XINT (ch));
   if (code == CHARSET_INVALID_CODE (charsetp))
     return Qnil;
-  if (code > 0x7FFFFFF)
-    return Fcons (make_number (code >> 16), make_number (code & 0xFFFF));
-  return make_number (code);
+  return INTEGER_TO_CONS (code);
 }
 
 
