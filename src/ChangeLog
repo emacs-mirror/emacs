@@ -1,6 +1,6 @@
 2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Cons<->int and similar integer overflow fixes.
+	Cons<->int and similar integer overflow fixes (Bug#8794).
 
 	Check for overflow when converting integer to cons and back.
 	* charset.c (Fdefine_charset_internal, Fdecode_char):
