@@ -691,9 +691,115 @@ Return nil if window display is not up-to-date.  In that case, use
 		make_number (row->y),
 		make_number (crop));
 }
-
-
 
+DEFUN ("window-total-size", Fwindow_total_size, Swindow_total_size, 0, 2, 0,
+       doc: /* Return the total number of lines of WINDOW.
+WINDOW can be any window and defaults to the selected one.  The return
+value includes WINDOW's mode line and header line, if any.  If WINDOW
+is internal, the return value is the sum of the total number of lines
+of WINDOW's child windows if these are vertically combined and the
+height of WINDOW's first child otherwise.
+
+Optional argument HORIZONTAL non-nil means return the total number of
+columns of WINDOW.  In this case the return value includes any vertical
+dividers or scrollbars of WINDOW.  If WINDOW is internal, the return
+value is the sum of the total number of columns of WINDOW's child
+windows if they are horizontally combined and the width of WINDOW's
+first child otherwise.  */)
+  (Lisp_Object window, Lisp_Object horizontal)
+{
+  if (NILP (horizontal))
+    return decode_any_window (window)->total_lines;
+  else
+    return decode_any_window (window)->total_cols;
+}
+
+DEFUN ("window-left-column", Fwindow_left_column, Swindow_left_column, 0, 1, 0,
+       doc: /* Return left column of WINDOW.
+WINDOW can be any window and defaults to the selected one.  */)
+  (Lisp_Object window)
+{
+  return decode_any_window (window)->left_col;
+}
+
+DEFUN ("window-top-line", Fwindow_top_line, Swindow_top_line, 0, 1, 0,
+       doc: /* Return top line of WINDOW.
+WINDOW can be any window and defaults to the selected one.  */)
+  (Lisp_Object window)
+{
+  return decode_any_window (window)->top_line;
+}
+
+/* Return the number of lines of W's body.  Don't count any mode or
+   header line of W.  */
+
+int
+window_body_lines (struct window *w)
+{
+  int height = XFASTINT (w->total_lines);
+
+  if (!MINI_WINDOW_P (w))
+    {
+      if (WINDOW_WANTS_MODELINE_P (w))
+	--height;
+      if (WINDOW_WANTS_HEADER_LINE_P (w))
+	--height;
+    }
+
+  return height;
+}
+
+/* Return the number of columns of W's body.  Don't count columns
+   occupied by the scroll bar or the vertical bar separating W from its
+   right sibling.  On window-systems don't count fringes or display
+   margins either.  */
+
+int
+window_body_cols (struct window *w)
+{
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  int width = XINT (w->total_cols);
+
+  if (WINDOW_HAS_VERTICAL_SCROLL_BAR (w))
+    /* Scroll bars occupy a few columns.  */
+    width -= WINDOW_CONFIG_SCROLL_BAR_COLS (w);
+  else if (!FRAME_WINDOW_P (f)
+	   && !WINDOW_RIGHTMOST_P (w) && !WINDOW_FULL_WIDTH_P (w))
+    /* The column of `|' characters separating side-by-side windows
+       occupies one column only.  */
+    width -= 1;
+
+  if (FRAME_WINDOW_P (f))
+    /* On window-systems, fringes and display margins cannot be
+       used for normal text.  */
+    width -= (WINDOW_FRINGE_COLS (w)
+	      + WINDOW_LEFT_MARGIN_COLS (w)
+	      + WINDOW_RIGHT_MARGIN_COLS (w));
+
+  return width;
+}
+
+DEFUN ("window-body-size", Fwindow_body_size, Swindow_body_size, 0, 2, 0,
+       doc: /* Return the number of lines of WINDOW's body.
+WINDOW must be a live window and defaults to the selected one.  The
+return value does not include WINDOW's mode line and header line, if
+any.
+
+Optional argument HORIZONTAL non-nil means return the number of columns
+of WINDOW's body.  In this case, the return value does not include any
+vertical dividers or scroll bars owned by WINDOW.  On a window-system
+the return value does not include the number of columns used for
+WINDOW's fringes or display margins either.  */)
+  (Lisp_Object window, Lisp_Object horizontal)
+{
+  struct window *w = decode_any_window (window);
+
+  if (NILP (horizontal))
+    return make_number (window_body_lines (w));
+  else
+    return make_number (window_body_cols (w));
+}
+
 DEFUN ("window-height", Fwindow_height, Swindow_height, 0, 1, 0,
        doc: /* Return the number of lines in WINDOW.
 WINDOW defaults to the selected window.
@@ -716,7 +822,7 @@ WINDOW.  If you want to find out how many columns WINDOW takes up, use
 (let ((edges (window-edges))) (- (nth 2 edges) (nth 0 edges))).  */)
   (Lisp_Object window)
 {
-  return make_number (window_box_text_cols (decode_any_window (window)));
+  return make_number (window_body_cols (decode_any_window (window)));
 }
 
 DEFUN ("window-full-width-p", Fwindow_full_width_p, Swindow_full_width_p, 0, 1, 0,
@@ -2248,6 +2354,43 @@ reverse order.  */)
 }
 
 
+DEFUN ("window-list-1", Fwindow_list_1, Swindow_list_1, 0, 3, 0,
+       doc: /* Return a list of all live windows.
+WINDOW specifies the first window to list and defaults to the selected
+window.
+
+Optional argument MINIBUF nil or omitted means consider the minibuffer
+window only if the minibuffer is active.  MINIBUF t means consider the
+minibuffer window even if the minibuffer is not active.  Any other value
+means do not consider the minibuffer window even if the minibuffer is
+active.
+
+Optional argument ALL-FRAMES nil or omitted means consider all windows
+on WINDOW's frame, plus the minibuffer window if specified by the
+MINIBUF argument.  If the minibuffer counts, consider all windows on all
+frames that share that minibuffer too.  The following non-nil values of
+ALL-FRAMES have special meanings:
+
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames.
+
+- 0 (the number zero) means consider all windows on all visible and
+  iconified frames.
+
+- A frame means consider all windows on that frame only.
+
+Anything else means consider all windows on WINDOW's frame and no
+others.
+
+If WINDOW is not on the list of windows returned, some other window will
+be listed first but no error is signalled.  */)
+  (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
+{
+  return window_list_1 (window, minibuf, all_frames);
+}
+
+
 DEFUN ("other-window", Fother_window, Sother_window, 1, 2, "p",
        doc: /* Select another window in cyclic ordering of windows.
 COUNT specifies the number of windows to skip, starting with the
@@ -2279,29 +2422,6 @@ nil.  */)
 }
 
 
-DEFUN ("window-list", Fwindow_list, Swindow_list, 0, 3, 0,
-       doc: /* Return a list of windows on FRAME, starting with WINDOW.
-FRAME nil or omitted means use the selected frame.
-WINDOW nil or omitted means use the selected window.
-MINIBUF t means include the minibuffer window, even if it isn't active.
-MINIBUF nil or omitted means include the minibuffer window only
-if it's active.
-MINIBUF neither nil nor t means never include the minibuffer window.  */)
-  (Lisp_Object frame, Lisp_Object minibuf, Lisp_Object window)
-{
-  if (NILP (window))
-    window = FRAMEP (frame) ? XFRAME (frame)->selected_window : selected_window;
-  CHECK_WINDOW (window);
-  if (NILP (frame))
-    frame = selected_frame;
-
-  if (!EQ (frame, XWINDOW (window)->frame))
-    error ("Window is on a different frame");
-
-  return window_list_1 (window, minibuf, frame);
-}
-
-
 /* Return a list of windows in cyclic ordering.  Arguments are like
    for `next-window'.  */
 
@@ -2328,6 +2448,29 @@ window_list_1 (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
       list = nconc2 (rest, list);
     }
   return list;
+}
+
+
+DEFUN ("window-list", Fwindow_list, Swindow_list, 0, 3, 0,
+       doc: /* Return a list of windows on FRAME, starting with WINDOW.
+FRAME nil or omitted means use the selected frame.
+WINDOW nil or omitted means use the selected window.
+MINIBUF t means include the minibuffer window, even if it isn't active.
+MINIBUF nil or omitted means include the minibuffer window only
+if it's active.
+MINIBUF neither nil nor t means never include the minibuffer window.  */)
+  (Lisp_Object frame, Lisp_Object minibuf, Lisp_Object window)
+{
+  if (NILP (window))
+    window = FRAMEP (frame) ? XFRAME (frame)->selected_window : selected_window;
+  CHECK_WINDOW (window);
+  if (NILP (frame))
+    frame = selected_frame;
+
+  if (!EQ (frame, XWINDOW (window)->frame))
+    error ("Window is on a different frame");
+
+  return window_list_1 (window, minibuf, frame);
 }
 
 
@@ -4808,37 +4951,6 @@ window_internal_height (struct window *w)
 
   return ht;
 }
-
-
-/* Return the number of columns in W.
-   Don't count columns occupied by scroll bars or the vertical bar
-   separating W from the sibling to its right.  */
-
-int
-window_box_text_cols (struct window *w)
-{
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
-  int width = XINT (w->total_cols);
-
-  if (WINDOW_HAS_VERTICAL_SCROLL_BAR (w))
-    /* Scroll bars occupy a few columns.  */
-    width -= WINDOW_CONFIG_SCROLL_BAR_COLS (w);
-  else if (!FRAME_WINDOW_P (f)
-	   && !WINDOW_RIGHTMOST_P (w) && !WINDOW_FULL_WIDTH_P (w))
-    /* The column of `|' characters separating side-by-side windows
-       occupies one column only.  */
-    width -= 1;
-
-  if (FRAME_WINDOW_P (f))
-    /* On window-systems, fringes and display margins cannot be
-       used for normal text.  */
-    width -= (WINDOW_FRINGE_COLS (w)
-	      + WINDOW_LEFT_MARGIN_COLS (w)
-	      + WINDOW_RIGHT_MARGIN_COLS (w));
-
-  return width;
-}
-
 
 /************************************************************************
 			   Window Scrolling
@@ -5547,7 +5659,7 @@ by this function.  This happens in an interactive call.  */)
   struct window *w = XWINDOW (selected_window);
 
   if (NILP (arg))
-    XSETFASTINT (arg, window_box_text_cols (w) - 2);
+    XSETFASTINT (arg, window_body_cols (w) - 2);
   else
     arg = Fprefix_numeric_value (arg);
 
@@ -5576,7 +5688,7 @@ by this function.  This happens in an interactive call.  */)
   struct window *w = XWINDOW (selected_window);
 
   if (NILP (arg))
-    XSETFASTINT (arg, window_box_text_cols (w) - 2);
+    XSETFASTINT (arg, window_body_cols (w) - 2);
   else
     arg = Fprefix_numeric_value (arg);
 
@@ -7280,6 +7392,11 @@ frame to be redrawn only if it is a tty frame.  */);
   defsubr (&Swindow_hchild);
   defsubr (&Swindow_next);
   defsubr (&Swindow_prev);
+  defsubr (&Swindow_use_time);
+  defsubr (&Swindow_top_line);
+  defsubr (&Swindow_left_column);
+  defsubr (&Swindow_total_size);
+  defsubr (&Swindow_body_size);
   defsubr (&Swindow_height);
   defsubr (&Swindow_width);
   defsubr (&Swindow_full_width_p);
@@ -7308,7 +7425,6 @@ frame to be redrawn only if it is a tty frame.  */);
   defsubr (&Sprevious_window);
   defsubr (&Sother_window);
   defsubr (&Sget_lru_window);
-  defsubr (&Swindow_use_time);
   defsubr (&Sget_largest_window);
   defsubr (&Sget_buffer_window);
   defsubr (&Sdelete_other_windows);
@@ -7348,10 +7464,10 @@ frame to be redrawn only if it is a tty frame.  */);
   defsubr (&Sset_window_vscroll);
   defsubr (&Scompare_window_configurations);
   defsubr (&Swindow_list);
+  defsubr (&Swindow_list_1);
   defsubr (&Swindow_parameters);
   defsubr (&Swindow_parameter);
   defsubr (&Sset_window_parameter);
-
 }
 
 void

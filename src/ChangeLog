@@ -1,3 +1,18 @@
+2011-06-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_total_size, Fwindow_left_column)
+	(Fwindow_top_line, window_body_lines, Fwindow_body_size)
+	(Fwindow_list_1): New functions.
+	(window_box_text_cols): Replace with window_body_cols.
+	(Fwindow_width, Fscroll_left, Fscroll_right): Use
+	window_body_cols instead of window_box_text_cols.
+
+	* window.h: Extern window_body_cols instead of
+	window_box_text_cols.
+
+	* indent.c (compute_motion, Fcompute_motion): Use
+	window_body_cols instead of window_box_text_cols.
+
 2011-06-07  Daniel Colascione  <dan.colascione@gmail.com>
 
 	* fns.c (Fputhash): Document return value.
