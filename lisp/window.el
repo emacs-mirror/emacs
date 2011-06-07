@@ -640,25 +640,112 @@ arguments."
 
 (defalias 'some-window 'get-window-with-predicate)
 
-;; This should probably be written in C (i.e., without using `walk-windows').
+(defun get-lru-window (&optional all-frames dedicated)
+   "Return the least recently used window on frames specified by ALL-FRAMES.
+Return a full-width window if possible.  A minibuffer window is
+never a candidate.  A dedicated window is never a candidate
+unless DEDICATED is non-nil, so if all windows are dedicated, the
+value is nil.  Avoid returning the selected window if possible.
+
+The following non-nil values of the optional argument ALL-FRAMES
+have special meanings:
+
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
+
+- 0 (the number zero) means consider all windows on all visible
+  and iconified frames on the current terminal.
+
+- A frame means consider all windows on that frame only.
+
+Any other value of ALL-FRAMES means consider all windows on the
+selected frame and no others."
+   (let (best-window best-time second-best-window second-best-time time)
+    (dolist (window (window-list-1 nil nil all-frames))
+      (when (or dedicated (not (window-dedicated-p window)))
+	(setq time (window-use-time window))
+	(if (or (eq window (selected-window))
+		(not (window-full-width-p window)))
+	    (when (or (not second-best-time) (< time second-best-time))
+	      (setq second-best-time time)
+	      (setq second-best-window window))
+	  (when (or (not best-time) (< time best-time))
+	    (setq best-time time)
+	    (setq best-window window)))))
+    (or best-window second-best-window)))
+
+(defun get-largest-window (&optional all-frames dedicated)
+  "Return the largest window on frames specified by ALL-FRAMES.
+A minibuffer window is never a candidate.  A dedicated window is
+never a candidate unless DEDICATED is non-nil, so if all windows
+are dedicated, the value is nil.
+
+The following non-nil values of the optional argument ALL-FRAMES
+have special meanings:
+
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
+
+- 0 (the number zero) means consider all windows on all visible
+  and iconified frames on the current terminal.
+
+- A frame means consider all windows on that frame only.
+
+Any other value of ALL-FRAMES means consider all windows on the
+selected frame and no others."
+  (let ((best-size 0)
+	best-window size)
+    (dolist (window (window-list-1 nil nil all-frames))
+      (when (or dedicated (not (window-dedicated-p window)))
+	(setq size (* (window-total-size window)
+		      (window-total-size window t)))
+	(when (> size best-size)
+	  (setq best-size size)
+	  (setq best-window window))))
+    best-window))
+
 (defun get-buffer-window-list (&optional buffer-or-name minibuf all-frames)
   "Return list of all windows displaying BUFFER-OR-NAME, or nil if none.
 BUFFER-OR-NAME may be a buffer or the name of an existing buffer
 and defaults to the current buffer.
 
-The optional arguments MINIBUF and ALL-FRAMES specify the set of
-windows to consider.  See `walk-windows' for the precise meaning
-of these arguments."
-  (let ((buffer (cond
-		 ((not buffer-or-name) (current-buffer))
-		 ((bufferp buffer-or-name) buffer-or-name)
-		 (t (get-buffer buffer-or-name))))
+Any windows showing BUFFER-OR-NAME on the selected frame are listed
+first.
+
+MINIBUF t means include the minibuffer window even if the
+minibuffer is not active.  MINIBUF nil or omitted means include
+the minibuffer window only if the minibuffer is active.  Any
+other value means do not include the minibuffer window even if
+the minibuffer is active.
+
+ALL-FRAMES nil or omitted means consider all windows on the
+selected frame, plus the minibuffer window if specified by the
+MINIBUF argument.  If the minibuffer counts, consider all windows
+on all frames that share that minibuffer too.  The following
+non-nil values of ALL-FRAMES have special meanings:
+
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
+
+- 0 (the number zero) means consider all windows on all visible
+  and iconified frames on the current terminal.
+
+- A frame means consider all windows on that frame only.
+
+Anything else means consider all windows on the selected frame
+and no others."
+  (let ((buffer (normalize-live-buffer buffer-or-name))
 	windows)
-    (walk-windows (function (lambda (window)
-			      (if (eq (window-buffer window) buffer)
-				  (setq windows (cons window windows)))))
-		  minibuf all-frames)
-    windows))
+    (dolist (window (window-list-1 (frame-first-window) minibuf all-frames))
+      (when (eq (window-buffer window) buffer)
+	(setq windows (cons window windows))))
+    (nreverse windows)))
 
 (defun minibuffer-window-active-p (window)
   "Return t if WINDOW is the currently active minibuffer window."

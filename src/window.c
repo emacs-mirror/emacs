@@ -2487,10 +2487,8 @@ enum window_loop
 {
   WINDOW_LOOP_UNUSED,
   GET_BUFFER_WINDOW,		/* Arg is buffer */
-  GET_LRU_WINDOW,		/* Arg is t for full-width windows only */
   DELETE_OTHER_WINDOWS,		/* Arg is window not to delete */
   DELETE_BUFFER_WINDOWS,	/* Arg is buffer */
-  GET_LARGEST_WINDOW,
   UNSHOW_BUFFER,		/* Arg is buffer */
   REDISPLAY_BUFFER_WINDOWS,	/* Arg is buffer */
   CHECK_ALL_WINDOWS
@@ -2573,21 +2571,6 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 	      }
 	    break;
 
-	  case GET_LRU_WINDOW:
-	    /* `obj' is an integer encoding a bitvector.
-	       `obj & 1' means consider only full-width windows.
-	       `obj & 2' means consider also dedicated windows. */
-	    if (((XINT (obj) & 1) && !WINDOW_FULL_WIDTH_P (w))
-		|| (!(XINT (obj) & 2) && !NILP (w->dedicated))
-		/* Minibuffer windows are always ignored.  */
-		|| MINI_WINDOW_P (w))
-	      break;
-	    if (NILP (best_window)
-		|| (XFASTINT (XWINDOW (best_window)->use_time)
-		    > XFASTINT (w->use_time)))
-	      best_window = window;
-	    break;
-
 	  case DELETE_OTHER_WINDOWS:
 	    if (!EQ (window, obj))
 	      Fdelete_window (window);
@@ -2630,24 +2613,6 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 		else
 		  Fdelete_window (window);
 	      }
-	    break;
-
-	  case GET_LARGEST_WINDOW:
-	    { /* nil `obj' means to ignore dedicated windows.  */
-	      /* Ignore dedicated windows and minibuffers.  */
-	      if (MINI_WINDOW_P (w) || (NILP (obj) && !NILP (w->dedicated)))
-		break;
-
-	      if (NILP (best_window))
-		best_window = window;
-	      else
-		{
-		  struct window *b = XWINDOW (best_window);
-		  if (XFASTINT (w->total_lines) * XFASTINT (w->total_cols)
-		      > XFASTINT (b->total_lines) * XFASTINT (b->total_cols))
-		    best_window = window;
-		}
-	    }
 	    break;
 
 	  case UNSHOW_BUFFER:
@@ -2738,50 +2703,6 @@ time is the least recently selected one.  */)
   (Lisp_Object window)
 {
   return decode_window (window)->use_time;
-}
-
-DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 2, 0,
-       doc: /* Return the window least recently selected or used for display.
-\(LRU means Least Recently Used.)
-
-Return a full-width window if possible.
-A minibuffer window is never a candidate.
-A dedicated window is never a candidate, unless DEDICATED is non-nil,
-  so if all windows are dedicated, the value is nil.
-If optional argument FRAME is `visible', search all visible frames.
-If FRAME is 0, search all visible and iconified frames.
-If FRAME is t, search all frames.
-If FRAME is nil, search only the selected frame.
-If FRAME is a frame, search only that frame.  */)
-  (Lisp_Object frame, Lisp_Object dedicated)
-{
-  register Lisp_Object w;
-  /* First try for a window that is full-width */
-  w = window_loop (GET_LRU_WINDOW,
-		   NILP (dedicated) ? make_number (1) : make_number (3),
-		   0, frame);
-  if (!NILP (w) && !EQ (w, selected_window))
-    return w;
-  /* If none of them, try the rest */
-  return window_loop (GET_LRU_WINDOW,
-		      NILP (dedicated) ? make_number (0) : make_number (2),
-		      0, frame);
-}
-
-DEFUN ("get-largest-window", Fget_largest_window, Sget_largest_window, 0, 2, 0,
-       doc: /* Return the largest window in area.
-A minibuffer window is never a candidate.
-A dedicated window is never a candidate unless DEDICATED is non-nil,
-  so if all windows are dedicated, the value is nil.
-If optional argument FRAME is `visible', search all visible frames.
-If FRAME is 0, search all visible and iconified frames.
-If FRAME is t, search all frames.
-If FRAME is nil, search only the selected frame.
-If FRAME is a frame, search only that frame.  */)
-  (Lisp_Object frame, Lisp_Object dedicated)
-{
-  return window_loop (GET_LARGEST_WINDOW, dedicated, 0,
-		      frame);
 }
 
 DEFUN ("get-buffer-window", Fget_buffer_window, Sget_buffer_window, 0, 2, 0,
@@ -7431,8 +7352,6 @@ frame to be redrawn only if it is a tty frame.  */);
   defsubr (&Snext_window);
   defsubr (&Sprevious_window);
   defsubr (&Sother_window);
-  defsubr (&Sget_lru_window);
-  defsubr (&Sget_largest_window);
   defsubr (&Sget_buffer_window);
   defsubr (&Sdelete_other_windows);
   defsubr (&Sdelete_windows_on);

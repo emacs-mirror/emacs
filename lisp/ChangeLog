@@ -1,3 +1,11 @@
+2011-06-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (get-lru-window, get-largest-window): Move here from
+	window.c.  Rename first argument to ALL-FRAMES.  Rephrase
+	doc-strings.
+	(get-buffer-window-list): Rewrite using window-list-1.  Rephrase
+	doc-string.
+
 2011-06-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-right, window-left, window-child)
