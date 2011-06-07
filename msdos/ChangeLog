@@ -1,3 +1,7 @@
+2011-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedlibmk.inp (PTRDIFF_T_SUFFIX): Edit to nothing.
+
 2011-05-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp: Edit "make-docfile -d FOO" commands to chdir back to

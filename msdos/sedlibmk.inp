@@ -424,6 +424,7 @@ am__cd = cd
 /^PRAGMA_COLUMNS *=/s/@[^@\n]*@//
 /^PRAGMA_SYSTEM_HEADER *=/s/@[^@\n]*@/\\\#pragma GCC system_header/
 /^PTHREAD_H_DEFINES_STRUCT_TIMESPEC *=/s/@[^@\n]*@/0/
+/^PTRDIFF_T_SUFFIX *=/s/@[^@\n]*@//
 /^RANLIB *=/s/@[^@\n]*@/ranlib/
 /^REPLACE_CALLOC *=/s/@REPLACE_CALLOC@/0/
 /^REPLACE_CANONICALIZE_FILE_NAME *=/s/@REPLACE_CANONICALIZE_FILE_NAME@/0/
