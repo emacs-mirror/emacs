@@ -5,6 +5,16 @@
 	doc-strings.
 	(get-buffer-window-list): Rewrite using window-list-1.  Rephrase
 	doc-string.
+	(window-safe-min-height, window-safe-min-width): New constants.
+	(window-size-ignore, window-min-size, window-min-size-1)
+	(window-sizable, window-sizable-p, window-size-fixed-1)
+	(window-size-fixed-p, window-min-delta-1, window-min-delta)
+	(window-max-delta-1, window-max-delta, window-resizable)
+	(window-resizable-p, window-total-height, window-total-width)
+	(window-body-width): New functions.
+	(window-full-height-p, window-full-width-p): Rewrite using
+	window-total-size.
+	(window-body-height): Rewrite using window-body-size.
 
 2011-06-06  Martin Rudalics  <rudalics@gmx.at>
 

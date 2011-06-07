@@ -157,6 +157,14 @@ The functions currently affected by this are `split-window',
 An application may bind this to a non-nil value around calls to
 these functions to inhibit processing of window parameters.")
 
+(defconst window-safe-min-height 1
+  "The absolut minimum number of lines of a window.
+Anything less might crash Emacs.")
+
+(defconst window-safe-min-width 2
+  "The absolut minimum number of columns of a window.
+Anything less might crash Emacs.")
+
 (defun window-iso-combination-p (&optional window horizontal)
   "If WINDOW is a vertical combination return WINDOW's first child.
 WINDOW can be any window and defaults to the selected one.
@@ -491,32 +499,457 @@ unless it has no other choice \(like when deleting a neighboring
 window).")
 (make-variable-buffer-local 'window-size-fixed)
 
-(defun window-body-height (&optional window)
-  "Return number of lines in WINDOW available for actual buffer text.
-WINDOW defaults to the selected window.
+(defsubst window-size-ignore (window ignore)
+  "Return non-nil if IGNORE says to ignore size restrictions for WINDOW."
+  (if (window-any-p ignore) (eq window ignore) ignore))
 
-The return value does not include the mode line or the header
-line, if any.  If a line at the bottom of the window is only
-partially visible, that line is included in the return value.
-If you do not want to include a partially visible bottom line
-in the return value, use `window-text-height' instead."
-  (or window (setq window (selected-window)))
-  (if (window-minibuffer-p window)
-      (window-height window)
-    (with-current-buffer (window-buffer window)
-      (max 1 (- (window-height window)
-		(if mode-line-format 1 0)
-		(if header-line-format 1 0))))))
+(defun window-min-size (&optional window horizontal ignore)
+  "Return the minimum number of lines of WINDOW.
+WINDOW can be an arbitrary window and defaults to the selected
+one.  Optional argument HORIZONTAL non-nil means return the
+minimum number of columns of WINDOW.
+
+Optional argument IGNORE non-nil means ignore any restrictions
+imposed by fixed size windows, `window-min-height' or
+`window-min-width' settings.  IGNORE equal `safe' means live
+windows may get as small as `window-safe-min-height' lines and
+`window-safe-min-width' columns.  IGNORE a window means ignore
+restrictions for that window only."
+  (window-min-size-1
+   (normalize-any-window window) horizontal ignore))
+
+(defun window-min-size-1 (window horizontal ignore)
+  "Internal function of `window-min-size'."
+  (let ((sub (window-child window)))
+    (if sub
+	(let ((value 0))
+	  ;; WINDOW is an internal window.
+	  (if (window-iso-combined-p sub horizontal)
+	      ;; The minimum size of an iso-combination is the sum of
+	      ;; the minimum sizes of its subwindows.
+	      (while sub
+		(setq value (+ value
+			       (window-min-size-1 sub horizontal ignore)))
+		(setq sub (window-right sub)))
+	    ;; The minimum size of an ortho-combination is the maximum of
+	    ;; the minimum sizes of its subwindows.
+	    (while sub
+	      (setq value (max value
+			       (window-min-size-1 sub horizontal ignore)))
+	      (setq sub (window-right sub))))
+	  value)
+      (with-current-buffer (window-buffer window)
+	(cond
+	 ((and (not (window-size-ignore window ignore))
+	       (window-size-fixed-p window horizontal))
+	  ;; The minimum size of a fixed size window is its size.
+	  (window-total-size window horizontal))
+	 ((or (eq ignore 'safe) (eq ignore window))
+	  ;; If IGNORE equals `safe' or WINDOW return the safe values.
+	  (if horizontal window-safe-min-width window-safe-min-height))
+	 (horizontal
+	  ;; For the minimum width of a window take fringes and
+	  ;; scroll-bars into account.  This is questionable and should
+	  ;; be removed as soon as we are able to split (and resize)
+	  ;; windows such that the new (or resized) windows can get a
+	  ;; size less than the user-specified `window-min-height' and
+	  ;; `window-min-width'.
+	  (let ((frame (window-frame window))
+		(fringes (window-fringes window))
+		(scroll-bars (window-scroll-bars window)))
+	    (max
+	     (+ window-safe-min-width
+		(ceiling (car fringes) (frame-char-width frame))
+		(ceiling (cadr fringes) (frame-char-width frame))
+		(cond
+		 ((memq (nth 2 scroll-bars) '(left right))
+		  (nth 1 scroll-bars))
+		 ((memq (frame-parameter frame 'vertical-scroll-bars)
+			'(left right))
+		  (ceiling (or (frame-parameter frame 'scroll-bar-width) 14)
+			   (frame-char-width)))
+		 (t 0)))
+	     (if (and (not (window-size-ignore window ignore))
+		      (numberp window-min-width))
+		 window-min-width
+	       0))))
+	 (t
+	  ;; For the minimum height of a window take any mode- or
+	  ;; header-line into account.
+	  (max (+ window-safe-min-height
+		  (if header-line-format 1 0)
+		  (if mode-line-format 1 0))
+	       (if (and (not (window-size-ignore window ignore))
+			(numberp window-min-height))
+		   window-min-height
+		 0))))))))
+
+(defun window-sizable (window delta &optional horizontal ignore)
+  "Return DELTA if DELTA lines can be added to WINDOW.
+Optional argument HORIZONTAL non-nil means return DELTA if DELTA
+columns can be added to WINDOW.  A return value of zero means
+that no lines (or columns) can be added to WINDOW.
+
+This function looks only at WINDOW and its subwindows.  The
+function `window-resizable' looks at other windows as well.
+
+DELTA positive means WINDOW shall be enlarged by DELTA lines or
+columns.  If WINDOW cannot be enlarged by DELTA lines or columns
+return the maximum value in the range 0..DELTA by which WINDOW
+can be enlarged.
+
+DELTA negative means WINDOW shall be shrunk by -DELTA lines or
+columns.  If WINDOW cannot be shrunk by -DELTA lines or columns,
+return the minimum value in the range DELTA..0 by which WINDOW
+can be shrunk.
+
+Optional argument IGNORE non-nil means ignore any restrictions
+imposed by fixed size windows, `window-min-height' or
+`window-min-width' settings.  IGNORE equal `safe' means live
+windows may get as small as `window-safe-min-height' lines and
+`window-safe-min-width' columns.  IGNORE any window means ignore
+restrictions for that window only."
+  (setq window (normalize-any-window window))
+  (cond
+   ((< delta 0)
+    (max (- (window-min-size window horizontal ignore)
+	    (window-total-size window horizontal))
+	 delta))
+   ((window-size-ignore window ignore)
+    delta)
+   ((> delta 0)
+    (if (window-size-fixed-p window horizontal)
+	0
+      delta))
+   (t 0)))
+
+(defsubst window-sizable-p (window delta &optional horizontal ignore)
+  "Return t if WINDOW can be resized by DELTA lines.
+For the meaning of the arguments of this function see the
+doc-string of `window-sizable'."
+  (setq window (normalize-any-window window))
+  (if (> delta 0)
+      (>= (window-sizable window delta horizontal ignore) delta)
+    (<= (window-sizable window delta horizontal ignore) delta)))
+
+(defun window-size-fixed-1 (window horizontal)
+  "Internal function for `window-size-fixed-p'."
+  (let ((sub (window-child window)))
+    (catch 'fixed
+      (if sub
+	  ;; WINDOW is an internal window.
+	  (if (window-iso-combined-p sub horizontal)
+	      ;; An iso-combination is fixed size if all its subwindows
+	      ;; are fixed-size.
+	      (progn
+		(while sub
+		  (unless (window-size-fixed-1 sub horizontal)
+		    ;; We found a non-fixed-size subwindow, so WINDOW's
+		    ;; size is not fixed.
+		    (throw 'fixed nil))
+		  (setq sub (window-right sub)))
+		;; All subwindows are fixed-size, so WINDOW's size is
+		;; fixed.
+		(throw 'fixed t))
+	    ;; An ortho-combination is fixed-size if at least one of its
+	    ;; subwindows is fixed-size.
+	    (while sub
+	      (when (window-size-fixed-1 sub horizontal)
+		;; We found a fixed-size subwindow, so WINDOW's size is
+		;; fixed.
+		(throw 'fixed t))
+	      (setq sub (window-right sub))))
+	;; WINDOW is a live window.
+	(with-current-buffer (window-buffer window)
+	  (if horizontal
+	      (memq window-size-fixed '(width t))
+	    (memq window-size-fixed '(height t))))))))
+
+(defun window-size-fixed-p (&optional window horizontal)
+  "Return non-nil if WINDOW's height is fixed.
+WINDOW can be an arbitrary window and defaults to the selected
+window.  Optional argument HORIZONTAL non-nil means return
+non-nil if WINDOW's width is fixed.
+
+If this function returns nil, this does not necessarily mean that
+WINDOW can be resized in the desired direction.  The functions
+`window-resizable' and `window-resizable-p' will tell that."
+  (window-size-fixed-1
+   (normalize-any-window window) horizontal))
+
+(defun window-min-delta-1 (window delta &optional horizontal ignore trail noup)
+  "Internal function for `window-min-delta'."
+  (if (not (window-parent window))
+      ;; If we can't go up, return zero.
+      0
+    ;; Else try to find a non-fixed-size sibling of WINDOW.
+    (let* ((parent (window-parent window))
+	   (sub (window-child parent)))
+      (catch 'done
+	(if (window-iso-combined-p sub horizontal)
+	    ;; In an iso-combination throw DELTA if we find at least one
+	    ;; subwindow and that subwindow is either not of fixed-size
+	    ;; or we can ignore fixed-sizeness.
+	    (let ((skip (eq trail 'after)))
+	      (while sub
+		(cond
+		 ((eq sub window)
+		  (setq skip (eq trail 'before)))
+		 (skip)
+		 ((and (not (window-size-ignore window ignore))
+		       (window-size-fixed-p sub horizontal)))
+		 (t
+		  ;; We found a non-fixed-size subwindow.
+		  (throw 'done delta)))
+		(setq sub (window-right sub))))
+	  ;; In an ortho-combination set DELTA to the minimum value by
+	  ;; which other subwindows can shrink.
+	  (while sub
+	    (unless (eq sub window)
+	      (setq delta
+		    (min delta
+			 (- (window-total-size sub horizontal)
+			    (window-min-size sub horizontal ignore)))))
+	    (setq sub (window-right sub))))
+	(if noup
+	    delta
+	  (window-min-delta-1 parent delta horizontal ignore trail))))))
+
+(defun window-min-delta (&optional window horizontal ignore trail noup nodown)
+  "Return number of lines by which WINDOW can be shrunk.
+WINDOW can be an arbitrary window and defaults to the selected
+window.  Return zero if WINDOW cannot be shrunk.
+
+Optional argument HORIZONTAL non-nil means return number of
+columns by which WINDOW can be shrunk.
+
+Optional argument IGNORE non-nil means ignore any restrictions
+imposed by fixed size windows, `window-min-height' or
+`window-min-width' settings.  IGNORE a window means ignore
+restrictions for that window only.  IGNORE equal `safe' means
+live windows may get as small as `window-safe-min-height' lines
+and `window-safe-min-width' columns.
+
+Optional argument TRAIL `before' means only windows to the left
+of or above WINDOW can be enlarged.  Optional argument TRAIL
+`after' means only windows to the right of or below WINDOW can be
+enlarged.
+
+Optional argument NOUP non-nil means don't go up in the window
+tree but try to enlarge windows within WINDOW's combination only.
+
+Optional argument NODOWN non-nil means don't check whether WINDOW
+itself \(and its subwindows) can be shrunk; check only whether at
+least one other windows can be enlarged appropriately."
+  (setq window (normalize-any-window window))
+  (let ((size (window-total-size window horizontal))
+	(minimum (window-min-size window horizontal ignore)))
+    (cond
+     (nodown
+      ;; If NODOWN is t, try to recover the entire size of WINDOW.
+      (window-min-delta-1 window size horizontal ignore trail noup))
+     ((= size minimum)
+      ;; If NODOWN is nil and WINDOW's size is already at its minimum,
+      ;; there's nothing to recover.
+      0)
+     (t
+      ;; Otherwise, try to recover whatever WINDOW is larger than its
+      ;; minimum size.
+      (window-min-delta-1
+       window (- size minimum) horizontal ignore trail noup)))))
+
+(defun window-max-delta-1 (window delta &optional horizontal ignore trail noup)
+  "Internal function of `window-max-delta'."
+  (if (not (window-parent window))
+      ;; Can't go up.  Return DELTA.
+      delta
+    (let* ((parent (window-parent window))
+	   (sub (window-child parent)))
+      (catch 'fixed
+	(if (window-iso-combined-p sub horizontal)
+	    ;; For an iso-combination calculate how much we can get from
+	    ;; other subwindows.
+	    (let ((skip (eq trail 'after)))
+	      (while sub
+		(cond
+		 ((eq sub window)
+		  (setq skip (eq trail 'before)))
+		 (skip)
+		 (t
+		  (setq delta
+			(+ delta
+			   (- (window-total-size sub horizontal)
+			      (window-min-size sub horizontal ignore))))))
+		(setq sub (window-right sub))))
+	  ;; For an ortho-combination throw DELTA when at least one
+	  ;; subwindow is fixed-size.
+	  (while sub
+	    (when (and (not (eq sub window))
+		       (not (window-size-ignore sub ignore))
+		       (window-size-fixed-p sub horizontal))
+	      (throw 'fixed delta))
+	    (setq sub (window-right sub))))
+	(if noup
+	    ;; When NOUP is nil, DELTA is all we can get.
+	    delta
+	  ;; Else try with parent of WINDOW, passing the DELTA we
+	  ;; recovered so far.
+	  (window-max-delta-1 parent delta horizontal ignore trail))))))
+
+(defun window-max-delta (&optional window horizontal ignore trail noup nodown)
+  "Return maximum number of lines WINDOW by which WINDOW can be enlarged.
+WINDOW can be an arbitrary window and defaults to the selected
+window.  The return value is zero if WINDOW cannot be enlarged.
+
+Optional argument HORIZONTAL non-nil means return maximum number
+of columns by which WINDOW can be enlarged.
+
+Optional argument IGNORE non-nil means ignore any restrictions
+imposed by fixed size windows, `window-min-height' or
+`window-min-width' settings.  IGNORE a window means ignore
+restrictions for that window only.  IGNORE equal `safe' means
+live windows may get as small as `window-safe-min-height' lines
+and `window-safe-min-width' columns.
+
+Optional argument TRAIL `before' means only windows to the left
+of or below WINDOW can be shrunk.  Optional argument TRAIL
+`after' means only windows to the right of or above WINDOW can be
+shrunk.
+
+Optional argument NOUP non-nil means don't go up in the window
+tree but try to obtain the entire space from windows within
+WINDOW's combination.
+
+Optional argument NODOWN non-nil means do not check whether
+WINDOW itself \(and its subwindows) can be enlarged; check only
+whether other windows can be shrunk appropriately."
+  (setq window (normalize-any-window window))
+  (if (and (not (window-size-ignore window ignore))
+	   (not nodown) (window-size-fixed-p window horizontal))
+      ;; With IGNORE and NOWDON nil return zero if WINDOW has fixed
+      ;; size.
+      0
+    ;; WINDOW has no fixed size.
+    (window-max-delta-1 window 0 horizontal ignore trail noup)))
+
+;; Make NOUP also inhibit the min-size check.
+(defun window-resizable (window delta &optional horizontal ignore trail noup nodown)
+  "Return DELTA if WINDOW can be resized vertically by DELTA lines.
+Optional argument HORIZONTAL non-nil means return DELTA if WINDOW
+can be resized horizontally by DELTA columns.  A return value of
+zero means that WINDOW is not resizable.
+
+DELTA positive means WINDOW shall be enlarged by DELTA lines or
+columns.  If WINDOW cannot be enlarged by DELTA lines or columns
+return the maximum value in the range 0..DELTA by which WINDOW
+can be enlarged.
+
+DELTA negative means WINDOW shall be shrunk by -DELTA lines or
+columns.  If WINDOW cannot be shrunk by -DELTA lines or columns,
+return the minimum value in the range DELTA..0 that can be used
+for shrinking WINDOW.
+
+Optional argument IGNORE non-nil means ignore any restrictions
+imposed by fixed size windows, `window-min-height' or
+`window-min-width' settings.  IGNORE a window means ignore
+restrictions for that window only.  IGNORE equal `safe' means
+live windows may get as small as `window-safe-min-height' lines
+and `window-safe-min-width' columns.
+
+Optional argument TRAIL `before' means only windows to the left
+of or below WINDOW can be shrunk.  Optional argument TRAIL
+`after' means only windows to the right of or above WINDOW can be
+shrunk.
+
+Optional argument NOUP non-nil means don't go up in the window
+tree but try to distribute the space among the other windows
+within WINDOW's combination.
+
+Optional argument NODOWN non-nil means don't check whether WINDOW
+and its subwindows can be resized."
+  (setq window (normalize-any-window window))
+  (cond
+   ((< delta 0)
+    (max (- (window-min-delta window horizontal ignore trail noup nodown))
+	 delta))
+   ((> delta 0)
+    (min (window-max-delta window horizontal ignore trail noup nodown)
+	 delta))
+   (t 0)))
+
+(defun window-resizable-p (window delta &optional horizontal ignore trail noup nodown)
+  "Return t if WINDOW can be resized vertically by DELTA lines.
+For the meaning of the arguments of this function see the
+doc-string of `window-resizable'."
+  (setq window (normalize-any-window window))
+  (if (> delta 0)
+      (>= (window-resizable window delta horizontal ignore trail noup nodown)
+	  delta)
+    (<= (window-resizable window delta horizontal ignore trail noup nodown)
+	delta)))
+
+(defsubst window-total-height (&optional window)
+  "Return the total number of lines of WINDOW.
+WINDOW can be any window and defaults to the selected one.  The
+return value includes WINDOW's mode line and header line, if any.
+If WINDOW is internal the return value is the sum of the total
+number of lines of WINDOW's child windows if these are vertically
+combined and the height of WINDOW's first child otherwise.
+
+Note: This function does not take into account the value of
+`line-spacing' when calculating the number of lines in WINDOW."
+  (window-total-size window))
 
 ;; See discussion in bug#4543.
-(defun window-full-height-p (&optional window)
-  "Return non-nil if WINDOW is not the result of a vertical split.
-WINDOW defaults to the selected window.  (This function is not
-appropriate for minibuffers.)"
-  (unless window
-    (setq window (selected-window)))
-  (= (window-height window)
-     (window-height (frame-root-window (window-frame window)))))
+(defsubst window-full-height-p (&optional window)
+  "Return t if WINDOW is as high as the containing frame.
+More precisely, return t if and only if the total height of
+WINDOW equals the total height of the root window of WINDOW's
+frame.  WINDOW can be any window and defaults to the selected
+one."
+  (setq window (normalize-any-window window))
+  (= (window-total-size window)
+     (window-total-size (frame-root-window window))))
+
+(defsubst window-total-width (&optional window)
+  "Return the total number of columns of WINDOW.
+WINDOW can be any window and defaults to the selected one.  The
+return value includes any vertical dividers or scrollbars of
+WINDOW.  If WINDOW is internal, the return value is the sum of
+the total number of columns of WINDOW's child windows if these
+are horizontally combined and the width of WINDOW's first child
+otherwise."
+  (window-total-size window t))
+
+(defsubst window-full-width-p (&optional window)
+  "Return t if WINDOW is as wide as the containing frame.
+More precisely, return t if and only if the total width of WINDOW
+equals the total width of the root window of WINDOW's frame.
+WINDOW can be any window and defaults to the selected one."
+  (setq window (normalize-any-window window))
+  (= (window-total-size window t)
+     (window-total-size (frame-root-window window) t)))
+
+(defsubst window-body-height (&optional window)
+  "Return the number of lines of WINDOW's body.
+WINDOW must be a live window and defaults to the selected one.
+
+The return value does not include WINDOW's mode line and header
+line, if any.  If a line at the bottom of the window is only
+partially visible, that line is included in the return value.  If
+you do not want to include a partially visible bottom line in the
+return value, use `window-text-height' instead."
+  (window-body-size window))
+
+(defsubst window-body-width (&optional window)
+  "Return the number of columns of WINDOW's body.
+WINDOW must be a live window and defaults to the selected one.
+
+The return value does not include any vertical dividers or scroll
+bars owned by WINDOW.  On a window-system the return value does
+not include the number of columns used for WINDOW's fringes or
+display margins either."
+  (window-body-size window t))
 
 (defun one-window-p (&optional nomini all-frames)
   "Return non-nil if the selected window is the only window.
