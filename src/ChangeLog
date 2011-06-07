@@ -6,12 +6,20 @@
 	(window_box_text_cols): Replace with window_body_cols.
 	(Fwindow_width, Fscroll_left, Fscroll_right): Use
 	window_body_cols instead of window_box_text_cols.
+	(delete_window, Fset_window_configuration): Call
+	delete_all_subwindows with window as argument.
+	(delete_all_subwindows): Take a window as argument and not a
+	structure.  Rewrite.
 
 	* window.h: Extern window_body_cols instead of
-	window_box_text_cols.
+	window_box_text_cols.  delete_all_subwindows now takes a
+	Lisp_Object as argument.
 
 	* indent.c (compute_motion, Fcompute_motion): Use
 	window_body_cols instead of window_box_text_cols.
+
+	* frame.c (delete_frame): Call delete_all_subwindows with root
+	window as argument.
 
 2011-06-07  Daniel Colascione  <dan.colascione@gmail.com>
 

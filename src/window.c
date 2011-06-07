@@ -2001,9 +2001,9 @@ delete_window (register Lisp_Object window)
   /* Since we may be deleting combination windows, we must make sure that
      not only p but all its children have been marked as deleted.  */
   if (! NILP (p->hchild))
-    delete_all_subwindows (XWINDOW (p->hchild));
+    delete_all_subwindows (p->hchild);
   else if (! NILP (p->vchild))
-    delete_all_subwindows (XWINDOW (p->vchild));
+    delete_all_subwindows (p->vchild);
 
   /* Mark this window as deleted.  */
   p->buffer = p->hchild = p->vchild = Qnil;
@@ -6260,7 +6260,7 @@ the return value is nil.  Otherwise the value is t.  */)
 	 Save their current buffers in their height fields, since we may
 	 need it later, if a buffer saved in the configuration is now
 	 dead.  */
-      delete_all_subwindows (XWINDOW (FRAME_ROOT_WINDOW (f)));
+      delete_all_subwindows (FRAME_ROOT_WINDOW (f));
 
       for (k = 0; k < saved_windows->header.size; k++)
 	{
@@ -6448,31 +6448,38 @@ the return value is nil.  Otherwise the value is t.  */)
   return (FRAME_LIVE_P (f) ? Qt : Qnil);
 }
 
-/* Mark all windows now on frame as deleted
-   by setting their buffers to nil.  */
-
+/* Delete all subwindows reachable via the next, vchild, and hchild
+   slots of WINDOW.  */
 void
-delete_all_subwindows (register struct window *w)
+delete_all_subwindows (Lisp_Object window)
 {
+  register struct window *w;
+
+  w = XWINDOW (window);
+
   if (!NILP (w->next))
-    delete_all_subwindows (XWINDOW (w->next));
-  if (!NILP (w->vchild))
-    delete_all_subwindows (XWINDOW (w->vchild));
-  if (!NILP (w->hchild))
-    delete_all_subwindows (XWINDOW (w->hchild));
+    /* Delete WINDOW's siblings (we traverse postorderly).  */
+    delete_all_subwindows (w->next);
 
   w->total_lines = w->buffer;       /* See Fset_window_configuration for excuse.  */
 
-  if (!NILP (w->buffer))
-    unshow_buffer (w);
-
-  /* We set all three of these fields to nil, to make sure that we can
-     distinguish this dead window from any live window.  Live leaf
-     windows will have buffer set, and combination windows will have
-     vchild or hchild set.  */
-  w->buffer = Qnil;
-  w->vchild = Qnil;
-  w->hchild = Qnil;
+  if (!NILP (w->vchild))
+    {
+      delete_all_subwindows (w->vchild);
+      w->vchild = Qnil;
+    }
+  else if (!NILP (w->hchild))
+    {
+      delete_all_subwindows (w->hchild);
+      w->hchild = Qnil;
+    }
+  else if (!NILP (w->buffer))
+    {
+      unshow_buffer (w);
+      unchain_marker (XMARKER (w->pointm));
+      unchain_marker (XMARKER (w->start));
+      w->buffer = Qnil;
+    }
 
   Vwindow_list = Qnil;
 }

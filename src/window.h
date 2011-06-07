@@ -770,7 +770,7 @@ EXFUN (Fwindow_dedicated_p, 1);
 extern void set_window_height (Lisp_Object, int, int);
 extern void set_window_width (Lisp_Object, int, int);
 extern void change_window_heights (Lisp_Object, int);
-extern void delete_all_subwindows (struct window *);
+extern void delete_all_subwindows (Lisp_Object);
 extern void freeze_window_starts (struct frame *, int);
 extern void grow_mini_window (struct window *, int);
 extern void shrink_mini_window (struct window *);
