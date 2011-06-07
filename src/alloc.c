@@ -2186,9 +2186,9 @@ INIT must be an integer that represents a character.  */)
   EMACS_INT nbytes;
 
   CHECK_NATNUM (length);
-  CHECK_NUMBER (init);
+  CHECK_CHARACTER (init);
 
-  c = XINT (init);
+  c = XFASTINT (init);
   if (ASCII_CHAR_P (c))
     {
       nbytes = XINT (length);
