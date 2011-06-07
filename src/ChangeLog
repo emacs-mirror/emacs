@@ -1,3 +1,7 @@
+2011-06-07  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* fns.c (Fputhash): Document return value.
+
 2011-06-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (gif_load): Implement gif89a spec "no disposal" method.

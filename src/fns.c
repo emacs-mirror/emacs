@@ -4469,7 +4469,7 @@ If KEY is not found, return DFLT which defaults to nil.  */)
 DEFUN ("puthash", Fputhash, Sputhash, 3, 3, 0,
        doc: /* Associate KEY with VALUE in hash table TABLE.
 If KEY is already present in table, replace its current value with
-VALUE.  */)
+VALUE.  In any case, return VALUE.  */)
   (Lisp_Object key, Lisp_Object value, Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
