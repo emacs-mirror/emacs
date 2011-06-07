@@ -1101,6 +1101,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    'wchar_t'. */
 #undef WCHAR_T_SUFFIX
 
+/* Use long long for EMACS_INT if available. */
+#undef WIDE_EMACS_INT
+
 /* Define to l, ll, u, ul, ull, etc., as suitable for constants of type
    'wint_t'. */
 #undef WINT_T_SUFFIX
@@ -1260,6 +1263,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* The name _UNUSED_PARAMETER_ is an earlier spelling, although the name
    is a misnomer outside of parameter lists.  */
 #define _UNUSED_PARAMETER_ _GL_UNUSED
+
+/* The __pure__ attribute was added in gcc 2.96.  */
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 96)
+# define _GL_ATTRIBUTE_PURE __attribute__ ((__pure__))
+#else
+# define _GL_ATTRIBUTE_PURE /* empty */
+#endif
+
+/* The __const__ attribute was added in gcc 2.95.  */
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95)
+# define _GL_ATTRIBUTE_CONST __attribute__ ((__const__))
+#else
+# define _GL_ATTRIBUTE_CONST /* empty */
+#endif
 
 
 /* Define as a macro for copying va_list variables. */
