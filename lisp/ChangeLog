@@ -1,3 +1,20 @@
+2011-06-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-toggle-animation): New command.
+	(image-mode-map): Bind it to RET.
+	(image-mode): Update message.
+	(image-toggle-display-image): Avoid a spurious cache flush.
+	(image-transform-rotation): Doc fix.
+	(image-transform-properties): Return quickly in the normal case.
+	(image-animate-loop): Rename from image-animate-max-time.
+
+	* image.el (image-animate-max-time): Moved to image-mode.el.
+	(create-animated-image): Remove unnecessary function.
+	(image-animate): Rename from image-animate-start.  New arg.
+	(image-animate-stop): Removed; just use image-animate-timer.
+	(image-animate-timer): Use car-safe.
+	(image-animate-timeout): Rename argument.
+
 2011-06-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (get-lru-window, get-largest-window): Move here from

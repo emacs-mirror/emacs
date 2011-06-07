@@ -308,6 +308,7 @@ This function assumes the current frame has only one window."
     (define-key map "\C-c\C-c" 'image-toggle-display)
     (define-key map (kbd "SPC")       'image-scroll-up)
     (define-key map (kbd "DEL")       'image-scroll-down)
+    (define-key map (kbd "RET")       'image-toggle-animation)
     (define-key map [remap forward-char] 'image-forward-hscroll)
     (define-key map [remap backward-char] 'image-backward-hscroll)
     (define-key map [remap right-char] 'image-forward-hscroll)
@@ -373,16 +374,26 @@ to toggle between display as an image and display as text."
 	(add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
 	(add-hook 'after-revert-hook 'image-after-revert-hook nil t)
 	(run-mode-hooks 'image-mode-hook)
-	(message "%s" (concat
-		       (substitute-command-keys
-			"Type \\[image-toggle-display] to view the image as ")
-		       (if (image-get-display-property)
-			   "text" "an image") ".")))
+	(let ((image (image-get-display-property))
+	      (msg1 (substitute-command-keys
+		     "Type \\[image-toggle-display] to view the image as ")))
+	  (cond
+	   ((null image)
+	    (message "%s" (concat msg1 "an image.")))
+	   ((image-animated-p image)
+	    (message "%s"
+		     (concat msg1 "text, or "
+			     (substitute-command-keys
+			      "\\[image-toggle-animation] to animate."))))
+	   (t
+	    (message "%s" (concat msg1 "text."))))))
+
     (error
      (image-mode-as-text)
      (funcall
       (if (called-interactively-p 'any) 'error 'message)
       "Cannot display image: %s" (cdr err)))))
+
 ;;;###autoload
 (define-minor-mode image-minor-mode
   "Toggle Image minor mode.
@@ -484,25 +495,20 @@ was inserted."
 			    (buffer-substring-no-properties (point-min) (point-max)))
 			 filename))
 	 (type (image-type file-or-data nil data-p))
-	 ;; Don't use create-animated-image here; that would start the
-	 ;; timer, which works by altering the spec destructively.
-	 ;; But we still need to append the transformation properties,
-	 ;; which would make a new list.
 	 (image (create-image file-or-data type data-p))
 	 (inhibit-read-only t)
 	 (buffer-undo-list t)
 	 (modified (buffer-modified-p))
 	 props)
 
+    ;; Discard any stale image data before looking it up again.
+    (image-flush image)
     (setq image (append image (image-transform-properties image)))
     (setq props
 	  `(display ,image
 		    intangible ,image
 		    rear-nonsticky (display intangible)
 		    read-only t front-sticky (read-only)))
-    (image-flush image)
-    ;; Begin the animation, if any.
-    (image-animate-start image)
 
     (let ((buffer-file-truename nil)) ; avoid changing dir mtime by lock_file
       (add-text-properties (point-min) (point-max) props)
@@ -543,6 +549,37 @@ the image by calling `image-mode'."
     (mapc (lambda (window) (redraw-frame (window-frame window)))
           (get-buffer-window-list (current-buffer) 'nomini 'visible))
     (image-toggle-display-image)))
+
+
+;;; Animated images
+
+(defcustom image-animate-loop nil
+  "Whether to play animated images on a loop in Image mode."
+  :type 'boolean
+  :version "24.1"
+  :group 'image)
+
+(defun image-toggle-animation ()
+  "Start or stop animating the current image."
+  (interactive)
+  (let ((image (image-get-display-property))
+	animation)
+    (cond
+     ((null image)
+      (error "No image is present"))
+     ((null (setq animation (image-animated-p image)))
+      (message "No image animation."))
+     (t
+      (let ((timer (image-animate-timer image)))
+	(if timer
+	    (cancel-timer timer)
+	  (let ((index (plist-get (cdr image) :index)))
+	    ;; If we're at the end, restart.
+	    (and index
+		 (>= index (1- (car animation)))
+		 (setq index nil))
+	    (image-animate image index
+			   (if image-animate-loop t)))))))))
 
 
 ;;; Support for bookmark.el
@@ -589,33 +626,38 @@ Its value should be one of the following:
  - `fit-width', meaning to fit the image to the window width.
  - A number, which is a scale factor (the default size is 100).")
 
-(defvar image-transform-rotation 0.0)
+(defvar image-transform-rotation 0.0
+  "Rotation angle for the image in the current Image mode buffer.")
 
-(defun image-transform-properties (display)
-  "Return rescaling/rotation properties for the Image mode buffer.
-These properties are suitable for appending to an image spec;
-they are determined by the variables `image-transform-resize' and
-`image-transform-rotation'.
+(defun image-transform-properties (spec)
+  "Return rescaling/rotation properties for image SPEC.
+These properties are determined by the Image mode variables
+`image-transform-resize' and `image-transform-rotation'.  The
+return value is suitable for appending to an image spec.
 
 Recaling and rotation properties only take effect if Emacs is
 compiled with ImageMagick support."
-  (let* ((size (image-size display t))
-	 (height
-	  (cond
-	   ((numberp image-transform-resize)
-	    (unless (= image-transform-resize 100)
-	      (* image-transform-resize (cdr size))))
-	   ((eq image-transform-resize 'fit-height)
-	    (- (nth 3 (window-inside-pixel-edges))
-	       (nth 1 (window-inside-pixel-edges))))))
-	 (width (if (eq image-transform-resize 'fit-width)
-		    (- (nth 2 (window-inside-pixel-edges))
-		       (nth 0 (window-inside-pixel-edges))))))
-    ;;TODO fit-to-* should consider the rotation angle
-    `(,@(if height (list :height height))
-      ,@(if width (list :width width))
-      ,@(if (not (equal 0.0 image-transform-rotation))
-            (list :rotation image-transform-rotation)))))
+  (when (or image-transform-resize
+	    (not (equal image-transform-rotation 0.0)))
+    ;; Note: `image-size' looks up and thus caches the untransformed
+    ;; image.  There's no easy way to prevent that.
+    (let* ((size (image-size spec t))
+	   (height
+	    (cond
+	     ((numberp image-transform-resize)
+	      (unless (= image-transform-resize 100)
+		(* image-transform-resize (cdr size))))
+	     ((eq image-transform-resize 'fit-height)
+	      (- (nth 3 (window-inside-pixel-edges))
+		 (nth 1 (window-inside-pixel-edges))))))
+	   (width (if (eq image-transform-resize 'fit-width)
+		      (- (nth 2 (window-inside-pixel-edges))
+			 (nth 0 (window-inside-pixel-edges))))))
+      ;;TODO fit-to-* should consider the rotation angle
+      `(,@(if height (list :height height))
+	,@(if width (list :width width))
+	,@(if (not (equal 0.0 image-transform-rotation))
+	      (list :rotation image-transform-rotation))))))
 
 (defun image-transform-set-scale (scale)
   "Prompt for a number, and resize the current image by that amount.
