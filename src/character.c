@@ -847,7 +847,7 @@ string_escape_byte8 (Lisp_Object string)
     }
   else
     {
-      if ((STRING_BYTES_MAX - nchars) / 3 < byte8_count)
+      if ((STRING_BYTES_MAX - nbytes) / 3 < byte8_count)
 	string_overflow ();
 
       /* Convert 1-byte sequence of byte8 chars to 4-byte octal.  */

@@ -1,5 +1,7 @@
 2011-06-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* character.c (string_escape_byte8): Fix nbytes/nchars typo.
+
 	* alloc.c (Fmake_string): Check for out-of-range init.
 
 2011-06-07  Daniel Colascione  <dan.colascione@gmail.com>
