@@ -47,6 +47,9 @@ also depend on Gtk+.  You can disable them with --without-rsvg and
 This is only useful for Emacs developers to debug certain types of bugs.
 This is not a new feature; only the configure flag is new.
 
+** There is a new configure option --with-wide-int.
+With it, Emacs integers typically have 62 bits, even on 32-bit machines.
+
 ---
 ** New translation of the Emacs Tutorial in Hebrew is available.
 Type `C-u C-h t' to choose it in case your language setup doesn't

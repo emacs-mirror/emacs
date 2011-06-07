@@ -1,3 +1,8 @@
+2011-06-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in: Add --with-wide-int.
+	* INSTALL: Mention this.
+
 2011-06-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib.
