@@ -1,5 +1,7 @@
 2011-06-08  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* window.c (window_body_lines): Now static.
+
 	* image.c (gif_load): Rename local to avoid shadowing.
 
 	* lisp.h (SAFE_ALLOCA_LISP): Check for integer overflow.

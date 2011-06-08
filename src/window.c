@@ -621,7 +621,7 @@ WINDOW can be any window and defaults to the selected one.  */)
 /* Return the number of lines of W's body.  Don't count any mode or
    header line of W.  */
 
-int
+static int
 window_body_lines (struct window *w)
 {
   int height = XFASTINT (w->total_lines);
