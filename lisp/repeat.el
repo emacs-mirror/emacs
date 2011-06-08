@@ -123,7 +123,9 @@ if `repeat' is bound to C-x z, typing C-x z z z repeats the previous command
 only occurs if the final character by which `repeat' was invoked is a
 member of that sequence.  If this variable is nil, no re-execution occurs."
   :group 'convenience
-  :type 'boolean)
+  :type '(choice (const :tag "Repeat for all keys" t)
+		 (const :tag "Don't repeat" nil)
+		 (sexp :tag "Repeat for specific keys")))
 
 ;;;;; ****************** HACKS TO THE REST OF EMACS ******************* ;;;;;
 
