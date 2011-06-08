@@ -2802,10 +2802,11 @@ allocate_vectorlike (EMACS_INT len)
 {
   struct Lisp_Vector *p;
   size_t nbytes;
+  ptrdiff_t nbytes_max = min (PTRDIFF_MAX, SIZE_MAX);
   int header_size = offsetof (struct Lisp_Vector, contents);
   int word_size = sizeof p->contents[0];
 
-  if ((SIZE_MAX - header_size) / word_size < len)
+  if ((nbytes_max - header_size) / word_size < len)
     memory_full (SIZE_MAX);
 
   MALLOC_BLOCK_INPUT;

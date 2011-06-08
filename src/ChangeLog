@@ -1,6 +1,7 @@
 2011-06-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* alloc.c (Fmake_bool_vector): Don't assume vector size fits in int.
+	(allocate_vectorlike): Check for ptrdiff_t overflow.
 
 	* alloc.c: Catch some string size overflows that we were missing.
 	(XMALLOC_OVERRUN_CHECK_SIZE) [!XMALLOC_OVERRUN_CHECK]: Define to 0,
