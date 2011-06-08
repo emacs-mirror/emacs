@@ -2246,7 +2246,6 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
 {
   register Lisp_Object val;
   struct Lisp_Bool_Vector *p;
-  int real_init, i;
   EMACS_INT length_in_chars, length_in_elts;
   int bits_per_value;
 
@@ -2268,9 +2267,7 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   p = XBOOL_VECTOR (val);
   p->size = XFASTINT (length);
 
-  real_init = (NILP (init) ? 0 : -1);
-  for (i = 0; i < length_in_chars ; i++)
-    p->data[i] = real_init;
+  memset (p->data, NILP (init) ? 0 : -1, length_in_chars);
 
   /* Clear the extraneous bits in the last byte.  */
   if (XINT (length) != length_in_chars * BOOL_VECTOR_BITS_PER_CHAR)
