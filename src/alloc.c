@@ -5265,8 +5265,8 @@ static size_t mark_object_loop_halt;
 static void
 mark_vectorlike (struct Lisp_Vector *ptr)
 {
-  register EMACS_UINT size = ptr->header.size;
-  register EMACS_UINT i;
+  EMACS_INT size = ptr->header.size;
+  EMACS_INT i;
 
   eassert (!VECTOR_MARKED_P (ptr));
   VECTOR_MARK (ptr);		/* Else mark it */
@@ -5288,8 +5288,8 @@ mark_vectorlike (struct Lisp_Vector *ptr)
 static void
 mark_char_table (struct Lisp_Vector *ptr)
 {
-  register EMACS_UINT size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
-  register EMACS_UINT i;
+  int size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
+  int i;
 
   eassert (!VECTOR_MARKED_P (ptr));
   VECTOR_MARK (ptr);
@@ -5417,12 +5417,11 @@ mark_object (Lisp_Object arg)
 	   recursion there.  */
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
-	  register EMACS_UINT size = ptr->header.size;
-	  register EMACS_UINT i;
+	  int size = ptr->header.size & PSEUDOVECTOR_SIZE_MASK;
+	  int i;
 
 	  CHECK_LIVE (live_vector_p);
 	  VECTOR_MARK (ptr);	/* Else mark it */
-	  size &= PSEUDOVECTOR_SIZE_MASK;
 	  for (i = 0; i < size; i++) /* and then mark its elements */
 	    {
 	      if (i != COMPILED_CONSTANTS)
