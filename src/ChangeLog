@@ -1,7 +1,34 @@
 2011-06-08  Martin Rudalics  <rudalics@gmx.at>
 
+	* window.h (window): Add some new members to window structure -
+	normal_lines, normal_cols, new_total, new_normal, clone_number,
+	splits, nest, prev_buffers, next_buffers.
+	(WINDOW_TOTAL_SIZE): Move here from window.c.
+	(MIN_SAFE_WINDOW_WIDTH, MIN_SAFE_WINDOW_HEIGHT): Define.
+
 	* window.c (Fwindow_height, Fwindow_width, Fwindow_full_width_p):
 	Remove.
+	(make_dummy_parent): Set new members of windows structure.
+	(make_window): Move down in code.  Handle new members of window
+	structure.
+	(Fwindow_clone_number, Fwindow_splits, Fset_window_splits)
+	(Fwindow_nest, Fset_window_nest, Fwindow_new_total)
+	(Fwindow_normal_size, Fwindow_new_normal, Fwindow_prev_buffers)
+	(Fset_window_prev_buffers, Fwindow_next_buffers)
+	(Fset_window_next_buffers, Fset_window_clone_number): New
+	functions.
+	(Fwindow_hscroll, Fwindow_at, Fwindow_point, Fwindow_start)
+	(Fwindow_end, Fwindow_line_height, Fset_window_dedicated_p):
+	Doc-string fixes.
+	(Fwindow_parameters, Fwindow_parameter, Fset_window_parameter):
+	Argument WINDOW can be now internal window too.
+	(Fwindow_use_time): Move up in code.
+	(Fget_buffer_window): Rename argument FRAME to ALL-FRAMES.
+	Rewrite doc-string.
+	(Fset_window_configuration, saved_window)
+	(Fcurrent_window_configuration, save_window_save): Handle new
+	members of window structure.
+	(WINDOW_TOTAL_SIZE): Move to window.h.
 
 2011-06-07  Martin Rudalics  <rudalics@gmx.at>
 
