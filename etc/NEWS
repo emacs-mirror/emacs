@@ -693,6 +693,14 @@ listing object name completions when being sent text via
 
 *** An API for manipulating SQL product definitions has been added.
 
+** Image mode
+
+*** RET (`image-toggle-animation') toggles animation, if the displayed
+image can be animated.
+
+*** Option `image-animate-loop', if non-nil, loops the animation.
+If nil, `image-toggle-animation' plays the animation once.
+
 ** sregex.el is now obsolete, since rx.el is a strict superset.
 
 ** s-region.el and pc-select are now declared obsolete,
@@ -980,12 +988,14 @@ i.e. via menu entries of the form `(menu-item "--")'.
 
 ** Image API
 
-*** When the image type is one of listed in `image-animated-types'
-and the number of sub-images in the image is more than one, then the
-new function `create-animated-image' creates an animated image where
-sub-images are displayed successively with the duration defined by
-`image-animate-max-time' and the delay between sub-images defined
-by the Graphic Control Extension of the image.
+*** Animated images support (currently animated gifs only).
+
+**** `image-animated-p' returns non-nil if an image can be animated.
+
+**** `image-animate' animates a supplied image spec.
+
+**** `image-animate-timer' returns the timer object for an image that
+is being animated.
 
 *** `image-extension-data' is renamed to `image-metadata'.
 

@@ -1,3 +1,72 @@
+2011-06-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (one-window-p): Move down in code.  Rewrite
+	doc-string.
+	(window-current-scroll-bars): Rewrite doc-string.  Normalize
+	live window argument.
+	(walk-windows, get-window-with-predicate, count-windows):
+	Rewrite doc-string.  Use window-list-1.
+	(window-in-direction-2, window-in-direction, get-mru-window):
+	New functions.
+
+2011-06-08  Reuben Thomas <rrt@sc3d.org>
+
+	* progmodes/flymake.el (flymake-compilation-prevents-syntax-check):
+	Doc fix (Bug#8713).
+
+2011-06-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* repeat.el (repeat-on-final-keystroke): Fix type (Bug#8696).
+
+2011-06-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-feature-special-hooks):
+	Add `comint-output-filter-functions'.
+
+2011-06-08  Ivan Kanis  <gnu@kanis.fr>
+
+	* calendar/appt.el (appt-check): Move some initializations into the let.
+
+2011-06-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-height): Defalias to window-total-height.
+	(window-width): Defalias to window-body-width.
+
+2011-06-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-mode.el (image-toggle-animation): New command.
+	(image-mode-map): Bind it to RET.
+	(image-mode): Update message.
+	(image-toggle-display-image): Avoid a spurious cache flush.
+	(image-transform-rotation): Doc fix.
+	(image-transform-properties): Return quickly in the normal case.
+	(image-animate-loop): Rename from image-animate-max-time.
+
+	* image.el (image-animate-max-time): Moved to image-mode.el.
+	(create-animated-image): Remove unnecessary function.
+	(image-animate): Rename from image-animate-start.  New arg.
+	(image-animate-stop): Removed; just use image-animate-timer.
+	(image-animate-timer): Use car-safe.
+	(image-animate-timeout): Rename argument.
+
+2011-06-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (get-lru-window, get-largest-window): Move here from
+	window.c.  Rename first argument to ALL-FRAMES.  Rephrase
+	doc-strings.
+	(get-buffer-window-list): Rewrite using window-list-1.  Rephrase
+	doc-string.
+	(window-safe-min-height, window-safe-min-width): New constants.
+	(window-size-ignore, window-min-size, window-min-size-1)
+	(window-sizable, window-sizable-p, window-size-fixed-1)
+	(window-size-fixed-p, window-min-delta-1, window-min-delta)
+	(window-max-delta-1, window-max-delta, window-resizable)
+	(window-resizable-p, window-total-height, window-total-width)
+	(window-body-width): New functions.
+	(window-full-height-p, window-full-width-p): Rewrite using
+	window-total-size.
+	(window-body-height): Rewrite using window-body-size.
+
 2011-06-06  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-right, window-left, window-child)

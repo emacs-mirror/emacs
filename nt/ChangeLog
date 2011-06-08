@@ -1,3 +1,8 @@
+2011-06-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* inc/stdint.h (INT32_MAX, INT64_MAX, INTPTR_MAX, PTRDIFF_MAX)
+	[!__GNUC__]: New macros.
+
 2011-05-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use 'inline', not 'INLINE'.

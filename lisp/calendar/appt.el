@@ -285,11 +285,11 @@ displayed in a window:
   (let* ((min-to-app -1)
          (prev-appt-mode-string appt-mode-string)
          (prev-appt-display-count appt-display-count)
-         now now-mins appt-mins appt-warn-time)
+         ;; Convert current time to minutes after midnight (12.01am = 1).
+         (now (decode-time))
+         (now-mins (+ (* 60 (nth 2 now)) (nth 1 now)))
+         appt-mins appt-warn-time)
     (save-excursion                   ; FIXME ?
-      ;; Convert current time to minutes after midnight (12.01am = 1).
-      (setq now (decode-time)
-            now-mins (+ (* 60 (nth 2 now)) (nth 1 now)))
       ;; At first check in any day, update appointments to today's list.
       (if (or force                      ; eg initialize, diary save
               (null appt-prev-comp-time) ; first check

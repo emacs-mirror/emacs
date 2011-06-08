@@ -28,14 +28,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    stdint.h is not available, e.g. Microsoft Visual Studio.  */
 
 typedef unsigned int uint32_t;
+#define INT32_MAX 2147483647
+/* "i64" is the non-standard suffix used by MSVC for 64-bit constants.  */
+#define INT64_MAX 9223372036854775807i64
 
 #ifdef _WIN64
   typedef __int64 intptr_t;
+#define INTPTR_MAX INT64_MAX
 #else
   typedef int intptr_t;
+#define INTPTR_MAX INT32_MAX
 #endif
 
 #define uintmax_t unsigned __int64
+#define PTRDIFF_MAX INTPTR_MAX
 
 #endif	/* !__GNUC__ */
 

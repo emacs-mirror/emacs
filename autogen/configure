@@ -1249,6 +1249,7 @@ with_mailhost
 with_sound
 with_sync_input
 with_x_toolkit
+with_wide_int
 with_xpm
 with_jpeg
 with_tiff
@@ -1962,6 +1963,7 @@ Optional Packages:
   --without-sync-input    process async input synchronously
   --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes or gtk, gtk3,
                           lucid or athena, motif, no)
+  --with-wide-int         prefer wide Emacs integers (typically 62-bit)
   --without-xpm           don't compile with XPM image support
   --without-jpeg          don't compile with JPEG image support
   --without-tiff          don't compile with TIFF image support
@@ -3821,6 +3823,20 @@ this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif', \`gt
 
 fi
 
+
+
+# Check whether --with-wide-int was given.
+if test "${with_wide_int+set}" = set; then :
+  withval=$with_wide_int;
+else
+      with_wide_int=no
+fi
+
+if test "$with_wide_int" = yes; then
+
+$as_echo "#define WIDE_EMACS_INT 1" >>confdefs.h
+
+fi
 
 
 # Check whether --with-xpm was given.

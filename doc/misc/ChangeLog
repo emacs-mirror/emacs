@@ -4,6 +4,10 @@
 	`gnus-registry-article-marks-to-{chars,names}' instead of
 	`gnus-registry-user-format-function-{M,M2}'.
 
+2011-05-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* texinfo.tex: Merge from gnulib.
+
 2011-05-18  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus.texi (Gnus Registry Setup): Rename from "Setup".

@@ -157,6 +157,14 @@ The functions currently affected by this are `split-window',
 An application may bind this to a non-nil value around calls to
 these functions to inhibit processing of window parameters.")
 
+(defconst window-safe-min-height 1
+  "The absolut minimum number of lines of a window.
+Anything less might crash Emacs.")
+
+(defconst window-safe-min-width 2
+  "The absolut minimum number of columns of a window.
+Anything less might crash Emacs.")
+
 (defun window-iso-combination-p (&optional window horizontal)
   "If WINDOW is a vertical combination return WINDOW's first child.
 WINDOW can be any window and defaults to the selected one.
@@ -491,55 +499,467 @@ unless it has no other choice \(like when deleting a neighboring
 window).")
 (make-variable-buffer-local 'window-size-fixed)
 
-(defun window-body-height (&optional window)
-  "Return number of lines in WINDOW available for actual buffer text.
-WINDOW defaults to the selected window.
+(defsubst window-size-ignore (window ignore)
+  "Return non-nil if IGNORE says to ignore size restrictions for WINDOW."
+  (if (window-any-p ignore) (eq window ignore) ignore))
 
-The return value does not include the mode line or the header
-line, if any.  If a line at the bottom of the window is only
-partially visible, that line is included in the return value.
-If you do not want to include a partially visible bottom line
-in the return value, use `window-text-height' instead."
-  (or window (setq window (selected-window)))
-  (if (window-minibuffer-p window)
-      (window-height window)
-    (with-current-buffer (window-buffer window)
-      (max 1 (- (window-height window)
-		(if mode-line-format 1 0)
-		(if header-line-format 1 0))))))
+(defun window-min-size (&optional window horizontal ignore)
+  "Return the minimum number of lines of WINDOW.
+WINDOW can be an arbitrary window and defaults to the selected
+one.  Optional argument HORIZONTAL non-nil means return the
+minimum number of columns of WINDOW.
+
+Optional argument IGNORE non-nil means ignore any restrictions
+imposed by fixed size windows, `window-min-height' or
+`window-min-width' settings.  IGNORE equal `safe' means live
+windows may get as small as `window-safe-min-height' lines and
+`window-safe-min-width' columns.  IGNORE a window means ignore
+restrictions for that window only."
+  (window-min-size-1
+   (normalize-any-window window) horizontal ignore))
+
+(defun window-min-size-1 (window horizontal ignore)
+  "Internal function of `window-min-size'."
+  (let ((sub (window-child window)))
+    (if sub
+	(let ((value 0))
+	  ;; WINDOW is an internal window.
+	  (if (window-iso-combined-p sub horizontal)
+	      ;; The minimum size of an iso-combination is the sum of
+	      ;; the minimum sizes of its subwindows.
+	      (while sub
+		(setq value (+ value
+			       (window-min-size-1 sub horizontal ignore)))
+		(setq sub (window-right sub)))
+	    ;; The minimum size of an ortho-combination is the maximum of
+	    ;; the minimum sizes of its subwindows.
+	    (while sub
+	      (setq value (max value
+			       (window-min-size-1 sub horizontal ignore)))
+	      (setq sub (window-right sub))))
+	  value)
+      (with-current-buffer (window-buffer window)
+	(cond
+	 ((and (not (window-size-ignore window ignore))
+	       (window-size-fixed-p window horizontal))
+	  ;; The minimum size of a fixed size window is its size.
+	  (window-total-size window horizontal))
+	 ((or (eq ignore 'safe) (eq ignore window))
+	  ;; If IGNORE equals `safe' or WINDOW return the safe values.
+	  (if horizontal window-safe-min-width window-safe-min-height))
+	 (horizontal
+	  ;; For the minimum width of a window take fringes and
+	  ;; scroll-bars into account.  This is questionable and should
+	  ;; be removed as soon as we are able to split (and resize)
+	  ;; windows such that the new (or resized) windows can get a
+	  ;; size less than the user-specified `window-min-height' and
+	  ;; `window-min-width'.
+	  (let ((frame (window-frame window))
+		(fringes (window-fringes window))
+		(scroll-bars (window-scroll-bars window)))
+	    (max
+	     (+ window-safe-min-width
+		(ceiling (car fringes) (frame-char-width frame))
+		(ceiling (cadr fringes) (frame-char-width frame))
+		(cond
+		 ((memq (nth 2 scroll-bars) '(left right))
+		  (nth 1 scroll-bars))
+		 ((memq (frame-parameter frame 'vertical-scroll-bars)
+			'(left right))
+		  (ceiling (or (frame-parameter frame 'scroll-bar-width) 14)
+			   (frame-char-width)))
+		 (t 0)))
+	     (if (and (not (window-size-ignore window ignore))
+		      (numberp window-min-width))
+		 window-min-width
+	       0))))
+	 (t
+	  ;; For the minimum height of a window take any mode- or
+	  ;; header-line into account.
+	  (max (+ window-safe-min-height
+		  (if header-line-format 1 0)
+		  (if mode-line-format 1 0))
+	       (if (and (not (window-size-ignore window ignore))
+			(numberp window-min-height))
+		   window-min-height
+		 0))))))))
+
+(defun window-sizable (window delta &optional horizontal ignore)
+  "Return DELTA if DELTA lines can be added to WINDOW.
+Optional argument HORIZONTAL non-nil means return DELTA if DELTA
+columns can be added to WINDOW.  A return value of zero means
+that no lines (or columns) can be added to WINDOW.
+
+This function looks only at WINDOW and its subwindows.  The
+function `window-resizable' looks at other windows as well.
+
+DELTA positive means WINDOW shall be enlarged by DELTA lines or
+columns.  If WINDOW cannot be enlarged by DELTA lines or columns
+return the maximum value in the range 0..DELTA by which WINDOW
+can be enlarged.
+
+DELTA negative means WINDOW shall be shrunk by -DELTA lines or
+columns.  If WINDOW cannot be shrunk by -DELTA lines or columns,
+return the minimum value in the range DELTA..0 by which WINDOW
+can be shrunk.
+
+Optional argument IGNORE non-nil means ignore any restrictions
+imposed by fixed size windows, `window-min-height' or
+`window-min-width' settings.  IGNORE equal `safe' means live
+windows may get as small as `window-safe-min-height' lines and
+`window-safe-min-width' columns.  IGNORE any window means ignore
+restrictions for that window only."
+  (setq window (normalize-any-window window))
+  (cond
+   ((< delta 0)
+    (max (- (window-min-size window horizontal ignore)
+	    (window-total-size window horizontal))
+	 delta))
+   ((window-size-ignore window ignore)
+    delta)
+   ((> delta 0)
+    (if (window-size-fixed-p window horizontal)
+	0
+      delta))
+   (t 0)))
+
+(defsubst window-sizable-p (window delta &optional horizontal ignore)
+  "Return t if WINDOW can be resized by DELTA lines.
+For the meaning of the arguments of this function see the
+doc-string of `window-sizable'."
+  (setq window (normalize-any-window window))
+  (if (> delta 0)
+      (>= (window-sizable window delta horizontal ignore) delta)
+    (<= (window-sizable window delta horizontal ignore) delta)))
+
+(defun window-size-fixed-1 (window horizontal)
+  "Internal function for `window-size-fixed-p'."
+  (let ((sub (window-child window)))
+    (catch 'fixed
+      (if sub
+	  ;; WINDOW is an internal window.
+	  (if (window-iso-combined-p sub horizontal)
+	      ;; An iso-combination is fixed size if all its subwindows
+	      ;; are fixed-size.
+	      (progn
+		(while sub
+		  (unless (window-size-fixed-1 sub horizontal)
+		    ;; We found a non-fixed-size subwindow, so WINDOW's
+		    ;; size is not fixed.
+		    (throw 'fixed nil))
+		  (setq sub (window-right sub)))
+		;; All subwindows are fixed-size, so WINDOW's size is
+		;; fixed.
+		(throw 'fixed t))
+	    ;; An ortho-combination is fixed-size if at least one of its
+	    ;; subwindows is fixed-size.
+	    (while sub
+	      (when (window-size-fixed-1 sub horizontal)
+		;; We found a fixed-size subwindow, so WINDOW's size is
+		;; fixed.
+		(throw 'fixed t))
+	      (setq sub (window-right sub))))
+	;; WINDOW is a live window.
+	(with-current-buffer (window-buffer window)
+	  (if horizontal
+	      (memq window-size-fixed '(width t))
+	    (memq window-size-fixed '(height t))))))))
+
+(defun window-size-fixed-p (&optional window horizontal)
+  "Return non-nil if WINDOW's height is fixed.
+WINDOW can be an arbitrary window and defaults to the selected
+window.  Optional argument HORIZONTAL non-nil means return
+non-nil if WINDOW's width is fixed.
+
+If this function returns nil, this does not necessarily mean that
+WINDOW can be resized in the desired direction.  The functions
+`window-resizable' and `window-resizable-p' will tell that."
+  (window-size-fixed-1
+   (normalize-any-window window) horizontal))
+
+(defun window-min-delta-1 (window delta &optional horizontal ignore trail noup)
+  "Internal function for `window-min-delta'."
+  (if (not (window-parent window))
+      ;; If we can't go up, return zero.
+      0
+    ;; Else try to find a non-fixed-size sibling of WINDOW.
+    (let* ((parent (window-parent window))
+	   (sub (window-child parent)))
+      (catch 'done
+	(if (window-iso-combined-p sub horizontal)
+	    ;; In an iso-combination throw DELTA if we find at least one
+	    ;; subwindow and that subwindow is either not of fixed-size
+	    ;; or we can ignore fixed-sizeness.
+	    (let ((skip (eq trail 'after)))
+	      (while sub
+		(cond
+		 ((eq sub window)
+		  (setq skip (eq trail 'before)))
+		 (skip)
+		 ((and (not (window-size-ignore window ignore))
+		       (window-size-fixed-p sub horizontal)))
+		 (t
+		  ;; We found a non-fixed-size subwindow.
+		  (throw 'done delta)))
+		(setq sub (window-right sub))))
+	  ;; In an ortho-combination set DELTA to the minimum value by
+	  ;; which other subwindows can shrink.
+	  (while sub
+	    (unless (eq sub window)
+	      (setq delta
+		    (min delta
+			 (- (window-total-size sub horizontal)
+			    (window-min-size sub horizontal ignore)))))
+	    (setq sub (window-right sub))))
+	(if noup
+	    delta
+	  (window-min-delta-1 parent delta horizontal ignore trail))))))
+
+(defun window-min-delta (&optional window horizontal ignore trail noup nodown)
+  "Return number of lines by which WINDOW can be shrunk.
+WINDOW can be an arbitrary window and defaults to the selected
+window.  Return zero if WINDOW cannot be shrunk.
+
+Optional argument HORIZONTAL non-nil means return number of
+columns by which WINDOW can be shrunk.
+
+Optional argument IGNORE non-nil means ignore any restrictions
+imposed by fixed size windows, `window-min-height' or
+`window-min-width' settings.  IGNORE a window means ignore
+restrictions for that window only.  IGNORE equal `safe' means
+live windows may get as small as `window-safe-min-height' lines
+and `window-safe-min-width' columns.
+
+Optional argument TRAIL `before' means only windows to the left
+of or above WINDOW can be enlarged.  Optional argument TRAIL
+`after' means only windows to the right of or below WINDOW can be
+enlarged.
+
+Optional argument NOUP non-nil means don't go up in the window
+tree but try to enlarge windows within WINDOW's combination only.
+
+Optional argument NODOWN non-nil means don't check whether WINDOW
+itself \(and its subwindows) can be shrunk; check only whether at
+least one other windows can be enlarged appropriately."
+  (setq window (normalize-any-window window))
+  (let ((size (window-total-size window horizontal))
+	(minimum (window-min-size window horizontal ignore)))
+    (cond
+     (nodown
+      ;; If NODOWN is t, try to recover the entire size of WINDOW.
+      (window-min-delta-1 window size horizontal ignore trail noup))
+     ((= size minimum)
+      ;; If NODOWN is nil and WINDOW's size is already at its minimum,
+      ;; there's nothing to recover.
+      0)
+     (t
+      ;; Otherwise, try to recover whatever WINDOW is larger than its
+      ;; minimum size.
+      (window-min-delta-1
+       window (- size minimum) horizontal ignore trail noup)))))
+
+(defun window-max-delta-1 (window delta &optional horizontal ignore trail noup)
+  "Internal function of `window-max-delta'."
+  (if (not (window-parent window))
+      ;; Can't go up.  Return DELTA.
+      delta
+    (let* ((parent (window-parent window))
+	   (sub (window-child parent)))
+      (catch 'fixed
+	(if (window-iso-combined-p sub horizontal)
+	    ;; For an iso-combination calculate how much we can get from
+	    ;; other subwindows.
+	    (let ((skip (eq trail 'after)))
+	      (while sub
+		(cond
+		 ((eq sub window)
+		  (setq skip (eq trail 'before)))
+		 (skip)
+		 (t
+		  (setq delta
+			(+ delta
+			   (- (window-total-size sub horizontal)
+			      (window-min-size sub horizontal ignore))))))
+		(setq sub (window-right sub))))
+	  ;; For an ortho-combination throw DELTA when at least one
+	  ;; subwindow is fixed-size.
+	  (while sub
+	    (when (and (not (eq sub window))
+		       (not (window-size-ignore sub ignore))
+		       (window-size-fixed-p sub horizontal))
+	      (throw 'fixed delta))
+	    (setq sub (window-right sub))))
+	(if noup
+	    ;; When NOUP is nil, DELTA is all we can get.
+	    delta
+	  ;; Else try with parent of WINDOW, passing the DELTA we
+	  ;; recovered so far.
+	  (window-max-delta-1 parent delta horizontal ignore trail))))))
+
+(defun window-max-delta (&optional window horizontal ignore trail noup nodown)
+  "Return maximum number of lines WINDOW by which WINDOW can be enlarged.
+WINDOW can be an arbitrary window and defaults to the selected
+window.  The return value is zero if WINDOW cannot be enlarged.
+
+Optional argument HORIZONTAL non-nil means return maximum number
+of columns by which WINDOW can be enlarged.
+
+Optional argument IGNORE non-nil means ignore any restrictions
+imposed by fixed size windows, `window-min-height' or
+`window-min-width' settings.  IGNORE a window means ignore
+restrictions for that window only.  IGNORE equal `safe' means
+live windows may get as small as `window-safe-min-height' lines
+and `window-safe-min-width' columns.
+
+Optional argument TRAIL `before' means only windows to the left
+of or below WINDOW can be shrunk.  Optional argument TRAIL
+`after' means only windows to the right of or above WINDOW can be
+shrunk.
+
+Optional argument NOUP non-nil means don't go up in the window
+tree but try to obtain the entire space from windows within
+WINDOW's combination.
+
+Optional argument NODOWN non-nil means do not check whether
+WINDOW itself \(and its subwindows) can be enlarged; check only
+whether other windows can be shrunk appropriately."
+  (setq window (normalize-any-window window))
+  (if (and (not (window-size-ignore window ignore))
+	   (not nodown) (window-size-fixed-p window horizontal))
+      ;; With IGNORE and NOWDON nil return zero if WINDOW has fixed
+      ;; size.
+      0
+    ;; WINDOW has no fixed size.
+    (window-max-delta-1 window 0 horizontal ignore trail noup)))
+
+;; Make NOUP also inhibit the min-size check.
+(defun window-resizable (window delta &optional horizontal ignore trail noup nodown)
+  "Return DELTA if WINDOW can be resized vertically by DELTA lines.
+Optional argument HORIZONTAL non-nil means return DELTA if WINDOW
+can be resized horizontally by DELTA columns.  A return value of
+zero means that WINDOW is not resizable.
+
+DELTA positive means WINDOW shall be enlarged by DELTA lines or
+columns.  If WINDOW cannot be enlarged by DELTA lines or columns
+return the maximum value in the range 0..DELTA by which WINDOW
+can be enlarged.
+
+DELTA negative means WINDOW shall be shrunk by -DELTA lines or
+columns.  If WINDOW cannot be shrunk by -DELTA lines or columns,
+return the minimum value in the range DELTA..0 that can be used
+for shrinking WINDOW.
+
+Optional argument IGNORE non-nil means ignore any restrictions
+imposed by fixed size windows, `window-min-height' or
+`window-min-width' settings.  IGNORE a window means ignore
+restrictions for that window only.  IGNORE equal `safe' means
+live windows may get as small as `window-safe-min-height' lines
+and `window-safe-min-width' columns.
+
+Optional argument TRAIL `before' means only windows to the left
+of or below WINDOW can be shrunk.  Optional argument TRAIL
+`after' means only windows to the right of or above WINDOW can be
+shrunk.
+
+Optional argument NOUP non-nil means don't go up in the window
+tree but try to distribute the space among the other windows
+within WINDOW's combination.
+
+Optional argument NODOWN non-nil means don't check whether WINDOW
+and its subwindows can be resized."
+  (setq window (normalize-any-window window))
+  (cond
+   ((< delta 0)
+    (max (- (window-min-delta window horizontal ignore trail noup nodown))
+	 delta))
+   ((> delta 0)
+    (min (window-max-delta window horizontal ignore trail noup nodown)
+	 delta))
+   (t 0)))
+
+(defun window-resizable-p (window delta &optional horizontal ignore trail noup nodown)
+  "Return t if WINDOW can be resized vertically by DELTA lines.
+For the meaning of the arguments of this function see the
+doc-string of `window-resizable'."
+  (setq window (normalize-any-window window))
+  (if (> delta 0)
+      (>= (window-resizable window delta horizontal ignore trail noup nodown)
+	  delta)
+    (<= (window-resizable window delta horizontal ignore trail noup nodown)
+	delta)))
+
+(defsubst window-total-height (&optional window)
+  "Return the total number of lines of WINDOW.
+WINDOW can be any window and defaults to the selected one.  The
+return value includes WINDOW's mode line and header line, if any.
+If WINDOW is internal the return value is the sum of the total
+number of lines of WINDOW's child windows if these are vertically
+combined and the height of WINDOW's first child otherwise.
+
+Note: This function does not take into account the value of
+`line-spacing' when calculating the number of lines in WINDOW."
+  (window-total-size window))
+
+;; Eventually we should make `window-height' obsolete.
+(defalias 'window-height 'window-total-height)
 
 ;; See discussion in bug#4543.
-(defun window-full-height-p (&optional window)
-  "Return non-nil if WINDOW is not the result of a vertical split.
-WINDOW defaults to the selected window.  (This function is not
-appropriate for minibuffers.)"
-  (unless window
-    (setq window (selected-window)))
-  (= (window-height window)
-     (window-height (frame-root-window (window-frame window)))))
+(defsubst window-full-height-p (&optional window)
+  "Return t if WINDOW is as high as the containing frame.
+More precisely, return t if and only if the total height of
+WINDOW equals the total height of the root window of WINDOW's
+frame.  WINDOW can be any window and defaults to the selected
+one."
+  (setq window (normalize-any-window window))
+  (= (window-total-size window)
+     (window-total-size (frame-root-window window))))
 
-(defun one-window-p (&optional nomini all-frames)
-  "Return non-nil if the selected window is the only window.
-Optional arg NOMINI non-nil means don't count the minibuffer
-even if it is active.  Otherwise, the minibuffer is counted
-when it is active.
+(defsubst window-total-width (&optional window)
+  "Return the total number of columns of WINDOW.
+WINDOW can be any window and defaults to the selected one.  The
+return value includes any vertical dividers or scrollbars of
+WINDOW.  If WINDOW is internal, the return value is the sum of
+the total number of columns of WINDOW's child windows if these
+are horizontally combined and the width of WINDOW's first child
+otherwise."
+  (window-total-size window t))
 
-The optional arg ALL-FRAMES t means count windows on all frames.
-If it is `visible', count windows on all visible frames on the
-current terminal.  ALL-FRAMES nil or omitted means count only the
-selected frame, plus the minibuffer it uses (which may be on
-another frame).  ALL-FRAMES 0 means count all windows in all
-visible or iconified frames on the current terminal.  If
-ALL-FRAMES is anything else, count only the selected frame."
-  (let ((base-window (selected-window)))
-    (if (and nomini (eq base-window (minibuffer-window)))
-	(setq base-window (next-window base-window)))
-    (eq base-window
-	(next-window base-window (if nomini 'arg) all-frames))))
+(defsubst window-full-width-p (&optional window)
+  "Return t if WINDOW is as wide as the containing frame.
+More precisely, return t if and only if the total width of WINDOW
+equals the total width of the root window of WINDOW's frame.
+WINDOW can be any window and defaults to the selected one."
+  (setq window (normalize-any-window window))
+  (= (window-total-size window t)
+     (window-total-size (frame-root-window window) t)))
+
+(defsubst window-body-height (&optional window)
+  "Return the number of lines of WINDOW's body.
+WINDOW must be a live window and defaults to the selected one.
+
+The return value does not include WINDOW's mode line and header
+line, if any.  If a line at the bottom of the window is only
+partially visible, that line is included in the return value.  If
+you do not want to include a partially visible bottom line in the
+return value, use `window-text-height' instead."
+  (window-body-size window))
+
+(defsubst window-body-width (&optional window)
+  "Return the number of columns of WINDOW's body.
+WINDOW must be a live window and defaults to the selected one.
+
+The return value does not include any vertical dividers or scroll
+bars owned by WINDOW.  On a window-system the return value does
+not include the number of columns used for WINDOW's fringes or
+display margins either."
+  (window-body-size window t))
+
+;; Eventually we should make `window-height' obsolete.
+(defalias 'window-width 'window-body-width)
 
 (defun window-current-scroll-bars (&optional window)
   "Return the current scroll bar settings for WINDOW.
-WINDOW defaults to the selected window.
+WINDOW must be a live window and defaults to the selected one.
 
 The return value is a cons cell (VERTICAL . HORIZONTAL) where
 VERTICAL specifies the current location of the vertical scroll
@@ -550,11 +970,11 @@ or nil).
 Unlike `window-scroll-bars', this function reports the scroll bar
 type actually used, once frame defaults and `scroll-bar-mode' are
 taken into account."
+  (setq window (normalize-live-window window))
   (let ((vert (nth 2 (window-scroll-bars window)))
 	(hor nil))
     (when (or (eq vert t) (eq hor t))
-      (let ((fcsb (frame-current-scroll-bars
-		   (window-frame (or window (selected-window))))))
+      (let ((fcsb (frame-current-scroll-bars (window-frame window))))
 	(if (eq vert t)
 	    (setq vert (car fcsb)))
 	(if (eq hor t)
@@ -562,10 +982,10 @@ taken into account."
     (cons vert hor)))
 
 (defun walk-windows (proc &optional minibuf all-frames)
-  "Cycle through all windows, calling PROC for each one.
+  "Cycle through all live windows, calling PROC for each one.
 PROC must specify a function with a window as its sole argument.
 The optional arguments MINIBUF and ALL-FRAMES specify the set of
-windows to include in the walk, see also `next-window'.
+windows to include in the walk.
 
 MINIBUF t means include the minibuffer window even if the
 minibuffer is not active.  MINIBUF nil or omitted means include
@@ -573,29 +993,24 @@ the minibuffer window only if the minibuffer is active.  Any
 other value means do not include the minibuffer window even if
 the minibuffer is active.
 
-Several frames may share a single minibuffer; if the minibuffer
-is active, all windows on all frames that share that minibuffer
-are included too.  Therefore, if you are using a separate
-minibuffer frame and the minibuffer is active and MINIBUF says it
-counts, `walk-windows' includes the windows in the frame from
-which you entered the minibuffer, as well as the minibuffer
-window.
+ALL-FRAMES nil or omitted means consider all windows on the
+selected frame, plus the minibuffer window if specified by the
+MINIBUF argument.  If the minibuffer counts, consider all windows
+on all frames that share that minibuffer too.  The following
+non-nil values of ALL-FRAMES have special meanings:
 
-ALL-FRAMES nil or omitted means cycle through all windows on the
- selected frame, plus the minibuffer window if specified by the
- MINIBUF argument, see above.  If the minibuffer counts, cycle
- through all windows on all frames that share that minibuffer
- too.
-ALL-FRAMES t means cycle through all windows on all existing
- frames.
-ALL-FRAMES `visible' means cycle through all windows on all
- visible frames on the current terminal.
-ALL-FRAMES 0 means cycle through all windows on all visible and
- iconified frames on the current terminal.
-ALL-FRAMES a frame means cycle through all windows on that frame
- only.
-Anything else means cycle through all windows on the selected
- frame and no others.
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
+
+- 0 (the number zero) means consider all windows on all visible
+  and iconified frames on the current terminal.
+
+- A frame means consider all windows on that frame only.
+
+Anything else means consider all windows on the selected frame
+and no others.
 
 This function changes neither the order of recently selected
 windows nor the buffer list."
@@ -609,70 +1024,328 @@ windows nor the buffer list."
   (save-selected-window
     (when (framep all-frames)
       (select-window (frame-first-window all-frames) 'norecord))
-    (let* (walk-windows-already-seen
-	   (walk-windows-current (selected-window)))
-      (while (progn
-	       (setq walk-windows-current
-		     (next-window walk-windows-current minibuf all-frames))
-	       (not (memq walk-windows-current walk-windows-already-seen)))
-	(setq walk-windows-already-seen
-	      (cons walk-windows-current walk-windows-already-seen))
-	(funcall proc walk-windows-current)))))
+    (dolist (walk-windows-window (window-list-1 nil minibuf all-frames))
+      (funcall proc walk-windows-window))))
+
+(defun window-in-direction-2 (window posn &optional horizontal)
+  "Support function for `window-in-direction'."
+  (if horizontal
+      (let ((top (window-top-line window)))
+	(if (> top posn)
+	    (- top posn)
+	  (- posn top (window-total-height window))))
+    (let ((left (window-left-column window)))
+      (if (> left posn)
+	  (- left posn)
+	(- posn left (window-total-width window))))))
+
+(defun window-in-direction (direction &optional window ignore)
+  "Return window in DIRECTION as seen from WINDOW.
+DIRECTION must be one of `above', `below', `left' or `right'.
+WINDOW must be a live window and defaults to the selected one.
+IGNORE, when non-nil means a window can be returned even if its
+`no-other-window' parameter is non-nil."
+  (setq window (normalize-live-window window))
+  (unless (memq direction '(above below left right))
+    (error "Wrong direction %s" direction))
+  (let* ((frame (window-frame window))
+	 (hor (memq direction '(left right)))
+	 (first (if hor
+		    (window-left-column window)
+		  (window-top-line window)))
+	 (last (+ first (if hor
+			    (window-total-width window)
+			  (window-total-height window))))
+	 (posn-cons (nth 6 (posn-at-point (window-point window) window)))
+	 ;; The column / row value of `posn-at-point' can be nil for the
+	 ;; mini-window, guard against that.
+	 (posn (if hor
+		   (+ (or (cdr posn-cons) 1) (window-top-line window))
+		 (+ (or (car posn-cons) 1) (window-left-column window))))
+	 (best-edge
+	  (cond
+	   ((eq direction 'below) (frame-height frame))
+	   ((eq direction 'right) (frame-width frame))
+	   (t -1)))
+	 (best-edge-2 best-edge)
+	 (best-diff-2 (if hor (frame-height frame) (frame-width frame)))
+	 best best-2 best-diff-2-new)
+    (walk-window-tree
+     (lambda (w)
+       (let* ((w-top (window-top-line w))
+	      (w-left (window-left-column w)))
+	 (cond
+	  ((or (eq window w)
+	       ;; Ignore ourselves.
+	       (and (window-parameter w 'no-other-window)
+		    ;; Ignore W unless IGNORE is non-nil.
+		    (not ignore))))
+	  (hor
+	   (cond
+	    ((and (<= w-top posn)
+		  (< posn (+ w-top (window-total-height w))))
+	     ;; W is to the left or right of WINDOW and covers POSN.
+	     (when (or (and (eq direction 'left)
+			    (<= w-left first) (> w-left best-edge))
+		       (and (eq direction 'right)
+			    (>= w-left last) (< w-left best-edge)))
+	       (setq best-edge w-left)
+	       (setq best w)))
+	    ((and (or (and (eq direction 'left)
+			   (<= (+ w-left (window-total-width w)) first))
+		      (and (eq direction 'right) (<= last w-left)))
+		  ;; W is to the left or right of WINDOW but does not
+		  ;; cover POSN.
+		  (setq best-diff-2-new
+			(window-in-direction-2 w posn hor))
+		  (or (< best-diff-2-new best-diff-2)
+		      (and (= best-diff-2-new best-diff-2)
+			   (if (eq direction 'left)
+			       (> w-left best-edge-2)
+			     (< w-left best-edge-2)))))
+	     (setq best-edge-2 w-left)
+	     (setq best-diff-2 best-diff-2-new)
+	     (setq best-2 w))))
+	  (t
+	   (cond
+	    ((and (<= w-left posn)
+		  (< posn (+ w-left (window-total-width w))))
+	     ;; W is above or below WINDOW and covers POSN.
+	     (when (or (and (eq direction 'above)
+			    (<= w-top first) (> w-top best-edge))
+		       (and (eq direction 'below)
+			    (>= w-top first) (< w-top best-edge)))
+	       (setq best-edge w-top)
+	       (setq best w)))
+	    ((and (or (and (eq direction 'above)
+			   (<= (+ w-top (window-total-height w)) first))
+		      (and (eq direction 'below) (<= last w-top)))
+		  ;; W is above or below WINDOW but does not cover POSN.
+		  (setq best-diff-2-new
+			(window-in-direction-2 w posn hor))
+		  (or (< best-diff-2-new best-diff-2)
+		      (and (= best-diff-2-new best-diff-2)
+			   (if (eq direction 'above)
+			       (> w-top best-edge-2)
+			     (< w-top best-edge-2)))))
+	     (setq best-edge-2 w-top)
+	     (setq best-diff-2 best-diff-2-new)
+	     (setq best-2 w)))))))
+     (window-frame window))
+    (or best best-2)))
 
 (defun get-window-with-predicate (predicate &optional minibuf
 					    all-frames default)
-  "Return a window satisfying PREDICATE.
-More precisely, cycle through all windows using `walk-windows',
-calling the function PREDICATE on each one of them with the
-window as its sole argument.  Return the first window for which
-PREDICATE returns non-nil.  If no window satisfies PREDICATE,
-return DEFAULT.
+  "Return a live window satisfying PREDICATE.
+More precisely, cycle through all windows calling the function
+PREDICATE on each one of them with the window as its sole
+argument.  Return the first window for which PREDICATE returns
+non-nil.  If no window satisfies PREDICATE, return DEFAULT.
 
-The optional arguments MINIBUF and ALL-FRAMES specify the set of
-windows to include.  See `walk-windows' for the meaning of these
-arguments."
+ALL-FRAMES nil or omitted means consider all windows on the selected
+frame, plus the minibuffer window if specified by the MINIBUF
+argument.  If the minibuffer counts, consider all windows on all
+frames that share that minibuffer too.  The following non-nil
+values of ALL-FRAMES have special meanings:
+
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
+
+- 0 (the number zero) means consider all windows on all visible
+  and iconified frames on the current terminal.
+
+- A frame means consider all windows on that frame only.
+
+Anything else means consider all windows on the selected frame
+and no others."
   (catch 'found
-    (walk-windows #'(lambda (window)
-		      (when (funcall predicate window)
-			(throw 'found window)))
-		  minibuf all-frames)
+    (dolist (window (window-list-1 nil minibuf all-frames))
+      (when (funcall predicate window)
+	(throw 'found window)))
     default))
 
 (defalias 'some-window 'get-window-with-predicate)
 
-;; This should probably be written in C (i.e., without using `walk-windows').
+(defun get-lru-window (&optional all-frames dedicated)
+   "Return the least recently used window on frames specified by ALL-FRAMES.
+Return a full-width window if possible.  A minibuffer window is
+never a candidate.  A dedicated window is never a candidate
+unless DEDICATED is non-nil, so if all windows are dedicated, the
+value is nil.  Avoid returning the selected window if possible.
+
+The following non-nil values of the optional argument ALL-FRAMES
+have special meanings:
+
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
+
+- 0 (the number zero) means consider all windows on all visible
+  and iconified frames on the current terminal.
+
+- A frame means consider all windows on that frame only.
+
+Any other value of ALL-FRAMES means consider all windows on the
+selected frame and no others."
+   (let (best-window best-time second-best-window second-best-time time)
+    (dolist (window (window-list-1 nil nil all-frames))
+      (when (or dedicated (not (window-dedicated-p window)))
+	(setq time (window-use-time window))
+	(if (or (eq window (selected-window))
+		(not (window-full-width-p window)))
+	    (when (or (not second-best-time) (< time second-best-time))
+	      (setq second-best-time time)
+	      (setq second-best-window window))
+	  (when (or (not best-time) (< time best-time))
+	    (setq best-time time)
+	    (setq best-window window)))))
+    (or best-window second-best-window)))
+
+(defun get-mru-window (&optional all-frames)
+   "Return the most recently used window on frames specified by ALL-FRAMES.
+Do not return a minibuffer window.
+
+The following non-nil values of the optional argument ALL-FRAMES
+have special meanings:
+
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
+
+- 0 (the number zero) means consider all windows on all visible
+  and iconified frames on the current terminal.
+
+- A frame means consider all windows on that frame only.
+
+Any other value of ALL-FRAMES means consider all windows on the
+selected frame and no others."
+   (let (best-window best-time time)
+    (dolist (window (window-list-1 nil nil all-frames))
+      (setq time (window-use-time window))
+      (when (or (not best-time) (> time best-time))
+	(setq best-time time)
+	(setq best-window window)))
+    best-window))
+
+(defun get-largest-window (&optional all-frames dedicated)
+  "Return the largest window on frames specified by ALL-FRAMES.
+A minibuffer window is never a candidate.  A dedicated window is
+never a candidate unless DEDICATED is non-nil, so if all windows
+are dedicated, the value is nil.
+
+The following non-nil values of the optional argument ALL-FRAMES
+have special meanings:
+
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
+
+- 0 (the number zero) means consider all windows on all visible
+  and iconified frames on the current terminal.
+
+- A frame means consider all windows on that frame only.
+
+Any other value of ALL-FRAMES means consider all windows on the
+selected frame and no others."
+  (let ((best-size 0)
+	best-window size)
+    (dolist (window (window-list-1 nil nil all-frames))
+      (when (or dedicated (not (window-dedicated-p window)))
+	(setq size (* (window-total-size window)
+		      (window-total-size window t)))
+	(when (> size best-size)
+	  (setq best-size size)
+	  (setq best-window window))))
+    best-window))
+
 (defun get-buffer-window-list (&optional buffer-or-name minibuf all-frames)
   "Return list of all windows displaying BUFFER-OR-NAME, or nil if none.
 BUFFER-OR-NAME may be a buffer or the name of an existing buffer
 and defaults to the current buffer.
 
-The optional arguments MINIBUF and ALL-FRAMES specify the set of
-windows to consider.  See `walk-windows' for the precise meaning
-of these arguments."
-  (let ((buffer (cond
-		 ((not buffer-or-name) (current-buffer))
-		 ((bufferp buffer-or-name) buffer-or-name)
-		 (t (get-buffer buffer-or-name))))
+Any windows showing BUFFER-OR-NAME on the selected frame are listed
+first.
+
+MINIBUF t means include the minibuffer window even if the
+minibuffer is not active.  MINIBUF nil or omitted means include
+the minibuffer window only if the minibuffer is active.  Any
+other value means do not include the minibuffer window even if
+the minibuffer is active.
+
+ALL-FRAMES nil or omitted means consider all windows on the
+selected frame, plus the minibuffer window if specified by the
+MINIBUF argument.  If the minibuffer counts, consider all windows
+on all frames that share that minibuffer too.  The following
+non-nil values of ALL-FRAMES have special meanings:
+
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
+
+- 0 (the number zero) means consider all windows on all visible
+  and iconified frames on the current terminal.
+
+- A frame means consider all windows on that frame only.
+
+Anything else means consider all windows on the selected frame
+and no others."
+  (let ((buffer (normalize-live-buffer buffer-or-name))
 	windows)
-    (walk-windows (function (lambda (window)
-			      (if (eq (window-buffer window) buffer)
-				  (setq windows (cons window windows)))))
-		  minibuf all-frames)
-    windows))
+    (dolist (window (window-list-1 (frame-first-window) minibuf all-frames))
+      (when (eq (window-buffer window) buffer)
+	(setq windows (cons window windows))))
+    (nreverse windows)))
 
 (defun minibuffer-window-active-p (window)
   "Return t if WINDOW is the currently active minibuffer window."
   (eq window (active-minibuffer-window)))
-
+
 (defun count-windows (&optional minibuf)
-   "Return the number of visible windows.
+   "Return the number of live windows on the selected frame.
 The optional argument MINIBUF specifies whether the minibuffer
 window shall be counted.  See `walk-windows' for the precise
 meaning of this argument."
-   (let ((count 0))
-     (walk-windows (lambda (_w) (setq count (+ count 1)))
-		   minibuf)
-     count))
+   (length (window-list-1 nil minibuf)))
+
+;; This should probably return non-nil when the selected window is part
+;; of an atomic window whose root is the frame's root window.
+(defun one-window-p (&optional nomini all-frames)
+  "Return non-nil if the selected window is the only window.
+Optional arg NOMINI non-nil means don't count the minibuffer
+even if it is active.  Otherwise, the minibuffer is counted
+when it is active.
+
+Optional argument ALL-FRAMES specifies the set of frames to
+consider, see also `next-window'.  ALL-FRAMES nil or omitted
+means consider windows on the selected frame only, plus the
+minibuffer window if specified by the NOMINI argument.  If the
+minibuffer counts, consider all windows on all frames that share
+that minibuffer too.  The remaining non-nil values of ALL-FRAMES
+with a special meaning are:
+
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
+
+- 0 (the number zero) means consider all windows on all visible
+  and iconified frames on the current terminal.
+
+- A frame means consider all windows on that frame only.
+
+Anything else means consider all windows on the selected frame
+and no others."
+  (let ((base-window (selected-window)))
+    (if (and nomini (eq base-window (minibuffer-window)))
+	(setq base-window (next-window base-window)))
+    (eq base-window
+	(next-window base-window (if nomini 'arg) all-frames))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; `balance-windows' subroutines using `window-tree'
