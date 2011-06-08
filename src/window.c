@@ -800,39 +800,6 @@ WINDOW's fringes or display margins either.  */)
     return make_number (window_body_cols (w));
 }
 
-DEFUN ("window-height", Fwindow_height, Swindow_height, 0, 1, 0,
-       doc: /* Return the number of lines in WINDOW.
-WINDOW defaults to the selected window.
-
-The return value includes WINDOW's mode line and header line, if any.
-
-Note: The function does not take into account the value of `line-spacing'
-when calculating the number of lines in WINDOW.  */)
-  (Lisp_Object window)
-{
-  return decode_any_window (window)->total_lines;
-}
-
-DEFUN ("window-width", Fwindow_width, Swindow_width, 0, 1, 0,
-       doc: /* Return the number of display columns in WINDOW.
-WINDOW defaults to the selected window.
-
-Note: The return value is the number of columns available for text in
-WINDOW.  If you want to find out how many columns WINDOW takes up, use
-(let ((edges (window-edges))) (- (nth 2 edges) (nth 0 edges))).  */)
-  (Lisp_Object window)
-{
-  return make_number (window_body_cols (decode_any_window (window)));
-}
-
-DEFUN ("window-full-width-p", Fwindow_full_width_p, Swindow_full_width_p, 0, 1, 0,
-       doc: /* Return t if WINDOW is as wide as its frame.
-WINDOW defaults to the selected window.  */)
-  (Lisp_Object window)
-{
-  return WINDOW_FULL_WIDTH_P (decode_any_window (window)) ? Qt : Qnil;
-}
-
 DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
        doc: /* Return the number of columns by which WINDOW is scrolled from left margin.
 WINDOW defaults to the selected window.  */)
@@ -7325,9 +7292,6 @@ frame to be redrawn only if it is a tty frame.  */);
   defsubr (&Swindow_left_column);
   defsubr (&Swindow_total_size);
   defsubr (&Swindow_body_size);
-  defsubr (&Swindow_height);
-  defsubr (&Swindow_width);
-  defsubr (&Swindow_full_width_p);
   defsubr (&Swindow_hscroll);
   defsubr (&Sset_window_hscroll);
   defsubr (&Swindow_redisplay_end_trigger);

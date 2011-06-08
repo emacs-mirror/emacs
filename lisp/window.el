@@ -900,6 +900,9 @@ Note: This function does not take into account the value of
 `line-spacing' when calculating the number of lines in WINDOW."
   (window-total-size window))
 
+;; Eventually we should make `window-height' obsolete.
+(defalias 'window-height 'window-total-height)
+
 ;; See discussion in bug#4543.
 (defsubst window-full-height-p (&optional window)
   "Return t if WINDOW is as high as the containing frame.
@@ -950,6 +953,9 @@ bars owned by WINDOW.  On a window-system the return value does
 not include the number of columns used for WINDOW's fringes or
 display margins either."
   (window-body-size window t))
+
+;; Eventually we should make `window-height' obsolete.
+(defalias 'window-width 'window-body-width)
 
 (defun one-window-p (&optional nomini all-frames)
   "Return non-nil if the selected window is the only window.

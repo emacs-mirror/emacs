@@ -1,3 +1,8 @@
+2011-06-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fwindow_height, Fwindow_width, Fwindow_full_width_p):
+	Remove.
+
 2011-06-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fwindow_total_size, Fwindow_left_column)
