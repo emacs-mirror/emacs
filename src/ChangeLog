@@ -13,6 +13,7 @@
 	(n_vectors, n_symbol_blocks, n_marker_blocks): Remove.
 	These were 'int' variables that could overflow on 64-bit hosts;
 	they were never used, so remove them instead of repairing them.
+	(nzombies, ngcs, max_live, max_zombies): Now EMACS_INT, not 'int'.
 
 	* alloc.c (Fmake_bool_vector): Don't assume vector size fits in int.
 	(allocate_vectorlike): Check for ptrdiff_t overflow.

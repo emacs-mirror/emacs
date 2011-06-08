@@ -3905,11 +3905,11 @@ static Lisp_Object zombies[MAX_ZOMBIES];
 
 /* Number of zombie objects.  */
 
-static int nzombies;
+static EMACS_INT nzombies;
 
 /* Number of garbage collections.  */
 
-static int ngcs;
+static EMACS_INT ngcs;
 
 /* Average percentage of zombies per collection.  */
 
@@ -3917,7 +3917,7 @@ static double avg_zombies;
 
 /* Max. number of live and zombie objects.  */
 
-static int max_live, max_zombies;
+static EMACS_INT max_live, max_zombies;
 
 /* Average number of live objects per GC.  */
 
@@ -3928,7 +3928,7 @@ DEFUN ("gc-status", Fgc_status, Sgc_status, 0, 0, "",
   (void)
 {
   Lisp_Object args[8], zombie_list = Qnil;
-  int i;
+  EMACS_INT i;
   for (i = 0; i < nzombies; i++)
     zombie_list = Fcons (zombies[i], zombie_list);
   args[0] = build_string ("%d GCs, avg live/zombies = %.2f/%.2f (%f%%), max %d/%d\nzombies: %S");
@@ -4255,7 +4255,7 @@ dump_zombies (void)
 {
   int i;
 
-  fprintf (stderr, "\nZombies kept alive = %d:\n", nzombies);
+  fprintf (stderr, "\nZombies kept alive = %"pI":\n", nzombies);
   for (i = 0; i < min (MAX_ZOMBIES, nzombies); ++i)
     {
       fprintf (stderr, "  %d = ", i);
