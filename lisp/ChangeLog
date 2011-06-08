@@ -1,3 +1,7 @@
+2011-06-08  Ivan Kanis  <gnu@kanis.fr>
+
+	* calendar/appt.el (appt-check): Move some initializations into the let.
+
 2011-06-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-height): Defalias to window-total-height.
