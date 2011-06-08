@@ -51,9 +51,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 Lisp_Object Qwindowp, Qwindow_live_p;
-static Lisp_Object Qwindow_configuration_p;
-static Lisp_Object Qdisplay_buffer;
+static Lisp_Object Qwindow_configuration_p, Qrecord_window_buffer;
+static Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
+static Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
+static Lisp_Object Qresize_root_window, Qresize_root_window_vertically;
 static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
+static Lisp_Object Qsafe, Qabove, Qbelow;
+static Lisp_Object Qauto_buffer_name;
+
 static Lisp_Object Qwindow_size_fixed;
 
 static int displayed_window_lines (struct window *);
@@ -2940,18 +2945,6 @@ replace_buffer_in_all_windows (Lisp_Object buffer)
 }
 
 /* Set the height of WINDOW and all its inferiors.  */
-
-/* The smallest acceptable dimensions for a window.  Anything smaller
-   might crash Emacs.  */
-
-#define MIN_SAFE_WINDOW_WIDTH  (2)
-#define MIN_SAFE_WINDOW_HEIGHT (1)
-
-/* For wp non-zero the total number of columns of window w.  Otherwise
-   the total number of lines of w.  */
-
-#define WINDOW_TOTAL_SIZE(w, wp) \
-  (wp ? WINDOW_TOTAL_COLS (w) : WINDOW_TOTAL_LINES (w))
 
 /* If *ROWS or *COLS are too small a size for FRAME, set them to the
    minimum allowable size.  */
@@ -7406,11 +7399,44 @@ syms_of_window (void)
   Qwindow_live_p = intern_c_string ("window-live-p");
   staticpro (&Qwindow_live_p);
 
+  Qwindow_deletable_p = intern_c_string ("window-deletable-p");
+  staticpro (&Qwindow_deletable_p);
+
+  Qdelete_window = intern_c_string ("delete-window");
+  staticpro (&Qdelete_window);
+
+  Qresize_root_window = intern_c_string ("resize-root-window");
+  staticpro (&Qresize_root_window);
+
+  Qresize_root_window_vertically = intern_c_string ("resize-root-window-vertically");
+  staticpro (&Qresize_root_window_vertically);
+
+  Qsafe = intern_c_string ("safe");
+  staticpro (&Qsafe);
+
   Qdisplay_buffer = intern_c_string ("display-buffer");
   staticpro (&Qdisplay_buffer);
 
+  Qreplace_buffer_in_windows = intern_c_string ("replace-buffer-in-windows");
+  staticpro (&Qreplace_buffer_in_windows);
+
+  Qrecord_window_buffer = intern_c_string ("record-window-buffer");
+  staticpro (&Qrecord_window_buffer);
+
+  Qget_mru_window = intern_c_string ("get-mru-window");
+  staticpro (&Qget_mru_window);
+
   Qtemp_buffer_show_hook = intern_c_string ("temp-buffer-show-hook");
   staticpro (&Qtemp_buffer_show_hook);
+
+  Qabove = intern_c_string ("above");
+  staticpro (&Qabove);
+
+  Qbelow = intern_c_string ("below");
+  staticpro (&Qbelow);
+
+  Qauto_buffer_name = intern_c_string ("auto-buffer-name");
+  staticpro (&Qauto_buffer_name);
 
   staticpro (&Vwindow_list);
 

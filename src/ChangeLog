@@ -4,7 +4,7 @@
 	normal_lines, normal_cols, new_total, new_normal, clone_number,
 	splits, nest, prev_buffers, next_buffers.
 	(WINDOW_TOTAL_SIZE): Move here from window.c.
-	(MIN_SAFE_WINDOW_WIDTH, MIN_SAFE_WINDOW_HEIGHT): Define.
+	(MIN_SAFE_WINDOW_WIDTH, MIN_SAFE_WINDOW_HEIGHT): Define here.
 
 	* window.c (Fwindow_height, Fwindow_width, Fwindow_full_width_p):
 	Remove.
@@ -28,7 +28,13 @@
 	(Fset_window_configuration, saved_window)
 	(Fcurrent_window_configuration, save_window_save): Handle new
 	members of window structure.
-	(WINDOW_TOTAL_SIZE): Move to window.h.
+	(WINDOW_TOTAL_SIZE, MIN_SAFE_WINDOW_WIDTH)
+	(MIN_SAFE_WINDOW_HEIGHT): Move to window.h.
+	(syms_of_window): New Lisp objects Qrecord_window_buffer,
+	Qwindow_deletable_p, Qdelete_window, Qreplace_buffer_in_windows,
+	Qget_mru_window, Qresize_root_window,
+	Qresize_root_window_vertically, Qsafe, Qabove, Qbelow,
+	Qauto_buffer_name; staticpro them.
 
 2011-06-07  Martin Rudalics  <rudalics@gmx.at>
 
