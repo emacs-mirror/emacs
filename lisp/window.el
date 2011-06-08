@@ -957,28 +957,9 @@ display margins either."
 ;; Eventually we should make `window-height' obsolete.
 (defalias 'window-width 'window-body-width)
 
-(defun one-window-p (&optional nomini all-frames)
-  "Return non-nil if the selected window is the only window.
-Optional arg NOMINI non-nil means don't count the minibuffer
-even if it is active.  Otherwise, the minibuffer is counted
-when it is active.
-
-The optional arg ALL-FRAMES t means count windows on all frames.
-If it is `visible', count windows on all visible frames on the
-current terminal.  ALL-FRAMES nil or omitted means count only the
-selected frame, plus the minibuffer it uses (which may be on
-another frame).  ALL-FRAMES 0 means count all windows in all
-visible or iconified frames on the current terminal.  If
-ALL-FRAMES is anything else, count only the selected frame."
-  (let ((base-window (selected-window)))
-    (if (and nomini (eq base-window (minibuffer-window)))
-	(setq base-window (next-window base-window)))
-    (eq base-window
-	(next-window base-window (if nomini 'arg) all-frames))))
-
 (defun window-current-scroll-bars (&optional window)
   "Return the current scroll bar settings for WINDOW.
-WINDOW defaults to the selected window.
+WINDOW must be a live window and defaults to the selected one.
 
 The return value is a cons cell (VERTICAL . HORIZONTAL) where
 VERTICAL specifies the current location of the vertical scroll
@@ -989,11 +970,11 @@ or nil).
 Unlike `window-scroll-bars', this function reports the scroll bar
 type actually used, once frame defaults and `scroll-bar-mode' are
 taken into account."
+  (setq window (normalize-live-window window))
   (let ((vert (nth 2 (window-scroll-bars window)))
 	(hor nil))
     (when (or (eq vert t) (eq hor t))
-      (let ((fcsb (frame-current-scroll-bars
-		   (window-frame (or window (selected-window))))))
+      (let ((fcsb (frame-current-scroll-bars (window-frame window))))
 	(if (eq vert t)
 	    (setq vert (car fcsb)))
 	(if (eq hor t)
@@ -1001,10 +982,10 @@ taken into account."
     (cons vert hor)))
 
 (defun walk-windows (proc &optional minibuf all-frames)
-  "Cycle through all windows, calling PROC for each one.
+  "Cycle through all live windows, calling PROC for each one.
 PROC must specify a function with a window as its sole argument.
 The optional arguments MINIBUF and ALL-FRAMES specify the set of
-windows to include in the walk, see also `next-window'.
+windows to include in the walk.
 
 MINIBUF t means include the minibuffer window even if the
 minibuffer is not active.  MINIBUF nil or omitted means include
@@ -1012,29 +993,24 @@ the minibuffer window only if the minibuffer is active.  Any
 other value means do not include the minibuffer window even if
 the minibuffer is active.
 
-Several frames may share a single minibuffer; if the minibuffer
-is active, all windows on all frames that share that minibuffer
-are included too.  Therefore, if you are using a separate
-minibuffer frame and the minibuffer is active and MINIBUF says it
-counts, `walk-windows' includes the windows in the frame from
-which you entered the minibuffer, as well as the minibuffer
-window.
+ALL-FRAMES nil or omitted means consider all windows on the
+selected frame, plus the minibuffer window if specified by the
+MINIBUF argument.  If the minibuffer counts, consider all windows
+on all frames that share that minibuffer too.  The following
+non-nil values of ALL-FRAMES have special meanings:
 
-ALL-FRAMES nil or omitted means cycle through all windows on the
- selected frame, plus the minibuffer window if specified by the
- MINIBUF argument, see above.  If the minibuffer counts, cycle
- through all windows on all frames that share that minibuffer
- too.
-ALL-FRAMES t means cycle through all windows on all existing
- frames.
-ALL-FRAMES `visible' means cycle through all windows on all
- visible frames on the current terminal.
-ALL-FRAMES 0 means cycle through all windows on all visible and
- iconified frames on the current terminal.
-ALL-FRAMES a frame means cycle through all windows on that frame
- only.
-Anything else means cycle through all windows on the selected
- frame and no others.
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
+
+- 0 (the number zero) means consider all windows on all visible
+  and iconified frames on the current terminal.
+
+- A frame means consider all windows on that frame only.
+
+Anything else means consider all windows on the selected frame
+and no others.
 
 This function changes neither the order of recently selected
 windows nor the buffer list."
@@ -1048,33 +1024,146 @@ windows nor the buffer list."
   (save-selected-window
     (when (framep all-frames)
       (select-window (frame-first-window all-frames) 'norecord))
-    (let* (walk-windows-already-seen
-	   (walk-windows-current (selected-window)))
-      (while (progn
-	       (setq walk-windows-current
-		     (next-window walk-windows-current minibuf all-frames))
-	       (not (memq walk-windows-current walk-windows-already-seen)))
-	(setq walk-windows-already-seen
-	      (cons walk-windows-current walk-windows-already-seen))
-	(funcall proc walk-windows-current)))))
+    (dolist (walk-windows-window (window-list-1 nil minibuf all-frames))
+      (funcall proc walk-windows-window))))
+
+(defun window-in-direction-2 (window posn &optional horizontal)
+  "Support function for `window-in-direction'."
+  (if horizontal
+      (let ((top (window-top-line window)))
+	(if (> top posn)
+	    (- top posn)
+	  (- posn top (window-total-height window))))
+    (let ((left (window-left-column window)))
+      (if (> left posn)
+	  (- left posn)
+	(- posn left (window-total-width window))))))
+
+(defun window-in-direction (direction &optional window ignore)
+  "Return window in DIRECTION as seen from WINDOW.
+DIRECTION must be one of `above', `below', `left' or `right'.
+WINDOW must be a live window and defaults to the selected one.
+IGNORE, when non-nil means a window can be returned even if its
+`no-other-window' parameter is non-nil."
+  (setq window (normalize-live-window window))
+  (unless (memq direction '(above below left right))
+    (error "Wrong direction %s" direction))
+  (let* ((frame (window-frame window))
+	 (hor (memq direction '(left right)))
+	 (first (if hor
+		    (window-left-column window)
+		  (window-top-line window)))
+	 (last (+ first (if hor
+			    (window-total-width window)
+			  (window-total-height window))))
+	 (posn-cons (nth 6 (posn-at-point (window-point window) window)))
+	 ;; The column / row value of `posn-at-point' can be nil for the
+	 ;; mini-window, guard against that.
+	 (posn (if hor
+		   (+ (or (cdr posn-cons) 1) (window-top-line window))
+		 (+ (or (car posn-cons) 1) (window-left-column window))))
+	 (best-edge
+	  (cond
+	   ((eq direction 'below) (frame-height frame))
+	   ((eq direction 'right) (frame-width frame))
+	   (t -1)))
+	 (best-edge-2 best-edge)
+	 (best-diff-2 (if hor (frame-height frame) (frame-width frame)))
+	 best best-2 best-diff-2-new)
+    (walk-window-tree
+     (lambda (w)
+       (let* ((w-top (window-top-line w))
+	      (w-left (window-left-column w)))
+	 (cond
+	  ((or (eq window w)
+	       ;; Ignore ourselves.
+	       (and (window-parameter w 'no-other-window)
+		    ;; Ignore W unless IGNORE is non-nil.
+		    (not ignore))))
+	  (hor
+	   (cond
+	    ((and (<= w-top posn)
+		  (< posn (+ w-top (window-total-height w))))
+	     ;; W is to the left or right of WINDOW and covers POSN.
+	     (when (or (and (eq direction 'left)
+			    (<= w-left first) (> w-left best-edge))
+		       (and (eq direction 'right)
+			    (>= w-left last) (< w-left best-edge)))
+	       (setq best-edge w-left)
+	       (setq best w)))
+	    ((and (or (and (eq direction 'left)
+			   (<= (+ w-left (window-total-width w)) first))
+		      (and (eq direction 'right) (<= last w-left)))
+		  ;; W is to the left or right of WINDOW but does not
+		  ;; cover POSN.
+		  (setq best-diff-2-new
+			(window-in-direction-2 w posn hor))
+		  (or (< best-diff-2-new best-diff-2)
+		      (and (= best-diff-2-new best-diff-2)
+			   (if (eq direction 'left)
+			       (> w-left best-edge-2)
+			     (< w-left best-edge-2)))))
+	     (setq best-edge-2 w-left)
+	     (setq best-diff-2 best-diff-2-new)
+	     (setq best-2 w))))
+	  (t
+	   (cond
+	    ((and (<= w-left posn)
+		  (< posn (+ w-left (window-total-width w))))
+	     ;; W is above or below WINDOW and covers POSN.
+	     (when (or (and (eq direction 'above)
+			    (<= w-top first) (> w-top best-edge))
+		       (and (eq direction 'below)
+			    (>= w-top first) (< w-top best-edge)))
+	       (setq best-edge w-top)
+	       (setq best w)))
+	    ((and (or (and (eq direction 'above)
+			   (<= (+ w-top (window-total-height w)) first))
+		      (and (eq direction 'below) (<= last w-top)))
+		  ;; W is above or below WINDOW but does not cover POSN.
+		  (setq best-diff-2-new
+			(window-in-direction-2 w posn hor))
+		  (or (< best-diff-2-new best-diff-2)
+		      (and (= best-diff-2-new best-diff-2)
+			   (if (eq direction 'above)
+			       (> w-top best-edge-2)
+			     (< w-top best-edge-2)))))
+	     (setq best-edge-2 w-top)
+	     (setq best-diff-2 best-diff-2-new)
+	     (setq best-2 w)))))))
+     (window-frame window))
+    (or best best-2)))
 
 (defun get-window-with-predicate (predicate &optional minibuf
 					    all-frames default)
-  "Return a window satisfying PREDICATE.
-More precisely, cycle through all windows using `walk-windows',
-calling the function PREDICATE on each one of them with the
-window as its sole argument.  Return the first window for which
-PREDICATE returns non-nil.  If no window satisfies PREDICATE,
-return DEFAULT.
+  "Return a live window satisfying PREDICATE.
+More precisely, cycle through all windows calling the function
+PREDICATE on each one of them with the window as its sole
+argument.  Return the first window for which PREDICATE returns
+non-nil.  If no window satisfies PREDICATE, return DEFAULT.
 
-The optional arguments MINIBUF and ALL-FRAMES specify the set of
-windows to include.  See `walk-windows' for the meaning of these
-arguments."
+ALL-FRAMES nil or omitted means consider all windows on the selected
+frame, plus the minibuffer window if specified by the MINIBUF
+argument.  If the minibuffer counts, consider all windows on all
+frames that share that minibuffer too.  The following non-nil
+values of ALL-FRAMES have special meanings:
+
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
+
+- 0 (the number zero) means consider all windows on all visible
+  and iconified frames on the current terminal.
+
+- A frame means consider all windows on that frame only.
+
+Anything else means consider all windows on the selected frame
+and no others."
   (catch 'found
-    (walk-windows #'(lambda (window)
-		      (when (funcall predicate window)
-			(throw 'found window)))
-		  minibuf all-frames)
+    (dolist (window (window-list-1 nil minibuf all-frames))
+      (when (funcall predicate window)
+	(throw 'found window)))
     default))
 
 (defalias 'some-window 'get-window-with-predicate)
@@ -1114,6 +1203,33 @@ selected frame and no others."
 	    (setq best-time time)
 	    (setq best-window window)))))
     (or best-window second-best-window)))
+
+(defun get-mru-window (&optional all-frames)
+   "Return the most recently used window on frames specified by ALL-FRAMES.
+Do not return a minibuffer window.
+
+The following non-nil values of the optional argument ALL-FRAMES
+have special meanings:
+
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
+
+- 0 (the number zero) means consider all windows on all visible
+  and iconified frames on the current terminal.
+
+- A frame means consider all windows on that frame only.
+
+Any other value of ALL-FRAMES means consider all windows on the
+selected frame and no others."
+   (let (best-window best-time time)
+    (dolist (window (window-list-1 nil nil all-frames))
+      (setq time (window-use-time window))
+      (when (or (not best-time) (> time best-time))
+	(setq best-time time)
+	(setq best-window window)))
+    best-window))
 
 (defun get-largest-window (&optional all-frames dedicated)
   "Return the largest window on frames specified by ALL-FRAMES.
@@ -1189,16 +1305,47 @@ and no others."
 (defun minibuffer-window-active-p (window)
   "Return t if WINDOW is the currently active minibuffer window."
   (eq window (active-minibuffer-window)))
-
+
 (defun count-windows (&optional minibuf)
-   "Return the number of visible windows.
+   "Return the number of live windows on the selected frame.
 The optional argument MINIBUF specifies whether the minibuffer
 window shall be counted.  See `walk-windows' for the precise
 meaning of this argument."
-   (let ((count 0))
-     (walk-windows (lambda (_w) (setq count (+ count 1)))
-		   minibuf)
-     count))
+   (length (window-list-1 nil minibuf)))
+
+;; This should probably return non-nil when the selected window is part
+;; of an atomic window whose root is the frame's root window.
+(defun one-window-p (&optional nomini all-frames)
+  "Return non-nil if the selected window is the only window.
+Optional arg NOMINI non-nil means don't count the minibuffer
+even if it is active.  Otherwise, the minibuffer is counted
+when it is active.
+
+Optional argument ALL-FRAMES specifies the set of frames to
+consider, see also `next-window'.  ALL-FRAMES nil or omitted
+means consider windows on the selected frame only, plus the
+minibuffer window if specified by the NOMINI argument.  If the
+minibuffer counts, consider all windows on all frames that share
+that minibuffer too.  The remaining non-nil values of ALL-FRAMES
+with a special meaning are:
+
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames on
+  the current terminal.
+
+- 0 (the number zero) means consider all windows on all visible
+  and iconified frames on the current terminal.
+
+- A frame means consider all windows on that frame only.
+
+Anything else means consider all windows on the selected frame
+and no others."
+  (let ((base-window (selected-window)))
+    (if (and nomini (eq base-window (minibuffer-window)))
+	(setq base-window (next-window base-window)))
+    (eq base-window
+	(next-window base-window (if nomini 'arg) all-frames))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; `balance-windows' subroutines using `window-tree'

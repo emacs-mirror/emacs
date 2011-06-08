@@ -1,3 +1,14 @@
+2011-06-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (one-window-p): Move down in code.  Rewrite
+	doc-string.
+	(window-current-scroll-bars): Rewrite doc-string.  Normalize
+	live window argument.
+	(walk-windows, get-window-with-predicate, count-windows):
+	Rewrite doc-string.  Use window-list-1.
+	(window-in-direction-2, window-in-direction, get-mru-window):
+	New functions.
+
 2011-06-08  Reuben Thomas <rrt@sc3d.org>
 
 	* progmodes/flymake.el (flymake-compilation-prevents-syntax-check):
