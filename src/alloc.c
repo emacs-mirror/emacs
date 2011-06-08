@@ -2832,7 +2832,7 @@ struct Lisp_Vector *
 allocate_pseudovector (int memlen, int lisplen, EMACS_INT tag)
 {
   struct Lisp_Vector *v = allocate_vectorlike (memlen);
-  EMACS_INT i;
+  int i;
 
   /* Only the first lisplen slots will be traced normally by the GC.  */
   for (i = 0; i < lisplen; ++i)

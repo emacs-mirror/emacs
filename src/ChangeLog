@@ -17,6 +17,7 @@
 	(inhibit_garbage_collection): Set gc_cons_threshold to max value.
 	Previously, this ceilinged at INT_MAX, but that doesn't work on
 	64-bit machines.
+	(allocate_pseudovector): Don't use EMACS_INT when int would do.
 
 	* alloc.c (Fmake_bool_vector): Don't assume vector size fits in int.
 	(allocate_vectorlike): Check for ptrdiff_t overflow.
