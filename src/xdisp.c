@@ -2342,6 +2342,7 @@ init_iterator (struct it *it, struct window *w,
   it->base_face_id = remapped_base_face_id;
   it->string = Qnil;
   IT_STRING_CHARPOS (*it) = IT_STRING_BYTEPOS (*it) = -1;
+  it->bidi_it.string.s = NULL;
 
   /* The window in which we iterate over current_buffer:  */
   XSETWINDOW (it->window, w);
@@ -3087,14 +3088,16 @@ next_overlay_change (EMACS_INT pos)
   return endpos;
 }
 
-/* Return the character position of a display string at or after CHARPOS.
-   If no display string exists at or after CHARPOS, return ZV.  A
-   display string is either an overlay with `display' property whose
-   value is a string, or a `display' text property whose value is a
-   string.  FRAME_WINDOW_P is non-zero when we are displaying a window
-   on a GUI frame.  */
+/* Return the character position of a display string at or after
+   CHARPOS.  If no display string exists at or after CHARPOS, return
+   ZV.  A display string is either an overlay with `display' property
+   whose value is a string, or a `display' text property whose value
+   is a string.  STRING is the string to iterate; if STRING->s is
+   NULL, we are iterating a buffer.  FRAME_WINDOW_P is non-zero when
+   we are displaying a window on a GUI frame.  */
 EMACS_INT
-compute_display_string_pos (EMACS_INT charpos, int frame_window_p)
+compute_display_string_pos (EMACS_INT charpos, struct bidi_string_data *string,
+			    int frame_window_p)
 {
   /* FIXME: Support display properties on strings (object = Qnil means
      current buffer).  */
@@ -3143,7 +3146,7 @@ compute_display_string_pos (EMACS_INT charpos, int frame_window_p)
    `display' property whose value is a string or a `display' text
    property whose value is a string.  */
 EMACS_INT
-compute_display_string_end (EMACS_INT charpos)
+compute_display_string_end (EMACS_INT charpos, struct bidi_string_data *string)
 {
   /* FIXME: Support display properties on strings (object = Qnil means
      current buffer).  */
@@ -5482,6 +5485,7 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
       it->bidi_it.first_elt = 1;
       it->bidi_it.paragraph_dir = NEUTRAL_DIR;
       it->bidi_it.disp_pos = -1;
+      it->bidi_it.string.s = NULL;
     }
 
   if (set_stop_p)
@@ -5531,6 +5535,10 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
      setting of MULTIBYTE, if specified.  */
   if (multibyte >= 0)
     it->multibyte_p = multibyte > 0;
+#if 0
+  it->bidi_p =
+    it->multibyte_p && BVAR (&buffer_defaults, bidi_display_reordering);
+#endif
 
   if (s == NULL)
     {
@@ -5540,6 +5548,12 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
       it->end_charpos = it->string_nchars = SCHARS (string);
       it->method = GET_FROM_STRING;
       it->current.string_pos = string_pos (charpos, string);
+#if 0
+      if (it->bidi_p)
+	bidi_init_it ();
+      it->bidi_it.string.s = SDATA (string);
+      it->bidi_it.string.schars = it->end_charpos;
+#endif
     }
   else
     {
@@ -5553,11 +5567,20 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 	{
 	  it->current.pos = c_string_pos (charpos, s, 1);
 	  it->end_charpos = it->string_nchars = number_of_chars (s, 1);
+#if 0
+	  if (it->bidi_p)
+	    bidi_init_it ();
+	  it->bidi_it.string.s = s;
+	  it->bidi_it.string.schars = it->end_charpos;
+#endif
 	}
       else
 	{
 	  IT_CHARPOS (*it) = IT_BYTEPOS (*it) = charpos;
 	  it->end_charpos = it->string_nchars = strlen (s);
+#if 0
+	  it->bidi_p = 0;
+#endif
 	}
 
       it->method = GET_FROM_C_STRING;

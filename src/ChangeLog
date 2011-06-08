@@ -1,3 +1,46 @@
+2011-06-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_paragraph_info): Delete unused struct.
+	(bidi_cache_idx, bidi_cache_last_idx): Declare EMACS_INT.
+	(bidi_cache_start): New variable.
+	(bidi_cache_reset): Reset bidi_cache_idx to bidi_cache_start, not
+	to zero.
+	(bidi_cache_fetch_state, bidi_cache_search)
+	(bidi_cache_find_level_change, bidi_cache_iterator_state)
+	(bidi_cache_find, bidi_peek_at_next_level)
+	(bidi_level_of_next_char, bidi_find_other_level_edge)
+	(bidi_move_to_visually_next): Compare cache index with
+	bidi_cache_start rather than with zero.
+	(bidi_fetch_char): Accept new argument STRING; all callers
+	changed.  Support iteration over a string.
+	(bidi_paragraph_init, bidi_resolve_explicit_1)
+	(bidi_resolve_explicit, bidi_resolve_weak)
+	(bidi_level_of_next_char, bidi_move_to_visually_next): Support
+	iteration over a string.
+	(bidi_set_sor_type, bidi_resolve_explicit_1)
+	(bidi_resolve_explicit, bidi_type_of_next_char): ignore_bn_limit
+	can now be zero (for strings); special values 0 and -1 were
+	changed to -1 and -2, respectively.
+	(bidi_char_at_pos): New function.
+	(bidi_paragraph_init, bidi_resolve_explicit, bidi_resolve_weak):
+	Call it instead of FETCH_MULTIBYTE_CHAR.
+	(bidi_move_to_visually_next): Abort if charpos or bytepos were not
+	initialized to valid values.
+	(bidi_init_it): Don't initialize charpos and bytepos with invalid
+	values.
+
+	* xdisp.c (compute_display_string_pos)
+	(compute_display_string_end): Accept additional argument STRING.
+	(init_iterator, reseat_1): Initialize bidi_it->string.s to NULL.
+	(reseat_to_string): Initialize bidi_it->string.s and
+	bidi_it->string.schars.
+
+	* dispextern.h (struct bidi_string_data): New structure.
+	(struct bidi_it): New member `string'.  Make flag members be 1-bit
+	fields, and put them last in the struct.
+	(compute_display_string_pos, compute_display_string_end): Update
+	prototypes.
+
 2011-06-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_level_of_next_char): clen should be EMACS_NT, not int.

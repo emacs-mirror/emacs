@@ -1812,9 +1812,18 @@ struct bidi_stack {
   bidi_dir_t override;
 };
 
+/* Data type for storing information about a string being iterated on.  */
+struct bidi_string_data {
+  const unsigned char *s;	/* the string, or NULL if reordering buffer */
+  EMACS_INT schars;		/* the number of characters in the string,
+				   excluding the terminating null */
+  unsigned from_disp_str : 1;	/* 1 means the string comes from a
+				   display property */
+};
+
 /* Data type for reordering bidirectional text.  */
 struct bidi_it {
-  EMACS_INT bytepos;		/* iterator's position in buffer */
+  EMACS_INT bytepos;		/* iterator's position in buffer/string */
   EMACS_INT charpos;
   int ch;			/* character at that position, or u+FFFC
 				   ("object replacement character") for a run
@@ -1844,12 +1853,13 @@ struct bidi_it {
      iterator state is saved, pushed, or popped.  So only put here
      stuff that is not part of the bidi iterator's state!  */
   struct bidi_stack level_stack[BIDI_MAXLEVEL]; /* stack of embedding levels */
-  int first_elt;		/* if non-zero, examine current char first */
+  struct bidi_string_data string;	/* string to reorder */
   bidi_dir_t paragraph_dir;	/* current paragraph direction */
-  int new_paragraph;		/* if non-zero, we expect a new paragraph */
-  int frame_window_p;		/* non-zero if displaying on a GUI frame */
   EMACS_INT separator_limit;	/* where paragraph separator should end */
   EMACS_INT disp_pos;		/* position of display string after ch */
+  unsigned first_elt : 1;	/* if non-zero, examine current char first */
+  unsigned new_paragraph : 1;	/* if non-zero, we expect a new paragraph */
+  unsigned frame_window_p : 1;	/* non-zero if displaying on a GUI frame */
 };
 
 /* Value is non-zero when the bidi iterator is at base paragraph
@@ -3007,8 +3017,10 @@ extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
 extern int calc_pixel_width_or_height (double *, struct it *, Lisp_Object,
                                        struct font *, int, int *);
-extern EMACS_INT compute_display_string_pos (EMACS_INT, int);
-extern EMACS_INT compute_display_string_end (EMACS_INT);
+extern EMACS_INT compute_display_string_pos (EMACS_INT,
+					     struct bidi_string_data *, int);
+extern EMACS_INT compute_display_string_end (EMACS_INT,
+					     struct bidi_string_data *);
 
 #ifdef HAVE_WINDOW_SYSTEM
 
