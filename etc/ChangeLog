@@ -100,19 +100,24 @@
 
 2011-02-17  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* etc/images/icons/allout-widgets/dark-bg,
-	* etc/images/icons/allout-widgets/light-bg,
-	* encrypted-locked.{xpm,png}, unlocked-encrypted.{xpm,png}:
+	* images/icons/allout-widgets/dark-bg/encrypted-locked.png:
+	* images/icons/allout-widgets/dark-bg/encrypted-locked.xpm:
+	* images/icons/allout-widgets/dark-bg/unlocked-encrypted.png:
+	* images/icons/allout-widgets/dark-bg/unlocked-encrypted.xpm:
+	* images/icons/allout-widgets/light-bg/encrypted-locked.png:
+	* images/icons/allout-widgets/light-bg/encrypted-locked.xpm:
+	* images/icons/allout-widgets/light-bg/unlocked-encrypted.png:
+	* images/icons/allout-widgets/light-bg/unlocked-encrypted.xpm:
 	Reorganize icon directories and files to reconcile against windows
 	short-filename clashes.
 
 2011-02-16  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* etc/images/icons/allout-widgets-dark-bg,
-	* etc/images/icons/allout-widgets-light-bg: Icons for new
+	* images/icons/allout-widgets-dark-bg,
+	* images/icons/allout-widgets-light-bg: Icons for new
 	allout-widgets.el.
 
-	* etc/images/icons/README: Include coypright and GPL 3 license for
+	* images/icons/README: Include coypright and GPL 3 license for
 	new icons.
 
 2011-02-16  Michael Albinus  <michael.albinus@gmx.de>
