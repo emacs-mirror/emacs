@@ -180,9 +180,9 @@ int abort_on_gc;
 
 /* Number of live and free conses etc.  */
 
-static int total_conses, total_markers, total_symbols, total_vector_size;
-static int total_free_conses, total_free_markers, total_free_symbols;
-static int total_free_floats, total_floats;
+static EMACS_INT total_conses, total_markers, total_symbols, total_vector_size;
+static EMACS_INT total_free_conses, total_free_markers, total_free_symbols;
+static EMACS_INT total_free_floats, total_floats;
 
 /* Points to memory space allocated as "spare", to be freed if we run
    out of memory.  We keep one large block, four cons-blocks, and
@@ -1338,7 +1338,7 @@ static int interval_block_index;
 
 /* Number of free and live intervals.  */
 
-static int total_free_intervals, total_intervals;
+static EMACS_INT total_free_intervals, total_intervals;
 
 /* List of free intervals.  */
 
@@ -1593,7 +1593,7 @@ static struct Lisp_String *string_free_list;
 
 /* Number of live and free Lisp_Strings.  */
 
-static int total_strings, total_free_strings;
+static EMACS_INT total_strings, total_free_strings;
 
 /* Number of bytes used by live strings.  */
 
@@ -5118,9 +5118,10 @@ returns nil, because real GC can't be done.  */)
   if (gc_cons_threshold < 10000)
     gc_cons_threshold = 10000;
 
+  gc_relative_threshold = 0;
   if (FLOATP (Vgc_cons_percentage))
     { /* Set gc_cons_combined_threshold.  */
-      EMACS_INT tot = 0;
+      double tot = 0;
 
       tot += total_conses  * sizeof (struct Lisp_Cons);
       tot += total_symbols * sizeof (struct Lisp_Symbol);
@@ -5131,10 +5132,15 @@ returns nil, because real GC can't be done.  */)
       tot += total_intervals * sizeof (struct interval);
       tot += total_strings * sizeof (struct Lisp_String);
 
-      gc_relative_threshold = tot * XFLOAT_DATA (Vgc_cons_percentage);
+      tot *= XFLOAT_DATA (Vgc_cons_percentage);
+      if (0 < tot)
+	{
+	  if (tot < TYPE_MAXIMUM (EMACS_INT))
+	    gc_relative_threshold = tot;
+	  else
+	    gc_relative_threshold = TYPE_MAXIMUM (EMACS_INT);
+	}
     }
-  else
-    gc_relative_threshold = 0;
 
   if (garbage_collection_messages)
     {
@@ -5748,7 +5754,7 @@ gc_sweep (void)
     register struct cons_block *cblk;
     struct cons_block **cprev = &cons_block;
     register int lim = cons_block_index;
-    register int num_free = 0, num_used = 0;
+    EMACS_INT num_free = 0, num_used = 0;
 
     cons_free_list = 0;
 
@@ -5826,7 +5832,7 @@ gc_sweep (void)
     register struct float_block *fblk;
     struct float_block **fprev = &float_block;
     register int lim = float_block_index;
-    register int num_free = 0, num_used = 0;
+    EMACS_INT num_free = 0, num_used = 0;
 
     float_free_list = 0;
 
@@ -5873,7 +5879,7 @@ gc_sweep (void)
     register struct interval_block *iblk;
     struct interval_block **iprev = &interval_block;
     register int lim = interval_block_index;
-    register int num_free = 0, num_used = 0;
+    EMACS_INT num_free = 0, num_used = 0;
 
     interval_free_list = 0;
 
@@ -5923,7 +5929,7 @@ gc_sweep (void)
     register struct symbol_block *sblk;
     struct symbol_block **sprev = &symbol_block;
     register int lim = symbol_block_index;
-    register int num_free = 0, num_used = 0;
+    EMACS_INT num_free = 0, num_used = 0;
 
     symbol_free_list = NULL;
 
@@ -5988,7 +5994,7 @@ gc_sweep (void)
     register struct marker_block *mblk;
     struct marker_block **mprev = &marker_block;
     register int lim = marker_block_index;
-    register int num_free = 0, num_used = 0;
+    EMACS_INT num_free = 0, num_used = 0;
 
     marker_free_list = 0;
 

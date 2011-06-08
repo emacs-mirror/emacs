@@ -1,5 +1,15 @@
 2011-06-08  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c: Use EMACS_INT, not int, to count objects.
+	(total_conses, total_markers, total_symbols, total_vector_size)
+	(total_free_conses, total_free_markers, total_free_symbols)
+	(total_free_floats, total_floats, total_free_intervals, total_intervals)
+	(total_strings, total_free_strings):
+	Now EMACS_INT, not int.  All uses changed.
+	(Fgarbage_collect): Compute overall total using a double, so that
+	integer overflow is less likely to be a problem.  Check for overflow
+	when converting back to an integer.
+
 	* alloc.c (Fmake_bool_vector): Don't assume vector size fits in int.
 	(allocate_vectorlike): Check for ptrdiff_t overflow.
 	(mark_vectorlike, mark_char_table, mark_object): Avoid EMACS_UINT
