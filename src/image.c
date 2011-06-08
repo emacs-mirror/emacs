@@ -7146,12 +7146,12 @@ gif_load (struct frame *f, struct image *img)
 
   /* Which sub-image are we to display?  */
   {
-    Lisp_Object index = image_spec_value (img->spec, QCindex, NULL);
-    idx = INTEGERP (index) ? XFASTINT (index) : 0;
+    Lisp_Object image_number = image_spec_value (img->spec, QCindex, NULL);
+    idx = INTEGERP (image_number) ? XFASTINT (image_number) : 0;
     if (idx < 0 || idx >= gif->ImageCount)
       {
 	image_error ("Invalid image number `%s' in image `%s'",
-		     index, img->spec);
+		     image_number, img->spec);
 	fn_DGifCloseFile (gif);
 	return 0;
       }

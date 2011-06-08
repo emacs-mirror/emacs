@@ -1,5 +1,7 @@
 2011-06-08  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* image.c (gif_load): Rename local to avoid shadowing.
+
 	* lisp.h (SAFE_ALLOCA_LISP): Check for integer overflow.
 	(struct Lisp_Save_Value): Use ptrdiff_t, not int, for 'integer' member.
 	* alloc.c (make_save_value): Integer argument is now of type
