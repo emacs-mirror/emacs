@@ -3589,7 +3589,7 @@ usage: (format STRING &rest OBJECTS)  */)
   char initial_buffer[4000];
   char *buf = initial_buffer;
   EMACS_INT bufsize = sizeof initial_buffer;
-  EMACS_INT max_bufsize = STRING_BYTES_MAX + 1;
+  EMACS_INT max_bufsize = STRING_BYTES_BOUND + 1;
   char *p;
   Lisp_Object buf_save_value IF_LINT (= {0});
   register char *format, *end, *format_start;

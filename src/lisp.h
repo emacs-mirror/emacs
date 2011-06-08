@@ -765,11 +765,19 @@ extern EMACS_INT string_bytes (struct Lisp_String *);
 
 #endif /* not GC_CHECK_STRING_BYTES */
 
-/* A string cannot contain more bytes than a fixnum can represent,
-   nor can it be so long that C pointer arithmetic stops working on
-   the string plus a terminating null.  */
-#define STRING_BYTES_MAX  \
-  min (MOST_POSITIVE_FIXNUM, min (SIZE_MAX, PTRDIFF_MAX) - 1)
+/* An upper bound on the number of bytes in a Lisp string, not
+   counting the terminating null.  This a tight enough bound to
+   prevent integer overflow errors that would otherwise occur during
+   string size calculations.  A string cannot contain more bytes than
+   a fixnum can represent, nor can it be so long that C pointer
+   arithmetic stops working on the string plus its terminating null.
+   Although the actual size limit (see STRING_BYTES_MAX in alloc.c)
+   may be a bit smaller than STRING_BYTES_BOUND, calculating it here
+   would expose alloc.c internal details that we'd rather keep
+   private.  The cast to ptrdiff_t ensures that STRING_BYTES_BOUND is
+   signed.  */
+#define STRING_BYTES_BOUND  \
+  min (MOST_POSITIVE_FIXNUM, (ptrdiff_t) min (SIZE_MAX, PTRDIFF_MAX) - 1)
 
 /* Mark STR as a unibyte string.  */
 #define STRING_SET_UNIBYTE(STR)  \

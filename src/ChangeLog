@@ -1,3 +1,19 @@
+2011-06-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c: Catch some string size overflows that we were missing.
+	(XMALLOC_OVERRUN_CHECK_SIZE) [!XMALLOC_OVERRUN_CHECK]: Define to 0,
+	for convenience in STRING_BYTES_MAX.
+	(STRING_BYTES_MAX): New macro, superseding the old one in lisp.h.
+	The definition here is exact; the one in lisp.h was approximate.
+	(allocate_string_data): Check for string overflow.  This catches
+	some instances we weren't catching before.  Also, it catches
+	size_t overflow on (unusual) hosts where SIZE_MAX <= min
+	(PTRDIFF_MAX, MOST_POSITIVE_FIXNUM), e.g., when size_t is 32 bits
+	and ptrdiff_t and EMACS_INT are both 64 bits.
+	* character.c, coding.c, doprnt.c, editfns.c, eval.c:
+	All uses of STRING_BYTES_MAX replaced by STRING_BYTES_BOUND.
+	* lisp.h (STRING_BYTES_BOUND): Renamed from STRING_BYTES_MAX.
+
 2011-06-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* character.c (string_escape_byte8): Fix nbytes/nchars typo.

@@ -485,7 +485,9 @@ buffer_memory_full (EMACS_INT nbytes)
 }
 
 
-#ifdef XMALLOC_OVERRUN_CHECK
+#ifndef XMALLOC_OVERRUN_CHECK
+#define XMALLOC_OVERRUN_CHECK_SIZE 0
+#else
 
 /* Check for overrun in malloc'ed buffers by wrapping a 16 byte header
    and a 16 byte trailer around each block.
@@ -1659,6 +1661,18 @@ static char const string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =
 
 #define GC_STRING_EXTRA (GC_STRING_OVERRUN_COOKIE_SIZE)
 
+/* Exact bound on the number of bytes in a string, not counting the
+   terminating null.  A string cannot contain more bytes than
+   STRING_BYTES_BOUND, nor can it be so long that the size_t
+   arithmetic in allocate_string_data would overflow while it is
+   calculating a value to be passed to malloc.  */
+#define STRING_BYTES_MAX					  \
+  min (STRING_BYTES_BOUND,					  \
+       ((SIZE_MAX - XMALLOC_OVERRUN_CHECK_SIZE - GC_STRING_EXTRA  \
+	 - offsetof (struct sblock, first_data)			  \
+	 - SDATA_DATA_OFFSET)					  \
+	& ~(sizeof (EMACS_INT) - 1)))
+
 /* Initialize string allocation.  Called from init_alloc_once.  */
 
 static void
@@ -1857,6 +1871,9 @@ allocate_string_data (struct Lisp_String *s,
   struct sdata *data, *old_data;
   struct sblock *b;
   EMACS_INT needed, old_nbytes;
+
+  if (STRING_BYTES_MAX < nbytes)
+    string_overflow ();
 
   /* Determine the number of bytes needed to store NBYTES bytes
      of string data.  */

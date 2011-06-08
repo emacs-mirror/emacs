@@ -1994,7 +1994,7 @@ verror (const char *m, va_list ap)
 {
   char buf[4000];
   size_t size = sizeof buf;
-  size_t size_max = STRING_BYTES_MAX + 1;
+  size_t size_max = STRING_BYTES_BOUND + 1;
   size_t mlen = strlen (m);
   char *buffer = buf;
   size_t used;

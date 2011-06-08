@@ -1071,7 +1071,7 @@ coding_set_destination (struct coding_system *coding)
 static void
 coding_alloc_by_realloc (struct coding_system *coding, EMACS_INT bytes)
 {
-  if (STRING_BYTES_MAX - coding->dst_bytes < bytes)
+  if (STRING_BYTES_BOUND - coding->dst_bytes < bytes)
     string_overflow ();
   coding->destination = (unsigned char *) xrealloc (coding->destination,
 						    coding->dst_bytes + bytes);
