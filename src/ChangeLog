@@ -14,6 +14,9 @@
 	These were 'int' variables that could overflow on 64-bit hosts;
 	they were never used, so remove them instead of repairing them.
 	(nzombies, ngcs, max_live, max_zombies): Now EMACS_INT, not 'int'.
+	(inhibit_garbage_collection): Set gc_cons_threshold to max value.
+	Previously, this ceilinged at INT_MAX, but that doesn't work on
+	64-bit machines.
 
 	* alloc.c (Fmake_bool_vector): Don't assume vector size fits in int.
 	(allocate_vectorlike): Check for ptrdiff_t overflow.

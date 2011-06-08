@@ -4827,9 +4827,8 @@ int
 inhibit_garbage_collection (void)
 {
   int count = SPECPDL_INDEX ();
-  int nbits = min (VALBITS, BITS_PER_INT);
 
-  specbind (Qgc_cons_threshold, make_number (((EMACS_INT) 1 << (nbits - 1)) - 1));
+  specbind (Qgc_cons_threshold, make_number (MOST_POSITIVE_FIXNUM));
   return count;
 }
 
