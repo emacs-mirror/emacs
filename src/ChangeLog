@@ -9,6 +9,10 @@
 	(Fgarbage_collect): Compute overall total using a double, so that
 	integer overflow is less likely to be a problem.  Check for overflow
 	when converting back to an integer.
+	(n_interval_blocks, n_string_blocks, n_float_blocks, n_cons_blocks)
+	(n_vectors, n_symbol_blocks, n_marker_blocks): Remove.
+	These were 'int' variables that could overflow on 64-bit hosts;
+	they were never used, so remove them instead of repairing them.
 
 	* alloc.c (Fmake_bool_vector): Don't assume vector size fits in int.
 	(allocate_vectorlike): Check for ptrdiff_t overflow.

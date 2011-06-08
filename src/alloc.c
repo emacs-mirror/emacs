@@ -1344,10 +1344,6 @@ static EMACS_INT total_free_intervals, total_intervals;
 
 static INTERVAL interval_free_list;
 
-/* Total number of interval blocks now in use.  */
-
-static int n_interval_blocks;
-
 
 /* Initialize interval allocation.  */
 
@@ -1357,7 +1353,6 @@ init_intervals (void)
   interval_block = NULL;
   interval_block_index = INTERVAL_BLOCK_SIZE;
   interval_free_list = 0;
-  n_interval_blocks = 0;
 }
 
 
@@ -1389,7 +1384,6 @@ make_interval (void)
 	  newi->next = interval_block;
 	  interval_block = newi;
 	  interval_block_index = 0;
-	  n_interval_blocks++;
 	}
       val = &interval_block->intervals[interval_block_index++];
     }
@@ -1582,10 +1576,9 @@ static struct sblock *oldest_sblock, *current_sblock;
 
 static struct sblock *large_sblocks;
 
-/* List of string_block structures, and how many there are.  */
+/* List of string_block structures.  */
 
 static struct string_block *string_blocks;
-static int n_string_blocks;
 
 /* Free-list of Lisp_Strings.  */
 
@@ -1681,7 +1674,6 @@ init_strings (void)
   total_strings = total_free_strings = total_string_size = 0;
   oldest_sblock = current_sblock = large_sblocks = NULL;
   string_blocks = NULL;
-  n_string_blocks = 0;
   string_free_list = NULL;
   empty_unibyte_string = make_pure_string ("", 0, 0, 0);
   empty_multibyte_string = make_pure_string ("", 0, 0, 1);
@@ -1813,7 +1805,6 @@ allocate_string (void)
       memset (b, 0, sizeof *b);
       b->next = string_blocks;
       string_blocks = b;
-      ++n_string_blocks;
 
       for (i = STRING_BLOCK_SIZE - 1; i >= 0; --i)
 	{
@@ -2042,7 +2033,6 @@ sweep_strings (void)
 	  && total_free_strings > STRING_BLOCK_SIZE)
 	{
 	  lisp_free (b);
-	  --n_string_blocks;
 	  string_free_list = free_list_before;
 	}
       else
@@ -2477,10 +2467,6 @@ static struct float_block *float_block;
 
 static int float_block_index;
 
-/* Total number of float blocks now in use.  */
-
-static int n_float_blocks;
-
 /* Free-list of Lisp_Floats.  */
 
 static struct Lisp_Float *float_free_list;
@@ -2494,7 +2480,6 @@ init_float (void)
   float_block = NULL;
   float_block_index = FLOAT_BLOCK_SIZE; /* Force alloc of new float_block.   */
   float_free_list = 0;
-  n_float_blocks = 0;
 }
 
 
@@ -2528,7 +2513,6 @@ make_float (double float_value)
 	  memset (new->gcmarkbits, 0, sizeof new->gcmarkbits);
 	  float_block = new;
 	  float_block_index = 0;
-	  n_float_blocks++;
 	}
       XSETFLOAT (val, &float_block->floats[float_block_index]);
       float_block_index++;
@@ -2593,10 +2577,6 @@ static int cons_block_index;
 
 static struct Lisp_Cons *cons_free_list;
 
-/* Total number of cons blocks now in use.  */
-
-static int n_cons_blocks;
-
 
 /* Initialize cons allocation.  */
 
@@ -2606,7 +2586,6 @@ init_cons (void)
   cons_block = NULL;
   cons_block_index = CONS_BLOCK_SIZE; /* Force alloc of new cons_block.  */
   cons_free_list = 0;
-  n_cons_blocks = 0;
 }
 
 
@@ -2650,7 +2629,6 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 	  new->next = cons_block;
 	  cons_block = new;
 	  cons_block_index = 0;
-	  n_cons_blocks++;
 	}
       XSETCONS (val, &cons_block->conses[cons_block_index]);
       cons_block_index++;
@@ -2789,10 +2767,6 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
 
 static struct Lisp_Vector *all_vectors;
 
-/* Total number of vector-like objects now in use.  */
-
-static int n_vectors;
-
 
 /* Value is a pointer to a newly allocated Lisp_Vector structure
    with room for LEN Lisp_Objects.  */
@@ -2837,7 +2811,6 @@ allocate_vectorlike (EMACS_INT len)
 
   MALLOC_UNBLOCK_INPUT;
 
-  ++n_vectors;
   return p;
 }
 
@@ -3033,10 +3006,6 @@ static int symbol_block_index;
 
 static struct Lisp_Symbol *symbol_free_list;
 
-/* Total number of symbol blocks now in use.  */
-
-static int n_symbol_blocks;
-
 
 /* Initialize symbol allocation.  */
 
@@ -3046,7 +3015,6 @@ init_symbol (void)
   symbol_block = NULL;
   symbol_block_index = SYMBOL_BLOCK_SIZE;
   symbol_free_list = 0;
-  n_symbol_blocks = 0;
 }
 
 
@@ -3079,7 +3047,6 @@ Its value and function definition are void, and its property list is nil.  */)
 	  new->next = symbol_block;
 	  symbol_block = new;
 	  symbol_block_index = 0;
-	  n_symbol_blocks++;
 	}
       XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index]);
       symbol_block_index++;
@@ -3127,17 +3094,12 @@ static int marker_block_index;
 
 static union Lisp_Misc *marker_free_list;
 
-/* Total number of marker blocks now in use.  */
-
-static int n_marker_blocks;
-
 static void
 init_marker (void)
 {
   marker_block = NULL;
   marker_block_index = MARKER_BLOCK_SIZE;
   marker_free_list = 0;
-  n_marker_blocks = 0;
 }
 
 /* Return a newly allocated Lisp_Misc object, with no substructure.  */
@@ -3166,7 +3128,6 @@ allocate_misc (void)
 	  new->next = marker_block;
 	  marker_block = new;
 	  marker_block_index = 0;
-	  n_marker_blocks++;
 	  total_free_markers += MARKER_BLOCK_SIZE;
 	}
       XSETMISC (val, &marker_block->markers[marker_block_index]);
@@ -5815,7 +5776,6 @@ gc_sweep (void)
 	    /* Unhook from the free list.  */
 	    cons_free_list = cblk->conses[0].u.chain;
 	    lisp_align_free (cblk);
-	    n_cons_blocks--;
 	  }
 	else
 	  {
@@ -5862,7 +5822,6 @@ gc_sweep (void)
 	    /* Unhook from the free list.  */
 	    float_free_list = fblk->floats[0].u.chain;
 	    lisp_align_free (fblk);
-	    n_float_blocks--;
 	  }
 	else
 	  {
@@ -5912,7 +5871,6 @@ gc_sweep (void)
 	    /* Unhook from the free list.  */
 	    interval_free_list = INTERVAL_PARENT (&iblk->intervals[0]);
 	    lisp_free (iblk);
-	    n_interval_blocks--;
 	  }
 	else
 	  {
@@ -5976,7 +5934,6 @@ gc_sweep (void)
 	    /* Unhook from the free list.  */
 	    symbol_free_list = sblk->symbols[0].next;
 	    lisp_free (sblk);
-	    n_symbol_blocks--;
 	  }
 	else
 	  {
@@ -6033,7 +5990,6 @@ gc_sweep (void)
 	    /* Unhook from the free list.  */
 	    marker_free_list = mblk->markers[0].u_free.chain;
 	    lisp_free (mblk);
-	    n_marker_blocks--;
 	  }
 	else
 	  {
@@ -6083,7 +6039,6 @@ gc_sweep (void)
 	    all_vectors = vector->header.next.vector;
 	  next = vector->header.next.vector;
 	  lisp_free (vector);
-	  n_vectors--;
 	  vector = next;
 
 	}
