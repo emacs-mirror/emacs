@@ -3160,7 +3160,7 @@ free_misc (Lisp_Object misc)
    The unwind function can get the C values back using XSAVE_VALUE.  */
 
 Lisp_Object
-make_save_value (void *pointer, int integer)
+make_save_value (void *pointer, ptrdiff_t integer)
 {
   register Lisp_Object val;
   register struct Lisp_Save_Value *p;
@@ -5514,7 +5514,7 @@ mark_object (Lisp_Object arg)
 	    if (ptr->dogc)
 	      {
 		Lisp_Object *p = (Lisp_Object *) ptr->pointer;
-		int nelt;
+		ptrdiff_t nelt;
 		for (nelt = ptr->integer; nelt > 0; nelt--, p++)
 		  mark_maybe_object (*p);
 	      }

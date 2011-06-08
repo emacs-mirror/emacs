@@ -1,5 +1,13 @@
 2011-06-08  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (SAFE_ALLOCA_LISP): Check for integer overflow.
+	(struct Lisp_Save_Value): Use ptrdiff_t, not int, for 'integer' member.
+	* alloc.c (make_save_value): Integer argument is now of type
+	ptrdiff_t, not int.
+	(mark_object): Use ptrdiff_t, not int.
+	* lisp.h (pD): New macro.
+	* print.c (print_object): Use it.
+
 	* alloc.c: Use EMACS_INT, not int, to count objects.
 	(total_conses, total_markers, total_symbols, total_vector_size)
 	(total_free_conses, total_free_markers, total_free_symbols)

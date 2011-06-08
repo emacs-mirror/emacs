@@ -60,6 +60,21 @@ extern void check_cons_list (void);
 # define EMACS_UINT unsigned EMACS_INT
 #endif
 
+/* Use pD to format ptrdiff_t values, which suffice for indexes into
+   buffers and strings.  Emacs never allocates objects larger than
+   PTRDIFF_MAX bytes, as they cause problems with pointer subtraction.
+   In C99, pD can always be "t"; configure it here for the sake of
+   pre-C99 libraries such as glibc 2.0 and Solaris 8.  */
+#if PTRDIFF_MAX == INT_MAX
+# define pD ""
+#elif PTRDIFF_MAX == LONG_MAX
+# define pD "l"
+#elif PTRDIFF_MAX == LLONG_MAX
+# define pD "ll"
+#else
+# define pD "t"
+#endif
+
 /* Extra internal type checking?  */
 
 #ifdef ENABLE_CHECKING
@@ -1455,7 +1470,7 @@ struct Lisp_Save_Value
        area containing INTEGER potential Lisp_Objects.  */
     unsigned int dogc : 1;
     void *pointer;
-    int integer;
+    ptrdiff_t integer;
   };
 
 
@@ -2786,7 +2801,7 @@ extern int abort_on_gc;
 extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
 extern int inhibit_garbage_collection (void);
-extern Lisp_Object make_save_value (void *, int);
+extern Lisp_Object make_save_value (void *, ptrdiff_t);
 extern void free_marker (Lisp_Object);
 extern void free_cons (struct Lisp_Cons *);
 extern void init_alloc_once (void);
@@ -3678,18 +3693,19 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 
 #define SAFE_ALLOCA_LISP(buf, nelt)			  \
   do {							  \
-    int size_ = (nelt) * sizeof (Lisp_Object);		  \
-    if (size_ < MAX_ALLOCA)				  \
-      buf = (Lisp_Object *) alloca (size_);		  \
-    else						  \
+    if ((nelt) < MAX_ALLOCA / sizeof (Lisp_Object))	  \
+      buf = (Lisp_Object *) alloca ((nelt) * sizeof (Lisp_Object));	\
+    else if ((nelt) < min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object)) \
       {							  \
 	Lisp_Object arg_;				  \
-	buf = (Lisp_Object *) xmalloc (size_);		  \
+	buf = (Lisp_Object *) xmalloc ((nelt) * sizeof (Lisp_Object));	\
 	arg_ = make_save_value (buf, nelt);		  \
 	XSAVE_VALUE (arg_)->dogc = 1;			  \
 	sa_must_free = 1;				  \
 	record_unwind_protect (safe_alloca_unwind, arg_); \
       }							  \
+    else						  \
+      memory_full (SIZE_MAX);				  \
   } while (0)
 
 
