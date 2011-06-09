@@ -1,5 +1,8 @@
 2011-06-09  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/appt.el (appt-mode-line): New function.
+	(appt-check, appt-disp-window): Use it.
+
 	* files.el (hack-one-local-variable-eval-safep):
 	Allow minor-modes with explicit +/-1 arguments.
 

@@ -251,6 +251,23 @@ update it for multiple appts?")
                            (mapconcat 'identity string "\n")
                          string)))))
 
+(defun appt-mode-line (min-to-app &optional abbrev)
+  "Return an appointment string suitable for use in the mode-line.
+MIN-TO-APP is a list of minutes, as strings.
+If ABBREV is non-nil, abbreviates some text."
+  ;; All this silliness is just to make the formatting slightly nicer.
+  (let* ((multiple (> (length min-to-app) 1))
+         (sametime (or (not multiple)
+                       (not (delete (car min-to-app) min-to-app))))
+         (imin (if sametime (car min-to-app))))
+    (format "%s%s %s"
+            (if abbrev "App't" "Appointment")
+            (if multiple "s" "")
+            (if (equal imin "0") "now"
+              (format "in %s %s"
+                      (or imin (mapconcat 'identity min-to-app ","))
+                      (if abbrev "min."
+                        (format "minute%s" (if (equal imin "1") "" "s"))))))))
 
 (defun appt-check (&optional force)
   "Check for an appointment and update any reminder display.
@@ -373,9 +390,8 @@ displayed in a window:
           (when appt-display-mode-line
             (setq appt-mode-string
                   (concat " " (propertize
-                               (format "App't %s"
-                                       (if (zerop min-to-app) "NOW"
-                                         (format "in %s min." min-to-app)))
+                               (appt-mode-line (mapcar 'number-to-string
+                                                       (list min-to-app)) t)
                                'face 'mode-line-emphasis))))
           ;; When an appointment is reached, delete it from the
           ;; list.  Reset the count to 0 in case we display another
@@ -428,31 +444,20 @@ separate appointment."
     ;; Let's allow it to be a list or not independent of the other elements.
     (or (listp new-time)
         (setq new-time (list new-time)))
-    ;; All this silliness is just to make the formatting slightly nicer.
-    (let* ((multiple (> (length min-to-app) 1))
-           (sametime (or (not multiple)
-                         (not (delete (car min-to-app) min-to-app))))
-           (imin (if sametime (car min-to-app))))
-      ;; FIXME Link to diary entry?
-      (calendar-set-mode-line
-       (format " Appointment%s %s. %s "
-               (if multiple "s" "")
-               (if (equal imin "0")
-                   "now"
-                 (format "in %s minute%s"
-                         (or imin (mapconcat 'identity min-to-app ","))
-                         (if (equal imin "1")
-                             "" "s")))
-               (mapconcat 'identity new-time ", ")))
-      (setq buffer-read-only nil
-            buffer-undo-list t)
-      (erase-buffer)
-      ;; If we have appointments at different times, prepend the times.
-      (if sametime
-          (insert (mapconcat 'identity appt-msg "\n"))
-        (dotimes (i (length appt-msg))
-          (insert (format "%s%sm: %s" (if (> i 0) "\n" "")
-                          (nth i min-to-app) (nth i appt-msg))))))
+    ;; FIXME Link to diary entry?
+    (calendar-set-mode-line
+     (format " %s. %s" (appt-mode-line min-to-app)
+             (mapconcat 'identity new-time ", ")))
+    (setq buffer-read-only nil
+          buffer-undo-list t)
+    (erase-buffer)
+    ;; If we have appointments at different times, prepend the times.
+    (if (or (= 1 (length min-to-app))
+            (not (delete (car min-to-app) min-to-app)))
+        (insert (mapconcat 'identity appt-msg "\n"))
+      (dotimes (i (length appt-msg))
+        (insert (format "%s%sm: %s" (if (> i 0) "\n" "")
+                        (nth i min-to-app) (nth i appt-msg)))))
     (shrink-window-if-larger-than-buffer (get-buffer-window appt-disp-buf t))
     (set-buffer-modified-p nil)
     (setq buffer-read-only t)
