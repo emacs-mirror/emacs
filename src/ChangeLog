@@ -1,5 +1,8 @@
 2011-06-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xmenu.c (dialog_selection_callback) [!USE_GTK]: Cast to intptr_t,
+	not to EMACS_INT, to avoid GCC warning.
+
 	* xfns.c (x_set_scroll_bar_default_width): Remove unused 'int' locals.
 
 	* buffer.h (PTR_BYTE_POS): Don't assume a byte count fits in 'unsigned'.

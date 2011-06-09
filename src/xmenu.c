@@ -1919,9 +1919,9 @@ create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
 static void
 dialog_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 {
-  /* The EMACS_INT cast avoids a warning.  There's no problem
+  /* Treat the pointer as an integer.  There's no problem
      as long as pointers have enough bits to hold small integers.  */
-  if ((int) (EMACS_INT) client_data != -1)
+  if ((intptr_t) client_data != -1)
     menu_item_selection = (Lisp_Object *) client_data;
 
   BLOCK_INPUT;
