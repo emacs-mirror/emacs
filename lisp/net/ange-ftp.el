@@ -2806,6 +2806,19 @@ match subdirectories as well.")
   (and files (puthash (file-name-as-directory directory)
 		      files ange-ftp-files-hashtable)))
 
+(defun ange-ftp-switches-ok (switches)
+  "Return SWITCHES (a string) if suitable for our use."
+  (and (stringp switches)
+       ;; We allow the A switch, which lists all files except "." and
+       ;; "..".  This is OK because we manually insert these entries
+       ;; in the hash table.
+       (string-match
+	"--\\(almost-\\)?all\\>\\|\\(\\`\\| \\)-[[:alpha:]]*[aA]" switches)
+       (string-match "\\(\\`\\| \\)-[[:alpha:]]*l" switches)
+       (not (string-match
+	     "--recursive\\>\\|\\(\\`\\| \\)-[[:alpha:]]*R" switches))
+       switches))
+
 (defun ange-ftp-get-files (directory &optional no-error)
   "Given a DIRECTORY, return a hashtable of file entries.
 This will give an error or return nil, depending on the value of
@@ -2817,30 +2830,12 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
 			  ;; This is an efficiency hack. We try to
 			  ;; anticipate what sort of listing dired
 			  ;; might want, and cache just such a listing.
-			  (if (and (boundp 'dired-actual-switches)
-				   (stringp dired-actual-switches)
-				   ;; We allow the A switch, which lists
-				   ;; all files except "." and "..".
-				   ;; This is OK because we manually
-				   ;; insert these entries
-				   ;; in the hash table.
-				   (string-match
-				    "[aA]" dired-actual-switches)
-				   (string-match
-				    "l" dired-actual-switches)
-				   (not (string-match
-					 "R" dired-actual-switches)))
-			      dired-actual-switches
-			    (if (and (boundp 'dired-listing-switches)
-				     (stringp dired-listing-switches)
-				     (string-match
-				      "[aA]" dired-listing-switches)
-				     (string-match
-				      "l" dired-listing-switches)
-				     (not (string-match
-					   "R" dired-listing-switches)))
-				dired-listing-switches
-			      "-al"))
+			  (or (and (boundp 'dired-actual-switches)
+				   (ange-ftp-switches-ok dired-actual-switches))
+			      (and (boundp 'dired-listing-switches)
+				   (ange-ftp-switches-ok
+				    dired-listing-switches))
+			      "-al")
 			  t no-error)
 	     (gethash directory ange-ftp-files-hashtable)))))
 

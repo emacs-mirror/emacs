@@ -1,3 +1,8 @@
+2011-06-09  Glenn Morris  <rgm@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-switches-ok): New function.
+	(ange-ftp-get-files): Use it.
+
 2011-06-09  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
 
 	* mail/sendmail.el (mail-recover-1, mail-recover):
