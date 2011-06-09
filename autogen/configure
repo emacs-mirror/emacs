@@ -17242,7 +17242,11 @@ fi
 
 
 
-  GNULIB_GETLOADAVG=1
+
+
+          GNULIB_GETLOADAVG=1
+
+
 
 
 
@@ -17315,7 +17319,11 @@ fi
 
 
 
-  GNULIB_LSTAT=1
+
+
+          GNULIB_LSTAT=1
+
+
 
 
 
@@ -17569,7 +17577,11 @@ fi
 
 
 
-  GNULIB_MKTIME=1
+
+
+          GNULIB_MKTIME=1
+
+
 
 
 
@@ -17690,7 +17702,11 @@ $as_echo "#define READLINK_TRAILING_SLASH_BUG 1" >>confdefs.h
 
 
 
-  GNULIB_READLINK=1
+
+
+          GNULIB_READLINK=1
+
+
 
 
 
@@ -18304,7 +18320,11 @@ _ACEOF
 
 
 
-  GNULIB_STRTOUMAX=1
+
+
+          GNULIB_STRTOUMAX=1
+
+
 
 
 
@@ -18382,7 +18402,11 @@ $as_echo "$gl_cv_func_symlink_works" >&6; }
 
 
 
-  GNULIB_SYMLINK=1
+
+
+          GNULIB_SYMLINK=1
+
+
 
 
 
@@ -18547,7 +18571,11 @@ $as_echo "$gl_cv_time_r_posix" >&6; }
 
 
 
-  GNULIB_TIME_R=1
+
+
+          GNULIB_TIME_R=1
+
+
 
 
 
@@ -18760,7 +18788,11 @@ $as_echo "#define REPLACE_FUNC_STAT_FILE 1" >>confdefs.h
 
 
 
-  GNULIB_STAT=1
+
+
+          GNULIB_STAT=1
+
+
 
 
 
@@ -18812,7 +18844,11 @@ done
 
 
 
-  GNULIB_STRTOULL=1
+
+
+          GNULIB_STRTOULL=1
+
+
 
 
 
