@@ -5,7 +5,9 @@
 
 	* xfns.c (x_set_scroll_bar_default_width): Remove unused 'int' locals.
 
-	* buffer.h (PTR_BYTE_POS): Don't assume a byte count fits in 'unsigned'.
+	* buffer.h (PTR_BYTE_POS, BUF_PTR_BYTE_POS): Remove harmful cast.
+	The cast incorrectly truncated 64-bit byte offsets to 32 bits, and
+	isn't needed on 32-bit machines.
 
 	* buffer.c (Fgenerate_new_buffer_name): Use EMACS_INT for count, not int.
 	(advance_to_char_boundary): Return EMACS_INT, not int.
