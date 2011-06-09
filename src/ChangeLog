@@ -1,3 +1,22 @@
+2011-06-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (replace_window): Rename second argument REPLACEMENT to
+	NEW.  New third argument SETFLAG.  Rewrite.
+	(delete_window, make_dummy_parent): Call replace_window with
+	third argument 1.
+	(window_list_1): Move down in code.
+	(run_window_configuration_change_hook): Move set_buffer part
+	before select_frame_norecord part in order to unwind correctly.
+	Rename count1 to count.
+	(recombine_windows, delete_deletable_window, resize_root_window)
+	(Fdelete_other_windows_internal)
+	(Frun_window_configuration_change_hook, make_parent_window)
+	(resize_window_check, resize_window_apply, Fresize_window_apply)
+	(resize_frame_windows, Fsplit_window_internal)
+	(Fdelete_window_internal, Fresize_mini_window_internal): New
+	functions.
+	(syms_of_window): New variables Vwindow_splits and Vwindow_nest.
+
 2011-06-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.h (window): Add some new members to window structure -
