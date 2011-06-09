@@ -5256,7 +5256,7 @@ non-nil, it is called instead of rereading visited file contents."
 	       (save-excursion
 		 (let ((switches dired-listing-switches))
 		   (if (file-symlink-p file)
-		       (setq switches (concat switches "L")))
+		       (setq switches (concat switches " -L")))
 		   (set-buffer standard-output)
 		   ;; Use insert-directory-safely, not insert-directory,
 		   ;; because these files might not exist.  In particular,
@@ -5299,7 +5299,7 @@ Then you'll be asked about a number of files to recover."
       (error "No previous sessions to recover")))
   (let ((ls-lisp-support-shell-wildcards t))
     (dired (concat auto-save-list-file-prefix "*")
-	   (concat dired-listing-switches "t")))
+	   (concat dired-listing-switches " -t")))
   (save-excursion
     (goto-char (point-min))
     (or (looking-at " Move to the session you want to recover,")

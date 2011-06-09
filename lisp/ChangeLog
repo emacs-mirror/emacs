@@ -1,3 +1,9 @@
+2011-06-09  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* mail/sendmail.el (mail-recover-1, mail-recover):
+	* files.el (recover-file, recover-session):
+	Handle dired-listing-switches not being just a single short option.
+
 2011-06-09  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el (appt-display-message, appt-disp-window):
