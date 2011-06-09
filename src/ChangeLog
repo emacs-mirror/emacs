@@ -1,6 +1,7 @@
 2011-06-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* buffer.c (Fgenerate_new_buffer_name): Use EMACS_INT for count, not int.
+	(advance_to_char_boundary): Return EMACS_INT, not int.
 
 	* data.c (Qcompiled_function): Now static.
 

@@ -2038,7 +2038,7 @@ validate_region (register Lisp_Object *b, register Lisp_Object *e)
 /* Advance BYTE_POS up to a character boundary
    and return the adjusted position.  */
 
-static int
+static EMACS_INT
 advance_to_char_boundary (EMACS_INT byte_pos)
 {
   int c;
