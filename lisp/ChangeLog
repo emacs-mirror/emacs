@@ -1,3 +1,8 @@
+2011-06-09  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (hack-one-local-variable-eval-safep):
+	Allow minor-modes with explicit +/-1 arguments.
+
 2011-06-09  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* term/xterm.el (xterm): Add defgroup.

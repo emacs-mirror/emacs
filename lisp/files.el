@@ -2635,7 +2635,7 @@ we don't actually set it to the same mode the buffer already has."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
   (let (end done mode modes)
     ;; Once we drop the deprecated feature where mode: is also allowed to
-    ;; specify minor-modes (ie, there can be more than one "mode:), we can
+    ;; specify minor-modes (ie, there can be more than one "mode:"), we can
     ;; remove this section and just let (hack-local-variables t) handle it.
     ;; Find a -*- mode tag.
     (save-excursion
@@ -3367,7 +3367,7 @@ It is dangerous if either of these conditions are met:
       (and (symbolp (car exp))
 	   ;; Allow (minor)-modes calls with no arguments.
 	   ;; This obsoletes the use of "mode:" for such things.  (Bug#8613)
-	   (or (and (null (cdr exp))
+	   (or (and (member (cdr exp) '(nil (1) (-1)))
 		    (string-match "-mode\\'" (symbol-name (car exp))))
 	       (let ((prop (get (car exp) 'safe-local-eval-function)))
 		 (cond ((eq prop t)
