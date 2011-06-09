@@ -1,3 +1,12 @@
+2011-06-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (resize-window-reset, resize-window-reset-1)
+	(resize-subwindows-skip-p, resize-subwindows-normal)
+	(resize-subwindows, resize-other-windows, resize-this-window)
+	(resize-root-window, resize-root-window-vertically)
+	(window-deletable-p, window-or-subwindow-p)
+	(frame-root-window-p): New functions.
+
 2011-06-09  Glenn Morris  <rgm@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-switches-ok): New function.
