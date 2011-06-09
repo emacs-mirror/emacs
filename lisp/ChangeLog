@@ -1,3 +1,12 @@
+2011-06-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* term/xterm.el (xterm): Add defgroup.
+	(xterm-extra-capabilities): Add defcustom to supply known xterm
+	capabilities, skip querying them, or query them (default).
+	(terminal-init-xterm): Use it.
+	(terminal-init-xterm-modify-other-keys): New function to set up
+	modifyOtherKeys support to simplify `terminal-init-xterm'.
+
 2011-06-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (resize-window-reset, resize-window-reset-1)
