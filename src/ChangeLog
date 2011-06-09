@@ -1,5 +1,22 @@
 2011-06-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (compute_display_string_pos): First arg is now struct
+	`text_pos *'; all callers changed.  Support display properties on
+	Lisp strings.
+	(compute_display_string_end): Support display properties on Lisp
+	strings.
+	(init_iterator, reseat_1, reseat_to_string): Initialize the
+	string.bufpos member to 0 (zero, for compatibility with IT_CHARPOS
+	when iterating on a string not from display properties).
+
+	* bidi.c (bidi_fetch_char): Support strings with display
+	properties.
+
+	* dispextern.h (struct bidi_string_data): New member bufpos.
+	(compute_display_string_pos): Update prototype.
+
+2011-06-09  Eli Zaretskii  <eliz@gnu.org>
+
 	* bidi.c (bidi_level_of_next_char): Allow the sentinel "position"
 	to pass the test for valid cached positions.
 

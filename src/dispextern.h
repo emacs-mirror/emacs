@@ -1818,6 +1818,7 @@ struct bidi_string_data {
   const unsigned char *s;	/* string data, or NULL if reordering buffer */
   EMACS_INT schars;		/* the number of characters in the string,
 				   excluding the terminating null */
+  EMACS_INT bufpos;		/* buffer position of lstring, or 0 if N/A */
   unsigned from_disp_str : 1;	/* 1 means the string comes from a
 				   display property */
 };
@@ -3018,7 +3019,7 @@ extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
 extern int calc_pixel_width_or_height (double *, struct it *, Lisp_Object,
                                        struct font *, int, int *);
-extern EMACS_INT compute_display_string_pos (EMACS_INT,
+extern EMACS_INT compute_display_string_pos (struct text_pos *,
 					     struct bidi_string_data *, int);
 extern EMACS_INT compute_display_string_end (EMACS_INT,
 					     struct bidi_string_data *);

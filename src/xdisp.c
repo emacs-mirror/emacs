@@ -2349,6 +2349,7 @@ init_iterator (struct it *it, struct window *w,
   it->paragraph_embedding = L2R;
   it->bidi_it.string.lstring = Qnil;
   it->bidi_it.string.s = NULL;
+  it->bidi_it.string.bufpos = 0;
 
   /* The window in which we iterate over current_buffer:  */
   XSETWINDOW (it->window, w);
@@ -3098,38 +3099,47 @@ next_overlay_change (EMACS_INT pos)
 }
 
 /* Return the character position of a display string at or after
-   CHARPOS.  If no display string exists at or after CHARPOS, return
-   ZV.  A display string is either an overlay with `display' property
-   whose value is a string, or a `display' text property whose value
-   is a string.  STRING is the string to iterate; if STRING->s is
-   NULL, we are iterating a buffer.  FRAME_WINDOW_P is non-zero when
-   we are displaying a window on a GUI frame.  */
+   position specified by POSITION.  If no display string exists at or
+   after POSITION, return ZV.  A display string is either an overlay
+   with `display' property whose value is a string, or a `display'
+   text property whose value is a string.  STRING is data about the
+   string to iterate; if STRING->lstring is nil, we are iterating a
+   buffer.  FRAME_WINDOW_P is non-zero when we are displaying a window
+   on a GUI frame.  */
 EMACS_INT
-compute_display_string_pos (EMACS_INT charpos, struct bidi_string_data *string,
-			    int frame_window_p)
+compute_display_string_pos (struct text_pos *position,
+			    struct bidi_string_data *string, int frame_window_p)
 {
-  /* FIXME: Support display properties on strings (object = Qnil means
-     current buffer).  */
-  Lisp_Object object = Qnil;
+  /* OBJECT = nil means current buffer.  */
+  Lisp_Object object = string ? string->lstring : Qnil;
   Lisp_Object pos, spec;
-  struct text_pos position;
-  EMACS_INT bufpos;
+  EMACS_INT eob = STRINGP (object) ? string->schars : ZV;
+  EMACS_INT begb = STRINGP (object) ? 0 : BEGV;
+  EMACS_INT bufpos, charpos = CHARPOS (*position);
+  struct text_pos tpos;
 
-  if (charpos >= ZV)
-    return ZV;
+  if (charpos >= eob
+      /* We don't support display properties whose values are strings
+	 that have display string properties.  */
+      || string->from_disp_str
+      /* C strings cannot have display properties.  */
+      || (string->s && !STRINGP (object)))
+    return eob;
 
   /* If the character at CHARPOS is where the display string begins,
      return CHARPOS.  */
   pos = make_number (charpos);
-  CHARPOS (position) = charpos;
-  BYTEPOS (position) = CHAR_TO_BYTE (charpos);
-  bufpos = charpos;	/* FIXME! support strings as well */
+  if (STRINGP (object))
+    bufpos = string->bufpos;
+  else
+    bufpos = charpos;
+  tpos = *position;
   if (!NILP (spec = Fget_char_property (pos, Qdisplay, object))
-      && (charpos <= BEGV
+      && (charpos <= begb
 	  || !EQ (Fget_char_property (make_number (charpos - 1), Qdisplay,
 				      object),
 		  spec))
-      && handle_display_spec (NULL, spec, object, Qnil, &position, bufpos,
+      && handle_display_spec (NULL, spec, object, Qnil, &tpos, bufpos,
 			      frame_window_p))
     return charpos;
 
@@ -3137,17 +3147,21 @@ compute_display_string_pos (EMACS_INT charpos, struct bidi_string_data *string,
      that will replace the underlying text when displayed.  */
   do {
     pos = Fnext_single_char_property_change (pos, Qdisplay, object, Qnil);
-    CHARPOS (position) = XFASTINT (pos);
-    BYTEPOS (position) = CHAR_TO_BYTE (CHARPOS (position));
-    if (CHARPOS (position) >= ZV)
+    CHARPOS (tpos) = XFASTINT (pos);
+    if (STRINGP (object))
+      BYTEPOS (tpos) = string_char_to_byte (object, CHARPOS (tpos));
+    else
+      BYTEPOS (tpos) = CHAR_TO_BYTE (CHARPOS (tpos));
+    if (CHARPOS (tpos) >= eob)
       break;
     spec = Fget_char_property (pos, Qdisplay, object);
-    bufpos = CHARPOS (position);	/* FIXME! support strings as well */
+    if (!STRINGP (object))
+      bufpos = CHARPOS (tpos);
   } while (NILP (spec)
-	   || !handle_display_spec (NULL, spec, object, Qnil, &position, bufpos,
+	   || !handle_display_spec (NULL, spec, object, Qnil, &tpos, bufpos,
 				    frame_window_p));
 
-  return CHARPOS (position);
+  return CHARPOS (tpos);
 }
 
 /* Return the character position of the end of the display string that
@@ -3157,13 +3171,13 @@ compute_display_string_pos (EMACS_INT charpos, struct bidi_string_data *string,
 EMACS_INT
 compute_display_string_end (EMACS_INT charpos, struct bidi_string_data *string)
 {
-  /* FIXME: Support display properties on strings (object = Qnil means
-     current buffer).  */
-  Lisp_Object object = Qnil;
+  /* OBJECT = nil means current buffer.  */
+  Lisp_Object object = string ? string->lstring : Qnil;
   Lisp_Object pos = make_number (charpos);
+  EMACS_INT eob = STRINGP (object) ? string->schars : ZV;
 
-  if (charpos >= ZV)
-    return ZV;
+  if (charpos >= eob)
+    return eob;
 
   if (NILP (Fget_char_property (pos, Qdisplay, object)))
     abort ();
@@ -5496,6 +5510,7 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
       it->bidi_it.disp_pos = -1;
       it->bidi_it.string.s = NULL;
       it->bidi_it.string.lstring = Qnil;
+      it->bidi_it.string.bufpos = 0;
     }
 
   if (set_stop_p)
@@ -5567,6 +5582,7 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 	  it->bidi_it.string.lstring = string;
 	  it->bidi_it.string.s = SDATA (string);
 	  it->bidi_it.string.schars = it->end_charpos;
+	  it->bidi_it.string.bufpos = 0;
 	  it->bidi_it.string.from_disp_str = 0;
 	  bidi_init_it (charpos, IT_STRING_BYTEPOS (*it),
 			FRAME_WINDOW_P (it->f), &it->bidi_it);
@@ -5592,6 +5608,7 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 	      it->bidi_it.string.lstring = Qnil;
 	      it->bidi_it.string.s = s;
 	      it->bidi_it.string.schars = it->end_charpos;
+	      it->bidi_it.string.bufpos = 0;
 	      it->bidi_it.string.from_disp_str = 0;
 	      bidi_init_it (charpos, IT_BYTEPOS (*it), FRAME_WINDOW_P (it->f),
 			    &it->bidi_it);
