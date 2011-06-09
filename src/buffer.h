@@ -337,7 +337,7 @@ while (0)
 
 #define PTR_BYTE_POS(ptr) \
 ((ptr) - (current_buffer)->text->beg					    \
- - (ptr - (current_buffer)->text->beg <= (unsigned) (GPT_BYTE - BEG_BYTE) ? 0 : GAP_SIZE) \
+ - (ptr - (current_buffer)->text->beg <= (size_t) (GPT_BYTE - BEG_BYTE) ? 0 : GAP_SIZE)							\
  + BEG_BYTE)
 
 /* Return character at byte position POS.  */
