@@ -1679,7 +1679,11 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	    abort ();
 	  next_char_pos = bidi_it->charpos + bidi_it->nchars;
 	}
-      else if (bidi_it->charpos > (bidi_it->string.s ? 0 : 1))
+      else if (bidi_it->charpos >= (bidi_it->string.s ? 0 : 1))
+	/* Implementation note: we allow next_char_pos to be as low as
+	   0 for buffers or -1 for strings, and that is okay because
+	   that's the "position" of the sentinel iterator state we
+	   cached at the beginning of the iteration.  */
 	next_char_pos = bidi_it->charpos - 1;
       if (next_char_pos >= 0)
 	type = bidi_cache_find (next_char_pos, -1, bidi_it);

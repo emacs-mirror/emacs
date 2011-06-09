@@ -129,9 +129,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    argument.
 
    Iteration over things to be displayed is then simple.  It is
-   started by initializing an iterator with a call to init_iterator.
-   Calls to get_next_display_element fill the iterator structure with
-   relevant information about the next thing to display.  Calls to
+   started by initializing an iterator with a call to init_iterator,
+   passing it the buffer position where to start iteration.  For
+   iteration over strings, pass -1 as the position to init_iterator,
+   and call reseat_to_string when the string is ready, to initialize
+   the iterator for that string.  Thereafter, calls to
+   get_next_display_element fill the iterator structure with relevant
+   information about the next thing to display.  Calls to
    set_iterator_to_next move the iterator to the next thing.
 
    Besides this, an iterator also contains information about the
@@ -2342,6 +2346,8 @@ init_iterator (struct it *it, struct window *w,
   it->base_face_id = remapped_base_face_id;
   it->string = Qnil;
   IT_STRING_CHARPOS (*it) = IT_STRING_BYTEPOS (*it) = -1;
+  it->paragraph_embedding = L2R;
+  it->bidi_it.string.lstring = Qnil;
   it->bidi_it.string.s = NULL;
 
   /* The window in which we iterate over current_buffer:  */
@@ -2555,21 +2561,6 @@ init_iterator (struct it *it, struct window *w,
 	it->start_of_box_run_p = 1;
     }
 
-  /* If we are to reorder bidirectional text, init the bidi
-     iterator.  */
-  if (it->bidi_p)
-    {
-      /* Note the paragraph direction that this buffer wants to
-	 use.  */
-      if (EQ (BVAR (current_buffer, bidi_paragraph_direction), Qleft_to_right))
-	it->paragraph_embedding = L2R;
-      else if (EQ (BVAR (current_buffer, bidi_paragraph_direction), Qright_to_left))
-	it->paragraph_embedding = R2L;
-      else
-	it->paragraph_embedding = NEUTRAL_DIR;
-      bidi_init_it (charpos, bytepos, FRAME_WINDOW_P (it->f), &it->bidi_it);
-    }
-
   /* If a buffer position was specified, set the iterator there,
      getting overlays and face properties from that position.  */
   if (charpos >= BUF_BEG (current_buffer))
@@ -2585,6 +2576,24 @@ init_iterator (struct it *it, struct window *w,
 	IT_BYTEPOS (*it) = bytepos;
 
       it->start = it->current;
+
+      /* If we are to reorder bidirectional text, init the bidi
+	 iterator.  */
+      if (it->bidi_p)
+	{
+	  /* Note the paragraph direction that this buffer wants to
+	     use.  */
+	  if (EQ (BVAR (current_buffer, bidi_paragraph_direction),
+		  Qleft_to_right))
+	    it->paragraph_embedding = L2R;
+	  else if (EQ (BVAR (current_buffer, bidi_paragraph_direction),
+		       Qright_to_left))
+	    it->paragraph_embedding = R2L;
+	  else
+	    it->paragraph_embedding = NEUTRAL_DIR;
+	  bidi_init_it (charpos, IT_BYTEPOS (*it), FRAME_WINDOW_P (it->f),
+			&it->bidi_it);
+	}
 
       /* Compute faces etc.  */
       reseat (it, it->current.pos, 1);
@@ -5486,6 +5495,7 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
       it->bidi_it.paragraph_dir = NEUTRAL_DIR;
       it->bidi_it.disp_pos = -1;
       it->bidi_it.string.s = NULL;
+      it->bidi_it.string.lstring = Qnil;
     }
 
   if (set_stop_p)
@@ -5536,6 +5546,8 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
   if (multibyte >= 0)
     it->multibyte_p = multibyte > 0;
 #if 0
+  /* String reordering is controlled by the default value of
+     bidi-display-reordering.  */
   it->bidi_p =
     it->multibyte_p && BVAR (&buffer_defaults, bidi_display_reordering);
 #endif
@@ -5550,9 +5562,15 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
       it->current.string_pos = string_pos (charpos, string);
 #if 0
       if (it->bidi_p)
-	bidi_init_it ();
-      it->bidi_it.string.s = SDATA (string);
-      it->bidi_it.string.schars = it->end_charpos;
+	{
+	  it->paragraph_embedding = NEUTRAL_DIR;
+	  it->bidi_it.string.lstring = string;
+	  it->bidi_it.string.s = SDATA (string);
+	  it->bidi_it.string.schars = it->end_charpos;
+	  it->bidi_it.string.from_disp_str = 0;
+	  bidi_init_it (charpos, IT_STRING_BYTEPOS (*it),
+			FRAME_WINDOW_P (it->f), &it->bidi_it);
+	}
 #endif
     }
   else
@@ -5569,18 +5587,22 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 	  it->end_charpos = it->string_nchars = number_of_chars (s, 1);
 #if 0
 	  if (it->bidi_p)
-	    bidi_init_it ();
-	  it->bidi_it.string.s = s;
-	  it->bidi_it.string.schars = it->end_charpos;
+	    {
+	      it->paragraph_embedding = NEUTRAL_DIR;
+	      it->bidi_it.string.lstring = Qnil;
+	      it->bidi_it.string.s = s;
+	      it->bidi_it.string.schars = it->end_charpos;
+	      it->bidi_it.string.from_disp_str = 0;
+	      bidi_init_it (charpos, IT_BYTEPOS (*it), FRAME_WINDOW_P (it->f),
+			    &it->bidi_it);
+	    }
 #endif
 	}
       else
 	{
+	  /* Unibyte (a.k.a. ASCII) C strings are never bidi-reordered.  */
 	  IT_CHARPOS (*it) = IT_BYTEPOS (*it) = charpos;
 	  it->end_charpos = it->string_nchars = strlen (s);
-#if 0
-	  it->bidi_p = 0;
-#endif
 	}
 
       it->method = GET_FROM_C_STRING;
@@ -5589,7 +5611,13 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
   /* PRECISION > 0 means don't return more than PRECISION characters
      from the string.  */
   if (precision > 0 && it->end_charpos - charpos > precision)
-    it->end_charpos = it->string_nchars = charpos + precision;
+    {
+      it->end_charpos = it->string_nchars = charpos + precision;
+#if 0
+      if (it->bidi_p)
+	it->bidi_it.string.schars = it->end_charpos;
+#endif
+    }
 
   /* FIELD_WIDTH > 0 means pad with spaces until FIELD_WIDTH
      characters have been returned.  FIELD_WIDTH == 0 means don't pad,
@@ -5597,6 +5625,9 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
      padding with `-' at the end of a mode line.  */
   if (field_width < 0)
     field_width = INFINITY;
+  /* Implementation note: We deliberately don't enlarge
+     it->bidi_it.string.schars here to fit it->end_charpos, because
+     the bidi iterator cannot produce characters out of thin air.  */
   if (field_width > it->end_charpos - charpos)
     it->end_charpos = charpos + field_width;
 
@@ -5605,6 +5636,16 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
     it->dp = XCHAR_TABLE (Vstandard_display_table);
 
   it->stop_charpos = charpos;
+#if 0
+  it->prev_stop = charpos;
+  it->base_level_stop = 0;
+  if (it->bidi_p)
+    {
+      it->bidi_it.first_elt = 1;
+      it->bidi_it.paragraph_dir = NEUTRAL_DIR;
+      it->bidi_it.disp_pos = -1;
+    }
+#endif
   if (s == NULL && it->multibyte_p)
     {
       EMACS_INT endpos = SCHARS (it->string);
@@ -19989,10 +20030,10 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
   if (string && STRINGP (lisp_string))
     /* LISP_STRING is the one returned by decode_mode_spec.  We should
        ignore its text properties.  */
-    it->stop_charpos = -1;
+    it->stop_charpos = it->end_charpos;
 
-  /* If displaying STRING, set up the face of the iterator
-     from LISP_STRING, if that's given.  */
+  /* If displaying STRING, set up the face of the iterator from
+     FACE_STRING, if that's given.  */
   if (STRINGP (face_string))
     {
       EMACS_INT endptr;

@@ -1814,7 +1814,8 @@ struct bidi_stack {
 
 /* Data type for storing information about a string being iterated on.  */
 struct bidi_string_data {
-  const unsigned char *s;	/* the string, or NULL if reordering buffer */
+  Lisp_Object lstring;		/* Lisp string to reorder, or nil */
+  const unsigned char *s;	/* string data, or NULL if reordering buffer */
   EMACS_INT schars;		/* the number of characters in the string,
 				   excluding the terminating null */
   unsigned from_disp_str : 1;	/* 1 means the string comes from a

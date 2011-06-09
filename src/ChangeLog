@@ -1,5 +1,21 @@
 2011-06-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* bidi.c (bidi_level_of_next_char): Allow the sentinel "position"
+	to pass the test for valid cached positions.
+
+	* xdisp.c (init_iterator): Call bidi_init_it only of a valid
+	buffer position was specified.  Initialize paragraph_embedding to
+	L2R.
+	(reseat_to_string): Initialize the bidi iterator (for now ifdef'ed
+	out).
+	(display_string): If we need to ignore text properties of
+	LISP_STRING, set IT->stop_charpos to IT->end_charpos.  (The
+	original value of -1 will not work with bidi.)
+
+	* dispextern.h (struct bidi_string_data): New member lstring.
+
+2011-06-09  Eli Zaretskii  <eliz@gnu.org>
+
 	* xdisp.c (Fcurrent_bidi_paragraph_direction): Initialize
 	itb.string.s to NULL (avoids a crash in bidi_paragraph_init).
 
