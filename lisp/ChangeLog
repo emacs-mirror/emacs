@@ -1,3 +1,10 @@
+2011-06-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-insert-file-contents): Let-bind
+	buffer-file-type before setting its value, to avoid disastrous
+	global effects on decoding files for DOS/Windows systems.
+	(Bug#8780)
+
 2011-06-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/python.el (python-after-info-look): Add autoload cookie.
