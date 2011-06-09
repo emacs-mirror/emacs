@@ -1,3 +1,8 @@
+2011-06-09  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-display-message, appt-disp-window):
+	Handle lists of appointments.
+
 2011-06-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (one-window-p): Move down in code.  Rewrite

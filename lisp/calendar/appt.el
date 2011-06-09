@@ -214,20 +214,42 @@ If this is non-nil, appointment checking is active.")
 (defun appt-display-message (string mins)
   "Display a reminder about an appointment.
 The string STRING describes the appointment, due in integer MINS minutes.
-The format of the visible reminder is controlled by `appt-display-format'.
-The variable `appt-audible' controls the audible reminder."
+The arguments may also be lists, where each element relates to a
+separate appointment.  The variable `appt-display-format' controls
+the format of the visible reminder.  If `appt-audible' is non-nil,
+also calls `beep' for an audible reminder."
   (if appt-audible (beep 1))
+  ;; Backwards compatibility: avoid passing lists to a-d-w-f if not necessary.
+  (and (listp mins)
+       (= (length mins) 1)
+       (setq mins (car mins)
+             string (car string)))
   (cond ((eq appt-display-format 'window)
-         (funcall appt-disp-window-function
-                  (number-to-string mins)
-                  ;; TODO - use calendar-month-abbrev-array rather than %b?
-                  (format-time-string "%a %b %e " (current-time))
-                  string)
+         ;; TODO use calendar-month-abbrev-array rather than %b?
+         (let ((time (format-time-string "%a %b %e " (current-time)))
+               err)
+           (condition-case err
+               (funcall appt-disp-window-function
+                        (if (listp mins)
+                            (mapcar 'number-to-string mins)
+                          (number-to-string mins))
+                        time string)
+             (wrong-type-argument
+              (if (not (listp mins))
+                  (signal (car err) (cdr err))
+                (message "Argtype error in `appt-disp-window-function' - \
+update it for multiple appts?")
+                ;; Fallback to just displaying the first appt, as we used to.
+                (funcall appt-disp-window-function
+                         (number-to-string (car mins)) time
+                         (car string))))))
          (run-at-time (format "%d sec" appt-display-duration)
                       nil
                       appt-delete-window-function))
         ((eq appt-display-format 'echo)
-         (message "%s" string))))
+         (message "%s" (if (listp string)
+                           (mapconcat 'identity string "\n")
+                         string)))))
 
 
 (defun appt-check (&optional force)
@@ -373,8 +395,10 @@ displayed in a window:
 
 (defun appt-disp-window (min-to-app new-time appt-msg)
   "Display appointment due in MIN-TO-APP (a string) minutes.
-NEW-TIME is a string giving the date.  Displays the appointment
-message APPT-MSG in a separate buffer."
+NEW-TIME is a string giving the current date.
+Displays the appointment message APPT-MSG in a separate buffer.
+The arguments may also be lists, where each element relates to a
+separate appointment."
   (let ((this-window (selected-window))
         (appt-disp-buf (get-buffer-create appt-buffer-name)))
     ;; Make sure we're not in the minibuffer before splitting the window.
@@ -395,17 +419,40 @@ message APPT-MSG in a separate buffer."
         (when (>= (window-height) (* 2 window-min-height))
           (select-window (split-window))))
       (switch-to-buffer appt-disp-buf))
-    ;; FIXME Link to diary entry?
-    (calendar-set-mode-line
-     (format " Appointment %s. %s "
-             (if (string-equal "0" min-to-app) "now"
-               (format "in %s minute%s" min-to-app
-                       (if (string-equal "1" min-to-app) "" "s")))
-             new-time))
-    (setq buffer-read-only nil
-          buffer-undo-list t)
-    (erase-buffer)
-    (insert appt-msg)
+    (or (listp min-to-app)
+        (setq min-to-app (list min-to-app)
+              appt-msg (list appt-msg)))
+    ;; I don't really see the point of the new-time argument.
+    ;; It repeatedly reminds you of the date?
+    ;; It would make more sense if it was eg the time of the appointment.
+    ;; Let's allow it to be a list or not independent of the other elements.
+    (or (listp new-time)
+        (setq new-time (list new-time)))
+    ;; All this silliness is just to make the formatting slightly nicer.
+    (let* ((multiple (> (length min-to-app) 1))
+           (sametime (or (not multiple)
+                         (not (delete (car min-to-app) min-to-app))))
+           (imin (if sametime (car min-to-app))))
+      ;; FIXME Link to diary entry?
+      (calendar-set-mode-line
+       (format " Appointment%s %s. %s "
+               (if multiple "s" "")
+               (if (equal imin "0")
+                   "now"
+                 (format "in %s minute%s"
+                         (or imin (mapconcat 'identity min-to-app ","))
+                         (if (equal imin "1")
+                             "" "s")))
+               (mapconcat 'identity new-time ", ")))
+      (setq buffer-read-only nil
+            buffer-undo-list t)
+      (erase-buffer)
+      ;; If we have appointments at different times, prepend the times.
+      (if sametime
+          (insert (mapconcat 'identity appt-msg "\n"))
+        (dotimes (i (length appt-msg))
+          (insert (format "%s%sm: %s" (if (> i 0) "\n" "")
+                          (nth i min-to-app) (nth i appt-msg))))))
     (shrink-window-if-larger-than-buffer (get-buffer-window appt-disp-buf t))
     (set-buffer-modified-p nil)
     (setq buffer-read-only t)
