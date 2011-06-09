@@ -1,3 +1,8 @@
+2011-06-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fcurrent_bidi_paragraph_direction): Initialize
+	itb.string.s to NULL (avoids a crash in bidi_paragraph_init).
+
 2011-06-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_paragraph_info): Delete unused struct.

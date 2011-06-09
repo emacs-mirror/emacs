@@ -18169,6 +18169,7 @@ See also `bidi-paragraph-direction'.  */)
       itb.charpos = pos;
       itb.bytepos = bytepos;
       itb.nchars = -1;
+      itb.string.s = NULL;
       itb.frame_window_p = FRAME_WINDOW_P (SELECTED_FRAME ()); /* guesswork */
       itb.first_elt = 1;
       itb.separator_limit = -1;
