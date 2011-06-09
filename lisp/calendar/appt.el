@@ -257,9 +257,9 @@ MIN-TO-APP is a list of minutes, as strings.
 If ABBREV is non-nil, abbreviates some text."
   ;; All this silliness is just to make the formatting slightly nicer.
   (let* ((multiple (> (length min-to-app) 1))
-         (sametime (or (not multiple)
-                       (not (delete (car min-to-app) min-to-app))))
-         (imin (if sametime (car min-to-app))))
+         (imin (if (or (not multiple)
+                       (not (delete (car min-to-app) min-to-app)))
+                   (car min-to-app))))
     (format "%s%s %s"
             (if abbrev "App't" "Appointment")
             (if multiple "s" "")
