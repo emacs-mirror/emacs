@@ -1,3 +1,7 @@
+2011-06-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* ftfont.c (ftfont_get_metrics, ftfont_drive_otf): Remove unused locals.
+
 2011-06-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (gif_load): Fix omitted cast error introduced by
