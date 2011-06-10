@@ -2614,7 +2614,9 @@ modified) original contents, they are first saved to their own file."
                     (gnus-dribble-enter
                      (concat "(gnus-group-set-info '"
                              (gnus-prin1-to-string info)
-                             ")"))))))))))))
+                             ")")
+		     (concat "^(gnus-group-set-info '(\""
+			     (regexp-quote group) "\""))))))))))))
 
 ;;;
 ;;; Agent Category Mode

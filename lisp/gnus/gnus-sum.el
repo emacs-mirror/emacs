@@ -4098,7 +4098,7 @@ If NO-DISPLAY, don't generate a summary buffer."
 	(setq gnus-newsgroup-prepared t)
 	(gnus-run-hooks 'gnus-summary-prepared-hook)
 	(unless (gnus-ephemeral-group-p group)
-	  (gnus-group-update-group group))
+	  (gnus-group-update-group group nil t))
 	t)))))
 
 (defun gnus-summary-auto-select-subject ()
@@ -7140,7 +7140,12 @@ The prefix argument ALL means to select all articles."
 		 t)))
 	(unless (listp (cdr gnus-newsgroup-killed))
 	  (setq gnus-newsgroup-killed (list gnus-newsgroup-killed)))
-	(let ((headers gnus-newsgroup-headers))
+	(let ((headers gnus-newsgroup-headers)
+	      (ephemeral-p (gnus-ephemeral-group-p group))
+	      info)
+	  (unless ephemeral-p
+	    (setq info (copy-sequence (gnus-get-info group))
+		  info (delq (gnus-info-params info) info)))
 	  ;; Set the new ranges of read articles.
 	  (with-current-buffer gnus-group-buffer
 	    (gnus-undo-force-boundary))
@@ -7160,8 +7165,12 @@ The prefix argument ALL means to select all articles."
 	    (gnus-mark-xrefs-as-read group headers gnus-newsgroup-unreads))
 	  ;; Do not switch windows but change the buffer to work.
 	  (set-buffer gnus-group-buffer)
-	  (unless (gnus-ephemeral-group-p group)
-	    (gnus-group-update-group group)))))))
+	  (unless ephemeral-p
+	    (gnus-group-update-group
+	     group nil
+	     (equal info
+		    (setq info (copy-sequence (gnus-get-info group))
+			  info (delq (gnus-info-params info) info))))))))))
 
 (defun gnus-summary-save-newsrc (&optional force)
   "Save the current number of read/marked articles in the dribble buffer.
@@ -7314,7 +7323,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       ;; Clear the current group name.
       (setq gnus-newsgroup-name nil)
       (unless (gnus-ephemeral-group-p group)
-	(gnus-group-update-group group))
+	(gnus-group-update-group group nil t))
       (when (equal (gnus-group-group-name) group)
 	(gnus-group-next-unread-group 1))
       (when quit-config
@@ -9994,7 +10003,9 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 	      (gnus-dribble-enter
 	       (concat "(gnus-group-set-info '"
 		       (gnus-prin1-to-string (gnus-get-info to-group))
-		       ")"))))
+		       ")")
+	       (concat "^(gnus-group-set-info '(\""
+		       (regexp-quote to-group) "\""))))
 
 	  ;; Update the Xref header in this article to point to
 	  ;; the new crossposted article we have just created.

@@ -1215,7 +1215,7 @@ other context has no special meaning.
 well as the major modes; in fact, you can use it more than once, first
 to set the major mode and then to enable minor modes which are
 specific to particular buffers.  Using @code{mode} for minor modes
-is deprecated, though---instead, use @code{eval: (minor-mode)}. 
+is deprecated, though---instead, use @code{eval: (minor-mode 1)}. 
 
   Often, however, it is a mistake to enable minor modes in file local
 variables.  Most minor modes, like Auto Fill mode, represent individual user

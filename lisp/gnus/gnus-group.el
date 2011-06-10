@@ -1437,7 +1437,8 @@ if it is a string, only list groups matching REGEXP."
 	   (gnus-dribble-enter
 	    (concat "(gnus-group-set-info '"
 		    (gnus-prin1-to-string (nth 2 entry))
-		    ")")))
+		    ")")
+	    (concat "^(gnus-group-set-info '(\"" (regexp-quote group) "\"")))
       (setq gnus-group-indentation (gnus-group-group-indentation))
       (gnus-delete-line)
       (gnus-group-insert-group-line-info group)
@@ -1685,10 +1686,11 @@ and ends at END."
 				     (gnus-active group))
   (gnus-group-update-group group))
 
-(defun gnus-group-update-group (group &optional visible-only)
+(defun gnus-group-update-group (group &optional visible-only
+				      info-unchanged)
   "Update all lines where GROUP appear.
 If VISIBLE-ONLY is non-nil, the group won't be displayed if it isn't
-already."
+already.  If INFO-UNCHANGED is non-nil, dribble buffer is not updated."
   (with-current-buffer gnus-group-buffer
     (save-excursion
       ;; The buffer may be narrowed.
@@ -1697,14 +1699,17 @@ already."
         (let ((ident (gnus-intern-safe group gnus-active-hashtb))
               (loc (point-min))
               found buffer-read-only)
-          ;; Enter the current status into the dribble buffer.
-          (let ((entry (gnus-group-entry group)))
-            (when (and entry
-                       (not (gnus-ephemeral-group-p group)))
-              (gnus-dribble-enter
-               (concat "(gnus-group-set-info '"
-                       (gnus-prin1-to-string (nth 2 entry))
-                       ")"))))
+	  (unless info-unchanged
+	    ;; Enter the current status into the dribble buffer.
+	    (let ((entry (gnus-group-entry group)))
+	      (when (and entry
+			 (not (gnus-ephemeral-group-p group)))
+		(gnus-dribble-enter
+		 (concat "(gnus-group-set-info '"
+			 (gnus-prin1-to-string (nth 2 entry))
+			 ")")
+		 (concat "^(gnus-group-set-info '(\""
+			 (regexp-quote group) "\"")))))
           ;; Find all group instances.  If topics are in use, each group
           ;; may be listed in more than once.
           (while (setq loc (text-property-any
@@ -2715,7 +2720,8 @@ server."
     (unless (gnus-ephemeral-group-p name)
       (gnus-dribble-enter
        (concat "(gnus-group-set-info '"
-	       (gnus-prin1-to-string (cdr info)) ")")))
+	       (gnus-prin1-to-string (cdr info)) ")")
+       (concat "^(gnus-group-set-info '(\"" (regexp-quote name) "\"")))
     ;; Insert the line.
     (gnus-group-insert-group-line-info nname)
     (forward-line -1)
@@ -4032,7 +4038,7 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
 	    (when gnus-agent
 	      (gnus-agent-save-group-info
 	       method (gnus-group-real-name group) active))
-	    (gnus-group-update-group group))
+	    (gnus-group-update-group group nil t))
 	(if (eq (gnus-server-status (gnus-find-method-for-group group))
 		'denied)
 	    (gnus-error 3 "Server denied access")

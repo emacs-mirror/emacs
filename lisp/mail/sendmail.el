@@ -1801,7 +1801,7 @@ The seventh argument ACTIONS is a list of actions to take
       ;; unbound on exit from the let.
       (require 'dired)
       (let ((dired-trivial-filenames t))
-	(dired-other-window wildcard (concat dired-listing-switches "t")))
+	(dired-other-window wildcard (concat dired-listing-switches " -t")))
       (rename-buffer "*Auto-saved Drafts*" t)
       (save-excursion
 	(goto-char (point-min))
@@ -1881,7 +1881,7 @@ you can move to one of them and type C-c C-c to recover that one."
 		  ;; `ls' is not a standard program (it will use
 		  ;; ls-lisp instead).
 		  (dired-noselect file-name
-				  (concat dired-listing-switches "t"))))
+				  (concat dired-listing-switches " -t"))))
 	     (save-selected-window
 	       (select-window (display-buffer dispbuf t))
 	       (goto-char (point-min))

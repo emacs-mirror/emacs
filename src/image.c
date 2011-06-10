@@ -7238,7 +7238,7 @@ gif_load (struct frame *f, struct image *img)
 	      /* From gif89a spec: 1 = "keep in place", 2 = "restore
 		 to background".  Treat any other value like 2.  */
 	      disposal = (extblock->Bytes[0] >> 2) & 7;
-	      transparency_color_index = extblock->Bytes[3];
+	      transparency_color_index = (unsigned char) extblock->Bytes[3];
 	      break;
 	    }
 	}

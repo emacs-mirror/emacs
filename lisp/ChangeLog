@@ -1,3 +1,74 @@
+2011-06-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-min-height, window-min-width): Move here
+	from window.c.  Add defcustoms and rewrite doc-strings.
+	(resize-mini-window, resize-window): New functions.
+	(adjust-window-trailing-edge, enlarge-window, shrink-window):
+	Move here from window.c.
+	(maximize-window, minimize-window): New functions.
+	(delete-window, delete-other-windows, split-window): Move here
+	from window.c.
+	(window-split-min-size): New function.
+	(split-window-keep-point): Mention split-window-above-each-other
+	instead of split-window-vertically.
+	(split-window-above-each-other, split-window-vertically): Rename
+	split-window-vertically to split-window-above-each-other and
+	provide defalias for old definition.
+	(split-window-side-by-side, split-window-horizontally): Rename
+	split-window-horizontally to split-window-side-by-side and provide
+	defalias for the old definition.
+	(ctl-x-map): Move bindings for delete-window,
+	delete-other-windows and enlarge-window here from window.c.
+	Replace bindings for split-window-vertically and
+	split-window-horizontally by bindings for
+	split-window-above-each-other and split-window-side-by-side.
+
+	* cus-start.el (all): Remove entries for window-min-height and
+	window-min-width.  Add entries for window-splits and
+	window-nest.
+
+2011-06-09  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-mode-line): New function.
+	(appt-check, appt-disp-window): Use it.
+
+	* files.el (hack-one-local-variable-eval-safep):
+	Allow minor-modes with explicit +/-1 arguments.
+
+2011-06-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* term/xterm.el (xterm): Add defgroup.
+	(xterm-extra-capabilities): Add defcustom to supply known xterm
+	capabilities, skip querying them, or query them (default).
+	(terminal-init-xterm): Use it.
+	(terminal-init-xterm-modify-other-keys): New function to set up
+	modifyOtherKeys support to simplify `terminal-init-xterm'.
+
+2011-06-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (resize-window-reset, resize-window-reset-1)
+	(resize-subwindows-skip-p, resize-subwindows-normal)
+	(resize-subwindows, resize-other-windows, resize-this-window)
+	(resize-root-window, resize-root-window-vertically)
+	(window-deletable-p, window-or-subwindow-p)
+	(frame-root-window-p): New functions.
+
+2011-06-09  Glenn Morris  <rgm@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-switches-ok): New function.
+	(ange-ftp-get-files): Use it.
+
+2011-06-09  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* mail/sendmail.el (mail-recover-1, mail-recover):
+	* files.el (recover-file, recover-session):
+	Handle dired-listing-switches not being just a single short option.
+
+2011-06-09  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-display-message, appt-disp-window):
+	Handle lists of appointments.
+
 2011-06-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (one-window-p): Move down in code.  Rewrite

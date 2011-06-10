@@ -1,3 +1,8 @@
+2011-06-09  Glenn Morris  <rgm@gnu.org>
+
+	* custom.texi (Specifying File Variables):
+	Recommend explicit arguments for minor modes.
+
 2011-06-02  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Document wide integers better.

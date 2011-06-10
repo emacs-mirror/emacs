@@ -1,4 +1,4 @@
-2011-06-09  Paul Eggert  <eggert@cs.ucla.edu>
+2011-06-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xmenu.c (dialog_selection_callback) [!USE_GTK]: Cast to intptr_t,
 	not to EMACS_INT, to avoid GCC warning.
@@ -13,8 +13,6 @@
 	(advance_to_char_boundary): Return EMACS_INT, not int.
 
 	* data.c (Qcompiled_function): Now static.
-
-2011-06-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* window.c (window_body_lines): Now static.
 
@@ -71,6 +69,111 @@
 	* character.c (string_escape_byte8): Fix nbytes/nchars typo.
 
 	* alloc.c (Fmake_string): Check for out-of-range init.
+
+2011-06-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (gif_load): Fix omitted cast error introduced by
+	2011-06-06 change.
+
+2011-06-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h (resize_proportionally, orig_total_lines)
+	(orig_top_line): Remove from window structure.
+	(set_window_height, set_window_width, change_window_heights)
+	(Fdelete_window): Remove prototypes.
+	(resize_frame_windows): Remove duplicate declaration.
+
+2011-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.h (resize_frame_windows, resize_window_check)
+	(delete_deletable_window, resize_root_window)
+	(resize_frame_windows): Declare prototypes.
+
+	* window.c (resize_window_apply): Make definition be "static" to
+	match the prototype.
+
+2011-06-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c: Remove declarations of Qwindow_size_fixed,
+	window_min_size_1, window_min_size_2, window_min_size,
+	size_window, window_fixed_size_p, enlarge_window, delete_window.
+	Remove static from declaration of Qdelete_window, it's
+	temporarily needed by Fbury_buffer.
+	(replace_window): Don't assign orig_top_line and
+	orig_total_lines.
+	(Fdelete_window, delete_window): Remove.  Window deletion is
+	handled by window.el.
+	(window_loop): Remove DELETE_OTHER_WINDOWS case.  Replace
+	Fdelete_window calls with calls to Qdelete_window.
+	(Fdelete_other_windows): Remove.  Deleting other windows is
+	handled by window.el.
+	(window_fixed_size_p): Remove.  Fixed-sizeness of windows is
+	handled in window.el.
+	(window_min_size_2, window_min_size_1, window_min_size): Remove.
+	Window minimum sizes are handled in window.el.
+	(shrink_windows, size_window, set_window_height)
+	(set_window_width, change_window_heights, window_height)
+	(window_width, CURBEG, CURSIZE, enlarge_window)
+	(adjust_window_trailing_edge, Fadjust_window_trailing_edge)
+	(Fenlarge_window, Fshrink_window): Remove.  Window resizing is
+	handled in window.el.
+	(make_dummy_parent): Rename to make_parent_window and give it a
+	second argument horflag.
+	(make_window): Don't set resize_proportionally any more.
+	(Fsplit_window): Remove.  Windows are split in window.el.
+	(save_restore_action, save_restore_orig_size)
+	(shrink_window_lowest_first, save_restore_orig_size): Remove.
+	Resize mini windows in window.el.
+	(grow_mini_window, shrink_mini_window): Implement by calling
+	Qresize_root_window_vertically, resize_window_check and
+	resize_window_apply.
+	(saved_window, Fset_window_configuration, save_window_save): Do
+	not handle orig_top_line, orig_total_lines, and
+	resize_proportionally.
+	(window_min_height, window_min_width): Move to window.el.
+	(keys_of_window): Move bindings for delete-other-windows,
+	split-window, delete-window and enlarge-window to window.el.
+
+	* buffer.c: Temporarily extern Qdelete_window.
+	(Fbury_buffer): Temporarily call Qdelete_window instead of
+	Fdelete_window (Fbury_buffer will move to window.el soon).
+
+	* frame.c (set_menu_bar_lines_1): Remove code handling
+	orig_top_line and orig_total_lines.
+
+	* dispnew.c (adjust_frame_glyphs_initially): Don't use
+	set_window_height but set heights directly.
+	(change_frame_size_1): Use resize_frame_windows.
+
+	* xdisp.c (init_xdisp): Don't use set_window_height but set
+	heights directly.
+
+	* xfns.c (x_set_menu_bar_lines, x_set_tool_bar_lines): Use
+	resize_frame_windows instead of change_window_heights and run
+	run_window_configuration_change_hook.
+
+	* w32fns.c (x_set_tool_bar_lines): Use resize_frame_windows
+	instead of change_window_heights and run
+	run_window_configuration_change_hook.
+
+2011-06-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (replace_window): Rename second argument REPLACEMENT to
+	NEW.  New third argument SETFLAG.  Rewrite.
+	(delete_window, make_dummy_parent): Call replace_window with
+	third argument 1.
+	(window_list_1): Move down in code.
+	(run_window_configuration_change_hook): Move set_buffer part
+	before select_frame_norecord part in order to unwind correctly.
+	Rename count1 to count.
+	(recombine_windows, delete_deletable_window, resize_root_window)
+	(Fdelete_other_windows_internal)
+	(Frun_window_configuration_change_hook, make_parent_window)
+	(resize_window_check, resize_window_apply, Fresize_window_apply)
+	(resize_frame_windows, Fsplit_window_internal)
+	(Fdelete_window_internal, Fresize_mini_window_internal): New
+	functions.
+	(syms_of_window): New variables Vwindow_splits and Vwindow_nest.
 
 2011-06-08  Martin Rudalics  <rudalics@gmx.at>
 
