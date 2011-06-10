@@ -1,3 +1,24 @@
+2011-06-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el (gnus-group-update-group): Add new argument
+	`info-unchanged' that stops updating dribble buffer.
+
+	* gnus-start.el (gnus-dribble-enter): Add new argument `regexp' that
+	deletes lines matching to it in dribble buffer.
+
+	* gnus-agent.el (gnus-agent-fetch-group-1):
+	* gnus-group.el (gnus-group-update-group-line, gnus-group-make-group):
+	* gnus-srvr.el (gnus-server-update-server, gnus-server-set-info):
+	* gnus-start.el (gnus-group-change-level):
+	* gnus-sum.el (gnus-summary-move-article): Delete old dribble entry.
+
+	* gnus-sum.el (gnus-summary-update-info): Don't update dribble buffer
+	if newsgroup info is not changed.
+
+	* gnus-group.el (gnus-group-get-new-news-this-group):
+	* gnus-sum.el (gnus-summary-read-group-1, gnus-summary-exit-no-update):
+	Don't update dribble buffer.
+
 2011-06-01  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-registry.el (gnus-registry-remove-ignored): New function to

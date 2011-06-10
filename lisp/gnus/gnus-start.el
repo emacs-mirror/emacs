@@ -832,13 +832,22 @@ prompt the user for the name of an NNTP server to use."
      gnus-current-startup-file)
    "-dribble"))
 
-(defun gnus-dribble-enter (string)
-  "Enter STRING into the dribble buffer."
+(defun gnus-dribble-enter (string &optional regexp)
+  "Enter STRING into the dribble buffer.
+If REGEXP is given, lines that match it will be deleted."
   (when (and (not gnus-dribble-ignore)
 	     gnus-dribble-buffer
 	     (buffer-name gnus-dribble-buffer))
     (let ((obuf (current-buffer)))
       (set-buffer gnus-dribble-buffer)
+      (when regexp
+	(goto-char (point-min))
+	(let (end)
+	  (while (re-search-forward regexp nil t)
+	    (unless (bolp) (forward-line 1))
+	    (setq end (point))
+	    (goto-char (match-beginning 0))
+	    (delete-region (point-at-bol) end))))
       (goto-char (point-max))
       (insert string "\n")
       ;; This has been commented by Josh Huber <huber@alum.wpi.edu>
@@ -1354,8 +1363,8 @@ for new groups, and subscribe the new groups as zombies."
 	  (when (cdr entry)
 	    (setcdr (gnus-group-entry (caadr entry)) entry))
 	  (gnus-dribble-enter
-	   (format
-	    "(gnus-group-set-info '%S)" info)))))
+	   (format "(gnus-group-set-info '%S)" info)
+	   (concat "^(gnus-group-set-info '(\"" (regexp-quote group) "\"")))))
       (when gnus-group-change-level-function
 	(funcall gnus-group-change-level-function
 		 group level oldlevel previous)))))
