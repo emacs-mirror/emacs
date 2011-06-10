@@ -1,3 +1,8 @@
+2011-06-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (gif_load): Fix omitted cast error introduced by
+	2011-06-06 change.
+
 2011-06-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.h (resize_proportionally, orig_total_lines)
