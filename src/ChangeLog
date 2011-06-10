@@ -1,3 +1,12 @@
+2011-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.h (resize_frame_windows, resize_window_check)
+	(delete_deletable_window, resize_root_window)
+	(resize_frame_windows): Declare prototypes.
+
+	* window.c (resize_window_apply): Make definition be "static" to
+	match the prototype.
+
 2011-06-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c: Remove declarations of Qwindow_size_fixed,

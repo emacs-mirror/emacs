@@ -3614,7 +3614,7 @@ resize_window_check (struct window *w, int horflag)
 
    This function does not perform any error checks.  Make sure you have
    run resize_window_check on W before applying this function.  */
-void
+static void
 resize_window_apply (struct window *w, int horflag)
 {
   struct window *c, *p;
