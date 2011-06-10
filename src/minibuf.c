@@ -1895,7 +1895,7 @@ the values STRING, PREDICATE and `lambda'.  */)
     return Qt;
 }
 
-Lisp_Object Qmetadata;
+static Lisp_Object Qmetadata;
 extern Lisp_Object Qbuffer;
 
 DEFUN ("internal-complete-buffer", Finternal_complete_buffer, Sinternal_complete_buffer, 3, 3, 0,

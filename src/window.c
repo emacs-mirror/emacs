@@ -82,6 +82,7 @@ static int foreach_window_1 (struct window *,
                              int (* fn) (struct window *, void *),
                              void *);
 static Lisp_Object window_list_1 (Lisp_Object, Lisp_Object, Lisp_Object);
+static int resize_window_check (struct window *, int);
 static void resize_window_apply (struct window *, int);
 static Lisp_Object select_window (Lisp_Object, Lisp_Object, int);
 
@@ -120,9 +121,6 @@ static int window_initialized;
 
 /* Hook to run when window config changes.  */
 static Lisp_Object Qwindow_configuration_change_hook;
-
-/* Incremented by 1 whenever a window is deleted.  */
-static int window_deletion_count;
 
 /* Used by the function window_scroll_pixel_based */
 static int window_scroll_pixel_based_preserve_x;
@@ -614,7 +612,7 @@ WINDOW can be any window and defaults to the selected one.  */)
 /* Return the number of lines of W's body.  Don't count any mode or
    header line of W.  */
 
-int
+static int
 window_body_lines (struct window *w)
 {
   int height = XFASTINT (w->total_lines);
@@ -1974,14 +1972,6 @@ recombine_windows (Lisp_Object window)
 	}
     }
 }
-
-/* If WINDOW can be deleted, delete it.  */
-Lisp_Object
-delete_deletable_window (Lisp_Object window)
-{
-  if (!NILP (call1 (Qwindow_deletable_p, window)))
-    call1 (Qdelete_window, window);
-}
 
 /***********************************************************************
 			     Window List
@@ -2643,7 +2633,7 @@ selected frame and no others.  */)
     return Qnil;
 }
 
-Lisp_Object
+static Lisp_Object
 resize_root_window (Lisp_Object window, Lisp_Object delta, Lisp_Object horizontal, Lisp_Object ignore)
 {
   return call4 (Qresize_root_window, window, delta, horizontal, ignore);
@@ -2669,9 +2659,9 @@ window-start value is reasonable when this function is called.  */)
 {
   struct window *w, *r, *s;
   struct frame *f;
-  Lisp_Object sibling, pwindow, swindow, delta;
-  EMACS_INT startpos;
-  int top, new_top, resize_failed;
+  Lisp_Object sibling, pwindow, swindow IF_LINT (= Qnil), delta;
+  EMACS_INT startpos IF_LINT (= 0);
+  int top IF_LINT (= 0), new_top, resize_failed;
 
   w = decode_any_window (window);
   XSETWINDOW (window, w);
@@ -2757,10 +2747,10 @@ window-start value is reasonable when this function is called.  */)
   windows_or_buffers_changed++;
   Vwindow_list = Qnil;
   FRAME_WINDOW_SIZES_CHANGED (f) = 1;
+  resize_failed = 0;
 
   if (NILP (w->buffer))
     {
-      resize_failed = 0;
       /* Resize subwindows vertically.  */
       XSETINT (delta, XINT (r->total_lines) - XINT (w->total_lines));
       w->top_line = r->top_line;
@@ -3078,12 +3068,12 @@ run_window_configuration_change_hook (struct frame *f)
 	if (!NILP (Flocal_variable_p (Qwindow_configuration_change_hook,
 				      buffer)))
 	  {
-	    int count = SPECPDL_INDEX ();
+	    int inner_count = SPECPDL_INDEX ();
 	    record_unwind_protect (select_window_norecord, Fselected_window ());
 	    select_window_norecord (window);
 	    run_funs (Fbuffer_local_value (Qwindow_configuration_change_hook,
 					   buffer));
-	    unbind_to (count, Qnil);
+	    unbind_to (inner_count, Qnil);
 	  }
       }
   }
@@ -3533,7 +3523,7 @@ Note: This function does not operate on any subwindows of WINDOW.  */)
    Note: This function does not check any of `window-fixed-size-p',
    `window-min-height' or `window-min-width'.  It does check that window
    sizes do not drop below one line (two columns). */
-int
+static int
 resize_window_check (struct window *w, int horflag)
 {
   struct window *c;
@@ -3617,7 +3607,7 @@ resize_window_check (struct window *w, int horflag)
 static void
 resize_window_apply (struct window *w, int horflag)
 {
-  struct window *c, *p;
+  struct window *c;
   int pos;
 
   /* Note: Assigning new_normal requires that the new total size of the
@@ -3809,7 +3799,7 @@ resize_frame_windows (struct frame *f, int size, int horflag)
 DEFUN ("split-window-internal", Fsplit_window_internal, Ssplit_window_internal, 4, 4, 0,
        doc: /* Split window OLD.
 Second argument TOTAL-SIZE specifies the number of lines or columns of the
-new window.  In any case TOTAL-SIZE must be a positive integer 
+new window.  In any case TOTAL-SIZE must be a positive integer
 
 Third argument SIDE nil (or `below') specifies that the new window shall
 be located below WINDOW.  SIDE `above' means the new window shall be

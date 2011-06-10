@@ -1612,7 +1612,6 @@ ftfont_get_metrics (MFLTFont *font, MFLTGlyphString *gstring,
 	if (g->code != FONT_INVALID_CODE)
 	  {
 	    FT_Glyph_Metrics *m;
-	    int lbearing, rbearing, ascent, descent, xadv;
 
 	    if (FT_Load_Glyph (ft_face, g->code, FT_LOAD_DEFAULT) != 0)
 	      abort ();
@@ -1867,7 +1866,6 @@ ftfont_drive_otf (MFLTFont *font,
 	{
 	  MFLTGlyph *g;
 	  int min_from, max_to;
-	  int j;
 	  int feature_idx = otfg->positioning_type >> 4;
 
 	  g = out->glyphs + out->used;
