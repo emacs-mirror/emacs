@@ -7550,22 +7550,17 @@ imagemagick_load_image (struct frame *f, struct image *img,
       im_image = ReadImage (image_info, exception);
       DestroyExceptionInfo (exception);
 
-      if (im_image != NULL)
-	{
-	  image_wand = NewMagickWandFromImage (im_image);
-          DestroyImage(im_image);
-	  status = MagickTrue;
-	}
-      else
-	status = MagickFalse;
+      if (im_image == NULL)
+	goto imagemagick_no_wand;
+      image_wand = NewMagickWandFromImage (im_image);
+      DestroyImage(im_image);
     }
   else
     {
       image_wand = NewMagickWand ();
-      status = MagickReadImageBlob (image_wand, contents, size);
+      if (MagickReadImageBlob (image_wand, contents, size) == MagickFalse)
+	goto imagemagick_error;
     }
-
-  if (status == MagickFalse) goto imagemagick_error;
 
   /* If width and/or height is set in the display spec assume we want
      to scale to those values.  If either h or w is unspecified, the
@@ -7794,6 +7789,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
  imagemagick_error:
   DestroyMagickWand (image_wand);
+ imagemagick_no_wand:
   MagickWandTerminus ();
   /* TODO more cleanup.  */
   image_error ("Error parsing IMAGEMAGICK image `%s'", img->spec, Qnil);
