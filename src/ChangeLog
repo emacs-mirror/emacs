@@ -1,5 +1,14 @@
 2011-06-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* window.c: Fix minor problems reported by GCC 4.6.0.
+	(window_deletion_count, delete_deletable_window): Remove; unused.
+	(window_body_lines): Now static.
+	(Fdelete_other_windows_internal): Mark vars as initialized.
+	Make sure 'resize_failed' is initialized.
+	(run_window_configuration_change_hook): Rename local to avoid shadowing.
+	(resize_window_apply): Remove unused local.
+	* window.h (delete_deletable_window): Remove decl.
+
 	* image.c: Fix minor problems reported by GCC 4.6.0.
 	(gif_load, svg_load_image): Rename locals to avoid shadowing.
 	(imagemagick_load_image): Fix pointer signedness problem by changing
