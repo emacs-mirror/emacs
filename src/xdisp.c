@@ -3111,7 +3111,7 @@ compute_display_string_pos (struct text_pos *position,
 			    struct bidi_string_data *string, int frame_window_p)
 {
   /* OBJECT = nil means current buffer.  */
-  Lisp_Object object = string ? string->lstring : Qnil;
+  Lisp_Object object = (string && string->s) ? string->lstring : Qnil;
   Lisp_Object pos, spec;
   EMACS_INT eob = STRINGP (object) ? string->schars : ZV;
   EMACS_INT begb = STRINGP (object) ? 0 : BEGV;
@@ -3172,7 +3172,7 @@ EMACS_INT
 compute_display_string_end (EMACS_INT charpos, struct bidi_string_data *string)
 {
   /* OBJECT = nil means current buffer.  */
-  Lisp_Object object = string ? string->lstring : Qnil;
+  Lisp_Object object = (string && string->s) ? string->lstring : Qnil;
   Lisp_Object pos = make_number (charpos);
   EMACS_INT eob = STRINGP (object) ? string->schars : ZV;
 
@@ -6829,10 +6829,9 @@ next_element_from_buffer (struct it *it)
 	   && !BIDI_AT_BASE_LEVEL (it->bidi_it)
 	   && IT_CHARPOS (*it) < it->prev_stop)
     {
-      if (it->base_level_stop <= 0)
+      if (it->base_level_stop <= 0
+	  || IT_CHARPOS (*it) < it->base_level_stop)
 	it->base_level_stop = BEGV;
-      if (IT_CHARPOS (*it) < it->base_level_stop)
-	abort ();
       handle_stop_backwards (it, it->base_level_stop);
       return GET_NEXT_DISPLAY_ELEMENT (it);
     }
@@ -18228,6 +18227,7 @@ See also `bidi-paragraph-direction'.  */)
       itb.bytepos = bytepos;
       itb.nchars = -1;
       itb.string.s = NULL;
+      itb.string.lstring = Qnil;
       itb.frame_window_p = FRAME_WINDOW_P (SELECTED_FRAME ()); /* guesswork */
       itb.first_elt = 1;
       itb.separator_limit = -1;

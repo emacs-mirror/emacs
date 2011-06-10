@@ -1,3 +1,14 @@
+2011-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fcurrent_bidi_paragraph_direction): Initialize
+	itb.string.lstring.
+	(compute_display_string_pos, compute_display_string_end):
+	Fix calculation of the object to scan.  Fixes an error when using
+	arrow keys.
+	(next_element_from_buffer): Don't abort when IT_CHARPOS is before
+	base_level_stop; instead, set base_level_stop to BEGV.  Fixes
+	crashes in vertical-motion.
+
 2011-06-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (compute_display_string_pos): First arg is now struct
