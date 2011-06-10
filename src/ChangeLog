@@ -1,5 +1,10 @@
 2011-06-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* buffer.h: Include <time.h>, for time_t.
+	Needed to build on FreeBSD 8.2.  Problem reported by Herbert J. Skuhra.
+
+	Fix minor problems found by static checking.
+
 	* image.c (PixelGetMagickColor): Declare if ImageMagick headers don't.
 
 	Make identifiers static if they are not used in other modules.
@@ -9,8 +14,8 @@
 	* window.c (resize_window_check, resize_root_window): Now static.
 	* window.h (resize_window_check, resize_root_window): Remove decls.
 
-	* window.c: Fix minor problems reported by GCC 4.6.0.
-	(window_deletion_count, delete_deletable_window): Remove; unused.
+	* window.c (window_deletion_count, delete_deletable_window):
+	Remove; unused.
 	(window_body_lines): Now static.
 	(Fdelete_other_windows_internal): Mark vars as initialized.
 	Make sure 'resize_failed' is initialized.
@@ -18,8 +23,7 @@
 	(resize_window_apply): Remove unused local.
 	* window.h (delete_deletable_window): Remove decl.
 
-	* image.c: Fix minor problems reported by GCC 4.6.0.
-	(gif_load, svg_load_image): Rename locals to avoid shadowing.
+	* image.c (gif_load, svg_load_image): Rename locals to avoid shadowing.
 	(imagemagick_load_image): Fix pointer signedness problem by changing
 	last arg from unsigned char * to char *.  All uses changed.
 	Also, fix a local for similar reasons.
