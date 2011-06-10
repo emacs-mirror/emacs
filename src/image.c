@@ -7456,6 +7456,14 @@ imagemagick_image_p (Lisp_Object object)
 #define DrawRectangle DrawRectangleGif
 #include <wand/MagickWand.h>
 
+/* ImageMagick 6.5.3 through 6.6.5 hid PixelGetMagickColor for some reason.
+   Emacs seems to work fine with the hidden version, so unhide it.  */
+#include <magick/version.h>
+#if 0x653 <= MagickLibVersion && MagickLibVersion <= 0x665
+extern WandExport void PixelGetMagickColor (const PixelWand *,
+					    MagickPixelPacket *);
+#endif
+
 /* Helper function for imagemagick_load, which does the actual loading
    given contents and size, apart from frame and image structures,
    passed from imagemagick_load.  Uses librimagemagick to do most of

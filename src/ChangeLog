@@ -1,5 +1,7 @@
 2011-06-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* image.c (PixelGetMagickColor): Declare if ImageMagick headers don't.
+
 	Make identifiers static if they are not used in other modules.
 	* data.c (Qcompiled_function, Qframe, Qvector):
 	* image.c (QimageMagick, Qsvg):
