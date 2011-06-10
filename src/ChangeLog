@@ -1,5 +1,12 @@
 2011-06-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Make identifiers static if they are not used in other modules.
+	* data.c (Qcompiled_function, Qframe, Qvector):
+	* image.c (QimageMagick, Qsvg):
+	* minibuf.c (Qmetadata):
+	* window.c (resize_window_check, resize_root_window): Now static.
+	* window.h (resize_window_check, resize_root_window): Remove decls.
+
 	* window.c: Fix minor problems reported by GCC 4.6.0.
 	(window_deletion_count, delete_deletable_window): Remove; unused.
 	(window_body_lines): Now static.

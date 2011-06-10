@@ -82,6 +82,7 @@ static int foreach_window_1 (struct window *,
                              int (* fn) (struct window *, void *),
                              void *);
 static Lisp_Object window_list_1 (Lisp_Object, Lisp_Object, Lisp_Object);
+static int resize_window_check (struct window *, int);
 static void resize_window_apply (struct window *, int);
 static Lisp_Object select_window (Lisp_Object, Lisp_Object, int);
 
@@ -2632,7 +2633,7 @@ selected frame and no others.  */)
     return Qnil;
 }
 
-Lisp_Object
+static Lisp_Object
 resize_root_window (Lisp_Object window, Lisp_Object delta, Lisp_Object horizontal, Lisp_Object ignore)
 {
   return call4 (Qresize_root_window, window, delta, horizontal, ignore);
@@ -3522,7 +3523,7 @@ Note: This function does not operate on any subwindows of WINDOW.  */)
    Note: This function does not check any of `window-fixed-size-p',
    `window-min-height' or `window-min-width'.  It does check that window
    sizes do not drop below one line (two columns). */
-int
+static int
 resize_window_check (struct window *w, int horflag)
 {
   struct window *c;

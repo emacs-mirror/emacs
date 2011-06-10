@@ -7365,7 +7365,7 @@ gif_load (struct frame *f, struct image *img)
 ***********************************************************************/
 #if defined (HAVE_IMAGEMAGICK)
 
-Lisp_Object Qimagemagick;
+static Lisp_Object Qimagemagick;
 
 static int imagemagick_image_p (Lisp_Object);
 static int imagemagick_load (struct frame *, struct image *);
@@ -7884,7 +7884,7 @@ static int svg_load_image (struct frame *, struct image *,
 
 /* The symbol `svg' identifying images of this type. */
 
-Lisp_Object Qsvg;
+static Lisp_Object Qsvg;
 
 /* Indices of image specification fields in svg_format, below.  */
 

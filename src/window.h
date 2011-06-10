@@ -924,9 +924,6 @@ extern void init_window (void);
 extern void syms_of_window (void);
 extern void keys_of_window (void);
 extern void resize_frame_windows (struct frame *, int, int);
-extern int resize_window_check (struct window *, int);
-extern Lisp_Object resize_root_window (Lisp_Object, Lisp_Object, Lisp_Object,
-				       Lisp_Object);
 
 
 #endif /* not WINDOW_H_INCLUDED */
