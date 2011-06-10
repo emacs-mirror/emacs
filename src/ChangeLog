@@ -1,5 +1,8 @@
 2011-06-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* buffer.h: Include <time.h>, for time_t.
+	Needed to build on FreeBSD 8.2.  Problem reported by Herbert J. Skuhra.
+
 	Fix minor problems found by static checking.
 
 	* image.c (PixelGetMagickColor): Declare if ImageMagick headers don't.
