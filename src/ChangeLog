@@ -1,3 +1,67 @@
+2011-06-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c: Remove declarations of Qwindow_size_fixed,
+	window_min_size_1, window_min_size_2, window_min_size,
+	size_window, window_fixed_size_p, enlarge_window, delete_window.
+	Remove static from declaration of Qdelete_window, it's
+	temporarily needed by Fbury_buffer.
+	(replace_window): Don't assign orig_top_line and
+	orig_total_lines.
+	(Fdelete_window, delete_window): Remove.  Window deletion is
+	handled by window.el.
+	(window_loop): Remove DELETE_OTHER_WINDOWS case.  Replace
+	Fdelete_window calls with calls to Qdelete_window.
+	(Fdelete_other_windows): Remove.  Deleting other windows is
+	handled by window.el.
+	(window_fixed_size_p): Remove.  Fixed-sizeness of windows is
+	handled in window.el.
+	(window_min_size_2, window_min_size_1, window_min_size): Remove.
+	Window minimum sizes are handled in window.el.
+	(shrink_windows, size_window, set_window_height)
+	(set_window_width, change_window_heights, window_height)
+	(window_width, CURBEG, CURSIZE, enlarge_window)
+	(adjust_window_trailing_edge, Fadjust_window_trailing_edge)
+	(Fenlarge_window, Fshrink_window): Remove.  Window resizing is
+	handled in window.el.
+	(make_dummy_parent): Rename to make_parent_window and give it a
+	second argument horflag.
+	(make_window): Don't set resize_proportionally any more.
+	(Fsplit_window): Remove.  Windows are split in window.el.
+	(save_restore_action, save_restore_orig_size)
+	(shrink_window_lowest_first, save_restore_orig_size): Remove.
+	Resize mini windows in window.el.
+	(grow_mini_window, shrink_mini_window): Implement by calling
+	Qresize_root_window_vertically, resize_window_check and
+	resize_window_apply.
+	(saved_window, Fset_window_configuration, save_window_save): Do
+	not handle orig_top_line, orig_total_lines, and
+	resize_proportionally.
+	(window_min_height, window_min_width): Move to window.el.
+	(keys_of_window): Move bindings for delete-other-windows,
+	split-window, delete-window and enlarge-window to window.el.
+
+	* buffer.c: Temporarily extern Qdelete_window.
+	(Fbury_buffer): Temporarily call Qdelete_window instead of
+	Fdelete_window (Fbury_buffer will move to window.el soon).
+
+	* frame.c (set_menu_bar_lines_1): Remove code handling
+	orig_top_line and orig_total_lines.
+
+	* dispnew.c (adjust_frame_glyphs_initially): Don't use
+	set_window_height but set heights directly.
+	(change_frame_size_1): Use resize_frame_windows.
+
+	* xdisp.c (init_xdisp): Don't use set_window_height but set
+	heights directly.
+
+	* xfns.c (x_set_menu_bar_lines, x_set_tool_bar_lines): Use
+	resize_frame_windows instead of change_window_heights and run
+	run_window_configuration_change_hook.
+
+	* w32fns.c (x_set_tool_bar_lines): Use resize_frame_windows
+	instead of change_window_heights and run
+	run_window_configuration_change_hook.
+
 2011-06-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (replace_window): Rename second argument REPLACEMENT to

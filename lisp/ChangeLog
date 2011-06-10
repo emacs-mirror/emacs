@@ -1,3 +1,32 @@
+2011-06-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-min-height, window-min-width): Move here
+	from window.c.  Add defcustoms and rewrite doc-strings.
+	(resize-mini-window, resize-window): New functions.
+	(adjust-window-trailing-edge, enlarge-window, shrink-window):
+	Move here from window.c.
+	(maximize-window, minimize-window): New functions.
+	(delete-window, delete-other-windows, split-window): Move here
+	from window.c.
+	(window-split-min-size): New function.
+	(split-window-keep-point): Mention split-window-above-each-other
+	instead of split-window-vertically.
+	(split-window-above-each-other, split-window-vertically): Rename
+	split-window-vertically to split-window-above-each-other and
+	provide defalias for old definition.
+	(split-window-side-by-side, split-window-horizontally): Rename
+	split-window-horizontally to split-window-side-by-side and provide
+	defalias for the old definition.
+	(ctl-x-map): Move bindings for delete-window,
+	delete-other-windows and enlarge-window here from window.c.
+	Replace bindings for split-window-vertically and
+	split-window-horizontally by bindings for
+	split-window-above-each-other and split-window-side-by-side.
+
+	* cus-start.el (all): Remove entries for window-min-height and
+	window-min-width.  Add entries for window-splits and
+	window-nest.
+
 2011-06-09  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el (appt-mode-line): New function.

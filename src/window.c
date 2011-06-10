@@ -50,16 +50,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-Lisp_Object Qwindowp, Qwindow_live_p;
+Lisp_Object Qwindowp, Qwindow_live_p, Qdelete_window;
 static Lisp_Object Qwindow_configuration_p, Qrecord_window_buffer;
-static Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
+static Lisp_Object Qwindow_deletable_p, Qdisplay_buffer;
 static Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
 static Lisp_Object Qresize_root_window, Qresize_root_window_vertically;
 static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
 static Lisp_Object Qsafe, Qabove, Qbelow;
 static Lisp_Object Qauto_buffer_name;
-
-static Lisp_Object Qwindow_size_fixed;
 
 static int displayed_window_lines (struct window *);
 static struct window *decode_window (Lisp_Object);
@@ -68,13 +66,7 @@ static int get_leaf_windows (struct window *, struct window **, int);
 static void window_scroll (Lisp_Object, int, int, int);
 static void window_scroll_pixel_based (Lisp_Object, int, int, int);
 static void window_scroll_line_based (Lisp_Object, int, int, int);
-static int window_min_size_1 (struct window *, int, int);
-static int window_min_size_2 (struct window *, int, int);
-static int window_min_size (struct window *, int, int, int, int *);
-static void size_window (Lisp_Object, int, int, int, int, int);
 static int freeze_window_start (struct window *, void *);
-static int window_fixed_size_p (struct window *, int, int);
-static void enlarge_window (Lisp_Object, int, int);
 static Lisp_Object window_list (void);
 static int add_window_to_list (struct window *, void *);
 static int candidate_window_p (Lisp_Object, Lisp_Object, Lisp_Object,
@@ -1803,9 +1795,7 @@ DEFUN ("set-window-display-table", Fset_window_display_table, Sset_window_displa
   return table;
 }
 
-static void delete_window (Lisp_Object);
-
-/* Record info on buffer window w is displaying
+/* Record info on buffer window W is displaying
    when it is about to cease to display that buffer.  */
 static void
 unshow_buffer (register struct window *w)
@@ -1891,7 +1881,6 @@ replace_window (Lisp_Object old, Lisp_Object new, int setflag)
       XSETFASTINT (n->window_end_pos, 0);
       n->window_end_valid = Qnil;
       n->frozen_window_start_p = 0;
-      n->orig_top_line = n->orig_total_lines = Qnil;
     }
 
   n->next = tem = o->next;
@@ -1993,232 +1982,6 @@ delete_deletable_window (Lisp_Object window)
   if (!NILP (call1 (Qwindow_deletable_p, window)))
     call1 (Qdelete_window, window);
 }
-
-DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
-       doc: /* Remove WINDOW from its frame.
-WINDOW defaults to the selected window.  Return nil.
-Signal an error when WINDOW is the only window on its frame.  */)
-  (register Lisp_Object window)
-{
-  struct frame *f;
-  if (NILP (window))
-    window = selected_window;
-  else
-    CHECK_LIVE_WINDOW (window);
-
-  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
-  delete_window (window);
-
-  run_window_configuration_change_hook (f);
-
-  return Qnil;
-}
-
-static void
-delete_window (register Lisp_Object window)
-{
-  register Lisp_Object tem, parent, sib;
-  register struct window *p;
-  register struct window *par;
-  struct frame *f;
-
-  /* Because this function is called by other C code on non-leaf
-     windows, the CHECK_LIVE_WINDOW macro would choke inappropriately,
-     so we can't decode_window here.  */
-  CHECK_WINDOW (window);
-  p = XWINDOW (window);
-
-  /* It's a no-op to delete an already-deleted window.  */
-  if (NILP (p->buffer)
-      && NILP (p->hchild)
-      && NILP (p->vchild))
-    return;
-
-  parent = p->parent;
-  if (NILP (parent))
-    error ("Attempt to delete minibuffer or sole ordinary window");
-  par = XWINDOW (parent);
-
-  windows_or_buffers_changed++;
-  Vwindow_list = Qnil;
-  f = XFRAME (WINDOW_FRAME (p));
-  FRAME_WINDOW_SIZES_CHANGED (f) = 1;
-
-  /* Are we trying to delete any frame's selected window?  */
-  {
-    Lisp_Object swindow, pwindow;
-
-    /* See if the frame's selected window is either WINDOW
-       or any subwindow of it, by finding all that window's parents
-       and comparing each one with WINDOW.  */
-    swindow = FRAME_SELECTED_WINDOW (f);
-
-    while (1)
-      {
-	pwindow = swindow;
-	while (!NILP (pwindow))
-	  {
-	    if (EQ (window, pwindow))
-	      break;
-	    pwindow = XWINDOW (pwindow)->parent;
-	  }
-
-	/* If the window being deleted is not a parent of SWINDOW,
-	   then SWINDOW is ok as the new selected window.  */
-	if (!EQ (window, pwindow))
-	  break;
-	/* Otherwise, try another window for SWINDOW.  */
-	swindow = Fnext_window (swindow, Qlambda, Qnil);
-
-	/* If we get back to the frame's selected window,
-	   it means there was no acceptable alternative,
-	   so we cannot delete.  */
-	if (EQ (swindow, FRAME_SELECTED_WINDOW (f)))
-	  error ("Cannot delete window");
-      }
-
-    /* If we need to change SWINDOW, do it.  */
-    if (! EQ (swindow, FRAME_SELECTED_WINDOW (f)))
-      {
-	/* If we're about to delete the selected window on the
-	   selected frame, then we should use Fselect_window to select
-	   the new window.  On the other hand, if we're about to
-	   delete the selected window on any other frame, we shouldn't do
-	   anything but set the frame's selected_window slot.  */
-	if (EQ (FRAME_SELECTED_WINDOW (f), selected_window))
-	  Fselect_window (swindow, Qnil);
-	else
-	  FRAME_SELECTED_WINDOW (f) = swindow;
-      }
-  }
-
-  /* Now we know we can delete this one.  */
-  window_deletion_count++;
-
-  tem = p->buffer;
-  /* tem is null for dummy parent windows
-     (which have inferiors but not any contents themselves) */
-  if (!NILP (tem))
-    {
-      unshow_buffer (p);
-      unchain_marker (XMARKER (p->pointm));
-      unchain_marker (XMARKER (p->start));
-    }
-
-  /* Free window glyph matrices.  It is sure that they are allocated
-     again when ADJUST_GLYPHS is called.  Block input so that expose
-     events and other events that access glyph matrices are not
-     processed while we are changing them.  */
-  BLOCK_INPUT;
-  free_window_matrices (XWINDOW (FRAME_ROOT_WINDOW (f)));
-
-  tem = p->next;
-  if (!NILP (tem))
-    XWINDOW (tem)->prev = p->prev;
-
-  tem = p->prev;
-  if (!NILP (tem))
-    XWINDOW (tem)->next = p->next;
-
-  if (EQ (window, par->hchild))
-    par->hchild = p->next;
-  if (EQ (window, par->vchild))
-    par->vchild = p->next;
-
-  /* Find one of our siblings to give our space to.  */
-  sib = p->prev;
-  if (NILP (sib))
-    {
-      /* If p gives its space to its next sibling, that sibling needs
-	 to have its top/left side pulled back to where p's is.
-	 set_window_{height,width} will re-position the sibling's
-	 children.  */
-      sib = p->next;
-      XWINDOW (sib)->top_line = p->top_line;
-      XWINDOW (sib)->left_col = p->left_col;
-    }
-
-  /* Stretch that sibling.  */
-  if (!NILP (par->vchild))
-    set_window_height (sib,
-		       XFASTINT (XWINDOW (sib)->total_lines) + XFASTINT (p->total_lines),
-		       1);
-  if (!NILP (par->hchild))
-    set_window_width (sib,
-		      XFASTINT (XWINDOW (sib)->total_cols) + XFASTINT (p->total_cols),
-		      1);
-
-  /* If parent now has only one child,
-     put the child into the parent's place.  */
-  tem = par->hchild;
-  if (NILP (tem))
-    tem = par->vchild;
-  if (NILP (XWINDOW (tem)->next)) {
-    replace_window (parent, tem, 1);
-    par = XWINDOW (tem);
-  }
-
-  /* Since we may be deleting combination windows, we must make sure that
-     not only p but all its children have been marked as deleted.  */
-  if (! NILP (p->hchild))
-    delete_all_subwindows (p->hchild);
-  else if (! NILP (p->vchild))
-    delete_all_subwindows (p->vchild);
-
-  /* Mark this window as deleted.  */
-  p->buffer = p->hchild = p->vchild = Qnil;
-
-  if (! NILP (par->parent))
-    par = XWINDOW (par->parent);
-
-  /* Check if we have a v/hchild with a v/hchild.  In that case remove
-     one of them.  */
-
-  if (! NILP (par->vchild) && ! NILP (XWINDOW (par->vchild)->vchild))
-    {
-      p = XWINDOW (par->vchild);
-      par->vchild = p->vchild;
-      tem = p->vchild;
-    }
-  else if (! NILP (par->hchild) && ! NILP (XWINDOW (par->hchild)->hchild))
-    {
-      p = XWINDOW (par->hchild);
-      par->hchild = p->hchild;
-      tem = p->hchild;
-    }
-  else
-    p = 0;
-
-  if (p)
-    {
-      while (! NILP (tem)) {
-        XWINDOW (tem)->parent = p->parent;
-        if (NILP (XWINDOW (tem)->next))
-          break;
-        tem = XWINDOW (tem)->next;
-      }
-      if (! NILP (tem)) {
-        /* The next of the v/hchild we are removing is now the next of the
-           last child for the v/hchild:
-           Before v/hchild -> v/hchild -> next1 -> next2
-                    |
-                     -> next3
-           After:  v/hchild -> next1 -> next2 -> next3
-        */
-        XWINDOW (tem)->next = p->next;
-        if (! NILP (p->next))
-          XWINDOW (p->next)->prev = tem;
-      }
-      p->next = p->prev = p->vchild = p->hchild = p->buffer = Qnil;
-    }
-
-
-  /* Adjust glyph matrices. */
-  adjust_glyphs (f);
-  UNBLOCK_INPUT;
-}
-
-
 
 /***********************************************************************
 			     Window List
@@ -2645,7 +2408,6 @@ enum window_loop
 {
   WINDOW_LOOP_UNUSED,
   GET_BUFFER_WINDOW,		/* Arg is buffer */
-  DELETE_OTHER_WINDOWS,		/* Arg is window not to delete */
   DELETE_BUFFER_WINDOWS,	/* Arg is buffer */
   UNSHOW_BUFFER,		/* Arg is buffer */
   REDISPLAY_BUFFER_WINDOWS,	/* Arg is buffer */
@@ -2729,11 +2491,6 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 	      }
 	    break;
 
-	  case DELETE_OTHER_WINDOWS:
-	    if (!EQ (window, obj))
-	      Fdelete_window (window);
-	    break;
-
 	  case DELETE_BUFFER_WINDOWS:
 	    if (EQ (w->buffer, obj))
 	      {
@@ -2769,7 +2526,7 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 		      Fset_buffer (w->buffer);
 		  }
 		else
-		  Fdelete_window (window);
+		  call1 (Qdelete_window, window);
 	      }
 	    break;
 
@@ -2804,7 +2561,7 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 		    XSETWINDOW (window_to_delete, w);
 		    /* If this window is dedicated and not the only window
 		       in its frame, then kill it.  */
-		    Fdelete_window (window_to_delete);
+		        call1 (Qdelete_window, window_to_delete);
 		  }
 		else
 		  {
@@ -3128,68 +2885,6 @@ window-start value is reasonable when this function is called.  */)
 }
 
 
-DEFUN ("delete-other-windows", Fdelete_other_windows, Sdelete_other_windows,
-       0, 1, "",
-       doc: /* Make WINDOW (or the selected window) fill its frame.
-Only the frame WINDOW is on is affected.
-This function tries to reduce display jumps by keeping the text
-previously visible in WINDOW in the same place on the frame.  Doing this
-depends on the value of (window-start WINDOW), so if calling this
-function in a program gives strange scrolling, make sure the
-window-start value is reasonable when this function is called.  */)
-  (Lisp_Object window)
-{
-  struct window *w;
-  EMACS_INT startpos;
-  int top, new_top;
-
-  if (NILP (window))
-    window = selected_window;
-  else
-    CHECK_LIVE_WINDOW (window);
-  w = XWINDOW (window);
-
-  startpos = marker_position (w->start);
-  top = WINDOW_TOP_EDGE_LINE (w) - FRAME_TOP_MARGIN (XFRAME (WINDOW_FRAME (w)));
-
-  if (MINI_WINDOW_P (w) && top > 0)
-    error ("Can't expand minibuffer to full frame");
-
-  window_loop (DELETE_OTHER_WINDOWS, window, 0, WINDOW_FRAME (w));
-
-  /* Try to minimize scrolling, by setting the window start to the point
-     will cause the text at the old window start to be at the same place
-     on the frame.  But don't try to do this if the window start is
-     outside the visible portion (as might happen when the display is
-     not current, due to typeahead).  */
-  new_top = WINDOW_TOP_EDGE_LINE (w) - FRAME_TOP_MARGIN (XFRAME (WINDOW_FRAME (w)));
-  if (new_top != top
-      && startpos >= BUF_BEGV (XBUFFER (w->buffer))
-      && startpos <= BUF_ZV (XBUFFER (w->buffer)))
-    {
-      struct position pos;
-      struct buffer *obuf = current_buffer;
-
-      Fset_buffer (w->buffer);
-      /* This computation used to temporarily move point, but that can
-	 have unwanted side effects due to text properties.  */
-      pos = *vmotion (startpos, -top, w);
-
-      set_marker_both (w->start, w->buffer, pos.bufpos, pos.bytepos);
-      w->window_end_valid = Qnil;
-      w->start_at_line_beg = ((pos.bytepos == BEGV_BYTE
-			       || FETCH_BYTE (pos.bytepos - 1) == '\n') ? Qt
-			      : Qnil);
-      /* We need to do this, so that the window-scroll-functions
-	 get called.  */
-      w->optional_new_start = Qt;
-
-      set_buffer_internal (obuf);
-    }
-
-  return Qnil;
-}
-
 DEFUN ("delete-windows-on", Fdelete_windows_on, Sdelete_windows_on,
        0, 2, "bDelete windows on (buffer): ",
        doc: /* Delete all windows showing BUFFER-OR-NAME.
@@ -3271,8 +2966,6 @@ replace_buffer_in_all_windows (Lisp_Object buffer)
     window_loop (UNSHOW_BUFFER, buffer, 1, frame);
 }
 
-/* Set the height of WINDOW and all its inferiors.  */
-
 /* If *ROWS or *COLS are too small a size for FRAME, set them to the
    minimum allowable size.  */
 
@@ -3295,243 +2988,6 @@ check_frame_size (FRAME_PTR frame, int *rows, int *cols)
   if (*cols  < MIN_SAFE_WINDOW_WIDTH)
     *cols = MIN_SAFE_WINDOW_WIDTH;
 }
-
-/* Value is non-zero if window W is fixed-size.  WIDTH_P non-zero means
-   check if W's width can be changed, otherwise check W's height.
-   CHECK_SIBLINGS_P non-zero means check resizablity of WINDOW's
-   siblings, too.  If none of the siblings is resizable, WINDOW isn't
-   either.  */
-
-static int
-window_fixed_size_p (struct window *w, int width_p, int check_siblings_p)
-{
-  int fixed_p;
-  struct window *c;
-
-  if (!NILP (w->hchild))
-    {
-      c = XWINDOW (w->hchild);
-
-      if (width_p)
-	{
-	  /* A horizontal combination is fixed-width if all of if its
-	     children are.  */
-	  while (c && window_fixed_size_p (c, width_p, 0))
-	    c = WINDOWP (c->next) ? XWINDOW (c->next) : NULL;
-	  fixed_p = c == NULL;
-	}
-      else
-	{
-	  /* A horizontal combination is fixed-height if one of if its
-	     children is.  */
-	  while (c && !window_fixed_size_p (c, width_p, 0))
-	    c = WINDOWP (c->next) ? XWINDOW (c->next) : NULL;
-	  fixed_p = c != NULL;
-	}
-    }
-  else if (!NILP (w->vchild))
-    {
-      c = XWINDOW (w->vchild);
-
-      if (width_p)
-	{
-	  /* A vertical combination is fixed-width if one of if its
-	     children is.  */
-	  while (c && !window_fixed_size_p (c, width_p, 0))
-	    c = WINDOWP (c->next) ? XWINDOW (c->next) : NULL;
-	  fixed_p = c != NULL;
-	}
-      else
-	{
-	  /* A vertical combination is fixed-height if all of if its
-	     children are.  */
-	  while (c && window_fixed_size_p (c, width_p, 0))
-	    c = WINDOWP (c->next) ? XWINDOW (c->next) : NULL;
-	  fixed_p = c == NULL;
-	}
-    }
-  else if (BUFFERP (w->buffer))
-    {
-      struct buffer *old = current_buffer;
-      Lisp_Object val;
-
-      current_buffer = XBUFFER (w->buffer);
-      val = find_symbol_value (Qwindow_size_fixed);
-      current_buffer = old;
-
-      fixed_p = 0;
-      if (!EQ (val, Qunbound))
-	{
-	  fixed_p = !NILP (val);
-
-	  if (fixed_p
-	      && ((EQ (val, Qheight) && width_p)
-		  || (EQ (val, Qwidth) && !width_p)))
-	    fixed_p = 0;
-	}
-
-      /* Can't tell if this one is resizable without looking at
-	 siblings.  If all siblings are fixed-size this one is too.  */
-      if (!fixed_p && check_siblings_p && WINDOWP (w->parent))
-	{
-	  Lisp_Object child;
-
-	  for (child = w->prev; WINDOWP (child); child = XWINDOW (child)->prev)
-	    if (!window_fixed_size_p (XWINDOW (child), width_p, 0))
-	      break;
-
-	  if (NILP (child))
-	    for (child = w->next; WINDOWP (child); child = XWINDOW (child)->next)
-	      if (!window_fixed_size_p (XWINDOW (child), width_p, 0))
-		break;
-
-	  if (NILP (child))
-	    fixed_p = 1;
-	}
-    }
-  else
-    fixed_p = 1;
-
-  return fixed_p;
-}
-
-/* Return minimum size of leaf window W.  WIDTH_P non-zero means return
-   the minimum width of W, WIDTH_P zero means return the minimum height
-   of W.  SAFE_P non-zero means ignore window-min-height|width but just
-   return values that won't crash Emacs and don't hide components like
-   fringes, scrollbars, or modelines.  If WIDTH_P is zero and W is the
-   minibuffer window, always return 1.  */
-
-static int
-window_min_size_2 (struct window *w, int width_p, int safe_p)
-{
-  /* We should consider buffer-local values of window_min_height and
-     window_min_width here.  */
-  if (width_p)
-    {
-      int safe_size = (MIN_SAFE_WINDOW_WIDTH
-		       + WINDOW_FRINGE_COLS (w)
-		       + WINDOW_SCROLL_BAR_COLS (w));
-
-      return safe_p ? safe_size : max (window_min_width, safe_size);
-    }
-  else if (MINI_WINDOW_P (w))
-    return 1;
-  else
-    {
-      int safe_size = (MIN_SAFE_WINDOW_HEIGHT
-		       + ((BUFFERP (w->buffer)
-			   && !NILP (BVAR (XBUFFER (w->buffer), mode_line_format)))
-			  ? 1 : 0));
-
-      return safe_p ? safe_size : max (window_min_height, safe_size);
-    }
-}
-
-/* Return minimum size of window W, not taking fixed-width windows into
-   account.  WIDTH_P non-zero means return the minimum width, otherwise
-   return the minimum height.  SAFE_P non-zero means ignore
-   window-min-height|width but just return values that won't crash Emacs
-   and don't hide components like fringes, scrollbars, or modelines.  If
-   W is a combination window, compute the minimum size from the minimum
-   sizes of W's children.  */
-
-static int
-window_min_size_1 (struct window *w, int width_p, int safe_p)
-{
-  struct window *c;
-  int size;
-
-  if (!NILP (w->hchild))
-    {
-      /* W is a horizontal combination.  */
-      c = XWINDOW (w->hchild);
-      size = 0;
-
-      if (width_p)
-	{
-	  /* The minimum width of a horizontal combination is the sum of
-	     the minimum widths of its children.  */
-	  while (c)
-	    {
-	      size += window_min_size_1 (c, 1, safe_p);
-	      c = WINDOWP (c->next) ? XWINDOW (c->next) : NULL;
-	    }
-	}
-      else
-	{
-	  /* The minimum height of a horizontal combination is the
-	     maximum of the minimum heights of its children.  */
-	  while (c)
-	    {
-	      size = max (window_min_size_1 (c, 0, safe_p), size);
-	      c = WINDOWP (c->next) ? XWINDOW (c->next) : NULL;
-	    }
-	}
-    }
-  else if (!NILP (w->vchild))
-    {
-      /* W is a vertical combination.  */
-      c = XWINDOW (w->vchild);
-      size = 0;
-
-      if (width_p)
-	{
-	  /* The minimum width of a vertical combination is the maximum
-	     of the minimum widths of its children.  */
-	  while (c)
-	    {
-	      size = max (window_min_size_1 (c, 1, safe_p), size);
-	      c = WINDOWP (c->next) ? XWINDOW (c->next) : NULL;
-	    }
-	}
-      else
-	{
-	  /* The minimum height of a vertical combination is the sum of
-	     the minimum height of its children.  */
-	  while (c)
-	    {
-	      size += window_min_size_1 (c, 0, safe_p);
-	      c = WINDOWP (c->next) ? XWINDOW (c->next) : NULL;
-	    }
-	}
-    }
-  else
-    /* W is a leaf window.  */
-    size = window_min_size_2 (w, width_p, safe_p);
-
-  return size;
-}
-
-/* Return the minimum size of window W, taking fixed-size windows into
-   account.  WIDTH_P non-zero means return the minimum width, otherwise
-   return the minimum height.  SAFE_P non-zero means ignore
-   window-min-height|width but just return values that won't crash Emacs
-   and don't hide components like fringes, scrollbars, or modelines.
-   IGNORE_FIXED_P non-zero means ignore if W is fixed-size.  Set *FIXED
-   to 1 if W is fixed-size unless FIXED is null.  */
-
-static int
-window_min_size (struct window *w, int width_p, int safe_p, int ignore_fixed_p, int *fixed)
-{
-  int size, fixed_p;
-
-  if (ignore_fixed_p)
-    fixed_p = 0;
-  else
-    fixed_p = window_fixed_size_p (w, width_p, 1);
-
-  if (fixed)
-    *fixed = fixed_p;
-
-  if (fixed_p)
-    size = WINDOW_TOTAL_SIZE (w, width_p);
-  else
-    size = window_min_size_1 (w, width_p, safe_p);
-
-  return size;
-}
-
 
 /* Adjust the margins of window W if text area is too small.
    Return 1 if window width is ok after adjustment; 0 if window
@@ -3567,410 +3023,6 @@ adjust_window_margins (struct window *w)
     w->left_margin_cols = make_number (margin_cols);
   return 1;
 }
-
-/* Calculate new sizes for windows in the list FORWARD when their
-   compound size goes from TOTAL to SIZE.  TOTAL must be greater than
-   SIZE.  The number of windows in FORWARD is NCHILDREN, and the number
-   that can shrink is SHRINKABLE.  Fixed-size windows may be shrunk if
-   and only if RESIZE_FIXED_P is non-zero.  WIDTH_P non-zero means
-   shrink columns, otherwise shrink lines.
-
-   SAFE_P zero means windows may be sized down to window-min-height
-   lines (window-min-window columns for WIDTH_P non-zero).  SAFE_P
-   non-zero means windows may be sized down to their minimum safe sizes
-   taking into account the space needed to display modelines, fringes,
-   and scrollbars.
-
-   This function returns an allocated array of new sizes that the caller
-   must free.  A size -1 means the window is fixed and RESIZE_FIXED_P is
-   zero.  A size zero means the window shall be deleted.  Array index 0
-   refers to the first window in FORWARD, 1 to the second, and so on.
-
-   This function resizes windows proportionally to their size.  It also
-   tries to preserve smaller windows by resizing larger windows before
-   resizing any window to zero.  If resize_proportionally is non-nil for
-   a specific window, it will attempt to strictly resize that window
-   proportionally, even at the expense of deleting smaller windows.  */
-static int *
-shrink_windows (int total, int size, int nchildren, int shrinkable,
-		int resize_fixed_p, Lisp_Object forward, int width_p, int safe_p)
-{
-  int available_resize = 0;
-  int *new_sizes, *min_sizes;
-  struct window *c;
-  Lisp_Object child;
-  int smallest = total;
-  int total_removed = 0;
-  int total_shrink = total - size;
-  int i;
-
-  new_sizes = xmalloc (sizeof (*new_sizes) * nchildren);
-  min_sizes = xmalloc (sizeof (*min_sizes) * nchildren);
-
-  for (i = 0, child = forward; !NILP (child); child = c->next, ++i)
-    {
-      int child_size;
-
-      c = XWINDOW (child);
-      child_size = WINDOW_TOTAL_SIZE (c, width_p);
-
-      if (!resize_fixed_p && window_fixed_size_p (c, width_p, 0))
-        new_sizes[i] = -1;
-      else
-        {
-          new_sizes[i] = child_size;
-          min_sizes[i] = window_min_size_1 (c, width_p, safe_p);
-          if (child_size > min_sizes[i]
-	      && NILP (c->resize_proportionally))
-            available_resize += child_size - min_sizes[i];
-        }
-    }
-  /* We might need to shrink some windows to zero.  Find the smallest
-     windows and set them to 0 until we can fulfil the new size.  */
-
-  while (shrinkable > 1 && size + available_resize < total)
-    {
-      for (i = 0; i < nchildren; ++i)
-        if (new_sizes[i] > 0 && smallest > new_sizes[i])
-          smallest = new_sizes[i];
-
-      for (i = 0; i < nchildren; ++i)
-        if (new_sizes[i] == smallest)
-          {
-            /* Resize this window down to zero.  */
-            new_sizes[i] = 0;
-            if (smallest > min_sizes[i])
-              available_resize -= smallest - min_sizes[i];
-            available_resize += smallest;
-            --shrinkable;
-            total_removed += smallest;
-
-            /* We don't know what the smallest is now.  */
-            smallest = total;
-
-            /* Out of for, just remove one window at the time and
-               check again if we have enough space.  */
-            break;
-          }
-    }
-
-  /* Now, calculate the new sizes.  Try to shrink each window
-     proportional to its size.  */
-  for (i = 0; i < nchildren; ++i)
-    {
-      if (new_sizes[i] > min_sizes[i])
-        {
-          int to_shrink = total_shrink * new_sizes[i] / total;
-
-          if (new_sizes[i] - to_shrink < min_sizes[i])
-            to_shrink = new_sizes[i] - min_sizes[i];
-          new_sizes[i] -= to_shrink;
-          total_removed += to_shrink;
-        }
-    }
-
-  /* Any reminder due to rounding, we just subtract from windows
-     that are left and still can be shrunk.  */
-  while (total_shrink > total_removed)
-    {
-      int nonzero_sizes = 0;
-
-      for (i = 0; i < nchildren; ++i)
-        if (new_sizes[i] > 0)
-	  ++nonzero_sizes;
-
-      for (i = 0; i < nchildren; ++i)
-        if (new_sizes[i] > min_sizes[i])
-          {
-            --new_sizes[i];
-            ++total_removed;
-
-            /* Out of for, just shrink one window at the time and
-               check again if we have enough space.  */
-            break;
-          }
-
-      /* Special case, only one window left.  */
-      if (nonzero_sizes == 1)
-        break;
-    }
-
-  /* Any surplus due to rounding, we add to windows that are left.  */
-  while (total_shrink < total_removed)
-    {
-      for (i = 0; i < nchildren; ++i)
-        {
-          if (new_sizes[i] != 0 && total_shrink < total_removed)
-            {
-              ++new_sizes[i];
-              --total_removed;
-              break;
-            }
-        }
-    }
-
-  xfree (min_sizes);
-
-  return new_sizes;
-}
-
-/* Set WINDOW's height or width to SIZE.  WIDTH_P non-zero means set
-   WINDOW's width.  Resize WINDOW's children, if any, so that they keep
-   their proportionate size relative to WINDOW.
-
-   If FIRST_ONLY is 1, change only the first of WINDOW's children when
-   they are in series.  If LAST_ONLY is 1, change only the last of
-   WINDOW's children when they are in series.
-
-   Propagate WINDOW's top or left edge position to children.  Delete
-   windows that become too small unless NODELETE_P is 1.  When
-   NODELETE_P equals 2 do not honor settings for window-min-height and
-   window-min-width when resizing windows but use safe defaults instead.
-   This should give better behavior when resizing frames.  */
-
-static void
-size_window (Lisp_Object window, int size, int width_p, int nodelete_p, int first_only, int last_only)
-{
-  struct window *w = XWINDOW (window);
-  struct window *c;
-  Lisp_Object child, *forward, *sideward;
-  int old_size = WINDOW_TOTAL_SIZE (w, width_p);
-
-  size = max (0, size);
-
-  /* Delete WINDOW if it's too small.  */
-  if (nodelete_p != 1 && !NILP (w->parent)
-      && size < window_min_size_1 (w, width_p, nodelete_p == 2))
-    {
-      delete_window (window);
-      return;
-    }
-
-  /* Set redisplay hints.  */
-  w->last_modified = make_number (0);
-  w->last_overlay_modified = make_number (0);
-  windows_or_buffers_changed++;
-  FRAME_WINDOW_SIZES_CHANGED (XFRAME (w->frame)) = 1;
-
-  if (width_p)
-    {
-      sideward = &w->vchild;
-      forward = &w->hchild;
-      w->total_cols = make_number (size);
-      adjust_window_margins (w);
-    }
-  else
-    {
-      sideward = &w->hchild;
-      forward = &w->vchild;
-      w->total_lines = make_number (size);
-      w->orig_total_lines = Qnil;
-    }
-
-  if (!NILP (*sideward))
-    {
-      /* We have a chain of parallel siblings whose size should all change.  */
-      for (child = *sideward; !NILP (child); child = c->next)
-	{
-	  c = XWINDOW (child);
-	  if (width_p)
-	    c->left_col = w->left_col;
-	  else
-	    c->top_line = w->top_line;
-	  size_window (child, size, width_p, nodelete_p,
-		       first_only, last_only);
-	}
-    }
-  else if (!NILP (*forward) && last_only)
-    {
-      /* Change the last in a series of siblings.  */
-      Lisp_Object last_child;
-      int child_size;
-
-      child = *forward;
-      do
-	{
-	  c = XWINDOW (child);
-	  last_child = child;
-	  child = c->next;
-	}
-      while (!NILP (child));
-
-      child_size = WINDOW_TOTAL_SIZE (c, width_p);
-      size_window (last_child, size - old_size + child_size,
-		   width_p, nodelete_p, first_only, last_only);
-    }
-  else if (!NILP (*forward) && first_only)
-    {
-      /* Change the first in a series of siblings.  */
-      int child_size;
-
-      child = *forward;
-      c = XWINDOW (child);
-
-      if (width_p)
-	c->left_col = w->left_col;
-      else
-	c->top_line = w->top_line;
-
-      child_size = WINDOW_TOTAL_SIZE (c, width_p);
-      size_window (child, size - old_size + child_size,
-		   width_p, nodelete_p, first_only, last_only);
-    }
-  else if (!NILP (*forward))
-    {
-      int fixed_size, each IF_LINT (= 0), extra IF_LINT (= 0), n;
-      int resize_fixed_p, nfixed;
-      int last_pos, first_pos, nchildren, total;
-      int *new_sizes = NULL;
-
-      /* Determine the fixed-size portion of this window, and the
-	 number of child windows.  */
-      fixed_size = nchildren = nfixed = total = 0;
-      for (child = *forward; !NILP (child); child = c->next, ++nchildren)
-	{
-	  int child_size;
-
-	  c = XWINDOW (child);
-	  child_size = WINDOW_TOTAL_SIZE (c, width_p);
-	  total += child_size;
-
-	  if (window_fixed_size_p (c, width_p, 0))
-	    {
-	      fixed_size += child_size;
-	      ++nfixed;
-	    }
-	}
-
-      /* If the new size is smaller than fixed_size, or if there
-	 aren't any resizable windows, allow resizing fixed-size
-	 windows.  */
-      resize_fixed_p = nfixed == nchildren || size < fixed_size;
-
-      /* Compute how many lines/columns to add/remove to each child.  The
-	 value of extra takes care of rounding errors.  */
-      n = resize_fixed_p ? nchildren : nchildren - nfixed;
-      if (size < total && n > 1)
-        new_sizes = shrink_windows (total, size, nchildren, n,
-                                    resize_fixed_p, *forward, width_p,
-				    nodelete_p == 2);
-      else
-        {
-          each = (size - total) / n;
-          extra = (size - total) - n * each;
-        }
-
-      /* Compute new children heights and edge positions.  */
-      first_pos = width_p ? XINT (w->left_col) : XINT (w->top_line);
-      last_pos = first_pos;
-      for (n = 0, child = *forward; !NILP (child); child = c->next, ++n)
-	{
-	  int new_child_size, old_child_size;
-
-	  c = XWINDOW (child);
-	  old_child_size = WINDOW_TOTAL_SIZE (c, width_p);
-	  new_child_size = old_child_size;
-
-	  /* The top or left edge position of this child equals the
-	     bottom or right edge of its predecessor.  */
-	  if (width_p)
-	    c->left_col = make_number (last_pos);
-	  else
-	    c->top_line = make_number (last_pos);
-
-	  /* If this child can be resized, do it.  */
-	  if (resize_fixed_p || !window_fixed_size_p (c, width_p, 0))
-	    {
-	      new_child_size =
-		new_sizes ? new_sizes[n] : old_child_size + each + extra;
-	      extra = 0;
-	    }
-
-	  /* Set new size.  Note that size_window also propagates
-	     edge positions to children, so it's not a no-op if we
-	     didn't change the child's size.  */
-	  size_window (child, new_child_size, width_p, 1,
-		       first_only, last_only);
-
-	  /* Remember the bottom/right edge position of this child; it
-	     will be used to set the top/left edge of the next child.  */
-          last_pos += new_child_size;
-	}
-
-      xfree (new_sizes);
-
-      /* We should have covered the parent exactly with child windows.  */
-      xassert (size == last_pos - first_pos);
-
-      /* Now delete any children that became too small.  */
-      if (nodelete_p != 1)
-	for (child = *forward; !NILP (child); child = c->next)
-	  {
-	    int child_size;
-
-	    c = XWINDOW (child);
-	    child_size = WINDOW_TOTAL_SIZE (c, width_p);
-	    size_window (child, child_size, width_p, nodelete_p,
-			 first_only, last_only);
-	  }
-    }
-}
-
-/* Set WINDOW's height to HEIGHT, and recursively change the height of
-   WINDOW's children.  NODELETE zero means windows that have become
-   smaller than window-min-height in the process may be deleted.
-   NODELETE 1 means never delete windows that become too small in the
-   process.  (The caller should check later and do so if appropriate.)
-   NODELETE 2 means delete only windows that have become too small to be
-   displayed correctly.  */
-
-void
-set_window_height (Lisp_Object window, int height, int nodelete)
-{
-  size_window (window, height, 0, nodelete, 0, 0);
-}
-
-/* Set WINDOW's width to WIDTH, and recursively change the width of
-   WINDOW's children.  NODELETE zero means windows that have become
-   smaller than window-min-width in the process may be deleted.
-   NODELETE 1 means never delete windows that become too small in the
-   process.  (The caller should check later and do so if appropriate.)
-   NODELETE 2 means delete only windows that have become too small to be
-   displayed correctly.  */
-
-void
-set_window_width (Lisp_Object window, int width, int nodelete)
-{
-  size_window (window, width, 1, nodelete, 0, 0);
-}
-
-/* Change window heights in windows rooted in WINDOW by N lines.  */
-
-void
-change_window_heights (Lisp_Object window, int n)
-{
-  struct window *w = XWINDOW (window);
-
-  XSETFASTINT (w->top_line, XFASTINT (w->top_line) + n);
-  XSETFASTINT (w->total_lines, XFASTINT (w->total_lines) - n);
-
-  if (INTEGERP (w->orig_top_line))
-    XSETFASTINT (w->orig_top_line, XFASTINT (w->orig_top_line) + n);
-  if (INTEGERP (w->orig_total_lines))
-    XSETFASTINT (w->orig_total_lines, XFASTINT (w->orig_total_lines) - n);
-
-  /* Handle just the top child in a vertical split.  */
-  if (!NILP (w->vchild))
-    change_window_heights (w->vchild, n);
-
-  /* Adjust all children in a horizontal split.  */
-  for (window = w->hchild; !NILP (window); window = w->next)
-    {
-      w = XWINDOW (window);
-      change_window_heights (window, n);
-    }
-}
-
 
 int window_select_count;
 
@@ -4337,43 +3389,6 @@ DEFUN ("internal-temp-output-buffer-show",
   return Qnil;
 }
 
-static void
-make_dummy_parent (Lisp_Object window)
-{
-  Lisp_Object new;
-  register struct window *o, *p;
-  int i;
-
-  o = XWINDOW (window);
-  p = allocate_window ();
-  for (i = 0; i < VECSIZE (struct window); ++i)
-    ((struct Lisp_Vector *) p)->contents[i]
-      = ((struct Lisp_Vector *)o)->contents[i];
-  XSETWINDOW (new, p);
-
-  ++sequence_number;
-  XSETFASTINT (p->sequence_number, sequence_number);
-  XSETFASTINT (p->clone_number, sequence_number);
-
-  /* Put new into window structure in place of window */
-  replace_window (window, new, 1);
-
-  o->next = Qnil;
-  o->prev = Qnil;
-  o->vchild = Qnil;
-  o->hchild = Qnil;
-  o->parent = new;
-
-  p->start = Qnil;
-  p->pointm = Qnil;
-  p->buffer = Qnil;
-
-  p->splits = Qnil;
-  p->nest = Qnil;
-  p->window_parameters = Qnil;
-
-}
-
 /* Make new window, have it replace WINDOW in window-tree, and make
    WINDOW its only vertical child (HORFLAG 1 means make WINDOW its only
    horizontal child).   */
@@ -4470,7 +3485,6 @@ make_window (void)
   w->pseudo_window_p = 0;
   w->frozen_window_start_p = 0;
   w->vscroll = 0;
-  w->resize_proportionally = Qnil;
   /* Reset window_list.  */
   Vwindow_list = Qnil;
   /* Return window.  */
@@ -5159,147 +4173,81 @@ when WINDOW is the only window on its frame.  */)
 
   return Qnil;
 }
+
+/***********************************************************************
+			Resizing Mini-Windows
+ ***********************************************************************/
 
-DEFUN ("split-window", Fsplit_window, Ssplit_window, 0, 3, "",
-       doc: /* Split WINDOW, putting SIZE lines in the first of the pair.
-WINDOW defaults to selected one and SIZE to half its size.
-If optional third arg HORIZONTAL is non-nil, split side by side and put
-SIZE columns in the first of the pair.  In that case, SIZE includes that
-window's scroll bar, or the divider column to its right.
-Interactively, all arguments are nil.
-Returns the newly created window (which is the lower or rightmost one).
-The upper or leftmost window is the original one, and remains selected
-if it was selected before.
-
-See Info node `(elisp)Splitting Windows' for more details and examples.  */)
-  (Lisp_Object window, Lisp_Object size, Lisp_Object horizontal)
+/* Grow mini-window W by DELTA lines, DELTA >= 0, or as much as we
+   can.  */
+void
+grow_mini_window (struct window *w, int delta)
 {
-  register Lisp_Object new;
-  register struct window *o, *p;
-  FRAME_PTR fo;
-  register int size_int;
+  struct frame *f = XFRAME (w->frame);
+  struct window *r;
+  Lisp_Object root, value;
 
-  if (NILP (window))
-    window = selected_window;
-  else
-    CHECK_LIVE_WINDOW (window);
+  xassert (MINI_WINDOW_P (w));
+  xassert (delta >= 0);
 
-  o = XWINDOW (window);
-  fo = XFRAME (WINDOW_FRAME (o));
-
-  if (NILP (size))
+  root = FRAME_ROOT_WINDOW (f);
+  r = XWINDOW (root);
+  value = call2 (Qresize_root_window_vertically, root, make_number (- delta));
+  if (INTEGERP (value) && resize_window_check (r, 0))
     {
-      if (!NILP (horizontal))
-	/* Calculate the size of the left-hand window, by dividing
-	   the usable space in columns by two.
-	   We round up, since the left-hand window may include
-	   a dividing line, while the right-hand may not.  */
-	size_int = (XFASTINT (o->total_cols) + 1) >> 1;
-      else
-	size_int = XFASTINT (o->total_lines) >> 1;
+      BLOCK_INPUT;
+      resize_window_apply (r, 0);
+
+      /* Grow the mini-window.  */
+      XSETFASTINT (w->top_line, XFASTINT (r->top_line) + XFASTINT (r->total_lines));
+      XSETFASTINT (w->total_lines, XFASTINT (w->total_lines) - XINT (value));
+      XSETFASTINT (w->last_modified, 0);
+      XSETFASTINT (w->last_overlay_modified, 0);
+
+      adjust_glyphs (f);
+      UNBLOCK_INPUT;
     }
-  else
+}
+
+
+/* Shrink mini-window W.  */
+void
+shrink_mini_window (struct window *w)
+{
+  struct frame *f = XFRAME (w->frame);
+  struct window *r;
+  Lisp_Object root, value;
+  EMACS_INT size;
+
+  xassert (MINI_WINDOW_P (w));
+
+  size = XINT (w->total_lines);
+  if (size > 1)
     {
-      CHECK_NUMBER (size);
-      size_int = XINT (size);
-    }
-
-  if (MINI_WINDOW_P (o))
-    error ("Attempt to split minibuffer window");
-  else if (window_fixed_size_p (o, !NILP (horizontal), 0))
-    error ("Attempt to split fixed-size window");
-
-  if (NILP (horizontal))
-    {
-      int window_safe_height = window_min_size_2 (o, 0, 0);
-
-      if (size_int < window_safe_height)
-	error ("Window height %d too small (after splitting)", size_int);
-      if (size_int + window_safe_height > XFASTINT (o->total_lines))
-	error ("Window height %d too small (after splitting)",
-	       (int) (XFASTINT (o->total_lines) - size_int));
-      if (NILP (o->parent)
-	  || NILP (XWINDOW (o->parent)->vchild))
+      root = FRAME_ROOT_WINDOW (f);
+      r = XWINDOW (root);
+      value = call2 (Qresize_root_window_vertically,
+		     root, make_number (size - 1));
+      if (INTEGERP (value) && resize_window_check (r, 0))
 	{
-	  make_dummy_parent (window);
-	  new = o->parent;
-	  XWINDOW (new)->vchild = window;
+	  BLOCK_INPUT;
+	  resize_window_apply (r, 0);
+
+	  /* Shrink the mini-window.  */
+	  XSETFASTINT (w->top_line, XFASTINT (r->top_line) + XFASTINT (r->total_lines));
+	  XSETFASTINT (w->total_lines, 1);
+
+	  XSETFASTINT (w->last_modified, 0);
+	  XSETFASTINT (w->last_overlay_modified, 0);
+
+	  adjust_glyphs (f);
+	  UNBLOCK_INPUT;
 	}
+      /* If the above failed for whatever strange reason we must make a
+	 one window frame here.  The same routine will be needed when
+	 shrinking the frame (and probably when making the initial
+	 *scratch* window).  For the moment leave things as they are.  */
     }
-  else
-    {
-      int window_safe_width = window_min_size_2 (o, 1, 0);
-
-      if (size_int < window_safe_width)
-	error ("Window width %d too small (after splitting)", size_int);
-      if (size_int + window_safe_width > XFASTINT (o->total_cols))
-	error ("Window width %d too small (after splitting)",
-	       (int) (XFASTINT (o->total_cols) - size_int));
-      if (NILP (o->parent)
-	  || NILP (XWINDOW (o->parent)->hchild))
-	{
-	  make_dummy_parent (window);
-	  new = o->parent;
-	  XWINDOW (new)->hchild = window;
-	}
-    }
-
-  /* Now we know that window's parent is a vertical combination
-     if we are dividing vertically, or a horizontal combination
-     if we are making side-by-side windows */
-
-  windows_or_buffers_changed++;
-  FRAME_WINDOW_SIZES_CHANGED (fo) = 1;
-  new = make_window ();
-  p = XWINDOW (new);
-
-  p->frame = o->frame;
-  p->next = o->next;
-  if (!NILP (p->next))
-    XWINDOW (p->next)->prev = new;
-  p->prev = window;
-  o->next = new;
-  p->parent = o->parent;
-  p->buffer = Qt;
-  p->window_end_valid = Qnil;
-  memset (&p->last_cursor, 0, sizeof p->last_cursor);
-
-  /* Duplicate special geometry settings.  */
-
-  p->left_margin_cols = o->left_margin_cols;
-  p->right_margin_cols = o->right_margin_cols;
-  p->left_fringe_width = o->left_fringe_width;
-  p->right_fringe_width = o->right_fringe_width;
-  p->fringes_outside_margins = o->fringes_outside_margins;
-  p->scroll_bar_width = o->scroll_bar_width;
-  p->vertical_scroll_bar_type = o->vertical_scroll_bar_type;
-
-  /* Apportion the available frame space among the two new windows */
-
-  if (!NILP (horizontal))
-    {
-      p->total_lines = o->total_lines;
-      p->top_line = o->top_line;
-      XSETFASTINT (p->total_cols, XFASTINT (o->total_cols) - size_int);
-      XSETFASTINT (o->total_cols, size_int);
-      XSETFASTINT (p->left_col, XFASTINT (o->left_col) + size_int);
-      adjust_window_margins (p);
-      adjust_window_margins (o);
-    }
-  else
-    {
-      p->left_col = o->left_col;
-      p->total_cols = o->total_cols;
-      XSETFASTINT (p->total_lines, XFASTINT (o->total_lines) - size_int);
-      XSETFASTINT (o->total_lines, size_int);
-      XSETFASTINT (p->top_line, XFASTINT (o->top_line) + size_int);
-    }
-
-  /* Adjust glyph matrices.  */
-  adjust_glyphs (fo);
-
-  Fset_window_buffer (new, o->buffer, Qt);
-  return new;
 }
 
 DEFUN ("resize-mini-window-internal", Fresize_mini_window_internal, Sresize_mini_window_internal, 1, 1, 0,
@@ -5342,730 +4290,6 @@ DEFUN ("resize-mini-window-internal", Fresize_mini_window_internal, Sresize_mini
   else error ("Failed to resize minibuffer window");
 }
 
-DEFUN ("enlarge-window", Fenlarge_window, Senlarge_window, 1, 2, "p",
-       doc: /* Make selected window SIZE lines taller.
-Interactively, if no argument is given, make the selected window one
-line taller.  If optional argument HORIZONTAL is non-nil, make selected
-window wider by SIZE columns.  If SIZE is negative, shrink the window by
--SIZE lines or columns.  Return nil.
-
-This function can delete windows if they get too small.  The size of
-fixed size windows is not altered by this function.  */)
-  (Lisp_Object size, Lisp_Object horizontal)
-{
-  CHECK_NUMBER (size);
-  enlarge_window (selected_window, XINT (size), !NILP (horizontal));
-
-  run_window_configuration_change_hook (SELECTED_FRAME ());
-
-  return Qnil;
-}
-
-DEFUN ("shrink-window", Fshrink_window, Sshrink_window, 1, 2, "p",
-       doc: /* Make selected window SIZE lines smaller.
-Interactively, if no argument is given, make the selected window one
-line smaller.  If optional argument HORIZONTAL is non-nil, make the
-window narrower by SIZE columns.  If SIZE is negative, enlarge selected
-window by -SIZE lines or columns.  Return nil.
-
-This function can delete windows if they get too small.  The size of
-fixed size windows is not altered by this function. */)
-  (Lisp_Object size, Lisp_Object horizontal)
-{
-  CHECK_NUMBER (size);
-  enlarge_window (selected_window, -XINT (size), !NILP (horizontal));
-
-  run_window_configuration_change_hook (SELECTED_FRAME ());
-
-  return Qnil;
-}
-
-static int
-window_height (Lisp_Object window)
-{
-  register struct window *p = XWINDOW (window);
-  return WINDOW_TOTAL_LINES (p);
-}
-
-static int
-window_width (Lisp_Object window)
-{
-  register struct window *p = XWINDOW (window);
-  return WINDOW_TOTAL_COLS (p);
-}
-
-
-#define CURBEG(w) \
-  *(horiz_flag ? &(XWINDOW (w)->left_col) : &(XWINDOW (w)->top_line))
-
-#define CURSIZE(w) \
-  *(horiz_flag ? &(XWINDOW (w)->total_cols) : &(XWINDOW (w)->total_lines))
-
-
-/* Enlarge WINDOW by DELTA.  HORIZ_FLAG nonzero means enlarge it
-   horizontally; zero means do it vertically.
-
-   Siblings of the selected window are resized to fulfill the size
-   request.  If they become too small in the process, they may be
-   deleted.  */
-
-static void
-enlarge_window (Lisp_Object window, int delta, int horiz_flag)
-{
-  Lisp_Object parent, next, prev;
-  struct window *p;
-  Lisp_Object *sizep;
-  int maximum;
-  int (*sizefun) (Lisp_Object)
-    = horiz_flag ? window_width : window_height;
-  void (*setsizefun) (Lisp_Object, int, int)
-    = (horiz_flag ? set_window_width : set_window_height);
-
-  /* Give up if this window cannot be resized.  */
-  if (window_fixed_size_p (XWINDOW (window), horiz_flag, 1))
-    error ("Window is not resizable");
-
-  /* Find the parent of the selected window.  */
-  while (1)
-    {
-      p = XWINDOW (window);
-      parent = p->parent;
-
-      if (NILP (parent))
-	{
-	  if (horiz_flag)
-	    error ("No other window to side of this one");
-	  break;
-	}
-
-      if (horiz_flag
-	  ? !NILP (XWINDOW (parent)->hchild)
-	  : !NILP (XWINDOW (parent)->vchild))
-	break;
-
-      window = parent;
-    }
-
-  sizep = &CURSIZE (window);
-
-  {
-    register int maxdelta;
-
-    /* Compute the maximum size increment this window can have.  */
-
-    maxdelta = (!NILP (parent) ? (*sizefun) (parent) - XINT (*sizep)
-		/* This is a main window followed by a minibuffer.  */
-		: !NILP (p->next) ? ((*sizefun) (p->next)
-				     - window_min_size (XWINDOW (p->next),
-							horiz_flag, 0, 0, 0))
-		/* This is a minibuffer following a main window.  */
-		: !NILP (p->prev) ? ((*sizefun) (p->prev)
-				     - window_min_size (XWINDOW (p->prev),
-							horiz_flag, 0, 0, 0))
-		/* This is a frame with only one window, a minibuffer-only
-		   or a minibufferless frame.  */
-		: (delta = 0));
-
-    if (delta > maxdelta)
-      /* This case traps trying to make the minibuffer
-	 the full frame, or make the only window aside from the
-	 minibuffer the full frame.  */
-      delta = maxdelta;
-  }
-
-  if (XINT (*sizep) + delta < window_min_size (XWINDOW (window),
-					       horiz_flag, 0, 0, 0))
-    {
-      delete_window (window);
-      return;
-    }
-
-  if (delta == 0)
-    return;
-
-  /* Find the total we can get from other siblings without deleting them.  */
-  maximum = 0;
-  for (next = p->next; WINDOWP (next); next = XWINDOW (next)->next)
-    maximum += (*sizefun) (next) - window_min_size (XWINDOW (next),
-						    horiz_flag, 0, 0, 0);
-  for (prev = p->prev; WINDOWP (prev); prev = XWINDOW (prev)->prev)
-    maximum += (*sizefun) (prev) - window_min_size (XWINDOW (prev),
-						    horiz_flag, 0, 0, 0);
-
-  /* If we can get it all from them without deleting them, do so.  */
-  if (delta <= maximum)
-    {
-      Lisp_Object first_unaffected;
-      Lisp_Object first_affected;
-      int fixed_p;
-
-      next = p->next;
-      prev = p->prev;
-      first_affected = window;
-      /* Look at one sibling at a time,
-	 moving away from this window in both directions alternately,
-	 and take as much as we can get without deleting that sibling.  */
-      while (delta != 0
-	     && (!NILP (next) || !NILP (prev)))
-	{
-	  if (! NILP (next))
-	    {
-	      int this_one = ((*sizefun) (next)
-			      - window_min_size (XWINDOW (next), horiz_flag,
-						 0, 0, &fixed_p));
-	      if (!fixed_p)
-		{
-		  if (this_one > delta)
-		    this_one = delta;
-
-		  (*setsizefun) (next, (*sizefun) (next) - this_one, 0);
-		  (*setsizefun) (window, XINT (*sizep) + this_one, 0);
-
-		  delta -= this_one;
-		}
-
-	      next = XWINDOW (next)->next;
-	    }
-
-	  if (delta == 0)
-	    break;
-
-	  if (! NILP (prev))
-	    {
-	      int this_one = ((*sizefun) (prev)
-			      - window_min_size (XWINDOW (prev), horiz_flag,
-						 0, 0, &fixed_p));
-	      if (!fixed_p)
-		{
-		  if (this_one > delta)
-		    this_one = delta;
-
-		  first_affected = prev;
-
-		  (*setsizefun) (prev, (*sizefun) (prev) - this_one, 0);
-		  (*setsizefun) (window, XINT (*sizep) + this_one, 0);
-
-		  delta -= this_one;
-		}
-
-	      prev = XWINDOW (prev)->prev;
-	    }
-	}
-
-      xassert (delta == 0);
-
-      /* Now recalculate the edge positions of all the windows affected,
-	 based on the new sizes.  */
-      first_unaffected = next;
-      prev = first_affected;
-      for (next = XWINDOW (prev)->next; ! EQ (next, first_unaffected);
-	   prev = next, next = XWINDOW (next)->next)
-	{
-	  XSETINT (CURBEG (next), XINT (CURBEG (prev)) + (*sizefun) (prev));
-	  /* This does not change size of NEXT,
-	     but it propagates the new top edge to its children */
-	  (*setsizefun) (next, (*sizefun) (next), 0);
-	}
-    }
-  else
-    {
-      register int delta1;
-      register int opht = (*sizefun) (parent);
-
-      if (opht <= XINT (*sizep) + delta)
-	{
-	  /* If trying to grow this window to or beyond size of the parent,
-	     just delete all the sibling windows.  */
-	  Lisp_Object start, tem;
-
-	  start = XWINDOW (parent)->vchild;
-	  if (NILP (start))
-	    start = XWINDOW (parent)->hchild;
-
-	  /* Delete any siblings that come after WINDOW.  */
-	  tem = XWINDOW (window)->next;
-	  while (! NILP (tem))
-	    {
-	      Lisp_Object next1 = XWINDOW (tem)->next;
-	      delete_window (tem);
-	      tem = next1;
-	    }
-
-	  /* Delete any siblings that come after WINDOW.
-	     Note that if START is not WINDOW, then WINDOW still
-	     has siblings, so WINDOW has not yet replaced its parent.  */
-	  tem = start;
-	  while (! EQ (tem, window))
-	    {
-	      Lisp_Object next1 = XWINDOW (tem)->next;
-	      delete_window (tem);
-	      tem = next1;
-	    }
-	}
-      else
-	{
-	  /* Otherwise, make delta1 just right so that if we add
-	     delta1 lines to this window and to the parent, and then
-	     shrink the parent back to its original size, the new
-	     proportional size of this window will increase by delta.
-
-	     The function size_window will compute the new height h'
-	     of the window from delta1 as:
-
-	     e = delta1/n
-	     x = delta1 - delta1/n * n for the 1st resizable child
-	     h' = h + e + x
-
-	     where n is the number of children that can be resized.
-	     We can ignore x by choosing a delta1 that is a multiple of
-	     n.  We want the height of this window to come out as
-
-	     h' = h + delta
-
-	     So, delta1 must be
-
-	     h + e = h + delta
-	     delta1/n = delta
-	     delta1 = n * delta.
-
-	     The number of children n equals the number of resizable
-	     children of this window + 1 because we know window itself
-	     is resizable (otherwise we would have signaled an error).
-
-	     This reasoning is not correct when other windows become too
-	     small and shrink_windows refuses to delete them.  Below we
-	     use resize_proportionally to work around this problem.  */
-
-	  struct window *w = XWINDOW (window);
-	  Lisp_Object s;
-	  int n = 1;
-
-	  for (s = w->next; WINDOWP (s); s = XWINDOW (s)->next)
-	    if (!window_fixed_size_p (XWINDOW (s), horiz_flag, 0))
-	      ++n;
-	  for (s = w->prev; WINDOWP (s); s = XWINDOW (s)->prev)
-	    if (!window_fixed_size_p (XWINDOW (s), horiz_flag, 0))
-	      ++n;
-
-	  delta1 = n * delta;
-
-	  /* Add delta1 lines or columns to this window, and to the parent,
-	     keeping things consistent while not affecting siblings.  */
-	  XSETINT (CURSIZE (parent), opht + delta1);
-	  (*setsizefun) (window, XINT (*sizep) + delta1, 0);
-
-	  /* Squeeze out delta1 lines or columns from our parent,
-	     shrinking this window and siblings proportionately.  This
-	     brings parent back to correct size.  Delta1 was calculated
-	     so this makes this window the desired size, taking it all
-	     out of the siblings.
-
-	     Temporarily set resize_proportionally to Qt to assure that,
-	     if necessary, shrink_windows deletes smaller windows rather
-	     than shrink this window.  */
-	  w->resize_proportionally = Qt;
-	  (*setsizefun) (parent, opht, 0);
-	  w->resize_proportionally = Qnil;
-	}
-    }
-
-  XSETFASTINT (p->last_modified, 0);
-  XSETFASTINT (p->last_overlay_modified, 0);
-
-  /* Adjust glyph matrices. */
-  adjust_glyphs (XFRAME (WINDOW_FRAME (XWINDOW (window))));
-}
-
-
-/* Adjust the size of WINDOW by DELTA, moving only its trailing edge.
-   HORIZ_FLAG nonzero means adjust the width, moving the right edge.
-   zero means adjust the height, moving the bottom edge.
-
-   Following siblings of the selected window are resized to fulfill
-   the size request.  If they become too small in the process, they
-   are not deleted; instead, we signal an error.  */
-
-static void
-adjust_window_trailing_edge (Lisp_Object window, int delta, int horiz_flag)
-{
-  Lisp_Object parent, child;
-  struct window *p;
-  Lisp_Object old_config = Fcurrent_window_configuration (Qnil);
-  int delcount = window_deletion_count;
-
-  CHECK_WINDOW (window);
-
-  /* Give up if this window cannot be resized.  */
-  if (window_fixed_size_p (XWINDOW (window), horiz_flag, 1))
-    error ("Window is not resizable");
-
-  while (1)
-    {
-      Lisp_Object first_parallel = Qnil;
-
-      if (NILP (window))
-	{
-	  /* This happens if WINDOW on the previous iteration was
-	     at top level of the window tree.  */
-	  Fset_window_configuration (old_config);
-	  error ("Specified window edge is fixed");
-	}
-
-      p = XWINDOW (window);
-      parent = p->parent;
-
-      /* See if this level has windows in parallel in the specified
-	 direction.  If so, set FIRST_PARALLEL to the first one.  */
-      if (horiz_flag)
-	{
-	  if (! NILP (parent) && !NILP (XWINDOW (parent)->vchild))
-	    first_parallel = XWINDOW (parent)->vchild;
-	  else if (NILP (parent) && !NILP (p->next))
-	    {
-	      /* Handle the vertical chain of main window and minibuffer
-		 which has no parent.  */
-	      first_parallel = window;
-	      while (! NILP (XWINDOW (first_parallel)->prev))
-		first_parallel = XWINDOW (first_parallel)->prev;
-	    }
-	}
-      else
-	{
-	  if (! NILP (parent) && !NILP (XWINDOW (parent)->hchild))
-	    first_parallel = XWINDOW (parent)->hchild;
-	}
-
-      /* If this level's succession is in the desired dimension,
-	 and this window is the last one, and there is no higher level,
-	 its trailing edge is fixed.  */
-      if (NILP (XWINDOW (window)->next) && NILP (first_parallel)
-	  && NILP (parent))
-	{
-	  Fset_window_configuration (old_config);
-	  error ("Specified window edge is fixed");
-	}
-
-      /* Don't make this window too small.  */
-      if (XINT (CURSIZE (window)) + delta
-	  < window_min_size_2 (XWINDOW (window), horiz_flag, 0))
-	{
-	  Fset_window_configuration (old_config);
-	  error ("Cannot adjust window size as specified");
-	}
-
-      /* Clear out some redisplay caches.  */
-      XSETFASTINT (p->last_modified, 0);
-      XSETFASTINT (p->last_overlay_modified, 0);
-
-      /* Adjust this window's edge.  */
-      XSETINT (CURSIZE (window),
-	       XINT (CURSIZE (window)) + delta);
-
-      /* If this window has following siblings in the desired dimension,
-	 make them smaller, and exit the loop.
-
-	 (If we reach the top of the tree and can never do this,
-	 we will fail and report an error, above.)  */
-      if (NILP (first_parallel))
-	{
-	  if (!NILP (p->next))
-	    {
-              /* This may happen for the minibuffer.  In that case
-                 the window_deletion_count check below does not work.  */
-              if (XINT (CURSIZE (p->next)) - delta <= 0)
-                {
-                  Fset_window_configuration (old_config);
-                  error ("Cannot adjust window size as specified");
-                }
-
-	      XSETINT (CURBEG (p->next),
-		       XINT (CURBEG (p->next)) + delta);
-	      size_window (p->next, XINT (CURSIZE (p->next)) - delta,
-			   horiz_flag, 0, 1, 0);
-	      break;
-	    }
-	}
-      else
-	/* Here we have a chain of parallel siblings, in the other dimension.
-	   Change the size of the other siblings.  */
-	for (child = first_parallel;
-	     ! NILP (child);
-	     child = XWINDOW (child)->next)
-	  if (! EQ (child, window))
-	    size_window (child, XINT (CURSIZE (child)) + delta,
-			 horiz_flag, 0, 0, 1);
-
-      window = parent;
-    }
-
-  /* If we made a window so small it got deleted,
-     we failed.  Report failure.  */
-  if (delcount != window_deletion_count)
-    {
-      Fset_window_configuration (old_config);
-      error ("Cannot adjust window size as specified");
-    }
-
-  /* Adjust glyph matrices. */
-  adjust_glyphs (XFRAME (WINDOW_FRAME (XWINDOW (window))));
-}
-
-#undef CURBEG
-#undef CURSIZE
-
-DEFUN ("adjust-window-trailing-edge", Fadjust_window_trailing_edge,
-       Sadjust_window_trailing_edge, 3, 3, 0,
-       doc: /* Adjust the bottom or right edge of WINDOW by DELTA.
-If HORIZONTAL is non-nil, that means adjust the width, moving the right edge.
-Otherwise, adjust the height, moving the bottom edge.
-
-Following siblings of the selected window are resized to fulfill
-the size request.  If they become too small in the process, they
-are not deleted; instead, we signal an error.  */)
-  (Lisp_Object window, Lisp_Object delta, Lisp_Object horizontal)
-{
-  CHECK_NUMBER (delta);
-  if (NILP (window))
-    window = selected_window;
-  adjust_window_trailing_edge (window, XINT (delta), !NILP (horizontal));
-
-  run_window_configuration_change_hook
-    (XFRAME (WINDOW_FRAME (XWINDOW (window))));
-
-  return Qnil;
-}
-
-
-
-/***********************************************************************
-			Resizing Mini-Windows
- ***********************************************************************/
-
-static void shrink_window_lowest_first (struct window *, int);
-
-enum save_restore_action
-{
-    CHECK_ORIG_SIZES,
-    SAVE_ORIG_SIZES,
-    RESTORE_ORIG_SIZES
-};
-
-static int save_restore_orig_size (struct window *,
-                                   enum save_restore_action);
-
-/* Shrink windows rooted in window W to HEIGHT.  Take the space needed
-   from lowest windows first.  */
-
-static void
-shrink_window_lowest_first (struct window *w, int height)
-{
-  struct window *c;
-  Lisp_Object child;
-  int old_height;
-
-  xassert (!MINI_WINDOW_P (w));
-
-  /* Set redisplay hints.  */
-  XSETFASTINT (w->last_modified, 0);
-  XSETFASTINT (w->last_overlay_modified, 0);
-  windows_or_buffers_changed++;
-  FRAME_WINDOW_SIZES_CHANGED (XFRAME (WINDOW_FRAME (w))) = 1;
-
-  old_height = XFASTINT (w->total_lines);
-  XSETFASTINT (w->total_lines, height);
-
-  if (!NILP (w->hchild))
-    {
-      for (child = w->hchild; !NILP (child); child = c->next)
-	{
-	  c = XWINDOW (child);
-	  c->top_line = w->top_line;
-	  shrink_window_lowest_first (c, height);
-	}
-    }
-  else if (!NILP (w->vchild))
-    {
-      Lisp_Object last_child;
-      int delta = old_height - height;
-      int last_top;
-
-      last_child = Qnil;
-
-      /* Find the last child.  We are taking space from lowest windows
-	 first, so we iterate over children from the last child
-	 backwards.  */
-      for (child = w->vchild; WINDOWP (child); child = XWINDOW (child)->next)
-	last_child = child;
-
-      /* Size children down to their safe heights.  */
-      for (child = last_child; delta && !NILP (child); child = c->prev)
-	{
-	  int this_one;
-
-	  c = XWINDOW (child);
-	  this_one = XFASTINT (c->total_lines) - window_min_size_1 (c, 0, 1);
-
-	  if (this_one > delta)
-	    this_one = delta;
-
-	  shrink_window_lowest_first (c, XFASTINT (c->total_lines) - this_one);
-	  delta -= this_one;
-	}
-
-      /* Compute new positions.  */
-      last_top = XINT (w->top_line);
-      for (child = w->vchild; !NILP (child); child = c->next)
-	{
-	  c = XWINDOW (child);
-	  c->top_line = make_number (last_top);
-	  shrink_window_lowest_first (c, XFASTINT (c->total_lines));
-	  last_top += XFASTINT (c->total_lines);
-	}
-    }
-}
-
-
-/* Save, restore, or check positions and sizes in the window tree
-   rooted at W.  ACTION says what to do.
-
-   If ACTION is CHECK_ORIG_SIZES, check if orig_top_line and
-   orig_total_lines members are valid for all windows in the window
-   tree.  Value is non-zero if they are valid.
-
-   If ACTION is SAVE_ORIG_SIZES, save members top and height in
-   orig_top_line and orig_total_lines for all windows in the tree.
-
-   If ACTION is RESTORE_ORIG_SIZES, restore top and height from values
-   stored in orig_top_line and orig_total_lines for all windows.  */
-
-static int
-save_restore_orig_size (struct window *w, enum save_restore_action action)
-{
-  int success_p = 1;
-
-  while (w)
-    {
-      if (!NILP (w->hchild))
-	{
-	  if (!save_restore_orig_size (XWINDOW (w->hchild), action))
-	    success_p = 0;
-	}
-      else if (!NILP (w->vchild))
-	{
-	  if (!save_restore_orig_size (XWINDOW (w->vchild), action))
-	    success_p = 0;
-	}
-
-      switch (action)
-	{
-	case CHECK_ORIG_SIZES:
-	  if (!INTEGERP (w->orig_top_line) || !INTEGERP (w->orig_total_lines))
-	    return 0;
-	  break;
-
-	case SAVE_ORIG_SIZES:
-	  w->orig_top_line = w->top_line;
-	  w->orig_total_lines = w->total_lines;
-          XSETFASTINT (w->last_modified, 0);
-          XSETFASTINT (w->last_overlay_modified, 0);
-	  break;
-
-	case RESTORE_ORIG_SIZES:
-	  xassert (INTEGERP (w->orig_top_line) && INTEGERP (w->orig_total_lines));
-	  w->top_line = w->orig_top_line;
-	  w->total_lines = w->orig_total_lines;
-	  w->orig_total_lines = w->orig_top_line = Qnil;
-          XSETFASTINT (w->last_modified, 0);
-          XSETFASTINT (w->last_overlay_modified, 0);
-	  break;
-
-	default:
-	  abort ();
-	}
-
-      w = NILP (w->next) ? NULL : XWINDOW (w->next);
-    }
-
-  return success_p;
-}
-
-
-/* Grow mini-window W by DELTA lines, DELTA >= 0, or as much as we can
-   without deleting other windows.  */
-
-void
-grow_mini_window (struct window *w, int delta)
-{
-  struct frame *f = XFRAME (w->frame);
-  struct window *root;
-
-  xassert (MINI_WINDOW_P (w));
-  /* Commenting out the following assertion goes against the stated interface
-     of the function, but it currently does not seem to do anything useful.
-     See discussion of this issue in the thread for bug#4534.
-     xassert (delta >= 0); */
-
-  /* Compute how much we can enlarge the mini-window without deleting
-     other windows.  */
-  root = XWINDOW (FRAME_ROOT_WINDOW (f));
-  if (delta > 0)
-    {
-      int min_height = window_min_size (root, 0, 0, 0, 0);
-      if (XFASTINT (root->total_lines) - delta < min_height)
-	/* Note that the root window may already be smaller than
-	   min_height.  */
-	delta = max (0, XFASTINT (root->total_lines) - min_height);
-    }
-
-  if (delta)
-    {
-      /* Save original window sizes and positions, if not already done.  */
-      if (!save_restore_orig_size (root, CHECK_ORIG_SIZES))
-	save_restore_orig_size (root, SAVE_ORIG_SIZES);
-
-      /* Shrink other windows.  */
-      shrink_window_lowest_first (root, XFASTINT (root->total_lines) - delta);
-
-      /* Grow the mini-window.  */
-      w->top_line = make_number (XFASTINT (root->top_line) + XFASTINT (root->total_lines));
-      w->total_lines = make_number (XFASTINT (w->total_lines) + delta);
-      XSETFASTINT (w->last_modified, 0);
-      XSETFASTINT (w->last_overlay_modified, 0);
-
-      adjust_glyphs (f);
-    }
-}
-
-
-/* Shrink mini-window W.  If there is recorded info about window sizes
-   before a call to grow_mini_window, restore recorded window sizes.
-   Otherwise, if the mini-window is higher than 1 line, resize it to 1
-   line.  */
-
-void
-shrink_mini_window (struct window *w)
-{
-  struct frame *f = XFRAME (w->frame);
-  struct window *root = XWINDOW (FRAME_ROOT_WINDOW (f));
-
-  if (save_restore_orig_size (root, CHECK_ORIG_SIZES))
-    {
-      save_restore_orig_size (root, RESTORE_ORIG_SIZES);
-      adjust_glyphs (f);
-      FRAME_WINDOW_SIZES_CHANGED (f) = 1;
-      windows_or_buffers_changed = 1;
-    }
-  else if (XFASTINT (w->total_lines) > 1)
-    {
-      /* Distribute the additional lines of the mini-window
-	 among the other windows.  */
-      Lisp_Object window;
-      XSETWINDOW (window, w);
-      enlarge_window (window, 1 - XFASTINT (w->total_lines), 0);
-    }
-}
-
-
 
 /* Mark window cursors off for all windows in the window tree rooted
    at W by setting their phys_cursor_on_p flag to zero.  Called from
@@ -7252,11 +5476,9 @@ struct saved_window
   Lisp_Object parent, prev;
   Lisp_Object start_at_line_beg;
   Lisp_Object display_table;
-  Lisp_Object orig_top_line, orig_total_lines;
   Lisp_Object left_margin_cols, right_margin_cols;
   Lisp_Object left_fringe_width, right_fringe_width, fringes_outside_margins;
-  Lisp_Object scroll_bar_width, vertical_scroll_bar_type;
-  Lisp_Object dedicated, resize_proportionally;
+  Lisp_Object scroll_bar_width, vertical_scroll_bar_type, dedicated;
   Lisp_Object splits, nest, window_parameters;
 };
 
@@ -7476,8 +5698,6 @@ the return value is nil.  Otherwise the value is t.  */)
 	  w->hscroll = p->hscroll;
 	  w->min_hscroll = p->min_hscroll;
 	  w->display_table = p->display_table;
-	  w->orig_top_line = p->orig_top_line;
-	  w->orig_total_lines = p->orig_total_lines;
 	  w->left_margin_cols = p->left_margin_cols;
 	  w->right_margin_cols = p->right_margin_cols;
 	  w->left_fringe_width = p->left_fringe_width;
@@ -7489,7 +5709,6 @@ the return value is nil.  Otherwise the value is t.  */)
 	  w->splits = p->splits;
 	  w->nest = p->nest;
 	  w->window_parameters = p->window_parameters;
-	  w->resize_proportionally = p->resize_proportionally;
 	  XSETFASTINT (w->last_modified, 0);
 	  XSETFASTINT (w->last_overlay_modified, 0);
 
@@ -7618,6 +5837,7 @@ the return value is nil.  Otherwise the value is t.  */)
   return (FRAME_LIVE_P (f) ? Qt : Qnil);
 }
 
+
 /* Delete all subwindows reachable via the next, vchild, and hchild
    slots of WINDOW.  */
 void
@@ -7670,7 +5890,6 @@ count_windows (register struct window *window)
 
 /* Fill vector FLAT with leaf windows under W, starting at index I.
    Value is last index + 1.  */
-
 static int
 get_leaf_windows (struct window *w, struct window **flat, int i)
 {
@@ -7693,7 +5912,6 @@ get_leaf_windows (struct window *w, struct window **flat, int i)
 /* Return a pointer to the glyph W's physical cursor is on.  Value is
    null if W's current matrix is invalid, so that no meaningfull glyph
    can be returned.  */
-
 struct glyph *
 get_phys_cursor_glyph (struct window *w)
 {
@@ -7738,8 +5956,6 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
       p->hscroll = w->hscroll;
       p->min_hscroll = w->min_hscroll;
       p->display_table = w->display_table;
-      p->orig_top_line = w->orig_top_line;
-      p->orig_total_lines = w->orig_total_lines;
       p->left_margin_cols = w->left_margin_cols;
       p->right_margin_cols = w->right_margin_cols;
       p->left_fringe_width = w->left_fringe_width;
@@ -7750,7 +5966,6 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
       p->dedicated = w->dedicated;
       p->splits = w->splits;
       p->nest = w->nest;
-      p->resize_proportionally = w->resize_proportionally;
       p->window_parameters = w->window_parameters;
       if (!NILP (w->buffer))
 	{
@@ -8444,10 +6659,6 @@ syms_of_window (void)
   Fput (Qscroll_up, Qscroll_command, Qt);
   Fput (Qscroll_down, Qscroll_command, Qt);
 
-  Qwindow_size_fixed = intern_c_string ("window-size-fixed");
-  staticpro (&Qwindow_size_fixed);
-  Fset (Qwindow_size_fixed, Qnil);
-
   staticpro (&Qwindow_configuration_change_hook);
   Qwindow_configuration_change_hook
     = intern_c_string ("window-configuration-change-hook");
@@ -8539,24 +6750,6 @@ is displayed in the `mode-line' face.  */);
   DEFVAR_INT ("next-screen-context-lines", next_screen_context_lines,
 	      doc: /* *Number of lines of continuity when scrolling by screenfuls.  */);
   next_screen_context_lines = 2;
-
-  DEFVAR_INT ("window-min-height", window_min_height,
-	      doc: /* Allow deleting windows less than this tall.
-The value is measured in line units.  If a window wants a modeline it
-is counted as one line.
-
-Emacs honors settings of this variable when enlarging or shrinking
-windows vertically.  A value less than 1 is invalid.  */);
-  window_min_height = 4;
-
-  DEFVAR_INT ("window-min-width", window_min_width,
-	      doc: /* Allow deleting windows less than this wide.
-The value is measured in characters and includes any fringes or
-the scrollbar.
-
-Emacs honors settings of this variable when enlarging or shrinking
-windows horizontally.  A value less than 2 is invalid.  */);
-  window_min_width = 10;
 
   DEFVAR_LISP ("scroll-preserve-screen-position",
 	       Vscroll_preserve_screen_position,
@@ -8684,10 +6877,8 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Sprevious_window);
   defsubr (&Sother_window);
   defsubr (&Sget_buffer_window);
-  defsubr (&Sdelete_other_windows);
   defsubr (&Sdelete_windows_on);
   defsubr (&Sreplace_buffer_in_windows);
-  defsubr (&Sdelete_window);
   defsubr (&Sdelete_other_windows_internal);
   defsubr (&Sdelete_window_internal);
   defsubr (&Sresize_mini_window_internal);
@@ -8697,11 +6888,7 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Sselect_window);
   defsubr (&Sforce_window_update);
   defsubr (&Stemp_output_buffer_show);
-  defsubr (&Ssplit_window);
   defsubr (&Ssplit_window_internal);
-  defsubr (&Senlarge_window);
-  defsubr (&Sshrink_window);
-  defsubr (&Sadjust_window_trailing_edge);
   defsubr (&Sscroll_up);
   defsubr (&Sscroll_down);
   defsubr (&Sscroll_left);
@@ -8740,11 +6927,7 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
 void
 keys_of_window (void)
 {
-  initial_define_key (control_x_map, '1', "delete-other-windows");
-  initial_define_key (control_x_map, '2', "split-window");
-  initial_define_key (control_x_map, '0', "delete-window");
   initial_define_key (control_x_map, 'o', "other-window");
-  initial_define_key (control_x_map, '^', "enlarge-window");
   initial_define_key (control_x_map, '<', "scroll-left");
   initial_define_key (control_x_map, '>', "scroll-right");
 

@@ -1938,6 +1938,8 @@ DEFUN ("barf-if-buffer-read-only", Fbarf_if_buffer_read_only,
   return Qnil;
 }
 
+extern Lisp_Object Qdelete_window;
+
 DEFUN ("bury-buffer", Fbury_buffer, Sbury_buffer, 0, 1, "",
        doc: /* Put BUFFER-OR-NAME at the end of the list of all buffers.
 There it is the least likely candidate for `other-buffer' to return;
@@ -1969,7 +1971,7 @@ its frame, iconify that frame.  */)
 	  else if (NILP (XWINDOW (selected_window)->parent))
 	    Ficonify_frame (Fwindow_frame (selected_window));
 	  else
-	    Fdelete_window (selected_window);
+	    call1 (Qdelete_window, selected_window);
 	}
     }
   else

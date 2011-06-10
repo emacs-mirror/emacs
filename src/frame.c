@@ -135,11 +135,6 @@ set_menu_bar_lines_1 (Lisp_Object window, int n)
   XSETFASTINT (w->top_line, XFASTINT (w->top_line) + n);
   XSETFASTINT (w->total_lines, XFASTINT (w->total_lines) - n);
 
-  if (INTEGERP (w->orig_top_line))
-    XSETFASTINT (w->orig_top_line, XFASTINT (w->orig_top_line) + n);
-  if (INTEGERP (w->orig_total_lines))
-    XSETFASTINT (w->orig_total_lines, XFASTINT (w->orig_total_lines) - n);
-
   /* Handle just the top child in a vertical split.  */
   if (!NILP (w->vchild))
     set_menu_bar_lines_1 (w->vchild, n);
