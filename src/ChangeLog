@@ -1,5 +1,14 @@
 2011-06-10  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* image.c: Fix minor problems reported by GCC 4.6.0.
+	(gif_load, svg_load_image): Rename locals to avoid shadowing.
+	(imagemagick_load_image): Fix pointer signedness problem by changing
+	last arg from unsigned char * to char *.  All uses changed.
+	Also, fix a local for similar reasons.
+	Remove unused locals.  Remove locals to avoid shadowing.
+	(fn_rsvg_handle_free): Remove; unused.
+	(svg_load, svg_load_image): Fix pointer signedness problem.
+
 	* ftfont.c (ftfont_get_metrics, ftfont_drive_otf): Remove unused locals.
 
 2011-06-10  Chong Yidong  <cyd@stupidchicken.com>

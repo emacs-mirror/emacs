@@ -7146,12 +7146,12 @@ gif_load (struct frame *f, struct image *img)
 
   /* Which sub-image are we to display?  */
   {
-    Lisp_Object index = image_spec_value (img->spec, QCindex, NULL);
-    idx = INTEGERP (index) ? XFASTINT (index) : 0;
+    Lisp_Object image_number = image_spec_value (img->spec, QCindex, NULL);
+    idx = INTEGERP (image_number) ? XFASTINT (image_number) : 0;
     if (idx < 0 || idx >= gif->ImageCount)
       {
 	image_error ("Invalid image number `%s' in image `%s'",
-		     index, img->spec);
+		     image_number, img->spec);
 	fn_DGifCloseFile (gif);
 	return 0;
       }
@@ -7471,7 +7471,7 @@ imagemagick_image_p (Lisp_Object object)
 static int
 imagemagick_load_image (struct frame *f, struct image *img,
 			unsigned char *contents, unsigned int size,
-			unsigned char *filename)
+			char *filename)
 {
   unsigned long width;
   unsigned long height;
@@ -7479,8 +7479,6 @@ imagemagick_load_image (struct frame *f, struct image *img,
   MagickBooleanType status;
 
   XImagePtr ximg;
-  Lisp_Object specified_bg;
-  XColor background;
   int x;
   int y;
 
@@ -7491,7 +7489,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
   MagickPixelPacket  pixel;
   Lisp_Object image;
   Lisp_Object value;
-  Lisp_Object crop, geometry;
+  Lisp_Object crop;
   long ino;
   int desired_width, desired_height;
   double rotation;
@@ -7609,7 +7607,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
          than the alternatives, but it still reads the entire image into memory
          before croping, which is aparently difficult to avoid when using
          imagemagick.  */
-      int w, h, x, y;
+      int w, h;
       w = XFASTINT (XCAR (crop));
       crop = XCDR (crop);
       if (CONSP (crop) && INTEGERP (XCAR (crop)))
@@ -7723,7 +7721,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
          method is also well tested. Some aspects of this method are
          ad-hoc and needs to be more researched. */
       int imagedepth = 24;/*MagickGetImageDepth(image_wand);*/
-      char* exportdepth = imagedepth <= 8 ? "I" : "BGRP";/*"RGBP";*/
+      const char *exportdepth = imagedepth <= 8 ? "I" : "BGRP";/*"RGBP";*/
       /* Try to create a x pixmap to hold the imagemagick pixmap.  */
       if (!x_create_x_image_and_pixmap (f, width, height, imagedepth,
                                         &ximg, &img->pixmap))
@@ -7825,7 +7823,7 @@ imagemagick_load (struct frame *f, struct image *img)
 	  image_error ("Cannot find image file `%s'", file_name, Qnil);
 	  return 0;
 	}
-      success_p = imagemagick_load_image (f, img, 0, 0, SDATA (file));
+      success_p = imagemagick_load_image (f, img, 0, 0, SSDATA (file));
     }
   /* Else its not a file, its a lisp object.  Load the image from a
      lisp object rather than a file.  */
@@ -7973,7 +7971,6 @@ DEF_IMGLIB_FN (void, rsvg_handle_get_dimensions);
 DEF_IMGLIB_FN (gboolean, rsvg_handle_write);
 DEF_IMGLIB_FN (gboolean, rsvg_handle_close);
 DEF_IMGLIB_FN (GdkPixbuf *, rsvg_handle_get_pixbuf);
-DEF_IMGLIB_FN (void, rsvg_handle_free);
 
 DEF_IMGLIB_FN (int, gdk_pixbuf_get_width);
 DEF_IMGLIB_FN (int, gdk_pixbuf_get_height);
@@ -8006,7 +8003,6 @@ init_svg_functions (Lisp_Object libraries)
   LOAD_IMGLIB_FN (library, rsvg_handle_write);
   LOAD_IMGLIB_FN (library, rsvg_handle_close);
   LOAD_IMGLIB_FN (library, rsvg_handle_get_pixbuf);
-  LOAD_IMGLIB_FN (library, rsvg_handle_free);
 
   LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_width);
   LOAD_IMGLIB_FN (gdklib, gdk_pixbuf_get_height);
@@ -8032,7 +8028,6 @@ init_svg_functions (Lisp_Object libraries)
 #define fn_rsvg_handle_write		rsvg_handle_write
 #define fn_rsvg_handle_close		rsvg_handle_close
 #define fn_rsvg_handle_get_pixbuf	rsvg_handle_get_pixbuf
-#define fn_rsvg_handle_free		rsvg_handle_free
 
 #define fn_gdk_pixbuf_get_width		  gdk_pixbuf_get_width
 #define fn_gdk_pixbuf_get_height	  gdk_pixbuf_get_height
@@ -8074,7 +8069,7 @@ svg_load (struct frame *f, struct image *img)
 	}
 
       /* Read the entire file into memory.  */
-      contents = slurp_file (SDATA (file), &size);
+      contents = slurp_file (SSDATA (file), &size);
       if (contents == NULL)
 	{
 	  image_error ("Error loading SVG image `%s'", img->spec, Qnil);
@@ -8117,7 +8112,7 @@ svg_load_image (struct frame *f,         /* Pointer to emacs frame structure.  *
 {
   RsvgHandle *rsvg_handle;
   RsvgDimensionData dimension_data;
-  GError *error = NULL;
+  GError *err = NULL;
   GdkPixbuf *pixbuf;
   int width;
   int height;
@@ -8136,13 +8131,13 @@ svg_load_image (struct frame *f,         /* Pointer to emacs frame structure.  *
   rsvg_handle = fn_rsvg_handle_new ();
 
   /* Parse the contents argument and fill in the rsvg_handle.  */
-  fn_rsvg_handle_write (rsvg_handle, contents, size, &error);
-  if (error) goto rsvg_error;
+  fn_rsvg_handle_write (rsvg_handle, contents, size, &err);
+  if (err) goto rsvg_error;
 
   /* The parsing is complete, rsvg_handle is ready to used, close it
      for further writes.  */
-  fn_rsvg_handle_close (rsvg_handle, &error);
-  if (error) goto rsvg_error;
+  fn_rsvg_handle_close (rsvg_handle, &err);
+  if (err) goto rsvg_error;
 
   fn_rsvg_handle_get_dimensions (rsvg_handle, &dimension_data);
   if (! check_image_size (f, dimension_data.width, dimension_data.height))
@@ -8182,7 +8177,7 @@ svg_load_image (struct frame *f,         /* Pointer to emacs frame structure.  *
      color.  */
   specified_bg = image_spec_value (img->spec, QCbackground, NULL);
   if (!STRINGP (specified_bg)
-      || !x_defined_color (f, SDATA (specified_bg), &background, 0))
+      || !x_defined_color (f, SSDATA (specified_bg), &background, 0))
     {
 #ifndef HAVE_NS
       background.pixel = FRAME_BACKGROUND_PIXEL (f);
@@ -8257,7 +8252,7 @@ svg_load_image (struct frame *f,         /* Pointer to emacs frame structure.  *
   /* FIXME: Use error->message so the user knows what is the actual
      problem with the image.  */
   image_error ("Error parsing SVG image `%s'", img->spec, Qnil);
-  fn_g_error_free (error);
+  fn_g_error_free (err);
   return 0;
 }
 
