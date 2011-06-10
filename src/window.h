@@ -261,12 +261,6 @@ struct window
     /* If redisplay in this window goes beyond this buffer position,
        must run the redisplay-end-trigger-hook.  */
     Lisp_Object redisplay_end_trigger;
-    /* Non-nil means resizing windows will attempt to resize this window
-       proportionally.  */
-    Lisp_Object resize_proportionally;
-
-    /* Original window height and top before mini-window was enlarged. */
-    Lisp_Object orig_total_lines, orig_top_line;
 
     /* Non-nil means deleting or resizing this window distributes
        space among all windows in the same combination.  */
@@ -833,9 +827,6 @@ extern Lisp_Object make_window (void);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,
                                             enum window_part *, int);
 EXFUN (Fwindow_dedicated_p, 1);
-extern void set_window_height (Lisp_Object, int, int);
-extern void set_window_width (Lisp_Object, int, int);
-extern void change_window_heights (Lisp_Object, int);
 extern void delete_all_subwindows (Lisp_Object);
 extern void freeze_window_starts (struct frame *, int);
 extern void grow_mini_window (struct window *, int);
@@ -918,7 +909,6 @@ EXFUN (Fselected_window, 0);
 EXFUN (Fframe_root_window, 1);
 EXFUN (Fframe_first_window, 1);
 EXFUN (Fset_frame_selected_window, 3);
-EXFUN (Fdelete_window, 1);
 EXFUN (Fset_window_configuration, 1);
 EXFUN (Fcurrent_window_configuration, 1);
 extern int compare_window_configurations (Lisp_Object, Lisp_Object, int);
@@ -938,7 +928,6 @@ extern int resize_window_check (struct window *, int);
 extern Lisp_Object delete_deletable_window (Lisp_Object);
 extern Lisp_Object resize_root_window (Lisp_Object, Lisp_Object, Lisp_Object,
 				       Lisp_Object);
-extern void resize_frame_windows (struct frame *, int, int);
 
 
 #endif /* not WINDOW_H_INCLUDED */

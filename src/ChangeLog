@@ -1,3 +1,11 @@
+2011-06-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h (resize_proportionally, orig_total_lines)
+	(orig_top_line): Remove from window structure.
+	(set_window_height, set_window_width, change_window_heights)
+	(Fdelete_window): Remove prototypes.
+	(resize_frame_windows): Remove duplicate declaration.
+
 2011-06-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* window.h (resize_frame_windows, resize_window_check)
