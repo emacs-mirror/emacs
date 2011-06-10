@@ -1,3 +1,13 @@
+2011-06-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* movemail.c: Fix race condition and related bugs (Bug#8836).
+	(main) [!MAIL_USE_SYSTEM_LOCK]: Prefer mkstemp to mktemp, as this
+	fixes some race conditions.  Report mkstemp/mktemp errno rather
+	than a possibly-garbage errno.  Reinitialize the template each
+	time through the loop, as earlier mkstemp/mktemp calls could have
+	trashed it.  Pass 0600 (not 0666) to mktemp, for consistency
+	with mkstemp; the permissions don't matter anyway.
+
 2011-06-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacsclient.c (socket_status): Use constant pointer.

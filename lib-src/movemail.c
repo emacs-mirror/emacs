@@ -168,8 +168,9 @@ main (int argc, char **argv)
 #ifndef MAIL_USE_SYSTEM_LOCK
   struct stat st;
   int tem;
-  char *lockname, *p;
+  char *lockname;
   char *tempname;
+  size_t inname_dirlen;
   int desc;
 #endif /* not MAIL_USE_SYSTEM_LOCK */
 
@@ -298,26 +299,38 @@ main (int argc, char **argv)
 	 to bug-gnu-emacs@prep.ai.mit.edu so we can fix it.  */
 
       lockname = concat (inname, ".lock", "");
-      tempname = (char *) xmalloc (strlen (inname) + strlen ("EXXXXXX") + 1);
-      strcpy (tempname, inname);
-      p = tempname + strlen (tempname);
-      while (p != tempname && !IS_DIRECTORY_SEP (p[-1]))
-	p--;
-      *p = 0;
-      strcpy (p, "EXXXXXX");
-      mktemp (tempname);
-      unlink (tempname);
+      for (inname_dirlen = strlen (inname);
+	   inname_dirlen && !IS_DIRECTORY_SEP (inname[inname_dirlen - 1]);
+	   inname_dirlen--)
+	continue;
+      tempname = (char *) xmalloc (inname_dirlen + sizeof "EXXXXXX");
 
       while (1)
 	{
 	  /* Create the lock file, but not under the lock file name.  */
 	  /* Give up if cannot do that.  */
-	  desc = open (tempname, O_WRONLY | O_CREAT | O_EXCL, 0666);
+
+	  memcpy (tempname, inname, inname_dirlen);
+	  strcpy (tempname + inname_dirlen, "EXXXXXX");
+#ifdef HAVE_MKSTEMP
+	  desc = mkstemp (tempname);
+#else
+	  mktemp (tempname);
+	  if (!*tempname)
+	    desc = -1;
+	  else
+	    {
+	      unlink (tempname);
+	      desc = open (tempname, O_WRONLY | O_CREAT | O_EXCL, 0600);
+	    }
+#endif
 	  if (desc < 0)
 	    {
+	      int mkstemp_errno = errno;
 	      char *message = (char *) xmalloc (strlen (tempname) + 50);
 	      sprintf (message, "creating %s, which would become the lock file",
 		       tempname);
+	      errno = mkstemp_errno;
 	      pfatal_with_name (message);
 	    }
 	  close (desc);
