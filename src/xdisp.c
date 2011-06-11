@@ -6822,13 +6822,20 @@ next_element_from_buffer (struct it *it)
 	}
     }
   else if (it->bidi_p
+	   /* If we are before prev_stop, we may have overstepped on
+	      our way backwards a stop_pos, and if so, we need to
+	      handle that stop_pos.  */
+	   && IT_CHARPOS (*it) < it->prev_stop
 	   /* We can sometimes back up for reasons that have nothing
 	      to do with bidi reordering.  E.g., compositions.  The
 	      code below is only needed when we are above the base
 	      embedding level, so test for that explicitly.  */
-	   && !BIDI_AT_BASE_LEVEL (it->bidi_it)
-	   && IT_CHARPOS (*it) < it->prev_stop)
+	   && !BIDI_AT_BASE_LEVEL (it->bidi_it))
     {
+      /* If we lost track of base_level_stop, we have no better place
+	 for handle_stop_backwards to start from than BEGV.  This
+	 happens, e.g., when we were reseated to the previous
+	 screenful of text by vertical-motion.  */
       if (it->base_level_stop <= 0
 	  || IT_CHARPOS (*it) < it->base_level_stop)
 	it->base_level_stop = BEGV;

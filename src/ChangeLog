@@ -1,3 +1,8 @@
+2011-06-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (next_element_from_buffer): Improve commentary for when
+	the iterator is before prev_stop.
+
 2011-06-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (Fcurrent_bidi_paragraph_direction): Initialize
