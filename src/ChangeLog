@@ -1,4 +1,4 @@
-2011-06-10  Paul Eggert  <eggert@cs.ucla.edu>
+2011-06-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xmenu.c (dialog_selection_callback) [!USE_GTK]: Cast to intptr_t,
 	not to EMACS_INT, to avoid GCC warning.
@@ -69,6 +69,42 @@
 	* character.c (string_escape_byte8): Fix nbytes/nchars typo.
 
 	* alloc.c (Fmake_string): Check for out-of-range init.
+
+2011-06-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.h: Include <time.h>, for time_t.
+	Needed to build on FreeBSD 8.2.  Problem reported by Herbert J. Skuhra.
+
+	Fix minor problems found by static checking.
+
+	* image.c (PixelGetMagickColor): Declare if ImageMagick headers don't.
+
+	Make identifiers static if they are not used in other modules.
+	* data.c (Qcompiled_function, Qframe, Qvector):
+	* image.c (QimageMagick, Qsvg):
+	* minibuf.c (Qmetadata):
+	* window.c (resize_window_check, resize_root_window): Now static.
+	* window.h (resize_window_check, resize_root_window): Remove decls.
+
+	* window.c (window_deletion_count, delete_deletable_window):
+	Remove; unused.
+	(window_body_lines): Now static.
+	(Fdelete_other_windows_internal): Mark vars as initialized.
+	Make sure 'resize_failed' is initialized.
+	(run_window_configuration_change_hook): Rename local to avoid shadowing.
+	(resize_window_apply): Remove unused local.
+	* window.h (delete_deletable_window): Remove decl.
+
+	* image.c (gif_load, svg_load_image): Rename locals to avoid shadowing.
+	(imagemagick_load_image): Fix pointer signedness problem by changing
+	last arg from unsigned char * to char *.  All uses changed.
+	Also, fix a local for similar reasons.
+	Remove unused locals.  Remove locals to avoid shadowing.
+	(fn_rsvg_handle_free): Remove; unused.
+	(svg_load, svg_load_image): Fix pointer signedness problem.
+	(imagemagick_load_image): Don't use garbage pointer image_wand.
+
+	* ftfont.c (ftfont_get_metrics, ftfont_drive_otf): Remove unused locals.
 
 2011-06-10  Chong Yidong  <cyd@stupidchicken.com>
 
