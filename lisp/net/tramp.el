@@ -1316,7 +1316,8 @@ ARGS to actually emit the message (if applicable)."
 			 "tramp-debug-message"
 			 "tramp-error"
 			 "tramp-error-with-buffer"
-			 "tramp-message")
+			 "tramp-message"
+			 "tramp-with-progress-reporter")
 		       t)
 		      "$")
 		     fn)))
