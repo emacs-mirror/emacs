@@ -1,3 +1,13 @@
+2011-06-11  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-debug-message): Add `tramp-with-progress-reporter'
+	to ignored backtrace functions.
+
+2011-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-disp-window-function): Doc fix.
+	(appt-check): Handle overlapping appointments.  (Bug#8337)
+
 2011-06-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-tree-1, window-tree): New functions, moving

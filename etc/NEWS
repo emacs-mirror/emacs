@@ -511,6 +511,11 @@ See the variable `diary-comment-start'.
 *** Appointments can specify their individual warning times.
 See the variable `appt-warning-time-regexp'.
 
+---
+*** The function specified by `appt-disp-window-function' may be passed
+lists of arguments if multiple appointments are due at similar times.
+If you are using a custom function for this, you should update it.
+
 +++
 *** New function `diary-hebrew-birthday'.
 
