@@ -6593,6 +6593,8 @@ DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
 
 
 
+# ifdef HAVE_GPM
+
 void
 add_gpm_wait_descriptor (int desc)
 {
@@ -6604,6 +6606,8 @@ delete_gpm_wait_descriptor (int desc)
 {
   delete_keyboard_wait_descriptor (desc);
 }
+
+# endif
 
 # ifdef SIGIO
 

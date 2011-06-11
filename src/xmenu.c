@@ -347,6 +347,8 @@ for instance using the window manager, then this produces a quit and
 
 #ifndef MSDOS
 
+#if defined USE_GTK || defined USE_MOTIF
+
 /* Set menu_items_inuse so no other popup menu or dialog is created.  */
 
 void
@@ -354,11 +356,11 @@ x_menu_set_in_use (int in_use)
 {
   menu_items_inuse = in_use ? Qt : Qnil;
   popup_activated_flag = in_use;
-#ifdef USE_X_TOOLKIT
   if (popup_activated_flag)
     x_activate_timeout_atimer ();
-#endif
 }
+
+#endif
 
 /* Wait for an X event to arrive or for a timer to expire.  */
 
@@ -1919,9 +1921,9 @@ create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
 static void
 dialog_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 {
-  /* The EMACS_INT cast avoids a warning.  There's no problem
+  /* Treat the pointer as an integer.  There's no problem
      as long as pointers have enough bits to hold small integers.  */
-  if ((int) (EMACS_INT) client_data != -1)
+  if ((intptr_t) client_data != -1)
     menu_item_selection = (Lisp_Object *) client_data;
 
   BLOCK_INPUT;
