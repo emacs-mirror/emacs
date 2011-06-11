@@ -783,7 +783,6 @@ static void store_mode_line_noprop_char (char);
 static int store_mode_line_noprop (const char *, int, int);
 static void handle_stop (struct it *);
 static void handle_stop_backwards (struct it *, EMACS_INT);
-static int single_display_spec_intangible_p (Lisp_Object);
 static void vmessage (const char *, va_list) ATTRIBUTE_FORMAT_PRINTF (1, 0);
 static void ensure_echo_area_buffers (void);
 static Lisp_Object unwind_with_echo_area_buffer (Lisp_Object);
@@ -2406,12 +2405,12 @@ init_iterator (struct it *it, struct window *w,
   /* Are multibyte characters enabled in current_buffer?  */
   it->multibyte_p = !NILP (BVAR (current_buffer, enable_multibyte_characters));
 
-  /* Do we need to reorder bidirectional text?  Not if this is a
-     unibyte buffer: by definition, none of the single-byte characters
-     are strong R2L, so no reordering is needed.  And bidi.c doesn't
-     support unibyte buffers anyway.  */
-  it->bidi_p
-    = !NILP (BVAR (current_buffer, bidi_display_reordering)) && it->multibyte_p;
+
+  /* Bidirectional reordering of strings is controlled by the default
+     value of bidi-display-reordering.  For buffers, we reconsider
+     this below.  */
+  it->bidi_p =
+    !NILP (BVAR (&buffer_defaults, bidi_display_reordering)) && it->multibyte_p;
 
   /* Non-zero if we should highlight the region.  */
   highlight_region_p
@@ -2577,6 +2576,13 @@ init_iterator (struct it *it, struct window *w,
 	IT_BYTEPOS (*it) = bytepos;
 
       it->start = it->current;
+      /* Do we need to reorder bidirectional text?  Not if this is a
+	 unibyte buffer: by definition, none of the single-byte
+	 characters are strong R2L, so no reordering is needed.  And
+	 bidi.c doesn't support unibyte buffers anyway.  */
+      it->bidi_p =
+	!NILP (BVAR (current_buffer, bidi_display_reordering))
+	&& it->multibyte_p;
 
       /* If we are to reorder bidirectional text, init the bidi
 	 iterator.  */
@@ -3605,6 +3611,8 @@ handle_invisible_prop (struct it *it)
       if (!NILP (prop)
 	  && IT_STRING_CHARPOS (*it) < it->end_charpos)
 	{
+	  EMACS_INT endpos;
+
 	  handled = HANDLED_RECOMPUTE_PROPS;
 
 	  /* Get the position at which the next change of the
@@ -3619,12 +3627,37 @@ handle_invisible_prop (struct it *it)
 	     change in the property is at position end_charpos.
 	     Move IT's current position to that position.  */
 	  if (INTEGERP (end_charpos)
-	      && XFASTINT (end_charpos) < XFASTINT (limit))
+	      && (endpos = XFASTINT (end_charpos)) < XFASTINT (limit))
 	    {
 	      struct text_pos old;
+	      EMACS_INT oldpos;
+
 	      old = it->current.string_pos;
-	      IT_STRING_CHARPOS (*it) = XFASTINT (end_charpos);
-	      compute_string_pos (&it->current.string_pos, old, it->string);
+	      oldpos = CHARPOS (old);
+	      if (it->bidi_p)
+		{
+		  if (it->bidi_it.first_elt
+		      && it->bidi_it.charpos < SCHARS (it->string))
+		    bidi_paragraph_init (it->paragraph_embedding,
+					 &it->bidi_it, 1);
+		  /* Bidi-iterate out of the invisible text.  */
+		  do
+		    {
+		      bidi_move_to_visually_next (&it->bidi_it);
+		    }
+		  while (oldpos <= it->bidi_it.charpos
+			 && it->bidi_it.charpos < endpos);
+
+		  IT_STRING_CHARPOS (*it) = it->bidi_it.charpos;
+		  IT_STRING_BYTEPOS (*it) = it->bidi_it.bytepos;
+		  if (IT_CHARPOS (*it) >= endpos)
+		    it->prev_stop = endpos;
+		}
+	      else
+		{
+		  IT_STRING_CHARPOS (*it) = XFASTINT (end_charpos);
+		  compute_string_pos (&it->current.string_pos, old, it->string);
+		}
 	    }
 	  else
 	    {
@@ -5560,12 +5593,6 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
      setting of MULTIBYTE, if specified.  */
   if (multibyte >= 0)
     it->multibyte_p = multibyte > 0;
-#if 0
-  /* String reordering is controlled by the default value of
-     bidi-display-reordering.  */
-  it->bidi_p =
-    it->multibyte_p && BVAR (&buffer_defaults, bidi_display_reordering);
-#endif
 
   if (s == NULL)
     {
@@ -5575,7 +5602,7 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
       it->end_charpos = it->string_nchars = SCHARS (string);
       it->method = GET_FROM_STRING;
       it->current.string_pos = string_pos (charpos, string);
-#if 0
+
       if (it->bidi_p)
 	{
 	  it->paragraph_embedding = NEUTRAL_DIR;
@@ -5587,7 +5614,6 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 	  bidi_init_it (charpos, IT_STRING_BYTEPOS (*it),
 			FRAME_WINDOW_P (it->f), &it->bidi_it);
 	}
-#endif
     }
   else
     {
@@ -5601,7 +5627,7 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 	{
 	  it->current.pos = c_string_pos (charpos, s, 1);
 	  it->end_charpos = it->string_nchars = number_of_chars (s, 1);
-#if 0
+
 	  if (it->bidi_p)
 	    {
 	      it->paragraph_embedding = NEUTRAL_DIR;
@@ -5613,7 +5639,6 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 	      bidi_init_it (charpos, IT_BYTEPOS (*it), FRAME_WINDOW_P (it->f),
 			    &it->bidi_it);
 	    }
-#endif
 	}
       else
 	{
@@ -5630,10 +5655,8 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
   if (precision > 0 && it->end_charpos - charpos > precision)
     {
       it->end_charpos = it->string_nchars = charpos + precision;
-#if 0
       if (it->bidi_p)
 	it->bidi_it.string.schars = it->end_charpos;
-#endif
     }
 
   /* FIELD_WIDTH > 0 means pad with spaces until FIELD_WIDTH
@@ -5653,7 +5676,6 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
     it->dp = XCHAR_TABLE (Vstandard_display_table);
 
   it->stop_charpos = charpos;
-#if 0
   it->prev_stop = charpos;
   it->base_level_stop = 0;
   if (it->bidi_p)
@@ -5662,7 +5684,6 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
       it->bidi_it.paragraph_dir = NEUTRAL_DIR;
       it->bidi_it.disp_pos = -1;
     }
-#endif
   if (s == NULL && it->multibyte_p)
     {
       EMACS_INT endpos = SCHARS (it->string);
@@ -6284,8 +6305,17 @@ set_iterator_to_next (struct it *it, int reseat_p)
 
     case GET_FROM_C_STRING:
       /* Current display element of IT is from a C string.  */
-      IT_BYTEPOS (*it) += it->len;
-      IT_CHARPOS (*it) += 1;
+      if (!it->bidi_p)
+	{
+	  IT_BYTEPOS (*it) += it->len;
+	  IT_CHARPOS (*it) += 1;
+	}
+      else
+	{
+	  bidi_move_to_visually_next (&it->bidi_it);
+	  IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+	  IT_CHARPOS (*it) = it->bidi_it.charpos;
+	}
       break;
 
     case GET_FROM_DISPLAY_VECTOR:
@@ -6339,23 +6369,89 @@ set_iterator_to_next (struct it *it, int reseat_p)
       xassert (it->s == NULL && STRINGP (it->string));
       if (it->cmp_it.id >= 0)
 	{
-	  IT_STRING_CHARPOS (*it) += it->cmp_it.nchars;
-	  IT_STRING_BYTEPOS (*it) += it->cmp_it.nbytes;
-	  if (it->cmp_it.to < it->cmp_it.nglyphs)
-	    it->cmp_it.from = it->cmp_it.to;
+	  int i;
+
+	  if (! it->bidi_p)
+	    {
+	      IT_STRING_CHARPOS (*it) += it->cmp_it.nchars;
+	      IT_STRING_BYTEPOS (*it) += it->cmp_it.nbytes;
+	      if (it->cmp_it.to < it->cmp_it.nglyphs)
+		it->cmp_it.from = it->cmp_it.to;
+	      else
+		{
+		  it->cmp_it.id = -1;
+		  composition_compute_stop_pos (&it->cmp_it,
+						IT_STRING_CHARPOS (*it),
+						IT_STRING_BYTEPOS (*it),
+						it->end_charpos, it->string);
+		}
+	    }
+	  else if (! it->cmp_it.reversed_p)
+	    {
+	      for (i = 0; i < it->cmp_it.nchars; i++)
+		bidi_move_to_visually_next (&it->bidi_it);
+	      IT_STRING_BYTEPOS (*it) = it->bidi_it.bytepos;
+	      IT_STRING_CHARPOS (*it) = it->bidi_it.charpos;
+
+	      if (it->cmp_it.to < it->cmp_it.nglyphs)
+		it->cmp_it.from = it->cmp_it.to;
+	      else
+		{
+		  EMACS_INT stop = it->end_charpos;
+		  if (it->bidi_it.scan_dir < 0)
+		    stop = -1;
+		  composition_compute_stop_pos (&it->cmp_it,
+						IT_STRING_CHARPOS (*it),
+						IT_STRING_BYTEPOS (*it), stop,
+						it->string);
+		}
+	    }
 	  else
 	    {
-	      it->cmp_it.id = -1;
-	      composition_compute_stop_pos (&it->cmp_it,
-					    IT_STRING_CHARPOS (*it),
-					    IT_STRING_BYTEPOS (*it),
-					    it->end_charpos, it->string);
+	      for (i = 0; i < it->cmp_it.nchars; i++)
+		bidi_move_to_visually_next (&it->bidi_it);
+	      IT_STRING_BYTEPOS (*it) = it->bidi_it.bytepos;
+	      IT_STRING_CHARPOS (*it) = it->bidi_it.charpos;
+	      if (it->cmp_it.from > 0)
+		it->cmp_it.to = it->cmp_it.from;
+	      else
+		{
+		  EMACS_INT stop = it->end_charpos;
+		  if (it->bidi_it.scan_dir < 0)
+		    stop = -1;
+		  composition_compute_stop_pos (&it->cmp_it,
+						IT_STRING_CHARPOS (*it),
+						IT_STRING_BYTEPOS (*it), stop,
+						it->string);
+		}
 	    }
 	}
       else
 	{
-	  IT_STRING_BYTEPOS (*it) += it->len;
-	  IT_STRING_CHARPOS (*it) += 1;
+	  if (!it->bidi_p)
+	    {
+	      IT_STRING_BYTEPOS (*it) += it->len;
+	      IT_STRING_CHARPOS (*it) += 1;
+	    }
+	  else
+	    {
+	      int prev_scan_dir = it->bidi_it.scan_dir;
+
+	      bidi_move_to_visually_next (&it->bidi_it);
+	      IT_STRING_BYTEPOS (*it) = it->bidi_it.bytepos;
+	      IT_STRING_CHARPOS (*it) = it->bidi_it.charpos;
+	      if (prev_scan_dir != it->bidi_it.scan_dir)
+		{
+		  EMACS_INT stop = it->end_charpos;
+
+		  if (it->bidi_it.scan_dir < 0)
+		    stop = -1;
+		  composition_compute_stop_pos (&it->cmp_it,
+						IT_STRING_CHARPOS (*it),
+						IT_STRING_BYTEPOS (*it), stop,
+						it->string);
+		}
+	    }
 	}
 
     consider_string_end:
@@ -6476,15 +6572,123 @@ next_element_from_string (struct it *it)
   xassert (IT_STRING_CHARPOS (*it) >= 0);
   position = it->current.string_pos;
 
-  /* Time to check for invisible text?  */
-  if (IT_STRING_CHARPOS (*it) < it->end_charpos
-      && IT_STRING_CHARPOS (*it) == it->stop_charpos)
+  /* With bidi reordering, the character to display might not be the
+     character at IT_STRING_CHARPOS.  BIDI_IT.FIRST_ELT non-zero means
+     that we were reseat()ed to a new string, whose paragraph
+     direction is not known.  */
+  if (it->bidi_p && it->bidi_it.first_elt)
     {
-      handle_stop (it);
+      it->bidi_it.charpos = CHARPOS (position);
+      it->bidi_it.bytepos = BYTEPOS (position);
+      if (it->bidi_it.charpos >= it->string_nchars)
+	{
+	  /* Nothing to do, but reset the FIRST_ELT flag, like
+	     bidi_paragraph_init does, because we are not going to
+	     call it.  */
+	  it->bidi_it.first_elt = 0;
+	}
+      else if (it->bidi_it.charpos <= 0)
+	{
+	  /* If we are at the beginning of the string, we can produce
+	     the next element right away.  */
+	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
+	  bidi_move_to_visually_next (&it->bidi_it);
+	}
+      else
+	{
+	  EMACS_INT orig_bytepos = BYTEPOS (position);
 
-      /* Since a handler may have changed IT->method, we must
-	 recurse here.  */
-      return GET_NEXT_DISPLAY_ELEMENT (it);
+	  /* We need to prime the bidi iterator starting at the string
+	     beginning, before we will be able to produce the next
+	     element.  */
+	  it->bidi_it.charpos = it->bidi_it.bytepos = 0;
+	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
+	  do
+	    {
+	      /* Now return to buffer position where we were asked to
+		 get the next display element, and produce that.  */
+	      bidi_move_to_visually_next (&it->bidi_it);
+	    }
+	  while (it->bidi_it.bytepos != orig_bytepos
+		 && it->bidi_it.charpos < it->string_nchars);
+	}
+
+      /*  Adjust IT's position information to where we ended up.  */
+      IT_STRING_CHARPOS (*it) = it->bidi_it.charpos;
+      IT_STRING_BYTEPOS (*it) = it->bidi_it.bytepos;
+      SET_TEXT_POS (position, IT_STRING_CHARPOS (*it), IT_STRING_BYTEPOS (*it));
+      {
+	EMACS_INT stop = SCHARS (it->string);
+
+	if (it->bidi_it.scan_dir < 0)
+	  stop = -1;
+	else if (stop > it->end_charpos)
+	  stop = it->end_charpos;
+	composition_compute_stop_pos (&it->cmp_it, IT_STRING_CHARPOS (*it),
+				      IT_STRING_BYTEPOS (*it), stop,
+				      it->string);
+      }
+    }
+
+  /* Time to check for invisible text?  */
+  if (IT_STRING_CHARPOS (*it) < it->end_charpos)
+    {
+      if (IT_STRING_CHARPOS (*it) >= it->stop_charpos)
+	{
+	  if (!(!it->bidi_p
+		|| BIDI_AT_BASE_LEVEL (it->bidi_it)
+		|| IT_STRING_CHARPOS (*it) == it->stop_charpos))
+	    {
+	      /* With bidi non-linear iteration, we could find
+		 ourselves far beyond the last computed stop_charpos,
+		 with several other stop positions in between that we
+		 missed.  Scan them all now, in buffer's logical
+		 order, until we find and handle the last stop_charpos
+		 that precedes our current position.  */
+	      handle_stop_backwards (it, it->stop_charpos);
+	      return GET_NEXT_DISPLAY_ELEMENT (it);
+	    }
+	  else
+	    {
+	      if (it->bidi_p)
+		{
+		  /* Take note of the stop position we just moved
+		     across, for when we will move back across it.  */
+		  it->prev_stop = it->stop_charpos;
+		  /* If we are at base paragraph embedding level, take
+		     note of the last stop position seen at this
+		     level.  */
+		  if (BIDI_AT_BASE_LEVEL (it->bidi_it))
+		    it->base_level_stop = it->stop_charpos;
+		}
+	      handle_stop (it);
+
+	      /* Since a handler may have changed IT->method, we must
+		 recurse here.  */
+	      return GET_NEXT_DISPLAY_ELEMENT (it);
+	    }
+	}
+      else if (it->bidi_p
+	       /* If we are before prev_stop, we may have overstepped
+		  on our way backwards a stop_pos, and if so, we need
+		  to handle that stop_pos.  */
+	       && IT_STRING_CHARPOS (*it) < it->prev_stop
+	       /* We can sometimes back up for reasons that have nothing
+		  to do with bidi reordering.  E.g., compositions.  The
+		  code below is only needed when we are above the base
+		  embedding level, so test for that explicitly.  */
+	       && !BIDI_AT_BASE_LEVEL (it->bidi_it))
+	{
+	  /* If we lost track of base_level_stop, we have no better place
+	     for handle_stop_backwards to start from than BEGV.  This
+	     happens, e.g., when we were reseated to the previous
+	     screenful of text by vertical-motion.  */
+	  if (it->base_level_stop <= 0
+	      || IT_STRING_CHARPOS (*it) < it->base_level_stop)
+	    it->base_level_stop = 0;
+	  handle_stop_backwards (it, it->base_level_stop);
+	  return GET_NEXT_DISPLAY_ELEMENT (it);
+	}
     }
 
   if (it->current.overlay_string_index >= 0)
@@ -6498,7 +6702,10 @@ next_element_from_string (struct it *it)
 	  return 0;
 	}
       else if (CHAR_COMPOSED_P (it, IT_STRING_CHARPOS (*it),
-				IT_STRING_BYTEPOS (*it), SCHARS (it->string))
+				IT_STRING_BYTEPOS (*it),
+				it->bidi_it.scan_dir < 0
+				? -1
+				: SCHARS (it->string))
 	       && next_element_from_composition (it))
 	{
 	  return 1;
@@ -6533,7 +6740,10 @@ next_element_from_string (struct it *it)
 	  CHARPOS (position) = BYTEPOS (position) = -1;
 	}
       else if (CHAR_COMPOSED_P (it, IT_STRING_CHARPOS (*it),
-				IT_STRING_BYTEPOS (*it), it->string_nchars)
+				IT_STRING_BYTEPOS (*it),
+				it->bidi_it.scan_dir < 0
+				? -1
+				: it->string_nchars)
 	       && next_element_from_composition (it))
 	{
 	  return 1;
@@ -6652,18 +6862,19 @@ next_element_from_stretch (struct it *it)
   return 1;
 }
 
-/* Scan forward from CHARPOS in the current buffer, until we find a
-   stop position > current IT's position.  Then handle the stop
+/* Scan forward from CHARPOS in the current buffer/string, until we
+   find a stop position > current IT's position.  Then handle the stop
    position before that.  This is called when we bump into a stop
    position while reordering bidirectional text.  CHARPOS should be
-   the last previously processed stop_pos (or BEGV, if none were
+   the last previously processed stop_pos (or BEGV/0, if none were
    processed yet) whose position is less that IT's current
    position.  */
 
 static void
 handle_stop_backwards (struct it *it, EMACS_INT charpos)
 {
-  EMACS_INT where_we_are = IT_CHARPOS (*it);
+  int bufp = !STRINGP (it->string);
+  EMACS_INT where_we_are = (bufp ? IT_CHARPOS (*it) : IT_STRING_CHARPOS (*it));
   struct display_pos save_current = it->current;
   struct text_pos save_position = it->position;
   struct text_pos pos1;
@@ -6674,8 +6885,13 @@ handle_stop_backwards (struct it *it, EMACS_INT charpos)
   do
     {
       it->prev_stop = charpos;
-      SET_TEXT_POS (pos1, charpos, CHAR_TO_BYTE (charpos));
-      reseat_1 (it, pos1, 0);
+      if (bufp)
+	{
+	  SET_TEXT_POS (pos1, charpos, CHAR_TO_BYTE (charpos));
+	  reseat_1 (it, pos1, 0);
+	}
+      else
+	it->current.string_pos = string_pos (charpos, it->string);
       compute_stop_pos (it);
       /* We must advance forward, right?  */
       if (it->stop_charpos <= it->prev_stop)
@@ -17391,9 +17607,9 @@ handle_line_prefix (struct it *it)
 
 
 /* Remove N glyphs at the start of a reversed IT->glyph_row.  Called
-   only for R2L lines from display_line, when it decides that too many
-   glyphs were produced by PRODUCE_GLYPHS, and the line needs to be
-   continued.  */
+   only for R2L lines from display_line and display_string, when they
+   decide that too many glyphs were produced by PRODUCE_GLYPHS, and
+   the line/string needs to be continued on the next glyph row.  */
 static void
 unproduce_glyphs (struct it *it, int n)
 {
@@ -18501,6 +18717,9 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
     /* Force the mode-line to be displayed in the default face.  */
     it.base_face_id = it.face_id = DEFAULT_FACE_ID;
 
+  /* FIXME: This should take its value from a user option.  */
+  it.paragraph_embedding = L2R;
+
   record_unwind_protect (unwind_format_mode_line,
 			 format_mode_line_unwind_data (NULL, Qnil, 0));
 
@@ -18605,6 +18824,8 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 {
   int n = 0, field, prec;
   int literal = 0;
+
+  it->paragraph_embedding = L2R;
 
  tail_recurse:
   if (depth > 100)
@@ -20046,6 +20267,7 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
   int hpos_at_start = it->hpos;
   int saved_face_id = it->face_id;
   struct glyph_row *row = it->glyph_row;
+  EMACS_INT it_charpos;
 
   /* Initialize the iterator IT for iteration over STRING beginning
      with index START.  */
@@ -20091,6 +20313,11 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
   row->phys_height = it->max_phys_ascent + it->max_phys_descent;
   row->extra_line_spacing = it->max_extra_line_spacing;
 
+  if (STRINGP (it->string))
+    it_charpos = IT_STRING_CHARPOS (*it);
+  else
+    it_charpos = IT_CHARPOS (*it);
+
   /* This condition is for the case that we are called with current_x
      past last_visible_x.  */
   while (it->current_x < max_x)
@@ -20103,10 +20330,10 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 
       /* Produce glyphs.  */
       x_before = it->current_x;
-      n_glyphs_before = it->glyph_row->used[TEXT_AREA];
+      n_glyphs_before = row->used[TEXT_AREA];
       PRODUCE_GLYPHS (it);
 
-      nglyphs = it->glyph_row->used[TEXT_AREA] - n_glyphs_before;
+      nglyphs = row->used[TEXT_AREA] - n_glyphs_before;
       i = 0;
       x = x_before;
       while (i < nglyphs)
@@ -20120,12 +20347,18 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 	      if (CHAR_GLYPH_PADDING_P (*glyph))
 		{
 		  /* A wide character is unbreakable.  */
-		  it->glyph_row->used[TEXT_AREA] = n_glyphs_before;
+		  if (row->reversed_p)
+		    unproduce_glyphs (it, row->used[TEXT_AREA]
+				      - n_glyphs_before);
+		  row->used[TEXT_AREA] = n_glyphs_before;
 		  it->current_x = x_before;
 		}
 	      else
 		{
-		  it->glyph_row->used[TEXT_AREA] = n_glyphs_before + i;
+		  if (row->reversed_p)
+		    unproduce_glyphs (it, row->used[TEXT_AREA]
+				      - (n_glyphs_before + i));
+		  row->used[TEXT_AREA] = n_glyphs_before + i;
 		  it->current_x = x;
 		}
 	      break;
@@ -20135,7 +20368,7 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 	      /* Glyph is at least partially visible.  */
 	      ++it->hpos;
 	      if (x < it->first_visible_x)
-		it->glyph_row->x = x - it->first_visible_x;
+		row->x = x - it->first_visible_x;
 	    }
 	  else
 	    {
@@ -20167,6 +20400,10 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 	}
 
       set_iterator_to_next (it, 1);
+      if (STRINGP (it->string))
+	it_charpos = IT_STRING_CHARPOS (*it);
+      else
+	it_charpos = IT_CHARPOS (*it);
 
       /* Stop if truncating at the right edge.  */
       if (it->line_wrap == TRUNCATE
@@ -20174,7 +20411,7 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 	{
 	  /* Add truncation mark, but don't do it if the line is
 	     truncated at a padding space.  */
-	  if (IT_CHARPOS (*it) < it->string_nchars)
+	  if (it_charpos < it->string_nchars)
 	    {
 	      if (!FRAME_WINDOW_P (it->f))
 		{
@@ -20182,9 +20419,20 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 
 		  if (it->current_x > it->last_visible_x)
 		    {
-		      for (ii = row->used[TEXT_AREA] - 1; ii > 0; --ii)
-			if (!CHAR_GLYPH_PADDING_P (row->glyphs[TEXT_AREA][ii]))
-			  break;
+		      if (!row->reversed_p)
+			{
+			  for (ii = row->used[TEXT_AREA] - 1; ii > 0; --ii)
+			    if (!CHAR_GLYPH_PADDING_P (row->glyphs[TEXT_AREA][ii]))
+			      break;
+			}
+		      else
+			{
+			  for (ii = 0; ii < row->used[TEXT_AREA]; ii++)
+			    if (!CHAR_GLYPH_PADDING_P (row->glyphs[TEXT_AREA][ii]))
+			      break;
+			  unproduce_glyphs (it, ii + 1);
+			  ii = row->used[TEXT_AREA] - (ii + 1);
+			}
 		      for (n = row->used[TEXT_AREA]; ii < n; ++ii)
 			{
 			  row->used[TEXT_AREA] = ii;
@@ -20193,7 +20441,7 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 		    }
 		  produce_special_glyphs (it, IT_TRUNCATION);
 		}
-	      it->glyph_row->truncated_on_right_p = 1;
+	      row->truncated_on_right_p = 1;
 	    }
 	  break;
 	}
@@ -20201,11 +20449,11 @@ display_string (const char *string, Lisp_Object lisp_string, Lisp_Object face_st
 
   /* Maybe insert a truncation at the left.  */
   if (it->first_visible_x
-      && IT_CHARPOS (*it) > 0)
+      && it_charpos > 0)
     {
       if (!FRAME_WINDOW_P (it->f))
 	insert_left_trunc_glyphs (it);
-      it->glyph_row->truncated_on_left_p = 1;
+      row->truncated_on_left_p = 1;
     }
 
   it->face_id = saved_face_id;

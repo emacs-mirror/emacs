@@ -2,6 +2,21 @@
 
 	* xdisp.c (next_element_from_buffer): Improve commentary for when
 	the iterator is before prev_stop.
+	(init_iterator): Initialize bidi_p from the default value of
+	bidi-display-reordering, not from buffer-local value.  Use the
+	buffer-local value only if initializing for buffer iteration.
+	(handle_invisible_prop): Support invisible properties on strings
+	that are being bidi-reordered.
+	(reseat_to_string): Enable bidi-related code.
+	(set_iterator_to_next): Support bidi reordering of C strings and
+	Lisp strings.
+	(next_element_from_string): Support bidi reordering of Lisp
+	strings.
+	(handle_stop_backwards): Support Lisp strings as well.
+	(display_mode_line, display_mode_element): Temporarily force L2R
+	paragraph direction.
+	(display_string): Support display of R2L glyph rows.  Use
+	IT_STRING_CHARPOS when displaying from a Lisp string.
 
 2011-06-10  Eli Zaretskii  <eliz@gnu.org>
 
