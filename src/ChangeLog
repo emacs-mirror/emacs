@@ -1,3 +1,8 @@
+2011-06-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (gif_load): Add animation frame delay to the metadata.
+	(syms_of_image): Use DEFSYM.  New symbol `delay'.
+
 2011-06-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (delete_deletable_window): Re-add.

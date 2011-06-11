@@ -1,3 +1,11 @@
+2011-06-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (image-animated-p): Return animation delay in seconds.
+	Avoid bit manipulation in Lisp; use `delay' entry in the metadata.
+	(image-animate-timeout): Remove DELAY argument.  Don't assume
+	every subimage has the same delay; get it from image-animated-p.
+	(image-animate): Caller changed.
+
 2011-06-11  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-debug-message): Add `tramp-with-progress-reporter'
