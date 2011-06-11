@@ -6305,7 +6305,12 @@ set_iterator_to_next (struct it *it, int reseat_p)
 
     case GET_FROM_C_STRING:
       /* Current display element of IT is from a C string.  */
-      if (!it->bidi_p)
+      if (!it->bidi_p
+	  /* If the string position is beyond string_nchars, it means
+	     next_element_from_c_string is padding the string with
+	     blanks, in which case we bypass the bidi iterator,
+	     because it cannot deal with such virtual characters.  */
+	  || IT_CHARPOS (*it) >= it->string_nchars)
 	{
 	  IT_BYTEPOS (*it) += it->len;
 	  IT_CHARPOS (*it) += 1;
@@ -6428,7 +6433,13 @@ set_iterator_to_next (struct it *it, int reseat_p)
 	}
       else
 	{
-	  if (!it->bidi_p)
+	  if (!it->bidi_p
+	      /* If the string position is beyond string_nchars, it
+		 means next_element_from_string is padding the string
+		 with blanks, in which case we bypass the bidi
+		 iterator, because it cannot deal with such virtual
+		 characters.  */
+	      || IT_STRING_CHARPOS (*it) >= it->string_nchars)
 	    {
 	      IT_STRING_BYTEPOS (*it) += it->len;
 	      IT_STRING_CHARPOS (*it) += 1;

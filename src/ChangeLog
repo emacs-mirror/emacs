@@ -1,5 +1,10 @@
 2011-06-11  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (set_iterator_to_next): Advance string position
+	correctly when padding it with blanks.
+
+2011-06-11  Eli Zaretskii  <eliz@gnu.org>
+
 	* xdisp.c (next_element_from_buffer): Improve commentary for when
 	the iterator is before prev_stop.
 	(init_iterator): Initialize bidi_p from the default value of
