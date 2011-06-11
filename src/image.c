@@ -7480,8 +7480,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
 			unsigned char *contents, unsigned int size,
 			char *filename)
 {
-  unsigned long width;
-  unsigned long height;
+  size_t width;
+  size_t height;
 
   MagickBooleanType status;
 
@@ -7858,7 +7858,7 @@ recognize as images, such as C.  See `imagemagick-types-inhibit'.  */)
   (void)
 {
   Lisp_Object typelist = Qnil;
-  unsigned long numf = 0;
+  size_t numf = 0;
   ExceptionInfo ex;
   char **imtypes = GetMagickList ("*", &numf, &ex);
   int i;

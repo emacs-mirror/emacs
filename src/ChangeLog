@@ -1,5 +1,8 @@
 2011-06-11  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* image.c (imagemagick_load_image): Fix type mismatch.
+	(Fimagemagick_types): Likewise.
+
 	* window.h (replace_buffer_in_windows): Declare.
 
 2011-06-11  Martin Rudalics  <rudalics@gmx.at>
