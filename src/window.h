@@ -918,6 +918,7 @@ extern int window_internal_height (struct window *);
 extern int window_body_cols (struct window *w);
 EXFUN (Frecenter, 1);
 extern void temp_output_buffer_show (Lisp_Object);
+extern void replace_buffer_in_windows (Lisp_Object);
 extern void replace_buffer_in_windows_safely (Lisp_Object);
 extern void init_window_once (void);
 extern void init_window (void);
