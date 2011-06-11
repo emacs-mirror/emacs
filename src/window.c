@@ -50,9 +50,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-Lisp_Object Qwindowp, Qwindow_live_p, Qdelete_window;
+Lisp_Object Qwindowp, Qwindow_live_p;
 static Lisp_Object Qwindow_configuration_p, Qrecord_window_buffer;
-static Lisp_Object Qwindow_deletable_p, Qdisplay_buffer;
+static Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
 static Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
 static Lisp_Object Qresize_root_window, Qresize_root_window_vertically;
 static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
@@ -309,6 +309,8 @@ selected windows appears and to which many commands apply.  */)
 {
   return selected_window;
 }
+
+int window_select_count;
 
 /* If select_window is called with inhibit_point_swap non-zero it will
    not store point of the old selected window's buffer back into that
@@ -2210,35 +2212,32 @@ next_window (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames, in
 
 DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
        doc: /* Return window following WINDOW in cyclic ordering of windows.
-WINDOW defaults to the selected window. The optional arguments
-MINIBUF and ALL-FRAMES specify the set of windows to consider.
+WINDOW must be a live window and defaults to the selected one. The
+optional arguments MINIBUF and ALL-FRAMES specify the set of windows to
+consider.
 
-MINIBUF t means consider the minibuffer window even if the
-minibuffer is not active.  MINIBUF nil or omitted means consider
-the minibuffer window only if the minibuffer is active.  Any
-other value means do not consider the minibuffer window even if
-the minibuffer is active.
+MINIBUF nil or omitted means consider the minibuffer window only if the
+minibuffer is active.  MINIBUF t means consider the minibuffer window
+even if the minibuffer is not active.  Any other value means do not
+consider the minibuffer window even if the minibuffer is active.
 
-Several frames may share a single minibuffer; if the minibuffer
-is active, all windows on all frames that share that minibuffer
-are considered too.  Therefore, if you are using a separate
-minibuffer frame and the minibuffer is active and MINIBUF says it
-counts, `next-window' considers the windows in the frame from
-which you entered the minibuffer, as well as the minibuffer
-window.
+ALL-FRAMES nil or omitted means consider all windows on WINDOW's frame,
+plus the minibuffer window if specified by the MINIBUF argument.  If the
+minibuffer counts, consider all windows on all frames that share that
+minibuffer too.  The following non-nil values of ALL-FRAMES have special
+meanings:
 
-ALL-FRAMES nil or omitted means consider all windows on WINDOW's
- frame, plus the minibuffer window if specified by the MINIBUF
- argument, see above.  If the minibuffer counts, consider all
- windows on all frames that share that minibuffer too.
-ALL-FRAMES t means consider all windows on all existing frames.
-ALL-FRAMES `visible' means consider all windows on all visible
- frames on the current terminal.
-ALL-FRAMES 0 means consider all windows on all visible and
- iconified frames on the current terminal.
-ALL-FRAMES a frame means consider all windows on that frame only.
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames.
+
+- 0 (the number zero) means consider all windows on all visible and
+  iconified frames.
+
+- A frame means consider all windows on that frame only.
+
 Anything else means consider all windows on WINDOW's frame and no
- others.
+others.
 
 If you use consistent values for MINIBUF and ALL-FRAMES, you can use
 `next-window' to iterate through the entire cycle of acceptable
@@ -2252,9 +2251,32 @@ windows, eventually ending up back at the window you started with.
 
 DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
        doc: /* Return window preceding WINDOW in cyclic ordering of windows.
-WINDOW defaults to the selected window. The optional arguments
-MINIBUF and ALL-FRAMES specify the set of windows to consider.
-For the precise meaning of these arguments see `next-window'.
+WINDOW must be a live window and defaults to the selected one.  The
+optional arguments MINIBUF and ALL-FRAMES specify the set of windows to
+consider.
+
+MINIBUF nil or omitted means consider the minibuffer window only if the
+minibuffer is active.  MINIBUF t means consider the minibuffer window
+even if the minibuffer is not active.  Any other value means do not
+consider the minibuffer window even if the minibuffer is active.
+
+ALL-FRAMES nil or omitted means consider all windows on WINDOW's frame,
+plus the minibuffer window if specified by the MINIBUF argument.  If the
+minibuffer counts, consider all windows on all frames that share that
+minibuffer too.  The following non-nil values of ALL-FRAMES have special
+meanings:
+
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames.
+
+- 0 (the number zero) means consider all windows on all visible and
+  iconified frames.
+
+- A frame means consider all windows on that frame only.
+
+Anything else means consider all windows on WINDOW's frame and no
+others.
 
 If you use consistent values for MINIBUF and ALL-FRAMES, you can
 use `previous-window' to iterate through the entire cycle of
@@ -2264,37 +2286,6 @@ reverse order.  */)
   (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
 {
   return next_window (window, minibuf, all_frames, 0);
-}
-
-
-DEFUN ("other-window", Fother_window, Sother_window, 1, 2, "p",
-       doc: /* Select another window in cyclic ordering of windows.
-COUNT specifies the number of windows to skip, starting with the
-selected window, before making the selection.  If COUNT is
-positive, skip COUNT windows forwards.  If COUNT is negative,
-skip -COUNT windows backwards.  COUNT zero means do not skip any
-window, so select the selected window.  In an interactive call,
-COUNT is the numeric prefix argument.  Return nil.
-
-This function uses `next-window' for finding the window to select.
-The argument ALL-FRAMES has the same meaning as in `next-window',
-but the MINIBUF argument of `next-window' is always effectively
-nil.  */)
-  (Lisp_Object count, Lisp_Object all_frames)
-{
-  Lisp_Object window;
-  int i;
-
-  CHECK_NUMBER (count);
-  window = selected_window;
-
-  for (i = XINT (count); i > 0; --i)
-    window = Fnext_window (window, Qnil, all_frames);
-  for (; i < 0; ++i)
-    window = Fprevious_window (window, Qnil, all_frames);
-
-  Fselect_window (window, Qnil);
-  return Qnil;
 }
 
 
@@ -2397,10 +2388,9 @@ be listed first but no error is signalled.  */)
 enum window_loop
 {
   WINDOW_LOOP_UNUSED,
-  GET_BUFFER_WINDOW,		/* Arg is buffer */
-  DELETE_BUFFER_WINDOWS,	/* Arg is buffer */
-  UNSHOW_BUFFER,		/* Arg is buffer */
-  REDISPLAY_BUFFER_WINDOWS,	/* Arg is buffer */
+  GET_BUFFER_WINDOW,		    /* Arg is buffer */
+  REPLACE_BUFFER_IN_WINDOWS_SAFELY, /* Arg is buffer */
+  REDISPLAY_BUFFER_WINDOWS,	    /* Arg is buffer */
   CHECK_ALL_WINDOWS
 };
 
@@ -2408,6 +2398,7 @@ static Lisp_Object
 window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frames)
 {
   Lisp_Object window, windows, best_window, frame_arg;
+  int frame_best_window_flag = 0;
   struct frame *f;
   struct gcpro gcpro1;
 
@@ -2457,110 +2448,51 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 	 is visible, since Fwindow_list skips non-visible frames if
 	 that is desired, under the control of frame_arg.  */
       if (!MINI_WINDOW_P (w)
-	  /* For UNSHOW_BUFFER, we must always consider all windows.  */
-	  || type == UNSHOW_BUFFER
+	  /* For REPLACE_BUFFER_IN_WINDOWS_SAFELY, we must always
+	     consider all windows.  */
+	  || type == REPLACE_BUFFER_IN_WINDOWS_SAFELY
 	  || (mini && minibuf_level > 0))
 	switch (type)
 	  {
 	  case GET_BUFFER_WINDOW:
 	    if (EQ (w->buffer, obj)
-		/* Don't find any minibuffer window
-		   except the one that is currently in use.  */
-		&& (MINI_WINDOW_P (w)
-		    ? EQ (window, minibuf_window)
-		    : 1))
+		/* Don't find any minibuffer window except the one that
+		   is currently in use.  */
+		&& (MINI_WINDOW_P (w) ? EQ (window, minibuf_window) : 1))
 	      {
-		if (NILP (best_window))
-		  best_window = window;
-		else if (EQ (window, selected_window))
-		  /* Prefer to return selected-window.  */
+		if (EQ (window, selected_window))
+		  /* Preferably return the selected window.  */
 		  RETURN_UNGCPRO (window);
-		else if (EQ (Fwindow_frame (window), selected_frame))
-		  /* Prefer windows on the current frame.  */
+		else if (EQ (XWINDOW (window)->frame, selected_frame)
+			 && !frame_best_window_flag)
+		  /* Prefer windows on the current frame (but don't
+		     choose another one if we have one already).  */
+		  {
+		    best_window = window;
+		    frame_best_window_flag = 1;
+		  }
+		else if (NILP (best_window))
 		  best_window = window;
 	      }
 	    break;
 
-	  case DELETE_BUFFER_WINDOWS:
+	  case REPLACE_BUFFER_IN_WINDOWS_SAFELY:
+	    /* We could simply check whether the buffer shown by window
+	       is live, and show another buffer in case it isn't.  */
 	    if (EQ (w->buffer, obj))
 	      {
-		struct frame *fr = XFRAME (WINDOW_FRAME (w));
-
-		/* If this window is dedicated, and in a frame of its own,
-		   kill the frame.  */
-		if (EQ (window, FRAME_ROOT_WINDOW (fr))
-		    && !NILP (w->dedicated)
-		    && other_visible_frames (fr))
-		  {
-		    /* Skip the other windows on this frame.
-		       There might be one, the minibuffer!  */
-		    while (CONSP (XCDR (windows))
-			   && EQ (XWINDOW (XCAR (windows))->frame,
-				  XWINDOW (XCAR (XCDR (windows)))->frame))
-		      windows = XCDR (windows);
-
-		    /* Now we can safely delete the frame.  */
-		    delete_frame (w->frame, Qnil);
-		  }
-		else if (NILP (w->parent))
-		  {
-		    /* If we're deleting the buffer displayed in the
-		       only window on the frame, find a new buffer to
-		       display there.  */
-		    Lisp_Object buffer;
-		    buffer = Fother_buffer (obj, Qnil, w->frame);
-		    /* Reset dedicated state of window.  */
-		    w->dedicated = Qnil;
-		    Fset_window_buffer (window, buffer, Qnil);
-		    if (EQ (window, selected_window))
-		      Fset_buffer (w->buffer);
-		  }
-		else
-		  call1 (Qdelete_window, window);
-	      }
-	    break;
-
-	  case UNSHOW_BUFFER:
-	    if (EQ (w->buffer, obj))
-	      {
-		Lisp_Object buffer;
-		struct frame *fr = XFRAME (w->frame);
-
-		/* Find another buffer to show in this window.  */
-		buffer = Fother_buffer (obj, Qnil, w->frame);
-
-		/* If this window is dedicated, and in a frame of its own,
-		   kill the frame.  */
-		if (EQ (window, FRAME_ROOT_WINDOW (fr))
-		    && !NILP (w->dedicated)
-		    && other_visible_frames (fr))
-		  {
-		    /* Skip the other windows on this frame.
-		       There might be one, the minibuffer!  */
-		    while (CONSP (XCDR (windows))
-			   && EQ (XWINDOW (XCAR (windows))->frame,
-				  XWINDOW (XCAR (XCDR (windows)))->frame))
-		      windows = XCDR (windows);
-
-		    /* Now we can safely delete the frame.  */
-		    delete_frame (w->frame, Qnil);
-		  }
-		else if (!NILP (w->dedicated) && !NILP (w->parent))
-		  {
-		    Lisp_Object window_to_delete;
-		    XSETWINDOW (window_to_delete, w);
-		    /* If this window is dedicated and not the only window
-		       in its frame, then kill it.  */
-		        call1 (Qdelete_window, window_to_delete);
-		  }
-		else
-		  {
-		    /* Otherwise show a different buffer in the window.  */
-		    w->dedicated = Qnil;
-		    Fset_window_buffer (window, buffer, Qnil);
-		    if (EQ (window, selected_window))
-		      Fset_buffer (w->buffer);
-		  }
+		/* Undedicate WINDOW.  */
+		w->dedicated = Qnil;
+		/* Make WINDOW show the buffer returned by
+		   other_buffer_safely, don't run any hooks.  */
+		set_window_buffer
+		  (window, other_buffer_safely (w->buffer), 0, 0);
+		/* If WINDOW is the selected window, make its buffer
+		   current.  But do so only if the window shows the
+		   current buffer (Bug#6454).  */
+		if (EQ (window, selected_window)
+		    && XBUFFER (w->buffer) == current_buffer)
+		  Fset_buffer (w->buffer);
 	      }
 	    break;
 
@@ -2875,85 +2807,26 @@ window-start value is reasonable when this function is called.  */)
 }
 
 
-DEFUN ("delete-windows-on", Fdelete_windows_on, Sdelete_windows_on,
-       0, 2, "bDelete windows on (buffer): ",
-       doc: /* Delete all windows showing BUFFER-OR-NAME.
-BUFFER-OR-NAME may be a buffer or the name of an existing buffer and
-defaults to the current buffer.
-
-Optional second argument FRAME controls which frames are affected.
-If optional argument FRAME is `visible', search all visible frames.
-If FRAME is 0, search all visible and iconified frames.
-If FRAME is nil, search all frames.
-If FRAME is t, search only the selected frame.
-If FRAME is a frame, search only that frame.
-When a window showing BUFFER-OR-NAME is dedicated and the only window of
-its frame, that frame is deleted when there are other frames left.  */)
-  (Lisp_Object buffer_or_name, Lisp_Object frame)
+void
+replace_buffer_in_windows (Lisp_Object buffer)
 {
-  Lisp_Object buffer;
-
-  /* FRAME uses t and nil to mean the opposite of what window_loop
-     expects.  */
-  if (NILP (frame))
-    frame = Qt;
-  else if (EQ (frame, Qt))
-    frame = Qnil;
-
-  if (NILP (buffer_or_name))
-    buffer = Fcurrent_buffer ();
-  else
-    {
-      buffer = Fget_buffer (buffer_or_name);
-      CHECK_BUFFER (buffer);
-    }
-
-  window_loop (DELETE_BUFFER_WINDOWS, buffer, 0, frame);
-
-  return Qnil;
+  call1 (Qreplace_buffer_in_windows, buffer);
 }
 
-DEFUN ("replace-buffer-in-windows", Freplace_buffer_in_windows,
-       Sreplace_buffer_in_windows,
-       0, 1, "bReplace buffer in windows: ",
-       doc: /* Replace BUFFER-OR-NAME with some other buffer in all windows showing it.
-BUFFER-OR-NAME may be a buffer or the name of an existing buffer and
-defaults to the current buffer.
 
-When a window showing BUFFER-OR-NAME is dedicated that window is
-deleted.  If that window is the only window on its frame, that frame is
-deleted too when there are other frames left.  If there are no other
-frames left, some other buffer is displayed in that window.  */)
-  (Lisp_Object buffer_or_name)
-{
-  Lisp_Object buffer;
-
-  if (NILP (buffer_or_name))
-    buffer = Fcurrent_buffer ();
-  else
-    {
-      buffer = Fget_buffer (buffer_or_name);
-      CHECK_BUFFER (buffer);
-    }
-
-  window_loop (UNSHOW_BUFFER, buffer, 0, Qt);
-
-  return Qnil;
-}
-
-/* Replace BUFFER with some other buffer in all windows
-   of all frames, even those on other keyboards.  */
+/* Safely replace BUFFER with some other buffer in all windows of all
+   frames, even those on other keyboards.  */
 
 void
-replace_buffer_in_all_windows (Lisp_Object buffer)
+replace_buffer_in_windows_safely (Lisp_Object buffer)
 {
   Lisp_Object tail, frame;
 
-  /* A single call to window_loop won't do the job
-     because it only considers frames on the current keyboard.
-     So loop manually over frames, and handle each one.  */
+  /* A single call to window_loop won't do the job because it only
+     considers frames on the current keyboard.  So loop manually over
+     frames, and handle each one.  */
   FOR_EACH_FRAME (tail, frame)
-    window_loop (UNSHOW_BUFFER, buffer, 1, frame);
+    window_loop (REPLACE_BUFFER_IN_WINDOWS_SAFELY, buffer, 1, frame);
 }
 
 /* If *ROWS or *COLS are too small a size for FRAME, set them to the
@@ -3014,8 +2887,6 @@ adjust_window_margins (struct window *w)
   return 1;
 }
 
-int window_select_count;
-
 static Lisp_Object Fset_window_margins (Lisp_Object, Lisp_Object, Lisp_Object);
 static Lisp_Object Fset_window_fringes (Lisp_Object, Lisp_Object, Lisp_Object,
 					Lisp_Object);
@@ -3023,6 +2894,8 @@ static Lisp_Object Fset_window_scroll_bars (Lisp_Object, Lisp_Object,
 					    Lisp_Object, Lisp_Object);
 static Lisp_Object Fset_window_vscroll (Lisp_Object, Lisp_Object, Lisp_Object);
 
+/* The following three routines are needed for running a window's
+   configuration change hook.  */
 static void
 run_funs (Lisp_Object funs)
 {
@@ -3031,8 +2904,19 @@ run_funs (Lisp_Object funs)
       call0 (XCAR (funs));
 }
 
-static Lisp_Object select_window_norecord (Lisp_Object window);
-static Lisp_Object select_frame_norecord (Lisp_Object frame);
+static Lisp_Object
+select_window_norecord (Lisp_Object window)
+{
+  return WINDOW_LIVE_P (window)
+    ? Fselect_window (window, Qt) : selected_window;
+}
+
+static Lisp_Object
+select_frame_norecord (Lisp_Object frame)
+{
+  return FRAME_LIVE_P (XFRAME (frame))
+    ? Fselect_frame (frame, Qt) : selected_frame;
+}
 
 void
 run_window_configuration_change_hook (struct frame *f)
@@ -3209,11 +3093,13 @@ WINDOW can be any window and defaults to the selected one.  */)
 
 DEFUN ("set-window-buffer", Fset_window_buffer, Sset_window_buffer, 2, 3, 0,
        doc: /* Make WINDOW display BUFFER-OR-NAME as its contents.
-WINDOW defaults to the selected window.  BUFFER-OR-NAME must be a buffer
-or the name of an existing buffer.  Optional third argument KEEP-MARGINS
-non-nil means that WINDOW's current display margins, fringe widths, and
-scroll bar settings are preserved; the default is to reset these from
-the local settings for BUFFER-OR-NAME or the frame defaults.  Return nil.
+WINDOW has to be a live window and defaults to the selected one.
+BUFFER-OR-NAME must be a buffer or the name of an existing buffer.
+
+Optional third argument KEEP-MARGINS non-nil means that WINDOW's current
+display margins, fringe widths, and scroll bar settings are preserved;
+the default is to reset these from the local settings for BUFFER-OR-NAME
+or the frame defaults.  Return nil.
 
 This function throws an error when WINDOW is strongly dedicated to its
 buffer (that is `window-dedicated-p' returns t for WINDOW) and does not
@@ -3238,32 +3124,26 @@ This function runs `window-scroll-functions' before running
   else if (!EQ (tem, Qt))
     /* w->buffer is t when the window is first being set up.  */
     {
-      if (EQ (tem, buffer))
-	return Qnil;
-      else if (EQ (w->dedicated, Qt))
-	error ("Window is dedicated to `%s'", SDATA (BVAR (XBUFFER (tem), name)));
-      else
-	w->dedicated = Qnil;
+      if (!EQ (tem, buffer))
+	{
+	  if (EQ (w->dedicated, Qt))
+	    /* WINDOW is strongly dedicated to its buffer, signal an
+	       error.  */
+	    error ("Window is dedicated to `%s'", SDATA (BVAR (XBUFFER (tem), name)));
+	  else
+	    /* WINDOW is weakly dedicated to its buffer, reset
+	       dedicatedness.  */
+	    w->dedicated = Qnil;
+
+	  call1 (Qrecord_window_buffer, window);
+	}
 
       unshow_buffer (w);
     }
 
   set_window_buffer (window, buffer, 1, !NILP (keep_margins));
+
   return Qnil;
-}
-
-static Lisp_Object
-select_window_norecord (Lisp_Object window)
-{
-  return WINDOW_LIVE_P (window)
-    ? Fselect_window (window, Qt) : selected_window;
-}
-
-static Lisp_Object
-select_frame_norecord (Lisp_Object frame)
-{
-  return FRAME_LIVE_P (XFRAME (frame))
-    ? Fselect_frame (frame, Qt) : selected_frame;
 }
 
 static Lisp_Object
@@ -3799,7 +3679,7 @@ resize_frame_windows (struct frame *f, int size, int horflag)
 DEFUN ("split-window-internal", Fsplit_window_internal, Ssplit_window_internal, 4, 4, 0,
        doc: /* Split window OLD.
 Second argument TOTAL-SIZE specifies the number of lines or columns of the
-new window.  In any case TOTAL-SIZE must be a positive integer
+new window.  In any case TOTAL-SIZE must be a positive integer.
 
 Third argument SIDE nil (or `below') specifies that the new window shall
 be located below WINDOW.  SIDE `above' means the new window shall be
@@ -4279,7 +4159,6 @@ DEFUN ("resize-mini-window-internal", Fresize_mini_window_internal, Sresize_mini
     }
   else error ("Failed to resize minibuffer window");
 }
-
 
 /* Mark window cursors off for all windows in the window tree rooted
    at W by setting their phys_cursor_on_p flag to zero.  Called from
@@ -5336,7 +5215,6 @@ and redisplay normally--don't erase and redraw the frame.  */)
   set_buffer_internal (obuf);
   return Qnil;
 }
-
 
 DEFUN ("window-text-height", Fwindow_text_height, Swindow_text_height,
        0, 1, 0,
@@ -6865,10 +6743,7 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Sset_window_display_table);
   defsubr (&Snext_window);
   defsubr (&Sprevious_window);
-  defsubr (&Sother_window);
   defsubr (&Sget_buffer_window);
-  defsubr (&Sdelete_windows_on);
-  defsubr (&Sreplace_buffer_in_windows);
   defsubr (&Sdelete_other_windows_internal);
   defsubr (&Sdelete_window_internal);
   defsubr (&Sresize_mini_window_internal);
@@ -6917,7 +6792,6 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
 void
 keys_of_window (void)
 {
-  initial_define_key (control_x_map, 'o', "other-window");
   initial_define_key (control_x_map, '<', "scroll-left");
   initial_define_key (control_x_map, '>', "scroll-right");
 

@@ -1,5 +1,42 @@
 2011-06-10  Martin Rudalics  <rudalics@gmx.at>
 
+	* loadup.el (top-level): Load window before files for the sake
+	of replace-buffer-in-windows.
+
+	* files.el (read-buffer-to-switch)
+	(switch-to-buffer-other-window)
+	(switch-to-buffer-other-frame, display-buffer-other-frame): Move
+	to window.el.
+
+	* simple.el (get-next-valid-buffer, last-buffer, next-buffer)
+	(previous-buffer): Move to window.el.
+
+	* bindings.el (unbury-buffer): Move to window.el.
+
+	* window.el (delete-other-windows-vertically): Move after
+	definition of delete-other-windows.
+	(other-window, delete-windows-on, replace-buffer-in-windows):
+	Move here from window.c.
+	(record-window-buffer, unrecord-window-buffer)
+	(set-window-buffer-start-and-point, switch-to-prev-buffer)
+	(switch-to-next-buffer): New functions.
+	(get-next-valid-buffer, last-buffer, next-buffer): Move here
+	from simple.el.  Call switch-to-next-buffer.
+	(previous-buffer): Move here from simple.el.  Call
+	switch-to-prev-buffer.
+	(bury-buffer): Move here from buffer.c.  Switch to previous
+	buffer when window cannot be deleted.
+	(unbury-buffer): Move here from bindings.el.
+	(ctl-x-map): Move binding for other-window from window.c to
+	here.
+	(read-buffer-to-switch, switch-to-buffer-other-window)
+	(switch-to-buffer-other-frame): Move here from files.el.
+	(normalize-buffer-to-switch-to): New functions.
+	(switch-to-buffer): Move here from buffer.c.  Use
+	read-buffer-to-switch and normalize-buffer-to-switch-to.
+
+2011-06-10  Martin Rudalics  <rudalics@gmx.at>
+
 	* window.el (window-min-height, window-min-width): Move here
 	from window.c.  Add defcustoms and rewrite doc-strings.
 	(resize-mini-window, resize-window): New functions.

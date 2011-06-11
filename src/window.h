@@ -827,6 +827,7 @@ extern Lisp_Object make_window (void);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,
                                             enum window_part *, int);
 EXFUN (Fwindow_dedicated_p, 1);
+extern void resize_frame_windows (struct frame *, int, int);
 extern void delete_all_subwindows (Lisp_Object);
 extern void freeze_window_starts (struct frame *, int);
 extern void grow_mini_window (struct window *, int);
@@ -902,7 +903,6 @@ extern Lisp_Object Qwindowp, Qwindow_live_p;
 extern Lisp_Object Vwindow_list;
 
 EXFUN (Fwindow_buffer, 1);
-EXFUN (Fwindow_frame, 1);
 EXFUN (Fget_buffer_window, 2);
 EXFUN (Fwindow_minibuffer_p, 1);
 EXFUN (Fselected_window, 0);
@@ -918,12 +918,10 @@ extern int window_internal_height (struct window *);
 extern int window_body_cols (struct window *w);
 EXFUN (Frecenter, 1);
 extern void temp_output_buffer_show (Lisp_Object);
-extern void replace_buffer_in_all_windows (Lisp_Object);
+extern void replace_buffer_in_windows_safely (Lisp_Object);
 extern void init_window_once (void);
 extern void init_window (void);
 extern void syms_of_window (void);
 extern void keys_of_window (void);
-extern void resize_frame_windows (struct frame *, int, int);
-
 
 #endif /* not WINDOW_H_INCLUDED */

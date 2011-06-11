@@ -1,3 +1,54 @@
+2011-06-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c: New Lisp objects Qbuffer_list_update_hook and
+	Qclone_number.  Remove external declaration of Qdelete_window.
+	(Fbuffer_list): Rewrite doc-string.  Minor restructuring of
+	code.
+	(Fget_buffer_create, Fmake_indirect_buffer, Frename_buffer): Run
+	Qbuffer_list_update_hook if allowed.
+	(Fother_buffer): Rewrite doc-string.  Major rewrite for new
+	buffer list implementation.
+	(other_buffer_safely): New function.
+	(Fkill_buffer): Replace call to replace_buffer_in_all_windows by
+	calls to replace_buffer_in_windows and
+	replace_buffer_in_windows_safely.  Run Qbuffer_list_update_hook
+	if allowed.
+	(record_buffer): Inhibit quitting and rewrite using quittable
+	functions.  Run Qbuffer_list_update_hook if allowed.
+	(Frecord_buffer, Funrecord_buffer): New functions.
+	(switch_to_buffer_1, Fswitch_to_buffer): Remove.  Move
+	switch-to-buffer to window.el.
+	(bury-buffer): Move to window.el.
+	(Vbuffer_list_update_hook): New variable.
+
+	* lisp.h (other_buffer_safely): Add prototype in buffer.c
+	section.
+
+	* window.h (resize_frame_windows): Move up in code.
+	(Fwindow_frame): Remove EXFUN.
+	(replace_buffer_in_all_windows): Remove prototype.
+	(replace_buffer_in_windows_safely): Add prototype.
+
+	* window.c: Declare Qdelete_window static again.  Move down
+	declaration of select_count.
+	(Fnext_window, Fprevious_window): Rewrite doc-strings.
+	(Fother_window): Move to window.el.
+	(window_loop): Remove DELETE_BUFFER_WINDOWS and UNSHOW_BUFFER
+	cases.  Add REPLACE_BUFFER_IN_WINDOWS_SAFELY case.
+	(Fdelete_windows_on, Freplace_buffer_in_windows): Move to
+	window.el.
+	(replace_buffer_in_windows): Implement by calling
+	Qreplace_buffer_in_windows.
+	(replace_buffer_in_all_windows): Remove with some functionality
+	moved into replace_buffer_in_windows_safely.
+	(replace_buffer_in_windows_safely): New function.
+	(select_window_norecord, select_frame_norecord): Move in front
+	of run_window_configuration_change_hook.  Remove now obsolete
+	declarations.
+	(Fset_window_buffer): Rewrite doc-string.  Call
+	Qrecord_window_buffer.
+	(keys_of_window): Move binding for other-window to window.el.
+
 2011-06-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dispextern.h (struct image): Replace data member, whose int_val
