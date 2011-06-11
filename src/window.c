@@ -1974,6 +1974,14 @@ recombine_windows (Lisp_Object window)
 	}
     }
 }
+
+/* If WINDOW can be deleted, delete it.  */
+static Lisp_Object
+delete_deletable_window (Lisp_Object window)
+{
+  if (!NILP (call1 (Qwindow_deletable_p, window)))
+    call1 (Qdelete_window, window);
+}
 
 /***********************************************************************
 			     Window List
@@ -5388,6 +5396,7 @@ the return value is nil.  Otherwise the value is t.  */)
   struct Lisp_Vector *saved_windows;
   Lisp_Object new_current_buffer;
   Lisp_Object frame;
+  Lisp_Object auto_buffer_name;
   FRAME_PTR f;
   EMACS_INT old_point = -1;
 
@@ -5443,6 +5452,8 @@ the return value is nil.  Otherwise the value is t.  */)
      However, there is other stuff we should still try to do below.  */
   if (FRAME_LIVE_P (f))
     {
+      Lisp_Object window;
+      Lisp_Object dead_windows = Qnil;
       register struct window *w;
       register struct saved_window *p;
       struct window *root_window;
@@ -5519,7 +5530,8 @@ the return value is nil.  Otherwise the value is t.  */)
       for (k = 0; k < saved_windows->header.size; k++)
 	{
 	  p = SAVED_WINDOW_N (saved_windows, k);
-	  w = XWINDOW (p->window);
+	  window = p->window;
+	  w = XWINDOW (window);
 	  w->next = Qnil;
 
 	  if (!NILP (p->parent))
@@ -5582,55 +5594,70 @@ the return value is nil.  Otherwise the value is t.  */)
 
 	  /* Reinstall the saved buffer and pointers into it.  */
 	  if (NILP (p->buffer))
+	    /* An internal window.  */
 	    w->buffer = p->buffer;
-	  else
+	  else if (!NILP (BVAR (XBUFFER (p->buffer), name)))
+	    /* If saved buffer is alive, install it.  */
 	    {
-	      if (!NILP (BVAR (XBUFFER (p->buffer), name)))
-		/* If saved buffer is alive, install it.  */
-		{
-		  w->buffer = p->buffer;
-		  w->start_at_line_beg = p->start_at_line_beg;
-		  set_marker_restricted (w->start, p->start, w->buffer);
-		  set_marker_restricted (w->pointm, p->pointm, w->buffer);
-		  Fset_marker (BVAR (XBUFFER (w->buffer), mark),
-			       p->mark, w->buffer);
+	      w->buffer = p->buffer;
+	      w->start_at_line_beg = p->start_at_line_beg;
+	      set_marker_restricted (w->start, p->start, w->buffer);
+	      set_marker_restricted (w->pointm, p->pointm, w->buffer);
+	      Fset_marker (BVAR (XBUFFER (w->buffer), mark),
+			   p->mark, w->buffer);
 
-		  /* As documented in Fcurrent_window_configuration, don't
-		     restore the location of point in the buffer which was
-		     current when the window configuration was recorded.  */
-		  if (!EQ (p->buffer, new_current_buffer)
-		      && XBUFFER (p->buffer) == current_buffer)
-		    Fgoto_char (w->pointm);
-		}
-	      else if (NILP (w->buffer) || NILP (BVAR (XBUFFER (w->buffer), name)))
-		/* Else unless window has a live buffer, get one.  */
-		{
-		  w->buffer = Fcdr (Fcar (Vbuffer_alist));
-		  /* This will set the markers to beginning of visible
-		     range.  */
-		  set_marker_restricted (w->start, make_number (0), w->buffer);
-		  set_marker_restricted (w->pointm, make_number (0),w->buffer);
-		  w->start_at_line_beg = Qt;
-		}
-	      else
-		/* Keeping window's old buffer; make sure the markers
-		   are real.  */
-		{
-		  /* Set window markers at start of visible range.  */
-		  if (XMARKER (w->start)->buffer == 0)
-		    set_marker_restricted (w->start, make_number (0),
-					   w->buffer);
-		  if (XMARKER (w->pointm)->buffer == 0)
-		    set_marker_restricted_both (w->pointm, w->buffer,
-						BUF_PT (XBUFFER (w->buffer)),
-						BUF_PT_BYTE (XBUFFER (w->buffer)));
-		  w->start_at_line_beg = Qt;
-		}
+	      /* As documented in Fcurrent_window_configuration, don't
+		 restore the location of point in the buffer which was
+		 current when the window configuration was recorded.  */
+	      if (!EQ (p->buffer, new_current_buffer)
+		  && XBUFFER (p->buffer) == current_buffer)
+		Fgoto_char (w->pointm);
+	    }
+	  else if (!NILP (w->buffer) && !NILP (BVAR (XBUFFER (w->buffer), name)))
+	    /* Keep window's old buffer; make sure the markers are
+	       real.  */
+	    {
+	      /* Set window markers at start of visible range.  */
+	      if (XMARKER (w->start)->buffer == 0)
+		set_marker_restricted (w->start, make_number (0),
+				       w->buffer);
+	      if (XMARKER (w->pointm)->buffer == 0)
+		set_marker_restricted_both (w->pointm, w->buffer,
+					    BUF_PT (XBUFFER (w->buffer)),
+					    BUF_PT_BYTE (XBUFFER (w->buffer)));
+	      w->start_at_line_beg = Qt;
+	    }
+	  else if (STRINGP (auto_buffer_name =
+			    Fwindow_parameter (window, Qauto_buffer_name))
+		   && SCHARS (auto_buffer_name) != 0
+		   && !NILP (w->buffer = Fget_buffer_create (auto_buffer_name)))
+	    {
+	      set_marker_restricted (w->start, make_number (0), w->buffer);
+	      set_marker_restricted (w->pointm, make_number (0), w->buffer);
+	      w->start_at_line_beg = Qt;
+	    }
+	  else
+	    /* Window has no live buffer, get one.  */
+	    {
+	      /* Get the buffer via other_buffer_safely in order to
+	      avoid showing an unimportant buffer and, if necessary, to
+	      recreate *scratch* in the course (part of Juanma's bs-show
+	      scenario from March 2011).  */
+	      w->buffer = other_buffer_safely (Fcurrent_buffer ());
+	      /* This will set the markers to beginning of visible
+		 range.  */
+	      set_marker_restricted (w->start, make_number (0), w->buffer);
+	      set_marker_restricted (w->pointm, make_number (0), w->buffer);
+	      w->start_at_line_beg = Qt;
+	      if (!NILP (w->dedicated))
+		/* Record this window as dead.  */
+		dead_windows = Fcons (window, dead_windows);
+	      /* Make sure window is no more dedicated.  */
+	      w->dedicated = Qnil;
 	    }
 	}
 
       FRAME_ROOT_WINDOW (f) = data->root_window;
-
       /* Arrange *not* to restore point in the buffer that was
 	 current when the window configuration was saved.  */
       if (EQ (XWINDOW (data->current_window)->buffer, new_current_buffer))
@@ -5638,10 +5665,10 @@ the return value is nil.  Otherwise the value is t.  */)
 			       make_number (old_point),
 			       XWINDOW (data->current_window)->buffer);
 
-      /* In the following call to `select-window, prevent "swapping
-	 out point" in the old selected window using the buffer that
-	 has been restored into it.  We already swapped out that point
-	 from that window's old buffer.  */
+      /* In the following call to `select-window', prevent "swapping out
+	 point" in the old selected window using the buffer that has
+	 been restored into it.  We already swapped out that point from
+	 that window's old buffer.  */
       select_window (data->current_window, Qnil, 1);
       BVAR (XBUFFER (XWINDOW (selected_window)->buffer), last_selected_window)
 	= selected_window;
@@ -5682,8 +5709,15 @@ the return value is nil.  Otherwise the value is t.  */)
 	}
 
       adjust_glyphs (f);
-
       UNBLOCK_INPUT;
+
+      /* Scan dead buffer windows.  */
+      for (; CONSP (dead_windows); dead_windows = XCDR (dead_windows))
+	{
+	  window = XCAR (dead_windows);
+	  if (WINDOW_LIVE_P (window) && !EQ (window, FRAME_ROOT_WINDOW (f)))
+	    delete_deletable_window (window);
+	}
 
       /* Fselect_window will have made f the selected frame, so we
 	 reselect the proper frame here.  Fhandle_switch_frame will change the
@@ -5930,82 +5964,6 @@ redirection (see `redirect-frame-focus').  */)
   XSETWINDOW_CONFIGURATION (tem, data);
   return (tem);
 }
-
-
-/***********************************************************************
-			    Window Split Tree
- ***********************************************************************/
-
-static Lisp_Object
-window_tree (struct window *w)
-{
-  Lisp_Object tail = Qnil;
-  Lisp_Object result = Qnil;
-
-  while (w)
-    {
-      Lisp_Object wn;
-
-      XSETWINDOW (wn, w);
-      if (!NILP (w->hchild))
-	wn = Fcons (Qnil, Fcons (Fwindow_edges (wn),
-				 window_tree (XWINDOW (w->hchild))));
-      else if (!NILP (w->vchild))
-	wn = Fcons (Qt, Fcons (Fwindow_edges (wn),
-			       window_tree (XWINDOW (w->vchild))));
-
-      if (NILP (result))
-	{
-	  result = tail = Fcons (wn, Qnil);
-	}
-      else
-	{
-	  XSETCDR (tail, Fcons (wn, Qnil));
-	  tail = XCDR (tail);
-	}
-
-      w = NILP (w->next) ? 0 : XWINDOW (w->next);
-    }
-
-  return result;
-}
-
-
-
-DEFUN ("window-tree", Fwindow_tree, Swindow_tree,
-       0, 1, 0,
-       doc: /* Return the window tree for frame FRAME.
-
-The return value is a list of the form (ROOT MINI), where ROOT
-represents the window tree of the frame's root window, and MINI
-is the frame's minibuffer window.
-
-If the root window is not split, ROOT is the root window itself.
-Otherwise, ROOT is a list (DIR EDGES W1 W2 ...) where DIR is nil for a
-horizontal split, and t for a vertical split, EDGES gives the combined
-size and position of the subwindows in the split, and the rest of the
-elements are the subwindows in the split.  Each of the subwindows may
-again be a window or a list representing a window split, and so on.
-EDGES is a list \(LEFT TOP RIGHT BOTTOM) as returned by `window-edges'.
-
-If FRAME is nil or omitted, return information on the currently
-selected frame.  */)
-  (Lisp_Object frame)
-{
-  FRAME_PTR f;
-
-  if (NILP (frame))
-    frame = selected_frame;
-
-  CHECK_FRAME (frame);
-  f = XFRAME (frame);
-
-  if (!FRAME_LIVE_P (f))
-    return Qnil;
-
-  return window_tree (XWINDOW (FRAME_ROOT_WINDOW (f)));
-}
-
 
 /***********************************************************************
 			    Marginal Areas
@@ -6365,116 +6323,82 @@ freeze_window_starts (struct frame *f, int freeze_p)
 			    Initialization
  ***********************************************************************/
 
-/* Return 1 if window configurations C1 and C2
-   describe the same state of affairs.  This is used by Fequal.  */
+/* Return 1 if window configurations CONFIGURATION1 and CONFIGURATION2
+   describe the same state of affairs.  This is used by Fequal.
+
+   ignore_positions non-zero means ignore non-matching scroll positions
+   and the like.
+
+   This ignores a couple of things like the dedicatedness status of
+   window, splits, nest and the like.  This might have to be fixed.  */
 
 int
-compare_window_configurations (Lisp_Object c1, Lisp_Object c2, int ignore_positions)
+compare_window_configurations (Lisp_Object configuration1, Lisp_Object configuration2, int ignore_positions)
 {
   register struct save_window_data *d1, *d2;
-  struct Lisp_Vector *sw1, *sw2;
+  struct Lisp_Vector *sws1, *sws2;
   int i;
 
-  CHECK_WINDOW_CONFIGURATION (c1);
-  CHECK_WINDOW_CONFIGURATION (c2);
+  CHECK_WINDOW_CONFIGURATION (configuration1);
+  CHECK_WINDOW_CONFIGURATION (configuration2);
 
-  d1 = (struct save_window_data *) XVECTOR (c1);
-  d2 = (struct save_window_data *) XVECTOR (c2);
-  sw1 = XVECTOR (d1->saved_windows);
-  sw2 = XVECTOR (d2->saved_windows);
+  d1 = (struct save_window_data *) XVECTOR (configuration1);
+  d2 = (struct save_window_data *) XVECTOR (configuration2);
+  sws1 = XVECTOR (d1->saved_windows);
+  sws2 = XVECTOR (d2->saved_windows);
 
-  if (d1->frame_cols != d2->frame_cols)
+  /* Frame settings must match.  */
+  if (d1->frame_cols != d2->frame_cols
+      || d1->frame_lines != d2->frame_lines
+      || d1->frame_menu_bar_lines != d2->frame_menu_bar_lines
+      || !EQ (d1->selected_frame, d2->selected_frame)
+      || !EQ (d1->current_buffer, d2->current_buffer)
+      || (!ignore_positions
+	  && (!EQ (d1->minibuf_scroll_window, d2->minibuf_scroll_window)
+	      || !EQ (d1->minibuf_selected_window, d2->minibuf_selected_window)))
+      || !EQ (d1->focus_frame, d2->focus_frame)
+      /* Verify that the two configurations have the same number of windows.  */
+      || sws1->header.size != sws2->header.size)
     return 0;
-  if (d1->frame_lines != d2->frame_lines)
-    return 0;
-  if (d1->frame_menu_bar_lines != d2->frame_menu_bar_lines)
-    return 0;
-  if (! EQ (d1->selected_frame, d2->selected_frame))
-    return 0;
-  /* Don't compare the current_window field directly.
-     Instead see w1_is_current and w2_is_current, below.  */
-  if (! EQ (d1->current_buffer, d2->current_buffer))
-    return 0;
-  if (! ignore_positions)
+
+  for (i = 0; i < sws1->header.size; i++)
     {
-      if (! EQ (d1->minibuf_scroll_window, d2->minibuf_scroll_window))
-	return 0;
-      if (! EQ (d1->minibuf_selected_window, d2->minibuf_selected_window))
-	return 0;
-    }
-  /* Don't compare the root_window field.
-     We don't require the two configurations
-     to use the same window object,
-     and the two root windows must be equivalent
-     if everything else compares equal.  */
-  if (! EQ (d1->focus_frame, d2->focus_frame))
-    return 0;
-
-  /* Verify that the two confis have the same number of windows.  */
-  if (sw1->header.size != sw2->header.size)
-    return 0;
-
-  for (i = 0; i < sw1->header.size; i++)
-    {
-      struct saved_window *p1, *p2;
+      struct saved_window *sw1, *sw2;
       int w1_is_current, w2_is_current;
 
-      p1 = SAVED_WINDOW_N (sw1, i);
-      p2 = SAVED_WINDOW_N (sw2, i);
+      sw1 = SAVED_WINDOW_N (sws1, i);
+      sw2 = SAVED_WINDOW_N (sws2, i);
 
-      /* Verify that the current windows in the two
-	 configurations correspond to each other.  */
-      w1_is_current = EQ (d1->current_window, p1->window);
-      w2_is_current = EQ (d2->current_window, p2->window);
-
-      if (w1_is_current != w2_is_current)
-	return 0;
-
-      /* Verify that the corresponding windows do match.  */
-      if (! EQ (p1->buffer, p2->buffer))
-	return 0;
-      if (! EQ (p1->left_col, p2->left_col))
-	return 0;
-      if (! EQ (p1->top_line, p2->top_line))
-	return 0;
-      if (! EQ (p1->total_cols, p2->total_cols))
-	return 0;
-      if (! EQ (p1->total_lines, p2->total_lines))
-	return 0;
-      if (! EQ (p1->display_table, p2->display_table))
-	return 0;
-      if (! EQ (p1->parent, p2->parent))
-	return 0;
-      if (! EQ (p1->prev, p2->prev))
-	return 0;
-      if (! ignore_positions)
-	{
-	  if (! EQ (p1->hscroll, p2->hscroll))
-	    return 0;
-	  if (!EQ (p1->min_hscroll, p2->min_hscroll))
-	    return 0;
-	  if (! EQ (p1->start_at_line_beg, p2->start_at_line_beg))
-	    return 0;
-	  if (NILP (Fequal (p1->start, p2->start)))
-	    return 0;
-	  if (NILP (Fequal (p1->pointm, p2->pointm)))
-	    return 0;
-	  if (NILP (Fequal (p1->mark, p2->mark)))
-	    return 0;
-	}
-      if (! EQ (p1->left_margin_cols, p2->left_margin_cols))
-	return 0;
-      if (! EQ (p1->right_margin_cols, p2->right_margin_cols))
-	return 0;
-      if (! EQ (p1->left_fringe_width, p2->left_fringe_width))
-	return 0;
-      if (! EQ (p1->right_fringe_width, p2->right_fringe_width))
-	return 0;
-      if (! EQ (p1->fringes_outside_margins, p2->fringes_outside_margins))
-	return 0;
-      if (! EQ (p1->scroll_bar_width, p2->scroll_bar_width))
-	return 0;
-      if (! EQ (p1->vertical_scroll_bar_type, p2->vertical_scroll_bar_type))
+      if (
+	   /* The "current" windows in the two configurations must
+	      correspond to each other.  */
+	  EQ (d1->current_window, sw1->window)
+	  != EQ (d2->current_window, sw2->window)
+	  /* Windows' buffers must match.  */
+	  || !EQ (sw1->buffer, sw2->buffer)
+	  || !EQ (sw1->left_col, sw2->left_col)
+	  || !EQ (sw1->top_line, sw2->top_line)
+	  || !EQ (sw1->total_cols, sw2->total_cols)
+	  || !EQ (sw1->total_lines, sw2->total_lines)
+	  || !EQ (sw1->display_table, sw2->display_table)
+	  /* The next two disjuncts check the window structure for
+	     equality.  */
+	  || !EQ (sw1->parent, sw2->parent)
+	  || !EQ (sw1->prev, sw2->prev)
+	  || (!ignore_positions
+	      && (!EQ (sw1->hscroll, sw2->hscroll)
+		  || !EQ (sw1->min_hscroll, sw2->min_hscroll)
+		  || !EQ (sw1->start_at_line_beg, sw2->start_at_line_beg)
+		  || NILP (Fequal (sw1->start, sw2->start))
+		  || NILP (Fequal (sw1->pointm, sw2->pointm))
+		  || NILP (Fequal (sw1->mark, sw2->mark))))
+	  || !EQ (sw1->left_margin_cols, sw2->left_margin_cols)
+	  || !EQ (sw1->right_margin_cols, sw2->right_margin_cols)
+	  || !EQ (sw1->left_fringe_width, sw2->left_fringe_width)
+	  || !EQ (sw1->right_fringe_width, sw2->right_fringe_width)
+	  || !EQ (sw1->fringes_outside_margins, sw2->fringes_outside_margins)
+	  || !EQ (sw1->scroll_bar_width, sw2->scroll_bar_width)
+	  || !EQ (sw1->vertical_scroll_bar_type, sw2->vertical_scroll_bar_type))
 	return 0;
     }
 
@@ -6768,7 +6692,6 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Swindow_configuration_frame);
   defsubr (&Sset_window_configuration);
   defsubr (&Scurrent_window_configuration);
-  defsubr (&Swindow_tree);
   defsubr (&Sset_window_margins);
   defsubr (&Swindow_margins);
   defsubr (&Sset_window_fringes);

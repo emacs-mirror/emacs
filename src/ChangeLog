@@ -1,3 +1,12 @@
+2011-06-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (delete_deletable_window): Re-add.
+	(Fset_window_configuration): Rewrite to handle dead buffers and
+	consequently deletable windows.
+	(window_tree, Fwindow_tree): Remove.  Supply functionality in
+	window.el.
+	(compare_window_configurations): Simplify code.
+
 2011-06-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* image.c (imagemagick_load_image): Fix type mismatch.

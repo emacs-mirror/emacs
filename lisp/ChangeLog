@@ -1,3 +1,28 @@
+2011-06-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-tree-1, window-tree): New functions, moving
+	the latter to window.el.
+	(bw-get-tree, bw-get-tree-1, bw-find-tree-sub)
+	(bw-find-tree-sub-1, bw-l, bw-t, bw-r, bw-b, bw-dir, bw-eqdir)
+	(bw-refresh-edges): Remove.
+	(balance-windows-1, balance-windows-2): New functions.
+	(balance-windows): Rewrite in terms of window tree functions,
+	balance-windows-1 and balance-windows-2.
+	(bw-adjust-window): Remove.
+	(balance-windows-area-adjust): New function with functionality of
+	bw-adjust-window but using resize-window.
+	(set-window-text-height): Rewrite doc-string.  Use
+	normalize-live-window and resize-window.
+	(enlarge-window-horizontally, shrink-window-horizontally): Rename
+	argument to DELTA.
+	(window-buffer-height): New function.
+	(fit-window-to-buffer, shrink-window-if-larger-than-buffer):
+	Rewrite using new window resize routines.
+	(kill-buffer-and-window, mouse-autoselect-window-select): Use
+	ignore-errors instead of condition-case.
+	(quit-window): Call delete-frame instead of delete-windows-on
+	for the only buffer on frame.
+
 2011-06-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* loadup.el (top-level): Load window before files for the sake
