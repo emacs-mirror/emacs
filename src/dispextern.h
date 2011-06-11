@@ -2792,16 +2792,9 @@ struct image
   /* 1 means that loading the image failed.  Don't try again.  */
   unsigned load_failed_p;
 
-  /* A place for image types to store additional data.  The member
-     data.lisp_val is marked during GC, so it's safe to store Lisp data
-     there.  Image types should free this data when their `free'
-     function is called.  */
-  struct
-  {
-    int int_val;
-    void *ptr_val;
-    Lisp_Object lisp_val;
-  } data;
+  /* A place for image types to store additional data.  It is marked
+     during GC.  */
+  Lisp_Object lisp_data;
 
   /* Hash value of image specification to speed up comparisons.  */
   EMACS_UINT hash;

@@ -971,7 +971,7 @@ or omitted means use the selected frame.  */)
       struct frame *f = check_x_frame (frame);
       int id = lookup_image (f, spec);
       struct image *img = IMAGE_FROM_ID (f, id);
-      ext = img->data.lisp_val;
+      ext = img->lisp_data;
     }
 
   return ext;
@@ -1001,7 +1001,7 @@ make_image (Lisp_Object spec, EMACS_UINT hash)
   img->type = lookup_image_type (image_spec_value (spec, QCtype, NULL));
   xassert (img->type != NULL);
   img->spec = spec;
-  img->data.lisp_val = Qnil;
+  img->lisp_data = Qnil;
   img->ascent = DEFAULT_IMAGE_ASCENT;
   img->hash = hash;
   img->corners[BOT_CORNER] = -1;  /* Full image */
@@ -1864,8 +1864,8 @@ mark_image (struct image *img)
   mark_object (img->spec);
   mark_object (img->dependencies);
 
-  if (!NILP (img->data.lisp_val))
-    mark_object (img->data.lisp_val);
+  if (!NILP (img->lisp_data))
+    mark_object (img->lisp_data);
 }
 
 
@@ -6818,9 +6818,9 @@ tiff_load (struct frame *f, struct image *img)
     continue;
 
   if (count > 1)
-    img->data.lisp_val = Fcons (Qcount,
-				Fcons (make_number (count),
-				       img->data.lisp_val));
+    img->lisp_data = Fcons (Qcount,
+			    Fcons (make_number (count),
+				   img->lisp_data));
 
   fn_TIFFClose (tiff);
   if (!rc)
@@ -6959,8 +6959,7 @@ static struct image_type gif_type =
 static void
 gif_clear_image (struct frame *f, struct image *img)
 {
-  /* IMG->data.ptr_val may contain metadata with extension data.  */
-  img->data.lisp_val = Qnil;
+  img->lisp_data = Qnil;
   x_clear_image (f, img);
 }
 
@@ -7313,23 +7312,23 @@ gif_load (struct frame *f, struct image *img)
 
   /* Save GIF image extension data for `image-metadata'.
      Format is (count IMAGES extension-data (FUNCTION "BYTES" ...)).  */
-  img->data.lisp_val = Qnil;
+  img->lisp_data = Qnil;
   if (gif->SavedImages[idx].ExtensionBlockCount > 0)
     {
       ExtensionBlock *ext = gif->SavedImages[idx].ExtensionBlocks;
       for (i = 0; i < gif->SavedImages[idx].ExtensionBlockCount; i++, ext++)
 	/* Append (... FUNCTION "BYTES") */
-	img->data.lisp_val = Fcons (make_unibyte_string (ext->Bytes, ext->ByteCount),
-				    Fcons (make_number (ext->Function),
-					   img->data.lisp_val));
-      img->data.lisp_val = Fcons (Qextension_data,
-				  Fcons (Fnreverse (img->data.lisp_val),
-					 Qnil));
+	img->lisp_data = Fcons (make_unibyte_string (ext->Bytes, ext->ByteCount),
+				Fcons (make_number (ext->Function),
+				       img->lisp_data));
+      img->lisp_data = Fcons (Qextension_data,
+			      Fcons (Fnreverse (img->lisp_data),
+				     Qnil));
     }
   if (gif->ImageCount > 1)
-    img->data.lisp_val = Fcons (Qcount,
-				Fcons (make_number (gif->ImageCount),
-				       img->data.lisp_val));
+    img->lisp_data = Fcons (Qcount,
+			    Fcons (make_number (gif->ImageCount),
+				   img->lisp_data));
 
   fn_DGifCloseFile (gif);
 
@@ -7537,10 +7536,10 @@ imagemagick_load_image (struct frame *f, struct image *img,
     }
 
   if (MagickGetNumberImages(ping_wand) > 1)
-    img->data.lisp_val =
+    img->lisp_data =
       Fcons (Qcount,
              Fcons (make_number (MagickGetNumberImages (ping_wand)),
-                    img->data.lisp_val));
+                    img->lisp_data));
 
   DestroyMagickWand (ping_wand);
 
@@ -8340,8 +8339,6 @@ static struct image_type gs_type =
 static void
 gs_clear_image (struct frame *f, struct image *img)
 {
-  /* IMG->data.ptr_val may contain a recorded colormap.  */
-  xfree (img->data.ptr_val);
   x_clear_image (f, img);
 }
 
@@ -8450,12 +8447,12 @@ gs_load (struct frame *f, struct image *img)
   if (NILP (loader))
     loader = intern ("gs-load-image");
 
-  img->data.lisp_val = call6 (loader, frame, img->spec,
-			      make_number (img->width),
-			      make_number (img->height),
-			      window_and_pixmap_id,
-			      pixel_colors);
-  return PROCESSP (img->data.lisp_val);
+  img->lisp_data = call6 (loader, frame, img->spec,
+			  make_number (img->width),
+			  make_number (img->height),
+			  window_and_pixmap_id,
+			  pixel_colors);
+  return PROCESSP (img->lisp_data);
 }
 
 
@@ -8483,9 +8480,9 @@ x_kill_gs_process (Pixmap pixmap, struct frame *f)
   /* Kill the GS process.  We should have found PIXMAP in the image
      cache and its image should contain a process object.  */
   img = c->images[i];
-  xassert (PROCESSP (img->data.lisp_val));
-  Fkill_process (img->data.lisp_val, Qnil);
-  img->data.lisp_val = Qnil;
+  xassert (PROCESSP (img->lisp_data));
+  Fkill_process (img->lisp_data, Qnil);
+  img->lisp_data = Qnil;
 
 #if defined (HAVE_X_WINDOWS)
 

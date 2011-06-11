@@ -70,6 +70,16 @@
 
 	* alloc.c (Fmake_string): Check for out-of-range init.
 
+2011-06-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispextern.h (struct image): Replace data member, whose int_val
+	and ptr_val fields were not used by anything, with a single
+	lisp_val object.
+
+	* image.c (Fimage_metadata, make_image, mark_image, tiff_load)
+	(gif_clear_image, gif_load, imagemagick_load_image)
+	(gs_clear_image, gs_load): Callers changed.
+
 2011-06-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* buffer.h: Include <time.h>, for time_t.
