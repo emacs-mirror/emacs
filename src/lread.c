@@ -1208,7 +1208,7 @@ Return t if the file exists and loads successfully.  */)
 	  result = stat (SSDATA (efound), &s2);
 	  SSET (efound, SBYTES (efound) - 1, 'c');
 
-	  if (result >= 0 && (unsigned) s1.st_mtime < (unsigned) s2.st_mtime)
+	  if (result == 0 && s1.st_mtime < s2.st_mtime)
 	    {
 	      /* Make the progress messages mention that source is newer.  */
 	      newer = 1;

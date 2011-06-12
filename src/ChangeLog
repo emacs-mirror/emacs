@@ -1,5 +1,10 @@
 2011-06-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Remove incorrect casts to 'unsigned' that lose info on 64-bit hosts.
+	These casts should not be needed on 32-bit hosts, either.
+	* keyboard.c (read_char):
+	* lread.c (Fload): Remove casts to unsigned.
+
 	* lisp.h (UNSIGNED_CMP): New macro.
 	This fixes comparison bugs on 64-bit hosts.
 	(ASCII_CHAR_P): Use it.

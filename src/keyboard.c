@@ -2959,9 +2959,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
      save the echo area contents for it to refer to.  */
   if (INTEGERP (c)
       && ! NILP (Vinput_method_function)
-      && (unsigned) XINT (c) >= ' '
-      && (unsigned) XINT (c) != 127
-      && (unsigned) XINT (c) < 256)
+      && ' ' <= XINT (c) && XINT (c) < 256 && XINT (c) != 127)
     {
       previous_echo_area_message = Fcurrent_message ();
       Vinput_method_previous_message = previous_echo_area_message;
@@ -2986,9 +2984,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
       /* Don't run the input method within a key sequence,
 	 after the first event of the key sequence.  */
       && NILP (prev_event)
-      && (unsigned) XINT (c) >= ' '
-      && (unsigned) XINT (c) != 127
-      && (unsigned) XINT (c) < 256)
+      && ' ' <= XINT (c) && XINT (c) < 256 && XINT (c) != 127)
     {
       Lisp_Object keys;
       int key_count, key_count_reset;
