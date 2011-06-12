@@ -564,7 +564,6 @@ static Lisp_Object Qxbm;
 /* Keywords.  */
 
 Lisp_Object QCascent, QCmargin, QCrelief;
-static Lisp_Object Qcount, Qextension_data;
 Lisp_Object QCconversion;
 static Lisp_Object QCheuristic_mask;
 static Lisp_Object QCcolor_symbols;
@@ -573,6 +572,7 @@ static Lisp_Object QCcrop, QCrotation;
 
 /* Other symbols.  */
 
+static Lisp_Object Qcount, Qextension_data, Qdelay;
 static Lisp_Object Qlaplace, Qemboss, Qedge_detection, Qheuristic;
 
 /* Function prototypes.  */
@@ -7315,16 +7315,31 @@ gif_load (struct frame *f, struct image *img)
   img->lisp_data = Qnil;
   if (gif->SavedImages[idx].ExtensionBlockCount > 0)
     {
+      unsigned int delay = 0;
       ExtensionBlock *ext = gif->SavedImages[idx].ExtensionBlocks;
       for (i = 0; i < gif->SavedImages[idx].ExtensionBlockCount; i++, ext++)
 	/* Append (... FUNCTION "BYTES") */
-	img->lisp_data = Fcons (make_unibyte_string (ext->Bytes, ext->ByteCount),
-				Fcons (make_number (ext->Function),
-				       img->lisp_data));
+	{
+	  img->lisp_data
+	    = Fcons (make_number (ext->Function),
+		     Fcons (make_unibyte_string (ext->Bytes, ext->ByteCount),
+			    img->lisp_data));
+	  if (ext->Function == GIF_LOCAL_DESCRIPTOR_EXTENSION
+	      && ext->ByteCount == 4)
+	    {
+	      delay = ext->Bytes[2] << CHAR_BIT;
+	      delay |= ext->Bytes[1];
+	    }
+	}
       img->lisp_data = Fcons (Qextension_data,
-			      Fcons (Fnreverse (img->lisp_data),
-				     Qnil));
+			      Fcons (img->lisp_data, Qnil));
+      if (delay)
+	img->lisp_data
+	  = Fcons (Qdelay,
+		   Fcons (make_float (((double) delay) * 0.01),
+			  img->lisp_data));
     }
+
   if (gif->ImageCount > 1)
     img->lisp_data = Fcons (Qcount,
 			    Fcons (make_number (gif->ImageCount),
@@ -8688,75 +8703,49 @@ as a ratio to the frame height and width.  If the value is
 non-numeric, there is no explicit limit on the size of images.  */);
   Vmax_image_size = make_float (MAX_IMAGE_SIZE);
 
-  Qpbm = intern_c_string ("pbm");
-  staticpro (&Qpbm);
+  DEFSYM (Qpbm, "pbm");
   ADD_IMAGE_TYPE (Qpbm);
 
-  Qxbm = intern_c_string ("xbm");
-  staticpro (&Qxbm);
+  DEFSYM (Qxbm, "xbm");
   ADD_IMAGE_TYPE (Qxbm);
 
   define_image_type (&xbm_type, 1);
   define_image_type (&pbm_type, 1);
 
-  Qcount = intern_c_string ("count");
-  staticpro (&Qcount);
-  Qextension_data = intern_c_string ("extension-data");
-  staticpro (&Qextension_data);
+  DEFSYM (Qcount, "count");
+  DEFSYM (Qextension_data, "extension-data");
+  DEFSYM (Qdelay, "delay");
 
-  QCascent = intern_c_string (":ascent");
-  staticpro (&QCascent);
-  QCmargin = intern_c_string (":margin");
-  staticpro (&QCmargin);
-  QCrelief = intern_c_string (":relief");
-  staticpro (&QCrelief);
-  QCconversion = intern_c_string (":conversion");
-  staticpro (&QCconversion);
-  QCcolor_symbols = intern_c_string (":color-symbols");
-  staticpro (&QCcolor_symbols);
-  QCheuristic_mask = intern_c_string (":heuristic-mask");
-  staticpro (&QCheuristic_mask);
-  QCindex = intern_c_string (":index");
-  staticpro (&QCindex);
-  QCgeometry = intern_c_string (":geometry");
-  staticpro (&QCgeometry);
-  QCcrop = intern_c_string (":crop");
-  staticpro (&QCcrop);
-  QCrotation = intern_c_string (":rotation");
-  staticpro (&QCrotation);
-  QCmatrix = intern_c_string (":matrix");
-  staticpro (&QCmatrix);
-  QCcolor_adjustment = intern_c_string (":color-adjustment");
-  staticpro (&QCcolor_adjustment);
-  QCmask = intern_c_string (":mask");
-  staticpro (&QCmask);
+  DEFSYM (QCascent, ":ascent");
+  DEFSYM (QCmargin, ":margin");
+  DEFSYM (QCrelief, ":relief");
+  DEFSYM (QCconversion, ":conversion");
+  DEFSYM (QCcolor_symbols, ":color-symbols");
+  DEFSYM (QCheuristic_mask, ":heuristic-mask");
+  DEFSYM (QCindex, ":index");
+  DEFSYM (QCgeometry, ":geometry");
+  DEFSYM (QCcrop, ":crop");
+  DEFSYM (QCrotation, ":rotation");
+  DEFSYM (QCmatrix, ":matrix");
+  DEFSYM (QCcolor_adjustment, ":color-adjustment");
+  DEFSYM (QCmask, ":mask");
 
-  Qlaplace = intern_c_string ("laplace");
-  staticpro (&Qlaplace);
-  Qemboss = intern_c_string ("emboss");
-  staticpro (&Qemboss);
-  Qedge_detection = intern_c_string ("edge-detection");
-  staticpro (&Qedge_detection);
-  Qheuristic = intern_c_string ("heuristic");
-  staticpro (&Qheuristic);
+  DEFSYM (Qlaplace, "laplace");
+  DEFSYM (Qemboss, "emboss");
+  DEFSYM (Qedge_detection, "edge-detection");
+  DEFSYM (Qheuristic, "heuristic");
 
-  Qpostscript = intern_c_string ("postscript");
-  staticpro (&Qpostscript);
+  DEFSYM (Qpostscript, "postscript");
 #ifdef HAVE_GHOSTSCRIPT
   ADD_IMAGE_TYPE (Qpostscript);
-  QCloader = intern_c_string (":loader");
-  staticpro (&QCloader);
-  QCbounding_box = intern_c_string (":bounding-box");
-  staticpro (&QCbounding_box);
-  QCpt_width = intern_c_string (":pt-width");
-  staticpro (&QCpt_width);
-  QCpt_height = intern_c_string (":pt-height");
-  staticpro (&QCpt_height);
+  DEFSYM (QCloader, ":loader");
+  DEFSYM (QCbounding_box, ":bounding-box");
+  DEFSYM (QCpt_width, ":pt-width");
+  DEFSYM (QCpt_height, ":pt-height");
 #endif /* HAVE_GHOSTSCRIPT */
 
 #ifdef HAVE_NTGUI
-  Qlibpng_version = intern_c_string ("libpng-version");
-  staticpro (&Qlibpng_version);
+  DEFSYM (Qlibpng_version, "libpng-version");
   Fset (Qlibpng_version,
 #if HAVE_PNG
 	make_number (PNG_LIBPNG_VER)
@@ -8767,53 +8756,43 @@ non-numeric, there is no explicit limit on the size of images.  */);
 #endif
 
 #if defined (HAVE_XPM) || defined (HAVE_NS)
-  Qxpm = intern_c_string ("xpm");
-  staticpro (&Qxpm);
+  DEFSYM (Qxpm, "xpm");
   ADD_IMAGE_TYPE (Qxpm);
 #endif
 
 #if defined (HAVE_JPEG) || defined (HAVE_NS)
-  Qjpeg = intern_c_string ("jpeg");
-  staticpro (&Qjpeg);
+  DEFSYM (Qjpeg, "jpeg");
   ADD_IMAGE_TYPE (Qjpeg);
 #endif
 
 #if defined (HAVE_TIFF) || defined (HAVE_NS)
-  Qtiff = intern_c_string ("tiff");
-  staticpro (&Qtiff);
+  DEFSYM (Qtiff, "tiff");
   ADD_IMAGE_TYPE (Qtiff);
 #endif
 
 #if defined (HAVE_GIF) || defined (HAVE_NS)
-  Qgif = intern_c_string ("gif");
-  staticpro (&Qgif);
+  DEFSYM (Qgif, "gif");
   ADD_IMAGE_TYPE (Qgif);
 #endif
 
 #if defined (HAVE_PNG) || defined (HAVE_NS)
-  Qpng = intern_c_string ("png");
-  staticpro (&Qpng);
+  DEFSYM (Qpng, "png");
   ADD_IMAGE_TYPE (Qpng);
 #endif
 
 #if defined (HAVE_IMAGEMAGICK)
-  Qimagemagick = intern_c_string ("imagemagick");
-  staticpro (&Qimagemagick);
+  DEFSYM (Qimagemagick, "imagemagick");
   ADD_IMAGE_TYPE (Qimagemagick);
 #endif
 
 #if defined (HAVE_RSVG)
-  Qsvg = intern_c_string ("svg");
-  staticpro (&Qsvg);
+  DEFSYM (Qsvg, "svg");
   ADD_IMAGE_TYPE (Qsvg);
 #ifdef HAVE_NTGUI
   /* Other libraries used directly by svg code.  */
-  Qgdk_pixbuf = intern_c_string ("gdk-pixbuf");
-  staticpro (&Qgdk_pixbuf);
-  Qglib = intern_c_string ("glib");
-  staticpro (&Qglib);
-  Qgobject = intern_c_string ("gobject");
-  staticpro (&Qgobject);
+  DEFSYM (Qgdk_pixbuf, "gdk-pixbuf");
+  DEFSYM (Qglib, "glib");
+  DEFSYM (Qgobject, "gobject");
 #endif /* HAVE_NTGUI  */
 #endif /* HAVE_RSVG  */
 

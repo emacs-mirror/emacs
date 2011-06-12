@@ -597,20 +597,16 @@ Example:
   "Return non-nil if image can be animated.
 Actually, the return value is a cons (NIMAGES . DELAY), where
 NIMAGES is the number of sub-images in the animated image and
-DELAY is the delay in 100ths of a second until the next sub-image
-shall be displayed."
+DELAY is the delay in second until the next sub-image shall be
+displayed."
   (cond
    ((eq (plist-get (cdr image) :type) 'gif)
     (let* ((metadata (image-metadata image))
 	   (images (plist-get metadata 'count))
-	   (extdata (plist-get metadata 'extension-data))
-	   (anim (plist-get extdata #xF9))
-	   (tmo (and (integerp images) (> images 1)
-		     (stringp anim) (>= (length anim) 4)
-		     (+ (aref anim 1) (* (aref anim 2) 256)))))
-      (when tmo
-	(if (eq tmo 0) (setq tmo 10))
-	(cons images tmo))))))
+	   (delay (plist-get metadata 'delay)))
+      (when (and images (> images 1) (numberp delay))
+	(if (< delay 0) (setq delay 0.1))
+	(cons images delay))))))
 
 (defun image-animate (image &optional index limit)
   "Start animating IMAGE.
@@ -620,15 +616,14 @@ With optional INDEX, begin animating from that animation frame.
 LIMIT specifies how long to animate the image.  If omitted or
 nil, play the animation until the end.  If t, loop forever.  If a
 number, play until that number of seconds has elapsed."
-  (let ((anim (image-animated-p image))
-	delay timer)
-    (when anim
+  (let ((animation (image-animated-p image))
+	timer)
+    (when animation
       (if (setq timer (image-animate-timer image))
 	  (cancel-timer timer))
-      (setq delay (max (* (cdr anim) 0.01) 0.025))
-      (run-with-timer 0.2 nil #'image-animate-timeout
-		      image (or index 0) (car anim)
-		      delay 0 limit))))
+      (run-with-timer 0.2 nil 'image-animate-timeout
+		      image (or index 0) (car animation)
+		      0 limit))))
 
 (defun image-animate-timer (image)
   "Return the animation timer for image IMAGE."
@@ -643,7 +638,7 @@ number, play until that number of seconds has elapsed."
 	(setq timer nil)))
     timer))
 
-(defun image-animate-timeout (image n count delay time-elapsed limit)
+(defun image-animate-timeout (image n count time-elapsed limit)
   "Display animation frame N of IMAGE.
 N=0 refers to the initial animation frame.
 COUNT is the total number of frames in the animation.
@@ -653,10 +648,16 @@ TIME-ELAPSED is the total time that has elapsed since
 LIMIT determines when to stop.  If t, loop forever.  If nil, stop
  after displaying the last animation frame.  Otherwise, stop
  after LIMIT seconds have elapsed."
-  (let (done)
-    (plist-put (cdr image) :index n)
-    (force-window-update)
-    (setq n (1+ n))
+  (plist-put (cdr image) :index n)
+  (force-window-update)
+  (setq n (1+ n))
+  (let* ((time (float-time))
+	 (animation (image-animated-p image))
+	 ;; Subtract off the time we took to load the image from the
+	 ;; stated delay time.
+	 (delay (max (+ (cdr animation) time (- (float-time)))
+		     0.01))
+	 done)
     (if (>= n count)
 	(if limit
 	    (setq n 0)
@@ -666,8 +667,7 @@ LIMIT determines when to stop.  If t, loop forever.  If nil, stop
 	(setq done (>= time-elapsed limit)))
     (unless done
       (run-with-timer delay nil 'image-animate-timeout
-		      image n count delay
-		      time-elapsed limit))))
+		      image n count time-elapsed limit))))
 
 
 (defcustom imagemagick-types-inhibit

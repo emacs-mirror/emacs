@@ -1,4 +1,4 @@
-2011-06-11  Paul Eggert  <eggert@cs.ucla.edu>
+2011-06-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* buffer.c (Qclone_number): Remove for now, as it's unused.
 	(record_buffer, Funrecord_buffer): Rename local to avoid shadowing.
@@ -26,6 +26,16 @@
 	* xterm.c (x_alloc_lighter_color_for_widget): Define only if USE_LUCID.
 	* xterm.h: Likewise.
 	(x_menu_set_in_use): Declare only if USE_GTK || USE_MOTIF.
+
+2011-06-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies.
+	(LISP_H): Add lib/intprops.h.
+
+2011-06-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (gif_load): Add animation frame delay to the metadata.
+	(syms_of_image): Use DEFSYM.  New symbol `delay'.
 
 2011-06-11  Martin Rudalics  <rudalics@gmx.at>
 
