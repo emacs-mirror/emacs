@@ -539,6 +539,7 @@ features.  Set to nil to skip the checks."
         ;; versions do too...)
         (when (or (memq 'reportBackground given-capabilities)
                   (and (memq 'reportBackground tocheck-capabilities)
+                       version
                        (>= version 242)))
           (send-string-to-terminal "\e]11;?\e\\")
           (when (equal (read-event nil nil 2) ?\e)
@@ -559,6 +560,7 @@ features.  Set to nil to skip the checks."
         ;; support.
         (when (or (memq 'modifyOtherKeys given-capabilities)
                   (and (memq 'modifyOtherKeys tocheck-capabilities)
+                       version
                        (>= version 216)))
           (terminal-init-xterm-modify-other-keys))
 
