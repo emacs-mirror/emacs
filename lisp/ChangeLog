@@ -1,3 +1,7 @@
+2011-06-12  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* emacs-lisp/syntax.el (syntax-ppss): Clarify which items are invalid.
+
 2011-06-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.el (image-animated-p): Return animation delay in seconds.
