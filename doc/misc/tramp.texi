@@ -1539,7 +1539,8 @@ can return user names only.
 @item @code{tramp-parse-netrc}
 @findex tramp-parse-netrc
 
-Finally, a function which parses @file{~/.netrc} like files.
+Finally, a function which parses @file{~/.netrc} like files.  This
+includes also @file{~/.authinfo}-style files.
 @end table
 
 If you want to keep your own data in a file, with your own structure,
@@ -1597,6 +1598,10 @@ machine melancholia port scp login daniel password geheim
 The port can be any @value{tramp} method (@pxref{Inline methods},
 @pxref{External methods}), to match only this method.  When you omit
 the port, you match all @value{tramp} methods.
+
+In case of problems, setting @code{auth-source-debug} to @code{t}
+gives useful debug messages.
+
 
 @anchor{Caching passwords}
 @subsection Caching passwords
