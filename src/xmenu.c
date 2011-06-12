@@ -356,8 +356,10 @@ x_menu_set_in_use (int in_use)
 {
   menu_items_inuse = in_use ? Qt : Qnil;
   popup_activated_flag = in_use;
+#ifdef USE_X_TOOLKIT
   if (popup_activated_flag)
     x_activate_timeout_atimer ();
+#endif
 }
 
 #endif

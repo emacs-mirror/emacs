@@ -21,8 +21,6 @@
 	(compare_window_configurations): Remove unused locals.
 	* xfns.c (x_set_scroll_bar_default_width): Remove unused locals.
 	* xmenu.c (x_menu_set_in_use): Define only if USE_GTK || USE_MOTIF.
-	Omit no-longer-needed #ifdef USE_X_TOOLKIT, since USE_X_TOOLKIT is
-	implied by USE_GTK || USE_MOTIF.
 	(dialog_selection_callback) [!USE_GTK]: Prefer intptr_t for integers
 	the same widths as pointers.  This follows up on the 2011-05-06 patch.
 	* xterm.c (x_alloc_lighter_color_for_widget): Define only if USE_LUCID.
