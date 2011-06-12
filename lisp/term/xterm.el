@@ -489,8 +489,6 @@ features.  Set to nil to skip the checks."
     (let ((coding-system-for-read 'binary)
           (chr nil)
           (str "")
-          (background-regex
-           "11;rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)")
           (recompute-faces nil)
           ;; If `xterm-extra-capabilities' is 'check, we don't know
           ;; the capabilities.  We need to check for those defined
@@ -540,7 +538,8 @@ features.  Set to nil to skip the checks."
           (setq str "")
           (while (not (equal (setq chr (read-event nil nil 2)) ?\\))
             (setq str (concat str (string chr))))
-          (if (string-match background-regex str)
+          (if (string-match
+               "11;rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)" str)
               (setq recompute-faces
                     (xterm-maybe-set-dark-background-mode
                      (string-to-number (match-string 1 str) 16)
