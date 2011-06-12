@@ -488,7 +488,7 @@ features.  Set to nil to skip the checks."
   (when xterm-extra-capabilities
     (let ((coding-system-for-read 'binary)
           (chr nil)
-          (str nil)
+          (str "")
           (background-regex
            "11;rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)")
           (recompute-faces nil)
@@ -525,10 +525,7 @@ features.  Set to nil to skip the checks."
         (while (not (equal (setq chr (read-event nil nil 2)) ?c))
           (setq str (concat str (string chr))))
         (if (string-match ">0;\\([0-9]+\\);0" str)
-            (setq version
-                  (string-to-number
-                   (substring str (match-beginning 1) (match-end 1))))))
-
+            (setq version (string-to-number (match-string 1 str)))))
       ;; 2. If reportBackground is known to be supported, or the
       ;; version is 242 or higher, assume the xterm supports
       ;; reporting the background color (TODO: maybe earlier
@@ -552,8 +549,7 @@ features.  Set to nil to skip the checks."
 
       ;; 3. If modifyOtherKeys is known to be supported or the
       ;; version is 216 (the version when modifyOtherKeys was
-      ;; introduced) or higher, initialize the modifyOtherKeys
-      ;; support.
+      ;; introduced) or higher, initialize the modifyOtherKeys support.
       (if (or (memq 'modifyOtherKeys given-capabilities)
               (and (memq 'modifyOtherKeys tocheck-capabilities)
                    version
