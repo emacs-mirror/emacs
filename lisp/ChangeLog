@@ -1,6 +1,7 @@
 2011-06-12  Glenn Morris  <rgm@gnu.org>
 
 	* term/xterm.el (terminal-init-xterm): `version' may be nil.  (Bug#8838)
+	Misc simplifications.
 
 2011-06-12  Martin Rudalics  <rudalics@gmx.at>
 
