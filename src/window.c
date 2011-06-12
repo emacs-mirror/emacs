@@ -3224,7 +3224,10 @@ temp_output_buffer_show (register Lisp_Object buf)
     call1 (Vtemp_buffer_show_function, buf);
   else
     {
-      window = display_buffer (buf, Qnil, Qnil);
+      window = display_buffer (buf, Vtemp_buffer_show_specifiers, Qnil);
+      /* Reset Vtemp_buffer_show_specifiers immediately so it won't
+	 affect subsequent calls.  */
+      Vtemp_buffer_show_specifiers = Qnil;
 
       if (!EQ (XWINDOW (window)->frame, selected_frame))
 	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
@@ -6520,6 +6523,16 @@ If this function is used, then it must do the entire job of showing
 the buffer; `temp-buffer-show-hook' is not run unless this function runs it.  */);
   Vtemp_buffer_show_function = Qnil;
 
+  DEFVAR_LISP ("temp-buffer-show-specifiers", Vtemp_buffer_show_specifiers,
+	       doc: /* Buffer display specifiers used by `with-output-to-temp-buffer'.
+These specifiers are passed by `with-output-to-temp-buffer' as second
+argument to `display-buffer'.  Applications should only let-bind this
+around a call to `with-output-to-temp-buffer'.
+
+For a description of buffer display specifiers see the variable
+`display-buffer-alist'.  */);
+  Vtemp_buffer_show_specifiers = Qnil;
+
   DEFVAR_LISP ("minibuffer-scroll-window", Vminibuf_scroll_window,
 	       doc: /* Non-nil means it is the window that C-M-v in minibuffer should scroll.  */);
   Vminibuf_scroll_window = Qnil;
@@ -6535,16 +6548,16 @@ is displayed in the `mode-line' face.  */);
   Vother_window_scroll_buffer = Qnil;
 
   DEFVAR_BOOL ("auto-window-vscroll", auto_window_vscroll_p,
-	       doc: /* *Non-nil means to automatically adjust `window-vscroll' to view tall lines.  */);
+	       doc: /* Non-nil means to automatically adjust `window-vscroll' to view tall lines.  */);
   auto_window_vscroll_p = 1;
 
   DEFVAR_INT ("next-screen-context-lines", next_screen_context_lines,
-	      doc: /* *Number of lines of continuity when scrolling by screenfuls.  */);
+	      doc: /* Number of lines of continuity when scrolling by screenfuls.  */);
   next_screen_context_lines = 2;
 
   DEFVAR_LISP ("scroll-preserve-screen-position",
 	       Vscroll_preserve_screen_position,
-	       doc: /* *Controls if scroll commands move point to keep its screen position unchanged.
+	       doc: /* Controls if scroll commands move point to keep its screen position unchanged.
 A value of nil means point does not keep its screen position except
 at the scroll margin or window boundary respectively.
 A value of t means point keeps its screen position if the scroll

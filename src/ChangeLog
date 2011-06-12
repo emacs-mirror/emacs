@@ -1,3 +1,16 @@
+2011-06-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (make_frame): Call other_buffer_safely instead of
+	other_buffer.
+
+	* window.c (temp_output_buffer_show): Call display_buffer with
+	second argument Vtemp_buffer_show_specifiers and reset latter
+	immediately after the call.
+	(Vtemp_buffer_show_specifiers): New variable.
+	(auto_window_vscroll_p, next_screen_context_lines)
+	(Vscroll_preserve_screen_position): Remove leading asterisks from
+	doc-strings.
+
 2011-06-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor problems found by GCC 4.6.0 static checking.

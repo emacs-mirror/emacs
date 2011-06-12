@@ -370,7 +370,7 @@ make_frame (int mini_p)
     /* If buf is a 'hidden' buffer (i.e. one whose name starts with
        a space), try to find another one.  */
     if (SREF (Fbuffer_name (buf), 0) == ' ')
-      buf = Fother_buffer (buf, Qnil, Qnil);
+      buf = other_buffer_safely (buf);
 
     /* Use set_window_buffer, not Fset_window_buffer, and don't let
        hooks be run by it.  The reason is that the whole frame/window
