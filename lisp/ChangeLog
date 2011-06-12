@@ -1,3 +1,10 @@
+2011-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el (fortran-mode-syntax-table):
+	* progmodes/f90.el (f90-mode-syntax-table):
+	Set % to punctuation.  (Bug#8820)
+	(f90-find-tag-default): Remove, no longer needed.
+
 2011-06-12  Daniel Colascione  <dan.colascione@gmail.com>
 
 	* emacs-lisp/syntax.el (syntax-ppss): Clarify which items are invalid.
