@@ -1,3 +1,7 @@
+2011-06-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (TIT_BIG5): Renamed from TIT-BIG5.
+
 2011-05-30  Oliver Scholz  <epameinondas@gmx.de>
 
 	* quail/ipa-praat.el: New input method.
