@@ -4481,6 +4481,20 @@ WINDOW was scrolled."
 	  (error (setq delta nil)))
 	delta))))
 
+(defun window-safely-shrinkable-p (&optional window)
+  "Return t if WINDOW can be shrunk without shrinking other windows.
+WINDOW defaults to the selected window."
+  (with-selected-window (or window (selected-window))
+    (let ((edges (window-edges)))
+      ;; The following doesn't satisfy the doc-string's claim when
+      ;; window and previous-/next-window are not part of the same
+      ;; combination but still share a common edge.  Using
+      ;; `window-iso-combined-p' instead should handle that.
+      (or (= (nth 2 edges) (nth 2 (window-edges (previous-window))))
+	  (= (nth 0 edges) (nth 0 (window-edges (next-window))))))))
+(make-obsolete
+ 'window-safely-shrinkable-p "use `window-iso-combined-p' instead." "24.1")
+
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink height of WINDOW if its buffer doesn't need so many lines.
 More precisely, shrink WINDOW vertically to be as small as
