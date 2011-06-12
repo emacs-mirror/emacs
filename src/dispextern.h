@@ -1729,7 +1729,7 @@ struct face_cache
    face doesn't exist.  */
 
 #define FACE_FROM_ID(F, ID)				\
-     (((unsigned) (ID) < FRAME_FACE_CACHE (F)->used)	\
+     (UNSIGNED_CMP (ID, <, FRAME_FACE_CACHE (F)->used)	\
       ? FRAME_FACE_CACHE (F)->faces_by_id[ID]		\
       : NULL)
 

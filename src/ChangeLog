@@ -1,3 +1,15 @@
+2011-06-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (UNSIGNED_CMP): New macro.
+	This fixes comparison bugs on 64-bit hosts.
+	(ASCII_CHAR_P): Use it.
+	* casefiddle.c (casify_object):
+	* character.h (ASCII_BYTE_P, CHAR_VALID_P):
+	(SINGLE_BYTE_CHAR_P, CHAR_STRING):
+	* composite.h (COMPOSITION_ENCODE_RULE_VALID):
+	* dispextern.h (FACE_FROM_ID):
+	* keyboard.c (read_char): Use UNSIGNED_CMP.
+
 2011-06-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xmenu.c (dialog_selection_callback) [!USE_GTK]: Cast to intptr_t,

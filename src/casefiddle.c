@@ -52,7 +52,7 @@ casify_object (enum case_action flag, Lisp_Object obj)
       /* If the character has higher bits set
 	 above the flags, return it unchanged.
 	 It is not a real character.  */
-      if ((unsigned) XFASTINT (obj) > (unsigned) flagbits)
+      if (UNSIGNED_CMP (XFASTINT (obj), >, flagbits))
 	return obj;
 
       c1 = XFASTINT (obj) & ~flagbits;

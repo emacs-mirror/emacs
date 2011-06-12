@@ -2906,9 +2906,13 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
 	goto exit;
 
       if ((STRINGP (KVAR (current_kboard, Vkeyboard_translate_table))
-	   && SCHARS (KVAR (current_kboard, Vkeyboard_translate_table)) > (unsigned) XFASTINT (c))
+	   && UNSIGNED_CMP (XFASTINT (c), <,
+			    SCHARS (KVAR (current_kboard,
+					  Vkeyboard_translate_table))))
 	  || (VECTORP (KVAR (current_kboard, Vkeyboard_translate_table))
-	      && ASIZE (KVAR (current_kboard, Vkeyboard_translate_table)) > (unsigned) XFASTINT (c))
+	      && UNSIGNED_CMP (XFASTINT (c), <,
+			       ASIZE (KVAR (current_kboard,
+					    Vkeyboard_translate_table))))
 	  || (CHAR_TABLE_P (KVAR (current_kboard, Vkeyboard_translate_table))
 	      && CHARACTERP (c)))
 	{

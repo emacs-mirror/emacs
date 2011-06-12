@@ -911,8 +911,18 @@ struct Lisp_Vector
 
 #endif	/* not __GNUC__ */
 
+/* Compute A OP B, using the unsigned comparison operator OP.  A and B
+   should be integer expressions.  This is not the same as
+   mathemeatical comparison; for example, UNSIGNED_CMP (0, <, -1)
+   returns 1.  For efficiency, prefer plain unsigned comparison if A
+   and B's sizes both fit (after integer promotion).  */
+#define UNSIGNED_CMP(a, op, b)						\
+  (max (sizeof ((a) + 0), sizeof ((b) + 0)) <= sizeof (unsigned)	\
+   ? ((a) + (unsigned) 0) op ((b) + (unsigned) 0)			\
+   : ((a) + (uintmax_t) 0) op ((b) + (uintmax_t) 0))
+
 /* Nonzero iff C is an ASCII character.  */
-#define ASCII_CHAR_P(c) ((unsigned) (c) < 0x80)
+#define ASCII_CHAR_P(c) UNSIGNED_CMP (c, <, 0x80)
 
 /* Almost equivalent to Faref (CT, IDX) with optimization for ASCII
    characters.  Do not check validity of CT.  */

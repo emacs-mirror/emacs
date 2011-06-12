@@ -102,13 +102,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define make_char(c) make_number (c)
 
 /* Nonzero iff C is an ASCII byte.  */
-#define ASCII_BYTE_P(c) ((unsigned) (c) < 0x80)
+#define ASCII_BYTE_P(c) UNSIGNED_CMP (c, <, 0x80)
 
 /* Nonzero iff X is a character.  */
 #define CHARACTERP(x) (NATNUMP (x) && XFASTINT (x) <= MAX_CHAR)
 
 /* Nonzero iff C is valid as a character code.  GENERICP is not used.  */
-#define CHAR_VALID_P(c, genericp) ((unsigned) (c) <= MAX_CHAR)
+#define CHAR_VALID_P(c, genericp) UNSIGNED_CMP (c, <=, MAX_CHAR)
 
 /* Check if Lisp object X is a character or not.  */
 #define CHECK_CHARACTER(x) \
@@ -129,7 +129,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   } while (0)
 
 /* Nonzero iff C is a character of code less than 0x100.  */
-#define SINGLE_BYTE_CHAR_P(c) ((unsigned) (c) < 0x100)
+#define SINGLE_BYTE_CHAR_P(c) UNSIGNED_CMP (c, <, 0x100)
 
 /* Nonzero if character C has a printable glyph.  */
 #define CHAR_PRINTABLE_P(c)	\
@@ -161,14 +161,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Returns the length of the multibyte form.  */
 
 #define CHAR_STRING(c, p)			\
-  ((unsigned) (c) <= MAX_1_BYTE_CHAR		\
+  (UNSIGNED_CMP (c, <=, MAX_1_BYTE_CHAR)	\
    ? ((p)[0] = (c),				\
       1)					\
-   : (unsigned) (c) <= MAX_2_BYTE_CHAR		\
+   : UNSIGNED_CMP (c, <=, MAX_2_BYTE_CHAR)	\
    ? ((p)[0] = (0xC0 | ((c) >> 6)),		\
       (p)[1] = (0x80 | ((c) & 0x3F)),		\
       2)					\
-   : (unsigned) (c) <= MAX_3_BYTE_CHAR		\
+   : UNSIGNED_CMP (c, <=, MAX_3_BYTE_CHAR)	\
    ? ((p)[0] = (0xE0 | ((c) >> 12)),		\
       (p)[1] = (0x80 | (((c) >> 6) & 0x3F)),	\
       (p)[2] = (0x80 | ((c) & 0x3F)),		\
