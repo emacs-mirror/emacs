@@ -139,7 +139,7 @@ static Lisp_Object Qoverlayp;
 
 Lisp_Object Qpriority, Qbefore_string, Qafter_string;
 
-static Lisp_Object Qclone_number, Qevaporate;
+static Lisp_Object Qevaporate;
 
 Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
@@ -1664,9 +1664,8 @@ with SIGHUP.  */)
 void
 record_buffer (Lisp_Object buffer)
 {
-  Lisp_Object aelt, link, tem;
+  Lisp_Object aelt, aelt_cons, tem;
   register struct frame *f = XFRAME (selected_frame);
-  register struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
 
   CHECK_BUFFER (buffer);
 
@@ -1676,10 +1675,10 @@ record_buffer (Lisp_Object buffer)
   tem = Vinhibit_quit;
   Vinhibit_quit = Qt;
   aelt = Frassq (buffer, Vbuffer_alist);
-  link = Fmemq (aelt, Vbuffer_alist);
+  aelt_cons = Fmemq (aelt, Vbuffer_alist);
   Vbuffer_alist = Fdelq (aelt, Vbuffer_alist);
-  XSETCDR (link, Vbuffer_alist);
-  Vbuffer_alist = link;
+  XSETCDR (aelt_cons, Vbuffer_alist);
+  Vbuffer_alist = aelt_cons;
   Vinhibit_quit = tem;
 
   /* Update buffer list of selected frame.  */
@@ -1714,7 +1713,7 @@ DEFUN ("unrecord-buffer", Funrecord_buffer, Sunrecord_buffer, 1, 1, 0,
 Return BUFFER.  */)
   (Lisp_Object buffer)
 {
-  Lisp_Object aelt, link, tem;
+  Lisp_Object aelt, aelt_cons, tem;
   register struct frame *f = XFRAME (selected_frame);
 
   CHECK_BUFFER (buffer);
@@ -1725,10 +1724,10 @@ Return BUFFER.  */)
   tem = Vinhibit_quit;
   Vinhibit_quit = Qt;
   aelt = Frassq (buffer, Vbuffer_alist);
-  link = Fmemq (aelt, Vbuffer_alist);
+  aelt_cons = Fmemq (aelt, Vbuffer_alist);
   Vbuffer_alist = Fdelq (aelt, Vbuffer_alist);
-  XSETCDR (link, Qnil);
-  Vbuffer_alist = nconc2 (Vbuffer_alist, link);
+  XSETCDR (aelt_cons, Qnil);
+  Vbuffer_alist = nconc2 (Vbuffer_alist, aelt_cons);
   Vinhibit_quit = tem;
 
   /* Update buffer lists of selected frame.  */

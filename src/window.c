@@ -1976,7 +1976,7 @@ recombine_windows (Lisp_Object window)
 }
 
 /* If WINDOW can be deleted, delete it.  */
-static Lisp_Object
+static void
 delete_deletable_window (Lisp_Object window)
 {
   if (!NILP (call1 (Qwindow_deletable_p, window)))
@@ -6364,7 +6364,6 @@ compare_window_configurations (Lisp_Object configuration1, Lisp_Object configura
   for (i = 0; i < sws1->header.size; i++)
     {
       struct saved_window *sw1, *sw2;
-      int w1_is_current, w2_is_current;
 
       sw1 = SAVED_WINDOW_N (sws1, i);
       sw2 = SAVED_WINDOW_N (sws2, i);

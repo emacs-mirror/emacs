@@ -1,3 +1,33 @@
+2011-06-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by GCC 4.6.0 static checking.
+	* buffer.c (Qclone_number): Remove for now, as it's unused.
+	(record_buffer, Funrecord_buffer): Rename local to avoid shadowing.
+	(record_buffer): Remove unused local.
+	* frame.c (other_visible_frames, frame_buffer_list): Now static.
+	(set_frame_buffer_list): Remove; unused.
+	* frame.h (other_visible_frames): Remove decl.
+	* keyboard.h (menu_items_inuse): Declare only if USE_GTK || USE_MOTIF.
+	* lisp.h (frame_buffer_list, set_frame_buffer_list): Remove decls.
+	(add_gpm_wait_descriptor, delete_gpm_wait_descriptor): Declare only
+	if HAVE_GPM.
+	* menu.c (menu_items_inuse): Now static unless USE_GTK || USE_MOTIF.
+	* process.c (add_gpm_wait_descriptor, delete_gpm_wait_descriptor):
+	Define only if HAVE_GPM.
+	* widget.c (EmacsFrameResize, emacsFrameClassRec): Now static.
+	(update_hints_inhibit): Remove; never set.  All uses removed.
+	* widgetprv.h (emacsFrameClassRec): Remove decl.
+	* window.c (delete_deletable_window): Now returns void, since it
+	wasn't returning anything.
+	(compare_window_configurations): Remove unused locals.
+	* xfns.c (x_set_scroll_bar_default_width): Remove unused locals.
+	* xmenu.c (x_menu_set_in_use): Define only if USE_GTK || USE_MOTIF.
+	(dialog_selection_callback) [!USE_GTK]: Prefer intptr_t for integers
+	the same widths as pointers.  This follows up on the 2011-05-06 patch.
+	* xterm.c (x_alloc_lighter_color_for_widget): Define only if USE_LUCID.
+	* xterm.h: Likewise.
+	(x_menu_set_in_use): Declare only if USE_GTK || USE_MOTIF.
+
 2011-06-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in: Update dependencies.
