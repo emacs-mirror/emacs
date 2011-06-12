@@ -1,5 +1,15 @@
 2011-06-12  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* SKK-DIC/SKK-JISYO.L: Add proper coding tag.
+	* CXTERM-DIC/4Corner.tit, CXTERM-DIC/ARRAY30.tit,
+	* CXTERM-DIC/CCDOSPY.tit, CXTERM-DIC/ECDICT.tit,
+	* CXTERM-DIC/ETZY.tit, CXTERM-DIC/PY-b5.tit,
+	* CXTERM-DIC/Punct-b5.tit, CXTERM-DIC/Punct.tit,
+	* CXTERM-DIC/QJ-b5.tit, CXTERM-DIC/QJ.tit, CXTERM-DIC/SW.tit,
+	* CXTERM-DIC/TONEPY.tit, CXTERM-DIC/ZOZY.tit: Likewise.
+	* MISC-DIC/cangjie-table.b5, MISC-DIC/cangjie-table.cns,
+	* MISC-DIC/pinyin.map, MISC-DIC/ziranma.cin: Likewise.
+
 	* Makefile.in (TIT_BIG5): Renamed from TIT-BIG5.
 
 2011-05-30  Oliver Scholz  <epameinondas@gmx.de>
