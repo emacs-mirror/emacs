@@ -1,5 +1,7 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* unexelf.c (unexec): Don't assume BSS addr fits in unsigned.
+
 	* xterm.c (handle_one_xevent): Omit unnecessary casts to unsigned.
 
 	* keyboard.c (modify_event_symbol): Don't limit alist len to UINT_MAX.
