@@ -6438,8 +6438,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
                            keys".  It seems there's no cleaner way.
                            Test IsModifierKey to avoid handling
                            mode_switch incorrectly.  */
-                        || ((unsigned) (keysym) >= XK_Select
-                            && (unsigned)(keysym) < XK_KP_Space)
+                        || (XK_Select <= keysym && keysym < XK_KP_Space)
 #endif
 #ifdef XK_dead_circumflex
                         || orig_keysym == XK_dead_circumflex
@@ -6492,10 +6491,8 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
                                 should be treated similarly to
                                 Mode_switch by Emacs. */
 #if defined XK_ISO_Lock && defined XK_ISO_Last_Group_Lock
-                             || ((unsigned)(orig_keysym)
-                                 >=  XK_ISO_Lock
-                                 && (unsigned)(orig_keysym)
-                                 <= XK_ISO_Last_Group_Lock)
+                             || (XK_ISO_Lock <= orig_keysym
+				 && orig_keysym <= XK_ISO_Last_Group_Lock)
 #endif
                              ))
 	    {
