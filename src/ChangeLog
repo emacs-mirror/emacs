@@ -1,5 +1,7 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lread.c (Fload): Don't compare a possibly-garbage time_t value.
+
 	GLYPH_CODE_FACE returns EMACS_INT, not int.
 	* dispextern.h (merge_faces):
 	* xfaces.c (merge_faces):
