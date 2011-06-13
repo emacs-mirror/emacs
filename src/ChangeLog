@@ -1,5 +1,9 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* chartab.c (Fchar_table_range): Use CHARACTERP to check range.
+	Otherwise, an out-of-range integer could cause undefined behavior
+	on a 64-bit host.
+
 	* composite.c: Use int, not EMACS_INT, for characters.
 	(fill_gstring_body, composition_compute_stop_pos): Use int, not
 	EMACS_INT, for values that are known to be in character range.
