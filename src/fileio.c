@@ -643,7 +643,7 @@ make_temp_name (Lisp_Object prefix, int base64_p)
 
   if (!make_temp_name_count_initialized_p)
     {
-      make_temp_name_count = (unsigned) time (NULL);
+      make_temp_name_count = time (NULL);
       make_temp_name_count_initialized_p = 1;
     }
 
