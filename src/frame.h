@@ -844,7 +844,6 @@ extern struct frame *make_frame_without_minibuffer (Lisp_Object,
                                                     struct kboard *,
                                                     Lisp_Object);
 #endif /* HAVE_WINDOW_SYSTEM */
-extern int other_visible_frames (struct frame *);
 extern void frame_make_pointer_invisible (void);
 extern void frame_make_pointer_visible (void);
 extern Lisp_Object delete_frame (Lisp_Object, Lisp_Object);

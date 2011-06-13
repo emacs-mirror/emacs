@@ -973,10 +973,12 @@ extern void x_delete_terminal (struct terminal *terminal);
 extern unsigned long x_copy_color (struct frame *, unsigned long);
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;
+extern void x_activate_timeout_atimer (void);
+#endif
+#ifdef USE_LUCID
 extern int x_alloc_lighter_color_for_widget (Widget, Display *, Colormap,
                                              unsigned long *,
                                              double, int);
-extern void x_activate_timeout_atimer (void);
 #endif
 extern int x_alloc_nearest_color (struct frame *, Colormap, XColor *);
 extern void x_query_colors (struct frame *f, XColor *, int);
@@ -1069,7 +1071,9 @@ extern void x_free_dpy_colors (Display *, Screen *, Colormap,
 
 /* Defined in xmenu.c */
 
+#if defined USE_GTK || defined USE_MOTIF
 extern void x_menu_set_in_use (int);
+#endif
 #ifdef USE_MOTIF
 extern void x_menu_wait_for_event (void *data);
 #endif

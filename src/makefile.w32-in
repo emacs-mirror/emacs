@@ -388,6 +388,7 @@ CONFIG_H   = $(EMACS_ROOT)/src/s/ms-w32.h \
 	     $(EMACS_ROOT)/nt/inc/sys/stat.h
 LISP_H     = $(SRC)/lisp.h \
 	     $(SRC)/globals.h \
+	     $(EMACS_ROOT)/lib/intprops.h \
 	     $(EMACS_ROOT)/nt/inc/inttypes.h \
 	     $(EMACS_ROOT)/nt/inc/stdint.h
 PROCESS_H  = $(SRC)/process.h \
@@ -566,7 +567,6 @@ $(BLD)/ccl.$(O) : \
 $(BLD)/character.$(O) : \
 	$(SRC)/character.c \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/lib/intprops.h \
 	$(LISP_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/character.h \
@@ -654,7 +654,6 @@ $(BLD)/data.$(O) : \
 	$(SRC)/data.c \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(EMACS_ROOT)/lib/intprops.h \
 	$(LISP_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
@@ -752,7 +751,6 @@ $(BLD)/editfns.$(O) : \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(EMACS_ROOT)/lib/intprops.h \
 	$(EMACS_ROOT)/lib/strftime.h \
 	$(EMACS_ROOT)/lib/verify.h \
 	$(LISP_H) \
@@ -1034,7 +1032,6 @@ $(BLD)/insdel.$(O) : \
 	$(SRC)/insdel.c \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(EMACS_ROOT)/lib/intprops.h \
 	$(LISP_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \
@@ -1052,7 +1049,6 @@ $(BLD)/intervals.$(O) : \
 	$(SRC)/intervals.c \
 	$(CONFIG_H) \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(EMACS_ROOT)/lib/intprops.h \
 	$(LISP_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/coding.h \
@@ -1305,7 +1301,6 @@ $(BLD)/print.$(O) : \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(EMACS_ROOT)/lib/ftoastr.h \
-	$(EMACS_ROOT)/lib/intprops.h \
 	$(LISP_H) \
 	$(PROCESS_H) \
 	$(SRC)/atimer.h \

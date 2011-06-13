@@ -600,6 +600,7 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
     (modify-syntax-entry ?=  "."  table)
     (modify-syntax-entry ?*  "."  table)
     (modify-syntax-entry ?/  "."  table)
+    (modify-syntax-entry ?%  "."  table) ; bug#8820
     (modify-syntax-entry ?\' "\"" table)
     (modify-syntax-entry ?\" "\"" table)
     ;; Consistent with GNU Fortran's default -- see the manual.

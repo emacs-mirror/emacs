@@ -70,9 +70,4 @@ typedef struct _EmacsFrameClassRec {	/* full class record declaration */
     EmacsFrameClassPart	emacs_frame_class;
 } EmacsFrameClassRec;
 
-extern EmacsFrameClassRec emacsFrameClassRec;	 /* class pointer */
-
-
-
 #endif /* _EmacsFrameP_h */
-

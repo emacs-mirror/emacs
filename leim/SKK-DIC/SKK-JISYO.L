@@ -1,4 +1,4 @@
-;; -*- text -*-
+;; -*- text; coding: euc-jp -*-
 ;; SKK-JISYO.L.unannotated was generated automatically by unannotation.awk at Tue Jan 26 00:31:27 2010
 ;; -*- mode: fundamental; coding: euc-jp -*-
 ;; Large size dictionary for SKK system

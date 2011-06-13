@@ -347,6 +347,8 @@ for instance using the window manager, then this produces a quit and
 
 #ifndef MSDOS
 
+#if defined USE_GTK || defined USE_MOTIF
+
 /* Set menu_items_inuse so no other popup menu or dialog is created.  */
 
 void
@@ -359,6 +361,8 @@ x_menu_set_in_use (int in_use)
     x_activate_timeout_atimer ();
 #endif
 }
+
+#endif
 
 /* Wait for an X event to arrive or for a timer to expire.  */
 

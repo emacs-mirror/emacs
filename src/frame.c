@@ -370,7 +370,7 @@ make_frame (int mini_p)
     /* If buf is a 'hidden' buffer (i.e. one whose name starts with
        a space), try to find another one.  */
     if (SREF (Fbuffer_name (buf), 0) == ' ')
-      buf = Fother_buffer (buf, Qnil, Qnil);
+      buf = other_buffer_safely (buf);
 
     /* Use set_window_buffer, not Fset_window_buffer, and don't let
        hooks be run by it.  The reason is that the whole frame/window
@@ -1115,7 +1115,7 @@ Otherwise, include all frames.  */)
    0 if all frames aside from F are invisible.
    (Exception: if F is the terminal frame, and we are using X, return 1.)  */
 
-int
+static int
 other_visible_frames (FRAME_PTR f)
 {
   /* We know the selected frame is visible,
@@ -2012,18 +2012,10 @@ frame_buffer_predicate (Lisp_Object frame)
 
 /* Return the buffer-list of the selected frame.  */
 
-Lisp_Object
+static Lisp_Object
 frame_buffer_list (Lisp_Object frame)
 {
   return XFRAME (frame)->buffer_list;
-}
-
-/* Set the buffer-list of the selected frame.  */
-
-void
-set_frame_buffer_list (Lisp_Object frame, Lisp_Object list)
-{
-  XFRAME (frame)->buffer_list = list;
 }
 
 /* Discard BUFFER from the buffer-list and buried-buffer-list of each frame.  */

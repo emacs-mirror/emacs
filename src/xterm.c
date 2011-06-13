@@ -1446,6 +1446,8 @@ x_frame_of_widget (Widget widget)
 }
 
 
+#ifdef USE_LUCID
+
 /* Allocate a color which is lighter or darker than *PIXEL by FACTOR
    or DELTA.  Try a color with RGB values multiplied by FACTOR first.
    If this produces the same color as PIXEL, try a color where all RGB
@@ -1460,6 +1462,8 @@ x_alloc_lighter_color_for_widget (Widget widget, Display *display, Colormap cmap
   struct frame *f = x_frame_of_widget (widget);
   return x_alloc_lighter_color (f, display, cmap, pixel, factor, delta);
 }
+
+#endif
 
 
 /* Structure specifying which arguments should be passed by Xt to

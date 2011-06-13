@@ -1,3 +1,9 @@
+2011-06-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Customizing Completion): Mention authinfo-style
+	files.
+	(Password handling): `auth-source-debug' is good for debug messages.
+
 2011-05-31  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus.texi (Store custom flags and keywords): Refer to

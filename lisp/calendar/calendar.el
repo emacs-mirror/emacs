@@ -1373,17 +1373,12 @@ Optional integers MON and YR are used instead of today's date."
     ;; Don't do any window-related stuff if we weren't called from a
     ;; window displaying the calendar.
     (when in-calendar-window
-      ;; The second test used to be window-full-width-p.
-      ;; Not sure what it was/is for, except perhaps some way of saying
-      ;; "try not to mess with existing configurations".
-      ;; If did the wrong thing on wide frames, where we have done a
-      ;; horizontal split in calendar-basic-setup.
-      (if (or (one-window-p t) (not (window-safely-shrinkable-p)))
-          ;; Don't mess with the window size, but ensure that the first
-          ;; line is fully visible.
-          (set-window-vscroll nil 0)
-        ;; Adjust the window to exactly fit the displayed calendar.
-        (fit-window-to-buffer nil nil calendar-minimum-window-height))
+      (if (window-iso-combined-p)
+	  ;; Adjust the window to exactly fit the displayed calendar.
+	  (fit-window-to-buffer nil nil calendar-minimum-window-height)
+	;; For a full height window or a window that is horizontally
+	;; combined don't fit height to that of its buffer.
+	(set-window-vscroll nil 0))
       (sit-for 0))
     (and (bound-and-true-p font-lock-mode)
          (font-lock-fontify-buffer))

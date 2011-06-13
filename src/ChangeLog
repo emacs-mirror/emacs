@@ -29,8 +29,8 @@
 	GLYPH_CODE_FACE returns EMACS_INT, not int.
 	* dispextern.h (merge_faces):
 	* xfaces.c (merge_faces):
-	* xdisp.c (get_next_display_element):
-	(next_element_from_display_vector): Don't assume EMACS_INT fits in int.
+	* xdisp.c (get_next_display_element, next_element_from_display_vector):
+	Don't assume EMACS_INT fits in int.
 
 	* character.h (CHAR_VALID_P): Remove unused parameter.
 	* fontset.c, lisp.h, xdisp.c: All uses changed.
@@ -85,7 +85,7 @@
 	arguments are no wider than unsigned, as a compile-time check
 	to prevent future regressions in this area.
 	* data.c (Faset):
-	* editfns.c (Fchar_to_string, general_insert_function, Finsert_char):
+	* editfns.c (Fchar_to_string, general_insert_function, Finsert_char)
 	(Fsubst_char_in_region):
 	* fns.c (concat):
 	* xdisp.c (decode_mode_spec_coding):
@@ -94,8 +94,6 @@
 	* fns.c (concat): Check that character args are actually
 	characters.  Without this test, these functions did the wrong
 	thing with wildly out-of-range values on 64-bit hosts.
-
-2011-06-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove incorrect casts to 'unsigned' that lose info on 64-bit hosts.
 	These casts should not be needed on 32-bit hosts, either.
@@ -106,13 +104,11 @@
 	This fixes comparison bugs on 64-bit hosts.
 	(ASCII_CHAR_P): Use it.
 	* casefiddle.c (casify_object):
-	* character.h (ASCII_BYTE_P, CHAR_VALID_P):
+	* character.h (ASCII_BYTE_P, CHAR_VALID_P)
 	(SINGLE_BYTE_CHAR_P, CHAR_STRING):
 	* composite.h (COMPOSITION_ENCODE_RULE_VALID):
 	* dispextern.h (FACE_FROM_ID):
 	* keyboard.c (read_char): Use UNSIGNED_CMP.
-
-2011-06-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xmenu.c (dialog_selection_callback) [!USE_GTK]: Cast to intptr_t,
 	not to EMACS_INT, to avoid GCC warning.
@@ -123,7 +119,8 @@
 	The cast incorrectly truncated 64-bit byte offsets to 32 bits, and
 	isn't needed on 32-bit machines.
 
-	* buffer.c (Fgenerate_new_buffer_name): Use EMACS_INT for count, not int.
+	* buffer.c (Fgenerate_new_buffer_name):
+	Use EMACS_INT for count, not int.
 	(advance_to_char_boundary): Return EMACS_INT, not int.
 
 	* data.c (Qcompiled_function): Now static.
@@ -143,8 +140,8 @@
 	* alloc.c: Use EMACS_INT, not int, to count objects.
 	(total_conses, total_markers, total_symbols, total_vector_size)
 	(total_free_conses, total_free_markers, total_free_symbols)
-	(total_free_floats, total_floats, total_free_intervals, total_intervals)
-	(total_strings, total_free_strings):
+	(total_free_floats, total_floats, total_free_intervals)
+	(total_intervals, total_strings, total_free_strings):
 	Now EMACS_INT, not int.  All uses changed.
 	(Fgarbage_collect): Compute overall total using a double, so that
 	integer overflow is less likely to be a problem.  Check for overflow
@@ -183,6 +180,126 @@
 	* character.c (string_escape_byte8): Fix nbytes/nchars typo.
 
 	* alloc.c (Fmake_string): Check for out-of-range init.
+
+2011-06-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (make_frame): Call other_buffer_safely instead of
+	other_buffer.
+
+	* window.c (temp_output_buffer_show): Call display_buffer with
+	second argument Vtemp_buffer_show_specifiers and reset latter
+	immediately after the call.
+	(Vtemp_buffer_show_specifiers): New variable.
+	(auto_window_vscroll_p, next_screen_context_lines)
+	(Vscroll_preserve_screen_position): Remove leading asterisks from
+	doc-strings.
+
+2011-06-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by GCC 4.6.0 static checking.
+	* buffer.c (Qclone_number): Remove for now, as it's unused.
+	(record_buffer, Funrecord_buffer): Rename local to avoid shadowing.
+	(record_buffer): Remove unused local.
+	* frame.c (other_visible_frames, frame_buffer_list): Now static.
+	(set_frame_buffer_list): Remove; unused.
+	* frame.h (other_visible_frames): Remove decl.
+	* keyboard.h (menu_items_inuse): Declare only if USE_GTK || USE_MOTIF.
+	* lisp.h (frame_buffer_list, set_frame_buffer_list): Remove decls.
+	(add_gpm_wait_descriptor, delete_gpm_wait_descriptor): Declare only
+	if HAVE_GPM.
+	* menu.c (menu_items_inuse): Now static unless USE_GTK || USE_MOTIF.
+	* process.c (add_gpm_wait_descriptor, delete_gpm_wait_descriptor):
+	Define only if HAVE_GPM.
+	* widget.c (EmacsFrameResize, emacsFrameClassRec): Now static.
+	(update_hints_inhibit): Remove; never set.  All uses removed.
+	* widgetprv.h (emacsFrameClassRec): Remove decl.
+	* window.c (delete_deletable_window): Now returns void, since it
+	wasn't returning anything.
+	(compare_window_configurations): Remove unused locals.
+	* xfns.c (x_set_scroll_bar_default_width): Remove unused locals.
+	* xmenu.c (x_menu_set_in_use): Define only if USE_GTK || USE_MOTIF.
+	(dialog_selection_callback) [!USE_GTK]: Prefer intptr_t for integers
+	the same widths as pointers.  This follows up on the 2011-05-06 patch.
+	* xterm.c (x_alloc_lighter_color_for_widget): Define only if USE_LUCID.
+	* xterm.h: Likewise.
+	(x_menu_set_in_use): Declare only if USE_GTK || USE_MOTIF.
+
+2011-06-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Update dependencies.
+	(LISP_H): Add lib/intprops.h.
+
+2011-06-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (gif_load): Add animation frame delay to the metadata.
+	(syms_of_image): Use DEFSYM.  New symbol `delay'.
+
+2011-06-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (delete_deletable_window): Re-add.
+	(Fset_window_configuration): Rewrite to handle dead buffers and
+	consequently deletable windows.
+	(window_tree, Fwindow_tree): Remove.  Supply functionality in
+	window.el.
+	(compare_window_configurations): Simplify code.
+
+2011-06-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* image.c (imagemagick_load_image): Fix type mismatch.
+	(Fimagemagick_types): Likewise.
+
+	* window.h (replace_buffer_in_windows): Declare.
+
+2011-06-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c: New Lisp objects Qbuffer_list_update_hook and
+	Qclone_number.  Remove external declaration of Qdelete_window.
+	(Fbuffer_list): Rewrite doc-string.  Minor restructuring of
+	code.
+	(Fget_buffer_create, Fmake_indirect_buffer, Frename_buffer): Run
+	Qbuffer_list_update_hook if allowed.
+	(Fother_buffer): Rewrite doc-string.  Major rewrite for new
+	buffer list implementation.
+	(other_buffer_safely): New function.
+	(Fkill_buffer): Replace call to replace_buffer_in_all_windows by
+	calls to replace_buffer_in_windows and
+	replace_buffer_in_windows_safely.  Run Qbuffer_list_update_hook
+	if allowed.
+	(record_buffer): Inhibit quitting and rewrite using quittable
+	functions.  Run Qbuffer_list_update_hook if allowed.
+	(Frecord_buffer, Funrecord_buffer): New functions.
+	(switch_to_buffer_1, Fswitch_to_buffer): Remove.  Move
+	switch-to-buffer to window.el.
+	(bury-buffer): Move to window.el.
+	(Vbuffer_list_update_hook): New variable.
+
+	* lisp.h (other_buffer_safely): Add prototype in buffer.c
+	section.
+
+	* window.h (resize_frame_windows): Move up in code.
+	(Fwindow_frame): Remove EXFUN.
+	(replace_buffer_in_all_windows): Remove prototype.
+	(replace_buffer_in_windows_safely): Add prototype.
+
+	* window.c: Declare Qdelete_window static again.  Move down
+	declaration of select_count.
+	(Fnext_window, Fprevious_window): Rewrite doc-strings.
+	(Fother_window): Move to window.el.
+	(window_loop): Remove DELETE_BUFFER_WINDOWS and UNSHOW_BUFFER
+	cases.  Add REPLACE_BUFFER_IN_WINDOWS_SAFELY case.
+	(Fdelete_windows_on, Freplace_buffer_in_windows): Move to
+	window.el.
+	(replace_buffer_in_windows): Implement by calling
+	Qreplace_buffer_in_windows.
+	(replace_buffer_in_all_windows): Remove with some functionality
+	moved into replace_buffer_in_windows_safely.
+	(replace_buffer_in_windows_safely): New function.
+	(select_window_norecord, select_frame_norecord): Move in front
+	of run_window_configuration_change_hook.  Remove now obsolete
+	declarations.
+	(Fset_window_buffer): Rewrite doc-string.  Call
+	Qrecord_window_buffer.
+	(keys_of_window): Move binding for other-window to window.el.
 
 2011-06-11  Chong Yidong  <cyd@stupidchicken.com>
 

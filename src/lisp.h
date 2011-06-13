@@ -3043,6 +3043,7 @@ extern Lisp_Object set_buffer_if_live (Lisp_Object);
 EXFUN (Fbarf_if_buffer_read_only, 0);
 EXFUN (Fcurrent_buffer, 0);
 EXFUN (Fother_buffer, 3);
+extern Lisp_Object other_buffer_safely (Lisp_Object);
 EXFUN (Foverlay_get, 2);
 EXFUN (Fbuffer_modified_p, 1);
 EXFUN (Fset_buffer_modified_p, 1);
@@ -3253,9 +3254,7 @@ EXFUN (Fframe_parameter, 2);
 EXFUN (Fmodify_frame_parameters, 2);
 EXFUN (Fraise_frame, 1);
 EXFUN (Fredirect_frame_focus, 2);
-extern Lisp_Object frame_buffer_list (Lisp_Object);
 extern void frames_discard_buffer (Lisp_Object);
-extern void set_frame_buffer_list (Lisp_Object, Lisp_Object);
 extern void syms_of_frame (void);
 
 /* Defined in emacs.c */
@@ -3312,8 +3311,10 @@ extern int wait_reading_process_output (int, int, int, int,
                                         int);
 extern void add_keyboard_wait_descriptor (int);
 extern void delete_keyboard_wait_descriptor (int);
+#ifdef HAVE_GPM
 extern void add_gpm_wait_descriptor (int);
 extern void delete_gpm_wait_descriptor (int);
+#endif
 extern void close_process_descs (void);
 extern void init_process (void);
 extern void syms_of_process (void);

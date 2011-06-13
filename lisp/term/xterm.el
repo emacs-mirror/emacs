@@ -484,13 +484,11 @@ features.  Set to nil to skip the checks."
   ;; When it is turned on many more key bindings work: things like
   ;; C-. C-, etc.
   ;; To do that we need to find out if the current terminal supports
-  ;; modifyOtherKeys. At this time only xterm does.
+  ;; modifyOtherKeys.  At this time only xterm does.
   (when xterm-extra-capabilities
     (let ((coding-system-for-read 'binary)
           (chr nil)
-          (str nil)
-          (background-regex
-           "11;rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)")
+          (str "")
           (recompute-faces nil)
           ;; If `xterm-extra-capabilities' is 'check, we don't know
           ;; the capabilities.  We need to check for those defined
@@ -498,78 +496,73 @@ features.  Set to nil to skip the checks."
           ;; we don't need to check for any capabilities because
           ;; they are given by setting `xterm-extra-capabilities' to
           ;; a list (which could be empty).
-          (tocheck-capabilities (when (eq 'check xterm-extra-capabilities)
-                                  '(modifyOtherKeys reportBackground)))
+          (tocheck-capabilities (if (eq 'check xterm-extra-capabilities)
+                                    '(modifyOtherKeys reportBackground)))
           ;; The given capabilities are either the contents of
-          ;; `xterm-extra-capabilities', if it's a list, or an empty
-          ;; list.
-          (given-capabilities (when (consp xterm-extra-capabilities)
-                                xterm-extra-capabilities))
+          ;; `xterm-extra-capabilities', if it's a list, or an empty list.
+          (given-capabilities (if (consp xterm-extra-capabilities)
+                                  xterm-extra-capabilities))
           version)
+      ;; 1. Set `version'
 
-      ;; Do the following if `xterm-extra-capabilities' is anything but nil.
-      (when xterm-extra-capabilities
-        ;; 1. Set `version'
+      ;; Pending input can be mistakenly returned by the calls to
+      ;; read-event below.  Discard it.
+      (discard-input)
+      ;; Try to find out the type of terminal by sending a "Secondary
+      ;; Device Attributes (DA)" query.
+      (send-string-to-terminal "\e[>0c")
 
-        ;; Pending input can be mistakenly returned by the calls to
-        ;; read-event below.  Discard it.
-        (discard-input)
-        ;; Try to find out the type of terminal by sending a "Secondary
-        ;; Device Attributes (DA)" query.
-        (send-string-to-terminal "\e[>0c")
+      ;; The reply should be: \e [ > NUMBER1 ; NUMBER2 ; NUMBER3 c
+      ;; If the timeout is completely removed for read-event, this
+      ;; might hang for terminals that pretend to be xterm, but don't
+      ;; respond to this escape sequence.  RMS' opinion was to remove
+      ;; it completely.  That might be right, but let's first try to
+      ;; see if by using a longer timeout we get rid of most issues.
+      (when (and (equal (read-event nil nil 2) ?\e)
+                 (equal (read-event nil nil 2) ?\[))
+        (while (not (equal (setq chr (read-event nil nil 2)) ?c))
+          (setq str (concat str (string chr))))
+        (if (string-match ">0;\\([0-9]+\\);0" str)
+            (setq version (string-to-number (match-string 1 str)))))
+      ;; 2. If reportBackground is known to be supported, or the
+      ;; version is 242 or higher, assume the xterm supports
+      ;; reporting the background color (TODO: maybe earlier
+      ;; versions do too...)
+      (when (or (memq 'reportBackground given-capabilities)
+                (and (memq 'reportBackground tocheck-capabilities)
+                     version
+                     (>= version 242)))
+        (send-string-to-terminal "\e]11;?\e\\")
+        (when (and (equal (read-event nil nil 2) ?\e)
+                   (equal (read-event nil nil 2) ?\]))
+          (setq str "")
+          (while (not (equal (setq chr (read-event nil nil 2)) ?\\))
+            (setq str (concat str (string chr))))
+          (if (string-match
+               "11;rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)" str)
+              (setq recompute-faces
+                    (xterm-maybe-set-dark-background-mode
+                     (string-to-number (match-string 1 str) 16)
+                     (string-to-number (match-string 2 str) 16)
+                     (string-to-number (match-string 3 str) 16))))))
 
-        ;; The reply should be: \e [ > NUMBER1 ; NUMBER2 ; NUMBER3 c
-        ;; If the timeout is completely removed for read-event, this
-        ;; might hang for terminals that pretend to be xterm, but don't
-        ;; respond to this escape sequence.  RMS' opinion was to remove
-        ;; it completely.  That might be right, but let's first try to
-        ;; see if by using a longer timeout we get rid of most issues.
-        (when (equal (read-event nil nil 2) ?\e)
-          (when (equal (read-event nil nil 2) ?\[)
-            (while (not (equal (setq chr (read-event nil nil 2)) ?c))
-              (setq str (concat str (string chr))))
-            (when (string-match ">0;\\([0-9]+\\);0" str)
-              (setq version
-                    (string-to-number
-                     (substring str (match-beginning 1) (match-end 1)))))))
-
-        ;; 2. If reportBackground is known to be supported, or the
-        ;; version is 242 or higher, assume the xterm supports
-        ;; reporting the background color (TODO: maybe earlier
-        ;; versions do too...)
-        (when (or (memq 'reportBackground given-capabilities)
-                  (and (memq 'reportBackground tocheck-capabilities)
-                       (>= version 242)))
-          (send-string-to-terminal "\e]11;?\e\\")
-          (when (equal (read-event nil nil 2) ?\e)
-            (when (equal (read-event nil nil 2) ?\])
-              (setq str "")
-              (while (not (equal (setq chr (read-event nil nil 2)) ?\\))
-                (setq str (concat str (string chr))))
-              (when (string-match background-regex str)
-                (setq recompute-faces
-                      (xterm-maybe-set-dark-background-mode
-                       (string-to-number (match-string 1 str) 16)
-                       (string-to-number (match-string 2 str) 16)
-                       (string-to-number (match-string 3 str) 16)))))))
-
-        ;; 3. If modifyOtherKeys is known to be supported or the
-        ;; version is 216 (the version when modifyOtherKeys was
-        ;; introduced) or higher, initialize the modifyOtherKeys
-        ;; support.
-        (when (or (memq 'modifyOtherKeys given-capabilities)
-                  (and (memq 'modifyOtherKeys tocheck-capabilities)
-                       (>= version 216)))
+      ;; 3. If modifyOtherKeys is known to be supported or the
+      ;; version is 216 (the version when modifyOtherKeys was
+      ;; introduced) or higher, initialize the modifyOtherKeys support.
+      (if (or (memq 'modifyOtherKeys given-capabilities)
+              (and (memq 'modifyOtherKeys tocheck-capabilities)
+                   version
+                   (>= version 216)))
           (terminal-init-xterm-modify-other-keys))
 
-        ;; Recompute faces here in case the background mode was
-        ;; set to dark.  We used to call
-        ;; `tty-set-up-initial-frame-faces' only once, but that
-        ;; caused the light background faces to be computed
-        ;; incorrectly.  See:
-        ;; http://permalink.gmane.org/gmane.emacs.devel/119627
-        (when recompute-faces
-          (tty-set-up-initial-frame-faces)))))
+      ;; Recompute faces here in case the background mode was
+      ;; set to dark.  We used to call
+      ;; `tty-set-up-initial-frame-faces' only once, but that
+      ;; caused the light background faces to be computed
+      ;; incorrectly.  See:
+      ;; http://permalink.gmane.org/gmane.emacs.devel/119627
+      (when recompute-faces
+        (tty-set-up-initial-frame-faces))))
 
     (run-hooks 'terminal-init-xterm-hook))
 

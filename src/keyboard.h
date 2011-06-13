@@ -268,7 +268,9 @@ extern Lisp_Object menu_items;
 
 /* If non-nil, means that the global vars defined here are already in use.
    Used to detect cases where we try to re-enter this non-reentrant code.  */
+#if defined USE_GTK || defined USE_MOTIF
 extern Lisp_Object menu_items_inuse;
+#endif
 
 /* Number of slots currently allocated in menu_items.  */
 extern int menu_items_allocated;
