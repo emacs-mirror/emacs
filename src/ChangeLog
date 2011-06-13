@@ -1,5 +1,11 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* composite.c: Use int, not EMACS_INT, for characters.
+	(fill_gstring_body, composition_compute_stop_pos): Use int, not
+	EMACS_INT, for values that are known to be in character range.
+	This doesn't fix any bugs but is the usual style inside Emacs and
+	may generate better code on 32-bit machines.
+
 	Make sure a 64-bit char is never passed to ENCODE_CHAR.
 	This is for reasons similar to the recent CHAR_STRING fix.
 	* charset.c (Fencode_char): Check that character arg is actually

@@ -858,7 +858,7 @@ fill_gstring_body (Lisp_Object gstring)
   for (i = 0; i < len; i++)
     {
       Lisp_Object g = LGSTRING_GLYPH (gstring, i);
-      EMACS_INT c = XINT (AREF (header, i + 1));
+      int c = XFASTINT (AREF (header, i + 1));
 
       if (NILP (g))
 	{
@@ -995,7 +995,8 @@ static int _work_char;
 void
 composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT endpos, Lisp_Object string)
 {
-  EMACS_INT start, end, c;
+  EMACS_INT start, end;
+  int c;
   Lisp_Object prop, val;
   /* This is from forward_to_next_line_start in xdisp.c.  */
   const int MAX_NEWLINE_DISTANCE = 500;
