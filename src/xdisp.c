@@ -3117,7 +3117,8 @@ compute_display_string_pos (struct text_pos *position,
 			    struct bidi_string_data *string, int frame_window_p)
 {
   /* OBJECT = nil means current buffer.  */
-  Lisp_Object object = (string && string->s) ? string->lstring : Qnil;
+  Lisp_Object object =
+    (string && STRINGP (string->lstring)) ? string->lstring : Qnil;
   Lisp_Object pos, spec;
   EMACS_INT eob = STRINGP (object) ? string->schars : ZV;
   EMACS_INT begb = STRINGP (object) ? 0 : BEGV;
@@ -3178,11 +3179,12 @@ EMACS_INT
 compute_display_string_end (EMACS_INT charpos, struct bidi_string_data *string)
 {
   /* OBJECT = nil means current buffer.  */
-  Lisp_Object object = (string && string->s) ? string->lstring : Qnil;
+  Lisp_Object object =
+    (string && STRINGP (string->lstring)) ? string->lstring : Qnil;
   Lisp_Object pos = make_number (charpos);
   EMACS_INT eob = STRINGP (object) ? string->schars : ZV;
 
-  if (charpos >= eob)
+  if (charpos >= eob || (string->s && !STRINGP (object)))
     return eob;
 
   if (NILP (Fget_char_property (pos, Qdisplay, object)))
@@ -5607,7 +5609,7 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 	{
 	  it->paragraph_embedding = NEUTRAL_DIR;
 	  it->bidi_it.string.lstring = string;
-	  it->bidi_it.string.s = SDATA (string);
+	  it->bidi_it.string.s = NULL;
 	  it->bidi_it.string.schars = it->end_charpos;
 	  it->bidi_it.string.bufpos = 0;
 	  it->bidi_it.string.from_disp_str = 0;

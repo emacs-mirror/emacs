@@ -615,15 +615,17 @@ bidi_char_at_pos (EMACS_INT bytepos, const unsigned char *s)
    character position of the next display string, or -1 if not yet
    computed.  When the next character is at or beyond that position,
    the function updates DISP_POS with the position of the next display
-   string.  STRING->s is the string to iterate, or NULL if iterating over
-   a buffer.  */
+   string.  STRING->s is the C string to iterate, or NULL if iterating
+   over a buffer or a Lisp string; in the latter case, STRING->lstring
+   is the Lisp string.  */
 static inline int
 bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
 		 struct bidi_string_data *string,
 		 int frame_window_p, EMACS_INT *ch_len, EMACS_INT *nchars)
 {
   int ch;
-  EMACS_INT endpos = string->s ? string->schars : ZV;
+  EMACS_INT endpos =
+    (string->s || STRINGP (string->lstring)) ? string->schars : ZV;
   struct text_pos pos;
 
   /* If we got past the last known position of display string, compute
@@ -658,6 +660,9 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
       if (string->s)
 	*ch_len = bidi_count_bytes (string->s, *disp_pos, bytepos,
 				    disp_end_pos);
+      else if (STRINGP (string->lstring))
+	*ch_len = bidi_count_bytes (SDATA (string->lstring), *disp_pos,
+				    bytepos, disp_end_pos);
       else
 	*ch_len = CHAR_TO_BYTE (disp_end_pos) - bytepos;
     }
@@ -668,6 +673,13 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
 	  EMACS_INT len;
 
 	  ch = STRING_CHAR_AND_LENGTH (string->s + bytepos, len);
+	  *ch_len = len;
+	}
+      else if (STRINGP (string->lstring))
+	{
+	  EMACS_INT len;
+
+	  ch = STRING_CHAR_AND_LENGTH (SDATA (string->lstring) + bytepos, len);
 	  *ch_len = len;
 	}
       else
@@ -729,7 +741,7 @@ void
 bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 {
   EMACS_INT bytepos = bidi_it->bytepos;
-  int string_p = bidi_it->string.s != NULL;
+  int string_p = bidi_it->string.s != NULL || STRINGP (bidi_it->string.lstring);
   EMACS_INT pstartbyte;
   /* Note that begbyte is a byte position, while end is a character
      position.  Yes, this is ugly, but we are trying to avoid costly
@@ -760,6 +772,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
       EMACS_INT ch_len, nchars;
       EMACS_INT pos, disp_pos = -1;
       bidi_type_t type;
+      const unsigned char *s;
 
       if (!bidi_initialized)
 	bidi_initialize ();
@@ -777,8 +790,9 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 	 we are potentially in a new paragraph that doesn't yet
 	 exist.  */
       pos = bidi_it->charpos;
-      if (bytepos > begbyte
-	  && bidi_char_at_pos (bytepos, bidi_it->string.s) == '\n')
+      s = STRINGP (bidi_it->string.lstring) ?
+	SDATA (bidi_it->string.lstring) : bidi_it->string.s;
+      if (bytepos > begbyte && bidi_char_at_pos (bytepos, s) == '\n')
 	{
 	  bytepos++;
 	  pos++;
@@ -1017,7 +1031,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
   int current_level;
   int new_level;
   bidi_dir_t override;
-  int string_p = bidi_it->string.s != NULL;
+  int string_p = bidi_it->string.s != NULL || STRINGP (bidi_it->string.lstring);
 
   /* If reseat()'ed, don't advance, so as to start iteration from the
      position where we were reseated.  bidi_it->bytepos can be less
@@ -1028,10 +1042,13 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
       bidi_it->first_elt = 0;
       if (string_p)
 	{
+	  const unsigned char *p =
+	    STRINGP (bidi_it->string.lstring)
+	    ? SDATA (bidi_it->string.lstring) : bidi_it->string.s;
+
 	  if (bidi_it->charpos < 0)
 	    bidi_it->charpos = 0;
-	  bidi_it->bytepos = bidi_count_bytes (bidi_it->string.s, 0, 0,
-					       bidi_it->charpos);
+	  bidi_it->bytepos = bidi_count_bytes (p, 0, 0, bidi_it->charpos);
 	}
       else
 	{
@@ -1208,14 +1225,15 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
   int prev_level = bidi_it->level_stack[bidi_it->stack_idx].level;
   int new_level  = bidi_resolve_explicit_1 (bidi_it);
   EMACS_INT eob = bidi_it->string.s ? bidi_it->string.schars : ZV;
+  const unsigned char *s = STRINGP (bidi_it->string.lstring)
+    ? SDATA (bidi_it->string.lstring) : bidi_it->string.s;
 
   if (prev_level < new_level
       && bidi_it->type == WEAK_BN
       && bidi_it->ignore_bn_limit == -1 /* only if not already known */
       && bidi_it->charpos < eob		/* not already at EOB */
       && bidi_explicit_dir_char (bidi_char_at_pos (bidi_it->bytepos
-						   + bidi_it->ch_len,
-						   bidi_it->string.s)))
+						   + bidi_it->ch_len, s)))
     {
       /* Avoid pushing and popping embedding levels if the level run
 	 is empty, as this breaks level runs where it shouldn't.
@@ -1228,12 +1246,15 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
       bidi_copy_it (&saved_it, bidi_it);
 
       while (bidi_explicit_dir_char (bidi_char_at_pos (bidi_it->bytepos
-						       + bidi_it->ch_len,
-						       bidi_it->string.s)))
+						       + bidi_it->ch_len, s)))
 	{
 	  /* This advances to the next character, skipping any
 	     characters covered by display strings.  */
 	  level = bidi_resolve_explicit_1 (bidi_it);
+	  /* If string.lstring was relocated inside bidi_resolve_explicit_1,
+	     a pointer to its data is no longer valid.  */
+	  if (STRINGP (bidi_it->string.lstring))
+	    s = SDATA (bidi_it->string.lstring);
 	}
 
       if (bidi_it->nchars <= 0)
@@ -1287,7 +1308,9 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
   int next_char;
   bidi_type_t type_of_next;
   struct bidi_it saved_it;
-  EMACS_INT eob = bidi_it->string.s ? bidi_it->string.schars : ZV;
+  EMACS_INT eob =
+    (STRINGP (bidi_it->string.lstring) || bidi_it->string.s)
+    ? bidi_it->string.schars : ZV;
 
   type = bidi_it->type;
   override = bidi_it->level_stack[bidi_it->stack_idx].override;
@@ -1354,11 +1377,14 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 			&& bidi_it->prev.orig_type == WEAK_EN)
 		       || bidi_it->prev.type_after_w1 == WEAK_AN)))
 	{
+	  const unsigned char *s =
+	    STRINGP (bidi_it->string.lstring)
+	    ? SDATA (bidi_it->string.lstring) : bidi_it->string.s;
+
 	  next_char =
 	    bidi_it->charpos + bidi_it->nchars >= eob
 	    ? BIDI_EOB
-	    : bidi_char_at_pos (bidi_it->bytepos + bidi_it->ch_len,
-				bidi_it->string.s);
+	    : bidi_char_at_pos (bidi_it->bytepos + bidi_it->ch_len, s);
 	  type_of_next = bidi_get_type (next_char, override);
 
 	  if (type_of_next == WEAK_BN
@@ -1407,14 +1433,16 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	  else			/* W5: ET/BN with EN after it.  */
 	    {
 	      EMACS_INT en_pos = bidi_it->charpos + bidi_it->nchars;
+	      const unsigned char *s =
+		STRINGP (bidi_it->string.lstring)
+		? SDATA (bidi_it->string.lstring) : bidi_it->string.s;
 
 	      if (bidi_it->nchars <= 0)
 		abort ();
 	      next_char =
 		bidi_it->charpos + bidi_it->nchars >= eob
 		? BIDI_EOB
-		: bidi_char_at_pos (bidi_it->bytepos + bidi_it->ch_len,
-				    bidi_it->string.s);
+		: bidi_char_at_pos (bidi_it->bytepos + bidi_it->ch_len, s);
 	      type_of_next = bidi_get_type (next_char, override);
 
 	      if (type_of_next == WEAK_ET
@@ -1636,8 +1664,12 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 
   if (bidi_it->scan_dir == 1)
     {
+      EMACS_INT eob =
+	(bidi_it->string.s || STRINGP (bidi_it->string.lstring))
+	? bidi_it->string.schars : ZV;
+
       /* There's no sense in trying to advance if we hit end of text.  */
-      if (bidi_it->charpos >= (bidi_it->string.s ? bidi_it->string.schars : ZV))
+      if (bidi_it->charpos >= eob)
 	return bidi_it->resolved_level;
 
       /* Record the info about the previous character.  */
@@ -1679,13 +1711,16 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
      UNKNOWN_BT.  */
   if (bidi_cache_idx > bidi_cache_start && !bidi_it->first_elt)
     {
+      int bob =
+	(bidi_it->string.s || STRINGP (bidi_it->string.lstring)) ? 0 : 1;
+
       if (bidi_it->scan_dir > 0)
 	{
 	  if (bidi_it->nchars <= 0)
 	    abort ();
 	  next_char_pos = bidi_it->charpos + bidi_it->nchars;
 	}
-      else if (bidi_it->charpos >= (bidi_it->string.s ? 0 : 1))
+      else if (bidi_it->charpos >= bob)
 	/* Implementation note: we allow next_char_pos to be as low as
 	   0 for buffers or -1 for strings, and that is okay because
 	   that's the "position" of the sentinel iterator state we
@@ -1990,7 +2025,7 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 	 separator limit to the end of the string prevents
 	 bidi_paragraph_init from being called automatically on this
 	 string.  */
-      if (bidi_it->string.s)
+      if (bidi_it->string.s || STRINGP (bidi_it->string.lstring))
 	bidi_it->separator_limit = bidi_it->string.schars;
       else if (bidi_it->bytepos < ZV_BYTE)
 	{
