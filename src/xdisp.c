@@ -1335,7 +1335,7 @@ string_char_and_length (const unsigned char *str, int *len)
   int c;
 
   c = STRING_CHAR_AND_LENGTH (str, *len);
-  if (!CHAR_VALID_P (c, 1))
+  if (!CHAR_VALID_P (c))
     /* We may not change the length here because other places in Emacs
        don't use this function, i.e. they silently accept invalid
        characters.  */

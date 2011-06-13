@@ -1,5 +1,8 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* character.h (CHAR_VALID_P): Remove unused parameter.
+	* fontset.c, lisp.h, xdisp.c: All uses changed.
+
 	* editfns.c (Ftranslate_region_internal): Omit redundant test.
 
 	* fns.c (concat): Minor tuning based on overflow analysis.

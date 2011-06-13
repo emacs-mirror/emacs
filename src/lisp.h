@@ -1609,7 +1609,7 @@ typedef struct {
 #define SET_GLYPH(glyph, char, face) ((glyph).ch = (char), (glyph).face_id = (face))
 
 /* Return 1 if GLYPH contains valid character code.  */
-#define GLYPH_CHAR_VALID_P(glyph) CHAR_VALID_P (GLYPH_CHAR (glyph), 1)
+#define GLYPH_CHAR_VALID_P(glyph) CHAR_VALID_P (GLYPH_CHAR (glyph))
 
 
 /* Glyph Code from a display vector may either be an integer which
@@ -1623,7 +1623,7 @@ typedef struct {
   (CONSP (gc) ? XINT (XCDR (gc)) : INTEGERP (gc) ? (XINT (gc) >> CHARACTERBITS) : DEFAULT_FACE_ID)
 
 /* Return 1 if glyph code from display vector contains valid character code.  */
-#define GLYPH_CODE_CHAR_VALID_P(gc) CHAR_VALID_P (GLYPH_CODE_CHAR (gc), 1)
+#define GLYPH_CODE_CHAR_VALID_P(gc) CHAR_VALID_P (GLYPH_CODE_CHAR (gc))
 
 #define GLYPH_CODE_P(gc) ((CONSP (gc) && INTEGERP (XCAR (gc)) && INTEGERP (XCDR (gc))) || INTEGERP (gc))
 

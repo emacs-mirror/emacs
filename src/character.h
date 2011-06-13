@@ -109,8 +109,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Nonzero iff X is a character.  */
 #define CHARACTERP(x) (NATNUMP (x) && XFASTINT (x) <= MAX_CHAR)
 
-/* Nonzero iff C is valid as a character code.  GENERICP is not used.  */
-#define CHAR_VALID_P(c, genericp) UNSIGNED_CMP (c, <=, MAX_CHAR)
+/* Nonzero iff C is valid as a character code.  */
+#define CHAR_VALID_P(c) UNSIGNED_CMP (c, <=, MAX_CHAR)
 
 /* Check if Lisp object X is a character or not.  */
 #define CHECK_CHARACTER(x) \

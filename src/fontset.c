@@ -1851,7 +1851,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
       face_id = face_at_buffer_position (w, pos, -1, -1, &dummy,
 					 pos + 100, 0, -1);
     }
-  if (! CHAR_VALID_P (c, 0))
+  if (! CHAR_VALID_P (c))
     return Qnil;
   face_id = FACE_FOR_CHAR (f, FACE_FROM_ID (f, face_id), c, pos, Qnil);
   face = FACE_FROM_ID (f, face_id);
