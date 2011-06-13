@@ -1,3 +1,7 @@
+2011-06-13  Glenn Morris  <rgm@gnu.org>
+
+	* cus-dep.el (custom-make-dependencies): Use up command-line-args-left.
+
 2011-06-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* help.el (help-window): Remove variable.
