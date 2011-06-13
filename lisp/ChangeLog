@@ -1,3 +1,45 @@
+2011-06-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-function): Rewrite doc-string.
+	(display-buffer-window, display-buffer-alist): New variables.
+	(display-buffer-split-specifiers)
+	(display-buffer-side-specifiers)
+	(display-buffer-macro-specifiers): New constants.
+	(display-buffer-even-window-sizes, display-buffer-set-height)
+	(display-buffer-set-width, display-buffer-select-window)
+	(display-buffer-in-window, display-buffer-reuse-window)
+	(display-buffer-split-window-1, display-buffer-split-window)
+	(display-buffer-split-atom-window, display-buffer-pop-up-window)
+	(display-buffer-pop-up-frame, display-buffer-pop-up-side-window)
+	(display-buffer-in-side-window, normalize-buffer-to-display)
+	(display-buffer-normalize-specifiers-1)
+	(display-buffer-normalize-specifiers-2)
+	(display-buffer-normalize-specifiers, display-buffer-frame): New
+	functions.
+	(display-buffer): Major rewrite.
+	(display-buffer-other-window, display-buffer-other-frame)
+	(pop-to-buffer, switch-to-buffer-other-window)
+	(switch-to-buffer-other-frame): Rewrite.
+	(display-buffer-same-window, display-buffer-same-frame)
+	(display-buffer-same-frame-other-window)
+	(pop-to-buffer-same-window, pop-to-buffer-same-frame)
+	(pop-to-buffer-other-window)
+	(pop-to-buffer-same-frame-other-window)
+	(pop-to-buffer-other-frame, switch-to-buffer-same-frame)
+	(switch-to-buffer-other-window-same-frame): New functions.
+	(same-window-p, special-display-p): Rewrite disabling warnings.
+	Make obsolete.
+	(pop-up-frames, display-buffer-reuse-frames, pop-up-windows)
+	(display-buffer-mark-dedicated): Initialize to symbol 'unset.
+	Make obsolete
+	(same-window-buffer-names, same-window-regexps)
+	(special-display-frame-alist, special-display-popup-frame)
+	(special-display-function, special-display-buffer-names)
+	(special-display-regexps, pop-up-frame-alist)
+	(pop-up-frame-function, split-window-preferred-function)
+	(split-height-threshold, split-width-threshold)
+	(even-window-heights): Make obsolete.
+
 2011-06-12  Glenn Morris  <rgm@gnu.org>
 
 	* term/xterm.el (terminal-init-xterm): `version' may be nil.  (Bug#8838)
