@@ -123,7 +123,7 @@ char_string (unsigned int c, unsigned char *p)
 
   if (c & CHAR_MODIFIER_MASK)
     {
-      c = (unsigned) char_resolve_modifier_mask ((int) c);
+      c = char_resolve_modifier_mask (c);
       /* If C still has any modifier bits, just ignore it.  */
       c &= ~CHAR_MODIFIER_MASK;
     }

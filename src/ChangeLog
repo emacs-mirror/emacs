@@ -1,5 +1,6 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* character.c (char_string): Remove unnecessary casts.
 
 	Make sure a 64-bit char is never passed to CHAR_STRING.
 	Otherwise, CHAR_STRING would do the wrong thing on a 64-bit platform,
