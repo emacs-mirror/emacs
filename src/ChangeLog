@@ -1,8 +1,6 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* xterm.c (x_alloc_nearest_color_1): Use a more-precise algorithm
-	for nearest color, one that neither overflows nor relies on unsigned
-	arithmetic.
+	* xterm.c (x_alloc_nearest_color_1): Prefer int to long when int works.
 
 	Remove unnecessary casts.
 	* xterm.c (x_term_init):
