@@ -10268,7 +10268,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
 				     gray_bitmap_bits,
 				     gray_bitmap_width, gray_bitmap_height,
-				     (unsigned long) 1, (unsigned long) 0, 1);
+				     1, 0, 1);
   }
 
 #ifdef HAVE_X_I18N

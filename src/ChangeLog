@@ -1,5 +1,11 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Remove unnecessary casts.
+	* xterm.c (x_term_init):
+	* xfns.c (x_set_border_pixel):
+	* widget.c (create_frame_gcs): Remove casts to unsigned long etc.
+	These aren't needed now that we assume ANSI C.
+
 	* sound.c (Fplay_sound_internal): Remove cast to unsigned long.
 	It's more likely to cause problems (due to unsigned overflow)
 	than to cure them.
