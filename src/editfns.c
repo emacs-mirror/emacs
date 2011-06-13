@@ -185,12 +185,13 @@ DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
 usage: (char-to-string CHAR)  */)
   (Lisp_Object character)
 {
-  int len;
+  int c, len;
   unsigned char str[MAX_MULTIBYTE_LENGTH];
 
   CHECK_CHARACTER (character);
+  c = XFASTINT (character);
 
-  len = CHAR_STRING (XFASTINT (character), str);
+  len = CHAR_STRING (c, str);
   return make_string_from_bytes ((char *) str, 1, len);
 }
 
@@ -2203,16 +2204,17 @@ general_insert_function (void (*insert_func)
       val = args[argnum];
       if (CHARACTERP (val))
 	{
+	  int c = XFASTINT (val);
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  int len;
 
 	  if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	    len = CHAR_STRING (XFASTINT (val), str);
+	    len = CHAR_STRING (c, str);
 	  else
 	    {
-	      str[0] = (ASCII_CHAR_P (XINT (val))
-			? XINT (val)
-			: multibyte_char_to_unibyte (XINT (val)));
+	      str[0] = (ASCII_CHAR_P (c)
+			? c
+			: multibyte_char_to_unibyte (c));
 	      len = 1;
 	    }
 	  (*insert_func) ((char *) str, len);
@@ -2332,16 +2334,17 @@ from adjoining text, if those properties are sticky.  */)
   register EMACS_INT stringlen;
   register int i;
   register EMACS_INT n;
-  int len;
+  int c, len;
   unsigned char str[MAX_MULTIBYTE_LENGTH];
 
-  CHECK_NUMBER (character);
+  CHECK_CHARACTER (character);
   CHECK_NUMBER (count);
+  c = XFASTINT (character);
 
   if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))
-    len = CHAR_STRING (XFASTINT (character), str);
+    len = CHAR_STRING (c, str);
   else
-    str[0] = XFASTINT (character), len = 1;
+    str[0] = c, len = 1;
   if (BUF_BYTES_MAX / len < XINT (count))
     error ("Maximum buffer size would be exceeded");
   n = XINT (count) * len;
@@ -2784,17 +2787,20 @@ Both characters must have the same length of multi-byte form.  */)
   int maybe_byte_combining = COMBINING_NO;
   EMACS_INT last_changed = 0;
   int multibyte_p = !NILP (BVAR (current_buffer, enable_multibyte_characters));
+  int fromc, toc;
 
  restart:
 
   validate_region (&start, &end);
-  CHECK_NUMBER (fromchar);
-  CHECK_NUMBER (tochar);
+  CHECK_CHARACTER (fromchar);
+  CHECK_CHARACTER (tochar);
+  fromc = XFASTINT (fromchar);
+  toc = XFASTINT (tochar);
 
   if (multibyte_p)
     {
-      len = CHAR_STRING (XFASTINT (fromchar), fromstr);
-      if (CHAR_STRING (XFASTINT (tochar), tostr) != len)
+      len = CHAR_STRING (fromc, fromstr);
+      if (CHAR_STRING (toc, tostr) != len)
 	error ("Characters in `subst-char-in-region' have different byte-lengths");
       if (!ASCII_BYTE_P (*tostr))
 	{
@@ -2811,8 +2817,8 @@ Both characters must have the same length of multi-byte form.  */)
   else
     {
       len = 1;
-      fromstr[0] = XFASTINT (fromchar);
-      tostr[0] = XFASTINT (tochar);
+      fromstr[0] = fromc;
+      tostr[0] = toc;
     }
 
   pos = XINT (start);

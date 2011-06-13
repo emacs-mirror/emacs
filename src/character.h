@@ -23,6 +23,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_CHARACTER_H
 #define EMACS_CHARACTER_H
 
+#include <verify.h>
+
 /* character code	1st byte   byte sequence
    --------------	--------   -------------
         0-7F		00..7F	   0xxxxxxx
@@ -173,7 +175,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       (p)[1] = (0x80 | (((c) >> 6) & 0x3F)),	\
       (p)[2] = (0x80 | ((c) & 0x3F)),		\
       3)					\
-   : char_string ((unsigned) c, p))
+   : (char_string (c, p) + !verify_true (sizeof (c) <= sizeof (unsigned))))
 
 /* Store multibyte form of byte B in P.  The caller should allocate at
    least MAX_MULTIBYTE_LENGTH bytes area at P in advance.  Returns the
@@ -201,7 +203,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 	*(p)++ = (0x80 | (((c) >> 6) & 0x3F)),	\
 	*(p)++ = (0x80 | ((c) & 0x3F));		\
     else					\
-      (p) += char_string ((c), (p));		\
+      {						\
+	verify (sizeof (c) <= sizeof (unsigned));	\
+	(p) += char_string (c, p);		\
+      }						\
   } while (0)
 
 

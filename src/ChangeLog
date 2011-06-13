@@ -1,3 +1,25 @@
+2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+
+	Make sure a 64-bit char is never passed to CHAR_STRING.
+	Otherwise, CHAR_STRING would do the wrong thing on a 64-bit platform,
+	by silently ignoring the top 32 bits, allowing some values
+	that were far too large to be valid characters.
+	* character.h: Include <verify.h>.
+	(CHAR_STRING, CHAR_STRING_ADVANCE): Verify that the character
+	arguments are no wider than unsigned, as a compile-time check
+	to prevent future regressions in this area.
+	* data.c (Faset):
+	* editfns.c (Fchar_to_string, general_insert_function, Finsert_char):
+	(Fsubst_char_in_region):
+	* fns.c (concat):
+	* xdisp.c (decode_mode_spec_coding):
+	Adjust to CHAR_STRING's new requirement.
+	* editfns.c (Finsert_char, Fsubst_char_in_region):
+	* fns.c (concat): Check that character args are actually
+	characters.  Without this test, these functions did the wrong
+	thing with wildly out-of-range values on 64-bit hosts.
+
 2011-06-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove incorrect casts to 'unsigned' that lose info on 64-bit hosts.

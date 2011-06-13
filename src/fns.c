@@ -679,12 +679,13 @@ concat (size_t nargs, Lisp_Object *args,
 	      }
 	    else
 	      {
-		CHECK_NUMBER (elt);
+		int c;
+		CHECK_CHARACTER (elt);
+		c = XFASTINT (elt);
 		if (some_multibyte)
-		  toindex_byte += CHAR_STRING (XINT (elt),
-					       SDATA (val) + toindex_byte);
+		  toindex_byte += CHAR_STRING (c, SDATA (val) + toindex_byte);
 		else
-		  SSET (val, toindex_byte++, XINT (elt));
+		  SSET (val, toindex_byte++, c);
 		toindex++;
 	      }
 	  }

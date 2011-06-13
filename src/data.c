@@ -2152,17 +2152,19 @@ bool-vector.  IDX starts at 0.  */)
     {
       EMACS_INT idxval_byte, prev_bytes, new_bytes, nbytes;
       unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
+      int c;
 
       if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
       CHECK_CHARACTER (newelt);
+      c = XFASTINT (newelt);
 
       nbytes = SBYTES (array);
 
       idxval_byte = string_char_to_byte (array, idxval);
       p1 = SDATA (array) + idxval_byte;
       prev_bytes = BYTES_BY_CHAR_HEAD (*p1);
-      new_bytes = CHAR_STRING (XINT (newelt), p0);
+      new_bytes = CHAR_STRING (c, p0);
       if (prev_bytes != new_bytes)
 	{
 	  /* We must relocate the string data.  */
