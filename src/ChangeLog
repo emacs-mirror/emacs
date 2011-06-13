@@ -1,5 +1,6 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* floatfns.c (Fexpt):
 	* fileio.c (make_temp_name): Omit unnecessary cast to unsigned.
 
 	* editfns.c (Ftranslate_region_internal): Use int, not EMACS_INT
