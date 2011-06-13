@@ -1,5 +1,7 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* editfns.c (Ftranslate_region_internal): Omit redundant test.
+
 	* fns.c (concat): Minor tuning based on overflow analysis.
 	This doesn't fix any bugs.  Use int to hold character, instead
 	of constantly refetching from Emacs object.  Use XFASTINT, not

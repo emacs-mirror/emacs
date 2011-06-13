@@ -3088,14 +3088,11 @@ It returns the number of characters changed.  */)
 	    }
 	  else
 	    {
-	      int c;
-
 	      nc = oc;
 	      val = CHAR_TABLE_REF (table, oc);
-	      if (CHARACTERP (val)
-		  && (c = XFASTINT (val), CHAR_VALID_P (c, 0)))
+	      if (CHARACTERP (val))
 		{
-		  nc = c;
+		  nc = XFASTINT (val);
 		  str_len = CHAR_STRING (nc, buf);
 		  str = buf;
 		}
