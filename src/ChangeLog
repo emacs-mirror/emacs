@@ -1,5 +1,9 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* sound.c (Fplay_sound_internal): Remove cast to unsigned long.
+	It's more likely to cause problems (due to unsigned overflow)
+	than to cure them.
+
 	* dired.c (Ffile_attributes): Don't use 32-bit hack on 64-bit hosts.
 
 	* unexelf.c (unexec): Don't assume BSS addr fits in unsigned.
