@@ -941,8 +941,7 @@ struct Lisp_Vector
 /* Equivalent to Faset (CT, IDX, VAL) with optimization for ASCII and
    8-bit European characters.  Do not check validity of CT.  */
 #define CHAR_TABLE_SET(CT, IDX, VAL)					\
-  (((IDX) >= 0 && ASCII_CHAR_P (IDX)					\
-    && SUB_CHAR_TABLE_P (XCHAR_TABLE (CT)->ascii))			\
+  (ASCII_CHAR_P (IDX) && SUB_CHAR_TABLE_P (XCHAR_TABLE (CT)->ascii)	\
    ? XSUB_CHAR_TABLE (XCHAR_TABLE (CT)->ascii)->contents[IDX] = VAL	\
    : char_table_set (CT, IDX, VAL))
 
