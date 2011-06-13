@@ -1,5 +1,8 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* editfns.c (Ftranslate_region_internal): Use int, not EMACS_INT
+	for characters.
+
 	* doc.c (get_doc_string): Omit (unsigned)c that mishandled negatives.
 
 	* data.c (Faset): If ARRAY is a string, check that NEWELT is a char.

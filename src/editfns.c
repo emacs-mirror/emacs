@@ -2212,9 +2212,7 @@ general_insert_function (void (*insert_func)
 	    len = CHAR_STRING (c, str);
 	  else
 	    {
-	      str[0] = (ASCII_CHAR_P (c)
-			? c
-			: multibyte_char_to_unibyte (c));
+	      str[0] = ASCII_CHAR_P (c) ? c : multibyte_char_to_unibyte (c);
 	      len = 1;
 	    }
 	  (*insert_func) ((char *) str, len);
@@ -3090,12 +3088,12 @@ It returns the number of characters changed.  */)
 	    }
 	  else
 	    {
-	      EMACS_INT c;
+	      int c;
 
 	      nc = oc;
 	      val = CHAR_TABLE_REF (table, oc);
 	      if (CHARACTERP (val)
-		  && (c = XINT (val), CHAR_VALID_P (c, 0)))
+		  && (c = XFASTINT (val), CHAR_VALID_P (c, 0)))
 		{
 		  nc = c;
 		  str_len = CHAR_STRING (nc, buf);
