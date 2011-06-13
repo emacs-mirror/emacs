@@ -27,6 +27,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_CHARSET_H
 #define EMACS_CHARSET_H
 
+#include <verify.h>
+
 /* Index to arguments of Fdefine_charset_internal.  */
 
 enum define_charset_arg_index
@@ -427,7 +429,8 @@ extern Lisp_Object charset_work;
 #define ENCODE_CHAR(charset, c)						 \
   ((ASCII_CHAR_P (c) && (charset)->ascii_compatible_p)			 \
    ? (c)								 \
-   : ((charset)->unified_p						 \
+   : (!verify_true (sizeof (c) <= sizeof (int))				 \
+      || (charset)->unified_p						 \
       || (charset)->method == CHARSET_METHOD_SUBSET			 \
       || (charset)->method == CHARSET_METHOD_SUPERSET)			 \
    ? encode_char ((charset), (c))					 \

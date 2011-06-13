@@ -1,5 +1,13 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Make sure a 64-bit char is never passed to ENCODE_CHAR.
+	This is for reasons similar to the recent CHAR_STRING fix.
+	* charset.c (Fencode_char): Check that character arg is actually
+	a character.  Pass an int to ENCODE_CHAR.
+	* charset.h (ENCODE_CHAR): Verify that the character argument is no
+	wider than 'int', as a compile-time check to prevent future regressions
+	in this area.
+
 	* character.c (char_string): Remove unnecessary casts.
 
 	Make sure a 64-bit char is never passed to CHAR_STRING.

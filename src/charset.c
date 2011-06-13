@@ -1862,14 +1862,15 @@ Optional argument RESTRICTION specifies a way to map CH to a
 code-point in CCS.  Currently not supported and just ignored.  */)
   (Lisp_Object ch, Lisp_Object charset, Lisp_Object restriction)
 {
-  int id;
+  int c, id;
   unsigned code;
   struct charset *charsetp;
 
   CHECK_CHARSET_GET_ID (charset, id);
-  CHECK_NATNUM (ch);
+  CHECK_CHARACTER (ch);
+  c = XFASTINT (ch);
   charsetp = CHARSET_FROM_ID (id);
-  code = ENCODE_CHAR (charsetp, XINT (ch));
+  code = ENCODE_CHAR (charsetp, c);
   if (code == CHARSET_INVALID_CODE (charsetp))
     return Qnil;
   return INTEGER_TO_CONS (code);
