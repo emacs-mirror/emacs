@@ -1,5 +1,37 @@
 2011-06-13  Martin Rudalics  <rudalics@gmx.at>
 
+	* help.el (help-window): Remove variable.
+	(help-window-point-marker, temp-buffer-max-height)
+	(temp-buffer-resize-mode, help-window-select): Rewrite doc-strings.
+	(help-print-return-message): Don't set help-window.
+	(resize-temp-buffer-window): Rewrite cod eand doc-string.
+	(help-window-setup-finish): Remove.
+	(help-window-display-message, help-window-setup)
+	(with-help-window): Major rewrite based on new
+	display-buffer-window variable.
+
+	* help-mode.el (help-mode-finish): Remove help-window related
+	code.
+
+	* view.el (view-exits-all-viewing-windows): Remove reference to
+	view-return-to-alist in doc-string.
+	(view-return-to-alist): Make obsolete.
+	(view-buffer): Call pop-to-buffer-same-window and remove
+	undo-window code.
+	(view-buffer-other-window): Call pop-to-buffer-other-window and
+	simplify code.  Ignore second argument.
+	(view-buffer-other-frame): Call pop-to-buffer-other-frame and
+	simplify code.  Ignore second argument.
+	(view-return-to-alist-update): Make obsolete.
+	(view-mode-enter): Rename second argument to QUIT-RESTORE.
+	Rewrite using quit-restore window parameters.
+	(view-mode-exit): Rename second argument to EXIT-ONLY.  Rewrite
+	using quit-restore-window.
+	(View-exit, View-exit-and-edit, View-leave, View-quit)
+	(View-quit-all, View-kill-and-leave): Call view-mode-exit with
+	appropriate arguments.
+	(view-end-message): Use quit-restore window parameter.
+
 	* window.el (display-buffer-function): Rewrite doc-string.
 	(display-buffer-window, display-buffer-alist): New variables.
 	(display-buffer-split-specifiers)
