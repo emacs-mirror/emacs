@@ -5819,7 +5819,8 @@ get_next_display_element (struct it *it)
 		 display.  Then, set IT->dpvec to these glyphs.  */
 	      Lisp_Object gc;
 	      int ctl_len;
-	      int face_id, lface_id = 0 ;
+	      int face_id;
+	      EMACS_INT lface_id = 0;
 	      int escape_glyph;
 
 	      /* Handle control characters with ^.  */
@@ -6374,7 +6375,7 @@ next_element_from_display_vector (struct it *it)
 	it->face_id = it->dpvec_face_id;
       else
 	{
-	  int lface_id = GLYPH_CODE_FACE (gc);
+	  EMACS_INT lface_id = GLYPH_CODE_FACE (gc);
 	  if (lface_id > 0)
 	    it->face_id = merge_faces (it->f, Qt, lface_id,
 				       it->saved_face_id);

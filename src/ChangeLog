@@ -1,5 +1,11 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	GLYPH_CODE_FACE returns EMACS_INT, not int.
+	* dispextern.h (merge_faces):
+	* xfaces.c (merge_faces):
+	* xdisp.c (get_next_display_element):
+	(next_element_from_display_vector): Don't assume EMACS_INT fits in int.
+
 	* character.h (CHAR_VALID_P): Remove unused parameter.
 	* fontset.c, lisp.h, xdisp.c: All uses changed.
 
