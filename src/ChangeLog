@@ -1,5 +1,7 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dired.c (Ffile_attributes): Don't use 32-bit hack on 64-bit hosts.
+
 	* unexelf.c (unexec): Don't assume BSS addr fits in unsigned.
 
 	* xterm.c (handle_one_xevent): Omit unnecessary casts to unsigned.
