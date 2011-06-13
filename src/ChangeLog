@@ -1,5 +1,7 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* doc.c (get_doc_string): Omit (unsigned)c that mishandled negatives.
+
 	* data.c (Faset): If ARRAY is a string, check that NEWELT is a char.
 	Without this fix, on a 64-bit host (aset S 0 4294967386) would
 	incorrectly succeed when S was a string, because 4294967386 was
