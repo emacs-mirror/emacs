@@ -504,6 +504,7 @@ concat (size_t nargs, Lisp_Object *args,
 	     as well as the number of characters.  */
 	  EMACS_INT i;
 	  Lisp_Object ch;
+	  int c;
 	  EMACS_INT this_len_byte;
 
 	  if (VECTORP (this) || COMPILEDP (this))
@@ -511,9 +512,10 @@ concat (size_t nargs, Lisp_Object *args,
 	      {
 		ch = AREF (this, i);
 		CHECK_CHARACTER (ch);
-		this_len_byte = CHAR_BYTES (XINT (ch));
+		c = XFASTINT (ch);
+		this_len_byte = CHAR_BYTES (c);
 		result_len_byte += this_len_byte;
-		if (! ASCII_CHAR_P (XINT (ch)) && ! CHAR_BYTE8_P (XINT (ch)))
+		if (! ASCII_CHAR_P (c) && ! CHAR_BYTE8_P (c))
 		  some_multibyte = 1;
 	      }
 	  else if (BOOL_VECTOR_P (this) && XBOOL_VECTOR (this)->size > 0)
@@ -523,9 +525,10 @@ concat (size_t nargs, Lisp_Object *args,
 	      {
 		ch = XCAR (this);
 		CHECK_CHARACTER (ch);
-		this_len_byte = CHAR_BYTES (XINT (ch));
+		c = XFASTINT (ch);
+		this_len_byte = CHAR_BYTES (c);
 		result_len_byte += this_len_byte;
-		if (! ASCII_CHAR_P (XINT (ch)) && ! CHAR_BYTE8_P (XINT (ch)))
+		if (! ASCII_CHAR_P (c) && ! CHAR_BYTE8_P (c))
 		  some_multibyte = 1;
 	      }
 	  else if (STRINGP (this))
@@ -631,23 +634,16 @@ concat (size_t nargs, Lisp_Object *args,
 	      {
 		int c;
 		if (STRING_MULTIBYTE (this))
-		  {
-		    FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, this,
-							thisindex,
-							thisindex_byte);
-		    XSETFASTINT (elt, c);
-		  }
+		  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, this,
+						      thisindex,
+						      thisindex_byte);
 		else
 		  {
-		    XSETFASTINT (elt, SREF (this, thisindex)); thisindex++;
-		    if (some_multibyte
-			&& !ASCII_CHAR_P (XINT (elt))
-			&& XINT (elt) < 0400)
-		      {
-			c = BYTE8_TO_CHAR (XINT (elt));
-			XSETINT (elt, c);
-		      }
+		    c = SREF (this, thisindex); thisindex++;
+		    if (some_multibyte && !ASCII_CHAR_P (c))
+		      c = BYTE8_TO_CHAR (c);
 		  }
+		XSETFASTINT (elt, c);
 	      }
 	    else if (BOOL_VECTOR_P (this))
 	      {

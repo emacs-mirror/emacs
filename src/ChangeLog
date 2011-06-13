@@ -1,5 +1,11 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fns.c (concat): Minor tuning based on overflow analysis.
+	This doesn't fix any bugs.  Use int to hold character, instead
+	of constantly refetching from Emacs object.  Use XFASTINT, not
+	XINT, for value known to be a character.  Don't bother comparing
+	a single byte to 0400, as it's always less.
+
 	* floatfns.c (Fexpt):
 	* fileio.c (make_temp_name): Omit unnecessary cast to unsigned.
 
