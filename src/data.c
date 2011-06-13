@@ -2148,10 +2148,8 @@ bool-vector.  IDX starts at 0.  */)
       CHECK_CHARACTER (idx);
       CHAR_TABLE_SET (array, idxval, newelt);
     }
-  else if (STRING_MULTIBYTE (array))
+  else
     {
-      EMACS_INT idxval_byte, prev_bytes, new_bytes, nbytes;
-      unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
       int c;
 
       if (idxval < 0 || idxval >= SCHARS (array))
@@ -2159,52 +2157,53 @@ bool-vector.  IDX starts at 0.  */)
       CHECK_CHARACTER (newelt);
       c = XFASTINT (newelt);
 
-      nbytes = SBYTES (array);
-
-      idxval_byte = string_char_to_byte (array, idxval);
-      p1 = SDATA (array) + idxval_byte;
-      prev_bytes = BYTES_BY_CHAR_HEAD (*p1);
-      new_bytes = CHAR_STRING (c, p0);
-      if (prev_bytes != new_bytes)
+      if (STRING_MULTIBYTE (array))
 	{
-	  /* We must relocate the string data.  */
-	  EMACS_INT nchars = SCHARS (array);
-	  unsigned char *str;
-	  USE_SAFE_ALLOCA;
+	  EMACS_INT idxval_byte, prev_bytes, new_bytes, nbytes;
+	  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
 
-	  SAFE_ALLOCA (str, unsigned char *, nbytes);
-	  memcpy (str, SDATA (array), nbytes);
-	  allocate_string_data (XSTRING (array), nchars,
-				nbytes + new_bytes - prev_bytes);
-	  memcpy (SDATA (array), str, idxval_byte);
+	  nbytes = SBYTES (array);
+	  idxval_byte = string_char_to_byte (array, idxval);
 	  p1 = SDATA (array) + idxval_byte;
-	  memcpy (p1 + new_bytes, str + idxval_byte + prev_bytes,
-		  nbytes - (idxval_byte + prev_bytes));
-	  SAFE_FREE ();
-	  clear_string_char_byte_cache ();
-	}
-      while (new_bytes--)
-	*p1++ = *p0++;
-    }
-  else
-    {
-      if (idxval < 0 || idxval >= SCHARS (array))
-	args_out_of_range (array, idx);
-      CHECK_NUMBER (newelt);
+	  prev_bytes = BYTES_BY_CHAR_HEAD (*p1);
+	  new_bytes = CHAR_STRING (c, p0);
+	  if (prev_bytes != new_bytes)
+	    {
+	      /* We must relocate the string data.  */
+	      EMACS_INT nchars = SCHARS (array);
+	      unsigned char *str;
+	      USE_SAFE_ALLOCA;
 
-      if (XINT (newelt) >= 0 && ! SINGLE_BYTE_CHAR_P (XINT (newelt)))
+	      SAFE_ALLOCA (str, unsigned char *, nbytes);
+	      memcpy (str, SDATA (array), nbytes);
+	      allocate_string_data (XSTRING (array), nchars,
+				    nbytes + new_bytes - prev_bytes);
+	      memcpy (SDATA (array), str, idxval_byte);
+	      p1 = SDATA (array) + idxval_byte;
+	      memcpy (p1 + new_bytes, str + idxval_byte + prev_bytes,
+		      nbytes - (idxval_byte + prev_bytes));
+	      SAFE_FREE ();
+	      clear_string_char_byte_cache ();
+	    }
+	  while (new_bytes--)
+	    *p1++ = *p0++;
+	}
+      else
 	{
-	  int i;
+	  if (! SINGLE_BYTE_CHAR_P (c))
+	    {
+	      int i;
 
-	  for (i = SBYTES (array) - 1; i >= 0; i--)
-	    if (SREF (array, i) >= 0x80)
-	      args_out_of_range (array, newelt);
-	  /* ARRAY is an ASCII string.  Convert it to a multibyte
-	     string, and try `aset' again.  */
-	  STRING_SET_MULTIBYTE (array);
-	  return Faset (array, idx, newelt);
+	      for (i = SBYTES (array) - 1; i >= 0; i--)
+		if (SREF (array, i) >= 0x80)
+		  args_out_of_range (array, newelt);
+	      /* ARRAY is an ASCII string.  Convert it to a multibyte
+		 string, and try `aset' again.  */
+	      STRING_SET_MULTIBYTE (array);
+	      return Faset (array, idx, newelt);
+	    }
+	  SSET (array, idxval, c);
 	}
-      SSET (array, idxval, XINT (newelt));
     }
 
   return newelt;

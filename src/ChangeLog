@@ -1,5 +1,10 @@
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* data.c (Faset): If ARRAY is a string, check that NEWELT is a char.
+	Without this fix, on a 64-bit host (aset S 0 4294967386) would
+	incorrectly succeed when S was a string, because 4294967386 was
+	truncated before it was used.
+
 	* chartab.c (Fchar_table_range): Use CHARACTERP to check range.
 	Otherwise, an out-of-range integer could cause undefined behavior
 	on a 64-bit host.
