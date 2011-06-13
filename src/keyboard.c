@@ -448,7 +448,7 @@ static Lisp_Object make_lispy_movement (struct frame *, Lisp_Object,
 #endif
 static Lisp_Object modify_event_symbol (EMACS_INT, unsigned, Lisp_Object,
                                         Lisp_Object, const char *const *,
-                                        Lisp_Object *, unsigned);
+                                        Lisp_Object *, EMACS_INT);
 static Lisp_Object make_lispy_switch_frame (Lisp_Object);
 static int help_char_p (Lisp_Object);
 static void save_getcjmp (jmp_buf);
@@ -5391,7 +5391,7 @@ make_lispy_event (struct input_event *event)
 				      Qfunction_key,
 				      KVAR (current_kboard, Vsystem_key_alist),
 				      0, &KVAR (current_kboard, system_key_syms),
-				      (unsigned) -1);
+				      TYPE_MAXIMUM (EMACS_INT));
 	}
 
       return modify_event_symbol (event->code - FUNCTION_KEY_OFFSET,
@@ -6410,7 +6410,7 @@ reorder_modifiers (Lisp_Object symbol)
 static Lisp_Object
 modify_event_symbol (EMACS_INT symbol_num, unsigned int modifiers, Lisp_Object symbol_kind,
 		     Lisp_Object name_alist_or_stem, const char *const *name_table,
-		     Lisp_Object *symbol_table, unsigned int table_size)
+		     Lisp_Object *symbol_table, EMACS_INT table_size)
 {
   Lisp_Object value;
   Lisp_Object symbol_int;
