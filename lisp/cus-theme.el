@@ -483,25 +483,24 @@ It includes all faces in list FACES."
 			       'help-theme-def fn)
       (princ "'"))
     (princ ".\n")
-    (if (not (memq theme custom-known-themes))
+    (if (custom-theme-p theme)
 	(progn
-	  (princ "It is not loaded.")
-	  ;; Attempt to grab the theme documentation
-	  (when fn
-	    (with-temp-buffer
-	      (insert-file-contents fn)
-	      (let ((sexp (let ((read-circle nil))
-			    (condition-case nil
-				(read (current-buffer))
-			      (end-of-file nil)))))
-		(and sexp (listp sexp)
-		     (eq (car sexp) 'deftheme)
-		     (setq doc (nth 2 sexp)))))))
-      (if (custom-theme-enabled-p theme)
-	  (princ "It is loaded and enabled.")
-	(princ "It is loaded but disabled."))
-      (setq doc (get theme 'theme-documentation)))
-
+	  (if (custom-theme-enabled-p theme)
+	      (princ "It is loaded and enabled.")
+	    (princ "It is loaded but disabled."))
+	  (setq doc (get theme 'theme-documentation)))
+      (princ "It is not loaded.")
+      ;; Attempt to grab the theme documentation
+      (when fn
+	(with-temp-buffer
+	  (insert-file-contents fn)
+	  (let ((sexp (let ((read-circle nil))
+			(condition-case nil
+			    (read (current-buffer))
+			  (end-of-file nil)))))
+	    (and sexp (listp sexp)
+		 (eq (car sexp) 'deftheme)
+		 (setq doc (nth 2 sexp)))))))
     (princ "\n\nDocumentation:\n")
     (princ (if (stringp doc)
 	       doc
@@ -605,25 +604,55 @@ Theme files are named *-theme.el in `"))
   (widget-create 'checkbox
 		 :value custom-theme-allow-multiple-selections
 		 :action 'custom-theme-selections-toggle)
-  (widget-insert (propertize " Allow more than one theme at a time"
+  (widget-insert (propertize " Select more than one theme at a time"
 			     'face '(variable-pitch (:height 0.9))))
 
   (widget-insert "\n\nAvailable Custom Themes:\n")
-  (let (widget)
+  (let ((help-echo "mouse-2: Enable this theme for this session")
+	widget)
     (dolist (theme (custom-available-themes))
       (setq widget (widget-create 'checkbox
 				  :value (custom-theme-enabled-p theme)
 				  :theme-name theme
+				  :help-echo help-echo
 				  :action 'custom-theme-checkbox-toggle))
       (push (cons theme widget) custom--listed-themes)
       (widget-create-child-and-convert widget 'push-button
 				       :button-face-get 'ignore
 				       :mouse-face-get 'ignore
 				       :value (format " %s" theme)
-				       :action 'widget-parent-action)
-      (widget-insert ?\n)))
+				       :action 'widget-parent-action
+				       :help-echo help-echo)
+      (widget-insert " -- "
+		     (propertize (custom-theme-summary theme)
+				 'face 'shadow)
+		     ?\n)))
   (goto-char (point-min))
   (widget-setup))
+
+(defun custom-theme-summary (theme)
+  "Return the summary line of THEME."
+  (let (doc)
+    (if (custom-theme-p theme)
+	(setq doc (get theme 'theme-documentation))
+      (let ((fn (locate-file (concat (symbol-name theme) "-theme.el")
+			     (custom-theme--load-path)
+			     '("" "c"))))
+	(when fn
+	  (with-temp-buffer
+	    (insert-file-contents fn)
+	    (let ((sexp (let ((read-circle nil))
+			  (condition-case nil
+			      (read (current-buffer))
+			    (end-of-file nil)))))
+	      (and sexp (listp sexp)
+		   (eq (car sexp) 'deftheme)
+		   (setq doc (nth 2 sexp))))))))
+    (cond ((null doc)
+	   "(no documentation available)")
+	  ((string-match ".*" doc)
+	   (match-string 0 doc))
+	  (t doc))))
 
 (defun custom-theme-checkbox-toggle (widget &optional event)
   (let ((this-theme (widget-get widget :theme-name)))

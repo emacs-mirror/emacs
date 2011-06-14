@@ -28,7 +28,7 @@
 ;;; Code:
 
 (deftheme tango-dark
-  "Theme for faces, based on the Tango palette with a dark background.
+  "Face colors using the Tango palette (dark background).
 Basic, Font Lock, Isearch, Gnus, Message, Ediff, Flyspell,
 Semantic, and Ansi-Color faces are included.")
 

@@ -26,7 +26,7 @@
 ;;; Code:
 
 (deftheme light-blue
-  "Theme with a light blue backgound.")
+  "Face colors utilizing a light blue backgound.")
 
 (let ((class '((class color) (min-colors 89))))
   (custom-theme-set-faces

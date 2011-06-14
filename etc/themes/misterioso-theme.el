@@ -22,7 +22,7 @@
 ;;; Code:
 
 (deftheme misterioso
-  "Theme for faces, using light colors on a dark gray background.")
+  "Predominantly blue/cyan faces on a dark cyan background.")
 
 (let ((class '((class color) (min-colors 89))))
 

@@ -20,7 +20,8 @@
 ;;; Code:
 
 (deftheme tsdh-dark
-  "Theme with dark background used and created by Tassilo Horn.")
+  "Minor tweaks to the Emacs dark-background defaults.
+Used and created by Tassilo Horn.")
 
 (custom-theme-set-faces
  'tsdh-dark
