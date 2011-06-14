@@ -2767,6 +2767,12 @@ DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
 
 static struct Lisp_Vector *all_vectors;
 
+/* Handy constants for vectorlike objects.  */
+enum
+  {
+    header_size = offsetof (struct Lisp_Vector, contents),
+    word_size = sizeof (Lisp_Object)
+  };
 
 /* Value is a pointer to a newly allocated Lisp_Vector structure
    with room for LEN Lisp_Objects.  */
@@ -2776,12 +2782,6 @@ allocate_vectorlike (EMACS_INT len)
 {
   struct Lisp_Vector *p;
   size_t nbytes;
-  ptrdiff_t nbytes_max = min (PTRDIFF_MAX, SIZE_MAX);
-  int header_size = offsetof (struct Lisp_Vector, contents);
-  int word_size = sizeof p->contents[0];
-
-  if ((nbytes_max - header_size) / word_size < len)
-    memory_full (SIZE_MAX);
 
   MALLOC_BLOCK_INPUT;
 
@@ -2815,13 +2815,18 @@ allocate_vectorlike (EMACS_INT len)
 }
 
 
-/* Allocate a vector with NSLOTS slots.  */
+/* Allocate a vector with LEN slots.  */
 
 struct Lisp_Vector *
-allocate_vector (EMACS_INT nslots)
+allocate_vector (EMACS_INT len)
 {
-  struct Lisp_Vector *v = allocate_vectorlike (nslots);
-  v->header.size = nslots;
+  struct Lisp_Vector *v;
+  ptrdiff_t nbytes_max = min (PTRDIFF_MAX, SIZE_MAX);
+
+  if (min ((nbytes_max - header_size) / word_size, MOST_POSITIVE_FIXNUM) < len)
+    memory_full (SIZE_MAX);
+  v = allocate_vectorlike (len);
+  v->header.size = len;
   return v;
 }
 

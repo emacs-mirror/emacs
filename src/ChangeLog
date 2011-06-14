@@ -1,5 +1,12 @@
 2011-06-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c: Check that resized vectors' lengths fit in fixnums.
+	(header_size, word_size): New constants.
+	(allocate_vectorlike): Don't check size overflow here.
+	(allocate_vector): Check it here instead, since this is the only
+	caller of allocate_vectorlike that could cause overflow.
+	Check that the new vector's length is representable as a fixnum.
+
 	* fns.c (next_almost_prime): Don't return a multiple of 3 or 5.
 	The previous code was bogus.  For example, next_almost_prime (32)
 	returned 39, which is undesirable as it is a multiple of 3; and
