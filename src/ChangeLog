@@ -1,5 +1,11 @@
 2011-06-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fns.c (next_almost_prime): Don't return a multiple of 3 or 5.
+	The previous code was bogus.  For example, next_almost_prime (32)
+	returned 39, which is undesirable as it is a multiple of 3; and
+	next_almost_prime (24) returned 25, which is a multiple of 5 so
+	why was the code bothering to check for multiples of 7?
+
 	* bytecode.c (exec_byte_code): Use ptrdiff_t, not int, for vector length.
 
 	* eval.c, doprnt.c (SIZE_MAX): Remove; inttypes.h defines this now.

@@ -3379,13 +3379,9 @@ check_hash_table (Lisp_Object obj)
 EMACS_INT
 next_almost_prime (EMACS_INT n)
 {
-  if (n % 2 == 0)
-    n += 1;
-  if (n % 3 == 0)
-    n += 2;
-  if (n % 7 == 0)
-    n += 4;
-  return n;
+  for (n |= 1; ; n += 2)
+    if (n % 3 != 0 && n % 5 != 0 && n % 7 != 0)
+      return n;
 }
 
 
