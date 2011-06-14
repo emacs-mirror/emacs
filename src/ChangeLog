@@ -1,3 +1,27 @@
+2011-06-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_set_scroll_bar_default_width): Remove argument to
+	xg_get_default_scrollbar_width.
+
+	* gtkutil.c: Include emacsgtkfixed.h if HAVE_GTK3.
+	(int_gtk_range_get_value): Move to the scroll bar part of the file.
+	(style_changed_cb): Call update_theme_scrollbar_width and call
+	x_set_scroll_bar_default_width and xg_frame_set_char_size for
+	all frames (Bug#8505).
+	(xg_create_frame_widgets): Call emacs_fixed_new if HAVE_GTK3 (Bug#8505).
+	Call gtk_window_set_resizable if HAVE_GTK3.
+	(x_wm_set_size_hint): Call emacs_fixed_set_min_size with min width
+	and height if HAVE_GTK3 (Bug#8505).
+	(scroll_bar_width_for_theme): New variable.
+	(update_theme_scrollbar_width): New function.
+	(xg_get_default_scrollbar_width): Move code to
+	update_theme_scrollbar_width, just return scroll_bar_width_for_theme.
+	(xg_initialize): Call update_theme_scrollbar_width.
+
+	* gtkutil.h (xg_get_default_scrollbar_width): Remove argument.
+
+	* emacsgtkfixed.c, emacsgtkfixed.h: New files.
+
 2011-06-12  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (make_frame): Call other_buffer_safely instead of

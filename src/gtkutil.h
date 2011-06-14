@@ -135,7 +135,7 @@ extern void xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
                                              int position,
                                              int whole);
 extern int xg_event_is_for_scrollbar (FRAME_PTR f, XEvent *event);
-extern int xg_get_default_scrollbar_width (FRAME_PTR f);
+extern int xg_get_default_scrollbar_width (void);
 
 extern void update_frame_tool_bar (FRAME_PTR f);
 extern void free_frame_tool_bar (FRAME_PTR f);
