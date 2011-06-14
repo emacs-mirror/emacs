@@ -99,6 +99,10 @@ Other values of LIMIT are ignored.  */)
   return lispy_val;
 }
 
+/* Heuristic on how many iterations of a tight loop can be safely done
+   before it's time to do a QUIT.  This must be a power of 2.  */
+enum { QUIT_COUNT_HEURISTIC = 1 << 16 };
+
 /* Random data-structure functions */
 
 DEFUN ("length", Flength, Slength, 1, 1, 0,
@@ -128,7 +132,7 @@ To get the number of bytes, use `string-bytes'.  */)
       do
 	{
 	  ++i;
-	  if ((i & ((1 << 10) - 1)) == 0)
+	  if ((i & (QUIT_COUNT_HEURISTIC - 1)) == 0)
 	    {
 	      if (MOST_POSITIVE_FIXNUM < i)
 		error ("List too long");
@@ -159,22 +163,38 @@ it returns 0.  If LIST is circular, it returns a finite value
 which is at least the number of distinct elements.  */)
   (Lisp_Object list)
 {
-  Lisp_Object tail, halftail, length;
-  int len = 0;
+  Lisp_Object tail, halftail;
+  double hilen = 0;
+  uintmax_t lolen = 1;
+
+  if (! CONSP (list))
+    return 0;
 
   /* halftail is used to detect circular lists.  */
-  halftail = list;
-  for (tail = list; CONSP (tail); tail = XCDR (tail))
+  for (tail = halftail = list; ; )
     {
-      if (EQ (tail, halftail) && len != 0)
+      tail = XCDR (tail);
+      if (! CONSP (tail))
 	break;
-      len++;
-      if ((len & 1) == 0)
-	halftail = XCDR (halftail);
+      if (EQ (tail, halftail))
+	break;
+      lolen++;
+      if ((lolen & 1) == 0)
+	{
+	  halftail = XCDR (halftail);
+	  if ((lolen & (QUIT_COUNT_HEURISTIC - 1)) == 0)
+	    {
+	      QUIT;
+	      if (lolen == 0)
+		hilen += UINTMAX_MAX + 1.0;
+	    }
+	}
     }
 
-  XSETINT (length, len);
-  return length;
+  /* If the length does not fit into a fixnum, return a float.
+     On all known practical machines this returns an upper bound on
+     the true length.  */
+  return hilen ? make_float (hilen + lolen) : make_fixnum_or_float (lolen);
 }
 
 DEFUN ("string-bytes", Fstring_bytes, Sstring_bytes, 1, 1, 0,
