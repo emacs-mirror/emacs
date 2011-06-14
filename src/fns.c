@@ -1286,7 +1286,7 @@ DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
        doc: /* Take cdr N times on LIST, return the result.  */)
   (Lisp_Object n, Lisp_Object list)
 {
-  register int i, num;
+  EMACS_INT i, num;
   CHECK_NUMBER (n);
   num = XINT (n);
   for (i = 0; i < num && !NILP (list); i++)
@@ -1751,7 +1751,7 @@ if the first element should sort before the second.  */)
   Lisp_Object front, back;
   register Lisp_Object len, tem;
   struct gcpro gcpro1, gcpro2;
-  register int length;
+  EMACS_INT length;
 
   front = list;
   len = Flength (list);
