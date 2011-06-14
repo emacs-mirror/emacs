@@ -1,5 +1,11 @@
 2011-06-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fns.c (Flength): Don't overflow int when computing a list length.
+	Use EMACS_INT, not int, to avoid unwanted truncation on 64-bit hosts.
+	Check for QUIT every 1024 entries rather than every other entry;
+	that's faster and is responsive enough.  Report an error instead of
+	overflowing an integer.
+
 	* alloc.c: Check that resized vectors' lengths fit in fixnums.
 	(header_size, word_size): New constants.
 	(allocate_vectorlike): Don't check size overflow here.

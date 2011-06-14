@@ -110,7 +110,6 @@ To get the number of bytes, use `string-bytes'.  */)
   (register Lisp_Object sequence)
 {
   register Lisp_Object val;
-  register int i;
 
   if (STRINGP (sequence))
     XSETFASTINT (val, SCHARS (sequence));
@@ -124,19 +123,20 @@ To get the number of bytes, use `string-bytes'.  */)
     XSETFASTINT (val, ASIZE (sequence) & PSEUDOVECTOR_SIZE_MASK);
   else if (CONSP (sequence))
     {
-      i = 0;
-      while (CONSP (sequence))
+      EMACS_INT i = 0;
+
+      do
 	{
-	  sequence = XCDR (sequence);
 	  ++i;
-
-	  if (!CONSP (sequence))
-	    break;
-
+	  if ((i & ((1 << 10) - 1)) == 0)
+	    {
+	      if (MOST_POSITIVE_FIXNUM < i)
+		error ("List too long");
+	      QUIT;
+	    }
 	  sequence = XCDR (sequence);
-	  ++i;
-	  QUIT;
 	}
+      while (CONSP (sequence));
 
       CHECK_LIST_END (sequence, sequence);
 
