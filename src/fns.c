@@ -436,7 +436,7 @@ with the original.  */)
   if (BOOL_VECTOR_P (arg))
     {
       Lisp_Object val;
-      int size_in_chars
+      ptrdiff_t size_in_chars
 	= ((XBOOL_VECTOR (arg)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
 	   / BOOL_VECTOR_BITS_PER_CHAR);
 

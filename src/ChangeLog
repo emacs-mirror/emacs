@@ -10,6 +10,7 @@
 	(Fsafe_length): Return a float if the value is not representable
 	as a fixnum.  This shouldn't happen except in contrived situations.
 	(Fnthcdr, Fsort): Don't assume list length fits in int.
+	(Fcopy_sequence): Don't assume vector length fits in int.
 
 	* alloc.c: Check that resized vectors' lengths fit in fixnums.
 	(header_size, word_size): New constants.
