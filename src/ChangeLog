@@ -1,5 +1,7 @@
 2011-06-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* bytecode.c (exec_byte_code): Use ptrdiff_t, not int, for vector length.
+
 	* eval.c, doprnt.c (SIZE_MAX): Remove; inttypes.h defines this now.
 
 	Variadic C functions now count arguments with ptrdiff_t.
