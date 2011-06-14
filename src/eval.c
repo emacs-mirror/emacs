@@ -32,10 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #endif
 
-#ifndef SIZE_MAX
-# define SIZE_MAX ((size_t) -1)
-#endif
-
 /* This definition is duplicated in alloc.c and keyboard.c.  */
 /* Putting it in lisp.h makes cc bomb out!  */
 

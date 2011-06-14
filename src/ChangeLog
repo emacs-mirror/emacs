@@ -1,11 +1,13 @@
 2011-06-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* eval.c, doprnt.c (SIZE_MAX): Remove; inttypes.h defines this now.
+
 	Variadic C functions now count arguments with ptrdiff_t.
 	This partly undoes my 2011-03-30 change, which replaced int with size_t.
 	Back then I didn't know that the Emacs coding style prefers signed int.
 	Also, in the meantime I found a few more instances where arguments
-	were being counted with int, which may be too narrow, or EMACS_INT, which
-	may be too wide.
+	were being counted with int, which may truncate counts on 64-bit
+	machines, or EMACS_INT, which may be unnecessarily wide.
 	* lisp.h (struct Lisp_Subr.function.aMANY)
 	(DEFUN_ARGS_MANY, internal_condition_case_n, safe_call):
 	Arg counts are now ptrdiff_t, not size_t.
