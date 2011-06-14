@@ -1,3 +1,9 @@
+2011-06-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Searching Keymaps):
+	* display.texi (Overlay Properties): Fix errors in 2011-05-29
+	change.  Suggested by Johan Bockgård.
+
 2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help.texi (Accessing Documentation):
