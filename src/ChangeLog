@@ -1,5 +1,7 @@
 2011-06-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fns.c (Fload_average): Don't assume 100 * load average fits in int.
+
 	* fns.c: Don't overflow int when computing a list length.
 	* fns.c (QUIT_COUNT_HEURISTIC): New constant.
 	(Flength, Fsafe_length): Use EMACS_INT, not int, to avoid unwanted

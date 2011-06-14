@@ -2542,8 +2542,8 @@ advisable.  */)
 
   while (loads-- > 0)
     {
-      Lisp_Object load = (NILP (use_floats) ?
-			  make_number ((int) (100.0 * load_ave[loads]))
+      Lisp_Object load = (NILP (use_floats)
+			  ? make_number (100.0 * load_ave[loads])
 			  : make_float (load_ave[loads]));
       ret = Fcons (load, ret);
     }
