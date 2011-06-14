@@ -139,7 +139,7 @@ Lisp_Object Vsignaling_function;
 
 int handling_signal;
 
-static Lisp_Object funcall_lambda (Lisp_Object, size_t, Lisp_Object *);
+static Lisp_Object funcall_lambda (Lisp_Object, ptrdiff_t, Lisp_Object *);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
 static int interactive_p (int);
 static Lisp_Object apply_lambda (Lisp_Object fun, Lisp_Object args);
@@ -1052,7 +1052,7 @@ usage: (let VARLIST BODY...)  */)
   Lisp_Object *temps, tem, lexenv;
   register Lisp_Object elt, varlist;
   int count = SPECPDL_INDEX ();
-  register size_t argnum;
+  ptrdiff_t argnum;
   struct gcpro gcpro1, gcpro2;
   USE_SAFE_ALLOCA;
 
@@ -1608,8 +1608,8 @@ internal_condition_case_2 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object),
    and ARGS as second argument.  */
 
 Lisp_Object
-internal_condition_case_n (Lisp_Object (*bfun) (size_t, Lisp_Object *),
-			   size_t nargs,
+internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
+			   ptrdiff_t nargs,
 			   Lisp_Object *args,
 			   Lisp_Object handlers,
 			   Lisp_Object (*hfun) (Lisp_Object))
@@ -2336,7 +2336,7 @@ eval_sub (Lisp_Object form)
 	{
 	  /* Pass a vector of evaluated arguments.  */
 	  Lisp_Object *vals;
-	  register size_t argnum = 0;
+	  ptrdiff_t argnum = 0;
 	  USE_SAFE_ALLOCA;
 
 	  SAFE_ALLOCA_LISP (vals, XINT (numargs));
@@ -2466,9 +2466,9 @@ DEFUN ("apply", Fapply, Sapply, 2, MANY, 0,
 Then return the value FUNCTION returns.
 Thus, (apply '+ 1 2 '(3 4)) returns 10.
 usage: (apply FUNCTION &rest ARGUMENTS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
-  register size_t i, numargs;
+  ptrdiff_t i, numargs;
   register Lisp_Object spread_arg;
   register Lisp_Object *funcall_args;
   Lisp_Object fun, retval;
@@ -2550,7 +2550,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
 /* Run hook variables in various ways.  */
 
 static Lisp_Object
-funcall_nil (size_t nargs, Lisp_Object *args)
+funcall_nil (ptrdiff_t nargs, Lisp_Object *args)
 {
   Ffuncall (nargs, args);
   return Qnil;
@@ -2571,10 +2571,10 @@ hook; they should use `run-mode-hooks' instead.
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
 usage: (run-hooks &rest HOOKS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object hook[1];
-  register size_t i;
+  ptrdiff_t i;
 
   for (i = 0; i < nargs; i++)
     {
@@ -2600,7 +2600,7 @@ as that may change.
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
 usage: (run-hook-with-args HOOK &rest ARGS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   return run_hook_with_args (nargs, args, funcall_nil);
 }
@@ -2620,13 +2620,13 @@ However, if they all return nil, we return nil.
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
 usage: (run-hook-with-args-until-success HOOK &rest ARGS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   return run_hook_with_args (nargs, args, Ffuncall);
 }
 
 static Lisp_Object
-funcall_not (size_t nargs, Lisp_Object *args)
+funcall_not (ptrdiff_t nargs, Lisp_Object *args)
 {
   return NILP (Ffuncall (nargs, args)) ? Qt : Qnil;
 }
@@ -2645,13 +2645,13 @@ Then we return nil.  However, if they all return non-nil, we return non-nil.
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
 usage: (run-hook-with-args-until-failure HOOK &rest ARGS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   return NILP (run_hook_with_args (nargs, args, funcall_not)) ? Qt : Qnil;
 }
 
 static Lisp_Object
-run_hook_wrapped_funcall (size_t nargs, Lisp_Object *args)
+run_hook_wrapped_funcall (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object tmp = args[0], ret;
   args[0] = args[1];
@@ -2669,7 +2669,7 @@ it calls WRAP-FUNCTION with arguments FUN and ARGS.
 As soon as a call to WRAP-FUNCTION returns non-nil, `run-hook-wrapped'
 aborts and returns that value.
 usage: (run-hook-wrapped HOOK WRAP-FUNCTION &rest ARGS)  */)
-     (size_t nargs, Lisp_Object *args)
+     (ptrdiff_t nargs, Lisp_Object *args)
 {
   return run_hook_with_args (nargs, args, run_hook_wrapped_funcall);
 }
@@ -2682,8 +2682,8 @@ usage: (run-hook-wrapped HOOK WRAP-FUNCTION &rest ARGS)  */)
    except that it isn't necessary to gcpro ARGS[0].  */
 
 Lisp_Object
-run_hook_with_args (size_t nargs, Lisp_Object *args,
-		    Lisp_Object (*funcall) (size_t nargs, Lisp_Object *args))
+run_hook_with_args (ptrdiff_t nargs, Lisp_Object *args,
+		    Lisp_Object (*funcall) (ptrdiff_t nargs, Lisp_Object *args))
 {
   Lisp_Object sym, val, ret = Qnil;
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -2956,16 +2956,16 @@ DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
 Return the value that function returns.
 Thus, (funcall 'cons 'x 'y) returns (x . y).
 usage: (funcall FUNCTION &rest ARGUMENTS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object fun, original_fun;
   Lisp_Object funcar;
-  size_t numargs = nargs - 1;
+  ptrdiff_t numargs = nargs - 1;
   Lisp_Object lisp_numargs;
   Lisp_Object val;
   struct backtrace backtrace;
   register Lisp_Object *internal_args;
-  register size_t i;
+  ptrdiff_t i;
 
   QUIT;
   if ((consing_since_gc > gc_cons_threshold
@@ -3119,14 +3119,13 @@ static Lisp_Object
 apply_lambda (Lisp_Object fun, Lisp_Object args)
 {
   Lisp_Object args_left;
-  size_t numargs;
+  ptrdiff_t i, numargs;
   register Lisp_Object *arg_vector;
   struct gcpro gcpro1, gcpro2, gcpro3;
-  register size_t i;
   register Lisp_Object tem;
   USE_SAFE_ALLOCA;
 
-  numargs = XINT (Flength (args));
+  numargs = XFASTINT (Flength (args));
   SAFE_ALLOCA_LISP (arg_vector, numargs);
   args_left = args;
 
@@ -3162,12 +3161,12 @@ apply_lambda (Lisp_Object fun, Lisp_Object args)
    FUN must be either a lambda-expression or a compiled-code object.  */
 
 static Lisp_Object
-funcall_lambda (Lisp_Object fun, size_t nargs,
+funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 		register Lisp_Object *arg_vector)
 {
   Lisp_Object val, syms_left, next, lexenv;
   int count = SPECPDL_INDEX ();
-  size_t i;
+  ptrdiff_t i;
   int optional, rest;
 
   if (CONSP (fun))
@@ -3584,7 +3583,7 @@ Output stream used is value of `standard-output'.  */)
 	    }
 	  else
 	    {
-	      size_t i;
+	      ptrdiff_t i;
 	      for (i = 0; i < backlist->nargs; i++)
 		{
 		  if (i) write_string (" ", -1);
@@ -3644,7 +3643,7 @@ void
 mark_backtrace (void)
 {
   register struct backtrace *backlist;
-  register size_t i;
+  ptrdiff_t i;
 
   for (backlist = backtrace_list; backlist; backlist = backlist->next)
     {

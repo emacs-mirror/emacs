@@ -269,10 +269,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
   /* If varies[i] > 0, the i'th argument shouldn't just have its value
      in this call quoted in the command history.  It should be
      recorded as a call to the function named callint_argfuns[varies[i]].  */
-  int *varies;
+  signed char *varies;
 
-  register size_t i;
-  size_t nargs;
+  ptrdiff_t i, nargs;
   int foo;
   char prompt1[100];
   char *tem1;
@@ -465,9 +464,14 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	break;
     }
 
+  if (min (MOST_POSITIVE_FIXNUM,
+	   min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object))
+      < nargs)
+    memory_full (SIZE_MAX);
+
   args = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
   visargs = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
-  varies = (int *) alloca (nargs * sizeof (int));
+  varies = (signed char *) alloca (nargs);
 
   for (i = 0; i < nargs; i++)
     {

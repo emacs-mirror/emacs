@@ -344,7 +344,7 @@ Symbols are also allowed; their print names are used instead.  */)
   return i1 < SCHARS (s2) ? Qt : Qnil;
 }
 
-static Lisp_Object concat (size_t nargs, Lisp_Object *args,
+static Lisp_Object concat (ptrdiff_t nargs, Lisp_Object *args,
 			   enum Lisp_Type target_type, int last_special);
 
 /* ARGSUSED */
@@ -374,7 +374,7 @@ The result is a list whose elements are the elements of all the arguments.
 Each argument may be a list, vector or string.
 The last argument is not copied, just used as the tail of the new list.
 usage: (append &rest SEQUENCES)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   return concat (nargs, args, Lisp_Cons, 1);
 }
@@ -384,7 +384,7 @@ DEFUN ("concat", Fconcat, Sconcat, 0, MANY, 0,
 The result is a string whose elements are the elements of all the arguments.
 Each argument may be a string or a list or vector of characters (integers).
 usage: (concat &rest SEQUENCES)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   return concat (nargs, args, Lisp_String, 0);
 }
@@ -394,7 +394,7 @@ DEFUN ("vconcat", Fvconcat, Svconcat, 0, MANY, 0,
 The result is a vector whose elements are the elements of all the arguments.
 Each argument may be a list, vector or string.
 usage: (vconcat &rest SEQUENCES)   */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   return concat (nargs, args, Lisp_Vectorlike, 0);
 }
@@ -436,13 +436,13 @@ with the original.  */)
    a string and has text properties to be copied.  */
 struct textprop_rec
 {
-  int argnum;			/* refer to ARGS (arguments of `concat') */
+  ptrdiff_t argnum;		/* refer to ARGS (arguments of `concat') */
   EMACS_INT from;		/* refer to ARGS[argnum] (argument string) */
   EMACS_INT to;			/* refer to VAL (the target string) */
 };
 
 static Lisp_Object
-concat (size_t nargs, Lisp_Object *args,
+concat (ptrdiff_t nargs, Lisp_Object *args,
 	enum Lisp_Type target_type, int last_special)
 {
   Lisp_Object val;
@@ -452,7 +452,7 @@ concat (size_t nargs, Lisp_Object *args,
   EMACS_INT toindex_byte = 0;
   register EMACS_INT result_len;
   register EMACS_INT result_len_byte;
-  register size_t argnum;
+  ptrdiff_t argnum;
   Lisp_Object last_tail;
   Lisp_Object prev;
   int some_multibyte;
@@ -463,7 +463,7 @@ concat (size_t nargs, Lisp_Object *args,
      here, and copy the text properties after the concatenation.  */
   struct textprop_rec  *textprops = NULL;
   /* Number of elements in textprops.  */
-  int num_textprops = 0;
+  ptrdiff_t num_textprops = 0;
   USE_SAFE_ALLOCA;
 
   tail = Qnil;
@@ -2217,9 +2217,9 @@ DEFUN ("nconc", Fnconc, Snconc, 0, MANY, 0,
        doc: /* Concatenate any number of lists by altering them.
 Only the last argument is not altered, and need not be a list.
 usage: (nconc &rest LISTS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
-  register size_t argnum;
+  ptrdiff_t argnum;
   register Lisp_Object tail, tem, val;
 
   val = tail = Qnil;
@@ -2342,9 +2342,8 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
 {
   Lisp_Object len;
   register EMACS_INT leni;
-  int nargs;
+  ptrdiff_t i, nargs;
   register Lisp_Object *args;
-  register EMACS_INT i;
   struct gcpro gcpro1;
   Lisp_Object ret;
   USE_SAFE_ALLOCA;
@@ -2748,7 +2747,7 @@ DEFUN ("widget-apply", Fwidget_apply, Swidget_apply, 2, MANY, 0,
        doc: /* Apply the value of WIDGET's PROPERTY to the widget itself.
 ARGS are passed as extra arguments to the function.
 usage: (widget-apply WIDGET PROPERTY &rest ARGS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   /* This function can GC. */
   Lisp_Object newargs[3];
@@ -3353,7 +3352,7 @@ static Lisp_Object Qhash_table_test, Qkey_or_value, Qkey_and_value;
 /* Function prototypes.  */
 
 static struct Lisp_Hash_Table *check_hash_table (Lisp_Object);
-static size_t get_key_arg (Lisp_Object, size_t, Lisp_Object *, char *);
+static ptrdiff_t get_key_arg (Lisp_Object, ptrdiff_t, Lisp_Object *, char *);
 static void maybe_resize_hash_table (struct Lisp_Hash_Table *);
 static int sweep_weak_table (struct Lisp_Hash_Table *, int);
 
@@ -3396,10 +3395,10 @@ next_almost_prime (EMACS_INT n)
    0.  This function is used to extract a keyword/argument pair from
    a DEFUN parameter list.  */
 
-static size_t
-get_key_arg (Lisp_Object key, size_t nargs, Lisp_Object *args, char *used)
+static ptrdiff_t
+get_key_arg (Lisp_Object key, ptrdiff_t nargs, Lisp_Object *args, char *used)
 {
-  size_t i;
+  ptrdiff_t i;
 
   for (i = 1; i < nargs; i++)
     if (!used[i - 1] && EQ (args[i - 1], key))
@@ -4297,12 +4296,12 @@ WEAK.  WEAK t is equivalent to `key-and-value'.  Default value of WEAK
 is nil.
 
 usage: (make-hash-table &rest KEYWORD-ARGS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object test, size, rehash_size, rehash_threshold, weak;
   Lisp_Object user_test, user_hash;
   char *used;
-  size_t i;
+  ptrdiff_t i;
 
   /* The vector `used' is used to keep track of arguments that
      have been consumed.  */

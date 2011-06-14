@@ -2697,7 +2697,7 @@ DEFUN ("list", Flist, Slist, 0, MANY, 0,
        doc: /* Return a newly created list with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
 usage: (list &rest OBJECTS)  */)
-  (size_t nargs, register Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   register Lisp_Object val;
   val = Qnil;
@@ -2913,10 +2913,10 @@ DEFUN ("vector", Fvector, Svector, 0, MANY, 0,
        doc: /* Return a newly created vector with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
 usage: (vector &rest OBJECTS)  */)
-  (register size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   register Lisp_Object len, val;
-  register size_t i;
+  ptrdiff_t i;
   register struct Lisp_Vector *p;
 
   XSETFASTINT (len, nargs);
@@ -2944,15 +2944,15 @@ argument to catch the left-over arguments.  If such an integer is used, the
 arguments will not be dynamically bound but will be instead pushed on the
 stack before executing the byte-code.
 usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INTERACTIVE-SPEC &rest ELEMENTS)  */)
-  (register size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   register Lisp_Object len, val;
-  register size_t i;
+  ptrdiff_t i;
   register struct Lisp_Vector *p;
 
   XSETFASTINT (len, nargs);
   if (!NILP (Vpurify_flag))
-    val = make_pure_vector ((EMACS_INT) nargs);
+    val = make_pure_vector (nargs);
   else
     val = Fmake_vector (len, Qnil);
 
@@ -4238,7 +4238,7 @@ static void
 check_gcpros (void)
 {
   struct gcpro *p;
-  size_t i;
+  ptrdiff_t i;
 
   for (p = gcprolist; p; p = p->next)
     for (i = 0; i < p->nvars; ++i)
@@ -4848,7 +4848,7 @@ returns nil, because real GC can't be done.  */)
 {
   register struct specbinding *bind;
   char stack_top_variable;
-  register size_t i;
+  ptrdiff_t i;
   int message_p;
   Lisp_Object total[8];
   int count = SPECPDL_INDEX ();

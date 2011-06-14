@@ -1,5 +1,28 @@
 2011-06-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Variadic C functions now count arguments with ptrdiff_t.
+	This partly undoes my 2011-03-30 change, which replaced int with size_t.
+	Back then I didn't know that the Emacs coding style prefers signed int.
+	Also, in the meantime I found a few more instances where arguments
+	were being counted with int, which may be too narrow, or EMACS_INT, which
+	may be too wide.
+	* lisp.h (struct Lisp_Subr.function.aMANY)
+	(DEFUN_ARGS_MANY, internal_condition_case_n, safe_call):
+	Arg counts are now ptrdiff_t, not size_t.
+	All variadic functions and their callers changed accordingly.
+	(struct gcpro.nvars): Now size_t, not size_t.  All uses changed.
+	* bytecode.c (exec_byte_code): Check maxdepth for overflow,
+	to avoid potential buffer overrun.  Don't assume arg counts fit in 'int'.
+	* callint.c (Fcall_interactively): Check arg count for overflow,
+	to avoid potential buffer overrun.  Use signed char, not 'int',
+	for 'varies' array, so that we needn't bother to check its size
+	calculation for overflow.
+	* editfns.c (Fformat): Use ptrdiff_t, not EMACS_INT, to count args.
+	* eval.c (apply_lambda):
+	* fns.c (Fmapconcat): Use XFASTINT, not XINT, to get args length.
+	(struct textprop_rec.argnum): Now ptrdiff_t, not int.  All uses changed.
+	(mapconcat): Use ptrdiff_t, not int and EMACS_INT, to count args.
+
 	* callint.c (Fcall_interactively): Don't use index var as event count.
 
 	* vm-limit.c (check_memory_limits): Fix incorrect extern function decls.

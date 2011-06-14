@@ -1901,7 +1901,7 @@ safe_run_hooks_error (Lisp_Object error_data)
 }
 
 static Lisp_Object
-safe_run_hook_funcall (size_t nargs, Lisp_Object *args)
+safe_run_hook_funcall (ptrdiff_t nargs, Lisp_Object *args)
 {
   eassert (nargs == 1);
   if (CONSP (Vinhibit_quit))
