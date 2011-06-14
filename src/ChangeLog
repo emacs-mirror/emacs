@@ -1,3 +1,8 @@
+2011-06-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* vm-limit.c (check_memory_limits): Fix incorrect extern function decls.
+	* mem-limits.h (SIZE): Remove; no longer used.
+
 2011-06-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xterm.c (x_alloc_nearest_color_1): Prefer int to long when int works.

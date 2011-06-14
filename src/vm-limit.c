@@ -166,9 +166,9 @@ static void
 check_memory_limits (void)
 {
 #ifdef REL_ALLOC
-  extern POINTER (*real_morecore) (SIZE);
+  extern POINTER (*real_morecore) (long);
 #endif
-  extern POINTER (*__morecore) (SIZE);
+  extern POINTER (*__morecore) (long);
 
   register POINTER cp;
   unsigned long five_percent;
@@ -297,4 +297,3 @@ memory_warnings (POINTER start, void (*warnfun) (const char *))
   /* Force data limit to be recalculated on each run.  */
   lim_data = 0;
 }
-
