@@ -20,7 +20,7 @@
 ;;; Code:
 
 (deftheme wheatgrass
-  "A high-contrast theme with a black background.
+  "High-contrast green/blue/brown faces on a black background.
 Basic, Font Lock, Isearch, Gnus, and Message faces are included.
 The default face foreground is wheat, with other faces in shades
 of green, brown, and blue.")

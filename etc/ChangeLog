@@ -1,3 +1,7 @@
+2011-06-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* themes/dichromacy-theme.el: New theme.
+
 2011-06-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* NEWS: Mention new configure option --with-wide-int.

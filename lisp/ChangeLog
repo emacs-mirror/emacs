@@ -1,3 +1,9 @@
+2011-06-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-theme.el (describe-theme-1): Use custom-theme-p.
+	(custom-theme-summary): New function.
+	(customize-themes): Use it.
+
 2011-06-13  Glenn Morris  <rgm@gnu.org>
 
 	* cus-dep.el (custom-make-dependencies): Use up command-line-args-left.
