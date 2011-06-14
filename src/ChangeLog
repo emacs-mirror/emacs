@@ -1,5 +1,7 @@
 2011-06-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* callint.c (Fcall_interactively): Don't use index var as event count.
+
 	* vm-limit.c (check_memory_limits): Fix incorrect extern function decls.
 	* mem-limits.h (SIZE): Remove; no longer used.
 

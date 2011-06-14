@@ -339,7 +339,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     {
       Lisp_Object input;
       Lisp_Object funval = Findirect_function (function, Qt);
-      i = num_input_events;
+      size_t events = num_input_events;
       input = specs;
       /* Compute the arg values using the user's expression.  */
       GCPRO2 (input, filter_specs);
@@ -347,7 +347,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 		     CONSP (funval) && EQ (Qclosure, XCAR (funval))
 		     ? Qt : Qnil);
       UNGCPRO;
-      if (i != num_input_events || !NILP (record_flag))
+      if (events != num_input_events || !NILP (record_flag))
 	{
 	  /* We should record this command on the command history.  */
 	  Lisp_Object values;
