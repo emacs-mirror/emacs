@@ -33,8 +33,6 @@ extern int etext;
 # endif
 #endif
 
-typedef unsigned long SIZE;
-
 extern char *start_of_data (void);
 #if defined USE_LSB_TAG
 #define EXCEEDS_LISP_PTR(ptr) 0

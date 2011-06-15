@@ -1729,7 +1729,7 @@ struct face_cache
    face doesn't exist.  */
 
 #define FACE_FROM_ID(F, ID)				\
-     (((unsigned) (ID) < FRAME_FACE_CACHE (F)->used)	\
+     (UNSIGNED_CMP (ID, <, FRAME_FACE_CACHE (F)->used)	\
       ? FRAME_FACE_CACHE (F)->faces_by_id[ID]		\
       : NULL)
 
@@ -3163,7 +3163,7 @@ int face_at_string_position (struct window *w, Lisp_Object string,
                              EMACS_INT pos, EMACS_INT bufpos,
                              EMACS_INT region_beg, EMACS_INT region_end,
                              EMACS_INT *endptr, enum face_id, int mouse);
-int merge_faces (struct frame *, Lisp_Object, int, int);
+int merge_faces (struct frame *, Lisp_Object, EMACS_INT, int);
 int compute_char_face (struct frame *, int, Lisp_Object);
 void free_all_realized_faces (Lisp_Object);
 extern Lisp_Object Qforeground_color, Qbackground_color;

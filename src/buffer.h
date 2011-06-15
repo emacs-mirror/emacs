@@ -338,7 +338,7 @@ while (0)
 
 #define PTR_BYTE_POS(ptr) \
 ((ptr) - (current_buffer)->text->beg					    \
- - (ptr - (current_buffer)->text->beg <= (unsigned) (GPT_BYTE - BEG_BYTE) ? 0 : GAP_SIZE) \
+ - (ptr - (current_buffer)->text->beg <= GPT_BYTE - BEG_BYTE ? 0 : GAP_SIZE) \
  + BEG_BYTE)
 
 /* Return character at byte position POS.  */
@@ -397,7 +397,7 @@ extern unsigned char *_fetch_multibyte_char_p;
 
 #define BUF_PTR_BYTE_POS(buf, ptr)				\
 ((ptr) - (buf)->text->beg					\
- - (ptr - (buf)->text->beg <= (unsigned) (BUF_GPT_BYTE ((buf)) - BEG_BYTE)\
+ - (ptr - (buf)->text->beg <= BUF_GPT_BYTE (buf) - BEG_BYTE	\
     ? 0 : BUF_GAP_SIZE ((buf)))					\
  + BEG_BYTE)
 

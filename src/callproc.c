@@ -184,7 +184,7 @@ and returns a numeric exit status or a signal description string.
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
 
 usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
-  (size_t nargs, register Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object infile, buffer, current_dir, path;
   volatile int display_p_volatile;
@@ -231,7 +231,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   /* Decide the coding-system for giving arguments.  */
   {
     Lisp_Object val, *args2;
-    size_t i;
+    ptrdiff_t i;
 
     /* If arguments are supplied, we may have to encode them.  */
     if (nargs >= 5)
@@ -422,7 +422,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	       (nargs > 4 ? nargs - 2 : 2) * sizeof *new_argv);
   if (nargs > 4)
     {
-      register size_t i;
+      ptrdiff_t i;
       struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
       GCPRO5 (infile, buffer, current_dir, path, error_file);
@@ -716,7 +716,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	{
 	  if (EQ (coding_systems, Qt))
 	    {
-	      size_t i;
+	      ptrdiff_t i;
 
 	      SAFE_ALLOCA (args2, Lisp_Object *, (nargs + 1) * sizeof *args2);
 	      args2[0] = Qcall_process;
@@ -944,7 +944,7 @@ and returns a numeric exit status or a signal description string.
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
 
 usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &rest ARGS)  */)
-  (size_t nargs, register Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   struct gcpro gcpro1;
   Lisp_Object filename_string;
@@ -953,7 +953,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
   Lisp_Object coding_systems;
   Lisp_Object val, *args2;
-  size_t i;
+  ptrdiff_t i;
   char *tempfile;
   Lisp_Object tmpdir, pattern;
 

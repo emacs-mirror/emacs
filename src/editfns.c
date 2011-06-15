@@ -96,7 +96,7 @@ static void general_insert_function (void (*) (const char *, EMACS_INT),
 				     void (*) (Lisp_Object, EMACS_INT,
 					       EMACS_INT, EMACS_INT,
 					       EMACS_INT, int),
-				     int, size_t, Lisp_Object *);
+				     int, ptrdiff_t, Lisp_Object *);
 static Lisp_Object subst_char_in_region_unwind (Lisp_Object);
 static Lisp_Object subst_char_in_region_unwind_1 (Lisp_Object);
 static void transpose_markers (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT,
@@ -185,12 +185,13 @@ DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
 usage: (char-to-string CHAR)  */)
   (Lisp_Object character)
 {
-  int len;
+  int c, len;
   unsigned char str[MAX_MULTIBYTE_LENGTH];
 
   CHECK_CHARACTER (character);
+  c = XFASTINT (character);
 
-  len = CHAR_STRING (XFASTINT (character), str);
+  len = CHAR_STRING (c, str);
   return make_string_from_bytes ((char *) str, 1, len);
 }
 
@@ -1857,7 +1858,7 @@ Years before 1970 are not guaranteed to work.  On some systems,
 year values as low as 1901 do work.
 
 usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
-  (size_t nargs, register Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   time_t value;
   struct tm tm;
@@ -2193,9 +2194,9 @@ general_insert_function (void (*insert_func)
 			 void (*insert_from_string_func)
 			      (Lisp_Object, EMACS_INT, EMACS_INT,
 			       EMACS_INT, EMACS_INT, int),
-			 int inherit, size_t nargs, Lisp_Object *args)
+			 int inherit, ptrdiff_t nargs, Lisp_Object *args)
 {
-  register size_t argnum;
+  ptrdiff_t argnum;
   register Lisp_Object val;
 
   for (argnum = 0; argnum < nargs; argnum++)
@@ -2203,16 +2204,15 @@ general_insert_function (void (*insert_func)
       val = args[argnum];
       if (CHARACTERP (val))
 	{
+	  int c = XFASTINT (val);
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  int len;
 
 	  if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))
-	    len = CHAR_STRING (XFASTINT (val), str);
+	    len = CHAR_STRING (c, str);
 	  else
 	    {
-	      str[0] = (ASCII_CHAR_P (XINT (val))
-			? XINT (val)
-			: multibyte_char_to_unibyte (XINT (val)));
+	      str[0] = ASCII_CHAR_P (c) ? c : multibyte_char_to_unibyte (c);
 	      len = 1;
 	    }
 	  (*insert_func) ((char *) str, len);
@@ -2258,7 +2258,7 @@ buffer; to accomplish this, apply `string-as-multibyte' to the string
 and insert the result.
 
 usage: (insert &rest ARGS)  */)
-  (size_t nargs, register Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   general_insert_function (insert, insert_from_string, 0, nargs, args);
   return Qnil;
@@ -2277,7 +2277,7 @@ If the current buffer is unibyte, multibyte strings are converted
 to unibyte for insertion.
 
 usage: (insert-and-inherit &rest ARGS)  */)
-  (size_t nargs, register Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   general_insert_function (insert_and_inherit, insert_from_string, 1,
 			   nargs, args);
@@ -2294,7 +2294,7 @@ If the current buffer is unibyte, multibyte strings are converted
 to unibyte for insertion.
 
 usage: (insert-before-markers &rest ARGS)  */)
-  (size_t nargs, register Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   general_insert_function (insert_before_markers,
 			   insert_from_string_before_markers, 0,
@@ -2313,7 +2313,7 @@ If the current buffer is unibyte, multibyte strings are converted
 to unibyte for insertion.
 
 usage: (insert-before-markers-and-inherit &rest ARGS)  */)
-  (size_t nargs, register Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   general_insert_function (insert_before_markers_and_inherit,
 			   insert_from_string_before_markers, 1,
@@ -2332,16 +2332,17 @@ from adjoining text, if those properties are sticky.  */)
   register EMACS_INT stringlen;
   register int i;
   register EMACS_INT n;
-  int len;
+  int c, len;
   unsigned char str[MAX_MULTIBYTE_LENGTH];
 
-  CHECK_NUMBER (character);
+  CHECK_CHARACTER (character);
   CHECK_NUMBER (count);
+  c = XFASTINT (character);
 
   if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))
-    len = CHAR_STRING (XFASTINT (character), str);
+    len = CHAR_STRING (c, str);
   else
-    str[0] = XFASTINT (character), len = 1;
+    str[0] = c, len = 1;
   if (BUF_BYTES_MAX / len < XINT (count))
     error ("Maximum buffer size would be exceeded");
   n = XINT (count) * len;
@@ -2784,17 +2785,20 @@ Both characters must have the same length of multi-byte form.  */)
   int maybe_byte_combining = COMBINING_NO;
   EMACS_INT last_changed = 0;
   int multibyte_p = !NILP (BVAR (current_buffer, enable_multibyte_characters));
+  int fromc, toc;
 
  restart:
 
   validate_region (&start, &end);
-  CHECK_NUMBER (fromchar);
-  CHECK_NUMBER (tochar);
+  CHECK_CHARACTER (fromchar);
+  CHECK_CHARACTER (tochar);
+  fromc = XFASTINT (fromchar);
+  toc = XFASTINT (tochar);
 
   if (multibyte_p)
     {
-      len = CHAR_STRING (XFASTINT (fromchar), fromstr);
-      if (CHAR_STRING (XFASTINT (tochar), tostr) != len)
+      len = CHAR_STRING (fromc, fromstr);
+      if (CHAR_STRING (toc, tostr) != len)
 	error ("Characters in `subst-char-in-region' have different byte-lengths");
       if (!ASCII_BYTE_P (*tostr))
 	{
@@ -2811,8 +2815,8 @@ Both characters must have the same length of multi-byte form.  */)
   else
     {
       len = 1;
-      fromstr[0] = XFASTINT (fromchar);
-      tostr[0] = XFASTINT (tochar);
+      fromstr[0] = fromc;
+      tostr[0] = toc;
     }
 
   pos = XINT (start);
@@ -3084,14 +3088,11 @@ It returns the number of characters changed.  */)
 	    }
 	  else
 	    {
-	      EMACS_INT c;
-
 	      nc = oc;
 	      val = CHAR_TABLE_REF (table, oc);
-	      if (CHARACTERP (val)
-		  && (c = XINT (val), CHAR_VALID_P (c, 0)))
+	      if (CHARACTERP (val))
 		{
-		  nc = c;
+		  nc = XFASTINT (val);
 		  str_len = CHAR_STRING (nc, buf);
 		  str = buf;
 		}
@@ -3385,7 +3386,7 @@ any existing message; this lets the minibuffer contents show.  See
 also `current-message'.
 
 usage: (message FORMAT-STRING &rest ARGS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   if (NILP (args[0])
       || (STRINGP (args[0])
@@ -3413,7 +3414,7 @@ If the first argument is nil or the empty string, clear any existing
 message; let the minibuffer contents show.
 
 usage: (message-box FORMAT-STRING &rest ARGS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   if (NILP (args[0]))
     {
@@ -3470,7 +3471,7 @@ If the first argument is nil or the empty string, clear any existing
 message; let the minibuffer contents show.
 
 usage: (message-or-box FORMAT-STRING &rest ARGS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
 #ifdef HAVE_MENUS
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
@@ -3494,11 +3495,11 @@ First argument is the string to copy.
 Remaining arguments form a sequence of PROPERTY VALUE pairs for text
 properties to add to the result.
 usage: (propertize STRING &rest PROPERTIES)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object properties, string;
   struct gcpro gcpro1, gcpro2;
-  size_t i;
+  ptrdiff_t i;
 
   /* Number of args must be odd.  */
   if ((nargs & 1) == 0)
@@ -3583,13 +3584,13 @@ decimal point itself is omitted.  For %s and %S, the precision
 specifier truncates the string to the given width.
 
 usage: (format STRING &rest OBJECTS)  */)
-  (size_t nargs, register Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
-  EMACS_INT n;		/* The number of the next arg to substitute */
+  ptrdiff_t n;		/* The number of the next arg to substitute */
   char initial_buffer[4000];
   char *buf = initial_buffer;
   EMACS_INT bufsize = sizeof initial_buffer;
-  EMACS_INT max_bufsize = STRING_BYTES_MAX + 1;
+  EMACS_INT max_bufsize = STRING_BYTES_BOUND + 1;
   char *p;
   Lisp_Object buf_save_value IF_LINT (= {0});
   register char *format, *end, *format_start;
@@ -3634,7 +3635,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
   /* Allocate the info and discarded tables.  */
   {
-    EMACS_INT i;
+    ptrdiff_t i;
     if ((SIZE_MAX - formatlen) / sizeof (struct info) <= nargs)
       memory_full (SIZE_MAX);
     SAFE_ALLOCA (info, struct info *, (nargs + 1) * sizeof *info + formatlen);
@@ -3673,7 +3674,7 @@ usage: (format STRING &rest OBJECTS)  */)
   while (format != end)
     {
       /* The values of N and FORMAT when the loop body is entered.  */
-      EMACS_INT n0 = n;
+      ptrdiff_t n0 = n;
       char *format0 = format;
 
       /* Bytes needed to represent the output of this conversion.  */

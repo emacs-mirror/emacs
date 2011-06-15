@@ -1,3 +1,253 @@
+2011-06-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Integer overflow and signedness fixes (Bug#8873).
+
+	* ccl.c (ASCENDING_ORDER): New macro, to work around GCC bug 43772.
+	(GET_CCL_RANGE, IN_INT_RANGE): Use it.
+
+	* fileio.c: Don't assume EMACS_INT fits in off_t.
+	(emacs_lseek): New static function.
+	(Finsert_file_contents, Fwrite_region): Use it.
+	Use SEEK_SET, SEEK_CUR, SEEK_END as appropriate.
+
+	* fns.c (Fload_average): Don't assume 100 * load average fits in int.
+
+	* fns.c: Don't overflow int when computing a list length.
+	* fns.c (QUIT_COUNT_HEURISTIC): New constant.
+	(Flength, Fsafe_length): Use EMACS_INT, not int, to avoid unwanted
+	truncation on 64-bit hosts.  Check for QUIT every
+	QUIT_COUNT_HEURISTIC entries rather than every other entry; that's
+	faster and is responsive enough.
+	(Flength): Report an error instead of overflowing an integer.
+	(Fsafe_length): Return a float if the value is not representable
+	as a fixnum.  This shouldn't happen except in contrived situations.
+	(Fnthcdr, Fsort): Don't assume list length fits in int.
+	(Fcopy_sequence): Don't assume vector length fits in int.
+
+	* alloc.c: Check that resized vectors' lengths fit in fixnums.
+	(header_size, word_size): New constants.
+	(allocate_vectorlike): Don't check size overflow here.
+	(allocate_vector): Check it here instead, since this is the only
+	caller of allocate_vectorlike that could cause overflow.
+	Check that the new vector's length is representable as a fixnum.
+
+	* fns.c (next_almost_prime): Don't return a multiple of 3 or 5.
+	The previous code was bogus.  For example, next_almost_prime (32)
+	returned 39, which is undesirable as it is a multiple of 3; and
+	next_almost_prime (24) returned 25, which is a multiple of 5 so
+	why was the code bothering to check for multiples of 7?
+
+	* bytecode.c (exec_byte_code): Use ptrdiff_t, not int, for vector length.
+
+	* eval.c, doprnt.c (SIZE_MAX): Remove; inttypes.h defines this now.
+
+	Variadic C functions now count arguments with ptrdiff_t.
+	This partly undoes my 2011-03-30 change, which replaced int with size_t.
+	Back then I didn't know that the Emacs coding style prefers signed int.
+	Also, in the meantime I found a few more instances where arguments
+	were being counted with int, which may truncate counts on 64-bit
+	machines, or EMACS_INT, which may be unnecessarily wide.
+	* lisp.h (struct Lisp_Subr.function.aMANY)
+	(DEFUN_ARGS_MANY, internal_condition_case_n, safe_call):
+	Arg counts are now ptrdiff_t, not size_t.
+	All variadic functions and their callers changed accordingly.
+	(struct gcpro.nvars): Now size_t, not size_t.  All uses changed.
+	* bytecode.c (exec_byte_code): Check maxdepth for overflow,
+	to avoid potential buffer overrun.  Don't assume arg counts fit in 'int'.
+	* callint.c (Fcall_interactively): Check arg count for overflow,
+	to avoid potential buffer overrun.  Use signed char, not 'int',
+	for 'varies' array, so that we needn't bother to check its size
+	calculation for overflow.
+	* editfns.c (Fformat): Use ptrdiff_t, not EMACS_INT, to count args.
+	* eval.c (apply_lambda):
+	* fns.c (Fmapconcat): Use XFASTINT, not XINT, to get args length.
+	(struct textprop_rec.argnum): Now ptrdiff_t, not int.  All uses changed.
+	(mapconcat): Use ptrdiff_t, not int and EMACS_INT, to count args.
+
+	* callint.c (Fcall_interactively): Don't use index var as event count.
+
+	* vm-limit.c (check_memory_limits): Fix incorrect extern function decls.
+	* mem-limits.h (SIZE): Remove; no longer used.
+
+	* xterm.c (x_alloc_nearest_color_1): Prefer int to long when int works.
+
+	Remove unnecessary casts.
+	* xterm.c (x_term_init):
+	* xfns.c (x_set_border_pixel):
+	* widget.c (create_frame_gcs): Remove casts to unsigned long etc.
+	These aren't needed now that we assume ANSI C.
+
+	* sound.c (Fplay_sound_internal): Remove cast to unsigned long.
+	It's more likely to cause problems (due to unsigned overflow)
+	than to cure them.
+
+	* dired.c (Ffile_attributes): Don't use 32-bit hack on 64-bit hosts.
+
+	* unexelf.c (unexec): Don't assume BSS addr fits in unsigned.
+
+	* xterm.c (handle_one_xevent): Omit unnecessary casts to unsigned.
+
+	* keyboard.c (modify_event_symbol): Don't limit alist len to UINT_MAX.
+
+	* lisp.h (CHAR_TABLE_SET): Omit now-redundant test.
+
+	* lread.c (Fload): Don't compare a possibly-garbage time_t value.
+
+	GLYPH_CODE_FACE returns EMACS_INT, not int.
+	* dispextern.h (merge_faces):
+	* xfaces.c (merge_faces):
+	* xdisp.c (get_next_display_element, next_element_from_display_vector):
+	Don't assume EMACS_INT fits in int.
+
+	* character.h (CHAR_VALID_P): Remove unused parameter.
+	* fontset.c, lisp.h, xdisp.c: All uses changed.
+
+	* editfns.c (Ftranslate_region_internal): Omit redundant test.
+
+	* fns.c (concat): Minor tuning based on overflow analysis.
+	This doesn't fix any bugs.  Use int to hold character, instead
+	of constantly refetching from Emacs object.  Use XFASTINT, not
+	XINT, for value known to be a character.  Don't bother comparing
+	a single byte to 0400, as it's always less.
+
+	* floatfns.c (Fexpt):
+	* fileio.c (make_temp_name): Omit unnecessary cast to unsigned.
+
+	* editfns.c (Ftranslate_region_internal): Use int, not EMACS_INT
+	for characters.
+
+	* doc.c (get_doc_string): Omit (unsigned)c that mishandled negatives.
+
+	* data.c (Faset): If ARRAY is a string, check that NEWELT is a char.
+	Without this fix, on a 64-bit host (aset S 0 4294967386) would
+	incorrectly succeed when S was a string, because 4294967386 was
+	truncated before it was used.
+
+	* chartab.c (Fchar_table_range): Use CHARACTERP to check range.
+	Otherwise, an out-of-range integer could cause undefined behavior
+	on a 64-bit host.
+
+	* composite.c: Use int, not EMACS_INT, for characters.
+	(fill_gstring_body, composition_compute_stop_pos): Use int, not
+	EMACS_INT, for values that are known to be in character range.
+	This doesn't fix any bugs but is the usual style inside Emacs and
+	may generate better code on 32-bit machines.
+
+	Make sure a 64-bit char is never passed to ENCODE_CHAR.
+	This is for reasons similar to the recent CHAR_STRING fix.
+	* charset.c (Fencode_char): Check that character arg is actually
+	a character.  Pass an int to ENCODE_CHAR.
+	* charset.h (ENCODE_CHAR): Verify that the character argument is no
+	wider than 'int', as a compile-time check to prevent future regressions
+	in this area.
+
+	* character.c (char_string): Remove unnecessary casts.
+
+	Make sure a 64-bit char is never passed to CHAR_STRING.
+	Otherwise, CHAR_STRING would do the wrong thing on a 64-bit platform,
+	by silently ignoring the top 32 bits, allowing some values
+	that were far too large to be valid characters.
+	* character.h: Include <verify.h>.
+	(CHAR_STRING, CHAR_STRING_ADVANCE): Verify that the character
+	arguments are no wider than unsigned, as a compile-time check
+	to prevent future regressions in this area.
+	* data.c (Faset):
+	* editfns.c (Fchar_to_string, general_insert_function, Finsert_char)
+	(Fsubst_char_in_region):
+	* fns.c (concat):
+	* xdisp.c (decode_mode_spec_coding):
+	Adjust to CHAR_STRING's new requirement.
+	* editfns.c (Finsert_char, Fsubst_char_in_region):
+	* fns.c (concat): Check that character args are actually
+	characters.  Without this test, these functions did the wrong
+	thing with wildly out-of-range values on 64-bit hosts.
+
+	Remove incorrect casts to 'unsigned' that lose info on 64-bit hosts.
+	These casts should not be needed on 32-bit hosts, either.
+	* keyboard.c (read_char):
+	* lread.c (Fload): Remove casts to unsigned.
+
+	* lisp.h (UNSIGNED_CMP): New macro.
+	This fixes comparison bugs on 64-bit hosts.
+	(ASCII_CHAR_P): Use it.
+	* casefiddle.c (casify_object):
+	* character.h (ASCII_BYTE_P, CHAR_VALID_P)
+	(SINGLE_BYTE_CHAR_P, CHAR_STRING):
+	* composite.h (COMPOSITION_ENCODE_RULE_VALID):
+	* dispextern.h (FACE_FROM_ID):
+	* keyboard.c (read_char): Use UNSIGNED_CMP.
+
+	* xmenu.c (dialog_selection_callback) [!USE_GTK]: Cast to intptr_t,
+	not to EMACS_INT, to avoid GCC warning.
+
+	* xfns.c (x_set_scroll_bar_default_width): Remove unused 'int' locals.
+
+	* buffer.h (PTR_BYTE_POS, BUF_PTR_BYTE_POS): Remove harmful cast.
+	The cast incorrectly truncated 64-bit byte offsets to 32 bits, and
+	isn't needed on 32-bit machines.
+
+	* buffer.c (Fgenerate_new_buffer_name):
+	Use EMACS_INT for count, not int.
+	(advance_to_char_boundary): Return EMACS_INT, not int.
+
+	* data.c (Qcompiled_function): Now static.
+
+	* window.c (window_body_lines): Now static.
+
+	* image.c (gif_load): Rename local to avoid shadowing.
+
+	* lisp.h (SAFE_ALLOCA_LISP): Check for integer overflow.
+	(struct Lisp_Save_Value): Use ptrdiff_t, not int, for 'integer' member.
+	* alloc.c (make_save_value): Integer argument is now of type
+	ptrdiff_t, not int.
+	(mark_object): Use ptrdiff_t, not int.
+	* lisp.h (pD): New macro.
+	* print.c (print_object): Use it.
+
+	* alloc.c: Use EMACS_INT, not int, to count objects.
+	(total_conses, total_markers, total_symbols, total_vector_size)
+	(total_free_conses, total_free_markers, total_free_symbols)
+	(total_free_floats, total_floats, total_free_intervals)
+	(total_intervals, total_strings, total_free_strings):
+	Now EMACS_INT, not int.  All uses changed.
+	(Fgarbage_collect): Compute overall total using a double, so that
+	integer overflow is less likely to be a problem.  Check for overflow
+	when converting back to an integer.
+	(n_interval_blocks, n_string_blocks, n_float_blocks, n_cons_blocks)
+	(n_vectors, n_symbol_blocks, n_marker_blocks): Remove.
+	These were 'int' variables that could overflow on 64-bit hosts;
+	they were never used, so remove them instead of repairing them.
+	(nzombies, ngcs, max_live, max_zombies): Now EMACS_INT, not 'int'.
+	(inhibit_garbage_collection): Set gc_cons_threshold to max value.
+	Previously, this ceilinged at INT_MAX, but that doesn't work on
+	64-bit machines.
+	(allocate_pseudovector): Don't use EMACS_INT when int would do.
+
+	* alloc.c (Fmake_bool_vector): Don't assume vector size fits in int.
+	(allocate_vectorlike): Check for ptrdiff_t overflow.
+	(mark_vectorlike, mark_char_table, mark_object): Avoid EMACS_UINT
+	when a (possibly-narrower) signed value would do just as well.
+	We prefer using signed arithmetic, to avoid comparison confusion.
+
+	* alloc.c: Catch some string size overflows that we were missing.
+	(XMALLOC_OVERRUN_CHECK_SIZE) [!XMALLOC_OVERRUN_CHECK]: Define to 0,
+	for convenience in STRING_BYTES_MAX.
+	(STRING_BYTES_MAX): New macro, superseding the old one in lisp.h.
+	The definition here is exact; the one in lisp.h was approximate.
+	(allocate_string_data): Check for string overflow.  This catches
+	some instances we weren't catching before.  Also, it catches
+	size_t overflow on (unusual) hosts where SIZE_MAX <= min
+	(PTRDIFF_MAX, MOST_POSITIVE_FIXNUM), e.g., when size_t is 32 bits
+	and ptrdiff_t and EMACS_INT are both 64 bits.
+
+	* character.c, coding.c, doprnt.c, editfns.c, eval.c:
+	All uses of STRING_BYTES_MAX replaced by STRING_BYTES_BOUND.
+	* lisp.h (STRING_BYTES_BOUND): Renamed from STRING_BYTES_MAX.
+
+	* character.c (string_escape_byte8): Fix nbytes/nchars typo.
+
+	* alloc.c (Fmake_string): Check for out-of-range init.
+
 2011-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fdefvaralias): Also mark the target as variable-special-p.

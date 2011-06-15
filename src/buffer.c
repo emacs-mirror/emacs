@@ -850,8 +850,8 @@ it is in the sequence to be tried) even if a buffer with that name exists.  */)
   (register Lisp_Object name, Lisp_Object ignore)
 {
   register Lisp_Object gentemp, tem;
-  int count;
-  char number[10];
+  EMACS_INT count;
+  char number[INT_BUFSIZE_BOUND (EMACS_INT) + sizeof "<>"];
 
   CHECK_STRING (name);
 
@@ -865,7 +865,7 @@ it is in the sequence to be tried) even if a buffer with that name exists.  */)
   count = 1;
   while (1)
     {
-      sprintf (number, "<%d>", ++count);
+      sprintf (number, "<%"pI"d>", ++count);
       gentemp = concat2 (name, build_string (number));
       tem = Fstring_equal (gentemp, ignore);
       if (!NILP (tem))
@@ -1969,7 +1969,7 @@ validate_region (register Lisp_Object *b, register Lisp_Object *e)
 /* Advance BYTE_POS up to a character boundary
    and return the adjusted position.  */
 
-static int
+static EMACS_INT
 advance_to_char_boundary (EMACS_INT byte_pos)
 {
   int c;

@@ -1447,7 +1447,7 @@ Internal use only, use `play-sound' instead.  */)
     }
   else if (FLOATP (attrs[SOUND_VOLUME]))
     {
-      ui_volume_tmp = (unsigned long) XFLOAT_DATA (attrs[SOUND_VOLUME]) * 100;
+      ui_volume_tmp = XFLOAT_DATA (attrs[SOUND_VOLUME]) * 100;
     }
   /*
     Based on some experiments I have conducted, a value of 100 or less

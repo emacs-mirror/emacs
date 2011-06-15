@@ -27,6 +27,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_CHARSET_H
 #define EMACS_CHARSET_H
 
+#include <verify.h>
+
 /* Index to arguments of Fdefine_charset_internal.  */
 
 enum define_charset_arg_index
@@ -424,28 +426,30 @@ extern Lisp_Object charset_work;
 /* Return a code point of CHAR in CHARSET.
    Try some optimization before calling encode_char.  */
 
-#define ENCODE_CHAR(charset, c)						 \
-  ((ASCII_CHAR_P (c) && (charset)->ascii_compatible_p)			 \
-   ? (c)								 \
-   : ((charset)->unified_p						 \
-      || (charset)->method == CHARSET_METHOD_SUBSET			 \
-      || (charset)->method == CHARSET_METHOD_SUPERSET)			 \
-   ? encode_char ((charset), (c))					 \
-   : ((c) < (charset)->min_char || (c) > (charset)->max_char)		 \
-   ? (charset)->invalid_code						 \
-   : (charset)->method == CHARSET_METHOD_OFFSET				 \
-   ? ((charset)->code_linear_p						 \
-      ? (c) - (charset)->code_offset + (charset)->min_code		 \
-      : encode_char ((charset), (c)))					 \
-   : (charset)->method == CHARSET_METHOD_MAP				 \
-   ? (((charset)->compact_codes_p					 \
-       && CHAR_TABLE_P (CHARSET_ENCODER (charset)))			 \
-      ? (charset_work = CHAR_TABLE_REF (CHARSET_ENCODER (charset), (c)), \
-	 (NILP (charset_work)						 \
-	  ? (charset)->invalid_code					 \
-	  : XFASTINT (charset_work)))					 \
-      : encode_char ((charset), (c)))					 \
-   : encode_char ((charset), (c)))
+#define ENCODE_CHAR(charset, c)						\
+  (verify_expr								\
+   (sizeof (c) <= sizeof (int),						\
+    (ASCII_CHAR_P (c) && (charset)->ascii_compatible_p			\
+     ? (c)								\
+     : ((charset)->unified_p						\
+	|| (charset)->method == CHARSET_METHOD_SUBSET			\
+	|| (charset)->method == CHARSET_METHOD_SUPERSET)		\
+     ? encode_char (charset, c)						\
+     : (c) < (charset)->min_char || (c) > (charset)->max_char		\
+     ? (charset)->invalid_code						\
+     : (charset)->method == CHARSET_METHOD_OFFSET			\
+     ? ((charset)->code_linear_p					\
+	? (c) - (charset)->code_offset + (charset)->min_code		\
+	: encode_char (charset, c))					\
+     : (charset)->method == CHARSET_METHOD_MAP				\
+     ? (((charset)->compact_codes_p					\
+	 && CHAR_TABLE_P (CHARSET_ENCODER (charset)))			\
+	? (charset_work = CHAR_TABLE_REF (CHARSET_ENCODER (charset), c), \
+	   (NILP (charset_work)						\
+	    ? (charset)->invalid_code					\
+	    : XFASTINT (charset_work)))					\
+	: encode_char (charset, c))					\
+     : encode_char (charset, c))))
 
 
 /* Set to 1 when a charset map is loaded to warn that a buffer text

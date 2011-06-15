@@ -2148,61 +2148,62 @@ bool-vector.  IDX starts at 0.  */)
       CHECK_CHARACTER (idx);
       CHAR_TABLE_SET (array, idxval, newelt);
     }
-  else if (STRING_MULTIBYTE (array))
+  else
     {
-      EMACS_INT idxval_byte, prev_bytes, new_bytes, nbytes;
-      unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
+      int c;
 
       if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
       CHECK_CHARACTER (newelt);
+      c = XFASTINT (newelt);
 
-      nbytes = SBYTES (array);
-
-      idxval_byte = string_char_to_byte (array, idxval);
-      p1 = SDATA (array) + idxval_byte;
-      prev_bytes = BYTES_BY_CHAR_HEAD (*p1);
-      new_bytes = CHAR_STRING (XINT (newelt), p0);
-      if (prev_bytes != new_bytes)
+      if (STRING_MULTIBYTE (array))
 	{
-	  /* We must relocate the string data.  */
-	  EMACS_INT nchars = SCHARS (array);
-	  unsigned char *str;
-	  USE_SAFE_ALLOCA;
+	  EMACS_INT idxval_byte, prev_bytes, new_bytes, nbytes;
+	  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
 
-	  SAFE_ALLOCA (str, unsigned char *, nbytes);
-	  memcpy (str, SDATA (array), nbytes);
-	  allocate_string_data (XSTRING (array), nchars,
-				nbytes + new_bytes - prev_bytes);
-	  memcpy (SDATA (array), str, idxval_byte);
+	  nbytes = SBYTES (array);
+	  idxval_byte = string_char_to_byte (array, idxval);
 	  p1 = SDATA (array) + idxval_byte;
-	  memcpy (p1 + new_bytes, str + idxval_byte + prev_bytes,
-		  nbytes - (idxval_byte + prev_bytes));
-	  SAFE_FREE ();
-	  clear_string_char_byte_cache ();
-	}
-      while (new_bytes--)
-	*p1++ = *p0++;
-    }
-  else
-    {
-      if (idxval < 0 || idxval >= SCHARS (array))
-	args_out_of_range (array, idx);
-      CHECK_NUMBER (newelt);
+	  prev_bytes = BYTES_BY_CHAR_HEAD (*p1);
+	  new_bytes = CHAR_STRING (c, p0);
+	  if (prev_bytes != new_bytes)
+	    {
+	      /* We must relocate the string data.  */
+	      EMACS_INT nchars = SCHARS (array);
+	      unsigned char *str;
+	      USE_SAFE_ALLOCA;
 
-      if (XINT (newelt) >= 0 && ! SINGLE_BYTE_CHAR_P (XINT (newelt)))
+	      SAFE_ALLOCA (str, unsigned char *, nbytes);
+	      memcpy (str, SDATA (array), nbytes);
+	      allocate_string_data (XSTRING (array), nchars,
+				    nbytes + new_bytes - prev_bytes);
+	      memcpy (SDATA (array), str, idxval_byte);
+	      p1 = SDATA (array) + idxval_byte;
+	      memcpy (p1 + new_bytes, str + idxval_byte + prev_bytes,
+		      nbytes - (idxval_byte + prev_bytes));
+	      SAFE_FREE ();
+	      clear_string_char_byte_cache ();
+	    }
+	  while (new_bytes--)
+	    *p1++ = *p0++;
+	}
+      else
 	{
-	  int i;
+	  if (! SINGLE_BYTE_CHAR_P (c))
+	    {
+	      int i;
 
-	  for (i = SBYTES (array) - 1; i >= 0; i--)
-	    if (SREF (array, i) >= 0x80)
-	      args_out_of_range (array, newelt);
-	  /* ARRAY is an ASCII string.  Convert it to a multibyte
-	     string, and try `aset' again.  */
-	  STRING_SET_MULTIBYTE (array);
-	  return Faset (array, idx, newelt);
+	      for (i = SBYTES (array) - 1; i >= 0; i--)
+		if (SREF (array, i) >= 0x80)
+		  args_out_of_range (array, newelt);
+	      /* ARRAY is an ASCII string.  Convert it to a multibyte
+		 string, and try `aset' again.  */
+	      STRING_SET_MULTIBYTE (array);
+	      return Faset (array, idx, newelt);
+	    }
+	  SSET (array, idxval, c);
 	}
-      SSET (array, idxval, XINT (newelt));
     }
 
   return newelt;
@@ -2502,18 +2503,18 @@ enum arithop
     Amin
   };
 
-static Lisp_Object float_arith_driver (double, size_t, enum arithop,
-                                       size_t, Lisp_Object *);
+static Lisp_Object float_arith_driver (double, ptrdiff_t, enum arithop,
+                                       ptrdiff_t, Lisp_Object *);
 static Lisp_Object
-arith_driver (enum arithop code, size_t nargs, register Lisp_Object *args)
+arith_driver (enum arithop code, ptrdiff_t nargs, Lisp_Object *args)
 {
   register Lisp_Object val;
-  register size_t argnum;
+  ptrdiff_t argnum;
   register EMACS_INT accum = 0;
   register EMACS_INT next;
 
   int overflow = 0;
-  size_t ok_args;
+  ptrdiff_t ok_args;
   EMACS_INT ok_accum;
 
   switch (SWITCH_ENUM_CAST (code))
@@ -2617,8 +2618,8 @@ arith_driver (enum arithop code, size_t nargs, register Lisp_Object *args)
 #define isnan(x) ((x) != (x))
 
 static Lisp_Object
-float_arith_driver (double accum, register size_t argnum, enum arithop code,
-		    size_t nargs, register Lisp_Object *args)
+float_arith_driver (double accum, ptrdiff_t argnum, enum arithop code,
+		    ptrdiff_t nargs, Lisp_Object *args)
 {
   register Lisp_Object val;
   double next;
@@ -2680,7 +2681,7 @@ float_arith_driver (double accum, register size_t argnum, enum arithop code,
 DEFUN ("+", Fplus, Splus, 0, MANY, 0,
        doc: /* Return sum of any number of arguments, which are numbers or markers.
 usage: (+ &rest NUMBERS-OR-MARKERS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   return arith_driver (Aadd, nargs, args);
 }
@@ -2690,7 +2691,7 @@ DEFUN ("-", Fminus, Sminus, 0, MANY, 0,
 With one arg, negates it.  With more than one arg,
 subtracts all but the first from the first.
 usage: (- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   return arith_driver (Asub, nargs, args);
 }
@@ -2698,7 +2699,7 @@ usage: (- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)  */)
 DEFUN ("*", Ftimes, Stimes, 0, MANY, 0,
        doc: /* Return product of any number of arguments, which are numbers or markers.
 usage: (* &rest NUMBERS-OR-MARKERS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   return arith_driver (Amult, nargs, args);
 }
@@ -2707,9 +2708,9 @@ DEFUN ("/", Fquo, Squo, 2, MANY, 0,
        doc: /* Return first argument divided by all the remaining arguments.
 The arguments must be numbers or markers.
 usage: (/ DIVIDEND DIVISOR &rest DIVISORS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
-  size_t argnum;
+  ptrdiff_t argnum;
   for (argnum = 2; argnum < nargs; argnum++)
     if (FLOATP (args[argnum]))
       return float_arith_driver (0, 0, Adiv, nargs, args);
@@ -2791,7 +2792,7 @@ DEFUN ("max", Fmax, Smax, 1, MANY, 0,
        doc: /* Return largest of all the arguments (which must be numbers or markers).
 The value is always a number; markers are converted to numbers.
 usage: (max NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   return arith_driver (Amax, nargs, args);
 }
@@ -2800,7 +2801,7 @@ DEFUN ("min", Fmin, Smin, 1, MANY, 0,
        doc: /* Return smallest of all the arguments (which must be numbers or markers).
 The value is always a number; markers are converted to numbers.
 usage: (min NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   return arith_driver (Amin, nargs, args);
 }
@@ -2809,7 +2810,7 @@ DEFUN ("logand", Flogand, Slogand, 0, MANY, 0,
        doc: /* Return bitwise-and of all the arguments.
 Arguments may be integers, or markers converted to integers.
 usage: (logand &rest INTS-OR-MARKERS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   return arith_driver (Alogand, nargs, args);
 }
@@ -2818,7 +2819,7 @@ DEFUN ("logior", Flogior, Slogior, 0, MANY, 0,
        doc: /* Return bitwise-or of all the arguments.
 Arguments may be integers, or markers converted to integers.
 usage: (logior &rest INTS-OR-MARKERS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   return arith_driver (Alogior, nargs, args);
 }
@@ -2827,7 +2828,7 @@ DEFUN ("logxor", Flogxor, Slogxor, 0, MANY, 0,
        doc: /* Return bitwise-exclusive-or of all the arguments.
 Arguments may be integers, or markers converted to integers.
 usage: (logxor &rest INTS-OR-MARKERS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   return arith_driver (Alogxor, nargs, args);
 }

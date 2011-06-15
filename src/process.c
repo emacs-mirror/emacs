@@ -1272,11 +1272,11 @@ the command through a shell and redirect one of them using the shell
 syntax.
 
 usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
-  (size_t nargs, register Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object buffer, name, program, proc, current_dir, tem;
   register unsigned char **new_argv;
-  register size_t i;
+  ptrdiff_t i;
   int count = SPECPDL_INDEX ();
 
   buffer = args[1];
@@ -2436,7 +2436,7 @@ Examples:
 \(serial-process-configure :port "\\\\.\\COM13" :bytesize 7)
 
 usage: (serial-process-configure &rest ARGS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   struct Lisp_Process *p;
   Lisp_Object contact = Qnil;
@@ -2554,7 +2554,7 @@ Examples:
 \(make-serial-process :port "/dev/tty.BlueConsole-SPP-1" :speed nil)
 
 usage:  (make-serial-process &rest ARGS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   int fd = -1;
   Lisp_Object proc, contact, port;
@@ -2832,7 +2832,7 @@ The original argument list, modified with the actual connection
 information, is available via the `process-contact' function.
 
 usage: (make-network-process &rest ARGS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object proc;
   Lisp_Object contact;
@@ -3148,7 +3148,7 @@ usage: (make-network-process &rest ARGS)  */)
 
   for (lres = res; lres; lres = lres->ai_next)
     {
-      size_t optn;
+      ptrdiff_t optn;
       int optbits;
 
 #ifdef WINDOWSNT

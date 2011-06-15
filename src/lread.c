@@ -1203,12 +1203,15 @@ Return t if the file exists and loads successfully.  */)
 #ifdef DOS_NT
 	  fmode = "rb";
 #endif /* DOS_NT */
-	  stat (SSDATA (efound), &s1);
-	  SSET (efound, SBYTES (efound) - 1, 0);
-	  result = stat (SSDATA (efound), &s2);
-	  SSET (efound, SBYTES (efound) - 1, 'c');
+	  result = stat (SSDATA (efound), &s1);
+	  if (result == 0)
+	    {
+	      SSET (efound, SBYTES (efound) - 1, 0);
+	      result = stat (SSDATA (efound), &s2);
+	      SSET (efound, SBYTES (efound) - 1, 'c');
+	    }
 
-	  if (result >= 0 && (unsigned) s1.st_mtime < (unsigned) s2.st_mtime)
+	  if (result == 0 && s1.st_mtime < s2.st_mtime)
 	    {
 	      /* Make the progress messages mention that source is newer.  */
 	      newer = 1;

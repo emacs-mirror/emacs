@@ -1074,8 +1074,7 @@ x_set_border_pixel (struct frame *f, int pix)
   if (FRAME_X_WINDOW (f) != 0 && f->border_width > 0)
     {
       BLOCK_INPUT;
-      XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			(unsigned long)pix);
+      XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), pix);
       UNBLOCK_INPUT;
 
       if (FRAME_VISIBLE_P (f))

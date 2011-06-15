@@ -978,11 +978,14 @@ so last access time will always be midnight of that day.  */)
   values[4] = make_time (s.st_atime);
   values[5] = make_time (s.st_mtime);
   values[6] = make_time (s.st_ctime);
-  values[7] = make_fixnum_or_float (s.st_size);
-  /* If the size is negative, and its type is long, convert it back to
-     positive.  */
-  if (s.st_size < 0 && sizeof (s.st_size) == sizeof (long))
-    values[7] = make_float ((double) ((unsigned long) s.st_size));
+
+  /* If the file size is a 4-byte type, assume that files of sizes in
+     the 2-4 GiB range wrap around to negative values, as this is a
+     common bug on older 32-bit platforms.  */
+  if (sizeof (s.st_size) == 4)
+    values[7] = make_fixnum_or_float (s.st_size & 0xffffffffu);
+  else
+    values[7] = make_fixnum_or_float (s.st_size);
 
   filemodestring (&s, modes);
   values[8] = make_string (modes, 10);

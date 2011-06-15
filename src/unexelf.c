@@ -391,6 +391,7 @@ temacs:
 extern void fatal (const char *msgid, ...);
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <memory.h>
@@ -784,7 +785,7 @@ unexec (const char *new_name, const char *old_name)
   fprintf (stderr, "new_data2_incr %x\n", new_data2_incr);
 #endif
 
-  if ((unsigned) new_bss_addr < (unsigned) old_bss_addr + old_bss_size)
+  if ((uintptr_t) new_bss_addr < (uintptr_t) old_bss_addr + old_bss_size)
     fatal (".bss shrank when undumping???\n", 0, 0);
 
   /* Set the output file to the right size.  Allocate a buffer to hold

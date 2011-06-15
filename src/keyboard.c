@@ -448,7 +448,7 @@ static Lisp_Object make_lispy_movement (struct frame *, Lisp_Object,
 #endif
 static Lisp_Object modify_event_symbol (EMACS_INT, unsigned, Lisp_Object,
                                         Lisp_Object, const char *const *,
-                                        Lisp_Object *, unsigned);
+                                        Lisp_Object *, EMACS_INT);
 static Lisp_Object make_lispy_switch_frame (Lisp_Object);
 static int help_char_p (Lisp_Object);
 static void save_getcjmp (jmp_buf);
@@ -1901,7 +1901,7 @@ safe_run_hooks_error (Lisp_Object error_data)
 }
 
 static Lisp_Object
-safe_run_hook_funcall (size_t nargs, Lisp_Object *args)
+safe_run_hook_funcall (ptrdiff_t nargs, Lisp_Object *args)
 {
   eassert (nargs == 1);
   if (CONSP (Vinhibit_quit))
@@ -2906,9 +2906,13 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
 	goto exit;
 
       if ((STRINGP (KVAR (current_kboard, Vkeyboard_translate_table))
-	   && SCHARS (KVAR (current_kboard, Vkeyboard_translate_table)) > (unsigned) XFASTINT (c))
+	   && UNSIGNED_CMP (XFASTINT (c), <,
+			    SCHARS (KVAR (current_kboard,
+					  Vkeyboard_translate_table))))
 	  || (VECTORP (KVAR (current_kboard, Vkeyboard_translate_table))
-	      && ASIZE (KVAR (current_kboard, Vkeyboard_translate_table)) > (unsigned) XFASTINT (c))
+	      && UNSIGNED_CMP (XFASTINT (c), <,
+			       ASIZE (KVAR (current_kboard,
+					    Vkeyboard_translate_table))))
 	  || (CHAR_TABLE_P (KVAR (current_kboard, Vkeyboard_translate_table))
 	      && CHARACTERP (c)))
 	{
@@ -2955,9 +2959,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
      save the echo area contents for it to refer to.  */
   if (INTEGERP (c)
       && ! NILP (Vinput_method_function)
-      && (unsigned) XINT (c) >= ' '
-      && (unsigned) XINT (c) != 127
-      && (unsigned) XINT (c) < 256)
+      && ' ' <= XINT (c) && XINT (c) < 256 && XINT (c) != 127)
     {
       previous_echo_area_message = Fcurrent_message ();
       Vinput_method_previous_message = previous_echo_area_message;
@@ -2982,9 +2984,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
       /* Don't run the input method within a key sequence,
 	 after the first event of the key sequence.  */
       && NILP (prev_event)
-      && (unsigned) XINT (c) >= ' '
-      && (unsigned) XINT (c) != 127
-      && (unsigned) XINT (c) < 256)
+      && ' ' <= XINT (c) && XINT (c) < 256 && XINT (c) != 127)
     {
       Lisp_Object keys;
       int key_count, key_count_reset;
@@ -5391,7 +5391,7 @@ make_lispy_event (struct input_event *event)
 				      Qfunction_key,
 				      KVAR (current_kboard, Vsystem_key_alist),
 				      0, &KVAR (current_kboard, system_key_syms),
-				      (unsigned) -1);
+				      TYPE_MAXIMUM (EMACS_INT));
 	}
 
       return modify_event_symbol (event->code - FUNCTION_KEY_OFFSET,
@@ -6410,7 +6410,7 @@ reorder_modifiers (Lisp_Object symbol)
 static Lisp_Object
 modify_event_symbol (EMACS_INT symbol_num, unsigned int modifiers, Lisp_Object symbol_kind,
 		     Lisp_Object name_alist_or_stem, const char *const *name_table,
-		     Lisp_Object *symbol_table, unsigned int table_size)
+		     Lisp_Object *symbol_table, EMACS_INT table_size)
 {
   Lisp_Object value;
   Lisp_Object symbol_int;

@@ -643,7 +643,7 @@ make_temp_name (Lisp_Object prefix, int base64_p)
 
   if (!make_temp_name_count_initialized_p)
     {
-      make_temp_name_count = (unsigned) time (NULL);
+      make_temp_name_count = time (NULL);
       make_temp_name_count_initialized_p = 1;
     }
 
@@ -3109,6 +3109,21 @@ read_non_regular_quit (Lisp_Object ignore)
   return Qnil;
 }
 
+/* Reposition FD to OFFSET, based on WHENCE.  This acts like lseek
+   except that it also tests for OFFSET being out of lseek's range.  */
+static off_t
+emacs_lseek (int fd, EMACS_INT offset, int whence)
+{
+  /* Use "&" rather than "&&" to suppress a bogus GCC warning; see
+     <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43772>.  */
+  if (! ((TYPE_MINIMUM (off_t) <= offset) & (offset <= TYPE_MAXIMUM (off_t))))
+    {
+      errno = EINVAL;
+      return -1;
+    }
+  return lseek (fd, offset, whence);
+}
+
 
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
        1, 5, 0,
@@ -3317,7 +3332,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 		  nread = emacs_read (fd, read_buf, 1024);
 		  if (nread >= 0)
 		    {
-		      if (lseek (fd, st.st_size - (1024 * 3), 0) < 0)
+		      if (lseek (fd, st.st_size - (1024 * 3), SEEK_SET) < 0)
 			report_file_error ("Setting file position",
 					   Fcons (orig_filename, Qnil));
 		      nread += emacs_read (fd, read_buf + nread, 1024 * 3);
@@ -3361,7 +3376,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 		  specpdl_ptr--;
 
 		  /* Rewind the file for the actual read done later.  */
-		  if (lseek (fd, 0, 0) < 0)
+		  if (lseek (fd, 0, SEEK_SET) < 0)
 		    report_file_error ("Setting file position",
 				       Fcons (orig_filename, Qnil));
 		}
@@ -3428,7 +3443,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
       if (XINT (beg) != 0)
 	{
-	  if (lseek (fd, XINT (beg), 0) < 0)
+	  if (emacs_lseek (fd, XINT (beg), SEEK_SET) < 0)
 	    report_file_error ("Setting file position",
 			       Fcons (orig_filename, Qnil));
 	}
@@ -3500,7 +3515,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	    break;
 	  /* How much can we scan in the next step?  */
 	  trial = min (curpos, sizeof buffer);
-	  if (lseek (fd, curpos - trial, 0) < 0)
+	  if (emacs_lseek (fd, curpos - trial, SEEK_SET) < 0)
 	    report_file_error ("Setting file position",
 			       Fcons (orig_filename, Qnil));
 
@@ -3618,7 +3633,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       /* First read the whole file, performing code conversion into
 	 CONVERSION_BUFFER.  */
 
-      if (lseek (fd, XINT (beg), 0) < 0)
+      if (emacs_lseek (fd, XINT (beg), SEEK_SET) < 0)
 	report_file_error ("Setting file position",
 			   Fcons (orig_filename, Qnil));
 
@@ -3817,7 +3832,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
   if (XINT (beg) != 0 || !NILP (replace))
     {
-      if (lseek (fd, XINT (beg), 0) < 0)
+      if (emacs_lseek (fd, XINT (beg), SEEK_SET) < 0)
 	report_file_error ("Setting file position",
 			   Fcons (orig_filename, Qnil));
     }
@@ -4549,9 +4564,9 @@ This calls `write-region-annotate-functions' at the start, and
       long ret;
 
       if (NUMBERP (append))
-	ret = lseek (desc, XINT (append), 1);
+	ret = emacs_lseek (desc, XINT (append), SEEK_CUR);
       else
-	ret = lseek (desc, 0, 2);
+	ret = lseek (desc, 0, SEEK_END);
       if (ret < 0)
 	{
 #ifdef CLASH_DETECTION

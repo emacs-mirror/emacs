@@ -3829,10 +3829,10 @@ be an OpenType font whose GPOS table of `thai' script's default
 language system must contain `mark' feature.
 
 usage: (font-spec ARGS...)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object spec = font_make_spec ();
-  size_t i;
+  ptrdiff_t i;
 
   for (i = 0; i < nargs; i += 2)
     {

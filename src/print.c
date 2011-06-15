@@ -2004,7 +2004,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 
 	case Lisp_Misc_Save_Value:
 	  strout ("#<save_value ", -1, -1, printcharfun);
-	  sprintf(buf, "ptr=%p int=%d",
+	  sprintf(buf, "ptr=%p int=%"pD"d",
 		  XSAVE_VALUE (obj)->pointer,
 		  XSAVE_VALUE (obj)->integer);
 	  strout (buf, -1, -1, printcharfun);

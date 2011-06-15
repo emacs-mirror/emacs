@@ -123,7 +123,7 @@ char_string (unsigned int c, unsigned char *p)
 
   if (c & CHAR_MODIFIER_MASK)
     {
-      c = (unsigned) char_resolve_modifier_mask ((int) c);
+      c = char_resolve_modifier_mask (c);
       /* If C still has any modifier bits, just ignore it.  */
       c &= ~CHAR_MODIFIER_MASK;
     }
@@ -838,7 +838,7 @@ string_escape_byte8 (Lisp_Object string)
   if (multibyte)
     {
       if ((MOST_POSITIVE_FIXNUM - nchars) / 3 < byte8_count
-	  || (STRING_BYTES_MAX - nbytes) / 2 < byte8_count)
+	  || (STRING_BYTES_BOUND - nbytes) / 2 < byte8_count)
 	string_overflow ();
 
       /* Convert 2-byte sequence of byte8 chars to 4-byte octal.  */
@@ -847,7 +847,7 @@ string_escape_byte8 (Lisp_Object string)
     }
   else
     {
-      if ((STRING_BYTES_MAX - nchars) / 3 < byte8_count)
+      if ((STRING_BYTES_BOUND - nbytes) / 3 < byte8_count)
 	string_overflow ();
 
       /* Convert 1-byte sequence of byte8 chars to 4-byte octal.  */
@@ -893,9 +893,9 @@ DEFUN ("string", Fstring, Sstring, 0, MANY, 0,
        doc: /*
 Concatenate all the argument characters and make the result a string.
 usage: (string &rest CHARACTERS)  */)
-  (size_t n, Lisp_Object *args)
+  (ptrdiff_t n, Lisp_Object *args)
 {
-  size_t i;
+  ptrdiff_t i;
   int c;
   unsigned char *buf, *p;
   Lisp_Object str;
@@ -919,9 +919,9 @@ usage: (string &rest CHARACTERS)  */)
 DEFUN ("unibyte-string", Funibyte_string, Sunibyte_string, 0, MANY, 0,
        doc: /* Concatenate all the argument bytes and make the result a unibyte string.
 usage: (unibyte-string &rest BYTES)  */)
-  (size_t n, Lisp_Object *args)
+  (ptrdiff_t n, Lisp_Object *args)
 {
-  size_t i;
+  ptrdiff_t i;
   int c;
   unsigned char *buf, *p;
   Lisp_Object str;

@@ -516,14 +516,11 @@ create_frame_gcs (ew)
   struct frame *s = ew->emacs_frame.frame;
 
   s->output_data.x->normal_gc
-    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
-		 (unsigned long)0, (XGCValues *)0);
+    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)), 0, 0);
   s->output_data.x->reverse_gc
-    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
-		 (unsigned long)0, (XGCValues *)0);
+    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)), 0, 0);
   s->output_data.x->cursor_gc
-    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
-		 (unsigned long)0, (XGCValues *)0);
+    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)), 0, 0);
   s->output_data.x->black_relief.gc = 0;
   s->output_data.x->white_relief.gc = 0;
 }
@@ -582,8 +579,7 @@ setup_frame_gcs (EmacsFrame ew)
     = XCreatePixmapFromBitmapData (XtDisplay(ew),
 				   RootWindowOfScreen (XtScreen (ew)),
 				   setup_frame_cursor_bits, 2, 2,
-				   (unsigned long)0, (unsigned long)1,
-				   ew->core.depth);
+				   0, 1, ew->core.depth);
 
   /* Normal video */
   gc_values.foreground = ew->emacs_frame.foreground_pixel;

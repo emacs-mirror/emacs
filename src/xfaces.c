@@ -6223,7 +6223,8 @@ face_at_string_position (struct window *w, Lisp_Object string,
 */
 
 int
-merge_faces (struct frame *f, Lisp_Object face_name, int face_id, int base_face_id)
+merge_faces (struct frame *f, Lisp_Object face_name, EMACS_INT face_id,
+	     int base_face_id)
 {
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   struct face *base_face;

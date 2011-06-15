@@ -1071,7 +1071,7 @@ coding_set_destination (struct coding_system *coding)
 static void
 coding_alloc_by_realloc (struct coding_system *coding, EMACS_INT bytes)
 {
-  if (STRING_BYTES_MAX - coding->dst_bytes < bytes)
+  if (STRING_BYTES_BOUND - coding->dst_bytes < bytes)
     string_overflow ();
   coding->destination = (unsigned char *) xrealloc (coding->destination,
 						    coding->dst_bytes + bytes);
@@ -9278,7 +9278,7 @@ function to call for FILENAME, that function should examine the
 contents of BUFFER instead of reading the file.
 
 usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object operation, target_idx, target, val;
   register Lisp_Object chain;
@@ -9355,9 +9355,9 @@ If multiple coding systems belong to the same category,
 all but the first one are ignored.
 
 usage: (set-coding-system-priority &rest coding-systems)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
-  size_t i, j;
+  ptrdiff_t i, j;
   int changed[coding_category_max];
   enum coding_category priorities[coding_category_max];
 
@@ -9461,7 +9461,7 @@ DEFUN ("define-coding-system-internal", Fdefine_coding_system_internal,
        Sdefine_coding_system_internal, coding_arg_max, MANY, 0,
        doc: /* For internal use only.
 usage: (define-coding-system-internal ...)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object name;
   Lisp_Object spec_vec;		/* [ ATTRS ALIASE EOL_TYPE ] */

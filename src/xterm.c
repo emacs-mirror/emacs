@@ -1697,16 +1697,18 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 	 a least-squares matching, which is what X uses for closest
 	 color matching with StaticColor visuals.  */
       int nearest, i;
-      unsigned long nearest_delta = ~ (unsigned long) 0;
+      int max_color_delta = 255;
+      int max_delta = 3 * max_color_delta;
+      int nearest_delta = max_delta + 1;
       int ncells;
       const XColor *cells = x_color_cells (dpy, &ncells);
 
       for (nearest = i = 0; i < ncells; ++i)
 	{
-	  long dred   = (color->red   >> 8) - (cells[i].red   >> 8);
-	  long dgreen = (color->green >> 8) - (cells[i].green >> 8);
-	  long dblue  = (color->blue  >> 8) - (cells[i].blue  >> 8);
-	  unsigned long delta = dred * dred + dgreen * dgreen + dblue * dblue;
+	  int dred   = (color->red   >> 8) - (cells[i].red   >> 8);
+	  int dgreen = (color->green >> 8) - (cells[i].green >> 8);
+	  int dblue  = (color->blue  >> 8) - (cells[i].blue  >> 8);
+	  int delta = dred * dred + dgreen * dgreen + dblue * dblue;
 
 	  if (delta < nearest_delta)
 	    {
@@ -6442,8 +6444,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
                            keys".  It seems there's no cleaner way.
                            Test IsModifierKey to avoid handling
                            mode_switch incorrectly.  */
-                        || ((unsigned) (keysym) >= XK_Select
-                            && (unsigned)(keysym) < XK_KP_Space)
+                        || (XK_Select <= keysym && keysym < XK_KP_Space)
 #endif
 #ifdef XK_dead_circumflex
                         || orig_keysym == XK_dead_circumflex
@@ -6496,10 +6497,8 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
                                 should be treated similarly to
                                 Mode_switch by Emacs. */
 #if defined XK_ISO_Lock && defined XK_ISO_Last_Group_Lock
-                             || ((unsigned)(orig_keysym)
-                                 >=  XK_ISO_Lock
-                                 && (unsigned)(orig_keysym)
-                                 <= XK_ISO_Last_Group_Lock)
+                             || (XK_ISO_Lock <= orig_keysym
+				 && orig_keysym <= XK_ISO_Last_Group_Lock)
 #endif
                              ))
 	    {
@@ -10275,7 +10274,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
 				     gray_bitmap_bits,
 				     gray_bitmap_width, gray_bitmap_height,
-				     (unsigned long) 1, (unsigned long) 0, 1);
+				     1, 0, 1);
   }
 
 #ifdef HAVE_X_I18N

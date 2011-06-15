@@ -253,9 +253,12 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
 	  else if (c == '_')
 	    *to++ = 037;
 	  else
-	    error ("\
+	    {
+	      unsigned char uc = c;
+	      error ("\
 Invalid data in documentation file -- %c followed by code %03o",
-		   1, (unsigned)c);
+		     1, uc);
+	    }
 	}
       else
 	*to++ = *from++;

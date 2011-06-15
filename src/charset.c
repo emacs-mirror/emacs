@@ -844,7 +844,7 @@ DEFUN ("define-charset-internal", Fdefine_charset_internal,
        Sdefine_charset_internal, charset_arg_max, MANY, 0,
        doc: /* For internal use only.
 usage: (define-charset-internal ...)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   /* Charset attr vector.  */
   Lisp_Object attrs;
@@ -1862,14 +1862,15 @@ Optional argument RESTRICTION specifies a way to map CH to a
 code-point in CCS.  Currently not supported and just ignored.  */)
   (Lisp_Object ch, Lisp_Object charset, Lisp_Object restriction)
 {
-  int id;
+  int c, id;
   unsigned code;
   struct charset *charsetp;
 
   CHECK_CHARSET_GET_ID (charset, id);
-  CHECK_NATNUM (ch);
+  CHECK_CHARACTER (ch);
+  c = XFASTINT (ch);
   charsetp = CHARSET_FROM_ID (id);
-  code = ENCODE_CHAR (charsetp, XINT (ch));
+  code = ENCODE_CHAR (charsetp, c);
   if (code == CHARSET_INVALID_CODE (charsetp))
     return Qnil;
   return INTEGER_TO_CONS (code);
@@ -2144,11 +2145,11 @@ DEFUN ("set-charset-priority", Fset_charset_priority, Sset_charset_priority,
        1, MANY, 0,
        doc: /* Assign higher priority to the charsets given as arguments.
 usage: (set-charset-priority &rest charsets)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object new_head, old_list, arglist[2];
   Lisp_Object list_2022, list_emacs_mule;
-  size_t i;
+  ptrdiff_t i;
   int id;
 
   old_list = Fcopy_sequence (Vcharset_ordered_list);

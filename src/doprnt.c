@@ -118,10 +118,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    another macro.  */
 #include "character.h"
 
-#ifndef SIZE_MAX
-# define SIZE_MAX ((size_t) -1)
-#endif
-
 #ifndef DBL_MAX_10_EXP
 #define DBL_MAX_10_EXP 308 /* IEEE double */
 #endif
@@ -329,7 +325,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		minlen = atoi (&fmtcpy[1]);
 	      string = va_arg (ap, char *);
 	      tem = strlen (string);
-	      if (tem > STRING_BYTES_MAX)
+	      if (STRING_BYTES_BOUND < tem)
 		error ("String for %%s or %%S format is too long");
 	      width = strwidth (string, tem);
 	      goto doit1;
@@ -338,7 +334,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 	    doit:
 	      /* Coming here means STRING contains ASCII only.  */
 	      tem = strlen (string);
-	      if (tem > STRING_BYTES_MAX)
+	      if (STRING_BYTES_BOUND < tem)
 		error ("Format width or precision too large");
 	      width = tem;
 	    doit1:

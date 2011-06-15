@@ -1335,7 +1335,7 @@ string_char_and_length (const unsigned char *str, int *len)
   int c;
 
   c = STRING_CHAR_AND_LENGTH (str, *len);
-  if (!CHAR_VALID_P (c, 1))
+  if (!CHAR_VALID_P (c))
     /* We may not change the length here because other places in Emacs
        don't use this function, i.e. they silently accept invalid
        characters.  */
@@ -2138,7 +2138,7 @@ safe_eval_handler (Lisp_Object arg)
    redisplay during the evaluation.  */
 
 Lisp_Object
-safe_call (size_t nargs, Lisp_Object *args)
+safe_call (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object val;
 
@@ -5819,7 +5819,8 @@ get_next_display_element (struct it *it)
 		 display.  Then, set IT->dpvec to these glyphs.  */
 	      Lisp_Object gc;
 	      int ctl_len;
-	      int face_id, lface_id = 0 ;
+	      int face_id;
+	      EMACS_INT lface_id = 0;
 	      int escape_glyph;
 
 	      /* Handle control characters with ^.  */
@@ -6374,7 +6375,7 @@ next_element_from_display_vector (struct it *it)
 	it->face_id = it->dpvec_face_id;
       else
 	{
-	  int lface_id = GLYPH_CODE_FACE (gc);
+	  EMACS_INT lface_id = GLYPH_CODE_FACE (gc);
 	  if (lface_id > 0)
 	    it->face_id = merge_faces (it->f, Qt, lface_id,
 				       it->saved_face_id);
@@ -16570,7 +16571,7 @@ With ARG, turn tracing on if and only if ARG is positive.  */)
 DEFUN ("trace-to-stderr", Ftrace_to_stderr, Strace_to_stderr, 1, MANY, "",
        doc: /* Like `format', but print result to stderr.
 usage: (trace-to-stderr STRING &rest OBJECTS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object s = Fformat (nargs, args);
   fprintf (stderr, "%s", SDATA (s));
@@ -19379,7 +19380,8 @@ decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_
       else if (CHARACTERP (eoltype))
 	{
 	  unsigned char *tmp = (unsigned char *) alloca (MAX_MULTIBYTE_LENGTH);
-	  eol_str_len = CHAR_STRING (XINT (eoltype), tmp);
+	  int c = XFASTINT (eoltype);
+	  eol_str_len = CHAR_STRING (c, tmp);
 	  eol_str = tmp;
 	}
       else

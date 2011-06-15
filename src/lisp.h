@@ -60,6 +60,21 @@ extern void check_cons_list (void);
 # define EMACS_UINT unsigned EMACS_INT
 #endif
 
+/* Use pD to format ptrdiff_t values, which suffice for indexes into
+   buffers and strings.  Emacs never allocates objects larger than
+   PTRDIFF_MAX bytes, as they cause problems with pointer subtraction.
+   In C99, pD can always be "t"; configure it here for the sake of
+   pre-C99 libraries such as glibc 2.0 and Solaris 8.  */
+#if PTRDIFF_MAX == INT_MAX
+# define pD ""
+#elif PTRDIFF_MAX == LONG_MAX
+# define pD "l"
+#elif PTRDIFF_MAX == LLONG_MAX
+# define pD "ll"
+#else
+# define pD "t"
+#endif
+
 /* Extra internal type checking?  */
 
 #ifdef ENABLE_CHECKING
@@ -765,11 +780,19 @@ extern EMACS_INT string_bytes (struct Lisp_String *);
 
 #endif /* not GC_CHECK_STRING_BYTES */
 
-/* A string cannot contain more bytes than a fixnum can represent,
-   nor can it be so long that C pointer arithmetic stops working on
-   the string plus a terminating null.  */
-#define STRING_BYTES_MAX  \
-  min (MOST_POSITIVE_FIXNUM, min (SIZE_MAX, PTRDIFF_MAX) - 1)
+/* An upper bound on the number of bytes in a Lisp string, not
+   counting the terminating null.  This a tight enough bound to
+   prevent integer overflow errors that would otherwise occur during
+   string size calculations.  A string cannot contain more bytes than
+   a fixnum can represent, nor can it be so long that C pointer
+   arithmetic stops working on the string plus its terminating null.
+   Although the actual size limit (see STRING_BYTES_MAX in alloc.c)
+   may be a bit smaller than STRING_BYTES_BOUND, calculating it here
+   would expose alloc.c internal details that we'd rather keep
+   private.  The cast to ptrdiff_t ensures that STRING_BYTES_BOUND is
+   signed.  */
+#define STRING_BYTES_BOUND  \
+  min (MOST_POSITIVE_FIXNUM, (ptrdiff_t) min (SIZE_MAX, PTRDIFF_MAX) - 1)
 
 /* Mark STR as a unibyte string.  */
 #define STRING_SET_UNIBYTE(STR)  \
@@ -888,8 +911,18 @@ struct Lisp_Vector
 
 #endif	/* not __GNUC__ */
 
+/* Compute A OP B, using the unsigned comparison operator OP.  A and B
+   should be integer expressions.  This is not the same as
+   mathemeatical comparison; for example, UNSIGNED_CMP (0, <, -1)
+   returns 1.  For efficiency, prefer plain unsigned comparison if A
+   and B's sizes both fit (after integer promotion).  */
+#define UNSIGNED_CMP(a, op, b)						\
+  (max (sizeof ((a) + 0), sizeof ((b) + 0)) <= sizeof (unsigned)	\
+   ? ((a) + (unsigned) 0) op ((b) + (unsigned) 0)			\
+   : ((a) + (uintmax_t) 0) op ((b) + (uintmax_t) 0))
+
 /* Nonzero iff C is an ASCII character.  */
-#define ASCII_CHAR_P(c) ((unsigned) (c) < 0x80)
+#define ASCII_CHAR_P(c) UNSIGNED_CMP (c, <, 0x80)
 
 /* Almost equivalent to Faref (CT, IDX) with optimization for ASCII
    characters.  Do not check validity of CT.  */
@@ -908,8 +941,7 @@ struct Lisp_Vector
 /* Equivalent to Faset (CT, IDX, VAL) with optimization for ASCII and
    8-bit European characters.  Do not check validity of CT.  */
 #define CHAR_TABLE_SET(CT, IDX, VAL)					\
-  (((IDX) >= 0 && ASCII_CHAR_P (IDX)					\
-    && SUB_CHAR_TABLE_P (XCHAR_TABLE (CT)->ascii))			\
+  (ASCII_CHAR_P (IDX) && SUB_CHAR_TABLE_P (XCHAR_TABLE (CT)->ascii)	\
    ? XSUB_CHAR_TABLE (XCHAR_TABLE (CT)->ascii)->contents[IDX] = VAL	\
    : char_table_set (CT, IDX, VAL))
 
@@ -1007,7 +1039,7 @@ struct Lisp_Subr
       Lisp_Object (*a7) (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
       Lisp_Object (*a8) (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
       Lisp_Object (*aUNEVALLED) (Lisp_Object args);
-      Lisp_Object (*aMANY) (size_t, Lisp_Object *);
+      Lisp_Object (*aMANY) (ptrdiff_t, Lisp_Object *);
     } function;
     short min_args, max_args;
     const char *symbol_name;
@@ -1447,7 +1479,7 @@ struct Lisp_Save_Value
        area containing INTEGER potential Lisp_Objects.  */
     unsigned int dogc : 1;
     void *pointer;
-    int integer;
+    ptrdiff_t integer;
   };
 
 
@@ -1576,7 +1608,7 @@ typedef struct {
 #define SET_GLYPH(glyph, char, face) ((glyph).ch = (char), (glyph).face_id = (face))
 
 /* Return 1 if GLYPH contains valid character code.  */
-#define GLYPH_CHAR_VALID_P(glyph) CHAR_VALID_P (GLYPH_CHAR (glyph), 1)
+#define GLYPH_CHAR_VALID_P(glyph) CHAR_VALID_P (GLYPH_CHAR (glyph))
 
 
 /* Glyph Code from a display vector may either be an integer which
@@ -1590,7 +1622,7 @@ typedef struct {
   (CONSP (gc) ? XINT (XCDR (gc)) : INTEGERP (gc) ? (XINT (gc) >> CHARACTERBITS) : DEFAULT_FACE_ID)
 
 /* Return 1 if glyph code from display vector contains valid character code.  */
-#define GLYPH_CODE_CHAR_VALID_P(gc) CHAR_VALID_P (GLYPH_CODE_CHAR (gc), 1)
+#define GLYPH_CODE_CHAR_VALID_P(gc) CHAR_VALID_P (GLYPH_CODE_CHAR (gc))
 
 #define GLYPH_CODE_P(gc) ((CONSP (gc) && INTEGERP (XCAR (gc)) && INTEGERP (XCDR (gc))) || INTEGERP (gc))
 
@@ -1864,7 +1896,7 @@ typedef struct {
 
 /* Note that the weird token-substitution semantics of ANSI C makes
    this work for MANY and UNEVALLED.  */
-#define DEFUN_ARGS_MANY		(size_t, Lisp_Object *)
+#define DEFUN_ARGS_MANY		(ptrdiff_t, Lisp_Object *)
 #define DEFUN_ARGS_UNEVALLED	(Lisp_Object)
 #define DEFUN_ARGS_0	(void)
 #define DEFUN_ARGS_1	(Lisp_Object)
@@ -2129,7 +2161,7 @@ struct gcpro
   volatile Lisp_Object *var;
 
   /* Number of consecutive protected variables.  */
-  size_t nvars;
+  ptrdiff_t nvars;
 
 #ifdef DEBUG_GCPRO
   int level;
@@ -2778,7 +2810,7 @@ extern int abort_on_gc;
 extern Lisp_Object make_float (double);
 extern void display_malloc_warning (void);
 extern int inhibit_garbage_collection (void);
-extern Lisp_Object make_save_value (void *, int);
+extern Lisp_Object make_save_value (void *, ptrdiff_t);
 extern void free_marker (Lisp_Object);
 extern void free_cons (struct Lisp_Cons *);
 extern void init_alloc_once (void);
@@ -2890,9 +2922,9 @@ EXFUN (Frun_hooks, MANY);
 EXFUN (Frun_hook_with_args, MANY);
 EXFUN (Frun_hook_with_args_until_failure, MANY);
 extern void run_hook_with_args_2 (Lisp_Object, Lisp_Object, Lisp_Object);
-extern Lisp_Object run_hook_with_args (size_t nargs, Lisp_Object *args,
+extern Lisp_Object run_hook_with_args (ptrdiff_t nargs, Lisp_Object *args,
 				       Lisp_Object (*funcall)
-				       (size_t nargs, Lisp_Object *args));
+				       (ptrdiff_t nargs, Lisp_Object *args));
 EXFUN (Fprogn, UNEVALLED);
 EXFUN (Finteractive_p, 0);
 EXFUN (Fthrow, 2) NO_RETURN;
@@ -2924,7 +2956,7 @@ extern Lisp_Object internal_lisp_condition_case (Lisp_Object, Lisp_Object, Lisp_
 extern Lisp_Object internal_condition_case (Lisp_Object (*) (void), Lisp_Object, Lisp_Object (*) (Lisp_Object));
 extern Lisp_Object internal_condition_case_1 (Lisp_Object (*) (Lisp_Object), Lisp_Object, Lisp_Object, Lisp_Object (*) (Lisp_Object));
 extern Lisp_Object internal_condition_case_2 (Lisp_Object (*) (Lisp_Object, Lisp_Object), Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object (*) (Lisp_Object));
-extern Lisp_Object internal_condition_case_n (Lisp_Object (*) (size_t, Lisp_Object *), size_t, Lisp_Object *, Lisp_Object, Lisp_Object (*) (Lisp_Object));
+extern Lisp_Object internal_condition_case_n (Lisp_Object (*) (ptrdiff_t, Lisp_Object *), ptrdiff_t, Lisp_Object *, Lisp_Object, Lisp_Object (*) (Lisp_Object));
 extern void specbind (Lisp_Object, Lisp_Object);
 extern void record_unwind_protect (Lisp_Object (*) (Lisp_Object), Lisp_Object);
 extern Lisp_Object unbind_to (int, Lisp_Object);
@@ -2934,7 +2966,7 @@ extern void verror (const char *, va_list)
 extern void do_autoload (Lisp_Object, Lisp_Object);
 extern Lisp_Object un_autoload (Lisp_Object);
 extern void init_eval_once (void);
-extern Lisp_Object safe_call (size_t, Lisp_Object *);
+extern Lisp_Object safe_call (ptrdiff_t, Lisp_Object *);
 extern Lisp_Object safe_call1 (Lisp_Object, Lisp_Object);
 extern Lisp_Object safe_call2 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void init_eval (void);
@@ -3316,7 +3348,7 @@ extern void mark_byte_stack (void);
 #endif
 extern void unmark_byte_stack (void);
 extern Lisp_Object exec_byte_code (Lisp_Object, Lisp_Object, Lisp_Object,
-				   Lisp_Object, int, Lisp_Object *);
+				   Lisp_Object, ptrdiff_t, Lisp_Object *);
 
 /* Defined in macros.c */
 extern Lisp_Object Qexecute_kbd_macro;
@@ -3671,18 +3703,19 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 
 #define SAFE_ALLOCA_LISP(buf, nelt)			  \
   do {							  \
-    int size_ = (nelt) * sizeof (Lisp_Object);		  \
-    if (size_ < MAX_ALLOCA)				  \
-      buf = (Lisp_Object *) alloca (size_);		  \
-    else						  \
+    if ((nelt) < MAX_ALLOCA / sizeof (Lisp_Object))	  \
+      buf = (Lisp_Object *) alloca ((nelt) * sizeof (Lisp_Object));	\
+    else if ((nelt) < min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object)) \
       {							  \
 	Lisp_Object arg_;				  \
-	buf = (Lisp_Object *) xmalloc (size_);		  \
+	buf = (Lisp_Object *) xmalloc ((nelt) * sizeof (Lisp_Object));	\
 	arg_ = make_save_value (buf, nelt);		  \
 	XSAVE_VALUE (arg_)->dogc = 1;			  \
 	sa_must_free = 1;				  \
 	record_unwind_protect (safe_alloca_unwind, arg_); \
       }							  \
+    else						  \
+      memory_full (SIZE_MAX);				  \
   } while (0)
 
 
