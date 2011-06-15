@@ -1,5 +1,7 @@
 2011-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* pcmpl-rpm.el (pcomplete/rpm): Minor simplification.
+
 	* emacs-lisp/debug.el (debug): Don't leave the buffer in Debugger.
 
 	* abbrev.el (define-abbrev-table): Don't add a table multiple times.
