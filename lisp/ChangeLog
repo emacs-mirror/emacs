@@ -14,6 +14,11 @@
 
 2011-06-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/network-stream.el (open-network-stream): Add the keyword
+	:always-query-capabilities for the case where you want to force a
+	`plain' network connection, but the protocol still requires the
+	capabilitiy command (i.e., SMTP and EHLO).
+
 	* subr.el (process-live-p): Rename from `process-alive-p' for
 	consistency with other `-live-p' functions.
 

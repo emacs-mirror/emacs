@@ -109,6 +109,9 @@ values:
   capability command, and should return the command to switch on
   STARTTLS if the server supports STARTTLS, and nil otherwise.
 
+:always-query-capabilies says whether to query the server for
+capabilities, even if we're doing a `plain' network connection.
+
 :nowait is a boolean that says the connection should be made
 asynchronously, if possible."
   (unless (featurep 'make-network-process)
@@ -126,8 +129,11 @@ asynchronously, if possible."
 			      :nowait (plist-get parameters :nowait))
       (let ((work-buffer (or buffer
 			     (generate-new-buffer " *stream buffer*")))
-	    (fun (cond ((eq type 'plain) 'network-stream-open-plain)
-		       ((memq type '(nil network starttls))
+	    (fun (cond ((and (eq type 'plain)
+			     (not (plist-get parameters
+					     :always-query-capabilities)))
+			'network-stream-open-plain)
+		       ((memq type '(nil network starttls plain))
 			'network-stream-open-starttls)
 		       ((memq type '(tls ssl)) 'network-stream-open-tls)
 		       ((eq type 'shell) 'network-stream-open-shell)
@@ -182,7 +188,8 @@ asynchronously, if possible."
 			(executable-find "gnutls-cli")))
 	       capabilities success-string starttls-function
 	       (setq starttls-command
-		     (funcall starttls-function capabilities)))
+		     (funcall starttls-function capabilities))
+	       (not (eq (plist-get parameters :type) 'plain)))
       ;; If using external STARTTLS, drop this connection and start
       ;; anew with `starttls-open-stream'.
       (unless (fboundp 'open-gnutls-stream)
