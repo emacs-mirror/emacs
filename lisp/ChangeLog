@@ -1,3 +1,8 @@
+2011-06-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* subr.el (process-live-p): Renamed from `process-alive-p' for
+	consistency with other `-live-p' functions.
+
 2011-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.el (same-window-buffer-names, same-window-regexps)

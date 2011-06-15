@@ -1,3 +1,8 @@
+2011-06-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* processes.texi (Process Information): Renamed `process-alive-p'
+	to `process-live-p' for consistency with other `-live-p' functions.
+
 2011-06-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Document wide integers better.

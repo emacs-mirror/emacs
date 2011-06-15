@@ -859,7 +859,7 @@ For a network connection, @code{process-status} returns one of the symbols
 closed the connection, or Emacs did @code{delete-process}.
 @end defun
 
-@defun process-alive-p process
+@defun process-live-p process
 This function returns nin-@code{nil} if @var{process} is alive.  A
 process is considered alive if its status is @code{run}, @code{open},
 @code{listen}, @code{connect} or @code{stop}.
