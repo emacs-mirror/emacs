@@ -10483,6 +10483,7 @@ fi
 
 
 HAVE_GTK=no
+GTK_OBJ=
 if test "${with_gtk3}" = "yes"; then
   GLIB_REQUIRED=2.28
   GTK_REQUIRED=3.0
@@ -10588,6 +10589,7 @@ $as_echo "no" >&6; }
 
 $as_echo "#define HAVE_GTK3 1" >>confdefs.h
 
+  GTK_OBJ=emacsgtkfixed.o
 fi
 
 if test "$pkg_check_gtk" != "yes"; then
@@ -10697,7 +10699,6 @@ $as_echo "no" >&6; }
 fi
 fi
 
-GTK_OBJ=
 if test x"$pkg_check_gtk" = xyes; then
 
 
@@ -10726,7 +10727,7 @@ done
 
 $as_echo "#define USE_GTK 1" >>confdefs.h
 
-    GTK_OBJ=gtkutil.o
+    GTK_OBJ="gtkutil.o $GTK_OBJ"
     USE_X_TOOLKIT=none
     if $PKG_CONFIG --atleast-version=2.10 gtk+-2.0; then
       :
