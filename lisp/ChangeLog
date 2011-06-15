@@ -1,13 +1,14 @@
 2011-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/debug.el (debug): Don't leave the buffer in Debugger.
+
 	* abbrev.el (define-abbrev-table): Don't add a table multiple times.
 
 2011-06-15  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-fonts.el (c-font-lock-declarations): 1: Whilst
-	checking for declarators, disable knr checking to speed up for
-	normal files.  2: Refactor, replacing a sequence of nested if
-	forms by a cond form.
+	* progmodes/cc-fonts.el (c-font-lock-declarations): 1: Whilst checking
+	for declarators, disable knr checking to speed up for normal files.
+	2: Refactor, replacing a sequence of nested if forms by a cond form.
 
 2011-06-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

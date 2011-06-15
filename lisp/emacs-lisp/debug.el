@@ -238,13 +238,14 @@ first will be printed into the backtrace buffer."
               (kill-buffer debugger-buffer)))
           ;; Restore the previous state of the debugger-buffer, in case we were
           ;; in a recursive invocation of the debugger.
-          (when (and debugger-previous-state
-                     (buffer-live-p debugger-buffer))
+          (when (buffer-live-p debugger-buffer)
             (with-current-buffer debugger-buffer
               (let ((inhibit-read-only t))
                 (erase-buffer)
-                (insert (nth 1 debugger-previous-state))
-                (funcall (nth 0 debugger-previous-state)))))
+                (if (null debugger-previous-state)
+                    (fundamental-mode)
+                  (insert (nth 1 debugger-previous-state))
+                  (funcall (nth 0 debugger-previous-state))))))
 	  (with-timeout-unsuspend debugger-with-timeout-suspend)
 	  (set-match-data debugger-outer-match-data)))
       ;; Put into effect the modified values of these variables
