@@ -1,3 +1,10 @@
+2011-06-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/python.el (python-mode): Derive from prog-mode.
+	* progmodes/ps-mode.el (ps-mode):
+	* progmodes/mixal-mode.el (mixal-mode):
+	* progmodes/ld-script.el (ld-script-mode): Likewise.
+
 2011-06-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-alist): Trim default value to avoid

@@ -485,7 +485,7 @@ If nil, use `temporary-file-directory'."
 ;; PostScript mode.
 
 ;;;###autoload
-(define-derived-mode ps-mode fundamental-mode "PostScript"
+(define-derived-mode ps-mode prog-mode "PostScript"
   "Major mode for editing PostScript with GNU Emacs.
 
 Entry to this mode calls `ps-mode-hook'.
