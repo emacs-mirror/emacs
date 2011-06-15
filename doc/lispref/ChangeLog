@@ -1,3 +1,7 @@
+2011-06-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Special Properties): Clarify role of font-lock-face.
+
 2011-06-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* processes.texi (Process Information): Renamed `process-alive-p'
