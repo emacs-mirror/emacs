@@ -3114,7 +3114,9 @@ read_non_regular_quit (Lisp_Object ignore)
 static off_t
 emacs_lseek (int fd, EMACS_INT offset, int whence)
 {
-  if (! (TYPE_MINIMUM (off_t) <= offset && offset <= TYPE_MAXIMUM (off_t)))
+  /* Use "&" rather than "&&" to suppress a bogus GCC warning; see
+     <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43772>.  */
+  if (! ((TYPE_MINIMUM (off_t) <= offset) & (offset <= TYPE_MAXIMUM (off_t))))
     {
       errno = EINVAL;
       return -1;
