@@ -1,3 +1,36 @@
+2011-06-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* subr.el (process-live-p): Renamed from `process-alive-p' for
+	consistency with other `-live-p' functions.
+
+2011-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (same-window-buffer-names, same-window-regexps)
+	(special-display-frame-alist, special-display-popup-frame)
+	(special-display-function, special-display-buffer-names)
+	(special-display-regexps, pop-up-frame-alist)
+	(pop-up-frame-function, pop-up-frames, display-buffer-reuse-frames)
+	(pop-up-windows, split-window-preferred-function)
+	(split-height-threshold, split-width-threshold, even-window-heights)
+	(display-buffer-mark-dedicated): Don't encourage the use of
+	display-buffer-alist from Elisp code.
+
+2011-06-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/python.el (python-mode): Derive from prog-mode.
+	* progmodes/ps-mode.el (ps-mode):
+	* progmodes/mixal-mode.el (mixal-mode):
+	* progmodes/cfengine.el (cfengine-mode):
+	* progmodes/ld-script.el (ld-script-mode): Likewise.
+
+2011-06-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-alist): Trim default value to avoid
+	popping up a new frame (Bug#8857) or reusing an arbitrary window
+	on another frame.
+	(display-buffer): Do not fall back on popping up a new frame in
+	batch mode (Bug#8857).
+
 2011-06-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-theme.el (describe-theme-1): Use custom-theme-p.

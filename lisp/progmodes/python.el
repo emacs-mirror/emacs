@@ -2420,7 +2420,7 @@ without confirmation."
 (defvar python-mode-running)            ;Dynamically scoped var.
 
 ;;;###autoload
-(define-derived-mode python-mode fundamental-mode "Python"
+(define-derived-mode python-mode prog-mode "Python"
   "Major mode for editing Python files.
 Turns on Font Lock mode unconditionally since it is currently required
 for correct parsing of the source.

@@ -1700,7 +1700,7 @@ x_set_scroll_bar_default_width (struct frame *f)
   int wid = FRAME_COLUMN_WIDTH (f);
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_GTK
-  int minw = xg_get_default_scrollbar_width (f);
+  int minw = xg_get_default_scrollbar_width ();
 #else
   int minw = 16;
 #endif

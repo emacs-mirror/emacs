@@ -1103,7 +1103,7 @@ Assumes that file has been compiled with debugging support."
     (error "mixvm.el needs to be loaded to run `mixvm'")))
 
 ;;;###autoload
-(define-derived-mode mixal-mode fundamental-mode "mixal"
+(define-derived-mode mixal-mode prog-mode "mixal"
   "Major mode for the mixal asm language."
   (set (make-local-variable 'comment-start) "*")
   (set (make-local-variable 'comment-start-skip) "^\\*[ \t]*")

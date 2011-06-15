@@ -42,6 +42,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_GTK3
 #include <gtk/gtkx.h>
+#include "emacsgtkfixed.h"
 #endif
 
 #define FRAME_TOTAL_PIXEL_HEIGHT(f) \
@@ -88,12 +89,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define XG_BIN_CHILD(x) gtk_bin_get_child (GTK_BIN (x))
 
-/* Get the current value of the range, truncated to an integer.  */
-static int
-int_gtk_range_get_value (GtkRange *range)
-{
-  return gtk_range_get_value (range);
-}
+static void update_theme_scrollbar_width (void);
 
 
 /***********************************************************************
@@ -1015,6 +1011,7 @@ style_changed_cb (GObject *go,
   struct input_event event;
   GdkDisplay *gdpy = (GdkDisplay *) user_data;
   const char *display_name = gdk_display_get_name (gdpy);
+  Display *dpy = GDK_DISPLAY_XDISPLAY (gdpy);
 
   EVENT_INIT (event);
   event.kind = CONFIG_CHANGED_EVENT;
@@ -1022,6 +1019,24 @@ style_changed_cb (GObject *go,
   /* Theme doesn't change often, so intern is called seldom.  */
   event.arg = intern ("theme-name");
   kbd_buffer_store_event (&event);
+
+  update_theme_scrollbar_width ();
+
+  /* If scroll bar width changed, we need set the new size on all frames
+     on this display.  */
+  if (dpy) 
+    {
+      Lisp_Object rest, frame;
+      FOR_EACH_FRAME (rest, frame)
+        {
+          FRAME_PTR f = XFRAME (frame);
+          if (FRAME_X_DISPLAY (f) == dpy)
+            {
+              x_set_scroll_bar_default_width (f);
+              xg_frame_set_char_size (f, FRAME_COLS (f), FRAME_LINES (f));
+            }
+        }
+    }
 }
 
 /* Called when a delete-event occurs on WIDGET.  */
@@ -1069,7 +1084,12 @@ xg_create_frame_widgets (FRAME_PTR f)
 
   wvbox = gtk_vbox_new (FALSE, 0);
   whbox = gtk_hbox_new (FALSE, 0);
-  wfixed = gtk_fixed_new ();  /* Must have this to place scroll bars  */
+
+#ifdef HAVE_GTK3
+  wfixed = emacs_fixed_new ();
+#else
+  wfixed = gtk_fixed_new ();
+#endif
 
   if (! wtop || ! wvbox || ! whbox || ! wfixed)
     {
@@ -1162,6 +1182,7 @@ xg_create_frame_widgets (FRAME_PTR f)
   gtk_widget_modify_style (wfixed, style);
 #else
   gtk_widget_set_can_focus (wfixed, TRUE);
+  gtk_window_set_resizable (GTK_WINDOW (wtop), TRUE);
 #endif
 
 #ifdef USE_GTK_TOOLTIP
@@ -1264,6 +1285,18 @@ x_wm_set_size_hint (FRAME_PTR f, long int flags, int user_position)
   size_hints.base_height = base_height;
   size_hints.min_width  = base_width + min_cols * size_hints.width_inc;
   size_hints.min_height = base_height + min_rows * size_hints.height_inc;
+
+#ifdef HAVE_GTK3
+  /* Gtk3 ignores min width/height and overwrites them with its own idea
+     of min width/height.  Put out min values to the widget so Gtk
+     gets the same value we want it to be.  Without this, a user can't
+     shrink an Emacs frame.
+  */
+  if (FRAME_GTK_WIDGET (f))
+    emacs_fixed_set_min_size (EMACS_FIXED (FRAME_GTK_WIDGET (f)),
+                              size_hints.min_width,
+                              size_hints.min_height);
+#endif
 
   /* These currently have a one to one mapping with the X values, but I
      don't think we should rely on that.  */
@@ -3250,6 +3283,10 @@ xg_event_is_for_menubar (FRAME_PTR f, XEvent *event)
 
 int xg_ignore_gtk_scrollbar;
 
+/* The width of the scroll bar for the current theme.  */
+
+static int scroll_bar_width_for_theme;
+
 /* Xlib's `Window' fits in 32 bits.  But we want to store pointers, and they
    may be larger than 32 bits.  Keep a mapping from integer index to widget
    pointers to get around the 32 bit limitation.  */
@@ -3326,8 +3363,8 @@ xg_get_widget_from_map (int idx)
   return 0;
 }
 
-int
-xg_get_default_scrollbar_width (FRAME_PTR f)
+static void
+update_theme_scrollbar_width (void)
 {
 #ifdef HAVE_GTK3
   GtkAdjustment *vadj;
@@ -3336,13 +3373,22 @@ xg_get_default_scrollbar_width (FRAME_PTR f)
 #endif
   GtkWidget *wscroll;
   int w = 0, b = 0;
+
   vadj = gtk_adjustment_new (XG_SB_MIN, XG_SB_MIN, XG_SB_MAX, 0.1, 0.1, 0.1);
   wscroll = gtk_vscrollbar_new (GTK_ADJUSTMENT (vadj));
+  g_object_ref_sink (G_OBJECT (wscroll));
   gtk_widget_style_get (wscroll, "slider-width", &w, "trough-border", &b, NULL);
   gtk_widget_destroy (wscroll);
+  g_object_unref (G_OBJECT (wscroll));
   w += 2*b;
   if (w < 16) w = 16;
-  return w;
+  scroll_bar_width_for_theme = w;
+}
+
+int
+xg_get_default_scrollbar_width (void)
+{
+  return scroll_bar_width_for_theme;
 }
 
 /* Return the scrollbar id for X Window WID on display DPY.
@@ -3527,6 +3573,15 @@ xg_update_scrollbar_pos (FRAME_PTR f,
       cancel_mouse_face (f);
     }
 }
+
+/* Get the current value of the range, truncated to an integer.  */
+
+static int
+int_gtk_range_get_value (GtkRange *range)
+{
+  return gtk_range_get_value (range);
+}
+
 
 /* Set the thumb size and position of scroll bar BAR.  We are currently
    displaying PORTION out of a whole WHOLE, and our position POSITION.  */
@@ -4680,6 +4735,7 @@ xg_initialize (void)
                                           (GTK_TYPE_MENU_SHELL));
   gtk_binding_entry_add_signal (binding_set, GDK_KEY_g, GDK_CONTROL_MASK,
                                 "cancel", 0);
+  update_theme_scrollbar_width ();
 }
 
 #endif /* USE_GTK */
