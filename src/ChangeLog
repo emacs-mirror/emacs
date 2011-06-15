@@ -1,3 +1,7 @@
+2011-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fdefvaralias): Also mark the target as variable-special-p.
+
 2011-06-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_set_scroll_bar_default_width): Remove argument to
