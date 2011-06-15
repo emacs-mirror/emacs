@@ -1,3 +1,10 @@
+2011-06-15  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): 1: Whilst
+	checking for declarators, disable knr checking to speed up for
+	normal files.  2: Refactor, replacing a sequence of nested if
+	forms by a cond form.
+
 2011-06-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* subr.el (process-live-p): Renamed from `process-alive-p' for
