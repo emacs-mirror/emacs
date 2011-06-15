@@ -97,18 +97,44 @@ gl_SHA1
 AC_REQUIRE([gl_C99_STRTOLD])
 gl_FILEMODE
 gl_GETLOADAVG
+if test $HAVE_GETLOADAVG = 0; then
+  AC_LIBOBJ([getloadavg])
+  gl_PREREQ_GETLOADAVG
+fi
 gl_STDLIB_MODULE_INDICATOR([getloadavg])
 gl_FUNC_GETOPT_GNU
+if test $REPLACE_GETOPT = 1; then
+  AC_LIBOBJ([getopt])
+  AC_LIBOBJ([getopt1])
+  gl_PREREQ_GETOPT
+fi
 gl_MODULE_INDICATOR_FOR_TESTS([getopt-gnu])
 gl_FUNC_GETOPT_POSIX
+if test $REPLACE_GETOPT = 1; then
+  AC_LIBOBJ([getopt])
+  AC_LIBOBJ([getopt1])
+  gl_PREREQ_GETOPT
+fi
 AC_REQUIRE([AC_C_INLINE])
 gl_INTTYPES_INCOMPLETE
 gl_FUNC_LSTAT
+if test $REPLACE_LSTAT = 1; then
+  AC_LIBOBJ([lstat])
+  gl_PREREQ_LSTAT
+fi
 gl_SYS_STAT_MODULE_INDICATOR([lstat])
 gl_FUNC_MKTIME
+if test $REPLACE_MKTIME = 1; then
+  AC_LIBOBJ([mktime])
+  gl_PREREQ_MKTIME
+fi
 gl_TIME_MODULE_INDICATOR([mktime])
 gl_MULTIARCH
 gl_FUNC_READLINK
+if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
+  AC_LIBOBJ([readlink])
+  gl_PREREQ_READLINK
+fi
 gl_UNISTD_MODULE_INDICATOR([readlink])
 gl_TYPE_SOCKLEN_T
 gt_TYPE_SSIZE_T
@@ -120,13 +146,24 @@ gl_STDIO_H
 gl_STDLIB_H
 gl_FUNC_GNU_STRFTIME
 gl_FUNC_STRTOUMAX
+if test "$ac_cv_have_decl_strtoumax" != yes && test $ac_cv_func_strtoumax = no; then
+  AC_LIBOBJ([strtoumax])
+  gl_PREREQ_STRTOUMAX
+fi
 gl_INTTYPES_MODULE_INDICATOR([strtoumax])
 gl_FUNC_SYMLINK
+if test $HAVE_SYMLINK = 0 || test $REPLACE_SYMLINK = 1; then
+  AC_LIBOBJ([symlink])
+fi
 gl_UNISTD_MODULE_INDICATOR([symlink])
 gl_HEADER_SYS_STAT_H
 AC_PROG_MKDIR_P
 gl_HEADER_TIME_H
 gl_TIME_R
+if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
+  AC_LIBOBJ([time_r])
+  gl_PREREQ_TIME_R
+fi
 gl_TIME_MODULE_INDICATOR([time_r])
 gl_UNISTD_H
   gl_gnulib_enabled_dosname=false
@@ -152,6 +189,10 @@ AC_SUBST([LTLIBINTL])
   {
     if ! $gl_gnulib_enabled_stat; then
 gl_FUNC_STAT
+if test $REPLACE_STAT = 1; then
+  AC_LIBOBJ([stat])
+  gl_PREREQ_STAT
+fi
 gl_SYS_STAT_MODULE_INDICATOR([stat])
       gl_gnulib_enabled_stat=true
       if $condition; then
@@ -163,6 +204,10 @@ gl_SYS_STAT_MODULE_INDICATOR([stat])
   {
     if ! $gl_gnulib_enabled_strtoull; then
 gl_FUNC_STRTOULL
+if test $HAVE_STRTOULL = 0; then
+  AC_LIBOBJ([strtoull])
+  gl_PREREQ_STRTOULL
+fi
 gl_STDLIB_MODULE_INDICATOR([strtoull])
       gl_gnulib_enabled_strtoull=true
     fi
@@ -173,7 +218,7 @@ gl_STDLIB_MODULE_INDICATOR([strtoull])
       gl_gnulib_enabled_verify=true
     fi
   }
-  if test $GNULIB_UNISTD_H_GETOPT = 1; then
+  if test $REPLACE_GETOPT = 1; then
     func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36
   fi
   if test $REPLACE_LSTAT = 1; then

@@ -1,4 +1,4 @@
-# readlink.m4 serial 10
+# readlink.m4 serial 11
 dnl Copyright (C) 2003, 2007, 2009-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -10,8 +10,6 @@ AC_DEFUN([gl_FUNC_READLINK],
   AC_CHECK_FUNCS_ONCE([readlink])
   if test $ac_cv_func_readlink = no; then
     HAVE_READLINK=0
-    AC_LIBOBJ([readlink])
-    gl_PREREQ_READLINK
   else
     AC_CACHE_CHECK([whether readlink signature is correct],
       [gl_cv_decl_readlink_works],
@@ -40,10 +38,8 @@ AC_DEFUN([gl_FUNC_READLINK],
       AC_DEFINE([READLINK_TRAILING_SLASH_BUG], [1], [Define to 1 if readlink
         fails to recognize a trailing slash.])
       REPLACE_READLINK=1
-      AC_LIBOBJ([readlink])
     elif test "$gl_cv_decl_readlink_works" != yes; then
       REPLACE_READLINK=1
-      AC_LIBOBJ([readlink])
     fi
   fi
 ])

@@ -1,4 +1,4 @@
-# serial 4
+# serial 5
 # See if we need to provide symlink replacement.
 
 dnl Copyright (C) 2009-2011 Free Software Foundation, Inc.
@@ -17,7 +17,6 @@ AC_DEFUN([gl_FUNC_SYMLINK],
   dnl and Solaris 9, we want to fix a bug with trailing slash handling.
   if test $ac_cv_func_symlink = no; then
     HAVE_SYMLINK=0
-    AC_LIBOBJ([symlink])
   else
     AC_CACHE_CHECK([whether symlink handles trailing slash correctly],
       [gl_cv_func_symlink_works],
@@ -39,7 +38,6 @@ AC_DEFUN([gl_FUNC_SYMLINK],
       rm -f conftest.f conftest.link conftest.lnk2])
     if test "$gl_cv_func_symlink_works" != yes; then
       REPLACE_SYMLINK=1
-      AC_LIBOBJ([symlink])
     fi
   fi
 ])

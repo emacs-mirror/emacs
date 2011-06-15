@@ -1,4 +1,4 @@
-# strtoumax.m4 serial 9
+# strtoumax.m4 serial 10
 dnl Copyright (C) 2002-2004, 2006, 2009-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -12,10 +12,7 @@ AC_DEFUN([gl_FUNC_STRTOUMAX],
   if test "$ac_cv_have_decl_strtoumax" != yes; then
     HAVE_DECL_STRTOUMAX=0
 
-    AC_REPLACE_FUNCS([strtoumax])
-    if test $ac_cv_func_strtoumax = no; then
-      gl_PREREQ_STRTOUMAX
-    fi
+    AC_CHECK_FUNCS([strtoumax])
   fi
 ])
 

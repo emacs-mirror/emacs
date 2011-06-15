@@ -1,4 +1,4 @@
-# serial 32
+# serial 33
 
 # Copyright (C) 1996-1997, 1999-2007, 2009-2011 Free Software Foundation, Inc.
 #
@@ -16,8 +16,6 @@ AC_DEFUN([gl_FUNC_GNU_STRFTIME],
 # These are the prerequisite macros for GNU's strftime.c replacement.
 AC_DEFUN([gl_FUNC_STRFTIME],
 [
- AC_LIBOBJ([strftime])
-
  # This defines (or not) HAVE_TZNAME and HAVE_TM_ZONE.
  AC_REQUIRE([AC_STRUCT_TIMEZONE])
 

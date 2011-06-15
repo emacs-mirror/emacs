@@ -7,7 +7,7 @@
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-#serial 3
+#serial 4
 
 # Autoconf defines AC_FUNC_GETLOADAVG, but that is obsolescent.
 # New applications should use gl_GETLOADAVG instead.
@@ -24,6 +24,7 @@ gl_save_LIBS=$LIBS
 
 # getloadvg is present in libc on glibc >= 2.2, MacOS X, FreeBSD >= 2.0,
 # NetBSD >= 0.9, OpenBSD >= 2.0, Solaris >= 7.
+HAVE_GETLOADAVG=1
 AC_CHECK_FUNC([getloadavg], [],
   [gl_have_func=no
 
@@ -52,8 +53,7 @@ AC_CHECK_FUNC([getloadavg], [],
 
    # Set up the replacement function if necessary.
    if test $gl_have_func = no; then
-     AC_LIBOBJ([getloadavg])
-     gl_PREREQ_GETLOADAVG
+     HAVE_GETLOADAVG=0
    fi])
 
 if test "x$gl_save_LIBS" = x; then

@@ -87,19 +87,17 @@ EXTRA_DIST += careadlinkat.h
 
 ## begin gnulib module crypto/md5
 
+libgnu_a_SOURCES += md5.c
 
-EXTRA_DIST += md5.c md5.h
-
-EXTRA_libgnu_a_SOURCES += md5.c
+EXTRA_DIST += md5.h
 
 ## end   gnulib module crypto/md5
 
 ## begin gnulib module crypto/sha1
 
+libgnu_a_SOURCES += sha1.c
 
-EXTRA_DIST += sha1.c sha1.h
-
-EXTRA_libgnu_a_SOURCES += sha1.c
+EXTRA_DIST += sha1.h
 
 ## end   gnulib module crypto/sha1
 
@@ -124,10 +122,9 @@ EXTRA_libgnu_a_SOURCES += ftoastr.c
 
 ## begin gnulib module filemode
 
+libgnu_a_SOURCES += filemode.c
 
-EXTRA_DIST += filemode.c filemode.h
-
-EXTRA_libgnu_a_SOURCES += filemode.c
+EXTRA_DIST += filemode.h
 
 ## end   gnulib module filemode
 
@@ -616,10 +613,9 @@ EXTRA_DIST += stdlib.in.h
 
 ## begin gnulib module strftime
 
+libgnu_a_SOURCES += strftime.c
 
-EXTRA_DIST += strftime.c strftime.h
-
-EXTRA_libgnu_a_SOURCES += strftime.c
+EXTRA_DIST += strftime.h
 
 ## end   gnulib module strftime
 

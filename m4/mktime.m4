@@ -1,4 +1,4 @@
-# serial 20
+# serial 21
 dnl Copyright (C) 2002-2003, 2005-2007, 2009-2011 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
@@ -7,21 +7,24 @@ dnl with or without modifications, as long as this notice is preserved.
 
 dnl From Jim Meyering.
 
-# Redefine AC_FUNC_MKTIME, because it is no longer maintained in Autoconf.
-# AC_FUNC_MKTIME
-# --------------
-AC_DEFUN([AC_FUNC_MKTIME],
-[AC_CHECK_HEADERS_ONCE([unistd.h])
-AC_CHECK_FUNCS_ONCE([alarm])
-AC_REQUIRE([gl_MULTIARCH])
-if test $APPLE_UNIVERSAL_BUILD = 1; then
-  # A universal build on Apple MacOS X platforms.
-  # The test result would be 'yes' in 32-bit mode and 'no' in 64-bit mode.
-  # But we need a configuration result that is valid in both modes.
-  ac_cv_func_working_mktime=no
-fi
-AC_CACHE_CHECK([for working mktime], [ac_cv_func_working_mktime],
-[AC_RUN_IFELSE([AC_LANG_SOURCE(
+AC_DEFUN([gl_FUNC_MKTIME],
+[
+  AC_REQUIRE([gl_HEADER_TIME_H_DEFAULTS])
+
+  dnl We don't use AC_FUNC_MKTIME any more, because it is no longer maintained
+  dnl in Autoconf and because it invokes AC_LIBOBJ.
+  AC_CHECK_HEADERS_ONCE([unistd.h])
+  AC_CHECK_FUNCS_ONCE([alarm])
+  AC_REQUIRE([gl_MULTIARCH])
+  if test $APPLE_UNIVERSAL_BUILD = 1; then
+    # A universal build on Apple MacOS X platforms.
+    # The test result would be 'yes' in 32-bit mode and 'no' in 64-bit mode.
+    # But we need a configuration result that is valid in both modes.
+    gl_cv_func_working_mktime=no
+  fi
+  AC_CACHE_CHECK([for working mktime], [gl_cv_func_working_mktime],
+    [AC_RUN_IFELSE(
+       [AC_LANG_SOURCE(
 [[/* Test program from Paul Eggert and Tony Leneis.  */
 #include <limits.h>
 #include <stdlib.h>
@@ -213,22 +216,13 @@ main ()
     result |= 64;
   return result;
 }]])],
-               [ac_cv_func_working_mktime=yes],
-               [ac_cv_func_working_mktime=no],
-               [ac_cv_func_working_mktime=no])])
-if test $ac_cv_func_working_mktime = no; then
-  AC_LIBOBJ([mktime])
-fi
-])# AC_FUNC_MKTIME
+       [gl_cv_func_working_mktime=yes],
+       [gl_cv_func_working_mktime=no],
+       [gl_cv_func_working_mktime=no])
+    ])
 
-AC_DEFUN([gl_FUNC_MKTIME],
-[
-  AC_REQUIRE([gl_HEADER_TIME_H_DEFAULTS])
-  AC_FUNC_MKTIME
-  dnl Note: AC_FUNC_MKTIME does AC_LIBOBJ([mktime]).
-  if test $ac_cv_func_working_mktime = no; then
+  if test $gl_cv_func_working_mktime = no; then
     REPLACE_MKTIME=1
-    gl_PREREQ_MKTIME
   else
     REPLACE_MKTIME=0
   fi
@@ -245,8 +239,6 @@ AC_DEFUN([gl_FUNC_MKTIME_INTERNAL], [
       [dnl mktime works but it doesn't export __mktime_internal,
        dnl so we need to substitute our own mktime implementation.
        REPLACE_MKTIME=1
-       AC_LIBOBJ([mktime])
-       gl_PREREQ_MKTIME
       ])
   fi
 ])

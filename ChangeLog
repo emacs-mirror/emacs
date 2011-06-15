@@ -1,6 +1,11 @@
 2011-06-15  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* lib/ftoastr.c, lib/stdio.in.h, lib/verify.h: Merge from gnulib.
+	* lib/ftoastr.c, lib/stdio.in.h, lib/verify.h:
+	* lib/gnulib.mk, m4/c-strtod.m4, m4/filemode.m4, m4/getloadavg.m4:
+	* m4/getopt.m4, m4/gl-comp.m4, m4/lstat.m4, m4/md5.m4, m4/mktime.m4:
+	* m4/readlink.m4, m4/sha1.m4, m4/stat.m4, m4/strftime.m4:
+	* m4/strtoull.m4, m4/strtoumax.m4, m4/symlink.m4, m4/time_r.m4:
+	Merge from gnulib.
 
 2011-06-14  Jan Djärv  <jan.h.d@swipnet.se>
 
