@@ -84,6 +84,26 @@
 ;; - Maybe accept two juxtaposed non-terminals in the BNF under the condition
 ;;   that the first always ends with a terminal, or that the second always
 ;;   starts with a terminal.
+;; - Permit EBNF-style notation.
+;; - If the grammar has conflicts, the only way is to make the lexer return
+;;   different tokens for the different cases.  This extra work performed by
+;;   the lexer can be costly and unnecessary: we perform this extra work every
+;;   time we find the conflicting token, regardless of whether or not the
+;;   difference between the various situations is relevant to the current
+;;   situation.  E.g. we may try to determine whether a ";" is a ";-operator"
+;;   or a ";-separator" in a case where we're skipping over a "begin..end" pair
+;;   where the difference doesn't matter.  For frequently occurring tokens and
+;;   rarely occurring conflicts, this can be a significant performance problem.
+;;   We could try and let the lexer return a "set of possible tokens
+;;   plus a refinement function" and then let parser call the refinement
+;;   function if needed.
+;; - Make it possible to better specify the behavior in the face of
+;;   syntax errors.  IOW provide some control over the choice of precedence
+;;   levels within the limits of the constraints.  E.g. make it possible for
+;;   the grammar to specify that "begin..end" has lower precedence than
+;;   "Module..EndModule", so that if a "begin" is missing, scanning from the
+;;   "end" will stop at "Module" rather than going past it (and similarly,
+;;   scanning from "Module" should not stop at a spurious "end").
 
 ;;; Code:
 

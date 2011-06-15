@@ -1045,12 +1045,6 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	  ;; The position of the next token after the closing paren of
 	  ;; the last detected cast.
 	  last-cast-end
-	  ;; Start of containing declaration (if any); limit for searching
-	  ;; backwards for it.
-	  decl-start decl-search-lim
-	  ;; Start of containing declaration (if any); limit for searching
-	  ;; backwards for it.
-	  decl-start decl-search-lim
 	  ;; The result from `c-forward-decl-or-cast-1'.
 	  decl-or-cast
 	  ;; The maximum of the end positions of all the checked type
@@ -1188,109 +1182,107 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	    (setq decl-or-cast (c-forward-decl-or-cast-1
 				match-pos context last-cast-end))
 
-	    (if (not decl-or-cast)
-		;; Are we at a declarator?  Try to go back to the declaration
-		;; to check this.  Note that `c-beginning-of-decl-1' is slow,
-		;; so we cache its result between calls.
-		(let (paren-state bod-res encl-pos is-typedef)
-		  (goto-char start-pos)
-		  (save-excursion
-		    (unless (and decl-search-lim
-				 (eq decl-search-lim
-				     (save-excursion
-				       (c-syntactic-skip-backward "^;" nil t)
-				       (point))))
-		      (setq decl-search-lim
-			    (and (c-syntactic-skip-backward "^;" nil t) (point)))
-		      (setq bod-res (car (c-beginning-of-decl-1 decl-search-lim)))
-		      (if (and (eq bod-res 'same)
-			       (progn
-				 (c-backward-syntactic-ws)
-				 (eq (char-before) ?\})))
-			  (c-beginning-of-decl-1 decl-search-lim))
-		      (setq decl-start (point))))
-
-		  (save-excursion
-		    (goto-char decl-start)
-		    ;; We're now putatively at the declaration.
-		    (setq paren-state (c-parse-state))
-		    ;; At top level or inside a "{"?
-		    (if (or (not (setq encl-pos
-				       (c-most-enclosing-brace paren-state)))
-			    (eq (char-after encl-pos) ?\{))
-			(progn
-			  (when (looking-at c-typedef-key) ; "typedef"
-			    (setq is-typedef t)
-			    (goto-char (match-end 0))
-			    (c-forward-syntactic-ws))
-			  ;; At a real declaration?
-			  (if (memq (c-forward-type t) '(t known found))
-			      (progn
-				(c-font-lock-declarators limit t is-typedef)
-				nil)
-		      ;; False alarm.  Return t to go on to the next check.
-			    (goto-char start-pos)
-			    t))
-		      t)))
-
-	      (if (eq decl-or-cast 'cast)
-		  ;; Save the position after the previous cast so we can feed
-		  ;; it to `c-forward-decl-or-cast-1' in the next round.  That
-		  ;; helps it discover cast chains like "(a) (b) c".
-		  (setq last-cast-end (point))
-
-		;; Set `max-type-decl-end' or `max-type-decl-end-before-token'
-		;; under the assumption that we're after the first type decl
-		;; expression in the declaration now.  That's not really true;
-		;; we could also be after a parenthesized initializer
-		;; expression in C++, but this is only used as a last resort
-		;; to slant ambiguous expression/declarations, and overall
-		;; it's worth the risk to occasionally fontify an expression
-		;; as a declaration in an initializer expression compared to
-		;; getting ambiguous things in normal function prototypes
-		;; fontified as expressions.
-		(if inside-macro
-		    (when (> (point) max-type-decl-end-before-token)
-		      (setq max-type-decl-end-before-token (point)))
-		  (when (> (point) max-type-decl-end)
-		    (setq max-type-decl-end (point))))
-
-		;; Back up to the type to fontify the declarator(s).
-		(goto-char (car decl-or-cast))
-
-		(let ((decl-list
-		       (if context
-			   ;; Should normally not fontify a list of
-			   ;; declarators inside an arglist, but the first
-			   ;; argument in the ';' separated list of a "for"
-			   ;; statement is an exception.
-			   (when (eq (char-before match-pos) ?\()
-			     (save-excursion
-			       (goto-char (1- match-pos))
-			       (c-backward-syntactic-ws)
-			       (and (c-simple-skip-symbol-backward)
-				    (looking-at c-paren-stmt-key))))
-			 t)))
-
-		  ;; Fix the `c-decl-id-start' or `c-decl-type-start' property
-		  ;; before the first declarator if it's a list.
-		  ;; `c-font-lock-declarators' handles the rest.
-		  (when decl-list
-		    (save-excursion
-		      (c-backward-syntactic-ws)
-		      (unless (bobp)
-			(c-put-char-property (1- (point)) 'c-type
-					     (if (cdr decl-or-cast)
-						 'c-decl-type-start
-					       'c-decl-id-start)))))
-
-		  (c-font-lock-declarators
-		   (point-max) decl-list (cdr decl-or-cast))))
-
-	      ;; A cast or declaration has been successfully identified, so do
-	      ;; all the fontification of types and refs that's been recorded.
+	    (cond
+	     ((eq decl-or-cast 'cast)
+	      ;; Save the position after the previous cast so we can feed
+	      ;; it to `c-forward-decl-or-cast-1' in the next round.  That
+	      ;; helps it discover cast chains like "(a) (b) c".
+	      (setq last-cast-end (point))
 	      (c-fontify-recorded-types-and-refs)
-	      nil))
+	      nil)
+
+	     (decl-or-cast
+	      ;; We've found a declaration.
+
+	      ;; Set `max-type-decl-end' or `max-type-decl-end-before-token'
+	      ;; under the assumption that we're after the first type decl
+	      ;; expression in the declaration now.  That's not really true;
+	      ;; we could also be after a parenthesized initializer
+	      ;; expression in C++, but this is only used as a last resort
+	      ;; to slant ambiguous expression/declarations, and overall
+	      ;; it's worth the risk to occasionally fontify an expression
+	      ;; as a declaration in an initializer expression compared to
+	      ;; getting ambiguous things in normal function prototypes
+	      ;; fontified as expressions.
+	      (if inside-macro
+		  (when (> (point) max-type-decl-end-before-token)
+		    (setq max-type-decl-end-before-token (point)))
+		(when (> (point) max-type-decl-end)
+		  (setq max-type-decl-end (point))))
+
+	      ;; Back up to the type to fontify the declarator(s).
+	      (goto-char (car decl-or-cast))
+
+	      (let ((decl-list
+		     (if context
+			 ;; Should normally not fontify a list of
+			 ;; declarators inside an arglist, but the first
+			 ;; argument in the ';' separated list of a "for"
+			 ;; statement is an exception.
+			 (when (eq (char-before match-pos) ?\()
+			   (save-excursion
+			     (goto-char (1- match-pos))
+			     (c-backward-syntactic-ws)
+			     (and (c-simple-skip-symbol-backward)
+				  (looking-at c-paren-stmt-key))))
+		       t)))
+
+		;; Fix the `c-decl-id-start' or `c-decl-type-start' property
+		;; before the first declarator if it's a list.
+		;; `c-font-lock-declarators' handles the rest.
+		(when decl-list
+		  (save-excursion
+		    (c-backward-syntactic-ws)
+		    (unless (bobp)
+		      (c-put-char-property (1- (point)) 'c-type
+					   (if (cdr decl-or-cast)
+					       'c-decl-type-start
+					     'c-decl-id-start)))))
+
+		(c-font-lock-declarators
+		 (point-max) decl-list (cdr decl-or-cast)))
+
+	      ;; A declaration has been successfully identified, so do all the
+	      ;; fontification of types and refs that've been recorded.
+	      (c-fontify-recorded-types-and-refs)
+	      nil)
+
+	     (t
+	      ;; Are we at a declarator?  Try to go back to the declaration
+	      ;; to check this.  If we get there, check whether a "typedef"
+	      ;; is there, then fontify the declarators accordingly.
+	      (let ((decl-search-lim (max (- (point) 50000) (point-min)))
+		    paren-state bod-res encl-pos is-typedef 
+		    c-recognize-knr-p) ; Strictly speaking, bogus, but it
+				       ; speeds up lisp.h tremendously.
+		(save-excursion
+		  (setq bod-res (car (c-beginning-of-decl-1 decl-search-lim)))
+		  (if (and (eq bod-res 'same)
+			   (progn
+			     (c-backward-syntactic-ws)
+			     (eq (char-before) ?\})))
+		      (c-beginning-of-decl-1 decl-search-lim))
+
+		  ;; We're now putatively at the declaration.
+		  (setq paren-state (c-parse-state))
+		  ;; At top level or inside a "{"?
+		  (if (or (not (setq encl-pos
+				     (c-most-enclosing-brace paren-state)))
+			  (eq (char-after encl-pos) ?\{))
+		      (progn
+			(when (looking-at c-typedef-key) ; "typedef"
+			  (setq is-typedef t)
+			  (goto-char (match-end 0))
+			  (c-forward-syntactic-ws))
+			;; At a real declaration?
+			(if (memq (c-forward-type t) '(t known found))
+			    (progn
+			      (c-font-lock-declarators limit t is-typedef)
+			      nil)
+			  ;; False alarm.  Return t to go on to the next check.
+			  (goto-char start-pos)
+			  t))
+		    t))))))
 
 	  ;; It was a false alarm.  Check if we're in a label (or other
 	  ;; construct with `:' except bitfield) instead.

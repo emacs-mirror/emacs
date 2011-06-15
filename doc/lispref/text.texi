@@ -3003,18 +3003,18 @@ the context.
 
 @item font-lock-face
 @kindex font-lock-face @r{(text property)}
-The @code{font-lock-face} property is equivalent to the @code{face}
-property when Font Lock mode is enabled.  When Font Lock mode is disabled,
+This property specifies a value for the @code{face} property that Font
+Lock mode should apply to the underlying text.  It is one of the
+fontification methods used by Font Lock mode, and is useful for
+special modes that implement their own highlighting.
+@xref{Precalculated Fontification}.  When Font Lock mode is disabled,
 @code{font-lock-face} has no effect.
-
-The @code{font-lock-face} property is useful for special modes that
-implement their own highlighting.  @xref{Precalculated Fontification}.
 
 @item mouse-face
 @kindex mouse-face @r{(text property)}
-The property @code{mouse-face} is used instead of @code{face} when the
-mouse is on or near the character.  For this purpose, ``near'' means
-that all text between the character and where the mouse is have the same
+This property is used instead of @code{face} when the mouse is on or
+near the character.  For this purpose, ``near'' means that all text
+between the character and where the mouse is have the same
 @code{mouse-face} property value.
 
 @item fontified

@@ -40,14 +40,15 @@
 # define FLOAT_MIN LDBL_MIN
 # define FLOAT_PREC_BOUND _GL_LDBL_PREC_BOUND
 # define FTOASTR ldtoastr
-# define STRTOF strtold
+# if HAVE_C99_STRTOLD
+#  define STRTOF strtold
+# endif
 #elif LENGTH == 2
 # define FLOAT double
 # define FLOAT_DIG DBL_DIG
 # define FLOAT_MIN DBL_MIN
 # define FLOAT_PREC_BOUND _GL_DBL_PREC_BOUND
 # define FTOASTR dtoastr
-# define STRTOF strtod
 #else
 # define LENGTH 1
 # define FLOAT float
@@ -55,14 +56,15 @@
 # define FLOAT_MIN FLT_MIN
 # define FLOAT_PREC_BOUND _GL_FLT_PREC_BOUND
 # define FTOASTR ftoastr
-# define STRTOF strtof
+# if HAVE_STRTOF
+#  define STRTOF strtof
+# endif
 #endif
 
 /* On pre-C99 hosts, approximate strtof and strtold with strtod.  This
    may generate one or two extra digits, but that's better than not
-   working at all.  Assume that strtof works if strtold does.  */
-#if LENGTH != 2 && ! HAVE_C99_STRTOLD
-# undef STRTOF
+   working at all.  */
+#ifndef STRTOF
 # define STRTOF strtod
 #endif
 

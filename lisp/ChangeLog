@@ -1,6 +1,20 @@
+2011-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcmpl-rpm.el (pcomplete/rpm): Minor simplification.
+
+	* emacs-lisp/debug.el (debug): Don't leave the buffer in Debugger.
+
+	* abbrev.el (define-abbrev-table): Don't add a table multiple times.
+
+2011-06-15  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): 1: Whilst checking
+	for declarators, disable knr checking to speed up for normal files.
+	2: Refactor, replacing a sequence of nested if forms by a cond form.
+
 2011-06-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* subr.el (process-live-p): Renamed from `process-alive-p' for
+	* subr.el (process-live-p): Rename from `process-alive-p' for
 	consistency with other `-live-p' functions.
 
 2011-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -68,8 +82,8 @@
 	(view-return-to-alist-update): Make obsolete.
 	(view-mode-enter): Rename second argument to QUIT-RESTORE.
 	Rewrite using quit-restore window parameters.
-	(view-mode-exit): Rename second argument to EXIT-ONLY.  Rewrite
-	using quit-restore-window.
+	(view-mode-exit): Rename second argument to EXIT-ONLY.
+	Rewrite using quit-restore-window.
 	(View-exit, View-exit-and-edit, View-leave, View-quit)
 	(View-quit-all, View-kill-and-leave): Call view-mode-exit with
 	appropriate arguments.
@@ -89,8 +103,8 @@
 	(display-buffer-in-side-window, normalize-buffer-to-display)
 	(display-buffer-normalize-specifiers-1)
 	(display-buffer-normalize-specifiers-2)
-	(display-buffer-normalize-specifiers, display-buffer-frame): New
-	functions.
+	(display-buffer-normalize-specifiers, display-buffer-frame):
+	New functions.
 	(display-buffer): Major rewrite.
 	(display-buffer-other-window, display-buffer-other-frame)
 	(pop-to-buffer, switch-to-buffer-other-window)
@@ -126,8 +140,8 @@
 	was inadvertently removed in change from 2011-06-11.  Declare as
 	obsolete.
 
-	* calendar/calendar.el (calendar-generate-window): Use
-	window-iso-combined-p instead of combination of one-window-p and
+	* calendar/calendar.el (calendar-generate-window):
+	Use window-iso-combined-p instead of combination of one-window-p and
 	window-safely-shrinkable-p.
 
 2011-06-12  Glenn Morris  <rgm@gnu.org>
@@ -172,15 +186,15 @@
 	(bw-adjust-window): Remove.
 	(balance-windows-area-adjust): New function with functionality of
 	bw-adjust-window but using resize-window.
-	(set-window-text-height): Rewrite doc-string.  Use
-	normalize-live-window and resize-window.
-	(enlarge-window-horizontally, shrink-window-horizontally): Rename
-	argument to DELTA.
+	(set-window-text-height): Rewrite doc-string.
+	Use normalize-live-window and resize-window.
+	(enlarge-window-horizontally, shrink-window-horizontally):
+	Rename argument to DELTA.
 	(window-buffer-height): New function.
 	(fit-window-to-buffer, shrink-window-if-larger-than-buffer):
 	Rewrite using new window resize routines.
-	(kill-buffer-and-window, mouse-autoselect-window-select): Use
-	ignore-errors instead of condition-case.
+	(kill-buffer-and-window, mouse-autoselect-window-select):
+	Use ignore-errors instead of condition-case.
 	(quit-window): Call delete-frame instead of delete-windows-on
 	for the only buffer on frame.
 
@@ -191,8 +205,8 @@
 
 	* files.el (read-buffer-to-switch)
 	(switch-to-buffer-other-window)
-	(switch-to-buffer-other-frame, display-buffer-other-frame): Move
-	to window.el.
+	(switch-to-buffer-other-frame, display-buffer-other-frame):
+	Move to window.el.
 
 	* simple.el (get-next-valid-buffer, last-buffer, next-buffer)
 	(previous-buffer): Move to window.el.
@@ -208,8 +222,8 @@
 	(switch-to-next-buffer): New functions.
 	(get-next-valid-buffer, last-buffer, next-buffer): Move here
 	from simple.el.  Call switch-to-next-buffer.
-	(previous-buffer): Move here from simple.el.  Call
-	switch-to-prev-buffer.
+	(previous-buffer): Move here from simple.el.
+	Call switch-to-prev-buffer.
 	(bury-buffer): Move here from buffer.c.  Switch to previous
 	buffer when window cannot be deleted.
 	(unbury-buffer): Move here from bindings.el.
@@ -218,8 +232,8 @@
 	(read-buffer-to-switch, switch-to-buffer-other-window)
 	(switch-to-buffer-other-frame): Move here from files.el.
 	(normalize-buffer-to-switch-to): New functions.
-	(switch-to-buffer): Move here from buffer.c.  Use
-	read-buffer-to-switch and normalize-buffer-to-switch-to.
+	(switch-to-buffer): Move here from buffer.c.
+	Use read-buffer-to-switch and normalize-buffer-to-switch-to.
 
 2011-06-10  Martin Rudalics  <rudalics@gmx.at>
 
@@ -234,8 +248,8 @@
 	(window-split-min-size): New function.
 	(split-window-keep-point): Mention split-window-above-each-other
 	instead of split-window-vertically.
-	(split-window-above-each-other, split-window-vertically): Rename
-	split-window-vertically to split-window-above-each-other and
+	(split-window-above-each-other, split-window-vertically):
+	Rename split-window-vertically to split-window-above-each-other and
 	provide defalias for old definition.
 	(split-window-side-by-side, split-window-horizontally): Rename
 	split-window-horizontally to split-window-side-by-side and provide
@@ -294,10 +308,10 @@
 
 2011-06-08  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (one-window-p): Move down in code.  Rewrite
-	doc-string.
-	(window-current-scroll-bars): Rewrite doc-string.  Normalize
-	live window argument.
+	* window.el (one-window-p): Move down in code.
+	Rewrite doc-string.
+	(window-current-scroll-bars): Rewrite doc-string.
+	Normalize live window argument.
 	(walk-windows, get-window-with-predicate, count-windows):
 	Rewrite doc-string.  Use window-list-1.
 	(window-in-direction-2, window-in-direction, get-mru-window):
@@ -336,20 +350,20 @@
 	(image-transform-properties): Return quickly in the normal case.
 	(image-animate-loop): Rename from image-animate-max-time.
 
-	* image.el (image-animate-max-time): Moved to image-mode.el.
+	* image.el (image-animate-max-time): Move to image-mode.el.
 	(create-animated-image): Remove unnecessary function.
 	(image-animate): Rename from image-animate-start.  New arg.
-	(image-animate-stop): Removed; just use image-animate-timer.
+	(image-animate-stop): Remove; just use image-animate-timer.
 	(image-animate-timer): Use car-safe.
 	(image-animate-timeout): Rename argument.
 
 2011-06-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (get-lru-window, get-largest-window): Move here from
-	window.c.  Rename first argument to ALL-FRAMES.  Rephrase
-	doc-strings.
-	(get-buffer-window-list): Rewrite using window-list-1.  Rephrase
-	doc-string.
+	window.c.  Rename first argument to ALL-FRAMES.
+	Rephrase doc-strings.
+	(get-buffer-window-list): Rewrite using window-list-1.
+	Rephrase doc-string.
 	(window-safe-min-height, window-safe-min-width): New constants.
 	(window-size-ignore, window-min-size, window-min-size-1)
 	(window-sizable, window-sizable-p, window-size-fixed-1)
@@ -372,8 +386,8 @@
 	(walk-window-tree-1, walk-window-tree, walk-window-subtree)
 	(windows-with-parameter, window-with-parameter)
 	(window-atom-root, make-window-atom, window-atom-check-1)
-	(window-atom-check, window-side-check, window-check): New
-	functions.
+	(window-atom-check, window-side-check, window-check):
+	New functions.
 	(ignore-window-parameters, window-sides, window-sides-vertical)
 	(window-sides-slots): New variables.
 	(window-size-fixed): Move down in code.  Minor doc-string fix.
@@ -411,8 +425,8 @@
 
 2011-06-05  Roland Winkler  <winkler@gnu.org>
 
-	* textmodes/bibtex.el (bibtex-search-entry-globally): New
-	variable.
+	* textmodes/bibtex.el (bibtex-search-entry-globally):
+	New variable.
 	(bibtex-search-entry): Use it.
 
 2011-06-05  Roland Winkler  <winkler@gnu.org>

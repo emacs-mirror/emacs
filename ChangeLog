@@ -1,3 +1,7 @@
+2011-06-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/ftoastr.c, lib/stdio.in.h, lib/verify.h: Merge from gnulib.
+
 2011-06-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Add emacsgtkfixed.o to GTK_OBJ if HAVE_GTK3.

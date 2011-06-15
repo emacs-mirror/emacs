@@ -768,6 +768,7 @@ The return value is BASE-VARIABLE.  */)
   }
 
   sym->declared_special = 1;
+  XSYMBOL (base_variable)->declared_special = 1;
   sym->redirect = SYMBOL_VARALIAS;
   SET_SYMBOL_ALIAS (sym, XSYMBOL (base_variable));
   sym->constant = SYMBOL_CONSTANT_P (base_variable);

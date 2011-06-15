@@ -935,7 +935,8 @@ Properties with special meaning:
     (unless table
       (setq table (make-abbrev-table))
       (set tablename table)
-      (push tablename abbrev-table-name-list))
+      (unless (memq tablename abbrev-table-name-list)
+        (push tablename abbrev-table-name-list)))
     ;; We used to just pass them to `make-abbrev-table', but that fails
     ;; if the table was pre-existing as is the case if it was created by
     ;; loading the user's abbrev file.

@@ -221,9 +221,17 @@ template <int w>
    contexts, e.g., the top level.  */
 
 /* Verify requirement R at compile-time, as an integer constant expression.
-   Return 1.  */
+   Return 1.  This is equivalent to verify_expr (R, 1).
+
+   verify_true is obsolescent; please use verify_expr instead.  */
 
 # define verify_true(R) _GL_VERIFY_TRUE (R, "verify_true (" #R ")")
+
+/* Verify requirement R at compile-time.  Return the value of the
+   expression E.  */
+
+# define verify_expr(R, E) \
+    (_GL_VERIFY_TRUE (R, "verify_expr (" #R ", " #E ")") ? (E) : (E))
 
 /* Verify requirement R at compile-time, as a declaration without a
    trailing ';'.  */

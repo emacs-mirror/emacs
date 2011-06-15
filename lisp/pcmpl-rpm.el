@@ -313,9 +313,9 @@
 	  (if (pcomplete-match "^-" 0)
 	      (pcomplete-opt "v")
 	    (pcomplete-here
-	     (if (eq mode 'test)
-		 (pcomplete-dirs-or-entries "\\.tar\\'")
-	       (pcomplete-dirs-or-entries "\\.spec\\'"))))))
+	     (pcomplete-dirs-or-entries (if (eq mode 'test)
+                                            "\\.tar\\'"
+                                          "\\.spec\\'"))))))
        (t
 	(error "You must select a mode: -q, -i, -U, --verify, etc"))))))
 
