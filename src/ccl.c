@@ -745,11 +745,15 @@ while(0)
 
 #endif
 
+/* Use "&" rather than "&&" to suppress a bogus GCC warning; see
+   <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43772>.  */
+#define ASCENDING_ORDER(lo, med, hi) (((lo) <= (med)) & ((med) <= (hi)))
+
 #define GET_CCL_RANGE(var, ccl_prog, ic, lo, hi)		\
   do								\
     {								\
       EMACS_INT prog_word = XINT ((ccl_prog)[ic]);		\
-      if (! ((lo) <= prog_word && prog_word <= (hi)))		\
+      if (! ASCENDING_ORDER (lo, prog_word, hi))		\
 	CCL_INVALID_CMD;					\
       (var) = prog_word;					\
     }								\
@@ -761,7 +765,7 @@ while(0)
 #define GET_CCL_INT(var, ccl_prog, ic)				\
   GET_CCL_RANGE (var, ccl_prog, ic, INT_MIN, INT_MAX)
 
-#define IN_INT_RANGE(val) (INT_MIN <= (val) && (val) <= INT_MAX)
+#define IN_INT_RANGE(val) ASCENDING_ORDER (INT_MIN, val, INT_MAX)
 
 /* Encode one character CH to multibyte form and write to the current
    output buffer.  If CH is less than 256, CH is written as is.  */

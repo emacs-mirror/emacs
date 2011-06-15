@@ -2,6 +2,9 @@
 
 	Integer overflow and signedness fixes.
 
+	* ccl.c (ASCENDING_ORDER): New macro, to work around GCC bug 43772.
+	(GET_CCL_RANGE, IN_INT_RANGE): Use it.
+
 	* fileio.c: Don't assume EMACS_INT fits in off_t.
 	(emacs_lseek): New static function.
 	(Finsert_file_contents, Fwrite_region): Use it.
