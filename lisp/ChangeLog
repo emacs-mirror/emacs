@@ -1,3 +1,11 @@
+2011-06-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-alist): Trim default value to avoid
+	popping up a new frame (Bug#8857) or reusing an arbitrary window
+	on another frame.
+	(display-buffer): Do not fall back on popping up a new frame in
+	batch mode (Bug#8857).
+
 2011-06-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-theme.el (describe-theme-1): Use custom-theme-p.

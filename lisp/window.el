@@ -3505,9 +3505,7 @@ buffer display specifiers.")
      reuse-window (reuse-window nil same visible)
      pop-up-window
      (pop-up-window (largest . nil) (lru . nil))
-     pop-up-frame
-     (pop-up-frame)
-     reuse-window (reuse-window nil other visible)
+     reuse-window (reuse-window other other nil)
      (reuse-window-even-sizes . t)))
   "List associating buffer identifiers with display specifiers.
 The car of each element of this list is built from a set of cons
@@ -5303,12 +5301,12 @@ this list as arguments."
 	  ;; Try reusing a window not showing BUFFER on any visible or
 	  ;; iconified frame.
 	  (display-buffer-reuse-window buffer '(nil other 0))
-	  ;; Try making a new frame.
-	  (display-buffer-pop-up-frame buffer)
-	  ;; Try using weakly dedicated windows.
+	  ;; Try making a new frame (but not in batch mode).
+	  (and (not noninteractive) (display-buffer-pop-up-frame buffer))
+	  ;; Try using a weakly dedicated window.
 	  (display-buffer-reuse-window
 	   buffer '(nil nil t) '((reuse-window-dedicated . weak)))
-	  ;; Try using strongly dedicated windows.
+	  ;; Try using a strongly dedicated window.
 	  (display-buffer-reuse-window
 	   buffer '(nil nil t) '((reuse-window-dedicated . t)))))))
 
