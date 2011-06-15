@@ -198,7 +198,7 @@ Intended as the value of `indent-line-function'."
       t))
 
 ;;;###autoload
-(define-derived-mode cfengine-mode fundamental-mode "Cfengine"
+(define-derived-mode cfengine-mode prog-mode "Cfengine"
   "Major mode for editing cfengine input.
 There are no special keybindings by default.
 

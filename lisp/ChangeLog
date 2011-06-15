@@ -3,6 +3,7 @@
 	* progmodes/python.el (python-mode): Derive from prog-mode.
 	* progmodes/ps-mode.el (ps-mode):
 	* progmodes/mixal-mode.el (mixal-mode):
+	* progmodes/cfengine.el (cfengine-mode):
 	* progmodes/ld-script.el (ld-script-mode): Likewise.
 
 2011-06-15  Martin Rudalics  <rudalics@gmx.at>
