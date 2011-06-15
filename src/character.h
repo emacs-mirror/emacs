@@ -175,7 +175,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
       (p)[1] = (0x80 | (((c) >> 6) & 0x3F)),	\
       (p)[2] = (0x80 | ((c) & 0x3F)),		\
       3)					\
-   : (char_string (c, p) + !verify_true (sizeof (c) <= sizeof (unsigned))))
+   : verify_expr (sizeof (c) <= sizeof (unsigned), char_string (c, p)))
 
 /* Store multibyte form of byte B in P.  The caller should allocate at
    least MAX_MULTIBYTE_LENGTH bytes area at P in advance.  Returns the
