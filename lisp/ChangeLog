@@ -11,6 +11,8 @@
 	display-buffer-pop-up-frame.
 	(display-buffer-pop-up-frame): Never pop up a frame in
 	noninteractive mode (Bug#8857).
+	(enlarge-window, shrink-window): Don't report an error when the
+	window can't be resized as requested (Bug#8862).
 
 2011-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 

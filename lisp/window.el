@@ -2044,7 +2044,18 @@ make selected window wider by DELTA columns.  If DELTA is
 negative, shrink selected window by -DELTA lines or columns.
 Return nil."
   (interactive "p")
-  (resize-window (selected-window) delta horizontal))
+  (cond
+   ((zerop delta))
+   ((window-size-fixed-p nil horizontal)
+    (error "Selected window has fixed size"))
+   ((window-resizable-p nil delta horizontal)
+    (resize-window nil delta horizontal))
+   (t
+    (resize-window
+     nil (if (> delta 0)
+	     (window-max-delta nil horizontal)
+	   (- (window-min-delta nil horizontal)))
+     horizontal))))
 
 (defun shrink-window (delta &optional horizontal)
   "Make selected window DELTA lines smaller.
@@ -2054,7 +2065,18 @@ make selected window narrower by DELTA columns.  If DELTA is
 negative, enlarge selected window by -DELTA lines or columns.
 Return nil."
   (interactive "p")
-  (resize-window (selected-window) (- delta) horizontal))
+  (cond
+   ((zerop delta))
+   ((window-size-fixed-p nil horizontal)
+    (error "Selected window has fixed size"))
+   ((window-resizable-p nil (- delta) horizontal)
+    (resize-window nil (- delta) horizontal))
+   (t
+    (resize-window
+     nil (if (> delta 0)
+	     (- (window-min-delta nil horizontal))
+	   (window-max-delta nil horizontal))
+     horizontal))))
 
 (defun maximize-window (&optional window)
   "Maximize WINDOW.
@@ -4932,7 +4954,7 @@ SPECIFIERS is the SPECIFIERS argument of `display-buffer'."
 	   (setq entry (assq specifiers display-buffer-macro-specifiers)))
       ;; A macro specifier.
       (cdr entry))
-     ((memq pop-up-frames '(nil unset))
+     ((with-no-warnings (memq pop-up-frames '(nil unset)))
       ;; Pop up a new window.
       (cdr (assq 'other-window display-buffer-macro-specifiers)))
      (t
