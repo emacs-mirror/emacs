@@ -5511,8 +5511,8 @@ functions should call `pop-to-buffer-same-window' instead."
 (defun switch-to-buffer-same-frame (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME in a window on the selected frame.
 Another frame will be used only if there is no other choice.
-Optional arguments BUFFER-OR-NAME and NORECORD have the same
-meaning as for `switch-to-buffer'.
+Arguments BUFFER-OR-NAME and NORECORD have the same meaning as
+for `switch-to-buffer'.
 
 This function is intended for interactive use only.  Lisp
 functions should call `pop-to-buffer-same-frame' instead."
@@ -5525,8 +5525,8 @@ functions should call `pop-to-buffer-same-frame' instead."
   "Switch to buffer BUFFER-OR-NAME in another window.
 The selected window will be used only if there is no other
 choice.  Windows on the selected frame are preferred to windows
-on other frames.  Optional arguments BUFFER-OR-NAME and NORECORD
-have the same meaning as for `switch-to-buffer'.
+on other frames.  Arguments BUFFER-OR-NAME and NORECORD have the
+same meaning as for `switch-to-buffer'.
 
 This function is intended for interactive use only.  Lisp
 functions should call `pop-to-buffer-other-window' instead."
@@ -5538,8 +5538,8 @@ functions should call `pop-to-buffer-other-window' instead."
 (defun switch-to-buffer-other-window-same-frame (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME in another window on the selected frame.
 The selected window or another frame will be used only if there
-is no other choice.  Optional arguments BUFFER-OR-NAME and
-NORECORD have the same meaning as for `switch-to-buffer'.
+is no other choice.  Arguments BUFFER-OR-NAME and NORECORD have
+the same meaning as for `switch-to-buffer'.
 
 This function is intended for interactive use only.  Lisp
 functions should call `pop-to-buffer-other-window-same-frame'
@@ -5552,8 +5552,8 @@ instead."
 (defun switch-to-buffer-other-frame (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME on another frame.
 The same frame will be used only if there is no other choice.
-Optional arguments BUFFER-OR-NAME and NORECORD have the same
-meaning as for `switch-to-buffer'.
+Arguments BUFFER-OR-NAME and NORECORD have the same meaning
+as for `switch-to-buffer'.
 
 This function is intended for interactive use only.  Lisp
 functions should call `pop-to-buffer-other-frame' instead."

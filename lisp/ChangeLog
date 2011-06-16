@@ -3,6 +3,10 @@
 	* window.el (display-buffer-normalize-specifiers-1): Respect
 	current value of pop-up-frames for most reasonable values of
 	second argument of display-buffer (Bug#8865).
+	(switch-to-buffer-same-frame, switch-to-buffer-other-window)
+	(switch-to-buffer-other-window-same-frame)
+	(switch-to-buffer-other-frame): Fix doc-strings.  Reported by Drew
+	Adams (Bug#8875).
 
 2011-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
