@@ -406,16 +406,16 @@ make_gap_larger (EMACS_INT nbytes_added)
   EMACS_INT real_gap_loc;
   EMACS_INT real_gap_loc_byte;
   EMACS_INT old_gap_size;
+  EMACS_INT current_size = Z_BYTE - BEG_BYTE + GAP_SIZE;
+  enum { enough_for_a_while = 2000 };
 
-  /* If we have to get more space, get enough to last a while.  */
-  nbytes_added += 2000;
+  if (BUF_BYTES_MAX - current_size < nbytes_added)
+    buffer_overflow ();
 
-  { EMACS_INT total_size = Z_BYTE - BEG_BYTE + GAP_SIZE + nbytes_added;
-    if (total_size < 0
-	/* Don't allow a buffer size that won't fit in a Lisp integer.  */
-	|| total_size != XINT (make_number (total_size)))
-      buffer_overflow ();
-  }
+  /* If we have to get more space, get enough to last a while;
+     but do not exceed the maximum buffer size.  */
+  nbytes_added = min (nbytes_added + enough_for_a_while,
+		      BUF_BYTES_MAX - current_size);
 
   enlarge_buffer_text (current_buffer, nbytes_added);
 
@@ -1069,7 +1069,6 @@ static void
 insert_from_buffer_1 (struct buffer *buf,
 		      EMACS_INT from, EMACS_INT nchars, int inherit)
 {
-  register Lisp_Object temp;
   EMACS_INT chunk, chunk_expanded;
   EMACS_INT from_byte = buf_charpos_to_bytepos (buf, from);
   EMACS_INT to_byte = buf_charpos_to_bytepos (buf, from + nchars);
@@ -1107,11 +1106,6 @@ insert_from_buffer_1 (struct buffer *buf,
 
       outgoing_nbytes = outgoing_before_gap + outgoing_after_gap;
     }
-
-  /* Make sure point-max won't overflow after this insertion.  */
-  XSETINT (temp, outgoing_nbytes + Z);
-  if (outgoing_nbytes + Z != XINT (temp))
-    buffer_overflow ();
 
   /* Do this before moving and increasing the gap,
      because the before-change hooks might move the gap
@@ -1309,7 +1303,6 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
   EMACS_INT insbytes = SBYTES (new);
   EMACS_INT from_byte, to_byte;
   EMACS_INT nbytes_del, nchars_del;
-  register Lisp_Object temp;
   struct gcpro gcpro1;
   INTERVAL intervals;
   EMACS_INT outgoing_insbytes = insbytes;
@@ -1352,11 +1345,6 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
   else if (! STRING_MULTIBYTE (new))
     outgoing_insbytes
       = count_size_as_multibyte (SDATA (new), insbytes);
-
-  /* Make sure point-max won't overflow after this insertion.  */
-  XSETINT (temp, Z_BYTE - nbytes_del + outgoing_insbytes);
-  if (Z_BYTE - nbytes_del + outgoing_insbytes != XINT (temp))
-    buffer_overflow ();
 
   GCPRO1 (new);
 
@@ -1488,7 +1476,6 @@ replace_range_2 (EMACS_INT from, EMACS_INT from_byte,
 		 int markers)
 {
   EMACS_INT nbytes_del, nchars_del;
-  Lisp_Object temp;
 
   CHECK_MARKERS ();
 
@@ -1497,11 +1484,6 @@ replace_range_2 (EMACS_INT from, EMACS_INT from_byte,
 
   if (nbytes_del <= 0 && insbytes == 0)
     return;
-
-  /* Make sure point-max won't overflow after this insertion.  */
-  XSETINT (temp, Z_BYTE - nbytes_del + insbytes);
-  if (Z_BYTE - nbytes_del + insbytes != XINT (temp))
-    buffer_overflow ();
 
   /* Make sure the gap is somewhere in or next to what we are deleting.  */
   if (from > GPT)

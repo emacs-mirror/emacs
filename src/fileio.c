@@ -3800,16 +3800,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
     }
 
   if (! not_regular)
-    {
-      register Lisp_Object temp;
-
-      total = XINT (end) - XINT (beg);
-
-      /* Make sure point-max won't overflow after this insertion.  */
-      XSETINT (temp, total);
-      if (total != XINT (temp))
-	buffer_overflow ();
-    }
+    total = XINT (end) - XINT (beg);
   else
     /* For a special file, all we can do is guess.  */
     total = READ_BUF_SIZE;
