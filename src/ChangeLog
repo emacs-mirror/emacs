@@ -1,3 +1,29 @@
+2011-06-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve buffer-overflow checking (Bug#8873).
+	* fileio.c (Finsert_file_contents):
+	* insdel.c (insert_from_buffer_1, replace_range, replace_range_2):
+	Remove the old (too-loose) buffer overflow checks.
+	They weren't needed, since make_gap checks for buffer overflow.
+	* insdel.c (make_gap_larger): Catch buffer overflows that were missed.
+	The old code merely checked for Emacs fixnum overflow, and relied
+	on undefined (wraparound) behavior.  The new code avoids undefined
+	behavior, and also checks for ptrdiff_t and/or size_t overflow.
+
+	* editfns.c (Finsert_char): Don't dump core with very negative counts.
+	Tune.  Don't use wider integers than needed.  Don't use alloca.
+	Use a bigger 'string' buffer.  Rewrite to avoid 'n > 0' test.
+
+	* insdel.c (replace_range): Fix buf overflow when insbytes < outgoing.
+
+	* insdel.c, lisp.h (buffer_overflow): New function.
+	(insert_from_buffer_1, replace_range, replace_range_2):
+	* insdel.c (make_gap_larger):
+	* editfns.c (Finsert_char):
+	* fileio.c (Finsert_file_contents): Use it, to normalize wording.
+
+	* buffer.h (BUF_BYTES_MAX): Cast to ptrdiff_t so that it's signed.
+
 2011-06-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer overflow and signedness fixes (Bug#8873).

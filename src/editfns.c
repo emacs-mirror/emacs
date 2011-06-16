@@ -2328,12 +2328,11 @@ The optional third arg INHERIT, if non-nil, says to inherit text properties
 from adjoining text, if those properties are sticky.  */)
   (Lisp_Object character, Lisp_Object count, Lisp_Object inherit)
 {
-  register char *string;
-  register EMACS_INT stringlen;
-  register int i;
+  int i, stringlen;
   register EMACS_INT n;
   int c, len;
   unsigned char str[MAX_MULTIBYTE_LENGTH];
+  char string[4000];
 
   CHECK_CHARACTER (character);
   CHECK_NUMBER (count);
@@ -2343,16 +2342,15 @@ from adjoining text, if those properties are sticky.  */)
     len = CHAR_STRING (c, str);
   else
     str[0] = c, len = 1;
-  if (BUF_BYTES_MAX / len < XINT (count))
-    error ("Maximum buffer size would be exceeded");
-  n = XINT (count) * len;
-  if (n <= 0)
+  if (XINT (count) <= 0)
     return Qnil;
-  stringlen = min (n, 256 * len);
-  string = (char *) alloca (stringlen);
+  if (BUF_BYTES_MAX / len < XINT (count))
+    buffer_overflow ();
+  n = XINT (count) * len;
+  stringlen = min (n, sizeof string - sizeof string % len);
   for (i = 0; i < stringlen; i++)
     string[i] = str[i % len];
-  while (n >= stringlen)
+  while (n > stringlen)
     {
       QUIT;
       if (!NILP (inherit))
@@ -2361,13 +2359,10 @@ from adjoining text, if those properties are sticky.  */)
 	insert (string, stringlen);
       n -= stringlen;
     }
-  if (n > 0)
-    {
-      if (!NILP (inherit))
-	insert_and_inherit (string, n);
-      else
-	insert (string, n);
-    }
+  if (!NILP (inherit))
+    insert_and_inherit (string, n);
+  else
+    insert (string, n);
   return Qnil;
 }
 

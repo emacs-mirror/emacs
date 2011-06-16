@@ -2635,6 +2635,7 @@ extern void init_image (void);
 extern Lisp_Object Qinhibit_modification_hooks;
 extern void move_gap (EMACS_INT);
 extern void move_gap_both (EMACS_INT, EMACS_INT);
+extern void buffer_overflow (void) NO_RETURN;
 extern void make_gap (EMACS_INT);
 extern EMACS_INT copy_text (const unsigned char *, unsigned char *,
 			    EMACS_INT, int, int);
