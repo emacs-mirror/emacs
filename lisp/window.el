@@ -4704,7 +4704,8 @@ non-nil means to make a new frame on graphic displays only.
 
 SPECIFIERS must be a list of buffer display specifiers, see the
 documentation of `display-buffer-alist' for a description."
-  (unless (and graphic-only (not (display-graphic-p)))
+  (unless (or (and graphic-only (not (display-graphic-p)))
+	      noninteractive)
     (let* ((selected-window (selected-window))
 	   (function (or (cdr (assq 'pop-up-frame-function specifiers))
 			 'make-frame))
@@ -5299,8 +5300,8 @@ this list as arguments."
 	  ;; Try reusing a window not showing BUFFER on any visible or
 	  ;; iconified frame.
 	  (display-buffer-reuse-window buffer '(nil other 0))
-	  ;; Try making a new frame (but not in batch mode).
-	  (and (not noninteractive) (display-buffer-pop-up-frame buffer))
+	  ;; Try making a new frame.
+	  (display-buffer-pop-up-frame buffer)
 	  ;; Try using a weakly dedicated window.
 	  (display-buffer-reuse-window
 	   buffer '(nil nil t) '((reuse-window-dedicated . weak)))
