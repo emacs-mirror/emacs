@@ -1,4 +1,4 @@
-# serial 22
+# serial 23
 
 # Copyright (C) 1997-2001, 2003-2011 Free Software Foundation, Inc.
 #
@@ -15,7 +15,7 @@ AC_DEFUN([gl_FUNC_LSTAT],
   dnl "#define lstat stat", and lstat.c is a no-op.
   AC_CHECK_FUNCS_ONCE([lstat])
   if test $ac_cv_func_lstat = yes; then
-    AC_REQUIRE([AC_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK])
+    AC_REQUIRE([gl_FUNC_LSTAT_FOLLOWS_SLASHED_SYMLINK])
     if test $gl_cv_func_lstat_dereferences_slashed_symlink = no; then
       REPLACE_LSTAT=1
     fi
