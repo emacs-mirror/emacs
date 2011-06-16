@@ -1,5 +1,7 @@
 2011-06-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* editfns.c (Finsert_char): Don't dump core with very negative counts.
+
 	* insdel.c (replace_range): Fix buf overflow when insbytes < outgoing.
 
 	* insdel.c, lisp.h (buffer_overflow): New function.

@@ -2343,11 +2343,11 @@ from adjoining text, if those properties are sticky.  */)
     len = CHAR_STRING (c, str);
   else
     str[0] = c, len = 1;
+  if (XINT (count) <= 0)
+    return Qnil;
   if (BUF_BYTES_MAX / len < XINT (count))
     buffer_overflow ();
   n = XINT (count) * len;
-  if (n <= 0)
-    return Qnil;
   stringlen = min (n, 256 * len);
   string = (char *) alloca (stringlen);
   for (i = 0; i < stringlen; i++)
