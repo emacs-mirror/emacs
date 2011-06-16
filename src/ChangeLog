@@ -1,3 +1,16 @@
+2011-06-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (init_iterator): Don't initialize it->bidi_p for strings
+	here.
+	(reseat_to_string): Initialize it->bidi_p for strings here.
+	(next_element_from_string, next_element_from_c_string)
+	(next_element_from_buffer): Add xassert's for correspondence
+	between IT's object being iterated and it->bidi_it.string
+	structure.
+
+	* bidi.c (bidi_level_of_next_char): Fix the logic for looking up
+	the sentinel state in the cache.
+
 2011-06-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (compute_display_string_pos)

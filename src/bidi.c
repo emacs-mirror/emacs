@@ -1660,7 +1660,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
   bidi_type_t type;
   int level, prev_level = -1;
   struct bidi_saved_info next_for_neutral;
-  EMACS_INT next_char_pos = -1;
+  EMACS_INT next_char_pos = -2;
 
   if (bidi_it->scan_dir == 1)
     {
@@ -1726,7 +1726,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 	   that's the "position" of the sentinel iterator state we
 	   cached at the beginning of the iteration.  */
 	next_char_pos = bidi_it->charpos - 1;
-      if (next_char_pos >= 0)
+      if (next_char_pos >= bob - 1)
 	type = bidi_cache_find (next_char_pos, -1, bidi_it);
       else
 	type = UNKNOWN_BT;

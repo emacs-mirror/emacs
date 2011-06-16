@@ -2405,13 +2405,6 @@ init_iterator (struct it *it, struct window *w,
   /* Are multibyte characters enabled in current_buffer?  */
   it->multibyte_p = !NILP (BVAR (current_buffer, enable_multibyte_characters));
 
-
-  /* Bidirectional reordering of strings is controlled by the default
-     value of bidi-display-reordering.  For buffers, we reconsider
-     this below.  */
-  it->bidi_p =
-    !NILP (BVAR (&buffer_defaults, bidi_display_reordering)) && it->multibyte_p;
-
   /* Non-zero if we should highlight the region.  */
   highlight_region_p
     = (!NILP (Vtransient_mark_mode)
@@ -5596,6 +5589,12 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
   if (multibyte >= 0)
     it->multibyte_p = multibyte > 0;
 
+  /* Bidirectional reordering of strings is controlled by the default
+     value of bidi-display-reordering.  */
+  it->bidi_p =
+    !NILP (BVAR (&buffer_defaults, bidi_display_reordering))
+    && it->multibyte_p;
+
   if (s == NULL)
     {
       xassert (STRINGP (string));
@@ -5607,7 +5606,6 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 
       if (it->bidi_p)
 	{
-	  it->paragraph_embedding = NEUTRAL_DIR;
 	  it->bidi_it.string.lstring = string;
 	  it->bidi_it.string.s = NULL;
 	  it->bidi_it.string.schars = it->end_charpos;
@@ -5632,7 +5630,6 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 
 	  if (it->bidi_p)
 	    {
-	      it->paragraph_embedding = NEUTRAL_DIR;
 	      it->bidi_it.string.lstring = Qnil;
 	      it->bidi_it.string.s = s;
 	      it->bidi_it.string.schars = it->end_charpos;
@@ -6582,6 +6579,7 @@ next_element_from_string (struct it *it)
   struct text_pos position;
 
   xassert (STRINGP (it->string));
+  xassert (!it->bidi_p || it->string == it->bidi_it.string.lstring);
   xassert (IT_STRING_CHARPOS (*it) >= 0);
   position = it->current.string_pos;
 
@@ -6795,6 +6793,7 @@ next_element_from_c_string (struct it *it)
   int success_p = 1;
 
   xassert (it->s);
+  xassert (!it->bidi_p || it->s == it->bidi_it.string.s);
   it->what = IT_CHARACTER;
   BYTEPOS (it->position) = CHARPOS (it->position) = 0;
   it->object = Qnil;
@@ -6933,6 +6932,9 @@ next_element_from_buffer (struct it *it)
   int success_p = 1;
 
   xassert (IT_CHARPOS (*it) >= BEGV);
+  xassert (!it->bidi_p
+	   || (it->bidi_it.string.lstring == Qnil
+	       && it->bidi_it.string.s == NULL));
 
   /* With bidi reordering, the character to display might not be the
      character at IT_CHARPOS.  BIDI_IT.FIRST_ELT non-zero means that
