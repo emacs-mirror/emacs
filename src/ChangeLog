@@ -1,6 +1,8 @@
 2011-06-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* editfns.c (Finsert_char): Don't dump core with very negative counts.
+	Tune.  Don't use wider integers than needed.  Don't use alloca.
+	Use a bigger 'string' buffer.  Rewrite to avoid 'n > 0' test.
 
 	* insdel.c (replace_range): Fix buf overflow when insbytes < outgoing.
 
