@@ -1354,8 +1354,8 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
       = count_size_as_multibyte (SDATA (new), insbytes);
 
   /* Make sure point-max won't overflow after this insertion.  */
-  XSETINT (temp, Z_BYTE - nbytes_del + insbytes);
-  if (Z_BYTE - nbytes_del + insbytes != XINT (temp))
+  XSETINT (temp, Z_BYTE - nbytes_del + outgoing_insbytes);
+  if (Z_BYTE - nbytes_del + outgoing_insbytes != XINT (temp))
     buffer_overflow ();
 
   GCPRO1 (new);
@@ -1389,8 +1389,8 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
   if (Z - GPT < END_UNCHANGED)
     END_UNCHANGED = Z - GPT;
 
-  if (GAP_SIZE < insbytes)
-    make_gap (insbytes - GAP_SIZE);
+  if (GAP_SIZE < outgoing_insbytes)
+    make_gap (outgoing_insbytes - GAP_SIZE);
 
   /* Copy the string text into the buffer, perhaps converting
      between single-byte and multibyte.  */

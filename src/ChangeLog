@@ -1,5 +1,7 @@
 2011-06-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* insdel.c (replace_range): Fix buf overflow when insbytes < outgoing.
+
 	* insdel.c, lisp.h (buffer_overflow): New function.
 	(insert_from_buffer_1, replace_range, replace_range_2):
 	* insdel.c (make_gap_larger):
