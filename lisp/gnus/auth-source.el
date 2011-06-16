@@ -154,6 +154,16 @@ let-binding."
           (const :tag "Never save" nil)
           (const :tag "Ask" ask)))
 
+(defcustom auth-source-save-secrets nil
+  "If set, auth-source will respect it for password tokens behavior."
+  :group 'auth-source
+  :version "23.2" ;; No Gnus
+  :type `(choice
+          :tag "auth-source new password token behavior"
+          (const :tag "Use GPG tokens" gpg)
+          (const :tag "Save unencrypted" nil)
+          (const :tag "Ask" ask)))
+
 (defvar auth-source-magic "auth-source-magic ")
 
 (defcustom auth-source-do-cache t
@@ -898,7 +908,7 @@ Note that the MAX parameter is used so we can exit the parse early."
                         (null require)
                         ;; every element of require is in the normalized list
                         (let ((normalized (nth 0 (auth-source-netrc-normalize
-                                                 (list alist)))))
+                                                 (list alist) file))))
                           (loop for req in require
                                 always (plist-get normalized req)))))
               (decf max)
@@ -934,7 +944,54 @@ Note that the MAX parameter is used so we can exit the parse early."
 
           (nreverse result))))))
 
-(defun auth-source-netrc-normalize (alist)
+(defmacro with-auth-source-epa-overrides (&rest body)
+  `(let ((file-name-handler-alist
+          ',(if (boundp 'epa-file-handler)
+                (remove (symbol-value 'epa-file-handler)
+                        file-name-handler-alist)
+              file-name-handler-alist))
+         (find-file-hook
+          ',(remove 'epa-file-find-file-hook find-file-hook))
+         (auto-mode-alist
+          ',(if (boundp 'epa-file-auto-mode-alist-entry)
+                (remove (symbol-value 'epa-file-auto-mode-alist-entry)
+                        auto-mode-alist)
+              auto-mode-alist)))
+     ,@body))
+
+(defun auth-source-epa-make-gpg-token (secret file)
+  (require 'epa nil t)
+  (unless (featurep 'epa)
+    (error "EPA could not be loaded."))
+  (let* ((base (file-name-sans-extension file))
+         (passkey (format "gpg:-%s" base))
+         (stash (concat base ".gpg"))
+         ;; temporarily disable EPA
+         (stashfile
+          (with-auth-source-epa-overrides
+           (make-temp-file "gpg-token" nil
+                           stash)))
+         (epa-file-passphrase-alist
+          `((,stashfile
+             . ,(password-read
+                 (format
+                  "token pass for %s? "
+                  file)
+                 passkey)))))
+    (write-region secret nil stashfile)
+    ;; temporarily disable EPA
+    (unwind-protect
+        (with-auth-source-epa-overrides
+         (with-temp-buffer
+           (insert-file-contents stashfile)
+           (base64-encode-region (point-min) (point-max) t)
+           (concat "gpg:"
+                   (buffer-substring-no-properties
+                    (point-min)
+                    (point-max)))))
+      (delete-file stashfile))))
+
+(defun auth-source-netrc-normalize (alist filename)
   (mapcar (lambda (entry)
             (let (ret item)
               (while (setq item (pop entry))
@@ -950,15 +1007,65 @@ Note that the MAX parameter is used so we can exit the parse early."
 
                   ;; send back the secret in a function (lexical binding)
                   (when (equal k "secret")
-                    (setq v (lexical-let ((v v))
-                              (lambda () v))))
-
-                  (setq ret (plist-put ret
-                                       (intern (concat ":" k))
-                                       v))
-                  ))
-              ret))
-          alist))
+                    (setq v (lexical-let ((v v)
+                                          (filename filename)
+                                          (base (file-name-nondirectory
+                                                 filename))
+                                          (token-decoder nil)
+                                          (gpgdata nil)
+                                          (stash nil))
+                              (setq stash (concat base ".gpg"))
+                              (when (string-match "gpg:\\(.+\\)" v)
+                                (require 'epa nil t)
+                                (unless (featurep 'epa)
+                                  (error "EPA could not be loaded."))
+                                (setq gpgdata (base64-decode-string
+                                               (match-string 1 v)))
+                                ;; it's a GPG token
+                                (setq
+                                 token-decoder
+                                 (lambda (gpgdata)
+;;; FIXME: this relies on .gpg files being handled by EPA/EPG
+                                   (let* ((passkey (format "gpg:-%s" base))
+                                          ;; temporarily disable EPA
+                                          (stashfile
+                                           (with-auth-source-epa-overrides
+                                            (make-temp-file "gpg-token" nil
+                                                            stash)))
+                                          (epa-file-passphrase-alist
+                                           `((,stashfile
+                                              . ,(password-read
+                                                  (format
+                                                   "token pass for %s? "
+                                                   filename)
+                                                  passkey)))))
+                                     (unwind-protect
+                                         (progn
+                                           ;; temporarily disable EPA
+                                           (with-auth-source-epa-overrides
+                                            (write-region gpgdata
+                                                          nil
+                                                          stashfile))
+                                           (setq
+                                            v
+                                            (with-temp-buffer
+                                              (insert-file-contents stashfile)
+                                              (buffer-substring-no-properties
+                                               (point-min)
+                                               (point-max)))))
+                                       (delete-file stashfile)))
+                                   ;; clear out the decoder at end
+                                   (setq token-decoder nil
+                                         gpgdata nil))))
+                          (lambda ()
+                            (when token-decoder
+                              (funcall token-decoder gpgdata))
+                            v))))
+                (setq ret (plist-put ret
+                                     (intern (concat ":" k))
+                                     v))))
+            ret))
+  alist))
 
 ;;; (setq secret (plist-get (nth 0 (auth-source-search :host t :type 'netrc :K 1 :max 1)) :secret))
 ;;; (funcall secret)
@@ -982,7 +1089,8 @@ See `auth-source-search' for details on SPEC."
                    :file (oref backend source)
                    :host (or host t)
                    :user (or user t)
-                   :port (or port t)))))
+                   :port (or port t))
+                  (oref backend source))))
 
     ;; if we need to create an entry AND none were found to match
     (when (and create
@@ -1098,7 +1206,21 @@ See `auth-source-search' for details on SPEC."
               (cond
                ((and (null data) (eq r 'secret))
                 ;; Special case prompt for passwords.
-                (read-passwd prompt))
+                ;; Respect `auth-source-save-secrets'
+                (let* ((ep (format "Do you want GPG password tokens? (%s)"
+                                   "see `auth-source-save-secrets'"))
+                       (gpg-encrypt
+;;; FIXME: this relies on .gpg files being handled by EPA/EPG
+                        ;; don't put GPG tokens in GPG-encrypted files
+                        (and (not (equal "gpg" (file-name-extension file)))
+                             (or (eq auth-source-save-secrets 'gpg)
+                                 (and (eq auth-source-save-secrets 'ask)
+                                      (setq auth-source-save-secrets
+                                            (and (y-or-n-p ep) 'gpg))))))
+                        (plain (read-passwd prompt)))
+                  (if (eq auth-source-save-secrets 'gpg)
+                      (auth-source-epa-make-gpg-token plain file)
+                    plain)))
                ((null data)
                 (when default
                   (setq prompt

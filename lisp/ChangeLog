@@ -1,3 +1,19 @@
+2011-06-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-normalize-specifiers-1): Respect
+	current value of pop-up-frames for most reasonable values of
+	second argument of display-buffer (Bug#8865).
+	(switch-to-buffer-same-frame, switch-to-buffer-other-window)
+	(switch-to-buffer-other-window-same-frame)
+	(switch-to-buffer-other-frame): Fix doc-strings.  Reported by Drew
+	Adams (Bug#8875).
+	(display-buffer): Don't check noninteractive when calling
+	display-buffer-pop-up-frame.
+	(display-buffer-pop-up-frame): Never pop up a frame in
+	noninteractive mode (Bug#8857).
+	(enlarge-window, shrink-window): Don't report an error when the
+	window can't be resized as requested (Bug#8862).
+
 2011-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcmpl-rpm.el (pcomplete/rpm): Minor simplification.

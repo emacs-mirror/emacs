@@ -2044,7 +2044,18 @@ make selected window wider by DELTA columns.  If DELTA is
 negative, shrink selected window by -DELTA lines or columns.
 Return nil."
   (interactive "p")
-  (resize-window (selected-window) delta horizontal))
+  (cond
+   ((zerop delta))
+   ((window-size-fixed-p nil horizontal)
+    (error "Selected window has fixed size"))
+   ((window-resizable-p nil delta horizontal)
+    (resize-window nil delta horizontal))
+   (t
+    (resize-window
+     nil (if (> delta 0)
+	     (window-max-delta nil horizontal)
+	   (- (window-min-delta nil horizontal)))
+     horizontal))))
 
 (defun shrink-window (delta &optional horizontal)
   "Make selected window DELTA lines smaller.
@@ -2054,7 +2065,18 @@ make selected window narrower by DELTA columns.  If DELTA is
 negative, enlarge selected window by -DELTA lines or columns.
 Return nil."
   (interactive "p")
-  (resize-window (selected-window) (- delta) horizontal))
+  (cond
+   ((zerop delta))
+   ((window-size-fixed-p nil horizontal)
+    (error "Selected window has fixed size"))
+   ((window-resizable-p nil (- delta) horizontal)
+    (resize-window nil (- delta) horizontal))
+   (t
+    (resize-window
+     nil (if (> delta 0)
+	     (- (window-min-delta nil horizontal))
+	   (window-max-delta nil horizontal))
+     horizontal))))
 
 (defun maximize-window (&optional window)
   "Maximize WINDOW.
@@ -3453,9 +3475,8 @@ specific buffers."
     ;; (bw-finetune wins)
     ;; (message "Done in %d rounds" round)
     ))
-
 
-
+;;; Displaying buffers.
 (defconst display-buffer-default-specifiers
   '((reuse-window nil same visible)
     (pop-up-window (largest . nil) (lru . nil))
@@ -4705,7 +4726,8 @@ non-nil means to make a new frame on graphic displays only.
 
 SPECIFIERS must be a list of buffer display specifiers, see the
 documentation of `display-buffer-alist' for a description."
-  (unless (and graphic-only (not (display-graphic-p)))
+  (unless (or (and graphic-only (not (display-graphic-p)))
+	      noninteractive)
     (let* ((selected-window (selected-window))
 	   (function (or (cdr (assq 'pop-up-frame-function specifiers))
 			 'make-frame))
@@ -4909,9 +4931,12 @@ BUFFER-OR-NAME and return that buffer."
 (defun display-buffer-normalize-specifiers-1 (specifiers)
   "Subroutine of `display-buffer-normalize-specifiers'.
 SPECIFIERS is the SPECIFIERS argument of `display-buffer'."
-  (let (normalized)
+  (let (normalized entry)
     (cond
+     ((not specifiers)
+      nil)
      ((listp specifiers)
+      ;; If SPECIFIERS is a list, we assume it is a list of specifiers.
       (dolist (specifier specifiers)
 	(cond
 	 ((consp specifier)
@@ -4924,21 +4949,17 @@ SPECIFIERS is the SPECIFIERS argument of `display-buffer'."
 	    (dolist (item (cdr entry))
 	      (setq normalized (cons item normalized)))))))
       ;; Reverse list.
-      (setq normalized (nreverse normalized)))
-     ;; The two cases below must come from the SPECIFIERS argument of
-     ;; `display-buffer'.
-     ((eq specifiers 't)
-      ;; Historically t means "other window".  Eventually we should get
-      ;; rid of this.
-      (setq normalized
-	    (cdr (assq 'other-window display-buffer-macro-specifiers))
-	    normalized))
-     ((symbolp specifiers)
-      ;; We allow scalar specifiers in calls of `display-buffer'.
-      (let ((entry (assq specifiers display-buffer-macro-specifiers)))
-	(when entry (setq normalized (cdr entry))))))
-
-    normalized))
+      (nreverse normalized))
+     ((and (not (eq specifiers 'other-window))
+	   (setq entry (assq specifiers display-buffer-macro-specifiers)))
+      ;; A macro specifier.
+      (cdr entry))
+     ((with-no-warnings (memq pop-up-frames '(nil unset)))
+      ;; Pop up a new window.
+      (cdr (assq 'other-window display-buffer-macro-specifiers)))
+     (t
+      ;; Pop up a new frame.
+      (cdr (assq 'other-frame display-buffer-macro-specifiers))))))
 
 (defun display-buffer-normalize-specifiers-2 (&optional buffer-or-name)
   "Subroutine of `display-buffer-normalize-specifiers'.
@@ -5301,8 +5322,8 @@ this list as arguments."
 	  ;; Try reusing a window not showing BUFFER on any visible or
 	  ;; iconified frame.
 	  (display-buffer-reuse-window buffer '(nil other 0))
-	  ;; Try making a new frame (but not in batch mode).
-	  (and (not noninteractive) (display-buffer-pop-up-frame buffer))
+	  ;; Try making a new frame.
+	  (display-buffer-pop-up-frame buffer)
 	  ;; Try using a weakly dedicated window.
 	  (display-buffer-reuse-window
 	   buffer '(nil nil t) '((reuse-window-dedicated . weak)))
@@ -5513,8 +5534,8 @@ functions should call `pop-to-buffer-same-window' instead."
 (defun switch-to-buffer-same-frame (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME in a window on the selected frame.
 Another frame will be used only if there is no other choice.
-Optional arguments BUFFER-OR-NAME and NORECORD have the same
-meaning as for `switch-to-buffer'.
+Arguments BUFFER-OR-NAME and NORECORD have the same meaning as
+for `switch-to-buffer'.
 
 This function is intended for interactive use only.  Lisp
 functions should call `pop-to-buffer-same-frame' instead."
@@ -5527,8 +5548,8 @@ functions should call `pop-to-buffer-same-frame' instead."
   "Switch to buffer BUFFER-OR-NAME in another window.
 The selected window will be used only if there is no other
 choice.  Windows on the selected frame are preferred to windows
-on other frames.  Optional arguments BUFFER-OR-NAME and NORECORD
-have the same meaning as for `switch-to-buffer'.
+on other frames.  Arguments BUFFER-OR-NAME and NORECORD have the
+same meaning as for `switch-to-buffer'.
 
 This function is intended for interactive use only.  Lisp
 functions should call `pop-to-buffer-other-window' instead."
@@ -5540,8 +5561,8 @@ functions should call `pop-to-buffer-other-window' instead."
 (defun switch-to-buffer-other-window-same-frame (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME in another window on the selected frame.
 The selected window or another frame will be used only if there
-is no other choice.  Optional arguments BUFFER-OR-NAME and
-NORECORD have the same meaning as for `switch-to-buffer'.
+is no other choice.  Arguments BUFFER-OR-NAME and NORECORD have
+the same meaning as for `switch-to-buffer'.
 
 This function is intended for interactive use only.  Lisp
 functions should call `pop-to-buffer-other-window-same-frame'
@@ -5554,8 +5575,8 @@ instead."
 (defun switch-to-buffer-other-frame (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME on another frame.
 The same frame will be used only if there is no other choice.
-Optional arguments BUFFER-OR-NAME and NORECORD have the same
-meaning as for `switch-to-buffer'.
+Arguments BUFFER-OR-NAME and NORECORD have the same meaning
+as for `switch-to-buffer'.
 
 This function is intended for interactive use only.  Lisp
 functions should call `pop-to-buffer-other-frame' instead."

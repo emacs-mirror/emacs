@@ -81,11 +81,12 @@ AR = ar
 ARFLAGS = cru
 libgnu_a_AR = $(AR) $(ARFLAGS)
 am__DEPENDENCIES_1 =
-am__libgnu_a_SOURCES_DIST = allocator.c careadlinkat.c dtoastr.c \
-	gettext.h
+am__libgnu_a_SOURCES_DIST = allocator.c careadlinkat.c md5.c sha1.c \
+	dtoastr.c filemode.c gettext.h strftime.c
 am__objects_1 =
 am_libgnu_a_OBJECTS = allocator.$(OBJEXT) careadlinkat.$(OBJEXT) \
-	dtoastr.$(OBJEXT) $(am__objects_1)
+	md5.$(OBJEXT) sha1.$(OBJEXT) dtoastr.$(OBJEXT) \
+	filemode.$(OBJEXT) $(am__objects_1) strftime.$(OBJEXT)
 libgnu_a_OBJECTS = $(am_libgnu_a_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -733,15 +734,15 @@ BUILT_SOURCES = arg-nonnull.h c++defs.h $(GETOPT_H) inttypes.h \
 	$(STDARG_H) $(STDBOOL_H) $(STDDEF_H) $(STDINT_H) stdio.h \
 	stdlib.h sys/stat.h time.h unistd.h warn-on-use.h
 EXTRA_DIST = allocator.h $(top_srcdir)/./arg-nonnull.h \
-	$(top_srcdir)/./c++defs.h careadlinkat.h md5.c md5.h sha1.c \
-	sha1.h dosname.h ftoastr.c ftoastr.h filemode.c filemode.h \
-	getloadavg.c getopt.c getopt.in.h getopt1.c getopt_int.h \
-	ignore-value.h intprops.h inttypes.in.h lstat.c \
-	mktime-internal.h mktime.c readlink.c stat.c stdarg.in.h \
-	stdbool.in.h stddef.in.h stdint.in.h stdio.in.h stdlib.in.h \
-	strftime.c strftime.h strtol.c strtoul.c strtoull.c \
-	strtoimax.c strtoumax.c symlink.c sys_stat.in.h time.in.h \
-	time_r.c unistd.in.h verify.h $(top_srcdir)/./warn-on-use.h
+	$(top_srcdir)/./c++defs.h careadlinkat.h md5.h sha1.h \
+	dosname.h ftoastr.c ftoastr.h filemode.h getloadavg.c getopt.c \
+	getopt.in.h getopt1.c getopt_int.h ignore-value.h intprops.h \
+	inttypes.in.h lstat.c mktime-internal.h mktime.c readlink.c \
+	stat.c stdarg.in.h stdbool.in.h stddef.in.h stdint.in.h \
+	stdio.in.h stdlib.in.h strftime.h strtol.c strtoul.c \
+	strtoull.c strtoimax.c strtoumax.c symlink.c sys_stat.in.h \
+	time.in.h time_r.c unistd.in.h verify.h \
+	$(top_srcdir)/./warn-on-use.h
 MOSTLYCLEANDIRS = sys
 MOSTLYCLEANFILES = core *.stackdump arg-nonnull.h arg-nonnull.h-t \
 	c++defs.h c++defs.h-t getopt.h getopt.h-t inttypes.h \
@@ -751,14 +752,13 @@ MOSTLYCLEANFILES = core *.stackdump arg-nonnull.h arg-nonnull.h-t \
 	unistd.h unistd.h-t warn-on-use.h warn-on-use.h-t
 noinst_LIBRARIES = libgnu.a
 DEFAULT_INCLUDES = -I. -I../src -I$(top_srcdir)/src
-libgnu_a_SOURCES = allocator.c careadlinkat.c dtoastr.c \
-	$(am__append_1)
+libgnu_a_SOURCES = allocator.c careadlinkat.c md5.c sha1.c dtoastr.c \
+	filemode.c $(am__append_1) strftime.c
 libgnu_a_LIBADD = $(gl_LIBOBJS)
 libgnu_a_DEPENDENCIES = $(gl_LIBOBJS)
-EXTRA_libgnu_a_SOURCES = md5.c sha1.c ftoastr.c filemode.c \
-	getloadavg.c getopt.c getopt1.c lstat.c mktime.c readlink.c \
-	stat.c strftime.c strtol.c strtoul.c strtoull.c strtoimax.c \
-	strtoumax.c symlink.c time_r.c
+EXTRA_libgnu_a_SOURCES = ftoastr.c getloadavg.c getopt.c getopt1.c \
+	lstat.c mktime.c readlink.c stat.c strtol.c strtoul.c \
+	strtoull.c strtoimax.c strtoumax.c symlink.c time_r.c
 ARG_NONNULL_H = arg-nonnull.h
 CXXDEFS_H = c++defs.h
 WARN_ON_USE_H = warn-on-use.h

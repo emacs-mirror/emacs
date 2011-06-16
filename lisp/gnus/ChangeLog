@@ -1,3 +1,17 @@
+2011-06-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-save-secrets): New variable to control if
+	secret tokens should be saved encrypted.
+	(auth-source-netrc-parse, auth-source-netrc-search): Pass the file name
+	to `auth-source-netrc-normalize'.
+	(with-auth-source-epa-overrides): Add convenience macro.  Don't depend
+	on the EPA variables being defined.
+	(auth-source-epa-make-gpg-token): Convert text to a "gpg:" token.
+	(auth-source-netrc-normalize): Convert "gpg:" tokens back to text in
+	the lexical-let closure.
+	(auth-source-netrc-create): Create "gpg:" tokens according to
+	`auth-source-save-secrets'.
+
 2011-06-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-group.el (gnus-group-update-group): Add new argument
