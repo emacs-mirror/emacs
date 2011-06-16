@@ -1,5 +1,9 @@
 2011-06-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h: Include <limits.h>, for INT_MAX, LONG_MAX, LLONG_MAX.
+	Without this, prin1 mishandles Lisp_Misc_Save_Value printing on
+	hosts with pre-C99 libraries, because pD is wrongly defined to "t".
+
 	Improve buffer-overflow checking (Bug#8873).
 	* fileio.c (Finsert_file_contents):
 	* insdel.c (insert_from_buffer_1, replace_range, replace_range_2):
