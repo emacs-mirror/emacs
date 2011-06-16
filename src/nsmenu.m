@@ -227,19 +227,19 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
-      submenu_start = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
-      submenu_end = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
-      submenu_n_panes = (int *) alloca (XVECTOR (items)->size * sizeof (int));
+      submenu_start = (int *) alloca (ASIZE (items) * sizeof (int *));
+      submenu_end = (int *) alloca (ASIZE (items) * sizeof (int *));
+      submenu_n_panes = (int *) alloca (ASIZE (items) * sizeof (int));
       submenu_top_level_items
-	= (int *) alloca (XVECTOR (items)->size * sizeof (int *));
+	= (int *) alloca (ASIZE (items) * sizeof (int *));
       init_menu_items ();
-      for (i = 0; i < XVECTOR (items)->size; i += 4)
+      for (i = 0; i < ASIZE (items); i += 4)
 	{
 	  Lisp_Object key, string, maps;
 
-	  key = XVECTOR (items)->contents[i];
-	  string = XVECTOR (items)->contents[i + 1];
-	  maps = XVECTOR (items)->contents[i + 2];
+	  key = AREF (items, i);
+	  string = AREF (items, i + 1);
+	  maps = AREF (items, i + 2);
 	  if (NILP (string))
 	    break;
 
@@ -312,11 +312,11 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
             /* FIXME: this ALWAYS fails on Buffers menu items.. something
                  about their strings causes them to change every time, so we
                  double-check failures */
-            if (!EQ (previous_items[i], XVECTOR (menu_items)->contents[i]))
+            if (!EQ (previous_items[i], AREF (menu_items, i)))
               if (!(STRINGP (previous_items[i])
-                    && STRINGP (XVECTOR (menu_items)->contents[i])
+                    && STRINGP (AREF (menu_items, i))
                     && !strcmp (SDATA (previous_items[i]),
-                               SDATA (XVECTOR (menu_items)->contents[i]))))
+				SDATA (AREF (menu_items, i)))))
                   break;
           if (i == previous_menu_items_used)
             {
@@ -347,10 +347,10 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
       /* Parse stage 2a: now GC cannot happen during the lifetime of the
          widget_value, so it's safe to store data from a Lisp_String */
       wv = first_wv->contents;
-      for (i = 0; i < XVECTOR (items)->size; i += 4)
+      for (i = 0; i < ASIZE (items); i += 4)
 	{
 	  Lisp_Object string;
-	  string = XVECTOR (items)->contents[i + 1];
+	  string = AREF (items, i + 1);
 	  if (NILP (string))
 	    break;
 /*           if (submenu && strcmp (submenuTitle, SDATA (string)))
@@ -408,7 +408,7 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 
 
       /* check if no change.. this mechanism is a bit rough, but ready */
-      n = XVECTOR (items)->size / 4;
+      n = ASIZE (items) / 4;
       if (f == last_f && n_previous_strings == n)
         {
           for (i = 0; i<n; i++)
@@ -435,9 +435,9 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
         }
 
       [menu clear];
-      for (i = 0; i < XVECTOR (items)->size; i += 4)
+      for (i = 0; i < ASIZE (items); i += 4)
 	{
-	  string = XVECTOR (items)->contents[i + 1];
+	  string = AREF (items, i + 1);
 	  if (NILP (string))
 	    break;
 
@@ -608,7 +608,7 @@ name_is_separator (name)
 
   if (!key || !strlen (key))
     return @"";
-  
+
   while (*tpos == ' ' || *tpos == '(')
     tpos++;
   if ((*tpos == 's') && (*(tpos+1) == '-'))
@@ -669,7 +669,7 @@ name_is_separator (name)
 -(void)clear
 {
   int n;
-  
+
   for (n = [self numberOfItems]-1; n >= 0; n--)
     {
       NSMenuItem *item = [self itemAtIndex: n];
@@ -809,7 +809,7 @@ ns_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
   i = 0;
   while (i < menu_items_used)
     {
-      if (EQ (XVECTOR (menu_items)->contents[i], Qnil))
+      if (EQ (AREF (menu_items, i), Qnil))
 	{
 	  submenu_stack[submenu_depth++] = save_wv;
 	  save_wv = prev_wv;
@@ -817,21 +817,21 @@ ns_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	  first_pane = 1;
 	  i++;
 	}
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qlambda))
+      else if (EQ (AREF (menu_items, i), Qlambda))
 	{
 	  prev_wv = save_wv;
 	  save_wv = submenu_stack[--submenu_depth];
 	  first_pane = 0;
 	  i++;
 	}
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qt)
+      else if (EQ (AREF (menu_items, i), Qt)
 	       && submenu_depth != 0)
 	i += MENU_ITEMS_PANE_LENGTH;
       /* Ignore a nil in the item list.
 	 It's meaningful only for dialog boxes.  */
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qquote))
+      else if (EQ (AREF (menu_items, i), Qquote))
 	i += 1;
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qt))
+      else if (EQ (AREF (menu_items, i), Qt))
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
@@ -921,7 +921,7 @@ ns_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	     make the call_data null so that it won't display a box
 	     when the mouse is on it.  */
 	  wv->call_data
-	      = !NILP (def) ? (void *) &XVECTOR (menu_items)->contents[i] : 0;
+	      = !NILP (def) ? (void *) &AREF (menu_items, i) : 0;
 	  wv->enabled = !NILP (enable);
 
 	  if (NILP (type))
@@ -1262,12 +1262,12 @@ update_frame_tool_bar (FRAME_PTR f)
 {
   NSString *str = [NSString stringWithUTF8String: text];
   NSRect r = [textField frame];
-  NSSize textSize = [str sizeWithAttributes: 
+  NSSize textSize = [str sizeWithAttributes:
      [NSDictionary dictionaryWithObject: [[textField font] screenFont]
 				 forKey: NSFontAttributeName]];
-  NSSize padSize = [[[textField font] screenFont] 
+  NSSize padSize = [[[textField font] screenFont]
 		     boundingRectForFont].size;
- 
+
   r.size.width = textSize.width + padSize.width/2;
   r.size.height = textSize.height + padSize.height/2;
   [textField setFrame: r];
@@ -1350,7 +1350,7 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   BOOL isQ;
 
   NSTRACE (x-popup-dialog);
-  
+
   check_ns ();
 
   isQ = NILP (header);
@@ -1512,10 +1512,10 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
   [cell setCellAttribute: NSCellIsInsetButton to: 8];
   [cell setBezelStyle: NSRoundedBezelStyle];
 
-  matrix = [[NSMatrix alloc] initWithFrame: contentRect 
-                                      mode: NSHighlightModeMatrix 
-                                 prototype: cell 
-                              numberOfRows: 0 
+  matrix = [[NSMatrix alloc] initWithFrame: contentRect
+                                      mode: NSHighlightModeMatrix
+                                 prototype: cell
+                              numberOfRows: 0
                            numberOfColumns: 1];
   [[self contentView] addSubview: matrix];
   [matrix release];
@@ -1566,7 +1566,7 @@ void process_dialog (id window, Lisp_Object list)
 - addButton: (char *)str value: (Lisp_Object)val row: (int)row
 {
   id cell;
-       
+
   if (row >= rows)
     {
       [matrix addRow];
@@ -1587,7 +1587,7 @@ void process_dialog (id window, Lisp_Object list)
 - addString: (char *)str row: (int)row
 {
   id cell;
-       
+
   if (row >= rows)
     {
       [matrix addRow];
@@ -1616,7 +1616,7 @@ void process_dialog (id window, Lisp_Object list)
   EMACS_INT seltag;
 
   sellist = [sender selectedCells];
-  if ([sellist count]<1) 
+  if ([sellist count]<1)
     return self;
 
   seltag = [[sellist objectAtIndex: 0] tag];
