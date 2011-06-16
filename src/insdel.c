@@ -391,6 +391,12 @@ adjust_markers_for_replace (EMACS_INT from, EMACS_INT from_byte,
 }
 
 
+void
+buffer_overflow (void)
+{
+  error ("Maximum buffer size exceeded");
+}
+
 /* Make the gap NBYTES_ADDED bytes longer.  */
 
 static void
@@ -408,7 +414,7 @@ make_gap_larger (EMACS_INT nbytes_added)
     if (total_size < 0
 	/* Don't allow a buffer size that won't fit in a Lisp integer.  */
 	|| total_size != XINT (make_number (total_size)))
-      error ("Buffer exceeds maximum size");
+      buffer_overflow ();
   }
 
   enlarge_buffer_text (current_buffer, nbytes_added);
@@ -1105,7 +1111,7 @@ insert_from_buffer_1 (struct buffer *buf,
   /* Make sure point-max won't overflow after this insertion.  */
   XSETINT (temp, outgoing_nbytes + Z);
   if (outgoing_nbytes + Z != XINT (temp))
-    error ("Maximum buffer size exceeded");
+    buffer_overflow ();
 
   /* Do this before moving and increasing the gap,
      because the before-change hooks might move the gap
@@ -1350,7 +1356,7 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
   /* Make sure point-max won't overflow after this insertion.  */
   XSETINT (temp, Z_BYTE - nbytes_del + insbytes);
   if (Z_BYTE - nbytes_del + insbytes != XINT (temp))
-    error ("Maximum buffer size exceeded");
+    buffer_overflow ();
 
   GCPRO1 (new);
 
@@ -1495,7 +1501,7 @@ replace_range_2 (EMACS_INT from, EMACS_INT from_byte,
   /* Make sure point-max won't overflow after this insertion.  */
   XSETINT (temp, Z_BYTE - nbytes_del + insbytes);
   if (Z_BYTE - nbytes_del + insbytes != XINT (temp))
-    error ("Maximum buffer size exceeded");
+    buffer_overflow ();
 
   /* Make sure the gap is somewhere in or next to what we are deleting.  */
   if (from > GPT)

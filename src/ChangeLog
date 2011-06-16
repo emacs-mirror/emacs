@@ -1,5 +1,11 @@
 2011-06-16  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* insdel.c, lisp.h (buffer_overflow): New function.
+	(insert_from_buffer_1, replace_range, replace_range_2):
+	* insdel.c (make_gap_larger):
+	* editfns.c (Finsert_char):
+	* fileio.c (Finsert_file_contents): Use it, to normalize wording.
+
 	* buffer.h (BUF_BYTES_MAX): Cast to ptrdiff_t so that it's signed.
 
 2011-06-15  Paul Eggert  <eggert@cs.ucla.edu>

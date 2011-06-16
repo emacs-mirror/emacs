@@ -2344,7 +2344,7 @@ from adjoining text, if those properties are sticky.  */)
   else
     str[0] = c, len = 1;
   if (BUF_BYTES_MAX / len < XINT (count))
-    error ("Maximum buffer size would be exceeded");
+    buffer_overflow ();
   n = XINT (count) * len;
   if (n <= 0)
     return Qnil;

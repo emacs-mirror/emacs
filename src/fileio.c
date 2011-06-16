@@ -3264,7 +3264,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
      platform that allows file sizes greater than the maximum off_t value.  */
   if (! not_regular
       && ! (0 <= st.st_size && st.st_size <= BUF_BYTES_MAX))
-    error ("Maximum buffer size exceeded");
+    buffer_overflow ();
 
   /* Prevent redisplay optimizations.  */
   current_buffer->clip_changed = 1;
@@ -3808,7 +3808,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       /* Make sure point-max won't overflow after this insertion.  */
       XSETINT (temp, total);
       if (total != XINT (temp))
-	error ("Maximum buffer size exceeded");
+	buffer_overflow ();
     }
   else
     /* For a special file, all we can do is guess.  */
