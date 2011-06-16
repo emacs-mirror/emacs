@@ -14975,6 +14975,31 @@ $as_echo "$gl_cv_func_getopt_gnu" >&6; }
     fi
   fi
 
+
+
+
+
+    REPLACE_GETOPT=0
+
+
+  if test -n "$gl_replace_getopt"; then :
+
+      REPLACE_GETOPT=1
+
+fi
+
+
+  if test $REPLACE_GETOPT = 1; then
+
+  GETOPT_H=getopt.h
+
+$as_echo "#define __GETOPT_PREFIX rpl_" >>confdefs.h
+
+
+
+        GNULIB_UNISTD_H_GETOPT=1
+  fi
+
 ac_fn_c_check_decl "$LINENO" "getenv" "ac_cv_have_decl_getenv" "$ac_includes_default"
 if test "x$ac_cv_have_decl_getenv" = x""yes; then :
   ac_have_decl=1
@@ -14985,50 +15010,6 @@ fi
 cat >>confdefs.h <<_ACEOF
 #define HAVE_DECL_GETENV $ac_have_decl
 _ACEOF
-
-
-
-
-
-
-  if test -n "$gl_replace_getopt"; then :
-
-
-
-  GETOPT_H=getopt.h
-
-$as_echo "#define __GETOPT_PREFIX rpl_" >>confdefs.h
-
-
-
-    GNULIB_UNISTD_H_GETOPT=1
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS getopt.$ac_objext"
-
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS getopt1.$ac_objext"
-
-
-
-
-
-
-fi
-
 
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for unsigned long long int" >&5
@@ -16034,21 +16015,16 @@ $as_echo "#define GL_TRIGGER_STDC_LIMIT_MACROS 1" >>confdefs.h
 
 
 
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether lstat correctly handles trailing slash" >&5
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether lstat correctly handles trailing slash" >&5
 $as_echo_n "checking whether lstat correctly handles trailing slash... " >&6; }
 if test "${ac_cv_func_lstat_dereferences_slashed_symlink+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
   rm -f conftest.sym conftest.file
-     echo >conftest.file
-     if test "$as_ln_s" = "ln -s" && ln -s conftest.file conftest.sym; then
-       if test "$cross_compiling" = yes; then :
-  # When cross-compiling, be pessimistic so we will end up using the
-          # replacement version of lstat that checks for trailing slashes and
-          # calls lstat a second time when necessary.
-          ac_cv_func_lstat_dereferences_slashed_symlink=no
-
+echo >conftest.file
+if test "$as_ln_s" = "ln -s" && ln -s conftest.file conftest.sym; then
+  if test "$cross_compiling" = yes; then :
+  ac_cv_func_lstat_dereferences_slashed_symlink=no
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -16057,11 +16033,10 @@ int
 main ()
 {
 struct stat sbuf;
-              /* Linux will dereference the symlink and fail, as required by
-                 POSIX.  That is better in the sense that it means we will not
-                 have to compile and use the lstat wrapper.  */
-              return lstat ("conftest.sym/", &sbuf) == 0;
-
+     /* Linux will dereference the symlink and fail, as required by POSIX.
+	That is better in the sense that it means we will not
+	have to compile and use the lstat wrapper.  */
+     return lstat ("conftest.sym/", &sbuf) == 0;
   ;
   return 0;
 }
@@ -16075,23 +16050,25 @@ rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
   conftest.$ac_objext conftest.beam conftest.$ac_ext
 fi
 
-     else
-       # If the 'ln -s' command failed, then we probably don't even
-       # have an lstat function.
-       ac_cv_func_lstat_dereferences_slashed_symlink=no
-     fi
-     rm -f conftest.sym conftest.file
+else
+  # If the `ln -s' command failed, then we probably don't even
+  # have an lstat function.
+  ac_cv_func_lstat_dereferences_slashed_symlink=no
+fi
+rm -f conftest.sym conftest.file
 
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_func_lstat_dereferences_slashed_symlink" >&5
 $as_echo "$ac_cv_func_lstat_dereferences_slashed_symlink" >&6; }
-  test $ac_cv_func_lstat_dereferences_slashed_symlink = yes &&
+
+test $ac_cv_func_lstat_dereferences_slashed_symlink = yes &&
 
 cat >>confdefs.h <<_ACEOF
 #define LSTAT_FOLLOWS_SLASHED_SYMLINK 1
 _ACEOF
 
-  if test "x$ac_cv_func_lstat_dereferences_slashed_symlink" = xno; then
+
+if test "x$ac_cv_func_lstat_dereferences_slashed_symlink" = xno; then
 
 
 
@@ -16102,7 +16079,7 @@ _ACEOF
 
   gl_LIBOBJS="$gl_LIBOBJS lstat.$ac_objext"
 
-  fi
+fi
 
 
   GNULIB_MKTIME=0;
@@ -16678,13 +16655,7 @@ fi
 
 
 
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS md5.$ac_objext"
+  :
 
 
 
@@ -16693,32 +16664,6 @@ fi
 
 
 
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS sha1.$ac_objext"
-
-
-
-
-  :
-
-
-
-
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS filemode.$ac_objext"
 
 
 
@@ -16731,6 +16676,7 @@ gl_save_LIBS=$LIBS
 
 # getloadvg is present in libc on glibc >= 2.2, MacOS X, FreeBSD >= 2.0,
 # NetBSD >= 0.9, OpenBSD >= 2.0, Solaris >= 7.
+HAVE_GETLOADAVG=1
 ac_fn_c_check_func "$LINENO" "getloadavg" "ac_cv_func_getloadavg"
 if test "x$ac_cv_func_getloadavg" = x""yes; then :
 
@@ -16917,6 +16863,51 @@ fi
 
    # Set up the replacement function if necessary.
    if test $gl_have_func = no; then
+     HAVE_GETLOADAVG=0
+   fi
+fi
+
+
+if test "x$gl_save_LIBS" = x; then
+  GETLOADAVG_LIBS=$LIBS
+else
+  GETLOADAVG_LIBS=`echo "$LIBS" | sed "s!$gl_save_LIBS!!"`
+fi
+LIBS=$gl_save_LIBS
+
+
+# Test whether the system declares getloadavg. Solaris has the function
+# but declares it in <sys/loadavg.h>, not <stdlib.h>.
+for ac_header in sys/loadavg.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/loadavg.h" "ac_cv_header_sys_loadavg_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_loadavg_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYS_LOADAVG_H 1
+_ACEOF
+
+fi
+
+done
+
+if test $ac_cv_header_sys_loadavg_h = yes; then
+  HAVE_SYS_LOADAVG_H=1
+else
+  HAVE_SYS_LOADAVG_H=0
+fi
+ac_fn_c_check_decl "$LINENO" "getloadavg" "ac_cv_have_decl_getloadavg" "#if HAVE_SYS_LOADAVG_H
+   # include <sys/loadavg.h>
+   #endif
+   #include <stdlib.h>
+"
+if test "x$ac_cv_have_decl_getloadavg" = x""yes; then :
+
+else
+  HAVE_DECL_GETLOADAVG=0
+fi
+
+
+if test $HAVE_GETLOADAVG = 0; then
 
 
 
@@ -17197,49 +17188,7 @@ fi
 
 done
 
-   fi
 fi
-
-
-if test "x$gl_save_LIBS" = x; then
-  GETLOADAVG_LIBS=$LIBS
-else
-  GETLOADAVG_LIBS=`echo "$LIBS" | sed "s!$gl_save_LIBS!!"`
-fi
-LIBS=$gl_save_LIBS
-
-
-# Test whether the system declares getloadavg. Solaris has the function
-# but declares it in <sys/loadavg.h>, not <stdlib.h>.
-for ac_header in sys/loadavg.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "sys/loadavg.h" "ac_cv_header_sys_loadavg_h" "$ac_includes_default"
-if test "x$ac_cv_header_sys_loadavg_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_SYS_LOADAVG_H 1
-_ACEOF
-
-fi
-
-done
-
-if test $ac_cv_header_sys_loadavg_h = yes; then
-  HAVE_SYS_LOADAVG_H=1
-else
-  HAVE_SYS_LOADAVG_H=0
-fi
-ac_fn_c_check_decl "$LINENO" "getloadavg" "ac_cv_have_decl_getloadavg" "#if HAVE_SYS_LOADAVG_H
-   # include <sys/loadavg.h>
-   #endif
-   #include <stdlib.h>
-"
-if test "x$ac_cv_have_decl_getloadavg" = x""yes; then :
-
-else
-  HAVE_DECL_GETLOADAVG=0
-fi
-
-
 
 
 
@@ -17256,23 +17205,7 @@ fi
 
 
 
-
-
-
-
-
-
-  if test -n "$gl_replace_getopt"; then :
-
-
-
-  GETOPT_H=getopt.h
-
-$as_echo "#define __GETOPT_PREFIX rpl_" >>confdefs.h
-
-
-
-    GNULIB_UNISTD_H_GETOPT=1
+if test $REPLACE_GETOPT = 1; then
 
 
 
@@ -17296,6 +17229,55 @@ $as_echo "#define __GETOPT_PREFIX rpl_" >>confdefs.h
 
 
 
+fi
+
+
+
+
+
+    REPLACE_GETOPT=0
+
+
+  if test -n "$gl_replace_getopt"; then :
+
+      REPLACE_GETOPT=1
+
+fi
+
+
+  if test $REPLACE_GETOPT = 1; then
+
+  GETOPT_H=getopt.h
+
+$as_echo "#define __GETOPT_PREFIX rpl_" >>confdefs.h
+
+
+
+        GNULIB_UNISTD_H_GETOPT=1
+  fi
+
+if test $REPLACE_GETOPT = 1; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS getopt.$ac_objext"
+
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS getopt1.$ac_objext"
+
+
 
 
 fi
@@ -17304,19 +17286,31 @@ fi
 
 
 
-
-
   if test $ac_cv_func_lstat = yes; then
 
-    if test $ac_cv_func_lstat_dereferences_slashed_symlink = no; then
-            REPLACE_LSTAT=1
+    if test $gl_cv_func_lstat_dereferences_slashed_symlink = no; then
+      REPLACE_LSTAT=1
     fi
-    # Prerequisites of lib/lstat.c.
-
   else
     HAVE_LSTAT=0
   fi
 
+if test $REPLACE_LSTAT = 1; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS lstat.$ac_objext"
+
+
+
+  :
+
+fi
 
 
 
@@ -17333,19 +17327,20 @@ fi
 
 
 
-if test $APPLE_UNIVERSAL_BUILD = 1; then
-  # A universal build on Apple MacOS X platforms.
-  # The test result would be 'yes' in 32-bit mode and 'no' in 64-bit mode.
-  # But we need a configuration result that is valid in both modes.
-  ac_cv_func_working_mktime=no
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for working mktime" >&5
+
+  if test $APPLE_UNIVERSAL_BUILD = 1; then
+    # A universal build on Apple MacOS X platforms.
+    # The test result would be 'yes' in 32-bit mode and 'no' in 64-bit mode.
+    # But we need a configuration result that is valid in both modes.
+    gl_cv_func_working_mktime=no
+  fi
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for working mktime" >&5
 $as_echo_n "checking for working mktime... " >&6; }
-if test "${ac_cv_func_working_mktime+set}" = set; then :
+if test "${gl_cv_func_working_mktime+set}" = set; then :
   $as_echo_n "(cached) " >&6
 else
   if test "$cross_compiling" = yes; then :
-  ac_cv_func_working_mktime=no
+  gl_cv_func_working_mktime=no
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -17542,18 +17537,26 @@ main ()
 }
 _ACEOF
 if ac_fn_c_try_run "$LINENO"; then :
-  ac_cv_func_working_mktime=yes
+  gl_cv_func_working_mktime=yes
 else
-  ac_cv_func_working_mktime=no
+  gl_cv_func_working_mktime=no
 fi
 rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
   conftest.$ac_objext conftest.beam conftest.$ac_ext
 fi
 
+
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_func_working_mktime" >&5
-$as_echo "$ac_cv_func_working_mktime" >&6; }
-if test $ac_cv_func_working_mktime = no; then
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_working_mktime" >&5
+$as_echo "$gl_cv_func_working_mktime" >&6; }
+
+  if test $gl_cv_func_working_mktime = no; then
+    REPLACE_MKTIME=1
+  else
+    REPLACE_MKTIME=0
+  fi
+
+if test $REPLACE_MKTIME = 1; then
 
 
 
@@ -17564,17 +17567,10 @@ if test $ac_cv_func_working_mktime = no; then
 
   gl_LIBOBJS="$gl_LIBOBJS mktime.$ac_objext"
 
+
+
+
 fi
-
-    if test $ac_cv_func_working_mktime = no; then
-    REPLACE_MKTIME=1
-
-
-
-  else
-    REPLACE_MKTIME=0
-  fi
-
 
 
 
@@ -17592,19 +17588,6 @@ fi
 
   if test $ac_cv_func_readlink = no; then
     HAVE_READLINK=0
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS readlink.$ac_objext"
-
-
-  :
-
   else
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether readlink signature is correct" >&5
 $as_echo_n "checking whether readlink signature is correct... " >&6; }
@@ -17675,31 +17658,26 @@ $as_echo "$gl_cv_func_readlink_works" >&6; }
 $as_echo "#define READLINK_TRAILING_SLASH_BUG 1" >>confdefs.h
 
       REPLACE_READLINK=1
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS readlink.$ac_objext"
-
     elif test "$gl_cv_decl_readlink_works" != yes; then
       REPLACE_READLINK=1
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS readlink.$ac_objext"
-
     fi
   fi
 
+if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS readlink.$ac_objext"
+
+
+  :
+
+fi
 
 
 
@@ -18246,17 +18224,6 @@ $as_echo "$gl_cv_next_stdlib_h" >&6; }
 
 
 
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS strftime.$ac_objext"
-
-
  # This defines (or not) HAVE_TZNAME and HAVE_TM_ZONE.
 
 
@@ -18276,15 +18243,7 @@ $as_echo "#define my_strftime nstrftime" >>confdefs.h
   if test "$ac_cv_have_decl_strtoumax" != yes; then
     HAVE_DECL_STRTOUMAX=0
 
-
-
-
-
-
-
-
-
-  for ac_func in strtoumax
+    for ac_func in strtoumax
 do :
   ac_fn_c_check_func "$LINENO" "strtoumax" "ac_cv_func_strtoumax"
 if test "x$ac_cv_func_strtoumax" = x""yes; then :
@@ -18292,15 +18251,22 @@ if test "x$ac_cv_func_strtoumax" = x""yes; then :
 #define HAVE_STRTOUMAX 1
 _ACEOF
 
-else
-
-    gl_LIBOBJS="$gl_LIBOBJS $ac_func.$ac_objext"
-
 fi
 done
 
+  fi
 
-    if test $ac_cv_func_strtoumax = no; then
+if test "$ac_cv_have_decl_strtoumax" != yes && test $ac_cv_func_strtoumax = no; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS strtoumax.$ac_objext"
+
 
   ac_fn_c_check_decl "$LINENO" "strtoull" "ac_cv_have_decl_strtoull" "$ac_includes_default"
 if test "x$ac_cv_have_decl_strtoull" = x""yes; then :
@@ -18315,9 +18281,7 @@ _ACEOF
 
 
 
-    fi
-  fi
-
+fi
 
 
 
@@ -18333,16 +18297,6 @@ _ACEOF
 
         if test $ac_cv_func_symlink = no; then
     HAVE_SYMLINK=0
-
-
-
-
-
-
-
-
-  gl_LIBOBJS="$gl_LIBOBJS symlink.$ac_objext"
-
   else
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether symlink handles trailing slash correctly" >&5
 $as_echo_n "checking whether symlink handles trailing slash correctly... " >&6; }
@@ -18387,6 +18341,10 @@ fi
 $as_echo "$gl_cv_func_symlink_works" >&6; }
     if test "$gl_cv_func_symlink_works" != yes; then
       REPLACE_SYMLINK=1
+    fi
+  fi
+
+if test $HAVE_SYMLINK = 0 || test $REPLACE_SYMLINK = 1; then
 
 
 
@@ -18397,9 +18355,7 @@ $as_echo "$gl_cv_func_symlink_works" >&6; }
 
   gl_LIBOBJS="$gl_LIBOBJS symlink.$ac_objext"
 
-    fi
-  fi
-
+fi
 
 
 
@@ -18553,7 +18509,8 @@ $as_echo "$gl_cv_time_r_posix" >&6; }
   else
     HAVE_LOCALTIME_R=0
   fi
-  if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
+
+if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
 
 
 
@@ -18567,8 +18524,7 @@ $as_echo "$gl_cv_time_r_posix" >&6; }
 
   :
 
-  fi
-
+fi
 
 
 
@@ -18772,7 +18728,8 @@ $as_echo "#define REPLACE_FUNC_STAT_DIR 1" >>confdefs.h
 $as_echo "#define REPLACE_FUNC_STAT_FILE 1" >>confdefs.h
 ;;
   esac
-  if test $REPLACE_STAT = 1; then
+
+if test $REPLACE_STAT = 1; then
 
 
 
@@ -18784,8 +18741,10 @@ $as_echo "#define REPLACE_FUNC_STAT_FILE 1" >>confdefs.h
   gl_LIBOBJS="$gl_LIBOBJS stat.$ac_objext"
 
 
-  fi
 
+  :
+
+fi
 
 
 
@@ -18810,15 +18769,7 @@ $as_echo "#define REPLACE_FUNC_STAT_FILE 1" >>confdefs.h
 
 
   if test "$ac_cv_type_unsigned_long_long_int" = yes; then
-
-
-
-
-
-
-
-
-  for ac_func in strtoull
+    for ac_func in strtoull
 do :
   ac_fn_c_check_func "$LINENO" "strtoull" "ac_cv_func_strtoull"
 if test "x$ac_cv_func_strtoull" = x""yes; then :
@@ -18826,22 +18777,29 @@ if test "x$ac_cv_func_strtoull" = x""yes; then :
 #define HAVE_STRTOULL 1
 _ACEOF
 
-else
-
-    gl_LIBOBJS="$gl_LIBOBJS $ac_func.$ac_objext"
-
 fi
 done
 
-
     if test $ac_cv_func_strtoull = no; then
       HAVE_STRTOULL=0
-
-  :
-
     fi
   fi
 
+if test $HAVE_STRTOULL = 0; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS strtoull.$ac_objext"
+
+
+  :
+
+fi
 
 
 
@@ -18862,7 +18820,7 @@ done
       gl_gnulib_enabled_verify=true
     fi
   }
-  if test $GNULIB_UNISTD_H_GETOPT = 1; then
+  if test $REPLACE_GETOPT = 1; then
     func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36
   fi
   if test $REPLACE_LSTAT = 1; then
