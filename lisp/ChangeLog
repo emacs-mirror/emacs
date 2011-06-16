@@ -1,3 +1,9 @@
+2011-06-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-normalize-specifiers-1): Respect
+	current value of pop-up-frames for most reasonable values of
+	second argument of display-buffer (Bug#8865).
+
 2011-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcmpl-rpm.el (pcomplete/rpm): Minor simplification.

@@ -3453,9 +3453,8 @@ specific buffers."
     ;; (bw-finetune wins)
     ;; (message "Done in %d rounds" round)
     ))
-
 
-
+;;; Displaying buffers.
 (defconst display-buffer-default-specifiers
   '((reuse-window nil same visible)
     (pop-up-window (largest . nil) (lru . nil))
@@ -4909,9 +4908,12 @@ BUFFER-OR-NAME and return that buffer."
 (defun display-buffer-normalize-specifiers-1 (specifiers)
   "Subroutine of `display-buffer-normalize-specifiers'.
 SPECIFIERS is the SPECIFIERS argument of `display-buffer'."
-  (let (normalized)
+  (let (normalized entry)
     (cond
+     ((not specifiers)
+      nil)
      ((listp specifiers)
+      ;; If SPECIFIERS is a list, we assume it is a list of specifiers.
       (dolist (specifier specifiers)
 	(cond
 	 ((consp specifier)
@@ -4924,21 +4926,17 @@ SPECIFIERS is the SPECIFIERS argument of `display-buffer'."
 	    (dolist (item (cdr entry))
 	      (setq normalized (cons item normalized)))))))
       ;; Reverse list.
-      (setq normalized (nreverse normalized)))
-     ;; The two cases below must come from the SPECIFIERS argument of
-     ;; `display-buffer'.
-     ((eq specifiers 't)
-      ;; Historically t means "other window".  Eventually we should get
-      ;; rid of this.
-      (setq normalized
-	    (cdr (assq 'other-window display-buffer-macro-specifiers))
-	    normalized))
-     ((symbolp specifiers)
-      ;; We allow scalar specifiers in calls of `display-buffer'.
-      (let ((entry (assq specifiers display-buffer-macro-specifiers)))
-	(when entry (setq normalized (cdr entry))))))
-
-    normalized))
+      (nreverse normalized))
+     ((and (not (eq specifiers 'other-window))
+	   (setq entry (assq specifiers display-buffer-macro-specifiers)))
+      ;; A macro specifier.
+      (cdr entry))
+     ((memq pop-up-frames '(nil unset))
+      ;; Pop up a new window.
+      (cdr (assq 'other-window display-buffer-macro-specifiers)))
+     (t
+      ;; Pop up a new frame.
+      (cdr (assq 'other-frame display-buffer-macro-specifiers))))))
 
 (defun display-buffer-normalize-specifiers-2 (&optional buffer-or-name)
   "Subroutine of `display-buffer-normalize-specifiers'.
