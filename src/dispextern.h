@@ -2259,7 +2259,7 @@ struct it
 
   /* -1 means selective display hides everything between a \r and the
      next newline; > 0 means hide lines indented more than that value.  */
-  int selective;
+  EMACS_INT selective;
 
   /* An enumeration describing what the next display element is
      after a call to get_next_display_element.  */

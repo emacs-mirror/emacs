@@ -1,5 +1,11 @@
 2011-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dispextern.h (struct it.selective): Now EMACS_INT, not int.
+	* xdisp.c (forward_to_next_line_start)
+	(back_to_previous_visible_line_start)
+	(reseat_at_next_visible_line_start, next_element_from_buffer):
+	Don't arbitrarily truncate the value of 'selective' to int.
+
 	* xdisp.c (init_iterator): Use XINT, not XFASTINT; it might be < 0.
 
 	* composite.c: Don't truncate sizes to 'int'.

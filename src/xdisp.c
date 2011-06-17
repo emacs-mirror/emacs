@@ -5179,7 +5179,8 @@ back_to_previous_line_start (struct it *it)
 static int
 forward_to_next_line_start (struct it *it, int *skipped_p)
 {
-  int old_selective, newline_found_p, n;
+  EMACS_INT old_selective;
+  int newline_found_p, n;
   const int MAX_NEWLINE_DISTANCE = 500;
 
   /* If already on a newline, just consume it to avoid unintended
@@ -5271,7 +5272,7 @@ back_to_previous_visible_line_start (struct it *it)
 	 invisible.  */
       if (it->selective > 0
 	  && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
-				(double) it->selective)) /* iftc */
+				it->selective))
 	continue;
 
       /* Check the newline before point for invisibility.  */
@@ -5365,7 +5366,7 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
   if (it->selective > 0)
     while (IT_CHARPOS (*it) < ZV
 	   && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
-				 (double) it->selective)) /* iftc */
+				 it->selective))
       {
 	xassert (IT_BYTEPOS (*it) == BEGV
 		 || FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
@@ -6813,7 +6814,7 @@ next_element_from_buffer (struct it *it)
 		  && IT_CHARPOS (*it) + 1 < ZV
 		  && indented_beyond_p (IT_CHARPOS (*it) + 1,
 					IT_BYTEPOS (*it) + 1,
-					(double) it->selective)) /* iftc */
+					it->selective))
 		{
 		  success_p = next_element_from_ellipsis (it);
 		  it->dpvec_char_len = -1;
