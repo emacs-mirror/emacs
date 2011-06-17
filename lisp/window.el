@@ -5628,8 +5628,8 @@ This function returns non-nil if `display-buffer' or
 `pop-to-buffer' would show a buffer named BUFFER-NAME in the
 selected rather than \(as usual\) some other window.  See
 `same-window-buffer-names' and `same-window-regexps'."
-  (let ((buffer-names (with-no-warnings special-display-buffer-names))
-	(regexps (with-no-warnings special-display-regexps)))
+  (let ((buffer-names (with-no-warnings same-window-buffer-names))
+	(regexps (with-no-warnings same-window-regexps)))
     (cond
      ((not (stringp buffer-name)))
      ;; The elements of `same-window-buffer-names' can be buffer

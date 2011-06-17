@@ -1,3 +1,8 @@
+2011-06-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (same-window-p): Fix two typos introduced when
+	adding with-no-warnings.
+
 2011-06-16  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-normalize-specifiers-1): Respect
