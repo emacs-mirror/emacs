@@ -1,5 +1,7 @@
 2011-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xdisp.c (init_iterator): Use XINT, not XFASTINT; it might be < 0.
+
 	* composite.c: Don't truncate sizes to 'int'.
 	(composition_gstring_p, composition_reseat_it)
 	(composition_adjust_point): Use EMACS_INT, not int.

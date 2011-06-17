@@ -2385,7 +2385,7 @@ init_iterator (struct it *it, struct window *w,
      is invisible.  >0 means lines indented more than this value are
      invisible.  */
   it->selective = (INTEGERP (BVAR (current_buffer, selective_display))
-		   ? XFASTINT (BVAR (current_buffer, selective_display))
+		   ? XINT (BVAR (current_buffer, selective_display))
 		   : (!NILP (BVAR (current_buffer, selective_display))
 		      ? -1 : 0));
   it->selective_display_ellipsis_p
