@@ -285,7 +285,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
       && VECTORP (AREF (components, 0)))
     {
       /* COMPONENTS is a glyph-string.  */
-      EMACS_UINT len = ASIZE (key);
+      EMACS_INT len = ASIZE (key);
 
       for (i = 1; i < len; i++)
 	if (! VECTORP (AREF (key, i)))
@@ -293,7 +293,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
     }
   else if (VECTORP (components) || CONSP (components))
     {
-      EMACS_UINT len = ASIZE (key);
+      EMACS_INT len = ASIZE (key);
 
       /* The number of elements should be odd.  */
       if ((len % 2) == 0)
@@ -673,7 +673,7 @@ composition_gstring_put_cache (Lisp_Object gstring, EMACS_INT len)
   hash = h->hashfn (h, header);
   if (len < 0)
     {
-      EMACS_UINT j, glyph_len = LGSTRING_GLYPH_LEN (gstring);
+      EMACS_INT j, glyph_len = LGSTRING_GLYPH_LEN (gstring);
       for (j = 0; j < glyph_len; j++)
 	if (NILP (LGSTRING_GLYPH (gstring, j)))
 	  break;

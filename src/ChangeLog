@@ -3,6 +3,8 @@
 	* composite.c: Don't truncate sizes to 'int'.
 	(composition_gstring_p, composition_reseat_it)
 	(composition_adjust_point): Use EMACS_INT, not int.
+	(get_composition_id, composition_gstring_put_cache): Use EMACS_INT,
+	not EMACS_UINT, for indexes.
 
 	* category.h (CATEGORY_SET_P): Remove unnecessary cast to EMACS_INT.
 
