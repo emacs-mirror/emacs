@@ -1,3 +1,19 @@
+2011-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el (shell-completion-vars): Set pcomplete-termination-string
+	according to comint-completion-addsuffix.
+
+	* pcomplete.el: Convert to lexical binding and fix bug#8819.
+	(pcomplete-suffix-list): Mark as obsolete.
+	(pcomplete-completions-at-point): Capture pcomplete-norm-func and
+	pcomplete-seen in the closure.
+	(pcomplete-comint-setup): Setup completion-at-point as well.
+	(pcomplete--entries): New function.
+	(pcomplete--env-regexp): New var.
+	(pcomplete-entries): Rewrite to work with partial-completion and
+	without relying on pcomplete-suffix-list.
+	(pcomplete-pare-list): Remove, unused.
+
 2011-06-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-alist): Set pop-up-window-min-height
