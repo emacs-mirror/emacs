@@ -27,6 +27,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include <unistd.h>
 
+#include <verify.h>
+
 #include "lisp.h"
 #include "intervals.h"
 #include "window.h"
@@ -4975,7 +4977,7 @@ init_buffer_once (void)
      The local flag bits are in the local_var_flags slot of the buffer.  */
 
   /* Nothing can work if this isn't true */
-  if (sizeof (EMACS_INT) != sizeof (Lisp_Object)) abort ();
+  { verify (sizeof (EMACS_INT) == sizeof (Lisp_Object)); }
 
   /* 0 means not a lisp var, -1 means always local, else mask */
   memset (&buffer_local_flags, 0, sizeof buffer_local_flags);
