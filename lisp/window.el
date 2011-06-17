@@ -4954,7 +4954,7 @@ SPECIFIERS is the SPECIFIERS argument of `display-buffer'."
 	   (setq entry (assq specifiers display-buffer-macro-specifiers)))
       ;; A macro specifier.
       (cdr entry))
-     ((with-no-warnings (memq pop-up-frames '(nil unset)))
+     ((with-no-warnings (not pop-up-frames))
       ;; Pop up a new window.
       (cdr (assq 'other-window display-buffer-macro-specifiers)))
      (t
@@ -4971,8 +4971,13 @@ options."
 	 specifiers)
     ;; Disable warnings, there are too many obsolete options here.
     (with-no-warnings
+      ;; `even-window-heights', unless nil or unset.
+      (unless (memq even-window-heights '(nil unset))
+	(setq specifiers
+	      (cons (cons 'reuse-window-even-sizes t) specifiers)))
+
       ;; `display-buffer-mark-dedicated'
-      (unless (memq display-buffer-mark-dedicated '(nil unset))
+      (when display-buffer-mark-dedicated
 	(setq specifiers
 	      (cons (cons 'dedicate display-buffer-mark-dedicated)
 		    specifiers)))
@@ -5004,10 +5009,21 @@ options."
 			    (cons 'largest fun) (cons 'lru fun))
 		      specifiers))))
 
-      ;; `pop-up-frame' group.  Anything is added here iff
-      ;; `pop-up-frames' is neither nil nor unset (we ignore the problem
-      ;; that callers usually don't care about graphic-only).
-      (unless (memq pop-up-frames '(nil unset))
+      ;; `special-display-p' group.
+      (when special-display-function
+	;; `special-display-p' returns either t or a list of frame
+	;; parameters to pass to `special-display-function'.
+	(let ((pars (special-display-p buffer-name)))
+	  (when pars
+	    (setq specifiers
+		  (cons (list 'fun-with-args special-display-function
+			      (when (listp pars) pars))
+			specifiers)))))
+
+      ;; `pop-up-frame' group.  Add things if `pop-up-frames' is non-nil
+      ;; (we ignore the problem that callers usually don't care about
+      ;; graphic-only).
+      (when pop-up-frames
 	;; `pop-up-frame-function'.  If `pop-up-frame-function' uses the
 	;; now obsolete `pop-up-frame-alist' it will continue to do so.
 	(setq specifiers
@@ -5017,139 +5033,34 @@ options."
 	(setq specifiers
 	      (cons (list 'pop-up-frame pop-up-frames) specifiers)))
 
-      ;; `special-display-regexps'
-      (dolist (entry special-display-regexps)
-	(cond
-	 ((stringp entry)
-	  ;; Plain string.
-	  (when (string-match-p entry buffer-name)
-	    (setq specifiers
-		  (cons
-		   (list 'fun-with-args special-display-function
-			 special-display-frame-alist)
-		   specifiers))))
-	 ((consp entry)
-	  (let ((name (car entry))
-		(rest (cdr entry)))
-	    (cond
-	     ((not (string-match-p name buffer-name)))
-	     ((functionp (car rest))
-	      ;; A function.
-	      (setq specifiers
-		    (cons (list 'fun-with-args (car rest) (cadr rest))
-			  specifiers)))
-	     ((listp rest)
-	      ;; A list of parameters.
-	      (cond
-	       ((assq 'same-window rest)
-		(setq specifiers
-		      (cons (list 'reuse-window 'same) specifiers))
-		(setq specifiers
-		      (cons (list 'reuse-window-dedicated 'weak)
-			    specifiers)))
-	       ((assq 'same-frame rest)
-		(setq specifiers
-		      (setq specifiers
-			    (cons (list 'same-frame) specifiers))))
-	       (t
-		(setq specifiers
-		      (cons (list 'fun-with-args special-display-function
-				  special-display-frame-alist)
-			    specifiers))))))))))
+      ;; `same-window-p' group.
+      (when (same-window-p buffer-name)
+	;; Try to reuse the same (selected) window.
+	(setq specifiers
+	      (cons (list 'reuse-window 'same nil nil)
+		    specifiers)))
 
-      ;; `special-display-buffer-names'
-      (dolist (entry special-display-buffer-names)
-	(cond
-	 ((stringp entry)
-	  ;; Plain string.
-	  (when (string-equal entry buffer-name)
-	    (setq specifiers
-		  (cons
-		   (list 'fun-with-args special-display-function
-			 special-display-frame-alist)
-		   specifiers))))
-	 ((consp entry)
-	  (let ((name (car entry))
-		(rest (cdr entry)))
-	    (cond
-	     ((not (string-equal name buffer-name)))
-	     ((functionp (car rest))
-	      ;; A function.
-	      (setq specifiers
-		    (cons (list 'fun-with-args (car rest) (cadr rest))
-			  specifiers)))
-	     ((listp rest)
-	      ;; A list of parameters.
-	      (cond
-	       ((assq 'same-window rest)
-		(setq specifiers
-		      (cons (list 'reuse-window 'same) specifiers))
-		(setq specifiers
-		      (cons (list 'reuse-window-dedicated 'weak)
-			    specifiers)))
-	       ((assq 'same-frame rest)
-		(setq specifiers
-		      (setq specifiers
-			    (cons (list 'same-frame) specifiers))))
-	       (t
-		(setq specifiers
-		      (cons (list 'fun-with-args special-display-function
-				  special-display-frame-alist)
-			    specifiers))))))))))
-
-      ;; `same-window-regexps'
-      (dolist (entry same-window-regexps)
-	(cond
-	 ((stringp entry)
-	  (when (string-match-p entry buffer-name)
-	    (setq specifiers
-		  (cons (list 'reuse-window 'same) specifiers))))
-	 ((consp entry)
-	  (when (string-match-p (car entry) buffer-name)
-	    (setq specifiers
-		  (cons (list 'reuse-window 'same) specifiers))))))
-
-      ;; `same-window-buffer-names'
-      (dolist (entry same-window-buffer-names)
-	(cond
-	 ((stringp entry)
-	  (when (string-equal entry buffer-name)
-	    (setq specifiers
-		  (cons (list 'reuse-window 'same) specifiers))))
-	 ((consp entry)
-	  (when (string-equal (car entry) buffer-name)
-	    (setq specifiers
-		  (cons (list 'reuse-window 'same) specifiers))))))
-
-      ;; `pop-up-windows' and `pop-up-frames' nil means means we
+      ;; `pop-up-windows' and `pop-up-frames' both nil means means we
       ;; are supposed to reuse any window (unless we find one showing
       ;; the same buffer already).
-
-      ;; This clause is needed because Emacs 23 options can be used to
-      ;; suppress a certain behavior while `display-buffer-alist' can be
-      ;; only used to enforce some behavior.
-      (when (and (not pop-up-windows) (memq pop-up-frames '(nil unset)))
-	;; `even-window-heights'
-	(when even-window-heights
-	  (setq specifiers
-		(cons (cons 'reuse-window-even-sizes t) specifiers)))
+      (unless (or pop-up-windows pop-up-frames)
 	;; `reuse-window' showing any buffer on same frame.
 	(setq specifiers
 	      (cons (list 'reuse-window nil nil nil)
 		    specifiers)))
 
-      ;; `display-buffer-reuse-frames' or `pop-up-frames' set means we
-      ;; are supposed to reuse a window showing the same buffer.
-      (unless (and (memq display-buffer-reuse-frames '(nil unset))
-		   (memq pop-up-frames '(nil unset)))
-	;; `even-window-heights'
-	(when even-window-heights
-	  (setq specifiers
-		(cons (cons 'reuse-window-even-sizes t) specifiers)))
+      ;; `display-buffer-reuse-frames' or `pop-up-frames' non-nil means
+      ;; we are supposed to reuse a window showing the same buffer on
+      ;; another frame.
+      (when (or display-buffer-reuse-frames pop-up-frames)
 	;; `reuse-window' showing same buffer on visible frame.
 	(setq specifiers
-	      (cons (list 'reuse-window nil 'same 0)
-		    specifiers)))
+	      (cons (list 'reuse-window nil 'same 0) specifiers)))
+
+      ;; Prepend "reuse window on same frame if showing the buffer
+      ;; already" specifier.
+      (setq specifiers (cons (list 'reuse-window nil 'same nil)
+			     specifiers))
 
       specifiers)))
 
@@ -5937,32 +5848,28 @@ frame.  The default value calls `make-frame' with the argument
  'pop-up-frame-function
  "use 2nd arg of `display-buffer' instead." "24.1")
 
-(defcustom pop-up-frames 'unset ; nil
+(defcustom pop-up-frames nil
   "Whether `display-buffer' should make a separate frame.
 If nil, never make a separate frame.
 If the value is `graphic-only', make a separate frame
 on graphic displays only.
-If this is the symbol unset, the option was not set and is
-ignored.
 Any other non-nil value means always make a separate frame."
   :type '(choice
-	  (const :tag "Unset" unset)
 	  (const :tag "Never" nil)
 	  (const :tag "On graphic displays only" graphic-only)
 	  (const :tag "Always" t))
-  :version "24.1"
   :group 'windows
   :group 'frames)
 (make-obsolete-variable
  'pop-up-frames
  "use 2nd arg of `display-buffer' instead." "24.1")
 
-(defcustom display-buffer-reuse-frames 'unset ; nil
+(defcustom display-buffer-reuse-frames nil
   "Set and non-nil means `display-buffer' should reuse frames.
 If the buffer in question is already displayed in a frame, raise
 that frame."
   :type 'boolean
-  :version "24.1"
+  :version "21.1"
   :group 'windows
   :group 'frames)
 (make-obsolete-variable
@@ -6033,20 +5940,20 @@ is nil, `display-buffer' cannot split windows horizontally."
  'split-width-threshold
  "use 2nd arg of `display-buffer' instead." "24.1")
 
-(defcustom even-window-heights t
-  "If non-nil `display-buffer' will try to even window heights.
+(defcustom even-window-heights 'unset ; t
+  "If set and non-nil `display-buffer' will try to even window heights.
 Otherwise `display-buffer' will leave the window configuration
 alone.  Heights are evened only when `display-buffer' reuses a
 window that appears above or below the selected window."
   :type 'boolean
-  :version "23.1"
+  :version "24.1"
   :group 'windows)
 (make-obsolete-variable
  'even-window-heights
  "use 2nd arg of `display-buffer' instead." "24.1")
 
-(defvar display-buffer-mark-dedicated 'unset ; nil
-  "Set and non-nil means `display-buffer' marks the windows it creates as dedicated.
+(defvar display-buffer-mark-dedicated nil
+  "Non-nil means `display-buffer' marks the windows it creates as dedicated.
 The actual non-nil value of this variable will be copied to the
 `window-dedicated-p' flag.")
 (make-obsolete-variable
@@ -6223,7 +6130,7 @@ value of `display-buffer-alist'."
      nil
      (list
       'pop-up-frame
-      (unless (memq pop-up-frames '(nil unset))
+      (when pop-up-frames
 	(list 'pop-up-frame pop-up-frames))
       (when pop-up-frame-function
 	(cons 'pop-up-frame-function pop-up-frame-function))
@@ -6359,17 +6266,16 @@ value of `display-buffer-alist'."
      (list
       'reuse-window
       (list 'reuse-window nil 'same
-	    (unless (and (memq display-buffer-reuse-frames '(nil unset))
-			 (memq pop-up-frames '(nil unset)))
+	    (when (or display-buffer-reuse-frames pop-up-frames)
 	      ;; "0" (all visible and iconified frames) is hardcoded in
 	      ;; Emacs 23.
 		0))
-      (when even-window-heights
+      (unless (memq even-window-heights '(nil unset))
 	(cons 'reuse-window-even-sizes t)))
      no-custom)
 
     ;; `display-buffer-mark-dedicated'
-    (unless (memq display-buffer-mark-dedicated '(nil unset))
+    (when display-buffer-mark-dedicated
       (display-buffer-alist-add
        nil
        (list
