@@ -3792,6 +3792,14 @@ supported:
 
 - t to strongly dedicate the window to the buffer.
 
+A cons cell whose car is `other-window-means-other-frame' and
+whose cdr is non-nil means that you want calls of
+`display-buffer' with the second argument t or the symbol
+`other-window' to display the buffer in another frame.  This
+means, for example, that you prefer functions like
+`find-file-other-window' or `switch-to-buffer-other-window' to
+make a new frame instead of a new window on the selected frame.
+
 Usually, applications are free to override the specifiers of
 `display-buffer-alist' by passing their own specifiers as second
 argument of `display-buffer'.  For every `display-buffer-alist'
