@@ -3500,12 +3500,11 @@ buffer display specifiers.")
      (reuse-window nil same nil)
      (pop-up-window (largest . nil) (lru . nil))
      (reuse-window nil other nil))
-    (other-window
-     ;; Avoid selected window.
-     (reuse-window other same visible)
-     (pop-up-window (largest . nil) (lru . nil))
-     (pop-up-frame)
-     (reuse-window other other visible))
+    ;; (other-window
+    ;;  ;; Avoid selected window.
+    ;;  (reuse-window other same visible)
+    ;;  (pop-up-window (largest . nil) (lru . nil))
+    ;;  (reuse-window other other visible))
     (same-frame-other-window
      ;; Avoid other frames and selected window.
      (reuse-window other same nil)
@@ -3523,10 +3522,16 @@ buffer display specifiers.")
 
 (defcustom display-buffer-alist
   '((((regexp . ".*"))
+     ;; Reuse window showing same buffer.
      reuse-window (reuse-window nil same visible)
+     ;; Pop up window.
      pop-up-window
+     ;; Split largest or lru window.
      (pop-up-window (largest . nil) (lru . nil))
-     reuse-window (reuse-window other other nil)
+     (pop-up-window-min-height . 40) ; split-height-threshold / 2
+     (pop-up-window-min-width . 80) ; split-width-threshold / 2
+     ;; Reuse any but selected window on same frame.
+     reuse-window (reuse-window other nil nil)
      (reuse-window-even-sizes . t)))
   "List associating buffer identifiers with display specifiers.
 The car of each element of this list is built from a set of cons
@@ -4231,6 +4236,15 @@ using the location specifiers `same-window' or `other-frame'."
 	:format "%[No other window%] %v\n" :size 15
 	(const :tag "Off" :format "%t" nil)
 	(const :tag "Ignore" :format "%t" t)))
+      ;; Other window means other frame.
+      (cons
+       :format "%v"
+       (const :format "" other-window-means-other-frame)
+       (choice
+	:help-echo "Whether other window means same or other frame."
+	:format "%[Same or other frame%] %v\n" :size 15
+	(const :tag "Same frame" :format "%t" nil)
+	(const :tag "Other frame" :format "%t" t)))
       ;; Overriding.
       (cons
        :format "%v\n"
@@ -4915,6 +4929,26 @@ SPECIFIERS must be a list of buffer display specifiers."
 	  (set-window-parameter window 'window-slot slot))
 	(display-buffer-in-window buffer window specifiers)))))
 
+(defun display-buffer-other-window-means-other-frame (buffer-or-name &optional label)
+  "Return non-nil if BUFFER shall be preferably displayed in another frame.
+BUFFER must be a live buffer or the name of a live buffer.
+
+Return nil if BUFFER shall be preferably displayed in another
+window on the selected frame.  Return non-nil if BUFFER shall be
+preferably displayed in a window on any but the selected frame.
+
+Optional argument LABEL is like the same argument of
+`display-buffer'.
+
+The calculation of the return value is exclusively based on the
+user preferences expressed in `display-buffer-alist'."
+  (let* ((buffer (normalize-live-buffer buffer-or-name))
+	 (list (display-buffer-normalize-specifiers-3
+		(buffer-name buffer) label))
+	 (value (assq 'other-window-means-other-frame
+		      (or (car list) (cdr list)))))
+    (when value (cdr value))))
+
 (defun normalize-buffer-to-display (buffer-or-name)
   "Normalize BUFFER-OR-NAME argument for buffer display functions.
 If BUFFER-OR-NAME is nil, return the curent buffer.  Else, if a
@@ -4928,9 +4962,11 @@ BUFFER-OR-NAME and return that buffer."
 	    buffer))
     (current-buffer)))
 
-(defun display-buffer-normalize-specifiers-1 (specifiers)
+(defun display-buffer-normalize-specifiers-1 (specifiers buffer-name label)
   "Subroutine of `display-buffer-normalize-specifiers'.
-SPECIFIERS is the SPECIFIERS argument of `display-buffer'."
+SPECIFIERS is a list of buffer display specfiers.  BUFFER-NAME is
+the name of the buffer that shall be displayed, LABEL the same
+argument of `display-buffer'."
   (let (normalized entry)
     (cond
      ((not specifiers)
@@ -4941,6 +4977,14 @@ SPECIFIERS is the SPECIFIERS argument of `display-buffer'."
 	(cond
 	 ((consp specifier)
 	  (setq normalized (cons specifier normalized)))
+	 ((eq specifier 'other-window)
+	  ;; `other-window' must be treated separately.
+	  (let* ((other-frame (display-buffer-other-window-means-other-frame
+			       buffer-name label))
+		 (entry (assq (if other-frame 'other-frame 'other-window)
+			      display-buffer-macro-specifiers)))
+	    (dolist (item (cdr entry))
+	      (setq normalized (cons item normalized)))))
 	 ((symbolp specifier)
 	  ;; Might be a macro specifier, try to expand it (the cdr is a
 	  ;; list and we have to reverse it later, so do it one at a
@@ -4950,16 +4994,15 @@ SPECIFIERS is the SPECIFIERS argument of `display-buffer'."
 	      (setq normalized (cons item normalized)))))))
       ;; Reverse list.
       (nreverse normalized))
-     ((and (not (eq specifiers 'other-window))
-	   (setq entry (assq specifiers display-buffer-macro-specifiers)))
+     ((setq entry (assq specifiers display-buffer-macro-specifiers))
       ;; A macro specifier.
       (cdr entry))
-     ((with-no-warnings (not pop-up-frames))
-      ;; Pop up a new window.
-      (cdr (assq 'other-window display-buffer-macro-specifiers)))
+     ((or (display-buffer-other-window-means-other-frame buffer-name label)
+	  (with-no-warnings (not pop-up-frames)))
+      (cdr (assq 'other-frame display-buffer-macro-specifiers)))
      (t
-      ;; Pop up a new frame.
-      (cdr (assq 'other-frame display-buffer-macro-specifiers))))))
+      ;; In any other case pop up a new window.
+      (cdr (assq 'same-frame-other-window display-buffer-macro-specifiers))))))
 
 (defun display-buffer-normalize-specifiers-2 (&optional buffer-or-name)
   "Subroutine of `display-buffer-normalize-specifiers'.
@@ -5064,6 +5107,37 @@ options."
 
       specifiers)))
 
+(defun display-buffer-normalize-specifiers-3 (buffer-name label)
+  "Subroutine of `display-buffer-normalize-specifiers'."
+  (let (list-1 list-2)
+    (dolist (entry display-buffer-alist)
+      (when (and (listp entry)
+		 (catch 'match
+		   (dolist (id (car entry))
+		     (when (consp id)
+		       (let ((type (car id))
+			     (value (cdr id)))
+			 (when (or (and (eq type 'name) (stringp value)
+					(equal value buffer-name))
+				   (and (eq type 'regexp) (stringp value)
+					(string-match-p value buffer-name))
+				   (and (eq type 'label) (eq value label)))
+			   (throw 'match t)))))))
+	(let* ((raw (cdr entry))
+	       (normalized
+		(display-buffer-normalize-specifiers-1 raw buffer-name label)))
+	  (if (assq 'override raw)
+	      (setq list-1
+		    (if list-1
+			(append list-1 normalized)
+		      normalized))
+	    (setq list-2
+		  (if list-2
+		      (append list-2 normalized)
+		    normalized))))))
+
+    (cons list-1 list-2)))
+
 (defun display-buffer-normalize-specifiers (buffer-name specifiers label)
   "Return normalized specifiers for a buffer matching BUFFER-NAME or LABEL.
 BUFFER-NAME must be a string specifying a valid buffer name.
@@ -5085,41 +5159,16 @@ specifiers:
   component is not set.
 
 - `display-buffer-default-specifiers'."
-  (let (list-1 list-2)
-    (dolist (entry display-buffer-alist)
-      (when (and (listp entry)
-		 (catch 'match
-		   (dolist (id (car entry))
-		     (when (consp id)
-		       (let ((type (car id))
-			     (value (cdr id)))
-			 (when (or (and (eq type 'name) (stringp value)
-					(equal value buffer-name))
-				   (and (eq type 'regexp) (stringp value)
-					(string-match-p value buffer-name))
-				   (and (eq type 'label) (eq value label)))
-			   (throw 'match t)))))))
-	(let* ((raw (cdr entry))
-	       (normalized (display-buffer-normalize-specifiers-1 raw)))
-	  (if (assq 'override raw)
-	      (setq list-1
-		    (if list-1
-			(append list-1 normalized)
-		      normalized))
-	    (setq list-2
-		  (if list-2
-		      (append list-2 normalized)
-		    normalized))))))
-
+  (let* ((list (display-buffer-normalize-specifiers-3 buffer-name label)))
     (append
      ;; Overriding user specifiers.
-     list-1
+     (car list)
      ;; Application specifiers.
-     (display-buffer-normalize-specifiers-1 specifiers)
+     (display-buffer-normalize-specifiers-1 specifiers buffer-name label)
      ;; Emacs 23 compatibility specifiers.
      (display-buffer-normalize-specifiers-2 buffer-name)
      ;; Non-overriding user specifiers.
-     list-2
+     (cdr list)
      ;; Default specifiers.
      display-buffer-default-specifiers)))
 
