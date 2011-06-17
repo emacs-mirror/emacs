@@ -988,23 +988,20 @@ dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
 
 
-## If we're using gcc, and the user hasn't specified a crt-dir, try to
-## determine it automatically by asking gcc.  [If this doesn't work,
-## CRT_DIR will remain empty and system-dependent code will be used
-## below.]
-##
-if test "x${GCC}z$CRT_DIR" = xyesz; then
-   crt_file=`$CC 2>/dev/null --print-file-name=crt1.o`
-   case "$crt_file" in
-     */*)
-       CRT_DIR=`AS_DIRNAME(["$crt_file"])`
-       ;;
-   esac
-fi
-
-
 ## If user specified a crt-dir, use that unconditionally.
 if test "X$CRT_DIR" = "X"; then
+  
+  ## If we're using gcc, and the user hasn't specified a crt-dir, try to
+  ## determine it automatically by asking gcc.  [If this doesn't work,
+  ## CRT_DIR will remain empty and system-dependent code will be used below.]
+  if test "x${GCC}" = xyes; then
+     crt_file=`$CC --print-file-name=crt1.o 2>/dev/null`
+     case "$crt_file" in
+       */*)
+         CRT_DIR=`AS_DIRNAME(["$crt_file"])`
+         ;;
+     esac
+  fi
 
   case "$canonical" in
     x86_64-*-linux-gnu* | s390x-*-linux-gnu*)
