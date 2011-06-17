@@ -7633,43 +7633,6 @@ fi
 
 
 
-## If we're using gcc, and the user hasn't specified a crt-dir, try to
-## determine it automatically by asking gcc.  [If this doesn't work,
-## CRT_DIR will remain empty and system-dependent code will be used
-## below.]
-##
-if test "x${GCC}z$CRT_DIR" = xyesz; then
-   crt_file=`$CC 2>/dev/null --print-file-name=crt1.o`
-   case "$crt_file" in
-     */*)
-       CRT_DIR=`$as_dirname -- "$crt_file" ||
-$as_expr X"$crt_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
-	 X"$crt_file" : 'X\(//\)[^/]' \| \
-	 X"$crt_file" : 'X\(//\)$' \| \
-	 X"$crt_file" : 'X\(/\)' \| . 2>/dev/null ||
-$as_echo X"$crt_file" |
-    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\/\)[^/].*/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\/\)$/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\).*/{
-	    s//\1/
-	    q
-	  }
-	  s/.*/./; q'`
-       ;;
-   esac
-fi
-
-
 ## If user specified a crt-dir, use that unconditionally.
 if test "X$CRT_DIR" = "X"; then
 
@@ -7694,6 +7657,40 @@ if test "X$CRT_DIR" = "X"; then
 
   ## Default is /usr/lib.
   test "X$CRT_DIR" = "X" && CRT_DIR=/usr/lib
+
+  ## If we're using gcc, try to determine it automatically by asking
+  ## gcc.  [If this doesn't work, CRT_DIR will remain at the
+  ## system-dependent default from above.]
+  if test "x${GCC}" = xyes; then
+     crt_file=`$CC --print-file-name=crt1.o 2>/dev/null`
+     case "$crt_file" in
+       */*)
+         CRT_DIR=`$as_dirname -- "$crt_file" ||
+$as_expr X"$crt_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
+	 X"$crt_file" : 'X\(//\)[^/]' \| \
+	 X"$crt_file" : 'X\(//\)$' \| \
+	 X"$crt_file" : 'X\(/\)' \| . 2>/dev/null ||
+$as_echo X"$crt_file" |
+    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\/\)[^/].*/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\/\)$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\).*/{
+	    s//\1/
+	    q
+	  }
+	  s/.*/./; q'`
+         ;;
+     esac
+  fi
 
 else
 
