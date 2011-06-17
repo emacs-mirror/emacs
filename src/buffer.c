@@ -2927,7 +2927,7 @@ struct sortstr
 {
   Lisp_Object string, string2;
   int size;
-  int priority;
+  EMACS_INT priority;
 };
 
 struct sortstrlist
