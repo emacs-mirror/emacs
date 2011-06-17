@@ -2849,7 +2849,7 @@ struct sortvec
 {
   Lisp_Object overlay;
   EMACS_INT beg, end;
-  int priority;
+  EMACS_INT priority;
 };
 
 static int
