@@ -2858,11 +2858,11 @@ compare_overlays (const void *v1, const void *v2)
   const struct sortvec *s1 = (const struct sortvec *) v1;
   const struct sortvec *s2 = (const struct sortvec *) v2;
   if (s1->priority != s2->priority)
-    return s1->priority - s2->priority;
+    return s1->priority < s2->priority ? -1 : 1;
   if (s1->beg != s2->beg)
-    return s1->beg - s2->beg;
+    return s1->beg < s2->beg ? -1 : 1;
   if (s1->end != s2->end)
-    return s2->end - s1->end;
+    return s2->end < s1->end ? -1 : 1;
   return 0;
 }
 
@@ -2955,9 +2955,9 @@ cmp_for_strings (const void *as1, const void *as2)
   struct sortstr *s1 = (struct sortstr *)as1;
   struct sortstr *s2 = (struct sortstr *)as2;
   if (s1->size != s2->size)
-    return s2->size - s1->size;
+    return s2->size < s1->size ? -1 : 1;
   if (s1->priority != s2->priority)
-    return s1->priority - s2->priority;
+    return s1->priority < s2->priority ? -1 : 1;
   return 0;
 }
 
