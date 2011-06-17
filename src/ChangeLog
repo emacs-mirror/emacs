@@ -1,3 +1,7 @@
+2011-06-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* nsmenu.m: Replace all uses of XVECTOR with ASIZE and AREF.  (Bug#8839)
+
 2011-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs.c (main): Warn when starting a GTK emacs in daemon mode.
@@ -126,11 +130,6 @@
 
 	* w32heap.c (allocate_heap) [USE_LISP_UNION_TYPE || USE_LSB_TAG]:
 	New version that can reserve upto 2GB of heap space.
-
-2011-04-27  Paul Eggert  <eggert@cs.ucla.edu>
-
-	* nsmenu.m: Replace all uses of XVECTOR with ASIZE and AREF.
-	This makes this file independent of the recent pseudovector change.
 
 2011-04-26  Chong Yidong  <cyd@stupidchicken.com>
 
