@@ -705,7 +705,7 @@ int
 composition_gstring_p (Lisp_Object gstring)
 {
   Lisp_Object header;
-  int i;
+  EMACS_INT i;
 
   if (! VECTORP (gstring) || ASIZE (gstring) < 2)
     return 0;
@@ -1252,7 +1252,7 @@ composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
     {
       Lisp_Object lgstring = Qnil;
       Lisp_Object val, elt;
-      int i;
+      EMACS_INT i;
 
       val = CHAR_TABLE_REF (Vcomposition_function_table, cmp_it->ch);
       for (i = 0; i < cmp_it->rule_idx; i++, val = XCDR (val));
@@ -1685,9 +1685,8 @@ find_automatic_composition (EMACS_INT pos, EMACS_INT limit,
 EMACS_INT
 composition_adjust_point (EMACS_INT last_pt, EMACS_INT new_pt)
 {
-  EMACS_INT beg, end;
+  EMACS_INT i, beg, end;
   Lisp_Object val;
-  int i;
 
   if (new_pt == BEGV || new_pt == ZV)
     return new_pt;
