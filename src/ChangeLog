@@ -1,5 +1,7 @@
 2011-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* category.h (CATEGORY_SET_P): Remove unnecessary cast to EMACS_INT.
+
 	* buffer.c: Include <verify.h>.
 	(struct sortvec.priority, struct sortstr.priority):
 	Now EMACS_INT, not int.
