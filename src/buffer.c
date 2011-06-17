@@ -2926,7 +2926,7 @@ sort_overlays (Lisp_Object *overlay_vec, int noverlays, struct window *w)
 struct sortstr
 {
   Lisp_Object string, string2;
-  int size;
+  ptrdiff_t size;
   EMACS_INT priority;
 };
 
@@ -2962,7 +2962,8 @@ cmp_for_strings (const void *as1, const void *as2)
 }
 
 static void
-record_overlay_string (struct sortstrlist *ssl, Lisp_Object str, Lisp_Object str2, Lisp_Object pri, int size)
+record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
+		       Lisp_Object str2, Lisp_Object pri, ptrdiff_t size)
 {
   EMACS_INT nbytes;
 
