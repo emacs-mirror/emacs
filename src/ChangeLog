@@ -3,7 +3,10 @@
 	* buffer.c (struct sortvec.priority, struct sortstr.priority):
 	Now EMACS_INT, not int.
 	(compare_overlays, cmp_for_strings): Avoid subtraction overflow.
-	(struct sortstr.size, record_overlay_string): Don't truncate size to int.
+	(struct sortstr.size, record_overlay_string)
+	(struct sortstrlist.size, struct sortlist.used):
+	Don't truncate size to int.
+	(record_overlay_string): Check for size-calculation overflow.
 
 2011-06-16  Paul Eggert  <eggert@cs.ucla.edu>
 

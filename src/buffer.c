@@ -2933,8 +2933,8 @@ struct sortstr
 struct sortstrlist
 {
   struct sortstr *buf;	/* An array that expands as needed; never freed.  */
-  int size;		/* Allocated length of that array.  */
-  int used;		/* How much of the array is currently in use.  */
+  ptrdiff_t size;	/* Allocated length of that array.  */
+  ptrdiff_t used;	/* How much of the array is currently in use.  */
   EMACS_INT bytes;		/* Total length of the strings in buf.  */
 };
 
@@ -2969,7 +2969,10 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
 
   if (ssl->used == ssl->size)
     {
-      if (ssl->buf)
+      if (min (PTRDIFF_MAX, SIZE_MAX) / (sizeof (struct sortstr) * 2)
+	  < ssl->size)
+	memory_full (SIZE_MAX);
+      else if (0 < ssl->size)
 	ssl->size *= 2;
       else
 	ssl->size = 5;
