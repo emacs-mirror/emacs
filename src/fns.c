@@ -168,7 +168,7 @@ which is at least the number of distinct elements.  */)
   uintmax_t lolen = 1;
 
   if (! CONSP (list))
-    return 0;
+    return make_number (0);
 
   /* halftail is used to detect circular lists.  */
   for (tail = halftail = list; ; )

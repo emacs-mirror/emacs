@@ -1,3 +1,7 @@
+2011-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (Fsafe_length): Yet another int/Lisp_Object mixup.
+
 2011-06-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h: Include <limits.h>, for INT_MAX, LONG_MAX, LLONG_MAX.
