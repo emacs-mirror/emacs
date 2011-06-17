@@ -23,6 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdarg.h>
 #include <stddef.h>
 #include <inttypes.h>
+#include <limits.h>
 
 #include <intprops.h>
 
