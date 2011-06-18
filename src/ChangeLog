@@ -1,5 +1,9 @@
 2011-06-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* term.c (produce_glyphs): Add IT_GLYPHLESS to the values of
+	it->what accepted by the xassert.  Fixes a gratuitous crash in an
+	Emacs built with -DXASSERTS.
+
 	* .gdbinit (xvectype, xvector, xcompiled, xchartable, xboolvector)
 	(xpr, xfont, xbacktrace): Use "header.size" when accessing vectors
 	and vector-like objects.
