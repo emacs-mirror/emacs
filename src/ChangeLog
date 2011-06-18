@@ -6,6 +6,9 @@
 	(struct Lisp_Bool_Vector.size): EMACS_INT, not EMACS_UINT.
 	We prefer signed types, and the value cannot exceed the EMACS_INT
 	range anyway (because otherwise the length would not be representable).
+	(XSET) [USE_LISP_UNION_TYPE]: Use uintptr_t and intptr_t,
+	not EMACS_UINT and EMACS_INT, when converting pointer to integer.
+	This avoids a GCC warning when WIDE_EMACS_INT.
 
 	* indent.c (sane_tab_width): New function.
 	(current_column, scan_for_column, Findent_to, position_indentation)

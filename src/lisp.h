@@ -494,8 +494,8 @@ enum pvec_type
 #ifdef USE_LSB_TAG
 
 # define XSET(var, vartype, ptr) \
-  (eassert ((((EMACS_UINT) (ptr)) & ((1 << GCTYPEBITS) - 1)) == 0),	\
-   (var).u.val = ((EMACS_UINT) (ptr)) >> GCTYPEBITS,			\
+  (eassert ((((uintptr_t) (ptr)) & ((1 << GCTYPEBITS) - 1)) == 0),	\
+   (var).u.val = ((uintptr_t) (ptr)) >> GCTYPEBITS,			\
    (var).u.type = ((char) (vartype)))
 
 /* Some versions of gcc seem to consider the bitfield width when issuing
@@ -512,7 +512,7 @@ enum pvec_type
 # define XSETFASTINT(a, b) ((a).i = (b))
 
 # define XSET(var, vartype, ptr) \
-   (((var).s.val = ((EMACS_INT) (ptr))), ((var).s.type = ((char) (vartype))))
+   (((var).s.val = ((intptr_t) (ptr))), ((var).s.type = ((char) (vartype))))
 
 #ifdef DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
