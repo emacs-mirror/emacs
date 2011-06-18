@@ -1,5 +1,9 @@
 2011-06-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* indent.c (sane_tab_width): New function.
+	(current_column, scan_for_column, Findent_to, position_indentation)
+	(compute_motion): Use it.  This is just for clarity.
+
 	* image.c (xbm_image_p): Don't assume stated width and height fit in int.
 
 	* lisp.h (lint_assume): New macro.
