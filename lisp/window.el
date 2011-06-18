@@ -3480,10 +3480,13 @@ specific buffers."
 (defconst display-buffer-default-specifiers
   '((reuse-window nil same visible)
     (pop-up-window (largest . nil) (lru . nil))
-    (pop-up-frame)
+    (pop-up-window-min-height . 40)
+    (pop-up-window-min-width . 80)
+    (reuse-window other nil nil)
     (pop-up-frame-alist
      (height . 24) (width . 80) (unsplittable . t))
     (reuse-window nil other visible)
+    (reuse-window nil nil t)
     (reuse-window-even-sizes . t))
   "Buffer display default specifiers.
 The value specified here is used when no other specifiers have
@@ -5045,14 +5048,22 @@ options."
 	    (min-width (if (numberp split-width-threshold)
 			   (/ split-width-threshold 2)
 			 1.0)))
-	(when pop-up-window
-	  ;; `split-height-threshold'
+	;; Create an entry only if a default value was changed.
+	(when (or pop-up-window
+		  (not (equal split-height-threshold 80))
+		  (not (equal split-width-threshold 160)))
+	  ;; `reuse-window' (needed as fallback when popping up the new
+	  ;; window fails).
 	  (setq specifiers
-		(cons (cons 'pop-up-window-min-height min-height)
+		(cons (list 'reuse-window 'other nil nil)
 		      specifiers))
 	  ;; `split-width-threshold'
 	  (setq specifiers
 		(cons (cons 'pop-up-window-min-width min-width)
+		      specifiers))
+	  ;; `split-height-threshold'
+	  (setq specifiers
+		(cons (cons 'pop-up-window-min-height min-height)
 		      specifiers))
 	  ;; `pop-up-window'
 	  (setq specifiers
@@ -5663,7 +5674,7 @@ and (cdr ARGS) as second."
        ;; Reuse the current window if the user requested it.
        (when (cdr (assq 'same-window args))
 	 (display-buffer-reuse-window
-	  buffer '(same nil nil) '((reuse-dedicated . 'weak))))
+	  buffer '(same nil nil) '((reuse-dedicated . weak))))
        ;; Stay on the same frame if requested.
        (when (or (cdr (assq 'same-frame args))
 		 (cdr (assq 'same-window args)))
