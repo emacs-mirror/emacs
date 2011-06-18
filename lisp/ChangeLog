@@ -1,5 +1,7 @@
 2011-06-18  Chong Yidong  <cyd@stupidchicken.com>
 
+	* textmodes/fill.el (default-justification): Add :safe (Bug#8879).
+
 	* cus-face.el (custom-declare-face): Call custom-theme-recalc face
 	anytime existing face settings are present (Bug#8889).
 
