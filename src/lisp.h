@@ -1013,7 +1013,7 @@ struct Lisp_Bool_Vector
        just the subtype information.  */
     struct vectorlike_header header;
     /* This is the size in bits.  */
-    EMACS_UINT size;
+    EMACS_INT size;
     /* This contains the actual bits, packed into bytes.  */
     unsigned char data[1];
   };
