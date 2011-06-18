@@ -2385,8 +2385,8 @@ static Lisp_Object
 ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
 		     FT_Face ft_face, OTF *otf, FT_Matrix *matrix)
 {
-  EMACS_UINT len = LGSTRING_GLYPH_LEN (lgstring);
-  EMACS_UINT i;
+  EMACS_INT len = LGSTRING_GLYPH_LEN (lgstring);
+  EMACS_INT i;
   struct MFLTFontFT flt_font_ft;
   MFLT *flt = NULL;
   int with_variation_selector = 0;

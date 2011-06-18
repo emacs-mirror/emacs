@@ -1,5 +1,7 @@
 2011-06-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* ftfont.c (ftfont_shape_by_flt): Use signed integers for lengths.
+
 	* font.c (Ffont_shape_gstring): Don't assume glyph len fits in 'int'.
 
 	* fns.c (Ffillarray): Don't assume bool vector size fits in 'int'.
