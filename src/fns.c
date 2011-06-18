@@ -2183,8 +2183,9 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
   else if (BOOL_VECTOR_P (array))
     {
       register unsigned char *p = XBOOL_VECTOR (array)->data;
-      EMACS_INT size = XBOOL_VECTOR (array)->size;
-      EMACS_INT size_in_chars
+      EMACS_INT size_in_chars;
+      size = XBOOL_VECTOR (array)->size;
+      size_in_chars
 	= ((size + BOOL_VECTOR_BITS_PER_CHAR - 1)
 	   / BOOL_VECTOR_BITS_PER_CHAR);
 
