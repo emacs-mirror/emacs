@@ -1,3 +1,17 @@
+2011-06-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispnew.c (add_window_display_history): Use BVAR.
+
+	* xdisp.c (debug_method_add): Use BVAR.
+	(check_window_end, dump_glyph_matrix, dump_glyph)
+	(dump_glyph_row, dump_glyph_string): Convert arglist to ANSI C.
+
+	* xfaces.c (check_lface_attrs, check_lface, dump_realized_face):
+	Likewise.
+
+	* xfns.c (Fx_create_frame, x_create_tip_frame): Delay image cache
+	check till after the cache is created in init_frame_faces.
+
 2011-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fns.c (Fsafe_length): Yet another int/Lisp_Object mixup.
