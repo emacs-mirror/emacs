@@ -1051,6 +1051,9 @@ deferring warnings until the main command loop is executed.
 ** `set-auto-mode' now respects mode: local variables at the end of files,
 as well as those in the -*- line.
 
+---
+** rx.el has a new `group-n' construct for explicitly numbered groups.
+
 
 * Changes in Emacs 24.1 on non-free operating systems
 

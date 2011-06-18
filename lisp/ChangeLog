@@ -1,5 +1,10 @@
 2011-06-18  Chong Yidong  <cyd@stupidchicken.com>
 
+	* emacs-lisp/rx.el (rx-constituents): Add support for numbered
+	groups (Bug#8776).
+	(rx-submatch-n): New function.
+	(rx): Document it.
+
 	* dired-x.el (dired-mark-unmarked-files): Fix interactive spec
 	(Bug#8768).
 

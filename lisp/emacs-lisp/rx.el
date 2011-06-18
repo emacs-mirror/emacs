@@ -130,6 +130,8 @@
     (**			. (rx-** 2 nil))   ; SRE
     (submatch		. (rx-submatch 1 nil)) ; SRE
     (group		. submatch)     ; sregex
+    (submatch-n		. (rx-submatch-n 2 nil))
+    (group-n		. submatch-n)
     (zero-or-more	. (rx-kleene 1 nil))
     (one-or-more	. (rx-kleene 1 nil))
     (zero-or-one	. (rx-kleene 1 nil))
@@ -690,6 +692,16 @@ FORM is either `(repeat N FORM1)' or `(repeat N M FORMS...)'."
             (mapconcat (lambda (re) (rx-form re ':)) (cdr form) nil))
           "\\)"))
 
+(defun rx-submatch-n (form)
+  "Parse and produce code from FORM, which is `(submatch-n N ...)'."
+  (let ((n (nth 1 form)))
+    (concat "\\(?" (number-to-string n) ":"
+	    (if (= 3 (length form))
+		;; Only one sub-form.
+		(rx-form (nth 2 form))
+	      ;; Several sub-forms implicitly concatenated.
+	      (mapconcat (lambda (re) (rx-form re ':)) (cddr form) nil))
+	    "\\)")))
 
 (defun rx-backref (form)
   "Parse and produce code from FORM, which is `(backref N)'."
@@ -1071,6 +1083,11 @@ CHAR
 `(group SEXP1 SEXP2 ...)'
      like `and', but makes the match accessible with `match-end',
      `match-beginning', and `match-string'.
+
+`(submatch-n N SEXP1 SEXP2 ...)'
+`(group-n N SEXP1 SEXP2 ...)'
+     like `group', but make it an explicitly-numbered group with
+     group number N.
 
 `(or SEXP1 SEXP2 ...)'
 `(| SEXP1 SEXP2 ...)'
