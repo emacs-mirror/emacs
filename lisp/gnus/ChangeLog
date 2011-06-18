@@ -1,3 +1,12 @@
+2011-06-18  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-netrc-use-gpg-tokens): Replace
+	`auth-source-save-secrets' with a more sensitive alist that can be
+	configured per file.  Experimental, so defaults to 'never.
+	(auth-source-netrc-create): Use it.  Still experimental code.
+	(with-auth-source-epa-overrides): Use `find-file-hooks' if
+	`find-file-hook' is unbound (XEmacs fix).  Fix backquoting bug.
+
 2011-06-16  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-source-save-secrets): New variable to control if
