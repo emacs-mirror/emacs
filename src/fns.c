@@ -2169,13 +2169,12 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  int len = CHAR_STRING (charval, str);
 	  EMACS_INT size_byte = SBYTES (array);
-	  EMACS_INT i;
 
 	  if (INT_MULTIPLY_OVERFLOW (SCHARS (array), len)
 	      || SCHARS (array) * len != size_byte)
 	    error ("Attempt to change byte length of a string");
-	  for (i = 0; i < size_byte; i++)
-	    *p++ = str[i % len];
+	  for (idx = 0; idx < size_byte; idx++)
+	    *p++ = str[idx % len];
 	}
       else
 	for (idx = 0; idx < size; idx++)
