@@ -3480,6 +3480,7 @@ face_before_or_after_it_pos (struct it *it, int before_p)
 {
   int face_id, limit;
   EMACS_INT next_check_charpos;
+  struct it it_copy;
 
   xassert (it->s == NULL);
 
@@ -3512,15 +3513,34 @@ face_before_or_after_it_pos (struct it *it, int before_p)
       else
 	{
 	  if (before_p)
-	    charpos = IT_STRING_CHARPOS (*it) - 1; /* FIXME! */
+	    {
+	      /* With bidi iteration, the character before the current
+		 in the visual order cannot be found by simple
+		 iteration, because "reverse" reordering is not
+		 supported.  Instead, we need to use the move_it_*
+		 family of functions.  */
+	      /* Ignore face changes before the first visible
+		 character on this display line.  */
+	      if (it->current_x <= it->first_visible_x)
+		return it->face_id;
+	      it_copy = *it;
+	      /* Implementation note: Since move_it_in_display_line
+		 works in the iterator geometry, and thinks the first
+		 character is always the leftmost, even in R2L lines,
+		 we don't need to distinguish between the R2L and L2R
+		 cases here.  */
+	      move_it_in_display_line (&it_copy, SCHARS (it_copy.string),
+				       it_copy.current_x - 1, MOVE_TO_X);
+	      charpos = IT_STRING_CHARPOS (it_copy);
+	    }
 	  else
 	    {
 	      /* Set charpos to the string position of the character
 		 that comes after IT's current position in the visual
 		 order.  */
 	      int n = (it->what == IT_COMPOSITION ? it->cmp_it.nchars : 1);
-	      struct it it_copy = *it;
 
+	      it_copy = *it;
 	      while (n--)
 		bidi_move_to_visually_next (&it_copy.bidi_it);
 
@@ -3551,8 +3571,8 @@ face_before_or_after_it_pos (struct it *it, int before_p)
 	 suitable for unibyte text if IT->string is unibyte.  */
       if (STRING_MULTIBYTE (it->string))
 	{
-	  struct text_pos pos = string_pos (charpos, it->string);
-	  const unsigned char *p = SDATA (it->string) + BYTEPOS (pos);
+	  struct text_pos pos1 = string_pos (charpos, it->string);
+	  const unsigned char *p = SDATA (it->string) + BYTEPOS (pos1);
 	  int c, len;
 	  struct face *face = FACE_FROM_ID (it->f, face_id);
 
@@ -3591,15 +3611,34 @@ face_before_or_after_it_pos (struct it *it, int before_p)
       else
 	{
 	  if (before_p)
-	    DEC_TEXT_POS (pos, it->multibyte_p); /* FIXME! */
+	    {
+	      /* With bidi iteration, the character before the current
+		 in the visual order cannot be found by simple
+		 iteration, because "reverse" reordering is not
+		 supported.  Instead, we need to use the move_it_*
+		 family of functions.  */
+	      /* Ignore face changes before the first visible
+		 character on this display line.  */
+	      if (it->current_x <= it->first_visible_x)
+		return it->face_id;
+	      it_copy = *it;
+	      /* Implementation note: Since move_it_in_display_line
+		 works in the iterator geometry, and thinks the first
+		 character is always the leftmost, even in R2L lines,
+		 we don't need to distinguish between the R2L and L2R
+		 cases here.  */
+	      move_it_in_display_line (&it_copy, ZV,
+				       it_copy.current_x - 1, MOVE_TO_X);
+	      pos = it_copy.current.pos;
+	    }
 	  else
 	    {
 	      /* Set charpos to the buffer position of the character
 		 that comes after IT's current position in the visual
 		 order.  */
 	      int n = (it->what == IT_COMPOSITION ? it->cmp_it.nchars : 1);
-	      struct it it_copy = *it;
 
+	      it_copy = *it;
 	      while (n--)
 		bidi_move_to_visually_next (&it_copy.bidi_it);
 
