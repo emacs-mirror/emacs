@@ -9,6 +9,7 @@
 	pop-up-windows is unset.  Add a reuse-window specifier for the
 	case popping up a new window fails.
 	(special-display-popup-frame): Remove double quoting.
+	(display-buffer-normalize-specifiers-1): Fix thinko.
 
 2011-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 

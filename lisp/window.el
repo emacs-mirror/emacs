@@ -5009,7 +5009,8 @@ argument of `display-buffer'."
       ;; A macro specifier.
       (cdr entry))
      ((or (display-buffer-other-window-means-other-frame buffer-name label)
-	  (with-no-warnings (not pop-up-frames)))
+	  (with-no-warnings pop-up-frames))
+      ;; Pop up another frame.
       (cdr (assq 'other-frame display-buffer-macro-specifiers)))
      (t
       ;; In any other case pop up a new window.
