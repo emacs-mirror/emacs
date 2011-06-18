@@ -86,21 +86,7 @@ extern Lisp_Object w32_get_internal_run_time (void);
 
 static void time_overflow (void) NO_RETURN;
 static int tm_diff (struct tm *, struct tm *);
-static void find_field (Lisp_Object, Lisp_Object, Lisp_Object,
-			EMACS_INT *, Lisp_Object, EMACS_INT *);
 static void update_buffer_properties (EMACS_INT, EMACS_INT);
-static Lisp_Object region_limit (int);
-static size_t emacs_nmemftime (char *, size_t, const char *,
-			       size_t, const struct tm *, int, int);
-static void general_insert_function (void (*) (const char *, EMACS_INT),
-				     void (*) (Lisp_Object, EMACS_INT,
-					       EMACS_INT, EMACS_INT,
-					       EMACS_INT, int),
-				     int, ptrdiff_t, Lisp_Object *);
-static Lisp_Object subst_char_in_region_unwind (Lisp_Object);
-static Lisp_Object subst_char_in_region_unwind_1 (Lisp_Object);
-static void transpose_markers (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT,
-			       EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT);
 
 static Lisp_Object Qbuffer_access_fontify_functions;
 static Lisp_Object Fuser_full_name (Lisp_Object);
