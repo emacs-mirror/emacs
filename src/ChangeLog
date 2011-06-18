@@ -1,3 +1,7 @@
+2011-06-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispextern.h (struct it.overlay_strings_charpos): EMACS_INT, not int.
+
 2011-06-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* dispextern.h (struct it.selective): Now EMACS_INT, not int.
