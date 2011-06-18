@@ -1927,6 +1927,7 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
 {
   int old_level, new_level, next_level;
   struct bidi_it sentinel;
+  struct gcpro gcpro1;
 
   if (bidi_it->charpos < 0 || bidi_it->bytepos < 0)
     abort ();
@@ -1935,6 +1936,11 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
     {
       bidi_it->scan_dir = 1;	/* default to logical order */
     }
+
+  /* The code below can call eval, and thus cause GC.  If we are
+     iterating a Lisp string, make sure it won't GCed.  */
+  if (STRINGP (bidi_it->string.lstring))
+    GCPRO1 (bidi_it->string.lstring);
 
   /* If we just passed a newline, initialize for the next line.  */
   if (!bidi_it->first_elt && bidi_it->orig_type == NEUTRAL_B)
@@ -2061,6 +2067,9 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
       else
 	bidi_cache_iterator_state (bidi_it, 1);
     }
+
+  if (STRINGP (bidi_it->string.lstring))
+    UNGCPRO;
 }
 
 /* This is meant to be called from within the debugger, whenever you

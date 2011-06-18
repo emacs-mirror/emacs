@@ -266,7 +266,10 @@ Letters do not insert themselves; instead, they are commands.
   (set (make-local-variable 'buffer-stale-function)
        (lambda (&optional _noconfirm) 'fast))
   (setq truncate-lines t)
-  (setq buffer-read-only t))
+  (setq buffer-read-only t)
+  ;; Force L2R direction, to avoid messing the display if the first
+  ;; buffer in the list happens to begin with a string R2L character.
+  (setq bidi-paragraph-direction 'left-to-right))
 
 (define-obsolete-variable-alias 'buffer-menu-mode-hook
   'Buffer-menu-mode-hook "23.1")
@@ -805,6 +808,10 @@ For more information, see the function `buffer-menu'."
       (setq buffer-read-only nil)
       (erase-buffer)
       (setq standard-output (current-buffer))
+      ;; Force L2R direction, to avoid messing the display if the
+      ;; first buffer in the list happens to begin with a string R2L
+      ;; character.
+      (setq bidi-paragraph-direction 'left-to-right)
       (unless Buffer-menu-use-header-line
         ;; Use U+2014 (EM DASH) to underline if possible, else use ASCII
         ;; (i.e. U+002D, HYPHEN-MINUS).

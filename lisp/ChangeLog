@@ -1,3 +1,8 @@
+2011-06-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* buff-menu.el (Buffer-menu-mode, list-buffers-noselect): Force
+	left-to-right paragraph direction.
+
 2011-05-10  Glenn Morris  <rgm@gnu.org>
 	   Stefan Monnier  <monnier@iro.umontreal.ca>
 

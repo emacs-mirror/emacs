@@ -1,5 +1,12 @@
 2011-06-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (tool_bar_lines_needed, redisplay_tool_bar)
+	(display_menu_bar): Force left-to-right direction.  Add a FIXME
+	comment for making that be controlled by a user option.
+
+	* bidi.c (bidi_move_to_visually_next): GCPRO the Lisp string we
+	are iterating.
+
 	* term.c (produce_glyphs): Add IT_GLYPHLESS to the values of
 	it->what accepted by the xassert.  Fixes a gratuitous crash in an
 	Emacs built with -DXASSERTS.

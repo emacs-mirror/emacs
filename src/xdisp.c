@@ -10796,7 +10796,7 @@ display_tool_bar_line (struct it *it, int height)
 	  ++i;
 	}
 
-      /* Stop at line ends.  */
+      /* Stop at line end.  */
       if (ITERATOR_AT_END_OF_LINE_P (it))
 	break;
 
@@ -10879,6 +10879,7 @@ tool_bar_lines_needed (struct frame *f, int *n_rows)
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_TOTAL_COLS (f) * FRAME_COLUMN_WIDTH (f);
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
+  it.paragraph_embedding = L2R;
 
   while (!ITERATOR_AT_END_P (&it))
     {
@@ -10961,6 +10962,14 @@ redisplay_tool_bar (struct frame *f)
   /* Build a string that represents the contents of the tool-bar.  */
   build_desired_tool_bar_string (f);
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
+  /* FIXME: This should be controlled by a user option.  But it
+     doesn't make sense to have an R2L tool bar if the menu bar cannot
+     be drawn also R2L, and making the menu bar R2L is tricky due to
+     unibyte strings it uses and toolkit-specific code that implements
+     it.  If an R2L tool bar is ever supported, display_tool_bar_line
+     should also be augmented to call unproduce_glyphs like
+     display_line and display_string do.  */
+  it.paragraph_embedding = L2R;
 
   if (f->n_tool_bar_rows == 0)
     {
@@ -18655,6 +18664,11 @@ display_menu_bar (struct window *w)
       it.last_visible_x = FRAME_COLS (f);
     }
 #endif /* not USE_X_TOOLKIT */
+
+  /* FIXME: This should be controlled by a user option.  See the
+     comments in redisplay_tool_bar and display_mode_line about
+     this.  */
+  it.paragraph_embedding = L2R;
 
   if (! mode_line_inverse_video)
     /* Force the menu-bar to be displayed in the default face.  */
