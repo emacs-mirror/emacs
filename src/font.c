@@ -4294,7 +4294,7 @@ created glyph-string.  Otherwise, the value is nil.  */)
 {
   struct font *font;
   Lisp_Object font_object, n, glyph;
-  int i, j, from, to;
+  EMACS_INT i, j, from, to;
 
   if (! composition_gstring_p (gstring))
     signal_error ("Invalid glyph-string: ", gstring);
