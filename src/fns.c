@@ -2141,7 +2141,6 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
   (Lisp_Object array, Lisp_Object item)
 {
   register EMACS_INT size, idx;
-  int charval;
 
   if (VECTORP (array))
     {
@@ -2161,8 +2160,9 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
   else if (STRINGP (array))
     {
       register unsigned char *p = SDATA (array);
-      CHECK_NUMBER (item);
-      charval = XINT (item);
+      int charval;
+      CHECK_CHARACTER (item);
+      charval = XFASTINT (item);
       size = SCHARS (array);
       if (STRING_MULTIBYTE (array))
 	{
