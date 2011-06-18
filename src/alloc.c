@@ -2257,12 +2257,14 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
   p = XBOOL_VECTOR (val);
   p->size = XFASTINT (length);
 
-  memset (p->data, NILP (init) ? 0 : -1, length_in_chars);
+  if (length_in_chars)
+    {
+      memset (p->data, ! NILP (init) ? -1 : 0, length_in_chars);
 
-  /* Clear the extraneous bits in the last byte.  */
-  if (XINT (length) != length_in_chars * BOOL_VECTOR_BITS_PER_CHAR)
-    p->data[length_in_chars - 1]
-      &= (1 << (XINT (length) % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
+      /* Clear any extraneous bits in the last byte.  */
+      p->data[length_in_chars - 1]
+	&= (1 << (XINT (length) % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
+    }
 
   return val;
 }
