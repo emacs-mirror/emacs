@@ -1,5 +1,8 @@
 2011-06-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fns.c (concat): Catch string overflow earlier.
+	Do not rely on integer wraparound.
+
 	* dispextern.h (struct it.overlay_strings_charpos): EMACS_INT, not int.
 
 2011-06-17  Paul Eggert  <eggert@cs.ucla.edu>

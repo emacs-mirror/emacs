@@ -565,8 +565,8 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
 	}
 
       result_len += len;
-      if (result_len < 0)
-	error ("String overflow");
+      if (STRING_BYTES_BOUND < result_len)
+	string_overflow ();
     }
 
   if (! some_multibyte)
