@@ -291,7 +291,7 @@ union Lisp_Object
   {
     /* Used for comparing two Lisp_Objects;
        also, positive integers can be accessed fast this way.  */
-    EMACS_UINT i;
+    EMACS_INT i;
 
     struct
       {
@@ -315,7 +315,7 @@ union Lisp_Object
   {
     /* Used for comparing two Lisp_Objects;
        also, positive integers can be accessed fast this way.  */
-    EMACS_UINT i;
+    EMACS_INT i;
 
     struct
       {

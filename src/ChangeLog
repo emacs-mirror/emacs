@@ -1,5 +1,9 @@
 2011-06-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (union Lisp_Object.i): EMACS_INT, not EMACS_UINT.
+	This is for consistency with the ordinary, non-USE_LISP_UNION_TYPE,
+	implementation.
+
 	* indent.c (sane_tab_width): New function.
 	(current_column, scan_for_column, Findent_to, position_indentation)
 	(compute_motion): Use it.  This is just for clarity.
