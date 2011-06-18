@@ -1,5 +1,9 @@
 2011-06-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* .gdbinit (xvectype, xvector, xcompiled, xchartable, xboolvector)
+	(xpr, xfont, xbacktrace): Use "header.size" when accessing vectors
+	and vector-like objects.
+
 	* xdisp.c (face_before_or_after_it_pos): Support bidi iteration.
 	(next_element_from_c_string): Handle the case of the first string
 	character that is not the first one in the visual order.

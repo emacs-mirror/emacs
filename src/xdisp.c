@@ -18833,7 +18833,11 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
     /* Force the mode-line to be displayed in the default face.  */
     it.base_face_id = it.face_id = DEFAULT_FACE_ID;
 
-  /* FIXME: This should take its value from a user option.  */
+  /* FIXME: This should be controlled by a user option.  But
+     supporting such an option is not trivial, since the mode line is
+     made up of many separate strings, most of which are normally
+     unibyte, and unibyte strings currently don't get reordered for
+     display.  */
   it.paragraph_embedding = L2R;
 
   record_unwind_protect (unwind_format_mode_line,
@@ -18940,8 +18944,6 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 {
   int n = 0, field, prec;
   int literal = 0;
-
-  it->paragraph_embedding = L2R;
 
  tail_recurse:
   if (depth > 100)
