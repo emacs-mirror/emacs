@@ -1,3 +1,8 @@
+2011-06-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (scrolling_window): Before scrolling, turn off a
+	mouse-highlight in the window being scrolled.
+
 2011-06-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* nsmenu.m: Replace all uses of XVECTOR with ASIZE and AREF.  (Bug#8839)
