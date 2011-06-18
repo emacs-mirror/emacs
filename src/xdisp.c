@@ -3471,21 +3471,21 @@ underlying_face_id (struct it *it)
 
 
 /* Compute the face one character before or after the current position
-   of IT.  BEFORE_P non-zero means get the face in front of IT's
-   position.  Value is the id of the face.  */
+   of IT, in the visual order.  BEFORE_P non-zero means get the face
+   in front (to the left in L2R paragraphs, to the right in R2L
+   paragraphs) of IT's screen position.  Value is the ID of the face.  */
 
 static int
 face_before_or_after_it_pos (struct it *it, int before_p)
 {
   int face_id, limit;
   EMACS_INT next_check_charpos;
-  struct text_pos pos;
 
   xassert (it->s == NULL);
 
   if (STRINGP (it->string))
     {
-      EMACS_INT bufpos;
+      EMACS_INT bufpos, charpos;
       int base_face_id;
 
       /* No face change past the end of the string (for the case
@@ -3495,16 +3495,39 @@ face_before_or_after_it_pos (struct it *it, int before_p)
 	  || (IT_STRING_CHARPOS (*it) == 0 && before_p))
 	return it->face_id;
 
-      /* Set pos to the position before or after IT's current position.  */
-      if (before_p)
-	pos = string_pos (IT_STRING_CHARPOS (*it) - 1, it->string);
+      if (!it->bidi_p)
+	{
+	  /* Set charpos to the position before or after IT's current
+	     position, in the logical order, which in the non-bidi
+	     case is the same as the visual order.  */
+	  if (before_p)
+	    charpos = IT_STRING_CHARPOS (*it) - 1;
+	  else if (it->what == IT_COMPOSITION)
+	    /* For composition, we must check the character after the
+	       composition.  */
+	    charpos = IT_STRING_CHARPOS (*it) + it->cmp_it.nchars;
+	  else
+	    charpos = IT_STRING_CHARPOS (*it) + 1;
+	}
       else
-	/* For composition, we must check the character after the
-           composition.  */
-	pos = (it->what == IT_COMPOSITION
-	       ? string_pos (IT_STRING_CHARPOS (*it)
-			     + it->cmp_it.nchars, it->string)
-	       : string_pos (IT_STRING_CHARPOS (*it) + 1, it->string));
+	{
+	  if (before_p)
+	    charpos = IT_STRING_CHARPOS (*it) - 1; /* FIXME! */
+	  else
+	    {
+	      /* Set charpos to the string position of the character
+		 that comes after IT's current position in the visual
+		 order.  */
+	      int n = (it->what == IT_COMPOSITION ? it->cmp_it.nchars : 1);
+	      struct it it_copy = *it;
+
+	      while (n--)
+		bidi_move_to_visually_next (&it_copy.bidi_it);
+
+	      charpos = it_copy.bidi_it.charpos;
+	    }
+	}
+      xassert (0 <= charpos && charpos <= SCHARS (it->string));
 
       if (it->current.overlay_string_index >= 0)
 	bufpos = IT_CHARPOS (*it);
@@ -3516,7 +3539,7 @@ face_before_or_after_it_pos (struct it *it, int before_p)
       /* Get the face for ASCII, or unibyte.  */
       face_id = face_at_string_position (it->w,
 					 it->string,
-					 CHARPOS (pos),
+					 charpos,
 					 bufpos,
 					 it->region_beg_charpos,
 					 it->region_end_charpos,
@@ -3528,16 +3551,19 @@ face_before_or_after_it_pos (struct it *it, int before_p)
 	 suitable for unibyte text if IT->string is unibyte.  */
       if (STRING_MULTIBYTE (it->string))
 	{
+	  struct text_pos pos = string_pos (charpos, it->string);
 	  const unsigned char *p = SDATA (it->string) + BYTEPOS (pos);
 	  int c, len;
 	  struct face *face = FACE_FROM_ID (it->f, face_id);
 
 	  c = string_char_and_length (p, &len);
-	  face_id = FACE_FOR_CHAR (it->f, face, c, CHARPOS (pos), it->string);
+	  face_id = FACE_FOR_CHAR (it->f, face, c, charpos, it->string);
 	}
     }
   else
     {
+      struct text_pos pos;
+
       if ((IT_CHARPOS (*it) >= ZV && !before_p)
 	  || (IT_CHARPOS (*it) <= BEGV && before_p))
 	return it->face_id;
@@ -3545,17 +3571,43 @@ face_before_or_after_it_pos (struct it *it, int before_p)
       limit = IT_CHARPOS (*it) + TEXT_PROP_DISTANCE_LIMIT;
       pos = it->current.pos;
 
-      if (before_p)
-	DEC_TEXT_POS (pos, it->multibyte_p);
+      if (!it->bidi_p)
+	{
+	  if (before_p)
+	    DEC_TEXT_POS (pos, it->multibyte_p);
+	  else
+	    {
+	      if (it->what == IT_COMPOSITION)
+		{
+		  /* For composition, we must check the position after
+		     the composition.  */
+		  pos.charpos += it->cmp_it.nchars;
+		  pos.bytepos += it->len;
+		}
+	      else
+		INC_TEXT_POS (pos, it->multibyte_p);
+	    }
+	}
       else
 	{
-	  if (it->what == IT_COMPOSITION)
-	    /* For composition, we must check the position after the
-	       composition.  */
-	    pos.charpos += it->cmp_it.nchars, pos.bytepos += it->len;
+	  if (before_p)
+	    DEC_TEXT_POS (pos, it->multibyte_p); /* FIXME! */
 	  else
-	    INC_TEXT_POS (pos, it->multibyte_p);
+	    {
+	      /* Set charpos to the buffer position of the character
+		 that comes after IT's current position in the visual
+		 order.  */
+	      int n = (it->what == IT_COMPOSITION ? it->cmp_it.nchars : 1);
+	      struct it it_copy = *it;
+
+	      while (n--)
+		bidi_move_to_visually_next (&it_copy.bidi_it);
+
+	      SET_TEXT_POS (pos,
+			    it_copy.bidi_it.charpos, it_copy.bidi_it.bytepos);
+	    }
 	}
+      xassert (BEGV <= CHARPOS (pos) && CHARPOS (pos) <= ZV);
 
       /* Determine face for CHARSET_ASCII, or unibyte.  */
       face_id = face_at_buffer_position (it->w,
@@ -6798,8 +6850,54 @@ next_element_from_c_string (struct it *it)
   BYTEPOS (it->position) = CHARPOS (it->position) = 0;
   it->object = Qnil;
 
-  /* IT's position can be greater IT->string_nchars in case a field
-     width or precision has been specified when the iterator was
+  /* With bidi reordering, the character to display might not be the
+     character at IT_CHARPOS.  BIDI_IT.FIRST_ELT non-zero means that
+     we were reseated to a new string, whose paragraph direction is
+     not known.  */
+  if (it->bidi_p && it->bidi_it.first_elt)
+    {
+      it->bidi_it.charpos = IT_CHARPOS (*it);
+      it->bidi_it.bytepos = IT_BYTEPOS (*it);
+      if (it->bidi_it.charpos >= it->string_nchars)
+	{
+	  /* Nothing to do, but reset the FIRST_ELT flag, like
+	     bidi_paragraph_init does, because we are not going to
+	     call it.  */
+	  it->bidi_it.first_elt = 0;
+	}
+      else if (it->bidi_it.charpos <= 0)
+	{
+	  /* If we are at the beginning of the string, we can produce
+	     the next element right away.  */
+	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
+	  bidi_move_to_visually_next (&it->bidi_it);
+	}
+      else
+	{
+	  EMACS_INT orig_bytepos = IT_BYTEPOS (*it);
+
+	  /* We need to prime the bidi iterator starting at the string
+	     beginning, before we will be able to produce the next
+	     element.  */
+	  it->bidi_it.charpos = it->bidi_it.bytepos = 0;
+	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
+	  do
+	    {
+	      /* Now return to buffer position where we were asked to
+		 get the next display element, and produce that.  */
+	      bidi_move_to_visually_next (&it->bidi_it);
+	    }
+	  while (it->bidi_it.bytepos != orig_bytepos
+		 && it->bidi_it.charpos < it->string_nchars);
+	}
+
+      /*  Adjust IT's position information to where we ended up.  */
+      IT_CHARPOS (*it) = it->bidi_it.charpos;
+      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+    }
+
+  /* IT's position can be greater than IT->string_nchars in case a
+     field width or precision has been specified when the iterator was
      initialized.  */
   if (IT_CHARPOS (*it) >= it->end_charpos)
     {
