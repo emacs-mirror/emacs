@@ -4,6 +4,7 @@
 	Use much-faster test for byte-length change.
 	Don't assume string byte-length fits in 'int'.
 	Check that character arg fits in 'int'.
+	(mapcar1): Declare byte as byte, for clarity.
 
 	* alloc.c (Fmake_bool_vector): Avoid unnecessary multiplication.
 

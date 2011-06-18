@@ -2307,7 +2307,7 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
     {
       for (i = 0; i < leni; i++)
 	{
-	  int byte;
+	  unsigned char byte;
 	  byte = XBOOL_VECTOR (seq)->data[i / BOOL_VECTOR_BITS_PER_CHAR];
 	  dummy = (byte & (1 << (i % BOOL_VECTOR_BITS_PER_CHAR))) ? Qt : Qnil;
 	  dummy = call1 (fn, dummy);
