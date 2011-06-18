@@ -6658,6 +6658,107 @@ next_element_from_display_vector (struct it *it)
   return 1;
 }
 
+/* Get the first element of string/buffer in the visual order, after
+   being reseated to a new position in a string or a buffer.  */
+static void
+get_visually_first_element (struct it *it)
+{
+  int string_p = STRINGP (it->string) || it->s;
+  EMACS_INT eob = (string_p ? it->string_nchars : ZV);
+  EMACS_INT bob = (string_p ? 0 : BEGV);
+
+  if (STRINGP (it->string))
+    {
+      it->bidi_it.charpos = IT_STRING_CHARPOS (*it);
+      it->bidi_it.bytepos = IT_STRING_BYTEPOS (*it);
+    }
+  else
+    {
+      it->bidi_it.charpos = IT_CHARPOS (*it);
+      it->bidi_it.bytepos = IT_BYTEPOS (*it);
+    }
+
+  if (it->bidi_it.charpos == eob)
+    {
+      /* Nothing to do, but reset the FIRST_ELT flag, like
+	 bidi_paragraph_init does, because we are not going to
+	 call it.  */
+      it->bidi_it.first_elt = 0;
+    }
+  else if (it->bidi_it.charpos == bob
+	   || (!string_p
+	       /* FIXME: Should support all Unicode line separators.  */
+	       && (FETCH_CHAR (it->bidi_it.bytepos - 1) == '\n'
+		   || FETCH_CHAR (it->bidi_it.bytepos) == '\n')))
+    {
+      /* If we are at the beginning of a line/string, we can produce
+	 the next element right away.  */
+      bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
+      bidi_move_to_visually_next (&it->bidi_it);
+    }
+  else
+    {
+      EMACS_INT orig_bytepos = it->bidi_it.bytepos;
+
+      /* We need to prime the bidi iterator starting at the line's or
+	 string's beginning, before we will be able to produce the
+	 next element.  */
+      if (string_p)
+	it->bidi_it.charpos = it->bidi_it.bytepos = 0;
+      else
+	{
+	  it->bidi_it.charpos = find_next_newline_no_quit (IT_CHARPOS (*it),
+							   -1);
+	  it->bidi_it.bytepos = CHAR_TO_BYTE (it->bidi_it.charpos);
+	}
+      bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
+      do
+	{
+	  /* Now return to buffer/string position where we were asked
+	     to get the next display element, and produce that.  */
+	  bidi_move_to_visually_next (&it->bidi_it);
+	}
+      while (it->bidi_it.bytepos != orig_bytepos
+	     && it->bidi_it.charpos < eob);
+    }
+
+  /*  Adjust IT's position information to where we ended up.  */
+  if (STRINGP (it->string))
+    {
+      IT_STRING_CHARPOS (*it) = it->bidi_it.charpos;
+      IT_STRING_BYTEPOS (*it) = it->bidi_it.bytepos;
+    }
+  else
+    {
+      IT_CHARPOS (*it) = it->bidi_it.charpos;
+      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+    }
+
+  if (STRINGP (it->string) || !it->s)
+    {
+      EMACS_INT stop, charpos, bytepos;
+
+      if (STRINGP (it->string))
+	{
+	  xassert (!it->s);
+	  stop = SCHARS (it->string);
+	  if (stop > it->end_charpos)
+	    stop = it->end_charpos;
+	  charpos = IT_STRING_CHARPOS (*it);
+	  bytepos = IT_STRING_BYTEPOS (*it);
+	}
+      else
+	{
+	  stop = it->end_charpos;
+	  charpos = IT_CHARPOS (*it);
+	  bytepos = IT_BYTEPOS (*it);
+	}
+      if (it->bidi_it.scan_dir < 0)
+	stop = -1;
+      composition_compute_stop_pos (&it->cmp_it, charpos, bytepos, stop,
+				    it->string);
+    }
+}
 
 /* Load IT with the next display element from Lisp string IT->string.
    IT->current.string_pos is the current position within the string.
@@ -6680,56 +6781,8 @@ next_element_from_string (struct it *it)
      direction is not known.  */
   if (it->bidi_p && it->bidi_it.first_elt)
     {
-      it->bidi_it.charpos = CHARPOS (position);
-      it->bidi_it.bytepos = BYTEPOS (position);
-      if (it->bidi_it.charpos >= it->string_nchars)
-	{
-	  /* Nothing to do, but reset the FIRST_ELT flag, like
-	     bidi_paragraph_init does, because we are not going to
-	     call it.  */
-	  it->bidi_it.first_elt = 0;
-	}
-      else if (it->bidi_it.charpos <= 0)
-	{
-	  /* If we are at the beginning of the string, we can produce
-	     the next element right away.  */
-	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
-	  bidi_move_to_visually_next (&it->bidi_it);
-	}
-      else
-	{
-	  EMACS_INT orig_bytepos = BYTEPOS (position);
-
-	  /* We need to prime the bidi iterator starting at the string
-	     beginning, before we will be able to produce the next
-	     element.  */
-	  it->bidi_it.charpos = it->bidi_it.bytepos = 0;
-	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
-	  do
-	    {
-	      /* Now return to buffer position where we were asked to
-		 get the next display element, and produce that.  */
-	      bidi_move_to_visually_next (&it->bidi_it);
-	    }
-	  while (it->bidi_it.bytepos != orig_bytepos
-		 && it->bidi_it.charpos < it->string_nchars);
-	}
-
-      /*  Adjust IT's position information to where we ended up.  */
-      IT_STRING_CHARPOS (*it) = it->bidi_it.charpos;
-      IT_STRING_BYTEPOS (*it) = it->bidi_it.bytepos;
+      get_visually_first_element (it);
       SET_TEXT_POS (position, IT_STRING_CHARPOS (*it), IT_STRING_BYTEPOS (*it));
-      {
-	EMACS_INT stop = SCHARS (it->string);
-
-	if (it->bidi_it.scan_dir < 0)
-	  stop = -1;
-	else if (stop > it->end_charpos)
-	  stop = it->end_charpos;
-	composition_compute_stop_pos (&it->cmp_it, IT_STRING_CHARPOS (*it),
-				      IT_STRING_BYTEPOS (*it), stop,
-				      it->string);
-      }
     }
 
   /* Time to check for invisible text?  */
@@ -6894,46 +6947,7 @@ next_element_from_c_string (struct it *it)
      we were reseated to a new string, whose paragraph direction is
      not known.  */
   if (it->bidi_p && it->bidi_it.first_elt)
-    {
-      it->bidi_it.charpos = IT_CHARPOS (*it);
-      it->bidi_it.bytepos = IT_BYTEPOS (*it);
-      if (it->bidi_it.charpos >= it->string_nchars)
-	{
-	  /* Nothing to do, but reset the FIRST_ELT flag, like
-	     bidi_paragraph_init does, because we are not going to
-	     call it.  */
-	  it->bidi_it.first_elt = 0;
-	}
-      else if (it->bidi_it.charpos <= 0)
-	{
-	  /* If we are at the beginning of the string, we can produce
-	     the next element right away.  */
-	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
-	  bidi_move_to_visually_next (&it->bidi_it);
-	}
-      else
-	{
-	  EMACS_INT orig_bytepos = IT_BYTEPOS (*it);
-
-	  /* We need to prime the bidi iterator starting at the string
-	     beginning, before we will be able to produce the next
-	     element.  */
-	  it->bidi_it.charpos = it->bidi_it.bytepos = 0;
-	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
-	  do
-	    {
-	      /* Now return to buffer position where we were asked to
-		 get the next display element, and produce that.  */
-	      bidi_move_to_visually_next (&it->bidi_it);
-	    }
-	  while (it->bidi_it.bytepos != orig_bytepos
-		 && it->bidi_it.charpos < it->string_nchars);
-	}
-
-      /*  Adjust IT's position information to where we ended up.  */
-      IT_CHARPOS (*it) = it->bidi_it.charpos;
-      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
-    }
+    get_visually_first_element (it);
 
   /* IT's position can be greater than IT->string_nchars in case a
      field width or precision has been specified when the iterator was
@@ -7069,6 +7083,7 @@ next_element_from_buffer (struct it *it)
   int success_p = 1;
 
   xassert (IT_CHARPOS (*it) >= BEGV);
+  xassert (NILP (it->string) && !it->s);
   xassert (!it->bidi_p
 	   || (it->bidi_it.string.lstring == Qnil
 	       && it->bidi_it.string.s == NULL));
@@ -7079,59 +7094,8 @@ next_element_from_buffer (struct it *it)
      a different paragraph.  */
   if (it->bidi_p && it->bidi_it.first_elt)
     {
-      it->bidi_it.charpos = IT_CHARPOS (*it);
-      it->bidi_it.bytepos = IT_BYTEPOS (*it);
-      if (it->bidi_it.bytepos == ZV_BYTE)
-	{
-	  /* Nothing to do, but reset the FIRST_ELT flag, like
-	     bidi_paragraph_init does, because we are not going to
-	     call it.  */
-	  it->bidi_it.first_elt = 0;
-	}
-      else if (it->bidi_it.bytepos == BEGV_BYTE
-	  /* FIXME: Should support all Unicode line separators.  */
-	  || FETCH_CHAR (it->bidi_it.bytepos - 1) == '\n'
-	  || FETCH_CHAR (it->bidi_it.bytepos) == '\n')
-	{
-	  /* If we are at the beginning of a line, we can produce the
-	     next element right away.  */
-	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
-	  bidi_move_to_visually_next (&it->bidi_it);
-	}
-      else
-	{
-	  EMACS_INT orig_bytepos = IT_BYTEPOS (*it);
-
-	  /* We need to prime the bidi iterator starting at the line's
-	     beginning, before we will be able to produce the next
-	     element.  */
-	  IT_CHARPOS (*it) = find_next_newline_no_quit (IT_CHARPOS (*it), -1);
-	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (IT_CHARPOS (*it));
-	  it->bidi_it.charpos = IT_CHARPOS (*it);
-	  it->bidi_it.bytepos = IT_BYTEPOS (*it);
-	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
-	  do
-	    {
-	      /* Now return to buffer position where we were asked to
-		 get the next display element, and produce that.  */
-	      bidi_move_to_visually_next (&it->bidi_it);
-	    }
-	  while (it->bidi_it.bytepos != orig_bytepos
-		 && it->bidi_it.bytepos < ZV_BYTE);
-	}
-
-      it->bidi_it.first_elt = 0; /* paranoia: bidi.c does this */
-      /*  Adjust IT's position information to where we ended up.  */
-      IT_CHARPOS (*it) = it->bidi_it.charpos;
-      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+      get_visually_first_element (it);
       SET_TEXT_POS (it->position, IT_CHARPOS (*it), IT_BYTEPOS (*it));
-      {
-	EMACS_INT stop = it->end_charpos;
-	if (it->bidi_it.scan_dir < 0)
-	  stop = -1;
-	composition_compute_stop_pos (&it->cmp_it, IT_CHARPOS (*it),
-				      IT_BYTEPOS (*it), stop, Qnil);
-      }
     }
 
   if (IT_CHARPOS (*it) >= it->stop_charpos)

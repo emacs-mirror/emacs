@@ -3,6 +3,9 @@
 	* xdisp.c (face_before_or_after_it_pos): Support bidi iteration.
 	(next_element_from_c_string): Handle the case of the first string
 	character that is not the first one in the visual order.
+	(get_visually_first_element): New function, refactored from common
+	parts of next_element_from_buffer, next_element_from_string, and
+	next_element_from_c_string.
 
 2011-06-16  Eli Zaretskii  <eliz@gnu.org>
 
