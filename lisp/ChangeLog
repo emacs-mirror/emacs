@@ -1,5 +1,8 @@
 2011-06-18  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cus-face.el (custom-declare-face): Call custom-theme-recalc face
+	anytime existing face settings are present (Bug#8889).
+
 	* progmodes/delphi.el (delphi-mode-syntax-table): Use defvar.
 	(delphi-mode): Use define-derived-mode to inherit from prog-mode.
 	Remove unused argument.
