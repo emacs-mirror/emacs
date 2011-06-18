@@ -1743,7 +1743,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
   struct window *w;
   Lisp_Object bufpos, hpos, vpos, prevhpos;
   struct position *pos;
-  int hscroll, tab_offset;
+  EMACS_INT hscroll, tab_offset;
 
   CHECK_NUMBER_COERCE_MARKER (from);
   CHECK_CONS (frompos);
