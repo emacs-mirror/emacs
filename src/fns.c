@@ -2188,19 +2188,17 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
   else if (BOOL_VECTOR_P (array))
     {
       register unsigned char *p = XBOOL_VECTOR (array)->data;
-      int size_in_chars
-	= ((XBOOL_VECTOR (array)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+      EMACS_INT size = XBOOL_VECTOR (array)->size;
+      EMACS_INT size_in_chars
+	= ((size + BOOL_VECTOR_BITS_PER_CHAR - 1)
 	   / BOOL_VECTOR_BITS_PER_CHAR);
 
-      charval = (! NILP (item) ? -1 : 0);
-      for (idx = 0; idx < size_in_chars - 1; idx++)
-	p[idx] = charval;
-      if (idx < size_in_chars)
+      if (size_in_chars)
 	{
-	  /* Mask out bits beyond the vector size.  */
-	  if (XBOOL_VECTOR (array)->size % BOOL_VECTOR_BITS_PER_CHAR)
-	    charval &= (1 << (XBOOL_VECTOR (array)->size % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
-	  p[idx] = charval;
+	  memset (p, ! NILP (item) ? -1 : 0, size_in_chars);
+
+	  /* Clear any extraneous bits in the last byte.  */
+	  p[size_in_chars - 1] &= (1 << (size % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
 	}
     }
   else

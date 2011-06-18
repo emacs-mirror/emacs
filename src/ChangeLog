@@ -1,5 +1,7 @@
 2011-06-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fns.c (Ffillarray): Don't assume bool vector size fits in 'int'.
+
 	* alloc.c (Fmake_bool_vector): Avoid unnecessary multiplication.
 
 	* fns.c (concat): Catch string overflow earlier.
