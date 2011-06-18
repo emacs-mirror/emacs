@@ -23,6 +23,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 #include <setjmp.h>
 
+#include <intprops.h>
+
 #include "lisp.h"
 #include "commands.h"
 #include "character.h"
@@ -2167,17 +2169,11 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  int len = CHAR_STRING (charval, str);
 	  EMACS_INT size_byte = SBYTES (array);
-	  unsigned char *p1 = p, *endp = p + size_byte;
 	  int i;
 
-	  if (size != size_byte)
-	    while (p1 < endp)
-	      {
-		int this_len = BYTES_BY_CHAR_HEAD (*p1);
-		if (len != this_len)
-		  error ("Attempt to change byte length of a string");
-		p1 += this_len;
-	      }
+	  if (INT_MULTIPLY_OVERFLOW (SCHARS (array), len)
+	      || SCHARS (array) * len != size_byte)
+	    error ("Attempt to change byte length of a string");
 	  for (i = 0; i < size_byte; i++)
 	    *p++ = str[i % len];
 	}
