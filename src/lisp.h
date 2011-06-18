@@ -3608,11 +3608,19 @@ extern void init_system_name (void);
       ? 0						\
       : (wrong_type_argument (Qlistp, (list))), 1))
 
-/* Use this to suppress gcc's `...may be used before initialized' warnings. */
+/* Use this to suppress gcc's warnings. */
 #ifdef lint
+
+/* Use CODE only if lint checking is in effect.  */
 # define IF_LINT(Code) Code
+
+/* Assume that the expression COND is true.  This differs in intent
+   from 'assert', as it is a message from the programmer to the compiler.  */
+# define lint_assume(cond) ((cond) ? (void) 0 : abort ())
+
 #else
 # define IF_LINT(Code) /* empty */
+# define lint_assume(cond) ((void) (0 && (cond)))
 #endif
 
 /* The ubiquitous min and max macros.  */

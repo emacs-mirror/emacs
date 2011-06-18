@@ -2412,7 +2412,10 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
       if (CHAR_VARIATION_SELECTOR_P (c))
 	with_variation_selector++;
     }
+
   len = i;
+  lint_assume (len <= TYPE_MAXIMUM (EMACS_INT) - 2);
+
   if (with_variation_selector)
     {
       setup_otf_gstring (len);
