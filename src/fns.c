@@ -2169,7 +2169,7 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  int len = CHAR_STRING (charval, str);
 	  EMACS_INT size_byte = SBYTES (array);
-	  int i;
+	  EMACS_INT i;
 
 	  if (INT_MULTIPLY_OVERFLOW (SCHARS (array), len)
 	      || SCHARS (array) * len != size_byte)

@@ -2,6 +2,7 @@
 
 	* fns.c (Ffillarray): Don't assume bool vector size fits in 'int'.
 	Use much-faster test for byte-length change.
+	Don't assume string byte-length fits in 'int'.
 
 	* alloc.c (Fmake_bool_vector): Avoid unnecessary multiplication.
 
