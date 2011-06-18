@@ -1,5 +1,7 @@
 2011-06-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* image.c (xbm_image_p): Don't assume stated width and height fit in int.
+
 	* lisp.h (lint_assume): New macro.
 	* composite.c (composition_gstring_put_cache):
 	* ftfont.c (ftfont_shape_by_flt): Use it to pacify GCC 4.6.0.

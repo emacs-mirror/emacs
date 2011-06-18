@@ -2308,7 +2308,7 @@ xbm_image_p (Lisp_Object object)
   else
     {
       Lisp_Object data;
-      int width, height;
+      EMACS_INT width, height;
 
       /* Entries for `:width', `:height' and `:data' must be present.  */
       if (!kw[XBM_WIDTH].count
@@ -2324,7 +2324,7 @@ xbm_image_p (Lisp_Object object)
 	 data.  */
       if (VECTORP (data))
 	{
-	  int i;
+	  EMACS_INT i;
 
 	  /* Number of elements of the vector must be >= height.  */
 	  if (ASIZE (data) < height)
