@@ -1,5 +1,10 @@
 2011-06-18  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dired-x.el (dired-mark-unmarked-files): Fix interactive spec
+	(Bug#8768).
+
+	* replace.el (occur-mode-map): Set occur-edit-mode binding to "e".
+
 	* textmodes/fill.el (default-justification): Add :safe (Bug#8879).
 
 	* cus-face.el (custom-declare-face): Call custom-theme-recalc face
