@@ -1,5 +1,12 @@
 2011-06-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fileio.c: Fix some integer overflow issues.
+	(file_name_as_directory, Fexpand_file_name, Fsubstitute_in_file_name):
+	Don't assume string length fits in int.
+	(directory_file_name): Don't assume string length fits in long.
+	(make_temp_name): Don't assume pid fits in int, or that its print
+	length is less than 20.
+
 	* data.c (Fsubr_name): Rewrite to avoid a strlen call.
 
 	* coding.c (make_subsidiaries): Don't assume string length fits in int.
