@@ -1,5 +1,7 @@
 2011-06-19  Chong Yidong  <cyd@stupidchicken.com>
 
+	* frame.el (special-display-popup-frame): Doc fix (Bug#8853).
+
 	* info.el (Info-apropos-toc-nodes): Minor doc fix (Bug#8833).
 
 2011-06-18  Chong Yidong  <cyd@stupidchicken.com>
