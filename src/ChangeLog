@@ -4,6 +4,7 @@
 	All uses changed.  This doesn't fix a bug, but it simplifies the
 	code away from its former Hollerith-constant appearance, and it's
 	one less 'int' to worry about when looking at integer-overflow issues.
+	(string_to_number): Simplify the 2011-04-26 change by invoking xsignal1.
 
 	* lisp.h (DEFUN): Remove bogus use of sizeof (struct Lisp_Subr).
 	This didn't break anything, but it didn't help either.

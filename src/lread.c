@@ -3333,7 +3333,7 @@ string_to_number (char const *string, int base, int ignore_trailing)
 	  /* Unfortunately there's no simple and accurate way to convert
 	     non-base-10 numbers that are out of C-language range.  */
 	  if (base != 10)
-	    xsignal (Qoverflow_error, list1 (build_string (string)));
+	    xsignal1 (Qoverflow_error, build_string (string));
 	}
       else if (n <= (negative ? -MOST_NEGATIVE_FIXNUM : MOST_POSITIVE_FIXNUM))
 	{
