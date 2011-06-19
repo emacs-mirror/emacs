@@ -1890,7 +1890,7 @@ typedef struct {
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc) \
   Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
   static DECL_ALIGN (struct Lisp_Subr, sname) =				\
-    { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
+    { PVEC_SUBR,							\
       { .a ## maxargs = fnname },				\
       minargs, maxargs, lname, intspec, 0};				\
   Lisp_Object fnname

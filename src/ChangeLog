@@ -1,3 +1,10 @@
+2011-06-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lisp.h (DEFUN): Remove bogus use of sizeof (struct Lisp_Subr).
+	This didn't break anything, but it didn't help either.
+	It's confusing to put a bogus integer in a place where the actual
+	value does not matter.
+
 2011-06-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (union Lisp_Object.i): EMACS_INT, not EMACS_UINT.
