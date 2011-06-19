@@ -1,3 +1,11 @@
+2011-06-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* buff-menu.el (Buffer-menu-buffer+size): Accept an additional
+	argument LRM; if non-nil, append an invisible LRM character to the
+	buffer name.
+	(list-buffers-noselect): Call Buffer-menu-buffer+size with the
+	last argument non-nil, when formatting buffer names.
+
 2011-06-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* buff-menu.el (Buffer-menu-mode, list-buffers-noselect): Force

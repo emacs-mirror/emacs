@@ -666,7 +666,7 @@ For more information, see the function `buffer-menu'."
   ":" ;; (if (char-displayable-p ?…) "…" ":")
   )
 
-(defun Buffer-menu-buffer+size (name size &optional name-props size-props)
+(defun Buffer-menu-buffer+size (name size &optional name-props size-props lrm)
   (if (> (+ (string-width name) (string-width size) 2)
          Buffer-menu-buffer+size-width)
       (setq name
@@ -681,9 +681,17 @@ For more information, see the function `buffer-menu'."
                           (string-width tail)
                           2))
                       Buffer-menu-short-ellipsis
-                      tail)))
+                      tail
+		      ;; Append an invisible LRM character to the
+		      ;; buffer's name to avoid ugly display with the
+		      ;; buffer size to the left of the name, when the
+		      ;; name begins with R2L character.
+		      (if lrm (propertize (string ?\x200e) 'invisible t) ""))))
     ;; Don't put properties on (buffer-name).
-    (setq name (copy-sequence name)))
+    (setq name (concat (copy-sequence name)
+		       (if lrm
+			   (propertize (string ?\x200e) 'invisible t)
+			 ""))))
   (add-text-properties 0 (length name) name-props name)
   (add-text-properties 0 (length size) size-props size)
   (let ((name+space-width (- Buffer-menu-buffer+size-width
@@ -913,7 +921,8 @@ For more information, see the function `buffer-menu'."
 						   (max (length size) 3)
 						   2))
 					    name
-					  "mouse-2: select this buffer"))))
+					  "mouse-2: select this buffer"))
+			 nil t))
 		"  "
 		(if (> (string-width (nth 4 buffer)) Buffer-menu-mode-width)
 		    (truncate-string-to-width (nth 4 buffer)
