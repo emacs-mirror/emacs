@@ -26,34 +26,51 @@ gl_save_LIBS=$LIBS
 # NetBSD >= 0.9, OpenBSD >= 2.0, Solaris >= 7.
 HAVE_GETLOADAVG=1
 AC_CHECK_FUNC([getloadavg], [],
-  [gl_have_func=no
+  [gl_func_getloadavg_done=no
 
    # Some systems with -lutil have (and need) -lkvm as well, some do not.
    # On Solaris, -lkvm requires nlist from -lelf, so check that first
    # to get the right answer into the cache.
    # For kstat on solaris, we need to test for libelf and libkvm to force the
    # definition of SVR4 below.
-   if test $gl_have_func = no; then
+   if test $gl_func_getloadavg_done = no; then
      AC_CHECK_LIB([elf], [elf_begin], [LIBS="-lelf $LIBS"])
      AC_CHECK_LIB([kvm], [kvm_open], [LIBS="-lkvm $LIBS"])
      # Check for the 4.4BSD definition of getloadavg.
      AC_CHECK_LIB([util], [getloadavg],
-       [LIBS="-lutil $LIBS" gl_have_func=yes])
+       [LIBS="-lutil $LIBS" gl_func_getloadavg_done=yes])
    fi
 
-   if test $gl_have_func = no; then
+   if test $gl_func_getloadavg_done = no; then
      # There is a commonly available library for RS/6000 AIX.
      # Since it is not a standard part of AIX, it might be installed locally.
      gl_getloadavg_LIBS=$LIBS
      LIBS="-L/usr/local/lib $LIBS"
      AC_CHECK_LIB([getloadavg], [getloadavg],
-                  [LIBS="-lgetloadavg $LIBS" gl_have_func=yes],
+                  [LIBS="-lgetloadavg $LIBS" gl_func_getloadavg_done=yes],
                   [LIBS=$gl_getloadavg_LIBS])
    fi
 
    # Set up the replacement function if necessary.
-   if test $gl_have_func = no; then
+   if test $gl_func_getloadavg_done = no; then
      HAVE_GETLOADAVG=0
+
+     # Solaris has libkstat which does not require root.
+     AC_CHECK_LIB([kstat], [kstat_open])
+     test $ac_cv_lib_kstat_kstat_open = yes && gl_func_getloadavg_done=yes
+
+     # AIX has libperfstat which does not require root
+     if test $gl_func_getloadavg_done = no; then
+       AC_CHECK_LIB([perfstat], [perfstat_cpu_total])
+       test $ac_cv_lib_perfstat_perfstat_cpu_total = yes && gl_func_getloadavg_done=yes
+     fi
+
+     if test $gl_func_getloadavg_done = no; then
+       AC_CHECK_HEADER([sys/dg_sys_info.h],
+         [gl_func_getloadavg_done=yes
+          AC_DEFINE([DGUX], [1], [Define to 1 for DGUX with <sys/dg_sys_info.h>.])
+          AC_CHECK_LIB([dgc], [dg_sys_info])])
+     fi
    fi])
 
 if test "x$gl_save_LIBS" = x; then
@@ -88,52 +105,35 @@ AC_DEFUN([gl_PREREQ_GETLOADAVG],
 [
 # Figure out what our getloadavg.c needs.
 
-# Solaris has libkstat which does not require root.
-AC_CHECK_LIB([kstat], [kstat_open])
-test $ac_cv_lib_kstat_kstat_open = yes && gl_have_func=yes
-
 # On HPUX9, an unprivileged user can get load averages this way.
-if test $gl_have_func = no; then
-  AC_CHECK_FUNCS([pstat_getdynamic], [gl_have_func=yes])
-fi
-
-# AIX has libperfstat which does not require root
-if test $gl_have_func = no; then
-  AC_CHECK_LIB([perfstat], [perfstat_cpu_total])
-  test $ac_cv_lib_perfstat_perfstat_cpu_total = yes && gl_have_func=yes
-fi
-
-if test $gl_have_func = no; then
-  AC_CHECK_HEADER([sys/dg_sys_info.h],
-    [gl_have_func=yes
-     AC_DEFINE([DGUX], [1], [Define to 1 for DGUX with <sys/dg_sys_info.h>.])
-     AC_CHECK_LIB([dgc], [dg_sys_info])])
+if test $gl_func_getloadavg_done = no; then
+  AC_CHECK_FUNCS([pstat_getdynamic], [gl_func_getloadavg_done=yes])
 fi
 
 # We cannot check for <dwarf.h>, because Solaris 2 does not use dwarf (it
 # uses stabs), but it is still SVR4.  We cannot check for <elf.h> because
 # Irix 4.0.5F has the header but not the library.
-if test $gl_have_func = no && test "$ac_cv_lib_elf_elf_begin" = yes \
+if test $gl_func_getloadavg_done = no && test "$ac_cv_lib_elf_elf_begin" = yes \
     && test "$ac_cv_lib_kvm_kvm_open" = yes; then
-  gl_have_func=yes
+  gl_func_getloadavg_done=yes
   AC_DEFINE([SVR4], [1], [Define to 1 on System V Release 4.])
 fi
 
-if test $gl_have_func = no; then
+if test $gl_func_getloadavg_done = no; then
   AC_CHECK_HEADER([inq_stats/cpustats.h],
-  [gl_have_func=yes
+  [gl_func_getloadavg_done=yes
    AC_DEFINE([UMAX], [1], [Define to 1 for Encore UMAX.])
    AC_DEFINE([UMAX4_3], [1],
              [Define to 1 for Encore UMAX 4.3 that has <inq_status/cpustats.h>
               instead of <sys/cpustats.h>.])])
 fi
 
-if test $gl_have_func = no; then
+if test $gl_func_getloadavg_done = no; then
   AC_CHECK_HEADER([sys/cpustats.h],
-  [gl_have_func=yes; AC_DEFINE([UMAX])])
+  [gl_func_getloadavg_done=yes; AC_DEFINE([UMAX])])
 fi
 
-if test $gl_have_func = no; then
+if test $gl_func_getloadavg_done = no; then
   AC_CHECK_HEADERS([mach/mach.h])
 fi
 

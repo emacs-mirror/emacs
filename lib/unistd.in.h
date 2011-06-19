@@ -1062,6 +1062,7 @@ _GL_WARN_ON_USE (pipe2, "pipe2 is unportable - "
    specification <http://www.opengroup.org/susv3xsh/pread.html>.  */
 # if @REPLACE_PREAD@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef pread
 #   define pread rpl_pread
 #  endif
 _GL_FUNCDECL_RPL (pread, ssize_t,
@@ -1096,6 +1097,7 @@ _GL_WARN_ON_USE (pread, "pread is unportable - "
    <http://www.opengroup.org/susv3xsh/pwrite.html>.  */
 # if @REPLACE_PWRITE@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef pwrite
 #   define pwrite rpl_pwrite
 #  endif
 _GL_FUNCDECL_RPL (pwrite, ssize_t,
