@@ -3500,6 +3500,311 @@ specific buffers."
     ;; (bw-finetune wins)
     ;; (message "Done in %d rounds" round)
     ))
+
+;;; Window states, how to get them and how to put them in a window.
+(defsubst window-list-no-nils (&rest args)
+  "Like LIST but do not add nil elements of ARGS."
+  (delq nil (apply 'list args)))
+
+(defvar window-state-ignored-parameters '(quit-restore)
+  "List of window parameters ignored by `window-state-get'.")
+
+(defun window-state-get-1 (window &optional markers)
+  "Helper function for `window-state-get'."
+  (let* ((type
+	  (cond
+	   ((window-vchild window) 'vc)
+	   ((window-hchild window) 'hc)
+	   (t 'leaf)))
+	 (buffer (window-buffer window))
+	 (selected (eq window (selected-window)))
+	 (head
+	  (window-list-no-nils
+	   type
+	   (unless (window-next window) (cons 'last t))
+	   (cons 'clone-number (window-clone-number window))
+	   (cons 'total-height (window-total-size window))
+	   (cons 'total-width (window-total-size window t))
+	   (cons 'normal-height (window-normal-size window))
+	   (cons 'normal-width (window-normal-size window t))
+	   (cons 'splits (window-splits window))
+	   (cons 'nest (window-nest window))
+	   (let (list)
+	     (dolist (parameter (window-parameters window))
+	       (unless (memq (car parameter)
+			     window-state-ignored-parameters)
+		 (setq list (cons parameter list))))
+	     (when list
+	       (cons 'parameters list)))
+	   (when buffer
+	     ;; All buffer related things go in here - make the buffer
+	     ;; current when retrieving `point' and `mark'.
+	     (with-current-buffer (window-buffer window)
+	       (let ((point (if selected (point) (window-point window)))
+		     (start (window-start window))
+		     (mark (mark)))
+		 (window-list-no-nils
+		  'buffer (buffer-name buffer)
+		  (cons 'selected selected)
+		  (when window-size-fixed (cons 'size-fixed window-size-fixed))
+		  (cons 'hscroll (window-hscroll window))
+		  (cons 'fringes (window-fringes window))
+		  (cons 'margins (window-margins window))
+		  (cons 'scroll-bars (window-scroll-bars window))
+		  (cons 'vscroll (window-vscroll window))
+		  (cons 'dedicated (window-dedicated-p window))
+		  (cons 'point (if markers (copy-marker point) point))
+		  (cons 'start (if markers (copy-marker start) start))
+		  (when mark
+		    (cons 'mark (if markers (copy-marker mark) mark)))))))))
+	 (tail
+	  (when (memq type '(vc hc))
+	    (let (list)
+	      (setq window (window-child window))
+	      (while window
+		(setq list (cons (window-state-get-1 window markers) list))
+		(setq window (window-right window)))
+	      (nreverse list)))))
+    (append head tail)))
+
+(defun window-state-get (&optional window markers)
+  "Return state of WINDOW as a Lisp object.
+WINDOW can be any window and defaults to the root window of the
+selected frame.
+
+Optional argument MARKERS non-nil means use markers for sampling
+positions like `window-point' or `window-start'.  MARKERS should
+be non-nil only if the value is used for putting the state back
+in the same session (note that markers slow down processing).
+
+The return value can be used as argument for `window-state-put'
+to put the state recorded here into an arbitrary window.  The
+value can be also stored on disk and read back in a new session."
+  (setq window
+	(if window
+	    (if (window-any-p window)
+		window
+	      (error "%s is not a live or internal window" window))
+	  (frame-root-window)))
+  ;; The return value is a cons whose car specifies some constraints on
+  ;; the size of WINDOW.  The cdr lists the states of the subwindows of
+  ;; WINDOW.
+  (cons
+   ;; Frame related things would go into a function, say `frame-state',
+   ;; calling `window-state-get' to insert the frame's root window.
+   (window-list-no-nils
+    (cons 'min-height (window-min-size window))
+    (cons 'min-width (window-min-size window t))
+    (cons 'min-height-ignore (window-min-size window nil t))
+    (cons 'min-width-ignore (window-min-size window t t))
+    (cons 'min-height-safe (window-min-size window nil 'safe))
+    (cons 'min-width-safe (window-min-size window t 'safe))
+    ;; These are probably not needed.
+    (when (window-size-fixed-p window) (cons 'fixed-height t))
+    (when (window-size-fixed-p window t) (cons 'fixed-width t)))
+   (window-state-get-1 window markers)))
+
+(defvar window-state-put-list nil
+  "Helper variable for `window-state-put'.")
+
+(defun window-state-put-1 (state &optional window ignore totals)
+  "Helper function for `window-state-put'."
+  (let ((type (car state)))
+    (setq state (cdr state))
+    (cond
+     ((eq type 'leaf)
+      ;; For a leaf window just add unprocessed entries to
+      ;; `window-state-put-list'.
+      (setq window-state-put-list
+	    (cons (cons window state) window-state-put-list)))
+     ((memq type '(vc hc))
+      (let* ((horizontal (eq type 'hc))
+	     (total (window-total-size window horizontal))
+	     (first t)
+	     size new)
+	(dolist (item state)
+	  ;; Find the next child window.  WINDOW always points to the
+	  ;; real window that we want to fill with what we find here.
+	  (when (memq (car item) '(leaf vc hc))
+	    (if (assq 'last item)
+		;; The last child window.  Below `window-state-put-1'
+		;; will put into it whatever ITEM has in store.
+		(setq new nil)
+	      ;; Not the last child window, prepare for splitting
+	      ;; WINDOW.  SIZE is the new (and final) size of the old
+	      ;; window.
+	      (setq size
+		    (if totals
+			;; Use total size.
+			(cdr (assq (if horizontal 'total-width 'total-height) item))
+		      ;; Use normalized size and round.
+		      (round (* total
+				(cdr (assq
+				      (if horizontal 'normal-width 'normal-height)
+				      item))))))
+
+	      ;; Use safe sizes, we try to resize later.
+	      (setq size (max size (if horizontal
+				       window-safe-min-height
+				     window-safe-min-width)))
+
+	      (if (window-sizable-p window (- size) horizontal 'safe)
+		  (let* ((window-nest (assq 'nest item)))
+		    ;; We must inherit the nesting, otherwise we might mess
+		    ;; up handling of atomic and side window.
+		    (setq new (split-window window size horizontal)))
+		;; Give up if we can't resize window down to safe sizes.
+		(error "Cannot resize window %s" window))
+
+	      (when first
+		(setq first nil)
+		;; When creating the first child window add for parent
+		;; unprocessed entries to `window-state-put-list'.
+		(setq window-state-put-list
+		      (cons (cons (window-parent window) state)
+			    window-state-put-list))))
+
+	    ;; Now process the current window (either the one we've just
+	    ;; split or the last child of its parent).
+	    (window-state-put-1 item window ignore totals)
+	    ;; Continue with the last window split off.
+	    (setq window new))))))))
+
+(defun window-state-put-2 (ignore)
+  "Helper function for `window-state-put'."
+  (dolist (item window-state-put-list)
+    (let ((window (car item))
+	  (clone-number (cdr (assq 'clone-number item)))
+	  (splits (cdr (assq 'splits item)))
+	  (nest (cdr (assq 'nest item)))
+	  (parameters (cdr (assq 'parameters item)))
+	  (state (cdr (assq 'buffer item))))
+      ;; Put in clone-number.
+      (when clone-number (set-window-clone-number window clone-number))
+      (when splits (set-window-splits window splits))
+      (when nest (set-window-nest window nest))
+      ;; Process parameters.
+      (when parameters
+	(dolist (parameter parameters)
+	  (set-window-parameter window (car parameter) (cdr parameter))))
+      ;; Process buffer related state.
+      (when state
+	;; We don't want to raise an error here so we create a buffer if
+	;; there's none.
+	(set-window-buffer window (get-buffer-create (car state)))
+	(with-current-buffer (window-buffer window)
+	  (set-window-hscroll window (cdr (assq 'hscroll state)))
+	  (apply 'set-window-fringes
+		 (cons window (cdr (assq 'fringes state))))
+	  (let ((margins (cdr (assq 'margins state))))
+	    (set-window-margins window (car margins) (cdr margins)))
+	  (let ((scroll-bars (cdr (assq 'scroll-bars state))))
+	    (set-window-scroll-bars
+	     window (car scroll-bars) (nth 2 scroll-bars) (nth 3 scroll-bars)))
+	  (set-window-vscroll window (cdr (assq 'vscroll state)))
+	  ;; Adjust vertically.
+	  (if (memq window-size-fixed '(t height))
+	      ;; A fixed height window, try to restore the original size.
+	      (let ((delta (- (cdr (assq 'total-height item))
+			      (window-total-height window)))
+		    window-size-fixed)
+		(when (window-resizable-p window delta)
+		  (resize-window window delta)))
+	    ;; Else check whether the window is not high enough.
+	    (let* ((min-size (window-min-size window nil ignore))
+		   (delta (- min-size (window-total-size window))))
+	      (when (and (> delta 0)
+			 (window-resizable-p window delta nil ignore))
+		(resize-window window delta nil ignore))))
+	  ;; Adjust horizontally.
+	  (if (memq window-size-fixed '(t width))
+	      ;; A fixed width window, try to restore the original size.
+	      (let ((delta (- (cdr (assq 'total-width item))
+			      (window-total-width window)))
+		    window-size-fixed)
+		(when (window-resizable-p window delta)
+		  (resize-window window delta)))
+	    ;; Else check whether the window is not wide enough.
+	    (let* ((min-size (window-min-size window t ignore))
+		   (delta (- min-size (window-total-size window t))))
+	      (when (and (> delta 0)
+			 (window-resizable-p window delta t ignore))
+		(resize-window window delta t ignore))))
+	  ;; Set dedicated status.
+	  (set-window-dedicated-p window (cdr (assq 'dedicated state)))
+	  ;; Install positions (maybe we should do this after all windows
+	  ;; have been created and sized).
+	  (ignore-errors
+	    (set-window-start window (cdr (assq 'start state)))
+	    (set-window-point window (cdr (assq 'point state)))
+	    ;; I'm not sure whether we should set the mark here, but maybe
+	    ;; it can be used.
+	    (let ((mark (cdr (assq 'mark state))))
+	      (when mark (set-mark mark))))
+	  ;; Select window if it's the selected one.
+	  (when (cdr (assq 'selected state))
+	    (select-window window)))))))
+
+(defun window-state-put (state &optional window ignore)
+  "Put window state STATE into WINDOW.
+STATE should be the state of a window returned by an earlier
+invocation of `window-state-get'.  Optional argument WINDOW must
+specify a live window and defaults to the selected one.
+
+Optional argument IGNORE non-nil means ignore minimum window
+sizes and fixed size restrictions.  IGNORE equal `safe' means
+subwindows can get as small as `window-safe-min-height' and
+`window-safe-min-width'."
+  (setq window (normalize-live-window window))
+  (let* ((frame (window-frame window))
+	 (head (car state))
+	 ;; We check here (1) whether the total sizes of root window of
+	 ;; STATE and that of WINDOW are equal so we can avoid
+	 ;; calculating new sizes, and (2) if we do have to resize
+	 ;; whether we can do so without violating size restrictions.
+	 (totals
+	  (and (= (window-total-size window)
+		  (cdr (assq 'total-height state)))
+	       (= (window-total-size window t)
+		  (cdr (assq 'total-width state)))))
+	 (min-height (cdr (assq 'min-height head)))
+	 (min-width (cdr (assq 'min-width head)))
+	 window-splits selected)
+    (if (and (not totals)
+	     (or (> min-height (window-total-size window))
+		 (> min-width (window-total-size window t)))
+	     (or (not ignore)
+		 (and (setq min-height
+			    (cdr (assq 'min-height-ignore head)))
+		      (setq min-width
+			    (cdr (assq 'min-width-ignore head)))
+		      (or (> min-height (window-total-size window))
+			  (> min-width (window-total-size window t)))
+		      (or (not (eq ignore 'safe))
+			  (and (setq min-height
+				     (cdr (assq 'min-height-safe head)))
+			       (setq min-width
+				     (cdr (assq 'min-width-safe head)))
+			       (or (> min-height
+				      (window-total-size window))
+				   (> min-width
+				      (window-total-size window t))))))))
+	;; The check above might not catch all errors due to rounding
+	;; issues - so IGNORE equal 'safe might not always produce the
+	;; minimum possible state.  But such configurations hardly make
+	;; sense anyway.
+	(error "Window %s too small to accomodate state" window)
+      (setq state (cdr state))
+      (setq window-state-put-list nil)
+      ;; Work on the windows of a temporary buffer to make sure that
+      ;; splitting proceeds regardless of any buffer local values of
+      ;; `window-size-fixed'.  Release that buffer after the buffers of
+      ;; all live windows have been set by `window-state-put-2'.
+      (with-temp-buffer
+	(set-window-buffer window (current-buffer))
+	(window-state-put-1 state window nil totals)
+	(window-state-put-2 ignore))
+      (window-check frame))))
 
 ;;; Displaying buffers.
 (defconst display-buffer-default-specifiers

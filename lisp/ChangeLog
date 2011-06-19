@@ -19,6 +19,10 @@
 	display-buffer-normalize-options-inhibit is non-nil.
 	(frame-auto-delete): New option.
 	(window-deletable-p): Use frame-auto-delete.
+	(window-list-no-nils, window-state-ignored-parameters)
+	(window-state-get-1, window-state-get, window-state-put-list)
+	(window-state-put-1, window-state-put-2, window-state-put): New
+	functions.
 
 2011-06-18  Chong Yidong  <cyd@stupidchicken.com>
 
