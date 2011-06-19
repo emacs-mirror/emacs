@@ -5083,7 +5083,7 @@ init_buffer (void)
 {
   char *pwd;
   Lisp_Object temp;
-  int len;
+  ptrdiff_t len;
 
 #ifdef USE_MMAP_FOR_BUFFERS
  {

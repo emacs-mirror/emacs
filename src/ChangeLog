@@ -1,5 +1,7 @@
 2011-06-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* buffer.c (init_buffer): Don't assume string length fits in 'int'.
+
 	* lread.c (invalid_syntax): Omit length argument.
 	All uses changed.  This doesn't fix a bug, but it simplifies the
 	code away from its former Hollerith-constant appearance, and it's
