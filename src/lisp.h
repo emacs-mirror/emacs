@@ -3590,24 +3590,6 @@ extern void init_system_name (void);
 
 #define SWITCH_ENUM_CAST(x) (x)
 
-/* Loop over Lisp list LIST.  Signal an error if LIST is not a proper
-   list, or if it contains circles.
-
-   HARE and TORTOISE should be the names of Lisp_Object variables, and
-   N should be the name of an EMACS_INT variable declared in the
-   function where the macro is used.  Each nested loop should use
-   its own variables.
-
-   In the loop body, HARE is set to each cons of LIST, and N is the
-   length of the list processed so far.  */
-
-#define LIST_END_P(list, obj)				\
-  (NILP (obj)						\
-   ? 1							\
-   : (CONSP (obj)					\
-      ? 0						\
-      : (wrong_type_argument (Qlistp, (list))), 1))
-
 /* Use this to suppress gcc's warnings. */
 #ifdef lint
 

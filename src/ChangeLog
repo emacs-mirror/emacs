@@ -4,6 +4,7 @@
 	This didn't break anything, but it didn't help either.
 	It's confusing to put a bogus integer in a place where the actual
 	value does not matter.
+	(LIST_END_P): Remove unused macro and its bogus comment.
 
 2011-06-18  Paul Eggert  <eggert@cs.ucla.edu>
 
