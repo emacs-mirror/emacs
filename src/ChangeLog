@@ -5,6 +5,7 @@
 	It's confusing to put a bogus integer in a place where the actual
 	value does not matter.
 	(LIST_END_P): Remove unused macro and its bogus comment.
+	(make_fixnum_or_float): Remove unnecessary cast to EMACS_INT.
 
 2011-06-18  Paul Eggert  <eggert@cs.ucla.edu>
 

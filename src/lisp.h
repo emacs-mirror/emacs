@@ -3625,9 +3625,7 @@ extern void init_system_name (void);
    fixnum.  */
 
 #define make_fixnum_or_float(val) \
-   (FIXNUM_OVERFLOW_P (val) \
-    ? make_float (val) \
-    : make_number ((EMACS_INT)(val)))
+   (FIXNUM_OVERFLOW_P (val) ? make_float (val) : make_number (val))
 
 
 /* Checks the `cycle check' variable CHECK to see if it indicates that
