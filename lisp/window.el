@@ -2244,6 +2244,28 @@ and no others."
 	(next-window base-window (if nomini 'arg) all-frames))))
 
 ;;; Deleting windows.
+(defcustom frame-auto-delete 'automatic
+  "If non-nil, quitting a window can delete it's frame.
+If this variable is nil, functions that quit a window never
+delete the associated frame.  If this variable equals the symbol
+`automatic', a frame is deleted only if it the window is
+dedicated or was created by `display-buffer'.  If this variable
+is t, a frame can be always deleted, even if it was created by
+`make-frame-command'.  Other values should not be used.
+
+Note that a frame will be effectively deleted if and only if
+another frame still exists.
+
+Functions quitting a window and consequently affected by this
+variable are `switch-to-prev-buffer', `delete-windows-on',
+`replace-buffer-in-windows' and `quit-restore-window'."
+  :type '(choice
+	  (const :tag "Never" nil)
+	  (const :tag "Automatic" automatic)
+	  (const :tag "Always" t))
+  :group 'windows
+  :group 'frames)
+
 (defun window-deletable-p (&optional window)
   "Return t if WINDOW can be safely deleted from its frame.
 Return `frame' if deleting WINDOW should delete its frame
@@ -2259,9 +2281,12 @@ instead."
 	(quit-restore (window-parameter window 'quit-restore)))
     (cond
      ((frame-root-window-p window)
-      (when (and (or dedicated
-		     (and (eq (car-safe quit-restore) 'new-frame)
-			  (eq (nth 1 quit-restore) (window-buffer window))))
+      (when (and (or (eq frame-auto-delete t)
+		     (and (eq frame-auto-delete 'automatic)
+			  (or dedicated
+			      (and (eq (car-safe quit-restore) 'new-frame)
+				   (eq (nth 1 quit-restore)
+				       (window-buffer window))))))
 		 (other-visible-frames-p frame))
 	;; WINDOW is the root window of its frame.  Return `frame' but
 	;; only if WINDOW is (1) either dedicated or quit-restore's car
@@ -4940,6 +4965,19 @@ SPECIFIERS must be a list of buffer display specifiers."
 	  (set-window-parameter window 'window-slot slot))
 	(display-buffer-in-window buffer window specifiers)))))
 
+(defun normalize-buffer-to-display (buffer-or-name)
+  "Normalize BUFFER-OR-NAME argument for buffer display functions.
+If BUFFER-OR-NAME is nil, return the curent buffer.  Else, if a
+buffer specified by BUFFER-OR-NAME exists, return that buffer.
+If no such buffer exists, create a buffer with the name
+BUFFER-OR-NAME and return that buffer."
+  (if buffer-or-name
+      (or (get-buffer buffer-or-name)
+	  (let ((buffer (get-buffer-create buffer-or-name)))
+	    (set-buffer-major-mode buffer)
+	    buffer))
+    (current-buffer)))
+
 (defun display-buffer-other-window-means-other-frame (buffer-or-name &optional label)
   "Return non-nil if BUFFER shall be preferably displayed in another frame.
 BUFFER must be a live buffer or the name of a live buffer.
@@ -4954,30 +4992,17 @@ Optional argument LABEL is like the same argument of
 The calculation of the return value is exclusively based on the
 user preferences expressed in `display-buffer-alist'."
   (let* ((buffer (normalize-live-buffer buffer-or-name))
-	 (list (display-buffer-normalize-specifiers-3
-		(buffer-name buffer) label))
+	 (list (display-buffer-normalize-alist (buffer-name buffer) label))
 	 (value (assq 'other-window-means-other-frame
 		      (or (car list) (cdr list)))))
     (when value (cdr value))))
 
-(defun normalize-buffer-to-display (buffer-or-name)
-  "Normalize BUFFER-OR-NAME argument for buffer display functions.
-If BUFFER-OR-NAME is nil, return the curent buffer.  Else, if a
-buffer specified by BUFFER-OR-NAME exists, return that buffer.
-If no such buffer exists, create a buffer with the name
-BUFFER-OR-NAME and return that buffer."
-  (if buffer-or-name
-      (or (get-buffer buffer-or-name)
-	  (let ((buffer (get-buffer-create buffer-or-name)))
-	    (set-buffer-major-mode buffer)
-	    buffer))
-    (current-buffer)))
-
-(defun display-buffer-normalize-specifiers-1 (specifiers buffer-name label)
-  "Subroutine of `display-buffer-normalize-specifiers'.
-SPECIFIERS is a list of buffer display specfiers.  BUFFER-NAME is
-the name of the buffer that shall be displayed, LABEL the same
-argument of `display-buffer'."
+(defun display-buffer-normalize-argument (buffer-name specifiers label other-frame)
+  "Normalize second argument of `display-buffer'.
+BUFFER-NAME is the name of the buffer that shall be displayed,
+SPECIFIERS is the second argument of `display-buffer'.  LABEL the
+same argument of `display-buffer'.  OTHER-FRAME non-nil means use
+other-frame for other-windo."
   (let (normalized entry)
     (cond
      ((not specifiers)
@@ -4990,10 +5015,10 @@ argument of `display-buffer'."
 	  (setq normalized (cons specifier normalized)))
 	 ((eq specifier 'other-window)
 	  ;; `other-window' must be treated separately.
-	  (let* ((other-frame (display-buffer-other-window-means-other-frame
-			       buffer-name label))
-		 (entry (assq (if other-frame 'other-frame 'other-window)
-			      display-buffer-macro-specifiers)))
+	  (let ((entry (assq (if other-frame
+				 'other-frame
+			       'other-window)
+			     display-buffer-macro-specifiers)))
 	    (dolist (item (cdr entry))
 	      (setq normalized (cons item normalized)))))
 	 ((symbolp specifier)
@@ -5008,15 +5033,14 @@ argument of `display-buffer'."
      ((setq entry (assq specifiers display-buffer-macro-specifiers))
       ;; A macro specifier.
       (cdr entry))
-     ((or (display-buffer-other-window-means-other-frame buffer-name label)
-	  (with-no-warnings pop-up-frames))
+     ((or other-frame (with-no-warnings pop-up-frames))
       ;; Pop up another frame.
       (cdr (assq 'other-frame display-buffer-macro-specifiers)))
      (t
       ;; In any other case pop up a new window.
       (cdr (assq 'same-frame-other-window display-buffer-macro-specifiers))))))
 
-(defun display-buffer-normalize-specifiers-2 (&optional buffer-or-name)
+(defun display-buffer-normalize-options (buffer-or-name)
   "Subroutine of `display-buffer-normalize-specifiers'.
 BUFFER-OR-NAME is the buffer to display.  This routine provides a
 compatibility layer for the now obsolete Emacs 23 buffer display
@@ -5127,8 +5151,37 @@ options."
 
       specifiers)))
 
-(defun display-buffer-normalize-specifiers-3 (buffer-name label)
-  "Subroutine of `display-buffer-normalize-specifiers'."
+(defun display-buffer-normalize-alist-1 (specifiers label)
+  "Subroutine of `display-buffer-normalize-alist'.
+SPECIFIERS is a list of buffer display specfiers.  LABEL is the
+same argument of `display-buffer'."
+  (let (normalized entry)
+    (cond
+     ((not specifiers)
+      nil)
+     ((listp specifiers)
+      ;; If SPECIFIERS is a list, we assume it is a list of specifiers.
+      (dolist (specifier specifiers)
+	(cond
+	 ((consp specifier)
+	  (setq normalized (cons specifier normalized)))
+	 ((symbolp specifier)
+	  ;; Might be a macro specifier, try to expand it (the cdr is a
+	  ;; list and we have to reverse it later, so do it one at a
+	  ;; time).
+	  (let ((entry (assq specifier display-buffer-macro-specifiers)))
+	    (dolist (item (cdr entry))
+	      (setq normalized (cons item normalized)))))))
+      ;; Reverse list.
+      (nreverse normalized))
+     ((setq entry (assq specifiers display-buffer-macro-specifiers))
+      ;; A macro specifier.
+      (cdr entry)))))
+
+(defun display-buffer-normalize-alist (buffer-name label)
+  "Normalize `display-buffer-alist'.
+BUFFER-NAME must be the name of the buffer that shall be displayed.
+LABEL the corresponding argument of `display-buffer'."
   (let (list-1 list-2)
     (dolist (entry display-buffer-alist)
       (when (and (listp entry)
@@ -5143,10 +5196,10 @@ options."
 					(string-match-p value buffer-name))
 				   (and (eq type 'label) (eq value label)))
 			   (throw 'match t)))))))
-	(let* ((raw (cdr entry))
+	(let* ((specifiers (cdr entry))
 	       (normalized
-		(display-buffer-normalize-specifiers-1 raw buffer-name label)))
-	  (if (assq 'override raw)
+		(display-buffer-normalize-alist-1 specifiers label)))
+	  (if (assq 'override specifiers)
 	      (setq list-1
 		    (if list-1
 			(append list-1 normalized)
@@ -5157,6 +5210,9 @@ options."
 		    normalized))))))
 
     (cons list-1 list-2)))
+
+(defvar display-buffer-normalize-options-inhibit nil
+  "If non-nil, `display-buffer' doesn't process obsolete options.")
 
 (defun display-buffer-normalize-specifiers (buffer-name specifiers label)
   "Return normalized specifiers for a buffer matching BUFFER-NAME or LABEL.
@@ -5179,14 +5235,18 @@ specifiers:
   component is not set.
 
 - `display-buffer-default-specifiers'."
-  (let* ((list (display-buffer-normalize-specifiers-3 buffer-name label)))
+  (let* ((list (display-buffer-normalize-alist buffer-name label))
+	 (other-frame (assq 'other-window-means-other-frame
+			    (or (car list) (cdr list)))))
     (append
      ;; Overriding user specifiers.
      (car list)
      ;; Application specifiers.
-     (display-buffer-normalize-specifiers-1 specifiers buffer-name label)
+     (display-buffer-normalize-argument
+      buffer-name specifiers label other-frame)
      ;; Emacs 23 compatibility specifiers.
-     (display-buffer-normalize-specifiers-2 buffer-name)
+     (unless display-buffer-normalize-options-inhibit
+       (display-buffer-normalize-options buffer-name))
      ;; Non-overriding user specifiers.
      (cdr list)
      ;; Default specifiers.

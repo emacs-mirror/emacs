@@ -1,3 +1,25 @@
+2011-06-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-other-window-means-other-frame):
+	Call display-buffer-normalize-alist.
+	(display-buffer-normalize-specifiers-1): Rename to
+	display-buffer-normalize-argument.  New argument other-frame.
+	Rewrite.
+	(display-buffer-normalize-specifiers-2): Rename to
+	display-buffer-normalize-options.
+	(display-buffer-normalize-alist-1): New function.
+	(display-buffer-normalize-specifiers-3): Rename to
+	display-buffer-normalize-alist.  Call
+	display-buffer-normalize-alist-1.
+	(display-buffer-normalize-options-inhibit): New variable.
+	(display-buffer-normalize-specifiers): Rewrite calling
+	display-buffer-normalize-alist,
+	display-buffer-normalize-argument, and
+	display-buffer-normalize-options.  Don't call the latter if
+	display-buffer-normalize-options-inhibit is non-nil.
+	(frame-auto-delete): New option.
+	(window-deletable-p): Use frame-auto-delete.
+
 2011-06-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/rx.el (rx-constituents): Add support for numbered
