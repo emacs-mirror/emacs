@@ -1230,8 +1230,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
 
     if (STRINGP (display))
       {
-	int vlen = strlen ("DISPLAY=") + strlen (SSDATA (display)) + 1;
-	char *vdata = (char *) alloca (vlen);
+	char *vdata = (char *) alloca (sizeof "DISPLAY=" + SBYTES (display));
 	strcpy (vdata, "DISPLAY=");
 	strcat (vdata, SSDATA (display));
 	new_env = add_env (env, new_env, vdata);

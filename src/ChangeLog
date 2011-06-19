@@ -1,5 +1,7 @@
 2011-06-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* callproc.c (child_setup): Rewrite to avoid two strlen calls.
+
 	* process.c (Fformat_network_address): Use EMACS_INT, not EMACS_UINT.
 	We prefer signed integers, even for size calculations.
 
