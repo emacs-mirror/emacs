@@ -1,5 +1,7 @@
 2011-06-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* callproc.c (getenv_internal_1, getenv_internal)
+	(Fgetenv_internal):
 	* buffer.c (init_buffer): Don't assume string length fits in 'int'.
 
 	* lread.c (invalid_syntax): Omit length argument.
