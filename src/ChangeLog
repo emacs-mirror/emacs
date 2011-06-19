@@ -1,5 +1,8 @@
 2011-06-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* process.c (Fformat_network_address): Use EMACS_INT, not EMACS_UINT.
+	We prefer signed integers, even for size calculations.
+
 	* emacs.c: Don't assume string length fits in 'int'.
 	(DEFINE_DUMMY_FUNCTION, sort_args): Use ptrdiff_t, not int.
 	(main): Don't invoke strlen when not needed.
