@@ -1,5 +1,7 @@
 2011-06-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* data.c (Fsubr_name): Rewrite to avoid a strlen call.
+
 	* coding.c (make_subsidiaries): Don't assume string length fits in int.
 
 	* callproc.c (child_setup): Rewrite to avoid two strlen calls.
