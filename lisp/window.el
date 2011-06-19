@@ -5401,17 +5401,6 @@ options."
 			    (cons 'largest fun) (cons 'lru fun))
 		      specifiers))))
 
-      ;; `special-display-p' group.
-      (when special-display-function
-	;; `special-display-p' returns either t or a list of frame
-	;; parameters to pass to `special-display-function'.
-	(let ((pars (special-display-p buffer-name)))
-	  (when pars
-	    (setq specifiers
-		  (cons (list 'fun-with-args special-display-function
-			      (when (listp pars) pars))
-			specifiers)))))
-
       ;; `pop-up-frame' group.  Add things if `pop-up-frames' is non-nil
       ;; (we ignore the problem that callers usually don't care about
       ;; graphic-only).
@@ -5424,6 +5413,17 @@ options."
 	;; `pop-up-frame'
 	(setq specifiers
 	      (cons (list 'pop-up-frame pop-up-frames) specifiers)))
+
+      ;; `special-display-p' group.
+      (when special-display-function
+	;; `special-display-p' returns either t or a list of frame
+	;; parameters to pass to `special-display-function'.
+	(let ((pars (special-display-p buffer-name)))
+	  (when pars
+	    (setq specifiers
+		  (cons (list 'fun-with-args special-display-function
+			      (when (listp pars) pars))
+			specifiers)))))
 
       ;; `same-window-p' group.
       (when (same-window-p buffer-name)

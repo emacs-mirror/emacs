@@ -23,6 +23,8 @@
 	(window-state-get-1, window-state-get, window-state-put-list)
 	(window-state-put-1, window-state-put-2, window-state-put): New
 	functions.
+	(display-buffer-normalize-options): Move special-display-p group
+	after pop-up-frame group (Bug#8851) and (Bug#8856).
 
 2011-06-18  Chong Yidong  <cyd@stupidchicken.com>
 
