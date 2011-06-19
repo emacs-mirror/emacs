@@ -1,5 +1,7 @@
 2011-06-19  Chong Yidong  <cyd@stupidchicken.com>
 
+	* files.el (auto-mode-alist): Entry for m2-mode (Bug#8852).
+
 	* info.el (Info-apropos-toc-nodes): Minor doc fix (Bug#8833).
 
 2011-06-19  Martin Rudalics  <rudalics@gmx.at>
