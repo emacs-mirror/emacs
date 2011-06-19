@@ -1,5 +1,8 @@
 2011-06-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dbusbind.c (XD_ERROR): Don't arbitrarily truncate string.
+	(XD_DEBUG_MESSAGE): Don't waste a byte.
+
 	* callproc.c (getenv_internal_1, getenv_internal)
 	(Fgetenv_internal):
 	* buffer.c (init_buffer): Don't assume string length fits in 'int'.
