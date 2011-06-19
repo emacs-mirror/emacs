@@ -2063,7 +2063,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
 	       ))
 
 (defun Info-directory-toc-nodes (filename)
-  "Directory-specific implementation of Info-directory-toc-nodes."
+  "Directory-specific implementation of `Info-toc-nodes'."
   `(,filename
     ("Top" nil nil nil)))
 

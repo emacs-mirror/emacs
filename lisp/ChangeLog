@@ -1,3 +1,7 @@
+2011-06-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.el (Info-apropos-toc-nodes): Minor doc fix (Bug#8833).
+
 2011-06-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* textmodes/fill.el (default-justification): Add :safe (Bug#8879).
