@@ -1,5 +1,9 @@
 2011-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* minibuffer.el (completion-metadata): Prepend the alist with `metadata'.
+	(completion-try-completion, completion-all-completions): Compute the
+	metadata argument if it's missing; make it optional (bug#8795).
+
 	* wid-edit.el: Use lexical scoping and move towards completion-at-point.
 	(widget-complete): Use new :completion-function property.
 	(widget-completions-at-point): New function.
