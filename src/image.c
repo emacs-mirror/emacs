@@ -3589,25 +3589,14 @@ xpm_load (struct frame *f, struct image *img)
 /* XPM support functions for NS where libxpm is not available.
    Only XPM version 3 (without any extensions) is supported.  */
 
-static int xpm_scan (const unsigned char **, const unsigned char *,
-                     const unsigned char **, int *);
-static Lisp_Object xpm_make_color_table_v
-  (void (**) (Lisp_Object, const unsigned char *, int, Lisp_Object),
-   Lisp_Object (**) (Lisp_Object, const unsigned char *, int));
 static void xpm_put_color_table_v (Lisp_Object, const unsigned char *,
                                    int, Lisp_Object);
 static Lisp_Object xpm_get_color_table_v (Lisp_Object,
                                           const unsigned char *, int);
-static Lisp_Object xpm_make_color_table_h
-  (void (**) (Lisp_Object, const unsigned char *, int, Lisp_Object),
-   Lisp_Object (**) (Lisp_Object, const unsigned char *, int));
 static void xpm_put_color_table_h (Lisp_Object, const unsigned char *,
                                    int, Lisp_Object);
 static Lisp_Object xpm_get_color_table_h (Lisp_Object,
                                           const unsigned char *, int);
-static int xpm_str_to_color_key (const char *);
-static int xpm_load_image (struct frame *, struct image *,
-                           const unsigned char *, const unsigned char *);
 
 /* Tokens returned from xpm_scan.  */
 
@@ -3629,7 +3618,7 @@ static int
 xpm_scan (const unsigned char **s,
           const unsigned char *end,
           const unsigned char **beg,
-          int *len)
+          ptrdiff_t *len)
 {
   int c;
 
@@ -3799,7 +3788,8 @@ xpm_load_image (struct frame *f,
   unsigned char buffer[BUFSIZ];
   int width, height, x, y;
   int num_colors, chars_per_pixel;
-  int len, LA1;
+  ptrdiff_t len;
+  int LA1;
   void (*put_color_table) (Lisp_Object, const unsigned char *, int, Lisp_Object);
   Lisp_Object (*get_color_table) (Lisp_Object, const unsigned char *, int);
   Lisp_Object frame, color_symbols, color_table;

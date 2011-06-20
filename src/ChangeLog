@@ -1,5 +1,8 @@
 2011-06-20  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* image.c (xpm_scan) [HAVE_NS && !HAVE_XPM]:
+	Don't assume string length fits in int.
+
 	* gtkutil.c (style_changed_cb): Avoid need for strlen.
 
 	* font.c: Don't assume string length fits in int.
