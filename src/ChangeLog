@@ -1,5 +1,9 @@
 2011-06-20  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* termcap.c: Don't assume sizes fit in int and never overflow.
+	(struct termcap_buffer, tgetent): Use ptrdiff_t, not int, for sizes.
+	(gobble_line): Check for size-calculation overflow.
+
 	* minibuf.c (Fread_buffer):
 	* lread.c (intern, intern_c_string):
 	* image.c (xpm_scan) [HAVE_NS && !HAVE_XPM]:
