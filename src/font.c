@@ -232,9 +232,9 @@ static int num_font_drivers;
    STR.  */
 
 Lisp_Object
-font_intern_prop (const char *str, int len, int force_symbol)
+font_intern_prop (const char *str, ptrdiff_t len, int force_symbol)
 {
-  int i;
+  ptrdiff_t i;
   Lisp_Object tem;
   Lisp_Object obarray;
   EMACS_INT nbytes, nchars;
@@ -247,7 +247,12 @@ font_intern_prop (const char *str, int len, int force_symbol)
 	if (! isdigit (str[i]))
 	  break;
       if (i == len)
-	return make_number (atoi (str));
+	{
+	  Lisp_Object num = string_to_number (str, 10, 0);
+	  if (! INTEGERP (num))
+	    xsignal1 (Qoverflow_error, num);
+	  return num;
+	}
     }
 
   /* The following code is copied from the function intern (in
