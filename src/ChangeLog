@@ -1,5 +1,9 @@
 2011-06-20  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* font.c: Don't assume string length fits in int.
+	(font_parse_xlfd, font_parse_fcname, font_unparse_fcname):
+	Use ptrdiff_t, not int.
+
 	* filelock.c: Fix some buffer overrun and integer overflow issues.
 	(get_boot_time): Don't assume that gzip command string fits in 100 bytes.
 	Reformulate so as not to need the command string.

@@ -982,7 +982,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
 int
 font_parse_xlfd (char *name, Lisp_Object font)
 {
-  int len = strlen (name);
+  ptrdiff_t len = strlen (name);
   int i, j, n;
   char *f[XLFD_LAST_INDEX + 1];
   Lisp_Object val;
@@ -1310,7 +1310,7 @@ font_parse_fcname (char *name, Lisp_Object font)
   char *p, *q;
   char *size_beg = NULL, *size_end = NULL;
   char *props_beg = NULL, *family_end = NULL;
-  int len = strlen (name);
+  ptrdiff_t len = strlen (name);
 
   if (len == 0)
     return -1;
@@ -1376,7 +1376,7 @@ font_parse_fcname (char *name, Lisp_Object font)
 	      if (*q != '=')
 		{
 		  /* Must be an enumerated value.  */
-		  int word_len;
+		  ptrdiff_t word_len;
 		  p = p + 1;
 		  word_len = q - p;
 		  val = font_intern_prop (p, q - p, 1);
@@ -1452,7 +1452,7 @@ font_parse_fcname (char *name, Lisp_Object font)
       Lisp_Object weight = Qnil, slant = Qnil;
       Lisp_Object width  = Qnil, size  = Qnil;
       char *word_start;
-      int word_len;
+      ptrdiff_t word_len;
 
       /* Scan backwards from the end, looking for a size.  */
       for (p = name + len - 1; p >= name; p--)
@@ -1542,7 +1542,8 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
   Lisp_Object family, foundry;
   Lisp_Object tail, val;
   int point_size;
-  int i, len = 1;
+  int i;
+  ptrdiff_t len = 1;
   char *p;
   Lisp_Object styles[3];
   const char *style_names[3] = { "weight", "slant", "width" };
