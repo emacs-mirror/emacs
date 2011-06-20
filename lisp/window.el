@@ -1165,13 +1165,20 @@ IGNORE, when non-nil means a window can be returned even if its
      (window-frame window))
     (or best best-2)))
 
-(defun get-window-with-predicate (predicate &optional minibuf
-					    all-frames default)
+(defun get-window-with-predicate (predicate &optional minibuf all-frames default)
   "Return a live window satisfying PREDICATE.
 More precisely, cycle through all windows calling the function
 PREDICATE on each one of them with the window as its sole
 argument.  Return the first window for which PREDICATE returns
-non-nil.  If no window satisfies PREDICATE, return DEFAULT.
+non-nil.  Windows are scanned starting with the window following
+the selcted window.  If no window satisfies PREDICATE, return
+DEFAULT.
+
+MINIBUF t means include the minibuffer window even if the
+minibuffer is not active.  MINIBUF nil or omitted means include
+the minibuffer window only if the minibuffer is active.  Any
+other value means do not include the minibuffer window even if
+the minibuffer is active.
 
 ALL-FRAMES nil or omitted means consider all windows on the selected
 frame, plus the minibuffer window if specified by the MINIBUF
@@ -1192,7 +1199,9 @@ values of ALL-FRAMES have special meanings:
 Anything else means consider all windows on the selected frame
 and no others."
   (catch 'found
-    (dolist (window (window-list-1 nil minibuf all-frames))
+    (dolist (window (window-list-1
+		     (next-window nil minibuf all-frames)
+		     minibuf all-frames))
       (when (funcall predicate window)
 	(throw 'found window)))
     default))
@@ -1297,10 +1306,8 @@ selected frame and no others."
 (defun get-buffer-window-list (&optional buffer-or-name minibuf all-frames)
   "Return list of all windows displaying BUFFER-OR-NAME, or nil if none.
 BUFFER-OR-NAME may be a buffer or the name of an existing buffer
-and defaults to the current buffer.
-
-Any windows showing BUFFER-OR-NAME on the selected frame are listed
-first.
+and defaults to the current buffer.  Windows are scanned starting
+with the selected window.
 
 MINIBUF t means include the minibuffer window even if the
 minibuffer is not active.  MINIBUF nil or omitted means include
@@ -1328,7 +1335,7 @@ Anything else means consider all windows on the selected frame
 and no others."
   (let ((buffer (normalize-live-buffer buffer-or-name))
 	windows)
-    (dolist (window (window-list-1 (frame-first-window) minibuf all-frames))
+    (dolist (window (window-list-1 (selected-window) minibuf all-frames))
       (when (eq (window-buffer window) buffer)
 	(setq windows (cons window windows))))
     (nreverse windows)))

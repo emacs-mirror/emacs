@@ -1,3 +1,11 @@
+2011-06-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (get-window-with-predicate): Start scanning with
+	window following selected window to restore Emacs 23 behavior.
+	Clarify doc-string.
+	(get-buffer-window-list): Start scanning with selected window to
+	restore Emacs 23 behavior.  Clarify doc-string.
+
 2011-06-20  Daniel Colascione  <dan.colascione@gmail.com>
 
 	* emacs-lisp/syntax.el (syntax-ppss): Further improve docstring.
