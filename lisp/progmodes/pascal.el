@@ -40,7 +40,6 @@
 ;;       pascal-tab-always-indent  t
 ;;       pascal-auto-endcomments   t
 ;;       pascal-auto-lineup        '(all)
-;;       pascal-toggle-completions nil
 ;;       pascal-type-keywords      '("array" "file" "packed" "char"
 ;; 				     "integer" "real" "string" "record")
 ;;       pascal-start-keywords     '("begin" "end" "function" "procedure"
@@ -79,8 +78,8 @@
     ;; These are user preferences, so not to set by default.
     ;;(define-key map "\r"       'electric-pascal-terminate-line)
     ;;(define-key map "\t"       'electric-pascal-tab)
-    (define-key map "\M-\t"    'pascal-complete-word)
-    (define-key map "\M-?"     'pascal-show-completions)
+    (define-key map "\M-\t"    'completion-at-point)
+    (define-key map "\M-?"     'completion-help-at-point)
     (define-key map "\177"     'backward-delete-char-untabify)
     (define-key map "\M-\C-h"  'pascal-mark-defun)
     (define-key map "\C-c\C-b" 'pascal-insert-block)
@@ -232,13 +231,13 @@ will do all lineups."
 	      (const :tag "Case statements" case))
   :group 'pascal)
 
-(defcustom pascal-toggle-completions nil
-  "*Non-nil means \\<pascal-mode-map>\\[pascal-complete-word] should try all possible completions one by one.
-Repeated use of \\[pascal-complete-word] will show you all of them.
+(defvar pascal-toggle-completions nil
+  "*Non-nil meant \\<pascal-mode-map>\\[pascal-complete-word] would try all possible completions one by one.
+Repeated use of \\[pascal-complete-word] would show you all of them.
 Normally, when there is more than one possible completion,
-it displays a list of all possible completions."
-  :type 'boolean
-  :group 'pascal)
+it displays a list of all possible completions.")
+(make-obsolete-variable 'pascal-toggle-completions
+                        'completion-cycle-threshold "24.1")
 
 (defcustom pascal-type-keywords
   '("array" "file" "packed" "char" "integer" "real" "string" "record")
@@ -303,9 +302,9 @@ are handled in another way, and should not be added to this list."
   "Major mode for editing Pascal code. \\<pascal-mode-map>
 TAB indents for Pascal code.  Delete converts tabs to spaces as it moves back.
 
-\\[pascal-complete-word] completes the word around current point with respect \
+\\[completion-at-point] completes the word around current point with respect \
 to position in code
-\\[pascal-show-completions] shows all possible completions at this point.
+\\[completion-help-at-point] shows all possible completions at this point.
 
 Other useful functions are:
 
@@ -354,6 +353,7 @@ no args, if that value is non-nil."
   (set (make-local-variable 'comment-start) "{")
   (set (make-local-variable 'comment-start-skip) "(\\*+ *\\|{ *")
   (set (make-local-variable 'comment-end) "}")
+  (add-hook 'completion-at-point-functions 'pascal-completions-at-point nil t)
   ;; Font lock support
   (set (make-local-variable 'font-lock-defaults)
        '(pascal-font-lock-keywords nil t))
@@ -1287,54 +1287,17 @@ indent of the current line in parameterlist."
 (defvar pascal-last-word-shown nil)
 (defvar pascal-last-completions nil)
 
-(defun pascal-complete-word ()
-  "Complete word at current point.
-\(See also `pascal-toggle-completions', `pascal-type-keywords',
-`pascal-start-keywords' and `pascal-separator-keywords'.)"
-  (interactive)
+(defun pascal-completions-at-point ()
   (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_") (point)))
 	 (e (save-excursion (skip-chars-forward "a-zA-Z0-9_") (point))))
+    (when (> e b)
+      (list b e #'pascal-completion))))
 
-    ;; Toggle-completions inserts whole labels
-    (if pascal-toggle-completions
-	(let* ((pascal-str (buffer-substring b e))
-               (allcomp (if (and pascal-toggle-completions
-                                 (string= pascal-last-word-shown pascal-str))
-                            pascal-last-completions
-                          (all-completions pascal-str 'pascal-completion))))
-	  ;; Update entry number in list
-	  (setq pascal-last-completions allcomp
-		pascal-last-word-numb
-		(if (>= pascal-last-word-numb (1- (length allcomp)))
-		    0
-		  (1+ pascal-last-word-numb)))
-	  (setq pascal-last-word-shown (elt allcomp pascal-last-word-numb))
-	  ;; Display next match or same string if no match was found
-	  (if allcomp
-              (progn
-                (goto-char e)
-                (insert-before-markers pascal-last-word-shown)
-                (delete-region b e))
-	    (message "(No match)")))
-      ;; The other form of completion does not necessarily do that.
-      (completion-in-region b e 'pascal-completion))))
+(define-obsolete-function-alias 'pascal-complete-word
+  'completion-at-point "24.1")
 
-(defun pascal-show-completions ()
-  "Show all possible completions at current point."
-  (interactive)
-  (let* ((b (save-excursion (skip-chars-backward "a-zA-Z0-9_") (point)))
-	 (e (save-excursion (skip-chars-forward "a-zA-Z0-9_") (point)))
-	 (pascal-str (buffer-substring b e))
-	 (allcomp (if (and pascal-toggle-completions
-			   (string= pascal-last-word-shown pascal-str))
-		      pascal-last-completions
-		    (all-completions pascal-str 'pascal-completion))))
-    ;; Show possible completions in a temporary buffer.
-    (with-output-to-temp-buffer "*Completions*"
-      (display-completion-list allcomp pascal-str))
-    ;; Wait for a keypress. Then delete *Completion*  window
-    (momentary-string-display "" (point))
-    (delete-window (get-buffer-window (get-buffer "*Completions*")))))
+(define-obsolete-function-alias 'pascal-show-completions
+  'completion-help-at-point "24.1")
 
 
 (defun pascal-get-default-symbol ()

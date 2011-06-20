@@ -135,7 +135,8 @@ The metadata of a completion table should be constant between two boundaries."
   (let ((metadata (if (functionp table)
                       (funcall table string pred 'metadata))))
     (if (eq (car-safe metadata) 'metadata)
-        (cdr metadata))))
+        metadata
+      '(metadata))))
 
 (defun completion--field-metadata (field-start)
   (completion-metadata (buffer-substring-no-properties field-start (point))
@@ -513,7 +514,7 @@ an association list that can specify properties such as:
         (delete-dups (append (cdr over) (copy-sequence completion-styles)))
        completion-styles)))
 
-(defun completion-try-completion (string table pred point metadata)
+(defun completion-try-completion (string table pred point &optional metadata)
   "Try to complete STRING using completion table TABLE.
 Only the elements of table that satisfy predicate PRED are considered.
 POINT is the position of point within STRING.
@@ -524,9 +525,12 @@ a new position for point."
   (completion--some (lambda (style)
                       (funcall (nth 1 (assq style completion-styles-alist))
                                string table pred point))
-                    (completion--styles metadata)))
+                    (completion--styles (or metadata
+                                            (completion-metadata
+                                             (substring string 0 point)
+                                             table pred)))))
 
-(defun completion-all-completions (string table pred point metadata)
+(defun completion-all-completions (string table pred point &optional metadata)
   "List the possible completions of STRING in completion table TABLE.
 Only the elements of table that satisfy predicate PRED are considered.
 POINT is the position of point within STRING.
@@ -537,7 +541,10 @@ in the last `cdr'."
   (completion--some (lambda (style)
                       (funcall (nth 2 (assq style completion-styles-alist))
                                string table pred point))
-                    (completion--styles metadata)))
+                    (completion--styles (or metadata
+                                            (completion-metadata
+                                             (substring string 0 point)
+                                             table pred)))))
 
 (defun minibuffer--bitset (modified completions exact)
   (logior (if modified    4 0)

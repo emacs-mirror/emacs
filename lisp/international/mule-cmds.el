@@ -1308,11 +1308,11 @@ This is the input method activated automatically by the command
 `toggle-input-method' (\\[toggle-input-method])."
   :link  '(custom-manual "(emacs)Input Methods")
   :group 'mule
-  :type '(choice (const nil) (string
-			      :completion-ignore-case t
-			      :complete-function widget-string-complete
-			      :completion-alist input-method-alist
-			      :prompt-history input-method-history))
+  :type '(choice (const nil)
+          (string
+           :completions (apply-partially
+                         #'completion-table-case-fold input-method-alist)
+           :prompt-history input-method-history))
   :set-after '(current-language-environment))
 
 (put 'input-method-function 'permanent-local t)
@@ -1875,10 +1875,10 @@ specifies the character set for the major languages of Western Europe."
 (define-widget 'charset 'symbol
   "An Emacs charset."
   :tag "Charset"
-  :complete-function (lambda ()
-		       (interactive)
-		       (lisp-complete-symbol 'charsetp))
-  :completion-ignore-case t
+  :completions (apply-partially #'completion-table-with-predicate
+                                (apply-partially #'completion-table-case-fold
+                                                 obarray)
+                                #'charsetp 'strict)
   :value 'ascii
   :validate (lambda (widget)
 	      (unless (charsetp (widget-value widget))
@@ -1912,9 +1912,9 @@ See `set-language-info-alist' for use in programs."
 	   (set-language-environment current-language-environment)))
   :type `(alist
 	  :key-type (string :tag "Language environment"
-			    :completion-ignore-case t
-			    :complete-function widget-string-complete
-			    :completion-alist language-info-alist)
+			    :completions
+                            (apply-partially #'completion-table-case-fold
+                                             language-info-alist))
 	  :value-type
 	  (alist :key-type symbol
 		 :options ((documentation string)
@@ -1927,9 +1927,9 @@ See `set-language-info-alist' for use in programs."
 			   (nonascii-translation charset)
 			   (input-method
 			    (string
-			     :completion-ignore-case t
-			     :complete-function widget-string-complete
-			     :completion-alist input-method-alist
+			     :completions
+                             (apply-partially #'completion-table-case-fold
+                                              input-method-alist)
 			     :prompt-history input-method-history))
 			   (features (repeat symbol))
 			   (unibyte-display coding-system)))))
