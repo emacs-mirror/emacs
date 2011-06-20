@@ -1,3 +1,7 @@
+2011-06-20  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el: Delete trailing whitespaces once and for all.
+
 2011-06-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (get-window-with-predicate): Start scanning with
