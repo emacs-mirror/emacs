@@ -3650,7 +3650,7 @@ Lisp_Object
 intern (const char *str)
 {
   Lisp_Object tem;
-  int len = strlen (str);
+  ptrdiff_t len = strlen (str);
   Lisp_Object obarray;
 
   obarray = Vobarray;
@@ -3666,7 +3666,7 @@ Lisp_Object
 intern_c_string (const char *str)
 {
   Lisp_Object tem;
-  int len = strlen (str);
+  ptrdiff_t len = strlen (str);
   Lisp_Object obarray;
 
   obarray = Vobarray;

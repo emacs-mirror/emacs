@@ -1,5 +1,6 @@
 2011-06-20  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lread.c (intern, intern_c_string):
 	* image.c (xpm_scan) [HAVE_NS && !HAVE_XPM]:
 	Don't assume string length fits in int.
 
