@@ -1,3 +1,8 @@
+2011-06-20  Deniz Dogan  <deniz@dogan.se>
+
+	* process.c (Fset_process_buffer): Clarify return value in
+	docstring.
+
 2011-06-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dispnew.c (add_window_display_history): Use BVAR.

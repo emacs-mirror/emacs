@@ -3230,7 +3230,7 @@ STRING is the search string given as an argument to `info-apropos',
 MATCHES is a list of index matches found by `Info-apropos-matches'.")
 
 (defun Info-apropos-toc-nodes (filename)
-  "Apropos-specific implementation of `Info-apropos-toc-nodes'."
+  "Apropos-specific implementation of `Info-toc-nodes'."
   (let ((nodes (mapcar 'car (reverse Info-apropos-nodes))))
     `(,filename
       ("Top" nil nil ,nodes)
