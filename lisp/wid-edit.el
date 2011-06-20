@@ -1,4 +1,4 @@
-;;; wid-edit.el --- Functions for creating and using widgets -*-byte-compile-dynamic: t;-*-
+;;; wid-edit.el --- Functions for creating and using widgets -*-byte-compile-dynamic: t; lexical-binding:t -*-
 ;;
 ;; Copyright (C) 1996-1997, 1999-2011  Free Software Foundation, Inc.
 ;;
@@ -1161,10 +1161,29 @@ the field."
   "Complete content of editable field from point.
 When not inside a field, signal an error."
   (interactive)
+  (let ((data (widget-completions-at-point)))
+    (cond
+     ((functionp data) (funcall data))
+     ((consp data)
+      (let ((completion-extra-properties (nth 3 data)))
+        (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)
+                              (plist-get completion-extra-properties
+                                         :predicate))))
+     ((widget-field-find (point))
+      ;; This defaulting used to be performed in widget-default-complete, but
+      ;; it seems more appropriate here than in widget-default-completions.
+      (call-interactively 'widget-complete-field))
+     (t
+      (error "Not in an editable field")))))
+;; We may want to use widget completion in buffers where the major mode
+;; hasn't added widget-completions-at-point to completion-at-point-functions,
+;; so it's not really obsolete (yet).
+;; (make-obsolete 'widget-complete 'completion-at-point "24.1")
+
+(defun widget-completions-at-point ()
   (let ((field (widget-field-find (point))))
-    (if field
-	(widget-apply field :complete)
-      (error "Not in an editable field"))))
+    (when field
+      (widget-apply field :completions-function))))
 
 ;;; Setting up the buffer.
 
@@ -1435,7 +1454,7 @@ The value of the :type attribute should be an unconverted widget type."
   :value-to-external (lambda (_widget value) value)
   :button-prefix 'widget-button-prefix
   :button-suffix 'widget-button-suffix
-  :complete 'widget-default-complete
+  :completions-function #'widget-default-completions
   :create 'widget-default-create
   :indent nil
   :offset 0
@@ -1461,13 +1480,20 @@ The value of the :type attribute should be an unconverted widget type."
 
 (defvar widget--completing-widget)
 
-(defun widget-default-complete (widget)
-  "Call the value of the :complete-function property of WIDGET.
-If that does not exist, call the value of `widget-complete-field'.
-During this call, `widget--completing-widget' is bound to WIDGET."
-  (let ((widget--completing-widget widget))
-    (call-interactively (or (widget-get widget :complete-function)
-			    widget-complete-field))))
+(defun widget-default-completions (widget)
+  "Return completion data, like `completion-at-point-functions' would."
+  (let ((completions (widget-get widget :completions)))
+    (if completions
+        (list (widget-field-start widget)
+              (max (point) (widget-field-text-end widget))
+              completions)
+      (if (widget-get widget :complete)
+          (lambda () (widget-apply widget :complete))
+        (if (widget-get widget :complete-function)
+            (lambda ()
+              (let ((widget--completing-widget widget))
+                (call-interactively
+                 (widget-get widget :complete-function)))))))))
 
 (defun widget-default-create (widget)
   "Create WIDGET at point in the current buffer."
@@ -3018,20 +3044,6 @@ as the value."
   :complete-function 'ispell-complete-word
   :prompt-history 'widget-string-prompt-value-history)
 
-(defun widget-string-complete ()
-  "Complete contents of string field.
-Completions are taken from the :completion-alist property of the
-widget.  If that isn't a list, it's evalled and expected to yield a list."
-  (interactive)
-  (let* ((widget widget--completing-widget)
-	 (completion-ignore-case (widget-get widget :completion-ignore-case))
-	 (alist (widget-get widget :completion-alist))
-	 (_ (unless (listp alist)
-	      (setq alist (eval alist)))))
-    (completion-in-region (widget-field-start widget)
-                          (max (point) (widget-field-text-end widget))
-                          alist)))
-
 (define-widget 'regexp 'string
   "A regular expression."
   :match 'widget-regexp-match
@@ -3059,20 +3071,12 @@ widget.  If that isn't a list, it's evalled and expected to yield a list."
 (define-widget 'file 'string
   "A file widget.
 It reads a file name from an editable text field."
-  :complete-function 'widget-file-complete
+  :completions #'completion-file-name-table
   :prompt-value 'widget-file-prompt-value
   :format "%{%t%}: %v"
   ;; Doesn't work well with terminating newline.
   ;; :value-face 'widget-single-line-field
   :tag "File")
-
-(defun widget-file-complete ()
-  "Perform completion on file name preceding point."
-  (interactive)
-  (let ((widget widget--completing-widget))
-    (completion-in-region (widget-field-start widget)
-			  (max (point) (widget-field-text-end widget))
-			  'completion-file-name-table)))
 
 (defun widget-file-prompt-value (widget prompt value unbound)
   ;; Read file from minibuffer.
@@ -3113,7 +3117,7 @@ It reads a directory name from an editable text field."
   :tag "Symbol"
   :format "%{%t%}: %v"
   :match (lambda (_widget value) (symbolp value))
-  :complete-function 'lisp-complete-symbol
+  :completions obarray
   :prompt-internal 'widget-symbol-prompt-internal
   :prompt-match 'symbolp
   :prompt-history 'widget-symbol-prompt-value-history
@@ -3141,9 +3145,8 @@ It reads a directory name from an editable text field."
 
 (define-widget 'function 'restricted-sexp
   "A Lisp function."
-  :complete-function (lambda ()
-		       (interactive)
-		       (lisp-complete-symbol 'fboundp))
+  :completions (apply-partially #'completion-table-with-predicate
+                                obarray #'fboundp 'strict)
   :prompt-value 'widget-field-prompt-value
   :prompt-internal 'widget-symbol-prompt-internal
   :prompt-match 'fboundp
@@ -3165,9 +3168,8 @@ It reads a directory name from an editable text field."
   "A Lisp variable."
   :prompt-match 'boundp
   :prompt-history 'widget-variable-prompt-value-history
-  :complete-function (lambda ()
-		       (interactive)
-		       (lisp-complete-symbol 'boundp))
+  :completions (apply-partially #'completion-table-with-predicate
+                                obarray #'boundp 'strict)
   :tag "Variable")
 
 (define-widget 'coding-system 'symbol
@@ -3178,9 +3180,8 @@ It reads a directory name from an editable text field."
   :prompt-history 'coding-system-value-history
   :prompt-value 'widget-coding-system-prompt-value
   :action 'widget-coding-system-action
-  :complete-function (lambda ()
-		       (interactive)
-		       (lisp-complete-symbol 'coding-system-p))
+  :completions (apply-partially #'completion-table-with-predicate
+                                obarray #'coding-system-p 'strict)
   :validate (lambda (widget)
 	      (unless (coding-system-p (widget-value widget))
 		(widget-put widget :error (format "Invalid coding system: %S"
@@ -3317,7 +3318,7 @@ It reads a directory name from an editable text field."
     (insert (widget-apply widget :value-get))
     (goto-char (point-min))
     (let (err)
-      (condition-case data
+      (condition-case data ;Note: We get a spurious byte-compile warning here.
 	  (progn
 	    ;; Avoid a confusing end-of-file error.
 	    (skip-syntax-forward "\\s-")
@@ -3685,7 +3686,7 @@ example:
   :size 10
   :tag "Color"
   :value "black"
-  :complete 'widget-color-complete
+  :completions (or facemenu-color-alist (defined-colors))
   :sample-face-get 'widget-color-sample-face-get
   :notify 'widget-color-notify
   :action 'widget-color-action)
@@ -3710,14 +3711,6 @@ example:
 	  (and win (> (length (window-list)) 1)
 	       (delete-window win)))
 	(pop-to-buffer ,(current-buffer))))))
-
-(defun widget-color-complete (widget)
-  "Complete the color in WIDGET."
-  (require 'facemenu)			; for facemenu-color-alist
-  (completion-in-region (widget-field-start widget)
-                        (max (point) (widget-field-text-end widget))
-                        (or facemenu-color-alist
-                            (sort (defined-colors) 'string-lessp))))
 
 (defun widget-color-sample-face-get (widget)
   (let* ((value (condition-case nil

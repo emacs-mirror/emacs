@@ -1,3 +1,41 @@
+2011-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* wid-edit.el: Use lexical scoping and move towards completion-at-point.
+	(widget-complete): Use new :completion-function property.
+	(widget-completions-at-point): New function.
+	(default): Use :completion-function instead of :complete.
+	(widget-default-completions): Rename from widget-default-complete, rewrite.
+	(widget-string-complete, widget-file-complete, widget-color-complete):
+	Remove functions.
+	(file, symbol, function, variable, coding-system, color):
+	* international/mule-cmds.el (default-input-method, charset)
+	(language-info-custom-alist):
+	* cus-edit.el (face): Use new property :completions.
+
+	* progmodes/pascal.el (pascal-completions-at-point): New function.
+	(pascal-mode): Use it.
+	(pascal-mode-map): Use completion-at-point.
+	(pascal-toggle-completions): Make obsolete.
+	(pascal-complete-word, pascal-show-completions):
+	* progmodes/octave-mod.el (octave-complete-symbol):
+	Redefine as obsolete alias.
+	* progmodes/octave-inf.el (inferior-octave-completion-at-point):
+	Signal absence of completion info for old Octave,
+	(inferior-octave-complete): Redefine as obsolete alias.
+	* progmodes/meta-mode.el: Use lexical-binding and completion-at-point.
+	(meta-completions-at-point): Rename from meta-complete-symbol and
+	adapt it for use on completion-at-point-functions.
+	(meta-common-mode): Use it.
+	(meta-looking-at-backward, meta-match-buffer): Remove.
+	(meta-complete-symbol): Redefine as obsolete alias.
+	(meta-common-mode-map): Use completion-at-point.
+	* progmodes/make-mode.el: Use lexical-binding and completion-at-point.
+	(makefile-mode-map): Use completion-at-point.
+	(makefile-completions-at-point): Rename from makefile-complete and
+	adapt it for use on completion-at-point-functions.
+	(makefile-mode): Use it.
+	(makefile-complete): Redefine as obsolete alias.
+
 2011-06-20  Deniz Dogan  <deniz@dogan.se>
 
 	* net/rcirc.el: Delete trailing whitespaces once and for all.
@@ -31,8 +69,8 @@
 	display-buffer-normalize-options.
 	(display-buffer-normalize-alist-1): New function.
 	(display-buffer-normalize-specifiers-3): Rename to
-	display-buffer-normalize-alist.  Call
-	display-buffer-normalize-alist-1.
+	display-buffer-normalize-alist.
+	Call display-buffer-normalize-alist-1.
 	(display-buffer-normalize-options-inhibit): New variable.
 	(display-buffer-normalize-specifiers): Rewrite calling
 	display-buffer-normalize-alist,
@@ -43,8 +81,8 @@
 	(window-deletable-p): Use frame-auto-delete.
 	(window-list-no-nils, window-state-ignored-parameters)
 	(window-state-get-1, window-state-get, window-state-put-list)
-	(window-state-put-1, window-state-put-2, window-state-put): New
-	functions.
+	(window-state-put-1, window-state-put-2, window-state-put):
+	New functions.
 	(display-buffer-normalize-options): Move special-display-p group
 	after pop-up-frame group (Bug#8851) and (Bug#8856).
 
@@ -71,12 +109,12 @@
 
 2011-06-18  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (display-buffer-default-specifiers): Remove
-	pop-up-frame.  Add pop-up-window-min-height,
+	* window.el (display-buffer-default-specifiers):
+	Remove pop-up-frame.  Add pop-up-window-min-height,
 	pop-up-window-min-width, and another reuse-window specifier
 	(Bug#8882).  Reported by Dan Nicolaescu <dann@gnu.org>.
-	(display-buffer-normalize-specifiers-2): Handle
-	split-height-threshold and split-width-threshold also when
+	(display-buffer-normalize-specifiers-2):
+	Handle split-height-threshold and split-width-threshold also when
 	pop-up-windows is unset.  Add a reuse-window specifier for the
 	case popping up a new window fails.
 	(special-display-popup-frame): Remove double quoting.
@@ -112,8 +150,8 @@
 	(display-buffer-normalize-specifiers-2): Treat other-window case
 	specially.
 	(display-buffer-normalize-specifiers-3): New function.
-	(display-buffer-normalize-specifiers): Call
-	display-buffer-normalize-specifiers-3.
+	(display-buffer-normalize-specifiers):
+	Call display-buffer-normalize-specifiers-3.
 
 2011-06-17  Martin Rudalics  <rudalics@gmx.at>
 
@@ -133,8 +171,8 @@
 
 2011-06-16  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (display-buffer-normalize-specifiers-1): Respect
-	current value of pop-up-frames for most reasonable values of
+	* window.el (display-buffer-normalize-specifiers-1):
+	Respect current value of pop-up-frames for most reasonable values of
 	second argument of display-buffer (Bug#8865).
 	(switch-to-buffer-same-frame, switch-to-buffer-other-window)
 	(switch-to-buffer-other-window-same-frame)

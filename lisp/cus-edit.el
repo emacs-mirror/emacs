@@ -3830,9 +3830,8 @@ restoring it to the state of a face that has never been customized."
   :sample-face-get 'widget-face-sample-face-get
   :notify 'widget-face-notify
   :match (lambda (_widget value) (facep value))
-  :complete-function (lambda ()
-		       (interactive)
-		       (lisp-complete-symbol 'facep))
+  :completions (apply-partially #'completion-table-with-predicate
+                                obarray #'facep 'strict)
   :prompt-match 'facep
   :prompt-history 'widget-face-prompt-value-history
   :validate (lambda (widget)
