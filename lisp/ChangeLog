@@ -1,3 +1,10 @@
+2011-06-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-version-from-flags)
+	(x-dnd-more-than-3-from-flags): New functions that handle long-as-cons
+	and long as number (Bug#8899).
+	(x-dnd-handle-xdnd): Call functions above (Bug#8899).
+
 2011-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-metadata): Prepend the alist with `metadata'.
