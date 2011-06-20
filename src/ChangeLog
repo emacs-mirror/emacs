@@ -1,5 +1,7 @@
 2011-06-20  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* gtkutil.c (style_changed_cb): Avoid need for strlen.
+
 	* font.c: Don't assume string length fits in int.
 	(font_parse_xlfd, font_parse_fcname, font_unparse_fcname):
 	Use ptrdiff_t, not int.
