@@ -1,5 +1,8 @@
 2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xsmfns.c (smc_save_yourself_CB, x_session_initialize): Avoid strlen.
+	(x_session_initialize): Do not assume string length fits in int.
+
 	* xsettings.c (apply_xft_settings): Fix potential buffer overrun.
 	This is unlikely, but can occur if DPI is outlandish.
 
