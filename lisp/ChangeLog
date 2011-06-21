@@ -1,3 +1,8 @@
+2011-06-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* misc.el (list-dynamic-libraries--refresh): Compute header here...
+	(list-dynamic-libraries): ...not here.
+
 2011-06-21  Leo Liu  <sdl.web@gmail.com>
 
 	* subr.el (sha1): Implement sha1 using secure-hash.
