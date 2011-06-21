@@ -1,3 +1,12 @@
+2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to Sun C.
+	* composite.c (find_automatic_composition): Omit needless 'return 0;'
+	that Sun C diagnosed.
+	* fns.c (secure_hash): Fix pointer signedness issue.
+	* intervals.c (static_offset_intervals): New function.
+	(offset_intervals): Use it.
+
 2011-06-21  Leo Liu  <sdl.web@gmail.com>
 
 	* deps.mk (fns.o):
