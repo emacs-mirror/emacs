@@ -1,5 +1,8 @@
 2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfns.c: Don't assume strlen fits in int.
+	(xic_create_fontsetname, x_window): Use ptrdiff_t, not int.
+
 	* xdisp.c (message_log_check_duplicate): Return intmax_t,
 	not unsigned long, as we prefer signed integers.  All callers changed.
 	Detect integer overflow in repeat count.
