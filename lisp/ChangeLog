@@ -1,3 +1,11 @@
+2011-06-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/network-stream.el (network-stream-open-starttls): Provide
+	support for client certificates both for external and built-in
+	STARTTLS.
+	(auth-source): Require.
+	(open-network-stream): Document the :client-certificate keyword.
+
 2011-06-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-cache.el (top): Don't load the persistency file when
