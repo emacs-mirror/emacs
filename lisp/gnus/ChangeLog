@@ -1,3 +1,10 @@
+2011-06-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* auth-source.el (auth-source-netrc-create): Don't print all tokens in
+	%S format, since that looks odd.
+	(auth-sources): Prefer the ~/.authinfo file over the ~/.authinfo.gpg
+	file, especially when saving.
+
 2011-06-18  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-source-netrc-use-gpg-tokens): Replace

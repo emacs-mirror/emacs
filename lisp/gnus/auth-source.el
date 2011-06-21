@@ -208,7 +208,7 @@ If the value is a function, debug messages are logged by calling
           (function :tag "Function that takes arguments like `message'")
           (const :tag "Don't log anything" nil)))
 
-(defcustom auth-sources '("~/.authinfo.gpg" "~/.authinfo" "~/.netrc")
+(defcustom auth-sources '("~/.authinfo" "~/.authinfo.gpg" "~/.netrc")
   "List of authentication sources.
 
 The default will get login and password information from
@@ -1281,7 +1281,7 @@ See `auth-source-search' for details on SPEC."
           (let ((printer (lambda ()
                            ;; append the key (the symbol name of r)
                            ;; and the value in r
-                           (format "%s%s %S"
+                           (format "%s%s %s"
                                    ;; prepend a space
                                    (if (zerop (length add)) "" " ")
                                    ;; remap auth-source tokens to netrc
@@ -1291,8 +1291,9 @@ See `auth-source-search' for details on SPEC."
                                      (secret "password")
                                      (port   "port") ; redundant but clearer
                                      (t (symbol-name r)))
-                                   ;; the value will be printed in %S format
-                                   data))))
+				   (if (string-match "[\" ]" data)
+				       (format "%S" data)
+				     data)))))
             (setq add (concat add (funcall printer)))))))
 
     (plist-put
