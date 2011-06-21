@@ -20,6 +20,11 @@
 	options more faithfully.
 	(pop-to-buffer): Don't rely on `display-buffer' selecting the
 	window if it is on another frame.
+	(display-buffer-alist, display-buffer-default-specifiers): Don't
+	make new frame unsplittable by default.
+	(display-buffer-normalize-argument): Fix doc-string typo and use
+	'same-frame-other-window instead of 'other-window when associating
+	with display-buffer-macro-specifiers.
 
 2011-06-21  Vincent Belaïche  <vincent.b.1@hotmail.fr>
 

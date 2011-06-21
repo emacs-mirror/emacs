@@ -3821,7 +3821,7 @@ subwindows can get as small as `window-safe-min-height' and
     (pop-up-window-min-width . 80)
     (reuse-window other nil nil)
     (pop-up-frame-alist
-     (height . 24) (width . 80) (unsplittable . t))
+     (height . 24) (width . 80))
     (reuse-window nil other visible)
     (reuse-window nil nil t)
     (reuse-window-even-sizes . t))
@@ -4372,8 +4372,7 @@ using the location specifiers `same-window' or `other-frame'."
 	 :tag "Pop-up frame"
 	 :value (pop-up-frame
 		 (pop-up-frame)
-		 (pop-up-frame-alist
-		  (height . 24) (width . 80) (unsplittable . t)))
+		 (pop-up-frame-alist (height . 24) (width . 80)))
 	 :format "%t\n%v"
 	 :inline t
 	 (const :format "" pop-up-frame)
@@ -5306,7 +5305,7 @@ user preferences expressed in `display-buffer-alist'."
 BUFFER-NAME is the name of the buffer that shall be displayed,
 SPECIFIERS is the second argument of `display-buffer'.  LABEL the
 same argument of `display-buffer'.  OTHER-FRAME non-nil means use
-other-frame for other-windo."
+other-frame for other-window."
   (let (normalized entry)
     (cond
      ((not specifiers)
@@ -5321,7 +5320,7 @@ other-frame for other-windo."
 	  ;; `other-window' must be treated separately.
 	  (let ((entry (assq (if other-frame
 				 'other-frame
-			       'other-window)
+			       'same-frame-other-window)
 			     display-buffer-macro-specifiers)))
 	    (dolist (item (cdr entry))
 	      (setq normalized (cons item normalized)))))
@@ -5434,14 +5433,16 @@ options."
 			      (when (listp pars) pars))
 			specifiers)))))
 
-      ;; `pop-up-frames', `display-buffer-reuse-frames', and
-      ;; `last-nonminibuffer-frame' set means search for a window shoing
-      ;; the same buffer of another frame.
+      ;; `pop-up-frames', `display-buffer-reuse-frames' means search for
+      ;; a window showing the buffer on some visible or iconfied frame.
+      ;; `last-nonminibuffer-frame' set and not the same frame means
+      ;; search that frame.
       (let ((frames (or (and (or use-pop-up-frames
 				 display-buffer-reuse-frames
 				 (not (last-nonminibuffer-frame)))
 			     ;; All visible or iconfied frames.
 			     0)
+			;; Same frame.
 			(last-nonminibuffer-frame))))
 	(when frames
 	  (setq specifiers
