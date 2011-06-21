@@ -1,5 +1,7 @@
 2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xselect.c (Fx_get_atom_name): Avoid need for strlen.
+
 	* xrdb.c: Don't assume strlen fits in int; avoid some strlens.
 	* xrdb.c (magic_file_p, search_magic_path):
 	Omit last arg SUFFIX; it was always 0.  All callers changed.

@@ -2361,7 +2361,7 @@ If the value is 0 or the atom is not known, return the empty string.  */)
   x_uncatch_errors ();
 
   if (!had_errors)
-    ret = make_string (name, strlen (name));
+    ret = build_string (name);
 
   if (atom && name) XFree (name);
   if (NILP (ret)) ret = empty_unibyte_string;
