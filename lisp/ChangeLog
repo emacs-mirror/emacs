@@ -1,3 +1,8 @@
+2011-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (add-to-list): Add handler to check the
+	variable's status.
+
 2011-06-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-version-from-flags)

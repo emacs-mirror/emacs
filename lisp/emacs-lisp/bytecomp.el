@@ -4244,6 +4244,25 @@ binding slots have been popped."
 (defun byte-compile-form-make-variable-buffer-local (form)
   (byte-compile-keep-pending form 'byte-compile-normal-call))
 
+(byte-defop-compiler-1 add-to-list byte-compile-add-to-list)
+(defun byte-compile-add-to-list (form)
+  ;; FIXME: This could be used for `set' as well, except that it's got
+  ;; its own opcode, so the final `byte-compile-normal-call' needs to
+  ;; be replaced with something else.
+  (pcase form
+    (`(,fun ',var . ,_)
+     (byte-compile-check-variable var 'assign)
+     (if (assq var byte-compile--lexical-environment)
+         (byte-compile-log-warning
+          (format "%s cannot use lexical var `%s'" fun var)
+          nil :error)
+       (unless (or (not (byte-compile-warning-enabled-p 'free-vars))
+                   (boundp var)
+                   (memq var byte-compile-bound-variables)
+                   (memq var byte-compile-free-references))
+         (byte-compile-warn "assignment to free variable `%S'" var)
+         (push var byte-compile-free-references)))))
+  (byte-compile-normal-call form))
 
 ;;; tags
 
