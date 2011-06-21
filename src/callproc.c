@@ -1477,7 +1477,7 @@ char *
 egetenv (const char *var)
 {
   char *value;
-  int valuelen;
+  ptrdiff_t valuelen;
 
   if (getenv_internal (var, strlen (var), &value, &valuelen, Qnil))
     return value;
