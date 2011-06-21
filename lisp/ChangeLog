@@ -1,8 +1,13 @@
+2011-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist): Rename
+	`caml' to `python-tracebacks-and-caml'; allow leading tabs (bug#8585).
+
 2011-06-21  Drew Adams <drew.adams@oracle.com>
 
 	* menu-bar.el: Use function variable instead of switch-to-buffer.
 	(menu-bar-select-buffer-function): New variable.
-	(menu-bar-update-buffers): Use it.
+	(menu-bar-update-buffers): Use it (bug#8876).
 
 2011-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -18,15 +23,16 @@
 
 2011-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* minibuffer.el (completion-metadata): Prepend the alist with `metadata'.
+	* minibuffer.el (completion-metadata): Add `metadata' to the alist.
 	(completion-try-completion, completion-all-completions): Compute the
 	metadata argument if it's missing; make it optional (bug#8795).
 
-	* wid-edit.el: Use lexical scoping and move towards completion-at-point.
+	* wid-edit.el: Use lex-bind and move towards completion-at-point.
 	(widget-complete): Use new :completion-function property.
 	(widget-completions-at-point): New function.
 	(default): Use :completion-function instead of :complete.
-	(widget-default-completions): Rename from widget-default-complete, rewrite.
+	(widget-default-completions): Rename from widget-default-complete;
+	Rewrite.
 	(widget-string-complete, widget-file-complete, widget-color-complete):
 	Remove functions.
 	(file, symbol, function, variable, coding-system, color):
