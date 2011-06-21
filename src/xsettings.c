@@ -711,9 +711,7 @@ DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
        doc: /* Get the system default application font. */)
   (void)
 {
-  return current_font
-    ? make_string (current_font, strlen (current_font))
-    : Qnil;
+  return current_font ? build_string (current_font) : Qnil;
 }
 
 DEFUN ("font-get-system-font", Ffont_get_system_font, Sfont_get_system_font,
@@ -721,9 +719,7 @@ DEFUN ("font-get-system-font", Ffont_get_system_font, Sfont_get_system_font,
        doc: /* Get the system default fixed width font. */)
   (void)
 {
-  return current_mono_font
-    ? make_string (current_mono_font, strlen (current_mono_font))
-    : Qnil;
+  return current_mono_font ? build_string (current_mono_font) : Qnil;
 }
 
 DEFUN ("tool-bar-get-system-style", Ftool_bar_get_system_style,
