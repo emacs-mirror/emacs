@@ -1,3 +1,17 @@
+2011-06-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-alist): In default value do not
+	enforce searching a window on any but the selected frame.
+	Reported by Katsumi Yamaoka <yamaoka@jpl.org>.
+	(display-buffer-select-window): Remove function.
+	(display-buffer-in-window): When a window on another frame gets
+	reused, do not select it any more but just raise its frame if
+	necessary (Bug#8851) and (Bug#8856).
+	(display-buffer-normalize-options): Handle pop-up-frames related
+	options more faithfully.
+	(pop-to-buffer): Don't rely on `display-buffer' selecting the
+	window if it is on another frame.
+
 2011-06-21  Vincent Belaïche  <vincent.b.1@hotmail.fr>
 
 	* play/5x5.el (5x5-solve-rotate-left, 5x5-solve-rotate-right):
@@ -74,14 +88,6 @@
 2011-06-20  Deniz Dogan  <deniz@dogan.se>
 
 	* net/rcirc.el: Delete trailing whitespaces once and for all.
-
-2011-06-20  Martin Rudalics  <rudalics@gmx.at>
-
-	* window.el (get-window-with-predicate): Start scanning with
-	window following selected window to restore Emacs 23 behavior.
-	Clarify doc-string.
-	(get-buffer-window-list): Start scanning with selected window to
-	restore Emacs 23 behavior.  Clarify doc-string.
 
 2011-06-20  Daniel Colascione  <dan.colascione@gmail.com>
 
