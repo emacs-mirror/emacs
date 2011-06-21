@@ -1,5 +1,8 @@
 2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xsettings.c (apply_xft_settings): Fix potential buffer overrun.
+	This is unlikely, but can occur if DPI is outlandish.
+
 	* xselect.c (Fx_get_atom_name): Avoid need for strlen.
 
 	* xrdb.c: Don't assume strlen fits in int; avoid some strlens.
