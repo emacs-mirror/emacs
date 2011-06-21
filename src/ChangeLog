@@ -1,5 +1,10 @@
 2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xrdb.c: Don't assume strlen fits in int; avoid some strlens.
+	* xrdb.c (magic_file_p, search_magic_path):
+	Omit last arg SUFFIX; it was always 0.  All callers changed.
+	(magic_file_p): Use ptrdiff_t, not int.  Check for size overflow.
+
 	* xfont.c (xfont_match): Avoid need for strlen.
 
 	* xfns.c: Don't assume strlen fits in int.

@@ -120,20 +120,20 @@ x_get_customization_string (XrmDatabase db, const char *name,
    refers to %L only when the LANG environment variable is set, or
    otherwise provided by X.
 
-   ESCAPED_SUFFIX and SUFFIX are postpended to STRING if they are
-   non-zero.  %-escapes in ESCAPED_SUFFIX are expanded; STRING is left
-   alone.
+   ESCAPED_SUFFIX is postpended to STRING if it is non-zero.
+   %-escapes in ESCAPED_SUFFIX are expanded.
 
    Return NULL otherwise.  */
 
 static char *
-magic_file_p (const char *string, EMACS_INT string_len, const char *class, const char *escaped_suffix, const char *suffix)
+magic_file_p (const char *string, EMACS_INT string_len, const char *class,
+	      const char *escaped_suffix)
 {
   char *lang = getenv ("LANG");
 
-  int path_size = 100;
+  ptrdiff_t path_size = 100;
   char *path = (char *) xmalloc (path_size);
-  int path_len = 0;
+  ptrdiff_t path_len = 0;
 
   const char *p = string;
 
@@ -141,7 +141,7 @@ magic_file_p (const char *string, EMACS_INT string_len, const char *class, const
     {
       /* The chunk we're about to stick on the end of result.  */
       const char *next = NULL;
-      int next_len;
+      ptrdiff_t next_len;
 
       if (*p == '%')
 	{
@@ -201,8 +201,10 @@ magic_file_p (const char *string, EMACS_INT string_len, const char *class, const
 	next = p, next_len = 1;
 
       /* Do we have room for this component followed by a '\0' ?  */
-      if (path_len + next_len + 1 > path_size)
+      if (path_size - path_len <= next_len)
 	{
+	  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 - 1 - path_len < next_len)
+	    memory_full (SIZE_MAX);
 	  path_size = (path_len + next_len + 1) * 2;
 	  path = (char *) xrealloc (path, path_size);
 	}
@@ -220,21 +222,6 @@ magic_file_p (const char *string, EMACS_INT string_len, const char *class, const
 	  p = string;
 	  escaped_suffix = NULL;
 	}
-    }
-
-  /* Perhaps we should add the SUFFIX now.  */
-  if (suffix)
-    {
-      int suffix_len = strlen (suffix);
-
-      if (path_len + suffix_len + 1 > path_size)
-	{
-	  path_size = (path_len + suffix_len + 1);
-	  path = (char *) xrealloc (path, path_size);
-	}
-
-      memcpy (path + path_len, suffix, suffix_len);
-      path_len += suffix_len;
     }
 
   path[path_len] = '\0';
@@ -295,7 +282,8 @@ file_p (const char *filename)
    the path name of the one we found otherwise.  */
 
 static char *
-search_magic_path (const char *search_path, const char *class, const char *escaped_suffix, const char *suffix)
+search_magic_path (const char *search_path, const char *class,
+		   const char *escaped_suffix)
 {
   const char *s, *p;
 
@@ -306,8 +294,7 @@ search_magic_path (const char *search_path, const char *class, const char *escap
 
       if (p > s)
 	{
-	  char *path = magic_file_p (s, p - s, class, escaped_suffix,
-					   suffix);
+	  char *path = magic_file_p (s, p - s, class, escaped_suffix);
 	  if (path)
 	    return path;
 	}
@@ -316,7 +303,7 @@ search_magic_path (const char *search_path, const char *class, const char *escap
 	  char *path;
 
 	  s = "%N%S";
-	  path = magic_file_p (s, strlen (s), class, escaped_suffix, suffix);
+	  path = magic_file_p (s, strlen (s), class, escaped_suffix);
 	  if (path)
 	    return path;
 	}
@@ -340,7 +327,7 @@ get_system_app (const char *class)
   path = getenv ("XFILESEARCHPATH");
   if (! path) path = PATH_X_DEFAULTS;
 
-  p = search_magic_path (path, class, 0, 0);
+  p = search_magic_path (path, class, 0);
   if (p)
     {
       db = XrmGetFileDatabase (p);
@@ -368,19 +355,19 @@ get_user_app (const char *class)
   /* Check for XUSERFILESEARCHPATH.  It is a path of complete file
      names, not directories.  */
   if (((path = getenv ("XUSERFILESEARCHPATH"))
-       && (file = search_magic_path (path, class, 0, 0)))
+       && (file = search_magic_path (path, class, 0)))
 
       /* Check for APPLRESDIR; it is a path of directories.  In each,
 	 we have to search for LANG/CLASS and then CLASS.  */
       || ((path = getenv ("XAPPLRESDIR"))
-	  && ((file = search_magic_path (path, class, "/%L/%N", 0))
-	      || (file = search_magic_path (path, class, "/%N", 0))))
+	  && ((file = search_magic_path (path, class, "/%L/%N"))
+	      || (file = search_magic_path (path, class, "/%N"))))
 
       /* Check in the home directory.  This is a bit of a hack; let's
 	 hope one's home directory doesn't contain any %-escapes.  */
       || (free_it = gethomedir (),
-	  ((file = search_magic_path (free_it, class, "%L/%N", 0))
-	   || (file = search_magic_path (free_it, class, "%N", 0)))))
+	  ((file = search_magic_path (free_it, class, "%L/%N"))
+	   || (file = search_magic_path (free_it, class, "%N")))))
     {
       XrmDatabase db = XrmGetFileDatabase (file);
       xfree (file);
