@@ -241,17 +241,25 @@ font_intern_prop (const char *str, ptrdiff_t len, int force_symbol)
 
   if (len == 1 && *str == '*')
     return Qnil;
-  if (!force_symbol && len >=1 && isdigit (*str))
+  if (!force_symbol && 0 < len && '0' <= *str && *str <= '9')
     {
       for (i = 1; i < len; i++)
-	if (! isdigit (str[i]))
+	if (! ('0' <= str[i] && str[i] <= '9'))
 	  break;
       if (i == len)
 	{
-	  Lisp_Object num = string_to_number (str, 10, 0);
-	  if (! INTEGERP (num))
-	    xsignal1 (Qoverflow_error, num);
-	  return num;
+	  EMACS_INT n;
+
+	  i = 0;
+	  for (n = 0; (n += str[i++] - '0') <= MOST_POSITIVE_FIXNUM; n *= 10)
+	    {
+	      if (i == len)
+		return make_number (n);
+	      if (MOST_POSITIVE_FIXNUM / 10 < n)
+		break;
+	    }
+
+	  xsignal1 (Qoverflow_error, make_string (str, len));
 	}
     }
 
