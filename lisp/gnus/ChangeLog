@@ -5,6 +5,11 @@
 	(auth-sources): Prefer the ~/.authinfo file over the ~/.authinfo.gpg
 	file, especially when saving.
 
+2011-06-21  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnimap.el (nnimap-find-article-by-message-id): return nil when no
+	article found.
+
 2011-06-18  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el (auth-source-netrc-use-gpg-tokens): Replace
