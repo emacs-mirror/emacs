@@ -331,13 +331,13 @@ If you set the marker not to point anywhere, the buffer will have no mark.  */)
    Return the number found, and store them in a vector in VEC
    of length LEN.  */
 
-static int
-overlays_around (EMACS_INT pos, Lisp_Object *vec, int len)
+static ptrdiff_t
+overlays_around (EMACS_INT pos, Lisp_Object *vec, ptrdiff_t len)
 {
   Lisp_Object overlay, start, end;
   struct Lisp_Overlay *tail;
   EMACS_INT startpos, endpos;
-  int idx = 0;
+  ptrdiff_t idx = 0;
 
   for (tail = current_buffer->overlays_before; tail; tail = tail->next)
     {
@@ -405,7 +405,7 @@ get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object o
   else
     {
       EMACS_INT posn = XINT (position);
-      int noverlays;
+      ptrdiff_t noverlays;
       Lisp_Object *overlay_vec, tem;
       struct buffer *obuf = current_buffer;
 

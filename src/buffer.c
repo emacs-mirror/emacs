@@ -2518,18 +2518,21 @@ swap_out_buffer_local_variables (struct buffer *b)
    *NEXT_PTR is guaranteed to be not equal to POS, unless it is the
    default (BEGV or ZV).  */
 
-int
-overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr, int *len_ptr,
+ptrdiff_t
+overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
+	     ptrdiff_t *len_ptr,
 	     EMACS_INT *next_ptr, EMACS_INT *prev_ptr, int change_req)
 {
   Lisp_Object overlay, start, end;
   struct Lisp_Overlay *tail;
-  int idx = 0;
-  int len = *len_ptr;
+  ptrdiff_t idx = 0;
+  ptrdiff_t len = *len_ptr;
   Lisp_Object *vec = *vec_ptr;
   EMACS_INT next = ZV;
   EMACS_INT prev = BEGV;
   int inhibit_storing = 0;
+  ptrdiff_t len_lim = min (MOST_POSITIVE_FIXNUM,
+			   min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object));
 
   for (tail = current_buffer->overlays_before; tail; tail = tail->next)
     {
@@ -2561,10 +2564,10 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr, int *len_ptr,
 		 Either make it bigger, or don't store any more in it.  */
 	      if (extend)
 		{
+		  if ((len_lim - 4) / 2 < len)
+		    memory_full (SIZE_MAX);
 		  /* Make it work with an initial len == 0.  */
-		  len *= 2;
-		  if (len == 0)
-		    len = 4;
+		  len = len * 2 + 4;
 		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
@@ -2604,10 +2607,10 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr, int *len_ptr,
 	    {
 	      if (extend)
 		{
+		  if ((len_lim - 4) / 2 < len)
+		    memory_full (SIZE_MAX);
 		  /* Make it work with an initial len == 0.  */
-		  len *= 2;
-		  if (len == 0)
-		    len = 4;
+		  len = len * 2 + 4;
 		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
@@ -2871,10 +2874,10 @@ compare_overlays (const void *v1, const void *v2)
 /* Sort an array of overlays by priority.  The array is modified in place.
    The return value is the new size; this may be smaller than the original
    size if some of the overlays were invalid or were window-specific.  */
-int
-sort_overlays (Lisp_Object *overlay_vec, int noverlays, struct window *w)
+ptrdiff_t
+sort_overlays (Lisp_Object *overlay_vec, ptrdiff_t noverlays, struct window *w)
 {
-  int i, j;
+  ptrdiff_t i, j;
   struct sortvec *sortvec;
   sortvec = (struct sortvec *) alloca (noverlays * sizeof (struct sortvec));
 
@@ -3880,9 +3883,8 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
        doc: /* Return a list of the overlays that contain the character at POS.  */)
   (Lisp_Object pos)
 {
-  int noverlays;
+  ptrdiff_t len, noverlays;
   Lisp_Object *overlay_vec;
-  int len;
   Lisp_Object result;
 
   CHECK_NUMBER_COERCE_MARKER (pos);
@@ -3942,11 +3944,9 @@ If there are no overlay boundaries from POS to (point-max),
 the value is (point-max).  */)
   (Lisp_Object pos)
 {
-  int noverlays;
+  ptrdiff_t i, len, noverlays;
   EMACS_INT endpos;
   Lisp_Object *overlay_vec;
-  int len;
-  int i;
 
   CHECK_NUMBER_COERCE_MARKER (pos);
 
@@ -3985,7 +3985,7 @@ the value is (point-min).  */)
 {
   EMACS_INT prevpos;
   Lisp_Object *overlay_vec;
-  int len;
+  ptrdiff_t len;
 
   CHECK_NUMBER_COERCE_MARKER (pos);
 

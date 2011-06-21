@@ -1,5 +1,16 @@
 2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use ptrdiff_t, not int, for overlay counts.
+	* buffer.h (overlays_at, sort_overlays, GET_OVERLAYS_AT):
+	* editfns.c (overlays_around, get_pos_property):
+	* textprop.c (get_char_property_and_overlay):
+	* xdisp.c (next_overlay_change, note_mouse_highlight):
+	* xfaces.c (face_at_buffer_position):
+	* buffer.c (overlays_at, sort_overlays, Foverlays_at)
+	(Fnext_overlay_change, Fprevious_overlay_change):
+	Use ptrdiff_t, not int, for sizes.
+	(overlays_at): Check for size-calculation overflow.
+
 	* xterm.c (xim_initialize, same_x_server): Strlen may not fit in int.
 
 	* xsmfns.c (smc_save_yourself_CB, x_session_initialize): Avoid strlen.

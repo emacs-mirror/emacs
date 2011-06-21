@@ -5934,7 +5934,7 @@ face_at_buffer_position (struct window *w, EMACS_INT pos,
   struct frame *f = XFRAME (w->frame);
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object prop, position;
-  int i, noverlays;
+  ptrdiff_t i, noverlays;
   Lisp_Object *overlay_vec;
   Lisp_Object frame;
   EMACS_INT endpos;
