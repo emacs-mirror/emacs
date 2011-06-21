@@ -867,6 +867,8 @@ $(BLD)/fns.$(O) : \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(EMACS_ROOT)/lib/md5.h \
 	$(EMACS_ROOT)/lib/sha1.h \
+	$(EMACS_ROOT)/lib/sha256.h \
+	$(EMACS_ROOT)/lib/sha512.h \
 	$(LISP_H) \
 	$(SRC)/atimer.h \
 	$(SRC)/blockinput.h \

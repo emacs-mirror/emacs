@@ -305,7 +305,8 @@ If you need it, feedmail.el ought to provide a superset of the functionality.
 
 ** The variable `focus-follows-mouse' now always defaults to nil.
 
-** Function `sha1' is now implemented in C for speed.
+** New primitive `secure-hash' that supports many secure hash algorithms
+including md5, sha-1 and sha-2 (sha-224, sha-256, sha-384 and sha-512).
 The elisp implementation sha1.el is removed. Feature sha1 is provided
 by default.
 

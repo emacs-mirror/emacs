@@ -2600,6 +2600,14 @@ Otherwise, return nil."
 	(get-char-property (1- (field-end pos)) 'field)
       raw-field)))
 
+(defun sha1 (object &optional start end binary)
+  "Return the SHA1 (Secure Hash Algorithm) of an OBJECT.
+OBJECT is either a string or a buffer.  Optional arguments START and
+END are character positions specifying which portion of OBJECT for
+computing the hash.  If BINARY is non-nil, return a string in binary
+form."
+  (secure-hash 'sha1 object start end binary))
+
 
 ;;;; Support for yanking and text properties.
 

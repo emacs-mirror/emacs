@@ -1,3 +1,14 @@
+2011-06-21  Leo Liu  <sdl.web@gmail.com>
+
+	* deps.mk (fns.o):
+	* makefile.w32-in ($(BLD)/fns.$(O)): Include sha256.h and
+	sha512.h.
+
+	* fns.c (secure_hash): Rename from crypto_hash_function and change
+	the first arg to accept symbols.
+	(Fsecure_hash): New primtive.
+	(syms_of_fns): New symbols.
+
 2011-06-20  Deniz Dogan  <deniz@dogan.se>
 
 	* process.c (Fset_process_buffer): Clarify return value in

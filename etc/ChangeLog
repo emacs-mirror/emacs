@@ -1,3 +1,7 @@
+2011-06-21  Leo Liu  <sdl.web@gmail.com>
+
+	* NEWS: Mention the new primtive secure-hash.
+
 2011-06-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* themes/dichromacy-theme.el: New theme.
