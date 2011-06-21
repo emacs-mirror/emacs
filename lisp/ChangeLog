@@ -5,6 +5,8 @@
 	STARTTLS.
 	(auth-source): Require.
 	(open-network-stream): Document the :client-certificate keyword.
+	(network-stream-certificate): Change cert-cert to cert and
+	cert-key to key.
 
 2011-06-21  Michael Albinus  <michael.albinus@gmx.de>
 

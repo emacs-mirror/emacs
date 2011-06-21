@@ -171,8 +171,8 @@ values:
 	      (car (auth-source-search :max 1
 				       :host host
 				       :port service)))
-	     (key (plist-get auth-info :cert-key))
-	     (cert (plist-get auth-info :cert-cert)))
+	     (key (plist-get auth-info :key))
+	     (cert (plist-get auth-info :cert)))
 	(and key cert
 	     (list key cert)))))))
 
@@ -231,8 +231,8 @@ values:
 	  ;; the command line.
 	  (when cert
 	    (setq starttls-extra-arguments
-		  (nconc (list "--x509keyfile" (nth 0 cert)
-			       "--x509certfile" (nth 1 cert))
+		  (nconc (list "--x509keyfile" (expand-file-name (nth 0 cert))
+			       "--x509certfile" (expand-file-name (nth 1 cert)))
 			 starttls-extra-arguments)))
 	  (setq stream (starttls-open-stream name buffer host service)))
 	(network-stream-get-response stream start eoc))
