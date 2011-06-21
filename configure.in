@@ -2678,14 +2678,6 @@ gl_ASSERT_NO_GNULIB_POSIXCHECK
 gl_ASSERT_NO_GNULIB_TESTS
 gl_INIT
 
-# Check for alloca.
-dnl src/alloca.c has been removed.  Could also check if $ALLOCA is set?
-dnl FIXME is there an autoconf test that does the right thing, without
-dnl needing to call A_M_E afterwards?
-if test x"$ac_cv_func_alloca_works" != xyes; then
-   AC_MSG_ERROR( [a system implementation of alloca is required] )
-fi
-
 # UNIX98 PTYs.
 AC_CHECK_FUNCS(grantpt)
 
@@ -3458,6 +3450,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 ])dnl
 
 AH_BOTTOM([
+/* On AIX 3 this must be included before any other include file.  */
+#include <alloca.h>
+#if ! HAVE_ALLOCA
+# error "alloca not available on this machine"
+#endif
+
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
@@ -3533,7 +3531,6 @@ AH_BOTTOM([
 
 #include <string.h>
 #include <stdlib.h>
-#include <alloca.h>
 
 #ifndef HAVE_STRCHR
 #define strchr(a, b) index (a, b)

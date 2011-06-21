@@ -4,7 +4,8 @@
 	* .bzrignore: Add lib/alloca.h.
 	* Makefile.in (GNULIB_MODULES): Add alloca-opt.
 	* configure.in (AC_FUNC_ALLOCA): Remove almost all the alloca stuff,
-	as gnulib now does that for us.  Put alloca check after gl_INIT.
+	as gnulib now does that for us.  Put alloca check in config.h.
+	Include <alloca.h> before any other include file, for AIX 3.
 	* lib/gnulib.mk, m4/gl-comp.m4: Regenerate.
 	* lib/alloca.in.h, m4/alloca.m4: New files, from gnulib.
 
