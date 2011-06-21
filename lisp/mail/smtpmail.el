@@ -470,7 +470,9 @@ The list is in preference order.")
     (smtpmail-send-command process string)
     (unless (smtpmail-ok-p (setq ret (smtpmail-read-response process))
 			   code)
-      (throw 'done (smtpmail-response-text ret)))
+      (throw 'done (format "%s in response to %s"
+			   (smtpmail-response-text ret)
+			   string)))
     ret))
 
 (defun smtpmail-try-auth-methods (process supported-extensions host port
@@ -483,7 +485,9 @@ The list is in preference order.")
          (auth-info (car
 		     (auth-source-search :max 1
 					 :host host
-					 :port (or port "smtp")
+					 :port (if port
+						   (format "%s" port)
+						 "smtp")
 					 :create ask-for-password)))
          (user (plist-get auth-info :user))
          (password (plist-get auth-info :secret))
@@ -721,9 +725,27 @@ The list is in preference order.")
 			   " BODY=8BITMIME"
 			 "")
 		     "")))
-	      (smtpmail-command-or-throw
+	      (smtpmail-send-command
 	       process (format "MAIL FROM:<%s>%s%s"
-			       envelope-from size-part body-part)))
+			       envelope-from size-part body-part))
+	      (cond
+	       ((smtpmail-ok-p (setq result (smtpmail-read-response process)))
+		;; Success.
+		)
+	       ((and auth-mechanisms
+		     (not ask-for-password)
+		     (= (car result) 530))
+		;; We got a "530 auth required", so we close and try
+		;; again, this time asking the user for a password.
+		(smtpmail-send-command process "QUIT")
+		(smtpmail-read-response process)
+		(delete-process process)
+		(throw 'done
+		       (smtpmail-via-smtp recipient smtpmail-text-buffer t)))
+	       (t
+		;; Return the error code.
+		(throw 'done
+		       (smtpmail-response-text result)))))
 
 	    ;; RCPT TO:<recipient>
 	    (let ((n 0))

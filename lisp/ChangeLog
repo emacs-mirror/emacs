@@ -6,6 +6,8 @@
 	but in particular:
 	(smtpmail-auth-credentials): Removed.
 	(smtpmail-starttls-credentials): Removed.
+	(smtpmail-via-smtp): Check for servers saying they want AUTH after
+	MAIL FROM, too.
 
 	* net/network-stream.el (network-stream-open-starttls): Provide
 	support for client certificates both for external and built-in
