@@ -30,6 +30,8 @@ GNULIBOBJS = $(BLD)/dtoastr.$(O) \
 	     $(BLD)/time_r.$(O) \
 	     $(BLD)/md5.$(O) \
 	     $(BLD)/sha1.$(O) \
+	     $(BLD)/sha256.$(O) \
+	     $(BLD)/sha512.$(O) \
 	     $(BLD)/filemode.$(O)
 
 #
@@ -114,6 +116,24 @@ $(BLD)/md5.$(O) : \
 $(BLD)/sha1.$(O) : \
 	$(SRC)/sha1.c \
 	$(SRC)/sha1.h \
+	$(EMACS_ROOT)/nt/inc/stdint.h \
+	$(EMACS_ROOT)/nt/inc/sys/stat.h \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/m/intel386.h \
+	$(EMACS_ROOT)/src/config.h
+
+$(BLD)/sha256.$(O) : \
+	$(SRC)/sha256.c \
+	$(SRC)/sha256.h \
+	$(EMACS_ROOT)/nt/inc/stdint.h \
+	$(EMACS_ROOT)/nt/inc/sys/stat.h \
+	$(EMACS_ROOT)/src/s/ms-w32.h \
+	$(EMACS_ROOT)/src/m/intel386.h \
+	$(EMACS_ROOT)/src/config.h
+
+$(BLD)/sha512.$(O) : \
+	$(SRC)/sha512.c \
+	$(SRC)/sha512.h \
 	$(EMACS_ROOT)/nt/inc/stdint.h \
 	$(EMACS_ROOT)/nt/inc/sys/stat.h \
 	$(EMACS_ROOT)/src/s/ms-w32.h \

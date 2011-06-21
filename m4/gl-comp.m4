@@ -32,6 +32,8 @@ AC_DEFUN([gl_EARLY],
   # Code from module careadlinkat:
   # Code from module crypto/md5:
   # Code from module crypto/sha1:
+  # Code from module crypto/sha256:
+  # Code from module crypto/sha512:
   # Code from module dosname:
   # Code from module dtoastr:
   # Code from module extensions:
@@ -70,6 +72,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module sys_stat:
   # Code from module time:
   # Code from module time_r:
+  # Code from module u64:
   # Code from module unistd:
   # Code from module verify:
   # Code from module warn-on-use:
@@ -94,6 +97,8 @@ AC_DEFUN([gl_INIT],
 AC_CHECK_FUNCS_ONCE([readlinkat])
 gl_MD5
 gl_SHA1
+gl_SHA256
+gl_SHA512
 AC_REQUIRE([gl_C99_STRTOLD])
 gl_FILEMODE
 gl_GETLOADAVG
@@ -165,6 +170,7 @@ if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
   gl_PREREQ_TIME_R
 fi
 gl_TIME_MODULE_INDICATOR([time_r])
+AC_REQUIRE([AC_C_INLINE])
 gl_UNISTD_H
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
@@ -413,6 +419,10 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/readlink.c
   lib/sha1.c
   lib/sha1.h
+  lib/sha256.c
+  lib/sha256.h
+  lib/sha512.c
+  lib/sha512.h
   lib/stat.c
   lib/stdarg.in.h
   lib/stdbool.in.h
@@ -431,6 +441,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sys_stat.in.h
   lib/time.in.h
   lib/time_r.c
+  lib/u64.h
   lib/unistd.in.h
   lib/verify.h
   m4/00gnulib.m4
@@ -449,6 +460,8 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/multiarch.m4
   m4/readlink.m4
   m4/sha1.m4
+  m4/sha256.m4
+  m4/sha512.m4
   m4/socklen.m4
   m4/ssize_t.m4
   m4/st_dm_mode.m4
