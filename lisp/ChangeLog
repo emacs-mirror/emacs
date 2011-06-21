@@ -1,5 +1,12 @@
 2011-06-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mail/smtpmail.el: Rewritten to do opportunistic STARTTLS
+	upgrades with `open-network-stream', and rely solely on
+	auth-source for all credentials.  Big changes throughout the file,
+	but in particular:
+	(smtpmail-auth-credentials): Removed.
+	(smtpmail-starttls-credentials): Removed.
+
 	* net/network-stream.el (network-stream-open-starttls): Provide
 	support for client certificates both for external and built-in
 	STARTTLS.
