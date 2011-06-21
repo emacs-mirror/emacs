@@ -1,3 +1,9 @@
+2011-06-21  Drew Adams <drew.adams@oracle.com>
+
+	* menu-bar.el: Use function variable instead of switch-to-buffer.
+	(menu-bar-select-buffer-function): New variable.
+	(menu-bar-update-buffers): Use it.
+
 2011-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (add-to-list): Add handler to check the
