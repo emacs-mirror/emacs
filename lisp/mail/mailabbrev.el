@@ -565,7 +565,6 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 
 (defun mail-abbrev-complete-alias ()
   "Perform completion on alias preceding point."
-  ;; Based on lisp.el:lisp-complete-symbol
   (interactive)
   (mail-abbrev-make-syntax-table)
   (let ((end (point))

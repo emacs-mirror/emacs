@@ -1858,8 +1858,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 /* Check consistency of Lisp face attribute vector ATTRS.  */
 
 static void
-check_lface_attrs (attrs)
-     Lisp_Object *attrs;
+check_lface_attrs (Lisp_Object *attrs)
 {
   xassert (UNSPECIFIEDP (attrs[LFACE_FAMILY_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_FAMILY_INDEX])
@@ -1930,8 +1929,7 @@ check_lface_attrs (attrs)
 /* Check consistency of attributes of Lisp face LFACE (a Lisp vector).  */
 
 static void
-check_lface (lface)
-     Lisp_Object lface;
+check_lface (Lisp_Object lface)
 {
   if (!NILP (lface))
     {
@@ -2008,24 +2006,6 @@ push_named_merge_point (struct named_merge_point *new_named_merge_point,
 }
 
 
-
-#if 0				/* Seems to be unused.  */
-static Lisp_Object
-internal_resolve_face_name (nargs, args)
-     int nargs;
-     Lisp_Object *args;
-{
-  return Fget (args[0], args[1]);
-}
-
-static Lisp_Object
-resolve_face_name_error (ignore)
-     Lisp_Object ignore;
-{
-  return Qnil;
-}
-#endif
-
 /* Resolve face name FACE_NAME.  If FACE_NAME is a string, intern it
    to make it a symbol.  If FACE_NAME is an alias for another face,
    return that face's name.
@@ -6331,8 +6311,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
 /* Print the contents of the realized face FACE to stderr.  */
 
 static void
-dump_realized_face (face)
-     struct face *face;
+dump_realized_face (struct face *face)
 {
   fprintf (stderr, "ID: %d\n", face->id);
 #ifdef HAVE_X_WINDOWS

@@ -1,3 +1,12 @@
+2011-06-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/unistd.in.h, m4/getloadavg.m4: Merge from gnulib.
+
+2011-06-17  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Restore the behavior of checking crt-dir only
+	when the user specified it (not all platforms use it).
+
 2011-06-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* m4/lstat.m4: Merge from gnulib (Bug#8878).

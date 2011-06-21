@@ -398,8 +398,9 @@ point (where the PPSS is equivalent to nil).")
 
 (defun syntax-ppss (&optional pos)
   "Parse-Partial-Sexp State at POS, defaulting to point.
-The returned value is the same as `parse-partial-sexp' except that
-values 2 and 6 values of the returned state cannot be relied upon.
+The returned value is the same as that of `parse-partial-sexp'
+run from point-min to POS except that values at positions 2 and 6
+in the returned list (counting from 0) cannot be relied upon.
 Point is at POS when this function returns."
   ;; Default values.
   (unless pos (setq pos (point)))

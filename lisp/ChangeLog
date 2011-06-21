@@ -1,12 +1,189 @@
+2011-06-20  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-version-from-flags)
+	(x-dnd-more-than-3-from-flags): New functions that handle long-as-cons
+	and long as number (Bug#8899).
+	(x-dnd-handle-xdnd): Call functions above (Bug#8899).
+
+2011-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-metadata): Prepend the alist with `metadata'.
+	(completion-try-completion, completion-all-completions): Compute the
+	metadata argument if it's missing; make it optional (bug#8795).
+
+	* wid-edit.el: Use lexical scoping and move towards completion-at-point.
+	(widget-complete): Use new :completion-function property.
+	(widget-completions-at-point): New function.
+	(default): Use :completion-function instead of :complete.
+	(widget-default-completions): Rename from widget-default-complete, rewrite.
+	(widget-string-complete, widget-file-complete, widget-color-complete):
+	Remove functions.
+	(file, symbol, function, variable, coding-system, color):
+	* international/mule-cmds.el (default-input-method, charset)
+	(language-info-custom-alist):
+	* cus-edit.el (face): Use new property :completions.
+
+	* progmodes/pascal.el (pascal-completions-at-point): New function.
+	(pascal-mode): Use it.
+	(pascal-mode-map): Use completion-at-point.
+	(pascal-toggle-completions): Make obsolete.
+	(pascal-complete-word, pascal-show-completions):
+	* progmodes/octave-mod.el (octave-complete-symbol):
+	Redefine as obsolete alias.
+	* progmodes/octave-inf.el (inferior-octave-completion-at-point):
+	Signal absence of completion info for old Octave,
+	(inferior-octave-complete): Redefine as obsolete alias.
+	* progmodes/meta-mode.el: Use lexical-binding and completion-at-point.
+	(meta-completions-at-point): Rename from meta-complete-symbol and
+	adapt it for use on completion-at-point-functions.
+	(meta-common-mode): Use it.
+	(meta-looking-at-backward, meta-match-buffer): Remove.
+	(meta-complete-symbol): Redefine as obsolete alias.
+	(meta-common-mode-map): Use completion-at-point.
+	* progmodes/make-mode.el: Use lexical-binding and completion-at-point.
+	(makefile-mode-map): Use completion-at-point.
+	(makefile-completions-at-point): Rename from makefile-complete and
+	adapt it for use on completion-at-point-functions.
+	(makefile-mode): Use it.
+	(makefile-complete): Redefine as obsolete alias.
+
+2011-06-20  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el: Delete trailing whitespaces once and for all.
+
+2011-06-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (get-window-with-predicate): Start scanning with
+	window following selected window to restore Emacs 23 behavior.
+	Clarify doc-string.
+	(get-buffer-window-list): Start scanning with selected window to
+	restore Emacs 23 behavior.  Clarify doc-string.
+
+2011-06-20  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* emacs-lisp/syntax.el (syntax-ppss): Further improve docstring.
+
+2011-06-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (auto-mode-alist): Entry for m2-mode (Bug#8852).
+
+	* info.el (Info-apropos-toc-nodes): Minor doc fix (Bug#8833).
+
+2011-06-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-other-window-means-other-frame):
+	Call display-buffer-normalize-alist.
+	(display-buffer-normalize-specifiers-1): Rename to
+	display-buffer-normalize-argument.  New argument other-frame.
+	Rewrite.
+	(display-buffer-normalize-specifiers-2): Rename to
+	display-buffer-normalize-options.
+	(display-buffer-normalize-alist-1): New function.
+	(display-buffer-normalize-specifiers-3): Rename to
+	display-buffer-normalize-alist.
+	Call display-buffer-normalize-alist-1.
+	(display-buffer-normalize-options-inhibit): New variable.
+	(display-buffer-normalize-specifiers): Rewrite calling
+	display-buffer-normalize-alist,
+	display-buffer-normalize-argument, and
+	display-buffer-normalize-options.  Don't call the latter if
+	display-buffer-normalize-options-inhibit is non-nil.
+	(frame-auto-delete): New option.
+	(window-deletable-p): Use frame-auto-delete.
+	(window-list-no-nils, window-state-ignored-parameters)
+	(window-state-get-1, window-state-get, window-state-put-list)
+	(window-state-put-1, window-state-put-2, window-state-put):
+	New functions.
+	(display-buffer-normalize-options): Move special-display-p group
+	after pop-up-frame group (Bug#8851) and (Bug#8856).
+
+2011-06-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/rx.el (rx-constituents): Add support for numbered
+	groups (Bug#8776).
+	(rx-submatch-n): New function.
+	(rx): Document it.
+
+	* dired-x.el (dired-mark-unmarked-files): Fix interactive spec
+	(Bug#8768).
+
+	* replace.el (occur-mode-map): Set occur-edit-mode binding to "e".
+
+	* textmodes/fill.el (default-justification): Add :safe (Bug#8879).
+
+	* cus-face.el (custom-declare-face): Call custom-theme-recalc face
+	anytime existing face settings are present (Bug#8889).
+
+	* progmodes/delphi.el (delphi-mode-syntax-table): Use defvar.
+	(delphi-mode): Use define-derived-mode to inherit from prog-mode.
+	Remove unused argument.
+
+2011-06-18  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-default-specifiers):
+	Remove pop-up-frame.  Add pop-up-window-min-height,
+	pop-up-window-min-width, and another reuse-window specifier
+	(Bug#8882).  Reported by Dan Nicolaescu <dann@gnu.org>.
+	(display-buffer-normalize-specifiers-2):
+	Handle split-height-threshold and split-width-threshold also when
+	pop-up-windows is unset.  Add a reuse-window specifier for the
+	case popping up a new window fails.
+	(special-display-popup-frame): Remove double quoting.
+	(display-buffer-normalize-specifiers-1): Fix thinko.
+
+2011-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el (shell-completion-vars): Set pcomplete-termination-string
+	according to comint-completion-addsuffix.
+
+	* pcomplete.el: Convert to lexical binding and fix bug#8819.
+	(pcomplete-suffix-list): Mark as obsolete.
+	(pcomplete-completions-at-point): Capture pcomplete-norm-func and
+	pcomplete-seen in the closure.
+	(pcomplete-comint-setup): Setup completion-at-point as well.
+	(pcomplete--entries): New function.
+	(pcomplete--env-regexp): New var.
+	(pcomplete-entries): Rewrite to work with partial-completion and
+	without relying on pcomplete-suffix-list.
+	(pcomplete-pare-list): Remove, unused.
+
+2011-06-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-alist): Set pop-up-window-min-height
+	and pop-up-window-min-width in default value.  Reported by
+	Thierry Volpiatto <thierry.volpiatto@gmail.com>.  New specifier
+	other-window-means-other-frame.
+	(display-buffer-macro-specifiers): Comment out entry for
+	other-window specifier.
+	(display-buffer-other-window-means-other-frame): New function.
+	(display-buffer-normalize-specifiers-1): New arguments
+	buffer-name and label.  Treat other-window case specially.
+	(display-buffer-normalize-specifiers-2): Treat other-window case
+	specially.
+	(display-buffer-normalize-specifiers-3): New function.
+	(display-buffer-normalize-specifiers):
+	Call display-buffer-normalize-specifiers-3.
+
 2011-06-17  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (same-window-p): Fix two typos introduced when
 	adding with-no-warnings.
+	(display-buffer-normalize-specifiers-1): Don't check
+	pop-up-frames for 'unset initialization.
+	(display-buffer-normalize-specifiers-2): Major rewrite using
+	special-display-p and same-window-p (Bug#8851) and (Bug#8856).
+	(pop-up-frames, display-buffer-reuse-frames)
+	(display-buffer-mark-dedicated): Don't initialize to 'unset.
+	Suggested by David Engster <deng@randomsample.de>.
+	(even-window-heights): Initialize to 'unset.
+	(display-buffer-alist-set): Handle new 'unset initializations.
+	(display-buffer-macro-specifiers): Don't pop up a new frame in the
+	other window case.
 
 2011-06-16  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (display-buffer-normalize-specifiers-1): Respect
-	current value of pop-up-frames for most reasonable values of
+	* window.el (display-buffer-normalize-specifiers-1):
+	Respect current value of pop-up-frames for most reasonable values of
 	second argument of display-buffer (Bug#8865).
 	(switch-to-buffer-same-frame, switch-to-buffer-other-window)
 	(switch-to-buffer-other-window-same-frame)

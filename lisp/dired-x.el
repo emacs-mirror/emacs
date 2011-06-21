@@ -546,11 +546,14 @@ This functions works by temporarily binding `dired-marker-char' to
 ;; Returns t if any work was done, nil otherwise.
 (defun dired-mark-unmarked-files (regexp msg &optional unflag-p localp)
   "Mark unmarked files matching REGEXP, displaying MSG.
-REGEXP is matched against the entire file name.
-Does not re-mark files which already have a mark.
+REGEXP is matched against the entire file name.  When called
+interactively, prompt for REGEXP.
 With prefix argument, unflag all those files.
 Optional fourth argument LOCALP is as in `dired-get-filename'."
-  (interactive "P")
+  (interactive
+   (list (dired-read-regexp
+	  "Mark unmarked files matching regexp (default all): ")
+	 nil current-prefix-arg nil))
   (let ((dired-marker-char (if unflag-p ?\s dired-marker-char)))
     (dired-mark-if
      (and

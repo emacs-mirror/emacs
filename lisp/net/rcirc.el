@@ -987,7 +987,7 @@ This number is independent of the number of lines in the buffer.")
   (setq buffer-invisibility-spec '())
   (setq buffer-display-table (make-display-table))
   (set-display-table-slot buffer-display-table 4
-			  (let ((glyph (make-glyph-code 
+			  (let ((glyph (make-glyph-code
 					?. 'font-lock-keyword-face)))
 			    (make-vector 3 glyph)))
 
@@ -1151,7 +1151,7 @@ Create the buffer if it doesn't exist."
 			   (rcirc-generate-new-buffer-name process target))))
 	  (with-current-buffer new-buffer
 	    (rcirc-mode process target)
-	    (rcirc-put-nick-channel process (rcirc-nick process) target 
+	    (rcirc-put-nick-channel process (rcirc-nick process) target
 				    rcirc-current-line))
 	  new-buffer)))))
 
@@ -1238,7 +1238,7 @@ Create the buffer if it doesn't exist."
   (interactive)
   (let ((pos (1+ (- (point) rcirc-prompt-end-marker))))
     (goto-char (point-max))
-    (let ((text (buffer-substring-no-properties rcirc-prompt-end-marker 
+    (let ((text (buffer-substring-no-properties rcirc-prompt-end-marker
 						(point)))
           (parent (buffer-name)))
       (delete-region rcirc-prompt-end-marker (point))
@@ -1477,7 +1477,7 @@ record activity."
 			       (match-string 1 text)))
 			   rcirc-ignore-list))
 	       ;; do not ignore if we sent the message
- 	       (not (string= sender (rcirc-nick process))))    
+ 	       (not (string= sender (rcirc-nick process))))
     (let* ((buffer (rcirc-target-buffer process sender response target text))
 	   (inhibit-read-only t))
       (with-current-buffer buffer
@@ -1655,8 +1655,8 @@ log-files with absolute names (see `rcirc-log-filename-function')."
 (defun rcirc-view-log-file ()
   "View logfile corresponding to the current buffer."
   (interactive)
-  (find-file-other-window 
-   (expand-file-name (funcall rcirc-log-filename-function 
+  (find-file-other-window
+   (expand-file-name (funcall rcirc-log-filename-function
 			      (rcirc-buffer-process) rcirc-target)
 		     rcirc-log-directory)))
 
@@ -2446,7 +2446,7 @@ keywords when no KEYWORD is given."
 				 rcirc-fill-column)
 				(t fill-column))
 			  ;; make sure ... doesn't cause line wrapping
-			  3)))		
+			  3)))
       (fill-region (point) (point-max) nil t))))
 
 ;;; handlers
@@ -2813,7 +2813,7 @@ Passwords are stored in `rcirc-authinfo' (which see)."
             ;; quakenet authentication doesn't rely on the user's nickname.
             ;; the variable `nick' here represents the Q account name.
             (when (eq method 'quakenet)
-              (rcirc-send-privmsg 
+              (rcirc-send-privmsg
                process
                "Q@CServe.quakenet.org"
                (format "AUTH %s %s" nick (car args))))))))))

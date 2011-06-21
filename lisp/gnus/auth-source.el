@@ -154,15 +154,30 @@ let-binding."
           (const :tag "Never save" nil)
           (const :tag "Ask" ask)))
 
-(defcustom auth-source-save-secrets nil
-  "If set, auth-source will respect it for password tokens behavior."
+;; TODO: make the default (setq auth-source-netrc-use-gpg-tokens `((,(if (boundp 'epa-file-auto-mode-alist-entry) (car (symbol-value 'epa-file-auto-mode-alist-entry)) "\\.gpg\\'") never) (t gpg)))
+;; TODO: or maybe leave as (setq auth-source-netrc-use-gpg-tokens 'never)
+
+(defcustom auth-source-netrc-use-gpg-tokens 'never
+  "Set this to tell auth-source when to create GPG password
+tokens in netrc files.  It's either an alist or `never'."
   :group 'auth-source
   :version "23.2" ;; No Gnus
   :type `(choice
-          :tag "auth-source new password token behavior"
-          (const :tag "Use GPG tokens" gpg)
-          (const :tag "Save unencrypted" nil)
-          (const :tag "Ask" ask)))
+          (const :tag "Always use GPG password tokens" (t gpg))
+          (const :tag "Never use GPG password tokens" never)
+          (repeat :tag "Use a lookup list"
+                  (list
+                   (choice :tag "Matcher"
+                           (const :tag "Match anything" t)
+                           (const :tag "The EPA encrypted file extensions"
+                                  ,(if (boundp 'epa-file-auto-mode-alist-entry)
+                                       (car (symbol-value
+                                             'epa-file-auto-mode-alist-entry))
+                                     "\\.gpg\\'"))
+                           (regexp :tag "Regular expression"))
+                   (choice :tag "What to do"
+                           (const :tag "Save GPG-encrypted password tokens" gpg)
+                           (const :tag "Don't encrypt tokens" never))))))
 
 (defvar auth-source-magic "auth-source-magic ")
 
@@ -247,9 +262,11 @@ can get pretty complex."
                                           ,@auth-source-protocols-customize))
                                         (list :tag "User" :inline t
                                               (const :format "" :value :user)
-                                              (choice :tag "Personality/Username"
+                                              (choice
+                                               :tag "Personality/Username"
                                                       (const :tag "Any" t)
-                                                      (string :tag "Name")))))))))
+                                                      (string
+                                                       :tag "Name")))))))))
 
 (defcustom auth-source-gpg-encrypt-to t
   "List of recipient keys that `authinfo.gpg' encrypted to.
@@ -950,8 +967,10 @@ Note that the MAX parameter is used so we can exit the parse early."
                 (remove (symbol-value 'epa-file-handler)
                         file-name-handler-alist)
               file-name-handler-alist))
-         (find-file-hook
-          ',(remove 'epa-file-find-file-hook find-file-hook))
+         (,(if (boundp 'find-file-hook) 'find-file-hook 'find-file-hooks)
+          ',(remove
+             'epa-file-find-file-hook
+             (if (boundp 'find-file-hook) 'find-file-hook 'find-file-hooks)))
          (auto-mode-alist
           ',(if (boundp 'epa-file-auto-mode-alist-entry)
                 (remove (symbol-value 'epa-file-auto-mode-alist-entry)
@@ -1206,19 +1225,34 @@ See `auth-source-search' for details on SPEC."
               (cond
                ((and (null data) (eq r 'secret))
                 ;; Special case prompt for passwords.
-                ;; Respect `auth-source-save-secrets'
-                (let* ((ep (format "Do you want GPG password tokens? (%s)"
-                                   "see `auth-source-save-secrets'"))
+;; TODO: make the default (setq auth-source-netrc-use-gpg-tokens `((,(if (boundp 'epa-file-auto-mode-alist-entry) (car (symbol-value 'epa-file-auto-mode-alist-entry)) "\\.gpg\\'") nil) (t gpg)))
+;; TODO: or maybe leave as (setq auth-source-netrc-use-gpg-tokens 'never)
+                (let* ((ep (format "Use GPG password tokens in %s?" file))
                        (gpg-encrypt
-;;; FIXME: this relies on .gpg files being handled by EPA/EPG
-                        ;; don't put GPG tokens in GPG-encrypted files
-                        (and (not (equal "gpg" (file-name-extension file)))
-                             (or (eq auth-source-save-secrets 'gpg)
-                                 (and (eq auth-source-save-secrets 'ask)
-                                      (setq auth-source-save-secrets
-                                            (and (y-or-n-p ep) 'gpg))))))
+                        (cond
+                         ((eq auth-source-netrc-use-gpg-tokens 'never)
+                          'never)
+                         ((listp auth-source-netrc-use-gpg-tokens)
+                          (let ((check (copy-sequence
+                                        auth-source-netrc-use-gpg-tokens))
+                                item ret)
+                            (while check
+                              (setq item (pop check))
+                              (when (or (eq (car item) t)
+                                        (string-match (car item) file))
+                                (setq ret (cdr item))
+                                (setq check nil)))))
+                         (t 'never)))
                         (plain (read-passwd prompt)))
-                  (if (eq auth-source-save-secrets 'gpg)
+                  ;; ask if we don't know what to do (in which case
+                  ;; auth-source-netrc-use-gpg-tokens must be a list)
+                  (unless gpg-encrypt
+                    (setq gpg-encrypt (if (y-or-n-p ep) 'gpg 'never))
+                    ;; TODO: save the defcustom now? or ask?
+                    (setq auth-source-netrc-use-gpg-tokens
+                          (cons `(,file ,gpg-encrypt)
+                                auth-source-netrc-use-gpg-tokens)))
+                  (if (eq gpg-encrypt 'gpg)
                       (auth-source-epa-make-gpg-token plain file)
                     plain)))
                ((null data)

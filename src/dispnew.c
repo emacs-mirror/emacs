@@ -310,8 +310,8 @@ add_window_display_history (struct window *w, const char *msg, int paused_p)
 	   history_tick++,
 	   w,
 	   ((BUFFERP (w->buffer)
-	     && STRINGP (XBUFFER (w->buffer)->name))
-	    ? SSDATA (XBUFFER (w->buffer)->name)
+	     && STRINGP (BVAR (XBUFFER (w->buffer), name)))
+	    ? SSDATA (BVAR (XBUFFER (w->buffer), name))
 	    : "???"),
 	   paused_p ? " ***paused***" : "");
   strcat (buf, msg);

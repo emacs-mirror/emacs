@@ -814,7 +814,7 @@ way@dots{}).  If input redirection is added, also update the
 With the handling of @emph{word} specified by an
 @code{eshell-special-alist}.
 
-@item In @code{eshell-veal-using-options}, allow a @code{:complete} tag
+@item In @code{eshell-eval-using-options}, allow a @code{:complete} tag
 
 It would be used to provide completion rules for that command.  Then the
 macro will automagically define the completion function.

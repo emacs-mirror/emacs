@@ -1,4 +1,4 @@
-2011-06-20  Paul Eggert  <eggert@cs.ucla.edu>
+2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* termcap.c: Don't assume sizes fit in int and never overflow.
 	(struct termcap_buffer, tgetent): Use ptrdiff_t, not int, for sizes.
@@ -20,7 +20,7 @@
 	* font.h (font_intern_prop): 2nd arg is now ptrdiff_t, not int.
 
 	* filelock.c: Fix some buffer overrun and integer overflow issues.
-	(get_boot_time): Don't assume that gzip command string fits in 100 bytes.
+	(get_boot_time): Don't assume gzip command string fits in 100 bytes.
 	Reformulate so as not to need the command string.
 	Invoke gzip -cd rather than gunzip, as it's more portable.
 	(lock_info_type, lock_file_1, lock_file):
@@ -31,8 +31,6 @@
 	Don't assume (via atoi) that time_t and pid_t fit in int.
 	Check for time_t and/or pid_t out of range, e.g., via a network share.
 	Don't alloca where an auto var works fine.
-
-2011-06-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c: Fix some integer overflow issues.
 	(file_name_as_directory, Fexpand_file_name, Fsubstitute_in_file_name):
@@ -65,7 +63,7 @@
 	All uses changed.  This doesn't fix a bug, but it simplifies the
 	code away from its former Hollerith-constant appearance, and it's
 	one less 'int' to worry about when looking at integer-overflow issues.
-	(string_to_number): Simplify the 2011-04-26 change by invoking xsignal1.
+	(string_to_number): Simplify 2011-04-26 change by invoking xsignal1.
 
 	* lisp.h (DEFUN): Remove bogus use of sizeof (struct Lisp_Subr).
 	This didn't break anything, but it didn't help either.
@@ -73,8 +71,6 @@
 	value does not matter.
 	(LIST_END_P): Remove unused macro and its bogus comment.
 	(make_fixnum_or_float): Remove unnecessary cast to EMACS_INT.
-
-2011-06-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lisp.h (union Lisp_Object.i): EMACS_INT, not EMACS_UINT.
 	This is for consistency with the ordinary, non-USE_LISP_UNION_TYPE,
@@ -91,7 +87,7 @@
 	(compute_motion): Use it.  This is just for clarity.
 	(Fcompute_motion): Don't assume hscroll and tab offset fit in int.
 
-	* image.c (xbm_image_p): Don't assume stated width and height fit in int.
+	* image.c (xbm_image_p): Don't assume stated width, height fit in int.
 
 	* lisp.h (lint_assume): New macro.
 	* composite.c (composition_gstring_put_cache):
@@ -115,11 +111,8 @@
 	* fns.c (concat): Catch string overflow earlier.
 	Do not rely on integer wraparound.
 
-	* dispextern.h (struct it.overlay_strings_charpos): EMACS_INT, not int.
-
-2011-06-17  Paul Eggert  <eggert@cs.ucla.edu>
-
-	* dispextern.h (struct it.selective): Now EMACS_INT, not int.
+	* dispextern.h (struct it.overlay_strings_charpos)
+	(struct it.selective): Now EMACS_INT, not int.
 	* xdisp.c (forward_to_next_line_start)
 	(back_to_previous_visible_line_start)
 	(reseat_at_next_visible_line_start, next_element_from_buffer):
@@ -144,6 +137,29 @@
 	Don't truncate size to int.
 	(record_overlay_string): Check for size-calculation overflow.
 	(init_buffer_once): Check at compile-time, not run-time.
+
+2011-06-20  Deniz Dogan  <deniz@dogan.se>
+
+	* process.c (Fset_process_buffer): Clarify return value in
+	docstring.
+
+2011-06-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dispnew.c (add_window_display_history): Use BVAR.
+
+	* xdisp.c (debug_method_add): Use BVAR.
+	(check_window_end, dump_glyph_matrix, dump_glyph)
+	(dump_glyph_row, dump_glyph_string): Convert arglist to ANSI C.
+
+	* xfaces.c (check_lface_attrs, check_lface, dump_realized_face):
+	Likewise.
+
+	* xfns.c (Fx_create_frame, x_create_tip_frame): Delay image cache
+	check till after the cache is created in init_frame_faces.
+
+2011-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (Fsafe_length): Yet another int/Lisp_Object mixup.
 
 2011-06-16  Paul Eggert  <eggert@cs.ucla.edu>
 

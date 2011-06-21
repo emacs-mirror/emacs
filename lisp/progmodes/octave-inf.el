@@ -267,8 +267,12 @@ startup file, `~/.emacs-octave'."
 	  (save-excursion
 	    (skip-syntax-backward "w_" (comint-line-beginning-position))
             (point))))
-    (cond (inferior-octave-complete-impossible nil)
-	  ((eq start end) nil)
+    (cond ((eq start end) nil)
+	  (inferior-octave-complete-impossible
+           (message (concat
+                     "Your Octave does not have `completion_matches'.  "
+                     "Please upgrade to version 2.X."))
+           nil)
 	  (t
            (list
             start end
@@ -279,19 +283,8 @@ startup file, `~/.emacs-octave'."
                (sort (delete-dups inferior-octave-output-list)
                      'string-lessp))))))))
 
-(defun inferior-octave-complete ()
-  "Perform completion on the Octave symbol preceding point.
-This is implemented using the Octave command `completion_matches' which
-is NOT available with versions of Octave prior to 2.0."
-  (interactive)
-  (if inferior-octave-complete-impossible
-      (error (concat
-              "Your Octave does not have `completion_matches'.  "
-              "Please upgrade to version 2.X."))
-    (let ((data (inferior-octave-completion-at-point)))
-      (if (null data)
-          (message "Cannot complete an empty string")
-        (apply #'completion-in-region data)))))
+(define-obsolete-function-alias 'inferior-octave-complete
+  'completion-at-point "24.1")
 
 (defun inferior-octave-dynamic-list-input-ring ()
   "List the buffer's input history in a help buffer."

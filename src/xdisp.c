@@ -2248,8 +2248,7 @@ check_it (it)
    to be---the last row in the current matrix displaying text.  */
 
 static void
-check_window_end (w)
-     struct window *w;
+check_window_end (struct window *w)
 {
   if (!MINI_WINDOW_P (w)
       && !NILP (w->window_end_valid))
@@ -11148,8 +11147,8 @@ debug_method_add (w, fmt, a1, a2, a3, a4, a5, a6, a7, a8, a9)
     fprintf (stderr, "%p (%s): %s\n",
 	     w,
 	     ((BUFFERP (w->buffer)
-	       && STRINGP (XBUFFER (w->buffer)->name))
-	      ? SSDATA (XBUFFER (w->buffer)->name)
+	       && STRINGP (BVAR (XBUFFER (w->buffer), name)))
+	      ? SSDATA (BVAR (XBUFFER (w->buffer), name))
 	      : "no buffer"),
 	     buffer);
 }
@@ -16278,9 +16277,7 @@ void dump_glyph (struct glyph_row *, struct glyph *, int);
    GLYPHS > 1 means show glyphs in long form.  */
 
 void
-dump_glyph_matrix (matrix, glyphs)
-     struct glyph_matrix *matrix;
-     int glyphs;
+dump_glyph_matrix (struct glyph_matrix *matrix, int glyphs)
 {
   int i;
   for (i = 0; i < matrix->nrows; ++i)
@@ -16292,10 +16289,7 @@ dump_glyph_matrix (matrix, glyphs)
    the glyph row and area where the glyph comes from.  */
 
 void
-dump_glyph (row, glyph, area)
-     struct glyph_row *row;
-     struct glyph *glyph;
-     int area;
+dump_glyph (struct glyph_row *row, struct glyph *glyph, int area)
 {
   if (glyph->type == CHAR_GLYPH)
     {
@@ -16388,9 +16382,7 @@ dump_glyph (row, glyph, area)
    GLYPHS > 1 means show glyphs in long form.  */
 
 void
-dump_glyph_row (row, vpos, glyphs)
-     struct glyph_row *row;
-     int vpos, glyphs;
+dump_glyph_row (struct glyph_row *row, int vpos, int glyphs)
 {
   if (glyphs != 1)
     {
@@ -20471,8 +20463,7 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 #if GLYPH_DEBUG
 
 void
-dump_glyph_string (s)
-     struct glyph_string *s;
+dump_glyph_string (struct glyph_string *s)
 {
   fprintf (stderr, "glyph string\n");
   fprintf (stderr, "  x, y, w, h = %d, %d, %d, %d\n",

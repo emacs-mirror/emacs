@@ -1054,6 +1054,7 @@ The `justification' text-property can locally override this variable."
 		 (const full)
 		 (const center)
 		 (const none))
+  :safe 'symbolp
   :group 'fill)
 (make-variable-buffer-local 'default-justification)
 

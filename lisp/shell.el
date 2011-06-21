@@ -398,6 +398,12 @@ to `dirtrack-mode'."
   (set (make-local-variable 'pcomplete-parse-arguments-function)
        ;; FIXME: This function should be moved to shell.el.
        #'pcomplete-parse-comint-arguments)
+  (set (make-local-variable 'pcomplete-termination-string)
+       (cond ((not comint-completion-addsuffix) "")
+             ((stringp comint-completion-addsuffix)
+              comint-completion-addsuffix)
+             ((not (consp comint-completion-addsuffix)) " ")
+             (t (cdr comint-completion-addsuffix))))
   ;; Don't use pcomplete's defaulting mechanism, rely on
   ;; shell-dynamic-complete-functions instead.
   (set (make-local-variable 'pcomplete-default-completion-function) #'ignore)

@@ -983,12 +983,8 @@ otherwise."
                         (setq end (point))))
     (list beg end octave-completion-alist)))
 
-(defun octave-complete-symbol ()
-  "Perform completion on Octave symbol preceding point.
-Compare that symbol against Octave's reserved words and builtin
-variables."
-  (interactive)
-  (apply 'completion-in-region (octave-completion-at-point-function)))
+(define-obsolete-function-alias 'octave-complete-symbol
+  'completion-at-point "24.1")
 
 ;;; Electric characters && friends
 

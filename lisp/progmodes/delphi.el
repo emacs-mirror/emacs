@@ -1959,12 +1959,12 @@ comment block.  If not in a // comment, just does a normal newline."
     kmap)
   "Keymap used in Delphi mode.")
 
-(defconst delphi-mode-syntax-table (make-syntax-table)
+(defvar delphi-mode-syntax-table nil
   "Delphi mode's syntax table.  It is just a standard syntax table.
 This is ok since we do our own keyword/comment/string face coloring.")
 
 ;;;###autoload
-(defun delphi-mode (&optional skip-initial-parsing)
+(define-derived-mode delphi-mode prog-mode "Delphi"
   "Major mode for editing Delphi code. \\<delphi-mode-map>
 \\[delphi-tab]\t- Indents the current line (or region, if Transient Mark mode
 \t  is enabled and the region is active) of Delphi code.
@@ -2007,14 +2007,6 @@ Coloring:
 
 Turning on Delphi mode calls the value of the variable `delphi-mode-hook'
 with no args, if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map delphi-mode-map)
-  (setq major-mode 'delphi-mode)        ;FIXME: Use define-derived-mode.
-  (setq mode-name "Delphi")
-
-  (setq local-abbrev-table delphi-mode-abbrev-table)
-  (set-syntax-table delphi-mode-syntax-table)
 
   ;; Buffer locals:
   (mapc #'(lambda (var)
@@ -2033,12 +2025,12 @@ with no args, if that value is non-nil."
   (add-hook 'after-change-functions 'delphi-after-change nil t)
 
   (widen)
-  (unless skip-initial-parsing
-    (delphi-save-excursion
-     (let ((delphi-verbose t))
-       (delphi-progress-start)
-       (delphi-parse-region (point-min) (point-max))
-       (delphi-progress-done))))
+
+  (delphi-save-excursion
+   (let ((delphi-verbose t))
+     (delphi-progress-start)
+     (delphi-parse-region (point-min) (point-max))
+     (delphi-progress-done)))
 
   (run-mode-hooks 'delphi-mode-hook))
 
