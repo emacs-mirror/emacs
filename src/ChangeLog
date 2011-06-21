@@ -1,5 +1,7 @@
 2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfont.c (xfont_match): Avoid need for strlen.
+
 	* xfns.c: Don't assume strlen fits in int.
 	(xic_create_fontsetname, x_window): Use ptrdiff_t, not int.
 
