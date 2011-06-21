@@ -4,6 +4,7 @@
 	not unsigned long, as we prefer signed integers.  All callers changed.
 	Detect integer overflow in repeat count.
 	(message_dolog): Don't assume print length fits in 39 bytes.
+	(display_mode_element): Don't assume strlen fits in int.
 
 	* termcap.c: Don't assume sizes fit in int and never overflow.
 	(struct termcap_buffer, tgetent): Use ptrdiff_t, not int, for sizes.
