@@ -51,6 +51,8 @@ Lisp_Object Qcursor_in_echo_area;
 static Lisp_Object Qwidget_type;
 static Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
 
+static Lisp_Object Qmd5, Qsha1, Qsha224, Qsha256, Qsha384, Qsha512;
+
 static int internal_equal (Lisp_Object , Lisp_Object, int, int);
 
 #ifndef HAVE_UNISTD_H
@@ -4550,21 +4552,18 @@ including negative integers.  */)
 
 
 /************************************************************************
-			     MD5 and SHA1
+			MD5, SHA-1, and SHA-2
  ************************************************************************/
 
 #include "md5.h"
 #include "sha1.h"
+#include "sha256.h"
+#include "sha512.h"
 
-/* Convert a possibly-signed character to an unsigned character.  This is
-   a bit safer than casting to unsigned char, since it catches some type
-   errors that the cast doesn't.  */
-static inline unsigned char to_uchar (char ch) { return ch; }
-
-/* TYPE: 0 for md5, 1 for sha1. */
+/* ALGORITHM is a symbol: md5, sha1, sha224 and so on. */
 
 static Lisp_Object
-crypto_hash_function (int type, Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror, Lisp_Object binary)
+secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror, Lisp_Object binary)
 {
   int i;
   EMACS_INT size;
@@ -4574,7 +4573,11 @@ crypto_hash_function (int type, Lisp_Object object, Lisp_Object start, Lisp_Obje
   register EMACS_INT b, e;
   register struct buffer *bp;
   EMACS_INT temp;
-  Lisp_Object res=Qnil;
+  int digest_size;
+  void *(*hash_func) (const char *, size_t, void *);
+  Lisp_Object digest;
+
+  CHECK_SYMBOL (algorithm);
 
   if (STRINGP (object))
     {
@@ -4745,47 +4748,61 @@ crypto_hash_function (int type, Lisp_Object object, Lisp_Object start, Lisp_Obje
 	object = code_convert_string (object, coding_system, Qnil, 1, 0, 0);
     }
 
-  switch (type)
+  if (EQ (algorithm, Qmd5))
     {
-    case 0:			/* MD5 */
-      {
-	char digest[16];
-	md5_buffer (SSDATA (object) + start_byte,
-		    SBYTES (object) - (size_byte - end_byte),
-		    digest);
-
-	if (NILP (binary))
-	  {
-	    char value[33];
-	    for (i = 0; i < 16; i++)
-	      sprintf (&value[2 * i], "%02x", to_uchar (digest[i]));
-	    res = make_string (value, 32);
-	  }
-	else
-	  res = make_string (digest, 16);
-	break;
-      }
-
-    case 1:			/* SHA1 */
-      {
-	char digest[20];
-	sha1_buffer (SSDATA (object) + start_byte,
-		     SBYTES (object) - (size_byte - end_byte),
-		     digest);
-	if (NILP (binary))
-	  {
-	    char value[41];
-	    for (i = 0; i < 20; i++)
-	      sprintf (&value[2 * i], "%02x", to_uchar (digest[i]));
-	    res = make_string (value, 40);
-	  }
-	else
-	  res = make_string (digest, 20);
-	break;
-      }
+      digest_size = MD5_DIGEST_SIZE;
+      hash_func	  = md5_buffer;
     }
+  else if (EQ (algorithm, Qsha1))
+    {
+      digest_size = SHA1_DIGEST_SIZE;
+      hash_func	  = sha1_buffer;
+    }
+  else if (EQ (algorithm, Qsha224))
+    {
+      digest_size = SHA224_DIGEST_SIZE;
+      hash_func	  = sha224_buffer;
+    }
+  else if (EQ (algorithm, Qsha256))
+    {
+      digest_size = SHA256_DIGEST_SIZE;
+      hash_func	  = sha256_buffer;
+    }
+  else if (EQ (algorithm, Qsha384))
+    {
+      digest_size = SHA384_DIGEST_SIZE;
+      hash_func	  = sha384_buffer;
+    }
+  else if (EQ (algorithm, Qsha512))
+    {
+      digest_size = SHA512_DIGEST_SIZE;
+      hash_func	  = sha512_buffer;
+    }
+  else
+    error ("Invalid algorithm arg: %s", SDATA (Fsymbol_name (algorithm)));
 
-  return res;
+  /* allocate 2 x digest_size so that it can be re-used to hold the
+     hexified value */
+  digest = make_uninit_string (digest_size * 2);
+
+  hash_func (SSDATA (object) + start_byte,
+	     SBYTES (object) - (size_byte - end_byte),
+	     SSDATA (digest));
+
+  if (NILP (binary))
+    {
+      unsigned char *p = SDATA (digest);
+      for (i = digest_size - 1; i >= 0; i--)
+	{
+	  static char const hexdigit[16] = "0123456789abcdef";
+	  int p_i = p[i];
+	  p[2 * i] = hexdigit[p_i >> 4];
+	  p[2 * i + 1] = hexdigit[p_i & 0xf];
+	}
+      return digest;
+    }
+  else
+    return make_unibyte_string (SDATA (digest), digest_size);
 }
 
 DEFUN ("md5", Fmd5, Smd5, 1, 5, 0,
@@ -4817,25 +4834,31 @@ If NOERROR is non-nil, silently assume the `raw-text' coding if the
 guesswork fails.  Normally, an error is signaled in such case.  */)
   (Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object noerror)
 {
-  return crypto_hash_function (0, object, start, end, coding_system, noerror, Qnil);
+  return secure_hash (Qmd5, object, start, end, coding_system, noerror, Qnil);
 }
 
-DEFUN ("sha1", Fsha1, Ssha1, 1, 4, 0,
-       doc: /* Return the SHA-1 (Secure Hash Algorithm) of an OBJECT.
-
-OBJECT is either a string or a buffer.  Optional arguments START and
-END are character positions specifying which portion of OBJECT for
-computing the hash.  If BINARY is non-nil, return a string in binary
-form.  */)
-     (Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object binary)
+DEFUN ("secure-hash", Fsecure_hash, Ssecure_hash, 2, 5, 0,
+       doc: /* Return the secure hash of an OBJECT.
+ALGORITHM is a symbol: md5, sha1, sha224, sha256, sha384 or sha512.
+OBJECT is either a string or a buffer.
+Optional arguments START and END are character positions specifying
+which portion of OBJECT for computing the hash.  If BINARY is non-nil,
+return a string in binary form.  */)
+  (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object binary)
 {
-  return crypto_hash_function (1, object, start, end, Qnil, Qnil, binary);
+  return secure_hash (algorithm, object, start, end, Qnil, Qnil, binary);
 }
-
 
 void
 syms_of_fns (void)
 {
+  DEFSYM (Qmd5,    "md5");
+  DEFSYM (Qsha1,   "sha1");
+  DEFSYM (Qsha224, "sha224");
+  DEFSYM (Qsha256, "sha256");
+  DEFSYM (Qsha384, "sha384");
+  DEFSYM (Qsha512, "sha512");
+
   /* Hash table stuff.  */
   Qhash_table_p = intern_c_string ("hash-table-p");
   staticpro (&Qhash_table_p);
@@ -5004,7 +5027,7 @@ this variable.  */);
   defsubr (&Sbase64_encode_string);
   defsubr (&Sbase64_decode_string);
   defsubr (&Smd5);
-  defsubr (&Ssha1);
+  defsubr (&Ssecure_hash);
   defsubr (&Slocale_info);
 }
 

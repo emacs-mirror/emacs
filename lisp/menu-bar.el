@@ -1977,6 +1977,10 @@ Buffers menu is regenerated."
 ;; Used to cache the menu entries for commands in the Buffers menu
 (defvar menu-bar-buffers-menu-command-entries nil)
 
+(defvar menu-bar-select-buffer-function 'switch-to-buffer
+  "Function to select the buffer chosen from the `Buffers' menu-bar menu.
+It must accept a buffer as its only required argument.")
+
 (defun menu-bar-update-buffers (&optional force)
   ;; If user discards the Buffers item, play along.
   (and (lookup-key (current-global-map) [menu-bar buffer])
@@ -2022,7 +2026,7 @@ Buffers menu is regenerated."
 					(cons nil nil))
 				  `(lambda ()
                                      (interactive)
-                                     (switch-to-buffer ,(cdr pair))))))
+                                     (funcall menu-bar-select-buffer-function ,(cdr pair))))))
                    (list buffers-vec))))
 
 	 ;; Make a Frames menu if we have more than one frame.
