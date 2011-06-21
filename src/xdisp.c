@@ -810,7 +810,7 @@ static int cursor_row_fully_visible_p (struct window *, int, int);
 static int try_scrolling (Lisp_Object, int, EMACS_INT, EMACS_INT, int, int);
 static int try_cursor_movement (Lisp_Object, struct text_pos, int *);
 static int trailing_whitespace_p (EMACS_INT);
-static unsigned long int message_log_check_duplicate (EMACS_INT, EMACS_INT);
+static intmax_t message_log_check_duplicate (EMACS_INT, EMACS_INT);
 static void push_it (struct it *, struct text_pos *);
 static void pop_it (struct it *);
 static void sync_frame_with_window_matrix_rows (struct window *);
@@ -8064,7 +8064,7 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
       if (nlflag)
 	{
 	  EMACS_INT this_bol, this_bol_byte, prev_bol, prev_bol_byte;
-	  unsigned long int dups;
+	  intmax_t dups;
 	  insert_1 ("\n", 1, 1, 0, 0);
 
 	  scan_newline (Z, Z_BYTE, BEG, BEG_BYTE, -2, 0);
@@ -8087,12 +8087,13 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
 				  this_bol, this_bol_byte, 0);
 		  if (dups > 1)
 		    {
-		      char dupstr[40];
+		      char dupstr[sizeof " [ times]"
+				  + INT_STRLEN_BOUND (intmax_t)];
 		      int duplen;
 
 		      /* If you change this format, don't forget to also
 			 change message_log_check_duplicate.  */
-		      sprintf (dupstr, " [%lu times]", dups);
+		      sprintf (dupstr, " [%"PRIdMAX" times]", dups);
 		      duplen = strlen (dupstr);
 		      TEMP_SET_PT_BOTH (Z - 1, Z_BYTE - 1);
 		      insert_1 (dupstr, duplen, 1, 0, 1);
@@ -8154,7 +8155,7 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
    Return 0 if different, 1 if the new one should just replace it, or a
    value N > 1 if we should also append " [N times]".  */
 
-static unsigned long int
+static intmax_t
 message_log_check_duplicate (EMACS_INT prev_bol_byte, EMACS_INT this_bol_byte)
 {
   EMACS_INT i;
@@ -8176,8 +8177,8 @@ message_log_check_duplicate (EMACS_INT prev_bol_byte, EMACS_INT this_bol_byte)
   if (*p1++ == ' ' && *p1++ == '[')
     {
       char *pend;
-      unsigned long int n = strtoul ((char *) p1, &pend, 10);
-      if (strncmp (pend, " times]\n", 8) == 0)
+      intmax_t n = strtoimax ((char *) p1, &pend, 10);
+      if (0 < n && n < INTMAX_MAX && strncmp (pend, " times]\n", 8) == 0)
 	return n+1;
     }
   return 0;

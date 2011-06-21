@@ -1,5 +1,10 @@
 2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xdisp.c (message_log_check_duplicate): Return intmax_t,
+	not unsigned long, as we prefer signed integers.  All callers changed.
+	Detect integer overflow in repeat count.
+	(message_dolog): Don't assume print length fits in 39 bytes.
+
 	* termcap.c: Don't assume sizes fit in int and never overflow.
 	(struct termcap_buffer, tgetent): Use ptrdiff_t, not int, for sizes.
 	(gobble_line): Check for size-calculation overflow.
