@@ -6,10 +6,12 @@
 	* textprop.c (get_char_property_and_overlay):
 	* xdisp.c (next_overlay_change, note_mouse_highlight):
 	* xfaces.c (face_at_buffer_position):
-	* buffer.c (overlays_at, sort_overlays, Foverlays_at)
-	(Fnext_overlay_change, Fprevious_overlay_change):
+	* buffer.c (OVERLAY_COUNT_MAX): New macro.
+	(overlays_at, overlays_in, sort_overlays, Foverlays_at)
+	(Fnext_overlay_change, Fprevious_overlay_change)
+	(mouse_face_overlay_overlaps, Foverlays_in):
 	Use ptrdiff_t, not int, for sizes.
-	(overlays_at): Check for size-calculation overflow.
+	(overlays_at, overlays_in): Check for size-calculation overflow.
 
 	* xterm.c (xim_initialize, same_x_server): Strlen may not fit in int.
 

@@ -94,6 +94,11 @@ static Lisp_Object Vbuffer_local_symbols;
 #define PER_BUFFER_SYMBOL(OFFSET) \
       (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_symbols))
 
+/* Maximum length of an overlay vector.  */
+#define OVERLAY_COUNT_MAX						\
+  ((ptrdiff_t) min (MOST_POSITIVE_FIXNUM,				\
+		    min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object)))
+
 /* Flags indicating which built-in buffer-local variables
    are permanent locals.  */
 static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
@@ -2531,8 +2536,6 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
   EMACS_INT next = ZV;
   EMACS_INT prev = BEGV;
   int inhibit_storing = 0;
-  ptrdiff_t len_lim = min (MOST_POSITIVE_FIXNUM,
-			   min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object));
 
   for (tail = current_buffer->overlays_before; tail; tail = tail->next)
     {
@@ -2564,7 +2567,7 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
 		 Either make it bigger, or don't store any more in it.  */
 	      if (extend)
 		{
-		  if ((len_lim - 4) / 2 < len)
+		  if ((OVERLAY_COUNT_MAX - 4) / 2 < len)
 		    memory_full (SIZE_MAX);
 		  /* Make it work with an initial len == 0.  */
 		  len = len * 2 + 4;
@@ -2607,7 +2610,7 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
 	    {
 	      if (extend)
 		{
-		  if ((len_lim - 4) / 2 < len)
+		  if ((OVERLAY_COUNT_MAX - 4) / 2 < len)
 		    memory_full (SIZE_MAX);
 		  /* Make it work with an initial len == 0.  */
 		  len = len * 2 + 4;
@@ -2660,15 +2663,15 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
    and we store only as many overlays as will fit.
    But we still return the total number of overlays.  */
 
-static int
+static ptrdiff_t
 overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
-	     Lisp_Object **vec_ptr, int *len_ptr,
+	     Lisp_Object **vec_ptr, ptrdiff_t *len_ptr,
 	     EMACS_INT *next_ptr, EMACS_INT *prev_ptr)
 {
   Lisp_Object overlay, ostart, oend;
   struct Lisp_Overlay *tail;
-  int idx = 0;
-  int len = *len_ptr;
+  ptrdiff_t idx = 0;
+  ptrdiff_t len = *len_ptr;
   Lisp_Object *vec = *vec_ptr;
   EMACS_INT next = ZV;
   EMACS_INT prev = BEGV;
@@ -2704,10 +2707,10 @@ overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
 		 Either make it bigger, or don't store any more in it.  */
 	      if (extend)
 		{
+		  if ((OVERLAY_COUNT_MAX - 4) / 2 < len)
+		    memory_full (SIZE_MAX);
 		  /* Make it work with an initial len == 0.  */
-		  len *= 2;
-		  if (len == 0)
-		    len = 4;
+		  len = len * 2 + 4;
 		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
@@ -2752,10 +2755,10 @@ overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
 	    {
 	      if (extend)
 		{
+		  if ((OVERLAY_COUNT_MAX - 4) / 2 < len)
+		    memory_full (SIZE_MAX);
 		  /* Make it work with an initial len == 0.  */
-		  len *= 2;
-		  if (len == 0)
-		    len = 4;
+		  len = len * 2 + 4;
 		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
@@ -2788,7 +2791,7 @@ mouse_face_overlay_overlaps (Lisp_Object overlay)
 {
   EMACS_INT start = OVERLAY_POSITION (OVERLAY_START (overlay));
   EMACS_INT end = OVERLAY_POSITION (OVERLAY_END (overlay));
-  int n, i, size;
+  ptrdiff_t n, i, size;
   Lisp_Object *v, tem;
 
   size = 10;
@@ -3914,9 +3917,8 @@ between BEG and END, or at END provided END denotes the position at the
 end of the buffer.  */)
   (Lisp_Object beg, Lisp_Object end)
 {
-  int noverlays;
+  ptrdiff_t len, noverlays;
   Lisp_Object *overlay_vec;
-  int len;
   Lisp_Object result;
 
   CHECK_NUMBER_COERCE_MARKER (beg);
