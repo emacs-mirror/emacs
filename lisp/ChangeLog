@@ -1,3 +1,10 @@
+2011-06-21  Vincent Belaïche  <vincent.b.1@hotmail.fr>
+
+	* play/5x5.el (5x5-solve-rotate-left, 5x5-solve-rotate-right):
+	New functions.
+	(5x5-mode-map, 5x5-mode-menu): Bind them.
+	(5x5-draw-grid): Tweak the solver's rendering.
+
 2011-06-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist): Rename
