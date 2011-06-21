@@ -5437,11 +5437,12 @@ options."
       ;; `pop-up-frames', `display-buffer-reuse-frames', and
       ;; `last-nonminibuffer-frame' set means search for a window shoing
       ;; the same buffer of another frame.
-      (let ((frames (or (last-nonminibuffer-frame)
-			(and (or use-pop-up-frames
-				 display-buffer-reuse-frames)
+      (let ((frames (or (and (or use-pop-up-frames
+				 display-buffer-reuse-frames
+				 (not (last-nonminibuffer-frame)))
 			     ;; All visible or iconfied frames.
-			     0))))
+			     0)
+			(last-nonminibuffer-frame))))
 	(when frames
 	  (setq specifiers
 		(cons (list 'reuse-window 'other 'same frames)
