@@ -120,6 +120,10 @@ values:
   certificate.  This parameter will only be used when doing TLS
   or STARTTLS connections.
 
+If :use-starttls-if-possible is non-nil, do opportunistic
+STARTTLS upgrades even if Emacs doesn't have built-in TLS
+functionality.
+
 :nowait is a boolean that says the connection should be made
   asynchronously, if possible."
   (unless (featurep 'make-network-process)
@@ -208,7 +212,8 @@ values:
     ;; If we have built-in STARTTLS support, try to upgrade the
     ;; connection.
     (when (and (or (fboundp 'open-gnutls-stream)
-		   (and require-tls
+		   (and (or require-tls
+			    (plist-get parameters :use-starttls-if-possible))
 			(executable-find "gnutls-cli")))
 	       capabilities success-string starttls-function
 	       (setq starttls-command
@@ -236,6 +241,10 @@ values:
 			 starttls-extra-arguments)))
 	  (setq stream (starttls-open-stream name buffer host service)))
 	(network-stream-get-response stream start eoc))
+      ;; Requery capabilities for protocols that require it; i.e.,
+      ;; EHLO for SMTP.
+      (when (plist-get parameters :always-query-capabilities)
+	(network-stream-command stream capability-command eoc))
       (when (string-match success-string
 			  (network-stream-command stream starttls-command eoc))
 	;; The server said it was OK to begin STARTTLS negotiations.

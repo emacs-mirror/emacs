@@ -627,7 +627,8 @@ The list is in preference order.")
 		 (lambda (capabilities)
 		   (and (string-match "-STARTTLS" capabilities)
 			"STARTTLS\r\n"))
-		 :client-certificate t))
+		 :client-certificate t
+		 :use-starttls-if-possible t))
 
 	  ;; If we couldn't access the server at all, we give up.
 	  (unless (setq process (car result))

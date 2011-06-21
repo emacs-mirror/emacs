@@ -1,5 +1,14 @@
 2011-06-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mail/smtpmail.el (smtpmail-via-smtp): Set
+	:use-starttls-if-possible so that we always use STARTTLS if the
+	server supports it.  SMTP servers that support STARTTLS commonly
+	require it.
+
+	* net/network-stream.el (network-stream-open-starttls): Support
+	upgrading to STARTTLS always, even if we don't have built-in support.
+	(open-network-stream): Add the :always-query-capabilies keyword.
+
 	* mail/smtpmail.el: Rewritten to do opportunistic STARTTLS
 	upgrades with `open-network-stream', and rely solely on
 	auth-source for all credentials.  Big changes throughout the file,
