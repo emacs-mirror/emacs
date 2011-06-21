@@ -1,3 +1,9 @@
+2011-06-21  Tim Harper  <timcharper@gmail.com>
+
+	* term/ns-win.el (ns-initialize-window-system): set
+	application-specific `ApplePressAndHoldEnabled' system
+	resource to NO as it is not yet supported by the NS port.
+
 2011-06-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* misc.el (list-dynamic-libraries--refresh): Compute header here...
