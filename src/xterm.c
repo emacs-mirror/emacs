@@ -8084,7 +8084,7 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
     {
 #ifdef HAVE_X11R6_XIM
       struct xim_inst_t *xim_inst;
-      int len;
+      ptrdiff_t len;
 
       xim_inst = (struct xim_inst_t *) xmalloc (sizeof (struct xim_inst_t));
       dpyinfo->xim_callback_data = xim_inst;
@@ -9720,8 +9720,8 @@ same_x_server (const char *name1, const char *name2)
 {
   int seen_colon = 0;
   const char *system_name = SSDATA (Vsystem_name);
-  int system_name_length = strlen (system_name);
-  int length_until_period = 0;
+  ptrdiff_t system_name_length = SBYTES (Vsystem_name);
+  ptrdiff_t length_until_period = 0;
 
   while (system_name[length_until_period] != 0
 	 && system_name[length_until_period] != '.')

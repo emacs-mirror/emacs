@@ -1,5 +1,7 @@
 2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.c (xim_initialize, same_x_server): Strlen may not fit in int.
+
 	* xsmfns.c (smc_save_yourself_CB, x_session_initialize): Avoid strlen.
 	(x_session_initialize): Do not assume string length fits in int.
 
