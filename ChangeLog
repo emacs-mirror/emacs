@@ -1,3 +1,18 @@
+2011-06-21  Leo Liu  <sdl.web@gmail.com>
+
+	* m4/sha256.m4:
+	* m4/sha512.m4:
+	* m4/gl-comp.m4:
+	* lib/u64.h:
+	* lib/sha256.c:
+	* lib/sha256.h:
+	* lib/sha512.c:
+	* lib/sha512.h:
+	* lib/makefile.w32-in (GNULIBOBJS):
+	* lib/gnulib.mk:
+	* Makefile.in (GNULIB_MODULES): Add crypto/sha256 and
+	crypto/sha512 modules from gnulib.
+
 2011-06-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lib/unistd.in.h, m4/getloadavg.m4: Merge from gnulib.

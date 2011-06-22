@@ -1425,10 +1425,15 @@ adjust_intervals_for_deletion (struct buffer *buffer,
 /* Make the adjustments necessary to the interval tree of BUFFER to
    represent an addition or deletion of LENGTH characters starting
    at position START.  Addition or deletion is indicated by the sign
-   of LENGTH.  */
+   of LENGTH.
 
-inline void
-offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
+   The two inline functions (one static) pacify Sun C 5.8, a pre-C99
+   compiler that does not allow calling a static function (here,
+   adjust_intervals_for_deletion) from a non-static inline function.  */
+
+static inline void
+static_offset_intervals (struct buffer *buffer, EMACS_INT start,
+			 EMACS_INT length)
 {
   if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)) || length == 0)
     return;
@@ -1440,6 +1445,12 @@ offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
       IF_LINT (if (length < - TYPE_MAXIMUM (EMACS_INT)) abort ();)
       adjust_intervals_for_deletion (buffer, start, -length);
     }
+}
+
+inline void
+offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
+{
+  static_offset_intervals (buffer, start, length);
 }
 
 /* Merge interval I with its lexicographic successor. The resulting

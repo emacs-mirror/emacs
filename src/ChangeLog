@@ -19,8 +19,6 @@
 	(x_allocate_bitmap_record): Check for size overflow.
 	* dispextern.h, lisp.h: Adjust to API changes elsewhere.
 
-2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
-
 	Use ptrdiff_t, not int, for overlay counts.
 	* buffer.h (overlays_at, sort_overlays, GET_OVERLAYS_AT):
 	* editfns.c (overlays_around, get_pos_property):
@@ -198,6 +196,31 @@
 	Don't truncate size to int.
 	(record_overlay_string): Check for size-calculation overflow.
 	(init_buffer_once): Check at compile-time, not run-time.
+
+2011-06-22  Jim Meyering  <meyering@redhat.com>
+
+	don't leak an XBM-image-sized buffer
+	* image.c (xbm_load): Free the image buffer after using it.
+
+2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to Sun C.
+	* composite.c (find_automatic_composition): Omit needless 'return 0;'
+	that Sun C diagnosed.
+	* fns.c (secure_hash): Fix pointer signedness issue.
+	* intervals.c (static_offset_intervals): New function.
+	(offset_intervals): Use it.
+
+2011-06-21  Leo Liu  <sdl.web@gmail.com>
+
+	* deps.mk (fns.o):
+	* makefile.w32-in ($(BLD)/fns.$(O)): Include sha256.h and
+	sha512.h.
+
+	* fns.c (secure_hash): Rename from crypto_hash_function and change
+	the first arg to accept symbols.
+	(Fsecure_hash): New primtive.
+	(syms_of_fns): New symbols.
 
 2011-06-20  Deniz Dogan  <deniz@dogan.se>
 

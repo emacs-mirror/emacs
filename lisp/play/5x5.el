@@ -144,6 +144,8 @@
     (define-key map [(control c) (control x)] #'5x5-crack-xor-mutate)
     (define-key map "n"                       #'5x5-new-game)
     (define-key map "s"                       #'5x5-solve-suggest)
+    (define-key map "<"                       #'5x5-solve-rotate-left)
+    (define-key map ">"                       #'5x5-solve-rotate-right)
     (define-key map "q"                       #'5x5-quit-game)
     map)
   "Local keymap for the 5x5 game.")
@@ -174,6 +176,9 @@ GRID is the grid of positions to click.")
     ["Quit game"              5x5-quit-game t]
     "---"
     ["Use Calc solver"        5x5-solve-suggest         t]
+    ["Rotate left list of Calc solutions"        5x5-solve-rotate-left     t]
+    ["Rotate right list of Calc solutions"       5x5-solve-rotate-right    t]
+    "---"
     ["Crack randomly"         5x5-crack-randomly         t]
     ["Crack mutating current" 5x5-crack-mutating-current t]
     ["Crack mutating best"    5x5-crack-mutating-best    t]
@@ -207,18 +212,21 @@ squares you must fill the grid.
 
 5x5 keyboard bindings are:
 \\<5x5-mode-map>
-Flip                      \\[5x5-flip-current]
-Move up                   \\[5x5-up]
-Move down                 \\[5x5-down]
-Move left                 \\[5x5-left]
-Move right                \\[5x5-right]
-Start new game            \\[5x5-new-game]
-New game with random grid \\[5x5-randomize]
-Random cracker            \\[5x5-crack-randomly]
-Mutate current cracker    \\[5x5-crack-mutating-current]
-Mutate best cracker       \\[5x5-crack-mutating-best]
-Mutate xor cracker        \\[5x5-crack-xor-mutate]
-Quit current game         \\[5x5-quit-game]"
+Flip                        \\[5x5-flip-current]
+Move up                     \\[5x5-up]
+Move down                   \\[5x5-down]
+Move left                   \\[5x5-left]
+Move right                  \\[5x5-right]
+Start new game              \\[5x5-new-game]
+New game with random grid   \\[5x5-randomize]
+Random cracker              \\[5x5-crack-randomly]
+Mutate current cracker      \\[5x5-crack-mutating-current]
+Mutate best cracker         \\[5x5-crack-mutating-best]
+Mutate xor cracker          \\[5x5-crack-xor-mutate]
+Solve with Calc             \\[5x5-solve-suggest]
+Rotate left Calc Solutions  \\[5x5-solve-rotate-left]
+Rotate right Calc Solutions \\[5x5-solve-rotate-right]
+Quit current game           \\[5x5-quit-game]"
 
   (interactive "P")
   (setq 5x5-cracking nil)
@@ -331,9 +339,14 @@ Quit current game         \\[5x5-quit-game]"
 		  (forward-char  (+ 1 (/ (1+ 5x5-x-scale) 2)))
 		  (dotimes (x   5x5-grid-size)
 		    (when (5x5-cell solution-grid y x)
+		      (if (= 0 (mod 5x5-x-scale 2))
+			  (progn
+			    (insert "()")
+			    (delete-region (point) (+ (point) 2))
+			    (backward-char 2))
 			(insert-char ?O 1)
 			(delete-char 1)
-			(backward-char))
+			(backward-char)))
 		    (forward-char  (1+ 5x5-x-scale))))
 		(forward-line  5x5-y-scale))))
 	(setq 5x5-solver-output nil)))
@@ -789,6 +802,64 @@ Argument N is ignored."
 	  (cons 5x5-moves solutions)))
   (5x5-draw-grid (list 5x5-grid))
   (5x5-position-cursor))
+
+(defun 5x5-solve-rotate-left (&optional n)
+  "Rotate left by N the list of solutions in 5x5-solver-output.
+
+If N is not supplied rotate by 1, that is to say put the last
+element first in the list.
+
+The 5x5 game has in general several solutions.  For grid size=5,
+there are 4 possible solutions.  When function
+`5x5-solve-suggest' (press `\\[5x5-solve-suggest]') is called the
+solution that is presented is the one that needs least number of
+strokes --- other solutions can be viewed by rotating through the
+list. The list of solution is ordered by number of strokes, so
+rotating left just after calling `5x5-solve-suggest' will show
+the the solution with second least number of strokes, while
+rotating right will show the solution with greatest number of
+strokes."
+  (interactive "P")
+  (let ((len  (length 5x5-solver-output)))
+    (when (>= len 3)
+      (setq n (if (integerp n) n 1)
+	    n (mod n (1- len)))
+      (unless (eq n 0)
+	(setq n  (- len n 1))
+	(let* ((p-tail (last 5x5-solver-output (1+ n)))
+	       (tail (cdr p-tail))
+	       (l-tail (last tail)))
+	  ;;
+	  ;;  For n = 2:
+	  ;;
+	  ;;  +--+--+   +--+--+   +--+--+   +--+--+   +--+--+
+	  ;;  |M | ---->|S1| ---->|S2| ---->|S3| ---->|S4| ----> nil
+	  ;;  +--+--+   +--+--+   +--+--+   +--+--+   +--+--+
+	  ;;    ^ 		    ^         ^         ^
+	  ;;    | 		    |         |         |
+	  ;;    + 5x5-solver-output |         |         + l-tail
+	  ;;			    + p-tail  |
+	  ;;			              + tail
+	  ;;
+	  (setcdr l-tail (cdr 5x5-solver-output))
+	  (setcdr 5x5-solver-output tail)
+	  (unless (eq p-tail 5x5-solver-output)
+	    (setcdr p-tail nil)))
+	(5x5-draw-grid (list 5x5-grid))
+	(5x5-position-cursor)))))
+
+(defun 5x5-solve-rotate-right (&optional n)
+  "Rotate right by N the list of solutions in 5x5-solver-output.
+If N is not supplied, rotate by 1.  Similar to function
+`5x5-solve-rotate-left' except that rotation is right instead of
+lest."
+  (interactive "P")
+  (setq n
+	(if (integerp n) (- n)
+	  -1))
+  (5x5-solve-rotate-left n))
+
+
 
 ;; Keyboard response functions.
 

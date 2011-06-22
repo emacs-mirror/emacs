@@ -6541,6 +6541,8 @@ esac
   # Code from module careadlinkat:
   # Code from module crypto/md5:
   # Code from module crypto/sha1:
+  # Code from module crypto/sha256:
+  # Code from module crypto/sha512:
   # Code from module dosname:
   # Code from module dtoastr:
   # Code from module extensions:
@@ -6575,6 +6577,7 @@ esac
   # Code from module sys_stat:
   # Code from module time:
   # Code from module time_r:
+  # Code from module u64:
   # Code from module unistd:
   # Code from module verify:
   # Code from module warn-on-use:
@@ -16695,6 +16698,14 @@ fi
 
 
 
+
+
+
+
+
+
+
+
 # Persuade glibc <stdlib.h> to declare getloadavg().
 
 
@@ -18557,6 +18568,7 @@ fi
 
 
           GNULIB_TIME_R=1
+
 
 
 

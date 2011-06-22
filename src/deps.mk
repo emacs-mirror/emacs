@@ -284,8 +284,8 @@ eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h frame.h \
 floatfns.o: floatfns.c syssignal.h lisp.h globals.h $(config_h)
 fns.o: fns.c commands.h lisp.h $(config_h) frame.h buffer.h character.h \
    keyboard.h keymap.h window.h $(INTERVALS_H) coding.h ../lib/md5.h \
-   ../lib/sha1.h blockinput.h atimer.h systime.h xterm.h ../lib/unistd.h \
-   globals.h
+   ../lib/sha1.h ../lib/sha256.h ../lib/sha512.h blockinput.h atimer.h \
+   systime.h xterm.h ../lib/unistd.h globals.h
 print.o: print.c process.h frame.h window.h buffer.h keyboard.h character.h \
    lisp.h globals.h $(config_h) termchar.h $(INTERVALS_H) msdos.h termhooks.h \
    blockinput.h atimer.h systime.h font.h charset.h coding.h ccl.h \

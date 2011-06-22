@@ -929,7 +929,7 @@ textual parts.")
 		 (car (setq result (nnimap-parse-response))))
 	;; Select the last instance of the message in the group.
 	(and (setq article
-		   (car (last (assoc "SEARCH" (cdr result)))))
+		   (car (last (cdr (assoc "SEARCH" (cdr result))))))
 	     (string-to-number article))))))
 
 (defun nnimap-delete-article (articles)

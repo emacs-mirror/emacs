@@ -1677,7 +1677,6 @@ find_automatic_composition (EMACS_INT pos, EMACS_INT limit,
 	}
       BACKWARD_CHAR (cur, stop);
     }
-  return 0;
 }
 
 /* Return the adjusted point provided that point is moved from LAST_PT
