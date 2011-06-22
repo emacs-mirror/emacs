@@ -7,6 +7,7 @@
 	(read1): Don't assume doc string length fits in int.  Check for
 	out-of-range doc string lengths.
 	(read_list): Don't assume file position fits in int.
+	(read_escape): Check for hex character overflow.
 
 	Fixes for GLYPH_DEBUG found by GCC 4.6.0 static checking.
 	The following patches are for when GLYPH_DEBUG && !XASSERT.

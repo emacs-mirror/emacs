@@ -2208,6 +2208,8 @@ read_escape (Lisp_Object readcharfun, int stringp)
 		UNREAD (c);
 		break;
 	      }
+	    if (MAX_CHAR < i)
+	      error ("Hex character out of range: \\x%x...", i);
 	    count++;
 	  }
 
@@ -2236,10 +2238,7 @@ read_escape (Lisp_Object readcharfun, int stringp)
 	    else if (c >= 'a' && c <= 'f')  i = (i << 4) + (c - 'a') + 10;
             else if (c >= 'A' && c <= 'F')  i = (i << 4) + (c - 'A') + 10;
 	    else
-	      {
-		error ("Non-hex digit used for Unicode escape");
-		break;
-	      }
+	      error ("Non-hex digit used for Unicode escape");
 	  }
 	if (i > 0x10FFFF)
 	  error ("Non-Unicode character: 0x%x", i);
