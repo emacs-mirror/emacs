@@ -2107,8 +2107,8 @@ font_score (Lisp_Object entity, Lisp_Object *spec_prop)
     {
       /* We use the higher 6-bit for the actual size difference.  The
 	 lowest bit is set if the DPI is different.  */
-      int diff;
-      int pixel_size = XINT (spec_prop[FONT_SIZE_INDEX]);
+      EMACS_INT diff;
+      EMACS_INT pixel_size = XINT (spec_prop[FONT_SIZE_INDEX]);
 
       if (CONSP (Vface_font_rescale_alist))
 	pixel_size *= font_rescale_ratio (entity);

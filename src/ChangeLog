@@ -1,5 +1,7 @@
 2011-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* font.c (font_score): Use EMACS_INT, not int, to store XINT value.
+
 	* dispextern.h (struct face.stipple):
 	* image.c (x_bitmap_height, x_bitmap_width, x_bitmap_pixmap)
 	(x_bitmap_mask, x_allocate_bitmap_record)
