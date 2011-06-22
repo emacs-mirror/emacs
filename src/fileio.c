@@ -440,11 +440,9 @@ get a current directory to run processes in.  */)
 static char *
 file_name_as_directory (char *out, const char *in)
 {
-  int size = strlen (in) - 1;
+  ptrdiff_t len = strlen (in);
 
-  strcpy (out, in);
-
-  if (size < 0)
+  if (len == 0)
     {
       out[0] = '.';
       out[1] = '/';
@@ -452,11 +450,13 @@ file_name_as_directory (char *out, const char *in)
       return out;
     }
 
+  strcpy (out, in);
+
   /* For Unix syntax, Append a slash if necessary */
-  if (!IS_DIRECTORY_SEP (out[size]))
+  if (!IS_DIRECTORY_SEP (out[len - 1]))
     {
-      out[size + 1] = DIRECTORY_SEP;
-      out[size + 2] = '\0';
+      out[len] = DIRECTORY_SEP;
+      out[len + 1] = '\0';
     }
 #ifdef DOS_NT
   dostounix_filename (out);
@@ -503,7 +503,7 @@ For a Unix-syntax file name, just appends a slash.  */)
 static int
 directory_file_name (char *src, char *dst)
 {
-  long slen;
+  ptrdiff_t slen;
 
   slen = strlen (src);
 
@@ -587,9 +587,9 @@ make_temp_name (Lisp_Object prefix, int base64_p)
 {
   Lisp_Object val;
   int len, clen;
-  int pid;
+  intmax_t pid;
   char *p, *data;
-  char pidbuf[20];
+  char pidbuf[INT_BUFSIZE_BOUND (pid_t)];
   int pidlen;
 
   CHECK_STRING (prefix);
@@ -599,7 +599,7 @@ make_temp_name (Lisp_Object prefix, int base64_p)
      three are incremented if the file already exists.  This ensures
      262144 unique file names per PID per PREFIX.  */
 
-  pid = (int) getpid ();
+  pid = getpid ();
 
   if (base64_p)
     {
@@ -611,8 +611,7 @@ make_temp_name (Lisp_Object prefix, int base64_p)
   else
     {
 #ifdef HAVE_LONG_FILE_NAMES
-      sprintf (pidbuf, "%d", pid);
-      pidlen = strlen (pidbuf);
+      pidlen = sprintf (pidbuf, "%"PRIdMAX, pid);
 #else
       pidbuf[0] = make_temp_name_tbl[pid & 63], pid >>= 6;
       pidbuf[1] = make_temp_name_tbl[pid & 63], pid >>= 6;
@@ -737,14 +736,14 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
   /* This should only point to alloca'd data.  */
   char *target;
 
-  int tlen;
+  ptrdiff_t tlen;
   struct passwd *pw;
 #ifdef DOS_NT
   int drive = 0;
   int collapse_newdir = 1;
   int is_escaped = 0;
 #endif /* DOS_NT */
-  int length;
+  ptrdiff_t length;
   Lisp_Object handler, result;
   int multibyte;
   Lisp_Object hdir;
@@ -1314,7 +1313,7 @@ See also the function `substitute-in-file-name'.")
   unsigned char *nm;
 
   register unsigned char *newdir, *p, *o;
-  int tlen;
+  ptrdiff_t tlen;
   unsigned char *target;
   struct passwd *pw;
   int lose;
@@ -1366,7 +1365,7 @@ See also the function `substitute-in-file-name'.")
 	unsigned char *user = nm + 1;
 	/* Find end of name. */
 	unsigned char *ptr = (unsigned char *) strchr (user, '/');
-	int len = ptr ? ptr - user : strlen (user);
+	ptrdiff_t len = ptr ? ptr - user : strlen (user);
 	/* Copy the user name into temp storage. */
 	o = (unsigned char *) alloca (len + 1);
 	memcpy (o, user, len);
@@ -1672,7 +1671,7 @@ those `/' is discarded.  */)
 	else
 	  {
 	    Lisp_Object orig, decoded;
-	    int orig_length, decoded_length;
+	    ptrdiff_t orig_length, decoded_length;
 	    orig_length = strlen (o);
 	    orig = make_unibyte_string (o, orig_length);
 	    decoded = DECODE_FILE (orig);

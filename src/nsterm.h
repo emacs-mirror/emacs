@@ -468,8 +468,8 @@ struct ns_display_info
   int smallest_font_height;
 
   struct ns_bitmap_record *bitmaps;
-  int bitmaps_size;
-  int bitmaps_last;
+  ptrdiff_t bitmaps_size;
+  ptrdiff_t bitmaps_last;
 
   struct image_cache *image_cache;
 
@@ -818,4 +818,3 @@ extern char gnustep_base_version[];  /* version tracking */
 
 
 #endif	/* HAVE_NS */
-

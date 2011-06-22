@@ -1015,7 +1015,7 @@ style_changed_cb (GObject *go,
 
   EVENT_INIT (event);
   event.kind = CONFIG_CHANGED_EVENT;
-  event.frame_or_window = make_string (display_name, strlen (display_name));
+  event.frame_or_window = build_string (display_name);
   /* Theme doesn't change often, so intern is called seldom.  */
   event.arg = intern ("theme-name");
   kbd_buffer_store_event (&event);
@@ -1024,7 +1024,7 @@ style_changed_cb (GObject *go,
 
   /* If scroll bar width changed, we need set the new size on all frames
      on this display.  */
-  if (dpy) 
+  if (dpy)
     {
       Lisp_Object rest, frame;
       FOR_EACH_FRAME (rest, frame)

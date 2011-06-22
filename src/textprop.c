@@ -613,7 +613,7 @@ get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, 
     }
   if (BUFFERP (object))
     {
-      int noverlays;
+      ptrdiff_t noverlays;
       Lisp_Object *overlay_vec;
       struct buffer *obuf = current_buffer;
 

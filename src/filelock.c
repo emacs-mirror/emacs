@@ -168,7 +168,7 @@ get_boot_time (void)
   /* If we did not find a boot time in wtmp, look at wtmp, and so on.  */
   for (counter = 0; counter < 20 && ! boot_time; counter++)
     {
-      char cmd_string[100];
+      char cmd_string[sizeof WTMP_FILE ".19.gz"];
       Lisp_Object tempname, filename;
       int delete_flag = 0;
 
@@ -191,19 +191,16 @@ get_boot_time (void)
 		 character long prefix, and call make_temp_file with
 		 second arg non-zero, so that it will add not more
 		 than 6 characters to the prefix.  */
-	      tempname = Fexpand_file_name (build_string ("wt"),
+	      filename = Fexpand_file_name (build_string ("wt"),
 					    Vtemporary_file_directory);
-	      tempname = make_temp_name (tempname, 1);
-	      args[0] = Vshell_file_name;
+	      filename = make_temp_name (filename, 1);
+	      args[0] = build_string ("gzip");
 	      args[1] = Qnil;
-	      args[2] = Qnil;
+	      args[2] = list2 (QCfile, filename);
 	      args[3] = Qnil;
-	      args[4] = build_string ("-c");
-	      sprintf (cmd_string, "gunzip < %s.%d.gz > %s",
-		       WTMP_FILE, counter, SDATA (tempname));
-	      args[5] = build_string (cmd_string);
+	      args[4] = build_string ("-cd");
+	      args[5] = tempname;
 	      Fcall_process (6, args);
-	      filename = tempname;
 	      delete_flag = 1;
 	    }
 	}
@@ -284,13 +281,9 @@ typedef struct
 {
   char *user;
   char *host;
-  unsigned long pid;
+  pid_t pid;
   time_t boot_time;
 } lock_info_type;
-
-/* When we read the info back, we might need this much more,
-   enough for decimal representation plus null.  */
-#define LOCK_PID_MAX (4 * sizeof (unsigned long))
 
 /* Free the two dynamically-allocated pieces in PTR.  */
 #define FREE_LOCK_INFO(i) do { xfree ((i).user); xfree ((i).host); } while (0)
@@ -344,7 +337,7 @@ static int
 lock_file_1 (char *lfname, int force)
 {
   register int err;
-  time_t boot;
+  intmax_t boot, pid;
   const char *user_name;
   const char *host_name;
   char *lock_info_str;
@@ -361,14 +354,16 @@ lock_file_1 (char *lfname, int force)
   else
     host_name = "";
   lock_info_str = (char *)alloca (strlen (user_name) + strlen (host_name)
-				  + LOCK_PID_MAX + 30);
+				  + 2 * INT_STRLEN_BOUND (intmax_t)
+				  + sizeof "@.:");
+  pid = getpid ();
 
   if (boot)
-    sprintf (lock_info_str, "%s@%s.%lu:%lu", user_name, host_name,
-	     (unsigned long) getpid (), (unsigned long) boot);
+    sprintf (lock_info_str, "%s@%s.%"PRIdMAX":%"PRIdMAX,
+	     user_name, host_name, pid, boot);
   else
-    sprintf (lock_info_str, "%s@%s.%lu", user_name, host_name,
-	     (unsigned long) getpid ());
+    sprintf (lock_info_str, "%s@%s.%"PRIdMAX,
+	     user_name, host_name, pid);
 
   err = symlink (lock_info_str, lfname);
   if (errno == EEXIST && force)
@@ -397,8 +392,9 @@ static int
 current_lock_owner (lock_info_type *owner, char *lfname)
 {
   int ret;
-  size_t len;
-  int local_owner = 0;
+  ptrdiff_t len;
+  lock_info_type local_owner;
+  intmax_t n;
   char *at, *dot, *colon;
   char readlink_buf[READLINK_BUFSIZE];
   char *lfinfo = emacs_readlink (lfname, readlink_buf);
@@ -408,12 +404,9 @@ current_lock_owner (lock_info_type *owner, char *lfname)
     return errno == ENOENT ? 0 : -1;
 
   /* Even if the caller doesn't want the owner info, we still have to
-     read it to determine return value, so allocate it.  */
+     read it to determine return value.  */
   if (!owner)
-    {
-      owner = (lock_info_type *) alloca (sizeof (lock_info_type));
-      local_owner = 1;
-    }
+    owner = &local_owner;
 
   /* Parse USER@HOST.PID:BOOT_TIME.  If can't parse, return -1.  */
   /* The USER is everything before the last @.  */
@@ -427,24 +420,34 @@ current_lock_owner (lock_info_type *owner, char *lfname)
     }
   len = at - lfinfo;
   owner->user = (char *) xmalloc (len + 1);
-  strncpy (owner->user, lfinfo, len);
+  memcpy (owner->user, lfinfo, len);
   owner->user[len] = 0;
 
   /* The PID is everything from the last `.' to the `:'.  */
-  owner->pid = atoi (dot + 1);
-  colon = dot;
-  while (*colon && *colon != ':')
-    colon++;
+  errno = 0;
+  n = strtoimax (dot + 1, NULL, 10);
+  owner->pid =
+    ((0 <= n && n <= TYPE_MAXIMUM (pid_t)
+      && (TYPE_MAXIMUM (pid_t) < INTMAX_MAX || errno != ERANGE))
+     ? n : 0);
+
+  colon = strchr (dot + 1, ':');
   /* After the `:', if there is one, comes the boot time.  */
-  if (*colon == ':')
-    owner->boot_time = atoi (colon + 1);
-  else
-    owner->boot_time = 0;
+  n = 0;
+  if (colon)
+    {
+      errno = 0;
+      n = strtoimax (colon + 1, NULL, 10);
+    }
+  owner->boot_time =
+    ((0 <= n && n <= TYPE_MAXIMUM (time_t)
+      && (TYPE_MAXIMUM (time_t) < INTMAX_MAX || errno != ERANGE))
+     ? n : 0);
 
   /* The host is everything in between.  */
   len = dot - at - 1;
   owner->host = (char *) xmalloc (len + 1);
-  strncpy (owner->host, at + 1, len);
+  memcpy (owner->host, at + 1, len);
   owner->host[len] = 0;
 
   /* We're done looking at the link info.  */
@@ -476,7 +479,7 @@ current_lock_owner (lock_info_type *owner, char *lfname)
     }
 
   /* Avoid garbage.  */
-  if (local_owner || ret <= 0)
+  if (owner == &local_owner || ret <= 0)
     {
       FREE_LOCK_INFO (*owner);
     }
@@ -539,6 +542,7 @@ lock_file (Lisp_Object fn)
   register Lisp_Object attack, orig_fn, encoded_fn;
   register char *lfname, *locker;
   lock_info_type lock_info;
+  intmax_t pid;
   struct gcpro gcpro1;
 
   /* Don't do locking while dumping Emacs.
@@ -577,9 +581,10 @@ lock_file (Lisp_Object fn)
 
   /* Else consider breaking the lock */
   locker = (char *) alloca (strlen (lock_info.user) + strlen (lock_info.host)
-			    + LOCK_PID_MAX + 9);
-  sprintf (locker, "%s@%s (pid %lu)", lock_info.user, lock_info.host,
-           lock_info.pid);
+			    + INT_STRLEN_BOUND (intmax_t) + sizeof "@ (pid )");
+  pid = lock_info.pid;
+  sprintf (locker, "%s@%s (pid %"PRIdMAX")",
+	   lock_info.user, lock_info.host, pid);
   FREE_LOCK_INFO (lock_info);
 
   attack = call2 (intern ("ask-user-about-lock"), fn, build_string (locker));

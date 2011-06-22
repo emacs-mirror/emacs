@@ -111,13 +111,12 @@ static int xd_in_read_queued_messages = 0;
 /* Raise a Lisp error from a D-Bus ERROR.  */
 #define XD_ERROR(error)							\
   do {									\
-    char s[1024];							\
-    strncpy (s, error.message, 1023);					\
-    dbus_error_free (&error);						\
     /* Remove the trailing newline.  */					\
-    if (strchr (s, '\n') != NULL)					\
-      s[strlen (s) - 1] = '\0';						\
-    XD_SIGNAL1 (build_string (s));					\
+    char const *mess = error.message;					\
+    char const *nl = strchr (mess, '\n');				\
+    Lisp_Object err = make_string (mess, nl ? nl - mess : strlen (mess)); \
+    dbus_error_free (&error);						\
+    XD_SIGNAL1 (err);							\
   } while (0)
 
 /* Macros for debugging.  In order to enable them, build with
@@ -126,7 +125,7 @@ static int xd_in_read_queued_messages = 0;
 #define XD_DEBUG_MESSAGE(...)		\
   do {					\
     char s[1024];			\
-    snprintf (s, 1023, __VA_ARGS__);	\
+    snprintf (s, sizeof s, __VA_ARGS__); \
     printf ("%s: %s\n", __func__, s);	\
     message ("%s: %s", __func__, s);	\
   } while (0)

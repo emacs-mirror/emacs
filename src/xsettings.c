@@ -18,6 +18,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+
+#include <float.h>
 #include <limits.h>
 #include <setjmp.h>
 #include <fcntl.h>
@@ -434,10 +436,8 @@ apply_xft_settings (struct x_display_info *dpyinfo,
   FcPattern *pat;
   struct xsettings oldsettings;
   int changed = 0;
-  char buf[256];
 
   memset (&oldsettings, 0, sizeof (oldsettings));
-  buf[0] = '\0';
   pat = FcPatternCreate ();
   XftDefaultSubstitute (dpyinfo->display,
                         XScreenNumberOfScreen (dpyinfo->screen),
@@ -458,7 +458,6 @@ apply_xft_settings (struct x_display_info *dpyinfo,
       ++changed;
       oldsettings.aa = settings->aa;
     }
-  sprintf (buf, "Antialias: %d", oldsettings.aa);
 
   if ((settings->seen & SEEN_HINTING) != 0
       && oldsettings.hinting != settings->hinting)
@@ -468,8 +467,6 @@ apply_xft_settings (struct x_display_info *dpyinfo,
       ++changed;
       oldsettings.hinting = settings->hinting;
     }
-  if (strlen (buf) > 0) strcat (buf, ", ");
-  sprintf (buf+strlen (buf), "Hinting: %d", oldsettings.hinting);
   if ((settings->seen & SEEN_RGBA) != 0 && oldsettings.rgba != settings->rgba)
     {
       FcPatternDel (pat, FC_RGBA);
@@ -477,8 +474,6 @@ apply_xft_settings (struct x_display_info *dpyinfo,
       oldsettings.rgba = settings->rgba;
       ++changed;
     }
-  if (strlen (buf) > 0) strcat (buf, ", ");
-  sprintf (buf+strlen (buf), "RGBA: %d", oldsettings.rgba);
 
   /* Older fontconfig versions don't have FC_LCD_FILTER. */
   if ((settings->seen & SEEN_LCDFILTER) != 0
@@ -489,8 +484,6 @@ apply_xft_settings (struct x_display_info *dpyinfo,
       ++changed;
       oldsettings.lcdfilter = settings->lcdfilter;
     }
-  if (strlen (buf) > 0) strcat (buf, ", ");
-  sprintf (buf+strlen (buf), "LCDFilter: %d", oldsettings.lcdfilter);
 
 # ifdef FC_HINT_STYLE
   if ((settings->seen & SEEN_HINTSTYLE) != 0
@@ -502,8 +495,6 @@ apply_xft_settings (struct x_display_info *dpyinfo,
       oldsettings.hintstyle = settings->hintstyle;
     }
 # endif
-  if (strlen (buf) > 0) strcat (buf, ", ");
-  sprintf (buf+strlen (buf), "Hintstyle: %d", oldsettings.hintstyle);
 
   if ((settings->seen & SEEN_DPI) != 0 && oldsettings.dpi != settings->dpi
       && settings->dpi > 0)
@@ -523,16 +514,31 @@ apply_xft_settings (struct x_display_info *dpyinfo,
           XFRAME (frame)->resy = XFRAME (frame)->resx = settings->dpi;
     }
 
-  if (strlen (buf) > 0) strcat (buf, ", ");
-  sprintf (buf+strlen (buf), "DPI: %lf", oldsettings.dpi);
-
   if (changed)
     {
+      static char const format[] =
+	"Antialias: %d, Hinting: %d, RGBA: %d, LCDFilter: %d, "
+	"Hintstyle: %d, DPI: %lf";
+      enum
+      {
+	d_formats = 5,
+	d_growth = INT_BUFSIZE_BOUND (int) - sizeof "%d",
+	lf_formats = 1,
+	max_f_integer_digits = DBL_MAX_10_EXP + 1,
+	f_precision = 6,
+	lf_growth = (sizeof "-." + max_f_integer_digits + f_precision
+		     - sizeof "%lf")
+      };
+      char buf[sizeof format + d_formats * d_growth + lf_formats * lf_growth];
+
       XftDefaultSet (dpyinfo->display, pat);
       if (send_event_p)
         store_config_changed_event (Qfont_render,
                                     XCAR (dpyinfo->name_list_element));
-      Vxft_settings = make_string (buf, strlen (buf));
+      sprintf (buf, format, oldsettings.aa, oldsettings.hinting,
+	       oldsettings.rgba, oldsettings.lcdfilter,
+	       oldsettings.hintstyle, oldsettings.dpi);
+      Vxft_settings = build_string (buf);
     }
   else
     FcPatternDestroy (pat);
@@ -705,9 +711,7 @@ DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
        doc: /* Get the system default application font. */)
   (void)
 {
-  return current_font
-    ? make_string (current_font, strlen (current_font))
-    : Qnil;
+  return current_font ? build_string (current_font) : Qnil;
 }
 
 DEFUN ("font-get-system-font", Ffont_get_system_font, Sfont_get_system_font,
@@ -715,9 +719,7 @@ DEFUN ("font-get-system-font", Ffont_get_system_font, Sfont_get_system_font,
        doc: /* Get the system default fixed width font. */)
   (void)
 {
-  return current_mono_font
-    ? make_string (current_mono_font, strlen (current_mono_font))
-    : Qnil;
+  return current_mono_font ? build_string (current_mono_font) : Qnil;
 }
 
 DEFUN ("tool-bar-get-system-style", Ftool_bar_get_system_style,

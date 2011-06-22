@@ -777,7 +777,8 @@ extern void font_done_for_face (FRAME_PTR f, struct face *face);
 extern Lisp_Object font_open_by_spec (FRAME_PTR f, Lisp_Object spec);
 extern Lisp_Object font_open_by_name (FRAME_PTR f, const char *name);
 
-extern Lisp_Object font_intern_prop (const char *str, int len, int force_symbol);
+extern Lisp_Object font_intern_prop (const char *str, ptrdiff_t len,
+				     int force_symbol);
 extern void font_update_sort_order (int *order);
 
 extern void font_parse_family_registry (Lisp_Object family,

@@ -1115,7 +1115,7 @@ function, instead of the usual behavior.  */)
 {
   Lisp_Object args[4], result;
   char *s;
-  int len;
+  ptrdiff_t len;
   int count = SPECPDL_INDEX ();
 
   if (BUFFERP (def))
@@ -1137,7 +1137,7 @@ function, instead of the usual behavior.  */)
 	  if (STRINGP (prompt))
 	    {
 	      s = SSDATA (prompt);
-	      len = strlen (s);
+	      len = SBYTES (prompt);
 	      if (len >= 2 && s[len - 2] == ':' && s[len - 1] == ' ')
 		len = len - 2;
 	      else if (len >= 1 && (s[len - 1] == ':' || s[len - 1] == ' '))
