@@ -1,3 +1,8 @@
+2011-06-22  Lawrence Mitchell  <wence@gmx.li>
+
+	* net/browse-url.el (browse-url-xdg-open): Use 0, rather than nil
+	BUFFER in call-process.
+
 2011-06-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Make sure we don't send
