@@ -27,6 +27,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include <unistd.h>
 
+#include <verify.h>
+
 #include "lisp.h"
 #include "intervals.h"
 #include "window.h"
@@ -91,6 +93,11 @@ static Lisp_Object Vbuffer_local_symbols;
 
 #define PER_BUFFER_SYMBOL(OFFSET) \
       (*(Lisp_Object *)((OFFSET) + (char *) &buffer_local_symbols))
+
+/* Maximum length of an overlay vector.  */
+#define OVERLAY_COUNT_MAX						\
+  ((ptrdiff_t) min (MOST_POSITIVE_FIXNUM,				\
+		    min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object)))
 
 /* Flags indicating which built-in buffer-local variables
    are permanent locals.  */
@@ -2516,14 +2523,15 @@ swap_out_buffer_local_variables (struct buffer *b)
    *NEXT_PTR is guaranteed to be not equal to POS, unless it is the
    default (BEGV or ZV).  */
 
-int
-overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr, int *len_ptr,
+ptrdiff_t
+overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
+	     ptrdiff_t *len_ptr,
 	     EMACS_INT *next_ptr, EMACS_INT *prev_ptr, int change_req)
 {
   Lisp_Object overlay, start, end;
   struct Lisp_Overlay *tail;
-  int idx = 0;
-  int len = *len_ptr;
+  ptrdiff_t idx = 0;
+  ptrdiff_t len = *len_ptr;
   Lisp_Object *vec = *vec_ptr;
   EMACS_INT next = ZV;
   EMACS_INT prev = BEGV;
@@ -2559,10 +2567,10 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr, int *len_ptr,
 		 Either make it bigger, or don't store any more in it.  */
 	      if (extend)
 		{
+		  if ((OVERLAY_COUNT_MAX - 4) / 2 < len)
+		    memory_full (SIZE_MAX);
 		  /* Make it work with an initial len == 0.  */
-		  len *= 2;
-		  if (len == 0)
-		    len = 4;
+		  len = len * 2 + 4;
 		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
@@ -2602,10 +2610,10 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr, int *len_ptr,
 	    {
 	      if (extend)
 		{
+		  if ((OVERLAY_COUNT_MAX - 4) / 2 < len)
+		    memory_full (SIZE_MAX);
 		  /* Make it work with an initial len == 0.  */
-		  len *= 2;
-		  if (len == 0)
-		    len = 4;
+		  len = len * 2 + 4;
 		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
@@ -2655,15 +2663,15 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr, int *len_ptr,
    and we store only as many overlays as will fit.
    But we still return the total number of overlays.  */
 
-static int
+static ptrdiff_t
 overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
-	     Lisp_Object **vec_ptr, int *len_ptr,
+	     Lisp_Object **vec_ptr, ptrdiff_t *len_ptr,
 	     EMACS_INT *next_ptr, EMACS_INT *prev_ptr)
 {
   Lisp_Object overlay, ostart, oend;
   struct Lisp_Overlay *tail;
-  int idx = 0;
-  int len = *len_ptr;
+  ptrdiff_t idx = 0;
+  ptrdiff_t len = *len_ptr;
   Lisp_Object *vec = *vec_ptr;
   EMACS_INT next = ZV;
   EMACS_INT prev = BEGV;
@@ -2699,10 +2707,10 @@ overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
 		 Either make it bigger, or don't store any more in it.  */
 	      if (extend)
 		{
+		  if ((OVERLAY_COUNT_MAX - 4) / 2 < len)
+		    memory_full (SIZE_MAX);
 		  /* Make it work with an initial len == 0.  */
-		  len *= 2;
-		  if (len == 0)
-		    len = 4;
+		  len = len * 2 + 4;
 		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
@@ -2747,10 +2755,10 @@ overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
 	    {
 	      if (extend)
 		{
+		  if ((OVERLAY_COUNT_MAX - 4) / 2 < len)
+		    memory_full (SIZE_MAX);
 		  /* Make it work with an initial len == 0.  */
-		  len *= 2;
-		  if (len == 0)
-		    len = 4;
+		  len = len * 2 + 4;
 		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
@@ -2783,7 +2791,7 @@ mouse_face_overlay_overlaps (Lisp_Object overlay)
 {
   EMACS_INT start = OVERLAY_POSITION (OVERLAY_START (overlay));
   EMACS_INT end = OVERLAY_POSITION (OVERLAY_END (overlay));
-  int n, i, size;
+  ptrdiff_t n, i, size;
   Lisp_Object *v, tem;
 
   size = 10;
@@ -2849,7 +2857,7 @@ struct sortvec
 {
   Lisp_Object overlay;
   EMACS_INT beg, end;
-  int priority;
+  EMACS_INT priority;
 };
 
 static int
@@ -2858,21 +2866,21 @@ compare_overlays (const void *v1, const void *v2)
   const struct sortvec *s1 = (const struct sortvec *) v1;
   const struct sortvec *s2 = (const struct sortvec *) v2;
   if (s1->priority != s2->priority)
-    return s1->priority - s2->priority;
+    return s1->priority < s2->priority ? -1 : 1;
   if (s1->beg != s2->beg)
-    return s1->beg - s2->beg;
+    return s1->beg < s2->beg ? -1 : 1;
   if (s1->end != s2->end)
-    return s2->end - s1->end;
+    return s2->end < s1->end ? -1 : 1;
   return 0;
 }
 
 /* Sort an array of overlays by priority.  The array is modified in place.
    The return value is the new size; this may be smaller than the original
    size if some of the overlays were invalid or were window-specific.  */
-int
-sort_overlays (Lisp_Object *overlay_vec, int noverlays, struct window *w)
+ptrdiff_t
+sort_overlays (Lisp_Object *overlay_vec, ptrdiff_t noverlays, struct window *w)
 {
-  int i, j;
+  ptrdiff_t i, j;
   struct sortvec *sortvec;
   sortvec = (struct sortvec *) alloca (noverlays * sizeof (struct sortvec));
 
@@ -2926,15 +2934,15 @@ sort_overlays (Lisp_Object *overlay_vec, int noverlays, struct window *w)
 struct sortstr
 {
   Lisp_Object string, string2;
-  int size;
-  int priority;
+  ptrdiff_t size;
+  EMACS_INT priority;
 };
 
 struct sortstrlist
 {
   struct sortstr *buf;	/* An array that expands as needed; never freed.  */
-  int size;		/* Allocated length of that array.  */
-  int used;		/* How much of the array is currently in use.  */
+  ptrdiff_t size;	/* Allocated length of that array.  */
+  ptrdiff_t used;	/* How much of the array is currently in use.  */
   EMACS_INT bytes;		/* Total length of the strings in buf.  */
 };
 
@@ -2955,20 +2963,24 @@ cmp_for_strings (const void *as1, const void *as2)
   struct sortstr *s1 = (struct sortstr *)as1;
   struct sortstr *s2 = (struct sortstr *)as2;
   if (s1->size != s2->size)
-    return s2->size - s1->size;
+    return s2->size < s1->size ? -1 : 1;
   if (s1->priority != s2->priority)
-    return s1->priority - s2->priority;
+    return s1->priority < s2->priority ? -1 : 1;
   return 0;
 }
 
 static void
-record_overlay_string (struct sortstrlist *ssl, Lisp_Object str, Lisp_Object str2, Lisp_Object pri, int size)
+record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
+		       Lisp_Object str2, Lisp_Object pri, ptrdiff_t size)
 {
   EMACS_INT nbytes;
 
   if (ssl->used == ssl->size)
     {
-      if (ssl->buf)
+      if (min (PTRDIFF_MAX, SIZE_MAX) / (sizeof (struct sortstr) * 2)
+	  < ssl->size)
+	memory_full (SIZE_MAX);
+      else if (0 < ssl->size)
 	ssl->size *= 2;
       else
 	ssl->size = 5;
@@ -3874,9 +3886,8 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
        doc: /* Return a list of the overlays that contain the character at POS.  */)
   (Lisp_Object pos)
 {
-  int noverlays;
+  ptrdiff_t len, noverlays;
   Lisp_Object *overlay_vec;
-  int len;
   Lisp_Object result;
 
   CHECK_NUMBER_COERCE_MARKER (pos);
@@ -3906,9 +3917,8 @@ between BEG and END, or at END provided END denotes the position at the
 end of the buffer.  */)
   (Lisp_Object beg, Lisp_Object end)
 {
-  int noverlays;
+  ptrdiff_t len, noverlays;
   Lisp_Object *overlay_vec;
-  int len;
   Lisp_Object result;
 
   CHECK_NUMBER_COERCE_MARKER (beg);
@@ -3936,11 +3946,9 @@ If there are no overlay boundaries from POS to (point-max),
 the value is (point-max).  */)
   (Lisp_Object pos)
 {
-  int noverlays;
+  ptrdiff_t i, len, noverlays;
   EMACS_INT endpos;
   Lisp_Object *overlay_vec;
-  int len;
-  int i;
 
   CHECK_NUMBER_COERCE_MARKER (pos);
 
@@ -3979,7 +3987,7 @@ the value is (point-min).  */)
 {
   EMACS_INT prevpos;
   Lisp_Object *overlay_vec;
-  int len;
+  ptrdiff_t len;
 
   CHECK_NUMBER_COERCE_MARKER (pos);
 
@@ -4971,7 +4979,7 @@ init_buffer_once (void)
      The local flag bits are in the local_var_flags slot of the buffer.  */
 
   /* Nothing can work if this isn't true */
-  if (sizeof (EMACS_INT) != sizeof (Lisp_Object)) abort ();
+  { verify (sizeof (EMACS_INT) == sizeof (Lisp_Object)); }
 
   /* 0 means not a lisp var, -1 means always local, else mask */
   memset (&buffer_local_flags, 0, sizeof buffer_local_flags);
@@ -5077,7 +5085,7 @@ init_buffer (void)
 {
   char *pwd;
   Lisp_Object temp;
-  int len;
+  ptrdiff_t len;
 
 #ifdef USE_MMAP_FOR_BUFFERS
  {

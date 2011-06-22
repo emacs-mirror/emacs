@@ -594,16 +594,14 @@ xfont_match (Lisp_Object frame, Lisp_Object spec)
     {
       if (XGetFontProperty (xfont, XA_FONT, &value))
 	{
-	  int len;
 	  char *s;
 
 	  s = (char *) XGetAtomName (display, (Atom) value);
-	  len = strlen (s);
 
 	  /* If DXPC (a Differential X Protocol Compressor)
 	     Ver.3.7 is running, XGetAtomName will return null
 	     string.  We must avoid such a name.  */
-	  if (len > 0)
+	  if (*s)
 	    {
 	      entity = font_make_entity ();
 	      ASET (entity, FONT_TYPE_INDEX, Qx);

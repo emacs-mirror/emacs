@@ -182,20 +182,20 @@ XPutPixel (XImagePtr ximage, int x, int y, unsigned long pixel)
 /* Functions to access the contents of a bitmap, given an id.  */
 
 int
-x_bitmap_height (FRAME_PTR f, int id)
+x_bitmap_height (FRAME_PTR f, ptrdiff_t id)
 {
   return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].height;
 }
 
 int
-x_bitmap_width (FRAME_PTR f, int id)
+x_bitmap_width (FRAME_PTR f, ptrdiff_t id)
 {
   return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].width;
 }
 
 #if defined (HAVE_X_WINDOWS) || defined (HAVE_NTGUI)
 int
-x_bitmap_pixmap (FRAME_PTR f, int id)
+x_bitmap_pixmap (FRAME_PTR f, ptrdiff_t id)
 {
   return (int) FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].pixmap;
 }
@@ -203,7 +203,7 @@ x_bitmap_pixmap (FRAME_PTR f, int id)
 
 #ifdef HAVE_X_WINDOWS
 int
-x_bitmap_mask (FRAME_PTR f, int id)
+x_bitmap_mask (FRAME_PTR f, ptrdiff_t id)
 {
   return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].mask;
 }
@@ -211,11 +211,11 @@ x_bitmap_mask (FRAME_PTR f, int id)
 
 /* Allocate a new bitmap record.  Returns index of new record.  */
 
-static int
+static ptrdiff_t
 x_allocate_bitmap_record (FRAME_PTR f)
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  int i;
+  ptrdiff_t i;
 
   if (dpyinfo->bitmaps == NULL)
     {
@@ -233,6 +233,9 @@ x_allocate_bitmap_record (FRAME_PTR f)
     if (dpyinfo->bitmaps[i].refcount == 0)
       return i + 1;
 
+  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Bitmap_Record) / 2
+      < dpyinfo->bitmaps_size)
+    memory_full (SIZE_MAX);
   dpyinfo->bitmaps_size *= 2;
   dpyinfo->bitmaps
     = (Bitmap_Record *) xrealloc (dpyinfo->bitmaps,
@@ -250,11 +253,11 @@ x_reference_bitmap (FRAME_PTR f, int id)
 
 /* Create a bitmap for frame F from a HEIGHT x WIDTH array of bits at BITS.  */
 
-int
+ptrdiff_t
 x_create_bitmap_from_data (struct frame *f, char *bits, unsigned int width, unsigned int height)
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  int id;
+  ptrdiff_t id;
 
 #ifdef HAVE_X_WINDOWS
   Pixmap bitmap;
@@ -309,7 +312,7 @@ x_create_bitmap_from_data (struct frame *f, char *bits, unsigned int width, unsi
 
 /* Create bitmap from file FILE for frame F.  */
 
-int
+ptrdiff_t
 x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
@@ -319,7 +322,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
-  int id;
+  ptrdiff_t id;
   void *bitmap = ns_image_from_file (file);
 
   if (!bitmap)
@@ -340,7 +343,8 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 #ifdef HAVE_X_WINDOWS
   unsigned int width, height;
   Pixmap bitmap;
-  int xhot, yhot, result, id;
+  int xhot, yhot, result;
+  ptrdiff_t id;
   Lisp_Object found;
   int fd;
   char *filename;
@@ -413,7 +417,7 @@ free_bitmap_record (Display_Info *dpyinfo, Bitmap_Record *bm)
 /* Remove reference to bitmap with id number ID.  */
 
 void
-x_destroy_bitmap (FRAME_PTR f, int id)
+x_destroy_bitmap (FRAME_PTR f, ptrdiff_t id)
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
@@ -435,7 +439,7 @@ x_destroy_bitmap (FRAME_PTR f, int id)
 void
 x_destroy_all_bitmaps (Display_Info *dpyinfo)
 {
-  int i;
+  ptrdiff_t i;
   Bitmap_Record *bm = dpyinfo->bitmaps;
 
   for (i = 0; i < dpyinfo->bitmaps_last; i++, bm++)
@@ -467,7 +471,7 @@ static void x_destroy_x_image (XImagePtr ximg);
    It's nicer with some borders in this context */
 
 int
-x_create_bitmap_mask (struct frame *f, int id)
+x_create_bitmap_mask (struct frame *f, ptrdiff_t id)
 {
   Pixmap pixmap, mask;
   XImagePtr ximg, mask_img;
@@ -2308,7 +2312,7 @@ xbm_image_p (Lisp_Object object)
   else
     {
       Lisp_Object data;
-      int width, height;
+      EMACS_INT width, height;
 
       /* Entries for `:width', `:height' and `:data' must be present.  */
       if (!kw[XBM_WIDTH].count
@@ -2324,7 +2328,7 @@ xbm_image_p (Lisp_Object object)
 	 data.  */
       if (VECTORP (data))
 	{
-	  int i;
+	  EMACS_INT i;
 
 	  /* Number of elements of the vector must be >= height.  */
 	  if (ASIZE (data) < height)
@@ -2829,6 +2833,7 @@ xbm_load (struct frame *f, struct image *img)
 	}
 
       success_p = xbm_load_image (f, img, contents, contents + size);
+      xfree (contents);
     }
   else
     {
@@ -3281,11 +3286,12 @@ xpm_image_p (Lisp_Object object)
 #endif /* HAVE_XPM || HAVE_NS */
 
 #if defined HAVE_XPM && defined HAVE_X_WINDOWS && !defined USE_GTK
-int
+ptrdiff_t
 x_create_bitmap_from_xpm_data (struct frame *f, const char **bits)
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  int id, rc;
+  ptrdiff_t id;
+  int rc;
   XpmAttributes attrs;
   Pixmap bitmap, mask;
 
@@ -3589,25 +3595,14 @@ xpm_load (struct frame *f, struct image *img)
 /* XPM support functions for NS where libxpm is not available.
    Only XPM version 3 (without any extensions) is supported.  */
 
-static int xpm_scan (const unsigned char **, const unsigned char *,
-                     const unsigned char **, int *);
-static Lisp_Object xpm_make_color_table_v
-  (void (**) (Lisp_Object, const unsigned char *, int, Lisp_Object),
-   Lisp_Object (**) (Lisp_Object, const unsigned char *, int));
 static void xpm_put_color_table_v (Lisp_Object, const unsigned char *,
                                    int, Lisp_Object);
 static Lisp_Object xpm_get_color_table_v (Lisp_Object,
                                           const unsigned char *, int);
-static Lisp_Object xpm_make_color_table_h
-  (void (**) (Lisp_Object, const unsigned char *, int, Lisp_Object),
-   Lisp_Object (**) (Lisp_Object, const unsigned char *, int));
 static void xpm_put_color_table_h (Lisp_Object, const unsigned char *,
                                    int, Lisp_Object);
 static Lisp_Object xpm_get_color_table_h (Lisp_Object,
                                           const unsigned char *, int);
-static int xpm_str_to_color_key (const char *);
-static int xpm_load_image (struct frame *, struct image *,
-                           const unsigned char *, const unsigned char *);
 
 /* Tokens returned from xpm_scan.  */
 
@@ -3629,7 +3624,7 @@ static int
 xpm_scan (const unsigned char **s,
           const unsigned char *end,
           const unsigned char **beg,
-          int *len)
+          ptrdiff_t *len)
 {
   int c;
 
@@ -3799,7 +3794,8 @@ xpm_load_image (struct frame *f,
   unsigned char buffer[BUFSIZ];
   int width, height, x, y;
   int num_colors, chars_per_pixel;
-  int len, LA1;
+  ptrdiff_t len;
+  int LA1;
   void (*put_color_table) (Lisp_Object, const unsigned char *, int, Lisp_Object);
   Lisp_Object (*get_color_table) (Lisp_Object, const unsigned char *, int);
   Lisp_Object frame, color_symbols, color_table;

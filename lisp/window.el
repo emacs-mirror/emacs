@@ -3014,7 +3014,11 @@ new window are inherited from the window selected on WINDOW's
 frame.  The selected window is not changed by this function."
   (interactive "i")
   (setq window (normalize-any-window window))
-  (let* ((horizontal (not (memq side '(nil below above))))
+  (let* ((side (cond
+		((not side) 'below)
+		((memq side '(below above right left)) side)
+		(t 'right)))
+	 (horizontal (not (memq side '(nil below above))))
 	 (frame (window-frame window))
 	 (parent (window-parent window))
 	 (function (window-parameter window 'split-window))
@@ -3820,8 +3824,6 @@ subwindows can get as small as `window-safe-min-height' and
     (pop-up-window-min-height . 40)
     (pop-up-window-min-width . 80)
     (reuse-window other nil nil)
-    (pop-up-frame-alist
-     (height . 24) (width . 80))
     (reuse-window nil other visible)
     (reuse-window nil nil t)
     (reuse-window-even-sizes . t))
@@ -4371,8 +4373,7 @@ using the location specifiers `same-window' or `other-frame'."
 	(list
 	 :tag "Pop-up frame"
 	 :value (pop-up-frame
-		 (pop-up-frame)
-		 (pop-up-frame-alist (height . 24) (width . 80)))
+		 (pop-up-frame))
 	 :format "%t\n%v"
 	 :inline t
 	 (const :format "" pop-up-frame)

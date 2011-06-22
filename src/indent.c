@@ -318,6 +318,15 @@ invalidate_current_column (void)
   last_known_column_point = 0;
 }
 
+/* Return a non-outlandish value for the tab width.  */
+
+static int
+sane_tab_width (void)
+{
+  EMACS_INT n = XFASTINT (BVAR (current_buffer, tab_width));
+  return 0 < n && n <= 1000 ? n : 8;
+}
+
 EMACS_INT
 current_column (void)
 {
@@ -326,7 +335,7 @@ current_column (void)
   register int tab_seen;
   EMACS_INT post_tab;
   register int c;
-  register EMACS_INT tab_width = XINT (BVAR (current_buffer, tab_width));
+  int tab_width = sane_tab_width ();
   int ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
   register struct Lisp_Char_Table *dp = buffer_display_table ();
 
@@ -355,9 +364,6 @@ current_column (void)
     stop = BEGV_ADDR;
   else
     stop = GAP_END_ADDR;
-
-  if (tab_width <= 0 || tab_width > 1000)
-    tab_width = 8;
 
   col = 0, tab_seen = 0, post_tab = 0;
 
@@ -509,7 +515,7 @@ check_display_width (EMACS_INT pos, EMACS_INT col, EMACS_INT *endpos)
 static void
 scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 {
-  register EMACS_INT tab_width = XINT (BVAR (current_buffer, tab_width));
+  int tab_width = sane_tab_width ();
   register int ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
   register struct Lisp_Char_Table *dp = buffer_display_table ();
   int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
@@ -535,7 +541,6 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
   window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
   w = ! NILP (window) ? XWINDOW (window) : NULL;
 
-  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
   memset (&cmp_it, 0, sizeof cmp_it);
   cmp_it.id = -1;
   composition_compute_stop_pos (&cmp_it, scan, scan_byte, end, Qnil);
@@ -728,7 +733,7 @@ string_display_width (string, beg, end)
   register int tab_seen;
   int post_tab;
   register int c;
-  register int tab_width = XINT (current_buffer->tab_width);
+  int tab_width = sane_tab_width ();
   int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Char_Table *dp = buffer_display_table ();
   int b, e;
@@ -754,8 +759,6 @@ string_display_width (string, beg, end)
   /* Make a pointer to where consecutive chars leave off,
      going backwards from point.  */
   stop = SDATA (string) + b;
-
-  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   col = 0, tab_seen = 0, post_tab = 0;
 
@@ -806,7 +809,7 @@ The return value is COLUMN.  */)
 {
   EMACS_INT mincol;
   register EMACS_INT fromcol;
-  register EMACS_INT tab_width = XINT (BVAR (current_buffer, tab_width));
+  int tab_width = sane_tab_width ();
 
   CHECK_NUMBER (column);
   if (NILP (minimum))
@@ -819,8 +822,6 @@ The return value is COLUMN.  */)
 
   if (fromcol == mincol)
     return make_number (mincol);
-
-  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   if (indent_tabs_mode)
     {
@@ -867,14 +868,12 @@ static EMACS_INT
 position_indentation (register int pos_byte)
 {
   register EMACS_INT column = 0;
-  register EMACS_INT tab_width = XINT (BVAR (current_buffer, tab_width));
+  int tab_width = sane_tab_width ();
   register unsigned char *p;
   register unsigned char *stop;
   unsigned char *start;
   EMACS_INT next_boundary_byte = pos_byte;
   EMACS_INT ceiling = next_boundary_byte;
-
-  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   p = BYTE_POS_ADDR (pos_byte);
   /* STOP records the value of P at which we will need
@@ -1118,7 +1117,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
   register EMACS_INT pos;
   EMACS_INT pos_byte;
   register int c = 0;
-  register EMACS_INT tab_width = XFASTINT (BVAR (current_buffer, tab_width));
+  int tab_width = sane_tab_width ();
   register int ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
   register struct Lisp_Char_Table *dp = window_display_table (win);
   EMACS_INT selective
@@ -1172,9 +1171,6 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
     /* If the window has its own display table, we can't use the width
        run cache, because that's based on the buffer's display table.  */
     width_table = 0;
-
-  if (tab_width <= 0 || tab_width > 1000)
-    tab_width = 8;
 
   /* Negative width means use all available text columns.  */
   if (width < 0)
@@ -1747,7 +1743,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
   struct window *w;
   Lisp_Object bufpos, hpos, vpos, prevhpos;
   struct position *pos;
-  int hscroll, tab_offset;
+  EMACS_INT hscroll, tab_offset;
 
   CHECK_NUMBER_COERCE_MARKER (from);
   CHECK_CONS (frompos);

@@ -1,3 +1,210 @@
+2011-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Integer overflow and signedness fixes (Bug#8873).
+	A few related buffer overrun fixes, too.
+
+	* font.c (font_score): Use EMACS_INT, not int, to store XINT value.
+
+	* dispextern.h (struct face.stipple):
+	* image.c (x_bitmap_height, x_bitmap_width, x_bitmap_pixmap)
+	(x_bitmap_mask, x_allocate_bitmap_record)
+	(x_create_bitmap_from_data, x_create_bitmap_from_file)
+	(x_destroy_bitmap, x_destroy_all_bitmaps, x_create_bitmap_mask)
+	(x_create_bitmap_from_xpm_data):
+	* nsterm.h (struct ns_display_info.bitmaps_size, .bitmaps_last):
+	* w32term.h (struct w32_display_info.icon_bitmap_id, .bitmaps_size)
+	(.bitmaps_last):
+	* xfaces.c (load_pixmap):
+	* xterm.c (x_bitmap_icon, x_wm_set_icon_pixmap):
+	* xterm.h (struct x_display_info.icon_bitmap_id, .bitmaps_size)
+	(.bitmaps_last, struct x_output.icon_bitmap):
+	Use ptrdiff_t, not int, for bitmap indexes.
+	(x_allocate_bitmap_record): Check for size overflow.
+	* dispextern.h, lisp.h: Adjust to API changes elsewhere.
+
+	Use ptrdiff_t, not int, for overlay counts.
+	* buffer.h (overlays_at, sort_overlays, GET_OVERLAYS_AT):
+	* editfns.c (overlays_around, get_pos_property):
+	* textprop.c (get_char_property_and_overlay):
+	* xdisp.c (next_overlay_change, note_mouse_highlight):
+	* xfaces.c (face_at_buffer_position):
+	* buffer.c (OVERLAY_COUNT_MAX): New macro.
+	(overlays_at, overlays_in, sort_overlays, Foverlays_at)
+	(Fnext_overlay_change, Fprevious_overlay_change)
+	(mouse_face_overlay_overlaps, Foverlays_in):
+	Use ptrdiff_t, not int, for sizes.
+	(overlays_at, overlays_in): Check for size-calculation overflow.
+
+	* xterm.c (xim_initialize, same_x_server): Strlen may not fit in int.
+
+	* xsmfns.c (smc_save_yourself_CB, x_session_initialize): Avoid strlen.
+	(x_session_initialize): Do not assume string length fits in int.
+
+	* xsettings.c (apply_xft_settings): Fix potential buffer overrun.
+	This is unlikely, but can occur if DPI is outlandish.
+
+	* xsettings.c (Ffont_get_system_normal_font, Ffont_get_system_font):
+	* xselect.c (Fx_get_atom_name): Avoid need for strlen.
+
+	* xrdb.c: Don't assume strlen fits in int; avoid some strlens.
+	* xrdb.c (magic_file_p, search_magic_path):
+	Omit last arg SUFFIX; it was always 0.  All callers changed.
+	(magic_file_p): Use ptrdiff_t, not int.  Check for size overflow.
+
+	* xfont.c (xfont_match): Avoid need for strlen.
+
+	* xfns.c: Don't assume strlen fits in int.
+	(xic_create_fontsetname, x_window): Use ptrdiff_t, not int.
+
+	* xdisp.c (message_log_check_duplicate): Return intmax_t,
+	not unsigned long, as we prefer signed integers.  All callers changed.
+	Detect integer overflow in repeat count.
+	(message_dolog): Don't assume print length fits in 39 bytes.
+	(display_mode_element): Don't assume strlen fits in int.
+
+	* termcap.c: Don't assume sizes fit in int and never overflow.
+	(struct termcap_buffer, tgetent): Use ptrdiff_t, not int, for sizes.
+	(gobble_line): Check for size-calculation overflow.
+
+	* minibuf.c (Fread_buffer):
+	* lread.c (intern, intern_c_string):
+	* image.c (xpm_scan) [HAVE_NS && !HAVE_XPM]:
+	Don't assume string length fits in int.
+
+	* keyboard.c (parse_tool_bar_item):
+	* gtkutil.c (style_changed_cb): Avoid need for strlen.
+
+	* font.c: Don't assume string length fits in int.
+	(font_parse_xlfd, font_parse_fcname, font_unparse_fcname):
+	Use ptrdiff_t, not int.
+	(font_intern_prop): Don't assume string length fits in int.
+	Don't assume integer property fits in fixnum.
+	* font.h (font_intern_prop): 2nd arg is now ptrdiff_t, not int.
+
+	* filelock.c: Fix some buffer overrun and integer overflow issues.
+	(get_boot_time): Don't assume gzip command string fits in 100 bytes.
+	Reformulate so as not to need the command string.
+	Invoke gzip -cd rather than gunzip, as it's more portable.
+	(lock_info_type, lock_file_1, lock_file):
+	Don't assume pid_t and time_t fit in unsigned long.
+	(LOCK_PID_MAX): Remove; we now use more-reliable bounds.
+	(current_lock_owner): Prefer signed type for sizes.
+	Use memcpy, not strncpy, where memcpy is what is really wanted.
+	Don't assume (via atoi) that time_t and pid_t fit in int.
+	Check for time_t and/or pid_t out of range, e.g., via a network share.
+	Don't alloca where an auto var works fine.
+
+	* fileio.c: Fix some integer overflow issues.
+	(file_name_as_directory, Fexpand_file_name, Fsubstitute_in_file_name):
+	Don't assume string length fits in int.
+	(directory_file_name): Don't assume string length fits in long.
+	(make_temp_name): Don't assume pid fits in int, or that its print
+	length is less than 20.
+
+	* data.c (Fsubr_name): Rewrite to avoid a strlen call.
+
+	* coding.c (make_subsidiaries): Don't assume string length fits in int.
+
+	* callproc.c (child_setup): Rewrite to avoid two strlen calls.
+
+	* process.c (Fformat_network_address): Use EMACS_INT, not EMACS_UINT.
+	We prefer signed integers, even for size calculations.
+
+	* emacs.c: Don't assume string length fits in 'int'.
+	(DEFINE_DUMMY_FUNCTION, sort_args): Use ptrdiff_t, not int.
+	(main): Don't invoke strlen when not needed.
+
+	* dbusbind.c (XD_ERROR): Don't arbitrarily truncate string.
+	(XD_DEBUG_MESSAGE): Don't waste a byte.
+
+	* callproc.c (getenv_internal_1, getenv_internal)
+	(Fgetenv_internal):
+	* buffer.c (init_buffer): Don't assume string length fits in 'int'.
+
+	* lread.c (invalid_syntax): Omit length argument.
+	All uses changed.  This doesn't fix a bug, but it simplifies the
+	code away from its former Hollerith-constant appearance, and it's
+	one less 'int' to worry about when looking at integer-overflow issues.
+	(string_to_number): Simplify 2011-04-26 change by invoking xsignal1.
+
+	* lisp.h (DEFUN): Remove bogus use of sizeof (struct Lisp_Subr).
+	This didn't break anything, but it didn't help either.
+	It's confusing to put a bogus integer in a place where the actual
+	value does not matter.
+	(LIST_END_P): Remove unused macro and its bogus comment.
+	(make_fixnum_or_float): Remove unnecessary cast to EMACS_INT.
+
+	* lisp.h (union Lisp_Object.i): EMACS_INT, not EMACS_UINT.
+	This is for consistency with the ordinary, non-USE_LISP_UNION_TYPE,
+	implementation.
+	(struct Lisp_Bool_Vector.size): EMACS_INT, not EMACS_UINT.
+	We prefer signed types, and the value cannot exceed the EMACS_INT
+	range anyway (because otherwise the length would not be representable).
+	(XSET) [USE_LISP_UNION_TYPE]: Use uintptr_t and intptr_t,
+	not EMACS_UINT and EMACS_INT, when converting pointer to integer.
+	This avoids a GCC warning when WIDE_EMACS_INT.
+
+	* indent.c (sane_tab_width): New function.
+	(current_column, scan_for_column, Findent_to, position_indentation)
+	(compute_motion): Use it.  This is just for clarity.
+	(Fcompute_motion): Don't assume hscroll and tab offset fit in int.
+
+	* image.c (xbm_image_p): Don't assume stated width, height fit in int.
+
+	* lisp.h (lint_assume): New macro.
+	* composite.c (composition_gstring_put_cache):
+	* ftfont.c (ftfont_shape_by_flt): Use it to pacify GCC 4.6.0.
+
+	* editfns.c, insdel.c:
+	Omit unnecessary forward decls, to simplify future changes.
+
+	* ftfont.c (ftfont_shape_by_flt): Use signed integers for lengths.
+
+	* font.c (Ffont_shape_gstring): Don't assume glyph len fits in 'int'.
+
+	* fns.c (Ffillarray): Don't assume bool vector size fits in 'int'.
+	Use much-faster test for byte-length change.
+	Don't assume string byte-length fits in 'int'.
+	Check that character arg fits in 'int'.
+	(mapcar1): Declare byte as byte, for clarity.
+
+	* alloc.c (Fmake_bool_vector): Avoid unnecessary multiplication.
+
+	* fns.c (concat): Catch string overflow earlier.
+	Do not rely on integer wraparound.
+
+	* dispextern.h (struct it.overlay_strings_charpos)
+	(struct it.selective): Now EMACS_INT, not int.
+	* xdisp.c (forward_to_next_line_start)
+	(back_to_previous_visible_line_start)
+	(reseat_at_next_visible_line_start, next_element_from_buffer):
+	Don't arbitrarily truncate the value of 'selective' to int.
+
+	* xdisp.c (init_iterator): Use XINT, not XFASTINT; it might be < 0.
+
+	* composite.c: Don't truncate sizes to 'int'.
+	(composition_gstring_p, composition_reseat_it)
+	(composition_adjust_point): Use EMACS_INT, not int.
+	(get_composition_id, composition_gstring_put_cache): Use EMACS_INT,
+	not EMACS_UINT, for indexes.
+
+	* category.h (CATEGORY_SET_P): Remove unnecessary cast to EMACS_INT.
+
+	* buffer.c: Include <verify.h>.
+	(struct sortvec.priority, struct sortstr.priority):
+	Now EMACS_INT, not int.
+	(compare_overlays, cmp_for_strings): Avoid subtraction overflow.
+	(struct sortstr.size, record_overlay_string)
+	(struct sortstrlist.size, struct sortlist.used):
+	Don't truncate size to int.
+	(record_overlay_string): Check for size-calculation overflow.
+	(init_buffer_once): Check at compile-time, not run-time.
+
+2011-06-22  Jim Meyering  <meyering@redhat.com>
+
+	don't leak an XBM-image-sized buffer
+	* image.c (xbm_load): Free the image buffer after using it.
+
 2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to Sun C.

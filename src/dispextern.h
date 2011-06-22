@@ -1532,12 +1532,12 @@ struct face
 
   /* Background stipple or bitmap used for this face.  This is
      an id as returned from load_pixmap.  */
-  int stipple;
+  ptrdiff_t stipple;
 
 #else /* not HAVE_WINDOW_SYSTEM */
 
   /* Dummy.  */
-  int stipple;
+  ptrdiff_t stipple;
 
 #endif /* not HAVE_WINDOW_SYSTEM */
 
@@ -2183,7 +2183,7 @@ struct it
      be set at the same time as n_overlay_strings.  It is needed
      because we show before-strings at the start of invisible text;
      see handle_invisible_prop in xdisp.c.  */
-  int overlay_strings_charpos;
+  EMACS_INT overlay_strings_charpos;
 
   /* Vector of overlays to process.  Overlay strings are processed
      OVERLAY_STRING_CHUNK_SIZE at a time.  */
@@ -2259,7 +2259,7 @@ struct it
 
   /* -1 means selective display hides everything between a \r and the
      next newline; > 0 means hide lines indented more than that value.  */
-  int selective;
+  EMACS_INT selective;
 
   /* An enumeration describing what the next display element is
      after a call to get_next_display_element.  */
@@ -3082,21 +3082,21 @@ void w32_reset_fringes (void);
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-extern int x_bitmap_height (struct frame *, int);
-extern int x_bitmap_width (struct frame *, int);
-extern int x_bitmap_pixmap (struct frame *, int);
+extern int x_bitmap_height (struct frame *, ptrdiff_t);
+extern int x_bitmap_width (struct frame *, ptrdiff_t);
+extern int x_bitmap_pixmap (struct frame *, ptrdiff_t);
 extern void x_reference_bitmap (struct frame *, int);
-extern int x_create_bitmap_from_data (struct frame *, char *,
-                                      unsigned int, unsigned int);
-extern int x_create_bitmap_from_file (struct frame *, Lisp_Object);
+extern ptrdiff_t x_create_bitmap_from_data (struct frame *, char *,
+					    unsigned int, unsigned int);
+extern ptrdiff_t x_create_bitmap_from_file (struct frame *, Lisp_Object);
 #if defined HAVE_XPM && defined HAVE_X_WINDOWS && !defined USE_GTK
-extern int x_create_bitmap_from_xpm_data (struct frame *f, const char **bits);
+extern ptrdiff_t x_create_bitmap_from_xpm_data (struct frame *, const char **);
 #endif
 #ifndef x_destroy_bitmap
-extern void x_destroy_bitmap (struct frame *, int);
+extern void x_destroy_bitmap (struct frame *, ptrdiff_t);
 #endif
 extern void x_destroy_all_bitmaps (Display_Info *);
-extern int x_create_bitmap_mask (struct frame * , int);
+extern int x_create_bitmap_mask (struct frame *, ptrdiff_t);
 extern Lisp_Object x_find_image_file (Lisp_Object);
 
 void x_kill_gs_process (Pixmap, struct frame *);

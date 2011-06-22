@@ -177,9 +177,9 @@ Remove also properties of all files in subdirectories."
   (tramp-message vec 8 "%s" directory)
     (maphash
      (lambda (key value)
-	(when (and (stringp (tramp-file-name-localname key))
-		   (string-match directory (tramp-file-name-localname key)))
-	  (remhash key tramp-cache-data)))
+       (when (and (stringp (tramp-file-name-localname key))
+		  (string-match directory (tramp-file-name-localname key)))
+	 (remhash key tramp-cache-data)))
      tramp-cache-data)))
 
 ;; Reverting or killing a buffer should also flush file properties.
@@ -200,12 +200,12 @@ Remove also properties of all files in subdirectories."
 (add-hook 'kill-buffer-hook 'tramp-flush-file-function)
 (add-hook 'tramp-cache-unload-hook
 	  (lambda ()
-	     (remove-hook 'before-revert-hook
-			  'tramp-flush-file-function)
-	     (remove-hook 'eshell-pre-command-hook
-			  'tramp-flush-file-function)
-	     (remove-hook 'kill-buffer-hook
-			  'tramp-flush-file-function)))
+	    (remove-hook 'before-revert-hook
+			 'tramp-flush-file-function)
+	    (remove-hook 'eshell-pre-command-hook
+			 'tramp-flush-file-function)
+	    (remove-hook 'kill-buffer-hook
+			 'tramp-flush-file-function)))
 
 ;;; -- Properties --
 
@@ -290,17 +290,17 @@ KEY identifies the connection, it is either a process or a vector."
     (let (result)
       (maphash
        (lambda (key value)
-	  (let ((tmp (format
-		      "(%s %s)"
-		      (if (processp key)
-			  (prin1-to-string (prin1-to-string key))
-			(prin1-to-string key))
-		      (if (hash-table-p value)
-			  (tramp-cache-print value)
-			(if (bufferp value)
-			    (prin1-to-string (prin1-to-string value))
-			  (prin1-to-string value))))))
-	    (setq result (if result (concat result " " tmp) tmp))))
+	 (let ((tmp (format
+		     "(%s %s)"
+		     (if (processp key)
+			 (prin1-to-string (prin1-to-string key))
+		       (prin1-to-string key))
+		     (if (hash-table-p value)
+			 (tramp-cache-print value)
+		       (if (bufferp value)
+			   (prin1-to-string (prin1-to-string value))
+			 (prin1-to-string value))))))
+	   (setq result (if result (concat result " " tmp) tmp))))
        table)
       result)))
 
@@ -310,8 +310,8 @@ KEY identifies the connection, it is either a process or a vector."
     (let (result)
       (maphash
        (lambda (key value)
-	  (when (and (vectorp key) (null (aref key 3)))
-	    (add-to-list 'result key)))
+	 (when (and (vectorp key) (null (aref key 3)))
+	   (add-to-list 'result key)))
        tramp-cache-data)
       result))
 
@@ -327,12 +327,12 @@ KEY identifies the connection, it is either a process or a vector."
 	;; Remove temporary data.
 	(maphash
 	 (lambda (key value)
-	    (if (and (vectorp key) (not (tramp-file-name-localname key)))
-		(progn
-		  (remhash "process-name" value)
-		  (remhash "process-buffer" value)
-		  (remhash "first-password-request" value))
-	      (remhash key cache)))
+	   (if (and (vectorp key) (not (tramp-file-name-localname key)))
+	       (progn
+		 (remhash "process-name" value)
+		 (remhash "process-buffer" value)
+		 (remhash "first-password-request" value))
+	     (remhash key cache)))
 	 cache)
 	;; Dump it.
 	(with-temp-buffer
@@ -357,8 +357,8 @@ KEY identifies the connection, it is either a process or a vector."
   (add-hook 'kill-emacs-hook 'tramp-dump-connection-properties))
 (add-hook 'tramp-cache-unload-hook
 	  (lambda ()
-	     (remove-hook 'kill-emacs-hook
-			  'tramp-dump-connection-properties)))
+	    (remove-hook 'kill-emacs-hook
+			 'tramp-dump-connection-properties)))
 
 ;;;###tramp-autoload
 (defun tramp-parse-connection-properties (method)
@@ -368,18 +368,22 @@ for all methods.  Resulting data are derived from connection history."
   (let (res)
     (maphash
      (lambda (key value)
-	(if (and (vectorp key)
-		 (string-equal method (tramp-file-name-method key))
-		 (not (tramp-file-name-localname key)))
-	    (push (list (tramp-file-name-user key)
-			(tramp-file-name-host key))
-		  res)))
+       (if (and (vectorp key)
+		(string-equal method (tramp-file-name-method key))
+		(not (tramp-file-name-localname key)))
+	   (push (list (tramp-file-name-user key)
+		       (tramp-file-name-host key))
+		 res)))
      tramp-cache-data)
     res))
 
 ;; Read persistent connection history.
 (when (and (stringp tramp-persistency-file-name)
-	   (zerop (hash-table-count tramp-cache-data)))
+	   (zerop (hash-table-count tramp-cache-data))
+	   ;; When "emacs -Q" has been called, both variables are nil.
+	   ;; We do not load the persistency file then, in order to
+	   ;; have a clean test environment.
+	   (or init-file-user site-run-file))
   (condition-case err
       (with-temp-buffer
 	(insert-file-contents tramp-persistency-file-name)

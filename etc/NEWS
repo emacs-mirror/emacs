@@ -109,6 +109,26 @@ and pops down the *Completions* buffer accordingly.
 
 ** auto-mode-case-fold is now enabled by default.
 
+** smtpmail changes
+
+** smtpmail has been largely rewritten to upgrade to STARTTLS if
+possible, and uses the auth-source framework for getting credentials.
+The rewrite should be largely compatible with previous versions of
+smtpmail, but there are two major incompatibilities:
+
+** `smtpmail-auth-credentials' no longer exists.  That variable could
+be either ~/.authinfo (in which case you're fine -- you won't see any
+difference), but if it were a direct list of user names and passwords,
+you will be prompted for the user name and the password instead, and
+they will then be saved to ~/.authinfo.
+
+** Similarly, if you had `smtpmail-starttls-credentials' set, then
+then you need to put
+
+machine smtp.whatever.foo port 25 key "~/.my_smtp_tls.key" cert "~/.my_smtp_tls.cert"
+
+in your ~/.authinfo file instead.
+
 ** Internationalization changes
 
 +++

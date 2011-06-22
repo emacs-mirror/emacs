@@ -34,16 +34,10 @@
 ;;
 ;;(setq send-mail-function 'smtpmail-send-it) ; if you use `mail'
 ;;(setq message-send-mail-function 'smtpmail-send-it) ; if you use message/Gnus
-;;(setq smtpmail-default-smtp-server "YOUR SMTP HOST")
+;;(setq smtpmail-smtp-server "YOUR SMTP HOST")
 ;;(setq smtpmail-local-domain "YOUR DOMAIN NAME")
 ;;(setq smtpmail-sendto-domain "YOUR DOMAIN NAME")
 ;;(setq smtpmail-debug-info t) ; only to debug problems
-;;(setq smtpmail-auth-credentials  ; or use ~/.authinfo
-;;      '(("YOUR SMTP HOST" 25 "username" "password")))
-;;(setq smtpmail-starttls-credentials
-;;      '(("YOUR SMTP HOST" 25 "~/.my_smtp_tls.key" "~/.my_smtp_tls.cert")))
-;; Where the 25 equals the value of `smtpmail-smtp-service', it can be an
-;; integer or a string, just as long as they match (eq).
 
 ;; To queue mail, set `smtpmail-queue-mail' to t and use
 ;; `smtpmail-send-queued-mail' to send.
@@ -58,17 +52,9 @@
 ;; Authentication by the AUTH mechanism.
 ;; See http://www.ietf.org/rfc/rfc2554.txt
 
-;; Modified by Simon Josefsson <simon@josefsson.org>, 2000-10-07, to support
-;; STARTTLS.  Requires external program
-;; ftp://ftp.opaopa.org/pub/elisp/starttls-*.tar.gz.
-;; See http://www.ietf.org/rfc/rfc2246.txt, http://www.ietf.org/rfc/rfc2487.txt
-
 ;;; Code:
 
 (require 'sendmail)
-(autoload 'starttls-any-program-available "starttls")
-(autoload 'starttls-open-stream "starttls")
-(autoload 'starttls-negotiate "starttls")
 (autoload 'mail-strip-quoted-names "mail-utils")
 (autoload 'message-make-date "message")
 (autoload 'message-make-message-id "message")
@@ -85,11 +71,9 @@
   :group 'mail)
 
 
-(defcustom smtpmail-default-smtp-server nil
+(defvar smtpmail-default-smtp-server nil
   "Specify default SMTP server.
-This only has effect if you specify it before loading the smtpmail library."
-  :type '(choice (const nil) string)
-  :group 'smtpmail)
+This only has effect if you specify it before loading the smtpmail library.")
 
 (defcustom smtpmail-smtp-server
   (or (getenv "SMTPSERVER") smtpmail-default-smtp-server)
@@ -110,6 +94,16 @@ don't define this value."
   :type '(choice (const nil) string)
   :group 'smtpmail)
 
+(defcustom smtpmail-stream-type nil
+  "Connection type SMTP connections.
+This may be either nil (plain connection) or `starttls' (use the
+starttls mechanism to turn on TLS security after opening the
+stream)."
+  :version "24.1"
+  :group 'smtpmail
+  :type '(choice (const :tag "Plain" nil)
+		 (const starttls)))
+
 (defcustom smtpmail-sendto-domain nil
   "Local domain name without a host name.
 This is appended (with an @-sign) to any specified recipients which do
@@ -117,11 +111,7 @@ not include an @-sign, so that each RCPT TO address is fully qualified.
 \(Some configurations of sendmail require this.)
 
 Don't bother to set this unless you have get an error like:
-	Sending failed; SMTP protocol error
-when sending mail, and the *trace of SMTP session to <somewhere>*
-buffer includes an exchange like:
-	RCPT TO: <someone>
-	501 <someone>: recipient address must contain a domain."
+	Sending failed; 501 <someone>: recipient address must contain a domain."
   :type '(choice (const nil) string)
   :group 'smtpmail)
 
@@ -155,39 +145,6 @@ and sent with `smtpmail-send-queued-mail'."
 (defcustom smtpmail-queue-dir "~/Mail/queued-mail/"
   "Directory where `smtpmail.el' stores queued mail."
   :type 'directory
-  :group 'smtpmail)
-
-(defcustom smtpmail-auth-credentials "~/.authinfo"
-  "Specify username and password for servers, directly or via .netrc file.
-This variable can either be a filename pointing to a file in netrc(5)
-format, or list of four-element lists that contain, in order,
-`servername' (a string), `port' (an integer), `user' (a string) and
-`password' (a string, or nil to query the user when needed).  If you
-need to enter a `realm' too, add it to the user string, so that it
-looks like `user@realm'."
-  :type '(choice file
-		 (repeat (list (string  :tag "Server")
-                               (integer :tag "Port")
-                               (string  :tag "Username")
-                               (choice (const :tag "Query when needed" nil)
-				       (string  :tag "Password")))))
-  :version "22.1"
-  :group 'smtpmail)
-
-(defcustom smtpmail-starttls-credentials '(("" 25 "" ""))
-  "Specify STARTTLS keys and certificates for servers.
-This is a list of four-element list with `servername' (a string),
-`port' (an integer), `key' (a filename) and `certificate' (a
-filename).
-If you do not have a certificate/key pair, leave the `key' and
-`certificate' fields as `nil'.  A key/certificate pair is only
-needed if you want to use X.509 client authenticated
-connections."
-  :type '(repeat (list (string  :tag "Server")
-		       (integer :tag "Port")
-		       (file    :tag "Key")
-		       (file    :tag "Certificate")))
-  :version "21.1"
   :group 'smtpmail)
 
 (defcustom smtpmail-warn-about-unknown-extensions nil
@@ -230,6 +187,7 @@ The list is in preference order.")
 	(tembuf (generate-new-buffer " smtpmail temp"))
 	(case-fold-search nil)
 	delimline
+	result
 	(mailbuf (current-buffer))
         ;; Examine this variable now, so that
 	;; local binding in the mail buffer will take effect.
@@ -373,9 +331,10 @@ The list is in preference order.")
           ;; Send or queue
 	  (if (not smtpmail-queue-mail)
 	      (if (not (null smtpmail-recipient-address-list))
-		  (if (not (smtpmail-via-smtp
-			    smtpmail-recipient-address-list tembuf))
-		      (error "Sending failed; SMTP protocol error"))
+		  (when (setq result
+			      (smtpmail-via-smtp
+			       smtpmail-recipient-address-list tembuf))
+		    (error "Sending failed: %s" result))
 		(error "Sending failed; no recipients"))
 	    (let* ((file-data
 		    (expand-file-name
@@ -432,7 +391,8 @@ The list is in preference order.")
     ;; mail, send it, etc...
     (let ((file-msg "")
           (qfile (expand-file-name smtpmail-queue-index-file
-                                   smtpmail-queue-dir)))
+                                   smtpmail-queue-dir))
+	  result)
       (insert-file-contents qfile)
       (goto-char (point-min))
       (while (not (eobp))
@@ -448,16 +408,15 @@ The list is in preference order.")
                  (or (and mail-specify-envelope-from (mail-envelope-from))
                      user-mail-address)))
             (if (not (null smtpmail-recipient-address-list))
-                (if (not (smtpmail-via-smtp smtpmail-recipient-address-list
-                                            (current-buffer)))
-                    (error "Sending failed; SMTP protocol error"))
+                (when (setq result (smtpmail-via-smtp
+				    smtpmail-recipient-address-list
+				    (current-buffer)))
+		  (error "Sending failed: %s" result))
               (error "Sending failed; no recipients"))))
 	(delete-file file-msg)
 	(delete-file (concat file-msg ".el"))
 	(delete-region (point-at-bol) (point-at-bol 2)))
       (write-region (point-min) (point-max) qfile))))
-
-;; (defun smtpmail-via-smtp (host,port,sender,destination,smtpmail-text-buffer)
 
 (defun smtpmail-fqdn ()
   (if smtpmail-local-domain
@@ -503,146 +462,133 @@ The list is in preference order.")
 	(push el2 result)))
     (nreverse result)))
 
-(defvar starttls-extra-args)
-(defvar starttls-extra-arguments)
-
-(defun smtpmail-open-stream (process-buffer host port)
-  (let ((cred (smtpmail-find-credentials
-	       smtpmail-starttls-credentials host port)))
-    (if (null (and cred (starttls-any-program-available)))
-	;; The normal case.
-	(open-network-stream "SMTP" process-buffer host port)
-      (let* ((cred-key (smtpmail-cred-key cred))
-	     (cred-cert (smtpmail-cred-cert cred))
-	     (starttls-extra-args
-	      (append
-	       starttls-extra-args
-	       (when (and (stringp cred-key) (stringp cred-cert)
-			  (file-regular-p
-			   (setq cred-key (expand-file-name cred-key)))
-			  (file-regular-p
-			   (setq cred-cert (expand-file-name cred-cert))))
-		 (list "--key-file" cred-key "--cert-file" cred-cert))))
-	     (starttls-extra-arguments
-	      (append
-	       starttls-extra-arguments
-	       (when (and (stringp cred-key) (stringp cred-cert)
-			  (file-regular-p
-			   (setq cred-key (expand-file-name cred-key)))
-			  (file-regular-p
-			   (setq cred-cert (expand-file-name cred-cert))))
-		 (list "--x509keyfile" cred-key "--x509certfile" cred-cert)))))
-	(starttls-open-stream "SMTP" process-buffer host port)))))
-
 ;; `password-read' autoloads password-cache.
 (declare-function password-cache-add "password-cache" (key password))
 
-(defun smtpmail-try-auth-methods (process supported-extensions host port)
+(defun smtpmail-command-or-throw (process string &optional code)
+  (let (ret)
+    (smtpmail-send-command process string)
+    (unless (smtpmail-ok-p (setq ret (smtpmail-read-response process))
+			   code)
+      (throw 'done (format "%s in response to %s"
+			   (smtpmail-response-text ret)
+			   string)))
+    ret))
+
+(defun smtpmail-try-auth-methods (process supported-extensions host port
+					  &optional ask-for-password)
   (let* ((mechs (cdr-safe (assoc 'auth supported-extensions)))
 	 (mech (car (smtpmail-intersection mechs smtpmail-auth-supported)))
-         (auth-info (auth-source-search :max 1
-                                        :host host
-                                        :port (or port "smtp")))
-         (auth-user (plist-get (nth 0 auth-info) :user))
-         (auth-pass (plist-get (nth 0 auth-info) :secret))
-         (auth-pass (if (functionp auth-pass)
-                        (funcall auth-pass)
-                      auth-pass))
-	 (cred (if (and auth-user auth-pass) ; try user-auth-* before netrc-*
-		   (list host port auth-user auth-pass)
-		 ;; else, if auth-source didn't return them...
-		 (if (stringp smtpmail-auth-credentials)
-		     (let* ((netrc (netrc-parse smtpmail-auth-credentials))
-			    (port-name (format "%s" (or port "smtp")))
-			    (hostentry (netrc-machine netrc host port-name
-						      port-name)))
-		       (when hostentry
-			 (list host port
-			       (netrc-get hostentry "login")
-			       (netrc-get hostentry "password"))))
-		   ;; else, try `smtpmail-find-credentials' since
-		   ;; `smtpmail-auth-credentials' is not a string
-		   (smtpmail-find-credentials
-		    smtpmail-auth-credentials host port))))
-	 (prompt (when cred (format "SMTP password for %s:%s: "
-				    (smtpmail-cred-server cred)
-				    (smtpmail-cred-port cred))))
-	 (passwd (when cred
-		   (or (smtpmail-cred-passwd cred)
-		       (password-read prompt prompt))))
+	 (auth-source-creation-prompts
+          '((user  . "SMTP user at %h: ")
+            (secret . "SMTP password for %u@%h: ")))
+         (auth-info (car
+		     (auth-source-search
+		      :max 1
+		      :host host
+		      :port (if port
+				(format "%s" port)
+			      "smtp")
+		      :require (and ask-for-password
+				    '(:user :secret))
+		      :create ask-for-password)))
+         (user (plist-get auth-info :user))
+         (password (plist-get auth-info :secret))
+	 (save-function (and ask-for-password
+			     (plist-get auth-info :save-function)))
 	 ret)
-    (when (and cred mech)
-      (cond
-       ((eq mech 'cram-md5)
-	(smtpmail-send-command process (upcase (format "AUTH %s" mech)))
-	(if (or (null (car (setq ret (smtpmail-read-response process))))
-		(not (integerp (car ret)))
-		(>= (car ret) 400))
-	    (throw 'done nil))
-	(when (eq (car ret) 334)
-	  (let* ((challenge (substring (cadr ret) 4))
-		 (decoded (base64-decode-string challenge))
-		 (hash (rfc2104-hash 'md5 64 16 passwd decoded))
-		 (response (concat (smtpmail-cred-user cred) " " hash))
-		 ;; Osamu Yamane <yamane@green.ocn.ne.jp>:
-		 ;; SMTP auth fails because the SMTP server identifies
-		 ;; only the first part of the string (delimited by
-		 ;; new line characters) as a response from the
-		 ;; client, and the rest as distinct commands.
+    (when (functionp password)
+      (setq password (funcall password)))
+    (cond
+     ((or (not mech)
+	  (not user)
+	  (not password))
+      ;; No mechanism, or no credentials.
+      mech)
+     ((eq mech 'cram-md5)
+      (setq ret (smtpmail-command-or-throw process "AUTH CRAM-MD5"))
+      (when (eq (car ret) 334)
+	(let* ((challenge (substring (cadr ret) 4))
+	       (decoded (base64-decode-string challenge))
+	       (hash (rfc2104-hash 'md5 64 16 password decoded))
+	       (response (concat user " " hash))
+	       ;; Osamu Yamane <yamane@green.ocn.ne.jp>:
+	       ;; SMTP auth fails because the SMTP server identifies
+	       ;; only the first part of the string (delimited by
+	       ;; new line characters) as a response from the
+	       ;; client, and the rest as distinct commands.
 
-		 ;; In my case, the response string is 80 characters
-		 ;; long.  Without the no-line-break option for
-		 ;; `base64-encode-string', only the first 76 characters
-		 ;; are taken as a response to the server, and the
-		 ;; authentication fails.
-		 (encoded (base64-encode-string response t)))
-	    (smtpmail-send-command process (format "%s" encoded))
-	    (if (or (null (car (setq ret (smtpmail-read-response process))))
-		    (not (integerp (car ret)))
-		    (>= (car ret) 400))
-		(throw 'done nil)))))
-       ((eq mech 'login)
-	(smtpmail-send-command process "AUTH LOGIN")
-	(if (or (null (car (setq ret (smtpmail-read-response process))))
-		(not (integerp (car ret)))
-		(>= (car ret) 400))
-	    (throw 'done nil))
-	(smtpmail-send-command
-	 process (base64-encode-string (smtpmail-cred-user cred) t))
-	(if (or (null (car (setq ret (smtpmail-read-response process))))
-		(not (integerp (car ret)))
-		(>= (car ret) 400))
-	    (throw 'done nil))
-	(smtpmail-send-command process (base64-encode-string passwd t))
-	(if (or (null (car (setq ret (smtpmail-read-response process))))
-		(not (integerp (car ret)))
-		(>= (car ret) 400))
-	    (throw 'done nil)))
-       ((eq mech 'plain)
-	;; We used to send an empty initial request, and wait for an
-	;; empty response, and then send the password, but this
-	;; violate a SHOULD in RFC 2222 paragraph 5.1.  Note that this
-	;; is not sent if the server did not advertise AUTH PLAIN in
-	;; the EHLO response.  See RFC 2554 for more info.
-	(smtpmail-send-command process
-			       (concat "AUTH PLAIN "
-				       (base64-encode-string
-					(concat "\0"
-						(smtpmail-cred-user cred)
-						"\0"
-						passwd) t)))
-	(if (or (null (car (setq ret (smtpmail-read-response process))))
-		(not (integerp (car ret)))
-		(not (equal (car ret) 235)))
-	    (throw 'done nil)))
+	       ;; In my case, the response string is 80 characters
+	       ;; long.  Without the no-line-break option for
+	       ;; `base64-encode-string', only the first 76 characters
+	       ;; are taken as a response to the server, and the
+	       ;; authentication fails.
+	       (encoded (base64-encode-string response t)))
+	  (smtpmail-command-or-throw process encoded)
+	  (when save-function
+	    (funcall save-function)))))
+     ((eq mech 'login)
+      (smtpmail-command-or-throw process "AUTH LOGIN")
+      (smtpmail-command-or-throw
+       process (base64-encode-string user t))
+      (smtpmail-command-or-throw process (base64-encode-string password t))
+      (when save-function
+	(funcall save-function)))
+     ((eq mech 'plain)
+      ;; We used to send an empty initial request, and wait for an
+      ;; empty response, and then send the password, but this
+      ;; violate a SHOULD in RFC 2222 paragraph 5.1.  Note that this
+      ;; is not sent if the server did not advertise AUTH PLAIN in
+      ;; the EHLO response.  See RFC 2554 for more info.
+      (smtpmail-command-or-throw
+       process
+       (concat "AUTH PLAIN "
+	       (base64-encode-string (concat "\0" user "\0" password) t))
+       235)
+      (when save-function
+	(funcall save-function)))
+     (t
+      (error "Mechanism %s not implemented" mech)))))
 
-       (t
-	(error "Mechanism %s not implemented" mech)))
-      ;; Remember the password.
-      (when (null (smtpmail-cred-passwd cred))
-	(password-cache-add prompt passwd)))))
+(defun smtpmail-response-code (string)
+  (when string
+    (with-temp-buffer
+      (insert string)
+      (goto-char (point-min))
+      (and (re-search-forward "^\\([0-9]+\\) " nil t)
+	   (string-to-number (match-string 1))))))
 
-(defun smtpmail-via-smtp (recipient smtpmail-text-buffer)
+(defun smtpmail-ok-p (response &optional code)
+  (and (car response)
+       (integerp (car response))
+       (< (car response) 400)
+       (or (null code)
+	   (= code (car response)))))
+
+(defun smtpmail-response-text (response)
+  (mapconcat 'identity (cdr response) "\n"))
+
+(defun smtpmail-query-smtp-server ()
+  (let ((server (read-string "Outgoing SMTP mail server: "))
+	(ports '(587 "smtp"))
+	stream port)
+    (when (and smtpmail-smtp-server
+	       (not (member smtpmail-smtp-server ports)))
+      (push smtpmail-smtp-server ports))
+    (while (and (not smtpmail-smtp-server)
+		(setq port (pop ports)))
+      (when (setq stream (ignore-errors
+			   (open-network-stream "smtp" nil server port)))
+	(customize-save-variable 'smtpmail-smtp-server server)
+	(customize-save-variable 'smtpmail-smtp-service port)
+	(delete-process stream)))
+    (unless smtpmail-smtp-server
+      (error "Couldn't contact an SMTP server"))))
+
+(defun smtpmail-via-smtp (recipient smtpmail-text-buffer
+				    &optional ask-for-password)
+  (unless smtpmail-smtp-server
+    (smtpmail-query-smtp-server))
   (let ((process nil)
 	(host (or smtpmail-smtp-server
 		  (error "`smtpmail-smtp-server' not defined")))
@@ -654,14 +600,16 @@ The list is in preference order.")
                                 (mail-envelope-from))
                            user-mail-address))
 	response-code
-	greeting
 	process-buffer
+	result
+	auth-mechanisms
 	(supported-extensions '()))
     (unwind-protect
 	(catch 'done
 	  ;; get or create the trace buffer
 	  (setq process-buffer
-		(get-buffer-create (format "*trace of SMTP session to %s*" host)))
+		(get-buffer-create
+		 (format "*trace of SMTP session to %s*" host)))
 
 	  ;; clear the trace buffer of old output
 	  (with-current-buffer process-buffer
@@ -669,105 +617,89 @@ The list is in preference order.")
 	    (erase-buffer))
 
 	  ;; open the connection to the server
-	  (setq process (smtpmail-open-stream process-buffer host port))
-	  (and (null process) (throw 'done nil))
+	  (setq result
+		(open-network-stream
+		 "smtpmail" process-buffer host port
+		 :type smtpmail-stream-type
+		 :return-list t
+		 :capability-command (format "EHLO %s\r\n" (smtpmail-fqdn))
+		 :end-of-command "^[0-9]+ .*\r\n"
+		 :success "^2.*\n"
+		 :always-query-capabilities t
+		 :starttls-function
+		 (lambda (capabilities)
+		   (and (string-match "-STARTTLS" capabilities)
+			"STARTTLS\r\n"))
+		 :client-certificate t
+		 :use-starttls-if-possible t))
+
+	  ;; If we couldn't access the server at all, we give up.
+	  (unless (setq process (car result))
+	    (throw 'done "Unable to contact server"))
 
 	  ;; set the send-filter
 	  (set-process-filter process 'smtpmail-process-filter)
 
+	  (let* ((greeting (plist-get (cdr result) :greeting))
+		 (code (smtpmail-response-code greeting)))
+	    (unless code
+	      (throw 'done (format "No greeting: %s" greeting)))
+	    (when (>= code 400)
+	      (throw 'done (format "Connection not allowed: %s" greeting))))
+	  
 	  (with-current-buffer process-buffer
 	    (set-buffer-process-coding-system 'raw-text-unix 'raw-text-unix)
 	    (make-local-variable 'smtpmail-read-point)
 	    (setq smtpmail-read-point (point-min))
 
+	    (let* ((capabilities (plist-get (cdr result) :capabilities))
+		   (code (smtpmail-response-code capabilities)))
+	      (if (or (null code)
+		      (>= code 400))
+		  ;; The server didn't accept EHLO, so we fall back on HELO.
+		  (smtpmail-command-or-throw
+		   process (format "HELO %s" (smtpmail-fqdn)))
+		;; EHLO was successful, so we parse the extensions.
+		(dolist (line (delete
+			       ""
+			       (split-string
+				(plist-get (cdr result) :capabilities)
+				"\r\n")))
+		  (let ((name
+			 (with-case-table ascii-case-table
+			   (mapcar (lambda (s) (intern (downcase s)))
+				   (split-string (substring line 4) "[ ]")))))
+		    (when (= (length name) 1)
+		      (setq name (car name)))
+		    (when name
+		      (cond ((memq (if (consp name) (car name) name)
+				   '(verb xvrb 8bitmime onex xone
+					  expn size dsn etrn
+					  enhancedstatuscodes
+					  help xusr
+					  auth=login auth starttls))
+			     (setq supported-extensions
+				   (cons name supported-extensions)))
+			    (smtpmail-warn-about-unknown-extensions
+			     (message "Unknown extension %s" name))))))))
 
-	    (if (or (null (car (setq greeting (smtpmail-read-response process))))
-		    (not (integerp (car greeting)))
-		    (>= (car greeting) 400))
-		(throw 'done nil))
+	    (setq auth-mechanisms
+		  (smtpmail-try-auth-methods
+		   process supported-extensions host port
+		   ask-for-password))
 
-	    (let ((do-ehlo t)
-		  (do-starttls t))
-	      (while do-ehlo
-                ;; EHLO
-                (smtpmail-send-command process (format "EHLO %s" (smtpmail-fqdn)))
+	    (when (or (member 'onex supported-extensions)
+		      (member 'xone supported-extensions))
+	      (smtpmail-command-or-throw process (format "ONEX")))
 
-                (if (or (null (car (setq response-code
-                                         (smtpmail-read-response process))))
-                        (not (integerp (car response-code)))
-                        (>= (car response-code) 400))
-                    (progn
-                      ;; HELO
-                      (smtpmail-send-command
-                       process (format "HELO %s" (smtpmail-fqdn)))
+	    (when (and smtpmail-debug-verb
+		       (or (member 'verb supported-extensions)
+			   (member 'xvrb supported-extensions)))
+	      (smtpmail-command-or-throw process (format "VERB")))
 
-                      (if (or (null (car (setq response-code
-                                               (smtpmail-read-response process))))
-                              (not (integerp (car response-code)))
-                              (>= (car response-code) 400))
-                          (throw 'done nil)))
-                  (dolist (line (cdr (cdr response-code)))
-                    (let ((name
-                           (with-case-table ascii-case-table
-                             (mapcar (lambda (s) (intern (downcase s)))
-                                     (split-string (substring line 4) "[ ]")))))
-                      (and (eq (length name) 1)
-                           (setq name (car name)))
-                      (and name
-                           (cond ((memq (if (consp name) (car name) name)
-                                        '(verb xvrb 8bitmime onex xone
-                                               expn size dsn etrn
-                                               enhancedstatuscodes
-                                               help xusr
-                                               auth=login auth starttls))
-                                  (setq supported-extensions
-                                        (cons name supported-extensions)))
-                                 (smtpmail-warn-about-unknown-extensions
-                                  (message "Unknown extension %s" name)))))))
-
-                (if (and do-starttls
-                         (smtpmail-find-credentials smtpmail-starttls-credentials host port)
-                         (member 'starttls supported-extensions)
-                         (numberp (process-id process)))
-                    (progn
-                      (smtpmail-send-command process (format "STARTTLS"))
-                      (if (or (null (car (setq response-code (smtpmail-read-response process))))
-                              (not (integerp (car response-code)))
-                              (>= (car response-code) 400))
-                          (throw 'done nil))
-                      (starttls-negotiate process)
-                      (setq do-starttls nil))
-                  (setq do-ehlo nil))))
-
-	    (smtpmail-try-auth-methods process supported-extensions host port)
-
-	    (if (or (member 'onex supported-extensions)
-		    (member 'xone supported-extensions))
-		(progn
-		  (smtpmail-send-command process (format "ONEX"))
-		  (if (or (null (car (setq response-code (smtpmail-read-response process))))
-			  (not (integerp (car response-code)))
-			  (>= (car response-code) 400))
-		      (throw 'done nil))))
-
-	    (if (and smtpmail-debug-verb
-		     (or (member 'verb supported-extensions)
-			 (member 'xvrb supported-extensions)))
-		(progn
-		  (smtpmail-send-command process (format "VERB"))
-		  (if (or (null (car (setq response-code (smtpmail-read-response process))))
-			  (not (integerp (car response-code)))
-			  (>= (car response-code) 400))
-		      (throw 'done nil))))
-
-	    (if (member 'xusr supported-extensions)
-		(progn
-		  (smtpmail-send-command process (format "XUSR"))
-		  (if (or (null (car (setq response-code (smtpmail-read-response process))))
-			  (not (integerp (car response-code)))
-			  (>= (car response-code) 400))
-		      (throw 'done nil))))
-
+	    (when (member 'xusr supported-extensions)
+	      (smtpmail-command-or-throw process (format "XUSR")))
+	    
 	    ;; MAIL FROM:<sender>
 	    (let ((size-part
 		   (if (or (member 'size supported-extensions)
@@ -797,65 +729,73 @@ The list is in preference order.")
 			   " BODY=8BITMIME"
 			 "")
 		     "")))
-              ;; (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
-	      (smtpmail-send-command process (format "MAIL FROM:<%s>%s%s"
-                                                     envelope-from
-						     size-part
-						     body-part))
-
-	      (if (or (null (car (setq response-code (smtpmail-read-response process))))
-		      (not (integerp (car response-code)))
-		      (>= (car response-code) 400))
-		  (throw 'done nil)))
+	      (smtpmail-send-command
+	       process (format "MAIL FROM:<%s>%s%s"
+			       envelope-from size-part body-part))
+	      (cond
+	       ((smtpmail-ok-p (setq result (smtpmail-read-response process)))
+		;; Success.
+		)
+	       ((and auth-mechanisms
+		     (not ask-for-password)
+		     (= (car result) 530))
+		;; We got a "530 auth required", so we close and try
+		;; again, this time asking the user for a password.
+		(smtpmail-send-command process "QUIT")
+		(smtpmail-read-response process)
+		(delete-process process)
+		(setq process nil)
+		(throw 'done
+		       (smtpmail-via-smtp recipient smtpmail-text-buffer t)))
+	       (t
+		;; Return the error code.
+		(throw 'done
+		       (smtpmail-response-text result)))))
 
 	    ;; RCPT TO:<recipient>
 	    (let ((n 0))
 	      (while (not (null (nth n recipient)))
-		(smtpmail-send-command process (format "RCPT TO:<%s>" (smtpmail-maybe-append-domain (nth n recipient))))
-		(setq n (1+ n))
+		(smtpmail-send-command
+		 process (format "RCPT TO:<%s>"
+				 (smtpmail-maybe-append-domain
+				  (nth n recipient))))
+		(cond
+		 ((smtpmail-ok-p (setq result (smtpmail-read-response process)))
+		  ;; Success.
+		  nil)
+		 ((and auth-mechanisms
+		       (not ask-for-password)
+		       (= (car result) 550))
+		  ;; We got a "550 relay not permitted", and the server
+		  ;; accepts credentials, so we try again, but ask for a
+		  ;; password first.
+		  (smtpmail-send-command process "QUIT")
+		  (smtpmail-read-response process)
+		  (delete-process process)
+		  (setq process nil)
+		  (throw 'done
+			 (smtpmail-via-smtp recipient smtpmail-text-buffer t)))
+		 (t
+		  ;; Return the error code.
+		  (throw 'done
+			 (smtpmail-response-text result))))
+		(setq n (1+ n))))
 
-		(setq response-code (smtpmail-read-response process))
-		(if (or (null (car response-code))
-			(not (integerp (car response-code)))
-			(>= (car response-code) 400))
-		    (throw 'done nil))))
-
-	    ;; DATA
-	    (smtpmail-send-command process "DATA")
-
-	    (if (or (null (car (setq response-code (smtpmail-read-response process))))
-		    (not (integerp (car response-code)))
-		    (>= (car response-code) 400))
-		(throw 'done nil))
-
-	    ;; Mail contents
+	    ;; Send the contents.
+	    (smtpmail-command-or-throw process "DATA")
 	    (smtpmail-send-data process smtpmail-text-buffer)
-
 	    ;; DATA end "."
-	    (smtpmail-send-command process ".")
-
-	    (if (or (null (car (setq response-code (smtpmail-read-response process))))
-		    (not (integerp (car response-code)))
-		    (>= (car response-code) 400))
-		(throw 'done nil))
-
-	    ;; QUIT
-            ;; (smtpmail-send-command process "QUIT")
-            ;; (and (null (car (smtpmail-read-response process)))
-            ;;      (throw 'done nil))
-	    t))
-      (if process
-	  (with-current-buffer (process-buffer process)
-	    (smtpmail-send-command process "QUIT")
-	    (smtpmail-read-response process)
-
-            ;; (if (or (null (car (setq response-code (smtpmail-read-response process))))
-            ;;         (not (integerp (car response-code)))
-            ;;         (>= (car response-code) 400))
-            ;;	   (throw 'done nil))
-	    (delete-process process)
-	    (unless smtpmail-debug-info
-	      (kill-buffer process-buffer)))))))
+	    (smtpmail-command-or-throw process ".")
+	    ;; Return success.
+	    nil))
+      (when (and process
+		 (buffer-live-p process-buffer))
+	(with-current-buffer (process-buffer process)
+	  (smtpmail-send-command process "QUIT")
+	  (smtpmail-read-response process)
+	  (delete-process process)
+	  (unless smtpmail-debug-info
+	    (kill-buffer process-buffer)))))))
 
 
 (defun smtpmail-process-filter (process output)

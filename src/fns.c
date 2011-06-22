@@ -23,6 +23,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <time.h>
 #include <setjmp.h>
 
+#include <intprops.h>
+
 #include "lisp.h"
 #include "commands.h"
 #include "character.h"
@@ -567,8 +569,8 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
 	}
 
       result_len += len;
-      if (result_len < 0)
-	error ("String overflow");
+      if (STRING_BYTES_BOUND < result_len)
+	string_overflow ();
     }
 
   if (! some_multibyte)
@@ -2141,7 +2143,6 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
   (Lisp_Object array, Lisp_Object item)
 {
   register EMACS_INT size, idx;
-  int charval;
 
   if (VECTORP (array))
     {
@@ -2161,27 +2162,21 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
   else if (STRINGP (array))
     {
       register unsigned char *p = SDATA (array);
-      CHECK_NUMBER (item);
-      charval = XINT (item);
+      int charval;
+      CHECK_CHARACTER (item);
+      charval = XFASTINT (item);
       size = SCHARS (array);
       if (STRING_MULTIBYTE (array))
 	{
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  int len = CHAR_STRING (charval, str);
 	  EMACS_INT size_byte = SBYTES (array);
-	  unsigned char *p1 = p, *endp = p + size_byte;
-	  int i;
 
-	  if (size != size_byte)
-	    while (p1 < endp)
-	      {
-		int this_len = BYTES_BY_CHAR_HEAD (*p1);
-		if (len != this_len)
-		  error ("Attempt to change byte length of a string");
-		p1 += this_len;
-	      }
-	  for (i = 0; i < size_byte; i++)
-	    *p++ = str[i % len];
+	  if (INT_MULTIPLY_OVERFLOW (SCHARS (array), len)
+	      || SCHARS (array) * len != size_byte)
+	    error ("Attempt to change byte length of a string");
+	  for (idx = 0; idx < size_byte; idx++)
+	    *p++ = str[idx % len];
 	}
       else
 	for (idx = 0; idx < size; idx++)
@@ -2190,19 +2185,18 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
   else if (BOOL_VECTOR_P (array))
     {
       register unsigned char *p = XBOOL_VECTOR (array)->data;
-      int size_in_chars
-	= ((XBOOL_VECTOR (array)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+      EMACS_INT size_in_chars;
+      size = XBOOL_VECTOR (array)->size;
+      size_in_chars
+	= ((size + BOOL_VECTOR_BITS_PER_CHAR - 1)
 	   / BOOL_VECTOR_BITS_PER_CHAR);
 
-      charval = (! NILP (item) ? -1 : 0);
-      for (idx = 0; idx < size_in_chars - 1; idx++)
-	p[idx] = charval;
-      if (idx < size_in_chars)
+      if (size_in_chars)
 	{
-	  /* Mask out bits beyond the vector size.  */
-	  if (XBOOL_VECTOR (array)->size % BOOL_VECTOR_BITS_PER_CHAR)
-	    charval &= (1 << (XBOOL_VECTOR (array)->size % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
-	  p[idx] = charval;
+	  memset (p, ! NILP (item) ? -1 : 0, size_in_chars);
+
+	  /* Clear any extraneous bits in the last byte.  */
+	  p[size_in_chars - 1] &= (1 << (size % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
 	}
     }
   else
@@ -2316,7 +2310,7 @@ mapcar1 (EMACS_INT leni, Lisp_Object *vals, Lisp_Object fn, Lisp_Object seq)
     {
       for (i = 0; i < leni; i++)
 	{
-	  int byte;
+	  unsigned char byte;
 	  byte = XBOOL_VECTOR (seq)->data[i / BOOL_VECTOR_BITS_PER_CHAR];
 	  dummy = (byte & (1 << (i % BOOL_VECTOR_BITS_PER_CHAR))) ? Qt : Qnil;
 	  dummy = call1 (fn, dummy);

@@ -291,7 +291,7 @@ union Lisp_Object
   {
     /* Used for comparing two Lisp_Objects;
        also, positive integers can be accessed fast this way.  */
-    EMACS_UINT i;
+    EMACS_INT i;
 
     struct
       {
@@ -315,7 +315,7 @@ union Lisp_Object
   {
     /* Used for comparing two Lisp_Objects;
        also, positive integers can be accessed fast this way.  */
-    EMACS_UINT i;
+    EMACS_INT i;
 
     struct
       {
@@ -494,8 +494,8 @@ enum pvec_type
 #ifdef USE_LSB_TAG
 
 # define XSET(var, vartype, ptr) \
-  (eassert ((((EMACS_UINT) (ptr)) & ((1 << GCTYPEBITS) - 1)) == 0),	\
-   (var).u.val = ((EMACS_UINT) (ptr)) >> GCTYPEBITS,			\
+  (eassert ((((uintptr_t) (ptr)) & ((1 << GCTYPEBITS) - 1)) == 0),	\
+   (var).u.val = ((uintptr_t) (ptr)) >> GCTYPEBITS,			\
    (var).u.type = ((char) (vartype)))
 
 /* Some versions of gcc seem to consider the bitfield width when issuing
@@ -512,7 +512,7 @@ enum pvec_type
 # define XSETFASTINT(a, b) ((a).i = (b))
 
 # define XSET(var, vartype, ptr) \
-   (((var).s.val = ((EMACS_INT) (ptr))), ((var).s.type = ((char) (vartype))))
+   (((var).s.val = ((intptr_t) (ptr))), ((var).s.type = ((char) (vartype))))
 
 #ifdef DATA_SEG_BITS
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers
@@ -1013,7 +1013,7 @@ struct Lisp_Bool_Vector
        just the subtype information.  */
     struct vectorlike_header header;
     /* This is the size in bits.  */
-    EMACS_UINT size;
+    EMACS_INT size;
     /* This contains the actual bits, packed into bytes.  */
     unsigned char data[1];
   };
@@ -1890,7 +1890,7 @@ typedef struct {
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc) \
   Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
   static DECL_ALIGN (struct Lisp_Subr, sname) =				\
-    { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
+    { PVEC_SUBR,							\
       { .a ## maxargs = fnname },				\
       minargs, maxargs, lname, intspec, 0};				\
   Lisp_Object fnname
@@ -2628,7 +2628,7 @@ extern void init_fringe_once (void);
 /* Defined in image.c */
 extern Lisp_Object QCascent, QCmargin, QCrelief;
 extern Lisp_Object QCconversion;
-extern int x_bitmap_mask (struct frame *, int);
+extern int x_bitmap_mask (struct frame *, ptrdiff_t);
 extern void syms_of_image (void);
 extern void init_image (void);
 
@@ -3590,29 +3590,19 @@ extern void init_system_name (void);
 
 #define SWITCH_ENUM_CAST(x) (x)
 
-/* Loop over Lisp list LIST.  Signal an error if LIST is not a proper
-   list, or if it contains circles.
-
-   HARE and TORTOISE should be the names of Lisp_Object variables, and
-   N should be the name of an EMACS_INT variable declared in the
-   function where the macro is used.  Each nested loop should use
-   its own variables.
-
-   In the loop body, HARE is set to each cons of LIST, and N is the
-   length of the list processed so far.  */
-
-#define LIST_END_P(list, obj)				\
-  (NILP (obj)						\
-   ? 1							\
-   : (CONSP (obj)					\
-      ? 0						\
-      : (wrong_type_argument (Qlistp, (list))), 1))
-
-/* Use this to suppress gcc's `...may be used before initialized' warnings. */
+/* Use this to suppress gcc's warnings. */
 #ifdef lint
+
+/* Use CODE only if lint checking is in effect.  */
 # define IF_LINT(Code) Code
+
+/* Assume that the expression COND is true.  This differs in intent
+   from 'assert', as it is a message from the programmer to the compiler.  */
+# define lint_assume(cond) ((cond) ? (void) 0 : abort ())
+
 #else
 # define IF_LINT(Code) /* empty */
+# define lint_assume(cond) ((void) (0 && (cond)))
 #endif
 
 /* The ubiquitous min and max macros.  */
@@ -3635,9 +3625,7 @@ extern void init_system_name (void);
    fixnum.  */
 
 #define make_fixnum_or_float(val) \
-   (FIXNUM_OVERFLOW_P (val) \
-    ? make_float (val) \
-    : make_number ((EMACS_INT)(val)))
+   (FIXNUM_OVERFLOW_P (val) ? make_float (val) : make_number (val))
 
 
 /* Checks the `cycle check' variable CHECK to see if it indicates that

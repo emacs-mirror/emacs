@@ -1883,7 +1883,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
   /* Make a fontset name from the base font name.  */
   if (xic_defaut_fontset == base_fontname)
     { /* There is no base font name, use the default.  */
-      int len = strlen (base_fontname) + 2;
+      ptrdiff_t len = strlen (base_fontname) + 2;
       fontsetname = xmalloc (len);
       memset (fontsetname, 0, len);
       strcpy (fontsetname, base_fontname);
@@ -1896,7 +1896,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	 - the base font where the charset spec is replaced by -*-*.
 	 - the same but with the family also replaced with -*-*-.  */
       const char *p = base_fontname;
-      int i;
+      ptrdiff_t i;
 
       for (i = 0; *p; p++)
 	if (*p == '-') i++;
@@ -1904,7 +1904,8 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	{ /* As the font name doesn't conform to XLFD, we can't
 	     modify it to generalize it to allcs and allfamilies.
 	     Use the specified font plus the default.  */
-	  int len = strlen (base_fontname) + strlen (xic_defaut_fontset) + 3;
+	  ptrdiff_t len =
+	    strlen (base_fontname) + strlen (xic_defaut_fontset) + 3;
 	  fontsetname = xmalloc (len);
 	  memset (fontsetname, 0, len);
 	  strcpy (fontsetname, base_fontname);
@@ -1913,7 +1914,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	}
       else
 	{
-	  int len;
+	  ptrdiff_t len;
 	  const char *p1 = NULL, *p2 = NULL, *p3 = NULL;
 	  char *font_allcs = NULL;
 	  char *font_allfamilies = NULL;
@@ -1940,7 +1941,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	     wildcard.  */
 	  if (*p3 != '*')
 	    {
-	      int diff = (p2 - p3) - 2;
+	      ptrdiff_t diff = (p2 - p3) - 2;
 
 	      base = alloca (strlen (base_fontname) + 1);
 	      memcpy (base, base_fontname, p3 - base_fontname);
@@ -2434,7 +2435,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 
   /* Do some needed geometry management.  */
   {
-    int len;
+    ptrdiff_t len;
     char *tem, shell_position[32];
     Arg gal[10];
     int gac = 0;

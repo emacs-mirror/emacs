@@ -810,7 +810,7 @@ static int cursor_row_fully_visible_p (struct window *, int, int);
 static int try_scrolling (Lisp_Object, int, EMACS_INT, EMACS_INT, int, int);
 static int try_cursor_movement (Lisp_Object, struct text_pos, int *);
 static int trailing_whitespace_p (EMACS_INT);
-static unsigned long int message_log_check_duplicate (EMACS_INT, EMACS_INT);
+static intmax_t message_log_check_duplicate (EMACS_INT, EMACS_INT);
 static void push_it (struct it *, struct text_pos *);
 static void pop_it (struct it *);
 static void sync_frame_with_window_matrix_rows (struct window *);
@@ -2384,7 +2384,7 @@ init_iterator (struct it *it, struct window *w,
      is invisible.  >0 means lines indented more than this value are
      invisible.  */
   it->selective = (INTEGERP (BVAR (current_buffer, selective_display))
-		   ? XFASTINT (BVAR (current_buffer, selective_display))
+		   ? XINT (BVAR (current_buffer, selective_display))
 		   : (!NILP (BVAR (current_buffer, selective_display))
 		      ? -1 : 0));
   it->selective_display_ellipsis_p
@@ -3062,10 +3062,9 @@ compute_stop_pos (struct it *it)
 static EMACS_INT
 next_overlay_change (EMACS_INT pos)
 {
-  int noverlays;
+  ptrdiff_t i, noverlays;
   EMACS_INT endpos;
   Lisp_Object *overlays;
-  int i;
 
   /* Get all overlays at the given position.  */
   GET_OVERLAYS_AT (pos, overlays, noverlays, &endpos, 1);
@@ -5178,7 +5177,8 @@ back_to_previous_line_start (struct it *it)
 static int
 forward_to_next_line_start (struct it *it, int *skipped_p)
 {
-  int old_selective, newline_found_p, n;
+  EMACS_INT old_selective;
+  int newline_found_p, n;
   const int MAX_NEWLINE_DISTANCE = 500;
 
   /* If already on a newline, just consume it to avoid unintended
@@ -5270,7 +5270,7 @@ back_to_previous_visible_line_start (struct it *it)
 	 invisible.  */
       if (it->selective > 0
 	  && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
-				(double) it->selective)) /* iftc */
+				it->selective))
 	continue;
 
       /* Check the newline before point for invisibility.  */
@@ -5364,7 +5364,7 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
   if (it->selective > 0)
     while (IT_CHARPOS (*it) < ZV
 	   && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
-				 (double) it->selective)) /* iftc */
+				 it->selective))
       {
 	xassert (IT_BYTEPOS (*it) == BEGV
 		 || FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
@@ -6812,7 +6812,7 @@ next_element_from_buffer (struct it *it)
 		  && IT_CHARPOS (*it) + 1 < ZV
 		  && indented_beyond_p (IT_CHARPOS (*it) + 1,
 					IT_BYTEPOS (*it) + 1,
-					(double) it->selective)) /* iftc */
+					it->selective))
 		{
 		  success_p = next_element_from_ellipsis (it);
 		  it->dpvec_char_len = -1;
@@ -8063,7 +8063,7 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
       if (nlflag)
 	{
 	  EMACS_INT this_bol, this_bol_byte, prev_bol, prev_bol_byte;
-	  unsigned long int dups;
+	  intmax_t dups;
 	  insert_1 ("\n", 1, 1, 0, 0);
 
 	  scan_newline (Z, Z_BYTE, BEG, BEG_BYTE, -2, 0);
@@ -8086,12 +8086,13 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
 				  this_bol, this_bol_byte, 0);
 		  if (dups > 1)
 		    {
-		      char dupstr[40];
+		      char dupstr[sizeof " [ times]"
+				  + INT_STRLEN_BOUND (intmax_t)];
 		      int duplen;
 
 		      /* If you change this format, don't forget to also
 			 change message_log_check_duplicate.  */
-		      sprintf (dupstr, " [%lu times]", dups);
+		      sprintf (dupstr, " [%"PRIdMAX" times]", dups);
 		      duplen = strlen (dupstr);
 		      TEMP_SET_PT_BOTH (Z - 1, Z_BYTE - 1);
 		      insert_1 (dupstr, duplen, 1, 0, 1);
@@ -8153,7 +8154,7 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
    Return 0 if different, 1 if the new one should just replace it, or a
    value N > 1 if we should also append " [N times]".  */
 
-static unsigned long int
+static intmax_t
 message_log_check_duplicate (EMACS_INT prev_bol_byte, EMACS_INT this_bol_byte)
 {
   EMACS_INT i;
@@ -8175,8 +8176,8 @@ message_log_check_duplicate (EMACS_INT prev_bol_byte, EMACS_INT this_bol_byte)
   if (*p1++ == ' ' && *p1++ == '[')
     {
       char *pend;
-      unsigned long int n = strtoul ((char *) p1, &pend, 10);
-      if (strncmp (pend, " times]\n", 8) == 0)
+      intmax_t n = strtoimax ((char *) p1, &pend, 10);
+      if (0 < n && n < INTMAX_MAX && strncmp (pend, " times]\n", 8) == 0)
 	return n+1;
     }
   return 0;
@@ -18728,8 +18729,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 			break;
 		      case MODE_LINE_STRING:
 			{
-			  int len = strlen (spec);
-			  Lisp_Object tem = make_string (spec, len);
+			  Lisp_Object tem = build_string (spec);
 			  props = Ftext_properties_at (make_number (charpos), elt);
 			  /* Should only keep face property in props */
 			  n += store_mode_line_string (NULL, tem, 0, field, prec, props);
@@ -25452,13 +25452,13 @@ note_mouse_highlight (struct frame *f, int x, int y)
       && XFASTINT (w->last_modified) == BUF_MODIFF (b)
       && XFASTINT (w->last_overlay_modified) == BUF_OVERLAY_MODIFF (b))
     {
-      int hpos, vpos, i, dx, dy, area;
+      int hpos, vpos, dx, dy, area;
       EMACS_INT pos;
       struct glyph *glyph;
       Lisp_Object object;
       Lisp_Object mouse_face = Qnil, position;
       Lisp_Object *overlay_vec = NULL;
-      int noverlays;
+      ptrdiff_t i, noverlays;
       struct buffer *obuf;
       EMACS_INT obegv, ozv;
       int same_region;

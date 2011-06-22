@@ -8225,7 +8225,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
           /* `:label LABEL-STRING'.  */
           PROP (TOOL_BAR_ITEM_LABEL) = STRINGP (value)
             ? value
-            : make_string (bad_label, strlen (bad_label));
+            : build_string (bad_label);
           have_label = 1;
         }
       else if (EQ (ikey, QCfilter))
@@ -8291,7 +8291,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       else
 	label = "";
 
-      new_lbl = Fupcase_initials (make_string (label, strlen (label)));
+      new_lbl = Fupcase_initials (build_string (label));
       if (SCHARS (new_lbl) <= tool_bar_max_label_size)
         PROP (TOOL_BAR_ITEM_LABEL) = new_lbl;
       else

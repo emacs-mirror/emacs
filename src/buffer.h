@@ -887,10 +887,10 @@ extern struct buffer buffer_local_symbols;
 extern void delete_all_overlays (struct buffer *);
 extern void reset_buffer (struct buffer *);
 extern void evaporate_overlays (EMACS_INT);
-extern int overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
-                        int *len_ptr, EMACS_INT *next_ptr,
-                        EMACS_INT *prev_ptr, int change_req);
-extern int sort_overlays (Lisp_Object *, int, struct window *);
+extern ptrdiff_t overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
+			      ptrdiff_t *len_ptr, EMACS_INT *next_ptr,
+			      EMACS_INT *prev_ptr, int change_req);
+extern ptrdiff_t sort_overlays (Lisp_Object *, ptrdiff_t, struct window *);
 extern void recenter_overlay_lists (struct buffer *, EMACS_INT);
 extern EMACS_INT overlay_strings (EMACS_INT, struct window *, unsigned char **);
 extern void validate_region (Lisp_Object *, Lisp_Object *);
@@ -908,7 +908,7 @@ extern void mmap_set_vars (int);
 
 #define GET_OVERLAYS_AT(posn, overlays, noverlays, nextp, chrq)		\
   do {									\
-    int maxlen = 40;							\
+    ptrdiff_t maxlen = 40;							\
     overlays = (Lisp_Object *) alloca (maxlen * sizeof (Lisp_Object));	\
     noverlays = overlays_at (posn, 0, &overlays, &maxlen,		\
 			     nextp, NULL, chrq);				\

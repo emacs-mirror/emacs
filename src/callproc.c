@@ -1230,8 +1230,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
 
     if (STRINGP (display))
       {
-	int vlen = strlen ("DISPLAY=") + strlen (SSDATA (display)) + 1;
-	char *vdata = (char *) alloca (vlen);
+	char *vdata = (char *) alloca (sizeof "DISPLAY=" + SBYTES (display));
 	strcpy (vdata, "DISPLAY=");
 	strcat (vdata, SSDATA (display));
 	new_env = add_env (env, new_env, vdata);
@@ -1378,8 +1377,8 @@ relocate_fd (int fd, int minfd)
 #endif /* not WINDOWSNT */
 
 static int
-getenv_internal_1 (const char *var, int varlen, char **value, int *valuelen,
-		   Lisp_Object env)
+getenv_internal_1 (const char *var, ptrdiff_t varlen, char **value,
+		   ptrdiff_t *valuelen, Lisp_Object env)
 {
   for (; CONSP (env); env = XCDR (env))
     {
@@ -1413,8 +1412,8 @@ getenv_internal_1 (const char *var, int varlen, char **value, int *valuelen,
 }
 
 static int
-getenv_internal (const char *var, int varlen, char **value, int *valuelen,
-		 Lisp_Object frame)
+getenv_internal (const char *var, ptrdiff_t varlen, char **value,
+		 ptrdiff_t *valuelen, Lisp_Object frame)
 {
   /* Try to find VAR in Vprocess_environment first.  */
   if (getenv_internal_1 (var, varlen, value, valuelen,
@@ -1454,7 +1453,7 @@ If optional parameter ENV is a list, then search this list instead of
   (Lisp_Object variable, Lisp_Object env)
 {
   char *value;
-  int valuelen;
+  ptrdiff_t valuelen;
 
   CHECK_STRING (variable);
   if (CONSP (env))
@@ -1478,7 +1477,7 @@ char *
 egetenv (const char *var)
 {
   char *value;
-  int valuelen;
+  ptrdiff_t valuelen;
 
   if (getenv_internal (var, strlen (var), &value, &valuelen, Qnil))
     return value;

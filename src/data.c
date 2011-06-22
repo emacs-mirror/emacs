@@ -703,7 +703,7 @@ SUBR must be a built-in function.  */)
   const char *name;
   CHECK_SUBR (subr);
   name = XSUBR (subr)->symbol_name;
-  return make_string (name, strlen (name));
+  return build_string (name);
 }
 
 DEFUN ("interactive-form", Finteractive_form, Sinteractive_form, 1, 1, 0,
