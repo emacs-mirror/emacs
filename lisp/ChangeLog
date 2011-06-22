@@ -1,3 +1,8 @@
+2011-06-22  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmailmm.el (rmail-insert-mime-forwarded-message):
+	Copy the buffer currently showing just one message.
+
 2011-06-22  Roland Winkler  <winkler@gnu.org>
 
 	* textmodes/bibtex.el (bibtex-entry-update): Use mapc.
