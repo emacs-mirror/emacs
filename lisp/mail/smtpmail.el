@@ -741,6 +741,7 @@ The list is in preference order.")
 		(smtpmail-send-command process "QUIT")
 		(smtpmail-read-response process)
 		(delete-process process)
+		(setq process nil)
 		(throw 'done
 		       (smtpmail-via-smtp recipient smtpmail-text-buffer t)))
 	       (t
@@ -768,6 +769,7 @@ The list is in preference order.")
 		  (smtpmail-send-command process "QUIT")
 		  (smtpmail-read-response process)
 		  (delete-process process)
+		  (setq process nil)
 		  (throw 'done
 			 (smtpmail-via-smtp recipient smtpmail-text-buffer t)))
 		 (t
