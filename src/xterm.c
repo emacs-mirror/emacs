@@ -356,7 +356,7 @@ static int x_dispatch_event (XEvent *, Display *);
    interference with debugging failing X calls.  */
 static void x_connection_closed (Display *, const char *);
 static void x_wm_set_window_state (struct frame *, int);
-static void x_wm_set_icon_pixmap (struct frame *, int);
+static void x_wm_set_icon_pixmap (struct frame *, ptrdiff_t);
 static void x_initialize (void);
 
 
@@ -7427,7 +7427,7 @@ x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x, int 
 int
 x_bitmap_icon (struct frame *f, Lisp_Object file)
 {
-  int bitmap_id;
+  ptrdiff_t bitmap_id;
 
   if (FRAME_X_WINDOW (f) == 0)
     return 1;
@@ -7453,7 +7453,7 @@ x_bitmap_icon (struct frame *f, Lisp_Object file)
       /* Create the GNU bitmap and mask if necessary.  */
       if (FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id < 0)
 	{
-	  int rc = -1;
+	  ptrdiff_t rc = -1;
 
 #ifdef USE_GTK
 
@@ -9601,7 +9601,7 @@ x_wm_set_window_state (struct frame *f, int state)
 }
 
 static void
-x_wm_set_icon_pixmap (struct frame *f, int pixmap_id)
+x_wm_set_icon_pixmap (struct frame *f, ptrdiff_t pixmap_id)
 {
   Pixmap icon_pixmap, icon_mask;
 

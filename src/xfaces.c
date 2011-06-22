@@ -463,7 +463,8 @@ static Lisp_Object resolve_face_name (Lisp_Object, int);
 static void set_font_frame_param (Lisp_Object, Lisp_Object);
 static int get_lface_attributes (struct frame *, Lisp_Object, Lisp_Object *,
                                  int, struct named_merge_point *);
-static int load_pixmap (struct frame *, Lisp_Object, unsigned *, unsigned *);
+static ptrdiff_t load_pixmap (struct frame *, Lisp_Object,
+			      unsigned *, unsigned *);
 static struct frame *frame_or_selected_frame (Lisp_Object, int);
 static void load_face_colors (struct frame *, struct face *, Lisp_Object *);
 static void free_face_colors (struct frame *, struct face *);
@@ -963,10 +964,10 @@ the pixmap.  Bits are stored row by row, each row occupies
    zero.  Store the bitmap width in *W_PTR and its height in *H_PTR,
    if these pointers are not null.  */
 
-static int
+static ptrdiff_t
 load_pixmap (FRAME_PTR f, Lisp_Object name, unsigned int *w_ptr, unsigned int *h_ptr)
 {
-  int bitmap_id;
+  ptrdiff_t bitmap_id;
 
   if (NILP (name))
     return 0;

@@ -2628,7 +2628,7 @@ extern void init_fringe_once (void);
 /* Defined in image.c */
 extern Lisp_Object QCascent, QCmargin, QCrelief;
 extern Lisp_Object QCconversion;
-extern int x_bitmap_mask (struct frame *, int);
+extern int x_bitmap_mask (struct frame *, ptrdiff_t);
 extern void syms_of_image (void);
 extern void init_image (void);
 

@@ -1,3 +1,22 @@
+2011-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* dispextern.h (struct face.stipple):
+	* image.c (x_bitmap_height, x_bitmap_width, x_bitmap_pixmap)
+	(x_bitmap_mask, x_allocate_bitmap_record)
+	(x_create_bitmap_from_data, x_create_bitmap_from_file)
+	(x_destroy_bitmap, x_destroy_all_bitmaps, x_create_bitmap_mask)
+	(x_create_bitmap_from_xpm_data):
+	* nsterm.h (struct ns_display_info.bitmaps_size, .bitmaps_last):
+	* w32term.h (struct w32_display_info.icon_bitmap_id, .bitmaps_size)
+	(.bitmaps_last):
+	* xfaces.c (load_pixmap):
+	* xterm.c (x_bitmap_icon, x_wm_set_icon_pixmap):
+	* xterm.h (struct x_display_info.icon_bitmap_id, .bitmaps_size)
+	(.bitmaps_last, struct x_output.icon_bitmap):
+	Use ptrdiff_t, not int, for bitmap indexes.
+	(x_allocate_bitmap_record): Check for size overflow.
+	* dispextern.h, lisp.h: Adjust to API changes elsewhere.
+
 2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use ptrdiff_t, not int, for overlay counts.
