@@ -26,6 +26,7 @@ AC_DEFUN([gl_EARLY],
   m4_pattern_allow([^gl_LIBOBJS$])dnl a variable
   m4_pattern_allow([^gl_LTLIBOBJS$])dnl a variable
   AC_REQUIRE([AC_PROG_RANLIB])
+  # Code from module alloca-opt:
   # Code from module allocator:
   # Code from module arg-nonnull:
   # Code from module c++defs:
@@ -94,6 +95,7 @@ AC_DEFUN([gl_INIT],
   m4_pushdef([gl_LIBSOURCES_DIR], [])
   gl_COMMON
   gl_source_base='lib'
+gl_FUNC_ALLOCA
 AC_CHECK_FUNCS_ONCE([readlinkat])
 gl_MD5
 gl_SHA1
@@ -392,6 +394,7 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/arg-nonnull.h
   build-aux/c++defs.h
   build-aux/warn-on-use.h
+  lib/alloca.in.h
   lib/allocator.c
   lib/allocator.h
   lib/careadlinkat.c
@@ -445,6 +448,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/unistd.in.h
   lib/verify.h
   m4/00gnulib.m4
+  m4/alloca.m4
   m4/c-strtod.m4
   m4/extensions.m4
   m4/filemode.m4
