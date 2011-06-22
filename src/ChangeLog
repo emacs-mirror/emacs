@@ -1,5 +1,13 @@
 2011-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lread.c: Integer overflow issues.
+	(saved_doc_string_size, saved_doc_string_length)
+	(prev_saved_doc_string_size, prev_saved_doc_string_length):
+	Now ptrdiff_t, not int.
+	(read1): Don't assume doc string length fits in int.  Check for
+	out-of-range doc string lengths.
+	(read_list): Don't assume file position fits in int.
+
 	Fixes for GLYPH_DEBUG found by GCC 4.6.0 static checking.
 	The following patches are for when GLYPH_DEBUG && !XASSERT.
 	* dispextern.h (trace_redisplay_p, dump_glyph_string):

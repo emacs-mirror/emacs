@@ -120,9 +120,9 @@ static EMACS_INT readchar_count;
 /* This contains the last string skipped with #@.  */
 static char *saved_doc_string;
 /* Length of buffer allocated in saved_doc_string.  */
-static int saved_doc_string_size;
+static ptrdiff_t saved_doc_string_size;
 /* Length of actual data in saved_doc_string.  */
-static int saved_doc_string_length;
+static ptrdiff_t saved_doc_string_length;
 /* This is the file position that string came from.  */
 static file_offset saved_doc_string_position;
 
@@ -131,9 +131,9 @@ static file_offset saved_doc_string_position;
    is put in saved_doc_string.  */
 static char *prev_saved_doc_string;
 /* Length of buffer allocated in prev_saved_doc_string.  */
-static int prev_saved_doc_string_size;
+static ptrdiff_t prev_saved_doc_string_size;
 /* Length of actual data in prev_saved_doc_string.  */
-static int prev_saved_doc_string_length;
+static ptrdiff_t prev_saved_doc_string_length;
 /* This is the file position that string came from.  */
 static file_offset prev_saved_doc_string_position;
 
@@ -2569,13 +2569,16 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	 and function definitions.  */
       if (c == '@')
 	{
-	  int i, nskip = 0;
+	  enum { extra = 100 };
+	  ptrdiff_t i, nskip = 0;
 
 	  load_each_byte = 1;
 	  /* Read a decimal integer.  */
 	  while ((c = READCHAR) >= 0
 		 && c >= '0' && c <= '9')
 	    {
+	      if ((STRING_BYTES_BOUND - extra) / 10 <= nskip)
+		string_overflow ();
 	      nskip *= 10;
 	      nskip += c - '0';
 	    }
@@ -2594,9 +2597,9 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		 with prev_saved_doc_string, so we save two strings.  */
 	      {
 		char *temp = saved_doc_string;
-		int temp_size = saved_doc_string_size;
+		ptrdiff_t temp_size = saved_doc_string_size;
 		file_offset temp_pos = saved_doc_string_position;
-		int temp_len = saved_doc_string_length;
+		ptrdiff_t temp_len = saved_doc_string_length;
 
 		saved_doc_string = prev_saved_doc_string;
 		saved_doc_string_size = prev_saved_doc_string_size;
@@ -2611,12 +2614,12 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	      if (saved_doc_string_size == 0)
 		{
-		  saved_doc_string_size = nskip + 100;
+		  saved_doc_string_size = nskip + extra;
 		  saved_doc_string = (char *) xmalloc (saved_doc_string_size);
 		}
 	      if (nskip > saved_doc_string_size)
 		{
-		  saved_doc_string_size = nskip + 100;
+		  saved_doc_string_size = nskip + extra;
 		  saved_doc_string = (char *) xrealloc (saved_doc_string,
 							saved_doc_string_size);
 		}
@@ -3528,7 +3531,7 @@ read_list (int flag, register Lisp_Object readcharfun)
 			 doc string, caller must make it
 			 multibyte.  */
 
-		      int pos = XINT (XCDR (val));
+		      EMACS_INT pos = XINT (XCDR (val));
 		      /* Position is negative for user variables.  */
 		      if (pos < 0) pos = -pos;
 		      if (pos >= saved_doc_string_position
