@@ -44,12 +44,6 @@ static void insert_from_buffer_1 (struct buffer *buf,
 				  int inherit);
 static void gap_left (EMACS_INT charpos, EMACS_INT bytepos, int newgap);
 static void gap_right (EMACS_INT charpos, EMACS_INT bytepos);
-static void adjust_markers_for_insert (EMACS_INT from, EMACS_INT from_byte,
-				       EMACS_INT to, EMACS_INT to_byte,
-				       int before_markers);
-static void adjust_markers_for_replace (EMACS_INT, EMACS_INT, EMACS_INT,
-					EMACS_INT, EMACS_INT, EMACS_INT);
-static void adjust_point (EMACS_INT nchars, EMACS_INT nbytes);
 
 static Lisp_Object Fcombine_after_change_execute (void);
 

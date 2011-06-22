@@ -9442,7 +9442,7 @@ static Lisp_Object
 make_subsidiaries (Lisp_Object base)
 {
   Lisp_Object subsidiaries;
-  int base_name_len = SBYTES (SYMBOL_NAME (base));
+  ptrdiff_t base_name_len = SBYTES (SYMBOL_NAME (base));
   char *buf = (char *) alloca (base_name_len + 6);
   int i;
 
@@ -9450,7 +9450,7 @@ make_subsidiaries (Lisp_Object base)
   subsidiaries = Fmake_vector (make_number (3), Qnil);
   for (i = 0; i < 3; i++)
     {
-      memcpy (buf + base_name_len, suffixes[i], strlen (suffixes[i]) + 1);
+      strcpy (buf + base_name_len, suffixes[i]);
       ASET (subsidiaries, i, intern (buf));
     }
   return subsidiaries;

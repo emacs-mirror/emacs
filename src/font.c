@@ -232,22 +232,35 @@ static int num_font_drivers;
    STR.  */
 
 Lisp_Object
-font_intern_prop (const char *str, int len, int force_symbol)
+font_intern_prop (const char *str, ptrdiff_t len, int force_symbol)
 {
-  int i;
+  ptrdiff_t i;
   Lisp_Object tem;
   Lisp_Object obarray;
   EMACS_INT nbytes, nchars;
 
   if (len == 1 && *str == '*')
     return Qnil;
-  if (!force_symbol && len >=1 && isdigit (*str))
+  if (!force_symbol && 0 < len && '0' <= *str && *str <= '9')
     {
       for (i = 1; i < len; i++)
-	if (! isdigit (str[i]))
+	if (! ('0' <= str[i] && str[i] <= '9'))
 	  break;
       if (i == len)
-	return make_number (atoi (str));
+	{
+	  EMACS_INT n;
+
+	  i = 0;
+	  for (n = 0; (n += str[i++] - '0') <= MOST_POSITIVE_FIXNUM; n *= 10)
+	    {
+	      if (i == len)
+		return make_number (n);
+	      if (MOST_POSITIVE_FIXNUM / 10 < n)
+		break;
+	    }
+
+	  xsignal1 (Qoverflow_error, make_string (str, len));
+	}
     }
 
   /* The following code is copied from the function intern (in
@@ -982,7 +995,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
 int
 font_parse_xlfd (char *name, Lisp_Object font)
 {
-  int len = strlen (name);
+  ptrdiff_t len = strlen (name);
   int i, j, n;
   char *f[XLFD_LAST_INDEX + 1];
   Lisp_Object val;
@@ -1310,7 +1323,7 @@ font_parse_fcname (char *name, Lisp_Object font)
   char *p, *q;
   char *size_beg = NULL, *size_end = NULL;
   char *props_beg = NULL, *family_end = NULL;
-  int len = strlen (name);
+  ptrdiff_t len = strlen (name);
 
   if (len == 0)
     return -1;
@@ -1376,7 +1389,7 @@ font_parse_fcname (char *name, Lisp_Object font)
 	      if (*q != '=')
 		{
 		  /* Must be an enumerated value.  */
-		  int word_len;
+		  ptrdiff_t word_len;
 		  p = p + 1;
 		  word_len = q - p;
 		  val = font_intern_prop (p, q - p, 1);
@@ -1452,7 +1465,7 @@ font_parse_fcname (char *name, Lisp_Object font)
       Lisp_Object weight = Qnil, slant = Qnil;
       Lisp_Object width  = Qnil, size  = Qnil;
       char *word_start;
-      int word_len;
+      ptrdiff_t word_len;
 
       /* Scan backwards from the end, looking for a size.  */
       for (p = name + len - 1; p >= name; p--)
@@ -1542,7 +1555,8 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
   Lisp_Object family, foundry;
   Lisp_Object tail, val;
   int point_size;
-  int i, len = 1;
+  int i;
+  ptrdiff_t len = 1;
   char *p;
   Lisp_Object styles[3];
   const char *style_names[3] = { "weight", "slant", "width" };
@@ -2093,8 +2107,8 @@ font_score (Lisp_Object entity, Lisp_Object *spec_prop)
     {
       /* We use the higher 6-bit for the actual size difference.  The
 	 lowest bit is set if the DPI is different.  */
-      int diff;
-      int pixel_size = XINT (spec_prop[FONT_SIZE_INDEX]);
+      EMACS_INT diff;
+      EMACS_INT pixel_size = XINT (spec_prop[FONT_SIZE_INDEX]);
 
       if (CONSP (Vface_font_rescale_alist))
 	pixel_size *= font_rescale_ratio (entity);
@@ -4294,7 +4308,7 @@ created glyph-string.  Otherwise, the value is nil.  */)
 {
   struct font *font;
   Lisp_Object font_object, n, glyph;
-  int i, j, from, to;
+  EMACS_INT i, j, from, to;
 
   if (! composition_gstring_p (gstring))
     signal_error ("Invalid glyph-string: ", gstring);

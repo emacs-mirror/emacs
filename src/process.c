@@ -1187,7 +1187,7 @@ Returns nil if format of ADDRESS is invalid.  */)
   if (VECTORP (address))  /* AF_INET or AF_INET6 */
     {
       register struct Lisp_Vector *p = XVECTOR (address);
-      EMACS_UINT size = p->header.size;
+      EMACS_INT size = p->header.size;
       Lisp_Object args[10];
       int nargs, i;
 

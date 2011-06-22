@@ -158,7 +158,7 @@ struct x_display_info
 
   /* Emacs bitmap-id of the default icon bitmap for this frame.
      Or -1 if none has been allocated yet.  */
-  int icon_bitmap_id;
+  ptrdiff_t icon_bitmap_id;
 
   /* The root window of this screen.  */
   Window root_window;
@@ -202,10 +202,10 @@ struct x_display_info
   struct x_bitmap_record *bitmaps;
 
   /* Allocated size of bitmaps field.  */
-  int bitmaps_size;
+  ptrdiff_t bitmaps_size;
 
   /* Last used bitmap index.  */
-  int bitmaps_last;
+  ptrdiff_t bitmaps_last;
 
   /* Which modifier keys are on which modifier bits?
 
@@ -490,7 +490,7 @@ struct x_output
 
   /* If >=0, a bitmap index.  The indicated bitmap is used for the
      icon. */
-  int icon_bitmap;
+  ptrdiff_t icon_bitmap;
 
   /* Default ASCII font of this frame.  */
   struct font *font;

@@ -190,7 +190,7 @@ smc_save_yourself_CB (SmcConn smcConn,
   props[props_idx]->type = xstrdup (SmARRAY8);
   props[props_idx]->num_vals = 1;
   props[props_idx]->vals = &values[val_idx++];
-  props[props_idx]->vals[0].length = strlen (SSDATA (Vinvocation_name));
+  props[props_idx]->vals[0].length = SBYTES (Vinvocation_name);
   props[props_idx]->vals[0].value = SDATA (Vinvocation_name);
   ++props_idx;
 
@@ -200,7 +200,7 @@ smc_save_yourself_CB (SmcConn smcConn,
   props[props_idx]->type = xstrdup (SmARRAY8);
   props[props_idx]->num_vals = 1;
   props[props_idx]->vals = &values[val_idx++];
-  props[props_idx]->vals[0].length = strlen (SSDATA (Vuser_login_name));
+  props[props_idx]->vals[0].length = SBYTES (Vuser_login_name);
   props[props_idx]->vals[0].value = SDATA (Vuser_login_name);
   ++props_idx;
 
@@ -398,7 +398,7 @@ x_session_initialize (struct x_display_info *dpyinfo)
   char errorstring[SM_ERRORSTRING_LEN];
   char* previous_id = NULL;
   SmcCallbacks callbacks;
-  int  name_len = 0;
+  ptrdiff_t name_len = 0;
 
   ice_fd = -1;
   doing_interact = False;
@@ -410,8 +410,8 @@ x_session_initialize (struct x_display_info *dpyinfo)
 
   /* Construct the path to the Emacs program.  */
   if (! EQ (Vinvocation_directory, Qnil))
-    name_len += strlen (SSDATA (Vinvocation_directory));
-  name_len += strlen (SSDATA (Vinvocation_name));
+    name_len += SBYTES (Vinvocation_directory);
+  name_len += SBYTES (Vinvocation_name);
 
   /* This malloc will not be freed, but it is only done once, and hopefully
      not very large   */
@@ -457,7 +457,7 @@ x_session_initialize (struct x_display_info *dpyinfo)
 
   if (smc_conn != 0)
     {
-      Vx_session_id = make_string (client_id, strlen (client_id));
+      Vx_session_id = build_string (client_id);
 
 #ifdef USE_GTK
       /* GTK creats a leader window by itself, but we need to tell

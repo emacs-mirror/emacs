@@ -585,7 +585,7 @@ argmatch (char **argv, int argc, const char *sstr, const char *lstr,
           int minlen, char **valptr, int *skipptr)
 {
   char *p = NULL;
-  int arglen;
+  ptrdiff_t arglen;
   char *arg;
 
   /* Don't access argv[argc]; give up in advance.  */
@@ -1087,7 +1087,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
         dname_arg2[0] = '\0';
         sscanf (dname_arg, "\n%d,%d\n%s", &(daemon_pipe[0]), &(daemon_pipe[1]),
                 dname_arg2);
-        dname_arg = strlen (dname_arg2) ? dname_arg2 : NULL;
+        dname_arg = *dname_arg2 ? dname_arg2 : NULL;
       }
 #endif /* NS_IMPL_COCOA */
 
@@ -1846,8 +1846,7 @@ sort_args (int argc, char **argv)
       priority[from] = 0;
       if (argv[from][0] == '-')
 	{
-	  int match, thislen;
-	  char *equals;
+	  int match;
 
 	  /* If we have found "--", don't consider
 	     any more arguments as options.  */
@@ -1879,11 +1878,11 @@ sort_args (int argc, char **argv)
 	     >= 0 (the table index of the match) if just one match so far.  */
 	  if (argv[from][1] == '-')
 	    {
+	      char const *equals = strchr (argv[from], '=');
+	      ptrdiff_t thislen =
+		equals ? equals - argv[from] : strlen (argv[from]);
+
 	      match = -1;
-	      thislen = strlen (argv[from]);
-	      equals = strchr (argv[from], '=');
-	      if (equals != 0)
-		thislen = equals - argv[from];
 
 	      for (i = 0;
 		   i < sizeof (standard_args) / sizeof (standard_args[0]); i++)

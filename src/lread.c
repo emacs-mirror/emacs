@@ -158,7 +158,7 @@ static void readevalloop (Lisp_Object, FILE*, Lisp_Object, int,
 static Lisp_Object load_unwind (Lisp_Object);
 static Lisp_Object load_descriptor_unwind (Lisp_Object);
 
-static void invalid_syntax (const char *, int) NO_RETURN;
+static void invalid_syntax (const char *) NO_RETURN;
 static void end_of_file_error (void) NO_RETURN;
 
 
@@ -2014,11 +2014,9 @@ read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end)
    S is error string of length N (if > 0)  */
 
 static void
-invalid_syntax (const char *s, int n)
+invalid_syntax (const char *s)
 {
-  if (!n)
-    n = strlen (s);
-  xsignal1 (Qinvalid_read_syntax, make_string (s, n));
+  xsignal1 (Qinvalid_read_syntax, build_string (s));
 }
 
 
@@ -2336,7 +2334,7 @@ read_integer (Lisp_Object readcharfun, int radix)
   if (! valid)
     {
       sprintf (buf, "integer, radix %d", radix);
-      invalid_syntax (buf, 0);
+      invalid_syntax (buf);
     }
 
   return string_to_number (buf, radix, 0);
@@ -2453,7 +2451,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      return ht;
 	    }
 	  UNREAD (c);
-	  invalid_syntax ("#", 1);
+	  invalid_syntax ("#");
 	}
       if (c == '^')
 	{
@@ -2487,9 +2485,9 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		  XSETPVECTYPE (XVECTOR (tmp), PVEC_SUB_CHAR_TABLE);
 		  return tmp;
 		}
-	      invalid_syntax ("#^^", 3);
+	      invalid_syntax ("#^^");
 	    }
-	  invalid_syntax ("#^", 2);
+	  invalid_syntax ("#^");
 	}
       if (c == '&')
 	{
@@ -2513,7 +2511,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 			 version.  */
 		      && ! (XFASTINT (length)
 			    == (SCHARS (tmp) - 1) * BOOL_VECTOR_BITS_PER_CHAR)))
-		invalid_syntax ("#&...", 5);
+		invalid_syntax ("#&...");
 
 	      val = Fmake_bool_vector (length, Qnil);
 	      memcpy (XBOOL_VECTOR (val)->data, SDATA (tmp), size_in_chars);
@@ -2523,7 +2521,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		  &= (1 << (XINT (length) % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
 	      return val;
 	    }
-	  invalid_syntax ("#&...", 5);
+	  invalid_syntax ("#&...");
 	}
       if (c == '[')
 	{
@@ -2543,7 +2541,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  /* Read the string itself.  */
 	  tmp = read1 (readcharfun, &ch, 0);
 	  if (ch != 0 || !STRINGP (tmp))
-	    invalid_syntax ("#", 1);
+	    invalid_syntax ("#");
 	  GCPRO1 (tmp);
 	  /* Read the intervals and their properties.  */
 	  while (1)
@@ -2559,7 +2557,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      if (ch == 0)
 		plist = read1 (readcharfun, &ch, 0);
 	      if (ch)
-		invalid_syntax ("Invalid string property list", 0);
+		invalid_syntax ("Invalid string property list");
 	      Fset_text_properties (beg, end, plist, tmp);
 	    }
 	  UNGCPRO;
@@ -2716,7 +2714,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	return read_integer (readcharfun, 2);
 
       UNREAD (c);
-      invalid_syntax ("#", 1);
+      invalid_syntax ("#");
 
     case ';':
       while ((c = READCHAR) >= 0 && c != '\n');
@@ -2833,7 +2831,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	if (ok)
 	  return make_number (c);
 
-	invalid_syntax ("?", 1);
+	invalid_syntax ("?");
       }
 
     case '"':
@@ -3335,7 +3333,7 @@ string_to_number (char const *string, int base, int ignore_trailing)
 	  /* Unfortunately there's no simple and accurate way to convert
 	     non-base-10 numbers that are out of C-language range.  */
 	  if (base != 10)
-	    xsignal (Qoverflow_error, list1 (build_string (string)));
+	    xsignal1 (Qoverflow_error, build_string (string));
 	}
       else if (n <= (negative ? -MOST_NEGATIVE_FIXNUM : MOST_POSITIVE_FIXNUM))
 	{
@@ -3501,7 +3499,7 @@ read_list (int flag, register Lisp_Object readcharfun)
 	    {
 	      if (ch == ']')
 		return val;
-	      invalid_syntax (") or . in a vector", 18);
+	      invalid_syntax (") or . in a vector");
 	    }
 	  if (ch == ')')
 	    return val;
@@ -3603,9 +3601,9 @@ read_list (int flag, register Lisp_Object readcharfun)
 
 		  return val;
 		}
-	      invalid_syntax (". in wrong context", 18);
+	      invalid_syntax (". in wrong context");
 	    }
-	  invalid_syntax ("] in a list", 11);
+	  invalid_syntax ("] in a list");
 	}
       tem = (read_pure && flag <= 0
 	     ? pure_cons (elt, Qnil)
@@ -3652,7 +3650,7 @@ Lisp_Object
 intern (const char *str)
 {
   Lisp_Object tem;
-  int len = strlen (str);
+  ptrdiff_t len = strlen (str);
   Lisp_Object obarray;
 
   obarray = Vobarray;
@@ -3668,7 +3666,7 @@ Lisp_Object
 intern_c_string (const char *str)
 {
   Lisp_Object tem;
-  int len = strlen (str);
+  ptrdiff_t len = strlen (str);
   Lisp_Object obarray;
 
   obarray = Vobarray;
