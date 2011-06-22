@@ -3014,7 +3014,11 @@ new window are inherited from the window selected on WINDOW's
 frame.  The selected window is not changed by this function."
   (interactive "i")
   (setq window (normalize-any-window window))
-  (let* ((horizontal (not (memq side '(nil below above))))
+  (let* ((side (cond
+		((not side) 'below)
+		((memq side '(below above right left)) side)
+		(t 'right)))
+	 (horizontal (not (memq side '(nil below above))))
 	 (frame (window-frame window))
 	 (parent (window-parent window))
 	 (function (window-parameter window 'split-window))
