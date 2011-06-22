@@ -208,7 +208,7 @@ If the value is a function, debug messages are logged by calling
           (function :tag "Function that takes arguments like `message'")
           (const :tag "Don't log anything" nil)))
 
-(defcustom auth-sources '("~/.authinfo.gpg" "~/.authinfo" "~/.netrc")
+(defcustom auth-sources '("~/.authinfo" "~/.authinfo.gpg" "~/.netrc")
   "List of authentication sources.
 
 The default will get login and password information from
@@ -713,7 +713,8 @@ Returns the deleted entries."
         when (string-match (concat "^" auth-source-magic)
                            (symbol-name sym))
         ;; remove that key
-        do (password-cache-remove (symbol-name sym))))
+        do (password-cache-remove (symbol-name sym)))
+  (setq auth-source-netrc-cache nil))
 
 (defun auth-source-remember (spec found)
   "Remember FOUND search results for SPEC."
@@ -1144,6 +1145,9 @@ See `auth-source-search' for details on SPEC."
          ;; we know (because of an assertion in auth-source-search) that the
          ;; :create parameter is either t or a list (which includes nil)
          (create-extra (if (eq t create) nil create))
+	 (current-data (car (auth-source-search :max 1
+						:host host
+						:port port)))
          (required (append base-required create-extra))
          (file (oref backend source))
          (add "")
@@ -1178,7 +1182,9 @@ See `auth-source-search' for details on SPEC."
     (dolist (r required)
       (let* ((data (aget valist r))
              ;; take the first element if the data is a list
-             (data (auth-source-netrc-element-or-first data))
+             (data (or (auth-source-netrc-element-or-first data)
+		       (plist-get current-data
+				  (intern (format ":%s" r) obarray))))
              ;; this is the default to be offered
              (given-default (aget auth-source-creation-defaults r))
              ;; the default supplementals are simple:
@@ -1281,7 +1287,7 @@ See `auth-source-search' for details on SPEC."
           (let ((printer (lambda ()
                            ;; append the key (the symbol name of r)
                            ;; and the value in r
-                           (format "%s%s %S"
+                           (format "%s%s %s"
                                    ;; prepend a space
                                    (if (zerop (length add)) "" " ")
                                    ;; remap auth-source tokens to netrc
@@ -1291,8 +1297,9 @@ See `auth-source-search' for details on SPEC."
                                      (secret "password")
                                      (port   "port") ; redundant but clearer
                                      (t (symbol-name r)))
-                                   ;; the value will be printed in %S format
-                                   data))))
+				   (if (string-match "[\" ]" data)
+				       (format "%S" data)
+				     data)))))
             (setq add (concat add (funcall printer)))))))
 
     (plist-put

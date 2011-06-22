@@ -4802,7 +4802,7 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_
       return digest;
     }
   else
-    return make_unibyte_string (SDATA (digest), digest_size);
+    return make_unibyte_string (SSDATA (digest), digest_size);
 }
 
 DEFUN ("md5", Fmd5, Smd5, 1, 5, 0,

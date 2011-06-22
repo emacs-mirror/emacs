@@ -2829,6 +2829,7 @@ xbm_load (struct frame *f, struct image *img)
 	}
 
       success_p = xbm_load_image (f, img, contents, contents + size);
+      xfree (contents);
     }
   else
     {
