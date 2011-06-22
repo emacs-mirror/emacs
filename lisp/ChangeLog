@@ -1,3 +1,9 @@
+2011-06-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods): If the user has
+	stored a user name, then query for the password first, instead of
+	waiting for SMTP to give an error message and the trying again.
+
 2011-06-22  Lawrence Mitchell  <wence@gmx.li>
 
 	* net/browse-url.el (browse-url-xdg-open): Use 0, rather than nil

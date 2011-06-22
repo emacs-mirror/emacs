@@ -477,6 +477,10 @@ The list is in preference order.")
 
 (defun smtpmail-try-auth-methods (process supported-extensions host port
 					  &optional ask-for-password)
+  (setq port
+	(if port
+	    (format "%s" port)
+	  "smtp"))
   (let* ((mechs (cdr-safe (assoc 'auth supported-extensions)))
 	 (mech (car (smtpmail-intersection mechs smtpmail-auth-supported)))
 	 (auth-source-creation-prompts
@@ -486,9 +490,7 @@ The list is in preference order.")
 		     (auth-source-search
 		      :max 1
 		      :host host
-		      :port (if port
-				(format "%s" port)
-			      "smtp")
+		      :port port
 		      :require (and ask-for-password
 				    '(:user :secret))
 		      :create ask-for-password)))
@@ -497,6 +499,20 @@ The list is in preference order.")
 	 (save-function (and ask-for-password
 			     (plist-get auth-info :save-function)))
 	 ret)
+    (when (and user
+	       (not password))
+      ;; The user has stored the user name, but not the password, so
+      ;; ask for the password, even if we're not forcing that through
+      ;; `ask-for-password'.
+      (setq auth-info
+	    (car
+	     (auth-source-search
+	      :max 1
+	      :host host
+	      :port port
+	      :require '(:user :secret)
+	      :create t))
+	    password (plist-get auth-info :secret)))
     (when (functionp password)
       (setq password (funcall password)))
     (cond
