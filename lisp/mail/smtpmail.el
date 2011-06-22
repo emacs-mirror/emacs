@@ -483,12 +483,15 @@ The list is in preference order.")
           '((user  . "SMTP user at %h: ")
             (secret . "SMTP password for %u@%h: ")))
          (auth-info (car
-		     (auth-source-search :max 1
-					 :host host
-					 :port (if port
-						   (format "%s" port)
-						 "smtp")
-					 :create ask-for-password)))
+		     (auth-source-search
+		      :max 1
+		      :host host
+		      :port (if port
+				(format "%s" port)
+			      "smtp")
+		      :require (and ask-for-password
+				    '(:user :secret))
+		      :create ask-for-password)))
          (user (plist-get auth-info :user))
          (password (plist-get auth-info :secret))
 	 (save-function (and ask-for-password

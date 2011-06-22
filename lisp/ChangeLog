@@ -2,6 +2,8 @@
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Make sure we don't send
 	QUIT twice.
+	(smtpmail-try-auth-methods): Require user name and password from
+	auth-source.
 
 2011-06-22  Martin Rudalics  <rudalics@gmx.at>
 
