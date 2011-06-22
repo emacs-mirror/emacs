@@ -1,3 +1,13 @@
+2011-06-22  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-entry-update): Use mapc.
+	(bibtex-clean-entry): First delete the old key so that a
+	customized algorithm for generating the new key does not get
+	confused by the old key.
+	(bibtex-url): Obey regexp of first step.
+	(bibtex-search-entries): Do not use add-to-list with local
+	list-var.
+
 2011-06-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): If the user has

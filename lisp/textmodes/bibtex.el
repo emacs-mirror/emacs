@@ -3154,8 +3154,8 @@ When called interactively with a prefix arg, query for a value of ENTRY-TYPE."
               (insert (bibtex-field-left-delimiter)))
             (goto-char end)))
         (skip-chars-backward " \t\n")
-        (dolist (field required) (bibtex-make-field field))
-        (dolist (field optional) (bibtex-make-optional-field field))))))
+        (mapc 'bibtex-make-field required)
+        (mapc 'bibtex-make-optional-field optional)))))
 
 (defun bibtex-parse-entry (&optional content)
   "Parse entry at point, return an alist.
@@ -4247,21 +4247,24 @@ At end of the cleaning process, the functions in
           ;; (bibtex-format-string)
           (t (bibtex-format-entry)))
     ;; set key
-    (when (or new-key (not key))
-      (setq key (bibtex-generate-autokey))
-      ;; Sometimes `bibtex-generate-autokey' returns an empty string
-      (if (or bibtex-autokey-edit-before-use (string= "" key))
-          (setq key (if (eq entry-type 'string)
-                        (bibtex-read-string-key key)
-                      (bibtex-read-key "Key to use: " key))))
-      (save-excursion
-        (re-search-forward (if (eq entry-type 'string)
-                               bibtex-string-maybe-empty-head
-                             bibtex-entry-maybe-empty-head))
-        (if (match-beginning bibtex-key-in-head)
-            (delete-region (match-beginning bibtex-key-in-head)
-                           (match-end bibtex-key-in-head)))
-        (insert key)))
+    (if (or new-key (not key))
+        (save-excursion
+          ;; First delete the old key so that a customized algorithm
+          ;; for generating the new key does not get confused by the
+          ;; old key.
+          (re-search-forward (if (eq entry-type 'string)
+                                 bibtex-string-maybe-empty-head
+                               bibtex-entry-maybe-empty-head))
+          (if (match-beginning bibtex-key-in-head)
+              (delete-region (match-beginning bibtex-key-in-head)
+                             (match-end bibtex-key-in-head)))
+          (setq key (bibtex-generate-autokey))
+          ;; Sometimes `bibtex-generate-autokey' returns an empty string
+          (if (or bibtex-autokey-edit-before-use (string= "" key))
+              (setq key (if (eq entry-type 'string)
+                            (bibtex-read-string-key key)
+                          (bibtex-read-key "Key to use: " key))))
+          (insert key)))
 
     (unless called-by-reformat
       (let* ((end (save-excursion
@@ -4718,7 +4721,7 @@ Return the URL or nil if none can be generated."
           (fields-alist (save-excursion (bibtex-parse-entry t)))
           ;; Always ignore case,
           (case-fold-search t)
-          text url scheme obj fmt fl-match step)
+          text url scheme obj fmt fl-match)
       ;; The return value of `bibtex-parse-entry' (i.e., FIELDS-ALIST)
       ;; is always used to generate the URL.  However, if the BibTeX
       ;; entry contains more than one URL, we have multiple matches
@@ -4773,11 +4776,8 @@ Return the URL or nil if none can be generated."
         (setq url (if (null scheme) (match-string 0 text)
                     (if (stringp (car scheme))
                         (setq fmt (pop scheme)))
-                    (dotimes (i (length scheme))
-                      (setq step (nth i scheme))
-                      ;; The first step shall use TEXT as obtained earlier.
-                      (unless (= i 0)
-                        (setq text (cdr (assoc-string (car step) fields-alist t))))
+                    (dolist (step scheme)
+                      (setq text (cdr (assoc-string (car step) fields-alist t)))
                       (if (string-match (nth 1 step) text)
                           (push (cond ((functionp (nth 2 step))
                                        (funcall (nth 2 step) text))
@@ -4857,24 +4857,24 @@ where FILE is the BibTeX file of ENTRY."
                            (save-excursion
                              (goto-char beg)
                              (and (looking-at bibtex-entry-head)
-                                  (setq key (bibtex-key-in-head)))))
-                      (add-to-list 'entries
-                                   (list key file
-                                         (buffer-substring-no-properties
-                                          beg end))))))
+                                  (setq key (bibtex-key-in-head))))
+                           (not (assoc key entries)))
+                      (push (list key file
+                                  (buffer-substring-no-properties beg end))
+                            entries))))
             ;; The following is slow.  But it works reliably even in more
             ;; complicated cases with BibTeX string constants and crossrefed
             ;; entries.  If you prefer speed over reliability, perform an
             ;; unrestricted search.
             (bibtex-map-entries
              (lambda (key beg end)
-               (if (cond (funp (funcall regexp beg end))
-                         ((and (setq text (bibtex-text-in-field field t))
-                               (string-match regexp text))))
-                   (add-to-list 'entries
-                                (list key file
-                                      (buffer-substring-no-properties
-                                       beg end))))))))))
+               (if (and (cond (funp (funcall regexp beg end))
+                              ((and (setq text (bibtex-text-in-field field t))
+                                    (string-match regexp text))))
+                        (not (assoc key entries)))
+                   (push (list key file
+                               (buffer-substring-no-properties beg end))
+                         entries))))))))
     (if display
         (if entries
             (bibtex-display-entries entries)
