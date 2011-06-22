@@ -1,3 +1,8 @@
+2011-06-22  Jim Meyering  <meyering@redhat.com>
+
+	don't leak an XBM-image-sized buffer
+	* image.c (xbm_load): Free the image buffer after using it.
+
 2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to Sun C.
