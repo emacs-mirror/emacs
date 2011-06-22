@@ -1,5 +1,33 @@
 2011-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
+	GLYPH_DEBUG fixes
+	The following patches are for when GLYPH_DEBUG && !XASSERT.
+	* dispextern.h (trace_redisplay_p, dump_glyph_string):
+	* dispnew.c (flush_stdout):
+	* xdisp.c (dump_glyph_row, dump_glyph_matrix, dump_glyph):
+	Mark as externally visible.
+	* dispnew.c (check_window_matrix_pointers): Now static.
+	* dispnew.c (window_to_frame_vpos):
+	* xfns.c (unwind_create_frame):
+	* xterm.c (x_check_font): Remove unused local.
+	* scroll.c (CHECK_BOUNDS):
+	* xfaces.c (cache_fache): Rename local to avoid shadowing.
+	* xfns.c, w32fns.c (image_cache_refcount, dpyinfo_refcount): Now static.
+	* xdisp.c (check_window_end): Now a no-op if !XASSERTS.
+	(debug_first_unchanged_at_end_vpos, debug_last_unchanged_at_beg_vpos)
+	(debug_dvpos, debug_dy, debug_delta, debug_delta_bytes, debug_end_vpos):
+	Now static.
+	(debug_method_add): Use va_list and vsprintf rather than relying
+	on undefined behavior with wrong number of arguments.
+	(dump_glyph, dump_glyph_row, Fdump_glyph_matrix):
+	Don't assume ptrdiff_t and EMACS_INT are the same width as int.
+	In this code, it's OK to assume C99 behavior for ptrdiff_t formats
+	since we're not interested in debugging glyphs with old libraries.
+	* xfaces.c (cache_face): Move debugging code earlier; this pacifies
+	GCC 4.6.0's static checking.
+
+2011-06-22  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Integer overflow and signedness fixes (Bug#8873).
 	A few related buffer overrun fixes, too.
 

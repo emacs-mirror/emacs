@@ -9673,8 +9673,6 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 static void
 x_check_font (struct frame *f, struct font *font)
 {
-  Lisp_Object frame;
-
   xassert (font != NULL && ! NILP (font->props[FONT_TYPE_INDEX]));
   if (font->driver->check)
     xassert (font->driver->check (f, font) == 0);
