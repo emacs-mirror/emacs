@@ -1,5 +1,8 @@
 2011-06-22  Richard Stallman  <rms@gnu.org>
 
+	* mail/sendmail.el (mail-bury): If Rmail is in use, return nicely
+	to Rmail even if not started by a special Rmail command.
+
 	* mail/rmailmm.el (rmail-insert-mime-forwarded-message):
 	Copy the buffer currently showing just one message.
 
