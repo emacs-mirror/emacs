@@ -47,6 +47,7 @@ leim/changed.tit
 lib/.deps/
 lib/Makefile.in
 lib/deps/
+lib/alloca.h
 lib/arg-nonnull.h
 lib/c++defs.h
 lib/getopt.h

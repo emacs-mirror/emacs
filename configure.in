@@ -990,7 +990,7 @@ AC_SYS_LARGEFILE
 
 ## If user specified a crt-dir, use that unconditionally.
 if test "X$CRT_DIR" = "X"; then
-  
+
   case "$canonical" in
     x86_64-*-linux-gnu* | s390x-*-linux-gnu*)
     ## On x86-64 and s390x GNU/Linux distributions, the standard library
@@ -2565,15 +2565,6 @@ if test $emacs_cv_netdb_declares_h_errno = yes; then
   AC_DEFINE(HAVE_H_ERRNO, 1, [Define to 1 if netdb.h declares h_errno.])
 fi
 
-AC_FUNC_ALLOCA
-
-dnl src/alloca.c has been removed.  Could also check if $ALLOCA is set?
-dnl FIXME is there an autoconf test that does the right thing, without
-dnl needing to call A_M_E afterwards?
-if test x"$ac_cv_func_alloca_works" != xyes; then
-   AC_MSG_ERROR( [a system implementation of alloca is required] )
-fi
-
 # fmod, logb, and frexp are found in -lm on most systems.
 # On HPUX 9.01, -lm does not contain logb, so check for sqrt.
 AC_CHECK_LIB(m, sqrt)
@@ -3459,6 +3450,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 ])dnl
 
 AH_BOTTOM([
+/* On AIX 3 this must be included before any other include file.  */
+#include <alloca.h>
+#if ! HAVE_ALLOCA
+# error "alloca not available on this machine"
+#endif
+
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
@@ -3534,20 +3531,6 @@ AH_BOTTOM([
 
 #include <string.h>
 #include <stdlib.h>
-
-#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#elif defined __GNUC__
-# define alloca __builtin_alloca
-#elif defined _AIX
-# define alloca __alloca
-#else
-# include <stddef.h>
-# ifdef  __cplusplus
-extern "C"
-# endif
-void *alloca (size_t);
-#endif
 
 #ifndef HAVE_STRCHR
 #define strchr(a, b) index (a, b)

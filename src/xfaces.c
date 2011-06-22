@@ -4380,6 +4380,21 @@ cache_face (struct face_cache *c, struct face *face, unsigned int hash)
       break;
   face->id = i;
 
+#if GLYPH_DEBUG
+  /* Check that FACE got a unique id.  */
+  {
+    int j, n;
+    struct face *face1;
+
+    for (j = n = 0; j < FACE_CACHE_BUCKETS_SIZE; ++j)
+      for (face1 = c->buckets[j]; face1; face1 = face1->next)
+	if (face1->id == i)
+	  ++n;
+
+    xassert (n == 1);
+  }
+#endif /* GLYPH_DEBUG */
+
   /* Maybe enlarge C->faces_by_id.  */
   if (i == c->used)
     {
@@ -4395,21 +4410,6 @@ cache_face (struct face_cache *c, struct face *face, unsigned int hash)
 	}
       c->used++;
     }
-
-#if GLYPH_DEBUG
-  /* Check that FACE got a unique id.  */
-  {
-    int j, n;
-    struct face *face;
-
-    for (j = n = 0; j < FACE_CACHE_BUCKETS_SIZE; ++j)
-      for (face = c->buckets[j]; face; face = face->next)
-	if (face->id == i)
-	  ++n;
-
-    xassert (n == 1);
-  }
-#endif /* GLYPH_DEBUG */
 
   c->faces_by_id[i] = face;
 }

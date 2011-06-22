@@ -155,7 +155,6 @@ static int update_text_area (struct window *, int);
 static void make_current (struct glyph_matrix *, struct glyph_matrix *,
                           int);
 static void mirror_make_current (struct window *, int);
-void check_window_matrix_pointers (struct window *);
 #if GLYPH_DEBUG
 static void check_matrix_pointers (struct glyph_matrix *,
                                    struct glyph_matrix *);
@@ -1477,6 +1476,8 @@ realloc_glyph_pool (struct glyph_pool *pool, struct dim matrix_dim)
    XXX Maybe this should be changed to flush the current terminal instead of
    stdout.
 */
+
+void flush_stdout (void) EXTERNALLY_VISIBLE;
 
 void
 flush_stdout (void)
@@ -3052,7 +3053,7 @@ mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy
    matrices of leaf window agree with their frame matrices about
    glyph pointers.  */
 
-void
+static void
 check_window_matrix_pointers (struct window *w)
 {
   while (w)
@@ -3116,12 +3117,10 @@ check_matrix_pointers (struct glyph_matrix *window_matrix,
 static int
 window_to_frame_vpos (struct window *w, int vpos)
 {
-  struct frame *f = XFRAME (w->frame);
-
-  xassert (!FRAME_WINDOW_P (f));
+  xassert (!FRAME_WINDOW_P (XFRAME (w->frame)));
   xassert (vpos >= 0 && vpos <= w->desired_matrix->nrows);
   vpos += WINDOW_TOP_EDGE_LINE (w);
-  xassert (vpos >= 0 && vpos <= FRAME_LINES (f));
+  xassert (vpos >= 0 && vpos <= FRAME_LINES (XFRAME (w->frame)));
   return vpos;
 }
 

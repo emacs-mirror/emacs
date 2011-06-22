@@ -332,6 +332,7 @@ DOS_gnulib_comp.m4 = gl-comp.m4
 # $(gnulib_srcdir) (relative to $(srcdir) and should have build tools
 # as per $(gnulib_srcdir)/DEPENDENCIES.
 GNULIB_MODULES = \
+  alloca-opt \
   careadlinkat crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512 dtoastr \
   filemode getloadavg getopt-gnu ignore-value intprops lstat mktime readlink \
   socklen stdarg stdio strftime strtoumax symlink sys_stat

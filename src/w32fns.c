@@ -184,7 +184,7 @@ unsigned int msh_mousewheel = 0;
 static unsigned menu_free_timer = 0;
 
 #if GLYPH_DEBUG
-int image_cache_refcount, dpyinfo_refcount;
+static int image_cache_refcount, dpyinfo_refcount;
 #endif
 
 static HWND w32_visible_system_caret_hwnd;

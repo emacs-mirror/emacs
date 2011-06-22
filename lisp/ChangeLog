@@ -1,3 +1,24 @@
+2011-06-22  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-entry-update): Use mapc.
+	(bibtex-clean-entry): First delete the old key so that a
+	customized algorithm for generating the new key does not get
+	confused by the old key.
+	(bibtex-url): Obey regexp of first step.
+	(bibtex-search-entries): Do not use add-to-list with local
+	list-var.
+
+2011-06-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods): If the user has
+	stored a user name, then query for the password first, instead of
+	waiting for SMTP to give an error message and the trying again.
+
+2011-06-22  Lawrence Mitchell  <wence@gmx.li>
+
+	* net/browse-url.el (browse-url-xdg-open): Use 0, rather than nil
+	BUFFER in call-process.
+
 2011-06-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Make sure we don't send
