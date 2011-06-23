@@ -1,3 +1,8 @@
+2011-06-22  Leo Liu  <sdl.web@gmail.com>
+
+	* minibuf.c (Fcompleting_read_default, Vcompleting_read_function):
+	Move to minibuffer.el.
+
 2011-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fixes for GLYPH_DEBUG found by GCC 4.6.0 static checking.

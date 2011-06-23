@@ -72,7 +72,6 @@ Lisp_Object Qcompletion_ignore_case;
 static Lisp_Object Qminibuffer_completion_table;
 static Lisp_Object Qminibuffer_completion_predicate;
 static Lisp_Object Qminibuffer_completion_confirm;
-static Lisp_Object Qcompleting_read_default;
 static Lisp_Object Quser_variable_p;
 
 static Lisp_Object Qminibuffer_default;
@@ -1694,7 +1693,7 @@ See also `completing-read-function'.  */)
   (Lisp_Object prompt, Lisp_Object collection, Lisp_Object predicate, Lisp_Object require_match, Lisp_Object initial_input, Lisp_Object hist, Lisp_Object def, Lisp_Object inherit_input_method)
 {
   Lisp_Object args[9];
-  args[0] = Vcompleting_read_function;
+  args[0] = Fsymbol_value (intern ("completing-read-function"));
   args[1] = prompt;
   args[2] = collection;
   args[3] = predicate;
@@ -1704,76 +1703,6 @@ See also `completing-read-function'.  */)
   args[7] = def;
   args[8] = inherit_input_method;
   return Ffuncall (9, args);
-}
-
-DEFUN ("completing-read-default", Fcompleting_read_default, Scompleting_read_default, 2, 8, 0,
-       doc: /* Default method for reading from the minibuffer with completion.
-See `completing-read' for the meaning of the arguments.  */)
-  (Lisp_Object prompt, Lisp_Object collection, Lisp_Object predicate, Lisp_Object require_match, Lisp_Object initial_input, Lisp_Object hist, Lisp_Object def, Lisp_Object inherit_input_method)
-{
-  Lisp_Object val, histvar, histpos, position;
-  Lisp_Object init;
-  int pos = 0;
-  int count = SPECPDL_INDEX ();
-  struct gcpro gcpro1;
-
-  init = initial_input;
-  GCPRO1 (def);
-
-  specbind (Qminibuffer_completion_table, collection);
-  specbind (Qminibuffer_completion_predicate, predicate);
-  specbind (Qminibuffer_completion_confirm,
-	    EQ (require_match, Qt) ? Qnil : require_match);
-
-  position = Qnil;
-  if (!NILP (init))
-    {
-      if (CONSP (init))
-	{
-	  position = Fcdr (init);
-	  init = Fcar (init);
-	}
-      CHECK_STRING (init);
-      if (!NILP (position))
-	{
-	  CHECK_NUMBER (position);
-	  /* Convert to distance from end of input.  */
-	  pos = XINT (position) - SCHARS (init);
-	}
-    }
-
-  if (SYMBOLP (hist))
-    {
-      histvar = hist;
-      histpos = Qnil;
-    }
-  else
-    {
-      histvar = Fcar_safe (hist);
-      histpos = Fcdr_safe (hist);
-    }
-  if (NILP (histvar))
-    histvar = Qminibuffer_history;
-  if (NILP (histpos))
-    XSETFASTINT (histpos, 0);
-
-  val = read_minibuf (NILP (require_match)
-		      ? (NILP (Vminibuffer_completing_file_name)
-			 || EQ (Vminibuffer_completing_file_name, Qlambda)
-			 ? Vminibuffer_local_completion_map
-			 : Vminibuffer_local_filename_completion_map)
-		      : (NILP (Vminibuffer_completing_file_name)
-			 || EQ (Vminibuffer_completing_file_name, Qlambda)
-			 ? Vminibuffer_local_must_match_map
-			 : Vminibuffer_local_filename_must_match_map),
-		      init, prompt, make_number (pos), 0,
-		      histvar, histpos, def, 0,
-		      !NILP (inherit_input_method));
-
-  if (STRINGP (val) && SCHARS (val) == 0 && ! NILP (def))
-    val = CONSP (def) ? XCAR (def) : def;
-
-  RETURN_UNGCPRO (unbind_to (count, val));
 }
 
 Lisp_Object Fassoc_string (register Lisp_Object key, Lisp_Object list, Lisp_Object case_fold);
@@ -2013,7 +1942,6 @@ syms_of_minibuf (void)
   minibuf_save_list = Qnil;
   staticpro (&minibuf_save_list);
 
-  DEFSYM (Qcompleting_read_default, "completing-read-default");
   DEFSYM (Qcompletion_ignore_case, "completion-ignore-case");
   DEFSYM (Qread_file_name_internal, "read-file-name-internal");
   DEFSYM (Qminibuffer_default, "minibuffer-default");
@@ -2132,12 +2060,6 @@ If the value is `confirm-after-completion', the user may exit with an
 	       doc: /* Non-nil means completing file names.  */);
   Vminibuffer_completing_file_name = Qnil;
 
-  DEFVAR_LISP ("completing-read-function",
-	       Vcompleting_read_function,
-	       doc: /* The function called by `completing-read' to do the work.
-It should accept the same arguments as `completing-read'.  */);
-  Vcompleting_read_function = Qcompleting_read_default;
-
   DEFVAR_LISP ("minibuffer-help-form", Vminibuffer_help_form,
 	       doc: /* Value that `help-form' takes on inside the minibuffer.  */);
   Vminibuffer_help_form = Qnil;
@@ -2214,5 +2136,4 @@ properties.  */);
   defsubr (&Stest_completion);
   defsubr (&Sassoc_string);
   defsubr (&Scompleting_read);
-  defsubr (&Scompleting_read_default);
 }
