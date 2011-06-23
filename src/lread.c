@@ -2277,10 +2277,12 @@ digit_to_number (int character, int base)
    range.  */
 
 static Lisp_Object
-read_integer (Lisp_Object readcharfun, int radix)
+read_integer (Lisp_Object readcharfun, EMACS_INT radix)
 {
-  /* Room for sign, leading 0, other digits, trailing null byte.  */
-  char buf[1 + 1 + sizeof (uintmax_t) * CHAR_BIT + 1];
+  /* Room for sign, leading 0, other digits, trailing null byte.
+     Also, room for invalid syntax diagnostic.  */
+  char buf[max (1 + 1 + sizeof (uintmax_t) * CHAR_BIT + 1,
+		sizeof "integer, radix " + INT_STRLEN_BOUND (EMACS_INT))];
 
   int valid = -1; /* 1 if valid, 0 if not, -1 if incomplete.  */
 
@@ -2332,7 +2334,7 @@ read_integer (Lisp_Object readcharfun, int radix)
 
   if (! valid)
     {
-      sprintf (buf, "integer, radix %d", radix);
+      sprintf (buf, "integer, radix %"pI"d", radix);
       invalid_syntax (buf);
     }
 
@@ -2663,49 +2665,60 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
       /* Reader forms that can reuse previously read objects.  */
       if (c >= '0' && c <= '9')
 	{
-	  int n = 0;
+	  EMACS_INT n = 0;
 	  Lisp_Object tem;
 
 	  /* Read a non-negative integer.  */
 	  while (c >= '0' && c <= '9')
 	    {
-	      n *= 10;
-	      n += c - '0';
+	      if (MOST_POSITIVE_FIXNUM / 10 < n
+		  || MOST_POSITIVE_FIXNUM < n * 10 + c - '0')
+		n = MOST_POSITIVE_FIXNUM + 1;
+	      else
+		n = n * 10 + c - '0';
 	      c = READCHAR;
 	    }
-	  /* #n=object returns object, but associates it with n for #n#.  */
-	  if (c == '=' && !NILP (Vread_circle))
+
+	  if (n <= MOST_POSITIVE_FIXNUM)
 	    {
-	      /* Make a placeholder for #n# to use temporarily */
-	      Lisp_Object placeholder;
-	      Lisp_Object cell;
+	      if (c == 'r' || c == 'R')
+		return read_integer (readcharfun, n);
 
-	      placeholder = Fcons (Qnil, Qnil);
-	      cell = Fcons (make_number (n), placeholder);
-	      read_objects = Fcons (cell, read_objects);
+	      if (! NILP (Vread_circle))
+		{
+		  /* #n=object returns object, but associates it with
+                      n for #n#.  */
+		  if (c == '=')
+		    {
+		      /* Make a placeholder for #n# to use temporarily */
+		      Lisp_Object placeholder;
+		      Lisp_Object cell;
 
-	      /* Read the object itself. */
-	      tem = read0 (readcharfun);
+		      placeholder = Fcons (Qnil, Qnil);
+		      cell = Fcons (make_number (n), placeholder);
+		      read_objects = Fcons (cell, read_objects);
 
-	      /* Now put it everywhere the placeholder was... */
-	      substitute_object_in_subtree (tem, placeholder);
+		      /* Read the object itself. */
+		      tem = read0 (readcharfun);
 
-	      /* ...and #n# will use the real value from now on.  */
-	      Fsetcdr (cell, tem);
+		      /* Now put it everywhere the placeholder was... */
+		      substitute_object_in_subtree (tem, placeholder);
 
-	      return tem;
+		      /* ...and #n# will use the real value from now on.  */
+		      Fsetcdr (cell, tem);
+
+		      return tem;
+		    }
+
+		  /* #n# returns a previously read object.  */
+		  if (c == '#')
+		    {
+		      tem = Fassq (make_number (n), read_objects);
+		      if (CONSP (tem))
+			return XCDR (tem);
+		    }
+		}
 	    }
-	  /* #n# returns a previously read object.  */
-	  if (c == '#' && !NILP (Vread_circle))
-	    {
-	      tem = Fassq (make_number (n), read_objects);
-	      if (CONSP (tem))
-		return XCDR (tem);
-	      /* Fall through to error message.  */
-	    }
-	  else if (c == 'r' ||  c == 'R')
-	    return read_integer (readcharfun, n);
-
 	  /* Fall through to error message.  */
 	}
       else if (c == 'x' || c == 'X')
