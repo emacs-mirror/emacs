@@ -1,3 +1,7 @@
+2011-06-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (cache_image): Check for size arithmetic overflow.
+
 2011-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lread.c: Integer overflow issues.
