@@ -1,4 +1,4 @@
-/* Low-level bidirectional buffer-scanning functions for GNU Emacs.
+/* Low-level bidirectional buffer/string-scanning functions for GNU Emacs.
    Copyright (C) 2000-2001, 2004-2005, 2009-2011
    Free Software Foundation, Inc.
 
@@ -20,7 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Written by Eli Zaretskii <eliz@gnu.org>.
 
    A sequential implementation of the Unicode Bidirectional algorithm,
-   as per UAX#9, a part of the Unicode Standard.
+   (UBA) as per UAX#9, a part of the Unicode Standard.
 
    Unlike the reference and most other implementations, this one is
    designed to be called once for every character in the buffer or
@@ -80,43 +80,10 @@ int bidi_ignore_explicit_marks_for_paragraph_level = 1;
 static Lisp_Object paragraph_start_re, paragraph_separate_re;
 static Lisp_Object Qparagraph_start, Qparagraph_separate;
 
-static void
-bidi_initialize (void)
-{
-
-#include "biditype.h"
-#include "bidimirror.h"
-
-  int i;
-
-  bidi_type_table = Fmake_char_table (Qnil, make_number (STRONG_L));
-  staticpro (&bidi_type_table);
-
-  for (i = 0; i < sizeof bidi_type / sizeof bidi_type[0]; i++)
-    char_table_set_range (bidi_type_table, bidi_type[i].from, bidi_type[i].to,
-			  make_number (bidi_type[i].type));
-
-  bidi_mirror_table = Fmake_char_table (Qnil, Qnil);
-  staticpro (&bidi_mirror_table);
-
-  for (i = 0; i < sizeof bidi_mirror / sizeof bidi_mirror[0]; i++)
-    char_table_set (bidi_mirror_table, bidi_mirror[i].from,
-		    make_number (bidi_mirror[i].to));
-
-  Qparagraph_start = intern ("paragraph-start");
-  staticpro (&Qparagraph_start);
-  paragraph_start_re = Fsymbol_value (Qparagraph_start);
-  if (!STRINGP (paragraph_start_re))
-    paragraph_start_re = build_string ("\f\\|[ \t]*$");
-  staticpro (&paragraph_start_re);
-  Qparagraph_separate = intern ("paragraph-separate");
-  staticpro (&Qparagraph_separate);
-  paragraph_separate_re = Fsymbol_value (Qparagraph_separate);
-  if (!STRINGP (paragraph_separate_re))
-    paragraph_separate_re = build_string ("[ \t\f]*$");
-  staticpro (&paragraph_separate_re);
-  bidi_initialized = 1;
-}
+
+/***********************************************************************
+			Utilities
+ ***********************************************************************/
 
 /* Return the bidi type of a character CH, subject to the current
    directional OVERRIDE.  */
@@ -233,6 +200,78 @@ bidi_mirror_char (int c)
   return c;
 }
 
+/* Determine the start-of-run (sor) directional type given the two
+   embedding levels on either side of the run boundary.  Also, update
+   the saved info about previously seen characters, since that info is
+   generally valid for a single level run.  */
+static INLINE void
+bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
+{
+  int higher_level = level_before > level_after ? level_before : level_after;
+
+  /* The prev_was_pdf gork is required for when we have several PDFs
+     in a row.  In that case, we want to compute the sor type for the
+     next level run only once: when we see the first PDF.  That's
+     because the sor type depends only on the higher of the two levels
+     that we find on the two sides of the level boundary (see UAX#9,
+     clause X10), and so we don't need to know the final embedding
+     level to which we descend after processing all the PDFs.  */
+  if (!bidi_it->prev_was_pdf || level_before < level_after)
+    /* FIXME: should the default sor direction be user selectable?  */
+    bidi_it->sor = (higher_level & 1) != 0 ? R2L : L2R;
+  if (level_before > level_after)
+    bidi_it->prev_was_pdf = 1;
+
+  bidi_it->prev.type = UNKNOWN_BT;
+  bidi_it->last_strong.type = bidi_it->last_strong.type_after_w1 =
+    bidi_it->last_strong.orig_type = UNKNOWN_BT;
+  bidi_it->prev_for_neutral.type = bidi_it->sor == R2L ? STRONG_R : STRONG_L;
+  bidi_it->prev_for_neutral.charpos = bidi_it->charpos;
+  bidi_it->prev_for_neutral.bytepos = bidi_it->bytepos;
+  bidi_it->next_for_neutral.type = bidi_it->next_for_neutral.type_after_w1 =
+    bidi_it->next_for_neutral.orig_type = UNKNOWN_BT;
+  bidi_it->ignore_bn_limit = -1; /* meaning it's unknown */
+}
+
+/* Push the current embedding level and override status; reset the
+   current level to LEVEL and the current override status to OVERRIDE.  */
+static INLINE void
+bidi_push_embedding_level (struct bidi_it *bidi_it,
+			   int level, bidi_dir_t override)
+{
+  bidi_it->stack_idx++;
+  if (bidi_it->stack_idx >= BIDI_MAXLEVEL)
+    abort ();
+  bidi_it->level_stack[bidi_it->stack_idx].level = level;
+  bidi_it->level_stack[bidi_it->stack_idx].override = override;
+}
+
+/* Pop the embedding level and directional override status from the
+   stack, and return the new level.  */
+static INLINE int
+bidi_pop_embedding_level (struct bidi_it *bidi_it)
+{
+  /* UAX#9 says to ignore invalid PDFs.  */
+  if (bidi_it->stack_idx > 0)
+    bidi_it->stack_idx--;
+  return bidi_it->level_stack[bidi_it->stack_idx].level;
+}
+
+/* Record in SAVED_INFO the information about the current character.  */
+static INLINE void
+bidi_remember_char (struct bidi_saved_info *saved_info,
+		    struct bidi_it *bidi_it)
+{
+  saved_info->charpos = bidi_it->charpos;
+  saved_info->bytepos = bidi_it->bytepos;
+  saved_info->type = bidi_it->type;
+  bidi_check_type (bidi_it->type);
+  saved_info->type_after_w1 = bidi_it->type_after_w1;
+  bidi_check_type (bidi_it->type_after_w1);
+  saved_info->orig_type = bidi_it->orig_type;
+  bidi_check_type (bidi_it->orig_type);
+}
+
 /* Copy the bidi iterator from FROM to TO.  To save cycles, this only
    copies the part of the level stack that is actually in use.  */
 static INLINE void
@@ -249,7 +288,10 @@ bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
     to->level_stack[i] = from->level_stack[i];
 }
 
-/* Caching the bidi iterator states.  */
+
+/***********************************************************************
+			Caching the bidi iterator states
+ ***********************************************************************/
 
 #define BIDI_CACHE_CHUNK 200
 static struct bidi_it *bidi_cache;
@@ -496,64 +538,98 @@ bidi_peek_at_next_level (struct bidi_it *bidi_it)
   return bidi_cache[bidi_cache_last_idx + bidi_it->scan_dir].resolved_level;
 }
 
-/* Check if buffer position CHARPOS/BYTEPOS is the end of a paragraph.
-   Value is the non-negative length of the paragraph separator
-   following the buffer position, -1 if position is at the beginning
-   of a new paragraph, or -2 if position is neither at beginning nor
-   at end of a paragraph.  */
-static EMACS_INT
-bidi_at_paragraph_end (EMACS_INT charpos, EMACS_INT bytepos)
+
+/***********************************************************************
+			Initialization
+ ***********************************************************************/
+static void
+bidi_initialize (void)
 {
-  Lisp_Object sep_re;
-  Lisp_Object start_re;
-  EMACS_INT val;
 
-  sep_re = paragraph_separate_re;
-  start_re = paragraph_start_re;
+#include "biditype.h"
+#include "bidimirror.h"
 
-  val = fast_looking_at (sep_re, charpos, bytepos, ZV, ZV_BYTE, Qnil);
-  if (val < 0)
-    {
-      if (fast_looking_at (start_re, charpos, bytepos, ZV, ZV_BYTE, Qnil) >= 0)
-	val = -1;
-      else
-	val = -2;
-    }
+  int i;
 
-  return val;
+  bidi_type_table = Fmake_char_table (Qnil, make_number (STRONG_L));
+  staticpro (&bidi_type_table);
+
+  for (i = 0; i < sizeof bidi_type / sizeof bidi_type[0]; i++)
+    char_table_set_range (bidi_type_table, bidi_type[i].from, bidi_type[i].to,
+			  make_number (bidi_type[i].type));
+
+  bidi_mirror_table = Fmake_char_table (Qnil, Qnil);
+  staticpro (&bidi_mirror_table);
+
+  for (i = 0; i < sizeof bidi_mirror / sizeof bidi_mirror[0]; i++)
+    char_table_set (bidi_mirror_table, bidi_mirror[i].from,
+		    make_number (bidi_mirror[i].to));
+
+  Qparagraph_start = intern ("paragraph-start");
+  staticpro (&Qparagraph_start);
+  paragraph_start_re = Fsymbol_value (Qparagraph_start);
+  if (!STRINGP (paragraph_start_re))
+    paragraph_start_re = build_string ("\f\\|[ \t]*$");
+  staticpro (&paragraph_start_re);
+  Qparagraph_separate = intern ("paragraph-separate");
+  staticpro (&Qparagraph_separate);
+  paragraph_separate_re = Fsymbol_value (Qparagraph_separate);
+  if (!STRINGP (paragraph_separate_re))
+    paragraph_separate_re = build_string ("[ \t\f]*$");
+  staticpro (&paragraph_separate_re);
+  bidi_initialized = 1;
 }
 
-/* Determine the start-of-run (sor) directional type given the two
-   embedding levels on either side of the run boundary.  Also, update
-   the saved info about previously seen characters, since that info is
-   generally valid for a single level run.  */
+/* Do whatever UAX#9 clause X8 says should be done at paragraph's
+   end.  */
 static INLINE void
-bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
+bidi_set_paragraph_end (struct bidi_it *bidi_it)
 {
-  int higher_level = level_before > level_after ? level_before : level_after;
+  bidi_it->invalid_levels = 0;
+  bidi_it->invalid_rl_levels = -1;
+  bidi_it->stack_idx = 0;
+  bidi_it->resolved_level = bidi_it->level_stack[0].level;
+}
 
-  /* The prev_was_pdf gork is required for when we have several PDFs
-     in a row.  In that case, we want to compute the sor type for the
-     next level run only once: when we see the first PDF.  That's
-     because the sor type depends only on the higher of the two levels
-     that we find on the two sides of the level boundary (see UAX#9,
-     clause X10), and so we don't need to know the final embedding
-     level to which we descend after processing all the PDFs.  */
-  if (!bidi_it->prev_was_pdf || level_before < level_after)
-    /* FIXME: should the default sor direction be user selectable?  */
-    bidi_it->sor = (higher_level & 1) != 0 ? R2L : L2R;
-  if (level_before > level_after)
-    bidi_it->prev_was_pdf = 1;
-
-  bidi_it->prev.type = UNKNOWN_BT;
+/* Initialize the bidi iterator from buffer/string position CHARPOS.  */
+void
+bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, int frame_window_p,
+	      struct bidi_it *bidi_it)
+{
+  if (! bidi_initialized)
+    bidi_initialize ();
+  if (charpos >= 0)
+    bidi_it->charpos = charpos;
+  if (bytepos >= 0)
+    bidi_it->bytepos = bytepos;
+  bidi_it->frame_window_p = frame_window_p;
+  bidi_it->nchars = -1;	/* to be computed in bidi_resolve_explicit_1 */
+  bidi_it->first_elt = 1;
+  bidi_set_paragraph_end (bidi_it);
+  bidi_it->new_paragraph = 1;
+  bidi_it->separator_limit = -1;
+  bidi_it->type = NEUTRAL_B;
+  bidi_it->type_after_w1 = NEUTRAL_B;
+  bidi_it->orig_type = NEUTRAL_B;
+  bidi_it->prev_was_pdf = 0;
+  bidi_it->prev.type = bidi_it->prev.type_after_w1 =
+    bidi_it->prev.orig_type = UNKNOWN_BT;
   bidi_it->last_strong.type = bidi_it->last_strong.type_after_w1 =
     bidi_it->last_strong.orig_type = UNKNOWN_BT;
-  bidi_it->prev_for_neutral.type = bidi_it->sor == R2L ? STRONG_R : STRONG_L;
-  bidi_it->prev_for_neutral.charpos = bidi_it->charpos;
-  bidi_it->prev_for_neutral.bytepos = bidi_it->bytepos;
-  bidi_it->next_for_neutral.type = bidi_it->next_for_neutral.type_after_w1 =
+  bidi_it->next_for_neutral.charpos = -1;
+  bidi_it->next_for_neutral.type =
+    bidi_it->next_for_neutral.type_after_w1 =
     bidi_it->next_for_neutral.orig_type = UNKNOWN_BT;
-  bidi_it->ignore_bn_limit = -1; /* meaning it's unknown */
+  bidi_it->prev_for_neutral.charpos = -1;
+  bidi_it->prev_for_neutral.type =
+    bidi_it->prev_for_neutral.type_after_w1 =
+    bidi_it->prev_for_neutral.orig_type = UNKNOWN_BT;
+  bidi_it->sor = L2R;	 /* FIXME: should it be user-selectable? */
+  bidi_it->disp_pos = -1;	/* invalid/unknown */
+  /* We can only shrink the cache if we are at the bottom level of its
+     "stack".  */
+  if (bidi_cache_start == 0)
+    bidi_cache_shrink ();
 }
 
 /* Perform initializations for reordering a new line of bidi text.  */
@@ -573,6 +649,11 @@ bidi_line_init (struct bidi_it *bidi_it)
 
   bidi_cache_reset ();
 }
+
+
+/***********************************************************************
+			Fetching characters
+ ***********************************************************************/
 
 /* Count bytes in multibyte string S between BEG/BEGBYTE and END.  BEG
    and END are zero-based character positions in S, BEGBYTE is byte
@@ -699,6 +780,38 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
     }
 
   return ch;
+}
+
+
+/***********************************************************************
+			Determining paragraph direction
+ ***********************************************************************/
+
+/* Check if buffer position CHARPOS/BYTEPOS is the end of a paragraph.
+   Value is the non-negative length of the paragraph separator
+   following the buffer position, -1 if position is at the beginning
+   of a new paragraph, or -2 if position is neither at beginning nor
+   at end of a paragraph.  */
+static EMACS_INT
+bidi_at_paragraph_end (EMACS_INT charpos, EMACS_INT bytepos)
+{
+  Lisp_Object sep_re;
+  Lisp_Object start_re;
+  EMACS_INT val;
+
+  sep_re = paragraph_separate_re;
+  start_re = paragraph_start_re;
+
+  val = fast_looking_at (sep_re, charpos, bytepos, ZV, ZV_BYTE, Qnil);
+  if (val < 0)
+    {
+      if (fast_looking_at (start_re, charpos, bytepos, ZV, ZV_BYTE, Qnil) >= 0)
+	val = -1;
+      else
+	val = -2;
+    }
+
+  return val;
 }
 
 /* Find the beginning of this paragraph by looking back in the buffer.
@@ -896,115 +1009,12 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
   bidi_line_init (bidi_it);
 }
 
-/* Do whatever UAX#9 clause X8 says should be done at paragraph's
-   end.  */
-static INLINE void
-bidi_set_paragraph_end (struct bidi_it *bidi_it)
-{
-  bidi_it->invalid_levels = 0;
-  bidi_it->invalid_rl_levels = -1;
-  bidi_it->stack_idx = 0;
-  bidi_it->resolved_level = bidi_it->level_stack[0].level;
-}
-
-/* Initialize the bidi iterator from buffer/string position CHARPOS.  */
-void
-bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, int frame_window_p,
-	      struct bidi_it *bidi_it)
-{
-  if (! bidi_initialized)
-    bidi_initialize ();
-  if (charpos >= 0)
-    bidi_it->charpos = charpos;
-  if (bytepos >= 0)
-    bidi_it->bytepos = bytepos;
-  bidi_it->frame_window_p = frame_window_p;
-  bidi_it->nchars = -1;	/* to be computed in bidi_resolve_explicit_1 */
-  bidi_it->first_elt = 1;
-  bidi_set_paragraph_end (bidi_it);
-  bidi_it->new_paragraph = 1;
-  bidi_it->separator_limit = -1;
-  bidi_it->type = NEUTRAL_B;
-  bidi_it->type_after_w1 = NEUTRAL_B;
-  bidi_it->orig_type = NEUTRAL_B;
-  bidi_it->prev_was_pdf = 0;
-  bidi_it->prev.type = bidi_it->prev.type_after_w1 =
-    bidi_it->prev.orig_type = UNKNOWN_BT;
-  bidi_it->last_strong.type = bidi_it->last_strong.type_after_w1 =
-    bidi_it->last_strong.orig_type = UNKNOWN_BT;
-  bidi_it->next_for_neutral.charpos = -1;
-  bidi_it->next_for_neutral.type =
-    bidi_it->next_for_neutral.type_after_w1 =
-    bidi_it->next_for_neutral.orig_type = UNKNOWN_BT;
-  bidi_it->prev_for_neutral.charpos = -1;
-  bidi_it->prev_for_neutral.type =
-    bidi_it->prev_for_neutral.type_after_w1 =
-    bidi_it->prev_for_neutral.orig_type = UNKNOWN_BT;
-  bidi_it->sor = L2R;	 /* FIXME: should it be user-selectable? */
-  bidi_it->disp_pos = -1;	/* invalid/unknown */
-  /* We can only shrink the cache if we are at the bottom level of its
-     "stack".  */
-  if (bidi_cache_start == 0)
-    bidi_cache_shrink ();
-}
-
-/* Push the current embedding level and override status; reset the
-   current level to LEVEL and the current override status to OVERRIDE.  */
-static INLINE void
-bidi_push_embedding_level (struct bidi_it *bidi_it,
-			   int level, bidi_dir_t override)
-{
-  bidi_it->stack_idx++;
-  if (bidi_it->stack_idx >= BIDI_MAXLEVEL)
-    abort ();
-  bidi_it->level_stack[bidi_it->stack_idx].level = level;
-  bidi_it->level_stack[bidi_it->stack_idx].override = override;
-}
-
-/* Pop the embedding level and directional override status from the
-   stack, and return the new level.  */
-static INLINE int
-bidi_pop_embedding_level (struct bidi_it *bidi_it)
-{
-  /* UAX#9 says to ignore invalid PDFs.  */
-  if (bidi_it->stack_idx > 0)
-    bidi_it->stack_idx--;
-  return bidi_it->level_stack[bidi_it->stack_idx].level;
-}
-
-/* Record in SAVED_INFO the information about the current character.  */
-static INLINE void
-bidi_remember_char (struct bidi_saved_info *saved_info,
-		    struct bidi_it *bidi_it)
-{
-  saved_info->charpos = bidi_it->charpos;
-  saved_info->bytepos = bidi_it->bytepos;
-  saved_info->type = bidi_it->type;
-  bidi_check_type (bidi_it->type);
-  saved_info->type_after_w1 = bidi_it->type_after_w1;
-  bidi_check_type (bidi_it->type_after_w1);
-  saved_info->orig_type = bidi_it->orig_type;
-  bidi_check_type (bidi_it->orig_type);
-}
-
-/* Resolve the type of a neutral character according to the type of
-   surrounding strong text and the current embedding level.  */
-static INLINE bidi_type_t
-bidi_resolve_neutral_1 (bidi_type_t prev_type, bidi_type_t next_type, int lev)
-{
-  /* N1: European and Arabic numbers are treated as though they were R.  */
-  if (next_type == WEAK_EN || next_type == WEAK_AN)
-    next_type = STRONG_R;
-  if (prev_type == WEAK_EN || prev_type == WEAK_AN)
-    prev_type = STRONG_R;
-
-  if (next_type == prev_type)	/* N1 */
-    return next_type;
-  else if ((lev & 1) == 0)	/* N2 */
-    return STRONG_L;
-  else
-    return STRONG_R;
-}
+
+/***********************************************************************
+		 Resolving explicit and implicit levels.
+		 The rest of the file constitutes the core
+		 of the UBA implementation.
+ ***********************************************************************/
 
 static INLINE int
 bidi_explicit_dir_char (int ch)
@@ -1501,6 +1511,25 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
   bidi_it->type = type;
   bidi_check_type (bidi_it->type);
   return type;
+}
+
+/* Resolve the type of a neutral character according to the type of
+   surrounding strong text and the current embedding level.  */
+static INLINE bidi_type_t
+bidi_resolve_neutral_1 (bidi_type_t prev_type, bidi_type_t next_type, int lev)
+{
+  /* N1: European and Arabic numbers are treated as though they were R.  */
+  if (next_type == WEAK_EN || next_type == WEAK_AN)
+    next_type = STRONG_R;
+  if (prev_type == WEAK_EN || prev_type == WEAK_AN)
+    prev_type = STRONG_R;
+
+  if (next_type == prev_type)	/* N1 */
+    return next_type;
+  else if ((lev & 1) == 0)	/* N2 */
+    return STRONG_L;
+  else
+    return STRONG_R;
 }
 
 static bidi_type_t
