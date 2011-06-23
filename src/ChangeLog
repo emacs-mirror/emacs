@@ -13,6 +13,7 @@
 	(substitute_object_recurse, read_vector, read_list, map_obarray):
 	Use ptrdiff_t, not int, for sizes.
 	(read1): Use EMACS_INT, not int, for sizes.
+	Check for size overflow.
 
 	* image.c (cache_image): Check for size arithmetic overflow.
 

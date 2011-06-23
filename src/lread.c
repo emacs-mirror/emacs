@@ -2869,6 +2869,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	    if (end - p < MAX_MULTIBYTE_LENGTH)
 	      {
 		ptrdiff_t offset = p - read_buffer;
+		if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
+		  memory_full (SIZE_MAX);
 		read_buffer = (char *) xrealloc (read_buffer,
 						 read_buffer_size *= 2);
 		p = read_buffer + offset;
@@ -3012,6 +3014,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      if (end - p < MAX_MULTIBYTE_LENGTH)
 		{
 		  ptrdiff_t offset = p - read_buffer;
+		  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
+		    memory_full (SIZE_MAX);
 		  read_buffer = (char *) xrealloc (read_buffer,
 						   read_buffer_size *= 2);
 		  p = read_buffer + offset;
@@ -3039,6 +3043,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  if (p == end)
 	    {
 	      ptrdiff_t offset = p - read_buffer;
+	      if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
+		memory_full (SIZE_MAX);
 	      read_buffer = (char *) xrealloc (read_buffer,
 					       read_buffer_size *= 2);
 	      p = read_buffer + offset;
