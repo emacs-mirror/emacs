@@ -206,6 +206,9 @@ gl_SYS_STAT_MODULE_INDICATOR([stat])
       if $condition; then
         func_gl_gnulib_m4code_dosname
       fi
+      if $condition; then
+        func_gl_gnulib_m4code_verify
+      fi
     fi
   }
   func_gl_gnulib_m4code_strtoull ()
