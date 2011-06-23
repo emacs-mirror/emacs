@@ -1231,7 +1231,7 @@ have special meanings:
 Any other value of ALL-FRAMES means consider all windows on the
 selected frame and no others."
    (let (best-window best-time second-best-window second-best-time time)
-    (dolist (window (window-list-1 nil nil all-frames))
+    (dolist (window (window-list-1 nil 'nomini all-frames))
       (when (or dedicated (not (window-dedicated-p window)))
 	(setq time (window-use-time window))
 	(if (or (eq window (selected-window))
@@ -1264,7 +1264,7 @@ have special meanings:
 Any other value of ALL-FRAMES means consider all windows on the
 selected frame and no others."
    (let (best-window best-time time)
-    (dolist (window (window-list-1 nil nil all-frames))
+    (dolist (window (window-list-1 nil 'nomini all-frames))
       (setq time (window-use-time window))
       (when (or (not best-time) (> time best-time))
 	(setq best-time time)
@@ -1294,7 +1294,7 @@ Any other value of ALL-FRAMES means consider all windows on the
 selected frame and no others."
   (let ((best-size 0)
 	best-window size)
-    (dolist (window (window-list-1 nil nil all-frames))
+    (dolist (window (window-list-1 nil 'nomini all-frames))
       (when (or dedicated (not (window-dedicated-p window)))
 	(setq size (* (window-total-size window)
 		      (window-total-size window t)))
@@ -5012,65 +5012,69 @@ specifiers, see the doc-string of `display-buffer-alist' for a
 description."
   (let* ((frame (display-buffer-frame))
 	 (selected-window (frame-selected-window frame))
-	 window side atomic)
+	 cand window side atomic)
     (unless (and (cdr (assq 'unsplittable (frame-parameters frame)))
 		 ;; Don't split an unsplittable frame unless
 		 ;; SPECIFIERS allow it.
 		 (not (cdr (assq 'split-unsplittable-frame specifiers))))
       (catch 'done
 	(dolist (method methods)
-	  (setq window (car method))
+	  (setq cand (car method))
 	  (setq side (cdr method))
-	  (and (setq window
-		     (cond
-		      ((eq window 'largest)
-		       (get-largest-window frame t))
-		      ((eq window 'lru)
-		       (get-lru-window frame t))
-		      ((eq window 'selected)
-		       (frame-selected-window frame))
-		      ((eq window 'root)
-		       ;; If there are side windows, split the main
-		       ;; window else the frame root window.
-		       (or (window-with-parameter 'window-side 'none nil t)
-			   (frame-root-window frame)))
-		      ((memq window window-sides)
-		       ;; This should gets us the "root" side
-		       ;; window if there exists more than one.
-		       (window-with-parameter 'window-side window nil t))
-		      ((windowp window)
-		       ;; A window, directly specified.
-		       window)))
-	       ;; The window must be on the selected frame,
-	       (eq (window-frame window) frame)
-	       ;; and must be neither a minibuffer window,
-	       (not (window-minibuffer-p window))
-	       ;; nor a side window.
-	       (not (eq (window-parameter window 'window-side) 'side))
-	       (setq window
-		     (cond
-		      ((memq side display-buffer-side-specifiers)
-		       (if (and (window-buffer window)
-				(setq atomic (cdr (assq 'atomic specifiers))))
-			   (display-buffer-split-atom-window
-			    window side (eq atomic 'nest) specifiers)
-		       (display-buffer-split-window window side specifiers)))
-		      ((functionp side)
-		       (ignore-errors
-			 ;; Don't pass any specifiers to this function.
-			 (funcall side window)))))
-	       (throw 'done window))))
+	  (setq window
+		(cond
+		 ((eq cand 'largest)
+		  ;; The largest window. 
+		  (get-largest-window frame t))
+		 ((eq cand 'lru)
+		  ;; The least recently used window.
+		  (get-lru-window frame t))
+		 ((eq cand 'selected)
+		  ;; The selected window.
+		  (frame-selected-window frame))
+		 ((eq cand 'root)
+		  ;; If there are side windows, split the main window
+		  ;; else the frame's root window.
+		  (or (window-with-parameter 'window-side 'none nil t)
+		      (frame-root-window frame)))
+		 ((memq cand window-sides)
+		  ;; This should gets us the "root" side window if there
+		  ;; exists more than one window on that side.
+		  (window-with-parameter 'window-side cand nil t))
+		 ((windowp cand)
+		  ;; A window, directly specified.
+		  cand)))
 
-      (when window
-	;; Adjust sizes if asked for.
-	(display-buffer-set-height window specifiers)
-	(display-buffer-set-width window specifiers)
-	(set-window-parameter
-	 window 'quit-restore (list 'new-window buffer selected-window))
-	(setq display-buffer-window (cons window 'new-window))
-	(display-buffer-in-window buffer window specifiers)
-	(set-window-prev-buffers window nil)
-	window))))
+	  (when (and (window-live-p window)
+		     ;; The window must be on the correct frame,
+		     (eq (window-frame window) frame)
+		     ;; and must be neither a minibuffer window
+		     (not (window-minibuffer-p window))
+		     ;; nor a side window.
+		     (not (eq (window-parameter window 'window-side) 'side)))
+	    (setq window
+		  (cond
+		   ((memq side display-buffer-side-specifiers)
+		    (if (and (window-buffer window)
+			     (setq atomic (cdr (assq 'atomic specifiers))))
+			(display-buffer-split-atom-window
+			 window side (eq atomic 'nest) specifiers)
+		      (display-buffer-split-window window side specifiers)))
+		   ((functionp side)
+		    (ignore-errors
+		      ;; Don't pass any specifiers to this function.
+		      (funcall side window)))))
+
+	    (when window
+	      ;; Adjust sizes if asked for.
+	      (display-buffer-set-height window specifiers)
+	      (display-buffer-set-width window specifiers)
+	      (set-window-parameter
+	       window 'quit-restore (list 'new-window buffer selected-window))
+	      (setq display-buffer-window (cons window 'new-window))
+	      (display-buffer-in-window buffer window specifiers)
+	      (set-window-prev-buffers window nil)
+	      (throw 'done window))))))))
 
 (defun display-buffer-pop-up-frame (buffer &optional graphic-only specifiers)
   "Make a new frame for displaying BUFFER.
@@ -5632,7 +5636,7 @@ this list as arguments."
   (interactive "BDisplay buffer:\nP")
   (let* ((buffer (normalize-buffer-to-display buffer-or-name))
 	 (buffer-name (buffer-name buffer))
-	 (specifiers
+	 (normalized
 	  ;; Normalize specifiers.
 	  (display-buffer-normalize-specifiers buffer-name specifiers label))
 	 ;; Don't use a minibuffer frame.
@@ -5646,24 +5650,24 @@ this list as arguments."
 	(funcall display-buffer-function buffer specifiers)
       ;; Retrieve the next location specifier while there a specifiers
       ;; left and we don't have a valid window.
-      (while (and specifiers (not (window-live-p window)))
-	(setq specifier (car specifiers))
-	(setq specifiers (cdr specifiers))
+      (while (and normalized (not (window-live-p window)))
+	(setq specifier (car normalized))
+	(setq normalized (cdr normalized))
 	(setq method (car specifier))
 	(setq window
 	      (cond
 	       ((eq method 'reuse-window)
 		(display-buffer-reuse-window
-		 buffer (cdr specifier) specifiers))
+		 buffer (cdr specifier) normalized))
 	       ((eq method 'pop-up-window)
 		(display-buffer-pop-up-window
-		 buffer (cdr specifier) specifiers))
+		 buffer (cdr specifier) normalized))
 	       ((eq method 'pop-up-frame)
 		(display-buffer-pop-up-frame
-		 buffer (cdr specifier) specifiers))
+		 buffer (cdr specifier) normalized))
 	       ((eq method 'use-side-window)
 		(display-buffer-in-side-window
-		 buffer (nth 1 specifier) (nth 2 specifier) specifiers))
+		 buffer (nth 1 specifier) (nth 2 specifier) normalized))
 	       ((eq method 'fun-with-args)
 		(apply (cadr specifier) buffer (cddr specifier))))))
 

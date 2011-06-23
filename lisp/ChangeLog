@@ -1,3 +1,13 @@
+2011-06-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (get-lru-window, get-mru-window)
+	(get-largest-window): Never return a minibuffer window.
+	(display-buffer-pop-up-window): Fix a bug that could lead to
+	reusing the minibuffer window.
+	(display-buffer): Pass original specifier argument to
+	display-buffer-function instead of the normalized one.
+	Reported by Thierry Volpiatto <thierry.volpiatto@gmail.com>.
+
 2011-06-22  Leo Liu  <sdl.web@gmail.com>
 
 	* minibuffer.el (completing-read-function)
