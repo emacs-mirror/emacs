@@ -1,5 +1,7 @@
 2011-06-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (DEFVAR_KBOARD): Use offsetof instead of char * finagling.
+
 	* lread.c: Integer overflow fixes.
 	(read_integer): Radix is now EMACS_INT, not int,
 	to improve quality of diagnostics for out-of-range radices.
