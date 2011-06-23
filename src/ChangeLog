@@ -1,3 +1,12 @@
+2011-06-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispextern.h (bidi_push_it, bidi_pop_it): Add prototypes.
+
+	* bidi.c (bidi_push_it, bidi_pop_it): New functions.
+	(bidi_initialize): Initialize the bidi cache start stack pointer.
+	(bidi_cache_ensure_space): New function, refactored from part of
+	bidi_cache_iterator_state.
+
 2011-06-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (tool_bar_lines_needed, redisplay_tool_bar)

@@ -87,7 +87,7 @@ static Lisp_Object Qparagraph_start, Qparagraph_separate;
 
 /* Return the bidi type of a character CH, subject to the current
    directional OVERRIDE.  */
-static INLINE bidi_type_t
+static inline bidi_type_t
 bidi_get_type (int ch, bidi_dir_t override)
 {
   bidi_type_t default_type;
@@ -138,7 +138,7 @@ bidi_check_type (bidi_type_t type)
 }
 
 /* Given a bidi TYPE of a character, return its category.  */
-static INLINE bidi_category_t
+static inline bidi_category_t
 bidi_get_category (bidi_type_t type)
 {
   switch (type)
@@ -204,7 +204,7 @@ bidi_mirror_char (int c)
    embedding levels on either side of the run boundary.  Also, update
    the saved info about previously seen characters, since that info is
    generally valid for a single level run.  */
-static INLINE void
+static inline void
 bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
 {
   int higher_level = level_before > level_after ? level_before : level_after;
@@ -235,7 +235,7 @@ bidi_set_sor_type (struct bidi_it *bidi_it, int level_before, int level_after)
 
 /* Push the current embedding level and override status; reset the
    current level to LEVEL and the current override status to OVERRIDE.  */
-static INLINE void
+static inline void
 bidi_push_embedding_level (struct bidi_it *bidi_it,
 			   int level, bidi_dir_t override)
 {
@@ -248,7 +248,7 @@ bidi_push_embedding_level (struct bidi_it *bidi_it,
 
 /* Pop the embedding level and directional override status from the
    stack, and return the new level.  */
-static INLINE int
+static inline int
 bidi_pop_embedding_level (struct bidi_it *bidi_it)
 {
   /* UAX#9 says to ignore invalid PDFs.  */
@@ -258,7 +258,7 @@ bidi_pop_embedding_level (struct bidi_it *bidi_it)
 }
 
 /* Record in SAVED_INFO the information about the current character.  */
-static INLINE void
+static inline void
 bidi_remember_char (struct bidi_saved_info *saved_info,
 		    struct bidi_it *bidi_it)
 {
@@ -274,7 +274,7 @@ bidi_remember_char (struct bidi_saved_info *saved_info,
 
 /* Copy the bidi iterator from FROM to TO.  To save cycles, this only
    copies the part of the level stack that is actually in use.  */
-static INLINE void
+static inline void
 bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
 {
   int i;
@@ -308,7 +308,7 @@ static EMACS_INT bidi_cache_start = 0;	/* start of cache for this
    intact.  This is called when the cached information is no more
    useful for the current iteration, e.g. when we were reseated to a
    new position on the same object.  */
-static INLINE void
+static inline void
 bidi_cache_reset (void)
 {
   bidi_cache_idx = bidi_cache_start;
@@ -319,7 +319,7 @@ bidi_cache_reset (void)
    iterator for reordering a buffer or a string that does not come
    from display properties, because that means all the previously
    cached info is of no further use.  */
-static INLINE void
+static inline void
 bidi_cache_shrink (void)
 {
   if (bidi_cache_size > BIDI_CACHE_CHUNK)
@@ -331,7 +331,7 @@ bidi_cache_shrink (void)
   bidi_cache_reset ();
 }
 
-static INLINE void
+static inline void
 bidi_cache_fetch_state (int idx, struct bidi_it *bidi_it)
 {
   int current_scan_dir = bidi_it->scan_dir;
@@ -348,7 +348,7 @@ bidi_cache_fetch_state (int idx, struct bidi_it *bidi_it)
    level less or equal to LEVEL.  if LEVEL is -1, disregard the
    resolved levels in cached states.  DIR, if non-zero, means search
    in that direction from the last cache hit.  */
-static INLINE int
+static inline int
 bidi_cache_search (EMACS_INT charpos, int level, int dir)
 {
   int i, i_start;
@@ -449,7 +449,19 @@ bidi_cache_find_level_change (int level, int dir, int before)
   return -1;
 }
 
-static INLINE void
+static inline void
+bidi_cache_ensure_space (int idx)
+{
+  /* Enlarge the cache as needed.  */
+  if (idx >= bidi_cache_size)
+    {
+      bidi_cache_size += BIDI_CACHE_CHUNK;
+      bidi_cache =
+	(struct bidi_it *) xrealloc (bidi_cache, bidi_cache_size * elsz);
+    }
+}
+
+static inline void
 bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
 {
   int idx;
@@ -462,13 +474,7 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
   if (idx < 0)
     {
       idx = bidi_cache_idx;
-      /* Enlarge the cache as needed.  */
-      if (idx >= bidi_cache_size)
-	{
-	  bidi_cache_size += BIDI_CACHE_CHUNK;
-	  bidi_cache =
-	    (struct bidi_it *) xrealloc (bidi_cache, bidi_cache_size * elsz);
-	}
+      bidi_cache_ensure_space (idx);
       /* Character positions should correspond to cache positions 1:1.
 	 If we are outside the range of cached positions, the cache is
 	 useless and must be reset.  */
@@ -510,7 +516,7 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
     bidi_cache_idx = idx + 1;
 }
 
-static INLINE bidi_type_t
+static inline bidi_type_t
 bidi_cache_find (EMACS_INT charpos, int level, struct bidi_it *bidi_it)
 {
   int i = bidi_cache_search (charpos, level, bidi_it->scan_dir);
@@ -530,12 +536,70 @@ bidi_cache_find (EMACS_INT charpos, int level, struct bidi_it *bidi_it)
   return UNKNOWN_BT;
 }
 
-static INLINE int
+static inline int
 bidi_peek_at_next_level (struct bidi_it *bidi_it)
 {
   if (bidi_cache_idx == bidi_cache_start || bidi_cache_last_idx == -1)
     abort ();
   return bidi_cache[bidi_cache_last_idx + bidi_it->scan_dir].resolved_level;
+}
+
+
+/***********************************************************************
+	     Pushing and popping the bidi iterator state
+ ***********************************************************************/
+/* 10-slot stack for saving the start of the previous level of the
+   cache.  xdisp.c maintains a 5-slot cache for its iterator state,
+   and we need just a little bit more.  */
+#define CACHE_STACK_SIZE 10
+static int bidi_cache_start_stack[CACHE_STACK_SIZE];
+static int bidi_cache_sp;
+
+/* Push the bidi iterator state in preparation for reordering a
+   different object, e.g. display string found at certain buffer
+   position.  Pushing the bidi iterator boils to saving its entire
+   state on the cache and starting a new cache "stacked" on top of the
+   current cache.  */
+void
+bidi_push_it (struct bidi_it *bidi_it)
+{
+  /* Save the current iterator state in its entirety after the last
+     used cache slot.  */
+  bidi_cache_ensure_space (bidi_cache_idx);
+  memcpy (&bidi_cache[bidi_cache_idx++], bidi_it, sizeof (struct bidi_it));
+
+  /* Push the current cache start onto the stack.  */
+  if (bidi_cache_sp >= CACHE_STACK_SIZE)
+    abort ();
+  bidi_cache_start_stack[bidi_cache_sp++] = bidi_cache_start;
+
+  /* Start a new level of cache, and make it empty.  */
+  bidi_cache_start = bidi_cache_idx;
+  bidi_cache_last_idx = -1;
+}
+
+/* Restore the iterator state saved by bidi_push_it and return the
+   cache to the corresponding state.  */
+void
+bidi_pop_it (struct bidi_it *bidi_it)
+{
+  if (bidi_cache_start <= 0)
+    abort ();
+
+  /* Reset the next free cache slot index to what it was before the
+     call to bidi_push_it.  */
+  bidi_cache_idx = bidi_cache_start - 1;
+
+  /* Restore the bidi iterator state saved in the cache.  */
+  memcpy (bidi_it, &bidi_cache[bidi_cache_idx], sizeof (struct bidi_it));
+
+  /* Pop the previous cache start from the stack.  */
+  if (bidi_cache_sp <= 0)
+    abort ();
+  bidi_cache_start = bidi_cache_start_stack[--bidi_cache_sp];
+
+  /* Invalidate the last-used cache slot data.  */
+  bidi_cache_last_idx = -1;
 }
 
 
@@ -577,12 +641,15 @@ bidi_initialize (void)
   if (!STRINGP (paragraph_separate_re))
     paragraph_separate_re = build_string ("[ \t\f]*$");
   staticpro (&paragraph_separate_re);
+
+  bidi_cache_sp = 0;
+
   bidi_initialized = 1;
 }
 
 /* Do whatever UAX#9 clause X8 says should be done at paragraph's
    end.  */
-static INLINE void
+static inline void
 bidi_set_paragraph_end (struct bidi_it *bidi_it)
 {
   bidi_it->invalid_levels = 0;
@@ -630,6 +697,8 @@ bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, int frame_window_p,
      "stack".  */
   if (bidi_cache_start == 0)
     bidi_cache_shrink ();
+  else
+    bidi_cache_reset ();
 }
 
 /* Perform initializations for reordering a new line of bidi text.  */
@@ -1012,11 +1081,10 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 
 /***********************************************************************
 		 Resolving explicit and implicit levels.
-		 The rest of the file constitutes the core
-		 of the UBA implementation.
+  The rest of this file constitutes the core of the UBA implementation.
  ***********************************************************************/
 
-static INLINE int
+static inline int
 bidi_explicit_dir_char (int ch)
 {
   bidi_type_t ch_type;
@@ -1515,7 +1583,7 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 
 /* Resolve the type of a neutral character according to the type of
    surrounding strong text and the current embedding level.  */
-static INLINE bidi_type_t
+static inline bidi_type_t
 bidi_resolve_neutral_1 (bidi_type_t prev_type, bidi_type_t next_type, int lev)
 {
   /* N1: European and Arabic numbers are treated as though they were R.  */
