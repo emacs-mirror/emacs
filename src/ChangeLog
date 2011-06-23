@@ -1,5 +1,13 @@
 2011-06-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* macros.c: Integer and buffer overflow fixes.
+	* keyboard.h (struct keyboard.kbd_macro_bufsize):
+	* macros.c (Fstart_kbd_macro, store_kbd_macro_char):
+	Use ptrdiff_t, not int, for sizes.
+	Don't increment bufsize until after realloc succeeds.
+	Check for size-calculation overflow.
+	(Fstart_kbd_macro): Use EMACS_INT, not int, for XINT result.
+
 	* lisp.h (DEFVAR_KBOARD): Use offsetof instead of char * finagling.
 
 	* lread.c: Integer overflow fixes.
