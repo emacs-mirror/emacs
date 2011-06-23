@@ -1,5 +1,9 @@
 2011-06-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* print.c (printchar, strout): Check for string overflow.
+	(PRINTPREPARE, printchar, strout):
+	Don't set size unless allocation succeeds.
+
 	* minibuf.c (read_minibuf_noninteractive): Use ptrdiff_t, not int,
 	for sizes.  Check for string overflow more accurately.
 	Simplify newline removal at end; this suppresses a GCC 4.6.0 warning.
