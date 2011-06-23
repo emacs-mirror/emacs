@@ -2669,8 +2669,11 @@ The current mail message becomes the message displayed."
 	    (t (setq rmail-current-message msg)))
       (with-current-buffer rmail-buffer
 	(setq header-style rmail-header-style)
-	;; Mark the message as seen
-	(rmail-set-attribute rmail-unseen-attr-index nil)
+	;; Mark the message as seen, but preserve buffer modified flag.
+	(let ((modiff (buffer-modified-p)))
+	  (rmail-set-attribute rmail-unseen-attr-index nil)
+	  (unless modiff
+	    (set-buffer-modified-p nil)))
 	;; bracket the message in the mail
 	;; buffer and determine the coding system the transfer encoding.
 	(rmail-swap-buffers-maybe)

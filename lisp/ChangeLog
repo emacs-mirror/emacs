@@ -1,6 +1,7 @@
 2011-06-23  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-retry-ignored-headers): Add message-id.
+	(rmail-show-message-1): Preserve buffer modified flag.
 
 2011-06-23  Michael Albinus  <michael.albinus@gmx.de>
 
