@@ -3458,15 +3458,15 @@ does not pop any summary buffer."
     (if (stringp subject) (setq subject (rfc2047-decode-string subject)))
     (prog1
 	(compose-mail to subject other-headers noerase
-		      switch-function yank-action sendactions
-		      '(rmail-mail-return))
+		      switch-function yank-action sendactions)
       (if (eq switch-function 'switch-to-buffer-other-frame)
 	  ;; This is not a standard frame parameter; nothing except
 	  ;; sendmail.el looks at it.
 	    (modify-frame-parameters (selected-frame)
 				   '((mail-dedicated-frame . t)))))))
 
-(defun rmail-mail-return ()
+(defun rmail-mail-return (&optional newbuf)
+  "NEWBUF is a buffer to switch to."
   (cond
    ;; If there is only one visible frame with no special handling,
    ;; consider deleting the mail window to return to Rmail.
@@ -3491,7 +3491,8 @@ does not pop any summary buffer."
       (if rmail-flag
 	  ;; If the Rmail buffer has a summary, show that.
 	  (if summary-buffer (switch-to-buffer summary-buffer)
-	    (delete-window)))))
+	    (delete-window))
+	(switch-to-buffer newbuf))))
    ;; If the frame was probably made for this buffer, the user
    ;; probably wants to delete it now.
    ((display-multi-frame-p)
