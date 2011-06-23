@@ -1,3 +1,16 @@
+2011-06-22  Leo Liu  <sdl.web@gmail.com>
+
+	* minibuffer.el (completing-read-function)
+	(completing-read-default): Move from minibuf.c
+
+2011-06-22  Richard Stallman  <rms@gnu.org>
+
+	* mail/sendmail.el (mail-bury): If Rmail is in use, return nicely
+	to Rmail even if not started by a special Rmail command.
+
+	* mail/rmailmm.el (rmail-insert-mime-forwarded-message):
+	Copy the buffer currently showing just one message.
+
 2011-06-22  Roland Winkler  <winkler@gnu.org>
 
 	* textmodes/bibtex.el (bibtex-entry-update): Use mapc.

@@ -806,10 +806,18 @@ Prefix arg means don't delete this window."
 
 (defun mail-bury (&optional arg)
   "Bury this mail buffer."
-  (let ((newbuf (other-buffer (current-buffer))))
+  (let ((newbuf (other-buffer (current-buffer)))
+	(return-action mail-return-action)
+	some-rmail)
     (bury-buffer (current-buffer))
-    (if (and (null arg) mail-return-action)
-	(apply (car mail-return-action) (cdr mail-return-action))
+    ;; If there is an Rmail buffer, return to it nicely
+    ;; even if this message was not started by an Rmail command.
+    (unless return-action
+      (dolist (buffer (buffer-list))
+	(if (eq (buffer-local-value 'major-mode buffer) 'rmail-mode)
+	    (setq return-action `(rmail-mail-return ,newbuf)))))
+    (if (and (null arg) return-action)
+	(apply (car return-action) (cdr return-action))
       (switch-to-buffer newbuf))))
 
 (defcustom mail-send-hook nil

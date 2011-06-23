@@ -2710,7 +2710,40 @@ filter out additional entries (because TABLE migth not obey PRED)."
   (let ((newstr (completion-initials-expand string table pred)))
     (when newstr
       (completion-pcm-try-completion newstr table pred (length newstr)))))
+
+(defvar completing-read-function 'completing-read-default
+  "The function called by `completing-read' to do its work.
+It should accept the same arguments as `completing-read'.")
 
+(defun completing-read-default (prompt collection &optional predicate
+                                       require-match initial-input
+                                       hist def inherit-input-method)
+  "Default method for reading from the minibuffer with completion.
+See `completing-read' for the meaning of the arguments."
+
+  (when (consp initial-input)
+    (setq initial-input
+          (cons (car initial-input)
+                ;; `completing-read' uses 0-based index while
+                ;; `read-from-minibuffer' uses 1-based index.
+                (1+ (cdr initial-input)))))
+
+  (let* ((minibuffer-completion-table collection)
+         (minibuffer-completion-predicate predicate)
+         (minibuffer-completion-confirm (unless (eq require-match t)
+                                          require-match))
+         (keymap (if require-match
+                     (if (memq minibuffer-completing-file-name '(nil lambda))
+                         minibuffer-local-must-match-map
+                       minibuffer-local-filename-must-match-map)
+                   (if (memq minibuffer-completing-file-name '(nil lambda))
+                       minibuffer-local-completion-map
+                     minibuffer-local-filename-completion-map)))
+         (result (read-from-minibuffer prompt initial-input keymap
+                                       nil hist def inherit-input-method)))
+    (when (and (equal result "") def)
+      (setq result (if (consp def) (car def) def)))
+    result))
 
 ;; Miscellaneous
 

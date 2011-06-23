@@ -1,5 +1,7 @@
 2011-06-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Integer and buffer overflow fixes (Bug#8873).
+
 	* print.c (printchar, strout): Check for string overflow.
 	(PRINTPREPARE, printchar, strout):
 	Don't set size unless allocation succeeds.
@@ -33,8 +35,6 @@
 
 	* image.c (cache_image): Check for size arithmetic overflow.
 
-2011-06-22  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* lread.c: Integer overflow issues.
 	(saved_doc_string_size, saved_doc_string_length)
 	(prev_saved_doc_string_size, prev_saved_doc_string_length):
@@ -43,6 +43,13 @@
 	out-of-range doc string lengths.
 	(read_list): Don't assume file position fits in int.
 	(read_escape): Check for hex character overflow.
+
+2011-06-22  Leo Liu  <sdl.web@gmail.com>
+
+	* minibuf.c (Fcompleting_read_default, Vcompleting_read_function):
+	Move to minibuffer.el.
+
+2011-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fixes for GLYPH_DEBUG found by GCC 4.6.0 static checking.
 	The following patches are for when GLYPH_DEBUG && !XASSERT.

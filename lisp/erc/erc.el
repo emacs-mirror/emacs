@@ -2164,34 +2164,7 @@ be invoked for the values of the other parameters."
 
 ;;;###autoload
 (defalias 'erc-select 'erc)
-
-(defun erc-ssl (&rest r)
-  "Interactively select SSL connection parameters and run ERC.
-Arguments are the same as for `erc'."
-  (interactive (erc-select-read-args))
-  (let ((erc-server-connect-function 'erc-open-ssl-stream))
-    (apply 'erc r)))
-
-(defalias 'erc-select-ssl 'erc-ssl)
-
-(declare-function open-ssl-stream "ext:ssl" (name buffer host service))
-
-(defun erc-open-ssl-stream (name buffer host port)
-  "Open an SSL stream to an IRC server.
-The process will be given the name NAME, its target buffer will be
-BUFFER.  HOST and PORT specify the connection target."
-  (when (condition-case nil
-	    (require 'ssl)
-	  (error (message "You don't have ssl.el.  %s"
-			  "Try using `erc-tls' instead.")
-		 nil))
-    (let ((proc (open-ssl-stream name buffer host port)))
-      ;; Ugly hack, but it works for now. Problem is it is
-      ;; very hard to detect when ssl is established, because s_client
-      ;; doesn't give any CONNECTIONESTABLISHED kind of message, and
-      ;; most IRC servers send nothing and wait for you to identify.
-      (sit-for 5)
-      proc)))
+(defalias 'erc-ssl 'erc-tls)
 
 (defun erc-tls (&rest r)
   "Interactively select TLS connection parameters and run ERC.
@@ -2200,18 +2173,12 @@ Arguments are the same as for `erc'."
   (let ((erc-server-connect-function 'erc-open-tls-stream))
     (apply 'erc r)))
 
-(declare-function open-tls-stream "tls" (name buffer host port))
-
 (defun erc-open-tls-stream (name buffer host port)
   "Open an TLS stream to an IRC server.
 The process will be given the name NAME, its target buffer will be
 BUFFER.  HOST and PORT specify the connection target."
-  (when (condition-case nil
-	    (require 'tls)
-	  (error (message "You don't have tls.el.  %s"
-			  "Try using `erc-ssl' instead.")
-		 nil))
-    (open-tls-stream name buffer host port)))
+  (open-network-stream name buffer host port
+		       :type 'tls))
 
 ;;; Displaying error messages
 
