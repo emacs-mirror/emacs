@@ -159,8 +159,9 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 	 }								\
        else								\
 	 {								\
-           print_buffer_size = 1000;					\
-           print_buffer = (char *) xmalloc (print_buffer_size);		\
+	   ptrdiff_t new_size = 1000;					\
+	   print_buffer = (char *) xmalloc (new_size);			\
+	   print_buffer_size = new_size;				\
 	   free_print_buffer = 1;					\
 	 }								\
        print_buffer_pos = 0;						\
@@ -235,9 +236,15 @@ printchar (unsigned int ch, Lisp_Object fun)
 
       if (NILP (fun))
 	{
-	  if (print_buffer_pos_byte + len >= print_buffer_size)
-	    print_buffer = (char *) xrealloc (print_buffer,
-					      print_buffer_size *= 2);
+	  if (print_buffer_size - len <= print_buffer_pos_byte)
+	    {
+	      ptrdiff_t new_size;
+	      if (STRING_BYTES_BOUND / 2 < print_buffer_size)
+		string_overflow ();
+	      new_size = print_buffer_size * 2;
+	      print_buffer = (char *) xrealloc (print_buffer, new_size);
+	      print_buffer_size = new_size;
+	    }
 	  memcpy (print_buffer + print_buffer_pos_byte, str, len);
 	  print_buffer_pos += 1;
 	  print_buffer_pos_byte += len;
@@ -280,11 +287,14 @@ strout (const char *ptr, EMACS_INT size, EMACS_INT size_byte,
 
   if (NILP (printcharfun))
     {
-      if (print_buffer_pos_byte + size_byte > print_buffer_size)
+      if (print_buffer_size - size_byte < print_buffer_pos_byte)
 	{
-	  print_buffer_size = print_buffer_size * 2 + size_byte;
-	  print_buffer = (char *) xrealloc (print_buffer,
-					    print_buffer_size);
+	  ptrdiff_t new_size;
+	  if (STRING_BYTES_BOUND / 2 - size_byte < print_buffer_size)
+	    string_overflow ();
+	  new_size = print_buffer_size * 2 + size_byte;
+	  print_buffer = (char *) xrealloc (print_buffer, new_size);
+	  print_buffer_size = new_size;
 	}
       memcpy (print_buffer + print_buffer_pos_byte, ptr, size_byte);
       print_buffer_pos += size;

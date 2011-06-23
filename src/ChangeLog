@@ -1,3 +1,49 @@
+2011-06-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Integer and buffer overflow fixes (Bug#8873).
+
+	* print.c (printchar, strout): Check for string overflow.
+	(PRINTPREPARE, printchar, strout):
+	Don't set size unless allocation succeeds.
+
+	* minibuf.c (read_minibuf_noninteractive): Use ptrdiff_t, not int,
+	for sizes.  Check for string overflow more accurately.
+	Simplify newline removal at end; this suppresses a GCC 4.6.0 warning.
+
+	* macros.c: Integer and buffer overflow fixes.
+	* keyboard.h (struct keyboard.kbd_macro_bufsize):
+	* macros.c (Fstart_kbd_macro, store_kbd_macro_char):
+	Use ptrdiff_t, not int, for sizes.
+	Don't increment bufsize until after realloc succeeds.
+	Check for size-calculation overflow.
+	(Fstart_kbd_macro): Use EMACS_INT, not int, for XINT result.
+
+	* lisp.h (DEFVAR_KBOARD): Use offsetof instead of char * finagling.
+
+	* lread.c: Integer overflow fixes.
+	(read_integer): Radix is now EMACS_INT, not int,
+	to improve quality of diagnostics for out-of-range radices.
+	Calculate buffer size correctly for out-of-range radices.
+	(read1): Check for integer overflow in radices, and in
+	read-circle numbers.
+	(read_escape): Avoid int overflow.
+	(Fload, openp, read_buffer_size, read1)
+	(substitute_object_recurse, read_vector, read_list, map_obarray):
+	Use ptrdiff_t, not int, for sizes.
+	(read1): Use EMACS_INT, not int, for sizes.
+	Check for size overflow.
+
+	* image.c (cache_image): Check for size arithmetic overflow.
+
+	* lread.c: Integer overflow issues.
+	(saved_doc_string_size, saved_doc_string_length)
+	(prev_saved_doc_string_size, prev_saved_doc_string_length):
+	Now ptrdiff_t, not int.
+	(read1): Don't assume doc string length fits in int.  Check for
+	out-of-range doc string lengths.
+	(read_list): Don't assume file position fits in int.
+	(read_escape): Check for hex character overflow.
+
 2011-06-22  Leo Liu  <sdl.web@gmail.com>
 
 	* minibuf.c (Fcompleting_read_default, Vcompleting_read_function):

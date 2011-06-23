@@ -120,9 +120,9 @@ static EMACS_INT readchar_count;
 /* This contains the last string skipped with #@.  */
 static char *saved_doc_string;
 /* Length of buffer allocated in saved_doc_string.  */
-static int saved_doc_string_size;
+static ptrdiff_t saved_doc_string_size;
 /* Length of actual data in saved_doc_string.  */
-static int saved_doc_string_length;
+static ptrdiff_t saved_doc_string_length;
 /* This is the file position that string came from.  */
 static file_offset saved_doc_string_position;
 
@@ -131,9 +131,9 @@ static file_offset saved_doc_string_position;
    is put in saved_doc_string.  */
 static char *prev_saved_doc_string;
 /* Length of buffer allocated in prev_saved_doc_string.  */
-static int prev_saved_doc_string_size;
+static ptrdiff_t prev_saved_doc_string_size;
 /* Length of actual data in prev_saved_doc_string.  */
-static int prev_saved_doc_string_length;
+static ptrdiff_t prev_saved_doc_string_length;
 /* This is the file position that string came from.  */
 static file_offset prev_saved_doc_string_position;
 
@@ -1069,9 +1069,9 @@ Return t if the file exists and loads successfully.  */)
 
   /* Avoid weird lossage with null string as arg,
      since it would try to load a directory as a Lisp file */
-  if (SCHARS (file) > 0)
+  if (SBYTES (file) > 0)
     {
-      int size = SBYTES (file);
+      ptrdiff_t size = SBYTES (file);
 
       found = Qnil;
       GCPRO2 (file, found);
@@ -1472,7 +1472,7 @@ openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *sto
       for (tail = NILP (suffixes) ? Fcons (empty_unibyte_string, Qnil) : suffixes;
 	   CONSP (tail); tail = XCDR (tail))
 	{
-	  int lsuffix = SBYTES (XCAR (tail));
+	  ptrdiff_t lsuffix = SBYTES (XCAR (tail));
 	  Lisp_Object handler;
 	  int exists;
 
@@ -2037,7 +2037,7 @@ read0 (Lisp_Object readcharfun)
 	    Fmake_string (make_number (1), make_number (c)));
 }
 
-static int read_buffer_size;
+static ptrdiff_t read_buffer_size;
 static char *read_buffer;
 
 /* Read a \-escape sequence, assuming we already read the `\'.
@@ -2208,7 +2208,9 @@ read_escape (Lisp_Object readcharfun, int stringp)
 		UNREAD (c);
 		break;
 	      }
-	    count++;
+	    if (MAX_CHAR < i)
+	      error ("Hex character out of range: \\x%x...", i);
+	    count += count < 3;
 	  }
 
 	if (count < 3 && i >= 0x80)
@@ -2236,10 +2238,7 @@ read_escape (Lisp_Object readcharfun, int stringp)
 	    else if (c >= 'a' && c <= 'f')  i = (i << 4) + (c - 'a') + 10;
             else if (c >= 'A' && c <= 'F')  i = (i << 4) + (c - 'A') + 10;
 	    else
-	      {
-		error ("Non-hex digit used for Unicode escape");
-		break;
-	      }
+	      error ("Non-hex digit used for Unicode escape");
 	  }
 	if (i > 0x10FFFF)
 	  error ("Non-Unicode character: 0x%x", i);
@@ -2278,10 +2277,12 @@ digit_to_number (int character, int base)
    range.  */
 
 static Lisp_Object
-read_integer (Lisp_Object readcharfun, int radix)
+read_integer (Lisp_Object readcharfun, EMACS_INT radix)
 {
-  /* Room for sign, leading 0, other digits, trailing null byte.  */
-  char buf[1 + 1 + sizeof (uintmax_t) * CHAR_BIT + 1];
+  /* Room for sign, leading 0, other digits, trailing null byte.
+     Also, room for invalid syntax diagnostic.  */
+  char buf[max (1 + 1 + sizeof (uintmax_t) * CHAR_BIT + 1,
+		sizeof "integer, radix " + INT_STRLEN_BOUND (EMACS_INT))];
 
   int valid = -1; /* 1 if valid, 0 if not, -1 if incomplete.  */
 
@@ -2333,7 +2334,7 @@ read_integer (Lisp_Object readcharfun, int radix)
 
   if (! valid)
     {
-      sprintf (buf, "integer, radix %d", radix);
+      sprintf (buf, "integer, radix %"pI"d", radix);
       invalid_syntax (buf);
     }
 
@@ -2471,7 +2472,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      if (c == '[')
 		{
 		  Lisp_Object tmp;
-		  int depth, size;
+		  EMACS_INT depth, size;
 
 		  tmp = read_vector (readcharfun, 0);
 		  if (!INTEGERP (AREF (tmp, 0)))
@@ -2497,7 +2498,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  if (c == '"')
 	    {
 	      Lisp_Object tmp, val;
-	      int size_in_chars
+	      EMACS_INT size_in_chars
 		= ((XFASTINT (length) + BOOL_VECTOR_BITS_PER_CHAR - 1)
 		   / BOOL_VECTOR_BITS_PER_CHAR);
 
@@ -2569,13 +2570,16 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	 and function definitions.  */
       if (c == '@')
 	{
-	  int i, nskip = 0;
+	  enum { extra = 100 };
+	  ptrdiff_t i, nskip = 0;
 
 	  load_each_byte = 1;
 	  /* Read a decimal integer.  */
 	  while ((c = READCHAR) >= 0
 		 && c >= '0' && c <= '9')
 	    {
+	      if ((STRING_BYTES_BOUND - extra) / 10 <= nskip)
+		string_overflow ();
 	      nskip *= 10;
 	      nskip += c - '0';
 	    }
@@ -2594,9 +2598,9 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		 with prev_saved_doc_string, so we save two strings.  */
 	      {
 		char *temp = saved_doc_string;
-		int temp_size = saved_doc_string_size;
+		ptrdiff_t temp_size = saved_doc_string_size;
 		file_offset temp_pos = saved_doc_string_position;
-		int temp_len = saved_doc_string_length;
+		ptrdiff_t temp_len = saved_doc_string_length;
 
 		saved_doc_string = prev_saved_doc_string;
 		saved_doc_string_size = prev_saved_doc_string_size;
@@ -2611,12 +2615,12 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	      if (saved_doc_string_size == 0)
 		{
-		  saved_doc_string_size = nskip + 100;
+		  saved_doc_string_size = nskip + extra;
 		  saved_doc_string = (char *) xmalloc (saved_doc_string_size);
 		}
 	      if (nskip > saved_doc_string_size)
 		{
-		  saved_doc_string_size = nskip + 100;
+		  saved_doc_string_size = nskip + extra;
 		  saved_doc_string = (char *) xrealloc (saved_doc_string,
 							saved_doc_string_size);
 		}
@@ -2661,49 +2665,60 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
       /* Reader forms that can reuse previously read objects.  */
       if (c >= '0' && c <= '9')
 	{
-	  int n = 0;
+	  EMACS_INT n = 0;
 	  Lisp_Object tem;
 
 	  /* Read a non-negative integer.  */
 	  while (c >= '0' && c <= '9')
 	    {
-	      n *= 10;
-	      n += c - '0';
+	      if (MOST_POSITIVE_FIXNUM / 10 < n
+		  || MOST_POSITIVE_FIXNUM < n * 10 + c - '0')
+		n = MOST_POSITIVE_FIXNUM + 1;
+	      else
+		n = n * 10 + c - '0';
 	      c = READCHAR;
 	    }
-	  /* #n=object returns object, but associates it with n for #n#.  */
-	  if (c == '=' && !NILP (Vread_circle))
+
+	  if (n <= MOST_POSITIVE_FIXNUM)
 	    {
-	      /* Make a placeholder for #n# to use temporarily */
-	      Lisp_Object placeholder;
-	      Lisp_Object cell;
+	      if (c == 'r' || c == 'R')
+		return read_integer (readcharfun, n);
 
-	      placeholder = Fcons (Qnil, Qnil);
-	      cell = Fcons (make_number (n), placeholder);
-	      read_objects = Fcons (cell, read_objects);
+	      if (! NILP (Vread_circle))
+		{
+		  /* #n=object returns object, but associates it with
+                      n for #n#.  */
+		  if (c == '=')
+		    {
+		      /* Make a placeholder for #n# to use temporarily */
+		      Lisp_Object placeholder;
+		      Lisp_Object cell;
 
-	      /* Read the object itself. */
-	      tem = read0 (readcharfun);
+		      placeholder = Fcons (Qnil, Qnil);
+		      cell = Fcons (make_number (n), placeholder);
+		      read_objects = Fcons (cell, read_objects);
 
-	      /* Now put it everywhere the placeholder was... */
-	      substitute_object_in_subtree (tem, placeholder);
+		      /* Read the object itself. */
+		      tem = read0 (readcharfun);
 
-	      /* ...and #n# will use the real value from now on.  */
-	      Fsetcdr (cell, tem);
+		      /* Now put it everywhere the placeholder was... */
+		      substitute_object_in_subtree (tem, placeholder);
 
-	      return tem;
+		      /* ...and #n# will use the real value from now on.  */
+		      Fsetcdr (cell, tem);
+
+		      return tem;
+		    }
+
+		  /* #n# returns a previously read object.  */
+		  if (c == '#')
+		    {
+		      tem = Fassq (make_number (n), read_objects);
+		      if (CONSP (tem))
+			return XCDR (tem);
+		    }
+		}
 	    }
-	  /* #n# returns a previously read object.  */
-	  if (c == '#' && !NILP (Vread_circle))
-	    {
-	      tem = Fassq (make_number (n), read_objects);
-	      if (CONSP (tem))
-		return XCDR (tem);
-	      /* Fall through to error message.  */
-	    }
-	  else if (c == 'r' ||  c == 'R')
-	    return read_integer (readcharfun, n);
-
 	  /* Fall through to error message.  */
 	}
       else if (c == 'x' || c == 'X')
@@ -2846,14 +2861,16 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	   a single-byte character.  */
 	int force_singlebyte = 0;
 	int cancel = 0;
-	int nchars = 0;
+	ptrdiff_t nchars = 0;
 
 	while ((ch = READCHAR) >= 0
 	       && ch != '\"')
 	  {
 	    if (end - p < MAX_MULTIBYTE_LENGTH)
 	      {
-		int offset = p - read_buffer;
+		ptrdiff_t offset = p - read_buffer;
+		if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
+		  memory_full (SIZE_MAX);
 		read_buffer = (char *) xrealloc (read_buffer,
 						 read_buffer_size *= 2);
 		p = read_buffer + offset;
@@ -2996,7 +3013,9 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	    {
 	      if (end - p < MAX_MULTIBYTE_LENGTH)
 		{
-		  int offset = p - read_buffer;
+		  ptrdiff_t offset = p - read_buffer;
+		  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
+		    memory_full (SIZE_MAX);
 		  read_buffer = (char *) xrealloc (read_buffer,
 						   read_buffer_size *= 2);
 		  p = read_buffer + offset;
@@ -3023,7 +3042,9 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	  if (p == end)
 	    {
-	      int offset = p - read_buffer;
+	      ptrdiff_t offset = p - read_buffer;
+	      if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
+		memory_full (SIZE_MAX);
 	      read_buffer = (char *) xrealloc (read_buffer,
 					       read_buffer_size *= 2);
 	      p = read_buffer + offset;
@@ -3135,7 +3156,7 @@ substitute_object_recurse (Lisp_Object object, Lisp_Object placeholder, Lisp_Obj
     {
     case Lisp_Vectorlike:
       {
-	int i, length = 0;
+	ptrdiff_t i, length = 0;
 	if (BOOL_VECTOR_P (subtree))
 	  return subtree;		/* No sub-objects anyway.  */
 	else if (CHAR_TABLE_P (subtree) || SUB_CHAR_TABLE_P (subtree)
@@ -3358,8 +3379,7 @@ string_to_number (char const *string, int base, int ignore_trailing)
 static Lisp_Object
 read_vector (Lisp_Object readcharfun, int bytecodeflag)
 {
-  register int i;
-  register int size;
+  ptrdiff_t i, size;
   register Lisp_Object *ptr;
   register Lisp_Object tem, item, vector;
   register struct Lisp_Cons *otem;
@@ -3528,15 +3548,15 @@ read_list (int flag, register Lisp_Object readcharfun)
 			 doc string, caller must make it
 			 multibyte.  */
 
-		      int pos = XINT (XCDR (val));
+		      EMACS_INT pos = XINT (XCDR (val));
 		      /* Position is negative for user variables.  */
 		      if (pos < 0) pos = -pos;
 		      if (pos >= saved_doc_string_position
 			  && pos < (saved_doc_string_position
 				    + saved_doc_string_length))
 			{
-			  int start = pos - saved_doc_string_position;
-			  int from, to;
+			  ptrdiff_t start = pos - saved_doc_string_position;
+			  ptrdiff_t from, to;
 
 			  /* Process quoting with ^A,
 			     and find the end of the string,
@@ -3567,8 +3587,9 @@ read_list (int flag, register Lisp_Object readcharfun)
 			       && pos < (prev_saved_doc_string_position
 					 + prev_saved_doc_string_length))
 			{
-			  int start = pos - prev_saved_doc_string_position;
-			  int from, to;
+			  ptrdiff_t start =
+			    pos - prev_saved_doc_string_position;
+			  ptrdiff_t from, to;
 
 			  /* Process quoting with ^A,
 			     and find the end of the string,
@@ -3891,7 +3912,7 @@ hash_string (const char *ptr, size_t len)
 void
 map_obarray (Lisp_Object obarray, void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg)
 {
-  register int i;
+  ptrdiff_t i;
   register Lisp_Object tail;
   CHECK_VECTOR (obarray);
   for (i = ASIZE (obarray) - 1; i >= 0; i--)
@@ -3991,7 +4012,7 @@ defalias (sname, string)
 #endif /* NOTDEF */
 
 /* Define an "integer variable"; a symbol whose value is forwarded to a
-   C variable of type int.  Sample call (munged w "xx" to fool make-docfile):
+   C variable of type EMACS_INT.  Sample call (with "xx" to fool make-docfile):
    DEFxxVAR_INT ("emacs-priority", &emacs_priority, "Documentation");  */
 void
 defvar_int (struct Lisp_Intfwd *i_fwd,
