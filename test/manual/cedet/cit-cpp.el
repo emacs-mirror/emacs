@@ -236,6 +236,7 @@ Create a new shared lib with bar.cpp in it."
   (cit-compile-and-wait)
 
   ;; Use the local libs version also to make sure it works.
+  (pop-to-buffer "main.cpp")
   (let ((mt ede-object))
     (if (string= make-type "Automake")
 	(progn
