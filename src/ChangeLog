@@ -1,5 +1,9 @@
 2011-06-23  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* minibuf.c (read_minibuf_noninteractive): Use ptrdiff_t, not int,
+	for sizes.  Check for string overflow more accurately.
+	Simplify newline removal at end; this suppresses a GCC 4.6.0 warning.
+
 	* macros.c: Integer and buffer overflow fixes.
 	* keyboard.h (struct keyboard.kbd_macro_bufsize):
 	* macros.c (Fstart_kbd_macro, store_kbd_macro_char):

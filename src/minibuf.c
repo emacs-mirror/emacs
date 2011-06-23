@@ -237,7 +237,7 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 			     Lisp_Object defalt,
 			     int allow_props, int inherit_input_method)
 {
-  size_t size, len;
+  ptrdiff_t size, len;
   char *line, *s;
   Lisp_Object val;
 
@@ -247,12 +247,12 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   val = Qnil;
   size = 100;
   len = 0;
-  line = (char *) xmalloc (size * sizeof *line);
+  line = (char *) xmalloc (size);
   while ((s = fgets (line + len, size - len, stdin)) != NULL
 	 && (len = strlen (line),
 	     len == size - 1 && line[len - 1] != '\n'))
     {
-      if ((size_t) -1 / 2 < size)
+      if (STRING_BYTES_BOUND / 2 < size)
 	memory_full (SIZE_MAX);
       size *= 2;
       line = (char *) xrealloc (line, size);
@@ -260,11 +260,9 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 
   if (s)
     {
-      len = strlen (line);
-
-      if (len > 0 && line[len - 1] == '\n')
-	line[--len] = '\0';
-
+      char *nl = strchr (line, '\n');
+      if (nl)
+	*nl = '\0';
       val = build_string (line);
       xfree (line);
     }
