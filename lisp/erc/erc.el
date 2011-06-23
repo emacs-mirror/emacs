@@ -2178,7 +2178,7 @@ Arguments are the same as for `erc'."
 The process will be given the name NAME, its target buffer will be
 BUFFER.  HOST and PORT specify the connection target."
   (open-network-stream name buffer host port
-		       :type 'tls)))
+		       :type 'tls))
 
 ;;; Displaying error messages
 
