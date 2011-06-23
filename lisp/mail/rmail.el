@@ -1444,7 +1444,8 @@ If so restore the actual mbox message collection."
   (make-local-variable 'file-precious-flag)
   (setq file-precious-flag t)
   (make-local-variable 'desktop-save-buffer)
-  (setq desktop-save-buffer t))
+  (setq desktop-save-buffer t)
+  (setq next-error-move-function 'rmail-next-error-move))
 
 ;; Handle M-x revert-buffer done in an rmail-mode buffer.
 (defun rmail-revert (arg noconfirm)
@@ -3019,15 +3020,73 @@ or forward if N is negative."
   (rmail-maybe-set-message-counters)
   (rmail-show-message rmail-total-messages))
 
-(defun rmail-what-message ()
-  "For debugging Rmail: find the message number that point is in."
+(defun rmail-next-error-move (msg-pos bad-marker)
+  "Move to an error locus (probably grep hit) in an Rmail buffer.
+MSG-POS is a marker pointing at the error message in the grep buffer.
+BAD-MARKER is a marker that ought to point at where to move to,
+but probably is garbage."
+  (let* ((message (car (get-text-property msg-pos 'message (marker-buffer msg-pos))))
+	 (column (car message))
+	 (linenum (cadr message))
+	 pos
+	 msgnum msgbeg msgend
+	 header-field
+	 line-number-within)
+
+    ;; Look at the whole Rmail file.
+    (rmail-swap-buffers-maybe)
+
+    (save-restriction
+      (widen)
+      (save-excursion
+	;; Find the line that the error message points at.
+	(goto-char (point-min))
+	(forward-line linenum)
+	(setq pos (point))
+
+	;; Find which message that's in,
+	;; and the limits of that message.
+	(setq msgnum (rmail-what-message pos))
+	(setq msgbeg (rmail-msgbeg msgnum))
+	(setq msgend (rmail-msgend msgnum))
+
+	;; Find which header this locus is in,
+	;; or if it's in the message body,
+	;; and the line-based position within that.
+	(goto-char msgbeg)
+	(let ((header-end msgend))
+	  (if (search-forward "\n\n" nil t)
+	      (setq header-end (point)))
+	  (if (>= pos header-end)
+	      (setq line-number-within
+		    (count-lines header-end pos))
+	    (goto-char pos)
+	    (unless (looking-at "^[^ \t]")
+	      (re-search-backward "^[^ \t]"))
+	    (looking-at "[^:\n]*[:\n]")
+	    (setq header-field (match-string 0)
+		  line-number-within (count-lines (point) pos))))))
+
+    ;; Display the right message.
+    (rmail-show-message msgnum)
+
+    ;; Move to the right position within the displayed message.
+    (if header-field
+	(re-search-forward (concat "^" (regexp-quote header-field)) nil t)
+      (search-forward "\n\n" nil t))
+    (forward-line line-number-within)
+    (forward-char column)))
+
+(defun rmail-what-message (&optional pos)
+  "Return message number POS (or point) is in."
   (let* ((high rmail-total-messages)
          (mid (/ high 2))
          (low 1)
-         (where (with-current-buffer (if (rmail-buffers-swapped-p)
-                                         rmail-view-buffer
-                                       (current-buffer))
-                  (point))))
+         (where (or pos
+		    (with-current-buffer (if (rmail-buffers-swapped-p)
+					     rmail-view-buffer
+					   (current-buffer))
+		      (point)))))
     (while (> (- high low) 1)
       (if (>= where (rmail-msgbeg mid))
           (setq low mid)

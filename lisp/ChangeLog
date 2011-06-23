@@ -1,3 +1,10 @@
+2011-06-23  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el: Going to grep hit in Rmail buffer finds the message.
+	(rmail-variables): Set next-error-move-function.
+	(rmail-what-message): Take argument POS.
+	(rmail-next-error-move): New function.
+
 2011-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-bnf->prec2): Give more understandable error
