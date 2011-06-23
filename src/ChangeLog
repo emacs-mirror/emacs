@@ -6,6 +6,11 @@
 	Calculate buffer size correctly for out-of-range radices.
 	(read1): Check for integer overflow in radices, and in
 	read-circle numbers.
+	(read_escape): Avoid int overflow.
+	(Fload, openp, read_buffer_size, read1)
+	(substitute_object_recurse, read_vector, read_list, map_obarray):
+	Use ptrdiff_t, not int, for sizes.
+	(read1): Use EMACS_INT, not int, for sizes.
 
 	* image.c (cache_image): Check for size arithmetic overflow.
 
