@@ -1,3 +1,7 @@
+2011-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/verilog-mode.el (verilog-mode): Fix test for bound variable.
+
 2011-06-23  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmail.el: Going to grep hit in Rmail buffer finds the message.
