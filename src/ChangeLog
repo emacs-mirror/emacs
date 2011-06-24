@@ -1,3 +1,8 @@
+2011-06-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (syms_of_gnutls): Use the DEFSYM macro from
+	character.h.
+
 2011-06-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and buffer overflow fixes (Bug#8873).
