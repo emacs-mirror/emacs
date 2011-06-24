@@ -367,15 +367,13 @@ init_macros (void)
 void
 syms_of_macros (void)
 {
-  Qexecute_kbd_macro = intern_c_string ("execute-kbd-macro");
-  staticpro (&Qexecute_kbd_macro);
+  DEFSYM (Qexecute_kbd_macro, "execute-kbd-macro");
 
   DEFVAR_LISP ("kbd-macro-termination-hook", Vkbd_macro_termination_hook,
                doc: /* Normal hook run whenever a keyboard macro terminates.
 This is run whether the macro ends normally or prematurely due to an error.  */);
   Vkbd_macro_termination_hook = Qnil;
-  Qkbd_macro_termination_hook = intern_c_string ("kbd-macro-termination-hook");
-  staticpro (&Qkbd_macro_termination_hook);
+  DEFSYM (Qkbd_macro_termination_hook, "kbd-macro-termination-hook");
 
   defsubr (&Sstart_kbd_macro);
   defsubr (&Send_kbd_macro);

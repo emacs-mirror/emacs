@@ -1937,8 +1937,7 @@ syms_of_composite (void)
 {
   int i;
 
-  Qcomposition = intern_c_string ("composition");
-  staticpro (&Qcomposition);
+  DEFSYM (Qcomposition, "composition");
 
   /* Make a hash table for static composition.  */
   {
@@ -1997,11 +1996,8 @@ valid.
 The default value is the function `compose-chars-after'.  */);
   Vcompose_chars_after_function = intern_c_string ("compose-chars-after");
 
-  Qauto_composed = intern_c_string ("auto-composed");
-  staticpro (&Qauto_composed);
-
-  Qauto_composition_function = intern_c_string ("auto-composition-function");
-  staticpro (&Qauto_composition_function);
+  DEFSYM (Qauto_composed, "auto-composed");
+  DEFSYM (Qauto_composition_function, "auto-composition-function");
 
   DEFVAR_LISP ("auto-composition-mode", Vauto_composition_mode,
 	       doc: /* Non-nil if Auto-Composition mode is enabled.

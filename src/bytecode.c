@@ -1840,8 +1840,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 void
 syms_of_bytecode (void)
 {
-  Qbytecode = intern_c_string ("byte-code");
-  staticpro (&Qbytecode);
+  DEFSYM (Qbytecode, "byte-code");
 
   defsubr (&Sbyte_code);
 
@@ -1863,8 +1862,7 @@ integer, it is incremented each time that symbol's function is called.  */);
 
   byte_metering_on = 0;
   Vbyte_code_meter = Fmake_vector (make_number (256), make_number (0));
-  Qbyte_code_meter = intern_c_string ("byte-code-meter");
-  staticpro (&Qbyte_code_meter);
+  DEFSYM (Qbyte_code_meter, "byte-code-meter");
   {
     int i = 256;
     while (i--)

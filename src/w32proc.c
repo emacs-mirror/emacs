@@ -51,7 +51,6 @@ extern BOOL WINAPI IsValidLocale (LCID, DWORD);
 #endif
 
 #include "lisp.h"
-#include "character.h"
 #include "w32.h"
 #include "w32heap.h"
 #include "systime.h"

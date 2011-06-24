@@ -1162,6 +1162,9 @@ struct Lisp_Symbol
 
 #define SYMBOL_CONSTANT_P(sym)   XSYMBOL (sym)->constant
 
+#define DEFSYM(sym, name)	\
+  do { (sym) = intern_c_string ((name)); staticpro (&(sym)); } while (0)
+
 
 /***********************************************************************
 			     Hash Tables

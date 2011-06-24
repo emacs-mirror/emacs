@@ -5797,24 +5797,17 @@ syms_of_xfns (void)
   /* The section below is built by the lisp expression at the top of the file,
      just above where these variables are declared.  */
   /*&&& init symbols here &&&*/
-  Qnone = intern_c_string ("none");
-  staticpro (&Qnone);
-  Qsuppress_icon = intern_c_string ("suppress-icon");
-  staticpro (&Qsuppress_icon);
-  Qundefined_color = intern_c_string ("undefined-color");
-  staticpro (&Qundefined_color);
-  Qcompound_text = intern_c_string ("compound-text");
-  staticpro (&Qcompound_text);
-  Qcancel_timer = intern_c_string ("cancel-timer");
-  staticpro (&Qcancel_timer);
-  Qfont_param = intern_c_string ("font-parameter");
-  staticpro (&Qfont_param);
+  DEFSYM (Qnone, "none");
+  DEFSYM (Qsuppress_icon, "suppress-icon");
+  DEFSYM (Qundefined_color, "undefined-color");
+  DEFSYM (Qcompound_text, "compound-text");
+  DEFSYM (Qcancel_timer, "cancel-timer");
+  DEFSYM (Qfont_param, "font-parameter");
   /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */
   Vtext_property_default_nonsticky
     = Fcons (Fcons (Qdisplay, Qt), Vtext_property_default_nonsticky);
-
 
   Fput (Qundefined_color, Qerror_conditions,
 	pure_cons (Qundefined_color, pure_cons (Qerror, Qnil)));

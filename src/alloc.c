@@ -6251,8 +6251,7 @@ do hash-consing of the objects allocated to pure space.  */);
   DEFVAR_LISP ("post-gc-hook", Vpost_gc_hook,
 	       doc: /* Hook run after garbage collection has finished.  */);
   Vpost_gc_hook = Qnil;
-  Qpost_gc_hook = intern_c_string ("post-gc-hook");
-  staticpro (&Qpost_gc_hook);
+  DEFSYM (Qpost_gc_hook, "post-gc-hook");
 
   DEFVAR_LISP ("memory-signal-data", Vmemory_signal_data,
 	       doc: /* Precomputed `signal' argument for memory-full error.  */);
@@ -6266,11 +6265,8 @@ do hash-consing of the objects allocated to pure space.  */);
 	       doc: /* Non-nil means Emacs cannot get much more Lisp memory.  */);
   Vmemory_full = Qnil;
 
-  staticpro (&Qgc_cons_threshold);
-  Qgc_cons_threshold = intern_c_string ("gc-cons-threshold");
-
-  staticpro (&Qchar_table_extra_slots);
-  Qchar_table_extra_slots = intern_c_string ("char-table-extra-slots");
+  DEFSYM (Qgc_cons_threshold, "gc-cons-threshold");
+  DEFSYM (Qchar_table_extra_slots, "char-table-extra-slots");
 
   DEFVAR_LISP ("gc-elapsed", Vgc_elapsed,
 	       doc: /* Accumulated time elapsed in garbage collections.

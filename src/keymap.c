@@ -3774,15 +3774,13 @@ Return list of symbols found.  */)
 void
 syms_of_keymap (void)
 {
-  Qkeymap = intern_c_string ("keymap");
-  staticpro (&Qkeymap);
+  DEFSYM (Qkeymap, "keymap");
   staticpro (&apropos_predicate);
   staticpro (&apropos_accumulate);
   apropos_predicate = Qnil;
   apropos_accumulate = Qnil;
 
-  Qkeymap_canonicalize = intern_c_string ("keymap-canonicalize");
-  staticpro (&Qkeymap_canonicalize);
+  DEFSYM (Qkeymap_canonicalize, "keymap-canonicalize");
 
   /* Now we are ready to set up this property, so we can
      create char tables.  */
@@ -3902,27 +3900,13 @@ preferred.  */);
 		  pure_cons (intern_c_string ("mouse-5"),
 			     Qnil)))))))));
 
-
-  Qsingle_key_description = intern_c_string ("single-key-description");
-  staticpro (&Qsingle_key_description);
-
-  Qkey_description = intern_c_string ("key-description");
-  staticpro (&Qkey_description);
-
-  Qkeymapp = intern_c_string ("keymapp");
-  staticpro (&Qkeymapp);
-
-  Qnon_ascii = intern_c_string ("non-ascii");
-  staticpro (&Qnon_ascii);
-
-  Qmenu_item = intern_c_string ("menu-item");
-  staticpro (&Qmenu_item);
-
-  Qremap = intern_c_string ("remap");
-  staticpro (&Qremap);
-
-  QCadvertised_binding = intern_c_string (":advertised-binding");
-  staticpro (&QCadvertised_binding);
+  DEFSYM (Qsingle_key_description, "single-key-description");
+  DEFSYM (Qkey_description, "key-description");
+  DEFSYM (Qkeymapp, "keymapp");
+  DEFSYM (Qnon_ascii, "non-ascii");
+  DEFSYM (Qmenu_item, "menu-item");
+  DEFSYM (Qremap, "remap");
+  DEFSYM (QCadvertised_binding, ":advertised-binding");
 
   command_remapping_vector = Fmake_vector (make_number (2), Qremap);
   staticpro (&command_remapping_vector);

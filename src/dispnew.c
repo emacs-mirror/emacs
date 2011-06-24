@@ -6438,10 +6438,8 @@ syms_of_display (void)
   frame_and_buffer_state = Fmake_vector (make_number (20), Qlambda);
   staticpro (&frame_and_buffer_state);
 
-  Qdisplay_table = intern_c_string ("display-table");
-  staticpro (&Qdisplay_table);
-  Qredisplay_dont_pause = intern_c_string ("redisplay-dont-pause");
-  staticpro (&Qredisplay_dont_pause);
+  DEFSYM (Qdisplay_table, "display-table");
+  DEFSYM (Qredisplay_dont_pause, "redisplay-dont-pause");
 
   DEFVAR_INT ("baud-rate", baud_rate,
 	      doc: /* *The output baud rate of the terminal.

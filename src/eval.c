@@ -3694,46 +3694,23 @@ To prevent this happening, set `quit-flag' to nil
 before making `inhibit-quit' nil.  */);
   Vinhibit_quit = Qnil;
 
-  Qinhibit_quit = intern_c_string ("inhibit-quit");
-  staticpro (&Qinhibit_quit);
-
-  Qautoload = intern_c_string ("autoload");
-  staticpro (&Qautoload);
-
-  Qdebug_on_error = intern_c_string ("debug-on-error");
-  staticpro (&Qdebug_on_error);
-
-  Qmacro = intern_c_string ("macro");
-  staticpro (&Qmacro);
-
-  Qdeclare = intern_c_string ("declare");
-  staticpro (&Qdeclare);
+  DEFSYM (Qinhibit_quit, "inhibit-quit");
+  DEFSYM (Qautoload, "autoload");
+  DEFSYM (Qdebug_on_error, "debug-on-error");
+  DEFSYM (Qmacro, "macro");
+  DEFSYM (Qdeclare, "declare");
 
   /* Note that the process handling also uses Qexit, but we don't want
      to staticpro it twice, so we just do it here.  */
-  Qexit = intern_c_string ("exit");
-  staticpro (&Qexit);
+  DEFSYM (Qexit, "exit");
 
-  Qinteractive = intern_c_string ("interactive");
-  staticpro (&Qinteractive);
-
-  Qcommandp = intern_c_string ("commandp");
-  staticpro (&Qcommandp);
-
-  Qdefun = intern_c_string ("defun");
-  staticpro (&Qdefun);
-
-  Qand_rest = intern_c_string ("&rest");
-  staticpro (&Qand_rest);
-
-  Qand_optional = intern_c_string ("&optional");
-  staticpro (&Qand_optional);
-
-  Qclosure = intern_c_string ("closure");
-  staticpro (&Qclosure);
-
-  Qdebug = intern_c_string ("debug");
-  staticpro (&Qdebug);
+  DEFSYM (Qinteractive, "interactive");
+  DEFSYM (Qcommandp, "commandp");
+  DEFSYM (Qdefun, "defun");
+  DEFSYM (Qand_rest, "&rest");
+  DEFSYM (Qand_optional, "&optional");
+  DEFSYM (Qclosure, "closure");
+  DEFSYM (Qdebug, "debug");
 
   DEFVAR_LISP ("debug-on-error", Vdebug_on_error,
 	       doc: /* *Non-nil means enter debugger if an error is signaled.
@@ -3807,9 +3784,7 @@ The value the function returns is not used.  */);
    Every element of this list can be either a cons (VAR . VAL)
    specifying a lexical binding, or a single symbol VAR indicating
    that this variable should use dynamic scoping.  */
-  Qinternal_interpreter_environment
-    = intern_c_string ("internal-interpreter-environment");
-  staticpro (&Qinternal_interpreter_environment);
+  DEFSYM (Qinternal_interpreter_environment, "internal-interpreter-environment");
   DEFVAR_LISP ("internal-interpreter-environment",
 		Vinternal_interpreter_environment,
 	       doc: /* If non-nil, the current lexical environment of the lisp interpreter.
@@ -3821,8 +3796,7 @@ alist of active lexical bindings.  */);
      (Just imagine if someone makes it buffer-local).  */
   Funintern (Qinternal_interpreter_environment, Qnil);
 
-  Vrun_hooks = intern_c_string ("run-hooks");
-  staticpro (&Vrun_hooks);
+  DEFSYM (Vrun_hooks, "run-hooks");
 
   staticpro (&Vautoload_queue);
   Vautoload_queue = Qnil;

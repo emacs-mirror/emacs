@@ -628,7 +628,4 @@ extern Lisp_Object string_escape_byte8 (Lisp_Object);
 #define GET_TRANSLATION_TABLE(id) \
   (XCDR(XVECTOR(Vtranslation_table_vector)->contents[(id)]))
 
-#define DEFSYM(sym, name)	\
-  do { (sym) = intern_c_string ((name)); staticpro (&(sym)); } while (0)
-
 #endif /* EMACS_CHARACTER_H */

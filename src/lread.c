@@ -3983,8 +3983,7 @@ init_obarray (void)
   /* Qt is correct even if CANNOT_DUMP.  loadup.el will set to nil at end.  */
   Vpurify_flag = Qt;
 
-  Qvariable_documentation = intern_c_string ("variable-documentation");
-  staticpro (&Qvariable_documentation);
+  DEFSYM (Qvariable_documentation, "variable-documentation");
 
   read_buffer_size = 100 + MAX_MULTIBYTE_LENGTH;
   read_buffer = (char *) xmalloc (read_buffer_size);
@@ -4392,8 +4391,7 @@ customize `jka-compr-load-suffixes' rather than the present variable.  */);
 
   DEFVAR_BOOL ("load-in-progress", load_in_progress,
 	       doc: /* Non-nil if inside of `load'.  */);
-  Qload_in_progress = intern_c_string ("load-in-progress");
-  staticpro (&Qload_in_progress);
+  DEFSYM (Qload_in_progress, "load-in-progress");
 
   DEFVAR_LISP ("after-load-alist", Vafter_load_alist,
 	       doc: /* An alist of expressions to be evalled when particular files are loaded.
@@ -4524,67 +4522,34 @@ This variable is automatically set from the file variables of an interpreted
   DEFVAR_LISP ("old-style-backquotes", Vold_style_backquotes,
 	       doc: /* Set to non-nil when `read' encounters an old-style backquote.  */);
   Vold_style_backquotes = Qnil;
-  Qold_style_backquotes = intern_c_string ("old-style-backquotes");
-  staticpro (&Qold_style_backquotes);
+  DEFSYM (Qold_style_backquotes, "old-style-backquotes");
 
   /* Vsource_directory was initialized in init_lread.  */
 
   load_descriptor_list = Qnil;
   staticpro (&load_descriptor_list);
 
-  Qcurrent_load_list = intern_c_string ("current-load-list");
-  staticpro (&Qcurrent_load_list);
+  DEFSYM (Qcurrent_load_list, "current-load-list");
+  DEFSYM (Qstandard_input, "standard-input");
+  DEFSYM (Qread_char, "read-char");
+  DEFSYM (Qget_file_char, "get-file-char");
+  DEFSYM (Qget_emacs_mule_file_char, "get-emacs-mule-file-char");
+  DEFSYM (Qload_force_doc_strings, "load-force-doc-strings");
 
-  Qstandard_input = intern_c_string ("standard-input");
-  staticpro (&Qstandard_input);
+  DEFSYM (Qbackquote, "`");
+  DEFSYM (Qcomma, ",");
+  DEFSYM (Qcomma_at, ",@");
+  DEFSYM (Qcomma_dot, ",.");
 
-  Qread_char = intern_c_string ("read-char");
-  staticpro (&Qread_char);
-
-  Qget_file_char = intern_c_string ("get-file-char");
-  staticpro (&Qget_file_char);
-
-  Qget_emacs_mule_file_char = intern_c_string ("get-emacs-mule-file-char");
-  staticpro (&Qget_emacs_mule_file_char);
-
-  Qload_force_doc_strings = intern_c_string ("load-force-doc-strings");
-  staticpro (&Qload_force_doc_strings);
-
-  Qbackquote = intern_c_string ("`");
-  staticpro (&Qbackquote);
-  Qcomma = intern_c_string (",");
-  staticpro (&Qcomma);
-  Qcomma_at = intern_c_string (",@");
-  staticpro (&Qcomma_at);
-  Qcomma_dot = intern_c_string (",.");
-  staticpro (&Qcomma_dot);
-
-  Qinhibit_file_name_operation = intern_c_string ("inhibit-file-name-operation");
-  staticpro (&Qinhibit_file_name_operation);
-
-  Qascii_character = intern_c_string ("ascii-character");
-  staticpro (&Qascii_character);
-
-  Qfunction = intern_c_string ("function");
-  staticpro (&Qfunction);
-
-  Qload = intern_c_string ("load");
-  staticpro (&Qload);
-
-  Qload_file_name = intern_c_string ("load-file-name");
-  staticpro (&Qload_file_name);
-
-  Qeval_buffer_list = intern_c_string ("eval-buffer-list");
-  staticpro (&Qeval_buffer_list);
-
-  Qfile_truename = intern_c_string ("file-truename");
-  staticpro (&Qfile_truename) ;
-
-  Qdir_ok = intern_c_string ("dir-ok");
-  staticpro (&Qdir_ok);
-
-  Qdo_after_load_evaluation = intern_c_string ("do-after-load-evaluation");
-  staticpro (&Qdo_after_load_evaluation) ;
+  DEFSYM (Qinhibit_file_name_operation, "inhibit-file-name-operation");
+  DEFSYM (Qascii_character, "ascii-character");
+  DEFSYM (Qfunction, "function");
+  DEFSYM (Qload, "load");
+  DEFSYM (Qload_file_name, "load-file-name");
+  DEFSYM (Qeval_buffer_list, "eval-buffer-list");
+  DEFSYM (Qfile_truename, "file-truename");
+  DEFSYM (Qdir_ok, "dir-ok");
+  DEFSYM (Qdo_after_load_evaluation, "do-after-load-evaluation");
 
   staticpro (&dump_path);
 
@@ -4596,18 +4561,11 @@ This variable is automatically set from the file variables of an interpreted
   Vloads_in_progress = Qnil;
   staticpro (&Vloads_in_progress);
 
-  Qhash_table = intern_c_string ("hash-table");
-  staticpro (&Qhash_table);
-  Qdata = intern_c_string ("data");
-  staticpro (&Qdata);
-  Qtest = intern_c_string ("test");
-  staticpro (&Qtest);
-  Qsize = intern_c_string ("size");
-  staticpro (&Qsize);
-  Qweakness = intern_c_string ("weakness");
-  staticpro (&Qweakness);
-  Qrehash_size = intern_c_string ("rehash-size");
-  staticpro (&Qrehash_size);
-  Qrehash_threshold = intern_c_string ("rehash-threshold");
-  staticpro (&Qrehash_threshold);
+  DEFSYM (Qhash_table, "hash-table");
+  DEFSYM (Qdata, "data");
+  DEFSYM (Qtest, "test");
+  DEFSYM (Qsize, "size");
+  DEFSYM (Qweakness, "weakness");
+  DEFSYM (Qrehash_size, "rehash-size");
+  DEFSYM (Qrehash_threshold, "rehash-threshold");
 }

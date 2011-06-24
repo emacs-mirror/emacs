@@ -750,12 +750,9 @@ syms_of_xsettings (void)
   gconf_client = NULL;
 #endif
 
-  Qmonospace_font_name = intern_c_string ("monospace-font-name");
-  staticpro (&Qmonospace_font_name);
-  Qfont_name = intern_c_string ("font-name");
-  staticpro (&Qfont_name);
-  Qfont_render = intern_c_string ("font-render");
-  staticpro (&Qfont_render);
+  DEFSYM (Qmonospace_font_name, "monospace-font-name");
+  DEFSYM (Qfont_name, "font-name");
+  DEFSYM (Qfont_render, "font-render");
   defsubr (&Sfont_get_system_font);
   defsubr (&Sfont_get_system_normal_font);
 
@@ -778,8 +775,7 @@ If this variable is nil, Emacs ignores system font changes.  */);
 #endif
 
   current_tool_bar_style = Qnil;
-  Qtool_bar_style = intern_c_string ("tool-bar-style");
-  staticpro (&Qtool_bar_style);
+  DEFSYM (Qtool_bar_style, "tool-bar-style");
   defsubr (&Stool_bar_get_system_style);
 
   Fprovide (intern_c_string ("dynamic-setting"), Qnil);

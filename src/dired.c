@@ -1017,21 +1017,13 @@ Comparison is in lexicographic order and case is significant.  */)
 void
 syms_of_dired (void)
 {
-  Qdirectory_files = intern_c_string ("directory-files");
-  Qdirectory_files_and_attributes = intern_c_string ("directory-files-and-attributes");
-  Qfile_name_completion = intern_c_string ("file-name-completion");
-  Qfile_name_all_completions = intern_c_string ("file-name-all-completions");
-  Qfile_attributes = intern_c_string ("file-attributes");
-  Qfile_attributes_lessp = intern_c_string ("file-attributes-lessp");
-  Qdefault_directory = intern_c_string ("default-directory");
-
-  staticpro (&Qdirectory_files);
-  staticpro (&Qdirectory_files_and_attributes);
-  staticpro (&Qfile_name_completion);
-  staticpro (&Qfile_name_all_completions);
-  staticpro (&Qfile_attributes);
-  staticpro (&Qfile_attributes_lessp);
-  staticpro (&Qdefault_directory);
+  DEFSYM (Qdirectory_files, "directory-files");
+  DEFSYM (Qdirectory_files_and_attributes, "directory-files-and-attributes");
+  DEFSYM (Qfile_name_completion, "file-name-completion");
+  DEFSYM (Qfile_name_all_completions, "file-name-all-completions");
+  DEFSYM (Qfile_attributes, "file-attributes");
+  DEFSYM (Qfile_attributes_lessp, "file-attributes-lessp");
+  DEFSYM (Qdefault_directory, "default-directory");
 
   defsubr (&Sdirectory_files);
   defsubr (&Sdirectory_files_and_attributes);

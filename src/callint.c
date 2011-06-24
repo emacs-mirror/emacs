@@ -896,41 +896,20 @@ syms_of_callint (void)
 				pure_cons (intern_c_string ("point"),
 				       pure_cons (intern_c_string ("mark"), Qnil))));
 
-  Qlist = intern_c_string ("list");
-  staticpro (&Qlist);
-  Qlet = intern_c_string ("let");
-  staticpro (&Qlet);
-  Qif = intern_c_string ("if");
-  staticpro (&Qif);
-  Qwhen = intern_c_string ("when");
-  staticpro (&Qwhen);
-  Qletx = intern_c_string ("let*");
-  staticpro (&Qletx);
-  Qsave_excursion = intern_c_string ("save-excursion");
-  staticpro (&Qsave_excursion);
-  Qprogn = intern_c_string ("progn");
-  staticpro (&Qprogn);
-
-  Qminus = intern_c_string ("-");
-  staticpro (&Qminus);
-
-  Qplus = intern_c_string ("+");
-  staticpro (&Qplus);
-
-  Qhandle_shift_selection = intern_c_string ("handle-shift-selection");
-  staticpro (&Qhandle_shift_selection);
-
-  Qcall_interactively = intern_c_string ("call-interactively");
-  staticpro (&Qcall_interactively);
-
-  Qcommand_debug_status = intern_c_string ("command-debug-status");
-  staticpro (&Qcommand_debug_status);
-
-  Qenable_recursive_minibuffers = intern_c_string ("enable-recursive-minibuffers");
-  staticpro (&Qenable_recursive_minibuffers);
-
-  Qmouse_leave_buffer_hook = intern_c_string ("mouse-leave-buffer-hook");
-  staticpro (&Qmouse_leave_buffer_hook);
+  DEFSYM (Qlist, "list");
+  DEFSYM (Qlet, "let");
+  DEFSYM (Qif, "if");
+  DEFSYM (Qwhen, "when");
+  DEFSYM (Qletx, "let*");
+  DEFSYM (Qsave_excursion, "save-excursion");
+  DEFSYM (Qprogn, "progn");
+  DEFSYM (Qminus, "-");
+  DEFSYM (Qplus, "+");
+  DEFSYM (Qhandle_shift_selection, "handle-shift-selection");
+  DEFSYM (Qcall_interactively, "call-interactively");
+  DEFSYM (Qcommand_debug_status, "command-debug-status");
+  DEFSYM (Qenable_recursive_minibuffers, "enable-recursive-minibuffers");
+  DEFSYM (Qmouse_leave_buffer_hook, "mouse-leave-buffer-hook");
 
   DEFVAR_KBOARD ("prefix-arg", Vprefix_arg,
 		 doc: /* The value of the prefix argument for the next editing command.

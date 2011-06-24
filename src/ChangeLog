@@ -1,7 +1,62 @@
+2011-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	Move DEFSYM to lisp.h and use everywhere.
+
+	* character.h (DEFSYM): Move declaration...
+	* lisp.h (DEFSYM): ...here.
+
+	* gnutls.c:
+	* minibuf.c:
+	* w32menu.c:
+	* w32proc.c:
+	* w32select.c: Don't include character.h.
+
+	* alloc.c (syms_of_alloc):
+	* buffer.c (syms_of_buffer):
+	* bytecode.c (syms_of_bytecode):
+	* callint.c (syms_of_callint):
+	* casefiddle.c (syms_of_casefiddle):
+	* casetab.c (init_casetab_once):
+	* category.c (init_category_once, syms_of_category):
+	* ccl.c (syms_of_ccl):
+	* cmds.c (syms_of_cmds):
+	* composite.c (syms_of_composite):
+	* dbusbind.c (syms_of_dbusbind):
+	* dired.c (syms_of_dired):
+	* dispnew.c (syms_of_display):
+	* doc.c (syms_of_doc):
+	* editfns.c (syms_of_editfns):
+	* emacs.c (syms_of_emacs):
+	* eval.c (syms_of_eval):
+	* fileio.c (syms_of_fileio):
+	* fns.c (syms_of_fns):
+	* frame.c (syms_of_frame):
+	* fringe.c (syms_of_fringe):
+	* insdel.c (syms_of_insdel):
+	* keymap.c (syms_of_keymap):
+	* lread.c (init_obarray, syms_of_lread):
+	* macros.c (syms_of_macros):
+	* msdos.c (syms_of_msdos):
+	* print.c (syms_of_print):
+	* process.c (syms_of_process):
+	* search.c (syms_of_search):
+	* sound.c (syms_of_sound):
+	* syntax.c (init_syntax_once, syms_of_syntax):
+	* terminal.c (syms_of_terminal):
+	* textprop.c (syms_of_textprop):
+	* undo.c (syms_of_undo):
+	* w32.c (globals_of_w32):
+	* window.c (syms_of_window):
+	* xdisp.c (syms_of_xdisp):
+	* xfaces.c (syms_of_xfaces):
+	* xfns.c (syms_of_xfns):
+	* xmenu.c (syms_of_xmenu):
+	* xsettings.c (syms_of_xsettings):
+	* xterm.c (syms_of_xterm): Use DEFSYM.
+
 2011-06-24  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* gnutls.c (syms_of_gnutls): Use the DEFSYM macro from
-	character.h.
+	* gnutls.c (syms_of_gnutls): Use the DEFSYM macro from character.h.
 
 2011-06-23  Paul Eggert  <eggert@cs.ucla.edu>
 
