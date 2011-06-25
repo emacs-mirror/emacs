@@ -1405,22 +1405,36 @@ marks.  This is intended to deal with deleted diary entries."
     (setq calendar-mark-diary-entries-flag nil)
     (calendar-redraw))
   (let ((diary-marking-entries-flag t)
-        file-glob-attrs)
-    (with-current-buffer (find-file-noselect (diary-check-diary-file) t)
-      (save-excursion
-        (when (eq major-mode (default-value 'major-mode)) (diary-mode))
-        (setq calendar-mark-diary-entries-flag t)
-        (message "Marking diary entries...")
-        (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
-        (with-syntax-table diary-syntax-table
-          (diary-mark-entries-1 'calendar-mark-date-pattern)
-          (diary-mark-sexp-entries)
-          ;; Although it looks like mark-entries-hook runs every time,
-          ;; diary-mark-included-diary-files binds it to nil
-          ;; (essentially) when it runs in included files.
-          (run-hooks 'diary-nongregorian-marking-hook
-                     'diary-mark-entries-hook))
-        (message "Marking diary entries...done")))))
+        (diary-buffer (find-buffer-visiting diary-file))
+        ;; Dynamically bound in diary-mark-included-diary-files.
+        (d-incp (and (boundp 'diary-including) diary-including))
+        file-glob-attrs temp-buff)
+    (unless d-incp
+      (message "Marking diary entries..."))
+    (unwind-protect
+        (with-current-buffer (or diary-buffer
+                                 (if d-incp
+                                     (setq temp-buff (generate-new-buffer
+                                                        " *diary-temp*"))
+                                   (find-file-noselect
+                                    (diary-check-diary-file) t)))
+          (if temp-buff
+              ;; If including, caller has already verified it is readable.
+              (insert-file-contents diary-file)
+            (if (eq major-mode (default-value 'major-mode)) (diary-mode)))
+          (setq calendar-mark-diary-entries-flag t)
+          (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
+          (with-syntax-table diary-syntax-table
+            (save-excursion
+              (diary-mark-entries-1 'calendar-mark-date-pattern)
+              (diary-mark-sexp-entries)
+              ;; Although it looks like mark-entries-hook runs every time,
+              ;; diary-mark-included-diary-files binds it to nil
+              ;; (essentially) when it runs in included files.
+              (run-hooks 'diary-nongregorian-marking-hook
+                         'diary-mark-entries-hook))))
+      (and temp-buff (buffer-name temp-buff) (kill-buffer temp-buff)))
+    (or d-incp (message "Marking diary entries...done"))))
 
 ;;;###cal-autoload
 (define-obsolete-function-alias 'mark-diary-entries 'diary-mark-entries "23.1")
@@ -1514,15 +1528,12 @@ See also `diary-include-other-diary-files'."
   (while (re-search-forward
           (format "^%s \"\\([^\"]*\\)\"" (regexp-quote diary-include-string))
           nil t)
-    (let* ((diary-file (match-string-no-properties 1))
-           (diary-mark-entries-hook 'diary-mark-included-diary-files)
-           (dbuff (find-buffer-visiting diary-file)))
+    (let ((diary-file (match-string-no-properties 1))
+          (diary-mark-entries-hook 'diary-mark-included-diary-files)
+          (diary-including t))
       (if (file-exists-p diary-file)
           (if (file-readable-p diary-file)
-              (progn
-                (diary-mark-entries)
-                (unless dbuff
-                  (kill-buffer (find-buffer-visiting diary-file))))
+              (diary-mark-entries)
             (beep)
             (message "Can't read included diary file %s" diary-file)
             (sleep-for 2))

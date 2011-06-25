@@ -1,5 +1,9 @@
 2011-06-25  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/diary-lib.el (diary-mark-entries)
+	(diary-mark-included-diary-files):
+	Visit included diary-files in temp buffers.
+
 	* progmodes/f90.el (f90-keywords-re, f90-font-lock-keywords-1)
 	(f90-blocks-re, f90-program-block-re, f90-end-block-re)
 	(f90-start-block-re, f90-imenu-generic-expression)
