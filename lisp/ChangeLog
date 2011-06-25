@@ -1,3 +1,8 @@
+2011-06-25  Giuseppe Scrivano  <gscrivano@gnu.org>
+
+	* net/browse-url.el (browse-url-firefox-program): Add icecat to
+	the candidates list.
+
 2011-06-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/verilog-mode.el (verilog-mode): Fix test for bound variable.
