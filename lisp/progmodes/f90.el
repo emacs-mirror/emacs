@@ -310,6 +310,8 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
                 "deferred" "enum" "enumerator" "extends" "extends_type_of"
                 "final" "generic" "import" "non_intrinsic" "non_overridable"
                 "nopass" "pass" "protected" "same_type_as" "value" "volatile"
+                ;; F2008
+                "contiguous"
                 ) 'words)
   "Regexp used by the function `f90-change-keywords'.")
 
@@ -365,6 +367,18 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
              ;; F2003 iso_c_binding intrinsic module.
              "c_loc" "c_funloc" "c_associated" "c_f_pointer"
              "c_f_procpointer"
+             ;; F2008.
+             "bge" "bgt" "ble" "blt" "dshiftl" "dshiftr" "leadz" "popcnt"
+             "poppar" "trailz" "maskl" "maskr" "shifta" "shiftl" "shiftr"
+             "merge_bits" "iall" "iany" "iparity" "storage_size"
+             "bessel_j0" "bessel_j1" "bessel_jn"
+             "bessel_y0" "bessel_y1" "bessel_yn"
+             "erf" "erfc" "erfc_scaled" "gamma" "hypot" "log_gamma"
+             "norm2" "parity" "findloc"
+             ;; F2008 iso_fortran_env module.
+             "compiler_options" "compiler_version"
+             ;; F2008 iso_c_binding module.
+             "c_sizeof"
              ) t)
           ;; A left parenthesis to avoid highlighting non-procedures.
           "[ \t]*(")
@@ -427,6 +441,10 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
                 "ieee_exceptions"
                 "ieee_arithmetic"
                 "ieee_features"
+                ;; F2008 iso_fortran_env constants.
+                "character_kinds" "int8" "int16" "int32" "int64"
+                "integer_kinds" "iostat_inquire_internal_unit"
+                "logical_kinds" "real_kinds" "real32" "real64" "real128"
                 ) 'words)
   "Regexp for Fortran intrinsic constants.")
 
