@@ -1,3 +1,8 @@
+2011-06-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use gnulib's dup2 module instead of rolling our own.
+	* sysdep.c (dup2) [!HAVE_DUP2]: Remove; gnulib now does this.
+
 2011-06-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	Move DEFSYM to lisp.h and use everywhere.

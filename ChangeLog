@@ -1,3 +1,10 @@
+2011-06-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use gnulib's dup2 module instead of rolling our own.
+	* Makefile.in (GNULIB_MODULES): Add dup2.
+	* configure.in: Do not check for dup2; gnulib does that now.
+	* lib/dup2.c, m4/dup2.m4: New files, from gnulib.
+
 2011-06-23  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lib/getopt.c, lib/stat.c, m4/gl-comp.m4: Merge from gnulib.
