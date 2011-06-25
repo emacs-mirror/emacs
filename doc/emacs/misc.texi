@@ -1623,6 +1623,11 @@ text-only terminal frame (@pxref{Frames}).  If you omit a filename
 argument while supplying the @samp{-c} option, the new frame displays
 the @samp{*scratch*} buffer (@pxref{Buffers}).
 
+@item -F
+@itemx --frame-parameters=@var{alist}
+Set the parameters for a newly-created graphical frame
+(@pxref{Frame Parameters}).
+
 @item -d @var{display}
 @itemx --display=@var{display}
 Tell Emacs to open the given files on the X display @var{display}

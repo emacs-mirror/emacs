@@ -160,6 +160,10 @@ const char *server_file = NULL;
 /* PID of the Emacs server process.  */
 int emacs_pid = 0;
 
+/* If non-NULL, a string that should form a frame parameter alist to
+   be used for the new frame */
+const char *frame_parameters = NULL;
+
 static void print_help_and_exit (void) NO_RETURN;
 static void fail (void) NO_RETURN;
 
@@ -175,6 +179,7 @@ struct option longopts[] =
   { "nw",	no_argument,       NULL, 't' },
   { "create-frame", no_argument,   NULL, 'c' },
   { "alternate-editor", required_argument, NULL, 'a' },
+  { "frame-parameters", required_argument, NULL, 'F' },
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
   { "socket-name",	required_argument, NULL, 's' },
 #endif
@@ -598,6 +603,10 @@ decode_options (int argc, char **argv)
 	case 'H':
 	  print_help_and_exit ();
 	  break;
+
+        case 'F':
+          frame_parameters = optarg;
+          break;
 
 	default:
 	  message (TRUE, "Try `%s --help' for more information\n", progname);
@@ -1627,6 +1636,13 @@ main (int argc, char **argv)
     {
       send_to_emacs (emacs_socket, "-parent-id ");
       quote_argument (emacs_socket, parent_id);
+      send_to_emacs (emacs_socket, " ");
+    }
+
+  if (frame_parameters && !current_frame)
+    {
+      send_to_emacs (emacs_socket, "-frame-parameters ");
+      quote_argument (emacs_socket, frame_parameters);
       send_to_emacs (emacs_socket, " ");
     }
 

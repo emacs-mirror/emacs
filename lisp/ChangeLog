@@ -1,3 +1,8 @@
+2011-06-25  Andreas Rottmann  <a.rottmann@gmx.at>
+
+	* server.el (server-create-window-system-frame): Add parameters arg.
+	(server-process-filter): Doc fix.  Handle frame-parameters.
+
 2011-06-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	Fix bug#8730, bug#8781.
