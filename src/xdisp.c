@@ -4482,12 +4482,43 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	  it->end_charpos = it->string_nchars = SCHARS (it->string);
 	  it->method = GET_FROM_STRING;
 	  it->stop_charpos = 0;
+	  it->prev_stop = 0;
+	  it->base_level_stop = 0;
 	  it->string_from_display_prop_p = 1;
 	  /* Say that we haven't consumed the characters with
 	     `display' property yet.  The call to pop_it in
 	     set_iterator_to_next will clean this up.  */
 	  if (BUFFERP (object))
 	    *position = start_pos;
+
+	  /* Force paragraph direction to be that of the parent
+	     object.  */
+	  it->paragraph_embedding =
+	    (it->bidi_p ? it->bidi_it.paragraph_dir : L2R);
+
+	  /* Do we need to reorder this display string?  */
+	  if (it->multibyte_p)
+	    {
+	      if (BUFFERP (object))
+		it->bidi_p =
+		  !NILP (BVAR (XBUFFER (object), bidi_display_reordering));
+	      else
+		it->bidi_p =
+		  !NILP (BVAR (&buffer_defaults, bidi_display_reordering));
+	    }
+	  else
+	    it->bidi_p = 0;
+
+	  /* Set up the bidi iterator for this display string.  */
+	  if (it->bidi_p)
+	    {
+	      it->bidi_it.string.lstring = it->string;
+	      it->bidi_it.string.s = NULL;
+	      it->bidi_it.string.schars = it->end_charpos;
+	      it->bidi_it.string.bufpos = bufpos;
+	      it->bidi_it.string.from_disp_str = 1;
+	      bidi_init_it (0, 0, FRAME_WINDOW_P (it->f), &it->bidi_it);
+	    }
 	}
       else if (CONSP (value) && EQ (XCAR (value), Qspace))
 	{
@@ -4839,6 +4870,24 @@ next_overlay_string (struct it *it)
       it->stop_charpos = 0;
       if (it->cmp_it.stop_pos >= 0)
 	it->cmp_it.stop_pos = 0;
+      it->prev_stop = 0;
+      it->base_level_stop = 0;
+
+      /* Do we need to reorder this overlay string?  */
+      it->bidi_p =
+	it->multibyte_p
+	&& !NILP (BVAR (current_buffer, bidi_display_reordering));
+
+      /* Set up the bidi iterator for this overlay string.  */
+      if (it->bidi_p)
+	{
+	  it->bidi_it.string.lstring = it->string;
+	  it->bidi_it.string.s = NULL;
+	  it->bidi_it.string.schars = SCHARS (it->string);
+	  it->bidi_it.string.bufpos = it->overlay_strings_charpos;
+	  it->bidi_it.string.from_disp_str = it->string_from_display_prop_p;
+	  bidi_init_it (0, 0, FRAME_WINDOW_P (it->f), &it->bidi_it);
+	}
     }
 
   CHECK_IT (it);
@@ -5105,8 +5154,32 @@ get_overlay_strings_1 (struct it *it, EMACS_INT charpos, int compute_stop_p)
       it->stop_charpos = 0;
       xassert (STRINGP (it->string));
       it->end_charpos = SCHARS (it->string);
+      it->prev_stop = 0;
+      it->base_level_stop = 0;
       it->multibyte_p = STRING_MULTIBYTE (it->string);
       it->method = GET_FROM_STRING;
+
+      /* Do we need to reorder this overlay string?  */
+      it->bidi_p =
+	it->multibyte_p
+	&& !NILP (BVAR (current_buffer, bidi_display_reordering));
+
+      /* Force paragraph direction to be that of the parent
+	 buffer.  */
+      it->paragraph_embedding = (it->bidi_p ? it->bidi_it.paragraph_dir : L2R);
+
+      /* Set up the bidi iterator for this overlay string.  */
+      if (it->bidi_p)
+	{
+	  EMACS_INT pos = (charpos > 0 ? charpos : IT_CHARPOS (*it));
+
+	  it->bidi_it.string.lstring = it->string;
+	  it->bidi_it.string.s = NULL;
+	  it->bidi_it.string.schars = SCHARS (it->string);
+	  it->bidi_it.string.bufpos = pos;
+	  it->bidi_it.string.from_disp_str = it->string_from_display_prop_p;
+	  bidi_init_it (0, 0, FRAME_WINDOW_P (it->f), &it->bidi_it);
+	}
       return 1;
     }
 
@@ -5181,19 +5254,28 @@ push_it (struct it *it, struct text_pos *position)
   p->string_from_display_prop_p = it->string_from_display_prop_p;
   p->display_ellipsis_p = 0;
   p->line_wrap = it->line_wrap;
+  p->bidi_p = it->bidi_p;
   ++it->sp;
+
+  /* Save the state of the bidi iterator as well. */
+  if (it->bidi_p)
+    bidi_push_it (&it->bidi_it);
 }
 
 static void
 iterate_out_of_display_property (struct it *it)
 {
+  int buffer_p = BUFFERP (it->object);
+  EMACS_INT eob = (buffer_p ? ZV : it->end_charpos);
+  EMACS_INT bob = (buffer_p ? BEGV : 0);
+
   /* Maybe initialize paragraph direction.  If we are at the beginning
      of a new paragraph, next_element_from_buffer may not have a
      chance to do that.  */
-  if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
+  if (it->bidi_it.first_elt && it->bidi_it.charpos < eob)
     bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
   /* prev_stop can be zero, so check against BEGV as well.  */
-  while (it->bidi_it.charpos >= BEGV
+  while (it->bidi_it.charpos >= bob
 	 && it->prev_stop <= it->bidi_it.charpos
 	 && it->bidi_it.charpos < CHARPOS (it->position))
     bidi_move_to_visually_next (&it->bidi_it);
@@ -5207,7 +5289,10 @@ iterate_out_of_display_property (struct it *it)
     {
       SET_TEXT_POS (it->position,
 		    it->bidi_it.charpos, it->bidi_it.bytepos);
-      it->current.pos = it->position;
+      if (buffer_p)
+	it->current.pos = it->position;
+      else
+	it->current.string_pos = it->position;
     }
 }
 
@@ -5249,18 +5334,6 @@ pop_it (struct it *it)
       break;
     case GET_FROM_BUFFER:
       it->object = it->w->buffer;
-      if (it->bidi_p)
-	{
-	  /* Bidi-iterate until we get out of the portion of text, if
-	     any, covered by a `display' text property or an overlay
-	     with `display' property.  (We cannot just jump there,
-	     because the internal coherency of the bidi iterator state
-	     can not be preserved across such jumps.)  We also must
-	     determine the paragraph base direction if the overlay we
-	     just processed is at the beginning of a new
-	     paragraph.  */
-	  iterate_out_of_display_property (it);
-	}
       break;
     case GET_FROM_STRING:
       it->object = it->string;
@@ -5286,6 +5359,20 @@ pop_it (struct it *it)
   it->voffset = p->voffset;
   it->string_from_display_prop_p = p->string_from_display_prop_p;
   it->line_wrap = p->line_wrap;
+  it->bidi_p = p->bidi_p;
+  if (it->bidi_p)
+    {
+      bidi_pop_it (&it->bidi_it);
+      /* Bidi-iterate until we get out of the portion of text, if any,
+	 covered by a `display' text property or by an overlay with
+	 `display' property.  (We cannot just jump there, because the
+	 internal coherency of the bidi iterator state can not be
+	 preserved across such jumps.)  We also must determine the
+	 paragraph base direction if the overlay we just processed is
+	 at the beginning of a new paragraph.  */
+      if (it->method == GET_FROM_BUFFER || it->method == GET_FROM_STRING)
+	iterate_out_of_display_property (it);
+    }
 }
 
 
@@ -5368,15 +5455,16 @@ forward_to_next_line_start (struct it *it, int *skipped_p)
 
       xassert (!STRINGP (it->string));
 
-      /* If there isn't any `display' property in sight, and no
-	 overlays, we can just use the position of the newline in
-	 buffer text.  */
-      if (it->stop_charpos >= limit
-	  || ((pos = Fnext_single_property_change (make_number (start),
-						   Qdisplay,
-						   Qnil, make_number (limit)),
-	       NILP (pos))
-	      && next_overlay_change (start) == ZV))
+      /* If we are not bidi-reordering, and there isn't any `display'
+	 property in sight, and no overlays, we can just use the
+	 position of the newline in buffer text.  */
+      if (!it->bidi_p
+	  && (it->stop_charpos >= limit
+	      || ((pos = Fnext_single_property_change (make_number (start),
+						       Qdisplay, Qnil,
+						       make_number (limit)),
+		   NILP (pos))
+		  && next_overlay_change (start) == ZV)))
 	{
 	  IT_CHARPOS (*it) = limit;
 	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (limit);
@@ -5456,7 +5544,20 @@ back_to_previous_visible_line_start (struct it *it)
 	    && (OVERLAYP (overlay)
 		? (beg = OVERLAY_POSITION (OVERLAY_START (overlay)))
 		: get_property_and_range (pos, Qdisplay, &val, &beg, &end, Qnil)))
-	  goto replaced;
+	  {
+	    /* If the call to handle_display_prop above pushed the
+	       iterator state, that causes side effects for the bidi
+	       iterator by calling bidi_push_it.  Undo those side
+	       effects.  */
+	    while (it2.sp > 0)
+	      {
+		/* push_it calls bidi_push_it only if the bidi_p flag
+		   is set in the iterator being pushed.  */
+		if (it2.stack[--it2.sp].bidi_p)
+		  bidi_pop_it (&it2.bidi_it);
+	      }
+	    goto replaced;
+	  }
 
 	/* Newline is not replaced by anything -- so we are done.  */
 	break;
@@ -5525,14 +5626,29 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
 	{
 	  if (IT_STRING_CHARPOS (*it) > 0)
 	    {
-	      --IT_STRING_CHARPOS (*it);
-	      --IT_STRING_BYTEPOS (*it);
+	      if (!it->bidi_p)
+		{
+		  --IT_STRING_CHARPOS (*it);
+		  --IT_STRING_BYTEPOS (*it);
+		}
+	      else
+		/* Setting this flag will cause
+		   bidi_move_to_visually_next not to advance, but
+		   instead deliver the current character (newline),
+		   which is what the ON_NEWLINE_P flag wants.  */
+		it->bidi_it.first_elt = 1;
 	    }
 	}
       else if (IT_CHARPOS (*it) > BEGV)
 	{
-	  --IT_CHARPOS (*it);
-	  --IT_BYTEPOS (*it);
+	  if (!it->bidi_p)
+	    {
+	      --IT_CHARPOS (*it);
+	      --IT_BYTEPOS (*it);
+	    }
+	  /* With bidi iteration, the call to `reseat' will cause
+	     bidi_move_to_visually_next deliver the current character,
+	     the newline, instead of advancing.  */
 	  reseat (it, it->current.pos, 0);
 	}
     }
@@ -5614,7 +5730,6 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
   IT_STRING_CHARPOS (*it) = -1;
   IT_STRING_BYTEPOS (*it) = -1;
   it->string = Qnil;
-  it->string_from_display_prop_p = 0;
   it->method = GET_FROM_BUFFER;
   it->object = it->w->buffer;
   it->area = TEXT_AREA;
@@ -17644,6 +17759,8 @@ cursor_row_p (struct glyph_row *row)
 static int
 push_display_prop (struct it *it, Lisp_Object prop)
 {
+  xassert (it->method == GET_FROM_BUFFER);
+
   push_it (it, NULL);
 
   if (STRINGP (prop))
@@ -17661,6 +17778,30 @@ push_display_prop (struct it *it, Lisp_Object prop)
       it->end_charpos = it->string_nchars = SCHARS (it->string);
       it->method = GET_FROM_STRING;
       it->stop_charpos = 0;
+      it->prev_stop = 0;
+      it->base_level_stop = 0;
+      it->string_from_display_prop_p = 1;
+
+      /* Force paragraph direction to be that of the parent
+	 buffer.  */
+      it->paragraph_embedding = (it->bidi_p ? it->bidi_it.paragraph_dir : L2R);
+
+      /* Do we need to reorder this string?  */
+      if (it->multibyte_p)
+	it->bidi_p = !NILP (BVAR (current_buffer, bidi_display_reordering));
+      else
+	it->bidi_p = 0;
+
+      /* Set up the bidi iterator for this display string.  */
+      if (it->bidi_p)
+	{
+	  it->bidi_it.string.lstring = it->string;
+	  it->bidi_it.string.s = NULL;
+	  it->bidi_it.string.schars = it->end_charpos;
+	  it->bidi_it.string.bufpos = IT_CHARPOS (*it);
+	  it->bidi_it.string.from_disp_str = 1;
+	  bidi_init_it (0, 0, FRAME_WINDOW_P (it->f), &it->bidi_it);
+	}
     }
   else if (CONSP (prop) && EQ (XCAR (prop), Qspace))
     {
@@ -17707,6 +17848,7 @@ static void
 handle_line_prefix (struct it *it)
 {
   Lisp_Object prefix;
+
   if (it->continuation_lines_width > 0)
     {
       prefix = get_it_property (it, Qwrap_prefix);

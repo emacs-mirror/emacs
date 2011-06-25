@@ -548,11 +548,10 @@ bidi_peek_at_next_level (struct bidi_it *bidi_it)
 /***********************************************************************
 	     Pushing and popping the bidi iterator state
  ***********************************************************************/
-/* 10-slot stack for saving the start of the previous level of the
-   cache.  xdisp.c maintains a 5-slot cache for its iterator state,
-   and we need just a little bit more.  */
-#define CACHE_STACK_SIZE 10
-static int bidi_cache_start_stack[CACHE_STACK_SIZE];
+/* 5-slot stack for saving the start of the previous level of the
+   cache.  xdisp.c maintains a 5-slot stack for its iterator state,
+   and we need the same size of our stack.  */
+static int bidi_cache_start_stack[IT_STACK_SIZE];
 static int bidi_cache_sp;
 
 /* Push the bidi iterator state in preparation for reordering a
@@ -569,7 +568,7 @@ bidi_push_it (struct bidi_it *bidi_it)
   memcpy (&bidi_cache[bidi_cache_idx++], bidi_it, sizeof (struct bidi_it));
 
   /* Push the current cache start onto the stack.  */
-  if (bidi_cache_sp >= CACHE_STACK_SIZE)
+  if (bidi_cache_sp >= IT_STACK_SIZE)
     abort ();
   bidi_cache_start_stack[bidi_cache_sp++] = bidi_cache_start;
 

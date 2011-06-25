@@ -1,3 +1,35 @@
+2011-06-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (handle_single_display_spec, next_overlay_string)
+	(get_overlay_strings_1, push_display_prop): Set up the bidi
+	iterator for displaying display or overlay strings.
+	(forward_to_next_line_start): Don't use the shortcut if
+	bidi-iterating.
+	(back_to_previous_visible_line_start): If handle_display_prop
+	pushed the iterator stack, restore the internal state of the bidi
+	iterator by calling bidi_pop_it same number of times.
+	(reseat_at_next_visible_line_start): If ON_NEWLINE_P is non-zero,
+	and we are bidi-iterating, don't decrement the iterator position;
+	instead, set the first_elt flag in the bidi iterator, to produce
+	the same effect.
+	(reseat_1): Remove redundant setting of string_from_display_prop_p.
+	(push_display_prop): xassert that we are iterating a buffer.
+
+	* bidi.c (bidi_cache_start_stack, bidi_push_it): Use IT_STACK_SIZE.
+
+2011-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (push_it, pop_it): Save and restore the state of the
+	bidi iterator.  Save and restore the bidi_p flag.
+	(pop_it): Iterate out of display property for string iteration as
+	well.
+	(iterate_out_of_display_property): Support iteration over strings.
+	(handle_single_display_spec): Set up it->bidi_it for iteration
+	over a display string, and call bidi_init_it.
+
+	* dispextern.h (struct iterator_stack_entry): New member bidi_p.
+	(struct it): Member bidi_p is now a bit field 1 bit wide.
+
 2011-06-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispextern.h (bidi_push_it, bidi_pop_it): Add prototypes.

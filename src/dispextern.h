@@ -2157,7 +2157,9 @@ struct it
   Lisp_Object *dpvec, *dpend;
 
   /* Length in bytes of the char that filled dpvec.  A value of zero
-     means that no such character is involved.  */
+     means that no such character is involved.  A negative value means
+     the rest of the line from the current iterator position onwards
+     is hidden by selective display or ellipsis.  */
   int dpvec_char_len;
 
   /* Face id to use for all characters in display vector.  -1 if unused. */
@@ -2253,6 +2255,7 @@ struct it
     unsigned string_from_display_prop_p : 1;
     unsigned display_ellipsis_p : 1;
     unsigned avoid_cursor_p : 1;
+    unsigned bidi_p:1;
     enum line_wrap_method line_wrap;
 
     /* properties from display property that are reset by another display property. */
@@ -2473,7 +2476,7 @@ struct it
 
   /* Non-zero means we need to reorder bidirectional text for display
      in the visual order.  */
-  int bidi_p;
+  unsigned bidi_p : 1;
 
   /* For iterating over bidirectional text.  */
   struct bidi_it bidi_it;
