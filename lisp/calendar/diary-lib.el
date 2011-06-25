@@ -833,7 +833,7 @@ LIST-ONLY is non-nil, in which case it just returns the list."
     (let* ((original-date date)    ; save for possible use in the hooks
            (date-string (calendar-date-string date))
            (diary-buffer (find-buffer-visiting diary-file))
-           ;; Dynamically bound in diary-include-other-diary-files.
+           ;; Dynamically bound in diary-include-files.
            (d-incp (and (boundp 'diary-including) diary-including))
            diary-entries-list file-glob-attrs temp-buff)
       (unless d-incp
@@ -1417,7 +1417,7 @@ marks.  This is intended to deal with deleted diary entries."
     (calendar-redraw))
   (let ((diary-marking-entries-flag t)
         (diary-buffer (find-buffer-visiting diary-file))
-        ;; Dynamically bound in diary-mark-included-diary-files.
+        ;; Dynamically bound in diary-include-files.
         (d-incp (and (boundp 'diary-including) diary-including))
         file-glob-attrs temp-buff)
     (unless d-incp
