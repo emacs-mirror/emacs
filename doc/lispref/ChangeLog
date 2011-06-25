@@ -1,3 +1,9 @@
+2011-06-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Searching Keymaps):
+	* display.texi (Overlay Properties): Fix errors in 2011-05-29
+	change.  Suggested by Johan Bockgård.
+
 2011-06-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* text.texi (Special Properties): Clarify role of font-lock-face.

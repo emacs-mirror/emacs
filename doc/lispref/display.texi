@@ -1441,9 +1441,9 @@ specify a particular attribute for certain text.  @xref{Face
 Attributes}.
 
 @item
-A cons cell, either of the form @code{(fg-color . @var{color-name})}
-or @code{(bg-color . @var{color-name})}.  These elements specify just
-the foreground color or just the background color.
+A cons cell, of the form @code{(foreground-color . @var{color-name})}
+or @code{(background-color . @var{color-name})}.  These elements
+specify just the foreground color or just the background color.
 
 @code{(foreground-color . @var{color-name})} has the same effect as
 @code{(:foreground @var{color-name})}; likewise for the background.

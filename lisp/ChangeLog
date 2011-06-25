@@ -1,3 +1,10 @@
+2011-06-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-insert-file-contents): Let-bind
+	buffer-file-type before setting its value, to avoid disastrous
+	global effects on decoding files for DOS/Windows systems.
+	(Bug#8780)
+
 2011-06-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* allout.el (allout-unload-function): Pass -1 to `allout-mode'.
