@@ -1,3 +1,7 @@
+2011-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/rmail.el (rmail-show-message-1): Use restore-buffer-modified-p.
+
 2011-06-25  Giuseppe Scrivano  <gscrivano@gnu.org>
 
 	* net/browse-url.el (browse-url-firefox-program): Add icecat to
