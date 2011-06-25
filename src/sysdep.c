@@ -2012,37 +2012,6 @@ perror (void)
 }
 #endif /* HPUX and not HAVE_PERROR */
 
-#ifndef HAVE_DUP2
-
-/*
- *	Emulate BSD dup2.  First close newd if it already exists.
- *	Then, attempt to dup oldd.  If not successful, call dup2 recursively
- *	until we are, then close the unsuccessful ones.
- */
-
-int
-dup2 (int oldd, int newd)
-{
-  register int fd, ret;
-
-  emacs_close (newd);
-
-#ifdef F_DUPFD
-  return fcntl (oldd, F_DUPFD, newd);
-#else
-  fd = dup (old);
-  if (fd == -1)
-    return -1;
-  if (fd == new)
-    return new;
-  ret = dup2 (old,new);
-  emacs_close (fd);
-  return ret;
-#endif
-}
-
-#endif /* not HAVE_DUP2 */
-
 /*
  *	Gettimeofday.  Simulate as much as possible.  Only accurate
  *	to nearest second.  Emacs doesn't use tzp so ignore it for now.
