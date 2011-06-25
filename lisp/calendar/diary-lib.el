@@ -776,7 +776,8 @@ of the appropriate type."
   (goto-char (point-min)))
 
 (defvar diary-included-files nil
-  "List of any diary files included in the last call to `diary-list-entries'.")
+  "List of any diary files included in the last call to `diary-list-entries'.
+Or to `diary-mark-entries'.")
 
 (defun diary-list-entries (date number &optional list-only)
   "Create and display a buffer containing the relevant lines in `diary-file'.
@@ -921,19 +922,20 @@ LIST-ONLY is non-nil, in which case it just returns the list."
 (defvar original-date)                  ; bound in diary-list-entries
 ;(defvar number)                         ; already declared above
 
-(defun diary-include-other-diary-files ()
-  "Add diary entries from included diary files to `diary-entries-list'.
+(defun diary-include-files (&optional mark)
+  "Process diary entries from included diary files.
+By default, lists included entries, but if optional argument MARK is non-nil
+marks entries instead.
 For example, this enables you to share common diary files.
-To use, add this function to `diary-list-entries-hook'.
 Specify include files using lines matching `diary-include-string', e.g.
     #include \"filename\"
-This is recursive; that is, included files may include other files.
-See also `diary-mark-included-diary-files'."
+This is recursive; that is, included files may include other files."
   (goto-char (point-min))
   (while (re-search-forward
           (format "^%s \"\\([^\"]*\\)\"" (regexp-quote diary-include-string))
           nil t)
     (let ((diary-file (match-string-no-properties 1))
+          (diary-mark-entries-hook 'diary-mark-included-diary-files)
           (diary-list-entries-hook 'diary-include-other-diary-files)
           (diary-including t)
           diary-hook diary-list-include-blanks efile)
@@ -943,10 +945,12 @@ See also `diary-mark-included-diary-files'."
                           diary-included-files)
                   (error "Recursive diary include for %s" diary-file)
                 (setq diary-included-files
-                      (append diary-included-files (list efile))
-                      diary-entries-list
-                      (append diary-entries-list
-                              (diary-list-entries original-date number t))))
+                      (append diary-included-files (list efile)))
+                (if mark
+                    (diary-mark-entries)
+                  (setq diary-entries-list
+                        (append diary-entries-list
+                                (diary-list-entries original-date number t)))))
             (beep)
             (message "Can't read included diary file %s" diary-file)
             (sleep-for 2))
@@ -954,6 +958,13 @@ See also `diary-mark-included-diary-files'."
         (message "Can't find included diary file %s" diary-file)
         (sleep-for 2))))
   (goto-char (point-min)))
+
+(defun diary-include-other-diary-files ()
+  "Add diary entries from included diary files to `diary-entries-list'.
+To use, add this function to `diary-list-entries-hook'.
+For details, see `diary-include-files'.
+See also `diary-mark-included-diary-files'."
+  (diary-include-files))
 
 (define-obsolete-function-alias 'include-other-diary-files
   'diary-include-other-diary-files "23.1")
@@ -1410,6 +1421,7 @@ marks.  This is intended to deal with deleted diary entries."
         (d-incp (and (boundp 'diary-including) diary-including))
         file-glob-attrs temp-buff)
     (unless d-incp
+      (setq diary-included-files nil)
       (message "Marking diary entries..."))
     (unwind-protect
         (with-current-buffer (or diary-buffer
@@ -1518,29 +1530,10 @@ is marked.  See the documentation for the function `diary-list-sexp-entries'."
 
 (defun diary-mark-included-diary-files ()
   "Mark diary entries from included diary files.
-For example, this enables you to share common diary files.
 To use, add this function to `diary-mark-entries-hook'.
-Specify include files using lines matching `diary-include-string', e.g.
-    #include \"filename\"
-This is recursive; that is, included files may include other files.
+For details, see `diary-include-files'.
 See also `diary-include-other-diary-files'."
-  (goto-char (point-min))
-  (while (re-search-forward
-          (format "^%s \"\\([^\"]*\\)\"" (regexp-quote diary-include-string))
-          nil t)
-    (let ((diary-file (match-string-no-properties 1))
-          (diary-mark-entries-hook 'diary-mark-included-diary-files)
-          (diary-including t))
-      (if (file-exists-p diary-file)
-          (if (file-readable-p diary-file)
-              (diary-mark-entries)
-            (beep)
-            (message "Can't read included diary file %s" diary-file)
-            (sleep-for 2))
-        (beep)
-        (message "Can't find included diary file %s" diary-file)
-        (sleep-for 2))))
-  (goto-char (point-min)))
+  (diary-include-files t))
 
 (define-obsolete-function-alias 'mark-included-diary-files
   'diary-mark-included-diary-files "23.1")

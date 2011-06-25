@@ -1,5 +1,12 @@
 2011-06-25  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/diary-lib.el (diary-included-files): Doc fix.
+	(diary-include-files): New function, extracted from
+	diary-include-other-diary-files and diary-mark-included-diary-files.
+	(diary-include-other-diary-files, diary-mark-included-diary-files):
+	Just call diary-include-files.
+	(diary-mark-entries): Reset diary-included-files on first call.
+
 	* calendar/diary-lib.el (diary-mark-entries)
 	(diary-mark-included-diary-files):
 	Visit included diary-files in temp buffers.
