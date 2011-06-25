@@ -2251,6 +2251,7 @@ struct it
     Lisp_Object from_overlay;
     enum glyph_row_area area;
     enum it_method method;
+    bidi_dir_t paragraph_embedding;
     unsigned multibyte_p : 1;
     unsigned string_from_display_prop_p : 1;
     unsigned display_ellipsis_p : 1;

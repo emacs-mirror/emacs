@@ -1,5 +1,19 @@
 2011-06-25  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (set_iterator_to_next, get_visually_first_element): Use
+	it->bidi_it.string.schars rather than it->string_nchars when
+	testing whether we're beyond string end, because string_nchars is
+	zero for strings that come from overlays and display properties.
+
+	* bidi.c (bidi_cache_iterator_state): Fix a bug with testing
+	character positions against the cached range, when we use a
+	stacked cache.
+
+	* xdisp.c (push_it, pop_it): Save and restore it.
+
+	* dispextern.h (struct iterator_stack_entry): New member
+	paragraph_embedding.
+
 	* xdisp.c (handle_single_display_spec, next_overlay_string)
 	(get_overlay_strings_1, push_display_prop): Set up the bidi
 	iterator for displaying display or overlay strings.

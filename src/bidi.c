@@ -481,7 +481,7 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
       if (idx > bidi_cache_start &&
 	  (bidi_it->charpos > (bidi_cache[idx - 1].charpos
 			       + bidi_cache[idx - 1].nchars)
-	   || bidi_it->charpos < bidi_cache[0].charpos))
+	   || bidi_it->charpos < bidi_cache[bidi_cache_start].charpos))
 	{
 	  bidi_cache_reset ();
 	  idx = bidi_cache_start;

@@ -5255,6 +5255,7 @@ push_it (struct it *it, struct text_pos *position)
   p->display_ellipsis_p = 0;
   p->line_wrap = it->line_wrap;
   p->bidi_p = it->bidi_p;
+  p->paragraph_embedding = it->paragraph_embedding;
   ++it->sp;
 
   /* Save the state of the bidi iterator as well. */
@@ -5360,6 +5361,7 @@ pop_it (struct it *it)
   it->string_from_display_prop_p = p->string_from_display_prop_p;
   it->line_wrap = p->line_wrap;
   it->bidi_p = p->bidi_p;
+  it->paragraph_embedding = p->paragraph_embedding;
   if (it->bidi_p)
     {
       bidi_pop_it (&it->bidi_it);
@@ -6511,11 +6513,11 @@ set_iterator_to_next (struct it *it, int reseat_p)
     case GET_FROM_C_STRING:
       /* Current display element of IT is from a C string.  */
       if (!it->bidi_p
-	  /* If the string position is beyond string_nchars, it means
+	  /* If the string position is beyond string's end, it means
 	     next_element_from_c_string is padding the string with
 	     blanks, in which case we bypass the bidi iterator,
 	     because it cannot deal with such virtual characters.  */
-	  || IT_CHARPOS (*it) >= it->string_nchars)
+	  || IT_CHARPOS (*it) >= it->bidi_it.string.schars)
 	{
 	  IT_BYTEPOS (*it) += it->len;
 	  IT_CHARPOS (*it) += 1;
@@ -6639,12 +6641,12 @@ set_iterator_to_next (struct it *it, int reseat_p)
       else
 	{
 	  if (!it->bidi_p
-	      /* If the string position is beyond string_nchars, it
+	      /* If the string position is beyond string's end, it
 		 means next_element_from_string is padding the string
 		 with blanks, in which case we bypass the bidi
 		 iterator, because it cannot deal with such virtual
 		 characters.  */
-	      || IT_STRING_CHARPOS (*it) >= it->string_nchars)
+	      || IT_STRING_CHARPOS (*it) >= it->bidi_it.string.schars)
 	    {
 	      IT_STRING_BYTEPOS (*it) += it->len;
 	      IT_STRING_CHARPOS (*it) += 1;
@@ -6779,7 +6781,7 @@ static void
 get_visually_first_element (struct it *it)
 {
   int string_p = STRINGP (it->string) || it->s;
-  EMACS_INT eob = (string_p ? it->string_nchars : ZV);
+  EMACS_INT eob = (string_p ? it->bidi_it.string.schars : ZV);
   EMACS_INT bob = (string_p ? 0 : BEGV);
 
   if (STRINGP (it->string))
