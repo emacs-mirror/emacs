@@ -531,9 +531,9 @@ decode_options (int argc, char **argv)
     {
       int opt = getopt_long_only (argc, argv,
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
-			     "VHneqa:s:f:d:tc",
+			     "VHneqa:s:f:d:F:tc",
 #else
-			     "VHneqa:f:d:tc",
+			     "VHneqa:f:d:F:tc",
 #endif
 			     longopts, 0);
 
@@ -674,6 +674,7 @@ The following OPTIONS are accepted:\n\
 -nw, -t, --tty 		Open a new Emacs frame on the current terminal\n\
 -c, --create-frame    	Create a new frame instead of trying to\n\
 			use the current Emacs frame\n\
+-F, --frame-parameters	Set the parameters of a new frame\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
 -n, --no-wait		Don't wait for the server to return\n\
 -q, --quiet		Don't display messages on success\n\

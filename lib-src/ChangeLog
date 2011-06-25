@@ -1,3 +1,8 @@
+2011-06-25  Glenn Morris  <rgm@gnu.org>
+
+	* emacsclient.c (decode_options) <opt>: Add `F:'.
+	(print_help_and_exit): Mention --frame-parameters.
+
 2011-06-25  Andreas Rottmann  <a.rottmann@gmx.at>
 
 	* emacsclient.c (longopts, decode_options, main): Add frame-parameters.
