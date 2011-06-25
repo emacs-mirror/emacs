@@ -1,5 +1,11 @@
 2011-06-25  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/f90.el (f90-keywords-re, f90-font-lock-keywords-1)
+	(f90-blocks-re, f90-program-block-re, f90-end-block-re)
+	(f90-start-block-re, f90-imenu-generic-expression)
+	(f90-looking-at-program-block-start, f90-no-block-limit):
+	Add support for submodules.
+
 	* progmodes/f90.el (f90-keywords-re, f90-procedures-re)
 	(f90-constants-re): Add some F2008 stuff.
 

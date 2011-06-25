@@ -26,6 +26,7 @@
 ;; Major mode for editing F90 programs in FREE FORMAT.
 ;; The minor language revision F95 is also supported (with font-locking).
 ;; Some/many (?) aspects of F2003 are supported.
+;; Some aspects of F2008 are supported.
 
 ;; Knows about continuation lines, named structured statements, and other
 ;; features in F90 including HPF (High Performance Fortran) structures.
@@ -311,7 +312,7 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
                 "final" "generic" "import" "non_intrinsic" "non_overridable"
                 "nopass" "pass" "protected" "same_type_as" "value" "volatile"
                 ;; F2008
-                "contiguous"
+                "contiguous" "submodule"
                 ) 'words)
   "Regexp used by the function `f90-change-keywords'.")
 
@@ -482,13 +483,18 @@ type-name parts, respectively."
 ;;;      (1 font-lock-keyword-face) (3 font-lock-function-name-face))
    '(f90-typedef-matcher
      (1 font-lock-keyword-face) (2 font-lock-function-name-face))
-    ;; F2003.  Prevent operators being highlighted as functions.
-    '("\\<\\(\\(?:end[ \t]*\\)?interface[ \t]*\\(?:assignment\\|operator\\|\
+   ;; F2003.  Prevent operators being highlighted as functions.
+   '("\\<\\(\\(?:end[ \t]*\\)?interface[ \t]*\\(?:assignment\\|operator\\|\
 read\\|write\\)\\)[ \t]*(" (1 font-lock-keyword-face t))
    ;; Other functions and declarations.  Named interfaces = F2003.
-   '("\\<\\(\\(?:end[ \t]*\\)?\\(program\\|module\\|function\\|associate\\|\
-subroutine\\|interface\\)\\|use\\|call\\)\\>[ \t]*\\(\\sw+\\)?"
+   ;; F2008: end submodule submodule_name.
+   '("\\<\\(\\(?:end[ \t]*\\)?\\(program\\|\\(?:sub\\)?module\\|\
+function\\|associate\\|subroutine\\|interface\\)\\|use\\|call\\)\
+\\>[ \t]*\\(\\sw+\\)?"
      (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
+   ;; F2008: submodule (parent_name) submodule_name.
+   '("\\<\\(submodule\\)\\>[ \t]*([^)\n]+)[ \t]*\\(\\sw+\\)?"
+     (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
    ;; F2003.
    '("\\<\\(use\\)[ \t]*,[ \t]*\\(\\(?:non_\\)?intrinsic\\)[ \t]*::[ \t]*\
 \\(\\sw+\\)"
@@ -794,12 +800,14 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
           (regexp-opt '("do" "if" "interface" "function" "module" "program"
                         "select" "subroutine" "type" "where" "forall"
                         ;; F2003.
-                        "enum" "associate"))
+                        "enum" "associate"
+                        ;; F2008.
+                        "submodule"))
           "\\)\\>")
   "Regexp potentially indicating a \"block\" of F90 code.")
 
 (defconst f90-program-block-re
-  (regexp-opt '("program" "module" "subroutine" "function") 'paren)
+  (regexp-opt '("program" "module" "subroutine" "function" "submodule") 'paren)
   "Regexp used to locate the start/end of a \"subprogram\".")
 
 ;; "class is" is F2003.
@@ -857,7 +865,7 @@ allowed.  This minor issue currently only affects \"(/\" and \"/)\".")
   (concat "^[ \t0-9]*\\<end[ \t]*"
           (regexp-opt '("do" "if" "forall" "function" "interface"
                         "module" "program" "select" "subroutine"
-                        "type" "where" "enum" "associate") t)
+                        "type" "where" "enum" "associate" "submodule") t)
           "\\>")
   "Regexp matching the end of an F90 \"block\", from the line start.
 Used in the F90 entry in `hs-special-modes-alist'.")
@@ -883,8 +891,8 @@ Used in the F90 entry in `hs-special-modes-alist'.")
    "[^i(!\n\"\& \t]\\|"                 ; not-i(
    "i[^s!\n\"\& \t]\\|"                 ; i not-s
    "is\\sw\\)\\|"
-   ;; "abstract interface" is F2003.
-   "program\\|\\(?:abstract[ \t]*\\)?interface\\|module\\|"
+   ;; "abstract interface" is F2003; "submodule" is F2008.
+   "program\\|\\(?:abstract[ \t]*\\)?interface\\|\\(?:sub\\)?module\\|"
    ;; "enum", but not "enumerator".
    "function\\|subroutine\\|enum[^e]\\|associate"
    "\\)"
@@ -924,6 +932,8 @@ Set subexpression 1 in the match-data to the name of the type."
         )
     (list
      '(nil "^[ \t0-9]*program[ \t]+\\(\\sw+\\)" 1)
+     '("Submodules" "^[ \t0-9]*submodule[ \t]*([^)\n]+)[ \t]*\
+\\(\\sw+\\)[ \t]*\\(!\\|$\\)" 1)
      '("Modules" "^[ \t0-9]*module[ \t]+\\(\\sw+\\)[ \t]*\\(!\\|$\\)" 1)
      (list "Types" 'f90-imenu-type-matcher 1)
      ;; Does not handle: "type[, stuff] :: foo".
@@ -1275,6 +1285,8 @@ write\\)[ \t]*([^)\n]*)")
    ((and (not (looking-at "module[ \t]*procedure\\>"))
          (looking-at "\\(module\\)[ \t]+\\(\\sw+\\)\\>"))
     (list (match-string 1) (match-string 2)))
+   ((looking-at "\\(submodule\\)[ \t]*([^)\n]+)[ \t]*\\(\\sw+\\)\\>")
+    (list (match-string 1) (match-string 2)))
    ((and (not (looking-at "end[ \t]*\\(function\\|subroutine\\)"))
          (looking-at "[^!'\"\&\n]*\\(function\\|subroutine\\)[ \t]+\
 \\(\\sw+\\)"))
@@ -1350,7 +1362,7 @@ if all else fails."
     (not (or (looking-at "end")
              (looking-at "\\(do\\|if\\|else\\(if\\|where\\)?\
 \\|select[ \t]*\\(case\\|type\\)\\|case\\|where\\|forall\\)\\>")
-             (looking-at "\\(program\\|module\\|\
+             (looking-at "\\(program\\|\\(?:sub\\)?module\\|\
 \\(?:abstract[ \t]*\\)?interface\\|block[ \t]*data\\)\\>")
              (looking-at "\\(contains\\|\\sw+[ \t]*:\\)")
              (looking-at f90-type-def-re)
