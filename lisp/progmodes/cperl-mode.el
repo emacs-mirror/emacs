@@ -8971,18 +8971,6 @@ do extra unwind via `cperl-unwind-to-safe'."
     (substring v (match-beginning 1) (match-end 1)))
   "Version of IZ-supported CPerl package this file is based on.")
 
-(defun cperl-mode-unload-function ()
-  "Unload the Cperl mode library."
-  (let ((new-mode (if (eq (symbol-function 'perl-mode) 'cperl-mode)
-		      'fundamental-mode
-		    'perl-mode)))
-    (dolist (buf (buffer-list))
-      (with-current-buffer buf
-	(when (eq major-mode 'cperl-mode)
-	  (funcall new-mode)))))
-  ;; continue standard unloading
-  nil)
-
 (provide 'cperl-mode)
 
 ;;; cperl-mode.el ends here

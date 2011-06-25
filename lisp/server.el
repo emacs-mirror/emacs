@@ -736,7 +736,8 @@ Server mode runs a process that accepts commands from the
 
     frame))
 
-(defun server-create-window-system-frame (display nowait proc parent-id)
+(defun server-create-window-system-frame (display nowait proc parent-id
+						  &optional parameters)
   (add-to-list 'frame-inherited-parameters 'client)
   (if (not (fboundp 'make-frame-on-display))
       (progn
@@ -751,7 +752,8 @@ Server mode runs a process that accepts commands from the
     ;; killing emacs on that frame.
     (let* ((params `((client . ,(if nowait 'nowait proc))
                      ;; This is a leftover, see above.
-                     (environment . ,(process-get proc 'env))))
+                     (environment . ,(process-get proc 'env))
+                     ,@parameters))
 	   (display (or display
 			(frame-parameter nil 'display)
 			(getenv "DISPLAY")
@@ -831,6 +833,9 @@ The following commands are accepted by the server:
 
 `-current-frame'
   Forbid the creation of new frames.
+
+`-frame-parameters ALIST'
+  Set the parameters of the created frame.
 
 `-nowait'
   Request that the next frame created should not be
@@ -940,6 +945,7 @@ The following commands are accepted by the client:
 		commands
 		dir
 		use-current-frame
+		frame-parameters  ;parameters for newly created frame
 		tty-name   ; nil, `window-system', or the tty name.
 		tty-type   ; string.
 		files
@@ -959,6 +965,13 @@ The following commands are accepted by the client:
 
                 ;; -current-frame:  Don't create frames.
                 (`"-current-frame" (setq use-current-frame t))
+
+                ;; -frame-parameters: Set frame parameters
+                (`"-frame-parameters"
+                 (let ((alist (pop args-left)))
+                   (if coding-system
+                       (setq alist (decode-coding-string alist coding-system)))
+                   (setq frame-parameters (car (read-from-string alist)))))
 
                 ;; -display DISPLAY:
                 ;; Open X frames on the given display instead of the default.
@@ -1075,7 +1088,8 @@ The following commands are accepted by the client:
 		    (if display (server-select-display display)))
 		   ((eq tty-name 'window-system)
 		    (server-create-window-system-frame display nowait proc
-						       parent-id))
+						       parent-id
+						       frame-parameters))
 		   ;; When resuming on a tty, tty-name is nil.
 		   (tty-name
 		    (server-create-tty-frame tty-name tty-type proc))))

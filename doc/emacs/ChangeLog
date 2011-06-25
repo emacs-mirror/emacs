@@ -1,3 +1,7 @@
+2011-06-25  Andreas Rottmann  <a.rottmann@gmx.at>
+
+	* misc.texi (emacsclient Options): Mention --frame-parameters.
+
 2011-06-09  Glenn Morris  <rgm@gnu.org>
 
 	* custom.texi (Specifying File Variables):

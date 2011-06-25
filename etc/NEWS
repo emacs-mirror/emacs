@@ -84,6 +84,10 @@ client frame in parent X window ID, via XEmbed.  This works like the
 +++
 *** New emacsclient argument -q/--quiet suppresses some status messages.
 
++++
+*** New emacsclient argument --frame-parameters can be used to set the
+frame parameters of a newly-created graphical frame.
+
 *** If emacsclient shuts down as a result of Emacs signalling an
 error, its exit status is 1.
 

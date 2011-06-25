@@ -2085,7 +2085,7 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
   (save-current-buffer
     (dolist (buffer (buffer-list))
       (set-buffer buffer)
-      (when (allout-mode-p) (allout-mode))))
+      (when (allout-mode-p) (allout-mode -1))))
   ;; continue standard unloading
   nil)
 

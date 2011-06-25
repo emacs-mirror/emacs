@@ -2674,7 +2674,7 @@ The current mail message becomes the message displayed."
 	(let ((modiff (buffer-modified-p)))
 	  (rmail-set-attribute rmail-unseen-attr-index nil)
 	  (unless modiff
-	    (set-buffer-modified-p nil)))
+	    (restore-buffer-modified-p modiff)))
 	;; bracket the message in the mail
 	;; buffer and determine the coding system the transfer encoding.
 	(rmail-swap-buffers-maybe)
