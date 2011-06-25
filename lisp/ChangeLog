@@ -1,3 +1,13 @@
+2011-06-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix bug#8730, bug#8781.
+
+	* loadhist.el (unload--set-major-mode): New function.
+	(unload-feature): Use it.
+
+	* progmodes/python.el (python-after-info-look): Add autoload cookie.
+	(python-unload-function): New function.
+
 2011-06-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/rmail.el (rmail-show-message-1): Use restore-buffer-modified-p.
