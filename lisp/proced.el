@@ -1869,16 +1869,6 @@ buffer.  You can use it to recover marks."
   (message "Change in Proced buffer undone.
 Killed processes cannot be recovered by Emacs."))
 
-(defun proced-unload-function ()
-  "Unload the Proced library."
-  (save-current-buffer
-    (dolist (buf (buffer-list))
-      (set-buffer buf)
-      (when (eq major-mode 'proced-mode)
-        (funcall (or (default-value 'major-mode) 'fundamental-mode)))))
-  ;; continue standard unloading
-  nil)
-
 (provide 'proced)
 
 ;;; proced.el ends here

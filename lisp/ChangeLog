@@ -1,3 +1,13 @@
+2011-06-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (allout-unload-function): Pass -1 to `allout-mode'.
+
+	* ses.el (ses-unload-function):
+	* emacs-lisp/re-builder.el (re-builder-unload-function): Simplify.
+
+	* proced.el (proced-unload-function):
+	* progmodes/cperl-mode.el (cperl-mode-unload-function): Remove.
+
 2011-06-25  Andreas Rottmann  <a.rottmann@gmx.at>
 
 	* server.el (server-create-window-system-frame): Add parameters arg.

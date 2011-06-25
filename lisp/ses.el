@@ -3006,11 +3006,6 @@ current column and continues until the next nonblank column."
   (dolist (fun '(copy-region-as-kill yank))
     (ad-remove-advice fun 'around (intern (concat "ses-" (symbol-name fun))))
     (ad-update fun))
-  (save-current-buffer
-    (dolist (buf (buffer-list))
-      (set-buffer buf)
-      (when (eq major-mode 'ses-mode)
-	(funcall (or (default-value 'major-mode) 'fundamental-mode)))))
   ;; continue standard unloading
   nil)
 
