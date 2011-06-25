@@ -375,7 +375,7 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
              "bessel_j0" "bessel_j1" "bessel_jn"
              "bessel_y0" "bessel_y1" "bessel_yn"
              "erf" "erfc" "erfc_scaled" "gamma" "hypot" "log_gamma"
-             "norm2" "parity" "findloc"
+             "norm2" "parity" "findloc" "is_contiguous"
              ;; F2008 iso_fortran_env module.
              "compiler_options" "compiler_version"
              ;; F2008 iso_c_binding module.
