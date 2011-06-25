@@ -4661,6 +4661,8 @@ This is used internally by `tramp-file-mode-from-int'."
   (and
    ;; It shall be an out-of-band method.
    (tramp-get-method-parameter (tramp-file-name-method vec) 'tramp-copy-program)
+   ;; There must be a size, otherwise the file doesn't exist.
+   (numberp size)
    ;; Either the file size is large enough, or (in rare cases) there
    ;; does not exist a remote encoding.
    (or (null tramp-copy-size-limit)

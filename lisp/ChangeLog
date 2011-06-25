@@ -1,3 +1,76 @@
+2011-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/verilog-mode.el (verilog-mode): Fix test for bound variable.
+
+2011-06-23  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el: Going to grep hit in Rmail buffer finds the message.
+	(rmail-variables): Set next-error-move-function.
+	(rmail-what-message): Take argument POS.
+	(rmail-next-error-move): New function.
+
+2011-06-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-bnf->prec2): Give more understandable error
+	messages for adjacent non-terminals.
+
+2011-06-23  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-retry-ignored-headers): Add message-id.
+	(rmail-show-message-1): Preserve buffer modified flag.
+	(rmail-start-mail): Don't specify use of rmail-mail-return;
+	that's done by mail-bury now.
+	(rmail-mail-return): Handle arg NEWBUF.
+
+2011-06-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-method-out-of-band-p): Check, whether
+	SIZE is a number.
+
+2011-06-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (get-lru-window, get-mru-window)
+	(get-largest-window): Never return a minibuffer window.
+	(display-buffer-pop-up-window): Fix a bug that could lead to
+	reusing the minibuffer window.
+	(display-buffer): Pass original specifier argument to
+	display-buffer-function instead of the normalized one.
+	Reported by Thierry Volpiatto <thierry.volpiatto@gmail.com>.
+
+2011-06-22  Leo Liu  <sdl.web@gmail.com>
+
+	* minibuffer.el (completing-read-function)
+	(completing-read-default): Move from minibuf.c
+
+2011-06-22  Richard Stallman  <rms@gnu.org>
+
+	* mail/sendmail.el (mail-bury): If Rmail is in use, return nicely
+	to Rmail even if not started by a special Rmail command.
+
+	* mail/rmailmm.el (rmail-insert-mime-forwarded-message):
+	Copy the buffer currently showing just one message.
+
+2011-06-22  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-entry-update): Use mapc.
+	(bibtex-clean-entry): First delete the old key so that a
+	customized algorithm for generating the new key does not get
+	confused by the old key.
+	(bibtex-url): Obey regexp of first step.
+	(bibtex-search-entries): Do not use add-to-list with local
+	list-var.
+
+2011-06-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods): If the user has
+	stored a user name, then query for the password first, instead of
+	waiting for SMTP to give an error message and the trying again.
+
+2011-06-22  Lawrence Mitchell  <wence@gmx.li>
+
+	* net/browse-url.el (browse-url-xdg-open): Use 0, rather than nil
+	BUFFER in call-process.
+
 2011-06-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Make sure we don't send

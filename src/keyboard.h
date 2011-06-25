@@ -123,7 +123,7 @@ struct kboard
     Lisp_Object *kbd_macro_end;
 
     /* Allocated size of kbd_macro_buffer.  */
-    int kbd_macro_bufsize;
+    ptrdiff_t kbd_macro_bufsize;
 
     /* Last anonymous kbd macro defined.  */
     Lisp_Object KBOARD_INTERNAL_FIELD (Vlast_kbd_macro);

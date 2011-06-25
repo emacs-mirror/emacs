@@ -4240,104 +4240,58 @@ selected frame.  This is useful when `make-pointer-invisible' is set.  */)
 void
 syms_of_frame (void)
 {
-  Qframep = intern_c_string ("framep");
-  staticpro (&Qframep);
-  Qframe_live_p = intern_c_string ("frame-live-p");
-  staticpro (&Qframe_live_p);
-  Qexplicit_name = intern_c_string ("explicit-name");
-  staticpro (&Qexplicit_name);
-  Qheight = intern_c_string ("height");
-  staticpro (&Qheight);
-  Qicon = intern_c_string ("icon");
-  staticpro (&Qicon);
-  Qminibuffer = intern_c_string ("minibuffer");
-  staticpro (&Qminibuffer);
-  Qmodeline = intern_c_string ("modeline");
-  staticpro (&Qmodeline);
-  Qonly = intern_c_string ("only");
-  staticpro (&Qonly);
-  Qwidth = intern_c_string ("width");
-  staticpro (&Qwidth);
-  Qgeometry = intern_c_string ("geometry");
-  staticpro (&Qgeometry);
-  Qicon_left = intern_c_string ("icon-left");
-  staticpro (&Qicon_left);
-  Qicon_top = intern_c_string ("icon-top");
-  staticpro (&Qicon_top);
-  Qtooltip = intern_c_string ("tooltip");
-  staticpro (&Qtooltip);
-  Qleft = intern_c_string ("left");
-  staticpro (&Qleft);
-  Qright = intern_c_string ("right");
-  staticpro (&Qright);
-  Quser_position = intern_c_string ("user-position");
-  staticpro (&Quser_position);
-  Quser_size = intern_c_string ("user-size");
-  staticpro (&Quser_size);
-  Qwindow_id = intern_c_string ("window-id");
-  staticpro (&Qwindow_id);
+  DEFSYM (Qframep, "framep");
+  DEFSYM (Qframe_live_p, "frame-live-p");
+  DEFSYM (Qexplicit_name, "explicit-name");
+  DEFSYM (Qheight, "height");
+  DEFSYM (Qicon, "icon");
+  DEFSYM (Qminibuffer, "minibuffer");
+  DEFSYM (Qmodeline, "modeline");
+  DEFSYM (Qonly, "only");
+  DEFSYM (Qwidth, "width");
+  DEFSYM (Qgeometry, "geometry");
+  DEFSYM (Qicon_left, "icon-left");
+  DEFSYM (Qicon_top, "icon-top");
+  DEFSYM (Qtooltip, "tooltip");
+  DEFSYM (Qleft, "left");
+  DEFSYM (Qright, "right");
+  DEFSYM (Quser_position, "user-position");
+  DEFSYM (Quser_size, "user-size");
+  DEFSYM (Qwindow_id, "window-id");
 #ifdef HAVE_X_WINDOWS
-  Qouter_window_id = intern_c_string ("outer-window-id");
-  staticpro (&Qouter_window_id);
+  DEFSYM (Qouter_window_id, "outer-window-id");
 #endif
-  Qparent_id = intern_c_string ("parent-id");
-  staticpro (&Qparent_id);
-  Qx = intern_c_string ("x");
-  staticpro (&Qx);
-  Qw32 = intern_c_string ("w32");
-  staticpro (&Qw32);
-  Qpc = intern_c_string ("pc");
-  staticpro (&Qpc);
-  Qmac = intern_c_string ("mac");
-  staticpro (&Qmac);
-  Qns = intern_c_string ("ns");
-  staticpro (&Qns);
-  Qvisible = intern_c_string ("visible");
-  staticpro (&Qvisible);
-  Qbuffer_predicate = intern_c_string ("buffer-predicate");
-  staticpro (&Qbuffer_predicate);
-  Qbuffer_list = intern_c_string ("buffer-list");
-  staticpro (&Qbuffer_list);
-  Qburied_buffer_list = intern_c_string ("buried-buffer-list");
-  staticpro (&Qburied_buffer_list);
-  Qdisplay_type = intern_c_string ("display-type");
-  staticpro (&Qdisplay_type);
-  Qbackground_mode = intern_c_string ("background-mode");
-  staticpro (&Qbackground_mode);
-  Qnoelisp = intern_c_string ("noelisp");
-  staticpro (&Qnoelisp);
-  Qtty_color_mode = intern_c_string ("tty-color-mode");
-  staticpro (&Qtty_color_mode);
-  Qtty = intern_c_string ("tty");
-  staticpro (&Qtty);
-  Qtty_type = intern_c_string ("tty-type");
-  staticpro (&Qtty_type);
+  DEFSYM (Qparent_id, "parent-id");
+  DEFSYM (Qx, "x");
+  DEFSYM (Qw32, "w32");
+  DEFSYM (Qpc, "pc");
+  DEFSYM (Qmac, "mac");
+  DEFSYM (Qns, "ns");
+  DEFSYM (Qvisible, "visible");
+  DEFSYM (Qbuffer_predicate, "buffer-predicate");
+  DEFSYM (Qbuffer_list, "buffer-list");
+  DEFSYM (Qburied_buffer_list, "buried-buffer-list");
+  DEFSYM (Qdisplay_type, "display-type");
+  DEFSYM (Qbackground_mode, "background-mode");
+  DEFSYM (Qnoelisp, "noelisp");
+  DEFSYM (Qtty_color_mode, "tty-color-mode");
+  DEFSYM (Qtty, "tty");
+  DEFSYM (Qtty_type, "tty-type");
 
-  Qface_set_after_frame_default = intern_c_string ("face-set-after-frame-default");
-  staticpro (&Qface_set_after_frame_default);
+  DEFSYM (Qface_set_after_frame_default, "face-set-after-frame-default");
 
-  Qfullwidth = intern_c_string ("fullwidth");
-  staticpro (&Qfullwidth);
-  Qfullheight = intern_c_string ("fullheight");
-  staticpro (&Qfullheight);
-  Qfullboth = intern_c_string ("fullboth");
-  staticpro (&Qfullboth);
-  Qmaximized = intern_c_string ("maximized");
-  staticpro (&Qmaximized);
-  Qx_resource_name = intern_c_string ("x-resource-name");
-  staticpro (&Qx_resource_name);
+  DEFSYM (Qfullwidth, "fullwidth");
+  DEFSYM (Qfullheight, "fullheight");
+  DEFSYM (Qfullboth, "fullboth");
+  DEFSYM (Qmaximized, "maximized");
+  DEFSYM (Qx_resource_name, "x-resource-name");
+  DEFSYM (Qx_frame_parameter, "x-frame-parameter");
 
-  Qx_frame_parameter = intern_c_string ("x-frame-parameter");
-  staticpro (&Qx_frame_parameter);
-
-  Qterminal = intern_c_string ("terminal");
-  staticpro (&Qterminal);
-  Qterminal_live_p = intern_c_string ("terminal-live-p");
-  staticpro (&Qterminal_live_p);
+  DEFSYM (Qterminal, "terminal");
+  DEFSYM (Qterminal_live_p, "terminal-live-p");
 
 #ifdef HAVE_NS
-  Qns_parse_geometry = intern_c_string ("ns-parse-geometry");
-  staticpro (&Qns_parse_geometry);
+  DEFSYM (Qns_parse_geometry, "ns-parse-geometry");
 #endif
 
   {
@@ -4451,8 +4405,7 @@ actually deleted, or some time later (or even both when an earlier function
 in `delete-frame-functions' (indirectly) calls `delete-frame'
 recursively).  */);
   Vdelete_frame_functions = Qnil;
-  Qdelete_frame_functions = intern_c_string ("delete-frame-functions");
-  staticpro (&Qdelete_frame_functions);
+  DEFSYM (Qdelete_frame_functions, "delete-frame-functions");
 
   DEFVAR_LISP ("menu-bar-mode", Vmenu_bar_mode,
                doc: /* Non-nil if Menu-Bar mode is enabled.

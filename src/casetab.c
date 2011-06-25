@@ -244,8 +244,7 @@ init_casetab_once (void)
 {
   register int i;
   Lisp_Object down, up;
-  Qcase_table = intern_c_string ("case-table");
-  staticpro (&Qcase_table);
+  DEFSYM (Qcase_table, "case-table");
 
   /* Intern this now in case it isn't already done.
      Setting this variable twice is harmless.
@@ -288,8 +287,7 @@ init_casetab_once (void)
 void
 syms_of_casetab (void)
 {
-  Qcase_table_p = intern_c_string ("case-table-p");
-  staticpro (&Qcase_table_p);
+  DEFSYM (Qcase_table_p, "case-table-p");
 
   staticpro (&Vascii_canon_table);
   staticpro (&Vascii_downcase_table);

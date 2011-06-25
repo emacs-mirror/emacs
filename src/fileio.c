@@ -5425,92 +5425,50 @@ Fread_file_name (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filena
 void
 syms_of_fileio (void)
 {
-  Qoperations = intern_c_string ("operations");
-  Qexpand_file_name = intern_c_string ("expand-file-name");
-  Qsubstitute_in_file_name = intern_c_string ("substitute-in-file-name");
-  Qdirectory_file_name = intern_c_string ("directory-file-name");
-  Qfile_name_directory = intern_c_string ("file-name-directory");
-  Qfile_name_nondirectory = intern_c_string ("file-name-nondirectory");
-  Qunhandled_file_name_directory = intern_c_string ("unhandled-file-name-directory");
-  Qfile_name_as_directory = intern_c_string ("file-name-as-directory");
-  Qcopy_file = intern_c_string ("copy-file");
-  Qmake_directory_internal = intern_c_string ("make-directory-internal");
-  Qmake_directory = intern_c_string ("make-directory");
-  Qdelete_directory_internal = intern_c_string ("delete-directory-internal");
-  Qdelete_file = intern_c_string ("delete-file");
-  Qrename_file = intern_c_string ("rename-file");
-  Qadd_name_to_file = intern_c_string ("add-name-to-file");
-  Qmake_symbolic_link = intern_c_string ("make-symbolic-link");
-  Qfile_exists_p = intern_c_string ("file-exists-p");
-  Qfile_executable_p = intern_c_string ("file-executable-p");
-  Qfile_readable_p = intern_c_string ("file-readable-p");
-  Qfile_writable_p = intern_c_string ("file-writable-p");
-  Qfile_symlink_p = intern_c_string ("file-symlink-p");
-  Qaccess_file = intern_c_string ("access-file");
-  Qfile_directory_p = intern_c_string ("file-directory-p");
-  Qfile_regular_p = intern_c_string ("file-regular-p");
-  Qfile_accessible_directory_p = intern_c_string ("file-accessible-directory-p");
-  Qfile_modes = intern_c_string ("file-modes");
-  Qset_file_modes = intern_c_string ("set-file-modes");
-  Qset_file_times = intern_c_string ("set-file-times");
-  Qfile_selinux_context = intern_c_string("file-selinux-context");
-  Qset_file_selinux_context = intern_c_string("set-file-selinux-context");
-  Qfile_newer_than_file_p = intern_c_string ("file-newer-than-file-p");
-  Qinsert_file_contents = intern_c_string ("insert-file-contents");
-  Qwrite_region = intern_c_string ("write-region");
-  Qverify_visited_file_modtime = intern_c_string ("verify-visited-file-modtime");
-  Qset_visited_file_modtime = intern_c_string ("set-visited-file-modtime");
-  Qauto_save_coding = intern_c_string ("auto-save-coding");
+  DEFSYM (Qoperations, "operations");
+  DEFSYM (Qexpand_file_name, "expand-file-name");
+  DEFSYM (Qsubstitute_in_file_name, "substitute-in-file-name");
+  DEFSYM (Qdirectory_file_name, "directory-file-name");
+  DEFSYM (Qfile_name_directory, "file-name-directory");
+  DEFSYM (Qfile_name_nondirectory, "file-name-nondirectory");
+  DEFSYM (Qunhandled_file_name_directory, "unhandled-file-name-directory");
+  DEFSYM (Qfile_name_as_directory, "file-name-as-directory");
+  DEFSYM (Qcopy_file, "copy-file");
+  DEFSYM (Qmake_directory_internal, "make-directory-internal");
+  DEFSYM (Qmake_directory, "make-directory");
+  DEFSYM (Qdelete_directory_internal, "delete-directory-internal");
+  DEFSYM (Qdelete_file, "delete-file");
+  DEFSYM (Qrename_file, "rename-file");
+  DEFSYM (Qadd_name_to_file, "add-name-to-file");
+  DEFSYM (Qmake_symbolic_link, "make-symbolic-link");
+  DEFSYM (Qfile_exists_p, "file-exists-p");
+  DEFSYM (Qfile_executable_p, "file-executable-p");
+  DEFSYM (Qfile_readable_p, "file-readable-p");
+  DEFSYM (Qfile_writable_p, "file-writable-p");
+  DEFSYM (Qfile_symlink_p, "file-symlink-p");
+  DEFSYM (Qaccess_file, "access-file");
+  DEFSYM (Qfile_directory_p, "file-directory-p");
+  DEFSYM (Qfile_regular_p, "file-regular-p");
+  DEFSYM (Qfile_accessible_directory_p, "file-accessible-directory-p");
+  DEFSYM (Qfile_modes, "file-modes");
+  DEFSYM (Qset_file_modes, "set-file-modes");
+  DEFSYM (Qset_file_times, "set-file-times");
+  DEFSYM (Qfile_selinux_context, "file-selinux-context");
+  DEFSYM (Qset_file_selinux_context, "set-file-selinux-context");
+  DEFSYM (Qfile_newer_than_file_p, "file-newer-than-file-p");
+  DEFSYM (Qinsert_file_contents, "insert-file-contents");
+  DEFSYM (Qwrite_region, "write-region");
+  DEFSYM (Qverify_visited_file_modtime, "verify-visited-file-modtime");
+  DEFSYM (Qset_visited_file_modtime, "set-visited-file-modtime");
+  DEFSYM (Qauto_save_coding, "auto-save-coding");
 
-  staticpro (&Qoperations);
-  staticpro (&Qexpand_file_name);
-  staticpro (&Qsubstitute_in_file_name);
-  staticpro (&Qdirectory_file_name);
-  staticpro (&Qfile_name_directory);
-  staticpro (&Qfile_name_nondirectory);
-  staticpro (&Qunhandled_file_name_directory);
-  staticpro (&Qfile_name_as_directory);
-  staticpro (&Qcopy_file);
-  staticpro (&Qmake_directory_internal);
-  staticpro (&Qmake_directory);
-  staticpro (&Qdelete_directory_internal);
-  staticpro (&Qdelete_file);
-  staticpro (&Qrename_file);
-  staticpro (&Qadd_name_to_file);
-  staticpro (&Qmake_symbolic_link);
-  staticpro (&Qfile_exists_p);
-  staticpro (&Qfile_executable_p);
-  staticpro (&Qfile_readable_p);
-  staticpro (&Qfile_writable_p);
-  staticpro (&Qaccess_file);
-  staticpro (&Qfile_symlink_p);
-  staticpro (&Qfile_directory_p);
-  staticpro (&Qfile_regular_p);
-  staticpro (&Qfile_accessible_directory_p);
-  staticpro (&Qfile_modes);
-  staticpro (&Qset_file_modes);
-  staticpro (&Qset_file_times);
-  staticpro (&Qfile_selinux_context);
-  staticpro (&Qset_file_selinux_context);
-  staticpro (&Qfile_newer_than_file_p);
-  staticpro (&Qinsert_file_contents);
-  staticpro (&Qwrite_region);
-  staticpro (&Qverify_visited_file_modtime);
-  staticpro (&Qset_visited_file_modtime);
-  staticpro (&Qauto_save_coding);
-
-  Qfile_name_history = intern_c_string ("file-name-history");
+  DEFSYM (Qfile_name_history, "file-name-history");
   Fset (Qfile_name_history, Qnil);
-  staticpro (&Qfile_name_history);
 
-  Qfile_error = intern_c_string ("file-error");
-  staticpro (&Qfile_error);
-  Qfile_already_exists = intern_c_string ("file-already-exists");
-  staticpro (&Qfile_already_exists);
-  Qfile_date_error = intern_c_string ("file-date-error");
-  staticpro (&Qfile_date_error);
-  Qexcl = intern_c_string ("excl");
-  staticpro (&Qexcl);
+  DEFSYM (Qfile_error, "file-error");
+  DEFSYM (Qfile_already_exists, "file-already-exists");
+  DEFSYM (Qfile_date_error, "file-date-error");
+  DEFSYM (Qexcl, "excl");
 
   DEFVAR_LISP ("file-name-coding-system", Vfile_name_coding_system,
 	       doc: /* *Coding system for encoding file names.
@@ -5528,15 +5486,10 @@ instead use `file-name-coding-system' to get a constant encoding
 of file names regardless of the current language environment.  */);
   Vdefault_file_name_coding_system = Qnil;
 
-  Qformat_decode = intern_c_string ("format-decode");
-  staticpro (&Qformat_decode);
-  Qformat_annotate_function = intern_c_string ("format-annotate-function");
-  staticpro (&Qformat_annotate_function);
-  Qafter_insert_file_set_coding = intern_c_string ("after-insert-file-set-coding");
-  staticpro (&Qafter_insert_file_set_coding);
-
-  Qcar_less_than_car = intern_c_string ("car-less-than-car");
-  staticpro (&Qcar_less_than_car);
+  DEFSYM (Qformat_decode, "format-decode");
+  DEFSYM (Qformat_annotate_function, "format-annotate-function");
+  DEFSYM (Qafter_insert_file_set_coding, "after-insert-file-set-coding");
+  DEFSYM (Qcar_less_than_car, "car-less-than-car");
 
   Fput (Qfile_error, Qerror_conditions,
 	Fpurecopy (list2 (Qfile_error, Qerror)));
@@ -5615,9 +5568,7 @@ After `write-region' completes, Emacs calls the function stored in
 current when building the annotations (i.e., at least once), with that
 buffer current.  */);
   Vwrite_region_annotate_functions = Qnil;
-  staticpro (&Qwrite_region_annotate_functions);
-  Qwrite_region_annotate_functions
-    = intern_c_string ("write-region-annotate-functions");
+  DEFSYM (Qwrite_region_annotate_functions, "write-region-annotate-functions");
 
   DEFVAR_LISP ("write-region-post-annotation-function",
 	       Vwrite_region_post_annotation_function,
@@ -5681,12 +5632,10 @@ This includes interactive calls to `delete-file' and
 `delete-directory' and the Dired deletion commands.  */);
   delete_by_moving_to_trash = 0;
   Qdelete_by_moving_to_trash = intern_c_string ("delete-by-moving-to-trash");
-  Qmove_file_to_trash = intern_c_string ("move-file-to-trash");
-  staticpro (&Qmove_file_to_trash);
-  Qcopy_directory = intern_c_string ("copy-directory");
-  staticpro (&Qcopy_directory);
-  Qdelete_directory = intern_c_string ("delete-directory");
-  staticpro (&Qdelete_directory);
+
+  DEFSYM (Qmove_file_to_trash, "move-file-to-trash");
+  DEFSYM (Qcopy_directory, "copy-directory");
+  DEFSYM (Qdelete_directory, "delete-directory");
 
   defsubr (&Sfind_file_name_handler);
   defsubr (&Sfile_name_directory);

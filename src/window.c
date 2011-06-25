@@ -6441,69 +6441,30 @@ init_window (void)
 void
 syms_of_window (void)
 {
-  Qscroll_up = intern_c_string ("scroll-up");
-  staticpro (&Qscroll_up);
-
-  Qscroll_down = intern_c_string ("scroll-down");
-  staticpro (&Qscroll_down);
-
-  Qscroll_command = intern_c_string ("scroll-command");
-  staticpro (&Qscroll_command);
+  DEFSYM (Qscroll_up, "scroll-up");
+  DEFSYM (Qscroll_down, "scroll-down");
+  DEFSYM (Qscroll_command, "scroll-command");
 
   Fput (Qscroll_up, Qscroll_command, Qt);
   Fput (Qscroll_down, Qscroll_command, Qt);
 
-  staticpro (&Qwindow_configuration_change_hook);
-  Qwindow_configuration_change_hook
-    = intern_c_string ("window-configuration-change-hook");
-
-  Qwindowp = intern_c_string ("windowp");
-  staticpro (&Qwindowp);
-
-  Qwindow_configuration_p = intern_c_string ("window-configuration-p");
-  staticpro (&Qwindow_configuration_p);
-
-  Qwindow_live_p = intern_c_string ("window-live-p");
-  staticpro (&Qwindow_live_p);
-
-  Qwindow_deletable_p = intern_c_string ("window-deletable-p");
-  staticpro (&Qwindow_deletable_p);
-
-  Qdelete_window = intern_c_string ("delete-window");
-  staticpro (&Qdelete_window);
-
-  Qresize_root_window = intern_c_string ("resize-root-window");
-  staticpro (&Qresize_root_window);
-
-  Qresize_root_window_vertically = intern_c_string ("resize-root-window-vertically");
-  staticpro (&Qresize_root_window_vertically);
-
-  Qsafe = intern_c_string ("safe");
-  staticpro (&Qsafe);
-
-  Qdisplay_buffer = intern_c_string ("display-buffer");
-  staticpro (&Qdisplay_buffer);
-
-  Qreplace_buffer_in_windows = intern_c_string ("replace-buffer-in-windows");
-  staticpro (&Qreplace_buffer_in_windows);
-
-  Qrecord_window_buffer = intern_c_string ("record-window-buffer");
-  staticpro (&Qrecord_window_buffer);
-
-  Qget_mru_window = intern_c_string ("get-mru-window");
-  staticpro (&Qget_mru_window);
-
-  Qtemp_buffer_show_hook = intern_c_string ("temp-buffer-show-hook");
-  staticpro (&Qtemp_buffer_show_hook);
-
-  Qabove = intern_c_string ("above");
-  staticpro (&Qabove);
-
-  Qbelow = intern_c_string ("below");
-  staticpro (&Qbelow);
-
-  Qauto_buffer_name = intern_c_string ("auto-buffer-name");
-  staticpro (&Qauto_buffer_name);
+  DEFSYM (Qwindow_configuration_change_hook, "window-configuration-change-hook");
+  DEFSYM (Qwindowp, "windowp");
+  DEFSYM (Qwindow_configuration_p, "window-configuration-p");
+  DEFSYM (Qwindow_live_p, "window-live-p");
+  DEFSYM (Qwindow_deletable_p, "window-deletable-p");
+  DEFSYM (Qdelete_window, "delete-window");
+  DEFSYM (Qresize_root_window, "resize-root-window");
+  DEFSYM (Qresize_root_window_vertically, "resize-root-window-vertically");
+  DEFSYM (Qsafe, "safe");
+  DEFSYM (Qdisplay_buffer, "display-buffer");
+  DEFSYM (Qreplace_buffer_in_windows, "replace-buffer-in-windows");
+  DEFSYM (Qrecord_window_buffer, "record-window-buffer");
+  DEFSYM (Qget_mru_window, "get-mru-window");
+  DEFSYM (Qtemp_buffer_show_hook, "temp-buffer-show-hook");
+  DEFSYM (Qabove, "above");
+  DEFSYM (Qbelow, "below");
+  DEFSYM (Qauto_buffer_name, "auto-buffer-name");
 
   staticpro (&Vwindow_list);
 

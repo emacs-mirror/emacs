@@ -104,7 +104,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `alarm' function. */
 #undef HAVE_ALARM
 
-/* Define to 1 if you have `alloca', as a function or macro. */
+/* Define to 1 if you have 'alloca' after including <alloca.h>, a header that
+   may be supplied by this distribution. */
 #undef HAVE_ALLOCA
 
 /* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
@@ -1290,6 +1291,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef volatile
 
 
+/* On AIX 3 this must be included before any other include file.  */
+#include <alloca.h>
+#if ! HAVE_ALLOCA
+# error "alloca not available on this machine"
+#endif
+
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
@@ -1365,20 +1372,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <string.h>
 #include <stdlib.h>
-
-#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#elif defined __GNUC__
-# define alloca __builtin_alloca
-#elif defined _AIX
-# define alloca __alloca
-#else
-# include <stddef.h>
-# ifdef  __cplusplus
-extern "C"
-# endif
-void *alloca (size_t);
-#endif
 
 #ifndef HAVE_STRCHR
 #define strchr(a, b) index (a, b)

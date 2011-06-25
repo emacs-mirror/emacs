@@ -5960,8 +5960,7 @@ globals_of_w32 (void)
   get_process_times_fn = (GetProcessTimes_Proc)
     GetProcAddress (kernel32, "GetProcessTimes");
 
-  QCloaded_from = intern_c_string (":loaded-from");
-  staticpro (&QCloaded_from);
+  DEFSYM (QCloaded_from, ":loaded-from");
 
   Vlibrary_cache = Qnil;
   staticpro (&Vlibrary_cache);

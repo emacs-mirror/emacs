@@ -151,7 +151,7 @@ enum window_part
 
 #if GLYPH_DEBUG
 
-extern int trace_redisplay_p;
+extern int trace_redisplay_p EXTERNALLY_VISIBLE;
 #include <stdio.h>
 
 #define TRACE(X)				\
@@ -3010,7 +3010,7 @@ extern EMACS_INT compute_display_string_end (EMACS_INT);
 #ifdef HAVE_WINDOW_SYSTEM
 
 #if GLYPH_DEBUG
-extern void dump_glyph_string (struct glyph_string *);
+extern void dump_glyph_string (struct glyph_string *) EXTERNALLY_VISIBLE;
 #endif
 
 extern void x_get_glyph_overhangs (struct glyph *, struct frame *,

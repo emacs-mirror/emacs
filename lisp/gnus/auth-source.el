@@ -705,6 +705,8 @@ Returns the deleted entries."
       (equal collection value)
       (member value collection)))
 
+(defvar auth-source-netrc-cache nil)
+
 (defun auth-source-forget-all-cached ()
   "Forget all cached auth-source data."
   (interactive)
@@ -815,8 +817,6 @@ while \(:host t) would find all host entries."
 	  values))
 
 ;;; Backend specific parsing: netrc/authinfo backend
-
-(defvar auth-source-netrc-cache nil)
 
 ;;; (auth-source-netrc-parse "~/.authinfo.gpg")
 (defun* auth-source-netrc-parse (&rest

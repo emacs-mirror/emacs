@@ -1333,12 +1333,16 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'."
 (setq rmail-show-mime-function 'rmail-show-mime)
 
 (defun rmail-insert-mime-forwarded-message (forward-buffer)
-  "Function to set in `rmail-insert-mime-forwarded-message-function' (which see)."
-  (let ((rmail-mime-mbox-buffer
-	 (with-current-buffer forward-buffer rmail-view-buffer)))
+  "Insert the message in FORWARD-BUFFER as a forwarded message.
+This is the usual value of `rmail-insert-mime-forwarded-message-function'."
+  (let ((message-buffer
+	 (with-current-buffer forward-buffer
+	   (if rmail-buffer-swapped
+	       forward-buffer
+	     rmail-view-buffer))))
     (save-restriction
       (narrow-to-region (point) (point))
-      (message-forward-make-body-mime rmail-mime-mbox-buffer))))
+      (message-forward-make-body-mime message-buffer))))
 
 (setq rmail-insert-mime-forwarded-message-function
       'rmail-insert-mime-forwarded-message)

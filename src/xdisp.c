@@ -2242,7 +2242,7 @@ check_it (it)
 #endif /* not 0 */
 
 
-#if GLYPH_DEBUG
+#if GLYPH_DEBUG && XASSERTS
 
 /* Check that the window end of window W is what we expect it
    to be---the last row in the current matrix displaying text.  */
@@ -2264,11 +2264,11 @@ check_window_end (struct window *w)
 
 #define CHECK_WINDOW_END(W)	check_window_end ((W))
 
-#else /* not GLYPH_DEBUG */
+#else
 
 #define CHECK_WINDOW_END(W)	(void) 0
 
-#endif /* not GLYPH_DEBUG */
+#endif
 
 
 
@@ -11101,40 +11101,42 @@ hscroll_windows (Lisp_Object window)
 
 /* First and last unchanged row for try_window_id.  */
 
-int debug_first_unchanged_at_end_vpos;
-int debug_last_unchanged_at_beg_vpos;
+static int debug_first_unchanged_at_end_vpos;
+static int debug_last_unchanged_at_beg_vpos;
 
 /* Delta vpos and y.  */
 
-int debug_dvpos, debug_dy;
+static int debug_dvpos, debug_dy;
 
 /* Delta in characters and bytes for try_window_id.  */
 
-EMACS_INT debug_delta, debug_delta_bytes;
+static EMACS_INT debug_delta, debug_delta_bytes;
 
 /* Values of window_end_pos and window_end_vpos at the end of
    try_window_id.  */
 
-EMACS_INT debug_end_vpos;
+static EMACS_INT debug_end_vpos;
 
 /* Append a string to W->desired_matrix->method.  FMT is a printf
-   format string.  A1...A9 are a supplement for a variable-length
-   argument list.  If trace_redisplay_p is non-zero also printf the
+   format string.  If trace_redisplay_p is non-zero also printf the
    resulting string to stderr.  */
 
+static void debug_method_add (struct window *, char const *, ...)
+  ATTRIBUTE_FORMAT_PRINTF (2, 3);
+
 static void
-debug_method_add (w, fmt, a1, a2, a3, a4, a5, a6, a7, a8, a9)
-     struct window *w;
-     char *fmt;
-     int a1, a2, a3, a4, a5, a6, a7, a8, a9;
+debug_method_add (struct window *w, char const *fmt, ...)
 {
   char buffer[512];
   char *method = w->desired_matrix->method;
   int len = strlen (method);
   int size = sizeof w->desired_matrix->method;
   int remaining = size - len - 1;
+  va_list ap;
 
-  sprintf (buffer, fmt, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+  va_start (ap, fmt);
+  vsprintf (buffer, fmt, ap);
+  va_end (ap);
   if (len && remaining)
     {
       method[len] = '|';
@@ -16265,9 +16267,9 @@ try_window_id (struct window *w)
 
 #if GLYPH_DEBUG
 
-void dump_glyph_row (struct glyph_row *, int, int);
-void dump_glyph_matrix (struct glyph_matrix *, int);
-void dump_glyph (struct glyph_row *, struct glyph *, int);
+void dump_glyph_row (struct glyph_row *, int, int) EXTERNALLY_VISIBLE;
+void dump_glyph_matrix (struct glyph_matrix *, int) EXTERNALLY_VISIBLE;
+void dump_glyph (struct glyph_row *, struct glyph *, int) EXTERNALLY_VISIBLE;
 
 
 /* Dump the contents of glyph matrix MATRIX on stderr.
@@ -16294,7 +16296,7 @@ dump_glyph (struct glyph_row *row, struct glyph *glyph, int area)
   if (glyph->type == CHAR_GLYPH)
     {
       fprintf (stderr,
-	       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
+	       "  %5td %4c %6"pI"d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
 	       glyph - row->glyphs[TEXT_AREA],
 	       'C',
 	       glyph->charpos,
@@ -16315,7 +16317,7 @@ dump_glyph (struct glyph_row *row, struct glyph *glyph, int area)
   else if (glyph->type == STRETCH_GLYPH)
     {
       fprintf (stderr,
-	       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
+	       "  %5td %4c %6"pI"d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
 	       glyph - row->glyphs[TEXT_AREA],
 	       'S',
 	       glyph->charpos,
@@ -16334,7 +16336,7 @@ dump_glyph (struct glyph_row *row, struct glyph *glyph, int area)
   else if (glyph->type == IMAGE_GLYPH)
     {
       fprintf (stderr,
-	       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
+	       "  %5td %4c %6"pI"d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
 	       glyph - row->glyphs[TEXT_AREA],
 	       'I',
 	       glyph->charpos,
@@ -16353,7 +16355,7 @@ dump_glyph (struct glyph_row *row, struct glyph *glyph, int area)
   else if (glyph->type == COMPOSITE_GLYPH)
     {
       fprintf (stderr,
-	       "  %5d %4c %6d %c %3d 0x%05x",
+	       "  %5td %4c %6"pI"d %c %3d 0x%05x",
 	       glyph - row->glyphs[TEXT_AREA],
 	       '+',
 	       glyph->charpos,
@@ -16389,7 +16391,7 @@ dump_glyph_row (struct glyph_row *row, int vpos, int glyphs)
       fprintf (stderr, "Row Start   End Used oE><\\CTZFesm     X    Y    W    H    V    A    P\n");
       fprintf (stderr, "======================================================================\n");
 
-      fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d\
+      fprintf (stderr, "%3d %5"pI"d %5"pI"d %4d %1.1d%1.1d%1.1d%1.1d\
 %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d  %4d %4d %4d %4d %4d %4d %4d\n",
 	       vpos,
 	       MATRIX_ROW_START_CHARPOS (row),
@@ -16417,7 +16419,7 @@ dump_glyph_row (struct glyph_row *row, int vpos, int glyphs)
       fprintf (stderr, "%9d %5d\t%5d\n", row->start.overlay_string_index,
 	       row->end.overlay_string_index,
 	       row->continuation_lines_width);
-      fprintf (stderr, "%9d %5d\n",
+      fprintf (stderr, "%9"pI"d %5"pI"d\n",
 	       CHARPOS (row->start.string_pos),
 	       CHARPOS (row->end.string_pos));
       fprintf (stderr, "%9d %5d\n", row->start.dpvec_index,
@@ -16482,7 +16484,7 @@ glyphs in short form, otherwise show glyphs in long form.  */)
   struct window *w = XWINDOW (selected_window);
   struct buffer *buffer = XBUFFER (w->buffer);
 
-  fprintf (stderr, "PT = %d, BEGV = %d. ZV = %d\n",
+  fprintf (stderr, "PT = %"pI"d, BEGV = %"pI"d. ZV = %"pI"d\n",
 	   BUF_PT (buffer), BUF_BEGV (buffer), BUF_ZV (buffer));
   fprintf (stderr, "Cursor x = %d, y = %d, hpos = %d, vpos = %d\n",
 	   w->cursor.x, w->cursor.y, w->cursor.hpos, w->cursor.vpos);
@@ -26426,8 +26428,7 @@ syms_of_xdisp (void)
   Vmessage_stack = Qnil;
   staticpro (&Vmessage_stack);
 
-  Qinhibit_redisplay = intern_c_string ("inhibit-redisplay");
-  staticpro (&Qinhibit_redisplay);
+  DEFSYM (Qinhibit_redisplay, "inhibit-redisplay");
 
   message_dolog_marker1 = Fmake_marker ();
   staticpro (&message_dolog_marker1);
@@ -26452,141 +26453,72 @@ syms_of_xdisp (void)
   defsubr (&Sinvisible_p);
   defsubr (&Scurrent_bidi_paragraph_direction);
 
-  staticpro (&Qmenu_bar_update_hook);
-  Qmenu_bar_update_hook = intern_c_string ("menu-bar-update-hook");
-
-  staticpro (&Qoverriding_terminal_local_map);
-  Qoverriding_terminal_local_map = intern_c_string ("overriding-terminal-local-map");
-
-  staticpro (&Qoverriding_local_map);
-  Qoverriding_local_map = intern_c_string ("overriding-local-map");
-
-  staticpro (&Qwindow_scroll_functions);
-  Qwindow_scroll_functions = intern_c_string ("window-scroll-functions");
-
-  staticpro (&Qwindow_text_change_functions);
-  Qwindow_text_change_functions = intern_c_string ("window-text-change-functions");
-
-  staticpro (&Qredisplay_end_trigger_functions);
-  Qredisplay_end_trigger_functions = intern_c_string ("redisplay-end-trigger-functions");
-
-  staticpro (&Qinhibit_point_motion_hooks);
-  Qinhibit_point_motion_hooks = intern_c_string ("inhibit-point-motion-hooks");
-
-  Qeval = intern_c_string ("eval");
-  staticpro (&Qeval);
-
-  QCdata = intern_c_string (":data");
-  staticpro (&QCdata);
-  Qdisplay = intern_c_string ("display");
-  staticpro (&Qdisplay);
-  Qspace_width = intern_c_string ("space-width");
-  staticpro (&Qspace_width);
-  Qraise = intern_c_string ("raise");
-  staticpro (&Qraise);
-  Qslice = intern_c_string ("slice");
-  staticpro (&Qslice);
-  Qspace = intern_c_string ("space");
-  staticpro (&Qspace);
-  Qmargin = intern_c_string ("margin");
-  staticpro (&Qmargin);
-  Qpointer = intern_c_string ("pointer");
-  staticpro (&Qpointer);
-  Qleft_margin = intern_c_string ("left-margin");
-  staticpro (&Qleft_margin);
-  Qright_margin = intern_c_string ("right-margin");
-  staticpro (&Qright_margin);
-  Qcenter = intern_c_string ("center");
-  staticpro (&Qcenter);
-  Qline_height = intern_c_string ("line-height");
-  staticpro (&Qline_height);
-  QCalign_to = intern_c_string (":align-to");
-  staticpro (&QCalign_to);
-  QCrelative_width = intern_c_string (":relative-width");
-  staticpro (&QCrelative_width);
-  QCrelative_height = intern_c_string (":relative-height");
-  staticpro (&QCrelative_height);
-  QCeval = intern_c_string (":eval");
-  staticpro (&QCeval);
-  QCpropertize = intern_c_string (":propertize");
-  staticpro (&QCpropertize);
-  QCfile = intern_c_string (":file");
-  staticpro (&QCfile);
-  Qfontified = intern_c_string ("fontified");
-  staticpro (&Qfontified);
-  Qfontification_functions = intern_c_string ("fontification-functions");
-  staticpro (&Qfontification_functions);
-  Qtrailing_whitespace = intern_c_string ("trailing-whitespace");
-  staticpro (&Qtrailing_whitespace);
-  Qescape_glyph = intern_c_string ("escape-glyph");
-  staticpro (&Qescape_glyph);
-  Qnobreak_space = intern_c_string ("nobreak-space");
-  staticpro (&Qnobreak_space);
-  Qimage = intern_c_string ("image");
-  staticpro (&Qimage);
-  Qtext = intern_c_string ("text");
-  staticpro (&Qtext);
-  Qboth = intern_c_string ("both");
-  staticpro (&Qboth);
-  Qboth_horiz = intern_c_string ("both-horiz");
-  staticpro (&Qboth_horiz);
-  Qtext_image_horiz = intern_c_string ("text-image-horiz");
-  staticpro (&Qtext_image_horiz);
-  QCmap = intern_c_string (":map");
-  staticpro (&QCmap);
-  QCpointer = intern_c_string (":pointer");
-  staticpro (&QCpointer);
-  Qrect = intern_c_string ("rect");
-  staticpro (&Qrect);
-  Qcircle = intern_c_string ("circle");
-  staticpro (&Qcircle);
-  Qpoly = intern_c_string ("poly");
-  staticpro (&Qpoly);
-  Qmessage_truncate_lines = intern_c_string ("message-truncate-lines");
-  staticpro (&Qmessage_truncate_lines);
-  Qgrow_only = intern_c_string ("grow-only");
-  staticpro (&Qgrow_only);
-  Qinhibit_menubar_update = intern_c_string ("inhibit-menubar-update");
-  staticpro (&Qinhibit_menubar_update);
-  Qinhibit_eval_during_redisplay = intern_c_string ("inhibit-eval-during-redisplay");
-  staticpro (&Qinhibit_eval_during_redisplay);
-  Qposition = intern_c_string ("position");
-  staticpro (&Qposition);
-  Qbuffer_position = intern_c_string ("buffer-position");
-  staticpro (&Qbuffer_position);
-  Qobject = intern_c_string ("object");
-  staticpro (&Qobject);
-  Qbar = intern_c_string ("bar");
-  staticpro (&Qbar);
-  Qhbar = intern_c_string ("hbar");
-  staticpro (&Qhbar);
-  Qbox = intern_c_string ("box");
-  staticpro (&Qbox);
-  Qhollow = intern_c_string ("hollow");
-  staticpro (&Qhollow);
-  Qhand = intern_c_string ("hand");
-  staticpro (&Qhand);
-  Qarrow = intern_c_string ("arrow");
-  staticpro (&Qarrow);
-  Qtext = intern_c_string ("text");
-  staticpro (&Qtext);
-  Qinhibit_free_realized_faces = intern_c_string ("inhibit-free-realized-faces");
-  staticpro (&Qinhibit_free_realized_faces);
+  DEFSYM (Qmenu_bar_update_hook, "menu-bar-update-hook");
+  DEFSYM (Qoverriding_terminal_local_map, "overriding-terminal-local-map");
+  DEFSYM (Qoverriding_local_map, "overriding-local-map");
+  DEFSYM (Qwindow_scroll_functions, "window-scroll-functions");
+  DEFSYM (Qwindow_text_change_functions, "window-text-change-functions");
+  DEFSYM (Qredisplay_end_trigger_functions, "redisplay-end-trigger-functions");
+  DEFSYM (Qinhibit_point_motion_hooks, "inhibit-point-motion-hooks");
+  DEFSYM (Qeval, "eval");
+  DEFSYM (QCdata, ":data");
+  DEFSYM (Qdisplay, "display");
+  DEFSYM (Qspace_width, "space-width");
+  DEFSYM (Qraise, "raise");
+  DEFSYM (Qslice, "slice");
+  DEFSYM (Qspace, "space");
+  DEFSYM (Qmargin, "margin");
+  DEFSYM (Qpointer, "pointer");
+  DEFSYM (Qleft_margin, "left-margin");
+  DEFSYM (Qright_margin, "right-margin");
+  DEFSYM (Qcenter, "center");
+  DEFSYM (Qline_height, "line-height");
+  DEFSYM (QCalign_to, ":align-to");
+  DEFSYM (QCrelative_width, ":relative-width");
+  DEFSYM (QCrelative_height, ":relative-height");
+  DEFSYM (QCeval, ":eval");
+  DEFSYM (QCpropertize, ":propertize");
+  DEFSYM (QCfile, ":file");
+  DEFSYM (Qfontified, "fontified");
+  DEFSYM (Qfontification_functions, "fontification-functions");
+  DEFSYM (Qtrailing_whitespace, "trailing-whitespace");
+  DEFSYM (Qescape_glyph, "escape-glyph");
+  DEFSYM (Qnobreak_space, "nobreak-space");
+  DEFSYM (Qimage, "image");
+  DEFSYM (Qtext, "text");
+  DEFSYM (Qboth, "both");
+  DEFSYM (Qboth_horiz, "both-horiz");
+  DEFSYM (Qtext_image_horiz, "text-image-horiz");
+  DEFSYM (QCmap, ":map");
+  DEFSYM (QCpointer, ":pointer");
+  DEFSYM (Qrect, "rect");
+  DEFSYM (Qcircle, "circle");
+  DEFSYM (Qpoly, "poly");
+  DEFSYM (Qmessage_truncate_lines, "message-truncate-lines");
+  DEFSYM (Qgrow_only, "grow-only");
+  DEFSYM (Qinhibit_menubar_update, "inhibit-menubar-update");
+  DEFSYM (Qinhibit_eval_during_redisplay, "inhibit-eval-during-redisplay");
+  DEFSYM (Qposition, "position");
+  DEFSYM (Qbuffer_position, "buffer-position");
+  DEFSYM (Qobject, "object");
+  DEFSYM (Qbar, "bar");
+  DEFSYM (Qhbar, "hbar");
+  DEFSYM (Qbox, "box");
+  DEFSYM (Qhollow, "hollow");
+  DEFSYM (Qhand, "hand");
+  DEFSYM (Qarrow, "arrow");
+  DEFSYM (Qtext, "text");
+  DEFSYM (Qinhibit_free_realized_faces, "inhibit-free-realized-faces");
 
   list_of_error = Fcons (Fcons (intern_c_string ("error"),
 				Fcons (intern_c_string ("void-variable"), Qnil)),
 			 Qnil);
   staticpro (&list_of_error);
 
-  Qlast_arrow_position = intern_c_string ("last-arrow-position");
-  staticpro (&Qlast_arrow_position);
-  Qlast_arrow_string = intern_c_string ("last-arrow-string");
-  staticpro (&Qlast_arrow_string);
-
-  Qoverlay_arrow_string = intern_c_string ("overlay-arrow-string");
-  staticpro (&Qoverlay_arrow_string);
-  Qoverlay_arrow_bitmap = intern_c_string ("overlay-arrow-bitmap");
-  staticpro (&Qoverlay_arrow_bitmap);
+  DEFSYM (Qlast_arrow_position, "last-arrow-position");
+  DEFSYM (Qlast_arrow_string, "last-arrow-string");
+  DEFSYM (Qoverlay_arrow_string, "overlay-arrow-string");
+  DEFSYM (Qoverlay_arrow_bitmap, "overlay-arrow-bitmap");
 
   echo_buffer[0] = echo_buffer[1] = Qnil;
   staticpro (&echo_buffer[0]);
@@ -26620,10 +26552,8 @@ syms_of_xdisp (void)
   staticpro (&previous_help_echo_string);
   help_echo_pos = -1;
 
-  Qright_to_left = intern_c_string ("right-to-left");
-  staticpro (&Qright_to_left);
-  Qleft_to_right = intern_c_string ("left-to-right");
-  staticpro (&Qleft_to_right);
+  DEFSYM (Qright_to_left, "right-to-left");
+  DEFSYM (Qleft_to_right, "left-to-right");
 
 #ifdef HAVE_WINDOW_SYSTEM
   DEFVAR_BOOL ("x-stretch-cursor", x_stretch_cursor_p,
@@ -26943,8 +26873,7 @@ the frame's other specifications determine how to blink the cursor off.  */);
 If non-nil, windows are automatically scrolled horizontally to make
 point visible.  */);
   automatic_hscrolling_p = 1;
-  Qauto_hscroll_mode = intern_c_string ("auto-hscroll-mode");
-  staticpro (&Qauto_hscroll_mode);
+  DEFSYM (Qauto_hscroll_mode, "auto-hscroll-mode");
 
   DEFVAR_INT ("hscroll-margin", hscroll_margin,
     doc: /* *How many columns away from the window edge point is allowed to get
@@ -27000,8 +26929,7 @@ property.
 
 To add a prefix to non-continuation lines, use `line-prefix'.  */);
   Vwrap_prefix = Qnil;
-  staticpro (&Qwrap_prefix);
-  Qwrap_prefix = intern_c_string ("wrap-prefix");
+  DEFSYM (Qwrap_prefix, "wrap-prefix");
   Fmake_variable_buffer_local (Qwrap_prefix);
 
   DEFVAR_LISP ("line-prefix", Vline_prefix,
@@ -27014,8 +26942,7 @@ property.
 
 To add a prefix to continuation lines, use `wrap-prefix'.  */);
   Vline_prefix = Qnil;
-  staticpro (&Qline_prefix);
-  Qline_prefix = intern_c_string ("line-prefix");
+  DEFSYM (Qline_prefix, "line-prefix");
   Fmake_variable_buffer_local (Qline_prefix);
 
   DEFVAR_BOOL ("inhibit-eval-during-redisplay", inhibit_eval_during_redisplay,

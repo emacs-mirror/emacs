@@ -958,7 +958,7 @@ Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
 ;;;###autoload
 (defun browse-url-xdg-open (url &optional new-window)
   (interactive (browse-url-interactive-arg "URL: "))
-  (call-process "nohup" nil nil nil "xdg-open" url))
+  (call-process "xdg-open" nil 0 nil url))
 
 ;;;###autoload
 (defun browse-url-netscape (url &optional new-window)

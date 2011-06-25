@@ -4854,34 +4854,20 @@ syms_of_fns (void)
   DEFSYM (Qsha512, "sha512");
 
   /* Hash table stuff.  */
-  Qhash_table_p = intern_c_string ("hash-table-p");
-  staticpro (&Qhash_table_p);
-  Qeq = intern_c_string ("eq");
-  staticpro (&Qeq);
-  Qeql = intern_c_string ("eql");
-  staticpro (&Qeql);
-  Qequal = intern_c_string ("equal");
-  staticpro (&Qequal);
-  QCtest = intern_c_string (":test");
-  staticpro (&QCtest);
-  QCsize = intern_c_string (":size");
-  staticpro (&QCsize);
-  QCrehash_size = intern_c_string (":rehash-size");
-  staticpro (&QCrehash_size);
-  QCrehash_threshold = intern_c_string (":rehash-threshold");
-  staticpro (&QCrehash_threshold);
-  QCweakness = intern_c_string (":weakness");
-  staticpro (&QCweakness);
-  Qkey = intern_c_string ("key");
-  staticpro (&Qkey);
-  Qvalue = intern_c_string ("value");
-  staticpro (&Qvalue);
-  Qhash_table_test = intern_c_string ("hash-table-test");
-  staticpro (&Qhash_table_test);
-  Qkey_or_value = intern_c_string ("key-or-value");
-  staticpro (&Qkey_or_value);
-  Qkey_and_value = intern_c_string ("key-and-value");
-  staticpro (&Qkey_and_value);
+  DEFSYM (Qhash_table_p, "hash-table-p");
+  DEFSYM (Qeq, "eq");
+  DEFSYM (Qeql, "eql");
+  DEFSYM (Qequal, "equal");
+  DEFSYM (QCtest, ":test");
+  DEFSYM (QCsize, ":size");
+  DEFSYM (QCrehash_size, ":rehash-size");
+  DEFSYM (QCrehash_threshold, ":rehash-threshold");
+  DEFSYM (QCweakness, ":weakness");
+  DEFSYM (Qkey, "key");
+  DEFSYM (Qvalue, "value");
+  DEFSYM (Qhash_table_test, "hash-table-test");
+  DEFSYM (Qkey_or_value, "key-or-value");
+  DEFSYM (Qkey_and_value, "key-and-value");
 
   defsubr (&Ssxhash);
   defsubr (&Smake_hash_table);
@@ -4900,18 +4886,12 @@ syms_of_fns (void)
   defsubr (&Smaphash);
   defsubr (&Sdefine_hash_table_test);
 
-  Qstring_lessp = intern_c_string ("string-lessp");
-  staticpro (&Qstring_lessp);
-  Qprovide = intern_c_string ("provide");
-  staticpro (&Qprovide);
-  Qrequire = intern_c_string ("require");
-  staticpro (&Qrequire);
-  Qyes_or_no_p_history = intern_c_string ("yes-or-no-p-history");
-  staticpro (&Qyes_or_no_p_history);
-  Qcursor_in_echo_area = intern_c_string ("cursor-in-echo-area");
-  staticpro (&Qcursor_in_echo_area);
-  Qwidget_type = intern_c_string ("widget-type");
-  staticpro (&Qwidget_type);
+  DEFSYM (Qstring_lessp, "string-lessp");
+  DEFSYM (Qprovide, "provide");
+  DEFSYM (Qrequire, "require");
+  DEFSYM (Qyes_or_no_p_history, "yes-or-no-p-history");
+  DEFSYM (Qcursor_in_echo_area, "cursor-in-echo-area");
+  DEFSYM (Qwidget_type, "widget-type");
 
   staticpro (&string_char_byte_cache_string);
   string_char_byte_cache_string = Qnil;
@@ -4925,18 +4905,13 @@ syms_of_fns (void)
     doc: /* A list of symbols which are the features of the executing Emacs.
 Used by `featurep' and `require', and altered by `provide'.  */);
   Vfeatures = Fcons (intern_c_string ("emacs"), Qnil);
-  Qsubfeatures = intern_c_string ("subfeatures");
-  staticpro (&Qsubfeatures);
+  DEFSYM (Qsubfeatures, "subfeatures");
 
 #ifdef HAVE_LANGINFO_CODESET
-  Qcodeset = intern_c_string ("codeset");
-  staticpro (&Qcodeset);
-  Qdays = intern_c_string ("days");
-  staticpro (&Qdays);
-  Qmonths = intern_c_string ("months");
-  staticpro (&Qmonths);
-  Qpaper = intern_c_string ("paper");
-  staticpro (&Qpaper);
+  DEFSYM (Qcodeset, "codeset");
+  DEFSYM (Qdays, "days");
+  DEFSYM (Qmonths, "months");
+  DEFSYM (Qpaper, "paper");
 #endif	/* HAVE_LANGINFO_CODESET */
 
   DEFVAR_BOOL ("use-dialog-box", use_dialog_box,

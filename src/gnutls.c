@@ -1101,72 +1101,36 @@ syms_of_gnutls (void)
 {
   gnutls_global_initialized = 0;
 
-  Qgnutls_dll = intern_c_string ("gnutls");
-  staticpro (&Qgnutls_dll);
+  DEFSYM(Qgnutls_dll, "gnutls");
+  DEFSYM(Qgnutls_log_level, "gnutls-log-level");
+  DEFSYM(Qgnutls_code, "gnutls-code");
+  DEFSYM(Qgnutls_anon, "gnutls-anon");
+  DEFSYM(Qgnutls_x509pki, "gnutls-x509pki");
+  DEFSYM(Qgnutls_bootprop_hostname, ":hostname");
+  DEFSYM(Qgnutls_bootprop_priority, ":priority");
+  DEFSYM(Qgnutls_bootprop_trustfiles, ":trustfiles");
+  DEFSYM(Qgnutls_bootprop_keylist, ":keylist");
+  DEFSYM(Qgnutls_bootprop_crlfiles, ":crlfiles");
+  DEFSYM(Qgnutls_bootprop_callbacks, ":callbacks");
+  DEFSYM(Qgnutls_bootprop_callbacks_verify, "verify");
+  DEFSYM(Qgnutls_bootprop_loglevel, ":loglevel");
+  DEFSYM(Qgnutls_bootprop_verify_flags, ":verify-flags");
+  DEFSYM(Qgnutls_bootprop_verify_hostname_error, ":verify-error");
+  DEFSYM(Qgnutls_bootprop_verify_hostname_error, ":verify-hostname-error");
 
-  Qgnutls_log_level = intern_c_string ("gnutls-log-level");
-  staticpro (&Qgnutls_log_level);
-
-  Qgnutls_code = intern_c_string ("gnutls-code");
-  staticpro (&Qgnutls_code);
-
-  Qgnutls_anon = intern_c_string ("gnutls-anon");
-  staticpro (&Qgnutls_anon);
-
-  Qgnutls_x509pki = intern_c_string ("gnutls-x509pki");
-  staticpro (&Qgnutls_x509pki);
-
-  Qgnutls_bootprop_hostname = intern_c_string (":hostname");
-  staticpro (&Qgnutls_bootprop_hostname);
-
-  Qgnutls_bootprop_priority = intern_c_string (":priority");
-  staticpro (&Qgnutls_bootprop_priority);
-
-  Qgnutls_bootprop_trustfiles = intern_c_string (":trustfiles");
-  staticpro (&Qgnutls_bootprop_trustfiles);
-
-  Qgnutls_bootprop_keylist = intern_c_string (":keylist");
-  staticpro (&Qgnutls_bootprop_keylist);
-
-  Qgnutls_bootprop_crlfiles = intern_c_string (":crlfiles");
-  staticpro (&Qgnutls_bootprop_crlfiles);
-
-  Qgnutls_bootprop_callbacks = intern_c_string (":callbacks");
-  staticpro (&Qgnutls_bootprop_callbacks);
-
-  Qgnutls_bootprop_callbacks_verify = intern_c_string ("verify");
-  staticpro (&Qgnutls_bootprop_callbacks_verify);
-
-  Qgnutls_bootprop_loglevel = intern_c_string (":loglevel");
-  staticpro (&Qgnutls_bootprop_loglevel);
-
-  Qgnutls_bootprop_verify_flags = intern_c_string (":verify-flags");
-  staticpro (&Qgnutls_bootprop_verify_flags);
-
-  Qgnutls_bootprop_verify_hostname_error = intern_c_string (":verify-error");
-  staticpro (&Qgnutls_bootprop_verify_error);
-
-  Qgnutls_bootprop_verify_hostname_error = intern_c_string (":verify-hostname-error");
-  staticpro (&Qgnutls_bootprop_verify_hostname_error);
-
-  Qgnutls_e_interrupted = intern_c_string ("gnutls-e-interrupted");
-  staticpro (&Qgnutls_e_interrupted);
+  DEFSYM(Qgnutls_e_interrupted, "gnutls-e-interrupted");
   Fput (Qgnutls_e_interrupted, Qgnutls_code,
         make_number (GNUTLS_E_INTERRUPTED));
 
-  Qgnutls_e_again = intern_c_string ("gnutls-e-again");
-  staticpro (&Qgnutls_e_again);
+  DEFSYM(Qgnutls_e_again, "gnutls-e-again");
   Fput (Qgnutls_e_again, Qgnutls_code,
         make_number (GNUTLS_E_AGAIN));
 
-  Qgnutls_e_invalid_session = intern_c_string ("gnutls-e-invalid-session");
-  staticpro (&Qgnutls_e_invalid_session);
+  DEFSYM(Qgnutls_e_invalid_session, "gnutls-e-invalid-session");
   Fput (Qgnutls_e_invalid_session, Qgnutls_code,
         make_number (GNUTLS_E_INVALID_SESSION));
 
-  Qgnutls_e_not_ready_for_handshake =
-    intern_c_string ("gnutls-e-not-ready-for-handshake");
-  staticpro (&Qgnutls_e_not_ready_for_handshake);
+  DEFSYM(Qgnutls_e_not_ready_for_handshake, "gnutls-e-not-ready-for-handshake");
   Fput (Qgnutls_e_not_ready_for_handshake, Qgnutls_code,
         make_number (GNUTLS_E_APPLICATION_ERROR_MIN));
 

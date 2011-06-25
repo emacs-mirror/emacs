@@ -80,7 +80,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "charset.h"
 #include "coding.h"
-#include "character.h"
 #include "composite.h"
 
 

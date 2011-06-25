@@ -829,7 +829,7 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
         return '?';
       }
     /* Convenience. Treat POSIX -W foo same as long option --foo */
-    if (temp[0] == 'W' && temp[1] == ';')
+    if (temp[0] == 'W' && temp[1] == ';' && longopts)
       {
         char *nameend;
         const struct option *p;

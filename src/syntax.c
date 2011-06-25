@@ -3362,8 +3362,7 @@ init_syntax_once (void)
   Lisp_Object temp;
 
   /* This has to be done here, before we call Fmake_char_table.  */
-  Qsyntax_table = intern_c_string ("syntax-table");
-  staticpro (&Qsyntax_table);
+  DEFSYM (Qsyntax_table, "syntax-table");
 
   /* Intern_C_String this now in case it isn't already done.
      Setting this variable twice is harmless.
@@ -3448,8 +3447,7 @@ init_syntax_once (void)
 void
 syms_of_syntax (void)
 {
-  Qsyntax_table_p = intern_c_string ("syntax-table-p");
-  staticpro (&Qsyntax_table_p);
+  DEFSYM (Qsyntax_table_p, "syntax-table-p");
 
   staticpro (&Vsyntax_code_object);
 
@@ -3461,8 +3459,7 @@ syms_of_syntax (void)
   /* Defined in regex.c */
   staticpro (&re_match_object);
 
-  Qscan_error = intern_c_string ("scan-error");
-  staticpro (&Qscan_error);
+  DEFSYM (Qscan_error, "scan-error");
   Fput (Qscan_error, Qerror_conditions,
 	pure_cons (Qscan_error, pure_cons (Qerror, Qnil)));
   Fput (Qscan_error, Qerror_message,

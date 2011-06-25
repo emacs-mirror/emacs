@@ -1,3 +1,14 @@
+2011-06-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* auth-source.el (auth-source-netrc-cache): Move forward.
+
+2011-06-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* auth-source.el (auth-source-netrc-create): Don't query the bits that
+	we already know.
+	(auth-source-forget-all-cached): Clear auth-source-netrc-cache, too.
+	(auth-source-netrc-create): Don't prompt for the stuff we already know.
+
 2011-06-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* auth-source.el (auth-source-netrc-create): Don't print all tokens in

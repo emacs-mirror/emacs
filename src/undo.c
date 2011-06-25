@@ -637,11 +637,8 @@ Return what remains of the list.  */)
 void
 syms_of_undo (void)
 {
-  Qinhibit_read_only = intern_c_string ("inhibit-read-only");
-  staticpro (&Qinhibit_read_only);
-
-  Qapply = intern_c_string ("apply");
-  staticpro (&Qapply);
+  DEFSYM (Qinhibit_read_only, "inhibit-read-only");
+  DEFSYM (Qapply, "apply");
 
   pending_boundary = Qnil;
   staticpro (&pending_boundary);

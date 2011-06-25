@@ -4738,9 +4738,7 @@ syms_of_editfns (void)
   environbuf = 0;
   initial_tz = 0;
 
-  Qbuffer_access_fontify_functions
-    = intern_c_string ("buffer-access-fontify-functions");
-  staticpro (&Qbuffer_access_fontify_functions);
+  DEFSYM (Qbuffer_access_fontify_functions, "buffer-access-fontify-functions");
 
   DEFVAR_LISP ("inhibit-field-text-motion", Vinhibit_field_text_motion,
 	       doc: /* Non-nil means text motion commands don't notice fields.  */);
@@ -4802,10 +4800,8 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Sregion_beginning);
   defsubr (&Sregion_end);
 
-  staticpro (&Qfield);
-  Qfield = intern_c_string ("field");
-  staticpro (&Qboundary);
-  Qboundary = intern_c_string ("boundary");
+  DEFSYM (Qfield, "field");
+  DEFSYM (Qboundary, "boundary");
   defsubr (&Sfield_beginning);
   defsubr (&Sfield_end);
   defsubr (&Sfield_string);

@@ -2559,8 +2559,7 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
 void
 syms_of_xmenu (void)
 {
-  Qdebug_on_next_call = intern_c_string ("debug-on-next-call");
-  staticpro (&Qdebug_on_next_call);
+  DEFSYM (Qdebug_on_next_call, "debug-on-next-call");
 
 #ifdef USE_X_TOOLKIT
   widget_id_tick = (1<<16);

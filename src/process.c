@@ -7236,14 +7236,10 @@ syms_of_process (void)
 {
 #ifdef subprocesses
 
-  Qprocessp = intern_c_string ("processp");
-  staticpro (&Qprocessp);
-  Qrun = intern_c_string ("run");
-  staticpro (&Qrun);
-  Qstop = intern_c_string ("stop");
-  staticpro (&Qstop);
-  Qsignal = intern_c_string ("signal");
-  staticpro (&Qsignal);
+  DEFSYM (Qprocessp, "processp");
+  DEFSYM (Qrun, "run");
+  DEFSYM (Qstop, "stop");
+  DEFSYM (Qsignal, "signal");
 
   /* Qexit is already staticpro'd by syms_of_eval; don't staticpro it
      here again.
@@ -7251,92 +7247,52 @@ syms_of_process (void)
      Qexit = intern_c_string ("exit");
      staticpro (&Qexit); */
 
-  Qopen = intern_c_string ("open");
-  staticpro (&Qopen);
-  Qclosed = intern_c_string ("closed");
-  staticpro (&Qclosed);
-  Qconnect = intern_c_string ("connect");
-  staticpro (&Qconnect);
-  Qfailed = intern_c_string ("failed");
-  staticpro (&Qfailed);
-  Qlisten = intern_c_string ("listen");
-  staticpro (&Qlisten);
-  Qlocal = intern_c_string ("local");
-  staticpro (&Qlocal);
-  Qipv4 = intern_c_string ("ipv4");
-  staticpro (&Qipv4);
+  DEFSYM (Qopen, "open");
+  DEFSYM (Qclosed, "closed");
+  DEFSYM (Qconnect, "connect");
+  DEFSYM (Qfailed, "failed");
+  DEFSYM (Qlisten, "listen");
+  DEFSYM (Qlocal, "local");
+  DEFSYM (Qipv4, "ipv4");
 #ifdef AF_INET6
-  Qipv6 = intern_c_string ("ipv6");
-  staticpro (&Qipv6);
+  DEFSYM (Qipv6, "ipv6");
 #endif
-  Qdatagram = intern_c_string ("datagram");
-  staticpro (&Qdatagram);
-  Qseqpacket = intern_c_string ("seqpacket");
-  staticpro (&Qseqpacket);
+  DEFSYM (Qdatagram, "datagram");
+  DEFSYM (Qseqpacket, "seqpacket");
 
-  QCport = intern_c_string (":port");
-  staticpro (&QCport);
-  QCspeed = intern_c_string (":speed");
-  staticpro (&QCspeed);
-  QCprocess = intern_c_string (":process");
-  staticpro (&QCprocess);
+  DEFSYM (QCport, ":port");
+  DEFSYM (QCspeed, ":speed");
+  DEFSYM (QCprocess, ":process");
 
-  QCbytesize = intern_c_string (":bytesize");
-  staticpro (&QCbytesize);
-  QCstopbits = intern_c_string (":stopbits");
-  staticpro (&QCstopbits);
-  QCparity = intern_c_string (":parity");
-  staticpro (&QCparity);
-  Qodd = intern_c_string ("odd");
-  staticpro (&Qodd);
-  Qeven = intern_c_string ("even");
-  staticpro (&Qeven);
-  QCflowcontrol = intern_c_string (":flowcontrol");
-  staticpro (&QCflowcontrol);
-  Qhw = intern_c_string ("hw");
-  staticpro (&Qhw);
-  Qsw = intern_c_string ("sw");
-  staticpro (&Qsw);
-  QCsummary = intern_c_string (":summary");
-  staticpro (&QCsummary);
+  DEFSYM (QCbytesize, ":bytesize");
+  DEFSYM (QCstopbits, ":stopbits");
+  DEFSYM (QCparity, ":parity");
+  DEFSYM (Qodd, "odd");
+  DEFSYM (Qeven, "even");
+  DEFSYM (QCflowcontrol, ":flowcontrol");
+  DEFSYM (Qhw, "hw");
+  DEFSYM (Qsw, "sw");
+  DEFSYM (QCsummary, ":summary");
 
-  Qreal = intern_c_string ("real");
-  staticpro (&Qreal);
-  Qnetwork = intern_c_string ("network");
-  staticpro (&Qnetwork);
-  Qserial = intern_c_string ("serial");
-  staticpro (&Qserial);
-  QCbuffer = intern_c_string (":buffer");
-  staticpro (&QCbuffer);
-  QChost = intern_c_string (":host");
-  staticpro (&QChost);
-  QCservice = intern_c_string (":service");
-  staticpro (&QCservice);
-  QClocal = intern_c_string (":local");
-  staticpro (&QClocal);
-  QCremote = intern_c_string (":remote");
-  staticpro (&QCremote);
-  QCcoding = intern_c_string (":coding");
-  staticpro (&QCcoding);
-  QCserver = intern_c_string (":server");
-  staticpro (&QCserver);
-  QCnowait = intern_c_string (":nowait");
-  staticpro (&QCnowait);
-  QCsentinel = intern_c_string (":sentinel");
-  staticpro (&QCsentinel);
-  QClog = intern_c_string (":log");
-  staticpro (&QClog);
-  QCnoquery = intern_c_string (":noquery");
-  staticpro (&QCnoquery);
-  QCstop = intern_c_string (":stop");
-  staticpro (&QCstop);
-  QCoptions = intern_c_string (":options");
-  staticpro (&QCoptions);
-  QCplist = intern_c_string (":plist");
-  staticpro (&QCplist);
+  DEFSYM (Qreal, "real");
+  DEFSYM (Qnetwork, "network");
+  DEFSYM (Qserial, "serial");
+  DEFSYM (QCbuffer, ":buffer");
+  DEFSYM (QChost, ":host");
+  DEFSYM (QCservice, ":service");
+  DEFSYM (QClocal, ":local");
+  DEFSYM (QCremote, ":remote");
+  DEFSYM (QCcoding, ":coding");
+  DEFSYM (QCserver, ":server");
+  DEFSYM (QCnowait, ":nowait");
+  DEFSYM (QCsentinel, ":sentinel");
+  DEFSYM (QClog, ":log");
+  DEFSYM (QCnoquery, ":noquery");
+  DEFSYM (QCstop, ":stop");
+  DEFSYM (QCoptions, ":options");
+  DEFSYM (QCplist, ":plist");
 
-  Qlast_nonmenu_event = intern_c_string ("last-nonmenu-event");
-  staticpro (&Qlast_nonmenu_event);
+  DEFSYM (Qlast_nonmenu_event, "last-nonmenu-event");
 
   staticpro (&Vprocess_alist);
 #ifdef SIGCHLD
@@ -7345,73 +7301,40 @@ syms_of_process (void)
 
 #endif	/* subprocesses */
 
-  QCname = intern_c_string (":name");
-  staticpro (&QCname);
-  QCtype = intern_c_string (":type");
-  staticpro (&QCtype);
+  DEFSYM (QCname, ":name");
+  DEFSYM (QCtype, ":type");
 
-  Qeuid = intern_c_string ("euid");
-  staticpro (&Qeuid);
-  Qegid = intern_c_string ("egid");
-  staticpro (&Qegid);
-  Quser = intern_c_string ("user");
-  staticpro (&Quser);
-  Qgroup = intern_c_string ("group");
-  staticpro (&Qgroup);
-  Qcomm = intern_c_string ("comm");
-  staticpro (&Qcomm);
-  Qstate = intern_c_string ("state");
-  staticpro (&Qstate);
-  Qppid = intern_c_string ("ppid");
-  staticpro (&Qppid);
-  Qpgrp = intern_c_string ("pgrp");
-  staticpro (&Qpgrp);
-  Qsess = intern_c_string ("sess");
-  staticpro (&Qsess);
-  Qttname = intern_c_string ("ttname");
-  staticpro (&Qttname);
-  Qtpgid = intern_c_string ("tpgid");
-  staticpro (&Qtpgid);
-  Qminflt = intern_c_string ("minflt");
-  staticpro (&Qminflt);
-  Qmajflt = intern_c_string ("majflt");
-  staticpro (&Qmajflt);
-  Qcminflt = intern_c_string ("cminflt");
-  staticpro (&Qcminflt);
-  Qcmajflt = intern_c_string ("cmajflt");
-  staticpro (&Qcmajflt);
-  Qutime = intern_c_string ("utime");
-  staticpro (&Qutime);
-  Qstime = intern_c_string ("stime");
-  staticpro (&Qstime);
-  Qtime = intern_c_string ("time");
-  staticpro (&Qtime);
-  Qcutime = intern_c_string ("cutime");
-  staticpro (&Qcutime);
-  Qcstime = intern_c_string ("cstime");
-  staticpro (&Qcstime);
-  Qctime = intern_c_string ("ctime");
-  staticpro (&Qctime);
-  Qpri = intern_c_string ("pri");
-  staticpro (&Qpri);
-  Qnice = intern_c_string ("nice");
-  staticpro (&Qnice);
-  Qthcount = intern_c_string ("thcount");
-  staticpro (&Qthcount);
-  Qstart = intern_c_string ("start");
-  staticpro (&Qstart);
-  Qvsize = intern_c_string ("vsize");
-  staticpro (&Qvsize);
-  Qrss = intern_c_string ("rss");
-  staticpro (&Qrss);
-  Qetime = intern_c_string ("etime");
-  staticpro (&Qetime);
-  Qpcpu = intern_c_string ("pcpu");
-  staticpro (&Qpcpu);
-  Qpmem = intern_c_string ("pmem");
-  staticpro (&Qpmem);
-  Qargs = intern_c_string ("args");
-  staticpro (&Qargs);
+  DEFSYM (Qeuid, "euid");
+  DEFSYM (Qegid, "egid");
+  DEFSYM (Quser, "user");
+  DEFSYM (Qgroup, "group");
+  DEFSYM (Qcomm, "comm");
+  DEFSYM (Qstate, "state");
+  DEFSYM (Qppid, "ppid");
+  DEFSYM (Qpgrp, "pgrp");
+  DEFSYM (Qsess, "sess");
+  DEFSYM (Qttname, "ttname");
+  DEFSYM (Qtpgid, "tpgid");
+  DEFSYM (Qminflt, "minflt");
+  DEFSYM (Qmajflt, "majflt");
+  DEFSYM (Qcminflt, "cminflt");
+  DEFSYM (Qcmajflt, "cmajflt");
+  DEFSYM (Qutime, "utime");
+  DEFSYM (Qstime, "stime");
+  DEFSYM (Qtime, "time");
+  DEFSYM (Qcutime, "cutime");
+  DEFSYM (Qcstime, "cstime");
+  DEFSYM (Qctime, "ctime");
+  DEFSYM (Qpri, "pri");
+  DEFSYM (Qnice, "nice");
+  DEFSYM (Qthcount, "thcount");
+  DEFSYM (Qstart, "start");
+  DEFSYM (Qvsize, "vsize");
+  DEFSYM (Qrss, "rss");
+  DEFSYM (Qetime, "etime");
+  DEFSYM (Qpcpu, "pcpu");
+  DEFSYM (Qpmem, "pmem");
+  DEFSYM (Qargs, "args");
 
   DEFVAR_BOOL ("delete-exited-processes", delete_exited_processes,
 	       doc: /* *Non-nil means delete processes immediately when they exit.
