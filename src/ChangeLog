@@ -1,3 +1,26 @@
+2011-06-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* emacsgtkfixed.h: State that this is only used with Gtk+3.
+	(emacs_fixed_set_min_size): Remove.
+	(emacs_fixed_new): Take frame as argument.
+
+	* emacsgtkfixed.c: State that this is only used with Gtk+3.
+	(_EmacsFixedPrivate): Remove minwidth/height.
+	Add struct frame *f.
+	(emacs_fixed_init): Initialize priv->f.
+	(get_parent_class, emacs_fixed_set_min_size): Remove.
+	(emacs_fixed_new): Set priv->f to argument.
+	(emacs_fixed_get_preferred_width)
+	(emacs_fixed_get_preferred_height): Use min_width/height from
+	frames size_hint to set minimum and natural (Bug#8919).
+	(XSetWMSizeHints, XSetWMNormalHints): Override these functions
+	and use min_width/height from frames size_hint to set
+	min_width/height (Bug#8919).
+
+	* gtkutil.c (xg_create_frame_widgets): Pass f to emacs_fixed_new.
+	(x_wm_set_size_hint): Remove call to emacs_fixed_set_min_size. Fix
+	indentation.
+
 2011-06-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_paragraph_init): Test for ZV_BYTE before calling
