@@ -1214,8 +1214,8 @@ by buffer configuration `bs-cycle-configuration-name'."
 	     (cycle-list (cdr tupel)))
 	(unless (window-dedicated-p (selected-window))
 	  ;; We don't want the frame iconified if the only window in the frame
-	  ;; happens to be dedicated; let's get the error from switch-to-buffer
-	  (bury-buffer))
+	  ;; happens to be dedicated
+	  (bury-buffer (current-buffer)))
 	(switch-to-buffer next)
 	(setq bs--cycle-list (append (cdr cycle-list)
 				     (list (car cycle-list))))

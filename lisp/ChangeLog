@@ -1,3 +1,8 @@
+2011-06-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs-cycle-next): Pass current buffer to `bury-buffer' to
+	avoid deleting the current window in some cases (bug#8911).
+
 2011-06-26  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacs-lisp/smie.el (smie-bnf->prec2): Fix last change.
