@@ -46,7 +46,8 @@
 (require 'starttls)
 (require 'auth-source)
 
-(declare-function gnutls-negotiate "gnutls" t t) ; defun*
+(autoload 'gnutls-negotiate "gnutls")
+(autoload 'open-gnutls-stream "gnutls")
 
 ;;;###autoload
 (defun open-network-stream (name buffer host service &rest parameters)
@@ -207,11 +208,13 @@ functionality.
 	 (greeting (network-stream-get-response stream start eoc))
 	 (capabilities (network-stream-command stream capability-command eoc))
 	 (resulting-type 'plain)
+	 (builtin-starttls (and (fboundp 'gnutls-available-p)
+				(gnutls-available-p)))
 	 starttls-command)
 
     ;; If we have built-in STARTTLS support, try to upgrade the
     ;; connection.
-    (when (and (or (fboundp 'open-gnutls-stream)
+    (when (and (or builtin-starttls
 		   (and (or require-tls
 			    (plist-get parameters :use-starttls-if-possible))
 			(executable-find "gnutls-cli")))
@@ -221,7 +224,7 @@ functionality.
 	       (not (eq (plist-get parameters :type) 'plain)))
       ;; If using external STARTTLS, drop this connection and start
       ;; anew with `starttls-open-stream'.
-      (unless (fboundp 'open-gnutls-stream)
+      (unless builtin-starttls
 	(delete-process stream)
 	(setq start (with-current-buffer buffer (point-max)))
 	(let* ((starttls-use-gnutls t)
@@ -248,7 +251,7 @@ functionality.
       (when (string-match success-string
 			  (network-stream-command stream starttls-command eoc))
 	;; The server said it was OK to begin STARTTLS negotiations.
-	(if (fboundp 'open-gnutls-stream)
+	(if builtin-starttls
 	    (let ((cert (network-stream-certificate host service parameters)))
 	      (gnutls-negotiate :process stream :hostname host
 				:keylist (and cert (list cert))))
@@ -296,7 +299,8 @@ functionality.
 (defun network-stream-open-tls (name buffer host service parameters)
   (with-current-buffer buffer
     (let* ((start (point-max))
-	   (use-builtin-gnutls (fboundp 'open-gnutls-stream))
+	   (use-builtin-gnutls (and (fboundp 'gnutls-available-p)
+				    (gnutls-available-p)))
 	   (stream
 	    (funcall (if use-builtin-gnutls
 			 'open-gnutls-stream
@@ -307,7 +311,8 @@ functionality.
 	  (list nil nil nil 'plain)
 	;; If we're using tls.el, we have to delete the output from
 	;; openssl/gnutls-cli.
-	(when (and (null use-builtin-gnutls) eoc)
+	(when (and (null use-builtin-gnutls)
+		   eoc)
 	  (network-stream-get-response stream start eoc)
 	  (goto-char (point-min))
 	  (when (re-search-forward eoc nil t)

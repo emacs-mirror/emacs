@@ -1,3 +1,9 @@
+2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/network-stream.el (network-stream-open-starttls): Use
+	built-in TLS support if `gnutls-available-p' is true.
+	(network-stream-open-tls): Ditto.
+
 2011-06-26  Leo Liu  <sdl.web@gmail.com>
 
 	* register.el (registerv): New struct.
