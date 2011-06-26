@@ -10,12 +10,12 @@
 @cindex mode, Fortran
 
 @cindex Fortran fixed form and free form
-@cindex Fortran 77 and Fortran 90, 95, 2003
+@cindex Fortran 77 and Fortran 90, 95, 2003, 2008
 @findex f90-mode
 @findex fortran-mode
   Fortran mode is meant for editing ``fixed form'' (and also ``tab
 format'') source code (normally Fortran 77).  For editing more modern
-``free form'' source code (Fortran 90, 95, 2003), use F90 mode
+``free form'' source code (Fortran 90, 95, 2003, 2008), use F90 mode
 (@code{f90-mode}).  Emacs normally uses Fortran mode for files with
 extension @samp{.f}, @samp{.F} or @samp{.for}, and F90 mode for the
 extensions @samp{.f90} and @samp{.f95}.  Customize

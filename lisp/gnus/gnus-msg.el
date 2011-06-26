@@ -351,6 +351,7 @@ Thank you for your help in stamping out bugs.
   "r" gnus-summary-reply
   "y" gnus-summary-yank-message
   "R" gnus-summary-reply-with-original
+  "L" gnus-summary-reply-to-list-with-original
   "w" gnus-summary-wide-reply
   "W" gnus-summary-wide-reply-with-original
   "v" gnus-summary-very-wide-reply
@@ -1153,6 +1154,16 @@ If VERY-WIDE, make a very wide reply."
 The original article will be yanked."
   (interactive "P")
   (gnus-summary-reply (gnus-summary-work-articles n) wide))
+
+(defun gnus-summary-reply-to-list-with-original (n &optional wide)
+  "Start composing a reply mail to the current message.
+The reply goes only to the mailing list.
+The original article will be yanked."
+  (interactive "P")
+  (let ((message-reply-to-function
+	 (lambda nil
+	   `((To . ,(gnus-mailing-list-followup-to))))))
+    (gnus-summary-reply (gnus-summary-work-articles n) wide)))
 
 (defun gnus-summary-reply-broken-reply-to (&optional yank wide very-wide)
   "Like `gnus-summary-reply' except removing reply-to field.

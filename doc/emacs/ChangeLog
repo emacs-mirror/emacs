@@ -1,3 +1,7 @@
+2011-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* fortran-xtra.texi (Fortran): F90 mode is also for F2008.
+
 2011-06-25  Andreas Rottmann  <a.rottmann@gmx.at>
 
 	* misc.texi (emacsclient Options): Mention --frame-parameters.

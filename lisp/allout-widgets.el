@@ -258,7 +258,9 @@ widgets are locally inhibited.
 
 The number varies according to the evanescence of objects on a
  hash table with weak keys, so tracking of widget erasures is often delayed."
-  (when (and allout-widgets-maintain-tally (not allout-widgets-mode-inhibit))
+  (when (and allout-widgets-maintain-tally
+             (not allout-widgets-mode-inhibit)
+             allout-widgets-tally)
     (format ":%s" (hash-table-count allout-widgets-tally))))
 ;;;_   = allout-widgets-track-decoration nil
 (defcustom allout-widgets-track-decoration nil
@@ -748,20 +750,23 @@ Optional RECURSING is for internal use, to limit recursion."
                     (message replaced-message)
                   (message "")))))
 
-        ;; Detect undecorated items, eg during isearch into previously
-        ;; unexposed topics, and decorate "economically".  Some
-        ;; undecorated stuff is often exposed, to reduce lag, but the
-        ;; item containing the cursor is decorated.  We constrain
-        ;; recursion to avoid being trapped by unexpectedly undecoratable
-        ;; items.
-        (when (and (not recursing)
-                   (not (allout-current-decorated-p))
-                   (or (not (equal (allout-depth) 0))
-                       (not allout-container-item-widget)))
-          (let ((buffer-undo-list t))
-            (allout-widgets-exposure-change-recorder
-             allout-recent-prefix-beginning allout-recent-prefix-end nil)
-            (allout-widgets-post-command-business 'recursing)))
+        ;; alas, decorated intermediate matches are not easily undecorated
+        ;; when they're automatically rehidden by isearch, so we're
+        ;; dropping this nicety.
+        ;; ;; Detect undecorated items, eg during isearch into previously
+        ;; ;; unexposed topics, and decorate "economically".  Some
+        ;; ;; undecorated stuff is often exposed, to reduce lag, but the
+        ;; ;; item containing the cursor is decorated.  We constrain
+        ;; ;; recursion to avoid being trapped by unexpectedly undecoratable
+        ;; ;; items.
+        ;; (when (and (not recursing)
+        ;;            (not (allout-current-decorated-p))
+        ;;            (or (not (equal (allout-depth) 0))
+        ;;                (not allout-container-item-widget)))
+        ;;   (let ((buffer-undo-list t))
+        ;;     (allout-widgets-exposure-change-recorder
+        ;;      allout-recent-prefix-beginning allout-recent-prefix-end nil)
+        ;;     (allout-widgets-post-command-business 'recursing)))
 
         ;; Detect and rectify fouled outline structure - decorated item
         ;; not at beginning of line.

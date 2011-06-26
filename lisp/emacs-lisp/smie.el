@@ -238,9 +238,9 @@ one of those elements share the same precedence level and associativity."
                 (pushnew (car shr) last-ops)
               (pushnew (car shr) last-nts)
               (when (consp (cdr shr))
-                (when (member (cadr rhs) nts)
+                (when (member (cadr shr) nts)
                   (error "Adjacent non-terminals: %s %s"
-                         (cadr rhs) (car rhs)))
+                         (cadr shr) (car shr)))
                 (pushnew (cadr shr) last-ops)))))
         (push (cons nt first-ops) first-ops-table)
         (push (cons nt last-ops) last-ops-table)

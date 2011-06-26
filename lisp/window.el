@@ -4537,7 +4537,12 @@ using the location specifiers `same-window' or `other-frame'."
 
 	;; Macro specifiers.
 	(list
-	 :tag "Same frame only"
+	 :tag "Same window"
+	 :format "%t%v"
+	 :inline t
+	 (const :format "\n" same-window))
+	(list
+	 :tag "Same frame"
 	 :format "%t%v"
 	 :inline t
 	 (const :format "\n" same-frame))
@@ -4552,7 +4557,7 @@ using the location specifiers `same-window' or `other-frame'."
 	 :inline t
 	 (const :format "\n" same-frame-other-window))
 	(list
-	 :tag "Other frame only"
+	 :tag "Other frame"
 	 :format "%t%v"
 	 :inline t
 	 (const :format "\n" other-frame))
@@ -4737,7 +4742,9 @@ documentation of `display-buffer-alist' for a description."
 	 (dedicated (cdr (assq 'dedicated specifiers)))
 	 (no-other-window (cdr (assq 'no-other-window specifiers))))
     ;; Show BUFFER in WINDOW.
-    (set-window-dedicated-p window nil)
+    (unless (eq buffer (window-buffer window))
+      ;; If we show another buffer in WINDOW, undedicate it first.
+      (set-window-dedicated-p window nil))
     (set-window-buffer window buffer)
     (when dedicated
       (set-window-dedicated-p window dedicated))
@@ -5305,48 +5312,73 @@ user preferences expressed in `display-buffer-alist'."
 		      (or (car list) (cdr list)))))
     (when value (cdr value))))
 
-(defun display-buffer-normalize-argument (buffer-name specifiers label other-frame)
-  "Normalize second argument of `display-buffer'.
+(defun display-buffer-normalize-arguments (buffer-name specifiers label other-frame)
+  "Normalize second and third argument of `display-buffer'.
 BUFFER-NAME is the name of the buffer that shall be displayed,
-SPECIFIERS is the second argument of `display-buffer'.  LABEL the
-same argument of `display-buffer'.  OTHER-FRAME non-nil means use
-other-frame for other-window."
-  (let (normalized entry)
+SPECIFIERS is the second argument of `display-buffer'.  LABEL is
+the same argument of `display-buffer'.  OTHER-FRAME non-nil means
+use other-frame for other-window."
+  (let (normalized entry specifier pars)
+    (setq specifier
+	  (cond
+	   ((not specifiers)
+	    nil)
+	   ((listp specifiers)
+	    ;; If SPECIFIERS is a list, we assume it is a list of specifiers.
+	    (dolist (specifier specifiers)
+	      (cond
+	       ((consp specifier)
+		(setq normalized (cons specifier normalized)))
+	       ((eq specifier 'other-window)
+		;; `other-window' must be treated separately.
+		(let ((entry (assq (if other-frame
+				       'other-frame
+				     'same-frame-other-window)
+				   display-buffer-macro-specifiers)))
+		  (dolist (item (cdr entry))
+		    (setq normalized (cons item normalized)))))
+	       ((symbolp specifier)
+		;; Might be a macro specifier, try to expand it (the cdr is a
+		;; list and we have to reverse it later, so do it one at a
+		;; time).
+		(let ((entry (assq specifier display-buffer-macro-specifiers)))
+		  (dolist (item (cdr entry))
+		    (setq normalized (cons item normalized)))))))
+	    ;; Reverse list.
+	    (nreverse normalized))
+	   ((setq entry (assq specifiers display-buffer-macro-specifiers))
+	    ;; A macro specifier.
+	    (cdr entry))
+	   ((or other-frame (with-no-warnings pop-up-frames))
+	    ;; `special-display-p' group.
+	    (if (and (with-no-warnings special-display-function)
+		     ;; `special-display-p' returns either t or a list
+		     ;; of frame parameters to pass to
+		     ;; `special-display-function'.
+		     (setq pars (with-no-warnings
+				  (special-display-p buffer-name))))
+		(list (list 'fun-with-args
+			    (with-no-warnings special-display-function)
+			    (when (listp pars) pars)))
+	      ;; Pop up another frame.
+	      (cddr (assq 'other-frame display-buffer-macro-specifiers))))
+	   (t
+	    ;; In any other case pop up a new window.
+	    (cdr (assq 'same-frame-other-window
+		       display-buffer-macro-specifiers)))))
+
+    ;; Handle the old meaning of the LABEL argument of `display-buffer'.
     (cond
-     ((not specifiers)
-      nil)
-     ((listp specifiers)
-      ;; If SPECIFIERS is a list, we assume it is a list of specifiers.
-      (dolist (specifier specifiers)
-	(cond
-	 ((consp specifier)
-	  (setq normalized (cons specifier normalized)))
-	 ((eq specifier 'other-window)
-	  ;; `other-window' must be treated separately.
-	  (let ((entry (assq (if other-frame
-				 'other-frame
-			       'same-frame-other-window)
-			     display-buffer-macro-specifiers)))
-	    (dolist (item (cdr entry))
-	      (setq normalized (cons item normalized)))))
-	 ((symbolp specifier)
-	  ;; Might be a macro specifier, try to expand it (the cdr is a
-	  ;; list and we have to reverse it later, so do it one at a
-	  ;; time).
-	  (let ((entry (assq specifier display-buffer-macro-specifiers)))
-	    (dolist (item (cdr entry))
-	      (setq normalized (cons item normalized)))))))
-      ;; Reverse list.
-      (nreverse normalized))
-     ((setq entry (assq specifiers display-buffer-macro-specifiers))
-      ;; A macro specifier.
-      (cdr entry))
-     ((or other-frame (with-no-warnings pop-up-frames))
-      ;; Pop up another frame.
-      (cdr (assq 'other-frame display-buffer-macro-specifiers)))
+     ((or (memq label '(visible 0 t)) (frame-live-p label))
+      ;; LABEL must be one of visible (and visible frame), 0 (any
+      ;; visible or iconfied frame), t (any frame), or a live frame.
+      (cons `(reuse-window nil same ,label) specifier))
+     ((or other-frame
+	  (with-no-warnings pop-up-frames)
+	  (with-no-warnings display-buffer-reuse-frames))
+      (cons '(reuse-window nil same 0) specifier))
      (t
-      ;; In any other case pop up a new window.
-      (cdr (assq 'same-frame-other-window display-buffer-macro-specifiers))))))
+      specifier))))
 
 (defun display-buffer-normalize-options (buffer-or-name)
   "Subroutine of `display-buffer-normalize-specifiers'.
@@ -5560,7 +5592,7 @@ specifiers:
      ;; Overriding user specifiers.
      (car list)
      ;; Application specifiers.
-     (display-buffer-normalize-argument
+     (display-buffer-normalize-arguments
       buffer-name specifiers label other-frame)
      ;; Emacs 23 compatibility specifiers.
      (unless display-buffer-normalize-options-inhibit
@@ -5623,6 +5655,21 @@ override SPECIFIERS by adding an entry to `display-buffer-alist'
 whose car contains LABEL and whose cdr specifies the preferred
 alternative display method.
 
+The following values of LABEL have a special meaning and allow to
+specify the set of frames to investigate when the buffer already
+appears in a window:
+
+`visible' - the set of visible frames.
+
+0 - the set of visible or iconified frames.
+
+t - the set of all frames.
+
+A live frame - the set containing that frame as its only element.
+
+If the buffer is already displayed in a window on a frame in the
+specified set, return that window.
+
 The method to display the buffer is derived by combining the
 values of `display-buffer-alist' and SPECIFIERS.  Highest
 priority is given to overriding elements of
@@ -5676,12 +5723,12 @@ this list as arguments."
       (or (and (window-live-p window) window)
 	  ;; Try reusing a window showing BUFFER on any visible or
 	  ;; iconfied frame.
-	  (display-buffer-reuse-window buffer '(nil buffer 0))
+	  (display-buffer-reuse-window buffer `(nil ,buffer 0))
 	  ;; Try reusing a window not showing BUFFER on any visible or
 	  ;; iconified frame.
 	  (display-buffer-reuse-window buffer '(nil other 0))
-	  ;; Try making a new frame.
-	  (display-buffer-pop-up-frame buffer)
+	  ;; Eli says it's better to never try making a new frame.
+	  ;; (display-buffer-pop-up-frame buffer)
 	  ;; Try using a weakly dedicated window.
 	  (display-buffer-reuse-window
 	   buffer '(nil nil t) '((reuse-window-dedicated . weak)))
@@ -6726,7 +6773,7 @@ value of `display-buffer-alist'."
 	    (when (or display-buffer-reuse-frames pop-up-frames)
 	      ;; "0" (all visible and iconified frames) is hardcoded in
 	      ;; Emacs 23.
-		0))
+	      0))
       (unless (memq even-window-heights '(nil unset))
 	(cons 'reuse-window-even-sizes t)))
      no-custom)

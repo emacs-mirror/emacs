@@ -894,6 +894,72 @@ PRAGMA_COLUMNS
 PRAGMA_SYSTEM_HEADER
 INCLUDE_NEXT_AS_FIRST_DIRECTIVE
 INCLUDE_NEXT
+GETLOADAVG_LIBS
+REPLACE_WCTOMB
+REPLACE_UNSETENV
+REPLACE_STRTOD
+REPLACE_SETENV
+REPLACE_REALPATH
+REPLACE_REALLOC
+REPLACE_PUTENV
+REPLACE_MKSTEMP
+REPLACE_MBTOWC
+REPLACE_MALLOC
+REPLACE_CANONICALIZE_FILE_NAME
+REPLACE_CALLOC
+HAVE_DECL_UNSETENV
+HAVE_UNLOCKPT
+HAVE_SYS_LOADAVG_H
+HAVE_STRUCT_RANDOM_DATA
+HAVE_STRTOULL
+HAVE_STRTOLL
+HAVE_STRTOD
+HAVE_DECL_SETENV
+HAVE_SETENV
+HAVE_RPMATCH
+HAVE_REALPATH
+HAVE_RANDOM_R
+HAVE_RANDOM_H
+HAVE_PTSNAME
+HAVE_MKSTEMPS
+HAVE_MKSTEMP
+HAVE_MKOSTEMPS
+HAVE_MKOSTEMP
+HAVE_MKDTEMP
+HAVE_GRANTPT
+HAVE_GETSUBOPT
+HAVE_DECL_GETLOADAVG
+HAVE_CANONICALIZE_FILE_NAME
+HAVE_ATOLL
+HAVE__EXIT
+GNULIB_WCTOMB
+GNULIB_UNSETENV
+GNULIB_UNLOCKPT
+GNULIB_SYSTEM_POSIX
+GNULIB_STRTOULL
+GNULIB_STRTOLL
+GNULIB_STRTOD
+GNULIB_SETENV
+GNULIB_RPMATCH
+GNULIB_REALPATH
+GNULIB_REALLOC_POSIX
+GNULIB_RANDOM_R
+GNULIB_PUTENV
+GNULIB_PTSNAME
+GNULIB_MKSTEMPS
+GNULIB_MKSTEMP
+GNULIB_MKOSTEMPS
+GNULIB_MKOSTEMP
+GNULIB_MKDTEMP
+GNULIB_MBTOWC
+GNULIB_MALLOC_POSIX
+GNULIB_GRANTPT
+GNULIB_GETSUBOPT
+GNULIB_GETLOADAVG
+GNULIB_CANONICALIZE_FILE_NAME
+GNULIB_CALLOC_POSIX
+GNULIB_ATOLL
+GNULIB__EXIT
 UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS
 UNISTD_H_HAVE_WINSOCK2_H
 REPLACE_WRITE
@@ -1004,72 +1070,6 @@ GNULIB_DUP3
 GNULIB_DUP2
 GNULIB_CLOSE
 GNULIB_CHOWN
-GETLOADAVG_LIBS
-REPLACE_WCTOMB
-REPLACE_UNSETENV
-REPLACE_STRTOD
-REPLACE_SETENV
-REPLACE_REALPATH
-REPLACE_REALLOC
-REPLACE_PUTENV
-REPLACE_MKSTEMP
-REPLACE_MBTOWC
-REPLACE_MALLOC
-REPLACE_CANONICALIZE_FILE_NAME
-REPLACE_CALLOC
-HAVE_DECL_UNSETENV
-HAVE_UNLOCKPT
-HAVE_SYS_LOADAVG_H
-HAVE_STRUCT_RANDOM_DATA
-HAVE_STRTOULL
-HAVE_STRTOLL
-HAVE_STRTOD
-HAVE_DECL_SETENV
-HAVE_SETENV
-HAVE_RPMATCH
-HAVE_REALPATH
-HAVE_RANDOM_R
-HAVE_RANDOM_H
-HAVE_PTSNAME
-HAVE_MKSTEMPS
-HAVE_MKSTEMP
-HAVE_MKOSTEMPS
-HAVE_MKOSTEMP
-HAVE_MKDTEMP
-HAVE_GRANTPT
-HAVE_GETSUBOPT
-HAVE_DECL_GETLOADAVG
-HAVE_CANONICALIZE_FILE_NAME
-HAVE_ATOLL
-HAVE__EXIT
-GNULIB_WCTOMB
-GNULIB_UNSETENV
-GNULIB_UNLOCKPT
-GNULIB_SYSTEM_POSIX
-GNULIB_STRTOULL
-GNULIB_STRTOLL
-GNULIB_STRTOD
-GNULIB_SETENV
-GNULIB_RPMATCH
-GNULIB_REALPATH
-GNULIB_REALLOC_POSIX
-GNULIB_RANDOM_R
-GNULIB_PUTENV
-GNULIB_PTSNAME
-GNULIB_MKSTEMPS
-GNULIB_MKSTEMP
-GNULIB_MKOSTEMPS
-GNULIB_MKOSTEMP
-GNULIB_MKDTEMP
-GNULIB_MBTOWC
-GNULIB_MALLOC_POSIX
-GNULIB_GRANTPT
-GNULIB_GETSUBOPT
-GNULIB_GETLOADAVG
-GNULIB_CANONICALIZE_FILE_NAME
-GNULIB_CALLOC_POSIX
-GNULIB_ATOLL
-GNULIB__EXIT
 GL_GENERATE_ALLOCA_H_FALSE
 GL_GENERATE_ALLOCA_H_TRUE
 ALLOCA_H
@@ -3083,6 +3083,7 @@ as_fn_append ac_header_list " stdlib.h"
 as_fn_append ac_header_list " unistd.h"
 as_fn_append ac_header_list " sys/param.h"
 as_fn_append ac_func_list " readlinkat"
+as_fn_append ac_func_list " dup2"
 gl_getopt_required=GNU
 as_fn_append ac_header_list " getopt.h"
 as_fn_append ac_header_list " wchar.h"
@@ -6549,6 +6550,7 @@ esac
   # Code from module crypto/sha512:
   # Code from module dosname:
   # Code from module dtoastr:
+  # Code from module dup2:
   # Code from module extensions:
 
   # Code from module filemode:
@@ -13586,7 +13588,7 @@ esac
 
 
 
-for ac_func in gethostname getdomainname dup2 \
+for ac_func in gethostname getdomainname \
 rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
 random lrand48 logb frexp fmod rint cbrt ftime setsid \
 strerror fpathconf select euidaccess getpagesize tzset setlocale \
@@ -14292,119 +14294,6 @@ $as_echo "#define HAVE_C99_STRTOLD 1" >>confdefs.h
 
   fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for st_dm_mode in struct stat" >&5
-$as_echo_n "checking for st_dm_mode in struct stat... " >&6; }
-if test "${ac_cv_struct_st_dm_mode+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/stat.h>
-int
-main ()
-{
-struct stat s; s.st_dm_mode;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_struct_st_dm_mode=yes
-else
-  ac_cv_struct_st_dm_mode=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_struct_st_dm_mode" >&5
-$as_echo "$ac_cv_struct_st_dm_mode" >&6; }
-
-  if test $ac_cv_struct_st_dm_mode = yes; then
-
-$as_echo "#define HAVE_ST_DM_MODE 1" >>confdefs.h
-
-  fi
-
-
-ac_fn_c_check_decl "$LINENO" "strmode" "ac_cv_have_decl_strmode" "$ac_includes_default"
-if test "x$ac_cv_have_decl_strmode" = x""yes; then :
-  ac_have_decl=1
-else
-  ac_have_decl=0
-fi
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_DECL_STRMODE $ac_have_decl
-_ACEOF
-
-
-  GNULIB__EXIT=0;
-  GNULIB_ATOLL=0;
-  GNULIB_CALLOC_POSIX=0;
-  GNULIB_CANONICALIZE_FILE_NAME=0;
-  GNULIB_GETLOADAVG=0;
-  GNULIB_GETSUBOPT=0;
-  GNULIB_GRANTPT=0;
-  GNULIB_MALLOC_POSIX=0;
-  GNULIB_MBTOWC=0;
-  GNULIB_MKDTEMP=0;
-  GNULIB_MKOSTEMP=0;
-  GNULIB_MKOSTEMPS=0;
-  GNULIB_MKSTEMP=0;
-  GNULIB_MKSTEMPS=0;
-  GNULIB_PTSNAME=0;
-  GNULIB_PUTENV=0;
-  GNULIB_RANDOM_R=0;
-  GNULIB_REALLOC_POSIX=0;
-  GNULIB_REALPATH=0;
-  GNULIB_RPMATCH=0;
-  GNULIB_SETENV=0;
-  GNULIB_STRTOD=0;
-  GNULIB_STRTOLL=0;
-  GNULIB_STRTOULL=0;
-  GNULIB_SYSTEM_POSIX=0;
-  GNULIB_UNLOCKPT=0;
-  GNULIB_UNSETENV=0;
-  GNULIB_WCTOMB=0;
-    HAVE__EXIT=1;
-  HAVE_ATOLL=1;
-  HAVE_CANONICALIZE_FILE_NAME=1;
-  HAVE_DECL_GETLOADAVG=1;
-  HAVE_GETSUBOPT=1;
-  HAVE_GRANTPT=1;
-  HAVE_MKDTEMP=1;
-  HAVE_MKOSTEMP=1;
-  HAVE_MKOSTEMPS=1;
-  HAVE_MKSTEMP=1;
-  HAVE_MKSTEMPS=1;
-  HAVE_PTSNAME=1;
-  HAVE_RANDOM_H=1;
-  HAVE_RANDOM_R=1;
-  HAVE_REALPATH=1;
-  HAVE_RPMATCH=1;
-  HAVE_SETENV=1;
-  HAVE_DECL_SETENV=1;
-  HAVE_STRTOD=1;
-  HAVE_STRTOLL=1;
-  HAVE_STRTOULL=1;
-  HAVE_STRUCT_RANDOM_DATA=1;
-  HAVE_SYS_LOADAVG_H=0;
-  HAVE_UNLOCKPT=1;
-  HAVE_DECL_UNSETENV=1;
-  REPLACE_CALLOC=0;
-  REPLACE_CANONICALIZE_FILE_NAME=0;
-  REPLACE_MALLOC=0;
-  REPLACE_MBTOWC=0;
-  REPLACE_MKSTEMP=0;
-  REPLACE_PUTENV=0;
-  REPLACE_REALLOC=0;
-  REPLACE_REALPATH=0;
-  REPLACE_SETENV=0;
-  REPLACE_STRTOD=0;
-  REPLACE_UNSETENV=0;
-  REPLACE_WCTOMB=0;
-
 
   GNULIB_CHOWN=0;
   GNULIB_CLOSE=0;
@@ -14517,6 +14406,121 @@ _ACEOF
   UNISTD_H_HAVE_WINSOCK2_H=0;
   UNISTD_H_HAVE_WINSOCK2_H_AND_USE_SOCKETS=0;
 
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for st_dm_mode in struct stat" >&5
+$as_echo_n "checking for st_dm_mode in struct stat... " >&6; }
+if test "${ac_cv_struct_st_dm_mode+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <sys/types.h>
+#include <sys/stat.h>
+int
+main ()
+{
+struct stat s; s.st_dm_mode;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_struct_st_dm_mode=yes
+else
+  ac_cv_struct_st_dm_mode=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_struct_st_dm_mode" >&5
+$as_echo "$ac_cv_struct_st_dm_mode" >&6; }
+
+  if test $ac_cv_struct_st_dm_mode = yes; then
+
+$as_echo "#define HAVE_ST_DM_MODE 1" >>confdefs.h
+
+  fi
+
+
+ac_fn_c_check_decl "$LINENO" "strmode" "ac_cv_have_decl_strmode" "$ac_includes_default"
+if test "x$ac_cv_have_decl_strmode" = x""yes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_STRMODE $ac_have_decl
+_ACEOF
+
+
+  GNULIB__EXIT=0;
+  GNULIB_ATOLL=0;
+  GNULIB_CALLOC_POSIX=0;
+  GNULIB_CANONICALIZE_FILE_NAME=0;
+  GNULIB_GETLOADAVG=0;
+  GNULIB_GETSUBOPT=0;
+  GNULIB_GRANTPT=0;
+  GNULIB_MALLOC_POSIX=0;
+  GNULIB_MBTOWC=0;
+  GNULIB_MKDTEMP=0;
+  GNULIB_MKOSTEMP=0;
+  GNULIB_MKOSTEMPS=0;
+  GNULIB_MKSTEMP=0;
+  GNULIB_MKSTEMPS=0;
+  GNULIB_PTSNAME=0;
+  GNULIB_PUTENV=0;
+  GNULIB_RANDOM_R=0;
+  GNULIB_REALLOC_POSIX=0;
+  GNULIB_REALPATH=0;
+  GNULIB_RPMATCH=0;
+  GNULIB_SETENV=0;
+  GNULIB_STRTOD=0;
+  GNULIB_STRTOLL=0;
+  GNULIB_STRTOULL=0;
+  GNULIB_SYSTEM_POSIX=0;
+  GNULIB_UNLOCKPT=0;
+  GNULIB_UNSETENV=0;
+  GNULIB_WCTOMB=0;
+    HAVE__EXIT=1;
+  HAVE_ATOLL=1;
+  HAVE_CANONICALIZE_FILE_NAME=1;
+  HAVE_DECL_GETLOADAVG=1;
+  HAVE_GETSUBOPT=1;
+  HAVE_GRANTPT=1;
+  HAVE_MKDTEMP=1;
+  HAVE_MKOSTEMP=1;
+  HAVE_MKOSTEMPS=1;
+  HAVE_MKSTEMP=1;
+  HAVE_MKSTEMPS=1;
+  HAVE_PTSNAME=1;
+  HAVE_RANDOM_H=1;
+  HAVE_RANDOM_R=1;
+  HAVE_REALPATH=1;
+  HAVE_RPMATCH=1;
+  HAVE_SETENV=1;
+  HAVE_DECL_SETENV=1;
+  HAVE_STRTOD=1;
+  HAVE_STRTOLL=1;
+  HAVE_STRTOULL=1;
+  HAVE_STRUCT_RANDOM_DATA=1;
+  HAVE_SYS_LOADAVG_H=0;
+  HAVE_UNLOCKPT=1;
+  HAVE_DECL_UNSETENV=1;
+  REPLACE_CALLOC=0;
+  REPLACE_CANONICALIZE_FILE_NAME=0;
+  REPLACE_MALLOC=0;
+  REPLACE_MBTOWC=0;
+  REPLACE_MKSTEMP=0;
+  REPLACE_PUTENV=0;
+  REPLACE_REALLOC=0;
+  REPLACE_REALPATH=0;
+  REPLACE_SETENV=0;
+  REPLACE_STRTOD=0;
+  REPLACE_UNSETENV=0;
+  REPLACE_WCTOMB=0;
 
 
 
@@ -16750,6 +16754,114 @@ fi
 
 
 
+
+
+
+
+
+
+
+
+
+
+$as_echo "#define HAVE_DUP2 1" >>confdefs.h
+
+
+  if test $HAVE_DUP2 = 1; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether dup2 works" >&5
+$as_echo_n "checking whether dup2 works... " >&6; }
+if test "${gl_cv_func_dup2_works+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+  case "$host_os" in
+           mingw*) # on this platform, dup2 always returns 0 for success
+             gl_cv_func_dup2_works=no;;
+           cygwin*) # on cygwin 1.5.x, dup2(1,1) returns 0
+             gl_cv_func_dup2_works=no;;
+           linux*) # On linux between 2008-07-27 and 2009-05-11, dup2 of a
+                   # closed fd may yield -EBADF instead of -1 / errno=EBADF.
+             gl_cv_func_dup2_works=no;;
+           freebsd*) # on FreeBSD 6.1, dup2(1,1000000) gives EMFILE, not EBADF.
+             gl_cv_func_dup2_works=no;;
+           haiku*) # on Haiku alpha 2, dup2(1, 1) resets FD_CLOEXEC.
+             gl_cv_func_dup2_works=no;;
+           *) gl_cv_func_dup2_works=yes;;
+         esac
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+         #include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+int
+main ()
+{
+int result = 0;
+#ifdef FD_CLOEXEC
+            if (fcntl (1, F_SETFD, FD_CLOEXEC) == -1)
+              result |= 1;
+#endif
+            if (dup2 (1, 1) == 0)
+              result |= 2;
+#ifdef FD_CLOEXEC
+            if (fcntl (1, F_GETFD) != FD_CLOEXEC)
+              result |= 4;
+#endif
+            close (0);
+            if (dup2 (0, 0) != -1)
+              result |= 8;
+            /* Many gnulib modules require POSIX conformance of EBADF.  */
+            if (dup2 (2, 1000000) == -1 && errno != EBADF)
+              result |= 16;
+            return result;
+
+  ;
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  gl_cv_func_dup2_works=yes
+else
+  gl_cv_func_dup2_works=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_func_dup2_works" >&5
+$as_echo "$gl_cv_func_dup2_works" >&6; }
+    if test "$gl_cv_func_dup2_works" = no; then
+
+
+
+  if test $ac_cv_func_dup2 = yes; then
+    REPLACE_DUP2=1
+  fi
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS dup2.$ac_objext"
+
+
+    fi
+  fi
+
+
+
+
+
+
+          GNULIB_DUP2=1
 
 
 

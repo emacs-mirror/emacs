@@ -1,9 +1,108 @@
+2011-06-26  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout-widgets.el (allout-widgets-post-command-business): Stop
+	decorating intermediate isearch matches.  They're not being
+	undecorated when an isearch is continued past, and isearch
+	automatically collapses them.  This leads to "widget leaks", where
+	decorated items accumulate in collapsed areas.  Lines with lots of
+	hidden widgets can slow down cursor travel, substantially.  Too
+	much complicated machinery would be needed to ensure undecoration,
+	so we're doing without this nicety.
+
+	(allout-widgets-tally-string): Don't try to do a hash-table-count
+	of allout-widgets-tally when it's nil.  This eliminates spurious "Error
+	during redisplay: (wrong-type-argument hash-table-p nil)" warnings in
+	*Messages* when allout-widgets-maintain-tally is t.
+
+2011-06-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-normalize-argument): Rename to
+	display-buffer-normalize-arguments.  Handle special meaning of
+	LABEL argument.  Respect special-display-function when popping up
+	a new frame.  Fix code searching for a window showing the buffer
+	on another frame.
+	(display-buffer-normalize-specifiers): Call
+	display-buffer-normalize-arguments.
+	(display-buffer-in-window): Don't undedicate the window if its
+	buffer remains the same.
+	Reported by Drew Adams <drew.adams@oracle.com>.
+	(display-buffer-alist): Add choice for same-window macro
+	specfier.
+	(display-buffer): Mention special meaning of LABEL argument in
+	doc-string.  Fix quoting.  Don't pop up a new frame even as
+	fallback.
+
+2011-06-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs-cycle-next): Pass current buffer to `bury-buffer' to
+	avoid deleting the current window in some cases (bug#8911).
+
+2011-06-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/smie.el (smie-bnf->prec2): Fix last change.
+	(Bug#8934)
+
+2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/network-stream.el (network-stream-open-starttls): Use
+	built-in TLS support if `gnutls-available-p' is true.
+	(network-stream-open-tls): Ditto.
+
+2011-06-26  Leo Liu  <sdl.web@gmail.com>
+
+	* register.el (registerv): New struct.
+	(registerv-make): New function.
+	(jump-to-register, describe-register-1, insert-register): Support
+	the jump-func, print-func and insert-func slot of a registerv
+	struct.  (Bug#8415)
+
+2011-06-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc.el (vc-revert-show-diff): New defcustom.
+	(vc-diff-internal): New arg specifying diff buffer.
+	(vc-revert): Obey vc-revert-show-diff.  If we show a diff, don't
+	reuse an existing *vc-diff* buffer (Bug#8927).
+
+	* progmodes/cperl-mode.el (cperl-mode): Derive from prog-mode.
+
+2011-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-critical-indent): New option.
+	(f90-font-lock-keywords-2, f90-blocks-re, f90-end-block-re)
+	(f90-start-block-re, f90-mode-abbrev-table): Add block, critical.
+	(f90-mode): Doc fix.
+	(f90-looking-at-critical, f90-looking-at-end-critical): New funcs.
+	(f90-no-block-limit, f90-calculate-indent, f90-end-of-block)
+	(f90-beginning-of-block, f90-next-block, f90-indent-region)
+	(f90-match-end): Handle block, critical.
+
+2011-06-25  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-included-files): Doc fix.
+	(diary-include-files): New function, extracted from
+	diary-include-other-diary-files and diary-mark-included-diary-files.
+	(diary-include-other-diary-files, diary-mark-included-diary-files):
+	Just call diary-include-files.
+	(diary-mark-entries): Reset diary-included-files on first call.
+
+	* calendar/diary-lib.el (diary-mark-entries)
+	(diary-mark-included-diary-files):
+	Visit included diary-files in temp buffers.
+
+	* progmodes/f90.el (f90-keywords-re, f90-font-lock-keywords-1)
+	(f90-blocks-re, f90-program-block-re, f90-end-block-re)
+	(f90-start-block-re, f90-imenu-generic-expression)
+	(f90-looking-at-program-block-start, f90-no-block-limit):
+	Add support for submodules.
+
+	* progmodes/f90.el (f90-keywords-re, f90-keywords-level-3-re)
+	(f90-procedures-re, f90-constants-re): Add some F2008 stuff.
+
 2011-06-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-insert-file-contents): Let-bind
 	buffer-file-type before setting its value, to avoid disastrous
-	global effects on decoding files for DOS/Windows systems.
-	(Bug#8780)
+	global effects on decoding files for DOS/Windows systems.  (Bug#8780)
 
 2011-06-25  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -898,6 +997,7 @@
 	* iswitchb.el (iswitchb-window-buffer-p): Use `member' instead of
 	`memq' (Bug#8799).
 
+>>>>>>> MERGE-SOURCE
 2011-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (make-progress-reporter): Add "..." by default (bug#8785).

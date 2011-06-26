@@ -1,3 +1,25 @@
+2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dgnushack.el: Bind `gnutls-available-p' to `ignore' on XEmacs to
+	avoid compiler warnings.
+
+	* auth-source.el (with-auth-source-epa-overrides): Fix compilation
+	error with `find-file-hooks' on Emacs 22.
+	(with-auth-source-epa-overrides): Ugly hack to Wrap the
+	`find-file-hook' things in `symbol-value' to avoid compilation warnings
+	on all architectures.
+
+	* spam.el (spam-stat): Require in a normal fashion without binding
+	`spam-stat-install-hooks' to avoid compilation warnings.
+
+	* spam-stat.el (spam-stat-install-hooks): Removed.
+	(spam-stat-install-hooks): Don't run automatically.
+
+2011-06-26  Timo Juhani Lindfors  <timo.lindfors@iki.fi>  (tiny change)
+
+	* gnus-msg.el (gnus-summary-reply-to-list-with-original): New command
+	and keystroke.
+
 2011-06-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* auth-source.el (auth-source-netrc-cache): Move forward.

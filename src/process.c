@@ -4479,13 +4479,19 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	    set_waiting_for_input (&timeout);
 	}
 
+      /* Skip the `select' call if input is available and we're
+	 waiting for keyboard input or a cell change (which can be
+	 triggered by processing X events).  In the latter case, set
+	 nfds to 1 to avoid breaking the loop.  */
       no_avail = 0;
-      if (read_kbd && detect_input_pending ())
+      if ((read_kbd || !NILP (wait_for_cell))
+	  && detect_input_pending ())
 	{
-	  nfds = 0;
+	  nfds = read_kbd ? 0 : 1;
 	  no_avail = 1;
 	}
-      else
+
+      if (!no_avail)
 	{
 
 #ifdef ADAPTIVE_READ_BUFFERING
