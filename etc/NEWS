@@ -802,6 +802,9 @@ of a file similar to `vc-diff', but using ediff backend.
 
 ** Miscellaneous
 
++++
+*** f90.el has some support for Fortran 2008 syntax.
+
 ---
 *** `copyright-fix-years' can optionally convert consecutive years to ranges.
 
