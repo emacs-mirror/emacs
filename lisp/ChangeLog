@@ -1,3 +1,14 @@
+2011-06-26  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-critical-indent): New option.
+	(f90-font-lock-keywords-2, f90-blocks-re, f90-end-block-re)
+	(f90-start-block-re, f90-mode-abbrev-table): Add block, critical.
+	(f90-mode): Doc fix.
+	(f90-looking-at-critical, f90-looking-at-end-critical): New funcs.
+	(f90-no-block-limit, f90-calculate-indent, f90-end-of-block)
+	(f90-beginning-of-block, f90-next-block, f90-indent-region)
+	(f90-match-end): Handle block, critical.
+
 2011-06-25  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-included-files): Doc fix.

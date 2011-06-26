@@ -208,6 +208,13 @@
   :group 'f90-indent
   :version "23.1")
 
+(defcustom f90-critical-indent 2
+  "Extra indentation applied to BLOCK, CRITICAL blocks."
+  :type  'integer
+  :safe  'integerp
+  :group 'f90-indent
+  :version "24.1")
+
 (defcustom f90-continuation-indent 5
   "Extra indentation applied to continuation lines."
   :type  'integer
@@ -589,12 +596,16 @@ logical\\|double[ \t]*precision\\|\
     ;; enum (F2003; must be followed by ", bind(C)").
     '("\\<\\(enum\\)[ \t]*," (1 font-lock-keyword-face))
     ;; end do, enum (F2003), if, select, where, and forall constructs.
-    '("\\<\\(end[ \t]*\\(do\\|if\\|enum\\|select\\|forall\\|where\\)\\)\\>\
+    ;; block, critical (F2008).
+    ;; Note that "block data" may get somewhat mixed up with F2008 blocks,
+    ;; but since the former is obsolete I'm not going to worry about it.
+    '("\\<\\(end[ \t]*\\(do\\|if\\|enum\\|select\\|forall\\|where\\|\
+block\\|critical\\)\\)\\>\
 \\([ \t]+\\(\\sw+\\)\\)?"
       (1 font-lock-keyword-face) (3 font-lock-constant-face nil t))
     '("^[ \t0-9]*\\(\\(\\sw+\\)[ \t]*:[ \t]*\\)?\\(\\(if\\|\
 do\\([ \t]*while\\)?\\|select[ \t]*\\(?:case\\|type\\)\\|where\\|\
-forall\\)\\)\\>"
+forall\\|block\\|critical\\)\\)\\>"
       (2 font-lock-constant-face nil t) (3 font-lock-keyword-face))
     ;; Implicit declaration.
     '("\\<\\(implicit\\)[ \t]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\
@@ -810,7 +821,7 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
                         ;; F2003.
                         "enum" "associate"
                         ;; F2008.
-                        "submodule"))
+                        "submodule" "block" "critical"))
           "\\)\\>")
   "Regexp potentially indicating a \"block\" of F90 code.")
 
@@ -873,7 +884,8 @@ allowed.  This minor issue currently only affects \"(/\" and \"/)\".")
   (concat "^[ \t0-9]*\\<end[ \t]*"
           (regexp-opt '("do" "if" "forall" "function" "interface"
                         "module" "program" "select" "subroutine"
-                        "type" "where" "enum" "associate" "submodule") t)
+                        "type" "where" "enum" "associate" "submodule"
+                        "block" "critical") t)
           "\\>")
   "Regexp matching the end of an F90 \"block\", from the line start.
 Used in the F90 entry in `hs-special-modes-alist'.")
@@ -902,7 +914,7 @@ Used in the F90 entry in `hs-special-modes-alist'.")
    ;; "abstract interface" is F2003; "submodule" is F2008.
    "program\\|\\(?:abstract[ \t]*\\)?interface\\|\\(?:sub\\)?module\\|"
    ;; "enum", but not "enumerator".
-   "function\\|subroutine\\|enum[^e]\\|associate"
+   "function\\|subroutine\\|enum[^e]\\|associate\\|block\\|critical"
    "\\)"
    "[ \t]*")
   "Regexp matching the start of an F90 \"block\", from the line start.
@@ -989,11 +1001,13 @@ Set subexpression 1 in the match-data to the name of the type."
             ("`asy" . "asynchronous" )
             ("`ba"  . "backspace"    )
             ("`bd"  . "block data"   )
+            ("`bl"  . "block"        )
             ("`c"   . "character"    )
             ("`cl"  . "close"        )
             ("`cm"  . "common"       )
             ("`cx"  . "complex"      )
             ("`cn"  . "contains"     )
+            ("`cr"  . "critical"     )
             ("`cy"  . "cycle"        )
             ("`de"  . "deallocate"   )
             ("`df"  . "define"       )
@@ -1073,6 +1087,10 @@ Variables controlling indentation style and extra features:
 `f90-program-indent'
   Extra indentation within program/module/subroutine/function blocks
   (default 2).
+`f90-associate-indent'
+  Extra indentation within associate blocks (default 2).
+`f90-critical-indent'
+  Extra indentation within critical/block blocks (default 2).
 `f90-continuation-indent'
   Extra indentation applied to continuation lines (default 5).
 `f90-comment-region'
@@ -1243,6 +1261,25 @@ NAME is nil if the statement has no label."
   (if (looking-at "\\<\\(associate\\)[ \t]*(")
       (list (match-string 1))))
 
+(defsubst f90-looking-at-critical ()
+  "Return (KIND) if a critical or block block starts after point."
+  (if (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\\(critical\\|block\\)\\>")
+      (let ((struct (match-string 3))
+            (label (match-string 2)))
+        (if (or (not (string-equal "block" struct))
+                (save-excursion
+                  (skip-chars-forward " \t")
+                  (not (looking-at "data\\>"))))
+            (list struct label)))))
+
+(defsubst f90-looking-at-end-critical ()
+  "Return non-nil if a critical or block block ends after point."
+  (if (looking-at "end[ \t]*\\(critical\\|block\\)\\>")
+      (or (not (string-equal "block" (match-string 1)))
+          (save-excursion
+            (skip-chars-forward " \t")
+            (not (looking-at "data\\>"))))))
+
 (defsubst f90-looking-at-where-or-forall ()
   "Return (KIND NAME) if a where or forall block starts after point.
 NAME is nil if the statement has no label."
@@ -1369,7 +1406,8 @@ if all else fails."
   (save-excursion
     (not (or (looking-at "end")
              (looking-at "\\(do\\|if\\|else\\(if\\|where\\)?\
-\\|select[ \t]*\\(case\\|type\\)\\|case\\|where\\|forall\\)\\>")
+\\|select[ \t]*\\(case\\|type\\)\\|case\\|where\\|forall\\|\
+block\\|critical\\)\\>")
              (looking-at "\\(program\\|\\(?:sub\\)?module\\|\
 \\(?:abstract[ \t]*\\)?interface\\|block[ \t]*data\\)\\>")
              (looking-at "\\(contains\\|\\sw+[ \t]*:\\)")
@@ -1413,6 +1451,8 @@ Does not check type and subprogram indentation."
                    (f90-looking-at-where-or-forall)
                    (f90-looking-at-select-case))
                (setq icol (+ icol f90-if-indent)))
+              ;; FIXME this makes no sense, because this section/function is
+              ;; only for if/do/select/where/forall ?
               ((f90-looking-at-associate)
                (setq icol (+ icol f90-associate-indent))))
         (end-of-line))
@@ -1426,12 +1466,16 @@ Does not check type and subprogram indentation."
                    (f90-looking-at-where-or-forall)
                    (f90-looking-at-select-case))
                (setq icol (+ icol f90-if-indent)))
+              ;; FIXME this makes no sense, because this section/function is
+              ;; only for if/do/select/where/forall ?
               ((f90-looking-at-associate)
                (setq icol (+ icol f90-associate-indent)))
               ((looking-at f90-end-if-re)
                (setq icol (- icol f90-if-indent)))
               ((looking-at f90-end-associate-re)
                (setq icol (- icol f90-associate-indent)))
+              ((f90-looking-at-end-critical)
+               (setq icol (- icol f90-critical-indent)))
               ((looking-at "end[ \t]*do\\>")
                (setq icol (- icol f90-do-indent))))
         (end-of-line))
@@ -1479,6 +1523,8 @@ Does not check type and subprogram indentation."
                           (setq icol (+ icol f90-type-indent)))
                          ((f90-looking-at-associate)
                           (setq icol (+ icol f90-associate-indent)))
+                         ((f90-looking-at-critical)
+                          (setq icol (+ icol f90-critical-indent)))
                          ((or (f90-looking-at-program-block-start)
                               (looking-at "contains[ \t]*\\($\\|!\\)"))
                           (setq icol (+ icol f90-program-indent)))))
@@ -1498,6 +1544,8 @@ Does not check type and subprogram indentation."
                                (setq icol (- icol f90-type-indent)))
                               ((looking-at f90-end-associate-re)
                                (setq icol (- icol f90-associate-indent)))
+                              ((f90-looking-at-end-critical)
+                               (setq icol (- icol f90-critical-indent)))
                               ((or (looking-at "contains[ \t]*\\(!\\|$\\)")
                                    (f90-looking-at-program-block-end))
                                (setq icol (- icol f90-program-indent))))))))))
@@ -1604,6 +1652,7 @@ Interactively, pushes mark before moving point."
                     (f90-looking-at-select-case)
                     (f90-looking-at-type-like)
                     (f90-looking-at-associate)
+                    (f90-looking-at-critical)
                     (f90-looking-at-program-block-start)
                     (f90-looking-at-if-then)
                     (f90-looking-at-where-or-forall)))
@@ -1665,6 +1714,7 @@ Interactively, pushes mark before moving point."
                     (f90-looking-at-select-case)
                     (f90-looking-at-type-like)
                     (f90-looking-at-associate)
+                    (f90-looking-at-critical)
                     (f90-looking-at-program-block-start)
                     (f90-looking-at-if-then)
                     (f90-looking-at-where-or-forall)))
@@ -1706,6 +1756,7 @@ A block is a subroutine, if-endif, etc."
               (f90-looking-at-select-case)
               (f90-looking-at-type-like)
               (f90-looking-at-associate)
+              (f90-looking-at-critical)
               (f90-looking-at-program-block-start)
               (f90-looking-at-if-then)
               (f90-looking-at-where-or-forall))
@@ -1842,6 +1893,8 @@ If run in the middle of a line, the line is not broken."
                        f90-type-indent)
                       ((setq struct (f90-looking-at-associate))
                        f90-associate-indent)
+                      ((setq struct (f90-looking-at-critical))
+                       f90-critical-indent)
                       ((or (setq struct (f90-looking-at-program-block-start))
                            (looking-at "contains[ \t]*\\($\\|!\\)"))
                        f90-program-indent)))
@@ -1877,6 +1930,8 @@ If run in the middle of a line, the line is not broken."
                           f90-type-indent)
                          ((setq struct (f90-looking-at-associate))
                           f90-associate-indent)
+                         ((setq struct (f90-looking-at-critical))
+                          f90-critical-indent)
                          ((setq struct (f90-looking-at-program-block-start))
                           f90-program-indent)))
              (setq ind-curr ind-lev)
@@ -1895,6 +1950,7 @@ If run in the middle of a line, the line is not broken."
                          ((looking-at f90-end-type-re) f90-type-indent)
                          ((looking-at f90-end-associate-re)
                           f90-associate-indent)
+                         ((f90-looking-at-end-critical) f90-critical-indent)
                          ((f90-looking-at-program-block-end)
                           f90-program-indent)))
              (if ind-b (setq ind-lev (- ind-lev ind-b)))
@@ -2100,6 +2156,7 @@ Leave point at the end of line."
                         (f90-looking-at-select-case)
                         (f90-looking-at-type-like)
                         (f90-looking-at-associate)
+                        (f90-looking-at-critical)
                         (f90-looking-at-program-block-start)
                         ;; Interpret a single END without a block
                         ;; start to be the END of a program block
