@@ -1,3 +1,16 @@
+2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/network-stream.el (open-network-stream): Return an :error
+	saying what the problem was, if possible.
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Report the error from the
+	server.
+
+	* net/network-stream.el (network-stream-open-starttls): If we
+	wanted to use STARTTLS, and the server offered it, but we weren't
+	able to because we had no STARTTLS support, then close the connection.
+	(open-network-stream): Return an :error element, if present.
+
 2011-06-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* hl-line.el (hl-line-sticky-flag): Doc fix.

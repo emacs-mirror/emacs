@@ -651,7 +651,9 @@ The list is in preference order.")
 
 	  ;; If we couldn't access the server at all, we give up.
 	  (unless (setq process (car result))
-	    (throw 'done "Unable to contact server"))
+	    (throw 'done (if (plist-get (cdr result) :error)
+			     (plist-get (cdr result) :error)
+			   "Unable to contact server")))
 
 	  ;; set the send-filter
 	  (set-process-filter process 'smtpmail-process-filter)

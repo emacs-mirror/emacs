@@ -162,7 +162,8 @@ functionality.
 	    (list (car result)
 		  :greeting     (nth 1 result)
 		  :capabilities (nth 2 result)
-		  :type         (nth 3 result))
+		  :type         (nth 3 result)
+		  :error        (nth 4 result))
 	  (car result))))))
 
 (defun network-stream-certificate (host service parameters)
@@ -210,17 +211,19 @@ functionality.
 	 (resulting-type 'plain)
 	 (builtin-starttls (and (fboundp 'gnutls-available-p)
 				(gnutls-available-p)))
-	 starttls-command)
+	 starttls-command error)
 
+    ;; First check whether the server supports STARTTLS at all.
+    (when (and capabilities success-string starttls-function)
+      (setq starttls-command
+	    (funcall starttls-function capabilities)))
     ;; If we have built-in STARTTLS support, try to upgrade the
     ;; connection.
-    (when (and (or builtin-starttls
+    (when (and starttls-command
+	       (or builtin-starttls
 		   (and (or require-tls
 			    (plist-get parameters :use-starttls-if-possible))
-			(executable-find "gnutls-cli")))
-	       capabilities success-string starttls-function
-	       (setq starttls-command
-		     (funcall starttls-function capabilities))
+			(executable-find "gnutls-clii")))
 	       (not (eq (plist-get parameters :type) 'plain)))
       ;; If using external STARTTLS, drop this connection and start
       ;; anew with `starttls-open-stream'.
@@ -271,11 +274,22 @@ functionality.
 	      (network-stream-command stream capability-command eoc))))
 
     ;; If TLS is mandatory, close the connection if it's unencrypted.
-    (and require-tls
-	 (eq resulting-type 'plain)
-	 (delete-process stream))
+    (when (and (or require-tls
+		   ;; The server said it was possible to do STARTTLS,
+		   ;; and we wanted to use it...
+		   (and starttls-command
+			(plist-get parameters :use-starttls-if-possible)))
+	       ;; ... but Emacs wasn't able to -- either no built-in
+	       ;; support, or no gnutls-cli installed.
+	       (eq resulting-type 'plain))
+	  (setq error
+		(if require-tls
+		    "Server does not support TLS"
+		  "Server supports STARTTLS, but Emacs does not have support for it"))
+      (delete-process stream)
+      (setq stream nil))
     ;; Return value:
-    (list stream greeting capabilities resulting-type)))
+    (list stream greeting capabilities resulting-type error)))
 
 (defun network-stream-command (stream command eoc)
   (when command
