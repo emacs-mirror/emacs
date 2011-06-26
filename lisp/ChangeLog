@@ -1,3 +1,7 @@
+2011-06-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc.el (vc-revert-show-diff): Default to t.
+
 2011-06-26  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout-widgets.el (allout-widgets-post-command-business): Stop

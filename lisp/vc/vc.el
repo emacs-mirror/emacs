@@ -775,7 +775,7 @@ See `run-hooks'."
   :type 'hook
   :group 'vc)
 
-(defcustom vc-revert-show-diff nil
+(defcustom vc-revert-show-diff t
   "If non-nil, `vc-revert' shows a `vc-diff' buffer before querying."
   :type 'boolean
   :group 'vc
