@@ -1,5 +1,9 @@
 2011-06-26  Chong Yidong  <cyd@stupidchicken.com>
 
+	* hl-line.el (hl-line-sticky-flag): Doc fix.
+	(global-hl-line-sticky-flag): New option (Bug#8323).
+	(global-hl-line-highlight): Obey it.
+
 	* vc/vc.el (vc-revert-show-diff): Default to t.
 
 2011-06-26  Ken Manheimer  <ken.manheimer@gmail.com>
