@@ -1262,7 +1262,7 @@ NAME is nil if the statement has no label."
       (list (match-string 1))))
 
 (defsubst f90-looking-at-critical ()
-  "Return (KIND) if a critical or block block starts after point."
+  "Return (KIND NAME) if a critical or block block starts after point."
   (if (looking-at "\\(\\(\\sw+\\)[ \t]*:\\)?[ \t]*\\(critical\\|block\\)\\>")
       (let ((struct (match-string 3))
             (label (match-string 2)))
