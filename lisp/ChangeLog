@@ -1,3 +1,7 @@
+2011-06-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/cperl-mode.el (cperl-mode): Derive from prog-mode.
+
 2011-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-critical-indent): New option.
