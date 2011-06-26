@@ -1,3 +1,8 @@
+2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Summary Mail Commands): Document
+	`gnus-summary-reply-to-list-with-original'.
+
 2011-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eshell.texi (Known problems): Fix typo.

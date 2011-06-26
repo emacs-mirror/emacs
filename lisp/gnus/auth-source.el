@@ -971,7 +971,9 @@ Note that the MAX parameter is used so we can exit the parse early."
          (,(if (boundp 'find-file-hook) 'find-file-hook 'find-file-hooks)
           ',(remove
              'epa-file-find-file-hook
-             (if (boundp 'find-file-hook) 'find-file-hook 'find-file-hooks)))
+             (if (boundp 'find-file-hook)
+		 (symbol-value 'find-file-hook)
+	       (symbol-value 'find-file-hooks))))
          (auto-mode-alist
           ',(if (boundp 'epa-file-auto-mode-alist-entry)
                 (remove (symbol-value 'epa-file-auto-mode-alist-entry)

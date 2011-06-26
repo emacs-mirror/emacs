@@ -5568,6 +5568,13 @@ message (@code{gnus-summary-wide-reply-with-original}).  This command uses
 the process/prefix convention, but only uses the headers from the
 first article to determine the recipients.
 
+@item S L
+@kindex S L (Summary)
+@findex gnus-summary-reply-to-list-with-original
+When replying to a message from a mailing list, send a reply to that
+message to the mailing list, and include the original message
+(@code{gnus-summary-reply-to-list-with-original}).
+
 @item S v
 @kindex S v (Summary)
 @findex gnus-summary-very-wide-reply

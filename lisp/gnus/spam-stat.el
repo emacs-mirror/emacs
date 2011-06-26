@@ -138,12 +138,6 @@ See `spam-stat-to-hash-table' for the format of the file."
   :type 'file
   :group 'spam-stat)
 
-(defcustom spam-stat-install-hooks t
-  "Whether spam-stat should install its hooks in Gnus.
-This is set to nil if you use spam-stat through spam.el."
-  :type 'boolean
-  :group 'spam-stat)
-
 (defcustom spam-stat-unknown-word-score 0.2
   "The score to use for unknown words.
 Also used for words that don't appear often enough."
@@ -657,9 +651,6 @@ COUNT defaults to 5"
 	    'spam-stat-store-current-buffer)
   (add-hook 'gnus-select-article-hook
 	    'spam-stat-store-gnus-article-buffer))
-
-(when spam-stat-install-hooks
-  (spam-stat-install-hooks-function))
 
 (defun spam-stat-unload-hook ()
   "Uninstall the spam-stat function hooks."
