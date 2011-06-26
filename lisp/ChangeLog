@@ -1,10 +1,26 @@
+2011-06-26  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout-widgets.el (allout-widgets-post-command-business): Stop
+	decorating intermediate isearch matches.  They're not being
+	undecorated when an isearch is continued past, and isearch
+	automatically collapses them.  This leads to "widget leaks", where
+	decorated items accumulate in collapsed areas.  Lines with lots of
+	hidden widgets can slow down cursor travel, substantially.  Too
+	much complicated machinery would be needed to ensure undecoration,
+	so we're doing without this nicety.
+
+	(allout-widgets-tally-string): Don't try to do a hash-table-count
+	of allout-widgets-tally when it's nil.  This eliminates spurious "Error
+	during redisplay: (wrong-type-argument hash-table-p nil)" warnings in
+	*Messages* when allout-widgets-maintain-tally is t.
+
 2011-06-26  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-normalize-argument): Rename to
 	display-buffer-normalize-arguments.  Handle special meaning of
-	LABEL argument.  Respect special-display-function when popping
-	up a new frame.  Fix code searching for a window showing the
-	buffer on another frame.
+	LABEL argument.  Respect special-display-function when popping up
+	a new frame.  Fix code searching for a window showing the buffer
+	on another frame.
 	(display-buffer-normalize-specifiers): Call
 	display-buffer-normalize-arguments.
 	(display-buffer-in-window): Don't undedicate the window if its
@@ -981,6 +997,7 @@
 	* iswitchb.el (iswitchb-window-buffer-p): Use `member' instead of
 	`memq' (Bug#8799).
 
+>>>>>>> MERGE-SOURCE
 2011-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (make-progress-reporter): Add "..." by default (bug#8785).
