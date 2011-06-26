@@ -1,3 +1,11 @@
+2011-06-26  Leo Liu  <sdl.web@gmail.com>
+
+	* register.el (registerv): New struct.
+	(registerv-make): New function.
+	(jump-to-register, describe-register-1, insert-register): Support
+	the jump-func, print-func and insert-func slot of a registerv
+	struct.  (Bug#8415)
+
 2011-06-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc/vc.el (vc-revert-show-diff): New defcustom.
