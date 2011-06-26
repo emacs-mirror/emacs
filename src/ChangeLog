@@ -1,3 +1,9 @@
+2011-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_paragraph_init): Test for ZV_BYTE before calling
+	bidi_at_paragraph_end, since fast_looking_at doesn't like to be
+	called at ZV.
+
 2011-06-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* process.c (wait_reading_process_output): Bypass select if
