@@ -1,5 +1,10 @@
 2011-06-26  Chong Yidong  <cyd@stupidchicken.com>
 
+	* vc/vc.el (vc-revert-show-diff): New defcustom.
+	(vc-diff-internal): New arg specifying diff buffer.
+	(vc-revert): Obey vc-revert-show-diff.  If we show a diff, don't
+	reuse an existing *vc-diff* buffer (Bug#8927).
+
 	* progmodes/cperl-mode.el (cperl-mode): Derive from prog-mode.
 
 2011-06-26  Glenn Morris  <rgm@gnu.org>
