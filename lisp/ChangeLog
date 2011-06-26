@@ -1,3 +1,21 @@
+2011-06-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-normalize-argument): Rename to
+	display-buffer-normalize-arguments.  Handle special meaning of
+	LABEL argument.  Respect special-display-function when popping
+	up a new frame.  Fix code searching for a window showing the
+	buffer on another frame.
+	(display-buffer-normalize-specifiers): Call
+	display-buffer-normalize-arguments.
+	(display-buffer-in-window): Don't undedicate the window if its
+	buffer remains the same.
+	Reported by Drew Adams <drew.adams@oracle.com>.
+	(display-buffer-alist): Add choice for same-window macro
+	specfier.
+	(display-buffer): Mention special meaning of LABEL argument in
+	doc-string.  Fix quoting.  Don't pop up a new frame even as
+	fallback.
+
 2011-06-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs-cycle-next): Pass current buffer to `bury-buffer' to
