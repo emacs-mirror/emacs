@@ -997,7 +997,6 @@
 	* iswitchb.el (iswitchb-window-buffer-p): Use `member' instead of
 	`memq' (Bug#8799).
 
->>>>>>> MERGE-SOURCE
 2011-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (make-progress-reporter): Add "..." by default (bug#8785).
