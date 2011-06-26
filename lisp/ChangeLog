@@ -17,8 +17,8 @@
 	(f90-looking-at-program-block-start, f90-no-block-limit):
 	Add support for submodules.
 
-	* progmodes/f90.el (f90-keywords-re, f90-procedures-re)
-	(f90-constants-re): Add some F2008 stuff.
+	* progmodes/f90.el (f90-keywords-re, f90-keywords-level-3-re)
+	(f90-procedures-re, f90-constants-re): Add some F2008 stuff.
 
 2011-06-25  Eli Zaretskii  <eliz@gnu.org>
 

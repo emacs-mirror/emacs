@@ -311,8 +311,8 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
                 "deferred" "enum" "enumerator" "extends" "extends_type_of"
                 "final" "generic" "import" "non_intrinsic" "non_overridable"
                 "nopass" "pass" "protected" "same_type_as" "value" "volatile"
-                ;; F2008
-                "contiguous" "submodule"
+                ;; F2008.
+                "contiguous" "submodule" "concurrent"
                 ) 'words)
   "Regexp used by the function `f90-change-keywords'.")
 
@@ -330,6 +330,10 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
      ;; F2003. asynchronous separate.
      "abstract" "deferred" "import" "final" "non_intrinsic" "non_overridable"
      "nopass" "pass" "protected" "value" "volatile"
+     ;; F2008.
+     ;; "concurrent" is only in the sense of "do [,] concurrent", but given
+     ;; the [,] it's simpler to just do every instance (cf "do while").
+     "contiguous" "concurrent"
      ) 'words)
   "Keyword-regexp for font-lock level >= 3.")
 
