@@ -4509,6 +4509,7 @@ commands:
 		 t)))
 	(with-current-buffer name
 	  (set (make-local-variable 'gnus-article-edit-mode) nil)
+	  (gnus-article-stop-animations)
 	  (when gnus-article-mime-handles
 	    (mm-destroy-parts gnus-article-mime-handles)
 	    (setq gnus-article-mime-handles nil))
@@ -4532,6 +4533,12 @@ commands:
 	(when gnus-article-update-date-headers
 	  (gnus-start-date-timer gnus-article-update-date-headers))
 	(current-buffer)))))
+
+(defun gnus-article-stop-animations ()
+  (dolist (timer (and (boundp 'timer-list)
+		      timer-list))
+    (when (eq (aref timer 5) 'image-animate-timeout)
+      (cancel-timer timer))))
 
 ;; Set article window start at LINE, where LINE is the number of lines
 ;; from the head of the article.

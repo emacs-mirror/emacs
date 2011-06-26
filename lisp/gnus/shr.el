@@ -526,7 +526,9 @@ the URL of the image to the kill buffer instead."
 	  (when (and (> (current-column) 0)
 		     (> (car (image-size image t)) 400))
 	    (insert "\n"))
-	  (insert-image image (or alt "*")))
+	  (insert-image image (or alt "*"))
+	  (when (image-animated-p image)
+	    (image-animate image nil 60)))
 	image)
     (insert alt)))
 
@@ -557,10 +559,6 @@ the URL of the image to the kill buffer instead."
 				   :width window-width
 				   :ascent 100)
 		     image)))
-      (when (and (fboundp 'create-animated-image)
-		 (eq (image-type data nil t) 'gif))
-	(setq image (create-animated-image data 'gif t
-					   :ascent 100)))
       image)))
 
 ;; url-cache-extract autoloads url-cache.

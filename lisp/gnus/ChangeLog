@@ -1,7 +1,13 @@
 2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* dgnushack.el: Bind `gnutls-available-p' to `ignore' on XEmacs to
-	avoid compiler warnings.
+	* gnus-art.el (gnus-article-stop-animations): New function to stop any
+	animations going on at article exit time.
+
+	* gnus-registry.el (gnus-registry-user-format-function-M): Reinstate,
+	since removing it breaks people upgrading.
+
+	* shr.el (shr-put-image): Use the new interface for animating images.
+	(shr-put-image): Animate for 60 seconds.
 
 	* auth-source.el (with-auth-source-epa-overrides): Fix compilation
 	error with `find-file-hooks' on Emacs 22.
@@ -553,12 +559,6 @@
 
 	* Makefile.in (fail-on-warning): New rule to compile with warnings as
 	errors.
-
-	* dgnushack.el (dgnushack-compile-error-on-warn): New function to call
-	dgnushack-compile with error-on-warn enabled, and to signal an error if
-	clean compilation failed.
-	(dgnushack-compile): New argument 'error-on-warn'.  If non-nil, compile
-	with `byte-compile-error-on-warn'.  Return nil if errors occured.
 
 2011-04-06  Teodor Zlatanov  <tzz@lifelogs.com>
 
