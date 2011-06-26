@@ -312,7 +312,8 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
                 "final" "generic" "import" "non_intrinsic" "non_overridable"
                 "nopass" "pass" "protected" "same_type_as" "value" "volatile"
                 ;; F2008.
-                "contiguous" "submodule" "concurrent"
+                "contiguous" "submodule" "concurrent" "codimension"
+                "sync all" "sync memory" "critical" "image_index"
                 ) 'words)
   "Regexp used by the function `f90-change-keywords'.")
 
@@ -333,7 +334,7 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
      ;; F2008.
      ;; "concurrent" is only in the sense of "do [,] concurrent", but given
      ;; the [,] it's simpler to just do every instance (cf "do while").
-     "contiguous" "concurrent"
+     "contiguous" "concurrent" "codimension" "sync all" "sync memory"
      ) 'words)
   "Keyword-regexp for font-lock level >= 3.")
 
@@ -380,6 +381,8 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
              "bessel_y0" "bessel_y1" "bessel_yn"
              "erf" "erfc" "erfc_scaled" "gamma" "hypot" "log_gamma"
              "norm2" "parity" "findloc" "is_contiguous"
+             "sync images" "lock" "unlock" "image_index"
+             "lcobound" "ucobound" "num_images" "this_image"
              ;; F2008 iso_fortran_env module.
              "compiler_options" "compiler_version"
              ;; F2008 iso_c_binding module.
@@ -450,6 +453,7 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
                 "character_kinds" "int8" "int16" "int32" "int64"
                 "integer_kinds" "iostat_inquire_internal_unit"
                 "logical_kinds" "real_kinds" "real32" "real64" "real128"
+                "lock_type" "atomic_int_kind" "atomic_logical_kind"
                 ) 'words)
   "Regexp for Fortran intrinsic constants.")
 
