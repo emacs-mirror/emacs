@@ -788,7 +788,7 @@ the user for specifics, e.g. a merge source.
 **** Currently supported for Bzr, Git, and Mercurial.
 
 *** New option `vc-revert-show-diff' controls whether `vc-revert'
-shows a diff while querying the user.  It defaults to nil.
+shows a diff while querying the user.  It defaults to t.
 
 *** Log entries in some Log View buffers can be toggled to display a
 longer description by typing RET (log-view-toggle-entry-display).
