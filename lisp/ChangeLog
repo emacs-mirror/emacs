@@ -1,29 +1,28 @@
+2011-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/flymake.el (flymake-err-line-patterns):
+	Allow for column numbers in the ant/javac pattern.  (Bug#8866)
+
 2011-06-27  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
-	* ses.el (ses-relocate-range): Keep rest of arguments for
-	ses-range.
+	* ses.el (ses-relocate-range): Keep rest of arguments for ses-range.
 	(ses--clean-!, ses--clean-_): New functions.
 	(ses-range): Add configurability of readout order, and conversion
 	to Calc vector.
-
-2011-06-27  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* ses.el (ses-repair-cell-reference-all): New function.
 	(ses-cell-symbol): Set macro as safe, so that it can be used in
 	formulas.
 
-2011-06-27  Vincent Belaïche  <vincentb1@users.sourceforge.net>
-
 	* ses.el:  Update cycle detection algorithm.
 	(ses-localvars): Add ses--Dijkstra-attempt-nb and
-	ses--Dijkstra-weight-bound, and initial values thereof when
-	applicable.
+	ses--Dijkstra-weight-bound, and initial values thereof when applicable.
 	(ses-set-localvars): New function.
 	(ses-make-cell): Add property-list as a cell element.
 	(ses-cell-property-get-fun, ses-cell-property-get)
 	(ses-cell-property-delq-fun, ses-cell-property-set-fun)
-	(ses-cell-property-pop-fun, ses-cell-property-get-handle-fun): New
-	functions.
+	(ses-cell-property-pop-fun, ses-cell-property-get-handle-fun):
+	New functions.
 	(ses-cell-property-set, ses-cell-property-pop)
 	(ses-cell-property-get-handle): New macro.
 	(ses-cell-property-handle-car, ses-cell-property-handle-setcar):
@@ -38,8 +37,6 @@
 	(ses-initialize-Dijkstra-attempt): New function.
 	(ses-recalculate-cell): Update for cycle detection based on
 	Dijkstra algorithm.
-
-2011-06-27  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* ses.el: Fix commenting and indenting convention.
 
