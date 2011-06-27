@@ -1,5 +1,8 @@
 2011-06-27  Richard Stallman  <rms@gnu.org>
 
+	* battery.el (battery-mode-line-limit): New variable.
+	(battery-update): Handle it.
+
 	* mail/rmailmm.el (rmail-mime-process-multipart):
 	Handle truncated messages.
 
