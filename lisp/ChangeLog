@@ -8,6 +8,10 @@
 	to binary to possibly avoid line encoding issues on Windows (among
 	other things).
 
+2011-06-27  Drew Adams  <drew.adams@oracle.com>
+
+	* faces.el (list-faces-display): Add help-mode-map to output (bug#8939).
+
 2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/network-stream.el (open-network-stream): Return an :error
