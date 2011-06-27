@@ -1495,7 +1495,7 @@ if the range was altered."
 		 (funcall field (ses-sym-rowcol min))))
 	  ;; This range has changed size.
 	  (setq ses-relocate-return 'range))
-      (list 'ses-range min max))))
+      `(ses-range ,min ,max ,@(cdddr range)))))
 
 (defun ses-relocate-all (minrow mincol rowincr colincr)
   "Alter all cell values, symbols, formulas, and reference-lists to relocate
@@ -3171,15 +3171,128 @@ is safe or user allows execution anyway.  Always returns t if
 ;; Standard formulas
 ;;----------------------------------------------------------------------------
 
-(defmacro ses-range (from to)
-  "Expands to a list of cell-symbols for the range.  The range automatically
-expands to include any new row or column inserted into its middle.  The SES
-library code specifically looks for the symbol `ses-range', so don't create an
-alias for this macro!"
-  (let (result)
+(defun ses--clean-! (&rest x)
+  "Clean by delq list X from any occurrence of `nil' or `*skip*'."
+  (delq nil (delq '*skip* x)))
+
+(defun ses--clean-_ (x y)
+  "Clean list X  by replacing by Y any occurrence of `nil' or `*skip*'.
+
+This will change X by making setcar on its cons cells."
+  (let ((ret x) ret-elt)
+    (while ret
+      (setq ret-elt (car ret))
+      (when (memq ret-elt '(nil *skip*))
+	(setcar ret y))
+      (setq ret (cdr ret))))
+  x)
+
+(defmacro ses-range (from to &rest rest)
+  "Expands to a list of cell-symbols for the range going from
+FROM up to TO.  The range automatically expands to include any
+new row or column inserted into its middle.  The SES library code
+specifically looks for the symbol `ses-range', so don't create an
+alias for this macro!
+
+By passing in REST some flags one can configure the way the range
+is read and how it is formatted.
+
+In the sequel we assume that cells A1, B1, A2 B2 have respective values
+1 2 3 and 4 for examplication.
+
+Readout direction is specified by a `>v', '`>^', `<v', `<^',
+`v>', `v<', `^>', `^<' flag. For historical reasons, in absence
+of such a flag, a default direction of `^<' is assumed. This
+way `(ses-range A1 B2 ^>)' will evaluate to `(1 3 2 4)',
+while `(ses-range A1 B2 >^)' will evaluate to (3 4 1 2).
+
+If the range is one row, then `>' can be used as a shorthand to
+`>v' or `>^', and `<' to `<v' or `<^'.
+
+If the range is one column, then `v' can be used as a shorthand to
+`v>' or `v<', and `^' to `^>' or `v<'.
+
+A `!' flag will remove all cells whose value is nil or `*skip*'.
+
+A `_' flag will replace nil or `*skip*' by the value following
+the `_' flag. If the `_' flag is the last argument, then they are
+replaced by integer 0.
+
+A `*', `*1' or `*2' flag will vectorize the range in the sense of
+Calc. See info node `(Calc) Top'. Flag `*' will output either a
+vector or a matrix depending on the number of rows, `*1' will
+flatten the result to a one row vector, and `*2' will make a
+matrix whatever the number of rows.
+
+Warning: interaction with Calc is expermimental and may produce
+confusing results if you are not aware of Calc data format. Use
+`math-format-value' as a printer for Calc objects."
+  (let (result-row
+	result
+	(prev-row -1)
+	(reorient-x nil)
+	(reorient-y nil)
+	transpose vectorize
+	(clean 'list))
     (ses-dorange (cons from to)
-      (push (ses-cell-symbol row col) result))
-    (cons 'list result)))
+      (when (/= prev-row row)
+	(push result-row result)
+	(setq result-row nil))
+      (push (ses-cell-symbol row col) result-row)
+      (setq prev-row row))
+    (push result-row result)
+    (while rest
+      (let ((x (pop rest)))
+	(case x
+	  ((>v) (setq transpose nil reorient-x nil reorient-y nil))
+	  ((>^)(setq transpose nil reorient-x nil reorient-y t))
+	  ((<^)(setq transpose nil reorient-x t reorient-y t))
+	  ((<v)(setq transpose nil reorient-x t reorient-y nil))
+	  ((v>)(setq transpose t reorient-x nil reorient-y t))
+	  ((^>)(setq transpose t reorient-x nil reorient-y nil))
+	  ((^<)(setq transpose t reorient-x t reorient-y nil))
+	  ((v<)(setq transpose t reorient-x t reorient-y t))
+	  ((* *2 *1) (setq vectorize x))
+	  ((!) (setq clean 'ses--clean-!))
+	  ((_) (setq clean `(lambda (&rest x) (ses--clean-_  x ,(if rest (pop rest) 0)))))
+	  (t
+	   (cond
+					; shorthands one row
+	    ((and (null (cddr result)) (memq x '(> <)))
+	     (push (intern (concat (symbol-name x) "v")) rest))
+					; shorthands one col
+	    ((and (null (cdar result)) (memq x '(v ^)))
+	     (push (intern (concat (symbol-name x) ">")) rest))
+	    (t (error "Unexpected flag `%S' in ses-range" x)))))))
+    (if reorient-y
+	(setcdr (last result 2) nil)
+      (setq result (cdr (nreverse result))))
+    (unless reorient-x
+      (setq result (mapcar 'nreverse result)))
+    (when transpose
+      (let ((ret (mapcar (lambda (x) (list x)) (pop result))) iter)
+	(while result
+	  (setq iter ret)
+	  (dolist (elt (pop result))
+	    (setcar iter (cons elt (car iter)))
+	    (setq iter (cdr iter))))
+	(setq result ret)))
+
+    (flet ((vectorize-*1
+	    (clean result)
+	    (cons clean (cons (quote 'vec) (apply 'append result))))
+	   (vectorize-*2
+	    (clean result)
+	    (cons clean (cons (quote 'vec) (mapcar (lambda (x)
+						     (cons  clean (cons (quote 'vec) x)))
+						   result)))))
+      (case vectorize
+	((nil) (cons clean (apply 'append result)))
+	((*1) (vectorize-*1 clean result))
+	((*2) (vectorize-*2 clean result))
+	((*) (if (cdr result)
+	       (vectorize-*2 clean result)
+	     (vectorize-*1 clean result)))))))
 
 (defun ses-delete-blanks (&rest args)
   "Return ARGS reversed, with the blank elements (nil and *skip*) removed."
