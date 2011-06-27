@@ -1,3 +1,7 @@
+2011-06-27  Markus Heiser  <markus.heiser@darmarit.de>
+
+	* progmodes/gud.el (gud-pdb-marker-regexp): Accept \r char (Bug#5653).
+
 2011-06-27  Jambunathan K  <kjambunathan@gmail.com>
 
 	* tar-mode.el (tar-untar-buffer): Set coding-system-for-write to
