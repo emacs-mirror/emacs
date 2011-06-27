@@ -1723,11 +1723,12 @@ good, skip, fatal, or unknown."
 ;;; Temporary file location and deletion...
 ;;; ------------------------------------------------------------
 
-(defun ange-ftp-make-tmp-name (host)
+(defun ange-ftp-make-tmp-name (host &optional suffix)
   "This routine will return the name of a new file."
   (make-temp-file (if (ange-ftp-use-gateway-p host)
 		      ange-ftp-gateway-tmp-name-template
-		    ange-ftp-tmp-name-template)))
+		    ange-ftp-tmp-name-template)
+		  nil suffix))
 
 (defun ange-ftp-del-tmp-name (filename)
   "Force to delete temporary file."
@@ -4139,7 +4140,8 @@ directory, so that Emacs will know its current contents."
   (let* ((fn1 (expand-file-name file))
 	 (pa1 (ange-ftp-ftp-name fn1)))
     (if pa1
-	(let ((tmp1 (ange-ftp-make-tmp-name (car pa1))))
+	(let ((tmp1 (ange-ftp-make-tmp-name (car pa1)
+					    (file-name-extension file t))))
 	  (ange-ftp-copy-file-internal fn1 tmp1 t nil
 				       (format "Getting %s" fn1))
 	  tmp1))))

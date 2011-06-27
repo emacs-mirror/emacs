@@ -1,3 +1,9 @@
+2011-06-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* net/ange-ftp.el: Allow loading .gz files (Bug#6923).
+	(ange-ftp-make-tmp-name): New arg.
+	(ange-ftp-file-local-copy): Use it.
+
 2011-06-27  Jambunathan K  <kjambunathan@gmail.com>
 
 	* tar-mode.el (tar-untar-buffer): Set coding-system-for-write to
