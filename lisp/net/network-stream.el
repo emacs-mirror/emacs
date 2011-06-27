@@ -223,7 +223,7 @@ functionality.
 	       (or builtin-starttls
 		   (and (or require-tls
 			    (plist-get parameters :use-starttls-if-possible))
-			(executable-find "gnutls-clii")))
+			(executable-find "gnutls-cli")))
 	       (not (eq (plist-get parameters :type) 'plain)))
       ;; If using external STARTTLS, drop this connection and start
       ;; anew with `starttls-open-stream'.
@@ -246,11 +246,11 @@ functionality.
 			       "--x509certfile" (expand-file-name (nth 1 cert)))
 			 starttls-extra-arguments)))
 	  (setq stream (starttls-open-stream name buffer host service)))
-	(network-stream-get-response stream start eoc))
-      ;; Requery capabilities for protocols that require it; i.e.,
-      ;; EHLO for SMTP.
-      (when (plist-get parameters :always-query-capabilities)
-	(network-stream-command stream capability-command eoc))
+	(network-stream-get-response stream start eoc)
+	;; Requery capabilities for protocols that require it; i.e.,
+	;; EHLO for SMTP.
+	(when (plist-get parameters :always-query-capabilities)
+	  (network-stream-command stream capability-command eoc)))
       (when (string-match success-string
 			  (network-stream-command stream starttls-command eoc))
 	;; The server said it was OK to begin STARTTLS negotiations.
