@@ -25,6 +25,7 @@
 
 ;;; To-do list:
 
+;; * split (catch 'cycle ...) call back into one or more functions
 ;; * Use $ or … for truncated fields
 ;; * Add command to make a range of columns be temporarily invisible.
 ;; * Allow paste of one cell to a range of cells -- copy formula to each.
@@ -35,6 +36,21 @@
 ;; * Move a column by dragging its letter in the header line.
 ;; * Left-margin column for row number.
 ;; * Move a row by dragging its number in the left-margin.
+
+;;; Cycle detection
+
+;; Cycles used to be detected by stationarity of ses--deferred-recalc.  This was
+;; working fine in most cases, however failed in some cases of several path
+;; racing together.
+;;
+;; The current algorithm is based on Dijksta algorithm.  The ``cycle length'' is
+;; stored in some cell property. In order not to reset in all cells such
+;; property at each update, the cycle length is stored in this property along
+;; with some update attempt id that is incremented at each update. The current
+;; update id is ses--Dijkstra-attempt-nb. In case there is a cycle the cycle
+;; length diverge to infinite so it will exceed ses--Dijkstra-weight-bound at
+;; some point of time that allows detection. Otherwise it converges to the
+;; longest path length in the update tree.
 
 
 ;;; Code:
@@ -255,21 +271,29 @@ default printer and then modify its output.")
 
 (eval-and-compile
   (defconst ses-localvars
-    '(ses--blank-line ses--cells ses--col-printers ses--col-widths ses--curcell
-      ses--curcell-overlay ses--default-printer ses--deferred-narrow
-      ses--deferred-recalc ses--deferred-write ses--file-format
-      ses--header-hscroll ses--header-row ses--header-string ses--linewidth
-      ses--numcols ses--numrows ses--symbolic-formulas ses--data-marker
-      ses--params-marker
-      ;;Global variables that we override
+    '(ses--blank-line ses--cells ses--col-printers
+      ses--col-widths (ses--curcell . nil) ses--curcell-overlay
+      ses--default-printer
+      ses--deferred-narrow (ses--deferred-recalc
+      . nil) (ses--deferred-write . nil) ses--file-format
+      (ses--header-hscroll . -1) ; Flag for "initial recalc needed"
+      ses--header-row ses--header-string ses--linewidth
+      ses--numcols ses--numrows ses--symbolic-formulas
+      ses--data-marker ses--params-marker (ses--Dijkstra-attempt-nb
+      . 0) ses--Dijkstra-weight-bound
+      ;; Global variables that we override
       mode-line-process next-line-add-newlines transient-mark-mode)
     "Buffer-local variables used by SES."))
 
-;;When compiling, create all the buffer locals and give them values
-(eval-when-compile
+(defun ses-set-localvars ()
+  "Set buffer-local and initialize some SES variables."
   (dolist (x ses-localvars)
-    (make-local-variable x)
-    (set x nil)))
+    (cond
+     ((symbolp x)
+      (set (make-local-variable x) nil))
+     ((consp x)
+       (set (make-local-variable (car x)) (cdr x)))
+     (error "Unexpected elements `%S' in list `ses-localvars'"))))
 
 ;;; This variable is documented as being permitted in file-locals:
 (put 'ses--symbolic-formulas 'safe-local-variable 'consp)
@@ -317,8 +341,9 @@ when to emit a progress message.")
 
 ;; We might want to use defstruct here, but cells are explicitly used as
 ;; arrays in ses-set-cell, so we'd need to fix this first.  --Stef
-(defsubst ses-make-cell (&optional symbol formula printer references)
-  (vector symbol formula printer references))
+(defsubst ses-make-cell (&optional symbol formula printer references
+				   property-list)
+  (vector symbol formula printer references property-list))
 
 (defmacro ses-cell-symbol (row &optional col)
   "From a CELL or a pair (ROW,COL), get the symbol that names the local-variable holding its value.  (0,0) => A1."
@@ -336,6 +361,116 @@ when to emit a progress message.")
   "From a CELL or a pair (ROW,COL), get the list of symbols for cells whose
 functions refer to its value."
   `(aref ,(if col `(ses-get-cell ,row ,col) row) 3))
+
+(defun ses-cell-property-get-fun (property-name cell)
+  ;; To speed up property fetching, each time a property is found it is placed
+  ;; in the first position.  This way, after the first get, the full property
+  ;; list needs to be scanned only when the property does not exist for that
+  ;; cell.
+  (let* ((plist  (aref cell 4))
+	 (ret (plist-member plist property-name)))
+    (if ret
+	;; Property was found.
+	(let ((val (cadr ret)))
+	  (if (eq ret plist)
+	      ;; Property found is already in the first position, so just return
+	      ;; its value.
+	      val
+	    ;; Property is not in the first position, the following will move it
+	    ;; there before returning its value.
+	    (let ((next (cddr ret)))
+	      (if next
+		  (progn
+		    (setcdr ret (cdr next))
+		    (setcar ret (car next)))
+		(setcdr (last plist 1) nil)))
+	    (aset cell 4
+		  `(,property-name ,val ,@plist))
+	    val)))))
+
+(defmacro ses-cell-property-get (property-name row &optional col)
+   "Get property named PROPERTY-NAME From a CELL or a pair (ROW,COL).
+
+When COL is omitted, CELL=ROW is a cell object.  When COL is
+present ROW and COL are the integer coordinates of the cell of
+interest."
+   (declare (debug t))
+   `(ses-cell-property-get-fun
+     ,property-name
+     ,(if col `(ses-get-cell ,row ,col) row)))
+
+(defun ses-cell-property-delq-fun (property-name cell)
+  (let	((ret (plist-get (aref cell 4) property-name)))
+    (if ret
+      (setcdr ret (cddr ret)))))
+
+(defun ses-cell-property-set-fun (property-name property-val cell)
+  (let*	((plist  (aref cell 4))
+	 (ret (plist-member plist property-name)))
+    (if ret
+	(setcar (cdr ret) property-val)
+      (aset cell 4 `(,property-name ,property-val ,@plist)))))
+
+(defmacro ses-cell-property-set (property-name property-value row &optional col)
+   "From a CELL or a pair (ROW,COL), set the property value of
+the corresponding cell with name PROPERTY-NAME to PROPERTY-VALUE."
+   (if property-value
+       `(ses-cell-property-set-fun ,property-name ,property-value
+				   ,(if col `(ses-get-cell ,row ,col) row))
+       `(ses-cell-property-delq-fun ,property-name
+				    ,(if col `(ses-get-cell ,row ,col) row))))
+
+(defun ses-cell-property-pop-fun (property-name cell)
+  (let* ((plist  (aref cell 4))
+	 (ret (plist-member plist property-name)))
+    (if ret
+	(prog1 (cadr ret)
+	  (let ((next (cddr ret)))
+	    (if next
+		(progn
+		  (setcdr ret (cdr next))
+		  (setcar ret (car next)))
+	      (if (eq plist ret)
+		  (aset cell 4 nil)
+		(setcdr (last plist 2) nil))))))))
+
+
+(defmacro ses-cell-property-pop (property-name row &optional col)
+   "From a CELL or a pair (ROW,COL), get and remove the property value of
+the corresponding cell with name PROPERTY-NAME."
+   `(ses-cell-property-pop-fun  ,property-name
+				,(if col `(ses-get-cell ,row ,col) row)))
+
+(defun ses-cell-property-get-handle-fun (property-name cell)
+  (let*	((plist  (aref cell 4))
+	 (ret (plist-member plist property-name)))
+    (if ret
+	(if (eq ret plist)
+	    (cdr ret)
+	  (let ((val (cadr ret))
+		(next (cddr ret)))
+	    (if next
+		(progn
+		  (setcdr ret (cdr next))
+		  (setcar ret (car next)))
+	      (setcdr (last plist 2) nil))
+	    (setq ret (cons val plist))
+	    (aset cell 4 (cons property-name ret))
+	    ret))
+      (setq ret (cons nil plist))
+      (aset cell 4 (cons property-name ret))
+      ret)))
+
+(defmacro ses-cell-property-get-handle (property-name row &optional col)
+   "From a CELL or a pair (ROW,COL), get a cons cell whose car is
+the property value of the corresponding cell property with name
+PROPERTY-NAME."
+   `(ses-cell-property-get-handle-fun  ,property-name
+				,(if col `(ses-get-cell ,row ,col) row)))
+
+
+(defalias 'ses-cell-property-handle-car 'car)
+(defalias 'ses-cell-property-handle-setcar 'setcar)
 
 (defmacro ses-cell-value (row &optional col)
   "From a CELL or a pair (ROW,COL), get the current value for that cell."
@@ -629,33 +764,94 @@ left unchanged if it was *skip* and the new value is nil.
 processing for the current keystroke, unless the new value is the same as
 the old and FORCE is nil."
   (let ((cell (ses-get-cell row col))
-	formula-error printer-error)
+	cycle-error formula-error printer-error)
     (let ((oldval  (ses-cell-value   cell))
 	  (formula (ses-cell-formula cell))
-	  newval)
+	  newval
+	  this-cell-Dijkstra-attempt-h
+	  this-cell-Dijkstra-attempt
+	  this-cell-Dijkstra-attempt+1
+	  ref-cell-Dijkstra-attempt-h
+	  ref-cell-Dijkstra-attempt
+	  ref-rowcol)
       (when (eq (car-safe formula) 'ses-safe-formula)
 	(setq formula (ses-safe-formula (cadr formula)))
 	(ses-set-cell row col 'formula formula))
       (condition-case sig
 	  (setq newval (eval formula))
 	(error
+	 ;; Variable `sig' can't be nil.
+	 (nconc sig (list (ses-cell-symbol cell)))
 	 (setq formula-error sig
 	       newval        '*error*)))
       (if (and (not newval) (eq oldval '*skip*))
 	  ;; Don't lose the *skip* --- previous field spans this one.
 	  (setq newval '*skip*))
-      (when (or force (not (eq newval oldval)))
-	(add-to-list 'ses--deferred-write (cons row col)) ;In case force=t
-	(ses-set-cell row col 'value newval)
-	(dolist (ref (ses-cell-references cell))
-	  (add-to-list 'ses--deferred-recalc ref))))
+      (catch 'cycle
+	(when (or force (not (eq newval oldval)))
+	  (add-to-list 'ses--deferred-write (cons row col)) ; In case force=t.
+	  (setq this-cell-Dijkstra-attempt-h
+		(ses-cell-property-get-handle :ses-Dijkstra-attempt cell);
+		this-cell-Dijkstra-attempt
+		(ses-cell-property-handle-car this-cell-Dijkstra-attempt-h))
+	  (if (null this-cell-Dijkstra-attempt)
+	      (ses-cell-property-handle-setcar
+	       this-cell-Dijkstra-attempt-h
+	       (setq this-cell-Dijkstra-attempt
+		     (cons ses--Dijkstra-attempt-nb 0)))
+	    (unless (= ses--Dijkstra-attempt-nb
+		       (car this-cell-Dijkstra-attempt))
+		(setcar this-cell-Dijkstra-attempt ses--Dijkstra-attempt-nb)
+		(setcdr this-cell-Dijkstra-attempt 0)))
+	  (setq this-cell-Dijkstra-attempt+1
+		(1+ (cdr this-cell-Dijkstra-attempt)))
+	  (ses-set-cell row col 'value newval)
+	  (dolist (ref (ses-cell-references cell))
+	    (add-to-list 'ses--deferred-recalc ref)
+	    (setq ref-rowcol (ses-sym-rowcol ref)
+		  ref-cell-Dijkstra-attempt-h
+		  (ses-cell-property-get-handle
+		   :ses-Dijkstra-attempt
+		   (car ref-rowcol) (cdr ref-rowcol))
+		  ref-cell-Dijkstra-attempt
+		  (ses-cell-property-handle-car ref-cell-Dijkstra-attempt-h))
+
+	    (if (null ref-cell-Dijkstra-attempt)
+	      (ses-cell-property-handle-setcar
+	       ref-cell-Dijkstra-attempt-h
+	       (setq ref-cell-Dijkstra-attempt
+		      (cons ses--Dijkstra-attempt-nb
+			    this-cell-Dijkstra-attempt+1)))
+	      (if (= (car ref-cell-Dijkstra-attempt) ses--Dijkstra-attempt-nb)
+		  (setcdr ref-cell-Dijkstra-attempt
+			  (max (cdr ref-cell-Dijkstra-attempt)
+			       this-cell-Dijkstra-attempt+1))
+		(setcar ref-cell-Dijkstra-attempt ses--Dijkstra-attempt-nb)
+		(setcdr ref-cell-Dijkstra-attempt
+			this-cell-Dijkstra-attempt+1)))
+
+	    (when (> this-cell-Dijkstra-attempt+1 ses--Dijkstra-weight-bound)
+	      ;; Update print of this cell.
+	      (throw 'cycle (setq formula-error
+				  `(error ,(format "Found cycle on cells %S"
+						   (ses-cell-symbol cell)))
+				  cycle-error formula-error)))))))
     (setq printer-error (ses-print-cell row col))
-    (or formula-error printer-error)))
+    (or
+     (and cycle-error
+	  (error (error-message-string cycle-error)))
+     formula-error printer-error)))
 
 (defun ses-clear-cell (row col)
   "Delete formula and printer for cell (ROW,COL)."
   (ses-set-cell row col 'printer nil)
   (ses-cell-set-formula row col nil))
+
+(defcustom ses-self-reference-early-detection nil
+  "True if cycle detection is early for cells that refer to
+themselves."
+  :type 'boolean
+  :group 'ses)
 
 (defun ses-update-cells (list &optional force)
   "Recalculate cells in LIST, checking for dependency loops.  Prints
@@ -664,14 +860,13 @@ if the cell's value is unchanged and FORCE is nil."
   (let ((ses--deferred-recalc list)
 	(nextlist             list)
 	(pos		      (point))
-	curlist prevlist rowcol formula)
+	curlist prevlist this-sym this-rowcol formula)
     (with-temp-message " "
-      (while (and ses--deferred-recalc (not (equal nextlist prevlist)))
-	;; In each loop, recalculate cells that refer only to other
-	;; cells that have already been recalculated or aren't in the
-	;; recalculation region.  Repeat until all cells have been
-	;; processed or until the set of cells being worked on stops
-	;; changing.
+      (while ses--deferred-recalc
+	;; In each loop, recalculate cells that refer only to other cells that
+	;; have already been recalculated or aren't in the recalculation region.
+	;; Repeat until all cells have been processed or until the set of cells
+	;; being worked on stops changing.
 	(if prevlist
 	    (message "Recalculating... (%d cells left)"
 		     (length ses--deferred-recalc)))
@@ -679,34 +874,35 @@ if the cell's value is unchanged and FORCE is nil."
 	      ses--deferred-recalc nil
 	      prevlist             nextlist)
 	(while curlist
-	  (setq rowcol  (ses-sym-rowcol (car curlist))
-		formula (ses-cell-formula (car rowcol) (cdr rowcol)))
+	  ;; this-sym has to be popped from curlist *BEFORE* the check, and not
+	  ;; after because of the case of cells referring to themselves.
+	  (setq this-sym   (pop curlist)
+		this-rowcol (ses-sym-rowcol this-sym)
+		formula     (ses-cell-formula (car this-rowcol)
+					      (cdr this-rowcol)))
 	  (or (catch 'ref
 		(dolist (ref (ses-formula-references formula))
-		  (when (or (memq ref curlist)
-			    (memq ref ses--deferred-recalc))
-		    ;;This cell refers to another that isn't done yet
-		    (add-to-list 'ses--deferred-recalc (car curlist))
-		    (throw 'ref t))))
-	      ;;ses-update-cells is called from post-command-hook, so
-	      ;;inhibit-quit is implicitly bound to t.
+		  (if (and ses-self-reference-early-detection (eq ref this-sym))
+		      (error "Cycle found: cell %S is self-referring" this-sym)
+		    (when (or (memq ref curlist)
+			      (memq ref ses--deferred-recalc))
+		      ;; This cell refers to another that isn't done yet
+		      (add-to-list 'ses--deferred-recalc this-sym)
+		      (throw 'ref t)))))
+	      ;; ses-update-cells is called from post-command-hook, so
+	      ;; inhibit-quit is implicitly bound to t.
 	      (when quit-flag
 		;; Abort the recalculation.  User will probably undo now.
 		(error "Quit"))
-	      (ses-calculate-cell (car rowcol) (cdr rowcol) force))
-	  (setq curlist (cdr curlist)))
+	      (ses-calculate-cell (car this-rowcol) (cdr this-rowcol) force)))
 	(dolist (ref ses--deferred-recalc)
-	  (add-to-list 'nextlist ref))
-	(setq nextlist (sort (copy-sequence nextlist) 'string<))
-	(if (equal nextlist prevlist)
-	    ;;We'll go around the loop one more time.
-	    (add-to-list 'nextlist t)))
+	  (add-to-list 'nextlist ref)))
       (when ses--deferred-recalc
 	;; Just couldn't finish these.
 	(dolist (x ses--deferred-recalc)
-	  (let ((rowcol (ses-sym-rowcol x)))
-	    (ses-set-cell (car rowcol) (cdr rowcol) 'value '*error*)
-	    (1value (ses-print-cell (car rowcol) (cdr rowcol)))))
+	  (let ((this-rowcol (ses-sym-rowcol x)))
+	    (ses-set-cell (car this-rowcol) (cdr this-rowcol) 'value '*error*)
+	    (1value (ses-print-cell (car this-rowcol) (cdr this-rowcol)))))
 	(error "Circular references: %s" ses--deferred-recalc))
       (message " "))
     ;; Can't use save-excursion here: if the cell under point is updated,
@@ -1073,29 +1269,30 @@ Newlines in the data are escaped."
 
 (defun ses-formula-references (formula &optional result-so-far)
   "Produce a list of symbols for cells that this formula's value
-refers to.  For recursive calls, RESULT-SO-FAR is the list being constructed,
-or t to get a wrong-type-argument error when the first reference is found."
-  (if (atom formula)
-      (if (ses-sym-rowcol formula)
-	  ;;Entire formula is one symbol
-	  (add-to-list 'result-so-far formula)
-	) ;;Ignore other atoms
-    (dolist (cur formula)
-      (cond
-       ((ses-sym-rowcol cur)
-	;;Save this reference
-	(add-to-list 'result-so-far cur))
-       ((eq (car-safe cur) 'ses-range)
-	;;All symbols in range are referenced
-	(dolist (x (cdr (macroexpand cur)))
-	  (add-to-list 'result-so-far x)))
-       ((and (consp cur) (not (eq (car cur) 'quote)))
-	;;Recursive call for subformulas
-	(setq result-so-far (ses-formula-references cur result-so-far)))
-       (t
-	;;Ignore other stuff
-	))))
-  result-so-far)
+refers to.  For recursive calls, RESULT-SO-FAR is the list being
+constructed, or t to get a wrong-type-argument error when the
+first reference is found."
+  (if (ses-sym-rowcol formula)
+      ;;Entire formula is one symbol
+      (add-to-list 'result-so-far formula)
+    (if (consp formula)
+	(cond
+	 ((eq (car formula) 'ses-range)
+	  (dolist (cur
+		   (cdr (funcall 'macroexpand
+				 (list 'ses-range (nth 1 formula)
+				       (nth 2 formula)))))
+	    (add-to-list 'result-so-far cur)))
+	 ((null (eq (car formula) 'quote))
+	  ;;Recursive call for subformulas
+	  (dolist (cur formula)
+	    (setq result-so-far (ses-formula-references cur result-so-far))))
+	 (t
+	  ;;Ignore other stuff
+	  ))
+      ;; other type of atom are ignored
+      ))
+    result-so-far)
 
 (defsubst ses-relocate-symbol (sym rowcol startrow startcol rowincr colincr)
   "Relocate one symbol SYM, whichs corresponds to ROWCOL (a cons of ROW and
@@ -1237,7 +1434,7 @@ to each symbol."
   (let (reform)
     (let (mycell newval)
       (dotimes-with-progress-reporter
-          (row ses--numrows) "Relocating formulas..."
+	  (row ses--numrows) "Relocating formulas..."
 	(dotimes (col ses--numcols)
 	  (setq ses-relocate-return nil
 		mycell (ses-get-cell row col)
@@ -1532,7 +1729,7 @@ These are active only in the minibuffer, when entering or editing a formula:
   (unless (and (boundp 'ses--deferred-narrow)
 	       (eq ses--deferred-narrow 'ses-mode))
     (kill-all-local-variables)
-    (mapc 'make-local-variable ses-localvars)
+    (ses-set-localvars)
     (setq major-mode             'ses-mode
 	  mode-name              "SES"
 	  next-line-add-newlines nil
@@ -1546,11 +1743,7 @@ These are active only in the minibuffer, when entering or editing a formula:
 	  indent-tabs-mode	 nil)
     (1value (add-hook 'change-major-mode-hook 'ses-cleanup nil t))
     (1value (add-hook 'before-revert-hook 'ses-cleanup nil t))
-    (setq ses--curcell         nil
-	  ses--deferred-recalc nil
-	  ses--deferred-write  nil
-	  ses--header-hscroll  -1  ;Flag for "initial recalc needed"
-	  header-line-format   '(:eval (progn
+    (setq header-line-format   '(:eval (progn
 					 (when (/= (window-hscroll)
 						   ses--header-hscroll)
 					   ;; Reset ses--header-hscroll first,
@@ -1609,6 +1802,7 @@ narrows the buffer now."
 	  ;; We reset the deferred list before starting on the recalc --- in
 	  ;; case of error, we don't want to retry the recalc after every
 	  ;; keystroke!
+	  (ses-initialize-Dijkstra-attempt)
 	  (let ((old ses--deferred-recalc))
 	    (setq ses--deferred-recalc nil)
 	    (ses-update-cells old)))
@@ -1744,6 +1938,10 @@ print area if NONARROW is nil."
       (beginning-of-line 2))
     (ses-jump-safe startcell)))
 
+(defun ses-initialize-Dijkstra-attempt ()
+  (setq ses--Dijkstra-attempt-nb (1+ ses--Dijkstra-attempt-nb)
+	ses--Dijkstra-weight-bound (* ses--numrows ses--numcols)))
+
 (defun ses-recalculate-cell ()
   "Recalculate and reprint the current cell or range.
 
@@ -1754,11 +1952,19 @@ to are recalculated first."
   (interactive "*")
   (ses-check-curcell 'range)
   (ses-begin-change)
-  (let (sig)
+  (ses-initialize-Dijkstra-attempt)
+  (let (sig cur-rowcol)
     (setq ses-start-time (float-time))
     (if (atom ses--curcell)
-	(setq sig (ses-sym-rowcol ses--curcell)
-	      sig (ses-calculate-cell (car sig) (cdr sig) t))
+	(when
+	  (setq cur-rowcol (ses-sym-rowcol ses--curcell)
+		sig (progn
+		      (ses-cell-property-set :ses-Dijkstra-attempt
+					     (cons ses--Dijkstra-attempt-nb 0)
+					     (car cur-rowcol) (cdr cur-rowcol) )
+		      (ses-calculate-cell (car cur-rowcol) (cdr cur-rowcol) t)))
+	  (nconc sig (list (ses-cell-symbol (car cur-rowcol)
+					    (cdr cur-rowcol)))))
       ;; First, recalculate all cells that don't refer to other cells and
       ;; produce a list of cells with references.
       (ses-dorange ses--curcell
@@ -1768,7 +1974,11 @@ to are recalculated first."
 	      ;; The t causes an error if the cell has references.  If no
 	      ;; references, the t will be the result value.
 	      (1value (ses-formula-references (ses-cell-formula row col) t))
-	      (setq sig (ses-calculate-cell row col t)))
+	      (ses-cell-property-set :ses-Dijkstra-attempt
+				     (cons ses--Dijkstra-attempt-nb 0)
+				     row col)
+	      (when (setq sig (ses-calculate-cell row col t))
+		(nconc sig (list (ses-cell-symbol row col)))))
 	  (wrong-type-argument
 	   ;; The formula contains a reference.
 	   (add-to-list 'ses--deferred-recalc (ses-cell-symbol row col))))))
