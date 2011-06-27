@@ -488,9 +488,9 @@ The list is in preference order.")
             (secret . "SMTP password for %u@%h: ")))
          (auth-info (car
 		     (auth-source-search
-		      :max 1
 		      :host host
 		      :port port
+		      :max 1
 		      :require (and ask-for-password
 				    '(:user :secret))
 		      :create ask-for-password)))
@@ -615,6 +615,8 @@ The list is in preference order.")
                            (and mail-specify-envelope-from
                                 (mail-envelope-from))
                            user-mail-address))
+	(coding-system-for-read 'binary)
+	(coding-system-for-write 'binary)
 	response-code
 	process-buffer
 	result
@@ -629,6 +631,7 @@ The list is in preference order.")
 
 	  ;; clear the trace buffer of old output
 	  (with-current-buffer process-buffer
+	    (set-buffer-multibyte nil)
 	    (setq buffer-undo-list t)
 	    (erase-buffer))
 

@@ -1,3 +1,9 @@
+2011-06-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Bind coding-system-for-*
+	to binary to possibly avoid line encoding issues on Windows (among
+	other things).
+
 2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/network-stream.el (open-network-stream): Return an :error
