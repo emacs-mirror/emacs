@@ -1,3 +1,7 @@
+2011-06-27  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el: Fix commenting and indenting convention.
+
 2011-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bs.el (bs-cycle-next): Complete last change.

@@ -3,8 +3,8 @@
 ;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
-;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
-;; Keywords: spreadsheet
+;; Maintainer: Vincent Belaïche  <vincentb1@users.sourceforge.net>
+;; Keywords: spreadsheet Dijkstra
 
 ;; This file is part of GNU Emacs.
 
@@ -154,7 +154,7 @@ Each function is called with ARG=1."
 (defalias 'ses-mode-print-map
   (let ((keys '([backtab] backward-char
 		[tab]     ses-forward-or-insert
-		"\C-i"	  ses-forward-or-insert  ;Needed for ses-coverage.el?
+		"\C-i"	  ses-forward-or-insert  ; Needed for ses-coverage.el?
 		"\M-o"    ses-insert-column
 		"\C-o"	  ses-insert-row
 		"\C-m"    ses-edit-cell
@@ -225,10 +225,10 @@ Each function is called with ARG=1."
   "Initial contents for the file-trailer area at the bottom of the file.")
 
 (defconst ses-initial-file-contents
-  (concat "       \n" ;One blank cell in print area
+  (concat "       \n" ; One blank cell in print area.
 	  ses-print-data-boundary
-	  "(ses-cell A1 nil nil nil nil)\n" ;One blank cell in data area
-	  "\n" ;End-of-row terminator for the one row in data area
+	  "(ses-cell A1 nil nil nil nil)\n" ; One blank cell in data area.
+	  "\n" ; End-of-row terminator for the one row in data area.
 	  "(ses-column-widths [7])\n"
 	  "(ses-column-printers [nil])\n"
 	  "(ses-default-printer \"%.7g\")\n"
@@ -271,7 +271,7 @@ default printer and then modify its output.")
     (make-local-variable x)
     (set x nil)))
 
-;;;This variable is documented as being permitted in file-locals:
+;;; This variable is documented as being permitted in file-locals:
 (put 'ses--symbolic-formulas 'safe-local-variable 'consp)
 
 (defconst ses-paramlines-plist
@@ -514,7 +514,7 @@ for this spreadsheet."
 0-25 become A-Z; 26-701 become AA-ZZ, and so on."
   (let ((units (char-to-string (+ ?A (% col 26)))))
     (if (< col 26)
-        units
+	units
       (concat (ses-column-letter (1- (/ col 26))) units))))
 
 (defun ses-create-cell-symbol (row col)
@@ -584,7 +584,7 @@ cell (ROW,COL).  This is undoable.  The cell's data will be updated through
 		   (ses-aset-with-undo cell elt val)))
     (if change
 	(add-to-list 'ses--deferred-write (cons row col))))
-  nil) ;Make coverage-tester happy
+  nil) ; Make coverage-tester happy.
 
 (defun ses-cell-set-formula (row col formula)
   "Store a new formula for (ROW . COL) and enqueues the cell for
@@ -642,7 +642,7 @@ the old and FORCE is nil."
 	 (setq formula-error sig
 	       newval        '*error*)))
       (if (and (not newval) (eq oldval '*skip*))
-	  ;;Don't lose the *skip* - previous field spans this one
+	  ;; Don't lose the *skip* --- previous field spans this one.
 	  (setq newval '*skip*))
       (when (or force (not (eq newval oldval)))
 	(add-to-list 'ses--deferred-write (cons row col)) ;In case force=t
@@ -667,10 +667,11 @@ if the cell's value is unchanged and FORCE is nil."
 	curlist prevlist rowcol formula)
     (with-temp-message " "
       (while (and ses--deferred-recalc (not (equal nextlist prevlist)))
-	;;In each loop, recalculate cells that refer only to other cells that
-	;;have already been recalculated or aren't in the recalculation
-	;;region.  Repeat until all cells have been processed or until the
-	;;set of cells being worked on stops changing.
+	;; In each loop, recalculate cells that refer only to other
+	;; cells that have already been recalculated or aren't in the
+	;; recalculation region.  Repeat until all cells have been
+	;; processed or until the set of cells being worked on stops
+	;; changing.
 	(if prevlist
 	    (message "Recalculating... (%d cells left)"
 		     (length ses--deferred-recalc)))
@@ -690,7 +691,7 @@ if the cell's value is unchanged and FORCE is nil."
 	      ;;ses-update-cells is called from post-command-hook, so
 	      ;;inhibit-quit is implicitly bound to t.
 	      (when quit-flag
-		;;Abort the recalculation.  User will probably undo now.
+		;; Abort the recalculation.  User will probably undo now.
 		(error "Quit"))
 	      (ses-calculate-cell (car rowcol) (cdr rowcol) force))
 	  (setq curlist (cdr curlist)))
@@ -701,15 +702,15 @@ if the cell's value is unchanged and FORCE is nil."
 	    ;;We'll go around the loop one more time.
 	    (add-to-list 'nextlist t)))
       (when ses--deferred-recalc
-	;;Just couldn't finish these
+	;; Just couldn't finish these.
 	(dolist (x ses--deferred-recalc)
 	  (let ((rowcol (ses-sym-rowcol x)))
 	    (ses-set-cell (car rowcol) (cdr rowcol) 'value '*error*)
 	    (1value (ses-print-cell (car rowcol) (cdr rowcol)))))
 	(error "Circular references: %s" ses--deferred-recalc))
       (message " "))
-    ;;Can't use save-excursion here: if the cell under point is
-    ;;updated, save-excusion's marker will move past the cell.
+    ;; Can't use save-excursion here: if the cell under point is updated,
+    ;; save-excusion's marker will move past the cell.
     (goto-char pos)))
 
 
@@ -721,22 +722,22 @@ if the cell's value is unchanged and FORCE is nil."
   "Returns t if point is in print area of spreadsheet."
   (<= (point) ses--data-marker))
 
-;;We turn off point-motion-hooks and explicitly position the cursor, in case
-;;the intangible properties have gotten screwed up (e.g., when
-;;ses-goto-print is called during a recursive ses-print-cell).
+;; We turn off point-motion-hooks and explicitly position the cursor, in case
+;; the intangible properties have gotten screwed up (e.g., when ses-goto-print
+;; is called during a recursive ses-print-cell).
 (defun ses-goto-print (row col)
   "Move point to print area for cell (ROW,COL)."
   (let ((inhibit-point-motion-hooks t)
 	(n 0))
     (goto-char (point-min))
     (forward-line row)
-    ;; calculate column position
+    ;; Calculate column position.
     (dotimes (c col)
       (setq n (+ n (ses-col-width c) 1)))
-    ;; move to the position
+    ;; Move to the position.
     (and (> n (move-to-column n))
 	 (eolp)
-	 ;; move point to the bol of next line (for TAB at the last cell)
+	 ;; Move point to the bol of next line (for TAB at the last cell).
 	 (forward-char))))
 
 (defun ses-set-curcell ()
@@ -745,13 +746,13 @@ region, or nil if cursor is not at a cell."
   (if (or (not mark-active)
 	  deactivate-mark
 	  (= (region-beginning) (region-end)))
-      ;;Single cell
+      ;; Single cell.
       (setq ses--curcell (get-text-property (point) 'intangible))
-    ;;Range
+    ;; Range.
     (let ((bcell (get-text-property (region-beginning) 'intangible))
 	  (ecell (get-text-property (1- (region-end))  'intangible)))
       (when (= (region-end) ses--data-marker)
-	;;Correct for overflow
+	;; Correct for overflow.
 	(setq ecell (get-text-property (- (region-end) 2)  'intangible)))
       (setq ses--curcell (if (and bcell ecell)
 			     (cons bcell ecell)
@@ -764,7 +765,7 @@ appropriate if some argument is 'end.  A range is appropriate if some
 argument is 'range.  A single cell is appropriate unless some argument is
 'needrange."
   (if (eq ses--curcell t)
-      ;;curcell recalculation was postponed, but user typed ahead
+      ;; curcell recalculation was postponed, but user typed ahead.
       (ses-set-curcell))
   (cond
    ((not ses--curcell)
@@ -791,53 +792,53 @@ preceding cell has spilled over."
 	   (printer (ses-cell-printer cell))
 	   (maxcol  (1+ col))
 	   text sig startpos x)
-      ;;Create the string to print
+      ;; Create the string to print.
       (cond
        ((eq value '*skip*)
-	;;Don't print anything
+	;; Don't print anything.
 	(throw 'ses-print-cell nil))
        ((eq value '*error*)
 	(setq text (make-string (ses-col-width col) ?#)))
        (t
-	;;Deferred safety-check on printer
+	;; Deferred safety-check on printer.
 	(if (eq (car-safe printer) 'ses-safe-printer)
 	    (ses-set-cell row col 'printer
 			  (setq printer (ses-safe-printer (cadr printer)))))
-	;;Print the value
+	;; Print the value.
 	(setq text (ses-call-printer (or printer
 					 (ses-col-printer col)
 					 ses--default-printer)
 				     value))
 	(if (consp ses-call-printer-return)
-	    ;;Printer returned an error
+	    ;; Printer returned an error.
 	    (setq sig ses-call-printer-return))))
-      ;;Adjust print width to match column width
+      ;; Adjust print width to match column width.
       (let ((width (ses-col-width col))
 	    (len   (string-width text)))
 	(cond
 	 ((< len width)
-	  ;;Fill field to length with spaces
+	  ;; Fill field to length with spaces.
 	  (setq len  (make-string (- width len) ?\s)
 		text (if (eq ses-call-printer-return t)
 			 (concat text len)
 		       (concat len text))))
 	 ((> len width)
-	  ;;Spill over into following cells, if possible
+	  ;; Spill over into following cells, if possible.
 	  (let ((maxwidth width))
 	    (while (and (> len maxwidth)
 			(< maxcol ses--numcols)
 			(or (not (setq x (ses-cell-value row maxcol)))
 			    (eq x '*skip*)))
 	      (unless x
-		;;Set this cell to '*skip* so it won't overwrite our spillover
+		;; Set this cell to '*skip* so it won't overwrite our spillover.
 		(ses-set-cell row maxcol 'value '*skip*))
 	      (setq maxwidth (+ maxwidth (ses-col-width maxcol) 1)
 		    maxcol   (1+ maxcol)))
 	    (if (<= len maxwidth)
-		;;Fill to complete width of all the fields spanned
+		;; Fill to complete width of all the fields spanned.
 		(setq text (concat text (make-string (- maxwidth len) ?\s)))
-	      ;;Not enough room to end of line or next non-nil field.  Truncate
-	      ;;if string or decimal; otherwise fill with error indicator
+	      ;; Not enough room to end of line or next non-nil field.  Truncate
+	      ;; if string or decimal; otherwise fill with error indicator.
 	      (setq sig `(error "Too wide" ,text))
 	      (cond
 	       ((stringp value)
@@ -854,12 +855,12 @@ preceding cell has spilled over."
 				   (substring text (match-end 0)))))
 	       (t
 		(setq text (make-string maxwidth ?#)))))))))
-      ;;Substitute question marks for tabs and newlines.  Newlines are
-      ;;used as row-separators; tabs could confuse the reimport logic.
+      ;; Substitute question marks for tabs and newlines.  Newlines are used as
+      ;; row-separators; tabs could confuse the reimport logic.
       (setq text (replace-regexp-in-string "[\t\n]" "?" text))
       (ses-goto-print row col)
       (setq startpos (point))
-      ;;Install the printed result.  This is not interruptible.
+      ;; Install the printed result.  This is not interruptible.
       (let ((inhibit-read-only t)
 	    (inhibit-quit      t))
 	(let ((inhibit-point-motion-hooks t))
@@ -867,32 +868,32 @@ preceding cell has spilled over."
 				   (move-to-column (+ (current-column)
 						      (string-width text)))
 				   (1+ (point)))))
-	;;We use concat instead of inserting separate strings in order to
-	;;reduce the number of cells in the undo list.
+	;; We use concat instead of inserting separate strings in order to
+	;; reduce the number of cells in the undo list.
 	(setq x (concat text (if (< maxcol ses--numcols) " " "\n")))
-	;;We use set-text-properties to prevent a wacky print function
-	;;from inserting rogue properties, and to ensure that the keymap
-	;;property is inherited (is it a bug that only unpropertied strings
-	;;actually inherit from surrounding text?)
+	;; We use set-text-properties to prevent a wacky print function from
+	;; inserting rogue properties, and to ensure that the keymap property is
+	;; inherited (is it a bug that only unpropertied strings actually
+	;; inherit from surrounding text?)
 	(set-text-properties 0 (length x) nil x)
 	(insert-and-inherit x)
 	(put-text-property startpos (point) 'intangible
 			   (ses-cell-symbol cell))
 	(when (and (zerop row) (zerop col))
-	  ;;Reconstruct special beginning-of-buffer attributes
+	  ;; Reconstruct special beginning-of-buffer attributes.
 	  (put-text-property (point-min) (point) 'keymap 'ses-mode-print-map)
 	  (put-text-property (point-min) (point) 'read-only 'ses)
 	  (put-text-property (point-min) (1+ (point-min)) 'front-sticky t)))
       (if (= row (1- ses--header-row))
-	  ;;This line is part of the header - force recalc
+	  ;; This line is part of the header --- force recalc.
 	  (ses-reset-header-string))
-      ;;If this cell (or a preceding one on the line) previously spilled over
-      ;;and has gotten shorter, redraw following cells on line recursively.
+      ;; If this cell (or a preceding one on the line) previously spilled over
+      ;; and has gotten shorter, redraw following cells on line recursively.
       (when (and (< maxcol ses--numcols)
 		 (eq (ses-cell-value row maxcol) '*skip*))
 	(ses-set-cell row maxcol 'value nil)
 	(ses-print-cell row maxcol))
-      ;;Return to start of cell
+      ;; Return to start of cell.
       (goto-char startpos)
       sig)))
 
@@ -932,13 +933,13 @@ inhibit-quit to t."
 	(blank  (if (> change 0) (make-string change ?\s)))
 	(at-end (= col ses--numcols)))
     (ses-set-with-undo 'ses--linewidth (+ ses--linewidth change))
-    ;;ses-set-with-undo always returns t for strings.
+    ;; ses-set-with-undo always returns t for strings.
     (1value (ses-set-with-undo 'ses--blank-line
 			       (concat (make-string ses--linewidth ?\s) "\n")))
     (dotimes (row ses--numrows)
       (ses-goto-print row col)
       (when at-end
-	;;Insert new columns before newline
+	;; Insert new columns before newline.
 	(let ((inhibit-point-motion-hooks t))
 	  (backward-char 1)))
       (if blank
@@ -976,13 +977,13 @@ number, COL is the column number for a data cell -- otherwise DEF
 is one of the symbols ses--col-widths, ses--col-printers,
 ses--default-printer, ses--numrows, or ses--numcols."
   (ses-widen)
-  (let ((inhibit-point-motion-hooks t)) ;In case intangible attrs are wrong
+  (let ((inhibit-point-motion-hooks t)) ; In case intangible attrs are wrong.
     (if col
-	;;It's a cell
+	;; It's a cell.
 	(progn
 	  (goto-char ses--data-marker)
 	  (forward-line (+ 1 (* def (1+ ses--numcols)) col)))
-      ;;Convert def-symbol to offset
+      ;; Convert def-symbol to offset.
       (setq def (plist-get ses-paramlines-plist def))
       (or def (signal 'args-out-of-range nil))
       (goto-char ses--params-marker)
@@ -993,8 +994,8 @@ ses--default-printer, ses--numrows, or ses--numcols."
 See `ses-goto-data' for meaning of DEF.  Newlines in the data are escaped.
 If ELEM is specified, it is the array subscript within DEF to be set to VALUE."
   (save-excursion
-    ;;We call ses-goto-data early, using the old values of numrows and
-    ;;numcols in case one of them is being changed.
+    ;; We call ses-goto-data early, using the old values of numrows and numcols
+    ;; in case one of them is being changed.
     (ses-goto-data def)
     (let ((inhibit-read-only t)
 	  (fmt (plist-get '(ses--col-widths      "(ses-column-widths %S)"
@@ -1012,7 +1013,7 @@ If ELEM is specified, it is the array subscript within DEF to be set to VALUE."
 	    (aset (symbol-value def) elem value))
 	(setq oldval (symbol-value def))
 	(set def value))
-      ;;Special undo since it's outside the narrowed buffer
+      ;; Special undo since it's outside the narrowed buffer.
       (let (buffer-undo-list)
 	(delete-region (point) (line-end-position))
 	(insert (format fmt (symbol-value def))))
@@ -1042,7 +1043,7 @@ Newlines in the data are escaped."
 	      (setq formula (cadr formula)))
 	  (if (eq (car-safe printer) 'ses-safe-printer)
 	      (setq printer (cadr printer)))
-	  ;;This is noticably faster than (format "%S %S %S %S %S")
+	  ;; This is noticably faster than (format "%S %S %S %S %S")
 	  (setq text    (concat "(ses-cell "
 				(symbol-name sym)
 				" "
@@ -1129,7 +1130,7 @@ Sets `ses-relocate-return' to 'delete if cell-references were removed."
 	(if (setq rowcol (ses-sym-rowcol formula))
 	    (ses-relocate-symbol formula rowcol
 				 startrow startcol rowincr colincr)
-	  formula) ;Pass through as-is
+	  formula) ; Pass through as-is.
       (dolist (cur formula)
 	(setq rowcol (ses-sym-rowcol cur))
 	(cond
@@ -1138,9 +1139,9 @@ Sets `ses-relocate-return' to 'delete if cell-references were removed."
 					 startrow startcol rowincr colincr))
 	  (if cur
 	      (push cur result)
-	    ;;Reference to a deleted cell.  Set a flag in ses-relocate-return.
-	    ;;don't change the flag if it's already 'range, since range
-	    ;;implies 'delete.
+	    ;; Reference to a deleted cell.  Set a flag in ses-relocate-return.
+	    ;; don't change the flag if it's already 'range, since range implies
+	    ;; 'delete.
 	    (unless ses-relocate-return
 	      (setq ses-relocate-return 'delete))))
 	 ((eq (car-safe cur) 'ses-range)
@@ -1148,10 +1149,10 @@ Sets `ses-relocate-return' to 'delete if cell-references were removed."
 	  (if cur
 	      (push cur result)))
 	 ((or (atom cur) (eq (car cur) 'quote))
-	  ;;Constants pass through unchanged
+	  ;; Constants pass through unchanged.
 	  (push cur result))
 	 (t
-	  ;;Recursively copy and alter subformulas
+	  ;; Recursively copy and alter subformulas.
 	  (push (ses-relocate-formula cur startrow startcol
 						   rowincr colincr)
 		result))))
@@ -1177,47 +1178,47 @@ if the range was altered."
 	 field)
     (cond
      ((and (not min) (not max))
-      (setq range nil)) ;;The entire range is deleted
+      (setq range nil)) ; The entire range is deleted.
      ((zerop colincr)
-      ;;Inserting or deleting rows
+      ;; Inserting or deleting rows.
       (setq field 'car)
       (if (not min)
-	  ;;Chopped off beginning of range
+	  ;; Chopped off beginning of range.
 	  (setq min           (ses-create-cell-symbol startrow (cdr minrowcol))
 		ses-relocate-return 'range))
       (if (not max)
 	  (if (> rowincr 0)
-	      ;;Trying to insert a nonexistent row
+	      ;; Trying to insert a nonexistent row.
 	      (setq max (ses-create-cell-symbol (1- ses--numrows)
 						(cdr minrowcol)))
-	    ;;End of range is being deleted
+	    ;; End of range is being deleted.
 	    (setq max (ses-create-cell-symbol (1- startrow) (cdr minrowcol))
 		  ses-relocate-return 'range))
 	(and (> rowincr 0)
 	     (= (car maxrowcol) (1- startrow))
 	     (= (cdr minrowcol) (cdr maxrowcol))
-	     ;;Insert after ending row of vertical range - include it
+	     ;; Insert after ending row of vertical range --- include it.
 	     (setq max (ses-create-cell-symbol (+ startrow rowincr -1)
 					       (cdr maxrowcol))))))
      (t
-      ;;Inserting or deleting columns
+      ;; Inserting or deleting columns.
       (setq field 'cdr)
       (if (not min)
-	  ;;Chopped off beginning of range
+	  ;; Chopped off beginning of range.
 	  (setq min          (ses-create-cell-symbol (car minrowcol) startcol)
 		ses-relocate-return 'range))
       (if (not max)
 	  (if (> colincr 0)
-	      ;;Trying to insert a nonexistent column
+	      ;; Trying to insert a nonexistent column.
 	      (setq max (ses-create-cell-symbol (car maxrowcol)
 						(1- ses--numcols)))
-	    ;;End of range is being deleted
+	    ;; End of range is being deleted.
 	    (setq max (ses-create-cell-symbol (car maxrowcol) (1- startcol))
 		  ses-relocate-return 'range))
 	(and (> colincr 0)
 	     (= (cdr maxrowcol) (1- startcol))
 	     (= (car minrowcol) (car maxrowcol))
-	     ;;Insert after ending column of horizontal range - include it
+	     ;; Insert after ending column of horizontal range --- include it.
 	     (setq max (ses-create-cell-symbol (car maxrowcol)
 						  (+ startcol colincr -1)))))))
     (when range
@@ -1225,7 +1226,7 @@ if the range was altered."
 		 (funcall field minrowcol))
 	      (- (funcall field (ses-sym-rowcol max))
 		 (funcall field (ses-sym-rowcol min))))
-	  ;;This range has changed size
+	  ;; This range has changed size.
 	  (setq ses-relocate-return 'range))
       (list 'ses-range min max))))
 
@@ -1244,13 +1245,13 @@ to each symbol."
 					     minrow mincol rowincr colincr))
 	  (ses-set-cell row col 'formula newval)
 	  (if (eq ses-relocate-return 'range)
-	      ;;This cell contains a (ses-range X Y) where a cell has been
-	      ;;inserted or deleted in the middle of the range.
+	      ;; This cell contains a (ses-range X Y) where a cell has been
+	      ;; inserted or deleted in the middle of the range.
 	      (push (cons row col) reform))
 	  (if ses-relocate-return
-	      ;;This cell referred to a cell that's been deleted or is no
-	      ;;longer part of the range.  We can't fix that now because
-	      ;;reference lists cells have been partially updated.
+	      ;; This cell referred to a cell that's been deleted or is no
+	      ;; longer part of the range.  We can't fix that now because
+	      ;; reference lists cells have been partially updated.
 	      (add-to-list 'ses--deferred-recalc
 			   (ses-create-cell-symbol row col)))
 	  (setq newval (ses-relocate-formula (ses-cell-references mycell)
@@ -1259,13 +1260,13 @@ to each symbol."
 	  (and (>= row minrow) (>= col mincol)
 	       (ses-set-cell row col 'symbol
 			     (ses-create-cell-symbol row col))))))
-    ;;Relocate the cell values
+    ;; Relocate the cell values.
     (let (oldval myrow mycol xrow xcol)
       (cond
        ((and (<= rowincr 0) (<= colincr 0))
-	;;Deletion of rows and/or columns
+	;; Deletion of rows and/or columns.
 	(dotimes-with-progress-reporter
-           (row (- ses--numrows minrow)) "Relocating variables..."
+	    (row (- ses--numrows minrow)) "Relocating variables..."
 	  (setq myrow  (+ row minrow))
 	  (dotimes (col (- ses--numcols mincol))
 	    (setq mycol  (+ col mincol)
@@ -1273,11 +1274,11 @@ to each symbol."
 		  xcol   (- mycol colincr))
 	    (if (and (< xrow ses--numrows) (< xcol ses--numcols))
 		(setq oldval (ses-cell-value xrow xcol))
-	      ;;Cell is off the end of the array
+	      ;; Cell is off the end of the array.
 	      (setq oldval (symbol-value (ses-create-cell-symbol xrow xcol))))
 	    (ses-set-cell myrow mycol 'value oldval))))
        ((and (wholenump rowincr) (wholenump colincr))
-	;;Insertion of rows and/or columns.  Run the loop backwards.
+	;; Insertion of rows and/or columns.  Run the loop backwards.
 	(let ((disty (1- ses--numrows))
 	      (distx (1- ses--numcols))
 	      myrow mycol)
@@ -1289,16 +1290,16 @@ to each symbol."
 		    xrow  (- myrow rowincr)
 		    xcol  (- mycol colincr))
 	      (if (or (< xrow minrow) (< xcol mincol))
-		  ;;Newly-inserted value
+		  ;; Newly-inserted value.
 		  (setq oldval nil)
-		;;Transfer old value
+		;; Transfer old value.
 		(setq oldval (ses-cell-value xrow xcol)))
 	      (ses-set-cell myrow mycol 'value oldval)))
-	  t))  ;Make testcover happy by returning non-nil here
+	  t))  ; Make testcover happy by returning non-nil here.
        (t
 	(error "ROWINCR and COLINCR must have the same sign"))))
-    ;;Reconstruct reference lists for cells that contain ses-ranges that
-    ;;have changed size.
+    ;; Reconstruct reference lists for cells that contain ses-ranges that have
+    ;; changed size.
     (when reform
       (message "Fixing ses-ranges...")
       (let (row col)
@@ -1324,9 +1325,9 @@ to each symbol."
 
 (defun ses-set-with-undo (sym newval)
   "Like set, but undoable.  Result is t if value has changed."
-  ;;We try to avoid adding redundant entries to the undo list, but this is
-  ;;unavoidable for strings because equal ignores text properties and there's
-  ;;no easy way to get the whole property list to see if it's different!
+  ;; We try to avoid adding redundant entries to the undo list, but this is
+  ;; unavoidable for strings because equal ignores text properties and there's
+  ;; no easy way to get the whole property list to see if it's different!
   (unless (and (boundp sym)
 	       (equal (symbol-value sym) newval)
 	       (not (stringp newval)))
@@ -1339,14 +1340,15 @@ to each symbol."
 
 (defun ses-unset-with-undo (sym)
   "Set SYM to be unbound.  This is undoable."
-  (when (1value (boundp sym)) ;;Always bound, except after a programming error
+  (when (1value (boundp sym)) ; Always bound, except after a programming error.
     (push `(apply ses-set-with-undo ,sym ,(symbol-value sym)) buffer-undo-list)
     (makunbound sym)))
 
 (defun ses-aset-with-undo (array idx newval)
   "Like aset, but undoable.  Result is t if element has changed"
   (unless (equal (aref array idx) newval)
-    (push `(apply ses-aset-with-undo ,array ,idx ,(aref array idx)) buffer-undo-list)
+    (push `(apply ses-aset-with-undo ,array ,idx
+		  ,(aref array idx)) buffer-undo-list)
     (aset array idx newval)
     t))
 
@@ -1359,7 +1361,7 @@ to each symbol."
   "Parse the current buffer and sets up buffer-local variables.  Does not
 execute cell formulas or print functions."
   (widen)
-  ;;Read our global parameters, which should be a 3-element list
+  ;; Read our global parameters, which should be a 3-element list.
   (goto-char (point-max))
   (search-backward ";; Local Variables:\n" nil t)
   (backward-list 1)
@@ -1376,7 +1378,7 @@ execute cell formulas or print functions."
 	  ses--numrows     (cadr params)
 	  ses--numcols     (nth 2 params))
     (when (= ses--file-format 1)
-      (let (buffer-undo-list) ;This is not undoable
+      (let (buffer-undo-list) ; This is not undoable.
 	(ses-goto-data 'ses--header-row)
 	(insert "(ses-header-row 0)\n")
 	(ses-set-parameter 'ses--file-format 2)
@@ -1384,11 +1386,11 @@ execute cell formulas or print functions."
     (or (= ses--file-format 2)
 	(error "This file needs a newer version of the SES library code"))
     (ses-create-cell-variable-range 0 (1- ses--numrows) 0 (1- ses--numcols))
-    ;;Initialize cell array
+    ;; Initialize cell array.
     (setq ses--cells (make-vector ses--numrows nil))
     (dotimes (row ses--numrows)
       (aset ses--cells row (make-vector ses--numcols nil))))
-  ;;Skip over print area, which we assume is correct
+  ;; Skip over print area, which we assume is correct.
   (goto-char (point-min))
   (forward-line ses--numrows)
   (or (looking-at ses-print-data-boundary)
@@ -1396,10 +1398,10 @@ execute cell formulas or print functions."
   (forward-char 1)
   (setq ses--data-marker (point-marker))
   (forward-char (1- (length ses-print-data-boundary)))
-  ;;Initialize printer and symbol lists
+  ;; Initialize printer and symbol lists.
   (mapc 'ses-printer-record ses-standard-printer-functions)
   (setq ses--symbolic-formulas nil)
-  ;;Load cell definitions
+  ;; Load cell definitions.
   (dotimes (row ses--numrows)
     (dotimes (col ses--numcols)
       (let* ((x      (read (current-buffer)))
@@ -1412,7 +1414,7 @@ execute cell formulas or print functions."
 	(eval x)))
     (or (looking-at "\n\n")
 	(error "Missing blank line between rows")))
-  ;;Load global parameters
+  ;; Load global parameters.
   (let ((widths      (read (current-buffer)))
 	(n1          (char-after (point)))
 	(printers    (read (current-buffer)))
@@ -1434,12 +1436,12 @@ execute cell formulas or print functions."
     (1value (eval def-printer))
     (1value (eval printers))
     (1value (eval head-row)))
-  ;;Should be back at global-params
+  ;; Should be back at global-params.
   (forward-char 1)
   (or (looking-at (replace-regexp-in-string "1" "[0-9]+"
 					    ses-initial-global-parameters))
       (error "Problem with column-defs or global-params"))
-  ;;Check for overall newline count in definitions area
+  ;; Check for overall newline count in definitions area.
   (forward-line 3)
   (let ((start (point)))
     (ses-goto-data 'ses--numrows)
@@ -1457,23 +1459,23 @@ Narrows the buffer to show only the print area.  Gives it `read-only' and
 	(inhibit-point-motion-hooks t)
 	(was-modified (buffer-modified-p))
 	pos sym)
-    (ses-goto-data 0 0) ;;Include marker between print-area and data-area
-    (set-text-properties (point) (point-max) nil) ;Delete garbage props
+    (ses-goto-data 0 0) ; Include marker between print-area and data-area.
+    (set-text-properties (point) (point-max) nil) ; Delete garbage props.
     (mapc 'delete-overlay (overlays-in (point-min) (point-max)))
-    ;;The print area is read-only (except for our special commands) and uses a
-    ;;special keymap.
+    ;; The print area is read-only (except for our special commands) and uses a
+    ;; special keymap.
     (put-text-property (point-min) (1- (point)) 'read-only 'ses)
     (put-text-property (point-min) (1- (point)) 'keymap 'ses-mode-print-map)
-    ;;For the beginning of the buffer, we want the read-only and keymap
-    ;;attributes to be  inherited from the first character
+    ;; For the beginning of the buffer, we want the read-only and keymap
+    ;; attributes to be  inherited from the first character.
     (put-text-property (point-min) (1+ (point-min)) 'front-sticky t)
-    ;;Create intangible properties, which also indicate which cell the text
-    ;;came from.
+    ;; Create intangible properties, which also indicate which cell the text
+    ;; came from.
     (dotimes-with-progress-reporter (row ses--numrows) "Finding cells..."
       (dotimes (col ses--numcols)
 	(setq pos  end
 	      sym  (ses-cell-symbol row col))
-	;;Include skipped cells following this one
+	;; Include skipped cells following this one.
 	(while (and (< col (1- ses--numcols))
 		    (eq (ses-cell-value row (1+ col)) '*skip*))
 	  (setq end (+ end (ses-col-width col) 1)
@@ -1487,13 +1489,13 @@ Narrows the buffer to show only the print area.  Gives it `read-only' and
 		      (forward-char)
 		      (point))))
 	(put-text-property pos end 'intangible sym)))
-    ;;Adding these properties did not actually alter the text
+    ;; Adding these properties did not actually alter the text.
     (unless was-modified
       (restore-buffer-modified-p nil)
       (buffer-disable-undo)
       (buffer-enable-undo)))
-  ;;Create the underlining overlay.  It's impossible for (point) to be 2,
-  ;;because column A must be at least 1 column wide.
+  ;; Create the underlining overlay.  It's impossible for (point) to be 2,
+  ;; because column A must be at least 1 column wide.
   (setq ses--curcell-overlay (make-overlay (1+ (point-min)) (1+ (point-min))))
   (overlay-put ses--curcell-overlay 'face 'underline))
 
@@ -1502,15 +1504,15 @@ Narrows the buffer to show only the print area.  Gives it `read-only' and
 Delete overlays, remove special text properties."
   (widen)
   (let ((inhibit-read-only t)
-        ;; When reverting, hide the buffer name, otherwise Emacs will ask
-        ;; the user "the file is modified, do you really want to make
-        ;; modifications to this buffer", where the "modifications" refer to
-        ;; the irrelevant set-text-properties below.
-        (buffer-file-name nil)
+	;; When reverting, hide the buffer name, otherwise Emacs will ask the
+	;; user "the file is modified, do you really want to make modifications
+	;; to this buffer", where the "modifications" refer to the irrelevant
+	;; set-text-properties below.
+	(buffer-file-name nil)
 	(was-modified      (buffer-modified-p)))
-    ;;Delete read-only, keymap, and intangible properties
+    ;; Delete read-only, keymap, and intangible properties.
     (set-text-properties (point-min) (point-max) nil)
-    ;;Delete overlay
+    ;; Delete overlay.
     (mapc 'delete-overlay (overlays-in (point-min) (point-max)))
     (unless was-modified
       (restore-buffer-modified-p nil))))
@@ -1535,12 +1537,12 @@ These are active only in the minibuffer, when entering or editing a formula:
 	  mode-name              "SES"
 	  next-line-add-newlines nil
 	  truncate-lines         t
-	  ;;SES deliberately puts lots of trailing whitespace in its buffer
+	  ;; SES deliberately puts lots of trailing whitespace in its buffer.
 	  show-trailing-whitespace nil
-	  ;;Cell ranges do not work reasonably without this
+	  ;; Cell ranges do not work reasonably without this.
 	  transient-mark-mode    t
-	  ;;not to use tab characters for safe
-	  ;;(tabs may do bad for column calculation)
+	  ;; Not to use tab characters for safe (tabs may do bad for column
+	  ;; calculation).
 	  indent-tabs-mode	 nil)
     (1value (add-hook 'change-major-mode-hook 'ses-cleanup nil t))
     (1value (add-hook 'before-revert-hook 'ses-cleanup nil t))
@@ -1551,9 +1553,9 @@ These are active only in the minibuffer, when entering or editing a formula:
 	  header-line-format   '(:eval (progn
 					 (when (/= (window-hscroll)
 						   ses--header-hscroll)
-					   ;;Reset ses--header-hscroll first, to
-					   ;;avoid recursion problems when
-					   ;;debugging ses-create-header-string
+					   ;; Reset ses--header-hscroll first,
+					   ;; to avoid recursion problems when
+					   ;; debugging ses-create-header-string
 					   (setq ses--header-hscroll
 						 (window-hscroll))
 					   (ses-create-header-string))
@@ -1562,12 +1564,13 @@ These are active only in the minibuffer, when entering or editing a formula:
 	  (was-modified (buffer-modified-p)))
       (save-excursion
 	(if was-empty
-	    ;;Initialize buffer to contain one cell, for now
+	    ;; Initialize buffer to contain one cell, for now.
 	    (insert ses-initial-file-contents))
 	(ses-load)
 	(ses-setup))
       (when was-empty
-	(unless (equal ses-initial-default-printer (1value ses--default-printer))
+	(unless (equal ses-initial-default-printer
+		       (1value ses--default-printer))
 	  (1value (ses-read-default-printer ses-initial-default-printer)))
 	(unless (= ses-initial-column-width (1value (ses-col-width 0)))
 	  (1value (ses-set-column-width 0 ses-initial-column-width)))
@@ -1582,12 +1585,12 @@ These are active only in the minibuffer, when entering or editing a formula:
 	(buffer-enable-undo)
 	(goto-char (point-min))))
     (use-local-map ses-mode-map)
-    ;;Set the deferred narrowing flag (we can't narrow until after
-    ;;after-find-file completes).  If .ses is on the auto-load alist and the
-    ;;file has "mode: ses", our ses-mode function will be called twice!  Use
-    ;;a special flag to detect this (will be reset by ses-command-hook).
-    ;;For find-alternate-file, post-command-hook doesn't get run for some
-    ;;reason, so use an idle timer to make sure.
+    ;; Set the deferred narrowing flag (we can't narrow until after
+    ;; after-find-file completes).  If .ses is on the auto-load alist and the
+    ;; file has "mode: ses", our ses-mode function will be called twice!  Use a
+    ;; special flag to detect this (will be reset by ses-command-hook).  For
+    ;; find-alternate-file, post-command-hook doesn't get run for some reason,
+    ;; so use an idle timer to make sure.
     (setq ses--deferred-narrow 'ses-mode)
     (1value (add-hook 'post-command-hook 'ses-command-hook nil t))
     (run-with-idle-timer 0.01 nil 'ses-command-hook)
@@ -1601,26 +1604,27 @@ moves the underlining overlay.  Performs any recalculations or cell-data
 writes that have been deferred.  If buffer-narrowing has been deferred,
 narrows the buffer now."
   (condition-case err
-      (when (eq major-mode 'ses-mode)  ;Otherwise, not our buffer anymore
+      (when (eq major-mode 'ses-mode)  ; Otherwise, not our buffer anymore.
 	(when ses--deferred-recalc
-	  ;;We reset the deferred list before starting on the recalc -- in case
-	  ;;of error, we don't want to retry the recalc after every keystroke!
+	  ;; We reset the deferred list before starting on the recalc --- in
+	  ;; case of error, we don't want to retry the recalc after every
+	  ;; keystroke!
 	  (let ((old ses--deferred-recalc))
 	    (setq ses--deferred-recalc nil)
 	    (ses-update-cells old)))
 	(when ses--deferred-write
-	  ;;We don't reset the deferred list before starting -- the most
-	  ;;likely error is keyboard-quit, and we do want to keep trying
-	  ;;these writes after a quit.
+	  ;; We don't reset the deferred list before starting --- the most
+	  ;; likely error is keyboard-quit, and we do want to keep trying these
+	  ;; writes after a quit.
 	  (ses-write-cells)
 	  (push '(apply ses-widen) buffer-undo-list))
 	(when ses--deferred-narrow
-	  ;;We're not allowed to narrow the buffer until after-find-file has
-	  ;;read the local variables at the end of the file.  Now it's safe to
-	  ;;do the narrowing.
+	  ;; We're not allowed to narrow the buffer until after-find-file has
+	  ;; read the local variables at the end of the file.  Now it's safe to
+	  ;; do the narrowing.
 	  (narrow-to-region (point-min) ses--data-marker)
 	  (setq ses--deferred-narrow nil))
-	;;Update the modeline
+	;; Update the modeline.
 	(let ((oldcell ses--curcell))
 	  (ses-set-curcell)
 	  (unless (eq ses--curcell oldcell)
@@ -1636,34 +1640,34 @@ narrows the buffer now."
 					    "-"
 					    (symbol-name (cdr ses--curcell))))))
 	    (force-mode-line-update)))
-	;;Use underline overlay for single-cells only, turn off otherwise
+	;; Use underline overlay for single-cells only, turn off otherwise.
 	(if (listp ses--curcell)
 	    (move-overlay ses--curcell-overlay 2 2)
 	  (let ((next (next-single-property-change (point) 'intangible)))
 	    (move-overlay ses--curcell-overlay (point) (1- next))))
 	(when (not (pos-visible-in-window-p))
-	  ;;Scrolling will happen later
+	  ;; Scrolling will happen later.
 	  (run-with-idle-timer 0.01 nil 'ses-command-hook)
 	  (setq ses--curcell t)))
-    ;;Prevent errors in this post-command-hook from silently erasing the hook!
+    ;; Prevent errors in this post-command-hook from silently erasing the hook!
     (error
      (unless executing-kbd-macro
        (ding))
      (message "%s" (error-message-string err))))
-  nil) ;Make coverage-tester happy
+  nil) ; Make coverage-tester happy.
 
 (defun ses-create-header-string ()
   "Set up `ses--header-string' as the buffer's header line.
 Based on the current set of columns and `window-hscroll' position."
   (let ((totwidth (- (window-hscroll)))
 	result width x)
-    ;;Leave room for the left-side fringe and scrollbar
+    ;; Leave room for the left-side fringe and scrollbar.
     (push (propertize " " 'display '((space :align-to 0))) result)
     (dotimes (col ses--numcols)
       (setq width    (ses-col-width col)
 	    totwidth (+ totwidth width 1))
       (if (= totwidth 1)
-	  ;;Scrolled so intercolumn space is leftmost
+	  ;; Scrolled so intercolumn space is leftmost.
 	  (push " " result))
       (when (> totwidth 1)
 	(if (> ses--header-row 0)
@@ -1683,8 +1687,8 @@ Based on the current set of columns and `window-hscroll' position."
 			    'display    `((space :align-to ,(1- totwidth)))
 			    'face       ses-box-prop)
 	      result)
-	;;Allow the following space to be squished to make room for the 3-D box
-	;;Coverage test ignores properties, thinks this is always a space!
+	;; Allow the following space to be squished to make room for the 3-D box
+	;; Coverage test ignores properties, thinks this is always a space!
 	(push (1value (propertize " " 'display `((space :align-to ,totwidth))))
 	      result)))
     (if (> ses--header-row 0)
@@ -1727,13 +1731,13 @@ print area if NONARROW is nil."
     (search-forward ses-print-data-boundary)
     (backward-char (length ses-print-data-boundary))
     (delete-region (point-min) (point))
-    ;;Insert all blank lines before printing anything, so ses-print-cell can
-    ;;find the data area when inserting or deleting *skip* values for cells
+    ;; Insert all blank lines before printing anything, so ses-print-cell can
+    ;; find the data area when inserting or deleting *skip* values for cells.
     (dotimes (row ses--numrows)
       (insert-and-inherit ses--blank-line))
     (dotimes-with-progress-reporter (row ses--numrows) "Reprinting..."
       (if (eq (ses-cell-value row 0) '*skip*)
-	  ;;Column deletion left a dangling skip
+	  ;; Column deletion left a dangling skip.
 	  (ses-set-cell row 0 'value nil))
       (dotimes (col ses--numcols)
 	(ses-print-cell row col))
@@ -1755,20 +1759,20 @@ to are recalculated first."
     (if (atom ses--curcell)
 	(setq sig (ses-sym-rowcol ses--curcell)
 	      sig (ses-calculate-cell (car sig) (cdr sig) t))
-      ;;First, recalculate all cells that don't refer to other cells and
-      ;;produce a list of cells with references.
+      ;; First, recalculate all cells that don't refer to other cells and
+      ;; produce a list of cells with references.
       (ses-dorange ses--curcell
 	(ses-time-check "Recalculating... %s" '(ses-cell-symbol row col))
 	(condition-case nil
 	    (progn
-	      ;;The t causes an error if the cell has references.
-	      ;;If no references, the t will be the result value.
+	      ;; The t causes an error if the cell has references.  If no
+	      ;; references, the t will be the result value.
 	      (1value (ses-formula-references (ses-cell-formula row col) t))
 	      (setq sig (ses-calculate-cell row col t)))
 	  (wrong-type-argument
-	   ;;The formula contains a reference
+	   ;; The formula contains a reference.
 	   (add-to-list 'ses--deferred-recalc (ses-cell-symbol row col))))))
-    ;;Do the update now, so we can force recalculation
+    ;; Do the update now, so we can force recalculation.
     (let ((x ses--deferred-recalc))
       (setq ses--deferred-recalc nil)
       (condition-case hold
@@ -1801,11 +1805,11 @@ cells."
 	 (col    (cdr rowcol)))
     (when (and (< col (1- ses--numcols)) ;;Last column can't spill over, anyway
 	       (eq (ses-cell-value row (1+ col)) '*skip*))
-      ;;This cell has spill-over.  We'll momentarily pretend the following
-      ;;cell has a `t' in it.
+      ;; This cell has spill-over.  We'll momentarily pretend the following cell
+      ;; has a `t' in it.
       (eval `(let ((,(ses-cell-symbol row (1+ col)) t))
 	       (ses-print-cell row col)))
-      ;;Now remove the *skip*.  ses-print-cell is always nil here
+      ;; Now remove the *skip*.  ses-print-cell is always nil here.
       (ses-set-cell row (1+ col) 'value nil)
       (1value (ses-print-cell row (1+ col))))))
 
@@ -1817,12 +1821,12 @@ cells."
   (let (x yrow ycol)
     ;;Delete old reference lists
     (dotimes-with-progress-reporter
-        (row ses--numrows) "Deleting references..."
+	(row ses--numrows) "Deleting references..."
       (dotimes (col ses--numcols)
 	(ses-set-cell row col 'references nil)))
     ;;Create new reference lists
     (dotimes-with-progress-reporter
-        (row ses--numrows) "Computing references..."
+	(row ses--numrows) "Computing references..."
       (dotimes (col ses--numcols)
 	(dolist (ref (ses-formula-references (ses-cell-formula row col)))
 	  (setq x    (ses-sym-rowcol ref)
@@ -1831,26 +1835,27 @@ cells."
 	  (ses-set-cell yrow ycol 'references
 			(cons (ses-cell-symbol row col)
 			      (ses-cell-references yrow ycol)))))))
-  ;;Delete everything and reconstruct basic data area
+  ;; Delete everything and reconstruct basic data area.
   (ses-widen)
   (let ((inhibit-read-only t))
     (goto-char (point-max))
     (if (search-backward ";; Local Variables:\n" nil t)
 	(delete-region (point-min) (point))
-      ;;Buffer is quite screwed up - can't even save the user-specified locals
+      ;; Buffer is quite screwed up --- can't even save the user-specified
+      ;; locals.
       (delete-region (point-min) (point-max))
       (insert ses-initial-file-trailer)
       (goto-char (point-min)))
-    ;;Create a blank display area
+    ;; Create a blank display area.
     (dotimes (row ses--numrows)
       (insert ses--blank-line))
     (insert ses-print-data-boundary)
     (backward-char (1- (length ses-print-data-boundary)))
     (setq ses--data-marker (point-marker))
     (forward-char (1- (length ses-print-data-boundary)))
-    ;;Placeholders for cell data
+    ;; Placeholders for cell data.
     (insert (make-string (* ses--numrows (1+ ses--numcols)) ?\n))
-    ;;Placeholders for col-widths, col-printers, default-printer, header-row
+    ;; Placeholders for col-widths, col-printers, default-printer, header-row.
     (insert "\n\n\n\n")
     (insert ses-initial-global-parameters)
     (backward-char (1- (length ses-initial-global-parameters)))
@@ -1890,13 +1895,13 @@ cell formula was unsafe and user declined confirmation."
 	   (setq initial (format "'%S" (cadr formula)))
 	 (setq initial (prin1-to-string formula)))
        (if (stringp formula)
-	   ;;Position cursor inside close-quote
+	   ;; Position cursor inside close-quote.
 	   (setq initial (cons initial (length initial))))
        (list row col
 	     (read-from-minibuffer (format "Cell %s: " ses--curcell)
 				   initial
 				   ses-mode-edit-map
-				   t ;Convert to Lisp object
+				   t ; Convert to Lisp object.
 				   'ses-read-cell-history)))))
   (when (ses-warn-unsafe newval 'unsafep)
     (ses-begin-change)
@@ -1917,13 +1922,13 @@ cell formula was unsafe and user declined confirmation."
             (cons (if (equal initial "\"") "\"\""
                     (if (equal initial "(") "()" initial)) 2)
             ses-mode-edit-map
-            t                         ;Convert to Lisp object
+            t                         ; Convert to Lisp object.
             'ses-read-cell-history
             (prin1-to-string (if (eq (car-safe curval) 'ses-safe-formula)
 				 (cadr curval)
 			       curval))))))
   (when (ses-edit-cell row col newval)
-    (ses-command-hook) ;Update cell widths before movement
+    (ses-command-hook) ; Update cell widths before movement.
     (dolist (x ses-after-entry-functions)
       (funcall x 1))))
 
@@ -1939,10 +1944,10 @@ have been used as formulas in this spreadsheet is available for completions."
      (list (car rowcol)
 	   (cdr rowcol)
 	   (if (string= newval "")
-	       nil ;Don't create zero-length symbols!
+	       nil ; Don't create zero-length symbols!
 	     (list 'quote (intern newval))))))
   (when (ses-edit-cell row col symb)
-    (ses-command-hook) ;Update cell widths before movement
+    (ses-command-hook) ; Update cell widths before movement.
     (dolist (x ses-after-entry-functions)
       (funcall x 1))))
 
@@ -1970,7 +1975,7 @@ cells."
     (ses-check-curcell 'end)
     (ses-begin-change)
     (dotimes (x count)
-      (backward-char 1) ;Will signal 'beginning-of-buffer if appropriate
+      (backward-char 1) ; Will signal 'beginning-of-buffer if appropriate.
       (ses-set-curcell)
       (let ((rowcol (ses-sym-rowcol ses--curcell)))
 	(ses-clear-cell (car rowcol) (cdr rowcol))))))
@@ -1990,13 +1995,13 @@ PROMPT should end with \": \".  Result is t if operation was cancelled."
 			 (substring prompt 0 -2)
 			 default)))
   (let ((new (read-from-minibuffer prompt
-				   nil ;Initial contents
+				   nil ; Initial contents.
 				   ses-mode-edit-map
-				   t   ;Evaluate the result
+				   t   ; Evaluate the result.
 				   'ses-read-printer-history
 				   (prin1-to-string default))))
     (if (equal new default)
-	;;User changed mind, decided not to change printer
+	;; User changed mind, decided not to change printer.
 	(setq new t)
       (ses-printer-validate new)
       (or (not new)
@@ -2197,7 +2202,7 @@ If COL is specified, the new column(s) get the specified WIDTH and PRINTER
 	;;ses-relocate-all)
 	(ses-goto-data row col)
 	(insert ?\n))
-      ;;Insert column width and printer
+      ;; Insert column width and printer.
       (setq widths      (ses-vector-insert widths col width)
 	    printers    (ses-vector-insert printers col printer)))
     (ses-set-parameter 'ses--col-widths widths)
@@ -2208,11 +2213,11 @@ If COL is specified, the new column(s) get the specified WIDTH and PRINTER
 	(ses-reprint-all t)
       (when (or (> (length (ses-call-printer printer)) 0)
 		(> (length (ses-call-printer ses--default-printer)) 0))
-	;;Either column printer or global printer inserts some constant text
-	;;Reprint the new columns to insert that text.
+	;; Either column printer or global printer inserts some constant text.
+	;; Reprint the new columns to insert that text.
 	(dotimes (x ses--numrows)
 	  (dotimes (y count)
-	    ;Always nil here - this is a blank column
+	    ;; Always nil here --- this is a blank column.
 	    (1value (ses-print-cell-new-width x (+ y col))))))
       (ses-setup)))
   (ses-jump-safe ses--curcell))
@@ -2272,19 +2277,19 @@ from the current one."
 inserts a new row if at bottom of print area.  Repeat COUNT times."
   (interactive "p")
   (ses-check-curcell 'end)
-  (setq deactivate-mark t) ;Doesn't combine well with ranges
+  (setq deactivate-mark t) ; Doesn't combine well with ranges.
   (dotimes (x count)
     (ses-set-curcell)
     (if (not ses--curcell)
-	(progn ;At bottom of print area
+	(progn ; At bottom of print area.
 	  (barf-if-buffer-read-only)
 	  (ses-insert-row 1))
       (let ((col (cdr (ses-sym-rowcol ses--curcell))))
 	(when (/= 32
 		  (char-before (next-single-property-change (point)
 							    'intangible)))
-	  ;;We're already in last nonskipped cell on line.  Need to create a
-	  ;;new column.
+	  ;; We're already in last nonskipped cell on line.  Need to create a
+	  ;; new column.
 	  (barf-if-buffer-read-only)
 	  (ses-insert-column (- count x)
 			     ses--numcols
@@ -2312,12 +2317,12 @@ inserts a new row if at bottom of print area.  Repeat COUNT times."
 	     (read-from-minibuffer (format "Column %s width [currently %d]: "
 					   (ses-column-letter col)
 					   (ses-col-width col))
-				   nil  ;No initial contents
-				   nil  ;No override keymap
-				   t    ;Convert to Lisp object
-				   nil  ;No history
+				   nil  ; No initial contents.
+				   nil  ; No override keymap.
+				   t    ; Convert to Lisp object.
+				   nil  ; No history.
 				   (number-to-string
-				    (ses-col-width col))))))) ;Default value
+				    (ses-col-width col))))))) ; Default value.
   (if (< newwidth 1)
       (error "Invalid column width"))
   (ses-begin-change)
@@ -2349,7 +2354,7 @@ hard to override how mouse-1 works."
   (if (not (and (eq major-mode 'ses-mode)
 		(eq (get-text-property beg 'read-only) 'ses)
 		(eq (get-text-property (1- end) 'read-only) 'ses)))
-      ad-do-it ;Normal copy-region-as-kill
+      ad-do-it ; Normal copy-region-as-kill.
     (kill-new (ses-copy-region beg end))
     (if transient-mark-mode
 	(setq deactivate-mark t))
@@ -2400,17 +2405,17 @@ the corresponding data cell."
 cells instead of deleting them."
   (interactive "r")
   (ses-check-curcell 'needrange)
-  ;;For some reason, the text-read-only error is not caught by
-  ;;`delete-region', so we have to use subterfuge.
+  ;; For some reason, the text-read-only error is not caught by `delete-region',
+  ;; so we have to use subterfuge.
   (let ((buffer-read-only t))
     (1value (condition-case x
 		(noreturn (funcall (lookup-key (current-global-map)
 					       (this-command-keys))
 				   beg end))
-	      (buffer-read-only nil)))) ;The expected error
-  ;;Because the buffer was marked read-only, the kill command turned itself
-  ;;into a copy.  Now we clear the cells or signal the error.  First we
-  ;;check whether the buffer really is read-only.
+	      (buffer-read-only nil)))) ; The expected error.
+  ;; Because the buffer was marked read-only, the kill command turned itself
+  ;; into a copy.  Now we clear the cells or signal the error.  First we check
+  ;; whether the buffer really is read-only.
   (barf-if-buffer-read-only)
   (ses-begin-change)
   (ses-dorange ses--curcell
@@ -2437,7 +2442,7 @@ explicitly insert a symbol, or use the C-u prefix to treat all unmarked words
 as symbols."
   (if (not (and (eq major-mode 'ses-mode)
 		(eq (get-text-property (point) 'keymap) 'ses-mode-print-map)))
-      ad-do-it ;Normal non-SES yank
+      ad-do-it ; Normal non-SES yank.
     (ses-check-curcell 'end)
     (push-mark (point))
     (let ((text (current-kill (cond
@@ -2450,7 +2455,7 @@ as symbols."
 			text
 			0
 			(if (memq (aref text (1- (length text))) '(?\t ?\n))
-			    ;;Just one cell - delete final tab or newline
+			    ;; Just one cell --- delete final tab or newline.
 			    (1- (length text)))
 			arg)))
     (if (consp arg)
@@ -2499,21 +2504,21 @@ formulas are to be inserted without relocation."
 		  pos  (next-single-property-change pos 'ses text)
 		  x    (ses-sym-rowcol (car last)))
 	    (if (not last)
-		;;Newline - all remaining cells on row are skipped
+		;; Newline --- all remaining cells on row are skipped.
 		(setq x   (cons (- myrow rowincr) (+ needcols colincr -1))
 		      last (list nil nil nil)
 		      pos  (1- pos)))
 	    (if (/= (car x) (- myrow rowincr))
 		(error "Cell row error"))
 	    (if (< (- mycol colincr) (cdr x))
-		;;Some columns were skipped
+		;; Some columns were skipped.
 		(let ((oldcol mycol))
 		  (while (< (- mycol colincr) (cdr x))
 		    (ses-clear-cell myrow mycol)
 		    (setq col   (1+ col)
 			  mycol (1+ mycol)))
-		  (ses-print-cell myrow (1- oldcol)))) ;;This inserts *skip*
-	    (when (car last) ;Skip this for *skip* cells
+		  (ses-print-cell myrow (1- oldcol)))) ;; This inserts *skip*.
+	    (when (car last) ; Skip this for *skip* cells.
 	      (setq x (nth 2 last))
 	      (unless (equal x (ses-cell-printer myrow mycol))
 		(or (not x)
@@ -2542,12 +2547,12 @@ cons of ROW and COL).  Treat plain symbols as strings unless ARG is a list."
 	       (error (cons nil from)))))
     (cond
      ((< (cdr val) (or to (length text)))
-      ;;Invalid sexp - leave it as a string
+      ;; Invalid sexp --- leave it as a string.
       (setq val (substring text from to)))
      ((and (car val) (symbolp (car val)))
       (if (consp arg)
-	  (setq val (list 'quote (car val)))  ;Keep symbol
-	(setq val (substring text from to)))) ;Treat symbol as text
+	  (setq val (list 'quote (car val)))  ; Keep symbol.
+	(setq val (substring text from to)))) ; Treat symbol as text.
      (t
       (setq val (car val))))
     (let ((row (car rowcol))
@@ -2729,27 +2734,28 @@ The top row is row 1.  Selecting row 0 displays the default header row."
   "Move point to last cell on line."
   (interactive)
   (ses-check-curcell 'end 'range)
-  (when ses--curcell  ;Otherwise we're at the bottom row, which is empty anyway
+  (when ses--curcell  ; Otherwise we're at the bottom row, which is empty
+		      ; anyway.
     (let ((col (1- ses--numcols))
 	  row rowcol)
       (if (symbolp ses--curcell)
-	  ;;Single cell
+	  ;; Single cell.
 	  (setq row (car (ses-sym-rowcol ses--curcell)))
-	;;Range - use whichever end of the range the point is at
+	;; Range --- use whichever end of the range the point is at.
 	(setq rowcol (ses-sym-rowcol (if (< (point) (mark))
 				     (car ses--curcell)
 				   (cdr ses--curcell))))
-	;;If range already includes the last cell in a row, point is actually
-	;;in the following row
+	;; If range already includes the last cell in a row, point is actually
+	;; in the following row.
 	(if (<= (cdr rowcol) (1- col))
 	    (setq row (car rowcol))
 	  (setq row (1+ (car rowcol)))
 	  (if (= row ses--numrows)
 	      ;;Already at end - can't go anywhere
 	      (setq col 0))))
-      (when (< row ses--numrows) ;Otherwise it's a range that includes last cell
+      (when (< row ses--numrows) ; Otherwise it's a range that includes last cell.
 	(while (eq (ses-cell-value row col) '*skip*)
-	  ;;Back to beginning of multi-column cell
+	  ;; Back to beginning of multi-column cell.
 	  (setq col (1- col)))
 	(ses-goto-print row col)))))
 
@@ -2801,7 +2807,7 @@ REVERSE order."
   (interactive "*e\nP")
   (setq event (event-end event))
   (select-window (posn-window event))
-  (setq event (car (posn-col-row event))) ;Click column
+  (setq event (car (posn-col-row event))) ; Click column.
   (let ((col 0))
     (while (and (< col ses--numcols) (> event (ses-col-width col)))
       (setq event (- event (ses-col-width col) 1)
@@ -2816,7 +2822,7 @@ spreadsheet."
   (interactive "*")
   (let (x)
     (with-current-buffer (window-buffer minibuffer-scroll-window)
-      (ses-command-hook)  ;For ses-coverage
+      (ses-command-hook)  ; For ses-coverage.
       (ses-check-curcell 'needrange)
       (setq x (cdr (macroexpand `(ses-range ,(car ses--curcell)
 					    ,(cdr ses--curcell))))))
@@ -2828,7 +2834,7 @@ highlighted range in the spreadsheet."
   (interactive "*")
   (let (x)
     (with-current-buffer (window-buffer minibuffer-scroll-window)
-      (ses-command-hook)  ;For ses-coverage
+      (ses-command-hook)  ; For ses-coverage.
       (ses-check-curcell 'needrange)
       (setq x (format "(ses-range %S %S)"
 		      (car ses--curcell)
@@ -2940,9 +2946,9 @@ TEST is evaluated."
 ;; Standard print functions
 ;;----------------------------------------------------------------------------
 
-;;These functions use the variables 'row' and 'col' that are
-;;dynamically bound by ses-print-cell.  We define these variables at
-;;compile-time to make the compiler happy.
+;; These functions use the variables 'row' and 'col' that are dynamically bound
+;; by ses-print-cell.  We define these variables at compile-time to make the
+;; compiler happy.
 (eval-when-compile
   (dolist (x '(row col))
     (make-local-variable x)
@@ -2960,10 +2966,10 @@ columns to include in width (default = 0)."
     (setq value (ses-call-printer printer value))
     (dotimes (x span)
       (setq width (+ width 1 (ses-col-width (+ col span (- x))))))
-    ;; set column width
+    ;; Set column width.
     (setq width (- width (string-width value)))
     (if (<= width 0)
-	value ;Too large for field, anyway
+	value ; Too large for field, anyway.
       (setq half (make-string (/ width 2) fill))
       (concat half value half
 	      (if (> (% width 2) 0) (char-to-string fill))))))
