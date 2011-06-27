@@ -382,471 +382,452 @@ full-tags: TAGS TAGS-LISP ../nt/TAGS
 ### DEPENDENCIES ###
 
 EMACS_ROOT = ..
-CONFIG_H   = $(EMACS_ROOT)/src/s/ms-w32.h \
-	     $(EMACS_ROOT)/src/m/intel386.h \
-	     $(EMACS_ROOT)/src/config.h \
-	     $(EMACS_ROOT)/nt/inc/sys/stat.h
-LISP_H     = $(SRC)/lisp.h \
-	     $(SRC)/globals.h \
-	     $(EMACS_ROOT)/lib/intprops.h \
-	     $(EMACS_ROOT)/nt/inc/inttypes.h \
-	     $(EMACS_ROOT)/nt/inc/stdint.h
-PROCESS_H  = $(SRC)/process.h \
-	     $(EMACS_ROOT)/nt/inc/unistd.h \
-	     $(SRC)/gnutls.h
+GNU_LIB = $(EMACS_ROOT)/lib
+NT_INC = $(EMACS_ROOT)/nt/inc
+
+SYSTIME_H      = $(SRC)/systime.h \
+		 $(NT_INC)/sys/time.h
+ATIMER_H       = $(SRC)/atimer.h \
+		 $(SYSTIME_H)
+BLOCKINPUT_H   = $(SRC)/blockinput.h \
+		 $(ATIMER_H)
+CAREADLINKAT_H = $(GNU_LIB)/careadlinkat.h \
+		 $(NT_INC)/unistd.h
+CHARACTER_H    = $(SRC)/character.h \
+		 $(GNU_LIB)/verify.h
+CHARSET_H      = $(SRC)/charset.h \
+		 $(GNU_LIB)/verify.h
+CODING_H       = $(SRC)/coding.h \
+		 $(SRC)/composite.h
+MS_W32_H       = $(SRC)/s/ms-w32.h \
+		 $(NT_INC)/sys/stat.h
+CONFIG_H       = $(SRC)/config.h \
+		 $(SRC)/m/intel386.h \
+		 $(MS_W32_H)
+DIR_H          = $(NT_INC)/sys/dir.h \
+		 $(SRC)/ndir.h
+W32GUI_H       = $(SRC)/w32gui.h \
+		 $(SYSTIME_H)
+DISPEXTERN_H   = $(SRC)/dispextern.h \
+		 $(W32GUI_H)
+FILEMODE_H     = $(GNU_LIB)/filemode.h \
+		 $(NT_INC)/sys/stat.h
+FONT_H         = $(SRC)/font.h \
+		 $(SRC)/ccl.h
+FRAME_H        = $(SRC)/frame.h \
+		 $(DISPEXTERN_H)
+FTOASTR_H      = $(GNU_LIB)/ftoastr.h \
+		 $(GNU_LIB)/intprops.h
+GRP_H          = $(NT_INC)/grp.h \
+		 $(NT_INC)/pwd.h
+INTERVALS_H    = $(SRC)/intervals.h \
+		 $(SRC)/composite.h \
+		 $(DISPEXTERN_H)
+INTTYPES_H     = $(NT_INC)/inttypes.h \
+		 $(NT_INC)/stdint.h
+KEYBOARD_H     = $(SRC)/keyboard.h \
+		 $(CODING_H) \
+		 $(SYSTIME_H)
+LANGINFO_H     = $(NT_INC)/langinfo.h \
+		 $(NT_INC)/nl_types.h
+LISP_H         = $(SRC)/lisp.h \
+		 $(SRC)/globals.h \
+		 $(GNU_LIB)/intprops.h \
+		 $(INTTYPES_H)
+MD5_H          = $(GNU_LIB)/md5.h \
+		 $(NT_INC)/stdint.h
+MENU_H         = $(SRC)/menu.h \
+		 $(SYSTIME_H)
+PROCESS_H      = $(SRC)/process.h \
+		 $(SRC)/gnutls.h \
+		 $(NT_INC)/unistd.h
+SHA1_H         = $(GNU_LIB)/sha1.h \
+		 $(NT_INC)/stdint.h
+SHA256_H       = $(GNU_LIB)/sha256.h \
+		 $(NT_INC)/stdint.h
+U64_H          = $(GNU_LIB)/u64.h \
+		 $(NT_INC)/stdint.h
+SHA512_H       = $(GNU_LIB)/sha512.h \
+		 $(U64_H)
+SOCKET_H       = $(NT_INC)/sys/socket.h \
+		 $(SRC)/w32.h
+SYSTTY_H       = $(SRC)/systty.h \
+		 $(NT_INC)/sys/ioctl.h \
+		 $(NT_INC)/unistd.h
+TERMHOOKS_H    = $(SRC)/termhooks.h \
+		 $(SYSTIME_H)
+W32TERM_H      = $(SRC)/w32term.h \
+		 $(W32GUI_H)
+WINDOW_H       = $(SRC)/window.h \
+		 $(DISPEXTERN_H)
 
 $(BLD)/alloc.$(O) : \
 	$(SRC)/alloc.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(PROCESS_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/puresize.h \
 	$(SRC)/syssignal.h \
-	$(SRC)/systime.h \
-	$(SRC)/termhooks.h \
 	$(SRC)/w32.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(NT_INC)/unistd.h \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(PROCESS_H) \
+	$(TERMHOOKS_H) \
+	$(WINDOW_H)
 
 $(BLD)/atimer.$(O) : \
 	$(SRC)/atimer.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/syssignal.h \
-	$(SRC)/systime.h
+	$(NT_INC)/sys/time.h \
+	$(NT_INC)/unistd.h \
+	$(ATIMER_H) \
+	$(BLOCKINPUT_H) \
+	$(CONFIG_H) \
+	$(LISP_H) \
+	$(SYSTIME_H)
 
 $(BLD)/bidi.$(O) : \
 	$(SRC)/bidi.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/bidimirror.h \
 	$(SRC)/biditype.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(LISP_H)
 
 $(BLD)/buffer.$(O) : \
 	$(SRC)/buffer.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/param.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
 	$(SRC)/indent.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/region-cache.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(NT_INC)/sys/param.h \
+	$(NT_INC)/sys/stat.h \
+	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/verify.h \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(WINDOW_H)
 
 $(BLD)/bytecode.$(O) : \
 	$(SRC)/bytecode.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/dispextern.h \
 	$(SRC)/syntax.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(LISP_H) \
+	$(WINDOW_H)
 
 $(BLD)/callint.$(O) : \
 	$(SRC)/callint.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(WINDOW_H)
 
 $(BLD)/callproc.$(O) : \
 	$(SRC)/callproc.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(PROCESS_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
 	$(SRC)/epaths.h \
-	$(SRC)/frame.h \
 	$(SRC)/syssignal.h \
-	$(SRC)/systime.h \
-	$(SRC)/systty.h \
-	$(SRC)/termhooks.h \
 	$(SRC)/w32.h \
-	$(SRC)/w32gui.h
+	$(NT_INC)/sys/file.h \
+	$(NT_INC)/unistd.h \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(FRAME_H) \
+	$(LISP_H) \
+	$(PROCESS_H) \
+	$(SYSTTY_H) \
+	$(TERMHOOKS_H)
 
 $(BLD)/casefiddle.$(O) : \
 	$(SRC)/casefiddle.c \
-	$(CONFIG_H) \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
 	$(SRC)/keymap.h \
-	$(SRC)/syntax.h
+	$(SRC)/syntax.h \
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(LISP_H)
 
 $(BLD)/casetab.$(O) : \
 	$(SRC)/casetab.c \
-	$(CONFIG_H) \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(LISP_H)
 
 $(BLD)/category.$(O) : \
 	$(SRC)/category.c \
-	$(CONFIG_H) \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/category.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/keymap.h
+	$(SRC)/keymap.h \
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CONFIG_H) \
+	$(LISP_H)
 
 $(BLD)/ccl.$(O) : \
 	$(SRC)/ccl.c \
-	$(CONFIG_H) \
-	$(LISP_H) \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(LISP_H)
 
 $(BLD)/character.$(O) : \
 	$(SRC)/character.c \
-	$(CONFIG_H) \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/composite.h \
-	$(SRC)/disptab.h
+	$(SRC)/disptab.h \
+	$(GNU_LIB)/intprops.h \
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CONFIG_H) \
+	$(LISP_H)
 
 $(BLD)/charset.$(O) : \
 	$(SRC)/charset.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/disptab.h
+	$(SRC)/disptab.h \
+	$(NT_INC)/unistd.h \
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(LISP_H)
 
 $(BLD)/chartab.$(O) : \
 	$(SRC)/chartab.c \
-	$(CONFIG_H) \
-	$(LISP_H) \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CONFIG_H) \
+	$(LISP_H)
 
 $(BLD)/cmds.$(O) : \
 	$(SRC)/cmds.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/syntax.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(WINDOW_H)
 
 $(BLD)/coding.$(O) : \
 	$(SRC)/coding.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
 	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/systime.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(FRAME_H) \
+	$(LISP_H) \
+	$(TERMHOOKS_H) \
+	$(WINDOW_H)
 
 $(BLD)/composite.$(O) : \
 	$(SRC)/composite.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/font.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/systime.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(CHARACTER_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FONT_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(LISP_H) \
+	$(TERMHOOKS_H) \
+	$(WINDOW_H)
 
 $(BLD)/data.$(O) : \
 	$(SRC)/data.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/font.h \
-	$(SRC)/frame.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/puresize.h \
 	$(SRC)/syssignal.h \
-	$(SRC)/systime.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h
+	$(GNU_LIB)/intprops.h \
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(FONT_H) \
+	$(FRAME_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(TERMHOOKS_H)
 
 $(BLD)/dired.$(O) : \
 	$(SRC)/dired.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/grp.h \
-	$(EMACS_ROOT)/nt/inc/pwd.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/dir.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(EMACS_ROOT)/lib/filemode.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/ndir.h \
 	$(SRC)/regex.h \
-	$(SRC)/systime.h
+	$(NT_INC)/pwd.h \
+	$(NT_INC)/sys/stat.h \
+	$(NT_INC)/unistd.h \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(DIR_H) \
+	$(FILEMODE_H) \
+	$(GRP_H) \
+	$(LISP_H) \
+	$(SYSTIME_H)
 
 $(BLD)/dispnew.$(O) : \
 	$(SRC)/dispnew.c \
+	$(SRC)/buffer.h \
+	$(SRC)/cm.h \
+	$(SRC)/commands.h \
+	$(SRC)/disptab.h \
+	$(SRC)/indent.h \
+	$(SRC)/syssignal.h \
+	$(SRC)/termchar.h \
+	$(SRC)/termopts.h \
+	$(NT_INC)/unistd.h \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
 	$(LISP_H) \
 	$(PROCESS_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
-	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/cm.h \
-	$(SRC)/coding.h \
-	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/disptab.h \
-	$(SRC)/frame.h \
-	$(SRC)/indent.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
-	$(SRC)/syssignal.h \
-	$(SRC)/systime.h \
-	$(SRC)/termchar.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/termopts.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h \
-	$(SRC)/window.h
+	$(SYSTIME_H) \
+	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
+	$(WINDOW_H)
 
 $(BLD)/doc.$(O) : \
 	$(SRC)/doc.c \
-	$(CONFIG_H) \
-	buildobj.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/keyboard.h \
+	$(SRC)/buildobj.h \
 	$(SRC)/keymap.h \
-	$(SRC)/systime.h
+	$(NT_INC)/sys/file.h \
+	$(NT_INC)/unistd.h \
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H)
 
 $(BLD)/doprnt.$(O) : \
 	$(SRC)/doprnt.c \
+	$(NT_INC)/unistd.h \
+	$(CHARACTER_H) \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(LISP_H) \
-	$(SRC)/character.h
+	$(LISP_H)
 
 $(BLD)/editfns.$(O) : \
 	$(SRC)/editfns.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/pwd.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(EMACS_ROOT)/lib/strftime.h \
-	$(EMACS_ROOT)/lib/verify.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(NT_INC)/pwd.h \
+	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/intprops.h \
+	$(GNU_LIB)/strftime.h \
+	$(GNU_LIB)/verify.h \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(LISP_H) \
+	$(SYSTIME_H) \
+	$(WINDOW_H)
 
 $(BLD)/emacs.$(O) : \
 	$(SRC)/emacs.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(PROCESS_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
+	$(SRC)/gnutls.h \
 	$(SRC)/keymap.h \
 	$(SRC)/syssignal.h \
-	$(SRC)/systime.h \
-	$(SRC)/systty.h \
-	$(SRC)/termhooks.h \
 	$(SRC)/unexec.h \
 	$(SRC)/w32.h \
-	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
-	$(SRC)/window.h
+	$(NT_INC)/sys/file.h \
+	$(NT_INC)/unistd.h \
+	$(BLOCKINPUT_H) \
+	$(CONFIG_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(PROCESS_H) \
+	$(SYSTTY_H) \
+	$(TERMHOOKS_H) \
+	$(WINDOW_H)
 
 $(BLD)/eval.$(O) : \
 	$(SRC)/eval.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/keyboard.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h
+	$(BLOCKINPUT_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H)
 
 $(BLD)/fileio.$(O) : \
 	$(SRC)/fileio.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/pwd.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(NT_INC)/pwd.h \
+	$(NT_INC)/sys/stat.h \
+	$(NT_INC)/unistd.h \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(LISP_H) \
+	$(SYSTIME_H) \
+	$(WINDOW_H)
 
 $(BLD)/filelock.$(O) : \
 	$(SRC)/filelock.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/pwd.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/systime.h
+	$(NT_INC)/pwd.h \
+	$(NT_INC)/sys/file.h \
+	$(NT_INC)/sys/stat.h \
+	$(NT_INC)/unistd.h \
+	$(CHARACTER_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(LISP_H) \
+	$(SYSTIME_H)
 
 $(BLD)/firstfile.$(O) : \
 	$(SRC)/firstfile.c \
@@ -854,271 +835,213 @@ $(BLD)/firstfile.$(O) : \
 
 $(BLD)/floatfns.$(O) : \
 	$(SRC)/floatfns.c \
+	$(SRC)/syssignal.h \
 	$(CONFIG_H) \
-	$(LISP_H) \
-	$(SRC)/syssignal.h
+	$(LISP_H)
 
 $(BLD)/fns.$(O) : \
 	$(SRC)/fns.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/langinfo.h \
-	$(EMACS_ROOT)/nt/inc/nl_types.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(EMACS_ROOT)/lib/md5.h \
-	$(EMACS_ROOT)/lib/sha1.h \
-	$(EMACS_ROOT)/lib/sha256.h \
-	$(EMACS_ROOT)/lib/sha512.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/intprops.h \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LANGINFO_H) \
+	$(LISP_H) \
+	$(MD5_H) \
+	$(SHA1_H) \
+	$(SHA256_H) \
+	$(SHA512_H) \
+	$(WINDOW_H)
 
 $(BLD)/font.$(O) : \
 	$(SRC)/font.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/font.h \
 	$(SRC)/fontset.h \
-	$(SRC)/frame.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h \
-	$(SRC)/window.h
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FONT_H) \
+	$(FRAME_H) \
+	$(LISP_H) \
+	$(W32TERM_H) \
+	$(WINDOW_H)
 
 $(BLD)/fontset.$(O) : \
 	$(SRC)/fontset.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/font.h \
 	$(SRC)/fontset.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
-	$(SRC)/systime.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h \
-	$(SRC)/window.h
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FONT_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
+	$(WINDOW_H)
 
 $(BLD)/frame.$(O) : \
 	$(SRC)/frame.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/font.h \
 	$(SRC)/fontset.h \
-	$(SRC)/frame.h \
-	$(SRC)/keyboard.h \
-	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h \
-	$(SRC)/window.h
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FONT_H) \
+	$(FRAME_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
+	$(WINDOW_H)
 
 $(BLD)/fringe.$(O) : \
 	$(SRC)/fringe.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/systime.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(BLOCKINPUT_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(LISP_H) \
+	$(TERMHOOKS_H) \
+	$(WINDOW_H)
 
 $(BLD)/gmalloc.$(O) : \
 	$(SRC)/gmalloc.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(SRC)/getpagesize.h
+	$(SRC)/getpagesize.h \
+	$(NT_INC)/unistd.h \
+	$(CONFIG_H)
 
 $(BLD)/gnutls.$(O) : \
 	$(SRC)/gnutls.c \
+	$(SRC)/w32.h \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(LISP_H) \
-	$(PROCESS_H) \
-	$(SRC)/w32.h
+	$(PROCESS_H)
 
 $(BLD)/image.$(O) : \
 	$(SRC)/image.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
-	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
 	$(SRC)/epaths.h \
-	$(SRC)/font.h \
-	$(SRC)/frame.h \
-	$(SRC)/systime.h \
-	$(SRC)/termhooks.h \
 	$(SRC)/w32.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h \
-	$(SRC)/window.h
+	$(NT_INC)/unistd.h \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FONT_H) \
+	$(FRAME_H) \
+	$(LISP_H) \
+	$(SYSTIME_H) \
+	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
+	$(WINDOW_H)
 
 $(BLD)/indent.$(O) : \
 	$(SRC)/indent.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/category.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
 	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
 	$(SRC)/disptab.h \
-	$(SRC)/frame.h \
 	$(SRC)/indent.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/region-cache.h \
-	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
 	$(SRC)/termopts.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(WINDOW_H)
 
 $(BLD)/insdel.$(O) : \
 	$(SRC)/insdel.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/intervals.h \
 	$(SRC)/region-cache.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(GNU_LIB)/intprops.h \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(INTERVALS_H) \
+	$(LISP_H) \
+	$(WINDOW_H)
 
 $(BLD)/intervals.$(O) : \
 	$(SRC)/intervals.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/puresize.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h
+	$(GNU_LIB)/intprops.h \
+	$(CONFIG_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H)
 
 $(BLD)/keyboard.$(O) : \
 	$(SRC)/keyboard.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(PROCESS_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
 	$(SRC)/disptab.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/macros.h \
 	$(SRC)/puresize.h \
 	$(SRC)/syntax.h \
 	$(SRC)/syssignal.h \
-	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h \
-	$(SRC)/window.h
+	$(NT_INC)/sys/ioctl.h \
+	$(NT_INC)/unistd.h \
+	$(ATIMER_H) \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(PROCESS_H) \
+	$(SYSTIME_H) \
+	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
+	$(WINDOW_H)
 
 $(BLD)/keymap.$(O) : \
 	$(SRC)/keymap.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/puresize.h \
-	$(SRC)/systime.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CONFIG_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(TERMHOOKS_H) \
+	$(WINDOW_H)
 
 $(BLD)/lastfile.$(O) : \
 	$(SRC)/lastfile.c \
@@ -1126,714 +1049,560 @@ $(BLD)/lastfile.$(O) : \
 
 $(BLD)/lread.$(O) : \
 	$(SRC)/lread.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
 	$(SRC)/epaths.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
-	$(SRC)/systime.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h
+	$(NT_INC)/sys/file.h \
+	$(NT_INC)/sys/stat.h \
+	$(NT_INC)/unistd.h \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(TERMHOOKS_H)
 
 $(BLD)/macros.$(O) : \
 	$(SRC)/macros.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/macros.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(CONFIG_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(WINDOW_H)
 
 $(BLD)/marker.$(O) : \
 	$(SRC)/marker.c \
-	$(CONFIG_H) \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(LISP_H)
 
 $(BLD)/menu.$(O) : \
 	$(SRC)/menu.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
-	$(SRC)/menu.h \
-	$(SRC)/systime.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h \
-	$(SRC)/window.h
+	$(BLOCKINPUT_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(MENU_H) \
+	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
+	$(WINDOW_H)
 
 $(BLD)/minibuf.$(O) : \
 	$(SRC)/minibuf.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/syntax.h \
-	$(SRC)/systime.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(TERMHOOKS_H) \
+	$(WINDOW_H)
 
 $(BLD)/w32.$(O) : \
 	$(SRC)/w32.c \
+	$(SRC)/ndir.h \
+	$(SRC)/w32.h \
+	$(SRC)/w32heap.h \
+	$(NT_INC)/pwd.h \
+	$(NT_INC)/sys/file.h \
+	$(NT_INC)/sys/time.h \
+	$(GNU_LIB)/allocator.h \
+	$(CAREADLINKAT_H) \
+	$(CODING_H) \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/grp.h \
-	$(EMACS_ROOT)/nt/inc/pwd.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(EMACS_ROOT)/nt/inc/sys/socket.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(EMACS_ROOT)/lib/allocator.h \
-	$(EMACS_ROOT)/lib/careadlinkat.h \
+	$(DISPEXTERN_H) \
+	$(GRP_H) \
 	$(LISP_H) \
 	$(PROCESS_H) \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/ndir.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32heap.h
+	$(SOCKET_H) \
+	$(SYSTIME_H)
 
 $(BLD)/w32heap.$(O) : \
 	$(SRC)/w32heap.c \
+	$(SRC)/w32heap.h \
 	$(CONFIG_H) \
-	$(LISP_H) \
-	$(SRC)/w32heap.h
+	$(LISP_H)
 
 $(BLD)/w32inevt.$(O) : \
 	$(SRC)/w32inevt.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/keyboard.h \
-	$(SRC)/systime.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
-	$(SRC)/w32term.h
+	$(BLOCKINPUT_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(TERMHOOKS_H) \
+	$(W32TERM_H)
 
 $(BLD)/w32proc.$(O) : \
 	$(SRC)/w32proc.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/langinfo.h \
-	$(EMACS_ROOT)/nt/inc/nl_types.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(PROCESS_H) \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
 	$(SRC)/syssignal.h \
-	$(SRC)/systime.h \
 	$(SRC)/syswait.h \
 	$(SRC)/w32.h \
-	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
-	$(SRC)/w32term.h
+	$(NT_INC)/nl_types.h \
+	$(NT_INC)/sys/file.h \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(LANGINFO_H) \
+	$(LISP_H) \
+	$(PROCESS_H) \
+	$(SYSTIME_H) \
+	$(W32TERM_H)
 
 $(BLD)/w32console.$(O) : \
 	$(SRC)/w32console.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
 	$(SRC)/disptab.h \
-	$(SRC)/frame.h \
-	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32inevt.h
+	$(SRC)/w32inevt.h \
+	$(CHARACTER_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(LISP_H) \
+	$(TERMHOOKS_H)
 
 $(BLD)/print.$(O) : \
 	$(SRC)/print.c \
+	$(SRC)/buffer.h \
+	$(SRC)/termchar.h \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(EMACS_ROOT)/lib/ftoastr.h \
+	$(DISPEXTERN_H) \
+	$(FONT_H) \
+	$(FRAME_H) \
+	$(FTOASTR_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
 	$(LISP_H) \
 	$(PROCESS_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
-	$(SRC)/buffer.h \
-	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/font.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
-	$(SRC)/systime.h \
-	$(SRC)/termchar.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(TERMHOOKS_H) \
+	$(WINDOW_H)
 
 $(BLD)/process.$(O) : \
 	$(SRC)/process.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/netdb.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/arpa/inet.h \
-	$(EMACS_ROOT)/nt/inc/netinet/in.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
-	$(EMACS_ROOT)/nt/inc/sys/socket.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(PROCESS_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
 	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/keyboard.h \
+	$(SRC)/gnutls.h \
 	$(SRC)/sysselect.h \
 	$(SRC)/syssignal.h \
-	$(SRC)/systime.h \
-	$(SRC)/systty.h \
 	$(SRC)/syswait.h \
-	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
-	$(SRC)/w32.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(NT_INC)/arpa/inet.h \
+	$(NT_INC)/netdb.h \
+	$(NT_INC)/netinet/in.h \
+	$(NT_INC)/sys/file.h \
+	$(NT_INC)/sys/ioctl.h \
+	$(NT_INC)/sys/stat.h \
+	$(NT_INC)/unistd.h \
+	$(ATIMER_H) \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(PROCESS_H) \
+	$(SOCKET_H) \
+	$(SYSTIME_H) \
+	$(SYSTTY_H) \
+	$(TERMHOOKS_H) \
+	$(WINDOW_H)
 
 $(BLD)/ralloc.$(O) : \
 	$(SRC)/ralloc.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/getpagesize.h \
-	$(SRC)/systime.h
+	$(NT_INC)/unistd.h \
+	$(BLOCKINPUT_H) \
+	$(CONFIG_H) \
+	$(LISP_H)
 
 $(BLD)/regex.$(O) : \
 	$(SRC)/regex.c \
-	$(CONFIG_H) \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/category.h \
-	$(SRC)/character.h \
 	$(SRC)/regex.h \
-	$(SRC)/syntax.h
+	$(SRC)/syntax.h \
+	$(NT_INC)/unistd.h \
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(LISP_H)
 
 $(BLD)/region-cache.$(O) : \
 	$(SRC)/region-cache.c \
-	$(CONFIG_H) \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/region-cache.h
+	$(SRC)/region-cache.h \
+	$(CONFIG_H) \
+	$(LISP_H)
 
 $(BLD)/scroll.$(O) : \
 	$(SRC)/scroll.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/keyboard.h \
-	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(TERMHOOKS_H) \
+	$(WINDOW_H)
 
 $(BLD)/search.$(O) : \
 	$(SRC)/search.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/category.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/intervals.h \
 	$(SRC)/regex.h \
 	$(SRC)/region-cache.h \
 	$(SRC)/syntax.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CONFIG_H) \
+	$(INTERVALS_H) \
+	$(LISP_H)
 
 $(BLD)/sound.$(O) : \
 	$(SRC)/sound.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/dispextern.h \
 	$(SRC)/syssignal.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h
+	$(NT_INC)/unistd.h \
+	$(ATIMER_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(LISP_H)
 
 $(BLD)/syntax.$(O) : \
 	$(SRC)/syntax.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/category.h \
-	$(SRC)/character.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/intervals.h \
 	$(SRC)/keymap.h \
 	$(SRC)/regex.h \
 	$(SRC)/syntax.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h
+	$(CHARACTER_H) \
+	$(CONFIG_H) \
+	$(INTERVALS_H) \
+	$(LISP_H)
 
 $(BLD)/sysdep.$(O) : \
 	$(SRC)/sysdep.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/grp.h \
-	$(EMACS_ROOT)/nt/inc/netdb.h \
-	$(EMACS_ROOT)/nt/inc/pwd.h \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
-	$(EMACS_ROOT)/nt/inc/sys/socket.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(EMACS_ROOT)/lib/allocator.h \
-	$(EMACS_ROOT)/lib/careadlinkat.h \
-	$(EMACS_ROOT)/lib/ignore-value.h \
-	$(LISP_H) \
-	$(PROCESS_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/cm.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/sysselect.h \
 	$(SRC)/syssignal.h \
-	$(SRC)/systime.h \
-	$(SRC)/systty.h \
 	$(SRC)/syswait.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
-	$(SRC)/w32.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(NT_INC)/netdb.h \
+	$(NT_INC)/pwd.h \
+	$(NT_INC)/sys/file.h \
+	$(NT_INC)/sys/stat.h \
+	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/allocator.h \
+	$(GNU_LIB)/ignore-value.h \
+	$(BLOCKINPUT_H) \
+	$(CAREADLINKAT_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(GRP_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(PROCESS_H) \
+	$(SOCKET_H) \
+	$(SYSTIME_H) \
+	$(SYSTTY_H) \
+	$(TERMHOOKS_H) \
+	$(WINDOW_H)
 
 $(BLD)/term.$(O) : \
 	$(SRC)/term.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/cm.h \
-	$(SRC)/coding.h \
 	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
 	$(SRC)/disptab.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/syssignal.h \
-	$(SRC)/systime.h \
-	$(SRC)/systty.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
 	$(SRC)/tparam.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(NT_INC)/sys/file.h \
+	$(NT_INC)/unistd.h \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(SYSTTY_H) \
+	$(TERMHOOKS_H) \
+	$(WINDOW_H)
 
 $(BLD)/terminal.$(O) : \
 	$(SRC)/terminal.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/keyboard.h \
-	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h
+	$(CHARSET_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(FRAME_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(TERMHOOKS_H)
 
 $(BLD)/textprop.$(O) : \
 	$(SRC)/textprop.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/intervals.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(CONFIG_H) \
+	$(INTERVALS_H) \
+	$(LISP_H) \
+	$(WINDOW_H)
 
 $(BLD)/tparam.$(O) : \
 	$(SRC)/tparam.c \
+	$(SRC)/tparam.h \
 	$(CONFIG_H) \
-	$(LISP_H) \
-	$(SRC)/tparam.h
+	$(LISP_H)
 
 $(BLD)/undo.$(O) : \
 	$(SRC)/undo.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
 	$(SRC)/buffer.h \
 	$(SRC)/commands.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/window.h
+	$(CONFIG_H) \
+	$(LISP_H) \
+	$(WINDOW_H)
 
 $(BLD)/unexw32.$(O) : \
 	$(SRC)/unexw32.c \
-	$(CONFIG_H) \
 	$(SRC)/unexec.h \
-	$(SRC)/w32heap.h
+	$(SRC)/w32heap.h \
+	$(CONFIG_H)
 
 $(BLD)/vm-limit.$(O) : \
 	$(SRC)/vm-limit.c \
+	$(SRC)/mem-limits.h \
 	$(CONFIG_H) \
-	$(LISP_H) \
-	$(SRC)/mem-limits.h
+	$(LISP_H)
 
 $(BLD)/window.$(O) : \
 	$(SRC)/window.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
 	$(SRC)/disptab.h \
-	$(SRC)/frame.h \
 	$(SRC)/indent.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
-	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h \
-	$(SRC)/window.h
+	$(BLOCKINPUT_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
+	$(WINDOW_H)
 
 $(BLD)/xdisp.$(O) : \
 	$(SRC)/xdisp.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(PROCESS_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
 	$(SRC)/commands.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
 	$(SRC)/disptab.h \
-	$(SRC)/font.h \
 	$(SRC)/fontset.h \
-	$(SRC)/frame.h \
 	$(SRC)/indent.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/macros.h \
 	$(SRC)/region-cache.h \
-	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h \
-	$(SRC)/window.h
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FONT_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(PROCESS_H) \
+	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
+	$(WINDOW_H)
 
 $(BLD)/xfaces.$(O) : \
 	$(SRC)/xfaces.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/font.h \
 	$(SRC)/fontset.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
-	$(SRC)/systime.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h \
-	$(SRC)/window.h
+	$(NT_INC)/sys/stat.h \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FONT_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
+	$(WINDOW_H)
 
 $(BLD)/w32fns.$(O) : \
 	$(SRC)/w32fns.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
 	$(SRC)/epaths.h \
-	$(SRC)/font.h \
 	$(SRC)/fontset.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
-	$(SRC)/systime.h \
-	$(SRC)/termhooks.h \
 	$(SRC)/w32.h \
 	$(SRC)/w32font.h \
-	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
-	$(SRC)/w32term.h \
-	$(SRC)/window.h
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FONT_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(SYSTIME_H) \
+	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
+	$(WINDOW_H)
 
 $(BLD)/w32menu.$(O) : \
 	$(SRC)/w32menu.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/frame.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
-	$(SRC)/menu.h \
-	$(SRC)/systime.h \
-	$(SRC)/termhooks.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h \
-	$(SRC)/window.h
+	$(BLOCKINPUT_H) \
+	$(CHARSET_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FRAME_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(MENU_H) \
+	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
+	$(WINDOW_H)
 
 $(BLD)/w32term.$(O) : \
 	$(SRC)/w32term.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/unistd.h \
-	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(PROCESS_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
 	$(SRC)/buffer.h \
 	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
 	$(SRC)/disptab.h \
-	$(SRC)/font.h \
 	$(SRC)/fontset.h \
-	$(SRC)/frame.h \
-	$(SRC)/intervals.h \
-	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
-	$(SRC)/systime.h \
-	$(SRC)/systty.h \
 	$(SRC)/termchar.h \
-	$(SRC)/termhooks.h \
 	$(SRC)/termopts.h \
 	$(SRC)/w32font.h \
-	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
-	$(SRC)/w32term.h \
-	$(SRC)/window.h
+	$(NT_INC)/sys/stat.h \
+	$(ATIMER_H) \
+	$(BLOCKINPUT_H) \
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FONT_H) \
+	$(FRAME_H) \
+	$(INTERVALS_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(PROCESS_H) \
+	$(SYSTIME_H) \
+	$(SYSTTY_H) \
+	$(TERMHOOKS_H) \
+	$(W32TERM_H) \
+	$(WINDOW_H)
 
 $(BLD)/w32select.$(O) : \
 	$(SRC)/w32select.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
 	$(SRC)/composite.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \
-	$(SRC)/w32term.h
+	$(BLOCKINPUT_H) \
+	$(CHARSET_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(LISP_H) \
+	$(W32TERM_H)
 
 $(BLD)/w32reg.$(O) : \
 	$(SRC)/w32reg.c \
+	$(BLOCKINPUT_H) \
 	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h
+	$(W32TERM_H)
 
 $(BLD)/w32xfns.$(O) : \
 	$(SRC)/w32xfns.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/atimer.h \
-	$(SRC)/blockinput.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
 	$(SRC)/fontset.h \
-	$(SRC)/frame.h \
-	$(SRC)/keyboard.h \
-	$(SRC)/systime.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h
+	$(BLOCKINPUT_H) \
+	$(CHARSET_H) \
+	$(CONFIG_H) \
+	$(FRAME_H) \
+	$(KEYBOARD_H) \
+	$(LISP_H) \
+	$(W32TERM_H)
 
 $(BLD)/w32font.$(O) : \
 	$(SRC)/w32font.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
-	$(SRC)/coding.h \
-	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/font.h \
 	$(SRC)/fontset.h \
-	$(SRC)/frame.h \
-	$(SRC)/systime.h \
 	$(SRC)/w32font.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CODING_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FONT_H) \
+	$(FRAME_H) \
+	$(LISP_H) \
+	$(W32TERM_H)
 
 $(BLD)/w32uniscribe.$(O) : \
 	$(SRC)/w32uniscribe.c \
-	$(CONFIG_H) \
-	$(EMACS_ROOT)/nt/inc/sys/time.h \
-	$(LISP_H) \
-	$(SRC)/ccl.h \
-	$(SRC)/character.h \
-	$(SRC)/charset.h \
 	$(SRC)/composite.h \
-	$(SRC)/dispextern.h \
-	$(SRC)/font.h \
 	$(SRC)/fontset.h \
-	$(SRC)/frame.h \
-	$(SRC)/systime.h \
 	$(SRC)/w32font.h \
-	$(SRC)/w32gui.h \
-	$(SRC)/w32term.h
+	$(CHARACTER_H) \
+	$(CHARSET_H) \
+	$(CONFIG_H) \
+	$(DISPEXTERN_H) \
+	$(FONT_H) \
+	$(FRAME_H) \
+	$(LISP_H) \
+	$(W32TERM_H)
 
 # Each object file depends on stamp_BLD, because in parallel builds we must
 # make sure $(BLD) exists before starting compilations.

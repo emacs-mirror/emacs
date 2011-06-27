@@ -1,3 +1,9 @@
+2011-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Redesign dependencies so they reflect more
+	clearly which files are directly included by each source file,
+	and not through other includes.
+
 2011-06-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffer.c (Qclone_number): Declare static and DEFSYM it.
