@@ -1,3 +1,10 @@
+2011-06-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Qclone_number): Declare static and DEFSYM it.
+	(sort_overlays, overlay_strings): When an overlay's clone number
+	matches the window's clone number process the overlay even if
+	the overlay's window property doesn't match the current window.
+
 2011-06-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* emacsgtkfixed.h: State that this is only used with Gtk+3.
