@@ -1,3 +1,10 @@
+2011-06-27  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (ses-destroy-cell-variable-range): Fix heading comment
+	convention.
+	(ses-call-printer): Does not pass an empty string to formatter when the
+	cell is empty to keep from barking printer Calc math-format-value.
+
 2011-06-27  Richard Stallman  <rms@gnu.org>
 
 	* battery.el (battery-mode-line-limit): New variable.

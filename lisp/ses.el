@@ -670,9 +670,9 @@ for this spreadsheet."
 	(put sym 'ses-cell (cons xrow xcol))
 	(make-local-variable sym)))))
 
-;;We do not delete the ses-cell properties for the cell-variables, in case a
-;;formula that refers to this cell is in the kill-ring and is later pasted
-;;back in.
+;; We do not delete the ses-cell properties for the cell-variables, in
+;; case a formula that refers to this cell is in the kill-ring and is
+;; later pasted back in.
 (defun ses-destroy-cell-variable-range (minrow maxrow mincol maxcol)
   "Destroy buffer-local variables for cells.  This is undoable."
   (let (sym)
@@ -1170,17 +1170,19 @@ The variable `ses-call-printer-return' is set to t if the printer used
 parenthesis to request left-justification, or the error-signal if the
 printer signaled one (and \"%s\" is used as the default printer), else nil."
   (setq ses-call-printer-return nil)
-  (unless value
-    (setq value ""))
   (condition-case signal
       (cond
        ((stringp printer)
-	(format printer value))
+	(if value
+	    (format printer value)
+	  ""))
        ((stringp (car-safe printer))
 	(setq ses-call-printer-return t)
-	(format (car printer) value))
+	(if value
+	    (format (car printer) value)
+	  ""))
        (t
-	(setq value (funcall printer value))
+	(setq value (funcall printer (or value "")))
 	(if (stringp value)
 	    value
 	  (or (stringp (car-safe value))
