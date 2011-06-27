@@ -1,5 +1,9 @@
 2011-06-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/network-stream.el (network-stream-open-starttls): Don't
+	re-get capabilities unless we've reestablished connection.
+	(network-stream-open-starttls): Fix stupid typo with gnutls-clii.
+
 	* mail/smtpmail.el (smtpmail-via-smtp): Bind coding-system-for-*
 	to binary to possibly avoid line encoding issues on Windows (among
 	other things).
