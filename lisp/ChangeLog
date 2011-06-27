@@ -1,3 +1,15 @@
+2011-06-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-right, window-left, window-child)
+	(window-child-count, window-last-child)
+	(window-iso-combination-p, walk-window-tree-1)
+	(window-atom-check-1, window-tree-1, delete-window)
+	(window-state-get-1, display-buffer-even-window-sizes): Adapt to
+	new naming conventions - window-vchild, window-hchild,
+	window-next and window-prev are now called window-top-child,
+	window-left-child, window-next-sibling and window-prev-sibling
+	respectively.
+
 2011-06-27  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* ses.el (ses-destroy-cell-variable-range): Fix heading comment

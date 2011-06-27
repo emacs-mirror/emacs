@@ -434,37 +434,37 @@ Return nil if WINDOW has no parent.  */)
   return decode_any_window (window)->parent;
 }
 
-DEFUN ("window-vchild", Fwindow_vchild, Swindow_vchild, 0, 1, 0,
-       doc: /* Return WINDOW's first vertical child window.
+DEFUN ("window-top-child", Fwindow_top_child, Swindow_top_child, 0, 1, 0,
+       doc: /* Return WINDOW's topmost child window.
 WINDOW can be any window and defaults to the selected one.
-Return nil if WINDOW has no vertical child.  */)
+Return nil if WINDOW is not a vertical combination.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->vchild;
 }
 
-DEFUN ("window-hchild", Fwindow_hchild, Swindow_hchild, 0, 1, 0,
-       doc: /* Return WINDOW's first horizontal child window.
+DEFUN ("window-left-child", Fwindow_left_child, Swindow_left_child, 0, 1, 0,
+       doc: /* Return WINDOW's leftmost child window.
 WINDOW can be any window and defaults to the selected one.
-Return nil if WINDOW has no horizontal child.  */)
+Return nil if WINDOW is not a horizontal combination.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->hchild;
 }
 
-DEFUN ("window-next", Fwindow_next, Swindow_next, 0, 1, 0,
-       doc: /* Return WINDOW's right sibling window.
+DEFUN ("window-next-sibling", Fwindow_next_sibling, Swindow_next_sibling, 0, 1, 0,
+       doc: /* Return WINDOW's next sibling window.
 WINDOW can be any window and defaults to the selected one.
-Return nil if WINDOW has no right sibling.  */)
+Return nil if WINDOW has no next sibling.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->next;
 }
 
-DEFUN ("window-prev", Fwindow_prev, Swindow_prev, 0, 1, 0,
-       doc: /* Return WINDOW's left sibling window.
+DEFUN ("window-prev-sibling", Fwindow_prev_sibling, Swindow_prev_sibling, 0, 1, 0,
+       doc: /* Return WINDOW's previous sibling window.
 WINDOW can be any window and defaults to the selected one.
-Return nil if WINDOW has no left sibling.  */)
+Return nil if WINDOW has no previous sibling.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->prev;
@@ -6598,10 +6598,10 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Swindow_clone_number);
   defsubr (&Swindow_buffer);
   defsubr (&Swindow_parent);
-  defsubr (&Swindow_vchild);
-  defsubr (&Swindow_hchild);
-  defsubr (&Swindow_next);
-  defsubr (&Swindow_prev);
+  defsubr (&Swindow_top_child);
+  defsubr (&Swindow_left_child);
+  defsubr (&Swindow_next_sibling);
+  defsubr (&Swindow_prev_sibling);
   defsubr (&Swindow_splits);
   defsubr (&Sset_window_splits);
   defsubr (&Swindow_nest);

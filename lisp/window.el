@@ -63,25 +63,26 @@ are not altered by this macro (unless they are altered in BODY)."
 	 (when (window-live-p save-selected-window-window)
 	   (select-window save-selected-window-window 'norecord))))))
 
-;; The following two functions are like `window-next' and `window-prev'
-;; but the WINDOW argument is _not_ optional (so they don't substitute
-;; the selected window for nil), and they return nil when WINDOW doesn't
-;; have a parent (like a frame's root window or a minibuffer window).
+;; The following two functions are like `window-next-sibling' and
+;; `window-prev-sibling' but the WINDOW argument is _not_ optional (so
+;; they don't substitute the selected window for nil), and they return
+;; nil when WINDOW doesn't have a parent (like a frame's root window or
+;; a minibuffer window).
 (defsubst window-right (window)
   "Return WINDOW's right sibling.
 Return nil if WINDOW is the root window of its frame.  WINDOW can
 be any window."
-  (and window (window-parent window) (window-next window)))
+  (and window (window-parent window) (window-next-sibling window)))
 
 (defsubst window-left (window)
   "Return WINDOW's left sibling.
 Return nil if WINDOW is the root window of its frame.  WINDOW can
 be any window."
-  (and window (window-parent window) (window-prev window)))
+  (and window (window-parent window) (window-prev-sibling window)))
 
 (defsubst window-child (window)
   "Return WINDOW's first child window."
-  (or (window-vchild window) (window-hchild window)))
+  (or (window-top-child window) (window-left-child window)))
 
 (defun window-child-count (window)
   "Return number of WINDOW's child windows."
@@ -89,14 +90,14 @@ be any window."
     (when (and (windowp window) (setq window (window-child window)))
       (while window
 	(setq count (1+ count))
-	(setq window (window-next window))))
+	(setq window (window-next-sibling window))))
     count))
 
 (defun window-last-child (window)
   "Return last child window of WINDOW."
   (when (and (windowp window) (setq window (window-child window)))
-    (while (window-next window)
-      (setq window (window-next window))))
+    (while (window-next-sibling window)
+      (setq window (window-next-sibling window))))
   window)
 
 (defsubst window-any-p (object)
@@ -203,8 +204,8 @@ Optional argument HORIZONTAL non-nil means return WINDOW's first
 child if WINDOW is a horizontal combination."
   (setq window (normalize-any-window window))
   (if horizontal
-      (window-hchild window)
-    (window-vchild window)))
+      (window-left-child window)
+    (window-top-child window)))
 
 (defsubst window-iso-combined-p (&optional window horizontal)
   "Return non-nil if and only if WINDOW is vertically combined.
@@ -258,9 +259,9 @@ number of horizontally arranged subwindows of WINDOW."
 	(funcall proc walk-window-tree-window))
       (unless walk-window-tree-buffer
 	(walk-window-tree-1
-	 proc (window-hchild walk-window-tree-window) any)
+	 proc (window-left-child walk-window-tree-window) any)
 	(walk-window-tree-1
-	 proc (window-vchild walk-window-tree-window) any))
+	 proc (window-top-child walk-window-tree-window) any))
       (if sub-only
 	  (setq walk-window-tree-window nil)
 	(setq walk-window-tree-window
@@ -375,8 +376,8 @@ WINDOW must be an internal window.  Return WINDOW."
 	     window t)))
       ;; Check children.
       (unless (window-buffer window)
-	(window-atom-check-1 (window-hchild window))
-	(window-atom-check-1 (window-vchild window))))
+	(window-atom-check-1 (window-left-child window))
+	(window-atom-check-1 (window-top-child window))))
     ;; Check right sibling
     (window-atom-check-1 (window-right window))))
 
@@ -2119,15 +2120,15 @@ return value."
       (setq list
 	    (cons
 	     (cond
-	      ((window-vchild window)
+	      ((window-top-child window)
 	       (cons t (cons (window-edges window)
-			     (window-tree-1 (window-vchild window) t))))
-	      ((window-hchild window)
+			     (window-tree-1 (window-top-child window) t))))
+	      ((window-left-child window)
 	       (cons nil (cons (window-edges window)
-			       (window-tree-1 (window-hchild window) t))))
+			       (window-tree-1 (window-left-child window) t))))
 	      (t window))
 	     list))
-      (setq window (when next (window-next window))))
+      (setq window (when next (window-next-sibling window))))
     (nreverse list)))
 
 (defun window-tree (&optional frame)
@@ -2363,7 +2364,7 @@ non-side window, signal an error."
        ((not parent)
 	(error "Attempt to delete minibuffer or sole ordinary window")))
 
-      (let* ((horizontal (window-hchild parent))
+      (let* ((horizontal (window-left-child parent))
 	     (size (window-total-size window horizontal))
 	     (frame-selected
 	      (window-or-subwindow-p (frame-selected-window frame) window))
@@ -3524,15 +3525,15 @@ specific buffers."
   "Helper function for `window-state-get'."
   (let* ((type
 	  (cond
-	   ((window-vchild window) 'vc)
-	   ((window-hchild window) 'hc)
+	   ((window-top-child window) 'vc)
+	   ((window-left-child window) 'hc)
 	   (t 'leaf)))
 	 (buffer (window-buffer window))
 	 (selected (eq window (selected-window)))
 	 (head
 	  (window-list-no-nils
 	   type
-	   (unless (window-next window) (cons 'last t))
+	   (unless (window-next-sibling window) (cons 'last t))
 	   (cons 'clone-number (window-clone-number window))
 	   (cons 'total-height (window-total-size window))
 	   (cons 'total-width (window-total-size window t))
@@ -4666,8 +4667,8 @@ larger than WINDOW."
 	;; Don't resize minibuffer windows.
 	(window-minibuffer-p)
 	;; WINDOW must be adjacent to the selected one.
-	(not (or (eq window (window-prev))
-		 (eq window (window-next))))))
+	(not (or (eq window (window-prev-sibling))
+		 (eq window (window-next-sibling))))))
    ((and (window-iso-combined-p window)
 	 ;; Resize iff the selected window is higher than WINDOW.
 	 (> (window-total-height) (window-total-height window)))

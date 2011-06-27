@@ -5,6 +5,11 @@
 	matches the window's clone number process the overlay even if
 	the overlay's window property doesn't match the current window.
 
+	* window.c (Fwindow_vchild): Rename to Fwindow_top_child.
+	(Fwindow_hchild): Rename to Fwindow_left_child.
+	(Fwindow_next): Rename to Fwindow_next_sibling.
+	(Fwindow_prev): Rename to Fwindow_prev_sibling.
+
 2011-06-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* emacsgtkfixed.h: State that this is only used with Gtk+3.
