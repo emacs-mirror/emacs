@@ -1,3 +1,7 @@
+2011-06-27  Drew Adams  <drew.adams@oracle.com>
+
+	* faces.el (list-faces-display): Add help-mode-map to output (bug#8939).
+
 2011-06-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/network-stream.el (network-stream-open-starttls): Don't
@@ -7,10 +11,6 @@
 	* mail/smtpmail.el (smtpmail-via-smtp): Bind coding-system-for-*
 	to binary to possibly avoid line encoding issues on Windows (among
 	other things).
-
-2011-06-27  Drew Adams  <drew.adams@oracle.com>
-
-	* faces.el (list-faces-display): Add help-mode-map to output (bug#8939).
 
 2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -299,8 +299,8 @@
 
 2011-06-21  Tim Harper  <timcharper@gmail.com>
 
-	* term/ns-win.el (ns-initialize-window-system): set
-	application-specific `ApplePressAndHoldEnabled' system
+	* term/ns-win.el (ns-initialize-window-system):
+	Set application-specific `ApplePressAndHoldEnabled' system
 	resource to NO as it is not yet supported by the NS port.
 
 2011-06-21  Juanma Barranquero  <lekktu@gmail.com>
@@ -343,7 +343,7 @@
 	* progmodes/compile.el (compilation-error-regexp-alist-alist): Rename
 	`caml' to `python-tracebacks-and-caml'; allow leading tabs (bug#8585).
 
-2011-06-21  Drew Adams <drew.adams@oracle.com>
+2011-06-21  Drew Adams  <drew.adams@oracle.com>
 
 	* menu-bar.el: Use function variable instead of switch-to-buffer.
 	(menu-bar-select-buffer-function): New variable.
@@ -869,7 +869,7 @@
 	(window-in-direction-2, window-in-direction, get-mru-window):
 	New functions.
 
-2011-06-08  Reuben Thomas <rrt@sc3d.org>
+2011-06-08  Reuben Thomas  <rrt@sc3d.org>
 
 	* progmodes/flymake.el (flymake-compilation-prevents-syntax-check):
 	Doc fix (Bug#8713).
@@ -1256,7 +1256,6 @@
 
 2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
 
-
 	* emacs-lisp/re-builder.el (re-builder): Improve doc (Bug#8286).
 
 2011-05-28  Dima Kogan  <dkogan@cds.caltech.edu>  (tiny change)
@@ -1387,7 +1386,7 @@
 	* vc/vc-bzr.el (vc-bzr-sha1-program): Rename from sha1-program.
 	(vc-bzr-sha1): Adapt.
 
-	* sha1.el: Remove. Function `sha1' is now builtin.
+	* sha1.el: Remove.  Function `sha1' is now builtin.
 
 	* bindings.el: Provide sha1 feature.
 
@@ -1475,7 +1474,7 @@
 2011-05-23  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* play/5x5.el: I/ Add an arithmetic solver to suggest positions to
-	click on. II/ Make 5x5 multisession. III/ Ensure that random grids
+	click on.  II/ Make 5x5 multisession.  III/ Ensure that random grids
 	always have a solution in grid size = 5 cases.
 	(5x5-mode-map): Add keybinding to function `5x5-solve-suggest'.
 	(5x5-solver-output, 5x5-log-buffer): New vars.
@@ -2696,7 +2695,7 @@
 
 2011-04-20  felix  <EmacsWiki>  (tiny change)
 
-	* whitespace.el (global-whitespace-mode): keep highlight when
+	* whitespace.el (global-whitespace-mode): Keep highlight when
 	switching between major modes on a file.
 
 2011-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
