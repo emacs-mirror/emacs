@@ -1,3 +1,9 @@
+2011-06-27  Jari Aalto  <jari.aalto@cante.net>
+
+	* eshell/em-ls.el: Display `ls -l' dates in ISO format (Bug#8440).
+	(eshell-ls-date-format): New defcustom.
+	(eshell-ls-file): Use it.
+
 2011-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-fns.el (describe-variable): Fix message for terminal-local vars.
