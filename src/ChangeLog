@@ -15,6 +15,13 @@
 	(Fwindow_hchild): Rename to Fwindow_left_child.
 	(Fwindow_next): Rename to Fwindow_next_sibling.
 	(Fwindow_prev): Rename to Fwindow_prev_sibling.
+	(resize_window_check): Rename to window_resize_check.
+	(resize_window_apply): Rename to window_resize_apply.
+	(Fresize_window_apply): Rename to Fwindow_resize_apply.
+	(Fdelete_other_windows_internal, resize_frame_windows)
+	(Fsplit_window_internal, Fdelete_window_internal)
+	(grow_mini_window, shrink_mini_window)
+	(Fresize_mini_window_internal): Fix callers accordingly.
 
 2011-06-26  Jan Djärv  <jan.h.d@swipnet.se>
 

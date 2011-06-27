@@ -9,6 +9,24 @@
 	window-next and window-prev are now called window-top-child,
 	window-left-child, window-next-sibling and window-prev-sibling
 	respectively.
+	(resize-window-reset): Rename to window-resize-reset.
+	(resize-window-reset-1): Rename to window-resize-reset-1.
+	(resize-window): Rename to window-resize.
+	(window-min-height, window-min-width)
+	(resize-mini-window, resize-this-window, resize-root-window)
+	(resize-root-window-vertically, adjust-window-trailing-edge)
+	(enlarge-window, shrink-window, maximize-window)
+	(minimize-window, delete-window, quit-restore-window)
+	(split-window, balance-windows, balance-windows-area-adjust)
+	(balance-windows-area, window-state-put-2)
+	(display-buffer-even-window-sizes, display-buffer-set-height)
+	(display-buffer-set-width, set-window-text-height)
+	(fit-window-to-buffer): Rename all "resize-window" prefixed
+	calls to use the "window-resize" prefix convention.
+	(display-buffer-alist): Fix symbol for label specifier.
+	(display-buffer-reuse-window): Set reuse-dedicated to cdr of
+	corresponding specifier.
+	Reported by Juanma Barranquero <lekktu@gmail.com>.
 
 2011-06-27  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 

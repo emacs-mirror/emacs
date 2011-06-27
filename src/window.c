@@ -82,8 +82,8 @@ static int foreach_window_1 (struct window *,
                              int (* fn) (struct window *, void *),
                              void *);
 static Lisp_Object window_list_1 (Lisp_Object, Lisp_Object, Lisp_Object);
-static int resize_window_check (struct window *, int);
-static void resize_window_apply (struct window *, int);
+static int window_resize_check (struct window *, int);
+static void window_resize_apply (struct window *, int);
 static Lisp_Object select_window (Lisp_Object, Lisp_Object, int);
 
 /* This is the window in which the terminal's cursor should
@@ -2695,13 +2695,13 @@ window-start value is reasonable when this function is called.  */)
       XSETINT (delta, XINT (r->total_lines) - XINT (w->total_lines));
       w->top_line = r->top_line;
       resize_root_window (window, delta, Qnil, Qnil);
-      if (resize_window_check (w, 0))
-	resize_window_apply (w, 0);
+      if (window_resize_check (w, 0))
+	window_resize_apply (w, 0);
       else
 	{
 	  resize_root_window (window, delta, Qnil, Qt);
-	  if (resize_window_check (w, 0))
-	    resize_window_apply (w, 0);
+	  if (window_resize_check (w, 0))
+	    window_resize_apply (w, 0);
 	  else
 	    resize_failed = 1;
 	}
@@ -2713,13 +2713,13 @@ window-start value is reasonable when this function is called.  */)
 	  XSETINT (delta, XINT (r->total_cols) - XINT (w->total_cols));
 	  w->left_col = r->left_col;
 	  resize_root_window (window, delta, Qt, Qnil);
-	  if (resize_window_check (w, 1))
-	    resize_window_apply (w, 1);
+	  if (window_resize_check (w, 1))
+	    window_resize_apply (w, 1);
 	  else
 	    {
 	      resize_root_window (window, delta, Qt, Qt);
-	      if (resize_window_check (w, 1))
-		resize_window_apply (w, 1);
+	      if (window_resize_check (w, 1))
+		window_resize_apply (w, 1);
 	      else
 		resize_failed = 1;
 	    }
@@ -3415,7 +3415,7 @@ Note: This function does not operate on any subwindows of WINDOW.  */)
    `window-min-height' or `window-min-width'.  It does check that window
    sizes do not drop below one line (two columns). */
 static int
-resize_window_check (struct window *w, int horflag)
+window_resize_check (struct window *w, int horflag)
 {
   struct window *c;
 
@@ -3429,7 +3429,7 @@ resize_window_check (struct window *w, int horflag)
 	  while (c)
 	    {
 	      if ((XINT (c->new_total) != XINT (w->new_total))
-		  || !resize_window_check (c, horflag))
+		  || !window_resize_check (c, horflag))
 		return 0;
 	      c = NILP (c->next) ? 0 : XWINDOW (c->next);
 	    }
@@ -3442,7 +3442,7 @@ resize_window_check (struct window *w, int horflag)
 	  int sum_of_sizes = 0;
 	  while (c)
 	    {
-	      if (!resize_window_check (c, horflag))
+	      if (!window_resize_check (c, horflag))
 		return 0;
 	      sum_of_sizes = sum_of_sizes + XINT (c->new_total);
 	      c = NILP (c->next) ? 0 : XWINDOW (c->next);
@@ -3461,7 +3461,7 @@ resize_window_check (struct window *w, int horflag)
 	  int sum_of_sizes = 0;
 	  while (c)
 	    {
-	      if (!resize_window_check (c, horflag))
+	      if (!window_resize_check (c, horflag))
 		return 0;
 	      sum_of_sizes = sum_of_sizes + XINT (c->new_total);
 	      c = NILP (c->next) ? 0 : XWINDOW (c->next);
@@ -3474,7 +3474,7 @@ resize_window_check (struct window *w, int horflag)
 	  while (c)
 	    {
 	      if ((XINT (c->new_total) != XINT (w->new_total))
-		  || !resize_window_check (c, horflag))
+		  || !window_resize_check (c, horflag))
 		return 0;
 	      c = NILP (c->next) ? 0 : XWINDOW (c->next);
 	    }
@@ -3494,9 +3494,9 @@ resize_window_check (struct window *w, int horflag)
    each of these windows.
 
    This function does not perform any error checks.  Make sure you have
-   run resize_window_check on W before applying this function.  */
+   run window_resize_check on W before applying this function.  */
 static void
-resize_window_apply (struct window *w, int horflag)
+window_resize_apply (struct window *w, int horflag)
 {
   struct window *c;
   int pos;
@@ -3530,7 +3530,7 @@ resize_window_apply (struct window *w, int horflag)
 	    XSETFASTINT (c->left_col, pos);
 	  else
 	    XSETFASTINT (c->top_line, pos);
-	  resize_window_apply (c, horflag);
+	  window_resize_apply (c, horflag);
 	  if (!horflag)
 	    pos = pos + XINT (c->total_lines);
 	  c = NILP (c->next) ? 0 : XWINDOW (c->next);
@@ -3546,7 +3546,7 @@ resize_window_apply (struct window *w, int horflag)
 	    XSETFASTINT (c->left_col, pos);
 	  else
 	    XSETFASTINT (c->top_line, pos);
-	  resize_window_apply (c, horflag);
+	  window_resize_apply (c, horflag);
 	  if (horflag)
 	    pos = pos + XINT (c->total_cols);
 	  c = NILP (c->next) ? 0 : XWINDOW (c->next);
@@ -3559,7 +3559,7 @@ resize_window_apply (struct window *w, int horflag)
 }
 
 
-DEFUN ("resize-window-apply", Fresize_window_apply, Sresize_window_apply, 1, 2, 0,
+DEFUN ("window-resize-apply", Fwindow_resize_apply, Swindow_resize_apply, 1, 2, 0,
        doc: /* Apply requested size values for window-tree of FRAME.
 Optional argument HORIZONTAL omitted or nil means apply requested height
 values.  HORIZONTAL non-nil means apply requested width values.
@@ -3584,12 +3584,12 @@ be applied on the Elisp level.  */)
   f = XFRAME (frame);
   r = XWINDOW (FRAME_ROOT_WINDOW (f));
 
-  if (!resize_window_check (r, horflag)
+  if (!window_resize_check (r, horflag)
       || ! EQ (r->new_total, (horflag ? r->total_cols : r->total_lines)))
     return Qnil;
 
   BLOCK_INPUT;
-  resize_window_apply (r, horflag);
+  window_resize_apply (r, horflag);
 
   windows_or_buffers_changed++;
   FRAME_WINDOW_SIZES_CHANGED (f) = 1;
@@ -3641,22 +3641,22 @@ resize_frame_windows (struct frame *f, int size, int horflag)
       XSETINT (delta, new_size - old_size);
       /* Try a "normal" resize first.  */
       resize_root_window (root, delta, horflag ? Qt : Qnil, Qnil);
-      if (resize_window_check (r, horflag) && new_size == XINT (r->new_total))
-	resize_window_apply (r, horflag);
+      if (window_resize_check (r, horflag) && new_size == XINT (r->new_total))
+	window_resize_apply (r, horflag);
       else
 	{
 	  /* Try with "reasonable" minimum sizes next.  */
 	  resize_root_window (root, delta, horflag ? Qt : Qnil, Qt);
-	  if (resize_window_check (r, horflag)
+	  if (window_resize_check (r, horflag)
 	      && new_size == XINT (r->new_total))
-	    resize_window_apply (r, horflag);
+	    window_resize_apply (r, horflag);
 	  else
 	    {
 	      /* Finally, try with "safe" minimum sizes.  */
 	      resize_root_window (root, delta, horflag ? Qt : Qnil, Qsafe);
-	      if (resize_window_check (r, horflag)
+	      if (window_resize_check (r, horflag)
 		  && new_size == XINT (r->new_total))
-		resize_window_apply (r, horflag);
+		window_resize_apply (r, horflag);
 	      else
 		{
 		  /* We lost.  Delete all windows but the frame's
@@ -3765,7 +3765,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
       XSETINT (p->new_total,
 	       XINT (horflag ? p->total_cols : p->total_lines)
 	       - XINT (total_size));
-      if (!resize_window_check (p, horflag))
+      if (!window_resize_check (p, horflag))
 	error ("Window sizes don't fit");
       else
 	/* Undo the temporary pretension.  */
@@ -3773,7 +3773,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
     }
   else
     {
-      if (!resize_window_check (o, horflag))
+      if (!window_resize_check (o, horflag))
 	error ("Resizing old window failed");
       else if (XINT (total_size) + XINT (o->new_total)
 	       != XINT (horflag ? o->total_cols : o->total_lines))
@@ -3861,13 +3861,13 @@ set correctly.  See the code of `split-window' for how this is done.  */)
       n->total_cols = o->total_cols;
     }
 
-  /* Iso-coordinates and sizes are assigned by resize_window_apply,
+  /* Iso-coordinates and sizes are assigned by window_resize_apply,
      get them ready here.  */
   n->new_total = total_size;
   n->new_normal = normal_size;
 
   BLOCK_INPUT;
-  resize_window_apply (p, horflag);
+  window_resize_apply (p, horflag);
   adjust_glyphs (f);
   /* Set buffer of NEW to buffer of reference window.  Don't run
      any hooks.  */
@@ -3945,13 +3945,13 @@ when WINDOW is the only window on its frame.  */)
 	XWINDOW (s->next)->prev = sibling;
     }
 
-  if (resize_window_check (r, horflag)
+  if (window_resize_check (r, horflag)
       && EQ (r->new_total, (horflag ? r->total_cols : r->total_lines)))
     /* We can delete WINDOW now.  */
     {
       /* Block input.  */
       BLOCK_INPUT;
-      resize_window_apply (p, horflag);
+      window_resize_apply (p, horflag);
 
       windows_or_buffers_changed++;
       Vwindow_list = Qnil;
@@ -4074,10 +4074,10 @@ grow_mini_window (struct window *w, int delta)
   root = FRAME_ROOT_WINDOW (f);
   r = XWINDOW (root);
   value = call2 (Qresize_root_window_vertically, root, make_number (- delta));
-  if (INTEGERP (value) && resize_window_check (r, 0))
+  if (INTEGERP (value) && window_resize_check (r, 0))
     {
       BLOCK_INPUT;
-      resize_window_apply (r, 0);
+      window_resize_apply (r, 0);
 
       /* Grow the mini-window.  */
       XSETFASTINT (w->top_line, XFASTINT (r->top_line) + XFASTINT (r->total_lines));
@@ -4109,10 +4109,10 @@ shrink_mini_window (struct window *w)
       r = XWINDOW (root);
       value = call2 (Qresize_root_window_vertically,
 		     root, make_number (size - 1));
-      if (INTEGERP (value) && resize_window_check (r, 0))
+      if (INTEGERP (value) && window_resize_check (r, 0))
 	{
 	  BLOCK_INPUT;
-	  resize_window_apply (r, 0);
+	  window_resize_apply (r, 0);
 
 	  /* Shrink the mini-window.  */
 	  XSETFASTINT (w->top_line, XFASTINT (r->top_line) + XFASTINT (r->total_lines));
@@ -4150,12 +4150,12 @@ DEFUN ("resize-mini-window-internal", Fresize_mini_window_internal, Sresize_mini
 
   r = XWINDOW (FRAME_ROOT_WINDOW (f));
   height = XINT (r->total_lines) + XINT (w->total_lines);
-  if (resize_window_check (r, 0)
+  if (window_resize_check (r, 0)
       && XINT (w->new_total) > 0
       && height == XINT (r->new_total) + XINT (w->new_total))
     {
       BLOCK_INPUT;
-      resize_window_apply (r, 0);
+      window_resize_apply (r, 0);
 
       w->total_lines = w->new_total;
       XSETFASTINT (w->top_line, XINT (r->top_line) + XINT (r->total_lines));
@@ -6615,7 +6615,7 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Swindow_new_normal);
   defsubr (&Sset_window_new_total);
   defsubr (&Sset_window_new_normal);
-  defsubr (&Sresize_window_apply);
+  defsubr (&Swindow_resize_apply);
   defsubr (&Swindow_body_size);
   defsubr (&Swindow_hscroll);
   defsubr (&Sset_window_hscroll);
