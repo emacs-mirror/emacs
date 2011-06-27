@@ -3,14 +3,6 @@
 	* tar-mode.el (tar-untar-buffer): Set coding-system-for-write to
 	no-conversion (Bug#8870).
 
-2011-06-27  Chong Yidong  <cyd@stupidchicken.com>
-
-	* mouse.el: Rebind mouse-2 to mouse-yank-at-click; use an option
-	for primary insertion.  Suggested by David De La Harpe Golden.
-	(mouse-yank-primary): New option.
-	(mouse-yank-at-click): Obey it.
-	(mouse-yank-primary): Call mouse-yank-at-click.
-
 2011-06-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-right, window-left, window-child)
