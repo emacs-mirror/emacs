@@ -1,5 +1,11 @@
 2011-06-27  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
+	* ses.el (ses-repair-cell-reference-all): New function.
+	(ses-cell-symbol): Set macro as safe, so that it can be used in
+	formulas.
+
+2011-06-27  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
 	* ses.el:  Update cycle detection algorithm.
 	(ses-localvars): Add ses--Dijkstra-attempt-nb and
 	ses--Dijkstra-weight-bound, and initial values thereof when

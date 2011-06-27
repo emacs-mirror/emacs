@@ -348,6 +348,7 @@ when to emit a progress message.")
 (defmacro ses-cell-symbol (row &optional col)
   "From a CELL or a pair (ROW,COL), get the symbol that names the local-variable holding its value.  (0,0) => A1."
   `(aref ,(if col `(ses-get-cell ,row ,col) row) 0))
+(put 'ses-cell-symbol 'safe-function t)
 
 (defmacro ses-cell-formula (row &optional col)
   "From a CELL or a pair (ROW,COL), get the function that computes its value."
@@ -754,6 +755,75 @@ means Emacs will crash if FORMULA contains a circular list."
 	    (ses-set-cell xrow xcol 'references (cons sym x))))
       (ses-formula-record formula)
       (ses-set-cell row col 'formula formula))))
+
+
+(defun ses-repair-cell-reference-all ()
+  "Repair cell reference and warn if there was some reference corruption."
+  (interactive "*")
+  (let (errors)
+    ;; Step 1, reset  :ses-repair-reference cell property in the whole sheet.
+    (dotimes (row ses--numrows)
+      (dotimes (col ses--numcols)
+	(let ((references  (ses-cell-property-pop :ses-repair-reference
+						  row col)))
+	(when references
+	  (push (list
+		 (ses-cell-symbol row col)
+		 :corrupt-property
+		 references) errors)))))
+
+    ;; Step 2, build new.
+    (dotimes (row ses--numrows)
+      (dotimes (col ses--numcols)
+	(let* ((cell (ses-get-cell row col))
+	       (sym (ses-cell-symbol cell))
+	       (formula (ses-cell-formula cell))
+	       (new-ref (ses-formula-references formula)))
+	  (dolist (ref new-ref)
+	    (let* ((rowcol (ses-sym-rowcol ref))
+		  (h (ses-cell-property-get-handle :ses-repair-reference
+						  (car rowcol) (cdr rowcol))))
+	      (unless (memq ref (ses-cell-property-handle-car h))
+		(ses-cell-property-handle-setcar
+		 h
+		 (cons sym
+		       (ses-cell-property-handle-car h)))))))))
+
+    ;; Step 3, overwrite with check.
+    (dotimes (row ses--numrows)
+      (dotimes (col ses--numcols)
+	(let* ((cell (ses-get-cell row col))
+	       (irrelevant (ses-cell-references cell))
+	       (new-ref (ses-cell-property-pop  :ses-repair-reference cell))
+	       missing)
+	  (dolist (ref new-ref)
+	    (if (memq ref irrelevant)
+		(setq irrelevant (delq ref irrelevant))
+	      (push ref missing)))
+	  (ses-set-cell row col 'references new-ref)
+	  (when (or missing irrelevant)
+	    (push `( ,(ses-cell-symbol cell)
+		     ,@(and missing (list :missing missing))
+		     ,@(and irrelevant  (list :irrelevant irrelevant)))
+		  errors)))))
+    (if errors
+      (warn "----------------------------------------------------------------
+Some reference where corrupted.
+
+The following is a list of where each element ELT is such
+that (car ELT) is the reference of cell CELL with corruption,
+and (cdr ELT) is a property list where
+
+* property `:corrupt-property' means that
+  property `:ses-repair-reference' of cell CELL was initially non
+  nil,
+
+* property `:missing' is a list of missing references
+
+* property `:irrelevant' is a list of non needed references
+
+%S" errors)
+      (message "No reference corruption found"))))
 
 (defun ses-calculate-cell (row col force)
   "Calculate and print the value for cell (ROW,COL) using the cell's formula
