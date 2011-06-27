@@ -1,3 +1,8 @@
+2011-06-27  Jambunathan K  <kjambunathan@gmail.com>
+
+	* tar-mode.el (tar-untar-buffer): Set coding-system-for-write to
+	no-conversion (Bug#8870).
+
 2011-06-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.el (special-display-popup-frame): Doc fix (Bug#8853).
