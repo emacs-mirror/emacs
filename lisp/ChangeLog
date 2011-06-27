@@ -1,11 +1,15 @@
+2011-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bs.el (bs-cycle-next): Complete last change.
+
 2011-06-27  Drew Adams  <drew.adams@oracle.com>
 
 	* faces.el (list-faces-display): Add help-mode-map to output (bug#8939).
 
 2011-06-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/network-stream.el (network-stream-open-starttls): Don't
-	re-get capabilities unless we've reestablished connection.
+	* net/network-stream.el (network-stream-open-starttls):
+	Don't re-get capabilities unless we've reestablished connection.
 	(network-stream-open-starttls): Fix stupid typo with gnutls-clii.
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Bind coding-system-for-*
@@ -35,13 +39,13 @@
 
 2011-06-26  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout-widgets.el (allout-widgets-post-command-business): Stop
-	decorating intermediate isearch matches.  They're not being
+	* allout-widgets.el (allout-widgets-post-command-business):
+	Stop decorating intermediate isearch matches.  They're not being
 	undecorated when an isearch is continued past, and isearch
 	automatically collapses them.  This leads to "widget leaks", where
 	decorated items accumulate in collapsed areas.  Lines with lots of
-	hidden widgets can slow down cursor travel, substantially.  Too
-	much complicated machinery would be needed to ensure undecoration,
+	hidden widgets can slow down cursor travel, substantially.
+	Too much complicated machinery would be needed to ensure undecoration,
 	so we're doing without this nicety.
 
 	(allout-widgets-tally-string): Don't try to do a hash-table-count
@@ -56,8 +60,8 @@
 	LABEL argument.  Respect special-display-function when popping up
 	a new frame.  Fix code searching for a window showing the buffer
 	on another frame.
-	(display-buffer-normalize-specifiers): Call
-	display-buffer-normalize-arguments.
+	(display-buffer-normalize-specifiers):
+	Call display-buffer-normalize-arguments.
 	(display-buffer-in-window): Don't undedicate the window if its
 	buffer remains the same.
 	Reported by Drew Adams <drew.adams@oracle.com>.
@@ -79,16 +83,16 @@
 
 2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/network-stream.el (network-stream-open-starttls): Use
-	built-in TLS support if `gnutls-available-p' is true.
+	* net/network-stream.el (network-stream-open-starttls):
+	Use built-in TLS support if `gnutls-available-p' is true.
 	(network-stream-open-tls): Ditto.
 
 2011-06-26  Leo Liu  <sdl.web@gmail.com>
 
 	* register.el (registerv): New struct.
 	(registerv-make): New function.
-	(jump-to-register, describe-register-1, insert-register): Support
-	the jump-func, print-func and insert-func slot of a registerv
+	(jump-to-register, describe-register-1, insert-register):
+	Support the jump-func, print-func and insert-func slot of a registerv
 	struct.  (Bug#8415)
 
 2011-06-26  Chong Yidong  <cyd@stupidchicken.com>
@@ -266,8 +270,8 @@
 
 2011-06-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* mail/smtpmail.el (smtpmail-via-smtp): Set
-	:use-starttls-if-possible so that we always use STARTTLS if the
+	* mail/smtpmail.el (smtpmail-via-smtp):
+	Set :use-starttls-if-possible so that we always use STARTTLS if the
 	server supports it.  SMTP servers that support STARTTLS commonly
 	require it.
 
@@ -279,13 +283,13 @@
 	upgrades with `open-network-stream', and rely solely on
 	auth-source for all credentials.  Big changes throughout the file,
 	but in particular:
-	(smtpmail-auth-credentials): Removed.
-	(smtpmail-starttls-credentials): Removed.
+	(smtpmail-auth-credentials): Remove.
+	(smtpmail-starttls-credentials): Remove.
 	(smtpmail-via-smtp): Check for servers saying they want AUTH after
 	MAIL FROM, too.
 
-	* net/network-stream.el (network-stream-open-starttls): Provide
-	support for client certificates both for external and built-in
+	* net/network-stream.el (network-stream-open-starttls):
+	Provide support for client certificates both for external and built-in
 	STARTTLS.
 	(auth-source): Require.
 	(open-network-stream): Document the :client-certificate keyword.
@@ -325,8 +329,8 @@
 	options more faithfully.
 	(pop-to-buffer): Don't rely on `display-buffer' selecting the
 	window if it is on another frame.
-	(display-buffer-alist, display-buffer-default-specifiers): Don't
-	make new frame unsplittable by default.
+	(display-buffer-alist, display-buffer-default-specifiers):
+	Don't make new frame unsplittable by default.
 	(display-buffer-normalize-argument): Fix doc-string typo and use
 	'same-frame-other-window instead of 'other-window when associating
 	with display-buffer-macro-specifiers.
