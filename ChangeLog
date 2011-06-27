@@ -1,3 +1,7 @@
+2011-06-27  Bill Wohler  <wohler@newt.com>
+
+	* .bzrignore: Add lisp/mh-e/mh-autoloads.el and lisp/mh-e/mh-cus-load.el.
+
 2011-06-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use gnulib's dup2 module instead of rolling our own.
