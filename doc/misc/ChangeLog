@@ -1,3 +1,9 @@
+2011-06-28  Deniz Dogan  <deniz@dogan.se>
+
+	* rcirc.texi (Configuration): Bug-fix:
+	`rcirc-default-user-full-name' is now `rcirc-default-full-name'.
+	Reported by Elias Pipping <pipping@exherbo.org>.
+
 2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Summary Mail Commands): Document
