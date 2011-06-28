@@ -4092,7 +4092,7 @@ A list whose car is the symbol `fun-with-args' specifies that the
 function specified in the second element of the list is
 responsible for displaying the buffer.  `display-buffer' calls
 this function with the buffer as first argument and the remaining
-elements of the list as second argument.
+elements of the list as the other arguments.
 
 The function should choose or create a window, display the buffer
 in it, and return the window.  It is also responsible for giving
@@ -4226,9 +4226,9 @@ using the location specifiers `same-window' or `other-frame'."
 	    :help-echo "Window to reuse."
 	    :value nil
 	    :format "%[Window%] %v" :size 15
-	    (const :tag "Any" :format "%t" nil)
-	    (const :tag "Selected only" :format "%t" same)
-	    (const :tag "Any but selected" :format "%t" other))
+	    (const :tag "Any window" :format "%t" nil)
+	    (const :tag "Same window" :format "%t" same)
+	    (const :tag "Other window" :format "%t" other))
 	   ;; The window's buffer.
 	   (choice
 	    :tag "Buffer"
@@ -4240,15 +4240,15 @@ using the location specifiers `same-window' or `other-frame'."
 	    (const :tag "Other buffer" :format "%t" other))
 	   ;; The window's frame.
 	   (choice
-	    :help-echo "Frame to search for a window to reuse."
+	    :help-echo "Frames to search for a window to reuse."
 	    :tag "Frame"
 	    :value nil
 	    :format " %[Frame%] %v" :size 15
-	    (const :tag "Selected frame only" :format "%t" nil)
+	    (const :tag "Same frame only" :format "%t" nil)
 	    (const :tag "Visible frames" :format "%t" visible)
-	    (const :tag "Visible but unselected" :format "%t" other)
-	    (const :tag "Visible and iconified" :format "%t" 0)
-	    (const :tag "Any frame" :format "%t" t)))
+	    (const :tag "Any other visible frame" :format "%t" other)
+	    (const :tag "Visible and iconified frames" :format "%t" 0)
+	    (const :tag "All frames" :format "%t" t)))
 	  ;; Whether window sizes should be evened out.
 	  (cons
 	   :format "%v\n"
@@ -4596,9 +4596,9 @@ using the location specifiers `same-window' or `other-frame'."
        (const :format "" other-window-means-other-frame)
        (choice
 	:help-echo "Whether other window means same or other frame."
-	:format "%[Same or other frame%] %v\n" :size 15
-	(const :tag "Same frame" :format "%t" nil)
-	(const :tag "Other frame" :format "%t" t)))
+	:format "%[Other window means other frame%] %v\n" :size 15
+	(const :tag "Off" :format "%t" nil)
+	(const :tag "On" :format "%t" t)))
       ;; Overriding.
       (cons
        :format "%v\n"
@@ -5172,6 +5172,7 @@ SPECIFIERS must be a list of buffer display specifiers."
 	 ;; `major' is the major window on SIDE, `windows' the life
 	 ;; windows on SIDE.
 	 (windows (when major (windows-with-parameter 'window-side side)))
+	 (reuse-dedicated (cdr (assq 'reuse-window-dedicated specifiers)))
 	 (slots (when major (window-child-count major)))
 	 (max-slots
 	  (nth (cond
@@ -5182,7 +5183,7 @@ SPECIFIERS must be a list of buffer display specifiers."
 		window-sides-slots))
 	 (selected-window (selected-window))
 	 window this-window this-slot prev-window next-window
-	 best-window best-slot abs-slot)
+	 best-window best-slot abs-slot dedicated)
 
     (unless (numberp slot)
       (setq slot 0))
@@ -5197,8 +5198,13 @@ SPECIFIERS must be a list of buffer display specifiers."
 	   ((not (numberp this-slot)))
 	   ((and (= this-slot slot)
 		 ;; Dedicatedness check.
-		 (or (not (window-dedicated-p window))
-		     (assq 'reuse-window-dedicated specifiers)))
+		 (or (not (setq dedicated (window-dedicated-p window)))
+		     ;; If the window is weakly dedicated to its
+		     ;; buffer, reuse-dedicated must be non-nil.
+		     (and (not (eq dedicated t)) reuse-dedicated)
+		     ;; If the window is strongly dedicated to its
+		     ;; buffer, reuse-dedicated must be t.
+		     (eq reuse-dedicated t)))
 	    ;; Window with matching SLOT, use it.
 	    (setq this-window window)
 	    (throw 'found t))
@@ -5550,7 +5556,7 @@ LABEL the corresponding argument of `display-buffer'."
 	(let* ((specifiers (cdr entry))
 	       (normalized
 		(display-buffer-normalize-alist-1 specifiers label)))
-	  (if (assq 'override specifiers)
+	  (if (cdr (assq 'override specifiers))
 	      (setq list-1
 		    (if list-1
 			(append list-1 normalized)
@@ -5587,8 +5593,8 @@ specifiers:
 
 - `display-buffer-default-specifiers'."
   (let* ((list (display-buffer-normalize-alist buffer-name label))
-	 (other-frame (assq 'other-window-means-other-frame
-			    (or (car list) (cdr list)))))
+	 (other-frame (cdr (assq 'other-window-means-other-frame
+				 (or (car list) (cdr list))))))
     (append
      ;; Overriding user specifiers.
      (car list)
@@ -5717,7 +5723,7 @@ this list as arguments."
 		(display-buffer-in-side-window
 		 buffer (nth 1 specifier) (nth 2 specifier) normalized))
 	       ((eq method 'fun-with-args)
-		(apply (cadr specifier) buffer (cddr specifier))))))
+		(apply (nth 1 specifier) buffer (nth 2 specifier))))))
 
       ;; If we don't have a window yet, try a fallback method.  All
       ;; specifiers have been used up by now.

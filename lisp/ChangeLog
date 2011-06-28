@@ -1,3 +1,15 @@
+2011-06-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-in-side-window): Handle dedicated
+	windows as in display-buffer-reuse-window.
+	(display-buffer-normalize-alist): Use value of override
+	specifier.
+	(display-buffer-normalize-specifiers): Use value of
+	other-window-means-other-frame specifier.
+	(display-buffer-alist): Rewrite some texts in widgets.
+	(display-buffer): Spread arguments when calling function
+	specified by fun-with-args.
+
 2011-06-28  Deniz Dogan  <deniz@dogan.se>
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table): Unnest
