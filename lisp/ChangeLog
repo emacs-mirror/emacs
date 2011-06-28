@@ -1,12 +1,185 @@
+2011-06-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-send-it): Leave off changing the
+	buffer multibyteness, since it shouldn't matter.
+
+2011-06-28  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-in-side-window): Handle dedicated
+	windows as in display-buffer-reuse-window.
+	(display-buffer-normalize-alist): Use value of override
+	specifier.
+	(display-buffer-normalize-specifiers): Use value of
+	other-window-means-other-frame specifier.
+	(display-buffer-alist): Rewrite some texts in widgets.
+	(display-buffer): Spread arguments when calling function
+	specified by fun-with-args.
+
+2011-06-28  Deniz Dogan  <deniz@dogan.se>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table): Unnest
+	`let'.
+
+	* textmodes/css-mode.el (css-font-lock-keywords): Fix grouped
+	selectors (Bug#5732).
+	(css-proprietary-nmstart-re): Use `regexp-opt'.
+
+2011-06-27  Jari Aalto  <jari.aalto@cante.net>
+
+	* eshell/em-ls.el: Display `ls -l' dates in ISO format (Bug#8440).
+	(eshell-ls-date-format): New defcustom.
+	(eshell-ls-file): Use it.
+
+2011-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (describe-variable): Fix message for terminal-local vars.
+
+2011-06-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* net/ange-ftp.el: Allow loading .gz files (Bug#6923).
+	(ange-ftp-make-tmp-name): New arg.
+	(ange-ftp-file-local-copy): Use it.
+
+2011-06-27  Jambunathan K  <kjambunathan@gmail.com>
+
+	* tar-mode.el (tar-untar-buffer): Set coding-system-for-write to
+	no-conversion (Bug#8870).
+
+2011-06-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-right, window-left, window-child)
+	(window-child-count, window-last-child)
+	(window-iso-combination-p, walk-window-tree-1)
+	(window-atom-check-1, window-tree-1, delete-window)
+	(window-state-get-1, display-buffer-even-window-sizes): Adapt to
+	new naming conventions - window-vchild, window-hchild,
+	window-next and window-prev are now called window-top-child,
+	window-left-child, window-next-sibling and window-prev-sibling
+	respectively.
+	(resize-window-reset): Rename to window-resize-reset.
+	(resize-window-reset-1): Rename to window-resize-reset-1.
+	(resize-window): Rename to window-resize.
+	(window-min-height, window-min-width)
+	(resize-mini-window, resize-this-window, resize-root-window)
+	(resize-root-window-vertically, adjust-window-trailing-edge)
+	(enlarge-window, shrink-window, maximize-window)
+	(minimize-window, delete-window, quit-restore-window)
+	(split-window, balance-windows, balance-windows-area-adjust)
+	(balance-windows-area, window-state-put-2)
+	(display-buffer-even-window-sizes, display-buffer-set-height)
+	(display-buffer-set-width, set-window-text-height)
+	(fit-window-to-buffer): Rename all "resize-window" prefixed
+	calls to use the "window-resize" prefix convention.
+	(display-buffer-alist): Fix symbol for label specifier.
+	(display-buffer-reuse-window): Set reuse-dedicated to cdr of
+	corresponding specifier.
+	Reported by Juanma Barranquero <lekktu@gmail.com>.
+
+2011-06-27  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (ses-destroy-cell-variable-range): Fix heading comment
+	convention.
+	(ses-call-printer): Does not pass an empty string to formatter when the
+	cell is empty to keep from barking printer Calc math-format-value.
+
+2011-06-27  Richard Stallman  <rms@gnu.org>
+
+	* battery.el (battery-mode-line-limit): New variable.
+	(battery-update): Handle it.
+
+	* mail/rmailmm.el (rmail-mime-process-multipart):
+	Handle truncated messages.
+
+2011-06-27  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/flymake.el (flymake-err-line-patterns):
+	Allow for column numbers in the ant/javac pattern.  (Bug#8866)
+
+2011-06-27  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* ses.el (ses-relocate-range): Keep rest of arguments for ses-range.
+	(ses--clean-!, ses--clean-_): New functions.
+	(ses-range): Add configurability of readout order, and conversion
+	to Calc vector.
+
+	* ses.el (ses-repair-cell-reference-all): New function.
+	(ses-cell-symbol): Set macro as safe, so that it can be used in
+	formulas.
+
+	* ses.el:  Update cycle detection algorithm.
+	(ses-localvars): Add ses--Dijkstra-attempt-nb and
+	ses--Dijkstra-weight-bound, and initial values thereof when applicable.
+	(ses-set-localvars): New function.
+	(ses-make-cell): Add property-list as a cell element.
+	(ses-cell-property-get-fun, ses-cell-property-get)
+	(ses-cell-property-delq-fun, ses-cell-property-set-fun)
+	(ses-cell-property-pop-fun, ses-cell-property-get-handle-fun):
+	New functions.
+	(ses-cell-property-set, ses-cell-property-pop)
+	(ses-cell-property-get-handle): New macro.
+	(ses-cell-property-handle-car, ses-cell-property-handle-setcar):
+	New aliases, used for code readability.
+	(ses-calculate-cell, ses-update-cells): Use Dijkstra algorithm for
+	cycle detection.
+	(ses-self-reference-early-detection): New defcustom.
+	(ses-formula-references): Robustify against self-refering cells.
+	(ses-mode): Use ses-set-localvars.
+	(ses-command-hook): Add call to ses-initialize-Dijkstra-attempt
+	before lauching the update processing.
+	(ses-initialize-Dijkstra-attempt): New function.
+	(ses-recalculate-cell): Update for cycle detection based on
+	Dijkstra algorithm.
+
+	* ses.el: Fix commenting and indenting convention.
+
+2011-06-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bs.el (bs-cycle-next): Complete last change.
+
+2011-06-27  Drew Adams  <drew.adams@oracle.com>
+
+	* faces.el (list-faces-display): Add help-mode-map to output (bug#8939).
+
+2011-06-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/network-stream.el (network-stream-open-starttls):
+	Don't re-get capabilities unless we've reestablished connection.
+	(network-stream-open-starttls): Fix stupid typo with gnutls-clii.
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Bind coding-system-for-*
+	to binary to possibly avoid line encoding issues on Windows (among
+	other things).
+
+2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/network-stream.el (open-network-stream): Return an :error
+	saying what the problem was, if possible.
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Report the error from the
+	server.
+
+	* net/network-stream.el (network-stream-open-starttls): If we
+	wanted to use STARTTLS, and the server offered it, but we weren't
+	able to because we had no STARTTLS support, then close the connection.
+	(open-network-stream): Return an :error element, if present.
+
+2011-06-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hl-line.el (hl-line-sticky-flag): Doc fix.
+	(global-hl-line-sticky-flag): New option (Bug#8323).
+	(global-hl-line-highlight): Obey it.
+
+	* vc/vc.el (vc-revert-show-diff): Default to t.
+
 2011-06-26  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout-widgets.el (allout-widgets-post-command-business): Stop
-	decorating intermediate isearch matches.  They're not being
+	* allout-widgets.el (allout-widgets-post-command-business):
+	Stop decorating intermediate isearch matches.  They're not being
 	undecorated when an isearch is continued past, and isearch
 	automatically collapses them.  This leads to "widget leaks", where
 	decorated items accumulate in collapsed areas.  Lines with lots of
-	hidden widgets can slow down cursor travel, substantially.  Too
-	much complicated machinery would be needed to ensure undecoration,
+	hidden widgets can slow down cursor travel, substantially.
+	Too much complicated machinery would be needed to ensure undecoration,
 	so we're doing without this nicety.
 
 	(allout-widgets-tally-string): Don't try to do a hash-table-count
@@ -21,8 +194,8 @@
 	LABEL argument.  Respect special-display-function when popping up
 	a new frame.  Fix code searching for a window showing the buffer
 	on another frame.
-	(display-buffer-normalize-specifiers): Call
-	display-buffer-normalize-arguments.
+	(display-buffer-normalize-specifiers):
+	Call display-buffer-normalize-arguments.
 	(display-buffer-in-window): Don't undedicate the window if its
 	buffer remains the same.
 	Reported by Drew Adams <drew.adams@oracle.com>.
@@ -44,16 +217,16 @@
 
 2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/network-stream.el (network-stream-open-starttls): Use
-	built-in TLS support if `gnutls-available-p' is true.
+	* net/network-stream.el (network-stream-open-starttls):
+	Use built-in TLS support if `gnutls-available-p' is true.
 	(network-stream-open-tls): Ditto.
 
 2011-06-26  Leo Liu  <sdl.web@gmail.com>
 
 	* register.el (registerv): New struct.
 	(registerv-make): New function.
-	(jump-to-register, describe-register-1, insert-register): Support
-	the jump-func, print-func and insert-func slot of a registerv
+	(jump-to-register, describe-register-1, insert-register):
+	Support the jump-func, print-func and insert-func slot of a registerv
 	struct.  (Bug#8415)
 
 2011-06-26  Chong Yidong  <cyd@stupidchicken.com>
@@ -231,8 +404,8 @@
 
 2011-06-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* mail/smtpmail.el (smtpmail-via-smtp): Set
-	:use-starttls-if-possible so that we always use STARTTLS if the
+	* mail/smtpmail.el (smtpmail-via-smtp):
+	Set :use-starttls-if-possible so that we always use STARTTLS if the
 	server supports it.  SMTP servers that support STARTTLS commonly
 	require it.
 
@@ -244,13 +417,13 @@
 	upgrades with `open-network-stream', and rely solely on
 	auth-source for all credentials.  Big changes throughout the file,
 	but in particular:
-	(smtpmail-auth-credentials): Removed.
-	(smtpmail-starttls-credentials): Removed.
+	(smtpmail-auth-credentials): Remove.
+	(smtpmail-starttls-credentials): Remove.
 	(smtpmail-via-smtp): Check for servers saying they want AUTH after
 	MAIL FROM, too.
 
-	* net/network-stream.el (network-stream-open-starttls): Provide
-	support for client certificates both for external and built-in
+	* net/network-stream.el (network-stream-open-starttls):
+	Provide support for client certificates both for external and built-in
 	STARTTLS.
 	(auth-source): Require.
 	(open-network-stream): Document the :client-certificate keyword.
@@ -264,8 +437,8 @@
 
 2011-06-21  Tim Harper  <timcharper@gmail.com>
 
-	* term/ns-win.el (ns-initialize-window-system): set
-	application-specific `ApplePressAndHoldEnabled' system
+	* term/ns-win.el (ns-initialize-window-system):
+	Set application-specific `ApplePressAndHoldEnabled' system
 	resource to NO as it is not yet supported by the NS port.
 
 2011-06-21  Juanma Barranquero  <lekktu@gmail.com>
@@ -290,8 +463,8 @@
 	options more faithfully.
 	(pop-to-buffer): Don't rely on `display-buffer' selecting the
 	window if it is on another frame.
-	(display-buffer-alist, display-buffer-default-specifiers): Don't
-	make new frame unsplittable by default.
+	(display-buffer-alist, display-buffer-default-specifiers):
+	Don't make new frame unsplittable by default.
 	(display-buffer-normalize-argument): Fix doc-string typo and use
 	'same-frame-other-window instead of 'other-window when associating
 	with display-buffer-macro-specifiers.
@@ -308,7 +481,7 @@
 	* progmodes/compile.el (compilation-error-regexp-alist-alist): Rename
 	`caml' to `python-tracebacks-and-caml'; allow leading tabs (bug#8585).
 
-2011-06-21  Drew Adams <drew.adams@oracle.com>
+2011-06-21  Drew Adams  <drew.adams@oracle.com>
 
 	* menu-bar.el: Use function variable instead of switch-to-buffer.
 	(menu-bar-select-buffer-function): New variable.
@@ -834,7 +1007,7 @@
 	(window-in-direction-2, window-in-direction, get-mru-window):
 	New functions.
 
-2011-06-08  Reuben Thomas <rrt@sc3d.org>
+2011-06-08  Reuben Thomas  <rrt@sc3d.org>
 
 	* progmodes/flymake.el (flymake-compilation-prevents-syntax-check):
 	Doc fix (Bug#8713).
@@ -997,7 +1170,6 @@
 	* iswitchb.el (iswitchb-window-buffer-p): Use `member' instead of
 	`memq' (Bug#8799).
 
->>>>>>> MERGE-SOURCE
 2011-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (make-progress-reporter): Add "..." by default (bug#8785).
@@ -1222,7 +1394,6 @@
 
 2011-05-28  Chong Yidong  <cyd@stupidchicken.com>
 
-
 	* emacs-lisp/re-builder.el (re-builder): Improve doc (Bug#8286).
 
 2011-05-28  Dima Kogan  <dkogan@cds.caltech.edu>  (tiny change)
@@ -1353,7 +1524,7 @@
 	* vc/vc-bzr.el (vc-bzr-sha1-program): Rename from sha1-program.
 	(vc-bzr-sha1): Adapt.
 
-	* sha1.el: Remove. Function `sha1' is now builtin.
+	* sha1.el: Remove.  Function `sha1' is now builtin.
 
 	* bindings.el: Provide sha1 feature.
 
@@ -1441,7 +1612,7 @@
 2011-05-23  Vincent Belaïche  <vincentb1@users.sourceforge.net>
 
 	* play/5x5.el: I/ Add an arithmetic solver to suggest positions to
-	click on. II/ Make 5x5 multisession. III/ Ensure that random grids
+	click on.  II/ Make 5x5 multisession.  III/ Ensure that random grids
 	always have a solution in grid size = 5 cases.
 	(5x5-mode-map): Add keybinding to function `5x5-solve-suggest'.
 	(5x5-solver-output, 5x5-log-buffer): New vars.
@@ -2662,7 +2833,7 @@
 
 2011-04-20  felix  <EmacsWiki>  (tiny change)
 
-	* whitespace.el (global-whitespace-mode): keep highlight when
+	* whitespace.el (global-whitespace-mode): Keep highlight when
 	switching between major modes on a file.
 
 2011-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>

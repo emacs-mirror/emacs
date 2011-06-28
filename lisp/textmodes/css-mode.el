@@ -213,7 +213,7 @@
 (defconst css-nmstart-re (concat "\\(?:[[:alpha:]]\\|" css-escapes-re "\\)"))
 (defconst css-ident-re (concat css-nmstart-re css-nmchar-re "*"))
 (defconst css-proprietary-nmstart-re ;; Vendor-specific properties.
-  "[-_]\\(?:ms\\|moz\\|o\\|webkit\\|khtml\\)-")
+  (concat "[-_]" (regexp-opt '("ms" "moz" "o" "khtml" "webkit")) "-"))
 (defconst css-name-re (concat css-nmchar-re "+"))
 
 (defface css-selector '((t :inherit font-lock-function-name-face))
@@ -240,7 +240,7 @@
     ;; thus prevent this highlighting from being applied (actually now that
     ;; I use `append' this should work better).  But really the part of hte
     ;; selector between [...] should simply not be highlighted.
-    (,(concat "^\\([ \t]*[^@:{\n][^:{\n]+\\(?::" (regexp-opt css-pseudo-ids t)
+    (,(concat "^\\([ \t]*[^@:{}\n][^:{}]+\\(?::" (regexp-opt css-pseudo-ids t)
               "\\(?:([^)]+)\\)?[^:{\n]*\\)*\\)\\(?:\n[ \t]*\\)*{")
      (1 'css-selector append))
     ;; In the above rule, we allow the open-brace to be on some subsequent

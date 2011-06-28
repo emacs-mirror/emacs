@@ -56,7 +56,7 @@ ALL_CFLAGS= $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(C_SWITCH_X_SYSTEM) $(C_SWITCH_MACHINE) \
   $(C_WARNINGS_SWITCH) $(PROFILING_CFLAGS) $(CFLAGS) \
   -DHAVE_CONFIG_H -Demacs -I../src \
-  -I$(srcdir) -I$(srcdir)/../src -I$(srcdir)/../lib
+  -I$(srcdir) -I$(srcdir)/../src -I../lib -I$(srcdir)/../lib
 
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<

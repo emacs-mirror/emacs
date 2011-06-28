@@ -1,4 +1,5 @@
-/* A Gtk Widget that inherits GtkFixed, but can be shrinked. 
+/* A Gtk Widget that inherits GtkFixed, but can be shrinked.
+This file is only use when compiling with Gtk+ 3.
 
 Copyright (C) 2011  Free Software Foundation, Inc.
 
@@ -23,6 +24,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
+
+struct frame;
 
 #define EMACS_TYPE_FIXED                  (emacs_fixed_get_type ())
 #define EMACS_FIXED(obj)                  (G_TYPE_CHECK_INSTANCE_CAST ((obj), EMACS_TYPE_FIXED, EmacsFixed))
@@ -49,8 +52,7 @@ struct _EmacsFixedClass
   GtkFixedClass parent_class;
 };
 
-extern GtkWidget *emacs_fixed_new (void);
-extern void emacs_fixed_set_min_size (EmacsFixed *widget, int width, int height);
+extern GtkWidget *emacs_fixed_new (struct frame *f);
 extern GType emacs_fixed_get_type (void);
 
 G_END_DECLS

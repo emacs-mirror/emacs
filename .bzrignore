@@ -110,3 +110,5 @@ test/indent/*.new
 +*
 src/globals.h
 src/gl-stamp
+lisp/mh-e/mh-autoloads.el
+lisp/mh-e/mh-cus-load.el

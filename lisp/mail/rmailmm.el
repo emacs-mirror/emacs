@@ -843,8 +843,18 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
     ;; the beginning of the next part.  The current point is just
     ;; after the boundary tag.
     (setq beg (point-min))
-    (while (search-forward boundary nil t)
-      (setq end (match-beginning 0))
+
+    (while (or (and (search-forward boundary nil t)
+		    (setq end (match-beginning 0)))
+	       ;; If the boundary does not appear at all,
+	       ;; the message was truncated.
+	       ;; Handle the rest of the truncated message
+	       ;; (if it isn't empty) by pretending that the boundary
+	       ;; appears at the end of the message.
+	       (and (save-excursion
+		      (skip-chars-forward "\n")
+		      (> (point-max) (point)))
+		    (setq end (point-max))))
       ;; If this is the last boundary according to RFC 2046, hide the
       ;; epilogue, else hide the boundary only.  Use a marker for
       ;; `next' because `rmail-mime-show' may change the buffer.
@@ -852,6 +862,9 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
 	     (setq next (point-max-marker)))
 	    ((looking-at "[ \t]*\n")
 	     (setq next (copy-marker (match-end 0) t)))
+	    ((= end (point-max))
+	     ;; We're handling what's left of a truncated message.
+	     (setq next (point-max-marker)))
 	    (t
 	     ;; The original code signalled an error as below, but
 	     ;; this line may be a boundary of nested multipart.  So,

@@ -474,7 +474,8 @@ MODE should be an integer which is a file mode value."
             (if (and dir (not (file-exists-p dir)))
                 (make-directory dir t))
             (unless (file-directory-p name)
-              (write-region start end name))
+	      (let ((coding-system-for-write 'no-conversion))
+		(write-region start end name)))
             (set-file-modes name (tar-header-mode descriptor))))))))
 
 (defun tar-summarize-buffer ()

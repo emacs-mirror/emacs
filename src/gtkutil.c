@@ -1086,7 +1086,7 @@ xg_create_frame_widgets (FRAME_PTR f)
   whbox = gtk_hbox_new (FALSE, 0);
 
 #ifdef HAVE_GTK3
-  wfixed = emacs_fixed_new ();
+  wfixed = emacs_fixed_new (f);
 #else
   wfixed = gtk_fixed_new ();
 #endif
@@ -1286,18 +1286,6 @@ x_wm_set_size_hint (FRAME_PTR f, long int flags, int user_position)
   size_hints.min_width  = base_width + min_cols * size_hints.width_inc;
   size_hints.min_height = base_height + min_rows * size_hints.height_inc;
 
-#ifdef HAVE_GTK3
-  /* Gtk3 ignores min width/height and overwrites them with its own idea
-     of min width/height.  Put out min values to the widget so Gtk
-     gets the same value we want it to be.  Without this, a user can't
-     shrink an Emacs frame.
-  */
-  if (FRAME_GTK_WIDGET (f))
-    emacs_fixed_set_min_size (EMACS_FIXED (FRAME_GTK_WIDGET (f)),
-                              size_hints.min_width,
-                              size_hints.min_height);
-#endif
-
   /* These currently have a one to one mapping with the X values, but I
      don't think we should rely on that.  */
   hint_flags |= GDK_HINT_WIN_GRAVITY;
@@ -1336,7 +1324,7 @@ x_wm_set_size_hint (FRAME_PTR f, long int flags, int user_position)
     {
       BLOCK_INPUT;
       gtk_window_set_geometry_hints (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-				     NULL, &size_hints, hint_flags);
+                                     NULL, &size_hints, hint_flags);
       f->output_data.x->size_hints = size_hints;
       f->output_data.x->hint_flags = hint_flags;
       UNBLOCK_INPUT;
