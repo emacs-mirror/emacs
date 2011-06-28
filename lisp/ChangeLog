@@ -2,6 +2,7 @@
 
 	* textmodes/css-mode.el (css-font-lock-keywords): Fix grouped
 	selectors (Bug#5732).
+	(css-proprietary-nmstart-re): Use `regexp-opt'.
 
 2011-06-27  Jari Aalto  <jari.aalto@cante.net>
 

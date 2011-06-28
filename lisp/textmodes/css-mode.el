@@ -213,7 +213,7 @@
 (defconst css-nmstart-re (concat "\\(?:[[:alpha:]]\\|" css-escapes-re "\\)"))
 (defconst css-ident-re (concat css-nmstart-re css-nmchar-re "*"))
 (defconst css-proprietary-nmstart-re ;; Vendor-specific properties.
-  "[-_]\\(?:ms\\|moz\\|o\\|webkit\\|khtml\\)-")
+  (concat "[-_]" (regexp-opt '("ms" "moz" "o" "khtml" "webkit")) "-"))
 (defconst css-name-re (concat css-nmchar-re "+"))
 
 (defface css-selector '((t :inherit font-lock-function-name-face))
