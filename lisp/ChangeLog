@@ -1,3 +1,8 @@
+2011-06-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-send-it): Leave off changing the
+	buffer multibyteness, since it shouldn't matter.
+
 2011-06-28  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-in-side-window): Handle dedicated

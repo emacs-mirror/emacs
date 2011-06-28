@@ -631,7 +631,6 @@ The list is in preference order.")
 
 	  ;; clear the trace buffer of old output
 	  (with-current-buffer process-buffer
-	    (set-buffer-multibyte nil)
 	    (setq buffer-undo-list t)
 	    (erase-buffer))
 
