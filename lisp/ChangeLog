@@ -1,3 +1,9 @@
+2011-06-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/emacsbug.el (report-emacs-bug): Handle non-gnu bug
+	addresses more clearly.  Add hyperlinks for bug-gnu-emacs and
+	debbugs.gnu.org.  Mention acknowledgment email.
+
 2011-06-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-send-it): Leave off changing the
