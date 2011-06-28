@@ -51,7 +51,6 @@ static Lisp_Object Qgnutls_bootprop_callbacks;
 static Lisp_Object Qgnutls_bootprop_loglevel;
 static Lisp_Object Qgnutls_bootprop_hostname;
 static Lisp_Object Qgnutls_bootprop_verify_flags;
-static Lisp_Object Qgnutls_bootprop_verify_error;
 static Lisp_Object Qgnutls_bootprop_verify_hostname_error;
 
 /* Callback keys for `gnutls-boot'.  Unused currently.  */

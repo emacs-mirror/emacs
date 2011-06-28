@@ -1,3 +1,7 @@
+2011-06-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gnutls.c (Qgnutls_bootprop_verify_error): Remove unused var.
+
 2011-06-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in: Redesign dependencies so they reflect more
