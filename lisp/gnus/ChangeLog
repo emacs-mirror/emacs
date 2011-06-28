@@ -1,3 +1,11 @@
+2011-06-28  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-msg.el (gnus-bug): Add Package and Version pseudo-headers to bug
+	reports.
+
+	* gnus.el (gnus-bug-package): Use "gnus."
+	(gnus-maintainer): Direct bug reports to submit@debbugs.gnu.org.
+
 2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-art.el (gnus-article-stop-animations): New function to stop any
