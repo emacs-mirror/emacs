@@ -1076,7 +1076,6 @@ if test "x$crt_files" != x; then
     ## system-dependent default from above.]
     ## Note that this overrides a faulty with-crt-dir.
     if test $crt_gcc = yes && test ! -e $CRT_DIR/$file; then
-       crt_gcc=no                dnl only try once
 
        crt_file=`$CC --print-file-name=$file 2>/dev/null`
        case "$crt_file" in
@@ -1085,6 +1084,10 @@ if test "x$crt_files" != x; then
            ;;
        esac
     fi
+
+    dnl We expect all the files to be in a single directory, so after the
+    dnl first there is no point asking gcc.
+    crt_gcc=no
 
     test -e $CRT_DIR/$file || crt_missing="$crt_missing $file"    
   done                          # $crt_files
