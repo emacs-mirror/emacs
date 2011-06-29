@@ -164,12 +164,55 @@ that matches the variable `mail-header-separator'.
 This is used by the default mail-sending commands.  See also
 `message-send-mail-function' for use with the Message package."
   :type '(radio (function-item sendmail-send-it :tag "Use Sendmail package")
+		(function-item sendmail-query-once :tag "Query the user")
 		(function-item smtpmail-send-it :tag "Use SMTPmail package")
 		(function-item feedmail-send-it :tag "Use Feedmail package")
 		(function-item mailclient-send-it :tag "Use Mailclient package")
 		function)
   :initialize 'custom-initialize-delay
   :group 'sendmail)
+
+(defvar sendmail-query-once-function 'query
+  "Either a function to send email, or the symbol `query'.")
+
+(defun sendmail-query-once ()
+  "Send an email via `sendmail-query-once-function'.
+If `sendmail-query-once-function' is `query', ask the user what
+function to use, and then save that choice."
+  (when (equal sendmail-query-once-function 'query)
+    (let ((default
+	    (cond
+	     ((or (and window-system (eq system-type 'darwin))
+		  (eq system-type 'windows-nt))
+	      'mailclient-send-it)
+	     ((and sendmail-program
+		   (executable-find sendmail-program))
+	      'sendmail-send-it))))
+      (customize-save-variable
+       'sendmail-query-once-function
+       (if (or (not default)
+	       ;; We have detected no OS-level mail senders, or we
+	       ;; have already configured smtpmail, so we use the
+	       ;; internal SMTP service.
+	       (and (boundp 'smtpmail-smtp-server)
+		    smtpmail-smtp-server))
+	   'smtpmail-send-it
+	 ;; Query the user.
+	 (unwind-protect
+	     (progn
+	       (pop-to-buffer "*Mail Help*")
+	       (erase-buffer)
+	       (insert "Sending mail from Emacs hasn't been set up yet.\n\n"
+		       "Type `y' to configure outgoing SMTP, or `n' to use\n"
+		       "the default mail sender on your system.\n\n"
+		       "To change this again at a later date, customize the\n"
+		       "`send-mail-function' variable.\n")
+	       (goto-char (point-min))
+	       (if (y-or-n-p "Configure outgoing SMTP in Emacs? ")
+		   'smtpmail-send-it
+		 default))
+	   (kill-buffer (current-buffer)))))))
+  (funcall sendmail-query-once-function))
 
 ;;;###autoload(custom-initialize-delay 'send-mail-function nil)
 
