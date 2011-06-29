@@ -54,7 +54,7 @@ Lisp_Object Qwindowp, Qwindow_live_p;
 static Lisp_Object Qwindow_configuration_p, Qrecord_window_buffer;
 static Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
 static Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
-static Lisp_Object Qresize_root_window, Qresize_root_window_vertically;
+static Lisp_Object Qwindow_resize_root_window, Qwindow_resize_root_window_vertically;
 static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
 static Lisp_Object Qsafe, Qabove, Qbelow;
 static Lisp_Object Qauto_buffer_name;
@@ -2576,7 +2576,7 @@ selected frame and no others.  */)
 static Lisp_Object
 resize_root_window (Lisp_Object window, Lisp_Object delta, Lisp_Object horizontal, Lisp_Object ignore)
 {
-  return call4 (Qresize_root_window, window, delta, horizontal, ignore);
+  return call4 (Qwindow_resize_root_window, window, delta, horizontal, ignore);
 }
 
 
@@ -4073,7 +4073,8 @@ grow_mini_window (struct window *w, int delta)
 
   root = FRAME_ROOT_WINDOW (f);
   r = XWINDOW (root);
-  value = call2 (Qresize_root_window_vertically, root, make_number (- delta));
+  value = call2 (Qwindow_resize_root_window_vertically,
+		 root, make_number (- delta));
   if (INTEGERP (value) && window_resize_check (r, 0))
     {
       BLOCK_INPUT;
@@ -4107,7 +4108,7 @@ shrink_mini_window (struct window *w)
     {
       root = FRAME_ROOT_WINDOW (f);
       r = XWINDOW (root);
-      value = call2 (Qresize_root_window_vertically,
+      value = call2 (Qwindow_resize_root_window_vertically,
 		     root, make_number (size - 1));
       if (INTEGERP (value) && window_resize_check (r, 0))
 	{
@@ -6454,8 +6455,8 @@ syms_of_window (void)
   DEFSYM (Qwindow_live_p, "window-live-p");
   DEFSYM (Qwindow_deletable_p, "window-deletable-p");
   DEFSYM (Qdelete_window, "delete-window");
-  DEFSYM (Qresize_root_window, "resize-root-window");
-  DEFSYM (Qresize_root_window_vertically, "resize-root-window-vertically");
+  DEFSYM (Qwindow_resize_root_window, "window--resize-root-window");
+  DEFSYM (Qwindow_resize_root_window_vertically, "window--resize-root-window-vertically");
   DEFSYM (Qsafe, "safe");
   DEFSYM (Qdisplay_buffer, "display-buffer");
   DEFSYM (Qreplace_buffer_in_windows, "replace-buffer-in-windows");

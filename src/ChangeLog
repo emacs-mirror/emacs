@@ -1,3 +1,10 @@
+2011-06-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (resize_root_window, grow_mini_window)
+	(shrink_mini_window): Rename Qresize_root_window to
+	Qwindow_resize_root_window and Qresize_root_window_vertically to
+	Qwindow_resize_root_window_vertically.
+
 2011-06-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* gnutls.c (Qgnutls_bootprop_verify_error): Remove unused var.

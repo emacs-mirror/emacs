@@ -1,3 +1,35 @@
+2011-06-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (normalize-live-buffer): Rename to
+	window-normalize-buffer.
+	(normalize-live-frame): Rename to window-normalize-frame.
+	(normalize-any-window): Rename to window-normalize-any-window.
+	(normalize-live-window): Rename to window-normalize-live-window.
+	(make-window-atom): Rename to window-make-atom.
+	(window-resize-reset): Rename to window--resize-reset.
+	(window-resize-reset-1): Rename to window--resize-reset-1.
+	(resize-mini-window): Rename to window--resize-mini-window.
+	(resize-subwindows-skip-p): Rename to
+	window--resize-subwindows-skip-p.
+	(resize-subwindows-normal): Rename to
+	window--resize-subwindows-normal.
+	(resize-subwindows): Rename to window--resize-subwindows.
+	(resize-other-windows): Rename to window--resize-siblings.
+	(resize-this-window): Rename to window--resize-this-window.
+	(resize-root-window): Rename to window--resize-root-window.
+	(resize-root-window-vertically): Rename to
+	window--resize-root-window-vertically.
+	(normalize-buffer-to-display): Rename to
+	window-normalize-buffer-to-display.
+	(normalize-buffer-to-switch-to): Rename to
+	window-normalize-buffer-to-switch-to.
+	Correspondingly update all callers of the functions listed
+	above.
+	(display-buffer-alist, display-buffer-normalize-arguments)
+	(display-buffer-normalize-options, display-buffer)
+	(display-buffer-alist-set): Use "function" instead of
+	"fun-with-args".
+
 2011-06-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mail/emacsbug.el (report-emacs-bug): Handle non-gnu bug
