@@ -1,3 +1,7 @@
+2011-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Try to test for the required crt*.o files.
+
 2011-06-27  Bill Wohler  <wohler@newt.com>
 
 	* .bzrignore: Add lisp/mh-e/mh-autoloads.el and lisp/mh-e/mh-cus-load.el.
