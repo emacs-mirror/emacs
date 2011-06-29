@@ -1040,6 +1040,8 @@ done
 if test "x$crt_files" != x; then
 
   ## If user specified a crt-dir, use that unconditionally.
+  crt_gcc=no
+
   if test "X$CRT_DIR" = "X"; then
 
     CRT_DIR=/usr/lib            # default
@@ -1063,18 +1065,17 @@ if test "x$crt_files" != x; then
       hpux10-20) CRT_DIR=/lib ;;
     esac
 
+    test "x${GCC}" = xyes && crt_gcc=yes
+
   fi                            # CRT_DIR = ""
 
   crt_missing=
-  crt_gcc=no
-  test "x${GCC}" = xyes && crt_gcc=yes
 
   for file in $crt_files; do
 
     ## If we're using gcc, try to determine it automatically by asking
     ## gcc.  [If this doesn't work, CRT_DIR will remain at the
     ## system-dependent default from above.]
-    ## Note that this overrides a faulty with-crt-dir.
     if test $crt_gcc = yes && test ! -e $CRT_DIR/$file; then
 
        crt_file=`$CC --print-file-name=$file 2>/dev/null`
