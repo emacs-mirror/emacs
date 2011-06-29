@@ -1,5 +1,7 @@
 2011-06-29  Glenn Morris  <rgm@gnu.org>
 
+	* files.el (auto-mode-alist): Add .f03, .f08 for f90-mode.
+
 	* ses.el (top-level): Require cl when compiling.
 	(ses-set-localvars): Fix error statement.
 	Call it at compile time to silence a storm of warnings.

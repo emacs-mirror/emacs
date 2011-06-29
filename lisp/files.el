@@ -2268,7 +2268,12 @@ since only a single case-insensitive search through the alist is made."
      ("\\.icn\\'" . icon-mode)
      ("\\.sim\\'" . simula-mode)
      ("\\.mss\\'" . scribe-mode)
+     ;; The Fortran standard does not say anything about file extensions.
+     ;; .f90 was widely used for F90, now we seem to be trapped into
+     ;; using a different extension for each language revision.
+     ;; Anyway, the following extensions are supported by gfortran.
      ("\\.f9[05]\\'" . f90-mode)
+     ("\\.f0[38]\\'" . f90-mode)
      ("\\.indent\\.pro\\'" . fundamental-mode) ; to avoid idlwave-mode
      ("\\.\\(pro\\|PRO\\)\\'" . idlwave-mode)
      ("\\.srt\\'" . srecode-template-mode)
