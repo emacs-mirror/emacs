@@ -1,3 +1,8 @@
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-util.el (mm-charset-to-coding-system): Recognise all ANSI.x3.4
+	variations as ASCII (bug#5458).
+
 2011-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnmh.el (nnmh-request-list-1): Work on MS Windows.

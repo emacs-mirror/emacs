@@ -550,7 +550,8 @@ is not available."
 	 (let ((cs (cdr (assq charset mm-charset-override-alist))))
 	   (and cs (mm-coding-system-p cs) cs))))
    ;; ascii
-   ((eq charset 'us-ascii)
+   ((or (eq charset 'us-ascii)
+	(string-match "ansi.x3.4" (symbol-name charset)))
     'ascii)
    ;; Check to see whether we can handle this charset.  (This depends
    ;; on there being some coding system matching each `mime-charset'
