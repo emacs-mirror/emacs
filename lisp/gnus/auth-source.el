@@ -43,6 +43,9 @@
 (require 'mm-util)
 (require 'gnus-util)
 (require 'assoc)
+(require 'epa)
+(require 'epg)
+
 (eval-when-compile (require 'cl))
 (require 'eieio)
 
@@ -979,56 +982,78 @@ Note that the MAX parameter is used so we can exit the parse early."
 
           (nreverse result))))))
 
-(defmacro with-auth-source-epa-overrides (&rest body)
-  `(let ((file-name-handler-alist
-          ',(if (boundp 'epa-file-handler)
-                (remove (symbol-value 'epa-file-handler)
-                        file-name-handler-alist)
-              file-name-handler-alist))
-         (,(if (boundp 'find-file-hook) 'find-file-hook 'find-file-hooks)
-          ',(remove
-             'epa-file-find-file-hook
-             (if (boundp 'find-file-hook)
-		 (symbol-value 'find-file-hook)
-	       (symbol-value 'find-file-hooks))))
-         (auto-mode-alist
-          ',(if (boundp 'epa-file-auto-mode-alist-entry)
-                (remove (symbol-value 'epa-file-auto-mode-alist-entry)
-                        auto-mode-alist)
-              auto-mode-alist)))
-     ,@body))
+(defvar auth-source-passphrase-alist nil)
 
+(defun auth-source-passphrase-callback-function (context key-id handback
+                                                         &optional sym-detail)
+  "Exactly like `epa-passphrase-callback-function' but takes an
+extra SYM-DETAIL parameter which will be printed at the end of
+the symmetric passphrase prompt, and assumes symmetric
+encryption."
+  (read-passwd
+   (format "Passphrase for symmetric encryption%s%s: "
+           ;; Add the file name to the prompt, if any.
+           (if (stringp handback)
+               (format " for %s" handback)
+             "")
+           (if (stringp sym-detail)
+               sym-detail
+             ""))
+   (eq (epg-context-operation context) 'encrypt)))
+
+(defun auth-source-token-passphrase-callback-function (context key-id file)
+  (if (eq key-id 'SYM)
+      (let* ((file (file-truename file))
+             (entry (assoc file auth-source-passphrase-alist))
+             passphrase)
+        ;; return the saved passphrase, calling a function if needed
+        (or (copy-sequence (if (functionp (cdr entry))
+                               (funcall (cdr entry))
+                             (cdr entry)))
+            (progn
+              (unless entry
+                (setq entry (list file))
+                (push entry auth-source-passphrase-alist))
+              (setq passphrase (auth-source-passphrase-callback-function context
+                                                                 key-id
+                                                                 file
+                                                                 " tokens"))
+              (setcdr entry (lexical-let ((p (copy-sequence passphrase)))
+                              (lambda () p)))
+              passphrase)))
+    (epa-passphrase-callback-function context key-id file)))
+
+;; (auth-source-epa-extract-gpg-token "gpg:LS0tLS1CRUdJTiBQR1AgTUVTU0FHRS0tLS0tClZlcnNpb246IEdudVBHIHYxLjQuMTEgKEdOVS9MaW51eCkKCmpBMEVBd01DT25qMjB1ak9rZnRneVI3K21iNm9aZWhuLzRad3cySkdlbnVaKzRpeEswWDY5di9icDI1U1dsQT0KPS9yc2wKLS0tLS1FTkQgUEdQIE1FU1NBR0UtLS0tLQo=" "~/.netrc")
+(defun auth-source-epa-extract-gpg-token (secret file)
+  "Pass either the decoded SECRET or the gpg:BASE64DATA version.
+FILE is the file from which we obtained this token."
+  (when (string-match "^gpg:\\(.+\\)" secret)
+    (setq secret (base64-decode-string (match-string 1 secret))))
+  (let ((context (epg-make-context 'OpenPGP))
+        plain)
+    (epg-context-set-passphrase-callback
+     context
+     (cons #'auth-source-token-passphrase-callback-function
+           file))
+    (epg-decrypt-string context secret)))
+
+;; (insert (auth-source-epa-make-gpg-token "mysecret" "~/.netrc"))
 (defun auth-source-epa-make-gpg-token (secret file)
-  (require 'epa nil t)
-  (unless (featurep 'epa)
-    (error "EPA could not be loaded."))
-  (let* ((base (file-name-sans-extension file))
-         (passkey (format "gpg:-%s" base))
-         (stash (concat base ".gpg"))
-         ;; temporarily disable EPA
-         (stashfile
-          (with-auth-source-epa-overrides
-           (make-temp-file "gpg-token" nil
-                           stash)))
-         (epa-file-passphrase-alist
-          `((,stashfile
-             . ,(password-read
-                 (format
-                  "token pass for %s? "
-                  file)
-                 passkey)))))
-    (write-region secret nil stashfile)
-    ;; temporarily disable EPA
-    (unwind-protect
-        (with-auth-source-epa-overrides
-         (with-temp-buffer
-           (insert-file-contents stashfile)
-           (base64-encode-region (point-min) (point-max) t)
-           (concat "gpg:"
-                   (buffer-substring-no-properties
-                    (point-min)
-                    (point-max)))))
-      (delete-file stashfile))))
+  (let ((context (epg-make-context 'OpenPGP))
+        (pp-escape-newlines nil)
+        cipher)
+    (epg-context-set-armor context t)
+    (epg-context-set-passphrase-callback
+     context
+     (cons #'auth-source-token-passphrase-callback-function
+           file))
+    (setq cipher (epg-encrypt-string context secret nil))
+    (with-temp-buffer
+      (insert cipher)
+      (base64-encode-region (point-min) (point-max) t)
+      (concat "gpg:" (buffer-substring-no-properties
+                      (point-min)
+                      (point-max))))))
 
 (defun auth-source-netrc-normalize (alist filename)
   (mapcar (lambda (entry)
@@ -1046,60 +1071,22 @@ Note that the MAX parameter is used so we can exit the parse early."
 
                   ;; send back the secret in a function (lexical binding)
                   (when (equal k "secret")
-                    (setq v (lexical-let ((v v)
-                                          (filename filename)
-                                          (base (file-name-nondirectory
-                                                 filename))
-                                          (token-decoder nil)
-                                          (gpgdata nil)
-                                          (stash nil))
-                              (setq stash (concat base ".gpg"))
-                              (when (string-match "gpg:\\(.+\\)" v)
-                                (require 'epa nil t)
-                                (unless (featurep 'epa)
-                                  (error "EPA could not be loaded."))
-                                (setq gpgdata (base64-decode-string
-                                               (match-string 1 v)))
-                                ;; it's a GPG token
-                                (setq
-                                 token-decoder
-                                 (lambda (gpgdata)
-;;; FIXME: this relies on .gpg files being handled by EPA/EPG
-                                   (let* ((passkey (format "gpg:-%s" base))
-                                          ;; temporarily disable EPA
-                                          (stashfile
-                                           (with-auth-source-epa-overrides
-                                            (make-temp-file "gpg-token" nil
-                                                            stash)))
-                                          (epa-file-passphrase-alist
-                                           `((,stashfile
-                                              . ,(password-read
-                                                  (format
-                                                   "token pass for %s? "
-                                                   filename)
-                                                  passkey)))))
-                                     (unwind-protect
-                                         (progn
-                                           ;; temporarily disable EPA
-                                           (with-auth-source-epa-overrides
-                                            (write-region gpgdata
-                                                          nil
-                                                          stashfile))
-                                           (setq
-                                            v
-                                            (with-temp-buffer
-                                              (insert-file-contents stashfile)
-                                              (buffer-substring-no-properties
-                                               (point-min)
-                                               (point-max)))))
-                                       (delete-file stashfile)))
-                                   ;; clear out the decoder at end
-                                   (setq token-decoder nil
-                                         gpgdata nil))))
-                          (lambda ()
-                            (when token-decoder
-                              (funcall token-decoder gpgdata))
-                            v))))
+                    (setq v (lexical-let ((lexv v)
+                                          (token-decoder nil))
+                              (when (string-match "^gpg:" lexv)
+                                ;; it's a GPG token: create a token decoder
+                                ;; which unsets itself once
+                                (setq token-decoder
+                                      (lambda (val)
+                                        (prog1
+                                            (auth-source-epa-extract-gpg-token
+                                             val
+                                             filename)
+                                          (setq token-decoder nil)))))
+                              (lambda ()
+                                (when token-decoder
+                                  (setq lexv (funcall token-decoder lexv)))
+                                lexv))))
                 (setq ret (plist-put ret
                                      (intern (concat ":" k))
                                      v))))

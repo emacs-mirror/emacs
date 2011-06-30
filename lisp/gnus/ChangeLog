@@ -1,3 +1,19 @@
+2011-06-30  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-art.el (gnus-request-article-this-buffer): Use existing function
+	`gnus-refer-article-methods'.
+
+2011-06-30  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Require EPA and EPG.
+	(auth-source-passphrase-alist): New variable.
+	(auth-source-passphrase-callback-function)
+	(auth-source-token-passphrase-callback-function): Callbacks for the
+	netrc field encryption (GPG tokens).
+	(auth-source-epa-extract-gpg-token, auth-source-epa-make-gpg-token):
+	Symmetric encryption and decryption of the netrc GPG tokens.
+	(auth-source-netrc-normalize): Use them, simplifying the closure.
+
 2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-split-incoming-mail): If `nnimap-split-fancy' is
