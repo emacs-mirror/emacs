@@ -335,6 +335,8 @@ This function is provided for backward compatibility, since
 (global-set-key [lwindow] 'ignore)
 (global-set-key [rwindow] 'ignore)
 
+(defvar w32-charset-info-alist)		; w32font.c
+
 (defun w32-add-charset-info (xlfd-charset windows-charset codepage)
   "Function to add character sets to display with Windows fonts.
 Creates entries in `w32-charset-info-alist'.
