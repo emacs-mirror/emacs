@@ -1,3 +1,9 @@
+2011-06-30  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-backend): New member "arg".
+	(auth-source-backend-parse): Handle new backend 'plstore.
+	* plstore.el: New file.
+
 2011-06-30  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-fun.el (gnus-convert-image-to-x-face-command): Doc fix.

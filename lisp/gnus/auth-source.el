@@ -56,6 +56,11 @@
 
 (autoload 'rfc2104-hash "rfc2104")
 
+(autoload 'plstore-open "plstore")
+(autoload 'plstore-find "plstore")
+(autoload 'plstore-put "plstore")
+(autoload 'plstore-save "plstore")
+
 (defvar secrets-enabled)
 
 (defgroup auth-source nil
@@ -100,6 +105,9 @@ let-binding."
          :type t
          :custom string
          :documentation "The backend protocol.")
+   (arg :initarg :arg
+	:initform nil
+	:documentation "The backend arg.")
    (create-function :initarg :create-function
                     :initform ignore
                     :type function
@@ -375,12 +383,20 @@ with \"[a/b/c] \" if CHOICES is '\(?a ?b ?c\)."
 
     ;; a file name with parameters
     ((stringp (plist-get entry :source))
-     (auth-source-backend
-      (plist-get entry :source)
-      :source (plist-get entry :source)
-      :type 'netrc
-      :search-function 'auth-source-netrc-search
-      :create-function 'auth-source-netrc-create))
+     (if (equal (file-name-extension (plist-get entry :source)) "plist")
+	 (auth-source-backend
+	  (plist-get entry :source)
+	  :source (plist-get entry :source)
+	  :type 'plstore
+	  :search-function 'auth-source-plstore-search
+	  :create-function 'auth-source-plstore-create
+	  :arg (plstore-open (plist-get entry :source)))
+       (auth-source-backend
+	(plist-get entry :source)
+	:source (plist-get entry :source)
+	:type 'netrc
+	:search-function 'auth-source-netrc-search
+	:create-function 'auth-source-netrc-create)))
 
     ;; the Secrets API.  We require the package, in order to have a
     ;; defined value for `secrets-enabled'.
@@ -1502,6 +1518,208 @@ authentication tokens:
   ;; TODO
   ;; (apply 'secrets-create-item (auth-get-source entry) name passwd spec)
   (debug spec))
+
+;;; Backend specific parsing: PLSTORE backend
+
+(defun* auth-source-plstore-search (&rest
+                                    spec
+                                    &key backend create delete label
+                                    type max host user port
+                                    &allow-other-keys)
+  "Search the PLSTORE; spec is like `auth-source'."
+
+  ;; TODO
+  (assert (not delete) nil
+          "The PLSTORE auth-source backend doesn't support deletion yet")
+
+  (let* ((store (oref backend arg))
+         (max (or max 5000))     ; sanity check: default to stop at 5K
+         (ignored-keys '(:create :delete :max :backend :require))
+         (search-keys (loop for i below (length spec) by 2
+                            unless (memq (nth i spec) ignored-keys)
+                            collect (nth i spec)))
+         ;; build a search spec without the ignored keys
+         ;; if a search key is nil or t (match anything), we skip it
+         (search-spec (apply 'append (mapcar
+                                      (lambda (k)
+					(let ((v (plist-get spec k)))
+					  (if (or (null v)
+						  (eq t v))
+					      nil
+					    (if (stringp v)
+						(setq v (list v)))
+					    (list k v))))
+				      search-keys)))
+         ;; needed keys (always including host, login, port, and secret)
+         (returned-keys (mm-delete-duplicates (append
+					       '(:host :login :port :secret)
+					       search-keys)))
+         (items (plstore-find store search-spec))
+         (items (butlast items (- (length items) max)))
+         ;; convert the item to a full plist
+         (items (mapcar (lambda (item)
+			  (let* ((plist (copy-tree (cdr item)))
+				 (secret (plist-member plist :secret)))
+			    (if secret
+				(setcar
+				 (cdr secret)
+				 (lexical-let ((v (car (cdr secret))))
+				   (lambda () v))))
+			    plist))
+                        items))
+         ;; ensure each item has each key in `returned-keys'
+         (items (mapcar (lambda (plist)
+                          (append
+                           (apply 'append
+                                  (mapcar (lambda (req)
+                                            (if (plist-get plist req)
+                                                nil
+                                              (list req nil)))
+                                          returned-keys))
+                           plist))
+                        items)))
+    ;; if we need to create an entry AND none were found to match
+    (when (and create
+               (not items))
+
+      ;; create based on the spec and record the value
+      (setq items (or
+                     ;; if the user did not want to create the entry
+                     ;; in the file, it will be returned
+                     (apply (slot-value backend 'create-function) spec)
+                     ;; if not, we do the search again without :create
+                     ;; to get the updated data.
+
+                     ;; the result will be returned, even if the search fails
+                     (apply 'auth-source-plstore-search
+                            (plist-put spec :create nil)))))
+    items))
+
+(defun* auth-source-plstore-create (&rest spec
+					  &key backend
+					  secret host user port create
+					  &allow-other-keys)
+  (let* ((base-required '(host user port secret))
+	 (base-secret '(secret))
+         ;; we know (because of an assertion in auth-source-search) that the
+         ;; :create parameter is either t or a list (which includes nil)
+         (create-extra (if (eq t create) nil create))
+	 (current-data (car (auth-source-search :max 1
+						:host host
+						:port port)))
+         (required (append base-required create-extra))
+         (file (oref backend source))
+         (add "")
+         ;; `valist' is an alist
+         valist
+         ;; `artificial' will be returned if no creation is needed
+         artificial
+	 secret-artificial)
+
+    ;; only for base required elements (defined as function parameters):
+    ;; fill in the valist with whatever data we may have from the search
+    ;; we complete the first value if it's a list and use the value otherwise
+    (dolist (br base-required)
+      (when (symbol-value br)
+        (let ((br-choice (cond
+                          ;; all-accepting choice (predicate is t)
+                          ((eq t (symbol-value br)) nil)
+                          ;; just the value otherwise
+                          (t (symbol-value br)))))
+          (when br-choice
+            (aput 'valist br br-choice)))))
+
+    ;; for extra required elements, see if the spec includes a value for them
+    (dolist (er create-extra)
+      (let ((name (concat ":" (symbol-name er)))
+            (keys (loop for i below (length spec) by 2
+                        collect (nth i spec))))
+        (dolist (k keys)
+          (when (equal (symbol-name k) name)
+            (aput 'valist er (plist-get spec k))))))
+
+    ;; for each required element
+    (dolist (r required)
+      (let* ((data (aget valist r))
+             ;; take the first element if the data is a list
+             (data (or (auth-source-netrc-element-or-first data)
+		       (plist-get current-data
+				  (intern (format ":%s" r) obarray))))
+             ;; this is the default to be offered
+             (given-default (aget auth-source-creation-defaults r))
+             ;; the default supplementals are simple:
+             ;; for the user, try `given-default' and then (user-login-name);
+             ;; otherwise take `given-default'
+             (default (cond
+                       ((and (not given-default) (eq r 'user))
+                        (user-login-name))
+                       (t given-default)))
+             (printable-defaults (list
+                                  (cons 'user
+                                        (or
+                                         (auth-source-netrc-element-or-first
+                                          (aget valist 'user))
+                                         (plist-get artificial :user)
+                                         "[any user]"))
+                                  (cons 'host
+                                        (or
+                                         (auth-source-netrc-element-or-first
+                                          (aget valist 'host))
+                                         (plist-get artificial :host)
+                                         "[any host]"))
+                                  (cons 'port
+                                        (or
+                                         (auth-source-netrc-element-or-first
+                                          (aget valist 'port))
+                                         (plist-get artificial :port)
+                                         "[any port]"))))
+             (prompt (or (aget auth-source-creation-prompts r)
+                         (case r
+                           (secret "%p password for %u@%h: ")
+                           (user "%p user name for %h: ")
+                           (host "%p host name for user %u: ")
+                           (port "%p port for %u@%h: "))
+                         (format "Enter %s (%%u@%%h:%%p): " r)))
+             (prompt (auth-source-format-prompt
+                      prompt
+                      `((?u ,(aget printable-defaults 'user))
+                        (?h ,(aget printable-defaults 'host))
+                        (?p ,(aget printable-defaults 'port))))))
+
+        ;; Store the data, prompting for the password if needed.
+        (setq data
+              (cond
+               ((and (null data) (eq r 'secret))
+                ;; Special case prompt for passwords.
+                (read-passwd prompt))
+               ((null data)
+                (when default
+                  (setq prompt
+                        (if (string-match ": *\\'" prompt)
+                            (concat (substring prompt 0 (match-beginning 0))
+                                    " (default " default "): ")
+                          (concat prompt "(default " default ") "))))
+                (read-string prompt nil nil default))
+               (t (or data default))))
+
+        (when data
+	  (if (member r base-secret)
+	      (setq secret-artificial
+		    (plist-put secret-artificial
+			       (intern (concat ":" (symbol-name r)))
+			       data))
+	    (setq artificial (plist-put artificial
+					(intern (concat ":" (symbol-name r)))
+					data))))))
+    (plstore-put (oref backend arg)
+		 (sha1 (format "%s@%s:%s"
+			       (plist-get artificial :user)
+			       (plist-get artificial :host)
+			       (plist-get artificial :port)))
+		 artificial secret-artificial)
+    (if (y-or-n-p (format "Save auth info to file %s? "
+			  (plstore-get-file (oref backend arg))))
+	(plstore-save (oref backend arg)))))
 
 ;;; older API
 
