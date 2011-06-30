@@ -4421,7 +4421,7 @@
 2008-12-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term/xterm.el (terminal-init-xterm): Discard pending input
-	before reading a reply to the terminal attributes query.
+	before reading a reply to the terminal attributes query.  (Bug#1495)
 
 2008-12-05  Andreas Schwab  <schwab@suse.de>
 
