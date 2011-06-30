@@ -56,6 +56,7 @@
 ;;; Code:
 
 (require 'unsafep)
+(eval-when-compile (require 'cl))
 
 
 ;;----------------------------------------------------------------------------
@@ -272,18 +273,18 @@ default printer and then modify its output.")
 (eval-and-compile
   (defconst ses-localvars
     '(ses--blank-line ses--cells ses--col-printers
-      ses--col-widths (ses--curcell . nil) ses--curcell-overlay
+      ses--col-widths ses--curcell ses--curcell-overlay
       ses--default-printer
-      ses--deferred-narrow (ses--deferred-recalc
-      . nil) (ses--deferred-write . nil) ses--file-format
+      ses--deferred-narrow ses--deferred-recalc
+      ses--deferred-write ses--file-format
       (ses--header-hscroll . -1) ; Flag for "initial recalc needed"
       ses--header-row ses--header-string ses--linewidth
       ses--numcols ses--numrows ses--symbolic-formulas
-      ses--data-marker ses--params-marker (ses--Dijkstra-attempt-nb
-      . 0) ses--Dijkstra-weight-bound
+      ses--data-marker ses--params-marker (ses--Dijkstra-attempt-nb . 0)
+      ses--Dijkstra-weight-bound
       ;; Global variables that we override
       mode-line-process next-line-add-newlines transient-mark-mode)
-    "Buffer-local variables used by SES."))
+    "Buffer-local variables used by SES.")
 
 (defun ses-set-localvars ()
   "Set buffer-local and initialize some SES variables."
@@ -292,8 +293,11 @@ default printer and then modify its output.")
      ((symbolp x)
       (set (make-local-variable x) nil))
      ((consp x)
-       (set (make-local-variable (car x)) (cdr x)))
-     (error "Unexpected elements `%S' in list `ses-localvars'"))))
+      (set (make-local-variable (car x)) (cdr x)))
+     (t (error "Unexpected elements `%S' in list `ses-localvars'" x))))))
+
+(eval-when-compile			; silence compiler
+  (ses-set-localvars))
 
 ;;; This variable is documented as being permitted in file-locals:
 (put 'ses--symbolic-formulas 'safe-local-variable 'consp)
@@ -3344,10 +3348,8 @@ TEST is evaluated."
 ;; These functions use the variables 'row' and 'col' that are dynamically bound
 ;; by ses-print-cell.  We define these variables at compile-time to make the
 ;; compiler happy.
-(eval-when-compile
-  (dolist (x '(row col))
-    (make-local-variable x)
-    (set x nil)))
+(defvar row)
+(defvar col)
 
 (defun ses-center (value &optional span fill)
   "Print VALUE, centered within column.  FILL is the fill character for

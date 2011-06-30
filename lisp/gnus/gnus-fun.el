@@ -54,10 +54,7 @@
   "convert -scale 48x48! %s xbm:- | xbm2xface.pl"
   "Command for converting an image to an X-Face.
 The command must take a image filename (use \"%s\") as input.
-The output must be the Face header data on stdout in PNG format.
-
-By default it takes a GIF filename and output the X-Face header data
-on stdout."
+The output must be the X-Face header data on stdout in PNG format."
   :version "22.1"
   :group 'gnus-fun
   :type '(choice (const :tag "giftopnm, netpbm (GIF input only)"

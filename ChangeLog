@@ -1,3 +1,16 @@
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* configure.in (HAVE_GSETTINGS): Fix syntax for GSETTINGS tests,
+	which made ./configure infloop.
+
+2011-06-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in (gsettings): New option and check for GSettings.
+
+2011-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Try to test for the required crt*.o files.
+
 2011-06-27  Bill Wohler  <wohler@newt.com>
 
 	* .bzrignore: Add lisp/mh-e/mh-autoloads.el and lisp/mh-e/mh-cus-load.el.

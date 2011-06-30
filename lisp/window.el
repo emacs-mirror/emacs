@@ -106,8 +106,7 @@ be any window."
        (or (window-buffer object) (window-child object))
        t))
 
-;; The following four functions should probably go to subr.el.
-(defsubst normalize-live-buffer (buffer-or-name)
+(defsubst window-normalize-buffer (buffer-or-name)
   "Return buffer specified by BUFFER-OR-NAME.
 BUFFER-OR-NAME must be either a buffer or a string naming a live
 buffer and defaults to the current buffer."
@@ -122,7 +121,7 @@ buffer and defaults to the current buffer."
    (t
     (error "No such buffer %s" buffer-or-name))))
 
-(defsubst normalize-live-frame (frame)
+(defsubst window-normalize-frame (frame)
   "Return frame specified by FRAME.
 FRAME must be a live frame and defaults to the selected frame."
   (if frame
@@ -131,7 +130,7 @@ FRAME must be a live frame and defaults to the selected frame."
 	(error "%s is not a live frame" frame))
     (selected-frame)))
 
-(defsubst normalize-any-window (window)
+(defsubst window-normalize-any-window (window)
   "Return window specified by WINDOW.
 WINDOW must be a window that has not been deleted and defaults to
 the selected window."
@@ -141,7 +140,7 @@ the selected window."
 	(error "%s is not a window" window))
     (selected-window)))
 
-(defsubst normalize-live-window (window)
+(defsubst window-normalize-live-window (window)
   "Return live window specified by WINDOW.
 WINDOW must be a live window and defaults to the selected one."
   (if window
@@ -202,7 +201,7 @@ narrower, explictly specify the SIZE argument of that function."
 WINDOW can be any window and defaults to the selected one.
 Optional argument HORIZONTAL non-nil means return WINDOW's first
 child if WINDOW is a horizontal combination."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (if horizontal
       (window-left-child window)
     (window-top-child window)))
@@ -212,7 +211,7 @@ child if WINDOW is a horizontal combination."
 WINDOW can be any window and defaults to the selected one.
 Optional argument HORIZONTAL non-nil means return non-nil if and
 only if WINDOW is horizontally combined."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (let ((parent (window-parent window)))
     (and parent (window-iso-combination-p parent horizontal))))
 
@@ -221,7 +220,7 @@ only if WINDOW is horizontally combined."
 WINDOW can be any window and defaults to the selected one.
 Optional argument HORIZONTAL non-nil means to return the largest
 number of horizontally arranged subwindows of WINDOW."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (cond
    ((window-live-p window)
     ;; If WINDOW is live, return 1.
@@ -277,7 +276,7 @@ FRAME.
 This function performs a pre-order, depth-first traversal of the
 window tree.  If PROC changes the window tree, the result is
 unpredictable."
-  (let ((walk-window-tree-frame (normalize-live-frame frame)))
+  (let ((walk-window-tree-frame (window-normalize-frame frame)))
     (walk-window-tree-1
      proc (frame-root-window walk-window-tree-frame) any)))
 
@@ -290,7 +289,7 @@ on all live and internal subwindows of WINDOW.
 This function performs a pre-order, depth-first traversal of the
 window tree rooted at WINDOW.  If PROC changes that window tree,
 the result is unpredictable."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (walk-window-tree-1 proc window any t))
 
 (defun windows-with-parameter (parameter &optional value frame any values)
@@ -336,14 +335,14 @@ too."
   "Return root of atomic window WINDOW is a part of.
 WINDOW can be any window and defaults to the selected one.
 Return nil if WINDOW is not part of a atomic window."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (let (root)
     (while (and window (window-parameter window 'window-atom))
       (setq root window)
       (setq window (window-parent window)))
     root))
 
-(defun make-window-atom (window)
+(defun window-make-atom (window)
   "Make WINDOW an atomic window.
 WINDOW must be an internal window.  Return WINDOW."
   (if (not (window-child window))
@@ -548,7 +547,7 @@ windows may get as small as `window-safe-min-height' lines and
 `window-safe-min-width' columns.  IGNORE a window means ignore
 restrictions for that window only."
   (window-min-size-1
-   (normalize-any-window window) horizontal ignore))
+   (window-normalize-any-window window) horizontal ignore))
 
 (defun window-min-size-1 (window horizontal ignore)
   "Internal function of `window-min-size'."
@@ -641,7 +640,7 @@ imposed by fixed size windows, `window-min-height' or
 windows may get as small as `window-safe-min-height' lines and
 `window-safe-min-width' columns.  IGNORE any window means ignore
 restrictions for that window only."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (cond
    ((< delta 0)
     (max (- (window-min-size window horizontal ignore)
@@ -659,7 +658,7 @@ restrictions for that window only."
   "Return t if WINDOW can be resized by DELTA lines.
 For the meaning of the arguments of this function see the
 doc-string of `window-sizable'."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (if (> delta 0)
       (>= (window-sizable window delta horizontal ignore) delta)
     (<= (window-sizable window delta horizontal ignore) delta)))
@@ -707,7 +706,7 @@ If this function returns nil, this does not necessarily mean that
 WINDOW can be resized in the desired direction.  The functions
 `window-resizable' and `window-resizable-p' will tell that."
   (window-size-fixed-1
-   (normalize-any-window window) horizontal))
+   (window-normalize-any-window window) horizontal))
 
 (defun window-min-delta-1 (window delta &optional horizontal ignore trail noup)
   "Internal function for `window-min-delta'."
@@ -773,7 +772,7 @@ tree but try to enlarge windows within WINDOW's combination only.
 Optional argument NODOWN non-nil means don't check whether WINDOW
 itself \(and its subwindows) can be shrunk; check only whether at
 least one other windows can be enlarged appropriately."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (let ((size (window-total-size window horizontal))
 	(minimum (window-min-size window horizontal ignore)))
     (cond
@@ -855,7 +854,7 @@ WINDOW's combination.
 Optional argument NODOWN non-nil means do not check whether
 WINDOW itself \(and its subwindows) can be enlarged; check only
 whether other windows can be shrunk appropriately."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (if (and (not (window-size-ignore window ignore))
 	   (not nodown) (window-size-fixed-p window horizontal))
       ;; With IGNORE and NOWDON nil return zero if WINDOW has fixed
@@ -899,7 +898,7 @@ within WINDOW's combination.
 
 Optional argument NODOWN non-nil means don't check whether WINDOW
 and its subwindows can be resized."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (cond
    ((< delta 0)
     (max (- (window-min-delta window horizontal ignore trail noup nodown))
@@ -913,7 +912,7 @@ and its subwindows can be resized."
   "Return t if WINDOW can be resized vertically by DELTA lines.
 For the meaning of the arguments of this function see the
 doc-string of `window-resizable'."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (if (> delta 0)
       (>= (window-resizable window delta horizontal ignore trail noup nodown)
 	  delta)
@@ -942,7 +941,7 @@ More precisely, return t if and only if the total height of
 WINDOW equals the total height of the root window of WINDOW's
 frame.  WINDOW can be any window and defaults to the selected
 one."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (= (window-total-size window)
      (window-total-size (frame-root-window window))))
 
@@ -961,7 +960,7 @@ otherwise."
 More precisely, return t if and only if the total width of WINDOW
 equals the total width of the root window of WINDOW's frame.
 WINDOW can be any window and defaults to the selected one."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (= (window-total-size window t)
      (window-total-size (frame-root-window window) t)))
 
@@ -1002,7 +1001,7 @@ or nil).
 Unlike `window-scroll-bars', this function reports the scroll bar
 type actually used, once frame defaults and `scroll-bar-mode' are
 taken into account."
-  (setq window (normalize-live-window window))
+  (setq window (window-normalize-live-window window))
   (let ((vert (nth 2 (window-scroll-bars window)))
 	(hor nil))
     (when (or (eq vert t) (eq hor t))
@@ -1077,7 +1076,7 @@ DIRECTION must be one of `above', `below', `left' or `right'.
 WINDOW must be a live window and defaults to the selected one.
 IGNORE, when non-nil means a window can be returned even if its
 `no-other-window' parameter is non-nil."
-  (setq window (normalize-live-window window))
+  (setq window (window-normalize-live-window window))
   (unless (memq direction '(above below left right))
     (error "Wrong direction %s" direction))
   (let* ((frame (window-frame window))
@@ -1334,7 +1333,7 @@ non-nil values of ALL-FRAMES have special meanings:
 
 Anything else means consider all windows on the selected frame
 and no others."
-  (let ((buffer (normalize-live-buffer buffer-or-name))
+  (let ((buffer (window-normalize-buffer buffer-or-name))
 	windows)
     (dolist (window (window-list-1 (selected-window) minibuf all-frames))
       (when (eq (window-buffer window) buffer)
@@ -1353,7 +1352,7 @@ meaning of this argument."
    (length (window-list-1 nil minibuf)))
 
 ;;; Resizing windows.
-(defun window-resize-reset (&optional frame horizontal)
+(defun window--resize-reset (&optional frame horizontal)
   "Reset resize values for all windows on FRAME.
 FRAME defaults to the selected frame.
 
@@ -1361,23 +1360,23 @@ This function stores the current value of `window-total-size' applied
 with argument HORIZONTAL in the new total size of all windows on
 FRAME.  It also resets the new normal size of each of these
 windows."
-  (window-resize-reset-1
-   (frame-root-window (normalize-live-frame frame)) horizontal))
+  (window--resize-reset-1
+   (frame-root-window (window-normalize-frame frame)) horizontal))
 
-(defun window-resize-reset-1 (window horizontal)
-  "Internal function of `window-resize-reset'."
+(defun window--resize-reset-1 (window horizontal)
+  "Internal function of `window--resize-reset'."
   ;; Register old size in the new total size.
   (set-window-new-total window (window-total-size window horizontal))
   ;; Reset new normal size.
   (set-window-new-normal window)
   (when (window-child window)
-    (window-resize-reset-1 (window-child window) horizontal))
+    (window--resize-reset-1 (window-child window) horizontal))
   (when (window-right window)
-    (window-resize-reset-1 (window-right window) horizontal)))
+    (window--resize-reset-1 (window-right window) horizontal)))
 
 ;; The following routine is used to manually resize the minibuffer
 ;; window and is currently used, for example, by ispell.el.
-(defun resize-mini-window (window delta)
+(defun window--resize-mini-window (window delta)
   "Resize minibuffer window WINDOW by DELTA lines.
 If WINDOW cannot be resized by DELTA lines make it as large \(or
 as small) as possible but don't signal an error."
@@ -1396,11 +1395,11 @@ as small) as possible but don't signal an error."
 	(setq delta min-delta)))
 
       ;; Resize now.
-      (window-resize-reset frame)
+      (window--resize-reset frame)
       ;; Ideally we should be able to resize just the last subwindow of
       ;; root here.  See the comment in `resize-root-window-vertically'
       ;; for why we do not do that.
-      (resize-this-window root (- delta) nil nil t)
+      (window--resize-this-window root (- delta) nil nil t)
       (set-window-new-total window (+ height delta))
       ;; The following routine catches the case where we want to resize
       ;; a minibuffer-only frame.
@@ -1432,17 +1431,17 @@ This function resizes other windows proportionally and never
 deletes any windows.  If you want to move only the low (right)
 edge of WINDOW consider using `adjust-window-trailing-edge'
 instead."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (let* ((frame (window-frame window))
 	 sibling)
     (cond
      ((eq window (frame-root-window frame))
       (error "Cannot resize the root window of a frame"))
      ((window-minibuffer-p window)
-      (resize-mini-window window delta))
+      (window--resize-mini-window window delta))
      ((window-resizable-p window delta horizontal ignore)
-      (window-resize-reset frame horizontal)
-      (resize-this-window window delta horizontal ignore t)
+      (window--resize-reset frame horizontal)
+      (window--resize-this-window window delta horizontal ignore t)
       (if (and (not (window-splits window))
 	       (window-iso-combined-p window horizontal)
 	       (setq sibling (or (window-right window) (window-left window)))
@@ -1453,7 +1452,7 @@ instead."
 	  (let ((normal-delta
 		 (/ (float delta)
 		    (window-total-size (window-parent window) horizontal))))
-	    (resize-this-window sibling (- delta) horizontal nil t)
+	    (window--resize-this-window sibling (- delta) horizontal nil t)
 	    (set-window-new-normal
 	     window (+ (window-normal-size window horizontal)
 		       normal-delta))
@@ -1461,16 +1460,16 @@ instead."
 	     sibling (- (window-normal-size sibling horizontal)
 			normal-delta)))
 	;; Otherwise, resize all other windows in the same combination.
-	(resize-other-windows window delta horizontal ignore))
+	(window--resize-siblings window delta horizontal ignore))
       (window-resize-apply frame horizontal))
      (t
       (error "Cannot resize window %s" window)))))
 
-(defsubst resize-subwindows-skip-p (window)
+(defsubst window--resize-subwindows-skip-p (window)
   "Return non-nil if WINDOW shall be skipped by resizing routines."
   (memq (window-new-normal window) '(ignore stuck skip)))
 
-(defun resize-subwindows-normal (parent horizontal window this-delta &optional trail other-delta)
+(defun window--resize-subwindows-normal (parent horizontal window this-delta &optional trail other-delta)
   "Set the new normal height of subwindows of window PARENT.
 HORIZONTAL non-nil means set the new normal width of these
 windows.  WINDOW specifies a subwindow of PARENT that has been
@@ -1567,7 +1566,7 @@ PARENT in order to resize WINDOW."
        ;; Don't get larger than 1 or smaller than 0.
        (min 1.0 (max (- 1.0 sum) 0.0))))))
 
-(defun resize-subwindows (parent delta &optional horizontal window ignore trail edge)
+(defun window--resize-subwindows (parent delta &optional horizontal window ignore trail edge)
   "Resize subwindows of window PARENT vertically by DELTA lines.
 PARENT must be a vertically combined internal window.
 
@@ -1603,10 +1602,10 @@ already set by this routine."
 	       (setq sub first)
 	       (while (and (window-right sub)
 			   (or (and (eq trail 'before)
-				    (not (resize-subwindows-skip-p
+				    (not (window--resize-subwindows-skip-p
 					  (window-right sub))))
 			       (and (eq trail 'after)
-				    (resize-subwindows-skip-p sub))))
+				    (window--resize-subwindows-skip-p sub))))
 		 (setq sub (window-right sub)))
 	       sub)
 	     (if horizontal
@@ -1623,7 +1622,8 @@ already set by this routine."
 	     (window-sizable-p sub delta horizontal ignore))
 	;; Resize only windows adjacent to EDGE.
 	(progn
-	  (resize-this-window sub delta horizontal ignore t trail edge)
+	  (window--resize-this-window
+	   sub delta horizontal ignore t trail edge)
 	  (if (and window (eq (window-parent sub) parent))
 	      (progn
 		;; Assign new normal sizes.
@@ -1633,15 +1633,16 @@ already set by this routine."
 		 window (- (window-normal-size window horizontal)
 			   (- (window-new-normal sub)
 			      (window-normal-size sub horizontal)))))
-	    (resize-subwindows-normal parent horizontal sub 0 trail delta))
-	  ;; Return 'normalized to notify `resize-other-windows' that
+	    (window--resize-subwindows-normal
+	     parent horizontal sub 0 trail delta))
+	  ;; Return 'normalized to notify `window--resize-siblings' that
 	  ;; normal sizes have been already set.
 	  'normalized)
       ;; Resize all windows proportionally.
       (setq sub first)
       (while sub
 	(cond
-	 ((or (resize-subwindows-skip-p sub)
+	 ((or (window--resize-subwindows-skip-p sub)
 	      ;; Ignore windows to skip and fixed-size subwindows - in
 	      ;; the latter case make it a window to skip.
 	      (and (not ignore)
@@ -1738,11 +1739,11 @@ already set by this routine."
 	      (unless (and (zerop delta) (not trail))
 		;; For the TRAIL non-nil case we have to resize SUB
 		;; recursively even if it's size does not change.
-		(resize-this-window
+		(window--resize-this-window
 		 sub delta horizontal ignore nil trail edge))))
 	  (setq sub (window-right sub)))))))
 
-(defun resize-other-windows (window delta &optional horizontal ignore trail edge)
+(defun window--resize-siblings (window delta &optional horizontal ignore trail edge)
   "Resize other windows when WINDOW is resized vertically by DELTA lines.
 Optional argument HORIZONTAL non-nil means resize other windows
 when WINDOW is resized horizontally by DELTA columns.  WINDOW
@@ -1814,17 +1815,19 @@ preferably only resize windows adjacent to EDGE."
 	    (if (zerop this-delta)
 		;; We haven't got anything from WINDOW's siblings but we
 		;; must update the normal sizes to respect other-delta.
-		(resize-subwindows-normal
+		(window--resize-subwindows-normal
 		 parent horizontal window this-delta trail other-delta)
 	      ;; We did get something from WINDOW's siblings which means
 	      ;; we have to resize their subwindows.
-	      (unless (eq (resize-subwindows parent (- this-delta) horizontal
-					     window ignore trail edge)
-			  ;; `resize-subwindows' returning 'normalized,
-			  ;; means it has set the normal sizes already.
+	      (unless (eq (window--resize-subwindows
+			   parent (- this-delta) horizontal
+			   window ignore trail edge)
+			  ;; If `window--resize-subwindows' returns
+			  ;; 'normalized, this means it has set the
+			  ;; normal sizes already.
 			  'normalized)
 		;; Set the normal sizes.
-		(resize-subwindows-normal
+		(window--resize-subwindows-normal
 		 parent horizontal window this-delta trail other-delta))
 	      ;; Set DELTA to what we still have to get from ancestor
 	      ;; windows.
@@ -1835,14 +1838,15 @@ preferably only resize windows adjacent to EDGE."
 	(set-window-new-total parent delta 'add)
 	(while sub
 	  (unless (eq sub window)
-	    (resize-this-window sub delta horizontal ignore t))
+	    (window--resize-this-window sub delta horizontal ignore t))
 	  (setq sub (window-right sub))))
 
       (unless (zerop delta)
 	;; "Go up."
-	(resize-other-windows parent delta horizontal ignore trail edge)))))
+	(window--resize-siblings
+	 parent delta horizontal ignore trail edge)))))
 
-(defun resize-this-window (window delta &optional horizontal ignore add trail edge)
+(defun window--resize-this-window (window delta &optional horizontal ignore add trail edge)
   "Resize WINDOW vertically by DELTA lines.
 Optional argument HORIZONTAL non-nil means resize WINDOW
 horizontally by DELTA columns.
@@ -1879,14 +1883,16 @@ actually take effect."
      ((window-iso-combined-p sub horizontal)
       ;; In an iso-combination resize subwindows according to their
       ;; normal sizes.
-      (resize-subwindows window delta horizontal nil ignore trail edge))
+      (window--resize-subwindows
+       window delta horizontal nil ignore trail edge))
      ;; In an ortho-combination resize each subwindow by DELTA.
      (t
       (while sub
-	(resize-this-window sub delta horizontal ignore t trail edge)
+	(window--resize-this-window
+	 sub delta horizontal ignore t trail edge)
 	(setq sub (window-right sub)))))))
 
-(defun resize-root-window (window delta horizontal ignore)
+(defun window--resize-root-window (window delta horizontal ignore)
   "Resize root window WINDOW vertically by DELTA lines.
 HORIZONTAL non-nil means resize root window WINDOW horizontally
 by DELTA columns.
@@ -1898,10 +1904,10 @@ This function is only called by the frame resizing routines.  It
 resizes windows proportionally and never deletes any windows."
   (when (and (windowp window) (numberp delta)
 	     (window-sizable-p window delta horizontal ignore))
-    (window-resize-reset (window-frame window) horizontal)
-    (resize-this-window window delta horizontal ignore t)))
+    (window--resize-reset (window-frame window) horizontal)
+    (window--resize-this-window window delta horizontal ignore t)))
 
-(defun resize-root-window-vertically (window delta)
+(defun window--resize-root-window-vertically (window delta)
   "Resize root window WINDOW vertically by DELTA lines.
 If DELTA is less than zero and we can't shrink WINDOW by DELTA
 lines, shrink it as much as possible.  If DELTA is greater than
@@ -1922,7 +1928,7 @@ any windows."
 	(unless (window-sizable window delta)
 	  (setq ignore t))))
 
-      (window-resize-reset (window-frame window))
+      (window--resize-reset (window-frame window))
       ;; Ideally, we would resize just the last window in a combination
       ;; but that's not feasible for the following reason: If we grow
       ;; the minibuffer window and the last window cannot be shrunk any
@@ -1932,7 +1938,7 @@ any windows."
       ;; So, in practice, we'd need a history variable to record how to
       ;; proceed.  But I'm not sure how such a variable could work with
       ;; repeated minibuffer window growing steps.
-      (resize-this-window window delta nil ignore t)
+      (window--resize-this-window window delta nil ignore t)
       delta)))
 
 (defun adjust-window-trailing-edge (window delta &optional horizontal)
@@ -1944,7 +1950,7 @@ If DELTA is greater zero, then move the edge downwards or to the
 right.  If DELTA is less than zero, move the edge upwards or to
 the left.  If the edge can't be moved by DELTA lines or columns,
 move it as far as possible in the desired direction."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (let ((frame (window-frame window))
 	(right window)
 	left this-delta min-delta max-delta failed)
@@ -1955,7 +1961,7 @@ move it as far as possible in the desired direction."
     (cond
      ((and (not right) (not horizontal) (not resize-mini-windows)
 	   (eq (window-frame (minibuffer-window frame)) frame))
-      (resize-mini-window (minibuffer-window frame) (- delta)))
+      (window--resize-mini-window (minibuffer-window frame) (- delta)))
      ((or (not (setq left right)) (not (setq right (window-right right))))
       (if horizontal
 	  (error "No window on the right of this one")
@@ -2000,17 +2006,17 @@ move it as far as possible in the desired direction."
 	  (setq delta (min max-delta (- min-delta))))
 	(unless (zerop delta)
 	  ;; Start resizing.
-	  (window-resize-reset frame horizontal)
+	  (window--resize-reset frame horizontal)
 	  ;; Try to enlarge LEFT first.
 	  (setq this-delta (window-resizable left delta horizontal))
 	  (unless (zerop this-delta)
-	    (resize-this-window
+	    (window--resize-this-window
 	     left this-delta horizontal nil t 'before
 	     (if horizontal
 		 (+ (window-left-column left) (window-total-size left t))
 	       (+ (window-top-line left) (window-total-size left)))))
 	  ;; Shrink windows on right of LEFT.
-	  (resize-other-windows
+	  (window--resize-siblings
 	   left delta horizontal nil 'after
 	   (if horizontal
 	       (window-left-column right)
@@ -2023,17 +2029,17 @@ move it as far as possible in the desired direction."
 	  (setq delta (max (- max-delta) min-delta)))
 	(unless (zerop delta)
 	  ;; Start resizing.
-	  (window-resize-reset frame horizontal)
+	  (window--resize-reset frame horizontal)
 	  ;; Try to enlarge RIGHT.
 	  (setq this-delta (window-resizable right (- delta) horizontal))
 	  (unless (zerop this-delta)
-	    (resize-this-window
+	    (window--resize-this-window
 	     right this-delta horizontal nil t 'after
 	     (if horizontal
 		 (window-left-column right)
 	       (window-top-line right))))
 	  ;; Shrink windows on left of RIGHT.
-	  (resize-other-windows
+	  (window--resize-siblings
 	   right (- delta) horizontal nil 'before
 	   (if horizontal
 	       (+ (window-left-column left) (window-total-size left t))
@@ -2091,7 +2097,7 @@ Return nil."
 Make WINDOW as large as possible without deleting any windows.
 WINDOW can be any window and defaults to the selected window."
   (interactive)
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (window-resize window (window-max-delta window))
   (window-resize window (window-max-delta window t) t))
 
@@ -2100,7 +2106,7 @@ WINDOW can be any window and defaults to the selected window."
 Make WINDOW as small as possible without deleting any windows.
 WINDOW can be any window and defaults to the selected window."
   (interactive)
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (window-resize window (- (window-min-delta window)))
   (window-resize window (- (window-min-delta window t)) t))
 
@@ -2146,7 +2152,7 @@ and the rest of the elements are the subwindows in the split.
 Each of the subwindows may again be a window or a list
 representing a window split, and so on.  EDGES is a list \(LEFT
 TOP RIGHT BOTTOM) as returned by `window-edges'."
-  (setq frame (normalize-live-frame frame))
+  (setq frame (window-normalize-frame frame))
   (window-tree-1 (frame-root-window frame) t))
 
 (defun other-window (count &optional all-frames)
@@ -2278,7 +2284,7 @@ variable are `switch-to-prev-buffer', `delete-windows-on',
   "Return t if WINDOW can be safely deleted from its frame.
 Return `frame' if deleting WINDOW should delete its frame
 instead."
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (unless ignore-window-parameters
     ;; Handle atomicity.
     (when (window-parameter window 'window-atom)
@@ -2336,7 +2342,7 @@ Otherwise, if WINDOW is part of an atomic window, call
 argument.  If WINDOW is the only window on its frame or the last
 non-side window, signal an error."
   (interactive)
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (let* ((frame (window-frame window))
 	 (function (window-parameter window 'delete-window))
 	 (parent (window-parent window))
@@ -2371,21 +2377,21 @@ non-side window, signal an error."
 	     ;; Emacs 23 preferably gives WINDOW's space to its left
 	     ;; sibling.
 	     (sibling (or (window-left window) (window-right window))))
-	(window-resize-reset frame horizontal)
+	(window--resize-reset frame horizontal)
 	(cond
 	 ((and (not (window-splits window))
 	       sibling (window-sizable-p sibling size))
 	  ;; Resize WINDOW's sibling.
-	  (resize-this-window sibling size horizontal nil t)
+	  (window--resize-this-window sibling size horizontal nil t)
 	  (set-window-new-normal
 	   sibling (+ (window-normal-size sibling horizontal)
 		      (window-normal-size window horizontal))))
 	 ((window-resizable-p window (- size) horizontal nil nil nil t)
 	  ;; Can do without resizing fixed-size windows.
-	  (resize-other-windows window (- size) horizontal))
+	  (window--resize-siblings window (- size) horizontal))
 	 (t
 	  ;; Can't do without resizing fixed-size windows.
-	  (resize-other-windows window (- size) horizontal t)))
+	  (window--resize-siblings window (- size) horizontal t)))
 	;; Actually delete WINDOW.
 	(delete-window-internal window)
 	(when (and frame-selected
@@ -2417,7 +2423,7 @@ WINDOW is a non-side window, make WINDOW the only non-side window
 on the frame.  Side windows are not deleted. If WINDOW is a side
 window signal an error."
   (interactive)
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (let* ((frame (window-frame window))
 	 (function (window-parameter window 'delete-other-windows))
 	 (window-side (window-parameter window 'window-side))
@@ -2499,7 +2505,7 @@ This may be a useful alternative binding for \\[delete-other-windows]
 (defun record-window-buffer (&optional window)
   "Record WINDOW's buffer.
 WINDOW must be a live window and defaults to the selected one."
-  (let* ((window (normalize-live-window window))
+  (let* ((window (window-normalize-live-window window))
 	 (buffer (window-buffer window))
 	 (entry (assq buffer (window-prev-buffers window))))
     ;; Reset WINDOW's next buffers.  If needed, they are resurrected by
@@ -2535,7 +2541,7 @@ WINDOW must be a live window and defaults to the selected one."
 WINDOW must be a live window and defaults to the selected one.
 BUFFER must be a live buffer and defaults to the buffer of
 WINDOW."
-  (let* ((window (normalize-live-window window))
+  (let* ((window (window-normalize-live-window window))
 	 (buffer (or buffer (window-buffer window))))
     (set-window-prev-buffers
      window (assq-delete-all buffer (window-prev-buffers window)))
@@ -2570,7 +2576,7 @@ Optional argument BURY-OR-KILL non-nil means the buffer currently
 shown in WINDOW is about to be buried or killed and consequently
 shall not be switched to in future invocations of this command."
   (interactive)
-  (let* ((window (normalize-live-window window))
+  (let* ((window (window-normalize-live-window window))
 	 (old-buffer (window-buffer window))
 	 ;; Save this since it's destroyed by `set-window-buffer'.
 	 (next-buffers (window-next-buffers window))
@@ -2672,7 +2678,7 @@ shall not be switched to in future invocations of this command."
   "In WINDOW switch to next buffer.
 WINDOW must be a live window and defaults to the selected one."
   (interactive)
-  (let* ((window (normalize-live-window window))
+  (let* ((window (window-normalize-live-window window))
 	 (old-buffer (window-buffer window))
 	 (next-buffers (window-next-buffers window))
 	 new-buffer entry killed-buffers visible)
@@ -2786,7 +2792,7 @@ current buffer.  Also, if BUFFER-OR-NAME is nil or omitted,
 remove the current buffer from the selected window if it is
 displayed there."
   (interactive)
-  (let* ((buffer (normalize-live-buffer buffer-or-name)))
+  (let* ((buffer (window-normalize-buffer buffer-or-name)))
     ;; If `buffer-or-name' is not on the selected frame we unrecord it
     ;; although it's not "here" (call it a feature).
     (unrecord-buffer buffer)
@@ -2843,7 +2849,7 @@ When a window showing BUFFER-OR-NAME is dedicated and the only
 window of its frame, that frame is deleted when there are other
 frames left."
   (interactive "BDelete windows on (buffer):\nP")
-  (let ((buffer (normalize-live-buffer buffer-or-name))
+  (let ((buffer (window-normalize-buffer buffer-or-name))
 	;; Handle the "inverted" meaning of the FRAME argument wrt other
 	;; `window-list-1' based function.
 	(all-frames (cond ((not frame) t) ((eq frame t) nil) (t frame))))
@@ -2877,7 +2883,7 @@ left, some other buffer is displayed in that window.
 
 This function removes the buffer denoted by BUFFER-OR-NAME from
 all window-local buffer lists."
-  (let ((buffer (normalize-live-buffer buffer-or-name)))
+  (let ((buffer (window-normalize-buffer buffer-or-name)))
     (dolist (window (window-list-1 nil nil t))
       (if (eq (window-buffer window) buffer)
 	  (let ((deletable (window-deletable-p window)))
@@ -2910,7 +2916,7 @@ Optional argument KILL non-nil means in addition kill WINDOW's
 buffer.  If KILL is nil, put WINDOW's buffer at the end of the
 buffer list.  Interactively, KILL is the prefix argument."
   (interactive "i\nP")
-  (setq window (normalize-live-window window))
+  (setq window (window-normalize-live-window window))
   (let ((buffer (window-buffer window))
 	(quit-restore (window-parameter window 'quit-restore))
 	deletable resize)
@@ -3014,7 +3020,7 @@ window, these properties as well as the buffer displayed in the
 new window are inherited from the window selected on WINDOW's
 frame.  The selected window is not changed by this function."
   (interactive "i")
-  (setq window (normalize-any-window window))
+  (setq window (window-normalize-any-window window))
   (let* ((side (cond
 		((not side) 'below)
 		((memq side '(below above right left)) side)
@@ -3141,7 +3147,7 @@ frame.  The selected window is not changed by this function."
 	  ;; SIZE specification violates minimum size restrictions.
 	  (error "Window %s too small for splitting" window)))
 
-	(window-resize-reset frame horizontal)
+	(window--resize-reset frame horizontal)
 
 	(setq new-parent
 	      ;; Make new-parent non-nil if we need a new parent window;
@@ -3162,7 +3168,7 @@ frame.  The selected window is not changed by this function."
 	    ;; we won't be able to return space to those windows when we
 	    ;; delete the one we create here.  Hence we do not go up.
 	    (progn
-	      (resize-subwindows parent (- new-size) horizontal)
+	      (window--resize-subwindows parent (- new-size) horizontal)
 	      (let* ((normal (- 1.0 new-normal))
 		     (sub (window-child parent)))
 		(while sub
@@ -3171,7 +3177,7 @@ frame.  The selected window is not changed by this function."
 		  (setq sub (window-right sub)))))
 	  ;; Get entire space from WINDOW.
 	  (set-window-new-total window (- old-size new-size))
-	  (resize-this-window window (- new-size) horizontal)
+	  (window--resize-this-window window (- new-size) horizontal)
 	  (set-window-new-normal
 	   window (- (if new-parent 1.0 (window-normal-size window horizontal))
 		     new-normal)))
@@ -3287,8 +3293,8 @@ The selected window remains selected.  Return the new window."
 ;;; Balancing windows.
 
 ;; The following routine uses the recycled code from an old version of
-;; `resize-subwindows'.  It's not very pretty, but coding it the way the
-;; new `resize-subwindows' code does would hardly make it any shorter or
+;; `window--resize-subwindows'.  It's not very pretty, but coding it the way the
+;; new `window--resize-subwindows' code does would hardly make it any shorter or
 ;; more readable (FWIW we'd need three loops - one to calculate the
 ;; minimum sizes per window, one to enlarge or shrink windows until the
 ;; new parent-size matches, and one where we shrink the largest/enlarge
@@ -3317,7 +3323,7 @@ WINDOW must be an iso-combination."
       (setq sub first)
       (while (and sub (not failed))
 	;; Ignore subwindows that should be ignored or are stuck.
-	(unless (resize-subwindows-skip-p sub)
+	(unless (window--resize-subwindows-skip-p sub)
 	  (setq found t)
 	  (setq sub-total (window-total-size sub horizontal))
 	  (setq sub-delta (- size sub-total))
@@ -3338,7 +3344,7 @@ WINDOW must be an iso-combination."
     ;; (column) until `rest' is zero.
     (setq sub first)
     (while (and sub (> rest 0))
-      (unless (resize-subwindows-skip-p window)
+      (unless (window--resize-subwindows-skip-p window)
 	(set-window-new-total sub 1 t)
 	(setq rest (1- rest)))
       (setq sub (window-right sub)))
@@ -3396,11 +3402,11 @@ window."
 	    (error "Not a window or frame %s" window-or-frame))))
 	 (frame (window-frame window)))
     ;; Balance vertically.
-    (window-resize-reset (window-frame window))
+    (window--resize-reset (window-frame window))
     (balance-windows-1 window)
     (window-resize-apply frame)
     ;; Balance horizontally.
-    (window-resize-reset (window-frame window) t)
+    (window--resize-reset (window-frame window) t)
     (balance-windows-1 window t)
     (window-resize-apply frame t)))
 
@@ -3767,7 +3773,7 @@ Optional argument IGNORE non-nil means ignore minimum window
 sizes and fixed size restrictions.  IGNORE equal `safe' means
 subwindows can get as small as `window-safe-min-height' and
 `window-safe-min-width'."
-  (setq window (normalize-live-window window))
+  (setq window (window-normalize-live-window window))
   (let* ((frame (window-frame window))
 	 (head (car state))
 	 ;; We check here (1) whether the total sizes of root window of
@@ -3898,7 +3904,7 @@ match occurs in one of the following three cases:
 Display specifiers are either symbols, cons cells, or lists.
 Five specifiers have been reserved to indicate the basic method
 for displaying the buffer: `reuse-window', `pop-up-window',
-`pop-up-frame', `use-side-window', and `fun-with-args'.
+`pop-up-frame', `use-side-window', and `function'.
 
 A list whose car is the symbol `reuse-window' indicates that an
 existing window shall be reused for displaying the buffer.  The
@@ -4088,7 +4094,7 @@ The following specifiers are useful in connection with the
 `pop-up-window-min-height', `pop-up-window-min-width',
 `pop-up-window-set-height' and `pop-up-window-set-width'.
 
-A list whose car is the symbol `fun-with-args' specifies that the
+A list whose car is the symbol `function' specifies that the
 function specified in the second element of the list is
 responsible for displaying the buffer.  `display-buffer' calls
 this function with the buffer as first argument and the remaining
@@ -4514,18 +4520,18 @@ using the location specifiers `same-window' or `other-frame'."
 	;; Function with argument specifiers.
 	(list
 	 :tag "Function with arguments"
-	 :value (fun-with-args (fun-with-args 'ignore))
+	 :value (function (function 'ignore))
 	 :format "%t\n%v"
 	 :inline t
 	 ;; For customization purposes only.
-	 (const :format "" fun-with-args)
+	 (const :format "" function)
 	 (set
 	  :format "%v"
 	  :inline t
 	  (list
 	   :format "%v"
-	   :value (fun-with-args 'ignore)
-	   (const :format "" fun-with-args)
+	   :value (function 'ignore)
+	   (const :format "" function)
 	   (function :tag "Function" :format "%t: %v\n" :size 25)
 	   (list
 	    :format "%v"
@@ -4736,8 +4742,8 @@ Return WINDOW.
 
 SPECIFIERS must be a list of buffer display specifiers, see the
 documentation of `display-buffer-alist' for a description."
-  (setq buffer (normalize-live-buffer buffer))
-  (setq window (normalize-live-window window))
+  (setq buffer (window-normalize-buffer buffer))
+  (setq window (window-normalize-live-window window))
   (let* ((old-frame (selected-frame))
 	 (new-frame (window-frame window))
 	 (dedicated (cdr (assq 'dedicated specifiers)))
@@ -5287,7 +5293,7 @@ SPECIFIERS must be a list of buffer display specifiers."
 	  (set-window-parameter window 'window-slot slot))
 	(display-buffer-in-window buffer window specifiers)))))
 
-(defun normalize-buffer-to-display (buffer-or-name)
+(defun window-normalize-buffer-to-display (buffer-or-name)
   "Normalize BUFFER-OR-NAME argument for buffer display functions.
 If BUFFER-OR-NAME is nil, return the curent buffer.  Else, if a
 buffer specified by BUFFER-OR-NAME exists, return that buffer.
@@ -5313,7 +5319,7 @@ Optional argument LABEL is like the same argument of
 
 The calculation of the return value is exclusively based on the
 user preferences expressed in `display-buffer-alist'."
-  (let* ((buffer (normalize-live-buffer buffer-or-name))
+  (let* ((buffer (window-normalize-buffer buffer-or-name))
 	 (list (display-buffer-normalize-alist (buffer-name buffer) label))
 	 (value (assq 'other-window-means-other-frame
 		      (or (car list) (cdr list)))))
@@ -5364,7 +5370,7 @@ use other-frame for other-window."
 		     ;; `special-display-function'.
 		     (setq pars (with-no-warnings
 				  (special-display-p buffer-name))))
-		(list (list 'fun-with-args
+		(list (list 'function
 			    (with-no-warnings special-display-function)
 			    (when (listp pars) pars)))
 	      ;; Pop up another frame.
@@ -5393,7 +5399,7 @@ BUFFER-OR-NAME is the buffer to display.  This routine provides a
 compatibility layer for the now obsolete Emacs 23 buffer display
 options."
   (with-no-warnings
-    (let* ((buffer (normalize-live-buffer buffer-or-name))
+    (let* ((buffer (window-normalize-buffer buffer-or-name))
 	   (buffer-name (buffer-name buffer))
 	   (use-pop-up-frames
 	    (or (and (eq pop-up-frames 'graphic-only)
@@ -5473,7 +5479,7 @@ options."
 	(let ((pars (special-display-p buffer-name)))
 	  (when pars
 	    (setq specifiers
-		  (cons (list 'fun-with-args special-display-function
+		  (cons (list 'function special-display-function
 			      (when (listp pars) pars))
 			specifiers)))))
 
@@ -5615,7 +5621,7 @@ specifiers:
 (defun display-buffer-frame (&optional frame)
   "Return FRAME if it is live and not a minibuffer-only frame.
 Return the value of `last-nonminibuffer-frame' otherwise."
-  (setq frame (normalize-live-frame frame))
+  (setq frame (window-normalize-frame frame))
   (if (and (frame-live-p frame)
 	   ;; A not very nice way to get that information.
 	   (not (window-minibuffer-p (frame-root-window frame))))
@@ -5688,7 +5694,7 @@ The result must be a list of valid buffer display specifiers.  If
 `display-buffer-function' is non-nil, call it with the buffer and
 this list as arguments."
   (interactive "BDisplay buffer:\nP")
-  (let* ((buffer (normalize-buffer-to-display buffer-or-name))
+  (let* ((buffer (window-normalize-buffer-to-display buffer-or-name))
 	 (buffer-name (buffer-name buffer))
 	 (normalized
 	  ;; Normalize specifiers.
@@ -5722,7 +5728,7 @@ this list as arguments."
 	       ((eq method 'use-side-window)
 		(display-buffer-in-side-window
 		 buffer (nth 1 specifier) (nth 2 specifier) normalized))
-	       ((eq method 'fun-with-args)
+	       ((eq method 'function)
 		(apply (nth 1 specifier) buffer (nth 2 specifier))))))
 
       ;; If we don't have a window yet, try a fallback method.  All
@@ -5820,7 +5826,7 @@ This uses the function `display-buffer' as a subroutine; see the
 documentations of `display-buffer' and `display-buffer-alist' for
 additional information."
   (interactive "BPop to buffer:\nP")
-  (let ((buffer (normalize-buffer-to-display buffer-or-name))
+  (let ((buffer (window-normalize-buffer-to-display buffer-or-name))
 	(old-window (selected-window))
 	(old-frame (selected-frame))
 	new-window new-frame)
@@ -5902,7 +5908,7 @@ from the list of completions and default values."
       (read-buffer prompt (other-buffer (current-buffer))
                    (confirm-nonexistent-file-or-buffer)))))
 
-(defun normalize-buffer-to-switch-to (buffer-or-name)
+(defun window-normalize-buffer-to-switch-to (buffer-or-name)
   "Normalize BUFFER-OR-NAME argument of buffer switching functions.
 If BUFFER-OR-NAME is nil, return the buffer returned by
 `other-buffer'.  Else, if a buffer specified by BUFFER-OR-NAME
@@ -5937,7 +5943,7 @@ This function is intended for interactive use only.  Lisp
 functions should call `pop-to-buffer-same-window' instead."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer: ")))
-  (let ((buffer (normalize-buffer-to-switch-to buffer-or-name)))
+  (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
     (if (and (or (window-minibuffer-p) (eq (window-dedicated-p) t))
 	     (not (eq buffer (window-buffer))))
 	;; Cannot switch to another buffer in a minibuffer or strongly
@@ -5963,7 +5969,7 @@ This function is intended for interactive use only.  Lisp
 functions should call `pop-to-buffer-same-frame' instead."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other window: ")))
-  (let ((buffer (normalize-buffer-to-switch-to buffer-or-name)))
+  (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
     (pop-to-buffer buffer 'same-frame norecord)))
 
 (defun switch-to-buffer-other-window (buffer-or-name &optional norecord)
@@ -5977,7 +5983,7 @@ This function is intended for interactive use only.  Lisp
 functions should call `pop-to-buffer-other-window' instead."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other window: ")))
-  (let ((buffer (normalize-buffer-to-switch-to buffer-or-name)))
+  (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
     (pop-to-buffer buffer 'other-window norecord)))
 
 (defun switch-to-buffer-other-window-same-frame (buffer-or-name &optional norecord)
@@ -5991,7 +5997,7 @@ functions should call `pop-to-buffer-other-window-same-frame'
 instead."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other window: ")))
-  (let ((buffer (normalize-buffer-to-switch-to buffer-or-name)))
+  (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
     (pop-to-buffer buffer 'same-frame-other-window norecord)))
 
 (defun switch-to-buffer-other-frame (buffer-or-name &optional norecord)
@@ -6004,7 +6010,7 @@ This function is intended for interactive use only.  Lisp
 functions should call `pop-to-buffer-other-frame' instead."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other frame: ")))
-  (let ((buffer (normalize-buffer-to-switch-to buffer-or-name)))
+  (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
     (pop-to-buffer buffer 'other-frame norecord)))
 
 ;;; Obsolete definitions of `display-buffer' below.
@@ -6657,8 +6663,8 @@ value of `display-buffer-alist'."
 	(display-buffer-alist-add
 	 `((regexp . ,entry))
 	 (list
-	  'fun-with-args
-	  (list 'fun-with-args special-display-function
+	  'function
+	  (list 'function special-display-function
 		special-display-frame-alist))
 	 no-custom))
        ((consp entry)
@@ -6670,9 +6676,9 @@ value of `display-buffer-alist'."
 	    (display-buffer-alist-add
 	     `((name . ,name))
 	     (list
-	      'fun-with-args
+	      'function
 	      ;; Weary.
-	      (list 'fun-with-args (car rest) (cadr rest)))
+	      (list 'function (car rest) (cadr rest)))
 	     no-custom))
 	   ((listp rest)
 	    ;; A list of parameters.
@@ -6691,8 +6697,8 @@ value of `display-buffer-alist'."
 	      (display-buffer-alist-add
 	       `((name . ,name))
 	       (list
-		'fun-with-args
-		(list 'fun-with-args special-display-function
+		'function
+		(list 'function special-display-function
 		      special-display-frame-alist))
 	       no-custom)))))))))
 
@@ -6704,8 +6710,8 @@ value of `display-buffer-alist'."
 	(display-buffer-alist-add
 	 `((name . ,entry))
 	 (list
-	  'fun-with-args
-	  (list 'fun-with-args special-display-function
+	  'function
+	  (list 'function special-display-function
 		special-display-frame-alist))
 	 no-custom))
        ((consp entry)
@@ -6717,9 +6723,9 @@ value of `display-buffer-alist'."
 	    (display-buffer-alist-add
 	     `((name . ,name))
 	     (list
-	      'fun-with-args
+	      'function
 	      ;; Weary.
-	      (list 'fun-with-args (car rest) (cadr rest)))
+	      (list 'function (car rest) (cadr rest)))
 	     no-custom))
 	   ((listp rest)
 	    ;; A list of parameters.
@@ -6738,8 +6744,8 @@ value of `display-buffer-alist'."
 	      (display-buffer-alist-add
 	       `((name . ,name))
 	       (list
-		'fun-with-args
-		(list 'fun-with-args special-display-function
+		'function
+		(list 'function special-display-function
 		      special-display-frame-alist))
 	       no-custom)))))))))
 
@@ -6805,7 +6811,7 @@ Note that the current implementation of this function cannot
 always set the height exactly, but attempts to be conservative,
 by allocating more lines than are actually needed in the case
 where some error may be present."
-  (setq window (normalize-live-window window))
+  (setq window (window-normalize-live-window window))
   (let ((delta (- height (window-text-height window))))
     (unless (zerop delta)
       ;; Setting window-min-height to a value like 1 can lead to very
@@ -6901,7 +6907,7 @@ WINDOW was scrolled."
   (interactive)
   ;; Do all the work in WINDOW and its buffer and restore the selected
   ;; window and the current buffer when we're done.
-  (setq window (normalize-live-window window))
+  (setq window (window-normalize-live-window window))
   ;; Can't resize a full height or fixed-size window.
   (unless (or (window-size-fixed-p window) 
 	      (window-full-height-p window))
@@ -7013,7 +7019,7 @@ window, or if the window is the only window of its frame.
 
 Return non-nil if the window was shrunk, nil otherwise."
   (interactive)
-  (setq window (normalize-live-window window))
+  (setq window (window-normalize-live-window window))
   ;; Make sure that WINDOW is vertically combined and `point-min' is
   ;; visible (for whatever reason that's needed).  The remaining issues
   ;; should be taken care of by `fit-window-to-buffer'.

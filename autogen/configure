@@ -1132,9 +1132,9 @@ ALSA_LIBS
 ALSA_CFLAGS
 PKG_CONFIG
 LIBSOUND
+CRT_DIR
 START_FILES
 LIB_MATH
-CRT_DIR
 LIBS_SYSTEM
 C_SWITCH_SYSTEM
 UNEXEC_OBJ
@@ -7642,76 +7642,6 @@ fi
 
 
 
-## If user specified a crt-dir, use that unconditionally.
-if test "X$CRT_DIR" = "X"; then
-
-  case "$canonical" in
-    x86_64-*-linux-gnu* | s390x-*-linux-gnu*)
-    ## On x86-64 and s390x GNU/Linux distributions, the standard library
-    ## can be in a variety of places.  We only try /usr/lib64 and /usr/lib.
-    ## For anything else (eg /usr/lib32), it is up the user to specify
-    ## the location (bug#5655).
-    ## Test for crtn.o, not just the directory, because sometimes the
-    ## directory exists but does not have the relevant files (bug#1287).
-    ## FIXME better to test for binary compatibility somehow.
-    test -e /usr/lib64/crtn.o && CRT_DIR=/usr/lib64
-    ;;
-
-    powerpc64-*-linux-gnu* | sparc64-*-linux-gnu*) CRT_DIR=/usr/lib64 ;;
-  esac
-
-  case "$opsys" in
-    hpux10-20) CRT_DIR=/lib ;;
-  esac
-
-  ## Default is /usr/lib.
-  test "X$CRT_DIR" = "X" && CRT_DIR=/usr/lib
-
-  ## If we're using gcc, try to determine it automatically by asking
-  ## gcc.  [If this doesn't work, CRT_DIR will remain at the
-  ## system-dependent default from above.]
-  if test "x${GCC}" = xyes; then
-     crt_file=`$CC --print-file-name=crt1.o 2>/dev/null`
-     case "$crt_file" in
-       */*)
-         CRT_DIR=`$as_dirname -- "$crt_file" ||
-$as_expr X"$crt_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
-	 X"$crt_file" : 'X\(//\)[^/]' \| \
-	 X"$crt_file" : 'X\(//\)$' \| \
-	 X"$crt_file" : 'X\(/\)' \| . 2>/dev/null ||
-$as_echo X"$crt_file" |
-    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\/\)[^/].*/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\/\)$/{
-	    s//\1/
-	    q
-	  }
-	  /^X\(\/\).*/{
-	    s//\1/
-	    q
-	  }
-	  s/.*/./; q'`
-         ;;
-     esac
-  fi
-
-else
-
-  ## Some platforms don't use any of these files, so it is not
-  ## appropriate to put this test outside the if block.
-  test -e $CRT_DIR/crtn.o || test -e $CRT_DIR/crt0.o || \
-    as_fn_error "crt*.o not found in specified location." "$LINENO" 5
-
-fi
-
-
-
 LIB_MATH=-lm
 LIB_STANDARD=
 START_FILES=
@@ -7748,6 +7678,99 @@ case $opsys in
     fi
     ;;
 esac
+
+
+
+
+crt_files=
+
+for file in x $LIB_STANDARD $START_FILES; do
+  case "$file" in
+    *CRT_DIR*) crt_files="$crt_files `echo $file | sed -e 's|.*/||'`" ;;
+  esac
+done
+
+if test "x$crt_files" != x; then
+
+  ## If user specified a crt-dir, use that unconditionally.
+  crt_gcc=no
+
+  if test "X$CRT_DIR" = "X"; then
+
+    CRT_DIR=/usr/lib            # default
+
+    case "$canonical" in
+      x86_64-*-linux-gnu* | s390x-*-linux-gnu*)
+      ## On x86-64 and s390x GNU/Linux distributions, the standard library
+      ## can be in a variety of places.  We only try /usr/lib64 and /usr/lib.
+      ## For anything else (eg /usr/lib32), it is up the user to specify
+      ## the location (bug#5655).
+      ## Test for crtn.o, not just the directory, because sometimes the
+      ## directory exists but does not have the relevant files (bug#1287).
+      ## FIXME better to test for binary compatibility somehow.
+      test -e /usr/lib64/crtn.o && CRT_DIR=/usr/lib64
+      ;;
+
+      powerpc64-*-linux-gnu* | sparc64-*-linux-gnu*) CRT_DIR=/usr/lib64 ;;
+    esac
+
+    case "$opsys" in
+      hpux10-20) CRT_DIR=/lib ;;
+    esac
+
+    test "x${GCC}" = xyes && crt_gcc=yes
+
+  fi                            # CRT_DIR = ""
+
+  crt_missing=
+
+  for file in $crt_files; do
+
+    ## If we're using gcc, try to determine it automatically by asking
+    ## gcc.  [If this doesn't work, CRT_DIR will remain at the
+    ## system-dependent default from above.]
+    if test $crt_gcc = yes && test ! -e $CRT_DIR/$file; then
+
+       crt_file=`$CC --print-file-name=$file 2>/dev/null`
+       case "$crt_file" in
+         */*)
+           CRT_DIR=`$as_dirname -- "$crt_file" ||
+$as_expr X"$crt_file" : 'X\(.*[^/]\)//*[^/][^/]*/*$' \| \
+	 X"$crt_file" : 'X\(//\)[^/]' \| \
+	 X"$crt_file" : 'X\(//\)$' \| \
+	 X"$crt_file" : 'X\(/\)' \| . 2>/dev/null ||
+$as_echo X"$crt_file" |
+    sed '/^X\(.*[^/]\)\/\/*[^/][^/]*\/*$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\/\)[^/].*/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\/\)$/{
+	    s//\1/
+	    q
+	  }
+	  /^X\(\/\).*/{
+	    s//\1/
+	    q
+	  }
+	  s/.*/./; q'`
+           ;;
+       esac
+    fi
+
+            crt_gcc=no
+
+    test -e $CRT_DIR/$file || crt_missing="$crt_missing $file"
+  done                          # $crt_files
+
+  test "x$crt_missing" = x || \
+    as_fn_error "Required file(s) not found:$crt_missing
+Try using the --with-crt-dir option." "$LINENO" 5
+
+fi                              # crt_files != ""
 
 
 

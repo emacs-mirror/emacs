@@ -1,3 +1,81 @@
+2011-06-30  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-art.el (gnus-request-article-this-buffer): Use existing function
+	`gnus-refer-article-methods'.
+
+2011-06-30  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Require EPA and EPG.
+	(auth-source-passphrase-alist): New variable.
+	(auth-source-passphrase-callback-function)
+	(auth-source-token-passphrase-callback-function): Callbacks for the
+	netrc field encryption (GPG tokens).
+	(auth-source-epa-extract-gpg-token, auth-source-epa-make-gpg-token):
+	Symmetric encryption and decryption of the netrc GPG tokens.
+	(auth-source-netrc-normalize): Use them, simplifying the closure.
+
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-split-incoming-mail): If `nnimap-split-fancy' is
+	non-nil, and `nnimap-split-methods' is nil, use the former.
+
+2011-06-30  Daiki Ueno  <ueno@unixuser.org>
+
+	* plstore.el (plstore-revert): New function.
+	(plstore-open): Use it; hide the buffer from user.
+
+2011-06-30  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-backend): New member "arg".
+	(auth-source-backend-parse): Handle new backend 'plstore.
+	* plstore.el: New file.
+
+2011-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-fun.el (gnus-convert-image-to-x-face-command): Doc fix.
+
+	* mm-util.el (mm-charset-synonym-alist): Move definition before use.
+
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-process-expiry-targets): Say what target we're
+	expiring articles to.
+
+	* mm-util.el (mm-charset-to-coding-system): Recognise all ANSI.x3.4
+	variations as ASCII (bug#5458).
+
+2011-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmh.el (nnmh-request-list-1): Work on MS Windows.
+
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-point-in-header-p): Tweak the function to default
+	to saying that we're not in the headers if there is no separator at
+	all.  This makes it possible to use the Message version of `M-q' in
+	buffers with no headers (bug#7987).
+	(message-point-in-header-p): Fix last checkin to work with an empty
+	mail-header-separator, too.
+
+	* auth-source.el (auth-source-netrc-saver): If the user says "don't ask
+	again, save the choice via customize.
+
+2011-06-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-send-mail-function): Add `sendmail-query-once'.
+
+	* nnimap.el (nnimap-finish-retrieve-group-infos): If the server has
+	ended the connection, bail out before waiting infinitely on a new
+	connection.
+
+2011-06-28  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-msg.el (gnus-bug): Add Package and Version pseudo-headers to bug
+	reports.
+
+	* gnus.el (gnus-bug-package): Use "gnus."
+	(gnus-maintainer): Direct bug reports to submit@debbugs.gnu.org.
+
 2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-art.el (gnus-article-stop-animations): New function to stop any

@@ -6832,23 +6832,16 @@ If given a prefix, show the hidden text instead."
 		(numberp article))
 	    (let ((gnus-override-method gnus-override-method)
 		  (methods (and (stringp article)
-				gnus-refer-article-method))
+				(with-current-buffer gnus-summary-buffer
+				  (gnus-refer-article-methods))))
 		  (backend (car (gnus-find-method-for-group
 				 gnus-newsgroup-name)))
 		  result
 		  (inhibit-read-only t))
-	      (if (or (not (listp methods))
-		      (and (symbolp (car methods))
-			   (assq (car methods) nnoo-definition-alist)))
-		  (setq methods (list methods)))
 	      (when (and (null gnus-override-method)
 			 methods)
 		(setq gnus-override-method (pop methods)))
 	      (while (not result)
-		(when (eq gnus-override-method 'current)
-		  (setq gnus-override-method
-			(with-current-buffer gnus-summary-buffer
-			  gnus-current-select-method)))
 		(erase-buffer)
 		(gnus-kill-all-overlays)
 		(let ((gnus-newsgroup-name group))

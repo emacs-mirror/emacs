@@ -1,3 +1,111 @@
+2011-06-30  Lawrence Mitchell  <wence@gmx.li>
+
+	* progmodes/js.el (js-mode): Don't stomp on global settings (bug#8933).
+
+2011-06-30  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-guess-continued-construct):
+	Correct the handling of template-args-cont, particularly for when font
+	lock is disabled.  Name this case as "CASE G".
+
+2011-06-30  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-yank-processing): Fix injection of extra space
+	between bullet and non-whitespace character in first topic when
+	pasting, ensuring that the actual spacing in the pasted topic
+	following the bullet char is preserved.  This extra space was
+	causing pasted encrypted topics to get a decrypted status even
+	when the content was actually still encrypted.  Now the decryption
+	status from before the paste is preserved.
+
+	(allout-flag-region): Set all allout overlays so they evaporate
+	when reduced to zero length (evanescent), to prevent overlay
+	leakage.
+
+2011-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* w32-fns.el (w32-charset-info-alist): Declare.
+
+	* find-dired.el (find-grep-options): Simplify.
+
+	* term/ns-win.el (ns-set-resource): Declare.
+
+	* ses.el (row, col): Declare dynamic variables honestly.
+
+	* textmodes/reftex-parse.el (index-tags): Declare.
+
+2011-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (customize-push-and-save): New function.
+
+	* files.el (hack-local-variables-confirm): Use it.
+
+	* custom.el (load-theme): New arg NO-CONFIRM.
+	Use customize-push-and-save (Bug#8720).
+	(custom-enabled-themes): Doc fix.
+
+	* cus-theme.el (customize-create-theme)
+	(custom-theme-merge-theme): Callers to load-theme changed.
+
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* thingatpt.el (thing-at-point-short-url-regexp): Require that
+	short URLs have at least one dot in them (bug #7614).
+
+	* progmodes/grep.el (rgrep): Bind `process-connection-type' to
+	nil, because using a pty is apparently too slow (bug #895).
+
+2011-06-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/sendmail.el (sendmail-query-once): New function.
+	(sendmail-query-once-function): New variable.
+
+2011-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (auto-mode-alist): Add .f03, .f08 for f90-mode.
+
+	* ses.el (top-level): Require cl when compiling.
+	(ses-set-localvars): Fix error statement.
+	Call it at compile time to silence a storm of warnings.
+
+2011-06-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (normalize-live-buffer): Rename to
+	window-normalize-buffer.
+	(normalize-live-frame): Rename to window-normalize-frame.
+	(normalize-any-window): Rename to window-normalize-any-window.
+	(normalize-live-window): Rename to window-normalize-live-window.
+	(make-window-atom): Rename to window-make-atom.
+	(window-resize-reset): Rename to window--resize-reset.
+	(window-resize-reset-1): Rename to window--resize-reset-1.
+	(resize-mini-window): Rename to window--resize-mini-window.
+	(resize-subwindows-skip-p): Rename to
+	window--resize-subwindows-skip-p.
+	(resize-subwindows-normal): Rename to
+	window--resize-subwindows-normal.
+	(resize-subwindows): Rename to window--resize-subwindows.
+	(resize-other-windows): Rename to window--resize-siblings.
+	(resize-this-window): Rename to window--resize-this-window.
+	(resize-root-window): Rename to window--resize-root-window.
+	(resize-root-window-vertically): Rename to
+	window--resize-root-window-vertically.
+	(normalize-buffer-to-display): Rename to
+	window-normalize-buffer-to-display.
+	(normalize-buffer-to-switch-to): Rename to
+	window-normalize-buffer-to-switch-to.
+	Correspondingly update all callers of the functions listed
+	above.
+	(display-buffer-alist, display-buffer-normalize-arguments)
+	(display-buffer-normalize-options, display-buffer)
+	(display-buffer-alist-set): Use "function" instead of
+	"fun-with-args".
+
+2011-06-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/emacsbug.el (report-emacs-bug): Handle non-gnu bug
+	addresses more clearly.  Add hyperlinks for bug-gnu-emacs and
+	debbugs.gnu.org.  Mention acknowledgment email.
+
 2011-06-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-send-it): Leave off changing the
@@ -17,8 +125,8 @@
 
 2011-06-28  Deniz Dogan  <deniz@dogan.se>
 
-	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table): Unnest
-	`let'.
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table):
+	Unnest `let'.
 
 	* textmodes/css-mode.el (css-font-lock-keywords): Fix grouped
 	selectors (Bug#5732).

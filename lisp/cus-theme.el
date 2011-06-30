@@ -157,7 +157,7 @@ remove them from your saved Custom file.\n\n"))
     ;; Load the theme settings.
     (when theme
       (unless (eq theme 'user)
-	(load-theme theme t))
+	(load-theme theme nil t))
       (dolist (setting (get theme 'theme-settings))
 	(if (eq (car setting) 'theme-value)
 	    (progn (push (nth 1 setting) vars)
@@ -326,7 +326,7 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
   (unless (eq theme 'user)
     (unless (custom-theme-name-valid-p theme)
       (error "Invalid theme name `%s'" theme))
-    (load-theme theme t))
+    (load-theme theme nil t))
   (let ((settings (reverse (get theme 'theme-settings))))
     (dolist (setting settings)
       (funcall (if (eq (car setting) 'theme-value)
