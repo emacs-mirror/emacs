@@ -657,22 +657,39 @@ Add an entry here when adding a new search engine.")
       'nov)))
 
 (deffoo nnir-request-article (article &optional group server to-buffer)
-  (if (stringp article)
+  (if (and (stringp article)
+	   (not (eq 'nnimap (car (gnus-server-to-method server)))))
       (nnheader-report
        'nnir
-       "nnir-retrieve-headers doesn't grok message ids: %s"
-       article)
+       "nnir-retrieve-headers only groks message ids for nnimap servers: %s"
+       server)
     (save-excursion
-      (let ((artfullgroup (nnir-article-group article))
-	    (artno (nnir-article-number article)))
-	(message "Requesting article %d from group %s"
-		 artno artfullgroup)
-	(if to-buffer
-	    (with-current-buffer to-buffer
-	      (let ((gnus-article-decode-hook nil))
-		(gnus-request-article-this-buffer artno artfullgroup)))
-	  (gnus-request-article artno artfullgroup))
-	(cons artfullgroup artno)))))
+      (let ((article article)
+	    query)
+	(when (stringp article)
+	  (setq gnus-override-method (gnus-server-to-method server))
+	  (setq query
+		(list
+		 (cons 'query (format "HEADER Message-ID %s" article))
+		 (cons 'unique-id article)
+		 (cons 'criteria "")))
+	  (unless (and (equal query nnir-current-query)
+		       (equal server nnir-current-server))
+	    (setq nnir-artlist (nnir-run-imap query server))
+	    (setq nnir-current-query query)
+	    (setq nnir-current-server server))
+	  (setq article 1))
+	(unless (zerop (length nnir-artlist))
+	  (let ((artfullgroup (nnir-article-group article))
+		(artno (nnir-article-number article)))
+	    (message "Requesting article %d from group %s"
+		     artno artfullgroup)
+	    (if to-buffer
+		(with-current-buffer to-buffer
+		  (let ((gnus-article-decode-hook nil))
+		    (gnus-request-article-this-buffer artno artfullgroup)))
+	      (gnus-request-article artno artfullgroup))
+	    (cons artfullgroup artno)))))))
 
 (deffoo nnir-request-move-article (article group server accept-form
 					   &optional last internal-move-group)

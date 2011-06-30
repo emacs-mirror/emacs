@@ -3,6 +3,33 @@
 	* mml2015.el (mml2015-use): Don't try to load PGG on Emacs 24, when EPG
 	is not fully working.
 
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dgnushack.el: Autoload sha1 on XEmacs.
+
+	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Take an optional
+	quit window configuration.
+
+	* auth-source.el (epg-context-set-passphrase-callback): Remove
+	duplicate autoload.
+
+2011-06-30  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-request-article): Allow requesting articles by
+	Message-ID with nnimap.
+
+	* gnus-sum.el (gnus-refer-article-methods): Allow (nnir) entry to use
+	current server.
+
+2011-06-30  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Autoload EPA/EPG functions.
+	(auth-source-netrc-use-gpg-tokens): Clarify that it should not be
+	changed when EPA/EPG is not available.
+	(auth-source-backend): Rename "arg" member to "data".
+	(auth-source-backend-parse, auth-source-plstore-search)
+	(auth-source-plstore-create): Use it.
+
 2011-06-30  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* gnus-art.el (gnus-request-article-this-buffer): Use existing function

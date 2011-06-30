@@ -9050,7 +9050,12 @@ variable."
       (dolist (method gnus-refer-article-method)
 	(push (if (eq 'current method)
 		  gnus-current-select-method
-		method)
+		(if (eq 'nnir (car method))
+		    (list
+		     'nnir
+		     (or (cadr method)
+			 (gnus-method-to-server gnus-current-select-method)))
+		  method))
 	      out))
       (nreverse out)))
    ;; One single select method.

@@ -2428,7 +2428,7 @@ the bug number, and browsing the URL must return mbox output."
   :version "24.1"
   :type '(repeat (cons (symbol) (string :tag "URL format string"))))
 
-(defun gnus-read-ephemeral-bug-group (number mbox-url)
+(defun gnus-read-ephemeral-bug-group (number mbox-url &optional window-conf)
   "Browse bug NUMBER as ephemeral group."
   (interactive (list (read-string "Enter bug number: "
 				  (thing-at-point 'word) nil)
@@ -2452,7 +2452,8 @@ the bug number, and browsing the URL must return mbox output."
       (gnus-group-read-ephemeral-group
        "gnus-read-ephemeral-bug"
        `(nndoc ,tmpfile
-	       (nndoc-article-type mbox))))
+	       (nndoc-article-type mbox))
+       nil window-conf))
     (delete-file tmpfile)))
 
 (defun gnus-read-ephemeral-debian-bug-group (number)
@@ -2463,13 +2464,14 @@ the bug number, and browsing the URL must return mbox output."
    number
    (cdr (assoc 'debian gnus-bug-group-download-format-alist))))
 
-(defun gnus-read-ephemeral-emacs-bug-group (number)
+(defun gnus-read-ephemeral-emacs-bug-group (number &optional window-conf)
   "Browse Emacs bug NUMBER as ephemeral group."
   (interactive (list (read-string "Enter bug number: "
 				  (thing-at-point 'word) nil)))
   (gnus-read-ephemeral-bug-group
    number
-   (cdr (assoc 'emacs gnus-bug-group-download-format-alist))))
+   (cdr (assoc 'emacs gnus-bug-group-download-format-alist))
+   window-conf))
 
 (defun gnus-group-jump-to-group (group &optional prompt)
   "Jump to newsgroup GROUP.
