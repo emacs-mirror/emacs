@@ -880,15 +880,18 @@ textual parts.")
 	  (with-temp-buffer
 	    (mm-disable-multibyte)
 	    (when (nnimap-request-article article group server (current-buffer))
-	      (nnheader-message 7 "Expiring article %s:%d" group article)
 	      (when (functionp target)
 		(setq target (funcall target group)))
-	      (when (and target
-			 (not (eq target 'delete)))
-		(if (or (gnus-request-group target t)
-			(gnus-request-create-group target))
-		    (nnmail-expiry-target-group target group)
-		  (setq target nil)))
+	      (if (and target
+		       (not (eq target 'delete)))
+		  (if (or (gnus-request-group target t)
+			  (gnus-request-create-group target))
+		      (progn
+			(nnmail-expiry-target-group target group)
+			(nnheader-message 7 "Expiring article %s:%d to %s"
+					  group article target))
+		    (setq target nil))
+		(nnheader-message 7 "Expiring article %s:%d" group article))
 	      (when target
 		(push article deleted-articles))))))))
     ;; Change back to the current group again.

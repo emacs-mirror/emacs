@@ -6,6 +6,9 @@
 
 2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnimap.el (nnimap-process-expiry-targets): Say what target we're
+	expiring articles to.
+
 	* mm-util.el (mm-charset-to-coding-system): Recognise all ANSI.x3.4
 	variations as ASCII (bug#5458).
 
