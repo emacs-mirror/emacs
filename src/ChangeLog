@@ -1,6 +1,6 @@
 2011-06-30  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* xsettings.c: Include glib.h if HAVE_GSETTINGS.
+	* xsettings.c: Include glib-object.h, gio/gio.h if HAVE_GSETTINGS.
 	Let HAVE_GSETTINGS override HAVE_GCONF.
 	(store_monospaced_changed): New function.
 	(EMACS_SETTINGS): A new type derived from GObject to handle

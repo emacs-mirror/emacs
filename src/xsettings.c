@@ -34,9 +34,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <X11/Xproto.h>
 
-#define HAVE_GSETTINGS
 #ifdef HAVE_GSETTINGS
-#include <glib.h>
+#include <glib-object.h>
+#include <gio/gio.h>
 #else
 #ifdef HAVE_GCONF
 #include <gconf/gconf-client.h>
