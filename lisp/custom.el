@@ -1119,20 +1119,29 @@ Emacs theme directory (a directory named \"themes\" in
   :risky t
   :version "24.1")
 
-(defun load-theme (theme &optional no-enable)
+(defun load-theme (theme &optional no-confirm no-enable)
   "Load Custom theme named THEME from its file.
-Normally, this also enables THEME.  If optional arg NO-ENABLE is
-non-nil, load THEME but don't enable it.
-
 The theme file is named THEME-theme.el, in one of the directories
 specified by `custom-theme-load-path'.
+
+If THEME is not in `custom-safe-themes', prompt the user for
+confirmation, unless optional arg NO-CONFIRM is non-nil.
+
+Normally, this function also enables THEME; if optional arg
+NO-ENABLE is non-nil, load the theme but don't enable it.
+
+This function is normally called through Customize when setting
+`custom-enabled-themes'.  If used directly in your init file, it
+should be called with a non-nil NO-CONFIRM argument, or after
+`custom-safe-themes' has been loaded.
 
 Return t if THEME was successfully loaded, nil otherwise."
   (interactive
    (list
     (intern (completing-read "Load custom theme: "
 			     (mapcar 'symbol-name
-				     (custom-available-themes))))))
+				     (custom-available-themes))))
+    nil nil))
   (unless (custom-theme-name-valid-p theme)
     (error "Invalid theme name `%s'" theme))
   ;; If reloading, clear out the old theme settings.
@@ -1152,7 +1161,8 @@ Return t if THEME was successfully loaded, nil otherwise."
       (setq hash (sha1 (current-buffer)))
       ;; Check file safety with `custom-safe-themes', prompting the
       ;; user if necessary.
-      (when (or (and (memq 'default custom-safe-themes)
+      (when (or no-confirm
+		(and (memq 'default custom-safe-themes)
 		     (equal (file-name-directory fn)
 			    (expand-file-name "themes/" data-directory)))
 		(member hash custom-safe-themes)
@@ -1211,10 +1221,7 @@ query also about adding HASH to `custom-safe-themes'."
 	  ;; Offer to save to `custom-safe-themes'.
 	  (and (or custom-file user-init-file)
 	       (y-or-n-p "Treat this theme as safe in future sessions? ")
-	       (let ((coding-system-for-read nil))
-		 (push hash custom-safe-themes)
-		 (customize-save-variable 'custom-safe-themes
-					  custom-safe-themes)))
+	       (customize-push-and-save 'custom-safe-themes (list hash)))
 	  t)))))
 
 (defun custom-theme-name-valid-p (name)
@@ -1291,7 +1298,10 @@ This list does not include the `user' theme, which is set by
 Customize and always takes precedence over other Custom Themes.
 
 This variable cannot be defined inside a Custom theme; there, it
-is simply ignored."
+is simply ignored.
+
+Setting this variable through Customize calls `enable-theme' or
+`load-theme' for each theme in the list."
   :group 'customize
   :type  '(repeat symbol)
   :set-after '(custom-theme-directory custom-theme-load-path

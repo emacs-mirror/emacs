@@ -1,3 +1,16 @@
+2011-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (customize-push-and-save): New function.
+
+	* files.el (hack-local-variables-confirm): Use it.
+
+	* custom.el (load-theme): New arg NO-CONFIRM.  Use
+	customize-push-and-save (Bug#8720).
+	(custom-enabled-themes): Doc fix.
+
+	* cus-theme.el (customize-create-theme)
+	(custom-theme-merge-theme): Callers to load-theme changed.
+
 2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* progmodes/grep.el (rgrep): Bind `process-connection-type' to

@@ -2943,16 +2943,7 @@ n  -- to ignore the local variables list.")
 	    (setq char nil)))
 	(kill-buffer buf)
 	(when (and offer-save (= char ?!) unsafe-vars)
-	  (dolist (elt unsafe-vars)
-	    (add-to-list 'safe-local-variable-values elt))
-	  ;; When this is called from desktop-restore-file-buffer,
-	  ;; coding-system-for-read may be non-nil.  Reset it before
-	  ;; writing to .emacs.
-	  (if (or custom-file user-init-file)
-	      (let ((coding-system-for-read nil))
-		(customize-save-variable
-		 'safe-local-variable-values
-		 safe-local-variable-values))))
+	  (customize-push-and-save 'safe-local-variable-values unsafe-vars))
 	(memq char '(?! ?\s ?y))))))
 
 (defun hack-local-variables-prop-line (&optional mode-only)
