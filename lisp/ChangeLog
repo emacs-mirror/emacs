@@ -1,5 +1,8 @@
 2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* textmodes/flyspell.el (flyspell-word): Consider words that
+	differ only in case as potential doublons (bug#5687).
+
 	* net/soap-client.el (soap-invoke, soap-wsdl-resolve-references):
 	Remove two rather uninteresting debugging-like messages to make
 	debbugs.el more silent.
