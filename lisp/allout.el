@@ -4605,8 +4605,7 @@ however, are left exactly like normal, non-allout-specific yanks."
                                         ; and delete residual subj
                                         ; prefix digits and space:
                      (while (looking-at "[0-9]") (delete-char 1))
-                     (if (looking-at " ")
-                         (delete-char 1))))
+                     (delete-char -1)))
                   ;; Assert new topic's bullet - minimal effort if unchanged:
                   (allout-rebullet-heading (string-to-char prefix-bullet)))
               (exchange-point-and-mark))))
@@ -4736,6 +4735,7 @@ arguments as this function, after the exposure changes are made."
   (when flag
     (let ((o (make-overlay from to nil 'front-advance)))
       (overlay-put o 'category 'allout-exposure-category)
+      (overlay-put o 'evaporate t)
       (when (featurep 'xemacs)
         (let ((props (symbol-plist 'allout-exposure-category)))
           (while props

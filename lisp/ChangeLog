@@ -1,3 +1,17 @@
+2011-06-30  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-yank-processing): Fix injection of extra space
+	between bullet and non-whitespace character in first topic when
+	pasting, ensuring that the actual spacing in the pasted topic
+	following the bullet char is preserved.  This extra space was
+	causing pasted encrypted topics to get a decrypted status even
+	when the content was actually still encrypted.  Now the decryption
+	status from before the paste is preserved.
+
+	(allout-flag-region): Set all allout overlays so they evaporate
+	when reduced to zero length (evanescent), to prevent overlay
+	leakage.
+
 2011-06-30  Glenn Morris  <rgm@gnu.org>
 
 	* w32-fns.el (w32-charset-info-alist): Declare.
