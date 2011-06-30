@@ -13,6 +13,9 @@
 
 2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* thingatpt.el (thing-at-point-short-url-regexp): Require that
+	short URLs have at least one dot in them (bug #7614).
+
 	* progmodes/grep.el (rgrep): Bind `process-connection-type' to
 	nil, because using a pty is apparently too slow (bug #895).
 

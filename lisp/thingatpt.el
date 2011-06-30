@@ -235,7 +235,7 @@ a symbol as a valid THING."
   "A regular expression probably matching the host and filename or e-mail part of a URL.")
 
 (defvar thing-at-point-short-url-regexp
-  (concat "[-A-Za-z0-9.]+" thing-at-point-url-path-regexp)
+  (concat "[-A-Za-z0-9]+\\.[-A-Za-z0-9.]+" thing-at-point-url-path-regexp)
   "A regular expression probably matching a URL without an access scheme.
 Hostname matching is stricter in this case than for
 ``thing-at-point-url-regexp''.")
