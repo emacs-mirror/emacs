@@ -1,3 +1,9 @@
+2011-06-30  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-guess-continued-construct): Correct
+	the handling of template-args-cont, particularly for when font
+	lock is disabled.  Name this case as "CASE G".
+
 2011-06-30  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-yank-processing): Fix injection of extra space
