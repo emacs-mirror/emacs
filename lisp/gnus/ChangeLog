@@ -1,5 +1,7 @@
 2011-06-30  Glenn Morris  <rgm@gnu.org>
 
+	* gnus-fun.el (gnus-convert-image-to-x-face-command): Doc fix.
+
 	* mm-util.el (mm-charset-synonym-alist): Move definition before use.
 
 2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
