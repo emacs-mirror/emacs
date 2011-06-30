@@ -659,6 +659,7 @@ Done before generating the new subject of a forward."
 (defcustom message-send-mail-function
   (cond ((eq send-mail-function 'smtpmail-send-it) 'message-smtpmail-send-it)
 	((eq send-mail-function 'feedmail-send-it) 'feedmail-send-it)
+	((eq send-mail-function 'sendmail-query-once) 'sendmail-query-once)
 	((eq send-mail-function 'mailclient-send-it)
 	 'message-send-mail-with-mailclient)
 	(t (message-send-mail-function)))
@@ -3424,8 +3425,12 @@ Message buffers and is not meant to be called directly."
 (defun message-point-in-header-p ()
   "Return t if point is in the header."
   (save-excursion
-    (not (re-search-backward
-	  (concat "^" (regexp-quote mail-header-separator) "\n") nil t))))
+    (and
+     (not
+      (re-search-backward
+       (concat "^" (regexp-quote mail-header-separator) "\n") nil t))
+     (re-search-forward
+      (concat "^" (regexp-quote mail-header-separator) "\n") nil t))))
 
 (defun message-do-auto-fill ()
   "Like `do-auto-fill', but don't fill in message header."

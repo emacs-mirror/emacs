@@ -1363,9 +1363,10 @@ Respects `auth-source-save-behavior'.  Uses
                       (help-mode))))
               (?n (setq add ""
                         done t))
-              (?N (setq add ""
-                        done t
-                        auth-source-save-behavior nil))
+              (?N
+	       (setq add ""
+		     done t)
+	       (customize-save-variable 'auth-source-save-behavior nil))
               (?e (setq add (read-string "Line to add: " add)))
               (t nil)))
 

@@ -1,3 +1,23 @@
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-point-in-header-p): Tweak the function to default
+	to saying that we're not in the headers if there is no separator at
+	all.  This makes it possible to use the Message version of `M-q' in
+	buffers with no headers (bug#7987).
+	(message-point-in-header-p): Fix last checkin to work with an empty
+	mail-header-separator, too.
+
+	* auth-source.el (auth-source-netrc-saver): If the user says "don't ask
+	again, save the choice via customize.
+
+2011-06-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-send-mail-function): Add `sendmail-query-once'.
+
+	* nnimap.el (nnimap-finish-retrieve-group-infos): If the server has
+	ended the connection, bail out before waiting infinitely on a new
+	connection.
+
 2011-06-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-msg.el (gnus-bug): Add Package and Version pseudo-headers to bug

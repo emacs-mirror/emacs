@@ -1227,6 +1227,10 @@ textual parts.")
 
 (deffoo nnimap-finish-retrieve-group-infos (server infos sequences)
   (when (and sequences
+	     ;; Check that the process is still alive.
+	     (get-buffer-process (nnimap-buffer))
+	     (memq (process-status (get-buffer-process (nnimap-buffer)))
+		   '(open run))
 	     (nnimap-possibly-change-group nil server))
     (with-current-buffer (nnimap-buffer)
       ;; Wait for the final data to trickle in.
