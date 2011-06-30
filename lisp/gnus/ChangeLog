@@ -1,3 +1,8 @@
+2011-06-30  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (mml2015-use): Don't try to load PGG on Emacs 24, when EPG
+	is not fully working.
+
 2011-06-30  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* gnus-art.el (gnus-request-article-this-buffer): Use existing function
