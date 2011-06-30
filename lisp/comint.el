@@ -347,7 +347,7 @@ This variable is buffer-local."
    " +\\)"
    (regexp-opt
     '("password" "Password" "passphrase" "Passphrase"
-      "pass phrase" "Pass phrase"))
+      "pass phrase" "Pass phrase" "Response"))
    "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?\
 \\(?: for [^:]+\\)?:\\s *\\'")
   "Regexp matching prompts for passwords in the inferior process.

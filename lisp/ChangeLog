@@ -1,3 +1,8 @@
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* comint.el (comint-password-prompt-regexp): Accept "Response" as
+	a password-like phrase.
+
 2011-06-30  Mastake YAMATO  <yamato@redhat.com>
 
 	* progmodes/cc-guess.el: New file.
