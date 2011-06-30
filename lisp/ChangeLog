@@ -1,5 +1,7 @@
 2011-06-30  Glenn Morris  <rgm@gnu.org>
 
+	* ses.el (row, col): Declare dynamic variables honestly.
+
 	* textmodes/reftex-parse.el (index-tags): Declare.
 
 2011-06-30  Chong Yidong  <cyd@stupidchicken.com>

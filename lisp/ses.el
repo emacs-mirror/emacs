@@ -3348,10 +3348,8 @@ TEST is evaluated."
 ;; These functions use the variables 'row' and 'col' that are dynamically bound
 ;; by ses-print-cell.  We define these variables at compile-time to make the
 ;; compiler happy.
-(eval-when-compile
-  (dolist (x '(row col))
-    (make-local-variable x)
-    (set x nil)))
+(defvar row)
+(defvar col)
 
 (defun ses-center (value &optional span fill)
   "Print VALUE, centered within column.  FILL is the fill character for
