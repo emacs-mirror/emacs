@@ -1,5 +1,9 @@
 2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/soap-client.el (soap-invoke, soap-wsdl-resolve-references):
+	Remove two rather uninteresting debugging-like messages to make
+	debbugs.el more silent.
+
 	* comint.el (comint-password-prompt-regexp): Accept "Response" as
 	a password-like phrase.
 

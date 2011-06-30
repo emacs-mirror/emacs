@@ -729,9 +729,7 @@ traverse an element tree."
                               (incf nprocessed)
                               (soap-resolve-references-for-element e wsdl)
                               (setf (soap-element-namespace-tag e) nstag))))))
-                 (soap-namespace-elements ns))))
-
-    (message "Processed %d" nprocessed))
+                 (soap-namespace-elements ns)))))
     wsdl)
 
 ;;;;; Loading WSDL from XML documents
@@ -1714,10 +1712,6 @@ operations in a WSDL document."
                     ;; error)
                     (warn "Error in SOAP response: HTTP code %s"
 			  url-http-response-status))
-                                 (when (> (buffer-size) 1000000)
-                                   (soap-warning
-				    "Received large message: %s bytes"
-				    (buffer-size)))
                 (let ((mime-part (mm-dissect-buffer t t)))
                   (unless mime-part
                     (error "Failed to decode response from server"))
