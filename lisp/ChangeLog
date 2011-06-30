@@ -1,5 +1,7 @@
 2011-06-30  Glenn Morris  <rgm@gnu.org>
 
+	* term/ns-win.el (ns-set-resource): Declare.
+
 	* ses.el (row, col): Declare dynamic variables honestly.
 
 	* textmodes/reftex-parse.el (index-tags): Declare.
