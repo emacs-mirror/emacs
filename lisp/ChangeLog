@@ -1,3 +1,15 @@
+2011-06-30  Mastake YAMATO  <yamato@redhat.com>
+
+	* progmodes/cc-guess.el: New file.
+
+	* progmodes/cc-langs.el (c-mode-menu): Added "Style..." submenu.
+
+	* progmodes/cc-styles.el (cc-choose-style-for-mode): New function
+	derived from `c-basic-common-init'.
+
+	* progmodes/cc-mode.el (top-level): Require cc-guess.
+	(c-basic-common-init): Use `cc-choose-style-for-mode'.
+
 2011-06-30  Lawrence Mitchell  <wence@gmx.li>
 
 	* progmodes/js.el (js-mode): Don't stomp on global settings (bug#8933).
