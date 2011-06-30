@@ -123,6 +123,7 @@
 (defun plstore-revert (plstore)
   "Replace current data in PLSTORE with the file on disk."
   (with-current-buffer (plstore--get-buffer plstore)
+    (revert-buffer t t)
     ;; make the buffer invisible from user
     (rename-buffer (format " plstore %s" (buffer-file-name)))
     (goto-char (point-min))
