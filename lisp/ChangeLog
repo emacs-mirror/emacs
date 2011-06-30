@@ -1,3 +1,7 @@
+2011-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/reftex-parse.el (index-tags): Declare.
+
 2011-06-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (customize-push-and-save): New function.
