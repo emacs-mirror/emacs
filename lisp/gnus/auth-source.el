@@ -60,6 +60,7 @@
 (autoload 'plstore-find "plstore")
 (autoload 'plstore-put "plstore")
 (autoload 'plstore-save "plstore")
+(autoload 'plstore-get-file "plstore")
 
 (defvar secrets-enabled)
 
