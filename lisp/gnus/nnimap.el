@@ -1805,9 +1805,14 @@ textual parts.")
 (defun nnimap-split-incoming-mail ()
   (with-current-buffer (nnimap-buffer)
     (let ((nnimap-incoming-split-list nil)
-	  (nnmail-split-methods (if (eq nnimap-split-methods 'default)
-				    nnmail-split-methods
-				  nnimap-split-methods))
+	  (nnmail-split-methods
+	   (cond
+	    ((eq nnimap-split-methods 'default)
+	     nnmail-split-methods)
+	    (nnimap-split-methods
+	     nnimap-split-methods)
+	    (nnimap-split-fancy
+	     'nnmail-split-fancy)))
 	  (nnmail-split-fancy (or nnimap-split-fancy
 				  nnmail-split-fancy))
 	  (nnmail-inhibit-default-split-group t)

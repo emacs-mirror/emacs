@@ -1,3 +1,8 @@
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-split-incoming-mail): If `nnimap-split-fancy' is
+	non-nil, and `nnimap-split-methods' is nil, use the former.
+
 2011-06-30  Daiki Ueno  <ueno@unixuser.org>
 
 	* plstore.el (plstore-revert): New function.
