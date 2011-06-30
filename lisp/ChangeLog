@@ -1,7 +1,11 @@
+2011-06-30  Lawrence Mitchell  <wence@gmx.li>
+
+	* progmodes/js.el (js-mode): Don't stomp on global settings (bug#8933).
+
 2011-06-30  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-engine.el (c-guess-continued-construct): Correct
-	the handling of template-args-cont, particularly for when font
+	* progmodes/cc-engine.el (c-guess-continued-construct):
+	Correct the handling of template-args-cont, particularly for when font
 	lock is disabled.  Name this case as "CASE G".
 
 2011-06-30  Ken Manheimer  <ken.manheimer@gmail.com>
@@ -36,8 +40,8 @@
 
 	* files.el (hack-local-variables-confirm): Use it.
 
-	* custom.el (load-theme): New arg NO-CONFIRM.  Use
-	customize-push-and-save (Bug#8720).
+	* custom.el (load-theme): New arg NO-CONFIRM.
+	Use customize-push-and-save (Bug#8720).
 	(custom-enabled-themes): Doc fix.
 
 	* cus-theme.el (customize-create-theme)
@@ -121,8 +125,8 @@
 
 2011-06-28  Deniz Dogan  <deniz@dogan.se>
 
-	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table): Unnest
-	`let'.
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table):
+	Unnest `let'.
 
 	* textmodes/css-mode.el (css-font-lock-keywords): Fix grouped
 	selectors (Bug#5732).
