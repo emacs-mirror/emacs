@@ -1,3 +1,8 @@
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* progmodes/grep.el (rgrep): Bind `process-connection-type' to
+	nil, because using a pty is apparently too slow (bug #895).
+
 2011-06-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/sendmail.el (sendmail-query-once): New function.
