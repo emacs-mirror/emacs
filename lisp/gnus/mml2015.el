@@ -59,8 +59,8 @@
 			 ;; Don't load PGG if it is marked as obsolete
 			 ;; (Emacs 24).
 			 (when (and abs-file
-				    (not (string-match-p "/obsolete/[^/]*\\'"
-							 abs-file)))
+				    (not (string-match "/obsolete/[^/]*\\'"
+						       abs-file)))
 			   (ignore-errors (require 'pgg))
 			   (and (fboundp 'pgg-sign-region)
 				'pgg))))
