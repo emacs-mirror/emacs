@@ -1,5 +1,7 @@
 2011-06-30  Glenn Morris  <rgm@gnu.org>
 
+	* find-dired.el (find-grep-options): Simplify.
+
 	* term/ns-win.el (ns-set-resource): Declare.
 
 	* ses.el (row, col): Declare dynamic variables honestly.
