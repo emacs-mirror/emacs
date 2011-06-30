@@ -1,3 +1,7 @@
+2011-06-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in (gsettings): New option and check for GSettings.
+
 2011-06-29  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Try to test for the required crt*.o files.

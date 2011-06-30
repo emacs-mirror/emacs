@@ -1,3 +1,24 @@
+2011-06-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c: Include glib.h if HAVE_GSETTINGS.
+	Let HAVE_GSETTINGS override HAVE_GCONF.
+	(store_monospaced_changed): New function.
+	(EMACS_SETTINGS): A new type derived from GObject to handle
+	GSettings notifications.
+	(emacs_settings_constructor, emacs_settings_get_property)
+	(emacs_settings_set_property, emacs_settings_class_init):
+	New functions.
+	(gsettings_client, gsettings_obj): New variables.
+	(GSETTINGS_SCHEMA): New define.
+	(something_changedCB): Call store_monospaced_changed.
+	(init_gsettings): New function.
+	(xsettings_initialize): Call init_gsettings.
+	(syms_of_xsettings): Initialize gsettings_client, gsettings_obj
+	to NULL.
+
+	* Makefile.in (SETTINGS_CFLAGS, SETTINGS_LIBS): Renamed from
+	GCONF_CFLAGS/LIBS.
+
 2011-06-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (resize_root_window, grow_mini_window)

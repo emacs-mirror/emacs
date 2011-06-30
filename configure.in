@@ -172,6 +172,7 @@ OPTION_DEFAULT_OFF([ns],[use NeXTstep (Cocoa or GNUstep) windowing system])
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
 OPTION_DEFAULT_ON([gconf],[don't compile with GConf support])
+OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 
@@ -1981,17 +1982,42 @@ if test "${with_dbus}" = "yes"; then
 fi
 AC_SUBST(DBUS_OBJ)
 
+dnl GSettings has been tested under GNU/Linux only.
+HAVE_GSETTINGS=no
+if test "${HAVE_X11}" = "yes" && test "${with_gsettings}" = "yes"; then
+   PKG_CHECK_MODULES(GSETTINGS, glib-2.0 >= 2.26, HAVE_GSETTINGS=yes, HAVE_GSETTINGS=no)
+   if test "$HAVE_GSETTINGS" = yes; then
+      AC_DEFINE(HAVE_GSETTINGS, 1, [Define to 1 if using GSettings.])
+      SETTINGS_CFLAGS="$GSETTINGS_CFLAGS"
+      SETTINGS_LIBS="$GSETTINGS_LIBS"
+   fi
+fi
+
 dnl GConf has been tested under GNU/Linux only.
 dnl The version is really arbitrary, it is about the same age as Gtk+ 2.6.
 HAVE_GCONF=no
-if test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
+if test "${HAVE_GSETTINGS}" = "no" && "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
    PKG_CHECK_MODULES(GCONF, gconf-2.0 >= 2.13, HAVE_GCONF=yes, HAVE_GCONF=no)
    if test "$HAVE_GCONF" = yes; then
       AC_DEFINE(HAVE_GCONF, 1, [Define to 1 if using GConf.])
       dnl Newer GConf doesn't link with g_objects, so this is not defined.
-      AC_CHECK_FUNCS([g_type_init])
+      SETTINGS_CFLAGS="$GSETTINGS_CFLAGS"
+      SETTINGS_LIBS="$GSETTINGS_LIBS"
    fi
 fi
+
+if test "$HAVE_GSETTINGS" = "yes" || "$HAVE_GCONF" = yes; then
+    SAVE_CFLAGS="$CFLAGS"
+    SAVE_LDFLAGS="$LDFLAGS"
+    CFLAGS="$SETTINGS_CFLAGS $CFLAGS"
+    LDFLAGS="$SETTINGS_LIBS $LDFLAGS"
+    AC_CHECK_FUNCS([g_type_init])
+    CFLAGS="$SAVE_CFLAGS"
+    LDFLAGS="$SAVE_LDFLAGS"
+fi
+AC_SUBST(SETTINGS_CFLAGS)
+AC_SUBST(SETTINGS_LIBS)
+
 
 dnl SELinux is available for GNU/Linux only.
 HAVE_LIBSELINUX=no
@@ -3674,6 +3700,7 @@ echo "  Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGI
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
+echo "  Does Emacs use GSettings?                               ${HAVE_GSETTINGS}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 echo "  Does Emacs use -lgnutls (2.6.x or higher)?              ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"
