@@ -1,3 +1,8 @@
+2011-07-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi (Guessing the Style): New page.
+	(Styles): Add a short introduction to above.
+
 2011-06-28  Deniz Dogan  <deniz@dogan.se>
 
 	* rcirc.texi (Configuration): Bug-fix:
