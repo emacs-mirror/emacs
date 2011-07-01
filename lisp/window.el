@@ -5731,7 +5731,7 @@ this list as arguments."
 		(display-buffer-in-side-window
 		 buffer (nth 1 specifier) (nth 2 specifier) normalized))
 	       ((eq method 'function)
-		(apply (nth 1 specifier) buffer (nth 2 specifier))))))
+		(funcall (nth 1 specifier) buffer (nth 2 specifier))))))
 
       ;; If we don't have a window yet, try a fallback method.  All
       ;; specifiers have been used up by now.
@@ -6028,9 +6028,9 @@ ignored.
 See also `same-window-regexps'."
  :type '(repeat (string :format "%v"))
  :group 'windows)
-(make-obsolete-variable
- 'same-window-buffer-names
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'same-window-buffer-names
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defcustom same-window-regexps nil
   "List of regexps saying which buffers should appear in the \"same\" window.
@@ -6046,9 +6046,9 @@ the buffer name.  This is for compatibility with
 See also `same-window-buffer-names'."
   :type '(repeat (regexp :format "%v"))
   :group 'windows)
-(make-obsolete-variable
- 'same-window-regexps
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'same-window-regexps
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defun same-window-p (buffer-name)
   "Return non-nil if a buffer named BUFFER-NAME would be shown in the \"same\" window.
@@ -6073,8 +6073,8 @@ selected rather than \(as usual\) some other window.  See
 		    (and (consp regexp) (stringp (car regexp))
 			 (string-match-p (car regexp) buffer-name)))
 	    (throw 'found t))))))))
-(make-obsolete
- 'same-window-p "pass argument to buffer display function instead." "24.1")
+;; (make-obsolete
+ ;; 'same-window-p "pass argument to buffer display function instead." "24.1")
 
 (defcustom special-display-frame-alist
   '((height . 14) (width . 80) (unsplittable . t))
@@ -6092,9 +6092,9 @@ These supersede the values given in `default-frame-alist'."
 			 (symbol :tag "Parameter")
 			 (sexp :tag "Value")))
   :group 'frames)
-(make-obsolete-variable
- 'special-display-frame-alist
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'special-display-frame-alist
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defun special-display-popup-frame (buffer &optional args)
   "Display BUFFER in a special frame and return the window chosen.
@@ -6140,9 +6140,9 @@ and (cdr ARGS) as second."
 	 (set-window-buffer (frame-selected-window frame) buffer)
 	 (set-window-dedicated-p (frame-selected-window frame) t)
 	 (frame-selected-window frame))))))
-(make-obsolete
- 'special-display-popup-frame
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete
+ ;; 'special-display-popup-frame
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defcustom special-display-function 'special-display-popup-frame
   "Function to call for displaying special buffers.
@@ -6159,9 +6159,9 @@ A buffer is special when its name is either listed in
   :type 'function
   :group 'windows
   :group 'frames)
-(make-obsolete-variable
- 'special-display-function
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'special-display-function
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defcustom special-display-buffer-names nil
   "List of names of buffers that should be displayed specially.
@@ -6226,9 +6226,9 @@ See also `special-display-regexps'."
 			(repeat :tag "Arguments" (sexp)))))
   :group 'windows
   :group 'frames)
-(make-obsolete-variable
- 'special-display-buffer-names
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'special-display-buffer-names
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 ;;;###autoload
 (put 'special-display-buffer-names 'risky-local-variable t)
@@ -6297,9 +6297,9 @@ See also `special-display-buffer-names'."
 			(repeat :tag "Arguments" (sexp)))))
   :group 'windows
   :group 'frames)
-(make-obsolete-variable
- 'special-display-regexps
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'special-display-regexps
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defun special-display-p (buffer-name)
   "Return non-nil if a buffer named BUFFER-NAME gets a special frame.
@@ -6327,9 +6327,9 @@ entry."
 	   ((and (consp regexp) (stringp (car regexp))
 		 (string-match-p (car regexp) buffer-name))
 	    (throw 'found (cdr regexp))))))))))
-(make-obsolete
- 'special-display-p
- "pass argument to buffer display function instead." "24.1")
+;; (make-obsolete
+ ;; 'special-display-p
+ ;; "pass argument to buffer display function instead." "24.1")
 
 (defcustom pop-up-frame-alist nil
   "Alist of parameters for automatically generated new frames.
@@ -6349,9 +6349,9 @@ affected by this variable."
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value")))
   :group 'frames)
-(make-obsolete-variable
- 'pop-up-frame-alist
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'pop-up-frame-alist
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defcustom pop-up-frame-function
   (lambda () (make-frame pop-up-frame-alist))
@@ -6361,9 +6361,9 @@ frame.  The default value calls `make-frame' with the argument
 `pop-up-frame-alist'."
   :type 'function
   :group 'frames)
-(make-obsolete-variable
- 'pop-up-frame-function
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'pop-up-frame-function
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defcustom pop-up-frames nil
   "Whether `display-buffer' should make a separate frame.
@@ -6377,9 +6377,9 @@ Any other non-nil value means always make a separate frame."
 	  (const :tag "Always" t))
   :group 'windows
   :group 'frames)
-(make-obsolete-variable
- 'pop-up-frames
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'pop-up-frames
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defcustom display-buffer-reuse-frames nil
   "Set and non-nil means `display-buffer' should reuse frames.
@@ -6389,18 +6389,18 @@ that frame."
   :version "21.1"
   :group 'windows
   :group 'frames)
-(make-obsolete-variable
- 'display-buffer-reuse-frames
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'display-buffer-reuse-frames
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defcustom pop-up-windows 'unset ; t
   "Set and non-nil means `display-buffer' should make a new window."
   :type 'boolean
   :version "24.1"
   :group 'windows)
-(make-obsolete-variable
- 'pop-up-windows
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'pop-up-windows
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defcustom split-window-preferred-function 'split-window-sensibly
   "Function called by `display-buffer' to split a window.
@@ -6427,9 +6427,9 @@ not want to split the selected window."
   :type 'function
   :version "23.1"
   :group 'windows)
-(make-obsolete-variable
- 'split-window-preferred-function
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'split-window-preferred-function
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defcustom split-height-threshold 80
   "Minimum height for splitting a window to display a buffer.
@@ -6441,9 +6441,9 @@ split it vertically disregarding the value of this variable."
   :type '(choice (const nil) (integer :tag "lines"))
   :version "23.1"
   :group 'windows)
-(make-obsolete-variable
- 'split-height-threshold
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'split-height-threshold
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defcustom split-width-threshold 160
   "Minimum width for splitting a window to display a buffer.
@@ -6453,9 +6453,9 @@ is nil, `display-buffer' cannot split windows horizontally."
   :type '(choice (const nil) (integer :tag "columns"))
   :version "23.1"
   :group 'windows)
-(make-obsolete-variable
- 'split-width-threshold
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'split-width-threshold
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defcustom even-window-heights 'unset ; t
   "If set and non-nil `display-buffer' will try to even window heights.
@@ -6465,17 +6465,17 @@ window that appears above or below the selected window."
   :type 'boolean
   :version "24.1"
   :group 'windows)
-(make-obsolete-variable
- 'even-window-heights
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'even-window-heights
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defvar display-buffer-mark-dedicated nil
   "Non-nil means `display-buffer' marks the windows it creates as dedicated.
 The actual non-nil value of this variable will be copied to the
 `window-dedicated-p' flag.")
-(make-obsolete-variable
- 'display-buffer-mark-dedicated
- "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete-variable
+ ;; 'display-buffer-mark-dedicated
+ ;; "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defun window-splittable-p (window &optional horizontal)
   "Return non-nil if `split-window-sensibly' may split WINDOW.
@@ -6526,8 +6526,8 @@ hold:
 		 (max split-height-threshold
 		      (* 2 (max window-min-height
 				(if mode-line-format 2 1))))))))))
-(make-obsolete
- 'window-splittable-p "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete
+ ;; 'window-splittable-p "use 2nd arg of `display-buffer' instead." "24.1")
 
 (defun split-window-sensibly (window)
   "Split WINDOW in a way suitable for `display-buffer'.
@@ -6577,8 +6577,8 @@ split."
 	     (when (with-no-warnings (window-splittable-p window))
 	       (with-selected-window window
 		 (split-window-vertically)))))))
-(make-obsolete
- 'split-window-sensibly "use 2nd arg of `display-buffer' instead." "24.1")
+;; (make-obsolete
+ ;; 'split-window-sensibly "use 2nd arg of `display-buffer' instead." "24.1")
 
 ;; Functions for converting Emacs 23 buffer display options to buffer
 ;; display specifiers.
@@ -7002,8 +7002,8 @@ WINDOW defaults to the selected window."
       ;; `window-iso-combined-p' instead should handle that.
       (or (= (nth 2 edges) (nth 2 (window-edges (previous-window))))
 	  (= (nth 0 edges) (nth 0 (window-edges (next-window))))))))
-(make-obsolete
- 'window-safely-shrinkable-p "use `window-iso-combined-p' instead." "24.1")
+;; (make-obsolete
+ ;; 'window-safely-shrinkable-p "use `window-iso-combined-p' instead." "24.1")
 
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink height of WINDOW if its buffer doesn't need so many lines.

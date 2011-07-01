@@ -1,3 +1,19 @@
+2011-07-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (same-window-buffer-names, same-window-regexps)
+	(same-window-p, special-display-frame-alist)
+	(special-display-popup-frame, special-display-function)
+	(special-display-buffer-names, special-display-regexps)
+	(special-display-p, pop-up-frame-alist, pop-up-frame-function)
+	(pop-up-frames, display-buffer-reuse-frames, pop-up-windows)
+	(split-window-preferred-function, split-height-threshold)
+	(split-width-threshold, even-window-heights)
+	(display-buffer-mark-dedicated, window-splittable-p)
+	(split-window-sensibly, window-safely-shrinkable-p):
+	Un-obsolete.
+	(display-buffer): Don't spread args with function specifier
+	because special-display-popup-frame won't like it.
+
 2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Time-stamp simplifications and fixes.
