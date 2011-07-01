@@ -1,3 +1,8 @@
+2011-07-01  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-word-search-backward):
+	Replace CL function.
+
 2011-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (mouse--strip-first-event): New function.
