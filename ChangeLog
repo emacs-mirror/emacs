@@ -1,3 +1,7 @@
+2011-07-01  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (SETTINGS_CFLAGS, SETTINGS_LIBS) [HAVE_GCONF]: Fix typo.
+
 2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* configure.in (HAVE_GSETTINGS): Fix syntax for GSETTINGS tests,
