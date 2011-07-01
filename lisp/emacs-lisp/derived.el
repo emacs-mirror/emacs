@@ -253,8 +253,11 @@ No problems result if this variable is not bound.
 		   `(let ((parent (char-table-parent ,syntax)))
 		      (unless (and parent
 				   (not (eq parent (standard-syntax-table))))
-			(set-char-table-parent ,syntax (syntax-table)))))))
-
+			(set-char-table-parent ,syntax (syntax-table)))))
+                ,(when declare-abbrev
+                   `(unless (abbrev-table-get ,abbrev :parents)
+                      (abbrev-table-put ,abbrev :parents
+                                        (list local-abbrev-table))))))
 	  (use-local-map ,map)
 	  ,(when syntax `(set-syntax-table ,syntax))
 	  ,(when abbrev `(setq local-abbrev-table ,abbrev))

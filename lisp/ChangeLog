@@ -1,3 +1,8 @@
+2011-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/derived.el (define-derived-mode): Make abbrev-table
+	inherit from parent.
+
 2011-07-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* dired-aux.el (dired-diff): Doc fixup (bug#8816).
