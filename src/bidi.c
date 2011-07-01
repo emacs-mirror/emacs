@@ -240,8 +240,7 @@ bidi_push_embedding_level (struct bidi_it *bidi_it,
 			   int level, bidi_dir_t override)
 {
   bidi_it->stack_idx++;
-  if (bidi_it->stack_idx >= BIDI_MAXLEVEL)
-    abort ();
+  xassert (bidi_it->stack_idx < BIDI_MAXLEVEL);
   bidi_it->level_stack[bidi_it->stack_idx].level = level;
   bidi_it->level_stack[bidi_it->stack_idx].override = override;
 }
@@ -556,9 +555,9 @@ static int bidi_cache_sp;
 
 /* Push the bidi iterator state in preparation for reordering a
    different object, e.g. display string found at certain buffer
-   position.  Pushing the bidi iterator boils to saving its entire
-   state on the cache and starting a new cache "stacked" on top of the
-   current cache.  */
+   position.  Pushing the bidi iterator boils down to saving its
+   entire state on the cache and starting a new cache "stacked" on top
+   of the current cache.  */
 void
 bidi_push_it (struct bidi_it *bidi_it)
 {
@@ -568,8 +567,7 @@ bidi_push_it (struct bidi_it *bidi_it)
   memcpy (&bidi_cache[bidi_cache_idx++], bidi_it, sizeof (struct bidi_it));
 
   /* Push the current cache start onto the stack.  */
-  if (bidi_cache_sp >= IT_STACK_SIZE)
-    abort ();
+  xassert (bidi_cache_sp < IT_STACK_SIZE);
   bidi_cache_start_stack[bidi_cache_sp++] = bidi_cache_start;
 
   /* Start a new level of cache, and make it empty.  */
@@ -2034,7 +2032,7 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
     }
 
   /* The code below can call eval, and thus cause GC.  If we are
-     iterating a Lisp string, make sure it won't GCed.  */
+     iterating a Lisp string, make sure it won't be GCed.  */
   if (STRINGP (bidi_it->string.lstring))
     GCPRO1 (bidi_it->string.lstring);
 

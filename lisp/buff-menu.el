@@ -268,7 +268,7 @@ Letters do not insert themselves; instead, they are commands.
   (setq truncate-lines t)
   (setq buffer-read-only t)
   ;; Force L2R direction, to avoid messing the display if the first
-  ;; buffer in the list happens to begin with a string R2L character.
+  ;; buffer in the list happens to begin with a strong R2L character.
   (setq bidi-paragraph-direction 'left-to-right))
 
 (define-obsolete-variable-alias 'buffer-menu-mode-hook
@@ -817,7 +817,7 @@ For more information, see the function `buffer-menu'."
       (erase-buffer)
       (setq standard-output (current-buffer))
       ;; Force L2R direction, to avoid messing the display if the
-      ;; first buffer in the list happens to begin with a string R2L
+      ;; first buffer in the list happens to begin with a strong R2L
       ;; character.
       (setq bidi-paragraph-direction 'left-to-right)
       (unless Buffer-menu-use-header-line
