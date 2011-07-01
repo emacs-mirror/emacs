@@ -1,3 +1,9 @@
+2011-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/find-func.el (find-library--load-name): New fun.
+	(find-library-name): Use it to find relative load names when provided
+	absolute file name (bug#8803).
+
 2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* textmodes/flyspell.el (flyspell-word): Consider words that
@@ -14,7 +20,7 @@
 
 	* progmodes/cc-guess.el: New file.
 
-	* progmodes/cc-langs.el (c-mode-menu): Added "Style..." submenu.
+	* progmodes/cc-langs.el (c-mode-menu): Add "Style..." submenu.
 
 	* progmodes/cc-styles.el (cc-choose-style-for-mode): New function
 	derived from `c-basic-common-init'.
