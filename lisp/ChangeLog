@@ -1,5 +1,8 @@
 2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* woman.el (woman-decode-buffer, WoMan-log-end): Log fractional secs
+	by using time-since and float-time.
+
 	* vc/ediff-util.el (ediff-calc-command-time): Use time-since
 	and float-time.  Say "NNN.NNN seconds" rather than "NNN seconds
 	+ NNN microseconds".
