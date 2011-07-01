@@ -1,5 +1,9 @@
 2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* nxml/rng-maint.el (rng-time-function): Rewrite using time-subtract.
+	This yields a more-accurate answer.
+	(rng-time-to-float): Remove; no longer needed.
+
 	* emacs-lisp/timer.el (timer-relative-time): Use time-add.
 
 	* calendar/timeclock.el (timeclock-seconds-to-time):
