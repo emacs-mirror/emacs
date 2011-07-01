@@ -29,6 +29,12 @@
 ;; Possible customization for auto-mode selection:
 ;; (push '(("^cfagent.conf\\'" . cfengine-mode)) auto-mode-alist)
 ;; (push '(("^cf\\." . cfengine-mode)) auto-mode-alist)
+;; (push '(("\\.cf\\'" . cfengine-mode)) auto-mode-alist)
+
+;; Or, if you want to use the CFEngine 3.x support:
+
+;; (push '(("^cfagent.conf\\'" . cfengine3-mode)) auto-mode-alist)
+;; (push '(("^cf\\." . cfengine3-mode)) auto-mode-alist)
 ;; (push '(("\\.cf\\'" . cfengine3-mode)) auto-mode-alist)
 
 ;; This is not the same as the mode written by Rolf Ebert
