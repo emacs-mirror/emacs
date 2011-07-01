@@ -1,3 +1,8 @@
+2011-07-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mule.texi (Coding Systems): Put a few more of the coding systems
+	into the index (bug#8900).
+
 2011-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* fortran-xtra.texi (Fortran): F90 mode is also for F2008.

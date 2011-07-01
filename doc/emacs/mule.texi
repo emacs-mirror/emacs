@@ -665,6 +665,9 @@ system to other coding systems when writing data.  Conversion is
 possible in reading or writing files, in sending or receiving from the
 terminal, and in exchanging data with subprocesses.
 
+@cindex @code{no-conversion}, coding system
+@cindex @code{raw-text}, coding system
+@cindex @code{emacs-internal}, coding system
   Emacs assigns a name to each coding system.  Most coding systems are
 used for one language, and the name of the coding system starts with
 the language name.  Some coding systems are used for several
@@ -748,6 +751,7 @@ appropriate conversion.  (This is the convention normally used on the
 Macintosh system.)
 @end table
 
+@cindex @code{iso-latin-1}, coding system
   These variant coding systems are omitted from the
 @code{list-coding-systems} display for brevity, since they are entirely
 predictable.  For example, the coding system @code{iso-latin-1} has
