@@ -1,5 +1,7 @@
 2011-07-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* help.texi (Help Files): Document view-external-packages (bug#8902).
+
 	* mule.texi (Coding Systems): Put a few more of the coding systems
 	into the index (bug#8900).
 
