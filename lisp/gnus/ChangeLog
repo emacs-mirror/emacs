@@ -1,3 +1,8 @@
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-token-passphrase-callback-function):
+	Simplify and remove EPA dependency.
+
 2011-07-01  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el (nnir-request-article): Fix error message text.
