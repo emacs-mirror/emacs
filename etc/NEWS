@@ -803,6 +803,10 @@ binding `log-view-expanded-log-entry-function' to a suitable function.
 *** New command `vc-ediff' allows visual comparison of two revisions
 of a file similar to `vc-diff', but using ediff backend.
 
+** CC Mode (C, C++, etc.)
+
+*** New feature to "guess" the style in an existing buffer.
+
 ** Miscellaneous
 
 +++
