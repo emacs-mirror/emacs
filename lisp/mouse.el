@@ -2092,17 +2092,19 @@ choose a font."
 (global-set-key [double-mouse-1] 'mouse-set-point)
 (global-set-key [triple-mouse-1] 'mouse-set-point)
 
-;; Clicking on the fringes causes hscrolling:
-(global-set-key [left-fringe mouse-1]	'mouse-set-point)
-(global-set-key [right-fringe mouse-1]	'mouse-set-point)
+(defun mouse--strip-first-event (_prompt)
+  (substring (this-single-command-raw-keys) 1))
+
+(define-key function-key-map [left-fringe mouse-1] 'mouse--strip-first-event)
+(define-key function-key-map [right-fringe mouse-1] 'mouse--strip-first-event)
 
 (global-set-key [mouse-2]	'mouse-yank-primary)
 ;; Allow yanking also when the corresponding cursor is "in the fringe".
-(global-set-key [right-fringe mouse-2] 'mouse-yank-at-click)
-(global-set-key [left-fringe mouse-2] 'mouse-yank-at-click)
+(define-key function-key-map [right-fringe mouse-2] 'mouse--strip-first-event)
+(define-key function-key-map [left-fringe mouse-2] 'mouse--strip-first-event)
 (global-set-key [mouse-3]	'mouse-save-then-kill)
-(global-set-key [right-fringe mouse-3]	'mouse-save-then-kill)
-(global-set-key [left-fringe mouse-3]	'mouse-save-then-kill)
+(define-key function-key-map [right-fringe mouse-3] 'mouse--strip-first-event)
+(define-key function-key-map [left-fringe mouse-3] 'mouse--strip-first-event)
 
 ;; By binding these to down-going events, we let the user use the up-going
 ;; event to make the selection, saving a click.
