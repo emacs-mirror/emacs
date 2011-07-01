@@ -540,8 +540,7 @@ but also to the ones displayed in the echo area."
 
 (eval-when-compile
   (defmacro gnus-message-with-timestamp-1 (format-string args)
-    (let ((timestamp '((format-time-string "%Y%m%dT%H%M%S" time)
-		       "." (format "%03d" (/ (nth 2 time) 1000)) "> ")))
+    (let ((timestamp '(format-time-string "%Y%m%dT%H%M%S.%3N> " time)))
       (if (featurep 'xemacs)
 	  `(let (str time)
 	     (if (or (and (null ,format-string) (null ,args))
@@ -554,10 +553,10 @@ but also to the ones displayed in the echo area."
 	       (cond ((eq gnus-add-timestamp-to-message 'log)
 		      (setq time (current-time))
 		      (display-message 'no-log str)
-		      (log-message 'message (concat ,@timestamp str)))
+		      (log-message 'message (concat ,timestamp str)))
 		     (gnus-add-timestamp-to-message
 		      (setq time (current-time))
-		      (display-message 'message (concat ,@timestamp str)))
+		      (display-message 'message (concat ,timestamp str)))
 		     (t
 		      (display-message 'message str))))
 	     str)
@@ -571,7 +570,7 @@ but also to the ones displayed in the echo area."
 		    (setq time (current-time))
 		    (with-current-buffer (get-buffer-create "*Messages*")
 		      (goto-char (point-max))
-		      (insert ,@timestamp str "\n")
+		      (insert ,timestamp str "\n")
 		      (forward-line (- message-log-max))
 		      (delete-region (point-min) (point))
 		      (goto-char (point-max))))
@@ -585,7 +584,7 @@ but also to the ones displayed in the echo area."
 			  (and ,format-string str)
 			(message nil))
 		    (setq time (current-time))
-		    (message "%s" (concat ,@timestamp str))
+		    (message "%s" (concat ,timestamp str))
 		    str))
 		 (t
 		  (apply 'message ,format-string ,args))))))))

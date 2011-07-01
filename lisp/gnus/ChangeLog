@@ -1,3 +1,11 @@
+2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* nntp.el (nntp-record-command):
+	* gnus-util.el (gnus-message-with-timestamp-1):
+	Use format-time-string rather than decoding time stamps by hand.
+	This is simpler and insulates the code from potential changes to
+	current-time format.
+
 2011-07-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-draft.el (gnus-draft-clear-marks): Mark deleted articles as read.

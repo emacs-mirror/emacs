@@ -1,3 +1,34 @@
+2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Time-stamp simplifications and fixes.
+	These improve accuracy slightly, and future-proof the code
+	against some potential changes to current-time format.
+
+	* woman.el (woman-decode-buffer, WoMan-log-end): Log fractional secs
+	by using time-since and float-time.
+
+	* vc/ediff-util.el (ediff-calc-command-time): Use time-since
+	and float-time.  Say "NNN.NNN seconds" rather than "NNN seconds
+	+ NNN microseconds".
+
+	* type-break.el (type-break-time-sum): Rewrite using time-add.
+
+	* play/hanoi.el (hanoi-current-time-float): Remove.
+	All uses replaced by float-time.
+
+	* nxml/rng-maint.el (rng-time-function): Rewrite using time-subtract.
+	This yields a more-accurate answer.
+	(rng-time-to-float): Remove; no longer needed.
+
+	* emacs-lisp/timer.el (timer-relative-time): Use time-add.
+
+	* calendar/timeclock.el (timeclock-seconds-to-time):
+	Defalias to seconds-to-time, since they're the same thing.
+
+	* emacs-lisp/elp.el (elp-elapsed-time):
+	* emacs-lisp/benchmark.el (benchmark-elapse):
+	* allout-widgets.el (allout-elapsed-time-seconds): Use float-time.
+
 2011-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.el (bury-buffer): Don't iconify the only frame.

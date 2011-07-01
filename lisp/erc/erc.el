@@ -2362,7 +2362,7 @@ If STRING is nil, the function does nothing."
 	(cond ((integerp elt)		; POSITION
 	       (incf (car list) shift))
 	      ((or (atom elt)		; nil, EXTENT
-		   ;; (eq t (car elt))	; (t HIGH . LOW)
+		   ;; (eq t (car elt))	; (t . TIME)
 		   (markerp (car elt)))	; (MARKER . DISTANCE)
 	       nil)
 	      ((integerp (car elt))	; (BEGIN . END)
@@ -6493,4 +6493,3 @@ Otherwise, connect to HOST:PORT as USER and /join CHANNEL."
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-
