@@ -1,3 +1,7 @@
+2011-07-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-draft.el (gnus-draft-clear-marks): Mark deleted articles as read.
+
 2011-07-01  Daiki Ueno  <ueno@unixuser.org>
 
 	* plstore.el (plstore-select-keys, plstore-encrypt-to): New variable.
