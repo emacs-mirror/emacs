@@ -143,12 +143,12 @@ May either be a string or a list of strings.")
 
 (defun plstore--init-from-buffer (plstore)
   (goto-char (point-min))
-  (when (looking-at ";;; public entries\n")
+  (when (looking-at ";;; public entries")
     (forward-line)
     (plstore--set-alist plstore (read (point-marker)))
     (forward-sexp)
     (forward-char)
-    (when (looking-at ";;; secret entries\n")
+    (when (looking-at ";;; secret entries")
       (forward-line)
       (plstore--set-encrypted-data plstore (read (point-marker))))
     (plstore--merge-secret plstore)))
@@ -372,6 +372,7 @@ If no one is selected, symmetric encryption will be performed.  "
 			     recipients)
 			  (if plstore-encrypt-to
 			      (epg-list-keys context recipients)))))
+	  (goto-char (point-max))
 	  (insert ";;; secret entries\n" (pp-to-string cipher))))
     (save-buffer)))
 
