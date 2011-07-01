@@ -1,5 +1,8 @@
 2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* play/hanoi.el (hanoi-current-time-float): Remove.
+	All uses replaced by float-time.
+
 	* nxml/rng-maint.el (rng-time-function): Rewrite using time-subtract.
 	This yields a more-accurate answer.
 	(rng-time-to-float): Remove; no longer needed.
