@@ -1,7 +1,13 @@
+2011-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (bury-buffer): Don't iconify the only frame.
+	(switch-to-buffer): Revert to Emacs<23 behavior, i.e. do not fallback
+	to pop-to-buffer.  Use pop-to-buffer-same-frame if you don't like that.
+
 2011-07-01  Chong Yidong  <cyd@stupidchicken.com>
 
-	* eshell/em-smart.el (eshell-smart-display-navigate-list): Add
-	mouse-yank-primary.
+	* eshell/em-smart.el (eshell-smart-display-navigate-list):
+	Add mouse-yank-primary.
 
 2011-07-01  Teodor Zlatanov  <tzz@lifelogs.com>
 
