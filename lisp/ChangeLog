@@ -1,3 +1,7 @@
+2011-07-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine3.el: New file to support CFEngine 3.x.
+
 2011-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/find-func.el (find-library--load-name): New fun.
