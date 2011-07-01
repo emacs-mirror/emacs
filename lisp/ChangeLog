@@ -1,5 +1,7 @@
 2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* type-break.el (type-break-time-sum): Rewrite using time-add.
+
 	* play/hanoi.el (hanoi-current-time-float): Remove.
 	All uses replaced by float-time.
 
