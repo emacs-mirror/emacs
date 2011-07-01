@@ -3,6 +3,7 @@
 	* calendar/timeclock.el (timeclock-seconds-to-time):
 	Defalias to seconds-to-time, since they're the same thing.
 
+	* emacs-lisp/elp.el (elp-elapsed-time):
 	* emacs-lisp/benchmark.el (benchmark-elapse):
 	* allout-widgets.el (allout-elapsed-time-seconds): Use float-time.
 
