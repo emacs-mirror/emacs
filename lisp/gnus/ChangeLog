@@ -1,3 +1,7 @@
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-backend): Fix :initarg for data slot.
+
 2011-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mml2015.el (mml2015-use): Replace string-match-p with string-match
