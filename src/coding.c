@@ -9000,7 +9000,7 @@ not fully specified.)  */)
   (Lisp_Object string, Lisp_Object coding_system, Lisp_Object nocopy, Lisp_Object buffer)
 {
   return code_convert_string (string, coding_system, buffer,
-			      1, ! NILP (nocopy), 1);
+			      1, ! NILP (nocopy), 0);
 }
 
 

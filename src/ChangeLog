@@ -1,3 +1,8 @@
+2011-07-01  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny patch)
+
+	* coding.c (Fencode_coding_string): Record the last coding system
+	used, as the function doc string says (bug#8738).
+
 2011-07-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c (store_monospaced_changed): Take new font as arg and
