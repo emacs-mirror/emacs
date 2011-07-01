@@ -2493,8 +2493,9 @@ with the command \\[tags-loop-continue]."
 ;;;###autoload
 (defun dired-show-file-type (file &optional deref-symlinks)
   "Print the type of FILE, according to the `file' command.
-If FILE is a symbolic link and the optional argument DEREF-SYMLINKS is
-true then the type of the file linked to by FILE is printed instead."
+If you give a prefix to this command, and FILE is a symbolic
+link, then the type of the file linked to by FILE is printed
+instead."
   (interactive (list (dired-get-filename t) current-prefix-arg))
   (let (process-file-side-effects)
     (with-temp-buffer
