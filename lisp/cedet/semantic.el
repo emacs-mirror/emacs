@@ -379,9 +379,7 @@ Do not set this yourself.  Call `semantic-debug'.")
 (defun semantic-elapsed-time (start end)
   "Copied from elp.el.  Was `elp-elapsed-time'.
 Argument START and END bound the time being calculated."
-  (+ (* (- (car end) (car start)) 65536.0)
-     (- (car (cdr end)) (car (cdr start)))
-     (/ (- (car (cdr (cdr end))) (car (cdr (cdr start)))) 1000000.0)))
+  (float-time (time-subtract end start)))
 
 (defun bovinate (&optional clear)
   "Parse the current buffer.  Show output in a temp buffer.
