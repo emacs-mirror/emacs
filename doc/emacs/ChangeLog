@@ -1,3 +1,8 @@
+2011-07-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Coding Systems): Move index entries from the previous
+	change into their proper places.
+
 2011-07-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* help.texi (Help Files): Document view-external-packages (bug#8902).
