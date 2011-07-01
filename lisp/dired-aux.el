@@ -56,9 +56,9 @@ into this list; they also should call `dired-log' to log the errors.")
   "Compare file at point with file FILE using `diff'.
 FILE defaults to the file at the mark.  (That's the mark set by
 \\[set-mark-command], not by Dired's \\[dired-mark] command.)
-The prompted-for file is the first file given to `diff'.
+The prompted-for FILE is the first file given to `diff'.
 With prefix arg, prompt for second argument SWITCHES,
-which is options for `diff'."
+which is the string of command switches for `diff'."
   (interactive
    (let* ((current (dired-get-filename t))
 	  ;; Get the file at the mark.

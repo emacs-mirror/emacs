@@ -1,5 +1,7 @@
 2011-07-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* dired-aux.el (dired-diff): Doc fixup (bug#8816).
+
 	* dired.el (dired-mode): Fix up the doc string as suggested by
 	Drew Adams (bug#8817).
 
