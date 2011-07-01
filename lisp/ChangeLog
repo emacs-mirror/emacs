@@ -1,3 +1,17 @@
+2011-07-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el: Moved all cfengine3.el functionality
+	here.  Noted Ted Zlatanov as the maintainer.
+	(cfengine-common-settings, cfengine-common-syntax): New functions
+	to set up common things between `cfengine-mode' and
+	`cfengine3-mode'.
+	(cfengine3-mode): New mode.
+	(cfengine3-defuns cfengine3-defuns-regex
+	(cfengine3-class-selector-regex cfengine3-category-regex)
+	(cfengine3-vartypes cfengine3-font-lock-keywords)
+	(cfengine3-beginning-of-defun, cfengine3-end-of-defun)
+	(cfengine3-indent-line): Added from cfengine3.el.
+
 2011-07-01  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-encoding-command-interactive): New defcustom.
