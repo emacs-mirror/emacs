@@ -1,5 +1,8 @@
 2011-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc/vc-bzr.el (vc-bzr-revision-keywords): Update.
+	(vc-bzr-revision-completion-table): Add support for annotate and date.
+
 	* emacs-lisp/derived.el (define-derived-mode): Make abbrev-table
 	inherit from parent.
 
@@ -27,7 +30,7 @@
 	(cfengine3-class-selector-regex cfengine3-category-regex)
 	(cfengine3-vartypes cfengine3-font-lock-keywords)
 	(cfengine3-beginning-of-defun, cfengine3-end-of-defun)
-	(cfengine3-indent-line): Added from cfengine3.el.
+	(cfengine3-indent-line): Add from cfengine3.el.
 
 2011-07-01  Michael Albinus  <michael.albinus@gmx.de>
 
