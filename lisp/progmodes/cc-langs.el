@@ -295,6 +295,19 @@ the evaluated constant value at compile time."
 	    ["Backslashify"           c-backslash-region
 	     (c-fn-region-is-active-p)]))
       "----"
+      ("Style..."
+       ["Set Style..."                   c-set-style t]
+       ["Show Current Style Name"        (message
+					  "Style Name: %s"
+					  c-indentation-style) t]
+       ["Guess Style from this Buffer"   c-guess-buffer-no-install t]
+       ["Install the Last Guessed Style..." c-guess-install
+	(and c-guess-guessed-offsets-alist
+	     c-guess-guessed-basic-offset) ]
+       ["View the Last Guessed Style"    c-guess-view
+	(and c-guess-guessed-offsets-alist
+	     c-guess-guessed-basic-offset) ])
+      "----"
       ("Toggle..."
        ["Syntactic indentation" c-toggle-syntactic-indentation
 	:style toggle :selected c-syntactic-indentation]

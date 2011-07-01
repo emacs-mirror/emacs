@@ -43,8 +43,6 @@
 (require 'mm-util)
 (require 'gnus-util)
 (require 'assoc)
-(require 'epa)
-(require 'epg)
 
 (eval-when-compile (require 'cl))
 (require 'eieio)
@@ -64,6 +62,15 @@
 (autoload 'plstore-put "plstore")
 (autoload 'plstore-save "plstore")
 (autoload 'plstore-get-file "plstore")
+
+(autoload 'epa-passphrase-callback-function "epa")
+
+(autoload 'epg-context-operation "epg")
+(autoload 'epg-make-context "epg")
+(autoload 'epg-context-set-passphrase-callback "epg")
+(autoload 'epg-decrypt-string "epg")
+(autoload 'epg-context-set-armor "epg")
+(autoload 'epg-encrypt-string "epg")
 
 (defvar secrets-enabled)
 
@@ -109,9 +116,9 @@ let-binding."
          :type t
          :custom string
          :documentation "The backend protocol.")
-   (arg :initarg :arg
-	:initform nil
-	:documentation "The backend arg.")
+   (data :initarg :arg
+         :initform nil
+         :documentation "Internal backend data.")
    (create-function :initarg :create-function
                     :initform ignore
                     :type function
@@ -171,7 +178,8 @@ let-binding."
 
 (defcustom auth-source-netrc-use-gpg-tokens 'never
   "Set this to tell auth-source when to create GPG password
-tokens in netrc files.  It's either an alist or `never'."
+tokens in netrc files.  It's either an alist or `never'.
+Note that if EPA/EPG is not available, this should NOT be used."
   :group 'auth-source
   :version "23.2" ;; No Gnus
   :type `(choice
@@ -394,7 +402,7 @@ with \"[a/b/c] \" if CHOICES is '\(?a ?b ?c\)."
 	  :type 'plstore
 	  :search-function 'auth-source-plstore-search
 	  :create-function 'auth-source-plstore-create
-	  :arg (plstore-open (plist-get entry :source)))
+	  :data (plstore-open (plist-get entry :source)))
        (auth-source-backend
 	(plist-get entry :source)
 	:source (plist-get entry :source)
@@ -1520,7 +1528,7 @@ authentication tokens:
   (assert (not delete) nil
           "The PLSTORE auth-source backend doesn't support deletion yet")
 
-  (let* ((store (oref backend arg))
+  (let* ((store (oref backend data))
          (max (or max 5000))     ; sanity check: default to stop at 5K
          (ignored-keys '(:create :delete :max :backend :require))
          (search-keys (loop for i below (length spec) by 2
@@ -1699,15 +1707,15 @@ authentication tokens:
 	    (setq artificial (plist-put artificial
 					(intern (concat ":" (symbol-name r)))
 					data))))))
-    (plstore-put (oref backend arg)
+    (plstore-put (oref backend data)
 		 (sha1 (format "%s@%s:%s"
 			       (plist-get artificial :user)
 			       (plist-get artificial :host)
 			       (plist-get artificial :port)))
 		 artificial secret-artificial)
     (if (y-or-n-p (format "Save auth info to file %s? "
-			  (plstore-get-file (oref backend arg))))
-	(plstore-save (oref backend arg)))))
+			  (plstore-get-file (oref backend data))))
+	(plstore-save (oref backend data)))))
 
 ;;; older API
 
