@@ -116,7 +116,7 @@ let-binding."
          :type t
          :custom string
          :documentation "The backend protocol.")
-   (data :initarg :arg
+   (data :initarg :data
          :initform nil
          :documentation "Internal backend data.")
    (create-function :initarg :create-function

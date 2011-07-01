@@ -2802,7 +2802,9 @@ displayed there."
      ((or buffer-or-name (not (eq buffer (window-buffer)))))
      ((not (window-dedicated-p))
       (switch-to-prev-buffer nil 'bury))
-     ((frame-root-window-p (selected-window))
+     ((and (frame-root-window-p (selected-window))
+           ;; Don't iconify if it's the only frame.
+           (not (eq (next-frame nil 0) (selected-frame))))
       (iconify-frame (window-frame (selected-window))))
      ((window-deletable-p)
       (delete-window)))
@@ -5944,20 +5946,18 @@ functions should call `pop-to-buffer-same-window' instead."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer: ")))
   (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
-    (if (and (or (window-minibuffer-p) (eq (window-dedicated-p) t))
-	     (not (eq buffer (window-buffer))))
-	;; Cannot switch to another buffer in a minibuffer or strongly
-	;; dedicated window that does not show the buffer already.  Call
-	;; `pop-to-buffer' instead.
-	(pop-to-buffer buffer 'same-window norecord)
-      (unless (eq buffer (window-buffer))
-	;; I'm not sure why we should NOT call `set-window-buffer' here,
-	;; but let's keep things as they are (otherwise we could always
-	;; call `pop-to-buffer-same-window' here).
-	(set-window-buffer nil buffer))
-      (unless norecord
-	(select-window (selected-window)))
-      (set-buffer buffer))))
+    (cond
+     ;; Don't call set-window-buffer if it's not needed since it
+     ;; might signal an error (e.g. if the window is dedicated).
+     ((eq buffer (window-buffer)) nil)
+     ((window-minibuffer-p)
+      (error "Cannot switch buffers in minibuffer window"))
+     ((eq (window-dedicated-p) t)
+      (error "Cannot switch buffers in a dedicated window"))
+     (t (set-window-buffer nil buffer)))
+    (unless norecord
+      (select-window (selected-window)))
+    (set-buffer buffer)))
 
 (defun switch-to-buffer-same-frame (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME in a window on the selected frame.

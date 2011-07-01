@@ -3,7 +3,24 @@
 	* nntp.el (nntp-record-command):
 	* gnus-util.el (gnus-message-with-timestamp-1):
 	Use format-time-string rather than decoding time stamps by hand.
-	This is simpler and insulates the code from changes to time formats.
+	This is simpler and insulates the code from potential changes to
+	current-time format.
+
+2011-07-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-draft.el (gnus-draft-clear-marks): Mark deleted articles as read.
+
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* plstore.el (plstore-select-keys, plstore-encrypt-to): New variable.
+	(plstore-save): Support public key encryption.
+	(plstore--init-from-buffer): New function.
+	(plstore-open): Use it; fix error when opening a non-existent file.
+	(plstore-revert): Use plstore--init-from-buffer.
+
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-backend): Fix :initarg for data slot.
 
 2011-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 

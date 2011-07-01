@@ -1,5 +1,9 @@
 2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Time-stamp simplifications and fixes.
+	These improve accuracy slightly, and future-proof the code
+	against some potential changes to current-time format.
+
 	* woman.el (woman-decode-buffer, WoMan-log-end): Log fractional secs
 	by using time-since and float-time.
 
@@ -25,6 +29,27 @@
 	* emacs-lisp/benchmark.el (benchmark-elapse):
 	* allout-widgets.el (allout-elapsed-time-seconds): Use float-time.
 
+2011-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (bury-buffer): Don't iconify the only frame.
+	(switch-to-buffer): Revert to Emacs<23 behavior, i.e. do not fallback
+	to pop-to-buffer.  Use pop-to-buffer-same-frame if you don't like that.
+
+2011-07-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eshell/em-smart.el (eshell-smart-display-navigate-list):
+	Add mouse-yank-primary.
+
+2011-07-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine3.el: New file to support CFEngine 3.x.
+
+2011-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/find-func.el (find-library--load-name): New fun.
+	(find-library-name): Use it to find relative load names when provided
+	absolute file name (bug#8803).
+
 2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* textmodes/flyspell.el (flyspell-word): Consider words that
@@ -41,7 +66,7 @@
 
 	* progmodes/cc-guess.el: New file.
 
-	* progmodes/cc-langs.el (c-mode-menu): Added "Style..." submenu.
+	* progmodes/cc-langs.el (c-mode-menu): Add "Style..." submenu.
 
 	* progmodes/cc-styles.el (cc-choose-style-for-mode): New function
 	derived from `c-basic-common-init'.

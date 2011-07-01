@@ -325,10 +325,18 @@ If DONT-POP is nil, display the buffer after setting it up."
 	(error "The draft %s is under edit" file)))))
 
 (defun gnus-draft-clear-marks ()
-  (setq gnus-newsgroup-reads nil
-	gnus-newsgroup-marked nil
-	gnus-newsgroup-unreads
-	(gnus-uncompress-range (gnus-active gnus-newsgroup-name))))
+  (setq gnus-newsgroup-marked nil
+	gnus-newsgroup-unreads (gnus-uncompress-range
+				(gnus-active gnus-newsgroup-name)))
+  ;; Mark articles except for deleted ones as unread.
+  (let (rest)
+    (dolist (article gnus-newsgroup-reads)
+      (when (and (consp article)
+		 (eq (cdr article) gnus-canceled-mark))
+	(push article rest)
+	(setq gnus-newsgroup-unreads
+	      (delq (car article) gnus-newsgroup-unreads))))
+    (setq gnus-newsgroup-reads (nreverse rest))))
 
 (provide 'gnus-draft)
 
