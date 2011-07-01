@@ -1,3 +1,7 @@
+2011-07-01  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-request-article): Fix error message text.
+
 2011-07-01  Daiki Ueno  <ueno@unixuser.org>
 
 	* auth-source.el (plstore-delete): Autoload.
