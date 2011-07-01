@@ -159,6 +159,9 @@ For encoding and deocding, commands like the following are executed:
 This variable can be used to change the \"/bin/sh\" part.  See the
 variable `tramp-encoding-command-switch' for the \"-c\" part.
 
+If the shell must be forced to be interactive, see
+`tramp-encoding-command-interactive'.
+
 Note that this variable is not used for remote commands.  There are
 mechanisms in tramp.el which automatically determine the right shell to
 use for the remote host."
@@ -173,6 +176,13 @@ use for the remote host."
 See the variable `tramp-encoding-shell' for more information."
   :group 'tramp
   :type 'string)
+
+(defcustom tramp-encoding-command-interactive
+  (unless (string-match "cmd\\.exe" tramp-encoding-shell) "-i")
+  "*Use this switch together with `tramp-encoding-shell' for interactive shells.
+See the variable `tramp-encoding-shell' for more information."
+  :group 'tramp
+  :type '(choice (const nil) string))
 
 ;;;###tramp-autoload
 (defvar tramp-methods nil
