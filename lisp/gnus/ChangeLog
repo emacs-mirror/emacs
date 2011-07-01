@@ -1,3 +1,9 @@
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (plstore-delete): Autoload.
+	(auth-source-plstore-search): Support delete operation.
+	* plstore.el (plstore-delete): New function.
+
 2011-07-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-draft.el (gnus-draft-clear-marks): Revert last change;
