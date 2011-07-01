@@ -1,8 +1,9 @@
 2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* gnus-util.el (gnus-message-with-timestamp-1): Use format-time-string
-	rather than decoding time stamps by hand.  This is simpler, and
-	insulates the code from changes to time stamp formats.
+	* nntp.el (nntp-record-command):
+	* gnus-util.el (gnus-message-with-timestamp-1):
+	Use format-time-string rather than decoding time stamps by hand.
+	This is simpler and insulates the code from changes to time formats.
 
 2011-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
