@@ -1,5 +1,7 @@
 2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* emacs-lisp/timer.el (timer-relative-time): Use time-add.
+
 	* calendar/timeclock.el (timeclock-seconds-to-time):
 	Defalias to seconds-to-time, since they're the same thing.
 
