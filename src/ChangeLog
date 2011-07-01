@@ -1,3 +1,13 @@
+2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* eval.c (struct backtrace): Simplify and port the data structure.
+	Do not assume that "int nargs : BITS_PER_INT - 2;" produces a
+	signed bit field, as this assumption is not portable and it makes
+	Emacs crash when compiled with Sun C 5.8 on sparc.  Do not use
+	"char debug_on_exit : 1" as this is not portable either; instead,
+	use the portable "unsigned int debug_on_exit : 1".  Remove unused
+	member evalargs.  Remove obsolete comments about cc bombing out.
+
 2011-06-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c: Include glib-object.h, gio/gio.h if HAVE_GSETTINGS.
