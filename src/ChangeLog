@@ -1,3 +1,26 @@
+2011-07-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (store_monospaced_changed): Take new font as arg and
+	check for change against current_mono_font.
+	(EMACS_TYPE_SETTINGS): Remove this and related defines.
+	(emacs_settings_constructor, emacs_settings_get_property)
+	(emacs_settings_set_property, emacs_settings_class_init)
+	(emacs_settings_init, gsettings_obj): Remove.
+	(something_changedCB): New function for HAVE_GSETTINGS.
+	(something_changedCB): HAVE_GCONF: Call store_monospaced_changed
+	with value as argument.
+	(init_gsettings): Check that GSETTINGS_SCHEMA exists before calling
+	g_settings_new (Bug#8967).  Do not create gsettings_obj.
+	Remove calls to g_settings_bind. Connect something_changedCB to
+	"changed".
+
+	* xgselect.c: Add defined (HAVE_GSETTINGS).
+	(xgselect_initialize): Ditto.
+
+	* process.c: Add defined (HAVE_GSETTINGS) for xgselect.h
+	(wait_reading_process_output): Add defined (HAVE_GSETTINGS) for
+	xg_select.
+
 2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* eval.c (struct backtrace): Simplify and port the data structure.

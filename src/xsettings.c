@@ -66,9 +66,15 @@ store_config_changed_event (Lisp_Object arg, Lisp_Object display_name)
 }
 
 static void
-store_monospaced_changed (void)
+store_monospaced_changed (const char *newfont)
 {
-  if (first_dpyinfo != NULL)
+  if (current_mono_font != NULL && strcmp (newfont, current_mono_font) == 0)
+    return; /* No change. */
+
+  xfree (current_mono_font);
+  current_mono_font = xstrdup (newfont);
+
+  if (first_dpyinfo != NULL && use_system_font)
     {
       /* Check if display still open */
       struct x_display_info *dpyinfo;
@@ -76,7 +82,7 @@ store_monospaced_changed (void)
       for (dpyinfo = x_display_list; !found && dpyinfo; dpyinfo = dpyinfo->next)
         found = dpyinfo == first_dpyinfo;
 
-      if (found && use_system_font)
+      if (found)
         store_config_changed_event (Qmonospace_font_name,
                                     XCAR (first_dpyinfo->name_list_element));
     }
@@ -84,133 +90,7 @@ store_monospaced_changed (void)
 
 
 #ifdef HAVE_GSETTINGS
-
-#define EMACS_TYPE_SETTINGS                  (emacs_settings_get_type ())
-#define EMACS_SETTINGS(obj) \
-  (G_TYPE_CHECK_INSTANCE_CAST ((obj), EMACS_TYPE_SETTINGS, EmacsSettings))
-#define EMACS_IS_SETTINGS(obj) \
-  (G_TYPE_CHECK_INSTANCE_TYPE ((obj), EMACS_TYPE_SETTINGS))
-#define EMACS_SETTINGS_CLASS(klass) \
-  (G_TYPE_CHECK_CLASS_CAST ((klass), EMACS_TYPE_SETTINGS, EmacsSettingsClass))
-#define EMACS_IS_SETTINGS_CLASS(klass) \
-  (G_TYPE_CHECK_CLASS_TYPE ((klass), EMACS_TYPE_SETTINGS))
-#define EMACS_SETTINGS_GET_CLASS(obj) \
-  (G_TYPE_INSTANCE_GET_CLASS ((obj), EMACS_TYPE_SETTINGS, EmacsSettingsClass))
-
-typedef struct _EmacsSettings        EmacsSettings;
-typedef struct _EmacsSettingsClass   EmacsSettingsClass;
-
-struct _EmacsSettings
-{
-  GObject parent_instance;
-};
-
-struct _EmacsSettingsClass
-{
-  GObjectClass parent_class;
-};
-
-/* will create emacs_settings_get_type and set emacs_settings_parent_class */
-G_DEFINE_TYPE (EmacsSettings, emacs_settings, G_TYPE_OBJECT);
-
-static GObject *
-emacs_settings_constructor (GType gtype,
-                            guint n_properties,
-                            GObjectConstructParam *properties)
-{
-  GObject *obj;
-
-  /* Always chain up to the parent constructor */
-  obj = G_OBJECT_CLASS (emacs_settings_parent_class)
-    ->constructor (gtype, n_properties, properties);
-  
-  /* update the object state depending on constructor properties */
-
-  return obj;
-}
-
-enum { PROP_MONO = 1, PROP_FONT };
-
-static void
-emacs_settings_get_property (GObject    *object,
-                             guint       property_id,
-                             GValue     *value,
-                             GParamSpec *pspec)
-{
-  switch (property_id) 
-    {
-    case PROP_MONO:
-      g_value_set_string (value, current_mono_font);
-      break;
-    case PROP_FONT:
-      g_value_set_string (value, current_font);
-      break;
-    }
-}
-
-static void
-emacs_settings_set_property (GObject      *object,
-                             guint         property_id,
-                             const GValue *value,
-                             GParamSpec   *pspec)
-{
-  const char *newfont;
-  switch (property_id) 
-    {
-    case PROP_MONO:
-      xfree (current_mono_font);
-      newfont = g_value_get_string (value);
-      if (current_mono_font != NULL && strcmp (newfont, current_mono_font) == 0)
-        return; /* No change. */
-
-      current_mono_font = xstrdup (newfont);
-      store_monospaced_changed ();
-      break;
-
-    case PROP_FONT:
-      xfree (current_font);
-      current_font = xstrdup (g_value_get_string (value));
-      break;
-    }
-}
-
-static void
-emacs_settings_class_init (EmacsSettingsClass *klass)
-{
-  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-
-  gobject_class->constructor = emacs_settings_constructor;
-  gobject_class->set_property = emacs_settings_set_property;
-  gobject_class->get_property = emacs_settings_get_property;
-
-  g_object_class_install_property
-    (gobject_class,
-     PROP_MONO,
-     g_param_spec_string ("monospace-font",
-                          "Monospace-font",
-                          "System monospace font",
-                          "",
-                          G_PARAM_READWRITE));
-  g_object_class_install_property
-    (gobject_class,
-     PROP_FONT,
-     g_param_spec_string ("font",
-                          "Font",
-                          "System font",
-                          "",
-                          G_PARAM_READWRITE));
-
-}
-
-static void
-emacs_settings_init (EmacsSettings *self)
-{
-}
-
-
 static GSettings *gsettings_client;
-static EmacsSettings *gsettings_obj;
-
 #else
 #ifdef HAVE_GCONF
 static GConfClient *gconf_client;
@@ -250,6 +130,26 @@ struct xsettings
 #define SYSTEM_MONO_FONT  "monospace-font-name"
 #define SYSTEM_FONT       "font-name"
 
+static void
+something_changedCB (GSettings *settings,
+                     gchar *key,
+                     gpointer user_data)
+{
+  GVariant *val;
+  if (strcmp (key, SYSTEM_MONO_FONT) != 0) return;
+  val = g_settings_get_value (settings, SYSTEM_MONO_FONT);
+  if (val)
+    {
+      g_variant_ref_sink (val);
+      if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+        {
+          const gchar *newfont = g_variant_get_string (val, NULL);
+          store_monospaced_changed (newfont);
+        }
+      g_variant_unref (val);
+    }
+}
+
 #else
 #ifdef HAVE_GCONF
 #define SYSTEM_MONO_FONT  "/desktop/gnome/interface/monospace_font_name"
@@ -270,12 +170,7 @@ something_changedCB (GConfClient *client,
   if (v->type == GCONF_VALUE_STRING)
     {
       const char *value = gconf_value_get_string (v);
-      if (current_mono_font != NULL && strcmp (value, current_mono_font) == 0)
-        return; /* No change. */
-
-      xfree (current_mono_font);
-      current_mono_font = xstrdup (value);
-      store_monospaced_changed ();
+      store_monospaced_changed (value);
     }
 }
 
@@ -784,21 +679,22 @@ init_gsettings (void)
 {
 #ifdef HAVE_GSETTINGS
   GVariant *val;
+  const gchar *const *schemas;
+  int schema_found = 0;
+
 #ifdef HAVE_G_TYPE_INIT
   g_type_init ();
 #endif
 
+  schemas = g_settings_list_schemas();
+  if (schemas == NULL) return;
+  while (! schema_found && *schemas != NULL)
+    schema_found = strcmp (*schemas++, GSETTINGS_SCHEMA) == 0;
+  if (!schema_found) return;
+
   gsettings_client = g_settings_new (GSETTINGS_SCHEMA);
   if (!gsettings_client) return;
   g_object_ref_sink (G_OBJECT (gsettings_client));
-
-  gsettings_obj = g_object_new (EMACS_TYPE_SETTINGS, NULL);
-  if (!gsettings_obj) 
-    {
-      g_object_unref (G_OBJECT (gsettings_client));
-      return;
-    }
-  g_object_ref_sink (G_OBJECT (gsettings_obj));
 
   val = g_settings_get_value (gsettings_client, SYSTEM_MONO_FONT);
   if (val) 
@@ -809,10 +705,8 @@ init_gsettings (void)
       g_variant_unref (val);
     }
 
-  g_settings_bind (gsettings_client, SYSTEM_MONO_FONT, gsettings_obj,
-                   "monospace-font", G_SETTINGS_BIND_GET);
-  g_settings_bind (gsettings_client, SYSTEM_FONT, gsettings_obj,
-                   "font", G_SETTINGS_BIND_GET);
+  g_signal_connect (G_OBJECT (gsettings_client), "changed",
+                    G_CALLBACK (something_changedCB), NULL);
 #endif /* HAVE_GSETTINGS */
 }
 
@@ -935,7 +829,6 @@ syms_of_xsettings (void)
   first_dpyinfo = NULL;
 #ifdef HAVE_GSETTINGS
   gsettings_client = NULL;
-  gsettings_obj = NULL;
 #else
 #ifdef HAVE_GCONF
   gconf_client = NULL;
