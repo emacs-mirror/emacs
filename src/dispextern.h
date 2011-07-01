@@ -1821,6 +1821,7 @@ struct bidi_string_data {
   EMACS_INT bufpos;		/* buffer position of lstring, or 0 if N/A */
   unsigned from_disp_str : 1;	/* 1 means the string comes from a
 				   display property */
+  unsigned unibyte : 1;		/* 1 means the string is unibyte */
 };
 
 /* Data type for reordering bidirectional text.  */

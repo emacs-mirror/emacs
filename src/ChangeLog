@@ -1,3 +1,19 @@
+2011-07-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispextern.h (struct bidi_string_data): New member `unibyte'.
+
+	* xdisp.c (handle_single_display_spec, next_overlay_string)
+	(get_overlay_strings_1, reseat_1, reseat_to_string)
+	(push_display_prop): Set up the `unibyte' member of bidi_it.string
+	correctly.  Don't assume unibyte strings are not bidi-reordered.
+	(compute_display_string_pos)
+	(compute_display_string_end): Fix handling the case of C string.
+
+	* bidi.c (bidi_count_bytes, bidi_char_at_pos): Accept an
+	additional argument UNIBYTE, and support unibyte strings.  All
+	callers changed.
+	(bidi_fetch_char): Support unibyte strings.
+
 2011-06-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_iterator_to_next, get_visually_first_element): Use

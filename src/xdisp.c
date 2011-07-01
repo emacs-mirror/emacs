@@ -3113,8 +3113,9 @@ compute_display_string_pos (struct text_pos *position,
   Lisp_Object object =
     (string && STRINGP (string->lstring)) ? string->lstring : Qnil;
   Lisp_Object pos, spec;
-  EMACS_INT eob = STRINGP (object) ? string->schars : ZV;
-  EMACS_INT begb = STRINGP (object) ? 0 : BEGV;
+  int string_p = (string && (STRINGP (string->lstring) || string->s));
+  EMACS_INT eob = string_p ? string->schars : ZV;
+  EMACS_INT begb = string_p ? 0 : BEGV;
   EMACS_INT bufpos, charpos = CHARPOS (*position);
   struct text_pos tpos;
 
@@ -3175,7 +3176,8 @@ compute_display_string_end (EMACS_INT charpos, struct bidi_string_data *string)
   Lisp_Object object =
     (string && STRINGP (string->lstring)) ? string->lstring : Qnil;
   Lisp_Object pos = make_number (charpos);
-  EMACS_INT eob = STRINGP (object) ? string->schars : ZV;
+  EMACS_INT eob =
+    (STRINGP (object) || (string && string->s)) ? string->schars : ZV;
 
   if (charpos >= eob || (string->s && !STRINGP (object)))
     return eob;
@@ -4496,19 +4498,6 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	  it->paragraph_embedding =
 	    (it->bidi_p ? it->bidi_it.paragraph_dir : L2R);
 
-	  /* Do we need to reorder this display string?  */
-	  if (it->multibyte_p)
-	    {
-	      if (BUFFERP (object))
-		it->bidi_p =
-		  !NILP (BVAR (XBUFFER (object), bidi_display_reordering));
-	      else
-		it->bidi_p =
-		  !NILP (BVAR (&buffer_defaults, bidi_display_reordering));
-	    }
-	  else
-	    it->bidi_p = 0;
-
 	  /* Set up the bidi iterator for this display string.  */
 	  if (it->bidi_p)
 	    {
@@ -4517,6 +4506,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	      it->bidi_it.string.schars = it->end_charpos;
 	      it->bidi_it.string.bufpos = bufpos;
 	      it->bidi_it.string.from_disp_str = 1;
+	      it->bidi_it.string.unibyte = !it->multibyte_p;
 	      bidi_init_it (0, 0, FRAME_WINDOW_P (it->f), &it->bidi_it);
 	    }
 	}
@@ -4873,11 +4863,6 @@ next_overlay_string (struct it *it)
       it->prev_stop = 0;
       it->base_level_stop = 0;
 
-      /* Do we need to reorder this overlay string?  */
-      it->bidi_p =
-	it->multibyte_p
-	&& !NILP (BVAR (current_buffer, bidi_display_reordering));
-
       /* Set up the bidi iterator for this overlay string.  */
       if (it->bidi_p)
 	{
@@ -4886,6 +4871,7 @@ next_overlay_string (struct it *it)
 	  it->bidi_it.string.schars = SCHARS (it->string);
 	  it->bidi_it.string.bufpos = it->overlay_strings_charpos;
 	  it->bidi_it.string.from_disp_str = it->string_from_display_prop_p;
+	  it->bidi_it.string.unibyte = !it->multibyte_p;
 	  bidi_init_it (0, 0, FRAME_WINDOW_P (it->f), &it->bidi_it);
 	}
     }
@@ -5159,11 +5145,6 @@ get_overlay_strings_1 (struct it *it, EMACS_INT charpos, int compute_stop_p)
       it->multibyte_p = STRING_MULTIBYTE (it->string);
       it->method = GET_FROM_STRING;
 
-      /* Do we need to reorder this overlay string?  */
-      it->bidi_p =
-	it->multibyte_p
-	&& !NILP (BVAR (current_buffer, bidi_display_reordering));
-
       /* Force paragraph direction to be that of the parent
 	 buffer.  */
       it->paragraph_embedding = (it->bidi_p ? it->bidi_it.paragraph_dir : L2R);
@@ -5178,6 +5159,7 @@ get_overlay_strings_1 (struct it *it, EMACS_INT charpos, int compute_stop_p)
 	  it->bidi_it.string.schars = SCHARS (it->string);
 	  it->bidi_it.string.bufpos = pos;
 	  it->bidi_it.string.from_disp_str = it->string_from_display_prop_p;
+	  it->bidi_it.string.unibyte = !it->multibyte_p;
 	  bidi_init_it (0, 0, FRAME_WINDOW_P (it->f), &it->bidi_it);
 	}
       return 1;
@@ -5747,6 +5729,7 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
       it->bidi_it.string.s = NULL;
       it->bidi_it.string.lstring = Qnil;
       it->bidi_it.string.bufpos = 0;
+      it->bidi_it.string.unibyte = 0;
     }
 
   if (set_stop_p)
@@ -5799,9 +5782,7 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 
   /* Bidirectional reordering of strings is controlled by the default
      value of bidi-display-reordering.  */
-  it->bidi_p =
-    !NILP (BVAR (&buffer_defaults, bidi_display_reordering))
-    && it->multibyte_p;
+  it->bidi_p = !NILP (BVAR (&buffer_defaults, bidi_display_reordering));
 
   if (s == NULL)
     {
@@ -5819,6 +5800,7 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 	  it->bidi_it.string.schars = it->end_charpos;
 	  it->bidi_it.string.bufpos = 0;
 	  it->bidi_it.string.from_disp_str = 0;
+	  it->bidi_it.string.unibyte = !it->multibyte_p;
 	  bidi_init_it (charpos, IT_STRING_BYTEPOS (*it),
 			FRAME_WINDOW_P (it->f), &it->bidi_it);
 	}
@@ -5835,25 +5817,24 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
 	{
 	  it->current.pos = c_string_pos (charpos, s, 1);
 	  it->end_charpos = it->string_nchars = number_of_chars (s, 1);
-
-	  if (it->bidi_p)
-	    {
-	      it->bidi_it.string.lstring = Qnil;
-	      it->bidi_it.string.s = s;
-	      it->bidi_it.string.schars = it->end_charpos;
-	      it->bidi_it.string.bufpos = 0;
-	      it->bidi_it.string.from_disp_str = 0;
-	      bidi_init_it (charpos, IT_BYTEPOS (*it), FRAME_WINDOW_P (it->f),
-			    &it->bidi_it);
-	    }
 	}
       else
 	{
-	  /* Unibyte (a.k.a. ASCII) C strings are never bidi-reordered.  */
 	  IT_CHARPOS (*it) = IT_BYTEPOS (*it) = charpos;
 	  it->end_charpos = it->string_nchars = strlen (s);
 	}
 
+      if (it->bidi_p)
+	{
+	  it->bidi_it.string.lstring = Qnil;
+	  it->bidi_it.string.s = s;
+	  it->bidi_it.string.schars = it->end_charpos;
+	  it->bidi_it.string.bufpos = 0;
+	  it->bidi_it.string.from_disp_str = 0;
+	  it->bidi_it.string.unibyte = !it->multibyte_p;
+	  bidi_init_it (charpos, IT_BYTEPOS (*it), FRAME_WINDOW_P (it->f),
+			&it->bidi_it);
+	}
       it->method = GET_FROM_C_STRING;
     }
 
@@ -17788,12 +17769,6 @@ push_display_prop (struct it *it, Lisp_Object prop)
 	 buffer.  */
       it->paragraph_embedding = (it->bidi_p ? it->bidi_it.paragraph_dir : L2R);
 
-      /* Do we need to reorder this string?  */
-      if (it->multibyte_p)
-	it->bidi_p = !NILP (BVAR (current_buffer, bidi_display_reordering));
-      else
-	it->bidi_p = 0;
-
       /* Set up the bidi iterator for this display string.  */
       if (it->bidi_p)
 	{
@@ -17802,6 +17777,7 @@ push_display_prop (struct it *it, Lisp_Object prop)
 	  it->bidi_it.string.schars = it->end_charpos;
 	  it->bidi_it.string.bufpos = IT_CHARPOS (*it);
 	  it->bidi_it.string.from_disp_str = 1;
+	  it->bidi_it.string.unibyte = !it->multibyte_p;
 	  bidi_init_it (0, 0, FRAME_WINDOW_P (it->f), &it->bidi_it);
 	}
     }

@@ -721,23 +721,29 @@ bidi_line_init (struct bidi_it *bidi_it)
 			Fetching characters
  ***********************************************************************/
 
-/* Count bytes in multibyte string S between BEG/BEGBYTE and END.  BEG
-   and END are zero-based character positions in S, BEGBYTE is byte
-   position corresponding to BEG.  */
+/* Count bytes in string S between BEG/BEGBYTE and END.  BEG and END
+   are zero-based character positions in S, BEGBYTE is byte position
+   corresponding to BEG.  UNIBYTE, if non-zero, means S is a unibyte
+   string.  */
 static inline EMACS_INT
 bidi_count_bytes (const unsigned char *s, const EMACS_INT beg,
-		  const EMACS_INT begbyte, const EMACS_INT end)
+		  const EMACS_INT begbyte, const EMACS_INT end, int unibyte)
 {
   EMACS_INT pos = beg;
   const unsigned char *p = s + begbyte, *start = p;
 
-  if (!CHAR_HEAD_P (*p))
-    abort ();
-
-  while (pos < end)
+  if (unibyte)
+    p = s + end;
+  else
     {
-      p += BYTES_BY_CHAR_HEAD (*p);
-      pos++;
+      if (!CHAR_HEAD_P (*p))
+	abort ();
+
+      while (pos < end)
+	{
+	  p += BYTES_BY_CHAR_HEAD (*p);
+	  pos++;
+	}
     }
 
   return p - start;
@@ -745,12 +751,18 @@ bidi_count_bytes (const unsigned char *s, const EMACS_INT beg,
 
 /* Fetch and returns the character at byte position BYTEPOS.  If S is
    non-NULL, fetch the character from string S; otherwise fetch the
-   character from the current buffer.  */
+   character from the current buffer.  UNIBYTE non-zero means S is a
+   unibyte string.  */
 static inline int
-bidi_char_at_pos (EMACS_INT bytepos, const unsigned char *s)
+bidi_char_at_pos (EMACS_INT bytepos, const unsigned char *s, int unibyte)
 {
   if (s)
-    return STRING_CHAR (s + bytepos);
+    {
+      if (unibyte)
+	return s[bytepos];
+      else
+	return STRING_CHAR (s + bytepos);
+    }
   else
     return FETCH_MULTIBYTE_CHAR (bytepos);
 }
@@ -804,12 +816,14 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
       ch = 0xFFFC;
       disp_end_pos = compute_display_string_end (*disp_pos, string);
       *nchars = disp_end_pos - *disp_pos;
+      if (*nchars <= 0)
+	abort ();
       if (string->s)
 	*ch_len = bidi_count_bytes (string->s, *disp_pos, bytepos,
-				    disp_end_pos);
+				    disp_end_pos, string->unibyte);
       else if (STRINGP (string->lstring))
 	*ch_len = bidi_count_bytes (SDATA (string->lstring), *disp_pos,
-				    bytepos, disp_end_pos);
+				    bytepos, disp_end_pos, string->unibyte);
       else
 	*ch_len = CHAR_TO_BYTE (disp_end_pos) - bytepos;
     }
@@ -819,15 +833,32 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
 	{
 	  EMACS_INT len;
 
-	  ch = STRING_CHAR_AND_LENGTH (string->s + bytepos, len);
-	  *ch_len = len;
+	  if (!string->unibyte)
+	    {
+	      ch = STRING_CHAR_AND_LENGTH (string->s + bytepos, len);
+	      *ch_len = len;
+	    }
+	  else
+	    {
+	      ch = UNIBYTE_TO_CHAR (string->s[bytepos]);
+	      *ch_len = 1;
+	    }
 	}
       else if (STRINGP (string->lstring))
 	{
 	  EMACS_INT len;
 
-	  ch = STRING_CHAR_AND_LENGTH (SDATA (string->lstring) + bytepos, len);
-	  *ch_len = len;
+	  if (!string->unibyte)
+	    {
+	      ch = STRING_CHAR_AND_LENGTH (SDATA (string->lstring) + bytepos,
+					   len);
+	      *ch_len = len;
+	    }
+	  else
+	    {
+	      ch = UNIBYTE_TO_CHAR (SREF (string->lstring, bytepos));
+	      *ch_len = 1;
+	    }
 	}
       else
 	{
@@ -971,7 +1002,8 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
       pos = bidi_it->charpos;
       s = STRINGP (bidi_it->string.lstring) ?
 	SDATA (bidi_it->string.lstring) : bidi_it->string.s;
-      if (bytepos > begbyte && bidi_char_at_pos (bytepos, s) == '\n')
+      if (bytepos > begbyte
+	  && bidi_char_at_pos (bytepos, s, bidi_it->string.unibyte) == '\n')
 	{
 	  bytepos++;
 	  pos++;
@@ -1123,7 +1155,8 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 
 	  if (bidi_it->charpos < 0)
 	    bidi_it->charpos = 0;
-	  bidi_it->bytepos = bidi_count_bytes (p, 0, 0, bidi_it->charpos);
+	  bidi_it->bytepos = bidi_count_bytes (p, 0, 0, bidi_it->charpos,
+					       bidi_it->string.unibyte);
 	}
       else
 	{
@@ -1308,7 +1341,8 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
       && bidi_it->ignore_bn_limit == -1 /* only if not already known */
       && bidi_it->charpos < eob		/* not already at EOB */
       && bidi_explicit_dir_char (bidi_char_at_pos (bidi_it->bytepos
-						   + bidi_it->ch_len, s)))
+						   + bidi_it->ch_len, s,
+						   bidi_it->string.unibyte)))
     {
       /* Avoid pushing and popping embedding levels if the level run
 	 is empty, as this breaks level runs where it shouldn't.
@@ -1321,7 +1355,8 @@ bidi_resolve_explicit (struct bidi_it *bidi_it)
       bidi_copy_it (&saved_it, bidi_it);
 
       while (bidi_explicit_dir_char (bidi_char_at_pos (bidi_it->bytepos
-						       + bidi_it->ch_len, s)))
+						       + bidi_it->ch_len, s,
+						       bidi_it->string.unibyte)))
 	{
 	  /* This advances to the next character, skipping any
 	     characters covered by display strings.  */
@@ -1459,7 +1494,8 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	  next_char =
 	    bidi_it->charpos + bidi_it->nchars >= eob
 	    ? BIDI_EOB
-	    : bidi_char_at_pos (bidi_it->bytepos + bidi_it->ch_len, s);
+	    : bidi_char_at_pos (bidi_it->bytepos + bidi_it->ch_len, s,
+				bidi_it->string.unibyte);
 	  type_of_next = bidi_get_type (next_char, override);
 
 	  if (type_of_next == WEAK_BN
@@ -1517,7 +1553,8 @@ bidi_resolve_weak (struct bidi_it *bidi_it)
 	      next_char =
 		bidi_it->charpos + bidi_it->nchars >= eob
 		? BIDI_EOB
-		: bidi_char_at_pos (bidi_it->bytepos + bidi_it->ch_len, s);
+		: bidi_char_at_pos (bidi_it->bytepos + bidi_it->ch_len, s,
+				    bidi_it->string.unibyte);
 	      type_of_next = bidi_get_type (next_char, override);
 
 	      if (type_of_next == WEAK_ET
