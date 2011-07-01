@@ -44,6 +44,40 @@
 
 (require 'epg)
 
+(defgroup plstore nil
+  "Searchable, partially encrypted, persistent plist store"
+  :version "24.1"
+  :group 'files)
+
+(defcustom plstore-select-keys 'silent
+  "Control whether or not to pop up the key selection dialog.
+
+If t, always asks user to select recipients.
+If nil, query user only when `plstore-encrypt-to' is not set.
+If neither t nor nil, doesn't ask user.  In this case, symmetric
+encryption is used."
+  :type '(choice (const :tag "Ask always" t)
+		 (const :tag "Ask when recipients are not set" nil)
+		 (const :tag "Don't ask" silent))
+  :group 'plstore)
+
+(defvar plstore-encrypt-to nil
+  "*Recipient(s) used for encrypting secret entries.
+May either be a string or a list of strings.")
+
+(put 'plstore-encrypt-to 'safe-local-variable
+     (lambda (val)
+       (or (stringp val)
+	   (and (listp val)
+		(catch 'safe
+		  (mapc (lambda (elt)
+			  (unless (stringp elt)
+			    (throw 'safe nil)))
+			val)
+		  t)))))
+
+(put 'plstore-encrypt-to 'permanent-local t)
+
 (defvar plstore-cache-passphrase-for-symmetric-encryption nil)
 (defvar plstore-passphrase-alist nil)
 
@@ -107,35 +141,39 @@
 (defun plstore-get-file (this)
   (buffer-file-name (plstore--get-buffer this)))
 
+(defun plstore--init-from-buffer (plstore)
+  (goto-char (point-min))
+  (when (looking-at ";;; public entries")
+    (forward-line)
+    (plstore--set-alist plstore (read (point-marker)))
+    (forward-sexp)
+    (forward-char)
+    (when (looking-at ";;; secret entries")
+      (forward-line)
+      (plstore--set-encrypted-data plstore (read (point-marker))))
+    (plstore--merge-secret plstore)))
+
 ;;;###autoload
 (defun plstore-open (file)
   "Create a plstore instance associated with FILE."
-  (let ((store (vector
-		(find-file-noselect file)
-		nil		     ;plist (plist)
-		nil		     ;encrypted data (string)
-		nil		     ;secret plist (plist)
-		nil		     ;merged plist (plist)
-		)))
-    (plstore-revert store)
-    store))
+  (with-current-buffer (find-file-noselect file)
+    ;; make the buffer invisible from user
+    (rename-buffer (format " plstore %s" (buffer-file-name)))
+    (let ((store (vector
+		  (current-buffer)
+		  nil		     ;plist (plist)
+		  nil		     ;encrypted data (string)
+		  nil		     ;secret plist (plist)
+		  nil		     ;merged plist (plist)
+		  )))
+      (plstore--init-from-buffer store)
+      store)))
 
 (defun plstore-revert (plstore)
   "Replace current data in PLSTORE with the file on disk."
   (with-current-buffer (plstore--get-buffer plstore)
     (revert-buffer t t)
-    ;; make the buffer invisible from user
-    (rename-buffer (format " plstore %s" (buffer-file-name)))
-    (goto-char (point-min))
-    (when (looking-at ";;; public entries\n")
-      (forward-line)
-      (plstore--set-alist plstore (read (point-marker)))
-      (forward-sexp)
-      (forward-char)
-      (when (looking-at ";;; secret entries\n")
-	(forward-line)
-	(plstore--set-encrypted-data plstore (read (point-marker))))
-      (plstore--merge-secret plstore))))
+    (plstore--init-from-buffer plstore)))
 
 (defun plstore-close (plstore)
   "Destroy a plstore instance PLSTORE."
@@ -304,20 +342,37 @@ SECRET-KEYS is a plist containing secret data."
   "Save the contents of PLSTORE associated with a FILE."
   (with-current-buffer (plstore--get-buffer plstore)
     (erase-buffer)
-    (insert ";;; public entries\n" (pp-to-string (plstore--get-alist plstore)))
+    (insert ";;; public entries -*- mode: emacs-lisp -*- \n"
+	    (pp-to-string (plstore--get-alist plstore)))
     (if (plstore--get-secret-alist plstore)
 	(let ((context (epg-make-context 'OpenPGP))
 	      (pp-escape-newlines nil)
+	      (recipients
+	       (cond
+		((listp plstore-encrypt-to) plstore-encrypt-to)
+		((stringp plstore-encrypt-to) (list plstore-encrypt-to))))
 	      cipher)
 	  (epg-context-set-armor context t)
 	  (epg-context-set-passphrase-callback
 	   context
 	   (cons #'plstore-passphrase-callback-function
 		 plstore))
-	  (setq cipher (epg-encrypt-string context
-					   (pp-to-string
-					    (plstore--get-secret-alist plstore))
-					   nil))
+	  (setq cipher (epg-encrypt-string
+			context
+			(pp-to-string
+			 (plstore--get-secret-alist plstore))
+			(if (or (eq plstore-select-keys t)
+				(and (null plstore-select-keys)
+				     (not (local-variable-p 'plstore-encrypt-to
+							    (current-buffer)))))
+			    (epa-select-keys
+			     context
+			     "Select recipents for encryption.
+If no one is selected, symmetric encryption will be performed.  "
+			     recipients)
+			  (if plstore-encrypt-to
+			      (epg-list-keys context recipients)))))
+	  (goto-char (point-max))
 	  (insert ";;; secret entries\n" (pp-to-string cipher))))
     (save-buffer)))
 

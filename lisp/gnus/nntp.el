@@ -338,10 +338,8 @@ backend doesn't catch this error.")
   "Record the command STRING."
   (with-current-buffer (get-buffer-create "*nntp-log*")
     (goto-char (point-max))
-    (let ((time (current-time)))
-      (insert (format-time-string "%Y%m%dT%H%M%S" time)
-	      "." (format "%03d" (/ (nth 2 time) 1000))
-	      " " nntp-address " " string "\n"))))
+    (insert (format-time-string "%Y%m%dT%H%M%S.%3N")
+	    " " nntp-address " " string "\n")))
 
 (defun nntp-report (&rest args)
   "Report an error from the nntp backend.  The first string in ARGS

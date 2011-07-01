@@ -1008,34 +1008,14 @@ FRAC should be the inverse of the fractional value; for example, a value of
 ;; the result is passed to `current-time-string' it will toss some of the
 ;; "low" bits and format the time incorrectly.
 (defun type-break-time-sum (&rest tmlist)
-  (let ((high 0)
-        (low 0)
-        (micro 0)
-        tem)
+  (let ((sum '(0 0 0)))
     (while tmlist
       (setq tem (car tmlist))
       (setq tmlist (cdr tmlist))
-      (cond
-       ((numberp tem)
-        (setq low (+ low tem)))
-       (t
-        (setq high  (+ high  (or (car tem) 0)))
-        (setq low   (+ low   (or (car (cdr tem)) 0)))
-        (setq micro (+ micro (or (car (cdr (cdr tem))) 0))))))
-
-    (and (>= micro 1000000)
-         (progn
-           (setq tem (/ micro 1000000))
-           (setq low (+ low tem))
-           (setq micro (- micro (* tem 1000000)))))
-
-    (setq tem (lsh low -16))
-    (and (> tem 0)
-         (progn
-           (setq low (logand low 65535))
-           (setq high (+ high tem))))
-
-    (list high low micro)))
+      (setq sum (time-add sum (if (integerp tem)
+				  (list (floor tem 65536) (mod tem 65536))
+				tem))))
+    sum))
 
 (defun type-break-time-stamp (&optional when)
   (if (fboundp 'format-time-string)

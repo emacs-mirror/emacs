@@ -282,7 +282,7 @@ FUNSYM must be a symbol of a defined function."
     ;; the function so that non-local exists are still recorded. TBD:
     ;; I haven't tested non-local exits at all, so no guarantees.
     ;;
-    ;; The 1st element is the total amount of time in usecs that have
+    ;; The 1st element is the total amount of time in seconds that has
     ;; been spent inside this function.  This number is added to on
     ;; function exit.
     ;;
@@ -424,9 +424,7 @@ Use optional LIST if provided instead."
 
 
 (defsubst elp-elapsed-time (start end)
-  (+ (* (- (car end) (car start)) 65536.0)
-     (- (car (cdr end)) (car (cdr start)))
-     (/ (- (car (cdr (cdr end))) (car (cdr (cdr start)))) 1000000.0)))
+  (float-time (time-subtract end start)))
 
 (defun elp-wrapper (funsym interactive-p args)
   "This function has been instrumented for profiling by the ELP.

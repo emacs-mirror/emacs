@@ -32,25 +32,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #endif
 
-/* This definition is duplicated in alloc.c and keyboard.c.  */
-/* Putting it in lisp.h makes cc bomb out!  */
-
 struct backtrace
 {
   struct backtrace *next;
   Lisp_Object *function;
   Lisp_Object *args;	/* Points to vector of args.  */
-#define NARGS_BITS (BITS_PER_INT - 2)
-  /* Let's not use size_t because we want to allow negative values (for
-     UNEVALLED).  Also let's steal 2 bits so we save a word (or more for
-     alignment).  In any case I doubt Emacs would survive a function call with
-     more than 500M arguments.  */
-  int nargs : NARGS_BITS; /* Length of vector.
-			     If nargs is UNEVALLED, args points
-			     to slot holding list of unevalled args.  */
-  char evalargs : 1;
+  ptrdiff_t nargs;	/* Length of vector.  */
   /* Nonzero means call value of debugger when done with this operation.  */
-  char debug_on_exit : 1;
+  unsigned int debug_on_exit : 1;
 };
 
 static struct backtrace *backtrace_list;
@@ -2291,7 +2280,6 @@ eval_sub (Lisp_Object form)
   backtrace.function = &original_fun; /* This also protects them from gc.  */
   backtrace.args = &original_args;
   backtrace.nargs = UNEVALLED;
-  backtrace.evalargs = 1;
   backtrace.debug_on_exit = 0;
 
   if (debug_on_next_call)
@@ -2325,10 +2313,7 @@ eval_sub (Lisp_Object form)
 	xsignal2 (Qwrong_number_of_arguments, original_fun, numargs);
 
       else if (XSUBR (fun)->max_args == UNEVALLED)
-	{
-	  backtrace.evalargs = 0;
-	  val = (XSUBR (fun)->function.aUNEVALLED) (args_left);
-	}
+	val = (XSUBR (fun)->function.aUNEVALLED) (args_left);
       else if (XSUBR (fun)->max_args == MANY)
 	{
 	  /* Pass a vector of evaluated arguments.  */
@@ -2984,7 +2969,6 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   backtrace.function = &args[0];
   backtrace.args = &args[1];
   backtrace.nargs = nargs - 1;
-  backtrace.evalargs = 0;
   backtrace.debug_on_exit = 0;
 
   if (debug_on_next_call)
@@ -3141,7 +3125,6 @@ apply_lambda (Lisp_Object fun, Lisp_Object args)
 
   backtrace_list->args = arg_vector;
   backtrace_list->nargs = i;
-  backtrace_list->evalargs = 0;
   tem = funcall_lambda (fun, numargs, arg_vector);
 
   /* Do the debug-on-exit now, while arg_vector still exists.  */

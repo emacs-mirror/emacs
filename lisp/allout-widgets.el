@@ -2324,9 +2324,7 @@ We use a caching strategy, so the caller doesn't need to do so."
 (defun allout-elapsed-time-seconds (end start)
   "Return seconds between `current-time' style time START/END triples."
   (let ((elapsed (time-subtract end start)))
-    (+ (* (car elapsed) (expt 2.0 16))
-       (cadr elapsed)
-       (/ (caddr elapsed) (expt 10.0 6)))))
+    (float-time elapsed)))
 ;;;_  > allout-frame-property (frame property)
 (defalias 'allout-frame-property
   (cond ((fboundp 'frame-parameter)
