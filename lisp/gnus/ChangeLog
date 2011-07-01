@@ -1,5 +1,13 @@
 2011-07-01  Daiki Ueno  <ueno@unixuser.org>
 
+	* plstore.el (plstore-select-keys, plstore-encrypt-to): New variable.
+	(plstore-save): Support public key encryption.
+	(plstore--init-from-buffer): New function.
+	(plstore-open): Use it; fix error when opening a non-existent file.
+	(plstore-revert): Use plstore--init-from-buffer.
+
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
 	* auth-source.el (auth-source-backend): Fix :initarg for data slot.
 
 2011-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
