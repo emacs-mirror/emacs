@@ -1,5 +1,9 @@
 2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* vc/ediff-util.el (ediff-calc-command-time): Use time-since
+	and float-time.  Say "NNN.NNN seconds" rather than "NNN seconds
+	+ NNN microseconds".
+
 	* type-break.el (type-break-time-sum): Rewrite using time-add.
 
 	* play/hanoi.el (hanoi-current-time-float): Remove.
