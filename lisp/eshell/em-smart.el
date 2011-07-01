@@ -120,6 +120,7 @@ only if that output can be presented in its entirely in the Eshell window."
 (defcustom eshell-smart-display-navigate-list
   '(insert-parentheses
     mouse-yank-at-click
+    mouse-yank-primary
     mouse-yank-secondary
     yank-pop
     yank-rectangle
