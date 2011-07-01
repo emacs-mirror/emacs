@@ -1,5 +1,7 @@
 2011-07-01  Glenn Morris  <rgm@gnu.org>
 
+	* type-break.el (type-break-time-sum): Use dolist.
+
 	* textmodes/flyspell.el (flyspell-word-search-backward):
 	Replace CL function.
 

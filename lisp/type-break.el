@@ -1009,13 +1009,10 @@ FRAC should be the inverse of the fractional value; for example, a value of
 ;; "low" bits and format the time incorrectly.
 (defun type-break-time-sum (&rest tmlist)
   (let ((sum '(0 0 0)))
-    (while tmlist
-      (setq tem (car tmlist))
-      (setq tmlist (cdr tmlist))
+    (dolist (tem tmlist sum)
       (setq sum (time-add sum (if (integerp tem)
 				  (list (floor tem 65536) (mod tem 65536))
-				tem))))
-    sum))
+				tem))))))
 
 (defun type-break-time-stamp (&optional when)
   (if (fboundp 'format-time-string)
