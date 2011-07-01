@@ -1406,6 +1406,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
     (cancel-timer flymake-timer)
     (setq flymake-timer nil)))
 
+;;;###autoload
 (defun flymake-find-file-hook ()
   ;;+(when flymake-start-syntax-check-on-find-file
   ;;+    (flymake-log 3 "starting syntax check on file open")

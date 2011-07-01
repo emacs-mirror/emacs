@@ -1172,8 +1172,9 @@ stream.  Standard error output is discarded."
 
 (eval-and-compile
   (defconst vc-bzr-revision-keywords
-    '("revno" "revid" "last" "before"
-      "tag" "date" "ancestor" "branch" "submit")))
+    ;; bzr help revisionspec  | sed -ne 's/^\([a-z]*\):$/"\1"/p' | sort -u
+    '("ancestor" "annotate" "before" "branch" "date" "last" "mainline" "revid"
+      "revno" "submit" "svn" "tag")))
 
 (defun vc-bzr-revision-completion-table (files)
   (lexical-let ((files files))
@@ -1210,6 +1211,19 @@ stream.  Standard error output is discarded."
             (while (re-search-forward "^\\(.*[^ \n]\\) +[^ \n]*$" nil t)
               (push (match-string-no-properties 1) table)))
           (completion-table-with-context prefix table tag pred action)))
+
+       ((string-match "\\`annotate:" string)
+        (completion-table-with-context
+         (substring string 0 (match-end 0))
+         (apply-partially #'completion-table-with-terminator '(":" . "\\`a\\`")
+                          #'completion-file-name-table)
+         (substring string (match-end 0)) pred action))
+
+       ((string-match "\\`date:" string)
+        (completion-table-with-context
+         (substring string 0 (match-end 0))
+         '("yesterday" "today" "tomorrow")
+         (substring string (match-end 0)) pred action))
 
        ((string-match "\\`\\([a-z]+\\):" string)
         ;; no actual completion for the remaining keywords.

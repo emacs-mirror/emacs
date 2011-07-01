@@ -761,6 +761,7 @@ aliases for @code{undecided-unix}, @code{undecided-dos}, and
 the end-of-line conversion, and leave the character code conversion to
 be deduced from the text itself.
 
+@cindex @code{raw-text}, coding system
   The coding system @code{raw-text} is good for a file which is mainly
 @acronym{ASCII} text, but may contain byte values above 127 which are
 not meant to encode non-@acronym{ASCII} characters.  With
@@ -771,6 +772,7 @@ end-of-line conversion in the usual way, based on the data
 encountered, and has the usual three variants to specify the kind of
 end-of-line conversion to use.
 
+@cindex @code{no-conversion}, coding system
   In contrast, the coding system @code{no-conversion} specifies no
 character code conversion at all---none for non-@acronym{ASCII} byte values and
 none for end of line.  This is useful for reading or writing binary
@@ -782,6 +784,7 @@ the @kbd{M-x find-file-literally} command.  This uses
 @code{no-conversion}, and also suppresses other Emacs features that
 might convert the file contents before you see them.  @xref{Visiting}.
 
+@cindex @code{emacs-internal}, coding system
   The coding system @code{emacs-internal} (or @code{utf-8-emacs},
 which is equivalent) means that the file contains non-@acronym{ASCII}
 characters stored with the internal Emacs encoding.  This coding

@@ -4291,10 +4291,14 @@ connection if a previous connection has died for some reason."
 		 ;; This must be done in order to avoid our file name handler.
 		 (p (let ((default-directory
 			    (tramp-compat-temporary-file-directory)))
-		      (start-process
+		      (apply
+		       'start-process
 		       (tramp-get-connection-name vec)
 		       (tramp-get-connection-buffer vec)
-		       tramp-encoding-shell))))
+		       (if tramp-encoding-command-interactive
+			   (list tramp-encoding-shell
+				 tramp-encoding-command-interactive)
+			 (list tramp-encoding-shell))))))
 
 	    (tramp-message
 	     vec 6 "%s" (mapconcat 'identity (process-command p) " "))

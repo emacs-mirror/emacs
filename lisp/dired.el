@@ -696,7 +696,6 @@ shell wildcards appended to select certain files).  If DIRNAME is a cons,
 its first element is taken as the directory name and the rest as an explicit
 list of files to make directory entries for.
 \\<dired-mode-map>\
-You can move around in it with the usual commands.
 You can flag files for deletion with \\[dired-flag-file-deletion] and then
 delete them by typing \\[dired-do-flagged-delete].
 Type \\[describe-mode] after entering Dired for more info.
@@ -1789,8 +1788,8 @@ In Dired, you are \"editing\" a list of the files in a directory and
   files for later commands or \"flag\" them for deletion, either file
   by file or all files matching certain criteria.
 You can move using the usual cursor motion commands.\\<dired-mode-map>
-Letters no longer insert themselves.  Digits are prefix arguments.
-Instead, type \\[dired-flag-file-deletion] to flag a file for Deletion.
+The buffer is read-only.  Digits are prefix arguments.
+Type \\[dired-flag-file-deletion] to flag a file `D' for deletion.
 Type \\[dired-mark] to Mark a file or subdirectory for later commands.
   Most commands operate on the marked files and use the current file
   if no files are marked.  Use a numeric prefix argument to operate on
@@ -1798,9 +1797,9 @@ Type \\[dired-mark] to Mark a file or subdirectory for later commands.
   to operate on the current file only.  Prefix arguments override marks.
   Mark-using commands display a list of failures afterwards.  Type \\[dired-summary]
   to see why something went wrong.
-Type \\[dired-unmark] to Unmark a file or all files of a subdirectory.
+Type \\[dired-unmark] to Unmark a file or all files of an inserted subdirectory.
 Type \\[dired-unmark-backward] to back up one line and unflag.
-Type \\[dired-do-flagged-delete] to eXecute the deletions requested.
+Type \\[dired-do-flagged-delete] to delete (eXecute) the files flagged `D'.
 Type \\[dired-find-file] to Find the current line's file
   (or dired it in another buffer, if it is a directory).
 Type \\[dired-find-file-other-window] to find file or dired directory in Other window.
@@ -1810,12 +1809,12 @@ Type \\[dired-do-copy] to Copy files.
 Type \\[dired-sort-toggle-or-edit] to toggle Sorting by name/date or change the `ls' switches.
 Type \\[revert-buffer] to read all currently expanded directories aGain.
   This retains all marks and hides subdirs again that were hidden before.
-SPC and DEL can be used to move down and up by lines.
+Use `SPC' and `DEL' to move down and up by lines.
 
 If Dired ever gets confused, you can either type \\[revert-buffer] \
 to read the
 directories again, type \\[dired-do-redisplay] \
-to relist a single or the marked files or a
+to relist the file at point or the marked files or a
 subdirectory, or type \\[dired-build-subdir-alist] to parse the buffer
 again for the directory tree.
 

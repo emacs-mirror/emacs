@@ -304,6 +304,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `grantpt' function. */
 #undef HAVE_GRANTPT
 
+/* Define to 1 if using GSettings. */
+#undef HAVE_GSETTINGS
+
 /* Define to 1 if using GTK 3 or later. */
 #undef HAVE_GTK3
 

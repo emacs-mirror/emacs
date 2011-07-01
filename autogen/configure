@@ -1103,8 +1103,12 @@ LIBXTR6
 LIBGNUTLS_LIBS
 LIBGNUTLS_CFLAGS
 LIBSELINUX_LIBS
+SETTINGS_LIBS
+SETTINGS_CFLAGS
 GCONF_LIBS
 GCONF_CFLAGS
+GSETTINGS_LIBS
+GSETTINGS_CFLAGS
 DBUS_OBJ
 DBUS_LIBS
 DBUS_CFLAGS
@@ -1271,6 +1275,7 @@ with_ns
 with_gpm
 with_dbus
 with_gconf
+with_gsettings
 with_selinux
 with_gnutls
 with_makeinfo
@@ -1987,6 +1992,7 @@ Optional Packages:
                           console
   --without-dbus          don't compile with D-Bus support
   --without-gconf         don't compile with GConf support
+  --without-gsettings     don't compile with GSettings support
   --without-selinux       don't compile with SELinux support
   --without-gnutls        don't use -lgnutls for SSL/TLS support
   --without-makeinfo      don't require makeinfo for building manuals
@@ -3987,6 +3993,14 @@ if test "${with_gconf+set}" = set; then :
   withval=$with_gconf;
 else
      with_gconf=yes
+fi
+
+
+# Check whether --with-gsettings was given.
+if test "${with_gsettings+set}" = set; then :
+  withval=$with_gsettings;
+else
+     with_gsettings=yes
 fi
 
 
@@ -11046,8 +11060,113 @@ done
 fi
 
 
+HAVE_GSETTINGS=no
+if test "${HAVE_X11}" = "yes" && test "${with_gsettings}" = "yes"; then
+
+  succeeded=no
+
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+
+  if test "$PKG_CONFIG" = "no" ; then
+     HAVE_GSETTINGS=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for glib-2.0 >= 2.26" >&5
+$as_echo_n "checking for glib-2.0 >= 2.26... " >&6; }
+
+        if $PKG_CONFIG --exists "glib-2.0 >= 2.26" 2>&5; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+            succeeded=yes
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GSETTINGS_CFLAGS" >&5
+$as_echo_n "checking GSETTINGS_CFLAGS... " >&6; }
+            GSETTINGS_CFLAGS=`$PKG_CONFIG --cflags "glib-2.0 >= 2.26"|sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GSETTINGS_CFLAGS" >&5
+$as_echo "$GSETTINGS_CFLAGS" >&6; }
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GSETTINGS_LIBS" >&5
+$as_echo_n "checking GSETTINGS_LIBS... " >&6; }
+            GSETTINGS_LIBS=`$PKG_CONFIG --libs "glib-2.0 >= 2.26"|sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GSETTINGS_LIBS" >&5
+$as_echo "$GSETTINGS_LIBS" >&6; }
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            GSETTINGS_CFLAGS=""
+            GSETTINGS_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+            ## do set a variable so people can do so.
+            GSETTINGS_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "glib-2.0 >= 2.26"`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     HAVE_GSETTINGS=yes
+  else
+     HAVE_GSETTINGS=no
+  fi
+
+   if test "$HAVE_GSETTINGS" = "yes"; then
+
+$as_echo "#define HAVE_GSETTINGS 1" >>confdefs.h
+
+      SETTINGS_CFLAGS="$GSETTINGS_CFLAGS"
+      SETTINGS_LIBS="$GSETTINGS_LIBS"
+   fi
+fi
+
 HAVE_GCONF=no
-if test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
+if test "${HAVE_GSETTINGS}" = "no" && test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
 
   succeeded=no
 
@@ -11146,7 +11265,17 @@ $as_echo "no" >&6; }
 
 $as_echo "#define HAVE_GCONF 1" >>confdefs.h
 
-            for ac_func in g_type_init
+            SETTINGS_CFLAGS="$GSETTINGS_CFLAGS"
+      SETTINGS_LIBS="$GSETTINGS_LIBS"
+   fi
+fi
+
+if test "$HAVE_GSETTINGS" = "yes" || test "$HAVE_GCONF" = "yes"; then
+    SAVE_CFLAGS="$CFLAGS"
+    SAVE_LDFLAGS="$LDFLAGS"
+    CFLAGS="$SETTINGS_CFLAGS $CFLAGS"
+    LDFLAGS="$SETTINGS_LIBS $LDFLAGS"
+    for ac_func in g_type_init
 do :
   ac_fn_c_check_func "$LINENO" "g_type_init" "ac_cv_func_g_type_init"
 if test "x$ac_cv_func_g_type_init" = x""yes; then :
@@ -11157,8 +11286,12 @@ _ACEOF
 fi
 done
 
-   fi
+    CFLAGS="$SAVE_CFLAGS"
+    LDFLAGS="$SAVE_LDFLAGS"
 fi
+
+
+
 
 HAVE_LIBSELINUX=no
 LIBSELINUX_LIBS=
@@ -21106,6 +21239,7 @@ echo "  Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGI
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
+echo "  Does Emacs use GSettings?                               ${HAVE_GSETTINGS}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 echo "  Does Emacs use -lgnutls (2.6.x or higher)?              ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"

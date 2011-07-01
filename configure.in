@@ -2001,8 +2001,8 @@ if test "${HAVE_GSETTINGS}" = "no" && test "${HAVE_X11}" = "yes" && test "${with
    if test "$HAVE_GCONF" = yes; then
       AC_DEFINE(HAVE_GCONF, 1, [Define to 1 if using GConf.])
       dnl Newer GConf doesn't link with g_objects, so this is not defined.
-      SETTINGS_CFLAGS="$GSETTINGS_CFLAGS"
-      SETTINGS_LIBS="$GSETTINGS_LIBS"
+      SETTINGS_CFLAGS="$GCONF_CFLAGS"
+      SETTINGS_LIBS="$GCONF_LIBS"
    fi
 fi
 

@@ -661,7 +661,7 @@ Add an entry here when adding a new search engine.")
 	   (not (eq 'nnimap (car (gnus-server-to-method server)))))
       (nnheader-report
        'nnir
-       "nnir-retrieve-headers only groks message ids for nnimap servers: %s"
+       "nnir-request-article only groks message ids for nnimap servers: %s"
        server)
     (save-excursion
       (let ((article article)

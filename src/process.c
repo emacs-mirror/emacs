@@ -102,9 +102,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "gnutls.h"
 #endif
 
-#if defined (USE_GTK) || defined (HAVE_GCONF)
+#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
 #include "xgselect.h"
-#endif /* defined (USE_GTK) || defined (HAVE_GCONF) */
+#endif
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif
@@ -4527,7 +4527,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	      process_output_skip = 0;
 	    }
 #endif
-#if defined (USE_GTK) || defined (HAVE_GCONF)
+#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
           nfds = xg_select
 #elif defined (HAVE_NS)
 	  nfds = ns_select

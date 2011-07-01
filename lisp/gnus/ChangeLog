@@ -1,3 +1,24 @@
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-token-passphrase-callback-function):
+	Simplify and remove EPA dependency.
+
+2011-07-01  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-request-article): Fix error message text.
+
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (plstore-delete): Autoload.
+	(auth-source-plstore-search): Support delete operation.
+	* plstore.el (plstore-delete): New function.
+
+2011-07-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-draft.el (gnus-draft-clear-marks): Revert last change;
+	mark actually existing articles as unread rather than the ones that
+	active asserts.
+
 2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* nntp.el (nntp-record-command):

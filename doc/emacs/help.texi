@@ -630,6 +630,9 @@ Display the Emacs copying conditions (@code{describe-copying}).
 These are the rules under which you can copy and redistribute Emacs.
 @item C-h C-d
 Display help for debugging Emacs (@code{view-emacs-debugging}).
+@item C-h C-e
+Display external packages and information about Emacs
+(@code{view-external-packages}).
 @item C-h C-f
 Display the Emacs frequently-answered-questions list (@code{view-emacs-FAQ}).
 @item C-h g
