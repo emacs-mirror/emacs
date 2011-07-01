@@ -1,5 +1,8 @@
 2011-07-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* dired.el (dired-mode): Fix up the doc string as suggested by
+	Drew Adams (bug#8817).
+
 	* progmodes/flymake.el (flymake-find-file-hook): Add an `autoload'
 	cookie, since the manual says that it should be possible to add
 	this function to `find-file-hook' (bug#8709).
