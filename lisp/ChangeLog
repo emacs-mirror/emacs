@@ -1,3 +1,9 @@
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* disp-table.el (display-table-print-array): New function.
+	(describe-display-table): Use it to print the vectors more pretty
+	(Bug#8859).
+
 2011-07-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-state-get-1): Don't assign clone numbers.
