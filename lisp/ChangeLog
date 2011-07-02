@@ -1,5 +1,9 @@
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* textmodes/fill.el (fill-region): Remove the "Ordinarily" from
+	the doc string, since it appears that using `fill-column' always
+	controls the width (bug#7845).
+
 	* simple.el (shell-command-on-region): Say where the error output
 	went if `shell-command-default-error-buffer' is set (bug#6857).
 
