@@ -1,3 +1,8 @@
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* display.texi (Showing Images): Mention the point of sliced
+	images (bug bug#7836).
+
 2011-07-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* variables.texi (Defining Variables, Void Variables)

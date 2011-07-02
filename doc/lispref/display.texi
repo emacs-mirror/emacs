@@ -4700,10 +4700,17 @@ it a @code{display} property which specifies @var{image}.  @xref{Display
 Property}.
 @end defun
 
+@cindex slice, image
+@cindex image slice
 @defun insert-sliced-image image &optional string area rows cols
 This function inserts @var{image} in the current buffer at point, like
 @code{insert-image}, but splits the image into @var{rows}x@var{cols}
 equally sized slices.
+
+If an image is inserted ``sliced'', then the Emacs display engine will
+treat each slice as a separate image, and allow more intuitive
+scrolling up/down, instead of jumping up/down the entire image when
+paging through a buffer that displays (large) images.
 @end defun
 
 @defun put-image image pos &optional string area
