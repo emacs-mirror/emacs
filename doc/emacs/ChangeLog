@@ -1,5 +1,8 @@
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* dired.texi (Subdirectories in Dired): Clarify the `C-u k'
+	doesn't actually delete any files (bug#7125).
+
 	* picture-xtra.texi (Rectangles in Picture): Clarify the prefix
 	argument for `C-c C-k' (bug#7391).
 
