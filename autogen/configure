@@ -11265,8 +11265,8 @@ $as_echo "no" >&6; }
 
 $as_echo "#define HAVE_GCONF 1" >>confdefs.h
 
-            SETTINGS_CFLAGS="$GSETTINGS_CFLAGS"
-      SETTINGS_LIBS="$GSETTINGS_LIBS"
+            SETTINGS_CFLAGS="$GCONF_CFLAGS"
+      SETTINGS_LIBS="$GCONF_LIBS"
    fi
 fi
 
