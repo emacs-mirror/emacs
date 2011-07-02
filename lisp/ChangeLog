@@ -1,3 +1,10 @@
+2011-07-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-state-get-1): Don't assign clone numbers.
+	Add clone-of item to list of window parameters.
+	(window-state-put-2): Don't process clone numbers.
+	(display-buffer-alist): Fix doc-string.
+
 2011-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (remq): Don't allocate if it's not needed.

@@ -1,3 +1,14 @@
+2011-07-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h (window): Remove clone_number slot.
+	* window.c (Fwindow_clone_number, Fset_window_clone_number):
+	Remove.
+	(make_parent_window, make_window, saved_window)
+	(Fset_window_configuration, save_window_save): Don't deal with
+	clone numbers.
+	* buffer.c (Qclone_number): Remove declaration.
+	(sort_overlays, overlay_strings): Don't deal with clone numbers.
+
 2011-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Add multiple inheritance to keymaps.
