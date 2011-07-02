@@ -1,5 +1,15 @@
 2011-07-02  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (reseat_1): Call bidi_init_it to resync the bidi
+	iterator with IT's position.
+	(handle_stop, back_to_previous_visible_line_start, reseat_1):
+	Reset the from_disp_prop_p flag.
+
+	* bidi.c (bidi_cache_search): Don't assume bidi_cache_last_idx is
+	always valid if bidi_cache_idx is valid.
+	(bidi_cache_find_level_change): xassert that bidi_cache_last_idx
+	is valid if it's going to be used.
+
 	* dispextern.h (struct iterator_stack_entry, struct it): New
 	member from_disp_prop_p.
 

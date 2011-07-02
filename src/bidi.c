@@ -352,8 +352,10 @@ bidi_cache_search (EMACS_INT charpos, int level, int dir)
 {
   int i, i_start;
 
-  if (bidi_cache_idx)
+  if (bidi_cache_idx > bidi_cache_start)
     {
+      if (bidi_cache_last_idx == -1)
+	bidi_cache_last_idx = bidi_cache_idx - 1;
       if (charpos < bidi_cache[bidi_cache_last_idx].charpos)
 	{
 	  dir = -1;
@@ -417,6 +419,8 @@ bidi_cache_find_level_change (int level, int dir, int before)
     {
       int i = dir ? bidi_cache_last_idx : bidi_cache_idx - 1;
       int incr = before ? 1 : 0;
+
+      xassert (!dir || bidi_cache_last_idx >= 0);
 
       if (!dir)
 	dir = -1;

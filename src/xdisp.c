@@ -2915,6 +2915,7 @@ handle_stop (struct it *it)
 		{
 		  it->ignore_overlay_strings_at_pos_p = 1;
 		  it->string_from_display_prop_p = 0;
+		  it->from_disp_prop_p = 0;
 		  handle_overlay_change_p = 0;
 		}
 	      handled = HANDLED_RECOMPUTE_PROPS;
@@ -5542,6 +5543,7 @@ back_to_previous_visible_line_start (struct it *it)
 	--IT_BYTEPOS (it2);
 	it2.sp = 0;
 	it2.string_from_display_prop_p = 0;
+	it2.from_disp_prop_p = 0;
 	if (handle_display_prop (&it2) == HANDLED_RETURN
 	    && !NILP (val = get_char_property_and_overlay
 		      (make_number (pos), Qdisplay, Qnil, &overlay))
@@ -5740,12 +5742,13 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
   it->multibyte_p = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   it->sp = 0;
   it->string_from_display_prop_p = 0;
+  it->from_disp_prop_p = 0;
   it->face_before_selective_p = 0;
   if (it->bidi_p)
     {
-      it->bidi_it.first_elt = 1;
+      bidi_init_it (IT_CHARPOS (*it), IT_BYTEPOS (*it), FRAME_WINDOW_P (it->f),
+		    &it->bidi_it);
       it->bidi_it.paragraph_dir = NEUTRAL_DIR;
-      it->bidi_it.disp_pos = -1;
       it->bidi_it.string.s = NULL;
       it->bidi_it.string.lstring = Qnil;
       it->bidi_it.string.bufpos = 0;
