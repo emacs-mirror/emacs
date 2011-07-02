@@ -1,5 +1,8 @@
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* minibuffer.el (completion-in-region): Document PREDICATE
+	(bug#7136).
+
 	* info-look.el (info-lookup-add-help): Clarify that ARGS is a list
 	of keyword/argument pairs (bug#6904).
 

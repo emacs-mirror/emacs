@@ -1442,7 +1442,9 @@ we entered `completion-in-region-mode'.")
 (defun completion-in-region (start end collection &optional predicate)
   "Complete the text between START and END using COLLECTION.
 Return nil if there is no valid completion, else t.
-Point needs to be somewhere between START and END."
+Point needs to be somewhere between START and END.
+PREDICATE (a function called with no arguments) says when to
+exit."
   (assert (<= start (point)) (<= (point) end))
   (with-wrapper-hook
       ;; FIXME: Maybe we should use this hook to provide a "display
