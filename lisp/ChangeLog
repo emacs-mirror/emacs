@@ -1,5 +1,8 @@
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* info-look.el (info-lookup-add-help): Clarify that ARGS is a list
+	of keyword/argument pairs (bug#6904).
+
 	* replace.el (multi-occur): Mention
 	`multi-occur-in-matching-buffers' in the doc string (bug#7566).
 
