@@ -584,7 +584,7 @@ is a user option.  Aliases of user options are also user options.
 @end defun
 
 @kindex variable-interactive
-@kindex set-variable
+@findex set-variable
   If a user option variable has a @code{variable-interactive} property,
 the @code{set-variable} command uses that value to control reading the
 new value for the variable.  The property's value is used as if it were

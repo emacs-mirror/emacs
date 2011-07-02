@@ -2,6 +2,7 @@
 
 	* variables.texi (Defining Variables): Add an index entry for
 	`set-variable' (bug#7262).
+	(Defining Variables): Use @findex for functions.
 
 	* frames.texi (Basic Parameters): Document the `explicit-name'
 	parameter (bug#6951).
