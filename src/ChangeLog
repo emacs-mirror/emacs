@@ -1,5 +1,8 @@
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* lread.c (syms_of_lread): Mention single symbols defined by
+	`defvar' or `defconst' (bug#7154).
+
 	* fns.c (Frequire): Mention .el.gz files (bug#7314).
 	(Frequire): Mention get-load-suffixes.
 
