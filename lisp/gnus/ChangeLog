@@ -1,3 +1,16 @@
+2011-07-02  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-run-imap): Allow halting a search when an article is
+	found by setting `shortcut' in 'query.
+	(nnir-request-article): Use `shortcut' setting when requesting article
+	by Message-ID.
+
+2011-07-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-msg.el (gnus-bug): Give the Version and Package headers to
+	debbugs with the X-Debbugs-Package and X-Debbugs-Version headers.
+	Bring the pseudo-headers back too.
+
 2011-07-01  Daiki Ueno  <ueno@unixuser.org>
 
 	* auth-source.el (auth-source-token-passphrase-callback-function):

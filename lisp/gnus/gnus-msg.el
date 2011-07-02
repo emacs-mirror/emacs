@@ -1455,7 +1455,12 @@ If YANK is non-nil, include the original article."
 	(goto-char (point-min)))
       (message-pop-to-buffer "*Gnus Bug*"))
     (let ((message-this-is-mail t))
-      (message-setup `((To . ,gnus-maintainer) (Subject . ""))))
+      (message-setup `((To . ,gnus-maintainer)
+                       (Subject . "")
+                       (X-Debbugs-Package
+                        . ,(format "%s" gnus-bug-package))
+                       (X-Debbugs-Version
+                        . ,(format "%s" (gnus-continuum-version))))))
     (when gnus-bug-create-help-buffer
       (push `(gnus-bug-kill-buffer) message-send-actions))
     (goto-char (point-min))
@@ -1463,6 +1468,7 @@ If YANK is non-nil, include the original article."
     (forward-line 1)
     (insert (format "Package: %s\n" gnus-bug-package))
     (insert (format "Version: %s\n" (gnus-continuum-version)))
+    (insert "\n")
     (insert (gnus-version) "\n"
 	    (emacs-version) "\n")
     (when (and (boundp 'nntp-server-type)
@@ -1474,7 +1480,10 @@ If YANK is non-nil, include the original article."
 	(erase-buffer)
 	(gnus-debug)
 	(setq text (buffer-string)))
-      (insert "<#part type=application/emacs-lisp disposition=inline description=\"User settings\">\n" text "\n<#/part>"))
+      (insert (concat "<#part type=application/emacs-lisp"
+                      "disposition=inline description=\"User settings\">\n"
+                      text
+                      "\n<#/part>")))
     (goto-char (point-min))
     (search-forward "Subject: " nil t)
     (message "")))

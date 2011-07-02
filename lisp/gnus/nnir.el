@@ -672,7 +672,8 @@ Add an entry here when adding a new search engine.")
 		(list
 		 (cons 'query (format "HEADER Message-ID %s" article))
 		 (cons 'unique-id article)
-		 (cons 'criteria "")))
+		 (cons 'criteria "")
+		 (cons 'shortcut t)))
 	  (unless (and (equal query nnir-current-query)
 		       (equal server nnir-current-server))
 	    (setq nnir-artlist (nnir-run-imap query server))
@@ -791,7 +792,7 @@ ready to be added to the list of search results."
 (defun nnir-run-imap (query srv &optional groups)
   "Run a search against an IMAP back-end server.
 This uses a custom query language parser; see `nnir-imap-make-query' for
-details on the language and supported extensions"
+details on the language and supported extensions."
   (save-excursion
     (let ((qstring (cdr (assq 'query query)))
           (server (cadr (gnus-server-to-method srv)))
@@ -804,33 +805,36 @@ details on the language and supported extensions"
       (message "Opening server %s" server)
       (apply
        'vconcat
-       (mapcar
-	(lambda (group)
-	  (let (artlist)
-	    (condition-case ()
-		(when (nnimap-possibly-change-group
-		       (gnus-group-short-name group) server)
-		  (with-current-buffer (nnimap-buffer)
-		    (message "Searching %s..." group)
-		    (let ((arts 0)
-			  (result (nnimap-command "UID SEARCH %s"
-						  (if (string= criteria "")
-						      qstring
-						    (nnir-imap-make-query
-						     criteria qstring)))))
-		      (mapc
-		       (lambda (artnum)
-			 (let ((artn (string-to-number artnum)))
-			   (when (> artn 0)
-			     (push (vector group artn 100)
-				   artlist)
-			     (setq arts (1+ arts)))))
-		       (and (car result) (cdr (assoc "SEARCH" (cdr result)))))
-		      (message "Searching %s... %d matches" group arts)))
-		  (message "Searching %s...done" group))
-	      (quit nil))
-	    (nreverse artlist)))
-	groups)))))
+       (catch 'found
+	 (mapcar
+	  (lambda (group)
+	    (let (artlist)
+	      (condition-case ()
+		  (when (nnimap-possibly-change-group
+			 (gnus-group-short-name group) server)
+		    (with-current-buffer (nnimap-buffer)
+		      (message "Searching %s..." group)
+		      (let ((arts 0)
+			    (result (nnimap-command "UID SEARCH %s"
+						    (if (string= criteria "")
+							qstring
+						      (nnir-imap-make-query
+						       criteria qstring)))))
+			(mapc
+			 (lambda (artnum)
+			   (let ((artn (string-to-number artnum)))
+			     (when (> artn 0)
+			       (push (vector group artn 100)
+				     artlist)
+			       (when (assq 'shortcut query)
+				 (throw 'found (list artlist)))
+			       (setq arts (1+ arts)))))
+			 (and (car result) (cdr (assoc "SEARCH" (cdr result)))))
+			(message "Searching %s... %d matches" group arts)))
+		    (message "Searching %s...done" group))
+		(quit nil))
+	      (nreverse artlist)))
+	  groups))))))
 
 (defun nnir-imap-make-query (criteria qstring)
   "Parse the query string and criteria into an appropriate IMAP search
