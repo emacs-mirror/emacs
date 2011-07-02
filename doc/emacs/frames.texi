@@ -689,6 +689,11 @@ Use the command line option @samp{-fn} (or @samp{--font}).  @xref{Font
 X}.
 @end itemize
 
+To check what font you're currently using, the @kbd{C-u C-x =}
+command can be helpful.  It'll describe the character under point, and
+also say what font it's rendered in, if the window system you're
+running under supports that.
+
 @cindex fontconfig
   On X, there are four different ways to express a ``font name''.  The
 first is to use a @dfn{Fontconfig pattern}.  Fontconfig patterns have

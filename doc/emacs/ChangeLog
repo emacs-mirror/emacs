@@ -1,3 +1,8 @@
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* frames.texi (Fonts): Mention "C-u C-x =" to find out what font
+	you're currently using (bug#8489).
+
 2011-07-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* mule.texi (Coding Systems): Move index entries from the previous
