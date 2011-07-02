@@ -1,5 +1,8 @@
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* frames.texi (Basic Parameters): Document the `explicit-name'
+	parameter (bug#6951).
+
 	* customize.texi (Type Keywords): Clarify that :value provides a
 	default value for all types (bug#7386).
 
