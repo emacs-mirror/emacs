@@ -1,3 +1,7 @@
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* fns.c (Frequire): Mention .el.gz files (bug#7314).
+
 2011-07-02  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.h (window): Remove clone_number slot.

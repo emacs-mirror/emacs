@@ -2613,6 +2613,7 @@ is not loaded; so load the file FILENAME.
 If FILENAME is omitted, the printname of FEATURE is used as the file name,
 and `load' will try to load this name appended with the suffix `.elc' or
 `.el', in that order.  The name without appended suffix will not be used.
+If your system supports it, `.el.gz' files will also be considered.
 If the optional third argument NOERROR is non-nil,
 then return nil if the file is not found instead of signaling an error.
 Normally the return value is FEATURE.
