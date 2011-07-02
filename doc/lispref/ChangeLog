@@ -1,3 +1,7 @@
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* streams.texi (Output Functions): Document `pp'.
+
 2011-06-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keymaps.texi (Searching Keymaps):
