@@ -1,3 +1,8 @@
+2011-07-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (command_loop_1): If a down-mouse event is unbound,
+	leave any prefix arg for the up event (Bug#1586).
+
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* lread.c (syms_of_lread): Mention single symbols defined by

@@ -1539,7 +1539,18 @@ command_loop_1 (void)
 	  message_with_string ("%s is undefined", keys, 0);
 	  KVAR (current_kboard, defining_kbd_macro) = Qnil;
 	  update_mode_lines = 1;
-	  KVAR (current_kboard, Vprefix_arg) = Qnil;
+	  /* If this is a down-mouse event, don't reset prefix-arg;
+	     pass it to the command run by the up event.  */
+	  if (EVENT_HAS_PARAMETERS (last_command_event))
+	    {
+	      Lisp_Object breakdown
+		= parse_modifiers (EVENT_HEAD (last_command_event));
+	      int modifiers = XINT (XCAR (XCDR (breakdown)));
+	      if (!(modifiers & down_modifier))
+		KVAR (current_kboard, Vprefix_arg) = Qnil;
+	    }
+	  else
+	    KVAR (current_kboard, Vprefix_arg) = Qnil;
 	}
       else
 	{
