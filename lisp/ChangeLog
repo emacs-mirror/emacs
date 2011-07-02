@@ -1,3 +1,8 @@
+2011-07-02  Drew Adams  <drew.adams@oracle.com>
+
+	* dired.el (dired-mark-if): Make the message about whether it's
+	marking or unmarking clearer (bug#8523).
+
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* disp-table.el (display-table-print-array): New function.

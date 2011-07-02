@@ -485,7 +485,16 @@ Return value is the number of files marked, or nil if none were marked."
   `(let ((inhibit-read-only t) count)
     (save-excursion
       (setq count 0)
-      (if ,msg (message "Marking %ss..." ,msg))
+      (when ,msg
+	(message "%s %ss%s..."
+		 (cond ((eq dired-marker-char ?\040) "Unmarking")
+		       ((eq dired-del-marker dired-marker-char)
+			"Flagging")
+		       (t "Marking"))
+		 ,msg
+		 (if (eq dired-del-marker dired-marker-char)
+		     " for deletion"
+		   "")))
       (goto-char (point-min))
       (while (not (eobp))
         (if ,predicate
