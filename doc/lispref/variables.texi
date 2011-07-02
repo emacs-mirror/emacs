@@ -466,7 +466,6 @@ the main benefits of defining the variable.)  The documentation is
 stored in the symbol's @code{variable-documentation} property.  The
 Emacs help functions (@pxref{Documentation}) look for this property.
 
-
 If the documentation string begins with the character @samp{*}, Emacs
 allows users to set it interactively using the @code{set-variable}
 command.  However, you should nearly always use @code{defcustom}
