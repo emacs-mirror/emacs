@@ -1,5 +1,8 @@
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* picture-xtra.texi (Rectangles in Picture): Clarify the prefix
+	argument for `C-c C-k' (bug#7391).
+
 	* frames.texi (Fonts): Mention "C-u C-x =" to find out what font
 	you're currently using (bug#8489).
 
