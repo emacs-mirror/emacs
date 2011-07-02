@@ -1035,16 +1035,18 @@ meanings:
 
 @table @code
 @item :value @var{default}
-This is used for a type that appears as an alternative inside of
+Provide a default value.
+
+If @code{nil} is not a valid value for the alternative, then it is
+essential to specify a valid default with @code{:value}.
+
+If you use this for a type that appears as an alternative inside of
 @code{choice}; it specifies the default value to use, at first, if and
 when the user selects this alternative with the menu in the
 customization buffer.
 
 Of course, if the actual value of the option fits this alternative, it
 will appear showing the actual value, not @var{default}.
-
-If @code{nil} is not a valid value for the alternative, then it is
-essential to specify a valid default with @code{:value}.
 
 @item :format @var{format-string}
 @kindex format@r{, customization keyword}
