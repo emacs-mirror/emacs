@@ -1,5 +1,8 @@
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* custom.el (defcustom): Clarify that :set is only used in the
+	Customize user interface (bug#6089).
+
 	* progmodes/flymake.el (flymake-mode): If the buffer isn't
 	associated with a file, refuse to run instead of erroring out
 	(bug#6084).

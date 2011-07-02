@@ -326,11 +326,12 @@ individual types for a description of how to use @code{:options}.
 @item :set @var{setfunction}
 @kindex set@r{, @code{defcustom} keyword}
 Specify @var{setfunction} as the way to change the value of this
-option.  The function @var{setfunction} should take two arguments, a
-symbol (the option name) and the new value, and should do whatever is
-necessary to update the value properly for this option (which may not
-mean simply setting the option as a Lisp variable).  The default for
-@var{setfunction} is @code{set-default}.
+option when using the Customize user interface.  The function
+@var{setfunction} should take two arguments, a symbol (the option
+name) and the new value, and should do whatever is necessary to update
+the value properly for this option (which may not mean simply setting
+the option as a Lisp variable).  The default for @var{setfunction} is
+@code{set-default}.
 
 @item :get @var{getfunction}
 @kindex get@r{, @code{defcustom} keyword}

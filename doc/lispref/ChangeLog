@@ -1,5 +1,8 @@
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* customize.texi (Variable Definitions): Clarify that SETFUNCTION
+	is only used in the Customize user interface (bug#6089).
+
 	* display.texi (Showing Images): Mention the point of sliced
 	images (bug#7836).
 
