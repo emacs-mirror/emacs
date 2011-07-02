@@ -2531,7 +2531,10 @@ specifies the value of ERROR-BUFFER."
 	    (let ((output
 		   (if (and error-file
 			    (< 0 (nth 7 (file-attributes error-file))))
-		       "some error output"
+		       (format "some error output%s"
+			       (if shell-command-default-error-buffer
+				   (format " to the \"%s\" buffer" shell-command-default-error-buffer)
+				 ""))
 		     "no output")))
 	      (cond ((null exit-status)
 		     (message "(Shell command failed with error)"))

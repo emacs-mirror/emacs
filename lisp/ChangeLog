@@ -1,3 +1,8 @@
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* simple.el (shell-command-on-region): Say where the error output
+	went if `shell-command-default-error-buffer' is set (bug#6857).
+
 2011-07-02  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-yank-processing): Adjust cursor position for
