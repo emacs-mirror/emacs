@@ -74,7 +74,6 @@
 (autoload 'plstore-save "plstore")
 (autoload 'plstore-get-file "plstore")
 
-(autoload 'epg-context-operation "epg")
 (autoload 'epg-make-context "epg")
 (autoload 'epg-context-set-passphrase-callback "epg")
 (autoload 'epg-decrypt-string "epg")
@@ -1005,24 +1004,24 @@ Note that the MAX parameter is used so we can exit the parse early."
 (defvar auth-source-passphrase-alist nil)
 
 (defun auth-source-token-passphrase-callback-function (context key-id file)
-      (let* ((file (file-truename file))
-             (entry (assoc file auth-source-passphrase-alist))
-             passphrase)
-        ;; return the saved passphrase, calling a function if needed
-        (or (copy-sequence (if (functionp (cdr entry))
-                               (funcall (cdr entry))
-                             (cdr entry)))
-            (progn
-              (unless entry
-                (setq entry (list file))
-                (push entry auth-source-passphrase-alist))
-              (setq passphrase
-                    (read-passwd
-                     (format "Passphrase for %s tokens: " file)
-                     t))
-              (setcdr entry (lexical-let ((p (copy-sequence passphrase)))
-                              (lambda () p)))
-              passphrase))))
+  (let* ((file (file-truename file))
+	 (entry (assoc file auth-source-passphrase-alist))
+	 passphrase)
+    ;; return the saved passphrase, calling a function if needed
+    (or (copy-sequence (if (functionp (cdr entry))
+			   (funcall (cdr entry))
+			 (cdr entry)))
+	(progn
+	  (unless entry
+	    (setq entry (list file))
+	    (push entry auth-source-passphrase-alist))
+	  (setq passphrase
+		(read-passwd
+		 (format "Passphrase for %s tokens: " file)
+		 t))
+	  (setcdr entry (lexical-let ((p (copy-sequence passphrase)))
+			  (lambda () p)))
+	  passphrase))))
 
 ;; (auth-source-epa-extract-gpg-token "gpg:LS0tLS1CRUdJTiBQR1AgTUVTU0FHRS0tLS0tClZlcnNpb246IEdudVBHIHYxLjQuMTEgKEdOVS9MaW51eCkKCmpBMEVBd01DT25qMjB1ak9rZnRneVI3K21iNm9aZWhuLzRad3cySkdlbnVaKzRpeEswWDY5di9icDI1U1dsQT0KPS9yc2wKLS0tLS1FTkQgUEdQIE1FU1NBR0UtLS0tLQo=" "~/.netrc")
 (defun auth-source-epa-extract-gpg-token (secret file)

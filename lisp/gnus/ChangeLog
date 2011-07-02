@@ -1,3 +1,9 @@
+2011-07-02  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-token-passphrase-callback-function):
+	Reindent.
+	(epg-context-operation): Remove unnecessary autoload.
+
 2011-07-02  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el (nnir-run-imap): Allow halting a search when an article is
