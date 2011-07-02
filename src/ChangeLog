@@ -1,6 +1,7 @@
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* fns.c (Frequire): Mention .el.gz files (bug#7314).
+	(Frequire): Mention get-load-suffixes.
 
 2011-07-02  Martin Rudalics  <rudalics@gmx.at>
 
