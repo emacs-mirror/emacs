@@ -1,3 +1,8 @@
+2011-07-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* variables.texi (Defining Variables, Void Variables)
+	(Constant Variables): Fix incorrect usage of @kindex.
+
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* variables.texi (Defining Variables): Add an index entry for
