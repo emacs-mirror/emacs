@@ -1,3 +1,8 @@
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* replace.el (multi-occur): Mention
+	`multi-occur-in-matching-buffers' in the doc string (bug#7566).
+
 2011-07-02  Drew Adams  <drew.adams@oracle.com>
 
 	* dired.el (dired-mark-if): Make the message about whether it's
