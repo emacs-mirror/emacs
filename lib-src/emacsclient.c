@@ -652,6 +652,14 @@ decode_options (int argc, char **argv)
 an empty string");
       exit (EXIT_FAILURE);
     }
+
+  /* TTY frames not supported on Windows.  Continue using GUI rather than
+     forcing the user to change their command-line.  This is required since
+     tty is set above if certain options are given and $DISPLAY is not set,
+     which is not obvious to users.  */
+  if (tty)
+      tty = 0;
+
 #endif /* WINDOWSNT */
 }
 
