@@ -1,3 +1,19 @@
+2011-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (remq): Don't allocate if it's not needed.
+	(keymap--menu-item-binding, keymap--menu-item-with-binding)
+	(keymap--merge-bindings): New functions.
+	(keymap-canonicalize): Use them to refine the canonicalization.
+	* minibuffer.el (minibuffer-local-completion-map)
+	(minibuffer-local-must-match-map): Move initialization from C.
+	(minibuffer-local-filename-completion-map): Move initialization from C;
+	don't inherit from anything here.
+	(minibuffer-local-filename-must-match-map): Make obsolete.
+	(completing-read-default): Use make-composed-keymap to combine
+	minibuffer-local-filename-completion-map with either
+	minibuffer-local-must-match-map or
+	minibuffer-local-filename-completion-map.
+
 2011-07-01  Glenn Morris  <rgm@gnu.org>
 
 	* type-break.el (type-break-time-sum): Use dolist.

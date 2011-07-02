@@ -7470,7 +7470,7 @@ menu_bar_items (Lisp_Object old)
 	if (CONSP (def))
 	  {
 	    menu_bar_one_keymap_changed_items = Qnil;
-	    map_keymap (def, menu_bar_item, Qnil, NULL, 1);
+	    map_keymap_canonical (def, menu_bar_item, Qnil, NULL);
 	  }
       }
 
@@ -7811,7 +7811,7 @@ parse_menu_item (Lisp_Object item, int inmenubar)
   /* If we got no definition, this item is just unselectable text which
      is OK in a submenu but not in the menubar.  */
   if (NILP (def))
-    return (inmenubar ? 0 : 1);
+    return (!inmenubar);
 
   /* See if this is a separate pane or a submenu.  */
   def = AREF (item_properties, ITEM_PROPERTY_DEF);

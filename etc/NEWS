@@ -111,6 +111,10 @@ and pops down the *Completions* buffer accordingly.
 *** `completing-read' can be customized using the new variable
 `completing-read-function'.
 
+*** minibuffer-local-filename-must-match-map is not used any more.
+Instead, the bindings in minibuffer-local-filename-completion-map are combined
+with minibuffer-local-must-match-map.
+
 ** auto-mode-case-fold is now enabled by default.
 
 ** smtpmail changes
@@ -1094,6 +1098,7 @@ as well as those in the -*- line.
 ---
 ** rx.el has a new `group-n' construct for explicitly numbered groups.
 
+** keymaps can inherit from multiple parents.
 
 * Changes in Emacs 24.1 on non-free operating systems
 
