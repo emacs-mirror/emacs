@@ -2139,6 +2139,10 @@ struct it
      Don't handle some `display' properties in these strings.  */
   unsigned string_from_display_prop_p : 1;
 
+  /* 1 means we are iterating an object that came from a value of a
+     `display' property.  */
+  unsigned from_disp_prop_p : 1;
+
   /* When METHOD == next_element_from_display_vector,
      this is 1 if we're doing an ellipsis.  Otherwise meaningless.  */
   unsigned ellipsis_p : 1;
@@ -2258,6 +2262,7 @@ struct it
     unsigned display_ellipsis_p : 1;
     unsigned avoid_cursor_p : 1;
     unsigned bidi_p:1;
+    unsigned from_disp_prop_p : 1;
     enum line_wrap_method line_wrap;
 
     /* properties from display property that are reset by another display property. */

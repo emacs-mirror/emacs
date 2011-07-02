@@ -1,3 +1,21 @@
+2011-07-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispextern.h (struct iterator_stack_entry, struct it): New
+	member from_disp_prop_p.
+
+	* xdisp.c (push_it, pop_it): Save and restore from_disp_prop_p.
+	(handle_single_display_spec, push_display_prop): Set the
+	from_disp_prop_p flag.
+	(get_overlay_strings_1): Reset the from_disp_prop_p flag.
+	(pop_it): Call iterate_out_of_display_property only if we are
+	popping after iteration over a string that came from a display
+	property.  Fix a typo in popping stretch info.  Add an assertion
+	for verifying that the iterator position is in sync with the bidi
+	iterator.
+	(handle_single_display_spec, get_overlay_strings_1)
+	(push_display_prop): Fix initialization of paragraph direction for
+	string when that of the parent object is not yet determined.
+
 2011-07-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispextern.h (struct bidi_string_data): New member `unibyte'.

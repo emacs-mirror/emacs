@@ -4395,6 +4395,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	  it->method = GET_FROM_IMAGE;
 	  it->from_overlay = Qnil;
 	  it->face_id = face_id;
+	  it->from_disp_prop_p = 1;
 
 	  /* Say that we haven't consumed the characters with
 	     `display' property yet.  The call to pop_it in
@@ -4467,6 +4468,7 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	 when we are finished with the glyph property value.  */
       push_it (it, position);
       it->from_overlay = overlay;
+      it->from_disp_prop_p = 1;
 
       if (NILP (location))
 	it->area = TEXT_AREA;
@@ -4494,9 +4496,12 @@ handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
 	    *position = start_pos;
 
 	  /* Force paragraph direction to be that of the parent
-	     object.  */
-	  it->paragraph_embedding =
-	    (it->bidi_p ? it->bidi_it.paragraph_dir : L2R);
+	     object.  If the parent object's paragraph direction is
+	     not yet determined, default to L2R.  */
+	  if (it->bidi_p && it->bidi_it.paragraph_dir == R2L)
+	    it->paragraph_embedding = it->bidi_it.paragraph_dir;
+	  else
+	    it->paragraph_embedding = L2R;
 
 	  /* Set up the bidi iterator for this display string.  */
 	  if (it->bidi_p)
@@ -5144,10 +5149,14 @@ get_overlay_strings_1 (struct it *it, EMACS_INT charpos, int compute_stop_p)
       it->base_level_stop = 0;
       it->multibyte_p = STRING_MULTIBYTE (it->string);
       it->method = GET_FROM_STRING;
+      it->from_disp_prop_p = 0;
 
       /* Force paragraph direction to be that of the parent
 	 buffer.  */
-      it->paragraph_embedding = (it->bidi_p ? it->bidi_it.paragraph_dir : L2R);
+      if (it->bidi_p && it->bidi_it.paragraph_dir == R2L)
+	it->paragraph_embedding = it->bidi_it.paragraph_dir;
+      else
+	it->paragraph_embedding = L2R;
 
       /* Set up the bidi iterator for this overlay string.  */
       if (it->bidi_p)
@@ -5238,6 +5247,7 @@ push_it (struct it *it, struct text_pos *position)
   p->line_wrap = it->line_wrap;
   p->bidi_p = it->bidi_p;
   p->paragraph_embedding = it->paragraph_embedding;
+  p->from_disp_prop_p = it->from_disp_prop_p;
   ++it->sp;
 
   /* Save the state of the bidi iterator as well. */
@@ -5289,6 +5299,7 @@ static void
 pop_it (struct it *it)
 {
   struct iterator_stack_entry *p;
+  int from_display_prop = it->from_disp_prop_p;
 
   xassert (it->sp > 0);
   --it->sp;
@@ -5313,7 +5324,7 @@ pop_it (struct it *it)
       it->slice = p->u.image.slice;
       break;
     case GET_FROM_STRETCH:
-      it->object = p->u.comp.object;
+      it->object = p->u.stretch.object;
       break;
     case GET_FROM_BUFFER:
       it->object = it->w->buffer;
@@ -5344,6 +5355,7 @@ pop_it (struct it *it)
   it->line_wrap = p->line_wrap;
   it->bidi_p = p->bidi_p;
   it->paragraph_embedding = p->paragraph_embedding;
+  it->from_disp_prop_p = p->from_disp_prop_p;
   if (it->bidi_p)
     {
       bidi_pop_it (&it->bidi_it);
@@ -5354,8 +5366,16 @@ pop_it (struct it *it)
 	 preserved across such jumps.)  We also must determine the
 	 paragraph base direction if the overlay we just processed is
 	 at the beginning of a new paragraph.  */
-      if (it->method == GET_FROM_BUFFER || it->method == GET_FROM_STRING)
+      if (from_display_prop
+	  && (it->method == GET_FROM_BUFFER || it->method == GET_FROM_STRING))
 	iterate_out_of_display_property (it);
+
+      xassert ((BUFFERP (it->object)
+		&& IT_CHARPOS (*it) == it->bidi_it.charpos
+		&& IT_BYTEPOS (*it) == it->bidi_it.bytepos)
+	       || (STRINGP (it->object)
+		   && IT_STRING_CHARPOS (*it) == it->bidi_it.charpos
+		   && IT_STRING_BYTEPOS (*it) == it->bidi_it.bytepos));
     }
 }
 
@@ -11062,11 +11082,11 @@ redisplay_tool_bar (struct frame *f)
   reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
   /* FIXME: This should be controlled by a user option.  But it
      doesn't make sense to have an R2L tool bar if the menu bar cannot
-     be drawn also R2L, and making the menu bar R2L is tricky due to
-     unibyte strings it uses and toolkit-specific code that implements
-     it.  If an R2L tool bar is ever supported, display_tool_bar_line
-     should also be augmented to call unproduce_glyphs like
-     display_line and display_string do.  */
+     be drawn also R2L, and making the menu bar R2L is tricky due
+     toolkit-specific code that implements it.  If an R2L tool bar is
+     ever supported, display_tool_bar_line should also be augmented to
+     call unproduce_glyphs like display_line and display_string
+     do.  */
   it.paragraph_embedding = L2R;
 
   if (f->n_tool_bar_rows == 0)
@@ -17764,10 +17784,14 @@ push_display_prop (struct it *it, Lisp_Object prop)
       it->prev_stop = 0;
       it->base_level_stop = 0;
       it->string_from_display_prop_p = 1;
+      it->from_disp_prop_p = 1;
 
       /* Force paragraph direction to be that of the parent
 	 buffer.  */
-      it->paragraph_embedding = (it->bidi_p ? it->bidi_it.paragraph_dir : L2R);
+      if (it->bidi_p && it->bidi_it.paragraph_dir == R2L)
+	it->paragraph_embedding = it->bidi_it.paragraph_dir;
+      else
+	it->paragraph_embedding = L2R;
 
       /* Set up the bidi iterator for this display string.  */
       if (it->bidi_p)
@@ -18969,9 +18993,7 @@ display_mode_line (struct window *w, enum face_id face_id, Lisp_Object format)
 
   /* FIXME: This should be controlled by a user option.  But
      supporting such an option is not trivial, since the mode line is
-     made up of many separate strings, most of which are normally
-     unibyte, and unibyte strings currently don't get reordered for
-     display.  */
+     made up of many separate strings.  */
   it.paragraph_embedding = L2R;
 
   record_unwind_protect (unwind_format_mode_line,
