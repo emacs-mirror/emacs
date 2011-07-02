@@ -1,3 +1,12 @@
+2011-07-02  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-yank-processing): Adjust cursor position for
+	backwards-deleted space.
+
+	(allout-rebullet-heading): Register changes with
+	allout-exposure-changed-hook, so the modified topic is properly
+	decorated.
+
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* minibuffer.el (completion-in-region): Document PREDICATE
