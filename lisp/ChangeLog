@@ -1,5 +1,9 @@
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* progmodes/flymake.el (flymake-mode): If the buffer isn't
+	associated with a file, refuse to run instead of erroring out
+	(bug#6084).
+
 	* textmodes/fill.el (fill-region): Remove the "Ordinarily" from
 	the doc string, since it appears that using `fill-column' always
 	controls the width (bug#7845).
