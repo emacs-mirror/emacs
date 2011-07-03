@@ -1,3 +1,8 @@
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* info.el (Info-apropos-matches): Make non-interactive, since it
+	doesn't seem to do anything useful as a command (bug#8829).
+
 2011-07-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.el (frame-background-mode, frame-set-background-mode):
