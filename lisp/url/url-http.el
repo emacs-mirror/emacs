@@ -338,7 +338,7 @@ request.")
              ;; End request
              "\r\n"
              ;; Any data
-             url-http-data "\r\n"))
+             url-http-data))
            ""))
     (url-http-debug "Request is: \n%s" request)
     request))
@@ -1059,19 +1059,16 @@ the end of the document."
 	  ;; Haven't seen the end of the headers yet, need to wait
 	  ;; for more data to arrive.
 	  nil
-	(if old-http
-	    (message "HTTP/0.9 How I hate thee!")
-	  (progn
-	    (url-http-parse-response)
-	    (mail-narrow-to-head)
-	    ;;(narrow-to-region (point-min) url-http-end-of-headers)
-	    (setq url-http-transfer-encoding (mail-fetch-field
-					      "transfer-encoding")
-		  url-http-content-type (mail-fetch-field "content-type"))
-	    (if (mail-fetch-field "content-length")
-		(setq url-http-content-length
-		      (string-to-number (mail-fetch-field "content-length"))))
-	    (widen)))
+	(unless old-http
+	  (url-http-parse-response)
+	  (mail-narrow-to-head)
+	  (setq url-http-transfer-encoding (mail-fetch-field
+					    "transfer-encoding")
+		url-http-content-type (mail-fetch-field "content-type"))
+	  (if (mail-fetch-field "content-length")
+	      (setq url-http-content-length
+		    (string-to-number (mail-fetch-field "content-length"))))
+	  (widen))
 	(when url-http-transfer-encoding
 	  (setq url-http-transfer-encoding
 		(downcase url-http-transfer-encoding)))

@@ -2226,10 +2226,10 @@ If there is no completion possible, say so and continue searching."
 ;; Searching
 
 (defvar isearch-search-fun-function nil
-  "Override `isearch-search-fun'.
-This function should return the search function for Isearch to use.
-It will call this function with three arguments
-as if it were `search-forward'.")
+  "Overrides the default `isearch-search-fun' behaviour.
+This variable should be a function, which will be called with no
+arguments, and should return a function that takes the same three
+arguments as `isearch-search-string' requires.")
 
 (defun isearch-search-fun ()
   "Return the function to use for the search.

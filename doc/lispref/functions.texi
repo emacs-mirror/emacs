@@ -112,6 +112,13 @@ editors; for Lisp programs, the distinction is normally unimportant.
 @item byte-code function
 A @dfn{byte-code function} is a function that has been compiled by the
 byte compiler.  @xref{Byte-Code Type}.
+
+@item autoload object
+@cindex autoload object
+An @dfn{autoload object} is a place-holder for a real function.  If
+the autoload object is called, it will make Emacs load the file
+containing the definition of the real function, and then call the real
+function instead.
 @end table
 
 @defun functionp object

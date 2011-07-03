@@ -687,7 +687,7 @@ is the menu entry name, and the cdr of P is the node name."
 	(insert (format "%s: %s." (car node-part) (cdr node-part)))))
 
     ;; Insert the description, if present.
-    (when (cdr menu)
+    (when (> (length (cdr menu)) 0)
       ;; Move to right place.
       (indent-to texinfo-column-for-description 2)
       ;; Insert description.
