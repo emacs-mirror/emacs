@@ -128,7 +128,6 @@ struct xsettings
 #ifdef HAVE_GSETTINGS
 #define GSETTINGS_SCHEMA  "org.gnome.desktop.interface"
 #define SYSTEM_MONO_FONT  "monospace-font-name"
-#define SYSTEM_FONT       "font-name"
 
 static void
 something_changedCB (GSettings *settings,
@@ -153,7 +152,10 @@ something_changedCB (GSettings *settings,
 #else
 #ifdef HAVE_GCONF
 #define SYSTEM_MONO_FONT  "/desktop/gnome/interface/monospace_font_name"
-#define SYSTEM_FONT       "/desktop/gnome/interface/font_name"
+
+#ifdef HAVE_XFT
+# define SYSTEM_FONT       "/desktop/gnome/interface/font_name"
+#endif
 
 /* Callback called when something changed in GConf that we care about,
    that is SYSTEM_MONO_FONT.  */
@@ -697,7 +699,7 @@ init_gsettings (void)
   g_object_ref_sink (G_OBJECT (gsettings_client));
 
   val = g_settings_get_value (gsettings_client, SYSTEM_MONO_FONT);
-  if (val) 
+  if (val)
     {
       g_variant_ref_sink (val);
       if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))

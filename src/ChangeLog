@@ -1,5 +1,8 @@
 2011-07-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xsettings.c (SYSTEM_FONT): Define only when used.
+	No need to define when HAVE_GSETTINGS || !HAVE_XFT.
+
 	* keymap.c (access_keymap_1): Now static.
 
 2011-07-02  Chong Yidong  <cyd@stupidchicken.com>
