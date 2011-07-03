@@ -1,3 +1,8 @@
+2011-07-03  Bill Wohler  <wohler@newt.com>
+
+	* mh-folder.el: Use boundp instead of fboundp when testing
+	existence of desktop-buffer-mode-handlers.
+
 2011-05-10  Jim Meyering  <meyering@redhat.com>
 
 	Fix doubled-word typos.
