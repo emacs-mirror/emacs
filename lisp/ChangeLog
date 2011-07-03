@@ -1,5 +1,8 @@
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* man.el (Man-reference-regexp): Allow matching possible
+	word-wrapped references (bug#6289).
+
 	* vc/vc.el (vc-modify-change-comment): Change *VC-log* to *vc-log*
 	for consistency with the other vc buffers (bug#6197).
 	(vc-checkin): Ditto.
