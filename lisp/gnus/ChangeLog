@@ -4,6 +4,25 @@
 	Reindent.
 	(epg-context-operation): Remove unnecessary autoload.
 
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-list-debbugs): New command.
+
+	* gnus-group.el (gnus-bug-group-download-format-alist): Get the
+	mboxstat instead of the maintbox, since the stat seems to be fuller.
+
+	* gnus-msg.el (gnus-configure-posting-styles): Don't try to select dead
+	summary buffers.
+
+	* message.el (message-get-reply-headers): Delete all duplicates,
+	instead of the first.
+	(message-get-reply-headers): Ensure that we have progress while
+	deleting duplicates.
+
+	* gnus-msg.el (gnus-configure-posting-styles): Get the local
+	gnus-posting-style value from the summary buffer to make it easier to
+	make that a per-buffer conf.
+
 2011-07-02  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el (nnir-run-imap): Allow halting a search when an article is
