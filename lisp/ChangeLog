@@ -1,3 +1,8 @@
+2011-07-03  Richard Kim <emacs18@gmail.com> (tiny change)
+
+	* textmodes/texnfo-upd.el (texinfo-insert-menu): Don't insert
+	unnecessary spaces (bug#8987).
+
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/network-stream.el (open-network-stream): Use the
