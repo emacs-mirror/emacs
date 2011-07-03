@@ -1,5 +1,8 @@
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* fringe.el (fringe-query-style): Remove redundant text " (type ?
+	for list)" (bug#6475).
+
 	* files.el (file-expand-wildcards): Ignore non-readable
 	sub-directories while trying to find matches instead of signalling
 	an error (bug#6297).
