@@ -1,5 +1,7 @@
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* dired.el (dired-map-over-marks): Refill the doc string (bug#6814).
+
 	* fringe.el (fringe-query-style): Remove redundant text " (type ?
 	for list)" (bug#6475).
 
