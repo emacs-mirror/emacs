@@ -1,5 +1,8 @@
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mail/feedmail.el (feedmail-buffer-to-smtpmail):
+	`smtpmail-via-smtp' now returns the error instead of nil.
+
 	* isearch.el (isearch-search-fun-function): Clarify the doc string
 	(bug#8101).
 
