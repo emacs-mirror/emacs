@@ -1,3 +1,18 @@
+2011-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_shelve_cache, bidi_unshelve_cache): New functions.
+
+	* dispextern.h (bidi_shelve_cache, bidi_unshelve_cache): Declare
+	prototypes.
+
+	* xdisp.c (SAVE_IT, RESTORE_IT): New macros.
+	(pos_visible_p, face_before_or_after_it_pos)
+	(back_to_previous_visible_line_start)
+	(move_it_in_display_line_to, move_it_in_display_line)
+	(move_it_to, move_it_vertically_backward, move_it_by_lines)
+	(try_scrolling, redisplay_window, display_line): Use them when
+	saving a temporary copy of the iterator and restoring it back.
+
 2011-07-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (reseat_1): Call bidi_init_it to resync the bidi

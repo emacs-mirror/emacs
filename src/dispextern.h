@@ -2974,6 +2974,8 @@ extern void bidi_paragraph_init (bidi_dir_t, struct bidi_it *, int);
 extern int  bidi_mirror_char (int);
 extern void bidi_push_it (struct bidi_it *);
 extern void bidi_pop_it (struct bidi_it *);
+extern void *bidi_shelve_cache (void);
+extern void bidi_unshelve_cache (void *);
 
 /* Defined in xdisp.c */
 

@@ -594,6 +594,29 @@ int current_mode_line_height, current_header_line_height;
 
 #define TEXT_PROP_DISTANCE_LIMIT 100
 
+/* SAVE_IT and RESTORE_IT are called when we save a snapshot of the
+   iterator state and later restore it.  This is needed because the
+   bidi iterator on bidi.c keeps a stacked cache of its states, which
+   is really a singleton.  When we use scratch iterator objects to
+   move around the buffer, we can cause the bidi cache to be pushed or
+   popped, and therefore we need to restore the cache state when we
+   return to the original iterator.  */
+#define SAVE_IT(ITCOPY,ITORIG,CACHE)		\
+  do {						\
+    if (CACHE)					\
+      xfree (CACHE);				\
+    ITCOPY = ITORIG;				\
+    CACHE = bidi_shelve_cache();		\
+  } while (0)
+
+#define RESTORE_IT(pITORIG,pITCOPY,CACHE)	\
+  do {						\
+    if (pITORIG != pITCOPY)			\
+      *(pITORIG) = *(pITCOPY);			\
+    bidi_unshelve_cache (CACHE);		\
+    CACHE = NULL;				\
+  } while (0)
+
 #if GLYPH_DEBUG
 
 /* Non-zero means print traces of redisplay if compiled with
@@ -1285,14 +1308,16 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
   else
     {
       struct it it2;
+      void *it2data = NULL;
 
-      it2 = it;
+      SAVE_IT (it2, it, it2data);
       if (IT_CHARPOS (it) < ZV && FETCH_BYTE (IT_BYTEPOS (it)) != '\n')
 	move_it_by_lines (&it, 1);
       if (charpos < IT_CHARPOS (it)
 	  || (it.what == IT_EOB && charpos == IT_CHARPOS (it)))
 	{
 	  visible_p = 1;
+	  RESTORE_IT (&it2, &it2, it2data);
 	  move_it_to (&it2, charpos, -1, -1, -1, MOVE_TO_POS);
 	  *x = it2.current_x;
 	  *y = it2.current_y + it2.max_ascent - it2.ascent;
@@ -1305,6 +1330,8 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 				  WINDOW_HEADER_LINE_HEIGHT (w))));
 	  *vpos = it2.vpos;
 	}
+      else
+	xfree (it2data);
     }
 
   if (old_buffer)
@@ -3484,6 +3511,7 @@ face_before_or_after_it_pos (struct it *it, int before_p)
   int face_id, limit;
   EMACS_INT next_check_charpos;
   struct it it_copy;
+  void *it_copy_data = NULL;
 
   xassert (it->s == NULL);
 
@@ -3526,7 +3554,7 @@ face_before_or_after_it_pos (struct it *it, int before_p)
 		 character on this display line.  */
 	      if (it->current_x <= it->first_visible_x)
 		return it->face_id;
-	      it_copy = *it;
+	      SAVE_IT (it_copy, *it, it_copy_data);
 	      /* Implementation note: Since move_it_in_display_line
 		 works in the iterator geometry, and thinks the first
 		 character is always the leftmost, even in R2L lines,
@@ -3535,6 +3563,7 @@ face_before_or_after_it_pos (struct it *it, int before_p)
 	      move_it_in_display_line (&it_copy, SCHARS (it_copy.string),
 				       it_copy.current_x - 1, MOVE_TO_X);
 	      charpos = IT_STRING_CHARPOS (it_copy);
+	      RESTORE_IT (it, it, it_copy_data);
 	    }
 	  else
 	    {
@@ -3624,7 +3653,7 @@ face_before_or_after_it_pos (struct it *it, int before_p)
 		 character on this display line.  */
 	      if (it->current_x <= it->first_visible_x)
 		return it->face_id;
-	      it_copy = *it;
+	      SAVE_IT (it_copy, *it, it_copy_data);
 	      /* Implementation note: Since move_it_in_display_line
 		 works in the iterator geometry, and thinks the first
 		 character is always the leftmost, even in R2L lines,
@@ -3633,6 +3662,7 @@ face_before_or_after_it_pos (struct it *it, int before_p)
 	      move_it_in_display_line (&it_copy, ZV,
 				       it_copy.current_x - 1, MOVE_TO_X);
 	      pos = it_copy.current.pos;
+	      RESTORE_IT (it, it, it_copy_data);
 	    }
 	  else
 	    {
@@ -5527,6 +5557,7 @@ back_to_previous_visible_line_start (struct it *it)
 
       {
 	struct it it2;
+	void *it2data = NULL;
 	EMACS_INT pos;
 	EMACS_INT beg, end;
 	Lisp_Object val, overlay;
@@ -5538,7 +5569,7 @@ back_to_previous_visible_line_start (struct it *it)
 
 	/* If newline is replaced by a display property, find start of overlay
 	   or interval and continue search from that point.  */
-	it2 = *it;
+	SAVE_IT (it2, *it, it2data);
 	pos = --IT_CHARPOS (it2);
 	--IT_BYTEPOS (it2);
 	it2.sp = 0;
@@ -5551,21 +5582,12 @@ back_to_previous_visible_line_start (struct it *it)
 		? (beg = OVERLAY_POSITION (OVERLAY_START (overlay)))
 		: get_property_and_range (pos, Qdisplay, &val, &beg, &end, Qnil)))
 	  {
-	    /* If the call to handle_display_prop above pushed the
-	       iterator state, that causes side effects for the bidi
-	       iterator by calling bidi_push_it.  Undo those side
-	       effects.  */
-	    while (it2.sp > 0)
-	      {
-		/* push_it calls bidi_push_it only if the bidi_p flag
-		   is set in the iterator being pushed.  */
-		if (it2.stack[--it2.sp].bidi_p)
-		  bidi_pop_it (&it2.bidi_it);
-	      }
+	    RESTORE_IT (it, it, it2data);
 	    goto replaced;
 	  }
 
 	/* Newline is not replaced by anything -- so we are done.  */
+	RESTORE_IT (it, it, it2data);
 	break;
 
       replaced:
@@ -7495,6 +7517,7 @@ move_it_in_display_line_to (struct it *it,
   enum move_it_result result = MOVE_UNDEFINED;
   struct glyph_row *saved_glyph_row;
   struct it wrap_it, atpos_it, atx_it;
+  void *wrap_data = NULL, *atpos_data = NULL, *atx_data = NULL;
   int may_wrap = 0;
   enum it_method prev_method = it->method;
   EMACS_INT prev_pos = IT_CHARPOS (*it);
@@ -7563,7 +7586,7 @@ move_it_in_display_line_to (struct it *it,
 	    /* If wrap_it is valid, the current position might be in a
 	       word that is wrapped.  So, save the iterator in
 	       atpos_it and continue to see if wrapping happens.  */
-	    atpos_it = *it;
+	    SAVE_IT (atpos_it, *it, atpos_data);
 	}
 
       prev_method = it->method;
@@ -7600,18 +7623,18 @@ move_it_in_display_line_to (struct it *it,
 		     already found, we are done.  */
 		  if (atpos_it.sp >= 0)
 		    {
-		      *it = atpos_it;
+		      RESTORE_IT (it, &atpos_it, atpos_data);
 		      result = MOVE_POS_MATCH_OR_ZV;
 		      goto done;
 		    }
 		  if (atx_it.sp >= 0)
 		    {
-		      *it = atx_it;
+		      RESTORE_IT (it, &atx_it, atx_data);
 		      result = MOVE_X_REACHED;
 		      goto done;
 		    }
 		  /* Otherwise, we can wrap here.  */
-		  wrap_it = *it;
+		  SAVE_IT (wrap_it, *it, wrap_data);
 		  may_wrap = 0;
 		}
 	    }
@@ -7679,7 +7702,7 @@ move_it_in_display_line_to (struct it *it,
 			goto buffer_pos_reached;
 		      if (atpos_it.sp < 0)
 			{
-			  atpos_it = *it;
+			  SAVE_IT (atpos_it, *it, atpos_data);
 			  IT_RESET_X_ASCENT_DESCENT (&atpos_it);
 			}
 		    }
@@ -7693,7 +7716,7 @@ move_it_in_display_line_to (struct it *it,
 			}
 		      if (atx_it.sp < 0)
 			{
-			  atx_it = *it;
+			  SAVE_IT (atx_it, *it, atx_data);
 			  IT_RESET_X_ASCENT_DESCENT (&atx_it);
 			}
 		    }
@@ -7737,7 +7760,7 @@ move_it_in_display_line_to (struct it *it,
 			      if (it->line_wrap == WORD_WRAP
 				  && atpos_it.sp < 0)
 				{
-				  atpos_it = *it;
+				  SAVE_IT (atpos_it, *it, atpos_data);
 				  atpos_it.current_x = x_before_this_char;
 				  atpos_it.hpos = hpos_before_this_char;
 				}
@@ -7782,7 +7805,7 @@ move_it_in_display_line_to (struct it *it,
 
 		  if (wrap_it.sp >= 0)
 		    {
-		      *it = wrap_it;
+		      RESTORE_IT (it, &wrap_it, wrap_data);
 		      atpos_it.sp = -1;
 		      atx_it.sp = -1;
 		    }
@@ -7799,7 +7822,7 @@ move_it_in_display_line_to (struct it *it,
 		    goto buffer_pos_reached;
 		  if (it->line_wrap == WORD_WRAP && atpos_it.sp < 0)
 		    {
-		      atpos_it = *it;
+		      SAVE_IT (atpos_it, *it, atpos_data);
 		      IT_RESET_X_ASCENT_DESCENT (&atpos_it);
 		    }
 		}
@@ -7879,11 +7902,18 @@ move_it_in_display_line_to (struct it *it,
   /* If we scanned beyond to_pos and didn't find a point to wrap at,
      restore the saved iterator.  */
   if (atpos_it.sp >= 0)
-    *it = atpos_it;
+    RESTORE_IT (it, &atpos_it, atpos_data);
   else if (atx_it.sp >= 0)
-    *it = atx_it;
+    RESTORE_IT (it, &atx_it, atx_data);
 
  done:
+
+  if (atpos_data)
+    xfree (atpos_data);
+  if (atx_data)
+    xfree (atx_data);
+  if (wrap_data)
+    xfree (wrap_data);
 
   /* Restore the iterator settings altered at the beginning of this
      function.  */
@@ -7900,8 +7930,12 @@ move_it_in_display_line (struct it *it,
   if (it->line_wrap == WORD_WRAP
       && (op & MOVE_TO_X))
     {
-      struct it save_it = *it;
-      int skip = move_it_in_display_line_to (it, to_charpos, to_x, op);
+      struct it save_it;
+      void *save_data = NULL;
+      int skip;
+
+      SAVE_IT (save_it, *it, save_data);
+      skip = move_it_in_display_line_to (it, to_charpos, to_x, op);
       /* When word-wrap is on, TO_X may lie past the end
 	 of a wrapped line.  Then it->current is the
 	 character on the next line, so backtrack to the
@@ -7909,10 +7943,12 @@ move_it_in_display_line (struct it *it,
       if (skip == MOVE_LINE_CONTINUED)
 	{
 	  int prev_x = max (it->current_x - 1, 0);
-	  *it = save_it;
+	  RESTORE_IT (it, &save_it, save_data);
 	  move_it_in_display_line_to
 	    (it, -1, prev_x, MOVE_TO_X);
 	}
+      else
+	xfree (save_data);
     }
   else
     move_it_in_display_line_to (it, to_charpos, to_x, op);
@@ -7935,6 +7971,7 @@ move_it_to (struct it *it, EMACS_INT to_charpos, int to_x, int to_y, int to_vpos
 {
   enum move_it_result skip, skip2 = MOVE_X_REACHED;
   int line_height, line_start_x = 0, reached = 0;
+  void *backup_data = NULL;
 
   for (;;)
     {
@@ -7987,7 +8024,7 @@ move_it_to (struct it *it, EMACS_INT to_charpos, int to_x, int to_y, int to_vpos
 	  struct it it_backup;
 
 	  if (it->line_wrap == WORD_WRAP)
-	    it_backup = *it;
+	    SAVE_IT (it_backup, *it, backup_data);
 
 	  /* TO_Y specified means stop at TO_X in the line containing
 	     TO_Y---or at TO_CHARPOS if this is reached first.  The
@@ -8021,7 +8058,7 @@ move_it_to (struct it *it, EMACS_INT to_charpos, int to_x, int to_y, int to_vpos
 		  reached = 6;
 		  break;
 		}
-	      it_backup = *it;
+	      SAVE_IT (it_backup, *it, backup_data);
 	      TRACE_MOVE ((stderr, "move_it: from %d\n", IT_CHARPOS (*it)));
 	      skip2 = move_it_in_display_line_to (it, to_charpos, -1,
 						  op & MOVE_TO_POS);
@@ -8035,7 +8072,7 @@ move_it_to (struct it *it, EMACS_INT to_charpos, int to_x, int to_y, int to_vpos
 		  /* If TO_Y is in this line and TO_X was reached
 		     above, we scanned too far.  We have to restore
 		     IT's settings to the ones before skipping.  */
-		  *it = it_backup;
+		  RESTORE_IT (it, &it_backup, backup_data);
 		  reached = 6;
 		}
 	      else
@@ -8062,7 +8099,7 @@ move_it_to (struct it *it, EMACS_INT to_charpos, int to_x, int to_y, int to_vpos
 		      && it->line_wrap == WORD_WRAP)
 		    {
 		      int prev_x = max (it->current_x - 1, 0);
-		      *it = it_backup;
+		      RESTORE_IT (it, &it_backup, backup_data);
 		      skip = move_it_in_display_line_to
 			(it, -1, prev_x, MOVE_TO_X);
 		    }
@@ -8169,6 +8206,9 @@ move_it_to (struct it *it, EMACS_INT to_charpos, int to_x, int to_y, int to_vpos
       last_max_ascent = it->max_ascent;
     }
 
+  if (backup_data)
+    xfree (backup_data);
+
   TRACE_MOVE ((stderr, "move_it_to: reached %d\n", reached));
 }
 
@@ -8186,6 +8226,7 @@ move_it_vertically_backward (struct it *it, int dy)
 {
   int nlines, h;
   struct it it2, it3;
+  void *it2data = NULL, *it3data = NULL;
   EMACS_INT start_pos;
 
  move_further_back:
@@ -8214,7 +8255,7 @@ move_it_vertically_backward (struct it *it, int dy)
      start of the next line so that we get its height.  We need this
      height to be able to tell whether we reached the specified
      y-distance.  */
-  it2 = *it;
+  SAVE_IT (it2, *it, it2data);
   it2.max_ascent = it2.max_descent = 0;
   do
     {
@@ -8223,7 +8264,7 @@ move_it_vertically_backward (struct it *it, int dy)
     }
   while (!IT_POS_VALID_AFTER_MOVE_P (&it2));
   xassert (IT_CHARPOS (*it) >= BEGV);
-  it3 = it2;
+  SAVE_IT (it3, it2, it3data);
 
   move_it_to (&it2, start_pos, -1, -1, -1, MOVE_TO_POS);
   xassert (IT_CHARPOS (*it) >= BEGV);
@@ -8242,8 +8283,10 @@ move_it_vertically_backward (struct it *it, int dy)
     {
       /* DY == 0 means move to the start of the screen line.  The
 	 value of nlines is > 0 if continuation lines were involved.  */
+      RESTORE_IT (it, it, it2data);
       if (nlines > 0)
 	move_it_by_lines (it, nlines);
+      xfree (it3data);
     }
   else
     {
@@ -8251,9 +8294,13 @@ move_it_vertically_backward (struct it *it, int dy)
 	 Note that H has been subtracted in front of the if-statement.  */
       int target_y = it->current_y + h - dy;
       int y0 = it3.current_y;
-      int y1 = line_bottom_y (&it3);
-      int line_height = y1 - y0;
+      int y1;
+      int line_height;
 
+      RESTORE_IT (&it3, &it3, it3data);
+      y1 = line_bottom_y (&it3);
+      line_height = y1 - y0;
+      RESTORE_IT (it, it, it2data);
       /* If we did not reach target_y, try to move further backward if
 	 we can.  If we moved too far backward, try to move forward.  */
       if (target_y < it->current_y
@@ -8380,6 +8427,7 @@ move_it_by_lines (struct it *it, int dvpos)
   else
     {
       struct it it2;
+      void *it2data = NULL;
       EMACS_INT start_charpos, i;
 
       /* Start at the beginning of the screen line containing IT's
@@ -8415,7 +8463,7 @@ move_it_by_lines (struct it *it, int dvpos)
 
       /* Above call may have moved too far if continuation lines
 	 are involved.  Scan forward and see if it did.  */
-      it2 = *it;
+      SAVE_IT (it2, *it, it2data);
       it2.vpos = it2.current_y = 0;
       move_it_to (&it2, start_charpos, -1, -1, -1, MOVE_TO_POS);
       it->vpos -= it2.vpos;
@@ -8426,12 +8474,18 @@ move_it_by_lines (struct it *it, int dvpos)
       if (it2.vpos > -dvpos)
 	{
 	  int delta = it2.vpos + dvpos;
-	  it2 = *it;
+
+	  RESTORE_IT (&it2, &it2, it2data);
+	  SAVE_IT (it2, *it, it2data);
 	  move_it_to (it, -1, -1, -1, it->vpos + delta, MOVE_TO_VPOS);
 	  /* Move back again if we got too far ahead.  */
 	  if (IT_CHARPOS (*it) >= start_charpos)
-	    *it = it2;
+	    RESTORE_IT (it, &it2, it2data);
+	  else
+	    xfree (it2data);
 	}
+      else
+	RESTORE_IT (it, it, it2data);
     }
 }
 
@@ -13776,14 +13830,18 @@ try_scrolling (Lisp_Object window, int just_this_one_p,
 	     which was computed as distance from window bottom to
 	     point.  This matters when lines at window top and lines
 	     below window bottom have different height.  */
-	  struct it it1 = it;
+	  struct it it1;
+	  void *it1data = NULL;
 	  /* We use a temporary it1 because line_bottom_y can modify
 	     its argument, if it moves one line down; see there.  */
-	  int start_y = line_bottom_y (&it1);
+	  int start_y;
 
+	  SAVE_IT (it1, it, it1data);
+	  start_y = line_bottom_y (&it1);
 	  do {
+	    RESTORE_IT (&it, &it, it1data);
 	    move_it_by_lines (&it, 1);
-	    it1 = it;
+	    SAVE_IT (it1, it, it1data);
 	  } while (line_bottom_y (&it1) - start_y < amount_to_scroll);
 	}
 
@@ -14891,10 +14949,13 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	  && BEGV <= CHARPOS (startp) && CHARPOS (startp) <= ZV)
 	{
 	  struct it it1;
+	  void *it1data = NULL;
 
+	  SAVE_IT (it1, it, it1data);
 	  start_display (&it1, w, startp);
 	  move_it_vertically (&it1, margin);
 	  margin_pos = IT_CHARPOS (it1);
+	  RESTORE_IT (&it, &it, it1data);
 	}
       scrolling_up = PT > margin_pos;
       aggressive =
@@ -17991,6 +18052,7 @@ display_line (struct it *it)
   struct glyph_row *row = it->glyph_row;
   Lisp_Object overlay_arrow_string;
   struct it wrap_it;
+  void *wrap_data = NULL;
   int may_wrap = 0, wrap_x IF_LINT (= 0);
   int wrap_row_used = -1;
   int wrap_row_ascent IF_LINT (= 0), wrap_row_height IF_LINT (= 0);
@@ -18145,7 +18207,7 @@ display_line (struct it *it)
 		may_wrap = 1;
 	      else if (may_wrap)
 		{
-		  wrap_it = *it;
+		  SAVE_IT (wrap_it, *it, wrap_data);
 		  wrap_x = x;
 		  wrap_row_used = row->used[TEXT_AREA];
 		  wrap_row_ascent = row->ascent;
@@ -18315,7 +18377,7 @@ display_line (struct it *it)
 		      if (row->reversed_p)
 			unproduce_glyphs (it,
 					  row->used[TEXT_AREA] - wrap_row_used);
-		      *it = wrap_it;
+		      RESTORE_IT (it, &wrap_it, wrap_data);
 		      it->continuation_lines_width += wrap_x;
 		      row->used[TEXT_AREA] = wrap_row_used;
 		      row->ascent = wrap_row_ascent;
