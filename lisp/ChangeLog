@@ -1,3 +1,8 @@
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* isearch.el (isearch-search-fun-function): Clarify the doc string
+	(bug#8101).
+
 2011-07-03  Richard Kim <emacs18@gmail.com> (tiny change)
 
 	* textmodes/texnfo-upd.el (texinfo-insert-menu): Don't insert
