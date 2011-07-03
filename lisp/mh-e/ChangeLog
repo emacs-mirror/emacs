@@ -1,5 +1,9 @@
 2011-07-03  Bill Wohler  <wohler@newt.com>
 
+	* mh-compat.el (mh-test-completion): Add compatibility function
+	for systems without test-completion.
+	* mh-alias.el (mh-alias-letter-expand-alias): Use it
+
 	* mh-utils.el:
 	* mh-mime.el: Shush XEmacs compiler in mh-do-in-xemacs block.
 

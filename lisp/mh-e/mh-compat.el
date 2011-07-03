@@ -260,6 +260,12 @@ The arguments FIXEDCASE, SUBEXP, and START, used by
 `replace-in-string' are ignored."
   (replace-in-string string regexp rep literal))
 
+(defun-mh mh-test-completion
+  test-completion (string collection &optional predicate)
+  "XEmacs does not have `test-completion'.
+This function returns nil on that system."
+  nil)
+
 ;; Copy of constant from url-util.el in Emacs 22; needed by Emacs 21.
 (if (not (boundp 'url-unreserved-chars))
     (defconst mh-url-unreserved-chars
