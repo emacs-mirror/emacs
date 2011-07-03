@@ -1,3 +1,7 @@
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* longlines.el (longlines-mode): Document what ARG does (bug#6150).
+
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* custom.el (defcustom): Clarify that :set is only used in the
