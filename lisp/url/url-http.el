@@ -338,7 +338,7 @@ request.")
              ;; End request
              "\r\n"
              ;; Any data
-             url-http-data "\r\n"))
+             url-http-data))
            ""))
     (url-http-debug "Request is: \n%s" request)
     request))
