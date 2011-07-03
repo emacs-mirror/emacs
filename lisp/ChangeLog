@@ -1,5 +1,11 @@
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* vc/vc.el (vc-modify-change-comment): Change *VC-log* to *vc-log*
+	for consistency with the other vc buffers (bug#6197).
+	(vc-checkin): Ditto.
+
+	* vc/vc-arch.el: Fix comments to match the *VC-log* name change.
+
 	* longlines.el (longlines-mode): Document what ARG does (bug#6150).
 
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>

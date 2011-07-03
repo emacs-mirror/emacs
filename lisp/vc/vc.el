@@ -620,7 +620,7 @@
 ;;   buffer, if one is present, instead of adding to the ChangeLog.
 ;;
 ;; - When vc-next-action calls vc-checkin it could pre-fill the
-;;   *VC-log* buffer with some obvious items: the list of files that
+;;   *vc-log* buffer with some obvious items: the list of files that
 ;;   were added, the list of files that were removed.  If the diff is
 ;;   available, maybe it could even call something like
 ;;   `diff-add-change-log-entries-other-window' to create a detailed
@@ -1414,7 +1414,7 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
    (vc-start-logentry
     files comment initial-contents
     "Enter a change comment."
-    "*VC-log*"
+    "*vc-log*"
     (lambda ()
       (vc-call-backend backend 'log-edit-mode))
     (lexical-let ((rev rev))
@@ -1876,7 +1876,7 @@ The headers are reset to their non-expanded form."
     (vc-start-logentry
      files oldcomment t
      "Enter a replacement change comment."
-     "*VC-log*"
+     "*vc-log*"
      (lambda () (vc-call-backend backend 'log-edit-mode))
      (lexical-let ((rev rev))
        (lambda (files comment)
