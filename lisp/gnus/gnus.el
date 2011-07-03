@@ -2966,8 +2966,8 @@ with some simple extensions.
             on level one
 %R          \"A\" if this article has been replied to, \" \"
             otherwise (character)
-%U          Status of this article (character, \"R\", \"K\",
-            \"-\" or \" \")
+%U          \"Read\" status of this article.
+            See Info node `(gnus)Read Articles'
 %[          Opening bracket (character, \"[\" or \"<\")
 %]          Closing bracket (character, \"]\" or \">\")
 %>          Spaces of length thread-level (string)

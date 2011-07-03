@@ -2437,7 +2437,9 @@ the bug number, and browsing the URL must return mbox output."
 		     (cdr (assoc 'emacs gnus-bug-group-download-format-alist))))
   (when (stringp number)
     (setq number (string-to-number number)))
-  (let ((tmpfile (mm-make-temp-file "gnus-temp-group-")))
+  (let ((tmpfile (mm-make-temp-file "gnus-temp-group-"))
+	(coding-system-for-write 'binary)
+	(coding-system-for-read 'binary))
     (with-temp-file tmpfile
       (url-insert-file-contents (format mbox-url number))
       (goto-char (point-min))
@@ -2466,12 +2468,17 @@ the bug number, and browsing the URL must return mbox output."
 
 (defun gnus-read-ephemeral-emacs-bug-group (number &optional window-conf)
   "Browse Emacs bug NUMBER as ephemeral group."
-  (interactive (list (read-string "Enter bug number: "
-				  (thing-at-point 'word) nil)))
+  (interactive (list (string-to-number
+		      (read-string "Enter bug number: "
+				   (thing-at-point 'word) nil))))
   (gnus-read-ephemeral-bug-group
    number
    (cdr (assoc 'emacs gnus-bug-group-download-format-alist))
-   window-conf))
+   window-conf)
+  (when (boundp 'debbugs-summary-mode)
+    (with-current-buffer (window-buffer (selected-window))
+      (debbugs-summary-mode 1)
+      (set (make-local-variable 'debbugs-bug-number) number))))
 
 (defun gnus-group-jump-to-group (group &optional prompt)
   "Jump to newsgroup GROUP.

@@ -1,3 +1,14 @@
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Subscription Methods): Link to "Group Levels" to explain
+	zombies.
+	(Checking New Groups): Ditto (bug#8974).
+
+2011-07-03  Dave Abrahams  <dave@boostpro.com>  (tiny change)
+
+	* gnus.texi (Startup Files): Clarify that we're talking about numbered
+	backups, and not actual vc (bug#8975).
+
 2011-07-03  Kevin Ryde  <user42@zip.com.au>
 
 	* cl.texi (For Clauses): @items for hash-values and key-bindings

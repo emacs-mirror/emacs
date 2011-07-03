@@ -1,3 +1,23 @@
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-read-ephemeral-bug-group): Bind the coding
+	systems to binary before writing and reading the mbox files.
+
+	* gnus.el (gnus-summary-line-format): Link to the info node for %U
+	instead of trying to list them all (bug#8978).
+
+2011-07-03  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* pop3.el (pop3-open-server): Use :end-of-capability.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Make sure that
+	the id is always a number.
+
+	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Hook into
+	debbugs mode, if possible.
+
 2011-07-02  Daiki Ueno  <ueno@unixuser.org>
 
 	* auth-source.el (auth-source-token-passphrase-callback-function):
