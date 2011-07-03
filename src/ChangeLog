@@ -1,3 +1,8 @@
+2011-07-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Finternal_merge_in_global_face): Modify the foreground
+	and background color parameters if they have been changed.
+
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* editfns.c (Fformat): Clarify the - and 0 flags (bug#6659).

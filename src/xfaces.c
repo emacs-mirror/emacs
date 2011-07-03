@@ -3813,6 +3813,18 @@ Default face attributes override any local face attributes.  */)
 	      Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, name),
 						      Qnil));
 	    }
+
+	  if (STRINGP (gvec[LFACE_FOREGROUND_INDEX]))
+	    Fmodify_frame_parameters (frame,
+				      Fcons (Fcons (Qforeground_color,
+						    gvec[LFACE_FOREGROUND_INDEX]),
+					     Qnil));
+
+	  if (STRINGP (gvec[LFACE_BACKGROUND_INDEX]))
+	    Fmodify_frame_parameters (frame,
+				      Fcons (Fcons (Qbackground_color,
+						    gvec[LFACE_BACKGROUND_INDEX]),
+					     Qnil));
 	}
     }
 

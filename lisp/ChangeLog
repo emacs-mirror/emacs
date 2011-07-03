@@ -1,3 +1,14 @@
+2011-07-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (frame-background-mode, frame-set-background-mode):
+	Moved from faces.el.
+	(frame-default-terminal-background): New function.
+
+	* custom.el (custom-push-theme): Don't record faces in `changed'
+	theme; this doesn't work correctly for per-frame face settings.
+	(disable-theme): Use face-set-after-frame-default to reset faces.
+	(custom--frame-color-default): New function.
+
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* dired.el (dired-flagging-regexp): Removed unused variable
