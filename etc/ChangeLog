@@ -1,3 +1,8 @@
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* tutorials/TUTORIAL.zh: Remove spurious ")" character on the
+	first line.
+
 2011-07-01  Alan Mackenzie  <acm@muc.de>
 
 	* NEWS: CC Mode: New "guessing" of style.
