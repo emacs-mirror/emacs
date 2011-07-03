@@ -1,5 +1,10 @@
 2011-07-03  Chong Yidong  <cyd@stupidchicken.com>
 
+	* customize.texi (Composite Types): Move alist and plist to here
+	from Simple Types (Bug#7545).
+
+	* elisp.texi (Top): Update menu description.
+
 	* display.texi (Face Attributes): Document negative line widths
 	(Bug#6113).
 
