@@ -2094,7 +2094,10 @@ Draw a box with lines of width 1, in color @var{color}.
 
 @item @code{(:line-width @var{width} :color @var{color} :style @var{style})}
 This way you can explicitly specify all aspects of the box.  The value
-@var{width} specifies the width of the lines to draw; it defaults to 1.
+@var{width} specifies the width of the lines to draw; it defaults to
+1.  A negative width @var{-n} means to draw a line of width @var{n}
+that occupies the space of the underlying text, thus avoiding any
+increase in the character height or width.
 
 The value @var{color} specifies the color to draw with.  The default is
 the foreground color of the face for simple boxes, and the background
