@@ -1,3 +1,93 @@
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* fringe.el (fringe-query-style): Remove redundant text " (type ?
+	for list)" (bug#6475).
+
+	* files.el (file-expand-wildcards): Ignore non-readable
+	sub-directories while trying to find matches instead of signalling
+	an error (bug#6297).
+
+	* man.el (Man-reference-regexp): Allow matching possible
+	word-wrapped references (bug#6289).
+
+	* vc/vc.el (vc-modify-change-comment): Change *VC-log* to *vc-log*
+	for consistency with the other vc buffers (bug#6197).
+	(vc-checkin): Ditto.
+
+	* vc/vc-arch.el: Fix comments to match the *VC-log* name change.
+
+	* longlines.el (longlines-mode): Document what ARG does (bug#6150).
+
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* custom.el (defcustom): Clarify that :set is only used in the
+	Customize user interface (bug#6089).
+
+	* progmodes/flymake.el (flymake-mode): If the buffer isn't
+	associated with a file, refuse to run instead of erroring out
+	(bug#6084).
+
+	* textmodes/fill.el (fill-region): Remove the "Ordinarily" from
+	the doc string, since it appears that using `fill-column' always
+	controls the width (bug#7845).
+
+	* simple.el (shell-command-on-region): Say where the error output
+	went if `shell-command-default-error-buffer' is set (bug#6857).
+
+2011-07-02  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-yank-processing): Adjust cursor position for
+	backwards-deleted space.
+
+	(allout-rebullet-heading): Register changes with
+	allout-exposure-changed-hook, so the modified topic is properly
+	decorated.
+
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* minibuffer.el (completion-in-region): Document PREDICATE
+	(bug#7136).
+
+	* info-look.el (info-lookup-add-help): Clarify that ARGS is a list
+	of keyword/argument pairs (bug#6904).
+
+	* replace.el (multi-occur): Mention
+	`multi-occur-in-matching-buffers' in the doc string (bug#7566).
+
+2011-07-02  Drew Adams  <drew.adams@oracle.com>
+
+	* dired.el (dired-mark-if): Make the message about whether it's
+	marking or unmarking clearer (bug#8523).
+
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* disp-table.el (display-table-print-array): New function.
+	(describe-display-table): Use it to print the vectors more pretty
+	(Bug#8859).
+
+2011-07-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-state-get-1): Don't assign clone numbers.
+	Add clone-of item to list of window parameters.
+	(window-state-put-2): Don't process clone numbers.
+	(display-buffer-alist): Fix doc-string.
+
+2011-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (remq): Don't allocate if it's not needed.
+	(keymap--menu-item-binding, keymap--menu-item-with-binding)
+	(keymap--merge-bindings): New functions.
+	(keymap-canonicalize): Use them to refine the canonicalization.
+	* minibuffer.el (minibuffer-local-completion-map)
+	(minibuffer-local-must-match-map): Move initialization from C.
+	(minibuffer-local-filename-completion-map): Move initialization from C;
+	don't inherit from anything here.
+	(minibuffer-local-filename-must-match-map): Make obsolete.
+	(completing-read-default): Use make-composed-keymap to combine
+	minibuffer-local-filename-completion-map with either
+	minibuffer-local-must-match-map or
+	minibuffer-local-filename-completion-map.
+
 2011-07-01  Glenn Morris  <rgm@gnu.org>
 
 	* type-break.el (type-break-time-sum): Use dolist.

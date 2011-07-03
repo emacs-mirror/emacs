@@ -984,8 +984,9 @@ to the parent directory in the same Dired buffer.
 
 Use the @kbd{l} command (@code{dired-do-redisplay}) to update the
 subdirectory's contents.  Use @kbd{C-u k} on the subdirectory header
-line to delete the subdirectory (@pxref{Dired Updating}).  You can also
-hide and show inserted subdirectories (@pxref{Hiding Subdirectories}).
+line to remove the subdirectory listing (@pxref{Dired Updating}).  You
+can also hide and show inserted subdirectories (@pxref{Hiding
+Subdirectories}).
 
 @ifnottex
 @include dired-xtra.texi
@@ -1145,9 +1146,9 @@ current file as a last resort.
 
   If you use @kbd{k} with a numeric prefix argument to kill the line
 for a file that is a directory, which you have inserted in the Dired
-buffer as a subdirectory, it deletes that subdirectory from the buffer
-as well.  Typing @kbd{C-u k} on the header line for a subdirectory
-also deletes the subdirectory from the Dired buffer.
+buffer as a subdirectory, it removed that subdirectory line from the
+buffer as well.  Typing @kbd{C-u k} on the header line for a
+subdirectory also removes the subdirectory line from the Dired buffer.
 
   The @kbd{g} command brings back any individual lines that you have
 killed in this way, but not subdirectories---you must use @kbd{i} to

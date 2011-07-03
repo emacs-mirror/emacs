@@ -4036,6 +4036,8 @@ this function."
                (not (allout-encrypted-topic-p)))
 	  (allout-reindent-body current-depth new-depth))
 
+      (run-hook-with-args 'allout-exposure-change-hook mb me nil)
+
       ;; Recursively rectify successive siblings of orig topic if
       ;; caller elected for it:
       (if do-successors
@@ -4605,7 +4607,9 @@ however, are left exactly like normal, non-allout-specific yanks."
                                         ; and delete residual subj
                                         ; prefix digits and space:
                      (while (looking-at "[0-9]") (delete-char 1))
-                     (delete-char -1)))
+                     (delete-char -1)
+                     (if (not (eolp))
+                         (forward-char))))
                   ;; Assert new topic's bullet - minimal effort if unchanged:
                   (allout-rebullet-heading (string-to-char prefix-bullet)))
               (exchange-point-and-mark))))

@@ -6749,10 +6749,13 @@ want to get rid of this query permanently.")))
 				  addr))
 		 (cons (downcase (mail-strip-quoted-names addr)) addr)))
 	     (message-tokenize-header recipients)))
-      ;; Remove first duplicates.  (Why not all duplicates?  Is this a bug?)
+      ;; Remove all duplicates.
       (let ((s recipients))
 	(while s
-	  (setq recipients (delq (assoc (car (pop s)) s) recipients))))
+	  (let ((address (car (pop s))))
+	    (while (assoc address s)
+	      (setq recipients (delq (assoc address s) recipients)
+		    s (delq (assoc address s) s))))))
 
       ;; Remove hierarchical lists that are contained within each other,
       ;; if message-hierarchical-addresses is defined.

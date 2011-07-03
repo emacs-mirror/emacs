@@ -1,3 +1,8 @@
+2011-07-02  Jason Rumney  <jasonr@gnu.org>
+
+	* emacsclient.c (decode_options) [WINDOWSNT]: Avoid tty mode on
+	Windows (Bug#5486).
+
 2011-06-25  Glenn Morris  <rgm@gnu.org>
 
 	* emacsclient.c (decode_options) <opt>: Add `F:'.

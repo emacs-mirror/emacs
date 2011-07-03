@@ -408,14 +408,6 @@ buffer of the selected window before each command.  */)
   return select_window (window, norecord, 0);
 }
 
-DEFUN ("window-clone-number", Fwindow_clone_number, Swindow_clone_number, 0, 1, 0,
-       doc: /* Return WINDOW's clone number.
-WINDOW can be any window and defaults to the selected one.  */)
-     (Lisp_Object window)
-{
-  return decode_any_window (window)->clone_number;
-}
-
 DEFUN ("window-buffer", Fwindow_buffer, Swindow_buffer, 0, 1, 0,
        doc: /* Return the buffer that WINDOW is displaying.
 WINDOW can be any window and defaults to the selected one.
@@ -3087,18 +3079,6 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int 
   unbind_to (count, Qnil);
 }
 
-DEFUN ("set-window-clone-number", Fset_window_clone_number, Sset_window_clone_number, 2, 2, 0,
-       doc: /* Set WINDOW's clone number to CLONE-NUMBER.
-WINDOW can be any window and defaults to the selected one.  */)
-     (Lisp_Object window, Lisp_Object clone_number)
-{
-  register struct window *w = decode_any_window (window);
-
-  CHECK_NUMBER (clone_number);
-  w->clone_number = clone_number;
-  return w->clone_number;
-}
-
 DEFUN ("set-window-buffer", Fset_window_buffer, Sset_window_buffer, 2, 3, 0,
        doc: /* Make WINDOW display BUFFER-OR-NAME as its contents.
 WINDOW has to be a live window and defaults to the selected one.
@@ -3289,7 +3269,6 @@ make_parent_window (Lisp_Object window, int horflag)
 
   ++sequence_number;
   XSETFASTINT (p->sequence_number, sequence_number);
-  XSETFASTINT (p->clone_number, sequence_number);
 
   replace_window (window, parent, 1);
 
@@ -3335,7 +3314,6 @@ make_window (void)
   XSETFASTINT (w->use_time, 0);
   ++sequence_number;
   XSETFASTINT (w->sequence_number, sequence_number);
-  XSETFASTINT (w->clone_number, sequence_number);
   w->temslot = w->last_modified = w->last_overlay_modified = Qnil;
   XSETFASTINT (w->last_point, 0);
   w->last_had_star = w->vertical_scroll_bar = Qnil;
@@ -5348,8 +5326,7 @@ struct saved_window
 {
   struct vectorlike_header header;
 
-  Lisp_Object window, clone_number;
-  Lisp_Object buffer, start, pointm, mark;
+  Lisp_Object window, buffer, start, pointm, mark;
   Lisp_Object left_col, top_line, total_cols, total_lines;
   Lisp_Object normal_cols, normal_lines;
   Lisp_Object hscroll, min_hscroll;
@@ -5568,7 +5545,6 @@ the return value is nil.  Otherwise the value is t.  */)
 		}
 	    }
 
-	  w->clone_number = p->clone_number;
 	  /* If we squirreled away the buffer in the window's height,
 	     restore it now.  */
 	  if (BUFFERP (w->total_lines))
@@ -5851,7 +5827,6 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
 
       XSETFASTINT (w->temslot, i); i++;
       p->window = window;
-      p->clone_number = w->clone_number;
       p->buffer = w->buffer;
       p->left_col = w->left_col;
       p->top_line = w->top_line;
@@ -6596,7 +6571,6 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Sset_frame_selected_window);
   defsubr (&Spos_visible_in_window_p);
   defsubr (&Swindow_line_height);
-  defsubr (&Swindow_clone_number);
   defsubr (&Swindow_buffer);
   defsubr (&Swindow_parent);
   defsubr (&Swindow_top_child);
@@ -6646,7 +6620,6 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Sdelete_window_internal);
   defsubr (&Sresize_mini_window_internal);
   defsubr (&Sset_window_buffer);
-  defsubr (&Sset_window_clone_number);
   defsubr (&Srun_window_configuration_change_hook);
   defsubr (&Sselect_window);
   defsubr (&Sforce_window_update);

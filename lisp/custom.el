@@ -215,7 +215,8 @@ The following keywords are meaningful:
 	variable.  It takes two arguments, the symbol and value
 	given in the `defcustom' call.  The default is
 	`custom-initialize-reset'.
-:set	VALUE should be a function to set the value of the symbol.
+:set	VALUE should be a function to set the value of the symbol
+        when using the Customize user interface.
 	It takes two arguments, the symbol to set and the value to
 	give it.  The default choice of function is `set-default'.
 :get	VALUE should be a function to extract the value of symbol.

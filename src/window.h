@@ -165,10 +165,6 @@ struct window
     /* Unique number of window assigned when it was created.  */
     Lisp_Object sequence_number;
 
-    /* Sequence number of window this window was cloned from.  Identic
-       to sequence number if window was not cloned.  */
-    Lisp_Object clone_number;
-
     /* No permanent meaning; used by save-window-excursion's
        bookkeeping.  */
     Lisp_Object temslot;

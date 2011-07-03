@@ -99,7 +99,7 @@ x
 
 @node Constant Variables
 @section Variables that Never Change
-@kindex setting-constant
+@cindex @code{setting-constant} error
 @cindex keyword symbol
 @cindex variable with constant value
 @cindex constant variables
@@ -288,7 +288,7 @@ has room to execute.
 
 @node Void Variables
 @section When a Variable is ``Void''
-@kindex void-variable
+@cindex @code{void-variable} error
 @cindex void variable
 
   If you have never given a symbol any value as a global variable, we
@@ -583,7 +583,8 @@ and is a string, and its first character is @samp{*}, then the variable
 is a user option.  Aliases of user options are also user options.
 @end defun
 
-@kindex variable-interactive
+@cindex @code{variable-interactive} property
+@findex set-variable
   If a user option variable has a @code{variable-interactive} property,
 the @code{set-variable} command uses that value to control reading the
 new value for the variable.  The property's value is used as if it were

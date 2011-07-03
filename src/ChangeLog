@@ -1,3 +1,48 @@
+2011-07-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (command_loop_1): If a down-mouse event is unbound,
+	leave any prefix arg for the up event (Bug#1586).
+
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* lread.c (syms_of_lread): Mention single symbols defined by
+	`defvar' or `defconst' (bug#7154).
+
+	* fns.c (Frequire): Mention .el.gz files (bug#7314).
+	(Frequire): Mention get-load-suffixes.
+
+2011-07-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h (window): Remove clone_number slot.
+	* window.c (Fwindow_clone_number, Fset_window_clone_number):
+	Remove.
+	(make_parent_window, make_window, saved_window)
+	(Fset_window_configuration, save_window_save): Don't deal with
+	clone numbers.
+	* buffer.c (Qclone_number): Remove declaration.
+	(sort_overlays, overlay_strings): Don't deal with clone numbers.
+
+2011-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add multiple inheritance to keymaps.
+	* keymap.c (Fmake_composed_keymap): New function.
+	(Fset_keymap_parent): Simplify.
+	(fix_submap_inheritance): Remove.
+	(access_keymap_1): New function extracted from access_keymap to handle
+	embedded parents and handle lists of maps.
+	(access_keymap): Use it.
+	(Fkeymap_prompt, map_keymap_internal, map_keymap, store_in_keymap)
+	(Fcopy_keymap): Handle embedded parents.
+	(Fcommand_remapping, define_as_prefix): Simplify.
+	(Fkey_binding): Simplify.
+	(syms_of_keymap): Move minibuffer-local-completion-map,
+	minibuffer-local-filename-completion-map,
+	minibuffer-local-must-match-map, and
+	minibuffer-local-filename-must-match-map to Elisp.
+	(syms_of_keymap): Defsubr make-composed-keymap.
+	* keyboard.c (menu_bar_items): Use map_keymap_canonical.
+	(parse_menu_item): Trivial simplification.
+
 2011-07-01  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (SETTINGS_LIBS): Fix typo.

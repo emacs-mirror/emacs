@@ -3542,7 +3542,6 @@ specific buffers."
 	  (window-list-no-nils
 	   type
 	   (unless (window-next-sibling window) (cons 'last t))
-	   (cons 'clone-number (window-clone-number window))
 	   (cons 'total-height (window-total-size window))
 	   (cons 'total-width (window-total-size window t))
 	   (cons 'normal-height (window-normal-size window))
@@ -3554,6 +3553,9 @@ specific buffers."
 	       (unless (memq (car parameter)
 			     window-state-ignored-parameters)
 		 (setq list (cons parameter list))))
+	     (unless (window-parameter window 'clone-of)
+	       ;; Make a clone-of parameter.
+	       (setq list (cons (cons 'clone-of window) list)))
 	     (when list
 	       (cons 'parameters list)))
 	   (when buffer
@@ -3694,13 +3696,10 @@ value can be also stored on disk and read back in a new session."
   "Helper function for `window-state-put'."
   (dolist (item window-state-put-list)
     (let ((window (car item))
-	  (clone-number (cdr (assq 'clone-number item)))
 	  (splits (cdr (assq 'splits item)))
 	  (nest (cdr (assq 'nest item)))
 	  (parameters (cdr (assq 'parameters item)))
 	  (state (cdr (assq 'buffer item))))
-      ;; Put in clone-number.
-      (when clone-number (set-window-clone-number window clone-number))
       (when splits (set-window-splits window splits))
       (when nest (set-window-nest window nest))
       ;; Process parameters.
@@ -4100,7 +4099,7 @@ A list whose car is the symbol `function' specifies that the
 function specified in the second element of the list is
 responsible for displaying the buffer.  `display-buffer' calls
 this function with the buffer as first argument and the remaining
-elements of the list as the other arguments.
+elements of the list as the second.
 
 The function should choose or create a window, display the buffer
 in it, and return the window.  It is also responsible for giving
