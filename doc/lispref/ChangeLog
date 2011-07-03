@@ -1,3 +1,8 @@
+2011-07-03  Tobias C. Rittweiler  <tcr@freebits.de>  (tiny change)
+
+	* searching.texi (Match Data): Note that match data can be
+	overwritten by most functions (bug#2499).
+
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* strings.texi (Formatting Strings): Clarify what the "-" and "0"
