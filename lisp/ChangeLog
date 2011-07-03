@@ -1,8 +1,3 @@
-2011-07-03  Juanma Barranquero  <lekktu@gmail.com>
-
-	* play/fortune.el (fortune-compile): Make a new fortune dat file
-	compile time if the dat file does not exist (bug#5338).
-
 2011-07-03  Richard Kim <emacs18@gmail.com> (tiny change)
 
 	* textmodes/texnfo-upd.el (texinfo-insert-menu): Don't insert
