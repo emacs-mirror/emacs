@@ -1,5 +1,9 @@
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* files.el (file-expand-wildcards): Ignore non-readable
+	sub-directories while trying to find matches instead of signalling
+	an error (bug#6297).
+
 	* man.el (Man-reference-regexp): Allow matching possible
 	word-wrapped references (bug#6289).
 
