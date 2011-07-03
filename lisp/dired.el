@@ -238,8 +238,6 @@ This is what the do-commands look for, and what the mark-commands store.")
 ;;  (> baud-rate search-slow-speed)
   "Non-nil means Dired shrinks the display buffer to fit the marked files.")
 
-(defvar dired-flagging-regexp nil);; Last regexp used to flag files.
-
 (defvar dired-file-version-alist)
 
 ;;;###autoload
