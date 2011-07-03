@@ -835,7 +835,7 @@ being used to highlight the signature in a MIME part."
 ;;; Button Display
 
 ;; Shush compiler.
-(when (featurep 'xemacs)
+(mh-do-in-xemacs
   (defvar dots)
   (defvar type)
   (defvar ov))
