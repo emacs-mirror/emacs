@@ -1,5 +1,8 @@
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* strings.texi (Formatting Strings): Clarify what the "-" and "0"
+	flags mean (bug#6659).
+
 	* functions.texi (What Is a Function): Document the autoload
 	object (bug#6496).
 

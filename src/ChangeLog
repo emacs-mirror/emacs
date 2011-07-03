@@ -1,3 +1,7 @@
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* editfns.c (Fformat): Clarify the - and 0 flags (bug#6659).
+
 2011-07-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xsettings.c (SYSTEM_FONT): Define only when used.
