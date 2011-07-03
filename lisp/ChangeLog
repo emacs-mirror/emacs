@@ -1,3 +1,9 @@
+2011-03-29  Kevin Ryde  <user42@zip.com.au>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	`perl-Test2' extend to match possible "fail #N" rep count
+	(bug#8377).
+
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/feedmail.el (feedmail-buffer-to-smtpmail):
