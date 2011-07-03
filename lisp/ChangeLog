@@ -1,3 +1,12 @@
+2011-07-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* type-break.el: Accept time formats that the builtins accept.
+	(timep, type-break-time-difference): Accept any format that
+	float-time accepts, rather than insisting on (HIGH LOW USECS) format.
+	This is simpler and helps future-proof the code.
+	(type-break-time-difference): Round rather than ignoring
+	subseconds components.
+
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* info.el (Info-apropos-matches): Make non-interactive, since it
