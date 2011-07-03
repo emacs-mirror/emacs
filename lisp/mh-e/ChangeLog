@@ -1,5 +1,8 @@
 2011-07-03  Bill Wohler  <wohler@newt.com>
 
+	* mh-utils.el:
+	* mh-mime.el: Shush XEmacs compiler in mh-do-in-xemacs block.
+
 	* mh-folder.el: Use boundp instead of fboundp when testing
 	existence of desktop-buffer-mode-handlers.
 
