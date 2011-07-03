@@ -388,7 +388,7 @@ Return PARENT.  PARENT should be nil or another keymap.  */)
    Returns Qunbound if no binding was found (and returns Qnil if a nil
    binding was found).  */
 
-Lisp_Object
+static Lisp_Object
 access_keymap_1 (Lisp_Object map, Lisp_Object idx, int t_ok, int noinherit, int autoload)
 {
   /* If idx is a list (some sort of mouse click, perhaps?),
