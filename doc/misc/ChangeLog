@@ -1,3 +1,10 @@
+2011-07-03  Kevin Ryde  <user42@zip.com.au>
+
+	* cl.texi (For Clauses): @items for hash-values and key-bindings
+	to make them more visible when skimming.  Add examples of `using'
+	clause to them, examples being clearer than a description in
+	words (bug#6599).
+
 2011-07-01  Alan Mackenzie  <acm@muc.de>
 
 	* cc-mode.texi (Guessing the Style): New page.
