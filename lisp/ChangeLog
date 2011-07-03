@@ -1,5 +1,15 @@
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/network-stream.el (open-network-stream): Use the
+	:end-of-capability command thoughout.
+
+2011-07-03  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* net/network-stream.el (open-network-stream): Add the
+	:end-of-capability command parameter, used by pop3.el.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
 	* dired.el (dired-map-over-marks): Refill the doc string (bug#6814).
 
 	* fringe.el (fringe-query-style): Remove redundant text " (type ?
