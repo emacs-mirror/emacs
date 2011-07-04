@@ -502,7 +502,7 @@ variable of the same name."
   "If TIME is in the format returned by `current-time' then
 return TIME, else return nil."
   (condition-case nil
-      (progn (float-time time) time)
+      (and (float-time time) time)
     (error nil)))
 
 (defun type-break-choose-file ()

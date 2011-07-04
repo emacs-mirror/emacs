@@ -1,5 +1,8 @@
 2011-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
+	* type-break.el (timep): Use the value of `float-time' to avoid a
+	byte-compiler warning.
+
 	* server.el (server-eval-and-print): Return any result, even nil.
 
 2011-07-03  Paul Eggert  <eggert@cs.ucla.edu>
