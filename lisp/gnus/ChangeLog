@@ -1,5 +1,8 @@
 2011-07-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* nndraft.el: Require gnus-group.
+	(nndraft-request-list): Declare.
+
 	* nndraft.el (nndraft-update-unread-articles): Don't show group having
 	no unread article unless it matches gnus-permanently-visible-groups.
 

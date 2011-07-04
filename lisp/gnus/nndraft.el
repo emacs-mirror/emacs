@@ -24,13 +24,20 @@
 
 ;;; Code:
 
+;; For Emacs <22.2 and XEmacs.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (require 'nnheader)
 (require 'nnmail)
 (require 'gnus-start)
+(require 'gnus-group)
 (require 'nnmh)
 (require 'nnoo)
 (require 'mm-util)
 (eval-when-compile (require 'cl))
+
+(declare-function nndraft-request-list "nnmh" (&rest args))
 
 (nnoo-declare nndraft
   nnmh)
