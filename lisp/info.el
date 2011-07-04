@@ -3281,7 +3281,6 @@ MATCHES is a list of index matches found by `Info-apropos-matches'.")
   "Collect STRING matches from all known Info files on your system.
 Return a list of matches where each element is in the format
 \((FILENAME INDEXTEXT NODENAME LINENUMBER))."
-  (interactive "sIndex apropos: ")
   (unless (string= string "")
     (let ((pattern (format "\n\\* +\\([^\n]*%s[^\n]*\\):[ \t]+\\([^\n]+\\)\\.\\(?:[ \t\n]*(line +\\([0-9]+\\))\\)?"
 			   (regexp-quote string)))

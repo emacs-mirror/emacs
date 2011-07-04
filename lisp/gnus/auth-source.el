@@ -45,17 +45,7 @@
 (require 'assoc)
 
 (eval-when-compile (require 'cl))
-(eval-and-compile
-  (or (ignore-errors (require 'eieio))
-      ;; gnus-fallback-lib/ from gnus/lisp/gnus-fallback-lib
-      (ignore-errors
-        (let ((load-path (cons (expand-file-name
-                                "gnus-fallback-lib/eieio"
-                                (file-name-directory (locate-library "gnus")))
-                               load-path)))
-          (require 'eieio)))
-      (error
-       "eieio not found in `load-path' or gnus-fallback-lib/ directory.")))
+(require 'eieio)
 
 (autoload 'secrets-create-item "secrets")
 (autoload 'secrets-delete-item "secrets")

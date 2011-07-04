@@ -1,3 +1,8 @@
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* display.texi (Scrolling): `C-v' (etc) are now bound to
+	`scroll-*-command' (bug#8349).
+
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* dired.texi (Subdirectories in Dired): Clarify that `C-u k'

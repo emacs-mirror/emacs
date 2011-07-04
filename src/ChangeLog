@@ -1,3 +1,27 @@
+2011-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnutls.c (Fgnutls_boot): Don't mention :verify-error.
+	(syms_of_gnutls): Remove duplicate DEFSYM for
+	Qgnutls_bootprop_verify_hostname_error, an error for
+	Qgnutls_bootprop_verify_error (which is no longer used).
+
+	* eval.c (find_handler_clause): Remove parameters `sig' and `data',
+	unused since revno:102982 (2011-01-26).  All callers changed.
+	Also (re)move comments that are misplaced or no longer relevant.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* callint.c (Finteractive): Clarify the meaning of "@" (bug#8813).
+
+2011-07-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Finternal_merge_in_global_face): Modify the foreground
+	and background color parameters if they have been changed.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* editfns.c (Fformat): Clarify the - and 0 flags (bug#6659).
+
 2011-07-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xsettings.c (SYSTEM_FONT): Define only when used.

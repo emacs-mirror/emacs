@@ -238,8 +238,6 @@ This is what the do-commands look for, and what the mark-commands store.")
 ;;  (> baud-rate search-slow-speed)
   "Non-nil means Dired shrinks the display buffer to fit the marked files.")
 
-(defvar dired-flagging-regexp nil);; Last regexp used to flag files.
-
 (defvar dired-file-version-alist)
 
 ;;;###autoload
@@ -515,24 +513,31 @@ Return value is the number of files marked, or nil if none were marked."
 (defmacro dired-map-over-marks (body arg &optional show-progress
 				     distinguish-one-marked)
   "Eval BODY with point on each marked line.  Return a list of BODY's results.
-If no marked file could be found, execute BODY on the current line.
-ARG, if non-nil, specifies the files to use instead of the marked files.
-  If ARG is an integer, use the next ARG (or previous -ARG, if
-   ARG<0) files.  In that case, point is dragged along.  This is
-   so that commands on the next ARG (instead of the marked) files
-   can be chained easily.
-  For any other non-nil value of ARG, use the current file.
+If no marked file could be found, execute BODY on the current
+line.  ARG, if non-nil, specifies the files to use instead of the
+marked files.
+
+If ARG is an integer, use the next ARG (or previous -ARG, if
+ARG<0) files.  In that case, point is dragged along.  This is so
+that commands on the next ARG (instead of the marked) files can
+be chained easily.
+For any other non-nil value of ARG, use the current file.
+
 If optional third arg SHOW-PROGRESS evaluates to non-nil,
-  redisplay the dired buffer after each file is processed.
-No guarantee is made about the position on the marked line.
-  BODY must ensure this itself if it depends on this.
-Search starts at the beginning of the buffer, thus the car of the list
-  corresponds to the line nearest to the buffer's bottom.  This
-  is also true for (positive and negative) integer values of ARG.
+redisplay the dired buffer after each file is processed.
+
+No guarantee is made about the position on the marked line.  BODY
+must ensure this itself if it depends on this.
+
+Search starts at the beginning of the buffer, thus the car of the
+list corresponds to the line nearest to the buffer's bottom.
+This is also true for (positive and negative) integer values of
+ARG.
+
 BODY should not be too long as it is expanded four times.
 
-If DISTINGUISH-ONE-MARKED is non-nil, then if we find just one marked file,
-return (t FILENAME) instead of (FILENAME)."
+If DISTINGUISH-ONE-MARKED is non-nil, then if we find just one
+marked file, return (t FILENAME) instead of (FILENAME)."
   ;;
   ;;Warning: BODY must not add new lines before point - this may cause an
   ;;endless loop.

@@ -1821,109 +1821,6 @@ Return nil if it has no specified face."
 	   (cond ((memq 'background-color face) (cdr (memq 'background-color face)))
 		 ((memq ':background face) (cadr (memq ':background face)))))
 	  (t nil))))			; Invalid face value.
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Background mode.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defcustom frame-background-mode nil
-  "The brightness of the background.
-Set this to the symbol `dark' if your background color is dark,
-`light' if your background is light, or nil (automatic by default)
-if you want Emacs to examine the brightness for you.  Don't set this
-variable with `setq'; this won't have the expected effect."
-  :group 'faces
-  :set #'(lambda (var value)
-	   (set-default var value)
-	   (mapc 'frame-set-background-mode (frame-list)))
-  :initialize 'custom-initialize-changed
-  :type '(choice (const dark)
-		 (const light)
-		 (const :tag "automatic" nil)))
-
-
-(declare-function x-get-resource "frame.c"
-		  (attribute class &optional component subclass))
-
-(defvar inhibit-frame-set-background-mode nil)
-
-(defun frame-set-background-mode (frame &optional keep-face-specs)
-  "Set up display-dependent faces on FRAME.
-Display-dependent faces are those which have different definitions
-according to the `background-mode' and `display-type' frame parameters.
-
-If optional arg KEEP-FACE-SPECS is non-nil, don't recalculate
-face specs for the new background mode."
-  (unless inhibit-frame-set-background-mode
-    (let* ((bg-resource
-	    (and (window-system frame)
-		 (x-get-resource "backgroundMode" "BackgroundMode")))
-	   (bg-color (frame-parameter frame 'background-color))
-	   (terminal-bg-mode (terminal-parameter frame 'background-mode))
-	   (tty-type (tty-type frame))
-	   (default-bg-mode
-	     (if (or (window-system frame)
-		     (and tty-type
-			  (string-match "^\\(xterm\\|\\rxvt\\|dtterm\\|eterm\\)"
-					tty-type)))
-		 'light
-	       'dark))
-	   (non-default-bg-mode (if (eq default-bg-mode 'light) 'dark 'light))
-	   (bg-mode
-	    (cond (frame-background-mode)
-		  (bg-resource (intern (downcase bg-resource)))
-		  (terminal-bg-mode)
-		  ((equal bg-color "unspecified-fg") ; inverted colors
-		   non-default-bg-mode)
-		  ((not (color-values bg-color frame))
-		   default-bg-mode)
-		  ((>= (apply '+ (color-values bg-color frame))
-		       ;; Just looking at the screen, colors whose
-		       ;; values add up to .6 of the white total
-		       ;; still look dark to me.
-		       (* (apply '+ (color-values "white" frame)) .6))
-		   'light)
-		  (t 'dark)))
-	   (display-type
-	    (cond ((null (window-system frame))
-		   (if (tty-display-color-p frame) 'color 'mono))
-		  ((display-color-p frame)
-		   'color)
-		  ((x-display-grayscale-p frame)
-		   'grayscale)
-		  (t 'mono)))
-	   (old-bg-mode
-	    (frame-parameter frame 'background-mode))
-	   (old-display-type
-	    (frame-parameter frame 'display-type)))
-
-      (unless (and (eq bg-mode old-bg-mode) (eq display-type old-display-type))
-	(let ((locally-modified-faces nil)
-	      ;; Prevent face-spec-recalc from calling this function
-	      ;; again, resulting in a loop (bug#911).
-	      (inhibit-frame-set-background-mode t)
-	      (params (list (cons 'background-mode bg-mode)
-			    (cons 'display-type display-type))))
-	  (if keep-face-specs
-	      (modify-frame-parameters frame params)
-	    ;; If we are recomputing face specs, first collect a list
-	    ;; of faces that don't match their face-specs.  These are
-	    ;; the faces modified on FRAME, and we avoid changing them
-	    ;; below.  Use a negative list to avoid consing (we assume
-	    ;; most faces are unmodified).
-	    (dolist (face (face-list))
-	      (and (not (get face 'face-override-spec))
-		   (not (face-spec-match-p face
-					   (face-user-default-spec face)
-					   (selected-frame)))
-		   (push face locally-modified-faces)))
-	    ;; Now change to the new frame parameters
-	    (modify-frame-parameters frame params)
-	    ;; For all unmodified named faces, choose face specs
-	    ;; matching the new frame parameters.
-	    (dolist (face (face-list))
-	      (unless (memq face locally-modified-faces)
-		(face-spec-recalc face frame)))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2020,7 +1917,8 @@ settings, X resources, and `face-new-frame-defaults'.
 Finally, apply any relevant face attributes found amongst the
 frame parameters in PARAMETERS."
   (let ((window-system-p (memq (window-system frame) '(x w32))))
-    (dolist (face (nreverse (face-list))) ;Why reverse?  --Stef
+    ;; The `reverse' is so that `default' goes first.
+    (dolist (face (nreverse (face-list)))
       (condition-case ()
 	  (progn
 	    ;; Initialize faces from face spec and custom theme.

@@ -1,3 +1,13 @@
+2011-07-03  Nicolas Avrutin  <nicolasavru@gmail.com>  (tiny change)
+
+	* url-http.el (url-http-create-request): Remove double carriage
+	return and newline (bug#8931).
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-http.el (url-http-wait-for-headers-change-function): Remove
+	pointless "HTTP/0.9 How I hate thee!" message (bug#6735).
+
 2011-06-04  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* url-future.el (url-future-test): Fix scope of `saver'.

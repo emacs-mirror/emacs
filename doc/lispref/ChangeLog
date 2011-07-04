@@ -1,3 +1,16 @@
+2011-07-03  Tobias C. Rittweiler  <tcr@freebits.de>  (tiny change)
+
+	* searching.texi (Match Data): Note that match data can be
+	overwritten by most functions (bug#2499).
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* strings.texi (Formatting Strings): Clarify what the "-" and "0"
+	flags mean (bug#6659).
+
+	* functions.texi (What Is a Function): Document the autoload
+	object (bug#6496).
+
 2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* customize.texi (Variable Definitions): Clarify that SETFUNCTION

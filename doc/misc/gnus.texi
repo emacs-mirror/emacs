@@ -1167,16 +1167,17 @@ when you do the @kbd{g} command (@pxref{Scanning New Messages}).
 @node Checking New Groups
 @subsection Checking New Groups
 
-Gnus normally determines whether a group is new or not by comparing the
-list of groups from the active file(s) with the lists of subscribed and
-dead groups.  This isn't a particularly fast method.  If
-@code{gnus-check-new-newsgroups} is @code{ask-server}, Gnus will ask the
-server for new groups since the last time.  This is both faster and
-cheaper.  This also means that you can get rid of the list of killed
-groups altogether, so you may set @code{gnus-save-killed-list} to
-@code{nil}, which will save time both at startup, at exit, and all over.
-Saves disk space, too.  Why isn't this the default, then?
-Unfortunately, not all servers support this command.
+Gnus normally determines whether a group is new or not by comparing
+the list of groups from the active file(s) with the lists of
+subscribed and dead groups.  This isn't a particularly fast method.
+If @code{gnus-check-new-newsgroups} is @code{ask-server}, Gnus will
+ask the server for new groups since the last time.  This is both
+faster and cheaper.  This also means that you can get rid of the list
+of killed groups (@pxref{Group Levels}) altogether, so you may set
+@code{gnus-save-killed-list} to @code{nil}, which will save time both
+at startup, at exit, and all over.  Saves disk space, too.  Why isn't
+this the default, then?  Unfortunately, not all servers support this
+command.
 
 I bet I know what you're thinking now: How do I find out whether my
 server supports @code{ask-server}?  No?  Good, because I don't have a
@@ -1214,9 +1215,10 @@ Some handy pre-fab functions are:
 
 @item gnus-subscribe-zombies
 @vindex gnus-subscribe-zombies
-Make all new groups zombies.  This is the default.  You can browse the
-zombies later (with @kbd{A z}) and either kill them all off properly
-(with @kbd{S z}), or subscribe to them (with @kbd{u}).
+Make all new groups zombies (@pxref{Group Levels}).  This is the
+default.  You can browse the zombies later (with @kbd{A z}) and either
+kill them all off properly (with @kbd{S z}), or subscribe to them
+(with @kbd{u}).
 
 @item gnus-subscribe-randomly
 @vindex gnus-subscribe-randomly
@@ -1430,7 +1432,7 @@ several servers where not all servers support @code{ask-server}.
 The @code{gnus-startup-file} variable says where the startup files are.
 The default value is @file{~/.newsrc}, with the Gnus (El Dingo) startup
 file being whatever that one is, with a @samp{.eld} appended.
-If you want version control for this file, set
+If you want to keep multiple numbered backups of this file, set
 @code{gnus-backup-startup-file}.  It respects the same values as the
 @code{version-control} variable.
 
@@ -2360,6 +2362,7 @@ empty subscribed groups and unsubscribed groups, too.  Type @kbd{l} to
 go back to showing nonempty subscribed groups again.  Thus, unsubscribed
 groups are hidden, in a way.
 
+@cindex zombie groups
 Zombie and killed groups are similar to unsubscribed groups in that they
 are hidden by default.  But they are different from subscribed and
 unsubscribed groups in that Gnus doesn't ask the news server for

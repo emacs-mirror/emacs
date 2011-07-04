@@ -1,4 +1,72 @@
+2011-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* type-break.el (timep): Use the value of `float-time' to avoid a
+	byte-compiler warning.
+
+	* server.el (server-eval-and-print): Return any result, even nil.
+
+2011-07-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* type-break.el: Accept time formats that the builtins accept.
+	(timep, type-break-time-difference): Accept any format that
+	float-time accepts, rather than insisting on (HIGH LOW USECS) format.
+	This is simpler and helps future-proof the code.
+	(type-break-time-difference): Round rather than ignoring
+	subseconds components.
+
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* info.el (Info-apropos-matches): Make non-interactive, since it
+	doesn't seem to do anything useful as a command (bug#8829).
+
+2011-07-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (frame-background-mode, frame-set-background-mode):
+	Moved from faces.el.
+	(frame-default-terminal-background): New function.
+
+	* custom.el (custom-push-theme): Don't record faces in `changed'
+	theme; this doesn't work correctly for per-frame face settings.
+	(disable-theme): Use face-set-after-frame-default to reset faces.
+	(custom--frame-color-default): New function.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.el (dired-flagging-regexp): Removed unused variable
+	(bug#8769).
+
+2011-03-29  Kevin Ryde  <user42@zip.com.au>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	`perl-Test2' extend to match possible "fail #N" rep count
+	(bug#8377).
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/feedmail.el (feedmail-buffer-to-smtpmail):
+	`smtpmail-via-smtp' now returns the error instead of nil.
+
+	* isearch.el (isearch-search-fun-function): Clarify the doc string
+	(bug#8101).
+
+2011-07-03  Richard Kim  <emacs18@gmail.com>  (tiny change)
+
+	* textmodes/texnfo-upd.el (texinfo-insert-menu): Don't insert
+	unnecessary spaces (bug#8987).
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/network-stream.el (open-network-stream): Use the
+	:end-of-capability command thoughout.
+
+2011-07-03  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* net/network-stream.el (open-network-stream): Add the
+	:end-of-capability command parameter, used by pop3.el.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.el (dired-map-over-marks): Refill the doc string (bug#6814).
 
 	* fringe.el (fringe-query-style): Remove redundant text " (type ?
 	for list)" (bug#6475).
@@ -447,7 +515,7 @@
 	(ses-cell-symbol): Set macro as safe, so that it can be used in
 	formulas.
 
-	* ses.el:  Update cycle detection algorithm.
+	* ses.el: Update cycle detection algorithm.
 	(ses-localvars): Add ses--Dijkstra-attempt-nb and
 	ses--Dijkstra-weight-bound, and initial values thereof when applicable.
 	(ses-set-localvars): New function.
