@@ -1757,7 +1757,7 @@ barf_or_query_if_file_exists (Lisp_Object absname, const char *querystring,
     {
       if (Ffile_directory_p (absname))
 	xsignal2 (Qfile_error,
-		  build_string ("File name is a directory"), absname);
+		  build_string ("File is a directory"), absname);
 
       if (! interactive)
 	xsignal2 (Qfile_already_exists,

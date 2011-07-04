@@ -3,6 +3,8 @@
 	* fileio.c (barf_or_query_if_file_exists): Check first if the file
 	is a directory before asking whether to use the file name
 	(bug#7564).
+	(barf_or_query_if_file_exists): Make the "File is a directory"
+	error be more correct.
 
 	* fns.c (Frequire): Remove the mention of the .gz files, since
 	that's installation-specific, but keep the mention of
