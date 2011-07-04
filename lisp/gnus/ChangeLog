@@ -1,5 +1,8 @@
 2011-07-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* nndraft.el (nndraft-update-unread-articles): Don't show group having
+	no unread article unless it matches gnus-permanently-visible-groups.
+
 	* nndraft.el (nndraft-update-unread-articles): New function.
 	(nndraft-request-associate-buffer): Use it to update the number of
 	unread articles for the nndraft groups in the group buffer when saving

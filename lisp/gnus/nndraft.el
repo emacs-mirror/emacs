@@ -165,11 +165,20 @@ are generated if and only if they are also in `message-draft-headers'.")
   "Update groups' unread articles in the group buffer."
   (nndraft-request-list)
   (with-current-buffer gnus-group-buffer
-    (let ((gnus-group-marked
-	   (mapcar (lambda (elem)
-		     (gnus-group-prefixed-name (car elem) (list 'nndraft "")))
-		   (nnmail-get-active))))
-      (gnus-group-get-new-news-this-group nil t))))
+    (let* ((groups (mapcar (lambda (elem)
+			     (gnus-group-prefixed-name (car elem)
+						       (list 'nndraft "")))
+			   (nnmail-get-active)))
+	   (gnus-group-marked (copy-sequence groups))
+	   (inhibit-read-only t))
+      (gnus-group-get-new-news-this-group nil t)
+      (dolist (group groups)
+	(unless (and gnus-permanently-visible-groups
+		     (string-match gnus-permanently-visible-groups
+				   group))
+	  (gnus-group-goto-group group)
+	  (when (zerop (gnus-group-group-unread))
+	    (gnus-delete-line)))))))
 
 (deffoo nndraft-request-associate-buffer (group)
   "Associate the current buffer with some article in the draft group."
