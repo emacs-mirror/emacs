@@ -161,6 +161,16 @@ are generated if and only if they are also in `message-draft-headers'.")
      (message-headers-to-generate
       nndraft-required-headers message-draft-headers nil))))
 
+(defun nndraft-update-unread-articles ()
+  "Update groups' unread articles in the group buffer."
+  (nndraft-request-list)
+  (with-current-buffer gnus-group-buffer
+    (let ((gnus-group-marked
+	   (mapcar (lambda (elem)
+		     (gnus-group-prefixed-name (car elem) (list 'nndraft "")))
+		   (nnmail-get-active))))
+      (gnus-group-get-new-news-this-group nil t))))
+
 (deffoo nndraft-request-associate-buffer (group)
   "Associate the current buffer with some article in the draft group."
   (nndraft-open-server "")
@@ -182,6 +192,10 @@ are generated if and only if they are also in `message-draft-headers'.")
 		  'write-contents-hooks)))
       (gnus-make-local-hook hook)
       (add-hook hook 'nndraft-generate-headers nil t))
+    (gnus-make-local-hook 'after-save-hook)
+    (add-hook 'after-save-hook 'nndraft-update-unread-articles nil t)
+    (message-add-action '(nndraft-update-unread-articles)
+			'exit 'postpone 'kill)
     article))
 
 (deffoo nndraft-request-group (group &optional server dont-check info)

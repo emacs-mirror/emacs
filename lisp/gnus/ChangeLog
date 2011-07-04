@@ -1,3 +1,10 @@
+2011-07-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nndraft.el (nndraft-update-unread-articles): New function.
+	(nndraft-request-associate-buffer): Use it to update the number of
+	unread articles for the nndraft groups in the group buffer when saving
+	or killing a draft message.
+
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-group.el (gnus-read-ephemeral-bug-group): Bind the coding
