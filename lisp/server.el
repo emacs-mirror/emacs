@@ -1153,7 +1153,10 @@ The following commands are accepted by the client:
                              "When done with a buffer, type \\[server-edit]")))))
           (when (and frame (null tty-name))
             (server-unselect-display frame)))
-      (error (server-return-error proc err)))))
+      ((quit error)
+       (when (eq (car err) 'quit)
+         (message "Quit emacsclient request"))
+       (server-return-error proc err)))))
 
 (defun server-return-error (proc err)
   (ignore-errors

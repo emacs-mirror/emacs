@@ -1,3 +1,9 @@
+2011-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-execute): Catch quit and call
+	`server-return-error' to pass the error back to emacsclient and
+	close the connection (bug#8942).
+
 2011-07-04  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-encrypt-unencrypted-on-saves): Do not provide
