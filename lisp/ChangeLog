@@ -1,3 +1,7 @@
+2011-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs-lisp/timer.el (timer-until): Use time-subtract and float-time.
+
 2011-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* type-break.el (timep): Use the value of `float-time' to avoid a
