@@ -1,3 +1,9 @@
+2011-07-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* fns.c (Frequire): Remove the mention of the .gz files, since
+	that's installation-specific, but keep the mention of
+	`get-load-suffixes'.
+
 2011-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* editfns.c (Fformat_time_string): Don't assume strlen fits in int.
