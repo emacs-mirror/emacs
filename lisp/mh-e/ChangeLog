@@ -1,3 +1,36 @@
+2011-07-04  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el: Just require mh-loaddefs since loading it in an
+	eval-and-compile block causes compilation errors in XEmacs.
+
+	* mh-acros.el, 	mh-comp.el, mh-e.el, mh-folder.el, mh-letter.el:
+	* mh-mime.el, mh-search.el, mh-seq.el: Shush XEmacs compiler in
+	mh-do-in-xemacs block.
+
+	* mh-compat.el (mh-window-full-height-p): Add compatibility
+	function for XEmacs.
+	* mh-show.el (mh-show-msg): Use it, and avoid compiler warning on
+	XEmacs.
+
+	* mh-letter.el (mh-letter-mode-map, mh-letter-complete)
+	(mh-complete-word): Remove FIXME comments since these functions
+	are still needed in other Emacsen. However, they can probably
+	stand to be generalized like completion-at-point.
+	(mh-letter-complete-or-space): Remove unused variable.
+
+2011-07-03  Bill Wohler  <wohler@newt.com>
+
+	* mh-compat.el (mh-test-completion): Add compatibility function
+	for XEmacs.
+	* mh-alias.el (mh-alias-letter-expand-alias): Use it, and avoid
+	compiler warning on XEmacs.
+
+	* mh-utils.el:
+	* mh-mime.el: Shush XEmacs compiler in mh-do-in-xemacs block.
+
+	* mh-folder.el: Use boundp instead of fboundp when testing
+	existence of desktop-buffer-mode-handlers.
+
 2011-05-10  Jim Meyering  <meyering@redhat.com>
 
 	Fix doubled-word typos.
