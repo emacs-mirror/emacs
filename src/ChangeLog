@@ -1,5 +1,9 @@
 2011-07-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* fileio.c (barf_or_query_if_file_exists): Check first if the file
+	is a directory before asking whether to use the file name
+	(bug#7564).
+
 	* fns.c (Frequire): Remove the mention of the .gz files, since
 	that's installation-specific, but keep the mention of
 	`get-load-suffixes'.
