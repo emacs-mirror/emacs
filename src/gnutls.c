@@ -638,9 +638,6 @@ certificates for `gnutls-x509pki'.
 :verify-flags is a bitset as per GnuTLS'
 gnutls_certificate_set_verify_flags.
 
-:verify-error, if non-nil, makes failure of the certificate validation
-an error.  Otherwise it will be just a series of warnings.
-
 :verify-hostname-error, if non-nil, makes a hostname mismatch an
 error.  Otherwise it will be just a warning.
 
@@ -1100,36 +1097,35 @@ syms_of_gnutls (void)
 {
   gnutls_global_initialized = 0;
 
-  DEFSYM(Qgnutls_dll, "gnutls");
-  DEFSYM(Qgnutls_log_level, "gnutls-log-level");
-  DEFSYM(Qgnutls_code, "gnutls-code");
-  DEFSYM(Qgnutls_anon, "gnutls-anon");
-  DEFSYM(Qgnutls_x509pki, "gnutls-x509pki");
-  DEFSYM(Qgnutls_bootprop_hostname, ":hostname");
-  DEFSYM(Qgnutls_bootprop_priority, ":priority");
-  DEFSYM(Qgnutls_bootprop_trustfiles, ":trustfiles");
-  DEFSYM(Qgnutls_bootprop_keylist, ":keylist");
-  DEFSYM(Qgnutls_bootprop_crlfiles, ":crlfiles");
-  DEFSYM(Qgnutls_bootprop_callbacks, ":callbacks");
-  DEFSYM(Qgnutls_bootprop_callbacks_verify, "verify");
-  DEFSYM(Qgnutls_bootprop_loglevel, ":loglevel");
-  DEFSYM(Qgnutls_bootprop_verify_flags, ":verify-flags");
-  DEFSYM(Qgnutls_bootprop_verify_hostname_error, ":verify-error");
-  DEFSYM(Qgnutls_bootprop_verify_hostname_error, ":verify-hostname-error");
+  DEFSYM (Qgnutls_dll, "gnutls");
+  DEFSYM (Qgnutls_log_level, "gnutls-log-level");
+  DEFSYM (Qgnutls_code, "gnutls-code");
+  DEFSYM (Qgnutls_anon, "gnutls-anon");
+  DEFSYM (Qgnutls_x509pki, "gnutls-x509pki");
+  DEFSYM (Qgnutls_bootprop_hostname, ":hostname");
+  DEFSYM (Qgnutls_bootprop_priority, ":priority");
+  DEFSYM (Qgnutls_bootprop_trustfiles, ":trustfiles");
+  DEFSYM (Qgnutls_bootprop_keylist, ":keylist");
+  DEFSYM (Qgnutls_bootprop_crlfiles, ":crlfiles");
+  DEFSYM (Qgnutls_bootprop_callbacks, ":callbacks");
+  DEFSYM (Qgnutls_bootprop_callbacks_verify, "verify");
+  DEFSYM (Qgnutls_bootprop_loglevel, ":loglevel");
+  DEFSYM (Qgnutls_bootprop_verify_flags, ":verify-flags");
+  DEFSYM (Qgnutls_bootprop_verify_hostname_error, ":verify-hostname-error");
 
-  DEFSYM(Qgnutls_e_interrupted, "gnutls-e-interrupted");
+  DEFSYM (Qgnutls_e_interrupted, "gnutls-e-interrupted");
   Fput (Qgnutls_e_interrupted, Qgnutls_code,
         make_number (GNUTLS_E_INTERRUPTED));
 
-  DEFSYM(Qgnutls_e_again, "gnutls-e-again");
+  DEFSYM (Qgnutls_e_again, "gnutls-e-again");
   Fput (Qgnutls_e_again, Qgnutls_code,
         make_number (GNUTLS_E_AGAIN));
 
-  DEFSYM(Qgnutls_e_invalid_session, "gnutls-e-invalid-session");
+  DEFSYM (Qgnutls_e_invalid_session, "gnutls-e-invalid-session");
   Fput (Qgnutls_e_invalid_session, Qgnutls_code,
         make_number (GNUTLS_E_INVALID_SESSION));
 
-  DEFSYM(Qgnutls_e_not_ready_for_handshake, "gnutls-e-not-ready-for-handshake");
+  DEFSYM (Qgnutls_e_not_ready_for_handshake, "gnutls-e-not-ready-for-handshake");
   Fput (Qgnutls_e_not_ready_for_handshake, Qgnutls_code,
         make_number (GNUTLS_E_APPLICATION_ERROR_MIN));
 

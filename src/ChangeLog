@@ -1,5 +1,10 @@
 2011-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
+	* gnutls.c (Fgnutls_boot): Don't mention :verify-error.
+	(syms_of_gnutls): Remove duplicate DEFSYM for
+	Qgnutls_bootprop_verify_hostname_error, an error for
+	Qgnutls_bootprop_verify_error (which is no longer used).
+
 	* eval.c (find_handler_clause): Remove parameters `sig' and `data',
 	unused since revno:102982 (2011-01-26).  All callers changed.
 	Also (re)move comments that are misplaced or no longer relevant.
