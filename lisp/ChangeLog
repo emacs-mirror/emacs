@@ -1,3 +1,49 @@
+2011-07-04  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-encrypt-unencrypted-on-saves): Do not provide
+	insecure exception for current topic.  Also note that auto-saves
+	are handled differently.
+
+	(allout-auto-save-temporarily-disabled), (allout-just-did-undo):
+	State variables for tracking auto-save inhibition situation.
+
+	(allout-write-contents-hook-handler): Rename from
+	'allout-write-file-hook-handler', and describe how it depends on
+	write-contents-functions sensitivity to non-nil value to prevent
+	file write.
+
+	(allout-auto-save-hook-handler): Remove.  auto-save does not check
+	this in individual buffers, only in the starting buffer, so this
+	is not the right way for us to inhibit auto-save in a buffer
+	according to its condition.
+
+	(allout-mode): Use new allout-write-contents-hook-handler, and
+	only with write-contents-functions.  Remove auto-save provisions -
+	they're implemented elsewhere.
+
+	(allout-before-change-handler): If undo is in progress, note that
+	for attention of allout-post-command-business.
+
+	(allout-post-command-business): If the command we're following was
+	an undo, check for change in the status of encrypted items and
+	adjust auto-save inhibitions accordingly.
+
+	(allout-toggle-subtree-encryption): Adjust auto-save inhibition
+	according to whether there are or aren't any plain-text topics
+	pending encryption.
+
+	(allout-inhibit-auto-save-info-for-decryption): Adjust
+	buffer-saved-size and some allout state to inhibit auto-saves if
+	there are plain-text topics pending encryption.
+
+	(allout-maybe-resume-auto-save-info-after-encryption): Adjust
+	buffer-saved-size and some allout state to not inhibit auto-saves
+	if there are no longer any plain-text topics pending encryption.
+
+	(allout-next-topic-pending-encryption),
+	(allout-encrypt-decrypted): No longer provide for exemption of the
+	current topic.
+
 2011-07-04  Juri Linkov  <juri@jurta.org>
 
 	Add 7z operations to delete and save changed members (bug#8968).
