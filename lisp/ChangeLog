@@ -1,3 +1,8 @@
+2011-07-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* isearch.el (isearch-search-fun-function): Clarify further the
+	meaning of the function returned.
+
 2011-07-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-cmds.el (tramp-cleanup-this-connection): New command.

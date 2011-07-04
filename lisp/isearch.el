@@ -2227,9 +2227,12 @@ If there is no completion possible, say so and continue searching."
 
 (defvar isearch-search-fun-function nil
   "Overrides the default `isearch-search-fun' behaviour.
-This variable should be a function, which will be called with no
-arguments, and should return a function that takes the same three
-arguments as `isearch-search-string' requires.")
+This variable's value should be a function, which will be called
+with no arguments, and should return a function that takes three
+arguments: STRING, BOUND, and NOERROR.
+
+This returned function will be used by `isearch-search-string' to
+search for the first occurrence of STRING or its translation.")
 
 (defun isearch-search-fun ()
   "Return the function to use for the search.
