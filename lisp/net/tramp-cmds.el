@@ -100,6 +100,15 @@ When called interactively, a Tramp connection has to be selected."
       (when (bufferp buf) (kill-buffer buf)))))
 
 ;;;###tramp-autoload
+(defun tramp-cleanup-this-connection ()
+  "Flush all connection related objects of the current buffer's connection."
+  (interactive)
+  (and (stringp default-directory)
+       (file-remote-p default-directory)
+       (tramp-cleanup-connection
+	(tramp-dissect-file-name default-directory 'noexpand))))
+
+;;;###tramp-autoload
 (defun tramp-cleanup-all-connections ()
   "Flush all Tramp internal objects.
 This includes password cache, file cache, connection cache, buffers."
