@@ -1,3 +1,12 @@
+2011-07-04  MON KEY  <monkey@sandpframing.com>
+
+	* play/animate.el (animate-string): Doc fixes and allow changing
+	the buffer name (bug#5417).
+
+2011-07-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* play/animate.el (animation-buffer-name): Renamed from *animate*.
+
 2011-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacs-lisp/timer.el: Use time-date fns rather than rolling our own.
