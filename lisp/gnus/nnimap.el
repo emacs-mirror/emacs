@@ -956,7 +956,8 @@ textual parts.")
 	     nnimap-inbox
 	     nnimap-split-methods)
     (nnheader-message 7 "nnimap %s splitting mail..." server)
-    (nnimap-split-incoming-mail)))
+    (nnimap-split-incoming-mail)
+    (nnheader-message 7 "nnimap %s splitting mail...done" server)))
 
 (defun nnimap-marks-to-flags (marks)
   (let (flags flag)
