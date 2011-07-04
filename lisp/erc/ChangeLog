@@ -1,3 +1,8 @@
+2011-07-04  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* erc.el (erc-generate-new-buffer-name): Reuse old buffer names
+	when reconnecting (bug#5563).
+
 2011-06-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* erc.el (erc-ssl): Made into a synonym for erc-tls, which
