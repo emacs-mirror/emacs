@@ -1,3 +1,12 @@
+2011-07-04  Juri Linkov  <juri@jurta.org>
+
+	Add 7z operations to delete and save changed members (bug#8968).
+	* arc-mode.el (archive-7z-expunge, archive-7z-update):
+	New defcustoms.
+	(archive-7z-write-file-member): New function.
+	(archive-7z-summarize): Fix the number of dashes in the
+	listing output.
+
 2011-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcmpl-linux.el (pcomplete-pare-list): Re-add, from pcomplete.el

@@ -485,7 +485,7 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 
 ** FIXME: xdg-open for browse-url and reportbug, 2010/08.
 
-** Archive Mode has basic support to browse 7z archives.
+** Archive Mode has basic support to browse and update 7z archives.
 
 ** browse-url has gotten a new variable that is used for mailto: URLs,
 `browse-url-mailto-function', which defaults to `browse-url-mail'.
