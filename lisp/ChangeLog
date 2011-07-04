@@ -1,3 +1,8 @@
+2011-07-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font-lock.el (font-lock-builtin-face): Change light background
+	color to dark slate blue (Bug#6693).
+
 2011-07-04  Wang Diancheng  <dcwang@kingbase.com.cn>  (tiny change)
 
 	* progmodes/gdb-mi.el (gdb): Use completion-at-point.
