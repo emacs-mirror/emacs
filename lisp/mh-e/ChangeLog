@@ -1,5 +1,10 @@
 2011-07-04  Bill Wohler  <wohler@newt.com>
 
+	* mh-compat.el (mh-window-full-height-p): Add compatibility
+	function for XEmacs.
+	* mh-show.el (mh-show-msg): Use it, and avoid compiler warning on
+	XEmacs.
+
 	* mh-letter.el (mh-letter-mode-map, mh-letter-complete)
 	(mh-complete-word): Remove FIXME comments since these functions
 	are still needed in other Emacsen. However, they can probably
@@ -9,8 +14,9 @@
 2011-07-03  Bill Wohler  <wohler@newt.com>
 
 	* mh-compat.el (mh-test-completion): Add compatibility function
-	for systems without test-completion.
-	* mh-alias.el (mh-alias-letter-expand-alias): Use it
+	for XEmacs.
+	* mh-alias.el (mh-alias-letter-expand-alias): Use it, and avoid
+	compiler warning on XEmacs.
 
 	* mh-utils.el:
 	* mh-mime.el: Shush XEmacs compiler in mh-do-in-xemacs block.
