@@ -1,3 +1,11 @@
+2011-07-04  Bill Wohler  <wohler@newt.com>
+
+	* mh-letter.el (mh-letter-mode-map, mh-letter-complete)
+	(mh-complete-word): Remove FIXME comments since these functions
+	are still needed in other Emacsen. However, they can probably
+	stand to be generalized like completion-at-point.
+	(mh-letter-complete-or-space): Remove unused variable.
+
 2011-07-03  Bill Wohler  <wohler@newt.com>
 
 	* mh-compat.el (mh-test-completion): Add compatibility function
