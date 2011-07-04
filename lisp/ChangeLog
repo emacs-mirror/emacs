@@ -1,3 +1,7 @@
+2011-07-04  Wang Diancheng  <dcwang@kingbase.com.cn>  (tiny change)
+
+	* progmodes/gdb-mi.el (gdb): Use completion-at-point.
+
 2011-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (find-file): Use pop-to-buffer-same-window (bug#8911).

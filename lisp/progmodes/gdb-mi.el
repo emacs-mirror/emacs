@@ -786,7 +786,10 @@ detailed description of this mode.
   (define-key gud-minor-mode-map [left-margin C-mouse-3]
     'gdb-mouse-jump)
 
-  (local-set-key "\C-i" 'gud-gdb-complete-command)
+  (add-hook 'completion-at-point-functions #'gud-gdb-completion-at-point
+            nil 'local)
+  (local-set-key "\C-i" 'completion-at-point)
+
   (setq gdb-first-prompt t)
   (setq gud-running nil)
 
