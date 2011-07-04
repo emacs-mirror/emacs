@@ -1,3 +1,7 @@
+2011-07-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-scan): Say that splitting has finished.
+
 2011-07-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nndraft.el: Require gnus-group.
