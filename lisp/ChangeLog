@@ -1,3 +1,9 @@
+2011-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (find-file): Use pop-to-buffer-same-window (bug#8911).
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Add switch-to-buffer.
+
 2011-07-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* isearch.el (isearch-search-fun-function): Clarify further the
@@ -28,7 +34,7 @@
 
 2011-07-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* play/animate.el (animation-buffer-name): Renamed from *animate*.
+	* play/animate.el (animation-buffer-name): Rename from *animate*.
 
 2011-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -61,7 +67,7 @@
 2011-07-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.el (frame-background-mode, frame-set-background-mode):
-	Moved from faces.el.
+	Move from faces.el.
 	(frame-default-terminal-background): New function.
 
 	* custom.el (custom-push-theme): Don't record faces in `changed'
@@ -71,7 +77,7 @@
 
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* dired.el (dired-flagging-regexp): Removed unused variable
+	* dired.el (dired-flagging-regexp): Remove unused variable
 	(bug#8769).
 
 2011-03-29  Kevin Ryde  <user42@zip.com.au>
@@ -158,8 +164,8 @@
 	* info-look.el (info-lookup-add-help): Clarify that ARGS is a list
 	of keyword/argument pairs (bug#6904).
 
-	* replace.el (multi-occur): Mention
-	`multi-occur-in-matching-buffers' in the doc string (bug#7566).
+	* replace.el (multi-occur):
+	Mention `multi-occur-in-matching-buffers' in the doc string (bug#7566).
 
 2011-07-02  Drew Adams  <drew.adams@oracle.com>
 
