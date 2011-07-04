@@ -90,10 +90,7 @@
 ;; Provide functions to the rest of MH-E. However, mh-e.el must not
 ;; use any definitions in files that require mh-e from mh-loaddefs,
 ;; for if it does it will introduce a require loop.
-(eval-and-compile
-  ;; Load it during compilation as well, since it defines the macro
-  ;; mh-require-cl.
-  (load "mh-loaddefs" nil 'nomessage))
+(require 'mh-loaddefs)
 
 (mh-require-cl)
 
