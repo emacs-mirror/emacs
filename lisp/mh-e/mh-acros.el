@@ -132,9 +132,10 @@ check if variable `transient-mark-mode' is active."
                (boundp 'mark-active) mark-active))))
 
 ;; Shush compiler.
-(defvar struct)                         ; XEmacs
-(defvar x)                              ; XEmacs
-(defvar y)                              ; XEmacs
+(mh-do-in-xemacs
+  (defvar struct)
+  (defvar x)
+  (defvar y))
 
 ;;;###mh-autoload
 (defmacro mh-defstruct (name-spec &rest fields)

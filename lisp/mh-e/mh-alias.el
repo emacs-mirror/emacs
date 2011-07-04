@@ -316,8 +316,7 @@ Blind aliases or users from /etc/passwd are not expanded."
                         res)
                   res)))
              ((t) (all-completions string mh-alias-alist pred))
-             ((lambda) (if (fboundp 'test-completion)
-                      (test-completion string mh-alias-alist pred))))))))))
+             ((lambda) (mh-test-completion string mh-alias-alist pred)))))))))
 
 
 ;;; Alias File Updating

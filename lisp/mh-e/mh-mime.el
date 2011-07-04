@@ -835,7 +835,7 @@ being used to highlight the signature in a MIME part."
 ;;; Button Display
 
 ;; Shush compiler.
-(when (featurep 'xemacs)
+(mh-do-in-xemacs
   (defvar dots)
   (defvar type)
   (defvar ov))
@@ -885,7 +885,8 @@ by commands like \"K v\" which operate on individual MIME parts."
 ;; Shush compiler.
 (defvar mm-verify-function-alist)       ; < Emacs 22
 (defvar mm-decrypt-function-alist)      ; < Emacs 22
-(defvar pressed-details)                ; XEmacs
+(mh-do-in-xemacs
+  (defvar pressed-details))
 
 (defun mh-insert-mime-security-button (handle)
   "Display buttons for PGP message, HANDLE."

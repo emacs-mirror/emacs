@@ -679,7 +679,7 @@ Server mode runs a process that accepts commands from the
 (defun server-eval-and-print (expr proc)
   "Eval EXPR and send the result back to client PROC."
   (let ((v (eval (car (read-from-string expr)))))
-    (when (and v proc)
+    (when proc
       (with-temp-buffer
         (let ((standard-output (current-buffer)))
           (pp v)
@@ -1200,12 +1200,12 @@ so don't mark these buffers specially, just visit them normally."
 	  (add-to-history 'file-name-history filen)
 	  (if (null obuf)
 	      (progn
-		(run-hooks 'pre-command-hook)  
+		(run-hooks 'pre-command-hook)
 		(set-buffer (find-file-noselect filen)))
             (set-buffer obuf)
 	    ;; separately for each file, in sync with post-command hooks,
 	    ;; with the new buffer current:
-	    (run-hooks 'pre-command-hook)  
+	    (run-hooks 'pre-command-hook)
             (cond ((file-exists-p filen)
                    (when (not (verify-visited-file-modtime obuf))
                      (revert-buffer t nil)))
@@ -1219,7 +1219,7 @@ so don't mark these buffers specially, just visit them normally."
           (server-goto-line-column (cdr file))
           (run-hooks 'server-visit-hook)
 	  ;; hooks may be specific to current buffer:
-	  (run-hooks 'post-command-hook)) 
+	  (run-hooks 'post-command-hook))
 	(unless nowait
 	  ;; When the buffer is killed, inform the clients.
 	  (add-hook 'kill-buffer-hook 'server-kill-buffer nil t)

@@ -321,7 +321,8 @@ folder containing the index search results."
                        count (> (hash-table-count msg-hash) 0)))))))
 
 ;; Shush compiler.
-(defvar pick-folder)                    ; XEmacs
+(mh-do-in-xemacs
+  (defvar pick-folder))
 
 (defun mh-search-folder (folder window-config)
   "Search FOLDER for messages matching a pattern.
@@ -401,8 +402,9 @@ or nothing to search all folders."
   (mh-index-sequenced-messages folders mh-tick-seq))
 
 ;; Shush compiler.
-(defvar mh-mairix-folder)               ; XEmacs
-(defvar mh-flists-search-folders)       ; XEmacs
+(mh-do-in-xemacs
+  (defvar mh-mairix-folder)
+  (defvar mh-flists-search-folders))
 
 ;;;###mh-autoload
 (defun mh-index-sequenced-messages (folders sequence)
@@ -1442,7 +1444,8 @@ being the list of messages originally from that folder."
   mh-index-data)
 
 ;; Shush compiler
-(defvar mh-speed-flists-inhibit-flag)   ; XEmacs
+(mh-do-in-xemacs
+  (defvar mh-speed-flists-inhibit-flag))
 
 ;;;###mh-autoload
 (defun mh-index-execute-commands ()

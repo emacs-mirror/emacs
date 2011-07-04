@@ -3,6 +3,7 @@
 	* gnus.texi (Subscription Methods): Link to "Group Levels" to explain
 	zombies.
 	(Checking New Groups): Ditto (bug#8974).
+	(Checking New Groups): Moved the reference to the right place.
 
 2011-07-03  Dave Abrahams  <dave@boostpro.com>  (tiny change)
 

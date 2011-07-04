@@ -122,6 +122,16 @@ introduced in Emacs 22."
   "XEmacs does not have `font-lock-add-keywords'.
 This function returns nil on that system.")
 
+(defun-mh mh-window-full-height-p
+  window-full-height-p (&optional WINDOW)
+  "Return non-nil if WINDOW is not the result of a vertical split.
+This function is defined in XEmacs as it lacks
+`window-full-height-p'. The values of the functions
+`window-height' and `frame-height' are compared instead. The
+argument WINDOW is ignored."
+  (= (1+ (window-height))
+     (frame-height)))
+
 (defun-mh mh-image-load-path-for-library
   image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images used by LIBRARY.
@@ -259,6 +269,12 @@ The function `replace-in-string' is used instead.
 The arguments FIXEDCASE, SUBEXP, and START, used by
 `replace-in-string' are ignored."
   (replace-in-string string regexp rep literal))
+
+(defun-mh mh-test-completion
+  test-completion (string collection &optional predicate)
+  "Return non-nil if STRING is a valid completion.
+XEmacs does not have `test-completion'. This function returns nil
+on that system." nil)
 
 ;; Copy of constant from url-util.el in Emacs 22; needed by Emacs 21.
 (if (not (boundp 'url-unreserved-chars))

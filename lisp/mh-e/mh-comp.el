@@ -223,7 +223,8 @@ RETURN-ACTION are ignored."
       (setq other-headers (cdr other-headers)))))
 
 ;; Shush compiler.
-(defvar sendmail-coding-system)         ; XEmacs
+(mh-do-in-xemacs
+  (defvar sendmail-coding-system))
 
 ;;;###autoload
 (defun mh-send-letter (&optional arg)

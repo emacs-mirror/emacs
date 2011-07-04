@@ -1168,12 +1168,12 @@ when you do the @kbd{g} command (@pxref{Scanning New Messages}).
 @subsection Checking New Groups
 
 Gnus normally determines whether a group is new or not by comparing
-the list of groups (@pxref{Group Levels}) from the active file(s) with
-the lists of subscribed and dead groups.  This isn't a particularly
-fast method.  If @code{gnus-check-new-newsgroups} is
-@code{ask-server}, Gnus will ask the server for new groups since the
-last time.  This is both faster and cheaper.  This also means that you
-can get rid of the list of killed groups altogether, so you may set
+the list of groups from the active file(s) with the lists of
+subscribed and dead groups.  This isn't a particularly fast method.
+If @code{gnus-check-new-newsgroups} is @code{ask-server}, Gnus will
+ask the server for new groups since the last time.  This is both
+faster and cheaper.  This also means that you can get rid of the list
+of killed groups (@pxref{Group Levels}) altogether, so you may set
 @code{gnus-save-killed-list} to @code{nil}, which will save time both
 at startup, at exit, and all over.  Saves disk space, too.  Why isn't
 this the default, then?  Unfortunately, not all servers support this
