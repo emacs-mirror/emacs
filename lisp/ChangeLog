@@ -1,6 +1,7 @@
 2011-07-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacs-lisp/timer.el (timer-until): Use time-subtract and float-time.
+	(timer--time-less-p): Use time-less-p.
 
 2011-07-04  Juanma Barranquero  <lekktu@gmail.com>
 

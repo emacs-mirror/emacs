@@ -119,14 +119,7 @@ SECS may be either an integer or a floating point number."
 
 (defun timer--time-less-p (t1 t2)
   "Say whether time value T1 is less than time value T2."
-  ;; FIXME just use time-less-p.
-  (destructuring-bind (high1 low1 micro1) (timer--time t1)
-    (destructuring-bind (high2 low2 micro2) (timer--time t2)
-      (or (< high1 high2)
-          (and (= high1 high2)
-               (or (< low1 low2)
-                   (and (= low1 low2)
-                        (< micro1 micro2))))))))
+  (time-less-p (timer--time t1) (timer--time t2)))
 
 (defun timer-inc-time (timer secs &optional usecs)
   "Increment the time set in TIMER by SECS seconds and USECS microseconds.
