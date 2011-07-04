@@ -1,3 +1,7 @@
+2011-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-eval-and-print): Return any result, even nil.
+
 2011-07-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* type-break.el: Accept time formats that the builtins accept.
@@ -42,7 +46,7 @@
 	* isearch.el (isearch-search-fun-function): Clarify the doc string
 	(bug#8101).
 
-2011-07-03  Richard Kim <emacs18@gmail.com> (tiny change)
+2011-07-03  Richard Kim  <emacs18@gmail.com>  (tiny change)
 
 	* textmodes/texnfo-upd.el (texinfo-insert-menu): Don't insert
 	unnecessary spaces (bug#8987).
@@ -508,7 +512,7 @@
 	(ses-cell-symbol): Set macro as safe, so that it can be used in
 	formulas.
 
-	* ses.el:  Update cycle detection algorithm.
+	* ses.el: Update cycle detection algorithm.
 	(ses-localvars): Add ses--Dijkstra-attempt-nb and
 	ses--Dijkstra-weight-bound, and initial values thereof when applicable.
 	(ses-set-localvars): New function.
