@@ -1,3 +1,8 @@
+2011-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcmpl-linux.el (pcomplete-pare-list): Re-add, from pcomplete.el
+	(bug#8958).
+
 2011-07-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font-lock.el (font-lock-builtin-face): Change light background
