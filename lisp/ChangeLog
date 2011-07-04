@@ -1,3 +1,10 @@
+2011-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs-lisp/timer.el: Use time-date fns rather than rolling our own.
+	This is simpler and helps future-proof the code.
+	(timer-until): Use time-subtract and float-time.
+	(timer--time-less-p): Use time-less-p.
+
 2011-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* type-break.el (timep): Use the value of `float-time' to avoid a
