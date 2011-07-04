@@ -1,5 +1,8 @@
 2011-07-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* buffer.c (Foverlay_put): Say what the return value is
+	(bug#7835).
+
 	* fileio.c (barf_or_query_if_file_exists): Check first if the file
 	is a directory before asking whether to use the file name
 	(bug#7564).
