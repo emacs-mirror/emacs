@@ -1,5 +1,9 @@
 2011-07-04  Bill Wohler  <wohler@newt.com>
 
+	* mh-acros.el, 	mh-comp.el, mh-e.el, mh-folder.el, mh-letter.el:
+	* mh-mime.el, mh-search.el, mh-seq.el: Shush XEmacs compiler in
+	mh-do-in-xemacs block.
+
 	* mh-compat.el (mh-window-full-height-p): Add compatibility
 	function for XEmacs.
 	* mh-show.el (mh-show-msg): Use it, and avoid compiler warning on

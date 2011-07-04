@@ -526,7 +526,8 @@ font-lock is done highlighting.")
 ;; Shush compiler.
 (defvar desktop-save-buffer)
 (defvar font-lock-auto-fontify)
-(defvar font-lock-defaults)             ; XEmacs
+(mh-do-in-xemacs
+  (defvar font-lock-defaults))
 
 ;; Ensure new buffers won't get this mode if default major-mode is nil.
 (put 'mh-folder-mode 'mode-class 'special)

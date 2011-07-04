@@ -616,7 +616,8 @@ Output is expected to be shown to user, not parsed by MH-E."
   (mh-exchange-point-and-mark-preserving-active-mark))
 
 ;; Shush compiler.
-(defvar mark-active)                    ; XEmacs
+(mh-do-in-xemacs
+  (defvar mark-active))
 
 (defun mh-exchange-point-and-mark-preserving-active-mark ()
   "Put the mark where point is now, and point where the mark is now.
