@@ -5,6 +5,9 @@
 
 2011-07-04  Chong Yidong  <cyd@stupidchicken.com>
 
+	* bindings.el: Ignore next-buffer and previous-buffer in
+	minibuffer-local-map.
+
 	* font-lock.el (font-lock-builtin-face): Change light background
 	color to dark slate blue (Bug#6693).
 
