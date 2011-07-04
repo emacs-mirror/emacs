@@ -1700,7 +1700,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
   (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object universal)
 {
   time_t value;
-  int size;
+  ptrdiff_t size;
   int usec;
   int ns;
   struct tm *tm;
@@ -1717,7 +1717,9 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 						Vlocale_coding_system, 1);
 
   /* This is probably enough.  */
-  size = SBYTES (format_string) * 6 + 50;
+  size = SBYTES (format_string);
+  if (size <= (STRING_BYTES_BOUND - 50) / 6)
+    size = size * 6 + 50;
 
   BLOCK_INPUT;
   tm = ut ? gmtime (&value) : localtime (&value);
@@ -1730,7 +1732,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
   while (1)
     {
       char *buf = (char *) alloca (size + 1);
-      int result;
+      size_t result;
 
       buf[0] = '\1';
       BLOCK_INPUT;
@@ -1749,6 +1751,8 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 				SBYTES (format_string),
 				tm, ut, ns);
       UNBLOCK_INPUT;
+      if (STRING_BYTES_BOUND <= result)
+	string_overflow ();
       size = result + 1;
     }
 }
