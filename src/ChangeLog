@@ -1,3 +1,9 @@
+2011-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (find_handler_clause): Remove parameters `sig' and `data',
+	unused since revno:102982 (2011-01-26).  All callers changed.
+	Also (re)move comments that are misplaced or no longer relevant.
+
 2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* callint.c (Finteractive): Clarify the meaning of "@" (bug#8813).
