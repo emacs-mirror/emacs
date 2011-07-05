@@ -1,3 +1,8 @@
+2011-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* button.el (button): Inherit from link face.  Suggested by Dan
+	Nicolaescu.
+
 2011-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/gdb-mi.el: Fit in 80 columns.
