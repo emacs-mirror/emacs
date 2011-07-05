@@ -1,3 +1,29 @@
+2011-07-05  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el: Add support for biblatex.
+	(bibtex-BibTeX-entry-alist, bibtex-biblatex-entry-alist)
+	(bibtex-BibTeX-field-alist, bibtex-biblatex-field-alist)
+	(bibtex-dialect-list, bibtex-dialect, bibtex-no-opt-remove-re)
+	(bibtex-entry-alist, bibtex-field-alist): New variables.
+	(bibtex-entry-field-alist): Obsolete alias for
+	bibtex-BibTeX-entry-alist.
+	(bibtex-entry-alist, bibtex-field-alist): New widgets.
+	(bibtex-set-dialect): New command.
+	(bibtex-entry-type, bibtex-entry-head)
+	(bibtex-entry-maybe-empty-head, bibtex-any-valid-entry-type): Bind
+	via bibtex-set-dialect.
+	(bibtex-Article, bibtex-Book, bibtex-Booklet, bibtex-InBook)
+	(bibtex-InCollection, bibtex-InProceedings, bibtex-Manual)
+	(bibtex-MastersThesis, bibtex-Misc, bibtex-PhdThesis)
+	(bibtex-Proceedings, bibtex-TechReport, bibtex-Unpublished):
+	Define via bibtex-set-dialect.
+	(bibtex-name-in-field, bibtex-remove-OPT-or-ALT): Obey
+	bibtex-no-opt-remove-re.
+	(bibtex-vec-push, bibtex-vec-incr): New functions.
+	(bibtex-format-entry, bibtex-field-list)
+	(bibtex-print-help-message, bibtex-validate)
+	(bibtex-search-entries): Use new format of bibtex-entry-alist.
+
 2011-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-goto-locus):
