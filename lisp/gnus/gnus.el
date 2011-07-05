@@ -1423,10 +1423,6 @@ no need to set this variable."
 
 (defcustom gnus-refer-article-method 'current
   "Preferred method for fetching an article by Message-ID.
-If you are reading news from the local spool (with nnspool), fetching
-articles by Message-ID is painfully slow.  By setting this method to an
-nntp method, you might get acceptable results.
-
 The value of this variable must be a valid select method as discussed
 in the documentation of `gnus-select-method'.
 

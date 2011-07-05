@@ -1,3 +1,8 @@
+2011-07-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-refer-article-method): Remove mention of nnspool, which
+	no longer is much used.
+
 2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* message.el (message-return-action): Fix typo in docstring.
