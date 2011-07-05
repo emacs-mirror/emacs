@@ -1,13 +1,17 @@
+2011-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/which-func.el (which-func-ff-hook): Don't output a message
+	if imenu is simply not configured (bug#8941).
+
 2011-07-05  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el (allout-post-undo-hook): New allout outline-change
 	event hook to signal undo activity.
 	(allout-post-command-business): Run allout-post-undo-hook if an
 	undo just occurred.
-	(allout-after-copy-or-kill-hook), (allout-mode): Minor docstring
-	changes.
-	* allout-widgets.el (allout-widgets-after-undo-function): Ensure
-	the integrity of the current item's decoration after it has been
+	(allout-after-copy-or-kill-hook, allout-mode): Minor docstring changes.
+	* allout-widgets.el (allout-widgets-after-undo-function):
+	Ensure the integrity of the current item's decoration after it has been
 	in the vicinity of an undo.
 	(allout-widgets-mode): Include allout-widgets-after-undo-function
 	on the new allout-post-undo-hook.
