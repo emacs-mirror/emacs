@@ -37,10 +37,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_GSETTINGS
 #include <glib-object.h>
 #include <gio/gio.h>
-#else
+#endif
+
 #ifdef HAVE_GCONF
 #include <gconf/gconf-client.h>
-#endif
 #endif
 
 #ifdef HAVE_XFT
@@ -54,6 +54,8 @@ static Lisp_Object Qmonospace_font_name, Qfont_name, Qfont_render,
   Qtool_bar_style;
 static Lisp_Object current_tool_bar_style;
 
+/* Store an config changed event in to the event queue.  */
+
 static void
 store_config_changed_event (Lisp_Object arg, Lisp_Object display_name)
 {
@@ -65,6 +67,23 @@ store_config_changed_event (Lisp_Object arg, Lisp_Object display_name)
   kbd_buffer_store_event (&event);
 }
 
+/* Return non-zero if DPYINFO is still valid.  */
+static int
+dpyinfo_valid (struct x_display_info *dpyinfo)
+{
+  int found = 0;
+  if (dpyinfo != NULL)
+    {
+      struct x_display_info *d;
+      for (d = x_display_list; !found && d; d = d->next)
+        found = d == dpyinfo && d->display == dpyinfo->display;
+    }
+  return found;
+}
+
+/* Store a monospace font change event if the monospaced font changed.  */
+
+#ifdef HAVE_XFT
 static void
 store_monospaced_changed (const char *newfont)
 {
@@ -74,28 +93,69 @@ store_monospaced_changed (const char *newfont)
   xfree (current_mono_font);
   current_mono_font = xstrdup (newfont);
 
-  if (first_dpyinfo != NULL && use_system_font)
+  if (dpyinfo_valid (first_dpyinfo) && use_system_font)
     {
-      /* Check if display still open */
-      struct x_display_info *dpyinfo;
-      int found = 0;
-      for (dpyinfo = x_display_list; !found && dpyinfo; dpyinfo = dpyinfo->next)
-        found = dpyinfo == first_dpyinfo;
-
-      if (found)
-        store_config_changed_event (Qmonospace_font_name,
-                                    XCAR (first_dpyinfo->name_list_element));
+      store_config_changed_event (Qmonospace_font_name,
+                                  XCAR (first_dpyinfo->name_list_element));
     }
 }
 
+/* Store a font name change event if the font name changed.  */
 
-#ifdef HAVE_GSETTINGS
-static GSettings *gsettings_client;
-#else
-#ifdef HAVE_GCONF
-static GConfClient *gconf_client;
-#endif
-#endif
+static void
+store_font_name_changed (const char *newfont)
+{
+  if (current_font != NULL && strcmp (newfont, current_font) == 0)
+    return; /* No change. */
+
+  xfree (current_font);
+  current_font = xstrdup (newfont);
+
+  if (dpyinfo_valid (first_dpyinfo))
+    {
+      store_config_changed_event (Qfont_name,
+                                  XCAR (first_dpyinfo->name_list_element));
+    }
+}
+#endif /* HAVE_XFT */
+
+/* Map TOOL_BAR_STYLE from a string to its correspinding Lisp value.
+   Return Qnil if TOOL_BAR_STYLE is not known.  */
+
+static Lisp_Object
+map_tool_bar_style (const char *tool_bar_style)
+{
+  Lisp_Object style = Qnil;
+  if (tool_bar_style)
+    {
+      if (strcmp (tool_bar_style, "both") == 0)
+        style = Qboth;
+      else if (strcmp (tool_bar_style, "both-horiz") == 0)
+        style = Qboth_horiz;
+      else if (strcmp (tool_bar_style, "icons") == 0)
+        style = Qimage;
+      else if (strcmp (tool_bar_style, "text") == 0)
+        style = Qtext;
+    }
+
+  return style;
+}
+
+/* Store a tool bar style change event if the tool bar style changed.  */
+
+static void
+store_tool_bar_style_changed (const char *newstyle,
+                              struct x_display_info *dpyinfo)
+{
+  Lisp_Object style = map_tool_bar_style (newstyle);
+  if (EQ (current_tool_bar_style, style))
+    return; /* No change. */
+
+  current_tool_bar_style = style;
+  if (dpyinfo_valid (dpyinfo))
+    store_config_changed_event (Qtool_bar_style,
+                                XCAR (dpyinfo->name_list_element));
+}
 
 
 #define XSETTINGS_FONT_NAME       "Gtk/FontName"
@@ -117,67 +177,129 @@ struct xsettings
   FcBool aa, hinting;
   int rgba, lcdfilter, hintstyle;
   double dpi;
-#endif
 
   char *font;
+#endif
+
   char *tb_style;
 
   unsigned seen;
 };
 
 #ifdef HAVE_GSETTINGS
-#define GSETTINGS_SCHEMA  "org.gnome.desktop.interface"
-#define SYSTEM_MONO_FONT  "monospace-font-name"
-
-static void
-something_changedCB (GSettings *settings,
-                     gchar *key,
-                     gpointer user_data)
-{
-  GVariant *val;
-  if (strcmp (key, SYSTEM_MONO_FONT) != 0) return;
-  val = g_settings_get_value (settings, SYSTEM_MONO_FONT);
-  if (val)
-    {
-      g_variant_ref_sink (val);
-      if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
-        {
-          const gchar *newfont = g_variant_get_string (val, NULL);
-          store_monospaced_changed (newfont);
-        }
-      g_variant_unref (val);
-    }
-}
-
-#else
-#ifdef HAVE_GCONF
-#define SYSTEM_MONO_FONT  "/desktop/gnome/interface/monospace_font_name"
+#define GSETTINGS_SCHEMA         "org.gnome.desktop.interface"
+#define GSETTINGS_TOOL_BAR_STYLE "toolbar-style"
 
 #ifdef HAVE_XFT
-# define SYSTEM_FONT       "/desktop/gnome/interface/font_name"
+#define GSETTINGS_MONO_FONT  "monospace-font-name"
+#define GSETTINGS_FONT_NAME  "font-name"
 #endif
 
-/* Callback called when something changed in GConf that we care about,
-   that is SYSTEM_MONO_FONT.  */
+
+/* The single GSettings instance, or NULL if not connected to GSettings.  */
+
+static GSettings *gsettings_client;
+
+/* Callback called when something changed in GSettings.  */
 
 static void
-something_changedCB (GConfClient *client,
-                     guint cnxn_id,
-                     GConfEntry *entry,
-                     gpointer user_data)
+something_changed_gsettingsCB (GSettings *settings,
+                               gchar *key,
+                               gpointer user_data)
+{
+  GVariant *val;
+
+  if (strcmp (key, GSETTINGS_TOOL_BAR_STYLE) == 0)
+    {
+      val = g_settings_get_value (settings, GSETTINGS_TOOL_BAR_STYLE);
+      if (val)
+        {
+          g_variant_ref_sink (val);
+          if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+            {
+              const gchar *newstyle = g_variant_get_string (val, NULL);
+              store_tool_bar_style_changed (newstyle, first_dpyinfo);
+            }
+          g_variant_unref (val);
+        }
+    }
+#ifdef HAVE_XFT
+  else if (strcmp (key, GSETTINGS_MONO_FONT) == 0)
+    {
+      val = g_settings_get_value (settings, GSETTINGS_MONO_FONT);
+      if (val)
+        {
+          g_variant_ref_sink (val);
+          if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+            {
+              const gchar *newfont = g_variant_get_string (val, NULL);
+              store_monospaced_changed (newfont);
+            }
+          g_variant_unref (val);
+        }
+    }
+  else if (strcmp (key, GSETTINGS_FONT_NAME) == 0)
+    {
+      val = g_settings_get_value (settings, GSETTINGS_FONT_NAME);
+      if (val)
+        {
+          g_variant_ref_sink (val);
+          if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+            {
+              const gchar *newfont = g_variant_get_string (val, NULL);
+              store_font_name_changed (newfont);
+            }
+          g_variant_unref (val);
+        }
+    }
+#endif /* HAVE_XFT */  
+}
+
+#endif /* HAVE_GSETTINGS */
+
+#ifdef HAVE_GCONF
+#define GCONF_TOOL_BAR_STYLE "/desktop/gnome/interface/toolbar_style"
+#ifdef HAVE_XFT
+#define GCONF_MONO_FONT  "/desktop/gnome/interface/monospace_font_name"
+#define GCONF_FONT_NAME  "/desktop/gnome/interface/font_name"
+#endif
+
+/* The single GConf instance, or NULL if not connected to GConf.  */
+
+static GConfClient *gconf_client;
+
+/* Callback called when something changed in GConf that we care about.  */
+
+static void
+something_changed_gconfCB (GConfClient *client,
+                           guint cnxn_id,
+                           GConfEntry *entry,
+                           gpointer user_data)
 {
   GConfValue *v = gconf_entry_get_value (entry);
+  const char *key = gconf_entry_get_key (entry);
 
-  if (!v) return;
-  if (v->type == GCONF_VALUE_STRING)
+  if (!v || v->type != GCONF_VALUE_STRING || ! key) return;
+  if (strcmp (key, GCONF_TOOL_BAR_STYLE) == 0)
+    {
+      const char *value = gconf_value_get_string (v);
+      store_tool_bar_style_changed (value, first_dpyinfo);
+    }
+#ifdef HAVE_XFT
+  else if (strcmp (key, GCONF_MONO_FONT) == 0)
     {
       const char *value = gconf_value_get_string (v);
       store_monospaced_changed (value);
     }
+  else if (strcmp (key, GCONF_FONT_NAME) == 0)
+    {
+      const char *value = gconf_value_get_string (v);
+      store_font_name_changed (value);
+    }
+#endif /* HAVE_XFT */
 }
 
 #endif /* HAVE_GCONF */
-#endif /* ! HAVE_GSETTINGS */
 
 #ifdef HAVE_XFT
 
@@ -319,14 +441,14 @@ parse_settings (unsigned char *prop,
       bytes_parsed += 4; /* Skip serial for this value */
       if (bytes_parsed > bytes) return BadLength;
 
-      want_this =
+      want_this = 
 #ifdef HAVE_XFT
         (nlen > 6 && strncmp (name, "Xft/", 4) == 0)
+        || strcmp (XSETTINGS_FONT_NAME, name) == 0
         ||
 #endif
-        (strcmp (XSETTINGS_FONT_NAME, name) == 0)
-        || (strcmp (XSETTINGS_TOOL_BAR_STYLE, name) == 0);
-
+        strcmp (XSETTINGS_TOOL_BAR_STYLE, name) == 0;
+  
       switch (type)
         {
         case 0: /* Integer */
@@ -367,17 +489,17 @@ parse_settings (unsigned char *prop,
       if (want_this)
         {
           ++settings_seen;
-          if (strcmp (name, XSETTINGS_FONT_NAME) == 0)
-            {
-              settings->font = xstrdup (sval);
-              settings->seen |= SEEN_FONT;
-            }
-          else if (strcmp (name, XSETTINGS_TOOL_BAR_STYLE) == 0)
+          if (strcmp (name, XSETTINGS_TOOL_BAR_STYLE) == 0)
             {
               settings->tb_style = xstrdup (sval);
               settings->seen |= SEEN_TB_STYLE;
             }
 #ifdef HAVE_XFT
+          else if (strcmp (name, XSETTINGS_FONT_NAME) == 0)
+            {
+              settings->font = xstrdup (sval);
+              settings->seen |= SEEN_FONT;
+            }
           else if (strcmp (name, "Xft/Antialias") == 0)
             {
               settings->seen |= SEEN_AA;
@@ -442,6 +564,10 @@ parse_settings (unsigned char *prop,
   return settings_seen;
 }
 
+/* Read settings from the XSettings property window on display for DPYINFO.
+   Store settings read in SETTINGS.
+   Return non-zero if successful, zero if not.  */
+
 static int
 read_settings (struct x_display_info *dpyinfo, struct xsettings *settings)
 {
@@ -471,6 +597,8 @@ read_settings (struct x_display_info *dpyinfo, struct xsettings *settings)
   return rc != 0;
 }
 
+/* Apply Xft settings in SETTINGS to the Xft library.
+   If SEND_EVENT_P is non-zero store a Lisp event that Xft settings changed.  */
 
 static void
 apply_xft_settings (struct x_display_info *dpyinfo,
@@ -489,9 +617,9 @@ apply_xft_settings (struct x_display_info *dpyinfo,
                         pat);
   FcPatternGetBool (pat, FC_ANTIALIAS, 0, &oldsettings.aa);
   FcPatternGetBool (pat, FC_HINTING, 0, &oldsettings.hinting);
-# ifdef FC_HINT_STYLE
+#ifdef FC_HINT_STYLE
   FcPatternGetInteger (pat, FC_HINT_STYLE, 0, &oldsettings.hintstyle);
-# endif
+#endif
   FcPatternGetInteger (pat, FC_LCD_FILTER, 0, &oldsettings.lcdfilter);
   FcPatternGetInteger (pat, FC_RGBA, 0, &oldsettings.rgba);
   FcPatternGetDouble (pat, FC_DPI, 0, &oldsettings.dpi);
@@ -530,7 +658,7 @@ apply_xft_settings (struct x_display_info *dpyinfo,
       oldsettings.lcdfilter = settings->lcdfilter;
     }
 
-# ifdef FC_HINT_STYLE
+#ifdef FC_HINT_STYLE
   if ((settings->seen & SEEN_HINTSTYLE) != 0
       && oldsettings.hintstyle != settings->hintstyle)
     {
@@ -539,7 +667,7 @@ apply_xft_settings (struct x_display_info *dpyinfo,
       ++changed;
       oldsettings.hintstyle = settings->hintstyle;
     }
-# endif
+#endif
 
   if ((settings->seen & SEEN_DPI) != 0 && oldsettings.dpi != settings->dpi
       && settings->dpi > 0)
@@ -590,11 +718,13 @@ apply_xft_settings (struct x_display_info *dpyinfo,
 #endif /* HAVE_XFT */
 }
 
+/* Read XSettings from the display for DPYINFO.
+   If SEND_EVENT_P is non-zero store a Lisp event settings that changed.  */
+
 static void
 read_and_apply_settings (struct x_display_info *dpyinfo, int send_event_p)
 {
   struct xsettings settings;
-  Lisp_Object dpyname = XCAR (dpyinfo->name_list_element);
 
   if (!read_settings (dpyinfo, &settings))
     return;
@@ -602,37 +732,28 @@ read_and_apply_settings (struct x_display_info *dpyinfo, int send_event_p)
   apply_xft_settings (dpyinfo, True, &settings);
   if (settings.seen & SEEN_TB_STYLE)
     {
-      Lisp_Object style = Qnil;
-      if (strcmp (settings.tb_style, "both") == 0)
-        style = Qboth;
-      else if (strcmp (settings.tb_style, "both-horiz") == 0)
-        style = Qboth_horiz;
-      else if (strcmp (settings.tb_style, "icons") == 0)
-        style = Qimage;
-      else if (strcmp (settings.tb_style, "text") == 0)
-        style = Qtext;
-      if (!NILP (style) && !EQ (style, current_tool_bar_style))
-        {
-          current_tool_bar_style = style;
-          if (send_event_p)
-            store_config_changed_event (Qtool_bar_style, dpyname);
-        }
+      if (send_event_p)
+        store_tool_bar_style_changed (settings.tb_style, dpyinfo);
+      else
+        current_tool_bar_style = map_tool_bar_style (settings.tb_style);
       xfree (settings.tb_style);
     }
-
+#ifdef HAVE_XFT
   if (settings.seen & SEEN_FONT)
     {
-      if (!current_font || strcmp (current_font, settings.font) != 0)
+      if (send_event_p)
+        store_font_name_changed (settings.font);
+      else
         {
           xfree (current_font);
-          current_font = settings.font;
-          if (send_event_p)
-            store_config_changed_event (Qfont_name, dpyname);
+          current_font = xstrdup (settings.font);
         }
-      else
-        xfree (settings.font);
+      xfree (settings.font);
     }
+#endif
 }
+
+/* Check if EVENT for the display in DPYINFO is XSettings related.  */
 
 void
 xft_settings_event (struct x_display_info *dpyinfo, XEvent *event)
@@ -675,6 +796,7 @@ xft_settings_event (struct x_display_info *dpyinfo, XEvent *event)
     read_and_apply_settings (dpyinfo, True);
 }
 
+/* Initialize GSettings and read startup values.  */
 
 static void
 init_gsettings (void)
@@ -697,8 +819,21 @@ init_gsettings (void)
   gsettings_client = g_settings_new (GSETTINGS_SCHEMA);
   if (!gsettings_client) return;
   g_object_ref_sink (G_OBJECT (gsettings_client));
+  g_signal_connect (G_OBJECT (gsettings_client), "changed",
+                    G_CALLBACK (something_changed_gsettingsCB), NULL);
 
-  val = g_settings_get_value (gsettings_client, SYSTEM_MONO_FONT);
+  val = g_settings_get_value (gsettings_client, GSETTINGS_TOOL_BAR_STYLE);
+  if (val)
+    {
+      g_variant_ref_sink (val);
+      if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+        current_tool_bar_style
+          = map_tool_bar_style (g_variant_get_string (val, NULL));
+      g_variant_unref (val);
+    }
+
+#ifdef HAVE_XFT
+  val = g_settings_get_value (gsettings_client, GSETTINGS_MONO_FONT);
   if (val)
     {
       g_variant_ref_sink (val);
@@ -707,45 +842,83 @@ init_gsettings (void)
       g_variant_unref (val);
     }
 
-  g_signal_connect (G_OBJECT (gsettings_client), "changed",
-                    G_CALLBACK (something_changedCB), NULL);
+  val = g_settings_get_value (gsettings_client, GSETTINGS_FONT_NAME);
+  if (val)
+    {
+      g_variant_ref_sink (val);
+      if (g_variant_is_of_type (val, G_VARIANT_TYPE_STRING))
+        current_font = xstrdup (g_variant_get_string (val, NULL));
+      g_variant_unref (val);
+    }
+#endif /* HAVE_XFT */
+
 #endif /* HAVE_GSETTINGS */
 }
 
+/* Init GConf and read startup values.  */
 
 static void
 init_gconf (void)
 {
-#if defined (HAVE_GCONF) && defined (HAVE_XFT) && ! defined (HAVE_GSETTINGS)
+#if defined (HAVE_GCONF)
   char *s;
 
 #ifdef HAVE_G_TYPE_INIT
   g_type_init ();
 #endif
+
   gconf_client = gconf_client_get_default ();
-  s = gconf_client_get_string (gconf_client, SYSTEM_MONO_FONT, NULL);
+  gconf_client_set_error_handling (gconf_client, GCONF_CLIENT_HANDLE_NONE);
+  gconf_client_add_dir (gconf_client,
+                        GCONF_TOOL_BAR_STYLE,
+                        GCONF_CLIENT_PRELOAD_ONELEVEL,
+                        NULL);
+  gconf_client_notify_add (gconf_client,
+                           GCONF_TOOL_BAR_STYLE,
+                           something_changed_gconfCB,
+                           NULL, NULL, NULL);
+
+  s = gconf_client_get_string (gconf_client, GCONF_TOOL_BAR_STYLE, NULL);
+  if (s)
+    {
+      current_tool_bar_style = map_tool_bar_style (s);
+      g_free (s);
+    }
+
+#ifdef HAVE_XFT
+  s = gconf_client_get_string (gconf_client, GCONF_MONO_FONT, NULL);
   if (s)
     {
       current_mono_font = xstrdup (s);
       g_free (s);
     }
-  s = gconf_client_get_string (gconf_client, SYSTEM_FONT, NULL);
+  s = gconf_client_get_string (gconf_client, GCONF_FONT_NAME, NULL);
   if (s)
     {
       current_font = xstrdup (s);
       g_free (s);
     }
-  gconf_client_set_error_handling (gconf_client, GCONF_CLIENT_HANDLE_NONE);
   gconf_client_add_dir (gconf_client,
-                        SYSTEM_MONO_FONT,
+                        GCONF_MONO_FONT,
                         GCONF_CLIENT_PRELOAD_ONELEVEL,
                         NULL);
   gconf_client_notify_add (gconf_client,
-                           SYSTEM_MONO_FONT,
-                           something_changedCB,
+                           GCONF_MONO_FONT,
+                           something_changed_gconfCB,
                            NULL, NULL, NULL);
-#endif /* HAVE_GCONF && HAVE_XFT && ! HAVE_GSETTINGS */
+  gconf_client_add_dir (gconf_client,
+                        GCONF_FONT_NAME,
+                        GCONF_CLIENT_PRELOAD_ONELEVEL,
+                        NULL);
+  gconf_client_notify_add (gconf_client,
+                           GCONF_FONT_NAME,
+                           something_changed_gconfCB,
+                           NULL, NULL, NULL);
+#endif /* HAVE_XFT */
+#endif /* HAVE_GCONF */
 }
+
+/* Init Xsettings and read startup values.  */
 
 static void
 init_xsettings (struct x_display_info *dpyinfo)
@@ -769,10 +942,13 @@ void
 xsettings_initialize (struct x_display_info *dpyinfo)
 {
   if (first_dpyinfo == NULL) first_dpyinfo = dpyinfo;
-  init_gsettings ();
   init_gconf ();
   init_xsettings (dpyinfo);
+  init_gsettings ();
 }
+
+/* Return the system monospaced font.
+   May be NULL if not known.  */
 
 const char *
 xsettings_get_system_font (void)
@@ -781,6 +957,9 @@ xsettings_get_system_font (void)
 }
 
 #ifdef USE_LUCID
+/* Return the system font.
+   May be NULL if not known.  */
+
 const char *
 xsettings_get_system_normal_font (void)
 {
@@ -831,10 +1010,9 @@ syms_of_xsettings (void)
   first_dpyinfo = NULL;
 #ifdef HAVE_GSETTINGS
   gsettings_client = NULL;
-#else
+#endif
 #ifdef HAVE_GCONF
   gconf_client = NULL;
-#endif
 #endif
 
   DEFSYM (Qmonospace_font_name, "monospace-font-name");

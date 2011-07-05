@@ -1,3 +1,35 @@
+2011-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c: Use both GConf and GSettings if both are available.
+	(store_config_changed_event): Add comment.
+	(dpyinfo_valid, store_font_name_changed, map_tool_bar_style)
+	(store_tool_bar_style_changed): New functions.
+	(store_monospaced_changed): Add comment. Call dpyinfo_valid.
+	(struct xsettings): Move font inside HAVE_XFT.
+	(GSETTINGS_TOOL_BAR_STYLE, GSETTINGS_FONT_NAME): New defines.
+	(GSETTINGS_MONO_FONT): Renamed from SYSTEM_MONO_FONT.
+	Move inside HAVE_XFT.
+	(something_changed_gsettingsCB): Renamed from something_changedCB.
+	Check for changes in GSETTINGS_TOOL_BAR_STYLE and GSETTINGS_FONT_NAME
+	also.
+	(GCONF_TOOL_BAR_STYLE, GCONF_FONT_NAME): New defines.
+	(GCONF_MONO_FONT): Renamed from SYSTEM_MONO_FONT. Move inside HAVE_XFT.
+	(something_changed_gconfCB): Renamed from something_changedCB.
+	Check for changes in GCONF_TOOL_BAR_STYLE and GCONF_FONT_NAME also.
+	(parse_settings): Move check for font inside HAVE_XFT.
+	(read_settings, apply_xft_settings): Add comment.
+	(read_and_apply_settings): Add comment.  Call map_tool_bar_style and
+	store_tool_bar_style_changed.  Move check for font inside HAVE_XFT and
+	call store_font_name_changed.
+	(xft_settings_event): Add comment.
+	(init_gsettings): Add comment.  Get values for GSETTINGS_TOOL_BAR_STYLE
+	and GSETTINGS_FONT_NAME.  Move check for fonts within HAVE_XFT.
+	(init_gconf): Add comment.  Get values for GCONF_TOOL_BAR_STYLE
+	and GCONF_FONT_NAME.  Move check for fonts within HAVE_XFT.
+	(xsettings_initialize): Call init_gsettings last.
+	(xsettings_get_system_font, xsettings_get_system_normal_font): Add
+	comment.
+
 2011-07-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Random fixes.  E.g., (random) never returned negative values.

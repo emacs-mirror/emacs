@@ -1,3 +1,8 @@
+2011-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* dynamic-setting.el (dynamic-setting-handle-config-changed-event): 
+	Update doc string.
+
 2011-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-execute): Catch quit and call
