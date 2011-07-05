@@ -1,5 +1,9 @@
 2011-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/gdb-mi.el: Fit in 80 columns.
+	(gdb-setup-windows, gdb-restore-windows): Avoid other-window and
+	switch-to-buffer.
+
 	* progmodes/which-func.el (which-func-ff-hook): Don't output a message
 	if imenu is simply not configured (bug#8941).
 
@@ -15,7 +19,6 @@
 	in the vicinity of an undo.
 	(allout-widgets-mode): Include allout-widgets-after-undo-function
 	on the new allout-post-undo-hook.
-
 
 2011-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
