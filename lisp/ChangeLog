@@ -1,3 +1,8 @@
+2011-07-05  Julien Danjou  <julien@danjou.info>
+
+	* textmodes/rst.el (rst-define-level-faces): Use `facep' rather
+	than `boundp' to check if face is set.
+
 2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* register.el (registerv-make):
