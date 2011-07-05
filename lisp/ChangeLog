@@ -1,3 +1,8 @@
+2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* obsolete/old-emacs-lock.el: Rename from emacs-lock.el.
+	* emacs-lock.el: New file.
+
 2011-07-05  Julien Danjou  <julien@danjou.info>
 
 	* textmodes/rst.el (rst-define-level-faces): Use `facep' rather

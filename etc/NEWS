@@ -857,6 +857,13 @@ soap-inspect.el is an interactive inspector for SOAP WSDL structures.
 
 ** xmodmap-generic-mode for xmodmap files.
 
+** New emacs-lock.el package.
+(The pre-existing one has been renamed to old-emacs-lock.el and moved
+to obsolete/.)  Now, Emacs Lock is a proper minor mode
+`emacs-lock-mode'.  Protection against exiting Emacs and killing the
+buffer can be set separately.  The mechanism for auto turning off
+protection for buffers with inferior processes has been generalized.
+
 
 * Incompatible Lisp Changes in Emacs 24.1
 
