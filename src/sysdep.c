@@ -2216,59 +2216,6 @@ rmdir (char *dpath)
 #endif /* !HAVE_RMDIR */
 
 
-#ifndef HAVE_MEMSET
-void *
-memset (void *b, int n, size_t length)
-{
-  unsigned char *p = b;
-  while (length-- > 0)
-    *p++ = n;
-  return b;
-}
-#endif /* !HAVE_MEMSET */
-
-#ifndef HAVE_MEMCPY
-void *
-memcpy (void *b1, void *b2, size_t length)
-{
-  unsigned char *p1 = b1, *p2 = b2;
-  while (length-- > 0)
-    *p1++ = *p2++;
-  return b1;
-}
-#endif /* !HAVE_MEMCPY */
-
-#ifndef HAVE_MEMMOVE
-void *
-memmove (void *b1, void *b2, size_t length)
-{
-  unsigned char *p1 = b1, *p2 = b2;
-  if (p1 < p2 || p1 >= p2 + length)
-    while (length-- > 0)
-      *p1++ = *p2++;
-  else
-    {
-      p1 += length;
-      p2 += length;
-      while (length-- > 0)
-	*--p1 = *--p2;
-    }
-  return b1;
-}
-#endif /* !HAVE_MEMCPY */
-
-#ifndef HAVE_MEMCMP
-int
-memcmp (void *b1, void *b2, size_t length)
-{
-  unsigned char *p1 = b1, *p2 = b2;
-  while (length-- > 0)
-    if (*p1++ != *p2++)
-      return p1[-1] < p2[-1] ? -1 : 1;
-  return 0;
-}
-#endif /* !HAVE_MEMCMP */
-
 #ifndef HAVE_STRSIGNAL
 char *
 strsignal (int code)

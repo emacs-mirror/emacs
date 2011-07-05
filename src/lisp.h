@@ -3429,18 +3429,6 @@ extern EMACS_INT emacs_read (int, char *, EMACS_INT);
 extern EMACS_INT emacs_write (int, const char *, EMACS_INT);
 enum { READLINK_BUFSIZE = 1024 };
 extern char *emacs_readlink (const char *, char [READLINK_BUFSIZE]);
-#ifndef HAVE_MEMSET
-extern void *memset (void *, int, size_t);
-#endif
-#ifndef HAVE_MEMCPY
-extern void *memcpy (void *, void *, size_t);
-#endif
-#ifndef HAVE_MEMMOVE
-extern void *memmove (void *, void *, size_t);
-#endif
-#ifndef HAVE_MEMCMP
-extern int memcmp (void *, void *, size_t);
-#endif
 
 EXFUN (Funlock_buffer, 0);
 extern void unlock_all_files (void);

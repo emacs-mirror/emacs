@@ -1,5 +1,13 @@
 2011-07-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Assume support for memcmp, memcpy, memmove, memset.
+	* lisp.h, sysdep.c (memcmp, memcpy, memmove, memset):
+	* regex.c (memcmp, memcpy):
+	Remove; we assume C89 now.
+
+	* gmalloc.c (memcpy, memset, memmove): Remove; we assume C89 now.
+	(__malloc_safe_bcopy): Remove; no longer needed.
+
 	* lisp.h (struct vectorlike_header, struct Lisp_Subr):  Signed sizes.
 	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
 	well either way, and we prefer signed to unsigned.

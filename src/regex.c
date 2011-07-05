@@ -238,18 +238,7 @@ xrealloc (void *block, size_t size)
 # endif
 # define realloc xrealloc
 
-/* This is the normal way of making sure we have memcpy, memcmp and memset.  */
-# if defined HAVE_STRING_H || defined STDC_HEADERS || defined _LIBC
-#  include <string.h>
-# else
-#  include <strings.h>
-#  ifndef memcmp
-#   define memcmp(s1, s2, n)	bcmp (s1, s2, n)
-#  endif
-#  ifndef memcpy
-#   define memcpy(d, s, n)	(bcopy (s, d, n), (d))
-#  endif
-# endif
+# include <string.h>
 
 /* Define the syntax stuff for \<, \>, etc.  */
 

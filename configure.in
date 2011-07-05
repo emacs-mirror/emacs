@@ -1091,7 +1091,7 @@ if test "x$crt_files" != x; then
     dnl first there is no point asking gcc.
     crt_gcc=no
 
-    test -e $CRT_DIR/$file || crt_missing="$crt_missing $file"    
+    test -e $CRT_DIR/$file || crt_missing="$crt_missing $file"
   done                          # $crt_files
 
   test "x$crt_missing" = x || \
@@ -2704,8 +2704,8 @@ strerror fpathconf select euidaccess getpagesize tzset setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm strchr strrchr \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap memmove fsync sync \
-memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign \
+gai_strerror mkstemp getline getdelim mremap fsync sync \
+difftime mempcpy mblen mbrlen posix_memalign \
 cfmakeraw cfsetspeed isnan copysign __executable_start)
 
 dnl Cannot use AC_CHECK_FUNCS
@@ -3108,8 +3108,6 @@ dnl    AC_DEFINE(HAVE_TERMIOS, 1, [Define to 1 if you have POSIX-style functions
 dnl                                and macros for terminal control.])
 dnl    AC_DEFINE(HAVE_TCATTR, 1, [Define to 1 if you have tcgetattr and tcsetattr.])
 dnl fi
-
-dnl Fixme: Use AC_FUNC_MEMCMP since memcmp is used.  (Needs libobj replacement.)
 
 # Set up the CFLAGS for real compilation, so we can substitute it.
 CFLAGS="$REAL_CFLAGS"

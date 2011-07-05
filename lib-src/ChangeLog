@@ -1,3 +1,8 @@
+2011-07-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume support for memcmp, memcpy, memmove, memset.
+	* etags.c (absolute_filename): Assume memmove exists.
+
 2011-07-02  Jason Rumney  <jasonr@gnu.org>
 
 	* emacsclient.c (decode_options) [WINDOWSNT]: Avoid tty mode on
