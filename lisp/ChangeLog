@@ -1,3 +1,14 @@
+2011-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-goto-locus):
+	* net/tramp-cmds.el (tramp-append-tramp-buffers):
+	* bs.el (bs-cycle-next, bs-cycle-previous):
+	* bookmark.el (bookmark-bmenu-list, bookmark-bmenu-2-window):
+	* bindings.el (mode-line-other-buffer):
+	* autoinsert.el (auto-insert):
+	* arc-mode.el (archive-extract):
+	* abbrev.el (edit-abbrevs): Fix some uses of switch-to-buffer.
+
 2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lock.el (emacs-lock-mode): Fix typo in variable name.
@@ -64,8 +75,8 @@
 	according to whether there are or aren't any plain-text topics
 	pending encryption.
 
-	(allout-inhibit-auto-save-info-for-decryption): Adjust
-	buffer-saved-size and some allout state to inhibit auto-saves if
+	(allout-inhibit-auto-save-info-for-decryption):
+	Adjust buffer-saved-size and some allout state to inhibit auto-saves if
 	there are plain-text topics pending encryption.
 
 	(allout-maybe-resume-auto-save-info-after-encryption): Adjust

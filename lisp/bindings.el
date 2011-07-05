@@ -471,7 +471,8 @@ Like `bury-buffer', but temporarily select EVENT's window."
 (defun mode-line-other-buffer () "\
 Switch to the most recently selected buffer other than the current one."
   (interactive)
-  (switch-to-buffer (other-buffer)))
+  (with-no-warnings ; We really do want to call `switch-to-buffer' here.
+    (switch-to-buffer (other-buffer))))
 
 (defun mode-line-next-buffer (event)
   "Like `next-buffer', but temporarily select EVENT's window."
