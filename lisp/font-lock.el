@@ -1906,7 +1906,7 @@ Sets various variables using `font-lock-defaults' and
     (((class grayscale) (background dark)) (:foreground "DimGray" :weight bold))
     (((class color) (min-colors 88) (background light)) (:foreground "dark slate blue"))
     (((class color) (min-colors 88) (background dark)) (:foreground "LightSteelBlue"))
-    (((class color) (min-colors 16) (background light)) (:foreground "Orchid"))
+    (((class color) (min-colors 16) (background light)) (:foreground "MediumBlue"))
     (((class color) (min-colors 16) (background dark)) (:foreground "LightSteelBlue"))
     (((class color) (min-colors 8)) (:foreground "blue" :weight bold))
     (t (:weight bold)))

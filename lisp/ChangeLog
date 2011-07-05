@@ -1,3 +1,9 @@
+2011-07-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* font-lock.el (font-lock-builtin-face): Change from Orchid to
+	MediumBlue on light-coloured backgrounds to avoid confusion with
+	the doc string (bug#6693).
+
 2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* obsolete/old-emacs-lock.el: Rename from emacs-lock.el.
