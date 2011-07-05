@@ -195,7 +195,7 @@ Other values are interpreted as usual."
   :init-value nil
   :lighter (""
             (emacs-lock--try-unlocking " locked:" " Locked:")
-            (:eval (symbol-name emacs-lock-model)))
+            (:eval (symbol-name emacs-lock-mode)))
   :group 'emacs-lock
   :variable (emacs-lock-mode .
                              (lambda (mode)
@@ -203,9 +203,10 @@ Other values are interpreted as usual."
   (when emacs-lock-mode
     (setq emacs-lock--old-mode emacs-lock-mode)
     (setq emacs-lock--try-unlocking
-          (or (and (eq emacs-lock-unlockable-modes t)
-                   (emacs-lock-live-process-p (current-buffer)))
-              (assq major-mode emacs-lock-unlockable-modes)))))
+          (and (if (eq emacs-lock-unlockable-modes t)
+                   (emacs-lock-live-process-p (current-buffer))
+                 (assq major-mode emacs-lock-unlockable-modes))
+               t))))
 
 (unless noninteractive
   (add-hook 'kill-buffer-query-functions 'emacs-lock--kill-buffer-query-functions)

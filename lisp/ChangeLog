@@ -1,3 +1,9 @@
+2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lock.el (emacs-lock-mode): Fix typo in variable name.
+	Fix check of `emacs-lock-unlockable-modes'.
+	Coerce true values of `emacs-lock--try-unlocking' to t.
+
 2011-07-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* font-lock.el (font-lock-builtin-face): Change from Orchid to
