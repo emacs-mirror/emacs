@@ -458,7 +458,8 @@ bidi_cache_ensure_space (int idx)
   /* Enlarge the cache as needed.  */
   if (idx >= bidi_cache_size)
     {
-      bidi_cache_size += BIDI_CACHE_CHUNK;
+      while (idx >= bidi_cache_size)
+	bidi_cache_size += BIDI_CACHE_CHUNK;
       bidi_cache =
 	(struct bidi_it *) xrealloc (bidi_cache, bidi_cache_size * elsz);
     }
@@ -656,6 +657,7 @@ bidi_unshelve_cache (void *databuf)
   else
     {
       memcpy (&bidi_cache_idx, p, sizeof (bidi_cache_idx));
+      bidi_cache_ensure_space (bidi_cache_idx);
       memcpy (bidi_cache, p + sizeof (bidi_cache_idx),
 	      bidi_cache_idx * sizeof (struct bidi_it));
       memcpy (bidi_cache_start_stack,

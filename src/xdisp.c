@@ -2618,6 +2618,7 @@ init_iterator (struct it *it, struct window *w,
 	    it->paragraph_embedding = R2L;
 	  else
 	    it->paragraph_embedding = NEUTRAL_DIR;
+	  bidi_unshelve_cache (NULL);
 	  bidi_init_it (charpos, IT_BYTEPOS (*it), FRAME_WINDOW_P (it->f),
 			&it->bidi_it);
 	}
@@ -5562,6 +5563,8 @@ back_to_previous_visible_line_start (struct it *it)
 	EMACS_INT beg, end;
 	Lisp_Object val, overlay;
 
+	SAVE_IT (it2, *it, it2data);
+
 	/* If newline is part of a composition, continue from start of composition */
 	if (find_composition (IT_CHARPOS (*it), -1, &beg, &end, &val, Qnil)
 	    && beg < IT_CHARPOS (*it))
@@ -5569,10 +5572,10 @@ back_to_previous_visible_line_start (struct it *it)
 
 	/* If newline is replaced by a display property, find start of overlay
 	   or interval and continue search from that point.  */
-	SAVE_IT (it2, *it, it2data);
 	pos = --IT_CHARPOS (it2);
 	--IT_BYTEPOS (it2);
 	it2.sp = 0;
+	bidi_unshelve_cache (NULL);
 	it2.string_from_display_prop_p = 0;
 	it2.from_disp_prop_p = 0;
 	if (handle_display_prop (&it2) == HANDLED_RETURN
@@ -5770,6 +5773,7 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
     {
       bidi_init_it (IT_CHARPOS (*it), IT_BYTEPOS (*it), FRAME_WINDOW_P (it->f),
 		    &it->bidi_it);
+      bidi_unshelve_cache (NULL);
       it->bidi_it.paragraph_dir = NEUTRAL_DIR;
       it->bidi_it.string.s = NULL;
       it->bidi_it.string.lstring = Qnil;

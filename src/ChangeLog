@@ -1,3 +1,20 @@
+2011-07-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (buffer_posn_from_coords): Save and restore the bidi
+	cache around display iteration.
+
+	* window.c (Fwindow_end, window_scroll_pixel_based)
+	(displayed_window_lines, Frecenter): Save and restore the bidi
+	cache around display iteration.
+
+	* bidi.c (bidi_unshelve_cache): Ensure we have enough space before
+	restoring the shelved cache.
+	(bidi_cache_ensure_space): Don't assume the required size is just
+	one BIDI_CACHE_CHUNK away.
+
+	* xdisp.c (back_to_previous_visible_line_start, reseat_1)
+	(init_iterator): Empty the bidi cache "stack".
+
 2011-07-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_shelve_cache, bidi_unshelve_cache): New functions.
