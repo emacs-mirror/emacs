@@ -237,4 +237,7 @@ Other values are interpreted as usual."
   (interactive)
   (call-interactively 'emacs-lock-mode))
 (make-obsolete 'toggle-emacs-lock 'emacs-lock-mode "24.1")
-k
+
+(provide 'emacs-lock)
+
+;;; emacs-lock.el ends here
