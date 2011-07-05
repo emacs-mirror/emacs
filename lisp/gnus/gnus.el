@@ -2963,7 +2963,7 @@ with some simple extensions.
 %R          \"A\" if this article has been replied to, \" \"
             otherwise (character)
 %U          \"Read\" status of this article.
-            See Info node `(gnus)Read Articles'
+            See Info node `(gnus)Marking Articles'
 %[          Opening bracket (character, \"[\" or \"<\")
 %]          Closing bracket (character, \"]\" or \">\")
 %>          Spaces of length thread-level (string)

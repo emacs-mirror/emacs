@@ -2,6 +2,8 @@
 
 	* gnus.el (gnus-refer-article-method): Remove mention of nnspool, which
 	no longer is much used.
+	(gnus-summary-line-format): Link to "Marking Articles" instead of "Read
+	Articles".
 
 2011-04-03  Kan-Ru Chen  <kanru@kanru.info>
 
