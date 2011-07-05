@@ -1,6 +1,9 @@
 2011-07-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Expiring Mail): Document gnus-auto-expirable-marks.
+	(Filtering New Groups): Clarify how simple the "options -n" format is.
+	(Agent Expiry): Remove mention of `gnus-request-expire-articles', which
+	is internal.
 
 2011-07-04  Michael Albinus  <michael.albinus@gmx.de>
 

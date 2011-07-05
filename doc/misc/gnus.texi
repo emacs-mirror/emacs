@@ -1302,6 +1302,10 @@ subscribing these groups.
 @code{gnus-subscribe-options-newsgroup-method} is used instead.  This
 variable defaults to @code{gnus-subscribe-alphabetically}.
 
+The ``options -n'' format is very simplistic.  The syntax above is all
+that is supports -- you can force-subscribe hierarchies, or you can
+deny hierarchies, and that's it.
+
 @vindex gnus-options-not-subscribe
 @vindex gnus-options-subscribe
 If you don't want to mess with your @file{.newsrc} file, you can just
@@ -19006,9 +19010,8 @@ that you're running out of space.  Neither are particularly fast or
 efficient, and it's not a particularly good idea to interrupt them (with
 @kbd{C-g} or anything else) once you've started one of them.
 
-Note that other functions, e.g. @code{gnus-request-expire-articles},
-might run @code{gnus-agent-expire} for you to keep the agent
-synchronized with the group.
+Note that other functions might run @code{gnus-agent-expire} for you
+to keep the agent synchronized with the group.
 
 The agent parameter @code{agent-enable-expiration} may be used to
 prevent expiration in selected groups.
