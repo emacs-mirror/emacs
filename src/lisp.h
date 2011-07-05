@@ -833,7 +833,7 @@ struct Lisp_String
    <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=8546>.  */
 struct vectorlike_header
   {
-    EMACS_UINT size;
+    EMACS_INT size;
 
     /* Pointer to the next vector-like object.  It is generally a buffer or a
        Lisp_Vector alias, so for convenience it is a union instead of a
@@ -1028,7 +1028,7 @@ struct Lisp_Bool_Vector
 
 struct Lisp_Subr
   {
-    EMACS_UINT size;
+    EMACS_INT size;
     union {
       Lisp_Object (*a0) (void);
       Lisp_Object (*a1) (Lisp_Object);

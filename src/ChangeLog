@@ -1,5 +1,9 @@
 2011-07-05  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lisp.h (struct vectorlike_header, struct Lisp_Subr):  Signed sizes.
+	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
+	well either way, and we prefer signed to unsigned.
+
 	Random fixes.  E.g., (random) never returned negative values.
 	* fns.c (Frandom): Use GET_EMACS_TIME for random seed, and add the
 	subseconds part to the entropy, as that's a bit more random.
