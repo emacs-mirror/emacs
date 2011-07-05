@@ -3,6 +3,25 @@
 	* gnus.el (gnus-refer-article-method): Remove mention of nnspool, which
 	no longer is much used.
 
+2011-04-03  Kan-Ru Chen  <kanru@kanru.info>
+
+	* nnir.el (nnir-notmuch-program, nnir-notmuch-additional-switches)
+	(nnir-notmuch-remove-prefix, nnir-engines, nnir-run-notmuch): New nnir
+	`notmuch' backend.
+
+2011-07-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-text-html-renderer): Doc fix.
+
+	* gnus-msg.el (gnus-bug): Fix the MML tag.
+
+	* pop3.el (pop3-open-server): -ERR is a valid response to CAPA.
+
+2011-07-05  Daiki Ueno  <ueno@unixuser.org>
+
+	* gnus-start.el (gnus-get-unread-articles): Don't connect to the
+	secondary methods if started with `gnus-no-server'.
+
 2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* message.el (message-return-action): Fix typo in docstring.

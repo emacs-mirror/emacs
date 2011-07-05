@@ -1480,10 +1480,10 @@ If YANK is non-nil, include the original article."
 	(erase-buffer)
 	(gnus-debug)
 	(setq text (buffer-string)))
-      (insert (concat "<#part type=application/emacs-lisp"
-                      "disposition=inline description=\"User settings\">\n"
-                      text
-                      "\n<#/part>")))
+      (insert "<#part type=application/emacs-lisp "
+	      "disposition=inline description=\"User settings\">\n"
+	      text
+	      "\n<#/part>"))
     (goto-char (point-min))
     (search-forward "Subject: " nil t)
     (message "")))

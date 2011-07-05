@@ -15648,14 +15648,16 @@ will remain on your system until hell freezes over.  This bears
 repeating one more time, with some spurious capitalizations: IF you do
 NOT mark articles as EXPIRABLE, Gnus will NEVER delete those ARTICLES.
 
+@vindex gnus-auto-expirable-marks
 You do not have to mark articles as expirable by hand.  Gnus provides
 two features, called ``auto-expire'' and ``total-expire'', that can help you
 with this.  In a nutshell, ``auto-expire'' means that Gnus hits @kbd{E}
 for you when you select an article.  And ``total-expire'' means that Gnus
 considers all articles as expirable that are read.  So, in addition to
 the articles marked @samp{E}, also the articles marked @samp{r},
-@samp{R}, @samp{O}, @samp{K}, @samp{Y} and so on are considered
-expirable.
+@samp{R}, @samp{O}, @samp{K}, @samp{Y} (and so on) are considered
+expirable.  @code{gnus-auto-expirable-marks} has the full list of
+these marks.
 
 When should either auto-expire or total-expire be used?  Most people
 who are subscribed to mailing lists split each list into its own group

@@ -1,3 +1,7 @@
+2011-07-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Expiring Mail): Document gnus-auto-expirable-marks.
+
 2011-07-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Cleanup remote connections): Add
