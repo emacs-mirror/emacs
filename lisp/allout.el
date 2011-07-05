@@ -1461,7 +1461,15 @@ This hook might be invoked multiple times by a single command.")
 (defvar allout-after-copy-or-kill-hook nil
   "*Hook that's run after copying outline text.
 
-Functions on the hook should not take any arguments.")
+Functions on the hook should not require any arguments.")
+;;;_   = allout-post-undo-hook
+(defvar allout-post-undo-hook nil
+  "*Hook that's run after undo activity.
+
+The item that's current when the hook is run *may* be the one
+that was affected by the undo.
+
+Functions on the hook should not require any arguments.")
 ;;;_   = allout-outside-normal-auto-fill-function
 (defvar allout-outside-normal-auto-fill-function nil
   "Value of normal-auto-fill-function outside of allout mode.
@@ -1874,6 +1882,7 @@ without changes to the allout core.  Here are key ones:
 `allout-structure-deleted-hook'
 `allout-structure-shifted-hook'
 `allout-after-copy-or-kill-hook'
+`allout-post-undo-hook'
 
                             Terminology
 
@@ -3313,6 +3322,7 @@ coordinating with allout activity.")
 
     (when allout-just-did-undo
       (setq allout-just-did-undo nil)
+      (run-hooks 'allout-post-undo-hook)
       (cond ((and (= buffer-saved-size -1)
                   allout-auto-save-temporarily-disabled)
              ;; user possibly undid a decryption, deinhibit auto-save:
