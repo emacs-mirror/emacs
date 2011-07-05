@@ -1,3 +1,15 @@
+2011-07-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Random fixes.  E.g., (random) never returned negative values.
+	* fns.c (Frandom): Use GET_EMACS_TIME for random seed, and add the
+	subseconds part to the entropy, as that's a bit more random.
+	Prefer signed to unsigned, since the signedness doesn't matter and
+	in general we prefer signed.  When given a limit, use a
+	denominator equal to INTMASK + 1, not to VALMASK + 1, because the
+	latter isn't right if USE_2_TAGS_FOR_INTS.
+	* sysdep.c (get_random): Return a value in the range 0..INTMASK,
+	not 0..VALMASK.  Don't discard "excess" bits that random () returns.
+
 2011-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textprop.c (text_property_stickiness):
