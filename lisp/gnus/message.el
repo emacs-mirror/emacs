@@ -1185,7 +1185,7 @@ It is a vector of the following headers:
 (defvar message-send-actions nil
   "A list of actions to be performed upon successful sending of a message.")
 (defvar message-return-action nil
-  "Action to return to the caller after sending or postphoning a message.")
+  "Action to return to the caller after sending or postponing a message.")
 (defvar message-exit-actions nil
   "A list of actions to be performed upon exiting after sending a message.")
 (defvar message-kill-actions nil

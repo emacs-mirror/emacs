@@ -1008,7 +1008,7 @@ See Info node `(emacs)Subdir switches' for more details."
     (dired-uncache
      (if (consp dired-directory) (car dired-directory) dired-directory))
     (dired-map-over-marks (let ((fname (dired-get-filename))
-				;; Postphone readin hook till we map
+				;; Postpone readin hook till we map
 				;; over all marked files (Bug#6810).
 				(dired-after-readin-hook nil))
 			    (message "Redisplaying... %s" fname)

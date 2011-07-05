@@ -3162,7 +3162,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	   shouldn't bind any arguments, instead just call the byte-code
 	   interpreter directly; it will push arguments as necessary.
 
-	   Byte-code objects with either a non-existant, or a nil value for
+	   Byte-code objects with either a non-existent, or a nil value for
 	   the `push args' slot (the default), have dynamically-bound
 	   arguments, and use the argument-binding code below instead (as do
 	   all interpreted functions, even lexically bound ones).  */

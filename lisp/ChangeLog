@@ -1,6 +1,11 @@
+2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* register.el (registerv-make):
+	* window.el (window-min-height): Fix typos in docstrings.
+
 2011-07-05  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* dynamic-setting.el (dynamic-setting-handle-config-changed-event): 
+	* dynamic-setting.el (dynamic-setting-handle-config-changed-event):
 	Update doc string.
 
 2011-07-04  Juanma Barranquero  <lekktu@gmail.com>

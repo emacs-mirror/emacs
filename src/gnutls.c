@@ -379,7 +379,7 @@ emacs_gnutls_read (struct Lisp_Process *proc, char *buf, EMACS_INT nbyte)
     /* non-fatal error */
     return -1;
   else {
-    /* a fatal error occured */
+    /* a fatal error occurred */
     return 0;
   }
 }

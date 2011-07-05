@@ -173,7 +173,7 @@
 	with value as argument.
 	(init_gsettings): Check that GSETTINGS_SCHEMA exists before calling
 	g_settings_new (Bug#8967).  Do not create gsettings_obj.
-	Remove calls to g_settings_bind. Connect something_changedCB to
+	Remove calls to g_settings_bind.  Connect something_changedCB to
 	"changed".
 
 	* xgselect.c: Add defined (HAVE_GSETTINGS).
@@ -270,8 +270,8 @@
 	min_width/height (Bug#8919).
 
 	* gtkutil.c (xg_create_frame_widgets): Pass f to emacs_fixed_new.
-	(x_wm_set_size_hint): Remove call to emacs_fixed_set_min_size. Fix
-	indentation.
+	(x_wm_set_size_hint): Remove call to emacs_fixed_set_min_size.
+	Fix indentation.
 
 2011-06-26  Eli Zaretskii  <eliz@gnu.org>
 
@@ -1832,7 +1832,7 @@
 	and %.0c.  Fix bug with strchr succeeding on '\0' when looking for
 	flags.  Fix bug with (format "%c" 256.0).  Avoid integer overflow when
 	formatting out-of-range floating point numbers with int
-	formats. (Bug#8668)
+	formats.  (Bug#8668)
 
 	* lisp.h (FIXNUM_OVERFLOW_P): Work even if arg is a NaN.
 
@@ -2796,9 +2796,9 @@
 	:verify-hostname-error, :verify-error, and :verify-flags
 	parameters of `gnutls-boot' and documented those parameters in the
 	docstring.  Start callback support.
-	(emacs_gnutls_handshake): Add Woe32 support. Retry handshake
-	unless a fatal error occured. Call gnutls_alert_send_appropriate
-	on error. Return error code.
+	(emacs_gnutls_handshake): Add Woe32 support.  Retry handshake
+	unless a fatal error occurred.  Call gnutls_alert_send_appropriate
+	on error.  Return error code.
 	(emacs_gnutls_write): Call emacs_gnutls_handle_error.
 	(emacs_gnutls_read): Likewise.
 	(Fgnutls_boot): Return handshake error code.

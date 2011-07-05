@@ -163,8 +163,8 @@ Anything less might crash Emacs.")
 
 (defcustom window-min-height 4
   "The minimum number of lines of any window.
-The value has to accomodate a mode- or header-line if present.  A
-value less than `window-safe-min-height' is ignored.  The value
+The value has to accommodate a mode- or header-line if present.
+A value less than `window-safe-min-height' is ignored.  The value
 of this variable is honored when windows are resized or split.
 
 Applications should never rebind this variable.  To resize a
@@ -3380,7 +3380,7 @@ WINDOW must be an iso-combination."
 	    (balance-windows-2 window horizontal)
 	  (let ((size (window-new-total window)))
 	    (while sub
-	      (set-window-new-total sub size) 
+	      (set-window-new-total sub size)
 	      (balance-windows-1 sub horizontal)
 	      (setq sub (window-right sub))))))))
 
@@ -5039,7 +5039,7 @@ description."
 	  (setq window
 		(cond
 		 ((eq cand 'largest)
-		  ;; The largest window. 
+		  ;; The largest window.
 		  (get-largest-window frame t))
 		 ((eq cand 'lru)
 		  ;; The least recently used window.
@@ -5750,7 +5750,7 @@ this list as arguments."
 	  (display-buffer-reuse-window
 	   buffer '(nil nil t) '((reuse-window-dedicated . t)))))))
 
-(defsubst display-buffer-same-window (&optional buffer-or-name label) 
+(defsubst display-buffer-same-window (&optional buffer-or-name label)
   "Display buffer specified by BUFFER-OR-NAME in the selected window.
 Another window will be used only if the buffer can't be shown in
 the selected window, usually because it is dedicated to another
@@ -5759,7 +5759,7 @@ buffer.  Optional argument BUFFER-OR-NAME and LABEL are as for
   (interactive "BDisplay buffer in same window:\nP")
   (display-buffer buffer-or-name 'same-window label))
 
-(defsubst display-buffer-same-frame (&optional buffer-or-name label) 
+(defsubst display-buffer-same-frame (&optional buffer-or-name label)
   "Display buffer specified by BUFFER-OR-NAME in a window on the same frame.
 Another frame will be used only if there is no other choice.
 Optional argument BUFFER-OR-NAME and LABEL are as for
@@ -5767,7 +5767,7 @@ Optional argument BUFFER-OR-NAME and LABEL are as for
   (interactive "BDisplay buffer on same frame:\nP")
   (display-buffer buffer-or-name 'same-frame label))
 
-(defsubst display-buffer-other-window (&optional buffer-or-name label) 
+(defsubst display-buffer-other-window (&optional buffer-or-name label)
   "Display buffer specified by BUFFER-OR-NAME in another window.
 The selected window will be used only if there is no other
 choice.  Windows on the selected frame are preferred to windows
@@ -5776,7 +5776,7 @@ for `display-buffer'."
   (interactive "BDisplay buffer in another window:\nP")
   (display-buffer buffer-or-name 'other-window label))
 
-(defun display-buffer-same-frame-other-window (&optional buffer-or-name label) 
+(defun display-buffer-same-frame-other-window (&optional buffer-or-name label)
   "Display buffer specified by BUFFER-OR-NAME in another window on the same frame.
 The selected window or another frame will be used only if there
 is no other choice.  Optional argument BUFFER-OR-NAME and LABEL are
@@ -5853,7 +5853,7 @@ as for `pop-to-buffer'."
   (interactive "BPop to buffer in selected window:\nP")
   (pop-to-buffer buffer-or-name 'same-window norecord label))
 
-(defsubst pop-to-buffer-same-frame (&optional buffer-or-name norecord label) 
+(defsubst pop-to-buffer-same-frame (&optional buffer-or-name norecord label)
   "Pop to buffer specified by BUFFER-OR-NAME in a window on the selected frame.
 Another frame will be used only if there is no other choice.
 Optional arguments BUFFER-OR-NAME, NORECORD and LABEL are as for
@@ -5870,7 +5870,7 @@ LABEL are as for `pop-to-buffer'."
   (interactive "BPop to buffer in another window:\nP")
   (pop-to-buffer buffer-or-name 'other-window norecord))
 
-(defsubst pop-to-buffer-same-frame-other-window (&optional buffer-or-name norecord label) 
+(defsubst pop-to-buffer-same-frame-other-window (&optional buffer-or-name norecord label)
   "Pop to buffer specified by BUFFER-OR-NAME in another window on the selected frame.
 The selected window or another frame will be used only if there
 is no other choice.  Optional arguments BUFFER-OR-NAME, NORECORD
@@ -6908,7 +6908,7 @@ WINDOW was scrolled."
   ;; window and the current buffer when we're done.
   (setq window (window-normalize-live-window window))
   ;; Can't resize a full height or fixed-size window.
-  (unless (or (window-size-fixed-p window) 
+  (unless (or (window-size-fixed-p window)
 	      (window-full-height-p window))
     ;; `with-selected-window' should orderly restore the current buffer.
     (with-selected-window window

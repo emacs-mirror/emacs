@@ -1407,7 +1407,7 @@ This function returns nil if no custom theme specifies a value for VARIABLE."
     (face-spec-recalc face frame)))
 
 
-;;; XEmacs compability functions
+;;; XEmacs compatibility functions
 
 ;; In XEmacs, when you reset a Custom Theme, you have to specify the
 ;; theme to reset it to.  We just apply the next available theme, so
