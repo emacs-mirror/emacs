@@ -1,3 +1,11 @@
+2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.el (dired-mode): Clarify "unmark or unflag" (bug#8770).
+	(dired-unmark-backward): Ditto.
+	(dired-flag-backup-files): Ditto.
+
+	* dired-x.el (dired-mark-sexp): Ditto.
+
 2011-07-06  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmailmm.el: Give entity a new slot, TRUNCATED.
