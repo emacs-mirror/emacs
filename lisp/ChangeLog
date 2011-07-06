@@ -1,5 +1,7 @@
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* simple.el (shell-command-on-region): Fill.
+
 	* dired-aux.el (dired-kill-line): Add a doc string.
 
 	* dabbrev.el (dabbrev-abbrev-char-regexp): Note that nil defaults
