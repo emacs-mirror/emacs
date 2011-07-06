@@ -5206,6 +5206,7 @@ scrolling_window (w, header_line_p)
 	/* Copy on the display.  */
 	if (r->current_y != r->desired_y)
 	  {
+	    rif->clear_window_mouse_face (w);
 	    rif->scroll_run_hook (w, r);
 
 	    /* Invalidate runs that copy from where we copied to.  */

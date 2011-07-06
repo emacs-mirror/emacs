@@ -1,3 +1,48 @@
+2011-06-27  Markus Heiser  <markus.heiser@darmarit.de>  (tiny change)
+
+	* progmodes/gud.el (gud-pdb-marker-regexp): Accept \r char (Bug#5653).
+
+2011-06-27  Jambunathan K  <kjambunathan@gmail.com>
+
+	* tar-mode.el (tar-untar-buffer): Set coding-system-for-write to
+	no-conversion (Bug#8870).
+
+2011-06-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (special-display-popup-frame): Doc fix (Bug#8853).
+
+	* info.el (Info-directory-toc-nodes): Minor doc fix (Bug#8833).
+
+2011-06-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* textmodes/fill.el (default-justification): Add :safe (Bug#8879).
+
+2011-06-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-insert-file-contents): Let-bind
+	buffer-file-type before setting its value, to avoid disastrous
+	global effects on decoding files for DOS/Windows systems.
+	(Bug#8780)
+
+2011-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/python.el (python-after-info-look): Add autoload cookie.
+	(python-unload-function): New function. (Bug#8730, bug#8781)
+
+2011-06-04  Reuben Thomas <rrt@sc3d.org>
+
+	* progmodes/flymake.el (flymake-compilation-prevents-syntax-check):
+	Doc fix (Bug#8713).
+
+2011-06-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* repeat.el (repeat-on-final-keystroke): Fix type (Bug#8696).
+
+2011-06-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-feature-special-hooks):
+	Add `comint-output-filter-functions'.
+
 2011-05-27  Kenichi Handa  <handa@m17n.org>
 
 	* mail/sendmail.el (mail-encode-header): Avoid double encoding by

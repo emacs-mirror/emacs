@@ -1914,6 +1914,7 @@ instance.  Assumes an inferior Python is running."
 
 (declare-function info-lookup-maybe-add-help "info-look" (&rest arg))
 
+;;;###autoload
 (defun python-after-info-look ()
   "Set up info-look for Python.
 Used with `eval-after-load'."
@@ -2894,6 +2895,32 @@ filter."
 
 (defun python-sentinel (proc msg)
   (setq overlay-arrow-position nil))
+
+(defun python-unload-function ()
+  "Unload the Python library."
+  (let* ((default-mode (default-value 'major-mode))
+         (inferior-mode (or (get 'inferior-python-mode 'derived-mode-parent)
+                            default-mode)))
+    (dolist (buffer (buffer-list))
+      (set-buffer buffer)
+      (cond ((memq major-mode '(python-mode jython-mode))
+             (funcall default-mode))
+            ((eq major-mode 'inferior-python-mode)
+             (remove-hook 'comint-preoutput-filter-functions
+                          'python-preoutput-filter t)
+             (remove-hook 'comint-output-filter-functions
+                          'python-comint-output-filter-function t)
+             (let ((proc (get-buffer-process (current-buffer))))
+               (if (not proc)
+                   (funcall default-mode)
+                 (set-process-sentinel proc nil)
+                 (funcall inferior-mode)))))))
+  (setq minor-mode-alist (assq-delete-all 'python-pdbtrack-is-tracking-p
+                                          minor-mode-alist))
+  (dolist (error '("^No symbol" "^Can't shift all lines enough"))
+    (setq debug-ignored-errors (delete error debug-ignored-errors)))
+  ;; continue standard unloading
+  nil)
 
 (provide 'python)
 (provide 'python-21)

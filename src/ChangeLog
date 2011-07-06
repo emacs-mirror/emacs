@@ -1,3 +1,21 @@
+2011-06-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (scrolling_window): Before scrolling, turn off a
+	mouse-highlight in the window being scrolled.
+
+2011-06-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* nsmenu.m: Replace all uses of XVECTOR with ASIZE and AREF.  (Bug#8839)
+
+2011-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.c (main): Warn when starting a GTK emacs in daemon mode.
+
+2011-06-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* fringe.c (update_window_fringes): Don't update overlay arrow bitmap
+	in the current matrix if keep_current_p is non-zero.
+
 2011-05-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* dispextern.h (struct glyph_row): New member fringe_bitmap_periodic_p.

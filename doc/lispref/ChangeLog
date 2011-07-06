@@ -1,3 +1,36 @@
+2011-07-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* customize.texi (Composite Types): Move alist and plist to here
+	from Simple Types (Bug#7545).
+
+	* elisp.texi (Top): Update menu description.
+
+	* display.texi (Face Attributes): Document negative line widths
+	(Bug#6113).
+
+2011-06-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymaps.texi (Searching Keymaps):
+	* display.texi (Overlay Properties): Fix errors in 2011-05-29
+	change.  Suggested by Johan Bockgård.
+
+2011-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.texi (Accessing Documentation):
+	* display.texi (Pixel Specification):
+	* processes.texi (Serial Ports, Serial Ports):
+	* nonascii.texi (Character Properties, Default Coding Systems):
+	* text.texi (Changing Properties, Special Properties):
+	* windows.texi (Window Start and End):
+	* modes.texi (SMIE Indentation Example, SMIE Tricks):
+	* keymaps.texi (Searching Keymaps, Tool Bar):
+	* minibuf.texi (Basic Completion):
+	* compile.texi (Eval During Compile):
+	* strings.texi (Formatting Strings): Tweaks to avoid overflowing
+	7x9 paper in printed manual.
+
+	* lists.texi (Sets And Lists): Fix misplaced text.
+
 2011-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* modes.texi (Region to Refontify): Rename from "Region to Fontify".

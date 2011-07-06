@@ -160,7 +160,7 @@ BUFFER in a window of the selected frame.
 
 If ARGS is a list whose car is a symbol, use (car ARGS) as a
 function to do the work.  Pass it BUFFER as first argument,
-and (cdr ARGS) as second."
+and (cdr ARGS) as the rest of the arguments."
   (if (and args (symbolp (car args)))
       (apply (car args) buffer (cdr args))
     (let ((window (get-buffer-window buffer 0)))
