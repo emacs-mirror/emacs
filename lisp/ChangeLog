@@ -1,5 +1,8 @@
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mail/sendmail.el (send-mail-function): Change the default to
+	`sendmail-query-once'.
+
 	* net/network-stream.el (network-stream-open-starttls): Try using
 	a plain connection even if the server offered STARTTLS, and we
 	kinda wanted to use it, if Emacs doesn't have any STARTTLS
