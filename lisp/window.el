@@ -5797,31 +5797,30 @@ If this command uses another frame, it will also select that frame."
 (defun pop-to-buffer (&optional buffer-or-name specifiers norecord label)
   "Display buffer specified by BUFFER-OR-NAME and select the window used.
 Optional argument BUFFER-OR-NAME may be a buffer, a string \(a
-buffer name), or nil.  If BUFFER-OR-NAME is a string not naming
-an existent buffer, create a buffer with that name.  If
+buffer name), or nil.  If BUFFER-OR-NAME is a string naming a buffer
+that does not exist, create a buffer with that name.  If
 BUFFER-OR-NAME is nil or omitted, display the current buffer.
 Interactively, prompt for the buffer name using the minibuffer.
 
-Optional second argument SPECIFIERS must be a list of buffer
-display specifiers, a single location specifier, `t' which means
-the latter means to display the buffer in any but the selected
-window, or nil which means to exclusively apply the specifiers
-customized by the user.
+Optional second argument SPECIFIERS can be: a list of buffer
+display specifiers (see `display-buffer-alist'); a single
+location specifier; t, which means to display the buffer in any
+but the selected window; or nil, which means to exclusively apply
+the specifiers customized by the user.  See `display-buffer' for
+more details.
 
-Optional argument NORECORD non-nil means do not put the buffer
-specified by BUFFER-OR-NAME at the front of the buffer list and
-do not make the window displaying it the most recently selected
-one.
+Optional argument NORECORD non-nil means do not put the displayed
+buffer at the front of the buffer list, and do not make the window
+displaying it the most recently selected one.
 
 The optional argument LABEL, if non-nil, is a symbol specifying the
 display purpose.  Applications should set this when the buffer
-shall be displayed in a special way but BUFFER-OR-NAME does not
+should be displayed in a special way but BUFFER-OR-NAME does not
 identify the buffer as special.  Buffers that typically fit into
 this category are those whose names have been derived from the
 name of the file they are visiting.
 
-Return the buffer specified by BUFFER-OR-NAME or nil if
-displaying the buffer failed.
+Returns the displayed buffer, or nil if displaying the buffer failed.
 
 This uses the function `display-buffer' as a subroutine; see the
 documentations of `display-buffer' and `display-buffer-alist' for

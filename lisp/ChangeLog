@@ -1,3 +1,7 @@
+2011-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* window.el (pop-to-buffer): Doc fix.
+
 2011-07-06  Markus Heiser  <markus.heiser@darmarit.de>  (tiny change)
 
 	* progmodes/gud.el (gud-pdb-marker-regexp): Accept \r char (Bug#5653).
