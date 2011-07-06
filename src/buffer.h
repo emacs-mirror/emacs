@@ -612,6 +612,7 @@ struct buffer
   /* Everything from here down must be a Lisp_Object.  */
   /* buffer-local Lisp variables start at `undo_list',
      tho only the ones from `name' on are GC'd normally.  */
+  #define FIRST_FIELD_PER_BUFFER undo_list
 
   /* Changes in the buffer are recorded here for undo.
      t means don't record anything.
@@ -846,6 +847,9 @@ struct buffer
      t means to use hollow box cursor.
      See `cursor-type' for other values.  */
   Lisp_Object BUFFER_INTERNAL_FIELD (cursor_in_non_selected_windows);
+
+  /* This must be the last field in the above list.  */
+  #define LAST_FIELD_PER_BUFFER cursor_in_non_selected_windows
 };
 
 

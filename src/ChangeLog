@@ -1,3 +1,13 @@
+2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove unportable assumption about struct layout (Bug#8884).
+	* buffer.c (clone_per_buffer_values): Don't assume that
+	sizeof (struct buffer) is a multiple of sizeof (Lisp_Object).
+	This isn't true in general, and it's particularly not true
+	if Emacs is configured with --with-wide-int.
+	* buffer.h (FIRST_FIELD_PER_BUFFER, LAST_FIELD_PER_BUFFER):
+	New macros, used in the buffer.c change.
+
 2011-07-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c: Use both GConf and GSettings if both are available.
