@@ -731,12 +731,18 @@ it is displayed along with the global value."
 			  (delete-region (1- from) from)))))))
 	    (terpri)
 	    (when locus
-	      (if (bufferp locus)
-		  (princ (format "%socal in buffer %s; "
-				 (if (get variable 'permanent-local)
-				     "Permanently l" "L")
-				 (buffer-name)))
-		(princ (format "It is a frame-local variable; ")))
+	      (cond
+               ((bufferp locus)
+                (princ (format "%socal in buffer %s; "
+                               (if (get variable 'permanent-local)
+                                   "Permanently l" "L")
+                               (buffer-name))))
+               ((framep locus)
+                (princ (format "It is a frame-local variable; ")))
+               ((terminal-live-p locus)
+                (princ (format "It is a terminal-local variable; ")))
+               (t
+                (princ (format "It is local to %S" locus))))
 	      (if (not (default-boundp variable))
 		  (princ "globally void")
 		(let ((val (default-value variable)))

@@ -2375,10 +2375,8 @@ from the parent process and its tty file descriptors.  */)
 void
 syms_of_emacs (void)
 {
-  Qfile_name_handler_alist = intern_c_string ("file-name-handler-alist");
-  staticpro (&Qfile_name_handler_alist);
-  Qrisky_local_variable = intern_c_string ("risky-local-variable");
-  staticpro (&Qrisky_local_variable);
+  DEFSYM (Qfile_name_handler_alist, "file-name-handler-alist");
+  DEFSYM (Qrisky_local_variable, "risky-local-variable");
 
 #ifndef CANNOT_DUMP
   defsubr (&Sdump_emacs);

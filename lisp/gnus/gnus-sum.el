@@ -7298,6 +7298,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (run-hooks 'gnus-summary-prepare-exit-hook)
       (when (gnus-buffer-live-p gnus-article-buffer)
 	(with-current-buffer gnus-article-buffer
+	  (gnus-article-stop-animations)
 	  (mm-destroy-parts gnus-article-mime-handles)
 	  ;; Set it to nil for safety reason.
 	  (setq gnus-article-mime-handle-alist nil)
@@ -9049,7 +9050,12 @@ variable."
       (dolist (method gnus-refer-article-method)
 	(push (if (eq 'current method)
 		  gnus-current-select-method
-		method)
+		(if (eq 'nnir (car method))
+		    (list
+		     'nnir
+		     (or (cadr method)
+			 (gnus-method-to-server gnus-current-select-method)))
+		  method))
 	      out))
       (nreverse out)))
    ;; One single select method.
@@ -9579,6 +9585,7 @@ C-u g', show the raw article."
       ;; Destroy any MIME parts.
       (when (gnus-buffer-live-p gnus-article-buffer)
 	(with-current-buffer gnus-article-buffer
+	  (gnus-article-stop-animations)
 	  (mm-destroy-parts gnus-article-mime-handles)
 	  ;; Set it to nil for safety reason.
 	  (setq gnus-article-mime-handle-alist nil)

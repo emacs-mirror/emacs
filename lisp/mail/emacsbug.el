@@ -150,8 +150,8 @@ Prompts for bug subject.  Leaves you in a mail buffer."
         ;; Put these properties on semantically-void text.
         ;; report-emacs-bug-hook deletes these regions before sending.
         (prompt-properties '(field emacsbug-prompt
-                                   intangible but-helpful
-                                   rear-nonsticky t))
+                             intangible but-helpful
+                             rear-nonsticky t))
 	(can-insert-mail (or (report-emacs-bug-can-use-xdg-email)
 			     (report-emacs-bug-can-use-osx-open)))
         user-point message-end-point)
@@ -175,25 +175,36 @@ Prompts for bug subject.  Leaves you in a mail buffer."
       (backward-char (length signature)))
     (unless report-emacs-bug-no-explanations
       ;; Insert warnings for novice users.
-      (when (string-match "@gnu\\.org$" report-emacs-bug-address)
-	(insert "This bug report will be sent to the Free Software Foundation,\n")
-	(let ((pos (point)))
-	  (insert "not to your local site managers!")
-          (overlay-put (make-overlay pos (point)) 'face 'highlight)))
-      (insert "\nPlease write in ")
-      (let ((pos (point)))
-	(insert "English")
-        (overlay-put (make-overlay pos (point)) 'face 'highlight))
-      (insert " if possible, because the Emacs maintainers
-usually do not have translators to read other languages for them.\n\n")
-      (insert "Please check that the From: line gives an address where you can be reached.\n")
-      (insert (format "Your report will be posted to the %s mailing list"
-		      report-emacs-bug-address))
-      (insert "\nand the gnu.emacs.bug news group, and at http://debbugs.gnu.org.\n\n"))
+      (if (not (equal "bug-gnu-emacs@gnu.org" report-emacs-bug-address))
+	  (insert (format "The report will be sent to %s.\n\n"
+			  report-emacs-bug-address))
+	(insert "This bug report will be sent to the ")
+	(insert-button
+	 "Bug-GNU-Emacs"
+	 'face 'link
+	 'help-echo (concat "mouse-2, RET: Follow this link")
+	 'action (lambda (button)
+		   (browse-url "http://lists.gnu.org/archive/html/bug-gnu-emacs/"))
+	 'follow-link t)
+	(insert " mailing list\nand the GNU bug tracker at ")
+	(insert-button
+	 "debbugs.gnu.org"
+	 'face 'link
+	 'help-echo (concat "mouse-2, RET: Follow this link")
+	 'action (lambda (button)
+		   (browse-url "http://debbugs.gnu.org/"))
+	 'follow-link t)
 
-    (insert "Please describe exactly what actions triggered the bug\n"
-	    "and the precise symptoms of the bug.  If you can, give\n"
-	    "a recipe starting from `emacs -Q':\n\n")
+	(insert ".  Please check that
+the From: line contains a valid email address.  After a delay of up
+to one day, you should receive an acknowledgement at that address.
+
+Please write in English if possible, as the Emacs maintainers
+usually do not have translators for other languages.\n\n")))
+
+    (insert "Please describe exactly what actions triggered the bug, and\n"
+	    "the precise symptoms of the bug.  If you can, give a recipe\n"
+	    "starting from `emacs -Q':\n\n")
     (add-text-properties (save-excursion
                            (rfc822-goto-eoh)
                            (line-beginning-position 2))

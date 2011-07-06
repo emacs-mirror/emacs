@@ -1477,14 +1477,10 @@ Internal use only, use `play-sound' instead.  */)
 void
 syms_of_sound (void)
 {
-  QCdevice = intern_c_string(":device");
-  staticpro (&QCdevice);
-  QCvolume = intern_c_string (":volume");
-  staticpro (&QCvolume);
-  Qsound = intern_c_string ("sound");
-  staticpro (&Qsound);
-  Qplay_sound_functions = intern_c_string ("play-sound-functions");
-  staticpro (&Qplay_sound_functions);
+  DEFSYM (QCdevice, ":device");
+  DEFSYM (QCvolume, ":volume");
+  DEFSYM (Qsound, "sound");
+  DEFSYM (Qplay_sound_functions, "play-sound-functions");
 
   defsubr (&Splay_sound_internal);
 }

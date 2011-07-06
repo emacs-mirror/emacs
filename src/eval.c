@@ -32,25 +32,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xterm.h"
 #endif
 
-/* This definition is duplicated in alloc.c and keyboard.c.  */
-/* Putting it in lisp.h makes cc bomb out!  */
-
 struct backtrace
 {
   struct backtrace *next;
   Lisp_Object *function;
   Lisp_Object *args;	/* Points to vector of args.  */
-#define NARGS_BITS (BITS_PER_INT - 2)
-  /* Let's not use size_t because we want to allow negative values (for
-     UNEVALLED).  Also let's steal 2 bits so we save a word (or more for
-     alignment).  In any case I doubt Emacs would survive a function call with
-     more than 500M arguments.  */
-  int nargs : NARGS_BITS; /* Length of vector.
-			     If nargs is UNEVALLED, args points
-			     to slot holding list of unevalled args.  */
-  char evalargs : 1;
+  ptrdiff_t nargs;	/* Length of vector.  */
   /* Nonzero means call value of debugger when done with this operation.  */
-  char debug_on_exit : 1;
+  unsigned int debug_on_exit : 1;
 };
 
 static struct backtrace *backtrace_list;
@@ -1651,8 +1640,7 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
 }
 
 
-static Lisp_Object find_handler_clause (Lisp_Object, Lisp_Object,
-					Lisp_Object, Lisp_Object);
+static Lisp_Object find_handler_clause (Lisp_Object, Lisp_Object);
 static int maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig,
 				Lisp_Object data);
 
@@ -1728,8 +1716,7 @@ See also the function `condition-case'.  */)
 
   for (h = handlerlist; h; h = h->next)
     {
-      clause = find_handler_clause (h->handler, conditions,
-				    error_symbol, data);
+      clause = find_handler_clause (h->handler, conditions);
       if (!NILP (clause))
 	break;
     }
@@ -1900,8 +1887,10 @@ skip_debugger (Lisp_Object conditions, Lisp_Object data)
 }
 
 /* Call the debugger if calling it is currently enabled for CONDITIONS.
-   SIG and DATA describe the signal, as in find_handler_clause.  */
-
+   SIG and DATA describe the signal.  There are two ways to pass them:
+    = SIG is the error symbol, and DATA is the rest of the data.
+    = SIG is nil, and DATA is (SYMBOL . REST-OF-DATA).
+      This is for memory-full errors only.  */
 static int
 maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig, Lisp_Object data)
 {
@@ -1928,19 +1917,8 @@ maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig, Lisp_Object data)
   return 0;
 }
 
-/* Value of Qlambda means we have called debugger and user has continued.
-   There are two ways to pass SIG and DATA:
-    = SIG is the error symbol, and DATA is the rest of the data.
-    = SIG is nil, and DATA is (SYMBOL . REST-OF-DATA).
-       This is for memory-full errors only.
-
-   We need to increase max_specpdl_size temporarily around
-   anything we do that can push on the specpdl, so as not to get
-   a second error here in case we're handling specpdl overflow.  */
-
 static Lisp_Object
-find_handler_clause (Lisp_Object handlers, Lisp_Object conditions,
-		     Lisp_Object sig, Lisp_Object data)
+find_handler_clause (Lisp_Object handlers, Lisp_Object conditions)
 {
   register Lisp_Object h;
 
@@ -2291,7 +2269,6 @@ eval_sub (Lisp_Object form)
   backtrace.function = &original_fun; /* This also protects them from gc.  */
   backtrace.args = &original_args;
   backtrace.nargs = UNEVALLED;
-  backtrace.evalargs = 1;
   backtrace.debug_on_exit = 0;
 
   if (debug_on_next_call)
@@ -2325,10 +2302,7 @@ eval_sub (Lisp_Object form)
 	xsignal2 (Qwrong_number_of_arguments, original_fun, numargs);
 
       else if (XSUBR (fun)->max_args == UNEVALLED)
-	{
-	  backtrace.evalargs = 0;
-	  val = (XSUBR (fun)->function.aUNEVALLED) (args_left);
-	}
+	val = (XSUBR (fun)->function.aUNEVALLED) (args_left);
       else if (XSUBR (fun)->max_args == MANY)
 	{
 	  /* Pass a vector of evaluated arguments.  */
@@ -2984,7 +2958,6 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   backtrace.function = &args[0];
   backtrace.args = &args[1];
   backtrace.nargs = nargs - 1;
-  backtrace.evalargs = 0;
   backtrace.debug_on_exit = 0;
 
   if (debug_on_next_call)
@@ -3141,7 +3114,6 @@ apply_lambda (Lisp_Object fun, Lisp_Object args)
 
   backtrace_list->args = arg_vector;
   backtrace_list->nargs = i;
-  backtrace_list->evalargs = 0;
   tem = funcall_lambda (fun, numargs, arg_vector);
 
   /* Do the debug-on-exit now, while arg_vector still exists.  */
@@ -3190,7 +3162,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	   shouldn't bind any arguments, instead just call the byte-code
 	   interpreter directly; it will push arguments as necessary.
 
-	   Byte-code objects with either a non-existant, or a nil value for
+	   Byte-code objects with either a non-existent, or a nil value for
 	   the `push args' slot (the default), have dynamically-bound
 	   arguments, and use the argument-binding code below instead (as do
 	   all interpreted functions, even lexically bound ones).  */
@@ -3694,46 +3666,23 @@ To prevent this happening, set `quit-flag' to nil
 before making `inhibit-quit' nil.  */);
   Vinhibit_quit = Qnil;
 
-  Qinhibit_quit = intern_c_string ("inhibit-quit");
-  staticpro (&Qinhibit_quit);
-
-  Qautoload = intern_c_string ("autoload");
-  staticpro (&Qautoload);
-
-  Qdebug_on_error = intern_c_string ("debug-on-error");
-  staticpro (&Qdebug_on_error);
-
-  Qmacro = intern_c_string ("macro");
-  staticpro (&Qmacro);
-
-  Qdeclare = intern_c_string ("declare");
-  staticpro (&Qdeclare);
+  DEFSYM (Qinhibit_quit, "inhibit-quit");
+  DEFSYM (Qautoload, "autoload");
+  DEFSYM (Qdebug_on_error, "debug-on-error");
+  DEFSYM (Qmacro, "macro");
+  DEFSYM (Qdeclare, "declare");
 
   /* Note that the process handling also uses Qexit, but we don't want
      to staticpro it twice, so we just do it here.  */
-  Qexit = intern_c_string ("exit");
-  staticpro (&Qexit);
+  DEFSYM (Qexit, "exit");
 
-  Qinteractive = intern_c_string ("interactive");
-  staticpro (&Qinteractive);
-
-  Qcommandp = intern_c_string ("commandp");
-  staticpro (&Qcommandp);
-
-  Qdefun = intern_c_string ("defun");
-  staticpro (&Qdefun);
-
-  Qand_rest = intern_c_string ("&rest");
-  staticpro (&Qand_rest);
-
-  Qand_optional = intern_c_string ("&optional");
-  staticpro (&Qand_optional);
-
-  Qclosure = intern_c_string ("closure");
-  staticpro (&Qclosure);
-
-  Qdebug = intern_c_string ("debug");
-  staticpro (&Qdebug);
+  DEFSYM (Qinteractive, "interactive");
+  DEFSYM (Qcommandp, "commandp");
+  DEFSYM (Qdefun, "defun");
+  DEFSYM (Qand_rest, "&rest");
+  DEFSYM (Qand_optional, "&optional");
+  DEFSYM (Qclosure, "closure");
+  DEFSYM (Qdebug, "debug");
 
   DEFVAR_LISP ("debug-on-error", Vdebug_on_error,
 	       doc: /* *Non-nil means enter debugger if an error is signaled.
@@ -3807,9 +3756,7 @@ The value the function returns is not used.  */);
    Every element of this list can be either a cons (VAR . VAL)
    specifying a lexical binding, or a single symbol VAR indicating
    that this variable should use dynamic scoping.  */
-  Qinternal_interpreter_environment
-    = intern_c_string ("internal-interpreter-environment");
-  staticpro (&Qinternal_interpreter_environment);
+  DEFSYM (Qinternal_interpreter_environment, "internal-interpreter-environment");
   DEFVAR_LISP ("internal-interpreter-environment",
 		Vinternal_interpreter_environment,
 	       doc: /* If non-nil, the current lexical environment of the lisp interpreter.
@@ -3821,8 +3768,7 @@ alist of active lexical bindings.  */);
      (Just imagine if someone makes it buffer-local).  */
   Funintern (Qinternal_interpreter_environment, Qnil);
 
-  Vrun_hooks = intern_c_string ("run-hooks");
-  staticpro (&Vrun_hooks);
+  DEFSYM (Vrun_hooks, "run-hooks");
 
   staticpro (&Vautoload_queue);
   Vautoload_queue = Qnil;

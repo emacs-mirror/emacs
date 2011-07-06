@@ -110,38 +110,16 @@ of SECS seconds since the epoch.  SECS may be a fraction."
 (defun timer-relative-time (time secs &optional usecs)
   "Advance TIME by SECS seconds and optionally USECS microseconds.
 SECS may be either an integer or a floating point number."
-  ;; FIXME: we should just use (time-add time (list 0 secs usecs))
-  (let ((high (car time))
-	(low (if (consp (cdr time)) (nth 1 time) (cdr time)))
-	(micro (if (numberp (car-safe (cdr-safe (cdr time))))
-		   (nth 2 time)
-		 0)))
-    ;; Add
-    (if usecs (setq micro (+ micro usecs)))
-    (if (floatp secs)
-	(setq micro (+ micro (floor (* 1000000 (- secs (floor secs)))))))
-    (setq low (+ low (floor secs)))
-
-    ;; Normalize
-    ;; `/' rounds towards zero while `mod' returns a positive number,
-    ;; so we can't rely on (= a (+ (* 100 (/ a 100)) (mod a 100))).
-    (setq low (+ low (/ micro 1000000) (if (< micro 0) -1 0)))
-    (setq micro (mod micro 1000000))
-    (setq high (+ high (/ low 65536) (if (< low 0) -1 0)))
-    (setq low (logand low 65535))
-
-    (list high low (and (/= micro 0) micro))))
+  (let ((delta (if (floatp secs)
+		   (seconds-to-time secs)
+		 (list (floor secs 65536) (mod secs 65536)))))
+    (if usecs
+	(setq delta (time-add delta (list 0 0 usecs))))
+    (time-add time delta)))
 
 (defun timer--time-less-p (t1 t2)
   "Say whether time value T1 is less than time value T2."
-  ;; FIXME just use time-less-p.
-  (destructuring-bind (high1 low1 micro1) (timer--time t1)
-    (destructuring-bind (high2 low2 micro2) (timer--time t2)
-      (or (< high1 high2)
-          (and (= high1 high2)
-               (or (< low1 low2)
-                   (and (= low1 low2)
-                        (< micro1 micro2))))))))
+  (time-less-p (timer--time t1) (timer--time t2)))
 
 (defun timer-inc-time (timer secs &optional usecs)
   "Increment the time set in TIMER by SECS seconds and USECS microseconds.
@@ -273,10 +251,7 @@ how many will really happen.")
   "Calculate number of seconds from when TIMER will run, until TIME.
 TIMER is a timer, and stands for the time when its next repeat is scheduled.
 TIME is a time-list."
-  ;; FIXME: (float-time (time-subtract (timer--time timer) time))
-  (let ((high (- (car time) (timer--high-seconds timer)))
-	(low (- (nth 1 time) (timer--low-seconds timer))))
-    (+ low (* high 65536))))
+  (float-time (time-subtract time (timer--time timer))))
 
 (defun timer-event-handler (timer)
   "Call the handler for the timer TIMER.

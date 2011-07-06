@@ -684,6 +684,12 @@ For example, if the current buffer name is @samp{foo},
 returns @code{"The buffer is foo"}.
 @end defmac
 
+@defun pp object &optional stream
+This function outputs @var{object} to @var{stream}, just like
+@code{prin1}, but does it in a more ``pretty'' way.  That is, it'll
+indent and fill the object to make it more readable for humans.
+@end defun
+
 @node Output Variables
 @section Variables Affecting Output
 @cindex output-controlling variables

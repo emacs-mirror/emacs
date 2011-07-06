@@ -159,8 +159,9 @@ int print_output_debug_flag EXTERNALLY_VISIBLE = 1;
 	 }								\
        else								\
 	 {								\
-           print_buffer_size = 1000;					\
-           print_buffer = (char *) xmalloc (print_buffer_size);		\
+	   ptrdiff_t new_size = 1000;					\
+	   print_buffer = (char *) xmalloc (new_size);			\
+	   print_buffer_size = new_size;				\
 	   free_print_buffer = 1;					\
 	 }								\
        print_buffer_pos = 0;						\
@@ -235,9 +236,15 @@ printchar (unsigned int ch, Lisp_Object fun)
 
       if (NILP (fun))
 	{
-	  if (print_buffer_pos_byte + len >= print_buffer_size)
-	    print_buffer = (char *) xrealloc (print_buffer,
-					      print_buffer_size *= 2);
+	  if (print_buffer_size - len <= print_buffer_pos_byte)
+	    {
+	      ptrdiff_t new_size;
+	      if (STRING_BYTES_BOUND / 2 < print_buffer_size)
+		string_overflow ();
+	      new_size = print_buffer_size * 2;
+	      print_buffer = (char *) xrealloc (print_buffer, new_size);
+	      print_buffer_size = new_size;
+	    }
 	  memcpy (print_buffer + print_buffer_pos_byte, str, len);
 	  print_buffer_pos += 1;
 	  print_buffer_pos_byte += len;
@@ -280,11 +287,14 @@ strout (const char *ptr, EMACS_INT size, EMACS_INT size_byte,
 
   if (NILP (printcharfun))
     {
-      if (print_buffer_pos_byte + size_byte > print_buffer_size)
+      if (print_buffer_size - size_byte < print_buffer_pos_byte)
 	{
-	  print_buffer_size = print_buffer_size * 2 + size_byte;
-	  print_buffer = (char *) xrealloc (print_buffer,
-					    print_buffer_size);
+	  ptrdiff_t new_size;
+	  if (STRING_BYTES_BOUND / 2 - size_byte < print_buffer_size)
+	    string_overflow ();
+	  new_size = print_buffer_size * 2 + size_byte;
+	  print_buffer = (char *) xrealloc (print_buffer, new_size);
+	  print_buffer_size = new_size;
 	}
       memcpy (print_buffer + print_buffer_pos_byte, ptr, size_byte);
       print_buffer_pos += size;
@@ -2059,8 +2069,7 @@ print_interval (INTERVAL interval, Lisp_Object printcharfun)
 void
 syms_of_print (void)
 {
-  Qtemp_buffer_setup_hook = intern_c_string ("temp-buffer-setup-hook");
-  staticpro (&Qtemp_buffer_setup_hook);
+  DEFSYM (Qtemp_buffer_setup_hook, "temp-buffer-setup-hook");
 
   DEFVAR_LISP ("standard-output", Vstandard_output,
 	       doc: /* Output stream `print' uses by default for outputting a character.
@@ -2069,8 +2078,7 @@ It may also be a buffer (output is inserted before point)
 or a marker (output is inserted and the marker is advanced)
 or the symbol t (output appears in the echo area).  */);
   Vstandard_output = Qt;
-  Qstandard_output = intern_c_string ("standard-output");
-  staticpro (&Qstandard_output);
+  DEFSYM (Qstandard_output, "standard-output");
 
   DEFVAR_LISP ("float-output-format", Vfloat_output_format,
 	       doc: /* The format descriptor string used to print floats.
@@ -2089,8 +2097,7 @@ decimal point.  0 is not allowed with `e' or `g'.
 A value of nil means to use the shortest notation
 that represents the number without losing information.  */);
   Vfloat_output_format = Qnil;
-  Qfloat_output_format = intern_c_string ("float-output-format");
-  staticpro (&Qfloat_output_format);
+  DEFSYM (Qfloat_output_format, "float-output-format");
 
   DEFVAR_LISP ("print-length", Vprint_length,
 	       doc: /* Maximum length of list to print before abbreviating.
@@ -2195,17 +2202,10 @@ priorities.  */);
   defsubr (&Sredirect_debugging_output);
 #endif
 
-  Qexternal_debugging_output = intern_c_string ("external-debugging-output");
-  staticpro (&Qexternal_debugging_output);
-
-  Qprint_escape_newlines = intern_c_string ("print-escape-newlines");
-  staticpro (&Qprint_escape_newlines);
-
-  Qprint_escape_multibyte = intern_c_string ("print-escape-multibyte");
-  staticpro (&Qprint_escape_multibyte);
-
-  Qprint_escape_nonascii = intern_c_string ("print-escape-nonascii");
-  staticpro (&Qprint_escape_nonascii);
+  DEFSYM (Qexternal_debugging_output, "external-debugging-output");
+  DEFSYM (Qprint_escape_newlines, "print-escape-newlines");
+  DEFSYM (Qprint_escape_multibyte, "print-escape-multibyte");
+  DEFSYM (Qprint_escape_nonascii, "print-escape-nonascii");
 
   print_prune_charset_plist = Qnil;
   staticpro (&print_prune_charset_plist);

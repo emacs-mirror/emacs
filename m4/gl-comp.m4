@@ -37,6 +37,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module crypto/sha512:
   # Code from module dosname:
   # Code from module dtoastr:
+  # Code from module dup2:
   # Code from module extensions:
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   # Code from module filemode:
@@ -102,6 +103,8 @@ gl_SHA1
 gl_SHA256
 gl_SHA512
 AC_REQUIRE([gl_C99_STRTOLD])
+gl_FUNC_DUP2
+gl_UNISTD_MODULE_INDICATOR([dup2])
 gl_FILEMODE
 gl_GETLOADAVG
 if test $HAVE_GETLOADAVG = 0; then
@@ -205,6 +208,9 @@ gl_SYS_STAT_MODULE_INDICATOR([stat])
       gl_gnulib_enabled_stat=true
       if $condition; then
         func_gl_gnulib_m4code_dosname
+      fi
+      if $condition; then
+        func_gl_gnulib_m4code_verify
       fi
     fi
   }
@@ -401,6 +407,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/careadlinkat.h
   lib/dosname.h
   lib/dtoastr.c
+  lib/dup2.c
   lib/filemode.c
   lib/filemode.h
   lib/ftoastr.c
@@ -450,6 +457,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/00gnulib.m4
   m4/alloca.m4
   m4/c-strtod.m4
+  m4/dup2.m4
   m4/extensions.m4
   m4/filemode.m4
   m4/getloadavg.m4

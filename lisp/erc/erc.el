@@ -1555,26 +1555,33 @@ symbol, it may have these values:
 (defun erc-generate-new-buffer-name (server port target &optional proc)
   "Create a new buffer name based on the arguments."
   (when (numberp port) (setq port (number-to-string port)))
-  (let* ((buf-name (or target
-		       (or (let ((name (concat server ":" port)))
-			     (when (> (length name) 1)
-			       name))
-			   ; This fallback should in fact never happen
-			   "*erc-server-buffer*"))))
+  (let ((buf-name (or target
+                      (or (let ((name (concat server ":" port)))
+                            (when (> (length name) 1)
+                              name))
+                          ;; This fallback should in fact never happen
+                          "*erc-server-buffer*")))
+        buffer-name)
     ;; Reuse existing buffers, but not if the buffer is a connected server
     ;; buffer and not if its associated with a different server than the
     ;; current ERC buffer.
-    (if (and erc-reuse-buffers
-	     (get-buffer buf-name)
-	     (or target
-		 (with-current-buffer (get-buffer buf-name)
-		   (and (erc-server-buffer-p)
-			(not (erc-server-process-alive)))))
-	     (with-current-buffer (get-buffer buf-name)
-	       (and (string= erc-session-server server)
-		    (erc-port-equal erc-session-port port))))
-	buf-name
-      (generate-new-buffer-name buf-name))))
+    ;; if buf-name is taken by a different connection (or by something !erc)
+    ;; then see if "buf-name/server" meets the same criteria
+    (dolist (candidate (list buf-name (concat buf-name "/" server))) 
+      (if (and (not buffer-name)
+               erc-reuse-buffers
+               (get-buffer candidate)
+               (or target
+                   (with-current-buffer (get-buffer candidate)
+                     (and (erc-server-buffer-p)
+                          (not (erc-server-process-alive)))))
+               (with-current-buffer (get-buffer candidate)
+                 (and (string= erc-session-server server)
+                      (erc-port-equal erc-session-port port))))
+          (setq buffer-name candidate)))
+    ;; if buffer-name is unset, neither candidate worked out for us,
+    ;; fallback to the old <N> uniquification method:
+    (or buffer-name (generate-new-buffer-name buf-name)) ))
 
 (defun erc-get-buffer-create (server port target &optional proc)
   "Create a new buffer based on the arguments."
@@ -2362,7 +2369,7 @@ If STRING is nil, the function does nothing."
 	(cond ((integerp elt)		; POSITION
 	       (incf (car list) shift))
 	      ((or (atom elt)		; nil, EXTENT
-		   ;; (eq t (car elt))	; (t HIGH . LOW)
+		   ;; (eq t (car elt))	; (t . TIME)
 		   (markerp (car elt)))	; (MARKER . DISTANCE)
 	       nil)
 	      ((integerp (car elt))	; (BEGIN . END)
@@ -6493,4 +6500,3 @@ Otherwise, connect to HOST:PORT as USER and /join CHANNEL."
 ;; indent-tabs-mode: t
 ;; tab-width: 8
 ;; End:
-

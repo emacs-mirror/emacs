@@ -13,15 +13,10 @@ to the FSF.
 
 * Tentative plan for Emacs-24
 
-** Bidi
-** lexbind: I haven't checked the status of the code recently, so
-  I don't know how realistic it is to include it.  But it's been around
-  for a long time, and I trust Miles, so I have hope.
 ** concurrency: including it as an "experimental" compile-time option
   sounds good.  Of course there might still be big questions around
   "which form of concurrency" we'll want.
 ** Overhaul of customize: sounds wonderful.
-** some kind of color-theme: agreed.
 ** better support for dynamic embedded graphics: I like this idea (my
   mpc.el code could use it for the volume widget), tho I wonder if the
   resulting efficiency will be sufficient.
@@ -30,7 +25,6 @@ to the FSF.
   and expand.el (any other?) and then advertise/use/improve it.
 ** Improve VC: yes, there's a lot of work to be done there :-(
   And most of it could/should make it into Emacs-23.3.
-** package manager.
 
 ** Random things that cross my mind right now that I'd like to see (some of
 them from my local hacks), but it's not obvious at all whether they'll

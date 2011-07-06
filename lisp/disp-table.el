@@ -94,8 +94,26 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 	(while (< i 256)
 	  (aset vector i (aref dt i))
 	  (setq i (1+ i)))
-	(describe-vector vector))
+	(describe-vector
+	 vector 'display-table-print-array))
       (help-mode))))
+
+(defun display-table-print-array (desc)
+  (insert "[")
+  (let ((column (current-column))
+	(width (window-width))
+	string)
+    (dotimes (i (length desc))
+      (setq string (format "%s" (aref desc i)))
+      (cond
+       ((>= (+ (current-column) (length string) 1)
+	    width)
+	(insert "\n")
+	(insert (make-string column ? )))
+       ((> i 0)
+	(insert " ")))
+      (insert string)))
+  (insert "]\n"))
 
 ;;;###autoload
 (defun describe-current-display-table ()

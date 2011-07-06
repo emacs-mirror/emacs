@@ -33,7 +33,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "buffer.h"
 #include "charset.h"
-#include "character.h"
 #include "coding.h"
 #include "menu.h"
 

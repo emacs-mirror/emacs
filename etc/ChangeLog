@@ -1,3 +1,28 @@
+2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Clarify that `smtpmail-starttls-credentials' doesn't exist.
+
+2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document new emacs-lock.el and renaming of old one.
+
+2011-07-05  Manoj Srivastava  <srivasta@ieee.org>
+
+	* themes/manoj-dark-theme.el (manoj-dark): New file.
+
+2011-03-29  Kevin Ryde  <user42@zip.com.au>
+
+	* compilation.txt (perl-Test2): New samples.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* tutorials/TUTORIAL.zh: Remove spurious ")" character on the
+	first line.
+
+2011-07-01  Alan Mackenzie  <acm@muc.de>
+
+	* NEWS: CC Mode: New "guessing" of style.
+
 2011-06-21  Leo Liu  <sdl.web@gmail.com>
 
 	* NEWS: Mention the new primtive secure-hash.

@@ -1441,9 +1441,9 @@ specify a particular attribute for certain text.  @xref{Face
 Attributes}.
 
 @item
-A cons cell, either of the form @code{(fg-color . @var{color-name})}
-or @code{(bg-color . @var{color-name})}.  These elements specify just
-the foreground color or just the background color.
+A cons cell, of the form @code{(foreground-color . @var{color-name})}
+or @code{(background-color . @var{color-name})}.  These elements
+specify just the foreground color or just the background color.
 
 @code{(foreground-color . @var{color-name})} has the same effect as
 @code{(:foreground @var{color-name})}; likewise for the background.
@@ -2092,7 +2092,10 @@ Draw a box with lines of width 1, in color @var{color}.
 
 @item @code{(:line-width @var{width} :color @var{color} :style @var{style})}
 This way you can explicitly specify all aspects of the box.  The value
-@var{width} specifies the width of the lines to draw; it defaults to 1.
+@var{width} specifies the width of the lines to draw; it defaults to
+1.  A negative width @var{-n} means to draw a line of width @var{n}
+that occupies the space of the underlying text, thus avoiding any
+increase in the character height or width.
 
 The value @var{color} specifies the color to draw with.  The default is
 the foreground color of the face for simple boxes, and the background
@@ -4700,10 +4703,17 @@ it a @code{display} property which specifies @var{image}.  @xref{Display
 Property}.
 @end defun
 
+@cindex slice, image
+@cindex image slice
 @defun insert-sliced-image image &optional string area rows cols
 This function inserts @var{image} in the current buffer at point, like
 @code{insert-image}, but splits the image into @var{rows}x@var{cols}
 equally sized slices.
+
+If an image is inserted ``sliced'', then the Emacs display engine will
+treat each slice as a separate image, and allow more intuitive
+scrolling up/down, instead of jumping up/down the entire image when
+paging through a buffer that displays (large) images.
 @end defun
 
 @defun put-image image pos &optional string area

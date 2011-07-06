@@ -555,10 +555,8 @@ Each function is called with argument, the terminal.
 This may be called just before actually deleting the terminal,
 or some time later.  */);
   Vdelete_terminal_functions = Qnil;
-  Qdelete_terminal_functions = intern_c_string ("delete-terminal-functions");
-  staticpro (&Qdelete_terminal_functions);
-  Qrun_hook_with_args = intern_c_string ("run-hook-with-args");
-  staticpro (&Qrun_hook_with_args);
+  DEFSYM (Qdelete_terminal_functions, "delete-terminal-functions");
+  DEFSYM (Qrun_hook_with_args, "run-hook-with-args");
 
   defsubr (&Sdelete_terminal);
   defsubr (&Sframe_terminal);

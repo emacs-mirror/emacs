@@ -229,14 +229,18 @@ one of those elements share the same precedence level and associativity."
               ;; the trouble, and it lets the writer of the BNF
               ;; be a bit more sloppy by skipping uninteresting base
               ;; cases which are terminals but not OPs.
-              (assert (not (member (cadr rhs) nts)))
+              (when (member (cadr rhs) nts)
+                (error "Adjacent non-terminals: %s %s"
+                       (car rhs) (cadr rhs)))
               (pushnew (cadr rhs) first-ops)))
           (let ((shr (reverse rhs)))
             (if (not (member (car shr) nts))
                 (pushnew (car shr) last-ops)
               (pushnew (car shr) last-nts)
               (when (consp (cdr shr))
-                (assert (not (member (cadr shr) nts)))
+                (when (member (cadr shr) nts)
+                  (error "Adjacent non-terminals: %s %s"
+                         (cadr shr) (car shr)))
                 (pushnew (cadr shr) last-ops)))))
         (push (cons nt first-ops) first-ops-table)
         (push (cons nt last-ops) last-ops-table)

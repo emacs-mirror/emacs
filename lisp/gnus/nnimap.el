@@ -880,15 +880,18 @@ textual parts.")
 	  (with-temp-buffer
 	    (mm-disable-multibyte)
 	    (when (nnimap-request-article article group server (current-buffer))
-	      (nnheader-message 7 "Expiring article %s:%d" group article)
 	      (when (functionp target)
 		(setq target (funcall target group)))
-	      (when (and target
-			 (not (eq target 'delete)))
-		(if (or (gnus-request-group target t)
-			(gnus-request-create-group target))
-		    (nnmail-expiry-target-group target group)
-		  (setq target nil)))
+	      (if (and target
+		       (not (eq target 'delete)))
+		  (if (or (gnus-request-group target t)
+			  (gnus-request-create-group target))
+		      (progn
+			(nnmail-expiry-target-group target group)
+			(nnheader-message 7 "Expiring article %s:%d to %s"
+					  group article target))
+		    (setq target nil))
+		(nnheader-message 7 "Expiring article %s:%d" group article))
 	      (when target
 		(push article deleted-articles))))))))
     ;; Change back to the current group again.
@@ -953,7 +956,8 @@ textual parts.")
 	     nnimap-inbox
 	     nnimap-split-methods)
     (nnheader-message 7 "nnimap %s splitting mail..." server)
-    (nnimap-split-incoming-mail)))
+    (nnimap-split-incoming-mail)
+    (nnheader-message 7 "nnimap %s splitting mail...done" server)))
 
 (defun nnimap-marks-to-flags (marks)
   (let (flags flag)
@@ -1227,6 +1231,10 @@ textual parts.")
 
 (deffoo nnimap-finish-retrieve-group-infos (server infos sequences)
   (when (and sequences
+	     ;; Check that the process is still alive.
+	     (get-buffer-process (nnimap-buffer))
+	     (memq (process-status (get-buffer-process (nnimap-buffer)))
+		   '(open run))
 	     (nnimap-possibly-change-group nil server))
     (with-current-buffer (nnimap-buffer)
       ;; Wait for the final data to trickle in.
@@ -1798,9 +1806,14 @@ textual parts.")
 (defun nnimap-split-incoming-mail ()
   (with-current-buffer (nnimap-buffer)
     (let ((nnimap-incoming-split-list nil)
-	  (nnmail-split-methods (if (eq nnimap-split-methods 'default)
-				    nnmail-split-methods
-				  nnimap-split-methods))
+	  (nnmail-split-methods
+	   (cond
+	    ((eq nnimap-split-methods 'default)
+	     nnmail-split-methods)
+	    (nnimap-split-methods
+	     nnimap-split-methods)
+	    (nnimap-split-fancy
+	     'nnmail-split-fancy)))
 	  (nnmail-split-fancy (or nnimap-split-fancy
 				  nnmail-split-fancy))
 	  (nnmail-inhibit-default-split-group t)

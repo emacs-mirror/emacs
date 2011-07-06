@@ -71,9 +71,11 @@
   :group 'mail)
 
 
-(defvar smtpmail-default-smtp-server nil
+(defcustom smtpmail-default-smtp-server nil
   "Specify default SMTP server.
-This only has effect if you specify it before loading the smtpmail library.")
+This only has effect if you specify it before loading the smtpmail library."
+  :type '(choice (const nil) string)
+  :group 'smtpmail)
 
 (defcustom smtpmail-smtp-server
   (or (getenv "SMTPSERVER") smtpmail-default-smtp-server)
@@ -488,9 +490,9 @@ The list is in preference order.")
             (secret . "SMTP password for %u@%h: ")))
          (auth-info (car
 		     (auth-source-search
-		      :max 1
 		      :host host
 		      :port port
+		      :max 1
 		      :require (and ask-for-password
 				    '(:user :secret))
 		      :create ask-for-password)))
@@ -615,6 +617,8 @@ The list is in preference order.")
                            (and mail-specify-envelope-from
                                 (mail-envelope-from))
                            user-mail-address))
+	(coding-system-for-read 'binary)
+	(coding-system-for-write 'binary)
 	response-code
 	process-buffer
 	result
@@ -651,7 +655,9 @@ The list is in preference order.")
 
 	  ;; If we couldn't access the server at all, we give up.
 	  (unless (setq process (car result))
-	    (throw 'done "Unable to contact server"))
+	    (throw 'done (if (plist-get (cdr result) :error)
+			     (plist-get (cdr result) :error)
+			   "Unable to contact server")))
 
 	  ;; set the send-filter
 	  (set-process-filter process 'smtpmail-process-filter)

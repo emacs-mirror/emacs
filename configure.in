@@ -172,6 +172,7 @@ OPTION_DEFAULT_OFF([ns],[use NeXTstep (Cocoa or GNUstep) windowing system])
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
 OPTION_DEFAULT_ON([gconf],[don't compile with GConf support])
+OPTION_DEFAULT_ON([gsettings],[don't compile with GSettings support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 
@@ -988,54 +989,6 @@ dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
 
 
-## If user specified a crt-dir, use that unconditionally.
-if test "X$CRT_DIR" = "X"; then
-
-  case "$canonical" in
-    x86_64-*-linux-gnu* | s390x-*-linux-gnu*)
-    ## On x86-64 and s390x GNU/Linux distributions, the standard library
-    ## can be in a variety of places.  We only try /usr/lib64 and /usr/lib.
-    ## For anything else (eg /usr/lib32), it is up the user to specify
-    ## the location (bug#5655).
-    ## Test for crtn.o, not just the directory, because sometimes the
-    ## directory exists but does not have the relevant files (bug#1287).
-    ## FIXME better to test for binary compatibility somehow.
-    test -e /usr/lib64/crtn.o && CRT_DIR=/usr/lib64
-    ;;
-
-    powerpc64-*-linux-gnu* | sparc64-*-linux-gnu*) CRT_DIR=/usr/lib64 ;;
-  esac
-
-  case "$opsys" in
-    hpux10-20) CRT_DIR=/lib ;;
-  esac
-
-  ## Default is /usr/lib.
-  test "X$CRT_DIR" = "X" && CRT_DIR=/usr/lib
-
-  ## If we're using gcc, try to determine it automatically by asking
-  ## gcc.  [If this doesn't work, CRT_DIR will remain at the
-  ## system-dependent default from above.]
-  if test "x${GCC}" = xyes; then
-     crt_file=`$CC --print-file-name=crt1.o 2>/dev/null`
-     case "$crt_file" in
-       */*)
-         CRT_DIR=`AS_DIRNAME(["$crt_file"])`
-         ;;
-     esac
-  fi
-
-else
-
-  ## Some platforms don't use any of these files, so it is not
-  ## appropriate to put this test outside the if block.
-  test -e $CRT_DIR/crtn.o || test -e $CRT_DIR/crt0.o || \
-    AC_MSG_ERROR([crt*.o not found in specified location.])
-
-fi
-
-AC_SUBST(CRT_DIR)
-
 LIB_MATH=-lm
 LIB_STANDARD=
 START_FILES=
@@ -1075,6 +1028,80 @@ esac
 
 AC_SUBST(LIB_MATH)
 AC_SUBST(START_FILES)
+
+dnl Not all platforms use crtn.o files.  Check if the current one does.
+crt_files=
+
+for file in x $LIB_STANDARD $START_FILES; do
+  case "$file" in
+    *CRT_DIR*) crt_files="$crt_files `echo $file | sed -e 's|.*/||'`" ;;
+  esac
+done
+
+if test "x$crt_files" != x; then
+
+  ## If user specified a crt-dir, use that unconditionally.
+  crt_gcc=no
+
+  if test "X$CRT_DIR" = "X"; then
+
+    CRT_DIR=/usr/lib            # default
+
+    case "$canonical" in
+      x86_64-*-linux-gnu* | s390x-*-linux-gnu*)
+      ## On x86-64 and s390x GNU/Linux distributions, the standard library
+      ## can be in a variety of places.  We only try /usr/lib64 and /usr/lib.
+      ## For anything else (eg /usr/lib32), it is up the user to specify
+      ## the location (bug#5655).
+      ## Test for crtn.o, not just the directory, because sometimes the
+      ## directory exists but does not have the relevant files (bug#1287).
+      ## FIXME better to test for binary compatibility somehow.
+      test -e /usr/lib64/crtn.o && CRT_DIR=/usr/lib64
+      ;;
+
+      powerpc64-*-linux-gnu* | sparc64-*-linux-gnu*) CRT_DIR=/usr/lib64 ;;
+    esac
+
+    case "$opsys" in
+      hpux10-20) CRT_DIR=/lib ;;
+    esac
+
+    test "x${GCC}" = xyes && crt_gcc=yes
+
+  fi                            # CRT_DIR = ""
+
+  crt_missing=
+
+  for file in $crt_files; do
+
+    ## If we're using gcc, try to determine it automatically by asking
+    ## gcc.  [If this doesn't work, CRT_DIR will remain at the
+    ## system-dependent default from above.]
+    if test $crt_gcc = yes && test ! -e $CRT_DIR/$file; then
+
+       crt_file=`$CC --print-file-name=$file 2>/dev/null`
+       case "$crt_file" in
+         */*)
+           CRT_DIR=`AS_DIRNAME(["$crt_file"])`
+           ;;
+       esac
+    fi
+
+    dnl We expect all the files to be in a single directory, so after the
+    dnl first there is no point asking gcc.
+    crt_gcc=no
+
+    test -e $CRT_DIR/$file || crt_missing="$crt_missing $file"    
+  done                          # $crt_files
+
+  test "x$crt_missing" = x || \
+    AC_MSG_ERROR([Required file(s) not found:$crt_missing
+Try using the --with-crt-dir option.])
+
+fi                              # crt_files != ""
+
+AC_SUBST(CRT_DIR)
+
 
 dnl This function definition taken from Gnome 2.0
 dnl PKG_CHECK_MODULES(GSTUFF, gtk+-2.0 >= 1.3 glib = 1.3.4, action-if, action-not)
@@ -1955,6 +1982,17 @@ if test "${with_dbus}" = "yes"; then
 fi
 AC_SUBST(DBUS_OBJ)
 
+dnl GSettings has been tested under GNU/Linux only.
+HAVE_GSETTINGS=no
+if test "${HAVE_X11}" = "yes" && test "${with_gsettings}" = "yes"; then
+   PKG_CHECK_MODULES(GSETTINGS, glib-2.0 >= 2.26, HAVE_GSETTINGS=yes, HAVE_GSETTINGS=no)
+   if test "$HAVE_GSETTINGS" = "yes"; then
+      AC_DEFINE(HAVE_GSETTINGS, 1, [Define to 1 if using GSettings.])
+      SETTINGS_CFLAGS="$GSETTINGS_CFLAGS"
+      SETTINGS_LIBS="$GSETTINGS_LIBS"
+   fi
+fi
+
 dnl GConf has been tested under GNU/Linux only.
 dnl The version is really arbitrary, it is about the same age as Gtk+ 2.6.
 HAVE_GCONF=no
@@ -1963,9 +2001,23 @@ if test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
    if test "$HAVE_GCONF" = yes; then
       AC_DEFINE(HAVE_GCONF, 1, [Define to 1 if using GConf.])
       dnl Newer GConf doesn't link with g_objects, so this is not defined.
-      AC_CHECK_FUNCS([g_type_init])
+      SETTINGS_CFLAGS="$SETTINGS_CFLAGS $GCONF_CFLAGS"
+      SETTINGS_LIBS="$SETTINGS_LIBS $GCONF_LIBS"
    fi
 fi
+
+if test "$HAVE_GSETTINGS" = "yes" || test "$HAVE_GCONF" = "yes"; then
+    SAVE_CFLAGS="$CFLAGS"
+    SAVE_LDFLAGS="$LDFLAGS"
+    CFLAGS="$SETTINGS_CFLAGS $CFLAGS"
+    LDFLAGS="$SETTINGS_LIBS $LDFLAGS"
+    AC_CHECK_FUNCS([g_type_init])
+    CFLAGS="$SAVE_CFLAGS"
+    LDFLAGS="$SAVE_LDFLAGS"
+fi
+AC_SUBST(SETTINGS_CFLAGS)
+AC_SUBST(SETTINGS_LIBS)
+
 
 dnl SELinux is available for GNU/Linux only.
 HAVE_LIBSELINUX=no
@@ -2645,7 +2697,7 @@ esac
 AC_SUBST(BLESSMAIL_TARGET)
 
 
-AC_CHECK_FUNCS(gethostname getdomainname dup2 \
+AC_CHECK_FUNCS(gethostname getdomainname \
 rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
 random lrand48 logb frexp fmod rint cbrt ftime setsid \
 strerror fpathconf select euidaccess getpagesize tzset setlocale \
@@ -3648,6 +3700,7 @@ echo "  Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGI
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
+echo "  Does Emacs use GSettings?                               ${HAVE_GSETTINGS}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
 echo "  Does Emacs use -lgnutls (2.6.x or higher)?              ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"

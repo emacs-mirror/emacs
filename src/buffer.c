@@ -471,8 +471,8 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
 
   /* buffer-local Lisp variables start at `undo_list',
      tho only the ones from `name' on are GC'd normally.  */
-  for (offset = PER_BUFFER_VAR_OFFSET (undo_list);
-       offset < sizeof *to;
+  for (offset = PER_BUFFER_VAR_OFFSET (FIRST_FIELD_PER_BUFFER);
+       offset <= PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER);
        offset += sizeof (Lisp_Object))
     {
       Lisp_Object obj;
@@ -830,8 +830,8 @@ reset_buffer_local_variables (register struct buffer *b, int permanent_too)
 
   /* buffer-local Lisp variables start at `undo_list',
      tho only the ones from `name' on are GC'd normally.  */
-  for (offset = PER_BUFFER_VAR_OFFSET (undo_list);
-       offset < sizeof *b;
+  for (offset = PER_BUFFER_VAR_OFFSET (FIRST_FIELD_PER_BUFFER);
+       offset <= PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER);
        offset += sizeof (Lisp_Object))
     {
       int idx = PER_BUFFER_IDX (offset);
@@ -1055,8 +1055,8 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
 
     /* buffer-local Lisp variables start at `undo_list',
        tho only the ones from `name' on are GC'd normally.  */
-    for (offset = PER_BUFFER_VAR_OFFSET (undo_list);
-	 offset < sizeof (struct buffer);
+    for (offset = PER_BUFFER_VAR_OFFSET (FIRST_FIELD_PER_BUFFER);
+	 offset <= PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER);
 	 /* sizeof EMACS_INT == sizeof Lisp_Object */
 	 offset += (sizeof (EMACS_INT)))
       {
@@ -4056,7 +4056,8 @@ DEFUN ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
 }
 
 DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
-       doc: /* Set one property of overlay OVERLAY: give property PROP value VALUE.  */)
+       doc: /* Set one property of overlay OVERLAY: give property PROP value VALUE.
+VALUE will be returned.*/)
   (Lisp_Object overlay, Lisp_Object prop, Lisp_Object value)
 {
   Lisp_Object tail, buffer;
@@ -5209,38 +5210,25 @@ syms_of_buffer (void)
   staticpro (&Vbuffer_alist);
   staticpro (&Qprotected_field);
   staticpro (&Qpermanent_local);
-  Qpermanent_local_hook = intern_c_string ("permanent-local-hook");
-  staticpro (&Qpermanent_local_hook);
   staticpro (&Qkill_buffer_hook);
-  Qoverlayp = intern_c_string ("overlayp");
-  staticpro (&Qoverlayp);
-  Qevaporate = intern_c_string ("evaporate");
-  staticpro (&Qevaporate);
-  Qmodification_hooks = intern_c_string ("modification-hooks");
-  staticpro (&Qmodification_hooks);
-  Qinsert_in_front_hooks = intern_c_string ("insert-in-front-hooks");
-  staticpro (&Qinsert_in_front_hooks);
-  Qinsert_behind_hooks = intern_c_string ("insert-behind-hooks");
-  staticpro (&Qinsert_behind_hooks);
-  Qget_file_buffer = intern_c_string ("get-file-buffer");
-  staticpro (&Qget_file_buffer);
-  Qpriority = intern_c_string ("priority");
-  staticpro (&Qpriority);
-  Qbefore_string = intern_c_string ("before-string");
-  staticpro (&Qbefore_string);
-  Qafter_string = intern_c_string ("after-string");
-  staticpro (&Qafter_string);
-  Qfirst_change_hook = intern_c_string ("first-change-hook");
-  staticpro (&Qfirst_change_hook);
-  Qbefore_change_functions = intern_c_string ("before-change-functions");
-  staticpro (&Qbefore_change_functions);
-  Qafter_change_functions = intern_c_string ("after-change-functions");
-  staticpro (&Qafter_change_functions);
+
+  DEFSYM (Qpermanent_local_hook, "permanent-local-hook");
+  DEFSYM (Qoverlayp, "overlayp");
+  DEFSYM (Qevaporate, "evaporate");
+  DEFSYM (Qmodification_hooks, "modification-hooks");
+  DEFSYM (Qinsert_in_front_hooks, "insert-in-front-hooks");
+  DEFSYM (Qinsert_behind_hooks, "insert-behind-hooks");
+  DEFSYM (Qget_file_buffer, "get-file-buffer");
+  DEFSYM (Qpriority, "priority");
+  DEFSYM (Qbefore_string, "before-string");
+  DEFSYM (Qafter_string, "after-string");
+  DEFSYM (Qfirst_change_hook, "first-change-hook");
+  DEFSYM (Qbefore_change_functions, "before-change-functions");
+  DEFSYM (Qafter_change_functions, "after-change-functions");
+  DEFSYM (Qkill_buffer_query_functions, "kill-buffer-query-functions");
+
   /* The next one is initialized in init_buffer_once.  */
   staticpro (&Qucs_set_table_for_input);
-
-  Qkill_buffer_query_functions = intern_c_string ("kill-buffer-query-functions");
-  staticpro (&Qkill_buffer_query_functions);
 
   Fput (Qprotected_field, Qerror_conditions,
 	pure_cons (Qprotected_field, pure_cons (Qerror, Qnil)));
@@ -6035,8 +6023,7 @@ If any of them returns nil, the buffer is not killed.  */);
 	       doc: /* Normal hook run before changing the major mode of a buffer.
 The function `kill-all-local-variables' runs this before doing anything else.  */);
   Vchange_major_mode_hook = Qnil;
-  Qchange_major_mode_hook = intern_c_string ("change-major-mode-hook");
-  staticpro (&Qchange_major_mode_hook);
+  DEFSYM (Qchange_major_mode_hook, "change-major-mode-hook");
 
   DEFVAR_LISP ("buffer-list-update-hook", Vbuffer_list_update_hook,
 	       doc: /* Hook run when the buffer list changes.
@@ -6044,8 +6031,7 @@ Functions running this hook are `get-buffer-create',
 `make-indirect-buffer', `rename-buffer', `kill-buffer',
 `record-buffer' and `unrecord-buffer'.  */);
   Vbuffer_list_update_hook = Qnil;
-  Qbuffer_list_update_hook = intern_c_string ("buffer-list-update-hook");
-  staticpro (&Qbuffer_list_update_hook);
+  DEFSYM (Qbuffer_list_update_hook, "buffer-list-update-hook");
 
   defsubr (&Sbuffer_live_p);
   defsubr (&Sbuffer_list);

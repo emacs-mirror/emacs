@@ -1836,6 +1836,8 @@ cache_image (struct frame *f, struct image *img)
   /* If no free slot found, maybe enlarge c->images.  */
   if (i == c->used && c->used == c->size)
     {
+      if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *c->images / 2 < c->size)
+	memory_full (SIZE_MAX);
       c->size *= 2;
       c->images = (struct image **) xrealloc (c->images,
 					      c->size * sizeof *c->images);

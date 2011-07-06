@@ -945,8 +945,7 @@ a new string, without any text properties, is returned.  */)
 void
 syms_of_doc (void)
 {
-  Qfunction_documentation = intern_c_string ("function-documentation");
-  staticpro (&Qfunction_documentation);
+  DEFSYM (Qfunction_documentation, "function-documentation");
 
   DEFVAR_LISP ("internal-doc-file-name", Vdoc_file_name,
 	       doc: /* Name of file containing documentation strings of built-in symbols.  */);

@@ -1700,7 +1700,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
   (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object universal)
 {
   time_t value;
-  int size;
+  ptrdiff_t size;
   int usec;
   int ns;
   struct tm *tm;
@@ -1717,7 +1717,9 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 						Vlocale_coding_system, 1);
 
   /* This is probably enough.  */
-  size = SBYTES (format_string) * 6 + 50;
+  size = SBYTES (format_string);
+  if (size <= (STRING_BYTES_BOUND - 50) / 6)
+    size = size * 6 + 50;
 
   BLOCK_INPUT;
   tm = ut ? gmtime (&value) : localtime (&value);
@@ -1730,7 +1732,7 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
   while (1)
     {
       char *buf = (char *) alloca (size + 1);
-      int result;
+      size_t result;
 
       buf[0] = '\1';
       BLOCK_INPUT;
@@ -1749,6 +1751,8 @@ For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
 				SBYTES (format_string),
 				tm, ut, ns);
       UNBLOCK_INPUT;
+      if (STRING_BYTES_BOUND <= result)
+	string_overflow ();
       size = result + 1;
     }
 }
@@ -3557,7 +3561,8 @@ The width specifier supplies a lower limit for the length of the
 printed representation.  The padding, if any, normally goes on the
 left, but it goes on the right if the - flag is present.  The padding
 character is normally a space, but it is 0 if the 0 flag is present.
-The - flag takes precedence over the 0 flag.
+The 0 flag is ignored if the - flag is present, or the format sequence
+is something other than %d, %e, %f, and %g.
 
 For %e, %f, and %g sequences, the number after the "." in the
 precision specifier says how many decimal places to show; if zero, the
@@ -4738,9 +4743,7 @@ syms_of_editfns (void)
   environbuf = 0;
   initial_tz = 0;
 
-  Qbuffer_access_fontify_functions
-    = intern_c_string ("buffer-access-fontify-functions");
-  staticpro (&Qbuffer_access_fontify_functions);
+  DEFSYM (Qbuffer_access_fontify_functions, "buffer-access-fontify-functions");
 
   DEFVAR_LISP ("inhibit-field-text-motion", Vinhibit_field_text_motion,
 	       doc: /* Non-nil means text motion commands don't notice fields.  */);
@@ -4802,10 +4805,8 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Sregion_beginning);
   defsubr (&Sregion_end);
 
-  staticpro (&Qfield);
-  Qfield = intern_c_string ("field");
-  staticpro (&Qboundary);
-  Qboundary = intern_c_string ("boundary");
+  DEFSYM (Qfield, "field");
+  DEFSYM (Qboundary, "boundary");
   defsubr (&Sfield_beginning);
   defsubr (&Sfield_end);
   defsubr (&Sfield_string);

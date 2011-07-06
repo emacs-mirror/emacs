@@ -54,7 +54,7 @@ Lisp_Object Qwindowp, Qwindow_live_p;
 static Lisp_Object Qwindow_configuration_p, Qrecord_window_buffer;
 static Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
 static Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
-static Lisp_Object Qresize_root_window, Qresize_root_window_vertically;
+static Lisp_Object Qwindow_resize_root_window, Qwindow_resize_root_window_vertically;
 static Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
 static Lisp_Object Qsafe, Qabove, Qbelow;
 static Lisp_Object Qauto_buffer_name;
@@ -82,8 +82,8 @@ static int foreach_window_1 (struct window *,
                              int (* fn) (struct window *, void *),
                              void *);
 static Lisp_Object window_list_1 (Lisp_Object, Lisp_Object, Lisp_Object);
-static int resize_window_check (struct window *, int);
-static void resize_window_apply (struct window *, int);
+static int window_resize_check (struct window *, int);
+static void window_resize_apply (struct window *, int);
 static Lisp_Object select_window (Lisp_Object, Lisp_Object, int);
 
 /* This is the window in which the terminal's cursor should
@@ -408,14 +408,6 @@ buffer of the selected window before each command.  */)
   return select_window (window, norecord, 0);
 }
 
-DEFUN ("window-clone-number", Fwindow_clone_number, Swindow_clone_number, 0, 1, 0,
-       doc: /* Return WINDOW's clone number.
-WINDOW can be any window and defaults to the selected one.  */)
-     (Lisp_Object window)
-{
-  return decode_any_window (window)->clone_number;
-}
-
 DEFUN ("window-buffer", Fwindow_buffer, Swindow_buffer, 0, 1, 0,
        doc: /* Return the buffer that WINDOW is displaying.
 WINDOW can be any window and defaults to the selected one.
@@ -434,37 +426,37 @@ Return nil if WINDOW has no parent.  */)
   return decode_any_window (window)->parent;
 }
 
-DEFUN ("window-vchild", Fwindow_vchild, Swindow_vchild, 0, 1, 0,
-       doc: /* Return WINDOW's first vertical child window.
+DEFUN ("window-top-child", Fwindow_top_child, Swindow_top_child, 0, 1, 0,
+       doc: /* Return WINDOW's topmost child window.
 WINDOW can be any window and defaults to the selected one.
-Return nil if WINDOW has no vertical child.  */)
+Return nil if WINDOW is not a vertical combination.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->vchild;
 }
 
-DEFUN ("window-hchild", Fwindow_hchild, Swindow_hchild, 0, 1, 0,
-       doc: /* Return WINDOW's first horizontal child window.
+DEFUN ("window-left-child", Fwindow_left_child, Swindow_left_child, 0, 1, 0,
+       doc: /* Return WINDOW's leftmost child window.
 WINDOW can be any window and defaults to the selected one.
-Return nil if WINDOW has no horizontal child.  */)
+Return nil if WINDOW is not a horizontal combination.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->hchild;
 }
 
-DEFUN ("window-next", Fwindow_next, Swindow_next, 0, 1, 0,
-       doc: /* Return WINDOW's right sibling window.
+DEFUN ("window-next-sibling", Fwindow_next_sibling, Swindow_next_sibling, 0, 1, 0,
+       doc: /* Return WINDOW's next sibling window.
 WINDOW can be any window and defaults to the selected one.
-Return nil if WINDOW has no right sibling.  */)
+Return nil if WINDOW has no next sibling.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->next;
 }
 
-DEFUN ("window-prev", Fwindow_prev, Swindow_prev, 0, 1, 0,
-       doc: /* Return WINDOW's left sibling window.
+DEFUN ("window-prev-sibling", Fwindow_prev_sibling, Swindow_prev_sibling, 0, 1, 0,
+       doc: /* Return WINDOW's previous sibling window.
 WINDOW can be any window and defaults to the selected one.
-Return nil if WINDOW has no left sibling.  */)
+Return nil if WINDOW has no previous sibling.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->prev;
@@ -2576,7 +2568,7 @@ selected frame and no others.  */)
 static Lisp_Object
 resize_root_window (Lisp_Object window, Lisp_Object delta, Lisp_Object horizontal, Lisp_Object ignore)
 {
-  return call4 (Qresize_root_window, window, delta, horizontal, ignore);
+  return call4 (Qwindow_resize_root_window, window, delta, horizontal, ignore);
 }
 
 
@@ -2695,13 +2687,13 @@ window-start value is reasonable when this function is called.  */)
       XSETINT (delta, XINT (r->total_lines) - XINT (w->total_lines));
       w->top_line = r->top_line;
       resize_root_window (window, delta, Qnil, Qnil);
-      if (resize_window_check (w, 0))
-	resize_window_apply (w, 0);
+      if (window_resize_check (w, 0))
+	window_resize_apply (w, 0);
       else
 	{
 	  resize_root_window (window, delta, Qnil, Qt);
-	  if (resize_window_check (w, 0))
-	    resize_window_apply (w, 0);
+	  if (window_resize_check (w, 0))
+	    window_resize_apply (w, 0);
 	  else
 	    resize_failed = 1;
 	}
@@ -2713,13 +2705,13 @@ window-start value is reasonable when this function is called.  */)
 	  XSETINT (delta, XINT (r->total_cols) - XINT (w->total_cols));
 	  w->left_col = r->left_col;
 	  resize_root_window (window, delta, Qt, Qnil);
-	  if (resize_window_check (w, 1))
-	    resize_window_apply (w, 1);
+	  if (window_resize_check (w, 1))
+	    window_resize_apply (w, 1);
 	  else
 	    {
 	      resize_root_window (window, delta, Qt, Qt);
-	      if (resize_window_check (w, 1))
-		resize_window_apply (w, 1);
+	      if (window_resize_check (w, 1))
+		window_resize_apply (w, 1);
 	      else
 		resize_failed = 1;
 	    }
@@ -3087,18 +3079,6 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int 
   unbind_to (count, Qnil);
 }
 
-DEFUN ("set-window-clone-number", Fset_window_clone_number, Sset_window_clone_number, 2, 2, 0,
-       doc: /* Set WINDOW's clone number to CLONE-NUMBER.
-WINDOW can be any window and defaults to the selected one.  */)
-     (Lisp_Object window, Lisp_Object clone_number)
-{
-  register struct window *w = decode_any_window (window);
-
-  CHECK_NUMBER (clone_number);
-  w->clone_number = clone_number;
-  return w->clone_number;
-}
-
 DEFUN ("set-window-buffer", Fset_window_buffer, Sset_window_buffer, 2, 3, 0,
        doc: /* Make WINDOW display BUFFER-OR-NAME as its contents.
 WINDOW has to be a live window and defaults to the selected one.
@@ -3289,7 +3269,6 @@ make_parent_window (Lisp_Object window, int horflag)
 
   ++sequence_number;
   XSETFASTINT (p->sequence_number, sequence_number);
-  XSETFASTINT (p->clone_number, sequence_number);
 
   replace_window (window, parent, 1);
 
@@ -3335,7 +3314,6 @@ make_window (void)
   XSETFASTINT (w->use_time, 0);
   ++sequence_number;
   XSETFASTINT (w->sequence_number, sequence_number);
-  XSETFASTINT (w->clone_number, sequence_number);
   w->temslot = w->last_modified = w->last_overlay_modified = Qnil;
   XSETFASTINT (w->last_point, 0);
   w->last_had_star = w->vertical_scroll_bar = Qnil;
@@ -3415,7 +3393,7 @@ Note: This function does not operate on any subwindows of WINDOW.  */)
    `window-min-height' or `window-min-width'.  It does check that window
    sizes do not drop below one line (two columns). */
 static int
-resize_window_check (struct window *w, int horflag)
+window_resize_check (struct window *w, int horflag)
 {
   struct window *c;
 
@@ -3429,7 +3407,7 @@ resize_window_check (struct window *w, int horflag)
 	  while (c)
 	    {
 	      if ((XINT (c->new_total) != XINT (w->new_total))
-		  || !resize_window_check (c, horflag))
+		  || !window_resize_check (c, horflag))
 		return 0;
 	      c = NILP (c->next) ? 0 : XWINDOW (c->next);
 	    }
@@ -3442,7 +3420,7 @@ resize_window_check (struct window *w, int horflag)
 	  int sum_of_sizes = 0;
 	  while (c)
 	    {
-	      if (!resize_window_check (c, horflag))
+	      if (!window_resize_check (c, horflag))
 		return 0;
 	      sum_of_sizes = sum_of_sizes + XINT (c->new_total);
 	      c = NILP (c->next) ? 0 : XWINDOW (c->next);
@@ -3461,7 +3439,7 @@ resize_window_check (struct window *w, int horflag)
 	  int sum_of_sizes = 0;
 	  while (c)
 	    {
-	      if (!resize_window_check (c, horflag))
+	      if (!window_resize_check (c, horflag))
 		return 0;
 	      sum_of_sizes = sum_of_sizes + XINT (c->new_total);
 	      c = NILP (c->next) ? 0 : XWINDOW (c->next);
@@ -3474,7 +3452,7 @@ resize_window_check (struct window *w, int horflag)
 	  while (c)
 	    {
 	      if ((XINT (c->new_total) != XINT (w->new_total))
-		  || !resize_window_check (c, horflag))
+		  || !window_resize_check (c, horflag))
 		return 0;
 	      c = NILP (c->next) ? 0 : XWINDOW (c->next);
 	    }
@@ -3494,9 +3472,9 @@ resize_window_check (struct window *w, int horflag)
    each of these windows.
 
    This function does not perform any error checks.  Make sure you have
-   run resize_window_check on W before applying this function.  */
+   run window_resize_check on W before applying this function.  */
 static void
-resize_window_apply (struct window *w, int horflag)
+window_resize_apply (struct window *w, int horflag)
 {
   struct window *c;
   int pos;
@@ -3530,7 +3508,7 @@ resize_window_apply (struct window *w, int horflag)
 	    XSETFASTINT (c->left_col, pos);
 	  else
 	    XSETFASTINT (c->top_line, pos);
-	  resize_window_apply (c, horflag);
+	  window_resize_apply (c, horflag);
 	  if (!horflag)
 	    pos = pos + XINT (c->total_lines);
 	  c = NILP (c->next) ? 0 : XWINDOW (c->next);
@@ -3546,7 +3524,7 @@ resize_window_apply (struct window *w, int horflag)
 	    XSETFASTINT (c->left_col, pos);
 	  else
 	    XSETFASTINT (c->top_line, pos);
-	  resize_window_apply (c, horflag);
+	  window_resize_apply (c, horflag);
 	  if (horflag)
 	    pos = pos + XINT (c->total_cols);
 	  c = NILP (c->next) ? 0 : XWINDOW (c->next);
@@ -3559,7 +3537,7 @@ resize_window_apply (struct window *w, int horflag)
 }
 
 
-DEFUN ("resize-window-apply", Fresize_window_apply, Sresize_window_apply, 1, 2, 0,
+DEFUN ("window-resize-apply", Fwindow_resize_apply, Swindow_resize_apply, 1, 2, 0,
        doc: /* Apply requested size values for window-tree of FRAME.
 Optional argument HORIZONTAL omitted or nil means apply requested height
 values.  HORIZONTAL non-nil means apply requested width values.
@@ -3584,12 +3562,12 @@ be applied on the Elisp level.  */)
   f = XFRAME (frame);
   r = XWINDOW (FRAME_ROOT_WINDOW (f));
 
-  if (!resize_window_check (r, horflag)
+  if (!window_resize_check (r, horflag)
       || ! EQ (r->new_total, (horflag ? r->total_cols : r->total_lines)))
     return Qnil;
 
   BLOCK_INPUT;
-  resize_window_apply (r, horflag);
+  window_resize_apply (r, horflag);
 
   windows_or_buffers_changed++;
   FRAME_WINDOW_SIZES_CHANGED (f) = 1;
@@ -3641,22 +3619,22 @@ resize_frame_windows (struct frame *f, int size, int horflag)
       XSETINT (delta, new_size - old_size);
       /* Try a "normal" resize first.  */
       resize_root_window (root, delta, horflag ? Qt : Qnil, Qnil);
-      if (resize_window_check (r, horflag) && new_size == XINT (r->new_total))
-	resize_window_apply (r, horflag);
+      if (window_resize_check (r, horflag) && new_size == XINT (r->new_total))
+	window_resize_apply (r, horflag);
       else
 	{
 	  /* Try with "reasonable" minimum sizes next.  */
 	  resize_root_window (root, delta, horflag ? Qt : Qnil, Qt);
-	  if (resize_window_check (r, horflag)
+	  if (window_resize_check (r, horflag)
 	      && new_size == XINT (r->new_total))
-	    resize_window_apply (r, horflag);
+	    window_resize_apply (r, horflag);
 	  else
 	    {
 	      /* Finally, try with "safe" minimum sizes.  */
 	      resize_root_window (root, delta, horflag ? Qt : Qnil, Qsafe);
-	      if (resize_window_check (r, horflag)
+	      if (window_resize_check (r, horflag)
 		  && new_size == XINT (r->new_total))
-		resize_window_apply (r, horflag);
+		window_resize_apply (r, horflag);
 	      else
 		{
 		  /* We lost.  Delete all windows but the frame's
@@ -3765,7 +3743,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
       XSETINT (p->new_total,
 	       XINT (horflag ? p->total_cols : p->total_lines)
 	       - XINT (total_size));
-      if (!resize_window_check (p, horflag))
+      if (!window_resize_check (p, horflag))
 	error ("Window sizes don't fit");
       else
 	/* Undo the temporary pretension.  */
@@ -3773,7 +3751,7 @@ set correctly.  See the code of `split-window' for how this is done.  */)
     }
   else
     {
-      if (!resize_window_check (o, horflag))
+      if (!window_resize_check (o, horflag))
 	error ("Resizing old window failed");
       else if (XINT (total_size) + XINT (o->new_total)
 	       != XINT (horflag ? o->total_cols : o->total_lines))
@@ -3861,13 +3839,13 @@ set correctly.  See the code of `split-window' for how this is done.  */)
       n->total_cols = o->total_cols;
     }
 
-  /* Iso-coordinates and sizes are assigned by resize_window_apply,
+  /* Iso-coordinates and sizes are assigned by window_resize_apply,
      get them ready here.  */
   n->new_total = total_size;
   n->new_normal = normal_size;
 
   BLOCK_INPUT;
-  resize_window_apply (p, horflag);
+  window_resize_apply (p, horflag);
   adjust_glyphs (f);
   /* Set buffer of NEW to buffer of reference window.  Don't run
      any hooks.  */
@@ -3945,13 +3923,13 @@ when WINDOW is the only window on its frame.  */)
 	XWINDOW (s->next)->prev = sibling;
     }
 
-  if (resize_window_check (r, horflag)
+  if (window_resize_check (r, horflag)
       && EQ (r->new_total, (horflag ? r->total_cols : r->total_lines)))
     /* We can delete WINDOW now.  */
     {
       /* Block input.  */
       BLOCK_INPUT;
-      resize_window_apply (p, horflag);
+      window_resize_apply (p, horflag);
 
       windows_or_buffers_changed++;
       Vwindow_list = Qnil;
@@ -4073,11 +4051,12 @@ grow_mini_window (struct window *w, int delta)
 
   root = FRAME_ROOT_WINDOW (f);
   r = XWINDOW (root);
-  value = call2 (Qresize_root_window_vertically, root, make_number (- delta));
-  if (INTEGERP (value) && resize_window_check (r, 0))
+  value = call2 (Qwindow_resize_root_window_vertically,
+		 root, make_number (- delta));
+  if (INTEGERP (value) && window_resize_check (r, 0))
     {
       BLOCK_INPUT;
-      resize_window_apply (r, 0);
+      window_resize_apply (r, 0);
 
       /* Grow the mini-window.  */
       XSETFASTINT (w->top_line, XFASTINT (r->top_line) + XFASTINT (r->total_lines));
@@ -4107,12 +4086,12 @@ shrink_mini_window (struct window *w)
     {
       root = FRAME_ROOT_WINDOW (f);
       r = XWINDOW (root);
-      value = call2 (Qresize_root_window_vertically,
+      value = call2 (Qwindow_resize_root_window_vertically,
 		     root, make_number (size - 1));
-      if (INTEGERP (value) && resize_window_check (r, 0))
+      if (INTEGERP (value) && window_resize_check (r, 0))
 	{
 	  BLOCK_INPUT;
-	  resize_window_apply (r, 0);
+	  window_resize_apply (r, 0);
 
 	  /* Shrink the mini-window.  */
 	  XSETFASTINT (w->top_line, XFASTINT (r->top_line) + XFASTINT (r->total_lines));
@@ -4150,12 +4129,12 @@ DEFUN ("resize-mini-window-internal", Fresize_mini_window_internal, Sresize_mini
 
   r = XWINDOW (FRAME_ROOT_WINDOW (f));
   height = XINT (r->total_lines) + XINT (w->total_lines);
-  if (resize_window_check (r, 0)
+  if (window_resize_check (r, 0)
       && XINT (w->new_total) > 0
       && height == XINT (r->new_total) + XINT (w->new_total))
     {
       BLOCK_INPUT;
-      resize_window_apply (r, 0);
+      window_resize_apply (r, 0);
 
       w->total_lines = w->new_total;
       XSETFASTINT (w->top_line, XINT (r->top_line) + XINT (r->total_lines));
@@ -5347,8 +5326,7 @@ struct saved_window
 {
   struct vectorlike_header header;
 
-  Lisp_Object window, clone_number;
-  Lisp_Object buffer, start, pointm, mark;
+  Lisp_Object window, buffer, start, pointm, mark;
   Lisp_Object left_col, top_line, total_cols, total_lines;
   Lisp_Object normal_cols, normal_lines;
   Lisp_Object hscroll, min_hscroll;
@@ -5567,7 +5545,6 @@ the return value is nil.  Otherwise the value is t.  */)
 		}
 	    }
 
-	  w->clone_number = p->clone_number;
 	  /* If we squirreled away the buffer in the window's height,
 	     restore it now.  */
 	  if (BUFFERP (w->total_lines))
@@ -5850,7 +5827,6 @@ save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
 
       XSETFASTINT (w->temslot, i); i++;
       p->window = window;
-      p->clone_number = w->clone_number;
       p->buffer = w->buffer;
       p->left_col = w->left_col;
       p->top_line = w->top_line;
@@ -6441,69 +6417,30 @@ init_window (void)
 void
 syms_of_window (void)
 {
-  Qscroll_up = intern_c_string ("scroll-up");
-  staticpro (&Qscroll_up);
-
-  Qscroll_down = intern_c_string ("scroll-down");
-  staticpro (&Qscroll_down);
-
-  Qscroll_command = intern_c_string ("scroll-command");
-  staticpro (&Qscroll_command);
+  DEFSYM (Qscroll_up, "scroll-up");
+  DEFSYM (Qscroll_down, "scroll-down");
+  DEFSYM (Qscroll_command, "scroll-command");
 
   Fput (Qscroll_up, Qscroll_command, Qt);
   Fput (Qscroll_down, Qscroll_command, Qt);
 
-  staticpro (&Qwindow_configuration_change_hook);
-  Qwindow_configuration_change_hook
-    = intern_c_string ("window-configuration-change-hook");
-
-  Qwindowp = intern_c_string ("windowp");
-  staticpro (&Qwindowp);
-
-  Qwindow_configuration_p = intern_c_string ("window-configuration-p");
-  staticpro (&Qwindow_configuration_p);
-
-  Qwindow_live_p = intern_c_string ("window-live-p");
-  staticpro (&Qwindow_live_p);
-
-  Qwindow_deletable_p = intern_c_string ("window-deletable-p");
-  staticpro (&Qwindow_deletable_p);
-
-  Qdelete_window = intern_c_string ("delete-window");
-  staticpro (&Qdelete_window);
-
-  Qresize_root_window = intern_c_string ("resize-root-window");
-  staticpro (&Qresize_root_window);
-
-  Qresize_root_window_vertically = intern_c_string ("resize-root-window-vertically");
-  staticpro (&Qresize_root_window_vertically);
-
-  Qsafe = intern_c_string ("safe");
-  staticpro (&Qsafe);
-
-  Qdisplay_buffer = intern_c_string ("display-buffer");
-  staticpro (&Qdisplay_buffer);
-
-  Qreplace_buffer_in_windows = intern_c_string ("replace-buffer-in-windows");
-  staticpro (&Qreplace_buffer_in_windows);
-
-  Qrecord_window_buffer = intern_c_string ("record-window-buffer");
-  staticpro (&Qrecord_window_buffer);
-
-  Qget_mru_window = intern_c_string ("get-mru-window");
-  staticpro (&Qget_mru_window);
-
-  Qtemp_buffer_show_hook = intern_c_string ("temp-buffer-show-hook");
-  staticpro (&Qtemp_buffer_show_hook);
-
-  Qabove = intern_c_string ("above");
-  staticpro (&Qabove);
-
-  Qbelow = intern_c_string ("below");
-  staticpro (&Qbelow);
-
-  Qauto_buffer_name = intern_c_string ("auto-buffer-name");
-  staticpro (&Qauto_buffer_name);
+  DEFSYM (Qwindow_configuration_change_hook, "window-configuration-change-hook");
+  DEFSYM (Qwindowp, "windowp");
+  DEFSYM (Qwindow_configuration_p, "window-configuration-p");
+  DEFSYM (Qwindow_live_p, "window-live-p");
+  DEFSYM (Qwindow_deletable_p, "window-deletable-p");
+  DEFSYM (Qdelete_window, "delete-window");
+  DEFSYM (Qwindow_resize_root_window, "window--resize-root-window");
+  DEFSYM (Qwindow_resize_root_window_vertically, "window--resize-root-window-vertically");
+  DEFSYM (Qsafe, "safe");
+  DEFSYM (Qdisplay_buffer, "display-buffer");
+  DEFSYM (Qreplace_buffer_in_windows, "replace-buffer-in-windows");
+  DEFSYM (Qrecord_window_buffer, "record-window-buffer");
+  DEFSYM (Qget_mru_window, "get-mru-window");
+  DEFSYM (Qtemp_buffer_show_hook, "temp-buffer-show-hook");
+  DEFSYM (Qabove, "above");
+  DEFSYM (Qbelow, "below");
+  DEFSYM (Qauto_buffer_name, "auto-buffer-name");
 
   staticpro (&Vwindow_list);
 
@@ -6634,13 +6571,12 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Sset_frame_selected_window);
   defsubr (&Spos_visible_in_window_p);
   defsubr (&Swindow_line_height);
-  defsubr (&Swindow_clone_number);
   defsubr (&Swindow_buffer);
   defsubr (&Swindow_parent);
-  defsubr (&Swindow_vchild);
-  defsubr (&Swindow_hchild);
-  defsubr (&Swindow_next);
-  defsubr (&Swindow_prev);
+  defsubr (&Swindow_top_child);
+  defsubr (&Swindow_left_child);
+  defsubr (&Swindow_next_sibling);
+  defsubr (&Swindow_prev_sibling);
   defsubr (&Swindow_splits);
   defsubr (&Sset_window_splits);
   defsubr (&Swindow_nest);
@@ -6654,7 +6590,7 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Swindow_new_normal);
   defsubr (&Sset_window_new_total);
   defsubr (&Sset_window_new_normal);
-  defsubr (&Sresize_window_apply);
+  defsubr (&Swindow_resize_apply);
   defsubr (&Swindow_body_size);
   defsubr (&Swindow_hscroll);
   defsubr (&Sset_window_hscroll);
@@ -6684,7 +6620,6 @@ function `window-nest' and altered by the function `set-window-nest'.  */);
   defsubr (&Sdelete_window_internal);
   defsubr (&Sresize_mini_window_internal);
   defsubr (&Sset_window_buffer);
-  defsubr (&Sset_window_clone_number);
   defsubr (&Srun_window_configuration_change_hook);
   defsubr (&Sselect_window);
   defsubr (&Sforce_window_update);

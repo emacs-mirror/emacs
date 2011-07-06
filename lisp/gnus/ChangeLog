@@ -1,3 +1,307 @@
+2011-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Silence compiler.
+
+2011-07-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-refer-article-method): Remove mention of nnspool, which
+	no longer is much used.
+	(gnus-summary-line-format): Link to "Marking Articles" instead of "Read
+	Articles".
+
+2011-04-03  Kan-Ru Chen  <kanru@kanru.info>
+
+	* nnir.el (nnir-notmuch-program, nnir-notmuch-additional-switches)
+	(nnir-notmuch-remove-prefix, nnir-engines, nnir-run-notmuch): New nnir
+	`notmuch' backend.
+
+2011-07-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-text-html-renderer): Doc fix.
+
+	* gnus-msg.el (gnus-bug): Fix the MML tag.
+
+	* pop3.el (pop3-open-server): -ERR is a valid response to CAPA.
+
+2011-07-05  Daiki Ueno  <ueno@unixuser.org>
+
+	* gnus-start.el (gnus-get-unread-articles): Don't connect to the
+	secondary methods if started with `gnus-no-server'.
+
+2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* message.el (message-return-action): Fix typo in docstring.
+
+2011-07-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-read-ephemeral-bug-group): Allow fetching several
+	bug reports at once.
+
+	* nnimap.el (nnimap-request-scan): Say that splitting has finished.
+
+2011-07-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nndraft.el: Require gnus-group.
+	(nndraft-request-list): Declare.
+
+	* nndraft.el (nndraft-update-unread-articles): Don't show group having
+	no unread article unless it matches gnus-permanently-visible-groups.
+
+	* nndraft.el (nndraft-update-unread-articles): New function.
+	(nndraft-request-associate-buffer): Use it to update the number of
+	unread articles for the nndraft groups in the group buffer when saving
+	or killing a draft message.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-read-ephemeral-bug-group): Bind the coding
+	systems to binary before writing and reading the mbox files.
+
+	* gnus.el (gnus-summary-line-format): Link to the info node for %U
+	instead of trying to list them all (bug#8978).
+
+2011-07-03  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* pop3.el (pop3-open-server): Use :end-of-capability.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Make sure that
+	the id is always a number.
+
+	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Hook into
+	debbugs mode, if possible.
+
+2011-07-02  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-token-passphrase-callback-function):
+	Reindent.
+	(epg-context-operation): Remove unnecessary autoload.
+
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-list-debbugs): New command.
+
+	* gnus-group.el (gnus-bug-group-download-format-alist): Get the
+	mboxstat instead of the maintbox, since the stat seems to be fuller.
+
+	* gnus-msg.el (gnus-configure-posting-styles): Don't try to select dead
+	summary buffers.
+
+	* message.el (message-get-reply-headers): Delete all duplicates,
+	instead of the first.
+	(message-get-reply-headers): Ensure that we have progress while
+	deleting duplicates.
+
+	* gnus-msg.el (gnus-configure-posting-styles): Get the local
+	gnus-posting-style value from the summary buffer to make it easier to
+	make that a per-buffer conf.
+
+2011-07-02  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-run-imap): Allow halting a search when an article is
+	found by setting `shortcut' in 'query.
+	(nnir-request-article): Use `shortcut' setting when requesting article
+	by Message-ID.
+
+2011-07-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-msg.el (gnus-bug): Give the Version and Package headers to
+	debbugs with the X-Debbugs-Package and X-Debbugs-Version headers.
+	Bring the pseudo-headers back too.
+
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-token-passphrase-callback-function):
+	Simplify and remove EPA dependency.
+
+2011-07-01  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-request-article): Fix error message text.
+
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (plstore-delete): Autoload.
+	(auth-source-plstore-search): Support delete operation.
+	* plstore.el (plstore-delete): New function.
+
+2011-07-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-draft.el (gnus-draft-clear-marks): Revert last change;
+	mark actually existing articles as unread rather than the ones that
+	active asserts.
+
+2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* nntp.el (nntp-record-command):
+	* gnus-util.el (gnus-message-with-timestamp-1):
+	Use format-time-string rather than decoding time stamps by hand.
+	This is simpler and insulates the code from potential changes to
+	current-time format.
+
+2011-07-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-draft.el (gnus-draft-clear-marks): Mark deleted articles as read.
+
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* plstore.el (plstore-select-keys, plstore-encrypt-to): New variable.
+	(plstore-save): Support public key encryption.
+	(plstore--init-from-buffer): New function.
+	(plstore-open): Use it; fix error when opening a non-existent file.
+	(plstore-revert): Use plstore--init-from-buffer.
+
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-backend): Fix :initarg for data slot.
+
+2011-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml2015.el (mml2015-use): Replace string-match-p with string-match
+	for old Emacsen.
+
+2011-06-30  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (mml2015-use): Don't try to load PGG on Emacs 24, when EPG
+	is not fully working.
+
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dgnushack.el: Autoload sha1 on XEmacs.
+
+	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Take an optional
+	quit window configuration.
+
+	* auth-source.el (epg-context-set-passphrase-callback): Remove
+	duplicate autoload.
+
+2011-06-30  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-request-article): Allow requesting articles by
+	Message-ID with nnimap.
+
+	* gnus-sum.el (gnus-refer-article-methods): Allow (nnir) entry to use
+	current server.
+
+2011-06-30  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Autoload EPA/EPG functions.
+	(auth-source-netrc-use-gpg-tokens): Clarify that it should not be
+	changed when EPA/EPG is not available.
+	(auth-source-backend): Rename "arg" member to "data".
+	(auth-source-backend-parse, auth-source-plstore-search)
+	(auth-source-plstore-create): Use it.
+
+2011-06-30  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-art.el (gnus-request-article-this-buffer): Use existing function
+	`gnus-refer-article-methods'.
+
+2011-06-30  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Require EPA and EPG.
+	(auth-source-passphrase-alist): New variable.
+	(auth-source-passphrase-callback-function)
+	(auth-source-token-passphrase-callback-function): Callbacks for the
+	netrc field encryption (GPG tokens).
+	(auth-source-epa-extract-gpg-token, auth-source-epa-make-gpg-token):
+	Symmetric encryption and decryption of the netrc GPG tokens.
+	(auth-source-netrc-normalize): Use them, simplifying the closure.
+
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-split-incoming-mail): If `nnimap-split-fancy' is
+	non-nil, and `nnimap-split-methods' is nil, use the former.
+
+2011-06-30  Daiki Ueno  <ueno@unixuser.org>
+
+	* plstore.el (plstore-revert): New function.
+	(plstore-open): Use it; hide the buffer from user.
+
+2011-06-30  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-backend): New member "arg".
+	(auth-source-backend-parse): Handle new backend 'plstore.
+	* plstore.el: New file.
+
+2011-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-fun.el (gnus-convert-image-to-x-face-command): Doc fix.
+
+	* mm-util.el (mm-charset-synonym-alist): Move definition before use.
+
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-process-expiry-targets): Say what target we're
+	expiring articles to.
+
+	* mm-util.el (mm-charset-to-coding-system): Recognise all ANSI.x3.4
+	variations as ASCII (bug#5458).
+
+2011-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmh.el (nnmh-request-list-1): Work on MS Windows.
+
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-point-in-header-p): Tweak the function to default
+	to saying that we're not in the headers if there is no separator at
+	all.  This makes it possible to use the Message version of `M-q' in
+	buffers with no headers (bug#7987).
+	(message-point-in-header-p): Fix last checkin to work with an empty
+	mail-header-separator, too.
+
+	* auth-source.el (auth-source-netrc-saver): If the user says "don't ask
+	again, save the choice via customize.
+
+2011-06-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-send-mail-function): Add `sendmail-query-once'.
+
+	* nnimap.el (nnimap-finish-retrieve-group-infos): If the server has
+	ended the connection, bail out before waiting infinitely on a new
+	connection.
+
+2011-06-28  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-msg.el (gnus-bug): Add Package and Version pseudo-headers to bug
+	reports.
+
+	* gnus.el (gnus-bug-package): Use "gnus."
+	(gnus-maintainer): Direct bug reports to submit@debbugs.gnu.org.
+
+2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-stop-animations): New function to stop any
+	animations going on at article exit time.
+
+	* gnus-registry.el (gnus-registry-user-format-function-M): Reinstate,
+	since removing it breaks people upgrading.
+
+	* shr.el (shr-put-image): Use the new interface for animating images.
+	(shr-put-image): Animate for 60 seconds.
+
+	* auth-source.el (with-auth-source-epa-overrides): Fix compilation
+	error with `find-file-hooks' on Emacs 22.
+	(with-auth-source-epa-overrides): Ugly hack to Wrap the
+	`find-file-hook' things in `symbol-value' to avoid compilation warnings
+	on all architectures.
+
+	* spam.el (spam-stat): Require in a normal fashion without binding
+	`spam-stat-install-hooks' to avoid compilation warnings.
+
+	* spam-stat.el (spam-stat-install-hooks): Removed.
+	(spam-stat-install-hooks): Don't run automatically.
+
+2011-06-26  Timo Juhani Lindfors  <timo.lindfors@iki.fi>  (tiny change)
+
+	* gnus-msg.el (gnus-summary-reply-to-list-with-original): New command
+	and keystroke.
+
+2011-06-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* auth-source.el (auth-source-netrc-cache): Move forward.
+
 2011-06-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* auth-source.el (auth-source-netrc-create): Don't query the bits that
@@ -527,12 +831,6 @@
 
 	* Makefile.in (fail-on-warning): New rule to compile with warnings as
 	errors.
-
-	* dgnushack.el (dgnushack-compile-error-on-warn): New function to call
-	dgnushack-compile with error-on-warn enabled, and to signal an error if
-	clean compilation failed.
-	(dgnushack-compile): New argument 'error-on-warn'.  If non-nil, compile
-	with `byte-compile-error-on-warn'.  Return nil if errors occured.
 
 2011-04-06  Teodor Zlatanov  <tzz@lifelogs.com>
 

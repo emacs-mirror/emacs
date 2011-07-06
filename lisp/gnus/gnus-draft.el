@@ -327,8 +327,7 @@ If DONT-POP is nil, display the buffer after setting it up."
 (defun gnus-draft-clear-marks ()
   (setq gnus-newsgroup-reads nil
 	gnus-newsgroup-marked nil
-	gnus-newsgroup-unreads
-	(gnus-uncompress-range (gnus-active gnus-newsgroup-name))))
+	gnus-newsgroup-unreads (nndraft-articles)))
 
 (provide 'gnus-draft)
 

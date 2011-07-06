@@ -143,6 +143,19 @@ documentation of `unload-feature' for details.")
 (define-obsolete-variable-alias 'unload-hook-features-list
     'unload-function-defs-list "22.2")
 
+(defun unload--set-major-mode ()
+  (save-current-buffer
+    (dolist (buffer (buffer-list))
+      (set-buffer buffer)
+      (let ((proposed major-mode))
+        ;; Look for an antecessor mode not defined in the feature we're processing
+        (while (and proposed (rassq proposed unload-function-defs-list))
+          (setq proposed (get proposed 'derived-mode-parent)))
+        (unless (eq proposed major-mode)
+          ;; Two cases: either proposed is nil, and we want to switch to fundamental
+          ;; mode, or proposed is not nil and not major-mode, and so we use it.
+          (funcall (or proposed 'fundamental-mode)))))))
+
 ;;;###autoload
 (defun unload-feature (feature &optional force)
   "Unload the library that provided FEATURE.
@@ -222,6 +235,10 @@ something strange, such as redefining an Emacs function."
 		     (not (get (cdr y) 'autoload)))
 	    (setq auto-mode-alist
 		  (rassq-delete-all (cdr y) auto-mode-alist)))))
+
+      ;; Change major mode in all buffers using one defined in the feature being unloaded.
+      (unload--set-major-mode)
+
       (when (fboundp 'elp-restore-function) ; remove ELP stuff first
 	(dolist (elt unload-function-defs-list)
 	  (when (symbolp elt)

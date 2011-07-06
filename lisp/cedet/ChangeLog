@@ -1,3 +1,13 @@
+2011-07-04  Darren Hoo  <darren.hoo@gmail.com>  (tiny change)
+
+	* semantic/db.el (semanticdb-file-table-object): Don't bug out on
+	unconfigured projects if `global-ede-mode' is on (bug#8092).
+
+2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* semantic.el (semantic-elapsed-time): Rewrite using
+	time-subtract and float-time.
+
 2011-05-11  Glenn Morris  <rgm@gnu.org>
 
 	* semantic/wisent/javascript.el (semantic-get-local-variables):

@@ -112,6 +112,13 @@ editors; for Lisp programs, the distinction is normally unimportant.
 @item byte-code function
 A @dfn{byte-code function} is a function that has been compiled by the
 byte compiler.  @xref{Byte-Code Type}.
+
+@item autoload object
+@cindex autoload object
+An @dfn{autoload object} is a place-holder for a real function.  If
+the autoload object is called, it will make Emacs load the file
+containing the definition of the real function, and then call the real
+function instead.
 @end table
 
 @defun functionp object
@@ -782,6 +789,12 @@ This function returns @var{arg} and has no side effects.
 @defun ignore &rest args
 This function ignores any arguments and returns @code{nil}.
 @end defun
+
+  Emacs Lisp functions can also be user-visible @dfn{commands}.  A
+command is a function that has an @dfn{interactive} specification.
+You may want to call these functions as if they were called
+interactively.  See @ref{Interactive Call} for details on how to do
+that.
 
 @node Mapping Functions
 @section Mapping Functions

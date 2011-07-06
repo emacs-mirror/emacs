@@ -1,3 +1,39 @@
+2011-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_GCONF): Allow both HAVE_GCONF and HAVE_GSETTINGS.
+
+2011-07-01  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (SETTINGS_CFLAGS, SETTINGS_LIBS) [HAVE_GCONF]: Fix typo.
+
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* configure.in (HAVE_GSETTINGS): Fix syntax for GSETTINGS tests,
+	which made ./configure infloop.
+
+2011-06-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in (gsettings): New option and check for GSettings.
+
+2011-06-29  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Try to test for the required crt*.o files.
+
+2011-06-27  Bill Wohler  <wohler@newt.com>
+
+	* .bzrignore: Add lisp/mh-e/mh-autoloads.el and lisp/mh-e/mh-cus-load.el.
+
+2011-06-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use gnulib's dup2 module instead of rolling our own.
+	* Makefile.in (GNULIB_MODULES): Add dup2.
+	* configure.in: Do not check for dup2; gnulib does that now.
+	* lib/dup2.c, m4/dup2.m4: New files, from gnulib.
+
+2011-06-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/getopt.c, lib/stat.c, m4/gl-comp.m4: Merge from gnulib.
+
 2011-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use gnulib's alloca-opt module.

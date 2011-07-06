@@ -287,10 +287,11 @@ Configuration Basics
 
 Styles
 
-* Built-in Styles::
-* Choosing a Style::
-* Adding Styles::
-* File Styles::
+* Built-in Styles::             
+* Choosing a Style::            
+* Adding Styles::               
+* Guessing the Style::          
+* File Styles::                 
 
 Customizing Auto-newlines
 
@@ -2511,13 +2512,17 @@ groupings of customizations called @dfn{styles}, associate a single name
 for any particular style, and pretty easily start editing new or
 existing code using these styles.
 
-@menu
-* Built-in Styles::
-* Choosing a Style::
-* Adding Styles::
-* File Styles::
-@end menu
+As an alternative to writing a style definition yourself, you can have
+@ccmode{} @dfn{guess} (at least part of) your style by looking at an
+already formatted piece of your code, @ref{Guessing the Style}.
 
+@menu
+* Built-in Styles::             
+* Choosing a Style::            
+* Adding Styles::               
+* Guessing the Style::          
+* File Styles::                 
+@end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @node    Built-in Styles, Choosing a Style, Styles, Styles
@@ -2653,9 +2658,8 @@ This variable always contains the buffer's current style name, as a
 string.
 @end defvar
 
-
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Adding Styles, File Styles, Choosing a Style, Styles
+@node    Adding Styles, Guessing the Style, Choosing a Style, Styles
 @comment node-name, next, previous, up
 @subsection Adding and Amending Styles
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -2742,9 +2746,131 @@ This is the variable that holds the definitions for the styles.  It
 should not be changed directly; use @code{c-add-style} instead.
 @end defvar
 
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@node    Guessing the Style, File Styles, Adding Styles, Styles
+@comment node-name, next, previous, up
+@subsection Guessing the Style
+@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+Instead of specifying a style, you can get @ccmode{} to @dfn{guess}
+your style by examining an already formatted code buffer.  @ccmode{}
+then determines the ''most frequent'' offset (@pxref{c-offsets-alist})
+for each of the syntactic symbols (@pxref{Indentation Engine Basics})
+encountered in the buffer, and the ''most frequent'' value of
+c-basic-offset (@pxref{Customizing Indentation}), then merges the
+current style with these ''guesses'' to form a new style.  This
+combined style is known as the @dfn{guessed style}.
+
+To do this, call @code{c-guess} (or one of the other 5 guessing
+commands) on your sample buffer.  The analysis of your code may take
+some time.
+
+You can then set the guessed style in any @ccmode{} buffer with
+@code{c-guess-install}.  You can display the style with
+@code{c-guess-view}, and preserve it by copying it into your
+@file{.emacs} for future use, preferably after editing it.
+
+@table @asis
+@item @kbd{M-x c-guess-no-install}
+@itemx @kbd{M-x c-guess-buffer-no-install}
+@itemx @kbd{M-x c-guess-region-no-install}
+@findex c-guess-no-install
+@findex c-guess-buffer-no-install
+@findex c-guess-region-no-install
+@findex guess-no-install (c-)
+@findex guess-buffer-no-install (c-)
+@findex guess-region-no-install (c-)
+These commands analyze a part of the current buffer and guess the
+style from it.
+
+The part of the buffer examined is either the region
+(@code{c-guess-region-no-install}), the entire buffer
+(@code{c-guess-buffer-no-install}), or the first
+@code{c-guess-region-max} bytes (@code{c-guess-no-install}).
+
+Each of these commands can be given an optional prefix argument.  This
+instructs @ccmode{} to combine the new guesses with the current
+guesses before forming the guessed style.
+@end table
+
+@table @asis
+@item @kbd{M-x c-guess}
+@itemx @kbd{M-x c-guess-buffer}
+@itemx @kbd{M-x c-guess-region}
+@findex c-guess
+@findex c-guess-buffer
+@findex c-guess-region
+@findex guess (c-)
+@findex guess-buffer (c-)
+@findex guess-region (c-)
+These commands analyze a part of the current buffer, guess the style
+from it, then install the guessed style on the buffer.  The guessed
+style is given a name based on the buffer's absolute file name, and
+you can then set this style on any @ccmode{} buffer with @kbd{C-c .}.
+
+The part of the buffer examined is either the region
+(@code{c-guess-region}), the entire buffer (@code{c-guess-buffer}), or
+the first @code{c-guess-region-max} bytes (@code{c-guess}).
+
+Each of these commands can be given an optional prefix argument.  This
+instructs @ccmode{} to combine the new guesses with the current
+guesses before forming the guessed style.
+@end table
+
+@defopt c-guess-region-max
+@vindex guess-region-max (c-)
+This variable, default 50000, is the size in bytes of the buffer
+portion examined by c-guess and c-guess-no-install.  If set to
+@code{nil}, the entire buffer is examined.
+@end defopt
+
+@defopt c-guess-offset-threshold
+@vindex guess-offset-threshold (c-)
+This variable, default 10, is the maximum offset, either outwards or
+inwards, which will be taken into account by the analysis process.
+Any offset bigger than this will be ignored.  For no limit, set this
+variable to a large number.
+@end defopt
+
+@table @asis
+@item  @kbd{M-x c-guess-install}
+@findex c-guess-install
+@findex guess-install (c-)
+
+Set the current buffer's style to the guessed style.  This prompts you
+to enter an optional new style name to give to the guessed style.  By
+default, this name is based on the buffer's absolute file name.  You
+can then use this style like any other.
+
+@item  @kbd{M-x c-guess-view}
+@findex c-guess-view
+@findex guess-view (c-)
+Display the most recently guessed style in a temporary buffer.  This
+display is in the form of a @code{c-add-style} form (@pxref{Adding
+Styles}) which can be easily copied to your @file{.emacs}.  You will
+probably want to edit it first.
+
+The display of the guessed style contains these elements:
+
+@table @asis
+@item Placeholder Name
+You should replace this with a style name of your own.
+@item Parent Style
+The style current when the guessing began, from which the guessed
+style inherits (@pxref{Config Basics}) the settings which weren't
+guessed.
+@item Guessed Offsets
+These are the core result of the guessing process.  Each of them is
+marked by a comment.
+@item Inherited Offsets
+These are syntactic offsets which have been taken over from the parent
+style.  To avoid possible future conflicts, you should remove either
+these offsets or the parent style name.
+@end table
+@end table
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    File Styles,  , Adding Styles, Styles
+@node    File Styles,  , Guessing the Style, Styles
 @comment node-name, next, previous, up
 @subsection File Styles
 @cindex styles, file local

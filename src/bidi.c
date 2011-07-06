@@ -744,8 +744,6 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 		       || type == LRE || type == LRO));
 	     type = bidi_get_type (ch, NEUTRAL_DIR))
 	  {
-	    if (type == NEUTRAL_B && bidi_at_paragraph_end (pos, bytepos) >= -1)
-	      break;
 	    if (bytepos >= ZV_BYTE)
 	      {
 		/* Pretend there's a paragraph separator at end of
@@ -753,6 +751,8 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 		type = NEUTRAL_B;
 		break;
 	      }
+	    if (type == NEUTRAL_B && bidi_at_paragraph_end (pos, bytepos) >= -1)
+	      break;
 	    /* Fetch next character and advance to get past it.  */
 	    ch = bidi_fetch_char (bytepos, pos, &disp_pos,
 				  bidi_it->frame_window_p, &ch_len, &nchars);

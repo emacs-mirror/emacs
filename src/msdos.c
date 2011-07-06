@@ -4267,8 +4267,7 @@ syms_of_msdos (void)
 #ifndef HAVE_X_WINDOWS
 
   /* The following two are from xfns.c:  */
-  Qreverse = intern_c_string ("reverse");
-  staticpro (&Qreverse);
+  DEFSYM (Qreverse, "reverse");
 
   DEFVAR_LISP ("dos-unsupported-char-glyph", Vdos_unsupported_char_glyph,
 	       doc: /* *Glyph to display instead of chars not supported by current codepage.

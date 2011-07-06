@@ -43,6 +43,7 @@
 (require 'mm-util)
 (require 'gnus-util)
 (require 'assoc)
+
 (eval-when-compile (require 'cl))
 (require 'eieio)
 
@@ -55,6 +56,19 @@
 (autoload 'secrets-search-items "secrets")
 
 (autoload 'rfc2104-hash "rfc2104")
+
+(autoload 'plstore-open "plstore")
+(autoload 'plstore-find "plstore")
+(autoload 'plstore-put "plstore")
+(autoload 'plstore-delete "plstore")
+(autoload 'plstore-save "plstore")
+(autoload 'plstore-get-file "plstore")
+
+(autoload 'epg-make-context "epg")
+(autoload 'epg-context-set-passphrase-callback "epg")
+(autoload 'epg-decrypt-string "epg")
+(autoload 'epg-context-set-armor "epg")
+(autoload 'epg-encrypt-string "epg")
 
 (defvar secrets-enabled)
 
@@ -75,6 +89,9 @@ let-binding."
                  (const :tag "30 Minutes" 1800)
                  (integer :tag "Seconds")))
 
+;;; The slots below correspond with the `auth-source-search' spec,
+;;; so a backend with :host set, for instance, would match only
+;;; searches for that host.  Normally they are nil.
 (defclass auth-source-backend ()
   ((type :initarg :type
          :initform 'netrc
@@ -100,6 +117,9 @@ let-binding."
          :type t
          :custom string
          :documentation "The backend protocol.")
+   (data :initarg :data
+         :initform nil
+         :documentation "Internal backend data.")
    (create-function :initarg :create-function
                     :initform ignore
                     :type function
@@ -159,7 +179,8 @@ let-binding."
 
 (defcustom auth-source-netrc-use-gpg-tokens 'never
   "Set this to tell auth-source when to create GPG password
-tokens in netrc files.  It's either an alist or `never'."
+tokens in netrc files.  It's either an alist or `never'.
+Note that if EPA/EPG is not available, this should NOT be used."
   :group 'auth-source
   :version "23.2" ;; No Gnus
   :type `(choice
@@ -264,9 +285,9 @@ can get pretty complex."
                                               (const :format "" :value :user)
                                               (choice
                                                :tag "Personality/Username"
-                                                      (const :tag "Any" t)
-                                                      (string
-                                                       :tag "Name")))))))))
+                                               (const :tag "Any" t)
+                                               (string
+                                                :tag "Name")))))))))
 
 (defcustom auth-source-gpg-encrypt-to t
   "List of recipient keys that `authinfo.gpg' encrypted to.
@@ -307,8 +328,8 @@ If the value is not a list, symmetric encryption will be used."
 
 (defun auth-source-do-warn (&rest msg)
   (apply
-    ;; set logger to either the function in auth-source-debug or 'message
-    ;; note that it will be 'message if auth-source-debug is nil
+   ;; set logger to either the function in auth-source-debug or 'message
+   ;; note that it will be 'message if auth-source-debug is nil
    (if (functionp auth-source-debug)
        auth-source-debug
      'message)
@@ -375,12 +396,20 @@ with \"[a/b/c] \" if CHOICES is '\(?a ?b ?c\)."
 
     ;; a file name with parameters
     ((stringp (plist-get entry :source))
-     (auth-source-backend
-      (plist-get entry :source)
-      :source (plist-get entry :source)
-      :type 'netrc
-      :search-function 'auth-source-netrc-search
-      :create-function 'auth-source-netrc-create))
+     (if (equal (file-name-extension (plist-get entry :source)) "plist")
+         (auth-source-backend
+          (plist-get entry :source)
+          :source (plist-get entry :source)
+          :type 'plstore
+          :search-function 'auth-source-plstore-search
+          :create-function 'auth-source-plstore-create
+          :data (plstore-open (plist-get entry :source)))
+       (auth-source-backend
+        (plist-get entry :source)
+        :source (plist-get entry :source)
+        :type 'netrc
+        :search-function 'auth-source-netrc-search
+        :create-function 'auth-source-netrc-create)))
 
     ;; the Secrets API.  We require the package, in order to have a
     ;; defined value for `secrets-enabled'.
@@ -654,7 +683,7 @@ must call it to obtain the actual value."
       (when auth-source-do-cache
         (auth-source-remember spec found)))
 
-      found))
+    found))
 
 (defun auth-source-search-backends (backends spec max create delete require)
   (let (matches)
@@ -704,6 +733,8 @@ Returns the deleted entries."
       (eq value t)
       (equal collection value)
       (member value collection)))
+
+(defvar auth-source-netrc-cache nil)
 
 (defun auth-source-forget-all-cached ()
   "Forget all cached auth-source data."
@@ -774,7 +805,7 @@ while \(:host t) would find all host entries."
 
 (defun auth-source-specmatchp (spec stored)
   (let ((keys (loop for i below (length spec) by 2
-                   collect (nth i spec))))
+                    collect (nth i spec))))
     (not (eq
           (dolist (key keys)
             (unless (auth-source-search-collection (plist-get stored key)
@@ -809,14 +840,12 @@ while \(:host t) would find all host entries."
   (unless (listp values)
     (setq values (list values)))
   (mapcar (lambda (value)
-	    (if (numberp value)
-		(format "%s" value)
-	      value))
-	  values))
+            (if (numberp value)
+                (format "%s" value)
+              value))
+          values))
 
 ;;; Backend specific parsing: netrc/authinfo backend
-
-(defvar auth-source-netrc-cache nil)
 
 ;;; (auth-source-netrc-parse "~/.authinfo.gpg")
 (defun* auth-source-netrc-parse (&rest
@@ -859,7 +888,7 @@ Note that the MAX parameter is used so we can exit the parse early."
                                                   (base64-encode-string
                                                    (buffer-string)))))
                                   (lambda () (base64-decode-string
-                                         (rot13-string v)))))))
+                                              (rot13-string v)))))))
           (goto-char (point-min))
           ;; Go through the file, line by line.
           (while (and (not (eobp))
@@ -926,7 +955,7 @@ Note that the MAX parameter is used so we can exit the parse early."
                         (null require)
                         ;; every element of require is in the normalized list
                         (let ((normalized (nth 0 (auth-source-netrc-normalize
-                                                 (list alist) file))))
+                                                  (list alist) file))))
                           (loop for req in require
                                 always (plist-get normalized req)))))
               (decf max)
@@ -962,54 +991,59 @@ Note that the MAX parameter is used so we can exit the parse early."
 
           (nreverse result))))))
 
-(defmacro with-auth-source-epa-overrides (&rest body)
-  `(let ((file-name-handler-alist
-          ',(if (boundp 'epa-file-handler)
-                (remove (symbol-value 'epa-file-handler)
-                        file-name-handler-alist)
-              file-name-handler-alist))
-         (,(if (boundp 'find-file-hook) 'find-file-hook 'find-file-hooks)
-          ',(remove
-             'epa-file-find-file-hook
-             (if (boundp 'find-file-hook) 'find-file-hook 'find-file-hooks)))
-         (auto-mode-alist
-          ',(if (boundp 'epa-file-auto-mode-alist-entry)
-                (remove (symbol-value 'epa-file-auto-mode-alist-entry)
-                        auto-mode-alist)
-              auto-mode-alist)))
-     ,@body))
+(defvar auth-source-passphrase-alist nil)
 
+(defun auth-source-token-passphrase-callback-function (context key-id file)
+  (let* ((file (file-truename file))
+	 (entry (assoc file auth-source-passphrase-alist))
+	 passphrase)
+    ;; return the saved passphrase, calling a function if needed
+    (or (copy-sequence (if (functionp (cdr entry))
+			   (funcall (cdr entry))
+			 (cdr entry)))
+	(progn
+	  (unless entry
+	    (setq entry (list file))
+	    (push entry auth-source-passphrase-alist))
+	  (setq passphrase
+		(read-passwd
+		 (format "Passphrase for %s tokens: " file)
+		 t))
+	  (setcdr entry (lexical-let ((p (copy-sequence passphrase)))
+			  (lambda () p)))
+	  passphrase))))
+
+;; (auth-source-epa-extract-gpg-token "gpg:LS0tLS1CRUdJTiBQR1AgTUVTU0FHRS0tLS0tClZlcnNpb246IEdudVBHIHYxLjQuMTEgKEdOVS9MaW51eCkKCmpBMEVBd01DT25qMjB1ak9rZnRneVI3K21iNm9aZWhuLzRad3cySkdlbnVaKzRpeEswWDY5di9icDI1U1dsQT0KPS9yc2wKLS0tLS1FTkQgUEdQIE1FU1NBR0UtLS0tLQo=" "~/.netrc")
+(defun auth-source-epa-extract-gpg-token (secret file)
+  "Pass either the decoded SECRET or the gpg:BASE64DATA version.
+FILE is the file from which we obtained this token."
+  (when (string-match "^gpg:\\(.+\\)" secret)
+    (setq secret (base64-decode-string (match-string 1 secret))))
+  (let ((context (epg-make-context 'OpenPGP))
+        plain)
+    (epg-context-set-passphrase-callback
+     context
+     (cons #'auth-source-token-passphrase-callback-function
+           file))
+    (epg-decrypt-string context secret)))
+
+;; (insert (auth-source-epa-make-gpg-token "mysecret" "~/.netrc"))
 (defun auth-source-epa-make-gpg-token (secret file)
-  (require 'epa nil t)
-  (unless (featurep 'epa)
-    (error "EPA could not be loaded."))
-  (let* ((base (file-name-sans-extension file))
-         (passkey (format "gpg:-%s" base))
-         (stash (concat base ".gpg"))
-         ;; temporarily disable EPA
-         (stashfile
-          (with-auth-source-epa-overrides
-           (make-temp-file "gpg-token" nil
-                           stash)))
-         (epa-file-passphrase-alist
-          `((,stashfile
-             . ,(password-read
-                 (format
-                  "token pass for %s? "
-                  file)
-                 passkey)))))
-    (write-region secret nil stashfile)
-    ;; temporarily disable EPA
-    (unwind-protect
-        (with-auth-source-epa-overrides
-         (with-temp-buffer
-           (insert-file-contents stashfile)
-           (base64-encode-region (point-min) (point-max) t)
-           (concat "gpg:"
-                   (buffer-substring-no-properties
-                    (point-min)
-                    (point-max)))))
-      (delete-file stashfile))))
+  (let ((context (epg-make-context 'OpenPGP))
+        (pp-escape-newlines nil)
+        cipher)
+    (epg-context-set-armor context t)
+    (epg-context-set-passphrase-callback
+     context
+     (cons #'auth-source-token-passphrase-callback-function
+           file))
+    (setq cipher (epg-encrypt-string context secret nil))
+    (with-temp-buffer
+      (insert cipher)
+      (base64-encode-region (point-min) (point-max) t)
+      (concat "gpg:" (buffer-substring-no-properties
+                      (point-min)
+                      (point-max))))))
 
 (defun auth-source-netrc-normalize (alist filename)
   (mapcar (lambda (entry)
@@ -1027,65 +1061,27 @@ Note that the MAX parameter is used so we can exit the parse early."
 
                   ;; send back the secret in a function (lexical binding)
                   (when (equal k "secret")
-                    (setq v (lexical-let ((v v)
-                                          (filename filename)
-                                          (base (file-name-nondirectory
-                                                 filename))
-                                          (token-decoder nil)
-                                          (gpgdata nil)
-                                          (stash nil))
-                              (setq stash (concat base ".gpg"))
-                              (when (string-match "gpg:\\(.+\\)" v)
-                                (require 'epa nil t)
-                                (unless (featurep 'epa)
-                                  (error "EPA could not be loaded."))
-                                (setq gpgdata (base64-decode-string
-                                               (match-string 1 v)))
-                                ;; it's a GPG token
-                                (setq
-                                 token-decoder
-                                 (lambda (gpgdata)
-;;; FIXME: this relies on .gpg files being handled by EPA/EPG
-                                   (let* ((passkey (format "gpg:-%s" base))
-                                          ;; temporarily disable EPA
-                                          (stashfile
-                                           (with-auth-source-epa-overrides
-                                            (make-temp-file "gpg-token" nil
-                                                            stash)))
-                                          (epa-file-passphrase-alist
-                                           `((,stashfile
-                                              . ,(password-read
-                                                  (format
-                                                   "token pass for %s? "
-                                                   filename)
-                                                  passkey)))))
-                                     (unwind-protect
-                                         (progn
-                                           ;; temporarily disable EPA
-                                           (with-auth-source-epa-overrides
-                                            (write-region gpgdata
-                                                          nil
-                                                          stashfile))
-                                           (setq
-                                            v
-                                            (with-temp-buffer
-                                              (insert-file-contents stashfile)
-                                              (buffer-substring-no-properties
-                                               (point-min)
-                                               (point-max)))))
-                                       (delete-file stashfile)))
-                                   ;; clear out the decoder at end
-                                   (setq token-decoder nil
-                                         gpgdata nil))))
-                          (lambda ()
-                            (when token-decoder
-                              (funcall token-decoder gpgdata))
-                            v))))
-                (setq ret (plist-put ret
-                                     (intern (concat ":" k))
-                                     v))))
-            ret))
-  alist))
+                    (setq v (lexical-let ((lexv v)
+                                          (token-decoder nil))
+                              (when (string-match "^gpg:" lexv)
+                                ;; it's a GPG token: create a token decoder
+                                ;; which unsets itself once
+                                (setq token-decoder
+                                      (lambda (val)
+                                        (prog1
+                                            (auth-source-epa-extract-gpg-token
+                                             val
+                                             filename)
+                                          (setq token-decoder nil)))))
+                              (lambda ()
+                                (when token-decoder
+                                  (setq lexv (funcall token-decoder lexv)))
+                                lexv))))
+                  (setq ret (plist-put ret
+                                       (intern (concat ":" k))
+                                       v))))
+              ret))
+          alist))
 
 ;;; (setq secret (plist-get (nth 0 (auth-source-search :host t :type 'netrc :K 1 :max 1)) :secret))
 ;;; (funcall secret)
@@ -1095,7 +1091,7 @@ Note that the MAX parameter is used so we can exit the parse early."
                                   &key backend require create delete
                                   type max host user port
                                   &allow-other-keys)
-"Given a property list SPEC, return search matches from the :backend.
+  "Given a property list SPEC, return search matches from the :backend.
 See `auth-source-search' for details on SPEC."
   ;; just in case, check that the type is correct (null or same as the backend)
   (assert (or (null type) (eq type (oref backend type)))
@@ -1145,9 +1141,9 @@ See `auth-source-search' for details on SPEC."
          ;; we know (because of an assertion in auth-source-search) that the
          ;; :create parameter is either t or a list (which includes nil)
          (create-extra (if (eq t create) nil create))
-	 (current-data (car (auth-source-search :max 1
-						:host host
-						:port port)))
+         (current-data (car (auth-source-search :max 1
+                                                :host host
+                                                :port port)))
          (required (append base-required create-extra))
          (file (oref backend source))
          (add "")
@@ -1183,8 +1179,8 @@ See `auth-source-search' for details on SPEC."
       (let* ((data (aget valist r))
              ;; take the first element if the data is a list
              (data (or (auth-source-netrc-element-or-first data)
-		       (plist-get current-data
-				  (intern (format ":%s" r) obarray))))
+                       (plist-get current-data
+                                  (intern (format ":%s" r) obarray))))
              ;; this is the default to be offered
              (given-default (aget auth-source-creation-defaults r))
              ;; the default supplementals are simple:
@@ -1231,8 +1227,8 @@ See `auth-source-search' for details on SPEC."
               (cond
                ((and (null data) (eq r 'secret))
                 ;; Special case prompt for passwords.
-;; TODO: make the default (setq auth-source-netrc-use-gpg-tokens `((,(if (boundp 'epa-file-auto-mode-alist-entry) (car (symbol-value 'epa-file-auto-mode-alist-entry)) "\\.gpg\\'") nil) (t gpg)))
-;; TODO: or maybe leave as (setq auth-source-netrc-use-gpg-tokens 'never)
+                ;; TODO: make the default (setq auth-source-netrc-use-gpg-tokens `((,(if (boundp 'epa-file-auto-mode-alist-entry) (car (symbol-value 'epa-file-auto-mode-alist-entry)) "\\.gpg\\'") nil) (t gpg)))
+                ;; TODO: or maybe leave as (setq auth-source-netrc-use-gpg-tokens 'never)
                 (let* ((ep (format "Use GPG password tokens in %s?" file))
                        (gpg-encrypt
                         (cond
@@ -1249,7 +1245,7 @@ See `auth-source-search' for details on SPEC."
                                 (setq ret (cdr item))
                                 (setq check nil)))))
                          (t 'never)))
-                        (plain (read-passwd prompt)))
+                       (plain (read-passwd prompt)))
                   ;; ask if we don't know what to do (in which case
                   ;; auth-source-netrc-use-gpg-tokens must be a list)
                   (unless gpg-encrypt
@@ -1297,9 +1293,9 @@ See `auth-source-search' for details on SPEC."
                                      (secret "password")
                                      (port   "port") ; redundant but clearer
                                      (t (symbol-name r)))
-				   (if (string-match "[\" ]" data)
-				       (format "%S" data)
-				     data)))))
+                                   (if (string-match "[\" ]" data)
+                                       (format "%S" data)
+                                     data)))))
             (setq add (concat add (funcall printer)))))))
 
     (plist-put
@@ -1361,9 +1357,10 @@ Respects `auth-source-save-behavior'.  Uses
                       (help-mode))))
               (?n (setq add ""
                         done t))
-              (?N (setq add ""
-                        done t
-                        auth-source-save-behavior nil))
+              (?N
+               (setq add ""
+                     done t)
+               (customize-save-variable 'auth-source-save-behavior nil))
               (?e (setq add (read-string "Line to add: " add)))
               (t nil)))
 
@@ -1454,11 +1451,11 @@ authentication tokens:
                                                 (eq t (plist-get spec k)))
                                             nil
                                           (list k (plist-get spec k))))
-                              search-keys)))
+                                      search-keys)))
          ;; needed keys (always including host, login, port, and secret)
          (returned-keys (mm-delete-duplicates (append
-					       '(:host :login :port :secret)
-					       search-keys)))
+                                               '(:host :login :port :secret)
+                                               search-keys)))
          (items (loop for item in (apply 'secrets-search-items coll search-spec)
                       unless (and (stringp label)
                                   (not (string-match label item)))
@@ -1499,6 +1496,210 @@ authentication tokens:
   ;; TODO
   ;; (apply 'secrets-create-item (auth-get-source entry) name passwd spec)
   (debug spec))
+
+;;; Backend specific parsing: PLSTORE backend
+
+(defun* auth-source-plstore-search (&rest
+                                    spec
+                                    &key backend create delete label
+                                    type max host user port
+                                    &allow-other-keys)
+  "Search the PLSTORE; spec is like `auth-source'."
+  (let* ((store (oref backend data))
+         (max (or max 5000))     ; sanity check: default to stop at 5K
+         (ignored-keys '(:create :delete :max :backend :require))
+         (search-keys (loop for i below (length spec) by 2
+                            unless (memq (nth i spec) ignored-keys)
+                            collect (nth i spec)))
+         ;; build a search spec without the ignored keys
+         ;; if a search key is nil or t (match anything), we skip it
+         (search-spec (apply 'append (mapcar
+                                      (lambda (k)
+                                        (let ((v (plist-get spec k)))
+                                          (if (or (null v)
+                                                  (eq t v))
+                                              nil
+                                            (if (stringp v)
+                                                (setq v (list v)))
+                                            (list k v))))
+                                      search-keys)))
+         ;; needed keys (always including host, login, port, and secret)
+         (returned-keys (mm-delete-duplicates (append
+                                               '(:host :login :port :secret)
+                                               search-keys)))
+         (items (plstore-find store search-spec))
+         (item-names (mapcar #'car items))
+         (items (butlast items (- (length items) max)))
+         ;; convert the item to a full plist
+         (items (mapcar (lambda (item)
+                          (let* ((plist (copy-tree (cdr item)))
+                                 (secret (plist-member plist :secret)))
+                            (if secret
+                                (setcar
+                                 (cdr secret)
+                                 (lexical-let ((v (car (cdr secret))))
+                                   (lambda () v))))
+                            plist))
+                        items))
+         ;; ensure each item has each key in `returned-keys'
+         (items (mapcar (lambda (plist)
+                          (append
+                           (apply 'append
+                                  (mapcar (lambda (req)
+                                            (if (plist-get plist req)
+                                                nil
+                                              (list req nil)))
+                                          returned-keys))
+                           plist))
+                        items)))
+    (cond
+     ;; if we need to create an entry AND none were found to match
+     ((and create
+           (not items))
+
+      ;; create based on the spec and record the value
+      (setq items (or
+                   ;; if the user did not want to create the entry
+                   ;; in the file, it will be returned
+                   (apply (slot-value backend 'create-function) spec)
+                   ;; if not, we do the search again without :create
+                   ;; to get the updated data.
+
+                   ;; the result will be returned, even if the search fails
+                   (apply 'auth-source-plstore-search
+                          (plist-put spec :create nil)))))
+     ((and delete
+           item-names)
+      (dolist (item-name item-names)
+        (plstore-delete store item-name))
+      (plstore-save store)))
+    items))
+
+(defun* auth-source-plstore-create (&rest spec
+                                          &key backend
+                                          secret host user port create
+                                          &allow-other-keys)
+  (let* ((base-required '(host user port secret))
+         (base-secret '(secret))
+         ;; we know (because of an assertion in auth-source-search) that the
+         ;; :create parameter is either t or a list (which includes nil)
+         (create-extra (if (eq t create) nil create))
+         (current-data (car (auth-source-search :max 1
+                                                :host host
+                                                :port port)))
+         (required (append base-required create-extra))
+         (file (oref backend source))
+         (add "")
+         ;; `valist' is an alist
+         valist
+         ;; `artificial' will be returned if no creation is needed
+         artificial
+         secret-artificial)
+
+    ;; only for base required elements (defined as function parameters):
+    ;; fill in the valist with whatever data we may have from the search
+    ;; we complete the first value if it's a list and use the value otherwise
+    (dolist (br base-required)
+      (when (symbol-value br)
+        (let ((br-choice (cond
+                          ;; all-accepting choice (predicate is t)
+                          ((eq t (symbol-value br)) nil)
+                          ;; just the value otherwise
+                          (t (symbol-value br)))))
+          (when br-choice
+            (aput 'valist br br-choice)))))
+
+    ;; for extra required elements, see if the spec includes a value for them
+    (dolist (er create-extra)
+      (let ((name (concat ":" (symbol-name er)))
+            (keys (loop for i below (length spec) by 2
+                        collect (nth i spec))))
+        (dolist (k keys)
+          (when (equal (symbol-name k) name)
+            (aput 'valist er (plist-get spec k))))))
+
+    ;; for each required element
+    (dolist (r required)
+      (let* ((data (aget valist r))
+             ;; take the first element if the data is a list
+             (data (or (auth-source-netrc-element-or-first data)
+                       (plist-get current-data
+                                  (intern (format ":%s" r) obarray))))
+             ;; this is the default to be offered
+             (given-default (aget auth-source-creation-defaults r))
+             ;; the default supplementals are simple:
+             ;; for the user, try `given-default' and then (user-login-name);
+             ;; otherwise take `given-default'
+             (default (cond
+                       ((and (not given-default) (eq r 'user))
+                        (user-login-name))
+                       (t given-default)))
+             (printable-defaults (list
+                                  (cons 'user
+                                        (or
+                                         (auth-source-netrc-element-or-first
+                                          (aget valist 'user))
+                                         (plist-get artificial :user)
+                                         "[any user]"))
+                                  (cons 'host
+                                        (or
+                                         (auth-source-netrc-element-or-first
+                                          (aget valist 'host))
+                                         (plist-get artificial :host)
+                                         "[any host]"))
+                                  (cons 'port
+                                        (or
+                                         (auth-source-netrc-element-or-first
+                                          (aget valist 'port))
+                                         (plist-get artificial :port)
+                                         "[any port]"))))
+             (prompt (or (aget auth-source-creation-prompts r)
+                         (case r
+                           (secret "%p password for %u@%h: ")
+                           (user "%p user name for %h: ")
+                           (host "%p host name for user %u: ")
+                           (port "%p port for %u@%h: "))
+                         (format "Enter %s (%%u@%%h:%%p): " r)))
+             (prompt (auth-source-format-prompt
+                      prompt
+                      `((?u ,(aget printable-defaults 'user))
+                        (?h ,(aget printable-defaults 'host))
+                        (?p ,(aget printable-defaults 'port))))))
+
+        ;; Store the data, prompting for the password if needed.
+        (setq data
+              (cond
+               ((and (null data) (eq r 'secret))
+                ;; Special case prompt for passwords.
+                (read-passwd prompt))
+               ((null data)
+                (when default
+                  (setq prompt
+                        (if (string-match ": *\\'" prompt)
+                            (concat (substring prompt 0 (match-beginning 0))
+                                    " (default " default "): ")
+                          (concat prompt "(default " default ") "))))
+                (read-string prompt nil nil default))
+               (t (or data default))))
+
+        (when data
+          (if (member r base-secret)
+              (setq secret-artificial
+                    (plist-put secret-artificial
+                               (intern (concat ":" (symbol-name r)))
+                               data))
+            (setq artificial (plist-put artificial
+                                        (intern (concat ":" (symbol-name r)))
+                                        data))))))
+    (plstore-put (oref backend data)
+                 (sha1 (format "%s@%s:%s"
+                               (plist-get artificial :user)
+                               (plist-get artificial :host)
+                               (plist-get artificial :port)))
+                 artificial secret-artificial)
+    (if (y-or-n-p (format "Save auth info to file %s? "
+                          (plstore-get-file (oref backend data))))
+        (plstore-save (oref backend data)))))
 
 ;;; older API
 
@@ -1574,14 +1775,14 @@ MODE can be \"login\" or \"password\"."
             (cond
              ((equal "password" m)
               (push (if (plist-get choice :secret)
-                      (funcall (plist-get choice :secret))
-                    nil) found))
+                        (funcall (plist-get choice :secret))
+                      nil) found))
              ((equal "login" m)
               (push (plist-get choice :user) found)))))
         (setq found (nreverse found))
         (setq found (if listy found (car-safe found)))))
 
-        found))
+    found))
 
 (provide 'auth-source)
 

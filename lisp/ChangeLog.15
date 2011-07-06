@@ -8424,7 +8424,7 @@
 
 	* dabbrev.el (dabbrev-completion): Fix typo in docstring.
 
-2010-08-08  MON KEY  <monkey@sandpframing.com>  (tiny change)
+2010-08-08  MON KEY  <monkey@sandpframing.com>
 
 	* emacs-lisp/syntax.el (syntax-ppss-toplevel-pos):
 	Fix typo in docstring (bug#6747).

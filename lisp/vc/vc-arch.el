@@ -39,7 +39,7 @@
 
 ;; Bugs:
 
-;; - *VC-log*'s initial content lacks the `Summary:' lines.
+;; - *vc-log*'s initial content lacks the `Summary:' lines.
 ;; - All files under the tree are considered as "under Arch's control"
 ;;   without regards to =tagging-method and such.
 ;; - Files are always considered as `edited'.

@@ -924,8 +924,8 @@ Convert it to flymake internal format."
      ;; PHP
      ("\\(?:Parse\\|Fatal\\) error: \\(.*\\) in \\(.*\\) on line \\([0-9]+\\)" 2 3 nil 1)
      ;; LaTeX warnings (fileless) ("\\(LaTeX \\(Warning\\|Error\\): .*\\) on input line \\([0-9]+\\)" 20 3 nil 1)
-     ;; ant/javac
-     (" *\\(\\[javac\\] *\\)?\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)\:\\([0-9]+\\)\:[ \t\n]*\\(.+\\)"
+     ;; ant/javac.  Note this also matches gcc warnings!
+     (" *\\(\\[javac\\] *\\)?\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)\:\\([0-9]+\\)\\(?:\:[0-9]+\\)?\:[ \t\n]*\\(.+\\)"
       2 4 nil 5))
    ;; compilation-error-regexp-alist)
    (flymake-reformat-err-line-patterns-from-compile-el compilation-error-regexp-alist-alist))
@@ -1339,8 +1339,12 @@ With arg, turn Flymake mode on if and only if arg is positive."
 
    ;; Turning the mode ON.
    (flymake-mode
-    (if (not (flymake-can-syntax-check-file buffer-file-name))
-        (flymake-log 2 "flymake cannot check syntax in buffer %s" (buffer-name))
+    (cond
+     ((not buffer-file-name)
+      (message "Flymake unable to run without a buffer file name"))
+     ((not (flymake-can-syntax-check-file buffer-file-name))
+      (flymake-log 2 "flymake cannot check syntax in buffer %s" (buffer-name)))
+     (t
       (add-hook 'after-change-functions 'flymake-after-change-function nil t)
       (add-hook 'after-save-hook 'flymake-after-save-hook nil t)
       (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t)
@@ -1352,7 +1356,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
             (run-at-time nil 1 'flymake-on-timer-event (current-buffer)))
 
       (when flymake-start-syntax-check-on-find-file
-        (flymake-start-syntax-check))))
+        (flymake-start-syntax-check)))))
 
    ;; Turning the mode OFF.
    (t
@@ -1406,6 +1410,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
     (cancel-timer flymake-timer)
     (setq flymake-timer nil)))
 
+;;;###autoload
 (defun flymake-find-file-hook ()
   ;;+(when flymake-start-syntax-check-on-find-file
   ;;+    (flymake-log 3 "starting syntax check on file open")

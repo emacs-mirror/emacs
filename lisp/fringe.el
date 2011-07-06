@@ -192,7 +192,7 @@ frame parameter is used."
                 (concat
                  "Select fringe mode for "
                  (if all-frames "all frames" "selected frame")
-                 " (type ? for list): ")
+                 ": ")
                 fringe-styles nil t))
          (style (assoc (downcase mode) fringe-styles)))
     (if style (cdr style)

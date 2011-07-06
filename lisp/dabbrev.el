@@ -206,7 +206,8 @@ starting with or containing `no-'.  If you set this variable to
 expanding `yes-or-no-' signals an error because `-' is not part of a word;
 but expanding `yes-or-no' looks for a word starting with `no'.
 
-The recommended value is \"\\\\sw\\\\|\\\\s_\"."
+The recommended value is nil, which will make dabbrev default to
+using \"\\\\sw\\\\|\\\\s_\"."
   :type '(choice (const nil)
 		 regexp)
   :group 'dabbrev)

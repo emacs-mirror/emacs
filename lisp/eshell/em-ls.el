@@ -57,6 +57,13 @@ properties to colorize its output based on the setting of
   :type 'hook
   :group 'eshell-ls)
 
+(defcustom eshell-ls-date-format "%Y-%m-%d"
+  "How to display time information in `eshell-ls-file'.
+This is passed to `format-time-string' as a format string.
+To display the date using the current locale, use \"%b \%e\"."
+  :type 'string
+  :group 'eshell-ls)
+
 (defcustom eshell-ls-initial-args nil
   "If non-nil, this list of args is included before any call to `ls'.
 This is useful for enabling human-readable format (-h), for example."
@@ -508,7 +515,7 @@ whose cdr is the list of file attributes."
 		    str))
 		" " (format-time-string
 		     (concat
-		      "%b %e "
+		      eshell-ls-date-format " "
 		      (if (= (nth 5 (decode-time (current-time)))
 			     (nth 5 (decode-time
 				     (nth (cond

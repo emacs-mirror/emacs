@@ -1522,7 +1522,7 @@ the last)."
 (defvar compilation-error-regexp-alist)
 
 ;;;###autoload
-(defun cperl-mode ()
+(define-derived-mode cperl-mode prog-mode "CPerl"
   "Major mode for editing Perl code.
 Expression and list commands understand all C brackets.
 Tab indents for Perl code.
@@ -1695,9 +1695,6 @@ with no args.
 DO NOT FORGET to read micro-docs (available from `Perl' menu)
 or as help on variables `cperl-tips', `cperl-problems',
 `cperl-praise', `cperl-speed'."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map cperl-mode-map)
   (if (cperl-val 'cperl-electric-linefeed)
       (progn
 	(local-set-key "\C-J" 'cperl-linefeed)
@@ -1710,8 +1707,6 @@ or as help on variables `cperl-tips', `cperl-problems',
 	(cperl-define-key "\C-hf" 'cperl-info-on-current-command [(control h) f])
 	(cperl-define-key "\C-c\C-hf" 'cperl-info-on-command
 			  [(control c) (control h) f])))
-  (setq major-mode cperl-use-major-mode)
-  (setq mode-name "CPerl")
   (let ((prev-a-c abbrevs-changed))
     (define-abbrev-table 'cperl-mode-abbrev-table '(
 		("if" "if" cperl-electric-keyword 0)
@@ -8970,18 +8965,6 @@ do extra unwind via `cperl-unwind-to-safe'."
     (string-match ":\\s *\\([0-9.]+\\)" v)
     (substring v (match-beginning 1) (match-end 1)))
   "Version of IZ-supported CPerl package this file is based on.")
-
-(defun cperl-mode-unload-function ()
-  "Unload the Cperl mode library."
-  (let ((new-mode (if (eq (symbol-function 'perl-mode) 'cperl-mode)
-		      'fundamental-mode
-		    'perl-mode)))
-    (dolist (buf (buffer-list))
-      (with-current-buffer buf
-	(when (eq major-mode 'cperl-mode)
-	  (funcall new-mode)))))
-  ;; continue standard unloading
-  nil)
 
 (provide 'cperl-mode)
 

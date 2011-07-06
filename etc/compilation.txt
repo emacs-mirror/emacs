@@ -496,6 +496,16 @@ symbol: perl--Test
 
 # Failed test 1 in foo.t at line 6
 
+* Perl Test.pm module error messages comparing two values
+
+symbol: perl--Test2
+
+# Test 3 got: "99" (d-compilation-perl.t at line 29)
+#   Expected: "88" (my test name)
+#  d-compilation-perl.t line 29 is: ok(99,88,'my test name');
+
+# Test 6 got: "xx" (foo.t at line 33 fail #2)
+#   Expected: "yy"
 
 * Perl Test::Harness output
 

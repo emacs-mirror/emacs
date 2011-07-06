@@ -545,11 +545,7 @@ non-nil, the amount returned will be relative to past time worked."
 (defalias 'timeclock-time-to-seconds (if (fboundp 'float-time) 'float-time
 				       'time-to-seconds))
 
-(defsubst timeclock-seconds-to-time (seconds)
-  "Convert SECONDS (a floating point number) to an Emacs time structure."
-  (list (floor seconds 65536)
-	(floor (mod seconds 65536))
-	(floor (* (- seconds (ffloor seconds)) 1000000))))
+(defalias 'timeclock-seconds-to-time 'seconds-to-time)
 
 ;; Should today-only be removed in favour of timeclock-relative? - gm
 (defsubst timeclock-when-to-leave (&optional today-only)

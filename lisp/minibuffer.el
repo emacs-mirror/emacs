@@ -1442,7 +1442,9 @@ we entered `completion-in-region-mode'.")
 (defun completion-in-region (start end collection &optional predicate)
   "Complete the text between START and END using COLLECTION.
 Return nil if there is no valid completion, else t.
-Point needs to be somewhere between START and END."
+Point needs to be somewhere between START and END.
+PREDICATE (a function called with no arguments) says when to
+exit."
   (assert (<= start (point)) (<= (point) end))
   (with-wrapper-hook
       ;; FIXME: Maybe we should use this hook to provide a "display
@@ -1634,30 +1636,43 @@ The completion method is determined by `completion-at-point-functions'."
 
 ;;; Key bindings.
 
-(define-obsolete-variable-alias 'minibuffer-local-must-match-filename-map
-  'minibuffer-local-filename-must-match-map "23.1")
-
 (let ((map minibuffer-local-map))
   (define-key map "\C-g" 'abort-recursive-edit)
   (define-key map "\r" 'exit-minibuffer)
   (define-key map "\n" 'exit-minibuffer))
 
-(let ((map minibuffer-local-completion-map))
-  (define-key map "\t" 'minibuffer-complete)
-  ;; M-TAB is already abused for many other purposes, so we should find
-  ;; another binding for it.
-  ;; (define-key map "\e\t" 'minibuffer-force-complete)
-  (define-key map " " 'minibuffer-complete-word)
-  (define-key map "?" 'minibuffer-completion-help))
+(defvar minibuffer-local-completion-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map minibuffer-local-map)
+    (define-key map "\t" 'minibuffer-complete)
+    ;; M-TAB is already abused for many other purposes, so we should find
+    ;; another binding for it.
+    ;; (define-key map "\e\t" 'minibuffer-force-complete)
+    (define-key map " " 'minibuffer-complete-word)
+    (define-key map "?" 'minibuffer-completion-help)
+    map)
+  "Local keymap for minibuffer input with completion.")
 
-(let ((map minibuffer-local-must-match-map))
-  (define-key map "\r" 'minibuffer-complete-and-exit)
-  (define-key map "\n" 'minibuffer-complete-and-exit))
+(defvar minibuffer-local-must-match-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map minibuffer-local-completion-map)
+    (define-key map "\r" 'minibuffer-complete-and-exit)
+    (define-key map "\n" 'minibuffer-complete-and-exit)
+    map)
+  "Local keymap for minibuffer input with completion, for exact match.")
 
-(let ((map minibuffer-local-filename-completion-map))
-  (define-key map " " nil))
-(let ((map minibuffer-local-filename-must-match-map))
-  (define-key map " " nil))
+(defvar minibuffer-local-filename-completion-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map " " nil)
+    map)
+  "Local keymap for minibuffer input with completion for filenames.
+Gets combined either with `minibuffer-local-completion-map' or
+with `minibuffer-local-must-match-map'.")
+
+(defvar minibuffer-local-filename-must-match-map (make-sparse-keymap))
+(make-obsolete-variable 'minibuffer-local-filename-must-match-map nil "24.1")
+(define-obsolete-variable-alias 'minibuffer-local-must-match-filename-map
+  'minibuffer-local-filename-must-match-map "23.1")
 
 (let ((map minibuffer-local-ns-map))
   (define-key map " " 'exit-minibuffer)
@@ -2710,7 +2725,49 @@ filter out additional entries (because TABLE migth not obey PRED)."
   (let ((newstr (completion-initials-expand string table pred)))
     (when newstr
       (completion-pcm-try-completion newstr table pred (length newstr)))))
+
+(defvar completing-read-function 'completing-read-default
+  "The function called by `completing-read' to do its work.
+It should accept the same arguments as `completing-read'.")
 
+(defun completing-read-default (prompt collection &optional predicate
+                                       require-match initial-input
+                                       hist def inherit-input-method)
+  "Default method for reading from the minibuffer with completion.
+See `completing-read' for the meaning of the arguments."
+
+  (when (consp initial-input)
+    (setq initial-input
+          (cons (car initial-input)
+                ;; `completing-read' uses 0-based index while
+                ;; `read-from-minibuffer' uses 1-based index.
+                (1+ (cdr initial-input)))))
+
+  (let* ((minibuffer-completion-table collection)
+         (minibuffer-completion-predicate predicate)
+         (minibuffer-completion-confirm (unless (eq require-match t)
+                                          require-match))
+         (base-keymap (if require-match
+                         minibuffer-local-must-match-map
+                        minibuffer-local-completion-map))
+         (keymap (if (memq minibuffer-completing-file-name '(nil lambda))
+                     base-keymap
+                   ;; Layer minibuffer-local-filename-completion-map
+                   ;; on top of the base map.
+                   ;; Use make-composed-keymap so that set-keymap-parent
+                   ;; doesn't modify minibuffer-local-filename-completion-map.
+                   (let ((map (make-composed-keymap
+                               minibuffer-local-filename-completion-map)))
+                     ;; Set base-keymap as the parent, so that nil bindings
+                     ;; in minibuffer-local-filename-completion-map can
+                     ;; override bindings in base-keymap.
+                     (set-keymap-parent map base-keymap)
+                     map)))
+         (result (read-from-minibuffer prompt initial-input keymap
+                                       nil hist def inherit-input-method)))
+    (when (and (equal result "") def)
+      (setq result (if (consp def) (car def) def)))
+    result))
 
 ;; Miscellaneous
 

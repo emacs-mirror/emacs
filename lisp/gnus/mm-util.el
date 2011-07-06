@@ -300,34 +300,6 @@ system object in XEmacs."
       ;; no-MULE XEmacs:
       (car (memq cs (mm-get-coding-system-list))))))
 
-(defun mm-codepage-setup (number &optional alias)
-  "Create a coding system cpNUMBER.
-The coding system is created using `codepage-setup'.  If ALIAS is
-non-nil, an alias is created and added to
-`mm-charset-synonym-alist'.  If ALIAS is a string, it's used as
-the alias.  Else windows-NUMBER is used."
-  (interactive
-   (let ((completion-ignore-case t)
-	 (candidates (if (fboundp 'cp-supported-codepages)
-			 (cp-supported-codepages)
-		       ;; Removed in Emacs 23 (unicode), so signal an error:
-		       (error "`codepage-setup' not present in this Emacs version"))))
-     (list (gnus-completing-read "Setup DOS Codepage" candidates
-                                 t nil nil "437"))))
-  (when alias
-    (setq alias (if (stringp alias)
-		    (intern alias)
-		  (intern (format "windows-%s" number)))))
-  (let* ((cp (intern (format "cp%s" number))))
-    (unless (mm-coding-system-p cp)
-      (if (fboundp 'codepage-setup)	; silence compiler
-	  (codepage-setup number)
-	(error "`codepage-setup' not present in this Emacs version")))
-    (when (and alias
-	       ;; Don't add alias if setup of cp failed.
-	       (mm-coding-system-p cp))
-      (add-to-list 'mm-charset-synonym-alist (cons alias cp)))))
-
 (defvar mm-charset-synonym-alist
   `(
     ;; Not in XEmacs, but it's not a proper MIME charset anyhow.
@@ -375,6 +347,34 @@ the alias.  Else windows-NUMBER is used."
   "A mapping from unknown or invalid charset names to the real charset names.
 
 See `mm-codepage-iso-8859-list' and `mm-codepage-ibm-list'.")
+
+(defun mm-codepage-setup (number &optional alias)
+  "Create a coding system cpNUMBER.
+The coding system is created using `codepage-setup'.  If ALIAS is
+non-nil, an alias is created and added to
+`mm-charset-synonym-alist'.  If ALIAS is a string, it's used as
+the alias.  Else windows-NUMBER is used."
+  (interactive
+   (let ((completion-ignore-case t)
+	 (candidates (if (fboundp 'cp-supported-codepages)
+			 (cp-supported-codepages)
+		       ;; Removed in Emacs 23 (unicode), so signal an error:
+		       (error "`codepage-setup' not present in this Emacs version"))))
+     (list (gnus-completing-read "Setup DOS Codepage" candidates
+                                 t nil nil "437"))))
+  (when alias
+    (setq alias (if (stringp alias)
+		    (intern alias)
+		  (intern (format "windows-%s" number)))))
+  (let* ((cp (intern (format "cp%s" number))))
+    (unless (mm-coding-system-p cp)
+      (if (fboundp 'codepage-setup)	; silence compiler
+	  (codepage-setup number)
+	(error "`codepage-setup' not present in this Emacs version")))
+    (when (and alias
+	       ;; Don't add alias if setup of cp failed.
+	       (mm-coding-system-p cp))
+      (add-to-list 'mm-charset-synonym-alist (cons alias cp)))))
 
 (defcustom mm-codepage-iso-8859-list
   (list 1250 ;; Windows-1250 is a variant of Latin-2 heavily used by Microsoft
@@ -550,7 +550,8 @@ is not available."
 	 (let ((cs (cdr (assq charset mm-charset-override-alist))))
 	   (and cs (mm-coding-system-p cs) cs))))
    ;; ascii
-   ((eq charset 'us-ascii)
+   ((or (eq charset 'us-ascii)
+	(string-match "ansi.x3.4" (symbol-name charset)))
     'ascii)
    ;; Check to see whether we can handle this charset.  (This depends
    ;; on there being some coding system matching each `mime-charset'

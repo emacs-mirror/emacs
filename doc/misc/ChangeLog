@@ -1,3 +1,50 @@
+2011-07-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Expiring Mail): Document gnus-auto-expirable-marks.
+	(Filtering New Groups): Clarify how simple the "options -n" format is.
+	(Agent Expiry): Remove mention of `gnus-request-expire-articles', which
+	is internal.
+
+2011-07-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Cleanup remote connections): Add
+	`tramp-cleanup-this-connection'.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Subscription Methods): Link to "Group Levels" to explain
+	zombies.
+	(Checking New Groups): Ditto (bug#8974).
+	(Checking New Groups): Moved the reference to the right place.
+
+2011-07-03  Dave Abrahams  <dave@boostpro.com>  (tiny change)
+
+	* gnus.texi (Startup Files): Clarify that we're talking about numbered
+	backups, and not actual vc (bug#8975).
+
+2011-07-03  Kevin Ryde  <user42@zip.com.au>
+
+	* cl.texi (For Clauses): @items for hash-values and key-bindings
+	to make them more visible when skimming.  Add examples of `using'
+	clause to them, examples being clearer than a description in
+	words (bug#6599).
+
+2011-07-01  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi (Guessing the Style): New page.
+	(Styles): Add a short introduction to above.
+
+2011-06-28  Deniz Dogan  <deniz@dogan.se>
+
+	* rcirc.texi (Configuration): Bug-fix:
+	`rcirc-default-user-full-name' is now `rcirc-default-full-name'.
+	Reported by Elias Pipping <pipping@exherbo.org>.
+
+2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Summary Mail Commands): Document
+	`gnus-summary-reply-to-list-with-original'.
+
 2011-06-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eshell.texi (Known problems): Fix typo.

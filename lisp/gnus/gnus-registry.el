@@ -914,6 +914,9 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 (make-obsolete 'gnus-registry-user-format-function-M
                'gnus-registry-article-marks-to-chars "24.1") ?
 
+(defalias 'gnus-registry-user-format-function-M
+  'gnus-registry-article-marks-to-chars)
+
 ;; use like this:
 ;; (defalias 'gnus-user-format-function-M 'gnus-registry-article-marks-to-chars)
 (defun gnus-registry-article-marks-to-chars (headers)

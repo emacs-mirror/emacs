@@ -3181,10 +3181,8 @@ syms_of_search (void)
     }
   searchbuf_head = &searchbufs[0];
 
-  Qsearch_failed = intern_c_string ("search-failed");
-  staticpro (&Qsearch_failed);
-  Qinvalid_regexp = intern_c_string ("invalid-regexp");
-  staticpro (&Qinvalid_regexp);
+  DEFSYM (Qsearch_failed, "search-failed");
+  DEFSYM (Qinvalid_regexp, "invalid-regexp");
 
   Fput (Qsearch_failed, Qerror_conditions,
 	pure_cons (Qsearch_failed, pure_cons (Qerror, Qnil)));

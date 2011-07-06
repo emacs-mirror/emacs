@@ -4509,6 +4509,7 @@ commands:
 		 t)))
 	(with-current-buffer name
 	  (set (make-local-variable 'gnus-article-edit-mode) nil)
+	  (gnus-article-stop-animations)
 	  (when gnus-article-mime-handles
 	    (mm-destroy-parts gnus-article-mime-handles)
 	    (setq gnus-article-mime-handles nil))
@@ -4532,6 +4533,12 @@ commands:
 	(when gnus-article-update-date-headers
 	  (gnus-start-date-timer gnus-article-update-date-headers))
 	(current-buffer)))))
+
+(defun gnus-article-stop-animations ()
+  (dolist (timer (and (boundp 'timer-list)
+		      timer-list))
+    (when (eq (aref timer 5) 'image-animate-timeout)
+      (cancel-timer timer))))
 
 ;; Set article window start at LINE, where LINE is the number of lines
 ;; from the head of the article.
@@ -6825,23 +6832,16 @@ If given a prefix, show the hidden text instead."
 		(numberp article))
 	    (let ((gnus-override-method gnus-override-method)
 		  (methods (and (stringp article)
-				gnus-refer-article-method))
+				(with-current-buffer gnus-summary-buffer
+				  (gnus-refer-article-methods))))
 		  (backend (car (gnus-find-method-for-group
 				 gnus-newsgroup-name)))
 		  result
 		  (inhibit-read-only t))
-	      (if (or (not (listp methods))
-		      (and (symbolp (car methods))
-			   (assq (car methods) nnoo-definition-alist)))
-		  (setq methods (list methods)))
 	      (when (and (null gnus-override-method)
 			 methods)
 		(setq gnus-override-method (pop methods)))
 	      (while (not result)
-		(when (eq gnus-override-method 'current)
-		  (setq gnus-override-method
-			(with-current-buffer gnus-summary-buffer
-			  gnus-current-select-method)))
 		(erase-buffer)
 		(gnus-kill-all-overlays)
 		(let ((gnus-newsgroup-name group))

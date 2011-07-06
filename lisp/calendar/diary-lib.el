@@ -776,7 +776,8 @@ of the appropriate type."
   (goto-char (point-min)))
 
 (defvar diary-included-files nil
-  "List of any diary files included in the last call to `diary-list-entries'.")
+  "List of any diary files included in the last call to `diary-list-entries'.
+Or to `diary-mark-entries'.")
 
 (defun diary-list-entries (date number &optional list-only)
   "Create and display a buffer containing the relevant lines in `diary-file'.
@@ -832,7 +833,7 @@ LIST-ONLY is non-nil, in which case it just returns the list."
     (let* ((original-date date)    ; save for possible use in the hooks
            (date-string (calendar-date-string date))
            (diary-buffer (find-buffer-visiting diary-file))
-           ;; Dynamically bound in diary-include-other-diary-files.
+           ;; Dynamically bound in diary-include-files.
            (d-incp (and (boundp 'diary-including) diary-including))
            diary-entries-list file-glob-attrs temp-buff)
       (unless d-incp
@@ -921,19 +922,20 @@ LIST-ONLY is non-nil, in which case it just returns the list."
 (defvar original-date)                  ; bound in diary-list-entries
 ;(defvar number)                         ; already declared above
 
-(defun diary-include-other-diary-files ()
-  "Add diary entries from included diary files to `diary-entries-list'.
+(defun diary-include-files (&optional mark)
+  "Process diary entries from included diary files.
+By default, lists included entries, but if optional argument MARK is non-nil
+marks entries instead.
 For example, this enables you to share common diary files.
-To use, add this function to `diary-list-entries-hook'.
 Specify include files using lines matching `diary-include-string', e.g.
     #include \"filename\"
-This is recursive; that is, included files may include other files.
-See also `diary-mark-included-diary-files'."
+This is recursive; that is, included files may include other files."
   (goto-char (point-min))
   (while (re-search-forward
           (format "^%s \"\\([^\"]*\\)\"" (regexp-quote diary-include-string))
           nil t)
     (let ((diary-file (match-string-no-properties 1))
+          (diary-mark-entries-hook 'diary-mark-included-diary-files)
           (diary-list-entries-hook 'diary-include-other-diary-files)
           (diary-including t)
           diary-hook diary-list-include-blanks efile)
@@ -943,10 +945,12 @@ See also `diary-mark-included-diary-files'."
                           diary-included-files)
                   (error "Recursive diary include for %s" diary-file)
                 (setq diary-included-files
-                      (append diary-included-files (list efile))
-                      diary-entries-list
-                      (append diary-entries-list
-                              (diary-list-entries original-date number t))))
+                      (append diary-included-files (list efile)))
+                (if mark
+                    (diary-mark-entries)
+                  (setq diary-entries-list
+                        (append diary-entries-list
+                                (diary-list-entries original-date number t)))))
             (beep)
             (message "Can't read included diary file %s" diary-file)
             (sleep-for 2))
@@ -954,6 +958,13 @@ See also `diary-mark-included-diary-files'."
         (message "Can't find included diary file %s" diary-file)
         (sleep-for 2))))
   (goto-char (point-min)))
+
+(defun diary-include-other-diary-files ()
+  "Add diary entries from included diary files to `diary-entries-list'.
+To use, add this function to `diary-list-entries-hook'.
+For details, see `diary-include-files'.
+See also `diary-mark-included-diary-files'."
+  (diary-include-files))
 
 (define-obsolete-function-alias 'include-other-diary-files
   'diary-include-other-diary-files "23.1")
@@ -1405,22 +1416,37 @@ marks.  This is intended to deal with deleted diary entries."
     (setq calendar-mark-diary-entries-flag nil)
     (calendar-redraw))
   (let ((diary-marking-entries-flag t)
-        file-glob-attrs)
-    (with-current-buffer (find-file-noselect (diary-check-diary-file) t)
-      (save-excursion
-        (when (eq major-mode (default-value 'major-mode)) (diary-mode))
-        (setq calendar-mark-diary-entries-flag t)
-        (message "Marking diary entries...")
-        (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
-        (with-syntax-table diary-syntax-table
-          (diary-mark-entries-1 'calendar-mark-date-pattern)
-          (diary-mark-sexp-entries)
-          ;; Although it looks like mark-entries-hook runs every time,
-          ;; diary-mark-included-diary-files binds it to nil
-          ;; (essentially) when it runs in included files.
-          (run-hooks 'diary-nongregorian-marking-hook
-                     'diary-mark-entries-hook))
-        (message "Marking diary entries...done")))))
+        (diary-buffer (find-buffer-visiting diary-file))
+        ;; Dynamically bound in diary-include-files.
+        (d-incp (and (boundp 'diary-including) diary-including))
+        file-glob-attrs temp-buff)
+    (unless d-incp
+      (setq diary-included-files nil)
+      (message "Marking diary entries..."))
+    (unwind-protect
+        (with-current-buffer (or diary-buffer
+                                 (if d-incp
+                                     (setq temp-buff (generate-new-buffer
+                                                        " *diary-temp*"))
+                                   (find-file-noselect
+                                    (diary-check-diary-file) t)))
+          (if temp-buff
+              ;; If including, caller has already verified it is readable.
+              (insert-file-contents diary-file)
+            (if (eq major-mode (default-value 'major-mode)) (diary-mode)))
+          (setq calendar-mark-diary-entries-flag t)
+          (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
+          (with-syntax-table diary-syntax-table
+            (save-excursion
+              (diary-mark-entries-1 'calendar-mark-date-pattern)
+              (diary-mark-sexp-entries)
+              ;; Although it looks like mark-entries-hook runs every time,
+              ;; diary-mark-included-diary-files binds it to nil
+              ;; (essentially) when it runs in included files.
+              (run-hooks 'diary-nongregorian-marking-hook
+                         'diary-mark-entries-hook))))
+      (and temp-buff (buffer-name temp-buff) (kill-buffer temp-buff)))
+    (or d-incp (message "Marking diary entries...done"))))
 
 ;;;###cal-autoload
 (define-obsolete-function-alias 'mark-diary-entries 'diary-mark-entries "23.1")
@@ -1504,32 +1530,10 @@ is marked.  See the documentation for the function `diary-list-sexp-entries'."
 
 (defun diary-mark-included-diary-files ()
   "Mark diary entries from included diary files.
-For example, this enables you to share common diary files.
 To use, add this function to `diary-mark-entries-hook'.
-Specify include files using lines matching `diary-include-string', e.g.
-    #include \"filename\"
-This is recursive; that is, included files may include other files.
+For details, see `diary-include-files'.
 See also `diary-include-other-diary-files'."
-  (goto-char (point-min))
-  (while (re-search-forward
-          (format "^%s \"\\([^\"]*\\)\"" (regexp-quote diary-include-string))
-          nil t)
-    (let* ((diary-file (match-string-no-properties 1))
-           (diary-mark-entries-hook 'diary-mark-included-diary-files)
-           (dbuff (find-buffer-visiting diary-file)))
-      (if (file-exists-p diary-file)
-          (if (file-readable-p diary-file)
-              (progn
-                (diary-mark-entries)
-                (unless dbuff
-                  (kill-buffer (find-buffer-visiting diary-file))))
-            (beep)
-            (message "Can't read included diary file %s" diary-file)
-            (sleep-for 2))
-        (beep)
-        (message "Can't find included diary file %s" diary-file)
-        (sleep-for 2))))
-  (goto-char (point-min)))
+  (diary-include-files t))
 
 (define-obsolete-function-alias 'mark-included-diary-files
   'diary-mark-included-diary-files "23.1")

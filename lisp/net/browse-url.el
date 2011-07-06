@@ -322,7 +322,7 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
   :group 'browse-url)
 
 (defcustom browse-url-firefox-program
-  (let ((candidates '("firefox" "iceweasel")))
+  (let ((candidates '("firefox" "iceweasel" "icecat")))
     (while (and candidates (not (executable-find (car candidates))))
       (setq candidates (cdr candidates)))
     (or (car candidates) "firefox"))

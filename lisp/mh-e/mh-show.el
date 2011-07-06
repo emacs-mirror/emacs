@@ -146,9 +146,7 @@ displayed."
             (if (not clean-message-header)
                 (mh-start-of-uncleaned-message)))
         (mh-display-msg msg folder)))
-    (unless (if (fboundp 'window-full-height-p)
-                (window-full-height-p)
-              (= (1+ (window-height)) (frame-height))) ; not vertically split
+    (unless (mh-window-full-height-p) ; not vertically split
       (shrink-window (- (window-height) (or mh-summary-height
                                             (mh-summary-height)))))
     (mh-recenter nil)

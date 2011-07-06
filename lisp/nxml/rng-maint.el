@@ -224,19 +224,13 @@
 
 ;;; Timing
 
-(defun rng-time-to-float (time)
-  (+ (* (nth 0 time) 65536.0)
-     (nth 1 time)
-     (/ (nth 2 time) 1000000.0)))
-
 (defun rng-time-function (function &rest args)
   (let* ((start (current-time))
 	 (val (apply function args))
 	 (end (current-time)))
     (message "%s ran in %g seconds"
 	     function
-	     (- (rng-time-to-float end)
-		(rng-time-to-float start)))
+	     (float-time (time-subtract end start)))
     val))
 
 (defun rng-time-tokenize-buffer ()

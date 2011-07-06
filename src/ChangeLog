@@ -40,6 +40,426 @@
 	* font.c (font_range): Adjusted for the change of
 	Vunicode_category_table.
 
+2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove unportable assumption about struct layout (Bug#8884).
+	* alloc.c (mark_buffer):
+	* buffer.c (reset_buffer_local_variables, Fbuffer_local_variables)
+	(clone_per_buffer_values): Don't assume that
+	sizeof (struct buffer) is a multiple of sizeof (Lisp_Object).
+	This isn't true in general, and it's particularly not true
+	if Emacs is configured with --with-wide-int.
+	* buffer.h (FIRST_FIELD_PER_BUFFER, LAST_FIELD_PER_BUFFER):
+	New macros, used in the buffer.c change.
+
+2011-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c: Use both GConf and GSettings if both are available.
+	(store_config_changed_event): Add comment.
+	(dpyinfo_valid, store_font_name_changed, map_tool_bar_style)
+	(store_tool_bar_style_changed): New functions.
+	(store_monospaced_changed): Add comment. Call dpyinfo_valid.
+	(struct xsettings): Move font inside HAVE_XFT.
+	(GSETTINGS_TOOL_BAR_STYLE, GSETTINGS_FONT_NAME): New defines.
+	(GSETTINGS_MONO_FONT): Renamed from SYSTEM_MONO_FONT.
+	Move inside HAVE_XFT.
+	(something_changed_gsettingsCB): Renamed from something_changedCB.
+	Check for changes in GSETTINGS_TOOL_BAR_STYLE and GSETTINGS_FONT_NAME
+	also.
+	(GCONF_TOOL_BAR_STYLE, GCONF_FONT_NAME): New defines.
+	(GCONF_MONO_FONT): Renamed from SYSTEM_MONO_FONT. Move inside HAVE_XFT.
+	(something_changed_gconfCB): Renamed from something_changedCB.
+	Check for changes in GCONF_TOOL_BAR_STYLE and GCONF_FONT_NAME also.
+	(parse_settings): Move check for font inside HAVE_XFT.
+	(read_settings, apply_xft_settings): Add comment.
+	(read_and_apply_settings): Add comment.  Call map_tool_bar_style and
+	store_tool_bar_style_changed.  Move check for font inside HAVE_XFT and
+	call store_font_name_changed.
+	(xft_settings_event): Add comment.
+	(init_gsettings): Add comment.  Get values for GSETTINGS_TOOL_BAR_STYLE
+	and GSETTINGS_FONT_NAME.  Move check for fonts within HAVE_XFT.
+	(init_gconf): Add comment.  Get values for GCONF_TOOL_BAR_STYLE
+	and GCONF_FONT_NAME.  Move check for fonts within HAVE_XFT.
+	(xsettings_initialize): Call init_gsettings last.
+	(xsettings_get_system_font, xsettings_get_system_normal_font): Add
+	comment.
+
+2011-07-05  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Random fixes.  E.g., (random) never returned negative values.
+	* fns.c (Frandom): Use GET_EMACS_TIME for random seed, and add the
+	subseconds part to the entropy, as that's a bit more random.
+	Prefer signed to unsigned, since the signedness doesn't matter and
+	in general we prefer signed.  When given a limit, use a
+	denominator equal to INTMASK + 1, not to VALMASK + 1, because the
+	latter isn't right if USE_2_TAGS_FOR_INTS.
+	* sysdep.c (get_random): Return a value in the range 0..INTMASK,
+	not 0..VALMASK.  Don't discard "excess" bits that random () returns.
+
+2011-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textprop.c (text_property_stickiness):
+	Obey Vtext_property_default_nonsticky.
+	(syms_of_textprop): Add `display' to Vtext_property_default_nonsticky.
+	* w32fns.c (syms_of_w32fns):
+	* xfns.c (syms_of_xfns): Don't Add `display' since it's there by default.
+
+2011-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (barf_or_query_if_file_exists): Use S_ISDIR.
+	This is more efficient than Ffile_directory_p and avoids a minor race.
+
+2011-07-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* buffer.c (Foverlay_put): Say what the return value is
+	(bug#7835).
+
+	* fileio.c (barf_or_query_if_file_exists): Check first if the file
+	is a directory before asking whether to use the file name
+	(bug#7564).
+	(barf_or_query_if_file_exists): Make the "File is a directory"
+	error be more correct.
+
+	* fns.c (Frequire): Remove the mention of the .gz files, since
+	that's installation-specific, but keep the mention of
+	`get-load-suffixes'.
+
+2011-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* editfns.c (Fformat_time_string): Don't assume strlen fits in int.
+	Report string overflow if the output is too long.
+
+2011-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnutls.c (Fgnutls_boot): Don't mention :verify-error.
+	(syms_of_gnutls): Remove duplicate DEFSYM for
+	Qgnutls_bootprop_verify_hostname_error, an error for
+	Qgnutls_bootprop_verify_error (which is no longer used).
+
+	* eval.c (find_handler_clause): Remove parameters `sig' and `data',
+	unused since revno:102982 (2011-01-26).  All callers changed.
+	Also (re)move comments that are misplaced or no longer relevant.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* callint.c (Finteractive): Clarify the meaning of "@" (bug#8813).
+
+2011-07-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Finternal_merge_in_global_face): Modify the foreground
+	and background color parameters if they have been changed.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* editfns.c (Fformat): Clarify the - and 0 flags (bug#6659).
+
+2011-07-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xsettings.c (SYSTEM_FONT): Define only when used.
+	No need to define when HAVE_GSETTINGS || !HAVE_XFT.
+
+	* keymap.c (access_keymap_1): Now static.
+
+2011-07-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (command_loop_1): If a down-mouse event is unbound,
+	leave any prefix arg for the up event (Bug#1586).
+
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* lread.c (syms_of_lread): Mention single symbols defined by
+	`defvar' or `defconst' (bug#7154).
+
+	* fns.c (Frequire): Mention .el.gz files (bug#7314).
+	(Frequire): Mention get-load-suffixes.
+
+2011-07-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h (window): Remove clone_number slot.
+	* window.c (Fwindow_clone_number, Fset_window_clone_number):
+	Remove.
+	(make_parent_window, make_window, saved_window)
+	(Fset_window_configuration, save_window_save): Don't deal with
+	clone numbers.
+	* buffer.c (Qclone_number): Remove declaration.
+	(sort_overlays, overlay_strings): Don't deal with clone numbers.
+
+2011-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Add multiple inheritance to keymaps.
+	* keymap.c (Fmake_composed_keymap): New function.
+	(Fset_keymap_parent): Simplify.
+	(fix_submap_inheritance): Remove.
+	(access_keymap_1): New function extracted from access_keymap to handle
+	embedded parents and handle lists of maps.
+	(access_keymap): Use it.
+	(Fkeymap_prompt, map_keymap_internal, map_keymap, store_in_keymap)
+	(Fcopy_keymap): Handle embedded parents.
+	(Fcommand_remapping, define_as_prefix): Simplify.
+	(Fkey_binding): Simplify.
+	(syms_of_keymap): Move minibuffer-local-completion-map,
+	minibuffer-local-filename-completion-map,
+	minibuffer-local-must-match-map, and
+	minibuffer-local-filename-must-match-map to Elisp.
+	(syms_of_keymap): Defsubr make-composed-keymap.
+	* keyboard.c (menu_bar_items): Use map_keymap_canonical.
+	(parse_menu_item): Trivial simplification.
+
+2011-07-01  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SETTINGS_LIBS): Fix typo.
+
+2011-07-01  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny patch)
+
+	* coding.c (Fencode_coding_string): Record the last coding system
+	used, as the function doc string says (bug#8738).
+
+2011-07-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (store_monospaced_changed): Take new font as arg and
+	check for change against current_mono_font.
+	(EMACS_TYPE_SETTINGS): Remove this and related defines.
+	(emacs_settings_constructor, emacs_settings_get_property)
+	(emacs_settings_set_property, emacs_settings_class_init)
+	(emacs_settings_init, gsettings_obj): Remove.
+	(something_changedCB): New function for HAVE_GSETTINGS.
+	(something_changedCB): HAVE_GCONF: Call store_monospaced_changed
+	with value as argument.
+	(init_gsettings): Check that GSETTINGS_SCHEMA exists before calling
+	g_settings_new (Bug#8967).  Do not create gsettings_obj.
+	Remove calls to g_settings_bind.  Connect something_changedCB to
+	"changed".
+
+	* xgselect.c: Add defined (HAVE_GSETTINGS).
+	(xgselect_initialize): Ditto.
+
+	* process.c: Add defined (HAVE_GSETTINGS) for xgselect.h
+	(wait_reading_process_output): Add defined (HAVE_GSETTINGS) for
+	xg_select.
+
+2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* eval.c (struct backtrace): Simplify and port the data structure.
+	Do not assume that "int nargs : BITS_PER_INT - 2;" produces a
+	signed bit field, as this assumption is not portable and it makes
+	Emacs crash when compiled with Sun C 5.8 on sparc.  Do not use
+	"char debug_on_exit : 1" as this is not portable either; instead,
+	use the portable "unsigned int debug_on_exit : 1".  Remove unused
+	member evalargs.  Remove obsolete comments about cc bombing out.
+
+2011-06-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c: Include glib-object.h, gio/gio.h if HAVE_GSETTINGS.
+	Let HAVE_GSETTINGS override HAVE_GCONF.
+	(store_monospaced_changed): New function.
+	(EMACS_SETTINGS): A new type derived from GObject to handle
+	GSettings notifications.
+	(emacs_settings_constructor, emacs_settings_get_property)
+	(emacs_settings_set_property, emacs_settings_class_init):
+	New functions.
+	(gsettings_client, gsettings_obj): New variables.
+	(GSETTINGS_SCHEMA): New define.
+	(something_changedCB): Call store_monospaced_changed.
+	(init_gsettings): New function.
+	(xsettings_initialize): Call init_gsettings.
+	(syms_of_xsettings): Initialize gsettings_client, gsettings_obj
+	to NULL.
+
+	* Makefile.in (SETTINGS_CFLAGS, SETTINGS_LIBS): Renamed from
+	GCONF_CFLAGS/LIBS.
+
+2011-06-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (resize_root_window, grow_mini_window)
+	(shrink_mini_window): Rename Qresize_root_window to
+	Qwindow_resize_root_window and Qresize_root_window_vertically to
+	Qwindow_resize_root_window_vertically.
+
+2011-06-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gnutls.c (Qgnutls_bootprop_verify_error): Remove unused var.
+
+2011-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in: Redesign dependencies so they reflect more
+	clearly which files are directly included by each source file,
+	and not through other includes.
+
+2011-06-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Qclone_number): Declare static and DEFSYM it.
+	(sort_overlays, overlay_strings): When an overlay's clone number
+	matches the window's clone number process the overlay even if
+	the overlay's window property doesn't match the current window.
+
+	* window.c (Fwindow_vchild): Rename to Fwindow_top_child.
+	(Fwindow_hchild): Rename to Fwindow_left_child.
+	(Fwindow_next): Rename to Fwindow_next_sibling.
+	(Fwindow_prev): Rename to Fwindow_prev_sibling.
+	(resize_window_check): Rename to window_resize_check.
+	(resize_window_apply): Rename to window_resize_apply.
+	(Fresize_window_apply): Rename to Fwindow_resize_apply.
+	(Fdelete_other_windows_internal, resize_frame_windows)
+	(Fsplit_window_internal, Fdelete_window_internal)
+	(grow_mini_window, shrink_mini_window)
+	(Fresize_mini_window_internal): Fix callers accordingly.
+
+2011-06-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* emacsgtkfixed.h: State that this is only used with Gtk+3.
+	(emacs_fixed_set_min_size): Remove.
+	(emacs_fixed_new): Take frame as argument.
+
+	* emacsgtkfixed.c: State that this is only used with Gtk+3.
+	(_EmacsFixedPrivate): Remove minwidth/height.
+	Add struct frame *f.
+	(emacs_fixed_init): Initialize priv->f.
+	(get_parent_class, emacs_fixed_set_min_size): Remove.
+	(emacs_fixed_new): Set priv->f to argument.
+	(emacs_fixed_get_preferred_width)
+	(emacs_fixed_get_preferred_height): Use min_width/height from
+	frames size_hint to set minimum and natural (Bug#8919).
+	(XSetWMSizeHints, XSetWMNormalHints): Override these functions
+	and use min_width/height from frames size_hint to set
+	min_width/height (Bug#8919).
+
+	* gtkutil.c (xg_create_frame_widgets): Pass f to emacs_fixed_new.
+	(x_wm_set_size_hint): Remove call to emacs_fixed_set_min_size.
+	Fix indentation.
+
+2011-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_paragraph_init): Test for ZV_BYTE before calling
+	bidi_at_paragraph_end, since fast_looking_at doesn't like to be
+	called at ZV.
+
+2011-06-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c (wait_reading_process_output): Bypass select if
+	waiting for a cell while ignoring keyboard input, and input is
+	pending.  Suggested by Jan Djärv (Bug#8869).
+
+2011-06-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use gnulib's dup2 module instead of rolling our own.
+	* sysdep.c (dup2) [!HAVE_DUP2]: Remove; gnulib now does this.
+
+2011-06-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispnew.c (scrolling_window): Before scrolling, turn off a
+	mouse-highlight in the window being scrolled.
+
+2011-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	Move DEFSYM to lisp.h and use everywhere.
+
+	* character.h (DEFSYM): Move declaration...
+	* lisp.h (DEFSYM): ...here.
+
+	* gnutls.c:
+	* minibuf.c:
+	* w32menu.c:
+	* w32proc.c:
+	* w32select.c: Don't include character.h.
+
+	* alloc.c (syms_of_alloc):
+	* buffer.c (syms_of_buffer):
+	* bytecode.c (syms_of_bytecode):
+	* callint.c (syms_of_callint):
+	* casefiddle.c (syms_of_casefiddle):
+	* casetab.c (init_casetab_once):
+	* category.c (init_category_once, syms_of_category):
+	* ccl.c (syms_of_ccl):
+	* cmds.c (syms_of_cmds):
+	* composite.c (syms_of_composite):
+	* dbusbind.c (syms_of_dbusbind):
+	* dired.c (syms_of_dired):
+	* dispnew.c (syms_of_display):
+	* doc.c (syms_of_doc):
+	* editfns.c (syms_of_editfns):
+	* emacs.c (syms_of_emacs):
+	* eval.c (syms_of_eval):
+	* fileio.c (syms_of_fileio):
+	* fns.c (syms_of_fns):
+	* frame.c (syms_of_frame):
+	* fringe.c (syms_of_fringe):
+	* insdel.c (syms_of_insdel):
+	* keymap.c (syms_of_keymap):
+	* lread.c (init_obarray, syms_of_lread):
+	* macros.c (syms_of_macros):
+	* msdos.c (syms_of_msdos):
+	* print.c (syms_of_print):
+	* process.c (syms_of_process):
+	* search.c (syms_of_search):
+	* sound.c (syms_of_sound):
+	* syntax.c (init_syntax_once, syms_of_syntax):
+	* terminal.c (syms_of_terminal):
+	* textprop.c (syms_of_textprop):
+	* undo.c (syms_of_undo):
+	* w32.c (globals_of_w32):
+	* window.c (syms_of_window):
+	* xdisp.c (syms_of_xdisp):
+	* xfaces.c (syms_of_xfaces):
+	* xfns.c (syms_of_xfns):
+	* xmenu.c (syms_of_xmenu):
+	* xsettings.c (syms_of_xsettings):
+	* xterm.c (syms_of_xterm): Use DEFSYM.
+
+2011-06-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (syms_of_gnutls): Use the DEFSYM macro from character.h.
+
+2011-06-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Integer and buffer overflow fixes (Bug#8873).
+
+	* print.c (printchar, strout): Check for string overflow.
+	(PRINTPREPARE, printchar, strout):
+	Don't set size unless allocation succeeds.
+
+	* minibuf.c (read_minibuf_noninteractive): Use ptrdiff_t, not int,
+	for sizes.  Check for string overflow more accurately.
+	Simplify newline removal at end; this suppresses a GCC 4.6.0 warning.
+
+	* macros.c: Integer and buffer overflow fixes.
+	* keyboard.h (struct keyboard.kbd_macro_bufsize):
+	* macros.c (Fstart_kbd_macro, store_kbd_macro_char):
+	Use ptrdiff_t, not int, for sizes.
+	Don't increment bufsize until after realloc succeeds.
+	Check for size-calculation overflow.
+	(Fstart_kbd_macro): Use EMACS_INT, not int, for XINT result.
+
+	* lisp.h (DEFVAR_KBOARD): Use offsetof instead of char * finagling.
+
+	* lread.c: Integer overflow fixes.
+	(read_integer): Radix is now EMACS_INT, not int,
+	to improve quality of diagnostics for out-of-range radices.
+	Calculate buffer size correctly for out-of-range radices.
+	(read1): Check for integer overflow in radices, and in
+	read-circle numbers.
+	(read_escape): Avoid int overflow.
+	(Fload, openp, read_buffer_size, read1)
+	(substitute_object_recurse, read_vector, read_list, map_obarray):
+	Use ptrdiff_t, not int, for sizes.
+	(read1): Use EMACS_INT, not int, for sizes.
+	Check for size overflow.
+
+	* image.c (cache_image): Check for size arithmetic overflow.
+
+	* lread.c: Integer overflow issues.
+	(saved_doc_string_size, saved_doc_string_length)
+	(prev_saved_doc_string_size, prev_saved_doc_string_length):
+	Now ptrdiff_t, not int.
+	(read1): Don't assume doc string length fits in int.  Check for
+	out-of-range doc string lengths.
+	(read_list): Don't assume file position fits in int.
+	(read_escape): Check for hex character overflow.
+
+2011-06-22  Leo Liu  <sdl.web@gmail.com>
+
+	* minibuf.c (Fcompleting_read_default, Vcompleting_read_function):
+	Move to minibuffer.el.
+
 2011-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fixes for GLYPH_DEBUG found by GCC 4.6.0 static checking.
@@ -272,7 +692,7 @@
 
 2011-06-22  Jim Meyering  <meyering@redhat.com>
 
-	don't leak an XBM-image-sized buffer
+	Don't leak an XBM-image-sized buffer
 	* image.c (xbm_load): Free the image buffer after using it.
 
 2011-06-21  Paul Eggert  <eggert@cs.ucla.edu>
@@ -292,7 +712,7 @@
 
 	* fns.c (secure_hash): Rename from crypto_hash_function and change
 	the first arg to accept symbols.
-	(Fsecure_hash): New primtive.
+	(Fsecure_hash): New primitive.
 	(syms_of_fns): New symbols.
 
 2011-06-20  Deniz Dogan  <deniz@dogan.se>
@@ -1466,7 +1886,7 @@
 	and %.0c.  Fix bug with strchr succeeding on '\0' when looking for
 	flags.  Fix bug with (format "%c" 256.0).  Avoid integer overflow when
 	formatting out-of-range floating point numbers with int
-	formats. (Bug#8668)
+	formats.  (Bug#8668)
 
 	* lisp.h (FIXNUM_OVERFLOW_P): Work even if arg is a NaN.
 
@@ -2430,9 +2850,9 @@
 	:verify-hostname-error, :verify-error, and :verify-flags
 	parameters of `gnutls-boot' and documented those parameters in the
 	docstring.  Start callback support.
-	(emacs_gnutls_handshake): Add Woe32 support. Retry handshake
-	unless a fatal error occured. Call gnutls_alert_send_appropriate
-	on error. Return error code.
+	(emacs_gnutls_handshake): Add Woe32 support.  Retry handshake
+	unless a fatal error occurred.  Call gnutls_alert_send_appropriate
+	on error.  Return error code.
 	(emacs_gnutls_write): Call emacs_gnutls_handle_error.
 	(emacs_gnutls_read): Likewise.
 	(Fgnutls_boot): Return handshake error code.

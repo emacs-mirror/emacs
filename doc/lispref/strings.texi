@@ -856,14 +856,16 @@ with @samp{0x} or @samp{0X}.  For @samp{%e}, @samp{%f}, and @samp{%g},
 the @samp{#} flag means include a decimal point even if the precision
 is zero.
 
+  The flag @samp{0} ensures that the padding consists of @samp{0}
+characters instead of spaces.  This flag is ignored for non-numerical
+specification characters like @samp{%s}, @samp{%S} and @samp{%c}.
+These specification characters accept the @samp{0} flag, but still pad
+with @emph{spaces}.
+
   The flag @samp{-} causes the padding inserted by the width
 specifier, if any, to be inserted on the right rather than the left.
-The flag @samp{0} ensures that the padding consists of @samp{0}
-characters instead of spaces, inserted on the left.  These flags are
-ignored for specification characters for which they do not make sense:
-@samp{%s}, @samp{%S} and @samp{%c} accept the @samp{0} flag, but still
-pad with @emph{spaces} on the left.  If both @samp{-} and @samp{0} are
-present and valid, @samp{-} takes precedence.
+If both @samp{-} and @samp{0} are present, the @samp{0} flag is
+ignored.
 
 @example
 @group

@@ -993,14 +993,17 @@ Mostly we check word delimiters."
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-word-search-backward ...                                */
 ;;*---------------------------------------------------------------------*/
-(defun flyspell-word-search-backward (word bound)
+(defun flyspell-word-search-backward (word bound &optional ignore-case)
   (save-excursion
     (let ((r '())
 	  (inhibit-point-motion-hooks t)
 	  p)
       (while (and (not r) (setq p (search-backward word bound t)))
 	(let ((lw (flyspell-get-word)))
-	  (if (and (consp lw) (string-equal (car lw) word))
+	  (if (and (consp lw)
+		   (if ignore-case
+		       (string-equal (downcase (car lw)) (downcase word))
+		     (string-equal (car lw) word)))
 	      (setq r p)
 	    (goto-char p))))
       r)))
@@ -1069,7 +1072,7 @@ misspelling and skips redundant spell-checking step."
 			      (- end start)
 			      (- (skip-chars-backward " \t\n\f"))))
 			  (p (when (>= bound (point-min))
-			       (flyspell-word-search-backward word bound))))
+			       (flyspell-word-search-backward word bound t))))
 		     (and p (/= p start)))))
 	    ;; yes, this is a doublon
 	    (flyspell-highlight-incorrect-region start end 'doublon)

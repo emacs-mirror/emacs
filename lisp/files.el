@@ -1341,8 +1341,8 @@ automatically choosing a major mode, use \\[find-file-literally]."
                         (confirm-nonexistent-file-or-buffer)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
-	(mapcar 'switch-to-buffer (nreverse value))
-      (switch-to-buffer value))))
+	(mapcar #'pop-to-buffer-same-window (nreverse value))
+      (pop-to-buffer-same-window value))))
 
 (defun find-file-other-window (filename &optional wildcards)
   "Edit file FILENAME, in another window.
@@ -2268,7 +2268,12 @@ since only a single case-insensitive search through the alist is made."
      ("\\.icn\\'" . icon-mode)
      ("\\.sim\\'" . simula-mode)
      ("\\.mss\\'" . scribe-mode)
+     ;; The Fortran standard does not say anything about file extensions.
+     ;; .f90 was widely used for F90, now we seem to be trapped into
+     ;; using a different extension for each language revision.
+     ;; Anyway, the following extensions are supported by gfortran.
      ("\\.f9[05]\\'" . f90-mode)
+     ("\\.f0[38]\\'" . f90-mode)
      ("\\.indent\\.pro\\'" . fundamental-mode) ; to avoid idlwave-mode
      ("\\.\\(pro\\|PRO\\)\\'" . idlwave-mode)
      ("\\.srt\\'" . srecode-template-mode)
@@ -2938,16 +2943,7 @@ n  -- to ignore the local variables list.")
 	    (setq char nil)))
 	(kill-buffer buf)
 	(when (and offer-save (= char ?!) unsafe-vars)
-	  (dolist (elt unsafe-vars)
-	    (add-to-list 'safe-local-variable-values elt))
-	  ;; When this is called from desktop-restore-file-buffer,
-	  ;; coding-system-for-read may be non-nil.  Reset it before
-	  ;; writing to .emacs.
-	  (if (or custom-file user-init-file)
-	      (let ((coding-system-for-read nil))
-		(customize-save-variable
-		 'safe-local-variable-values
-		 safe-local-variable-values))))
+	  (customize-push-and-save 'safe-local-variable-values unsafe-vars))
 	(memq char '(?! ?\s ?y))))))
 
 (defun hack-local-variables-prop-line (&optional mode-only)
@@ -5564,7 +5560,8 @@ default directory.  However, if FULL is non-nil, they are absolute."
 	   contents)
       (while dirs
 	(when (or (null (car dirs))	; Possible if DIRPART is not wild.
-		  (file-directory-p (directory-file-name (car dirs))))
+		  (and (file-directory-p (directory-file-name (car dirs)))
+		       (file-readable-p (car dirs))))
 	  (let ((this-dir-contents
 		 ;; Filter out "." and ".."
 		 (delq nil

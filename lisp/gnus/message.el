@@ -659,6 +659,7 @@ Done before generating the new subject of a forward."
 (defcustom message-send-mail-function
   (cond ((eq send-mail-function 'smtpmail-send-it) 'message-smtpmail-send-it)
 	((eq send-mail-function 'feedmail-send-it) 'feedmail-send-it)
+	((eq send-mail-function 'sendmail-query-once) 'sendmail-query-once)
 	((eq send-mail-function 'mailclient-send-it)
 	 'message-send-mail-with-mailclient)
 	(t (message-send-mail-function)))
@@ -1184,7 +1185,7 @@ It is a vector of the following headers:
 (defvar message-send-actions nil
   "A list of actions to be performed upon successful sending of a message.")
 (defvar message-return-action nil
-  "Action to return to the caller after sending or postphoning a message.")
+  "Action to return to the caller after sending or postponing a message.")
 (defvar message-exit-actions nil
   "A list of actions to be performed upon exiting after sending a message.")
 (defvar message-kill-actions nil
@@ -3424,8 +3425,12 @@ Message buffers and is not meant to be called directly."
 (defun message-point-in-header-p ()
   "Return t if point is in the header."
   (save-excursion
-    (not (re-search-backward
-	  (concat "^" (regexp-quote mail-header-separator) "\n") nil t))))
+    (and
+     (not
+      (re-search-backward
+       (concat "^" (regexp-quote mail-header-separator) "\n") nil t))
+     (re-search-forward
+      (concat "^" (regexp-quote mail-header-separator) "\n") nil t))))
 
 (defun message-do-auto-fill ()
   "Like `do-auto-fill', but don't fill in message header."
@@ -6744,10 +6749,13 @@ want to get rid of this query permanently.")))
 				  addr))
 		 (cons (downcase (mail-strip-quoted-names addr)) addr)))
 	     (message-tokenize-header recipients)))
-      ;; Remove first duplicates.  (Why not all duplicates?  Is this a bug?)
+      ;; Remove all duplicates.
       (let ((s recipients))
 	(while s
-	  (setq recipients (delq (assoc (car (pop s)) s) recipients))))
+	  (let ((address (car (pop s))))
+	    (while (assoc address s)
+	      (setq recipients (delq (assoc address s) recipients)
+		    s (delq (assoc address s) s))))))
 
       ;; Remove hierarchical lists that are contained within each other,
       ;; if message-hierarchical-addresses is defined.

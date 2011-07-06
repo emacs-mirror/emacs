@@ -102,6 +102,11 @@ string are substituted as defined by the current value of the variable
   "String to display in the mode line.")
 ;;;###autoload (put 'battery-mode-line-string 'risky-local-variable t)
 
+(defcustom battery-mode-line-limit 100
+  "Percentage of full battery load below which display battery status"
+  :type 'integer
+  :group 'battery)
+
 (defcustom battery-mode-line-format
   (cond ((eq battery-status-function 'battery-linux-proc-acpi)
 	 "[%b%p%%,%d°C]")
@@ -182,16 +187,21 @@ seconds."
 
 (defun battery-update ()
   "Update battery status information in the mode line."
-  (setq battery-mode-line-string
-	(propertize (if (and battery-mode-line-format
-			     battery-status-function)
-			(battery-format
-			 battery-mode-line-format
-			 (funcall battery-status-function))
-		      "")
-		    'help-echo "Battery status information"))
+  (let ((data (and battery-status-function (funcall battery-status-function))))
+    (setq battery-mode-line-string
+	  (propertize (if (and battery-mode-line-format
+			       (<= (car (read-from-string (cdr (assq ?p data))))
+				   battery-mode-line-limit))
+			  (battery-format
+			   battery-mode-line-format
+			   data)
+			"")
+		      'face
+		      (and (<= (car (read-from-string (cdr (assq ?p data))))
+				   battery-load-critical)
+			   'font-lock-warning-face)
+		      'help-echo "Battery status information")))
   (force-mode-line-update))
-
 
 ;;; `/proc/apm' interface for Linux.
 

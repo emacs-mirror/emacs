@@ -10698,11 +10698,8 @@ syms_of_xterm (void)
   staticpro (&last_mouse_scroll_bar);
   last_mouse_scroll_bar = Qnil;
 
-  staticpro (&Qvendor_specific_keysyms);
-  Qvendor_specific_keysyms = intern_c_string ("vendor-specific-keysyms");
-
-  staticpro (&Qlatin_1);
-  Qlatin_1 = intern_c_string ("latin-1");
+  DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
+  DEFSYM (Qlatin_1, "latin-1");
 
   staticpro (&last_mouse_press_frame);
   last_mouse_press_frame = Qnil;
@@ -10711,8 +10708,7 @@ syms_of_xterm (void)
   xg_default_icon_file = make_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
   staticpro (&xg_default_icon_file);
 
-  Qx_gtk_map_stock = intern_c_string ("x-gtk-map-stock");
-  staticpro (&Qx_gtk_map_stock);
+  DEFSYM (Qx_gtk_map_stock, "x-gtk-map-stock");
 #endif
 
   DEFVAR_BOOL ("x-use-underline-position-properties",

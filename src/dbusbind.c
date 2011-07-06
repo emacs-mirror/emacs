@@ -2189,142 +2189,76 @@ void
 syms_of_dbusbind (void)
 {
 
-  Qdbus_init_bus = intern_c_string ("dbus-init-bus");
-  staticpro (&Qdbus_init_bus);
+  DEFSYM (Qdbus_init_bus, "dbus-init-bus");
   defsubr (&Sdbus_init_bus);
 
-  Qdbus_close_bus = intern_c_string ("dbus-close-bus");
-  staticpro (&Qdbus_close_bus);
+  DEFSYM (Qdbus_close_bus, "dbus-close-bus");
   defsubr (&Sdbus_close_bus);
 
-  Qdbus_get_unique_name = intern_c_string ("dbus-get-unique-name");
-  staticpro (&Qdbus_get_unique_name);
+  DEFSYM (Qdbus_get_unique_name, "dbus-get-unique-name");
   defsubr (&Sdbus_get_unique_name);
 
-  Qdbus_call_method = intern_c_string ("dbus-call-method");
-  staticpro (&Qdbus_call_method);
+  DEFSYM (Qdbus_call_method, "dbus-call-method");
   defsubr (&Sdbus_call_method);
 
-  Qdbus_call_method_asynchronously
-    = intern_c_string ("dbus-call-method-asynchronously");
-  staticpro (&Qdbus_call_method_asynchronously);
+  DEFSYM (Qdbus_call_method_asynchronously, "dbus-call-method-asynchronously");
   defsubr (&Sdbus_call_method_asynchronously);
 
-  Qdbus_method_return_internal
-    = intern_c_string ("dbus-method-return-internal");
-  staticpro (&Qdbus_method_return_internal);
+  DEFSYM (Qdbus_method_return_internal, "dbus-method-return-internal");
   defsubr (&Sdbus_method_return_internal);
 
-  Qdbus_method_error_internal = intern_c_string ("dbus-method-error-internal");
-  staticpro (&Qdbus_method_error_internal);
+  DEFSYM (Qdbus_method_error_internal, "dbus-method-error-internal");
   defsubr (&Sdbus_method_error_internal);
 
-  Qdbus_send_signal = intern_c_string ("dbus-send-signal");
-  staticpro (&Qdbus_send_signal);
+  DEFSYM (Qdbus_send_signal, "dbus-send-signal");
   defsubr (&Sdbus_send_signal);
 
-  Qdbus_register_service = intern_c_string ("dbus-register-service");
-  staticpro (&Qdbus_register_service);
+  DEFSYM (Qdbus_register_service, "dbus-register-service");
   defsubr (&Sdbus_register_service);
 
-  Qdbus_register_signal = intern_c_string ("dbus-register-signal");
-  staticpro (&Qdbus_register_signal);
+  DEFSYM (Qdbus_register_signal, "dbus-register-signal");
   defsubr (&Sdbus_register_signal);
 
-  Qdbus_register_method = intern_c_string ("dbus-register-method");
-  staticpro (&Qdbus_register_method);
+  DEFSYM (Qdbus_register_method, "dbus-register-method");
   defsubr (&Sdbus_register_method);
 
-  Qdbus_error = intern_c_string ("dbus-error");
-  staticpro (&Qdbus_error);
+  DEFSYM (Qdbus_error, "dbus-error");
   Fput (Qdbus_error, Qerror_conditions,
 	list2 (Qdbus_error, Qerror));
   Fput (Qdbus_error, Qerror_message,
 	make_pure_c_string ("D-Bus error"));
 
-  QCdbus_system_bus = intern_c_string (":system");
-  staticpro (&QCdbus_system_bus);
-
-  QCdbus_session_bus = intern_c_string (":session");
-  staticpro (&QCdbus_session_bus);
-
-  QCdbus_request_name_allow_replacement
-    = intern_c_string (":allow-replacement");
-  staticpro (&QCdbus_request_name_allow_replacement);
-
-  QCdbus_request_name_replace_existing = intern_c_string (":replace-existing");
-  staticpro (&QCdbus_request_name_replace_existing);
-
-  QCdbus_request_name_do_not_queue = intern_c_string (":do-not-queue");
-  staticpro (&QCdbus_request_name_do_not_queue);
-
-  QCdbus_request_name_reply_primary_owner = intern_c_string (":primary-owner");
-  staticpro (&QCdbus_request_name_reply_primary_owner);
-
-  QCdbus_request_name_reply_exists = intern_c_string (":exists");
-  staticpro (&QCdbus_request_name_reply_exists);
-
-  QCdbus_request_name_reply_in_queue = intern_c_string (":in-queue");
-  staticpro (&QCdbus_request_name_reply_in_queue);
-
-  QCdbus_request_name_reply_already_owner = intern_c_string (":already-owner");
-  staticpro (&QCdbus_request_name_reply_already_owner);
-
-  QCdbus_timeout = intern_c_string (":timeout");
-  staticpro (&QCdbus_timeout);
-
-  QCdbus_type_byte = intern_c_string (":byte");
-  staticpro (&QCdbus_type_byte);
-
-  QCdbus_type_boolean = intern_c_string (":boolean");
-  staticpro (&QCdbus_type_boolean);
-
-  QCdbus_type_int16 = intern_c_string (":int16");
-  staticpro (&QCdbus_type_int16);
-
-  QCdbus_type_uint16 = intern_c_string (":uint16");
-  staticpro (&QCdbus_type_uint16);
-
-  QCdbus_type_int32 = intern_c_string (":int32");
-  staticpro (&QCdbus_type_int32);
-
-  QCdbus_type_uint32 = intern_c_string (":uint32");
-  staticpro (&QCdbus_type_uint32);
-
-  QCdbus_type_int64 = intern_c_string (":int64");
-  staticpro (&QCdbus_type_int64);
-
-  QCdbus_type_uint64 = intern_c_string (":uint64");
-  staticpro (&QCdbus_type_uint64);
-
-  QCdbus_type_double = intern_c_string (":double");
-  staticpro (&QCdbus_type_double);
-
-  QCdbus_type_string = intern_c_string (":string");
-  staticpro (&QCdbus_type_string);
-
-  QCdbus_type_object_path = intern_c_string (":object-path");
-  staticpro (&QCdbus_type_object_path);
-
-  QCdbus_type_signature = intern_c_string (":signature");
-  staticpro (&QCdbus_type_signature);
+  DEFSYM (QCdbus_system_bus, ":system");
+  DEFSYM (QCdbus_session_bus, ":session");
+  DEFSYM (QCdbus_request_name_allow_replacement, ":allow-replacement");
+  DEFSYM (QCdbus_request_name_replace_existing, ":replace-existing");
+  DEFSYM (QCdbus_request_name_do_not_queue, ":do-not-queue");
+  DEFSYM (QCdbus_request_name_reply_primary_owner, ":primary-owner");
+  DEFSYM (QCdbus_request_name_reply_exists, ":exists");
+  DEFSYM (QCdbus_request_name_reply_in_queue, ":in-queue");
+  DEFSYM (QCdbus_request_name_reply_already_owner, ":already-owner");
+  DEFSYM (QCdbus_timeout, ":timeout");
+  DEFSYM (QCdbus_type_byte, ":byte");
+  DEFSYM (QCdbus_type_boolean, ":boolean");
+  DEFSYM (QCdbus_type_int16, ":int16");
+  DEFSYM (QCdbus_type_uint16, ":uint16");
+  DEFSYM (QCdbus_type_int32, ":int32");
+  DEFSYM (QCdbus_type_uint32, ":uint32");
+  DEFSYM (QCdbus_type_int64, ":int64");
+  DEFSYM (QCdbus_type_uint64, ":uint64");
+  DEFSYM (QCdbus_type_double, ":double");
+  DEFSYM (QCdbus_type_string, ":string");
+  DEFSYM (QCdbus_type_object_path, ":object-path");
+  DEFSYM (QCdbus_type_signature, ":signature");
 
 #ifdef DBUS_TYPE_UNIX_FD
-  QCdbus_type_unix_fd = intern_c_string (":unix-fd");
-  staticpro (&QCdbus_type_unix_fd);
+  DEFSYM (QCdbus_type_unix_fd, ":unix-fd");
 #endif
 
-  QCdbus_type_array = intern_c_string (":array");
-  staticpro (&QCdbus_type_array);
-
-  QCdbus_type_variant = intern_c_string (":variant");
-  staticpro (&QCdbus_type_variant);
-
-  QCdbus_type_struct = intern_c_string (":struct");
-  staticpro (&QCdbus_type_struct);
-
-  QCdbus_type_dict_entry = intern_c_string (":dict-entry");
-  staticpro (&QCdbus_type_dict_entry);
+  DEFSYM (QCdbus_type_array, ":array");
+  DEFSYM (QCdbus_type_variant, ":variant");
+  DEFSYM (QCdbus_type_struct, ":struct");
+  DEFSYM (QCdbus_type_dict_entry, ":dict-entry");
 
   DEFVAR_LISP ("dbus-registered-buses",
 	       Vdbus_registered_buses,

@@ -258,7 +258,9 @@ widgets are locally inhibited.
 
 The number varies according to the evanescence of objects on a
  hash table with weak keys, so tracking of widget erasures is often delayed."
-  (when (and allout-widgets-maintain-tally (not allout-widgets-mode-inhibit))
+  (when (and allout-widgets-maintain-tally
+             (not allout-widgets-mode-inhibit)
+             allout-widgets-tally)
     (format ":%s" (hash-table-count allout-widgets-tally))))
 ;;;_   = allout-widgets-track-decoration nil
 (defcustom allout-widgets-track-decoration nil
@@ -559,6 +561,8 @@ outline hot-spot navigation \(see `allout-mode')."
                   'allout-widgets-shifts-recorder nil 'local)
         (add-hook 'allout-after-copy-or-kill-hook
                   'allout-widgets-after-copy-or-kill-function nil 'local)
+        (add-hook 'allout-post-undo-hook
+                  'allout-widgets-after-undo-function nil 'local)
 
         (add-hook 'before-change-functions 'allout-widgets-before-change-handler
                   nil 'local)
@@ -748,20 +752,23 @@ Optional RECURSING is for internal use, to limit recursion."
                     (message replaced-message)
                   (message "")))))
 
-        ;; Detect undecorated items, eg during isearch into previously
-        ;; unexposed topics, and decorate "economically".  Some
-        ;; undecorated stuff is often exposed, to reduce lag, but the
-        ;; item containing the cursor is decorated.  We constrain
-        ;; recursion to avoid being trapped by unexpectedly undecoratable
-        ;; items.
-        (when (and (not recursing)
-                   (not (allout-current-decorated-p))
-                   (or (not (equal (allout-depth) 0))
-                       (not allout-container-item-widget)))
-          (let ((buffer-undo-list t))
-            (allout-widgets-exposure-change-recorder
-             allout-recent-prefix-beginning allout-recent-prefix-end nil)
-            (allout-widgets-post-command-business 'recursing)))
+        ;; alas, decorated intermediate matches are not easily undecorated
+        ;; when they're automatically rehidden by isearch, so we're
+        ;; dropping this nicety.
+        ;; ;; Detect undecorated items, eg during isearch into previously
+        ;; ;; unexposed topics, and decorate "economically".  Some
+        ;; ;; undecorated stuff is often exposed, to reduce lag, but the
+        ;; ;; item containing the cursor is decorated.  We constrain
+        ;; ;; recursion to avoid being trapped by unexpectedly undecoratable
+        ;; ;; items.
+        ;; (when (and (not recursing)
+        ;;            (not (allout-current-decorated-p))
+        ;;            (or (not (equal (allout-depth) 0))
+        ;;                (not allout-container-item-widget)))
+        ;;   (let ((buffer-undo-list t))
+        ;;     (allout-widgets-exposure-change-recorder
+        ;;      allout-recent-prefix-beginning allout-recent-prefix-end nil)
+        ;;     (allout-widgets-post-command-business 'recursing)))
 
         ;; Detect and rectify fouled outline structure - decorated item
         ;; not at beginning of line.
@@ -1125,6 +1132,14 @@ Dispatched by `allout-widgets-post-command-business' in response to
 Intended for use on allout-after-copy-or-kill-hook."
   (if (car kill-ring)
       (setcar kill-ring (allout-widgets-undecorate-text (car kill-ring)))))
+;;;_   > allout-widgets-after-undo-function ()
+(defun allout-widgets-after-undo-function ()
+  "Do allout-widgets processing of text after an undo.
+
+Intended for use on allout-post-undo-hook."
+  (save-excursion
+    (if (allout-goto-prefix)
+        (allout-redecorate-item (allout-get-or-create-item-widget)))))
 
 ;;;_   > allout-widgets-exposure-undo-recorder (widget from-state)
 (defun allout-widgets-exposure-undo-recorder (widget)
@@ -2319,9 +2334,7 @@ We use a caching strategy, so the caller doesn't need to do so."
 (defun allout-elapsed-time-seconds (end start)
   "Return seconds between `current-time' style time START/END triples."
   (let ((elapsed (time-subtract end start)))
-    (+ (* (car elapsed) (expt 2.0 16))
-       (cadr elapsed)
-       (/ (caddr elapsed) (expt 10.0 6)))))
+    (float-time elapsed)))
 ;;;_  > allout-frame-property (frame property)
 (defalias 'allout-frame-property
   (cond ((fboundp 'frame-parameter)

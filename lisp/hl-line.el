@@ -93,12 +93,24 @@
 	   (overlay-put global-hl-line-overlay 'face hl-line-face))))
 
 (defcustom hl-line-sticky-flag t
-  "Non-nil means highlight the current line in all windows.
+  "Non-nil means the HL-Line mode highlight appears in all windows.
 Otherwise Hl-Line mode will highlight only in the selected
 window.  Setting this variable takes effect the next time you use
-the command `hl-line-mode' to turn Hl-Line mode on."
+the command `hl-line-mode' to turn Hl-Line mode on.
+
+This variable has no effect in Global Highlight Line mode.
+For that, use `global-hl-line-sticky-flag'."
   :type 'boolean
   :version "22.1"
+  :group 'hl-line)
+
+(defcustom global-hl-line-sticky-flag nil
+  "Non-nil means the Global HL-Line mode highlight appears in all windows.
+Otherwise Global Hl-Line mode will highlight only in the selected
+window.  Setting this variable takes effect the next time you use
+the command `global-hl-line-mode' to turn Global Hl-Line mode on."
+  :type 'boolean
+  :version "24.1"
   :group 'hl-line)
 
 (defvar hl-line-range-function nil
@@ -162,6 +174,10 @@ addition to `hl-line-highlight' on `post-command-hook'."
   "Global minor mode to highlight the line about point in the current window.
 With ARG, turn Global-Hl-Line mode on if ARG is positive, off otherwise.
 
+If `global-hl-line-sticky-flag' is non-nil, Global Hl-Line mode
+highlights the line about the current buffer's point in all
+windows.
+
 Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
 `global-hl-line-highlight' on `pre-command-hook' and `post-command-hook'."
   :global t
@@ -181,7 +197,9 @@ Global-Hl-Line mode uses the functions `global-hl-line-unhighlight' and
       (unless global-hl-line-overlay
         (setq global-hl-line-overlay (make-overlay 1 1)) ; to be moved
         (overlay-put global-hl-line-overlay 'face hl-line-face))
-      (overlay-put global-hl-line-overlay 'window (selected-window))
+      (overlay-put global-hl-line-overlay 'window
+		   (unless global-hl-line-sticky-flag
+		     (selected-window)))
       (hl-line-move global-hl-line-overlay))))
 
 (defun global-hl-line-unhighlight ()

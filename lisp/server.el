@@ -679,7 +679,7 @@ Server mode runs a process that accepts commands from the
 (defun server-eval-and-print (expr proc)
   "Eval EXPR and send the result back to client PROC."
   (let ((v (eval (car (read-from-string expr)))))
-    (when (and v proc)
+    (when proc
       (with-temp-buffer
         (let ((standard-output (current-buffer)))
           (pp v)
@@ -736,7 +736,8 @@ Server mode runs a process that accepts commands from the
 
     frame))
 
-(defun server-create-window-system-frame (display nowait proc parent-id)
+(defun server-create-window-system-frame (display nowait proc parent-id
+						  &optional parameters)
   (add-to-list 'frame-inherited-parameters 'client)
   (if (not (fboundp 'make-frame-on-display))
       (progn
@@ -751,7 +752,8 @@ Server mode runs a process that accepts commands from the
     ;; killing emacs on that frame.
     (let* ((params `((client . ,(if nowait 'nowait proc))
                      ;; This is a leftover, see above.
-                     (environment . ,(process-get proc 'env))))
+                     (environment . ,(process-get proc 'env))
+                     ,@parameters))
 	   (display (or display
 			(frame-parameter nil 'display)
 			(getenv "DISPLAY")
@@ -831,6 +833,9 @@ The following commands are accepted by the server:
 
 `-current-frame'
   Forbid the creation of new frames.
+
+`-frame-parameters ALIST'
+  Set the parameters of the created frame.
 
 `-nowait'
   Request that the next frame created should not be
@@ -940,6 +945,7 @@ The following commands are accepted by the client:
 		commands
 		dir
 		use-current-frame
+		frame-parameters  ;parameters for newly created frame
 		tty-name   ; nil, `window-system', or the tty name.
 		tty-type   ; string.
 		files
@@ -959,6 +965,13 @@ The following commands are accepted by the client:
 
                 ;; -current-frame:  Don't create frames.
                 (`"-current-frame" (setq use-current-frame t))
+
+                ;; -frame-parameters: Set frame parameters
+                (`"-frame-parameters"
+                 (let ((alist (pop args-left)))
+                   (if coding-system
+                       (setq alist (decode-coding-string alist coding-system)))
+                   (setq frame-parameters (car (read-from-string alist)))))
 
                 ;; -display DISPLAY:
                 ;; Open X frames on the given display instead of the default.
@@ -1075,7 +1088,8 @@ The following commands are accepted by the client:
 		    (if display (server-select-display display)))
 		   ((eq tty-name 'window-system)
 		    (server-create-window-system-frame display nowait proc
-						       parent-id))
+						       parent-id
+						       frame-parameters))
 		   ;; When resuming on a tty, tty-name is nil.
 		   (tty-name
 		    (server-create-tty-frame tty-name tty-type proc))))
@@ -1139,7 +1153,10 @@ The following commands are accepted by the client:
                              "When done with a buffer, type \\[server-edit]")))))
           (when (and frame (null tty-name))
             (server-unselect-display frame)))
-      (error (server-return-error proc err)))))
+      ((quit error)
+       (when (eq (car err) 'quit)
+         (message "Quit emacsclient request"))
+       (server-return-error proc err)))))
 
 (defun server-return-error (proc err)
   (ignore-errors
@@ -1186,12 +1203,12 @@ so don't mark these buffers specially, just visit them normally."
 	  (add-to-history 'file-name-history filen)
 	  (if (null obuf)
 	      (progn
-		(run-hooks 'pre-command-hook)  
+		(run-hooks 'pre-command-hook)
 		(set-buffer (find-file-noselect filen)))
             (set-buffer obuf)
 	    ;; separately for each file, in sync with post-command hooks,
 	    ;; with the new buffer current:
-	    (run-hooks 'pre-command-hook)  
+	    (run-hooks 'pre-command-hook)
             (cond ((file-exists-p filen)
                    (when (not (verify-visited-file-modtime obuf))
                      (revert-buffer t nil)))
@@ -1205,7 +1222,7 @@ so don't mark these buffers specially, just visit them normally."
           (server-goto-line-column (cdr file))
           (run-hooks 'server-visit-hook)
 	  ;; hooks may be specific to current buffer:
-	  (run-hooks 'post-command-hook)) 
+	  (run-hooks 'post-command-hook))
 	(unless nowait
 	  ;; When the buffer is killed, inform the clients.
 	  (add-hook 'kill-buffer-hook 'server-kill-buffer nil t)

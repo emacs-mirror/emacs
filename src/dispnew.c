@@ -4543,6 +4543,7 @@ scrolling_window (struct window *w, int header_line_p)
 	/* Copy on the display.  */
 	if (r->current_y != r->desired_y)
 	  {
+	    rif->clear_window_mouse_face (w);
 	    rif->scroll_run_hook (w, r);
 
 	    /* Invalidate runs that copy from where we copied to.  */
@@ -6438,10 +6439,8 @@ syms_of_display (void)
   frame_and_buffer_state = Fmake_vector (make_number (20), Qlambda);
   staticpro (&frame_and_buffer_state);
 
-  Qdisplay_table = intern_c_string ("display-table");
-  staticpro (&Qdisplay_table);
-  Qredisplay_dont_pause = intern_c_string ("redisplay-dont-pause");
-  staticpro (&Qredisplay_dont_pause);
+  DEFSYM (Qdisplay_table, "display-table");
+  DEFSYM (Qredisplay_dont_pause, "redisplay-dont-pause");
 
   DEFVAR_INT ("baud-rate", baud_rate,
 	      doc: /* *The output baud rate of the terminal.

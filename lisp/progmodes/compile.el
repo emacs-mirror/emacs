@@ -400,15 +400,16 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      "^# Failed test [0-9]+ in \\([^ \t\r\n]+\\) at line \\([0-9]+\\)"
      1 2)
     (perl--Test2
-     ;; Or when comparing got/want values,
+     ;; Or when comparing got/want values, with a "fail #n" if repeated
      ;; # Test 2 got: "xx" (t-compilation-perl-2.t at line 10)
+     ;; # Test 3 got: "xx" (t-compilation-perl-2.t at line 10 fail #2)
      ;;
      ;; And under Test::Harness they're preceded by progress stuff with
      ;; \r and "NOK",
      ;; ... NOK 1# Test 1 got: "1234" (t/foo.t at line 46)
      ;;
      "^\\(.*NOK.*\\)?# Test [0-9]+ got:.* (\\([^ \t\r\n]+\\) at line \
-\\([0-9]+\\))"
+\\([0-9]+\\)\\( fail #[0-9]+\\)?)"
      2 3)
     (perl--Test::Harness
      ;; perl Test::Harness output, eg.
@@ -2409,9 +2410,7 @@ and overlay is highlighted between MK and END-MK."
         ;; display the source in another window.
         (let ((pop-up-windows t))
           (pop-to-buffer (marker-buffer mk) 'other-window))
-      (if (window-dedicated-p (selected-window))
-          (pop-to-buffer (marker-buffer mk))
-        (switch-to-buffer (marker-buffer mk))))
+      (pop-to-buffer-same-window (marker-buffer mk)))
     (unless (eq (goto-char mk) (point))
       ;; If narrowing gets in the way of going to the right place, widen.
       (widen)

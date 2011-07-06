@@ -351,7 +351,7 @@
 ;;           systems with non-classic /bin/[r]mail behavior
 ;;         guard against nil user-mail-address in generating MESSAGE-ID:
 ;;         feedmail-queue-slug-suspect-regexp is now a variable to
-;;           accomodate non-ASCII environments (thanks to
+;;           accommodate non-ASCII environments (thanks to
 ;;           Makoto.Nakagawa@jp.compaq.com for this suggestion)
 ;;         feedmail-buffer-to-smtp, to parallel feedmail-buffer-to-smtpmail
 ;; patchlevel 10, 22 April 2001
@@ -1633,22 +1633,21 @@ local gurus."
   ;; no evil.
   (feedmail-say-debug ">in-> feedmail-buffer-to-smtpmail %s" addr-listoid)
   (require 'smtpmail)
-  (if (not (smtpmail-via-smtp addr-listoid prepped))
-      (progn
-	(set-buffer errors-to)
-	(insert "Send via smtpmail failed.  Probable SMTP protocol error.\n")
-	(insert "Look for details below or in the *Messages* buffer.\n\n")
-	(let ((case-fold-search t)
-	      ;; don't be overconfident about the name of the trace buffer
-	      (tracer (concat "trace.*smtp.*" (regexp-quote smtpmail-smtp-server))))
-	  (mapcar
-	   (lambda (buffy)
-	      (if (string-match tracer (buffer-name buffy))
-		  (progn
-		    (insert "SMTP Trace from " (buffer-name buffy) "\n---------------")
-		    (insert-buffer-substring buffy)
-		    (insert "\n\n"))))
-	   (buffer-list))))))
+  (let ((result (smtpmail-via-smtp addr-listoid prepped)))
+    (when result
+      (set-buffer errors-to)
+      (insert "Send via smtpmail failed: %s" result)
+      (let ((case-fold-search t)
+	    ;; don't be overconfident about the name of the trace buffer
+	    (tracer (concat "trace.*smtp.*" (regexp-quote smtpmail-smtp-server))))
+	(mapcar
+	 (lambda (buffy)
+	   (if (string-match tracer (buffer-name buffy))
+	       (progn
+		 (insert "SMTP Trace from " (buffer-name buffy) "\n---------------")
+		 (insert-buffer-substring buffy)
+		 (insert "\n\n"))))
+	 (buffer-list))))))
 
 (declare-function smtp-via-smtp "ext:smtp" (sender recipients smtp-text-buffer))
 (defvar smtp-server)

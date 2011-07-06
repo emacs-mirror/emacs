@@ -71,10 +71,10 @@ macro before appending to it. */)
     {
       if (current_kboard->kbd_macro_bufsize > 200)
 	{
-	  current_kboard->kbd_macro_bufsize = 30;
 	  current_kboard->kbd_macro_buffer
 	    = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
 				       30 * sizeof (Lisp_Object));
+	  current_kboard->kbd_macro_bufsize = 30;
 	}
       current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_buffer;
       current_kboard->kbd_macro_end = current_kboard->kbd_macro_buffer;
@@ -82,7 +82,8 @@ macro before appending to it. */)
     }
   else
     {
-      int i, len;
+      ptrdiff_t i;
+      EMACS_INT len;
       int cvt;
 
       /* Check the type of last-kbd-macro in case Lisp code changed it.  */
@@ -94,10 +95,13 @@ macro before appending to it. */)
 	 has put another macro there.  */
       if (current_kboard->kbd_macro_bufsize < len + 30)
 	{
-	  current_kboard->kbd_macro_bufsize = len + 30;
+	  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object) - 30
+	      < current_kboard->kbd_macro_bufsize)
+	    memory_full (SIZE_MAX);
 	  current_kboard->kbd_macro_buffer
 	    = (Lisp_Object *)xrealloc (current_kboard->kbd_macro_buffer,
 				       (len + 30) * sizeof (Lisp_Object));
+	  current_kboard->kbd_macro_bufsize = len + 30;
 	}
 
       /* Must convert meta modifier when copying string to vector.  */
@@ -191,14 +195,17 @@ store_kbd_macro_char (Lisp_Object c)
     {
       if (kb->kbd_macro_ptr - kb->kbd_macro_buffer == kb->kbd_macro_bufsize)
 	{
-	  int ptr_offset, end_offset, nbytes;
+	  ptrdiff_t ptr_offset, end_offset, nbytes;
 
 	  ptr_offset = kb->kbd_macro_ptr - kb->kbd_macro_buffer;
 	  end_offset = kb->kbd_macro_end - kb->kbd_macro_buffer;
-	  kb->kbd_macro_bufsize *= 2;
-	  nbytes = kb->kbd_macro_bufsize * sizeof *kb->kbd_macro_buffer;
+	  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *kb->kbd_macro_buffer / 2
+	      < kb->kbd_macro_bufsize)
+	    memory_full (SIZE_MAX);
+	  nbytes = kb->kbd_macro_bufsize * 2 * sizeof *kb->kbd_macro_buffer;
 	  kb->kbd_macro_buffer
 	    = (Lisp_Object *) xrealloc (kb->kbd_macro_buffer, nbytes);
+	  kb->kbd_macro_bufsize *= 2;
 	  kb->kbd_macro_ptr = kb->kbd_macro_buffer + ptr_offset;
 	  kb->kbd_macro_end = kb->kbd_macro_buffer + end_offset;
 	}
@@ -360,15 +367,13 @@ init_macros (void)
 void
 syms_of_macros (void)
 {
-  Qexecute_kbd_macro = intern_c_string ("execute-kbd-macro");
-  staticpro (&Qexecute_kbd_macro);
+  DEFSYM (Qexecute_kbd_macro, "execute-kbd-macro");
 
   DEFVAR_LISP ("kbd-macro-termination-hook", Vkbd_macro_termination_hook,
                doc: /* Normal hook run whenever a keyboard macro terminates.
 This is run whether the macro ends normally or prematurely due to an error.  */);
   Vkbd_macro_termination_hook = Qnil;
-  Qkbd_macro_termination_hook = intern_c_string ("kbd-macro-termination-hook");
-  staticpro (&Qkbd_macro_termination_hook);
+  DEFSYM (Qkbd_macro_termination_hook, "kbd-macro-termination-hook");
 
   defsubr (&Sstart_kbd_macro);
   defsubr (&Send_kbd_macro);
