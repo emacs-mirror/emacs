@@ -1,5 +1,8 @@
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* dabbrev.el (dabbrev-abbrev-char-regexp): Note that nil defaults
+	to "\\sw\\|\\s_" (bug#358).
+
 	* dired.el (dired-mode): Clarify "unmark or unflag" (bug#8770).
 	(dired-unmark-backward): Ditto.
 	(dired-flag-backup-files): Ditto.
