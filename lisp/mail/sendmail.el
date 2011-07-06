@@ -168,6 +168,7 @@ This is used by the default mail-sending commands.  See also
 (defvar sendmail-query-once-function 'query
   "Either a function to send email, or the symbol `query'.")
 
+;;;###autoload
 (defun sendmail-query-once ()
   "Send an email via `sendmail-query-once-function'.
 If `sendmail-query-once-function' is `query', ask the user what

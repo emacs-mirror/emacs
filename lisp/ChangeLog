@@ -2,6 +2,7 @@
 
 	* mail/sendmail.el (send-mail-function): Change the default to
 	`sendmail-query-once'.
+	(sendmail-query-once): Add an autoload cookie.
 
 	* net/network-stream.el (network-stream-open-starttls): Try using
 	a plain connection even if the server offered STARTTLS, and we
