@@ -1,5 +1,8 @@
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* progmodes/grep.el (rgrep): Don't bind `process-connection-type',
+	because that makes the colours go away.
+
 	* mail/sendmail.el (send-mail-function): Change the default to
 	`sendmail-query-once'.
 	(sendmail-query-once): Add an autoload cookie.
