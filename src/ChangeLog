@@ -1,6 +1,6 @@
 2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Use pthread_sigmask, not sigprocmask.
+	Use pthread_sigmask, not sigprocmask (Bug#9010).
 	* callproc.c (Fcall_process):
 	* sysdep.c (sys_sigblock, sys_sigunblock, sys_sigsetmask):
 	* process.c (create_process):
