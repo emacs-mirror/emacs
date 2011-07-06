@@ -561,6 +561,8 @@ outline hot-spot navigation \(see `allout-mode')."
                   'allout-widgets-shifts-recorder nil 'local)
         (add-hook 'allout-after-copy-or-kill-hook
                   'allout-widgets-after-copy-or-kill-function nil 'local)
+        (add-hook 'allout-post-undo-hook
+                  'allout-widgets-after-undo-function nil 'local)
 
         (add-hook 'before-change-functions 'allout-widgets-before-change-handler
                   nil 'local)
@@ -1130,6 +1132,14 @@ Dispatched by `allout-widgets-post-command-business' in response to
 Intended for use on allout-after-copy-or-kill-hook."
   (if (car kill-ring)
       (setcar kill-ring (allout-widgets-undecorate-text (car kill-ring)))))
+;;;_   > allout-widgets-after-undo-function ()
+(defun allout-widgets-after-undo-function ()
+  "Do allout-widgets processing of text after an undo.
+
+Intended for use on allout-post-undo-hook."
+  (save-excursion
+    (if (allout-goto-prefix)
+        (allout-redecorate-item (allout-get-or-create-item-widget)))))
 
 ;;;_   > allout-widgets-exposure-undo-recorder (widget from-state)
 (defun allout-widgets-exposure-undo-recorder (widget)

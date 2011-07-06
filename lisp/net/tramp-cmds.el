@@ -100,6 +100,15 @@ When called interactively, a Tramp connection has to be selected."
       (when (bufferp buf) (kill-buffer buf)))))
 
 ;;;###tramp-autoload
+(defun tramp-cleanup-this-connection ()
+  "Flush all connection related objects of the current buffer's connection."
+  (interactive)
+  (and (stringp default-directory)
+       (file-remote-p default-directory)
+       (tramp-cleanup-connection
+	(tramp-dissect-file-name default-directory 'noexpand))))
+
+;;;###tramp-autoload
 (defun tramp-cleanup-all-connections ()
   "Flush all Tramp internal objects.
 This includes password cache, file cache, connection cache, buffers."
@@ -299,7 +308,7 @@ buffer in your bug report.
 
       ;; There is at least one Tramp buffer.
       (when buffer-list
-	(switch-to-buffer (list-buffers-noselect nil))
+	(tramp-compat-pop-to-buffer-same-window (list-buffers-noselect nil))
 	(delete-other-windows)
 	(setq buffer-read-only nil)
 	(goto-char (point-min))
@@ -334,7 +343,7 @@ the debug buffer(s).")
 	    ;; OK, let's send.  First we delete the buffer list.
 	    (progn
 	      (kill-buffer nil)
-	      (switch-to-buffer curbuf)
+	      (tramp-compat-pop-to-buffer-same-window curbuf)
 	      (goto-char (point-max))
 	      (insert "\n\
 This is a special notion of the `gnus/message' package.  If you

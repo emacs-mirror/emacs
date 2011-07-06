@@ -1539,7 +1539,18 @@ command_loop_1 (void)
 	  message_with_string ("%s is undefined", keys, 0);
 	  KVAR (current_kboard, defining_kbd_macro) = Qnil;
 	  update_mode_lines = 1;
-	  KVAR (current_kboard, Vprefix_arg) = Qnil;
+	  /* If this is a down-mouse event, don't reset prefix-arg;
+	     pass it to the command run by the up event.  */
+	  if (EVENT_HAS_PARAMETERS (last_command_event))
+	    {
+	      Lisp_Object breakdown
+		= parse_modifiers (EVENT_HEAD (last_command_event));
+	      int modifiers = XINT (XCAR (XCDR (breakdown)));
+	      if (!(modifiers & down_modifier))
+		KVAR (current_kboard, Vprefix_arg) = Qnil;
+	    }
+	  else
+	    KVAR (current_kboard, Vprefix_arg) = Qnil;
 	}
       else
 	{
@@ -7470,7 +7481,7 @@ menu_bar_items (Lisp_Object old)
 	if (CONSP (def))
 	  {
 	    menu_bar_one_keymap_changed_items = Qnil;
-	    map_keymap (def, menu_bar_item, Qnil, NULL, 1);
+	    map_keymap_canonical (def, menu_bar_item, Qnil, NULL);
 	  }
       }
 
@@ -7811,7 +7822,7 @@ parse_menu_item (Lisp_Object item, int inmenubar)
   /* If we got no definition, this item is just unselectable text which
      is OK in a submenu but not in the menubar.  */
   if (NILP (def))
-    return (inmenubar ? 0 : 1);
+    return (!inmenubar);
 
   /* See if this is a separate pane or a submenu.  */
   def = AREF (item_properties, ITEM_PROPERTY_DEF);

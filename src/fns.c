@@ -79,10 +79,14 @@ Other values of LIMIT are ignored.  */)
 {
   EMACS_INT val;
   Lisp_Object lispy_val;
-  EMACS_UINT denominator;
 
   if (EQ (limit, Qt))
-    seed_random (getpid () + time (NULL));
+    {
+      EMACS_TIME t;
+      EMACS_GET_TIME (t);
+      seed_random (getpid () ^ EMACS_SECS (t) ^ EMACS_USECS (t));
+    }
+
   if (NATNUMP (limit) && XFASTINT (limit) != 0)
     {
       /* Try to take our random number from the higher bits of VAL,
@@ -92,7 +96,7 @@ Other values of LIMIT are ignored.  */)
 	 it's possible to get a quotient larger than n; discarding
 	 these values eliminates the bias that would otherwise appear
 	 when using a large n.  */
-      denominator = ((EMACS_UINT) 1 << VALBITS) / XFASTINT (limit);
+      EMACS_INT denominator = (INTMASK + 1) / XFASTINT (limit);
       do
 	val = get_random () / denominator;
       while (val >= XFASTINT (limit));
@@ -2613,6 +2617,7 @@ is not loaded; so load the file FILENAME.
 If FILENAME is omitted, the printname of FEATURE is used as the file name,
 and `load' will try to load this name appended with the suffix `.elc' or
 `.el', in that order.  The name without appended suffix will not be used.
+See `get-load-suffixes' for the complete list of suffixes.
 If the optional third argument NOERROR is non-nil,
 then return nil if the file is not found instead of signaling an error.
 Normally the return value is FEATURE.

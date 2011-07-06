@@ -83,6 +83,19 @@
 	  (forward-line)))
       (pcomplete-uniqify-list points))))
 
+(defun pcomplete-pare-list (l r)
+  "Destructively remove from list L all elements matching any in list R.
+Test is done using `equal'."
+  (while (and l (and r (member (car l) r)))
+    (setq l (cdr l)))
+  (let ((m l))
+    (while m
+      (while (and (cdr m)
+		  (and r (member (cadr m) r)))
+	(setcdr m (cddr m)))
+      (setq m (cdr m))))
+  l)
+
 (defun pcmpl-linux-mountable-directories ()
   "Return a list of mountable directory names."
   (let (points)

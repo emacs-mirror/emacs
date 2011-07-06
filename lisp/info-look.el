@@ -127,9 +127,9 @@ OTHER-MODES is a list of cross references to other help modes.")
 
 (defun info-lookup-add-help (&rest arg)
   "Add or update a help specification.
-Function arguments are one or more options of the form
+Function arguments are specified as keyword/argument pairs:
 
-    KEYWORD ARGUMENT
+    \(KEYWORD . ARGUMENT)
 
 KEYWORD is either `:topic', `:mode', `:regexp', `:ignore-case',
  `:doc-spec', `:parse-rule', or `:other-modes'.

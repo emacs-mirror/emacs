@@ -86,7 +86,9 @@ current form for the frame (i.e. hinting or somesuch changed)."
 Changes can be
   The monospace font. If `font-use-system-font' is nil, the font
     is not changed.
+  The normal font.
   Xft parameters, like DPI and hinting.
+  The Gtk+ theme name.
   The tool bar style."
   (interactive "e")
   (let ((type (nth 1 event))

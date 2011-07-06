@@ -337,6 +337,24 @@ SECRET-KEYS is a plist containing secret data."
 	 (cons (cons name secret-plist) (plstore--get-secret-alist plstore)))))
     (plstore--merge-secret plstore)))
 
+(defun plstore-delete (plstore name)
+  "Delete an entry with NAME from PLSTORE."
+  (let ((entry (assoc name (plstore--get-alist plstore))))
+    (if entry
+	(plstore--set-alist
+	 plstore
+	 (delq entry (plstore--get-alist plstore))))
+    (setq entry (assoc name (plstore--get-secret-alist plstore)))
+    (if entry
+	(plstore--set-secret-alist
+	 plstore
+	 (delq entry (plstore--get-secret-alist plstore))))
+    (setq entry (assoc name (plstore--get-merged-alist plstore)))
+    (if entry
+	(plstore--set-merged-alist
+	 plstore
+	 (delq entry (plstore--get-merged-alist plstore))))))
+
 (defvar pp-escape-newlines)
 (defun plstore-save (plstore)
   "Save the contents of PLSTORE associated with a FILE."

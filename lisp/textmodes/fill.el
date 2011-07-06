@@ -988,7 +988,7 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 (defun fill-region (from to &optional justify nosqueeze to-eop)
   "Fill each of the paragraphs in the region.
 A prefix arg means justify as well.
-Ordinarily the variable `fill-column' controls the width.
+The `fill-column' variable controls the width.
 
 Noninteractively, the third argument JUSTIFY specifies which
 kind of justification to do: `full', `left', `right', `center',

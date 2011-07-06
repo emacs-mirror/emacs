@@ -6805,10 +6805,6 @@ syms_of_w32fns (void)
   DEFSYM (Qfont_param, "font-parameter");
   /* This is the end of symbol initialization.  */
 
-  /* Text property `display' should be nonsticky by default.  */
-  Vtext_property_default_nonsticky
-    = Fcons (Fcons (Qdisplay, Qt), Vtext_property_default_nonsticky);
-
 
   Fput (Qundefined_color, Qerror_conditions,
 	pure_cons (Qundefined_color, pure_cons (Qerror, Qnil)));

@@ -1,3 +1,532 @@
+2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* progmodes/grep.el (rgrep): Don't bind `process-connection-type',
+	because that makes the colours go away.
+
+	* mail/sendmail.el (send-mail-function): Change the default to
+	`sendmail-query-once'.
+	(sendmail-query-once): Add an autoload cookie.
+
+	* net/network-stream.el (network-stream-open-starttls): Try using
+	a plain connection even if the server offered STARTTLS, and we
+	kinda wanted to use it, if Emacs doesn't have any STARTTLS
+	capability.  This should make smtpmail.el work in slightly more
+	configurations.
+
+2011-07-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (tramp-compat-pop-to-buffer-same-window):
+	New defun.
+	* net/tramp-cmds.el (tramp-append-tramp-buffers): Use it.
+
+2011-07-06  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 3.0
+	(sql-product-alist): Added product :completion-object,
+	:completion-column, and :statement attributes.
+	(sql-mode-menu, sql-interactive-mode-map): Fixed List entries.
+	(sql-mode-syntax-table): Mark all punctuation.
+	(sql-font-lock-keywords-builder): Temporarily removed fallback on
+	ansi keywords.
+	(sql-regexp-abbrev, sql-regexp-abbrev-list): New functions.
+	(sql-mode-oracle-font-lock-keywords): Improved.
+	(sql-oracle-show-reserved-words): New function for development.
+	(sql-product-font-lock): Simplify for source code buffers.
+	(sql-product-syntax-table, sql-product-font-lock-syntax-alist):
+	New functions.
+	(sql-highlight-product): Set product specific syntax table.
+	(sql-mode-map): Added statement movement functions.
+	(sql-ansi-statement-starters, sql-oracle-statement-starters): New
+	variable.
+	(sql-statement-regexp, sql-beginning-of-statement)
+	(sql-end-of-statement, sql-signum): New functions.
+	(sql-buffer-live-p, sql=find-sqli-buffer): Added CONNECTION
+	parameter.
+	(sql-show-sqli-buffer): Bug fix.
+	(sql-interactive-mode): Store connection data as buffer local.
+	(sql-connect): Added NEW-NAME parameter.  Redesigned interaction
+	with sql-interactive-mode.
+	(sql-save-connection): Save buffer local settings.
+	(sql-connection-menu-filter): Changed menu entry name.
+	(sql-product-interactive): Bug fix.
+	(sql-preoutput-hold): New variable.
+	(sql-interactive-remove-continuation-prompt): Bug fixes.
+	(sql-debug-redirect): New variable.
+	(sql-str-literal): New function.
+	(sql-redirect, sql-redirect-one, sql-redirect-value, sql-execute):
+	Redesigned.
+	(sql-oracle-save-settings, sql-oracle-restore-settings)
+	(sql-oracle-list-all, sql-oracle-list-table): New functions.
+	(sql-completion-object, sql-completion-column)
+	(sql-completion-sqlbuf): New variables.
+	(sql-build-completions-1, sql-build-completions)
+	(sql-try-completion): New functions.
+	(sql-read-table-name): Use them.
+	(sql-contains-names): New buffer local variable.
+	(sql-list-all, sql-list-table): Use it.
+	(sql-oracle-completion-types): New variable.
+	(sql-oracle-completion-object, sql-sqlite-completion-object)
+	(sql-postgres-completion-object): New functions.
+
+2011-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* window.el (pop-to-buffer): Doc fix.
+
+2011-07-06  Markus Heiser  <markus.heiser@darmarit.de>  (tiny change)
+
+	* progmodes/gud.el (gud-pdb-marker-regexp): Accept \r char (Bug#5653).
+
+2011-07-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (special-display-popup-frame): Doc fix (Bug#8853).
+
+	* info.el (Info-directory-toc-nodes): Minor doc fix (Bug#8833).
+
+2011-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* button.el (button): Inherit from link face.  Suggested by Dan
+	Nicolaescu.
+
+2011-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gdb-mi.el: Fit in 80 columns.
+	(gdb-setup-windows, gdb-restore-windows): Avoid other-window and
+	switch-to-buffer.
+
+	* progmodes/which-func.el (which-func-ff-hook): Don't output a message
+	if imenu is simply not configured (bug#8941).
+
+2011-07-05  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-post-undo-hook): New allout outline-change
+	event hook to signal undo activity.
+	(allout-post-command-business): Run allout-post-undo-hook if an
+	undo just occurred.
+	(allout-after-copy-or-kill-hook, allout-mode): Minor docstring changes.
+	* allout-widgets.el (allout-widgets-after-undo-function):
+	Ensure the integrity of the current item's decoration after it has been
+	in the vicinity of an undo.
+	(allout-widgets-mode): Include allout-widgets-after-undo-function
+	on the new allout-post-undo-hook.
+
+2011-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (lisp-interaction-mode-abbrev-table):
+	Let define-derived-mode define it.
+	* emacs-lisp/derived.el (define-derived-mode): Try to avoid creating
+	cycles of abbrev-table inheritance (bug#8998).
+
+2011-07-05  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el: Add support for biblatex.
+	(bibtex-BibTeX-entry-alist, bibtex-biblatex-entry-alist)
+	(bibtex-BibTeX-field-alist, bibtex-biblatex-field-alist)
+	(bibtex-dialect-list, bibtex-dialect, bibtex-no-opt-remove-re)
+	(bibtex-entry-alist, bibtex-field-alist): New variables.
+	(bibtex-entry-field-alist): Obsolete alias for
+	bibtex-BibTeX-entry-alist.
+	(bibtex-entry-alist, bibtex-field-alist): New widgets.
+	(bibtex-set-dialect): New command.
+	(bibtex-entry-type, bibtex-entry-head)
+	(bibtex-entry-maybe-empty-head, bibtex-any-valid-entry-type):
+	Bind via bibtex-set-dialect.
+	(bibtex-Article, bibtex-Book, bibtex-Booklet, bibtex-InBook)
+	(bibtex-InCollection, bibtex-InProceedings, bibtex-Manual)
+	(bibtex-MastersThesis, bibtex-Misc, bibtex-PhdThesis)
+	(bibtex-Proceedings, bibtex-TechReport, bibtex-Unpublished):
+	Define via bibtex-set-dialect.
+	(bibtex-name-in-field, bibtex-remove-OPT-or-ALT):
+	Obey bibtex-no-opt-remove-re.
+	(bibtex-vec-push, bibtex-vec-incr): New functions.
+	(bibtex-format-entry, bibtex-field-list)
+	(bibtex-print-help-message, bibtex-validate)
+	(bibtex-search-entries): Use new format of bibtex-entry-alist.
+
+2011-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-goto-locus):
+	* net/tramp-cmds.el (tramp-append-tramp-buffers):
+	* bs.el (bs-cycle-next, bs-cycle-previous):
+	* bookmark.el (bookmark-bmenu-list, bookmark-bmenu-2-window):
+	* bindings.el (mode-line-other-buffer):
+	* autoinsert.el (auto-insert):
+	* arc-mode.el (archive-extract):
+	* abbrev.el (edit-abbrevs): Fix some uses of switch-to-buffer.
+
+2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lock.el (emacs-lock-mode): Fix typo in variable name.
+	Fix check of `emacs-lock-unlockable-modes'.
+	Coerce true values of `emacs-lock--try-unlocking' to t.
+
+2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* obsolete/old-emacs-lock.el: Rename from emacs-lock.el.
+	* emacs-lock.el: New file.
+
+2011-07-05  Julien Danjou  <julien@danjou.info>
+
+	* textmodes/rst.el (rst-define-level-faces): Use `facep' rather
+	than `boundp' to check if face is set.
+
+2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* register.el (registerv-make):
+	* window.el (window-min-height): Fix typos in docstrings.
+
+2011-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* dynamic-setting.el (dynamic-setting-handle-config-changed-event):
+	Update doc string.
+
+2011-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-execute): Catch quit and call
+	`server-return-error' to pass the error back to emacsclient and
+	close the connection (bug#8942).
+
+2011-07-04  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-encrypt-unencrypted-on-saves): Do not provide
+	insecure exception for current topic.  Also note that auto-saves
+	are handled differently.
+
+	(allout-auto-save-temporarily-disabled), (allout-just-did-undo):
+	State variables for tracking auto-save inhibition situation.
+
+	(allout-write-contents-hook-handler): Rename from
+	'allout-write-file-hook-handler', and describe how it depends on
+	write-contents-functions sensitivity to non-nil value to prevent
+	file write.
+
+	(allout-auto-save-hook-handler): Remove.  auto-save does not check
+	this in individual buffers, only in the starting buffer, so this
+	is not the right way for us to inhibit auto-save in a buffer
+	according to its condition.
+
+	(allout-mode): Use new allout-write-contents-hook-handler, and
+	only with write-contents-functions.  Remove auto-save provisions -
+	they're implemented elsewhere.
+
+	(allout-before-change-handler): If undo is in progress, note that
+	for attention of allout-post-command-business.
+
+	(allout-post-command-business): If the command we're following was
+	an undo, check for change in the status of encrypted items and
+	adjust auto-save inhibitions accordingly.
+
+	(allout-toggle-subtree-encryption): Adjust auto-save inhibition
+	according to whether there are or aren't any plain-text topics
+	pending encryption.
+
+	(allout-inhibit-auto-save-info-for-decryption):
+	Adjust buffer-saved-size and some allout state to inhibit auto-saves if
+	there are plain-text topics pending encryption.
+
+	(allout-maybe-resume-auto-save-info-after-encryption): Adjust
+	buffer-saved-size and some allout state to not inhibit auto-saves
+	if there are no longer any plain-text topics pending encryption.
+
+	(allout-next-topic-pending-encryption),
+	(allout-encrypt-decrypted): No longer provide for exemption of the
+	current topic.
+
+2011-07-04  Juri Linkov  <juri@jurta.org>
+
+	Add 7z operations to delete and save changed members (bug#8968).
+	* arc-mode.el (archive-7z-expunge, archive-7z-update):
+	New defcustoms.
+	(archive-7z-write-file-member): New function.
+	(archive-7z-summarize): Fix the number of dashes in the
+	listing output.
+
+2011-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcmpl-linux.el (pcomplete-pare-list): Re-add, from pcomplete.el
+	(bug#8958).
+
+2011-07-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el: Ignore next-buffer and previous-buffer in
+	minibuffer-local-map.
+
+	* font-lock.el (font-lock-builtin-face): Change light background
+	color to dark slate blue (Bug#6693).
+
+2011-07-04  Wang Diancheng  <dcwang@kingbase.com.cn>  (tiny change)
+
+	* progmodes/gdb-mi.el (gdb): Use completion-at-point.
+
+2011-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (find-file): Use pop-to-buffer-same-window (bug#8911).
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Add switch-to-buffer.
+
+2011-07-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* isearch.el (isearch-search-fun-function): Clarify further the
+	meaning of the function returned.
+
+2011-07-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cmds.el (tramp-cleanup-this-connection): New command.
+
+	* net/tramp-sh.el (tramp-color-escape-sequence-regexp): New defconst.
+	(tramp-sh-handle-insert-directory, tramp-convert-file-attributes):
+	Use it.
+	(tramp-remote-path): Add "/bin" and "/usr/bin".  On busyboxes,
+	`tramp-default-remote-path' does not exist.
+	(tramp-send-command-and-read): New optional argument NOERROR.
+	(tramp-open-connection-setup-interactive-shell)
+	(tramp-get-remote-path, tramp-get-remote-stat): Use it.
+	(tramp-get-remote-readlink): Do not mask with `ignore-errors'.
+	(tramp-process-sentinel): Flush also process' connection property.
+	(tramp-sh-handle-start-file-process): Do not set process
+	sentinel.  It is done now ...
+	(tramp-maybe-open-connection): ... here.  (Bug#8929)
+
+2011-07-04  MON KEY  <monkey@sandpframing.com>
+
+	* play/animate.el (animate-string): Doc fixes and allow changing
+	the buffer name (bug#5417).
+
+2011-07-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* play/animate.el (animation-buffer-name): Rename from *animate*.
+
+2011-07-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* emacs-lisp/timer.el: Use time-date fns rather than rolling our own.
+	This is simpler and helps future-proof the code.
+	(timer-until): Use time-subtract and float-time.
+	(timer--time-less-p): Use time-less-p.
+
+2011-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* type-break.el (timep): Use the value of `float-time' to avoid a
+	byte-compiler warning.
+
+	* server.el (server-eval-and-print): Return any result, even nil.
+
+2011-07-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* type-break.el: Accept time formats that the builtins accept.
+	(timep, type-break-time-difference): Accept any format that
+	float-time accepts, rather than insisting on (HIGH LOW USECS) format.
+	This is simpler and helps future-proof the code.
+	(type-break-time-difference): Round rather than ignoring
+	subseconds components.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* info.el (Info-apropos-matches): Make non-interactive, since it
+	doesn't seem to do anything useful as a command (bug#8829).
+
+2011-07-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (frame-background-mode, frame-set-background-mode):
+	Move from faces.el.
+	(frame-default-terminal-background): New function.
+
+	* custom.el (custom-push-theme): Don't record faces in `changed'
+	theme; this doesn't work correctly for per-frame face settings.
+	(disable-theme): Use face-set-after-frame-default to reset faces.
+	(custom--frame-color-default): New function.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.el (dired-flagging-regexp): Remove unused variable
+	(bug#8769).
+
+2011-03-29  Kevin Ryde  <user42@zip.com.au>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	`perl-Test2' extend to match possible "fail #N" rep count
+	(bug#8377).
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/feedmail.el (feedmail-buffer-to-smtpmail):
+	`smtpmail-via-smtp' now returns the error instead of nil.
+
+	* isearch.el (isearch-search-fun-function): Clarify the doc string
+	(bug#8101).
+
+2011-07-03  Richard Kim  <emacs18@gmail.com>  (tiny change)
+
+	* textmodes/texnfo-upd.el (texinfo-insert-menu): Don't insert
+	unnecessary spaces (bug#8987).
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/network-stream.el (open-network-stream): Use the
+	:end-of-capability command thoughout.
+
+2011-07-03  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* net/network-stream.el (open-network-stream): Add the
+	:end-of-capability command parameter, used by pop3.el.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.el (dired-map-over-marks): Refill the doc string (bug#6814).
+
+	* fringe.el (fringe-query-style): Remove redundant text " (type ?
+	for list)" (bug#6475).
+
+	* files.el (file-expand-wildcards): Ignore non-readable
+	sub-directories while trying to find matches instead of signalling
+	an error (bug#6297).
+
+	* man.el (Man-reference-regexp): Allow matching possible
+	word-wrapped references (bug#6289).
+
+	* vc/vc.el (vc-modify-change-comment): Change *VC-log* to *vc-log*
+	for consistency with the other vc buffers (bug#6197).
+	(vc-checkin): Ditto.
+
+	* vc/vc-arch.el: Fix comments to match the *VC-log* name change.
+
+	* longlines.el (longlines-mode): Document what ARG does (bug#6150).
+
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* custom.el (defcustom): Clarify that :set is only used in the
+	Customize user interface (bug#6089).
+
+	* progmodes/flymake.el (flymake-mode): If the buffer isn't
+	associated with a file, refuse to run instead of erroring out
+	(bug#6084).
+
+	* textmodes/fill.el (fill-region): Remove the "Ordinarily" from
+	the doc string, since it appears that using `fill-column' always
+	controls the width (bug#7845).
+
+	* simple.el (shell-command-on-region): Say where the error output
+	went if `shell-command-default-error-buffer' is set (bug#6857).
+
+2011-07-02  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-yank-processing): Adjust cursor position for
+	backwards-deleted space.
+
+	(allout-rebullet-heading): Register changes with
+	allout-exposure-changed-hook, so the modified topic is properly
+	decorated.
+
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* minibuffer.el (completion-in-region): Document PREDICATE
+	(bug#7136).
+
+	* info-look.el (info-lookup-add-help): Clarify that ARGS is a list
+	of keyword/argument pairs (bug#6904).
+
+	* replace.el (multi-occur):
+	Mention `multi-occur-in-matching-buffers' in the doc string (bug#7566).
+
+2011-07-02  Drew Adams  <drew.adams@oracle.com>
+
+	* dired.el (dired-mark-if): Make the message about whether it's
+	marking or unmarking clearer (bug#8523).
+
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* disp-table.el (display-table-print-array): New function.
+	(describe-display-table): Use it to print the vectors more pretty
+	(Bug#8859).
+
+2011-07-02  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-state-get-1): Don't assign clone numbers.
+	Add clone-of item to list of window parameters.
+	(window-state-put-2): Don't process clone numbers.
+	(display-buffer-alist): Fix doc-string.
+
+2011-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (remq): Don't allocate if it's not needed.
+	(keymap--menu-item-binding, keymap--menu-item-with-binding)
+	(keymap--merge-bindings): New functions.
+	(keymap-canonicalize): Use them to refine the canonicalization.
+	* minibuffer.el (minibuffer-local-completion-map)
+	(minibuffer-local-must-match-map): Move initialization from C.
+	(minibuffer-local-filename-completion-map): Move initialization from C;
+	don't inherit from anything here.
+	(minibuffer-local-filename-must-match-map): Make obsolete.
+	(completing-read-default): Use make-composed-keymap to combine
+	minibuffer-local-filename-completion-map with either
+	minibuffer-local-must-match-map or
+	minibuffer-local-filename-completion-map.
+
+2011-07-01  Glenn Morris  <rgm@gnu.org>
+
+	* type-break.el (type-break-time-sum): Use dolist.
+
+	* textmodes/flyspell.el (flyspell-word-search-backward):
+	Replace CL function.
+
+2011-07-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse--strip-first-event): New function.
+	(function-key-map): Use it to map fringe clicks to normal clicks
+	by default.
+
+	* vc/vc-bzr.el (vc-bzr-revision-keywords): Update.
+	(vc-bzr-revision-completion-table): Add support for annotate and date.
+
+	* emacs-lisp/derived.el (define-derived-mode): Make abbrev-table
+	inherit from parent.
+
+2011-07-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dired-aux.el (dired-diff): Doc fixup (bug#8816).
+	(dired-show-file-type): Doc fixup (bug#8818).
+
+	* dired.el (dired-mode): Fix up the doc string as suggested by
+	Drew Adams (bug#8817).
+
+	* progmodes/flymake.el (flymake-find-file-hook): Add an `autoload'
+	cookie, since the manual says that it should be possible to add
+	this function to `find-file-hook' (bug#8709).
+
+2011-07-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* progmodes/cfengine.el: Moved all cfengine3.el functionality
+	here.  Noted Ted Zlatanov as the maintainer.
+	(cfengine-common-settings, cfengine-common-syntax): New functions
+	to set up common things between `cfengine-mode' and
+	`cfengine3-mode'.
+	(cfengine3-mode): New mode.
+	(cfengine3-defuns cfengine3-defuns-regex
+	(cfengine3-class-selector-regex cfengine3-category-regex)
+	(cfengine3-vartypes cfengine3-font-lock-keywords)
+	(cfengine3-beginning-of-defun, cfengine3-end-of-defun)
+	(cfengine3-indent-line): Add from cfengine3.el.
+
+2011-07-01  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-encoding-command-interactive): New defcustom.
+
+	* net/tramp-sh.el (tramp-maybe-open-connection): Use it.
+
+2011-07-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (same-window-buffer-names, same-window-regexps)
+	(same-window-p, special-display-frame-alist)
+	(special-display-popup-frame, special-display-function)
+	(special-display-buffer-names, special-display-regexps)
+	(special-display-p, pop-up-frame-alist, pop-up-frame-function)
+	(pop-up-frames, display-buffer-reuse-frames, pop-up-windows)
+	(split-window-preferred-function, split-height-threshold)
+	(split-width-threshold, even-window-heights)
+	(display-buffer-mark-dedicated, window-splittable-p)
+	(split-window-sensibly, window-safely-shrinkable-p):
+	Un-obsolete.
+	(display-buffer): Don't spread args with function specifier
+	because special-display-popup-frame won't like it.
+
 2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Time-stamp simplifications and fixes.
@@ -290,7 +819,7 @@
 	(ses-cell-symbol): Set macro as safe, so that it can be used in
 	formulas.
 
-	* ses.el:  Update cycle detection algorithm.
+	* ses.el: Update cycle detection algorithm.
 	(ses-localvars): Add ses--Dijkstra-attempt-nb and
 	ses--Dijkstra-weight-bound, and initial values thereof when applicable.
 	(ses-set-localvars): New function.

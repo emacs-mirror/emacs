@@ -508,8 +508,7 @@ Writing Customization Definitions
 
 Customization Types
 
-* Simple Types::            Simple customization types: sexp, integer, number,
-                              string, file, directory, alist.
+* Simple Types::            Simple customization types: sexp, integer, etc.
 * Composite Types::         Build new types from other types or data.
 * Splicing into Lists::     Splice elements into list with @code{:inline}.
 * Type Keywords::           Keyword-argument pairs in a customization type.

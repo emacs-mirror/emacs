@@ -2680,6 +2680,12 @@ handling}), file cache, connection cache (@pxref{Connection caching}),
 connection buffers.
 @end deffn
 
+@deffn Command tramp-cleanup-this-connection
+This command flushes all objects of the current buffer's remote
+connection.  The same objects are removed as in
+@code{tramp-cleanup-connection}.
+@end deffn
+
 @deffn Command tramp-cleanup-all-connections
 This command flushes objects for all active remote connections.  The
 same objects are removed as in @code{tramp-cleanup-connection}.

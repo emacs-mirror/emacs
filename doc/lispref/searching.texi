@@ -1207,6 +1207,12 @@ search you wish to refer back to and the use of the match data.  If you
 can't avoid another intervening search, you must save and restore the
 match data around it, to prevent it from being overwritten.
 
+  Notice that all functions are allowed to overwrite the match data
+unless they're explicitly documented not to do so.  A consequence is
+that functions that are run implictly in the background
+(@pxref{Timers}, and @ref{Idle Timers}) should likely save and restore
+the match data explicitly.
+
 @menu
 * Replacing Match::       Replacing a substring that was matched.
 * Simple Match Data::     Accessing single items of match data,

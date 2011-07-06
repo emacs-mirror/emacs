@@ -1140,7 +1140,8 @@ are not modified."
   "Show all lines in buffers BUFS containing a match for REGEXP.
 This function acts on multiple buffers; otherwise, it is exactly like
 `occur'.  When you invoke this command interactively, you must specify
-the buffer names that you want, one by one."
+the buffer names that you want, one by one.
+See also `multi-occur-in-matching-buffers'."
   (interactive
    (cons
     (let* ((bufs (list (read-buffer "First buffer to search: "

@@ -66,6 +66,9 @@ files conditionalize this setup based on the TERM environment variable."
   :group 'tramp
   :type 'string)
 
+(defconst tramp-color-escape-sequence-regexp "\e[[;0-9]+m"
+  "Escape sequences produced by the \"ls\" command.")
+
 ;; ksh on OpenBSD 4.5 requires that $PS1 contains a `#' character for
 ;; root users.  It uses the `$' character for other users.  In order
 ;; to guarantee a proper prompt, we use "#$ " for the prompt.
@@ -484,7 +487,7 @@ detected as prompt when being sent on echoing hosts, therefore.")
 ;; FreeBSD: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
 ;; IRIX64: /usr/bin
 (defcustom tramp-remote-path
-  '(tramp-default-remote-path "/usr/sbin" "/usr/local/bin"
+  '(tramp-default-remote-path "/bin" "/usr/bin" "/usr/sbin" "/usr/local/bin"
     "/local/bin" "/local/freeware/bin" "/local/gnu/bin"
     "/usr/freeware/bin" "/usr/pkg/bin" "/usr/contrib/bin")
   "*List of directories to search for executables on remote host.
@@ -2582,6 +2585,12 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 	  (forward-line 1)
 	  (delete-region (match-beginning 0) (point)))
 
+	;; Some busyboxes are reluctant to discard colors.
+	(unless (string-match "color" (tramp-get-connection-property v "ls" ""))
+	  (goto-char beg)
+	  (while (re-search-forward tramp-color-escape-sequence-regexp nil t)
+	    (replace-match "")))
+
 	;; The inserted file could be from somewhere else.
 	(when (and (not wildcard) (not full-directory-p))
 	  (goto-char (point-max))
@@ -2669,6 +2678,7 @@ the result will be a local, non-Tramp, filename."
     (let ((vec (tramp-get-connection-property proc "vector" nil)))
       (when vec
 	(tramp-message vec 5 "Sentinel called: `%s' `%s'" proc event)
+        (tramp-flush-connection-property proc)
         (tramp-flush-directory-property vec "")))))
 
 ;; We use BUFFER also as connection buffer during setup. Because of
@@ -2721,9 +2731,7 @@ the result will be a local, non-Tramp, filename."
 		       v 'file-error
 		       "pty association is not supported for `%s'" name)))))
 	      (let ((p (tramp-get-connection-process v)))
-		;; Set sentinel and query flag for this process.
-		(tramp-set-connection-property p "vector" v)
-		(set-process-sentinel p 'tramp-process-sentinel)
+		;; Set query flag for this process.
 		(tramp-compat-set-process-query-on-exit-flag p t)
 		;; Return process.
 		p)))
@@ -3834,10 +3842,9 @@ process to set up.  VEC specifies the connection."
     (tramp-send-command vec "stty -oxtabs" t))
 
   ;; Set `remote-tty' process property.
-  (ignore-errors
-    (let ((tty (tramp-send-command-and-read vec "echo \\\"`tty`\\\"")))
-      (unless (zerop (length tty))
-	(tramp-compat-process-put proc 'remote-tty tty))))
+  (let ((tty (tramp-send-command-and-read vec "echo \\\"`tty`\\\"" 'noerror)))
+    (unless (zerop (length tty))
+      (tramp-compat-process-put proc 'remote-tty tty)))
 
   ;; Dump stty settings in the traces.
   (when (>= tramp-verbose 9)
@@ -4291,16 +4298,24 @@ connection if a previous connection has died for some reason."
 		 ;; This must be done in order to avoid our file name handler.
 		 (p (let ((default-directory
 			    (tramp-compat-temporary-file-directory)))
-		      (start-process
+		      (apply
+		       'start-process
 		       (tramp-get-connection-name vec)
 		       (tramp-get-connection-buffer vec)
-		       tramp-encoding-shell))))
+		       (if tramp-encoding-command-interactive
+			   (list tramp-encoding-shell
+				 tramp-encoding-command-interactive)
+			 (list tramp-encoding-shell))))))
+
+	    ;; Set sentinel and query flag.
+	    (tramp-set-connection-property p "vector" vec)
+	    (set-process-sentinel p 'tramp-process-sentinel)
+	    (tramp-compat-set-process-query-on-exit-flag p nil)
 
 	    (tramp-message
 	     vec 6 "%s" (mapconcat 'identity (process-command p) " "))
 
 	    ;; Check whether process is alive.
-	    (tramp-compat-set-process-query-on-exit-flag p nil)
 	    (tramp-barf-if-no-shell-prompt
 	     p 60 "Couldn't find local shell prompt %s" tramp-encoding-shell)
 
@@ -4488,9 +4503,10 @@ FMT and ARGS which are passed to `error'."
   (unless (tramp-send-command-and-check vec command)
     (apply 'tramp-error vec 'file-error fmt args)))
 
-(defun tramp-send-command-and-read (vec command)
+(defun tramp-send-command-and-read (vec command &optional noerror)
   "Run COMMAND and return the output, which must be a Lisp expression.
-In case there is no valid Lisp expression, it raises an error"
+In case there is no valid Lisp expression and NOERROR is nil, it
+raises an error."
   (tramp-barf-unless-okay vec command "`%s' returns with error" command)
   (with-current-buffer (tramp-get-connection-buffer vec)
     ;; Read the expression.
@@ -4500,16 +4516,21 @@ In case there is no valid Lisp expression, it raises an error"
 	  ;; Error handling.
 	  (when (re-search-forward "\\S-" (point-at-eol) t)
 	    (error nil)))
-      (error (tramp-error
-	      vec 'file-error
-	      "`%s' does not return a valid Lisp expression: `%s'"
-	      command (buffer-string))))))
+      (error (unless noerror
+	       (tramp-error
+		vec 'file-error
+		"`%s' does not return a valid Lisp expression: `%s'"
+		command (buffer-string)))))))
 
 (defun tramp-convert-file-attributes (vec attr)
   "Convert file-attributes ATTR generated by perl script, stat or ls.
 Convert file mode bits to string and set virtual device number.
 Return ATTR."
   (when attr
+    ;; Remove color escape sequences from symlink.
+    (when (stringp (car attr))
+      (while (string-match tramp-color-escape-sequence-regexp (car attr))
+	(setcar attr (replace-match "" nil nil (car attr)))))
     ;; Convert last access time.
     (unless (listp (nth 4 attr))
       (setcar (nthcdr 4 attr)
@@ -4687,8 +4708,7 @@ This is used internally by `tramp-file-mode-from-int'."
 	     (when elt1
 	       (or
 		(tramp-send-command-and-read
-		 vec
-		 "x=`getconf PATH 2>/dev/null` && echo \\\"$x\\\" || echo nil")
+		 vec "echo \\\"`getconf PATH 2>/dev/null`\\\"" 'noerror)
 		;; Default if "getconf" is not available.
 		(progn
 		  (tramp-message
@@ -4850,15 +4870,12 @@ This is used internally by `tramp-file-mode-from-int'."
     (let ((result (tramp-find-executable
 		   vec "stat" (tramp-get-remote-path vec)))
 	  tmp)
-      ;; Check whether stat(1) returns usable syntax.  %s does not
+      ;; Check whether stat(1) returns usable syntax.  "%s" does not
       ;; work on older AIX systems.
       (when result
 	(setq tmp
-	      ;; We don't want to display an error message.
-	      (tramp-compat-with-temp-message (or (current-message) "")
-		(ignore-errors
-		  (tramp-send-command-and-read
-		   vec (format "%s -c '(\"%%N\" %%s)' /" result)))))
+	      (tramp-send-command-and-read
+	       vec (format "%s -c '(\"%%N\" %%s)' /" result) 'noerror))
 	(unless (and (listp tmp) (stringp (car tmp))
 		     (string-match "^./.$" (car tmp))
 		     (integerp (cadr tmp)))
@@ -4871,11 +4888,8 @@ This is used internally by `tramp-file-mode-from-int'."
     (let ((result (tramp-find-executable
 		   vec "readlink" (tramp-get-remote-path vec))))
       (when (and result
-		 ;; We don't want to display an error message.
-		 (tramp-compat-with-temp-message (or (current-message) "")
-		   (ignore-errors
-		     (tramp-send-command-and-check
-		      vec (format "%s --canonicalize-missing /" result)))))
+		 (tramp-send-command-and-check
+		  vec (format "%s --canonicalize-missing /" result)))
 	result))))
 
 (defun tramp-get-remote-trash (vec)

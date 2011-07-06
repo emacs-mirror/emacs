@@ -114,14 +114,14 @@
   "Render of HTML contents.
 It is one of defined renderer types, or a rendering function.
 The defined renderer types are:
-`shr': use Gnus simple HTML renderer;
-`gnus-w3m' : use Gnus renderer based on w3m;
-`w3m'  : use emacs-w3m;
-`w3m-standalone': use w3m;
+`shr': use the built-in Gnus HTML renderer;
+`gnus-w3m': use Gnus renderer based on w3m;
+`w3m': use emacs-w3m;
+`w3m-standalone': use plain w3m;
 `links': use links;
-`lynx' : use lynx;
-`w3'   : use Emacs/W3;
-`html2text' : use html2text;
+`lynx': use lynx;
+`w3': use Emacs/W3;
+`html2text': use html2text;
 nil    : use external viewer (default web browser)."
   :version "24.1"
   :type '(choice (const shr)

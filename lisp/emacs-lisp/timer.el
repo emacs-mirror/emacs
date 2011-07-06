@@ -119,14 +119,7 @@ SECS may be either an integer or a floating point number."
 
 (defun timer--time-less-p (t1 t2)
   "Say whether time value T1 is less than time value T2."
-  ;; FIXME just use time-less-p.
-  (destructuring-bind (high1 low1 micro1) (timer--time t1)
-    (destructuring-bind (high2 low2 micro2) (timer--time t2)
-      (or (< high1 high2)
-          (and (= high1 high2)
-               (or (< low1 low2)
-                   (and (= low1 low2)
-                        (< micro1 micro2))))))))
+  (time-less-p (timer--time t1) (timer--time t2)))
 
 (defun timer-inc-time (timer secs &optional usecs)
   "Increment the time set in TIMER by SECS seconds and USECS microseconds.
@@ -258,10 +251,7 @@ how many will really happen.")
   "Calculate number of seconds from when TIMER will run, until TIME.
 TIMER is a timer, and stands for the time when its next repeat is scheduled.
 TIME is a time-list."
-  ;; FIXME: (float-time (time-subtract (timer--time timer) time))
-  (let ((high (- (car time) (timer--high-seconds timer)))
-	(low (- (nth 1 time) (timer--low-seconds timer))))
-    (+ low (* high 65536))))
+  (float-time (time-subtract time (timer--time timer))))
 
 (defun timer-event-handler (timer)
   "Call the handler for the timer TIMER.

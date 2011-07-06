@@ -1707,9 +1707,13 @@ text_property_stickiness (Lisp_Object prop, Lisp_Object pos, Lisp_Object buffer)
 {
   Lisp_Object prev_pos, front_sticky;
   int is_rear_sticky = 1, is_front_sticky = 0; /* defaults */
+  Lisp_Object defalt = Fassq (prop, Vtext_property_default_nonsticky);
 
   if (NILP (buffer))
     XSETBUFFER (buffer, current_buffer);
+
+  if (CONSP (defalt) && !NILP (XCDR (defalt)))
+    is_rear_sticky = 0;
 
   if (XINT (pos) > BUF_BEGV (XBUFFER (buffer)))
     /* Consider previous character.  */
@@ -2230,9 +2234,11 @@ If a character in a buffer has PROPERTY, new text inserted adjacent to
 the character doesn't inherit PROPERTY if NONSTICKINESS is non-nil,
 inherits it if NONSTICKINESS is nil.  The `front-sticky' and
 `rear-nonsticky' properties of the character override NONSTICKINESS.  */);
-  /* Text property `syntax-table' should be nonsticky by default.  */
+  /* Text properties `syntax-table'and `display' should be nonsticky
+     by default.  */
   Vtext_property_default_nonsticky
-    = Fcons (Fcons (intern_c_string ("syntax-table"), Qt), Qnil);
+    = Fcons (Fcons (intern_c_string ("syntax-table"), Qt),
+	     Fcons (Fcons (intern_c_string ("display"), Qt), Qnil));
 
   staticpro (&interval_insert_behind_hooks);
   staticpro (&interval_insert_in_front_hooks);

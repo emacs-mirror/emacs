@@ -1002,7 +1002,7 @@ Mostly we check word delimiters."
 	(let ((lw (flyspell-get-word)))
 	  (if (and (consp lw)
 		   (if ignore-case
-		       (equalp (car lw) word)
+		       (string-equal (downcase (car lw)) (downcase word))
 		     (string-equal (car lw) word)))
 	      (setq r p)
 	    (goto-char p))))

@@ -1,3 +1,31 @@
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* display.texi (Scrolling): `C-v' (etc) are now bound to
+	`scroll-*-command' (bug#8349).
+
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.texi (Subdirectories in Dired): Clarify that `C-u k'
+	doesn't actually delete any files (bug#7125).
+
+	* picture-xtra.texi (Rectangles in Picture): Clarify the prefix
+	argument for `C-c C-k' (bug#7391).
+
+	* frames.texi (Fonts): Mention "C-u C-x =" to find out what font
+	you're currently using (bug#8489).
+
+2011-07-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Coding Systems): Move index entries from the previous
+	change into their proper places.
+
+2011-07-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* help.texi (Help Files): Document view-external-packages (bug#8902).
+
+	* mule.texi (Coding Systems): Put a few more of the coding systems
+	into the index (bug#8900).
+
 2011-06-26  Glenn Morris  <rgm@gnu.org>
 
 	* fortran-xtra.texi (Fortran): F90 mode is also for F2008.

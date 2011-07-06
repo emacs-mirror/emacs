@@ -276,7 +276,9 @@ This regexp should not start with a `^' character.")
 This regular expression should start with a `^' character.")
 
 (defvar Man-reference-regexp
-  (concat "\\(" Man-name-regexp "\\)[ \t]*(\\(" Man-section-regexp "\\))")
+  (concat "\\(" Man-name-regexp
+	  "\\(\n[ \t]+" Man-name-regexp "\\)*\\)[ \t]*(\\("
+	  Man-section-regexp "\\))")
   "Regular expression describing a reference to another manpage.")
 
 (defvar Man-apropos-regexp
@@ -597,8 +599,8 @@ and the `Man-section-translations-alist' variables)."
     (cond
      ;; "chmod(2V)" case ?
      ((string-match (concat "^" Man-reference-regexp "$") ref)
-      (setq name (match-string 1 ref)
-	    section (match-string 2 ref)))
+      (setq name (replace-regexp-in-string "[\n\t ]" "" (match-string 1 ref))
+	    section (match-string 3 ref)))
      ;; "2v chmod" case ?
      ((string-match (concat "^\\(" Man-section-regexp
 			    "\\) +\\(" Man-name-regexp "\\)$") ref)

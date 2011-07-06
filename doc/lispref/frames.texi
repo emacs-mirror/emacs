@@ -520,6 +520,11 @@ you don't specify a name, Emacs sets the frame name automatically
 If you specify the frame name explicitly when you create the frame, the
 name is also used (instead of the name of the Emacs executable) when
 looking up X resources for the frame.
+
+@item explicit-name
+If the frame name was specified explicitly when the frame was created,
+this parameter will be that name.  If the frame wasn't explicitly
+named, this parameter will be @code{nil}.
 @end table
 
 @node Position Parameters

@@ -77,7 +77,7 @@ the MH mail system."
 ;;; Desktop Integration
 
 ;; desktop-buffer-mode-handlers appeared in Emacs 22.
-(if (fboundp 'desktop-buffer-mode-handlers)
+(if (boundp 'desktop-buffer-mode-handlers)
     (add-to-list 'desktop-buffer-mode-handlers
                  '(mh-folder-mode . mh-restore-desktop-buffer)))
 
@@ -526,7 +526,8 @@ font-lock is done highlighting.")
 ;; Shush compiler.
 (defvar desktop-save-buffer)
 (defvar font-lock-auto-fontify)
-(defvar font-lock-defaults)             ; XEmacs
+(mh-do-in-xemacs
+  (defvar font-lock-defaults))
 
 ;; Ensure new buffers won't get this mode if default major-mode is nil.
 (put 'mh-folder-mode 'mode-class 'special)

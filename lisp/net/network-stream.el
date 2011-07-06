@@ -98,6 +98,10 @@ values:
 
 :end-of-command specifies a regexp matching the end of a command.
 
+:end-of-capability specifies a regexp matching the end of the
+  response to the command specified for :capability-command.
+  It defaults to the regexp specified for :end-of-command.
+
 :success specifies a regexp matching a message indicating a
   successful STARTTLS negotiation.  For instance, the default
   should be \"^3\" for an NNTP connection.
@@ -203,11 +207,14 @@ functionality.
 	 (success-string     (plist-get parameters :success))
 	 (capability-command (plist-get parameters :capability-command))
 	 (eoc                (plist-get parameters :end-of-command))
+	 (eo-capa            (or (plist-get parameters :end-of-capability)
+				 eoc))
 	 ;; Return (STREAM GREETING CAPABILITIES RESULTING-TYPE)
 	 (stream (make-network-process :name name :buffer buffer
 				       :host host :service service))
 	 (greeting (network-stream-get-response stream start eoc))
-	 (capabilities (network-stream-command stream capability-command eoc))
+	 (capabilities (network-stream-command stream capability-command
+					       eo-capa))
 	 (resulting-type 'plain)
 	 (builtin-starttls (and (fboundp 'gnutls-available-p)
 				(gnutls-available-p)))
@@ -250,7 +257,7 @@ functionality.
 	;; Requery capabilities for protocols that require it; i.e.,
 	;; EHLO for SMTP.
 	(when (plist-get parameters :always-query-capabilities)
-	  (network-stream-command stream capability-command eoc)))
+	  (network-stream-command stream capability-command eo-capa)))
       (when (string-match success-string
 			  (network-stream-command stream starttls-command eoc))
 	;; The server said it was OK to begin STARTTLS negotiations.
@@ -271,21 +278,17 @@ functionality.
 	    (network-stream-get-response stream start eoc)))
 	;; Re-get the capabilities, which may have now changed.
 	(setq capabilities
-	      (network-stream-command stream capability-command eoc))))
+	      (network-stream-command stream capability-command eo-capa))))
 
     ;; If TLS is mandatory, close the connection if it's unencrypted.
-    (when (and (or require-tls
-		   ;; The server said it was possible to do STARTTLS,
-		   ;; and we wanted to use it...
-		   (and starttls-command
-			(plist-get parameters :use-starttls-if-possible)))
+    (when (and require-tls
 	       ;; ... but Emacs wasn't able to -- either no built-in
 	       ;; support, or no gnutls-cli installed.
 	       (eq resulting-type 'plain))
-	  (setq error
-		(if require-tls
-		    "Server does not support TLS"
-		  "Server supports STARTTLS, but Emacs does not have support for it"))
+      (setq error
+	    (if require-tls
+		"Server does not support TLS"
+	      "Server supports STARTTLS, but Emacs does not have support for it"))
       (delete-process stream)
       (setq stream nil))
     ;; Return value:
@@ -353,7 +356,9 @@ functionality.
 				    ?p service))))))
     (list stream
 	  (network-stream-get-response stream start eoc)
-	  (network-stream-command stream capability-command eoc)
+	  (network-stream-command stream capability-command
+				  (or (plist-get parameters :end-of-capability)
+				      eoc))
 	  'plain)))
 
 (provide 'network-stream)

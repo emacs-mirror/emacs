@@ -1640,8 +1640,7 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
 }
 
 
-static Lisp_Object find_handler_clause (Lisp_Object, Lisp_Object,
-					Lisp_Object, Lisp_Object);
+static Lisp_Object find_handler_clause (Lisp_Object, Lisp_Object);
 static int maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig,
 				Lisp_Object data);
 
@@ -1717,8 +1716,7 @@ See also the function `condition-case'.  */)
 
   for (h = handlerlist; h; h = h->next)
     {
-      clause = find_handler_clause (h->handler, conditions,
-				    error_symbol, data);
+      clause = find_handler_clause (h->handler, conditions);
       if (!NILP (clause))
 	break;
     }
@@ -1889,8 +1887,10 @@ skip_debugger (Lisp_Object conditions, Lisp_Object data)
 }
 
 /* Call the debugger if calling it is currently enabled for CONDITIONS.
-   SIG and DATA describe the signal, as in find_handler_clause.  */
-
+   SIG and DATA describe the signal.  There are two ways to pass them:
+    = SIG is the error symbol, and DATA is the rest of the data.
+    = SIG is nil, and DATA is (SYMBOL . REST-OF-DATA).
+      This is for memory-full errors only.  */
 static int
 maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig, Lisp_Object data)
 {
@@ -1917,19 +1917,8 @@ maybe_call_debugger (Lisp_Object conditions, Lisp_Object sig, Lisp_Object data)
   return 0;
 }
 
-/* Value of Qlambda means we have called debugger and user has continued.
-   There are two ways to pass SIG and DATA:
-    = SIG is the error symbol, and DATA is the rest of the data.
-    = SIG is nil, and DATA is (SYMBOL . REST-OF-DATA).
-       This is for memory-full errors only.
-
-   We need to increase max_specpdl_size temporarily around
-   anything we do that can push on the specpdl, so as not to get
-   a second error here in case we're handling specpdl overflow.  */
-
 static Lisp_Object
-find_handler_clause (Lisp_Object handlers, Lisp_Object conditions,
-		     Lisp_Object sig, Lisp_Object data)
+find_handler_clause (Lisp_Object handlers, Lisp_Object conditions)
 {
   register Lisp_Object h;
 
@@ -3173,7 +3162,7 @@ funcall_lambda (Lisp_Object fun, ptrdiff_t nargs,
 	   shouldn't bind any arguments, instead just call the byte-code
 	   interpreter directly; it will push arguments as necessary.
 
-	   Byte-code objects with either a non-existant, or a nil value for
+	   Byte-code objects with either a non-existent, or a nil value for
 	   the `push args' slot (the default), have dynamically-bound
 	   arguments, and use the argument-binding code below instead (as do
 	   all interpreted functions, even lexically bound ones).  */

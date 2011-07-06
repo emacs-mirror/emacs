@@ -61,11 +61,11 @@ order; also, maybe redisplay the screen (@code{recenter-top-bottom}).
 @item C-v
 @itemx @key{next}
 @itemx @key{PageDown}
-Scroll forward by nearly a full window (@code{scroll-up}).
+Scroll forward by nearly a full window (@code{scroll-up-command}).
 @item M-v
 @itemx @key{prior}
 @itemx @key{PageUp}
-Scroll backward (@code{scroll-down}).
+Scroll backward (@code{scroll-down-command}).
 @item C-M-l
 Scroll heuristically to bring useful information onto the screen
 (@code{reposition-window}).
