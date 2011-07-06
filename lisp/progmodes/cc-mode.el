@@ -93,6 +93,7 @@
 (cc-require 'cc-cmds)
 (cc-require 'cc-align)
 (cc-require 'cc-menus)
+(cc-require 'cc-guess)
 
 ;; Silence the compiler.
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
@@ -553,11 +554,7 @@ that requires a literal mode spec at compile time."
   (c-clear-found-types)
 
   ;; now set the mode style based on default-style
-  (let ((style (if (stringp default-style)
-		   default-style
-		 (or (cdr (assq mode default-style))
-		     (cdr (assq 'other default-style))
-		     "gnu"))))
+  (let ((style (cc-choose-style-for-mode mode default-style)))
     ;; Override style variables if `c-old-style-variable-behavior' is
     ;; set.  Also override if we are using global style variables,
     ;; have already initialized a style once, and are switching to a
@@ -692,7 +689,8 @@ This function is called from the hook `before-hack-local-variables-hook'."
 		   (c-count-cfss file-local-variables-alist))
 		  (cfs-in-dir-count (c-count-cfss dir-local-variables-alist)))
 	      (c-set-style stile
-			   (= cfs-in-file-and-dir-count cfs-in-dir-count)))
+			   (and (= cfs-in-file-and-dir-count cfs-in-dir-count)
+				'keep-defaults)))
 	  (c-set-style stile)))
       (when offsets
 	(mapc
@@ -1174,7 +1172,7 @@ This does not load the font-lock package.  Use after
 
 
 ;;;###autoload
-(defun c-mode ()
+(define-derived-mode c-mode prog-mode "C"
   "Major mode for editing K&R and ANSI C code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from a
 c-mode buffer.  This automatically sets up a mail buffer with version
@@ -1188,13 +1186,9 @@ initialization, then `c-mode-hook'.
 
 Key bindings:
 \\{c-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table c-mode-syntax-table)
-  (setq major-mode 'c-mode           ; FIXME: Use define-derived-mode.
-	mode-name "C"
-	local-abbrev-table c-mode-abbrev-table
+  (setq local-abbrev-table c-mode-abbrev-table
 	abbrev-mode t)
   (use-local-map c-mode-map)
   (c-init-language-vars-for 'c-mode)
@@ -1236,7 +1230,7 @@ Key bindings:
 		  (cons "C++" (c-lang-const c-mode-menu c++)))
 
 ;;;###autoload
-(defun c++-mode ()
+(define-derived-mode c++-mode prog-mode "C++"
   "Major mode for editing C++ code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from a
 c++-mode buffer.  This automatically sets up a mail buffer with
@@ -1251,13 +1245,9 @@ initialization, then `c++-mode-hook'.
 
 Key bindings:
 \\{c++-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table c++-mode-syntax-table)
-  (setq major-mode 'c++-mode         ; FIXME: Use define-derived-mode.
-	mode-name "C++"
-	local-abbrev-table c++-mode-abbrev-table
+  (setq local-abbrev-table c++-mode-abbrev-table
 	abbrev-mode t)
   (use-local-map c++-mode-map)
   (c-init-language-vars-for 'c++-mode)
@@ -1297,7 +1287,7 @@ Key bindings:
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.m\\'" . objc-mode))
 
 ;;;###autoload
-(defun objc-mode ()
+(define-derived-mode objc-mode prog-mode "ObjC"
   "Major mode for editing Objective C code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from an
 objc-mode buffer.  This automatically sets up a mail buffer with
@@ -1312,13 +1302,9 @@ initialization, then `objc-mode-hook'.
 
 Key bindings:
 \\{objc-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table objc-mode-syntax-table)
-  (setq major-mode 'objc-mode        ; FIXME: Use define-derived-mode.
-	mode-name "ObjC"
-	local-abbrev-table objc-mode-abbrev-table
+  (setq local-abbrev-table objc-mode-abbrev-table
 	abbrev-mode t)
   (use-local-map objc-mode-map)
   (c-init-language-vars-for 'objc-mode)
@@ -1367,7 +1353,7 @@ Key bindings:
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.java\\'" . java-mode))
 
 ;;;###autoload
-(defun java-mode ()
+(define-derived-mode java-mode prog-mode "Java"
   "Major mode for editing Java code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from a
 java-mode buffer.  This automatically sets up a mail buffer with
@@ -1382,13 +1368,9 @@ initialization, then `java-mode-hook'.
 
 Key bindings:
 \\{java-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table java-mode-syntax-table)
-  (setq major-mode 'java-mode        ; FIXME: Use define-derived-mode.
- 	mode-name "Java"
- 	local-abbrev-table java-mode-abbrev-table
+  (setq local-abbrev-table java-mode-abbrev-table
 	abbrev-mode t)
   (use-local-map java-mode-map)
   (c-init-language-vars-for 'java-mode)
@@ -1426,7 +1408,7 @@ Key bindings:
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.idl\\'" . idl-mode))
 
 ;;;###autoload
-(defun idl-mode ()
+(define-derived-mode idl-mode prog-mode "IDL"
   "Major mode for editing CORBA's IDL, PSDL and CIDL code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from an
 idl-mode buffer.  This automatically sets up a mail buffer with
@@ -1441,13 +1423,9 @@ initialization, then `idl-mode-hook'.
 
 Key bindings:
 \\{idl-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table idl-mode-syntax-table)
-  (setq major-mode 'idl-mode         ; FIXME: Use define-derived-mode.
-	mode-name "IDL"
-	local-abbrev-table idl-mode-abbrev-table)
+  (setq local-abbrev-table idl-mode-abbrev-table)
   (use-local-map idl-mode-map)
   (c-init-language-vars-for 'idl-mode)
   (c-common-init 'idl-mode)
@@ -1487,7 +1465,7 @@ Key bindings:
 ;;;###autoload (add-to-list 'interpreter-mode-alist '("pike" . pike-mode))
 
 ;;;###autoload
-(defun pike-mode ()
+(define-derived-mode pike-mode prog-mode "Pike"
   "Major mode for editing Pike code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from a
 pike-mode buffer.  This automatically sets up a mail buffer with
@@ -1502,13 +1480,9 @@ initialization, then `pike-mode-hook'.
 
 Key bindings:
 \\{pike-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table pike-mode-syntax-table)
-  (setq major-mode 'pike-mode        ; FIXME: Use define-derived-mode.
- 	mode-name "Pike"
- 	local-abbrev-table pike-mode-abbrev-table
+  (setq local-abbrev-table pike-mode-abbrev-table
 	abbrev-mode t)
   (use-local-map pike-mode-map)
   (c-init-language-vars-for 'pike-mode)
@@ -1561,7 +1535,8 @@ Key bindings:
 (defvar awk-mode-syntax-table)
 (declare-function c-awk-unstick-NL-prop "cc-awk" ())
 
-(defun awk-mode ()
+;;;###autoload
+(define-derived-mode awk-mode prog-mode "AWK"
   "Major mode for editing AWK code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from an
 awk-mode buffer.  This automatically sets up a mail buffer with version
@@ -1575,14 +1550,10 @@ initialization, then `awk-mode-hook'.
 
 Key bindings:
 \\{awk-mode-map}"
-  (interactive)
   (require 'cc-awk)			; Added 2003/6/10.
-  (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table awk-mode-syntax-table)
-  (setq major-mode 'awk-mode         ; FIXME: Use define-derived-mode.
-	mode-name "AWK"
-	local-abbrev-table awk-mode-abbrev-table
+  (setq local-abbrev-table awk-mode-abbrev-table
 	abbrev-mode t)
   (use-local-map awk-mode-map)
   (c-init-language-vars-for 'awk-mode)

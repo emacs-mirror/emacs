@@ -32,8 +32,6 @@
 
 ;;; Code:
 
-(require 'url-util)
-
 (defgroup emacsbug nil
   "Sending Emacs bug reports."
   :group 'maint
@@ -126,7 +124,7 @@ Used for querying duplicates and linking to existing bugs.")
       (if (and to subject body)
 	  (if (report-emacs-bug-can-use-osx-open)
 	      (start-process "/usr/bin/open" nil "open"
-			     (concat "mailto:" to 
+			     (concat "mailto:" to
 				     "?subject=" (url-hexify-string subject)
 				     "&body=" (url-hexify-string body)))
 	    (start-process "xdg-email" nil "xdg-email"
@@ -152,8 +150,8 @@ Prompts for bug subject.  Leaves you in a mail buffer."
         ;; Put these properties on semantically-void text.
         ;; report-emacs-bug-hook deletes these regions before sending.
         (prompt-properties '(field emacsbug-prompt
-                                   intangible but-helpful
-                                   rear-nonsticky t))
+                             intangible but-helpful
+                             rear-nonsticky t))
 	(can-insert-mail (or (report-emacs-bug-can-use-xdg-email)
 			     (report-emacs-bug-can-use-osx-open)))
         user-point message-end-point)
@@ -177,24 +175,36 @@ Prompts for bug subject.  Leaves you in a mail buffer."
       (backward-char (length signature)))
     (unless report-emacs-bug-no-explanations
       ;; Insert warnings for novice users.
-      (when (string-match "@gnu\\.org$" report-emacs-bug-address)
-	(insert "This bug report will be sent to the Free Software Foundation,\n")
-	(let ((pos (point)))
-	  (insert "not to your local site managers!")
-          (overlay-put (make-overlay pos (point)) 'face 'highlight)))
-      (insert "\nPlease write in ")
-      (let ((pos (point)))
-	(insert "English")
-        (overlay-put (make-overlay pos (point)) 'face 'highlight))
-      (insert " if possible, because the Emacs maintainers
-usually do not have translators to read other languages for them.\n\n")
-      (insert (format "Your report will be posted to the %s mailing list"
-		      report-emacs-bug-address))
-      (insert "\nand the gnu.emacs.bug news group, and at http://debbugs.gnu.org.\n\n"))
+      (if (not (equal "bug-gnu-emacs@gnu.org" report-emacs-bug-address))
+	  (insert (format "The report will be sent to %s.\n\n"
+			  report-emacs-bug-address))
+	(insert "This bug report will be sent to the ")
+	(insert-button
+	 "Bug-GNU-Emacs"
+	 'face 'link
+	 'help-echo (concat "mouse-2, RET: Follow this link")
+	 'action (lambda (button)
+		   (browse-url "http://lists.gnu.org/archive/html/bug-gnu-emacs/"))
+	 'follow-link t)
+	(insert " mailing list\nand the GNU bug tracker at ")
+	(insert-button
+	 "debbugs.gnu.org"
+	 'face 'link
+	 'help-echo (concat "mouse-2, RET: Follow this link")
+	 'action (lambda (button)
+		   (browse-url "http://debbugs.gnu.org/"))
+	 'follow-link t)
 
-    (insert "Please describe exactly what actions triggered the bug\n"
-	    "and the precise symptoms of the bug.  If you can, give\n"
-	    "a recipe starting from `emacs -Q':\n\n")
+	(insert ".  Please check that
+the From: line contains a valid email address.  After a delay of up
+to one day, you should receive an acknowledgement at that address.
+
+Please write in English if possible, as the Emacs maintainers
+usually do not have translators for other languages.\n\n")))
+
+    (insert "Please describe exactly what actions triggered the bug, and\n"
+	    "the precise symptoms of the bug.  If you can, give a recipe\n"
+	    "starting from `emacs -Q':\n\n")
     (add-text-properties (save-excursion
                            (rfc822-goto-eoh)
                            (line-beginning-position 2))
@@ -227,8 +237,8 @@ usually do not have translators to read other languages for them.\n\n")
 		system-configuration-options "'\n\n"))
     (insert "Important settings:\n")
     (mapc
-     '(lambda (var)
-	(insert (format "  value of $%s: %s\n" var (getenv var))))
+     (lambda (var)
+       (insert (format "  value of $%s: %s\n" var (getenv var))))
      '("LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
        "LC_MONETARY" "LC_NUMERIC" "LC_TIME" "LANG" "XMODIFIERS"))
     (insert (format "  locale-coding-system: %s\n" locale-coding-system))
@@ -330,6 +340,10 @@ usually do not have translators to read other languages for them.\n\n")
   (interactive)
   (info "(emacs)Bugs"))
 
+;; It's the default mail mode, so it seems OK to use its features.
+(autoload 'message-bogus-recipient-p "message")
+(defvar message-send-mail-function)
+
 (defun report-emacs-bug-hook ()
   "Do some checking before sending a bug report."
   (save-excursion
@@ -340,11 +354,29 @@ usually do not have translators to read other languages for them.\n\n")
          (string-equal (buffer-substring-no-properties (point-min) (point))
                        report-emacs-bug-orig-text)
          (error "No text entered in bug report"))
-
+    (or report-emacs-bug-no-confirmation
+	;; mailclient.el does not handle From (at present).
+	(if (derived-mode-p 'message-mode)
+	    (eq message-send-mail-function 'message-send-mail-with-mailclient)
+	  (eq send-mail-function 'mailclient-send-it))
+	;; Not narrowing to the headers, but that's OK.
+	(let ((from (mail-fetch-field "From")))
+	  (and (or (not from)
+		   (message-bogus-recipient-p from)
+		   ;; This is the default user-mail-address.  On today's
+		   ;; systems, it seems more likely to be wrong than right,
+		   ;; since most people don't run their own mail server.
+		   (string-match (format "\\<%s@%s\\>"
+					 (regexp-quote (user-login-name))
+					 (regexp-quote (system-name)))
+				 from))
+	       (not (yes-or-no-p
+		     (format "Is `%s' really your email address? " from)))
+	       (error "Please edit the From address and try again"))))
     ;; The last warning for novice users.
     (unless (or report-emacs-bug-no-confirmation
-                (yes-or-no-p
-                 "Send this bug report to the Emacs maintainers? "))
+		(yes-or-no-p
+		 "Send this bug report to the Emacs maintainers? "))
       (goto-char (point-min))
       (if (search-forward "To: ")
           (delete-region (point) (line-end-position)))

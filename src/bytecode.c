@@ -144,7 +144,7 @@ Lisp_Object Qbytecode;
 #define Bcurrent_column 0151
 #define Bindent_to 0152
 #ifdef BYTE_CODE_SAFE
-#define Bscan_buffer 0153 /* No longer generated as of v18 */
+#define Bscan_buffer 0153 /* No longer generated as of v18.  */
 #endif
 #define Beolp 0154
 #define Beobp 0155
@@ -433,7 +433,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 
 Lisp_Object
 exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
-		Lisp_Object args_template, int nargs, Lisp_Object *args)
+		Lisp_Object args_template, ptrdiff_t nargs, Lisp_Object *args)
 {
   int count = SPECPDL_INDEX ();
 #ifdef BYTE_CODE_METER
@@ -444,7 +444,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   /* Lisp_Object v1, v2; */
   Lisp_Object *vectorp;
 #ifdef BYTE_CODE_SAFE
-  int const_length;
+  ptrdiff_t const_length;
   Lisp_Object *stacke;
   int bytestr_length;
 #endif
@@ -464,7 +464,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
   CHECK_STRING (bytestr);
   CHECK_VECTOR (vector);
-  CHECK_NUMBER (maxdepth);
+  CHECK_NATNUM (maxdepth);
 
 #ifdef BYTE_CODE_SAFE
   const_length = ASIZE (vector);
@@ -486,6 +486,8 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
   stack.byte_string = bytestr;
   stack.pc = stack.byte_string_start = SDATA (bytestr);
   stack.constants = vector;
+  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object) < XFASTINT (maxdepth))
+    memory_full (SIZE_MAX);
   top = (Lisp_Object *) alloca (XFASTINT (maxdepth)
                                          * sizeof (Lisp_Object));
 #if BYTE_MAINTAIN_TOP
@@ -502,14 +504,14 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 
   if (INTEGERP (args_template))
     {
-      int at = XINT (args_template);
+      ptrdiff_t at = XINT (args_template);
       int rest = at & 128;
       int mandatory = at & 127;
-      int nonrest = at >> 8;
+      ptrdiff_t nonrest = at >> 8;
       eassert (mandatory <= nonrest);
       if (nargs <= nonrest)
 	{
-	  int i;
+	  ptrdiff_t i;
 	  for (i = 0 ; i < nargs; i++, args++)
 	    PUSH (*args);
 	  if (nargs < mandatory)
@@ -528,7 +530,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	}
       else if (rest)
 	{
-	  int i;
+	  ptrdiff_t i;
 	  for (i = 0 ; i < nonrest; i++, args++)
 	    PUSH (*args);
 	  PUSH (Flist (nargs - nonrest, args));
@@ -956,7 +958,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 				 save_restriction_save ());
 	  break;
 
-	case Bcatch:		/* FIXME: ill-suited for lexbind */
+	case Bcatch:		/* FIXME: ill-suited for lexbind.  */
 	  {
 	    Lisp_Object v1;
 	    BEFORE_POTENTIAL_GC ();
@@ -966,11 +968,11 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    break;
 	  }
 
-	case Bunwind_protect:	/* FIXME: avoid closure for lexbind */
+	case Bunwind_protect:	/* FIXME: avoid closure for lexbind.  */
 	  record_unwind_protect (Fprogn, POP);
 	  break;
 
-	case Bcondition_case:	/* FIXME: ill-suited for lexbind */
+	case Bcondition_case:	/* FIXME: ill-suited for lexbind.  */
 	  {
 	    Lisp_Object handlers, body;
 	    handlers = POP;
@@ -1779,8 +1781,8 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 	    PUSH (*ptr);
 	    break;
 	  }
-	  /* stack-set-0 = discard; stack-set-1 = discard-1-preserve-tos.  */
 	case Bstack_set:
+	  /* stack-set-0 = discard; stack-set-1 = discard-1-preserve-tos.  */
 	  {
 	    Lisp_Object *ptr = top - (FETCH);
 	    *ptr = POP;
@@ -1838,8 +1840,7 @@ exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
 void
 syms_of_bytecode (void)
 {
-  Qbytecode = intern_c_string ("byte-code");
-  staticpro (&Qbytecode);
+  DEFSYM (Qbytecode, "byte-code");
 
   defsubr (&Sbyte_code);
 
@@ -1861,8 +1862,7 @@ integer, it is incremented each time that symbol's function is called.  */);
 
   byte_metering_on = 0;
   Vbyte_code_meter = Fmake_vector (make_number (256), make_number (0));
-  Qbyte_code_meter = intern_c_string ("byte-code-meter");
-  staticpro (&Qbyte_code_meter);
+  DEFSYM (Qbyte_code_meter, "byte-code-meter");
   {
     int i = 256;
     while (i--)

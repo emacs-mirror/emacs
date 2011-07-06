@@ -278,7 +278,7 @@ The contents are the items that would be in the menu bar whether or
 not it is actually displayed."
   (interactive "@e \nP")
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
-  (popup-menu (mouse-menu-bar-map) event prefix))
+  (popup-menu (mouse-menu-bar-map) (unless (integerp event) event) prefix))
 (make-obsolete 'mouse-popup-menubar 'mouse-menu-bar-map "23.1")
 
 (defun mouse-popup-menubar-stuff (event prefix)
@@ -790,18 +790,9 @@ remains active.  Otherwise, it remains until the next input event.
 
 If the click is in the echo area, display the `*Messages*' buffer."
   (interactive "e")
-  (let ((w (posn-window (event-start start-event))))
-    (if (and (window-minibuffer-p w)
-	     (not (minibuffer-window-active-p w)))
-	(save-excursion
-	  ;; Swallow the up-event.
-	  (read-event)
-	  (set-buffer (get-buffer-create "*Messages*"))
-	  (goto-char (point-max))
-	  (display-buffer (current-buffer)))
-      ;; Give temporary modes such as isearch a chance to turn off.
-      (run-hooks 'mouse-leave-buffer-hook)
-      (mouse-drag-track start-event t))))
+  ;; Give temporary modes such as isearch a chance to turn off.
+  (run-hooks 'mouse-leave-buffer-hook)
+  (mouse-drag-track start-event t))
 
 
 (defun mouse-posn-property (pos property)
@@ -2101,17 +2092,19 @@ choose a font."
 (global-set-key [double-mouse-1] 'mouse-set-point)
 (global-set-key [triple-mouse-1] 'mouse-set-point)
 
-;; Clicking on the fringes causes hscrolling:
-(global-set-key [left-fringe mouse-1]	'mouse-set-point)
-(global-set-key [right-fringe mouse-1]	'mouse-set-point)
+(defun mouse--strip-first-event (_prompt)
+  (substring (this-single-command-raw-keys) 1))
+
+(define-key function-key-map [left-fringe mouse-1] 'mouse--strip-first-event)
+(define-key function-key-map [right-fringe mouse-1] 'mouse--strip-first-event)
 
 (global-set-key [mouse-2]	'mouse-yank-primary)
 ;; Allow yanking also when the corresponding cursor is "in the fringe".
-(global-set-key [right-fringe mouse-2] 'mouse-yank-at-click)
-(global-set-key [left-fringe mouse-2] 'mouse-yank-at-click)
+(define-key function-key-map [right-fringe mouse-2] 'mouse--strip-first-event)
+(define-key function-key-map [left-fringe mouse-2] 'mouse--strip-first-event)
 (global-set-key [mouse-3]	'mouse-save-then-kill)
-(global-set-key [right-fringe mouse-3]	'mouse-save-then-kill)
-(global-set-key [left-fringe mouse-3]	'mouse-save-then-kill)
+(define-key function-key-map [right-fringe mouse-3] 'mouse--strip-first-event)
+(define-key function-key-map [left-fringe mouse-3] 'mouse--strip-first-event)
 
 ;; By binding these to down-going events, we let the user use the up-going
 ;; event to make the selection, saving a click.

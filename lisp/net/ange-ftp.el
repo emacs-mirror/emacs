@@ -1723,11 +1723,12 @@ good, skip, fatal, or unknown."
 ;;; Temporary file location and deletion...
 ;;; ------------------------------------------------------------
 
-(defun ange-ftp-make-tmp-name (host)
+(defun ange-ftp-make-tmp-name (host &optional suffix)
   "This routine will return the name of a new file."
   (make-temp-file (if (ange-ftp-use-gateway-p host)
 		      ange-ftp-gateway-tmp-name-template
-		    ange-ftp-tmp-name-template)))
+		    ange-ftp-tmp-name-template)
+		  nil suffix))
 
 (defun ange-ftp-del-tmp-name (filename)
   "Force to delete temporary file."
@@ -2806,6 +2807,19 @@ match subdirectories as well.")
   (and files (puthash (file-name-as-directory directory)
 		      files ange-ftp-files-hashtable)))
 
+(defun ange-ftp-switches-ok (switches)
+  "Return SWITCHES (a string) if suitable for our use."
+  (and (stringp switches)
+       ;; We allow the A switch, which lists all files except "." and
+       ;; "..".  This is OK because we manually insert these entries
+       ;; in the hash table.
+       (string-match
+	"--\\(almost-\\)?all\\>\\|\\(\\`\\| \\)-[[:alpha:]]*[aA]" switches)
+       (string-match "\\(\\`\\| \\)-[[:alpha:]]*l" switches)
+       (not (string-match
+	     "--recursive\\>\\|\\(\\`\\| \\)-[[:alpha:]]*R" switches))
+       switches))
+
 (defun ange-ftp-get-files (directory &optional no-error)
   "Given a DIRECTORY, return a hashtable of file entries.
 This will give an error or return nil, depending on the value of
@@ -2817,30 +2831,12 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
 			  ;; This is an efficiency hack. We try to
 			  ;; anticipate what sort of listing dired
 			  ;; might want, and cache just such a listing.
-			  (if (and (boundp 'dired-actual-switches)
-				   (stringp dired-actual-switches)
-				   ;; We allow the A switch, which lists
-				   ;; all files except "." and "..".
-				   ;; This is OK because we manually
-				   ;; insert these entries
-				   ;; in the hash table.
-				   (string-match
-				    "[aA]" dired-actual-switches)
-				   (string-match
-				    "l" dired-actual-switches)
-				   (not (string-match
-					 "R" dired-actual-switches)))
-			      dired-actual-switches
-			    (if (and (boundp 'dired-listing-switches)
-				     (stringp dired-listing-switches)
-				     (string-match
-				      "[aA]" dired-listing-switches)
-				     (string-match
-				      "l" dired-listing-switches)
-				     (not (string-match
-					   "R" dired-listing-switches)))
-				dired-listing-switches
-			      "-al"))
+			  (or (and (boundp 'dired-actual-switches)
+				   (ange-ftp-switches-ok dired-actual-switches))
+			      (and (boundp 'dired-listing-switches)
+				   (ange-ftp-switches-ok
+				    dired-listing-switches))
+			      "-al")
 			  t no-error)
 	     (gethash directory ange-ftp-files-hashtable)))))
 
@@ -3283,6 +3279,7 @@ system TYPE.")
 		     (name (ange-ftp-quote-string (nth 2 parsed)))
 		     (temp (ange-ftp-make-tmp-name host))
 		     (binary (ange-ftp-binary-file filename))
+		     (buffer-file-type buffer-file-type)
 		     (abbr (ange-ftp-abbreviate-filename filename))
 		     (coding-system-used last-coding-system-used)
 		     size)
@@ -4143,7 +4140,8 @@ directory, so that Emacs will know its current contents."
   (let* ((fn1 (expand-file-name file))
 	 (pa1 (ange-ftp-ftp-name fn1)))
     (if pa1
-	(let ((tmp1 (ange-ftp-make-tmp-name (car pa1))))
+	(let ((tmp1 (ange-ftp-make-tmp-name (car pa1)
+					    (file-name-extension file t))))
 	  (ange-ftp-copy-file-internal fn1 tmp1 t nil
 				       (format "Getting %s" fn1))
 	  tmp1))))
@@ -5448,7 +5446,7 @@ Other orders of $ and _ seem to all work just fine.")
 ;;				   base-versions
 ;;				   (file-name-directory fn)))
 ;;		   (versions (mapcar
-;;			      '(lambda (arg)
+;;			      (lambda (arg)
 ;;				 (if (and (string-match
 ;;					   "[0-9]+$" arg bv-length)
 ;;					  (= (match-beginning 0) bv-length))

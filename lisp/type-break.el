@@ -47,7 +47,7 @@
 ;; or set the variable of the same name to `t'.
 
 ;; This program can truly cons up a storm because of all the calls to
-;; `current-time' (which always returns 3 fresh conses).  I'm dismayed by
+;; `current-time' (which always returns fresh conses).  I'm dismayed by
 ;; this, but I think the health of my hands is far more important than a
 ;; few pages of virtual memory.
 
@@ -501,12 +501,9 @@ variable of the same name."
 (defun timep (time)
   "If TIME is in the format returned by `current-time' then
 return TIME, else return nil."
-  (and (listp time)
-       (eq (length time) 3)
-       (integerp (car time))
-       (integerp (nth 1 time))
-       (integerp (nth 2 time))
-       time))
+  (condition-case nil
+      (and (float-time time) time)
+    (error nil)))
 
 (defun type-break-choose-file ()
   "Return file to read from."
@@ -993,12 +990,8 @@ FRAC should be the inverse of the fractional value; for example, a value of
 
 ;; Compute the difference, in seconds, between a and b, two structures
 ;; similar to those returned by `current-time'.
-;; Use addition rather than logand since that is more robust; the low 16
-;; bits of the seconds might have been incremented, making it more than 16
-;; bits wide.
 (defun type-break-time-difference (a b)
-  (+ (lsh (- (car b) (car a)) 16)
-     (- (car (cdr b)) (car (cdr a)))))
+  (round (float-time (time-subtract b a))))
 
 ;; Return (in a new list the same in structure to that returned by
 ;; `current-time') the sum of the arguments.  Each argument may be a time
@@ -1008,34 +1001,11 @@ FRAC should be the inverse of the fractional value; for example, a value of
 ;; the result is passed to `current-time-string' it will toss some of the
 ;; "low" bits and format the time incorrectly.
 (defun type-break-time-sum (&rest tmlist)
-  (let ((high 0)
-        (low 0)
-        (micro 0)
-        tem)
-    (while tmlist
-      (setq tem (car tmlist))
-      (setq tmlist (cdr tmlist))
-      (cond
-       ((numberp tem)
-        (setq low (+ low tem)))
-       (t
-        (setq high  (+ high  (or (car tem) 0)))
-        (setq low   (+ low   (or (car (cdr tem)) 0)))
-        (setq micro (+ micro (or (car (cdr (cdr tem))) 0))))))
-
-    (and (>= micro 1000000)
-         (progn
-           (setq tem (/ micro 1000000))
-           (setq low (+ low tem))
-           (setq micro (- micro (* tem 1000000)))))
-
-    (setq tem (lsh low -16))
-    (and (> tem 0)
-         (progn
-           (setq low (logand low 65535))
-           (setq high (+ high tem))))
-
-    (list high low micro)))
+  (let ((sum '(0 0 0)))
+    (dolist (tem tmlist sum)
+      (setq sum (time-add sum (if (integerp tem)
+				  (list (floor tem 65536) (mod tem 65536))
+				tem))))))
 
 (defun type-break-time-stamp (&optional when)
   (if (fboundp 'format-time-string)

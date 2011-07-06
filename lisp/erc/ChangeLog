@@ -1,3 +1,24 @@
+2011-07-04  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* erc.el (erc-generate-new-buffer-name): Reuse old buffer names
+	when reconnecting (bug#5563).
+
+2011-06-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* erc.el (erc-ssl): Made into a synonym for erc-tls, which
+	provides a superset of the same functionality.
+	(erc-open-ssl-stream): Removed.
+	(erc-open-tls-stream): Use `open-network-stream' instead of
+	`open-tls-stream' directly to be able to use the built-in TLS
+	support.
+
+2011-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-pcomplete.el (erc-pcompletions-at-point): Mark the completion
+	data as non-exclusive if it's using the default-completion-function.
+	(pcomplete-erc-parse-arguments): Rename pcomplete-parse-erc-arguments.
+	(pcomplete-erc-setup): Use new name.
+
 2011-05-03  Debarshi Ray  <rishi@gnu.org>  (tiny change)
 
 	* erc-backend.el (671): New response handler.

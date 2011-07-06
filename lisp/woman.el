@@ -2157,8 +2157,8 @@ No external programs are used."
   (run-hooks 'woman-pre-format-hook)
   (and (boundp 'font-lock-mode) font-lock-mode (font-lock-mode -1))
   ;; (fundamental-mode)
-  (let ((start-time (current-time))	; (HIGH LOW MICROSEC)
-	time)				; HIGH * 2**16 + LOW seconds
+  (let ((start-time (current-time))
+	time)
     (message "WoMan formatting buffer...")
 ;  (goto-char (point-min))
 ;  (cond
@@ -2167,10 +2167,8 @@ No external programs are used."
 ;    (delete-region (point-min) (point))) ; potentially dangerous!
 ;   (t (message "WARNING: .TH request not found -- not man-page format?")))
     (woman-decode-region (point-min) (point-max))
-    (setq time (current-time)
-	  time (+ (* (- (car time) (car start-time)) 65536)
-		  (- (cadr time) (cadr start-time))))
-    (message "WoMan formatting buffer...done in %d seconds" time)
+    (setq time (float-time (time-since start-time)))
+    (message "WoMan formatting buffer...done in %g seconds" time)
     (WoMan-log-end time))
   (run-hooks 'woman-post-format-hook))
 
@@ -4529,7 +4527,7 @@ IGNORED is a string appended to the log message."
   "Log the end of formatting in *WoMan-Log*.
 TIME specifies the time it took to format the man page, to be printed
 with the message."
-  (WoMan-log-1 (format "Formatting time %d seconds." time) 'end))
+  (WoMan-log-1 (format "Formatting time %g seconds." time) 'end))
 
 (defun WoMan-log-1 (string &optional end)
   "Log a message STRING in *WoMan-Log*.

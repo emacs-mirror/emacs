@@ -479,23 +479,28 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
                             || !strchr (optstring, argv[d->optind][1])))))
     {
       char *nameend;
+      unsigned int namelen;
       const struct option *p;
       const struct option *pfound = NULL;
+      struct option_list
+      {
+        const struct option *p;
+        struct option_list *next;
+      } *ambig_list = NULL;
       int exact = 0;
-      int ambig = 0;
       int indfound = -1;
       int option_index;
 
       for (nameend = d->__nextchar; *nameend && *nameend != '='; nameend++)
         /* Do nothing.  */ ;
+      namelen = nameend - d->__nextchar;
 
       /* Test all long options for either exact match
          or abbreviated matches.  */
       for (p = longopts, option_index = 0; p->name; p++, option_index++)
-        if (!strncmp (p->name, d->__nextchar, nameend - d->__nextchar))
+        if (!strncmp (p->name, d->__nextchar, namelen))
           {
-            if ((unsigned int) (nameend - d->__nextchar)
-                == (unsigned int) strlen (p->name))
+            if (namelen == (unsigned int) strlen (p->name))
               {
                 /* Exact match found.  */
                 pfound = p;
@@ -513,41 +518,84 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
                      || pfound->has_arg != p->has_arg
                      || pfound->flag != p->flag
                      || pfound->val != p->val)
-              /* Second or later nonexact match found.  */
-              ambig = 1;
+              {
+                /* Second or later nonexact match found.  */
+                struct option_list *newp = malloc (sizeof (*newp));
+                newp->p = p;
+                newp->next = ambig_list;
+                ambig_list = newp;
+              }
           }
 
-      if (ambig && !exact)
+      if (ambig_list != NULL && !exact)
         {
           if (print_errors)
             {
+              struct option_list first;
+              first.p = pfound;
+              first.next = ambig_list;
+              ambig_list = &first;
+
 #if defined _LIBC && defined USE_IN_LIBIO
-              char *buf;
+              char *buf = NULL;
+              size_t buflen = 0;
 
-              if (__asprintf (&buf, _("%s: option '%s' is ambiguous\n"),
-                              argv[0], argv[d->optind]) >= 0)
+              FILE *fp = open_memstream (&buf, &buflen);
+              if (fp != NULL)
                 {
-                  _IO_flockfile (stderr);
+                  fprintf (fp,
+                           _("%s: option '%s' is ambiguous; possibilities:"),
+                           argv[0], argv[d->optind]);
 
-                  int old_flags2 = ((_IO_FILE *) stderr)->_flags2;
-                  ((_IO_FILE *) stderr)->_flags2 |= _IO_FLAGS2_NOTCANCEL;
+                  do
+                    {
+                      fprintf (fp, " '--%s'", ambig_list->p->name);
+                      ambig_list = ambig_list->next;
+                    }
+                  while (ambig_list != NULL);
 
-                  __fxprintf (NULL, "%s", buf);
+                  fputc_unlocked ('\n', fp);
 
-                  ((_IO_FILE *) stderr)->_flags2 = old_flags2;
-                  _IO_funlockfile (stderr);
+                  if (__builtin_expect (fclose (fp) != EOF, 1))
+                    {
+                      _IO_flockfile (stderr);
 
-                  free (buf);
+                      int old_flags2 = ((_IO_FILE *) stderr)->_flags2;
+                      ((_IO_FILE *) stderr)->_flags2 |= _IO_FLAGS2_NOTCANCEL;
+
+                      __fxprintf (NULL, "%s", buf);
+
+                      ((_IO_FILE *) stderr)->_flags2 = old_flags2;
+                      _IO_funlockfile (stderr);
+
+                      free (buf);
+                    }
                 }
 #else
-              fprintf (stderr, _("%s: option '%s' is ambiguous\n"),
+              fprintf (stderr,
+                       _("%s: option '%s' is ambiguous; possibilities:"),
                        argv[0], argv[d->optind]);
+              do
+                {
+                  fprintf (stderr, " '--%s'", ambig_list->p->name);
+                  ambig_list = ambig_list->next;
+                }
+              while (ambig_list != NULL);
+
+              fputc ('\n', stderr);
 #endif
             }
           d->__nextchar += strlen (d->__nextchar);
           d->optind++;
           d->optopt = 0;
           return '?';
+        }
+
+      while (ambig_list != NULL)
+        {
+          struct option_list *pn = ambig_list->next;
+          free (ambig_list);
+          ambig_list = pn;
         }
 
       if (pfound != NULL)
@@ -781,7 +829,7 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
         return '?';
       }
     /* Convenience. Treat POSIX -W foo same as long option --foo */
-    if (temp[0] == 'W' && temp[1] == ';')
+    if (temp[0] == 'W' && temp[1] == ';' && longopts)
       {
         char *nameend;
         const struct option *p;

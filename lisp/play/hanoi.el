@@ -113,7 +113,7 @@ intermediate positions."
 	     (prefix-numeric-value current-prefix-arg))))
   (if (< nrings 0)
       (error "Negative number of rings"))
-  (hanoi-internal nrings (make-list nrings 0) (hanoi-current-time-float)))
+  (hanoi-internal nrings (make-list nrings 0) (float-time)))
 
 ;;;###autoload
 (defun hanoi-unix ()
@@ -123,7 +123,7 @@ second since 1970-01-01 00:00:00 GMT.
 
 Repent before ring 31 moves."
   (interactive)
-  (let* ((start (ftruncate (hanoi-current-time-float)))
+  (let* ((start (ftruncate (float-time)))
 	 (bits (loop repeat 32
 		     for x = (/ start (expt 2.0 31)) then (* x 2.0)
 		     collect (truncate (mod x 2.0))))
@@ -137,7 +137,7 @@ This is, necessarily (as of Emacs 20.3), a crock.  When the
 current-time interface is made s2G-compliant, hanoi.el will need
 to be updated."
   (interactive)
-  (let* ((start (ftruncate (hanoi-current-time-float)))
+  (let* ((start (ftruncate (float-time)))
 	 (bits (loop repeat 64
 		     for x = (/ start (expt 2.0 63)) then (* x 2.0)
 		     collect (truncate (mod x 2.0))))
@@ -283,11 +283,6 @@ BITS must be of length nrings.  Start at START-TIME."
     (setq buffer-read-only t)
     (force-mode-line-update)))
 
-(defun hanoi-current-time-float ()
-  "Return values from current-time combined into a single float."
-  (destructuring-bind (high low micros) (current-time)
-    (+ (* high 65536.0) low (/ micros 1000000.0))))
-
 (defun hanoi-put-face (start end value &optional object)
   "If hanoi-use-faces is non-nil, call put-text-property for face property."
   (if hanoi-use-faces
@@ -383,7 +378,7 @@ BITS must be of length nrings.  Start at START-TIME."
 		    (/ (- tick flyward-ticks fly-ticks)
 		       ticks-per-pole-step))))))))
     (if hanoi-move-period
-	(loop for elapsed = (- (hanoi-current-time-float) start-time)
+	(loop for elapsed = (- (float-time) start-time)
 	      while (< elapsed hanoi-move-period)
 	      with tick-period = (/ (float hanoi-move-period) total-ticks)
 	      for tick = (ceiling (/ elapsed tick-period)) do

@@ -68,10 +68,12 @@ etc.) before "make bootstrap" or "make"; the rest of the procedure is
 applicable to those systems as well.
 
 Because the Bazaar version of Emacs is a work in progress, it will
-sometimes fail to build.  Please wait a day or so (and check the bug
-and development mailing list archives) before reporting such problems.
-In most cases, the problem is known about and is just waiting for
-someone to fix it.
+sometimes fail to build.  Please wait a day or so (and check the
+archives of the emacs-buildstatus, emacs-devel, and bug-gnu-emacs
+mailing lists) before reporting such problems.  In most cases, the
+problem is known about and is just waiting for someone to fix it.
+This is especially true for Lisp compilation errors, which are almost
+never platform-specific.
 
 
 

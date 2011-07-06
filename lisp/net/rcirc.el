@@ -315,7 +315,9 @@ Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
   :group 'rcirc)
 
 (defcustom rcirc-decode-coding-system 'utf-8
-  "Coding system used to decode incoming irc messages."
+  "Coding system used to decode incoming irc messages.
+Set to 'undecided if you want the encoding of the incoming
+messages autodetected."
   :type 'coding-system
   :group 'rcirc)
 
@@ -453,10 +455,7 @@ If ARG is non-nil, instead prompt for connection parameters."
 							   :channels)
 						" "))
 			"[, ]+" t))
-             (encryption
-              (intern (completing-read "Encryption (default plain): "
-                                       '("plain" "tls")
-                                       nil t nil nil "plain"))))
+             (encryption (rcirc-prompt-for-encryption server-plist)))
 	(rcirc-connect server port nick user-name
 		       rcirc-default-full-name
 		       channels password encryption))
@@ -589,6 +588,17 @@ If ARG is non-nil, instead prompt for connection parameters."
       (time-to-seconds (current-time))
     (float-time)))
 
+(defun rcirc-prompt-for-encryption (server-plist)
+  "Prompt the user for the encryption method to use.
+SERVER-PLIST is the property list for the server."
+  (let ((msg "Encryption (default %s): ")
+        (choices '("plain" "tls"))
+        (default (or (plist-get server-plist :encryption)
+                     'plain)))
+    (intern
+     (completing-read (format msg default)
+                      choices nil t nil nil (symbol-name default)))))
+
 (defun rcirc-keepalive ()
   "Send keep alive pings to active rcirc processes.
 Kill processes that have not received a server message since the
@@ -611,7 +621,7 @@ last ping."
     (setq header-line-format (format "%f" (- (rcirc-float-time)
 					     (string-to-number message))))))
 
-(defvar rcirc-debug-buffer " *rcirc debug*")
+(defvar rcirc-debug-buffer "*rcirc debug*")
 (defvar rcirc-debug-flag nil
   "If non-nil, write information to `rcirc-debug-buffer'.")
 (defun rcirc-debug (process text)
@@ -977,7 +987,7 @@ This number is independent of the number of lines in the buffer.")
   (setq buffer-invisibility-spec '())
   (setq buffer-display-table (make-display-table))
   (set-display-table-slot buffer-display-table 4
-			  (let ((glyph (make-glyph-code 
+			  (let ((glyph (make-glyph-code
 					?. 'font-lock-keyword-face)))
 			    (make-vector 3 glyph)))
 
@@ -1141,7 +1151,7 @@ Create the buffer if it doesn't exist."
 			   (rcirc-generate-new-buffer-name process target))))
 	  (with-current-buffer new-buffer
 	    (rcirc-mode process target)
-	    (rcirc-put-nick-channel process (rcirc-nick process) target 
+	    (rcirc-put-nick-channel process (rcirc-nick process) target
 				    rcirc-current-line))
 	  new-buffer)))))
 
@@ -1228,7 +1238,7 @@ Create the buffer if it doesn't exist."
   (interactive)
   (let ((pos (1+ (- (point) rcirc-prompt-end-marker))))
     (goto-char (point-max))
-    (let ((text (buffer-substring-no-properties rcirc-prompt-end-marker 
+    (let ((text (buffer-substring-no-properties rcirc-prompt-end-marker
 						(point)))
           (parent (buffer-name)))
       (delete-region rcirc-prompt-end-marker (point))
@@ -1467,7 +1477,7 @@ record activity."
 			       (match-string 1 text)))
 			   rcirc-ignore-list))
 	       ;; do not ignore if we sent the message
- 	       (not (string= sender (rcirc-nick process))))    
+ 	       (not (string= sender (rcirc-nick process))))
     (let* ((buffer (rcirc-target-buffer process sender response target text))
 	   (inhibit-read-only t))
       (with-current-buffer buffer
@@ -1475,9 +1485,8 @@ record activity."
 	      (old-point (point-marker))
 	      (fill-start (marker-position rcirc-prompt-start-marker)))
 
+	  (setq text (decode-coding-string text rcirc-decode-coding-system))
 	  (unless (string= sender (rcirc-nick process))
-	    ;; only decode text from other senders, not ours
-	    (setq text (decode-coding-string text rcirc-decode-coding-system))
 	    ;; mark the line with overlay arrow
 	    (unless (or (marker-position overlay-arrow-position)
 			(get-buffer-window (current-buffer))
@@ -1646,8 +1655,8 @@ log-files with absolute names (see `rcirc-log-filename-function')."
 (defun rcirc-view-log-file ()
   "View logfile corresponding to the current buffer."
   (interactive)
-  (find-file-other-window 
-   (expand-file-name (funcall rcirc-log-filename-function 
+  (find-file-other-window
+   (expand-file-name (funcall rcirc-log-filename-function
 			      (rcirc-buffer-process) rcirc-target)
 		     rcirc-log-directory)))
 
@@ -2437,7 +2446,7 @@ keywords when no KEYWORD is given."
 				 rcirc-fill-column)
 				(t fill-column))
 			  ;; make sure ... doesn't cause line wrapping
-			  3)))		
+			  3)))
       (fill-region (point) (point-max) nil t))))
 
 ;;; handlers
@@ -2804,7 +2813,7 @@ Passwords are stored in `rcirc-authinfo' (which see)."
             ;; quakenet authentication doesn't rely on the user's nickname.
             ;; the variable `nick' here represents the Q account name.
             (when (eq method 'quakenet)
-              (rcirc-send-privmsg 
+              (rcirc-send-privmsg
                process
                "Q@CServe.quakenet.org"
                (format "AUTH %s %s" nick (car args))))))))))

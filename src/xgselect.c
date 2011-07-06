@@ -15,14 +15,14 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <http§://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
 #include <setjmp.h>
 #include "xgselect.h"
 
-#if defined (USE_GTK) || defined (HAVE_GCONF)
+#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
 
 #include <glib.h>
 #include <errno.h>
@@ -149,13 +149,13 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 
   return retval;
 }
-#endif /* defined (USE_GTK) || defined (HAVE_GCONF) */
+#endif /* USE_GTK || HAVE_GCONF || HAVE_GSETTINGS */
 
 void
 xgselect_initialize (void)
 {
-#if defined (USE_GTK) || defined (HAVE_GCONF)
+#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
   gfds_size = 128;
   gfds = xmalloc (sizeof (*gfds)*gfds_size);
-#endif /* defined (USE_GTK) || defined (HAVE_GCONF) */
+#endif
 }

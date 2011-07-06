@@ -52,60 +52,6 @@ wait this many seconds after Emacs becomes idle before doing an update."
 (defgroup paren-matching nil
   "Highlight (un)matching of parens and expressions."
   :group 'matching)
-
-(defun get-next-valid-buffer (list &optional buffer visible-ok frame)
-  "Search LIST for a valid buffer to display in FRAME.
-Return nil when all buffers in LIST are undesirable for display,
-otherwise return the first suitable buffer in LIST.
-
-Buffers not visible in windows are preferred to visible buffers,
-unless VISIBLE-OK is non-nil.
-If the optional argument FRAME is nil, it defaults to the selected frame.
-If BUFFER is non-nil, ignore occurrences of that buffer in LIST."
-  ;; This logic is more or less copied from other-buffer.
-  (setq frame (or frame (selected-frame)))
-  (let ((pred (frame-parameter frame 'buffer-predicate))
-	found buf)
-    (while (and (not found) list)
-      (setq buf (car list))
-      (if (and (not (eq buffer buf))
-	       (buffer-live-p buf)
-	       (or (null pred) (funcall pred buf))
-	       (not (eq (aref (buffer-name buf) 0) ?\s))
-	       (or visible-ok (null (get-buffer-window buf 'visible))))
-	  (setq found buf)
-	(setq list (cdr list))))
-    (car list)))
-
-(defun last-buffer (&optional buffer visible-ok frame)
-  "Return the last buffer in FRAME's buffer list.
-If BUFFER is the last buffer, return the preceding buffer instead.
-Buffers not visible in windows are preferred to visible buffers,
-unless optional argument VISIBLE-OK is non-nil.
-Optional third argument FRAME nil or omitted means use the
-selected frame's buffer list.
-If no such buffer exists, return the buffer `*scratch*', creating
-it if necessary."
-  (setq frame (or frame (selected-frame)))
-  (or (get-next-valid-buffer (nreverse (buffer-list frame))
- 			     buffer visible-ok frame)
-      (get-buffer "*scratch*")
-      (let ((scratch (get-buffer-create "*scratch*")))
-	(set-buffer-major-mode scratch)
-	scratch)))
-
-(defun next-buffer ()
-  "Switch to the next buffer in cyclic order."
-  (interactive)
-  (let ((buffer (current-buffer)))
-    (switch-to-buffer (other-buffer buffer t))
-    (bury-buffer buffer)))
-
-(defun previous-buffer ()
-  "Switch to the previous buffer in cyclic order."
-  (interactive)
-  (switch-to-buffer (last-buffer (current-buffer) t)))
-
 
 ;;; next-error support framework
 
@@ -967,13 +913,11 @@ rather than line counts."
 		 (concat " in " (buffer-name buffer))
 	       "")))
        ;; Read the argument, offering that number (if any) as default.
-       (list (read-from-minibuffer (format (if default "Goto line%s (%s): "
-					     "Goto line%s: ")
-					   buffer-prompt
-					   default)
-				   nil nil t
-				   'minibuffer-history
-				   default)
+       (list (read-number (format (if default "Goto line%s (%s): "
+                                    "Goto line%s: ")
+                                  buffer-prompt
+                                  default)
+                          default)
 	     buffer))))
   ;; Switch to the desired buffer, one way or another.
   (if buffer
@@ -1158,6 +1102,7 @@ in *Help* buffer.  See also the command `describe-char'."
 
 (defvar minibuffer-completing-symbol nil
   "Non-nil means completing a Lisp symbol in the minibuffer.")
+(make-obsolete-variable 'minibuffer-completing-symbol nil "24.1" 'get)
 
 (defvar minibuffer-default nil
   "The current default value or list of default values in the minibuffer.
@@ -2586,7 +2531,10 @@ specifies the value of ERROR-BUFFER."
 	    (let ((output
 		   (if (and error-file
 			    (< 0 (nth 7 (file-attributes error-file))))
-		       "some error output"
+		       (format "some error output%s"
+			       (if shell-command-default-error-buffer
+				   (format " to the \"%s\" buffer" shell-command-default-error-buffer)
+				 ""))
 		     "no output")))
 	      (cond ((null exit-status)
 		     (message "(Shell command failed with error)"))
@@ -2814,25 +2762,21 @@ The return value is always nil."
 `universal-argument-other-key' uses this to discard those events
 from (this-command-keys), and reread only the final command.")
 
-(defvar overriding-map-is-bound nil
-  "Non-nil when `overriding-terminal-local-map' is `universal-argument-map'.")
-
-(defvar saved-overriding-map nil
+(defvar saved-overriding-map t
   "The saved value of `overriding-terminal-local-map'.
 That variable gets restored to this value on exiting \"universal
 argument mode\".")
 
-(defun ensure-overriding-map-is-bound ()
-  "Check `overriding-terminal-local-map' is `universal-argument-map'."
-  (unless overriding-map-is-bound
+(defun save&set-overriding-map (map)
+  "Set `overriding-terminal-local-map' to MAP."
+  (when (eq saved-overriding-map t)
     (setq saved-overriding-map overriding-terminal-local-map)
-    (setq overriding-terminal-local-map universal-argument-map)
-    (setq overriding-map-is-bound t)))
+    (setq overriding-terminal-local-map map)))
 
 (defun restore-overriding-map ()
   "Restore `overriding-terminal-local-map' to its saved value."
   (setq overriding-terminal-local-map saved-overriding-map)
-  (setq overriding-map-is-bound nil))
+  (setq saved-overriding-map t))
 
 (defun universal-argument ()
   "Begin a numeric argument for the following command.
@@ -2847,7 +2791,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   (interactive)
   (setq prefix-arg (list 4))
   (setq universal-argument-num-events (length (this-command-keys)))
-  (ensure-overriding-map-is-bound))
+  (save&set-overriding-map universal-argument-map))
 
 ;; A subsequent C-u means to multiply the factor by 4 if we've typed
 ;; nothing but C-u's; otherwise it means to terminate the prefix arg.
@@ -2872,7 +2816,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 	(t
 	 (setq prefix-arg '-)))
   (setq universal-argument-num-events (length (this-command-keys)))
-  (ensure-overriding-map-is-bound))
+  (save&set-overriding-map universal-argument-map))
 
 (defun digit-argument (arg)
   "Part of the numeric argument for the next command.
@@ -2891,7 +2835,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 	  (t
 	   (setq prefix-arg digit))))
   (setq universal-argument-num-events (length (this-command-keys)))
-  (ensure-overriding-map-is-bound))
+  (save&set-overriding-map universal-argument-map))
 
 ;; For backward compatibility, minus with no modifiers is an ordinary
 ;; command if digits have already been entered.
@@ -5176,8 +5120,8 @@ Returns t if it really did any work."
 		 (or (null fill-prefix) (string= fill-prefix "")))
 	(let ((prefix
 	       (fill-context-prefix
-		(save-excursion (backward-paragraph 1) (point))
-		(save-excursion (forward-paragraph 1) (point)))))
+		(save-excursion (fill-forward-paragraph -1) (point))
+		(save-excursion (fill-forward-paragraph 1) (point)))))
 	  (and prefix (not (equal prefix ""))
 	       ;; Use auto-indentation rather than a guessed empty prefix.
 	       (not (and fill-indent-according-to-mode
@@ -5659,7 +5603,8 @@ At top-level, as an editor command, this simply beeps."
   (if (fboundp 'kmacro-keyboard-quit)
       (kmacro-keyboard-quit))
   (setq defining-kbd-macro nil)
-  (signal 'quit nil))
+  (let ((debug-on-quit nil))
+    (signal 'quit nil)))
 
 (defvar buffer-quit-function nil
   "Function to call to \"quit\" the current buffer, or nil if none.
@@ -5968,6 +5913,12 @@ Its value is a list of the form (START END) where START is the place
 where the completion should be inserted and END (if non-nil) is the end
 of the text to replace.  If END is nil, point is used instead.")
 
+(defvar completion-list-insert-choice-function #'completion--replace
+  "Function to use to insert the text chosen in *Completions*.
+Called with 3 arguments (BEG END TEXT), it should replace the text
+between BEG and END with TEXT.  Expected to be set buffer-locally
+in the *Completions* buffer.")
+
 (defvar completion-base-size nil
   "Number of chars before point not involved in completion.
 This is a local variable in the completion list buffer.
@@ -6031,26 +5982,30 @@ With prefix argument N, move N items (negative N means move backward)."
   ;; In case this is run via the mouse, give temporary modes such as
   ;; isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
-  (let (buffer base-size base-position choice)
-    (with-current-buffer (window-buffer (posn-window (event-start event)))
-      (setq buffer completion-reference-buffer)
-      (setq base-size completion-base-size)
-      (setq base-position completion-base-position)
-      (save-excursion
-        (goto-char (posn-point (event-start event)))
-        (let (beg end)
-          (if (and (not (eobp)) (get-text-property (point) 'mouse-face))
-              (setq end (point) beg (1+ (point))))
-          (if (and (not (bobp)) (get-text-property (1- (point)) 'mouse-face))
-              (setq end (1- (point)) beg (point)))
-          (if (null beg)
-              (error "No completion here"))
-          (setq beg (previous-single-property-change beg 'mouse-face))
-          (setq end (or (next-single-property-change end 'mouse-face)
-                        (point-max)))
-          (setq choice (buffer-substring-no-properties beg end)))))
+  (with-current-buffer (window-buffer (posn-window (event-start event)))
+    (let ((buffer completion-reference-buffer)
+          (base-size completion-base-size)
+          (base-position completion-base-position)
+          (insert-function completion-list-insert-choice-function)
+          (choice
+           (save-excursion
+             (goto-char (posn-point (event-start event)))
+             (let (beg end)
+               (cond
+                ((and (not (eobp)) (get-text-property (point) 'mouse-face))
+                 (setq end (point) beg (1+ (point))))
+                ((and (not (bobp))
+                      (get-text-property (1- (point)) 'mouse-face))
+                 (setq end (1- (point)) beg (point)))
+                (t (error "No completion here")))
+               (setq beg (previous-single-property-change beg 'mouse-face))
+               (setq end (or (next-single-property-change end 'mouse-face)
+                             (point-max)))
+               (buffer-substring-no-properties beg end))))
+          (owindow (selected-window)))
 
-    (let ((owindow (selected-window)))
+      (unless (buffer-live-p buffer)
+        (error "Destination buffer is dead"))
       (select-window (posn-window (event-start event)))
       (if (and (one-window-p t 'selected-frame)
 	       (window-dedicated-p (selected-window)))
@@ -6059,20 +6014,20 @@ With prefix argument N, move N items (negative N means move backward)."
 	(or (window-dedicated-p (selected-window))
 	    (bury-buffer)))
       (select-window
-       (or (and (buffer-live-p buffer)
-		(get-buffer-window buffer 0))
-	   owindow)))
+       (or (get-buffer-window buffer 0)
+           owindow))
 
-    (choose-completion-string
-     choice buffer
-     (or base-position
-         (when base-size
-           ;; Someone's using old completion code that doesn't know
-           ;; about base-position yet.
-           (list (+ base-size (with-current-buffer buffer (field-beginning)))))
-         ;; If all else fails, just guess.
-         (with-current-buffer buffer
-           (list (choose-completion-guess-base-position choice)))))))
+      (with-current-buffer buffer
+        (choose-completion-string
+         choice buffer
+         (or base-position
+             (when base-size
+               ;; Someone's using old completion code that doesn't know
+               ;; about base-position yet.
+               (list (+ base-size (field-beginning))))
+             ;; If all else fails, just guess.
+             (list (choose-completion-guess-base-position choice)))
+         insert-function)))))
 
 ;; Delete the longest partial match for STRING
 ;; that can be found before POINT.
@@ -6118,7 +6073,8 @@ the minibuffer; no further functions will be called.
 If all functions in the list return nil, that means to use
 the default method of inserting the completion in BUFFER.")
 
-(defun choose-completion-string (choice &optional buffer base-position)
+(defun choose-completion-string (choice &optional
+                                        buffer base-position insert-function)
   "Switch to BUFFER and insert the completion choice CHOICE.
 BASE-POSITION, says where to insert the completion."
 
@@ -6138,8 +6094,8 @@ BASE-POSITION, says where to insert the completion."
     ;; If BUFFER is a minibuffer, barf unless it's the currently
     ;; active minibuffer.
     (if (and mini-p
-	     (or (not (active-minibuffer-window))
-		 (not (equal buffer
+             (not (and (active-minibuffer-window)
+                       (equal buffer
 			     (window-buffer (active-minibuffer-window))))))
 	(error "Minibuffer is not active for completion")
       ;; Set buffer so buffer-local choose-completion-string-functions works.
@@ -6151,13 +6107,15 @@ BASE-POSITION, says where to insert the completion."
                ;; and indeed unused.  The last used to be `base-size', so we
                ;; keep it to try and avoid breaking old code.
 	       choice buffer base-position nil)
+        ;; This remove-text-properties should be unnecessary since `choice'
+        ;; comes from buffer-substring-no-properties.
+        ;;(remove-text-properties 0 (lenth choice) '(mouse-face nil) choice)
 	;; Insert the completion into the buffer where it was requested.
-        (delete-region (or (car base-position) (point))
-                       (or (cadr base-position) (point)))
-	(insert choice)
-	(remove-text-properties (- (point) (length choice)) (point)
-				'(mouse-face nil))
-	;; Update point in the window that BUFFER is showing in.
+        (funcall (or insert-function completion-list-insert-choice-function)
+                 (or (car base-position) (point))
+                 (or (cadr base-position) (point))
+                 choice)
+        ;; Update point in the window that BUFFER is showing in.
 	(let ((window (get-buffer-window buffer t)))
 	  (set-window-point window (point)))
 	;; If completing for the minibuffer, exit it with this choice.
@@ -6223,10 +6181,13 @@ Called from `temp-buffer-show-hook'."
                            0 (or completion-base-size 0)))))))
     (with-current-buffer standard-output
       (let ((base-size completion-base-size) ;Read before killing localvars.
-            (base-position completion-base-position))
+            (base-position completion-base-position)
+            (insert-fun completion-list-insert-choice-function))
         (completion-list-mode)
         (set (make-local-variable 'completion-base-size) base-size)
-        (set (make-local-variable 'completion-base-position) base-position))
+        (set (make-local-variable 'completion-base-position) base-position)
+        (set (make-local-variable 'completion-list-insert-choice-function)
+	     insert-fun))
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
       (if base-dir (setq default-directory base-dir))
       ;; Maybe insert help string.

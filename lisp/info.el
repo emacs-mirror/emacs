@@ -2092,7 +2092,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
 	       ))
 
 (defun Info-directory-toc-nodes (filename)
-  "Directory-specific implementation of `Info-directory-toc-nodes'."
+  "Directory-specific implementation of `Info-toc-nodes'."
   `(,filename
     ("Top" nil nil nil)))
 
@@ -3230,7 +3230,7 @@ STRING is the search string given as an argument to `info-apropos',
 MATCHES is a list of index matches found by `Info-apropos-matches'.")
 
 (defun Info-apropos-toc-nodes (filename)
-  "Apropos-specific implementation of `Info-apropos-toc-nodes'."
+  "Apropos-specific implementation of `Info-toc-nodes'."
   (let ((nodes (mapcar 'car (reverse Info-apropos-nodes))))
     `(,filename
       ("Top" nil nil ,nodes)
@@ -3281,7 +3281,6 @@ MATCHES is a list of index matches found by `Info-apropos-matches'.")
   "Collect STRING matches from all known Info files on your system.
 Return a list of matches where each element is in the format
 \((FILENAME INDEXTEXT NODENAME LINENUMBER))."
-  (interactive "sIndex apropos: ")
   (unless (string= string "")
     (let ((pattern (format "\n\\* +\\([^\n]*%s[^\n]*\\):[ \t]+\\([^\n]+\\)\\.\\(?:[ \t\n]*(line +\\([0-9]+\\))\\)?"
 			   (regexp-quote string)))

@@ -215,7 +215,8 @@ The following keywords are meaningful:
 	variable.  It takes two arguments, the symbol and value
 	given in the `defcustom' call.  The default is
 	`custom-initialize-reset'.
-:set	VALUE should be a function to set the value of the symbol.
+:set	VALUE should be a function to set the value of the symbol
+        when using the Customize user interface.
 	It takes two arguments, the symbol to set and the value to
 	give it.  The default choice of function is `set-default'.
 :get	VALUE should be a function to extract the value of symbol.
@@ -854,25 +855,18 @@ See `custom-known-themes' for a list of known themes."
      ;; Add a new setting:
      (t
       (unless old
-	;; If the user changed the value outside of Customize, we
-	;; first save the current value to a fake theme, `changed'.
-	;; This ensures that the user-set value comes back if the
-	;; theme is later disabled.
-	(cond ((and (eq prop 'theme-value)
-		    (boundp symbol))
-	       (let ((sv  (get symbol 'standard-value))
-		     (val (symbol-value symbol)))
-		 (unless (and sv (equal (eval (car sv)) val))
-		   (setq old `((changed ,(custom-quote val)))))))
-	      ((and (facep symbol)
-		    (not (face-attr-match-p
-			  symbol
-			  (custom-fix-face-spec
-			   (face-spec-choose
-			    (get symbol 'face-defface-spec))))))
-	       (setq old `((changed
-			    (,(append '(t) (custom-face-attributes-get
-					    symbol nil)))))))))
+	;; If the user changed a variable outside of Customize, save
+	;; the value to a fake theme, `changed'.  If the theme is
+	;; later disabled, we use this to bring back the old value.
+	;;
+	;; For faces, we just use `face-new-frame-defaults' to
+	;; recompute when the theme is disabled.
+	(when (and (eq prop 'theme-value)
+		   (boundp symbol))
+	  (let ((sv  (get symbol 'standard-value))
+		(val (symbol-value symbol)))
+	    (unless (and sv (equal (eval (car sv)) val))
+	      (setq old `((changed ,(custom-quote val))))))))
       (put symbol prop (cons (list theme value) old))
       (put theme 'theme-settings
 	   (cons (list prop symbol theme value) theme-settings))))))
@@ -1119,20 +1113,29 @@ Emacs theme directory (a directory named \"themes\" in
   :risky t
   :version "24.1")
 
-(defun load-theme (theme &optional no-enable)
+(defun load-theme (theme &optional no-confirm no-enable)
   "Load Custom theme named THEME from its file.
-Normally, this also enables THEME.  If optional arg NO-ENABLE is
-non-nil, load THEME but don't enable it.
-
 The theme file is named THEME-theme.el, in one of the directories
 specified by `custom-theme-load-path'.
+
+If THEME is not in `custom-safe-themes', prompt the user for
+confirmation, unless optional arg NO-CONFIRM is non-nil.
+
+Normally, this function also enables THEME; if optional arg
+NO-ENABLE is non-nil, load the theme but don't enable it.
+
+This function is normally called through Customize when setting
+`custom-enabled-themes'.  If used directly in your init file, it
+should be called with a non-nil NO-CONFIRM argument, or after
+`custom-safe-themes' has been loaded.
 
 Return t if THEME was successfully loaded, nil otherwise."
   (interactive
    (list
     (intern (completing-read "Load custom theme: "
 			     (mapcar 'symbol-name
-				     (custom-available-themes))))))
+				     (custom-available-themes))))
+    nil nil))
   (unless (custom-theme-name-valid-p theme)
     (error "Invalid theme name `%s'" theme))
   ;; If reloading, clear out the old theme settings.
@@ -1152,7 +1155,8 @@ Return t if THEME was successfully loaded, nil otherwise."
       (setq hash (sha1 (current-buffer)))
       ;; Check file safety with `custom-safe-themes', prompting the
       ;; user if necessary.
-      (when (or (and (memq 'default custom-safe-themes)
+      (when (or no-confirm
+		(and (memq 'default custom-safe-themes)
 		     (equal (file-name-directory fn)
 			    (expand-file-name "themes/" data-directory)))
 		(member hash custom-safe-themes)
@@ -1211,10 +1215,7 @@ query also about adding HASH to `custom-safe-themes'."
 	  ;; Offer to save to `custom-safe-themes'.
 	  (and (or custom-file user-init-file)
 	       (y-or-n-p "Treat this theme as safe in future sessions? ")
-	       (let ((coding-system-for-read nil))
-		 (push hash custom-safe-themes)
-		 (customize-save-variable 'custom-safe-themes
-					  custom-safe-themes)))
+	       (customize-push-and-save 'custom-safe-themes (list hash)))
 	  t)))))
 
 (defun custom-theme-name-valid-p (name)
@@ -1291,7 +1292,10 @@ This list does not include the `user' theme, which is set by
 Customize and always takes precedence over other Custom Themes.
 
 This variable cannot be defined inside a Custom theme; there, it
-is simply ignored."
+is simply ignored.
+
+Setting this variable through Customize calls `enable-theme' or
+`load-theme' for each theme in the list."
   :group 'customize
   :type  '(repeat symbol)
   :set-after '(custom-theme-directory custom-theme-load-path
@@ -1345,10 +1349,32 @@ See `custom-enabled-themes' for a list of enabled themes."
 	    ;; If the face spec specified by this theme is in the
 	    ;; saved-face property, reset that property.
 	    (when (equal (nth 3 s) (get symbol 'saved-face))
-	      (put symbol 'saved-face (and val (cadr (car val)))))
-	    (custom-theme-recalc-face symbol)))))
+	      (put symbol 'saved-face (and val (cadr (car val)))))))))
+      ;; Recompute faces on all frames.
+      (dolist (frame (frame-list))
+	;; We must reset the fg and bg color frame parameters, or
+	;; `face-set-after-frame-default' will use the existing
+	;; parameters, which could be from the disabled theme.
+	(set-frame-parameter frame 'background-color
+			     (custom--frame-color-default
+			      frame :background "background" "Background"
+			      "unspecified-bg" "white"))
+	(set-frame-parameter frame 'foreground-color
+			     (custom--frame-color-default
+			      frame :foreground "foreground" "Foreground"
+			      "unspecified-fg" "black"))
+	(face-set-after-frame-default frame))
       (setq custom-enabled-themes
 	    (delq theme custom-enabled-themes)))))
+
+(defun custom--frame-color-default (frame attribute resource-attr resource-class
+					  tty-default x-default)
+  (let ((col (face-attribute 'default attribute t)))
+    (cond
+     ((and col (not (eq col 'unspecified))) col)
+     ((null (window-system frame)) tty-default)
+     ((setq col (x-get-resource resource-attr resource-class)) col)
+     (t x-default))))
 
 (defun custom-variable-theme-value (variable)
   "Return (list VALUE) indicating the custom theme value of VARIABLE.
@@ -1381,7 +1407,7 @@ This function returns nil if no custom theme specifies a value for VARIABLE."
     (face-spec-recalc face frame)))
 
 
-;;; XEmacs compability functions
+;;; XEmacs compatibility functions
 
 ;; In XEmacs, when you reset a Custom Theme, you have to specify the
 ;; theme to reset it to.  We just apply the next available theme, so

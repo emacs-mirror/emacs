@@ -117,16 +117,16 @@ from a file."
   '(after-change-functions after-insert-file-functions
     after-make-frame-functions auto-fill-function before-change-functions
     blink-paren-function buffer-access-fontify-functions
-    choose-completion-string-functions command-line-functions
-    comment-indent-function compilation-finish-functions delete-frame-functions
-    disabled-command-function find-file-not-found-functions
-    font-lock-beginning-of-syntax-function font-lock-fontify-buffer-function
-    font-lock-fontify-region-function font-lock-mark-block-function
-    font-lock-syntactic-face-function font-lock-unfontify-buffer-function
-    font-lock-unfontify-region-function kill-buffer-query-functions
-    kill-emacs-query-functions lisp-indent-function mouse-position-function
-    redisplay-end-trigger-functions suspend-tty-functions
-    temp-buffer-show-function window-scroll-functions
+    choose-completion-string-functions comint-output-filter-functions
+    command-line-functions comment-indent-function compilation-finish-functions
+    delete-frame-functions disabled-command-function
+    find-file-not-found-functions font-lock-beginning-of-syntax-function
+    font-lock-fontify-buffer-function font-lock-fontify-region-function
+    font-lock-mark-block-function font-lock-syntactic-face-function
+    font-lock-unfontify-buffer-function font-lock-unfontify-region-function
+    kill-buffer-query-functions kill-emacs-query-functions lisp-indent-function
+    mouse-position-function redisplaylay-end-trigger-functions
+    suspend-tty-functions temp-buffer-show-function window-scroll-functions
     window-size-change-functions write-contents-functions write-file-functions
     write-region-annotate-functions)
   "A list of special hooks from Info node `(elisp)Standard Hooks'.
@@ -142,6 +142,19 @@ This is meant to be used by `FEATURE-unload-function'; see the
 documentation of `unload-feature' for details.")
 (define-obsolete-variable-alias 'unload-hook-features-list
     'unload-function-defs-list "22.2")
+
+(defun unload--set-major-mode ()
+  (save-current-buffer
+    (dolist (buffer (buffer-list))
+      (set-buffer buffer)
+      (let ((proposed major-mode))
+        ;; Look for an antecessor mode not defined in the feature we're processing
+        (while (and proposed (rassq proposed unload-function-defs-list))
+          (setq proposed (get proposed 'derived-mode-parent)))
+        (unless (eq proposed major-mode)
+          ;; Two cases: either proposed is nil, and we want to switch to fundamental
+          ;; mode, or proposed is not nil and not major-mode, and so we use it.
+          (funcall (or proposed 'fundamental-mode)))))))
 
 ;;;###autoload
 (defun unload-feature (feature &optional force)
@@ -222,6 +235,10 @@ something strange, such as redefining an Emacs function."
 		     (not (get (cdr y) 'autoload)))
 	    (setq auto-mode-alist
 		  (rassq-delete-all (cdr y) auto-mode-alist)))))
+
+      ;; Change major mode in all buffers using one defined in the feature being unloaded.
+      (unload--set-major-mode)
+
       (when (fboundp 'elp-restore-function) ; remove ELP stuff first
 	(dolist (elt unload-function-defs-list)
 	  (when (symbolp elt)

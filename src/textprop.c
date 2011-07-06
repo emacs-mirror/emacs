@@ -248,7 +248,7 @@ interval_has_all_properties (Lisp_Object plist, INTERVAL i)
 /* Return nonzero if the plist of interval I has any of the
    properties of PLIST, regardless of their values.  */
 
-static INLINE int
+static inline int
 interval_has_some_properties (Lisp_Object plist, INTERVAL i)
 {
   register Lisp_Object tail1, tail2, sym;
@@ -270,7 +270,7 @@ interval_has_some_properties (Lisp_Object plist, INTERVAL i)
 /* Return nonzero if the plist of interval I has any of the
    property names in LIST, regardless of their values.  */
 
-static INLINE int
+static inline int
 interval_has_some_properties_list (Lisp_Object list, INTERVAL i)
 {
   register Lisp_Object tail1, tail2, sym;
@@ -499,7 +499,7 @@ remove_properties (Lisp_Object plist, Lisp_Object list, INTERVAL i, Lisp_Object 
 /* Remove all properties from interval I.  Return non-zero
    if this changes the interval.  */
 
-static INLINE int
+static inline int
 erase_properties (INTERVAL i)
 {
   if (NILP (i->plist))
@@ -613,7 +613,7 @@ get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, 
     }
   if (BUFFERP (object))
     {
-      int noverlays;
+      ptrdiff_t noverlays;
       Lisp_Object *overlay_vec;
       struct buffer *obuf = current_buffer;
 
@@ -1707,9 +1707,13 @@ text_property_stickiness (Lisp_Object prop, Lisp_Object pos, Lisp_Object buffer)
 {
   Lisp_Object prev_pos, front_sticky;
   int is_rear_sticky = 1, is_front_sticky = 0; /* defaults */
+  Lisp_Object defalt = Fassq (prop, Vtext_property_default_nonsticky);
 
   if (NILP (buffer))
     XSETBUFFER (buffer, current_buffer);
+
+  if (CONSP (defalt) && !NILP (XCDR (defalt)))
+    is_rear_sticky = 0;
 
   if (XINT (pos) > BUF_BEGV (XBUFFER (buffer)))
     /* Consider previous character.  */
@@ -2230,9 +2234,11 @@ If a character in a buffer has PROPERTY, new text inserted adjacent to
 the character doesn't inherit PROPERTY if NONSTICKINESS is non-nil,
 inherits it if NONSTICKINESS is nil.  The `front-sticky' and
 `rear-nonsticky' properties of the character override NONSTICKINESS.  */);
-  /* Text property `syntax-table' should be nonsticky by default.  */
+  /* Text properties `syntax-table'and `display' should be nonsticky
+     by default.  */
   Vtext_property_default_nonsticky
-    = Fcons (Fcons (intern_c_string ("syntax-table"), Qt), Qnil);
+    = Fcons (Fcons (intern_c_string ("syntax-table"), Qt),
+	     Fcons (Fcons (intern_c_string ("display"), Qt), Qnil));
 
   staticpro (&interval_insert_behind_hooks);
   staticpro (&interval_insert_in_front_hooks);
@@ -2242,45 +2248,27 @@ inherits it if NONSTICKINESS is nil.  The `front-sticky' and
 
   /* Common attributes one might give text */
 
-  staticpro (&Qforeground);
-  Qforeground = intern_c_string ("foreground");
-  staticpro (&Qbackground);
-  Qbackground = intern_c_string ("background");
-  staticpro (&Qfont);
-  Qfont = intern_c_string ("font");
-  staticpro (&Qstipple);
-  Qstipple = intern_c_string ("stipple");
-  staticpro (&Qunderline);
-  Qunderline = intern_c_string ("underline");
-  staticpro (&Qread_only);
-  Qread_only = intern_c_string ("read-only");
-  staticpro (&Qinvisible);
-  Qinvisible = intern_c_string ("invisible");
-  staticpro (&Qintangible);
-  Qintangible = intern_c_string ("intangible");
-  staticpro (&Qcategory);
-  Qcategory = intern_c_string ("category");
-  staticpro (&Qlocal_map);
-  Qlocal_map = intern_c_string ("local-map");
-  staticpro (&Qfront_sticky);
-  Qfront_sticky = intern_c_string ("front-sticky");
-  staticpro (&Qrear_nonsticky);
-  Qrear_nonsticky = intern_c_string ("rear-nonsticky");
-  staticpro (&Qmouse_face);
-  Qmouse_face = intern_c_string ("mouse-face");
-  staticpro (&Qminibuffer_prompt);
-  Qminibuffer_prompt = intern_c_string ("minibuffer-prompt");
+  DEFSYM (Qforeground, "foreground");
+  DEFSYM (Qbackground, "background");
+  DEFSYM (Qfont, "font");
+  DEFSYM (Qstipple, "stipple");
+  DEFSYM (Qunderline, "underline");
+  DEFSYM (Qread_only, "read-only");
+  DEFSYM (Qinvisible, "invisible");
+  DEFSYM (Qintangible, "intangible");
+  DEFSYM (Qcategory, "category");
+  DEFSYM (Qlocal_map, "local-map");
+  DEFSYM (Qfront_sticky, "front-sticky");
+  DEFSYM (Qrear_nonsticky, "rear-nonsticky");
+  DEFSYM (Qmouse_face, "mouse-face");
+  DEFSYM (Qminibuffer_prompt, "minibuffer-prompt");
 
   /* Properties that text might use to specify certain actions */
 
-  staticpro (&Qmouse_left);
-  Qmouse_left = intern_c_string ("mouse-left");
-  staticpro (&Qmouse_entered);
-  Qmouse_entered = intern_c_string ("mouse-entered");
-  staticpro (&Qpoint_left);
-  Qpoint_left = intern_c_string ("point-left");
-  staticpro (&Qpoint_entered);
-  Qpoint_entered = intern_c_string ("point-entered");
+  DEFSYM (Qmouse_left, "mouse-left");
+  DEFSYM (Qmouse_entered, "mouse-entered");
+  DEFSYM (Qpoint_left, "point-left");
+  DEFSYM (Qpoint_entered, "point-entered");
 
   defsubr (&Stext_properties_at);
   defsubr (&Sget_text_property);

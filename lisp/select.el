@@ -289,7 +289,9 @@ two markers or an overlay.  Otherwise, it is nil."
 
 (defun xselect-convert-to-targets (_selection _type _value)
   ;; return a vector of atoms, but remove duplicates first.
-  (let* ((all (cons 'TIMESTAMP (mapcar 'car selection-converter-alist)))
+  (let* ((all (cons 'TIMESTAMP
+		    (cons 'MULTIPLE
+			  (mapcar 'car selection-converter-alist))))
 	 (rest all))
     (while rest
       (cond ((memq (car rest) (cdr rest))
@@ -365,6 +367,12 @@ This function returns the string \"emacs\"."
 (defun xselect-convert-to-identity (_selection _type value) ; used internally
   (vector value))
 
+;; Null target that tells clipboard managers we support SAVE_TARGETS
+;; (see freedesktop.org Clipboard Manager spec).
+(defun xselect-convert-to-save-targets (selection _type _value)
+  (when (eq selection 'CLIPBOARD)
+    'NULL))
+
 (setq selection-converter-alist
       '((TEXT . xselect-convert-to-string)
 	(COMPOUND_TEXT . xselect-convert-to-string)
@@ -384,6 +392,7 @@ This function returns the string \"emacs\"."
 	(NAME . xselect-convert-to-name)
 	(ATOM . xselect-convert-to-atom)
 	(INTEGER . xselect-convert-to-integer)
+	(SAVE_TARGETS . xselect-convert-to-save-targets)
 	(_EMACS_INTERNAL . xselect-convert-to-identity)))
 
 (provide 'select)

@@ -1059,8 +1059,7 @@ EXECUTION-TIME holds info about the time it takes, number or string.")
     (let* ((completion-ignore-case t)
 	   ;; we already have a list, but it is not in the right format
 	   ;; transform it to a valid table so completition can use it
-	   (table (mapcar '(lambda (elm)
-			     (cons (symbol-name (car elm)) nil))
+	   (table (mapcar (lambda (elm) (cons (symbol-name (car elm)) nil))
 			  mixal-operation-codes-alist))
 	   ;; prompt is different depending on we are close to a valid op-code
 	   (have-default (assq (intern-soft (current-word))
@@ -1104,7 +1103,7 @@ Assumes that file has been compiled with debugging support."
     (error "mixvm.el needs to be loaded to run `mixvm'")))
 
 ;;;###autoload
-(define-derived-mode mixal-mode fundamental-mode "mixal"
+(define-derived-mode mixal-mode prog-mode "mixal"
   "Major mode for the mixal asm language."
   (set (make-local-variable 'comment-start) "*")
   (set (make-local-variable 'comment-start-skip) "^\\*[ \t]*")

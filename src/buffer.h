@@ -18,6 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
+#include <time.h> /* for time_t */
 
 /* Accessing the parameters of the current buffer.  */
 
@@ -306,6 +307,13 @@ do								\
   }								\
 while (0)
 
+/* Maximum number of bytes in a buffer.
+   A buffer cannot contain more bytes than a 1-origin fixnum can represent,
+   nor can it be so large that C pointer arithmetic stops working.
+   The ptrdiff_t cast ensures that this is signed, not unsigned.  */
+#define BUF_BYTES_MAX \
+  (ptrdiff_t) min (MOST_POSITIVE_FIXNUM - 1, min (SIZE_MAX, PTRDIFF_MAX))
+
 /* Return the address of byte position N in current buffer.  */
 
 #define BYTE_POS_ADDR(n) \
@@ -332,7 +340,7 @@ while (0)
 
 #define PTR_BYTE_POS(ptr) \
 ((ptr) - (current_buffer)->text->beg					    \
- - (ptr - (current_buffer)->text->beg <= (unsigned) (GPT_BYTE - BEG_BYTE) ? 0 : GAP_SIZE) \
+ - (ptr - (current_buffer)->text->beg <= GPT_BYTE - BEG_BYTE ? 0 : GAP_SIZE) \
  + BEG_BYTE)
 
 /* Return character at byte position POS.  */
@@ -391,7 +399,7 @@ extern unsigned char *_fetch_multibyte_char_p;
 
 #define BUF_PTR_BYTE_POS(buf, ptr)				\
 ((ptr) - (buf)->text->beg					\
- - (ptr - (buf)->text->beg <= (unsigned) (BUF_GPT_BYTE ((buf)) - BEG_BYTE)\
+ - (ptr - (buf)->text->beg <= BUF_GPT_BYTE (buf) - BEG_BYTE	\
     ? 0 : BUF_GAP_SIZE ((buf)))					\
  + BEG_BYTE)
 
@@ -545,7 +553,7 @@ struct buffer
      -1 means visited file was nonexistent.
      0 means visited file modtime unknown; in no case complain
      about any mismatch on next save attempt.  */
-  int modtime;
+  time_t modtime;
   /* Size of the file when modtime was set.  This is used to detect the
      case where the file grew while we were reading it, so the modtime
      is still the same (since it's rounded up to seconds) but we're actually
@@ -879,10 +887,10 @@ extern struct buffer buffer_local_symbols;
 extern void delete_all_overlays (struct buffer *);
 extern void reset_buffer (struct buffer *);
 extern void evaporate_overlays (EMACS_INT);
-extern int overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
-                        int *len_ptr, EMACS_INT *next_ptr,
-                        EMACS_INT *prev_ptr, int change_req);
-extern int sort_overlays (Lisp_Object *, int, struct window *);
+extern ptrdiff_t overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
+			      ptrdiff_t *len_ptr, EMACS_INT *next_ptr,
+			      EMACS_INT *prev_ptr, int change_req);
+extern ptrdiff_t sort_overlays (Lisp_Object *, ptrdiff_t, struct window *);
 extern void recenter_overlay_lists (struct buffer *, EMACS_INT);
 extern EMACS_INT overlay_strings (EMACS_INT, struct window *, unsigned char **);
 extern void validate_region (Lisp_Object *, Lisp_Object *);
@@ -900,7 +908,7 @@ extern void mmap_set_vars (int);
 
 #define GET_OVERLAYS_AT(posn, overlays, noverlays, nextp, chrq)		\
   do {									\
-    int maxlen = 40;							\
+    ptrdiff_t maxlen = 40;							\
     overlays = (Lisp_Object *) alloca (maxlen * sizeof (Lisp_Object));	\
     noverlays = overlays_at (posn, 0, &overlays, &maxlen,		\
 			     nextp, NULL, chrq);				\

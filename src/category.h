@@ -62,7 +62,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define XCATEGORY_SET XBOOL_VECTOR
 
 #define CATEGORY_SET_P(x) \
-  (BOOL_VECTOR_P ((x)) && (EMACS_INT) (XBOOL_VECTOR ((x))->size) == 128)
+  (BOOL_VECTOR_P (x) && XBOOL_VECTOR (x)->size == 128)
 
 /* Return a new empty category set.  */
 #define MAKE_CATEGORY_SET (Fmake_bool_vector (make_number (128), Qnil))

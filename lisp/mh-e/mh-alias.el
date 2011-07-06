@@ -316,8 +316,7 @@ Blind aliases or users from /etc/passwd are not expanded."
                         res)
                   res)))
              ((t) (all-completions string mh-alias-alist pred))
-             ((lambda) (if (fboundp 'test-completion)
-                      (test-completion string mh-alias-alist pred))))))))))
+             ((lambda) (mh-test-completion string mh-alias-alist pred)))))))))
 
 
 ;;; Alias File Updating
@@ -638,10 +637,10 @@ filing messages."
         (message "Making passwd aliases...")
         (setq passwd-matches
               (mapconcat
-               '(lambda (elem)
-                  (if (or (string-match regexp (car elem))
-                          (string-match regexp (cadr elem)))
-                      (format "%s: %s\n" (car elem) (cadr elem))))
+               (lambda (elem)
+                 (if (or (string-match regexp (car elem))
+                         (string-match regexp (cadr elem)))
+                     (format "%s: %s\n" (car elem) (cadr elem))))
                mh-alias-passwd-alist ""))
         (message "Making passwd aliases...done")))
     (if (and (string-equal "" matches)

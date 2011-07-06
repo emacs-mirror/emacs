@@ -36,7 +36,7 @@
 # define _GL_WINSOCK2_H_WITNESS
 
 /* Normal invocation.  */
-#elif !defined _GL_UNISTD_H
+#elif !defined _@GUARD_PREFIX@_UNISTD_H
 
 /* The include_next requires a split double-inclusion guard.  */
 #if @HAVE_UNISTD_H@
@@ -51,8 +51,8 @@
 # undef _GL_INCLUDING_WINSOCK2_H
 #endif
 
-#if !defined _GL_UNISTD_H && !defined _GL_INCLUDING_WINSOCK2_H
-#define _GL_UNISTD_H
+#if !defined _@GUARD_PREFIX@_UNISTD_H && !defined _GL_INCLUDING_WINSOCK2_H
+#define _@GUARD_PREFIX@_UNISTD_H
 
 /* NetBSD 5.0 mis-defines NULL.  Also get size_t.  */
 #include <stddef.h>
@@ -120,7 +120,7 @@
 #if @GNULIB_GETHOSTNAME@
 /* Get all possible declarations of gethostname().  */
 # if @UNISTD_H_HAVE_WINSOCK2_H@
-#  if !defined _GL_SYS_SOCKET_H
+#  if !defined _@GUARD_PREFIX@_SYS_SOCKET_H
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #    undef socket
 #    define socket              socket_used_without_including_sys_socket_h
@@ -181,7 +181,7 @@
                       "shutdown() used without including <sys/socket.h>");
 #   endif
 #  endif
-#  if !defined _GL_SYS_SELECT_H
+#  if !defined _@GUARD_PREFIX@_SYS_SELECT_H
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #    undef select
 #    define select              select_used_without_including_sys_select_h
@@ -1062,6 +1062,7 @@ _GL_WARN_ON_USE (pipe2, "pipe2 is unportable - "
    specification <http://www.opengroup.org/susv3xsh/pread.html>.  */
 # if @REPLACE_PREAD@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef pread
 #   define pread rpl_pread
 #  endif
 _GL_FUNCDECL_RPL (pread, ssize_t,
@@ -1096,6 +1097,7 @@ _GL_WARN_ON_USE (pread, "pread is unportable - "
    <http://www.opengroup.org/susv3xsh/pwrite.html>.  */
 # if @REPLACE_PWRITE@
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef pwrite
 #   define pwrite rpl_pwrite
 #  endif
 _GL_FUNCDECL_RPL (pwrite, ssize_t,
@@ -1416,5 +1418,5 @@ _GL_CXXALIASWARN (write);
 #endif
 
 
-#endif /* _GL_UNISTD_H */
-#endif /* _GL_UNISTD_H */
+#endif /* _@GUARD_PREFIX@_UNISTD_H */
+#endif /* _@GUARD_PREFIX@_UNISTD_H */

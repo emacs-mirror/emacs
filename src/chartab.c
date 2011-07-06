@@ -524,15 +524,15 @@ a cons of character codes (for characters in the range), or a character code.  *
 
   if (EQ (range, Qnil))
     val = XCHAR_TABLE (char_table)->defalt;
-  else if (INTEGERP (range))
-    val = CHAR_TABLE_REF (char_table, XINT (range));
+  else if (CHARACTERP (range))
+    val = CHAR_TABLE_REF (char_table, XFASTINT (range));
   else if (CONSP (range))
     {
       int from, to;
 
       CHECK_CHARACTER_CAR (range);
       CHECK_CHARACTER_CDR (range);
-      val = char_table_ref_and_range (char_table, XINT (XCAR (range)),
+      val = char_table_ref_and_range (char_table, XFASTINT (XCAR (range)),
 				      &from, &to);
       /* Not yet implemented. */
     }

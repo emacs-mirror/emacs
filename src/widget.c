@@ -78,7 +78,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static void EmacsFrameInitialize (Widget request, Widget new, ArgList dum1, Cardinal *dum2);
 static void EmacsFrameDestroy (Widget widget);
 static void EmacsFrameRealize (Widget widget, XtValueMask *mask, XSetWindowAttributes *attrs);
-void EmacsFrameResize (Widget widget);
+static void EmacsFrameResize (Widget widget);
 static Boolean EmacsFrameSetValues (Widget cur_widget, Widget req_widget, Widget new_widget, ArgList dum1, Cardinal *dum2);
 static XtGeometryResult EmacsFrameQueryGeometry (Widget widget, XtWidgetGeometry *request, XtWidgetGeometry *result);
 
@@ -137,7 +137,7 @@ emacsFrameTranslations [] = "\
 ";
 */
 
-EmacsFrameClassRec emacsFrameClassRec = {
+static EmacsFrameClassRec emacsFrameClassRec = {
     { /* core fields */
     /* superclass		*/	&widgetClassRec,
     /* class_name		*/	"EmacsFrame",
@@ -463,10 +463,6 @@ set_frame_size (EmacsFrame ew)
   }
 }
 
-/* Nonzero tells update_wm_hints not to do anything
-   (the caller should call update_wm_hints explicitly later.)  */
-int update_hints_inhibit;
-
 static void
 update_wm_hints (EmacsFrame ew)
 {
@@ -480,9 +476,6 @@ update_wm_hints (EmacsFrame ew)
   int base_width;
   int base_height;
   int min_rows = 0, min_cols = 0;
-
-  if (update_hints_inhibit)
-    return;
 
 #if 0
   check_frame_size (ew->emacs_frame.frame, &min_rows, &min_cols);
@@ -523,14 +516,11 @@ create_frame_gcs (ew)
   struct frame *s = ew->emacs_frame.frame;
 
   s->output_data.x->normal_gc
-    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
-		 (unsigned long)0, (XGCValues *)0);
+    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)), 0, 0);
   s->output_data.x->reverse_gc
-    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
-		 (unsigned long)0, (XGCValues *)0);
+    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)), 0, 0);
   s->output_data.x->cursor_gc
-    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)),
-		 (unsigned long)0, (XGCValues *)0);
+    = XCreateGC (XtDisplay (ew), RootWindowOfScreen (XtScreen (ew)), 0, 0);
   s->output_data.x->black_relief.gc = 0;
   s->output_data.x->white_relief.gc = 0;
 }
@@ -589,8 +579,7 @@ setup_frame_gcs (EmacsFrame ew)
     = XCreatePixmapFromBitmapData (XtDisplay(ew),
 				   RootWindowOfScreen (XtScreen (ew)),
 				   setup_frame_cursor_bits, 2, 2,
-				   (unsigned long)0, (unsigned long)1,
-				   ew->core.depth);
+				   0, 1, ew->core.depth);
 
   /* Normal video */
   gc_values.foreground = ew->emacs_frame.foreground_pixel;
@@ -703,7 +692,7 @@ EmacsFrameDestroy (Widget widget)
   UNBLOCK_INPUT;
 }
 
-void
+static void
 EmacsFrameResize (Widget widget)
 {
   EmacsFrame ew = (EmacsFrame)widget;

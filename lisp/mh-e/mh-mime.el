@@ -835,7 +835,7 @@ being used to highlight the signature in a MIME part."
 ;;; Button Display
 
 ;; Shush compiler.
-(when (featurep 'xemacs)
+(mh-do-in-xemacs
   (defvar dots)
   (defvar type)
   (defvar ov))
@@ -885,7 +885,8 @@ by commands like \"K v\" which operate on individual MIME parts."
 ;; Shush compiler.
 (defvar mm-verify-function-alist)       ; < Emacs 22
 (defvar mm-decrypt-function-alist)      ; < Emacs 22
-(defvar pressed-details)                ; XEmacs
+(mh-do-in-xemacs
+  (defvar pressed-details))
 
 (defun mh-insert-mime-security-button (handle)
   "Display buttons for PGP message, HANDLE."
@@ -1637,8 +1638,8 @@ This action can be undone by running \\[undo]."
     ;; Do an alias lookup on recipients
     (message-options-set 'message-recipients
                          (mapconcat
-                          '(lambda (ali)
-                             (mail-strip-quoted-names (mh-alias-expand ali)))
+                          (lambda (ali)
+                            (mail-strip-quoted-names (mh-alias-expand ali)))
                           (split-string (message-options-get 'message-recipients) "[, ]+")
                           ", ")))
   (let ((saved-text (buffer-string))

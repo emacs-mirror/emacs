@@ -168,7 +168,7 @@
   "Default font-lock-keywords for `ld-script-mode'.")
 
 ;;;###autoload
-(define-derived-mode ld-script-mode nil "LD-Script"
+(define-derived-mode ld-script-mode prog-mode "LD-Script"
    "A major mode to edit GNU ld script files"
   (set (make-local-variable 'comment-start) "/* ")
   (set (make-local-variable 'comment-end)   " */")

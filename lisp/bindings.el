@@ -321,7 +321,9 @@ mouse-3: Remove current window from display")
        (standard-mode-line-format
 	(list
 	 "%e"
-	 (propertize "-" 'help-echo help-echo)
+	 `(:eval (if (display-graphic-p)
+		     ,(propertize " " 'help-echo help-echo)
+		   ,(propertize "-" 'help-echo help-echo)))
 	 'mode-line-mule-info
 	 'mode-line-client
 	 'mode-line-modified
@@ -452,11 +454,6 @@ Major modes that edit things other than ordinary files may change this
 (put 'mode-line-buffer-identification 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-buffer-identification)
 
-(defun unbury-buffer () "\
-Switch to the last buffer in the buffer list."
-  (interactive)
-  (switch-to-buffer (last-buffer)))
-
 (defun mode-line-unbury-buffer (event) "\
 Call `unbury-buffer' in this window."
   (interactive "e")
@@ -474,7 +471,8 @@ Like `bury-buffer', but temporarily select EVENT's window."
 (defun mode-line-other-buffer () "\
 Switch to the most recently selected buffer other than the current one."
   (interactive)
-  (switch-to-buffer (other-buffer)))
+  (with-no-warnings ; We really do want to call `switch-to-buffer' here.
+    (switch-to-buffer (other-buffer))))
 
 (defun mode-line-next-buffer (event)
   "Like `next-buffer', but temporarily select EVENT's window."
@@ -646,9 +644,10 @@ is okay.  See `mode-line-format'.")
 
 (make-variable-buffer-local 'indent-tabs-mode)
 
-;; We have base64 and md5 functions built in now.
+;; We have base64, md5 and sha1 functions built in now.
 (provide 'base64)
 (provide 'md5)
+(provide 'sha1)
 (provide 'overlay '(display syntax-table field))
 (provide 'text-properties '(display syntax-table field point-entered))
 
@@ -808,6 +807,8 @@ if `inhibit-field-text-motion' is non-nil."
   (define-key map [up]    'previous-history-element)
   (define-key map "\es"   'next-matching-history-element)
   (define-key map "\er"   'previous-matching-history-element)
+  (define-key map [remap next-buffer] 'ignore)
+  (define-key map [remap previous-buffer] 'ignore)
   ;; Override the global binding (which calls indent-relative via
   ;; indent-for-tab-command).  The alignment that indent-relative tries to
   ;; do doesn't make much sense here since the prompt messes it up.

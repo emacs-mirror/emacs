@@ -418,7 +418,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 /* Read a hexadecimal number (preceded by "0x") from the file FP while
    paying attention to comment character '#'.  */
 
-static INLINE unsigned
+static inline unsigned
 read_hex (FILE *fp, int *eof)
 {
   int c;
@@ -844,12 +844,12 @@ DEFUN ("define-charset-internal", Fdefine_charset_internal,
        Sdefine_charset_internal, charset_arg_max, MANY, 0,
        doc: /* For internal use only.
 usage: (define-charset-internal ...)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   /* Charset attr vector.  */
   Lisp_Object attrs;
   Lisp_Object val;
-  unsigned hash_code;
+  EMACS_UINT hash_code;
   struct Lisp_Hash_Table *hash_table = XHASH_TABLE (Vcharset_hash_table);
   int i, j;
   struct charset charset;
@@ -932,17 +932,8 @@ usage: (define-charset-internal ...)  */)
   val = args[charset_arg_min_code];
   if (! NILP (val))
     {
-      unsigned code;
+      unsigned code = cons_to_unsigned (val, UINT_MAX);
 
-      if (INTEGERP (val))
-	code = XINT (val);
-      else
-	{
-	  CHECK_CONS (val);
-	  CHECK_NUMBER_CAR (val);
-	  CHECK_NUMBER_CDR (val);
-	  code = (XINT (XCAR (val)) << 16) | (XINT (XCDR (val)));
-	}
       if (code < charset.min_code
 	  || code > charset.max_code)
 	args_out_of_range_3 (make_number (charset.min_code),
@@ -954,17 +945,8 @@ usage: (define-charset-internal ...)  */)
   val = args[charset_arg_max_code];
   if (! NILP (val))
     {
-      unsigned code;
+      unsigned code = cons_to_unsigned (val, UINT_MAX);
 
-      if (INTEGERP (val))
-	code = XINT (val);
-      else
-	{
-	  CHECK_CONS (val);
-	  CHECK_NUMBER_CAR (val);
-	  CHECK_NUMBER_CDR (val);
-	  code = (XINT (XCAR (val)) << 16) | (XINT (XCDR (val)));
-	}
       if (code < charset.min_code
 	  || code > charset.max_code)
 	args_out_of_range_3 (make_number (charset.min_code),
@@ -1637,7 +1619,7 @@ maybe_unify_char (int c, Lisp_Object val)
   struct charset *charset;
 
   if (INTEGERP (val))
-    return XINT (val);
+    return XFASTINT (val);
   if (NILP (val))
     return c;
 
@@ -1647,7 +1629,7 @@ maybe_unify_char (int c, Lisp_Object val)
     {
       val = CHAR_TABLE_REF (Vchar_unify_table, c);
       if (! NILP (val))
-	c = XINT (val);
+	c = XFASTINT (val);
     }
   else
     {
@@ -1865,17 +1847,7 @@ and CODE-POINT to a character.  Currently not supported and just ignored.  */)
   struct charset *charsetp;
 
   CHECK_CHARSET_GET_ID (charset, id);
-  if (CONSP (code_point))
-    {
-      CHECK_NATNUM_CAR (code_point);
-      CHECK_NATNUM_CDR (code_point);
-      code = (XINT (XCAR (code_point)) << 16) | (XINT (XCDR (code_point)));
-    }
-  else
-    {
-      CHECK_NATNUM (code_point);
-      code = XINT (code_point);
-    }
+  code = cons_to_unsigned (code_point, UINT_MAX);
   charsetp = CHARSET_FROM_ID (id);
   c = DECODE_CHAR (charsetp, code);
   return (c >= 0 ? make_number (c) : Qnil);
@@ -1890,19 +1862,18 @@ Optional argument RESTRICTION specifies a way to map CH to a
 code-point in CCS.  Currently not supported and just ignored.  */)
   (Lisp_Object ch, Lisp_Object charset, Lisp_Object restriction)
 {
-  int id;
+  int c, id;
   unsigned code;
   struct charset *charsetp;
 
   CHECK_CHARSET_GET_ID (charset, id);
-  CHECK_NATNUM (ch);
+  CHECK_CHARACTER (ch);
+  c = XFASTINT (ch);
   charsetp = CHARSET_FROM_ID (id);
-  code = ENCODE_CHAR (charsetp, XINT (ch));
+  code = ENCODE_CHAR (charsetp, c);
   if (code == CHARSET_INVALID_CODE (charsetp))
     return Qnil;
-  if (code > 0x7FFFFFF)
-    return Fcons (make_number (code >> 16), make_number (code & 0xFFFF));
-  return make_number (code);
+  return INTEGER_TO_CONS (code);
 }
 
 
@@ -2174,11 +2145,11 @@ DEFUN ("set-charset-priority", Fset_charset_priority, Sset_charset_priority,
        1, MANY, 0,
        doc: /* Assign higher priority to the charsets given as arguments.
 usage: (set-charset-priority &rest charsets)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object new_head, old_list, arglist[2];
   Lisp_Object list_2022, list_emacs_mule;
-  size_t i;
+  ptrdiff_t i;
   int id;
 
   old_list = Fcopy_sequence (Vcharset_ordered_list);

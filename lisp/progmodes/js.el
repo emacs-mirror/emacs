@@ -3306,8 +3306,8 @@ If one hasn't been set, or if it's stale, prompt for a new one."
        #'js--which-func-joiner)
 
   ;; Comments
-  (setq comment-start "// ")
-  (setq comment-end "")
+  (set (make-local-variable 'comment-start) "// ")
+  (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'fill-paragraph-function)
        'js-c-fill-paragraph)
 

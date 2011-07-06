@@ -23,6 +23,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_CHARACTER_H
 #define EMACS_CHARACTER_H
 
+#include <verify.h>
+
 /* character code	1st byte   byte sequence
    --------------	--------   -------------
         0-7F		00..7F	   0xxxxxxx
@@ -102,13 +104,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define make_char(c) make_number (c)
 
 /* Nonzero iff C is an ASCII byte.  */
-#define ASCII_BYTE_P(c) ((unsigned) (c) < 0x80)
+#define ASCII_BYTE_P(c) UNSIGNED_CMP (c, <, 0x80)
 
 /* Nonzero iff X is a character.  */
 #define CHARACTERP(x) (NATNUMP (x) && XFASTINT (x) <= MAX_CHAR)
 
-/* Nonzero iff C is valid as a character code.  GENERICP is not used.  */
-#define CHAR_VALID_P(c, genericp) ((unsigned) (c) <= MAX_CHAR)
+/* Nonzero iff C is valid as a character code.  */
+#define CHAR_VALID_P(c) UNSIGNED_CMP (c, <=, MAX_CHAR)
 
 /* Check if Lisp object X is a character or not.  */
 #define CHECK_CHARACTER(x) \
@@ -129,7 +131,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   } while (0)
 
 /* Nonzero iff C is a character of code less than 0x100.  */
-#define SINGLE_BYTE_CHAR_P(c) ((unsigned) (c) < 0x100)
+#define SINGLE_BYTE_CHAR_P(c) UNSIGNED_CMP (c, <, 0x100)
 
 /* Nonzero if character C has a printable glyph.  */
 #define CHAR_PRINTABLE_P(c)	\
@@ -161,19 +163,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Returns the length of the multibyte form.  */
 
 #define CHAR_STRING(c, p)			\
-  ((unsigned) (c) <= MAX_1_BYTE_CHAR		\
+  (UNSIGNED_CMP (c, <=, MAX_1_BYTE_CHAR)	\
    ? ((p)[0] = (c),				\
       1)					\
-   : (unsigned) (c) <= MAX_2_BYTE_CHAR		\
+   : UNSIGNED_CMP (c, <=, MAX_2_BYTE_CHAR)	\
    ? ((p)[0] = (0xC0 | ((c) >> 6)),		\
       (p)[1] = (0x80 | ((c) & 0x3F)),		\
       2)					\
-   : (unsigned) (c) <= MAX_3_BYTE_CHAR		\
+   : UNSIGNED_CMP (c, <=, MAX_3_BYTE_CHAR)	\
    ? ((p)[0] = (0xE0 | ((c) >> 12)),		\
       (p)[1] = (0x80 | (((c) >> 6) & 0x3F)),	\
       (p)[2] = (0x80 | ((c) & 0x3F)),		\
       3)					\
-   : char_string ((unsigned) c, p))
+   : verify_expr (sizeof (c) <= sizeof (unsigned), char_string (c, p)))
 
 /* Store multibyte form of byte B in P.  The caller should allocate at
    least MAX_MULTIBYTE_LENGTH bytes area at P in advance.  Returns the
@@ -201,7 +203,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 	*(p)++ = (0x80 | (((c) >> 6) & 0x3F)),	\
 	*(p)++ = (0x80 | ((c) & 0x3F));		\
     else					\
-      (p) += char_string ((c), (p));		\
+      {						\
+	verify (sizeof (c) <= sizeof (unsigned));	\
+	(p) += char_string (c, p);		\
+      }						\
   } while (0)
 
 
@@ -544,7 +549,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 	Lisp_Object val;				\
 	val = CHAR_TABLE_REF (Vchar_unify_table, c);	\
 	if (INTEGERP (val))				\
-	  c = XINT (val);				\
+	  c = XFASTINT (val);				\
 	else if (! NILP (val))				\
 	  c = maybe_unify_char (c, val);		\
       }							\
@@ -602,7 +607,7 @@ extern int translate_char (Lisp_Object, int c);
 extern int char_printable_p (int c);
 extern void parse_str_as_multibyte (const unsigned char *,
 				    EMACS_INT, EMACS_INT *, EMACS_INT *);
-extern EMACS_INT parse_str_to_multibyte (const unsigned char *, EMACS_INT);
+extern EMACS_INT count_size_as_multibyte (const unsigned char *, EMACS_INT);
 extern EMACS_INT str_as_multibyte (unsigned char *, EMACS_INT, EMACS_INT,
 			     EMACS_INT *);
 extern EMACS_INT str_to_multibyte (unsigned char *, EMACS_INT, EMACS_INT);
@@ -622,8 +627,5 @@ extern Lisp_Object string_escape_byte8 (Lisp_Object);
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \
   (XCDR(XVECTOR(Vtranslation_table_vector)->contents[(id)]))
-
-#define DEFSYM(sym, name)	\
-  do { (sym) = intern_c_string ((name)); staticpro (&(sym)); } while (0)
 
 #endif /* EMACS_CHARACTER_H */

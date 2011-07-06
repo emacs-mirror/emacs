@@ -33,15 +33,12 @@ extern int etext;
 # endif
 #endif
 
-typedef unsigned long SIZE;
-
 extern char *start_of_data (void);
 #if defined USE_LSB_TAG
 #define EXCEEDS_LISP_PTR(ptr) 0
 #elif defined DATA_SEG_BITS
 #define EXCEEDS_LISP_PTR(ptr) \
-  (((EMACS_UINT) (ptr) & ~DATA_SEG_BITS) >> VALBITS)
+  (((uintptr_t) (ptr) & ~DATA_SEG_BITS) >> VALBITS)
 #else
-#define EXCEEDS_LISP_PTR(ptr) ((EMACS_UINT) (ptr) >> VALBITS)
+#define EXCEEDS_LISP_PTR(ptr) ((uintptr_t) (ptr) >> VALBITS)
 #endif
-

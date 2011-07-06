@@ -58,8 +58,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef xassert
 #ifdef FONTSET_DEBUG
 #define xassert(X)	do {if (!(X)) abort ();} while (0)
-#undef INLINE
-#define INLINE
 #else   /* not FONTSET_DEBUG */
 #define xassert(X)	(void) 0
 #endif	/* not FONTSET_DEBUG */
@@ -1853,7 +1851,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
       face_id = face_at_buffer_position (w, pos, -1, -1, &dummy,
 					 pos + 100, 0, -1);
     }
-  if (! CHAR_VALID_P (c, 0))
+  if (! CHAR_VALID_P (c))
     return Qnil;
   face_id = FACE_FOR_CHAR (f, FACE_FROM_ID (f, face_id), c, pos, Qnil);
   face = FACE_FROM_ID (f, face_id);
@@ -1861,17 +1859,11 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
     {
       unsigned code = face->font->driver->encode_char (face->font, c);
       Lisp_Object font_object;
-      /* Assignment to EMACS_INT stops GCC whining about limited range
-	 of data type.  */
-      EMACS_INT cod = code;
 
       if (code == FONT_INVALID_CODE)
 	return Qnil;
       XSETFONT (font_object, face->font);
-      if (cod <= MOST_POSITIVE_FIXNUM)
-	return Fcons (font_object, make_number (code));
-      return Fcons (font_object, Fcons (make_number (code >> 16),
-				     make_number (code & 0xFFFF)));
+      return Fcons (font_object, INTEGER_TO_CONS (code));
     }
   return Qnil;
 }

@@ -67,8 +67,8 @@ static Lisp_Object
 hash_get_category_set (Lisp_Object table, Lisp_Object category_set)
 {
   struct Lisp_Hash_Table *h;
-  int i;
-  unsigned hash;
+  EMACS_INT i;
+  EMACS_UINT hash;
 
   if (NILP (XCHAR_TABLE (table)->extras[1]))
     XCHAR_TABLE (table)->extras[1]
@@ -453,8 +453,7 @@ void
 init_category_once (void)
 {
   /* This has to be done here, before we call Fmake_char_table.  */
-  Qcategory_table = intern_c_string ("category-table");
-  staticpro (&Qcategory_table);
+  DEFSYM (Qcategory_table, "category-table");
 
   /* Intern this now in case it isn't already done.
      Setting this variable twice is harmless.
@@ -475,12 +474,9 @@ init_category_once (void)
 void
 syms_of_category (void)
 {
-  Qcategoryp = intern_c_string ("categoryp");
-  staticpro (&Qcategoryp);
-  Qcategorysetp = intern_c_string ("categorysetp");
-  staticpro (&Qcategorysetp);
-  Qcategory_table_p = intern_c_string ("category-table-p");
-  staticpro (&Qcategory_table_p);
+  DEFSYM (Qcategoryp, "categoryp");
+  DEFSYM (Qcategorysetp, "categorysetp");
+  DEFSYM (Qcategory_table_p, "category-table-p");
 
   DEFVAR_LISP ("word-combining-categories", Vword_combining_categories,
 	       doc: /* List of pair (cons) of categories to determine word boundary.

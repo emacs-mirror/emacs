@@ -1,4 +1,4 @@
-;;; meta-mode.el --- major mode for editing Metafont or MetaPost sources
+;;; meta-mode.el --- major mode for editing Metafont or MetaPost sources -*- lexical-binding:t -*-
 
 ;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
 
@@ -471,16 +471,13 @@ If the list was changed, sort the list and remove duplicates first."
   (string-lessp (car a) (car b)))
 
 
-(defun meta-complete-symbol ()
-  "Perform completion on Metafont or MetaPost symbol preceding point."
-  ;; FIXME: Use completion-at-point-functions.
-  (interactive "*")
+(defun meta-completions-at-point ()
   (let ((list meta-complete-list)
         entry)
     (while list
       (setq entry (car list)
             list (cdr list))
-      (if (meta-looking-at-backward (car entry) 200)
+      (if (looking-back (car entry) (max (point-min) (- (point) 200)))
           (setq list nil)))
     (if (numberp (nth 1 entry))
         (let* ((sub (nth 1 entry))
@@ -488,31 +485,19 @@ If the list was changed, sort the list and remove duplicates first."
                (begin (match-beginning sub))
                (end (match-end sub))
                (list (funcall (nth 2 entry))))
-          (completion-in-region
-           begin end
-           (if (zerop (length close)) list
-             (apply-partially 'completion-table-with-terminator
-                              close list))))
-      (funcall (nth 1 entry)))))
+          (list
+           begin end list
+           :exit-function
+           (unless (zerop (length close))
+             (lambda (_s finished)
+               (when (memq finished '(sole finished))
+                 (if (looking-at (regexp-quote close))
+                     (goto-char (match-end 0))
+                   (insert close)))))))
+      (nth 1 entry))))
 
-
-(defun meta-looking-at-backward (regexp &optional limit)
-  ;; utility function used in `meta-complete-symbol'
-  (let ((pos (point)))
-    (save-excursion
-      (and (re-search-backward
-            regexp (if limit (max (point-min) (- (point) limit))) t)
-           (eq (match-end 0) pos)))))
-
-(defun meta-match-buffer (n)
-  ;; utility function used in `meta-complete-symbol'
-  (if (match-beginning n)
-      (let ((str (buffer-substring (match-beginning n) (match-end n))))
-        (set-text-properties 0 (length str) nil str)
-        (copy-sequence str))
-    ""))
-
-
+(define-obsolete-function-alias 'meta-complete-symbol
+  'completion-at-point "24.1")
 
 ;;; Indentation.
 
@@ -906,7 +891,7 @@ The environment marked is the one that contains point or follows point."
     (define-key map "\C-c;"     'meta-comment-region)
     (define-key map "\C-c:"     'meta-uncomment-region)
     ;; Symbol Completion:
-    (define-key map "\M-\t"     'meta-complete-symbol)
+    (define-key map "\M-\t"     'completion-at-point)
     ;; Shell Commands:
     ;; (define-key map "\C-c\C-c"  'meta-command-file)
     ;; (define-key map "\C-c\C-k"  'meta-kill-job)
@@ -935,7 +920,7 @@ The environment marked is the one that contains point or follows point."
        ["Uncomment Region"              meta-uncomment-region
         :active (meta-mark-active)]
        "--"
-       ["Complete Symbol"               meta-complete-symbol t]
+       ["Complete Symbol"               completion-at-point t]
 ;      "--"
 ;      ["Command on Buffer"             meta-command-file t]
 ;      ["Kill Job"                      meta-kill-job t]
@@ -994,6 +979,7 @@ The environment marked is the one that contains point or follows point."
 
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
 
+  (add-hook 'completion-at-point-functions #'meta-completions-at-point nil t)
   (set (make-local-variable 'comment-indent-function) #'meta-comment-indent)
   (set (make-local-variable 'indent-line-function) #'meta-indent-line)
   ;; No need to define a mode-specific 'indent-region-function.

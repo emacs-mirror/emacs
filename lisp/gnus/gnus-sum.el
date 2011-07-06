@@ -4098,7 +4098,7 @@ If NO-DISPLAY, don't generate a summary buffer."
 	(setq gnus-newsgroup-prepared t)
 	(gnus-run-hooks 'gnus-summary-prepared-hook)
 	(unless (gnus-ephemeral-group-p group)
-	  (gnus-group-update-group group))
+	  (gnus-group-update-group group nil t))
 	t)))))
 
 (defun gnus-summary-auto-select-subject ()
@@ -5715,7 +5715,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
       (gnus-summary-remove-list-identifiers)
       ;; Check whether auto-expire is to be done in this group.
       (setq gnus-newsgroup-auto-expire
-	    (gnus-group-auto-expirable-p group))
+	    (and (gnus-group-auto-expirable-p group)
+		 (not (gnus-group-read-only-p group))))
       ;; Set up the article buffer now, if necessary.
       (unless (and gnus-single-article-buffer
 		   (equal gnus-article-buffer "*Article*"))
@@ -7139,7 +7140,12 @@ The prefix argument ALL means to select all articles."
 		 t)))
 	(unless (listp (cdr gnus-newsgroup-killed))
 	  (setq gnus-newsgroup-killed (list gnus-newsgroup-killed)))
-	(let ((headers gnus-newsgroup-headers))
+	(let ((headers gnus-newsgroup-headers)
+	      (ephemeral-p (gnus-ephemeral-group-p group))
+	      info)
+	  (unless ephemeral-p
+	    (setq info (copy-sequence (gnus-get-info group))
+		  info (delq (gnus-info-params info) info)))
 	  ;; Set the new ranges of read articles.
 	  (with-current-buffer gnus-group-buffer
 	    (gnus-undo-force-boundary))
@@ -7159,8 +7165,12 @@ The prefix argument ALL means to select all articles."
 	    (gnus-mark-xrefs-as-read group headers gnus-newsgroup-unreads))
 	  ;; Do not switch windows but change the buffer to work.
 	  (set-buffer gnus-group-buffer)
-	  (unless (gnus-ephemeral-group-p group)
-	    (gnus-group-update-group group)))))))
+	  (unless ephemeral-p
+	    (gnus-group-update-group
+	     group nil
+	     (equal info
+		    (setq info (copy-sequence (gnus-get-info group))
+			  info (delq (gnus-info-params info) info))))))))))
 
 (defun gnus-summary-save-newsrc (&optional force)
   "Save the current number of read/marked articles in the dribble buffer.
@@ -7193,7 +7203,11 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	 (article-buffer gnus-article-buffer)
 	 (mode major-mode)
 	 (group-point nil)
-	 (buf (current-buffer)))
+	 (buf (current-buffer))
+	 ;; `gnus-single-article-buffer' is nil buffer-locally in
+	 ;; ephemeral group of which summary buffer will be killed,
+	 ;; but the global value may be non-nil.
+	 (single-article-buffer gnus-single-article-buffer))
     (unless quit-config
       ;; Do adaptive scoring, and possibly save score files.
       (when gnus-newsgroup-adaptive
@@ -7256,7 +7270,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	  (gnus-configure-windows 'group 'force)))
 
       ;; If we have several article buffers, we kill them at exit.
-      (unless gnus-single-article-buffer
+      (unless single-article-buffer
 	(when (gnus-buffer-live-p article-buffer)
 	  (with-current-buffer article-buffer
 	    ;; Don't kill sticky article buffers
@@ -7284,6 +7298,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (run-hooks 'gnus-summary-prepare-exit-hook)
       (when (gnus-buffer-live-p gnus-article-buffer)
 	(with-current-buffer gnus-article-buffer
+	  (gnus-article-stop-animations)
 	  (mm-destroy-parts gnus-article-mime-handles)
 	  ;; Set it to nil for safety reason.
 	  (setq gnus-article-mime-handle-alist nil)
@@ -7309,7 +7324,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       ;; Clear the current group name.
       (setq gnus-newsgroup-name nil)
       (unless (gnus-ephemeral-group-p group)
-	(gnus-group-update-group group))
+	(gnus-group-update-group group nil t))
       (when (equal (gnus-group-group-name) group)
 	(gnus-group-next-unread-group 1))
       (when quit-config
@@ -9035,7 +9050,12 @@ variable."
       (dolist (method gnus-refer-article-method)
 	(push (if (eq 'current method)
 		  gnus-current-select-method
-		method)
+		(if (eq 'nnir (car method))
+		    (list
+		     'nnir
+		     (or (cadr method)
+			 (gnus-method-to-server gnus-current-select-method)))
+		  method))
 	      out))
       (nreverse out)))
    ;; One single select method.
@@ -9565,6 +9585,7 @@ C-u g', show the raw article."
       ;; Destroy any MIME parts.
       (when (gnus-buffer-live-p gnus-article-buffer)
 	(with-current-buffer gnus-article-buffer
+	  (gnus-article-stop-animations)
 	  (mm-destroy-parts gnus-article-mime-handles)
 	  ;; Set it to nil for safety reason.
 	  (setq gnus-article-mime-handle-alist nil)
@@ -9989,7 +10010,9 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 	      (gnus-dribble-enter
 	       (concat "(gnus-group-set-info '"
 		       (gnus-prin1-to-string (gnus-get-info to-group))
-		       ")"))))
+		       ")")
+	       (concat "^(gnus-group-set-info '(\""
+		       (regexp-quote to-group) "\""))))
 
 	  ;; Update the Xref header in this article to point to
 	  ;; the new crossposted article we have just created.
@@ -11569,7 +11592,10 @@ Returns nil if no threads were there to be hidden."
 	      (let ((ol (gnus-make-overlay starteol (point) nil t nil)))
 		(gnus-overlay-put ol 'invisible 'gnus-sum)
 		(gnus-overlay-put ol 'evaporate t)))
-	    (gnus-summary-goto-subject article))
+	    (gnus-summary-goto-subject article)
+            (when (> start (point))
+              (message "Hiding the thread moved us backwards, aborting!")
+              (goto-char (point-max))))
 	(goto-char start)
 	nil))))
 

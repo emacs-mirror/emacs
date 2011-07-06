@@ -39,9 +39,8 @@
        (setq ,t1 (current-time))
        ,@forms
        (setq ,t2 (current-time))
-       (+ (* (- (car ,t2) (car ,t1)) 65536.0)
-	  (- (nth 1 ,t2) (nth 1 ,t1))
-	  (* (- (nth 2 ,t2) (nth 2 ,t1)) 1.0e-6)))))
+       (float-time (time-subtract ,t2 ,t1)))))
+
 (put 'benchmark-elapse 'edebug-form-spec t)
 (put 'benchmark-elapse 'lisp-indent-function 0)
 

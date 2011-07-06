@@ -62,7 +62,7 @@ TIT_GB=\
 	quail/TONEPY.elc
 
 # Files generated from TIT dictionaries for Chinese BIG5 character set.
-TIT-BIG5=\
+TIT_BIG5=\
 	quail/4Corner.elc	\
 	quail/ARRAY30.elc	\
 	quail/ECDICT.elc	\

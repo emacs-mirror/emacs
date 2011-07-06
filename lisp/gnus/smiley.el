@@ -133,9 +133,11 @@ regexp to replace with IMAGE.  IMAGE is the name of an image file in
   (let ((types (list "pbm")))
     (when (gnus-image-type-available-p 'xpm)
       (push "xpm" types))
+    (when (gnus-image-type-available-p 'gif)
+      (push "gif" types))
     types)
   "*List of suffixes on smiley file names to try."
-  :version "22.1"
+  :version "24.1"
   :type '(repeat string)
   :group 'smiley)
 

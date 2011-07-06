@@ -347,7 +347,7 @@ This variable is buffer-local."
    " +\\)"
    (regexp-opt
     '("password" "Password" "passphrase" "Passphrase"
-      "pass phrase" "Pass phrase"))
+      "pass phrase" "Pass phrase" "Response"))
    "\\(?:\\(?:, try\\)? *again\\| (empty for no passphrase)\\| (again)\\)?\
 \\(?: for [^:]+\\)?:\\s *\\'")
   "Regexp matching prompts for passwords in the inferior process.
@@ -3035,7 +3035,8 @@ Returns t if successful."
   (when (comint--match-partial-filename)
     (unless (window-minibuffer-p (selected-window))
       (message "Completing file name..."))
-    (apply #'completion-in-region (comint--complete-file-name-data))))
+    (let ((data (comint--complete-file-name-data)))
+      (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)))))
 
 (defun comint-filename-completion ()
   "Return completion data for filename at point, if any."
@@ -3134,24 +3135,26 @@ in the same way as TABLE completes strings of the form (concat S2 S)."
              #'comint--table-subvert
              #'completion-file-name-table
              (cdr prefixes) (car prefixes)))))
-    (list
-     filename-beg filename-end
-     (lambda (string pred action)
-       (let ((completion-ignore-case read-file-name-completion-ignore-case)
-             (completion-ignored-extensions comint-completion-fignore))
-         (if (zerop (length filesuffix))
-             (complete-with-action action table string pred)
-           ;; Add a space at the end of completion.  Use a terminator-regexp
-           ;; that never matches since the terminator cannot appear
-           ;; within the completion field anyway.
-           (completion-table-with-terminator
-            (cons filesuffix "\\`a\\`")
-            table string pred action)))))))
+    (nconc
+     (list
+      filename-beg filename-end
+      (lambda (string pred action)
+        (let ((completion-ignore-case read-file-name-completion-ignore-case)
+              (completion-ignored-extensions comint-completion-fignore))
+          (complete-with-action action table string pred))))
+     (unless (zerop (length filesuffix))
+       (list :exit-function
+             (lambda (_s finished)
+               (when (memq finished '(sole finished))
+                 (if (looking-at (regexp-quote filesuffix))
+                     (goto-char (match-end 0))
+                   (insert filesuffix)))))))))
 
 (defun comint-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
 See `comint-dynamic-complete-filename'.  Returns t if successful."
-  (apply #'completion-in-region (comint--complete-file-name-data)))
+  (let ((data (comint--complete-file-name-data)))
+    (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data))))
 (make-obsolete 'comint-dynamic-complete-as-filename
                'comint-filename-completion "24.1")
 

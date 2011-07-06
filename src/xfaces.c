@@ -463,7 +463,8 @@ static Lisp_Object resolve_face_name (Lisp_Object, int);
 static void set_font_frame_param (Lisp_Object, Lisp_Object);
 static int get_lface_attributes (struct frame *, Lisp_Object, Lisp_Object *,
                                  int, struct named_merge_point *);
-static int load_pixmap (struct frame *, Lisp_Object, unsigned *, unsigned *);
+static ptrdiff_t load_pixmap (struct frame *, Lisp_Object,
+			      unsigned *, unsigned *);
 static struct frame *frame_or_selected_frame (Lisp_Object, int);
 static void load_face_colors (struct frame *, struct face *, Lisp_Object *);
 static void free_face_colors (struct frame *, struct face *);
@@ -646,7 +647,7 @@ x_free_dpy_colors (Display *dpy, Screen *screen, Colormap cmap, long unsigned in
 /* Create and return a GC for use on frame F.  GC values and mask
    are given by XGCV and MASK.  */
 
-static INLINE GC
+static inline GC
 x_create_gc (struct frame *f, long unsigned int mask, XGCValues *xgcv)
 {
   GC gc;
@@ -660,7 +661,7 @@ x_create_gc (struct frame *f, long unsigned int mask, XGCValues *xgcv)
 
 /* Free GC which was used on frame F.  */
 
-static INLINE void
+static inline void
 x_free_gc (struct frame *f, GC gc)
 {
   eassert (interrupt_input_blocked);
@@ -673,7 +674,7 @@ x_free_gc (struct frame *f, GC gc)
 #ifdef WINDOWSNT
 /* W32 emulation of GCs */
 
-static INLINE GC
+static inline GC
 x_create_gc (struct frame *f, unsigned long mask, XGCValues *xgcv)
 {
   GC gc;
@@ -687,7 +688,7 @@ x_create_gc (struct frame *f, unsigned long mask, XGCValues *xgcv)
 
 /* Free GC which was used on frame F.  */
 
-static INLINE void
+static inline void
 x_free_gc (struct frame *f, GC gc)
 {
   IF_DEBUG (xassert (--ngcs >= 0));
@@ -699,7 +700,7 @@ x_free_gc (struct frame *f, GC gc)
 #ifdef HAVE_NS
 /* NS emulation of GCs */
 
-static INLINE GC
+static inline GC
 x_create_gc (struct frame *f,
              unsigned long mask,
              XGCValues *xgcv)
@@ -710,7 +711,7 @@ x_create_gc (struct frame *f,
   return gc;
 }
 
-static INLINE void
+static inline void
 x_free_gc (struct frame *f, GC gc)
 {
   xfree (gc);
@@ -746,7 +747,7 @@ xstrcasecmp (const char *s1, const char *s2)
    CHECK_LIVE_FRAME.  This is here because it's a frequent pattern in
    Lisp function definitions.  */
 
-static INLINE struct frame *
+static inline struct frame *
 frame_or_selected_frame (Lisp_Object frame, int nparam)
 {
   if (NILP (frame))
@@ -963,10 +964,10 @@ the pixmap.  Bits are stored row by row, each row occupies
    zero.  Store the bitmap width in *W_PTR and its height in *H_PTR,
    if these pointers are not null.  */
 
-static int
+static ptrdiff_t
 load_pixmap (FRAME_PTR f, Lisp_Object name, unsigned int *w_ptr, unsigned int *h_ptr)
 {
-  int bitmap_id;
+  ptrdiff_t bitmap_id;
 
   if (NILP (name))
     return 0;
@@ -1858,8 +1859,7 @@ the WIDTH times as wide as FACE on FRAME.  */)
 /* Check consistency of Lisp face attribute vector ATTRS.  */
 
 static void
-check_lface_attrs (attrs)
-     Lisp_Object *attrs;
+check_lface_attrs (Lisp_Object *attrs)
 {
   xassert (UNSPECIFIEDP (attrs[LFACE_FAMILY_INDEX])
 	   || IGNORE_DEFFACE_P (attrs[LFACE_FAMILY_INDEX])
@@ -1930,8 +1930,7 @@ check_lface_attrs (attrs)
 /* Check consistency of attributes of Lisp face LFACE (a Lisp vector).  */
 
 static void
-check_lface (lface)
-     Lisp_Object lface;
+check_lface (Lisp_Object lface)
 {
   if (!NILP (lface))
     {
@@ -1976,7 +1975,7 @@ struct named_merge_point
    FACE_NAME and NAMED_MERGE_POINT_KIND, as the head of the linked list
    pointed to by NAMED_MERGE_POINTS, and return 1.  */
 
-static INLINE int
+static inline int
 push_named_merge_point (struct named_merge_point *new_named_merge_point,
 			Lisp_Object face_name,
 			enum named_merge_point_kind named_merge_point_kind,
@@ -2008,24 +2007,6 @@ push_named_merge_point (struct named_merge_point *new_named_merge_point,
 }
 
 
-
-#if 0				/* Seems to be unused.  */
-static Lisp_Object
-internal_resolve_face_name (nargs, args)
-     int nargs;
-     Lisp_Object *args;
-{
-  return Fget (args[0], args[1]);
-}
-
-static Lisp_Object
-resolve_face_name_error (ignore)
-     Lisp_Object ignore;
-{
-  return Qnil;
-}
-#endif
-
 /* Resolve face name FACE_NAME.  If FACE_NAME is a string, intern it
    to make it a symbol.  If FACE_NAME is an alias for another face,
    return that face's name.
@@ -2078,7 +2059,7 @@ resolve_face_name (Lisp_Object face_name, int signal_p)
    face text properties; Ediff uses that).  If SIGNAL_P is non-zero,
    signal an error if FACE_NAME is not a valid face name.  If SIGNAL_P
    is zero, value is nil if FACE_NAME is not a valid face name.  */
-static INLINE Lisp_Object
+static inline Lisp_Object
 lface_from_face_name_no_resolve (struct frame *f, Lisp_Object face_name, int signal_p)
 {
   Lisp_Object lface;
@@ -2106,7 +2087,7 @@ lface_from_face_name_no_resolve (struct frame *f, Lisp_Object face_name, int sig
    non-zero, signal an error if FACE_NAME is not a valid face name.
    If SIGNAL_P is zero, value is nil if FACE_NAME is not a valid face
    name.  */
-static INLINE Lisp_Object
+static inline Lisp_Object
 lface_from_face_name (struct frame *f, Lisp_Object face_name, int signal_p)
 {
   face_name = resolve_face_name (face_name, signal_p);
@@ -2120,7 +2101,7 @@ lface_from_face_name (struct frame *f, Lisp_Object face_name, int signal_p)
    is non-zero, signal an error if FACE_NAME does not name a face.
    Otherwise, value is zero if FACE_NAME is not a face.  */
 
-static INLINE int
+static inline int
 get_lface_attributes_no_remap (struct frame *f, Lisp_Object face_name, Lisp_Object *attrs, int signal_p)
 {
   Lisp_Object lface;
@@ -2141,7 +2122,7 @@ get_lface_attributes_no_remap (struct frame *f, Lisp_Object face_name, Lisp_Obje
    non-zero, signal an error if FACE_NAME does not name a face.
    Otherwise, value is zero if FACE_NAME is not a face.  */
 
-static INLINE int
+static inline int
 get_lface_attributes (struct frame *f, Lisp_Object face_name, Lisp_Object *attrs, int signal_p, struct named_merge_point *named_merge_points)
 {
   Lisp_Object face_remapping;
@@ -2307,7 +2288,7 @@ merge_face_heights (Lisp_Object from, Lisp_Object to, Lisp_Object invalid)
    loops in face inheritance/remapping; it should be 0 when called from
    other places.  */
 
-static INLINE void
+static inline void
 merge_face_vectors (struct frame *f, Lisp_Object *from, Lisp_Object *to, struct named_merge_point *named_merge_points)
 {
   int i;
@@ -3832,6 +3813,18 @@ Default face attributes override any local face attributes.  */)
 	      Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, name),
 						      Qnil));
 	    }
+
+	  if (STRINGP (gvec[LFACE_FOREGROUND_INDEX]))
+	    Fmodify_frame_parameters (frame,
+				      Fcons (Fcons (Qforeground_color,
+						    gvec[LFACE_FOREGROUND_INDEX]),
+					     Qnil));
+
+	  if (STRINGP (gvec[LFACE_BACKGROUND_INDEX]))
+	    Fmodify_frame_parameters (frame,
+				      Fcons (Fcons (Qbackground_color,
+						    gvec[LFACE_BACKGROUND_INDEX]),
+					     Qnil));
 	}
     }
 
@@ -3903,7 +3896,7 @@ return the font name used for CHARACTER.  */)
    all attributes are `equal'.  Tries to be fast because this function
    is called quite often.  */
 
-static INLINE int
+static inline int
 face_attr_equal_p (Lisp_Object v1, Lisp_Object v2)
 {
   /* Type can differ, e.g. when one attribute is unspecified, i.e. nil,
@@ -3936,7 +3929,7 @@ face_attr_equal_p (Lisp_Object v1, Lisp_Object v2)
    all attributes are `equal'.  Tries to be fast because this function
    is called quite often.  */
 
-static INLINE int
+static inline int
 lface_equal_p (Lisp_Object *v1, Lisp_Object *v2)
 {
   int i, equal_p = 1;
@@ -4021,7 +4014,7 @@ For internal use only.  */)
 /* Return a hash code for Lisp string STRING with case ignored.  Used
    below in computing a hash value for a Lisp face.  */
 
-static INLINE unsigned
+static inline unsigned
 hash_string_case_insensitive (Lisp_Object string)
 {
   const unsigned char *s;
@@ -4035,7 +4028,7 @@ hash_string_case_insensitive (Lisp_Object string)
 
 /* Return a hash code for face attribute vector V.  */
 
-static INLINE unsigned
+static inline unsigned
 lface_hash (Lisp_Object *v)
 {
   return (hash_string_case_insensitive (v[LFACE_FAMILY_INDEX])
@@ -4054,7 +4047,7 @@ lface_hash (Lisp_Object *v)
    family, point size, weight, width, slant, and font.  Both
    LFACE1 and LFACE2 must be fully-specified.  */
 
-static INLINE int
+static inline int
 lface_same_font_attributes_p (Lisp_Object *lface1, Lisp_Object *lface2)
 {
   xassert (lface_fully_specified_p (lface1)
@@ -4399,6 +4392,21 @@ cache_face (struct face_cache *c, struct face *face, unsigned int hash)
       break;
   face->id = i;
 
+#if GLYPH_DEBUG
+  /* Check that FACE got a unique id.  */
+  {
+    int j, n;
+    struct face *face1;
+
+    for (j = n = 0; j < FACE_CACHE_BUCKETS_SIZE; ++j)
+      for (face1 = c->buckets[j]; face1; face1 = face1->next)
+	if (face1->id == i)
+	  ++n;
+
+    xassert (n == 1);
+  }
+#endif /* GLYPH_DEBUG */
+
   /* Maybe enlarge C->faces_by_id.  */
   if (i == c->used)
     {
@@ -4414,21 +4422,6 @@ cache_face (struct face_cache *c, struct face *face, unsigned int hash)
 	}
       c->used++;
     }
-
-#if GLYPH_DEBUG
-  /* Check that FACE got a unique id.  */
-  {
-    int j, n;
-    struct face *face;
-
-    for (j = n = 0; j < FACE_CACHE_BUCKETS_SIZE; ++j)
-      for (face = c->buckets[j]; face; face = face->next)
-	if (face->id == i)
-	  ++n;
-
-    xassert (n == 1);
-  }
-#endif /* GLYPH_DEBUG */
 
   c->faces_by_id[i] = face;
 }
@@ -4460,7 +4453,7 @@ uncache_face (struct face_cache *c, struct face *face)
    Value is the ID of the face found.  If no suitable face is found,
    realize a new one.  */
 
-static INLINE int
+static inline int
 lookup_face (struct frame *f, Lisp_Object *attr)
 {
   struct face_cache *cache = FRAME_FACE_CACHE (f);
@@ -5954,7 +5947,7 @@ face_at_buffer_position (struct window *w, EMACS_INT pos,
   struct frame *f = XFRAME (w->frame);
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object prop, position;
-  int i, noverlays;
+  ptrdiff_t i, noverlays;
   Lisp_Object *overlay_vec;
   Lisp_Object frame;
   EMACS_INT endpos;
@@ -6223,7 +6216,8 @@ face_at_string_position (struct window *w, Lisp_Object string,
 */
 
 int
-merge_faces (struct frame *f, Lisp_Object face_name, int face_id, int base_face_id)
+merge_faces (struct frame *f, Lisp_Object face_name, EMACS_INT face_id,
+	     int base_face_id)
 {
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   struct face *base_face;
@@ -6330,8 +6324,7 @@ where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
 /* Print the contents of the realized face FACE to stderr.  */
 
 static void
-dump_realized_face (face)
-     struct face *face;
+dump_realized_face (struct face *face)
 {
   fprintf (stderr, "ID: %d\n", face->id);
 #ifdef HAVE_X_WINDOWS
@@ -6412,153 +6405,82 @@ DEFUN ("show-face-resources", Fshow_face_resources, Sshow_face_resources,
 void
 syms_of_xfaces (void)
 {
-  Qface = intern_c_string ("face");
-  staticpro (&Qface);
-  Qface_no_inherit = intern_c_string ("face-no-inherit");
-  staticpro (&Qface_no_inherit);
-  Qbitmap_spec_p = intern_c_string ("bitmap-spec-p");
-  staticpro (&Qbitmap_spec_p);
-  Qframe_set_background_mode = intern_c_string ("frame-set-background-mode");
-  staticpro (&Qframe_set_background_mode);
+  DEFSYM (Qface, "face");
+  DEFSYM (Qface_no_inherit, "face-no-inherit");
+  DEFSYM (Qbitmap_spec_p, "bitmap-spec-p");
+  DEFSYM (Qframe_set_background_mode, "frame-set-background-mode");
 
   /* Lisp face attribute keywords.  */
-  QCfamily = intern_c_string (":family");
-  staticpro (&QCfamily);
-  QCheight = intern_c_string (":height");
-  staticpro (&QCheight);
-  QCweight = intern_c_string (":weight");
-  staticpro (&QCweight);
-  QCslant = intern_c_string (":slant");
-  staticpro (&QCslant);
-  QCunderline = intern_c_string (":underline");
-  staticpro (&QCunderline);
-  QCinverse_video = intern_c_string (":inverse-video");
-  staticpro (&QCinverse_video);
-  QCreverse_video = intern_c_string (":reverse-video");
-  staticpro (&QCreverse_video);
-  QCforeground = intern_c_string (":foreground");
-  staticpro (&QCforeground);
-  QCbackground = intern_c_string (":background");
-  staticpro (&QCbackground);
-  QCstipple = intern_c_string (":stipple");
-  staticpro (&QCstipple);
-  QCwidth = intern_c_string (":width");
-  staticpro (&QCwidth);
-  QCfont = intern_c_string (":font");
-  staticpro (&QCfont);
-  QCfontset = intern_c_string (":fontset");
-  staticpro (&QCfontset);
-  QCbold = intern_c_string (":bold");
-  staticpro (&QCbold);
-  QCitalic = intern_c_string (":italic");
-  staticpro (&QCitalic);
-  QCoverline = intern_c_string (":overline");
-  staticpro (&QCoverline);
-  QCstrike_through = intern_c_string (":strike-through");
-  staticpro (&QCstrike_through);
-  QCbox = intern_c_string (":box");
-  staticpro (&QCbox);
-  QCinherit = intern_c_string (":inherit");
-  staticpro (&QCinherit);
+  DEFSYM (QCfamily, ":family");
+  DEFSYM (QCheight, ":height");
+  DEFSYM (QCweight, ":weight");
+  DEFSYM (QCslant, ":slant");
+  DEFSYM (QCunderline, ":underline");
+  DEFSYM (QCinverse_video, ":inverse-video");
+  DEFSYM (QCreverse_video, ":reverse-video");
+  DEFSYM (QCforeground, ":foreground");
+  DEFSYM (QCbackground, ":background");
+  DEFSYM (QCstipple, ":stipple");
+  DEFSYM (QCwidth, ":width");
+  DEFSYM (QCfont, ":font");
+  DEFSYM (QCfontset, ":fontset");
+  DEFSYM (QCbold, ":bold");
+  DEFSYM (QCitalic, ":italic");
+  DEFSYM (QCoverline, ":overline");
+  DEFSYM (QCstrike_through, ":strike-through");
+  DEFSYM (QCbox, ":box");
+  DEFSYM (QCinherit, ":inherit");
 
   /* Symbols used for Lisp face attribute values.  */
-  QCcolor = intern_c_string (":color");
-  staticpro (&QCcolor);
-  QCline_width = intern_c_string (":line-width");
-  staticpro (&QCline_width);
-  QCstyle = intern_c_string (":style");
-  staticpro (&QCstyle);
-  Qreleased_button = intern_c_string ("released-button");
-  staticpro (&Qreleased_button);
-  Qpressed_button = intern_c_string ("pressed-button");
-  staticpro (&Qpressed_button);
-  Qnormal = intern_c_string ("normal");
-  staticpro (&Qnormal);
-  Qultra_light = intern_c_string ("ultra-light");
-  staticpro (&Qultra_light);
-  Qextra_light = intern_c_string ("extra-light");
-  staticpro (&Qextra_light);
-  Qlight = intern_c_string ("light");
-  staticpro (&Qlight);
-  Qsemi_light = intern_c_string ("semi-light");
-  staticpro (&Qsemi_light);
-  Qsemi_bold = intern_c_string ("semi-bold");
-  staticpro (&Qsemi_bold);
-  Qbold = intern_c_string ("bold");
-  staticpro (&Qbold);
-  Qextra_bold = intern_c_string ("extra-bold");
-  staticpro (&Qextra_bold);
-  Qultra_bold = intern_c_string ("ultra-bold");
-  staticpro (&Qultra_bold);
-  Qoblique = intern_c_string ("oblique");
-  staticpro (&Qoblique);
-  Qitalic = intern_c_string ("italic");
-  staticpro (&Qitalic);
-  Qreverse_oblique = intern_c_string ("reverse-oblique");
-  staticpro (&Qreverse_oblique);
-  Qreverse_italic = intern_c_string ("reverse-italic");
-  staticpro (&Qreverse_italic);
-  Qultra_condensed = intern_c_string ("ultra-condensed");
-  staticpro (&Qultra_condensed);
-  Qextra_condensed = intern_c_string ("extra-condensed");
-  staticpro (&Qextra_condensed);
-  Qcondensed = intern_c_string ("condensed");
-  staticpro (&Qcondensed);
-  Qsemi_condensed = intern_c_string ("semi-condensed");
-  staticpro (&Qsemi_condensed);
-  Qsemi_expanded = intern_c_string ("semi-expanded");
-  staticpro (&Qsemi_expanded);
-  Qexpanded = intern_c_string ("expanded");
-  staticpro (&Qexpanded);
-  Qextra_expanded = intern_c_string ("extra-expanded");
-  staticpro (&Qextra_expanded);
-  Qultra_expanded = intern_c_string ("ultra-expanded");
-  staticpro (&Qultra_expanded);
-  Qbackground_color = intern_c_string ("background-color");
-  staticpro (&Qbackground_color);
-  Qforeground_color = intern_c_string ("foreground-color");
-  staticpro (&Qforeground_color);
-  Qunspecified = intern_c_string ("unspecified");
-  staticpro (&Qunspecified);
-  Qignore_defface = intern_c_string (":ignore-defface");
-  staticpro (&Qignore_defface);
+  DEFSYM (QCcolor, ":color");
+  DEFSYM (QCline_width, ":line-width");
+  DEFSYM (QCstyle, ":style");
+  DEFSYM (Qreleased_button, "released-button");
+  DEFSYM (Qpressed_button, "pressed-button");
+  DEFSYM (Qnormal, "normal");
+  DEFSYM (Qultra_light, "ultra-light");
+  DEFSYM (Qextra_light, "extra-light");
+  DEFSYM (Qlight, "light");
+  DEFSYM (Qsemi_light, "semi-light");
+  DEFSYM (Qsemi_bold, "semi-bold");
+  DEFSYM (Qbold, "bold");
+  DEFSYM (Qextra_bold, "extra-bold");
+  DEFSYM (Qultra_bold, "ultra-bold");
+  DEFSYM (Qoblique, "oblique");
+  DEFSYM (Qitalic, "italic");
+  DEFSYM (Qreverse_oblique, "reverse-oblique");
+  DEFSYM (Qreverse_italic, "reverse-italic");
+  DEFSYM (Qultra_condensed, "ultra-condensed");
+  DEFSYM (Qextra_condensed, "extra-condensed");
+  DEFSYM (Qcondensed, "condensed");
+  DEFSYM (Qsemi_condensed, "semi-condensed");
+  DEFSYM (Qsemi_expanded, "semi-expanded");
+  DEFSYM (Qexpanded, "expanded");
+  DEFSYM (Qextra_expanded, "extra-expanded");
+  DEFSYM (Qultra_expanded, "ultra-expanded");
+  DEFSYM (Qbackground_color, "background-color");
+  DEFSYM (Qforeground_color, "foreground-color");
+  DEFSYM (Qunspecified, "unspecified");
+  DEFSYM (Qignore_defface, ":ignore-defface");
 
-  Qface_alias = intern_c_string ("face-alias");
-  staticpro (&Qface_alias);
-  Qdefault = intern_c_string ("default");
-  staticpro (&Qdefault);
-  Qtool_bar = intern_c_string ("tool-bar");
-  staticpro (&Qtool_bar);
-  Qregion = intern_c_string ("region");
-  staticpro (&Qregion);
-  Qfringe = intern_c_string ("fringe");
-  staticpro (&Qfringe);
-  Qheader_line = intern_c_string ("header-line");
-  staticpro (&Qheader_line);
-  Qscroll_bar = intern_c_string ("scroll-bar");
-  staticpro (&Qscroll_bar);
-  Qmenu = intern_c_string ("menu");
-  staticpro (&Qmenu);
-  Qcursor = intern_c_string ("cursor");
-  staticpro (&Qcursor);
-  Qborder = intern_c_string ("border");
-  staticpro (&Qborder);
-  Qmouse = intern_c_string ("mouse");
-  staticpro (&Qmouse);
-  Qmode_line_inactive = intern_c_string ("mode-line-inactive");
-  staticpro (&Qmode_line_inactive);
-  Qvertical_border = intern_c_string ("vertical-border");
-  staticpro (&Qvertical_border);
-  Qtty_color_desc = intern_c_string ("tty-color-desc");
-  staticpro (&Qtty_color_desc);
-  Qtty_color_standard_values = intern_c_string ("tty-color-standard-values");
-  staticpro (&Qtty_color_standard_values);
-  Qtty_color_by_index = intern_c_string ("tty-color-by-index");
-  staticpro (&Qtty_color_by_index);
-  Qtty_color_alist = intern_c_string ("tty-color-alist");
-  staticpro (&Qtty_color_alist);
-  Qscalable_fonts_allowed = intern_c_string ("scalable-fonts-allowed");
-  staticpro (&Qscalable_fonts_allowed);
+  DEFSYM (Qface_alias, "face-alias");
+  DEFSYM (Qdefault, "default");
+  DEFSYM (Qtool_bar, "tool-bar");
+  DEFSYM (Qregion, "region");
+  DEFSYM (Qfringe, "fringe");
+  DEFSYM (Qheader_line, "header-line");
+  DEFSYM (Qscroll_bar, "scroll-bar");
+  DEFSYM (Qmenu, "menu");
+  DEFSYM (Qcursor, "cursor");
+  DEFSYM (Qborder, "border");
+  DEFSYM (Qmouse, "mouse");
+  DEFSYM (Qmode_line_inactive, "mode-line-inactive");
+  DEFSYM (Qvertical_border, "vertical-border");
+  DEFSYM (Qtty_color_desc, "tty-color-desc");
+  DEFSYM (Qtty_color_standard_values, "tty-color-standard-values");
+  DEFSYM (Qtty_color_by_index, "tty-color-by-index");
+  DEFSYM (Qtty_color_alist, "tty-color-alist");
+  DEFSYM (Qscalable_fonts_allowed, "scalable-fonts-allowed");
 
   Vparam_value_alist = Fcons (Fcons (Qnil, Qnil), Qnil);
   staticpro (&Vparam_value_alist);

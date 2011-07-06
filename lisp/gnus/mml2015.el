@@ -55,9 +55,15 @@
 			   'epg)
 		       (error))
 		     (progn
-		       (ignore-errors (require 'pgg))
-		       (and (fboundp 'pgg-sign-region)
-			    'pgg))
+		       (let ((abs-file (locate-library "pgg")))
+			 ;; Don't load PGG if it is marked as obsolete
+			 ;; (Emacs 24).
+			 (when (and abs-file
+				    (not (string-match "/obsolete/[^/]*\\'"
+						       abs-file)))
+			   (ignore-errors (require 'pgg))
+			   (and (fboundp 'pgg-sign-region)
+				'pgg))))
 		     (progn (ignore-errors
 			      (load "mc-toplev"))
 			    (and (fboundp 'mc-encrypt-generic)

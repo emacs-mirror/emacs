@@ -246,10 +246,10 @@ This checks for the existence of a \".git\" directory in that directory."
 	(cd dir)
 	(shell-command "git add .")
 	(shell-command "git ls-files --deleted" t)
-	(mapc '(lambda (file)
-		 (unless (string= file "")
-		   (shell-command
-		    (concat "git rm \"" file "\""))))
+	(mapc (lambda (file)
+                (unless (string= file "")
+                  (shell-command
+                   (concat "git rm \"" file "\""))))
 	      (split-string (buffer-string) "\n"))
 	(shell-command "git commit -m 'Synchronized attachments'")))))
 

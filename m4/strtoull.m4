@@ -1,4 +1,4 @@
-# strtoull.m4 serial 6
+# strtoull.m4 serial 7
 dnl Copyright (C) 2002, 2004, 2006, 2008-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -11,10 +11,9 @@ AC_DEFUN([gl_FUNC_STRTOULL],
   dnl unless the type 'unsigned long long int' exists.
   AC_REQUIRE([AC_TYPE_UNSIGNED_LONG_LONG_INT])
   if test "$ac_cv_type_unsigned_long_long_int" = yes; then
-    AC_REPLACE_FUNCS([strtoull])
+    AC_CHECK_FUNCS([strtoull])
     if test $ac_cv_func_strtoull = no; then
       HAVE_STRTOULL=0
-      gl_PREREQ_STRTOULL
     fi
   fi
 ])

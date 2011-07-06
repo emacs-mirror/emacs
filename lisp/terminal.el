@@ -105,8 +105,8 @@ performance."
     (define-key map [t] 'te-pass-through)
     (define-key map [switch-frame] 'handle-switch-frame)
     (define-key map "\e" terminal-meta-map)
-    ;(define-key map "\C-l"
-    ;  '(lambda () (interactive) (te-pass-through) (redraw-display)))
+    ;;(define-key map "\C-l"
+    ;;  (lambda () (interactive) (te-pass-through) (redraw-display)))
     (setq terminal-map map)))
 
 (defvar terminal-escape-map nil)

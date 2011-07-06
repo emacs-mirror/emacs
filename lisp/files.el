@@ -278,7 +278,7 @@ The value `never' means do not make them."
   :group 'backup
   :group 'vc)
 (put 'version-control 'safe-local-variable
-     '(lambda (x) (or (booleanp x) (equal x 'never))))
+     (lambda (x) (or (booleanp x) (equal x 'never))))
 
 (defcustom dired-kept-versions 2
   "When cleaning directory, number of versions to keep."
@@ -1288,100 +1288,6 @@ return value, which may be passed as the REQUIRE-MATCH arg to
 	 'confirm)
 	(t nil)))
 
-(defun read-buffer-to-switch (prompt)
-  "Read the name of a buffer to switch to and return as a string.
-It is intended for `switch-to-buffer' family of commands since they
-need to omit the name of current buffer from the list of completions
-and default values."
-  (let ((rbts-completion-table (internal-complete-buffer-except)))
-    (minibuffer-with-setup-hook
-        (lambda ()
-          (setq minibuffer-completion-table rbts-completion-table)
-          ;; Since rbts-completion-table is built dynamically, we
-          ;; can't just add it to the default value of
-          ;; icomplete-with-completion-tables, so we add it
-          ;; here manually.
-          (if (and (boundp 'icomplete-with-completion-tables)
-                   (listp icomplete-with-completion-tables))
-              (set (make-local-variable 'icomplete-with-completion-tables)
-                   (cons rbts-completion-table
-                         icomplete-with-completion-tables))))
-      (read-buffer prompt (other-buffer (current-buffer))
-                   (confirm-nonexistent-file-or-buffer)))))
-
-(defun switch-to-buffer-other-window (buffer-or-name &optional norecord)
-  "Select the buffer specified by BUFFER-OR-NAME in another window.
-BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
-nil.  Return the buffer switched to.
-
-If called interactively, prompt for the buffer name using the
-minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
-determines whether to request confirmation before creating a new
-buffer.
-
-If BUFFER-OR-NAME is a string and does not identify an existing
-buffer, create a new buffer with that name.  If BUFFER-OR-NAME is
-nil, switch to the buffer returned by `other-buffer'.
-
-Optional second argument NORECORD non-nil means do not put this
-buffer at the front of the list of recently selected ones.
-
-This uses the function `display-buffer' as a subroutine; see its
-documentation for additional customization information."
-  (interactive
-   (list (read-buffer-to-switch "Switch to buffer in other window: ")))
-  (let ((pop-up-windows t)
-	same-window-buffer-names same-window-regexps)
-    (pop-to-buffer buffer-or-name t norecord)))
-
-(defun switch-to-buffer-other-frame (buffer-or-name &optional norecord)
-  "Switch to buffer BUFFER-OR-NAME in another frame.
-BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
-nil.  Return the buffer switched to.
-
-If called interactively, prompt for the buffer name using the
-minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
-determines whether to request confirmation before creating a new
-buffer.
-
-If BUFFER-OR-NAME is a string and does not identify an existing
-buffer, create a new buffer with that name.  If BUFFER-OR-NAME is
-nil, switch to the buffer returned by `other-buffer'.
-
-Optional second arg NORECORD non-nil means do not put this
-buffer at the front of the list of recently selected ones.
-
-This uses the function `display-buffer' as a subroutine; see its
-documentation for additional customization information."
-  (interactive
-   (list (read-buffer-to-switch "Switch to buffer in other frame: ")))
-  (let ((pop-up-frames t)
-	same-window-buffer-names same-window-regexps)
-    (pop-to-buffer buffer-or-name t norecord)))
-
-(defun display-buffer-other-frame (buffer)
-  "Display buffer BUFFER in another frame.
-This uses the function `display-buffer' as a subroutine; see
-its documentation for additional customization information."
-  (interactive "BDisplay buffer in other frame: ")
-  (let ((pop-up-frames t)
-	same-window-buffer-names same-window-regexps
-        ;;(old-window (selected-window))
-	new-window)
-    (setq new-window (display-buffer buffer t))
-    ;; This may have been here in order to prevent the new frame from hiding
-    ;; the old frame.  But it does more harm than good.
-    ;; Maybe we should call `raise-window' on the old-frame instead?  --Stef
-    ;;(lower-frame (window-frame new-window))
-
-    ;; This may have been here in order to make sure the old-frame gets the
-    ;; focus.  But not only can it cause an annoying flicker, with some
-    ;; window-managers it just makes the window invisible, with no easy
-    ;; way to recover it.  --Stef
-    ;;(make-frame-invisible (window-frame old-window))
-    ;;(make-frame-visible (window-frame old-window))
-    ))
-
 (defmacro minibuffer-with-setup-hook (fun &rest body)
   "Temporarily add FUN to `minibuffer-setup-hook' while executing BODY.
 BODY should use the minibuffer at most once.
@@ -1435,8 +1341,8 @@ automatically choosing a major mode, use \\[find-file-literally]."
                         (confirm-nonexistent-file-or-buffer)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
-	(mapcar 'switch-to-buffer (nreverse value))
-      (switch-to-buffer value))))
+	(mapcar #'pop-to-buffer-same-window (nreverse value))
+      (pop-to-buffer-same-window value))))
 
 (defun find-file-other-window (filename &optional wildcards)
   "Edit file FILENAME, in another window.
@@ -2241,6 +2147,8 @@ in that case, this function acts as if `enable-local-variables' were t."
   (interactive)
   (funcall (or (default-value 'major-mode) 'fundamental-mode))
   (let ((enable-local-variables (or (not find-file) enable-local-variables)))
+    ;; FIXME this is less efficient than it could be, since both
+    ;; s-a-m and h-l-v may parse the same regions, looking for "mode:".
     (report-errors "File mode specification error: %s"
       (set-auto-mode))
     (report-errors "File local-variables error: %s"
@@ -2360,7 +2268,12 @@ since only a single case-insensitive search through the alist is made."
      ("\\.icn\\'" . icon-mode)
      ("\\.sim\\'" . simula-mode)
      ("\\.mss\\'" . scribe-mode)
+     ;; The Fortran standard does not say anything about file extensions.
+     ;; .f90 was widely used for F90, now we seem to be trapped into
+     ;; using a different extension for each language revision.
+     ;; Anyway, the following extensions are supported by gfortran.
      ("\\.f9[05]\\'" . f90-mode)
+     ("\\.f0[38]\\'" . f90-mode)
      ("\\.indent\\.pro\\'" . fundamental-mode) ; to avoid idlwave-mode
      ("\\.\\(pro\\|PRO\\)\\'" . idlwave-mode)
      ("\\.srt\\'" . srecode-template-mode)
@@ -2425,6 +2338,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("\\.ebrowse\\'" . ebrowse-tree-mode)
      ("#\\*mail\\*" . mail-mode)
      ("\\.g\\'" . antlr-mode)
+     ("\\.mod\\'" . m2-mode)
      ("\\.ses\\'" . ses-mode)
      ("\\.docbook\\'" . sgml-mode)
      ("\\.com\\'" . dcl-mode)
@@ -2435,8 +2349,6 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("\\.ppd\\'" . conf-ppd-mode)
      ("java.+\\.conf\\'" . conf-javaprop-mode)
      ("\\.properties\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-javaprop-mode)
-     ;; *.cf, *.cfg, *.conf, *.config[.local|.de_DE.UTF8|...], */config
-     ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode-maybe)
      ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|pam\\.d/.*\\|permissions\\(?:\\.d/.+\\)?\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
      ("\\`/etc/\\(?:acpid?/.+\\|aliases\\(?:\\.d/.+\\)?\\|default/.+\\|group-?\\|hosts\\..+\\|inittab\\|ksysguarddrc\\|opera6rc\\|passwd-?\\|shadow-?\\|sysconfig/.+\\)\\'" . conf-mode)
      ;; ChangeLog.old etc.  Other change-log-mode entries are above;
@@ -2458,11 +2370,14 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ;; Using mode nil rather than `ignore' would let the search continue
      ;; through this list (with the shortened name) rather than start over.
      ("\\.~?[0-9]+\\.[0-9][-.0-9]*~?\\'" nil t)
+     ("\\.\\(?:orig\\|in\\|[bB][aA][kK]\\)\\'" nil t)
+     ;; This should come after "in" stripping (e.g. config.h.in).
+     ;; *.cf, *.cfg, *.conf, *.config[.local|.de_DE.UTF8|...], */config
+     ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode-maybe)
      ;; The following should come after the ChangeLog pattern
      ;; for the sake of ChangeLog.1, etc.
      ;; and after the .scm.[0-9] and CVS' <file>.<rev> patterns too.
-     ("\\.[1-9]\\'" . nroff-mode)
-     ("\\.\\(?:orig\\|in\\|[bB][aA][kK]\\)\\'" nil t)))
+     ("\\.[1-9]\\'" . nroff-mode)))
   "Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
 \(NON-NIL stands for anything that is not nil; the value does not matter.)
@@ -2521,6 +2436,7 @@ and `magic-mode-alist', which determines modes based on file contents.")
      ("ksh" . sh-mode)
      ("oash" . sh-mode)
      ("pdksh" . sh-mode)
+     ("rbash" . sh-mode)
      ("rc" . sh-mode)
      ("rpm" . sh-mode)
      ("sh" . sh-mode)
@@ -2616,23 +2532,24 @@ Also applies to `magic-fallback-mode-alist'.")
   "Select major mode appropriate for current buffer.
 
 To find the right major mode, this function checks for a -*- mode tag,
+checks for a `mode:' entry in the Local Variables section of the file,
 checks if it uses an interpreter listed in `interpreter-mode-alist',
 matches the buffer beginning against `magic-mode-alist',
 compares the filename against the entries in `auto-mode-alist',
 then matches the buffer beginning against `magic-fallback-mode-alist'.
 
-It does not check for the `mode:' local variable in the
-Local Variables section of the file; for that, use `hack-local-variables'.
-
-If `enable-local-variables' is nil, this function does not check for a
--*- mode tag.
+If `enable-local-variables' is nil, this function does not check for
+any mode: tag anywhere in the file.
 
 If the optional argument KEEP-MODE-IF-SAME is non-nil, then we
 set the major mode only if that would change it.  In other words
 we don't actually set it to the same mode the buffer already has."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
   (let (end done mode modes)
-    ;; Find a -*- mode tag
+    ;; Once we drop the deprecated feature where mode: is also allowed to
+    ;; specify minor-modes (ie, there can be more than one "mode:"), we can
+    ;; remove this section and just let (hack-local-variables t) handle it.
+    ;; Find a -*- mode tag.
     (save-excursion
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
@@ -2667,6 +2584,14 @@ we don't actually set it to the same mode the buffer already has."
 	      (or (set-auto-mode-0 mode keep-mode-if-same)
 		  ;; continuing would call minor modes again, toggling them off
 		  (throw 'nop nil))))))
+    (and (not done)
+	 enable-local-variables
+	 (setq mode (hack-local-variables t))
+	 (not (memq mode modes))	; already tried and failed
+	 (if (not (functionp mode))
+	     (message "Ignoring unknown mode `%s'" mode)
+	   (setq done t)
+	   (set-auto-mode-0 mode keep-mode-if-same)))
     ;; If we didn't, look for an interpreter specified in the first line.
     ;; As a special case, allow for things like "#!/bin/env perl", which
     ;; finds the interpreter anywhere in $PATH.
@@ -3018,74 +2943,68 @@ n  -- to ignore the local variables list.")
 	    (setq char nil)))
 	(kill-buffer buf)
 	(when (and offer-save (= char ?!) unsafe-vars)
-	  (dolist (elt unsafe-vars)
-	    (add-to-list 'safe-local-variable-values elt))
-	  ;; When this is called from desktop-restore-file-buffer,
-	  ;; coding-system-for-read may be non-nil.  Reset it before
-	  ;; writing to .emacs.
-	  (if (or custom-file user-init-file)
-	      (let ((coding-system-for-read nil))
-		(customize-save-variable
-		 'safe-local-variable-values
-		 safe-local-variable-values))))
+	  (customize-push-and-save 'safe-local-variable-values unsafe-vars))
 	(memq char '(?! ?\s ?y))))))
 
 (defun hack-local-variables-prop-line (&optional mode-only)
   "Return local variables specified in the -*- line.
-Ignore any specification for `mode:' and `coding:';
-`set-auto-mode' should already have handled `mode:',
-`set-auto-coding' should already have handled `coding:'.
+Returns an alist of elements (VAR . VAL), where VAR is a variable
+and VAL is the specified value.  Ignores any specification for
+`mode:' and `coding:' (which should have already been handled
+by `set-auto-mode' and `set-auto-coding', respectively).
+Throws an error if the -*- line is malformed.
 
-If MODE-ONLY is non-nil, all we do is check whether the major
-mode is specified, returning t if it is specified.  Otherwise,
-return an alist of elements (VAR . VAL), where VAR is a variable
-and VAL is the specified value."
+If MODE-ONLY is non-nil, just returns the symbol specifying the
+mode, if there is one, otherwise nil."
   (save-excursion
     (goto-char (point-min))
     (let ((end (set-auto-mode-1))
-	  result mode-specified)
-      ;; Parse the -*- line into the RESULT alist.
-      ;; Also set MODE-SPECIFIED if we see a spec or `mode'.
+	  result)
       (cond ((not end)
 	     nil)
 	    ((looking-at "[ \t]*\\([^ \t\n\r:;]+\\)\\([ \t]*-\\*-\\)")
-	     ;; Simple form: "-*- MODENAME -*-".  Already handled.
-	     (setq mode-specified t)
-	     nil)
+	     ;; Simple form: "-*- MODENAME -*-".
+	     (if mode-only
+		 (intern (concat (match-string 1) "-mode"))))
 	    (t
 	     ;; Hairy form: '-*-' [ <variable> ':' <value> ';' ]* '-*-'
 	     ;; (last ";" is optional).
-	     (while (< (point) end)
+	     ;; If MODE-ONLY, just check for `mode'.
+	     ;; Otherwise, parse the -*- line into the RESULT alist.
+	     (while (and (or (not mode-only)
+			     (not result))
+			 (< (point) end))
 	       (or (looking-at "[ \t]*\\([^ \t\n:]+\\)[ \t]*:[ \t]*")
 		   (error "Malformed -*- line"))
 	       (goto-char (match-end 0))
 	       ;; There used to be a downcase here,
 	       ;; but the manual didn't say so,
 	       ;; and people want to set var names that aren't all lc.
-	       (let ((key (intern (match-string 1)))
-		     (val (save-restriction
-			    (narrow-to-region (point) end)
-			    (let ((read-circle nil))
-			      (read (current-buffer))))))
-		 ;; It is traditional to ignore
-		 ;; case when checking for `mode' in set-auto-mode,
-		 ;; so we must do that here as well.
-		 ;; That is inconsistent, but we're stuck with it.
-		 ;; The same can be said for `coding' in set-auto-coding.
-		 (or (and (equal (downcase (symbol-name key)) "mode")
-			  (setq mode-specified t))
-		     (equal (downcase (symbol-name key)) "coding")
-		     (condition-case nil
-			 (push (cons (if (eq key 'eval)
-					 'eval
-				       (indirect-variable key))
-				     val) result)
-		       (error nil)))
-		 (skip-chars-forward " \t;")))))
-
-      (if mode-only
-	  mode-specified
-	result))))
+	       (let* ((key (intern (match-string 1)))
+		      (val (save-restriction
+			     (narrow-to-region (point) end)
+			     (let ((read-circle nil))
+			       (read (current-buffer)))))
+		      ;; It is traditional to ignore
+		      ;; case when checking for `mode' in set-auto-mode,
+		      ;; so we must do that here as well.
+		      ;; That is inconsistent, but we're stuck with it.
+		      ;; The same can be said for `coding' in set-auto-coding.
+		      (keyname (downcase (symbol-name key))))
+		 (if mode-only
+		     (and (equal keyname "mode")
+			  (setq result
+				(intern (concat (downcase (symbol-name val))
+						"-mode"))))
+		   (or (equal keyname "coding")
+		       (condition-case nil
+			   (push (cons (if (eq key 'eval)
+					   'eval
+					 (indirect-variable key))
+				       val) result)
+			 (error nil))))
+		 (skip-chars-forward " \t;")))
+	     result)))))
 
 (defun hack-local-variables-filter (variables dir-name)
   "Filter local variable settings, querying the user if necessary.
@@ -3144,8 +3063,12 @@ DIR-NAME is the name of the associated directory.  Otherwise it is nil."
 
 (defun hack-local-variables (&optional mode-only)
   "Parse and put into effect this buffer's local variables spec.
-If MODE-ONLY is non-nil, all we do is check whether the major mode
-is specified, returning t if it is specified."
+Uses `hack-local-variables-apply' to apply the variables.
+
+If MODE-ONLY is non-nil, all we do is check whether a \"mode:\"
+is specified, and return the corresponding mode symbol, or nil.
+In this case, we try to ignore minor-modes, and only return a
+major-mode."
   (let ((enable-local-variables
 	 (and local-enable-local-variables enable-local-variables))
 	result)
@@ -3154,88 +3077,98 @@ is specified, returning t if it is specified."
       (report-errors "Directory-local variables error: %s"
 	(hack-dir-local-variables)))
     (when (or mode-only enable-local-variables)
-      (setq result (hack-local-variables-prop-line mode-only))
-      ;; Look for "Local variables:" line in last page.
-      (save-excursion
-	(goto-char (point-max))
-	(search-backward "\n\^L" (max (- (point-max) 3000) (point-min))
-			 'move)
-	(when (let ((case-fold-search t))
-		(search-forward "Local Variables:" nil t))
-	  (skip-chars-forward " \t")
-	  ;; suffix is what comes after "local variables:" in its line.
-	  ;; prefix is what comes before "local variables:" in its line.
-	  (let ((suffix
-		 (concat
-		  (regexp-quote (buffer-substring (point)
-						  (line-end-position)))
-		  "$"))
-		(prefix
-		 (concat "^" (regexp-quote
-			      (buffer-substring (line-beginning-position)
-						(match-beginning 0)))))
-		beg)
+      ;; If MODE-ONLY is non-nil, and the prop line specifies a mode,
+      ;; then we're done, and have no need to scan further.
+      (unless (and (setq result (hack-local-variables-prop-line mode-only))
+		   mode-only)
+	;; Look for "Local variables:" line in last page.
+	(save-excursion
+	  (goto-char (point-max))
+	  (search-backward "\n\^L" (max (- (point-max) 3000) (point-min))
+			   'move)
+	  (when (let ((case-fold-search t))
+		  (search-forward "Local Variables:" nil t))
+	    (skip-chars-forward " \t")
+	    ;; suffix is what comes after "local variables:" in its line.
+	    ;; prefix is what comes before "local variables:" in its line.
+	    (let ((suffix
+		   (concat
+		    (regexp-quote (buffer-substring (point)
+						    (line-end-position)))
+		    "$"))
+		  (prefix
+		   (concat "^" (regexp-quote
+				(buffer-substring (line-beginning-position)
+						  (match-beginning 0)))))
+		  beg)
 
-	    (forward-line 1)
-	    (let ((startpos (point))
-		  endpos
-		  (thisbuf (current-buffer)))
-	      (save-excursion
-		(unless (let ((case-fold-search t))
-			  (re-search-forward
-			   (concat prefix "[ \t]*End:[ \t]*" suffix)
-			   nil t))
-                  ;; This used to be an error, but really all it means is
-                  ;; that this may simply not be a local-variables section,
-                  ;; so just ignore it.
-		  (message "Local variables list is not properly terminated"))
-		(beginning-of-line)
-		(setq endpos (point)))
+	      (forward-line 1)
+	      (let ((startpos (point))
+		    endpos
+		    (thisbuf (current-buffer)))
+		(save-excursion
+		  (unless (let ((case-fold-search t))
+			    (re-search-forward
+			     (concat prefix "[ \t]*End:[ \t]*" suffix)
+			     nil t))
+		    ;; This used to be an error, but really all it means is
+		    ;; that this may simply not be a local-variables section,
+		    ;; so just ignore it.
+		    (message "Local variables list is not properly terminated"))
+		  (beginning-of-line)
+		  (setq endpos (point)))
 
-	      (with-temp-buffer
-		(insert-buffer-substring thisbuf startpos endpos)
-		(goto-char (point-min))
-		(subst-char-in-region (point) (point-max) ?\^m ?\n)
-		(while (not (eobp))
-		  ;; Discard the prefix.
-		  (if (looking-at prefix)
-		      (delete-region (point) (match-end 0))
-		    (error "Local variables entry is missing the prefix"))
-		  (end-of-line)
-		  ;; Discard the suffix.
-		  (if (looking-back suffix)
-		      (delete-region (match-beginning 0) (point))
-		    (error "Local variables entry is missing the suffix"))
-		  (forward-line 1))
-		(goto-char (point-min))
+		(with-temp-buffer
+		  (insert-buffer-substring thisbuf startpos endpos)
+		  (goto-char (point-min))
+		  (subst-char-in-region (point) (point-max) ?\^m ?\n)
+		  (while (not (eobp))
+		    ;; Discard the prefix.
+		    (if (looking-at prefix)
+			(delete-region (point) (match-end 0))
+		      (error "Local variables entry is missing the prefix"))
+		    (end-of-line)
+		    ;; Discard the suffix.
+		    (if (looking-back suffix)
+			(delete-region (match-beginning 0) (point))
+		      (error "Local variables entry is missing the suffix"))
+		    (forward-line 1))
+		  (goto-char (point-min))
 
-		(while (not (eobp))
-		  ;; Find the variable name; strip whitespace.
-		  (skip-chars-forward " \t")
-		  (setq beg (point))
-		  (skip-chars-forward "^:\n")
-		  (if (eolp) (error "Missing colon in local variables entry"))
-		  (skip-chars-backward " \t")
-		  (let* ((str (buffer-substring beg (point)))
-			 (var (let ((read-circle nil))
-				(read str)))
-			 val)
-		    ;; Read the variable value.
-		    (skip-chars-forward "^:")
-		    (forward-char 1)
-		    (let ((read-circle nil))
-		      (setq val (read (current-buffer))))
-		    (if mode-only
-			(if (eq var 'mode)
-			    (setq result t))
-		      (unless (eq var 'coding)
-			(condition-case nil
-			    (push (cons (if (eq var 'eval)
-					    'eval
-					  (indirect-variable var))
-					val) result)
-			  (error nil)))))
-		  (forward-line 1))))))))
+		  (while (and (not (eobp))
+			      (or (not mode-only)
+				  (not result)))
+		    ;; Find the variable name; strip whitespace.
+		    (skip-chars-forward " \t")
+		    (setq beg (point))
+		    (skip-chars-forward "^:\n")
+		    (if (eolp) (error "Missing colon in local variables entry"))
+		    (skip-chars-backward " \t")
+		    (let* ((str (buffer-substring beg (point)))
+			   (var (let ((read-circle nil))
+				  (read str)))
+			   val val2)
+		      ;; Read the variable value.
+		      (skip-chars-forward "^:")
+		      (forward-char 1)
+		      (let ((read-circle nil))
+			(setq val (read (current-buffer))))
+		      (if mode-only
+			  (and (eq var 'mode)
+			       ;; Specifying minor-modes via mode: is
+			       ;; deprecated, but try to reject them anyway.
+			       (not (string-match
+				     "-minor\\'"
+				     (setq val2 (downcase (symbol-name val)))))
+			       (setq result (intern (concat val2 "-mode"))))
+			(unless (eq var 'coding)
+			  (condition-case nil
+			      (push (cons (if (eq var 'eval)
+					      'eval
+					    (indirect-variable var))
+					  val) result)
+			    (error nil)))))
+		    (forward-line 1)))))))))
     ;; Now we've read all the local variables.
     ;; If MODE-ONLY is non-nil, return whether the mode was specified.
     (cond (mode-only result)
@@ -3245,6 +3178,14 @@ is specified, returning t if it is specified."
 	   (hack-local-variables-apply)))))
 
 (defun hack-local-variables-apply ()
+  "Apply the elements of `file-local-variables-alist'.
+If there are any elements, runs `before-hack-local-variables-hook',
+then calls `hack-one-local-variable' to apply the alist elements one by one.
+Finishes by running `hack-local-variables-hook', regardless of whether
+the alist is empty or not.
+
+Note that this function ignores a `mode' entry if it specifies the same
+major mode as the buffer already has."
   (when file-local-variables-alist
     ;; Any 'evals must run in the Right sequence.
     (setq file-local-variables-alist
@@ -3329,7 +3270,7 @@ It is dangerous if either of these conditions are met:
       (and (symbolp (car exp))
 	   ;; Allow (minor)-modes calls with no arguments.
 	   ;; This obsoletes the use of "mode:" for such things.  (Bug#8613)
-	   (or (and (null (cdr exp))
+	   (or (and (member (cdr exp) '(nil (1) (-1)))
 		    (string-match "-mode\\'" (symbol-name (car exp))))
 	       (let ((prop (get (car exp) 'safe-local-eval-function)))
 		 (cond ((eq prop t)
@@ -5218,7 +5159,7 @@ non-nil, it is called instead of rereading visited file contents."
 	       (save-excursion
 		 (let ((switches dired-listing-switches))
 		   (if (file-symlink-p file)
-		       (setq switches (concat switches "L")))
+		       (setq switches (concat switches " -L")))
 		   (set-buffer standard-output)
 		   ;; Use insert-directory-safely, not insert-directory,
 		   ;; because these files might not exist.  In particular,
@@ -5261,7 +5202,7 @@ Then you'll be asked about a number of files to recover."
       (error "No previous sessions to recover")))
   (let ((ls-lisp-support-shell-wildcards t))
     (dired (concat auto-save-list-file-prefix "*")
-	   (concat dired-listing-switches "t")))
+	   (concat dired-listing-switches " -t")))
   (save-excursion
     (goto-char (point-min))
     (or (looking-at " Move to the session you want to recover,")
@@ -5619,7 +5560,8 @@ default directory.  However, if FULL is non-nil, they are absolute."
 	   contents)
       (while dirs
 	(when (or (null (car dirs))	; Possible if DIRPART is not wild.
-		  (file-directory-p (directory-file-name (car dirs))))
+		  (and (file-directory-p (directory-file-name (car dirs)))
+		       (file-readable-p (car dirs))))
 	  (let ((this-dir-contents
 		 ;; Filter out "." and ".."
 		 (delq nil

@@ -322,7 +322,7 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
   :group 'browse-url)
 
 (defcustom browse-url-firefox-program
-  (let ((candidates '("firefox" "iceweasel")))
+  (let ((candidates '("firefox" "iceweasel" "icecat")))
     (while (and candidates (not (executable-find (car candidates))))
       (setq candidates (cdr candidates)))
     (or (car candidates) "firefox"))
@@ -958,7 +958,7 @@ Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
 ;;;###autoload
 (defun browse-url-xdg-open (url &optional new-window)
   (interactive (browse-url-interactive-arg "URL: "))
-  (call-process "nohup" nil nil nil "xdg-open" url))
+  (call-process "xdg-open" nil 0 nil url))
 
 ;;;###autoload
 (defun browse-url-netscape (url &optional new-window)

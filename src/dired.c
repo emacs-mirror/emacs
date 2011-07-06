@@ -900,11 +900,10 @@ Elements of the attribute list are:
   This is a floating point number if the size is too large for an integer.
  8. File modes, as a string of ten letters or dashes as in ls -l.
  9. t if file's gid would change if file were deleted and recreated.
-10. inode number.  If inode number is larger than what Emacs integer
-  can hold, but still fits into a 32-bit number, this is a cons cell
-  containing two integers: first the high part, then the low 16 bits.
-  If the inode number is wider than 32 bits, this is of the form
-  (HIGH MIDDLE . LOW): first the high 24 bits, then middle 24 bits,
+10. inode number.  If it is larger than what an Emacs integer can hold,
+  this is of the form (HIGH . LOW): first the high bits, then the low 16 bits.
+  If even HIGH is too large for an Emacs integer, this is instead of the form
+  (HIGH MIDDLE . LOW): first the high bits, then the middle 24 bits,
   and finally the low 16 bits.
 11. Filesystem device number.  If it is larger than what the Emacs
   integer can hold, this is a cons cell, similar to the inode number.
@@ -979,11 +978,14 @@ so last access time will always be midnight of that day.  */)
   values[4] = make_time (s.st_atime);
   values[5] = make_time (s.st_mtime);
   values[6] = make_time (s.st_ctime);
-  values[7] = make_fixnum_or_float (s.st_size);
-  /* If the size is negative, and its type is long, convert it back to
-     positive.  */
-  if (s.st_size < 0 && sizeof (s.st_size) == sizeof (long))
-    values[7] = make_float ((double) ((unsigned long) s.st_size));
+
+  /* If the file size is a 4-byte type, assume that files of sizes in
+     the 2-4 GiB range wrap around to negative values, as this is a
+     common bug on older 32-bit platforms.  */
+  if (sizeof (s.st_size) == 4)
+    values[7] = make_fixnum_or_float (s.st_size & 0xffffffffu);
+  else
+    values[7] = make_fixnum_or_float (s.st_size);
 
   filemodestring (&s, modes);
   values[8] = make_string (modes, 10);
@@ -998,35 +1000,8 @@ so last access time will always be midnight of that day.  */)
 #else					/* file gid will be egid */
   values[9] = (s.st_gid != getegid ()) ? Qt : Qnil;
 #endif	/* not BSD4_2 */
-  if (!FIXNUM_OVERFLOW_P (s.st_ino))
-    /* Keep the most common cases as integers.  */
-    values[10] = make_number (s.st_ino);
-  else if (!FIXNUM_OVERFLOW_P (s.st_ino >> 16))
-    /* To allow inode numbers larger than VALBITS, separate the bottom
-       16 bits.  */
-    values[10] = Fcons (make_number ((EMACS_INT)(s.st_ino >> 16)),
-			make_number ((EMACS_INT)(s.st_ino & 0xffff)));
-  else
-    {
-      /* To allow inode numbers beyond 32 bits, separate into 2 24-bit
-	 high parts and a 16-bit bottom part.
-	 The code on the next line avoids a compiler warning on
-	 systems where st_ino is 32 bit wide. (bug#766).  */
-      EMACS_INT high_ino = s.st_ino >> 31 >> 1;
-      EMACS_INT low_ino  = s.st_ino & 0xffffffff;
-
-      values[10] = Fcons (make_number (high_ino >> 8),
-			  Fcons (make_number (((high_ino & 0xff) << 16)
-					      + (low_ino >> 16)),
-				 make_number (low_ino & 0xffff)));
-    }
-
-  /* Likewise for device.  */
-  if (FIXNUM_OVERFLOW_P (s.st_dev))
-    values[11] = Fcons (make_number (s.st_dev >> 16),
-			make_number (s.st_dev & 0xffff));
-  else
-    values[11] = make_number (s.st_dev);
+  values[10] = INTEGER_TO_CONS (s.st_ino);
+  values[11] = INTEGER_TO_CONS (s.st_dev);
 
   return Flist (sizeof(values) / sizeof(values[0]), values);
 }
@@ -1042,21 +1017,13 @@ Comparison is in lexicographic order and case is significant.  */)
 void
 syms_of_dired (void)
 {
-  Qdirectory_files = intern_c_string ("directory-files");
-  Qdirectory_files_and_attributes = intern_c_string ("directory-files-and-attributes");
-  Qfile_name_completion = intern_c_string ("file-name-completion");
-  Qfile_name_all_completions = intern_c_string ("file-name-all-completions");
-  Qfile_attributes = intern_c_string ("file-attributes");
-  Qfile_attributes_lessp = intern_c_string ("file-attributes-lessp");
-  Qdefault_directory = intern_c_string ("default-directory");
-
-  staticpro (&Qdirectory_files);
-  staticpro (&Qdirectory_files_and_attributes);
-  staticpro (&Qfile_name_completion);
-  staticpro (&Qfile_name_all_completions);
-  staticpro (&Qfile_attributes);
-  staticpro (&Qfile_attributes_lessp);
-  staticpro (&Qdefault_directory);
+  DEFSYM (Qdirectory_files, "directory-files");
+  DEFSYM (Qdirectory_files_and_attributes, "directory-files-and-attributes");
+  DEFSYM (Qfile_name_completion, "file-name-completion");
+  DEFSYM (Qfile_name_all_completions, "file-name-all-completions");
+  DEFSYM (Qfile_attributes, "file-attributes");
+  DEFSYM (Qfile_attributes_lessp, "file-attributes-lessp");
+  DEFSYM (Qdefault_directory, "default-directory");
 
   defsubr (&Sdirectory_files);
   defsubr (&Sdirectory_files_and_attributes);

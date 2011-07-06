@@ -56,9 +56,9 @@ into this list; they also should call `dired-log' to log the errors.")
   "Compare file at point with file FILE using `diff'.
 FILE defaults to the file at the mark.  (That's the mark set by
 \\[set-mark-command], not by Dired's \\[dired-mark] command.)
-The prompted-for file is the first file given to `diff'.
+The prompted-for FILE is the first file given to `diff'.
 With prefix arg, prompt for second argument SWITCHES,
-which is options for `diff'."
+which is the string of command switches for `diff'."
   (interactive
    (let* ((current (dired-get-filename t))
 	  ;; Get the file at the mark.
@@ -229,14 +229,17 @@ List has a form of (file-name full-file-name (attribute-list))."
 
 (defun dired-touch-initial (files)
   "Create initial input value for `touch' command."
-  (let (initial)
-    (while files
-      (let ((current (nth 5 (file-attributes (car files)))))
-        (if (and initial (not (equal initial current)))
-            (setq initial (current-time) files nil)
-          (setq initial current))
-        (setq files (cdr files))))
-    (format-time-string "%Y%m%d%H%M.%S" initial)))
+  ;; Nobody can explain what this version is supposed to do.  (Bug#6887)
+  ;; Also, the manual says it uses "the present time".
+  ;;; (let (initial)
+  ;;;   (while files
+  ;;;     (let ((current (nth 5 (file-attributes (car files)))))
+  ;;;       (if (and initial (not (equal initial current)))
+  ;;;           (setq initial (current-time) files nil)
+  ;;;         (setq initial current))
+  ;;;       (setq files (cdr files))))
+  ;;;   (format-time-string "%Y%m%d%H%M.%S" initial)))
+  (format-time-string "%Y%m%d%H%M.%S" (current-time)))
 
 (defun dired-do-chxxx (attribute-name program op-symbol arg)
   ;; Change file attributes (mode, group, owner, timestamp) of marked files and
@@ -1005,7 +1008,7 @@ See Info node `(emacs)Subdir switches' for more details."
     (dired-uncache
      (if (consp dired-directory) (car dired-directory) dired-directory))
     (dired-map-over-marks (let ((fname (dired-get-filename))
-				;; Postphone readin hook till we map
+				;; Postpone readin hook till we map
 				;; over all marked files (Bug#6810).
 				(dired-after-readin-hook nil))
 			    (message "Redisplaying... %s" fname)
@@ -2490,8 +2493,9 @@ with the command \\[tags-loop-continue]."
 ;;;###autoload
 (defun dired-show-file-type (file &optional deref-symlinks)
   "Print the type of FILE, according to the `file' command.
-If FILE is a symbolic link and the optional argument DEREF-SYMLINKS is
-true then the type of the file linked to by FILE is printed instead."
+If you give a prefix to this command, and FILE is a symbolic
+link, then the type of the file linked to by FILE is printed
+instead."
   (interactive (list (dired-get-filename t) current-prefix-arg))
   (let (process-file-side-effects)
     (with-temp-buffer

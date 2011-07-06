@@ -86,7 +86,6 @@ extern EMACS_INT pure[];
   && (PNTR_COMPARISON_TYPE) XPNTR (obj) >= (PNTR_COMPARISON_TYPE) pure)
 
 #else /* not VIRT_ADDR_VARIES */
-/* When PNTR_COMPARISON_TYPE is not the default (unsigned int).  */
 
 extern char my_edata[];
 
@@ -94,4 +93,3 @@ extern char my_edata[];
   ((PNTR_COMPARISON_TYPE) XPNTR (obj) < (PNTR_COMPARISON_TYPE) my_edata)
 
 #endif /* VIRT_ADDRESS_VARIES */
-

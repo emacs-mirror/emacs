@@ -865,7 +865,7 @@ the status of buffer on current line."
 (defun bs--mark-unmark (count fun)
   "Call FUN on COUNT consecutive buffers of *buffer-selection*."
   (let ((dir (if (> count 0) 1 -1)))
-    (dotimes (i (abs count))
+    (dotimes (_i (abs count))
       (let ((buffer (bs--current-buffer)))
 	(when buffer (funcall fun buffer))
 	(bs--update-current-line)
@@ -976,7 +976,7 @@ Uses function `toggle-read-only'."
 
 (defun bs--nth-wrapper (count fun &rest args)
   "Call COUNT times function FUN with arguments ARGS."
-  (dotimes (i (or count 1))
+  (dotimes (_i (or count 1))
     (apply fun args)))
 
 (defun bs-up (arg)
@@ -1212,11 +1212,11 @@ by buffer configuration `bs-cycle-configuration-name'."
 					bs--cycle-list)))
 	     (next (car tupel))
 	     (cycle-list (cdr tupel)))
-	(unless (window-dedicated-p (selected-window))
-	  ;; We don't want the frame iconified if the only window in the frame
-	  ;; happens to be dedicated; let's get the error from switch-to-buffer
-	  (bury-buffer))
-	(switch-to-buffer next)
+        ;; We don't want the frame iconified if the only window in the frame
+        ;; happens to be dedicated.
+        (bury-buffer (current-buffer))
+        (with-no-warnings ; We really do want to call `switch-to-buffer' here.
+          (switch-to-buffer next))
 	(setq bs--cycle-list (append (cdr cycle-list)
 				     (list (car cycle-list))))
 	(bs-message-without-log "Next buffers: %s"
@@ -1245,7 +1245,8 @@ by buffer configuration `bs-cycle-configuration-name'."
 					    bs--cycle-list)))
 	     (prev-buffer (car tupel))
 	     (cycle-list (cdr tupel)))
-	(switch-to-buffer prev-buffer)
+        (with-no-warnings ; We really do want to call `switch-to-buffer' here.
+          (switch-to-buffer prev-buffer))
 	(setq bs--cycle-list (append (last cycle-list)
 				     (reverse (cdr (reverse cycle-list)))))
 	(bs-message-without-log "Previous buffers: %s"

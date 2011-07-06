@@ -1735,8 +1735,9 @@ After sending the signal, this command runs the normal hook
                    (pnum (if (= 1 (length process-alist))
                              "1 process"
                            (format "%d processes" (length process-alist))))
-                   (completion-annotate-function
-                    (lambda (s) (cdr (assoc s proced-signal-list)))))
+                   (completion-extra-properties
+                    '(:annotation-function
+                      (lambda (s) (cdr (assoc s proced-signal-list))))))
               (setq signal
                     (completing-read (concat "Send signal [" pnum
                                              "] (default TERM): ")
@@ -1867,16 +1868,6 @@ buffer.  You can use it to recover marks."
     (undo))
   (message "Change in Proced buffer undone.
 Killed processes cannot be recovered by Emacs."))
-
-(defun proced-unload-function ()
-  "Unload the Proced library."
-  (save-current-buffer
-    (dolist (buf (buffer-list))
-      (set-buffer buf)
-      (when (eq major-mode 'proced-mode)
-        (funcall (or (default-value 'major-mode) 'fundamental-mode)))))
-  ;; continue standard unloading
-  nil)
 
 (provide 'proced)
 

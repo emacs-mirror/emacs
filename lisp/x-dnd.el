@@ -433,6 +433,18 @@ otherwise return the frame coordinates."
 (declare-function x-get-selection-internal "xselect.c"
 		  (selection-symbol target-type &optional time-stamp))
 
+(defun x-dnd-version-from-flags (flags)
+  "Return the version byte from the 32 bit FLAGS in an XDndEnter message"
+  (if (consp flags)   ;; Long as cons
+      (ash (car flags) -8)
+    (ash flags -24))) ;; Ordinary number
+
+(defun x-dnd-more-than-3-from-flags (flags)
+  "Return the nmore-than3 bit from the 32 bit FLAGS in an XDndEnter message"
+  (if (consp flags)
+      (logand (cdr flags) 1)
+    (logand flags 1)))
+      
 (defun x-dnd-handle-xdnd (event frame window message _format data)
   "Receive one XDND event (client message) and send the appropriate reply.
 EVENT is the client message.  FRAME is where the mouse is now.
@@ -440,9 +452,10 @@ WINDOW is the window within FRAME where the mouse is now.
 FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
   (cond ((equal "XdndEnter" message)
 	 (let* ((flags (aref data 1))
-		(version (and (consp flags) (ash (car flags) -8)))
-		(more-than-3 (and (consp flags) (cdr flags)))
+		(version (x-dnd-version-from-flags flags))
+		(more-than-3 (x-dnd-more-than-3-from-flags flags))
 		(dnd-source (aref data 0)))
+	(message "%s %s" version  more-than-3)
 	   (if version  ;; If flags is bad, version will be nil.
 	       (x-dnd-save-state
 		window nil nil

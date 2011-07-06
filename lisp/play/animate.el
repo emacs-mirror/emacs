@@ -89,11 +89,15 @@
   (insert-char char 1))
 
 (defvar animate-n-steps 10
-  "Number of steps to use `animate-string'.")
+"*Number of steps `animate-string' will place a char before its last position.")
+
+(defvar animation-buffer-name nil
+  "*String naming the default buffer for animations.
+When nil animations dipslayed in the buffer named *Animation*.")
 
 ;;;###autoload
 (defun animate-string (string vpos &optional hpos)
-  "Display STRING starting at position VPOS, HPOS, using animation.
+  "Display STRING animations starting at position VPOS, HPOS.
 The characters start at randomly chosen places,
 and all slide in parallel to their final positions,
 passing through `animate-n-steps' positions before the final ones.
@@ -138,14 +142,19 @@ in the current window."
 
 ;;;###autoload
 (defun animate-sequence (list-of-strings space)
-  "Display strings from LIST-OF-STRING with animation in a new buffer.
-Strings will be separated from each other by SPACE lines."
+  "Display animation strings from LIST-OF-STRING with buffer *Animation*.
+Strings will be separated from each other by SPACE lines.
+ When the variable `animation-buffer-name' is non-nil display
+animation in the buffer named by variable's value, creating the
+buffer if one does not exist."
   (let ((vpos (/ (- (window-height)
 		    1 ;; For the mode-line
 		    (* (1- (length list-of-strings)) space)
 		    (length list-of-strings))
 		 2)))
-    (switch-to-buffer (get-buffer-create "*Animation*"))
+    (switch-to-buffer (get-buffer-create
+                       (or animation-buffer-name
+                           "*Animation*")))
     (erase-buffer)
     (sit-for 0)
     (while list-of-strings
@@ -155,19 +164,25 @@ Strings will be separated from each other by SPACE lines."
 
 ;;;###autoload
 (defun animate-birthday-present (&optional name)
-  "Display one's birthday present in a new buffer.
-You can specify the one's name by NAME; the default value is \"Sarah\"."
-  (interactive (list (read-string "Name (default Sarah): "
-				  nil nil "Sarah")))
+  "Return a birthday present in the buffer *Birthday-Present*.
+When optional arg NAME is non-nil or called-interactively, prompt for
+NAME of birthday present receiver and return a birthday present in
+the buffer *Birthday-Present-for-Name*."
+  (interactive (list (read-string "Birthday present for: "
+				  nil nil)))
   ;; Make a suitable buffer to display the birthday present in.
-  (switch-to-buffer (get-buffer-create (format "*%s*" name)))
+  (switch-to-buffer (get-buffer-create
+		     (if name
+			 (concat "*A-Present-for-" (capitalize name) "*")
+		       "*Birthday-Present*")))
   (erase-buffer)
   ;; Display the empty buffer.
   (sit-for 0)
 
-  (animate-string "Happy Birthday," 6)
-  (animate-string (format "%s" name) 7)
-
+  (if name
+      (animate-string "Happy Birthday," 6)
+      (animate-string "Happy Birthday" 6))
+  (when name (animate-string (format "%s" (capitalize name)) 7))
   (sit-for 1)
 
   (animate-string "You are my sunshine," 10 30)

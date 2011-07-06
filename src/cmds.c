@@ -511,20 +511,11 @@ internal_self_insert (int c, EMACS_INT n)
 void
 syms_of_cmds (void)
 {
-  Qkill_backward_chars = intern_c_string ("kill-backward-chars");
-  staticpro (&Qkill_backward_chars);
-
-  Qkill_forward_chars = intern_c_string ("kill-forward-chars");
-  staticpro (&Qkill_forward_chars);
-
-  Qoverwrite_mode_binary = intern_c_string ("overwrite-mode-binary");
-  staticpro (&Qoverwrite_mode_binary);
-
-  Qexpand_abbrev = intern_c_string ("expand-abbrev");
-  staticpro (&Qexpand_abbrev);
-
-  Qpost_self_insert_hook = intern_c_string ("post-self-insert-hook");
-  staticpro (&Qpost_self_insert_hook);
+  DEFSYM (Qkill_backward_chars, "kill-backward-chars");
+  DEFSYM (Qkill_forward_chars, "kill-forward-chars");
+  DEFSYM (Qoverwrite_mode_binary, "overwrite-mode-binary");
+  DEFSYM (Qexpand_abbrev, "expand-abbrev");
+  DEFSYM (Qpost_self_insert_hook, "post-self-insert-hook");
 
   DEFVAR_LISP ("post-self-insert-hook", Vpost_self_insert_hook,
 	       doc: /* Hook run at the end of `self-insert-command'.

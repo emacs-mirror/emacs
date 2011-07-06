@@ -102,9 +102,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "gnutls.h"
 #endif
 
-#if defined (USE_GTK) || defined (HAVE_GCONF)
+#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
 #include "xgselect.h"
-#endif /* defined (USE_GTK) || defined (HAVE_GCONF) */
+#endif
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif
@@ -892,7 +892,8 @@ not the name of the pty that Emacs uses to talk with that terminal.  */)
 
 DEFUN ("set-process-buffer", Fset_process_buffer, Sset_process_buffer,
        2, 2, 0,
-       doc: /* Set buffer associated with PROCESS to BUFFER (a buffer, or nil).  */)
+       doc: /* Set buffer associated with PROCESS to BUFFER (a buffer, or nil).
+Return BUFFER.  */)
   (register Lisp_Object process, Lisp_Object buffer)
 {
   struct Lisp_Process *p;
@@ -1186,7 +1187,7 @@ Returns nil if format of ADDRESS is invalid.  */)
   if (VECTORP (address))  /* AF_INET or AF_INET6 */
     {
       register struct Lisp_Vector *p = XVECTOR (address);
-      EMACS_UINT size = p->header.size;
+      EMACS_INT size = p->header.size;
       Lisp_Object args[10];
       int nargs, i;
 
@@ -1272,11 +1273,11 @@ the command through a shell and redirect one of them using the shell
 syntax.
 
 usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
-  (size_t nargs, register Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object buffer, name, program, proc, current_dir, tem;
   register unsigned char **new_argv;
-  register size_t i;
+  ptrdiff_t i;
   int count = SPECPDL_INDEX ();
 
   buffer = args[1];
@@ -2436,7 +2437,7 @@ Examples:
 \(serial-process-configure :port "\\\\.\\COM13" :bytesize 7)
 
 usage: (serial-process-configure &rest ARGS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   struct Lisp_Process *p;
   Lisp_Object contact = Qnil;
@@ -2554,7 +2555,7 @@ Examples:
 \(make-serial-process :port "/dev/tty.BlueConsole-SPP-1" :speed nil)
 
 usage:  (make-serial-process &rest ARGS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   int fd = -1;
   Lisp_Object proc, contact, port;
@@ -2832,7 +2833,7 @@ The original argument list, modified with the actual connection
 information, is available via the `process-contact' function.
 
 usage: (make-network-process &rest ARGS)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object proc;
   Lisp_Object contact;
@@ -3148,7 +3149,7 @@ usage: (make-network-process &rest ARGS)  */)
 
   for (lres = res; lres; lres = lres->ai_next)
     {
-      size_t optn;
+      ptrdiff_t optn;
       int optbits;
 
 #ifdef WINDOWSNT
@@ -4162,7 +4163,7 @@ wait_reading_process_output_1 (void)
    impossible to step through wait_reading_process_output.  */
 
 #ifndef select
-static INLINE int
+static inline int
 select_wrapper (int n, fd_set *rfd, fd_set *wfd, fd_set *xfd, struct timeval *tmo)
 {
   return select (n, rfd, wfd, xfd, tmo);
@@ -4478,13 +4479,19 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	    set_waiting_for_input (&timeout);
 	}
 
+      /* Skip the `select' call if input is available and we're
+	 waiting for keyboard input or a cell change (which can be
+	 triggered by processing X events).  In the latter case, set
+	 nfds to 1 to avoid breaking the loop.  */
       no_avail = 0;
-      if (read_kbd && detect_input_pending ())
+      if ((read_kbd || !NILP (wait_for_cell))
+	  && detect_input_pending ())
 	{
-	  nfds = 0;
+	  nfds = read_kbd ? 0 : 1;
 	  no_avail = 1;
 	}
-      else
+
+      if (!no_avail)
 	{
 
 #ifdef ADAPTIVE_READ_BUFFERING
@@ -4520,7 +4527,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	      process_output_skip = 0;
 	    }
 #endif
-#if defined (USE_GTK) || defined (HAVE_GCONF)
+#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
           nfds = xg_select
 #elif defined (HAVE_NS)
 	  nfds = ns_select
@@ -6593,6 +6600,8 @@ DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
 
 
 
+# ifdef HAVE_GPM
+
 void
 add_gpm_wait_descriptor (int desc)
 {
@@ -6604,6 +6613,8 @@ delete_gpm_wait_descriptor (int desc)
 {
   delete_keyboard_wait_descriptor (desc);
 }
+
+# endif
 
 # ifdef SIGIO
 
@@ -7231,14 +7242,10 @@ syms_of_process (void)
 {
 #ifdef subprocesses
 
-  Qprocessp = intern_c_string ("processp");
-  staticpro (&Qprocessp);
-  Qrun = intern_c_string ("run");
-  staticpro (&Qrun);
-  Qstop = intern_c_string ("stop");
-  staticpro (&Qstop);
-  Qsignal = intern_c_string ("signal");
-  staticpro (&Qsignal);
+  DEFSYM (Qprocessp, "processp");
+  DEFSYM (Qrun, "run");
+  DEFSYM (Qstop, "stop");
+  DEFSYM (Qsignal, "signal");
 
   /* Qexit is already staticpro'd by syms_of_eval; don't staticpro it
      here again.
@@ -7246,92 +7253,52 @@ syms_of_process (void)
      Qexit = intern_c_string ("exit");
      staticpro (&Qexit); */
 
-  Qopen = intern_c_string ("open");
-  staticpro (&Qopen);
-  Qclosed = intern_c_string ("closed");
-  staticpro (&Qclosed);
-  Qconnect = intern_c_string ("connect");
-  staticpro (&Qconnect);
-  Qfailed = intern_c_string ("failed");
-  staticpro (&Qfailed);
-  Qlisten = intern_c_string ("listen");
-  staticpro (&Qlisten);
-  Qlocal = intern_c_string ("local");
-  staticpro (&Qlocal);
-  Qipv4 = intern_c_string ("ipv4");
-  staticpro (&Qipv4);
+  DEFSYM (Qopen, "open");
+  DEFSYM (Qclosed, "closed");
+  DEFSYM (Qconnect, "connect");
+  DEFSYM (Qfailed, "failed");
+  DEFSYM (Qlisten, "listen");
+  DEFSYM (Qlocal, "local");
+  DEFSYM (Qipv4, "ipv4");
 #ifdef AF_INET6
-  Qipv6 = intern_c_string ("ipv6");
-  staticpro (&Qipv6);
+  DEFSYM (Qipv6, "ipv6");
 #endif
-  Qdatagram = intern_c_string ("datagram");
-  staticpro (&Qdatagram);
-  Qseqpacket = intern_c_string ("seqpacket");
-  staticpro (&Qseqpacket);
+  DEFSYM (Qdatagram, "datagram");
+  DEFSYM (Qseqpacket, "seqpacket");
 
-  QCport = intern_c_string (":port");
-  staticpro (&QCport);
-  QCspeed = intern_c_string (":speed");
-  staticpro (&QCspeed);
-  QCprocess = intern_c_string (":process");
-  staticpro (&QCprocess);
+  DEFSYM (QCport, ":port");
+  DEFSYM (QCspeed, ":speed");
+  DEFSYM (QCprocess, ":process");
 
-  QCbytesize = intern_c_string (":bytesize");
-  staticpro (&QCbytesize);
-  QCstopbits = intern_c_string (":stopbits");
-  staticpro (&QCstopbits);
-  QCparity = intern_c_string (":parity");
-  staticpro (&QCparity);
-  Qodd = intern_c_string ("odd");
-  staticpro (&Qodd);
-  Qeven = intern_c_string ("even");
-  staticpro (&Qeven);
-  QCflowcontrol = intern_c_string (":flowcontrol");
-  staticpro (&QCflowcontrol);
-  Qhw = intern_c_string ("hw");
-  staticpro (&Qhw);
-  Qsw = intern_c_string ("sw");
-  staticpro (&Qsw);
-  QCsummary = intern_c_string (":summary");
-  staticpro (&QCsummary);
+  DEFSYM (QCbytesize, ":bytesize");
+  DEFSYM (QCstopbits, ":stopbits");
+  DEFSYM (QCparity, ":parity");
+  DEFSYM (Qodd, "odd");
+  DEFSYM (Qeven, "even");
+  DEFSYM (QCflowcontrol, ":flowcontrol");
+  DEFSYM (Qhw, "hw");
+  DEFSYM (Qsw, "sw");
+  DEFSYM (QCsummary, ":summary");
 
-  Qreal = intern_c_string ("real");
-  staticpro (&Qreal);
-  Qnetwork = intern_c_string ("network");
-  staticpro (&Qnetwork);
-  Qserial = intern_c_string ("serial");
-  staticpro (&Qserial);
-  QCbuffer = intern_c_string (":buffer");
-  staticpro (&QCbuffer);
-  QChost = intern_c_string (":host");
-  staticpro (&QChost);
-  QCservice = intern_c_string (":service");
-  staticpro (&QCservice);
-  QClocal = intern_c_string (":local");
-  staticpro (&QClocal);
-  QCremote = intern_c_string (":remote");
-  staticpro (&QCremote);
-  QCcoding = intern_c_string (":coding");
-  staticpro (&QCcoding);
-  QCserver = intern_c_string (":server");
-  staticpro (&QCserver);
-  QCnowait = intern_c_string (":nowait");
-  staticpro (&QCnowait);
-  QCsentinel = intern_c_string (":sentinel");
-  staticpro (&QCsentinel);
-  QClog = intern_c_string (":log");
-  staticpro (&QClog);
-  QCnoquery = intern_c_string (":noquery");
-  staticpro (&QCnoquery);
-  QCstop = intern_c_string (":stop");
-  staticpro (&QCstop);
-  QCoptions = intern_c_string (":options");
-  staticpro (&QCoptions);
-  QCplist = intern_c_string (":plist");
-  staticpro (&QCplist);
+  DEFSYM (Qreal, "real");
+  DEFSYM (Qnetwork, "network");
+  DEFSYM (Qserial, "serial");
+  DEFSYM (QCbuffer, ":buffer");
+  DEFSYM (QChost, ":host");
+  DEFSYM (QCservice, ":service");
+  DEFSYM (QClocal, ":local");
+  DEFSYM (QCremote, ":remote");
+  DEFSYM (QCcoding, ":coding");
+  DEFSYM (QCserver, ":server");
+  DEFSYM (QCnowait, ":nowait");
+  DEFSYM (QCsentinel, ":sentinel");
+  DEFSYM (QClog, ":log");
+  DEFSYM (QCnoquery, ":noquery");
+  DEFSYM (QCstop, ":stop");
+  DEFSYM (QCoptions, ":options");
+  DEFSYM (QCplist, ":plist");
 
-  Qlast_nonmenu_event = intern_c_string ("last-nonmenu-event");
-  staticpro (&Qlast_nonmenu_event);
+  DEFSYM (Qlast_nonmenu_event, "last-nonmenu-event");
 
   staticpro (&Vprocess_alist);
 #ifdef SIGCHLD
@@ -7340,73 +7307,40 @@ syms_of_process (void)
 
 #endif	/* subprocesses */
 
-  QCname = intern_c_string (":name");
-  staticpro (&QCname);
-  QCtype = intern_c_string (":type");
-  staticpro (&QCtype);
+  DEFSYM (QCname, ":name");
+  DEFSYM (QCtype, ":type");
 
-  Qeuid = intern_c_string ("euid");
-  staticpro (&Qeuid);
-  Qegid = intern_c_string ("egid");
-  staticpro (&Qegid);
-  Quser = intern_c_string ("user");
-  staticpro (&Quser);
-  Qgroup = intern_c_string ("group");
-  staticpro (&Qgroup);
-  Qcomm = intern_c_string ("comm");
-  staticpro (&Qcomm);
-  Qstate = intern_c_string ("state");
-  staticpro (&Qstate);
-  Qppid = intern_c_string ("ppid");
-  staticpro (&Qppid);
-  Qpgrp = intern_c_string ("pgrp");
-  staticpro (&Qpgrp);
-  Qsess = intern_c_string ("sess");
-  staticpro (&Qsess);
-  Qttname = intern_c_string ("ttname");
-  staticpro (&Qttname);
-  Qtpgid = intern_c_string ("tpgid");
-  staticpro (&Qtpgid);
-  Qminflt = intern_c_string ("minflt");
-  staticpro (&Qminflt);
-  Qmajflt = intern_c_string ("majflt");
-  staticpro (&Qmajflt);
-  Qcminflt = intern_c_string ("cminflt");
-  staticpro (&Qcminflt);
-  Qcmajflt = intern_c_string ("cmajflt");
-  staticpro (&Qcmajflt);
-  Qutime = intern_c_string ("utime");
-  staticpro (&Qutime);
-  Qstime = intern_c_string ("stime");
-  staticpro (&Qstime);
-  Qtime = intern_c_string ("time");
-  staticpro (&Qtime);
-  Qcutime = intern_c_string ("cutime");
-  staticpro (&Qcutime);
-  Qcstime = intern_c_string ("cstime");
-  staticpro (&Qcstime);
-  Qctime = intern_c_string ("ctime");
-  staticpro (&Qctime);
-  Qpri = intern_c_string ("pri");
-  staticpro (&Qpri);
-  Qnice = intern_c_string ("nice");
-  staticpro (&Qnice);
-  Qthcount = intern_c_string ("thcount");
-  staticpro (&Qthcount);
-  Qstart = intern_c_string ("start");
-  staticpro (&Qstart);
-  Qvsize = intern_c_string ("vsize");
-  staticpro (&Qvsize);
-  Qrss = intern_c_string ("rss");
-  staticpro (&Qrss);
-  Qetime = intern_c_string ("etime");
-  staticpro (&Qetime);
-  Qpcpu = intern_c_string ("pcpu");
-  staticpro (&Qpcpu);
-  Qpmem = intern_c_string ("pmem");
-  staticpro (&Qpmem);
-  Qargs = intern_c_string ("args");
-  staticpro (&Qargs);
+  DEFSYM (Qeuid, "euid");
+  DEFSYM (Qegid, "egid");
+  DEFSYM (Quser, "user");
+  DEFSYM (Qgroup, "group");
+  DEFSYM (Qcomm, "comm");
+  DEFSYM (Qstate, "state");
+  DEFSYM (Qppid, "ppid");
+  DEFSYM (Qpgrp, "pgrp");
+  DEFSYM (Qsess, "sess");
+  DEFSYM (Qttname, "ttname");
+  DEFSYM (Qtpgid, "tpgid");
+  DEFSYM (Qminflt, "minflt");
+  DEFSYM (Qmajflt, "majflt");
+  DEFSYM (Qcminflt, "cminflt");
+  DEFSYM (Qcmajflt, "cmajflt");
+  DEFSYM (Qutime, "utime");
+  DEFSYM (Qstime, "stime");
+  DEFSYM (Qtime, "time");
+  DEFSYM (Qcutime, "cutime");
+  DEFSYM (Qcstime, "cstime");
+  DEFSYM (Qctime, "ctime");
+  DEFSYM (Qpri, "pri");
+  DEFSYM (Qnice, "nice");
+  DEFSYM (Qthcount, "thcount");
+  DEFSYM (Qstart, "start");
+  DEFSYM (Qvsize, "vsize");
+  DEFSYM (Qrss, "rss");
+  DEFSYM (Qetime, "etime");
+  DEFSYM (Qpcpu, "pcpu");
+  DEFSYM (Qpmem, "pmem");
+  DEFSYM (Qargs, "args");
 
   DEFVAR_BOOL ("delete-exited-processes", delete_exited_processes,
 	       doc: /* *Non-nil means delete processes immediately when they exit.

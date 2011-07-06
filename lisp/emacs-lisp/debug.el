@@ -118,6 +118,10 @@ first will be printed into the backtrace buffer."
     (let (debugger-value
 	  (debug-on-error nil)
 	  (debug-on-quit nil)
+	  (debugger-previous-state
+           (if (get-buffer "*Backtrace*")
+               (with-current-buffer (get-buffer "*Backtrace*")
+                 (list major-mode (buffer-string)))))
 	  (debugger-buffer (get-buffer-create "*Backtrace*"))
 	  (debugger-old-buffer (current-buffer))
 	  (debugger-step-after-exit nil)
@@ -214,8 +218,6 @@ first will be printed into the backtrace buffer."
 	      ;; recreate it every time the debugger stops, so instead we'll
 	      ;; erase it (and maybe hide it) but keep it alive.
 	      (with-current-buffer debugger-buffer
-		(erase-buffer)
-		(fundamental-mode)
 		(with-selected-window (get-buffer-window debugger-buffer 0)
                   (when (and (window-dedicated-p (selected-window))
                              (not debugger-will-be-back))
@@ -232,7 +234,18 @@ first will be printed into the backtrace buffer."
                     ;; to be left at the top-level, still working on how
                     ;; best to do that.
                     (bury-buffer))))
-	    (kill-buffer debugger-buffer))
+            (unless debugger-previous-state
+              (kill-buffer debugger-buffer)))
+          ;; Restore the previous state of the debugger-buffer, in case we were
+          ;; in a recursive invocation of the debugger.
+          (when (buffer-live-p debugger-buffer)
+            (with-current-buffer debugger-buffer
+              (let ((inhibit-read-only t))
+                (erase-buffer)
+                (if (null debugger-previous-state)
+                    (fundamental-mode)
+                  (insert (nth 1 debugger-previous-state))
+                  (funcall (nth 0 debugger-previous-state))))))
 	  (with-timeout-unsuspend debugger-with-timeout-suspend)
 	  (set-match-data debugger-outer-match-data)))
       ;; Put into effect the modified values of these variables

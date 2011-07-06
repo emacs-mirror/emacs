@@ -309,6 +309,10 @@ systems which support that.
 
 Use --without-sound to disable sound support.
 
+Use --with-wide-int to implement Emacs values with the type 'long long',
+even on hosts where a narrower type would do.  With this option, on a
+typical 32-bit host, Emacs integers have 62 bits instead of 30.
+
 The `--prefix=PREFIXDIR' option specifies where the installation process
 should put emacs and its data files.  This defaults to `/usr/local'.
 - Emacs (and the other utilities users run) go in PREFIXDIR/bin

@@ -20,7 +20,8 @@
 ;;; Code:
 
 (deftheme tsdh-light
-  "Black on white theme used and created by Tassilo Horn.")
+  "Minor tweaks to the Emacs white-background defaults.
+Used and created by Tassilo Horn.")
 
 (custom-theme-set-faces
  'tsdh-light

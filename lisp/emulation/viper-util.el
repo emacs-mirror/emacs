@@ -1080,7 +1080,7 @@ Otherwise return the normal value."
 		 char-p (= (length base-key-name) 1))
 	   (setq mod-char-list
 		 (mapcar
-		  '(lambda (elt) (upcase (substring (symbol-name elt) 0 1)))
+		  (lambda (elt) (upcase (substring (symbol-name elt) 0 1)))
 		  modifiers))
 	   (if char-p
 	       (setq key-name
@@ -1153,7 +1153,7 @@ Otherwise return the normal value."
 ;; XEmacs only
 (defun viper-event-vector-p (vec)
   (and (vectorp vec)
-       (eval (cons 'and (mapcar '(lambda (elt) (if (eventp elt) t)) vec)))))
+       (eval (cons 'and (mapcar (lambda (elt) (if (eventp elt) t)) vec)))))
 
 
 ;; check if vec is a vector of character symbols
@@ -1239,7 +1239,7 @@ Arguments become related buffers.  This function should normally be used in
 the `Local variables' section of a file."
   (setq viper-related-files-and-buffers-ring
 	(make-ring (1+ (length other-files-or-buffers))))
-  (mapc '(lambda (elt)
+  (mapc (lambda (elt)
 	  (viper-ring-insert viper-related-files-and-buffers-ring elt))
 	other-files-or-buffers)
   (viper-ring-insert viper-related-files-and-buffers-ring (buffer-name))

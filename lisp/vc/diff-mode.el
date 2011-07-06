@@ -295,9 +295,14 @@ try to refine the current hunk, as well."
 (defvar diff-added-face 'diff-added)
 
 (defface diff-changed
-  '((((type tty pc) (class color) (background light))
+  ;; We normally apply a `shadow'-based face on the `diff-context'
+  ;; face, and keep `diff-changed' the default.
+  '((((class color grayscale) (min-colors 88)))
+    ;; If the terminal lacks sufficient colors for shadowing,
+    ;; highlight changed lines explicitly.
+    (((class color) (background light))
      :foreground "magenta" :weight bold :slant italic)
-    (((type tty pc) (class color) (background dark))
+    (((class color) (background dark))
      :foreground "yellow" :weight bold :slant italic))
   "`diff-mode' face used to highlight changed lines."
   :group 'diff-mode)

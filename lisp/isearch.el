@@ -1062,6 +1062,22 @@ nonincremental search instead via `isearch-edit-string'."
 
 (defvar minibuffer-history-symbol) ;; from external package gmhist.el
 
+(defun isearch-fail-pos ()
+  "Position of first mismatch in search string, or its length if none."
+  (let ((cmds isearch-cmds))
+    (if (and isearch-success (not isearch-error))
+        (length isearch-message)
+      (while (or (not (isearch-success-state (car cmds)))
+                 (isearch-error-state (car cmds)))
+        (pop cmds))
+      (let ((succ-msg (and cmds (isearch-message-state (car cmds)))))
+        (if (and (stringp succ-msg)
+                 (< (length succ-msg) (length isearch-message))
+                 (equal succ-msg
+                        (substring isearch-message 0 (length succ-msg))))
+            (length succ-msg)
+          0)))))
+
 (defun isearch-edit-string ()
   "Edit the search string in the minibuffer.
 The following additional command keys are active while editing.
@@ -1141,7 +1157,7 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 		(setq isearch-new-string
                       (read-from-minibuffer
                        (isearch-message-prefix nil nil isearch-nonincremental)
-                       isearch-string
+                        (cons isearch-string (1+ (isearch-fail-pos)))
                        minibuffer-local-isearch-map nil
                        (if isearch-regexp
 			   (cons 'regexp-search-ring
@@ -2210,10 +2226,13 @@ If there is no completion possible, say so and continue searching."
 ;; Searching
 
 (defvar isearch-search-fun-function nil
-  "Override `isearch-search-fun'.
-This function should return the search function for Isearch to use.
-It will call this function with three arguments
-as if it were `search-forward'.")
+  "Overrides the default `isearch-search-fun' behaviour.
+This variable's value should be a function, which will be called
+with no arguments, and should return a function that takes three
+arguments: STRING, BOUND, and NOERROR.
+
+This returned function will be used by `isearch-search-string' to
+search for the first occurrence of STRING or its translation.")
 
 (defun isearch-search-fun ()
   "Return the function to use for the search.
@@ -2434,14 +2453,8 @@ update the match data, and return point."
 	;; If the following character is currently invisible,
 	;; skip all characters with that same `invisible' property value.
 	;; Do that over and over.
-	(while (and (< (point) end)
-		    (let ((prop
-			   (get-char-property (point) 'invisible)))
-		      (if (eq buffer-invisibility-spec t)
-			  prop
-			(or (memq prop buffer-invisibility-spec)
-			    (assq prop buffer-invisibility-spec)))))
-	  (if (get-text-property (point) 'invisible)
+	(while (and (< (point) end) (invisible-p (point)))
+	  (if (invisible-p (get-text-property (point) 'invisible))
 	      (progn
 		(goto-char (next-single-property-change (point) 'invisible
 							nil end))
@@ -2456,10 +2469,7 @@ update the match data, and return point."
 		(while overlays
 		  (setq o (car overlays)
 			invis-prop (overlay-get o 'invisible))
-		  (if (if (eq buffer-invisibility-spec t)
-			  invis-prop
-			(or (memq invis-prop buffer-invisibility-spec)
-			    (assq invis-prop buffer-invisibility-spec)))
+		  (if (invisible-p invis-prop)
 		      (if (overlay-get o 'isearch-open-invisible)
 			  (setq ov-list (cons o ov-list))
 			;; We found one overlay that cannot be

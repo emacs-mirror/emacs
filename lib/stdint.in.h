@@ -21,7 +21,7 @@
  * <http://www.opengroup.org/susv3xbd/stdint.h.html>
  */
 
-#ifndef _GL_STDINT_H
+#ifndef _@GUARD_PREFIX@_STDINT_H
 
 #if __GNUC__ >= 3
 @PRAGMA_SYSTEM_HEADER@
@@ -52,13 +52,13 @@
   /* Other systems may have an incomplete or buggy <stdint.h>.
      Include it before <inttypes.h>, since any "#include <stdint.h>"
      in <inttypes.h> would reinclude us, skipping our contents because
-     _GL_STDINT_H is defined.
+     _@GUARD_PREFIX@_STDINT_H is defined.
      The include_next requires a split double-inclusion guard.  */
 # @INCLUDE_NEXT@ @NEXT_STDINT_H@
 #endif
 
-#if ! defined _GL_STDINT_H && ! defined _GL_JUST_INCLUDE_SYSTEM_STDINT_H
-#define _GL_STDINT_H
+#if ! defined _@GUARD_PREFIX@_STDINT_H && ! defined _GL_JUST_INCLUDE_SYSTEM_STDINT_H
+#define _@GUARD_PREFIX@_STDINT_H
 
 /* <sys/types.h> defines some of the stdint.h types as well, on glibc,
    IRIX 6.5, and OpenBSD 3.8 (via <machine/types.h>).
@@ -93,7 +93,7 @@
 
 #undef _GL_JUST_INCLUDE_SYSTEM_INTTYPES_H
 
-/* Minimum and maximum values for a integer type under the usual assumption.
+/* Minimum and maximum values for an integer type under the usual assumption.
    Return an unspecified value if BITS == 0, adding a check to pacify
    picky compilers.  */
 
@@ -588,5 +588,5 @@ typedef int _verify_intmax_size[sizeof (intmax_t) == sizeof (uintmax_t)
 
 #endif /* !defined __cplusplus || defined __STDC_CONSTANT_MACROS */
 
-#endif /* _GL_STDINT_H */
-#endif /* !defined _GL_STDINT_H && !defined _GL_JUST_INCLUDE_SYSTEM_STDINT_H */
+#endif /* _@GUARD_PREFIX@_STDINT_H */
+#endif /* !defined _@GUARD_PREFIX@_STDINT_H && !defined _GL_JUST_INCLUDE_SYSTEM_STDINT_H */

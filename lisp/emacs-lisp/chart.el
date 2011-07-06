@@ -639,7 +639,7 @@ SORT-PRED if desired."
 		       extlst "File Extensions"
 		       cntlst "# of occurrences"
 		       10
-		       '(lambda (a b) (> (cdr a) (cdr b))))
+		       (lambda (a b) (> (cdr a) (cdr b))))
     ))
 
 (defun chart-space-usage (d)
@@ -669,7 +669,7 @@ SORT-PRED if desired."
 		       nmlst "File Name"
 		       cntlst "File Size"
 		       10
-		       '(lambda (a b) (> (cdr a) (cdr b))))
+		       (lambda (a b) (> (cdr a) (cdr b))))
     ))
 
 (defun chart-emacs-storage ()
@@ -737,7 +737,7 @@ SORT-PRED if desired."
 		       nmlst "User Names"
 		       cntlst "# of occurrences"
 		       10
-		       '(lambda (a b) (> (cdr a) (cdr b))))
+		       (lambda (a b) (> (cdr a) (cdr b))))
     ))
 
 

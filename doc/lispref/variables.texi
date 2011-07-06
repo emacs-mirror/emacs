@@ -99,7 +99,7 @@ x
 
 @node Constant Variables
 @section Variables that Never Change
-@kindex setting-constant
+@cindex @code{setting-constant} error
 @cindex keyword symbol
 @cindex variable with constant value
 @cindex constant variables
@@ -288,7 +288,7 @@ has room to execute.
 
 @node Void Variables
 @section When a Variable is ``Void''
-@kindex void-variable
+@cindex @code{void-variable} error
 @cindex void variable
 
   If you have never given a symbol any value as a global variable, we
@@ -583,7 +583,8 @@ and is a string, and its first character is @samp{*}, then the variable
 is a user option.  Aliases of user options are also user options.
 @end defun
 
-@kindex variable-interactive
+@cindex @code{variable-interactive} property
+@findex set-variable
   If a user option variable has a @code{variable-interactive} property,
 the @code{set-variable} command uses that value to control reading the
 new value for the variable.  The property's value is used as if it were
@@ -1670,12 +1671,16 @@ This function works by walking the alist stored in
 @code{file-local-variables-alist} and applying each local variable in
 turn.  It calls @code{before-hack-local-variables-hook} and
 @code{hack-local-variables-hook} before and after applying the
-variables, respectively.
+variables, respectively.  It only calls the before-hook if the alist
+is non-@code{nil}; it always calls the other hook.  This
+function ignores a @samp{mode} element if it specifies the same major
+mode as the buffer already has.
 
 If the optional argument @var{mode-only} is non-@code{nil}, then all
-this function does is return @code{t} if the @w{@samp{-*-}} line or
-the local variables list specifies a mode and @code{nil} otherwise.
-It does not set the mode nor any other file-local variable.
+this function does is return a symbol specifying the major mode,
+if the @w{@samp{-*-}} line or the local variables list specifies one,
+and @code{nil} otherwise.  It does not set the mode nor any other
+file-local variable.
 @end defun
 
 @defvar file-local-variables-alist

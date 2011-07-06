@@ -1036,6 +1036,29 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
   (custom-save-all)
   value)
 
+;; Some parts of Emacs might prompt the user to save customizations,
+;; during startup before customizations are loaded.  This function
+;; handles this corner case by avoiding calling `custom-save-variable'
+;; too early, which could wipe out existing customizations.
+
+;;;###autoload
+(defun customize-push-and-save (list-var elts)
+  "Add ELTS to LIST-VAR and save for future sessions, safely.
+ELTS should be a list.  This function adds each entry to the
+value of LIST-VAR using `add-to-list'.
+
+If Emacs is initialized, call `customize-save-variable' to save
+the resulting list value now.  Otherwise, add an entry to
+`after-init-hook' to save it after initialization."
+  (dolist (entry elts)
+    (add-to-list list-var entry))
+  (if after-init-time
+      (let ((coding-system-for-read nil))
+	(customize-save-variable list-var (eval list-var)))
+    (add-hook 'after-init-hook
+	      `(lambda ()
+		 (customize-push-and-save ',list-var ',elts)))))
+
 ;;;###autoload
 (defun customize ()
   "Select a customization buffer which you can use to set user options.
@@ -3830,9 +3853,8 @@ restoring it to the state of a face that has never been customized."
   :sample-face-get 'widget-face-sample-face-get
   :notify 'widget-face-notify
   :match (lambda (_widget value) (facep value))
-  :complete-function (lambda ()
-		       (interactive)
-		       (lisp-complete-symbol 'facep))
+  :completions (apply-partially #'completion-table-with-predicate
+                                obarray #'facep 'strict)
   :prompt-match 'facep
   :prompt-history 'widget-face-prompt-value-history
   :validate (lambda (widget)

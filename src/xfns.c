@@ -145,7 +145,7 @@ static Lisp_Object Qcompound_text, Qcancel_timer;
 Lisp_Object Qfont_param;
 
 #if GLYPH_DEBUG
-int image_cache_refcount, dpyinfo_refcount;
+static int image_cache_refcount, dpyinfo_refcount;
 #endif
 
 #if defined (USE_GTK) && defined (HAVE_FREETYPE)
@@ -1074,8 +1074,7 @@ x_set_border_pixel (struct frame *f, int pix)
   if (FRAME_X_WINDOW (f) != 0 && f->border_width > 0)
     {
       BLOCK_INPUT;
-      XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			(unsigned long)pix);
+      XSetWindowBorder (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), pix);
       UNBLOCK_INPUT;
 
       if (FRAME_VISIBLE_P (f))
@@ -1227,7 +1226,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     }
 #else /* not USE_X_TOOLKIT && not USE_GTK */
   FRAME_MENU_BAR_LINES (f) = nlines;
-  change_window_heights (f->root_window, nlines - olines);
+  resize_frame_windows (f, FRAME_LINES (f), 0);
 
   /* If the menu bar height gets changed, the internal border below
      the top margin has to be cleared.  Also, if the menu bar gets
@@ -1266,6 +1265,7 @@ x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     }
 #endif /* not USE_X_TOOLKIT && not USE_GTK */
   adjust_glyphs (f);
+  run_window_configuration_change_hook (f);
 }
 
 
@@ -1326,7 +1326,7 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
     }
 
   FRAME_TOOL_BAR_LINES (f) = nlines;
-  change_window_heights (root_window, delta);
+  resize_frame_windows (f, FRAME_LINES (f), 0);
   adjust_glyphs (f);
 
   /* We also have to make sure that the internal border at the top of
@@ -1362,6 +1362,9 @@ x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
       if (WINDOWP (f->tool_bar_window))
 	clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
     }
+
+    run_window_configuration_change_hook (f);
+
 }
 
 
@@ -1695,10 +1698,14 @@ void
 x_set_scroll_bar_default_width (struct frame *f)
 {
   int wid = FRAME_COLUMN_WIDTH (f);
-
 #ifdef USE_TOOLKIT_SCROLL_BARS
+#ifdef USE_GTK
+  int minw = xg_get_default_scrollbar_width ();
+#else
+  int minw = 16;
+#endif
   /* A minimum width of 14 doesn't look good for toolkit scroll bars.  */
-  int width = 16 + 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM;
+  int width = minw + 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM;
   FRAME_CONFIG_SCROLL_BAR_COLS (f) = (width + wid - 1) / wid;
   FRAME_CONFIG_SCROLL_BAR_WIDTH (f) = width;
 #else
@@ -1876,7 +1883,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
   /* Make a fontset name from the base font name.  */
   if (xic_defaut_fontset == base_fontname)
     { /* There is no base font name, use the default.  */
-      int len = strlen (base_fontname) + 2;
+      ptrdiff_t len = strlen (base_fontname) + 2;
       fontsetname = xmalloc (len);
       memset (fontsetname, 0, len);
       strcpy (fontsetname, base_fontname);
@@ -1889,7 +1896,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	 - the base font where the charset spec is replaced by -*-*.
 	 - the same but with the family also replaced with -*-*-.  */
       const char *p = base_fontname;
-      int i;
+      ptrdiff_t i;
 
       for (i = 0; *p; p++)
 	if (*p == '-') i++;
@@ -1897,7 +1904,8 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	{ /* As the font name doesn't conform to XLFD, we can't
 	     modify it to generalize it to allcs and allfamilies.
 	     Use the specified font plus the default.  */
-	  int len = strlen (base_fontname) + strlen (xic_defaut_fontset) + 3;
+	  ptrdiff_t len =
+	    strlen (base_fontname) + strlen (xic_defaut_fontset) + 3;
 	  fontsetname = xmalloc (len);
 	  memset (fontsetname, 0, len);
 	  strcpy (fontsetname, base_fontname);
@@ -1906,7 +1914,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	}
       else
 	{
-	  int len;
+	  ptrdiff_t len;
 	  const char *p1 = NULL, *p2 = NULL, *p3 = NULL;
 	  char *font_allcs = NULL;
 	  char *font_allfamilies = NULL;
@@ -1933,7 +1941,7 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 	     wildcard.  */
 	  if (*p3 != '*')
 	    {
-	      int diff = (p2 - p3) - 2;
+	      ptrdiff_t diff = (p2 - p3) - 2;
 
 	      base = alloca (strlen (base_fontname) + 1);
 	      memcpy (base, base_fontname, p3 - base_fontname);
@@ -2427,7 +2435,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
 
   /* Do some needed geometry management.  */
   {
-    int len;
+    ptrdiff_t len;
     char *tem, shell_position[32];
     Arg gal[10];
     int gac = 0;
@@ -2919,7 +2927,7 @@ unwind_create_frame (Lisp_Object frame)
   /* If frame is ``official'', nothing to do.  */
   if (!CONSP (Vframe_list) || !EQ (XCAR (Vframe_list), frame))
     {
-#if GLYPH_DEBUG
+#if GLYPH_DEBUG && XASSERTS
       struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 #endif
 
@@ -3149,10 +3157,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   /* With FRAME_X_DISPLAY_INFO set up, this unwind-protect is safe.  */
   record_unwind_protect (unwind_create_frame, frame);
-#if GLYPH_DEBUG
-  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
-  dpyinfo_refcount = dpyinfo->reference_count;
-#endif /* GLYPH_DEBUG */
 
   /* These colors will be set anyway later, but it's important
      to get the color reference counts right, so initialize them!  */
@@ -3306,6 +3310,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
      end up in init_iterator with a null face cache, which should not
      happen.  */
   init_frame_faces (f);
+
+#if GLYPH_DEBUG
+  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
 
   /* The X resources controlling the menu-bar and tool-bar are
      processed specially at startup, and reflected in the mode
@@ -4295,18 +4304,9 @@ no value of TYPE (always string in the MS Windows case).  */)
 
   if (! NILP (source))
     {
-      if (NUMBERP (source))
-        {
-          if (FLOATP (source))
-            target_window = (Window) XFLOAT (source);
-          else
-            target_window = XFASTINT (source);
-
-          if (target_window == 0)
-            target_window = FRAME_X_DISPLAY_INFO (f)->root_window;
-        }
-      else if (CONSP (source))
-        target_window = cons_to_long (source);
+      CONS_TO_INTEGER (source, Window, target_window);
+      if (! target_window)
+	target_window = FRAME_X_DISPLAY_INFO (f)->root_window;
     }
 
   BLOCK_INPUT;
@@ -4608,10 +4608,6 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
 #endif /* USE_TOOLKIT_SCROLL_BARS */
   f->icon_name = Qnil;
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
-#if GLYPH_DEBUG
-  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
-  dpyinfo_refcount = dpyinfo->reference_count;
-#endif /* GLYPH_DEBUG */
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
   f->output_data.x->explicit_parent = 0;
 
@@ -4722,6 +4718,11 @@ x_create_tip_frame (struct x_display_info *dpyinfo,
      end up in init_iterator with a null face cache, which should not
      happen.  */
   init_frame_faces (f);
+
+#if GLYPH_DEBUG
+  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
 
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
 
@@ -5796,24 +5797,13 @@ syms_of_xfns (void)
   /* The section below is built by the lisp expression at the top of the file,
      just above where these variables are declared.  */
   /*&&& init symbols here &&&*/
-  Qnone = intern_c_string ("none");
-  staticpro (&Qnone);
-  Qsuppress_icon = intern_c_string ("suppress-icon");
-  staticpro (&Qsuppress_icon);
-  Qundefined_color = intern_c_string ("undefined-color");
-  staticpro (&Qundefined_color);
-  Qcompound_text = intern_c_string ("compound-text");
-  staticpro (&Qcompound_text);
-  Qcancel_timer = intern_c_string ("cancel-timer");
-  staticpro (&Qcancel_timer);
-  Qfont_param = intern_c_string ("font-parameter");
-  staticpro (&Qfont_param);
+  DEFSYM (Qnone, "none");
+  DEFSYM (Qsuppress_icon, "suppress-icon");
+  DEFSYM (Qundefined_color, "undefined-color");
+  DEFSYM (Qcompound_text, "compound-text");
+  DEFSYM (Qcancel_timer, "cancel-timer");
+  DEFSYM (Qfont_param, "font-parameter");
   /* This is the end of symbol initialization.  */
-
-  /* Text property `display' should be nonsticky by default.  */
-  Vtext_property_default_nonsticky
-    = Fcons (Fcons (Qdisplay, Qt), Vtext_property_default_nonsticky);
-
 
   Fput (Qundefined_color, Qerror_conditions,
 	pure_cons (Qundefined_color, pure_cons (Qerror, Qnil)));

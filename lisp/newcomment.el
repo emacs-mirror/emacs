@@ -118,7 +118,7 @@ at the place matched by the close of the first pair.")
 
 ;;;###autoload
 (defvar comment-end-skip nil
-  "Regexp to match the end of a comment plus everything up to its body.")
+  "Regexp to match the end of a comment plus everything back to its body.")
 ;;;###autoload(put 'comment-end-skip 'safe-local-variable 'string-or-null-p)
 
 ;;;###autoload

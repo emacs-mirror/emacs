@@ -185,7 +185,7 @@ semi-obsolete and is only used if `mail-citation-hook' is nil.")
   "\C-c\C-w"            mh-check-whom
   "\C-c\C-y"            mh-yank-cur-msg
   "\C-c\M-d"            mh-insert-auto-fields
-  "\M-\t"               mh-letter-complete ;; FIXME: completion-at-point
+  "\M-\t"               mh-letter-complete
   "\t"                  mh-letter-next-header-field-or-indent
   [backtab]             mh-letter-previous-header-field)
 
@@ -273,7 +273,8 @@ searching for `mh-mail-header-separator' in the buffer."
 ;;; MH-Letter Mode
 
 ;; Shush compiler.
-(defvar font-lock-defaults)             ; XEmacs
+(mh-do-in-xemacs
+  (defvar font-lock-defaults))
 
 ;; Ensure new buffers won't get this mode if default major-mode is nil.
 (put 'mh-letter-mode 'mode-class 'special)
@@ -502,10 +503,13 @@ This provides alias and folder completion in header fields according to
         (or (funcall func) #'ignore)
       mh-letter-complete-function)))
 
-(defalias 'mh-letter-complete
-  (if (fboundp 'completion-at-point) #'completion-at-point
-    (lambda ()
-      "Perform completion on header field or word preceding point.
+;; TODO Now that completion-at-point performs the task of
+;; mh-letter-complete, perhaps mh-letter-complete along with
+;; mh-complete-word should be rewritten as a more general function for
+;; XEmacs, renamed to mh-completion-at-point, and moved to
+;; mh-compat.el.
+(defun-mh mh-letter-complete completion-at-point ()
+  "Perform completion on header field or word preceding point.
 
 If the field contains addresses (for example, \"To:\" or \"Cc:\")
 or folders (for example, \"Fcc:\") then this command will provide
@@ -521,7 +525,7 @@ alias completion. In the body of the message, this command runs
                 (end (nth 1 data))
                 (table (nth 2 data)))
             (mh-complete-word (buffer-substring-no-properties start end)
-                              table start end))))))))
+                              table start end))))))
 
 (defun mh-letter-complete-or-space (arg)
   "Perform completion or insert space.
@@ -531,8 +535,7 @@ this command to perform completion in the header. Otherwise, a
 space is inserted; use a prefix argument ARG to specify more than
 one space."
   (interactive "p")
-  (let ((func nil)
-        (end-of-prev (save-excursion
+  (let ((end-of-prev (save-excursion
                        (goto-char (mh-beginning-of-word))
                        (mh-beginning-of-word -1))))
     (cond ((not mh-compose-space-does-completion-flag)
@@ -889,7 +892,6 @@ downcasing the field name."
 
 ;;;###mh-autoload
 (defun mh-complete-word (word choices begin end)
-  ;; FIXME: Only needed when completion-at-point doesn't exist.
   "Complete WORD from CHOICES.
 Any match found replaces the text from BEGIN to END."
   (let ((completion (try-completion word choices))

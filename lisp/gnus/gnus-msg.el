@@ -351,6 +351,7 @@ Thank you for your help in stamping out bugs.
   "r" gnus-summary-reply
   "y" gnus-summary-yank-message
   "R" gnus-summary-reply-with-original
+  "L" gnus-summary-reply-to-list-with-original
   "w" gnus-summary-wide-reply
   "W" gnus-summary-wide-reply-with-original
   "v" gnus-summary-very-wide-reply
@@ -1154,6 +1155,16 @@ The original article will be yanked."
   (interactive "P")
   (gnus-summary-reply (gnus-summary-work-articles n) wide))
 
+(defun gnus-summary-reply-to-list-with-original (n &optional wide)
+  "Start composing a reply mail to the current message.
+The reply goes only to the mailing list.
+The original article will be yanked."
+  (interactive "P")
+  (let ((message-reply-to-function
+	 (lambda nil
+	   `((To . ,(gnus-mailing-list-followup-to))))))
+    (gnus-summary-reply (gnus-summary-work-articles n) wide)))
+
 (defun gnus-summary-reply-broken-reply-to (&optional yank wide very-wide)
   "Like `gnus-summary-reply' except removing reply-to field.
 If prefix argument YANK is non-nil, the original article is yanked
@@ -1444,12 +1455,20 @@ If YANK is non-nil, include the original article."
 	(goto-char (point-min)))
       (message-pop-to-buffer "*Gnus Bug*"))
     (let ((message-this-is-mail t))
-      (message-setup `((To . ,gnus-maintainer) (Subject . ""))))
+      (message-setup `((To . ,gnus-maintainer)
+                       (Subject . "")
+                       (X-Debbugs-Package
+                        . ,(format "%s" gnus-bug-package))
+                       (X-Debbugs-Version
+                        . ,(format "%s" (gnus-continuum-version))))))
     (when gnus-bug-create-help-buffer
       (push `(gnus-bug-kill-buffer) message-send-actions))
     (goto-char (point-min))
     (re-search-forward (concat "^" (regexp-quote mail-header-separator) "$"))
     (forward-line 1)
+    (insert (format "Package: %s\n" gnus-bug-package))
+    (insert (format "Version: %s\n" (gnus-continuum-version)))
+    (insert "\n")
     (insert (gnus-version) "\n"
 	    (emacs-version) "\n")
     (when (and (boundp 'nntp-server-type)
@@ -1461,7 +1480,10 @@ If YANK is non-nil, include the original article."
 	(erase-buffer)
 	(gnus-debug)
 	(setq text (buffer-string)))
-      (insert "<#part type=application/emacs-lisp disposition=inline description=\"User settings\">\n" text "\n<#/part>"))
+      (insert "<#part type=application/emacs-lisp "
+	      "disposition=inline description=\"User settings\">\n"
+	      text
+	      "\n<#/part>"))
     (goto-char (point-min))
     (search-forward "Subject: " nil t)
     (message "")))
@@ -1777,7 +1799,10 @@ this is a reply."
   "Configure posting styles according to `gnus-posting-styles'."
   (unless gnus-inhibit-posting-styles
     (let ((group (or group-name gnus-newsgroup-name ""))
-	  (styles gnus-posting-styles)
+	  (styles (if (gnus-buffer-live-p gnus-summary-buffer)
+		      (with-current-buffer gnus-summary-buffer
+			gnus-posting-styles)
+		    gnus-posting-styles))
 	  style match attribute value v results
 	  filep name address element)
       ;; If the group has a posting-style parameter, add it at the end with a

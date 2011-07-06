@@ -52,7 +52,7 @@ casify_object (enum case_action flag, Lisp_Object obj)
       /* If the character has higher bits set
 	 above the flags, return it unchanged.
 	 It is not a real character.  */
-      if ((unsigned) XFASTINT (obj) > (unsigned) flagbits)
+      if (UNSIGNED_CMP (XFASTINT (obj), >, flagbits))
 	return obj;
 
       c1 = XFASTINT (obj) & ~flagbits;
@@ -417,8 +417,7 @@ With negative argument, capitalize previous words but do not move.  */)
 void
 syms_of_casefiddle (void)
 {
-  Qidentity = intern_c_string ("identity");
-  staticpro (&Qidentity);
+  DEFSYM (Qidentity, "identity");
   defsubr (&Supcase);
   defsubr (&Sdowncase);
   defsubr (&Scapitalize);

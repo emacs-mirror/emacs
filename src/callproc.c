@@ -184,7 +184,7 @@ and returns a numeric exit status or a signal description string.
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
 
 usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
-  (size_t nargs, register Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object infile, buffer, current_dir, path;
   volatile int display_p_volatile;
@@ -231,7 +231,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   /* Decide the coding-system for giving arguments.  */
   {
     Lisp_Object val, *args2;
-    size_t i;
+    ptrdiff_t i;
 
     /* If arguments are supplied, we may have to encode them.  */
     if (nargs >= 5)
@@ -422,7 +422,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	       (nargs > 4 ? nargs - 2 : 2) * sizeof *new_argv);
   if (nargs > 4)
     {
-      register size_t i;
+      ptrdiff_t i;
       struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
       GCPRO5 (infile, buffer, current_dir, path, error_file);
@@ -577,7 +577,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	    unlink (tempfile);
 	    emacs_close (filefd);
 	    report_file_error ("Cannot re-open temporary file",
-			       Fcons (tempfile, Qnil));
+			       Fcons (build_string (tempfile), Qnil));
 	  }
       }
     else
@@ -716,7 +716,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	{
 	  if (EQ (coding_systems, Qt))
 	    {
-	      size_t i;
+	      ptrdiff_t i;
 
 	      SAFE_ALLOCA (args2, Lisp_Object *, (nargs + 1) * sizeof *args2);
 	      args2[0] = Qcall_process;
@@ -944,7 +944,7 @@ and returns a numeric exit status or a signal description string.
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
 
 usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &rest ARGS)  */)
-  (size_t nargs, register Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   struct gcpro gcpro1;
   Lisp_Object filename_string;
@@ -953,7 +953,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
   Lisp_Object coding_systems;
   Lisp_Object val, *args2;
-  size_t i;
+  ptrdiff_t i;
   char *tempfile;
   Lisp_Object tmpdir, pattern;
 
@@ -1230,8 +1230,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
 
     if (STRINGP (display))
       {
-	int vlen = strlen ("DISPLAY=") + strlen (SSDATA (display)) + 1;
-	char *vdata = (char *) alloca (vlen);
+	char *vdata = (char *) alloca (sizeof "DISPLAY=" + SBYTES (display));
 	strcpy (vdata, "DISPLAY=");
 	strcat (vdata, SSDATA (display));
 	new_env = add_env (env, new_env, vdata);
@@ -1378,8 +1377,8 @@ relocate_fd (int fd, int minfd)
 #endif /* not WINDOWSNT */
 
 static int
-getenv_internal_1 (const char *var, int varlen, char **value, int *valuelen,
-		   Lisp_Object env)
+getenv_internal_1 (const char *var, ptrdiff_t varlen, char **value,
+		   ptrdiff_t *valuelen, Lisp_Object env)
 {
   for (; CONSP (env); env = XCDR (env))
     {
@@ -1413,8 +1412,8 @@ getenv_internal_1 (const char *var, int varlen, char **value, int *valuelen,
 }
 
 static int
-getenv_internal (const char *var, int varlen, char **value, int *valuelen,
-		 Lisp_Object frame)
+getenv_internal (const char *var, ptrdiff_t varlen, char **value,
+		 ptrdiff_t *valuelen, Lisp_Object frame)
 {
   /* Try to find VAR in Vprocess_environment first.  */
   if (getenv_internal_1 (var, varlen, value, valuelen,
@@ -1454,7 +1453,7 @@ If optional parameter ENV is a list, then search this list instead of
   (Lisp_Object variable, Lisp_Object env)
 {
   char *value;
-  int valuelen;
+  ptrdiff_t valuelen;
 
   CHECK_STRING (variable);
   if (CONSP (env))
@@ -1478,7 +1477,7 @@ char *
 egetenv (const char *var)
 {
   char *value;
-  int valuelen;
+  ptrdiff_t valuelen;
 
   if (getenv_internal (var, strlen (var), &value, &valuelen, Qnil))
     return value;
@@ -1603,20 +1602,13 @@ init_callproc (void)
 void
 set_initial_environment (void)
 {
-  register char **envp;
-#ifdef CANNOT_DUMP
-  Vprocess_environment = Qnil;
-#else
-  if (initialized)
-#endif
-    {
-      for (envp = environ; *envp; envp++)
-	Vprocess_environment = Fcons (build_string (*envp),
-				      Vprocess_environment);
-      /* Ideally, the `copy' shouldn't be necessary, but it seems it's frequent
-	 to use `delete' and friends on process-environment.  */
-      Vinitial_environment = Fcopy_sequence (Vprocess_environment);
-    }
+  char **envp;
+  for (envp = environ; *envp; envp++)
+    Vprocess_environment = Fcons (build_string (*envp),
+				  Vprocess_environment);
+  /* Ideally, the `copy' shouldn't be necessary, but it seems it's frequent
+     to use `delete' and friends on process-environment.  */
+  Vinitial_environment = Fcopy_sequence (Vprocess_environment);
 }
 
 void

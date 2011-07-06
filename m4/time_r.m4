@@ -50,10 +50,6 @@ AC_DEFUN([gl_TIME_R],
   else
     HAVE_LOCALTIME_R=0
   fi
-  if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
-    AC_LIBOBJ([time_r])
-    gl_PREREQ_TIME_R
-  fi
 ])
 
 # Prerequisites of lib/time_r.c.

@@ -349,7 +349,7 @@ If nil, display all header fields except those matched by
   :group 'rmail-headers)
 
 ;;;###autoload
-(defcustom rmail-retry-ignored-headers (purecopy "^x-authentication-warning:\\|^x-detected-operating-system:\\|^x-spam[-a-z]*:\\|content-type:\\|content-transfer-encoding:\\|mime-version:")
+(defcustom rmail-retry-ignored-headers (purecopy "^x-authentication-warning:\\|^x-detected-operating-system:\\|^x-spam[-a-z]*:\\|content-type:\\|content-transfer-encoding:\\|mime-version:\\|message-id:")
   "Headers that should be stripped when retrying a failed message."
   :type '(choice regexp (const nil :tag "None"))
   :group 'rmail-headers
@@ -1444,7 +1444,8 @@ If so restore the actual mbox message collection."
   (make-local-variable 'file-precious-flag)
   (setq file-precious-flag t)
   (make-local-variable 'desktop-save-buffer)
-  (setq desktop-save-buffer t))
+  (setq desktop-save-buffer t)
+  (setq next-error-move-function 'rmail-next-error-move))
 
 ;; Handle M-x revert-buffer done in an rmail-mode buffer.
 (defun rmail-revert (arg noconfirm)
@@ -2669,8 +2670,11 @@ The current mail message becomes the message displayed."
 	    (t (setq rmail-current-message msg)))
       (with-current-buffer rmail-buffer
 	(setq header-style rmail-header-style)
-	;; Mark the message as seen
-	(rmail-set-attribute rmail-unseen-attr-index nil)
+	;; Mark the message as seen, but preserve buffer modified flag.
+	(let ((modiff (buffer-modified-p)))
+	  (rmail-set-attribute rmail-unseen-attr-index nil)
+	  (unless modiff
+	    (restore-buffer-modified-p modiff)))
 	;; bracket the message in the mail
 	;; buffer and determine the coding system the transfer encoding.
 	(rmail-swap-buffers-maybe)
@@ -3016,15 +3020,73 @@ or forward if N is negative."
   (rmail-maybe-set-message-counters)
   (rmail-show-message rmail-total-messages))
 
-(defun rmail-what-message ()
-  "For debugging Rmail: find the message number that point is in."
+(defun rmail-next-error-move (msg-pos bad-marker)
+  "Move to an error locus (probably grep hit) in an Rmail buffer.
+MSG-POS is a marker pointing at the error message in the grep buffer.
+BAD-MARKER is a marker that ought to point at where to move to,
+but probably is garbage."
+  (let* ((message (car (get-text-property msg-pos 'message (marker-buffer msg-pos))))
+	 (column (car message))
+	 (linenum (cadr message))
+	 pos
+	 msgnum msgbeg msgend
+	 header-field
+	 line-number-within)
+
+    ;; Look at the whole Rmail file.
+    (rmail-swap-buffers-maybe)
+
+    (save-restriction
+      (widen)
+      (save-excursion
+	;; Find the line that the error message points at.
+	(goto-char (point-min))
+	(forward-line linenum)
+	(setq pos (point))
+
+	;; Find which message that's in,
+	;; and the limits of that message.
+	(setq msgnum (rmail-what-message pos))
+	(setq msgbeg (rmail-msgbeg msgnum))
+	(setq msgend (rmail-msgend msgnum))
+
+	;; Find which header this locus is in,
+	;; or if it's in the message body,
+	;; and the line-based position within that.
+	(goto-char msgbeg)
+	(let ((header-end msgend))
+	  (if (search-forward "\n\n" nil t)
+	      (setq header-end (point)))
+	  (if (>= pos header-end)
+	      (setq line-number-within
+		    (count-lines header-end pos))
+	    (goto-char pos)
+	    (unless (looking-at "^[^ \t]")
+	      (re-search-backward "^[^ \t]"))
+	    (looking-at "[^:\n]*[:\n]")
+	    (setq header-field (match-string 0)
+		  line-number-within (count-lines (point) pos))))))
+
+    ;; Display the right message.
+    (rmail-show-message msgnum)
+
+    ;; Move to the right position within the displayed message.
+    (if header-field
+	(re-search-forward (concat "^" (regexp-quote header-field)) nil t)
+      (search-forward "\n\n" nil t))
+    (forward-line line-number-within)
+    (forward-char column)))
+
+(defun rmail-what-message (&optional pos)
+  "Return message number POS (or point) is in."
   (let* ((high rmail-total-messages)
          (mid (/ high 2))
          (low 1)
-         (where (with-current-buffer (if (rmail-buffers-swapped-p)
-                                         rmail-view-buffer
-                                       (current-buffer))
-                  (point))))
+         (where (or pos
+		    (with-current-buffer (if (rmail-buffers-swapped-p)
+					     rmail-view-buffer
+					   (current-buffer))
+		      (point)))))
     (while (> (- high low) 1)
       (if (>= where (rmail-msgbeg mid))
           (setq low mid)
@@ -3455,15 +3517,15 @@ does not pop any summary buffer."
     (if (stringp subject) (setq subject (rfc2047-decode-string subject)))
     (prog1
 	(compose-mail to subject other-headers noerase
-		      switch-function yank-action sendactions
-		      '(rmail-mail-return))
+		      switch-function yank-action sendactions)
       (if (eq switch-function 'switch-to-buffer-other-frame)
 	  ;; This is not a standard frame parameter; nothing except
 	  ;; sendmail.el looks at it.
 	    (modify-frame-parameters (selected-frame)
 				   '((mail-dedicated-frame . t)))))))
 
-(defun rmail-mail-return ()
+(defun rmail-mail-return (&optional newbuf)
+  "NEWBUF is a buffer to switch to."
   (cond
    ;; If there is only one visible frame with no special handling,
    ;; consider deleting the mail window to return to Rmail.
@@ -3488,7 +3550,8 @@ does not pop any summary buffer."
       (if rmail-flag
 	  ;; If the Rmail buffer has a summary, show that.
 	  (if summary-buffer (switch-to-buffer summary-buffer)
-	    (delete-window)))))
+	    (delete-window))
+	(switch-to-buffer newbuf))))
    ;; If the frame was probably made for this buffer, the user
    ;; probably wants to delete it now.
    ((display-multi-frame-p)
@@ -4316,7 +4379,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "c530622b53038152ca84f2ec9313bd7a")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "30ab95e291380f184dff5fa6cde75520")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\

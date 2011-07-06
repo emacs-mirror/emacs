@@ -399,6 +399,12 @@ else allout's special hanging-indent maintaining auto-fill function,
   :type 'boolean
   :group 'allout)
 (make-variable-buffer-local 'allout-inhibit-auto-fill)
+;;;_  = allout-inhibit-auto-fill-on-headline
+(defcustom allout-inhibit-auto-fill-on-headline nil
+  "If non-nil, auto-fill will be inhibited while on topic's header line."
+  :type 'boolean
+  :group 'allout)
+(make-variable-buffer-local 'allout-inhibit-auto-fill-on-headline)
 ;;;_  = allout-use-hanging-indents
 (defcustom allout-use-hanging-indents t
   "If non-nil, topic body text auto-indent defaults to indent of the header.
@@ -410,7 +416,7 @@ where auto-fill occurs."
 (make-variable-buffer-local 'allout-use-hanging-indents)
 ;;;###autoload
 (put 'allout-use-hanging-indents 'safe-local-variable
-     (if (fboundp 'booleanp) 'booleanp '(lambda (x) (member x '(t nil)))))
+     (if (fboundp 'booleanp) 'booleanp (lambda (x) (member x '(t nil)))))
 ;;;_  = allout-reindent-bodies
 (defcustom allout-reindent-bodies (if allout-use-hanging-indents
 				    'text)
@@ -429,7 +435,7 @@ those that do not have the variable `comment-start' set.  A value of
 (make-variable-buffer-local 'allout-reindent-bodies)
 ;;;###autoload
 (put 'allout-reindent-bodies 'safe-local-variable
-     '(lambda (x) (memq x '(nil t text force))))
+     (lambda (x) (memq x '(nil t text force))))
 
 ;;;_  = allout-show-bodies
 (defcustom allout-show-bodies nil
@@ -440,7 +446,7 @@ just the header."
 (make-variable-buffer-local 'allout-show-bodies)
 ;;;###autoload
 (put 'allout-show-bodies 'safe-local-variable
-     (if (fboundp 'booleanp) 'booleanp '(lambda (x) (member x '(t nil)))))
+     (if (fboundp 'booleanp) 'booleanp (lambda (x) (member x '(t nil)))))
 
 ;;;_  = allout-beginning-of-line-cycles
 (defcustom allout-beginning-of-line-cycles t
@@ -632,7 +638,7 @@ undesired.]"
   :group 'allout)
 ;;;###autoload
 (put 'allout-use-mode-specific-leader 'safe-local-variable
-     '(lambda (x) (or (memq x '(t nil allout-mode-leaders comment-start))
+     (lambda (x) (or (memq x '(t nil allout-mode-leaders comment-start))
                       (stringp x))))
 ;;;_  = allout-mode-leaders
 (defvar allout-mode-leaders '()
@@ -662,7 +668,7 @@ are always respected by the topic maneuvering functions."
 (make-variable-buffer-local 'allout-old-style-prefixes)
 ;;;###autoload
 (put 'allout-old-style-prefixes 'safe-local-variable
-     (if (fboundp 'booleanp) 'booleanp '(lambda (x) (member x '(t nil)))))
+     (if (fboundp 'booleanp) 'booleanp (lambda (x) (member x '(t nil)))))
 ;;;_  = allout-stylish-prefixes -- alternating bullets
 (defcustom allout-stylish-prefixes t
   "Do fancy stuff with topic prefix bullets according to level, etc.
@@ -711,7 +717,7 @@ is non-nil."
 (make-variable-buffer-local 'allout-stylish-prefixes)
 ;;;###autoload
 (put 'allout-stylish-prefixes 'safe-local-variable
-     (if (fboundp 'booleanp) 'booleanp '(lambda (x) (member x '(t nil)))))
+     (if (fboundp 'booleanp) 'booleanp (lambda (x) (member x '(t nil)))))
 
 ;;;_  = allout-numbered-bullet
 (defcustom allout-numbered-bullet "#"
@@ -728,7 +734,7 @@ disables numbering maintenance."
 (put 'allout-numbered-bullet 'safe-local-variable
      (if (fboundp 'string-or-null-p)
          'string-or-null-p
-       '(lambda (x) (or (stringp x) (null x)))))
+       (lambda (x) (or (stringp x) (null x)))))
 ;;;_  = allout-file-xref-bullet
 (defcustom allout-file-xref-bullet "@"
   "Bullet signifying file cross-references, for `allout-resolve-xref'.
@@ -740,7 +746,7 @@ Set this var to the bullet you want to use for file cross-references."
 (put 'allout-file-xref-bullet 'safe-local-variable
      (if (fboundp 'string-or-null-p)
          'string-or-null-p
-       '(lambda (x) (or (stringp x) (null x)))))
+       (lambda (x) (or (stringp x) (null x)))))
 ;;;_  = allout-presentation-padding
 (defcustom allout-presentation-padding 2
   "Presentation-format white-space padding factor, for greater indent."
@@ -817,37 +823,32 @@ formatted copy."
   :group 'allout-encryption)
 ;;;_  = allout-encrypt-unencrypted-on-saves
 (defcustom allout-encrypt-unencrypted-on-saves t
-  "When saving, should topics pending encryption be encrypted?
+  "If non-nil, topics pending encryption are encrypted during buffer saves.
 
-The idea is to prevent file-system exposure of any un-encrypted stuff, and
-mostly covers both deliberate file writes and auto-saves.
+This provents file-system exposure of un-encrypted contents of
+items marked for encryption.
 
- - Yes: encrypt all topics pending encryption, even if it's the one
-        currently being edited.  (In that case, the currently edited topic
-        will be automatically decrypted before any user interaction, so they
-        can continue editing but the copy on the file system will be
-        encrypted.)
-        Auto-saves will use the \"All except current topic\" mode if this
-        one is selected, to avoid practical difficulties -- see below.
- - All except current topic: skip the topic currently being edited, even if
-       it's pending encryption.  This may expose the current topic on the
-       file sytem, but avoids the nuisance of prompts for the encryption
-       passphrase in the middle of editing for, eg, autosaves.
-       This mode is used for auto-saves for both this option and \"Yes\".
- - No: leave it to the user to encrypt any unencrypted topics.
+When non-nil, if the topic currently being edited is decrypted,
+it will be encrypted for saving but automatically decrypted
+before any subsequent user interaction, so it is once again clear
+text for editing though the file system copy is encrypted.
 
-For practical reasons, auto-saves always use the 'except-current policy
-when auto-encryption is enabled.  (Otherwise, spurious passphrase prompts
-and unavoidable timing collisions are too disruptive.)  If security for a
-file requires that even the current topic is never auto-saved in the clear,
-disable auto-saves for that file."
+\(Auto-saves are handled differently.  Buffers with plain-text
+exposed encrypted topics are exempted from auto saves until all
+such topics are encrypted.)"
 
-  :type '(choice (const :tag "Yes" t)
-                 (const :tag "All except current topic" except-current)
-                 (const :tag "No" nil))
-  :version "22.1"
+  :type 'boolean
+  :version "23.1"
   :group 'allout-encryption)
 (make-variable-buffer-local 'allout-encrypt-unencrypted-on-saves)
+(defvar allout-auto-save-temporarily-disabled nil
+  "True while topic encryption is pending and auto-saving was active.
+
+The value of buffer-saved-size at the time of decryption is used,
+for restoring when all encryptions are established.")
+(defvar allout-just-did-undo nil
+  "True just after undo commands, until allout-post-command-business.")
+(make-variable-buffer-local 'allout-just-did-undo)
 
 ;;;_ + Developer
 ;;;_  = allout-developer group
@@ -935,7 +936,7 @@ case the value of `allout-default-layout' is used.")
 (make-variable-buffer-local 'allout-layout)
 ;;;###autoload
 (put 'allout-layout 'safe-local-variable
-     '(lambda (x) (or (numberp x) (listp x) (memq x '(: * + -)))))
+     (lambda (x) (or (numberp x) (listp x) (memq x '(: * + -)))))
 
 ;;;_  : Topic header format
 ;;;_   = allout-regexp
@@ -1460,7 +1461,15 @@ This hook might be invoked multiple times by a single command.")
 (defvar allout-after-copy-or-kill-hook nil
   "*Hook that's run after copying outline text.
 
-Functions on the hook should not take any arguments.")
+Functions on the hook should not require any arguments.")
+;;;_   = allout-post-undo-hook
+(defvar allout-post-undo-hook nil
+  "*Hook that's run after undo activity.
+
+The item that's current when the hook is run *may* be the one
+that was affected by the undo.
+
+Functions on the hook should not require any arguments.")
 ;;;_   = allout-outside-normal-auto-fill-function
 (defvar allout-outside-normal-auto-fill-function nil
   "Value of normal-auto-fill-function outside of allout mode.
@@ -1558,39 +1567,43 @@ See `allout-encryption-ciphertext-rejection-regexps' for rejection reasons.")
 (defmacro allout-mode-p ()
   "Return t if `allout-mode' is active in current buffer."
   'allout-mode)
-;;;_   > allout-write-file-hook-handler ()
-(defun allout-write-file-hook-handler ()
-  "Implement `allout-encrypt-unencrypted-on-saves' policy for file writes."
+;;;_   > allout-write-contents-hook-handler ()
+(defun allout-write-contents-hook-handler ()
+  "Implement `allout-encrypt-unencrypted-on-saves' for file writes
+
+Return nil if all goes smoothly, or else return an informative
+message if an error is encountered.  The message will serve as a
+non-nil return on `write-contents-functions' to prevent saving of
+the buffer while it has decrypted content.
+
+This behavior depends on emacs versions that implement the
+`write-contents-functions' hook."
 
   (if (or (not (allout-mode-p))
           (not (boundp 'allout-encrypt-unencrypted-on-saves))
           (not allout-encrypt-unencrypted-on-saves))
       nil
-    (let ((except-mark (and (equal allout-encrypt-unencrypted-on-saves
-                                   'except-current)
-                            (point-marker))))
-      (if (save-excursion (goto-char (point-min))
-                          (allout-next-topic-pending-encryption except-mark))
-          (progn
-            (message "auto-encrypting pending topics")
-            (sit-for 0)
-            (condition-case failure
+    (if (save-excursion (goto-char (point-min))
+                        (allout-next-topic-pending-encryption))
+        (progn
+          (message "auto-encrypting pending topics")
+          (sit-for 0)
+          (condition-case failure
+              (progn
                 (setq allout-after-save-decrypt
-                      (allout-encrypt-decrypted except-mark))
-              (error (message
-                      "allout-write-file-hook-handler suppressing error %s"
-                      failure)
-                     (sit-for 2)))))
-      ))
-  nil)
-;;;_   > allout-auto-save-hook-handler ()
-(defun allout-auto-save-hook-handler ()
-  "Implement `allout-encrypt-unencrypted-on-saves' policy for auto save."
-
-  (if (and (allout-mode-p) allout-encrypt-unencrypted-on-saves)
-      ;; Always implement 'except-current policy when enabled.
-      (let ((allout-encrypt-unencrypted-on-saves 'except-current))
-        (allout-write-file-hook-handler))))
+                      (allout-encrypt-decrypted))
+                ;; aok - return nil:
+                nil)
+            (error
+             ;; whoops - probably some still-decrypted items, return non-nil:
+             (let ((text (format (concat "%s contents write inhibited due to"
+                                         " encrypted topic encryption error:"
+                                         " %s")
+                                 (buffer-name (current-buffer))
+                                 failure)))
+               (message text)(sit-for 2)
+               text)))))
+    ))
 ;;;_   > allout-after-saves-handler ()
 (defun allout-after-saves-handler ()
   "Decrypt topic encrypted for save, if it's currently being edited.
@@ -1869,6 +1882,7 @@ without changes to the allout core.  Here are key ones:
 `allout-structure-deleted-hook'
 `allout-structure-shifted-hook'
 `allout-after-copy-or-kill-hook'
+`allout-post-undo-hook'
 
                             Terminology
 
@@ -1954,12 +1968,7 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
   :lighter " Allout"
   :keymap 'allout-mode-map
 
-  (let ((write-file-hook-var-name (cond ((boundp 'write-file-functions)
-                                         'write-file-functions)
-                                        ((boundp 'write-file-hooks)
-                                         'write-file-hooks)
-                                        (t 'local-write-file-hooks)))
-        (use-layout (if (listp allout-layout)
+  (let ((use-layout (if (listp allout-layout)
                         allout-layout
                       allout-default-layout)))
 
@@ -1978,9 +1987,8 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
           (remove-hook 'post-command-hook 'allout-post-command-business t)
           (remove-hook 'before-change-functions 'allout-before-change-handler t)
           (remove-hook 'isearch-mode-end-hook 'allout-isearch-end-handler t)
-          (remove-hook write-file-hook-var-name
-                       'allout-write-file-hook-handler t)
-          (remove-hook 'auto-save-hook 'allout-auto-save-hook-handler t)
+          (remove-hook 'write-contents-functions
+                       'allout-write-contents-hook-handler t)
 
           (remove-overlays (point-min) (point-max)
                            'category 'allout-exposure-category))
@@ -2013,9 +2021,8 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
       (add-hook 'post-command-hook 'allout-post-command-business nil t)
       (add-hook 'before-change-functions 'allout-before-change-handler nil t)
       (add-hook 'isearch-mode-end-hook 'allout-isearch-end-handler nil t)
-      (add-hook write-file-hook-var-name 'allout-write-file-hook-handler
+      (add-hook 'write-contents-functions 'allout-write-contents-hook-handler
                 nil t)
-      (add-hook 'auto-save-hook 'allout-auto-save-hook-handler nil t)
 
       ;; Stash auto-fill settings and adjust so custom allout auto-fill
       ;; func will be used if auto-fill is active or activated.  (The
@@ -2079,7 +2086,7 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
   (save-current-buffer
     (dolist (buffer (buffer-list))
       (set-buffer buffer)
-      (when (allout-mode-p) (allout-mode))))
+      (when (allout-mode-p) (allout-mode -1))))
   ;; continue standard unloading
   nil)
 
@@ -2148,8 +2155,10 @@ internal functions use this feature cohesively bunch changes."
 
 See `allout-overlay-interior-modification-handler' for details."
 
-  (when (and (allout-mode-p) undo-in-progress (allout-hidden-p))
-    (allout-show-children))
+  (when (and (allout-mode-p) undo-in-progress)
+    (setq allout-just-did-undo t)
+    (if (allout-hidden-p)
+        (allout-show-children)))
 
   ;; allout-overlay-interior-modification-handler on an overlay handles
   ;; this in other emacs, via `allout-exposure-category's 'modification-hooks.
@@ -3302,11 +3311,29 @@ coordinating with allout activity.")
 - Implement (and clear) `allout-post-goto-bullet', for hot-spot
   outline commands.
 
+- If the command we're following was an undo, check for change in
+  the status of encrypted items and adjust auto-save inhibitions
+  accordingly.
+
 - Decrypt topic currently being edited if it was encrypted for a save."
 
-					; Apply any external change func:
   (if (not (allout-mode-p))		; In allout-mode.
       nil
+
+    (when allout-just-did-undo
+      (setq allout-just-did-undo nil)
+      (run-hooks 'allout-post-undo-hook)
+      (cond ((and (= buffer-saved-size -1)
+                  allout-auto-save-temporarily-disabled)
+             ;; user possibly undid a decryption, deinhibit auto-save:
+             (allout-maybe-resume-auto-save-info-after-encryption))
+            ((save-excursion
+               (save-restriction
+                 (widen)
+                 (goto-char (point-min))
+                 (not (allout-next-topic-pending-encryption))))
+             ;; plain-text encrypted items are present, inhibit auto-save:
+             (allout-inhibit-auto-save-info-for-decryption (buffer-size)))))
 
     (if (and (boundp 'allout-after-save-decrypt)
              allout-after-save-decrypt)
@@ -3848,7 +3875,9 @@ topic prior to the current one."
 Maintains outline hanging topic indentation if
 `allout-use-hanging-indents' is set."
 
-  (when (not allout-inhibit-auto-fill)
+  (when (and (not allout-inhibit-auto-fill)
+             (or (not allout-inhibit-auto-fill-on-headline)
+                 (not (allout-on-current-heading-p))))
     (let ((fill-prefix (if allout-use-hanging-indents
                            ;; Check for topic header indentation:
                            (save-match-data
@@ -4027,6 +4056,8 @@ this function."
 	       (not (= new-depth current-depth))
                (not (allout-encrypted-topic-p)))
 	  (allout-reindent-body current-depth new-depth))
+
+      (run-hook-with-args 'allout-exposure-change-hook mb me nil)
 
       ;; Recursively rectify successive siblings of orig topic if
       ;; caller elected for it:
@@ -4597,8 +4628,9 @@ however, are left exactly like normal, non-allout-specific yanks."
                                         ; and delete residual subj
                                         ; prefix digits and space:
                      (while (looking-at "[0-9]") (delete-char 1))
-                     (if (looking-at " ")
-                         (delete-char 1))))
+                     (delete-char -1)
+                     (if (not (eolp))
+                         (forward-char))))
                   ;; Assert new topic's bullet - minimal effort if unchanged:
                   (allout-rebullet-heading (string-to-char prefix-bullet)))
               (exchange-point-and-mark))))
@@ -4728,6 +4760,7 @@ arguments as this function, after the exposure changes are made."
   (when flag
     (let ((o (make-overlay from to nil 'front-advance)))
       (overlay-put o 'category 'allout-exposure-category)
+      (overlay-put o 'evaporate t)
       (when (featurep 'xemacs)
         (let ((props (symbol-plist 'allout-exposure-category)))
           (while props
@@ -5887,6 +5920,8 @@ See `allout-toggle-current-subtree-encryption' for more details."
                        " shift it in to make it encryptable")))
 
     (let* ((allout-buffer (current-buffer))
+           ;; for use with allout-auto-save-temporarily-disabled, if necessary:
+           (was-buffer-saved-size buffer-saved-size)
            ;; Assess location:
            (bullet-pos allout-recent-prefix-beginning)
            (after-bullet-pos (point))
@@ -5966,6 +6001,12 @@ See `allout-toggle-current-subtree-encryption' for more details."
            ;; Add the is-encrypted bullet qualifier:
            (goto-char after-bullet-pos)
            (insert "*"))))
+
+      ;; adjust buffer's auto-save eligibility:
+      (if was-encrypted
+          (allout-inhibit-auto-save-info-for-decryption was-buffer-saved-size)
+        (allout-maybe-resume-auto-save-info-after-encryption))
+
       (run-hook-with-args 'allout-structure-added-hook
                           bullet-pos subtree-end))))
 ;;;_  > allout-encrypt-string (text decrypt allout-buffer keymode-cue
@@ -6017,6 +6058,7 @@ signal."
                         (epg-context-set-passphrase-callback
                          context #'epa-passphrase-callback-function)
                         context))
+
          (encoding (with-current-buffer allout-buffer
                      buffer-file-coding-system))
          (multibyte (with-current-buffer allout-buffer
@@ -6138,8 +6180,29 @@ signal."
                          result-text))
       (error (concat "Encryption produced non-armored text, which"
                      "conflicts with allout mode -- reconfigure!")))
-
      (t result-text))))
+;;;_  > allout-inhibit-auto-save-info-for-decryption
+(defun allout-inhibit-auto-save-info-for-decryption (was-buffer-saved-size)
+  "Temporarily prevent auto-saves in this buffer when an item is decrypted.
+
+WAS-BUFFER-SAVED-SIZE is the value of buffer-saved-size *before*
+the decryption."
+  (when (not (or (= buffer-saved-size -1) (= was-buffer-saved-size -1)))
+    (setq allout-auto-save-temporarily-disabled was-buffer-saved-size
+          buffer-saved-size -1)))
+;;;_  > allout-maybe-resume-auto-save-info-after-encryption ()
+(defun allout-maybe-resume-auto-save-info-after-encryption ()
+  "Restore auto-save info, *if* there are no topics pending encryption."
+  (when (and allout-auto-save-temporarily-disabled
+             (= buffer-saved-size -1)
+             (save-excursion
+               (save-restriction
+                 (widen)
+                 (goto-char (point-min))
+                 (not (allout-next-topic-pending-encryption)))))
+    (setq buffer-saved-size allout-auto-save-temporarily-disabled
+          allout-auto-save-temporarily-disabled nil)))
+
 ;;;_  > allout-encrypted-topic-p ()
 (defun allout-encrypted-topic-p ()
   "True if the current topic is encryptable and encrypted."
@@ -6150,13 +6213,9 @@ signal."
          (save-match-data (looking-at "\\*")))
     )
   )
-;;;_  > allout-next-topic-pending-encryption (&optional except-mark)
-(defun allout-next-topic-pending-encryption (&optional except-mark)
+;;;_  > allout-next-topic-pending-encryption ()
+(defun allout-next-topic-pending-encryption ()
   "Return the point of the next topic pending encryption, or nil if none.
-
-EXCEPT-MARK identifies a point whose containing topics should be excluded
-from encryption.  This supports 'except-current mode of
-`allout-encrypt-unencrypted-on-saves'.
 
 Such a topic has the `allout-topic-encryption-bullet' without an
 immediately following '*' that would mark the topic as being encrypted.  It
@@ -6192,10 +6251,7 @@ must also have content."
                (setq content-beg (point))
                (backward-char 1)
                (allout-end-of-subtree)
-               (if (or (<= (point) content-beg)
-                       (and except-mark
-                            (<= content-beg except-mark)
-                            (>= (point) except-mark)))
+               (if (<= (point) content-beg)
                    ;; Continue looking
                    (setq got nil)
                  ;; Got it!
@@ -6207,13 +6263,9 @@ must also have content."
       )
     )
   )
-;;;_  > allout-encrypt-decrypted (&optional except-mark)
-(defun allout-encrypt-decrypted (&optional except-mark)
+;;;_  > allout-encrypt-decrypted ()
+(defun allout-encrypt-decrypted ()
   "Encrypt topics pending encryption except those containing exemption point.
-
-EXCEPT-MARK identifies a point whose containing topics should be excluded
-from encryption.  This supports the `except-current' mode of
-`allout-encrypt-unencrypted-on-saves'.
 
 If a topic that is currently being edited was encrypted, we return a list
 containing the location of the topic and the location of the cursor just
@@ -6230,7 +6282,7 @@ save.  See `allout-encrypt-unencrypted-on-saves' for more info."
              bo-subtree
              editing-topic editing-point)
         (goto-char (point-min))
-        (while (allout-next-topic-pending-encryption except-mark)
+        (while (allout-next-topic-pending-encryption)
           (setq was-modified (buffer-modified-p))
           (when (save-excursion
                   (and (boundp 'allout-encrypt-unencrypted-on-saves)

@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 24
+# gnulib-common.m4 serial 26
 dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -34,6 +34,20 @@ AC_DEFUN([gl_COMMON_BODY], [
 /* The name _UNUSED_PARAMETER_ is an earlier spelling, although the name
    is a misnomer outside of parameter lists.  */
 #define _UNUSED_PARAMETER_ _GL_UNUSED
+
+/* The __pure__ attribute was added in gcc 2.96.  */
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 96)
+# define _GL_ATTRIBUTE_PURE __attribute__ ((__pure__))
+#else
+# define _GL_ATTRIBUTE_PURE /* empty */
+#endif
+
+/* The __const__ attribute was added in gcc 2.95.  */
+#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95)
+# define _GL_ATTRIBUTE_CONST __attribute__ ((__const__))
+#else
+# define _GL_ATTRIBUTE_CONST /* empty */
+#endif
 ])
   dnl Preparation for running test programs:
   dnl Tell glibc to write diagnostics from -D_FORTIFY_SOURCE=2 to stderr, not
@@ -47,16 +61,49 @@ AC_DEFUN([gl_COMMON_BODY], [
 # expands to a C preprocessor expression that evaluates to 1 or 0, depending
 # whether a gnulib module that has been requested shall be considered present
 # or not.
-AC_DEFUN([gl_MODULE_INDICATOR_CONDITION], [1])
+m4_define([gl_MODULE_INDICATOR_CONDITION], [1])
 
 # gl_MODULE_INDICATOR_SET_VARIABLE([modulename])
 # sets the shell variable that indicates the presence of the given module to
 # a C preprocessor expression that will evaluate to 1.
 AC_DEFUN([gl_MODULE_INDICATOR_SET_VARIABLE],
 [
-  GNULIB_[]m4_translit([[$1]],
-    [abcdefghijklmnopqrstuvwxyz./-],
-    [ABCDEFGHIJKLMNOPQRSTUVWXYZ___])=gl_MODULE_INDICATOR_CONDITION
+  gl_MODULE_INDICATOR_SET_VARIABLE_AUX(
+    [GNULIB_[]m4_translit([[$1]],
+                          [abcdefghijklmnopqrstuvwxyz./-],
+                          [ABCDEFGHIJKLMNOPQRSTUVWXYZ___])],
+    [gl_MODULE_INDICATOR_CONDITION])
+])
+
+# gl_MODULE_INDICATOR_SET_VARIABLE_AUX([variable])
+# modifies the shell variable to include the gl_MODULE_INDICATOR_CONDITION.
+# The shell variable's value is a C preprocessor expression that evaluates
+# to 0 or 1.
+AC_DEFUN([gl_MODULE_INDICATOR_SET_VARIABLE_AUX],
+[
+  m4_if(m4_defn([gl_MODULE_INDICATOR_CONDITION]), [1],
+    [
+     dnl Simplify the expression VALUE || 1 to 1.
+     $1=1
+    ],
+    [gl_MODULE_INDICATOR_SET_VARIABLE_AUX_OR([$1],
+                                             [gl_MODULE_INDICATOR_CONDITION])])
+])
+
+# gl_MODULE_INDICATOR_SET_VARIABLE_AUX_OR([variable], [condition])
+# modifies the shell variable to include the given condition.  The shell
+# variable's value is a C preprocessor expression that evaluates to 0 or 1.
+AC_DEFUN([gl_MODULE_INDICATOR_SET_VARIABLE_AUX_OR],
+[
+  dnl Simplify the expression 1 || CONDITION to 1.
+  if test "$[]$1" != 1; then
+    dnl Simplify the expression 0 || CONDITION to CONDITION.
+    if test "$[]$1" = 0; then
+      $1=$2
+    else
+      $1="($[]$1 || $2)"
+    fi
+  fi
 ])
 
 # gl_MODULE_INDICATOR([modulename])

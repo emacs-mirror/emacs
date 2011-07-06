@@ -38,8 +38,7 @@
 ;;      or [menu-bar emacs-lisp eval-buffer].  Additional key-bindings
 ;;      are also provided under C-c ? KEY
 ;;        (require 'checkdoc)
-;;        (add-hook 'emacs-lisp-mode-hook
-;;	             '(lambda () (checkdoc-minor-mode 1)))
+;;        (add-hook 'emacs-lisp-mode-hook 'checkdoc-minor-mode)
 ;;
 ;; Using `checkdoc':
 ;;
@@ -2046,7 +2045,7 @@ If the offending word is in a piece of quoted text, then it is skipped."
                                     ;; piece of an abbreviation
                                     ;; FIXME etc
                                     (looking-at
-                                     "\\([a-z]\\|[iI]\\.?e\\|[eE]\\.?g\\)\\."))
+                                     "\\([a-zA-Z]\\|[iI]\\.?e\\|[eE]\\.?g\\)\\."))
                                 (error t))))
                   (if (checkdoc-autofix-ask-replace
                        b e

@@ -2260,51 +2260,44 @@ Uses `gnus-newsgroup-name' if category is nil (for ham registration)."
   (autoload 'spam-stat-save "spam-stat")
   (autoload 'spam-stat-split-fancy "spam-stat"))
 
-(eval-and-compile
-  (when (condition-case nil
-            (let ((spam-stat-install-hooks nil))
-              (require 'spam-stat))
-          (file-error
-           (defalias 'spam-stat-register-ham-routine 'ignore)
-           (defalias 'spam-stat-register-spam-routine 'ignore)
-           nil))
+(require 'spam-stat)
 
-    (defun spam-check-stat ()
-      "Check the spam-stat backend for the classification of this message"
-      (let ((spam-stat-split-fancy-spam-group spam-split-group) ; override
-            (spam-stat-buffer (buffer-name)) ; stat the current buffer
-            category return)
-        (spam-stat-split-fancy)))
+(defun spam-check-stat ()
+  "Check the spam-stat backend for the classification of this message"
+  (let ((spam-stat-split-fancy-spam-group spam-split-group) ; override
+	(spam-stat-buffer (buffer-name)) ; stat the current buffer
+	category return)
+    (spam-stat-split-fancy)))
 
-    (defun spam-stat-register-spam-routine (articles &optional unregister)
-      (dolist (article articles)
-        (let ((article-string (spam-get-article-as-string article)))
-          (with-temp-buffer
-            (insert article-string)
-            (if unregister
-                (spam-stat-buffer-change-to-non-spam)
-              (spam-stat-buffer-is-spam))))))
+(defun spam-stat-register-spam-routine (articles &optional unregister)
+  (dolist (article articles)
+    (let ((article-string (spam-get-article-as-string article)))
+      (with-temp-buffer
+	(insert article-string)
+	(if unregister
+	    (spam-stat-buffer-change-to-non-spam)
+	  (spam-stat-buffer-is-spam))))))
 
-    (defun spam-stat-unregister-spam-routine (articles)
-      (spam-stat-register-spam-routine articles t))
+(defun spam-stat-unregister-spam-routine (articles)
+  (spam-stat-register-spam-routine articles t))
 
-    (defun spam-stat-register-ham-routine (articles &optional unregister)
-      (dolist (article articles)
-        (let ((article-string (spam-get-article-as-string article)))
-          (with-temp-buffer
-            (insert article-string)
-            (if unregister
-                (spam-stat-buffer-change-to-spam)
-              (spam-stat-buffer-is-non-spam))))))
+(defun spam-stat-register-ham-routine (articles &optional unregister)
+  (dolist (article articles)
+    (let ((article-string (spam-get-article-as-string article)))
+      (with-temp-buffer
+	(insert article-string)
+	(if unregister
+	    (spam-stat-buffer-change-to-spam)
+	  (spam-stat-buffer-is-non-spam))))))
 
-    (defun spam-stat-unregister-ham-routine (articles)
-      (spam-stat-register-ham-routine articles t))
+(defun spam-stat-unregister-ham-routine (articles)
+  (spam-stat-register-ham-routine articles t))
 
-    (defun spam-maybe-spam-stat-load ()
-      (when spam-use-stat (spam-stat-load)))
+(defun spam-maybe-spam-stat-load ()
+  (when spam-use-stat (spam-stat-load)))
 
-    (defun spam-maybe-spam-stat-save ()
-      (when spam-use-stat (spam-stat-save)))))
+(defun spam-maybe-spam-stat-save ()
+  (when spam-use-stat (spam-stat-save)))
 
 ;;}}}
 

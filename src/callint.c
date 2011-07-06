@@ -105,9 +105,10 @@ Z -- Coding system, nil if no prefix arg.
 
 In addition, if the string begins with `*', an error is signaled if
   the buffer is read-only.
-If the string begins with `@', Emacs searches the key sequence which
- invoked the command for its first mouse click (or any other event
- which specifies a window).
+If `@' appears at the beginning of the string, and if the key sequence
+ used to invoke the command includes any mouse events, then the window
+ associated with the first of those events is selected before the
+ command is run.
 If the string begins with `^' and `shift-select-mode' is non-nil,
  Emacs first calls the function `handle-shift-selection'.
 You may use `@', `*', and `^' together.  They are processed in the
@@ -269,10 +270,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
   /* If varies[i] > 0, the i'th argument shouldn't just have its value
      in this call quoted in the command history.  It should be
      recorded as a call to the function named callint_argfuns[varies[i]].  */
-  int *varies;
+  signed char *varies;
 
-  register size_t i;
-  size_t nargs;
+  ptrdiff_t i, nargs;
   int foo;
   char prompt1[100];
   char *tem1;
@@ -339,7 +339,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     {
       Lisp_Object input;
       Lisp_Object funval = Findirect_function (function, Qt);
-      i = num_input_events;
+      size_t events = num_input_events;
       input = specs;
       /* Compute the arg values using the user's expression.  */
       GCPRO2 (input, filter_specs);
@@ -347,7 +347,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 		     CONSP (funval) && EQ (Qclosure, XCAR (funval))
 		     ? Qt : Qnil);
       UNGCPRO;
-      if (i != num_input_events || !NILP (record_flag))
+      if (events != num_input_events || !NILP (record_flag))
 	{
 	  /* We should record this command on the command history.  */
 	  Lisp_Object values;
@@ -465,9 +465,14 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	break;
     }
 
+  if (min (MOST_POSITIVE_FIXNUM,
+	   min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object))
+      < nargs)
+    memory_full (SIZE_MAX);
+
   args = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
   visargs = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
-  varies = (int *) alloca (nargs * sizeof (int));
+  varies = (signed char *) alloca (nargs);
 
   for (i = 0; i < nargs; i++)
     {
@@ -892,41 +897,20 @@ syms_of_callint (void)
 				pure_cons (intern_c_string ("point"),
 				       pure_cons (intern_c_string ("mark"), Qnil))));
 
-  Qlist = intern_c_string ("list");
-  staticpro (&Qlist);
-  Qlet = intern_c_string ("let");
-  staticpro (&Qlet);
-  Qif = intern_c_string ("if");
-  staticpro (&Qif);
-  Qwhen = intern_c_string ("when");
-  staticpro (&Qwhen);
-  Qletx = intern_c_string ("let*");
-  staticpro (&Qletx);
-  Qsave_excursion = intern_c_string ("save-excursion");
-  staticpro (&Qsave_excursion);
-  Qprogn = intern_c_string ("progn");
-  staticpro (&Qprogn);
-
-  Qminus = intern_c_string ("-");
-  staticpro (&Qminus);
-
-  Qplus = intern_c_string ("+");
-  staticpro (&Qplus);
-
-  Qhandle_shift_selection = intern_c_string ("handle-shift-selection");
-  staticpro (&Qhandle_shift_selection);
-
-  Qcall_interactively = intern_c_string ("call-interactively");
-  staticpro (&Qcall_interactively);
-
-  Qcommand_debug_status = intern_c_string ("command-debug-status");
-  staticpro (&Qcommand_debug_status);
-
-  Qenable_recursive_minibuffers = intern_c_string ("enable-recursive-minibuffers");
-  staticpro (&Qenable_recursive_minibuffers);
-
-  Qmouse_leave_buffer_hook = intern_c_string ("mouse-leave-buffer-hook");
-  staticpro (&Qmouse_leave_buffer_hook);
+  DEFSYM (Qlist, "list");
+  DEFSYM (Qlet, "let");
+  DEFSYM (Qif, "if");
+  DEFSYM (Qwhen, "when");
+  DEFSYM (Qletx, "let*");
+  DEFSYM (Qsave_excursion, "save-excursion");
+  DEFSYM (Qprogn, "progn");
+  DEFSYM (Qminus, "-");
+  DEFSYM (Qplus, "+");
+  DEFSYM (Qhandle_shift_selection, "handle-shift-selection");
+  DEFSYM (Qcall_interactively, "call-interactively");
+  DEFSYM (Qcommand_debug_status, "command-debug-status");
+  DEFSYM (Qenable_recursive_minibuffers, "enable-recursive-minibuffers");
+  DEFSYM (Qmouse_leave_buffer_hook, "mouse-leave-buffer-hook");
 
   DEFVAR_KBOARD ("prefix-arg", Vprefix_arg,
 		 doc: /* The value of the prefix argument for the next editing command.

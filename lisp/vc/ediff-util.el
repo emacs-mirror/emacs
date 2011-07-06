@@ -1682,7 +1682,7 @@ the width of the A/B/C windows."
 			    'ediff-get-lines-to-region-start)
 			   ((eq op 'scroll-up)
 			    'ediff-get-lines-to-region-end)
-			   (t '(lambda (a b c) 0))))
+			   (t (lambda (a b c) 0))))
 	       (max-lines (max (funcall func 'A n ctl-buf)
 			       (funcall func 'B n ctl-buf)
 			       (if (ediff-buffer-live-p ediff-buffer-C)
@@ -4144,15 +4144,9 @@ Mail anyway? (y or n) ")
 
 ;; calculate time used by command
 (defun ediff-calc-command-time ()
-  (let ((end (current-time))
-	micro sec)
-    (setq micro
-	  (if (>= (nth 2 end) (nth 2 ediff-command-begin-time))
-	      (- (nth 2 end) (nth 2 ediff-command-begin-time))
-	    (+ (nth 2 end) (- 1000000 (nth 2 ediff-command-begin-time)))))
-    (setq sec (- (nth 1 end) (nth 1 ediff-command-begin-time)))
-    (or (equal ediff-command-begin-time '(0 0 0))
-	(message "Elapsed time: %d second(s) + %d microsecond(s)" sec micro))))
+  (or (equal ediff-command-begin-time '(0 0 0))
+      (message "Elapsed time: %g second(s)"
+	       (float-time (time-since ediff-command-begin-time)))))
 
 (defsubst ediff-save-time ()
   (setq ediff-command-begin-time (current-time)))

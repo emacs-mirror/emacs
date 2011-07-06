@@ -146,7 +146,7 @@
     (unless (assq 'xr docstruct)
       (let* ((allxr (reftex-all-assq 'xr-doc docstruct))
              (alist (mapcar
-                     (lambda (x) 
+                     (lambda (x)
                        (if (setq tmp (reftex-locate-file (nth 2 x) "tex"
                                                          master-dir))
                            (cons (nth 1 x) tmp)
@@ -157,7 +157,7 @@
              (alist (delq nil alist))
              (allprefix (delq nil (mapcar 'car alist)))
              (regexp (if allprefix
-                         (concat "\\`\\(" 
+                         (concat "\\`\\("
                                  (mapconcat 'identity allprefix "\\|")
                                  "\\)")
                        "\\\\\\\\\\\\")))   ; this will never match
@@ -188,6 +188,9 @@ of master file."
            (setq file (substring file (match-end 0))))
       (push file file-list))
     (nreverse file-list)))
+
+;; Bound in the caller, reftex-do-parse.
+(defvar index-tags)
 
 (defun reftex-parse-from-file (file docstruct master-dir)
   ;; Scan the buffer for labels and save them in a list.
@@ -259,7 +262,7 @@ of master file."
                  ;; It's an include or input
                  (setq include-file (reftex-match-string 7))
                  ;; Test if this file should be ignored
-                 (unless (delq nil (mapcar 
+                 (unless (delq nil (mapcar
                                     (lambda (x) (string-match x include-file))
                                     reftex-no-include-regexps))
                    ;; Parse it
@@ -308,10 +311,10 @@ of master file."
                (push (cons 'bib tmp) docstruct))
 
              (goto-char 1)
-             (when (re-search-forward 
+             (when (re-search-forward
                     "\\(\\`\\|[\n\r]\\)[ \t]*\\\\begin{thebibliography}" nil t)
                (push (cons 'thebib file) docstruct))
-                   
+
              ;; Find external document specifications
              (goto-char 1)
              (while (re-search-forward "[\n\r][ \t]*\\\\externaldocument\\(\\[\\([^]]*\\)\\]\\)?{\\([^}]+\\)}" nil t)
@@ -330,7 +333,7 @@ of master file."
 
 (defun reftex-locate-bibliography-files (master-dir &optional files)
   ;; Scan buffer for bibliography macro and return file list.
-  
+
   (unless files
     (save-excursion
       (goto-char (point-min))
@@ -340,11 +343,11 @@ of master file."
             "\\(^\\)[^%\n\r]*\\\\\\("
             (mapconcat 'identity reftex-bibliography-commands "\\|")
             "\\){[ \t]*\\([^}]+\\)") nil t)
-          (setq files 
+          (setq files
                 (split-string (reftex-match-string 3)
                               "[ \t\n\r]*,[ \t\n\r]*")))))
   (when files
-    (setq files 
+    (setq files
           (mapcar
            (lambda (x)
              (if (or (member x reftex-bibfile-ignore-list)
@@ -398,13 +401,13 @@ of master file."
          (unnumbered (or star (< level 0)))
          (level (abs level))
          (section-number (reftex-section-number level unnumbered))
-         (text1 (save-match-data 
+         (text1 (save-match-data
                   (save-excursion
                     (reftex-context-substring prefix))))
          (literal (buffer-substring-no-properties
                    (1- (match-beginning 3))
                    (min (point-max) (+ (match-end 0) (length text1) 1))))
-         ;; Literal can be too short since text1 too short. No big problem. 
+         ;; Literal can be too short since text1 too short. No big problem.
          (text (reftex-nicify-text text1)))
 
     ;; Add section number and indentation
@@ -454,7 +457,7 @@ of master file."
                             (throw 'exit nil)))
            (itag (nth 1 entry))
            (prefix (nth 2 entry))
-           (index-tag 
+           (index-tag
             (cond ((stringp itag) itag)
                   ((integerp itag)
                    (progn (goto-char boa)
@@ -476,16 +479,16 @@ of master file."
            (key-end (if (string-match reftex-index-key-end-re arg)
                         (1+ (match-beginning 0))))
            (rawkey (substring arg 0 key-end))
-                              
+
            (key (if prefix (concat prefix rawkey) rawkey))
            (sortkey (downcase key))
-           (showkey (mapconcat 'identity 
+           (showkey (mapconcat 'identity
                                (split-string key reftex-index-level-re)
                                " ! ")))
       (goto-char end-of-args)
       ;;       0        1       2      3   4   5  6      7       8      9
       (list 'index index-tag context file bom arg key showkey sortkey key-end))))
-  
+
 (defun reftex-short-context (env parse &optional bound derive)
   ;; Get about one line of useful context for the label definition at point.
 
@@ -608,7 +611,7 @@ of master file."
                ((match-end 10)
                 ;; Index entry
                 (when reftex-support-index
-                  (let* ((index-info (save-excursion 
+                  (let* ((index-info (save-excursion
                                        (reftex-index-info-safe nil)))
                          (list (member (list 'bof (buffer-file-name))
                                        docstruct))
@@ -618,7 +621,7 @@ of master file."
                     ;; Check all index entries with equal text
                     (while (and list (not (eq endelt (car list))))
                       (when (and (eq (car (car list)) 'index)
-                                 (string= (nth 2 index-info) 
+                                 (string= (nth 2 index-info)
                                           (nth 2 (car list))))
                         (incf n)
                         (setq dist (abs (- (point) (nth 4 (car list)))))
@@ -691,7 +694,7 @@ of master file."
                    level (nth 5 entry))
              ;; Insert the section info
              (push entry (cdr tail))
-             
+
              ;; We are done unless we use section numbers
              (unless (nth 1 reftex-label-menu-flags) (throw 'exit nil))
 
@@ -722,7 +725,7 @@ of master file."
                   (setq entry (reftex-index-info-safe buffer-file-name))
                   ;; FIXME: (add-to-list 'index-tags (nth 1 index-entry))
                   (push entry (cdr tail))))))))))
-            
+
     (error nil))
   )
 
@@ -875,7 +878,7 @@ of master file."
                         reftex-special-env-parsers))
             specials rtn)
         ;; Call all functions
-        (setq specials (mapcar 
+        (setq specials (mapcar
                         (lambda (fun)
                           (save-excursion
                             (setq rtn (and fun (funcall fun bound)))
@@ -885,7 +888,7 @@ of master file."
         (setq specials (delq nil specials))
         ;; Sort
         (setq specials (sort specials (lambda (a b) (> (cdr a) (cdr b)))))
-        (if (eq which t) 
+        (if (eq which t)
             specials
           (car specials))))))
 
@@ -923,9 +926,9 @@ of master file."
 
     ;; Do the real thing.
     (let ((cnt 1))
-      
+
       (when (reftex-move-to-next-arg)
-        
+
         (while (< cnt n)
           (while (and (member cnt opt-args)
                       (eq (following-char) ?\{))
@@ -950,7 +953,7 @@ of master file."
   (condition-case nil
       (while (memq (following-char) '(?\[ ?\{))
         (forward-list 1))
-    (error nil)))  
+    (error nil)))
 
 (defun reftex-context-substring (&optional to-end)
   ;; Return up to 150 chars from point
@@ -979,7 +982,7 @@ of master file."
             (error (point-max))))))
    (t
     ;; no list - just grab 150 characters
-    (buffer-substring-no-properties (point) 
+    (buffer-substring-no-properties (point)
                                     (min (+ (point) 150) (point-max))))))
 
 ;; Variable holding the vector with section numbers
@@ -1016,7 +1019,7 @@ of master file."
     ;; not included in the numbering of other sectioning levels.
     (when level
       (when (and (> level -1) (not star))
-        (aset reftex-section-numbers 
+        (aset reftex-section-numbers
               level (1+ (aref reftex-section-numbers level))))
       (setq idx (1+ level))
       (when (not star)
@@ -1042,7 +1045,7 @@ of master file."
             (setq string (replace-match "" nil nil string)))
         (if (and appendix
                  (string-match "\\`[0-9]+" string))
-            (setq string 
+            (setq string
                   (concat
                    (char-to-string
                     (1- (+ ?A (string-to-number (match-string 0 string)))))

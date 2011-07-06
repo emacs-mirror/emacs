@@ -65,6 +65,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
+#ifdef HAVE_X_WINDOWS
+#include "xterm.h"
+#endif
+
 #ifdef HAVE_SETLOCALE
 #include <locale.h>
 #endif
@@ -581,7 +585,7 @@ argmatch (char **argv, int argc, const char *sstr, const char *lstr,
           int minlen, char **valptr, int *skipptr)
 {
   char *p = NULL;
-  int arglen;
+  ptrdiff_t arglen;
   char *arg;
 
   /* Don't access argv[argc]; give up in advance.  */
@@ -674,7 +678,7 @@ malloc_initialize_hook (void)
     }
 }
 
-void (*__malloc_initialize_hook) (void) = malloc_initialize_hook;
+void (*__malloc_initialize_hook) (void) EXTERNALLY_VISIBLE = malloc_initialize_hook;
 
 #endif /* DOUG_LEA_MALLOC */
 
@@ -998,6 +1002,11 @@ main (int argc, char **argv)
 	}
 
 #ifndef NS_IMPL_COCOA
+#ifdef USE_GTK
+      fprintf (stderr, "\nWarning: due to a long standing Gtk+ bug\nhttp://bugzilla.gnome.org/show_bug.cgi?id=85715\n\
+Emacs might crash when run in daemon mode and the X11 connection is unexpectedly lost.\n\
+Using an Emacs configured with --with-x-toolkit=lucid does not have this problem.\n");
+#endif
       f = fork ();
 #else /* NS_IMPL_COCOA */
       /* Under Cocoa we must do fork+exec as CoreFoundation lib fails in
@@ -1078,7 +1087,7 @@ main (int argc, char **argv)
         dname_arg2[0] = '\0';
         sscanf (dname_arg, "\n%d,%d\n%s", &(daemon_pipe[0]), &(daemon_pipe[1]),
                 dname_arg2);
-        dname_arg = strlen (dname_arg2) ? dname_arg2 : NULL;
+        dname_arg = *dname_arg2 ? dname_arg2 : NULL;
       }
 #endif /* NS_IMPL_COCOA */
 
@@ -1419,8 +1428,11 @@ main (int argc, char **argv)
     syms_of_callproc ();
   /* egetenv is a pretty low-level facility, which may get called in
      many circumstances; it seems flimsy to put off initializing it
-     until calling init_callproc.  */
-  set_initial_environment ();
+     until calling init_callproc.  Do not do it when dumping.  */
+  if (initialized || ((strcmp (argv[argc-1], "dump") != 0
+		       && strcmp (argv[argc-1], "bootstrap") != 0)))
+    set_initial_environment ();
+
   /* AIX crashes are reported in system versions 3.2.3 and 3.2.4
      if this is not done.  Do it after set_global_environment so that we
      don't pollute Vglobal_environment.  */
@@ -1834,8 +1846,7 @@ sort_args (int argc, char **argv)
       priority[from] = 0;
       if (argv[from][0] == '-')
 	{
-	  int match, thislen;
-	  char *equals;
+	  int match;
 
 	  /* If we have found "--", don't consider
 	     any more arguments as options.  */
@@ -1867,11 +1878,11 @@ sort_args (int argc, char **argv)
 	     >= 0 (the table index of the match) if just one match so far.  */
 	  if (argv[from][1] == '-')
 	    {
+	      char const *equals = strchr (argv[from], '=');
+	      ptrdiff_t thislen =
+		equals ? equals - argv[from] : strlen (argv[from]);
+
 	      match = -1;
-	      thislen = strlen (argv[from]);
-	      equals = strchr (argv[from], '=');
-	      if (equals != 0)
-		thislen = equals - argv[from];
 
 	      for (i = 0;
 		   i < sizeof (standard_args) / sizeof (standard_args[0]); i++)
@@ -1984,6 +1995,11 @@ all of which are called before Emacs is actually killed.  */)
   Frun_hooks (1, &hook);
 
   UNGCPRO;
+
+#ifdef HAVE_X_WINDOWS
+  /* Transfer any clipboards we own to the clipboard manager.  */
+  x_clipboard_manager_save_all ();
+#endif
 
   shut_down_emacs (0, 0, STRINGP (arg) ? arg : Qnil);
 
@@ -2359,10 +2375,8 @@ from the parent process and its tty file descriptors.  */)
 void
 syms_of_emacs (void)
 {
-  Qfile_name_handler_alist = intern_c_string ("file-name-handler-alist");
-  staticpro (&Qfile_name_handler_alist);
-  Qrisky_local_variable = intern_c_string ("risky-local-variable");
-  staticpro (&Qrisky_local_variable);
+  DEFSYM (Qfile_name_handler_alist, "file-name-handler-alist");
+  DEFSYM (Qrisky_local_variable, "risky-local-variable");
 
 #ifndef CANNOT_DUMP
   defsubr (&Sdump_emacs);

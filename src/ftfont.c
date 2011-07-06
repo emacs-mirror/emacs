@@ -815,7 +815,7 @@ ftfont_spec_pattern (Lisp_Object spec, char *otlayout, struct OpenTypeSpec **ots
 	    goto err;
 	  for (chars = XCDR (chars); CONSP (chars); chars = XCDR (chars))
 	    if (CHARACTERP (XCAR (chars))
-		&& ! FcCharSetAddChar (charset, XUINT (XCAR (chars))))
+		&& ! FcCharSetAddChar (charset, XFASTINT (XCAR (chars))))
 	      goto err;
 	}
     }
@@ -1612,7 +1612,6 @@ ftfont_get_metrics (MFLTFont *font, MFLTGlyphString *gstring,
 	if (g->code != FONT_INVALID_CODE)
 	  {
 	    FT_Glyph_Metrics *m;
-	    int lbearing, rbearing, ascent, descent, xadv;
 
 	    if (FT_Load_Glyph (ft_face, g->code, FT_LOAD_DEFAULT) != 0)
 	      abort ();
@@ -1867,7 +1866,6 @@ ftfont_drive_otf (MFLTFont *font,
 	{
 	  MFLTGlyph *g;
 	  int min_from, max_to;
-	  int j;
 	  int feature_idx = otfg->positioning_type >> 4;
 
 	  g = out->glyphs + out->used;
@@ -2387,8 +2385,8 @@ static Lisp_Object
 ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
 		     FT_Face ft_face, OTF *otf, FT_Matrix *matrix)
 {
-  EMACS_UINT len = LGSTRING_GLYPH_LEN (lgstring);
-  EMACS_UINT i;
+  EMACS_INT len = LGSTRING_GLYPH_LEN (lgstring);
+  EMACS_INT i;
   struct MFLTFontFT flt_font_ft;
   MFLT *flt = NULL;
   int with_variation_selector = 0;
@@ -2414,7 +2412,10 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
       if (CHAR_VARIATION_SELECTOR_P (c))
 	with_variation_selector++;
     }
+
   len = i;
+  lint_assume (len <= TYPE_MAXIMUM (EMACS_INT) - 2);
+
   if (with_variation_selector)
     {
       setup_otf_gstring (len);

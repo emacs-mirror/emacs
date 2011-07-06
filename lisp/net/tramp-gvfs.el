@@ -541,7 +541,7 @@ is no information where to trace the message.")
   "Like `copy-file' for Tramp files."
   (with-parsed-tramp-file-name
       (if (tramp-tramp-file-p filename) filename newname) nil
-    (with-progress-reporter
+    (tramp-with-progress-reporter
 	v 0 (format "Copying %s to %s" filename newname)
       (condition-case err
 	  (let ((args
@@ -745,7 +745,7 @@ is no information where to trace the message.")
   "Like `rename-file' for Tramp files."
   (with-parsed-tramp-file-name
       (if (tramp-tramp-file-p filename) filename newname) nil
-    (with-progress-reporter
+    (tramp-with-progress-reporter
 	v 0 (format "Renaming %s to %s" filename newname)
       (condition-case err
 	  (rename-file
@@ -1203,7 +1203,7 @@ connection if a previous connection has died for some reason."
 	    (tramp-gvfs-object-path
 	     (tramp-make-tramp-file-name method user host ""))))
 
-      (with-progress-reporter
+      (tramp-with-progress-reporter
 	  vec 3
 	  (if (zerop (length user))
 	      (format "Opening connection for %s using %s" host method)

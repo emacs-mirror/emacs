@@ -39,7 +39,6 @@
 
 #include "allocator.h"
 
-#if ! HAVE_READLINKAT
 /* Get the symbolic link value of FILENAME and put it into BUFFER, with
    size BUFFER_SIZE.  This function acts like readlink  but has
    readlinkat's signature.  */
@@ -53,7 +52,6 @@ careadlinkatcwd (int fd, char const *filename, char *buffer,
     abort ();
   return readlink (filename, buffer, buffer_size);
 }
-#endif
 
 /* Assuming the current directory is FD, get the symbolic link value
    of FILENAME as a null-terminated string and put it into a buffer.
@@ -135,6 +133,7 @@ careadlinkat (int fd, char const *filename,
           if (buf == stack_buf)
             {
               char *b = (char *) alloc->allocate (link_size);
+              buf_size = link_size;
               if (! b)
                 break;
               memcpy (b, buf, link_size);
@@ -158,6 +157,11 @@ careadlinkat (int fd, char const *filename,
         buf_size *= 2;
       else if (buf_size < buf_size_max)
         buf_size = buf_size_max;
+      else if (buf_size_max < SIZE_MAX)
+        {
+          errno = ENAMETOOLONG;
+          return NULL;
+        }
       else
         break;
       buf = (char *) alloc->allocate (buf_size);
@@ -165,7 +169,7 @@ careadlinkat (int fd, char const *filename,
   while (buf);
 
   if (alloc->die)
-    alloc->die ();
+    alloc->die (buf_size);
   errno = ENOMEM;
   return NULL;
 }

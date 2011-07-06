@@ -312,9 +312,9 @@ information can be used so that you can replace multiple
     (delete-other-windows)
     (pop-to-buffer (get-buffer-create "*MH-E Spammer Frequencies*"))
     (erase-buffer)
-    (maphash '(lambda (key value) ""
-                (if (> value 2)
-                    (insert (format "%s %s\n" key value))))
+    (maphash (lambda (key value) ""
+               (if (> value 2)
+                   (insert (format "%s %s\n" key value))))
              domains)
     (sort-numeric-fields 2 (point-min) (point-max))
     (reverse-region (point-min) (point-max))

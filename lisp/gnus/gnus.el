@@ -1423,10 +1423,6 @@ no need to set this variable."
 
 (defcustom gnus-refer-article-method 'current
   "Preferred method for fetching an article by Message-ID.
-If you are reading news from the local spool (with nnspool), fetching
-articles by Message-ID is painfully slow.  By setting this method to an
-nntp method, you might get acceptable results.
-
 The value of this variable must be a valid select method as discussed
 in the documentation of `gnus-select-method'.
 
@@ -2655,8 +2651,12 @@ such as a mark that says whether an article is stored in the cache
 (defvar gnus-have-read-active-file nil)
 
 (defconst gnus-maintainer
-  "bugs@gnus.org (The Gnus Bugfixing Girls + Boys)"
+  "submit@debbugs.gnu.org (The Gnus Bugfixing Girls + Boys)"
   "The mail address of the Gnus maintainers.")
+
+(defconst gnus-bug-package
+  "gnus"
+  "The package to use in the bug submission.")
 
 (defvar gnus-info-nodes
   '((gnus-group-mode "(gnus)Group Buffer")
@@ -2962,8 +2962,8 @@ with some simple extensions.
             on level one
 %R          \"A\" if this article has been replied to, \" \"
             otherwise (character)
-%U          Status of this article (character, \"R\", \"K\",
-            \"-\" or \" \")
+%U          \"Read\" status of this article.
+            See Info node `(gnus)Marking Articles'
 %[          Opening bracket (character, \"[\" or \"<\")
 %]          Closing bracket (character, \"]\" or \">\")
 %>          Spaces of length thread-level (string)
@@ -4357,11 +4357,11 @@ current display is used."
 	  (switch-to-buffer gnus-group-buffer)
 	(funcall gnus-other-frame-function arg)
 	(add-hook 'gnus-exit-gnus-hook
-		  '(lambda nil
-		     (when (and (frame-live-p gnus-other-frame-object)
-				(cdr (frame-list)))
-		       (delete-frame gnus-other-frame-object))
-		     (setq gnus-other-frame-object nil)))))))
+		  (lambda nil
+                    (when (and (frame-live-p gnus-other-frame-object)
+                               (cdr (frame-list)))
+                      (delete-frame gnus-other-frame-object))
+                    (setq gnus-other-frame-object nil)))))))
 
 ;;;###autoload
 (defun gnus (&optional arg dont-connect slave)
@@ -4380,6 +4380,13 @@ prompt the user for the name of an NNTP server to use."
   (let ((gnus-action-message-log (list nil)))
     (gnus-1 arg dont-connect slave)
     (gnus-final-warning)))
+
+(autoload 'debbugs-emacs "debbugs-gnu")
+(defun gnus-list-debbugs ()
+  "List all open Gnus bug reports."
+  (interactive)
+  (debbugs-emacs '("important" "normal" "minor" "wishlist")
+		 "gnus"))
 
 ;; Allow redefinition of Gnus functions.
 

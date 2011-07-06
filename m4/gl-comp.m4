@@ -26,13 +26,18 @@ AC_DEFUN([gl_EARLY],
   m4_pattern_allow([^gl_LIBOBJS$])dnl a variable
   m4_pattern_allow([^gl_LTLIBOBJS$])dnl a variable
   AC_REQUIRE([AC_PROG_RANLIB])
+  # Code from module alloca-opt:
   # Code from module allocator:
   # Code from module arg-nonnull:
   # Code from module c++defs:
   # Code from module careadlinkat:
   # Code from module crypto/md5:
+  # Code from module crypto/sha1:
+  # Code from module crypto/sha256:
+  # Code from module crypto/sha512:
   # Code from module dosname:
   # Code from module dtoastr:
+  # Code from module dup2:
   # Code from module extensions:
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   # Code from module filemode:
@@ -69,6 +74,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module sys_stat:
   # Code from module time:
   # Code from module time_r:
+  # Code from module u64:
   # Code from module unistd:
   # Code from module verify:
   # Code from module warn-on-use:
@@ -90,23 +96,55 @@ AC_DEFUN([gl_INIT],
   m4_pushdef([gl_LIBSOURCES_DIR], [])
   gl_COMMON
   gl_source_base='lib'
+gl_FUNC_ALLOCA
 AC_CHECK_FUNCS_ONCE([readlinkat])
 gl_MD5
+gl_SHA1
+gl_SHA256
+gl_SHA512
 AC_REQUIRE([gl_C99_STRTOLD])
+gl_FUNC_DUP2
+gl_UNISTD_MODULE_INDICATOR([dup2])
 gl_FILEMODE
-gl_GETLOADAVG([$gl_source_base])
+gl_GETLOADAVG
+if test $HAVE_GETLOADAVG = 0; then
+  AC_LIBOBJ([getloadavg])
+  gl_PREREQ_GETLOADAVG
+fi
 gl_STDLIB_MODULE_INDICATOR([getloadavg])
 gl_FUNC_GETOPT_GNU
+if test $REPLACE_GETOPT = 1; then
+  AC_LIBOBJ([getopt])
+  AC_LIBOBJ([getopt1])
+  gl_PREREQ_GETOPT
+fi
 gl_MODULE_INDICATOR_FOR_TESTS([getopt-gnu])
 gl_FUNC_GETOPT_POSIX
+if test $REPLACE_GETOPT = 1; then
+  AC_LIBOBJ([getopt])
+  AC_LIBOBJ([getopt1])
+  gl_PREREQ_GETOPT
+fi
 AC_REQUIRE([AC_C_INLINE])
 gl_INTTYPES_INCOMPLETE
 gl_FUNC_LSTAT
+if test $REPLACE_LSTAT = 1; then
+  AC_LIBOBJ([lstat])
+  gl_PREREQ_LSTAT
+fi
 gl_SYS_STAT_MODULE_INDICATOR([lstat])
 gl_FUNC_MKTIME
+if test $REPLACE_MKTIME = 1; then
+  AC_LIBOBJ([mktime])
+  gl_PREREQ_MKTIME
+fi
 gl_TIME_MODULE_INDICATOR([mktime])
 gl_MULTIARCH
 gl_FUNC_READLINK
+if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
+  AC_LIBOBJ([readlink])
+  gl_PREREQ_READLINK
+fi
 gl_UNISTD_MODULE_INDICATOR([readlink])
 gl_TYPE_SOCKLEN_T
 gt_TYPE_SSIZE_T
@@ -118,14 +156,26 @@ gl_STDIO_H
 gl_STDLIB_H
 gl_FUNC_GNU_STRFTIME
 gl_FUNC_STRTOUMAX
+if test "$ac_cv_have_decl_strtoumax" != yes && test $ac_cv_func_strtoumax = no; then
+  AC_LIBOBJ([strtoumax])
+  gl_PREREQ_STRTOUMAX
+fi
 gl_INTTYPES_MODULE_INDICATOR([strtoumax])
 gl_FUNC_SYMLINK
+if test $HAVE_SYMLINK = 0 || test $REPLACE_SYMLINK = 1; then
+  AC_LIBOBJ([symlink])
+fi
 gl_UNISTD_MODULE_INDICATOR([symlink])
 gl_HEADER_SYS_STAT_H
 AC_PROG_MKDIR_P
 gl_HEADER_TIME_H
 gl_TIME_R
+if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
+  AC_LIBOBJ([time_r])
+  gl_PREREQ_TIME_R
+fi
 gl_TIME_MODULE_INDICATOR([time_r])
+AC_REQUIRE([AC_C_INLINE])
 gl_UNISTD_H
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
@@ -150,10 +200,17 @@ AC_SUBST([LTLIBINTL])
   {
     if ! $gl_gnulib_enabled_stat; then
 gl_FUNC_STAT
+if test $REPLACE_STAT = 1; then
+  AC_LIBOBJ([stat])
+  gl_PREREQ_STAT
+fi
 gl_SYS_STAT_MODULE_INDICATOR([stat])
       gl_gnulib_enabled_stat=true
       if $condition; then
         func_gl_gnulib_m4code_dosname
+      fi
+      if $condition; then
+        func_gl_gnulib_m4code_verify
       fi
     fi
   }
@@ -161,6 +218,10 @@ gl_SYS_STAT_MODULE_INDICATOR([stat])
   {
     if ! $gl_gnulib_enabled_strtoull; then
 gl_FUNC_STRTOULL
+if test $HAVE_STRTOULL = 0; then
+  AC_LIBOBJ([strtoull])
+  gl_PREREQ_STRTOULL
+fi
 gl_STDLIB_MODULE_INDICATOR([strtoull])
       gl_gnulib_enabled_strtoull=true
     fi
@@ -171,7 +232,7 @@ gl_STDLIB_MODULE_INDICATOR([strtoull])
       gl_gnulib_enabled_verify=true
     fi
   }
-  if test $GNULIB_UNISTD_H_GETOPT = 1; then
+  if test $REPLACE_GETOPT = 1; then
     func_gl_gnulib_m4code_be453cec5eecf5731a274f2de7f2db36
   fi
   if test $REPLACE_LSTAT = 1; then
@@ -339,12 +400,14 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/arg-nonnull.h
   build-aux/c++defs.h
   build-aux/warn-on-use.h
+  lib/alloca.in.h
   lib/allocator.c
   lib/allocator.h
   lib/careadlinkat.c
   lib/careadlinkat.h
   lib/dosname.h
   lib/dtoastr.c
+  lib/dup2.c
   lib/filemode.c
   lib/filemode.h
   lib/ftoastr.c
@@ -364,6 +427,12 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/mktime-internal.h
   lib/mktime.c
   lib/readlink.c
+  lib/sha1.c
+  lib/sha1.h
+  lib/sha256.c
+  lib/sha256.h
+  lib/sha512.c
+  lib/sha512.h
   lib/stat.c
   lib/stdarg.in.h
   lib/stdbool.in.h
@@ -382,10 +451,13 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sys_stat.in.h
   lib/time.in.h
   lib/time_r.c
+  lib/u64.h
   lib/unistd.in.h
   lib/verify.h
   m4/00gnulib.m4
+  m4/alloca.m4
   m4/c-strtod.m4
+  m4/dup2.m4
   m4/extensions.m4
   m4/filemode.m4
   m4/getloadavg.m4
@@ -399,6 +471,9 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/mktime.m4
   m4/multiarch.m4
   m4/readlink.m4
+  m4/sha1.m4
+  m4/sha256.m4
+  m4/sha512.m4
   m4/socklen.m4
   m4/ssize_t.m4
   m4/st_dm_mode.m4

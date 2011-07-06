@@ -1539,7 +1539,8 @@ can return user names only.
 @item @code{tramp-parse-netrc}
 @findex tramp-parse-netrc
 
-Finally, a function which parses @file{~/.netrc} like files.
+Finally, a function which parses @file{~/.netrc} like files.  This
+includes also @file{~/.authinfo}-style files.
 @end table
 
 If you want to keep your own data in a file, with your own structure,
@@ -1597,6 +1598,10 @@ machine melancholia port scp login daniel password geheim
 The port can be any @value{tramp} method (@pxref{Inline methods},
 @pxref{External methods}), to match only this method.  When you omit
 the port, you match all @value{tramp} methods.
+
+In case of problems, setting @code{auth-source-debug} to @code{t}
+gives useful debug messages.
+
 
 @anchor{Caching passwords}
 @subsection Caching passwords
@@ -2673,6 +2678,12 @@ minibuffer as remote file name prefix like @file{@trampfn{method,
 user, host, }}.  The cleanup includes password cache (@pxref{Password
 handling}), file cache, connection cache (@pxref{Connection caching}),
 connection buffers.
+@end deffn
+
+@deffn Command tramp-cleanup-this-connection
+This command flushes all objects of the current buffer's remote
+connection.  The same objects are removed as in
+@code{tramp-cleanup-connection}.
 @end deffn
 
 @deffn Command tramp-cleanup-all-connections

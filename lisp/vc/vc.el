@@ -620,7 +620,7 @@
 ;;   buffer, if one is present, instead of adding to the ChangeLog.
 ;;
 ;; - When vc-next-action calls vc-checkin it could pre-fill the
-;;   *VC-log* buffer with some obvious items: the list of files that
+;;   *vc-log* buffer with some obvious items: the list of files that
 ;;   were added, the list of files that were removed.  If the diff is
 ;;   available, maybe it could even call something like
 ;;   `diff-add-change-log-entries-other-window' to create a detailed
@@ -774,6 +774,12 @@ See also `log-edit-done-hook'."
 See `run-hooks'."
   :type 'hook
   :group 'vc)
+
+(defcustom vc-revert-show-diff t
+  "If non-nil, `vc-revert' shows a `vc-diff' buffer before querying."
+  :type 'boolean
+  :group 'vc
+  :version "24.1")
 
 ;; Header-insertion hair
 
@@ -1408,7 +1414,7 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
    (vc-start-logentry
     files comment initial-contents
     "Enter a change comment."
-    "*VC-log*"
+    "*vc-log*"
     (lambda ()
       (vc-call-backend backend 'log-edit-mode))
     (lexical-let ((rev rev))
@@ -1534,10 +1540,13 @@ to override the value of `vc-diff-switches' and `diff-switches'."
 (defvar vc-diff-added-files nil
   "If non-nil, diff added files by comparing them to /dev/null.")
 
-(defun vc-diff-internal (async vc-fileset rev1 rev2 &optional verbose)
+(defun vc-diff-internal (async vc-fileset rev1 rev2 &optional verbose buffer)
   "Report diffs between two revisions of a fileset.
-Diff output goes to the *vc-diff* buffer.  The function
-returns t if the buffer had changes, nil otherwise."
+Output goes to the buffer BUFFER, which defaults to *vc-diff*.
+BUFFER, if non-nil, should be a buffer or a buffer name.
+Return t if the buffer had changes, nil otherwise."
+  (unless buffer
+    (setq buffer "*vc-diff*"))
   (let* ((files (cadr vc-fileset))
 	 (messages (cons (format "Finding changes in %s..."
                                  (vc-delistify files))
@@ -1549,7 +1558,7 @@ returns t if the buffer had changes, nil otherwise."
 	 ;; be to call the back end separately for each file.
 	 (coding-system-for-read
 	  (if files (vc-coding-system-for-diff (car files)) 'undecided)))
-    (vc-setup-buffer "*vc-diff*")
+    (vc-setup-buffer buffer)
     (message "%s" (car messages))
     ;; Many backends don't handle well the case of a file that has been
     ;; added but not yet committed to the repo (notably CVS and Subversion).
@@ -1574,13 +1583,13 @@ returns t if the buffer had changes, nil otherwise."
                 (error "No revisions of %s exist" file)
               ;; We regard this as "changed".
               ;; Diff it against /dev/null.
-              (apply 'vc-do-command "*vc-diff*"
+              (apply 'vc-do-command buffer
                      1 "diff" file
                      (append (vc-switches nil 'diff) '("/dev/null"))))))
         (setq files (nreverse filtered))))
     (let ((vc-disable-async-diff (not async)))
-      (vc-call-backend (car vc-fileset) 'diff files rev1 rev2 "*vc-diff*"))
-    (set-buffer "*vc-diff*")
+      (vc-call-backend (car vc-fileset) 'diff files rev1 rev2 buffer))
+    (set-buffer buffer)
     (if (and (zerop (buffer-size))
              (not (get-buffer-process (current-buffer))))
         ;; Treat this case specially so as not to pop the buffer.
@@ -1867,7 +1876,7 @@ The headers are reset to their non-expanded form."
     (vc-start-logentry
      files oldcomment t
      "Enter a replacement change comment."
-     "*VC-log*"
+     "*vc-log*"
      (lambda () (vc-call-backend backend 'log-edit-mode))
      (lexical-let ((rev rev))
        (lambda (files comment)
@@ -2256,11 +2265,12 @@ This asks for confirmation if the buffer contents are not identical
 to the working revision (except for keyword expansion)."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
-	 (files (cadr vc-fileset)))
-    ;; If any of the files is visited by the current buffer, make
-    ;; sure buffer is saved.  If the user says `no', abort since
-    ;; we cannot show the changes and ask for confirmation to
-    ;; discard them.
+	 (files (cadr vc-fileset))
+	 (queried nil)
+	 diff-buffer)
+    ;; If any of the files is visited by the current buffer, make sure
+    ;; buffer is saved.  If the user says `no', abort since we cannot
+    ;; show the changes and ask for confirmation to discard them.
     (when (or (not files) (memq (buffer-file-name) files))
       (vc-buffer-sync nil))
     (dolist (file files)
@@ -2268,20 +2278,29 @@ to the working revision (except for keyword expansion)."
 	(when (and buf (buffer-modified-p buf))
 	  (error "Please kill or save all modified buffers before reverting")))
       (when (vc-up-to-date-p file)
-	(unless (yes-or-no-p (format "%s seems up-to-date.  Revert anyway? " file))
+	(if (yes-or-no-p (format "%s seems up-to-date.  Revert anyway? " file))
+	    (setq queried t)
 	  (error "Revert canceled"))))
-    (when (vc-diff-internal vc-allow-async-revert vc-fileset nil nil)
-      (unless (yes-or-no-p
-	       (format "Discard changes in %s? "
-		       (let ((str (vc-delistify files))
-			     (nfiles (length files)))
-			 (if (< (length str) 50)
-			     str
-			   (format "%d file%s" nfiles
-				   (if (= nfiles 1) "" "s"))))))
-	(error "Revert canceled"))
-      (delete-windows-on "*vc-diff*")
-      (kill-buffer "*vc-diff*"))
+    (unwind-protect
+	(when (if vc-revert-show-diff
+		  (progn
+		    (setq diff-buffer (generate-new-buffer-name "*vc-diff*"))
+		    (vc-diff-internal vc-allow-async-revert vc-fileset
+				      nil nil nil diff-buffer))
+		;; Avoid querying the user again.
+		(null queried))
+	  (unless (yes-or-no-p
+		   (format "Discard changes in %s? "
+			   (let ((str (vc-delistify files))
+				 (nfiles (length files)))
+			     (if (< (length str) 50)
+				 str
+			       (format "%d file%s" nfiles
+				       (if (= nfiles 1) "" "s"))))))
+	    (error "Revert canceled")))
+      (when diff-buffer
+	(delete-windows-on diff-buffer)
+	(kill-buffer diff-buffer)))
     (dolist (file files)
       (message "Reverting %s..." (vc-delistify files))
       (vc-revert-file file)

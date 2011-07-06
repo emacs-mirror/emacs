@@ -22,7 +22,7 @@
 ;;; Code:
 
 (deftheme wombat
-  "Theme for faces, using easy-on-the eyes colors on a dark gray background.
+  "Medium-contrast faces with a dark gray background.
 Adapted, with permission, from a Vim color scheme by Lars H. Nielsen.
 Basic, Font Lock, Isearch, Gnus, Message, and Ansi-Color faces
 are included.")

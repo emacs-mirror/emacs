@@ -55,8 +55,8 @@ CODING SYSTEM
   character sequence of emacs-utf-8 to a byte sequence of a specific
   coding system.
 
-  In Emacs Lisp, a coding system is represented by a Lisp symbol.  In
-  C level, a coding system is represented by a vector of attributes
+  In Emacs Lisp, a coding system is represented by a Lisp symbol.  On
+  the C level, a coding system is represented by a vector of attributes
   stored in the hash table Vcharset_hash_table.  The conversion from
   coding system symbol to attributes vector is done by looking up
   Vcharset_hash_table by the symbol.
@@ -864,21 +864,21 @@ static void decode_eol (struct coding_system *);
 static Lisp_Object get_translation_table (Lisp_Object, int, int *);
 static Lisp_Object get_translation (Lisp_Object, int *, int *);
 static int produce_chars (struct coding_system *, Lisp_Object, int);
-static INLINE void produce_charset (struct coding_system *, int *,
+static inline void produce_charset (struct coding_system *, int *,
                                     EMACS_INT);
 static void produce_annotation (struct coding_system *, EMACS_INT);
 static int decode_coding (struct coding_system *);
-static INLINE int *handle_composition_annotation (EMACS_INT, EMACS_INT,
+static inline int *handle_composition_annotation (EMACS_INT, EMACS_INT,
                                                   struct coding_system *,
                                                   int *, EMACS_INT *);
-static INLINE int *handle_charset_annotation (EMACS_INT, EMACS_INT,
+static inline int *handle_charset_annotation (EMACS_INT, EMACS_INT,
                                               struct coding_system *,
                                               int *, EMACS_INT *);
 static void consume_chars (struct coding_system *, Lisp_Object, int);
 static int encode_coding (struct coding_system *);
 static Lisp_Object make_conversion_work_buffer (int);
 static Lisp_Object code_conversion_restore (Lisp_Object);
-static INLINE int char_encodable_p (int, Lisp_Object);
+static inline int char_encodable_p (int, Lisp_Object);
 static Lisp_Object make_subsidiaries (Lisp_Object);
 
 static void
@@ -1071,8 +1071,8 @@ coding_set_destination (struct coding_system *coding)
 static void
 coding_alloc_by_realloc (struct coding_system *coding, EMACS_INT bytes)
 {
-  if (coding->dst_bytes >= MOST_POSITIVE_FIXNUM - bytes)
-    error ("Maximum size of buffer or string exceeded");
+  if (STRING_BYTES_BOUND - coding->dst_bytes < bytes)
+    string_overflow ();
   coding->destination = (unsigned char *) xrealloc (coding->destination,
 						    coding->dst_bytes + bytes);
   coding->dst_bytes += bytes;
@@ -6829,7 +6829,7 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
      [ -LENGTH ANNOTATION_MASK NCHARS NBYTES METHOD [ COMPONENTS... ] ]
  */
 
-static INLINE void
+static inline void
 produce_composition (struct coding_system *coding, int *charbuf, EMACS_INT pos)
 {
   int len;
@@ -6873,7 +6873,7 @@ produce_composition (struct coding_system *coding, int *charbuf, EMACS_INT pos)
      [ -LENGTH ANNOTATION_MASK NCHARS CHARSET-ID ]
  */
 
-static INLINE void
+static inline void
 produce_charset (struct coding_system *coding, int *charbuf, EMACS_INT pos)
 {
   EMACS_INT from = pos - charbuf[2];
@@ -7101,7 +7101,7 @@ decode_coding (struct coding_system *coding)
    position of a composition after POS (if any) or to LIMIT, and
    return BUF.  */
 
-static INLINE int *
+static inline int *
 handle_composition_annotation (EMACS_INT pos, EMACS_INT limit,
 			       struct coding_system *coding, int *buf,
 			       EMACS_INT *stop)
@@ -7184,7 +7184,7 @@ handle_composition_annotation (EMACS_INT pos, EMACS_INT limit,
    If the property value is nil, set *STOP to the position where the
    property value is non-nil (limiting by LIMIT), and return BUF.  */
 
-static INLINE int *
+static inline int *
 handle_charset_annotation (EMACS_INT pos, EMACS_INT limit,
 			   struct coding_system *coding, int *buf,
 			   EMACS_INT *stop)
@@ -8435,7 +8435,7 @@ highest priority.  */)
 }
 
 
-static INLINE int
+static inline int
 char_encodable_p (int c, Lisp_Object attrs)
 {
   Lisp_Object tail;
@@ -9000,7 +9000,7 @@ not fully specified.)  */)
   (Lisp_Object string, Lisp_Object coding_system, Lisp_Object nocopy, Lisp_Object buffer)
 {
   return code_convert_string (string, coding_system, buffer,
-			      1, ! NILP (nocopy), 1);
+			      1, ! NILP (nocopy), 0);
 }
 
 
@@ -9278,7 +9278,7 @@ function to call for FILENAME, that function should examine the
 contents of BUFFER instead of reading the file.
 
 usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object operation, target_idx, target, val;
   register Lisp_Object chain;
@@ -9355,9 +9355,9 @@ If multiple coding systems belong to the same category,
 all but the first one are ignored.
 
 usage: (set-coding-system-priority &rest coding-systems)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
-  size_t i, j;
+  ptrdiff_t i, j;
   int changed[coding_category_max];
   enum coding_category priorities[coding_category_max];
 
@@ -9442,7 +9442,7 @@ static Lisp_Object
 make_subsidiaries (Lisp_Object base)
 {
   Lisp_Object subsidiaries;
-  int base_name_len = SBYTES (SYMBOL_NAME (base));
+  ptrdiff_t base_name_len = SBYTES (SYMBOL_NAME (base));
   char *buf = (char *) alloca (base_name_len + 6);
   int i;
 
@@ -9450,7 +9450,7 @@ make_subsidiaries (Lisp_Object base)
   subsidiaries = Fmake_vector (make_number (3), Qnil);
   for (i = 0; i < 3; i++)
     {
-      memcpy (buf + base_name_len, suffixes[i], strlen (suffixes[i]) + 1);
+      strcpy (buf + base_name_len, suffixes[i]);
       ASET (subsidiaries, i, intern (buf));
     }
   return subsidiaries;
@@ -9461,7 +9461,7 @@ DEFUN ("define-coding-system-internal", Fdefine_coding_system_internal,
        Sdefine_coding_system_internal, coding_arg_max, MANY, 0,
        doc: /* For internal use only.
 usage: (define-coding-system-internal ...)  */)
-  (size_t nargs, Lisp_Object *args)
+  (ptrdiff_t nargs, Lisp_Object *args)
 {
   Lisp_Object name;
   Lisp_Object spec_vec;		/* [ ATTRS ALIASE EOL_TYPE ] */

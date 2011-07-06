@@ -135,11 +135,6 @@ set_menu_bar_lines_1 (Lisp_Object window, int n)
   XSETFASTINT (w->top_line, XFASTINT (w->top_line) + n);
   XSETFASTINT (w->total_lines, XFASTINT (w->total_lines) - n);
 
-  if (INTEGERP (w->orig_top_line))
-    XSETFASTINT (w->orig_top_line, XFASTINT (w->orig_top_line) + n);
-  if (INTEGERP (w->orig_total_lines))
-    XSETFASTINT (w->orig_total_lines, XFASTINT (w->orig_total_lines) - n);
-
   /* Handle just the top child in a vertical split.  */
   if (!NILP (w->vchild))
     set_menu_bar_lines_1 (w->vchild, n);
@@ -375,7 +370,7 @@ make_frame (int mini_p)
     /* If buf is a 'hidden' buffer (i.e. one whose name starts with
        a space), try to find another one.  */
     if (SREF (Fbuffer_name (buf), 0) == ' ')
-      buf = Fother_buffer (buf, Qnil, Qnil);
+      buf = other_buffer_safely (buf);
 
     /* Use set_window_buffer, not Fset_window_buffer, and don't let
        hooks be run by it.  The reason is that the whole frame/window
@@ -544,10 +539,8 @@ make_initial_frame (void)
   /* The default value of menu-bar-mode is t.  */
   set_menu_bar_lines (f, make_number (1), Qnil);
 
-#ifdef CANNOT_DUMP
   if (!noninteractive)
     init_frame_faces (f);
-#endif
 
   return f;
 }
@@ -906,111 +899,6 @@ DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
   return selected_frame;
 }
 
-DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
-       doc: /* Return the frame object that window WINDOW is on.  */)
-  (Lisp_Object window)
-{
-  CHECK_LIVE_WINDOW (window);
-  return XWINDOW (window)->frame;
-}
-
-DEFUN ("frame-first-window", Fframe_first_window, Sframe_first_window, 0, 1, 0,
-       doc: /* Returns the topmost, leftmost window of FRAME.
-If omitted, FRAME defaults to the currently selected frame.  */)
-  (Lisp_Object frame)
-{
-  Lisp_Object w;
-
-  if (NILP (frame))
-    w = SELECTED_FRAME ()->root_window;
-  else
-    {
-      CHECK_LIVE_FRAME (frame);
-      w = XFRAME (frame)->root_window;
-    }
-  while (NILP (XWINDOW (w)->buffer))
-    {
-      if (! NILP (XWINDOW (w)->hchild))
-	w = XWINDOW (w)->hchild;
-      else if (! NILP (XWINDOW (w)->vchild))
-	w = XWINDOW (w)->vchild;
-      else
-	abort ();
-    }
-  return w;
-}
-
-DEFUN ("active-minibuffer-window", Factive_minibuffer_window,
-       Sactive_minibuffer_window, 0, 0, 0,
-       doc: /* Return the currently active minibuffer window, or nil if none.  */)
-  (void)
-{
-  return minibuf_level ? minibuf_window : Qnil;
-}
-
-DEFUN ("frame-root-window", Fframe_root_window, Sframe_root_window, 0, 1, 0,
-       doc: /* Returns the root-window of FRAME.
-If omitted, FRAME defaults to the currently selected frame.  */)
-  (Lisp_Object frame)
-{
-  Lisp_Object window;
-
-  if (NILP (frame))
-    window = SELECTED_FRAME ()->root_window;
-  else
-    {
-      CHECK_LIVE_FRAME (frame);
-      window = XFRAME (frame)->root_window;
-    }
-
-  return window;
-}
-
-DEFUN ("frame-selected-window", Fframe_selected_window,
-       Sframe_selected_window, 0, 1, 0,
-       doc: /* Return the selected window of FRAME.
-FRAME defaults to the currently selected frame.  */)
-  (Lisp_Object frame)
-{
-  Lisp_Object window;
-
-  if (NILP (frame))
-    window = SELECTED_FRAME ()->selected_window;
-  else
-    {
-      CHECK_LIVE_FRAME (frame);
-      window = XFRAME (frame)->selected_window;
-    }
-
-  return window;
-}
-
-DEFUN ("set-frame-selected-window", Fset_frame_selected_window,
-       Sset_frame_selected_window, 2, 3, 0,
-       doc: /* Set selected window of FRAME to WINDOW.
-If FRAME is nil, use the selected frame.  If FRAME is the
-selected frame, this makes WINDOW the selected window.
-Optional argument NORECORD non-nil means to neither change the
-order of recently selected windows nor the buffer list.
-Return WINDOW.  */)
-  (Lisp_Object frame, Lisp_Object window, Lisp_Object norecord)
-{
-  if (NILP (frame))
-    frame = selected_frame;
-
-  CHECK_LIVE_FRAME (frame);
-  CHECK_LIVE_WINDOW (window);
-
-  if (! EQ (frame, WINDOW_FRAME (XWINDOW (window))))
-    error ("In `set-frame-selected-window', WINDOW is not on FRAME");
-
-  if (EQ (frame, selected_frame))
-    return Fselect_window (window, norecord);
-
-  return XFRAME (frame)->selected_window = window;
-}
-
-
 DEFUN ("frame-list", Fframe_list, Sframe_list,
        0, 0, 0,
        doc: /* Return a list of all live frames.  */)
@@ -1227,7 +1115,7 @@ Otherwise, include all frames.  */)
    0 if all frames aside from F are invisible.
    (Exception: if F is the terminal frame, and we are using X, return 1.)  */
 
-int
+static int
 other_visible_frames (FRAME_PTR f)
 {
   /* We know the selected frame is visible,
@@ -1265,6 +1153,17 @@ other_visible_frames (FRAME_PTR f)
       return count > 1;
     }
   return 1;
+}
+
+DEFUN ("other-visible-frames-p", Fother_visible_frames_p, Sother_visible_frames_p, 0, 1, 0,
+       doc: /* Return t if there are other visible frames beside FRAME.
+FRAME defaults to the selected frame.  */)
+  (Lisp_Object frame)
+{
+  if (NILP (frame))
+    frame = selected_frame;
+  CHECK_LIVE_FRAME (frame);
+  return other_visible_frames (XFRAME (frame)) ? Qt : Qnil;
 }
 
 /* Delete FRAME.  When FORCE equals Qnoelisp, delete FRAME
@@ -1347,7 +1246,14 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
       = Fcons (list3 (Qrun_hook_with_args, Qdelete_frame_functions, frame),
 	       pending_funcalls);
   else
-    safe_call2 (Qrun_hook_with_args, Qdelete_frame_functions, frame);
+    {
+#ifdef HAVE_X_WINDOWS
+      /* Also, save clipboard to the the clipboard manager.  */
+      x_clipboard_manager_save_frame (frame);
+#endif
+
+      safe_call2 (Qrun_hook_with_args, Qdelete_frame_functions, frame);
+    }
 
   /* The hook may sometimes (indirectly) cause the frame to be deleted.  */
   if (! FRAME_LIVE_P (f))
@@ -1425,7 +1331,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 
   /* Mark all the windows that used to be on FRAME as deleted, and then
      remove the reference to them.  */
-  delete_all_subwindows (XWINDOW (f->root_window));
+  delete_all_subwindows (f->root_window);
   f->root_window = Qnil;
 
   Vframe_list = Fdelq (frame, Vframe_list);
@@ -2106,18 +2012,10 @@ frame_buffer_predicate (Lisp_Object frame)
 
 /* Return the buffer-list of the selected frame.  */
 
-Lisp_Object
+static Lisp_Object
 frame_buffer_list (Lisp_Object frame)
 {
   return XFRAME (frame)->buffer_list;
-}
-
-/* Set the buffer-list of the selected frame.  */
-
-void
-set_frame_buffer_list (Lisp_Object frame, Lisp_Object list)
-{
-  XFRAME (frame)->buffer_list = list;
 }
 
 /* Discard BUFFER from the buffer-list and buried-buffer-list of each frame.  */
@@ -2909,7 +2807,7 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
   /* Record in these vectors all the parms specified.  */
   Lisp_Object *parms;
   Lisp_Object *values;
-  size_t i, p;
+  ptrdiff_t i, p;
   int left_no_change = 0, top_no_change = 0;
   int icon_left_no_change = 0, icon_top_no_change = 0;
   int size_changed = 0;
@@ -4342,104 +4240,58 @@ selected frame.  This is useful when `make-pointer-invisible' is set.  */)
 void
 syms_of_frame (void)
 {
-  Qframep = intern_c_string ("framep");
-  staticpro (&Qframep);
-  Qframe_live_p = intern_c_string ("frame-live-p");
-  staticpro (&Qframe_live_p);
-  Qexplicit_name = intern_c_string ("explicit-name");
-  staticpro (&Qexplicit_name);
-  Qheight = intern_c_string ("height");
-  staticpro (&Qheight);
-  Qicon = intern_c_string ("icon");
-  staticpro (&Qicon);
-  Qminibuffer = intern_c_string ("minibuffer");
-  staticpro (&Qminibuffer);
-  Qmodeline = intern_c_string ("modeline");
-  staticpro (&Qmodeline);
-  Qonly = intern_c_string ("only");
-  staticpro (&Qonly);
-  Qwidth = intern_c_string ("width");
-  staticpro (&Qwidth);
-  Qgeometry = intern_c_string ("geometry");
-  staticpro (&Qgeometry);
-  Qicon_left = intern_c_string ("icon-left");
-  staticpro (&Qicon_left);
-  Qicon_top = intern_c_string ("icon-top");
-  staticpro (&Qicon_top);
-  Qtooltip = intern_c_string ("tooltip");
-  staticpro (&Qtooltip);
-  Qleft = intern_c_string ("left");
-  staticpro (&Qleft);
-  Qright = intern_c_string ("right");
-  staticpro (&Qright);
-  Quser_position = intern_c_string ("user-position");
-  staticpro (&Quser_position);
-  Quser_size = intern_c_string ("user-size");
-  staticpro (&Quser_size);
-  Qwindow_id = intern_c_string ("window-id");
-  staticpro (&Qwindow_id);
+  DEFSYM (Qframep, "framep");
+  DEFSYM (Qframe_live_p, "frame-live-p");
+  DEFSYM (Qexplicit_name, "explicit-name");
+  DEFSYM (Qheight, "height");
+  DEFSYM (Qicon, "icon");
+  DEFSYM (Qminibuffer, "minibuffer");
+  DEFSYM (Qmodeline, "modeline");
+  DEFSYM (Qonly, "only");
+  DEFSYM (Qwidth, "width");
+  DEFSYM (Qgeometry, "geometry");
+  DEFSYM (Qicon_left, "icon-left");
+  DEFSYM (Qicon_top, "icon-top");
+  DEFSYM (Qtooltip, "tooltip");
+  DEFSYM (Qleft, "left");
+  DEFSYM (Qright, "right");
+  DEFSYM (Quser_position, "user-position");
+  DEFSYM (Quser_size, "user-size");
+  DEFSYM (Qwindow_id, "window-id");
 #ifdef HAVE_X_WINDOWS
-  Qouter_window_id = intern_c_string ("outer-window-id");
-  staticpro (&Qouter_window_id);
+  DEFSYM (Qouter_window_id, "outer-window-id");
 #endif
-  Qparent_id = intern_c_string ("parent-id");
-  staticpro (&Qparent_id);
-  Qx = intern_c_string ("x");
-  staticpro (&Qx);
-  Qw32 = intern_c_string ("w32");
-  staticpro (&Qw32);
-  Qpc = intern_c_string ("pc");
-  staticpro (&Qpc);
-  Qmac = intern_c_string ("mac");
-  staticpro (&Qmac);
-  Qns = intern_c_string ("ns");
-  staticpro (&Qns);
-  Qvisible = intern_c_string ("visible");
-  staticpro (&Qvisible);
-  Qbuffer_predicate = intern_c_string ("buffer-predicate");
-  staticpro (&Qbuffer_predicate);
-  Qbuffer_list = intern_c_string ("buffer-list");
-  staticpro (&Qbuffer_list);
-  Qburied_buffer_list = intern_c_string ("buried-buffer-list");
-  staticpro (&Qburied_buffer_list);
-  Qdisplay_type = intern_c_string ("display-type");
-  staticpro (&Qdisplay_type);
-  Qbackground_mode = intern_c_string ("background-mode");
-  staticpro (&Qbackground_mode);
-  Qnoelisp = intern_c_string ("noelisp");
-  staticpro (&Qnoelisp);
-  Qtty_color_mode = intern_c_string ("tty-color-mode");
-  staticpro (&Qtty_color_mode);
-  Qtty = intern_c_string ("tty");
-  staticpro (&Qtty);
-  Qtty_type = intern_c_string ("tty-type");
-  staticpro (&Qtty_type);
+  DEFSYM (Qparent_id, "parent-id");
+  DEFSYM (Qx, "x");
+  DEFSYM (Qw32, "w32");
+  DEFSYM (Qpc, "pc");
+  DEFSYM (Qmac, "mac");
+  DEFSYM (Qns, "ns");
+  DEFSYM (Qvisible, "visible");
+  DEFSYM (Qbuffer_predicate, "buffer-predicate");
+  DEFSYM (Qbuffer_list, "buffer-list");
+  DEFSYM (Qburied_buffer_list, "buried-buffer-list");
+  DEFSYM (Qdisplay_type, "display-type");
+  DEFSYM (Qbackground_mode, "background-mode");
+  DEFSYM (Qnoelisp, "noelisp");
+  DEFSYM (Qtty_color_mode, "tty-color-mode");
+  DEFSYM (Qtty, "tty");
+  DEFSYM (Qtty_type, "tty-type");
 
-  Qface_set_after_frame_default = intern_c_string ("face-set-after-frame-default");
-  staticpro (&Qface_set_after_frame_default);
+  DEFSYM (Qface_set_after_frame_default, "face-set-after-frame-default");
 
-  Qfullwidth = intern_c_string ("fullwidth");
-  staticpro (&Qfullwidth);
-  Qfullheight = intern_c_string ("fullheight");
-  staticpro (&Qfullheight);
-  Qfullboth = intern_c_string ("fullboth");
-  staticpro (&Qfullboth);
-  Qmaximized = intern_c_string ("maximized");
-  staticpro (&Qmaximized);
-  Qx_resource_name = intern_c_string ("x-resource-name");
-  staticpro (&Qx_resource_name);
+  DEFSYM (Qfullwidth, "fullwidth");
+  DEFSYM (Qfullheight, "fullheight");
+  DEFSYM (Qfullboth, "fullboth");
+  DEFSYM (Qmaximized, "maximized");
+  DEFSYM (Qx_resource_name, "x-resource-name");
+  DEFSYM (Qx_frame_parameter, "x-frame-parameter");
 
-  Qx_frame_parameter = intern_c_string ("x-frame-parameter");
-  staticpro (&Qx_frame_parameter);
-
-  Qterminal = intern_c_string ("terminal");
-  staticpro (&Qterminal);
-  Qterminal_live_p = intern_c_string ("terminal-live-p");
-  staticpro (&Qterminal_live_p);
+  DEFSYM (Qterminal, "terminal");
+  DEFSYM (Qterminal_live_p, "terminal-live-p");
 
 #ifdef HAVE_NS
-  Qns_parse_geometry = intern_c_string ("ns-parse-geometry");
-  staticpro (&Qns_parse_geometry);
+  DEFSYM (Qns_parse_geometry, "ns-parse-geometry");
 #endif
 
   {
@@ -4553,8 +4405,7 @@ actually deleted, or some time later (or even both when an earlier function
 in `delete-frame-functions' (indirectly) calls `delete-frame'
 recursively).  */);
   Vdelete_frame_functions = Qnil;
-  Qdelete_frame_functions = intern_c_string ("delete-frame-functions");
-  staticpro (&Qdelete_frame_functions);
+  DEFSYM (Qdelete_frame_functions, "delete-frame-functions");
 
   DEFVAR_LISP ("menu-bar-mode", Vmenu_bar_mode,
                doc: /* Non-nil if Menu-Bar mode is enabled.
@@ -4600,7 +4451,6 @@ automatically.  See also `mouse-autoselect-window'.  */);
 
   staticpro (&Vframe_list);
 
-  defsubr (&Sactive_minibuffer_window);
   defsubr (&Sframep);
   defsubr (&Sframe_live_p);
   defsubr (&Swindow_system);
@@ -4608,14 +4458,10 @@ automatically.  See also `mouse-autoselect-window'.  */);
   defsubr (&Shandle_switch_frame);
   defsubr (&Sselect_frame);
   defsubr (&Sselected_frame);
-  defsubr (&Swindow_frame);
-  defsubr (&Sframe_root_window);
-  defsubr (&Sframe_first_window);
-  defsubr (&Sframe_selected_window);
-  defsubr (&Sset_frame_selected_window);
   defsubr (&Sframe_list);
   defsubr (&Snext_frame);
   defsubr (&Sprevious_frame);
+  defsubr (&Sother_visible_frames_p);
   defsubr (&Sdelete_frame);
   defsubr (&Smouse_position);
   defsubr (&Smouse_pixel_position);

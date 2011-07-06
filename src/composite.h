@@ -151,7 +151,7 @@ extern Lisp_Object composition_temp;
 /* Nonzero if the global reference point GREF and new reference point NREF are
    valid.  */
 #define COMPOSITION_ENCODE_RULE_VALID(gref, nref)	\
-  ((unsigned) (gref) < 12 && (unsigned) (nref) < 12)
+  (UNSIGNED_CMP (gref, <, 12) && UNSIGNED_CMP (nref, <, 12))
 
 /* Return encoded composition rule for the pair of global reference
    point GREF and new reference point NREF.  Arguments must be valid.  */
@@ -186,7 +186,7 @@ struct composition {
   enum composition_method method;
 
   /* Index to the composition hash table.  */
-  int hash_index;
+  EMACS_INT hash_index;
 
   /* For which font we have calculated the remaining members.  The
      actual type is device dependent.  */
@@ -265,10 +265,7 @@ enum lglyph_indices
 #define LGLYPH_CODE(g)						\
   (NILP (AREF ((g), LGLYPH_IX_CODE))				\
    ? FONT_INVALID_CODE						\
-   : CONSP (AREF ((g), LGLYPH_IX_CODE))				\
-   ? ((XFASTINT (XCAR (AREF ((g), LGLYPH_IX_CODE))) << 16)	\
-      | (XFASTINT (XCDR (AREF ((g), LGLYPH_IX_CODE)))))		\
-   : XFASTINT (AREF ((g), LGLYPH_IX_CODE)))
+   : cons_to_unsigned (AREF (g, LGLYPH_IX_CODE), TYPE_MAXIMUM (unsigned)))
 #define LGLYPH_WIDTH(g) XINT (AREF ((g), LGLYPH_IX_WIDTH))
 #define LGLYPH_LBEARING(g) XINT (AREF ((g), LGLYPH_IX_LBEARING))
 #define LGLYPH_RBEARING(g) XINT (AREF ((g), LGLYPH_IX_RBEARING))
@@ -280,15 +277,8 @@ enum lglyph_indices
 #define LGLYPH_SET_CHAR(g, val) ASET ((g), LGLYPH_IX_CHAR, make_number (val))
 /* Callers must assure that VAL is not negative!  */
 #define LGLYPH_SET_CODE(g, val)						\
-  do {									\
-    if (val == FONT_INVALID_CODE)					\
-      ASET ((g), LGLYPH_IX_CODE, Qnil);					\
-    else if ((EMACS_INT)val > MOST_POSITIVE_FIXNUM)			\
-      ASET ((g), LGLYPH_IX_CODE, Fcons (make_number ((val) >> 16),	\
-					make_number ((val) & 0xFFFF)));	\
-    else								\
-      ASET ((g), LGLYPH_IX_CODE, make_number (val));			\
-  } while (0)
+  ASET (g, LGLYPH_IX_CODE,						\
+	val == FONT_INVALID_CODE ? Qnil : INTEGER_TO_CONS (val))
 
 #define LGLYPH_SET_WIDTH(g, val) ASET ((g), LGLYPH_IX_WIDTH, make_number (val))
 #define LGLYPH_SET_LBEARING(g, val) ASET ((g), LGLYPH_IX_LBEARING, make_number (val))

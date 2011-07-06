@@ -650,6 +650,15 @@ any reason to call this function directly."
       (setq c-style-variables-are-local-p t))
     ))
 
+(defun cc-choose-style-for-mode (mode default-style)
+  "Return suitable style for MODE from DEFAULT-STYLE.
+DEFAULT-STYLE has the same format as `c-default-style'."
+  (if (stringp default-style)
+      default-style
+    (or (cdr (assq mode default-style))
+	(cdr (assq 'other default-style))
+	"gnu")))
+
 
 
 (cc-provide 'cc-styles)

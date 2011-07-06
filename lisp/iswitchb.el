@@ -207,7 +207,7 @@
 ;;    (delete-minibuffer-contents))
 ;;
 ;; (add-hook 'iswitchb-define-mode-map-hook
-;; 	  '(lambda () (define-key
+;; 	     (lambda () (define-key
 ;; 			iswitchb-mode-map "\C-o"
 ;; 			'iswitchb-exclude-nonmatching)))
 
@@ -1118,10 +1118,9 @@ Return the modified list with the last element prepended to it."
 If BUFFER is visible in the current frame, return nil."
   (interactive)
   (let ((blist (iswitchb-get-buffers-in-frames 'current)))
-    ;;If the buffer is visible in current frame, return nil
-    (if (memq buffer blist)
-	nil
-      ;;  maybe in other frame or icon
+    ;; If the buffer is visible in current frame, return nil
+    (unless (member buffer blist)
+      ;; maybe in other frame or icon
       (get-buffer-window buffer 0) ; better than 'visible
       )))
 

@@ -67,6 +67,9 @@ Lisp_Object menu_items;
 
 /* If non-nil, means that the global vars defined here are already in use.
    Used to detect cases where we try to re-enter this non-reentrant code.  */
+#if ! (defined USE_GTK || defined USE_MOTIF)
+static
+#endif
 Lisp_Object menu_items_inuse;
 
 /* Number of slots currently allocated in menu_items.  */
@@ -178,7 +181,7 @@ static void
 grow_menu_items (void)
 {
   if ((INT_MAX - MENU_ITEMS_PANE_LENGTH) / 2 < menu_items_allocated)
-    memory_full ();
+    memory_full (SIZE_MAX);
   menu_items_allocated *= 2;
   menu_items = larger_vector (menu_items, menu_items_allocated, Qnil);
 }

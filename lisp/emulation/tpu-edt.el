@@ -1278,9 +1278,9 @@ kill modified buffers without asking."
 
 (defun tpu-make-file-buffer-list (buffer-list)
   "Return names from BUFFER-LIST excluding those beginning with a space or star."
-  (delq nil (mapcar '(lambda (b)
-                       (if (or (= (aref (buffer-name b) 0) ? )
-                               (= (aref (buffer-name b) 0) ?*)) nil b))
+  (delq nil (mapcar (lambda (b)
+                      (if (or (= (aref (buffer-name b) 0) ?\s)
+                              (= (aref (buffer-name b) 0) ?*)) nil b))
                     buffer-list)))
 
 (defun tpu-next-window nil

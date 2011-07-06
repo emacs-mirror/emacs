@@ -268,10 +268,10 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
 # define CHECK_BOUNDS							\
   do									\
     {									\
-      int k;								\
-      for (k = 0; k < window_size; ++k)					\
-	xassert (copy_from[k] == -1					\
-		 || (copy_from[k] >= 0 && copy_from[k] < window_size));	\
+      int ck;								\
+      for (ck = 0; ck < window_size; ++ck)				\
+	xassert (copy_from[ck] == -1					\
+		 || (copy_from[ck] >= 0 && copy_from[ck] < window_size)); \
     }									\
   while (0);
 #endif

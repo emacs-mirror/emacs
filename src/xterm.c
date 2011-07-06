@@ -356,7 +356,7 @@ static int x_dispatch_event (XEvent *, Display *);
    interference with debugging failing X calls.  */
 static void x_connection_closed (Display *, const char *);
 static void x_wm_set_window_state (struct frame *, int);
-static void x_wm_set_icon_pixmap (struct frame *, int);
+static void x_wm_set_icon_pixmap (struct frame *, ptrdiff_t);
 static void x_initialize (void);
 
 
@@ -1010,7 +1010,7 @@ x_set_mouse_face_gc (struct glyph_string *s)
    Faces to use in the mode line have already been computed when the
    matrix was built, so there isn't much to do, here.  */
 
-static INLINE void
+static inline void
 x_set_mode_line_face_gc (struct glyph_string *s)
 {
   s->gc = s->face->gc;
@@ -1021,7 +1021,7 @@ x_set_mode_line_face_gc (struct glyph_string *s)
    S->stippled_p to a non-zero value if the face of S has a stipple
    pattern.  */
 
-static INLINE void
+static inline void
 x_set_glyph_string_gc (struct glyph_string *s)
 {
   PREPARE_FACE_FOR_DISPLAY (s->f, s->face);
@@ -1066,7 +1066,7 @@ x_set_glyph_string_gc (struct glyph_string *s)
 /* Set clipping for output of glyph string S.  S may be part of a mode
    line or menu if we don't have X toolkit support.  */
 
-static INLINE void
+static inline void
 x_set_glyph_string_clipping (struct glyph_string *s)
 {
   XRectangle *r = s->clip;
@@ -1139,7 +1139,7 @@ x_compute_glyph_string_overhangs (struct glyph_string *s)
 
 /* Fill rectangle X, Y, W, H with background color of glyph string S.  */
 
-static INLINE void
+static inline void
 x_clear_glyph_string_rect (struct glyph_string *s, int x, int y, int w, int h)
 {
   XGCValues xgcv;
@@ -1446,6 +1446,8 @@ x_frame_of_widget (Widget widget)
 }
 
 
+#ifdef USE_LUCID
+
 /* Allocate a color which is lighter or darker than *PIXEL by FACTOR
    or DELTA.  Try a color with RGB values multiplied by FACTOR first.
    If this produces the same color as PIXEL, try a color where all RGB
@@ -1460,6 +1462,8 @@ x_alloc_lighter_color_for_widget (Widget widget, Display *display, Colormap cmap
   struct frame *f = x_frame_of_widget (widget);
   return x_alloc_lighter_color (f, display, cmap, pixel, factor, delta);
 }
+
+#endif
 
 
 /* Structure specifying which arguments should be passed by Xt to
@@ -1693,16 +1697,18 @@ x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 	 a least-squares matching, which is what X uses for closest
 	 color matching with StaticColor visuals.  */
       int nearest, i;
-      unsigned long nearest_delta = ~ (unsigned long) 0;
+      int max_color_delta = 255;
+      int max_delta = 3 * max_color_delta;
+      int nearest_delta = max_delta + 1;
       int ncells;
       const XColor *cells = x_color_cells (dpy, &ncells);
 
       for (nearest = i = 0; i < ncells; ++i)
 	{
-	  long dred   = (color->red   >> 8) - (cells[i].red   >> 8);
-	  long dgreen = (color->green >> 8) - (cells[i].green >> 8);
-	  long dblue  = (color->blue  >> 8) - (cells[i].blue  >> 8);
-	  unsigned long delta = dred * dred + dgreen * dgreen + dblue * dblue;
+	  int dred   = (color->red   >> 8) - (cells[i].red   >> 8);
+	  int dgreen = (color->green >> 8) - (cells[i].green >> 8);
+	  int dblue  = (color->blue  >> 8) - (cells[i].blue  >> 8);
+	  int delta = dred * dred + dgreen * dgreen + dblue * dblue;
 
 	  if (delta < nearest_delta)
 	    {
@@ -4225,7 +4231,7 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
       size_t old_nbytes = scroll_bar_windows_size * sizeof *scroll_bar_windows;
 
       if ((size_t) -1 / sizeof *scroll_bar_windows < new_size)
-	memory_full ();
+	memory_full (SIZE_MAX);
       scroll_bar_windows = (struct window **) xrealloc (scroll_bar_windows,
 							nbytes);
       memset (&scroll_bar_windows[i], 0, nbytes - old_nbytes);
@@ -6438,8 +6444,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
                            keys".  It seems there's no cleaner way.
                            Test IsModifierKey to avoid handling
                            mode_switch incorrectly.  */
-                        || ((unsigned) (keysym) >= XK_Select
-                            && (unsigned)(keysym) < XK_KP_Space)
+                        || (XK_Select <= keysym && keysym < XK_KP_Space)
 #endif
 #ifdef XK_dead_circumflex
                         || orig_keysym == XK_dead_circumflex
@@ -6492,10 +6497,8 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
                                 should be treated similarly to
                                 Mode_switch by Emacs. */
 #if defined XK_ISO_Lock && defined XK_ISO_Last_Group_Lock
-                             || ((unsigned)(orig_keysym)
-                                 >=  XK_ISO_Lock
-                                 && (unsigned)(orig_keysym)
-                                 <= XK_ISO_Last_Group_Lock)
+                             || (XK_ISO_Lock <= orig_keysym
+				 && orig_keysym <= XK_ISO_Last_Group_Lock)
 #endif
                              ))
 	    {
@@ -7424,7 +7427,7 @@ x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x, int 
 int
 x_bitmap_icon (struct frame *f, Lisp_Object file)
 {
-  int bitmap_id;
+  ptrdiff_t bitmap_id;
 
   if (FRAME_X_WINDOW (f) == 0)
     return 1;
@@ -7450,7 +7453,7 @@ x_bitmap_icon (struct frame *f, Lisp_Object file)
       /* Create the GNU bitmap and mask if necessary.  */
       if (FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id < 0)
 	{
-	  int rc = -1;
+	  ptrdiff_t rc = -1;
 
 #ifdef USE_GTK
 
@@ -8081,7 +8084,7 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
     {
 #ifdef HAVE_X11R6_XIM
       struct xim_inst_t *xim_inst;
-      int len;
+      ptrdiff_t len;
 
       xim_inst = (struct xim_inst_t *) xmalloc (sizeof (struct xim_inst_t));
       dpyinfo->xim_callback_data = xim_inst;
@@ -9598,7 +9601,7 @@ x_wm_set_window_state (struct frame *f, int state)
 }
 
 static void
-x_wm_set_icon_pixmap (struct frame *f, int pixmap_id)
+x_wm_set_icon_pixmap (struct frame *f, ptrdiff_t pixmap_id)
 {
   Pixmap icon_pixmap, icon_mask;
 
@@ -9670,8 +9673,6 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 static void
 x_check_font (struct frame *f, struct font *font)
 {
-  Lisp_Object frame;
-
   xassert (font != NULL && ! NILP (font->props[FONT_TYPE_INDEX]));
   if (font->driver->check)
     xassert (font->driver->check (f, font) == 0);
@@ -9717,8 +9718,8 @@ same_x_server (const char *name1, const char *name2)
 {
   int seen_colon = 0;
   const char *system_name = SSDATA (Vsystem_name);
-  int system_name_length = strlen (system_name);
-  int length_until_period = 0;
+  ptrdiff_t system_name_length = SBYTES (Vsystem_name);
+  ptrdiff_t length_until_period = 0;
 
   while (system_name[length_until_period] != 0
 	 && system_name[length_until_period] != '.')
@@ -10186,7 +10187,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       { "_EMACS_TMP_",  &dpyinfo->Xatom_EMACS_TMP },
       { "TARGETS", &dpyinfo->Xatom_TARGETS },
       { "NULL", &dpyinfo->Xatom_NULL },
+      { "ATOM", &dpyinfo->Xatom_ATOM },
       { "ATOM_PAIR", &dpyinfo->Xatom_ATOM_PAIR },
+      { "CLIPBOARD_MANAGER", &dpyinfo->Xatom_CLIPBOARD_MANAGER },
       { "_XEMBED_INFO", &dpyinfo->Xatom_XEMBED_INFO },
       /* For properties of font.  */
       { "PIXEL_SIZE", &dpyinfo->Xatom_PIXEL_SIZE },
@@ -10269,7 +10272,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
 				     gray_bitmap_bits,
 				     gray_bitmap_width, gray_bitmap_height,
-				     (unsigned long) 1, (unsigned long) 0, 1);
+				     1, 0, 1);
   }
 
 #ifdef HAVE_X_I18N
@@ -10695,11 +10698,8 @@ syms_of_xterm (void)
   staticpro (&last_mouse_scroll_bar);
   last_mouse_scroll_bar = Qnil;
 
-  staticpro (&Qvendor_specific_keysyms);
-  Qvendor_specific_keysyms = intern_c_string ("vendor-specific-keysyms");
-
-  staticpro (&Qlatin_1);
-  Qlatin_1 = intern_c_string ("latin-1");
+  DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
+  DEFSYM (Qlatin_1, "latin-1");
 
   staticpro (&last_mouse_press_frame);
   last_mouse_press_frame = Qnil;
@@ -10708,8 +10708,7 @@ syms_of_xterm (void)
   xg_default_icon_file = make_pure_c_string ("icons/hicolor/scalable/apps/emacs.svg");
   staticpro (&xg_default_icon_file);
 
-  Qx_gtk_map_stock = intern_c_string ("x-gtk-map-stock");
-  staticpro (&Qx_gtk_map_stock);
+  DEFSYM (Qx_gtk_map_stock, "x-gtk-map-stock");
 #endif
 
   DEFVAR_BOOL ("x-use-underline-position-properties",

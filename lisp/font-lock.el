@@ -563,7 +563,7 @@ we recommend setting `syntax-begin-function' instead.
 
 This is normally set via `font-lock-defaults'.")
 (make-obsolete-variable 'font-lock-beginning-of-syntax-function
-                        'syntax-begin-function "23.3")
+                        'syntax-begin-function "23.3" 'set)
 
 (defvar font-lock-mark-block-function nil
   "*Non-nil means use this function to mark a block of text.
@@ -1904,7 +1904,7 @@ Sets various variables using `font-lock-defaults' and
 (defface font-lock-builtin-face
   '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
     (((class grayscale) (background dark)) (:foreground "DimGray" :weight bold))
-    (((class color) (min-colors 88) (background light)) (:foreground "MediumOrchid4"))
+    (((class color) (min-colors 88) (background light)) (:foreground "dark slate blue"))
     (((class color) (min-colors 88) (background dark)) (:foreground "LightSteelBlue"))
     (((class color) (min-colors 16) (background light)) (:foreground "Orchid"))
     (((class color) (min-colors 16) (background dark)) (:foreground "LightSteelBlue"))

@@ -204,12 +204,6 @@ definition automatically.  Avoid constructing the names in the macro
 itself, since that would confuse these tools.
 
 @item
-Please keep the names of your Emacs Lisp source files to 13 characters
-or less.  This way, if the files are compiled, the compiled files' names
-will be 14 characters or less, which is short enough to fit on all kinds
-of Unix systems.
-
-@item
 In some other systems there is a convention of choosing variable names
 that begin and end with @samp{*}.  We don't use that convention in Emacs
 Lisp, so please don't use it in your programs.  (Emacs uses such names
@@ -255,7 +249,8 @@ file if you distribute copies.  Use a notice like this one:
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see
+;; <http://www.gnu.org/licenses/>.
 @end smallexample
 
 If you have signed papers to assign the copyright to the Foundation,

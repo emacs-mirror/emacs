@@ -172,10 +172,10 @@ attribute names are returned. Default to `person'"
   "Format the EUDC QUERY list as a RFC1558 LDAP search filter."
   (format "(&%s)"
 	  (apply 'concat
-		 (mapcar '(lambda (item)
-			    (format "(%s=%s)"
-				    (car item)
-				    (eudc-ldap-escape-query-special-chars (cdr item))))
+		 (mapcar (lambda (item)
+                           (format "(%s=%s)"
+                                   (car item)
+                                   (eudc-ldap-escape-query-special-chars (cdr item))))
 			 query))))
 
 

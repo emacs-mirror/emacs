@@ -65,6 +65,14 @@
   :group 'vc-bzr
   :type 'string)
 
+(defcustom vc-bzr-sha1-program '("sha1sum")
+  "Name of program to compute SHA1.
+It must be a string \(program name\) or list of strings \(name and its args\)."
+  :type '(repeat string)
+  :group 'vc-bzr)
+
+(define-obsolete-variable-alias 'sha1-program 'vc-bzr-sha1-program "24.1")
+
 (defcustom vc-bzr-diff-switches nil
   "String or list of strings specifying switches for bzr diff under VC.
 If nil, use the value of `vc-diff-switches'.  If t, use no switches."
@@ -156,12 +164,10 @@ in the repository root directory of FILE."
 	(push (cons (match-string 1) (match-string 2)) settings)))
     settings))
 
-(require 'sha1)                         ;For sha1-program
-
 (defun vc-bzr-sha1 (file)
   (with-temp-buffer
     (set-buffer-multibyte nil)
-    (let ((prog sha1-program)
+    (let ((prog vc-bzr-sha1-program)
           (args nil)
 	  process-file-side-effects)
       (when (consp prog)
@@ -1166,8 +1172,9 @@ stream.  Standard error output is discarded."
 
 (eval-and-compile
   (defconst vc-bzr-revision-keywords
-    '("revno" "revid" "last" "before"
-      "tag" "date" "ancestor" "branch" "submit")))
+    ;; bzr help revisionspec  | sed -ne 's/^\([a-z]*\):$/"\1"/p' | sort -u
+    '("ancestor" "annotate" "before" "branch" "date" "last" "mainline" "revid"
+      "revno" "submit" "svn" "tag")))
 
 (defun vc-bzr-revision-completion-table (files)
   (lexical-let ((files files))
@@ -1204,6 +1211,19 @@ stream.  Standard error output is discarded."
             (while (re-search-forward "^\\(.*[^ \n]\\) +[^ \n]*$" nil t)
               (push (match-string-no-properties 1) table)))
           (completion-table-with-context prefix table tag pred action)))
+
+       ((string-match "\\`annotate:" string)
+        (completion-table-with-context
+         (substring string 0 (match-end 0))
+         (apply-partially #'completion-table-with-terminator '(":" . "\\`a\\`")
+                          #'completion-file-name-table)
+         (substring string (match-end 0)) pred action))
+
+       ((string-match "\\`date:" string)
+        (completion-table-with-context
+         (substring string 0 (match-end 0))
+         '("yesterday" "today" "tomorrow")
+         (substring string (match-end 0)) pred action))
 
        ((string-match "\\`\\([a-z]+\\):" string)
         ;; no actual completion for the remaining keywords.

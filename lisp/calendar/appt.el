@@ -154,7 +154,9 @@ always updates every minute."
   "Function called to display appointment window.
 Only relevant if reminders are being displayed in a window.
 It should take three string arguments: the number of minutes till
-the appointment, the current time, and the text of the appointment."
+the appointment, the current time, and the text of the appointment.
+Each argument may also be a list, if multiple appointments are
+relevant at any one time."
   :type 'function
   :group 'appt)
 
@@ -214,21 +216,60 @@ If this is non-nil, appointment checking is active.")
 (defun appt-display-message (string mins)
   "Display a reminder about an appointment.
 The string STRING describes the appointment, due in integer MINS minutes.
-The format of the visible reminder is controlled by `appt-display-format'.
-The variable `appt-audible' controls the audible reminder."
+The arguments may also be lists, where each element relates to a
+separate appointment.  The variable `appt-display-format' controls
+the format of the visible reminder.  If `appt-audible' is non-nil,
+also calls `beep' for an audible reminder."
   (if appt-audible (beep 1))
+  ;; Backwards compatibility: avoid passing lists to a-d-w-f if not necessary.
+  (and (listp mins)
+       (= (length mins) 1)
+       (setq mins (car mins)
+             string (car string)))
   (cond ((eq appt-display-format 'window)
-         (funcall appt-disp-window-function
-                  (number-to-string mins)
-                  ;; TODO - use calendar-month-abbrev-array rather than %b?
-                  (format-time-string "%a %b %e " (current-time))
-                  string)
+         ;; TODO use calendar-month-abbrev-array rather than %b?
+         (let ((time (format-time-string "%a %b %e " (current-time)))
+               err)
+           (condition-case err
+               (funcall appt-disp-window-function
+                        (if (listp mins)
+                            (mapcar 'number-to-string mins)
+                          (number-to-string mins))
+                        time string)
+             (wrong-type-argument
+              (if (not (listp mins))
+                  (signal (car err) (cdr err))
+                (message "Argtype error in `appt-disp-window-function' - \
+update it for multiple appts?")
+                ;; Fallback to just displaying the first appt, as we used to.
+                (funcall appt-disp-window-function
+                         (number-to-string (car mins)) time
+                         (car string))))))
          (run-at-time (format "%d sec" appt-display-duration)
                       nil
                       appt-delete-window-function))
         ((eq appt-display-format 'echo)
-         (message "%s" string))))
+         (message "%s" (if (listp string)
+                           (mapconcat 'identity string "\n")
+                         string)))))
 
+(defun appt-mode-line (min-to-app &optional abbrev)
+  "Return an appointment string suitable for use in the mode-line.
+MIN-TO-APP is a list of minutes, as strings.
+If ABBREV is non-nil, abbreviates some text."
+  ;; All this silliness is just to make the formatting slightly nicer.
+  (let* ((multiple (> (length min-to-app) 1))
+         (imin (if (or (not multiple)
+                       (not (delete (car min-to-app) min-to-app)))
+                   (car min-to-app))))
+    (format "%s%s %s"
+            (if abbrev "App't" "Appointment")
+            (if multiple "s" "")
+            (if (equal imin "0") "now"
+              (format "in %s %s"
+                      (or imin (mapconcat 'identity min-to-app ","))
+                      (if abbrev "min."
+                        (format "minute%s" (if (equal imin "1") "" "s"))))))))
 
 (defun appt-check (&optional force)
   "Check for an appointment and update any reminder display.
@@ -282,14 +323,13 @@ displayed in a window:
 `appt-delete-window-function'
         Function called to remove appointment window and buffer."
   (interactive "P")                     ; so people can force updates
-  (let* ((min-to-app -1)
-         (prev-appt-mode-string appt-mode-string)
+  (let* ((prev-appt-mode-string appt-mode-string)
          (prev-appt-display-count appt-display-count)
-         now now-mins appt-mins appt-warn-time)
+         ;; Convert current time to minutes after midnight (12.01am = 1).
+         (now (decode-time))
+         (now-mins (+ (* 60 (nth 2 now)) (nth 1 now)))
+         appt-mins appt-warn-time min-to-app min-list string-list)
     (save-excursion                   ; FIXME ?
-      ;; Convert current time to minutes after midnight (12.01am = 1).
-      (setq now (decode-time)
-            now-mins (+ (* 60 (nth 2 now)) (nth 1 now)))
       ;; At first check in any day, update appointments to today's list.
       (if (or force                      ; eg initialize, diary save
               (null appt-prev-comp-time) ; first check
@@ -310,58 +350,67 @@ displayed in a window:
       (setq appt-prev-comp-time now-mins
             appt-mode-string nil
             appt-display-count 0)
-      ;; Remove any entries that are in the past.
-      ;; FIXME how can there be any such entries, given that this
-      ;; function removes entries when they hit zero minutes,
-      ;; and appt-make-list doesn't add any in the past in the first place?
-      (while (and appt-time-msg-list
-                  (< (setq appt-mins (caar (car appt-time-msg-list)))
-                     now-mins))
-        (setq appt-time-msg-list (cdr appt-time-msg-list)))
-      ;; If there are entries in the list, and the user wants a
-      ;; message issued, get the first time off of the list and
-      ;; calculate the number of minutes until the appointment.
-      (when appt-time-msg-list
-        (setq appt-warn-time (or (nth 3 (car appt-time-msg-list))
-                                 appt-message-warning-time)
-              min-to-app (- appt-mins now-mins))
-        ;; If we have an appointment between midnight and
-        ;; `appt-warn-time' minutes after midnight, we
-        ;; must begin to issue a message before midnight.  Midnight
-        ;; is considered 0 minutes and 11:59pm is 1439
-        ;; minutes.  Therefore we must recalculate the minutes to
-        ;; appointment variable.  It is equal to the number of
-        ;; minutes before midnight plus the number of minutes after
-        ;; midnight our appointment is.
-        ;; FIXME but appt-make-list constructs appt-time-msg-list to only
-        ;; contain entries with today's date, so this cannot work?
-        ;; Also above we just removed anything with appt-mins < now-mins.
-        (if (and (< appt-mins appt-warn-time)
-                 (> (+ now-mins appt-warn-time) appt-max-time))
-            (setq min-to-app (+ (- (1+ appt-max-time) now-mins)
-                                appt-mins)))
-        ;; Issue warning if the appointment time is within
-        ;; appt-message-warning time.
-        (when (and (<= min-to-app appt-warn-time)
-                   (>= min-to-app 0))
-          ;; This is true every appt-display-interval minutes.
-          (and (zerop (mod prev-appt-display-count appt-display-interval))
-               (appt-display-message (cadr (car appt-time-msg-list))
-                                     min-to-app))
-          (when appt-display-mode-line
-            (setq appt-mode-string
-                  (concat " " (propertize
-                               (format "App't %s"
-                                       (if (zerop min-to-app) "NOW"
-                                         (format "in %s min." min-to-app)))
-                               'face 'mode-line-emphasis))))
-          ;; When an appointment is reached, delete it from the
-          ;; list.  Reset the count to 0 in case we display another
-          ;; appointment on the next cycle.
-          (if (zerop min-to-app)
-              (setq appt-time-msg-list (cdr appt-time-msg-list)
-                    appt-display-count 0)
-            (setq appt-display-count (1+ prev-appt-display-count)))))
+      ;; If there are entries in the list get each time off of the
+      ;; list and calculate the number of minutes until the appointment.
+      ;; TODO we are looping over all the appointments each time.
+      ;; We could instead sort them by the time at which we need to
+      ;; start warning.  But then removing entries in the past becomes
+      ;; less straightforward.
+      (dolist (appt appt-time-msg-list)
+        ;; Remove any entries that are in the past.
+        ;; FIXME how can there be any such entries, given that this
+        ;; function removes entries when they hit zero minutes,
+        ;; and appt-make-list doesn't add any in the past in the first place?
+        (if (< (setq appt-mins (caar appt)) now-mins)
+            (setq appt-time-msg-list (cdr appt-time-msg-list))
+          (setq appt-warn-time (or (nth 3 appt) appt-message-warning-time)
+                min-to-app (- appt-mins now-mins))
+          ;; If we have an appointment between midnight and
+          ;; `appt-warn-time' minutes after midnight, we
+          ;; must begin to issue a message before midnight.  Midnight
+          ;; is considered 0 minutes and 11:59pm is 1439
+          ;; minutes.  Therefore we must recalculate the minutes to
+          ;; appointment variable.  It is equal to the number of
+          ;; minutes before midnight plus the number of minutes after
+          ;; midnight our appointment is.
+          ;; FIXME but appt-make-list constructs appt-time-msg-list to only
+          ;; contain entries with today's date, so this cannot work?
+          ;; Also above we just removed anything with appt-mins < now-mins.
+          (if (and (< appt-mins appt-warn-time)
+                   (> (+ now-mins appt-warn-time) appt-max-time))
+              (setq min-to-app (+ (- (1+ appt-max-time) now-mins)
+                                  appt-mins)))
+          ;; Issue warning if the appointment time is within the warning time.
+          (when (and (<= min-to-app appt-warn-time)
+                     (>= min-to-app 0))
+            (push min-to-app min-list)
+            (push (cadr appt) string-list)
+            ;; When an appointment is reached, delete it from the list.
+            (if (zerop min-to-app)
+                (setq appt-time-msg-list (delete appt appt-time-msg-list))))))
+      (when min-list
+        (setq min-list (nreverse min-list)
+              string-list (nreverse string-list))
+        ;; This is true every appt-display-interval minutes from the
+        ;; time at which we first started reminding.
+        ;; TODO in the case of multiple appointments, whose interval
+        ;; should we respect?  The first one that we started warning about?
+        ;; That's what we do now, and this makes sense if you interpret
+        ;; a-d-i as "don't remind me any more frequently than this".
+        ;; But should we always show a message when a new appt becomes due?
+        ;; When one appt gets removed, should we switch to the interval
+        ;; of the next?
+        (and (zerop (mod prev-appt-display-count appt-display-interval))
+             (appt-display-message string-list min-list))
+        (when appt-display-mode-line
+          (setq appt-mode-string
+                (concat " " (propertize
+                             (appt-mode-line (mapcar 'number-to-string
+                                                     min-list) t)
+                             'face 'mode-line-emphasis))))
+        ;; Reset count to 0 in case we display another appt on the next cycle.
+        (setq appt-display-count (if (eq '(0) min-list) 0
+                                   (1+ prev-appt-display-count))))
       ;; If we have changed the mode line string, redisplay all mode lines.
       (and appt-display-mode-line
            (not (string-equal appt-mode-string prev-appt-mode-string))
@@ -373,8 +422,10 @@ displayed in a window:
 
 (defun appt-disp-window (min-to-app new-time appt-msg)
   "Display appointment due in MIN-TO-APP (a string) minutes.
-NEW-TIME is a string giving the date.  Displays the appointment
-message APPT-MSG in a separate buffer."
+NEW-TIME is a string giving the current date.
+Displays the appointment message APPT-MSG in a separate buffer.
+The arguments may also be lists, where each element relates to a
+separate appointment."
   (let ((this-window (selected-window))
         (appt-disp-buf (get-buffer-create appt-buffer-name)))
     ;; Make sure we're not in the minibuffer before splitting the window.
@@ -395,17 +446,29 @@ message APPT-MSG in a separate buffer."
         (when (>= (window-height) (* 2 window-min-height))
           (select-window (split-window))))
       (switch-to-buffer appt-disp-buf))
+    (or (listp min-to-app)
+        (setq min-to-app (list min-to-app)
+              appt-msg (list appt-msg)))
+    ;; I don't really see the point of the new-time argument.
+    ;; It repeatedly reminds you of the date?
+    ;; It would make more sense if it was eg the time of the appointment.
+    ;; Let's allow it to be a list or not independent of the other elements.
+    (or (listp new-time)
+        (setq new-time (list new-time)))
     ;; FIXME Link to diary entry?
     (calendar-set-mode-line
-     (format " Appointment %s. %s "
-             (if (string-equal "0" min-to-app) "now"
-               (format "in %s minute%s" min-to-app
-                       (if (string-equal "1" min-to-app) "" "s")))
-             new-time))
+     (format " %s. %s" (appt-mode-line min-to-app)
+             (mapconcat 'identity new-time ", ")))
     (setq buffer-read-only nil
           buffer-undo-list t)
     (erase-buffer)
-    (insert appt-msg)
+    ;; If we have appointments at different times, prepend the times.
+    (if (or (= 1 (length min-to-app))
+            (not (delete (car min-to-app) min-to-app)))
+        (insert (mapconcat 'identity appt-msg "\n"))
+      (dotimes (i (length appt-msg))
+        (insert (format "%s%sm: %s" (if (> i 0) "\n" "")
+                        (nth i min-to-app) (nth i appt-msg)))))
     (shrink-window-if-larger-than-buffer (get-buffer-window appt-disp-buf t))
     (set-buffer-modified-p nil)
     (setq buffer-read-only t)

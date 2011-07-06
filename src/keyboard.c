@@ -448,7 +448,7 @@ static Lisp_Object make_lispy_movement (struct frame *, Lisp_Object,
 #endif
 static Lisp_Object modify_event_symbol (EMACS_INT, unsigned, Lisp_Object,
                                         Lisp_Object, const char *const *,
-                                        Lisp_Object *, unsigned);
+                                        Lisp_Object *, EMACS_INT);
 static Lisp_Object make_lispy_switch_frame (Lisp_Object);
 static int help_char_p (Lisp_Object);
 static void save_getcjmp (jmp_buf);
@@ -1539,7 +1539,18 @@ command_loop_1 (void)
 	  message_with_string ("%s is undefined", keys, 0);
 	  KVAR (current_kboard, defining_kbd_macro) = Qnil;
 	  update_mode_lines = 1;
-	  KVAR (current_kboard, Vprefix_arg) = Qnil;
+	  /* If this is a down-mouse event, don't reset prefix-arg;
+	     pass it to the command run by the up event.  */
+	  if (EVENT_HAS_PARAMETERS (last_command_event))
+	    {
+	      Lisp_Object breakdown
+		= parse_modifiers (EVENT_HEAD (last_command_event));
+	      int modifiers = XINT (XCAR (XCDR (breakdown)));
+	      if (!(modifiers & down_modifier))
+		KVAR (current_kboard, Vprefix_arg) = Qnil;
+	    }
+	  else
+	    KVAR (current_kboard, Vprefix_arg) = Qnil;
 	}
       else
 	{
@@ -1729,7 +1740,7 @@ adjust_point_for_property (EMACS_INT last_pt, int modified)
 	  && PT > BEGV && PT < ZV
 	  && !NILP (val = get_char_property_and_overlay
 		              (make_number (PT), Qdisplay, Qnil, &overlay))
-	  && display_prop_intangible_p (val)
+	  && display_prop_intangible_p (val, overlay, PT, PT_BYTE)
 	  && (!OVERLAYP (overlay)
 	      ? get_property_and_range (PT, Qdisplay, &val, &beg, &end, Qnil)
 	      : (beg = OVERLAY_POSITION (OVERLAY_START (overlay)),
@@ -1901,7 +1912,7 @@ safe_run_hooks_error (Lisp_Object error_data)
 }
 
 static Lisp_Object
-safe_run_hook_funcall (size_t nargs, Lisp_Object *args)
+safe_run_hook_funcall (ptrdiff_t nargs, Lisp_Object *args)
 {
   eassert (nargs == 1);
   if (CONSP (Vinhibit_quit))
@@ -2395,8 +2406,8 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
 
       c = Faref (Vexecuting_kbd_macro, make_number (executing_kbd_macro_index));
       if (STRINGP (Vexecuting_kbd_macro)
-	  && (XINT (c) & 0x80) && (XUINT (c) <= 0xff))
-	XSETFASTINT (c, CHAR_META | (XINT (c) & ~0x80));
+	  && (XFASTINT (c) & 0x80) && (XFASTINT (c) <= 0xff))
+	XSETFASTINT (c, CHAR_META | (XFASTINT (c) & ~0x80));
 
       executing_kbd_macro_index++;
 
@@ -2906,9 +2917,13 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
 	goto exit;
 
       if ((STRINGP (KVAR (current_kboard, Vkeyboard_translate_table))
-	   && SCHARS (KVAR (current_kboard, Vkeyboard_translate_table)) > (unsigned) XFASTINT (c))
+	   && UNSIGNED_CMP (XFASTINT (c), <,
+			    SCHARS (KVAR (current_kboard,
+					  Vkeyboard_translate_table))))
 	  || (VECTORP (KVAR (current_kboard, Vkeyboard_translate_table))
-	      && ASIZE (KVAR (current_kboard, Vkeyboard_translate_table)) > (unsigned) XFASTINT (c))
+	      && UNSIGNED_CMP (XFASTINT (c), <,
+			       ASIZE (KVAR (current_kboard,
+					    Vkeyboard_translate_table))))
 	  || (CHAR_TABLE_P (KVAR (current_kboard, Vkeyboard_translate_table))
 	      && CHARACTERP (c)))
 	{
@@ -2955,9 +2970,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
      save the echo area contents for it to refer to.  */
   if (INTEGERP (c)
       && ! NILP (Vinput_method_function)
-      && (unsigned) XINT (c) >= ' '
-      && (unsigned) XINT (c) != 127
-      && (unsigned) XINT (c) < 256)
+      && ' ' <= XINT (c) && XINT (c) < 256 && XINT (c) != 127)
     {
       previous_echo_area_message = Fcurrent_message ();
       Vinput_method_previous_message = previous_echo_area_message;
@@ -2982,9 +2995,7 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
       /* Don't run the input method within a key sequence,
 	 after the first event of the key sequence.  */
       && NILP (prev_event)
-      && (unsigned) XINT (c) >= ' '
-      && (unsigned) XINT (c) != 127
-      && (unsigned) XINT (c) < 256)
+      && ' ' <= XINT (c) && XINT (c) < 256 && XINT (c) != 127)
     {
       Lisp_Object keys;
       int key_count, key_count_reset;
@@ -3321,7 +3332,7 @@ record_char (Lisp_Object c)
       if (INTEGERP (c))
 	{
 	  if (XUINT (c) < 0x100)
-	    putc (XINT (c), dribble);
+	    putc (XUINT (c), dribble);
 	  else
 	    fprintf (dribble, " 0x%"pI"x", XUINT (c));
 	}
@@ -3742,7 +3753,7 @@ kbd_buffer_events_waiting (int discard)
 
 /* Clear input event EVENT.  */
 
-static INLINE void
+static inline void
 clear_event (struct input_event *event)
 {
   event->kind = NO_EVENT;
@@ -5391,7 +5402,7 @@ make_lispy_event (struct input_event *event)
 				      Qfunction_key,
 				      KVAR (current_kboard, Vsystem_key_alist),
 				      0, &KVAR (current_kboard, system_key_syms),
-				      (unsigned) -1);
+				      TYPE_MAXIMUM (EMACS_INT));
 	}
 
       return modify_event_symbol (event->code - FUNCTION_KEY_OFFSET,
@@ -6370,7 +6381,7 @@ reorder_modifiers (Lisp_Object symbol)
   Lisp_Object parsed;
 
   parsed = parse_modifiers (symbol);
-  return apply_modifiers ((int) XINT (XCAR (XCDR (parsed))),
+  return apply_modifiers (XFASTINT (XCAR (XCDR (parsed))),
 			  XCAR (parsed));
 }
 
@@ -6410,7 +6421,7 @@ reorder_modifiers (Lisp_Object symbol)
 static Lisp_Object
 modify_event_symbol (EMACS_INT symbol_num, unsigned int modifiers, Lisp_Object symbol_kind,
 		     Lisp_Object name_alist_or_stem, const char *const *name_table,
-		     Lisp_Object *symbol_table, unsigned int table_size)
+		     Lisp_Object *symbol_table, EMACS_INT table_size)
 {
   Lisp_Object value;
   Lisp_Object symbol_int;
@@ -7470,7 +7481,7 @@ menu_bar_items (Lisp_Object old)
 	if (CONSP (def))
 	  {
 	    menu_bar_one_keymap_changed_items = Qnil;
-	    map_keymap (def, menu_bar_item, Qnil, NULL, 1);
+	    map_keymap_canonical (def, menu_bar_item, Qnil, NULL);
 	  }
       }
 
@@ -7811,7 +7822,7 @@ parse_menu_item (Lisp_Object item, int inmenubar)
   /* If we got no definition, this item is just unselectable text which
      is OK in a submenu but not in the menubar.  */
   if (NILP (def))
-    return (inmenubar ? 0 : 1);
+    return (!inmenubar);
 
   /* See if this is a separate pane or a submenu.  */
   def = AREF (item_properties, ITEM_PROPERTY_DEF);
@@ -8225,7 +8236,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
           /* `:label LABEL-STRING'.  */
           PROP (TOOL_BAR_ITEM_LABEL) = STRINGP (value)
             ? value
-            : make_string (bad_label, strlen (bad_label));
+            : build_string (bad_label);
           have_label = 1;
         }
       else if (EQ (ikey, QCfilter))
@@ -8291,7 +8302,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       else
 	label = "";
 
-      new_lbl = Fupcase_initials (make_string (label, strlen (label)));
+      new_lbl = Fupcase_initials (build_string (label));
       if (SCHARS (new_lbl) <= tool_bar_max_label_size)
         PROP (TOOL_BAR_ITEM_LABEL) = new_lbl;
       else

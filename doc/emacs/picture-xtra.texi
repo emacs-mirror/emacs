@@ -245,7 +245,8 @@ rectangle commands may also be useful.
 @table @kbd
 @item C-c C-k
 Clear out the region-rectangle with spaces
-(@code{picture-clear-rectangle}).  With argument, delete the text.
+(@code{picture-clear-rectangle}).  With a prefix argument, delete the
+text.
 @item C-c C-w @var{r}
 Similar, but save rectangle contents in register @var{r} first
 (@code{picture-clear-rectangle-to-register}).

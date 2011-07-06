@@ -24,6 +24,23 @@
 
 ;;; Code:
 
+(defgroup xterm nil
+  "XTerm support."
+  :version "24.1"
+  :group 'emacs)
+
+(defcustom xterm-extra-capabilities 'check
+  "Set to a list if the XTerm supports modifyOtherKeys or
+reporting the background color.  Set to 'check to check for those
+features.  Set to nil to skip the checks."
+  :group 'xterm
+  :type '(choice (const :tag "No" nil)
+                 (const :tag "Check" check)
+                 ;; NOTE: If you add entries here, make sure to update
+                 ;; `tocheck-capabilities' in `terminal-init-xterm' as well.
+                 (set (const :tag "modifyOtherKeys support" modifyOtherKeys)
+                      (const :tag "report background" reportBackground))))
+
 (defvar xterm-function-map
   (let ((map (make-sparse-keymap)))
 
@@ -460,19 +477,34 @@
       (set-keymap-parent map (keymap-parent input-decode-map))
       (set-keymap-parent input-decode-map map)))
 
-    (xterm-register-default-colors)
-    (tty-set-up-initial-frame-faces)
+  (xterm-register-default-colors)
+  (tty-set-up-initial-frame-faces)
 
-    ;; Try to turn on the modifyOtherKeys feature on modern xterms.
-    ;; When it is turned on many more key bindings work: things like
-    ;; C-. C-, etc.
-    ;; To do that we need to find out if the current terminal supports
-    ;; modifyOtherKeys. At this time only xterm does.
+  ;; Try to turn on the modifyOtherKeys feature on modern xterms.
+  ;; When it is turned on many more key bindings work: things like
+  ;; C-. C-, etc.
+  ;; To do that we need to find out if the current terminal supports
+  ;; modifyOtherKeys.  At this time only xterm does.
+  (when xterm-extra-capabilities
     (let ((coding-system-for-read 'binary)
-	  (chr nil)
-	  (str nil)
-	  (recompute-faces nil)
-	  version)
+          (chr nil)
+          (str "")
+          (recompute-faces nil)
+          ;; If `xterm-extra-capabilities' is 'check, we don't know
+          ;; the capabilities.  We need to check for those defined
+          ;; as `xterm-extra-capabilities' set options.  Otherwise,
+          ;; we don't need to check for any capabilities because
+          ;; they are given by setting `xterm-extra-capabilities' to
+          ;; a list (which could be empty).
+          (tocheck-capabilities (if (eq 'check xterm-extra-capabilities)
+                                    '(modifyOtherKeys reportBackground)))
+          ;; The given capabilities are either the contents of
+          ;; `xterm-extra-capabilities', if it's a list, or an empty list.
+          (given-capabilities (if (consp xterm-extra-capabilities)
+                                  xterm-extra-capabilities))
+          version)
+      ;; 1. Set `version'
+
       ;; Pending input can be mistakenly returned by the calls to
       ;; read-event below.  Discard it.
       (discard-input)
@@ -480,60 +512,73 @@
       ;; Device Attributes (DA)" query.
       (send-string-to-terminal "\e[>0c")
 
-      ;; The reply should be of the form: \e [ > NUMBER1 ; NUMBER2 ; NUMBER3 c
+      ;; The reply should be: \e [ > NUMBER1 ; NUMBER2 ; NUMBER3 c
       ;; If the timeout is completely removed for read-event, this
       ;; might hang for terminals that pretend to be xterm, but don't
       ;; respond to this escape sequence.  RMS' opinion was to remove
       ;; it completely.  That might be right, but let's first try to
       ;; see if by using a longer timeout we get rid of most issues.
-      (when (equal (read-event nil nil 2) ?\e)
-	(when (equal (read-event nil nil 2) ?\[)
-	  (while (not (equal (setq chr (read-event nil nil 2)) ?c))
-	    (setq str (concat str (string chr))))
-	  (when (string-match ">0;\\([0-9]+\\);0" str)
-	    (setq version (string-to-number
-			   (substring str (match-beginning 1) (match-end 1))))
-	    ;; xterm version 242 supports reporting the background
-	    ;; color, maybe earlier versions do too...
-	    (when (>= version 242)
-	      (send-string-to-terminal "\e]11;?\e\\")
-	      (when (equal (read-event nil nil 2) ?\e)
-		(when (equal (read-event nil nil 2) ?\])
-		  (setq str "")
-		  (while (not (equal (setq chr (read-event nil nil 2)) ?\\))
-		    (setq str (concat str (string chr))))
-		  (when (string-match "11;rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)" str)
-		    (setq recompute-faces
-			  (xterm-maybe-set-dark-background-mode
-			   (string-to-number (match-string 1 str) 16)
-			   (string-to-number (match-string 2 str) 16)
-			   (string-to-number (match-string 3 str) 16)))))))
-	    ;; NUMBER2 is the xterm version number, look for something
-	    ;; greater than 216, the version when modifyOtherKeys was
-	    ;; introduced.
-	    (when (>= version 216)
-	      ;; Make sure that the modifyOtherKeys state is restored when
-	      ;; suspending, resuming and exiting.
-	      (add-hook 'suspend-hook 'xterm-turn-off-modify-other-keys)
-	      (add-hook 'suspend-resume-hook 'xterm-turn-on-modify-other-keys)
-	      (add-hook 'kill-emacs-hook 'xterm-remove-modify-other-keys)
-	      (add-hook 'delete-terminal-functions 'xterm-remove-modify-other-keys)
-	      ;; Add the selected frame to the list of frames that
-	      ;; need to deal with modify-other-keys.
-	      (push (frame-terminal (selected-frame))
-		    xterm-modify-other-keys-terminal-list)
-	      (xterm-turn-on-modify-other-keys))
+      (when (and (equal (read-event nil nil 2) ?\e)
+                 (equal (read-event nil nil 2) ?\[))
+        (while (not (equal (setq chr (read-event nil nil 2)) ?c))
+          (setq str (concat str (string chr))))
+        (if (string-match ">0;\\([0-9]+\\);0" str)
+            (setq version (string-to-number (match-string 1 str)))))
+      ;; 2. If reportBackground is known to be supported, or the
+      ;; version is 242 or higher, assume the xterm supports
+      ;; reporting the background color (TODO: maybe earlier
+      ;; versions do too...)
+      (when (or (memq 'reportBackground given-capabilities)
+                (and (memq 'reportBackground tocheck-capabilities)
+                     version
+                     (>= version 242)))
+        (send-string-to-terminal "\e]11;?\e\\")
+        (when (and (equal (read-event nil nil 2) ?\e)
+                   (equal (read-event nil nil 2) ?\]))
+          (setq str "")
+          (while (not (equal (setq chr (read-event nil nil 2)) ?\\))
+            (setq str (concat str (string chr))))
+          (if (string-match
+               "11;rgb:\\([a-f0-9]+\\)/\\([a-f0-9]+\\)/\\([a-f0-9]+\\)" str)
+              (setq recompute-faces
+                    (xterm-maybe-set-dark-background-mode
+                     (string-to-number (match-string 1 str) 16)
+                     (string-to-number (match-string 2 str) 16)
+                     (string-to-number (match-string 3 str) 16))))))
 
-	    ;; Recompute faces here in case the background mode was
-	    ;; set to dark.  We used to call
-	    ;; `tty-set-up-initial-frame-faces' only once, but that
-	    ;; caused the light background faces to be computed
-	    ;; incorrectly.  See:
-	    ;; http://permalink.gmane.org/gmane.emacs.devel/119627
-	    (when recompute-faces
-	      (tty-set-up-initial-frame-faces))))))
+      ;; 3. If modifyOtherKeys is known to be supported or the
+      ;; version is 216 (the version when modifyOtherKeys was
+      ;; introduced) or higher, initialize the modifyOtherKeys support.
+      (if (or (memq 'modifyOtherKeys given-capabilities)
+              (and (memq 'modifyOtherKeys tocheck-capabilities)
+                   version
+                   (>= version 216)))
+          (terminal-init-xterm-modify-other-keys))
+
+      ;; Recompute faces here in case the background mode was
+      ;; set to dark.  We used to call
+      ;; `tty-set-up-initial-frame-faces' only once, but that
+      ;; caused the light background faces to be computed
+      ;; incorrectly.  See:
+      ;; http://permalink.gmane.org/gmane.emacs.devel/119627
+      (when recompute-faces
+        (tty-set-up-initial-frame-faces))))
 
     (run-hooks 'terminal-init-xterm-hook))
+
+(defun terminal-init-xterm-modify-other-keys ()
+  "Terminal initialization for xterm's modifyOtherKeys support."
+  ;; Make sure that the modifyOtherKeys state is restored when
+  ;; suspending, resuming and exiting.
+  (add-hook 'suspend-hook 'xterm-turn-off-modify-other-keys)
+  (add-hook 'suspend-resume-hook 'xterm-turn-on-modify-other-keys)
+  (add-hook 'kill-emacs-hook 'xterm-remove-modify-other-keys)
+  (add-hook 'delete-terminal-functions 'xterm-remove-modify-other-keys)
+  ;; Add the selected frame to the list of frames that
+  ;; need to deal with modify-other-keys.
+  (push (frame-terminal (selected-frame))
+      xterm-modify-other-keys-terminal-list)
+  (xterm-turn-on-modify-other-keys))
 
 ;; Set up colors, for those versions of xterm that support it.
 (defvar xterm-standard-colors

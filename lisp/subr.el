@@ -92,7 +92,7 @@ Both SYMBOL and SPEC are unevaluated.  The SPEC can be:
 0 (instrument no arguments); t (instrument all arguments);
 a symbol (naming a function with an Edebug specification); or a list.
 The elements of the list describe the argument types; see
-\(info \"(elisp)Specification List\") for details."
+Info node `(elisp)Specification List' for details."
   `(put (quote ,symbol) 'edebug-form-spec (quote ,spec)))
 
 (defmacro lambda (&rest cdr)
@@ -490,6 +490,7 @@ SEQ must be a list, vector, or string.  The comparison is done with `equal'."
   "Return LIST with all occurrences of ELT removed.
 The comparison is done with `eq'.  Contrary to `delq', this does not use
 side-effects, and the argument LIST is not modified."
+  (while (eq elt (car list)) (setq list (cdr list)))
   (if (memq elt list)
       (delq elt (copy-sequence list))
     list))
@@ -591,31 +592,88 @@ Don't call this function; it is for internal use only."
     (dolist (p list)
       (funcall function (car p) (cdr p)))))
 
+(defun keymap--menu-item-binding (val)
+  "Return the binding part of a menu-item."
+  (cond
+   ((not (consp val)) val)              ;Not a menu-item.
+   ((eq 'menu-item (car val))
+    (let* ((binding (nth 2 val))
+           (plist (nthcdr 3 val))
+           (filter (plist-get plist :filter)))
+      (if filter (funcall filter binding)
+        binding)))
+   ((and (consp (cdr val)) (stringp (cadr val)))
+    (cddr val))
+   ((stringp (car val))
+    (cdr val))
+   (t val)))                            ;Not a menu-item either.
+
+(defun keymap--menu-item-with-binding (item binding)
+  "Build a menu-item like ITEM but with its binding changed to BINDING."
+  (cond
+   ((eq 'menu-item (car item))
+    (setq item (copy-sequence item))
+    (let ((tail (nthcdr 2 item)))
+      (setcar tail binding)
+      ;; Remove any potential filter.
+      (if (plist-get (cdr tail) :filter)
+          (setcdr tail (plist-put (cdr tail) :filter nil))))
+    item)
+   ((and (consp (cdr item)) (stringp (cadr item)))
+    (cons (car item) (cons (cadr item) binding)))
+   (t (cons (car item) binding))))
+
+(defun keymap--merge-bindings (val1 val2)
+  "Merge bindings VAL1 and VAL2."
+  (let ((map1 (keymap--menu-item-binding val1))
+        (map2 (keymap--menu-item-binding val2)))
+    (if (not (and (keymapp map1) (keymapp map2)))
+        ;; There's nothing to merge: val1 takes precedence.
+        val1
+      (let ((map (list 'keymap map1 map2))
+            (item (if (keymapp val1) (if (keymapp val2) nil val2) val1)))
+        (keymap--menu-item-with-binding item map)))))
+
 (defun keymap-canonicalize (map)
-  "Return an equivalent keymap, without inheritance."
+  "Return a simpler equivalent keymap.
+This resolves inheritance and redefinitions.  The returned keymap
+should behave identically to a copy of KEYMAP w.r.t `lookup-key'
+and use in active keymaps and menus.
+Subkeymaps may be modified but are not canonicalized."
+  ;; FIXME: Problem with the difference between a nil binding
+  ;; that hides a binding in an inherited map and a nil binding that's ignored
+  ;; to let some further binding visible.  Currently a nil binding hides all.
+  ;; FIXME: we may want to carefully (re)order elements in case they're
+  ;; menu-entries.
   (let ((bindings ())
         (ranges ())
 	(prompt (keymap-prompt map)))
     (while (keymapp map)
-      (setq map (map-keymap-internal
+      (setq map (map-keymap ;; -internal
                  (lambda (key item)
                    (if (consp key)
                        ;; Treat char-ranges specially.
                        (push (cons key item) ranges)
                      (push (cons key item) bindings)))
                  map)))
+    ;; Create the new map.
     (setq map (funcall (if ranges 'make-keymap 'make-sparse-keymap) prompt))
     (dolist (binding ranges)
-      ;; Treat char-ranges specially.
+      ;; Treat char-ranges specially.  FIXME: need to merge as well.
       (define-key map (vector (car binding)) (cdr binding)))
+    ;; Process the bindings starting from the end.
     (dolist (binding (prog1 bindings (setq bindings ())))
       (let* ((key (car binding))
              (item (cdr binding))
              (oldbind (assq key bindings)))
-        ;; Newer bindings override older.
-        (if oldbind (setq bindings (delq oldbind bindings)))
-        (when item                      ;nil bindings just hide older ones.
-          (push binding bindings))))
+        (push (if (not oldbind)
+                  ;; The normal case: no duplicate bindings.
+                  binding
+                ;; This is the second binding for this key.
+                (setq bindings (delq oldbind bindings))
+                (cons key (keymap--merge-bindings (cdr binding)
+                                                  (cdr oldbind))))
+              bindings)))
     (nconc map bindings)))
 
 (put 'keyboard-translate-table 'char-table-extra-slots 0)
@@ -1805,6 +1863,13 @@ Signal an error if the program returns with a non-zero exit status."
 	  (forward-line 1))
 	(nreverse lines)))))
 
+(defun process-live-p (process)
+  "Returns non-nil if PROCESS is alive.
+A process is considered alive if its status is `run', `open',
+`listen', `connect' or `stop'."
+  (memq (process-status process)
+        '(run open listen connect stop)))
+
 ;; compatibility
 
 (make-obsolete
@@ -2593,6 +2658,14 @@ Otherwise, return nil."
 	(get-char-property (1- (field-end pos)) 'field)
       raw-field)))
 
+(defun sha1 (object &optional start end binary)
+  "Return the SHA1 (Secure Hash Algorithm) of an OBJECT.
+OBJECT is either a string or a buffer.  Optional arguments START and
+END are character positions specifying which portion of OBJECT for
+computing the hash.  If BINARY is non-nil, return a string in binary
+form."
+  (secure-hash 'sha1 object start end binary))
+
 
 ;;;; Support for yanking and text properties.
 
@@ -2919,6 +2992,7 @@ with the buffer BUFNAME temporarily current.  It runs the hook
 buffer temporarily current, and the window that was used to display it
 temporarily selected.  But it doesn't run `temp-buffer-show-hook'
 if it uses `temp-buffer-show-function'."
+  (declare (debug t))
   (let ((old-dir (make-symbol "old-dir"))
         (buf (make-symbol "buf")))
     `(let* ((,old-dir default-directory)
@@ -3694,6 +3768,8 @@ echo area updates (default is 0.2 seconds.)  If the function
 `float-time' is not present, time is not tracked at all.  If the
 OS is not capable of measuring fractions of seconds, this
 parameter is effectively rounded up."
+  (when (string-match "[[:alnum:]]\\'" message)
+    (setq message (concat message "...")))
   (unless min-time
     (setq min-time 0.2))
   (let ((reporter

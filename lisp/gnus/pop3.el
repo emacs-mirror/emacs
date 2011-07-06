@@ -306,7 +306,8 @@ Returns the process associated with the connection."
 		    (t
 		     (or pop3-stream-type 'network)))
 	     :capability-command "CAPA\r\n"
-	     :end-of-command "^\\.\r?\n\\|^\\(-ERR\\|+OK \\).*\n"
+	     :end-of-command "^\\(-ERR\\|+OK \\).*\n"
+	     :end-of-capability "^\\.\r?\n\\|^-ERR"
 	     :success "^\\+OK.*\n"
 	     :return-list t
 	     :starttls-function
@@ -319,6 +320,7 @@ Returns the process associated with the connection."
 		(substring response (or (string-match "<" response) 0)
 			   (+ 1 (or (string-match ">" response) -1)))))
 	(pop3-set-process-query-on-exit-flag (car result) nil)
+	(erase-buffer)
 	(car result)))))
 
 ;; Support functions
@@ -514,6 +516,8 @@ Otherwise, return the size of the message-id MSG"
   (let ((start pop3-read-point) end)
     (with-current-buffer (process-buffer process)
       (while (not (re-search-forward "^\\.\r\n" nil t))
+	(unless (memq (process-status process) '(open run))
+	  (error "pop3 server closed the connection"))
 	(pop3-accept-process-output process)
 	(goto-char start))
       (setq pop3-read-point (point-marker))

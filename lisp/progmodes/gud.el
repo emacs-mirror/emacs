@@ -116,11 +116,11 @@ Used to grey out relevant toolbar icons.")
 	(display-buffer-reuse-frames t))
     (catch 'info-found
       (walk-windows
-       '(lambda (window)
-	  (if (eq (window-buffer window) (get-buffer "*info*"))
-	      (progn
-		(setq same-window-regexps nil)
-		(throw 'info-found nil))))
+       (lambda (window)
+         (if (eq (window-buffer window) (get-buffer "*info*"))
+             (progn
+               (setq same-window-regexps nil)
+               (throw 'info-found nil))))
        nil 0)
       (select-frame (make-frame)))
     (if (eq gud-minor-mode 'gdbmi)
@@ -1581,7 +1581,8 @@ and source-file directory for your debugger."
 ;; Last group is for return value, e.g. "> test.py(2)foo()->None"
 ;; Either file or function name may be omitted: "> <string>(0)?()"
 (defvar gud-pdb-marker-regexp
-  "^> \\([-a-zA-Z0-9_/.:\\]*\\|<string>\\)(\\([0-9]+\\))\\([a-zA-Z0-9_]*\\|\\?\\|<module>\\)()\\(->[^\n]*\\)?\n")
+  "^> \\([-a-zA-Z0-9_/.:\\]*\\|<string>\\)(\\([0-9]+\\))\\([a-zA-Z0-9_]*\\|\\?\\|<module>\\)()\\(->[^\n\r]*\\)?[\n\r]")
+
 (defvar gud-pdb-marker-regexp-file-group 1)
 (defvar gud-pdb-marker-regexp-line-group 2)
 (defvar gud-pdb-marker-regexp-fnname-group 3)

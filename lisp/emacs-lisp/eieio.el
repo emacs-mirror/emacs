@@ -1226,29 +1226,28 @@ IMPL is the symbol holding the method implementation."
 	(if (not (eieio-object-p (car local-args)))
 	    ;; Not an object.  Just signal.
 	    (signal 'no-method-definition
-                    (list ,(list 'quote method) local-args))
+                    (list ',method local-args))
 
 	  ;; We do have an object.  Make sure it is the right type.
 	  (if ,(if (eq class eieio-default-superclass)
-		   nil ; default superclass means just an obj.  Already asked.
+		   nil  ; default superclass means just an obj.  Already asked.
 		 `(not (child-of-class-p (aref (car local-args) object-class)
-					 ,(list 'quote class)))
-		 )
+					 ',class)))
 
 	      ;; If not the right kind of object, call no applicable
 	      (apply 'no-applicable-method (car local-args)
-		     ,(list 'quote method) local-args)
+		     ',method local-args)
 
 	    ;; It is ok, do the call.
 	    ;; Fill in inter-call variables then evaluate the method.
-	    (let ((scoped-class ,(list 'quote class))
+	    (let ((scoped-class ',class)
 		  (eieio-generic-call-next-method-list nil)
 		  (eieio-generic-call-key method-primary)
-		  (eieio-generic-call-methodname ,(list 'quote method))
+		  (eieio-generic-call-methodname ',method)
 		  (eieio-generic-call-arglst local-args)
 		  )
-	      (apply ,(list 'quote impl) local-args)
-	      ;(,impl local-args)
+	      (apply #',impl local-args)
+              ;;(,impl local-args)
 	      )))))))
 
 (defsubst eieio-defgeneric-reset-generic-form-primary-only-one (method)

@@ -44,12 +44,6 @@ static void insert_from_buffer_1 (struct buffer *buf,
 				  int inherit);
 static void gap_left (EMACS_INT charpos, EMACS_INT bytepos, int newgap);
 static void gap_right (EMACS_INT charpos, EMACS_INT bytepos);
-static void adjust_markers_for_insert (EMACS_INT from, EMACS_INT from_byte,
-				       EMACS_INT to, EMACS_INT to_byte,
-				       int before_markers);
-static void adjust_markers_for_replace (EMACS_INT, EMACS_INT, EMACS_INT,
-					EMACS_INT, EMACS_INT, EMACS_INT);
-static void adjust_point (EMACS_INT nchars, EMACS_INT nbytes);
 
 static Lisp_Object Fcombine_after_change_execute (void);
 
@@ -391,6 +385,12 @@ adjust_markers_for_replace (EMACS_INT from, EMACS_INT from_byte,
 }
 
 
+void
+buffer_overflow (void)
+{
+  error ("Maximum buffer size exceeded");
+}
+
 /* Make the gap NBYTES_ADDED bytes longer.  */
 
 static void
@@ -400,16 +400,16 @@ make_gap_larger (EMACS_INT nbytes_added)
   EMACS_INT real_gap_loc;
   EMACS_INT real_gap_loc_byte;
   EMACS_INT old_gap_size;
+  EMACS_INT current_size = Z_BYTE - BEG_BYTE + GAP_SIZE;
+  enum { enough_for_a_while = 2000 };
 
-  /* If we have to get more space, get enough to last a while.  */
-  nbytes_added += 2000;
+  if (BUF_BYTES_MAX - current_size < nbytes_added)
+    buffer_overflow ();
 
-  { EMACS_INT total_size = Z_BYTE - BEG_BYTE + GAP_SIZE + nbytes_added;
-    if (total_size < 0
-	/* Don't allow a buffer size that won't fit in a Lisp integer.  */
-	|| total_size != XINT (make_number (total_size)))
-      error ("Buffer exceeds maximum size");
-  }
+  /* If we have to get more space, get enough to last a while;
+     but do not exceed the maximum buffer size.  */
+  nbytes_added = min (nbytes_added + enough_for_a_while,
+		      BUF_BYTES_MAX - current_size);
 
   enlarge_buffer_text (current_buffer, nbytes_added);
 
@@ -569,37 +569,6 @@ copy_text (const unsigned char *from_addr, unsigned char *to_addr,
 	}
       return to_addr - initial_to_addr;
     }
-}
-
-/* Return the number of bytes it would take
-   to convert some single-byte text to multibyte.
-   The single-byte text consists of NBYTES bytes at PTR.  */
-
-EMACS_INT
-count_size_as_multibyte (const unsigned char *ptr, EMACS_INT nbytes)
-{
-  EMACS_INT i;
-  EMACS_INT outgoing_nbytes = 0;
-
-  for (i = 0; i < nbytes; i++)
-    {
-      unsigned int c = *ptr++;
-      int n;
-
-      if (ASCII_CHAR_P (c))
-	n = 1;
-      else
-	{
-	  c = BYTE8_TO_CHAR (c);
-	  n = CHAR_BYTES (c);
-	}
-
-      if (INT_ADD_OVERFLOW (outgoing_nbytes, n))
-	string_overflow ();
-      outgoing_nbytes += n;
-    }
-
-  return outgoing_nbytes;
 }
 
 /* Insert a string of specified length before point.
@@ -1094,7 +1063,6 @@ static void
 insert_from_buffer_1 (struct buffer *buf,
 		      EMACS_INT from, EMACS_INT nchars, int inherit)
 {
-  register Lisp_Object temp;
   EMACS_INT chunk, chunk_expanded;
   EMACS_INT from_byte = buf_charpos_to_bytepos (buf, from);
   EMACS_INT to_byte = buf_charpos_to_bytepos (buf, from + nchars);
@@ -1132,11 +1100,6 @@ insert_from_buffer_1 (struct buffer *buf,
 
       outgoing_nbytes = outgoing_before_gap + outgoing_after_gap;
     }
-
-  /* Make sure point-max won't overflow after this insertion.  */
-  XSETINT (temp, outgoing_nbytes + Z);
-  if (outgoing_nbytes + Z != XINT (temp))
-    error ("Maximum buffer size exceeded");
 
   /* Do this before moving and increasing the gap,
      because the before-change hooks might move the gap
@@ -1334,7 +1297,6 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
   EMACS_INT insbytes = SBYTES (new);
   EMACS_INT from_byte, to_byte;
   EMACS_INT nbytes_del, nchars_del;
-  register Lisp_Object temp;
   struct gcpro gcpro1;
   INTERVAL intervals;
   EMACS_INT outgoing_insbytes = insbytes;
@@ -1378,11 +1340,6 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
     outgoing_insbytes
       = count_size_as_multibyte (SDATA (new), insbytes);
 
-  /* Make sure point-max won't overflow after this insertion.  */
-  XSETINT (temp, Z_BYTE - nbytes_del + insbytes);
-  if (Z_BYTE - nbytes_del + insbytes != XINT (temp))
-    error ("Maximum buffer size exceeded");
-
   GCPRO1 (new);
 
   /* Make sure the gap is somewhere in or next to what we are deleting.  */
@@ -1414,8 +1371,8 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
   if (Z - GPT < END_UNCHANGED)
     END_UNCHANGED = Z - GPT;
 
-  if (GAP_SIZE < insbytes)
-    make_gap (insbytes - GAP_SIZE);
+  if (GAP_SIZE < outgoing_insbytes)
+    make_gap (outgoing_insbytes - GAP_SIZE);
 
   /* Copy the string text into the buffer, perhaps converting
      between single-byte and multibyte.  */
@@ -1513,7 +1470,6 @@ replace_range_2 (EMACS_INT from, EMACS_INT from_byte,
 		 int markers)
 {
   EMACS_INT nbytes_del, nchars_del;
-  Lisp_Object temp;
 
   CHECK_MARKERS ();
 
@@ -1522,11 +1478,6 @@ replace_range_2 (EMACS_INT from, EMACS_INT from_byte,
 
   if (nbytes_del <= 0 && insbytes == 0)
     return;
-
-  /* Make sure point-max won't overflow after this insertion.  */
-  XSETINT (temp, Z_BYTE - nbytes_del + insbytes);
-  if (Z_BYTE - nbytes_del + insbytes != XINT (temp))
-    error ("Maximum buffer size exceeded");
 
   /* Make sure the gap is somewhere in or next to what we are deleting.  */
   if (from > GPT)
@@ -2268,8 +2219,7 @@ syms_of_insdel (void)
 This affects `before-change-functions' and `after-change-functions',
 as well as hooks attached to text properties and overlays.  */);
   inhibit_modification_hooks = 0;
-  Qinhibit_modification_hooks = intern_c_string ("inhibit-modification-hooks");
-  staticpro (&Qinhibit_modification_hooks);
+  DEFSYM (Qinhibit_modification_hooks, "inhibit-modification-hooks");
 
   defsubr (&Scombine_after_change_execute);
 }

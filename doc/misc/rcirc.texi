@@ -509,8 +509,8 @@ This variable contains the default user name to report to the server.
 It defaults to the login name returned by @code{user-login-name}, just
 like @code{rcirc-default-nick}.
 
-@item rcirc-default-user-full-name
-@vindex rcirc-default-user-full-name
+@item rcirc-default-full-name
+@vindex rcirc-default-full-name
 @cindex full name
 @cindex real name
 @cindex surname
@@ -519,7 +519,7 @@ to the name returned by @code{user-full-name}.  If you want to hide
 your full name, you might want to set it to some pseudonym.
 
 @example
-(setq rcirc-default-user-full-name "Curious Minds Want To Know")
+(setq rcirc-default-full-name "Curious Minds Want To Know")
 @end example
 
 @item rcirc-authinfo
@@ -926,7 +926,7 @@ The real answer, therefore, is a @code{/reconnect} command:
        (delete-process process)
        (rcirc-connect server port nick
                       rcirc-default-user-name
-                      rcirc-default-user-full-name
+                      rcirc-default-full-name
                       channels))))
 @end smallexample
 

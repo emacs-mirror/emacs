@@ -253,9 +253,12 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
 	  else if (c == '_')
 	    *to++ = 037;
 	  else
-	    error ("\
+	    {
+	      unsigned char uc = c;
+	      error ("\
 Invalid data in documentation file -- %c followed by code %03o",
-		   1, (unsigned)c);
+		     1, uc);
+	    }
 	}
       else
 	*to++ = *from++;
@@ -942,8 +945,7 @@ a new string, without any text properties, is returned.  */)
 void
 syms_of_doc (void)
 {
-  Qfunction_documentation = intern_c_string ("function-documentation");
-  staticpro (&Qfunction_documentation);
+  DEFSYM (Qfunction_documentation, "function-documentation");
 
   DEFVAR_LISP ("internal-doc-file-name", Vdoc_file_name,
 	       doc: /* Name of file containing documentation strings of built-in symbols.  */);

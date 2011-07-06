@@ -832,13 +832,22 @@ prompt the user for the name of an NNTP server to use."
      gnus-current-startup-file)
    "-dribble"))
 
-(defun gnus-dribble-enter (string)
-  "Enter STRING into the dribble buffer."
+(defun gnus-dribble-enter (string &optional regexp)
+  "Enter STRING into the dribble buffer.
+If REGEXP is given, lines that match it will be deleted."
   (when (and (not gnus-dribble-ignore)
 	     gnus-dribble-buffer
 	     (buffer-name gnus-dribble-buffer))
     (let ((obuf (current-buffer)))
       (set-buffer gnus-dribble-buffer)
+      (when regexp
+	(goto-char (point-min))
+	(let (end)
+	  (while (re-search-forward regexp nil t)
+	    (unless (bolp) (forward-line 1))
+	    (setq end (point))
+	    (goto-char (match-beginning 0))
+	    (delete-region (point-at-bol) end))))
       (goto-char (point-max))
       (insert string "\n")
       ;; This has been commented by Josh Huber <huber@alum.wpi.edu>
@@ -1034,7 +1043,7 @@ If LEVEL is non-nil, the news will be set up at level LEVEL."
 
     ;; Find the number of unread articles in each non-dead group.
     (let ((gnus-read-active-file (and (not level) gnus-read-active-file)))
-      (gnus-get-unread-articles level))))
+      (gnus-get-unread-articles level dont-connect))))
 
 (defun gnus-call-subscribe-functions (method group)
   "Call METHOD to subscribe GROUP.
@@ -1354,8 +1363,8 @@ for new groups, and subscribe the new groups as zombies."
 	  (when (cdr entry)
 	    (setcdr (gnus-group-entry (caadr entry)) entry))
 	  (gnus-dribble-enter
-	   (format
-	    "(gnus-group-set-info '%S)" info)))))
+	   (format "(gnus-group-set-info '%S)" info)
+	   (concat "^(gnus-group-set-info '(\"" (regexp-quote group) "\"")))))
       (when gnus-group-change-level-function
 	(funcall gnus-group-change-level-function
 		 group level oldlevel previous)))))
@@ -1597,7 +1606,7 @@ If SCAN, request a scan of that group as well."
 
 ;; Go though `gnus-newsrc-alist' and compare with `gnus-active-hashtb'
 ;; and compute how many unread articles there are in each group.
-(defun gnus-get-unread-articles (&optional level)
+(defun gnus-get-unread-articles (&optional level dont-connect)
   (setq gnus-server-method-cache nil)
   (require 'gnus-agent)
   (let* ((newsrc (cdr gnus-newsrc-alist))
@@ -1693,12 +1702,13 @@ If SCAN, request a scan of that group as well."
 
     ;; If we have primary/secondary select methods, but no groups from
     ;; them, we still want to issue a retrieval request from them.
-    (dolist (method (cons gnus-select-method
-			  gnus-secondary-select-methods))
-      (when (and (not (assoc method type-cache))
-		 (gnus-check-backend-function 'request-list (car method)))
-	(with-current-buffer nntp-server-buffer
-	  (gnus-read-active-file-1 method nil))))
+    (unless dont-connect
+      (dolist (method (cons gnus-select-method
+			    gnus-secondary-select-methods))
+	(when (and (not (assoc method type-cache))
+		   (gnus-check-backend-function 'request-list (car method)))
+	  (with-current-buffer nntp-server-buffer
+	    (gnus-read-active-file-1 method nil)))))
 
     ;; Start early async retrieval of data.
     (let ((done-methods nil)

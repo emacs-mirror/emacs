@@ -1034,19 +1034,19 @@ articles in the thread.
         (widget-create
          'push-button
          :notify
-         '(lambda (&rest ignore)
-            (let* ((info (assq gnus-agent-cat-name gnus-category-alist))
-                   (widgets category-fields))
-              (while widgets
-                (let* ((widget (pop widgets))
-                       (value (condition-case nil (widget-value widget) (error))))
-                  (eval `(setf (,(widget-get widget :accessor) ',info)
-                               ',value)))))
-            (gnus-category-write)
-            (gnus-kill-buffer (current-buffer))
-            (when (get-buffer gnus-category-buffer)
-              (switch-to-buffer (get-buffer gnus-category-buffer))
-              (gnus-category-list)))
+         (lambda (&rest ignore)
+           (let* ((info (assq gnus-agent-cat-name gnus-category-alist))
+                  (widgets category-fields))
+             (while widgets
+               (let* ((widget (pop widgets))
+                      (value (condition-case nil (widget-value widget) (error))))
+                 (eval `(setf (,(widget-get widget :accessor) ',info)
+                              ',value)))))
+           (gnus-category-write)
+           (gnus-kill-buffer (current-buffer))
+           (when (get-buffer gnus-category-buffer)
+             (switch-to-buffer (get-buffer gnus-category-buffer))
+             (gnus-category-list)))
                        "Done")
         (widget-insert
          "\n    Note: Empty fields default to the customizable global\

@@ -419,10 +419,10 @@ It assumes that a log entry starts with a line matching
   (if (or (null arg) (zerop arg))
       (setq arg 1))
   (if (< arg 0)
-      (dotimes (n (- arg))
+      (dotimes (_n (- arg))
 	(log-view-end-of-defun))
     (catch 'beginning-of-buffer
-      (dotimes (n arg)
+      (dotimes (_n arg)
 	(or (log-view-current-entry nil t)
 	    (throw 'beginning-of-buffer nil)))
       (point))))

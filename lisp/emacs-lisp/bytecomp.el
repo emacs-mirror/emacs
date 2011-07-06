@@ -355,7 +355,7 @@ else the global value will be modified."
 (defvar byte-compile-interactive-only-functions
   '(beginning-of-buffer end-of-buffer replace-string replace-regexp
     insert-file insert-buffer insert-file-literally previous-line next-line
-    goto-line comint-run delete-backward-char)
+    goto-line comint-run delete-backward-char switch-to-buffer)
   "List of commands that are not meant to be called from Lisp.")
 
 (defvar byte-compile-not-obsolete-vars nil
@@ -1109,7 +1109,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
     (let* ((funcp (get symbol 'byte-obsolete-info))
 	   (obsolete (or funcp (get symbol 'byte-obsolete-variable)))
 	   (instead (car obsolete))
-	   (asof (if funcp (nth 2 obsolete) (cdr obsolete))))
+	   (asof (nth 2 obsolete)))
       (unless (and funcp (memq symbol byte-compile-not-obsolete-funcs))
 	(byte-compile-warn "`%s' is an obsolete %s%s%s" symbol
 			   (if funcp "function" "variable")
@@ -2892,8 +2892,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 That command is designed for interactive use only" fn))
         (if (and (fboundp (car form))
                  (eq (car-safe (symbol-function (car form))) 'macro))
-            (byte-compile-report-error
-             (format "Forgot to expand macro %s" (car form))))
+            (byte-compile-log-warning
+             (format "Forgot to expand macro %s" (car form)) nil :error))
         (if (and handler
                  ;; Make sure that function exists.  This is important
                  ;; for CL compiler macros since the symbol may be
@@ -2991,7 +2991,7 @@ That command is designed for interactive use only" fn))
     (cond
      ((<= (+ alen alen) fmax2)
       ;; Add missing &optional (or &rest) arguments.
-      (dotimes (i (- (/ (1+ fmax2) 2) alen))
+      (dotimes (_ (- (/ (1+ fmax2) 2) alen))
         (byte-compile-push-constant nil)))
      ((zerop (logand fmax2 1))
       (byte-compile-log-warning "Too many arguments for inlined function"
@@ -3016,20 +3016,24 @@ That command is designed for interactive use only" fn))
     (assert (eq byte-compile-depth (1+ start-depth))
             nil "Wrong depth start=%s end=%s" start-depth byte-compile-depth)))
 
-(defun byte-compile-check-variable (var &optional binding)
-  "Do various error checks before a use of the variable VAR.
-If BINDING is non-nil, VAR is being bound."
+(defun byte-compile-check-variable (var access-type)
+  "Do various error checks before a use of the variable VAR."
   (when (symbolp var)
     (byte-compile-set-symbol-position var))
   (cond ((or (not (symbolp var)) (byte-compile-const-symbol-p var))
 	 (when (byte-compile-warning-enabled-p 'constants)
-	   (byte-compile-warn (if binding
+	   (byte-compile-warn (if (eq access-type 'let-bind)
 				  "attempt to let-bind %s `%s`"
 				"variable reference to %s `%s'")
 			      (if (symbolp var) "constant" "nonvariable")
 			      (prin1-to-string var))))
-	((and (get var 'byte-obsolete-variable)
-	      (not (memq var byte-compile-not-obsolete-vars)))
+	((let ((od (get var 'byte-obsolete-variable)))
+           (and od
+                (not (memq var byte-compile-not-obsolete-vars))
+                (or (case (nth 1 od)
+                      (set (not (eq access-type 'reference)))
+                      (get (eq access-type 'reference))
+                      (t t)))))
 	 (byte-compile-warn-obsolete var))))
 
 (defsubst byte-compile-dynamic-variable-op (base-op var)
@@ -3041,13 +3045,13 @@ If BINDING is non-nil, VAR is being bound."
 
 (defun byte-compile-dynamic-variable-bind (var)
   "Generate code to bind the lexical variable VAR to the top-of-stack value."
-  (byte-compile-check-variable var t)
+  (byte-compile-check-variable var 'let-bind)
   (push var byte-compile-bound-variables)
   (byte-compile-dynamic-variable-op 'byte-varbind var))
 
 (defun byte-compile-variable-ref (var)
   "Generate code to push the value of the variable VAR on the stack."
-  (byte-compile-check-variable var)
+  (byte-compile-check-variable var 'reference)
   (let ((lex-binding (assq var byte-compile--lexical-environment)))
     (if lex-binding
 	;; VAR is lexically bound
@@ -3063,7 +3067,7 @@ If BINDING is non-nil, VAR is being bound."
 
 (defun byte-compile-variable-set (var)
   "Generate code to set the variable VAR from the top-of-stack value."
-  (byte-compile-check-variable var)
+  (byte-compile-check-variable var 'assign)
   (let ((lex-binding (assq var byte-compile--lexical-environment)))
     (if lex-binding
 	;; VAR is lexically bound
@@ -3525,9 +3529,9 @@ discarding."
 ;; and (funcall (function foo)) will lose with autoloads.
 
 (defun byte-compile-function-form (form)
-  (byte-compile-constant (if (symbolp (nth 1 form))
-                             (nth 1 form)
-                           (byte-compile-lambda (nth 1 form)))))
+  (byte-compile-constant (if (eq 'lambda (car-safe (nth 1 form)))
+                             (byte-compile-lambda (nth 1 form))
+                           (nth 1 form))))
 
 (defun byte-compile-indent-to (form)
   (let ((len (length form)))
@@ -4155,6 +4159,8 @@ binding slots have been popped."
 	    (if (eq fun 'defconst)
 		;; `defconst' sets `var' unconditionally.
 		(let ((tmp (make-symbol "defconst-tmp-var")))
+                  ;; Quote with `quote' to prevent byte-compiling the body,
+                  ;; which would lead to an inf-loop.
 		  `(funcall '(lambda (,tmp) (defconst ,var ,tmp))
 			    ,value))
 	      ;; `defvar' sets `var' only when unbound.
@@ -4238,6 +4244,25 @@ binding slots have been popped."
 (defun byte-compile-form-make-variable-buffer-local (form)
   (byte-compile-keep-pending form 'byte-compile-normal-call))
 
+(byte-defop-compiler-1 add-to-list byte-compile-add-to-list)
+(defun byte-compile-add-to-list (form)
+  ;; FIXME: This could be used for `set' as well, except that it's got
+  ;; its own opcode, so the final `byte-compile-normal-call' needs to
+  ;; be replaced with something else.
+  (pcase form
+    (`(,fun ',var . ,_)
+     (byte-compile-check-variable var 'assign)
+     (if (assq var byte-compile--lexical-environment)
+         (byte-compile-log-warning
+          (format "%s cannot use lexical var `%s'" fun var)
+          nil :error)
+       (unless (or (not (byte-compile-warning-enabled-p 'free-vars))
+                   (boundp var)
+                   (memq var byte-compile-bound-variables)
+                   (memq var byte-compile-free-references))
+         (byte-compile-warn "assignment to free variable `%S'" var)
+         (push var byte-compile-free-references)))))
+  (byte-compile-normal-call form))
 
 ;;; tags
 
