@@ -1,3 +1,45 @@
+2011-07-06  Kenichi Handa  <handa@m17n.org>
+
+	* character.h (unicode_category_t): New enum type.
+
+	* chartab.c (uniprop_decoder_t, uniprop_encoder_t): New types.
+	(Qchar_code_property_table): New variable.
+	(UNIPROP_TABLE_P, UNIPROP_GET_DECODER)
+	(UNIPROP_COMPRESSED_FORM_P): New macros.
+	(char_table_ascii): Uncompress the compressed values.
+	(sub_char_table_ref): New arg is_uniprop.  Callers changed.
+	Uncompress the compressed values.
+	(sub_char_table_ref_and_range):  Likewise.
+	(char_table_ref_and_range): Uncompress the compressed values.
+	(sub_char_table_set): New arg is_uniprop.  Callers changed.
+	Uncompress the compressed values.
+	(sub_char_table_set_range): Args changed.  Callers changed.
+	(char_table_set_range): Adjuted for the above change.
+	(map_sub_char_table): Delete args default_val and parent.  Add arg
+	top.  Give decoded values to a Lisp function.
+	(map_char_table): Adjusted for the above change.  Give decoded
+	values to a Lisp function.  Gcpro more variables.
+	(uniprop_table_uncompress)
+	(uniprop_decode_value_run_length): New functions.
+	(uniprop_decoder, uniprop_decoder_count): New variables.
+	(uniprop_get_decoder, uniprop_encode_value_character)
+	(uniprop_encode_value_run_length, uniprop_encode_value_numeric):
+	New functions.
+	(uniprop_encoder, uniprop_encoder_count): New variables.
+	(uniprop_get_encoder, uniprop_table)
+	(Funicode_property_table_internal, Fget_unicode_property_internal)
+	(Fput_unicode_property_internal): New functions.
+	(syms_of_chartab): DEFSYM Qchar_code_property_table, defsubr
+	Sunicode_property_table_internal, Sget_unicode_property_internal,
+	and Sput_unicode_property_internal. Defvar_lisp
+	char-code-property-alist.
+
+	* composite.c (CHAR_COMPOSABLE_P): Adjusted for the change of
+	Vunicode_category_table.
+
+	* font.c (font_range): Adjusted for the change of
+	Vunicode_category_table.
+
 2011-06-22  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fixes for GLYPH_DEBUG found by GCC 4.6.0 static checking.

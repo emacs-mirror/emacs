@@ -1,3 +1,39 @@
+2011-07-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el (build-unicode-category-table):
+	Delete it.
+	(unicode-category-table): Set it by
+	unicode-prroperty-table-internal.
+
+	* international/mule-cmds.el (char-code-property-alist): Moved to
+	to src/chartab.c.
+	(get-char-code-property): Call unicode-property-table-internal to
+	load a file.  Call get-unicode-property-internal where necessary.
+	(put-char-code-property): Call unicode-property-table-internal to
+	load a file.  Call put-unicode-property-internal where necessary.
+	put-unicode-property-internal where necessary.
+	(char-code-property-description): Call
+	unicode-property-table-internal to load a file.
+
+	* international/charprop.el:
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-combining.el:
+	* international/uni-comment.el:
+	* international/uni-decimal.el:
+	* international/uni-decomposition.el:
+	* international/uni-digit.el:
+	* international/uni-lowercase.el:
+	* international/uni-mirrored.el:
+	* international/uni-name.el:
+	* international/uni-numeric.el:
+	* international/uni-old-name.el:
+	* international/uni-titlecase.el:
+	* international/uni-uppercase.el: Regenerate.
+
+	* loadup.el: Load international/charprop.el before
+	international/characters.
+
 2011-06-22  Richard Stallman  <rms@gnu.org>
 
 	* mail/sendmail.el (mail-bury): If Rmail is in use, return nicely

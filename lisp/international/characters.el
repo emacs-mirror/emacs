@@ -1206,22 +1206,8 @@ Setup char-width-table appropriate for non-CJK language environment."
 
 ;;; Setting unicode-category-table.
 
-;; This macro is to build unicode-category-table at compile time so
-;; that C code can access the table efficiently.
-(defmacro build-unicode-category-table ()
-  (let ((table (make-char-table 'unicode-category-table nil)))
-    (dotimes (i #x110000)
-      (if (or (< i #xD800)
-	      (and (>= i #xF900) (< i #x30000))
-	      (and (>= i #xE0000) (< i #xE0200)))
-	  (aset table i (get-char-code-property i 'general-category))))
-    (set-char-table-range table '(#xE000 . #xF8FF) 'Co)
-    (set-char-table-range table '(#xF0000 . #xFFFFD) 'Co)
-    (set-char-table-range table '(#x100000 . #x10FFFD) 'Co)
-    (optimize-char-table table 'eq)
-    table))
-
-(setq unicode-category-table (build-unicode-category-table))
+(setq unicode-category-table
+      (unicode-property-table-internal 'general-category))
 (map-char-table #'(lambda (key val)
 		    (if (and val
 			     (or (and (/= (aref (symbol-name val) 0) ?M)
