@@ -1,3 +1,10 @@
+2011-07-06  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-process): Use markers for buf positions.
+	(rmail-mime-insert-bulk, rmail-mime-insert-text):
+	Treat markers like ints.
+	(rmail-mime-entity): Doc fix.
+
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-default-smtp-server): Made into a
