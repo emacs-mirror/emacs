@@ -1406,7 +1406,7 @@ Considers buffers closer to the car of `buffer-list' to be more recent."
 
 (defun dired-mark-sexp (predicate &optional unflag-p)
   "Mark files for which PREDICATE returns non-nil.
-With a prefix arg, unflag those files instead.
+With a prefix arg, unmark or unflag those files instead.
 
 PREDICATE is a lisp expression that can refer to the following symbols:
 

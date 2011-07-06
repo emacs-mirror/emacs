@@ -790,6 +790,12 @@ This function returns @var{arg} and has no side effects.
 This function ignores any arguments and returns @code{nil}.
 @end defun
 
+  Emacs Lisp functions can also be user-visible @dfn{commands}.  A
+command is a function that has an @dfn{interactive} specification.
+You may want to call these functions as if they were called
+interactively.  See @ref{Interactive Call} for details on how to do
+that.
+
 @node Mapping Functions
 @section Mapping Functions
 @cindex mapping functions

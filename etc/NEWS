@@ -130,8 +130,8 @@ difference), but if it were a direct list of user names and passwords,
 you will be prompted for the user name and the password instead, and
 they will then be saved to ~/.authinfo.
 
-** Similarly, if you had `smtpmail-starttls-credentials' set, then
-then you need to put
+** Similarly, `smtpmail-starttls-credentials' no longer exists.  If
+you had thet set, then then you need to put
 
 machine smtp.whatever.foo port 25 key "~/.my_smtp_tls.key" cert "~/.my_smtp_tls.cert"
 

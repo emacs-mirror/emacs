@@ -1,5 +1,37 @@
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* simple.el (shell-command-on-region): Fill.
+
+	* dired-aux.el (dired-kill-line): Add a doc string.
+
+	* dabbrev.el (dabbrev-abbrev-char-regexp): Note that nil defaults
+	to "\\sw\\|\\s_" (bug#358).
+
+	* dired.el (dired-mode): Clarify "unmark or unflag" (bug#8770).
+	(dired-unmark-backward): Ditto.
+	(dired-flag-backup-files): Ditto.
+
+	* dired-x.el (dired-mark-sexp): Ditto.
+
+2011-07-06  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmailmm.el: Give entity a new slot, TRUNCATED.
+	(rmail-mime-entity): New arg TRUNCATED.
+	(rmail-mime-entity-truncated, rmail-mime-entity-set-truncated):
+	New functions.
+	(rmail-mime-save): Warn if entity is truncated.
+	(rmail-mime-toggle-hidden): Likewise, for showing.
+	(rmail-mime-process-multipart): Record when an entity is truncated.
+
+	* mail/rmailmm.el (rmail-search-mime-message): Don't get confused
+	if ENTITY is a string.
+
+2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* emacs-lisp/lisp-mode.el (eval-defun-1): Update the documentation
+	of faces when `M-C-x'-ing their definitions (bug#8378).  Also
+	clean up the code slightly.
+
 	* progmodes/grep.el (rgrep): Don't bind `process-connection-type',
 	because that makes the colours go away.
 
