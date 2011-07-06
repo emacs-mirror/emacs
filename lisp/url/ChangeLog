@@ -1,3 +1,8 @@
+2011-07-06  Nick Dokos  <nicholas.dokos@hp.com>  (tiny change)
+
+	* url-cache.el (url-cache-extract): Set buffer multibyte flag to
+	nil (bug#8827).
+
 2011-07-03  Nicolas Avrutin  <nicolasavru@gmail.com>  (tiny change)
 
 	* url-http.el (url-http-create-request): Remove double carriage

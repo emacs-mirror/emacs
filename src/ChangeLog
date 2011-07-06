@@ -1,4 +1,4 @@
-2011-07-05  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume support for memcmp, memcpy, memmove, memset.
 	* lisp.h, sysdep.c (memcmp, memcpy, memmove, memset):
@@ -11,6 +11,52 @@
 	* lisp.h (struct vectorlike_header, struct Lisp_Subr):  Signed sizes.
 	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
 	well either way, and we prefer signed to unsigned.
+
+2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove unportable assumption about struct layout (Bug#8884).
+	* alloc.c (mark_buffer):
+	* buffer.c (reset_buffer_local_variables, Fbuffer_local_variables)
+	(clone_per_buffer_values): Don't assume that
+	sizeof (struct buffer) is a multiple of sizeof (Lisp_Object).
+	This isn't true in general, and it's particularly not true
+	if Emacs is configured with --with-wide-int.
+	* buffer.h (FIRST_FIELD_PER_BUFFER, LAST_FIELD_PER_BUFFER):
+	New macros, used in the buffer.c change.
+
+2011-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c: Use both GConf and GSettings if both are available.
+	(store_config_changed_event): Add comment.
+	(dpyinfo_valid, store_font_name_changed, map_tool_bar_style)
+	(store_tool_bar_style_changed): New functions.
+	(store_monospaced_changed): Add comment. Call dpyinfo_valid.
+	(struct xsettings): Move font inside HAVE_XFT.
+	(GSETTINGS_TOOL_BAR_STYLE, GSETTINGS_FONT_NAME): New defines.
+	(GSETTINGS_MONO_FONT): Renamed from SYSTEM_MONO_FONT.
+	Move inside HAVE_XFT.
+	(something_changed_gsettingsCB): Renamed from something_changedCB.
+	Check for changes in GSETTINGS_TOOL_BAR_STYLE and GSETTINGS_FONT_NAME
+	also.
+	(GCONF_TOOL_BAR_STYLE, GCONF_FONT_NAME): New defines.
+	(GCONF_MONO_FONT): Renamed from SYSTEM_MONO_FONT. Move inside HAVE_XFT.
+	(something_changed_gconfCB): Renamed from something_changedCB.
+	Check for changes in GCONF_TOOL_BAR_STYLE and GCONF_FONT_NAME also.
+	(parse_settings): Move check for font inside HAVE_XFT.
+	(read_settings, apply_xft_settings): Add comment.
+	(read_and_apply_settings): Add comment.  Call map_tool_bar_style and
+	store_tool_bar_style_changed.  Move check for font inside HAVE_XFT and
+	call store_font_name_changed.
+	(xft_settings_event): Add comment.
+	(init_gsettings): Add comment.  Get values for GSETTINGS_TOOL_BAR_STYLE
+	and GSETTINGS_FONT_NAME.  Move check for fonts within HAVE_XFT.
+	(init_gconf): Add comment.  Get values for GCONF_TOOL_BAR_STYLE
+	and GCONF_FONT_NAME.  Move check for fonts within HAVE_XFT.
+	(xsettings_initialize): Call init_gsettings last.
+	(xsettings_get_system_font, xsettings_get_system_normal_font): Add
+	comment.
+
+2011-07-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Random fixes.  E.g., (random) never returned negative values.
 	* fns.c (Frandom): Use GET_EMACS_TIME for random seed, and add the
@@ -153,7 +199,7 @@
 	with value as argument.
 	(init_gsettings): Check that GSETTINGS_SCHEMA exists before calling
 	g_settings_new (Bug#8967).  Do not create gsettings_obj.
-	Remove calls to g_settings_bind. Connect something_changedCB to
+	Remove calls to g_settings_bind.  Connect something_changedCB to
 	"changed".
 
 	* xgselect.c: Add defined (HAVE_GSETTINGS).
@@ -250,8 +296,8 @@
 	min_width/height (Bug#8919).
 
 	* gtkutil.c (xg_create_frame_widgets): Pass f to emacs_fixed_new.
-	(x_wm_set_size_hint): Remove call to emacs_fixed_set_min_size. Fix
-	indentation.
+	(x_wm_set_size_hint): Remove call to emacs_fixed_set_min_size.
+	Fix indentation.
 
 2011-06-26  Eli Zaretskii  <eliz@gnu.org>
 
@@ -1812,7 +1858,7 @@
 	and %.0c.  Fix bug with strchr succeeding on '\0' when looking for
 	flags.  Fix bug with (format "%c" 256.0).  Avoid integer overflow when
 	formatting out-of-range floating point numbers with int
-	formats. (Bug#8668)
+	formats.  (Bug#8668)
 
 	* lisp.h (FIXNUM_OVERFLOW_P): Work even if arg is a NaN.
 
@@ -2776,9 +2822,9 @@
 	:verify-hostname-error, :verify-error, and :verify-flags
 	parameters of `gnutls-boot' and documented those parameters in the
 	docstring.  Start callback support.
-	(emacs_gnutls_handshake): Add Woe32 support. Retry handshake
-	unless a fatal error occured. Call gnutls_alert_send_appropriate
-	on error. Return error code.
+	(emacs_gnutls_handshake): Add Woe32 support.  Retry handshake
+	unless a fatal error occurred.  Call gnutls_alert_send_appropriate
+	on error.  Return error code.
 	(emacs_gnutls_write): Call emacs_gnutls_handle_error.
 	(emacs_gnutls_read): Likewise.
 	(Fgnutls_boot): Return handshake error code.

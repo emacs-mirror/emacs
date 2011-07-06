@@ -966,8 +966,7 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
       (setq dir default-directory))
     (if (null files)
 	(if (not (string= regexp grep-find-command))
-	    (let ((process-connection-type nil))
-	      (compilation-start regexp 'grep-mode)))
+	    (compilation-start regexp 'grep-mode))
       (setq dir (file-name-as-directory (expand-file-name dir)))
       (require 'find-dired)		; for `find-name-arg'
       (let ((command (grep-expand-template

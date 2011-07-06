@@ -525,7 +525,6 @@ if that value is non-nil."
   "Keymap for Lisp Interaction mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
 
-(defvar lisp-interaction-mode-abbrev-table lisp-mode-abbrev-table)
 (define-derived-mode lisp-interaction-mode emacs-lisp-mode "Lisp Interaction"
   "Major mode for typing and evaluating Lisp forms.
 Like Lisp mode except that \\[eval-print-last-sexp] evals the Lisp expression
@@ -790,25 +789,25 @@ Reinitialize the face according to the `defface' specification."
 	;; `defface' is macroexpanded to `custom-declare-face'.
 	((eq (car form) 'custom-declare-face)
 	 ;; Reset the face.
-	 (setq face-new-frame-defaults
-	       (assq-delete-all (eval (nth 1 form) lexical-binding)
-                                face-new-frame-defaults))
-	 (put (eval (nth 1 form) lexical-binding) 'face-defface-spec nil)
-	 ;; Setting `customized-face' to the new spec after calling
-	 ;; the form, but preserving the old saved spec in `saved-face',
-	 ;; imitates the situation when the new face spec is set
-	 ;; temporarily for the current session in the customize
-	 ;; buffer, thus allowing `face-user-default-spec' to use the
-	 ;; new customized spec instead of the saved spec.
-	 ;; Resetting `saved-face' temporarily to nil is needed to let
-	 ;; `defface' change the spec, regardless of a saved spec.
-	 (prog1 `(prog1 ,form
-		   (put ,(nth 1 form) 'saved-face
-			',(get (eval (nth 1 form) lexical-binding)
-                               'saved-face))
-		   (put ,(nth 1 form) 'customized-face
-			,(nth 2 form)))
-	   (put (eval (nth 1 form) lexical-binding) 'saved-face nil)))
+	 (let ((face-symbol (eval (nth 1 form) lexical-binding)))
+	   (setq face-new-frame-defaults
+		 (assq-delete-all face-symbol face-new-frame-defaults))
+	   (put face-symbol 'face-defface-spec nil)
+	   (put face-symbol 'face-documentation (nth 3 form))
+	   ;; Setting `customized-face' to the new spec after calling
+	   ;; the form, but preserving the old saved spec in `saved-face',
+	   ;; imitates the situation when the new face spec is set
+	   ;; temporarily for the current session in the customize
+	   ;; buffer, thus allowing `face-user-default-spec' to use the
+	   ;; new customized spec instead of the saved spec.
+	   ;; Resetting `saved-face' temporarily to nil is needed to let
+	   ;; `defface' change the spec, regardless of a saved spec.
+	   (prog1 `(prog1 ,form
+		     (put ,(nth 1 form) 'saved-face
+			  ',(get face-symbol 'saved-face))
+		     (put ,(nth 1 form) 'customized-face
+			  ,(nth 2 form)))
+	     (put face-symbol 'saved-face nil))))
 	((eq (car form) 'progn)
 	 (cons 'progn (mapcar 'eval-defun-1 (cdr form))))
 	(t form)))

@@ -192,6 +192,7 @@ Very fast if you have an `md5' primitive function, suitably fast otherwise."
 (defun url-cache-extract (fnam)
   "Extract FNAM from the local disk cache."
   (erase-buffer)
+  (set-buffer-multibyte nil)
   (insert-file-contents-literally fnam))
 
 (defun url-cache-expired (url &optional expire-time)

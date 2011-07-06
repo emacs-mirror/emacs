@@ -130,8 +130,8 @@ difference), but if it were a direct list of user names and passwords,
 you will be prompted for the user name and the password instead, and
 they will then be saved to ~/.authinfo.
 
-** Similarly, if you had `smtpmail-starttls-credentials' set, then
-then you need to put
+** Similarly, `smtpmail-starttls-credentials' no longer exists.  If
+you had thet set, then then you need to put
 
 machine smtp.whatever.foo port 25 key "~/.my_smtp_tls.key" cert "~/.my_smtp_tls.cert"
 
@@ -474,6 +474,11 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 ** Modula-2 mode provides auto-indentation.
 
 ** BibTeX mode
+
+*** BibTeX mode now supports biblatex.
+Use the variable bibtex-dialect to select support for different BibTeX dialects.
+bibtex-entry-field-alist is now an obsolete alias for
+bibtex-BibTeX-entry-alist.
 
 *** New command `bibtex-search-entries' bound to C-c C-a.
 
@@ -856,6 +861,13 @@ Notifications API.  It requires D-Bus for communication.
 soap-inspect.el is an interactive inspector for SOAP WSDL structures.
 
 ** xmodmap-generic-mode for xmodmap files.
+
+** New emacs-lock.el package.
+(The pre-existing one has been renamed to old-emacs-lock.el and moved
+to obsolete/.)  Now, Emacs Lock is a proper minor mode
+`emacs-lock-mode'.  Protection against exiting Emacs and killing the
+buffer can be set separately.  The mechanism for auto turning off
+protection for buffers with inferior processes has been generalized.
 
 
 * Incompatible Lisp Changes in Emacs 24.1

@@ -1812,7 +1812,7 @@ Type \\[dired-mark] to Mark a file or subdirectory for later commands.
   Mark-using commands display a list of failures afterwards.  Type \\[dired-summary]
   to see why something went wrong.
 Type \\[dired-unmark] to Unmark a file or all files of an inserted subdirectory.
-Type \\[dired-unmark-backward] to back up one line and unflag.
+Type \\[dired-unmark-backward] to back up one line and unmark or unflag.
 Type \\[dired-do-flagged-delete] to delete (eXecute) the files flagged `D'.
 Type \\[dired-find-file] to Find the current line's file
   (or dired it in another buffer, if it is a directory).
@@ -3028,8 +3028,9 @@ If on a subdir headerline, mark all its files except `.' and `..'."
     (dired-mark arg)))
 
 (defun dired-unmark-backward (arg)
-  "In Dired, move up lines and remove deletion flag there.
-Optional prefix ARG says how many lines to unflag; default is one line."
+  "In Dired, move up lines and remove marks or deletion flags there.
+Optional prefix ARG says how many lines to unmark/unflag; default
+is one line."
   (interactive "p")
   (dired-unmark (- arg)))
 
@@ -3123,14 +3124,14 @@ The match is against the non-directory part of the filename.  Use `^'
 
 (defun dired-mark-symlinks (unflag-p)
   "Mark all symbolic links.
-With prefix argument, unflag all those files."
+With prefix argument, unmark or unflag all those files."
   (interactive "P")
   (let ((dired-marker-char (if unflag-p ?\040 dired-marker-char)))
     (dired-mark-if (looking-at dired-re-sym) "symbolic link")))
 
 (defun dired-mark-directories (unflag-p)
   "Mark all directory file lines except `.' and `..'.
-With prefix argument, unflag all those files."
+With prefix argument, unmark or unflag all those files."
   (interactive "P")
   (let ((dired-marker-char (if unflag-p ?\040 dired-marker-char)))
     (dired-mark-if (and (looking-at dired-re-dir)
@@ -3139,7 +3140,7 @@ With prefix argument, unflag all those files."
 
 (defun dired-mark-executables (unflag-p)
   "Mark all executable files.
-With prefix argument, unflag all those files."
+With prefix argument, unmark or unflag all those files."
   (interactive "P")
   (let ((dired-marker-char (if unflag-p ?\040 dired-marker-char)))
     (dired-mark-if (looking-at dired-re-exe) "executable file")))
@@ -3149,7 +3150,7 @@ With prefix argument, unflag all those files."
 
 (defun dired-flag-auto-save-files (&optional unflag-p)
   "Flag for deletion files whose names suggest they are auto save files.
-A prefix argument says to unflag those files instead."
+A prefix argument says to unmark or unflag those files instead."
   (interactive "P")
   (let ((dired-marker-char (if unflag-p ?\040 dired-del-marker)))
     (dired-mark-if
@@ -3189,7 +3190,7 @@ A prefix argument says to unflag those files instead."
 
 (defun dired-flag-backup-files (&optional unflag-p)
   "Flag all backup files (names ending with `~') for deletion.
-With prefix argument, unflag these files."
+With prefix argument, unmark or unflag these files."
   (interactive "P")
   (let ((dired-marker-char (if unflag-p ?\s dired-del-marker)))
     (dired-mark-if
@@ -3642,7 +3643,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "65e65633e08c3e4b4a4b1c735f2f48b8")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "d7b197829c8d456cc5bc6c5fdab7c4b0")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\

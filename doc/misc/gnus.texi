@@ -1302,6 +1302,10 @@ subscribing these groups.
 @code{gnus-subscribe-options-newsgroup-method} is used instead.  This
 variable defaults to @code{gnus-subscribe-alphabetically}.
 
+The ``options -n'' format is very simplistic.  The syntax above is all
+that is supports -- you can force-subscribe hierarchies, or you can
+deny hierarchies, and that's it.
+
 @vindex gnus-options-not-subscribe
 @vindex gnus-options-subscribe
 If you don't want to mess with your @file{.newsrc} file, you can just
@@ -15648,14 +15652,16 @@ will remain on your system until hell freezes over.  This bears
 repeating one more time, with some spurious capitalizations: IF you do
 NOT mark articles as EXPIRABLE, Gnus will NEVER delete those ARTICLES.
 
+@vindex gnus-auto-expirable-marks
 You do not have to mark articles as expirable by hand.  Gnus provides
 two features, called ``auto-expire'' and ``total-expire'', that can help you
 with this.  In a nutshell, ``auto-expire'' means that Gnus hits @kbd{E}
 for you when you select an article.  And ``total-expire'' means that Gnus
 considers all articles as expirable that are read.  So, in addition to
 the articles marked @samp{E}, also the articles marked @samp{r},
-@samp{R}, @samp{O}, @samp{K}, @samp{Y} and so on are considered
-expirable.
+@samp{R}, @samp{O}, @samp{K}, @samp{Y} (and so on) are considered
+expirable.  @code{gnus-auto-expirable-marks} has the full list of
+these marks.
 
 When should either auto-expire or total-expire be used?  Most people
 who are subscribed to mailing lists split each list into its own group
@@ -19004,9 +19010,8 @@ that you're running out of space.  Neither are particularly fast or
 efficient, and it's not a particularly good idea to interrupt them (with
 @kbd{C-g} or anything else) once you've started one of them.
 
-Note that other functions, e.g. @code{gnus-request-expire-articles},
-might run @code{gnus-agent-expire} for you to keep the agent
-synchronized with the group.
+Note that other functions might run @code{gnus-agent-expire} for you
+to keep the agent synchronized with the group.
 
 The agent parameter @code{agent-enable-expiration} may be used to
 prevent expiration in selected groups.

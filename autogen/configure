@@ -11166,7 +11166,7 @@ $as_echo "#define HAVE_GSETTINGS 1" >>confdefs.h
 fi
 
 HAVE_GCONF=no
-if test "${HAVE_GSETTINGS}" = "no" && test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
+if test "${HAVE_X11}" = "yes" && test "${with_gconf}" = "yes"; then
 
   succeeded=no
 
@@ -11265,8 +11265,8 @@ $as_echo "no" >&6; }
 
 $as_echo "#define HAVE_GCONF 1" >>confdefs.h
 
-            SETTINGS_CFLAGS="$GCONF_CFLAGS"
-      SETTINGS_LIBS="$GCONF_LIBS"
+            SETTINGS_CFLAGS="$SETTINGS_CFLAGS $GCONF_CFLAGS"
+      SETTINGS_LIBS="$SETTINGS_LIBS $GCONF_LIBS"
    fi
 fi
 

@@ -1,3 +1,15 @@
+2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Clarify that `smtpmail-starttls-credentials' doesn't exist.
+
+2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Document new emacs-lock.el and renaming of old one.
+
+2011-07-05  Manoj Srivastava  <srivasta@ieee.org>
+
+	* themes/manoj-dark-theme.el (manoj-dark): New file.
+
 2011-03-29  Kevin Ryde  <user42@zip.com.au>
 
 	* compilation.txt (perl-Test2): New samples.

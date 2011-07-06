@@ -699,6 +699,9 @@ can be produced by `dired-get-marked-files', for example."
 ;; Commands that delete or redisplay part of the dired buffer.
 
 (defun dired-kill-line (&optional arg)
+  "Kill the current line (not the files).
+With a prefix argument, kill that many lines starting with the current line.
+\(A negative argument kills backward.)"
   (interactive "P")
   (setq arg (prefix-numeric-value arg))
   (let (buffer-read-only file)
@@ -1008,7 +1011,7 @@ See Info node `(emacs)Subdir switches' for more details."
     (dired-uncache
      (if (consp dired-directory) (car dired-directory) dired-directory))
     (dired-map-over-marks (let ((fname (dired-get-filename))
-				;; Postphone readin hook till we map
+				;; Postpone readin hook till we map
 				;; over all marked files (Bug#6810).
 				(dired-after-readin-hook nil))
 			    (message "Redisplaying... %s" fname)

@@ -1,3 +1,219 @@
+2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-default-smtp-server): Made into a
+	defcustom again for backwards compatibility.
+
+	* simple.el (shell-command-on-region): Fill.
+
+	* dired-aux.el (dired-kill-line): Add a doc string.
+
+	* dabbrev.el (dabbrev-abbrev-char-regexp): Note that nil defaults
+	to "\\sw\\|\\s_" (bug#358).
+
+	* dired.el (dired-mode): Clarify "unmark or unflag" (bug#8770).
+	(dired-unmark-backward): Ditto.
+	(dired-flag-backup-files): Ditto.
+
+	* dired-x.el (dired-mark-sexp): Ditto.
+
+2011-07-06  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmailmm.el: Give entity a new slot, TRUNCATED.
+	(rmail-mime-entity): New arg TRUNCATED.
+	(rmail-mime-entity-truncated, rmail-mime-entity-set-truncated):
+	New functions.
+	(rmail-mime-save): Warn if entity is truncated.
+	(rmail-mime-toggle-hidden): Likewise, for showing.
+	(rmail-mime-process-multipart): Record when an entity is truncated.
+
+	* mail/rmailmm.el (rmail-search-mime-message): Don't get confused
+	if ENTITY is a string.
+
+2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* emacs-lisp/lisp-mode.el (eval-defun-1): Update the documentation
+	of faces when `M-C-x'-ing their definitions (bug#8378).  Also
+	clean up the code slightly.
+
+	* progmodes/grep.el (rgrep): Don't bind `process-connection-type',
+	because that makes the colours go away.
+
+	* mail/sendmail.el (send-mail-function): Change the default to
+	`sendmail-query-once'.
+	(sendmail-query-once): Add an autoload cookie.
+
+	* net/network-stream.el (network-stream-open-starttls): Try using
+	a plain connection even if the server offered STARTTLS, and we
+	kinda wanted to use it, if Emacs doesn't have any STARTTLS
+	capability.  This should make smtpmail.el work in slightly more
+	configurations.
+
+2011-07-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (tramp-compat-pop-to-buffer-same-window):
+	New defun.
+	* net/tramp-cmds.el (tramp-append-tramp-buffers): Use it.
+
+2011-07-06  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 3.0
+	(sql-product-alist): Added product :completion-object,
+	:completion-column, and :statement attributes.
+	(sql-mode-menu, sql-interactive-mode-map): Fixed List entries.
+	(sql-mode-syntax-table): Mark all punctuation.
+	(sql-font-lock-keywords-builder): Temporarily removed fallback on
+	ansi keywords.
+	(sql-regexp-abbrev, sql-regexp-abbrev-list): New functions.
+	(sql-mode-oracle-font-lock-keywords): Improved.
+	(sql-oracle-show-reserved-words): New function for development.
+	(sql-product-font-lock): Simplify for source code buffers.
+	(sql-product-syntax-table, sql-product-font-lock-syntax-alist):
+	New functions.
+	(sql-highlight-product): Set product specific syntax table.
+	(sql-mode-map): Added statement movement functions.
+	(sql-ansi-statement-starters, sql-oracle-statement-starters): New
+	variable.
+	(sql-statement-regexp, sql-beginning-of-statement)
+	(sql-end-of-statement, sql-signum): New functions.
+	(sql-buffer-live-p, sql=find-sqli-buffer): Added CONNECTION
+	parameter.
+	(sql-show-sqli-buffer): Bug fix.
+	(sql-interactive-mode): Store connection data as buffer local.
+	(sql-connect): Added NEW-NAME parameter.  Redesigned interaction
+	with sql-interactive-mode.
+	(sql-save-connection): Save buffer local settings.
+	(sql-connection-menu-filter): Changed menu entry name.
+	(sql-product-interactive): Bug fix.
+	(sql-preoutput-hold): New variable.
+	(sql-interactive-remove-continuation-prompt): Bug fixes.
+	(sql-debug-redirect): New variable.
+	(sql-str-literal): New function.
+	(sql-redirect, sql-redirect-one, sql-redirect-value, sql-execute):
+	Redesigned.
+	(sql-oracle-save-settings, sql-oracle-restore-settings)
+	(sql-oracle-list-all, sql-oracle-list-table): New functions.
+	(sql-completion-object, sql-completion-column)
+	(sql-completion-sqlbuf): New variables.
+	(sql-build-completions-1, sql-build-completions)
+	(sql-try-completion): New functions.
+	(sql-read-table-name): Use them.
+	(sql-contains-names): New buffer local variable.
+	(sql-list-all, sql-list-table): Use it.
+	(sql-oracle-completion-types): New variable.
+	(sql-oracle-completion-object, sql-sqlite-completion-object)
+	(sql-postgres-completion-object): New functions.
+
+2011-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* window.el (pop-to-buffer): Doc fix.
+
+2011-07-06  Markus Heiser  <markus.heiser@darmarit.de>  (tiny change)
+
+	* progmodes/gud.el (gud-pdb-marker-regexp): Accept \r char (Bug#5653).
+
+2011-07-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (special-display-popup-frame): Doc fix (Bug#8853).
+
+	* info.el (Info-directory-toc-nodes): Minor doc fix (Bug#8833).
+
+2011-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* button.el (button): Inherit from link face.  Suggested by Dan
+	Nicolaescu.
+
+2011-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gdb-mi.el: Fit in 80 columns.
+	(gdb-setup-windows, gdb-restore-windows): Avoid other-window and
+	switch-to-buffer.
+
+	* progmodes/which-func.el (which-func-ff-hook): Don't output a message
+	if imenu is simply not configured (bug#8941).
+
+2011-07-05  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-post-undo-hook): New allout outline-change
+	event hook to signal undo activity.
+	(allout-post-command-business): Run allout-post-undo-hook if an
+	undo just occurred.
+	(allout-after-copy-or-kill-hook, allout-mode): Minor docstring changes.
+	* allout-widgets.el (allout-widgets-after-undo-function):
+	Ensure the integrity of the current item's decoration after it has been
+	in the vicinity of an undo.
+	(allout-widgets-mode): Include allout-widgets-after-undo-function
+	on the new allout-post-undo-hook.
+
+2011-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (lisp-interaction-mode-abbrev-table):
+	Let define-derived-mode define it.
+	* emacs-lisp/derived.el (define-derived-mode): Try to avoid creating
+	cycles of abbrev-table inheritance (bug#8998).
+
+2011-07-05  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el: Add support for biblatex.
+	(bibtex-BibTeX-entry-alist, bibtex-biblatex-entry-alist)
+	(bibtex-BibTeX-field-alist, bibtex-biblatex-field-alist)
+	(bibtex-dialect-list, bibtex-dialect, bibtex-no-opt-remove-re)
+	(bibtex-entry-alist, bibtex-field-alist): New variables.
+	(bibtex-entry-field-alist): Obsolete alias for
+	bibtex-BibTeX-entry-alist.
+	(bibtex-entry-alist, bibtex-field-alist): New widgets.
+	(bibtex-set-dialect): New command.
+	(bibtex-entry-type, bibtex-entry-head)
+	(bibtex-entry-maybe-empty-head, bibtex-any-valid-entry-type):
+	Bind via bibtex-set-dialect.
+	(bibtex-Article, bibtex-Book, bibtex-Booklet, bibtex-InBook)
+	(bibtex-InCollection, bibtex-InProceedings, bibtex-Manual)
+	(bibtex-MastersThesis, bibtex-Misc, bibtex-PhdThesis)
+	(bibtex-Proceedings, bibtex-TechReport, bibtex-Unpublished):
+	Define via bibtex-set-dialect.
+	(bibtex-name-in-field, bibtex-remove-OPT-or-ALT):
+	Obey bibtex-no-opt-remove-re.
+	(bibtex-vec-push, bibtex-vec-incr): New functions.
+	(bibtex-format-entry, bibtex-field-list)
+	(bibtex-print-help-message, bibtex-validate)
+	(bibtex-search-entries): Use new format of bibtex-entry-alist.
+
+2011-07-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-goto-locus):
+	* net/tramp-cmds.el (tramp-append-tramp-buffers):
+	* bs.el (bs-cycle-next, bs-cycle-previous):
+	* bookmark.el (bookmark-bmenu-list, bookmark-bmenu-2-window):
+	* bindings.el (mode-line-other-buffer):
+	* autoinsert.el (auto-insert):
+	* arc-mode.el (archive-extract):
+	* abbrev.el (edit-abbrevs): Fix some uses of switch-to-buffer.
+
+2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lock.el (emacs-lock-mode): Fix typo in variable name.
+	Fix check of `emacs-lock-unlockable-modes'.
+	Coerce true values of `emacs-lock--try-unlocking' to t.
+
+2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* obsolete/old-emacs-lock.el: Rename from emacs-lock.el.
+	* emacs-lock.el: New file.
+
+2011-07-05  Julien Danjou  <julien@danjou.info>
+
+	* textmodes/rst.el (rst-define-level-faces): Use `facep' rather
+	than `boundp' to check if face is set.
+
+2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* register.el (registerv-make):
+	* window.el (window-min-height): Fix typos in docstrings.
+
+2011-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* dynamic-setting.el (dynamic-setting-handle-config-changed-event):
+	Update doc string.
+
 2011-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-execute): Catch quit and call
@@ -38,8 +254,8 @@
 	according to whether there are or aren't any plain-text topics
 	pending encryption.
 
-	(allout-inhibit-auto-save-info-for-decryption): Adjust
-	buffer-saved-size and some allout state to inhibit auto-saves if
+	(allout-inhibit-auto-save-info-for-decryption):
+	Adjust buffer-saved-size and some allout state to inhibit auto-saves if
 	there are plain-text topics pending encryption.
 
 	(allout-maybe-resume-auto-save-info-after-encryption): Adjust

@@ -1539,9 +1539,7 @@ deletion, or > if it is flagged for displaying."
   (bookmark-maybe-load-default-file)
   (let ((buf (get-buffer-create "*Bookmark List*")))
     (if (called-interactively-p 'interactive)
-        (if (or (window-dedicated-p) (window-minibuffer-p))
-            (pop-to-buffer buf)
-          (switch-to-buffer buf))
+        (pop-to-buffer-same-window buf)
       (set-buffer buf)))
   (let ((inhibit-read-only t))
     (erase-buffer)
@@ -1843,7 +1841,8 @@ With a prefix arg, prompts for a file to save them in."
         (menu (current-buffer))
         (pop-up-windows t))
     (delete-other-windows)
-    (switch-to-buffer (other-buffer))
+    (with-no-warnings ; We really do want to call `switch-to-buffer' here.
+      (switch-to-buffer (other-buffer)))
     (bookmark--jump-via bmrk 'pop-to-buffer)
     (bury-buffer menu)))
 

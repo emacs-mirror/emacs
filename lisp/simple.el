@@ -2533,7 +2533,8 @@ specifies the value of ERROR-BUFFER."
 			    (< 0 (nth 7 (file-attributes error-file))))
 		       (format "some error output%s"
 			       (if shell-command-default-error-buffer
-				   (format " to the \"%s\" buffer" shell-command-default-error-buffer)
+				   (format " to the \"%s\" buffer"
+					   shell-command-default-error-buffer)
 				 ""))
 		     "no output")))
 	      (cond ((null exit-status)

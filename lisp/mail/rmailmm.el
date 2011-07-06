@@ -153,20 +153,21 @@ MIME entities.")
 ;;; MIME-entity object
 
 (defun rmail-mime-entity (type disposition transfer-encoding
-			       display header tagline body children handler)
+			       display header tagline body children handler
+			       &optional truncated)
   "Retrun a newly created MIME-entity object from arguments.
 
-A MIME-entity is a vector of 9 elements:
+A MIME-entity is a vector of 10 elements:
 
   [TYPE DISPOSITION TRANSFER-ENCODING DISPLAY HEADER TAGLINE BODY
-   CHILDREN HANDLER]
+   CHILDREN HANDLER TRUNCATED]
 
 TYPE and DISPOSITION correspond to MIME headers Content-Type and
-Cotent-Disposition respectively, and has this format:
+Content-Disposition respectively, and have this format:
 
   \(VALUE (ATTRIBUTE . VALUE) (ATTRIBUTE . VALUE) ...)
 
-VALUE is a string and ATTRIBUTE is a symbol.
+Each VALUE is a string and each ATTRIBUTE is a string.
 
 Consider the following header, for example:
 
@@ -208,9 +209,12 @@ entity have one or more children.  A \"message/rfc822\" entity
 has just one child.  Any other entity has no child.
 
 HANDLER is a function to insert the entity according to DISPLAY.
-It is called with one argument ENTITY."
+It is called with one argument ENTITY.
+
+TRUNCATED is non-nil if the text of this entity was truncated."
+
   (vector type disposition transfer-encoding
-	  display header tagline body children handler))
+	  display header tagline body children handler truncated))
 
 ;; Accessors for a MIME-entity object.
 (defsubst rmail-mime-entity-type (entity) (aref entity 0))
@@ -222,6 +226,9 @@ It is called with one argument ENTITY."
 (defsubst rmail-mime-entity-body (entity) (aref entity 6))
 (defsubst rmail-mime-entity-children (entity) (aref entity 7))
 (defsubst rmail-mime-entity-handler (entity) (aref entity 8))
+(defsubst rmail-mime-entity-truncated (entity) (aref entity 9))
+(defsubst rmail-mime-entity-set-truncated (entity truncated)
+  (aset entity 9 truncated))
 
 (defsubst rmail-mime-message-p ()
   "Non-nil if and only if the current message is a MIME."
@@ -237,6 +244,10 @@ It is called with one argument ENTITY."
 	 (directory (button-get button 'directory))
 	 (data (button-get button 'data))
 	 (ofilename filename))
+    (if (and (not (stringp data))
+	     (rmail-mime-entity-truncated data))
+	(unless (y-or-n-p "This entity is truncated; save anyway? ")
+	  (error "Aborted")))
     (setq filename (expand-file-name
 		    (read-file-name (format "Save as (default: %s): " filename)
 				    directory
@@ -387,6 +398,11 @@ The value is a vector [ INDEX HEADER TAGLINE BODY END], where
 	    (if (and rmail-mime-mbox-buffer (= (aref segment 1) (point-min)))
 		(let ((new (aref (rmail-mime-entity-display entity) 1)))
 		  (aset new 0 t))))
+	;; Query as a warning before showing if truncated.
+	(if (and (not (stringp entity))
+		 (rmail-mime-entity-truncated entity))
+	    (unless (y-or-n-p "This entity is truncated; show anyway? ")
+	      (error "Aborted")))
 	;; Enter the shown mode.
 	(rmail-mime-shown-mode entity)
 	;; Force this body shown.
@@ -816,7 +832,7 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
   (let ((boundary (cdr (assq 'boundary content-type)))
 	(subtype (cadr (split-string (car content-type) "/")))
 	(index 0)
-	beg end next entities)
+	beg end next entities truncated)
     (unless boundary
       (rmail-mm-get-boundary-error-message
        "No boundary defined" content-type content-disposition
@@ -845,7 +861,7 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
     (setq beg (point-min))
 
     (while (or (and (search-forward boundary nil t)
-		    (setq end (match-beginning 0)))
+		    (setq truncated nil end (match-beginning 0)))
 	       ;; If the boundary does not appear at all,
 	       ;; the message was truncated.
 	       ;; Handle the rest of the truncated message
@@ -854,7 +870,7 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
 	       (and (save-excursion
 		      (skip-chars-forward "\n")
 		      (> (point-max) (point)))
-		    (setq end (point-max))))
+		    (setq truncated t end (point-max))))
       ;; If this is the last boundary according to RFC 2046, hide the
       ;; epilogue, else hide the boundary only.  Use a marker for
       ;; `next' because `rmail-mime-show' may change the buffer.
@@ -862,7 +878,7 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
 	     (setq next (point-max-marker)))
 	    ((looking-at "[ \t]*\n")
 	     (setq next (copy-marker (match-end 0) t)))
-	    ((= end (point-max))
+	    (truncated
 	     ;; We're handling what's left of a truncated message.
 	     (setq next (point-max-marker)))
 	    (t
@@ -886,6 +902,7 @@ The other arguments are the same as `rmail-mime-multipart-handler'."
 		;; Display a tagline.
 		(aset (aref (rmail-mime-entity-display child) 1) 1
 		      (aset (rmail-mime-entity-tagline child) 2 t))
+		(rmail-mime-entity-set-truncated child truncated)
 		(push child entities)))
 
 	  (delete-region end next)
@@ -1391,6 +1408,8 @@ This is the usual value of `rmail-insert-mime-forwarded-message-function'."
 	 (re-search-forward regexp nil t))
        ;; Next, search the body.
        (if (and entity
+		;; RMS: I am not sure why, but sometimes this is a string.
+		(not (stringp entity))
 		(let* ((content-type (rmail-mime-entity-type entity))
 		       (charset (cdr (assq 'charset (cdr content-type)))))
 		  (or (not (string-match "text/.*" (car content-type)))

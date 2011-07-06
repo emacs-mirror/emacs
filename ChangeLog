@@ -1,10 +1,14 @@
-2011-07-05  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume support for memcmp, memcpy, memmove, memset.
 	This simplifies the code a bit.  All current platforms have these,
 	as they are required for C89.  If this turns into a problem we
 	can add the gnulib modules for these (a 1-line change to Makefile.in).
 	* configure.in: Don't check for memcmp, memcpy, memmove, memset.
+
+2011-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_GCONF): Allow both HAVE_GCONF and HAVE_GSETTINGS.
 
 2011-07-01  Glenn Morris  <rgm@gnu.org>
 
