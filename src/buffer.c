@@ -471,8 +471,8 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
 
   /* buffer-local Lisp variables start at `undo_list',
      tho only the ones from `name' on are GC'd normally.  */
-  for (offset = PER_BUFFER_VAR_OFFSET (undo_list);
-       offset < sizeof *to;
+  for (offset = PER_BUFFER_VAR_OFFSET (FIRST_FIELD_PER_BUFFER);
+       offset <= PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER);
        offset += sizeof (Lisp_Object))
     {
       Lisp_Object obj;
