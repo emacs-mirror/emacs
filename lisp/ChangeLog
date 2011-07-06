@@ -1,3 +1,13 @@
+2011-07-06  Markus Heiser  <markus.heiser@darmarit.de>  (tiny change)
+
+	* progmodes/gud.el (gud-pdb-marker-regexp): Accept \r char (Bug#5653).
+
+2011-07-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (special-display-popup-frame): Doc fix (Bug#8853).
+
+	* info.el (Info-directory-toc-nodes): Minor doc fix (Bug#8833).
+
 2011-07-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* button.el (button): Inherit from link face.  Suggested by Dan
