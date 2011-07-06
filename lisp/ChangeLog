@@ -8,6 +8,9 @@
 	(rmail-mime-toggle-hidden): Likewise, for showing.
 	(rmail-mime-process-multipart): Record when an entity is truncated.
 
+	* mail/rmailmm.el (rmail-search-mime-message): Don't get confused
+	if ENTITY is a string.
+
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* emacs-lisp/lisp-mode.el (eval-defun-1): Update the documentation

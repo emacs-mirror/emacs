@@ -1408,6 +1408,8 @@ This is the usual value of `rmail-insert-mime-forwarded-message-function'."
 	 (re-search-forward regexp nil t))
        ;; Next, search the body.
        (if (and entity
+		;; RMS: I am not sure why, but sometimes this is a string.
+		(not (stringp entity))
 		(let* ((content-type (rmail-mime-entity-type entity))
 		       (charset (cdr (assq 'charset (cdr content-type)))))
 		  (or (not (string-match "text/.*" (car content-type)))
