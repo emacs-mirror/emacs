@@ -1,3 +1,52 @@
+2011-07-06  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 3.0
+	(sql-product-alist): Added product :completion-object,
+	:completion-column, and :statement attributes.
+	(sql-mode-menu, sql-interactive-mode-map): Fixed List entries.
+	(sql-mode-syntax-table): Mark all punctuation.
+	(sql-font-lock-keywords-builder): Temporarily removed fallback on
+	ansi keywords.
+	(sql-regexp-abbrev, sql-regexp-abbrev-list): New functions.
+	(sql-mode-oracle-font-lock-keywords): Improved.
+	(sql-oracle-show-reserved-words): New function for development.
+	(sql-product-font-lock): Simplify for source code buffers.
+	(sql-product-syntax-table, sql-product-font-lock-syntax-alist):
+	New functions.
+	(sql-highlight-product): Set product specific syntax table.
+	(sql-mode-map): Added statement movement functions.
+	(sql-ansi-statement-starters, sql-oracle-statement-starters): New
+	variable.
+	(sql-statement-regexp, sql-beginning-of-statement)
+	(sql-end-of-statement, sql-signum): New functions.
+	(sql-buffer-live-p, sql=find-sqli-buffer): Added CONNECTION
+	parameter.
+	(sql-show-sqli-buffer): Bug fix.
+	(sql-interactive-mode): Store connection data as buffer local.
+	(sql-connect): Added NEW-NAME parameter.  Redesigned interaction
+	with sql-interactive-mode.
+	(sql-save-connection): Save buffer local settings.
+	(sql-connection-menu-filter): Changed menu entry name.
+	(sql-product-interactive): Bug fix.
+	(sql-preoutput-hold): New variable.
+	(sql-interactive-remove-continuation-prompt): Bug fixes.
+	(sql-debug-redirect): New variable.
+	(sql-str-literal): New function.
+	(sql-redirect, sql-redirect-one, sql-redirect-value, sql-execute):
+	Redesigned.
+	(sql-oracle-save-settings, sql-oracle-restore-settings)
+	(sql-oracle-list-all, sql-oracle-list-table): New functions.
+	(sql-completion-object, sql-completion-column)
+	(sql-completion-sqlbuf): New variables.
+	(sql-build-completions-1, sql-build-completions)
+	(sql-try-completion): New functions.
+	(sql-read-table-name): Use them.
+	(sql-contains-names): New buffer local variable.
+	(sql-list-all, sql-list-table): Use it.
+	(sql-oracle-completion-types): New variable.
+	(sql-oracle-completion-object, sql-sqlite-completion-object)
+	(sql-postgres-completion-object): New functions.
+
 2011-07-06  Glenn Morris  <rgm@gnu.org>
 
 	* window.el (pop-to-buffer): Doc fix.
