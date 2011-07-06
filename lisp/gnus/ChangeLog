@@ -34,6 +34,9 @@
 
 2011-07-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-group.el (gnus-read-ephemeral-bug-group): Allow fetching several
+	bug reports at once.
+
 	* nnimap.el (nnimap-request-scan): Say that splitting has finished.
 
 2011-07-04  Katsumi Yamaoka  <yamaoka@jpl.org>
