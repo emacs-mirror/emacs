@@ -54,10 +54,7 @@
 ;; Use color for the MS-DOS port because it doesn't support underline.
 ;; FIXME if MS-DOS correctly answers the (supports) question, it need
 ;; no longer be a special case.
-(defface button '((((type pc) (class color))
-		   (:foreground "lightblue"))
-		  (((supports :underline t)) :underline t)
-		  (t (:foreground "lightblue")))
+(defface button '((t :inherit link))
   "Default face used for buttons."
   :group 'basic-faces)
 

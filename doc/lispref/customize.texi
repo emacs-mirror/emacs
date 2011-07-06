@@ -513,8 +513,7 @@ equivalent to @code{(string)}.
 Introduction, widget, The Emacs Widget Library}, for details.
 
 @menu
-* Simple Types::            Simple customization types: sexp, integer, number,
-                              string, file, directory, alist.
+* Simple Types::            Simple customization types: sexp, integer, etc.
 * Composite Types::         Build new types from other types or data.
 * Splicing into Lists::     Splice elements into list with @code{:inline}.
 * Type Keywords::           Keyword-argument pairs in a customization type.
@@ -577,22 +576,103 @@ You can use the @code{:options} keyword in a hook variable's
 @code{defcustom} to specify a list of functions recommended for use in
 the hook; see @ref{Variable Definitions}.
 
-@item alist
-The value must be a list of cons-cells, the @sc{car} of each cell
-representing a key, and the @sc{cdr} of the same cell representing an
-associated value.  The user can add and delete key/value pairs, and
-edit both the key and the value of each pair.
+@item symbol
+The value must be a symbol.  It appears in the customization buffer as
+the name of the symbol.
 
-You can specify the key and value types like this:
+@item function
+The value must be either a lambda expression or a function name.  When
+it is a function name, you can do completion with @kbd{M-@key{TAB}}.
 
-@smallexample
-(alist :key-type @var{key-type} :value-type @var{value-type})
-@end smallexample
+@item variable
+The value must be a variable name, and you can do completion with
+@kbd{M-@key{TAB}}.
+
+@item face
+The value must be a symbol which is a face name, and you can do
+completion with @kbd{M-@key{TAB}}.
+
+@item boolean
+The value is boolean---either @code{nil} or @code{t}.  Note that by
+using @code{choice} and @code{const} together (see the next section),
+you can specify that the value must be @code{nil} or @code{t}, but also
+specify the text to describe each value in a way that fits the specific
+meaning of the alternative.
+
+@item coding-system
+The value must be a coding-system name, and you can do completion with
+@kbd{M-@key{TAB}}.
+
+@item color
+The value must be a valid color name, and you can do completion with
+@kbd{M-@key{TAB}}.  A sample is provided.
+@end table
+
+@node Composite Types
+@subsection Composite Types
+@cindex composite types (customization)
+
+  When none of the simple types is appropriate, you can use composite
+types, which build new types from other types or from specified data.
+The specified types or data are called the @dfn{arguments} of the
+composite type.  The composite type normally looks like this:
+
+@example
+(@var{constructor} @var{arguments}@dots{})
+@end example
 
 @noindent
-where @var{key-type} and @var{value-type} are customization type
-specifications.  The default key type is @code{sexp}, and the default
-value type is @code{sexp}.
+but you can also add keyword-value pairs before the arguments, like
+this:
+
+@example
+(@var{constructor} @r{@{}@var{keyword} @var{value}@r{@}}@dots{} @var{arguments}@dots{})
+@end example
+
+  Here is a table of constructors and how to use them to write
+composite types:
+
+@table @code
+@item (cons @var{car-type} @var{cdr-type})
+The value must be a cons cell, its @sc{car} must fit @var{car-type}, and
+its @sc{cdr} must fit @var{cdr-type}.  For example, @code{(cons string
+symbol)} is a customization type which matches values such as
+@code{("foo" . foo)}.
+
+In the customization buffer, the @sc{car} and the @sc{cdr} are
+displayed and edited separately, each according to the type
+that you specify for it.
+
+@item (list @var{element-types}@dots{})
+The value must be a list with exactly as many elements as the
+@var{element-types} given; and each element must fit the
+corresponding @var{element-type}.
+
+For example, @code{(list integer string function)} describes a list of
+three elements; the first element must be an integer, the second a
+string, and the third a function.
+
+In the customization buffer, each element is displayed and edited
+separately, according to the type specified for it.
+
+@item (group @var{element-types}@dots{})
+This works like @code{list} except for the formatting
+of text in the Custom buffer.  @code{list} labels each
+element value with its tag; @code{group} does not.
+
+@item (vector @var{element-types}@dots{})
+Like @code{list} except that the value must be a vector instead of a
+list.  The elements work the same as in @code{list}.
+
+@item (alist :key-type @var{key-type} :value-type @var{value-type})
+The value must be a list of cons-cells, the @sc{car} of each cell
+representing a key of customization type @var{key-type}, and the
+@sc{cdr} of the same cell representing a value of customization type
+@var{value-type}.  The user can add and delete key/value pairs, and
+edit both the key and the value of each pair.
+
+If omitted, @var{key-type} and @var{value-type} default to
+@code{sexp}.
 
 The user can add any key matching the specified key type, but you can
 give some keys a preferential treatment by specifying them with the
@@ -687,105 +767,11 @@ and the VALUE is a list of that person's pets."
   :type '(alist :value-type (repeat string)))
 @end smallexample
 
-@item plist
-The @code{plist} custom type is similar to the @code{alist} (see above),
-except that the information is stored as a property list, i.e. a list of
-this form:
-
-@smallexample
-(@var{key} @var{value} @var{key} @var{value} @var{key} @var{value} @dots{})
-@end smallexample
-
-The default @code{:key-type} for @code{plist} is @code{symbol},
-rather than @code{sexp}.
-
-@item symbol
-The value must be a symbol.  It appears in the customization buffer as
-the name of the symbol.
-
-@item function
-The value must be either a lambda expression or a function name.  When
-it is a function name, you can do completion with @kbd{M-@key{TAB}}.
-
-@item variable
-The value must be a variable name, and you can do completion with
-@kbd{M-@key{TAB}}.
-
-@item face
-The value must be a symbol which is a face name, and you can do
-completion with @kbd{M-@key{TAB}}.
-
-@item boolean
-The value is boolean---either @code{nil} or @code{t}.  Note that by
-using @code{choice} and @code{const} together (see the next section),
-you can specify that the value must be @code{nil} or @code{t}, but also
-specify the text to describe each value in a way that fits the specific
-meaning of the alternative.
-
-@item coding-system
-The value must be a coding-system name, and you can do completion with
-@kbd{M-@key{TAB}}.
-
-@item color
-The value must be a valid color name, and you can do completion with
-@kbd{M-@key{TAB}}.  A sample is provided.
-@end table
-
-@node Composite Types
-@subsection Composite Types
-@cindex composite types (customization)
-
-  When none of the simple types is appropriate, you can use composite
-types, which build new types from other types or from specified data.
-The specified types or data are called the @dfn{arguments} of the
-composite type.  The composite type normally looks like this:
-
-@example
-(@var{constructor} @var{arguments}@dots{})
-@end example
-
-@noindent
-but you can also add keyword-value pairs before the arguments, like
-this:
-
-@example
-(@var{constructor} @r{@{}@var{keyword} @var{value}@r{@}}@dots{} @var{arguments}@dots{})
-@end example
-
-  Here is a table of constructors and how to use them to write
-composite types:
-
-@table @code
-@item (cons @var{car-type} @var{cdr-type})
-The value must be a cons cell, its @sc{car} must fit @var{car-type}, and
-its @sc{cdr} must fit @var{cdr-type}.  For example, @code{(cons string
-symbol)} is a customization type which matches values such as
-@code{("foo" . foo)}.
-
-In the customization buffer, the @sc{car} and the @sc{cdr} are
-displayed and edited separately, each according to the type
-that you specify for it.
-
-@item (list @var{element-types}@dots{})
-The value must be a list with exactly as many elements as the
-@var{element-types} given; and each element must fit the
-corresponding @var{element-type}.
-
-For example, @code{(list integer string function)} describes a list of
-three elements; the first element must be an integer, the second a
-string, and the third a function.
-
-In the customization buffer, each element is displayed and edited
-separately, according to the type specified for it.
-
-@item (group @var{element-types}@dots{})
-This works like @code{list} except for the formatting
-of text in the Custom buffer.  @code{list} labels each
-element value with its tag; @code{group} does not.
-
-@item (vector @var{element-types}@dots{})
-Like @code{list} except that the value must be a vector instead of a
-list.  The elements work the same as in @code{list}.
+@item (plist :key-type @var{key-type} :value-type @var{value-type})
+This customization type is similar to @code{alist} (see above), except
+that (i) the information is stored as a property list,
+(@pxref{Property Lists}), and (ii) @var{key-type}, if omitted,
+defaults to @code{symbol} rather than @code{sexp}.
 
 @item (choice @var{alternative-types}@dots{})
 The value must fit at least one of @var{alternative-types}.

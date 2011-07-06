@@ -351,7 +351,7 @@
 ;;           systems with non-classic /bin/[r]mail behavior
 ;;         guard against nil user-mail-address in generating MESSAGE-ID:
 ;;         feedmail-queue-slug-suspect-regexp is now a variable to
-;;           accomodate non-ASCII environments (thanks to
+;;           accommodate non-ASCII environments (thanks to
 ;;           Makoto.Nakagawa@jp.compaq.com for this suggestion)
 ;;         feedmail-buffer-to-smtp, to parallel feedmail-buffer-to-smtpmail
 ;; patchlevel 10, 22 April 2001

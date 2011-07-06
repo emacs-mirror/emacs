@@ -255,7 +255,10 @@ No problems result if this variable is not bound.
 				   (not (eq parent (standard-syntax-table))))
 			(set-char-table-parent ,syntax (syntax-table)))))
                 ,(when declare-abbrev
-                   `(unless (abbrev-table-get ,abbrev :parents)
+                   `(unless (or (abbrev-table-get ,abbrev :parents)
+                                ;; This can happen if the major mode defines
+                                ;; the abbrev-table to be its parent's.
+                                (eq ,abbrev local-abbrev-table))
                       (abbrev-table-put ,abbrev :parents
                                         (list local-abbrev-table))))))
 	  (use-local-map ,map)

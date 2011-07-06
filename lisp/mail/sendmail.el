@@ -144,19 +144,11 @@ Otherwise, let mailer send back a message to report errors."
 ;;;###autoload
 (put 'send-mail-function 'standard-value
      ;; MS-Windows can access the clipboard even under -nw.
-     '((if (or (and window-system (eq system-type 'darwin))
-	       (eq system-type 'windows-nt))
-	   'mailclient-send-it
-	 'sendmail-send-it)))
+     '('sendmail-query-once))
 
 ;; Useful to set in site-init.el
 ;;;###autoload
-(defcustom send-mail-function
-  (if (or (and window-system (eq system-type 'darwin))
-	  ;; MS-Windows can access the clipboard even under -nw.
-	  (eq system-type 'windows-nt))
-      'mailclient-send-it
-    'sendmail-send-it)
+(defcustom send-mail-function 'sendmail-query-once
   "Function to call to send the current buffer as mail.
 The headers should be delimited by a line which is
 not a valid RFC822 header or continuation line,
@@ -170,11 +162,13 @@ This is used by the default mail-sending commands.  See also
 		(function-item mailclient-send-it :tag "Use Mailclient package")
 		function)
   :initialize 'custom-initialize-delay
+  :version "24.1"
   :group 'sendmail)
 
 (defvar sendmail-query-once-function 'query
   "Either a function to send email, or the symbol `query'.")
 
+;;;###autoload
 (defun sendmail-query-once ()
   "Send an email via `sendmail-query-once-function'.
 If `sendmail-query-once-function' is `query', ask the user what

@@ -1755,7 +1755,7 @@ barf_or_query_if_file_exists (Lisp_Object absname, const char *querystring,
      regardless of what access permissions it has.  */
   if (lstat (SSDATA (encoded_filename), &statbuf) >= 0)
     {
-      if (Ffile_directory_p (absname))
+      if (S_ISDIR (statbuf.st_mode))
 	xsignal2 (Qfile_error,
 		  build_string ("File is a directory"), absname);
 

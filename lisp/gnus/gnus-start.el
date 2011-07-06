@@ -1043,7 +1043,7 @@ If LEVEL is non-nil, the news will be set up at level LEVEL."
 
     ;; Find the number of unread articles in each non-dead group.
     (let ((gnus-read-active-file (and (not level) gnus-read-active-file)))
-      (gnus-get-unread-articles level))))
+      (gnus-get-unread-articles level dont-connect))))
 
 (defun gnus-call-subscribe-functions (method group)
   "Call METHOD to subscribe GROUP.
@@ -1606,7 +1606,7 @@ If SCAN, request a scan of that group as well."
 
 ;; Go though `gnus-newsrc-alist' and compare with `gnus-active-hashtb'
 ;; and compute how many unread articles there are in each group.
-(defun gnus-get-unread-articles (&optional level)
+(defun gnus-get-unread-articles (&optional level dont-connect)
   (setq gnus-server-method-cache nil)
   (require 'gnus-agent)
   (let* ((newsrc (cdr gnus-newsrc-alist))
@@ -1702,12 +1702,13 @@ If SCAN, request a scan of that group as well."
 
     ;; If we have primary/secondary select methods, but no groups from
     ;; them, we still want to issue a retrieval request from them.
-    (dolist (method (cons gnus-select-method
-			  gnus-secondary-select-methods))
-      (when (and (not (assoc method type-cache))
-		 (gnus-check-backend-function 'request-list (car method)))
-	(with-current-buffer nntp-server-buffer
-	  (gnus-read-active-file-1 method nil))))
+    (unless dont-connect
+      (dolist (method (cons gnus-select-method
+			    gnus-secondary-select-methods))
+	(when (and (not (assoc method type-cache))
+		   (gnus-check-backend-function 'request-list (car method)))
+	  (with-current-buffer nntp-server-buffer
+	    (gnus-read-active-file-1 method nil)))))
 
     ;; Start early async retrieval of data.
     (let ((done-methods nil)

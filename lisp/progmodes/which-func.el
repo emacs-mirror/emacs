@@ -206,7 +206,8 @@ It creates the Imenu index for the buffer, if necessary."
 	  (setq imenu--index-alist
 		(save-excursion (funcall imenu-create-index-function))))
     (error
-     (message "which-func-ff-hook error: %S" err)
+     (unless (equal err '(error "This buffer cannot use `imenu-default-create-index-function'"))
+       (message "which-func-ff-hook error: %S" err))
      (setq which-func-mode nil))))
 
 (defun which-func-update ()

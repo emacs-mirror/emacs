@@ -471,7 +471,8 @@ Like `bury-buffer', but temporarily select EVENT's window."
 (defun mode-line-other-buffer () "\
 Switch to the most recently selected buffer other than the current one."
   (interactive)
-  (switch-to-buffer (other-buffer)))
+  (with-no-warnings ; We really do want to call `switch-to-buffer' here.
+    (switch-to-buffer (other-buffer))))
 
 (defun mode-line-next-buffer (event)
   "Like `next-buffer', but temporarily select EVENT's window."
@@ -806,6 +807,8 @@ if `inhibit-field-text-motion' is non-nil."
   (define-key map [up]    'previous-history-element)
   (define-key map "\es"   'next-matching-history-element)
   (define-key map "\er"   'previous-matching-history-element)
+  (define-key map [remap next-buffer] 'ignore)
+  (define-key map [remap previous-buffer] 'ignore)
   ;; Override the global binding (which calls indent-relative via
   ;; indent-for-tab-command).  The alignment that indent-relative tries to
   ;; do doesn't make much sense here since the prompt messes it up.

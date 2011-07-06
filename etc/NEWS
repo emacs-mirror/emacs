@@ -475,6 +475,11 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 
 ** BibTeX mode
 
+*** BibTeX mode now supports biblatex.
+Use the variable bibtex-dialect to select support for different BibTeX dialects.
+bibtex-entry-field-alist is now an obsolete alias for
+bibtex-BibTeX-entry-alist.
+
 *** New command `bibtex-search-entries' bound to C-c C-a.
 
 *** New `bibtex-entry-format' option `sort-fields', disabled by default.
@@ -485,7 +490,7 @@ Just set shell-dir-cookie-re to an appropriate regexp.
 
 ** FIXME: xdg-open for browse-url and reportbug, 2010/08.
 
-** Archive Mode has basic support to browse 7z archives.
+** Archive Mode has basic support to browse and update 7z archives.
 
 ** browse-url has gotten a new variable that is used for mailto: URLs,
 `browse-url-mailto-function', which defaults to `browse-url-mail'.
@@ -856,6 +861,13 @@ Notifications API.  It requires D-Bus for communication.
 soap-inspect.el is an interactive inspector for SOAP WSDL structures.
 
 ** xmodmap-generic-mode for xmodmap files.
+
+** New emacs-lock.el package.
+(The pre-existing one has been renamed to old-emacs-lock.el and moved
+to obsolete/.)  Now, Emacs Lock is a proper minor mode
+`emacs-lock-mode'.  Protection against exiting Emacs and killing the
+buffer can be set separately.  The mechanism for auto turning off
+protection for buffers with inferior processes has been generalized.
 
 
 * Incompatible Lisp Changes in Emacs 24.1

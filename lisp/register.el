@@ -70,7 +70,7 @@
 DATA can be any value.
 PRINT-FUNC if provided controls how `list-registers' and
 `view-register' print the register.  It should be a function
-recieving one argument DATA and print text that completes
+receiving one argument DATA and print text that completes
 this sentence:
   Register X contains [TEXT PRINTED BY PRINT-FUNC]
 JUMP-FUNC if provided, controls how `jump-to-register' jumps to the register.
