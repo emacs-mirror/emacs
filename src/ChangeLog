@@ -1,7 +1,9 @@
 2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove unportable assumption about struct layout (Bug#8884).
-	* buffer.c (clone_per_buffer_values): Don't assume that
+	* alloc.c (mark_buffer):
+	* buffer.c (reset_buffer_local_variables, Fbuffer_local_variables)
+	(clone_per_buffer_values): Don't assume that
 	sizeof (struct buffer) is a multiple of sizeof (Lisp_Object).
 	This isn't true in general, and it's particularly not true
 	if Emacs is configured with --with-wide-int.
