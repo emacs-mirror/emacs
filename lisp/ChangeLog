@@ -10,6 +10,10 @@
 
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* emacs-lisp/lisp-mode.el (eval-defun-1): Update the documentation
+	of faces when `M-C-x'-ing their definitions (bug#8378).  Also
+	clean up the code slightly.
+
 	* progmodes/grep.el (rgrep): Don't bind `process-connection-type',
 	because that makes the colours go away.
 
