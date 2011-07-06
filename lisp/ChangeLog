@@ -1,3 +1,13 @@
+2011-07-06  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmailmm.el: Give entity a new slot, TRUNCATED.
+	(rmail-mime-entity): New arg TRUNCATED.
+	(rmail-mime-entity-truncated, rmail-mime-entity-set-truncated):
+	New functions.
+	(rmail-mime-save): Warn if entity is truncated.
+	(rmail-mime-toggle-hidden): Likewise, for showing.
+	(rmail-mime-process-multipart): Record when an entity is truncated.
+
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* progmodes/grep.el (rgrep): Don't bind `process-connection-type',
