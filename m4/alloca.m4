@@ -1,4 +1,4 @@
-# alloca.m4 serial 12
+# alloca.m4 serial 13
 dnl Copyright (C) 2002-2004, 2006-2007, 2009-2011 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
@@ -76,17 +76,17 @@ wenotbecray
 if test $ac_cv_os_cray = yes; then
   for ac_func in _getb67 GETB67 getb67; do
     AC_CHECK_FUNC($ac_func,
-		  [AC_DEFINE_UNQUOTED(CRAY_STACKSEG_END, $ac_func,
-				      [Define to one of `_getb67', `GETB67',
-				       `getb67' for Cray-2 and Cray-YMP
-				       systems. This function is required for
-				       `alloca.c' support on those systems.])
+                  [AC_DEFINE_UNQUOTED(CRAY_STACKSEG_END, $ac_func,
+                                      [Define to one of `_getb67', `GETB67',
+                                       `getb67' for Cray-2 and Cray-YMP
+                                       systems. This function is required for
+                                       `alloca.c' support on those systems.])
     break])
   done
 fi
 
 AC_CACHE_CHECK([stack direction for C alloca],
-	       [ac_cv_c_stack_direction],
+               [ac_cv_c_stack_direction],
 [AC_RUN_IFELSE([AC_LANG_SOURCE(
 [AC_INCLUDES_DEFAULT
 int
@@ -105,16 +105,16 @@ main (int argc, char **argv)
 {
   return find_stack_direction (0, argc + !argv + 20) < 0;
 }])],
-	       [ac_cv_c_stack_direction=1],
-	       [ac_cv_c_stack_direction=-1],
-	       [ac_cv_c_stack_direction=0])])
+               [ac_cv_c_stack_direction=1],
+               [ac_cv_c_stack_direction=-1],
+               [ac_cv_c_stack_direction=0])])
 AH_VERBATIM([STACK_DIRECTION],
 [/* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at runtime.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown */
+        STACK_DIRECTION > 0 => grows toward higher addresses
+        STACK_DIRECTION < 0 => grows toward lower addresses
+        STACK_DIRECTION = 0 => direction of growth unknown */
 @%:@undef STACK_DIRECTION])dnl
 AC_DEFINE_UNQUOTED(STACK_DIRECTION, $ac_cv_c_stack_direction)
 ])# _AC_LIBOBJ_ALLOCA
