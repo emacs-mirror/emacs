@@ -1,3 +1,12 @@
+2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use pthread_sigmask, not sigprocmask.
+	* callproc.c (Fcall_process):
+	* sysdep.c (sys_sigblock, sys_sigunblock, sys_sigsetmask):
+	* process.c (create_process):
+	sigprocmask is portable only for single-threaded applications, and
+	Emacs can be multi-threaded when it uses GTK.
+
 2011-07-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c: Use both GConf and GSettings if both are available.
