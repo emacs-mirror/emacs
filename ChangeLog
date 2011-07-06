@@ -1,3 +1,17 @@
+2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add gnulib support for pthread_sigmask.
+	* Makefile.in (GNULIB_MODULES): Add pthread_sigmask.
+	(GNULIB_TOOL_FLAGS): Avoid sigprocmask.  Emacs does its own
+	implementation of 'sigprocmask' on Windows, and it assumes
+	'sigprocmask' on non-Windows hosts, so it doesn't need the
+	sigprocmask module.
+	* lib/signal.in.h, m4/pthread_sigmask.m4, m4/signal_h.m4:
+	New files, automatically imported from gnulib.
+	* lib/gnulib.mk, m4/gl-comp.m4: Automatically-imported update
+	due to the above changes.
+	* .bzrignore: Add lib/signal.h.
+
 2011-07-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_GCONF): Allow both HAVE_GCONF and HAVE_GSETTINGS.

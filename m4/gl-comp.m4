@@ -52,7 +52,9 @@ AC_DEFUN([gl_EARLY],
   # Code from module lstat:
   # Code from module mktime:
   # Code from module multiarch:
+  # Code from module pthread_sigmask:
   # Code from module readlink:
+  # Code from module signal:
   # Code from module socklen:
   # Code from module ssize_t:
   # Code from module stat:
@@ -140,12 +142,15 @@ if test $REPLACE_MKTIME = 1; then
 fi
 gl_TIME_MODULE_INDICATOR([mktime])
 gl_MULTIARCH
+gl_PTHREAD_SIGMASK
+gl_SIGNAL_MODULE_INDICATOR([pthread_sigmask])
 gl_FUNC_READLINK
 if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
   AC_LIBOBJ([readlink])
   gl_PREREQ_READLINK
 fi
 gl_UNISTD_MODULE_INDICATOR([readlink])
+gl_SIGNAL_H
 gl_TYPE_SOCKLEN_T
 gt_TYPE_SSIZE_T
 gl_STDARG_H
@@ -240,6 +245,9 @@ gl_STDLIB_MODULE_INDICATOR([strtoull])
   fi
   if test $REPLACE_LSTAT = 1; then
     func_gl_gnulib_m4code_stat
+  fi
+  if test $REPLACE_PTHREAD_SIGMASK = 1; then
+    func_gl_gnulib_m4code_sigprocmask
   fi
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     func_gl_gnulib_m4code_stat
@@ -433,6 +441,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sha256.h
   lib/sha512.c
   lib/sha512.h
+  lib/signal.in.h
   lib/stat.c
   lib/stdarg.in.h
   lib/stdbool.in.h
@@ -470,10 +479,12 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/md5.m4
   m4/mktime.m4
   m4/multiarch.m4
+  m4/pthread_sigmask.m4
   m4/readlink.m4
   m4/sha1.m4
   m4/sha256.m4
   m4/sha512.m4
+  m4/signal_h.m4
   m4/socklen.m4
   m4/ssize_t.m4
   m4/st_dm_mode.m4
