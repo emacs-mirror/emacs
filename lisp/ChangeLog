@@ -1,5 +1,8 @@
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mail/smtpmail.el (smtpmail-default-smtp-server): Made into a
+	defcustom again for backwards compatibility.
+
 	* simple.el (shell-command-on-region): Fill.
 
 	* dired-aux.el (dired-kill-line): Add a doc string.
