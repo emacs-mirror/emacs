@@ -4641,6 +4641,11 @@ handle_composition_prop (it)
       && COMPOSITION_VALID_P (start, end, prop)
       && (STRINGP (it->string) || (PT <= start || PT >= end)))
     {
+      if (start < pos)
+	/* As we can't handle this situation (perhaps, font-lock added
+	   a new composition), we just return here hoping that next
+	   redisplay will detect this composition much earlier.  */
+	return HANDLED_NORMALLY;
       if (start != pos)
 	{
 	  if (STRINGP (it->string))
