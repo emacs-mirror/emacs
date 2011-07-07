@@ -1,3 +1,9 @@
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* menu-bar.el (menu-bar-line-wrapping-menu): Make all the Options
+	menu items into verb phrases (bug#1421).  Also refill to fit under
+	80 columns.
+
 2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* info.el (info, Info-read-node-name-2, Info-read-node-name-1)
