@@ -1,5 +1,18 @@
 2011-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dispnew.c: Integer signedness and overflow fixes.
+	Remove unnecessary forward decls, that were a maintenance hassle.
+	(history_tick): Now uprintmax_t, so it's more likely to avoid overflow.
+	All uses changed.
+	(adjust_glyph_matrix, realloc_glyph_pool, adjust_frame_message_buffer)
+	(scrolling_window): Use ptrdiff_t, not int, for byte count.
+	(prepare_desired_row, line_draw_cost):
+	Use int, not unsigned, where either works.
+	(save_current_matrix, restore_current_matrix):
+	Use ptrdiff_t, not size_t, where either works.
+	(init_display): Check for overflow more accurately, and without
+	relying on undefined behavior.
+
 	* editfns.c (pWIDE, pWIDElen, signed_wide, unsigned_wide):
 	Remove, replacing with the new symbols in lisp.h.  All uses changed.
 	* fileio.c (make_temp_name):
