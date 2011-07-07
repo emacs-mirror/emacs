@@ -8485,7 +8485,7 @@ vmessage (const char *m, va_list ap)
 	{
 	  if (m)
 	    {
-	      size_t len;
+	      ptrdiff_t len;
 
 	      len = doprnt (FRAME_MESSAGE_BUF (f),
 			    FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, ap);

@@ -2868,7 +2868,8 @@ extern void float_to_string (char *, double);
 extern void syms_of_print (void);
 
 /* Defined in doprnt.c */
-extern size_t doprnt (char *, size_t, const char *, const char *, va_list);
+extern ptrdiff_t doprnt (char *, ptrdiff_t, const char *, const char *,
+			 va_list);
 
 /* Defined in lread.c.  */
 extern Lisp_Object Qvariable_documentation, Qstandard_input;

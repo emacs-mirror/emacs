@@ -1,5 +1,16 @@
 2011-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* doprnt.c: Prefer signed to unsigned when either works.
+	* eval.c (verror):
+	* doprnt.c (doprnt):
+	* lisp.h (doprnt):
+	* xdisp.c (vmessage):
+	Use ptrdiff_t, not size_t, when using or implementing doprnt,
+	since the sizes cannot exceed ptrdiff_t bounds anyway, and we
+	prefer signed arithmetic to avoid comparison confusion.
+	* doprnt.c (doprnt): Avoid a "+ 1" that can't overflow,
+	but is a bit tricky.
+
 	Assume freestanding C89 headers, string.h, stdlib.h.
 	* data.c, doprnt.c, floatfns.c, print.c:
 	Include float.h unconditionally.

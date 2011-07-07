@@ -1968,18 +1968,18 @@ void
 verror (const char *m, va_list ap)
 {
   char buf[4000];
-  size_t size = sizeof buf;
-  size_t size_max = STRING_BYTES_BOUND + 1;
-  size_t mlen = strlen (m);
+  ptrdiff_t size = sizeof buf;
+  ptrdiff_t size_max = STRING_BYTES_BOUND + 1;
+  char const *m_end = m + strlen (m);
   char *buffer = buf;
-  size_t used;
+  ptrdiff_t used;
   Lisp_Object string;
 
   while (1)
     {
       va_list ap_copy;
       va_copy (ap_copy, ap);
-      used = doprnt (buffer, size, m, m + mlen, ap_copy);
+      used = doprnt (buffer, size, m, m_end, ap_copy);
       va_end (ap_copy);
 
       /* Note: the -1 below is because `doprnt' returns the number of bytes
