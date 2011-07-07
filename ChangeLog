@@ -1,3 +1,7 @@
+2011-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in (maintainer-mode): Reflect default in help string.
+
 2011-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Remove reference to iris4d.h.
