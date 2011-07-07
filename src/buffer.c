@@ -471,8 +471,8 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
 
   /* buffer-local Lisp variables start at `undo_list',
      tho only the ones from `name' on are GC'd normally.  */
-  for (offset = PER_BUFFER_VAR_OFFSET (undo_list);
-       offset < sizeof *to;
+  for (offset = PER_BUFFER_VAR_OFFSET (FIRST_FIELD_PER_BUFFER);
+       offset <= PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER);
        offset += sizeof (Lisp_Object))
     {
       Lisp_Object obj;
@@ -830,8 +830,8 @@ reset_buffer_local_variables (register struct buffer *b, int permanent_too)
 
   /* buffer-local Lisp variables start at `undo_list',
      tho only the ones from `name' on are GC'd normally.  */
-  for (offset = PER_BUFFER_VAR_OFFSET (undo_list);
-       offset < sizeof *b;
+  for (offset = PER_BUFFER_VAR_OFFSET (FIRST_FIELD_PER_BUFFER);
+       offset <= PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER);
        offset += sizeof (Lisp_Object))
     {
       int idx = PER_BUFFER_IDX (offset);
@@ -1055,8 +1055,8 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
 
     /* buffer-local Lisp variables start at `undo_list',
        tho only the ones from `name' on are GC'd normally.  */
-    for (offset = PER_BUFFER_VAR_OFFSET (undo_list);
-	 offset < sizeof (struct buffer);
+    for (offset = PER_BUFFER_VAR_OFFSET (FIRST_FIELD_PER_BUFFER);
+	 offset <= PER_BUFFER_VAR_OFFSET (LAST_FIELD_PER_BUFFER);
 	 /* sizeof EMACS_INT == sizeof Lisp_Object */
 	 offset += (sizeof (EMACS_INT)))
       {
