@@ -1,3 +1,8 @@
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* commands.texi (Interactive Call): Add a `call-interactively'
+	example (bug#1010).
+
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* functions.texi (Calling Functions): Link to the "Interactive

@@ -1,3 +1,8 @@
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* callint.c (Fcall_interactively): Change "reading args" to
+	"providing args" to try to clarify what it does (bug#1010).
+
 2011-07-07  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (composition_compute_stop_pos): Ignore a static
