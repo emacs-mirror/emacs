@@ -1,5 +1,12 @@
 2011-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xselect.c: Integer signedness and overflow fixes.
+	(Fx_register_dnd_atom, x_handle_dnd_message):
+	Use ptrdiff_t, not size_t, since we prefer signed.
+	(Fx_register_dnd_atom): Check for ptrdiff_t (and size_t) overflow.
+	* xterm.h (struct x_display_info): Use ptrdiff_t, not size_t, for
+	x_dnd_atoms_size and x_dnd_atoms_length.
+
 	* doprnt.c: Prefer signed to unsigned when either works.
 	* eval.c (verror):
 	* doprnt.c (doprnt):

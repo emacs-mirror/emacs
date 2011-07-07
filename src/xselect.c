@@ -2380,7 +2380,7 @@ FRAME is on.  If FRAME is nil, the selected frame is used.  */)
 {
   Atom x_atom;
   struct frame *f = check_x_frame (frame);
-  size_t i;
+  ptrdiff_t i;
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
 
@@ -2401,6 +2401,9 @@ FRAME is on.  If FRAME is nil, the selected frame is used.  */)
 
   if (dpyinfo->x_dnd_atoms_length == dpyinfo->x_dnd_atoms_size)
     {
+      if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *dpyinfo->x_dnd_atoms / 2
+	  < dpyinfo->x_dnd_atoms_size)
+	memory_full (SIZE_MAX);
       dpyinfo->x_dnd_atoms_size *= 2;
       dpyinfo->x_dnd_atoms = xrealloc (dpyinfo->x_dnd_atoms,
                                        sizeof (*dpyinfo->x_dnd_atoms)
@@ -2423,7 +2426,7 @@ x_handle_dnd_message (struct frame *f, XClientMessageEvent *event, struct x_disp
   int x, y;
   unsigned char *data = (unsigned char *) event->data.b;
   int idata[5];
-  size_t i;
+  ptrdiff_t i;
 
   for (i = 0; i < dpyinfo->x_dnd_atoms_length; ++i)
     if (dpyinfo->x_dnd_atoms[i] == event->message_type) break;
