@@ -1,5 +1,10 @@
 2011-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* emacs.c: Integer overflow minor fix.
+	(heap_bss_diff): Now uprintmax_t, not unsigned long.  All used changed.
+	Define only if GNU_LINUX.
+	(main, Fdump_emacs): Set and use heap_bss_diff only if GNU_LINUX.
+
 	* dispnew.c: Integer signedness and overflow fixes.
 	Remove unnecessary forward decls, that were a maintenance hassle.
 	(history_tick): Now uprintmax_t, so it's more likely to avoid overflow.
