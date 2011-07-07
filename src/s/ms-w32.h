@@ -111,11 +111,7 @@ struct sigaction {
 #undef  HAVE_UTIME_H
 #undef  HAVE_LINUX_VERSION_H
 #undef  HAVE_SYS_SYSTEMINFO_H
-#define HAVE_LIMITS_H 1
-#define HAVE_STRING_H 1
-#define HAVE_STDLIB_H 1
 #define HAVE_PWD_H 1
-#define STDC_HEADERS 1
 #define TIME_WITH_SYS_TIME 1
 
 #define HAVE_GETTIMEOFDAY 1
@@ -386,4 +382,3 @@ extern void _DebPrint (const char *fmt, ...);
 
 
 /* ============================================================ */
-

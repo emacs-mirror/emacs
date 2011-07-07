@@ -46,10 +46,7 @@ static Lisp_Object Qtemp_buffer_setup_hook;
 static Lisp_Object Qfloat_output_format;
 
 #include <math.h>
-
-#if STDC_HEADERS
 #include <float.h>
-#endif
 #include <ftoastr.h>
 
 /* Default to values appropriate for IEEE floating point.  */

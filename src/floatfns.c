@@ -53,10 +53,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #include "syssignal.h"
 
-#if STDC_HEADERS
 #include <float.h>
-#endif
-
 /* If IEEE_FLOATING_POINT isn't defined, default it from FLT_*. */
 #ifndef IEEE_FLOATING_POINT
 #if (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \

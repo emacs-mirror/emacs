@@ -1,3 +1,17 @@
+2011-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume freestanding C89 headers, string.h, stdlib.h.
+	* data.c, doprnt.c, floatfns.c, print.c:
+	Include float.h unconditionally.
+	* gmalloc.c: Assume C89-at-least behavior for preprocessor,
+	limits.h, stddef.h, string.h.  Use memset instead of 'flood'.
+	* regex.c: Likewise for stddef.h, string.h.
+	(ISASCII): Remove; can assume it returns 1 now.  All uses removed.
+	* s/aix4-2.h (HAVE_STRING_H): Remove obsolete undef.
+	* s/ms-w32.h (HAVE_LIMITS_H, HAVE_STRING_H, HAVE_STDLIB_H)
+	(STDC_HEADERS): Remove obsolete defines.
+	* sysdep.c: Include limits.h unconditionally.
+
 2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume support for memcmp, memcpy, memmove, memset.

@@ -37,9 +37,9 @@
 # include <config.h>
 #endif
 
-#if defined STDC_HEADERS && !defined emacs
-# include <stddef.h>
-#else
+#include <stddef.h>
+
+#ifdef emacs
 /* We need this for `regex.h', and perhaps for the Emacs include files.  */
 # include <sys/types.h>
 #endif
@@ -346,25 +346,6 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 
 #else /* not emacs */
 
-/* Jim Meyering writes:
-
-   "... Some ctype macros are valid only for character codes that
-   isascii says are ASCII (SGI's IRIX-4.0.5 is one such system --when
-   using /bin/cc or gcc but without giving an ansi option).  So, all
-   ctype uses should be through macros like ISPRINT...  If
-   STDC_HEADERS is defined, then autoconf has verified that the ctype
-   macros don't need to be guarded with references to isascii. ...
-   Defining isascii to 1 should let any compiler worth its salt
-   eliminate the && through constant folding."
-   Solaris defines some of these symbols so we must undefine them first.  */
-
-# undef ISASCII
-# if defined STDC_HEADERS || (!defined isascii && !defined HAVE_ISASCII)
-#  define ISASCII(c) 1
-# else
-#  define ISASCII(c) isascii(c)
-# endif
-
 /* 1 if C is an ASCII character.  */
 # define IS_REAL_ASCII(c) ((c) < 0200)
 
@@ -372,27 +353,28 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 # define ISUNIBYTE(c) 1
 
 # ifdef isblank
-#  define ISBLANK(c) (ISASCII (c) && isblank (c))
+#  define ISBLANK(c) isblank (c)
 # else
 #  define ISBLANK(c) ((c) == ' ' || (c) == '\t')
 # endif
 # ifdef isgraph
-#  define ISGRAPH(c) (ISASCII (c) && isgraph (c))
+#  define ISGRAPH(c) isgraph (c)
 # else
-#  define ISGRAPH(c) (ISASCII (c) && isprint (c) && !isspace (c))
+#  define ISGRAPH(c) (isprint (c) && !isspace (c))
 # endif
 
+/* Solaris defines ISPRINT so we must undefine it first.  */
 # undef ISPRINT
-# define ISPRINT(c) (ISASCII (c) && isprint (c))
-# define ISDIGIT(c) (ISASCII (c) && isdigit (c))
-# define ISALNUM(c) (ISASCII (c) && isalnum (c))
-# define ISALPHA(c) (ISASCII (c) && isalpha (c))
-# define ISCNTRL(c) (ISASCII (c) && iscntrl (c))
-# define ISLOWER(c) (ISASCII (c) && islower (c))
-# define ISPUNCT(c) (ISASCII (c) && ispunct (c))
-# define ISSPACE(c) (ISASCII (c) && isspace (c))
-# define ISUPPER(c) (ISASCII (c) && isupper (c))
-# define ISXDIGIT(c) (ISASCII (c) && isxdigit (c))
+# define ISPRINT(c) isprint (c)
+# define ISDIGIT(c) isdigit (c)
+# define ISALNUM(c) isalnum (c)
+# define ISALPHA(c) isalpha (c)
+# define ISCNTRL(c) iscntrl (c)
+# define ISLOWER(c) islower (c)
+# define ISPUNCT(c) ispunct (c)
+# define ISSPACE(c) isspace (c)
+# define ISUPPER(c) isupper (c)
+# define ISXDIGIT(c) isxdigit (c)
 
 # define ISWORD(c) ISALPHA(c)
 
@@ -439,10 +421,6 @@ init_syntax_once (void)
 
 #endif /* not emacs */
 
-#ifndef NULL
-# define NULL (void *)0
-#endif
-
 /* We remove any previous definition of `SIGN_EXTEND_CHAR',
    since ours (we hope) works properly with all combinations of
    machines, compilers, `char' and `unsigned char' argument types.

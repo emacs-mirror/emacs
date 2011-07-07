@@ -1211,7 +1211,7 @@ fi
 
 dnl checks for header files
 AC_CHECK_HEADERS(sys/select.h sys/time.h unistd.h utime.h \
-  linux/version.h sys/systeminfo.h limits.h \
+  linux/version.h sys/systeminfo.h \
   stdio_ext.h fcntl.h coff.h pty.h sys/mman.h \
   sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
   sys/utsname.h pwd.h utmp.h dirent.h util.h)
@@ -1230,7 +1230,6 @@ fi
 dnl On Solaris 8 there's a compilation warning for term.h because
 dnl it doesn't define `bool'.
 AC_CHECK_HEADERS(term.h, , , -)
-AC_HEADER_STDC
 AC_HEADER_TIME
 AC_CHECK_DECLS([sys_siglist])
 if test $ac_cv_have_decl_sys_siglist != yes; then
@@ -2702,7 +2701,7 @@ rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
 random lrand48 logb frexp fmod rint cbrt ftime setsid \
 strerror fpathconf select euidaccess getpagesize tzset setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
-__fpending mblen mbrlen mbsinit strsignal setitimer ualarm strchr strrchr \
+__fpending mblen mbrlen mbsinit strsignal setitimer ualarm \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap fsync sync \
 difftime mempcpy mblen mbrlen posix_memalign \
@@ -3581,14 +3580,6 @@ AH_BOTTOM([
 
 #include <string.h>
 #include <stdlib.h>
-
-#ifndef HAVE_STRCHR
-#define strchr(a, b) index (a, b)
-#endif
-
-#ifndef HAVE_STRRCHR
-#define strrchr(a, b) rindex (a, b)
-#endif
 
 #if defined __GNUC__ && (__GNUC__ > 2 \
                          || (__GNUC__ == 2 && __GNUC_MINOR__ >= 5))

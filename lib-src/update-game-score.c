@@ -35,21 +35,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
 #include <errno.h>
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 #include <stdio.h>
 #include <time.h>
 #include <pwd.h>
 #include <ctype.h>
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-#ifdef STDC_HEADERS
-#include <stdarg.h>
 #endif
 #include <sys/stat.h>
 

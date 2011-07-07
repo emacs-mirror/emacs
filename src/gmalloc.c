@@ -41,28 +41,13 @@ Fifth Floor, Boston, MA 02110-1301, USA.
 #define USE_PTHREAD
 #endif
 
-#if ((defined __cplusplus || (defined (__STDC__) && __STDC__) \
-      || defined STDC_HEADERS || defined PROTOTYPES))
 #undef	PP
 #define	PP(args)	args
 #undef	__ptr_t
 #define	__ptr_t		void *
-#else /* Not C++ or ANSI C.  */
-#undef	PP
-#define	PP(args)	()
-#undef	__ptr_t
-#define	__ptr_t		char *
-#endif /* C++ or ANSI C.  */
 
 #include <string.h>
-
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#endif
-#ifndef CHAR_BIT
-#define	CHAR_BIT	8
-#endif
-
 #include <unistd.h>
 
 #ifdef USE_PTHREAD
@@ -77,26 +62,9 @@ extern "C"
 {
 #endif
 
-#ifdef STDC_HEADERS
 #include <stddef.h>
 #define	__malloc_size_t		size_t
 #define	__malloc_ptrdiff_t	ptrdiff_t
-#else
-#ifdef __GNUC__
-#include <stddef.h>
-#ifdef __SIZE_TYPE__
-#define	__malloc_size_t		__SIZE_TYPE__
-#endif
-#endif
-#ifndef __malloc_size_t
-#define	__malloc_size_t		unsigned int
-#endif
-#define	__malloc_ptrdiff_t	int
-#endif
-
-#ifndef	NULL
-#define	NULL	0
-#endif
 
 
 /* Allocate SIZE bytes of memory.  */
@@ -1881,22 +1849,6 @@ struct hdr
     unsigned long int magic;	/* Magic number to check header integrity.  */
   };
 
-#if	defined(_LIBC) || defined(STDC_HEADERS) || defined(USG)
-#define flood memset
-#else
-static void flood (__ptr_t, int, __malloc_size_t);
-static void
-flood (ptr, val, size)
-     __ptr_t ptr;
-     int val;
-     __malloc_size_t size;
-{
-  char *cp = ptr;
-  while (size--)
-    *cp++ = val;
-}
-#endif
-
 static enum mcheck_status checkhdr (const struct hdr *);
 static enum mcheck_status
 checkhdr (hdr)
@@ -1935,7 +1887,7 @@ freehook (ptr)
       hdr = ((struct hdr *) ptr) - 1;
       checkhdr (hdr);
       hdr->magic = MAGICFREE;
-      flood (ptr, FREEFLOOD, hdr->size);
+      memset (ptr, FREEFLOOD, hdr->size);
     }
   else
     hdr = NULL;
@@ -1961,7 +1913,7 @@ mallochook (size)
   hdr->size = size;
   hdr->magic = MAGICWORD;
   ((char *) &hdr[1])[size] = MAGICBYTE;
-  flood ((__ptr_t) (hdr + 1), MALLOCFLOOD, size);
+  memset ((__ptr_t) (hdr + 1), MALLOCFLOOD, size);
   return (__ptr_t) (hdr + 1);
 }
 
@@ -1981,7 +1933,7 @@ reallochook (ptr, size)
 
       checkhdr (hdr);
       if (size < osize)
-	flood ((char *) ptr + size, FREEFLOOD, osize - size);
+	memset ((char *) ptr + size, FREEFLOOD, osize - size);
     }
 
   __free_hook = old_free_hook;
@@ -1998,7 +1950,7 @@ reallochook (ptr, size)
   hdr->magic = MAGICWORD;
   ((char *) &hdr[1])[size] = MAGICBYTE;
   if (size > osize)
-    flood ((char *) (hdr + 1) + osize, MALLOCFLOOD, size - osize);
+    memset ((char *) (hdr + 1) + osize, MALLOCFLOOD, size - osize);
   return (__ptr_t) (hdr + 1);
 }
 

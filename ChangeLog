@@ -1,3 +1,12 @@
+2011-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume freestanding C89 headers, string.h, stdlib.h.
+	Again, this simplifies the code, and all current platforms have these.
+	* configure.in (AC_CHECK_HEADERS): Don't check for limits.h.
+	(AC_HEADER_STDC): Remove.
+	(AC_CHECK_FUNCS): No need to check for strchr, strrchr.
+	(strchr, strrchr): Remove fallback macros.
+
 2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume support for memcmp, memcpy, memmove, memset.
