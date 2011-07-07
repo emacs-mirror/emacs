@@ -1026,6 +1026,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
   /* FIXME: Bidi is not yet handled well in static composition.  */
   if (charpos < endpos
       && find_composition (charpos, endpos, &start, &end, &prop, string)
+      && start >= charpos
       && COMPOSITION_VALID_P (start, end, prop))
     {
       cmp_it->stop_pos = endpos = start;
