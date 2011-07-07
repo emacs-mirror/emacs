@@ -1,3 +1,11 @@
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* themes/dichromacy-theme.el:
+	* themes/tango-theme.el:
+	* themes/tango-dark-theme.el:
+	* themes/wheatgrass-theme.el: Don't define button face separately;
+	it inherits from link now.
+
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* NEWS: Clarify that `smtpmail-starttls-credentials' doesn't exist.
