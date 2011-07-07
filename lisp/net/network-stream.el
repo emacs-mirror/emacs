@@ -263,8 +263,16 @@ functionality.
 	;; The server said it was OK to begin STARTTLS negotiations.
 	(if builtin-starttls
 	    (let ((cert (network-stream-certificate host service parameters)))
-	      (gnutls-negotiate :process stream :hostname host
-				:keylist (and cert (list cert))))
+	      (condition-case nil
+		  (gnutls-negotiate :process stream :hostname host
+				    :keylist (and cert (list cert)))
+		;; If we get a gnutls-specific error (for instance if
+		;; the certificate the server gives us is completely
+		;; syntactically invalid), then close the connection
+		;; and possibly (further down) try to create a
+		;; non-encrypted connection.
+		(gnutls-error
+		 (delete-process stream))))
 	  (unless (starttls-negotiate stream)
 	    (delete-process stream)))
 	(if (memq (process-status stream) '(open run))

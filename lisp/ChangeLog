@@ -1,5 +1,9 @@
 2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/network-stream.el (network-stream-open-starttls): If gnutls
+	negotiation fails, then possibly try again with a non-encrypted
+	connection (bug#9017).
+
 	* mail/smtpmail.el (smtpmail-stream-type): Note that `plain' can
 	be used.
 
