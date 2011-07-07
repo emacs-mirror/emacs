@@ -1,5 +1,7 @@
 2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* cus-edit.el (custom-show): Marked as obsolete.
+
 	* net/network-stream.el (network-stream-open-starttls): If gnutls
 	negotiation fails, then possibly try again with a non-encrypted
 	connection (bug#9017).
