@@ -1,5 +1,10 @@
 2011-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* buffer.c: Integer signedness fixes.
+	(alloc_buffer_text, enlarge_buffer_text):
+	Use ptrdiff_t rather than size_t when either will do, as we prefer
+	signed integers.
+
 	* bidi.c: Integer signedness and overflow fixes.
 	(bidi_cache_idx, bidi_cache_last_idx, bidi_cache_fetch_state)
 	(bidi_cache_search, bidi_cache_find_level_change)
