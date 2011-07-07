@@ -1,3 +1,10 @@
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (next-buffer, previous-buffer): Signal an error if
+	called from a minibuffer window.
+
+	* bindings.el: Revert 2011-07-04 change.
+
 2011-07-06  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmailmm.el (rmail-mime-process): Use markers for buf positions.
