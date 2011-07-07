@@ -163,8 +163,7 @@
   "*All headers that start with this regexp will be hidden.
 This variable can also be a list of regexps of headers to be ignored.
 If `gnus-visible-headers' is non-nil, this variable will be ignored."
-  :type '(choice :custom-show nil
-		 regexp
+  :type '(choice regexp
 		 (repeat regexp))
   :group 'gnus-article-hiding)
 
