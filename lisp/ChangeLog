@@ -1,3 +1,11 @@
+2011-07-07  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-next-error-move): Use `compilation-message'
+	property, and handle its changed format.
+	Look for the correct line number.
+	Use file's line contents (but not past first =) to find
+	correct line in message.
+
 2011-07-07  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el (build-unicode-category-table):
