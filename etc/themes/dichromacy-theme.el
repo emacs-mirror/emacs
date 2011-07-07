@@ -72,7 +72,6 @@ Ansi-Color faces are included.")
    `(font-lock-warning-face ((,class (:weight bold :slant italic
 				      :foreground ,vermillion))))
    ;; Button and link faces
-   `(button ((,class (:underline t :foreground ,blue))))
    `(link ((,class (:underline t :foreground ,blue))))
    `(link-visited ((,class (:underline t :foreground ,redpurple))))
    ;; Gnus faces

@@ -1,4 +1,4 @@
-2011-07-06  Kenichi Handa  <handa@m17n.org>
+2011-07-07  Kenichi Handa  <handa@m17n.org>
 
 	* character.h (unicode_category_t): New enum type.
 
@@ -39,6 +39,11 @@
 
 	* font.c (font_range): Adjusted for the change of
 	Vunicode_category_table.
+
+2011-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/iris4d.h: Remove file, move contents ...
+	* s/irix6-5.h: ... here.
 
 2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 

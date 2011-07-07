@@ -1,4 +1,4 @@
-2011-07-06  Kenichi Handa  <handa@m17n.org>
+2011-07-07  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el (build-unicode-category-table):
 	Delete it.
@@ -33,6 +33,13 @@
 
 	* loadup.el: Load international/charprop.el before
 	international/characters.
+
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (next-buffer, previous-buffer): Signal an error if
+	called from a minibuffer window.
+
+	* bindings.el: Revert 2011-07-04 change.
 
 2011-07-06  Richard Stallman  <rms@gnu.org>
 

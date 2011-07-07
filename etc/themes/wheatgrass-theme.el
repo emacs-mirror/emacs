@@ -47,7 +47,6 @@ of green, brown, and blue.")
    `(font-lock-variable-name-face ((,class (:foreground "yellow green"))))
    `(font-lock-warning-face ((,class (:foreground "salmon1"))))
    ;; Button and link faces
-   `(button ((,class (:underline t :foreground "cyan"))))
    `(link ((,class (:underline t :foreground "cyan"))))
    `(link-visited ((,class (:underline t :foreground "dark cyan"))))
    ;; Gnus faces
