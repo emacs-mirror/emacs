@@ -1,3 +1,8 @@
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-line-wrapping-menu): Revert last change.
+	(menu-bar-options-menu): Tweak descriptions.
+
 2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* menu-bar.el (menu-bar-line-wrapping-menu): Make all the Options

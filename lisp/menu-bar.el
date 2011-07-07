@@ -1136,7 +1136,7 @@ mail status in mode line"))
 
     (define-key menu [word-wrap]
       `(menu-item
-	,(purecopy "Wrap Between Words (Visual Line mode)")
+	,(purecopy "Word Wrap (Visual Line mode)")
 	(lambda ()
 	  (interactive)
 	  (unless visual-line-mode
@@ -1274,7 +1274,7 @@ mail status in mode line"))
     (define-key menu [cua-mode]
       (menu-bar-make-mm-toggle
        cua-mode
-       "Use C-x/C-c/C-v Cut and Paste (CUA) Keys"
+       "Use CUA Keys (Cut/Paste with C-x/C-c/C-v)"
        "Use C-z/C-x/C-c/C-v keys for undo/cut/copy/paste"
        (:visible (or (not (boundp 'cua-enable-cua-keys))
 		     cua-enable-cua-keys))))
@@ -1313,7 +1313,7 @@ mail status in mode line"))
     (define-key menu [highlight-paren-mode]
       (menu-bar-make-mm-toggle
        show-paren-mode
-       "Highlighting Matching Parenthesis"
+       "Highlight Matching Parentheses"
        "Highlight matching/mismatched parentheses at cursor (Show Paren mode)"))
     (define-key menu [transient-mark-mode]
       (menu-bar-make-mm-toggle
