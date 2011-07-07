@@ -124,16 +124,30 @@ possible, and uses the auth-source framework for getting credentials.
 The rewrite should be largely compatible with previous versions of
 smtpmail, but there are two major incompatibilities:
 
-** `smtpmail-auth-credentials' no longer exists.  That variable could
-be either ~/.authinfo (in which case you're fine -- you won't see any
+** `smtpmail-auth-credentials' no longer exists.  That variable used
+to be be either ~/.authinfo (in which case you won't see any
 difference), but if it were a direct list of user names and passwords,
-you will be prompted for the user name and the password instead, and
-they will then be saved to ~/.authinfo.
+it will be ignored, and you will be prompted for the user name and the
+password instead.  They will then be saved to ~/.authinfo.
+
+If you wish to copy over all the credentials from
+`smtpmail-auth-credentials' to your ~/.authinfo file manually, instead
+of letting smtpmail prompt you for these values, that's also possible.
+
+If you had, for instance,
+
+(setq smtpmail-auth-credentials
+      '(("mail.example.org" 25 "jim" "s!cret")))
+
+then the equivalent line in ~/.authinfo would be
+
+machine mail.example.org port 25 login jim password s!cret
 
 ** Similarly, `smtpmail-starttls-credentials' no longer exists.  If
-you had thet set, then then you need to put
+you had that set, then then you need to put
 
-machine smtp.whatever.foo port 25 key "~/.my_smtp_tls.key" cert "~/.my_smtp_tls.cert"
+machine smtp.whatever.foo port 25 key "~/.my_smtp_tls.key" cert
+"~/.my_smtp_tls.cert"
 
 in your ~/.authinfo file instead.
 
