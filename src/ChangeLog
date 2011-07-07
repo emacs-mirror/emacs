@@ -1,5 +1,9 @@
 2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* keymap.c (describe_map_tree): Don't insert a double newline at
+	the end of the buffer (bug#1169) and return whether we inserted
+	something.
+
 	* callint.c (Fcall_interactively): Change "reading args" to
 	"providing args" to try to clarify what it does (bug#1010).
 
