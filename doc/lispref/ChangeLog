@@ -1,5 +1,8 @@
 2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* text.texi (Special Properties): Clarify the format of `face'
+	(bug#1375).
+
 	* commands.texi (Interactive Call): Add a `call-interactively'
 	example (bug#1010).
 
