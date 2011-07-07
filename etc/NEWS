@@ -117,14 +117,22 @@ with minibuffer-local-must-match-map.
 
 ** auto-mode-case-fold is now enabled by default.
 
+** Mail changes
+
+The default of `send-mail-function' has changed from
+`sendmail-send-it' (on GNU/Linux and other Unix-like systems) or
+`mailclient-send-it' (on Windows) to `sendmail-query-once'.  This new
+default will ask the user (once) whether to use the internal smtpmail
+package to send email, or to use the old, external defaults.
+
 ** smtpmail changes
 
-** smtpmail has been largely rewritten to upgrade to STARTTLS if
+*** smtpmail has been largely rewritten to upgrade to STARTTLS if
 possible, and uses the auth-source framework for getting credentials.
 The rewrite should be largely compatible with previous versions of
 smtpmail, but there are two major incompatibilities:
 
-** `smtpmail-auth-credentials' no longer exists.  That variable used
+*** `smtpmail-auth-credentials' no longer exists.  That variable used
 to be be either ~/.authinfo (in which case you won't see any
 difference), but if it were a direct list of user names and passwords,
 it will be ignored, and you will be prompted for the user name and the
@@ -143,7 +151,7 @@ then the equivalent line in ~/.authinfo would be
 
 machine mail.example.org port 25 login jim password s!cret
 
-** Similarly, `smtpmail-starttls-credentials' no longer exists.  If
+*** Similarly, `smtpmail-starttls-credentials' no longer exists.  If
 you had that set, then then you need to put
 
 machine smtp.whatever.foo port 25 key "~/.my_smtp_tls.key" cert

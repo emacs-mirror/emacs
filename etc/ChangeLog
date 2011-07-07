@@ -1,6 +1,7 @@
 2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* NEWS: Clarify `smtpmail-auth-credentials' non-existence.
+	Mention the `send-mail-function' default change.
 
 2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
 
