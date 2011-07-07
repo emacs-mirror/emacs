@@ -587,9 +587,9 @@ make_temp_name (Lisp_Object prefix, int base64_p)
 {
   Lisp_Object val;
   int len, clen;
-  intmax_t pid;
+  printmax_t pid;
   char *p, *data;
-  char pidbuf[INT_BUFSIZE_BOUND (pid_t)];
+  char pidbuf[INT_BUFSIZE_BOUND (printmax_t)];
   int pidlen;
 
   CHECK_STRING (prefix);
@@ -611,7 +611,7 @@ make_temp_name (Lisp_Object prefix, int base64_p)
   else
     {
 #ifdef HAVE_LONG_FILE_NAMES
-      pidlen = sprintf (pidbuf, "%"PRIdMAX, pid);
+      pidlen = sprintf (pidbuf, "%"pMd, pid);
 #else
       pidbuf[0] = make_temp_name_tbl[pid & 63], pid >>= 6;
       pidbuf[1] = make_temp_name_tbl[pid & 63], pid >>= 6;

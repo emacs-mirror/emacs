@@ -61,6 +61,23 @@ extern void check_cons_list (void);
 # define EMACS_UINT unsigned EMACS_INT
 #endif
 
+/* printmax_t and uprintmax_t are types for printing large integers.
+   These are the widest integers that are supported for printing.
+   pMd etc. are conversions for printing them.
+   On C99 hosts, there's no problem, as even the widest integers work.
+   Fall back on EMACS_INT on pre-C99 hosts.  */
+#ifdef PRIdMAX
+typedef intmax_t printmax_t;
+typedef uintmax_t uprintmax_t;
+# define pMd PRIdMAX
+# define pMu PRIuMAX
+#else
+typedef EMACS_INT printmax_t;
+typedef EMACS_UINT uprintmax_t;
+# define pMd pI"d"
+# define pMu pI"u"
+#endif
+
 /* Use pD to format ptrdiff_t values, which suffice for indexes into
    buffers and strings.  Emacs never allocates objects larger than
    PTRDIFF_MAX bytes, as they cause problems with pointer subtraction.

@@ -1,5 +1,15 @@
 2011-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* editfns.c (pWIDE, pWIDElen, signed_wide, unsigned_wide):
+	Remove, replacing with the new symbols in lisp.h.  All uses changed.
+	* fileio.c (make_temp_name):
+	* filelock.c (lock_file_1, lock_file):
+	* xdisp.c (message_dolog):
+	Don't assume PRIdMAX etc. works; this isn't portable to pre-C99 hosts.
+	Use pMd etc. instead.
+	* lisp.h (printmax_t, uprintmax_t, pMd, pMu): New types and macros,
+	replacing the pWIDE etc. symbols removed from editfns.c.
+
 	* keyboard.h (num_input_events): Now uintmax_t.
 	This is (very slightly) less likely to mess up due to wraparound.
 	All uses changed.
