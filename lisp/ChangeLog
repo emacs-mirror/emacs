@@ -1,3 +1,12 @@
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* thingatpt.el (forward-thing, bounds-of-thing-at-point)
+	(thing-at-point, beginning-of-thing, end-of-thing, in-string-p)
+	(end-of-sexp, beginning-of-sexp)
+	(thing-at-point-bounds-of-list-at-point, forward-whitespace)
+	(forward-symbol, forward-same-syntax, word-at-point)
+	(sentence-at-point): Doc fix (Bug#1144).
+
 2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* info.el (Info-mode-map): Remove S-TAB binding, since [backtab]
