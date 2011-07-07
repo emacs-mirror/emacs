@@ -1,3 +1,7 @@
+2011-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove reference to iris4d.h.
+
 2011-07-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_GCONF): Allow both HAVE_GCONF and HAVE_GSETTINGS.
