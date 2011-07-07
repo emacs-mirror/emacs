@@ -1,5 +1,8 @@
 2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
 
+	* info.el (info, Info-read-node-name-2, Info-read-node-name-1)
+	(Info-read-node-name): Doc fix (Bug#1084).
+
 	* thingatpt.el (forward-thing, bounds-of-thing-at-point)
 	(thing-at-point, beginning-of-thing, end-of-thing, in-string-p)
 	(end-of-sexp, beginning-of-sexp)
