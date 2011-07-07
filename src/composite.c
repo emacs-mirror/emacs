@@ -1042,6 +1042,7 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
   cmp_it->id = -1;
   cmp_it->ch = -2;
   if (find_composition (charpos, endpos, &start, &end, &prop, string)
+      && start >= charpos
       && COMPOSITION_VALID_P (start, end, prop))
     {
       cmp_it->stop_pos = endpos = start;
