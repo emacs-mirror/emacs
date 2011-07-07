@@ -17976,12 +17976,13 @@ find_row_edges (struct it *it, struct glyph_row *row,
      lines' rows is implemented for bidi-reordered rows.  */
 
   /* ROW->minpos is the value of min_pos, the minimal buffer position
-     we have in ROW.  */
-  if (min_pos <= ZV)
+     we have in ROW, or ROW->start.pos if that is smaller.  */
+  if (min_pos <= ZV && min_pos < row->start.pos.charpos)
     SET_TEXT_POS (row->minpos, min_pos, min_bpos);
   else
-    /* We didn't find _any_ valid buffer positions in any of the
-       glyphs, so we must trust the iterator's computed positions.  */
+    /* We didn't find buffer positions smaller than ROW->start, or
+       didn't find _any_ valid buffer positions in any of the glyphs,
+       so we must trust the iterator's computed positions.  */
       row->minpos = row->start.pos;
   if (max_pos <= 0)
     {

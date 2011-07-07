@@ -1,3 +1,8 @@
+2011-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (find_row_edges): If ROW->start.pos gives position
+	smaller than min_pos, use it as ROW->minpos.  (Bug#7616)
+
 2011-07-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (buffer_posn_from_coords): Save and restore the bidi
@@ -33,7 +38,7 @@
 2011-07-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (reseat_1): Call bidi_init_it to resync the bidi
-	iterator with IT's position.
+	iterator with IT's position.  (Bug#7616)
 	(handle_stop, back_to_previous_visible_line_start, reseat_1):
 	Reset the from_disp_prop_p flag.
 
