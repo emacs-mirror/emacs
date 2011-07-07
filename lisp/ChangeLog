@@ -1,3 +1,8 @@
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-stream-type): Note that `plain' can
+	be used.
+
 2011-07-07  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-next-error-move): Use `compilation-message'

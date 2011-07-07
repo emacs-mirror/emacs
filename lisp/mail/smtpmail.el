@@ -98,13 +98,14 @@ don't define this value."
 
 (defcustom smtpmail-stream-type nil
   "Connection type SMTP connections.
-This may be either nil (plain connection) or `starttls' (use the
-starttls mechanism to turn on TLS security after opening the
-stream)."
+This may be either nil (possibly upgraded to STARTTLS if
+possible), or `starttls' (refuse to send if STARTTLS isn't
+available), or `plain' (never use STARTTLS).."
   :version "24.1"
   :group 'smtpmail
-  :type '(choice (const :tag "Plain" nil)
-		 (const starttls)))
+  :type '(choice (const :tag "Possibly upgrade to STARTTLS" nil)
+		 (const :tag "Always use STARTTLS" starttls)
+		 (const :tag "Never use STARTTLS" plain)))
 
 (defcustom smtpmail-sendto-domain nil
   "Local domain name without a host name.
