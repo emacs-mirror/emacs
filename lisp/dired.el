@@ -3643,7 +3643,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "d7b197829c8d456cc5bc6c5fdab7c4b0")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "198ca311b49f0b6354f915502bba4ab6")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -4104,7 +4104,7 @@ instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump-other-window dired-jump)
-;;;;;;  "dired-x" "dired-x.el" "cdeb2935dc1d33819b12981ba5272073")
+;;;;;;  "dired-x" "dired-x.el" "90459fb5998296fc67986945701b2bfc")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

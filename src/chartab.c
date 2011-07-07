@@ -456,7 +456,7 @@ sub_char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val,
     from = min_char;
   i = CHARTAB_IDX (from, depth, min_char);
   c = min_char + chars_in_block * i;
-  for (; i <= lim; i++, c += chars_in_block)
+  for (; i < lim; i++, c += chars_in_block)
     {
       if (c > to)
 	break;
