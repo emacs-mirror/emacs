@@ -1,5 +1,8 @@
 2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* info.el (Info-mode-map): Remove S-TAB binding, since [backtab]
+	should cover it (bug#1281).
+
 	* cus-edit.el (custom-show): Marked as obsolete.
 
 	* net/network-stream.el (network-stream-open-starttls): If gnutls

@@ -3645,7 +3645,6 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "\C-m" 'Info-follow-nearest-node)
     (define-key map "\t" 'Info-next-reference)
     (define-key map "\e\t" 'Info-prev-reference)
-    (define-key map [(shift tab)] 'Info-prev-reference)
     (define-key map [backtab] 'Info-prev-reference)
     (define-key map "1" 'Info-nth-menu-item)
     (define-key map "2" 'Info-nth-menu-item)
