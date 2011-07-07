@@ -1,5 +1,29 @@
 2011-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c: Integer signedness and overflow fixes.
+	Do not impose an arbitrary 32-bit limit on malloc sizes when debugging.
+	(__malloc_size_t): Default to size_t, not to int.
+	(pure_size, pure_bytes_used_before_overflow, stack_copy_size)
+	(Fgarbage_collect, mark_object_loop_halt, mark_object):
+	Prefer ptrdiff_t to size_t when either would do, as we prefer
+	signed integers.
+	(XMALLOC_OVERRUN_CHECK_OVERHEAD): New macro.
+	(xmalloc_overrun_check_header, xmalloc_overrun_check_trailer):
+	Now const.  Initialize with values that are in range even if char
+	is signed.
+	(XMALLOC_PUT_SIZE, XMALLOC_GET_SIZE): Remove, replacing with ...
+	(xmalloc_put_size, xmalloc_get_size): New functions.  All uses changed.
+	These functions do the right thing with sizes > 2**32.
+	(check_depth): Now ptrdiff_t, not int.
+	(overrun_check_malloc, overrun_check_realloc, overrun_check_free):
+	Adjust to new way of storing sizes.  Check for size overflow bugs
+	in rest of code.
+	(STRING_BYTES_MAX): Adjust to new overheads.  The old code was
+	slightly wrong anyway, as it missed one instance of
+	XMALLOC_OVERRUN_CHECK_OVERHEAD.
+	(refill_memory_reserve): Omit needless cast to size_t.
+	(mark_object_loop_halt): Mark as externally visible.
+
 	* xselect.c: Integer signedness and overflow fixes.
 	(Fx_register_dnd_atom, x_handle_dnd_message):
 	Use ptrdiff_t, not size_t, since we prefer signed.
