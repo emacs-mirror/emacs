@@ -1,4 +1,4 @@
-;;; plstore.el --- searchable, partially encrypted, persistent plist store -*- lexical-binding: t -*-
+;;; plstore.el --- secure plist store -*- lexical-binding: t -*-
 ;; Copyright (C) 2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
@@ -21,24 +21,61 @@
 
 ;;; Commentary
 
+;; Plist based data store providing search and partial encryption.
+;;
 ;; Creating:
 ;;
+;; ;; Open a new store associated with ~/.emacs.d/auth.plist.
 ;; (setq store (plstore-open (expand-file-name "~/.emacs.d/auth.plist")))
+;; ;; Both `:host' and `:port' are public property.
 ;; (plstore-put store "foo" '(:host "foo.example.org" :port 80) nil)
+;; ;; No encryption will be needed.
 ;; (plstore-save store)
-;; ;; :user property is secret
+;;
+;; ;; `:user' is marked as secret.
 ;; (plstore-put store "bar" '(:host "bar.example.org") '(:user "test"))
-;; (plstore-put store "baz" '(:host "baz.example.org") '(:user "test"))
-;; (plstore-save store) ;<= will ask passphrase via GPG
+;; ;; `:password' is marked as secret.
+;; (plstore-put store "baz" '(:host "baz.example.org") '(:password "test"))
+;; ;; Those secret properties are encrypted together.
+;; (plstore-save store)
+;;
+;; ;; Kill the buffer visiting ~/.emacs.d/auth.plist.
 ;; (plstore-close store)
 ;;
 ;; Searching:
 ;;
 ;; (setq store (plstore-open (expand-file-name "~/.emacs.d/auth.plist")))
+;;
+;; ;; As the entry "foo" associated with "foo.example.org" has no
+;; ;; secret properties, no need to decryption.
 ;; (plstore-find store '(:host ("foo.example.org")))
-;; (plstore-find store '(:host ("bar.example.org"))) ;<= will ask passphrase via GPG
+;;
+;; ;; As the entry "bar" associated with "bar.example.org" has a
+;; ;; secret property `:user', Emacs tries to decrypt the secret (and
+;; ;; thus you will need to input passphrase).
+;; (plstore-find store '(:host ("bar.example.org")))
+;;
+;; ;; While the entry "baz" associated with "baz.example.org" has also
+;; ;; a secret property `:password', it is encrypted together with
+;; ;; `:user' of "bar", so no need to decrypt the secret.
+;; (plstore-find store '(:host ("bar.example.org")))
+;;
 ;; (plstore-close store)
 ;;
+;; Editing:
+;;
+;; This file also provides `plstore-mode', a major mode for editing
+;; the PLSTORE format file.  Visit a non-existing file and put the
+;; following line:
+;;
+;; (("foo" :host "foo.example.org" :secret-user "user"))
+;;
+;; where the prefixing `:secret-' means the property (without
+;; `:secret-' prefix) is marked as secret.  Thus, when you save the
+;; buffer, the `:secret-user' property is encrypted as `:user'.
+;;
+;; You can toggle the view between encrypted form and the decrypted
+;; form with C-c C-c.
 
 ;;; Code:
 
@@ -77,6 +114,10 @@ May either be a string or a list of strings.")
 		  t)))))
 
 (put 'plstore-encrypt-to 'permanent-local t)
+
+(defvar plstore-encoded nil)
+
+(put 'plstore-encoded 'permanent-local t)
 
 (defvar plstore-cache-passphrase-for-symmetric-encryption nil)
 (defvar plstore-passphrase-alist nil)
@@ -123,8 +164,8 @@ May either be a string or a list of strings.")
 (defun plstore--get-merged-alist (this)
   (aref this 4))
 
-(defun plstore--set-file (this file)
-  (aset this 0 file))
+(defun plstore--set-buffer (this buffer)
+  (aset this 0 buffer))
 
 (defun plstore--set-alist (this plist)
   (aset this 1 plist))
@@ -141,6 +182,10 @@ May either be a string or a list of strings.")
 (defun plstore-get-file (this)
   (buffer-file-name (plstore--get-buffer this)))
 
+(defun plstore--make (&optional buffer alist encrypted-data secret-alist
+				merged-alist)
+  (vector buffer alist encrypted-data secret-alist merged-alist))
+
 (defun plstore--init-from-buffer (plstore)
   (goto-char (point-min))
   (when (looking-at ";;; public entries")
@@ -156,16 +201,17 @@ May either be a string or a list of strings.")
 ;;;###autoload
 (defun plstore-open (file)
   "Create a plstore instance associated with FILE."
-  (with-current-buffer (find-file-noselect file)
-    ;; make the buffer invisible from user
-    (rename-buffer (format " plstore %s" (buffer-file-name)))
-    (let ((store (vector
-		  (current-buffer)
-		  nil		     ;plist (plist)
-		  nil		     ;encrypted data (string)
-		  nil		     ;secret plist (plist)
-		  nil		     ;merged plist (plist)
-		  )))
+  (let* ((filename (file-truename file))
+	 (buffer (or (find-buffer-visiting filename)
+		     (generate-new-buffer (format " plstore %s" filename))))
+	 (store (plstore--make buffer)))
+    (with-current-buffer buffer
+      (erase-buffer)
+      (condition-case nil
+	  (insert-file-contents-literally file)
+	(error))
+      (setq buffer-file-name (file-truename file))
+      (set-buffer-modified-p nil)
       (plstore--init-from-buffer store)
       store)))
 
@@ -356,43 +402,159 @@ SECRET-KEYS is a plist containing secret data."
 	 (delq entry (plstore--get-merged-alist plstore))))))
 
 (defvar pp-escape-newlines)
+(defun plstore--insert-buffer (plstore)
+  (insert ";;; public entries -*- mode: plstore -*- \n"
+	  (pp-to-string (plstore--get-alist plstore)))
+  (if (plstore--get-secret-alist plstore)
+      (let ((context (epg-make-context 'OpenPGP))
+	    (pp-escape-newlines nil)
+	    (recipients
+	     (cond
+	      ((listp plstore-encrypt-to) plstore-encrypt-to)
+	      ((stringp plstore-encrypt-to) (list plstore-encrypt-to))))
+	    cipher)
+	(epg-context-set-armor context t)
+	(epg-context-set-passphrase-callback
+	 context
+	 (cons #'plstore-passphrase-callback-function
+	       plstore))
+	(setq cipher (epg-encrypt-string
+		      context
+		      (pp-to-string
+		       (plstore--get-secret-alist plstore))
+		      (if (or (eq plstore-select-keys t)
+			      (and (null plstore-select-keys)
+				   (not (local-variable-p 'plstore-encrypt-to
+							  (current-buffer)))))
+			  (epa-select-keys
+			   context
+			   "Select recipents for encryption.
+If no one is selected, symmetric encryption will be performed.  "
+			   recipients)
+			(if plstore-encrypt-to
+			    (epg-list-keys context recipients)))))
+	(goto-char (point-max))
+	(insert ";;; secret entries\n" (pp-to-string cipher)))))
+
 (defun plstore-save (plstore)
   "Save the contents of PLSTORE associated with a FILE."
   (with-current-buffer (plstore--get-buffer plstore)
     (erase-buffer)
-    (insert ";;; public entries -*- mode: emacs-lisp -*- \n"
-	    (pp-to-string (plstore--get-alist plstore)))
-    (if (plstore--get-secret-alist plstore)
-	(let ((context (epg-make-context 'OpenPGP))
-	      (pp-escape-newlines nil)
-	      (recipients
-	       (cond
-		((listp plstore-encrypt-to) plstore-encrypt-to)
-		((stringp plstore-encrypt-to) (list plstore-encrypt-to))))
-	      cipher)
-	  (epg-context-set-armor context t)
-	  (epg-context-set-passphrase-callback
-	   context
-	   (cons #'plstore-passphrase-callback-function
-		 plstore))
-	  (setq cipher (epg-encrypt-string
-			context
-			(pp-to-string
-			 (plstore--get-secret-alist plstore))
-			(if (or (eq plstore-select-keys t)
-				(and (null plstore-select-keys)
-				     (not (local-variable-p 'plstore-encrypt-to
-							    (current-buffer)))))
-			    (epa-select-keys
-			     context
-			     "Select recipents for encryption.
-If no one is selected, symmetric encryption will be performed.  "
-			     recipients)
-			  (if plstore-encrypt-to
-			      (epg-list-keys context recipients)))))
-	  (goto-char (point-max))
-	  (insert ";;; secret entries\n" (pp-to-string cipher))))
+    (plstore--insert-buffer plstore)
     (save-buffer)))
+
+(defun plstore--encode (plstore)
+  (plstore--decrypt plstore)
+  (let ((merged-alist (plstore--get-merged-alist plstore)))
+    (concat "("
+	    (mapconcat
+	     (lambda (entry)
+	       (setq entry (copy-sequence entry))
+	       (let ((merged-plist (cdr (assoc (car entry) merged-alist)))
+		     (plist (cdr entry)))
+		 (while plist
+		   (if (string-match "\\`:secret-" (symbol-name (car plist)))
+		       (setcar (cdr plist)
+			       (plist-get
+				merged-plist
+				(intern (concat ":"
+						(substring (symbol-name
+							    (car plist))
+							   (match-end 0)))))))
+		   (setq plist (nthcdr 2 plist)))
+		 (prin1-to-string entry)))
+	     (plstore--get-alist plstore)
+	     "\n")
+	    ")")))
+
+(defun plstore--decode (string)
+  (let* ((alist (car (read-from-string string)))
+	 (pointer alist)
+	 secret-alist
+	 plist
+	 entry)
+    (while pointer
+      (unless (stringp (car (car pointer)))
+	(error "Invalid PLSTORE format %s" string))
+      (setq plist (cdr (car pointer)))
+      (while plist
+	(when (string-match "\\`:secret-" (symbol-name (car plist)))
+	  (setq entry (assoc (car (car pointer)) secret-alist))
+	  (unless entry
+	    (setq entry (list (car (car pointer)))
+		  secret-alist (cons entry secret-alist)))
+	  (setcdr entry (plist-put (cdr entry)
+				   (intern (concat ":"
+						(substring (symbol-name
+							    (car plist))
+							   (match-end 0))))
+				   (car (cdr plist))))
+	  (setcar (cdr plist) t))
+	(setq plist (nthcdr 2 plist)))
+      (setq pointer (cdr pointer)))
+    (plstore--make nil alist nil secret-alist)))
+
+(defun plstore--write-contents-functions ()
+  (when plstore-encoded
+    (let ((store (plstore--decode (buffer-string)))
+	  (file (buffer-file-name)))
+      (unwind-protect
+	  (progn
+	    (set-visited-file-name nil)
+	    (with-temp-buffer
+	      (plstore--insert-buffer store)
+	      (write-region (buffer-string) nil file)))
+	(set-visited-file-name file)
+	(set-buffer-modified-p nil))
+      t)))
+
+(defun plstore-mode-original ()
+  "Show the original form of the this buffer."
+  (interactive)
+  (when plstore-encoded
+    (if (and (buffer-modified-p)
+	     (y-or-n-p "Save buffer before reading the original form? "))
+	(save-buffer))
+    (erase-buffer)
+    (insert-file-contents-literally (buffer-file-name))
+    (set-buffer-modified-p nil)
+    (setq plstore-encoded nil)))
+
+(defun plstore-mode-decoded ()
+  "Show the decoded form of the this buffer."
+  (interactive)
+  (unless plstore-encoded
+    (if (and (buffer-modified-p)
+	     (y-or-n-p "Save buffer before decoding? "))
+	(save-buffer))
+    (let ((store (plstore--make (current-buffer))))
+      (plstore--init-from-buffer store)
+      (erase-buffer)
+      (insert
+       (substitute-command-keys "\
+;;; You are looking at the decoded form of the PLSTORE file.\n\
+;;; To see the original form content, do \\[plstore-mode-toggle-display]\n\n"))
+      (insert (plstore--encode store))
+      (set-buffer-modified-p nil)
+      (setq plstore-encoded t))))
+
+(defun plstore-mode-toggle-display ()
+  "Toggle the display mode of PLSTORE between the original and decoded forms."
+  (interactive)
+  (if plstore-encoded
+      (plstore-mode-original)
+    (plstore-mode-decoded)))
+
+;;;###autoload
+(define-derived-mode plstore-mode emacs-lisp-mode "PLSTORE"
+  "Major mode for editing PLSTORE files."
+  (make-local-variable 'plstore-encoded)
+  (add-hook 'write-contents-functions #'plstore--write-contents-functions)
+  (define-key plstore-mode-map "\C-c\C-c" #'plstore-mode-toggle-display)
+  ;; to create a new file with plstore-mode, mark it as already decoded
+  (if (called-interactively-p 'any)
+      (setq plstore-encoded t)
+    (plstore-mode-decoded)))
 
 (provide 'plstore)
 

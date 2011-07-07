@@ -1,3 +1,13 @@
+2011-07-07  Daiki Ueno  <ueno@unixuser.org>
+
+	* plstore.el: Add documentation.
+	(plstore-mode): New mode to edit plstore file.
+	(plstore-mode-toggle-display, plstore-mode-original)
+	(plstore-mode-decoded): New command.
+	(plstore--encode, plstore--decode, plstore--write-contents-functions)
+	(plstore--insert-buffer, plstore--make): New function.
+	(plstore-open, plstore-save): Simplify by using them.
+
 2011-07-06  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Silence compiler.
