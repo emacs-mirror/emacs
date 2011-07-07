@@ -263,10 +263,10 @@ bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
 
 #define BIDI_CACHE_CHUNK 200
 static struct bidi_it *bidi_cache;
-static size_t bidi_cache_size = 0;
-static size_t elsz = sizeof (struct bidi_it);
-static int bidi_cache_idx;	/* next unused cache slot */
-static int bidi_cache_last_idx;	/* slot of last cache hit */
+static ptrdiff_t bidi_cache_size = 0;
+enum { elsz = sizeof (struct bidi_it) };
+static ptrdiff_t bidi_cache_idx;	/* next unused cache slot */
+static ptrdiff_t bidi_cache_last_idx;	/* slot of last cache hit */
 
 static inline void
 bidi_cache_reset (void)
@@ -288,7 +288,7 @@ bidi_cache_shrink (void)
 }
 
 static inline void
-bidi_cache_fetch_state (int idx, struct bidi_it *bidi_it)
+bidi_cache_fetch_state (ptrdiff_t idx, struct bidi_it *bidi_it)
 {
   int current_scan_dir = bidi_it->scan_dir;
 
@@ -304,10 +304,10 @@ bidi_cache_fetch_state (int idx, struct bidi_it *bidi_it)
    level less or equal to LEVEL.  if LEVEL is -1, disregard the
    resolved levels in cached states.  DIR, if non-zero, means search
    in that direction from the last cache hit.  */
-static inline int
+static inline ptrdiff_t
 bidi_cache_search (EMACS_INT charpos, int level, int dir)
 {
-  int i, i_start;
+  ptrdiff_t i, i_start;
 
   if (bidi_cache_idx)
     {
@@ -366,12 +366,12 @@ bidi_cache_search (EMACS_INT charpos, int level, int dir)
    C, searching backwards (DIR = -1) for LEVEL = 2 will return the
    index of slot B or A, depending whether BEFORE is, respectively,
    non-zero or zero.  */
-static int
+static ptrdiff_t
 bidi_cache_find_level_change (int level, int dir, int before)
 {
   if (bidi_cache_idx)
     {
-      int i = dir ? bidi_cache_last_idx : bidi_cache_idx - 1;
+      ptrdiff_t i = dir ? bidi_cache_last_idx : bidi_cache_idx - 1;
       int incr = before ? 1 : 0;
 
       if (!dir)
@@ -407,7 +407,7 @@ bidi_cache_find_level_change (int level, int dir, int before)
 static inline void
 bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
 {
-  int idx;
+  ptrdiff_t idx;
 
   /* We should never cache on backward scans.  */
   if (bidi_it->scan_dir == -1)
@@ -420,6 +420,9 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
       /* Enlarge the cache as needed.  */
       if (idx >= bidi_cache_size)
 	{
+	  if (min (PTRDIFF_MAX, SIZE_MAX) / elsz - BIDI_CACHE_CHUNK
+	      < bidi_cache_size)
+	    memory_full (SIZE_MAX);
 	  bidi_cache_size += BIDI_CACHE_CHUNK;
 	  bidi_cache =
 	    (struct bidi_it *) xrealloc (bidi_cache, bidi_cache_size * elsz);
@@ -468,7 +471,7 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
 static inline bidi_type_t
 bidi_cache_find (EMACS_INT charpos, int level, struct bidi_it *bidi_it)
 {
-  int i = bidi_cache_search (charpos, level, bidi_it->scan_dir);
+  ptrdiff_t i = bidi_cache_search (charpos, level, bidi_it->scan_dir);
 
   if (i >= 0)
     {
@@ -1756,7 +1759,7 @@ static void
 bidi_find_other_level_edge (struct bidi_it *bidi_it, int level, int end_flag)
 {
   int dir = end_flag ? -bidi_it->scan_dir : bidi_it->scan_dir;
-  int idx;
+  ptrdiff_t idx;
 
   /* Try the cache first.  */
   if ((idx = bidi_cache_find_level_change (level, dir, end_flag)) >= 0)
@@ -1912,7 +1915,7 @@ void bidi_dump_cached_states (void) EXTERNALLY_VISIBLE;
 void
 bidi_dump_cached_states (void)
 {
-  int i;
+  ptrdiff_t i;
   int ndigits = 1;
 
   if (bidi_cache_idx == 0)
