@@ -210,8 +210,8 @@ Lisp_Object unread_switch_frame;
 /* Last size recorded for a current buffer which is not a minibuffer.  */
 static EMACS_INT last_non_minibuf_size;
 
-/* Total number of times read_char has returned, modulo SIZE_MAX + 1.  */
-size_t num_input_events;
+/* Total number of times read_char has returned, modulo UINTMAX_MAX + 1.  */
+uintmax_t num_input_events;
 
 /* Value of num_nonmacro_input_events as of last auto save.  */
 

@@ -339,7 +339,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     {
       Lisp_Object input;
       Lisp_Object funval = Findirect_function (function, Qt);
-      size_t events = num_input_events;
+      uintmax_t events = num_input_events;
       input = specs;
       /* Compute the arg values using the user's expression.  */
       GCPRO2 (input, filter_specs);

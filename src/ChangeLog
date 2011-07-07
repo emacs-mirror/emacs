@@ -1,5 +1,9 @@
 2011-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.h (num_input_events): Now uintmax_t.
+	This is (very slightly) less likely to mess up due to wraparound.
+	All uses changed.
+
 	* buffer.c: Integer signedness fixes.
 	(alloc_buffer_text, enlarge_buffer_text):
 	Use ptrdiff_t rather than size_t when either will do, as we prefer
