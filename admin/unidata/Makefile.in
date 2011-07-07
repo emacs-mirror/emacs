@@ -33,9 +33,10 @@ unidata.txt: UnicodeData.txt
 
 ${DSTDIR}/charprop.el: unidata-gen.elc unidata.txt
 	ELC=`/bin/pwd`/unidata-gen.elc; \
-	DATA=`/bin/pwd`/unidata.txt; \
+	DATADIR=`/bin/pwd`; \
+	DATA=unidata.txt; \
 	cd ${DSTDIR}; \
-	${RUNEMACS} -batch --load $${ELC} -f unidata-gen-files $${DATA}
+	${RUNEMACS} -batch --load $${ELC} -f unidata-gen-files $${DATADIR} $${DATA}
 
 ../../src/biditype.h: UnicodeData.txt
 	gawk -F";" -f biditype.awk $< > $@
