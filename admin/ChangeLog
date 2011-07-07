@@ -1,3 +1,8 @@
+2011-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unidata/makefile.w32-in (charprop-SH, charprop-CMD):
+	Duplicate change in Makefile.in (revno:105007).
+
 2011-07-06  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/unidata-gen.el (unidata-dir): New variable.
@@ -25,7 +30,7 @@
 	(unidata-gen-table-decomposition): Likewise.
 	(unidata-describe-general-category): Add the case nil to the
 	description alist.
-	(unidata-gen-mirroring-list): New funciton.
+	(unidata-gen-mirroring-list): New function.
 	(unidata-gen-files): New arg DATA-DIR.  Adjusted for the change of
 	unidata-prop-alist.  Handle the case of storing multiple
 	char-tables in a file.
@@ -222,7 +227,7 @@
 	* unidata/BidiMirroring.txt: New file from
 	http://www.unicode.org/Public/6.0.0/ucd/BidiMirroring-6.0.0d1.txt.
 
-	* unidata/Makefile.in: (../../src/bidimirror.h): New target.
+	* unidata/Makefile.in (../../src/bidimirror.h): New target.
 	(all): Depend on ../../src/biditype.h and ../../src/bidimirror.h.
 
 	* unidata/makefile.w32-in (../../src/bidimirror.h): New target.
@@ -271,7 +276,7 @@
 
 	* quick-install-emacs: Use more portable shell syntax.
 
-	* quick-install-emacs: (AVOID): Be more picky about files we avoid
+	* quick-install-emacs (AVOID): Be more picky about files we avoid
 	installing.
 
 2010-02-14  Juanma Barranquero  <lekktu@gmail.com>
