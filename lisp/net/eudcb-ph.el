@@ -1,7 +1,6 @@
 ;;; eudcb-ph.el --- Emacs Unified Directory Client - CCSO PH/QI Backend
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -241,5 +240,4 @@ depending on RETURN-RESPONSE."
 
 (provide 'eudcb-ph)
 
-;; arch-tag: 4365bbf5-af20-453e-b5b6-2e7118ebfcdb
 ;;; eudcb-ph.el ends here

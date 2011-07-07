@@ -1,7 +1,6 @@
 ;;; makeinfo.el --- run makeinfo conveniently
 
-;; Copyright (C) 1991, 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1993, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Maintainer: FSF
@@ -289,5 +288,4 @@ line LINE of the window, or centered if LINE is nil."
 ;;; Place `provide' at end of file.
 (provide 'makeinfo)
 
-;; arch-tag: 5f810713-3de2-4e20-8030-4bc3dd0d9604
 ;;; makeinfo.el ends here

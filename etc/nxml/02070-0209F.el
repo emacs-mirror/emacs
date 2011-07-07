@@ -30,4 +30,3 @@
     ("SUBSCRIPT RIGHT PARENTHESIS" #x208E)
     ))
 
-;; arch-tag: 59e357e5-c021-440d-a923-921b485dcbb8

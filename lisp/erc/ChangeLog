@@ -1,3 +1,84 @@
+2011-07-04  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* erc.el (erc-generate-new-buffer-name): Reuse old buffer names
+	when reconnecting (bug#5563).
+
+2011-06-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* erc.el (erc-ssl): Made into a synonym for erc-tls, which
+	provides a superset of the same functionality.
+	(erc-open-ssl-stream): Removed.
+	(erc-open-tls-stream): Use `open-network-stream' instead of
+	`open-tls-stream' directly to be able to use the built-in TLS
+	support.
+
+2011-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-pcomplete.el (erc-pcompletions-at-point): Mark the completion
+	data as non-exclusive if it's using the default-completion-function.
+	(pcomplete-erc-parse-arguments): Rename pcomplete-parse-erc-arguments.
+	(pcomplete-erc-setup): Use new name.
+
+2011-05-03  Debarshi Ray  <rishi@gnu.org>  (tiny change)
+
+	* erc-backend.el (671): New response handler.
+	* erc.el (english): Add 671 to catalog.
+
+2011-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-pcomplete.el (erc-pcomplete-nick-postfix): Remove the " " in the
+	suffix that's added by pcomplete-termination-string anyway.
+	(pcomplete-erc-setup): Remove pcomplete-suffix-list setting now that
+	it's not needed any more.
+
+2011-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el (erc-mode-map): Use completion-at-point.
+	(erc-mode): Tell completion-at-point to obey erc-complete-functions.
+	(erc-complete-word-at-point): New function.
+	(erc-complete-word): Make it obsolete.
+	* erc-pcomplete.el (erc-pcompletions-at-point): New function.
+	(pcomplete): Use it.
+	* erc-dcc.el (erc-dcc-chat-mode-map): Use completion-at-point.
+	(erc-dcc-chat-mode): Tell completion-at-point to obey
+	erc-complete-functions.
+	* erc-button.el (erc-button-next-function): New function extracted from
+	erc-button-next.
+	(button, erc-button-next): Use it.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-03-04  Julien Danjou  <julien@danjou.info>
+
+	* erc-track.el (erc-track-visibility): Fix :type.  (Bug#6369)
+
+2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-list.el (erc-list-menu-mode-map): Move initialization
+	into declaration.
+
+2011-02-07  Julien Danjou  <julien@danjou.info>
+
+	* erc-track.el (erc-window-configuration-change): New function.
+	This will allow to track buffer visibility when a command is
+	finished to executed.  Idea stolen from rcirc.
+	(track): Put erc-window-configuration-change in
+	window-configuration-change-hook.
+	(erc-modified-channels-update): Remove
+	erc-modified-channels-update from post-command-hook after update.
+
+2011-01-31  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+
+	* erc-track.el (track): Don't reset erc-modified-channels-object
+	each time erc-track-mode is activated.
+
+2011-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc.el (erc-mode):
+	* erc-dcc.el (erc-dcc-chat-mode): Use define-derived-mode.
+
 2010-11-11  Glenn Morris  <rgm@gnu.org>
 
 	* erc-lang.el (erc-cmd-LANG): Fix what may have been a typo.
@@ -25,17 +106,17 @@
 2010-08-14  Vivek Dasmohapatra  <vivek@etla.org>
 
 	* erc-join.el (erc-autojoin-timing, erc-autojoin-delay): New vars.
-	(erc-autojoin-channels-delayed, erc-autojoin-after-ident): New
-	functions.
+	(erc-autojoin-channels-delayed, erc-autojoin-after-ident):
+	New functions.
 	(erc-autojoin-channels): Allow autojoining after ident (Bug#5521).
 
 2010-08-08  Fran Litterio  <flitterio@gmail.com>
 
-	* erc-backend.el (erc-server-filter-function): Call
-	erc-log-irc-protocol.
+	* erc-backend.el (erc-server-filter-function):
+	Call erc-log-irc-protocol.
 
-	* erc.el (erc-toggle-debug-irc-protocol): Bind
-	erc-toggle-debug-irc-protocol to t.
+	* erc.el (erc-toggle-debug-irc-protocol):
+	Bind erc-toggle-debug-irc-protocol to t.
 
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -126,7 +207,7 @@
 
 See ChangeLog.08 for earlier changes.
 
-    Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+	Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -148,4 +229,3 @@ See ChangeLog.08 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-;; arch-tag: d4703244-4a8d-49b1-ab34-ad0d56600ef8

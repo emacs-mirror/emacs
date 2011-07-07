@@ -1,11 +1,11 @@
 ;;; ob-exp.el --- Exportation of org-babel source blocks
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte, Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -39,8 +39,7 @@
 (defvar org-babel-lob-one-liner-regexp)
 (defvar org-babel-ref-split-regexp)
 (declare-function org-babel-lob-get-info "ob-lob" ())
-(declare-function org-babel-ref-literal "ob-ref" (ref))
-
+(declare-function org-babel-eval-wipe-error-buffer "ob-eval" ())
 (add-to-list 'org-export-interblocks '(src org-babel-exp-inline-src-blocks))
 (add-to-list 'org-export-interblocks '(lob org-babel-exp-lob-one-liners))
 (add-hook 'org-export-blocks-postblock-hook 'org-exp-res/src-name-cleanup)
@@ -232,10 +231,10 @@ The function respects the value of the :exports header argument."
 			  (org-babel-exp-results info type 'silent))))
 	 (clean () (org-babel-remove-result info)))
     (case (intern (or (cdr (assoc :exports (nth 2 info))) "code"))
-      ('none (silently) (clean) "")
-      ('code (silently) (clean) (org-babel-exp-code info type))
-      ('results (org-babel-exp-results info type))
-      ('both (concat (org-babel-exp-code info type)
+      (none (silently) (clean) "")
+      (code (silently) (clean) (org-babel-exp-code info type))
+      (results (org-babel-exp-results info type))
+      (both (concat (org-babel-exp-code info type)
 		     "\n\n"
 		     (org-babel-exp-results info type))))))
 
@@ -251,8 +250,8 @@ The code block is not evaluated."
         (name (nth 4 info))
         (args (mapcar #'cdr (org-babel-get-header (nth 2 info) :var))))
     (case type
-      ('inline (format "=%s=" body))
-      ('block
+      (inline (format "=%s=" body))
+      (block
 	  (let ((str
 		 (format "#+BEGIN_SRC %s %s\n%s%s#+END_SRC\n" lang switches body
 			 (if (and body (string-match "\n$" body))
@@ -266,7 +265,7 @@ The code block is not evaluated."
 			     (mapconcat #'identity args ", ")))
 	       str))
 	    str))
-      ('lob
+      (lob
        (let ((call-line (and (string-match "results=" (car args))
 			     (substring (car args) (match-end 0)))))
 	 (cond
@@ -289,6 +288,7 @@ inhibit insertion of results into the buffer."
 			   (org-babel-process-params (nth 2 info))))
        ;; skip code blocks which we can't evaluate
        (when (fboundp (intern (concat "org-babel-execute:" lang)))
+	 (org-babel-eval-wipe-error-buffer)
 	 (if (equal type 'inline)
 	     (let ((raw (org-babel-execute-src-block
 			 nil info '((:results . "silent"))))
@@ -323,6 +323,5 @@ inhibit insertion of results into the buffer."
 
 (provide 'ob-exp)
 
-;; arch-tag: 523abf4c-76d1-44ed-9f27-e3bddf34bf0f
 
 ;;; ob-exp.el ends here

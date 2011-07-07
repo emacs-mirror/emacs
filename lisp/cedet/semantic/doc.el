@@ -1,7 +1,6 @@
 ;;; semantic/doc.el --- Routines for documentation strings
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999-2003, 2005, 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -127,5 +126,4 @@ If NOSNARF is 'lex, then return the lex token."
 ;; generated-autoload-load-name: "semantic/doc"
 ;; End:
 
-;; arch-tag: fe6e965b-4a81-4304-aab8-22ca113194ca
 ;;; semantic/doc.el ends here

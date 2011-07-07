@@ -1,6 +1,6 @@
 ;;; nxml-uchnm.el --- support for Unicode standard cha names in nxml-mode
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -248,5 +248,4 @@ the variable `nxml-enabled-unicode-blocks'."
 
 (provide 'nxml-uchnm)
 
-;; arch-tag: 440248c3-b604-467c-8b50-e83662c659a3
 ;;; nxml-uchnm.el ends here

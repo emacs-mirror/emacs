@@ -1,6 +1,6 @@
 ;;; lex-spp.el --- Semantic Lexical Pre-processor
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -1230,5 +1230,4 @@ If BUFFER is not provided, use the current buffer."
 ;; generated-autoload-load-name: "semantic/lex-spp"
 ;; End:
 
-;; arch-tag: 8877d83e-07ea-4d86-a960-e3562138d8a5
 ;;; semantic-lex-spp.el ends here

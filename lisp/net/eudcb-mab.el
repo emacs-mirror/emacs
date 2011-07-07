@@ -1,7 +1,6 @@
 ;;; eudcb-mab.el --- Emacs Unified Directory Client - AddressBook backend
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: FSF
@@ -130,5 +129,4 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
 
 (provide 'eudcb-mab)
 
-;; arch-tag: 4bef8e65-f109-47c7-91b9-8a6ea3ed7bb1
 ;;; eudcb-mab.el ends here

@@ -1,8 +1,7 @@
 ;;; etags.el --- etags facility for Emacs
 
-;; Copyright (C) 1985, 1986, 1988, 1989, 1992, 1993, 1994, 1995, 1996,
-;;   1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1988-1989, 1992-1996, 1998, 2000-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: FSF
@@ -264,7 +263,7 @@ One argument, the tag info returned by `snarf-tag-function'.")
 (defun initialize-new-tags-table ()
   "Initialize the tags table in the current buffer.
 Return non-nil if it is a valid tags table, and
-in that case, also make the tags table state variables 
+in that case, also make the tags table state variables
 buffer-local and set them to nil."
   (set (make-local-variable 'tags-table-files) nil)
   (set (make-local-variable 'tags-completion-table) nil)
@@ -280,7 +279,7 @@ buffer-local and set them to nil."
 (defun tags-table-mode ()
   "Major mode for tags table file buffers."
   (interactive)
-  (setq major-mode 'tags-table-mode
+  (setq major-mode 'tags-table-mode     ;FIXME: Use define-derived-mode.
         mode-name "Tags Table"
         buffer-undo-list t)
   (initialize-new-tags-table))
@@ -813,7 +812,7 @@ If no tags table is loaded, do nothing and return nil."
 	  (search-backward pattern) ;FIXME: will fail if we're inside pattern.
 	  (setq beg (point))
 	  (forward-char (length pattern))
-	  (list beg (point) (tags-lazy-completion-table)))))))
+	  (list beg (point) (tags-lazy-completion-table) :exclusive 'no))))))
 
 (defun find-tag-tag (string)
   "Read a tag name, with defaulting and completion."
@@ -854,6 +853,7 @@ The functions using this are `find-tag-noselect',
 ;; Dynamic bondage:
 (defvar etags-case-fold-search)
 (defvar etags-syntax-table)
+(defvar local-find-tag-hook)
 
 ;;;###autoload
 (defun find-tag-noselect (tagname &optional next-p regexp-p)
@@ -1657,7 +1657,7 @@ Point should be just after a string that matches TAG."
 
 ;; partial file name match, i.e. searched tag must match a substring
 ;; of the file name (potentially including a directory separator).
-(defun tag-partial-file-name-match-p (tag)
+(defun tag-partial-file-name-match-p (_tag)
   "Return non-nil if current tag matches file name.
 This is a substring match, and it can include directory separators.
 Point should be just after a string that matches TAG."
@@ -1667,7 +1667,7 @@ Point should be just after a string that matches TAG."
   		       (looking-at "\f\n"))))
 
 ;; t if point is in a tag line with a tag containing TAG as a substring.
-(defun tag-any-match-p (tag)
+(defun tag-any-match-p (_tag)
   "Return non-nil if current tag line contains TAG as a substring."
   (looking-at ".*\177"))
 
@@ -1756,9 +1756,9 @@ if the file was newly read in, the value is the filename."
 	 (with-current-buffer buffer
 	   (revert-buffer t t)))
     (if (not (and new novisit))
-	(set-buffer (find-file-noselect next novisit))
+	(find-file next novisit)
       ;; Like find-file, but avoids random warning messages.
-      (set-buffer (get-buffer-create " *next-file*"))
+      (switch-to-buffer (get-buffer-create " *next-file*"))
       (kill-all-local-variables)
       (erase-buffer)
       (setq new next)
@@ -1907,7 +1907,7 @@ See also the documentation of the variable `tags-file-name'."
       (try-completion string (tags-table-files) predicate))))
 
 ;;;###autoload
-(defun list-tags (file &optional next-match)
+(defun list-tags (file &optional _next-match)
   "Display list of tags in file FILE.
 This searches only the first table in the list, and no included tables.
 FILE should be as it appeared in the `etags' command, usually without a
@@ -2030,10 +2030,8 @@ see the doc of that variable if you want to add names to the list."
     (define-key map "q" 'select-tags-table-quit)
     map))
 
-(define-derived-mode select-tags-table-mode fundamental-mode "Select Tags Table"
-  "Major mode for choosing a current tags table among those already loaded.
-
-\\{select-tags-table-mode-map}"
+(define-derived-mode select-tags-table-mode special-mode "Select Tags Table"
+  "Major mode for choosing a current tags table among those already loaded."
   (setq buffer-read-only t))
 
 (defun select-tags-table-select (button)

@@ -1,7 +1,6 @@
 ;;; ede-proj-info.el --- EDE Generic Project texinfo support
 
-;;; Copyright (C) 1998, 1999, 2000, 2001, 2004, 2007, 2008, 2009, 2010
-;;; Free Software Foundation, Inc.
+;;; Copyright (C) 1998-2001, 2004, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -183,5 +182,4 @@ files in the project."
 
 (provide 'ede/proj-info)
 
-;; arch-tag: e4b7ce51-ae46-4d7c-a5fb-073f435cdcbf
 ;;; ede/proj-info.el ends here

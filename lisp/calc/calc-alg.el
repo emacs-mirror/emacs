@@ -1,7 +1,6 @@
 ;;; calc-alg.el --- algebraic functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger  <jay.p.belanger@gmail.com>
@@ -416,17 +415,14 @@
 
 
 (defmacro math-defsimplify (funcs &rest code)
-  (append '(progn)
-          (mapcar (function
-                   (lambda (func)
-                     (list 'put (list 'quote func) ''math-simplify
-                           (list 'nconc
-                                 (list 'get (list 'quote func) ''math-simplify)
-                                 (list 'list
-                                       (list 'function
-                                             (append '(lambda (math-simplify-expr))
-                                                     code)))))))
-                  (if (symbolp funcs) (list funcs) funcs))))
+  (cons 'progn
+        (mapcar #'(lambda (func)
+                    `(put ',func 'math-simplify
+                          (nconc
+                           (get ',func 'math-simplify)
+                           (list
+                            #'(lambda (math-simplify-expr) ,@code)))))
+                (if (symbolp funcs) (list funcs) funcs))))
 (put 'math-defsimplify 'lisp-indent-hook 1)
 
 ;; The function created by math-defsimplify uses the variable
@@ -1914,5 +1910,4 @@
 
 (provide 'calc-alg)
 
-;; arch-tag: 52e7dcdf-9688-464d-a02b-4bbe789348d0
 ;;; calc-alg.el ends here

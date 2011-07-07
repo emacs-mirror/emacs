@@ -1,6 +1,6 @@
 ;;; tramp-gw.el --- Tramp utility functions for HTTP tunnels and SOCKS gateways
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -44,6 +44,9 @@
   (when (featurep 'xemacs)
       (byte-compiler-options (warnings (- unused-vars)))))
 
+;; We don't add the following methods to `tramp-methods', in order to
+;; exclude them from file name completion.
+
 ;; Define HTTP tunnel method ...
 ;;;###tramp-autoload
 (defconst tramp-gw-tunnel-method "tunnel"
@@ -69,10 +72,13 @@
   (list "Default server" "socks" tramp-gw-default-socks-port 5))
 
 ;; Add a default for `tramp-default-user-alist'.  Default is the local user.
-(add-to-list 'tramp-default-user-alist
-	     `(,tramp-gw-tunnel-method nil ,(user-login-name)))
-(add-to-list 'tramp-default-user-alist
-	     `(,tramp-gw-socks-method nil ,(user-login-name)))
+;;;###tramp-autoload
+(add-to-list
+ 'tramp-default-user-alist
+ (list (concat "\\`"
+	       (regexp-opt (list tramp-gw-tunnel-method tramp-gw-socks-method))
+	       "\\'")
+       nil (user-login-name)))
 
 ;; Internal file name functions and variables.
 
@@ -194,8 +200,8 @@ instead of the host name declared in TARGET-VEC."
     (setq tramp-gw-gw-proc
 	  (funcall
 	   socks-function
-	   (tramp-buffer-name gw-vec)
-	   (tramp-get-buffer gw-vec)
+	   (tramp-get-connection-name gw-vec)
+	   (tramp-get-connection-buffer gw-vec)
 	   (tramp-file-name-real-host target-vec)
 	   (tramp-file-name-port target-vec)))
     (set-process-sentinel tramp-gw-gw-proc 'tramp-gw-gw-proc-sentinel)
@@ -324,5 +330,4 @@ password in password cache.  This is done for the first try only."
 ;; * Provide descriptive Commentary.
 ;; * Enable it for several gateway processes in parallel.
 
-;; arch-tag: 277e3a81-fdee-40cf-9e6b-59626292a5e0
 ;;; tramp-gw.el ends here

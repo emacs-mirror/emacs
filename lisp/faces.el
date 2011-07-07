@@ -1,8 +1,6 @@
 ;;; faces.el --- Lisp faces
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1992-1996, 1998-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -209,7 +207,7 @@ Value is FACE."
 ;; of realized faces.  The ID assigned to Lisp faces is used to
 ;; support faces in display table entries.
 
-(defun face-id (face &optional frame)
+(defun face-id (face &optional _frame)
   "Return the internal ID of face with name FACE.
 If FACE is a face-alias, return the ID of the target face.
 The optional argument FRAME is ignored, since the internal face ID
@@ -590,10 +588,14 @@ It must be one of the symbols `ultra-condensed', `extra-condensed',
 
 `:height'
 
-VALUE must be either an integer specifying the height of the font to use
-in 1/10 pt, a floating point number specifying the amount by which to
-scale any underlying face, or a function, which is called with the old
-height (from the underlying face), and should return the new height.
+VALUE specifies the height of the font, in either absolute or relative
+terms.  An absolute height is an integer, and specifies font height in
+units of 1/10 pt.  A relative height is either a floating point number,
+which specifies a scaling factor for the underlying face height;
+or a function that takes a single argument (the underlying face height)
+and returns the new height.  Note that for the `default' face,
+you can only specify an absolute height (since there is nothing
+for it to be relative to).
 
 `:weight'
 
@@ -722,7 +724,7 @@ like an underlying face would be, with higher priority than underlying faces."
 					  where))
       (setq args (cddr args)))))
 
-(defun make-face-bold (face &optional frame noerror)
+(defun make-face-bold (face &optional frame _noerror)
   "Make the font of FACE be bold, if possible.
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility.
@@ -731,7 +733,7 @@ Use `set-face-attribute' for finer control of the font weight."
   (set-face-attribute face frame :weight 'bold))
 
 
-(defun make-face-unbold (face &optional frame noerror)
+(defun make-face-unbold (face &optional frame _noerror)
   "Make the font of FACE be non-bold, if possible.
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility."
@@ -739,7 +741,7 @@ Argument NOERROR is ignored and retained for compatibility."
   (set-face-attribute face frame :weight 'normal))
 
 
-(defun make-face-italic (face &optional frame noerror)
+(defun make-face-italic (face &optional frame _noerror)
   "Make the font of FACE be italic, if possible.
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility.
@@ -748,7 +750,7 @@ Use `set-face-attribute' for finer control of the font slant."
   (set-face-attribute face frame :slant 'italic))
 
 
-(defun make-face-unitalic (face &optional frame noerror)
+(defun make-face-unitalic (face &optional frame _noerror)
   "Make the font of FACE be non-italic, if possible.
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility."
@@ -756,7 +758,7 @@ Argument NOERROR is ignored and retained for compatibility."
   (set-face-attribute face frame :slant 'normal))
 
 
-(defun make-face-bold-italic (face &optional frame noerror)
+(defun make-face-bold-italic (face &optional frame _noerror)
   "Make the font of FACE be bold and italic, if possible.
 FRAME nil or not specified means change face on all frames.
 Argument NOERROR is ignored and retained for compatibility.
@@ -1253,7 +1255,7 @@ arg, prompt for a regular expression."
 	(insert
 	 (substitute-command-keys
 	  (concat
-	   "Use "
+	   "\\<help-mode-map>>Use "
 	   (if (display-mouse-p) "\\[help-follow-mouse] or ")
 	   "\\[help-follow] on a face name to customize it\n"
 	   "or on its sample text for a description of the face.\n\n")))
@@ -1411,11 +1413,12 @@ If FRAME is omitted or nil, use the selected frame."
 ;; Parameter FRAME Is kept for call compatibility to with previous
 ;; face implementation.
 
-(defun face-attr-construct (face &optional frame)
-  "Return a `defface'-style attribute list for FACE on FRAME.
+(defun face-attr-construct (face &optional _frame)
+  "Return a `defface'-style attribute list for FACE.
 Value is a property list of pairs ATTRIBUTE VALUE for all specified
 face attributes of FACE where ATTRIBUTE is the attribute name and
-VALUE is the specified value of that attribute."
+VALUE is the specified value of that attribute.
+Argument FRAME is ignored and retained for compatibility."
   (let (result)
     (dolist (entry face-attribute-name-alist result)
       (let* ((attribute (car entry))
@@ -1448,18 +1451,18 @@ If FRAME is nil, the current FRAME is used."
 			     ;; of supported colors, and all defface's
 			     ;; are changed to look at number of colors
 			     ;; instead of (type graphic) etc.
-			     (and (null (window-system frame))
-				  (memq 'tty options))
-			     (and (memq 'motif options)
-				  (featurep 'motif))
-			     (and (memq 'gtk options)
-				  (featurep 'gtk))
-			     (and (memq 'lucid options)
-				  (featurep 'x-toolkit)
-				  (not (featurep 'motif))
-				  (not (featurep 'gtk)))
-			     (and (memq 'x-toolkit options)
-				  (featurep 'x-toolkit))))
+			     (if (null (window-system frame))
+				 (memq 'tty options)
+			       (or (and (memq 'motif options)
+					(featurep 'motif))
+				   (and (memq 'gtk options)
+					(featurep 'gtk))
+				   (and (memq 'lucid options)
+					(featurep 'x-toolkit)
+					(not (featurep 'motif))
+					(not (featurep 'gtk)))
+				   (and (memq 'x-toolkit options)
+					(featurep 'x-toolkit))))))
 			((eq req 'min-colors)
 			 (>= (display-color-cells frame) (car options)))
 			((eq req 'class)
@@ -1575,13 +1578,25 @@ Optional parameter FRAME is the frame whose definition of FACE
 is used.  If nil or omitted, use the selected frame."
   (unless frame
     (setq frame (selected-frame)))
-  (let ((list face-attribute-name-alist)
-	(match t))
+  (let* ((list face-attribute-name-alist)
+	 (match t)
+	 (bold (and (plist-member attrs :bold)
+		    (not (plist-member attrs :weight))))
+	 (italic (and (plist-member attrs :italic)
+		      (not (plist-member attrs :slant))))
+	 (plist (if (or bold italic)
+		    (copy-sequence attrs)
+		  attrs)))
+    ;; Handle the Emacs 20 :bold and :italic properties.
+    (if bold
+	(plist-put plist :weight (if bold 'bold 'normal)))
+    (if italic
+	(plist-put plist :slant (if italic 'italic 'normal)))
     (while (and match list)
       (let* ((attr (caar list))
 	     (specified-value
-	      (if (plist-member attrs attr)
-		  (plist-get attrs attr)
+	      (if (plist-member plist attr)
+		  (plist-get plist attr)
 		'unspecified))
 	     (value-now (face-attribute face attr frame)))
 	(setq match (equal specified-value value-now))
@@ -1639,18 +1654,28 @@ If COLOR is the symbol `unspecified' or one of the strings
 
 (defun color-values (color &optional frame)
   "Return a description of the color named COLOR on frame FRAME.
-The value is a list of integer RGB values--(RED GREEN BLUE).
-These values appear to range from 0 to 65280 or 65535, depending
-on the system; white is \(65280 65280 65280\) or \(65535 65535 65535\).
+COLOR should be a string naming a color (e.g. \"white\"), or a
+string specifying a color's RGB components (e.g. \"#ff12ec\").
+
+Return a list of three integers, (RED GREEN BLUE), each between 0
+and either 65280 or 65535 (the maximum depends on the system).
+Use `color-name-to-rgb' if you want RGB floating-point values
+normalized to 1.0.
+
 If FRAME is omitted or nil, use the selected frame.
 If FRAME cannot display COLOR, the value is nil.
-If COLOR is the symbol `unspecified' or one of the strings
-\"unspecified-fg\" or \"unspecified-bg\", the value is nil."
-  (if (member color '(unspecified "unspecified-fg" "unspecified-bg"))
-      nil
-    (if (memq (framep (or frame (selected-frame))) '(x w32 ns))
-	(xw-color-values color frame)
-      (tty-color-values color frame))))
+
+COLOR can also be the symbol `unspecified' or one of the strings
+\"unspecified-fg\" or \"unspecified-bg\", in which case the
+return value is nil."
+  (cond
+   ((member color '(unspecified "unspecified-fg" "unspecified-bg"))
+    nil)
+   ((memq (framep (or frame (selected-frame))) '(x w32 ns))
+    (xw-color-values color frame))
+   (t
+    (tty-color-values color frame))))
+
 (defalias 'x-color-values 'color-values)
 
 (declare-function xw-display-color-p "xfns.c" (&optional terminal))
@@ -1726,8 +1751,7 @@ resulting color name in the echo area."
 		    ((eq flag 'lambda) ; Test completion.
 		     (or (memq string colors)
 			 (color-defined-p string)))))
-		 nil t))
-	 hex-string)
+		 nil t)))
 
     ;; Process named colors.
     (when (member color colors)
@@ -1797,109 +1821,6 @@ Return nil if it has no specified face."
 	   (cond ((memq 'background-color face) (cdr (memq 'background-color face)))
 		 ((memq ':background face) (cadr (memq ':background face)))))
 	  (t nil))))			; Invalid face value.
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Background mode.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defcustom frame-background-mode nil
-  "The brightness of the background.
-Set this to the symbol `dark' if your background color is dark,
-`light' if your background is light, or nil (automatic by default)
-if you want Emacs to examine the brightness for you.  Don't set this
-variable with `setq'; this won't have the expected effect."
-  :group 'faces
-  :set #'(lambda (var value)
-	   (set-default var value)
-	   (mapc 'frame-set-background-mode (frame-list)))
-  :initialize 'custom-initialize-changed
-  :type '(choice (const dark)
-		 (const light)
-		 (const :tag "automatic" nil)))
-
-
-(declare-function x-get-resource "frame.c"
-		  (attribute class &optional component subclass))
-
-(defvar inhibit-frame-set-background-mode nil)
-
-(defun frame-set-background-mode (frame &optional keep-face-specs)
-  "Set up display-dependent faces on FRAME.
-Display-dependent faces are those which have different definitions
-according to the `background-mode' and `display-type' frame parameters.
-
-If optional arg KEEP-FACE-SPECS is non-nil, don't recalculate
-face specs for the new background mode."
-  (unless inhibit-frame-set-background-mode
-    (let* ((bg-resource
-	    (and (window-system frame)
-		 (x-get-resource "backgroundMode" "BackgroundMode")))
-	   (bg-color (frame-parameter frame 'background-color))
-	   (terminal-bg-mode (terminal-parameter frame 'background-mode))
-	   (tty-type (tty-type frame))
-	   (default-bg-mode
-	     (if (or (window-system frame)
-		     (and tty-type
-			  (string-match "^\\(xterm\\|\\rxvt\\|dtterm\\|eterm\\)"
-					tty-type)))
-		 'light
-	       'dark))
-	   (non-default-bg-mode (if (eq default-bg-mode 'light) 'dark 'light))
-	   (bg-mode
-	    (cond (frame-background-mode)
-		  (bg-resource (intern (downcase bg-resource)))
-		  (terminal-bg-mode)
-		  ((equal bg-color "unspecified-fg") ; inverted colors
-		   non-default-bg-mode)
-		  ((not (color-values bg-color frame))
-		   default-bg-mode)
-		  ((>= (apply '+ (color-values bg-color frame))
-		       ;; Just looking at the screen, colors whose
-		       ;; values add up to .6 of the white total
-		       ;; still look dark to me.
-		       (* (apply '+ (color-values "white" frame)) .6))
-		   'light)
-		  (t 'dark)))
-	   (display-type
-	    (cond ((null (window-system frame))
-		   (if (tty-display-color-p frame) 'color 'mono))
-		  ((display-color-p frame)
-		   'color)
-		  ((x-display-grayscale-p frame)
-		   'grayscale)
-		  (t 'mono)))
-	   (old-bg-mode
-	    (frame-parameter frame 'background-mode))
-	   (old-display-type
-	    (frame-parameter frame 'display-type)))
-
-      (unless (and (eq bg-mode old-bg-mode) (eq display-type old-display-type))
-	(let ((locally-modified-faces nil)
-	      ;; Prevent face-spec-recalc from calling this function
-	      ;; again, resulting in a loop (bug#911).
-	      (inhibit-frame-set-background-mode t)
-	      (params (list (cons 'background-mode bg-mode)
-			    (cons 'display-type display-type))))
-	  (if keep-face-specs
-	      (modify-frame-parameters frame params)
-	    ;; If we are recomputing face specs, first collect a list
-	    ;; of faces that don't match their face-specs.  These are
-	    ;; the faces modified on FRAME, and we avoid changing them
-	    ;; below.  Use a negative list to avoid consing (we assume
-	    ;; most faces are unmodified).
-	    (dolist (face (face-list))
-	      (and (not (get face 'face-override-spec))
-		   (not (face-spec-match-p face
-					   (face-user-default-spec face)
-					   (selected-frame)))
-		   (push face locally-modified-faces)))
-	    ;; Now change to the new frame parameters
-	    (modify-frame-parameters frame params)
-	    ;; For all unmodified named faces, choose face specs
-	    ;; matching the new frame parameters.
-	    (dolist (face (face-list))
-	      (unless (memq face locally-modified-faces)
-		(face-spec-recalc face frame)))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1996,7 +1917,8 @@ settings, X resources, and `face-new-frame-defaults'.
 Finally, apply any relevant face attributes found amongst the
 frame parameters in PARAMETERS."
   (let ((window-system-p (memq (window-system frame) '(x w32))))
-    (dolist (face (nreverse (face-list))) ;Why reverse?  --Stef
+    ;; The `reverse' is so that `default' goes first.
+    (dolist (face (nreverse (face-list)))
       (condition-case ()
 	  (progn
 	    ;; Initialize faces from face spec and custom theme.

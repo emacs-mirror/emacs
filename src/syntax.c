@@ -1,6 +1,5 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 1987, 1993, 1994, 1995, 1997, 1998, 1999, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985, 1987, 1993-1995, 1997-1999, 2001-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -20,7 +19,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
+
 #include <ctype.h>
+#include <sys/types.h>
 #include <setjmp.h>
 #include "lisp.h"
 #include "commands.h"
@@ -96,24 +97,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define ST_COMMENT_STYLE (256 + 1)
 #define ST_STRING_STYLE (256 + 2)
 
-Lisp_Object Qsyntax_table_p, Qsyntax_table, Qscan_error;
+static Lisp_Object Qsyntax_table_p;
+static Lisp_Object Qsyntax_table, Qscan_error;
 
-int words_include_escapes;
-int parse_sexp_lookup_properties;
-
-/* Nonzero means `scan-sexps' treat all multibyte characters as symbol.  */
-int multibyte_syntax_as_symbol;
-
+#ifndef __GNUC__
 /* Used as a temporary in SYNTAX_ENTRY and other macros in syntax.h,
    if not compiled with GCC.  No need to mark it, since it is used
    only very temporarily.  */
 Lisp_Object syntax_temp;
-
-/* Non-zero means an open parenthesis in column 0 is always considered
-   to be the start of a defun.  Zero means an open parenthesis in
-   column 0 has no special meaning.  */
-
-int open_paren_in_column_0_is_defun_start;
+#endif
 
 /* This is the internal form of the parse state used in parse-partial-sexp.  */
 
@@ -151,6 +143,7 @@ static EMACS_INT find_start_begv;
 static int find_start_modiff;
 
 
+static Lisp_Object Fsyntax_table_p (Lisp_Object);
 static Lisp_Object skip_chars (int, Lisp_Object, Lisp_Object, int);
 static Lisp_Object skip_syntaxes (int, Lisp_Object, Lisp_Object);
 static Lisp_Object scan_lists (EMACS_INT, EMACS_INT, EMACS_INT, int);
@@ -167,7 +160,6 @@ int syntax_prefix_flag_p (int c)
 
 struct gl_state_s gl_state;		/* Global state of syntax parser.  */
 
-INTERVAL interval_of (int, Lisp_Object);
 #define INTERVALS_AT_ONCE 10		/* 1 + max-number of intervals
 					   to scan to property-change.  */
 
@@ -185,11 +177,12 @@ INTERVAL interval_of (int, Lisp_Object);
    start/end of OBJECT.  */
 
 void
-update_syntax_table (EMACS_INT charpos, int count, int init,
+update_syntax_table (EMACS_INT charpos, EMACS_INT count, int init,
 		     Lisp_Object object)
 {
   Lisp_Object tmp_table;
-  int cnt = 0, invalidate = 1;
+  unsigned cnt = 0;
+  int invalidate = 1;
   INTERVAL i;
 
   if (init)
@@ -291,7 +284,7 @@ update_syntax_table (EMACS_INT charpos, int count, int init,
       else
 	{
 	  gl_state.use_global = 0;
-	  gl_state.current_syntax_table = current_buffer->syntax_table;
+	  gl_state.current_syntax_table = BVAR (current_buffer, syntax_table);
 	}
     }
 
@@ -374,10 +367,10 @@ char_quoted (EMACS_INT charpos, EMACS_INT bytepos)
 /* Return the bytepos one character before BYTEPOS.
    We assume that BYTEPOS is not at the start of the buffer.  */
 
-static INLINE EMACS_INT
+static inline EMACS_INT
 dec_bytepos (EMACS_INT bytepos)
 {
-  if (NILP (current_buffer->enable_multibyte_characters))
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
     return bytepos - 1;
 
   DEC_POS (bytepos);
@@ -527,7 +520,7 @@ back_comment (EMACS_INT from, EMACS_INT from_byte, EMACS_INT stop, int comnested
   EMACS_INT comment_end = from;
   EMACS_INT comment_end_byte = from_byte;
   EMACS_INT comstart_pos = 0;
-  EMACS_INT comstart_byte;
+  EMACS_INT comstart_byte IF_LINT (= 0);
   /* Place where the containing defun starts,
      or 0 if we didn't come across it yet.  */
   EMACS_INT defun_start = 0;
@@ -568,7 +561,7 @@ back_comment (EMACS_INT from, EMACS_INT from_byte, EMACS_INT stop, int comnested
       com2end = (SYNTAX_FLAGS_COMEND_FIRST (syntax)
 		 && SYNTAX_FLAGS_COMEND_SECOND (prev_syntax));
       comstart = (com2start || code == Scomment);
-      
+
       /* Nasty cases with overlapping 2-char comment markers:
 	 - snmp-mode: -- c -- foo -- c --
 	              --- c --
@@ -793,7 +786,7 @@ DEFUN ("syntax-table", Fsyntax_table, Ssyntax_table, 0, 0, 0,
 This is the one specified by the current buffer.  */)
   (void)
 {
-  return current_buffer->syntax_table;
+  return BVAR (current_buffer, syntax_table);
 }
 
 DEFUN ("standard-syntax-table", Fstandard_syntax_table,
@@ -838,7 +831,7 @@ One argument, a syntax table.  */)
 {
   int idx;
   check_syntax_table (table);
-  current_buffer->syntax_table = table;
+  BVAR (current_buffer, syntax_table) = table;
   /* Indicate that this buffer now has a specified syntax table.  */
   idx = PER_BUFFER_VAR_IDX (syntax_table);
   SET_PER_BUFFER_VALUE_P (current_buffer, idx, 1);
@@ -988,7 +981,7 @@ text property.  */)
 	break;
       }
 
-  if (val < XVECTOR (Vsyntax_code_object)->size && NILP (match))
+  if (val < ASIZE (Vsyntax_code_object) && NILP (match))
     return XVECTOR (Vsyntax_code_object)->contents[val];
   else
     /* Since we can't use a shared object, let's make a new one.  */
@@ -1049,7 +1042,7 @@ usage: (modify-syntax-entry CHAR NEWENTRY &optional SYNTAX-TABLE)  */)
     CHECK_CHARACTER (c);
 
   if (NILP (syntax_table))
-    syntax_table = current_buffer->syntax_table;
+    syntax_table = BVAR (current_buffer, syntax_table);
   else
     check_syntax_table (syntax_table);
 
@@ -1221,12 +1214,6 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
   return syntax;
 }
 
-int parse_sexp_ignore_comments;
-
-/* Char-table of functions that find the next or previous word
-   boundary.  */
-Lisp_Object Vfind_word_boundary_function_table;
-
 /* Return the position across COUNT words from FROM.
    If that many words cannot be found before the end of the buffer, return 0.
    COUNT negative means scan backward and stop at word beginning.  */
@@ -1239,7 +1226,7 @@ scan_words (register EMACS_INT from, register EMACS_INT count)
   register EMACS_INT from_byte = CHAR_TO_BYTE (from);
   register enum syntaxcode code;
   int ch0, ch1;
-  Lisp_Object func, script, pos;
+  Lisp_Object func, pos;
 
   immediate_quit = 1;
   QUIT;
@@ -1279,7 +1266,6 @@ scan_words (register EMACS_INT from, register EMACS_INT count)
 	}
       else
 	{
-	  script = CHAR_TABLE_REF (Vchar_script_table, ch0);
 	  while (1)
 	    {
 	      if (from == end) break;
@@ -1330,7 +1316,6 @@ scan_words (register EMACS_INT from, register EMACS_INT count)
 	}
       else
 	{
-	  script = CHAR_TABLE_REF (Vchar_script_table, ch1);
 	  while (1)
 	    {
 	      if (from == beg)
@@ -1387,8 +1372,6 @@ and the function returns nil.  Field boundaries are not noticed if
   return val == orig_val ? Qt : Qnil;
 }
 
-Lisp_Object skip_chars (int, Lisp_Object, Lisp_Object, int);
-
 DEFUN ("skip-chars-forward", Fskip_chars_forward, Sskip_chars_forward, 1, 2, 0,
        doc: /* Move point forward, stopping before a char not in STRING, or at pos LIM.
 STRING is like the inside of a `[...]' in a regular expression
@@ -1441,7 +1424,7 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
   register unsigned int c;
   unsigned char fastmap[0400];
   /* Store the ranges of non-ASCII characters.  */
-  int *char_ranges;
+  int *char_ranges IF_LINT (= NULL);
   int n_char_ranges = 0;
   int negate = 0;
   register EMACS_INT i, i_byte;
@@ -1470,7 +1453,7 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
   if (XINT (lim) < BEGV)
     XSETFASTINT (lim, BEGV);
 
-  multibyte = (!NILP (current_buffer->enable_multibyte_characters)
+  multibyte = (!NILP (BVAR (current_buffer, enable_multibyte_characters))
 	       && (XINT (lim) - PT != CHAR_TO_BYTE (XINT (lim)) - PT_BYTE));
   string_multibyte = SBYTES (string) > SCHARS (string);
 
@@ -1562,7 +1545,8 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 
 	      if (c <= c2)
 		{
-		  while (c <= c2)
+		  unsigned lim2 = c2 + 1;
+		  while (c < lim2)
 		    fastmap[c++] = 1;
 		  if (! ASCII_CHAR_P (c2))
 		    string_has_eight_bit = 1;
@@ -1702,7 +1686,8 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 		}
 	      if (! ASCII_CHAR_P (c))
 		{
-		  while (leading_code <= leading_code2)
+		  unsigned lim2 = leading_code2 + 1;
+		  while (leading_code < lim2)
 		    fastmap[leading_code++] = 1;
 		  if (c <= c2)
 		    {
@@ -1734,9 +1719,9 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 	  for (i = 0; i < n_char_ranges; i += 2)
 	    {
 	      int c1 = char_ranges[i];
-	      int c2 = char_ranges[i + 1];
+	      unsigned lim2 = char_ranges[i + 1] + 1;
 
-	      for (; c1 <= c2; c1++)
+	      for (; c1 < lim2; c1++)
 		{
 		  int b = CHAR_TO_BYTE_SAFE (c1);
 		  if (b >= 0)
@@ -1956,7 +1941,7 @@ skip_syntaxes (int forwardp, Lisp_Object string, Lisp_Object lim)
   if (forwardp ? (PT >= XFASTINT (lim)) : (PT <= XFASTINT (lim)))
     return make_number (0);
 
-  multibyte = (!NILP (current_buffer->enable_multibyte_characters)
+  multibyte = (!NILP (BVAR (current_buffer, enable_multibyte_characters))
 	       && (XINT (lim) - PT != CHAR_TO_BYTE (XINT (lim)) - PT_BYTE));
 
   memset (fastmap, 0, sizeof fastmap);
@@ -2383,7 +2368,7 @@ between them, return t; otherwise return nil.  */)
 	  if (code == Scomment_fence)
 	    {
 	      /* Skip until first preceding unquoted comment_fence.  */
-	      int found = 0;
+	      int fence_found = 0;
 	      EMACS_INT ini = from, ini_byte = from_byte;
 
 	      while (1)
@@ -2394,13 +2379,13 @@ between them, return t; otherwise return nil.  */)
 		  if (SYNTAX (c) == Scomment_fence
 		      && !char_quoted (from, from_byte))
 		    {
-		      found = 1;
+		      fence_found = 1;
 		      break;
 		    }
 		  else if (from == stop)
 		    break;
 		}
-	      if (found == 0)
+	      if (fence_found == 0)
 		{
 		  from = ini;		/* Set point to ini + 1.  */
 		  from_byte = ini_byte;
@@ -2689,12 +2674,12 @@ scan_lists (register EMACS_INT from, EMACS_INT count, EMACS_INT depth, int sexpf
 	      /* We must record the comment style encountered so that
 		 later, we can match only the proper comment begin
 		 sequence of the same style.  */
-	      int c1, other_syntax;
+	      int c2, other_syntax;
 	      DEC_BOTH (from, from_byte);
 	      UPDATE_SYNTAX_TABLE_BACKWARD (from);
 	      code = Sendcomment;
-	      c1 = FETCH_CHAR_AS_MULTIBYTE (from_byte);
-	      other_syntax = SYNTAX_WITH_FLAGS (c1);
+	      c2 = FETCH_CHAR_AS_MULTIBYTE (from_byte);
+	      other_syntax = SYNTAX_WITH_FLAGS (c2);
 	      comstyle = SYNTAX_FLAGS_COMMENT_STYLE (other_syntax, syntax);
 	      comnested
 		= comnested || SYNTAX_FLAGS_COMMENT_NESTED (other_syntax);
@@ -2723,7 +2708,7 @@ scan_lists (register EMACS_INT from, EMACS_INT count, EMACS_INT depth, int sexpf
 	      while (from > stop)
 		{
 		  temp_pos = from_byte;
-		  if (! NILP (current_buffer->enable_multibyte_characters))
+		  if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
 		    DEC_POS (temp_pos);
 		  else
 		    temp_pos--;
@@ -3285,9 +3270,9 @@ do { prev_from = from;				\
     = (curlevel == levelstart) ? -1 : (curlevel - 1)->last;
   state.location = from;
   state.levelstarts = Qnil;
-  while (--curlevel >= levelstart)
-      state.levelstarts = Fcons (make_number (curlevel->last),
-				 state.levelstarts);
+  while (curlevel > levelstart)
+    state.levelstarts = Fcons (make_number ((--curlevel)->last),
+			       state.levelstarts);
   immediate_quit = 0;
 
   *stateptr = state;
@@ -3377,8 +3362,7 @@ init_syntax_once (void)
   Lisp_Object temp;
 
   /* This has to be done here, before we call Fmake_char_table.  */
-  Qsyntax_table = intern_c_string ("syntax-table");
-  staticpro (&Qsyntax_table);
+  DEFSYM (Qsyntax_table, "syntax-table");
 
   /* Intern_C_String this now in case it isn't already done.
      Setting this variable twice is harmless.
@@ -3387,7 +3371,7 @@ init_syntax_once (void)
 
   /* Create objects which can be shared among syntax tables.  */
   Vsyntax_code_object = Fmake_vector (make_number (Smax), Qnil);
-  for (i = 0; i < XVECTOR (Vsyntax_code_object)->size; i++)
+  for (i = 0; i < ASIZE (Vsyntax_code_object); i++)
     XVECTOR (Vsyntax_code_object)->contents[i]
       = Fcons (make_number (i), Qnil);
 
@@ -3463,8 +3447,7 @@ init_syntax_once (void)
 void
 syms_of_syntax (void)
 {
-  Qsyntax_table_p = intern_c_string ("syntax-table-p");
-  staticpro (&Qsyntax_table_p);
+  DEFSYM (Qsyntax_table_p, "syntax-table-p");
 
   staticpro (&Vsyntax_code_object);
 
@@ -3476,38 +3459,37 @@ syms_of_syntax (void)
   /* Defined in regex.c */
   staticpro (&re_match_object);
 
-  Qscan_error = intern_c_string ("scan-error");
-  staticpro (&Qscan_error);
+  DEFSYM (Qscan_error, "scan-error");
   Fput (Qscan_error, Qerror_conditions,
 	pure_cons (Qscan_error, pure_cons (Qerror, Qnil)));
   Fput (Qscan_error, Qerror_message,
 	make_pure_c_string ("Scan error"));
 
-  DEFVAR_BOOL ("parse-sexp-ignore-comments", &parse_sexp_ignore_comments,
+  DEFVAR_BOOL ("parse-sexp-ignore-comments", parse_sexp_ignore_comments,
 	       doc: /* Non-nil means `forward-sexp', etc., should treat comments as whitespace.  */);
 
-  DEFVAR_BOOL ("parse-sexp-lookup-properties", &parse_sexp_lookup_properties,
+  DEFVAR_BOOL ("parse-sexp-lookup-properties", parse_sexp_lookup_properties,
 	       doc: /* Non-nil means `forward-sexp', etc., obey `syntax-table' property.
 Otherwise, that text property is simply ignored.
 See the info node `(elisp)Syntax Properties' for a description of the
 `syntax-table' property.  */);
 
   words_include_escapes = 0;
-  DEFVAR_BOOL ("words-include-escapes", &words_include_escapes,
+  DEFVAR_BOOL ("words-include-escapes", words_include_escapes,
 	       doc: /* Non-nil means `forward-word', etc., should treat escape chars part of words.  */);
 
-  DEFVAR_BOOL ("multibyte-syntax-as-symbol", &multibyte_syntax_as_symbol,
+  DEFVAR_BOOL ("multibyte-syntax-as-symbol", multibyte_syntax_as_symbol,
 	       doc: /* Non-nil means `scan-sexps' treats all multibyte characters as symbol.  */);
   multibyte_syntax_as_symbol = 0;
 
   DEFVAR_BOOL ("open-paren-in-column-0-is-defun-start",
-	       &open_paren_in_column_0_is_defun_start,
+	       open_paren_in_column_0_is_defun_start,
 	       doc: /* *Non-nil means an open paren in column 0 denotes the start of a defun.  */);
   open_paren_in_column_0_is_defun_start = 1;
 
 
   DEFVAR_LISP ("find-word-boundary-function-table",
-	       &Vfind_word_boundary_function_table,
+	       Vfind_word_boundary_function_table,
 	       doc: /*
 Char table of functions to search for the word boundary.
 Each function is called with two arguments; POS and LIMIT.
@@ -3548,6 +3530,3 @@ In both cases, LIMIT bounds the search. */);
   defsubr (&Sbackward_prefix_chars);
   defsubr (&Sparse_partial_sexp);
 }
-
-/* arch-tag: 3e297b9f-088e-4b64-8f4c-fb0b3443e412
-   (do not change this comment) */

@@ -31,4 +31,3 @@
     ("WAVY LOW LINE" #xFE4F)
     ))
 
-;; arch-tag: 6d8f4c10-304f-4d0b-b830-1e37a8386015

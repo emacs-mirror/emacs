@@ -1,7 +1,6 @@
 ;;; gnus-start.el --- startup functions for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -85,14 +84,6 @@ If a file with the `.el' or `.elc' suffixes exists, it will be read instead."
 If a file with the `.el' or `.elc' suffixes exists, it will be read instead."
   :group 'gnus-start
   :type '(choice file (const nil)))
-
-(defcustom gnus-default-subscribed-newsgroups nil
-  "List of newsgroups to subscribe, when a user runs Gnus the first time.
-The value should be a list of strings.
-If it is t, Gnus will not do anything special the first time it is
-started; it'll just use the normal newsgroups subscription methods."
-  :group 'gnus-start
-  :type '(choice (repeat string) (const :tag "Nothing special" t)))
 
 (defcustom gnus-use-dribble-file t
   "*Non-nil means that Gnus will use a dribble file to store user updates.
@@ -341,8 +332,17 @@ hierarchy in its entirety."
   :group 'gnus-group-new
   :type 'boolean)
 
+(defcustom gnus-auto-subscribed-categories '(mail post-mail)
+  "*New groups from methods of these categories will be subscribed automatically.
+Note that this variable only deals with new groups.  It has no
+effect whatsoever on old groups.  The default is to automatically
+subscribe all groups from mail-like backends."
+  :version "24.1"
+  :group 'gnus-group-new
+  :type '(repeat symbol))
+
 (defcustom gnus-auto-subscribed-groups
-  "^nnml\\|^nnfolder\\|^nnmbox\\|^nnmh\\|^nnbabyl\\|^nnmaildir"
+  "^nnml\\|^nnfolder\\|^nnmbox\\|^nnmh\\|^nnbabyl\\|^nnmaildir\\|^nnimap"
   "*All new groups that match this regexp will be subscribed automatically.
 Note that this variable only deals with new groups.  It has no effect
 whatsoever on old groups.
@@ -377,13 +377,6 @@ does not affect old (already subscribed) newsgroups."
   "*Non-nil means .newsrc should be deleted prior to save.
 Its use is due to the bogus appearance that .newsrc was modified on
 disc."
-  :group 'gnus-newsrc
-  :type 'boolean)
-
-(defcustom gnus-use-backend-marks nil
-  "If non-nil, Gnus will store and retrieve marks from the backends.
-This means that marks will be stored both in .newsrc.eld and in
-the backend, and will slow operation down somewhat."
   :group 'gnus-newsrc
   :type 'boolean)
 
@@ -644,6 +637,7 @@ the first newsgroup."
     (gnus-group-change-level
      newsgroup gnus-level-default-subscribed
      gnus-level-killed (gnus-group-entry (or next "dummy.group")))
+    (gnus-request-update-group-status newsgroup 'subscribe)
     (gnus-message 5 "Subscribe newsgroup: %s" newsgroup)
     (run-hook-with-args 'gnus-subscribe-newsgroup-hooks newsgroup)
     t))
@@ -784,10 +778,9 @@ prompt the user for the name of an NNTP server to use."
 		    (gnus-start-news-server (and arg (not level))))))
 	(if (and (not dont-connect)
 		 (not did-connect))
+	    ;; Couldn't connect to the server, so bail out.
 	    (gnus-group-quit)
 	  (gnus-run-hooks 'gnus-startup-hook)
-	  ;; NNTP server is successfully open.
-
 	  ;; Find the current startup file name.
 	  (setq gnus-current-startup-file
 		(gnus-make-newsrc-file gnus-startup-file))
@@ -797,11 +790,10 @@ prompt the user for the name of an NNTP server to use."
 	    (gnus-dribble-read-file))
 
 	  ;; Do the actual startup.
-	  (if gnus-agent
-	      (gnus-request-create-group "queue" '(nndraft "")))
-	  (gnus-request-create-group "drafts" '(nndraft ""))
 	  (gnus-setup-news nil level dont-connect)
 	  (gnus-run-hooks 'gnus-setup-news-hook)
+	  (when gnus-agent
+	    (gnus-request-create-group "queue" '(nndraft "")))
 	  (gnus-start-draft-setup)
 	  ;; Generate the group buffer.
 	  (gnus-group-list-groups level)
@@ -816,10 +808,10 @@ prompt the user for the name of an NNTP server to use."
   (gnus-request-create-group "drafts" '(nndraft ""))
   (unless (gnus-group-entry "nndraft:drafts")
     (let ((gnus-level-default-subscribed 1))
-      (gnus-subscribe-group "nndraft:drafts" nil '(nndraft ""))))
+      (gnus-subscribe-group "nndraft:drafts" nil '(nndraft "")))
+    (setcar (gnus-group-entry "nndraft:drafts") 0))
   (unless (equal (gnus-group-get-parameter "nndraft:drafts" 'gnus-dummy t)
 		 '((gnus-draft-mode)))
-    (gnus-message 3 "Setting up drafts group")
     (gnus-group-set-parameter
      "nndraft:drafts" 'gnus-dummy '((gnus-draft-mode)))))
 
@@ -840,13 +832,22 @@ prompt the user for the name of an NNTP server to use."
      gnus-current-startup-file)
    "-dribble"))
 
-(defun gnus-dribble-enter (string)
-  "Enter STRING into the dribble buffer."
+(defun gnus-dribble-enter (string &optional regexp)
+  "Enter STRING into the dribble buffer.
+If REGEXP is given, lines that match it will be deleted."
   (when (and (not gnus-dribble-ignore)
 	     gnus-dribble-buffer
 	     (buffer-name gnus-dribble-buffer))
     (let ((obuf (current-buffer)))
       (set-buffer gnus-dribble-buffer)
+      (when regexp
+	(goto-char (point-min))
+	(let (end)
+	  (while (re-search-forward regexp nil t)
+	    (unless (bolp) (forward-line 1))
+	    (setq end (point))
+	    (goto-char (match-beginning 0))
+	    (delete-region (point-at-bol) end))))
       (goto-char (point-max))
       (insert string "\n")
       ;; This has been commented by Josh Huber <huber@alum.wpi.edu>
@@ -872,6 +873,7 @@ prompt the user for the name of an NNTP server to use."
 			       (gnus-get-buffer-create
 				(file-name-nondirectory dribble-file)))
       (set (make-local-variable 'file-precious-flag) t)
+      (setq buffer-save-without-query t)
       (erase-buffer)
       (setq buffer-file-name dribble-file)
       (auto-save-mode t)
@@ -996,27 +998,8 @@ If LEVEL is non-nil, the news will be set up at level LEVEL."
     (when (or (null gnus-read-active-file)
 	      (eq gnus-read-active-file 'some))
       (gnus-update-active-hashtb-from-killed))
-
-    ;; Validate agent covered methods now that gnus-server-alist has
-    ;; been initialized.
-    ;; NOTE: This is here for one purpose only.  By validating the
-    ;; agentized server's, it converts the old 5.10.3, and earlier,
-    ;; format to the current format.  That enables the agent code
-    ;; within gnus-read-active-file to function correctly.
-    (if gnus-agent
-        (gnus-agent-read-servers-validate))
-
-    ;; Read the active file and create `gnus-active-hashtb'.
-    ;; If `gnus-read-active-file' is nil, then we just create an empty
-    ;; hash table.  The partial filling out of the hash table will be
-    ;; done in `gnus-get-unread-articles'.
-    (and gnus-read-active-file
-	 (not level)
-	 (gnus-read-active-file nil dont-connect))
-
     (unless gnus-active-hashtb
       (setq gnus-active-hashtb (gnus-make-hashtable 4096)))
-
     ;; Initialize the cache.
     (when gnus-use-cache
       (gnus-cache-open))
@@ -1060,7 +1043,7 @@ If LEVEL is non-nil, the news will be set up at level LEVEL."
 
     ;; Find the number of unread articles in each non-dead group.
     (let ((gnus-read-active-file (and (not level) gnus-read-active-file)))
-      (gnus-get-unread-articles level))))
+      (gnus-get-unread-articles level dont-connect))))
 
 (defun gnus-call-subscribe-functions (method group)
   "Call METHOD to subscribe GROUP.
@@ -1157,6 +1140,12 @@ for new groups, and subscribe the new groups as zombies."
   (cond
    ((and gnus-options-subscribe
 	 (string-match gnus-options-subscribe group))
+    'subscribe)
+   ((let ((do-subscribe nil))
+      (dolist (category gnus-auto-subscribed-categories)
+	(when (gnus-member-of-valid category group)
+	  (setq do-subscribe t)))
+      do-subscribe)
     'subscribe)
    ((and gnus-auto-subscribed-groups
 	 (string-match gnus-auto-subscribed-groups group))
@@ -1326,16 +1315,13 @@ for new groups, and subscribe the new groups as zombies."
        ((>= level gnus-level-zombie)
 	;; Remove from the hash table.
 	(gnus-sethash group nil gnus-newsrc-hashtb)
-	;; We do not enter foreign groups into the list of dead
-	;; groups.
-	(unless (gnus-group-foreign-p group)
-	  (if (= level gnus-level-zombie)
-	      (push group gnus-zombie-list)
-	    (if (= oldlevel gnus-level-killed)
-		;; Remove from active hashtb.
-		(unintern group gnus-active-hashtb)
-	      ;; Don't add it into killed-list if it was killed.
-	      (push group gnus-killed-list)))))
+	(if (= level gnus-level-zombie)
+	    (push group gnus-zombie-list)
+	  (if (= oldlevel gnus-level-killed)
+	      ;; Remove from active hashtb.
+	      (unintern group gnus-active-hashtb)
+	    ;; Don't add it into killed-list if it was killed.
+	    (push group gnus-killed-list))))
        (t
 	;; If the list is to be entered into the newsrc assoc, and
 	;; it was killed, we have to create an entry in the newsrc
@@ -1377,8 +1363,8 @@ for new groups, and subscribe the new groups as zombies."
 	  (when (cdr entry)
 	    (setcdr (gnus-group-entry (caadr entry)) entry))
 	  (gnus-dribble-enter
-	   (format
-	    "(gnus-group-set-info '%S)" info)))))
+	   (format "(gnus-group-set-info '%S)" info)
+	   (concat "^(gnus-group-set-info '(\"" (regexp-quote group) "\"")))))
       (when gnus-group-change-level-function
 	(funcall gnus-group-change-level-function
 		 group level oldlevel previous)))))
@@ -1485,9 +1471,10 @@ If SCAN, request a scan of that group as well."
 	       (inline (gnus-request-group group (or dont-sub-check dont-check)
 					   method
 					   (gnus-get-info group)))
-	     ;;(error nil)
 	     (quit
-	      (message "Quit activating %s" group)
+	      (if debug-on-quit
+		  (debug "Quit")
+		(message "Quit activating %s" group))
 	      nil)))
 	 (unless dont-check
 	   (setq active (gnus-parse-active))
@@ -1513,6 +1500,8 @@ If SCAN, request a scan of that group as well."
 	     ;; Return the new active info.
 	     active)))))
 
+(defvar gnus-propagate-marks)		; gnus-sum
+
 (defun gnus-get-unread-articles-in-group (info active &optional update)
   (when (and info active)
     ;; Allow the backend to update the info in the group.
@@ -1522,8 +1511,8 @@ If SCAN, request a scan of that group as well."
 			      (gnus-info-group info)))))
       (gnus-activate-group (gnus-info-group info) nil t))
 
-    ;; Allow backends to update marks, 
-    (when gnus-use-backend-marks
+    ;; Allow backends to update marks,
+    (when gnus-propagate-marks
       (let ((method (inline (gnus-find-method-for-group
 			     (gnus-info-group info)))))
 	(when (gnus-check-backend-function 'request-marks (car method))
@@ -1533,7 +1522,7 @@ If SCAN, request a scan of that group as well."
 	   (num 0))
 
       ;; These checks are present in gnus-activate-group but skipped
-      ;; due to setting dont-check in the preceeding call.
+      ;; due to setting dont-check in the preceding call.
 
       ;; If a cache is present, we may have to alter the active info.
       (when (and gnus-use-cache info)
@@ -1617,7 +1606,7 @@ If SCAN, request a scan of that group as well."
 
 ;; Go though `gnus-newsrc-alist' and compare with `gnus-active-hashtb'
 ;; and compute how many unread articles there are in each group.
-(defun gnus-get-unread-articles (&optional level)
+(defun gnus-get-unread-articles (&optional level dont-connect)
   (setq gnus-server-method-cache nil)
   (require 'gnus-agent)
   (let* ((newsrc (cdr gnus-newsrc-alist))
@@ -1696,31 +1685,69 @@ If SCAN, request a scan of that group as well."
 		(lambda (c1 c2)
 		  (< (gnus-method-rank (cadr c1) (car c1))
 		     (gnus-method-rank (cadr c2) (car c2))))))
+    ;; Go through the list of servers and possibly extend methods that
+    ;; aren't equal (and that need extension; i.e., they are async).
+    (let ((methods nil))
+      (dolist (elem type-cache)
+	(destructuring-bind (method method-type infos dummy) elem
+	  (let ((gnus-opened-servers methods))
+	    (when (and (gnus-similar-server-opened method)
+		       (gnus-check-backend-function
+			'retrieve-group-data-early (car method)))
+	      (setq method (gnus-server-extend-method
+			    (gnus-info-group (car infos))
+			    method))
+	      (setcar elem method))
+	    (push (list method 'ok) methods)))))
+
+    ;; If we have primary/secondary select methods, but no groups from
+    ;; them, we still want to issue a retrieval request from them.
+    (unless dont-connect
+      (dolist (method (cons gnus-select-method
+			    gnus-secondary-select-methods))
+	(when (and (not (assoc method type-cache))
+		   (gnus-check-backend-function 'request-list (car method)))
+	  (with-current-buffer nntp-server-buffer
+	    (gnus-read-active-file-1 method nil)))))
 
     ;; Start early async retrieval of data.
-    (dolist (elem type-cache)
-      (destructuring-bind (method method-type infos dummy) elem
-	(when (and method infos
-		   (not (gnus-method-denied-p method)))
-	  ;; If the open-server method doesn't exist, then the method
-	  ;; itself doesn't exist, so we ignore it.
-	  (if (not (ignore-errors (gnus-get-function method 'open-server)))
-	      (setq type-cache (delq elem type-cache))
-	    (unless (gnus-server-opened method)
-	      (gnus-open-server method))
-	    (when (and
-		   (gnus-server-opened method)
-		   (gnus-check-backend-function
-		    'retrieve-group-data-early (car method)))
-	      (when (gnus-check-backend-function 'request-scan (car method))
-		(gnus-request-scan nil method))
-	      (setcar (nthcdr 3 elem)
-		      (gnus-retrieve-group-data-early method infos)))))))
+    (let ((done-methods nil)
+	  sanity-spec)
+      (dolist (elem type-cache)
+	(destructuring-bind (method method-type infos dummy) elem
+	  (setq sanity-spec (list (car method) (cadr method)))
+	  (when (and method infos
+		     (not (gnus-method-denied-p method)))
+	    ;; If the open-server method doesn't exist, then the method
+	    ;; itself doesn't exist, so we ignore it.
+	    (if (not (ignore-errors (gnus-get-function method 'open-server)))
+		(setq type-cache (delq elem type-cache))
+	      (unless (gnus-server-opened method)
+		(gnus-open-server method))
+	      (when (and
+		     ;; This is a sanity check, so that we never
+		     ;; attempt to start two async requests to the
+		     ;; same server, because that will fail.  This
+		     ;; should never happen, since the methods should
+		     ;; be unique at this point, but apparently it
+		     ;; does happen in the wild with some setups.
+		     (not (member sanity-spec done-methods))
+		     (gnus-server-opened method)
+		     (gnus-check-backend-function
+		      'retrieve-group-data-early (car method)))
+		(push sanity-spec done-methods)
+		(when (gnus-check-backend-function 'request-scan (car method))
+		  (gnus-request-scan nil method))
+		;; Store the token we get back from -early so that we
+		;; can pass it to -finish later.
+		(setcar (nthcdr 3 elem)
+			(gnus-retrieve-group-data-early method infos))))))))
 
     ;; Do the rest of the retrieval.
     (dolist (elem type-cache)
       (destructuring-bind (method method-type infos early-data) elem
-	(when (and method infos)
+	(when (and method infos
+		   (not (gnus-method-denied-p method)))
 	  (let ((updatep (gnus-check-backend-function
 			  'request-update-info (car method))))
 	    ;; See if any of the groups from this method require updating.
@@ -1755,12 +1782,16 @@ If SCAN, request a scan of that group as well."
 (defun gnus-read-active-for-groups (method infos early-data)
   (with-current-buffer nntp-server-buffer
     (cond
+     ;; Finish up getting the data from the methods that have -early
+     ;; methods.
      ((and
+       early-data
        (gnus-check-backend-function 'finish-retrieve-group-infos (car method))
        (or (not (gnus-agent-method-p method))
 	   (gnus-online method)))
       (gnus-finish-retrieve-group-infos method infos early-data)
       (gnus-agent-save-active method))
+     ;; Most backends have -retrieve-groups.
      ((gnus-check-backend-function 'retrieve-groups (car method))
       (when (gnus-check-backend-function 'request-scan (car method))
 	(gnus-request-scan nil method))
@@ -1769,8 +1800,11 @@ If SCAN, request a scan of that group as well."
 	 (dolist (info infos (nreverse groups))
 	   (push (gnus-group-real-name (gnus-info-group info)) groups))
 	 method)))
+     ;; Virtually all backends have -request-list.
      ((gnus-check-backend-function 'request-list (car method))
-      (gnus-read-active-file-1 method nil infos))
+      (gnus-read-active-file-1 method nil))
+     ;; Except nnvirtual and friends, where we request each group, one
+     ;; by one.
      (t
       (dolist (info infos)
 	(gnus-activate-group (gnus-info-group info) nil nil method t))))))
@@ -1876,7 +1910,7 @@ If SCAN, request a scan of that group as well."
                             ;; OK - I'm done
                             (setq articles nil))
                            ((< range article)
-                            ;; this range preceeds the article. Leave the range unmodified.
+                            ;; this range precedes the article. Leave the range unmodified.
                             (pop ranges)
                             ranges)
                            ((= range article)
@@ -1899,11 +1933,11 @@ If SCAN, request a scan of that group as well."
                             (setcar ranges min)
                             ranges)
                            ((< max article)
-                            ;; this range preceeds the article. Leave the range unmodified.
+                            ;; this range precedes the article. Leave the range unmodified.
                             (pop ranges)
                             ranges)
                            ((< article min)
-                            ;; this article preceeds the range.  Return null to move to the
+                            ;; this article precedes the range.  Return null to move to the
                             ;; next article
                             nil)
                            (t
@@ -1996,10 +2030,12 @@ If SCAN, request a scan of that group as well."
 	      ;; We catch C-g so that we can continue past servers
 	      ;; that do not respond.
 	      (quit
-	       (message "Quit reading the active file")
+	       (if debug-on-quit
+		   (debug "Quit")
+		 (message "Quit reading the active file"))
 	       nil))))))))
 
-(defun gnus-read-active-file-1 (method force &optional infos)
+(defun gnus-read-active-file-1 (method force)
   (let (where mesg)
     (setq where (nth 1 method)
 	  mesg (format "Reading active file%s via %s..."
@@ -2860,7 +2896,8 @@ If FORCE is non-nil, the .newsrc file is read."
       (pop list))
     (nreverse olist)))
 
-(defun gnus-gnus-to-newsrc-format ()
+(defun gnus-gnus-to-newsrc-format (&optional foreign-ok)
+  (interactive (list (gnus-y-or-n-p "write foreign groups too? ")))
   ;; Generate and save the .newsrc file.
   (with-current-buffer (create-file-buffer gnus-current-startup-file)
     (let ((newsrc (cdr gnus-newsrc-alist))
@@ -2882,7 +2919,8 @@ If FORCE is non-nil, the .newsrc file is read."
 	;; Don't write foreign groups to .newsrc.
 	(when (or (null (setq method (gnus-info-method info)))
 		  (equal method "native")
-		  (inline (gnus-server-equal method gnus-select-method)))
+		  (inline (gnus-server-equal method gnus-select-method))
+                  foreign-ok)
 	  (insert (gnus-info-group info)
 		  (if (> (gnus-info-level info) gnus-level-subscribed)
 		      "!" ":"))

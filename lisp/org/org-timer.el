@@ -1,11 +1,11 @@
 ;;; org-timer.el --- The relative timer code for Org-mode
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -394,6 +394,5 @@ replace any running timer."
 
 (provide 'org-timer)
 
-;; arch-tag: 97538f8c-3871-4509-8f23-1e7b3ff3d107
 
 ;;; org-timer.el ends here

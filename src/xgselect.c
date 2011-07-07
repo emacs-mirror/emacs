@@ -1,6 +1,6 @@
 /* Function for handling the GLib event loop.
-   Copyright (C) 2009, 2010
-     Free Software Foundation, Inc.
+
+Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -15,15 +15,18 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+along with GNU Emacs.  If not, see <http§://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#if defined (USE_GTK) || defined (HAVE_GCONF)
+#include <setjmp.h>
+#include "xgselect.h"
+
+#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
+
 #include <glib.h>
 #include <errno.h>
 #include <setjmp.h>
-#include "xgselect.h"
 
 static GPollFD *gfds;
 static int gfds_size;
@@ -38,7 +41,7 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   GMainContext *context = g_main_context_default ();
   int have_wfds = wfds != NULL;
   int n_gfds = 0, our_tmo = 0, retval = 0, our_fds = 0;
-  int prio, i, nfds, tmo_in_millisec;
+  int i, nfds, tmo_in_millisec;
 
   if (rfds) memcpy (&all_rfds, rfds, sizeof (all_rfds));
   else FD_ZERO (&all_rfds);
@@ -49,9 +52,9 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   g_main_context_pending (context);
 
   do {
-    if (n_gfds > gfds_size) 
+    if (n_gfds > gfds_size)
       {
-        while (n_gfds > gfds_size) 
+        while (n_gfds > gfds_size)
           gfds_size *= 2;
         xfree (gfds);
         gfds = xmalloc (sizeof (*gfds) * gfds_size);
@@ -64,7 +67,7 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
                                    gfds_size);
   } while (n_gfds > gfds_size);
 
-  for (i = 0; i < n_gfds; ++i) 
+  for (i = 0; i < n_gfds; ++i)
     {
       if (gfds[i].events & G_IO_IN)
         {
@@ -87,7 +90,7 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
       else
         {
           EMACS_TIME difference;
-          
+
           EMACS_SUB_TIME (difference, tmo, *timeout);
           if (EMACS_TIME_NEG_P (difference)) our_tmo = 1;
         }
@@ -100,7 +103,7 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 
   if (nfds < 0)
     retval = nfds;
-  else if (nfds > 0) 
+  else if (nfds > 0)
     {
       for (i = 0; i < max_fds+1; ++i)
         {
@@ -127,7 +130,7 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 
   if (our_fds > 0 || (nfds == 0 && our_tmo))
     {
-      
+
       /* If Gtk+ is in use eventually gtk_main_iteration will be called,
          unless retval is zero.  */
 #ifdef USE_GTK
@@ -137,7 +140,7 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
           g_main_context_dispatch (context);
 
       /* To not have to recalculate timeout, return like this.  */
-      if (retval == 0) 
+      if (retval == 0)
         {
           retval = -1;
           errno = EINTR;
@@ -146,16 +149,13 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 
   return retval;
 }
-#endif /* defined (USE_GTK) || defined (HAVE_GCONF) */
+#endif /* USE_GTK || HAVE_GCONF || HAVE_GSETTINGS */
 
 void
 xgselect_initialize (void)
 {
-#if defined (USE_GTK) || defined (HAVE_GCONF)
+#if defined (USE_GTK) || defined (HAVE_GCONF) || defined (HAVE_GSETTINGS)
   gfds_size = 128;
   gfds = xmalloc (sizeof (*gfds)*gfds_size);
-#endif /* defined (USE_GTK) || defined (HAVE_GCONF) */
+#endif
 }
-
-/* arch-tag: c5873ee3-d1f6-44f9-9f3b-b14f70fd0e6a
-   (do not change this comment) */

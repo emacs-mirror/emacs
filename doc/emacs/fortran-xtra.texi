@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 2004-2011  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -11,12 +10,12 @@
 @cindex mode, Fortran
 
 @cindex Fortran fixed form and free form
-@cindex Fortran 77 and Fortran 90, 95, 2003
+@cindex Fortran 77 and Fortran 90, 95, 2003, 2008
 @findex f90-mode
 @findex fortran-mode
   Fortran mode is meant for editing ``fixed form'' (and also ``tab
 format'') source code (normally Fortran 77).  For editing more modern
-``free form'' source code (Fortran 90, 95, 2003), use F90 mode
+``free form'' source code (Fortran 90, 95, 2003, 2008), use F90 mode
 (@code{f90-mode}).  Emacs normally uses Fortran mode for files with
 extension @samp{.f}, @samp{.F} or @samp{.for}, and F90 mode for the
 extensions @samp{.f90} and @samp{.f95}.  Customize
@@ -582,7 +581,3 @@ to @samp{continue}, provided Abbrev mode is enabled.@refill
 
   Type @samp{;?} or @samp{;C-h} to display a list of all the built-in
 Fortran abbrevs and what they stand for.
-
-@ignore
-   arch-tag: 23ed7c36-1517-4646-9235-2d5ade5f06f6
-@end ignore

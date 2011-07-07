@@ -1,7 +1,6 @@
 ;;; vc-dir.el --- Directory status display under VC
 
-;; Copyright (C) 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
 ;; Author:   Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: vc tools
@@ -105,7 +104,7 @@ See `run-hooks'."
 	;; We pass a filename to create-file-buffer because it is what
 	;; the function expects, and also what uniquify needs (if active)
         (with-current-buffer (create-file-buffer (expand-file-name bname dir))
-          (cd dir)
+          (setq default-directory dir)
           (vc-setup-buffer (current-buffer))
           ;; Reset the vc-parent-buffer-name so that it does not appear
           ;; in the mode-line.
@@ -196,7 +195,7 @@ See `run-hooks'."
       '(menu-item "Show Incoming Log" vc-log-incoming
 		  :help "Show a log of changes that will be received with a pull operation"))
     (define-key map [log]
-      '(menu-item "Show history" vc-print-log
+      '(menu-item "Show History" vc-print-log
 		  :help "List the change log of the current file set in a window"))
     (define-key map [rlog]
       '(menu-item "Show Top of the Tree History " vc-print-root-log
@@ -266,6 +265,7 @@ See `run-hooks'."
     (define-key map [C-up] 'vc-dir-previous-directory)
     ;; The remainder.
     (define-key map "f" 'vc-dir-find-file)
+    (define-key map "e" 'vc-dir-find-file) ; dired-mode compatibility
     (define-key map "\C-m" 'vc-dir-find-file)
     (define-key map "o" 'vc-dir-find-file-other-window)
     (define-key map "\C-c\C-c" 'vc-dir-kill-dir-status-process)
@@ -307,33 +307,36 @@ If BODY uses EVENT, it should be a variable,
 
 (defvar vc-dir-tool-bar-map
   (let ((map (make-sparse-keymap)))
-    (tool-bar-local-item-from-menu 'vc-dir-find-file "open"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item "bookmark_add"
-			 'vc-dir-toggle-mark 'vc-dir-toggle-mark map
-			 :help "Toggle mark on current item"
-			 :label "Toggle Mark")
-    (tool-bar-local-item-from-menu 'vc-dir-previous-line "left-arrow"
-				   map vc-dir-mode-map
-				   :rtl "right-arrow")
-    (tool-bar-local-item-from-menu 'vc-dir-next-line "right-arrow"
-				   map vc-dir-mode-map
-				   :rtl "left-arrow")
+    (tool-bar-local-item-from-menu 'find-file "new" map nil
+				   :label "New File" :vert-only t)
+    (tool-bar-local-item-from-menu 'menu-find-file-existing "open" map nil
+				   :label "Open" :vert-only t)
+    (tool-bar-local-item-from-menu 'dired "diropen" map nil
+				   :vert-only t)
+    (tool-bar-local-item-from-menu 'quit-window "close" map vc-dir-mode-map
+				   :vert-only t)
+    (tool-bar-local-item-from-menu 'vc-next-action "saveas" map
+				   vc-dir-mode-map :label "Commit")
     (tool-bar-local-item-from-menu 'vc-print-log "info"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item-from-menu 'revert-buffer "refresh"
-				   map vc-dir-mode-map)
-    (tool-bar-local-item-from-menu 'nonincremental-search-forward
-				   "search" map nil
-				   :label "Search")
-    (tool-bar-local-item-from-menu 'vc-dir-query-replace-regexp
-				   "search-replace" map vc-dir-mode-map
-				   :label "Replace")
+    				   map vc-dir-mode-map
+				   :label "Log")
+    (define-key-after map [separator-1] menu-bar-separator)
     (tool-bar-local-item-from-menu 'vc-dir-kill-dir-status-process "cancel"
 				   map vc-dir-mode-map
-				   :label "Cancel")
-    (tool-bar-local-item-from-menu 'quit-window "exit"
-				   map vc-dir-mode-map)
+				   :label "Stop" :vert-only t)
+    (tool-bar-local-item-from-menu 'revert-buffer "refresh"
+				   map vc-dir-mode-map :vert-only t)
+    (define-key-after map [separator-2] menu-bar-separator)
+    (tool-bar-local-item-from-menu (lookup-key menu-bar-edit-menu [cut])
+				   "cut" map nil :vert-only t)
+    (tool-bar-local-item-from-menu (lookup-key menu-bar-edit-menu [copy])
+				   "copy" map nil :vert-only t)
+    (tool-bar-local-item-from-menu (lookup-key menu-bar-edit-menu [paste])
+				   "paste" map nil :vert-only t)
+    (define-key-after map [separator-3] menu-bar-separator)
+    (tool-bar-local-item-from-menu 'isearch-forward
+    				   "search" map nil
+				   :label "Search" :vert-only t)
     map))
 
 (defun vc-dir-node-directory (node)
@@ -753,12 +756,11 @@ To continue searching for next match, use command \\[tags-loop-continue]."
 
 (defun vc-dir-query-replace-regexp (from to &optional delimited)
   "Do `query-replace-regexp' of FROM with TO, on all marked files.
-For marked directories, use the files displayed from those directories.
 If a directory is marked, then use the files displayed for that directory.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue]."
-  ;; FIXME: this is almost a copy of `dired-do-replace-regexp'.  This
+  ;; FIXME: this is almost a copy of `dired-do-query-replace-regexp'.  This
   ;; should probably be made generic and used in both places instead of
   ;; duplicating it here.
   (interactive
@@ -1000,7 +1002,7 @@ specific headers."
             (generate-new-buffer (format " *VC-%s* tmp status" backend))))
     (lexical-let ((buffer (current-buffer)))
       (with-current-buffer vc-dir-process-buffer
-        (cd def-dir)
+        (setq default-directory def-dir)
         (erase-buffer)
         (vc-call-backend
          backend 'dir-status-files def-dir files default-state
@@ -1060,9 +1062,12 @@ Throw an error if another update process is in progress."
 		  (unless (vc-dir-fileinfo->directory info)
 		    (setf (vc-dir-fileinfo->needs-update info) t) nil))
                 vc-ewoc)
+      ;; Bzr has serious locking problems, so setup the headers first (this is
+      ;; synchronous) rather than doing it while dir-status is running.
+      (ewoc-set-hf vc-ewoc (vc-dir-headers backend def-dir) "")
       (lexical-let ((buffer (current-buffer)))
         (with-current-buffer vc-dir-process-buffer
-          (cd def-dir)
+          (setq default-directory def-dir)
           (erase-buffer)
           (vc-call-backend
            backend 'dir-status def-dir
@@ -1080,8 +1085,7 @@ Throw an error if another update process is in progress."
                        (vc-dir-refresh-files
                         (mapcar 'vc-dir-fileinfo->name remaining)
                         'up-to-date)
-                     (setq mode-line-process nil)))))))))
-      (ewoc-set-hf vc-ewoc (vc-dir-headers backend def-dir) ""))))
+                     (setq mode-line-process nil))))))))))))
 
 (defun vc-dir-show-fileentry (file)
   "Insert an entry for a specific file into the current *VC-dir* listing.
@@ -1181,9 +1185,9 @@ These are the commands available for use in the file status buffer:
     ;; therefore it makes sense to always do that.
     ;; Otherwise if you do C-x v d -> C-x C-f -> C-c v d
     ;; you may get a new *vc-dir* buffer, different from the original
-    (file-truename (read-file-name "VC status for directory: "
-                                   default-directory default-directory t
-                                   nil #'file-directory-p))
+    (file-truename (read-directory-name "VC status for directory: "
+					default-directory default-directory t
+					nil))
     (if current-prefix-arg
 	(intern
 	 (completing-read
@@ -1234,6 +1238,7 @@ These are the commands available for use in the file status buffer:
       (format "%-20s" state)
       'face (cond ((eq state 'up-to-date) 'font-lock-builtin-face)
 		  ((memq state '(missing conflict)) 'font-lock-warning-face)
+		  ((eq state 'edited) 'font-lock-constant-face)
 		  (t 'font-lock-variable-name-face))
       'mouse-face 'highlight)
      " "
@@ -1257,5 +1262,4 @@ These are the commands available for use in the file status buffer:
 
 (provide 'vc-dir)
 
-;; arch-tag: 0274a2e3-e8e9-4b1a-a73c-e8b9129d5d15
 ;;; vc-dir.el ends here

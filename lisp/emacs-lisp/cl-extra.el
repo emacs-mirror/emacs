@@ -1,7 +1,6 @@
 ;;; cl-extra.el --- Common Lisp features, part 2
 
-;; Copyright (C) 1993, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: extensions
@@ -767,20 +766,15 @@ This also does some trivial optimizations to make the form prettier."
 				(eq (car-safe (car body)) 'interactive))
 		       (push (list 'quote (pop body)) decls))
 		     (put (car (last cl-closure-vars)) 'used t)
-		     (append
-		      (list 'list '(quote lambda) '(quote (&rest --cl-rest--)))
-		      (sublis sub (nreverse decls))
-		      (list
-		       (list* 'list '(quote apply)
-			      (list 'function
-				    (list* 'lambda
-					   (append new (cadadr form))
-					   (sublis sub body)))
-			      (nconc (mapcar (function
-					      (lambda (x)
-						(list 'list '(quote quote) x)))
-					     cl-closure-vars)
-				     '((quote --cl-rest--)))))))
+                     `(list 'lambda '(&rest --cl-rest--)
+                            ,@(sublis sub (nreverse decls))
+                            (list 'apply
+                                  (list 'quote
+                                        #'(lambda ,(append new (cadadr form))
+                                            ,@(sublis sub body)))
+                                  ,@(nconc (mapcar (lambda (x) `(list 'quote ,x))
+                                                   cl-closure-vars)
+                                           '((quote --cl-rest--))))))
 		 (list (car form) (list* 'lambda (cadadr form) body))))
 	   (let ((found (assq (cadr form) env)))
 	     (if (and found (ignore-errors
@@ -826,5 +820,4 @@ This also does some trivial optimizations to make the form prettier."
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
 
-;; arch-tag: bcd03437-0871-43fb-a8f1-ad0e0b5427ed
 ;;; cl-extra.el ends here

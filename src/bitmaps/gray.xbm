@@ -1,4 +1,4 @@
 #define gray_width 2
 #define gray_height 2
-static unsigned char gray_bits[] = {
-   0x01, 0x02};
+static char gray_bits[] = {
+  '\x01','\x02'};

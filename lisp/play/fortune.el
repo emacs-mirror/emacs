@@ -1,7 +1,6 @@
 ;;; fortune.el --- use fortune to create signatures
 
-;; Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;  2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Holger Schauer <Holger.Schauer@gmx.de>
 ;; Keywords: games utils mail
@@ -50,7 +49,7 @@
 
 ;; I have also this in my .gnus:
 ;;(add-hook 'gnus-article-mode-hook
-;;	  '(lambda ()
+;;	  (lambda ()
 ;;	     (define-key gnus-article-mode-map "i" 'fortune-from-region)))
 ;; which allows marking a region and then pressing "i" so that the marked
 ;; region will be automatically added to my favourite fortune-file.
@@ -283,7 +282,7 @@ and choose the directory as the fortune-file."
 
 ;;; **************
 ;;; Display fortune
-(defun fortune-in-buffer (interactive &optional file)
+(defun fortune-in-buffer (_interactive &optional file)
   "Put a fortune cookie in the *fortune* buffer.
 INTERACTIVE is ignored.  Optional argument FILE, when supplied,
 specifies the file to choose the fortune from."

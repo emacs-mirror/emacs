@@ -1,6 +1,6 @@
 ;;; eieio-datadebug.el --- EIEIO extensions to the data debugger.
 
-;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: OO, lisp
@@ -145,5 +145,4 @@ PREBUTTONTEXT is some text between PREFIX and the object button."
 
 (provide 'eieio-datadebug)
 
-;; arch-tag: 6c7c2890-7614-41b0-816b-c61f3f6a8130
 ;;; eieio-datadebug.el ends here

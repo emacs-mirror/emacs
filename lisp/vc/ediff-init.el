@@ -1,7 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -561,7 +560,6 @@ See the documentation string of `ediff-focus-on-regexp-matches' for details.")
   :group 'ediff)
 
 
-(ediff-defvar-local ediff-use-faces t "")
 (defcustom ediff-use-faces t
   "If t, differences are highlighted using faces, if device supports faces.
 If nil, differences are highlighted using ASCII flags, ediff-before-flag
@@ -569,6 +567,7 @@ and ediff-after-flag.  On a non-window system, differences are always
 highlighted using ASCII flags."
   :type 'boolean
   :group 'ediff-highlighting)
+(ediff-defvar-local ediff-use-faces t "")
 
 ;; this indicates that diff regions are word-size, so fine diffs are
 ;; permanently nixed; used in ediff-windows-wordwise and ediff-regions-wordwise
@@ -605,13 +604,13 @@ meaning of this variable."
   :type 'boolean
   :group 'ediff)
 
-(ediff-defvar-local ediff-highlight-all-diffs t "")
 (defcustom ediff-highlight-all-diffs t
   "If nil, only the selected differences are highlighted.
 Otherwise, all difference regions are highlighted, but the selected region is
 shown in brighter colors."
   :type 'boolean
   :group 'ediff-highlighting)
+(ediff-defvar-local ediff-highlight-all-diffs t "")
 
 
 ;; The suffix of the control buffer name.
@@ -1808,5 +1807,4 @@ Unless optional argument INPLACE is non-nil, return a new string."
 ;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;; End:
 
-;; arch-tag: fa31d384-1e70-4d4b-82a7-3e96307c46f5
 ;;; ediff-init.el ends here

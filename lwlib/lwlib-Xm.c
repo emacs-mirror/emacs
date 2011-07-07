@@ -1,8 +1,7 @@
 /* The lwlib interface to Motif widgets.
-   Copyright (C) 1994, 1995, 1996, 1997, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
-   Copyright (C) 1992 Lucid, Inc.
+
+Copyright (C) 1994-1997, 1999-2011  Free Software Foundation, Inc.
+Copyright (C) 1992 Lucid, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -35,7 +34,7 @@ Boston, MA 02110-1301, USA.  */
 #include <X11/CoreP.h>
 #include <X11/CompositeP.h>
 
-#include "../src/lisp.h"
+#include <lisp.h>
 
 #include "lwlib-Xm.h"
 #include "lwlib-utils.h"
@@ -174,7 +173,7 @@ make_destroyed_instance (char* name,
                          Boolean pop_up_p)
 {
   destroyed_instance* instance =
-    (destroyed_instance*)malloc (sizeof (destroyed_instance));
+    (destroyed_instance*) xmalloc (sizeof (destroyed_instance));
   instance->name = safe_strdup (name);
   instance->type = safe_strdup (type);
   instance->widget = widget;
@@ -512,7 +511,7 @@ make_menu_in_widget (widget_instance* instance,
   /* Allocate the children array */
   for (num_children = 0, cur = val; cur; num_children++, cur = cur->next)
     ;
-  children = (Widget*)XtMalloc (num_children * sizeof (Widget));
+  children = (Widget*)(void*)XtMalloc (num_children * sizeof (Widget));
 
   /* WIDGET should be a RowColumn.  */
   if (!XmIsRowColumn (widget))
@@ -800,7 +799,7 @@ xm_update_menu (widget_instance* instance,
 
   /* Now replace from scratch all the buttons after the last
      place that the top-level structure changed.  */
-  if (val->contents->change == STRUCTURAL_CHANGE)
+  if (val->contents && val->contents->change == STRUCTURAL_CHANGE)
     {
       destroy_all_children (widget, num_children_to_keep);
       make_menu_in_widget (instance, widget, val->contents,
@@ -1021,10 +1020,10 @@ dialog_key_cb (Widget widget,
 {
   KeySym sym = 0;
   Modifiers modif_ret;
-  
+
   XtTranslateKeycode (event->xkey.display, event->xkey.keycode, 0,
                       &modif_ret, &sym);
-                      
+
   if (sym == osfXK_Cancel)
     {
       Widget w = *((Widget *) closure);
@@ -1056,7 +1055,7 @@ make_dialog (char* name,
   Widget row;
   Widget icon;
   Widget icon_separator;
-  Widget message;
+  Widget message_label;
   Widget value = 0;
   Widget separator;
   Widget button = 0;
@@ -1270,7 +1269,7 @@ make_dialog (char* name,
   XtSetArg(al[ac], XmNleftWidget, icon); ac++;
   XtSetArg(al[ac], XmNrightAttachment, XmATTACH_FORM); ac++;
   XtSetArg(al[ac], XmNrightOffset, 13); ac++;
-  message = XmCreateLabel (form, "message", al, ac);
+  message_label = XmCreateLabel (form, "message", al, ac);
 
   if (list)
     XtManageChild (value);
@@ -1282,7 +1281,7 @@ make_dialog (char* name,
     {
       children [i] = value; i++;
     }
-  children [i] = message; i++;
+  children [i] = message_label; i++;
   children [i] = icon; i++;
   children [i] = icon_separator; i++;
   XtManageChildren (children, i);
@@ -1957,6 +1956,3 @@ xm_manage_resizing (Widget w, Boolean flag)
 {
   XtVaSetValues (w, XtNallowShellResize, flag, NULL);
 }
-
-/* arch-tag: 73976f64-73b2-4600-aa13-d9ede20ee965
-   (do not change this comment) */

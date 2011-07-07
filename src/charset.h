@@ -1,8 +1,7 @@
 /* Header for charset handler.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2001-2011 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-     2005, 2006, 2007, 2008, 2009, 2010
+     2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
 
@@ -27,6 +26,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifndef EMACS_CHARSET_H
 #define EMACS_CHARSET_H
+
+#include <verify.h>
 
 /* Index to arguments of Fdefine_charset_internal.  */
 
@@ -147,7 +148,7 @@ struct charset
   int id;
 
   /* Index to Vcharset_hash_table.  */
-  int hash_index;
+  EMACS_INT hash_index;
 
   /* Dimension of the charset: 1, 2, 3, or 4.  */
   int dimension;
@@ -156,10 +157,11 @@ struct charset
      byte code of the (N+1)th dimension, <code_space>[4N+1] is a
      maximum byte code of the (N+1)th dimension, <code_space>[4N+2] is
      (<code_space>[4N+1] - <code_space>[4N] + 1), <code_space>[4N+3]
-     is a number of characters containd in the first to (N+1)th
-     dismesions.  We get `char-index' of a `code-point' from this
+     is the number of characters contained in the first through (N+1)th
+     dimensions, except that there is no <code_space>[15].
+     We get `char-index' of a `code-point' from this
      information.  */
-  int code_space[16];
+  int code_space[15];
 
   /* If B is a byte of Nth dimension of a code-point, the (N-1)th bit
      of code_space_mask[B] is set.  This array is used to quickly
@@ -251,13 +253,10 @@ extern Lisp_Object Vcharset_non_preferred_head;
 /* Incremented everytime we change the priority of charsets.  */
 extern unsigned short charset_ordered_list_tick;
 
-extern Lisp_Object Vcharset_list;
 extern Lisp_Object Viso_2022_charset_list;
 extern Lisp_Object Vemacs_mule_charset_list;
 
-extern struct charset *emacs_mule_charset[256];
-
-extern Lisp_Object Vcurrent_iso639_language;
+extern int emacs_mule_charset[256];
 
 /* Macros to access information about charset.  */
 
@@ -362,9 +361,9 @@ extern Lisp_Object Vcurrent_iso639_language;
 
 #define CHECK_CHARSET_GET_CHARSET(x, charset)	\
   do {						\
-    int id;					\
-    CHECK_CHARSET_GET_ID (x, id);		\
-    charset = CHARSET_FROM_ID (id);		\
+    int csid;					\
+    CHECK_CHARSET_GET_ID (x, csid);		\
+    charset = CHARSET_FROM_ID (csid);		\
   } while (0)
 
 
@@ -427,28 +426,30 @@ extern Lisp_Object charset_work;
 /* Return a code point of CHAR in CHARSET.
    Try some optimization before calling encode_char.  */
 
-#define ENCODE_CHAR(charset, c)						 \
-  ((ASCII_CHAR_P (c) && (charset)->ascii_compatible_p)			 \
-   ? (c)								 \
-   : ((charset)->unified_p						 \
-      || (charset)->method == CHARSET_METHOD_SUBSET			 \
-      || (charset)->method == CHARSET_METHOD_SUPERSET)			 \
-   ? encode_char ((charset), (c))					 \
-   : ((c) < (charset)->min_char || (c) > (charset)->max_char)		 \
-   ? (charset)->invalid_code						 \
-   : (charset)->method == CHARSET_METHOD_OFFSET				 \
-   ? ((charset)->code_linear_p						 \
-      ? (c) - (charset)->code_offset + (charset)->min_code		 \
-      : encode_char ((charset), (c)))					 \
-   : (charset)->method == CHARSET_METHOD_MAP				 \
-   ? (((charset)->compact_codes_p					 \
-       && CHAR_TABLE_P (CHARSET_ENCODER (charset)))			 \
-      ? (charset_work = CHAR_TABLE_REF (CHARSET_ENCODER (charset), (c)), \
-	 (NILP (charset_work)						 \
-	  ? (charset)->invalid_code					 \
-	  : XFASTINT (charset_work)))					 \
-      : encode_char ((charset), (c)))					 \
-   : encode_char ((charset), (c)))
+#define ENCODE_CHAR(charset, c)						\
+  (verify_expr								\
+   (sizeof (c) <= sizeof (int),						\
+    (ASCII_CHAR_P (c) && (charset)->ascii_compatible_p			\
+     ? (c)								\
+     : ((charset)->unified_p						\
+	|| (charset)->method == CHARSET_METHOD_SUBSET			\
+	|| (charset)->method == CHARSET_METHOD_SUPERSET)		\
+     ? encode_char (charset, c)						\
+     : (c) < (charset)->min_char || (c) > (charset)->max_char		\
+     ? (charset)->invalid_code						\
+     : (charset)->method == CHARSET_METHOD_OFFSET			\
+     ? ((charset)->code_linear_p					\
+	? (c) - (charset)->code_offset + (charset)->min_code		\
+	: encode_char (charset, c))					\
+     : (charset)->method == CHARSET_METHOD_MAP				\
+     ? (((charset)->compact_codes_p					\
+	 && CHAR_TABLE_P (CHARSET_ENCODER (charset)))			\
+	? (charset_work = CHAR_TABLE_REF (CHARSET_ENCODER (charset), c), \
+	   (NILP (charset_work)						\
+	    ? (charset)->invalid_code					\
+	    : XFASTINT (charset_work)))					\
+	: encode_char (charset, c))					\
+     : encode_char (charset, c))))
 
 
 /* Set to 1 when a charset map is loaded to warn that a buffer text
@@ -521,9 +522,8 @@ extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 
 extern Lisp_Object Qcharsetp;
 
-extern Lisp_Object Qascii, Qunicode;
+extern Lisp_Object Qascii;
 extern int charset_ascii, charset_eight_bit;
-extern int charset_iso_8859_1;
 extern int charset_unicode;
 extern int charset_jisx0201_roman;
 extern int charset_jisx0208_1978;
@@ -544,9 +544,4 @@ extern void map_charset_chars (void (*) (Lisp_Object, Lisp_Object),
                                Lisp_Object, Lisp_Object,
                                struct charset *, unsigned, unsigned);
 
-EXFUN (Funify_charset, 3);
-
 #endif /* EMACS_CHARSET_H */
-
-/* arch-tag: 3b96db55-4961-481d-ac3e-219f46a2b3aa
-   (do not change this comment) */

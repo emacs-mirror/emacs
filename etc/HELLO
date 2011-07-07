@@ -33,6 +33,7 @@ French (fran,Ag(Bais)	Bonjour / Salut
 Georgian ($,1JEJ0J@J7J5J4J:J8(B)	$,1J2J0J;J0J@JOJ=J1J0(B
 German (Deutsch)	Guten Tag / Gr,A|_(B Gott
 Greek (,Fekkgmij\(B)	,FCei\(B ,Fsar(B
+Greek, ancient ($,1p1,Fkkgmij^(B)	,FO$,1pv,Fk](B ,Fte(B ,Fja$,1q6(B ,Fl]ca(B ,Fwa$,1r6,Fqe(B
 Gujarati ($,19W:!9\9p9~9d: (B)	$,19h9n9x:-9d:'(B
 Hebrew $,1ro(B($,1-",q-(,y-*(B)	,Hylem(B
 Hungarian (magyar)	Sz,Bi(Bp j,Bs(B napot!
@@ -71,8 +72,7 @@ Korean ($(CGQ1[(B)	$(C>H3gGO<<?d(B / $(C>H3gGO=J4O1n(B
 
 
 
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

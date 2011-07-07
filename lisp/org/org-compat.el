@@ -1,12 +1,11 @@
 ;;; org-compat.el --- Compatibility code for Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -372,15 +371,15 @@ TIME defaults to the current time."
       (time-to-seconds (or time (current-time)))
     (float-time time)))
 
-(defun org-string-match-p (&rest args)
-  (if (fboundp 'string-match-p)
-      (apply 'string-match-p args)
+(if (fboundp 'string-match-p)
+    (defalias 'org-string-match-p 'string-match-p)
+  (defun org-string-match-p (regexp string &optional start)
     (save-match-data
-      (apply 'string-match args))))
+      (funcall 'string-match regexp string start))))
 
-(defun org-looking-at-p (&rest args)
-  (if (fboundp 'looking-at-p)
-      (apply 'looking-at-p args)
+(if (fboundp 'looking-at-p)
+    (defalias 'org-looking-at-p 'looking-at-p)
+  (defun org-looking-at-p (&rest args)
     (save-match-data
       (apply 'looking-at args))))
 
@@ -418,8 +417,13 @@ LIMIT."
 	      (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
       (not (null pos)))))
 
+(defun org-floor* (x &optional y)
+  "Return a list of the floor of X and the fractional part of X.
+With two arguments, return floor and remainder of their quotient."
+  (let ((q (floor x y)))
+    (list q (- x (if y (* y q) q)))))
+
 (provide 'org-compat)
 
-;; arch-tag: a0a0579f-e68c-4bdf-9e55-93768b846bbe
 
 ;;; org-compat.el ends here

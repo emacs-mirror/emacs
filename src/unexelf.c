@@ -1,5 +1,4 @@
-/* Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+/* Copyright (C) 1985-1988, 1990, 1992, 1999-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -387,9 +386,12 @@ temacs:
    Instead we read the whole file, modify it, and write it out.  */
 
 #include <config.h>
+#include <unexec.h>
+
 extern void fatal (const char *msgid, ...);
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <memory.h>
@@ -519,10 +521,6 @@ typedef struct {
 # define ElfW(type) ElfExpandBitsW (ELFSIZE, type)
 #endif
 
-#ifndef ELF_BSS_SECTION_NAME
-#define ELF_BSS_SECTION_NAME ".bss"
-#endif
-
 /* Get the address of a particular section or program header entry,
  * accounting for the size of the entries.
  */
@@ -554,8 +552,6 @@ typedef struct {
      (*(ElfW(Shdr) *) ((byte *) old_section_h + old_file_h->e_shentsize * (n)))
 #define NEW_SECTION_H(n) \
      (*(ElfW(Shdr) *) ((byte *) new_section_h + new_file_h->e_shentsize * (n)))
-#define OLD_PROGRAM_H(n) \
-     (*(ElfW(Phdr) *) ((byte *) old_program_h + old_file_h->e_phentsize * (n)))
 #define NEW_PROGRAM_H(n) \
      (*(ElfW(Phdr) *) ((byte *) new_program_h + new_file_h->e_phentsize * (n)))
 
@@ -624,6 +620,10 @@ unexec (const char *new_name, const char *old_name)
 {
   int new_file, old_file, new_file_size;
 
+#if defined (emacs) || !defined (DEBUG)
+  void *new_break;
+#endif
+
   /* Pointers to the base of the image of the two files.  */
   caddr_t old_base, new_base;
 
@@ -652,7 +652,9 @@ unexec (const char *new_name, const char *old_name)
   int n, nn;
   int old_bss_index, old_sbss_index, old_plt_index;
   int old_data_index, new_data2_index;
+#if defined _SYSTYPE_SYSV || defined __sgi
   int old_mdebug_index;
+#endif
   struct stat stat_buf;
   int old_file_size;
 
@@ -696,8 +698,10 @@ unexec (const char *new_name, const char *old_name)
 
   /* Find the mdebug section, if any.  */
 
+#if defined _SYSTYPE_SYSV || defined __sgi
   old_mdebug_index = find_section (".mdebug", old_section_names,
 				   old_name, old_file_h, old_section_h, 1);
+#endif
 
   /* Find the old .bss section.  Figure out parameters of the new
      data2 and bss sections.  */
@@ -754,7 +758,8 @@ unexec (const char *new_name, const char *old_name)
 				 old_name, old_file_h, old_section_h, 0);
 
 #if defined (emacs) || !defined (DEBUG)
-  new_bss_addr = (ElfW(Addr)) sbrk (0);
+  new_break = sbrk (0);
+  new_bss_addr = (ElfW(Addr)) new_break;
 #else
   new_bss_addr = old_bss_addr + old_bss_size + 0x1234;
 #endif
@@ -780,7 +785,7 @@ unexec (const char *new_name, const char *old_name)
   fprintf (stderr, "new_data2_incr %x\n", new_data2_incr);
 #endif
 
-  if ((unsigned) new_bss_addr < (unsigned) old_bss_addr + old_bss_size)
+  if ((uintptr_t) new_bss_addr < (uintptr_t) old_bss_addr + old_bss_size)
     fatal (".bss shrank when undumping???\n", 0, 0);
 
   /* Set the output file to the right size.  Allocate a buffer to hold
@@ -955,13 +960,13 @@ temacs:
 	Link	Info	Adralgn      Entsize
 
 [22]	1	3	0x335150     0x315150     0x4          	.data.rel.local
-	0	0	0x4          0            
+	0	0	0x4          0
 
 [23]	8	3	0x335158     0x315158     0x42720      	.bss
-	0	0	0x8          0            
+	0	0	0x8          0
 
 [24]	2	0	0            0x315154     0x1c9d0      	.symtab
-	25	1709	0x4          0x10         
+	25	1709	0x4          0x10
 	  */
 
 	  if (NEW_SECTION_H (nn).sh_offset >= old_bss_offset
@@ -1229,8 +1234,8 @@ temacs:
       ElfW(Shdr) section = NEW_SECTION_H (n);
 
       /* Cause a compilation error if anyone uses n instead of nn below.  */
-      struct {int a;} n;
-      (void)n.a;		/* Prevent `unused variable' warnings.  */
+      #define n ((void) 0);
+      n /* Prevent 'macro "n" is not used' warnings.  */
 
       switch (section.sh_type)
 	{
@@ -1277,6 +1282,8 @@ temacs:
 	    }
 	  break;
 	}
+
+      #undef n
     }
 
   /* Write out new_file, and free the buffers.  */
@@ -1308,6 +1315,3 @@ temacs:
   if (chmod (new_name, stat_buf.st_mode) == -1)
     fatal ("Can't chmod (%s): errno %d\n", new_name, errno);
 }
-
-/* arch-tag: e02e1512-95e2-4ef0-bba7-b6bce658f1e3
-   (do not change this comment) */

@@ -1,6 +1,6 @@
 ;;; khmer.el --- support for Khmer -*- coding: utf-8; no-byte-compile: t -*-
 
-;; Copyright (C) 2008, 2009, 2010
+;; Copyright (C) 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
@@ -35,5 +35,4 @@
   (set-char-table-range composition-function-table '(#x1780 . #x17FF) val)
   (set-char-table-range composition-function-table '(#x19E0 . #x19FF) val))
 
-;; arch-tag: 032890e4-a936-4584-ad44-79eb5f8bc98e
 ;; khmer.el ends here

@@ -308,8 +308,6 @@ followed by the first character of the construct.
    `m2-indent' controls the number of spaces for each indentation.
    `m2-compile-command' holds the command to compile a Modula-2 program.
    `m2-link-command' holds the command to link a Modula-2 program."
-  (make-local-variable 'm2-end-comment-column)
-  
   (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
   (set (make-local-variable 'paragraph-separate) paragraph-start)
   (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
@@ -615,5 +613,4 @@ followed by the first character of the construct.
 
 (provide 'modula2)
 
-;; arch-tag: a21df1cb-5ece-4709-9219-1e7cd2d85d90
 ;;; modula2.el ends here

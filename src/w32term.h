@@ -1,6 +1,5 @@
 /* Definitions and headers for communication on the Microsoft W32 API.
-   Copyright (C) 1995, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -61,12 +60,6 @@ struct w32_bitmap_record
   int height, width, depth;
 };
 
-/* Palette book-keeping stuff for mapping requested colors into the
-   system palette.  Keep a ref-counted list of requested colors and
-   regenerate the app palette whenever the requested list changes. */
-
-extern Lisp_Object Vw32_enable_palette;
-
 struct w32_palette_entry {
   struct w32_palette_entry * next;
   PALETTEENTRY entry;
@@ -110,7 +103,7 @@ struct w32_display_info
 
   /* Emacs bitmap-id of the default icon bitmap for this frame.
      Or -1 if none has been allocated yet.  */
-  int icon_bitmap_id;
+  ptrdiff_t icon_bitmap_id;
 
   /* The root window of this screen.  */
   Window root_window;
@@ -158,10 +151,10 @@ struct w32_display_info
   struct w32_bitmap_record *bitmaps;
 
   /* Allocated size of bitmaps field.  */
-  int bitmaps_size;
+  ptrdiff_t bitmaps_size;
 
   /* Last used bitmap index.  */
-  int bitmaps_last;
+  ptrdiff_t bitmaps_last;
 
   /* The frame (if any) which has the window that has keyboard focus.
      Zero if none.  This is examined by Ffocus_frame in w32fns.c.  Note
@@ -193,9 +186,6 @@ extern struct w32_display_info one_w32_display_info;
    NAME is the name of the frame.
    FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
 extern Lisp_Object w32_display_name_list;
-
-/* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
-extern Lisp_Object Vx_pixel_size_width_font_regexp;
 
 extern struct frame *x_window_to_frame (struct w32_display_info *, HWND);
 
@@ -557,7 +547,7 @@ do { \
 #define WM_APPCOMMAND 0x319
 #define GET_APPCOMMAND_LPARAM(lParam)  (HIWORD(lParam) & 0x7fff)
 #endif
-#ifndef WM_UNICHAR 
+#ifndef WM_UNICHAR
 #define WM_UNICHAR 0x109
 #endif
 #ifndef UNICODE_NOCHAR
@@ -707,5 +697,7 @@ typedef BOOL (WINAPI * AppendMenuW_Proc) (
     IN UINT_PTR,
     IN LPCWSTR);
 
-/* arch-tag: f201d05a-1240-4fc5-8ea4-ca24d4ee5671
-   (do not change this comment) */
+extern HWND w32_system_caret_hwnd;
+extern int w32_system_caret_height;
+extern int w32_system_caret_x;
+extern int w32_system_caret_y;

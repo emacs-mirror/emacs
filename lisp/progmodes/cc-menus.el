@@ -1,8 +1,6 @@
 ;;; cc-menus.el --- imenu support for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -442,5 +440,4 @@ Example:
 
 (cc-provide 'cc-menus)
 
-;; arch-tag: f6b60933-91f0-4145-ab44-70ca6d1b919b
 ;;; cc-menus.el ends here

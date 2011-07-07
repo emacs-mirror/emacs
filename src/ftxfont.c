@@ -1,6 +1,6 @@
 /* ftxfont.c -- FreeType font driver on X (without using XFT).
-   Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -37,6 +37,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* FTX font driver.  */
 
 static Lisp_Object Qftx;
+
+#if defined HAVE_XFT || !defined HAVE_FREETYPE
+static
+#endif
+struct font_driver ftxfont_driver;
 
 /* Prototypes for helper function.  */
 static GC *ftxfont_get_gcs (FRAME_PTR, unsigned long, unsigned long);
@@ -233,13 +238,11 @@ static Lisp_Object ftxfont_open (FRAME_PTR, Lisp_Object, int);
 static void ftxfont_close (FRAME_PTR, struct font *);
 static int ftxfont_draw (struct glyph_string *, int, int, int, int, int);
 
-struct font_driver ftxfont_driver;
-
 static Lisp_Object
 ftxfont_list (Lisp_Object frame, Lisp_Object spec)
 {
   Lisp_Object list = ftfont_driver.list (frame, spec), tail;
-  
+
   for (tail = list; CONSP (tail); tail = XCDR (tail))
     ASET (XCAR (tail), FONT_TYPE_INDEX, Qftx);
   return list;
@@ -350,13 +353,13 @@ static int
 ftxfont_end_for_frame (FRAME_PTR f)
 {
   struct ftxfont_frame_data *data = font_get_frame_data (f, &ftxfont_driver);
-  
+
   BLOCK_INPUT;
   while (data)
     {
       struct ftxfont_frame_data *next = data->next;
       int i;
-      
+
       for (i = 0; i < 6; i++)
 	XFreeGC (FRAME_X_DISPLAY (f), data->gcs[i]);
       free (data);
@@ -384,6 +387,3 @@ syms_of_ftxfont (void)
   ftxfont_driver.end_for_frame = ftxfont_end_for_frame;
   register_font_driver (&ftxfont_driver, NULL);
 }
-
-/* arch-tag: 59bd3469-5330-413f-b29d-1aa36492abe8
-   (do not change this comment) */

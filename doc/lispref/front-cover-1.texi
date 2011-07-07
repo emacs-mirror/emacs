@@ -50,7 +50,3 @@
 
 @end titlepage
 @bye
-
-@ignore
-   arch-tag: 5182b306-c403-4e4f-ba24-e1911bc6da9d
-@end ignore

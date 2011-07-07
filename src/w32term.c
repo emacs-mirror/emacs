@@ -1,8 +1,6 @@
 /* Implementation of GUI terminal on the Microsoft W32 API.
 
-Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 1989, 1993-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -65,10 +63,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static int max_fringe_bmp = 0;
 static HBITMAP *fringe_bmp = 0;
 
-/* Non-nil means Emacs uses toolkit scroll bars.  */
-
-Lisp_Object Vx_toolkit_scroll_bars;
-
 /* Temporary variables for w32_read_socket.  */
 
 static int last_mousemove_x = 0;
@@ -87,21 +81,12 @@ static int any_help_event_p;
 /* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
 static Lisp_Object last_window;
 
-/* Non-zero means make use of UNDERLINE_POSITION font properties.  */
-int x_use_underline_position_properties;
-
-/* Non-zero means to draw the underline at the same place as the descent line.  */
-
-int x_underline_at_descent_line;
-
 extern unsigned int msh_mousewheel;
 
 extern void free_frame_menubar (struct frame *);
 
 extern int w32_codepage_for_font (char *fontname);
 extern Cursor w32_load_cursor (LPCTSTR name);
-
-extern Lisp_Object Vwindow_system;
 
 #define x_any_window_to_frame x_window_to_frame
 #define x_top_window_to_frame x_window_to_frame
@@ -151,13 +136,6 @@ BOOL (WINAPI *pfnSetLayeredWindowAttributes) (HWND, COLORREF, BYTE, DWORD);
 #define WS_EX_LAYERED 0x80000
 #endif
 
-/* Frame being updated by update_frame.  This is declared in term.c.
-   This is set by update_begin and looked at by all the
-   w32 functions.  It is zero while not inside an update.
-   In that case, the w32 functions assume that `SELECTED_FRAME ()'
-   is the frame to apply to.  */
-extern struct frame *updating_frame;
-
 /* This is a frame waiting to be autoraised, within w32_read_socket.  */
 struct frame *pending_autoraise_frame;
 
@@ -166,8 +144,6 @@ HWND w32_system_caret_hwnd;
 int w32_system_caret_height;
 int w32_system_caret_x;
 int w32_system_caret_y;
-int w32_use_visible_system_caret;
-
 DWORD dwWindowsThreadId = 0;
 HANDLE hWindowsThread = NULL;
 DWORD dwMainThreadId = 0;
@@ -184,20 +160,6 @@ int last_scroll_bar_drag_pos;
 /* Where the mouse was last time we reported a mouse event.  */
 static RECT last_mouse_glyph;
 static FRAME_PTR last_mouse_glyph_frame;
-static Lisp_Object last_mouse_press_frame;
-
-int w32_num_mouse_buttons;
-
-Lisp_Object Vw32_swap_mouse_buttons;
-
-/* Control whether x_raise_frame also sets input focus.  */
-Lisp_Object Vw32_grab_focus_on_raise;
-
-/* Control whether Caps Lock affects non-ascii characters.  */
-Lisp_Object Vw32_capslock_is_shiftlock;
-
-/* Control whether right-alt and left-ctrl should be recognized as AltGr.  */
-Lisp_Object Vw32_recognize_altgr;
 
 /* The scroll bar in which the last motion event occurred.
 
@@ -225,11 +187,6 @@ static int volatile input_signal_count;
 #else
 static int input_signal_count;
 #endif
-
-extern Lisp_Object Vcommand_line_args, Vsystem_name;
-
-/* A mask of extra modifier bits to put into every keyboard char.  */
-extern EMACS_INT extra_keyboard_modifiers;
 
 /* Keyboard code page - may be changed by language-change events.  */
 static int keyboard_codepage;
@@ -758,22 +715,22 @@ w32_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
 	  if (sb_width > 0)
 	    {
-	      int left = WINDOW_SCROLL_BAR_AREA_X (w);
-	      int width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
-			   * FRAME_COLUMN_WIDTH (f));
+	      int bar_area_x = WINDOW_SCROLL_BAR_AREA_X (w);
+	      int bar_area_width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
+				    * FRAME_COLUMN_WIDTH (f));
 
 	      if (bx < 0)
 		{
 		  /* Bitmap fills the fringe.  */
-		  if (left + width == p->x)
-		    bx = left + sb_width;
-		  else if (p->x + p->wd == left)
-		    bx = left;
+		  if (bar_area_x + bar_area_width == p->x)
+		    bx = bar_area_x + sb_width;
+		  else if (p->x + p->wd == bar_area_x)
+		    bx = bar_area_x;
 		  if (bx >= 0)
 		    {
 		      int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
 
-		      nx = width - sb_width;
+		      nx = bar_area_width - sb_width;
 		      by = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
 							    row->y));
 		      ny = row->visible_height;
@@ -781,13 +738,13 @@ w32_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 		}
 	      else
 		{
-		  if (left + width == bx)
+		  if (bar_area_x + bar_area_width == bx)
 		    {
-		      bx = left + sb_width;
-		      nx += width - sb_width;
+		      bx = bar_area_x + sb_width;
+		      nx += bar_area_width - sb_width;
 		    }
-		  else if (bx + nx == left)
-		    nx += width - sb_width;
+		  else if (bx + nx == bar_area_x)
+		    nx += bar_area_width - sb_width;
 		}
 	    }
 	}
@@ -1045,7 +1002,7 @@ x_set_mouse_face_gc (struct glyph_string *s)
    Faces to use in the mode line have already been computed when the
    matrix was built, so there isn't much to do, here.  */
 
-static INLINE void
+static inline void
 x_set_mode_line_face_gc (struct glyph_string *s)
 {
   s->gc = s->face->gc;
@@ -1056,7 +1013,7 @@ x_set_mode_line_face_gc (struct glyph_string *s)
    S->stippled_p to a non-zero value if the face of S has a stipple
    pattern.  */
 
-static INLINE void
+static inline void
 x_set_glyph_string_gc (struct glyph_string *s)
 {
   PREPARE_FACE_FOR_DISPLAY (s->f, s->face);
@@ -1101,7 +1058,7 @@ x_set_glyph_string_gc (struct glyph_string *s)
 /* Set clipping for output of glyph string S.  S may be part of a mode
    line or menu if we don't have X toolkit support.  */
 
-static INLINE void
+static inline void
 x_set_glyph_string_clipping (struct glyph_string *s)
 {
   RECT *r = s->clip;
@@ -1111,16 +1068,12 @@ x_set_glyph_string_clipping (struct glyph_string *s)
     w32_set_clip_rectangle (s->hdc, r);
   else if (n > 1)
     {
-      HRGN full_clip, clip1, clip2;
-      clip1 = CreateRectRgnIndirect (r);
-      clip2 = CreateRectRgnIndirect (r + 1);
-      if (CombineRgn (full_clip, clip1, clip2, RGN_OR) != ERROR)
-        {
-          SelectClipRgn (s->hdc, full_clip);
-        }
+      HRGN clip1 = CreateRectRgnIndirect (r);
+      HRGN clip2 = CreateRectRgnIndirect (r + 1);
+      if (CombineRgn (clip1, clip1, clip2, RGN_OR) != ERROR)
+        SelectClipRgn (s->hdc, clip1);
       DeleteObject (clip1);
       DeleteObject (clip2);
-      DeleteObject (full_clip);
     }
     s->num_clips = n;
 }
@@ -1175,7 +1128,7 @@ w32_compute_glyph_string_overhangs (struct glyph_string *s)
 
 /* Fill rectangle X, Y, W, H with background color of glyph string S.  */
 
-static INLINE void
+static inline void
 x_clear_glyph_string_rect (struct glyph_string *s,
 			   int x, int y, int w, int h)
 {
@@ -1336,7 +1289,6 @@ x_draw_composite_glyph_string_foreground (struct glyph_string *s)
   else if (! s->first_glyph->u.cmp.automatic)
     {
       int y = s->ybase;
-      int width = 0;
       HFONT old_font;
 
       old_font = SelectObject (s->hdc, FONT_HANDLE (font));
@@ -1437,7 +1389,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 				     glyph->u.glyphless.ch)
 		   : XCHAR_TABLE (Vglyphless_char_display)->extras[0]);
 	      if (STRINGP (acronym))
-		str = (char *) SDATA (acronym);
+		str = SSDATA (acronym);
 	    }
 	}
       else if (glyph->u.glyphless.method == GLYPHLESS_DISPLAY_HEX_CODE)
@@ -2569,8 +2521,7 @@ x_delete_glyphs (struct frame *f, register int n)
 }
 
 
-/* Clear entire frame.  If updating_frame is non-null, clear that
-   frame.  Otherwise clear the selected frame.  */
+/* Clear entire frame.  */
 
 static void
 x_clear_frame (struct frame *f)
@@ -2667,6 +2618,32 @@ x_scroll_run (struct window *w, struct run *run)
      without mode lines.  Include in this box the left and right
      fringes of W.  */
   window_box (w, -1, &x, &y, &width, &height);
+
+  /* If the fringe is adjacent to the left (right) scroll bar of a
+     leftmost (rightmost, respectively) window, then extend its
+     background to the gap between the fringe and the bar.  */
+  if ((WINDOW_LEFTMOST_P (w)
+       && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w))
+      || (WINDOW_RIGHTMOST_P (w)
+	  && WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w)))
+    {
+      int sb_width = WINDOW_CONFIG_SCROLL_BAR_WIDTH (w);
+
+      if (sb_width > 0)
+	{
+	  int bar_area_x = WINDOW_SCROLL_BAR_AREA_X (w);
+	  int bar_area_width = (WINDOW_CONFIG_SCROLL_BAR_COLS (w)
+				* FRAME_COLUMN_WIDTH (f));
+
+	  if (bar_area_x + bar_area_width == x)
+	    {
+	      x = bar_area_x + sb_width;
+	      width += bar_area_width - sb_width;
+	    }
+	  else if (x + width == bar_area_x)
+	    width += bar_area_width - sb_width;
+	}
+    }
 
   from_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->current_y);
   to_y = WINDOW_TO_FRAME_PIXEL_Y (w, run->desired_y);
@@ -4885,7 +4862,6 @@ w32_read_socket (struct terminal *terminal, int expected,
 static void
 w32_clip_to_row (struct window *w, struct glyph_row *row, int area, HDC hdc)
 {
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
   RECT clip_rect;
   int window_x, window_y, window_width;
 
@@ -5974,7 +5950,7 @@ w32_initialize_display_info (Lisp_Object display_name)
 
 }
 
-/* Create an xrdb-style database of resources to supercede registry settings.
+/* Create an xrdb-style database of resources to supersede registry settings.
    The database is just a concatenation of C strings, finished by an additional
    \0.  The strings are submitted to some basic normalization, so
 
@@ -6093,7 +6069,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
   terminal->mouse_position_hook = w32_mouse_position;
   terminal->frame_rehighlight_hook = w32_frame_rehighlight;
   terminal->frame_raise_lower_hook = w32_frame_raise_lower;
-  //  terminal->fullscreen_hook = XTfullscreen_hook;
+  /* terminal->fullscreen_hook = XTfullscreen_hook; */
   terminal->set_vertical_scroll_bar_hook = w32_set_vertical_scroll_bar;
   terminal->condemn_scroll_bars_hook = w32_condemn_scroll_bars;
   terminal->redeem_scroll_bar_hook = w32_redeem_scroll_bar;
@@ -6115,7 +6091,7 @@ w32_create_terminal (struct w32_display_info *dpyinfo)
      terminal like X does.  */
   terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
-  terminal->kboard->Vwindow_system = intern ("w32");
+  KVAR (terminal->kboard, Vwindow_system) = intern ("w32");
   terminal->kboard->next_kboard = all_kboards;
   all_kboards = terminal->kboard;
   /* Don't let the initial kboard remain current longer than necessary.
@@ -6132,7 +6108,6 @@ static void
 x_delete_terminal (struct terminal *terminal)
 {
   struct w32_display_info *dpyinfo = terminal->display_info.w32;
-  int i;
 
   /* Protect against recursive calls.  delete_frame in
      delete_terminal calls us back when it deletes our last frame.  */
@@ -6383,18 +6358,18 @@ syms_of_w32term (void)
   DEFSYM (Qvendor_specific_keysyms, "vendor-specific-keysyms");
 
   DEFVAR_INT ("w32-num-mouse-buttons",
-	      &w32_num_mouse_buttons,
+	      w32_num_mouse_buttons,
 	      doc: /* Number of physical mouse buttons.  */);
   w32_num_mouse_buttons = 2;
 
   DEFVAR_LISP ("w32-swap-mouse-buttons",
-	      &Vw32_swap_mouse_buttons,
+	      Vw32_swap_mouse_buttons,
 	       doc: /* Swap the mapping of middle and right mouse buttons.
 When nil, middle button is mouse-2 and right button is mouse-3.  */);
   Vw32_swap_mouse_buttons = Qnil;
 
   DEFVAR_LISP ("w32-grab-focus-on-raise",
-	       &Vw32_grab_focus_on_raise,
+	       Vw32_grab_focus_on_raise,
 	       doc: /* Raised frame grabs input focus.
 When t, `raise-frame' grabs input focus as well.  This fits well
 with the normal Windows click-to-focus policy, but might not be
@@ -6402,20 +6377,20 @@ desirable when using a point-to-focus policy.  */);
   Vw32_grab_focus_on_raise = Qt;
 
   DEFVAR_LISP ("w32-capslock-is-shiftlock",
-	       &Vw32_capslock_is_shiftlock,
+	       Vw32_capslock_is_shiftlock,
 	       doc: /* Apply CapsLock state to non character input keys.
 When nil, CapsLock only affects normal character input keys.  */);
   Vw32_capslock_is_shiftlock = Qnil;
 
   DEFVAR_LISP ("w32-recognize-altgr",
-	       &Vw32_recognize_altgr,
+	       Vw32_recognize_altgr,
 	       doc: /* Recognize right-alt and left-ctrl as AltGr.
 When nil, the right-alt and left-ctrl key combination is
 interpreted normally.  */);
   Vw32_recognize_altgr = Qt;
 
   DEFVAR_BOOL ("w32-use-visible-system-caret",
-	       &w32_use_visible_system_caret,
+	       w32_use_visible_system_caret,
 	       doc: /* Flag to make the system caret visible.
 When this is non-nil, Emacs will indicate the position of point by
 using the system caret instead of drawing its own cursor.  Some screen
@@ -6432,7 +6407,7 @@ the cursor have no effect.  */);
   /* We don't yet support this, but defining this here avoids whining
      from cus-start.el and other places, like "M-x set-variable".  */
   DEFVAR_BOOL ("x-use-underline-position-properties",
-	       &x_use_underline_position_properties,
+	       x_use_underline_position_properties,
      doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
 A value of nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
@@ -6442,14 +6417,14 @@ sizes.  */);
   x_use_underline_position_properties = 0;
 
   DEFVAR_BOOL ("x-underline-at-descent-line",
-	       &x_underline_at_descent_line,
+	       x_underline_at_descent_line,
      doc: /* *Non-nil means to draw the underline at the same place as the descent line.
 A value of nil means to draw the underline according to the value of the
 variable `x-use-underline-position-properties', which is usually at the
 baseline level.  The default value is nil.  */);
   x_underline_at_descent_line = 0;
 
-  DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
+  DEFVAR_LISP ("x-toolkit-scroll-bars", Vx_toolkit_scroll_bars,
 	       doc: /* Which toolkit scroll bars Emacs uses, if any.
 A value of nil means Emacs doesn't use toolkit scroll bars.
 With the X Window system, the value is a symbol describing the
@@ -6460,4 +6435,3 @@ With MS Windows, the value is t.  */);
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 }
-

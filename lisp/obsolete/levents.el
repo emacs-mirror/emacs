@@ -1,7 +1,6 @@
 ;;; levents.el --- emulate the Lucid event data type and associated functions
 
-;; Copyright (C) 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: emulations
@@ -290,5 +289,4 @@ GNU Emacs 19 does not currently generate process-output events."
 
 (provide 'levents)
 
-;; arch-tag: a80c21da-69d7-46de-9cdb-5f68577b5525
 ;;; levents.el ends here

@@ -1,7 +1,6 @@
 ;;; ebnf2ps.el --- translate an EBNF to a syntactic chart on PostScript
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -2230,8 +2229,8 @@ processed.
 
 See also `ebnf-print-buffer'."
   (interactive
-   (list (read-file-name "Directory containing EBNF files (print): "
-			 nil default-directory)))
+   (list (read-directory-name "Directory containing EBNF files (print): "
+			      nil default-directory)))
   (ebnf-log-header "(ebnf-print-directory %S)" directory)
   (ebnf-directory 'ebnf-print-buffer directory))
 
@@ -2288,8 +2287,8 @@ processed.
 
 See also `ebnf-spool-buffer'."
   (interactive
-   (list (read-file-name "Directory containing EBNF files (spool): "
-			 nil default-directory)))
+   (list (read-directory-name "Directory containing EBNF files (spool): "
+			      nil default-directory)))
   (ebnf-log-header "(ebnf-spool-directory %S)" directory)
   (ebnf-directory 'ebnf-spool-buffer directory))
 
@@ -2341,8 +2340,8 @@ processed.
 
 See also `ebnf-eps-buffer'."
   (interactive
-   (list (read-file-name "Directory containing EBNF files (EPS): "
-			 nil default-directory)))
+   (list (read-directory-name "Directory containing EBNF files (EPS): "
+			      nil default-directory)))
   (ebnf-log-header "(ebnf-eps-directory %S)" directory)
   (ebnf-directory 'ebnf-eps-buffer directory))
 
@@ -2426,8 +2425,8 @@ are processed.
 
 See also `ebnf-syntax-buffer'."
   (interactive
-   (list (read-file-name "Directory containing EBNF files (syntax): "
-			 nil default-directory)))
+   (list (read-directory-name "Directory containing EBNF files (syntax): "
+			      nil default-directory)))
   (ebnf-log-header "(ebnf-syntax-directory %S)" directory)
   (ebnf-directory 'ebnf-syntax-buffer directory))
 

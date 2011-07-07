@@ -1,7 +1,6 @@
 ;;; ps-mode.el --- PostScript mode for GNU Emacs
 
-;; Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author:     Peter Kleiweg <p.c.j.kleiweg@rug.nl>
 ;; Maintainer: Peter Kleiweg <p.c.j.kleiweg@rug.nl>
@@ -486,7 +485,7 @@ If nil, use `temporary-file-directory'."
 ;; PostScript mode.
 
 ;;;###autoload
-(define-derived-mode ps-mode fundamental-mode "PostScript"
+(define-derived-mode ps-mode prog-mode "PostScript"
   "Major mode for editing PostScript with GNU Emacs.
 
 Entry to this mode calls `ps-mode-hook'.
@@ -541,6 +540,10 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
   "Show current version of PostScript mode."
   (interactive)
   (message " *** PostScript Mode (ps-mode) Version %s *** " ps-mode-version))
+
+;; From reporter.el
+(defvar reporter-prompt-for-summary-p)
+(defvar reporter-dont-compact-list)
 
 (defun ps-mode-submit-bug-report ()
   "Submit via mail a bug report on PostScript mode."
@@ -979,9 +982,7 @@ plus the usually uncoded characters inserted on positions 1 through 28."
 
 (define-derived-mode ps-run-mode comint-mode "Interactive PS"
   "Major mode in interactive PostScript window.
-This mode is invoked from `ps-mode' and should not be called directly.
-
-\\{ps-run-mode-map}"
+This mode is invoked from `ps-mode' and should not be called directly."
   (set (make-local-variable 'font-lock-defaults)
        '((ps-run-font-lock-keywords
 	  ps-run-font-lock-keywords-1
@@ -991,7 +992,7 @@ This mode is invoked from `ps-mode' and should not be called directly.
 
 (defun ps-run-running ()
   "Error if not in `ps-mode' or not running PostScript."
-  (unless (equal major-mode 'ps-mode)
+  (unless (derived-mode-p 'ps-mode)
     (error "This function can only be called from PostScript mode"))
   (unless (equal (process-status "ps-run") 'run)
     (error "No PostScript process running")))
@@ -1169,5 +1170,4 @@ Use line numbers if `ps-run-error-line-numbers' is not nil"
 
 (provide 'ps-mode)
 
-;; arch-tag: dce13d2d-69fb-4ec4-9d5d-6dd29c3f0e6e
 ;;; ps-mode.el ends here

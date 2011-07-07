@@ -1,7 +1,6 @@
 ;;; echistory.el --- Electric Command History Mode
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -27,6 +26,9 @@
 
 (require 'electric)			; command loop
 (require 'chistory)			; history lister
+
+;; Dynamically bound in electric-command-history
+(defvar electric-history-in-progress)
 
 ;;;###autoload
 (defun Electric-command-history-redo-expression (&optional noconfirm)
@@ -85,6 +87,8 @@ With prefix arg NOCONFIRM, execute current line as-is without editing."
 
 (defvar electric-command-history-hook nil
   "If non-nil, its value is called by `electric-command-history'.")
+
+(defvar Helper-return-blurb) ; from helper.el
 
 (defun electric-command-history ()
   "\\<electric-history-map>Major mode for examining and redoing commands from `command-history'.
@@ -150,5 +154,4 @@ The Command History listing is recomputed each time this mode is invoked."
 
 (provide 'echistory)
 
-;; arch-tag: 1e5018fe-190f-44a7-9109-a895dcac4c50
 ;;; echistory.el ends here

@@ -1,7 +1,6 @@
 /* Selection processing for Emacs on the Microsoft W32 API.
 
-Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-  2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1993-1994, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -79,10 +78,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32term.h"	/* for all of the w32 includes */
 #include "w32heap.h"	/* os_subtype */
 #include "blockinput.h"
-#include "keyboard.h"	/* cmd_error_internal() */
 #include "charset.h"
 #include "coding.h"
-#include "character.h"
 #include "composite.h"
 
 
@@ -110,13 +107,6 @@ static void setup_windows_coding_system (Lisp_Object coding_system,
    selections are not used on Windows, so we don't need symbols for
    PRIMARY and SECONDARY.  */
 Lisp_Object QCLIPBOARD;
-
-/* Coding system for communicating with other programs via the
-   clipboard.  */
-static Lisp_Object Vselection_coding_system;
-
-/* Coding system for the next communication with other programs.  */
-static Lisp_Object Vnext_selection_coding_system;
 
 /* Internal pseudo-constants, initialized in globals_of_w32select()
    based on current system parameters. */
@@ -399,6 +389,7 @@ run_protected (Lisp_Object (*code) (Lisp_Object), Lisp_Object arg)
      with global variables and calling strange looking functions.  Is
      this really the right way to run Lisp callbacks?  */
 
+  extern int waiting_for_input; /* from keyboard.c */
   int owfi;
 
   BLOCK_INPUT;
@@ -1068,7 +1059,7 @@ syms_of_w32select (void)
   defsubr (&Sw32_get_clipboard_data);
   defsubr (&Sx_selection_exists_p);
 
-  DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
+  DEFVAR_LISP ("selection-coding-system", Vselection_coding_system,
 	       doc: /* Coding system for communicating with other programs.
 
 For MS-Windows and MS-DOS:
@@ -1102,7 +1093,7 @@ The default value is nil.  */);
      below. */
   Vselection_coding_system = Qnil;
 
-  DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
+  DEFVAR_LISP ("next-selection-coding-system", Vnext_selection_coding_system,
 	       doc: /* Coding system for the next communication with other programs.
 Usually, `selection-coding-system' is used for communicating with
 other programs (X Windows clients or MS Windows programs).  But, if this

@@ -1,10 +1,10 @@
 ;;; whitespace.el --- warn about and clean bogus whitespaces in the file
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
+;; Obsolete-since: 23.1
 
 ;; This file is part of GNU Emacs.
 
@@ -22,8 +22,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; This file has been obsolete since Emacs 23.1.
 
 ;; URL: http://www.dsmit.com/lisp/
 ;;
@@ -809,5 +807,4 @@ This is meant to be added buffer-locally to `write-file-functions'."
 
 (provide 'whitespace)
 
-;; arch-tag: 4ff44e87-b63c-402d-95a6-15e51e58bd0c
 ;;; whitespace.el ends here

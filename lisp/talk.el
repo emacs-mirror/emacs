@@ -1,7 +1,6 @@
 ;;; talk.el --- allow several users to talk to each other through Emacs
 
-;; Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: comm, frames
@@ -48,10 +47,9 @@ Each element has the form (DISPLAY FRAME BUFFER).")
 (defun talk ()
   "Connect to the Emacs talk group from the current X display or tty frame."
   (interactive)
-  (let ((type (frame-live-p (selected-frame)))
-	(display (frame-terminal (selected-frame))))
+  (let ((type (frame-live-p (selected-frame))))
     (if (or (eq type t) (eq type 'x))
-	(talk-add-display 
+	(talk-add-display
 	 (terminal-name (frame-terminal (selected-frame))))
       (error "Unknown frame type")))
   (talk-update-buffers))
@@ -120,5 +118,4 @@ Select the first of these windows, displaying the first of the buffers."
 
 (provide 'talk)
 
-;; arch-tag: 7ab0ad88-1788-4886-a44c-ae685e6f8a1a
 ;;; talk.el ends here

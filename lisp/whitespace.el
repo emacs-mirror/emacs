@@ -1,12 +1,11 @@
 ;;; whitespace.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 13.1
+;; Version: 13.2.1
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -312,6 +311,9 @@
 ;;
 ;; Acknowledgements
 ;; ----------------
+;;
+;; Thanks to felix (EmacsWiki) for keeping highlight when switching between
+;; major modes on a file.
 ;;
 ;; Thanks to David Reitter <david.reitter@gmail.com> for suggesting a
 ;; `whitespace-newline' initialization with low contrast relative to
@@ -798,13 +800,12 @@ Used when `whitespace-style' includes `tabs'."
 
 
 (defcustom whitespace-trailing-regexp
-  "\\(\\(\t\\| \\|\xA0\\|\x8A0\\|\x920\\|\xE20\\|\xF20\\)+\\)$"
+  "\\([\t \u00A0]+\\)$"
   "Specify trailing characters regexp.
 
 If you're using `mule' package, there may be other characters besides:
 
-   \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
-\"\\xF20\"
+   \" \"  \"\\t\"  \"\\u00A0\"
 
 that should be considered blank.
 
@@ -1103,7 +1104,7 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
   :init-value nil
   :global     nil
   :group      'whitespace
-  (let ((whitespace-style '(newline-mark newline)))
+  (let ((whitespace-style '(face newline-mark newline)))
     (whitespace-mode whitespace-newline-mode)
     ;; sync states (running a batch job)
     (setq whitespace-newline-mode whitespace-mode)))
@@ -1131,15 +1132,17 @@ See also `whitespace-style', `whitespace-newline' and
    (noninteractive			; running a batch job
     (setq global-whitespace-mode nil))
    (global-whitespace-mode		; global-whitespace-mode on
-    (save-excursion
+    (save-current-buffer
       (add-hook 'find-file-hook 'whitespace-turn-on-if-enabled)
+      (add-hook 'after-change-major-mode-hook 'whitespace-turn-on-if-enabled)
       (dolist (buffer (buffer-list))	; adjust all local mode
 	(set-buffer buffer)
 	(unless whitespace-mode
 	  (whitespace-turn-on-if-enabled)))))
    (t					; global-whitespace-mode off
-    (save-excursion
+    (save-current-buffer
       (remove-hook 'find-file-hook 'whitespace-turn-on-if-enabled)
+      (remove-hook 'after-change-major-mode-hook 'whitespace-turn-on-if-enabled)
       (dolist (buffer (buffer-list))	; adjust all local mode
 	(set-buffer buffer)
 	(unless whitespace-mode
@@ -1188,7 +1191,8 @@ See also `whitespace-newline' and `whitespace-display-mappings'."
   :global     t
   :group      'whitespace
   (let ((whitespace-style '(newline-mark newline)))
-    (global-whitespace-mode global-whitespace-newline-mode)
+    (global-whitespace-mode (if global-whitespace-newline-mode
+                                1 -1))
     ;; sync states (running a batch job)
     (setq global-whitespace-newline-mode global-whitespace-mode)))
 
@@ -1521,7 +1525,7 @@ documentation."
    ;; whole buffer
    (t
     (save-excursion
-      (save-match-data
+      (save-match-data                ;FIXME: Why?
 	;; PROBLEM 1: empty lines at bob
 	;; PROBLEM 2: empty lines at eob
 	;; ACTION: remove all empty lines at bob and/or eob
@@ -1593,7 +1597,7 @@ documentation."
 	  overwrite-mode		; enforce no overwrite
 	  tmp)
       (save-excursion
-	(save-match-data
+	(save-match-data                ;FIXME: Why?
 	  ;; PROBLEM 1: 8 or more SPACEs at bol
 	  (cond
 	   ;; ACTION: replace 8 or more SPACEs at bol by TABs, if
@@ -1652,12 +1656,12 @@ documentation."
 	    (whitespace-replace-action
 	     (if whitespace-indent-tabs-mode 'tabify 'untabify)
 	     rstart rend whitespace-space-before-tab-regexp
-	     (if whitespace-indent-tabs-mode 1 2)))
+	     (if whitespace-indent-tabs-mode 0 2)))
 	   ;; ACTION: replace SPACEs before TAB by TABs.
 	   ((memq 'space-before-tab::tab whitespace-style)
 	    (whitespace-replace-action
 	     'tabify rstart rend
-	     whitespace-space-before-tab-regexp 1))
+	     whitespace-space-before-tab-regexp 0))
 	   ;; ACTION: replace TABs by SPACEs.
 	   ((memq 'space-before-tab::space whitespace-style)
 	    (whitespace-replace-action
@@ -1865,7 +1869,7 @@ cleaning up these problems."
   (interactive "r")
   (setq force (or current-prefix-arg force))
   (save-excursion
-    (save-match-data
+    (save-match-data                ;FIXME: Why?
       (let* ((has-bogus nil)
 	     (rstart    (min start end))
 	     (rend      (max start end))
@@ -2046,7 +2050,7 @@ can't split window to display whitespace toggle options"))
   "Scroll help window, if it exists.
 
 If UP is non-nil, scroll up; otherwise, scroll down."
-  (condition-case data-help
+  (condition-case nil
       (let ((buffer (get-buffer whitespace-help-buffer-name)))
 	(if buffer
 	    (with-selected-window (get-buffer-window buffer)
@@ -2407,9 +2411,8 @@ resultant list will be returned."
   "Match trailing spaces which do not contain the point at end of line."
   (let ((status t))
     (while (if (re-search-forward whitespace-trailing-regexp limit t)
-	       (save-match-data
-		 (= whitespace-point (match-end 1))) ;; loop if point at eol
-	     (setq status nil)))		     ;; end of buffer
+               (= whitespace-point (match-end 1)) ;; Loop if point at eol.
+	     (setq status nil)))                  ;; End of buffer.
     status))
 
 
@@ -2423,9 +2426,7 @@ beginning of buffer."
      ((= b 1)
       (setq r (and (/= whitespace-point 1)
 		   (looking-at whitespace-empty-at-bob-regexp)))
-      (if r
-	  (set-marker whitespace-bob-marker (match-end 1))
-	(set-marker whitespace-bob-marker b)))
+      (set-marker whitespace-bob-marker (if r (match-end 1) b)))
      ;; inside bob empty region
      ((<= limit whitespace-bob-marker)
       (setq r (looking-at whitespace-empty-at-bob-regexp))
@@ -2436,9 +2437,7 @@ beginning of buffer."
      ;; intersection with end of bob empty region
      ((<= b whitespace-bob-marker)
       (setq r (looking-at whitespace-empty-at-bob-regexp))
-      (if r
-	  (set-marker whitespace-bob-marker (match-end 1))
-	(set-marker whitespace-bob-marker b)))
+      (set-marker whitespace-bob-marker (if r (match-end 1) b)))
      ;; it is not inside bob empty region
      (t
       (setq r nil)))
@@ -2494,7 +2493,7 @@ buffer."
     r))
 
 
-(defun whitespace-buffer-changed (beg end)
+(defun whitespace-buffer-changed (_beg _end)
   "Set `whitespace-buffer-changed' variable to t."
   (setq whitespace-buffer-changed t))
 
@@ -2668,5 +2667,4 @@ It should be added buffer-locally to `write-file-functions'."
 (run-hooks 'whitespace-load-hook)
 
 
-;; arch-tag: 1b1e2500-dbd4-4a26-8f7a-5a5edfd3c97e
 ;;; whitespace.el ends here

@@ -4,8 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: c, matching, tools
 
-;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 2001-2011 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -184,7 +183,7 @@ To override this, give an argument to `ff-find-other-file'."
 ;;;###autoload
 (defvar ff-special-constructs
   `(
-    ;; C/C++ include, for NeXTSTEP too
+    ;; C/C++ include, for NeXTstep too
     (,(purecopy "^\#\\s *\\(include\\|import\\)\\s +[<\"]\\(.*\\)[>\"]") .
      (lambda ()
        (buffer-substring (match-beginning 2) (match-end 2))))
@@ -495,7 +494,7 @@ If optional IN-OTHER-WINDOW is non-nil, find the file in another window."
 
             (setq name
                   (expand-file-name
-                   (read-file-name
+                   (read-directory-name
                     (format "Find or create %s in: " default-name)
                     default-directory default-name nil)))
 
@@ -968,5 +967,4 @@ That name was previously determined by `ff-which-function-are-we-in'."
 
 (provide 'find-file)
 
-;; arch-tag: 5a2fc49e-3b0a-4708-9acf-fb14e471a97a
 ;;; find-file.el ends here

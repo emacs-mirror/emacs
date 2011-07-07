@@ -1,8 +1,6 @@
 ;;; cc-styles.el --- support for styles in CC Mode
 
-;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
 
 ;; Authors:    2004- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -540,13 +538,12 @@ variables."
 
     (when (boundp 'adaptive-fill-first-line-regexp)
       ;; XEmacs adaptive fill mode doesn't have this.
-      (make-local-variable 'adaptive-fill-first-line-regexp)
-      (setq adaptive-fill-first-line-regexp
-	    (concat "\\`" comment-line-prefix
-		    ;; Maybe we should incorporate the old value here,
-		    ;; but then we have to do all sorts of kludges to
-		    ;; deal with the \` and \' it probably contains.
-		    "\\'"))))
+      (set (make-local-variable 'adaptive-fill-first-line-regexp)
+           (concat "\\`" comment-line-prefix
+                   ;; Maybe we should incorporate the old value here,
+                   ;; but then we have to do all sorts of kludges to
+                   ;; deal with the \` and \' it probably contains.
+                   "\\'"))))
 
   ;; Set up the values for use in strings.  These are the default
   ;; paragraph-start/separate values, enhanced to accept escaped EOLs as
@@ -653,9 +650,17 @@ any reason to call this function directly."
       (setq c-style-variables-are-local-p t))
     ))
 
+(defun cc-choose-style-for-mode (mode default-style)
+  "Return suitable style for MODE from DEFAULT-STYLE.
+DEFAULT-STYLE has the same format as `c-default-style'."
+  (if (stringp default-style)
+      default-style
+    (or (cdr (assq mode default-style))
+	(cdr (assq 'other default-style))
+	"gnu")))
+
 
 
 (cc-provide 'cc-styles)
 
-;; arch-tag: c764f61a-96ba-484a-a68f-101c0e9d5d2c
 ;;; cc-styles.el ends here

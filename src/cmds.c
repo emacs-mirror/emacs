@@ -1,7 +1,6 @@
 /* Simple built-in editing commands.
-   Copyright (C) 1985, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1993-1998, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -32,10 +31,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "frame.h"
 
-Lisp_Object Qkill_forward_chars, Qkill_backward_chars;
+static Lisp_Object Qkill_forward_chars, Qkill_backward_chars;
 
 /* A possible value for a buffer's overwrite-mode variable.  */
-Lisp_Object Qoverwrite_mode_binary;
+static Lisp_Object Qoverwrite_mode_binary;
 
 static int internal_self_insert (int, EMACS_INT);
 
@@ -278,7 +277,7 @@ After insertion, the value of `auto-fill-function' is called if the
   int remove_boundary = 1;
   CHECK_NATNUM (n);
 
-  if (!EQ (Vthis_command, current_kboard->Vlast_command))
+  if (!EQ (Vthis_command, KVAR (current_kboard, Vlast_command)))
     nonundocount = 0;
 
   if (NILP (Vexecuting_kbd_macro)
@@ -293,10 +292,10 @@ After insertion, the value of `auto-fill-function' is called if the
     }
 
   if (remove_boundary
-      && CONSP (current_buffer->undo_list)
-      && NILP (XCAR (current_buffer->undo_list)))
+      && CONSP (BVAR (current_buffer, undo_list))
+      && NILP (XCAR (BVAR (current_buffer, undo_list))))
     /* Remove the undo_boundary that was just pushed.  */
-    current_buffer->undo_list = XCDR (current_buffer->undo_list);
+    BVAR (current_buffer, undo_list) = XCDR (BVAR (current_buffer, undo_list));
 
   /* Barf if the key that invoked this was not a character.  */
   if (!CHARACTERP (last_command_event))
@@ -320,7 +319,7 @@ After insertion, the value of `auto-fill-function' is called if the
    A value of 2 means this did things that call for an undo boundary.  */
 
 static Lisp_Object Qexpand_abbrev;
-static Lisp_Object Qpost_self_insert_hook, Vpost_self_insert_hook;
+static Lisp_Object Qpost_self_insert_hook;
 
 static int
 internal_self_insert (int c, EMACS_INT n)
@@ -336,12 +335,12 @@ internal_self_insert (int c, EMACS_INT n)
   EMACS_INT chars_to_delete = 0;
   EMACS_INT spaces_to_insert = 0;
 
-  overwrite = current_buffer->overwrite_mode;
+  overwrite = BVAR (current_buffer, overwrite_mode);
   if (!NILP (Vbefore_change_functions) || !NILP (Vafter_change_functions))
     hairy = 1;
 
   /* At first, get multi-byte form of C in STR.  */
-  if (!NILP (current_buffer->enable_multibyte_characters))
+  if (!NILP (BVAR (current_buffer, enable_multibyte_characters)))
     {
       len = CHAR_STRING (c, str);
       if (len == 1)
@@ -353,7 +352,7 @@ internal_self_insert (int c, EMACS_INT n)
     {
       str[0] = (SINGLE_BYTE_CHAR_P (c)
 		? c
-		: multibyte_char_to_unibyte (c, Qnil));
+		: multibyte_char_to_unibyte (c));
       len = 1;
     }
   if (!NILP (overwrite)
@@ -382,33 +381,37 @@ internal_self_insert (int c, EMACS_INT n)
 	{
 	  EMACS_INT pos = PT;
 	  EMACS_INT pos_byte = PT_BYTE;
+
+	  /* FIXME: Check for integer overflow when calculating
+	     target_clm and actual_clm.  */
+
 	  /* Column the cursor should be placed at after this insertion.
 	     The correct value should be calculated only when necessary.  */
-	  int target_clm = ((int) current_column () /* iftc */
-			    + n * (int) XINT (Fchar_width (make_number (c))));
+	  EMACS_INT target_clm = (current_column ()
+				  + n * XINT (Fchar_width (make_number (c))));
 
-	      /* The actual cursor position after the trial of moving
-		 to column TARGET_CLM.  It is greater than TARGET_CLM
-		 if the TARGET_CLM is middle of multi-column
-		 character.  In that case, the new point is set after
-		 that character.  */
-	      int actual_clm
-		= (int) XFASTINT (Fmove_to_column (make_number (target_clm),
-						   Qnil));
+	  /* The actual cursor position after the trial of moving
+	     to column TARGET_CLM.  It is greater than TARGET_CLM
+	     if the TARGET_CLM is middle of multi-column
+	     character.  In that case, the new point is set after
+	     that character.  */
+	  EMACS_INT actual_clm
+	    = XFASTINT (Fmove_to_column (make_number (target_clm), Qnil));
 
-	      chars_to_delete = PT - pos;
+	  chars_to_delete = PT - pos;
 
-	      if (actual_clm > target_clm)
-	    { /* We will delete too many columns.  Let's fill columns
-		     by spaces so that the remaining text won't move.  */
+	  if (actual_clm > target_clm)
+	    {
+	      /* We will delete too many columns.  Let's fill columns
+		 by spaces so that the remaining text won't move.  */
 	      EMACS_INT actual = PT_BYTE;
 	      DEC_POS (actual);
 	      if (FETCH_CHAR (actual) == '\t')
 		/* Rather than add spaces, let's just keep the tab. */
 		chars_to_delete--;
 	      else
-		  spaces_to_insert = actual_clm - target_clm;
-		}
+		spaces_to_insert = actual_clm - target_clm;
+	    }
 
 	  SET_PT_BOTH (pos, pos_byte);
 	}
@@ -417,11 +420,11 @@ internal_self_insert (int c, EMACS_INT n)
 
   synt = SYNTAX (c);
 
-  if (!NILP (current_buffer->abbrev_mode)
+  if (!NILP (BVAR (current_buffer, abbrev_mode))
       && synt != Sword
-      && NILP (current_buffer->read_only)
+      && NILP (BVAR (current_buffer, read_only))
       && PT > BEGV
-      && (SYNTAX (!NILP (current_buffer->enable_multibyte_characters)
+      && (SYNTAX (!NILP (BVAR (current_buffer, enable_multibyte_characters))
 		  ? XFASTINT (Fprevious_char ())
 		  : UNIBYTE_TO_CHAR (XFASTINT (Fprevious_char ())))
 	  == Sword))
@@ -449,7 +452,7 @@ internal_self_insert (int c, EMACS_INT n)
 
   if (chars_to_delete)
     {
-      int mc = ((NILP (current_buffer->enable_multibyte_characters)
+      int mc = ((NILP (BVAR (current_buffer, enable_multibyte_characters))
 		 && SINGLE_BYTE_CHAR_P (c))
 		? UNIBYTE_TO_CHAR (c) : c);
       Lisp_Object string = Fmake_string (make_number (n), make_number (mc));
@@ -467,38 +470,38 @@ internal_self_insert (int c, EMACS_INT n)
   else if (n > 1)
     {
       USE_SAFE_ALLOCA;
-      unsigned char *strn, *p;
-      SAFE_ALLOCA (strn, unsigned char*, n * len);
+      char *strn, *p;
+      SAFE_ALLOCA (strn, char *, n * len);
       for (p = strn; n > 0; n--, p += len)
 	memcpy (p, str, len);
       insert_and_inherit (strn, p - strn);
       SAFE_FREE ();
     }
   else if (n > 0)
-    insert_and_inherit (str, len);
+    insert_and_inherit ((char *) str, len);
 
   if ((CHAR_TABLE_P (Vauto_fill_chars)
        ? !NILP (CHAR_TABLE_REF (Vauto_fill_chars, c))
        : (c == ' ' || c == '\n'))
-      && !NILP (current_buffer->auto_fill_function))
+      && !NILP (BVAR (current_buffer, auto_fill_function)))
     {
-      Lisp_Object tem;
+      Lisp_Object auto_fill_result;
 
       if (c == '\n')
 	/* After inserting a newline, move to previous line and fill
 	   that.  Must have the newline in place already so filling and
 	   justification, if any, know where the end is going to be.  */
 	SET_PT_BOTH (PT - 1, PT_BYTE - 1);
-      tem = call0 (current_buffer->auto_fill_function);
+      auto_fill_result = call0 (BVAR (current_buffer, auto_fill_function));
       /* Test PT < ZV in case the auto-fill-function is strange.  */
       if (c == '\n' && PT < ZV)
 	SET_PT_BOTH (PT + 1, PT_BYTE + 1);
-      if (!NILP (tem))
+      if (!NILP (auto_fill_result))
 	hairy = 2;
     }
 
   /* Run hooks for electric keys.  */
-  call1 (Vrun_hooks, Qpost_self_insert_hook);
+  Frun_hooks (1, &Qpost_self_insert_hook);
 
   return hairy;
 }
@@ -508,22 +511,13 @@ internal_self_insert (int c, EMACS_INT n)
 void
 syms_of_cmds (void)
 {
-  Qkill_backward_chars = intern_c_string ("kill-backward-chars");
-  staticpro (&Qkill_backward_chars);
+  DEFSYM (Qkill_backward_chars, "kill-backward-chars");
+  DEFSYM (Qkill_forward_chars, "kill-forward-chars");
+  DEFSYM (Qoverwrite_mode_binary, "overwrite-mode-binary");
+  DEFSYM (Qexpand_abbrev, "expand-abbrev");
+  DEFSYM (Qpost_self_insert_hook, "post-self-insert-hook");
 
-  Qkill_forward_chars = intern_c_string ("kill-forward-chars");
-  staticpro (&Qkill_forward_chars);
-
-  Qoverwrite_mode_binary = intern_c_string ("overwrite-mode-binary");
-  staticpro (&Qoverwrite_mode_binary);
-
-  Qexpand_abbrev = intern_c_string ("expand-abbrev");
-  staticpro (&Qexpand_abbrev);
-
-  Qpost_self_insert_hook = intern_c_string ("post-self-insert-hook");
-  staticpro (&Qpost_self_insert_hook);
-
-  DEFVAR_LISP ("post-self-insert-hook", &Vpost_self_insert_hook,
+  DEFVAR_LISP ("post-self-insert-hook", Vpost_self_insert_hook,
 	       doc: /* Hook run at the end of `self-insert-command'.
 This is run after inserting the character.  */);
   Vpost_self_insert_hook = Qnil;
@@ -560,6 +554,3 @@ keys_of_cmds (void)
   initial_define_key (global_map, Ctl ('E'), "end-of-line");
   initial_define_key (global_map, Ctl ('F'), "forward-char");
 }
-
-/* arch-tag: 022ba3cd-67f9-4978-9c5d-7d2b18d8644e
-   (do not change this comment) */

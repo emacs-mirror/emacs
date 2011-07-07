@@ -1,8 +1,7 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
 
-;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997,
-;;   1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010  Free Software Foundation, Inc.
+;; Copyright (C) 1987-1990, 1993-1998, 2000-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -276,7 +275,7 @@
 
 (defgroup gnus-meta nil
   "Meta variables controlling major portions of Gnus.
-In general, modifying these variables does not take affect until Gnus
+In general, modifying these variables does not take effect until Gnus
 is restarted, and sometimes reloaded."
   :group 'gnus)
 
@@ -1044,12 +1043,15 @@ be set in `.emacs' instead."
                                          ((boundp 'image-load-path)
                                           (symbol-value 'image-load-path))
                                          (t load-path)))
-                  (image (find-image
-                          `((:type xpm :file "gnus.xpm"
+                  (image (gnus-splash-svg-color-symbols (find-image
+                          `((:type svg :file "gnus.svg"
+                                   :color-symbols
+                                   (("#bf9900" . ,(car gnus-logo-colors))
+                                    ("#ffcc00" . ,(cadr gnus-logo-colors))))
+                            (:type xpm :file "gnus.xpm"
                                    :color-symbols
                                    (("thing" . ,(car gnus-logo-colors))
                                     ("shadow" . ,(cadr gnus-logo-colors))))
-                            (:type svg :file "gnus.svg")
                             (:type png :file "gnus.png")
                             (:type pbm :file "gnus.pbm"
                                    ;; Account for the pbm's background.
@@ -1058,7 +1060,7 @@ be set in `.emacs' instead."
                             (:type xbm :file "gnus.xbm"
                                    ;; Account for the xbm's background.
                                    :background ,(face-foreground 'gnus-splash)
-                                   :foreground ,(face-background 'default))))))
+                                   :foreground ,(face-background 'default)))))))
              (when image
                (let ((size (image-size image)))
                  (insert-char ?\n (max 0 (round (- (window-height)
@@ -1103,6 +1105,22 @@ be set in `.emacs' instead."
     (goto-char (point-min))
     (setq mode-line-buffer-identification (concat " " gnus-version))
     (set-buffer-modified-p t)))
+
+(defun gnus-splash-svg-color-symbols (list)
+  "Do color-symbol search-and-replace in svg file."
+  (let ((type (plist-get (cdr list) :type))
+        (file (plist-get (cdr list) :file))
+        (color-symbols (plist-get (cdr list) :color-symbols)))
+    (if (string= type "svg")
+        (let ((data (with-temp-buffer (insert-file-contents file)
+                                      (buffer-string))))
+          (mapc (lambda (rule)
+                  (setq data (replace-regexp-in-string
+                              (concat "fill:" (car rule))
+                              (concat "fill:" (cdr rule)) data)))
+                color-symbols)
+          (cons (car list) (list :type type :data data)))
+       list)))
 
 (eval-when (load)
   (let ((command (format "%s" this-command)))
@@ -1401,18 +1419,10 @@ no need to set this variable."
 		 string))
 (make-obsolete-variable 'gnus-local-domain nil "Emacs 24.1")
 
-(defvar gnus-local-organization nil
-  "String with a description of what organization (if any) the user belongs to.
-Obsolete variable; use `message-user-organization' instead.")
-
 ;; Customization variables
 
 (defcustom gnus-refer-article-method 'current
   "Preferred method for fetching an article by Message-ID.
-If you are reading news from the local spool (with nnspool), fetching
-articles by Message-ID is painfully slow.  By setting this method to an
-nntp method, you might get acceptable results.
-
 The value of this variable must be a valid select method as discussed
 in the documentation of `gnus-select-method'.
 
@@ -1612,7 +1622,8 @@ slower."
     ("nnweb" none)
     ("nnrss" none)
     ("nnagent" post-mail)
-    ("nnimap" post-mail address prompt-address physical-address)
+    ("nnimap" post-mail address prompt-address physical-address respool
+     server-marks)
     ("nnmaildir" mail respool address)
     ("nnnil" none))
   "*An alist of valid select methods.
@@ -1860,7 +1871,10 @@ total number of articles in the group.")
  :function-document
  "Whether this group should be ignored by the registry."
  :variable gnus-registry-ignored-groups
- :variable-default nil
+ :variable-default (mapcar
+                    (lambda (g) (list g t))
+                    '("delayed$" "drafts$" "queue$" "INBOX$"
+                      "^nnmairix:" "archive"))
  :variable-document
  "*Groups in which the registry should be turned off."
  :variable-group gnus-registry
@@ -2550,7 +2564,7 @@ a string, be sure to use a valid format, see RFC 2616."
 (defvar gnus-extended-servers nil)
 
 ;; The carpal mode has been removed, but define the variable for
-;; backwards compatability.
+;; backwards compatibility.
 (defvar gnus-carpal nil)
 (make-obsolete-variable 'gnus-carpal nil "Emacs 24.1")
 
@@ -2637,8 +2651,12 @@ such as a mark that says whether an article is stored in the cache
 (defvar gnus-have-read-active-file nil)
 
 (defconst gnus-maintainer
-  "bugs@gnus.org (The Gnus Bugfixing Girls + Boys)"
+  "submit@debbugs.gnu.org (The Gnus Bugfixing Girls + Boys)"
   "The mail address of the Gnus maintainers.")
+
+(defconst gnus-bug-package
+  "gnus"
+  "The package to use in the bug submission.")
 
 (defvar gnus-info-nodes
   '((gnus-group-mode "(gnus)Group Buffer")
@@ -2892,7 +2910,8 @@ gnus-registry.el will populate this if it's loaded.")
       gnus-agent-save-active gnus-agent-method-p
       gnus-agent-get-undownloaded-list gnus-agent-fetch-session
       gnus-summary-set-agent-mark gnus-agent-save-group-info
-      gnus-agent-request-article gnus-agent-retrieve-headers)
+      gnus-agent-request-article gnus-agent-retrieve-headers
+      gnus-agent-store-article gnus-agent-group-covered-p)
      ("gnus-agent" :interactive t
       gnus-unplugged gnus-agentize gnus-agent-batch)
      ("gnus-vm" :interactive t gnus-summary-save-in-vm
@@ -2913,50 +2932,62 @@ gnus-registry.el will populate this if it's loaded.")
 It works along the same lines as a normal formatting string,
 with some simple extensions.
 
-%N   Article number, left padded with spaces (string)
-%S   Subject (string)
-%s   Subject if it is at the root of a thread, and \"\" otherwise (string)
-%n   Name of the poster (string)
-%a   Extracted name of the poster (string)
-%A   Extracted address of the poster (string)
-%F   Contents of the From: header (string)
-%f   Contents of the From: or To: headers (string)
-%x   Contents of the Xref: header (string)
-%D   Date of the article (string)
-%d   Date of the article (string) in DD-MMM format
-%o   Date of the article (string) in YYYYMMDD`T'HHMMSS format
-%M   Message-id of the article (string)
-%r   References of the article (string)
-%c   Number of characters in the article (integer)
-%k   Pretty-printed version of the above (string)
-     For example, \"1.2k\" or \"0.4M\".
-%L   Number of lines in the article (integer)
-%I   Indentation based on thread level (a string of spaces)
-%B   A complex trn-style thread tree (string)
-     The variables `gnus-sum-thread-*' can be used for customization.
-%T   A string with two possible values: 80 spaces if the article
-     is on thread level two or larger and 0 spaces on level one
-%R   \"A\" if this article has been replied to, \" \" otherwise (character)
-%U   Status of this article (character, \"R\", \"K\", \"-\" or \" \")
-%[   Opening bracket (character, \"[\" or \"<\")
-%]   Closing bracket (character, \"]\" or \">\")
-%>   Spaces of length thread-level (string)
-%<   Spaces of length (- 20 thread-level) (string)
-%i   Article score (number)
-%z   Article zcore (character)
-%t   Number of articles under the current thread (number).
-%e   Whether the thread is empty or not (character).
-%V   Total thread score (number).
-%P   The line number (number).
-%O   Download mark (character).
-%*   If present, indicates desired cursor position
-     (instead of after first colon).
-%u   User defined specifier.  The next character in the format string should
-     be a letter.  Gnus will call the function gnus-user-format-function-X,
-     where X is the letter following %u.  The function will be passed the
-     current header as argument.  The function should return a string, which
-     will be inserted into the summary just like information from any other
-     summary specifier.
+%N          Article number, left padded with spaces (string)
+%S          Subject (string)
+%s          Subject if it is at the root of a thread, and \"\"
+            otherwise (string)
+%n          Name of the poster (string)
+%a          Extracted name of the poster (string)
+%A          Extracted address of the poster (string)
+%F          Contents of the From: header (string)
+%f          Contents of the From: or To: headers (string)
+%x          Contents of the Xref: header (string)
+%D          Date of the article (string)
+%d          Date of the article (string) in DD-MMM format
+%o          Date of the article (string) in YYYYMMDD`T'HHMMSS
+            format
+%M          Message-id of the article (string)
+%r          References of the article (string)
+%c          Number of characters in the article (integer)
+%k          Pretty-printed version of the above (string)
+            For example, \"1.2k\" or \"0.4M\".
+%L          Number of lines in the article (integer)
+%I          Indentation based on thread level (a string of
+            spaces)
+%B          A complex trn-style thread tree (string)
+            The variables `gnus-sum-thread-*' can be used for
+            customization.
+%T          A string with two possible values: 80 spaces if the
+            article is on thread level two or larger and 0 spaces
+            on level one
+%R          \"A\" if this article has been replied to, \" \"
+            otherwise (character)
+%U          \"Read\" status of this article.
+            See Info node `(gnus)Marking Articles'
+%[          Opening bracket (character, \"[\" or \"<\")
+%]          Closing bracket (character, \"]\" or \">\")
+%>          Spaces of length thread-level (string)
+%<          Spaces of length (- 20 thread-level) (string)
+%i          Article score (number)
+%z          Article zcore (character)
+%t          Number of articles under the current thread (number).
+%e          Whether the thread is empty or not (character).
+%V          Total thread score (number).
+%P          The line number (number).
+%O          Download mark (character).
+%*          If present, indicates desired cursor position
+            (instead of after first colon).
+%u          User defined specifier. The next character in the
+            format string should be a letter. Gnus will call the
+            function gnus-user-format-function-X, where X is the
+            letter following %u. The function will be passed the
+            current header as argument. The function should
+            return a string, which will be inserted into the
+            summary just like information from any other summary
+            specifier.
+&user-date; Age sensitive date format. Various date format is
+            defined in `gnus-summary-user-date-format-alist'.
+
 
 The %U (status), %R (replied) and %z (zcore) specs have to be handled
 with care.  For reasons of efficiency, Gnus will compute what column
@@ -3107,6 +3138,10 @@ Return nil if not defined."
 (defmacro gnus-get-info (group)
   `(nth 2 (gnus-gethash ,group gnus-newsrc-hashtb)))
 
+(defun gnus-set-info (group info)
+  (setcar (nthcdr 2 (gnus-gethash group gnus-newsrc-hashtb))
+	  info))
+
 ;;; Load the compatibility functions.
 
 (require 'gnus-ems)
@@ -3256,7 +3291,7 @@ g -- Group name."
 	((= c ?d)
 	 (point))
 	((= c ?D)
-	 (read-file-name prompt nil default-directory 'lambda))
+	 (read-directory-name prompt nil default-directory 'lambda))
 	((= c ?f)
 	 (read-file-name prompt nil nil 'lambda))
 	((= c ?F)
@@ -4322,11 +4357,11 @@ current display is used."
 	  (switch-to-buffer gnus-group-buffer)
 	(funcall gnus-other-frame-function arg)
 	(add-hook 'gnus-exit-gnus-hook
-		  '(lambda nil
-		     (when (and (frame-live-p gnus-other-frame-object)
-				(cdr (frame-list)))
-		       (delete-frame gnus-other-frame-object))
-		     (setq gnus-other-frame-object nil)))))))
+		  (lambda nil
+                    (when (and (frame-live-p gnus-other-frame-object)
+                               (cdr (frame-list)))
+                      (delete-frame gnus-other-frame-object))
+                    (setq gnus-other-frame-object nil)))))))
 
 ;;;###autoload
 (defun gnus (&optional arg dont-connect slave)
@@ -4345,6 +4380,13 @@ prompt the user for the name of an NNTP server to use."
   (let ((gnus-action-message-log (list nil)))
     (gnus-1 arg dont-connect slave)
     (gnus-final-warning)))
+
+(autoload 'debbugs-emacs "debbugs-gnu")
+(defun gnus-list-debbugs ()
+  "List all open Gnus bug reports."
+  (interactive)
+  (debbugs-emacs '("important" "normal" "minor" "wishlist")
+		 "gnus"))
 
 ;; Allow redefinition of Gnus functions.
 

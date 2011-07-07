@@ -1,6 +1,6 @@
 ;;; rng-loc.el --- locate the schema to use for validation
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG
@@ -48,7 +48,7 @@ It is nil if using a vacuous schema.")
   "Schema for schema locating files or nil if not yet loaded.")
 
 (defcustom rng-schema-locating-files rng-schema-locating-files-default
-  "*List of schema locating files."
+  "List of schema locating files."
   :type '(repeat file)
   :group 'relax-ng)
 
@@ -546,5 +546,4 @@ saved to the first writable file in `rng-schema-locating-files'."
 
 (provide 'rng-loc)
 
-;; arch-tag: 725cf968-37a2-418b-b47b-d5209871a9ab
 ;;; rng-loc.el ends here

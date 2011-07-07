@@ -1,9 +1,8 @@
 ;;; quail.el --- provides simple input method for multilingual text
 
-;; Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2000-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -663,7 +662,7 @@ This layout is almost the same as that of VT100,
                               ")
    '("pc105-uk" . "\
                               \
-`\2541!2\"3\2434$5%6^7&8*9(0)-_=+     \
+`\2541!2\"3\2434$5%6^7&8*9(0)-_=+    \
   qQwWeErRtTyYuUiIoOpP[{]}    \
   aAsSdDfFgGhHjJkKlL;:'@#~    \
 \\|zZxXcCvVbBnNmM,<.>/?        \
@@ -819,7 +818,7 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	  (bar "|")
 	  lower upper row)
       ;; Make table without horizontal lines.  Each column for a key
-      ;; has the form "| LU |" where L is for lower key and and U is
+      ;; has the form "| LU |" where L is for lower key and U is
       ;; for a upper key.  If width of L (U) is greater than 1,
       ;; preceding (following) space is not inserted.
       (put-text-property 0 1 'face 'bold bar)
@@ -2254,12 +2253,10 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
   (let ((buffer (window-buffer))
-        choice
-	base-size)
+        choice)
     (with-current-buffer (window-buffer (posn-window (event-start event)))
       (if completion-reference-buffer
 	  (setq buffer completion-reference-buffer))
-      (setq base-size completion-base-size)
       (save-excursion
 	(goto-char (posn-point (event-start event)))
 	(let (beg end)
@@ -2273,25 +2270,22 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	  (setq end (or (next-single-property-change end 'mouse-face)
 			(point-max)))
 	  (setq choice (buffer-substring beg end)))))
-;    (let ((owindow (selected-window)))
-;      (select-window (posn-window (event-start event)))
-;      (if (and (one-window-p t 'selected-frame)
-;	       (window-dedicated-p (selected-window)))
-;	  ;; This is a special buffer's frame
-;	  (iconify-frame (selected-frame))
-;	(or (window-dedicated-p (selected-window))
-;	    (bury-buffer)))
-;      (select-window owindow))
+    ;; (let ((owindow (selected-window)))
+    ;;   (select-window (posn-window (event-start event)))
+    ;;   (if (and (one-window-p t 'selected-frame)
+    ;;            (window-dedicated-p (selected-window)))
+    ;;       ;; This is a special buffer's frame
+    ;;       (iconify-frame (selected-frame))
+    ;;     (or (window-dedicated-p (selected-window))
+    ;;         (bury-buffer)))
+    ;;   (select-window owindow))
     (quail-delete-region)
-    (quail-choose-completion-string choice buffer base-size)
+    (setq quail-current-str choice)
+    ;; FIXME: We need to pass `base-position' here.
+    ;; FIXME: why do we need choose-completion-string with all its
+    ;; completion-specific logic?
+    (choose-completion-string choice buffer)
     (quail-terminate-translation)))
-
-;; BASE-SIZE here is for compatibility with an (unused) arg of a
-;; previous implementation.
-(defun quail-choose-completion-string (choice &optional buffer base-size)
-  (setq quail-current-str choice)
-  ;; FIXME: We need to pass `base-position' here.
-  (choose-completion-string choice buffer))
 
 (defun quail-build-decode-map (map-list key decode-map num
 					&optional maxnum ignores)
@@ -2459,10 +2453,10 @@ should be made by `quail-build-decode-map' (which see)."
 
 (define-button-type 'quail-keyboard-layout-button
   :supertype 'help-xref
-  'help-function '(lambda (layout)
-		    (help-setup-xref `(quail-keyboard-layout-button ,layout)
-				     nil)
-		    (quail-show-keyboard-layout layout))
+  'help-function (lambda (layout)
+                   (help-setup-xref `(quail-keyboard-layout-button ,layout)
+                                    nil)
+                   (quail-show-keyboard-layout layout))
   'help-echo (purecopy "mouse-2, RET: show keyboard layout"))
 
 (define-button-type 'quail-keyboard-customize-button
@@ -3077,5 +3071,4 @@ call it with one argument STRING."
 ;;
 (provide 'quail)
 
-;; arch-tag: 46d7db54-5467-42c4-a2a9-53ca90a1e886
 ;;; quail.el ends here

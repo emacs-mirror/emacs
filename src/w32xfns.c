@@ -1,6 +1,5 @@
 /* Functions taken directly from X sources for use with the Microsoft W32 API.
-   Copyright (C) 1989, 1992, 1993, 1994, 1995, 1999, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1989, 1992-1995, 1999, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -98,7 +97,7 @@ select_palette (FRAME_PTR f, HDC hdc)
   else
     f->output_data.w32->old_palette = NULL;
 
-  if (RealizePalette (hdc))
+  if (RealizePalette (hdc) != GDI_ERROR)
   {
     Lisp_Object frame, framelist;
     FOR_EACH_FRAME (framelist, frame)
@@ -443,5 +442,3 @@ x_sync (void *f)
 {
 }
 
-/* arch-tag: 4fab3695-4ad3-4cc6-a2b1-fd2c67dc46be
-   (do not change this comment) */

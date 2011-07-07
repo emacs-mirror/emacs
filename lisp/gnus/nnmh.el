@@ -1,7 +1,6 @@
 ;;; nnmh.el --- mhspool access for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -211,7 +210,9 @@ as unread by Gnus.")
 	(max 0)
 	min rdir num subdirectoriesp file)
     ;; Recurse down directories.
-    (setq subdirectoriesp (> (nth 1 (file-attributes dir)) 2))
+    (setq subdirectoriesp
+	  ;; nth 1 of file-attributes always 1 on MS Windows :(
+	  (/= (nth 1 (file-attributes (file-truename dir))) 2))
     (dolist (rdir files)
       (if (or (not subdirectoriesp)
 	      (file-regular-p rdir))

@@ -1,7 +1,7 @@
 /* Implements a lightweight menubar widget.
+
 Copyright (C) 1992 Lucid, Inc.
-Copyright (C) 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-  2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1994-1995, 1997, 1999-2011  Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 
@@ -27,7 +27,7 @@ Boston, MA 02110-1301, USA.  */
 #endif
 
 #include <setjmp.h>
-#include "lisp.h"
+#include <lisp.h>
 
 #include <stdio.h>
 #include <ctype.h>
@@ -57,7 +57,7 @@ extern int gray_bitmap_width;
 extern int gray_bitmap_height;
 extern char *gray_bitmap_bits;
 
-#include "xterm.h"
+#include <xterm.h>
 
 #else /* not emacs */
 
@@ -70,8 +70,6 @@ extern char *gray_bitmap_bits;
 
 static int pointer_grabbed;
 static XEvent menu_post_event;
-
-static XFontStruct *xlwmenu_default_font;
 
 static char
 xlwMenuTranslations [] =
@@ -131,14 +129,12 @@ xlwMenuResources[] =
      offset(menu.fontSet), XtRFontSet, NULL},
 #endif
 #ifdef HAVE_XFT
-#define DEFAULT_FACENAME "Sans-10"
-  {XtNfaceName,  XtCFaceName, XtRString, sizeof(String),
-   offset(menu.faceName), XtRString, DEFAULT_FACENAME},
-  {XtNdefaultFace,  XtCDefaultFace, XtRInt, sizeof(int),
-   offset(menu.default_face), XtRImmediate, (XtPointer)1},
+#define DEFAULT_FONTNAME "Sans-10"
+#else
+#define DEFAULT_FONTNAME "XtDefaultFont"
 #endif
-  {XtNfont,  XtCFont, XtRFontStruct, sizeof(XFontStruct *),
-     offset(menu.font), XtRString, "XtDefaultFont"},
+  {XtNfont,  XtCFont, XtRString, sizeof(String),
+     offset(menu.fontName), XtRString, DEFAULT_FONTNAME },
   {XtNforeground, XtCForeground, XtRPixel, sizeof(Pixel),
      offset(menu.foreground), XtRString, "XtDefaultForeground"},
   {XtNdisabledForeground, XtCDisabledForeground, XtRPixel, sizeof(Pixel),
@@ -1224,9 +1220,9 @@ display_menu (XlwMenuWidget mw,
 	{
 	  if (val->enabled)
 	    *hit_return = val;
-	  else 
+	  else
             no_return = 1;
-          if (mw->menu.inside_entry != val) 
+          if (mw->menu.inside_entry != val)
             {
               if (mw->menu.inside_entry)
                 XtCallCallbackList ((Widget)mw, mw->menu.leave,
@@ -1352,6 +1348,7 @@ make_windows_if_needed (XlwMenuWidget mw, int n)
 #endif
      set_window_type (windows [i].w, mw);
    }
+  XFlush (XtDisplay (mw));
 }
 
 /* Value is non-zero if WINDOW is part of menu bar widget W.  */
@@ -1429,7 +1426,7 @@ fit_to_screen (XlwMenuWidget mw,
 static void
 create_pixmap_for_menu (window_state* ws, XlwMenuWidget mw)
 {
-  if (ws->pixmap != None) 
+  if (ws->pixmap != None)
     {
       XFreePixmap (XtDisplay (ws->w), ws->pixmap);
       ws->pixmap = None;
@@ -1534,10 +1531,12 @@ remap_menubar (XlwMenuWidget mw)
 
       fit_to_screen (mw, ws, previous_ws, mw->menu.horizontal && i == 1);
 
-      XtVaSetValues (ws->w, XtNwidth, ws->width, XtNheight, ws->height,
-                     XtNx, ws->x, XtNy, ws->y, NULL);
       create_pixmap_for_menu (ws, mw);
+      XtMoveWidget (ws->w, ws->x, ws->y);
       XtPopup (ws->w, XtGrabNone);
+      XtResizeWidget (ws->w, ws->width, ws->height,
+                      mw->core.border_width);
+      XtResizeWindow (ws->w);
       display_menu (mw, i, False, &selection_position, NULL, NULL);
     }
 
@@ -1593,9 +1592,9 @@ map_event_to_widget_value (XlwMenuWidget mw,
 	}
     }
 
-  if (!inside) 
+  if (!inside)
     {
-      if (mw->menu.inside_entry != NULL) 
+      if (mw->menu.inside_entry != NULL)
         XtCallCallbackList ((Widget)mw, mw->menu.leave,
                             (XtPointer) mw->menu.inside_entry);
       mw->menu.inside_entry = NULL;
@@ -1613,14 +1612,17 @@ make_drawing_gcs (XlwMenuWidget mw)
   XtGCMask mask = GCForeground | GCBackground;
 
 #ifdef HAVE_X_I18N
-  if (!mw->menu.fontSet)
+  if (!mw->menu.fontSet && mw->menu.font)
     {
       xgcv.font = mw->menu.font->fid;
       mask |= GCFont;
     }
 #else
-  xgcv.font = mw->menu.font->fid;
-  mask |= GCFont;
+  if (mw->menu.font)
+    {
+      xgcv.font = mw->menu.font->fid;
+      mask |= GCFont;
+    }
 #endif
   xgcv.foreground = mw->menu.foreground;
   xgcv.background = mw->core.background_pixel;
@@ -1691,8 +1693,10 @@ release_drawing_gcs (XlwMenuWidget mw)
   mw->menu.background_gc = (GC) -1;
 }
 
+#ifndef emacs
 #define MINL(x,y) ((((unsigned long) (x)) < ((unsigned long) (y))) \
 		   ? ((unsigned long) (x)) : ((unsigned long) (y)))
+#endif
 
 static void
 make_shadow_gcs (XlwMenuWidget mw)
@@ -1847,13 +1851,20 @@ release_shadow_gcs (XlwMenuWidget mw)
 }
 
 #ifdef HAVE_XFT
+static XftFont *
+getDefaultXftFont (XlwMenuWidget mw)
+{
+  int screen = XScreenNumberOfScreen (mw->core.screen);
+  return XftFontOpenName (XtDisplay (mw), screen, DEFAULT_FONTNAME);
+}
+
 static int
 openXftFont (XlwMenuWidget mw)
 {
-  char *fname = mw->menu.faceName;
+  char *fname = mw->menu.fontName;
 
   mw->menu.xft_font = 0;
-  mw->menu.default_face = fname && strcmp (fname, DEFAULT_FACENAME) == 0;
+  mw->menu.default_face = fname && strcmp (fname, DEFAULT_FONTNAME) == 0;
 
   if (fname && strcmp (fname, "none") != 0)
     {
@@ -1864,20 +1875,23 @@ openXftFont (XlwMenuWidget mw)
         --i;
       if (fname[i] == ' ')
         {
-          fname = xstrdup (mw->menu.faceName);
+          fname = xstrdup (mw->menu.fontName);
           fname[i] = '-';
         }
 
-      mw->menu.xft_font = XftFontOpenName (XtDisplay (mw), screen, fname);
-      if (!mw->menu.xft_font) 
+      mw->menu.font = XLoadQueryFont (XtDisplay (mw), fname);
+      if (!mw->menu.font)
         {
-          fprintf (stderr, "Can't find font '%s'\n", fname);
-          mw->menu.xft_font = XftFontOpenName (XtDisplay (mw), screen,
-                                               DEFAULT_FACENAME);
+          mw->menu.xft_font = XftFontOpenName (XtDisplay (mw), screen, fname);
+          if (!mw->menu.xft_font)
+            {
+              fprintf (stderr, "Can't find font '%s'\n", fname);
+              mw->menu.xft_font = getDefaultXftFont (mw);
+            }
         }
     }
 
-  if (fname != mw->menu.faceName) free (fname);
+  if (fname != mw->menu.fontName) free (fname);
 
   return mw->menu.xft_font != 0;
 }
@@ -1913,16 +1927,16 @@ XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
     ;
   else
 #endif
-  
-  if (!mw->menu.font)
     {
-      if (!xlwmenu_default_font)
-        xlwmenu_default_font = XLoadQueryFont (display, "fixed");
-      mw->menu.font = xlwmenu_default_font;
-      if (!mw->menu.font) 
+      mw->menu.font = XLoadQueryFont (display, mw->menu.fontName);
+      if (!mw->menu.font)
         {
-          fprintf (stderr, "Menu font fixed not found, can't continue.\n");
-          abort ();
+          mw->menu.font = XLoadQueryFont (display, "fixed");
+          if (!mw->menu.font)
+            {
+              fprintf (stderr, "Menu font fixed not found, can't continue.\n");
+              abort ();
+            }
         }
     }
 
@@ -1930,7 +1944,7 @@ XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
   if (mw->menu.fontSet)
     mw->menu.font_extents = XExtentsOfFontSet (mw->menu.fontSet);
 #endif
-      
+
   make_drawing_gcs (mw);
   make_shadow_gcs (mw);
 
@@ -1966,7 +1980,6 @@ XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
 static void
 XlwMenuClassInitialize (void)
 {
-  xlwmenu_default_font = 0;
 }
 
 static void
@@ -2107,12 +2120,12 @@ XlwMenuDestroy (Widget w)
     XftFontClose (XtDisplay (mw), mw->menu.xft_font);
 #endif
 
-  if (mw->menu.windows [0].pixmap != None) 
+  if (mw->menu.windows [0].pixmap != None)
     XFreePixmap (XtDisplay (mw), mw->menu.windows [0].pixmap);
   /* start from 1 because the one in slot 0 is w->core.window */
   for (i = 1; i < mw->menu.windows_length; i++)
     {
-      if (mw->menu.windows [i].pixmap != None) 
+      if (mw->menu.windows [i].pixmap != None)
         XFreePixmap (XtDisplay (mw), mw->menu.windows [i].pixmap);
 #ifdef HAVE_XFT
       if (mw->menu.windows [i].xft_draw)
@@ -2126,13 +2139,13 @@ XlwMenuDestroy (Widget w)
 
 #ifdef HAVE_XFT
 static int
-facename_changed (XlwMenuWidget newmw,
+fontname_changed (XlwMenuWidget newmw,
                   XlwMenuWidget oldmw)
 {
-  /* This will fore a new XftFont even if the same string is set.
+  /* This will force a new XftFont even if the same string is set.
      This is good, as rendering parameters may have changed and
      we just want to do a redisplay.  */
-  return newmw->menu.faceName != oldmw->menu.faceName;
+  return newmw->menu.fontName != oldmw->menu.fontName;
 }
 #endif
 
@@ -2142,23 +2155,22 @@ XlwMenuSetValues (Widget current, Widget request, Widget new,
 {
   XlwMenuWidget oldmw = (XlwMenuWidget)current;
   XlwMenuWidget newmw = (XlwMenuWidget)new;
-  Boolean redisplay = False;
-  int i;
+  Boolean do_redisplay = False;
 
   if (newmw->menu.contents
       && newmw->menu.contents->contents
       && newmw->menu.contents->contents->change >= VISIBLE_CHANGE)
-    redisplay = True;
+    do_redisplay = True;
   /* Do redisplay if the contents are entirely eliminated.  */
   if (newmw->menu.contents
       && newmw->menu.contents->contents == 0
       && newmw->menu.contents->change >= VISIBLE_CHANGE)
-    redisplay = True;
+    do_redisplay = True;
 
   if (newmw->core.background_pixel != oldmw->core.background_pixel
       || newmw->menu.foreground != oldmw->menu.foreground
 #ifdef HAVE_XFT
-      || facename_changed (newmw, oldmw)
+      || fontname_changed (newmw, oldmw)
 #endif
 #ifdef HAVE_X_I18N
       || newmw->menu.fontSet != oldmw->menu.fontSet
@@ -2168,6 +2180,7 @@ XlwMenuSetValues (Widget current, Widget request, Widget new,
 #endif
       )
     {
+      int i;
       release_drawing_gcs (newmw);
       make_drawing_gcs (newmw);
 
@@ -2177,7 +2190,7 @@ XlwMenuSetValues (Widget current, Widget request, Widget new,
       newmw->menu.bottom_shadow_color = -1;
       make_shadow_gcs (newmw);
 
-      redisplay = True;
+      do_redisplay = True;
 
       if (XtIsRealized (current))
 	/* If the menu is currently displayed, change the display.  */
@@ -2193,7 +2206,7 @@ XlwMenuSetValues (Widget current, Widget request, Widget new,
     }
 
 #ifdef HAVE_XFT
-  if (facename_changed (newmw, oldmw))
+  if (fontname_changed (newmw, oldmw))
     {
       int i;
       int screen = XScreenNumberOfScreen (newmw->core.screen);
@@ -2218,12 +2231,12 @@ XlwMenuSetValues (Widget current, Widget request, Widget new,
 #ifdef HAVE_X_I18N
   if (newmw->menu.fontSet != oldmw->menu.fontSet && newmw->menu.fontSet != NULL)
     {
-      redisplay = True;
+      do_redisplay = True;
       newmw->menu.font_extents = XExtentsOfFontSet (newmw->menu.fontSet);
     }
 #endif
 
-  return redisplay;
+  return do_redisplay;
 }
 
 static void
@@ -2690,6 +2703,3 @@ pop_up_menu (XlwMenuWidget mw, XButtonPressedEvent *event)
   ((XMotionEvent*)event)->is_hint = 0;
   handle_motion_event (mw, (XMotionEvent*)event);
 }
-
-/* arch-tag: 657f43dd-dfd0-4cc9-910c-52935f01176e
-   (do not change this comment) */

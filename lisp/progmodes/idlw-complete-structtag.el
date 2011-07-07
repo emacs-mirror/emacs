@@ -1,7 +1,6 @@
 ;;; idlw-complete-structtag.el --- Completion of structure tags.
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
@@ -167,7 +166,7 @@ an up-to-date completion list."
 (defun idlwave-prepare-structure-tag-completion (var)
   "Find and parse the tag list for structure tag completion."
   ;; This works differently in source buffers and in the shell
-  (if (eq major-mode 'idlwave-shell-mode)
+  (if (derived-mode-p 'idlwave-shell-mode)
       ;; OK, we are in the shell, do it dynamically
       (progn
         (message "preparing shell tags") 

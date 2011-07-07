@@ -1,7 +1,6 @@
 ;;; m4-mode.el --- m4 code editing commands for Emacs
 
-;; Copyright (C) 1996, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Andrew Csillag <drew_csillag@geocities.com>
 ;; Maintainer: Andrew Csillag <drew_csillag@geocities.com>
@@ -143,27 +142,12 @@
   (switch-to-buffer-other-window "*m4-output*"))
 
 ;;;###autoload
-(defun m4-mode ()
-  "A major mode to edit m4 macro files.
-\\{m4-mode-map}
-"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map m4-mode-map)
-
-  (make-local-variable 'comment-start)
-  (setq comment-start "#")
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments t)
-  (setq local-abbrev-table m4-mode-abbrev-table)
-
-  (make-local-variable	'font-lock-defaults)
-  (setq major-mode 'm4-mode
-	mode-name "m4"
-	font-lock-defaults '(m4-font-lock-keywords nil)
-	)
-  (set-syntax-table m4-mode-syntax-table)
-  (run-mode-hooks 'm4-mode-hook))
+(define-derived-mode m4-mode prog-mode "m4"
+  "A major mode to edit m4 macro files."
+  :abbrev-table m4-mode-abbrev-table
+  (set (make-local-variable 'comment-start) "#")
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (set (make-local-variable 'font-lock-defaults) '(m4-font-lock-keywords nil)))
 
 (provide 'm4-mode)
 ;;stuff to play with for debugging
@@ -187,5 +171,4 @@
 ;;;		  "m4_syscmd" "m4_sysval" "m4_traceoff" "m4_traceon" "m4_translit"
 ;;;		  "m4_m4_undefine" "m4_undivert"))
 
-;; arch-tag: 87811d86-94c1-474b-9666-587f6da74af1
 ;;; m4-mode.el ends here

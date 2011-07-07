@@ -1,7 +1,6 @@
 ;;; refbib.el --- convert refer-style references to ones usable by Latex bib
 
-;; Copyright (C) 1989, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Henry Kautz <kautz@research.att.com>
 ;; Maintainer: FSF
@@ -746,5 +745,4 @@ Please send bug reports and suggestions to
 (provide 'refbib)
 (provide 'refer-to-bibtex)
 
-;; arch-tag: 664afee2-6e76-4408-ba56-981d8a179586
 ;;; refbib.el ends here

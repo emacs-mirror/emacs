@@ -1,7 +1,6 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -220,42 +219,43 @@ to the contents of the accessible portion of the buffer."
      (t 'identity))))
 
 ;; `ucs-to-char' is a function that Mule-UCS provides.
-(if (featurep 'xemacs)
-    (cond ((and (fboundp 'unicode-to-char) ;; XEmacs 21.5.
-		(subrp (symbol-function 'unicode-to-char)))
-	   (if (featurep 'mule)
-	       (defalias 'mm-ucs-to-char 'unicode-to-char)
+(eval-and-compile
+  (if (featurep 'xemacs)
+      (cond ((and (fboundp 'unicode-to-char) ;; XEmacs 21.5.
+		  (subrp (symbol-function 'unicode-to-char)))
+	     (if (featurep 'mule)
+		 (defalias 'mm-ucs-to-char 'unicode-to-char)
+	       (defun mm-ucs-to-char (codepoint)
+		 "Convert Unicode codepoint to character."
+		 (or (unicode-to-char codepoint) ?#))))
+	    ((featurep 'mule)
 	     (defun mm-ucs-to-char (codepoint)
 	       "Convert Unicode codepoint to character."
-	       (or (unicode-to-char codepoint) ?#))))
-	  ((featurep 'mule)
-	   (defun mm-ucs-to-char (codepoint)
-	     "Convert Unicode codepoint to character."
-	     (if (fboundp 'ucs-to-char) ;; Mule-UCS is loaded.
-		 (progn
-		   (defalias 'mm-ucs-to-char
-		     (lambda (codepoint)
-		       "Convert Unicode codepoint to character."
-		       (condition-case nil
-			   (or (ucs-to-char codepoint) ?#)
-			 (error ?#))))
-		   (mm-ucs-to-char codepoint))
+	       (if (fboundp 'ucs-to-char) ;; Mule-UCS is loaded.
+		   (progn
+		     (defalias 'mm-ucs-to-char
+		       (lambda (codepoint)
+			 "Convert Unicode codepoint to character."
+			 (condition-case nil
+			     (or (ucs-to-char codepoint) ?#)
+			   (error ?#))))
+		     (mm-ucs-to-char codepoint))
+		 (condition-case nil
+		     (or (int-to-char codepoint) ?#)
+		   (error ?#)))))
+	    (t
+	     (defun mm-ucs-to-char (codepoint)
+	       "Convert Unicode codepoint to character."
 	       (condition-case nil
 		   (or (int-to-char codepoint) ?#)
 		 (error ?#)))))
-	  (t
-	   (defun mm-ucs-to-char (codepoint)
-	     "Convert Unicode codepoint to character."
-	     (condition-case nil
-		 (or (int-to-char codepoint) ?#)
-	       (error ?#)))))
-  (if (let ((char (make-char 'japanese-jisx0208 36 34)))
-	(eq char (decode-char 'ucs char)))
-      ;; Emacs 23.
-      (defalias 'mm-ucs-to-char 'identity)
-    (defun mm-ucs-to-char (codepoint)
-      "Convert Unicode codepoint to character."
-      (or (decode-char 'ucs codepoint) ?#))))
+    (if (let ((char (make-char 'japanese-jisx0208 36 34)))
+	  (eq char (decode-char 'ucs char)))
+	;; Emacs 23.
+	(defalias 'mm-ucs-to-char 'identity)
+      (defun mm-ucs-to-char (codepoint)
+	"Convert Unicode codepoint to character."
+	(or (decode-char 'ucs codepoint) ?#)))))
 
 ;; Fixme:  This seems always to be used to read a MIME charset, so it
 ;; should be re-named and fixed (in Emacs) to offer completion only on
@@ -299,34 +299,6 @@ system object in XEmacs."
 	  cs)
       ;; no-MULE XEmacs:
       (car (memq cs (mm-get-coding-system-list))))))
-
-(defun mm-codepage-setup (number &optional alias)
-  "Create a coding system cpNUMBER.
-The coding system is created using `codepage-setup'.  If ALIAS is
-non-nil, an alias is created and added to
-`mm-charset-synonym-alist'.  If ALIAS is a string, it's used as
-the alias.  Else windows-NUMBER is used."
-  (interactive
-   (let ((completion-ignore-case t)
-	 (candidates (if (fboundp 'cp-supported-codepages)
-			 (cp-supported-codepages)
-		       ;; Removed in Emacs 23 (unicode), so signal an error:
-		       (error "`codepage-setup' not present in this Emacs version"))))
-     (list (gnus-completing-read "Setup DOS Codepage" candidates
-                                 t nil nil "437"))))
-  (when alias
-    (setq alias (if (stringp alias)
-		    (intern alias)
-		  (intern (format "windows-%s" number)))))
-  (let* ((cp (intern (format "cp%s" number))))
-    (unless (mm-coding-system-p cp)
-      (if (fboundp 'codepage-setup)	; silence compiler
-	  (codepage-setup number)
-	(error "`codepage-setup' not present in this Emacs version")))
-    (when (and alias
-	       ;; Don't add alias if setup of cp failed.
-	       (mm-coding-system-p cp))
-      (add-to-list 'mm-charset-synonym-alist (cons alias cp)))))
 
 (defvar mm-charset-synonym-alist
   `(
@@ -375,6 +347,34 @@ the alias.  Else windows-NUMBER is used."
   "A mapping from unknown or invalid charset names to the real charset names.
 
 See `mm-codepage-iso-8859-list' and `mm-codepage-ibm-list'.")
+
+(defun mm-codepage-setup (number &optional alias)
+  "Create a coding system cpNUMBER.
+The coding system is created using `codepage-setup'.  If ALIAS is
+non-nil, an alias is created and added to
+`mm-charset-synonym-alist'.  If ALIAS is a string, it's used as
+the alias.  Else windows-NUMBER is used."
+  (interactive
+   (let ((completion-ignore-case t)
+	 (candidates (if (fboundp 'cp-supported-codepages)
+			 (cp-supported-codepages)
+		       ;; Removed in Emacs 23 (unicode), so signal an error:
+		       (error "`codepage-setup' not present in this Emacs version"))))
+     (list (gnus-completing-read "Setup DOS Codepage" candidates
+                                 t nil nil "437"))))
+  (when alias
+    (setq alias (if (stringp alias)
+		    (intern alias)
+		  (intern (format "windows-%s" number)))))
+  (let* ((cp (intern (format "cp%s" number))))
+    (unless (mm-coding-system-p cp)
+      (if (fboundp 'codepage-setup)	; silence compiler
+	  (codepage-setup number)
+	(error "`codepage-setup' not present in this Emacs version")))
+    (when (and alias
+	       ;; Don't add alias if setup of cp failed.
+	       (mm-coding-system-p cp))
+      (add-to-list 'mm-charset-synonym-alist (cons alias cp)))))
 
 (defcustom mm-codepage-iso-8859-list
   (list 1250 ;; Windows-1250 is a variant of Latin-2 heavily used by Microsoft
@@ -550,7 +550,8 @@ is not available."
 	 (let ((cs (cdr (assq charset mm-charset-override-alist))))
 	   (and cs (mm-coding-system-p cs) cs))))
    ;; ascii
-   ((eq charset 'us-ascii)
+   ((or (eq charset 'us-ascii)
+	(string-match "ansi.x3.4" (symbol-name charset)))
     'ascii)
    ;; Check to see whether we can handle this charset.  (This depends
    ;; on there being some coding system matching each `mime-charset'
@@ -866,6 +867,21 @@ variable is set, it overrides the default priority."
 Setting it to nil is useful on Emacsen supporting Unicode if sending
 mail with multiple parts is preferred to sending a Unicode one.")
 
+(defvar mm-extra-numeric-entities
+  (mapcar
+   (lambda (item)
+     (cons (car item) (mm-ucs-to-char (cdr item))))
+   '((#x80 . #x20AC) (#x82 . #x201A) (#x83 . #x0192) (#x84 . #x201E)
+     (#x85 . #x2026) (#x86 . #x2020) (#x87 . #x2021) (#x88 . #x02C6)
+     (#x89 . #x2030) (#x8A . #x0160) (#x8B . #x2039) (#x8C . #x0152)
+     (#x8E . #x017D) (#x91 . #x2018) (#x92 . #x2019) (#x93 . #x201C)
+     (#x94 . #x201D) (#x95 . #x2022) (#x96 . #x2013) (#x97 . #x2014)
+     (#x98 . #x02DC) (#x99 . #x2122) (#x9A . #x0161) (#x9B . #x203A)
+     (#x9C . #x0153) (#x9E . #x017E) (#x9F . #x0178)))
+  "*Alist of extra numeric entities and characters other than ISO 10646.
+This table is used for decoding extra numeric entities to characters,
+like \"&#128;\" to the euro sign, mainly in html messages.")
+
 ;;; Internal variables:
 
 ;;; Functions:
@@ -974,6 +990,7 @@ If the charset is `composition', return the actual one."
     ;; This is for XEmacs.
     (mm-mule-charset-to-mime-charset charset)))
 
+;; `delete-dups' is not available in XEmacs 21.4.
 (if (fboundp 'delete-dups)
     (defalias 'mm-delete-duplicates 'delete-dups)
   (defun mm-delete-duplicates (list)
@@ -1587,7 +1604,7 @@ gzip, bzip2, etc. are allowed."
 	(insert decomp)
 	(setq filename (file-name-sans-extension filename)))
       (goto-char (point-min))
-      (prog1
+      (unwind-protect
 	  (cond
 	   ((boundp 'set-auto-coding-function) ;; Emacs
 	    (if filename

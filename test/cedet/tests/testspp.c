@@ -1,6 +1,6 @@
 /* testspp.cpp --- Semantic unit test for the C preprocessor
 
-   Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
    Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -100,5 +100,3 @@ int no_show_moose_elif_2() {}
 int show_moose_elif_else() {}
 #endif
 
-/* arch-tag: 5ea50b2a-1e12-439e-ade4-e68267f49674
-   (do not change this comment) */

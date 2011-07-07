@@ -1,6 +1,5 @@
 /* Deal with the X Resource Manager.
-   Copyright (C) 1990, 1993, 1994, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1990, 1993-1994, 2000-2011 Free Software Foundation, Inc.
 
 Author: Joseph Arceneaux
 Created: 4/90
@@ -22,15 +21,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
 #include <errno.h>
 #include <epaths.h>
 
 #include <stdio.h>
 #include <setjmp.h>
+
+#include "lisp.h"
+
+/* This may include sys/types.h, and that somehow loses
+   if this is not done before the other system files.  */
+#include "xterm.h"
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -42,12 +44,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #include <sys/stat.h>
 
-#if !defined(S_ISDIR) && defined(S_IFDIR)
-#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
-#endif
-
-#include "lisp.h"
-
 #ifdef USE_MOTIF
 /* For Vdouble_click_time.  */
 #include "keyboard.h"
@@ -57,8 +53,6 @@ extern char *getenv (const char *);
 
 extern struct passwd *getpwuid (uid_t);
 extern struct passwd *getpwnam (const char *);
-
-extern const char *get_system_name (void);
 
 char *x_get_string_resource (XrmDatabase rdb, const char *name,
 			     const char *class);
@@ -70,14 +64,15 @@ static int file_p (const char *filename);
 
 /* The string which gets substituted for the %C escape in XFILESEARCHPATH
    and friends, or zero if none was specified.  */
-char *x_customization_string;
+static char *x_customization_string;
 
 
 /* Return the value of the emacs.customization (Emacs.Customization)
    resource, for later use in search path decoding.  If we find no
    such resource, return zero.  */
-char *
-x_get_customization_string (XrmDatabase db, const char *name, const char *class)
+static char *
+x_get_customization_string (XrmDatabase db, const char *name,
+			    const char *class)
 {
   char *full_name
     = (char *) alloca (strlen (name) + sizeof ("customization") + 3);
@@ -125,20 +120,20 @@ x_get_customization_string (XrmDatabase db, const char *name, const char *class)
    refers to %L only when the LANG environment variable is set, or
    otherwise provided by X.
 
-   ESCAPED_SUFFIX and SUFFIX are postpended to STRING if they are
-   non-zero.  %-escapes in ESCAPED_SUFFIX are expanded; STRING is left
-   alone.
+   ESCAPED_SUFFIX is postpended to STRING if it is non-zero.
+   %-escapes in ESCAPED_SUFFIX are expanded.
 
    Return NULL otherwise.  */
 
 static char *
-magic_file_p (const char *string, EMACS_INT string_len, const char *class, const char *escaped_suffix, const char *suffix)
+magic_file_p (const char *string, EMACS_INT string_len, const char *class,
+	      const char *escaped_suffix)
 {
   char *lang = getenv ("LANG");
 
-  int path_size = 100;
+  ptrdiff_t path_size = 100;
   char *path = (char *) xmalloc (path_size);
-  int path_len = 0;
+  ptrdiff_t path_len = 0;
 
   const char *p = string;
 
@@ -146,7 +141,7 @@ magic_file_p (const char *string, EMACS_INT string_len, const char *class, const
     {
       /* The chunk we're about to stick on the end of result.  */
       const char *next = NULL;
-      int next_len;
+      ptrdiff_t next_len;
 
       if (*p == '%')
 	{
@@ -206,8 +201,10 @@ magic_file_p (const char *string, EMACS_INT string_len, const char *class, const
 	next = p, next_len = 1;
 
       /* Do we have room for this component followed by a '\0' ?  */
-      if (path_len + next_len + 1 > path_size)
+      if (path_size - path_len <= next_len)
 	{
+	  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 - 1 - path_len < next_len)
+	    memory_full (SIZE_MAX);
 	  path_size = (path_len + next_len + 1) * 2;
 	  path = (char *) xrealloc (path, path_size);
 	}
@@ -225,21 +222,6 @@ magic_file_p (const char *string, EMACS_INT string_len, const char *class, const
 	  p = string;
 	  escaped_suffix = NULL;
 	}
-    }
-
-  /* Perhaps we should add the SUFFIX now.  */
-  if (suffix)
-    {
-      int suffix_len = strlen (suffix);
-
-      if (path_len + suffix_len + 1 > path_size)
-	{
-	  path_size = (path_len + suffix_len + 1);
-	  path = (char *) xrealloc (path, path_size);
-	}
-
-      memcpy (path + path_len, suffix, suffix_len);
-      path_len += suffix_len;
     }
 
   path[path_len] = '\0';
@@ -300,7 +282,8 @@ file_p (const char *filename)
    the path name of the one we found otherwise.  */
 
 static char *
-search_magic_path (const char *search_path, const char *class, const char *escaped_suffix, const char *suffix)
+search_magic_path (const char *search_path, const char *class,
+		   const char *escaped_suffix)
 {
   const char *s, *p;
 
@@ -311,8 +294,7 @@ search_magic_path (const char *search_path, const char *class, const char *escap
 
       if (p > s)
 	{
-	  char *path = magic_file_p (s, p - s, class, escaped_suffix,
-					   suffix);
+	  char *path = magic_file_p (s, p - s, class, escaped_suffix);
 	  if (path)
 	    return path;
 	}
@@ -321,7 +303,7 @@ search_magic_path (const char *search_path, const char *class, const char *escap
 	  char *path;
 
 	  s = "%N%S";
-	  path = magic_file_p (s, strlen (s), class, escaped_suffix, suffix);
+	  path = magic_file_p (s, strlen (s), class, escaped_suffix);
 	  if (path)
 	    return path;
 	}
@@ -345,7 +327,7 @@ get_system_app (const char *class)
   path = getenv ("XFILESEARCHPATH");
   if (! path) path = PATH_X_DEFAULTS;
 
-  p = search_magic_path (path, class, 0, 0);
+  p = search_magic_path (path, class, 0);
   if (p)
     {
       db = XrmGetFileDatabase (p);
@@ -373,19 +355,19 @@ get_user_app (const char *class)
   /* Check for XUSERFILESEARCHPATH.  It is a path of complete file
      names, not directories.  */
   if (((path = getenv ("XUSERFILESEARCHPATH"))
-       && (file = search_magic_path (path, class, 0, 0)))
+       && (file = search_magic_path (path, class, 0)))
 
       /* Check for APPLRESDIR; it is a path of directories.  In each,
 	 we have to search for LANG/CLASS and then CLASS.  */
       || ((path = getenv ("XAPPLRESDIR"))
-	  && ((file = search_magic_path (path, class, "/%L/%N", 0))
-	      || (file = search_magic_path (path, class, "/%N", 0))))
+	  && ((file = search_magic_path (path, class, "/%L/%N"))
+	      || (file = search_magic_path (path, class, "/%N"))))
 
       /* Check in the home directory.  This is a bit of a hack; let's
 	 hope one's home directory doesn't contain any %-escapes.  */
       || (free_it = gethomedir (),
-	  ((file = search_magic_path (free_it, class, "%L/%N", 0))
-	   || (file = search_magic_path (free_it, class, "%N", 0)))))
+	  ((file = search_magic_path (free_it, class, "%L/%N"))
+	   || (file = search_magic_path (free_it, class, "%N")))))
     {
       XrmDatabase db = XrmGetFileDatabase (file);
       xfree (file);
@@ -471,7 +453,7 @@ get_environ_db (void)
 /* Types of values that we can find in a database */
 
 #define XrmStringType "String"	/* String representation */
-XrmRepresentation x_rm_string;	/* Quark representation */
+static XrmRepresentation x_rm_string;	/* Quark representation */
 
 /* Load X resources based on the display and a possible -xrm option. */
 
@@ -484,7 +466,9 @@ x_load_resources (Display *display, const char *xrm_string,
   XrmDatabase db;
   char line[256];
 
+#if defined USE_MOTIF || !defined HAVE_XFT || !defined USE_LUCID
   const char *helv = "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1";
+#endif
 
 #ifdef USE_MOTIF
   const char *courier = "-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1";
@@ -539,22 +523,24 @@ x_load_resources (Display *display, const char *xrm_string,
      dialog from `double-click-time'.  */
   if (INTEGERP (Vdouble_click_time) && XINT (Vdouble_click_time) > 0)
     {
-      sprintf (line, "%s*fsb*DirList.doubleClickInterval: %d",
+      sprintf (line, "%s*fsb*DirList.doubleClickInterval: %"pI"d",
 	       myclass, XFASTINT (Vdouble_click_time));
       XrmPutLineResource (&rdb, line);
-      sprintf (line, "%s*fsb*ItemsList.doubleClickInterval: %d",
+      sprintf (line, "%s*fsb*ItemsList.doubleClickInterval: %"pI"d",
 	       myclass, XFASTINT (Vdouble_click_time));
       XrmPutLineResource (&rdb, line);
     }
 
 #else /* not USE_MOTIF */
 
-  sprintf (line, "Emacs.dialog*.font: %s", helv);
-  XrmPutLineResource (&rdb, line);
   sprintf (line, "Emacs.dialog*.background: grey75");
+  XrmPutLineResource (&rdb, line);
+#if !defined (HAVE_XFT) || !defined (USE_LUCID)
+  sprintf (line, "Emacs.dialog*.font: %s", helv);
   XrmPutLineResource (&rdb, line);
   sprintf (line, "*XlwMenu*font: %s", helv);
   XrmPutLineResource (&rdb, line);
+#endif
   sprintf (line, "*XlwMenu*background: grey75");
   XrmPutLineResource (&rdb, line);
   sprintf (line, "Emacs*verticalScrollBar.background: grey75");
@@ -609,8 +595,9 @@ x_load_resources (Display *display, const char *xrm_string,
 /* Retrieve the value of the resource specified by NAME with class CLASS
    and of type TYPE from database RDB.  The value is returned in RET_VALUE. */
 
-int
-x_get_resource (XrmDatabase rdb, const char *name, const char *class, XrmRepresentation expected_type, XrmValue *ret_value)
+static int
+x_get_resource (XrmDatabase rdb, const char *name, const char *class,
+		XrmRepresentation expected_type, XrmValue *ret_value)
 {
   XrmValue value;
   XrmName namelist[100];
@@ -764,6 +751,3 @@ main (argc, argv)
   XCloseDisplay (display);
 }
 #endif /* TESTRM */
-
-/* arch-tag: 37e6fbab-ed05-4363-9e76-6c4109ed511f
-   (do not change this comment) */

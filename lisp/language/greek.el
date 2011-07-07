@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2002 Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -83,5 +83,4 @@
 
 (provide 'greek)
 
-;; arch-tag: 9ba48d79-84bc-45e1-9318-685dc3921410
 ;;; greek.el ends here

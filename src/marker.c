@@ -1,6 +1,5 @@
 /* Markers: examining, setting and deleting.
-   Copyright (C) 1985, 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1997-1998, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -33,10 +32,6 @@ static struct buffer *cached_buffer;
 static int cached_modiff;
 
 static void byte_char_debug_check (struct buffer *, EMACS_INT, EMACS_INT);
-
-/* Nonzero means enable debugging checks on byte/char correspondences.  */
-
-static int byte_debug_flag;
 
 void
 clear_charpos_cache (struct buffer *b)
@@ -247,6 +242,7 @@ buf_charpos_to_bytepos (struct buffer *b, EMACS_INT charpos)
 /* Used for debugging: recompute the bytepos corresponding to CHARPOS
    in the simplest, most reliable way.  */
 
+extern EMACS_INT verify_bytepos (EMACS_INT charpos) EXTERNALLY_VISIBLE;
 EMACS_INT
 verify_bytepos (EMACS_INT charpos)
 {
@@ -262,9 +258,10 @@ verify_bytepos (EMACS_INT charpos)
   return below_byte;
 }
 
-/* bytepos_to_charpos returns the char position corresponding to BYTEPOS.  */
+/* buf_bytepos_to_charpos returns the char position corresponding to
+   BYTEPOS.  */
 
-/* This macro is a subroutine of bytepos_to_charpos.
+/* This macro is a subroutine of buf_bytepos_to_charpos.
    It is used when BYTEPOS is actually the byte position.  */
 
 #define CONSIDER(BYTEPOS, CHARPOS)					\
@@ -305,12 +302,6 @@ verify_bytepos (EMACS_INT charpos)
 	  return value;							\
 	}								\
     }									\
-}
-
-EMACS_INT
-bytepos_to_charpos (EMACS_INT bytepos)
-{
-  return buf_bytepos_to_charpos (current_buffer, bytepos);
 }
 
 EMACS_INT
@@ -444,7 +435,7 @@ Returns nil if MARKER points into a dead buffer.  */)
 	 does not preserve the buffer from being GC'd (it's weak), so
 	 markers have to be unlinked from their buffer as soon as the buffer
 	 is killed.  */
-      eassert (!NILP (XBUFFER (buf)->name));
+      eassert (!NILP (BVAR (XBUFFER (buf), name)));
       return buf;
     }
   return Qnil;
@@ -493,7 +484,7 @@ Returns MARKER.  */)
       CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
-      if (EQ (b->name, Qnil))
+      if (EQ (BVAR (b, name), Qnil))
 	{
 	  unchain_marker (m);
 	  return marker;
@@ -568,7 +559,7 @@ set_marker_restricted (Lisp_Object marker, Lisp_Object pos, Lisp_Object buffer)
       CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
-      if (EQ (b->name, Qnil))
+      if (EQ (BVAR (b, name), Qnil))
 	{
 	  unchain_marker (m);
 	  return marker;
@@ -633,7 +624,7 @@ set_marker_both (Lisp_Object marker, Lisp_Object buffer, EMACS_INT charpos, EMAC
       CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
-      if (EQ (b->name, Qnil))
+      if (EQ (BVAR (b, name), Qnil))
 	{
 	  unchain_marker (m);
 	  return marker;
@@ -681,7 +672,7 @@ set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer, EMACS_INT ch
       CHECK_BUFFER (buffer);
       b = XBUFFER (buffer);
       /* If buffer is dead, set marker to point nowhere.  */
-      if (EQ (b->name, Qnil))
+      if (EQ (BVAR (b, name), Qnil))
 	{
 	  unchain_marker (m);
 	  return marker;
@@ -736,7 +727,7 @@ unchain_marker (register struct Lisp_Marker *marker)
   if (b == 0)
     return;
 
-  if (EQ (b->name, Qnil))
+  if (EQ (BVAR (b, name), Qnil))
     abort ();
 
   marker->buffer = 0;
@@ -874,6 +865,7 @@ DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
 
 /* For debugging -- count the markers in buffer BUF.  */
 
+extern int count_markers (struct buffer *) EXTERNALLY_VISIBLE;
 int
 count_markers (struct buffer *buf)
 {
@@ -897,10 +889,7 @@ syms_of_marker (void)
   defsubr (&Sset_marker_insertion_type);
   defsubr (&Sbuffer_has_markers_at);
 
-  DEFVAR_BOOL ("byte-debug-flag", &byte_debug_flag,
+  DEFVAR_BOOL ("byte-debug-flag", byte_debug_flag,
 	       doc: /* Non-nil enables debugging checks in byte/char position conversions.  */);
   byte_debug_flag = 0;
 }
-
-/* arch-tag: 50aa418f-cdd0-4838-b64b-94aa4b2a3b74
-   (do not change this comment) */

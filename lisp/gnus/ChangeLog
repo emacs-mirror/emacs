@@ -1,3 +1,2983 @@
+2011-07-06  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Silence compiler.
+
+2011-07-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-refer-article-method): Remove mention of nnspool, which
+	no longer is much used.
+	(gnus-summary-line-format): Link to "Marking Articles" instead of "Read
+	Articles".
+
+2011-04-03  Kan-Ru Chen  <kanru@kanru.info>
+
+	* nnir.el (nnir-notmuch-program, nnir-notmuch-additional-switches)
+	(nnir-notmuch-remove-prefix, nnir-engines, nnir-run-notmuch): New nnir
+	`notmuch' backend.
+
+2011-07-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-text-html-renderer): Doc fix.
+
+	* gnus-msg.el (gnus-bug): Fix the MML tag.
+
+	* pop3.el (pop3-open-server): -ERR is a valid response to CAPA.
+
+2011-07-05  Daiki Ueno  <ueno@unixuser.org>
+
+	* gnus-start.el (gnus-get-unread-articles): Don't connect to the
+	secondary methods if started with `gnus-no-server'.
+
+2011-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* message.el (message-return-action): Fix typo in docstring.
+
+2011-07-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-read-ephemeral-bug-group): Allow fetching several
+	bug reports at once.
+
+	* nnimap.el (nnimap-request-scan): Say that splitting has finished.
+
+2011-07-04  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nndraft.el: Require gnus-group.
+	(nndraft-request-list): Declare.
+
+	* nndraft.el (nndraft-update-unread-articles): Don't show group having
+	no unread article unless it matches gnus-permanently-visible-groups.
+
+	* nndraft.el (nndraft-update-unread-articles): New function.
+	(nndraft-request-associate-buffer): Use it to update the number of
+	unread articles for the nndraft groups in the group buffer when saving
+	or killing a draft message.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-read-ephemeral-bug-group): Bind the coding
+	systems to binary before writing and reading the mbox files.
+
+	* gnus.el (gnus-summary-line-format): Link to the info node for %U
+	instead of trying to list them all (bug#8978).
+
+2011-07-03  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* pop3.el (pop3-open-server): Use :end-of-capability.
+
+2011-07-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Make sure that
+	the id is always a number.
+
+	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Hook into
+	debbugs mode, if possible.
+
+2011-07-02  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-token-passphrase-callback-function):
+	Reindent.
+	(epg-context-operation): Remove unnecessary autoload.
+
+2011-07-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-list-debbugs): New command.
+
+	* gnus-group.el (gnus-bug-group-download-format-alist): Get the
+	mboxstat instead of the maintbox, since the stat seems to be fuller.
+
+	* gnus-msg.el (gnus-configure-posting-styles): Don't try to select dead
+	summary buffers.
+
+	* message.el (message-get-reply-headers): Delete all duplicates,
+	instead of the first.
+	(message-get-reply-headers): Ensure that we have progress while
+	deleting duplicates.
+
+	* gnus-msg.el (gnus-configure-posting-styles): Get the local
+	gnus-posting-style value from the summary buffer to make it easier to
+	make that a per-buffer conf.
+
+2011-07-02  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-run-imap): Allow halting a search when an article is
+	found by setting `shortcut' in 'query.
+	(nnir-request-article): Use `shortcut' setting when requesting article
+	by Message-ID.
+
+2011-07-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-msg.el (gnus-bug): Give the Version and Package headers to
+	debbugs with the X-Debbugs-Package and X-Debbugs-Version headers.
+	Bring the pseudo-headers back too.
+
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-token-passphrase-callback-function):
+	Simplify and remove EPA dependency.
+
+2011-07-01  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-request-article): Fix error message text.
+
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (plstore-delete): Autoload.
+	(auth-source-plstore-search): Support delete operation.
+	* plstore.el (plstore-delete): New function.
+
+2011-07-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-draft.el (gnus-draft-clear-marks): Revert last change;
+	mark actually existing articles as unread rather than the ones that
+	active asserts.
+
+2011-07-01  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* nntp.el (nntp-record-command):
+	* gnus-util.el (gnus-message-with-timestamp-1):
+	Use format-time-string rather than decoding time stamps by hand.
+	This is simpler and insulates the code from potential changes to
+	current-time format.
+
+2011-07-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-draft.el (gnus-draft-clear-marks): Mark deleted articles as read.
+
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* plstore.el (plstore-select-keys, plstore-encrypt-to): New variable.
+	(plstore-save): Support public key encryption.
+	(plstore--init-from-buffer): New function.
+	(plstore-open): Use it; fix error when opening a non-existent file.
+	(plstore-revert): Use plstore--init-from-buffer.
+
+2011-07-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-backend): Fix :initarg for data slot.
+
+2011-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml2015.el (mml2015-use): Replace string-match-p with string-match
+	for old Emacsen.
+
+2011-06-30  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (mml2015-use): Don't try to load PGG on Emacs 24, when EPG
+	is not fully working.
+
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dgnushack.el: Autoload sha1 on XEmacs.
+
+	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Take an optional
+	quit window configuration.
+
+	* auth-source.el (epg-context-set-passphrase-callback): Remove
+	duplicate autoload.
+
+2011-06-30  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-request-article): Allow requesting articles by
+	Message-ID with nnimap.
+
+	* gnus-sum.el (gnus-refer-article-methods): Allow (nnir) entry to use
+	current server.
+
+2011-06-30  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Autoload EPA/EPG functions.
+	(auth-source-netrc-use-gpg-tokens): Clarify that it should not be
+	changed when EPA/EPG is not available.
+	(auth-source-backend): Rename "arg" member to "data".
+	(auth-source-backend-parse, auth-source-plstore-search)
+	(auth-source-plstore-create): Use it.
+
+2011-06-30  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-art.el (gnus-request-article-this-buffer): Use existing function
+	`gnus-refer-article-methods'.
+
+2011-06-30  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Require EPA and EPG.
+	(auth-source-passphrase-alist): New variable.
+	(auth-source-passphrase-callback-function)
+	(auth-source-token-passphrase-callback-function): Callbacks for the
+	netrc field encryption (GPG tokens).
+	(auth-source-epa-extract-gpg-token, auth-source-epa-make-gpg-token):
+	Symmetric encryption and decryption of the netrc GPG tokens.
+	(auth-source-netrc-normalize): Use them, simplifying the closure.
+
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-split-incoming-mail): If `nnimap-split-fancy' is
+	non-nil, and `nnimap-split-methods' is nil, use the former.
+
+2011-06-30  Daiki Ueno  <ueno@unixuser.org>
+
+	* plstore.el (plstore-revert): New function.
+	(plstore-open): Use it; hide the buffer from user.
+
+2011-06-30  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-backend): New member "arg".
+	(auth-source-backend-parse): Handle new backend 'plstore.
+	* plstore.el: New file.
+
+2011-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-fun.el (gnus-convert-image-to-x-face-command): Doc fix.
+
+	* mm-util.el (mm-charset-synonym-alist): Move definition before use.
+
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-process-expiry-targets): Say what target we're
+	expiring articles to.
+
+	* mm-util.el (mm-charset-to-coding-system): Recognise all ANSI.x3.4
+	variations as ASCII (bug#5458).
+
+2011-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmh.el (nnmh-request-list-1): Work on MS Windows.
+
+2011-06-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-point-in-header-p): Tweak the function to default
+	to saying that we're not in the headers if there is no separator at
+	all.  This makes it possible to use the Message version of `M-q' in
+	buffers with no headers (bug#7987).
+	(message-point-in-header-p): Fix last checkin to work with an empty
+	mail-header-separator, too.
+
+	* auth-source.el (auth-source-netrc-saver): If the user says "don't ask
+	again, save the choice via customize.
+
+2011-06-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-send-mail-function): Add `sendmail-query-once'.
+
+	* nnimap.el (nnimap-finish-retrieve-group-infos): If the server has
+	ended the connection, bail out before waiting infinitely on a new
+	connection.
+
+2011-06-28  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-msg.el (gnus-bug): Add Package and Version pseudo-headers to bug
+	reports.
+
+	* gnus.el (gnus-bug-package): Use "gnus."
+	(gnus-maintainer): Direct bug reports to submit@debbugs.gnu.org.
+
+2011-06-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-stop-animations): New function to stop any
+	animations going on at article exit time.
+
+	* gnus-registry.el (gnus-registry-user-format-function-M): Reinstate,
+	since removing it breaks people upgrading.
+
+	* shr.el (shr-put-image): Use the new interface for animating images.
+	(shr-put-image): Animate for 60 seconds.
+
+	* auth-source.el (with-auth-source-epa-overrides): Fix compilation
+	error with `find-file-hooks' on Emacs 22.
+	(with-auth-source-epa-overrides): Ugly hack to Wrap the
+	`find-file-hook' things in `symbol-value' to avoid compilation warnings
+	on all architectures.
+
+	* spam.el (spam-stat): Require in a normal fashion without binding
+	`spam-stat-install-hooks' to avoid compilation warnings.
+
+	* spam-stat.el (spam-stat-install-hooks): Removed.
+	(spam-stat-install-hooks): Don't run automatically.
+
+2011-06-26  Timo Juhani Lindfors  <timo.lindfors@iki.fi>  (tiny change)
+
+	* gnus-msg.el (gnus-summary-reply-to-list-with-original): New command
+	and keystroke.
+
+2011-06-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* auth-source.el (auth-source-netrc-cache): Move forward.
+
+2011-06-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* auth-source.el (auth-source-netrc-create): Don't query the bits that
+	we already know.
+	(auth-source-forget-all-cached): Clear auth-source-netrc-cache, too.
+	(auth-source-netrc-create): Don't prompt for the stuff we already know.
+
+2011-06-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* auth-source.el (auth-source-netrc-create): Don't print all tokens in
+	%S format, since that looks odd.
+	(auth-sources): Prefer the ~/.authinfo file over the ~/.authinfo.gpg
+	file, especially when saving.
+
+2011-06-21  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnimap.el (nnimap-find-article-by-message-id): return nil when no
+	article found.
+
+2011-06-18  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-netrc-use-gpg-tokens): Replace
+	`auth-source-save-secrets' with a more sensitive alist that can be
+	configured per file.  Experimental, so defaults to 'never.
+	(auth-source-netrc-create): Use it.  Still experimental code.
+	(with-auth-source-epa-overrides): Use `find-file-hooks' if
+	`find-file-hook' is unbound (XEmacs fix).  Fix backquoting bug.
+
+2011-06-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-save-secrets): New variable to control if
+	secret tokens should be saved encrypted.
+	(auth-source-netrc-parse, auth-source-netrc-search): Pass the file name
+	to `auth-source-netrc-normalize'.
+	(with-auth-source-epa-overrides): Add convenience macro.  Don't depend
+	on the EPA variables being defined.
+	(auth-source-epa-make-gpg-token): Convert text to a "gpg:" token.
+	(auth-source-netrc-normalize): Convert "gpg:" tokens back to text in
+	the lexical-let closure.
+	(auth-source-netrc-create): Create "gpg:" tokens according to
+	`auth-source-save-secrets'.
+
+2011-06-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el (gnus-group-update-group): Add new argument
+	`info-unchanged' that stops updating dribble buffer.
+
+	* gnus-start.el (gnus-dribble-enter): Add new argument `regexp' that
+	deletes lines matching to it in dribble buffer.
+
+	* gnus-agent.el (gnus-agent-fetch-group-1):
+	* gnus-group.el (gnus-group-update-group-line, gnus-group-make-group):
+	* gnus-srvr.el (gnus-server-update-server, gnus-server-set-info):
+	* gnus-start.el (gnus-group-change-level):
+	* gnus-sum.el (gnus-summary-move-article): Delete old dribble entry.
+
+	* gnus-sum.el (gnus-summary-update-info): Don't update dribble buffer
+	if newsgroup info is not changed.
+
+	* gnus-group.el (gnus-group-get-new-news-this-group):
+	* gnus-sum.el (gnus-summary-read-group-1, gnus-summary-exit-no-update):
+	Don't update dribble buffer.
+
+2011-06-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-remove-ignored): New function to
+	remove entries with groups we ignore.
+
+2011-05-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-rescale-image): Add an :ascent of 100 to images so that
+	the underline comes at the bottom.
+
+2011-05-31  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-article-marks-to-chars): Rename from
+	`gnus-registry-user-format-function-M' and declare the latter obsolete.
+	(gnus-registry-article-marks-to-names): Rename from
+	`gnus-registry-user-format-function-M2'.
+
+2011-05-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-exit): Make sure to kill article buffer in
+	ephemeral group.
+
+2011-05-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-browse-image): Copy the URL if called interactively.
+
+2011-05-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-mark-article-read): It's possible that we
+	want to have `gnus-newsgroup-unselected' kept sorted.  If this isn't
+	done, then unselected articles may be marked as read.
+
+	* pop3.el (pop3-open-server): Erase the buffer after the greeting,
+	since not doing this seems to lead to a race condition in pop3-logon.
+
+	* nnvirtual.el (nnvirtual-request-article): Bind `gnus-command-method'
+	so that the call chain it correct when we call "upwards".
+
+	* gnus-sum.el (gnus-select-newsgroup): Auto-expiry doesn't make sense
+	in read-only groups.
+
+	* gnus-group.el (gnus-group-mark-article-read): Ditto.
+
+	* message.el (message-cite-reply-position): Doc string fix.
+
+	* nnimap.el (nnimap-transform-headers): Simplify regexp to hopefully
+	avoid regexp overflow.
+	(nnimap-transform-split-mail): Ditto.
+
+	* pop3.el (pop3-retr): Error out if the server closes the connection.
+
+2011-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mml1991.el (mml1991-mailcrypt-encrypt): Remove use of ill-designed
+	mm-with-unibyte-current-buffer.  The buffer should not contain any
+	multibyte chars anyway at this stage.
+
+2011-05-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-urlify): Use shr-add-font to make underlines be less ugly
+	at the end of lines.
+
+2011-05-29  Julien Danjou  <julien@danjou.info>
+
+	* smiley.el (gnus-smiley-file-types): Add gif as supported file type.
+
+2011-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-bug-group-download-format-alist):
+	Use the "maintainer" version of debian reports as well.
+
+2011-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-bug-group-download-format-alist):
+	Use the "maintainer" version of debbugs.gnu.org reports.
+
+2011-05-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-delete-part): Fix mm-handle-filename usage.
+
+2011-05-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-sum.el (gnus-summary-hide-thread): Fix bug where moving to hide
+	the thread moves us backwards and so we loop forever.
+
+2011-05-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-bodies.el (mm-decode-content-transfer-encoding): Allow leading
+	whitespace in base64 data lines.
+
+2011-05-18  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-user-format-function-M):
+	Use `mapconcat'.
+	(gnus-registry-user-format-function-M2): Use to see the full text of
+	the marks.  Make "," the mark text separator.
+
+	* nntp.el (nntp-send-authinfo): Use the "force" token for NNTP
+	authentication with auth-source.
+
+2011-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-group.el (gnus-import-other-newsrc-file):
+	Use insert-file-contents.
+
+2011-05-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-sum.el (gnus-summary-hide-all-threads): Add update message every
+	1000 iterations.
+
+2011-05-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nntp.el (nntp-open-connection): Check if process-type is available.
+
+2011-05-16  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-tag-del): Add support for del tag.
+
+2011-05-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-html.el (gnus-html-put-image): Register a displayer.
+
+	* shr.el (shr-image-displayer): Don't remove text props from alt text.
+
+2011-05-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (prune-factor): New initialization parameter defaulting
+	to 0.1.
+	(registry-prune-hard): Use it.
+
+	* gnus-registry.el (gnus-registry-fixup-registry): Set prune-factor to
+	0.1 expicitly.
+
+2011-05-13  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-send-mail-with-sendmail): Assume sendmail-program
+	is bound, since this function requires sendmail.
+
+2011-05-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (registry-usage-test): Disable pruning test.
+
+2011-05-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (registry-prune-hard-candidates)
+	(registry-prune-soft-candidates): Helper methods for registry pruning.
+	(registry-prune): Use them.  Make the sort function optional.
+
+2011-05-10  Jim Meyering  <meyering@redhat.com>
+
+	* shr.el (shr-colorize-region): Fix typo "on on -> on".
+
+2011-05-10  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-put-color-1): Do not bug out when old-props is a face
+	symbol and not a list.
+
+2011-05-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-mode): Move binding of
+	shr-put-image-function here from gnus-article-prepare-display.
+
+	* shr.el (shr-put-image-function): New variable.
+	(shr-image-fetched, shr-image-displayer, shr-tag-img): Funcall it.
+	(shr-put-image): Return scaled image.
+
+	* gnus-art.el (gnus-shr-put-image): New function.
+	(gnus-article-prepare-display): Bind shr-put-image-function to it.
+
+	* gnus-html.el (gnus-html-wash-images): Register scaled images, not
+	original ones, as deletable.
+
+2011-05-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nntp.el (nntp-open-connection): Set TCP keepalive option.
+
+2011-05-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (registry-full): Add convenience method.  Fix logic.
+	(registry-insert): Use it.  Fix logic here too.
+
+	* gnus-registry.el (gnus-registry-insert): Add wrapper that calls
+	`registry-prune' if `registry-full' returns t.
+	(gnus-registry-handle-action)
+	(gnus-registry-get-or-make-entry, gnus-registry-set-id-key)
+	(gnus-registry-usage-test): Use it.
+
+2011-05-07  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-link): Make shr-link inherit from link by default.
+
+2011-05-06  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* shr.el (shr-urlify, shr-link): Fix shr-link face.
+
+2011-05-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* shr.el (shr-urlify, shr-link): Still broken but at least doesn't
+	error out because the face is not a list.
+
+2011-05-05  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-start.el (gnus-propagate-marks): Declare.
+
+2011-05-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (registry-reindex): Fix percentage message.
+
+2011-05-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* shr.el: Add shr-link face for links.
+	(shr-urlify): Use it.
+
+	* registry.el (registry-insert): Make error message more helpful.
+
+2011-05-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-schedule-image-fetching):
+	Use url-queue-retrieve, if it exists.
+
+	* shr.el (shr-tag-img): Ditto.
+
+	* gnus.el: Autoload more gnus-agent functions.
+
+	* gnus-art.el (gnus-request-article-this-buffer): Store articles in the
+	agent if we haven't already (bug#8502).
+
+	* gnus-async.el (gnus-async-article-callback): Put prefetched articles
+	into the Agent, too.
+
+	* gnus-agent.el (gnus-agent-store-article): New function.
+
+	* nnheader.el (nnheader-insert-buffer-substring): Rename from nntp-
+	and moved from that file for reuse.
+
+	* pop3.el (pop3-open-server): Error messages are "-ERR".
+
+2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* pop3.el (pop3-open-server): Upgrade opportunistically to STARTTLS.
+	(open-tls-stream): Remove superfluous tls/starttls autoloads.
+
+2011-05-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-sum.el (gnus-summary-next-article): Don't bug out if the summary
+	buffer has moved to a different frame.
+
+2011-05-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-article): Use nntp-insert-buffer-substring
+	to get the conversion from unibyte to multibyte buffers to work on
+	Emacs 22.
+
+	* nntp.el (nntp-request-article): Slight clean-up.
+
+2011-04-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-strike-through): New face.
+	(shr-tag-s): Use it to provide <s> support.
+	(shr-tag-s): Remove duplicate definition.
+
+2011-04-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-ignore-group-p): Don't call
+	`gnus-parameter-registry-ignore' if the *Group* buffer doesn't exist.
+
+2011-04-23  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-sum.el (gnus-extra-headers): Bump :version.
+
+2011-04-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-sup): New function.
+	(shr-tag-sub): Ditto.
+
+2011-04-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-ignore-group-p): Test specifically
+	for the case where `gnus-registry-ignored-groups' is a list of lists,
+	and don't call `gnus-parameter-registry-ignore' otherwise.
+
+2011-04-21  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-user): New backend variable.
+	(nnimap-open-connection-1): Use it.
+	(nnimap-credentials): Accept user parameter so it's explicit what user
+	name is desired.
+
+	* gnus-sum.el (gnus-extra-headers): Add Keywords, Cc, and Gcc to
+	default.
+
+	* gnus.el (gnus-registry-ignored-groups): Provide default in gnus.el,
+	not gnus-registry.el.
+
+	* gnus-registry.el: Mention in comments how to modify
+	`gnus-extra-headers' for proper recipient tracking and that it may
+	already have To and Cc recently, which it does as of this commit.
+	(gnus-registry-ignored-groups): Remove defcustom.
+	Explain why in comments.
+	(gnus-registry-action): Fix data-header reference to use the extra
+	headers.  Explain in package commentary how to add To and Cc headers to
+	the gnus-extra-headers.
+	(gnus-registry-ignored-groups): Adjust defaults to match the parameter.
+	(gnus-registry-ignore-group-p): Adjust to take either a group/topic
+	parameter list or a string list in `gnus-registry-ignored-groups'.
+	Fix logic error.
+
+2011-04-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-expand-url): Protect against null urls.
+
+2011-04-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-base): New binding.
+	(shr-tag-base): Keep track of <base>.
+	(shr-expand-url): New function used throughout.
+
+2011-04-20  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el
+	(gnus-registry--split-fancy-with-parent-internal): Fix loop bugs.
+	(gnus-registry-ignored-groups): New variable.
+	(gnus-registry-ignore-group-p): Use it.
+	(gnus-registry-handle-action): Use `gnus-registry-ignore-group-p' and
+	set the destination group to nil (same as delete) if it's ignored.
+
+2011-04-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-registry.el (gnus-registry-action)
+	(gnus-registry-fetch-header-fast):
+	Don't use mail-header that looks an internal function of mailheader.el.
+
+2011-04-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-registry.el: Eliminate cl functions.
+	(gnus-registry-sort-addresses): New function that replaces mapcan.
+	(gnus-registry-action, gnus-registry-spool-action)
+	(gnus-registry-split-fancy-with-parent)
+	(gnus-registry-fetch-recipients-fast): Use it.
+	(gnus-registry-import-eld): Replace delete* with dolist + delq.
+
+	* registry.el (initialize-instance, registry-lookup)
+	(registry-lookup-breaks-before-lexbind, registry-lookup-secondary)
+	(registry-lookup-secondary-value, registry-search, registry-delete)
+	(registry-insert, registry-reindex, registry-size, registry-prune):
+	Use eval-and-compile.
+
+2011-04-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el (registry-reindex): New method to recreate the secondary
+	registry indices.
+
+	* gnus-registry.el (gnus-registry-fixup-registry): Use it if the
+	tracked field changes.
+	(gnus-registry-unfollowed-addresses, gnus-registry-track-extra)
+	(gnus-registry-action, gnus-registry-spool-action)
+	(gnus-registry-handle-action)
+	(gnus-registry--split-fancy-with-parent-internal)
+	(gnus-registry-split-fancy-with-parent)
+	(gnus-registry-register-message-ids): Add recipient tracking on spool,
+	move, and delete actions, and for fancy splitting with parent.
+	(gnus-registry-extract-addresses)
+	(gnus-registry-fetch-recipients-fast)
+	(gnus-registry-fetch-header-fast): Convenience functions.
+	(gnus-registry-misc-test): ERT test of
+	`gnus-registry-extract-addresses'.
+
+2011-04-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry--split-fancy-with-parent-internal):
+	Track by subject first, then sender.
+
+2011-04-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-bogus-system-names): Replace ^...$ => \`...\'.
+
+	* gnus.el (gnus-splash-svg-color-symbols): Don't use insert-file from
+	Lisp.
+
+	* gnus-draft.el (gnus-draft-setup): New arg `dont-pop'.
+	(gnus-draft-send): Use it to avoid popping
+	up frames from gnus-group-send-queue.
+
+2011-04-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el: Updated gnus-registry docs.
+
+2011-04-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry--split-fancy-with-parent-internal):
+	Fix logic bug.
+	(gnus-registry-post-process-groups): Fix logging of no results and
+	quote sender and subject.
+
+2011-04-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-get-unread-articles): Slight cleanup.
+	(gnus-read-active-for-groups): Don't try to finish getting stuff where
+	we had no early-data returned.
+	(gnus-get-unread-articles): Add a sanity check so that we don't issue
+	two async commands to the same server at the same time.
+
+2011-04-12  Stig Sandbeck Mathisen  <ssm@fnord.no>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-select-article-buffer): Doc fix.
+
+2011-04-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-registry.el (gnus-registry-remake-db): Put the warning on a
+	"warning" level.
+
+	* mm-url.el (mm-url-package-name): Remove to ease third-party reuse.
+	(mm-url-insert-file-contents): Don't set the package names.
+
+2011-04-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-action): Remove properties and
+	simplify subject in `gnus-registry-handle-action'.
+	(gnus-registry-spool-action): Get subject and sender from message if
+	they are not passed in.
+	(gnus-registry-handle-action): Remove properties and simplify subject
+	consistently.
+
+2011-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* registry.el: Require CL before using defmacro*.
+
+2011-04-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-treat-date): Assume that
+	gnus-article-date-headers may be a group parameter.
+
+2011-04-07  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-handle-action): More debugging.
+
+	* gnus-start.el (gnus-gnus-to-newsrc-format): Add a way to run
+	interactively so the newsrc file can contain foreign groups too.
+	Useful for debugging but not much for users.
+
+2011-04-07  David Engster  <dengste@eml.cc>
+
+	* registry.el (registry-usage-test): Only do
+	`registry-lookup-breaks-before-lexbind' testing for Emacs24 with
+	lexical binding.
+
+2011-04-06  David Engster  <dengste@eml.cc>
+
+	* registry.el, gnus-registry.el: Use `ignore-errors' instead of third
+	argument NOERROR for `require', since XEmacs 21.4 does not support it.
+
+2011-04-06  David Engster  <dengste@eml.cc>
+
+	* registry.el (initialize-instance): Change :after to :AFTER to be
+	compatible with old EIEIO version in XEmacs.
+
+2011-04-06  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-post-process-groups)
+	(gnus-registry--split-fancy-with-parent-internal): Fix splitting bugs
+	and provide better messaging.
+
+2011-04-06  David Engster  <dengste@eml.cc>
+
+	* Makefile.in (fail-on-warning): New rule to compile with warnings as
+	errors.
+
+2011-04-06  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el: Don't use ERT if it's not available.  Load it
+	unconditionally anyway, discarding errors.
+	(gnus-registry-delete-entries): New convenience function.
+	(gnus-registry-import-eld): Import from old .eld registry.
+
+	* registry.el: Don't use ERT if it's not available.  Load it
+	unconditionally anyway, discarding errors.
+
+	* proto-stream.el (gnutls-negotiate): Revert inadvertent commit of the
+	version from the Claudio Bley GnuTLS patch (extra optional parameters
+	and host name).
+
+2011-04-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-fixup-registry): New function to
+	fixup the parameters that can be customized by the user between
+	save/read cycles.
+	(gnus-registry-read): Use it.
+	(gnus-registry-make-db): Use it.
+	(gnus-registry-spool-action, gnus-registry-handle-action):
+	Fix messaging.
+	(gnus-registry--split-fancy-with-parent-internal): Fix loop.
+	Map references to actual group names with sender and subject tracking.
+	(gnus-registry-post-process-groups): Use `cond' for better messaging.
+	(gnus-registry-usage-test): Add subject lookup test.
+
+	* registry.el (registry-db, initialize-instance): Set up constructor
+	instead of :initform arguments for the sake of older Emacsen.
+	(registry-lookup-breaks-before-lexbind): New method to demonstrate
+	pre-lexbind merge bug.
+	(registry-usage-test): Use it.
+	(initialize-instance, registry-db): Move the non-function initforms
+	back to the class definition.
+
+2011-04-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* registry.el: New library to manage gnus-registry-style data.
+
+	* gnus-registry.el: Use it (major rewrite).
+
+	* nnregistry.el: Use it.
+
+	* spam.el: Use it.
+
+2011-04-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-update-marks): Reinstate the code to not alter
+	marks on non-selected articles.
+
+2011-04-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* proto-stream.el: Move to Emacs core, at net/network-stream.el.
+
+	* nnimap.el (nnimap-open-connection-1): Pass explicit :end-of-command
+	parameter to open-protocol-stream.
+
+2011-04-01  Julien Danjou  <julien@danjou.info>
+
+	* mm-view.el (mm-display-inline-fontify): Do not fontify with
+	fundamental-mode.
+
+2011-04-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-get-unread-articles): Don't try to contact denied
+	servers.
+
+2011-03-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-update-marks): Revert intersection change, which
+	made marks not propagate, again.
+
+2011-03-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* proto-stream.el (open-protocol-stream): Bring back `network' type.
+	Make this the default type.
+	(proto-stream-open-plain): Rename from proto-stream-open-default.
+	(open-protocol-stream, proto-stream-open-starttls)
+	(proto-stream-open-tls, proto-stream-open-shell): Replace `default'
+	with `plain'.
+
+	* nnimap.el (nnimap-stream, nnimap-open-connection-1): Accept `network'
+	value.
+
+	* nntp.el (nntp-open-connection-function): Document the fact that some
+	values are not functions but are instead handled specially.
+	Recognize nntp-open-plain-stream value.
+	(nntp-open-connection): Recognize that value.
+
+2011-03-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gssapi.el (open-gssapi-stream): Remove the last mentions of the IMAP
+	stuff.
+
+	* gnus-score.el (gnus-score-string): Fix calling convention of
+	`gnus-simplify-buffer-fuzzy' after last patches.
+
+	* gnus-sum.el (gnus-update-marks): Don't send any marks updates to the
+	server for articles we didn't get any headers for.  This is a sanity
+	check.
+
+2011-03-29  Michael Welsh Duggan  <md5i@md5i.com>
+
+	* nnimap.el (nnimap-open-connection-1): Is the login responds with a
+	new CAPABILITY, use it.
+
+2011-03-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-agent.el (gnus-agent-fetch-headers): Don't message if we're not
+	downloading anything.
+
+	* gnus.el (gnus-splash-svg-color-symbols): Remove superfluous `and'.
+
+2011-03-29  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus.el (gnus-group-startup-message): Prefer svg file and replace
+	colors.
+	(gnus-splash-svg-color-symbols): New function.
+
+2011-03-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-simplify-buffer-fuzzy): Take the regexp explicitly
+	instead of using the global gnus-simplify-subject-fuzzy-regexp.
+	(gnus-simplify-subject-fuzzy): Use the local
+	gnus-simplify-subject-fuzzy-regex instead of the global one.
+	This makes using this variable in group parameters work.
+
+2011-03-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-unfollowed-groups):
+	Add "archive:sent" to the unfollowed group regex (for the recent Gnus
+	archive:sent-YYYY-MM-DD groups).
+	(gnus-registry-split-fancy-with-parent): Bail out early in sender
+	tracking if there are more than `gnus-registry-max-track-groups'
+	matches.
+
+2011-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message--yank-original-internal): New function to do the
+	insertion cleanly inside eval in `message-yank-original'.
+	(message-yank-original): Use it.
+
+2011-03-29  Julien Danjou  <julien@danjou.info>
+
+	* mm-view.el (mm-display-inline-fontify): Use `set-normal-mode' with
+	local variables disabled rather than `normal-mode'.
+
+2011-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* proto-stream.el: Changes preparatory to merging open-protocol-stream
+	with open-network-stream.
+	(proto-stream-always-use-starttls): Option removed.
+	(open-protocol-stream): Return a process object by default.  Provide a
+	new parameter :return-list specifying a list-type return value, which
+	now has the form (PROP . PLIST) instead of a fixed-length list.  Change
+	:type `network' to `try-starttls', and `network-only' to `default'.
+	Make `default' the default, for compatibility with open-network-stream.
+	Handle the no-parameter case exactly as open-network-stream, with no
+	additional stream processing.  Search plists using plist-get.
+	Explicitly add :end-of-commend parameter if it is missing.
+	(proto-stream-open-default): Rename from
+	proto-stream-open-network-only.  Return 'default as the type.
+	(proto-stream-open-starttls): Rename from proto-stream-open-network.
+	Use plist-get.  Don't return `tls' as the type if STARTTLS negotiation
+	failed.  Always return a list with a (possibly dead) process as the
+	first element, for compatibility with open-network-stream.
+	(proto-stream-open-tls): Use plist-get.  Always return a list.
+	(proto-stream-open-shell): Return `default' as connection type.
+	(proto-stream-capability-open): Use plist-get.
+	(proto-stream-eoc): Function deleted.
+
+	* nnimap.el (nnimap-stream, nnimap-open-connection)
+	(nnimap-open-connection-1): Handle renaming of :type parameter for
+	open-protocol-stream.
+	(nnimap-open-connection-1): Pass a :return-list parameter
+	open-protocol-stream to obtain a list return value.  Parse this list
+	using plist-get.
+
+	* nntp.el (nntp-open-connection): Handle renaming of :type parameter
+	for open-protocol-stream.  Accept open-protocol-stream return value
+	that is a subprocess object instead of a list.  Handle the case of a
+	dead returned process.
+
+2011-03-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mm-util.el (mm-handle-filename): Move to mm-decode.el (bug#8330).
+
+	* mm-decode.el (mm-handle-filename): Move from mm-util.el (bug#8330).
+
+2011-03-21  Julien Danjou  <julien@danjou.info>
+
+	* mm-view.el (mm-display-inline-fontify): Make mode optional, and call
+	normal-mode if not set. Set temp buffer unmodified to avoid kill-buffer
+	query.
+	(mm-inline-text): Render normal text with fontification whenever
+	possible.
+
+	* gnus-sum.el (gnus-summary-save-parts-1):
+	* gnus-art.el (gnus-article-browse-html-save-cid-content)
+	(gnus-article-browse-html-parts, gnus-mime-delete-part)
+	(gnus-mime-copy-part, gnus-mime-inline-part, gnus-insert-mime-button):
+	Use `mm-handle-filename'.
+
+	* mm-util.el (mm-handle-filename): New function, return the filename of
+	an handle.
+
+2011-03-18  Julien Danjou  <julien@danjou.info>
+
+	* gnus-util.el (gnus-buffer-live-p): Simplify gnus-buffer-live-p.
+	(gnus-buffer-live-p): Check that buffer is not nil.
+
+2011-03-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el: Require mouse, which the build bot seems to say is
+	needed.
+
+	* gravatar.el (gravatar-retrieve-synchronously): Use `url-retrieve' on
+	XEmacs, since it doesn't have url-retrieve-synchronously.
+
+2011-03-17  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* gnus-group.el (gnus-group-list-ticked): New function.
+	(gnus-group-make-menu-bar): Provide a menu entry for it.
+	(gnus-group-list-map): Provide a binding for it.
+
+2011-03-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-visit-file): New command.
+
+	* nnimap.el (nnimap-fetch-inbox): Rewrite slightly last patch.
+
+2011-03-17  Bjørn Mork  <bjorn@mork.no>
+
+	* nnimap.el (nnimap-fetch-inbox): Don't download bodies on ver4-capable
+	servers.
+
+2011-03-16  Julien Danjou  <julien@danjou.info>
+
+	* mm-uu.el (mm-uu-dissect-text-parts): Only dissect handle that are
+	inline.
+
+	* gnus-art.el (article-hide-list-identifiers):
+	Use gnus-group-get-list-identifiers.
+
+	* gnus-sum.el (gnus-group-get-list-identifiers): New function.
+	(gnus-summary-remove-list-identifiers):
+	Use gnus-group-get-list-identifiers to get regexp.
+	(gnus-select-newsgroup, gnus-summary-insert-subject)
+	(gnus-summary-insert-articles):
+	Call gnus-summary-remove-list-identifiers unconditionally.
+
+2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-articles-to-read): Revert back to old behaviour if
+	we're selecting a group with unread articles.
+
+	* nnimap.el (nnimap-open-connection-1): Allow `network-only', too.
+
+	* gssapi.el: New file separated out from imap.el to provide a general
+	Kerberos 5 connection facility for Emacs.
+
+	* message.el (message-elide-ellipsis): Document the format spec
+	ellipsis.
+
+2011-03-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-elide-region): Allow the ellipsis to say how many
+	lines were removed.
+
+2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-win.el (gnus-configure-frame): Protect against trying to restore
+	window configurations containing buffers that are now dead.
+
+	* nnimap.el (nnimap-parse-flags): Remove all MODSEQ entries before
+	parsing to avoid integer overflows.
+	(nnimap-parse-flags): Simplify the last change.
+	(nnimap-parse-flags): Store HIGHESTMODSEQ as a string, since it may be
+	too large for 32-bit Emacsen.
+
+2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* auth-source.el (auth-source-netrc-create):
+	* message.el (message-yank-original): Fix use of `case'.
+
+2011-03-15  Nelson Ferreira  <nelson.ferreira@ieee.org>  (tiny change)
+
+	* gnus-art.el (gnus-article-treat-body-boundary): Fix boundary width on
+	XEmacs, which was one character too wide.
+
+2011-03-09  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* gnus-sum.el (gnus-articles-to-read): Use gnus-large-newsgroup as
+	default number of articles to display.
+	(gnus-articles-to-read): Use pretty names for prompt.
+
+2011-03-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-int.el (gnus-open-server): Ditto.
+
+	* gnus-start.el (gnus-activate-group): Give a backtrace if
+	debug-on-quit is set and the user hits `C-g'.
+	(gnus-read-active-file): Ditto.
+
+	* gnus-group.el (gnus-group-read-ephemeral-group): Ditto.
+
+2011-03-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* message.el (message-yank-original): Use cond instead of CL case.
+
+2011-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* auth-source.el (auth-source-netrc-create): Use usual format for the
+	default in prompts.
+
+2011-03-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-netrc-create): Show the default in the
+	prompt when prompting for token creation.
+
+2011-03-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-format-prompt): Always convert the value
+	to a string to avoid evaluating non-string arguments.
+	(auth-source-netrc-create): Offer default properly, not as initial
+	content in `read-string'.
+	(auth-source-netrc-saver): Use a cache keyed by file name and MD5 hash
+	of line to determine if we've been run before.  If so, don't run again,
+	but print a trivial message to indicate the cache was hit instead.
+
+2011-03-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-sync.el (gnus-sync-install-hooks, gnus-sync-unload-hook):
+	Don't install `gnus-sync-read' to any hooks by default.  It's buggy.
+	The user will have to run `gnus-sync-read' manually and wait for Cloudy
+	Gnus.
+
+2011-03-11  Julien Danjou  <julien@danjou.info>
+
+	* mm-uu.el (mm-uu-type-alist): Add support for diff starting with "===
+	modified file".
+
+2011-03-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-read-char-choice): New function to read a
+	character choice using `dropdown-list', `read-char-choice', or
+	`read-char'.  It appends "[a/b/c] " to the prompt if the choices were
+	'(?a ?b ?c).  The `dropdown-list' support is disabled for now.  Use
+	`eval-when-compile' to load `dropdown-list'.  Remove `dropdown-list'.
+	(auth-source-netrc-saver): Use it.
+	(auth-source-pick-first-password): New convenience function.
+
+2011-03-08  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-credentials): Keep the :save-function as the third
+	parameter in the credentials.
+	(nnimap-open-connection-1): Use it after a successful login.
+	(nnimap-credentials): Add IMAP-specific user and password prompt.
+
+	* auth-source.el (auth-source-search): Add :require parameter, taking a
+	list.  Document it and the :save-function return token.  Pass :require
+	down.  Change the CREATED message from a warning to a debug statement.
+	(auth-source-search-backends): Pass :require down.
+	(auth-source-netrc-search): Pass :require down.
+	(auth-source-netrc-parse): Use :require, if it's given, as a filter.
+	Change save prompt to indicate all modifications saved here are
+	deletions.
+	(auth-source-netrc-create): Take user login name as default in user
+	prompt.  Move all the save functionality to a lexically bound function
+	under the :save-function token in the returned list.  Set up clearer
+	default prompts for user, host, port, and secret.
+	(auth-source-netrc-saver): New function, intended to be wrapped for
+	:save-function.
+
+2011-03-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.3 released.
+
+2011-03-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-table-horizontal-line): Change the defaults for the table
+	lines to be spaces instead.
+
+2011-03-07  Julien Danjou  <julien@danjou.info>
+
+	* sieve-manage.el (sieve-sasl-auth): Create auth-info if not found.
+	(sieve-sasl-auth): Check that auth-source-search did return something,
+	or just return an empty string.
+
+2011-03-05  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* gnus.el (gnus-interactive): Use read-directory-name.
+
+	* gnus-uu.el (gnus-uu-decode-uu-and-save)
+	(gnus-uu-decode-unshar-and-save, gnus-uu-decode-save)
+	(gnus-uu-decode-binhex, gnus-uu-decode-yenc)
+	(gnus-uu-decode-save-view, gnus-uu-decode-postscript-and-save):
+	Likewise.
+
+	* gnus-group.el (gnus-group-make-directory-group): Likewise.
+
+2011-03-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-group-change-level): Allow putting foreign groups
+	onto the list of killed groups, too.  This makes killed nnimap groups,
+	for instance, more reliably not reappear.
+
+	* nnimap.el (nnimap-request-thread): Don't bug out when we can't find
+	the parent.
+
+	* gnus-sum.el (gnus-update-read-articles): Fix typo.
+
+	* gnus.el (gnus-valid-select-methods): Mark nnimap as a backend that
+	really have server-side marks.
+
+	* gnus-sum.el (gnus-propagate-marks): Change default back to nil again,
+	since most backends do not usefully have server-side marks.
+	(gnus-update-read-articles): Propagate marks to all backends that
+	really have server-side marks.
+
+2011-03-05  Antoine Levitt  <antoine.levitt@gmail.com>
+
+	* message.el (message-cite-reply-position, message-cite-style):
+	New variables.
+	(message-yank-original): Use the new citation styles.
+
+2011-03-04  Daiki Ueno  <ueno@unixuser.org>
+
+	* message.el (message-options): Revert the change that's a workaround
+	for XEmacs buffer-local issue; don't mark it buffer-local when running
+	under XEmacs.
+
+2011-03-03  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* nnimap.el (nnimap-parse-flags): Add a workaround for FETCH lines with
+	numbers too big to be `read'.
+
+2011-03-02  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* message.el (message-options): Make buffer-local two ways to attempt
+	to fix a XEmacs bug.
+
+2011-03-02  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (gnus-with-article-buffer): Fix buffer live check.
+
+2011-03-01  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (list-identifier): Add list-identifier as a parameter
+	group.
+	(article-hide-list-identifiers): Use list-identifier group parameter.
+
+2011-02-28  Julien Danjou  <julien@danjou.info>
+
+	* sieve.el (sieve-buffer-script-name): New local variable to store
+	sieve script name.
+	(sieve-edit-script): Store sieve script name.
+	(sieve-upload): Use sieve script name when uploading.
+	(sieve-upload): Use substitute-command-keys.
+	(sieve-edit-script): Use substitute-command-keys.
+	(sieve-refresh-scriptlist): Use substitute-command-keys.
+	(sieve-manage-mode-map): Define keymap properly.
+	(sieve-manage-mode): Do not set mode name manually, change mode-name to
+	(sieve-refresh-scriptlist): Use substitute-command-keys."Sieve-manage".
+	Remove commented code about cvs.
+	(sieve-manage-quit): New function.
+	(sieve-manage-mode-map): Bind 'q' to sieve-manage-quit.
+
+2011-02-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-import-other-newsrc-file): New function.
+
+2011-02-25  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-search): Cache empty result sets.
+
+	* auth-source.el (auth-source-save-behavior): New variable to replace
+	`auth-source-never-create'.
+	(auth-source-netrc-create): Use it.
+	(auth-source-never-save): Remove.
+
+2011-02-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-stream): Doc fix.
+	(nnimap-open-connection-1): Reverse the order of the ports to that the
+	prompted-for port is first.
+
+	* gnus-start.el (gnus-get-unread-articles): Don't clobber the async
+	retrieval by the no-group selection.
+
+	* gnus-demon.el (gnus-demon-init): run-with-timer should be called with
+	numerical parameters.
+
+2011-02-25  Julien Danjou  <julien@danjou.info>
+
+	* gnus-gravatar.el: Use gnus-with-article-buffer.
+
+	* gnus-art.el (gnus-with-article-buffer): Check that the
+	gnus-article-buffer is alive.
+
+2011-02-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-creation-prompts): New variable to manage
+	creation-time prompts.
+	(auth-source-search): Document it.
+	(auth-source-format-prompt): Add utility function.
+	(auth-source-netrc-create): Don't default the user name to
+	user-login-name.  Use `auth-source-creation-prompts' and some default
+	prompts for user, host, port, and password (the default generic prompt
+	remains ugly).
+	(auth-source-never-save): Add customizable option to never save info.
+	(auth-source-netrc-create): Use it and improve save prompts.  Fix help
+	mode excursion.
+
+2011-02-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* auth-source.el (auth-source-netrc-create): Use `read-char' with no
+	argument that XEmacs doesn't support.
+
+2011-02-23  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (article-make-date-line): Ignore errors if time is
+	invalid and not convertible.
+	(article-make-date-line): Only add lapsed time if time is not nil.
+
+2011-02-23  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-netrc-create): Use `read-char' instead of
+	`read-char-choice' for backwards compatibility.
+	(auth-source-netrc-element-or-first): New function to DTRT for
+	parameter extraction.
+	(auth-source-netrc-create): Use it and fix multiple parameter print
+	bug.  Use the default passed from above (given-default) or the
+	built-in (user-login-name for :user).
+
+2011-02-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-dribble-read-file):
+	Set buffer-save-without-query, since we always want to save the dribble
+	file, probably.
+
+	* nnmail.el (nnmail-article-group): Allow a final "" split to work on
+	nnimap.
+
+	* gnus-sum.el (gnus-user-date-format-alist): Rename back again from
+	-summary- since it's a user-visible variable.
+
+	* nnimap.el (nnimap-retrieve-group-data-early): Don't do QRESYNC the
+	first time you use the new Gnus.
+
+2011-02-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Don't load netrc.el.
+	(auth-sources): Search ~/.netrc as well by default.
+	(auth-source-debug): Add 'trivia option for extra output.
+	(auth-source-do-trivia): Use it.
+	(auth-source-search): Simplify logic to use
+	`auth-source-search-backends'.  Use `auth-source-do-trivia' where
+	appropriate.  Don't keep a running count at this level.  Layer :create
+	and :delete options appropriately on the first and second passes.
+	Don't track the backend with the search results.
+	(auth-source-search-backends): New function to search a list of
+	backends for a processed spec.
+	(auth-source-netrc-parse): Cache all netrc files, making
+	auth-source-netrc-cache an alist keyed by the file name and using the
+	file mtime as the caching criterion.  Keep the obfuscated data secret
+	with a lexical bind.
+	(auth-source-netrc-search): Don't calculate the length of the results
+	unnecessarily.
+	(auth-source-search-backends): Fix bug.
+	(auth-source-netrc-create): Rework prompts.
+
+2011-02-22  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-imap-search-arguments,nnir-imap-default-search-key):
+	Lower case names of search constraints.
+	(nnir-run-query): Cache and reuse search constraints for all imap
+	servers.
+
+2011-02-22  Sam Steingold  <sds@gnu.org>
+
+	* gnus-msg.el (gnus-setup-message): Also bind `winconf-name'.
+
+2011-02-22  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-inews-add-send-actions): Restore the winconf name
+	after exit.
+	(gnus-setup-message): Define missing variable from last checkin.
+
+	* gnus-sum.el (gnus-summary-show-article): When called with t as the
+	value, show the raw article.
+
+2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection-1): Revert last change, since
+	auth-source now accepts numbers.
+
+	* auth-source.el (auth-source-netrc-parse): Accept a number as the port
+	spec, too.
+	(auth-source-ensure-strings): New function.
+
+	* gnus-art.el (gnus-article-update-date-headers): Doc fix.
+	(gnus-article-setup-buffer): Always restart the date timer so that user
+	changes to the frequency is respected.
+
+	* nnimap.el (nnimap-open-connection-1): auth-source expects strings as
+	port numbers, so make sure it gets that if nnimap-server-port is
+	explicit.
+
+2011-02-21  Simon Josefsson  <simon@josefsson.org>
+
+	* nnimap.el (nnimap-inbox): Doc fix.
+
+2011-02-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* shr-color.el (shr-color->hexadecimal): Use renamed function names
+	color-rgb-to-hex, color-name-to-rgb, color-srgb-to-lab, and
+	color-lab-to-srgb.
+
+2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nntp.el (nntp-finish-retrieve-group-infos): Add a kludge to use the
+	given method as in the group name if we're using an extended method.
+	(nntp-finish-retrieve-group-infos): Wait for the end of the LIST ACTIVE
+	command, if we're using that, instead of waiting for the beginning.
+
+	* gnus-start.el (gnus-get-unread-articles): Extend the methods so that
+	we're sure to get unique server names, and we don't output two async
+	commands in the same buffer.  This fixes an NNTP hang for some users.
+
+2011-02-21  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-next-article): Add a kludge to reselect the
+	summary buffer before reading going to the next buffer.  This avoids
+	putting the point in the group buffer if you `C-g' the command.
+
+	* auth-source.el (auth-source-netrc-parse): Add an in-memory netrc
+	cache (for now) to make ~/.authinfo.gpg files usable.
+
+	* nnfolder.el (copyright-update): Define for the compiler.
+
+	* auth-source.el (auth-source-search): Fix unbound variable.
+
+2011-02-19  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.el (gnus-meta): Doc fix.
+
+2011-02-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nnfolder.el (nnfolder-save-buffer): Don't let-bind copyright-update,
+	in case it's not yet loaded.
+
+2011-02-20  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-wait-for-response): Ensure that we get the entire
+	line we're waiting for.
+
+2011-02-19  Darren Hoo  <darren.hoo@gmail.com>  (tiny change)
+
+	* gnus-art.el (gnus-article-next-page-1): Because customized mode-line
+	face with line-width greater than zero will cause RET in gnus summary
+	buffer to scroll down article page-wise because auto vscroll happens,
+	it should be temporalily disabled when doing a scroll-up.
+
+2011-02-19  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-parse-copied-articles): Allow for "<foo> OK"
+	outputs from the server.
+
+2011-02-18  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+
+	* gnus-art.el (gnus-article-prepare): Run gnus-article-prepare-hook
+	later so that bbdb can hook in easier.
+
+2011-02-18  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* auth-source.el (auth-source-search): Don't try to create credentials
+	if the caller doesn't want that.
+	(auth-source-search): If we don't find a match, don't bug out on
+	non-bound variables.
+	(auth-source-search): Only ask a single backend to create the
+	credentials.
+
+	* nnimap.el (nnimap-log-command): Add a newline to the inhibited
+	logging.
+	(nnimap-credentials): Protect against auth-source-search returning nil.
+	(nnimap-request-list): Protect against not being able to open the
+	server.
+
+2011-02-17  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* auth-source.el (auth-source-search): Do a two-phase search, one with
+	no :create to get the responses from all backends.
+
+	* nnimap.el (nnimap-open-connection-1): Delete duplicate server names
+	when getting credentials.
+
+	* gnus-util.el (gnus-delete-duplicates): New function.
+
+2011-02-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-credentials): Instead of picking the first port as
+	a creation default, pass the whole port list down.  It will be
+	completed.
+
+	* auth-source.el (auth-source-search): Updated docs to talk about
+	multiple creation choices.
+	(auth-source-netrc-create): Accept a list as a value (from the search
+	parameters) and do completion on that list.  Keep a separate netrc line
+	with the password obscured for showing the user.
+
+	* nnimap.el (nnimap-open-connection-1): Make the `nnimap-address' the
+	first choice to `auth-source-search' so it will be used for entry
+	creation instead of the server's Gnus-specific name.
+	(nnimap-credentials): Rely on the auth-source library to select which
+	port is actually wanted in the new netrc entry, so don't override
+	`auth-source-creation-defaults'.
+
+	* auth-source.el (auth-source-netrc-parse): Use :port instead of
+	:protocol and accept a missing user, host, or port as a wildcard match.
+	(auth-source-debug): Default to off.
+
+	(auth-source-netrc-search, auth-source-netrc-create)
+	(auth-source-secrets-search, auth-source-secrets-create)
+	(auth-source-user-or-password, auth-source-backend, auth-sources)
+	(auth-source-backend-parse-parameters, auth-source-search): Use :port
+	instead of :protocol.
+
+	* nnimap.el (nnimap-credentials): Pass a port default to
+	`auth-source-search' in case an entry needs to be created.
+	(nnimap-open-connection-1): Use :port instead of :protocol.
+
+2011-02-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* auth-source.el (auth-source-secrets-search): Use mm-delete-duplicates
+	instead of delete-dups that is not available in XEmacs 21.4.
+
+2011-02-16  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-propagate-marks): Change default to t again, since
+	nil means that nnimap doesn't get updated.
+
+2011-02-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-netrc-create): Return a synthetic search
+	result when the user doesn't want to write to the file.
+	(auth-source-netrc-search): Expect a synthetic result and proceed
+	accordingly.
+	(auth-source-cache-expiry): New variable to override
+	`password-cache-expiry'.
+	(auth-source-remember): Use it.
+
+	* nnimap.el (nnimap-credentials): Remove the `inhibit-create'
+	parameter.  Create entry if necessary by using :create t.
+	(nnimap-open-connection-1): Don't pass `inhibit-create'.
+
+2011-02-15  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-debug): Enable by default and don't
+	mention the obsolete `auth-source-hide-passwords'.
+	(auth-source-do-warn): New function to debug unconditionally.
+	(auth-source-do-debug): Use it.
+	(auth-source-backend-parse): Use it for invalid `auth-sources' entries
+	and for Secrets API entries when the secrets.el library is not
+	available.
+
+2011-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-propagate-marks): Default to nil.
+	(gnus-summary-exit): Kill the correct article buffer on exit from a
+	`C-d' group.
+
+	* gnus-start.el (gnus-use-backend-marks): Removed, since it duplicates
+	gnus-propagate-marks.
+
+	* gnus-sum.el (gnus-summary-exit-no-update): Restore the group conf
+	before killing the buffers so that a non-full window conf gets handled
+	correctly.
+	(gnus-summary-exit): Ditto.
+	(gnus-summary-read-group-1): Ditto.
+
+	* nntp.el (nntp-retrieve-group-data-early): Reinstate the two-part
+	async code again so that we can debug it properly.
+
+	* message.el (message-reply): Take an optional switch-buffer parameter
+	so that Gnus window confs are respected better.
+
+2011-02-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-backend-parse-parameters): Don't rely on
+	`plist-get' to accept non-list parameters (XEmacs issue).
+	Fix docstring.
+	(auth-source-secrets-search): Use `delete-dups', `append mapcar', and
+	`butlast' instead of `remove-duplicates', `mapcan', and `subseq'.
+	(auth-sources, auth-source-backend-parse, auth-source-secrets-search):
+	Login collection is "Login" and not "login".
+
+2011-02-14  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (article-update-date-lapsed): Don't bug out when updating
+	multiple headers.
+
+	* nnimap.el (nnimap-inhibit-logging): New variable.
+	(nnimap-log-command): Don't log login commands.
+
+	* auth-source.el (auth-source-netrc-search): The asserts seem to want
+	to have more parameters.
+
+	* nnimap.el (nnimap-send-command): Mark the command time for each
+	command, so that we don't get NOOPs stepping on our toes.
+
+	* gnus-art.el (article-date-ut): Get the date from the Date header on
+	`t'.
+
+2011-02-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* auth-source.el (auth-source-search): Use copy-sequence instead of
+	the cl.el copy-list.
+
+2011-02-13  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus-delay.el (gnus-delay-article) Fix number of seconds per day.
+	Improve prompt.
+
+2011-02-13  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-mode-line-format): Remove the article
+	washing status from the default format.  It isn't very informative.
+
+2011-02-13  Tassilo Horn  <tassilo@member.fsf.org>  (tiny change)
+
+	* nnimap.el (nnimap-request-accept-article, nnimap-process-quirk):
+	Fix Gcc processing on imap.
+
+2011-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-bury): Don't pop up a new window when selected
+	window is dedicated.
+
+2011-02-10  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-save-parts): Use read-directory-name.
+
+2011-02-10  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* sieve-manage.el: Autoload `auth-source-search'.
+	(sieve-sasl-auth): Use it.
+
+2011-02-09  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el: Autoload `auth-source-forget+'.
+	(nnimap-open-connection-1): Use it if the connection fails.
+
+	* auth-source.el: Require `password-cache'.
+	(auth-source-hide-passwords, auth-source-cache): Remove and mark
+	obsolete.
+	(auth-source-magic): Marker for `password-cache' keys.
+	(auth-source-do-cache): Update docstring.
+	(auth-source-search): Use and check cache.
+	(auth-source-forget-all-cached, auth-source-remember)
+	(auth-source-recall, auth-source-forget, auth-source-forget+)
+	(auth-source-specmatchp): Caching support functions.
+	(auth-source-forget-user-or-password, auth-source-forget-all-cached):
+	Remove and obsolete.
+	(auth-source-user-or-password): Remove caching to further discourage
+	using it.  Always hide passwords.
+
+2011-02-09  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nntp.el (nntp-retrieve-group-data-early-disabled): Disable the async
+	code for now, since it doesn't work for all users.
+
+2011-02-09  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-options): Make message-options really buffer
+	local.
+
+2011-02-08  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mail-source.el: Autoload `auth-source-search'.
+	(mail-source-keyword-map): Note order matters.
+	(mail-source-set-1): Get all the mail-source source values and
+	defaults and search auth-source on those if needed.  This can all
+	probably be simplified.
+
+	* nnimap.el: Autoload `auth-source-search'.
+	(nnimap-credentials): Use it.
+	(nnimap-open-connection-1): Ask for the virtual server and physical
+	address in one shot.
+
+	* nntp.el: Autoload `auth-source-search'.
+	(nntp-send-authinfo): Use it.  Note TODO.
+
+2011-02-08  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-tag-body): Add support for text attribute in body
+	markups.
+
+	* message.el (message-options): Make message-options a local variable.
+
+2011-02-07  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-secrets-search)
+	(auth-source-user-or-password): Use `append' instead of `nconc'.
+	(auth-source-user-or-password): Build return list better and protect
+	against nil :secret.
+
+2011-02-07  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-update-info): Refactor slightly.
+	(nnimap-update-info): Tell Gnus whether there are any \Recent messages.
+	(nnimap-update-info): Clean up slightly.
+	(nnimap-quirk): Add quirk for Gmail IMAP which bugs out on NUL
+	characters.
+	(nnimap-process-quirk): Rename function to avoid collision.
+	(nnimap-update-info): Fix macrology bug-out.
+	(nnimap-update-info): Simplify split history test.
+
+2011-02-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* auth-source.el (top): Require 'eieio unconditionally.
+	Autoload `secrets-get-attributes' instead of `secrets-get-attribute'.
+	(auth-source-secrets-search): Limit search when `max' is greater than
+	number of results.
+
+2011-02-06  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nntp.el (nntp-finish-retrieve-group-infos): Protect against the first
+	part not returning any data.
+
+	* proto-stream.el (open-protocol-stream): Document the return value.
+
+2011-02-06  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-secrets-search): Add examples.
+
+2011-02-06  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-setup-1): Handle message-generate-headers-first
+	set to t.
+
+2011-02-06  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-sources): Allow for simpler defaults for Secrets
+	API with a string "secrets:collection-name" and with 'default.
+	(auth-source-backend-parse): Parse "secrets:collection-name" and
+	'default.  Recurse on parses instead of repeating code.  Use the
+	Secrets API is the source is not nil and 'ignore otherwise.  Emit a
+	message when ignoring a source.
+	(auth-source-search): List ignored search keys at the top level.
+	(auth-source-netrc-create): Use `case' instead of `cond'.
+	(auth-source-secrets-search): Created with TODOs.
+	(auth-source-secrets-create): Created with TODOs.
+	(auth-source-retrieve, auth-source-create, auth-source-delete)
+	(auth-source-protocol-defaults, auth-source-user-or-password-imap)
+	(auth-source-user-or-password-pop3, auth-source-user-or-password-ssh)
+	(auth-source-user-or-password-sftp)
+	(auth-source-user-or-password-smtp): Remove.
+	(auth-source-user-or-password): Deprecated and modified to be a wrapper
+	around `auth-source-search'.  Not tested thoroughly.
+
+2011-02-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el: Bring in assoc and eioeio libraries.
+	(secrets-enabled): New variable to track the status of the Secrets API.
+	(auth-source-backend): New EIOEIO class to represent a backend.
+	(auth-source-creation-defaults): New variable to set prompt defaults
+	during token creation (see the `auth-source-search' docstring for
+	details).
+	(auth-sources): Simplify to allow a simple string as a netrc backend
+	spec.
+	(auth-source-backend-parse): Parse a backend from an `auth-sources' spec.
+	(auth-source-backend-parse-parameters): Fill in the backend parameters.
+	(auth-source-search): Main auth-source API entry point.
+	(auth-source-delete): Wrapper around `auth-source-search' for deletion.
+	(auth-source-search-collection): Helper function for searching.
+	(auth-source-netrc-parse, auth-source-netrc-normalize)
+	(auth-source-netrc-search, auth-source-netrc-create): Netrc backend.
+	Supports search, create, and delete.
+	(auth-source-secrets-search, auth-source-secrets-create): Secrets API
+	backend stubs.
+	(auth-source-user-or-password): Call `auth-source-search' but it's not
+	ready yet.
+
+2011-02-04  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-setup-1): Remove the read-only stuff, since it
+	doesn't work under XEmacs, for some reason.
+
+	* gnus-sum.el (gnus-user-date): Rename back from
+	gnus-summary-user-date since user code refers to it.
+
+	* shr.el (shr-render-td): Store the actual background colour used.
+
+	* message.el (message-setup-1): Don't bind the constant
+	-forbidden-properties.
+	(message-setup-1): Revert previous change, since it needs to bind the
+	props to insert them.
+	(message-resend): Allow removing the read-only separator line.
+
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-accept-article): Give an error message if
+	the APPEND wasn't successful.
+
+2011-02-03  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus-start.el (gnus-get-unread-articles): Fix the call to methods
+	that have no groups.
+
+2011-02-03  Julien Danjou  <julien@danjou.info>
+
+	* gnus-draft.el: Remove progn around gnus-draft-setup.
+
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-read-active-for-groups): This function is never
+	called with a nil `infos', so clean that up.
+	(gnus-get-unread-articles): Request active files from primary/secondary
+	methods that have no groups (yet).
+
+2011-02-03  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-setup-1): Always generate References first.
+	(message-mail): Return the return value of message-setup, not always t.
+	(message-setup-1): Insert mail-header-separator with read-only and
+	intangible properties set.
+
+	* gnus.el (gnus-summary-line-format): Add missing semi-colon for
+	user-date in docstring.
+
+	* gnus-art.el (gnus-article-jump-to-part): Remove useless sit-for.
+
+	* gnus.el (gnus-summary-line-format): Mention &user-date format in
+	docstring.
+
+	* gnus.el (gnus-user-date-format-alist): Change default value. Use
+	defcustom, with type and group. Move from gnus-util.el. Rename to
+	gnus-summary-user-date-format-alist.
+
+2011-02-03  Glenn Morris  <rgm@gnu.org>
+
+	* nnimap.el (gnus-fetch-headers): Declare.
+
+	* nnheader.el (gnus-range-add, gnus-remove-from-range): Autoload.
+
+2011-02-03  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-forward-make-body-digest-plain)
+	(message-followup, message-reply): Clean up things noted by Stefan.
+
+	* gnus-art.el (gnus-article-setup-buffer): Stop the date timer if
+	gnus-article-update-date-headers is nil.
+	(gnus-article-date-headers): Rip out the old -treat-date-* stuff, since
+	it didn't really work with defcustom.
+	(article-update-date-lapsed): Make sure the window start doesn't move,
+	either.
+
+2011-02-01  Julien Danjou  <julien@danjou.info>
+
+	* mm-uu.el (mm-uu-type-alist): Add support for git format-patch diff
+	format.
+
+	* mm-decode.el (mm-inline-media-tests): Do not check for diff-mode it's
+	standard in Emacs nowadays.
+
+2011-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-expand-name): Don't trust the return value of
+	bbdb-complete-name.
+	(message-check-news-header-syntax): Remove unused var `start'.
+	(message-idna-to-ascii-rhs-1): Remove unused vars `rhs' and `address'.
+	(message-inhibit-body-encoding): Move to before first use.
+	(mail-abbrev-mode-regexp, Expires, User-Agent, Lines, Distribution)
+	(To, References, In-Reply-To, Newsgroups, Subject, Path, From)
+	(Organization, Message-ID, Date, mh-previous-window-config):
+	Defvar the vars using dynamic scoping.
+
+2011-02-01  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-render-td): Only do colours at the final rendering.
+	Should be slightly faster.
+	(shr-insert-table): Fix up TD background colours when doing the
+	vertical padding.
+
+	* gnus-art.el (article-date-ut): Protect against articles with no Date
+	header.
+	(article-update-date-lapsed): Don't use current-column to find the
+	horizontal position.  It's fragile in the presence of \003 characters.
+
+	* gnus-start.el (gnus-read-active-file-1): Remove dead parameter infos.
+
+2011-01-31  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (article-transform-date): Rewrite to still work when
+	there are several rfc2822 parts.
+	(article-transform-date): Fix infinite recursion.
+	(article-date-ut): Replace infinitely many Date headers with a single
+	one when called interactively.
+
+	* nnimap.el (nnimap-wait-for-response): Wait for results in a more
+	secure manner.
+
+	* gnus-art.el (article-update-date-lapsed): Try to avoid having point
+	move around by not using save-window-excursion.  It seems to work...
+
+2011-01-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-make-date-line): Work for user-defined format.
+
+2011-01-31  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nntp.el (nntp-retrieve-group-data-early)
+	(nntp-finish-retrieve-group-infos): Implement the asynchronous data
+	fetching functions.
+
+	* gnus-start.el (gnus-read-active-for-groups): Read the active files
+	thoroughly for all backends that have no known groups.  This should
+	allow new nnml methods to retrieve mail.
+
+	* gnus-group.el (gnus-group-jump-to-group): Allow jumping to groups
+	that Gnus doesn't know exists again.
+
+	* gnus-art.el (gnus-article-date-lapsed-new-header): Remove.
+	(gnus-treat-date-ut): Ditto.
+	(gnus-article-update-date-header): Rename.
+	(gnus-treat-date-local): Remove.
+	(gnus-treat-date-english): Remove.
+	(gnus-treat-date-lapsed): Remove.
+	(gnus-treat-date-combined-lapsed): Remove.
+	(gnus-treat-date-original): Remove.
+	(gnus-treat-date-iso8601): Remove.
+	(gnus-treat-date-user-defined): Remove.
+	(gnus-article-date-headers): New variable to control all the date
+	header options.
+	(article-date-ut): Rewrite to allow using the new way to format date
+	headers(s).
+
+2011-01-30  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnmail.el (nnmail-article-group): Check for a direct fancy split
+	method.
+	(nnmail-article-group): A better test for fanciness.
+
+	* nnimap.el (nnimap-request-head): Protect against not finding the
+	article by Message-ID.
+
+2011-01-29  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (article-update-date-lapsed): Try a better way to really
+	keep point at the "same place".
+
+2011-01-28  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-select-newsgroup): Don't try to alter the active
+	data if the group is unactivated.
+
+2011-01-28  Julien Danjou  <julien@danjou.info>
+
+	* gnus-win.el: Remove dead function gnus-window-configuration-element.
+	(gnus-all-windows-visible-p): Remove old compatibility code.
+	(gnus-window-top-edge): Add docstring.
+
+	* gnus-group.el (gnus-group-jump-to-group): Set must match to t.
+
+2011-01-28  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-int.el (gnus-request-marks): Call *-request-marks instead of the
+	older request-update-info.
+
+	* gnus-art.el (article-make-date-line): Limit the length a bit more.
+
+2011-01-28  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (mml2015-epg-sign, mml2015-epg-encrypt):
+	Give mml2015-signers higher precedence over mml2015-sign-with-sender.
+
+2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-refresh-group): Refresh even non-visible
+	groups.  This makes the nndraft:queue group pop up if it's not already
+	there.
+
+	* gnus-sum.el (gnus-summary-read-group-1): Fix the "contains no
+	messages" logic, which was reversed.
+
+	* gnus-art.el (article-update-date-lapsed): Ensure that point stays at
+	the "same place" even if point is on the line being replaced.
+	(article-update-date-lapsed): Allow updating both the combined lapsed
+	and the lapsed headers.
+	(article-update-date-lapsed): Skip past all the X-Sent/Date headers.
+	(article-make-date-line): Limit the number of segments dynamically to
+	avoid too-long lines.
+
+2011-01-27  Julien Danjou  <julien@danjou.info>
+
+	* mml2015.el (mml2015-epg-sign): Add and use mml2015-sign-with-sender.
+	(mml2015-epg-encrypt): Use mml2015-sign-with-sender.
+
+2011-01-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-expand-newlines, shr-previous-newline-padding-width):
+	Use plist-get instead of the cl function getf.
+
+2011-01-27  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (float-time): Get rid of compiler warning, again.
+
+2011-01-27  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-put-color): Special-case background colours: Do put them
+	at the blank parts at the front of the lines.
+
+	* gnus-draft.el (gnus-draft-clear-marks): New function to be run as an
+	exit hook to nix out all data on readedness on group exit.
+
+	* gnus-util.el (float-time): If float-time is bound, always use it on
+	all Emacsen.  It's unclear why the subrp check was there.
+	(time-date): Require to make some autoload issues on XEmacs go away.
+
+	* shr.el (shr-put-color): Don't do the box padding in tables, since
+	they're already padded.
+
+2011-01-26  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-next-page): When the last line of the
+	article is displayed, scroll down once more instead of going to the
+	next article at once.
+	(article-lapsed-string): Refactor out and allow specifying how many
+	segments you want.
+	(gnus-article-setup-buffer): Start updating the lapsed header directly.
+	(gnus-article-update-lapsed-header): New variable.
+
+	* shr.el: Revert change that made headings use different-sized faces.
+	The Emacs display engine isn't advanced enough that, for instance,
+	tables can comfortably use differently-sized faces.
+
+2011-01-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection-1): Store the actual stream type
+	used.
+	(nnimap-login): Prefer plain LOGIN if it's enabled (since it requires
+	fewer round trips than CRAM-MD5, and it's less likely to be buggy), and
+	we're using an encrypted connection.
+
+	* proto-stream.el: Alter the interface functions to also return the
+	actual stream type used: network or tls.
+
+2011-01-25  Julien Danjou  <julien@danjou.info>
+
+	* mm-view.el (mm-display-shell-script-inline): Fix typo in docstring.
+	(mm-display-javascript-inline): New function.
+
+	* mm-decode.el (mm-inline-media-tests): Add application/javascript
+	viewing function.
+
+2011-01-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-expand-newlines): Fix variable name.
+
+2011-01-25  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-expand-newlines): Make nested boxes work.
+
+2011-01-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-expand-newlines): Proof of concept implemantation of boxy
+	backgrounds.
+	(shr-expand-newlines): Switch to using overlays to enable kill'n'yank
+	in a more sensible manner.
+
+2011-01-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* mml-smime.el (mml-smime-use): Make it a defcustom and default to 'epg
+	if EPG is loaded.
+
+2011-01-24  Julien Danjou  <julien@danjou.info>
+
+	* shr.el: Use defface to create shr-tag-h[1-6] faces to fontify h[1-6]
+	tags.
+
+2011-01-24  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-read-summary-keys): Don't call disabled
+	commands.
+
+	* gnus-gravatar.el (gnus-gravatar-insert): Don't move point around
+	in the article buffer.
+	(gnus-gravatar-insert): Use blank space from the current buffer to
+	avoid breaking text properties.  This makes X-Sent updating work again.
+
+	* gravatar.el (gravatar-retrieve): Be silent when retrieving.
+
+2011-01-23  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-image-fetched): Kill the buffer anyway, and
+	fix the bug in url-http.el instead.
+
+	* shr.el (shr-image-fetched): Ditto.
+
+	* shr.el (shr-image-fetched): Avoid having point move in the article
+	buffer.
+
+	* gnus-html.el (gnus-html-image-fetched): Don't kill the temporary
+	buffer after being called.  It's apparently being killed by url.el, and
+	killing it made point move to end-of-buffer in a random buffer.
+
+	* shr.el (shr-image-fetched): Ditto.
+
+2011-01-23  Julien Danjou  <julien@danjou.info>
+
+	* mm-decode.el (mm-inline-media-tests): Change text/org to text/x-org.
+
+	* mm-uu.el (mm-uu-org-src-code-block-extract): Change text/org to
+	text/x-org.
+
+2011-01-22  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-move-article): Protect against backends
+	(i.e., nnimap) returning nil as the article number.
+
+2011-01-22  Kazuhiro Ito  <kzhr@d1.dion.ne.jp>  (tiny change)
+
+	* flow-fill.el (fill-flowed): Make `delete-space' option correspond to
+	"DelSp" parameter in RFC3676.
+
+2011-01-22  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-check-recipients): Display the encoded version of
+	the bogus address if they differ.
+
+	* gnus-draft.el (gnus-group-send-queue): Really refresh the queue group
+	after sending.
+
+	* gnus-agent.el (gnus-agent-send-mail): Ditto.
+
+	* gnus-group.el (gnus-group-refresh-group): New convenience function.
+
+	* gnus-draft.el (gnus-group-send-queue): Update the queue group in the
+	group buffer after sending the queue.
+
+	* gnus-agent.el (gnus-agent-send-mail): Ditto.
+
+2011-01-22  Julien Danjou  <julien@danjou.info>
+
+	* mailcap.el (mailcap-mime-extensions): Rename text/org to text/x-org.
+
+2011-01-22  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-preferred-alternative-precedence): Don't bug out on
+	nested related parts.
+
+	* nnfolder.el (nnfolder-request-expire-articles): Return the list of
+	unexpired articles.  This fixes the regression that led expiry marks to
+	disappear from nnfolder groups.
+
+2011-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-art.el (gnus-button-alist, gnus-button-handle-info-keystrokes):
+	Don't confuse the "ret" of "retrograde" with RET.
+
+2011-01-21  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (gnus-mime-display-single): Use mm-display-inline rather
+	than mm-insert-inline.
+
+2011-01-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-remove-images, gnus-article-show-images):
+	Widen article buffer.
+
+2011-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-util.el (mm-find-buffer-file-coding-system): Don't forget to kill
+	the temp buffer.
+	* message.el (message-mailer-swallows-blank-line): Use with-temp-buffer.
+
+2011-01-20  Julien Danjou  <julien@danjou.info>
+
+	* mm-decode.el (mm-inline-media-tests): Add text/x-sh.
+
+	* gnus-art.el (gnus-mime-inline-part): Use mm-display-inline rather
+	than mm-insert-inline to insert inline part: this respect
+	mm-inline-media-tests displayers.
+
+	* mm-view.el (mm-display-shell-script-inline): New function.
+
+	* mm-decode.el (mm-inline-media-tests): Add x-shellscript and x-sh.
+
+	* mm-uu.el (mm-uu-type-alist): Add org block.
+	(mm-uu-org-src-code-block-extract): New function.
+
+	* mm-view.el (mm-display-org-inline): New function.
+
+	* mm-decode.el (mm-automatic-display): Add text/org.
+
+	* mailcap.el (mailcap-mime-extensions): Add .org.
+
+2011-01-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-highlight): Remove argument passed to
+	gnus-article-add-buttons.
+
+2011-01-19  Tom Rauchenwald  <sehnsucht.nach.unendlichkeit@quantentunnel.de>  (tiny change)
+
+	* spam.el (spam-spamassassin-register-with-sa-learn): Insert a full
+	From header with a date and "nobody" as the sender.
+
+2011-01-19  Julien Danjou  <julien@danjou.info>
+
+	* gnus-art.el (gnus-article-add-buttons): Simplify condition.
+	(gnus-button-push): Remove gnus-button-entry function, it fails heavily
+	if you have the same regexp several times.
+	(gnus-button-push): Fix matching when regexp is symbol.
+
+2011-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-mail): A compose-mail function should
+	accept headers as strings.
+
+2011-01-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-tool-bar-gnome): Tweak tool-bar items.
+	Add :vert-only tags.
+	(message-mail): New arg RETURN-ACTION.
+	(message-return-action): New var.
+	(message-bury): Use it.
+	(message-mode): Make it buffer-local.
+	(message-send-and-exit): Always call message-bury.
+
+	* gnus-msg.el (gnus-msg-mail): New arg RETURN-ACTION.  Pass it to
+	message-mail.
+
+2011-01-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-convert-partial-article): Protect against
+	zero-length body parts.
+
+	* mm-decode.el (mm-preferred-alternative-precedence):
+	Discourage showing empty parts.
+
+	* gnus-int.el (gnus-request-accept-article): Don't try to update marks
+	and stuff if the backend didn't return the article number.  This fixes
+	an Exchange-related nnimap bug.
+
+	* gnus-sum.el (gnus-summary-next-article): Remove hack to reselect
+	group window, because it does the wrong thing when a separate frame
+	displays the group buffer.
+
+	* proto-stream.el (open-protocol-stream): Protect against the low-level
+	transport functions returning nil.
+
+2011-01-07  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (epg-sub-key-fingerprint): Autoload.
+	(mml2015-epg-find-usable-secret-key): New function.
+	(mml2015-epg-sign): Use mml2015-epg-find-usable-secret-key instead of
+	mml2015-epg-find-usable-key (Bug#7797).
+	(mml2015-epg-encrypt): Ditto.
+
+2011-01-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* flow-fill.el (fill-flowed-encode): Do encoding citation-aware.
+
+2011-01-03  Glenn Morris  <rgm@gnu.org>
+
+	* sieve-manage.el (sieve-manage-open): Correctly set sieve-manage-port.
+
+	* sieve.el (sieve-open-server): Give a more explicit error if
+	sieve-manage-open returns nil.  (Bug#7720)
+
+2011-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	* gnus-msg.el (gnus-message-replyencrypt): Default to `t'.
+
+2011-01-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-login): Prefer AUTH=CRAM-MD5, if it's available.
+	This avoids sending passwords in plain text over non-encrypted
+	channels.
+
+	* shr.el (shr-rescale-image): Display all GIF images as animated images.
+
+	* nnimap.el (nnimap-login): Refactored out into own function, and
+	implement CRAM-MD5.
+	(nnimap-wait-for-line): Refactored out.
+
+	* mm-view.el (mml-smime): Require.
+
+2010-12-20  David Engster  <deng@eml.cc>
+
+	* mm-view.el (mm-view-pkcs7-decrypt): If mml-smime-use is set to 'epg,
+	use EPG to decrypt S/MIME messages instead of openssl.
+
+2011-01-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-group): Avoid double SELECT on `M-g'.
+
+	* gnus-group.el (gnus-group-kill-group): Don't try to update the group
+	status is the group clearly is unreachable.
+
+	* auth-source.el (auth-source-create): Add the optional second
+	parameter to `local-variable-p' to be compatible with XEmacs.
+
+2011-01-02  Wang Diancheng  <dcwang@kingbase.com.cn>  (tiny change)
+
+	* nnml.el (nnml-request-article): Allow requesting by Message-ID to
+	work when using a compressed nnml folder.
+
+2011-01-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-select-newsgroup): Don't propagate marks to
+	backends after sanitising on entry, because this never makes sense:
+	If the articles have gone missing, then the data no longer exists on
+	the backend, and if they haven't, then Gnus is wrong, and shouldn't
+	overwrite anything anyway.
+
+	* shr.el (shr-insert-document): Bind shr-width dynamically to
+	window-width if it's nil.
+
+2010-12-30  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* shr.el (shr-width, shr-insert-document): Allow nil as shr-width value
+	with the meaning of using the full emacs window width for rendering.
+
+2010-12-27  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (mml2015-epg-sign, mml2015-epg-encrypt): Take care the
+	case when sender is not given.
+
+2010-12-23  Julien Danjou  <julien@danjou.info>
+
+	* gnus-gravatar.el (gnus-gravatar-transform-address): Set
+	`mail-extr-ignore-realname-equals-mailbox-name' to nil when extracting
+	the addresses, otherwise we might misplaced the gravatar.
+
+2010-12-21  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml1991.el (pgg-sign-region, pgg-encrypt-region):
+	* gnus-art.el (pgg-snarf-keys-region): Autoload since PGG is now
+	obsolete in Emacs.
+
+2010-12-20  Julien Danjou  <julien@danjou.info>
+
+	* gnus-util.el (gnus-rescale-image): Revert last change.
+
+2010-12-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-delete-articles): New command.
+
+2010-12-17  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-mode): Make sure 'gnus-registry-install is bound.
+
+2010-12-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-get-newsgroup-headers): Revert the last change
+	here, since it's up to the backends to do CRLF removal if their
+	protocol has it.
+
+	* nnimap.el (nnimap-retrieve-headers): Remove CRLF from the headers.
+
+2010-12-17  Julien Danjou  <julien@danjou.info>
+
+	* gnus-util.el (gnus-rescale-image): Allow to resize images even if
+	they are from file. Can also scale up.
+
+2010-12-17  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-sum.el (gnus-summary-refer-thread): Simplify code. Restore
+	gnus-use-agent.
+	(gnus-get-newsgroup-headers): Avoid unwanted spaces at eol.
+
+	* nnir.el (nnir-get-active): Ignore nnir-ignored-newsgroups if null.
+
+2010-12-17  Julien Danjou  <julien@danjou.info>
+
+	* gravatar.el (gravatar-retrieve-synchronously): New function.
+	(gravatar-get-data): Make more robust.
+
+2010-12-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-wait-for-response): Fix the end-point calculation
+	to really consider the last line.
+
+2010-12-16  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth-source.el (auth-source-gpg-encrypt-to): New variable to set the
+	list of recipient keys, or use symmetric encryption if not a list.
+	(auth-source-create): Use it to make `epa-file-encrypt-to' local for an
+	EPA override, replacing the call to `netrc-store-data'.
+
+2010-12-16  Dan Davison  <dandavison7@gmail.com>  (tiny change)
+
+	* gnus-srvr.el: Avoid passing nil regexp argument to
+	delete-matching-lines.
+
+2010-12-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-schedule-image-fetching): Make sure the HTML
+	fetching stops when Gnus exits.
+
+	* nnfolder.el (nnfolder-save-all-buffers): Refactor out into its own
+	function.
+	(nnfolder-request-expire-articles): Save all the buffers after doing
+	expiry.
+
+	* nnmail.el (nnmail-expiry-target-group): Revert the "all articles are
+	the last article", since that led to serious performance regressions
+	when expiring nnml groups.
+
+2010-12-16  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el: Improve customizations.
+
+2010-12-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-subscribe-newsgroup): Notify the backend.
+
+	* gnus-group.el (gnus-group-kill-group): Notify the backend that the
+	group has been killed.
+	(gnus-group-yank-group): Ditto.
+
+	* gnus-srvr.el (gnus-browse-unsubscribe-group): Ditto.
+
+	* nnimap.el (nnimap-request-update-group-status): New function.
+
+	* gnus-int.el (gnus-request-update-group-status): New interface
+	function.
+
+	* gnus-sum.el (gnus-summary-push-marks-to-backend): Fix the logic for
+	copying read-ness to the backends.
+
+	* nnimap.el (nnimap-quirk): New function.
+	(nnimap-retrieve-group-data-early): Use it.
+	(nnimap-quirks): New alist.
+
+2010-12-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-insert): Set shr-start after deleting trailing space;
+	don't delete it within indentation.
+
+2010-12-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-wait-for-response): Always look (at least) at the
+	previous line.
+
+2010-12-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-retrieve-group-data-early): Fix the syntax of the
+	QRESYNC command by deleting a superfluous space which broke Cyrus
+	servers.  This change will break other servers that are buggy the other
+	way around.
+
+2010-12-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* spam.el: Reindent and fix long lines.
+	(spam-copy-or-move-routine): Exclude invalid move destinations.
+
+2010-12-14  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-mode): Don't install registry hooks if user hasn't
+	installed the registry.
+
+2010-12-13  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-run-gmane): Better check for gmane groups: error out if
+	groupname doesn't contain "gmane".
+
+2010-12-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-matches-options-n): Fix typo in last change.
+	(gnus-1): Don't create the nndrafts group twice.
+	(gnus-setup-news): There's no need to read the active file here, since
+	that's done again later on a per-backend basis.
+	(gnus-start-draft-setup): Make sure that the new group is started out
+	empty.
+
+	* gnus-agent.el (gnus-agentize): Don't create the queue group
+	automatically on startup.  It'll be created later, if needed.
+
+	* gnus-start.el (gnus-auto-subscribed-groups): Add nnimap to the list
+	of automatically subscribed groups.
+	(gnus-auto-subscribed-categories): New variable.
+	(gnus-matches-options-n): Use it.
+	(gnus-default-subscribed-newsgroups): Remove unused variable.
+	(gnus-start-draft-setup): Message a bit less.
+
+2010-12-13  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-run-imap): Return article list in order of increasing
+	UID.
+
+2010-12-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-enter-digest-group):
+	Mention gnus-auto-select-on-ephemeral-exit.
+
+	* proto-stream.el (proto-stream-open-network-only): Fix the calling
+	convention of the network-only option.
+
+2010-12-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* proto-stream.el (proto-stream-open-network-only): New function to
+	have a way to specify non-STARTTLS upgrade connections.
+
+2010-12-10  Julien Danjou  <julien@danjou.info>
+
+	* gnus-gravatar.el (gnus-gravatar-transform-address): Fix error when
+	email address is nil.
+
+	* message.el (message-bogus-recipient-p): Set address to "" if nil.
+
+2010-12-10  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-request-expire-articles): Ignore expiry except for
+	deletion.
+	(nnir-run-imap): Only need to parse list once.
+
+2010-12-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-script): Ignore <script>.
+	(shr-tag-label): Add <label> support.
+
+2010-12-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-ucs-to-char): Use eval-and-compile.
+
+	* shr.el (shr-image-displayer): Work for images lined side by side.
+
+2010-12-08  Robert Pluim  <rpluim@gmail.com>
+
+	* gnus-demon.el (gnus-demon-init): Call run-with-timer with an integer
+	parameter, since XEmacs doesn't accept t as a parameter.
+
+2010-12-08  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-retrieve-headers): Use rassq when comparing article
+	ids.
+	(nnir-run-gmane): Simplify groupspec formatting.
+	(nnir-request-expire-articles): New function.
+
+2010-12-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-parse-flags): Tweak VANISHED regexp to avoid regexp
+	overflow, possibly.
+
+	* shr.el (shr-tag-table-1): Use bg/gfcolor specs on tables.
+	(shr-render-td): Handle td style="" better.
+	(shr-tag-table): Use the color from the style sheet.
+	(shr-render-td): Make sure we copy over all the overlays, too.
+
+2010-12-07  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-run-gmane): Restore sub-optimal test for gmane server.
+	(nnir-request-article): Improve article retrieval.
+
+2010-12-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-extra-numeric-entities): New variable.
+
+	* mm-url.el (mm-url-decode-entities):
+	* mm-decode.el (mm-shr): Use it to decode extra numeric entities.
+
+2010-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el: Use completion-at-point.
+	(message-completion-function): New fun, extracted from message-tab.
+	(message-mode): Use it for completion-at-point-functions.
+	(message-tab): Use it and completion-at-point.
+
+2010-12-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-find-fill-point): Don't break a line after a kinsoku-bol
+	character if a non-breakable character follows.
+
+2010-12-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* proto-stream.el (proto-stream-open-tls): Return nil if we don't get
+	any stream.
+
+	* shr.el (shr-tag-font): Colorize the region.
+	(shr-tag-body): Ditto.
+	(shr-tag-font): Actually let the styles be inherited instead of
+	overwriting them.
+	(shr-tag-font): Get the background color right.
+	(shr-tag-style): Ignore all <style> tags for the moment.
+
+	* gnus-int.el (gnus-request-thread): Rework to take a header instead of
+	a Message-ID to avoid having nnimap depend on gnus-sum.
+
+	* shr.el (shr-descend): Only colorize something if we have a node that
+	sets colors.
+
+2010-12-06  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-render-td): Render td content with shr-descend, so style
+	will be applied to <td> too.
+	(shr-colorize-region): Colorize region even if we only have a background.
+	(shr-tag-body): Fix color and background color inheritance.
+	Do not recolorize after shr-generic.
+	(shr-tag-font): Let shr-generic colorize via inheritance.
+
+2010-12-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-find-fill-point): Don't regard apostrophe as kinsoku-bol.
+
+2010-12-06  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-request-move-article): Remove obsolete code.
+
+2010-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-macroexpand-all): Use eval-and-compile.
+
+2010-12-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-respool-article): The completion function
+	expects a list instead of an alist.
+
+	* nntp.el (nntp-snarf-error-message): nnheader-report takes a format
+	string as the parameter.
+
+	* gnus.el (gnus-valid-select-methods): Allow nnimap to respool.
+
+	* shr.el (shr-stylesheet): New dynamic variable for cascading the
+	styles.
+	(shr-colorize-region): New function.
+	(shr-insert-background-overlay): Remove.
+	(shr-render-td): Background setting should be taken care of on a higher
+	level.
+	(shr-tag-body): Use post-hoc colorizations.
+	(shr-tag-body): Set up a style sheet based on bgcolor/fgcolor.
+	(shr-put-color-1): Don't overwrite old colors.
+	(shr-colorize-region): When the background color isn't explicit, use
+	a fixed background.
+
+	* gnus-util.el (gnus-output-to-mail): Require nnmail before using
+	nnmail variables.
+
+2010-12-05  Bjørn Mork  <bjorn@mork.no>
+
+	* nnimap.el (nnimap-process-expiry-targets): Avoid downloading articles
+	unless necessary.
+
+2010-12-05  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-run-gmane): Use more careful test for gmane nntp
+	server.
+
+2010-12-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-put-image): Use widget instead of local maps
+	so that TAB works.
+
+	* gnus-sum.el (gnus-summary-show-article): Reverse the meanings of `C-u
+	C-u g' and `C-u g' so that `C-u g' does what it traditionally did.
+
+	* shr.el (shr-urlify): Show the URL before the title to avoid
+	misleading URLs.
+
+2010-12-04  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* shr.el (shr-urlify): Display the title in <a> tags.
+
+2010-12-04  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-categorize): Replace mapcar with mapc.
+
+2010-12-03  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el: Rearrange code to allow macros to be autoloaded by
+	gnus-sum.el.
+	(nnir-retrieve-headers-override-function): Make this variable
+	customizable.
+	(nnir-retrieve-headers): Remove obsolete subject-mangling code.
+
+	* gnus-sum.el (nnir-article-group,nnir-article-rsv): Autoload macros
+	from nnir.el.
+
+2010-12-03  Julien Danjou  <julien@danjou.info>
+
+	* gnus-demon.el (gnus-demon-init): Fix time computing when time is nil.
+
+2010-12-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-macroexpand-all): Don't modify argument;
+	allow optional argument `environment'.
+
+2010-12-03  Glenn Morris  <rgm@gnu.org>
+
+	* mm-extern.el (message-goto-body): Update declaration.
+
+2010-12-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-macroexpand-all): New function.
+
+	* gnus-sum.el (gnus-summary-line-format-alist): Use gnus-macroexpand-all
+	instead of macroexpand-all that is unavailable in XEmacs.
+
+2010-12-02  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-summary-line-format): New variable.
+	(nnir-mode): Use it.
+	(nnir-artlist-*,nnir-aritem-*): Reimplement as macros.
+	(nnir-article-ids): Reimplement as defsubst.
+	(nnir-retrieve-headers): Don't mangle the subject header.
+	(nnir-run-imap): Use 100 as RSV score.
+	(nnir-run-find-grep): Fix for full server searching.
+	(nnir-run-gmane): Better restriction to gmane groups.
+
+	* gnus-sum.el (gnus-summary-line-format-alist): Add specs for nnir
+	summary buffers.
+
+2010-12-02  Julien Danjou  <julien@danjou.info>
+
+	* gnus-win.el (gnus-configure-frame): Remove old compatibility code.
+
+	* gnus-msg.el: Mark gnus-outgoing-message-group as obsolete.
+
+	* gnus-win.el (gnus-configure-windows): Remove Gnus 3.x setting
+	support.
+
+2010-12-01  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el: Update to handle the registry better.
+	(autoload): Silence byte-compiler.
+	(nnir-open-server): Add a hook for nnir groups.
+	(nnir-request-move-article): Don't mangle the header. Better to use
+	formating variables (which will be added in the future).
+	(nnir-registry-action): Update the registry using the original article
+	group name.
+	(nnir-mode): Install nnir-specific hooks for updating the registry.
+
+	* gnus-sum.el
+	(gnus-article-original-subject,gnus-newsgroup-original-name):
+	Remove obsolete variables.
+	(gnus-summary-move-article): Remove use of obsolete variables.
+	(gnus-summary-local-variables): Make move and delete hooks local to
+	summary buffers.
+
+2010-12-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* rtree.el: New file.
+
+2010-12-01  Julien Danjou  <julien@danjou.info>
+
+	* message.el (message-user-organization): Do not use
+	gnus-local-organization.
+
+	* gnus.el: Remove gnus-local-organization.
+
+	* gnus-msg.el: Remove nastygram thing.
+
+2010-12-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnmaildir.el (nnmaildir-request-set-mark): Add article to add-mark
+	funcall.
+
+2010-12-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-gravatar.el (gnus-gravatar-insert): Allow LWSP in the middle of
+	names.
+
+	* shr.el (shr-find-fill-point): Don't break line between kinsoku-bol
+	characters.
+
+	* gnus-gravatar.el (gnus-gravatar-insert): Delete unnecessary binding
+	to t of inhibit-read-only since it is inside gnus-with-article-headers.
+	Suggested by Štěpán Němec <stepnem@gmail.com>.
+	(gnus-gravatar-transform-address): Use mail-extract-address-components
+	that supports non-ASCII names rather than mail-header-parse-addresses.
+
+2010-11-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* proto-stream.el (open-protocol-stream): All starttls connections are
+	handled by the network handler.
+
+2010-11-30  Julien Danjou  <julien@danjou.info>
+
+	* nnimap.el (nnimap-open-connection-1): Use gnus-string-match-p.
+	(nnimap-open-connection-1): Fix PREAUTH.
+
+	* gnus-gravatar.el (gnus-gravatar-size): Set gnus-gravatar-size to nil.
+
+2010-11-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-char-breakable-p, shr-char-nospace-p)
+	(shr-char-kinsoku-bol-p, shr-char-kinsoku-eol-p): New macros.
+	(shr-insert): Use them.
+	(shr-find-fill-point): Work better for kinsoku chars and apostrophes.
+
+2010-11-29  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-request-move-article): Bail out if original group
+	doesn't support article moves.
+	(nnir-get-active): Improve active list retrieval.
+
+2010-11-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-find-fill-point): Don't break before apostrophes.
+
+2010-11-29  Binjo  <binjo.cn@gmail.com>  (tiny change)
+
+	* nnimap.el (nnimap-open-connection-1): w32 open-network-stream doesn't
+	seem to accept strings-with-numbers as port numbers,
+
+2010-11-29  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-sum.el (gnus-summary-delete-article): If delete fails don't
+	change the registry.
+
+2010-11-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnir.el (nnir-run-gmane): Use mm-delete-duplicates instead of
+	delete-dups that is not available in XEmacs 21.4.
+
+	* mm-util.el (mm-delete-duplicates): Add comment.
+
+2010-11-28  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-ignored-newsgroups): New variable.
+	(nnir-get-active): Use it.
+
+2010-11-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* proto-stream.el (proto-stream-open-network): Add some comments.
+
+	* nntp.el (nntp-open-connection): Provide a :success condition.
+
+	* nnimap.el (nnimap-open-connection-1): Ditto.
+
+	* proto-stream.el (proto-stream-open-network): See what the response to
+	the STARTTLS command is.
+
+	* nnimap.el (nnimap-open-connection-1): Always upgrade to STARTTLS (for
+	backwards compatibility).
+	(nnimap-open-connection-1): Really respect nnimap-server-port.
+
+	* proto-stream.el (proto-stream-open-network): When doing opportunistic
+	TLS upgrades we don't really care about the identity of the peer.
+	(proto-stream-open-network): Force starttls.el to use gnutls-cli, since
+	that what we've checked for.
+	(proto-stream-always-use-starttls): Only default to t if
+	open-gnutls-stream exists.
+	(proto-stream-open-network): If STARTTLS failed, then just open a
+	normal connection.
+	(proto-stream-open-network): Wait until the greeting before doing
+	STARTTLS.
+
+	* nntp.el (nntp-open-connection): Report what the connection error is.
+
+	* proto-stream.el (open-protocol-stream): Rename from
+	open-proto-stream.
+
+2010-11-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-stream): Change default to `undecided'.
+	(nnimap-open-connection): If `nnimap-stream' is `undecided', try ssl
+	first, and then network.
+	(nnimap-open-connection-1): Respect nnimap-server-port.
+	(nnimap-open-connection): Be more backwards-compatible.
+
+	* proto-stream.el (proto-stream-always-use-starttls): New variable.
+	(proto-stream-open-starttls): De-duplicate the starttls code.
+	(proto-stream-open-starttls): Folded back into the main function.
+	(proto-stream-open-network): Fix typo in the gnutls path.
+	(proto-stream-command): Refactor out.
+
+	* nntp.el (nntp-open-connection): Fix the STARTTLS command syntax.
+
+	* proto-stream.el (proto-stream-open-starttls): Actually implement the
+	starttls.el STARTTLS.
+
+	* color.el (color-lab->srgb): Fix function call name.
+
+	* proto-stream.el (proto-stream-open-tls): Delete output from openssl
+	if we're using tls.el.
+	(proto-stream-open-network): If we don't have gnutls-cli or gnutls
+	built in, then don't try to establish a STARTTLS connection.
+
+	* nntp.el (nntp-open-connection): Switch on STARTTLS on supported
+	servers.
+
+	* proto-stream.el (open-proto-stream): Use network, not stream.
+	(open-proto-stream): Add a way to specify what the end of a command is.
+
+	* nntp.el (nntp-open-connection): Use proto-streams for the relevant
+	connections types.
+	(nntp-open-network-stream): Remove.
+	(nntp-open-ssl-stream): Remove.
+	(nntp-open-tls-stream): Remove.
+	(nntp-ssl-program): Remove.
+
+	* nnimap.el (nnimap-open-connection): Check for "OK" from the greeting.
+
+2010-11-27  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el: Fix typos.
+	(nnir-retrieve-headers-override-function): Rename variable to reflect
+	new semantics.
+	(nnir-article-group, nnir-article-number, nnir-article-rsv): New helper
+	macros.
+	(nnir-request-article, nnir-request-move-article): Use them.
+	(nnir-categorize): New function.
+	(nnir-run-query): Use it.
+	(nnir-retrieve-headers): Rewrite to batch header retrieval.
+	(nnir-run-gmane): nnir-retrieve-headers now returns the headers already
+	sorted.
+	(nnir-group-full-name): Use gnus-group-full-name instead.
+	(nnir-artlist-artitem-group, nnir-artlist-artitem-number)
+	(nnir-artlist-artitem-rsv, nnir-sort-groups-by-server): Obsolete.
+
+2010-11-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection): Fix typo in STARTTLS command.
+
+	* proto-stream.el: New library to provide protocol-specific
+	TLS/STARTTLS connections for IMAP, NNTP, SMTP, POP3 and similar
+	protocols.
+	(open-proto-stream): Complete the documentation.
+	(proto-stream-open-network): Fix some typos.
+
+	* nnimap.el (nnimap-open-connection): Use it.
+
+2010-11-27  Yuri Karaban  <tech@askold.net>  (tiny change)
+
+	* pop3.el (pop3-open-server): Read server greeting before starting TLS
+	negotiation.
+
+2010-11-26  Julien Danjou  <julien@danjou.info>
+
+	* color.el: Rename various rgb functions to srgb.
+
+2010-11-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-get-groups): Allow non-quoted strings as mailbox
+	names.
+
+2010-11-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-insert): Revert last change.
+	(shr-find-fill-point): Never leave point being at bol;
+	relax the kinsoku limitation when rendering tables.
+
 2010-11-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnmail.el (nnmail-expiry-target-group): Protect against degenerate
@@ -140,7 +3120,7 @@
 
 2010-11-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* shr.el (shr-color-check): Protect against non-existant colour names.
+	* shr.el (shr-color-check): Protect against non-existent colour names.
 
 2010-11-24  Julien Danjou  <julien@danjou.info>
 
@@ -186,8 +3166,8 @@
 
 	* shr.el (shr-parse-style): Replace \n with space in style parsing.
 
-	* shr-color.el (shr-color-hsl-to-rgb-fractions): Use
-	shr-color-hue-to-rgb.
+	* shr-color.el (shr-color-hsl-to-rgb-fractions):
+	Use shr-color-hue-to-rgb.
 	(shr-color->hexadecimal): Call shr-color-hsl-to-rgb-fractions.
 
 2010-11-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -1454,7 +4434,7 @@
 	This makes nnimap work properly on Courier again.
 
 	* gnus.el (gnus-carpal): The carpal mode has been removed, but define
-	the variable for backwards compatability.
+	the variable for backwards compatibility.
 
 	* mm-decode.el (mm-save-part): If given a non-directory result, expand
 	the file name before using to avoid setting mm-default-directory to
@@ -13027,7 +16007,7 @@
 	* smime-ldap.el (smime-ldap-search): Add compatibility for XEmacs.
 
 	* smime.el (smime-cert-by-ldap-1): Handle certificates distributed
-	in PEM format.  Adjust to the XEmacs compability.
+	in PEM format.  Adjust to the XEmacs compatibility.
 
 2005-05-30  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -18306,8 +21286,7 @@
 
 See ChangeLog.2 for earlier changes.
 
-  Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-    Free Software Foundation, Inc.
+  Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

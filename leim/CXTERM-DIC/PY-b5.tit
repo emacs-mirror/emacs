@@ -1,3 +1,4 @@
+# -*- coding: cn-big5 -*-
 # Header added for Emacs
 #
 # This file is included in the directory contrib/clients/cxterm of the
@@ -2299,4 +2300,3 @@ zuo3	¥ª¦õðw
 zuo4	°µ§@§¤®yÜ`¯®Æw¬gÌ©Ð_ÍÚßÜÑY
 zuo5	
 
-# arch-tag: cd75d187-c91f-4197-8e77-1ee1a89a38bb

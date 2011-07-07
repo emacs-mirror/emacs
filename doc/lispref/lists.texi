@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/lists
 @node Lists, Sequences Arrays Vectors, Strings and Characters, Top
@@ -1267,9 +1266,9 @@ functions for sets include @code{memq} and @code{delq}, and their
 @cindex CL note---lack @code{union}, @code{intersection}
 @quotation
 @b{Common Lisp note:} Common Lisp has functions @code{union} (which
-avoids duplicate elements) and @code{intersection} for set operations,
-but GNU Emacs Lisp does not have them.  You can write them in Lisp if
-you wish.
+avoids duplicate elements) and @code{intersection} for set operations.
+Although standard GNU Emacs Lisp does not have them, the @file{cl}
+library provides versions.  @inforef{Top, Overview, cl}.
 @end quotation
 
 @defun memq object list
@@ -1356,10 +1355,10 @@ and the @code{(4)} in the @code{sample-list} are not @code{eq}:
 (delq '(4) sample-list)
      @result{} (a c (4))
 @end group
+@end example
 
 If you want to delete elements that are @code{equal} to a given value,
 use @code{delete} (see below).
-@end example
 
 @defun remq object list
 This function returns a copy of @var{list}, with all elements removed
@@ -1888,7 +1887,3 @@ use the ring as a first-in-first-out queue.  For example:
         (ring-remove fifo)))
      @result{} (0 t one t "two")
 @end lisp
-
-@ignore
-   arch-tag: 31fb8a4e-4aa8-4a74-a206-aa00451394d4
-@end ignore

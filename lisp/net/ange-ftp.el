@@ -1,8 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
-;; Copyright (C) 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1989-1996, 1998, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Maintainer: FSF
@@ -858,15 +856,11 @@ If nil, prompt the user for a password."
   :type '(choice (const :tag "Default" nil)
 		 string))
 
-(defcustom ange-ftp-binary-file-name-regexp
-  (concat "TAGS\\'\\|\\.\\(?:"
-          (eval-when-compile
-            (regexp-opt '("z" "Z" "lzh" "arc" "zip" "zoo" "tar" "dvi"
-                          "ps" "elc" "gif" "gz" "taz" "tgz")))
-	  "\\|EXE\\(;[0-9]+\\)?\\|[zZ]-part-..\\)\\'")
+(defcustom ange-ftp-binary-file-name-regexp ""
   "If a file matches this regexp then it is transferred in binary mode."
   :group 'ange-ftp
-  :type 'regexp)
+  :type 'regexp
+  :version "24.1")
 
 (defcustom ange-ftp-gateway-host nil
   "Name of host to use as gateway machine when local FTP isn't possible."
@@ -1729,11 +1723,12 @@ good, skip, fatal, or unknown."
 ;;; Temporary file location and deletion...
 ;;; ------------------------------------------------------------
 
-(defun ange-ftp-make-tmp-name (host)
+(defun ange-ftp-make-tmp-name (host &optional suffix)
   "This routine will return the name of a new file."
   (make-temp-file (if (ange-ftp-use-gateway-p host)
 		      ange-ftp-gateway-tmp-name-template
-		    ange-ftp-tmp-name-template)))
+		    ange-ftp-tmp-name-template)
+		  nil suffix))
 
 (defun ange-ftp-del-tmp-name (filename)
   "Force to delete temporary file."
@@ -2812,6 +2807,19 @@ match subdirectories as well.")
   (and files (puthash (file-name-as-directory directory)
 		      files ange-ftp-files-hashtable)))
 
+(defun ange-ftp-switches-ok (switches)
+  "Return SWITCHES (a string) if suitable for our use."
+  (and (stringp switches)
+       ;; We allow the A switch, which lists all files except "." and
+       ;; "..".  This is OK because we manually insert these entries
+       ;; in the hash table.
+       (string-match
+	"--\\(almost-\\)?all\\>\\|\\(\\`\\| \\)-[[:alpha:]]*[aA]" switches)
+       (string-match "\\(\\`\\| \\)-[[:alpha:]]*l" switches)
+       (not (string-match
+	     "--recursive\\>\\|\\(\\`\\| \\)-[[:alpha:]]*R" switches))
+       switches))
+
 (defun ange-ftp-get-files (directory &optional no-error)
   "Given a DIRECTORY, return a hashtable of file entries.
 This will give an error or return nil, depending on the value of
@@ -2823,30 +2831,12 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
 			  ;; This is an efficiency hack. We try to
 			  ;; anticipate what sort of listing dired
 			  ;; might want, and cache just such a listing.
-			  (if (and (boundp 'dired-actual-switches)
-				   (stringp dired-actual-switches)
-				   ;; We allow the A switch, which lists
-				   ;; all files except "." and "..".
-				   ;; This is OK because we manually
-				   ;; insert these entries
-				   ;; in the hash table.
-				   (string-match
-				    "[aA]" dired-actual-switches)
-				   (string-match
-				    "l" dired-actual-switches)
-				   (not (string-match
-					 "R" dired-actual-switches)))
-			      dired-actual-switches
-			    (if (and (boundp 'dired-listing-switches)
-				     (stringp dired-listing-switches)
-				     (string-match
-				      "[aA]" dired-listing-switches)
-				     (string-match
-				      "l" dired-listing-switches)
-				     (not (string-match
-					   "R" dired-listing-switches)))
-				dired-listing-switches
-			      "-al"))
+			  (or (and (boundp 'dired-actual-switches)
+				   (ange-ftp-switches-ok dired-actual-switches))
+			      (and (boundp 'dired-listing-switches)
+				   (ange-ftp-switches-ok
+				    dired-listing-switches))
+			      "-al")
 			  t no-error)
 	     (gethash directory ange-ftp-files-hashtable)))))
 
@@ -3216,11 +3206,7 @@ system TYPE.")
 	       ;; What we REALLY need here is a way to determine if the mode
 	       ;; of the transfer is irrelevant, i.e. we can use binary mode
 	       ;; regardless. Maybe a system-type to host-type lookup?
-	       (binary (or (ange-ftp-binary-file filename)
-			   (and (not (memq system-type
-					   '(ms-dos windows-nt)))
-				(memq (ange-ftp-host-type host user)
-				      '(unix dumb-unix)))))
+	       (binary (ange-ftp-binary-file filename))
 	       (cmd (if append 'append 'put))
 	       (abbr (ange-ftp-abbreviate-filename filename))
 	       ;; we need to reset `last-coding-system-used' to its
@@ -3292,9 +3278,8 @@ system TYPE.")
 		     (user (nth 1 parsed))
 		     (name (ange-ftp-quote-string (nth 2 parsed)))
 		     (temp (ange-ftp-make-tmp-name host))
-		     (binary (or (ange-ftp-binary-file filename)
-				 (memq (ange-ftp-host-type host user)
-				       '(unix dumb-unix))))
+		     (binary (ange-ftp-binary-file filename))
+		     (buffer-file-type buffer-file-type)
 		     (abbr (ange-ftp-abbreviate-filename filename))
 		     (coding-system-used last-coding-system-used)
 		     size)
@@ -3676,11 +3661,7 @@ so return the size on the remote host exactly. See RFC 3659."
 	     (t-name (and t-parsed (ange-ftp-quote-string (nth 2 t-parsed))))
 	     (t-abbr (ange-ftp-abbreviate-filename newname filename))
 	     (binary (or (ange-ftp-binary-file filename)
-			 (ange-ftp-binary-file newname)
-			 (and (memq (ange-ftp-host-type f-host f-user)
-				    '(unix dumb-unix))
-			      (memq (ange-ftp-host-type t-host t-user)
-				    '(unix dumb-unix)))))
+			 (ange-ftp-binary-file newname)))
 	     temp1
 	     temp2)
 
@@ -4073,7 +4054,7 @@ directory, so that Emacs will know its current contents."
 	(ange-ftp-get-files dir t))))
 
 (defun ange-ftp-make-directory (dir &optional parents)
-  (interactive (list (expand-file-name (read-file-name "Make directory: "))))
+  (interactive (list (expand-file-name (read-directory-name "Make directory: "))))
   (if parents
       (let ((parent (file-name-directory (directory-file-name dir))))
 	(or (file-exists-p parent)
@@ -4159,7 +4140,8 @@ directory, so that Emacs will know its current contents."
   (let* ((fn1 (expand-file-name file))
 	 (pa1 (ange-ftp-ftp-name fn1)))
     (if pa1
-	(let ((tmp1 (ange-ftp-make-tmp-name (car pa1))))
+	(let ((tmp1 (ange-ftp-make-tmp-name (car pa1)
+					    (file-name-extension file t))))
 	  (ange-ftp-copy-file-internal fn1 tmp1 t nil
 				       (format "Getting %s" fn1))
 	  tmp1))))
@@ -5464,7 +5446,7 @@ Other orders of $ and _ seem to all work just fine.")
 ;;				   base-versions
 ;;				   (file-name-directory fn)))
 ;;		   (versions (mapcar
-;;			      '(lambda (arg)
+;;			      (lambda (arg)
 ;;				 (if (and (string-match
 ;;					   "[0-9]+$" arg bv-length)
 ;;					  (= (match-beginning 0) bv-length))

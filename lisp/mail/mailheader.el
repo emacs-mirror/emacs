@@ -1,7 +1,6 @@
 ;;; mailheader.el --- mail header parsing, merging, formatting
 
-;; Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: tools, mail, news
@@ -102,7 +101,7 @@ value."
 		(cons (cdr header) (funcall (cdr rule) (cdr header))))))))
   headers)
 
-;; Advertized part of the interface; see mail-header, mail-header-set.
+;; Advertised part of the interface; see mail-header, mail-header-set.
 (defvar headers)
 
 (defsubst mail-header (header &optional header-alist)

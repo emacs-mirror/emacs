@@ -1,6 +1,6 @@
 ;;; ps-samp.el --- ps-print sample setup code
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -34,7 +34,7 @@
 ;;; Code:
 
 
-(eval-and-compile (require 'ps-print))
+(require 'ps-print)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -254,9 +254,8 @@
 (eval-when-compile
   (require 'cl))
 
-(eval-and-compile
-  (require 'printing)
-  (require 'zeroconf))
+(require 'printing)
+(require 'zeroconf)
 
 ;; Add a Postscript printer to the "Postscript printer" menu.
 (defun ps-add-printer (service)
@@ -309,5 +308,4 @@
 
 (provide 'ps-samp)
 
-;; arch-tag: 99c415d3-be39-43c6-aa32-7ee33ba19600
 ;;; ps-samp.el ends here

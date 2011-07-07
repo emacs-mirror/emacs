@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1999-2011  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node International, Major Modes, Frames, Top
 @chapter International Character Set Support
@@ -233,12 +232,13 @@ preferred charset: unicode (Unicode (ISO10646))
       buffer code: #xC3 #x80
         file code: not encodable by coding system undecided-unix
           display: by this font (glyph code)
-    xft:-unknown-DejaVu Sans Mono-normal-normal-normal-*-13-*-*-*-m-0-iso10646-1 (#x82)
+    xft:-unknown-DejaVu Sans Mono-normal-normal-
+        normal-*-13-*-*-*-m-0-iso10646-1 (#x82)
 
 Character code properties: customize what to show
   name: LATIN CAPITAL LETTER A WITH GRAVE
   general-category: Lu (Letter, Uppercase)
-  decomposition: (65 768) ('A' '̀')
+  decomposition: (65 768) ('A' '`')
   old-name: LATIN CAPITAL LETTER A GRAVE
 
 There are text properties here:
@@ -323,7 +323,7 @@ language environment also specifies a default input method.
 
 @findex set-language-environment
 @vindex current-language-environment
-  To select a language environment, customize the variable
+  To select a language environment, customize
 @code{current-language-environment} or use the command @kbd{M-x
 set-language-environment}.  It makes no difference which buffer is
 current when you use this command, because the effects apply globally
@@ -649,9 +649,9 @@ shows that information in addition to the other information about the
 character.
 
 @findex list-input-methods
-  To see a list of all the supported input methods, type @kbd{M-x
-list-input-methods}.  The list gives information about each input
-method, including the string that stands for it in the mode line.
+  @kbd{M-x list-input-methods} displays a list of all the supported
+input methods.  The list gives information about each input method,
+including the string that stands for it in the mode line.
 
 @node Coding Systems
 @section Coding Systems
@@ -761,6 +761,7 @@ aliases for @code{undecided-unix}, @code{undecided-dos}, and
 the end-of-line conversion, and leave the character code conversion to
 be deduced from the text itself.
 
+@cindex @code{raw-text}, coding system
   The coding system @code{raw-text} is good for a file which is mainly
 @acronym{ASCII} text, but may contain byte values above 127 which are
 not meant to encode non-@acronym{ASCII} characters.  With
@@ -771,6 +772,7 @@ end-of-line conversion in the usual way, based on the data
 encountered, and has the usual three variants to specify the kind of
 end-of-line conversion to use.
 
+@cindex @code{no-conversion}, coding system
   In contrast, the coding system @code{no-conversion} specifies no
 character code conversion at all---none for non-@acronym{ASCII} byte values and
 none for end of line.  This is useful for reading or writing binary
@@ -782,6 +784,7 @@ the @kbd{M-x find-file-literally} command.  This uses
 @code{no-conversion}, and also suppresses other Emacs features that
 might convert the file contents before you see them.  @xref{Visiting}.
 
+@cindex @code{emacs-internal}, coding system
   The coding system @code{emacs-internal} (or @code{utf-8-emacs},
 which is equivalent) means that the file contains non-@acronym{ASCII}
 characters stored with the internal Emacs encoding.  This coding
@@ -916,11 +919,12 @@ written in the Emacs internal character code).
 @section Specifying a File's Coding System
 
   If Emacs recognizes the encoding of a file incorrectly, you can
-reread the file using the correct coding system by typing @kbd{C-x
-@key{RET} r @var{coding-system} @key{RET}}.  To see what coding system
-Emacs actually used to decode the file, look at the coding system
-mnemonic letter near the left edge of the mode line (@pxref{Mode
-Line}), or type @kbd{C-h C @key{RET}}.
+reread the file using the correct coding system with @kbd{C-x
+@key{RET} r} (@code{revert-buffer-with-coding-system}).  This command
+prompts for the coding system to use.  To see what coding system Emacs
+actually used to decode the file, look at the coding system mnemonic
+letter near the left edge of the mode line (@pxref{Mode Line}), or
+type @kbd{C-h C} (@code{describe-coding-system}).
 
 @vindex coding
   You can specify the coding system for a particular file in the file
@@ -994,15 +998,16 @@ one:
 
 @table @kbd
 @item C-x @key{RET} f @var{coding} @key{RET}
-Use coding system @var{coding} for saving or revisiting the visited
-file in the current buffer.
+Use coding system @var{coding} to save or revisit the visited file in
+the current buffer (@code{set-buffer-file-coding-system})
 
 @item C-x @key{RET} c @var{coding} @key{RET}
 Specify coding system @var{coding} for the immediately following
-command.
+command (@code{universal-coding-system-argument}).
 
 @item C-x @key{RET} r @var{coding} @key{RET}
-Revisit the current file using the coding system @var{coding}.
+Revisit the current file using the coding system @var{coding}
+(@code{revert-buffer-with-coding-system}).
 
 @item M-x recode-region @key{RET} @var{right} @key{RET} @var{wrong} @key{RET}
 Convert a region that was decoded using coding system @var{wrong},
@@ -1084,19 +1089,17 @@ in communication with other processes.
 @table @kbd
 @item C-x @key{RET} x @var{coding} @key{RET}
 Use coding system @var{coding} for transferring selections to and from
-other window-based applications.
+other window-based applications (@code{set-selection-coding-system}).
 
 @item C-x @key{RET} X @var{coding} @key{RET}
 Use coding system @var{coding} for transferring @emph{one}
-selection---the next one---to or from another window-based application.
+selection---the next one---to or from another window-based application
+(@code{set-next-selection-coding-system}).
 
 @item C-x @key{RET} p @var{input-coding} @key{RET} @var{output-coding} @key{RET}
 Use coding systems @var{input-coding} and @var{output-coding} for
-subprocess input and output in the current buffer.
-
-@item C-x @key{RET} c @var{coding} @key{RET}
-Specify coding system @var{coding} for the immediately following
-command.
+subprocess input and output in the current buffer
+(@code{set-buffer-process-coding-system}).
 @end table
 
 @kindex C-x RET x
@@ -1134,9 +1137,10 @@ own buffer, and thus you can use this command to specify translation to
 and from a particular subprocess by giving the command in the
 corresponding buffer.
 
-  You can also use @kbd{C-x @key{RET} c} just before the command that
-runs or starts a subprocess, to specify the coding system to use for
-communication with that subprocess.
+  You can also use @kbd{C-x @key{RET} c}
+(@code{universal-coding-system-argument}) just before the command that
+runs or starts a subprocess, to specify the coding system for
+communicating with that subprocess.  @xref{Text Coding}.
 
   The default for translation of process input and output depends on the
 current language environment.
@@ -1154,22 +1158,13 @@ specified by one of the environment variables @env{LC_ALL},
 specified above, whose value is nonempty is the one that determines
 the text representation.)
 
-@vindex x-select-request-type
-  The variable @code{x-select-request-type} specifies a selection data
-type of selection to request from the X server.  The default value is
-@code{nil}, which means Emacs tries @code{COMPOUND_TEXT} and
-@code{UTF8_STRING}, and uses whichever result seems more appropriate.
-You can explicitly specify the data type by setting the variable to
-one of the symbols @code{COMPOUND_TEXT}, @code{UTF8_STRING},
-@code{STRING} and @code{TEXT}.
-
 @node File Name Coding
 @section Coding Systems for File Names
 
 @table @kbd
 @item C-x @key{RET} F @var{coding} @key{RET}
 Use coding system @var{coding} for encoding and decoding file
-@emph{names}.
+@emph{names} (@code{set-file-name-coding-system}).
 @end table
 
 @vindex file-name-coding-system
@@ -1214,10 +1209,12 @@ system, and the coding system to which you wish to convert.
 
 @table @kbd
 @item C-x @key{RET} k @var{coding} @key{RET}
-Use coding system @var{coding} for keyboard input.
+Use coding system @var{coding} for keyboard input
+(@code{set-keyboard-coding-system}).
 
 @item C-x @key{RET} t @var{coding} @key{RET}
-Use coding system @var{coding} for terminal output.
+Use coding system @var{coding} for terminal output
+(@code{set-terminal-coding-system}).
 @end table
 
 @kindex C-x RET t
@@ -1478,18 +1475,22 @@ examples are:
 
 @example
 ;; Use Liberation Mono for latin-3 charset.
-(set-fontset-font "fontset-default" 'iso-8859-3 "Liberation Mono")
+(set-fontset-font "fontset-default" 'iso-8859-3
+                  "Liberation Mono")
 
 ;; Prefer a big5 font for han characters
-(set-fontset-font "fontset-default" 'han (font-spec :registry "big5")
+(set-fontset-font "fontset-default"
+                  'han (font-spec :registry "big5")
                   nil 'prepend)
 
-;; Use DejaVu Sans Mono as a fallback in fontset-startup before
-;; resorting to fontset-default.
-(set-fontset-font "fontset-startup" nil "DejaVu Sans Mono" nil 'append)
+;; Use DejaVu Sans Mono as a fallback in fontset-startup
+;; before resorting to fontset-default.
+(set-fontset-font "fontset-startup" nil "DejaVu Sans Mono"
+                  nil 'append)
 
 ;; Use MyPrivateFont for the Unicode private use area.
-(set-fontset-font "fontset-default"  '(#xe000 . #xf8ff) "MyPrivateFont")
+(set-fontset-font "fontset-default"  '(#xe000 . #xf8ff)
+                  "MyPrivateFont")
 
 @end example
 
@@ -1654,9 +1655,9 @@ name, and displays information about that charset, including its
 internal representation within Emacs.
 
 @findex list-character-sets
-  To display a list of all supported charsets, type @kbd{M-x
-list-character-sets}.  The list gives the names of charsets and
-additional information to identity each charset (see
+  @kbd{M-x list-character-sets} displays a list of all supported
+charsets.  The list gives the names of charsets and additional
+information to identity each charset (see
 @url{http://www.itscj.ipsj.or.jp/ISO-IR/} for details).  In this list,
 charsets are divided into two categories: @dfn{normal charsets} are
 listed first, followed by @dfn{supplementary charsets}.  A
@@ -1745,7 +1746,3 @@ highlighted region covering a contiguous range of character positions
 may look discontinuous if the region spans reordered text.  This is
 normal and similar to behavior of other programs that support
 bidirectional text.
-
-@ignore
-   arch-tag: 310ba60d-31ef-4ce7-91f1-f282dd57b6b3
-@end ignore

@@ -1,6 +1,6 @@
 /* xfont.c -- X core font driver.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -164,8 +164,8 @@ xfont_get_cache (FRAME_PTR f)
 static int
 compare_font_names (const void *name1, const void *name2)
 {
-  return xstrcasecmp (*(const unsigned char **) name1,
-		      *(const unsigned char **) name2);
+  return xstrcasecmp (*(const char **) name1,
+		      *(const char **) name2);
 }
 
 /* Decode XLFD as iso-8859-1 into OUTPUT, and return the byte length
@@ -182,7 +182,7 @@ xfont_decode_coding_xlfd (char *xlfd, int len, char *output)
   while (*p0)
     {
       c = *(unsigned char *) p0++;
-      p1 += CHAR_STRING (c, p1);
+      p1 += CHAR_STRING (c, (unsigned char *) p1);
       if (--len == 0)
 	break;
     }
@@ -362,7 +362,7 @@ xfont_list_pattern (Display *display, const char *pattern,
 	  script = Qnil;
 	}
     }
-      
+
   BLOCK_INPUT;
   x_catch_errors (display);
 
@@ -540,7 +540,7 @@ xfont_list (Lisp_Object frame, Lisp_Object spec)
 	    if (STRINGP (XCAR (alter))
 		&& ((r - name) + SBYTES (XCAR (alter))) < 256)
 	      {
-		strcpy (r, (char *) SDATA (XCAR (alter)));
+		strcpy (r, SSDATA (XCAR (alter)));
 		list = xfont_list_pattern (display, name, registry, script);
 		if (! NILP (list))
 		  break;
@@ -594,16 +594,14 @@ xfont_match (Lisp_Object frame, Lisp_Object spec)
     {
       if (XGetFontProperty (xfont, XA_FONT, &value))
 	{
-	  int len;
 	  char *s;
 
 	  s = (char *) XGetAtomName (display, (Atom) value);
-	  len = strlen (s);
 
 	  /* If DXPC (a Differential X Protocol Compressor)
 	     Ver.3.7 is running, XGetAtomName will return null
 	     string.  We must avoid such a name.  */
-	  if (len > 0)
+	  if (*s)
 	    {
 	      entity = font_make_entity ();
 	      ASET (entity, FONT_TYPE_INDEX, Qx);
@@ -629,7 +627,7 @@ xfont_list_family (Lisp_Object frame)
   char **names;
   int num_fonts, i;
   Lisp_Object list;
-  char *last_family;
+  char *last_family IF_LINT (= 0);
   int last_len;
 
   BLOCK_INPUT;
@@ -739,7 +737,7 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 	 So, we try again with wildcards in RESX and RESY.  */
       Lisp_Object temp;
 
-      temp = Fcopy_font_spec (entity);
+      temp = copy_font_spec (entity);
       ASET (temp, FONT_DPI_INDEX, Qnil);
       len = font_unparse_xlfd (temp, pixel_size, name, 512);
       if (len <= 0 || (len = xfont_encode_coding_xlfd (name)) < 0)
@@ -797,7 +795,7 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   ASET (font_object, FONT_TYPE_INDEX, Qx);
   if (STRINGP (fullname))
     {
-      font_parse_xlfd ((char *) SDATA (fullname), font_object);
+      font_parse_xlfd (SSDATA (fullname), font_object);
       ASET (font_object, FONT_NAME_INDEX, fullname);
     }
   else
@@ -844,22 +842,25 @@ xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 	font->average_width = XINT (val) / 10;
       if (font->average_width < 0)
 	font->average_width = - font->average_width;
-      if (font->average_width == 0
-	  && encoding->ascii_compatible_p)
+      else
 	{
-	  int width = font->space_width, n = pcm != NULL;
+	  if (font->average_width == 0
+	      && encoding->ascii_compatible_p)
+	    {
+	      int width = font->space_width, n = pcm != NULL;
 
-	  for (char2b.byte2 = 33; char2b.byte2 <= 126; char2b.byte2++)
-	    if ((pcm = xfont_get_pcm (xfont, &char2b)) != NULL)
-	      width += pcm->width, n++;
-	  if (n > 0)
-	    font->average_width = width / n;
+	      for (char2b.byte2 = 33; char2b.byte2 <= 126; char2b.byte2++)
+		if ((pcm = xfont_get_pcm (xfont, &char2b)) != NULL)
+		  width += pcm->width, n++;
+	      if (n > 0)
+		font->average_width = width / n;
+	    }
+	  if (font->average_width == 0)
+	    /* No easy way other than this to get a reasonable
+	       average_width.  */
+	    font->average_width
+	      = (xfont->min_bounds.width + xfont->max_bounds.width) / 2;
 	}
-      if (font->average_width == 0)
-	/* No easy way other than this to get a reasonable
-	   average_width.  */
-	font->average_width
-	  = (xfont->min_bounds.width + xfont->max_bounds.width) / 2;
     }
 
   BLOCK_INPUT;
@@ -966,11 +967,11 @@ xfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct f
 {
   XFontStruct *xfont = ((struct xfont_info *) font)->xfont;
   int width = 0;
-  int i, first, x;
+  int i, first;
 
   if (metrics)
     memset (metrics, 0, sizeof (struct font_metrics));
-  for (i = 0, x = 0, first = 1; i < nglyphs; i++)
+  for (i = 0, first = 1; i < nglyphs; i++)
     {
       XChar2b char2b;
       static XCharStruct *pcm;
@@ -1113,6 +1114,3 @@ syms_of_xfont (void)
   xfont_driver.type = Qx;
   register_font_driver (&xfont_driver, NULL);
 }
-
-/* arch-tag: 23c5f366-a5ee-44b7-a3b7-90d6da7fd749
-   (do not change this comment) */

@@ -1,7 +1,6 @@
 ;;; register.el --- register commands for Emacs
 
-;; Copyright (C) 1985, 1993, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1993-1994, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -29,6 +28,8 @@
 ;; pieces of buffer state to named variables.  The entry points are
 ;; documented in the Emacs user's manual.
 
+(eval-when-compile (require 'cl))
+
 (declare-function semantic-insert-foreign-tag "semantic/tag" (foreign-tag))
 (declare-function semantic-tag-buffer "semantic/tag" (tag))
 (declare-function semantic-tag-start "semantic/tag" (tag))
@@ -51,9 +52,36 @@
 
 ;;; Code:
 
+(defstruct
+  (registerv (:constructor nil)
+	     (:constructor registerv--make (&optional data print-func
+						      jump-func insert-func))
+	     (:copier nil)
+	     (:type vector)
+	     :named)
+  (data        nil :read-only t)
+  (print-func  nil :read-only t)
+  (jump-func   nil :read-only t)
+  (insert-func nil :read-only t))
+
+(defun* registerv-make (data &key print-func jump-func insert-func)
+  "Create a register value object.
+
+DATA can be any value.
+PRINT-FUNC if provided controls how `list-registers' and
+`view-register' print the register.  It should be a function
+receiving one argument DATA and print text that completes
+this sentence:
+  Register X contains [TEXT PRINTED BY PRINT-FUNC]
+JUMP-FUNC if provided, controls how `jump-to-register' jumps to the register.
+INSERT-FUNC if provided, controls how `insert-register' insert the register.
+They both receive DATA as argument."
+  (registerv--make data print-func jump-func insert-func))
+
 (defvar register-alist nil
   "Alist of elements (NAME . CONTENTS), one for each Emacs register.
-NAME is a character (a number).  CONTENTS is a string, number, marker or list.
+NAME is a character (a number).  CONTENTS is a string, number, marker, list
+or a struct returned by `registerv-make'.
 A list of strings represents a rectangle.
 A list of the form (file . FILE-NAME) represents the file named FILE-NAME.
 A list of the form (file-query FILE-NAME POSITION) represents
@@ -89,7 +117,7 @@ Argument is a character, naming the register."
 		(if arg (list (current-frame-configuration) (point-marker))
 		  (point-marker))))
 
-(defun window-configuration-to-register (register &optional arg)
+(defun window-configuration-to-register (register &optional _arg)
   "Store the window configuration of the selected frame in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
 Argument is a character, naming the register."
@@ -98,7 +126,7 @@ Argument is a character, naming the register."
   ;; of point in the current buffer, so record that separately.
   (set-register register (list (current-window-configuration) (point-marker))))
 
-(defun frame-configuration-to-register (register &optional arg)
+(defun frame-configuration-to-register (register &optional _arg)
   "Store the window configuration of all frames in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
 Argument is a character, naming the register."
@@ -121,6 +149,11 @@ delete any existing frames that the frame configuration doesn't mention.
   (interactive "cJump to register: \nP")
   (let ((val (get-register register)))
     (cond
+     ((registerv-p val)
+      (assert (registerv-jump-func val) nil
+              "Don't know how to jump to register %s"
+              (single-key-description register))
+      (funcall (registerv-jump-func val) (registerv-data val)))
      ((and (consp val) (frame-configuration-p (car val)))
       (set-frame-configuration (car val) (not delete))
       (goto-char (cadr val)))
@@ -210,6 +243,11 @@ The Lisp value REGISTER is a character."
   (princ " contains ")
   (let ((val (get-register register)))
     (cond
+     ((registerv-p val)
+      (if (registerv-print-func val)
+          (funcall (registerv-print-func val) (registerv-data val))
+        (princ "[UNPRINTABLE CONTENTS].")))
+
      ((numberp val)
       (princ val))
 
@@ -286,8 +324,11 @@ Interactively, second arg is non-nil if prefix arg is supplied."
   (push-mark)
   (let ((val (get-register register)))
     (cond
-     ((consp val)
-      (insert-rectangle val))
+     ((registerv-p val)
+      (assert (registerv-insert-func val) nil
+              "Don't know how to insert register %s"
+              (single-key-description register))
+      (funcall (registerv-insert-func val) (registerv-data val)))
      ((stringp val)
       (insert-for-yank val))
      ((numberp val)
@@ -353,5 +394,4 @@ START and END are buffer positions giving two corners of rectangle."
 		  (extract-rectangle start end))))
 
 (provide 'register)
-;; arch-tag: ce14dd68-8265-475f-9341-5d4ec5a53035
 ;;; register.el ends here

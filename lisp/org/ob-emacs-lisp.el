@@ -1,11 +1,11 @@
 ;;; ob-emacs-lisp.el --- org-babel functions for emacs-lisp code evaluation
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -66,6 +66,5 @@
 
 (provide 'ob-emacs-lisp)
 
-;; arch-tag: e9a3acca-dc84-472a-9f5a-23c35befbcd6
 
 ;;; ob-emacs-lisp.el ends here

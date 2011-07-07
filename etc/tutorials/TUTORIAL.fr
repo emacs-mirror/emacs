@@ -1162,8 +1162,7 @@ Cette version du didacticiel, comme GNU Emacs, est placée sous
 copyright, et vous pouvez en distribuer des copies sous certaines
 conditions :
 
-Copyright (C) 1985, 1996, 2001, 2002, 2003, 2004,
-   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1985, 1996, 2001-2011  Free Software Foundation, Inc.
 
    Chacun peut créer ou distribuer des copies de ce document tel qu'il
    l'a reçu, sur n'importe quel support, pourvu que la note de
@@ -1192,4 +1191,3 @@ Cette traduction française a été effectuée par Éric Jacoboni
 ;;;   sentence-end-double-space: nil
 ;;; End:
 
-;;; arch-tag: f6c5c2ff-bf24-477c-bd18-32f76f51ba65

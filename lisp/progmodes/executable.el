@@ -1,7 +1,6 @@
 ;;; executable.el --- base functionality for executable interpreter scripts -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1994, 1995, 1996, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: languages, unix
@@ -174,6 +173,8 @@ non-executable files."
 				     (file-modes buffer-file-name)))))))
 
 
+(defvar compilation-error-regexp-alist) ; from compile.el
+
 ;;;###autoload
 (defun executable-interpret (command)
   "Run script with user-specified args, and collect output in a buffer.
@@ -187,7 +188,7 @@ command to find the next error.  The buffer is also in `comint-mode' and
   (save-some-buffers (not compilation-ask-about-save))
   (set (make-local-variable 'executable-command) command)
   (let ((compilation-error-regexp-alist executable-error-regexp-alist))
-    (compilation-start command t (lambda (x) "*interpretation*"))))
+    (compilation-start command t (lambda (_x) "*interpretation*"))))
 
 
 
@@ -276,5 +277,4 @@ file modes."
 
 (provide 'executable)
 
-;; arch-tag: 58458d1c-d9db-45ec-942b-8bbb1d5e319d
 ;;; executable.el ends here

@@ -1,7 +1,6 @@
 ;;; calc.el --- the GNU Emacs calculator
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -434,6 +433,24 @@ If `calc-show-selections' is nil, then selected sub-formulas are shown
 by displaying the sub-formula in `calc-selected-face'."
   :group 'calc
   :type 'boolean)
+
+(defcustom calc-lu-field-reference
+  "20 uPa"
+  "The default reference level for logarithmic units (field)."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-lu-power-reference
+  "mW"
+  "The default reference level for logarithmic units (power)."
+  :group 'calc
+  :type '(string))
+
+(defcustom calc-note-threshold "1" 
+  "The number of cents that a frequency should be near a note
+to be identified as that note."
+  :type 'string
+  :group 'calc)
 
 (defface calc-nonselected-face
   '((t :inherit shadow       
@@ -1061,12 +1078,13 @@ Used by `calc-user-invocation'.")
     (define-key map "\C-j" 'calc-over)
     (define-key map "\C-y" 'calc-yank)
     (define-key map [mouse-2] 'calc-yank)
+    (define-key map [remap undo] 'calc-undo)
 
     (mapc (lambda (x) (define-key map (char-to-string x) 'undefined))
           "lOW")
     (mapc (lambda (x) (define-key map (char-to-string x) 'calc-missing-key))
           (concat "ABCDEFGHIJKLMNOPQRSTUVXZabcdfghjkmoprstuvwxyz"
-                  ":\\|!()[]<>{},;=~`\C-k\C-w\C-_"))
+                  ":\\|!()[]<>{},;=~`\C-k\C-w"))
     (define-key map "\M-w" 'calc-missing-key)
     (define-key map "\M-k" 'calc-missing-key)
     (define-key map "\M-\C-w" 'calc-missing-key)
@@ -1275,19 +1293,20 @@ the trail buffer."
     (if (not info-list)
         (progn
           (setq calc-buffer-list (delete cb calc-buffer-list))
-          (with-current-buffer calc-trail-buffer
-            (if (eq cb calc-main-buffer)
-                ;; If there are other Calc stacks, make another one
-                ;; the calc-main-buffer ...
-                (if calc-buffer-list
-                    (setq calc-main-buffer (car calc-buffer-list))
-                  ;; ... otherwise kill the trail and its windows.
-                  (let ((wl (get-buffer-window-list calc-trail-buffer)))
-                    (while wl
-                      (delete-window (car wl))
-                      (setq wl (cdr wl))))
-                  (kill-buffer calc-trail-buffer)
-                  (setq calc-trail-buffer nil))))
+          (if (buffer-live-p calc-trail-buffer)
+              (with-current-buffer calc-trail-buffer
+                (if (eq cb calc-main-buffer)
+                    ;; If there are other Calc stacks, make another one
+                    ;; the calc-main-buffer ...
+                    (if calc-buffer-list
+                        (setq calc-main-buffer (car calc-buffer-list))
+                      ;; ... otherwise kill the trail and its windows.
+                      (let ((wl (get-buffer-window-list calc-trail-buffer)))
+                        (while wl
+                          (delete-window (car wl))
+                          (setq wl (cdr wl))))
+                      (kill-buffer calc-trail-buffer)))))
+          (setq calc-trail-buffer nil)
           t))))
 
 (defun calc-mode ()
@@ -3838,5 +3857,4 @@ See Info node `(calc)Defining Functions'."
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: 0c3b170c-4ce6-4eaf-8d9b-5834d1fe938f
 ;;; calc.el ends here

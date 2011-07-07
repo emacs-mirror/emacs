@@ -1,7 +1,6 @@
 ;; erc-replace.el -- wash and massage messages inserted into the buffer
 
-;; Copyright (C) 2001, 2002, 2004, 2006, 2007,
-;;   2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2002, 2004, 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Maintainer: Mario Lang (mlang@delysid.org)
@@ -94,4 +93,3 @@ It replaces text according to `erc-replace-alist'."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: dd904a59-d8a6-47f8-ac3a-76b698289a18

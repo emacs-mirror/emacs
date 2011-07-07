@@ -215,4 +215,3 @@
     ("KANGXI RADICAL FLUTE" #x2FD5)
     ))
 
-;; arch-tag: e7210935-b74b-4a42-88c6-de146c755742

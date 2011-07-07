@@ -1,6 +1,5 @@
 GNU Emacs Installation Guide
-Copyright (C) 1992, 1994, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-  2005, 2006, 2007, 2008, 2009, 2010
+Copyright (C) 1992, 1994, 1996-1997, 2000-2011
   Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
@@ -209,7 +208,8 @@ The names of the packages that you need varies according to the
 GNU/Linux distribution that you use, and the options that you want to
 configure Emacs with.  On Debian-based systems, you can install all the
 packages needed to build the installed version of Emacs with a command
-like `apt-get build-dep emacs23'.
+like `apt-get build-dep emacs23'.  On Red Hat systems, the
+corresponding command is `yum-builddep emacs'.
 
 
 DETAILED BUILDING AND INSTALLATION:
@@ -308,6 +308,10 @@ Use --disable-largefile to omit support for files larger than 2GB on
 systems which support that.
 
 Use --without-sound to disable sound support.
+
+Use --with-wide-int to implement Emacs values with the type 'long long',
+even on hosts where a narrower type would do.  With this option, on a
+typical 32-bit host, Emacs integers have 62 bits instead of 30.
 
 The `--prefix=PREFIXDIR' option specifies where the installation process
 should put emacs and its data files.  This defaults to `/usr/local'.
@@ -675,12 +679,15 @@ the following steps.
 `./src/epaths.h' from the template file `./src/epaths.in', changing
 the paths to the values specified in `./Makefile'.
 
-2) Go to directory `./lib-src' and run `make'.  This creates
+2) Go to directory `./lib' and run `make'.  This creates include files
+and libraries used in later steps.
+
+3) Go to directory `./lib-src' and run `make'.  This creates
 executables named `etags', `make-docfile', and others.
 
-3) Go to directory `./src' and run `make'.  This refers to files in
-the `./lisp' and `./lib-src' subdirectories using names `../lisp' and
-`../lib-src'.
+4) Go to directory `./src' and run `make'.  This refers to files in
+the `./lisp', `./lib', and `./lib-src' subdirectories using names
+`../lisp', `../lib', and `../lib-src'.
 
 This creates a file `./src/emacs' which is the runnable Emacs,
 which has another name that contains a version number.
@@ -702,8 +709,8 @@ directory of the Emacs distribution.
 in `./lib-src' to their final destinations, as selected in `./src/epaths.h'.
 
 Strictly speaking, not all of the executables in `./lib-src' need be copied.
-- The programs `fakemail', `hexl', `movemail', `profile', `rcs2log',
-    and `vcdiff' are used by Emacs; they do need to be copied.
+- The programs `hexl', `movemail', `profile', `rcs2log', and `vcdiff'
+    are used by Emacs; they do need to be copied.
 - The programs `etags', `ctags', `emacsclient', and `rcs-checkin'
     are intended to be run by users; they are handled below.
 - The programs `make-docfile' and `test-distrib' were

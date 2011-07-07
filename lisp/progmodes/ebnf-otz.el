@@ -1,7 +1,6 @@
 ;;; ebnf-otz.el --- syntactic chart OpTimiZer
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -697,5 +696,4 @@
 (provide 'ebnf-otz)
 
 
-;; arch-tag: 7ef2249d-9e8b-4bc1-999f-95d784690636
 ;;; ebnf-otz.el ends here

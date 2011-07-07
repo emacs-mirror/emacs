@@ -1,7 +1,6 @@
 ;;; follow.el --- synchronize windows showing the same buffer
 
-;; Copyright (C) 1995, 1996, 1997, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1997, 1999, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Maintainer: FSF (Anders' email bounces, Sep 2005)
@@ -872,8 +871,7 @@ Returns (end-pos end-of-buffer-p)"
       ;; XEmacs can calculate the end of the window by using
       ;; the 'guarantee options. GOOD!
       (let ((end (window-end win t)))
-	(if (= end (funcall (symbol-function 'point-max)
-			    (window-buffer win)))
+	(if (= end (point-max (window-buffer win)))
 	    (list end t)
 	  (list (+ end 1) nil)))
     ;; Emacs: We have to calculate the end by ourselves.
@@ -1063,7 +1061,7 @@ Return the selected window."
 ;; it wasn't just moved here. (i.e. M-> shall not unconditionally place
 ;; the point in the selected window.)
 ;;
-;; (Compability cludge: in Emacs `window-end' is equal to `point-max';
+;; (Compatibility cludge: in Emacs `window-end' is equal to `point-max';
 ;; in XEmacs, it is equal to `point-max + 1'. Should I really bother
 ;; checking `window-end' now when I check `end-of-buffer' explicitly?)
 
@@ -1262,7 +1260,7 @@ should be a member of WINDOWS, starts at position START."
 ;; especially if it is placed in the debug filter section.  I must
 ;; investigate this further...
 
-(defun follow-avoid-tail-recenter (&rest rest)
+(defun follow-avoid-tail-recenter (&rest _rest)
   "Make sure windows displaying the end of a buffer aren't recentered.
 
 This is done by reading and rewriting the start position of
@@ -2122,5 +2120,4 @@ This prevents `mouse-drag-region' from messing things up."
 ;; | save it".             -- Douglas Adams, "Last Chance to See"           |
 ;; \------------------------------------------------------------------------/
 
-;; arch-tag: 7b16bb1a-808c-4991-a8cc-66d3822936d0
 ;;; follow.el ends here

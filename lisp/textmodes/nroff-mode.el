@@ -1,7 +1,7 @@
 ;;; nroff-mode.el --- GNU Emacs major mode for editing nroff source
 
-;; Copyright (C) 1985, 1986, 1994, 1995, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1994-1995, 1997, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -331,5 +331,4 @@ turns it on if arg is positive, otherwise off."
 
 (provide 'nroff-mode)
 
-;; arch-tag: 6e276340-6c65-4f65-b4e3-0ca431ddfb6c
 ;;; nroff-mode.el ends here

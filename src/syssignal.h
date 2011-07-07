@@ -1,6 +1,5 @@
 /* syssignal.h - System-dependent definitions for signals.
-   Copyright (C) 1993, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1993, 1999, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -36,8 +35,7 @@ extern void init_signals (void);
 #define SIGMASKTYPE sigset_t
 
 #define SIGEMPTYMASK (empty_mask)
-#define SIGFULLMASK (full_mask)
-extern sigset_t empty_mask, full_mask;
+extern sigset_t empty_mask;
 
 /* POSIX pretty much destroys any possibility of writing sigmask as a
    macro in standard C.  We always define our own version because the
@@ -70,12 +68,15 @@ extern sigset_t sys_sigmask ();
 
 /* Whether this is what all systems want or not, this is what
    appears to be assumed in the source, for example data.c:arith_error.  */
-typedef RETSIGTYPE (*signal_handler_t) (int);
+typedef void (*signal_handler_t) (int);
 
 signal_handler_t sys_signal (int signal_number, signal_handler_t action);
 sigset_t sys_sigblock   (sigset_t new_mask);
 sigset_t sys_sigunblock (sigset_t new_mask);
 sigset_t sys_sigsetmask (sigset_t new_mask);
+#if ! (defined TIOCNOTTY || defined USG5 || defined CYGWIN)
+void croak (char *) NO_RETURN;
+#endif
 
 #define sys_sigdel(MASK,SIG) sigdelset (&MASK,SIG)
 
@@ -159,5 +160,3 @@ extern pthread_t main_thread;
 #else /* not FORWARD_SIGNAL_TO_MAIN_THREAD */
 #define SIGNAL_THREAD_CHECK(signo)
 #endif /* not FORWARD_SIGNAL_TO_MAIN_THREAD */
-/* arch-tag: 4580e86a-340d-4574-9e11-a742b6e1a152
-   (do not change this comment) */

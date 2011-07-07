@@ -1,6 +1,6 @@
 ;;; semantic/dep.el --- Methods for tracking dependencies (include files)
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -231,5 +231,4 @@ provided mode, not from the current major mode."
 ;; generated-autoload-load-name: "semantic/dep"
 ;; End:
 
-;; arch-tag: f6975d6a-845f-44c5-9a22-5dfeee46dce2
 ;;; semantic/dep.el ends here

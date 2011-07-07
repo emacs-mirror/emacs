@@ -1,7 +1,6 @@
 ;;; mspools.el --- show mail spools waiting to be read
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -216,12 +215,12 @@ your primary spool is.  If this fails, set it to something like
 
     ;; Mailing list inboxes
     ;; must have VM already loaded to get vm-folder-directory.
-    (mapcar '(lambda (s)
-	       "make the appropriate entry for vm-spool-files"
-	       (list
-		(concat mspools-folder-directory s)
-		(concat mspools-folder-directory s "." mspools-suffix)
-		(concat mspools-folder-directory s ".crash")))
+    (mapcar (lambda (s)
+              "make the appropriate entry for vm-spool-files"
+              (list
+               (concat mspools-folder-directory s)
+               (concat mspools-folder-directory s "." mspools-suffix)
+               (concat mspools-folder-directory s ".crash")))
 	    ;; So I create a vm-spool-files entry for each of those mail drops
 	    (mapcar 'file-name-sans-extension
 		    (directory-files mspools-folder-directory nil

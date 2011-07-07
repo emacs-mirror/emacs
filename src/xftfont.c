@@ -1,6 +1,6 @@
 /* xftfont.c -- XFT font driver.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -187,17 +187,20 @@ xftfont_fix_match (FcPattern *pat, FcPattern *match)
   double dpi;
 
   FcPatternGetBool (pat, FC_ANTIALIAS, 0, &b);
-  if (! b) 
+  if (! b)
     {
       FcPatternDel (match, FC_ANTIALIAS);
       FcPatternAddBool (match, FC_ANTIALIAS, FcFalse);
     }
   FcPatternGetBool (pat, FC_HINTING, 0, &b);
-  if (! b) 
+  if (! b)
     {
       FcPatternDel (match, FC_HINTING);
       FcPatternAddBool (match, FC_HINTING, FcFalse);
     }
+#ifndef FC_HINT_STYLE
+# define FC_HINT_STYLE "hintstyle"
+#endif
   if (FcResultMatch == FcPatternGetInteger (pat, FC_HINT_STYLE, 0, &i))
     {
       FcPatternDel (match, FC_HINT_STYLE);
@@ -277,7 +280,7 @@ xftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 {
   FcResult result;
   Display *display = FRAME_X_DISPLAY (f);
-  Lisp_Object val, filename, index, font_object;
+  Lisp_Object val, filename, idx, font_object;
   FcPattern *pat = NULL, *match;
   struct xftfont_info *xftfont_info = NULL;
   struct font *font;
@@ -295,7 +298,7 @@ xftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
     return Qnil;
   val = XCDR (val);
   filename = XCAR (val);
-  index = XCDR (val);
+  idx = XCDR (val);
   size = XINT (AREF (entity, FONT_SIZE_INDEX));
   if (size == 0)
     size = pixel_size;
@@ -332,7 +335,7 @@ xftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
   xftfont_add_rendering_parameters (pat, entity);
 
   FcPatternAddString (pat, FC_FILE, (FcChar8 *) SDATA (filename));
-  FcPatternAddInteger (pat, FC_INDEX, XINT (index));
+  FcPatternAddInteger (pat, FC_INDEX, XINT (idx));
 
 
   BLOCK_INPUT;
@@ -406,12 +409,16 @@ xftfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
     spacing = FC_PROPORTIONAL;
   if (! ascii_printable[0])
     {
-      int i;
-      for (i = 0; i < 95; i++)
-	ascii_printable[i] = ' ' + i;
+      int ch;
+      for (ch = 0; ch < 95; ch++)
+	ascii_printable[ch] = ' ' + ch;
     }
   BLOCK_INPUT;
-  if (spacing != FC_PROPORTIONAL && spacing != FC_DUAL)
+  if (spacing != FC_PROPORTIONAL
+#ifdef FC_DUAL
+      && spacing != FC_DUAL
+#endif	/* FC_DUAL */
+      )
     {
       font->min_width = font->average_width = font->space_width
 	= xftfont->max_advance_width;
@@ -665,7 +672,8 @@ xftfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_b
   return len;
 }
 
-Lisp_Object
+#if defined HAVE_M17N_FLT && defined HAVE_LIBOTF
+static Lisp_Object
 xftfont_shape (Lisp_Object lgstring)
 {
   struct font *font;
@@ -681,6 +689,7 @@ xftfont_shape (Lisp_Object lgstring)
   XftUnlockFace (xftfont_info->xftfont);
   return val;
 }
+#endif
 
 static int
 xftfont_end_for_frame (FRAME_PTR f)
@@ -777,6 +786,3 @@ syms_of_xftfont (void)
 
   register_font_driver (&xftfont_driver, NULL);
 }
-
-/* arch-tag: 64ec61bf-7c8e-4fe6-b953-c6a85d5e1605
-   (do not change this comment) */

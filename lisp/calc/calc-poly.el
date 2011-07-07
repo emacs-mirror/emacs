@@ -1,7 +1,6 @@
 ;;; calc-poly.el --- polynomial functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -1200,5 +1199,4 @@ If no partial fraction representation can be found, return nil."
 
 (provide 'calc-poly)
 
-;; arch-tag: d2566c51-2ccc-45f1-8c50-f3462c2953ff
 ;;; calc-poly.el ends here

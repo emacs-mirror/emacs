@@ -1,6 +1,6 @@
 ;;; srecode/map.el --- Manage a template file map
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -415,5 +415,4 @@ Return non-nil if the map changed."
 ;; generated-autoload-load-name: "srecode/map"
 ;; End:
 
-;; arch-tag: dc90c737-1e87-455a-bbd1-6b72cdbfb7fd
 ;;; srecode/map.el ends here

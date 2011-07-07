@@ -1,7 +1,6 @@
 ;;; newsticker.el --- A Newsticker for Emacs.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Author:      Ulf Jasper <ulf.jasper@web.de>
 ;; Filename:    newsticker.el
@@ -409,5 +408,4 @@
 
 (provide 'newsticker)
 
-;; arch-tag: ab761dfa-67bc-4207-bc64-4307271dc381
 ;;; newsticker.el ends here

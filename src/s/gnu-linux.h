@@ -1,7 +1,7 @@
 /* This file is the configuration file for Linux-based GNU systems
 
-Copyright (C) 1985, 1986, 1992, 1994, 1996, 1999, 2001, 2002, 2003, 2004,
-  2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1992, 1994, 1996, 1999, 2001-2011
+  Free Software Foundation, Inc.
 
 This file was put together by Michael K. Johnson and Rik Faith.
 
@@ -44,7 +44,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define UNIX98_PTYS
 
 /* Run only once.  We need a `for'-loop because the code uses `continue'.  */
-#define PTY_ITERATION	for (i = 0; i < 1; i++)
+#define PTY_ITERATION	int i; for (i = 0; i < 1; i++)
 
 #ifdef HAVE_GETPT
 #define PTY_NAME_SPRINTF
@@ -159,6 +159,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   } while (0)
 #endif
 #endif
-
-/* arch-tag: 6244ea2a-abd0-44ec-abec-ff3dcc9afea9
-   (do not change this comment) */

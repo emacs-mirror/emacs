@@ -1,6 +1,6 @@
 ;;; notifications.el --- Client interface to desktop notifications.
 
-;; Copyright (C) 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
 
 ;; Author: Julien Danjou <julien@danjou.info>
 ;; Keywords: comm desktop notifications
@@ -210,8 +210,8 @@ used to manipulate the notification item with
       (add-to-list 'hints `(:dict-entry
                             "urgency"
                             (:variant :byte ,(case urgency
-                                               ('low 0)
-                                               ('critical 2)
+                                               (low 0)
+                                               (critical 2)
                                                (t 1)))) t))
     (when category
       (add-to-list 'hints `(:dict-entry

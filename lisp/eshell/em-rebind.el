@@ -1,7 +1,6 @@
 ;;; em-rebind.el --- rebind keys when point is at current input
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -42,8 +41,9 @@ the behavior of normal shells while the user editing new input text."
 
 ;;; User Variables:
 
-(defcustom eshell-rebind-load-hook '(eshell-rebind-initialize)
+(defcustom eshell-rebind-load-hook nil
   "A list of functions to call when loading `eshell-rebind'."
+  :version "24.1"			; removed eshell-rebind-initialize
   :type 'hook
   :group 'eshell-rebind)
 
@@ -91,7 +91,6 @@ This is default behavior of shells like bash."
   '(beginning-of-line-text
     beginning-of-line
     move-to-column
-    move-to-column-force
     move-to-left-margin
     move-to-tab-stop
     forward-char
@@ -247,5 +246,4 @@ input."
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 76d84f12-cc56-4d67-9b7d-c6b44ad20530
 ;;; em-rebind.el ends here

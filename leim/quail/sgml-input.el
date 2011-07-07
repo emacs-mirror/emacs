@@ -1,7 +1,6 @@
 ;;; sgml-input.el --- Quail method for Unicode entered as SGML entities -*- coding: utf-8 -*-
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -1059,5 +1058,4 @@ E.g.: &aacute; -> á"
   ("&zwnj;" ?\‌) ;; ZERO WIDTH NON-JOINER
 )
 
-;; arch-tag: ad2a65ea-f903-423b-b3bd-08d0912ae41f
 ;;; sgml-input.el ends here

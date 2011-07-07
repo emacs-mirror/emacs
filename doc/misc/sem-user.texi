@@ -1,7 +1,6 @@
 @c This file is included by semantic.texi
 
-@c Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2009,
-@c   2010  Free Software Foundation, Inc.
+@c Copyright (C) 1999-2005, 2007, 2009-2011  Free Software Foundation, Inc.
 
 @c Permission is granted to copy, distribute and/or modify this
 @c document under the terms of the GNU Free Documentation License,
@@ -1330,7 +1329,3 @@ To add other kind of decorations on a tag, @code{NAME-highlight} must use
 @dfn{semantic-decorate-tag}, and other functions of the semantic
 decoration @var{api} found in this library.
 @end defun
-
-@ignore
-   arch-tag: 760dca58-7119-484e-8237-866cbaf36f79
-@end ignore

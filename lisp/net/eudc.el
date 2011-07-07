@@ -1,7 +1,6 @@
 ;;; eudc.el --- Emacs Unified Directory Client
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -352,12 +351,12 @@ accordingly. Otherwise it is set to its EUDC default binding"
 The translation is done according to
 `eudc-protocol-attributes-translation-alist'."
   (if eudc-protocol-attributes-translation-alist
-      (mapcar '(lambda (attribute)
-		 (let ((trans (assq (car attribute)
-				    (symbol-value eudc-protocol-attributes-translation-alist))))
-		   (if trans
-		       (cons (cdr trans) (cdr attribute))
-		     attribute)))
+      (mapcar (lambda (attribute)
+                (let ((trans (assq (car attribute)
+                                   (symbol-value eudc-protocol-attributes-translation-alist))))
+                  (if trans
+                      (cons (cdr trans) (cdr attribute))
+                    attribute)))
 	      query)
     query))
 
@@ -367,7 +366,7 @@ The translation is done according to
 `eudc-protocol-attributes-translation-alist'."
   (if eudc-protocol-attributes-translation-alist
       (let (trans)
-	(mapcar '(lambda (attribute)
+	(mapcar (lambda (attribute)
 		   (setq trans (assq attribute
 				     (symbol-value eudc-protocol-attributes-translation-alist)))
 		   (if trans
@@ -693,7 +692,7 @@ server for future sessions."
   (interactive (list
 		(read-from-minibuffer "Directory Server: ")
 		(intern (completing-read "Protocol: "
-					 (mapcar '(lambda (elt)
+					 (mapcar (lambda (elt)
 						    (cons (symbol-name elt)
 							  elt))
 						 eudc-known-protocols)))))
@@ -797,7 +796,7 @@ If none try N - 1 and so forth."
 		(> n 0))
       (setq formats
 	    (delq nil
-		  (mapcar '(lambda (format)
+		  (mapcar (lambda (format)
 			     (if (= n
 				    (length format))
 				 format

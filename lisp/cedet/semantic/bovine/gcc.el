@@ -1,6 +1,6 @@
 ;;; semantic/bovine/gcc.el --- gcc querying special code for the C parser
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -221,5 +221,4 @@ It should also include other symbols GCC was compiled with.")
 ;; generated-autoload-load-name: "semantic/bovine/gcc"
 ;; End:
 
-;; arch-tag: 7086f4a0-1ce8-48e2-9783-d750d3765186
 ;;; semantic/bovine/gcc.el ends here

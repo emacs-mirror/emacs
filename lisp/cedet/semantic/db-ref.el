@@ -1,6 +1,6 @@
 ;;; semantic/db-ref.el --- Handle cross-db file references
 
-;;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -171,5 +171,4 @@ refreshed before dumping the result."
 
 (provide 'semantic/db-ref)
 
-;; arch-tag: bea73e70-dbbe-4c30-a58d-289dc3a40172
 ;;; semantic/db-ref.el ends here

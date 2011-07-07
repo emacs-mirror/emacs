@@ -1,8 +1,6 @@
 ;; autoload.el --- maintain autoloads in loaddefs.el
 
-;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1991-1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
@@ -36,11 +34,19 @@
 (require 'help-fns)			;for help-add-fundoc-usage.
 (eval-when-compile (require 'cl))
 
-(defvar generated-autoload-file "loaddefs.el"
-   "*File \\[update-file-autoloads] puts autoloads into.
-A `.el' file can set this in its local variables section to make its
-autoloads go somewhere else.  The autoload file is assumed to contain a
-trailer starting with a FormFeed character.")
+(defvar generated-autoload-file nil
+  "File into which to write autoload definitions.
+A Lisp file can set this in its local variables section to make
+its autoloads go somewhere else.
+
+If this is a relative file name, the directory is determined as
+follows:
+ - If a Lisp file defined `generated-autoload-file' as a
+   file-local variable, use its containing directory.
+ - Otherwise use the \"lisp\" subdirectory of `source-directory'.
+
+The autoload file is assumed to contain a trailer starting with a
+FormFeed character.")
 ;;;###autoload
 (put 'generated-autoload-file 'safe-local-variable 'stringp)
 
@@ -139,7 +145,7 @@ or macro definition or a defcustom)."
             ;; Special case to autoload some of the macro's declarations.
             (let ((decls (nth (if (stringp (nth 3 form)) 4 3) form))
                   (exps '()))
-              (when (eq (car decls) 'declare)
+              (when (eq (car-safe decls) 'declare)
                 ;; FIXME: We'd like to reuse macro-declaration-function,
                 ;; but we can't since it doesn't return anything.
                 (dolist (decl decls)
@@ -191,6 +197,15 @@ or macro definition or a defcustom)."
 ;; A doc-string-elt property of ELT says that (nth ELT FORM) is
 ;; the doc-string in FORM.
 ;; Those properties are now set in lisp-mode.el.
+
+(defun autoload-find-generated-file ()
+  "Visit the autoload file for the current buffer, and return its buffer.
+If a buffer is visiting the desired autoload file, return it."
+  (let ((enable-local-variables :safe))
+    ;; We used to use `raw-text' to read this file, but this causes
+    ;; problems when the file contains non-ASCII characters.
+    (find-file-noselect
+     (autoload-ensure-default-file (autoload-generated-file)))))
 
 (defun autoload-generated-file ()
   (expand-file-name generated-autoload-file
@@ -383,7 +398,8 @@ If FILE is being visited in a buffer, the contents of the buffer
 are used.
 Return non-nil in the case where no autoloads were added at point."
   (interactive "fGenerate autoloads for file: ")
-  (autoload-generate-file-autoloads file (current-buffer)))
+  (let ((generated-autoload-file buffer-file-name))
+    (autoload-generate-file-autoloads file (current-buffer))))
 
 (defvar print-readably)
 
@@ -473,7 +489,8 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
                                    (marker-buffer output-start)))
                               (autoload-print-form autoload)))
                         (error
-                         (message "Error in %s: %S" file err)))
+                         (message "Autoload cookie error in %s:%s %S"
+                                  file (count-lines (point-min) (point)) err)))
 
                     ;; Copy the rest of the line to the output.
                     (princ (buffer-substring
@@ -539,18 +556,26 @@ Return non-nil if and only if FILE adds no autoloads to OUTFILE
 (defun autoload-save-buffers ()
   (while autoload-modified-buffers
     (with-current-buffer (pop autoload-modified-buffers)
-      (save-buffer))))
+      (let ((version-control 'never))
+	(save-buffer)))))
 
 ;;;###autoload
-(defun update-file-autoloads (file &optional save-after)
-  "Update the autoloads for FILE in `generated-autoload-file'
-\(which FILE might bind in its local variables).
-If SAVE-AFTER is non-nil (which is always, when called interactively),
-save the buffer too.
+(defun update-file-autoloads (file &optional save-after outfile)
+  "Update the autoloads for FILE.
+If prefix arg SAVE-AFTER is non-nil, save the buffer too.
+
+If FILE binds `generated-autoload-file' as a file-local variable,
+autoloads are written into that file.  Otherwise, the autoloads
+file is determined by OUTFILE.  If called interactively, prompt
+for OUTFILE; if called from Lisp with OUTFILE nil, use the
+existing value of `generated-autoload-file'.
 
 Return FILE if there was no autoload cookie in it, else nil."
-  (interactive "fUpdate autoloads for file: \np")
-  (let* ((autoload-modified-buffers nil)
+  (interactive (list (read-file-name "Update autoloads for file: ")
+		     current-prefix-arg
+		     (read-file-name "Write autoload definitions to file: ")))
+  (let* ((generated-autoload-file (or outfile generated-autoload-file))
+	 (autoload-modified-buffers nil)
          (no-autoloads (autoload-generate-file-autoloads file)))
     (if autoload-modified-buffers
         (if save-after (autoload-save-buffers))
@@ -568,11 +593,7 @@ removes any prior now out-of-date autoload entries."
     (let* ((buf (current-buffer))
            (existing-buffer (if buffer-file-name buf))
            (found nil))
-      (with-current-buffer
-          ;; We used to use `raw-text' to read this file, but this causes
-          ;; problems when the file contains non-ASCII characters.
-          (find-file-noselect
-           (autoload-ensure-default-file (autoload-generated-file)))
+      (with-current-buffer (autoload-find-generated-file)
         ;; This is to make generated-autoload-file have Unix EOLs, so
         ;; that it is portable to all platforms.
         (or (eq 0 (coding-system-eol-type buffer-file-coding-system))
@@ -631,15 +652,20 @@ removes any prior now out-of-date autoload entries."
 
 ;;;###autoload
 (defun update-directory-autoloads (&rest dirs)
-  "\
-Update loaddefs.el with all the current autoloads from DIRS, and no old ones.
-This uses `update-file-autoloads' (which see) to do its work.
-In an interactive call, you must give one argument, the name
-of a single directory.  In a call from Lisp, you can supply multiple
+  "Update autoload definitions for Lisp files in the directories DIRS.
+In an interactive call, you must give one argument, the name of a
+single directory.  In a call from Lisp, you can supply multiple
 directories as separate arguments, but this usage is discouraged.
 
 The function does NOT recursively descend into subdirectories of the
-directory or directories specified."
+directory or directories specified.
+
+In an interactive call, prompt for a default output file for the
+autoload definitions, and temporarily bind the variable
+`generated-autoload-file' to this value.  When called from Lisp,
+use the existing value of `generated-autoload-file'.  If any Lisp
+file binds `generated-autoload-file' as a file-local variable,
+write its autoloads into the specified file instead."
   (interactive "DUpdate autoloads from directory: ")
   (let* ((files-re (let ((tmp nil))
 		     (dolist (suf (get-load-suffixes)
@@ -655,13 +681,14 @@ directory or directories specified."
          ;; Files with no autoload cookies or whose autoloads go to other
          ;; files because of file-local autoload-generated-file settings.
 	 (no-autoloads nil)
-         (autoload-modified-buffers nil))
+         (autoload-modified-buffers nil)
+	 (generated-autoload-file
+	  (if (called-interactively-p 'interactive)
+	      (read-file-name "Write autoload definitions to file: ")
+	    generated-autoload-file)))
 
-    (with-current-buffer
-	(find-file-noselect
-         (autoload-ensure-default-file (autoload-generated-file)))
+    (with-current-buffer (autoload-find-generated-file)
       (save-excursion
-
 	;; Canonicalize file names and remove the autoload file itself.
 	(setq files (delete (file-relative-name buffer-file-name)
 			    (mapcar 'file-relative-name files)))
@@ -723,7 +750,8 @@ directory or directories specified."
 	 (current-buffer) nil nil no-autoloads this-time)
 	(insert generate-autoload-section-trailer))
 
-      (save-buffer)
+      (let ((version-control 'never))
+	(save-buffer))
       ;; In case autoload entries were added to other files because of
       ;; file-local autoload-generated-file settings.
       (autoload-save-buffers))))
@@ -737,54 +765,25 @@ directory or directories specified."
 ;;;###autoload
 (defun batch-update-autoloads ()
   "Update loaddefs.el autoloads in batch mode.
-Calls `update-directory-autoloads' on the command line arguments."
+Calls `update-directory-autoloads' on the command line arguments.
+Definitions are written to `generated-autoload-file' (which
+should be non-nil)."
   ;; For use during the Emacs build process only.
+  ;; Exclude those files that are preloaded on ALL platforms.
+  ;; These are the ones in loadup.el where "(load" is at the start
+  ;; of the line (crude, but it works).
   (unless autoload-excludes
-    (let* ((ldir (file-name-directory generated-autoload-file))
-	   (default-directory
-	     (file-name-as-directory
-	      (expand-file-name (if (eq system-type 'windows-nt)
-				    "../lib-src"
-				  "../src") ldir)))
-	   (mfile "Makefile")
-	   (tmpfile "echolisp.tmp")
-	   lim)
-      ;; Windows uses the 'echolisp' approach because:
-      ;; i) It does not have $lisp as a single simple definition, so
-      ;; it would be harder to parse the Makefile.
-      ;; ii) It can, since it already has $lisp broken up into pieces
-      ;; that the command-line can handle.
-      ;; Non-Windows builds do not use the 'echolisp' approach because
-      ;; no-one knows (?) the maximum safe command-line length on all
-      ;; supported systems.  $lisp is much longer there since it uses
-      ;; absolute paths, and it would seem a shame to split it just for this.
-      (when (file-readable-p mfile)
-	(if (eq system-type 'windows-nt)
-	    (when (ignore-errors
-		   (if (file-exists-p tmpfile) (delete-file tmpfile))
-		   ;; FIXME call-process is better, if it works.
-		   (shell-command (format "%s echolisp > %s"
-					  autoload-make-program tmpfile))
-		   (file-readable-p tmpfile))
-	      (with-temp-buffer
-		(insert-file-contents tmpfile)
-		;; FIXME could be a single while loop.
-		(while (not (eobp))
-		  (setq lim (line-end-position))
-		  (while (re-search-forward "\\([^ ]+\\.el\\)c?\\>" lim t)
-		    (push (expand-file-name (match-string 1))
-			  autoload-excludes))
-		  (forward-line 1))))
-	  (with-temp-buffer
-	    (insert-file-contents mfile)
-	    (when (re-search-forward "^shortlisp= " nil t)
-	      (while (and (not lim)
-			  (re-search-forward "\\.\\./lisp/\\([^ ]+\\.el\\)c?\\>"
-					     nil t))
-		(push (expand-file-name (match-string 1) ldir)
-		      autoload-excludes)
-		(skip-chars-forward " \t")
-		(if (eolp) (setq lim t)))))))))
+    (let ((default-directory (file-name-directory generated-autoload-file))
+	  file)
+      (when (file-readable-p "loadup.el")
+	(with-temp-buffer
+	  (insert-file-contents "loadup.el")
+	  (while (re-search-forward "^(load \"\\([^\"]+\\)\"" nil t)
+	    (setq file (match-string 1))
+	    (or (string-match "\\.el\\'" file)
+		(setq file (format "%s.el" file)))
+	    (or (string-match "\\`site-" file)
+		(push (expand-file-name file) autoload-excludes)))))))
   (let ((args command-line-args-left))
     (setq command-line-args-left nil)
     (apply 'update-directory-autoloads args)))

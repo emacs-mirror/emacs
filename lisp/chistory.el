@@ -1,7 +1,6 @@
 ;;; chistory.el --- list command history
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -189,5 +188,4 @@ and runs the normal hook `command-history-hook'."
 
 (provide 'chistory)
 
-;; arch-tag: c201a0cd-89f2-4d39-a532-4cb309391dbd
 ;;; chistory.el ends here

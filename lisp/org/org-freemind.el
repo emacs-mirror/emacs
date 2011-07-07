@@ -1,11 +1,11 @@
 ;;; org-freemind.el --- Export Org files to freemind
 
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -1172,8 +1172,8 @@ PATH should be a list of steps, where each step has the form
     (when (< 0 (- level skip-levels))
       (dolist (attrib attributes)
         (case (car attrib)
-          ('TEXT (setq text (cdr attrib)))
-          ('text (setq text (cdr attrib)))))
+          (TEXT (setq text (cdr attrib)))
+          (text (setq text (cdr attrib)))))
       (unless text
         ;; There should be a richcontent node holding the text:
         (setq text (org-freemind-get-richcontent-node-text node)))
@@ -1193,7 +1193,7 @@ PATH should be a list of steps, where each step has the form
             (setq text (replace-regexp-in-string "\n $" "" text))
             (insert text))
         (case qname
-          ('node
+          (node
            (insert (make-string (- level skip-levels) ?*) " " text "\n")
            (when note
              (insert ":COMMENT:\n" note "\n:END:\n"))
@@ -1237,7 +1237,6 @@ PATH should be a list of steps, where each step has the form
 
 (provide 'org-freemind)
 
-;; arch-tag: e7b0d776-94fd-404a-b35e-0f855fae3627
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; org-freemind.el ends here

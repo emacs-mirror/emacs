@@ -1,6 +1,6 @@
 ;;; ede/files.el --- Associate projects with files and directories.
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -501,5 +501,4 @@ Argument DIR is the directory to trim upwards."
 ;; generated-autoload-load-name: "ede/files"
 ;; End:
 
-;; arch-tag: 28e17358-0208-4678-828c-23fb0e783fd6
 ;;; ede/files.el ends here

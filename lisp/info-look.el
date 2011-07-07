@@ -1,8 +1,7 @@
-;;; info-look.el --- major-mode-sensitive Info index lookup facility
+;;; info-look.el --- major-mode-sensitive Info index lookup facility -*- lexical-binding: t -*-
 ;; An older version of this was known as libc.el.
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-1999, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;;         (did not show signs of life (Nov 2001)  -stef)
@@ -128,9 +127,9 @@ OTHER-MODES is a list of cross references to other help modes.")
 
 (defun info-lookup-add-help (&rest arg)
   "Add or update a help specification.
-Function arguments are one or more options of the form
+Function arguments are specified as keyword/argument pairs:
 
-    KEYWORD ARGUMENT
+    \(KEYWORD . ARGUMENT)
 
 KEYWORD is either `:topic', `:mode', `:regexp', `:ignore-case',
  `:doc-spec', `:parse-rule', or `:other-modes'.
@@ -358,7 +357,7 @@ If optional argument QUERY is non-nil, query for the help mode."
 	(setq node (nth 0 (car doc-spec))
 	      prefix (nth 2 (car doc-spec))
 	      suffix (nth 3 (car doc-spec)))
-	(when (condition-case error-data
+	(when (condition-case nil
 		  (progn
 		    ;; Don't need Index menu fontifications here, and
 		    ;; they slow down the lookup.
@@ -474,7 +473,7 @@ If optional argument QUERY is non-nil, query for the help mode."
 			(t (nth 1 (car doc-spec)))))
       (with-current-buffer buffer
 	(message "Processing Info node `%s'..." node)
-	(when (condition-case error-data
+	(when (condition-case nil
 		  (progn
 		    (Info-goto-node node)
 		    (setq doc-found t))
@@ -642,44 +641,42 @@ Return nil if there is nothing appropriate in the buffer near point."
 			 info-lookup-mode
 		       (info-lookup-change-mode 'file)))))
 
+(defun info-lookup-completions-at-point (topic mode)
+  "Try to complete a help item."
+  (or mode (setq mode (info-lookup-select-mode)))
+  (when (info-lookup->mode-value topic mode)
+    (let ((modes (info-lookup-quick-all-modes topic mode))
+          (start (point))
+          try)
+      (while (and (not try) modes)
+        (setq mode (car modes)
+              modes (cdr modes)
+              try (info-lookup-guess-default* topic mode))
+        (goto-char start))
+      (when try
+        (let ((completions (info-lookup->completions topic mode)))
+          (when completions
+            (when (info-lookup->ignore-case topic mode)
+              (setq completions
+                    (lambda (string pred action)
+                      (let ((completion-ignore-case t))
+                        (complete-with-action
+                         action completions string pred)))))
+            (save-excursion
+              ;; Find the original symbol and zap it.
+              (end-of-line)
+              (while (and (search-backward try nil t)
+                          (< start (point))))
+              (list (match-beginning 0) (match-end 0) completions
+                    :exclusive 'no))))))))
+
 (defun info-complete (topic mode)
   "Try to complete a help item."
   (barf-if-buffer-read-only)
-  (or mode (setq mode (info-lookup-select-mode)))
-  (or (info-lookup->mode-value topic mode)
-      (error "No %s completion available for `%s'" topic mode))
-  (let ((modes (info-lookup-quick-all-modes topic mode))
-	(start (point))
-	try)
-    (while (and (not try) modes)
-      (setq mode (car modes)
-	    modes (cdr modes)
-	    try (info-lookup-guess-default* topic mode))
-      (goto-char start))
-    (and (not try)
-	 (error "Found no %S to complete" topic))
-    (let ((completions (info-lookup->completions topic mode))
-	  (completion-ignore-case (info-lookup->ignore-case topic mode))
-	  completion)
-      (setq completion (try-completion try completions))
-      (cond ((not completion)
-	     (ding)
-	     (message "No match"))
-	    ((stringp completion)
-	     (or (assoc completion completions)
-		 (setq completion (completing-read
-				   (format "Complete %S: " topic)
-				   completions nil t completion
-				   info-lookup-history)))
-	     ;; Find the original symbol and zap it.
-	     (end-of-line)
-	     (while (and (search-backward try nil t)
-			 (< start (point))))
-	     (replace-match "")
-	     (insert completion))
-	    (t
-	     (message "%s is complete"
-		      (capitalize (prin1-to-string topic))))))))
+  (let ((data (info-lookup-completions-at-point topic mode)))
+    (if (null data)
+        (error "No %s completion available for `%s' at point" topic mode)
+      (completion-in-region (nth 0 data) (nth 1 data) (nth 2 data)))))
 
 
 ;;; Initialize some common modes.
@@ -721,11 +718,31 @@ Return nil if there is nothing appropriate in the buffer near point."
  :mode 'makefile-mode
  :regexp "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z][_a-zA-Z0-9-]*"
  :doc-spec '(("(make)Name Index" nil
-	      "^[ \t]*`" "'")
-	     ("(automake)Macro and Variable Index" nil
 	      "^[ \t]*`" "'"))
- :parse-rule "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z0-9-]+"
- :other-modes '(automake-mode))
+ :parse-rule "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z0-9-]+")
+
+(info-lookup-maybe-add-help
+ :topic      'symbol
+ :mode       'makefile-automake-mode
+ ;; similar regexp/parse-rule as makefile-mode, but also the following
+ ;; (which have index entries),
+ ;;   "##" special automake comment
+ ;;   "+=" append operator, separate from the GNU make one
+ :regexp     "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z][_a-zA-Z0-9-]*\\|##\\|\\+="
+ :parse-rule "\\$[^({]\\|\\.[_A-Z]*\\|[_a-zA-Z0-9-]+\\|##\\|\\+="
+ :doc-spec   '(
+               ;; "(automake)Macro Index" is autoconf macros used in
+               ;; configure.in, not Makefile.am, so don't have that here.
+               ("(automake)Variable Index" nil "^[ \t]*`" "'")
+               ;; In automake 1.4 macros and variables were a combined node.
+               ("(automake)Macro and Variable Index" nil "^[ \t]*`" "'")
+               ;; Directives like "if" are in the "General Index".
+               ;; Prefix "`" since the text for say `+=' isn't always an
+               ;; @item etc and so not always at the start of a line.
+               ("(automake)General Index" nil "`" "'")
+               ;; In automake 1.3 there was just a single "Index" node.
+               ("(automake)Index" nil "`" "'"))
+ :other-modes '(makefile-mode))
 
 (info-lookup-maybe-add-help
  :mode 'texinfo-mode
@@ -999,5 +1016,4 @@ Return nil if there is nothing appropriate in the buffer near point."
 
 (provide 'info-look)
 
-;; arch-tag: 0f1e3ea3-32a2-4461-bbab-3cff93539a74
 ;;; info-look.el ends here

@@ -1,7 +1,6 @@
 ;;; tramp-smb.el --- Tramp access functions for SMB servers
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -43,18 +42,22 @@
 
 ;; Add a default for `tramp-default-method-alist'. Rule: If there is
 ;; a domain in USER, it must be the SMB method.
+;;;###tramp-autoload
 (add-to-list 'tramp-default-method-alist
 	     `(nil ,tramp-prefix-domain-regexp ,tramp-smb-method))
 
 ;; Add a default for `tramp-default-user-alist'. Rule: For the SMB method,
 ;; the anonymous user is chosen.
+;;;###tramp-autoload
 (add-to-list 'tramp-default-user-alist
-	     `(,tramp-smb-method nil ""))
+	     `(,(concat "\\`" tramp-smb-method "\\'") nil nil))
 
 ;; Add completion function for SMB method.
-(tramp-set-completion-function
- tramp-smb-method
- '((tramp-parse-netrc "~/.netrc")))
+;;;###tramp-autoload
+(eval-after-load 'tramp
+  '(tramp-set-completion-function
+    tramp-smb-method
+    '((tramp-parse-netrc "~/.netrc"))))
 
 (defcustom tramp-smb-program "smbclient"
   "*Name of SMB client to run."
@@ -75,45 +78,48 @@ call, letting the SMB client use the default one."
   "Regexp used as prompt in smbclient.")
 
 (defconst tramp-smb-errors
-  ;; `regexp-opt' not possible because of first string.
   (mapconcat
    'identity
-   '(;; Connection error / timeout / unknown command.
-     "Connection to \\S-+ failed"
+   `(;; Connection error / timeout / unknown command.
+     "Connection\\( to \\S-+\\)? failed"
      "Read from server failed, maybe it closed the connection"
      "Call timed out: server did not respond"
      "\\S-+: command not found"
      "Server doesn't support UNIX CIFS calls"
-     ;; Samba.
-     "ERRDOS"
-     "ERRHRD"
-     "ERRSRV"
-     "ERRbadfile"
-     "ERRbadpw"
-     "ERRfilexists"
-     "ERRnoaccess"
-     "ERRnomem"
-     "ERRnosuchshare"
-     ;; Windows 4.0 (Windows NT), Windows 5.0 (Windows 2000),
-     ;; Windows 5.1 (Windows XP), Windows 5.2 (Windows Server 2003).
-     "NT_STATUS_ACCESS_DENIED"
-     "NT_STATUS_ACCOUNT_LOCKED_OUT"
-     "NT_STATUS_BAD_NETWORK_NAME"
-     "NT_STATUS_CANNOT_DELETE"
-     "NT_STATUS_CONNECTION_REFUSED"
-     "NT_STATUS_DIRECTORY_NOT_EMPTY"
-     "NT_STATUS_DUPLICATE_NAME"
-     "NT_STATUS_FILE_IS_A_DIRECTORY"
-     "NT_STATUS_LOGON_FAILURE"
-     "NT_STATUS_NETWORK_ACCESS_DENIED"
-     "NT_STATUS_NOT_IMPLEMENTED"
-     "NT_STATUS_NO_SUCH_FILE"
-     "NT_STATUS_OBJECT_NAME_COLLISION"
-     "NT_STATUS_OBJECT_NAME_INVALID"
-     "NT_STATUS_OBJECT_NAME_NOT_FOUND"
-     "NT_STATUS_SHARING_VIOLATION"
-     "NT_STATUS_TRUSTED_RELATIONSHIP_FAILURE"
-     "NT_STATUS_WRONG_PASSWORD")
+     ,(regexp-opt
+       '(;; Samba.
+	 "ERRDOS"
+	 "ERRHRD"
+	 "ERRSRV"
+	 "ERRbadfile"
+	 "ERRbadpw"
+	 "ERRfilexists"
+	 "ERRnoaccess"
+	 "ERRnomem"
+	 "ERRnosuchshare"
+	 ;; Windows 4.0 (Windows NT), Windows 5.0 (Windows 2000),
+	 ;; Windows 5.1 (Windows XP), Windows 5.2 (Windows Server 2003).
+	 "NT_STATUS_ACCESS_DENIED"
+	 "NT_STATUS_ACCOUNT_LOCKED_OUT"
+	 "NT_STATUS_BAD_NETWORK_NAME"
+	 "NT_STATUS_CANNOT_DELETE"
+	 "NT_STATUS_CONNECTION_REFUSED"
+	 "NT_STATUS_DIRECTORY_NOT_EMPTY"
+	 "NT_STATUS_DUPLICATE_NAME"
+	 "NT_STATUS_FILE_IS_A_DIRECTORY"
+	 "NT_STATUS_IO_TIMEOUT"
+	 "NT_STATUS_LOGON_FAILURE"
+	 "NT_STATUS_NETWORK_ACCESS_DENIED"
+	 "NT_STATUS_NOT_IMPLEMENTED"
+	 "NT_STATUS_NO_SUCH_FILE"
+	 "NT_STATUS_NO_SUCH_USER"
+	 "NT_STATUS_OBJECT_NAME_COLLISION"
+	 "NT_STATUS_OBJECT_NAME_INVALID"
+	 "NT_STATUS_OBJECT_NAME_NOT_FOUND"
+	 "NT_STATUS_SHARING_VIOLATION"
+	 "NT_STATUS_TRUSTED_RELATIONSHIP_FAILURE"
+	 "NT_STATUS_UNSUCCESSFUL"
+	 "NT_STATUS_WRONG_PASSWORD")))
    "\\|")
   "Regexp for possible error strings of SMB servers.
 Used instead of analyzing error codes of commands.")
@@ -335,10 +341,10 @@ pass to the OPERATION."
 	    preserve-uid-gid preserve-selinux-context)
   "Like `copy-file' for Tramp files.
 KEEP-DATE is not handled in case NEWNAME resides on an SMB server.
-PRESERVE-UID-GID is completely ignored."
+PRESERVE-UID-GID and PRESERVE-SELINUX-CONTEXT are completely ignored."
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
-  (with-progress-reporter
+  (tramp-with-progress-reporter
       (tramp-dissect-file-name (if (file-remote-p filename) filename newname))
       0 (format "Copying %s to %s" filename newname)
 
@@ -596,7 +602,7 @@ PRESERVE-UID-GID is completely ignored."
        v 'file-error
        "Cannot make local copy of non-existing file `%s'" filename))
     (let ((tmpfile (tramp-compat-make-temp-file filename)))
-      (with-progress-reporter
+      (tramp-with-progress-reporter
 	  v 3 (format "Fetching %s to tmp file %s" filename tmpfile)
 	(unless (tramp-smb-send-command
 		 v (format "get \"%s\" \"%s\""
@@ -833,7 +839,7 @@ target of the symlink differ."
   "Like `rename-file' for Tramp files."
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
-  (with-progress-reporter
+  (tramp-with-progress-reporter
       (tramp-dissect-file-name (if (file-remote-p filename) filename newname))
       0 (format "Renaming %s to %s" filename newname)
 
@@ -922,7 +928,7 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 	   (list start end tmpfile append 'no-message lockname confirm)
 	 (list start end tmpfile append 'no-message lockname)))
 
-      (with-progress-reporter
+      (tramp-with-progress-reporter
 	  v 3 (format "Moving tmp file %s to %s" tmpfile filename)
 	(unwind-protect
 	    (unless (tramp-smb-send-command
@@ -1035,17 +1041,17 @@ Result is a list of (LOCALNAME MODE SIZE MONTH DAY TIME YEAR)."
 ;; \s-\{2,2}                              - leading spaces
 ;; \S-\(.*\S-\)\s-*                       - file name, 30 chars, left bound
 ;; \s-+[ADHRSV]*                          - permissions, 7 chars, right bound
-;; \s-                                    - space delimeter
+;; \s-                                    - space delimiter
 ;; \s-+[0-9]+                             - size, 8 chars, right bound
-;; \s-\{2,2\}                             - space delimeter
+;; \s-\{2,2\}                             - space delimiter
 ;; \w\{3,3\}                              - weekday
-;; \s-                                    - space delimeter
+;; \s-                                    - space delimiter
 ;; \w\{3,3\}                              - month
-;; \s-                                    - space delimeter
+;; \s-                                    - space delimiter
 ;; [ 12][0-9]                             - day
-;; \s-                                    - space delimeter
+;; \s-                                    - space delimiter
 ;; [0-9]\{2,2\}:[0-9]\{2,2\}:[0-9]\{2,2\} - time
-;; \s-                                    - space delimeter
+;; \s-                                    - space delimiter
 ;; [0-9]\{4,4\}                           - year
 ;;
 ;; samba/src/client.c (http://samba.org/doxygen/samba/client_8c-source.html)
@@ -1285,7 +1291,7 @@ connection if a previous connection has died for some reason."
 	    (setq args (append args (list "-s" tramp-smb-conf))))
 
 	  ;; OK, let's go.
-	  (with-progress-reporter
+	  (tramp-with-progress-reporter
 	      vec 3
 	      (format "Opening connection for //%s%s/%s"
 		      (if (not (zerop (length user))) (concat user "@") "")
@@ -1310,7 +1316,7 @@ connection if a previous connection has died for some reason."
 
 	      ;; Play login scenario.
 	      (tramp-process-actions
-	       p vec
+	       p vec nil
 	       (if share
 		   tramp-smb-actions-with-share
 		 tramp-smb-actions-without-share))

@@ -1,7 +1,6 @@
 ;;; dns.el --- Domain Name Service lookups
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network comm
@@ -253,8 +252,8 @@ If TCP-P, the first two bytes of the package with be the length field."
       (nreverse spec))))
 
 (defun dns-read-int32 ()
-  ;; Full 32 bit Integers can't be handled by Emacs.  If we use
-  ;; floats, it works.
+  ;; Full 32 bit Integers can't be handled by 32-bit Emacsen.  If we
+  ;; use floats, it works.
   (format "%.0f" (+ (* (dns-read-bytes 1) 16777216.0)
 		    (dns-read-bytes 3))))
 

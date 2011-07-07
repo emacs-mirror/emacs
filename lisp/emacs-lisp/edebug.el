@@ -1,8 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp
 
-;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1997,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010  Free Software Foundation, Inc.
+;; Copyright (C) 1988-1995, 1997, 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Maintainer: FSF
@@ -521,7 +519,8 @@ the minibuffer."
 	  ((and (eq (car form) 'defcustom)
 		(default-boundp (nth 1 form)))
 	   ;; Force variable to be bound.
-	   (set-default (nth 1 form) (eval (nth 2 form))))
+           ;; FIXME: Shouldn't this use the :setter or :initializer?
+	   (set-default (nth 1 form) (eval (nth 2 form) lexical-binding)))
           ((eq (car form) 'defface)
            ;; Reset the face.
            (setq face-new-frame-defaults
@@ -534,7 +533,7 @@ the minibuffer."
 				(put ',(nth 1 form) 'customized-face
 				     ,(nth 2 form)))
 			(put (nth 1 form) 'saved-face nil)))))
-    (setq edebug-result (eval form))
+    (setq edebug-result (eval (eval-sexp-add-defvars form) lexical-binding))
     (if (not edebugging)
 	(princ edebug-result)
       edebug-result)))
@@ -567,7 +566,8 @@ already is one.)"
    ;; but this causes problems while edebugging edebug.
    (let ((edebug-all-forms t)
 	 (edebug-all-defs t))
-     (edebug-read-top-level-form))))
+     (eval-sexp-add-defvars
+      (edebug-read-top-level-form)))))
 
 
 (defun edebug-read-top-level-form ()
@@ -2131,8 +2131,6 @@ expressions; a `progn' form will be returned enclosing these forms."
 
 (def-edebug-spec with-custom-print body)
 
-(def-edebug-spec sregexq (&rest sexp))
-(def-edebug-spec rx (&rest sexp))
 
 ;;; The debugger itself
 
@@ -2466,6 +2464,7 @@ MSG is printed after `::::} '."
 	    (if edebug-global-break-condition
 		(condition-case nil
 		    (setq edebug-global-break-result
+                          ;; FIXME: lexbind.
 			  (eval edebug-global-break-condition))
 		  (error nil))))
 	   (edebug-break))
@@ -2477,6 +2476,7 @@ MSG is printed after `::::} '."
 		(and edebug-break-data
 		     (or (not edebug-break-condition)
 			 (setq edebug-break-result
+                               ;; FIXME: lexbind.
 			       (eval edebug-break-condition))))))
       (if (and edebug-break
 	       (nth 2 edebug-break-data)) ; is it temporary?
@@ -3398,7 +3398,7 @@ go to the end of the last sexp, or if that is the same point, then step."
   ;; Return the function symbol, or nil if not instrumented.
   (let ((func-marker (get func 'edebug)))
     (cond
-     ((markerp func-marker)
+     ((and (markerp func-marker) (marker-buffer func-marker))
       ;; It is uninstrumented, so instrument it.
       (with-current-buffer (marker-buffer func-marker)
 	(goto-char func-marker)
@@ -3637,9 +3637,10 @@ Return the result of the last expression."
 
 (defun edebug-eval (edebug-expr)
   ;; Are there cl lexical variables active?
-  (if (bound-and-true-p cl-debug-env)
-      (eval (cl-macroexpand-all edebug-expr cl-debug-env))
-    (eval edebug-expr)))
+  (eval (if (bound-and-true-p cl-debug-env)
+            (cl-macroexpand-all edebug-expr cl-debug-env)
+          edebug-expr)
+        lexical-binding))
 
 (defun edebug-safe-eval (edebug-expr)
   ;; Evaluate EXPR safely.
@@ -4241,8 +4242,8 @@ It is removed when you hit any char."
 ;;; Menus
 
 (defun edebug-toggle (variable)
-  (set variable (not (eval variable)))
-  (message "%s: %s" variable (eval variable)))
+  (set variable (not (symbol-value variable)))
+  (message "%s: %s" variable (symbol-value variable)))
 
 ;; We have to require easymenu (even for Emacs 18) just so
 ;; the easy-menu-define macro call is compiled correctly.

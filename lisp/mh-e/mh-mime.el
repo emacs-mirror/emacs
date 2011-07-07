@@ -1,7 +1,6 @@
 ;;; mh-mime.el --- MH-E MIME support
 
-;; Copyright (C) 1993, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -391,11 +390,11 @@ do the work."
                     (equal nil mh-mime-save-parts-default-directory)
                     (equal t mh-mime-save-parts-default-directory))
                 (not mh-mime-save-parts-directory))
-           (read-file-name "Store in directory: " nil nil t nil))
+           (read-directory-name "Store in directory: " nil nil t))
           ((and (or prompt
                     (equal t mh-mime-save-parts-default-directory))
                 mh-mime-save-parts-directory)
-           (read-file-name (format
+           (read-directory-name (format
                             "Store in directory (default %s): "
                             mh-mime-save-parts-directory)
                            "" mh-mime-save-parts-directory t ""))
@@ -836,7 +835,7 @@ being used to highlight the signature in a MIME part."
 ;;; Button Display
 
 ;; Shush compiler.
-(when (featurep 'xemacs)
+(mh-do-in-xemacs
   (defvar dots)
   (defvar type)
   (defvar ov))
@@ -886,7 +885,8 @@ by commands like \"K v\" which operate on individual MIME parts."
 ;; Shush compiler.
 (defvar mm-verify-function-alist)       ; < Emacs 22
 (defvar mm-decrypt-function-alist)      ; < Emacs 22
-(defvar pressed-details)                ; XEmacs
+(mh-do-in-xemacs
+  (defvar pressed-details))
 
 (defun mh-insert-mime-security-button (handle)
   "Display buttons for PGP message, HANDLE."
@@ -1638,8 +1638,8 @@ This action can be undone by running \\[undo]."
     ;; Do an alias lookup on recipients
     (message-options-set 'message-recipients
                          (mapconcat
-                          '(lambda (ali)
-                             (mail-strip-quoted-names (mh-alias-expand ali)))
+                          (lambda (ali)
+                            (mail-strip-quoted-names (mh-alias-expand ali)))
                           (split-string (message-options-get 'message-recipients) "[, ]+")
                           ", ")))
   (let ((saved-text (buffer-string))

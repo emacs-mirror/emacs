@@ -1,7 +1,6 @@
 ;;; supercite.el --- minor mode for citing mail and news replies
 
-;; Copyright (C) 1993, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
 ;; Maintainer:    Glenn Morris <rgm@gnu.org>
@@ -185,7 +184,9 @@ See the variable `sc-cite-frame-alist' for details."
     ;; paragraph, unless sc-cite-blank-lines-p is non-nil, in which
     ;; case we treat blank lines just like any other line.
     ("^[ \t]*$"                 (if sc-cite-blank-lines-p
-				    (sc-cite-line)
+				    (if sc-nested-citation-p
+					(sc-add-citation-level)
+				      (sc-cite-line))
 				  (sc-fill-if-different "")))
     ;; do nothing if looking at a reference tag. make sure that the
     ;; tag string isn't the empty string since this will match every
@@ -1997,5 +1998,4 @@ version at point."
 (provide 'supercite)
 (run-hooks 'sc-load-hook)
 
-;; arch-tag: a5d5bfa6-3bd5-4414-8c65-0afc83e45cd3
 ;;; supercite.el ends here

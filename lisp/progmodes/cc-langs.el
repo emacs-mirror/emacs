@@ -1,8 +1,6 @@
 ;;; cc-langs.el --- language specific settings for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
 
 ;; Authors:    2002- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -296,6 +294,19 @@ the evaluated constant value at compile time."
 	     (c-fn-region-is-active-p)]
 	    ["Backslashify"           c-backslash-region
 	     (c-fn-region-is-active-p)]))
+      "----"
+      ("Style..."
+       ["Set Style..."                   c-set-style t]
+       ["Show Current Style Name"        (message
+					  "Style Name: %s"
+					  c-indentation-style) t]
+       ["Guess Style from this Buffer"   c-guess-buffer-no-install t]
+       ["Install the Last Guessed Style..." c-guess-install
+	(and c-guess-guessed-offsets-alist
+	     c-guess-guessed-basic-offset) ]
+       ["View the Last Guessed Style"    c-guess-view
+	(and c-guess-guessed-offsets-alist
+	     c-guess-guessed-basic-offset) ])
       "----"
       ("Toggle..."
        ["Syntactic indentation" c-toggle-syntactic-indentation
@@ -3137,5 +3148,4 @@ evaluated and should not be quoted."
 
 (cc-provide 'cc-langs)
 
-;; arch-tag: 1ab57482-cfc2-4c5b-b628-3539c3098822
 ;;; cc-langs.el ends here

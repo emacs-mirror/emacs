@@ -1,7 +1,6 @@
-;;; make-mode.el --- makefile editing commands for Emacs
+;;; make-mode.el --- makefile editing commands for Emacs -*- lexical-binding:t -*-
 
-;; Copyright (C) 1992, 1994, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
@@ -344,7 +343,7 @@ not be enclosed in { } or ( )."
 
 (defun makefile-make-font-lock-keywords (var keywords space
 					     &optional negation
-					     &rest font-lock-keywords)
+					     &rest fl-keywords)
   `(;; Do macro assignments.  These get the "variable-name" face.
     (,makefile-macroassign-regex
      (1 font-lock-variable-name-face)
@@ -394,7 +393,7 @@ not be enclosed in { } or ( )."
 	    ;; They can make a tab fail to be effective.
 	    ("^\\( +\\)\t" 1 makefile-space)))
 
-    ,@font-lock-keywords
+    ,@fl-keywords
 
     ;; Do dependencies.
     (makefile-match-dependency
@@ -492,7 +491,7 @@ not be enclosed in { } or ( )."
    '("^[ \t]*\\.for[ \t].+[ \t]\\(in\\)\\>" 1 font-lock-keyword-face)))
 
 (defconst makefile-imake-font-lock-keywords
-  (append 
+  (append
    (makefile-make-font-lock-keywords
     makefile-var-use-regex
     makefile-statements
@@ -603,7 +602,7 @@ The function must satisfy this calling convention:
     (define-key map "\C-c\C-m\C-p" 'makefile-makepp-mode)
     (define-key map "\M-p"     'makefile-previous-dependency)
     (define-key map "\M-n"     'makefile-next-dependency)
-    (define-key map "\e\t"     'makefile-complete)
+    (define-key map "\e\t"     'completion-at-point)
 
     ;; Make menus.
     (define-key map [menu-bar makefile-mode]
@@ -654,7 +653,7 @@ The function must satisfy this calling convention:
       '(menu-item "Find Targets and Macros" makefile-pickup-everything
 		  :help "Notice names of all macros and targets in Makefile"))
     (define-key map [menu-bar makefile-mode complete]
-      '(menu-item "Complete Target or Macro" makefile-complete
+      '(menu-item "Complete Target or Macro" completion-at-point
 		  :help "Perform completion on Makefile construct preceding point"))
     (define-key map [menu-bar makefile-mode backslash]
       '(menu-item "Backslash Region" makefile-backslash-region
@@ -853,6 +852,8 @@ Makefile mode can be configured by modifying the following variables:
    List of special targets. You will be offered to complete
    on one of those in the minibuffer whenever you enter a `.'.
    at the beginning of a line in Makefile mode."
+  (add-hook 'completion-at-point-functions
+            #'makefile-completions-at-point nil t)
   (add-hook 'write-file-functions
 	    'makefile-warn-suspicious-lines nil t)
   (add-hook 'write-file-functions
@@ -1148,15 +1149,10 @@ and adds all qualifying names to the list of known targets."
 
 ;;; Completion.
 
-(defun makefile-complete ()
-  "Perform completion on Makefile construct preceding point.
-Can complete variable and target names.
-The context determines which are considered."
-  (interactive)
+(defun makefile-completions-at-point ()
   (let* ((beg (save-excursion
 		(skip-chars-backward "^$(){}:#= \t\n")
 		(point)))
-	 (try (buffer-substring beg (point)))
 	 (paren nil)
 	 (do-macros
           (save-excursion
@@ -1170,22 +1166,26 @@ The context determines which are considered."
                ;; Preceding "$(" or "${" means macros only.
                ((and (memq pc '(?\{ ?\())
                      (progn
-                       (setq paren (if (eq paren ?\{) ?\} ?\)))
+                       (setq paren (if (eq pc ?\{) ?\} ?\)))
                        (backward-char)
                        (= (preceding-char) ?$)))
                 t)))))
+         (suffix (cond
+                  (do-macros (if paren (string paren)))
+                  ((save-excursion (goto-char beg) (bolp)) ":")
+                  (t " "))))
+    (list beg (point)
+          (append (if do-macros '() makefile-target-table)
+                  makefile-macro-table)
+          :exit-function
+          (if suffix
+              (lambda (_s finished)
+                (when (memq finished '(sole finished))
+                  (if (looking-at (regexp-quote suffix))
+                      (goto-char (match-end 0))
+                    (insert suffix))))))))
 
-         (table (apply-partially 'completion-table-with-terminator
-                                   (cond
-                                    (do-macros (or paren ""))
-                                    ((save-excursion (goto-char beg) (bolp)) ":")
-                                    (t " "))
-                                   (append (if do-macros
-                                               '()
-                                             makefile-target-table)
-                                           makefile-macro-table))))
-    (completion-in-region beg (point) table)))
-
+(define-obsolete-function-alias 'makefile-complete 'completion-at-point "24.1")
 
 
 ;; Backslashification.  Stolen from cc-mode.el.
@@ -1263,7 +1263,7 @@ definition and conveniently use this command."
 
 ;; Filling
 
-(defun makefile-fill-paragraph (arg)
+(defun makefile-fill-paragraph (_arg)
   ;; Fill comments, backslashed lines, and variable definitions
   ;; specially.
   (save-excursion
@@ -1681,7 +1681,7 @@ Then prompts for all required parameters."
 ;;; Utility functions
 ;;; ------------------------------------------------------------
 
-(defun makefile-match-function-end (end)
+(defun makefile-match-function-end (_end)
   "To be called as an anchored matcher by font-lock.
 The anchor must have matched the opening parens in the first group."
   (let ((s (match-string-no-properties 1)))
@@ -1839,5 +1839,4 @@ If it isn't in one, return nil."
 
 (provide 'make-mode)
 
-;; arch-tag: bd23545a-de91-44fb-b1b2-feafbb2635a0
 ;;; make-mode.el ends here

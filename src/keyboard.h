@@ -1,6 +1,5 @@
 /* Declarations useful when processing input.
-   Copyright (C) 1985, 1986, 1987, 1993, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1985-1987, 1993, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,10 +16,17 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include "systime.h"		/* for EMACS_TIME */
+#include "systime.h"		/* for EMACS_TIME, Time */
 #include "coding.h"             /* for ENCODE_UTF_8 and ENCODE_SYSTEM */
 
-/* Length of echobuf field in each KBOARD.  */
+/* Lisp fields in struct keyboard are hidden from most code and accessed
+   via the KVAR macro, below.  Only select pieces of code, like the GC,
+   are allowed to use KBOARD_INTERNAL_FIELD.  */
+#define KBOARD_INTERNAL_FIELD(field) field ## _
+
+/* Most code should use this macro to access Lisp fields in struct
+   kboard.  */
+#define KVAR(kboard, field) ((kboard)->KBOARD_INTERNAL_FIELD (field))
 
 /* Each KBOARD represents one logical input stream from which Emacs
    gets input.  If we are using ordinary terminals, it has one KBOARD
@@ -73,32 +79,32 @@ struct kboard
        can effectively wait for input in the any-kboard state, and hence
        avoid blocking out the other KBOARDs.  See universal-argument in
        lisp/simple.el for an example.  */
-    Lisp_Object Voverriding_terminal_local_map;
+    Lisp_Object KBOARD_INTERNAL_FIELD (Voverriding_terminal_local_map);
 
     /* Last command executed by the editor command loop, not counting
        commands that set the prefix argument.  */
-    Lisp_Object Vlast_command;
+    Lisp_Object KBOARD_INTERNAL_FIELD (Vlast_command);
 
     /* Normally same as last-command, but never modified by other commands.  */
-    Lisp_Object Vreal_last_command;
+    Lisp_Object KBOARD_INTERNAL_FIELD (Vreal_last_command);
 
     /* User-supplied table to translate input characters through.  */
-    Lisp_Object Vkeyboard_translate_table;
-    
+    Lisp_Object KBOARD_INTERNAL_FIELD (Vkeyboard_translate_table);
+
     /* Last command that may be repeated by `repeat'.  */
-    Lisp_Object Vlast_repeatable_command;
+    Lisp_Object KBOARD_INTERNAL_FIELD (Vlast_repeatable_command);
 
     /* The prefix argument for the next command, in raw form.  */
-    Lisp_Object Vprefix_arg;
+    Lisp_Object KBOARD_INTERNAL_FIELD (Vprefix_arg);
 
     /* Saved prefix argument for the last command, in raw form.  */
-    Lisp_Object Vlast_prefix_arg;
+    Lisp_Object KBOARD_INTERNAL_FIELD (Vlast_prefix_arg);
 
     /* Unread events specific to this kboard.  */
-    Lisp_Object kbd_queue;
+    Lisp_Object KBOARD_INTERNAL_FIELD (kbd_queue);
 
     /* Non-nil while a kbd macro is being defined.  */
-    Lisp_Object defining_kbd_macro;
+    Lisp_Object KBOARD_INTERNAL_FIELD (defining_kbd_macro);
 
     /* The start of storage for the current keyboard macro.  */
     Lisp_Object *kbd_macro_buffer;
@@ -117,31 +123,31 @@ struct kboard
     Lisp_Object *kbd_macro_end;
 
     /* Allocated size of kbd_macro_buffer.  */
-    int kbd_macro_bufsize;
+    ptrdiff_t kbd_macro_bufsize;
 
     /* Last anonymous kbd macro defined.  */
-    Lisp_Object Vlast_kbd_macro;
+    Lisp_Object KBOARD_INTERNAL_FIELD (Vlast_kbd_macro);
 
     /* Alist of system-specific X windows key symbols.  */
-    Lisp_Object Vsystem_key_alist;
+    Lisp_Object KBOARD_INTERNAL_FIELD (Vsystem_key_alist);
 
     /* Cache for modify_event_symbol.  */
-    Lisp_Object system_key_syms;
+    Lisp_Object KBOARD_INTERNAL_FIELD (system_key_syms);
 
     /* The kind of display: x, w32, ...  */
-    Lisp_Object Vwindow_system;
+    Lisp_Object KBOARD_INTERNAL_FIELD (Vwindow_system);
 
     /* Keymap mapping keys to alternative preferred forms.
        See the DEFVAR for more documentation.  */
-    Lisp_Object Vlocal_function_key_map;
-    
+    Lisp_Object KBOARD_INTERNAL_FIELD (Vlocal_function_key_map);
+
     /* Keymap mapping ASCII function key sequences onto their preferred
        forms.  Initialized by the terminal-specific lisp files.  See the
        DEFVAR for more documentation.  */
-    Lisp_Object Vinput_decode_map;
-    
+    Lisp_Object KBOARD_INTERNAL_FIELD (Vinput_decode_map);
+
     /* Minibufferless frames on this display use this frame's minibuffer.  */
-    Lisp_Object Vdefault_minibuffer_frame;
+    Lisp_Object KBOARD_INTERNAL_FIELD (Vdefault_minibuffer_frame);
 
     /* Number of displays using this KBOARD.  Normally 1, but can be
        larger when you have multiple screens on a single X display.  */
@@ -149,7 +155,7 @@ struct kboard
 
     /* The text we're echoing in the modeline - partial key sequences,
        usually.  This is nil when not echoing.  */
-    Lisp_Object echo_string;
+    Lisp_Object KBOARD_INTERNAL_FIELD (echo_string);
 
     /* This flag indicates that events were put into kbd_queue
        while Emacs was running for some other KBOARD.
@@ -184,15 +190,9 @@ extern KBOARD *current_kboard;
 
 /* A list of all kboard objects, linked through next_kboard.  */
 extern KBOARD *all_kboards;
-
-/* Nonzero in the single-kboard state, 0 in the any-kboard state.  */
-extern int single_kboard;
 
-/* Total number of times read_char has returned.  */
-extern int num_input_events;
-
-/* Total number of times read_char has returned, outside of macros.  */
-extern EMACS_INT num_nonmacro_input_events;
+/* Total number of times read_char has returned, modulo SIZE_MAX + 1.  */
+extern size_t num_input_events;
 
 /* Nonzero means polling for input is temporarily suppressed.  */
 extern int poll_suppress_count;
@@ -211,9 +211,6 @@ extern int this_command_key_count;
    generated by the next character.  */
 extern Lisp_Object internal_last_event_frame;
 
-/* Menu items.  */
-
-extern Lisp_Object Vlucid_menu_bar_dirty_flag;
 extern Lisp_Object Qrecompute_lucid_menubar, Qactivate_menubar_hook;
 
 /* This holds a Lisp vector that holds the properties of a single
@@ -271,7 +268,9 @@ extern Lisp_Object menu_items;
 
 /* If non-nil, means that the global vars defined here are already in use.
    Used to detect cases where we try to re-enter this non-reentrant code.  */
+#if defined USE_GTK || defined USE_MOTIF
 extern Lisp_Object menu_items_inuse;
+#endif
 
 /* Number of slots currently allocated in menu_items.  */
 extern int menu_items_allocated;
@@ -404,21 +403,14 @@ typedef struct _widget_value
 #define POSN_INBUFFER_P(posn) (NILP (POSN_STRING (posn)))
 #define POSN_BUFFER_POSN(posn) (Fnth (make_number (5), (posn)))
 
-extern Lisp_Object do_mouse_tracking;
-
 /* Some of the event heads.  */
 extern Lisp_Object Qswitch_frame;
 
 /* Properties on event heads.  */
-extern Lisp_Object Qevent_kind, Qevent_symbol_elements;
-
-/* Getting an unmodified version of an event head.  */
-#define EVENT_HEAD_UNMODIFIED(event_head) \
-  (Fcar (Fget ((event_head), Qevent_symbol_elements)))
+extern Lisp_Object Qevent_kind;
 
 /* The values of Qevent_kind properties.  */
-extern Lisp_Object Qfunction_key, Qmouse_click, Qmouse_movement;
-extern Lisp_Object Qscroll_bar_movement;
+extern Lisp_Object Qmouse_click;
 
 extern Lisp_Object Qhelp_echo;
 
@@ -436,9 +428,9 @@ extern int waiting_for_input;
    happens.  */
 extern EMACS_TIME *input_available_clear_time;
 
+#if defined HAVE_WINDOW_SYSTEM && !defined USE_GTK && !defined HAVE_NS
 extern int ignore_mouse_drag_p;
-
-extern Lisp_Object Vdouble_click_time;
+#endif
 
 /* The primary selection.  */
 extern Lisp_Object QPRIMARY;
@@ -453,29 +445,12 @@ extern Lisp_Object read_char (int, int, Lisp_Object *, Lisp_Object,
 extern int parse_solitary_modifier (Lisp_Object symbol);
 
 
-/* Parent keymap of terminal-local function-key-map instances.  */
-extern Lisp_Object Vfunction_key_map;
-
-/* Keymap of key translations that can override keymaps.  */
-extern Lisp_Object Vkey_translation_map;
-
 /* This is like Vthis_command, except that commands never set it.  */
 extern Lisp_Object real_this_command;
 
-/* If the lookup of the command returns a binding, the original
-   command is stored in this-original-command.  It is nil otherwise.  */
-extern Lisp_Object Vthis_original_command;
-
 /* Non-nil disable property on a command means
    do not execute it; call disabled-command-function's value instead.  */
-extern Lisp_Object QCbutton, QCtoggle, QCradio, QClabel;
-
-/* A mask of extra modifier bits to put into every keyboard char.  */
-extern EMACS_INT extra_keyboard_modifiers;
-
-/* If non-nil, this implements the current input method.  */
-extern Lisp_Object Vinput_method_function;
-extern Lisp_Object Qinput_method_function;
+extern Lisp_Object QCtoggle, QCradio;
 
 /* An event header symbol HEAD may have a property named
    Qevent_symbol_element_mask, which is of the form (BASE MODIFIERS);
@@ -486,15 +461,15 @@ extern Lisp_Object Qevent_symbol_element_mask;
 
 /* The timestamp of the last input event we received from the X server.
    X Windows wants this for selection ownership.  */
-extern unsigned long last_event_timestamp;
+extern Time last_event_timestamp;
 
 extern int quit_char;
 
 extern int timers_run;
 
+extern int menu_separator_name_p (const char *);
 extern int parse_menu_item (Lisp_Object, int);
 
-extern void echo_now (void);
 extern void init_kboard (KBOARD *);
 extern void delete_kboard (KBOARD *);
 extern void not_single_kboard_state (KBOARD *);
@@ -503,7 +478,7 @@ extern void push_frame_kboard (struct frame *);
 extern void pop_kboard (void);
 extern void temporarily_switch_to_single_kboard (struct frame *);
 extern void record_asynch_buffer_change (void);
-extern SIGTYPE input_poll_signal (int);
+extern void input_poll_signal (int);
 extern void start_polling (void);
 extern void stop_polling (void);
 extern void set_poll_suppress_count (int);
@@ -512,11 +487,10 @@ extern int input_polling_used (void);
 extern void clear_input_pending (void);
 extern int requeued_events_pending_p (void);
 extern void bind_polling_period (int);
+extern int make_ctrl_char (int);
 extern void stuff_buffered_input (Lisp_Object);
 extern void clear_waiting_for_input (void);
 extern void swallow_events (int);
-extern int help_char_p (Lisp_Object);
-extern void quit_throw_to_read_char (void) NO_RETURN;
 extern int lucid_event_type_list_p (Lisp_Object);
 extern void kbd_buffer_store_event (struct input_event *);
 extern void kbd_buffer_store_event_hold (struct input_event *,
@@ -524,7 +498,7 @@ extern void kbd_buffer_store_event_hold (struct input_event *,
 extern void kbd_buffer_unget_event (struct input_event *);
 extern void poll_for_input_1 (void);
 extern void show_help_echo (Lisp_Object, Lisp_Object, Lisp_Object,
-                            Lisp_Object, int);
+                            Lisp_Object);
 extern void gen_help_event (Lisp_Object, Lisp_Object, Lisp_Object,
                             Lisp_Object, EMACS_INT);
 extern void kbd_buffer_store_help_event (Lisp_Object, Lisp_Object);
@@ -534,5 +508,9 @@ extern void add_user_signal (int, const char *);
 
 extern int tty_read_avail_input (struct terminal *, int,
                                  struct input_event *);
-extern EMACS_TIME timer_check (int);
+extern EMACS_TIME timer_check (void);
+extern void mark_kboards (void);
 
+#ifdef WINDOWSNT
+extern const char *const lispy_function_keys[];
+#endif

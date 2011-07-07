@@ -1,7 +1,6 @@
 ;;; repeat.el --- convenient way to repeat the previous command
 
-;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Will Mengarini <seldon@eskimo.com>
 ;; Created: Mo 02 Mar 98
@@ -124,7 +123,9 @@ if `repeat' is bound to C-x z, typing C-x z z z repeats the previous command
 only occurs if the final character by which `repeat' was invoked is a
 member of that sequence.  If this variable is nil, no re-execution occurs."
   :group 'convenience
-  :type 'boolean)
+  :type '(choice (const :tag "Repeat for all keys" t)
+		 (const :tag "Don't repeat" nil)
+		 (sexp :tag "Repeat for specific keys")))
 
 ;;;;; ****************** HACKS TO THE REST OF EMACS ******************* ;;;;;
 
@@ -392,5 +393,4 @@ recently executed command not bound to an input event\"."
 
 (provide 'repeat)
 
-;; arch-tag: cd569600-a1ad-4fa7-9062-bb91dfeaf1db
 ;;; repeat.el ends here

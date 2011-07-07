@@ -1,8 +1,7 @@
 ;;; eieio.el --- Enhanced Implementation of Emacs Interpreted Objects
 ;;;              or maybe Eric's Implementation of Emacs Intrepreted Objects
 
-;; Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1995-1996, 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 1.3
@@ -46,8 +45,7 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
-  (require 'eieio-comp))
+  (require 'cl))
 
 (defvar eieio-version "1.3"
   "Current version of EIEIO.")
@@ -98,6 +96,7 @@ default setting for optimization purposes.")
   "Non-nil means to optimize the method dispatch on primary methods.")
 
 ;; State Variables
+;; FIXME: These two constants below should have an `eieio-' prefix added!!
 (defvar this nil
   "Inside a method, this variable is the object in question.
 DO NOT SET THIS YOURSELF unless you are trying to simulate friendly slots.
@@ -124,6 +123,7 @@ execute a `call-next-method'.  DO NOT SET THIS YOURSELF!")
 ;; while it is being built itself.
 (defvar eieio-default-superclass nil)
 
+;; FIXME: The constants below should have an `eieio-' prefix added!!
 (defconst class-symbol 1 "Class's symbol (self-referencing.).")
 (defconst class-parent 2 "Class parent slot.")
 (defconst class-children 3 "Class children class slot.")
@@ -182,10 +182,6 @@ Stored outright without modifications or stripping.")
 	(t key) ;; already generic.. maybe.
 	))
 
-;; How to specialty compile stuff.
-(autoload 'byte-compile-file-form-defmethod "eieio-comp"
-  "This function is used to byte compile methods in a nice way.")
-(put 'defmethod 'byte-hunk-handler 'byte-compile-file-form-defmethod)
 
 ;;; Important macros used in eieio.
 ;;
@@ -424,6 +420,7 @@ It creates an autoload function for CNAME's constructor."
     (load-library (car (cdr (symbol-function cname))))))
 
 (defun eieio-defclass (cname superclasses slots options-and-doc)
+  ;; FIXME: Most of this should be moved to the `defclass' macro.
   "Define CNAME as a new subclass of SUPERCLASSES.
 SLOTS are the slots residing in that class definition, and options or
 documentation OPTIONS-AND-DOC is the toplevel documentation for this class.
@@ -660,14 +657,14 @@ See `defclass' for more information."
 	;; so that users can `setf' the space returned by this function
 	(if acces
 	    (progn
-	      (eieio-defmethod acces
-		(list (if (eq alloc :class) :static :primary)
-		      (list (list 'this cname))
-		      (format
+	      (eieio--defmethod
+               acces (if (eq alloc :class) :static :primary) cname
+               `(lambda (this)
+                  ,(format
 		       "Retrieves the slot `%s' from an object of class `%s'"
 		       name cname)
-		      (list 'if (list 'slot-boundp 'this (list 'quote name))
-			    (list 'eieio-oref 'this (list 'quote name))
+                  (if (slot-boundp this ',name)
+                      (eieio-oref this ',name)
 			    ;; Else - Some error?  nil?
 			    nil)))
 
@@ -687,22 +684,21 @@ See `defclass' for more information."
 	;; If a writer is defined, then create a generic method of that
 	;; name whose purpose is to set the value of the slot.
 	(if writer
-	    (progn
-	      (eieio-defmethod writer
-		(list (list (list 'this cname) 'value)
-		      (format "Set the slot `%s' of an object of class `%s'"
+            (eieio--defmethod
+             writer nil cname
+             `(lambda (this value)
+                ,(format "Set the slot `%s' of an object of class `%s'"
 			      name cname)
-		      `(setf (slot-value this ',name) value)))
-	      ))
+                (setf (slot-value this ',name) value))))
 	;; If a reader is defined, then create a generic method
 	;; of that name whose purpose is to access this slot value.
 	(if reader
-	    (progn
-	      (eieio-defmethod reader
-		(list (list (list 'this cname))
-		      (format "Access the slot `%s' from object of class `%s'"
+            (eieio--defmethod
+             reader nil cname
+             `(lambda (this)
+                ,(format "Access the slot `%s' from object of class `%s'"
 			      name cname)
-		      `(slot-value this ',name)))))
+                (slot-value this ',name))))
 	)
       (setq slots (cdr slots)))
 
@@ -1144,6 +1140,17 @@ a string."
 
 ;;; CLOS methods and generics
 ;;
+
+(put 'eieio--defalias 'byte-hunk-handler
+     #'byte-compile-file-form-defalias) ;;(get 'defalias 'byte-hunk-handler)
+(defun eieio--defalias (name body)
+  "Like `defalias', but with less side-effects.
+More specifically, it has no side-effects at all when the new function
+definition is the same (`eq') as the old one."
+  (unless (and (fboundp name)
+               (eq (symbol-function name) body))
+    (defalias name body)))
+
 (defmacro defgeneric (method args &optional doc-string)
   "Create a generic function METHOD.
 DOC-STRING is the base documentation for this class.  A generic
@@ -1152,7 +1159,21 @@ is appropriate to use.  Uses `defmethod' to create methods, and calls
 `defgeneric' for you.  With this implementation the ARGS are
 currently ignored.  You can use `defgeneric' to apply specialized
 top level documentation to a method."
-  `(eieio-defgeneric (quote ,method) ,doc-string))
+  `(eieio--defalias ',method
+                    (eieio--defgeneric-init-form ',method ,doc-string)))
+
+(defun eieio--defgeneric-init-form (method doc-string)
+  "Form to use for the initial definition of a generic."
+  (cond
+   ((or (not (fboundp method))
+        (eq 'autoload (car-safe (symbol-function method))))
+    ;; Make sure the method tables are installed.
+    (eieiomt-install method)
+    ;; Construct the actual body of this function.
+    (eieio-defgeneric-form method doc-string))
+   ((generic-p method) (symbol-function method))           ;Leave it as-is.
+   (t (error "You cannot create a generic/method over an existing symbol: %s"
+             method))))
 
 (defun eieio-defgeneric-form (method doc-string)
   "The lambda form that would be used as the function defined on METHOD.
@@ -1193,10 +1214,8 @@ IMPL is the symbol holding the method implementation."
   ;; is faster to execute this for not byte-compiled.  ie, install this,
   ;; then measure calls going through here.  I wonder why.
   (require 'bytecomp)
-  (let ((byte-compile-free-references nil)
-	(byte-compile-warnings nil)
-	)
-    (byte-compile-lambda
+  (let ((byte-compile-warnings nil))
+    (byte-compile
      `(lambda (&rest local-args)
 	,doc-string
 	;; This is a cool cheat.  Usually we need to look up in the
@@ -1206,32 +1225,30 @@ IMPL is the symbol holding the method implementation."
 	;; of that one implementation, then clearly, there is no method def.
 	(if (not (eieio-object-p (car local-args)))
 	    ;; Not an object.  Just signal.
-	    (signal 'no-method-definition (list ,(list 'quote method) local-args))
+	    (signal 'no-method-definition
+                    (list ',method local-args))
 
 	  ;; We do have an object.  Make sure it is the right type.
 	  (if ,(if (eq class eieio-default-superclass)
-		   nil ; default superclass means just an obj.  Already asked.
+		   nil  ; default superclass means just an obj.  Already asked.
 		 `(not (child-of-class-p (aref (car local-args) object-class)
-					 ,(list 'quote class)))
-		 )
+					 ',class)))
 
 	      ;; If not the right kind of object, call no applicable
 	      (apply 'no-applicable-method (car local-args)
-		     ,(list 'quote method) local-args)
+		     ',method local-args)
 
 	    ;; It is ok, do the call.
 	    ;; Fill in inter-call variables then evaluate the method.
-	    (let ((scoped-class ,(list 'quote class))
+	    (let ((scoped-class ',class)
 		  (eieio-generic-call-next-method-list nil)
 		  (eieio-generic-call-key method-primary)
-		  (eieio-generic-call-methodname ,(list 'quote method))
+		  (eieio-generic-call-methodname ',method)
 		  (eieio-generic-call-arglst local-args)
 		  )
-	      (apply ,(list 'quote impl) local-args)
-	      ;(,impl local-args)
-	      ))))
-     )
-  ))
+	      (apply #',impl local-args)
+              ;;(,impl local-args)
+	      )))))))
 
 (defsubst eieio-defgeneric-reset-generic-form-primary-only-one (method)
   "Setup METHOD to call the generic form."
@@ -1244,26 +1261,6 @@ IMPL is the symbol holding the method implementation."
 		  (car entry)
 		  (cdr entry)
 		  ))))
-
-(defun eieio-defgeneric (method doc-string)
-  "Engine part to `defgeneric' macro defining METHOD with DOC-STRING."
-  (if (and (fboundp method) (not (generic-p method))
-	   (or (byte-code-function-p (symbol-function method))
-	       (not (eq 'autoload (car (symbol-function method)))))
-	   )
-      (error "You cannot create a generic/method over an existing symbol: %s"
-	     method))
-  ;; Don't do this over and over.
-  (unless (fboundp 'method)
-    ;; This defun tells emacs where the first definition of this
-    ;; method is defined.
-    `(defun ,method nil)
-    ;; Make sure the method tables are installed.
-    (eieiomt-install method)
-    ;; Apply the actual body of this function.
-    (fset method (eieio-defgeneric-form method doc-string))
-    ;; Return the method
-    'method))
 
 (defun eieio-unbind-method-implementations (method)
   "Make the generic method METHOD have no implementations.
@@ -1297,66 +1294,59 @@ Summary:
                      ((typearg class-name) arg2 &optional opt &rest rest)
     \"doc-string\"
      body)"
-  `(eieio-defmethod (quote ,method) (quote ,args)))
+  (let* ((key (if (keywordp (car args)) (pop args)))
+	 (params (car args))
+	 (arg1 (car params))
+         (fargs (if (consp arg1)
+                   (cons (car arg1) (cdr params))
+                 params))
+	 (class (if (consp arg1) (nth 1 arg1)))
+         (code `(lambda ,fargs ,@(cdr args))))
+    `(progn
+       ;; Make sure there is a generic and the byte-compiler sees it.
+       (defgeneric ,method ,args
+         ,(or (documentation code)
+              (format "Generically created method `%s'." method)))
+       (eieio--defmethod ',method ',key ',class #',code))))
 
-(defun eieio-defmethod (method args)
+(defun eieio--defmethod (method kind argclass code)
   "Work part of the `defmethod' macro defining METHOD with ARGS."
-  (let ((key nil) (body nil) (firstarg nil) (argfix nil) (argclass nil) loopa)
+  (let ((key
     ;; find optional keys
-    (setq key
-	  (cond ((or (eq ':BEFORE (car args))
-		     (eq ':before (car args)))
-		 (setq args (cdr args))
+         (cond ((or (eq ':BEFORE kind)
+                    (eq ':before kind))
 		 method-before)
-		((or (eq ':AFTER (car args))
-		     (eq ':after (car args)))
-		 (setq args (cdr args))
+               ((or (eq ':AFTER kind)
+                    (eq ':after kind))
 		 method-after)
-		((or (eq ':PRIMARY (car args))
-		     (eq ':primary (car args)))
-		 (setq args (cdr args))
+               ((or (eq ':PRIMARY kind)
+                    (eq ':primary kind))
 		 method-primary)
-		((or (eq ':STATIC (car args))
-		     (eq ':static (car args)))
-		 (setq args (cdr args))
+               ((or (eq ':STATIC kind)
+                    (eq ':static kind))
 		 method-static)
 		;; Primary key
-		(t method-primary)))
-    ;; get body, and fix contents of args to be the arguments of the fn.
-    (setq body (cdr args)
-	  args (car args))
-    (setq loopa args)
-    ;; Create a fixed version of the arguments
-    (while loopa
-      (setq argfix (cons (if (listp (car loopa)) (car (car loopa)) (car loopa))
-			 argfix))
-      (setq loopa (cdr loopa)))
-    ;; make sure there is a generic
-    (eieio-defgeneric
-     method
-     (if (stringp (car body))
-	 (car body) (format "Generically created method `%s'." method)))
+               (t method-primary))))
+    ;; Make sure there is a generic (when called from defclass).
+    (eieio--defalias
+     method (eieio--defgeneric-init-form
+             method (or (documentation code)
+                        (format "Generically created method `%s'." method))))
     ;; create symbol for property to bind to.  If the first arg is of
     ;; the form (varname vartype) and `vartype' is a class, then
     ;; that class will be the type symbol.  If not, then it will fall
     ;; under the type `primary' which is a non-specific calling of the
     ;; function.
-    (setq firstarg (car args))
-    (if (listp firstarg)
-	(progn
-	  (setq argclass  (nth 1 firstarg))
+    (if argclass
 	  (if (not (class-p argclass))
 	      (error "Unknown class type %s in method parameters"
-		     (nth 1 firstarg))))
+                   argclass))
       (if (= key -1)
 	  (signal 'wrong-type-argument (list :static 'non-class-arg)))
       ;; generics are higher
       (setq key (eieio-specialized-key-to-generic-key key)))
     ;; Put this lambda into the symbol so we can find it
-    (if (byte-code-function-p (car-safe body))
-	(eieiomt-add method (car-safe body) key argclass)
-      (eieiomt-add method (append (list 'lambda (reverse argfix)) body)
-		   key argclass))
+    (eieiomt-add method code key argclass)
     )
 
   (when eieio-optimize-primary-methods-flag
@@ -1868,11 +1858,11 @@ OBJECT can be an instance or a class."
   ;; Skip typechecking while retrieving this value.
   (let ((eieio-skip-typecheck t))
     ;; Return nil if the magic symbol is in there.
-    (if (eieio-object-p object)
-	(if (eq (eieio-oref object slot) eieio-unbound) nil t)
-      (if (class-p object)
-	  (if (eq (eieio-oref-default object slot) eieio-unbound) nil t)
-	(signal 'wrong-type-argument (list 'eieio-object-p object))))))
+    (not (eq (cond
+	      ((eieio-object-p object) (eieio-oref object slot))
+	      ((class-p object)        (eieio-oref-default object slot))
+	      (t (signal 'wrong-type-argument (list 'eieio-object-p object))))
+	     eieio-unbound))))
 
 (defun slot-makeunbound (object slot)
   "In OBJECT, make SLOT unbound."
@@ -2944,17 +2934,66 @@ Optional argument NOESCAPE is passed to `prin1-to-string' when appropriate."
 ;;; Autoloading some external symbols, and hooking into the help system
 ;;
 
-(autoload 'eieio-help-mode-augmentation-maybee "eieio-opt" "For buffers thrown into help mode, augment for EIEIO.")
-(autoload 'eieio-browse "eieio-opt" "Create an object browser window." t)
-(autoload 'eieio-describe-class "eieio-opt" "Describe CLASS defined by a string or symbol" t)
-(autoload 'eieio-describe-constructor "eieio-opt" "Describe the constructor function FCN." t)
-(autoload 'describe-class "eieio-opt" "Describe CLASS defined by a string or symbol." t)
-(autoload 'eieio-describe-generic "eieio-opt" "Describe GENERIC defined by a string or symbol." t)
-(autoload 'describe-generic "eieio-opt" "Describe GENERIC defined by a string or symbol." t)
+
+;;; Start of automatically extracted autoloads.
+
+;;;### (autoloads (customize-object) "eieio-custom" "eieio-custom.el"
+;;;;;;  "cf1bd64c76a6e6406545e8c5a5530d43")
+;;; Generated autoloads from eieio-custom.el
 
-(autoload 'customize-object "eieio-custom" "Create a custom buffer editing OBJ.")
+(autoload 'customize-object "eieio-custom" "\
+Customize OBJ in a custom buffer.
+Optional argument GROUP is the sub-group of slots to display.
+
+\(fn OBJ &optional GROUP)" nil nil)
+
+;;;***
+
+;;;### (autoloads (eieio-help-mode-augmentation-maybee eieio-describe-generic
+;;;;;;  eieio-describe-constructor eieio-describe-class eieio-browse)
+;;;;;;  "eieio-opt" "eieio-opt.el" "1bed0a56310f402683419139ebc18d7f")
+;;; Generated autoloads from eieio-opt.el
+
+(autoload 'eieio-browse "eieio-opt" "\
+Create an object browser window to show all objects.
+If optional ROOT-CLASS, then start with that, otherwise start with
+variable `eieio-default-superclass'.
+
+\(fn &optional ROOT-CLASS)" t nil)
+
+(defalias 'describe-class 'eieio-describe-class)
+
+(autoload 'eieio-describe-class "eieio-opt" "\
+Describe a CLASS defined by a string or symbol.
+If CLASS is actually an object, then also display current values of that object.
+Optional HEADERFCN should be called to insert a few bits of info first.
+
+\(fn CLASS &optional HEADERFCN)" t nil)
+
+(autoload 'eieio-describe-constructor "eieio-opt" "\
+Describe the constructor function FCN.
+Uses `eieio-describe-class' to describe the class being constructed.
+
+\(fn FCN)" t nil)
+
+(defalias 'describe-generic 'eieio-describe-generic)
+
+(autoload 'eieio-describe-generic "eieio-opt" "\
+Describe the generic function GENERIC.
+Also extracts information about all methods specific to this generic.
+
+\(fn GENERIC)" t nil)
+
+(autoload 'eieio-help-mode-augmentation-maybee "eieio-opt" "\
+For buffers thrown into help mode, augment for EIEIO.
+Arguments UNUSED are not used.
+
+\(fn &rest UNUSED)" nil nil)
+
+;;;***
+
+;;; End of automatically extracted autoloads.
 
 (provide 'eieio)
 
-;; arch-tag: c1aeab9c-2938-41a3-842b-1a38bd26e9f2
 ;;; eieio ends here

@@ -1,9 +1,8 @@
 ;;; mule-cmds.el --- commands for multilingual environment -*-coding: iso-2022-7bit -*-
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 2003
@@ -367,7 +366,9 @@ This also sets the following values:
 		 (coding-system-get coding-system 'ascii-compatible-p)))
 	(setq default-file-name-coding-system coding-system)))
   (setq default-terminal-coding-system coding-system)
-  (setq default-keyboard-coding-system coding-system)
+  ;; Prevent default-terminal-coding-system from converting ^M to ^J.
+  (setq default-keyboard-coding-system
+	(coding-system-change-eol-conversion coding-system 'unix))
   ;; Preserve eol-type from existing default-process-coding-systems.
   ;; On non-unix-like systems in particular, these may have been set
   ;; carefully by the user, or by the startup code, to deal with the
@@ -1307,11 +1308,11 @@ This is the input method activated automatically by the command
 `toggle-input-method' (\\[toggle-input-method])."
   :link  '(custom-manual "(emacs)Input Methods")
   :group 'mule
-  :type '(choice (const nil) (string
-			      :completion-ignore-case t
-			      :complete-function widget-string-complete
-			      :completion-alist input-method-alist
-			      :prompt-history input-method-history))
+  :type '(choice (const nil)
+          (string
+           :completions (apply-partially
+                         #'completion-table-case-fold input-method-alist)
+           :prompt-history input-method-history))
   :set-after '(current-language-environment))
 
 (put 'input-method-function 'permanent-local t)
@@ -1874,10 +1875,10 @@ specifies the character set for the major languages of Western Europe."
 (define-widget 'charset 'symbol
   "An Emacs charset."
   :tag "Charset"
-  :complete-function (lambda ()
-		       (interactive)
-		       (lisp-complete-symbol 'charsetp))
-  :completion-ignore-case t
+  :completions (apply-partially #'completion-table-with-predicate
+                                (apply-partially #'completion-table-case-fold
+                                                 obarray)
+                                #'charsetp 'strict)
   :value 'ascii
   :validate (lambda (widget)
 	      (unless (charsetp (widget-value widget))
@@ -1911,9 +1912,9 @@ See `set-language-info-alist' for use in programs."
 	   (set-language-environment current-language-environment)))
   :type `(alist
 	  :key-type (string :tag "Language environment"
-			    :completion-ignore-case t
-			    :complete-function widget-string-complete
-			    :completion-alist language-info-alist)
+			    :completions
+                            (apply-partially #'completion-table-case-fold
+                                             language-info-alist))
 	  :value-type
 	  (alist :key-type symbol
 		 :options ((documentation string)
@@ -1926,9 +1927,9 @@ See `set-language-info-alist' for use in programs."
 			   (nonascii-translation charset)
 			   (input-method
 			    (string
-			     :completion-ignore-case t
-			     :complete-function widget-string-complete
-			     :completion-alist input-method-alist
+			     :completions
+                             (apply-partially #'completion-table-case-fold
+                                              input-method-alist)
 			     :prompt-history input-method-history))
 			   (features (repeat symbol))
 			   (unibyte-display coding-system)))))
@@ -2708,16 +2709,6 @@ See also `locale-charset-language-names', `locale-language-names',
 
 ;;; Character property
 
-;; Each element has the form (PROP . TABLE).
-;; PROP is a symbol representing a character property.
-;; TABLE is a char-table containing the property value for each character.
-;; TABLE may be a name of file to load to build a char-table.
-;; Don't modify this variable directly but use `define-char-code-property'.
-
-(defvar char-code-property-alist nil
-  "Alist of character property name vs char-table containing property values.
-Internal use only.")
-
 (put 'char-code-property-table 'char-table-extra-slots 5)
 
 (defun define-char-code-property (name table &optional docstring)
@@ -2769,32 +2760,23 @@ See also the documentation of `get-char-code-property' and
 
 (defun get-char-code-property (char propname)
   "Return the value of CHAR's PROPNAME property."
-  (let ((slot (assq propname char-code-property-alist)))
-    (if slot
-	(let (table value func)
-	  (if (stringp (cdr slot))
-	      (load (cdr slot) nil t))
-	  (setq table (cdr slot)
-		value (aref table char)
-		func (char-table-extra-slot table 1))
+  (let ((table (unicode-property-table-internal propname)))
+    (if table
+	(let ((func (char-table-extra-slot table 1)))
 	  (if (functionp func)
-	      (setq value (funcall func char value table)))
-	  value)
+	      (funcall func char (aref table char) table)
+	    (get-unicode-property-internal table char)))
       (plist-get (aref char-code-property-table char) propname))))
 
 (defun put-char-code-property (char propname value)
   "Store CHAR's PROPNAME property with VALUE.
 It can be retrieved with `(get-char-code-property CHAR PROPNAME)'."
-  (let ((slot (assq propname char-code-property-alist)))
-    (if slot
-	(let (table func)
-	  (if (stringp (cdr slot))
-	      (load (cdr slot) nil t))
-	  (setq table (cdr slot)
-		func (char-table-extra-slot table 2))
+  (let ((table (unicode-property-table-internal propname)))
+    (if table
+	(let ((func (char-table-extra-slot table 2)))
 	  (if (functionp func)
 	      (funcall func char value table)
-	    (aset table char value)))
+	    (put-unicode-property-internal table char value)))
       (let* ((plist (aref char-code-property-table char))
 	     (x (plist-put plist propname value)))
 	(or (eq x plist)
@@ -2804,13 +2786,9 @@ It can be retrieved with `(get-char-code-property CHAR PROPNAME)'."
 (defun char-code-property-description (prop value)
   "Return a description string of character property PROP's value VALUE.
 If there's no description string for VALUE, return nil."
-  (let ((slot (assq prop char-code-property-alist)))
-    (if slot
-	(let (table func)
-	  (if (stringp (cdr slot))
-	      (load (cdr slot) nil t))
-	  (setq table (cdr slot)
-		func (char-table-extra-slot table 3))
+  (let ((table (unicode-property-table-internal prop)))
+    (if table
+	(let ((func (char-table-extra-slot table 3)))
 	  (if (functionp func)
 	      (funcall func value))))))
 
@@ -2939,11 +2917,19 @@ on encoding."
 (defun read-char-by-name (prompt)
   "Read a character by its Unicode name or hex number string.
 Display PROMPT and read a string that represents a character by its
-Unicode property `name' or `old-name'.  You can type a few of first
-letters of the Unicode name and use completion.  This function also
-accepts a hexadecimal number of Unicode code point or a number in
-hash notation, e.g. #o21430 for octal, #x2318 for hex, or #10r8984
-for decimal.  Returns a character as a number."
+Unicode property `name' or `old-name'.
+
+This function returns the character as a number.
+
+You can type a few of the first letters of the Unicode name and
+use completion.  If you type a substring of the Unicode name
+preceded by an asterisk `*' and use completion, it will show all
+the characters whose names include that substring, not necessarily
+at the beginning of the name.
+
+This function also accepts a hexadecimal number of Unicode code
+point or a number in hash notation, e.g. #o21430 for octal,
+#x2318 for hex, or #10r8984 for decimal."
   (let* ((completion-ignore-case t)
 	 (input (completing-read prompt ucs-completions)))
     (cond
@@ -2958,6 +2944,13 @@ for decimal.  Returns a character as a number."
   "Insert COUNT copies of CHARACTER of the given Unicode code point.
 Interactively, prompts for a Unicode character name or a hex number
 using `read-char-by-name'.
+
+You can type a few of the first letters of the Unicode name and
+use completion.  If you type a substring of the Unicode name
+preceded by an asterisk `*' and use completion, it will show all
+the characters whose names include that substring, not necessarily
+at the beginning of the name.
+
 The optional third arg INHERIT (non-nil when called interactively),
 says to inherit text properties from adjoining text, if those
 properties are sticky."
@@ -2979,5 +2972,4 @@ properties are sticky."
 
 (define-key ctl-x-map "8\r" 'ucs-insert)
 
-;; arch-tag: b382c432-4b36-460e-bf4c-05efd0bb18dc
 ;;; mule-cmds.el ends here

@@ -1,6 +1,5 @@
 /* Add an uninitialized data section to an executable.
-   Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-     2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -542,5 +541,3 @@ main (int argc, char **argv)
 
 /* eof */
 
-/* arch-tag: 17e2b0aa-8c17-4bd1-b24b-1cda689245fa
-   (do not change this comment) */

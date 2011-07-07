@@ -1,7 +1,6 @@
 ;;; cus-face.el --- customization support for faces
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-1997, 1999-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
@@ -35,8 +34,8 @@
 (defun custom-declare-face (face spec doc &rest args)
   "Like `defface', but FACE is evaluated as a normal argument."
   (unless (get face 'face-defface-spec)
-    (when (fboundp 'facep)
-      (unless (facep face)
+    (let ((facep (facep face)))
+      (unless facep
 	;; If the user has already created the face, respect that.
 	(let ((value (or (get face 'saved-face) spec))
 	      (have-window-system (memq initial-window-system '(x w32))))
@@ -49,14 +48,19 @@
 	      (setq have-window-system t)))
 	  ;; When making a face after frames already exist
 	  (if have-window-system
-	      (make-face-x-resource-internal face)))))
-    ;; Don't record SPEC until we see it causes no errors.
-    (put face 'face-defface-spec (purecopy spec))
-    (push (cons 'defface face) current-load-list)
-    (when (and doc (null (face-documentation face)))
-      (set-face-documentation face (purecopy doc)))
-    (custom-handle-all-keywords face args 'custom-face)
-    (run-hooks 'custom-define-hook))
+	      (make-face-x-resource-internal face))))
+      ;; Don't record SPEC until we see it causes no errors.
+      (put face 'face-defface-spec (purecopy spec))
+      (push (cons 'defface face) current-load-list)
+      (when (and doc (null (face-documentation face)))
+	(set-face-documentation face (purecopy doc)))
+      (custom-handle-all-keywords face args 'custom-face)
+      (run-hooks 'custom-define-hook)
+      ;; If the face had existing settings, recalculate it.  For
+      ;; example, the user might load a theme with a face setting, and
+      ;; later load a library defining that face.
+      (if facep
+	  (custom-theme-recalc-face face))))
   face)
 
 ;;; Face attributes.
@@ -349,7 +353,7 @@ FACE's list property `theme-face' \(using `custom-push-theme')."
 	      (put face 'face-override-spec nil)
 	      (face-spec-set face spec t))))))))
 
-;; XEmacs compability function.  In XEmacs, when you reset a Custom
+;; XEmacs compatibility function.  In XEmacs, when you reset a Custom
 ;; Theme, you have to specify the theme to reset it to.  We just apply
 ;; the next theme.
 (defun custom-theme-reset-faces (theme &rest args)
@@ -378,5 +382,4 @@ This means reset FACE to its value in FROM-THEME."
 
 (provide 'cus-face)
 
-;; arch-tag: 9a5c4b63-0d27-4c92-a5af-f2c7ed764c2b
 ;;; cus-face.el ends here

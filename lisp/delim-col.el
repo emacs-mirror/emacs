@@ -1,7 +1,6 @@
 ;;; delim-col.el --- prettify all columns in a region or rectangle
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -241,6 +240,11 @@ column (column 0) is located at left corner."
 ;; User Commands:
 
 
+;; to avoid compilation gripes
+(defvar delimit-columns-max nil)
+(defvar delimit-columns-limit nil)
+
+
 ;;;###autoload
 (defun delimit-columns-customize ()
   "Customization of `columns' group."
@@ -355,12 +359,7 @@ START and END delimits the corners of text rectangle."
 ;; Internal Variables and Functions:
 
 
-;; to avoid compilation gripes
-(defvar delimit-columns-max nil)
-(defvar delimit-columns-limit nil)
-
-
-(defun delimit-columns-rectangle-max (startpos &optional ignore1 ignore2)
+(defun delimit-columns-rectangle-max (startpos &optional _ignore1 _ignore2)
   (set-marker delimit-columns-limit (point))
   (goto-char startpos)
   (let ((ncol 1)
@@ -393,7 +392,7 @@ START and END delimits the corners of text rectangle."
       (setq values (cdr values)))))
 
 
-(defun delimit-columns-rectangle-line (startpos &optional ignore1 ignore2)
+(defun delimit-columns-rectangle-line (startpos &optional _ignore1 _ignore2)
   (let ((len  (length delimit-columns-max))
 	(ncol 0)
 	origin)
@@ -477,5 +476,4 @@ START and END delimits the corners of text rectangle."
 (provide 'delim-col)
 
 
-;; arch-tag: 1cc0c5c5-1b2a-43e4-9ba5-bf9441cfd1a9
 ;;; delim-col.el ends here

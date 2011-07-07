@@ -1,7 +1,6 @@
 ;;; ldap.el --- client interface to LDAP for Emacs
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: FSF
@@ -36,6 +35,8 @@
 
 (require 'custom)
 (eval-when-compile (require 'cl))
+
+(autoload 'auth-source-search "auth-source")
 
 (defgroup ldap nil
   "Lightweight Directory Access Protocol."
@@ -481,7 +482,23 @@ Additional search parameters can be specified through
   "Perform a search on a LDAP server.
 SEARCH-PLIST is a property list describing the search request.
 Valid keys in that list are:
-  `host' is a string naming one or more (blank-separated) LDAP servers to
+
+  `auth-source', if non-nil, will use `auth-source-search' and
+will grab the :host, :secret, :base, and (:user or :binddn)
+tokens into the `host', `passwd', `base', and `binddn' parameters
+respectively if they are not provided in SEARCH-PLIST.  So for
+instance *each* of these netrc lines has the same effect if you
+ask for the host \"ldapserver:2400\":
+
+  machine ldapserver:2400 login myDN secret myPassword base myBase
+  machine ldapserver:2400 binddn myDN secret myPassword port ldap
+  login myDN secret myPassword base myBase
+
+but if you have more than one in your netrc file, only the first
+matching one will be used.  Note the \"port ldap\" part is NOT
+required.
+
+  `host' is a string naming one or more (blank-separated) LDAP servers
 to try to connect to.  Each host name may optionally be of the form HOST:PORT.
   `filter' is a filter string for the search as described in RFC 1558.
   `attributes' is a list of strings indicating which attributes to retrieve
@@ -501,19 +518,34 @@ not their associated values.
 its distinguished name DN.
 The function returns a list of matching entries.  Each entry is itself
 an alist of attribute/value pairs."
-  (let ((buf (get-buffer-create " *ldap-search*"))
+  (let* ((buf (get-buffer-create " *ldap-search*"))
 	(bufval (get-buffer-create " *ldap-value*"))
 	(host (or (plist-get search-plist 'host)
 		  ldap-default-host))
+         ;; find entries with port "ldap" that match the requested host if any
+         (asfound (when (plist-get search-plist 'auth-source)
+                    (nth 0 (auth-source-search :host (or host t)
+                                               :create t))))
+         ;; if no host was requested, get it from the auth-source entry
+         (host (or host (plist-get asfound :host)))
+         ;; get the password from the auth-source
+         (passwd (or (plist-get search-plist 'passwd)
+                     (plist-get asfound :secret)))
+         ;; convert the password from a function call if needed
+         (passwd (if (functionp passwd) (funcall passwd) passwd))
+         ;; get the binddn from the search-list or from the
+         ;; auth-source user or binddn tokens
+         (binddn (or (plist-get search-plist 'binddn)
+                     (plist-get asfound :user)
+                     (plist-get asfound :binddn)))
+         (base (or (plist-get search-plist 'base)
+                   (plist-get asfound :base)
+                   ldap-default-base))
 	(filter (plist-get search-plist 'filter))
 	(attributes (plist-get search-plist 'attributes))
 	(attrsonly (plist-get search-plist 'attrsonly))
-	(base (or (plist-get search-plist 'base)
-		  ldap-default-base))
 	(scope (plist-get search-plist 'scope))
-	(binddn (plist-get search-plist 'binddn))
         (auth (plist-get search-plist 'auth))
-	(passwd (plist-get search-plist 'passwd))
 	(deref (plist-get search-plist 'deref))
 	(timelimit (plist-get search-plist 'timelimit))
 	(sizelimit (plist-get search-plist 'sizelimit))
@@ -556,13 +588,10 @@ an alist of attribute/value pairs."
       (if (and sizelimit
 	       (not (equal "" sizelimit)))
 	  (setq arglist (nconc arglist (list (format "-z%s" sizelimit)))))
-      (eval `(call-process ldap-ldapsearch-prog
-			   nil
-			   buf
-			   nil
-			   ,@arglist
-			   ,@ldap-ldapsearch-args
-			   ,@filter))
+      (apply #'call-process ldap-ldapsearch-prog
+	     ;; Ignore stderr, which can corrupt results
+	     nil (list buf nil) nil
+	     (append arglist ldap-ldapsearch-args filter))
       (insert "\n")
       (goto-char (point-min))
 

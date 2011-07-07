@@ -1,7 +1,6 @@
 ;;; fill.el --- fill commands for Emacs		-*- coding: utf-8 -*-
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1999, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985-1986, 1992, 1994-1997, 1999, 2001-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -989,7 +988,7 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 (defun fill-region (from to &optional justify nosqueeze to-eop)
   "Fill each of the paragraphs in the region.
 A prefix arg means justify as well.
-Ordinarily the variable `fill-column' controls the width.
+The `fill-column' variable controls the width.
 
 Noninteractively, the third argument JUSTIFY specifies which
 kind of justification to do: `full', `left', `right', `center',
@@ -1055,6 +1054,7 @@ The `justification' text-property can locally override this variable."
 		 (const full)
 		 (const center)
 		 (const none))
+  :safe 'symbolp
   :group 'fill)
 (make-variable-buffer-local 'default-justification)
 

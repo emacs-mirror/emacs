@@ -1,6 +1,6 @@
 ;;; semantic/symref/filter.el --- Filter symbol reference hits for accuracy.
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -137,5 +137,4 @@ Depends on the SRecode Field editing API."
 
 (provide 'semantic/symref/filter)
 
-;; arch-tag: 14b9e795-02bf-408b-b375-c3f8ff6a4e38
 ;;; semantic/symref/filter.el ends here

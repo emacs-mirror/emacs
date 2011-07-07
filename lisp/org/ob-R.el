@@ -1,12 +1,11 @@
 ;;; ob-R.el --- org-babel functions for R code evaluation
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
-;; Author: Eric Schulte
-;;	Dan Davison
+;; Author: Eric Schulte, Dan Davison
 ;; Keywords: literate programming, reproducible research, R, statistics
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -277,16 +276,18 @@ last statement in BODY, as elisp."
       (butlast
        (delq nil
 	     (mapcar
-	      (lambda (line) ;; cleanup extra prompts left in output
-		(if (string-match
-		     "^\\([ ]*[>+][ ]?\\)+\\([[0-9]+\\|[ ]\\)" line)
-		    (substring line (match-end 1))
-		  line))
-	      (org-babel-comint-with-output (session org-babel-R-eoe-output)
-		(insert (mapconcat #'org-babel-chomp
-				   (list body org-babel-R-eoe-indicator)
-				   "\n"))
-		(inferior-ess-send-input)))) 2) "\n"))))
+	      (lambda (line) (when (> (length line) 0) line))
+	      (mapcar
+	       (lambda (line) ;; cleanup extra prompts left in output
+		 (if (string-match
+		      "^\\([ ]*[>+][ ]?\\)+\\([[0-9]+\\|[ ]\\)" line)
+		     (substring line (match-end 1))
+		   line))
+	       (org-babel-comint-with-output (session org-babel-R-eoe-output)
+		 (insert (mapconcat #'org-babel-chomp
+				    (list body org-babel-R-eoe-indicator)
+				    "\n"))
+		 (inferior-ess-send-input)))))) "\n"))))
 
 (defun org-babel-R-process-value-result (result column-names-p)
   "R-specific processing of return value.
@@ -297,6 +298,5 @@ Insert hline if column names in output have been requested."
 
 (provide 'ob-R)
 
-;; arch-tag: cd4c7298-503b-450f-a3c2-f3e74b630237
 
 ;;; ob-R.el ends here

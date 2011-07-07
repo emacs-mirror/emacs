@@ -1,6 +1,5 @@
 /* Asynchronous timers.
-   Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -77,10 +76,6 @@ void do_pending_atimers (void);
 void init_atimer (void);
 void turn_on_atimers (int);
 void stop_other_atimers (struct atimer *);
-void run_all_atimers (void);
 Lisp_Object unwind_stop_other_atimers (Lisp_Object);
 
 #endif /* EMACS_ATIMER_H */
-
-/* arch-tag: 02c7c1c8-45bd-4222-b874-4ca44662f60b
-   (do not change this comment) */

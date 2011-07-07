@@ -1,6 +1,6 @@
 ;;; data-debug.el --- Datastructure Debugger
 
-;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam  <zappo@gnu.org>
 ;; Version: 0.2
@@ -1083,5 +1083,4 @@ If the result is a list or vector, then use the data debugger to display it."
 (if (featurep 'eieio)
     (require 'eieio-datadebug))
 
-;; arch-tag: 4807227d-08e7-45c4-8ea5-9e4595c3bfb1
 ;;; data-debug.el ends here

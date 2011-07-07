@@ -1,4 +1,10 @@
 /* Fake unistd.h: config.h already provides most of the relevant things. */
 
-/* arch-tag: 68600bcd-3097-4501-a559-551db3cdb9fd
-   (do not change this comment) */
+#ifndef _UNISTD_H
+#define _UNISTD_H
+
+extern ssize_t readlink (const char *, char *, size_t);
+extern int symlink (char const *, char const *);
+
+#endif	/* _UNISTD_H */
+

@@ -1,7 +1,6 @@
 ;;; tvi970.el --- terminal support for the Televideo 970
 
-;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Jim Blandy <jimb@occs.cs.oberlin.edu>
 ;; Keywords: terminals
@@ -117,5 +116,4 @@ With a negative argument, select numeric keypad mode."
   (send-string-to-terminal
    (if (terminal-parameter nil 'tvi970-keypad-numeric) "\e=" "\e>")))
 
-;; arch-tag: c1334cf0-1462-41c3-a963-c077d175f8f0
 ;;; tvi970.el ends here

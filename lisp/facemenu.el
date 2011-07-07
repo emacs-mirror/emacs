@@ -1,7 +1,6 @@
 ;;; facemenu.el --- create a face menu for interactively adding fonts to text
 
-;; Copyright (C) 1994, 1995, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces
@@ -464,25 +463,6 @@ These special properties include `invisible', `intangible' and `read-only'."
 
 (defalias 'facemenu-read-color 'read-color)
 
-(defun color-rgb-to-hsv (r g b)
-  "For R, G, B color components return a list of hue, saturation, value.
-R, G, B input values should be in [0..65535] range.
-Output values for hue are integers in [0..360] range.
-Output values for saturation and value are integers in [0..100] range."
-  (let* ((r (/ r 65535.0))
-	 (g (/ g 65535.0))
-	 (b (/ b 65535.0))
-	 (max (max r g b))
-	 (min (min r g b))
-	 (h (cond ((= max min) 0)
-		  ((= max r) (mod (+ (* 60 (/ (- g b) (- max min))) 360) 360))
-		  ((= max g) (+ (* 60 (/ (- b r) (- max min))) 120))
-		  ((= max b) (+ (* 60 (/ (- r g) (- max min))) 240))))
-	 (s (cond ((= max 0) 0)
-		  (t (- 1 (/ min max)))))
-	 (v max))
-    (list (round h) (round s 0.01) (round v 0.01))))
-
 (defcustom list-colors-sort nil
   "Color sort order for `list-colors-display'.
 `nil' means default implementation-dependent order (defined in `x-colors').
@@ -509,6 +489,7 @@ and excludes grayscale colors."
   "Return a list of keys for sorting colors depending on `list-colors-sort'.
 COLOR is the name of the color.  When return value is nil,
 filter out the color from the output."
+  (require 'color)
   (cond
    ((null list-colors-sort) color)
    ((eq list-colors-sort 'name)
@@ -518,12 +499,12 @@ filter out the color from the output."
    ((eq (car-safe list-colors-sort) 'rgb-dist)
     (color-distance color (cdr list-colors-sort)))
    ((eq list-colors-sort 'hsv)
-    (apply 'color-rgb-to-hsv (color-values color)))
+    (apply 'color-rgb-to-hsv (color-name-to-rgb color)))
    ((eq (car-safe list-colors-sort) 'hsv-dist)
-    (let* ((c-rgb (color-values color))
+    (let* ((c-rgb (color-name-to-rgb color))
 	   (c-hsv (apply 'color-rgb-to-hsv c-rgb))
 	   (o-hsv (apply 'color-rgb-to-hsv
-			 (color-values (cdr list-colors-sort)))))
+			 (color-name-to-rgb (cdr list-colors-sort)))))
       (unless (and (eq (nth 0 c-rgb) (nth 1 c-rgb)) ; exclude grayscale
 		   (eq (nth 1 c-rgb) (nth 2 c-rgb)))
 	;; 3D Euclidean distance (sqrt is not needed for sorting)
@@ -581,17 +562,17 @@ You can change the color sort order by customizing `list-colors-sort'."
       (let ((lc (nthcdr (1- (display-color-cells)) list)))
 	(if lc
 	    (setcdr lc nil)))))
-  (let ((buf (get-buffer-create "*Colors*")))
-    (with-current-buffer buf
+  (unless buffer-name
+    (setq buffer-name "*Colors*"))
+  (with-help-window buffer-name
+    (with-current-buffer standard-output
       (erase-buffer)
-      (setq truncate-lines t)
-      ;; Display buffer before generating content to allow
-      ;; `list-colors-print' to get the right window-width.
-      (pop-to-buffer buf)
       (list-colors-print list callback)
-      (set-buffer-modified-p nil)))
-  (if callback
-      (message "Click on a color to select it.")))
+      (set-buffer-modified-p nil)
+      (setq truncate-lines t)))
+  (when callback
+    (pop-to-buffer buffer-name)
+    (message "Click on a color to select it.")))
 
 (defun list-colors-print (list &optional callback)
   (let ((callback-fn
@@ -608,30 +589,19 @@ You can change the color sort order by customizing `list-colors-sort'."
       (let* ((opoint (point))
 	     (color-values (color-values (car color)))
 	     (light-p (>= (apply 'max color-values)
-			  (* (car (color-values "white")) .5)))
-	     (max-len (max (- (window-width) 33) 20)))
+			  (* (car (color-values "white")) .5))))
 	(insert (car color))
 	(indent-to 22)
 	(put-text-property opoint (point) 'face `(:background ,(car color)))
 	(put-text-property
 	 (prog1 (point)
 	   (insert " ")
-	   (if (cdr color)
-	       ;; Insert as many color names as possible, fitting max-len.
-	       (let ((names (list (car color)))
-		     (others (cdr color))
-		     (len (length (car color)))
-		     newlen)
-		 (while (and others
-			     (< (setq newlen (+ len 2 (length (car others))))
-				max-len))
-		   (setq len newlen)
-		   (push (pop others) names))
-		 (insert (mapconcat 'identity (nreverse names) ", ")))
-	     (insert (car color))))
+	   ;; Insert all color names.
+	   (insert (mapconcat 'identity color ",")))
 	 (point)
 	 'face (list :foreground (car color)))
-	(indent-to (max (- (window-width) 8) 44))
+	(insert (propertize " " 'display '(space :align-to (- right 9))))
+	(insert " ")
 	(insert (propertize
 		 (apply 'format "#%02x%02x%02x"
 			(mapcar (lambda (c) (lsh c -8))
@@ -639,7 +609,7 @@ You can change the color sort order by customizing `list-colors-sort'."
 		 'mouse-face 'highlight
 		 'help-echo
 		 (let ((hsv (apply 'color-rgb-to-hsv
-				   (color-values (car color)))))
+				   (color-name-to-rgb (car color)))))
 		   (format "H:%d S:%d V:%d"
 			   (nth 0 hsv) (nth 1 hsv) (nth 2 hsv)))))
 	(when callback
@@ -855,19 +825,13 @@ MENU should be `facemenu-foreground-menu' or `facemenu-background-menu'.
 Return the event type (a symbol) of the added menu entry.
 
 This is called whenever you use a new color."
-  (let (symbol docstring)
+  (let (symbol)
     (unless (color-defined-p color)
       (error "Color `%s' undefined" color))
     (cond ((eq menu 'facemenu-foreground-menu)
-	   (setq docstring
-		 (format "Select foreground color %s for subsequent insertion."
-			 color)
-		 symbol (intern (concat "fg:" color))))
+	   (setq symbol (intern (concat "fg:" color))))
 	  ((eq menu 'facemenu-background-menu)
-	   (setq docstring
-		 (format "Select background color %s for subsequent insertion."
-			 color)
-		 symbol (intern (concat "bg:" color))))
+	   (setq symbol (intern (concat "bg:" color))))
 	  (t (error "MENU should be `facemenu-foreground-menu' or `facemenu-background-menu'")))
     (unless (facemenu-iterate ; Check if color is already in the menu.
 	     (lambda (m) (and (listp m)
@@ -910,5 +874,4 @@ Returns the non-nil value it found, or nil if all were nil."
 
 (provide 'facemenu)
 
-;; arch-tag: 85f6d02b-9085-420e-b651-0678f0e9c7eb
 ;;; facemenu.el ends here

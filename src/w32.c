@@ -1,6 +1,5 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1994, 1995, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1994-1995, 2000-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -35,6 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <mbstring.h>	/* for _mbspbrk */
 #include <math.h>
 #include <setjmp.h>
+#include <time.h>
 
 /* must include CRT headers *before* config.h */
 
@@ -62,6 +62,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef write
 
 #undef strerror
+
+#undef localtime
 
 #include "lisp.h"
 
@@ -139,22 +141,19 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 #include "dispextern.h"		/* for xstrcasecmp */
 #include "coding.h"		/* for Vlocale_coding_system */
 
+#include "careadlinkat.h"
+#include "allocator.h"
+
 /* For serial_configure and serial_open.  */
 #include "process.h"
 
 typedef HRESULT (WINAPI * ShGetFolderPath_fn)
   (IN HWND, IN int, IN HANDLE, IN DWORD, OUT char *);
 
+Lisp_Object QCloaded_from;
+
 void globals_of_w32 (void);
 static DWORD get_rid (PSID);
-
-extern Lisp_Object Vw32_downcase_file_names;
-extern Lisp_Object Vw32_generate_fake_inodes;
-extern Lisp_Object Vw32_get_true_file_attributes;
-/* Defined in process.c for its own purpose.  */
-extern Lisp_Object Qlocal;
-
-extern int w32_num_mouse_buttons;
 
 
 /* Initialization states.
@@ -1514,7 +1513,6 @@ w32_get_resource (char *key, LPDWORD lpdwtype)
 }
 
 char *get_emacs_configuration (void);
-extern Lisp_Object Vsystem_configuration;
 
 void
 init_environment (char ** argv)
@@ -1565,6 +1563,7 @@ init_environment (char ** argv)
     char locale_name[32];
     struct stat ignored;
     char default_home[MAX_PATH];
+    int appdata = 0;
 
     static const struct env_entry
     {
@@ -1602,25 +1601,28 @@ init_environment (char ** argv)
        If not, then we can try to default to the appdata directory under the
        user's profile, which is more likely to be writable.   */
     if (stat ("C:/.emacs", &ignored) < 0)
-    {
-      HRESULT profile_result;
-      /* Dynamically load ShGetFolderPath, as it won't exist on versions
-	 of Windows 95 and NT4 that have not been updated to include
-	 MSIE 5.  */
-      ShGetFolderPath_fn get_folder_path;
-      get_folder_path = (ShGetFolderPath_fn)
-	GetProcAddress (GetModuleHandle ("shell32.dll"), "SHGetFolderPathA");
+      {
+	HRESULT profile_result;
+	/* Dynamically load ShGetFolderPath, as it won't exist on versions
+	   of Windows 95 and NT4 that have not been updated to include
+	   MSIE 5.  */
+	ShGetFolderPath_fn get_folder_path;
+	get_folder_path = (ShGetFolderPath_fn)
+	  GetProcAddress (GetModuleHandle ("shell32.dll"), "SHGetFolderPathA");
 
-      if (get_folder_path != NULL)
-	{
-	  profile_result = get_folder_path (NULL, CSIDL_APPDATA, NULL,
-					    0, default_home);
+	if (get_folder_path != NULL)
+	  {
+	    profile_result = get_folder_path (NULL, CSIDL_APPDATA, NULL,
+					      0, default_home);
 
-	  /* If we can't get the appdata dir, revert to old behavior.  */
-	  if (profile_result == S_OK)
-	    env_vars[0].def_value = default_home;
-	}
-    }
+	    /* If we can't get the appdata dir, revert to old behavior.	 */
+	    if (profile_result == S_OK)
+	      {
+		env_vars[0].def_value = default_home;
+		appdata = 1;
+	      }
+	  }
+      }
 
   /* Get default locale info and use it for LANG.  */
   if (GetLocaleInfo (LOCALE_USER_DEFAULT,
@@ -1705,6 +1707,14 @@ init_environment (char ** argv)
 		lpval = env_vars[i].def_value;
 		dwType = REG_EXPAND_SZ;
 		dont_free = 1;
+		if (!strcmp (env_vars[i].name, "HOME") && !appdata)
+		  {
+		    Lisp_Object warning[2];
+		    warning[0] = intern ("initialization");
+		    warning[1] = build_string ("Setting HOME to C:\\ by default is deprecated");
+		    Vdelayed_warnings_list = Fcons (Flist (2, warning),
+						    Vdelayed_warnings_list);
+		  }
 	      }
 
 	    if (lpval)
@@ -1949,6 +1959,12 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
 
   tv->tv_sec = tb.time;
   tv->tv_usec = tb.millitm * 1000L;
+  /* Implementation note: _ftime sometimes doesn't update the dstflag
+     according to the new timezone when the system timezone is
+     changed.  We could fix that by using GetSystemTime and
+     GetTimeZoneInformation, but that doesn't seem necessary, since
+     Emacs always calls gettimeofday with the 2nd argument NULL (see
+     EMACS_GET_TIME).  */
   if (tz)
     {
       tz->tz_minuteswest = tb.timezone;	/* minutes west of Greenwich  */
@@ -2093,42 +2109,42 @@ GetCachedVolumeInformation (char * root_dir)
   info = lookup_volume_info (root_dir);
 
   if (info == NULL || ! VOLINFO_STILL_VALID (root_dir, info))
-  {
-    char  name[ 256 ];
-    DWORD serialnum;
-    DWORD maxcomp;
-    DWORD flags;
-    char  type[ 256 ];
+    {
+      char  name[ 256 ];
+      DWORD serialnum;
+      DWORD maxcomp;
+      DWORD flags;
+      char  type[ 256 ];
 
-    /* Info is not cached, or is stale. */
-    if (!GetVolumeInformation (root_dir,
-			       name, sizeof (name),
-			       &serialnum,
-			       &maxcomp,
-			       &flags,
-			       type, sizeof (type)))
-      return NULL;
+      /* Info is not cached, or is stale. */
+      if (!GetVolumeInformation (root_dir,
+				 name, sizeof (name),
+				 &serialnum,
+				 &maxcomp,
+				 &flags,
+				 type, sizeof (type)))
+	return NULL;
 
-    /* Cache the volume information for future use, overwriting existing
-       entry if present.  */
-    if (info == NULL)
-      {
-	info = (volume_info_data *) xmalloc (sizeof (volume_info_data));
-	add_volume_info (root_dir, info);
-      }
-    else
-      {
-	xfree (info->name);
-	xfree (info->type);
-      }
+      /* Cache the volume information for future use, overwriting existing
+	 entry if present.  */
+      if (info == NULL)
+	{
+	  info = (volume_info_data *) xmalloc (sizeof (volume_info_data));
+	  add_volume_info (root_dir, info);
+	}
+      else
+	{
+	  xfree (info->name);
+	  xfree (info->type);
+	}
 
-    info->name = xstrdup (name);
-    info->serialnum = serialnum;
-    info->maxcomp = maxcomp;
-    info->flags = flags;
-    info->type = xstrdup (type);
-    info->timestamp = GetTickCount ();
-  }
+      info->name = xstrdup (name);
+      info->serialnum = serialnum;
+      info->maxcomp = maxcomp;
+      info->flags = flags;
+      info->type = xstrdup (type);
+      info->timestamp = GetTickCount ();
+    }
 
   return info;
 }
@@ -2387,8 +2403,8 @@ readdir (DIR *dirp)
   if (wnet_enum_handle != INVALID_HANDLE_VALUE)
     {
       if (!read_unc_volume (wnet_enum_handle,
-			      dir_find_data.cFileName,
-			      MAX_PATH))
+                            dir_find_data.cFileName,
+                            MAX_PATH))
 	return NULL;
     }
   /* If we aren't dir_finding, do a find-first, otherwise do a find-next. */
@@ -2498,7 +2514,7 @@ read_unc_volume (HANDLE henum, char *readbuf, int size)
 
   count = 1;
   buffer = alloca (bufsize);
-  result = WNetEnumResource (wnet_enum_handle, &count, buffer, &bufsize);
+  result = WNetEnumResource (henum, &count, buffer, &bufsize);
   if (result != NO_ERROR)
     return NULL;
 
@@ -3261,8 +3277,6 @@ int
 stat (const char * path, struct stat * buf)
 {
   char *name, *r;
-  char drive_root[4];
-  UINT devtype;
   WIN32_FIND_DATA wfd;
   HANDLE fh;
   unsigned __int64 fake_inode;
@@ -3619,6 +3633,43 @@ utime (const char *name, struct utimbuf *times)
       return -1;
     }
   return 0;
+}
+
+
+/* Symlink-related functions that always fail.  Used in fileio.c and in
+   sysdep.c to avoid #ifdef's.  */
+int
+symlink (char const *dummy1, char const *dummy2)
+{
+  errno = ENOSYS;
+  return -1;
+}
+
+ssize_t
+readlink (const char *name, char *dummy1, size_t dummy2)
+{
+  /* `access' is much faster than `stat' on MS-Windows.  */
+  if (sys_access (name, 0) == 0)
+    errno = EINVAL;
+  return -1;
+}
+
+char *
+careadlinkat (int fd, char const *filename,
+              char *buffer, size_t buffer_size,
+              struct allocator const *alloc,
+              ssize_t (*preadlinkat) (int, char const *, char *, size_t))
+{
+  errno = ENOSYS;
+  return NULL;
+}
+
+ssize_t
+careadlinkatcwd (int fd, char const *filename, char *buffer,
+                 size_t buffer_size)
+{
+  (void) fd;
+  return readlink (filename, buffer, buffer_size);
 }
 
 
@@ -4035,7 +4086,6 @@ system_process_attributes (Lisp_Object pid)
   TOKEN_PRIMARY_GROUP group_token;
   unsigned euid;
   unsigned egid;
-  DWORD sess;
   PROCESS_MEMORY_COUNTERS mem;
   PROCESS_MEMORY_COUNTERS_EX mem_ex;
   DWORD minrss, maxrss;
@@ -4512,75 +4562,75 @@ struct {
   int errnum;
   char * msg;
 } _wsa_errlist[] = {
-  WSAEINTR                , "Interrupted function call",
-  WSAEBADF                , "Bad file descriptor",
-  WSAEACCES               , "Permission denied",
-  WSAEFAULT               , "Bad address",
-  WSAEINVAL               , "Invalid argument",
-  WSAEMFILE               , "Too many open files",
+  {WSAEINTR                , "Interrupted function call"},
+  {WSAEBADF                , "Bad file descriptor"},
+  {WSAEACCES               , "Permission denied"},
+  {WSAEFAULT               , "Bad address"},
+  {WSAEINVAL               , "Invalid argument"},
+  {WSAEMFILE               , "Too many open files"},
 
-  WSAEWOULDBLOCK          , "Resource temporarily unavailable",
-  WSAEINPROGRESS          , "Operation now in progress",
-  WSAEALREADY             , "Operation already in progress",
-  WSAENOTSOCK             , "Socket operation on non-socket",
-  WSAEDESTADDRREQ         , "Destination address required",
-  WSAEMSGSIZE             , "Message too long",
-  WSAEPROTOTYPE           , "Protocol wrong type for socket",
-  WSAENOPROTOOPT          , "Bad protocol option",
-  WSAEPROTONOSUPPORT      , "Protocol not supported",
-  WSAESOCKTNOSUPPORT      , "Socket type not supported",
-  WSAEOPNOTSUPP           , "Operation not supported",
-  WSAEPFNOSUPPORT         , "Protocol family not supported",
-  WSAEAFNOSUPPORT         , "Address family not supported by protocol family",
-  WSAEADDRINUSE           , "Address already in use",
-  WSAEADDRNOTAVAIL        , "Cannot assign requested address",
-  WSAENETDOWN             , "Network is down",
-  WSAENETUNREACH          , "Network is unreachable",
-  WSAENETRESET            , "Network dropped connection on reset",
-  WSAECONNABORTED         , "Software caused connection abort",
-  WSAECONNRESET           , "Connection reset by peer",
-  WSAENOBUFS              , "No buffer space available",
-  WSAEISCONN              , "Socket is already connected",
-  WSAENOTCONN             , "Socket is not connected",
-  WSAESHUTDOWN            , "Cannot send after socket shutdown",
-  WSAETOOMANYREFS         , "Too many references",	    /* not sure */
-  WSAETIMEDOUT            , "Connection timed out",
-  WSAECONNREFUSED         , "Connection refused",
-  WSAELOOP                , "Network loop",		    /* not sure */
-  WSAENAMETOOLONG         , "Name is too long",
-  WSAEHOSTDOWN            , "Host is down",
-  WSAEHOSTUNREACH         , "No route to host",
-  WSAENOTEMPTY            , "Buffer not empty",		    /* not sure */
-  WSAEPROCLIM             , "Too many processes",
-  WSAEUSERS               , "Too many users",		    /* not sure */
-  WSAEDQUOT               , "Double quote in host name",    /* really not sure */
-  WSAESTALE               , "Data is stale",		    /* not sure */
-  WSAEREMOTE              , "Remote error",		    /* not sure */
+  {WSAEWOULDBLOCK          , "Resource temporarily unavailable"},
+  {WSAEINPROGRESS          , "Operation now in progress"},
+  {WSAEALREADY             , "Operation already in progress"},
+  {WSAENOTSOCK             , "Socket operation on non-socket"},
+  {WSAEDESTADDRREQ         , "Destination address required"},
+  {WSAEMSGSIZE             , "Message too long"},
+  {WSAEPROTOTYPE           , "Protocol wrong type for socket"},
+  {WSAENOPROTOOPT          , "Bad protocol option"},
+  {WSAEPROTONOSUPPORT      , "Protocol not supported"},
+  {WSAESOCKTNOSUPPORT      , "Socket type not supported"},
+  {WSAEOPNOTSUPP           , "Operation not supported"},
+  {WSAEPFNOSUPPORT         , "Protocol family not supported"},
+  {WSAEAFNOSUPPORT         , "Address family not supported by protocol family"},
+  {WSAEADDRINUSE           , "Address already in use"},
+  {WSAEADDRNOTAVAIL        , "Cannot assign requested address"},
+  {WSAENETDOWN             , "Network is down"},
+  {WSAENETUNREACH          , "Network is unreachable"},
+  {WSAENETRESET            , "Network dropped connection on reset"},
+  {WSAECONNABORTED         , "Software caused connection abort"},
+  {WSAECONNRESET           , "Connection reset by peer"},
+  {WSAENOBUFS              , "No buffer space available"},
+  {WSAEISCONN              , "Socket is already connected"},
+  {WSAENOTCONN             , "Socket is not connected"},
+  {WSAESHUTDOWN            , "Cannot send after socket shutdown"},
+  {WSAETOOMANYREFS         , "Too many references"},	    /* not sure */
+  {WSAETIMEDOUT            , "Connection timed out"},
+  {WSAECONNREFUSED         , "Connection refused"},
+  {WSAELOOP                , "Network loop"},		    /* not sure */
+  {WSAENAMETOOLONG         , "Name is too long"},
+  {WSAEHOSTDOWN            , "Host is down"},
+  {WSAEHOSTUNREACH         , "No route to host"},
+  {WSAENOTEMPTY            , "Buffer not empty"},	    /* not sure */
+  {WSAEPROCLIM             , "Too many processes"},
+  {WSAEUSERS               , "Too many users"},		    /* not sure */
+  {WSAEDQUOT               , "Double quote in host name"},  /* really not sure */
+  {WSAESTALE               , "Data is stale"},		    /* not sure */
+  {WSAEREMOTE              , "Remote error"},		    /* not sure */
 
-  WSASYSNOTREADY          , "Network subsystem is unavailable",
-  WSAVERNOTSUPPORTED      , "WINSOCK.DLL version out of range",
-  WSANOTINITIALISED       , "Winsock not initialized successfully",
-  WSAEDISCON              , "Graceful shutdown in progress",
+  {WSASYSNOTREADY          , "Network subsystem is unavailable"},
+  {WSAVERNOTSUPPORTED      , "WINSOCK.DLL version out of range"},
+  {WSANOTINITIALISED       , "Winsock not initialized successfully"},
+  {WSAEDISCON              , "Graceful shutdown in progress"},
 #ifdef WSAENOMORE
-  WSAENOMORE              , "No more operations allowed",   /* not sure */
-  WSAECANCELLED           , "Operation cancelled",	    /* not sure */
-  WSAEINVALIDPROCTABLE    , "Invalid procedure table from service provider",
-  WSAEINVALIDPROVIDER     , "Invalid service provider version number",
-  WSAEPROVIDERFAILEDINIT  , "Unable to initialize a service provider",
-  WSASYSCALLFAILURE       , "System call failure",
-  WSASERVICE_NOT_FOUND    , "Service not found",	    /* not sure */
-  WSATYPE_NOT_FOUND       , "Class type not found",
-  WSA_E_NO_MORE           , "No more resources available",  /* really not sure */
-  WSA_E_CANCELLED         , "Operation already cancelled",  /* really not sure */
-  WSAEREFUSED             , "Operation refused",	    /* not sure */
+  {WSAENOMORE              , "No more operations allowed"}, /* not sure */
+  {WSAECANCELLED           , "Operation cancelled"},	    /* not sure */
+  {WSAEINVALIDPROCTABLE    , "Invalid procedure table from service provider"},
+  {WSAEINVALIDPROVIDER     , "Invalid service provider version number"},
+  {WSAEPROVIDERFAILEDINIT  , "Unable to initialize a service provider"},
+  {WSASYSCALLFAILURE       , "System call failure"},
+  {WSASERVICE_NOT_FOUND    , "Service not found"},	    /* not sure */
+  {WSATYPE_NOT_FOUND       , "Class type not found"},
+  {WSA_E_NO_MORE           , "No more resources available"}, /* really not sure */
+  {WSA_E_CANCELLED         , "Operation already cancelled"}, /* really not sure */
+  {WSAEREFUSED             , "Operation refused"},	    /* not sure */
 #endif
 
-  WSAHOST_NOT_FOUND       , "Host not found",
-  WSATRY_AGAIN            , "Authoritative host not found during name lookup",
-  WSANO_RECOVERY          , "Non-recoverable error during name lookup",
-  WSANO_DATA              , "Valid name, no data record of requested type",
+  {WSAHOST_NOT_FOUND       , "Host not found"},
+  {WSATRY_AGAIN            , "Authoritative host not found during name lookup"},
+  {WSANO_RECOVERY          , "Non-recoverable error during name lookup"},
+  {WSANO_DATA              , "Valid name, no data record of requested type"},
 
-  -1, NULL
+  {-1, NULL}
 };
 
 char *
@@ -5184,9 +5234,6 @@ sys_pipe (int * phandles)
   return rc;
 }
 
-/* From ntproc.c */
-extern int w32_pipe_read_delay;
-
 /* Function to do blocking read of one byte, needed to implement
    select.  It is only allowed on sockets and pipes. */
 int
@@ -5403,7 +5450,6 @@ sys_read (int fd, char * buffer, unsigned int count)
 	    {
 	      HANDLE hnd = fd_info[fd].hnd;
 	      OVERLAPPED *ovl = &fd_info[fd].cp->ovl_read;
-	      DWORD err = 0;
 	      int rc = 0;
 	      COMMTIMEOUTS ct;
 
@@ -5655,18 +5701,76 @@ sys_write (int fd, const void * buffer, unsigned int count)
   return nchars;
 }
 
+/* The Windows CRT functions are "optimized for speed", so they don't
+   check for timezone and DST changes if they were last called less
+   than 1 minute ago (see http://support.microsoft.com/kb/821231).  So
+   all Emacs features that repeatedly call time functions (e.g.,
+   display-time) are in real danger of missing timezone and DST
+   changes.  Calling tzset before each localtime call fixes that.  */
+struct tm *
+sys_localtime (const time_t *t)
+{
+  tzset ();
+  return localtime (t);
+}
+
+
+
+/* Delayed loading of libraries.  */
+
+Lisp_Object Vlibrary_cache;
+
+/* The argument LIBRARIES is an alist that associates a symbol
+   LIBRARY_ID, identifying an external DLL library known to Emacs, to
+   a list of filenames under which the library is usually found.  In
+   most cases, the argument passed as LIBRARIES is the variable
+   `dynamic-library-alist', which is initialized to a list of common
+   library names.  If the function loads the library successfully, it
+   returns the handle of the DLL, and records the filename in the
+   property :loaded-from of LIBRARY_ID; it returns NULL if the library
+   could not be found, or when it was already loaded (because the
+   handle is not recorded anywhere, and so is lost after use).  It
+   would be trivial to save the handle too in :loaded-from, but
+   currently there's no use case for it.  */
+HMODULE
+w32_delayed_load (Lisp_Object libraries, Lisp_Object library_id)
+{
+  HMODULE library_dll = NULL;
+
+  CHECK_SYMBOL (library_id);
+
+  if (CONSP (libraries) && NILP (Fassq (library_id, Vlibrary_cache)))
+    {
+      Lisp_Object found = Qnil;
+      Lisp_Object dlls = Fassq (library_id, libraries);
+
+      if (CONSP (dlls))
+        for (dlls = XCDR (dlls); CONSP (dlls); dlls = XCDR (dlls))
+          {
+            CHECK_STRING_CAR (dlls);
+            if (library_dll = LoadLibrary (SDATA (XCAR (dlls))))
+              {
+                found = XCAR (dlls);
+                break;
+              }
+          }
+
+      Fput (library_id, QCloaded_from, found);
+    }
+
+  return library_dll;
+}
+
+
 static void
 check_windows_init_file (void)
 {
-  extern int noninteractive, inhibit_window_system;
-
   /* A common indication that Emacs is not installed properly is when
      it cannot find the Windows installation file.  If this file does
      not exist in the expected place, tell the user.  */
 
   if (!noninteractive && !inhibit_window_system)
     {
-      extern Lisp_Object Vwindow_system, Vload_path, Qfile_exists_p;
       Lisp_Object objs[2];
       Lisp_Object full_load_path;
       Lisp_Object init_file;
@@ -5855,6 +5959,11 @@ globals_of_w32 (void)
 
   get_process_times_fn = (GetProcessTimes_Proc)
     GetProcAddress (kernel32, "GetProcessTimes");
+
+  DEFSYM (QCloaded_from, ":loaded-from");
+
+  Vlibrary_cache = Qnil;
+  staticpro (&Vlibrary_cache);
 
   g_b_init_is_windows_9x = 0;
   g_b_init_open_process_token = 0;
@@ -6082,5 +6191,72 @@ serial_configure (struct Lisp_Process *p, Lisp_Object contact)
   p->childp = childp2;
 }
 
-/* end of w32.c */
+#ifdef HAVE_GNUTLS
 
+ssize_t
+emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
+{
+  int n, sc, err;
+  SELECT_TYPE fdset;
+  EMACS_TIME timeout;
+  struct Lisp_Process *process = (struct Lisp_Process *)p;
+  int fd = process->infd;
+
+  for (;;)
+    {
+      n = sys_read(fd, (char*)buf, sz);
+
+      if (n >= 0)
+        return n;
+
+      err = errno;
+
+      if (err == EWOULDBLOCK)
+        {
+          /* Set a small timeout.  */
+          EMACS_SET_SECS_USECS(timeout, 1, 0);
+          FD_ZERO (&fdset);
+          FD_SET ((int)fd, &fdset);
+
+          /* Use select with the timeout to poll the selector.  */
+          sc = select (fd + 1, &fdset, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
+                       &timeout);
+
+          if (sc > 0)
+            continue;  /* Try again.  */
+
+          /* Translate the WSAEWOULDBLOCK alias EWOULDBLOCK to EAGAIN.
+             Also accept select return 0 as an indicator to EAGAIN.  */
+          if (sc == 0 || errno == EWOULDBLOCK)
+            err = EAGAIN;
+          else
+            err = errno; /* Other errors are just passed on.  */
+        }
+
+      emacs_gnutls_transport_set_errno (process->gnutls_state, err);
+
+      return -1;
+    }
+}
+
+ssize_t
+emacs_gnutls_push (gnutls_transport_ptr_t p, const void* buf, size_t sz)
+{
+  struct Lisp_Process *process = (struct Lisp_Process *)p;
+  int fd = process->outfd;
+  ssize_t n = sys_write(fd, buf, sz);
+
+  /* 0 or more bytes written means everything went fine.  */
+  if (n >= 0)
+    return n;
+
+  /* Negative bytes written means we got an error in errno.
+     Translate the WSAEWOULDBLOCK alias EWOULDBLOCK to EAGAIN.  */
+  emacs_gnutls_transport_set_errno (process->gnutls_state,
+                                    errno == EWOULDBLOCK ? EAGAIN : errno);
+
+  return -1;
+}
+#endif /* HAVE_GNUTLS */
+
+/* end of w32.c */

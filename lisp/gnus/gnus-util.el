@@ -1,7 +1,6 @@
 ;;; gnus-util.el --- utility functions for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -38,6 +37,8 @@
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
   (require 'cl))
+
+(require 'time-date)
 
 (defcustom gnus-completing-read-function 'gnus-emacs-completing-read
   "Function use to do completing read."
@@ -332,10 +333,11 @@ Symbols are also allowed; their print names are used instead."
 	(and (= (car fdate) (car date))
 	     (> (nth 1 fdate) (nth 1 date))))))
 
+;; Every version of Emacs Gnus supports has built-in float-time.
+;; The featurep test silences an irritating compiler warning.
 (eval-and-compile
   (if (or (featurep 'emacs)
-	  (and (fboundp 'float-time)
-	       (subrp (symbol-function 'float-time))))
+	  (fboundp 'float-time))
       (defalias 'gnus-float-time 'float-time)
     (defun gnus-float-time (&optional time)
       "Convert time value TIME to a floating point number.
@@ -475,51 +477,6 @@ Cache the result as a text property stored in DATE."
 	     (put-text-property 0 1 'gnus-time time d)
 	     time)))))
 
-(defvar gnus-user-date-format-alist
-  '(((gnus-seconds-today) . "%k:%M")
-    (604800 . "%a %k:%M")                   ;;that's one week
-    ((gnus-seconds-month) . "%a %d")
-    ((gnus-seconds-year) . "%b %d")
-    (t . "%b %d '%y"))                      ;;this one is used when no
-					    ;;other does match
-  "Specifies date format depending on age of article.
-This is an alist of items (AGE . FORMAT).  AGE can be a number (of
-seconds) or a Lisp expression evaluating to a number.  When the age of
-the article is less than this number, then use `format-time-string'
-with the corresponding FORMAT for displaying the date of the article.
-If AGE is not a number or a Lisp expression evaluating to a
-non-number, then the corresponding FORMAT is used as a default value.
-
-Note that the list is processed from the beginning, so it should be
-sorted by ascending AGE.  Also note that items following the first
-non-number AGE will be ignored.
-
-You can use the functions `gnus-seconds-today', `gnus-seconds-month'
-and `gnus-seconds-year' in the AGE spec.  They return the number of
-seconds passed since the start of today, of this month, of this year,
-respectively.")
-
-(defun gnus-user-date (messy-date)
-  "Format the messy-date according to gnus-user-date-format-alist.
-Returns \"  ?  \" if there's bad input or if another error occurs.
-Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
-  (condition-case ()
-      (let* ((messy-date (gnus-float-time (gnus-date-get-time messy-date)))
-	     (now (gnus-float-time))
-	     ;;If we don't find something suitable we'll use this one
-	     (my-format "%b %d '%y"))
-	(let* ((difference (- now messy-date))
-	       (templist gnus-user-date-format-alist)
-	       (top (eval (caar templist))))
-	  (while (if (numberp top) (< top difference) (not top))
-	    (progn
-	      (setq templist (cdr templist))
-	      (setq top (eval (caar templist)))))
-	  (if (stringp (cdr (car templist)))
-	      (setq my-format (cdr (car templist)))))
-	(format-time-string (eval my-format) (seconds-to-time messy-date)))
-    (error "  ?   ")))
-
 (defun gnus-dd-mmm (messy-date)
   "Return a string like DD-MMM from a big messy string."
   (condition-case ()
@@ -583,8 +540,7 @@ but also to the ones displayed in the echo area."
 
 (eval-when-compile
   (defmacro gnus-message-with-timestamp-1 (format-string args)
-    (let ((timestamp '((format-time-string "%Y%m%dT%H%M%S" time)
-		       "." (format "%03d" (/ (nth 2 time) 1000)) "> ")))
+    (let ((timestamp '(format-time-string "%Y%m%dT%H%M%S.%3N> " time)))
       (if (featurep 'xemacs)
 	  `(let (str time)
 	     (if (or (and (null ,format-string) (null ,args))
@@ -597,10 +553,10 @@ but also to the ones displayed in the echo area."
 	       (cond ((eq gnus-add-timestamp-to-message 'log)
 		      (setq time (current-time))
 		      (display-message 'no-log str)
-		      (log-message 'message (concat ,@timestamp str)))
+		      (log-message 'message (concat ,timestamp str)))
 		     (gnus-add-timestamp-to-message
 		      (setq time (current-time))
-		      (display-message 'message (concat ,@timestamp str)))
+		      (display-message 'message (concat ,timestamp str)))
 		     (t
 		      (display-message 'message str))))
 	     str)
@@ -614,7 +570,7 @@ but also to the ones displayed in the echo area."
 		    (setq time (current-time))
 		    (with-current-buffer (get-buffer-create "*Messages*")
 		      (goto-char (point-max))
-		      (insert ,@timestamp str "\n")
+		      (insert ,timestamp str "\n")
 		      (forward-line (- message-log-max))
 		      (delete-region (point-min) (point))
 		      (goto-char (point-max))))
@@ -628,7 +584,7 @@ but also to the ones displayed in the echo area."
 			  (and ,format-string str)
 			(message nil))
 		    (setq time (current-time))
-		    (message "%s" (concat ,@timestamp str))
+		    (message "%s" (concat ,timestamp str))
 		    str))
 		 (t
 		  (apply 'message ,format-string ,args))))))))
@@ -715,11 +671,9 @@ If N, return the Nth ancestor instead."
 	(when (string-match "\\(<[^<]+>\\)[ \t]*\\'" references)
 	  (match-string 1 references))))))
 
-(defun gnus-buffer-live-p (buffer)
+(defsubst gnus-buffer-live-p (buffer)
   "Say whether BUFFER is alive or not."
-  (and buffer
-       (get-buffer buffer)
-       (buffer-name (get-buffer buffer))))
+  (and buffer (buffer-live-p (get-buffer buffer))))
 
 (defun gnus-horizontal-recenter ()
   "Recenter the current buffer horizontally."
@@ -902,6 +856,7 @@ Bind `print-quoted' and `print-readably' to t, and `print-length' and
 
 (defun gnus-write-buffer (file)
   "Write the current buffer's contents to FILE."
+  (require 'nnmail)
   (let ((file-name-coding-system nnmail-pathname-coding-system))
     ;; Make sure the directory exists.
     (gnus-make-directory (file-name-directory file))
@@ -912,6 +867,15 @@ Bind `print-quoted' and `print-readably' to t, and `print-length' and
   "Delete FILE if it exists."
   (when (file-exists-p file)
     (delete-file file)))
+
+(defun gnus-delete-duplicates (list)
+  "Remove duplicate entries from LIST."
+  (let ((result nil))
+    (while list
+      (unless (member (car list) result)
+	(push (car list) result))
+      (pop list))
+    (nreverse result)))
 
 (defun gnus-delete-directory (directory)
   "Delete files in DIRECTORY.  Subdirectories remain.
@@ -1137,6 +1101,7 @@ In Emacs 22 this writes Babyl format; in Emacs 23 it writes mbox unless
 FILENAME exists and is Babyl format."
   (require 'rmail)
   (require 'mm-util)
+  (require 'nnmail)
   ;; Some of this codes is borrowed from rmailout.el.
   (setq filename (expand-file-name filename))
   ;; FIXME should we really be messing with this defcustom?
@@ -1228,6 +1193,7 @@ FILENAME exists and is Babyl format."
 
 (defun gnus-output-to-mail (filename &optional ask)
   "Append the current article to a mail file named FILENAME."
+  (require 'nnmail)
   (setq filename (expand-file-name filename))
   (let ((artbuf (current-buffer))
 	(tmpbuf (get-buffer-create " *Gnus-output*")))
@@ -2033,6 +1999,27 @@ This is the definition of match-substitute-replacement in subr.el from GNU Emacs
 Same as `string-match' except this function does not change the match data."
     (save-match-data
       (string-match regexp string start))))
+
+(eval-and-compile
+  (if (fboundp 'macroexpand-all)
+      (defalias 'gnus-macroexpand-all 'macroexpand-all)
+    (defun gnus-macroexpand-all (form &optional environment)
+      "Return result of expanding macros at all levels in FORM.
+If no macros are expanded, FORM is returned unchanged.
+The second optional arg ENVIRONMENT specifies an environment of macro
+definitions to shadow the loaded ones for use in file byte-compilation."
+      (if (consp form)
+	  (let ((idx 1)
+		(len (length (setq form (copy-sequence form))))
+		expanded)
+	    (while (< idx len)
+	      (setcar (nthcdr idx form) (gnus-macroexpand-all (nth idx form)
+							      environment))
+	      (setq idx (1+ idx)))
+	    (if (eq (setq expanded (macroexpand form environment)) form)
+		form
+	      (gnus-macroexpand-all expanded environment)))
+	form))))
 
 (provide 'gnus-util)
 

@@ -1,7 +1,6 @@
 ;;; cus-theme.el -- custom theme creation user interface
 ;;
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: FSF
@@ -101,6 +100,9 @@ named *Custom Theme*."
   (make-local-variable 'custom-theme-insert-face-marker)
   (make-local-variable 'custom-theme-insert-variable-marker)
   (make-local-variable 'custom-theme--listed-faces)
+  (when (called-interactively-p 'interactive)
+    (unless (y-or-n-p "Include basic face customizations in this theme? ")
+      (setq custom-theme--listed-faces nil)))
 
   (if (eq theme 'user)
       (widget-insert "This buffer contains all the Custom settings you have made.
@@ -110,13 +112,13 @@ remove them from your saved Custom file.\n\n"))
   (widget-create 'push-button
 		 :tag " Visit Theme "
 		 :help-echo "Insert the settings of a pre-defined theme."
-		 :action (lambda (widget &optional event)
+		 :action (lambda (_widget &optional _event)
 			   (call-interactively 'custom-theme-visit-theme)))
   (widget-insert "  ")
   (widget-create 'push-button
 		 :tag " Merge Theme "
 		 :help-echo "Merge in the settings of a pre-defined theme."
-		 :action (lambda (widget &optional event)
+		 :action (lambda (_widget &optional _event)
 			   (call-interactively 'custom-theme-merge-theme)))
   (widget-insert "  ")
   (widget-create 'push-button
@@ -155,7 +157,7 @@ remove them from your saved Custom file.\n\n"))
     ;; Load the theme settings.
     (when theme
       (unless (eq theme 'user)
-	(load-theme theme t))
+	(load-theme theme nil t))
       (dolist (setting (get theme 'theme-settings))
 	(if (eq (car setting) 'theme-value)
 	    (progn (push (nth 1 setting) vars)
@@ -180,7 +182,7 @@ remove them from your saved Custom file.\n\n"))
 		   :button-face 'custom-link
 		   :mouse-face 'highlight
 		   :pressed-face 'highlight
-		   :action (lambda (widget &optional event)
+		   :action (lambda (_widget &optional _event)
 			     (call-interactively 'custom-theme-add-face)))
 
     ;; If THEME is non-nil, insert all of that theme's variables.
@@ -189,7 +191,7 @@ remove them from your saved Custom file.\n\n"))
 	(while vars
 	  (if (eq (car vars) 'custom-enabled-themes)
 	      (progn (pop vars) (pop values))
-	    (custom-theme-add-var-1 (pop vars) (pop values)))))
+	    (custom-theme-add-var-1 (pop vars) (eval (pop values))))))
     (setq custom-theme-insert-variable-marker (point-marker))
     (widget-insert " ")
     (widget-create 'push-button
@@ -199,14 +201,14 @@ remove them from your saved Custom file.\n\n"))
 		   :button-face 'custom-link
 		   :mouse-face 'highlight
 		   :pressed-face 'highlight
-		   :action (lambda (widget &optional event)
+		   :action (lambda (_widget &optional _event)
 			     (call-interactively 'custom-theme-add-variable)))
     (widget-insert ?\n)
     (widget-setup)
     (goto-char (point-min))
     (message "")))
 
-(defun custom-theme-revert (ignore-auto noconfirm)
+(defun custom-theme-revert (_ignore-auto noconfirm)
   (when (or noconfirm (y-or-n-p "Discard current changes? "))
     (customize-create-theme custom-theme--save-name (current-buffer))))
 
@@ -298,8 +300,9 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
 
 ;;; Reading and writing
 
+;;;###autoload
 (defun custom-theme-visit-theme (theme)
-  "Load the custom theme THEME's settings into the current buffer."
+  "Set up a Custom buffer to edit custom theme THEME."
   (interactive
    (list
     (intern (completing-read "Find custom theme: "
@@ -323,7 +326,7 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
   (unless (eq theme 'user)
     (unless (custom-theme-name-valid-p theme)
       (error "Invalid theme name `%s'" theme))
-    (load-theme theme t))
+    (load-theme theme nil t))
   (let ((settings (reverse (get theme 'theme-settings))))
     (dolist (setting settings)
       (funcall (if (eq (car setting) 'theme-value)
@@ -333,7 +336,11 @@ SPEC, if non-nil, should be a face spec to which to set the widget."
 	       (nth 3 setting))))
   theme)
 
-(defun custom-theme-write (&rest ignore)
+;; From cus-edit.el
+(defvar custom-reset-standard-faces-list)
+(defvar custom-reset-standard-variables-list)
+
+(defun custom-theme-write (&rest _ignore)
   "Write the current custom theme to its theme file."
   (interactive)
   (let* ((name (widget-value custom-theme-name))
@@ -476,25 +483,24 @@ It includes all faces in list FACES."
 			       'help-theme-def fn)
       (princ "'"))
     (princ ".\n")
-    (if (not (memq theme custom-known-themes))
+    (if (custom-theme-p theme)
 	(progn
-	  (princ "It is not loaded.")
-	  ;; Attempt to grab the theme documentation
-	  (when fn
-	    (with-temp-buffer
-	      (insert-file-contents fn)
-	      (let ((sexp (let ((read-circle nil))
-			    (condition-case nil
-				(read (current-buffer))
-			      (end-of-file nil)))))
-		(and sexp (listp sexp)
-		     (eq (car sexp) 'deftheme)
-		     (setq doc (nth 2 sexp)))))))
-      (if (custom-theme-enabled-p theme)
-	  (princ "It is loaded and enabled.")
-	(princ "It is loaded but disabled."))
-      (setq doc (get theme 'theme-documentation)))
-
+	  (if (custom-theme-enabled-p theme)
+	      (princ "It is loaded and enabled.")
+	    (princ "It is loaded but disabled."))
+	  (setq doc (get theme 'theme-documentation)))
+      (princ "It is not loaded.")
+      ;; Attempt to grab the theme documentation
+      (when fn
+	(with-temp-buffer
+	  (insert-file-contents fn)
+	  (let ((sexp (let ((read-circle nil))
+			(condition-case nil
+			    (read (current-buffer))
+			  (end-of-file nil)))))
+	    (and sexp (listp sexp)
+		 (eq (car sexp) 'deftheme)
+		 (setq doc (nth 2 sexp)))))))
     (princ "\n\nDocumentation:\n")
     (princ (if (stringp doc)
 	       doc
@@ -530,7 +536,7 @@ Do not call this mode function yourself.  It is meant for internal use."
   (use-local-map custom-theme-choose-mode-map)
   (custom--initialize-widget-variables)
   (set (make-local-variable 'revert-buffer-function)
-       (lambda (ignore-auto noconfirm)
+       (lambda (_ignore-auto noconfirm)
 	 (when (or noconfirm (y-or-n-p "Discard current choices? "))
 	   (customize-themes (current-buffer))))))
 (put 'custom-theme-choose-mode 'mode-class 'special)
@@ -541,7 +547,7 @@ Do not call this mode function yourself.  It is meant for internal use."
 When called from Lisp, BUFFER should be the buffer to use; if
 omitted, a buffer named *Custom Themes* is used."
   (interactive)
-  (pop-to-buffer (get-buffer-create (or buffer "*Custom Themes*")))
+  (switch-to-buffer (get-buffer-create (or buffer "*Custom Themes*")))
   (let ((inhibit-read-only t))
     (erase-buffer))
   (custom-theme-choose-mode)
@@ -563,7 +569,7 @@ Theme files are named *-theme.el in `"))
 		 :help-echo "Describe `custom-theme-load-path'."
 		 :keymap custom-mode-link-map
 		 :follow-link 'mouse-face
-		 :action (lambda (widget &rest ignore)
+		 :action (lambda (_widget &rest _ignore)
 			   (describe-variable 'custom-theme-load-path)))
   (widget-insert "'.\n\n")
 
@@ -586,7 +592,7 @@ Theme files are named *-theme.el in `"))
 		     :help-echo "Migrate."
 		     :keymap custom-mode-link-map
 		     :follow-link 'mouse-face
-		     :action (lambda (widget &rest ignore)
+		     :action (lambda (_widget &rest _ignore)
 			       (customize-create-theme 'user)))
       (widget-insert ".\n\n")))
 
@@ -598,31 +604,63 @@ Theme files are named *-theme.el in `"))
   (widget-create 'checkbox
 		 :value custom-theme-allow-multiple-selections
 		 :action 'custom-theme-selections-toggle)
-  (widget-insert (propertize " Allow more than one theme at a time"
+  (widget-insert (propertize " Select more than one theme at a time"
 			     'face '(variable-pitch (:height 0.9))))
 
   (widget-insert "\n\nAvailable Custom Themes:\n")
-  (let (widget)
+  (let ((help-echo "mouse-2: Enable this theme for this session")
+	widget)
     (dolist (theme (custom-available-themes))
       (setq widget (widget-create 'checkbox
 				  :value (custom-theme-enabled-p theme)
 				  :theme-name theme
+				  :help-echo help-echo
 				  :action 'custom-theme-checkbox-toggle))
       (push (cons theme widget) custom--listed-themes)
       (widget-create-child-and-convert widget 'push-button
 				       :button-face-get 'ignore
 				       :mouse-face-get 'ignore
 				       :value (format " %s" theme)
-				       :action 'widget-parent-action)
-      (widget-insert ?\n)))
+				       :action 'widget-parent-action
+				       :help-echo help-echo)
+      (widget-insert " -- "
+		     (propertize (custom-theme-summary theme)
+				 'face 'shadow)
+		     ?\n)))
   (goto-char (point-min))
   (widget-setup))
+
+(defun custom-theme-summary (theme)
+  "Return the summary line of THEME."
+  (let (doc)
+    (if (custom-theme-p theme)
+	(setq doc (get theme 'theme-documentation))
+      (let ((fn (locate-file (concat (symbol-name theme) "-theme.el")
+			     (custom-theme--load-path)
+			     '("" "c"))))
+	(when fn
+	  (with-temp-buffer
+	    (insert-file-contents fn)
+	    (let ((sexp (let ((read-circle nil))
+			  (condition-case nil
+			      (read (current-buffer))
+			    (end-of-file nil)))))
+	      (and sexp (listp sexp)
+		   (eq (car sexp) 'deftheme)
+		   (setq doc (nth 2 sexp))))))))
+    (cond ((null doc)
+	   "(no documentation available)")
+	  ((string-match ".*" doc)
+	   (match-string 0 doc))
+	  (t doc))))
 
 (defun custom-theme-checkbox-toggle (widget &optional event)
   (let ((this-theme (widget-get widget :theme-name)))
     (if (widget-value widget)
 	;; Disable the theme.
-	(disable-theme this-theme)
+	(progn
+	  (disable-theme this-theme)
+	  (widget-toggle-action widget event))
       ;; Enable the theme.
       (unless custom-theme-allow-multiple-selections
 	;; If only one theme is allowed, disable all other themes and
@@ -635,12 +673,11 @@ Theme files are named *-theme.el in `"))
 	  (unless (eq (car theme) this-theme)
 	    (widget-value-set (cdr theme) nil)
 	    (widget-apply (cdr theme) :notify (cdr theme) event))))
-      (load-theme this-theme)))
-  ;; Mark `custom-enabled-themes' as "set for current session".
-  (put 'custom-enabled-themes 'customized-value
-       (list (custom-quote custom-enabled-themes)))
-  ;; Check/uncheck the widget.
-  (widget-toggle-action widget event))
+      (when (load-theme this-theme)
+	(widget-toggle-action widget event)))
+    ;; Mark `custom-enabled-themes' as "set for current session".
+    (put 'custom-enabled-themes 'customized-value
+	 (list (custom-quote custom-enabled-themes)))))
 
 (defun custom-describe-theme ()
   "Describe the Custom theme on the current line."
@@ -649,7 +686,7 @@ Theme files are named *-theme.el in `"))
     (and widget
 	 (describe-theme (widget-get widget :theme-name)))))
 
-(defun custom-theme-save (&rest ignore)
+(defun custom-theme-save (&rest _ignore)
   (interactive)
   (customize-save-variable 'custom-enabled-themes custom-enabled-themes)
   (message "Custom themes saved for future sessions."))
@@ -663,5 +700,6 @@ Theme files are named *-theme.el in `"))
   (widget-toggle-action widget event)
   (setq custom-theme-allow-multiple-selections (widget-value widget)))
 
-;; arch-tag: cd6919bc-63af-410e-bae2-b6702e762344
+(provide 'cus-theme)
+
 ;;; cus-theme.el ends here

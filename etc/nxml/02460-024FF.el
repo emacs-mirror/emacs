@@ -160,4 +160,3 @@
     ("DOUBLE CIRCLED NUMBER TEN" #x24FE)
     ))
 
-;; arch-tag: 2ec7ede5-ce9d-48b5-a725-dd3f177060f4

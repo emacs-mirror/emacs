@@ -1,7 +1,6 @@
 ;;; wisent-python.el --- Semantic support for Python
 
-;; Copyright (C) 2002, 2004, 2006, 2007, 2008, 2009, 2010
-;; Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Richard Kim  <emacs18@gmail.com>
 ;; Maintainer: Richard Kim  <emacs18@gmail.com>

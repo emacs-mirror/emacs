@@ -1,6 +1,6 @@
 ;;; js.el --- Major mode for editing JavaScript
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Karl Landstrom <karl.landstrom@brgeight.se>
 ;;         Daniel Colascione <dan.colascione@gmail.com>
@@ -47,12 +47,9 @@
 
 
 (require 'cc-mode)
-(require 'font-lock)
 (require 'newcomment)
+(require 'thingatpt)                    ; forward-symbol etc
 (require 'imenu)
-(require 'etags)
-(require 'thingatpt)
-(require 'easymenu)
 (require 'moz nil t)
 (require 'json nil t)
 
@@ -937,7 +934,7 @@ BEG defaults to `point-min', meaning to flush the entire cache."
   (setq beg (or beg (save-restriction (widen) (point-min))))
   (setq js--cache-end (min js--cache-end beg)))
 
-(defmacro js--debug (&rest arguments)
+(defmacro js--debug (&rest _arguments)
   ;; `(message ,@arguments)
   )
 
@@ -1594,10 +1591,9 @@ will be returned."
     (save-restriction
       (widen)
       (js--ensure-cache)
-      (let* ((bound (if (eobp) (point) (1+ (point))))
-             (pstate (or (save-excursion
-                           (js--backward-pstate))
-                         (list js--initial-pitem))))
+      (let ((pstate (or (save-excursion
+                          (js--backward-pstate))
+                        (list js--initial-pitem))))
 
         ;; Loop until we either hit a pitem at BOB or pitem ends after
         ;; point (or at point if we're at eob)
@@ -1662,11 +1658,10 @@ This performs fontification according to `js--class-styles'."
 ;; below.
 (eval-and-compile
   (defconst js--regexp-literal
-  "[=(,:]\\(?:\\s-\\|\n\\)*\\(/\\)\\(?:\\\\/\\|[^/*]\\)\\(?:\\\\/\\|[^/]\\)*\\(/\\)"
+    "[=(,:]\\(?:\\s-\\|\n\\)*\\(/\\)\\(?:\\\\.\\|[^/*\\]\\)\\(?:\\\\.\\|[^/\\]\\)*\\(/\\)"
   "Regexp matching a JavaScript regular expression literal.
 Match groups 1 and 2 are the characters forming the beginning and
 end of the literal."))
-
 
 (defconst js-syntax-propertize-function
   (syntax-propertize-rules
@@ -1925,7 +1920,7 @@ the broken-down class name of the item to insert."
 
   (let ((top-name (car name-parts))
         (item-ptr items)
-        new-items last-new-item new-cons item)
+        new-items last-new-item new-cons)
 
     (js--debug "js--splice-into-items: name-parts: %S items:%S"
              name-parts
@@ -2135,7 +2130,7 @@ and each value is a marker giving the location of that symbol."
         with imenu-use-markers = t
         for buffer being the buffers
         for imenu-index = (with-current-buffer buffer
-                            (when (eq major-mode 'js-mode)
+                            (when (derived-mode-p 'js-mode)
                               (js--imenu-create-index)))
         do (js--imenu-to-flat imenu-index "" symbols)
         finally return symbols))
@@ -2151,8 +2146,8 @@ initial input INITIAL-INPUT.  Return a cons of (SYMBOL-NAME
 . LOCATION), where SYMBOL-NAME is a string and LOCATION is a
 marker."
   (unless ido-mode
-    (ido-mode t)
-    (ido-mode nil))
+    (ido-mode 1)
+    (ido-mode -1))
 
   (let ((choice (ido-completing-read
                  prompt
@@ -2171,12 +2166,15 @@ marker."
           (setf (car bounds) (point))))
       (buffer-substring (car bounds) (cdr bounds)))))
 
+(defvar find-tag-marker-ring)           ; etags
+
 (defun js-find-symbol (&optional arg)
   "Read a JavaScript symbol and jump to it.
 With a prefix argument, restrict symbols to those from the
 current buffer.  Pushes a mark onto the tag ring just like
 `find-tag'."
   (interactive "P")
+  (require 'etags)
   (let (symbols marker)
     (if (not arg)
         (setq symbols (js--get-all-known-symbols))
@@ -2956,8 +2954,8 @@ browser, respectively."
 
   ;; Prime IDO
   (unless ido-mode
-    (ido-mode t)
-    (ido-mode nil))
+    (ido-mode 1)
+    (ido-mode -1))
 
   (with-js
    (lexical-let ((tabs (js--get-tabs)) selected-tab-cname
@@ -3286,15 +3284,9 @@ If one hasn't been set, or if it's stale, prompt for a new one."
 ;;; Main Function
 
 ;;;###autoload
-(define-derived-mode js-mode prog-mode "js"
-  "Major mode for editing JavaScript.
-
-Key bindings:
-
-\\{js-mode-map}"
-
+(define-derived-mode js-mode prog-mode "Javascript"
+  "Major mode for editing JavaScript."
   :group 'js
-  :syntax-table js-mode-syntax-table
 
   (set (make-local-variable 'indent-line-function) 'js-indent-line)
   (set (make-local-variable 'beginning-of-defun-function)
@@ -3314,8 +3306,8 @@ Key bindings:
        #'js--which-func-joiner)
 
   ;; Comments
-  (setq comment-start "// ")
-  (setq comment-end "")
+  (set (make-local-variable 'comment-start) "// ")
+  (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'fill-paragraph-function)
        'js-c-fill-paragraph)
 
@@ -3329,9 +3321,6 @@ Key bindings:
   (setq imenu-case-fold-search nil)
   (set (make-local-variable 'imenu-create-index-function)
        #'js--imenu-create-index)
-
-  (setq major-mode 'js-mode)
-  (setq mode-name "Javascript")
 
   ;; for filling, pretend we're cc-mode
   (setq c-comment-prefix-regexp "//+\\|\\**"
@@ -3358,15 +3347,14 @@ Key bindings:
   ;; Important to fontify the whole buffer syntactically! If we don't,
   ;; then we might have regular expression literals that aren't marked
   ;; as strings, which will screw up parse-partial-sexp, scan-lists,
-  ;; etc. and and produce maddening "unbalanced parenthesis" errors.
+  ;; etc. and produce maddening "unbalanced parenthesis" errors.
   ;; When we attempt to find the error and scroll to the portion of
   ;; the buffer containing the problem, JIT-lock will apply the
   ;; correct syntax to the regular expresion literal and the problem
   ;; will mysteriously disappear.
-  (font-lock-set-defaults)
-
-  (let (font-lock-keywords) ; leaves syntactic keywords intact
-    (font-lock-fontify-buffer)))
+  ;; FIXME: We should actually do this fontification lazily by adding
+  ;; calls to syntax-propertize wherever it's really needed.
+  (syntax-propertize (point-max)))
 
 ;;;###autoload
 (defalias 'javascript-mode 'js-mode)

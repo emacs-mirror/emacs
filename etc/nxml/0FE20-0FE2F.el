@@ -5,4 +5,3 @@
     ("COMBINING DOUBLE TILDE RIGHT HALF" #xFE23)
     ))
 
-;; arch-tag: de291a34-737a-4bbb-8d97-94f878921d05

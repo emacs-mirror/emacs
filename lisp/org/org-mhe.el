@@ -1,12 +1,11 @@
 ;;; org-mhe.el --- Support for links to MH-E messages from within Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Thomas Baumann <thomas dot baumann at ch dot tum dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -225,6 +224,5 @@ folders."
 
 (provide 'org-mhe)
 
-;; arch-tag: dcb05484-8627-491d-a8c1-01dbd2bde4ae
 
 ;;; org-mhe.el ends here

@@ -1,6 +1,5 @@
 /* Window definitions for GNU Emacs.
-   Copyright (C) 1985, 1986, 1993, 1995, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1986, 1993, 1995, 1997-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -89,44 +88,62 @@ struct cursor_pos
 
 struct window
   {
-    /* The first two fields are really the header of a vector */
-    /* The window code does not refer to them.  */
-    EMACS_UINT size;
-    struct Lisp_Vector *vec_next;
+    /* This is for Lisp; the terminal code does not refer to it.  */
+    struct vectorlike_header header;
+
     /* The frame this window is on.  */
     Lisp_Object frame;
+
     /* t if this window is a minibuffer window.  */
     Lisp_Object mini_p;
-    /* Following child (to right or down) at same level of tree */
-    Lisp_Object next;
-    /* Preceding child (to left or up) at same level of tree */
-    Lisp_Object prev;
-    /* First child of this window. */
-    /* vchild is used if this is a vertical combination,
-       hchild if this is a horizontal combination. */
+
+    /* Following (to right or down) and preceding (to left or up) child
+       at same level of tree.  */
+    Lisp_Object next, prev;
+
+    /* First child of this window: vchild is used if this is a vertical
+       combination, hchild if this is a horizontal combination.  Of the
+       fields vchild, hchild and buffer, one and only one is non-nil
+       unless the window is dead.  */
     Lisp_Object hchild, vchild;
-    /* The window this one is a child of. */
+
+    /* The window this one is a child of.  */
     Lisp_Object parent;
-    /* The upper left corner coordinates of this window,
-       as integers relative to upper left corner of frame = 0, 0 */
+
+    /* The upper left corner coordinates of this window, as integers
+       relative to upper left corner of frame = 0, 0.  */
     Lisp_Object left_col;
     Lisp_Object top_line;
-    /* The size of the window */
+
+    /* The size of the window.  */
     Lisp_Object total_lines;
     Lisp_Object total_cols;
-    /* The buffer displayed in this window */
-    /* Of the fields vchild, hchild and buffer, only one is non-nil.  */
+
+    /* The normal size of the window.  */
+    Lisp_Object normal_lines;
+    Lisp_Object normal_cols;
+
+    /* New sizes of the window.  */
+    Lisp_Object new_total;
+    Lisp_Object new_normal;
+
+    /* The buffer displayed in this window.  Of the fields vchild,
+       hchild and buffer, one and only one is non-nil unless the window
+       is dead.  */
     Lisp_Object buffer;
+
     /* A marker pointing to where in the text to start displaying.
        BIDI Note: This is the _logical-order_ start, i.e. the smallest
        buffer position visible in the window, not necessarily the
        character displayed in the top left corner of the window.  */
     Lisp_Object start;
+
     /* A marker pointing to where in the text point is in this window,
        used only when the window is not selected.
        This exists so that when multiple windows show one buffer
        each one can have its own value of point.  */
     Lisp_Object pointm;
+
     /* Non-nil means next redisplay must use the value of start
        set up for it in advance.  Set by scrolling commands.  */
     Lisp_Object force_start;
@@ -135,26 +152,34 @@ struct window
        This is used in Fdelete_other_windows to force a call to
        Vwindow_scroll_functions; also by Frecenter with argument.  */
     Lisp_Object optional_new_start;
+
     /* Number of columns display within the window is scrolled to the left.  */
     Lisp_Object hscroll;
     /* Minimum hscroll for automatic hscrolling.  This is the value
        the user has set, by set-window-hscroll for example.  */
     Lisp_Object min_hscroll;
-    /* Number saying how recently window was selected */
+
+    /* Number saying how recently window was selected.  */
     Lisp_Object use_time;
-    /* Unique number of window assigned when it was created */
+
+    /* Unique number of window assigned when it was created.  */
     Lisp_Object sequence_number;
-    /* No permanent meaning; used by save-window-excursion's bookkeeping */
+
+    /* No permanent meaning; used by save-window-excursion's
+       bookkeeping.  */
     Lisp_Object temslot;
-    /* text.modified of displayed buffer as of last time display completed */
+
+    /* text.modified of displayed buffer as of last time display
+       completed.  */
     Lisp_Object last_modified;
     /* BUF_OVERLAY_MODIFIED of displayed buffer as of last complete update.  */
     Lisp_Object last_overlay_modified;
-    /* Value of point at that time */
+    /* Value of point at that time.  */
     Lisp_Object last_point;
     /* Non-nil if the buffer was "modified" when the window
        was last updated.  */
     Lisp_Object last_had_star;
+
     /* This window's vertical scroll bar.  This field is only for use
        by the window-system-dependent code which implements the
        scroll bars; it can store anything it likes here.  If this
@@ -169,14 +194,14 @@ struct window
     /* Width of left and right fringes.
        A value of nil or t means use frame values.  */
     Lisp_Object left_fringe_width, right_fringe_width;
-
-  /* Non-nil means fringes are drawn outside display margins;
-     othersize draw them between margin areas and text.  */
+    /* Non-nil means fringes are drawn outside display margins;
+       othersize draw them between margin areas and text.  */
     Lisp_Object fringes_outside_margins;
 
     /* Pixel width of scroll bars.
        A value of nil or t means use frame values.  */
     Lisp_Object scroll_bar_width;
+
     /* Type of vertical scroll bar.  A value of nil means
        no scroll bar.  A value of t means use frame value.  */
     Lisp_Object vertical_scroll_bar_type;
@@ -185,6 +210,7 @@ struct window
     /* May be nil if mark does not exist or was not on frame */
     Lisp_Object last_mark_x;
     Lisp_Object last_mark_y;
+
     /* Z - the buffer position of the last glyph in the current matrix
        of W.  Only valid if WINDOW_END_VALID is not nil.  */
     Lisp_Object window_end_pos;
@@ -196,39 +222,56 @@ struct window
        since in that case the frame image that window_end_pos
        did not get onto the frame.  */
     Lisp_Object window_end_valid;
+
     /* Non-nil means must regenerate mode line of this window */
     Lisp_Object update_mode_line;
+
     /* Non-nil means current value of `start'
        was the beginning of a line when it was chosen.  */
     Lisp_Object start_at_line_beg;
+
     /* Display-table to use for displaying chars in this window.
        Nil means use the buffer's own display-table.  */
     Lisp_Object display_table;
+
     /* Non-nil means window is marked as dedicated.  */
     Lisp_Object dedicated;
-    /* Line number and position of a line somewhere above the
-       top of the screen.  */
-    /* If this field is nil, it means we don't have a base line.  */
+
+    /* Line number and position of a line somewhere above the top of the
+       screen.  If this field is nil, it means we don't have a base
+       line.  */
     Lisp_Object base_line_number;
     /* If this field is nil, it means we don't have a base line.
        If it is a buffer, it means don't display the line number
        as long as the window shows that buffer.  */
     Lisp_Object base_line_pos;
+
     /* If we have highlighted the region (or any part of it),
        this is the mark position that we used, as an integer.  */
     Lisp_Object region_showing;
+
     /* The column number currently displayed in this window's mode line,
        or nil if column numbers are not being displayed.  */
     Lisp_Object column_number_displayed;
+
     /* If redisplay in this window goes beyond this buffer position,
        must run the redisplay-end-trigger-hook.  */
     Lisp_Object redisplay_end_trigger;
-    /* Non-nil means resizing windows will attempt to resize this window
-       proportionally.  */
-    Lisp_Object resize_proportionally;
 
-    /* Original window height and top before mini-window was enlarged. */
-    Lisp_Object orig_total_lines, orig_top_line;
+    /* Non-nil means deleting or resizing this window distributes
+       space among all windows in the same combination.  */
+    Lisp_Object splits;
+
+    /* Non-nil means this window's child windows are never
+       (re-)combined.  */
+    Lisp_Object nest;
+
+    /* Alist of <buffer, window-start, window-point> triples listing
+       buffers previously shown in this window.  */
+    Lisp_Object prev_buffers;
+
+    /* List of buffers re-shown in this window.  */
+    Lisp_Object next_buffers;
 
     /* An alist with parameteres.  */
     Lisp_Object window_parameters;
@@ -363,6 +406,17 @@ struct window
 #define WINDOW_TOTAL_HEIGHT(W) \
   (WINDOW_TOTAL_LINES (W) * WINDOW_FRAME_LINE_HEIGHT (W))
 
+/* For HORFLAG non-zero the total number of columns of window W.  Otherwise
+   the total number of lines of W.  */
+
+#define WINDOW_TOTAL_SIZE(w, horflag) \
+  (horflag ? WINDOW_TOTAL_COLS (w) : WINDOW_TOTAL_LINES (w))
+
+/* The smallest acceptable dimensions for a window.  Anything smaller
+   might crash Emacs.  */
+
+#define MIN_SAFE_WINDOW_WIDTH  (2)
+#define MIN_SAFE_WINDOW_HEIGHT (1)
 
 /* Return the canonical frame column at which window W starts.
    This includes a left-hand scroll bar, if any.  */
@@ -753,20 +807,6 @@ extern Lisp_Object minibuf_window;
 
 extern Lisp_Object minibuf_selected_window;
 
-/* Non-nil => window to for C-M-v to scroll when the minibuffer is
-   selected.  */
-
-extern Lisp_Object Vminibuf_scroll_window;
-
-/* Nil or a symbol naming the window system under which emacs is
-   running ('x is the only current possibility) */
-
-extern Lisp_Object Vinitial_window_system;
-
-/* Version number of X windows: 10, 11 or nil.  */
-
-extern Lisp_Object Vwindow_system_version;
-
 /* Window that the mouse is over (nil if no mouse support).  */
 
 extern Lisp_Object Vmouse_window;
@@ -778,29 +818,14 @@ extern Lisp_Object Vmouse_event;
 EXFUN (Fnext_window, 3);
 EXFUN (Fselect_window, 2);
 EXFUN (Fset_window_buffer, 3);
-EXFUN (Fset_window_hscroll, 2);
-EXFUN (Fwindow_hscroll, 1);
-EXFUN (Fset_window_vscroll, 3);
-EXFUN (Fwindow_vscroll, 2);
-EXFUN (Fset_window_margins, 3);
-EXFUN (Fwindow_live_p, 1);
 EXFUN (Fset_window_point, 2);
 extern Lisp_Object make_window (void);
-extern void delete_window (Lisp_Object);
 extern Lisp_Object window_from_coordinates (struct frame *, int, int,
                                             enum window_part *, int);
 EXFUN (Fwindow_dedicated_p, 1);
-extern int window_height (Lisp_Object);
-extern int window_width (Lisp_Object);
-EXFUN (Fwindow_full_width_p, 1);
-extern void set_window_height (Lisp_Object, int, int);
-extern void set_window_width (Lisp_Object, int, int);
-extern void change_window_heights (Lisp_Object, int);
-extern void delete_all_subwindows (struct window *);
+extern void resize_frame_windows (struct frame *, int, int);
+extern void delete_all_subwindows (Lisp_Object);
 extern void freeze_window_starts (struct frame *, int);
-extern void foreach_window (struct frame *,
-                            int (* fn) (struct window *, void *),
-                            void *);
 extern void grow_mini_window (struct window *, int);
 extern void shrink_mini_window (struct window *);
 extern int window_relative_x_coord (struct window *, enum window_part, int);
@@ -813,14 +838,6 @@ void run_window_configuration_change_hook (struct frame *f);
 
 void set_window_buffer (Lisp_Object window, Lisp_Object buffer,
                         int run_hooks_p, int keep_margins_p);
-
-/* Prompt to display in front of the minibuffer contents.  */
-
-extern Lisp_Object minibuf_prompt;
-
-/* The visual width of the above.  */
-
-extern int minibuf_prompt_width;
 
 /* This is the window where the echo area message was displayed.  It
    is always a minibuffer window, but it may not be the same window
@@ -881,36 +898,27 @@ struct glyph *get_phys_cursor_glyph (struct window *w);
 extern Lisp_Object Qwindowp, Qwindow_live_p;
 extern Lisp_Object Vwindow_list;
 
-EXFUN (Fwindow_end, 2);
-EXFUN (Fselected_window, 0);
-EXFUN (Fwindow_minibuffer_p, 1);
-EXFUN (Fdelete_window, 1);
 EXFUN (Fwindow_buffer, 1);
 EXFUN (Fget_buffer_window, 2);
-EXFUN (Fsave_window_excursion, UNEVALLED);
-EXFUN (Fsplit_window, 3);
+EXFUN (Fwindow_minibuffer_p, 1);
+EXFUN (Fselected_window, 0);
+EXFUN (Fframe_root_window, 1);
+EXFUN (Fframe_first_window, 1);
+EXFUN (Fset_frame_selected_window, 3);
 EXFUN (Fset_window_configuration, 1);
 EXFUN (Fcurrent_window_configuration, 1);
 extern int compare_window_configurations (Lisp_Object, Lisp_Object, int);
-EXFUN (Fcoordinates_in_window_p, 2);
-EXFUN (Fwindow_at, 3);
 EXFUN (Fpos_visible_in_window_p, 3);
 extern void mark_window_cursors_off (struct window *);
 extern int window_internal_height (struct window *);
-extern int window_internal_width (struct window *);
+extern int window_body_cols (struct window *w);
 EXFUN (Frecenter, 1);
-EXFUN (Fscroll_other_window, 1);
-EXFUN (Fset_window_start, 3);
 extern void temp_output_buffer_show (Lisp_Object);
-extern void replace_buffer_in_all_windows (Lisp_Object);
+extern void replace_buffer_in_windows (Lisp_Object);
+extern void replace_buffer_in_windows_safely (Lisp_Object);
 extern void init_window_once (void);
 extern void init_window (void);
 extern void syms_of_window (void);
 extern void keys_of_window (void);
 
-extern int window_box_text_cols (struct window *w);
-
 #endif /* not WINDOW_H_INCLUDED */
-
-/* arch-tag: d4a6942f-e433-4ffe-ac10-2c3574f28577
-   (do not change this comment) */

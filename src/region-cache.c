@@ -1,6 +1,7 @@
 /* Caching facts about regions of the buffer, for optimization.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1995, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1985-1989, 1993, 1995, 2001-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -289,37 +290,37 @@ move_cache_gap (struct region_cache *c, EMACS_INT pos, EMACS_INT min_size)
 }
 
 
-/* Insert a new boundary in cache C; it will have cache index INDEX,
+/* Insert a new boundary in cache C; it will have cache index I,
    and have the specified POS and VALUE.  */
 static void
-insert_cache_boundary (struct region_cache *c, EMACS_INT index, EMACS_INT pos,
+insert_cache_boundary (struct region_cache *c, EMACS_INT i, EMACS_INT pos,
 		       int value)
 {
-  /* index must be a valid cache index.  */
-  if (index < 0 || index > c->cache_len)
+  /* i must be a valid cache index.  */
+  if (i < 0 || i > c->cache_len)
     abort ();
 
   /* We must never want to insert something before the dummy first
      boundary.  */
-  if (index == 0)
+  if (i == 0)
     abort ();
 
   /* We must only be inserting things in order.  */
-  if (! (BOUNDARY_POS (c, index-1) < pos
-         && (index == c->cache_len
-             || pos < BOUNDARY_POS (c, index))))
+  if (! (BOUNDARY_POS (c, i - 1) < pos
+         && (i == c->cache_len
+             || pos < BOUNDARY_POS (c, i))))
     abort ();
 
   /* The value must be different from the ones around it.  However, we
      temporarily create boundaries that establish the same value as
      the subsequent boundary, so we're not going to flag that case.  */
-  if (BOUNDARY_VALUE (c, index-1) == value)
+  if (BOUNDARY_VALUE (c, i - 1) == value)
     abort ();
 
-  move_cache_gap (c, index, 1);
+  move_cache_gap (c, i, 1);
 
-  c->boundaries[index].pos = pos - c->buffer_beg;
-  c->boundaries[index].value = value;
+  c->boundaries[i].pos = pos - c->buffer_beg;
+  c->boundaries[i].value = value;
   c->gap_start++;
   c->gap_len--;
   c->cache_len++;
@@ -780,6 +781,7 @@ int region_cache_backward (struct buffer *buf, struct region_cache *c,
 
 /* Debugging: pretty-print a cache to the standard error output.  */
 
+void pp_cache (struct region_cache *) EXTERNALLY_VISIBLE;
 void
 pp_cache (struct region_cache *c)
 {
@@ -788,9 +790,9 @@ pp_cache (struct region_cache *c)
   EMACS_INT end_u = c->buffer_end - c->end_unchanged;
 
   fprintf (stderr,
-           "basis: %ld..%ld    modified: %ld..%ld\n",
-           (long)c->buffer_beg, (long)c->buffer_end,
-           (long)beg_u, (long)end_u);
+           "basis: %"pI"d..%"pI"d    modified: %"pI"d..%"pI"d\n",
+           c->buffer_beg, c->buffer_end,
+           beg_u, end_u);
 
   for (i = 0; i < c->cache_len; i++)
     {
@@ -804,9 +806,6 @@ pp_cache (struct region_cache *c)
              : (pos == end_u) ? '-'
              : ' '),
             stderr);
-      fprintf (stderr, "%ld : %d\n", (long)pos, BOUNDARY_VALUE (c, i));
+      fprintf (stderr, "%"pI"d : %d\n", pos, BOUNDARY_VALUE (c, i));
     }
 }
-
-/* arch-tag: 98c29f3f-2ca2-4e3a-92f0-f2249200a17d
-   (do not change this comment) */

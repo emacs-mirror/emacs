@@ -1,7 +1,6 @@
 ;;; semantic/find.el --- Search routines for Semantic
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999-2005, 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -700,5 +699,4 @@ details are available of findable."
 ;; generated-autoload-load-name: "semantic/find"
 ;; End:
 
-;; arch-tag: db00c93e-e561-4bd6-942b-96eca5aaa9a6
 ;;; semantic/find.el ends here

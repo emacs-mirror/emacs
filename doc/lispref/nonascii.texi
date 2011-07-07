@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1998-1999, 2001-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/characters
 @node Non-ASCII Characters, Searching and Matching, Text, Top
@@ -168,7 +167,7 @@ acceptable because the buffer's representation is a choice made by the
 user that cannot be overridden automatically.
 
   Converting unibyte text to multibyte text leaves @acronym{ASCII}
-characters unchanged, and converts bytes with codes 128 through 159 to
+characters unchanged, and converts bytes with codes 128 through 255 to
 the multibyte representation of raw eight-bit bytes.
 
   Converting multibyte text to unibyte converts all @acronym{ASCII}
@@ -197,6 +196,13 @@ contains a non-@acronym{ASCII} character.  If @var{string} is a
 unibyte string, it is returned unchanged.  Use this function for
 @var{string} arguments that contain only @acronym{ASCII} and eight-bit
 characters.
+@end defun
+
+@defun byte-to-string byte
+@cindex byte to string
+This function returns a unibyte string containing a single byte of
+character data, @var{character}.  It signals an error if
+@var{character} is not an integer between 0 and 255.
 @end defun
 
 @defun multibyte-char-to-unibyte char
@@ -368,18 +374,18 @@ properties that Emacs knows about:
 
 @table @code
 @item name
-This property corresponds to the Unicode @code{Name} property.  The
-value is a string consisting of upper-case Latin letters A to Z,
-digits, spaces, and hyphen @samp{-} characters.
+Corresponds to the @code{Name} Unicode property.  The value is a
+string consisting of upper-case Latin letters A to Z, digits, spaces,
+and hyphen @samp{-} characters.
 
 @cindex unicode general category
 @item general-category
-This property corresponds to the Unicode @code{General_Category}
-property.  The value is a symbol whose name is a 2-letter abbreviation
-of the character's classification.
+Corresponds to the @code{General_Category} Unicode property.  The
+value is a symbol whose name is a 2-letter abbreviation of the
+character's classification.
 
 @item canonical-combining-class
-Corresponds to the Unicode @code{Canonical_Combining_Class} property.
+Corresponds to the @code{Canonical_Combining_Class} Unicode property.
 The value is an integer number.
 
 @item bidi-class
@@ -404,7 +410,7 @@ Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Digit}.  The value is an
 integer number.
 
-@item digit
+@item digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Decimal}.  The value is
 an integer number.  Examples of such characters include compatibility
@@ -460,16 +466,19 @@ This function returns the value of @var{char}'s @var{propname} property.
      @result{} Nd
 @end group
 @group
-(get-char-code-property ?\u2084 'digit-value) ; subscript 4
+;; subscript 4
+(get-char-code-property ?\u2084 'digit-value)
      @result{} 4
 @end group
 @group
-(get-char-code-property ?\u2155 'numeric-value) ; one fifth
-     @result{} 1/5
+;; one fifth
+(get-char-code-property ?\u2155 'numeric-value)
+     @result{} 0.2
 @end group
 @group
-(get-char-code-property ?\u2163 'numeric-value) ; Roman IV
-     @result{} \4
+;; Roman IV
+(get-char-code-property ?\u2163 'numeric-value)
+     @result{} 4
 @end group
 @end example
 @end defun
@@ -1443,11 +1452,11 @@ for decoding (in case @var{operation} does decoding), and
 @var{encoding-system} is the coding system for encoding (in case
 @var{operation} does encoding).
 
-The argument @var{operation} is a symbol, one of @code{write-region},
-@code{start-process}, @code{call-process}, @code{call-process-region},
-@code{insert-file-contents}, or @code{open-network-stream}.  These are
-the names of the Emacs I/O primitives that can do character code and
-eol conversion.
+The argument @var{operation} is a symbol; it should be one of
+@code{write-region}, @code{start-process}, @code{call-process},
+@code{call-process-region}, @code{insert-file-contents}, or
+@code{open-network-stream}.  These are the names of the Emacs I/O
+primitives that can do character code and eol conversion.
 
 The remaining arguments should be the same arguments that might be given
 to the corresponding I/O primitive.  Depending on the primitive, one
@@ -1914,7 +1923,3 @@ strings in the return value are decoded using
 @code{locale-coding-system}.  @xref{Locales,,, libc, The GNU Libc Manual},
 for more information about locales and locale items.
 @end defun
-
-@ignore
-   arch-tag: be705bf8-941b-4c35-84fc-ad7d20ddb7cb
-@end ignore

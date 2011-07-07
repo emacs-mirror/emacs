@@ -1,6 +1,6 @@
 ;;; semantic/symref/grep.el --- Symref implementation using find/grep
 
-;; Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -187,5 +187,4 @@ Moves cursor to end of the match."
 ;; generated-autoload-load-name: "semantic/symref/grep"
 ;; End:
 
-;; arch-tag: 43d4469d-963c-4094-ac6f-99f7490973ce
 ;;; semantic/symref/grep.el ends here

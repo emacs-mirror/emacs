@@ -1,7 +1,7 @@
 ;;; disp-table.el --- functions for dealing with char tables
 
-;; Copyright (C) 1987, 1994, 1995, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1994-1995, 1999, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Based on a previous version by Howard Gayle
@@ -94,8 +94,26 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 	(while (< i 256)
 	  (aset vector i (aref dt i))
 	  (setq i (1+ i)))
-	(describe-vector vector))
+	(describe-vector
+	 vector 'display-table-print-array))
       (help-mode))))
+
+(defun display-table-print-array (desc)
+  (insert "[")
+  (let ((column (current-column))
+	(width (window-width))
+	string)
+    (dotimes (i (length desc))
+      (setq string (format "%s" (aref desc i)))
+      (cond
+       ((>= (+ (current-column) (length string) 1)
+	    width)
+	(insert "\n")
+	(insert (make-string column ? )))
+       ((> i 0)
+	(insert " ")))
+      (insert string)))
+  (insert "]\n"))
 
 ;;;###autoload
 (defun describe-current-display-table ()
@@ -281,5 +299,4 @@ in `.emacs'."
 
 (provide 'disp-table)
 
-;; arch-tag: ffe4c28c-960c-47aa-b8a8-ae89d371ffc7
 ;;; disp-table.el ends here

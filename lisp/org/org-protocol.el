@@ -1,7 +1,6 @@
 ;;; org-protocol.el --- Intercept calls from emacsclient to trigger custom actions.
 ;;
-;; Copyright (C) 2008, 2009, 2010
-;;          Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
 ;;
 ;; Author: Bastien Guerry <bzg AT altern DOT org>
 ;; Author: Daniel M German <dmg AT uvic DOT org>
@@ -9,7 +8,7 @@
 ;; Author: Ross Patterson <me AT rpatterson DOT net>
 ;; Maintainer: Sebastian Rose <sebastian_rose AT gmx DOT de>
 ;; Keywords: org, emacsclient, wp
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -313,7 +312,7 @@ encodeURIComponent. E.g. `%C3%B6' is the german Umlaut `ü'."
       (let* ((start (match-beginning 0))
 	     (end (match-end 0))
 	     (hex (match-string 0 str))
-	     (replacement (org-protocol-unhex-compound hex)))
+	     (replacement (org-protocol-unhex-compound (upcase hex))))
 	(setq tmp (concat tmp (substring str 0 start) replacement))
 	(setq str (substring str end))))
     (setq tmp (concat tmp str))
@@ -704,5 +703,4 @@ project-plist is the CDR of an element in `org-publish-project-alist', reuse
 
 (provide 'org-protocol)
 
-;; arch-tag: b5c5c2ac-77cf-4a94-a649-2163dff95846
 ;;; org-protocol.el ends here

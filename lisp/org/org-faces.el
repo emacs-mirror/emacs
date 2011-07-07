@@ -1,12 +1,11 @@
 ;;; org-faces.el --- Face definitions for Org-mode.
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -247,9 +246,7 @@ column view defines special faces for each outline level.  See the file
   :group 'org-faces)
 
 (defface org-link
-  '((((class color) (background light)) (:foreground "Purple" :underline t))
-    (((class color) (background dark)) (:foreground "Cyan" :underline t))
-    (t (:underline t)))
+  '((t :inherit link))
   "Face for links."
   :group 'org-faces)
 
@@ -685,6 +682,15 @@ If it is less than 8, the level-1 face gets re-used for level N+1 etc."
   :type 'integer
   :group 'org-faces)
 
+(defcustom org-cycle-level-faces t
+ "Non-nil means level styles cycle after level `org-n-level-faces'.
+Then so level org-n-level-faces+1 is styled like level 1.
+If nil, then all levels >=org-n-level-faces are styled like
+level org-n-level-faces"
+ :group 'org-appearance
+ :group 'org-faces
+ :type 'boolean)
+
 (defface org-latex-and-export-specials
   (let ((font (cond ((assq :inherit custom-face-attributes)
 		     '(:inherit underline))
@@ -709,6 +715,5 @@ If it is less than 8, the level-1 face gets re-used for level N+1 etc."
 
 (provide 'org-faces)
 
-;; arch-tag: 9dab5f91-c4b9-4d6f-bac3-1f6211ad0a04
 
 ;;; org-faces.el ends here

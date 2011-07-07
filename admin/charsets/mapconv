@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+# Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 #   National Institute of Advanced Industrial Science and Technology (AIST)
 #   Registration Number H13PRO009
 
@@ -143,4 +143,3 @@ else
     exit 1
 fi
 
-# arch-tag: c33acb47-7eb6-4872-b871-15e1447e8f0e

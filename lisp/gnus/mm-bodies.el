@@ -1,7 +1,6 @@
 ;;; mm-bodies.el --- Functions for decoding MIME things
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -198,7 +197,8 @@ If TYPE is `text/plain' CRLF->LF translation may occur."
 	       (while (re-search-forward "^[\t ]*\r?\n" nil t)
 		 (delete-region (match-beginning 0) (match-end 0)))
 	       (goto-char (point-max))
-	       (when (re-search-backward "^[A-Za-z0-9+/]+=*[\t ]*$" nil t)
+	       (when (re-search-backward "^[\t ]*[A-Za-z0-9+/]+=*[\t ]*$"
+					 nil t)
 		 (forward-line))
 	       (point))))
 	   ((memq encoding '(nil 7bit 8bit binary))

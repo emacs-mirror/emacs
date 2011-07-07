@@ -1,6 +1,6 @@
 ;;; tramp-compat.el --- Tramp compatibility functions
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -23,9 +23,9 @@
 
 ;;; Commentary:
 
-;; Tramp's main Emacs version for development is GNU Emacs 24.  This
-;; package provides compatibility functions for GNU Emacs 22, GNU
-;; Emacs 23 and XEmacs 21.4+.
+;; Tramp's main Emacs version for development is Emacs 24.  This
+;; package provides compatibility functions for Emacs 22, Emacs 23,
+;; XEmacs 21.4+ and SXEmacs 22.
 
 ;;; Code:
 
@@ -156,7 +156,7 @@
 	   'set-file-times filename time)))))
 
   ;; We currently use "[" and "]" in the filename format for IPv6
-  ;; hosts of GNU Emacs.  This means, that Emacs wants to expand
+  ;; hosts of GNU Emacs.  This means that Emacs wants to expand
   ;; wildcards if `find-file-wildcards' is non-nil, and then barfs
   ;; because no expansion could be found.  We detect this situation
   ;; and do something really awful: we have `file-expand-wildcards'
@@ -286,9 +286,8 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
 	  (tramp-compat-funcall 'file-attributes filename id-format)
 	(wrong-number-of-arguments (file-attributes filename))))))
 
-;; PRESERVE-UID-GID has been introduced with Emacs 23.  It does not
-;; hurt to ignore it for other (X)Emacs versions.
-;; PRESERVE-SELINUX-CONTEXT has been introduced with Emacs 24.
+;; PRESERVE-UID-GID does not exist in XEmacs.
+;; PRESERVE-SELINUX-CONTEXT has been introduced with Emacs 24.1.
 (defun tramp-compat-copy-file
   (filename newname &optional ok-if-already-exists keep-date
 	    preserve-uid-gid preserve-selinux-context)
@@ -484,10 +483,7 @@ exiting if process is running."
       (tramp-compat-funcall 'set-process-query-on-exit-flag process flag)
     (tramp-compat-funcall 'process-kill-without-query process flag)))
 
-(add-hook 'tramp-unload-hook
-	  (lambda ()
-	    (unload-feature 'tramp-compat 'force)))
-
+;; There exist different implementations for this function.
 (defun tramp-compat-coding-system-change-eol-conversion (coding-system eol-type)
   "Return a coding system like CODING-SYSTEM but with given EOL-TYPE.
 EOL-TYPE can be one of `dos', `unix', or `mac'."
@@ -505,6 +501,19 @@ EOL-TYPE can be one of `dos', `unix', or `mac'."
 			eol-type
 			"`dos', `unix', or `mac'")))))
         (t (error "Can't change EOL conversion -- is MULE missing?"))))
+
+;; `pop-to-buffer-same-window'  has been introduced with Emacs 24.1.
+(defun tramp-compat-pop-to-buffer-same-window
+  (&optional buffer-or-name norecord label)
+  "Pop to buffer specified by BUFFER-OR-NAME in the selected window."
+  (if (fboundp 'pop-to-buffer-same-window)
+      (tramp-compat-funcall
+       'pop-to-buffer-same-window buffer-or-name norecord label)
+    (tramp-compat-funcall 'switch-to-buffer buffer-or-name norecord)))
+
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'tramp-compat 'force)))
 
 (provide 'tramp-compat)
 

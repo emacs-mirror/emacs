@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Keyboard Macros, Files, Fixit, Top
 @chapter Keyboard Macros
@@ -569,7 +569,3 @@ including the final @kbd{C-j}), and appends them at the end of the
 keyboard macro; it then terminates the step-editing and replaces the
 original keyboard macro with the edited macro.
 @end itemize
-
-@ignore
-   arch-tag: c1b0dd3b-3159-4c08-928f-52e763953e9c
-@end ignore

@@ -1,8 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1994, 1998-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/keymaps
 @node Keymaps, Modes, Command Loop, Top
@@ -688,7 +686,7 @@ bindings, as in @code{lookup-key} (@pxref{Functions for Key Lookup}).
 
 When commands are remapped (@pxref{Remapping Commands}),
 @code{key-binding} normally processes command remappings so as to
-returns the remapped command that will actually be executed.  However,
+return the remapped command that will actually be executed.  However,
 if @var{no-remap} is non-@code{nil}, @code{key-binding} ignores
 remappings and returns the binding directly specified for @var{key}.
 
@@ -720,17 +718,18 @@ pseudo-Lisp description of the order and conditions for searching
 them:
 
 @lisp
-(or (if overriding-terminal-local-map
-        (@var{find-in} overriding-terminal-local-map)
-      (if overriding-local-map
-          (@var{find-in} overriding-local-map)
-        (or (@var{find-in} (get-char-property (point) 'keymap))
-            (@var{find-in-any} emulation-mode-map-alists)
-            (@var{find-in-any} minor-mode-overriding-map-alist)
-            (@var{find-in-any} minor-mode-map-alist)
-            (if (get-text-property (point) 'local-map)
-                (@var{find-in} (get-char-property (point) 'local-map))
-              (@var{find-in} (current-local-map))))))
+(or (cond
+     (overriding-terminal-local-map
+      (@var{find-in} overriding-terminal-local-map))
+     (overriding-local-map
+      (@var{find-in} overriding-local-map))
+     ((or (@var{find-in} (get-char-property (point) 'keymap))
+	  (@var{find-in-any} emulation-mode-map-alists)
+	  (@var{find-in-any} minor-mode-overriding-map-alist)
+	  (@var{find-in-any} minor-mode-map-alist)
+	  (if (get-text-property (point) 'local-map)
+	      (@var{find-in} (get-char-property (point) 'local-map))
+	    (@var{find-in} (current-local-map))))))
     (@var{find-in} (current-global-map)))
 @end lisp
 
@@ -1241,7 +1240,7 @@ local map, that usually affects all buffers using the same major mode.
 The @code{global-set-key} and @code{local-set-key} functions are
 convenient interfaces for these operations (@pxref{Key Binding
 Commands}).  You can also use @code{define-key}, a more general
-function; then you must specify explicitly the map to change.
+function; then you must explicitly specify the map to change.
 
   When choosing the key sequences for Lisp programs to rebind, please
 follow the Emacs conventions for use of various keys (@pxref{Key
@@ -1470,33 +1469,33 @@ Dired mode is set up:
 @section Remapping Commands
 @cindex remapping commands
 
-  A special kind of key binding, using a special ``key sequence''
-which includes a command name, has the effect of @dfn{remapping} that
-command into another.  Here's how it works.  You make a key binding
-for a key sequence that starts with the dummy event @code{remap},
-followed by the command name you want to remap.  Specify the remapped
-definition as the definition in this binding.  The remapped definition
-is usually a command name, but it can be any valid definition for
-a key binding.
+  A special kind of key binding can be used to @dfn{remap} one command
+to another, without having to refer to the key sequence(s) bound to
+the original command.  To use this feature, make a key binding for a
+key sequence that starts with the dummy event @code{remap}, followed
+by the command name you want to remap; for the binding, specify the
+new definition (usually a command name, but possibly any other valid
+definition for a key binding).
 
-  Here's an example.  Suppose that My mode uses special commands
-@code{my-kill-line} and @code{my-kill-word}, which should be invoked
-instead of @code{kill-line} and @code{kill-word}.  It can establish
-this by making these two command-remapping bindings in its keymap:
+  For example, suppose My mode provides a special command
+@code{my-kill-line}, which should be invoked instead of
+@code{kill-line}.  To establish this, its mode keymap should contain
+the following remapping:
 
 @smallexample
 (define-key my-mode-map [remap kill-line] 'my-kill-line)
-(define-key my-mode-map [remap kill-word] 'my-kill-word)
 @end smallexample
 
-Whenever @code{my-mode-map} is an active keymap, if the user types
-@kbd{C-k}, Emacs will find the standard global binding of
-@code{kill-line} (assuming nobody has changed it).  But
-@code{my-mode-map} remaps @code{kill-line} to @code{my-kill-line},
-so instead of running @code{kill-line}, Emacs runs
-@code{my-kill-line}.
+@noindent
+Then, whenever @code{my-mode-map} is active, if the user types
+@kbd{C-k} (the default global key sequence for @code{kill-line}) Emacs
+will instead run @code{my-kill-line}.
 
-Remapping only works through a single level.  In other words,
+  Note that remapping only takes place through active keymaps; for
+example, putting a remapping in a prefix keymap like @code{ctl-x-map}
+typically has no effect, as such keymaps are not themselves active.
+In addition, remapping only works through a single level; in the
+following example,
 
 @smallexample
 (define-key my-mode-map [remap kill-line] 'my-kill-line)
@@ -1504,11 +1503,16 @@ Remapping only works through a single level.  In other words,
 @end smallexample
 
 @noindent
-does not have the effect of remapping @code{kill-line} into
-@code{my-other-kill-line}.  If an ordinary key binding specifies
-@code{kill-line}, this keymap will remap it to @code{my-kill-line};
-if an ordinary binding specifies @code{my-kill-line}, this keymap will
-remap it to @code{my-other-kill-line}.
+@code{kill-line} is @emph{not} remapped to @code{my-other-kill-line}.
+Instead, if an ordinary key binding specifies @code{kill-line}, it is
+remapped to @code{my-kill-line}; if an ordinary binding specifies
+@code{my-kill-line}, it is remapped to @code{my-other-kill-line}.
+
+To undo the remapping of a command, remap it to @code{nil}; e.g.
+
+@smallexample
+(define-key my-mode-map [remap kill-line] nil)
+@end smallexample
 
 @defun command-remapping command &optional position keymaps
 This function returns the remapping for @var{command} (a symbol),
@@ -1701,15 +1705,11 @@ or
 
 @noindent
 and your language environment is multibyte Latin-1, these commands
-actually bind the multibyte character with code 2294, not the unibyte
-Latin-1 character with code 246 (@kbd{M-v}).  In order to use this
-binding, you need to enter the multibyte Latin-1 character as keyboard
-input.  One way to do this is by using an appropriate input method
-(@pxref{Input Methods, , Input Methods, emacs, The GNU Emacs Manual}).
-
-  If you want to use a unibyte character in the key binding, you can
-construct the key sequence string using @code{multibyte-char-to-unibyte}
-or @code{string-make-unibyte} (@pxref{Converting Representations}).
+actually bind the multibyte character with code 246, not the byte
+code 246 (@kbd{M-v}) sent by a Latin-1 terminal.  In order to use this
+binding, you need to teach Emacs how to decode the keyboard by using an
+appropriate input method (@pxref{Input Methods, , Input Methods, emacs, The GNU
+Emacs Manual}).
 
 @deffn Command global-set-key key binding
 This function sets the binding of @var{key} in the current global map
@@ -1974,6 +1974,7 @@ feature.
 @cindex defining menus
 @cindex menu prompt string
 @cindex prompt string (of menu)
+@cindex menu item
 
 A keymap acts as a menu if it has an @dfn{overall prompt string},
 which is a string that appears as an element of the keymap.
@@ -2072,24 +2073,10 @@ look at a menu.  This is because the X toolkit requires the whole tree
 of menus in advance.  To force recalculation of the menu bar, call
 @code{force-mode-line-update} (@pxref{Mode Line Format}).
 
-  You've probably noticed that menu items show the equivalent keyboard key
-sequence (if any) to invoke the same command.  To save time on
-recalculation, menu display caches this information in a sublist in the
-binding, like this:
-
-@c This line is not too long--rms.
-@example
-(@var{item-string} @r{[}@var{help}@r{]} (@var{key-binding-data}) . @var{real-binding})
-@end example
-
-@noindent
-Don't put these sublists in the menu item yourself; menu display
-calculates them automatically.  Don't mention keyboard equivalents in
-the item strings themselves, since that is redundant.
-
 @node Extended Menu Items
 @subsubsection Extended Menu Items
 @kindex menu-item
+@cindex extended menu item
 
   An extended-format menu item is a more flexible and also cleaner
 alternative to the simple format.  You define an event type with a
@@ -2118,14 +2105,6 @@ string.  Thus, the string need not be a constant.  The third element,
 @var{real-binding}, is the command to execute.  The tail of the list,
 @var{item-property-list}, has the form of a property list which contains
 other information.
-
-  When an equivalent keyboard key binding is cached, the extended menu
-item binding looks like this:
-
-@example
-(menu-item @var{item-name} @var{real-binding} (@var{key-binding-data})
-    . @var{item-property-list})
-@end example
 
   Here is a table of the properties that are supported:
 
@@ -2657,8 +2636,8 @@ using an indirection through @code{tool-bar-map}.
 By default, the global map binds @code{[tool-bar]} as follows:
 @example
 (global-set-key [tool-bar]
-                '(menu-item "tool bar" ignore
-                            :filter (lambda (ignore) tool-bar-map)))
+  '(menu-item "tool bar" ignore
+              :filter (lambda (ignore) tool-bar-map)))
 @end example
 @noindent
 Thus the tool bar map is derived dynamically from the value of variable
@@ -2819,7 +2798,3 @@ menu of Shell mode, after the item @code{break}:
   [work] '("Work" . work-command) 'break)
 @end example
 @end defun
-
-@ignore
-   arch-tag: cfb87287-9364-4e46-9e93-6c2f7f6ae794
-@end ignore

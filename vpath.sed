@@ -6,4 +6,3 @@ vpath %.c $(srcdir)\
 vpath %.h $(srcdir)\
 \
 
-# arch-tag: 56a64b50-e4e8-443a-960f-f13af0f1a545

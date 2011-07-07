@@ -1,6 +1,6 @@
 ;;; semantic/decorate/include.el --- Decoration modes for include statements
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -773,5 +773,4 @@ If TABLE is not in a buffer, do nothing."
 ;; generated-autoload-load-name: "semantic/decorate/include"
 ;; End:
 
-;; arch-tag: c3277137-be3f-43e2-af89-3b14b9bd7479
 ;;; semantic/decorate/include.el ends here

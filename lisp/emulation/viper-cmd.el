@@ -1,7 +1,6 @@
 ;;; viper-cmd.el --- Vi command support for Viper
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -777,7 +776,7 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 		  (viper-copy-event (viper-seq-last-elt key))))
 
 	  (if (commandp com)
-	      ;; pretend that current state is the state we excaped to
+	      ;; pretend that current state is the state we escaped to
 	      (let ((viper-current-state state))
 		(setq prefix-arg (or prefix-arg arg))
 		(command-execute com)))
@@ -1085,7 +1084,7 @@ as a Meta key and any number of multiple escapes are allowed."
   "Function that implements ESC key in Viper emulation of Vi."
   (interactive)
   (let ((cmd (or (key-binding (viper-envelop-ESC-key))
-		 '(lambda () (interactive) (error "Viper bell")))))
+		 (lambda () (interactive) (error "Viper bell")))))
 
     ;; call the actual function to execute ESC (if no other symbols followed)
     ;; or the key bound to the ESC sequence (if the sequence was issued
@@ -2376,7 +2375,7 @@ problems."
     (if (eq viper-intermediate-command 'viper-repeat)
 	(viper-change-subr (mark t) (point))
       (viper-change (mark t) (point)))
-    ;; com is set to ?r when we repeat this comand with dot
+    ;; com is set to ?r when we repeat this command with dot
     (viper-set-destructive-command (list 'viper-substitute val ?r nil nil nil))
     ))
 

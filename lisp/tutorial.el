@@ -1,6 +1,6 @@
 ;;; tutorial.el --- tutorial for Emacs
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -963,5 +963,4 @@ Currently this feature is only used in `help-with-tutorial'."
 
 (provide 'tutorial)
 
-;; arch-tag: c8e80aef-c3bb-4ffb-8af6-22171bf0c100
 ;;; tutorial.el ends here

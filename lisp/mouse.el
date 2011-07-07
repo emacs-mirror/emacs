@@ -1,7 +1,6 @@
 ;;; mouse.el --- window system-independent mouse support
 
-;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 1999-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware, mouse
@@ -185,6 +184,7 @@ items `Turn Off' and `Help'."
     (minor-mode-menu-from-indicator indicator)))
 
 (defun mouse-menu-major-mode-map ()
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (let* (;; Keymap from which to inherit; may be null.
 	 (ancestor (mouse-menu-non-singleton
 		    (and (current-local-map)
@@ -201,9 +201,9 @@ items `Turn Off' and `Help'."
     newmap))
 
 (defun mouse-menu-non-singleton (menubar)
-  "Given menu keymap,
-if it defines exactly one submenu, return just that submenu.
-Otherwise return the whole menu."
+  "Return menu keybar MENUBAR, or a lone submenu inside it.
+If MENUBAR defines exactly one submenu, return just that submenu.
+Otherwise, return MENUBAR."
   (if menubar
       (let (submap)
         (map-keymap
@@ -217,6 +217,7 @@ Otherwise return the whole menu."
   "Return a keymap equivalent to the menu bar.
 The contents are the items that would be in the menu bar whether or
 not it is actually displayed."
+  (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
   (let* ((local-menu (and (current-local-map)
 			  (lookup-key (current-local-map) [menu-bar])))
 	 (global-menu (lookup-key global-map [menu-bar]))
@@ -277,7 +278,7 @@ The contents are the items that would be in the menu bar whether or
 not it is actually displayed."
   (interactive "@e \nP")
   (run-hooks 'activate-menubar-hook 'menu-bar-update-hook)
-  (popup-menu (mouse-menu-bar-map) event prefix))
+  (popup-menu (mouse-menu-bar-map) (unless (integerp event) event) prefix))
 (make-obsolete 'mouse-popup-menubar 'mouse-menu-bar-map "23.1")
 
 (defun mouse-popup-menubar-stuff (event prefix)
@@ -540,6 +541,9 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
         ;; a `drag-mouse-1'.  In any case `on-link' would have been nulled
         ;; above if there had been any significant mouse movement.
         (when (and on-link (eq 'mouse-1 (car-safe event)))
+	  ;; If mouse-2 has never been done by the user, it doesn't
+	  ;; have the necessary property to be interpreted correctly.
+	  (put 'mouse-2 'event-kind 'mouse-click)
           (push (cons 'mouse-2 (cdr event)) unread-command-events))))))
 
 (defun mouse-drag-mode-line (start-event)
@@ -786,18 +790,9 @@ remains active.  Otherwise, it remains until the next input event.
 
 If the click is in the echo area, display the `*Messages*' buffer."
   (interactive "e")
-  (let ((w (posn-window (event-start start-event))))
-    (if (and (window-minibuffer-p w)
-	     (not (minibuffer-window-active-p w)))
-	(save-excursion
-	  ;; Swallow the up-event.
-	  (read-event)
-	  (set-buffer (get-buffer-create "*Messages*"))
-	  (goto-char (point-max))
-	  (display-buffer (current-buffer)))
-      ;; Give temporary modes such as isearch a chance to turn off.
-      (run-hooks 'mouse-leave-buffer-hook)
-      (mouse-drag-track start-event t))))
+  ;; Give temporary modes such as isearch a chance to turn off.
+  (run-hooks 'mouse-leave-buffer-hook)
+  (mouse-drag-track start-event t))
 
 
 (defun mouse-posn-property (pos property)
@@ -1280,7 +1275,16 @@ regardless of where you click."
   (or mouse-yank-at-point (mouse-set-point click))
   (let ((primary
 	 (cond
-	  ((fboundp 'x-get-selection-value) ; MS-DOS, MS-Windows and X.
+	  ((eq system-type 'windows-nt)
+	   ;; MS-Windows emulates PRIMARY in x-get-selection, but not
+	   ;; in x-get-selection-value (the latter only accesses the
+	   ;; clipboard).  So try PRIMARY first, in case they selected
+	   ;; something with the mouse in the current Emacs session.
+	   (or (x-get-selection 'PRIMARY)
+	       (x-get-selection-value)))
+	  ((fboundp 'x-get-selection-value) ; MS-DOS and X.
+	   ;; On X, x-get-selection-value supports more formats and
+	   ;; encodings, so use it in preference to x-get-selection.
 	   (or (x-get-selection-value)
 	       (x-get-selection 'PRIMARY)))
 	  ;; FIXME: What about xterm-mouse-mode etc.?
@@ -1719,6 +1723,8 @@ a large number if you prefer a mixed multitude.  The default is 4."
     ("Outline" . "Text")
     ("\\(HT\\|SG\\|X\\|XHT\\)ML" . "SGML")
     ("log\\|diff\\|vc\\|cvs\\|Annotate" . "Version Control") ; "Change Management"?
+    ("Threads\\|Memory\\|Disassembly\\|Breakpoints\\|Frames\\|Locals\\|Registers\\|Inferior I/O\\|Debugger"
+     . "GDB")
     ("Lisp" . "Lisp")))
   "How to group various major modes together in \\[mouse-buffer-menu].
 Each element has the form (REGEXP . GROUPNAME).
@@ -2086,17 +2092,19 @@ choose a font."
 (global-set-key [double-mouse-1] 'mouse-set-point)
 (global-set-key [triple-mouse-1] 'mouse-set-point)
 
-;; Clicking on the fringes causes hscrolling:
-(global-set-key [left-fringe mouse-1]	'mouse-set-point)
-(global-set-key [right-fringe mouse-1]	'mouse-set-point)
+(defun mouse--strip-first-event (_prompt)
+  (substring (this-single-command-raw-keys) 1))
+
+(define-key function-key-map [left-fringe mouse-1] 'mouse--strip-first-event)
+(define-key function-key-map [right-fringe mouse-1] 'mouse--strip-first-event)
 
 (global-set-key [mouse-2]	'mouse-yank-primary)
 ;; Allow yanking also when the corresponding cursor is "in the fringe".
-(global-set-key [right-fringe mouse-2] 'mouse-yank-at-click)
-(global-set-key [left-fringe mouse-2] 'mouse-yank-at-click)
+(define-key function-key-map [right-fringe mouse-2] 'mouse--strip-first-event)
+(define-key function-key-map [left-fringe mouse-2] 'mouse--strip-first-event)
 (global-set-key [mouse-3]	'mouse-save-then-kill)
-(global-set-key [right-fringe mouse-3]	'mouse-save-then-kill)
-(global-set-key [left-fringe mouse-3]	'mouse-save-then-kill)
+(define-key function-key-map [right-fringe mouse-3] 'mouse--strip-first-event)
+(define-key function-key-map [left-fringe mouse-3] 'mouse--strip-first-event)
 
 ;; By binding these to down-going events, we let the user use the up-going
 ;; event to make the selection, saving a click.
@@ -2130,5 +2138,4 @@ choose a font."
 
 (provide 'mouse)
 
-;; arch-tag: 9a710ce1-914a-4923-9b81-697f7bf82ab3
 ;;; mouse.el ends here

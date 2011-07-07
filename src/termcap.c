@@ -1,6 +1,6 @@
 /* Work-alike for termcap, plus extra features.
    Copyright (C) 1985, 1986, 1993, 1994, 1995, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+                 2004, 2005, 2006, 2007, 2008, 2011 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,11 +22,13 @@ Boston, MA 02110-1301, USA.  */
 #include <setjmp.h>
 #include <sys/file.h>
 #include <fcntl.h>
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include "lisp.h"
+#include "tparam.h"
+#ifdef MSDOS
+#include "msdos.h"
+#endif
 
 #ifndef NULL
 #define NULL (char *) 0
@@ -67,7 +69,7 @@ static char *tgetst1 (char *ptr, char **area);
    0 if not found.  */
 
 static char *
-find_capability (register char *bp, register char *cap)
+find_capability (register char *bp, register const char *cap)
 {
   for (; *bp; bp++)
     if (bp[0] == ':'
@@ -78,7 +80,7 @@ find_capability (register char *bp, register char *cap)
 }
 
 int
-tgetnum (char *cap)
+tgetnum (const char *cap)
 {
   register char *ptr = find_capability (term_entry, cap);
   if (!ptr || ptr[-1] != '#')
@@ -87,7 +89,7 @@ tgetnum (char *cap)
 }
 
 int
-tgetflag (char *cap)
+tgetflag (const char *cap)
 {
   register char *ptr = find_capability (term_entry, cap);
   return ptr && ptr[-1] == ':';
@@ -99,7 +101,7 @@ tgetflag (char *cap)
    If AREA is null, space is allocated with `malloc'.  */
 
 char *
-tgetstr (char *cap, char **area)
+tgetstr (const char *cap, char **area)
 {
   register char *ptr = find_capability (term_entry, cap);
   if (!ptr || (ptr[-1] != '=' && ptr[-1] != '~'))
@@ -265,12 +267,11 @@ tgetst1 (char *ptr, char **area)
 char PC;
 
 void
-tputs (register char *str, int nlines, register int (*outfun) (/* ??? */))
+tputs (register const char *str, int nlines, int (*outfun) (int))
 {
   register int padcount = 0;
   register int speed;
 
-  extern EMACS_INT baud_rate;
   speed = baud_rate;
   /* For quite high speeds, convert to the smaller
      units to avoid overflow.  */
@@ -322,10 +323,10 @@ tputs (register char *str, int nlines, register int (*outfun) (/* ??? */))
 struct termcap_buffer
   {
     char *beg;
-    int size;
+    ptrdiff_t size;
     char *ptr;
     int ateof;
-    int full;
+    ptrdiff_t full;
   };
 
 /* Forward declarations of static functions.  */
@@ -358,7 +359,7 @@ valid_filename_p (fn)
    in it, and some other value otherwise.  */
 
 int
-tgetent (char *bp, char *name)
+tgetent (char *bp, const char *name)
 {
   register char *termcap_name;
   register int fd;
@@ -366,7 +367,7 @@ tgetent (char *bp, char *name)
   register char *bp1;
   char *tc_search_point;
   char *term;
-  int malloc_size = 0;
+  ptrdiff_t malloc_size = 0;
   register int c;
   char *tcenv = NULL;		/* TERMCAP value, if it contains :tc=.  */
   char *indirect = NULL;	/* Terminal type in :tc= in TERMCAP value.  */
@@ -445,7 +446,7 @@ tgetent (char *bp, char *name)
   buf.size = BUFSIZE;
   /* Add 1 to size to ensure room for terminating null.  */
   buf.beg = (char *) xmalloc (buf.size + 1);
-  term = indirect ? indirect : name;
+  term = indirect ? indirect : (char *)name;
 
   if (!bp)
     {
@@ -467,15 +468,15 @@ tgetent (char *bp, char *name)
       if (scan_file (term, fd, &buf) == 0)
 	{
 	  close (fd);
-	  free (buf.beg);
+	  xfree (buf.beg);
 	  if (malloc_size)
-	    free (bp);
+	    xfree (bp);
 	  return 0;
 	}
 
       /* Free old `term' if appropriate.  */
       if (term != name)
-	free (term);
+	xfree (term);
 
       /* If BP is malloc'd by us, make sure it is big enough.  */
       if (malloc_size)
@@ -505,7 +506,7 @@ tgetent (char *bp, char *name)
     }
 
   close (fd);
-  free (buf.beg);
+  xfree (buf.beg);
 
   if (malloc_size)
     bp = (char *) xrealloc (bp, bp1 - bp + 1);
@@ -636,6 +637,8 @@ gobble_line (int fd, register struct termcap_buffer *bufp, char *append_end)
 	{
 	  if (bufp->full == bufp->size)
 	    {
+	      if ((PTRDIFF_MAX - 1) / 2 < bufp->size)
+		memory_full (SIZE_MAX);
 	      bufp->size *= 2;
 	      /* Add 1 to size to ensure room for terminating null.  */
 	      tem = (char *) xrealloc (buf, bufp->size + 1);
@@ -714,6 +717,3 @@ tprint (cap)
 }
 
 #endif /* TEST */
-
-/* arch-tag: c2e8d427-2271-4fac-95fe-411857238b80
-   (do not change this comment) */

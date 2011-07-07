@@ -1119,8 +1119,7 @@ Lidell översatte den till Svenska.
 This version of the tutorial, like GNU Emacs, is copyrighted, and
 comes with permission to distribute copies on certain conditions:
 
-Copyright (C) 1985, 1996, 1998, 2001, 2002, 2003, 2004,
-   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1985, 1996, 1998, 2001-2011  Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
@@ -1143,4 +1142,3 @@ GNU Emacs to your friends.  Help stamp out software obstructionism
 ;;;   sentence-end-double-space: nil
 ;;; End:
 
-;;; arch-tag: b352f774-622b-4cc6-85ce-43e3baf4fc1b

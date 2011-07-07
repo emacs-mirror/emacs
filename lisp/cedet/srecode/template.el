@@ -1,6 +1,6 @@
 ;;; srecode-template.el --- SRecoder template language parser support.
 
-;; Copyright (C) 2005, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -72,5 +72,4 @@
 ;; generated-autoload-load-name: "srecode/template"
 ;; End:
 
-;; arch-tag: 037fbca7-e846-4521-b801-3463f50c3080
 ;;; srecode/template.el ends here

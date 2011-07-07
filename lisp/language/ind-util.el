@@ -1,7 +1,6 @@
 ;;; ind-util.el --- Transliteration and Misc. Tools for Indian Languages -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Maintainer:  KAWABATA, Taichi <kawabata@m17n.org>
 ;; Keywords: multilingual, Indian, Devanagari
@@ -1213,5 +1212,4 @@ Returns new end position."
 
 (provide 'ind-util)
 
-;; arch-tag: 59aacd71-46c2-4cb3-bb26-e12bbad55545
 ;;; ind-util.el ends here

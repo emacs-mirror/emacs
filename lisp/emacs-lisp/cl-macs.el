@@ -1,7 +1,6 @@
 ;;; cl-macs.el --- Common Lisp macros
 
-;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
@@ -498,7 +497,7 @@ The result of the body appears to the compiler as a quoted constant."
 				    (symbol-function 'byte-compile-file-form)))
 			(list 'byte-compile-file-form (list 'quote set))
 			'(byte-compile-file-form form)))
-	  (print set (symbol-value 'bytecomp-outbuffer)))
+	  (print set (symbol-value 'byte-compile--outbuffer)))
 	(list 'symbol-value (list 'quote temp)))
     (list 'quote (eval form))))
 
@@ -599,27 +598,6 @@ called from BODY."
 	  (list* 'catch (list 'quote (intern (format "--cl-block-%s--" name)))
 		 body))))
 
-(defvar cl-active-block-names nil)
-
-(put 'cl-block-wrapper 'byte-compile 'cl-byte-compile-block)
-(defun cl-byte-compile-block (cl-form)
-  (if (fboundp 'byte-compile-form-do-effect)  ; Check for optimizing compiler
-      (progn
-	(let* ((cl-entry (cons (nth 1 (nth 1 (nth 1 cl-form))) nil))
-	       (cl-active-block-names (cons cl-entry cl-active-block-names))
-	       (cl-body (byte-compile-top-level
-			 (cons 'progn (cddr (nth 1 cl-form))))))
-	  (if (cdr cl-entry)
-	      (byte-compile-form (list 'catch (nth 1 (nth 1 cl-form)) cl-body))
-	    (byte-compile-form cl-body))))
-    (byte-compile-form (nth 1 cl-form))))
-
-(put 'cl-block-throw 'byte-compile 'cl-byte-compile-throw)
-(defun cl-byte-compile-throw (cl-form)
-  (let ((cl-found (assq (nth 1 (nth 1 cl-form)) cl-active-block-names)))
-    (if cl-found (setcdr cl-found t)))
-  (byte-compile-normal-call (cons 'throw (cdr cl-form))))
-
 ;;;###autoload
 (defmacro return (&optional result)
   "Return from the block named nil.
@@ -629,7 +607,7 @@ This is equivalent to `(return-from nil RESULT)'."
 ;;;###autoload
 (defmacro return-from (name &optional result)
   "Return from the block named NAME.
-This jump out to the innermost enclosing `(block NAME ...)' form,
+This jumps out to the innermost enclosing `(block NAME ...)' form,
 returning RESULT from that form (or nil if RESULT is omitted).
 This is compatible with Common Lisp, but note that `defun' and
 `defmacro' do not create implicit blocks as they do in Common Lisp."
@@ -965,16 +943,25 @@ Valid clauses are:
 
 	       ((memq word '(window windows))
 		(let ((scr (and (memq (car loop-args) '(in of)) (cl-pop2 loop-args)))
-		      (temp (make-symbol "--cl-var--")))
+		      (temp (make-symbol "--cl-var--"))
+		      (minip (make-symbol "--cl-minip--")))
 		  (push (list var (if scr
 				      (list 'frame-selected-window scr)
 				    '(selected-window)))
+			loop-for-bindings)
+		  ;; If we started in the minibuffer, we need to
+		  ;; ensure that next-window will bring us back there
+		  ;; at some point.  (Bug#7492).
+		  ;; (Consider using walk-windows instead of loop if
+		  ;; you care about such things.)
+		  (push (list minip `(minibufferp (window-buffer ,var)))
 			loop-for-bindings)
 		  (push (list temp nil) loop-for-bindings)
 		  (push (list 'prog1 (list 'not (list 'eq var temp))
 			      (list 'or temp (list 'setq temp var)))
 			loop-body)
-		  (push (list var (list 'next-window var)) loop-for-steps)))
+		  (push (list var (list 'next-window var minip))
+			loop-for-steps)))
 
 	       (t
 		(let ((handler (and (symbolp word)
@@ -1249,14 +1236,29 @@ Then evaluate RESULT to get return value, default nil.
 
 \(fn (VAR LIST [RESULT]) BODY...)"
   (let ((temp (make-symbol "--cl-dolist-temp--")))
-    (list 'block nil
-	  (list* 'let (list (list temp (nth 1 spec)) (car spec))
-		 (list* 'while temp (list 'setq (car spec) (list 'car temp))
-			(append body (list (list 'setq temp
-						 (list 'cdr temp)))))
-		 (if (cdr (cdr spec))
-		     (cons (list 'setq (car spec) nil) (cdr (cdr spec)))
-		   '(nil))))))
+    ;; FIXME: Copy&pasted from subr.el.
+    `(block nil
+       ;; This is not a reliable test, but it does not matter because both
+       ;; semantics are acceptable, tho one is slightly faster with dynamic
+       ;; scoping and the other is slightly faster (and has cleaner semantics)
+       ;; with lexical scoping.
+       ,(if lexical-binding
+            `(let ((,temp ,(nth 1 spec)))
+               (while ,temp
+                 (let ((,(car spec) (car ,temp)))
+                   ,@body
+                   (setq ,temp (cdr ,temp))))
+               ,@(if (cdr (cdr spec))
+                     ;; FIXME: This let often leads to "unused var" warnings.
+                     `((let ((,(car spec) nil)) ,@(cdr (cdr spec))))))
+          `(let ((,temp ,(nth 1 spec))
+                 ,(car spec))
+             (while ,temp
+               (setq ,(car spec) (car ,temp))
+               ,@body
+               (setq ,temp (cdr ,temp)))
+             ,@(if (cdr (cdr spec))
+                   `((setq ,(car spec) nil) ,@(cddr spec))))))))
 
 ;;;###autoload
 (defmacro dotimes (spec &rest body)
@@ -1266,12 +1268,30 @@ to COUNT, exclusive.  Then evaluate RESULT to get return value, default
 nil.
 
 \(fn (VAR COUNT [RESULT]) BODY...)"
-  (let ((temp (make-symbol "--cl-dotimes-temp--")))
-    (list 'block nil
-	  (list* 'let (list (list temp (nth 1 spec)) (list (car spec) 0))
-		 (list* 'while (list '< (car spec) temp)
-			(append body (list (list 'incf (car spec)))))
-		 (or (cdr (cdr spec)) '(nil))))))
+  (let ((temp (make-symbol "--cl-dotimes-temp--"))
+	(end (nth 1 spec)))
+    ;; FIXME: Copy&pasted from subr.el.
+    `(block nil
+       ;; This is not a reliable test, but it does not matter because both
+       ;; semantics are acceptable, tho one is slightly faster with dynamic
+       ;; scoping and the other has cleaner semantics.
+       ,(if lexical-binding
+            (let ((counter '--dotimes-counter--))
+              `(let ((,temp ,end)
+                     (,counter 0))
+                 (while (< ,counter ,temp)
+                   (let ((,(car spec) ,counter))
+                     ,@body)
+                   (setq ,counter (1+ ,counter)))
+                 ,@(if (cddr spec)
+                       ;; FIXME: This let often leads to "unused var" warnings.
+                       `((let ((,(car spec) ,counter)) ,@(cddr spec))))))
+          `(let ((,temp ,end)
+                 (,(car spec) 0))
+             (while (< ,(car spec) ,temp)
+               ,@body
+               (incf ,(car spec)))
+             ,@(cdr (cdr spec)))))))
 
 ;;;###autoload
 (defmacro do-symbols (spec &rest body)
@@ -1419,7 +1439,7 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
   "Like `let', but lexically scoped.
 The main visible difference is that lambdas inside BODY will create
 lexical closures as in Common Lisp.
-\n(fn VARLIST BODY)"
+\n(fn BINDINGS BODY)"
   (let* ((cl-closure-vars cl-closure-vars)
 	 (vars (mapcar (function
 			(lambda (x)
@@ -1465,7 +1485,7 @@ The main visible difference is that lambdas inside BODY, and in
 successive bindings within BINDINGS, will create lexical closures
 as in Common Lisp.  This is similar to the behavior of `let*' in
 Common Lisp.
-\n(fn VARLIST BODY)"
+\n(fn BINDINGS BODY)"
   (if (null bindings) (cons 'progn body)
     (setq bindings (reverse bindings))
     (while bindings
@@ -2414,11 +2434,13 @@ value, that slot cannot be set via `setf'.
 	    (push (cons name t) side-eff))))
     (if print-auto (nconc print-func (list '(princ ")" cl-s) t)))
     (if print-func
-	(push (list 'push
-		       (list 'function
-			     (list 'lambda '(cl-x cl-s cl-n)
-				   (list 'and pred-form print-func)))
-		       'custom-print-functions) forms))
+	(push `(push
+                ;; The auto-generated function does not pay attention to
+                ;; the depth argument cl-n.
+                (lambda (cl-x cl-s ,(if print-auto '_cl-n 'cl-n))
+                  (and ,pred-form ,print-func))
+                custom-print-functions)
+              forms))
     (push (list 'setq tag-symbol (list 'list (list 'quote tag))) forms)
     (push (list* 'eval-when '(compile load eval)
 		    (list 'put (list 'quote name) '(quote cl-struct-slots)
@@ -2572,7 +2594,7 @@ and then returning foo."
 	(cl-transform-function-property
 	 func 'cl-compiler-macro
 	 (cons (if (memq '&whole args) (delq '&whole args)
-		 (cons '--cl-whole-arg-- args)) body))
+		 (cons '_cl-whole-arg args)) body))
 	(list 'or (list 'get (list 'quote func) '(quote byte-compile))
 	      (list 'progn
 		    (list 'put (list 'quote func) '(quote byte-compile)
@@ -2609,6 +2631,27 @@ and then returning foo."
   (if (eq form (setq form (compiler-macroexpand form)))
       (byte-compile-normal-call form)
     (byte-compile-form form)))
+
+;; Optimize away unused block-wrappers.
+
+(defvar cl-active-block-names nil)
+
+(define-compiler-macro cl-block-wrapper (cl-form)
+  (let* ((cl-entry (cons (nth 1 (nth 1 cl-form)) nil))
+         (cl-active-block-names (cons cl-entry cl-active-block-names))
+         (cl-body (macroexpand-all      ;Performs compiler-macro expansions.
+                   (cons 'progn (cddr cl-form))
+                   macroexpand-all-environment)))
+    ;; FIXME: To avoid re-applying macroexpand-all, we'd like to be able
+    ;; to indicate that this return value is already fully expanded.
+    (if (cdr cl-entry)
+        `(catch ,(nth 1 cl-form) ,@(cdr cl-body))
+      cl-body)))
+
+(define-compiler-macro cl-block-throw (cl-tag cl-value)
+  (let ((cl-found (assq (nth 1 cl-tag) cl-active-block-names)))
+    (if cl-found (setcdr cl-found t)))
+  `(throw ,cl-tag ,cl-value))
 
 ;;;###autoload
 (defmacro defsubst* (name args &rest body)

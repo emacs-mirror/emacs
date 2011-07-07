@@ -7,5 +7,3 @@
    then close and reopen it in the child.  */
 #define USG_SUBTTY_WORKS
 
-/* arch-tag: f5a3d780-82cd-4a9a-832e-a4031aab788b
-   (do not change this comment) */

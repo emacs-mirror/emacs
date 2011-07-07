@@ -1,7 +1,6 @@
-;;; w32-fns.el --- Lisp routines for Windows NT
+;;; w32-fns.el --- Lisp routines for 32-bit Windows
 
-;; Copyright (C) 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
@@ -57,7 +56,7 @@ That includes all Windows systems except for 9X/Me."
 
 (defun w32-shell-name ()
   "Return the name of the shell being used."
-  (or (bound-and-true-p explicit-shell-file-name)
+  (or (bound-and-true-p shell-file-name)
       (getenv "ESHELL")
       (getenv "SHELL")
       (and (w32-using-nt) "cmd.exe")
@@ -286,7 +285,7 @@ Note that on MS-Windows, primary and secondary selections set by Emacs
 are not available to other programs."
   (put 'x-selections (or type 'PRIMARY) data))
 
-(defun x-get-selection (&optional type data-type)
+(defun x-get-selection (&optional type _data-type)
   "Return the value of an X Windows selection.
 The argument TYPE (default `PRIMARY') says which selection,
 and the argument DATA-TYPE (default `STRING') says
@@ -335,6 +334,8 @@ This function is provided for backward compatibility, since
 ;; rather than beep.
 (global-set-key [lwindow] 'ignore)
 (global-set-key [rwindow] 'ignore)
+
+(defvar w32-charset-info-alist)		; w32font.c
 
 (defun w32-add-charset-info (xlfd-charset windows-charset codepage)
   "Function to add character sets to display with Windows fonts.
@@ -432,6 +433,11 @@ Consult the selection.  Treat empty strings as if they were unset."
 
 
 ;;;; Support for build process
+
+;; From autoload.el
+(defvar autoload-make-program)
+(defvar generated-autoload-file)
+
 (defun w32-batch-update-autoloads ()
   "Like `batch-update-autoloads', but takes the name of the autoloads file
 from the command line.

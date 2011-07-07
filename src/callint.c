@@ -1,6 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1997, 2000, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1986, 1993-1995, 1997, 2000-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -28,23 +27,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "window.h"
 #include "keymap.h"
+#include "character.h"
 
-Lisp_Object Vcurrent_prefix_arg, Qminus, Qplus;
+Lisp_Object Qminus, Qplus;
 Lisp_Object Qcall_interactively;
-Lisp_Object Vcommand_history;
+static Lisp_Object Qcommand_debug_status;
+static Lisp_Object Qenable_recursive_minibuffers;
 
-Lisp_Object Vcommand_debug_status, Qcommand_debug_status;
-Lisp_Object Qenable_recursive_minibuffers;
+static Lisp_Object Qhandle_shift_selection;
 
-/* Non-nil means treat the mark as active
-   even if mark_active is 0.  */
-Lisp_Object Vmark_even_if_inactive;
+Lisp_Object Qmouse_leave_buffer_hook;
 
-Lisp_Object Qhandle_shift_selection;
-
-Lisp_Object Vmouse_leave_buffer_hook, Qmouse_leave_buffer_hook;
-
-Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion, Qprogn, Qif, Qwhen;
+static Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion, Qprogn, Qif;
+Lisp_Object Qwhen;
 static Lisp_Object preserved_fns;
 
 /* Marker used within call-interactively to refer to point.  */
@@ -110,9 +105,10 @@ Z -- Coding system, nil if no prefix arg.
 
 In addition, if the string begins with `*', an error is signaled if
   the buffer is read-only.
-If the string begins with `@', Emacs searches the key sequence which
- invoked the command for its first mouse click (or any other event
- which specifies a window).
+If `@' appears at the beginning of the string, and if the key sequence
+ used to invoke the command includes any mouse events, then the window
+ associated with the first of those events is selected before the
+ command is run.
 If the string begins with `^' and `shift-select-mode' is non-nil,
  Emacs first calls the function `handle-shift-selection'.
 You may use `@', `*', and `^' together.  They are processed in the
@@ -125,18 +121,19 @@ usage: (interactive &optional ARGS)  */)
 
 /* Quotify EXP: if EXP is constant, return it.
    If EXP is not constant, return (quote EXP).  */
-Lisp_Object
+static Lisp_Object
 quotify_arg (register Lisp_Object exp)
 {
-  if (!INTEGERP (exp) && !STRINGP (exp)
-      && !NILP (exp) && !EQ (exp, Qt))
+  if (CONSP (exp)
+      || (SYMBOLP (exp)
+	  && !NILP (exp) && !EQ (exp, Qt)))
     return Fcons (Qquote, Fcons (exp, Qnil));
 
   return exp;
 }
 
 /* Modify EXP by quotifying each element (except the first).  */
-Lisp_Object
+static Lisp_Object
 quotify_args (Lisp_Object exp)
 {
   register Lisp_Object tail;
@@ -156,12 +153,12 @@ static void
 check_mark (int for_region)
 {
   Lisp_Object tem;
-  tem = Fmarker_buffer (current_buffer->mark);
+  tem = Fmarker_buffer (BVAR (current_buffer, mark));
   if (NILP (tem) || (XBUFFER (tem) != current_buffer))
     error (for_region ? "The mark is not set now, so there is no region"
 	   : "The mark is not set now");
   if (!NILP (Vtransient_mark_mode) && NILP (Vmark_even_if_inactive)
-      && NILP (current_buffer->mark_active))
+      && NILP (BVAR (current_buffer, mark_active)))
     xsignal0 (Qmark_inactive);
 }
 
@@ -176,6 +173,9 @@ check_mark (int for_region)
 static void
 fix_command (Lisp_Object input, Lisp_Object values)
 {
+  /* FIXME: Instead of this ugly hack, we should provide a way for an
+     interactive spec to return an expression/function that will re-build the
+     args without user intervention.  */
   if (CONSP (input))
     {
       Lisp_Object car;
@@ -264,16 +264,16 @@ invoke it.  If KEYS is omitted or nil, the return value of
   int next_event;
 
   Lisp_Object prefix_arg;
-  unsigned char *string;
-  unsigned char *tem;
+  char *string;
+  const char *tem;
 
   /* If varies[i] > 0, the i'th argument shouldn't just have its value
      in this call quoted in the command history.  It should be
      recorded as a call to the function named callint_argfuns[varies[i]].  */
-  int *varies;
+  signed char *varies;
 
-  register int i, j;
-  int count, foo;
+  ptrdiff_t i, nargs;
+  int foo;
   char prompt1[100];
   char *tem1;
   int arg_from_tty = 0;
@@ -287,14 +287,14 @@ invoke it.  If KEYS is omitted or nil, the return value of
   save_this_command = Vthis_command;
   save_this_original_command = Vthis_original_command;
   save_real_this_command = real_this_command;
-  save_last_command = current_kboard->Vlast_command;
+  save_last_command = KVAR (current_kboard, Vlast_command);
 
   if (NILP (keys))
     keys = this_command_keys, key_count = this_command_key_count;
   else
     {
       CHECK_VECTOR (keys);
-      key_count = XVECTOR (keys)->size;
+      key_count = ASIZE (keys);
     }
 
   /* Save this now, since use of minibuffer will clobber it. */
@@ -332,19 +332,22 @@ invoke it.  If KEYS is omitted or nil, the return value of
     {
       /* Make a copy of string so that if a GC relocates specs,
 	 `string' will still be valid.  */
-      string = (unsigned char *) alloca (SBYTES (specs) + 1);
-      memcpy (string, SDATA (specs), SBYTES (specs) + 1);
+      string = (char *) alloca (SBYTES (specs) + 1);
+      memcpy (string, SSDATA (specs), SBYTES (specs) + 1);
     }
   else
     {
       Lisp_Object input;
-      i = num_input_events;
+      Lisp_Object funval = Findirect_function (function, Qt);
+      size_t events = num_input_events;
       input = specs;
       /* Compute the arg values using the user's expression.  */
       GCPRO2 (input, filter_specs);
-      specs = Feval (specs);
+      specs = Feval (specs,
+		     CONSP (funval) && EQ (Qclosure, XCAR (funval))
+		     ? Qt : Qnil);
       UNGCPRO;
-      if (i != num_input_events || !NILP (record_flag))
+      if (events != num_input_events || !NILP (record_flag))
 	{
 	  /* We should record this command on the command history.  */
 	  Lisp_Object values;
@@ -370,7 +373,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       Vthis_command = save_this_command;
       Vthis_original_command = save_this_original_command;
       real_this_command= save_real_this_command;
-      current_kboard->Vlast_command = save_last_command;
+      KVAR (current_kboard, Vlast_command) = save_last_command;
 
       temporarily_switch_to_single_kboard (NULL);
       return unbind_to (speccount, apply1 (function, specs));
@@ -392,11 +395,11 @@ invoke it.  If KEYS is omitted or nil, the return value of
       else if (*string == '*')
 	{
 	  string++;
-	  if (!NILP (current_buffer->read_only))
+	  if (!NILP (BVAR (current_buffer, read_only)))
 	    {
 	      if (!NILP (record_flag))
 		{
-		  unsigned char *p = string;
+		  char *p = string;
 		  while (*p)
 		    {
 		      if (! (*p == 'r' || *p == 'p' || *p == 'P'
@@ -415,25 +418,24 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	string++;
       else if (*string == '@')
 	{
-	  Lisp_Object event, tem;
+	  Lisp_Object event, w;
 
 	  event = (next_event < key_count
 		   ? AREF (keys, next_event)
 		   : Qnil);
 	  if (EVENT_HAS_PARAMETERS (event)
-	      && (tem = XCDR (event), CONSP (tem))
-	      && (tem = XCAR (tem), CONSP (tem))
-	      && (tem = XCAR (tem), WINDOWP (tem)))
+	      && (w = XCDR (event), CONSP (w))
+	      && (w = XCAR (w), CONSP (w))
+	      && (w = XCAR (w), WINDOWP (w)))
 	    {
-	      if (MINI_WINDOW_P (XWINDOW (tem))
-		  && ! (minibuf_level > 0 && EQ (tem, minibuf_window)))
+	      if (MINI_WINDOW_P (XWINDOW (w))
+		  && ! (minibuf_level > 0 && EQ (w, minibuf_window)))
 		error ("Attempt to select inactive minibuffer window");
 
 	      /* If the current buffer wants to clean up, let it.  */
-	      if (!NILP (Vmouse_leave_buffer_hook))
-		call1 (Vrun_hooks, Qmouse_leave_buffer_hook);
+              Frun_hooks (1, &Qmouse_leave_buffer_hook);
 
-	      Fselect_window (tem, Qnil);
+	      Fselect_window (w, Qnil);
 	    }
 	  string++;
 	}
@@ -445,30 +447,34 @@ invoke it.  If KEYS is omitted or nil, the return value of
       else break;
     }
 
-  /* Count the number of arguments the interactive spec would have
-     us give to the function.  */
+  /* Count the number of arguments, which is one plus the number of arguments
+     the interactive spec would have us give to the function.  */
   tem = string;
-  for (j = 0; *tem;)
+  for (nargs = 1; *tem; )
     {
       /* 'r' specifications ("point and mark as 2 numeric args")
 	 produce *two* arguments.  */
       if (*tem == 'r')
-	j += 2;
+	nargs += 2;
       else
-	j++;
-      tem = (unsigned char *) strchr (tem, '\n');
+	nargs++;
+      tem = strchr (tem, '\n');
       if (tem)
 	++tem;
       else
 	break;
     }
-  count = j;
 
-  args = (Lisp_Object *) alloca ((count + 1) * sizeof (Lisp_Object));
-  visargs = (Lisp_Object *) alloca ((count + 1) * sizeof (Lisp_Object));
-  varies = (int *) alloca ((count + 1) * sizeof (int));
+  if (min (MOST_POSITIVE_FIXNUM,
+	   min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Lisp_Object))
+      < nargs)
+    memory_full (SIZE_MAX);
 
-  for (i = 0; i < (count + 1); i++)
+  args = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
+  visargs = (Lisp_Object *) alloca (nargs * sizeof (Lisp_Object));
+  varies = (signed char *) alloca (nargs);
+
+  for (i = 0; i < nargs; i++)
     {
       args[i] = Qnil;
       visargs[i] = Qnil;
@@ -476,8 +482,8 @@ invoke it.  If KEYS is omitted or nil, the return value of
     }
 
   GCPRO5 (prefix_arg, function, *args, *visargs, up_event);
-  gcpro3.nvars = (count + 1);
-  gcpro4.nvars = (count + 1);
+  gcpro3.nvars = nargs;
+  gcpro4.nvars = nargs;
 
   if (!NILP (enable))
     specbind (Qenable_recursive_minibuffers, Qt);
@@ -550,7 +556,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
 	case 'D':		/* Directory name. */
 	  args[i] = Fread_file_name (callint_message, Qnil,
-				     current_buffer->directory, Qlambda, Qnil,
+				     BVAR (current_buffer, directory), Qlambda, Qnil,
 				     Qfile_directory_p);
 	  break;
 
@@ -652,7 +658,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  if (next_event >= key_count)
 	    error ("%s must be bound to an event with parameters",
 		   (SYMBOLP (function)
-		    ? (char *) SDATA (SYMBOL_NAME (function))
+		    ? SSDATA (SYMBOL_NAME (function))
 		    : "command"));
 	  args[i] = AREF (keys, next_event);
 	  next_event++;
@@ -668,7 +674,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	case 'm':		/* Value of mark.  Does not do I/O.  */
 	  check_mark (0);
 	  /* visargs[i] = Qnil; */
-	  args[i] = current_buffer->mark;
+	  args[i] = BVAR (current_buffer, mark);
 	  varies[i] = 2;
 	  break;
 
@@ -686,7 +692,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	    int first = 1;
 	    do
 	      {
-		Lisp_Object tem;
+		Lisp_Object str;
 		if (! first)
 		  {
 		    message ("Please enter a number.");
@@ -694,13 +700,13 @@ invoke it.  If KEYS is omitted or nil, the return value of
 		  }
 		first = 0;
 
-		tem = Fread_from_minibuffer (callint_message,
+		str = Fread_from_minibuffer (callint_message,
 					     Qnil, Qnil, Qnil, Qnil, Qnil,
 					     Qnil);
-		if (! STRINGP (tem) || SCHARS (tem) == 0)
+		if (! STRINGP (str) || SCHARS (str) == 0)
 		  args[i] = Qnil;
 		else
-		  args[i] = Fread (tem);
+		  args[i] = Fread (str);
 	      }
 	    while (! NUMBERP (args[i]));
 	  }
@@ -724,11 +730,11 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  check_mark (1);
 	  set_marker_both (point_marker, Qnil, PT, PT_BYTE);
 	  /* visargs[i+1] = Qnil; */
-	  foo = marker_position (current_buffer->mark);
+	  foo = marker_position (BVAR (current_buffer, mark));
 	  /* visargs[i] = Qnil; */
-	  args[i] = PT < foo ? point_marker : current_buffer->mark;
+	  args[i] = PT < foo ? point_marker : BVAR (current_buffer, mark);
 	  varies[i] = 3;
-	  args[++i] = PT > foo ? point_marker : current_buffer->mark;
+	  args[++i] = PT > foo ? point_marker : BVAR (current_buffer, mark);
 	  varies[i] = 4;
 	  break;
 
@@ -786,8 +792,10 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	     if anyone tries to define one here.  */
 	case '+':
 	default:
-	  error ("Invalid control letter `%c' (%03o) in interactive calling string",
-		 *tem, *tem);
+	  error ("Invalid control letter `%c' (#o%03o, #x%04x) in interactive calling string",
+		 STRING_CHAR ((unsigned char *) tem),
+		 (unsigned) STRING_CHAR ((unsigned char *) tem),
+		 (unsigned) STRING_CHAR ((unsigned char *) tem));
 	}
 
       if (varies[i] == 0)
@@ -796,9 +804,9 @@ invoke it.  If KEYS is omitted or nil, the return value of
       if (NILP (visargs[i]) && STRINGP (args[i]))
 	visargs[i] = args[i];
 
-      tem = (unsigned char *) strchr (tem, '\n');
+      tem = strchr (tem, '\n');
       if (tem) tem++;
-      else tem = (unsigned char *) "";
+      else tem = "";
     }
   unbind_to (speccount, Qnil);
 
@@ -809,14 +817,14 @@ invoke it.  If KEYS is omitted or nil, the return value of
   if (arg_from_tty || !NILP (record_flag))
     {
       visargs[0] = function;
-      for (i = 1; i < count + 1; i++)
+      for (i = 1; i < nargs; i++)
 	{
 	  if (varies[i] > 0)
 	    visargs[i] = Fcons (intern (callint_argfuns[varies[i]]), Qnil);
 	  else
 	    visargs[i] = quotify_arg (args[i]);
 	}
-      Vcommand_history = Fcons (Flist (count + 1, visargs),
+      Vcommand_history = Fcons (Flist (nargs, visargs),
 				Vcommand_history);
       /* Don't keep command history around forever.  */
       if (INTEGERP (Vhistory_length) && XINT (Vhistory_length) > 0)
@@ -829,7 +837,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   /* If we used a marker to hold point, mark, or an end of the region,
      temporarily, convert it to an integer now.  */
-  for (i = 1; i <= count; i++)
+  for (i = 1; i < nargs; i++)
     if (varies[i] >= 1 && varies[i] <= 4)
       XSETINT (args[i], marker_position (args[i]));
 
@@ -839,14 +847,14 @@ invoke it.  If KEYS is omitted or nil, the return value of
   Vthis_command = save_this_command;
   Vthis_original_command = save_this_original_command;
   real_this_command= save_real_this_command;
-  current_kboard->Vlast_command = save_last_command;
+  KVAR (current_kboard, Vlast_command) = save_last_command;
 
   {
     Lisp_Object val;
     specbind (Qcommand_debug_status, Qnil);
 
     temporarily_switch_to_single_kboard (NULL);
-    val = Ffuncall (count + 1, args);
+    val = Ffuncall (nargs, args);
     UNGCPRO;
     return unbind_to (speccount, val);
   }
@@ -889,41 +897,20 @@ syms_of_callint (void)
 				pure_cons (intern_c_string ("point"),
 				       pure_cons (intern_c_string ("mark"), Qnil))));
 
-  Qlist = intern_c_string ("list");
-  staticpro (&Qlist);
-  Qlet = intern_c_string ("let");
-  staticpro (&Qlet);
-  Qif = intern_c_string ("if");
-  staticpro (&Qif);
-  Qwhen = intern_c_string ("when");
-  staticpro (&Qwhen);
-  Qletx = intern_c_string ("let*");
-  staticpro (&Qletx);
-  Qsave_excursion = intern_c_string ("save-excursion");
-  staticpro (&Qsave_excursion);
-  Qprogn = intern_c_string ("progn");
-  staticpro (&Qprogn);
-
-  Qminus = intern_c_string ("-");
-  staticpro (&Qminus);
-
-  Qplus = intern_c_string ("+");
-  staticpro (&Qplus);
-
-  Qhandle_shift_selection = intern_c_string ("handle-shift-selection");
-  staticpro (&Qhandle_shift_selection);
-
-  Qcall_interactively = intern_c_string ("call-interactively");
-  staticpro (&Qcall_interactively);
-
-  Qcommand_debug_status = intern_c_string ("command-debug-status");
-  staticpro (&Qcommand_debug_status);
-
-  Qenable_recursive_minibuffers = intern_c_string ("enable-recursive-minibuffers");
-  staticpro (&Qenable_recursive_minibuffers);
-
-  Qmouse_leave_buffer_hook = intern_c_string ("mouse-leave-buffer-hook");
-  staticpro (&Qmouse_leave_buffer_hook);
+  DEFSYM (Qlist, "list");
+  DEFSYM (Qlet, "let");
+  DEFSYM (Qif, "if");
+  DEFSYM (Qwhen, "when");
+  DEFSYM (Qletx, "let*");
+  DEFSYM (Qsave_excursion, "save-excursion");
+  DEFSYM (Qprogn, "progn");
+  DEFSYM (Qminus, "-");
+  DEFSYM (Qplus, "+");
+  DEFSYM (Qhandle_shift_selection, "handle-shift-selection");
+  DEFSYM (Qcall_interactively, "call-interactively");
+  DEFSYM (Qcommand_debug_status, "command-debug-status");
+  DEFSYM (Qenable_recursive_minibuffers, "enable-recursive-minibuffers");
+  DEFSYM (Qmouse_leave_buffer_hook, "mouse-leave-buffer-hook");
 
   DEFVAR_KBOARD ("prefix-arg", Vprefix_arg,
 		 doc: /* The value of the prefix argument for the next editing command.
@@ -940,7 +927,7 @@ normally commands can get this prefix argument with (interactive "P").  */);
 		 doc: /* The value of the prefix argument for the previous editing command.
 See `prefix-arg' for the meaning of the value.  */);
 
-  DEFVAR_LISP ("current-prefix-arg", &Vcurrent_prefix_arg,
+  DEFVAR_LISP ("current-prefix-arg", Vcurrent_prefix_arg,
 	       doc: /* The value of the prefix argument for this editing command.
 It may be a number, or the symbol `-' for just a minus sign as arg,
 or a list whose car is a number for just one or more C-u's
@@ -948,7 +935,7 @@ or nil if no argument has been specified.
 This is what `(interactive \"P\")' returns.  */);
   Vcurrent_prefix_arg = Qnil;
 
-  DEFVAR_LISP ("command-history", &Vcommand_history,
+  DEFVAR_LISP ("command-history", Vcommand_history,
 	       doc: /* List of recent commands that read arguments from terminal.
 Each command is represented as a form to evaluate.
 
@@ -956,13 +943,13 @@ Maximum length of the history list is determined by the value
 of `history-length', which see.  */);
   Vcommand_history = Qnil;
 
-  DEFVAR_LISP ("command-debug-status", &Vcommand_debug_status,
+  DEFVAR_LISP ("command-debug-status", Vcommand_debug_status,
 	       doc: /* Debugging status of current interactive command.
 Bound each time `call-interactively' is called;
 may be set by the debugger as a reminder for itself.  */);
   Vcommand_debug_status = Qnil;
 
-  DEFVAR_LISP ("mark-even-if-inactive", &Vmark_even_if_inactive,
+  DEFVAR_LISP ("mark-even-if-inactive", Vmark_even_if_inactive,
 	       doc: /* *Non-nil means you can use the mark even when inactive.
 This option makes a difference in Transient Mark mode.
 When the option is non-nil, deactivation of the mark
@@ -970,7 +957,7 @@ turns off region highlighting, but commands that use the mark
 behave as if the mark were still active.  */);
   Vmark_even_if_inactive = Qt;
 
-  DEFVAR_LISP ("mouse-leave-buffer-hook", &Vmouse_leave_buffer_hook,
+  DEFVAR_LISP ("mouse-leave-buffer-hook", Vmouse_leave_buffer_hook,
 	       doc: /* Hook to run when about to switch windows with a mouse command.
 Its purpose is to give temporary modes such as Isearch mode
 a way to turn themselves off when a mouse command switches windows.  */);
@@ -980,6 +967,3 @@ a way to turn themselves off when a mouse command switches windows.  */);
   defsubr (&Scall_interactively);
   defsubr (&Sprefix_numeric_value);
 }
-
-/* arch-tag: a3a7cad7-bcac-42ce-916e-1bd2546ebf37
-   (do not change this comment) */

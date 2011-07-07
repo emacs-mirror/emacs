@@ -1,8 +1,6 @@
 ;;; mh-letter.el --- MH-Letter mode
 
-;; Copyright (C) 1993, 1995, 1997,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 1997, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -275,7 +273,8 @@ searching for `mh-mail-header-separator' in the buffer."
 ;;; MH-Letter Mode
 
 ;; Shush compiler.
-(defvar font-lock-defaults)             ; XEmacs
+(mh-do-in-xemacs
+  (defvar font-lock-defaults))
 
 ;; Ensure new buffers won't get this mode if default major-mode is nil.
 (put 'mh-letter-mode 'mode-class 'special)
@@ -348,6 +347,8 @@ order).
   (define-key mh-letter-mode-map [menu-bar mail] 'undefined)
   (mh-do-in-xemacs (easy-menu-remove mail-menubar-menu))
   (setq fill-column mh-letter-fill-column)
+  (add-hook 'completion-at-point-functions
+            'mh-letter-completion-at-point nil 'local)
   ;; If text-mode-hook turned on auto-fill, tune it for messages
   (when auto-fill-function
     (make-local-variable 'auto-fill-function)
@@ -490,24 +491,41 @@ In a program, you can pass in a signature FILE."
             (message "No signature found")))))
   (force-mode-line-update))
 
-(defun mh-letter-complete (arg)
+(defun mh-letter-completion-at-point ()
+  "Return the completion data at point for MH letters.
+This provides alias and folder completion in header fields according to
+`mh-letter-complete-function-alist' and falls back on
+`mh-letter-complete-function-alist' elsewhere."
+  (let ((func (and (mh-in-header-p)
+                   (cdr (assoc (mh-letter-header-field-at-point)
+                               mh-letter-complete-function-alist)))))
+    (if func
+        (or (funcall func) #'ignore)
+      mh-letter-complete-function)))
+
+;; TODO Now that completion-at-point performs the task of
+;; mh-letter-complete, perhaps mh-letter-complete along with
+;; mh-complete-word should be rewritten as a more general function for
+;; XEmacs, renamed to mh-completion-at-point, and moved to
+;; mh-compat.el.
+(defun-mh mh-letter-complete completion-at-point ()
   "Perform completion on header field or word preceding point.
 
 If the field contains addresses (for example, \"To:\" or \"Cc:\")
 or folders (for example, \"Fcc:\") then this command will provide
 alias completion. In the body of the message, this command runs
 `mh-letter-complete-function' instead, which is set to
-`ispell-complete-word' by default. This command takes a prefix
-argument ARG that is passed to the
-`mh-letter-complete-function'."
-  (interactive "P")
-  (let ((func nil))
-    (cond ((not (mh-in-header-p))
-           (funcall mh-letter-complete-function arg))
-          ((setq func (cdr (assoc (mh-letter-header-field-at-point)
-                                  mh-letter-complete-function-alist)))
-           (funcall func))
-          (t (funcall mh-letter-complete-function arg)))))
+`ispell-complete-word' by default."
+      (interactive)
+      (let ((data (mh-letter-completion-at-point)))
+        (cond
+         ((functionp data) (funcall data))
+         ((consp data)
+          (let ((start (nth 0 data))
+                (end (nth 1 data))
+                (table (nth 2 data)))
+            (mh-complete-word (buffer-substring-no-properties start end)
+                              table start end))))))
 
 (defun mh-letter-complete-or-space (arg)
   "Perform completion or insert space.
@@ -517,17 +535,17 @@ this command to perform completion in the header. Otherwise, a
 space is inserted; use a prefix argument ARG to specify more than
 one space."
   (interactive "p")
-  (let ((func nil)
-        (end-of-prev (save-excursion
+  (let ((end-of-prev (save-excursion
                        (goto-char (mh-beginning-of-word))
                        (mh-beginning-of-word -1))))
     (cond ((not mh-compose-space-does-completion-flag)
            (self-insert-command arg))
-          ((not (mh-in-header-p)) (self-insert-command arg))
+          ;; FIXME: This > test is redundant now that all the completion
+          ;; functions do it anyway.
           ((> (point) end-of-prev) (self-insert-command arg))
-          ((setq func (cdr (assoc (mh-letter-header-field-at-point)
-                                  mh-letter-complete-function-alist)))
-           (funcall func))
+          ((let ((mh-letter-complete-function nil))
+             (mh-letter-completion-at-point))
+           (mh-letter-complete))
           (t (self-insert-command arg)))))
 
 (defun mh-letter-confirm-address ()
@@ -864,15 +882,13 @@ downcasing the field name."
 
 (defun mh-folder-expand-at-point ()
   "Do folder name completion in Fcc header field."
-  (let* ((end (point))
-         (beg (mh-beginning-of-word))
-         (folder (buffer-substring-no-properties beg end))
-         (leading-plus (and (> (length folder) 0) (equal (aref folder 0) ?+)))
-         (choices (mapcar (lambda (x) (list x))
-                          (mh-folder-completion-function folder nil t))))
-    (unless leading-plus
-      (setq folder (concat "+" folder)))
-    (mh-complete-word folder choices beg end)))
+  (let* ((beg (mh-beginning-of-word))
+         (end (save-excursion
+                (goto-char beg)
+                (mh-beginning-of-word -1))))
+    (when (>= end (point))
+      (list beg (if (fboundp 'completion-at-point) end (point))
+            #'mh-folder-completion-function))))
 
 ;;;###mh-autoload
 (defun mh-complete-word (word choices begin end)
@@ -891,8 +907,16 @@ Any match found replaces the text from BEGIN to END."
           ((stringp completion)
            (if (equal word completion)
                (with-output-to-temp-buffer completions-buffer
-                 (mh-display-completion-list (all-completions word choices)
-                                             word))
+                 (mh-display-completion-list
+                  (all-completions word choices)
+                  ;; The `common-subtring' arg only works if it's a prefix.
+                  (unless (and (functionp choices)
+                               (let ((bounds
+                                      (funcall choices
+                                               word nil '(boundaries . ""))))
+                                 (and (eq 'boundaries (car-safe bounds))
+                                      (< 0 (cadr bounds)))))
+                    word)))
              (ignore-errors
                (kill-buffer completions-buffer))
              (delete-region begin end)
@@ -960,5 +984,4 @@ Otherwise, simply insert MH-INS-STRING before each line."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 0548632c-aadb-4e3b-bb80-bbd62ff90bf3
 ;;; mh-letter.el ends here

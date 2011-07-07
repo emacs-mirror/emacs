@@ -1,8 +1,6 @@
 ;;; pcvs-defs.el --- variable definitions for PCL-CVS
 
-;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1991-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
@@ -525,5 +523,4 @@ message and replace it with a message telling you to change this variable.")
 ;;
 (provide 'pcvs-defs)
 
-;; arch-tag: c7c701d0-d1d4-4aa9-a302-007bb03aca5e
 ;;; pcvs-defs.el ends here

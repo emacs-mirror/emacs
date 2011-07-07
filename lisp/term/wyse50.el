@@ -1,7 +1,6 @@
 ;;; wyse50.el --- terminal support code for Wyse 50 -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1989, 1993, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993-1994, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>,
 ;;	Jim Blandy <jimb@occs.cs.oberlin.edu>
@@ -156,5 +155,4 @@ M-r	M-x move-to-window-line, Funct up-arrow or down-arrow are similar"
   ;;                   (nth 1 key-definition)))
   (fset 'enable-arrow-keys nil))
 
-;; arch-tag: b6a05d37-eead-4cf6-b997-0f956c68881c
 ;;; wyse50.el ends here

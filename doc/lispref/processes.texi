@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/processes
@@ -195,10 +194,18 @@ a shell command:
 @end example
 @end defun
 
-@cindex quoting and unquoting shell command line
-  The following two functions are useful for creating shell commands
-from individual argument strings, and taking shell command lines apart
-into individual arguments.
+@cindex quoting and unquoting command-line arguments
+@cindex minibuffer input, and command-line arguments
+@cindex @code{call-process}, command-line arguments from minibuffer
+@cindex @code{start-process}, command-line arguments from minibuffer
+  The following two functions are useful for combining a list of
+individual command-line argument strings into a single string, and
+taking a string apart into a list of individual command-line
+arguments.  These functions are mainly intended to be used for
+converting user input in the minibuffer, a Lisp string, into a list of
+string arguments to be passed to @code{call-process} or
+@code{start-process}, or for the converting such lists of arguments in
+a single Lisp string to be presented in the minibuffer or echo area.
 
 @defun split-string-and-unquote string &optional separators
 This function splits @var{string} into substrings at matches for the
@@ -210,7 +217,7 @@ If @var{separators} is omitted or @code{nil}, it defaults to
 @code{"\\s-+"}, which is a regular expression that matches one or more
 characters with whitespace syntax (@pxref{Syntax Class Table}).
 
-This function performs two types of quoting: enclosing a whole string
+This function supports two types of quoting: enclosing a whole string
 in double quotes @code{"@dots{}"}, and quoting individual characters
 with a backslash escape @samp{\}.  The latter is also used in Lisp
 strings, so this function can handle those as well.
@@ -226,9 +233,8 @@ resulting string.
 The strings in @var{list-of-strings} that need quoting are those that
 include @var{separator} as their substring.  Quoting a string encloses
 it in double quotes @code{"@dots{}"}.  In the simplest case, if you
-are consing a shell command from the individual command-line
-arguments, every argument that includes embedded blanks will be
-quoted.
+are consing a command from the individual command-line arguments,
+every argument that includes embedded blanks will be quoted.
 @end defun
 
 @node Synchronous Processes
@@ -260,10 +266,9 @@ subprocess by @code{call-process-region} is encoded using a coding
 system, much like text written into a file.  @xref{Coding Systems}.
 
 @defun call-process program &optional infile destination display &rest args
-This function calls @var{program} in a separate process and waits for
-it to finish.
+This function calls @var{program} and waits for it to finish.
 
-The standard input for the process comes from file @var{infile} if
+The standard input for the new process comes from file @var{infile} if
 @var{infile} is not @code{nil}, and from the null device otherwise.
 The argument @var{destination} says where to put the process output.
 Here are the possibilities:
@@ -293,6 +298,9 @@ function returns.
 
 MS-DOS doesn't support asynchronous subprocesses, so this option doesn't
 work there.
+
+@item @code{(:file @var{file-name})}
+Send the output to the file name specified.
 
 @item @code{(@var{real-destination} @var{error-destination})}
 Keep the standard output stream separate from the standard error stream;
@@ -482,10 +490,10 @@ inputinput@point{}
 @end defun
 
 @defun call-process-shell-command command &optional infile destination display &rest args
-This function executes the shell command @var{command} synchronously
-in a separate process.  The final arguments @var{args} are additional
-arguments to add at the end of @var{command}.  The other arguments
-are handled as in @code{call-process}.
+This function executes the shell command @var{command} synchronously.
+The final arguments @var{args} are additional arguments to add at the
+end of @var{command}.  The other arguments are handled as in
+@code{call-process}.
 @end defun
 
 @defun process-file-shell-command command &optional infile destination display &rest args
@@ -500,12 +508,12 @@ then returns the command's output as a string.
 @end defun
 
 @defun process-lines program &rest args
-This function runs @var{program} in a separate process, waits for it
-to finish, and returns its output as a list of strings.  Each string
-in the list holds a single line of text output by the program; the
-end-of-line characters are stripped from each line.  The arguments
-beyond @var{program}, @var{args}, are strings that specify
-command-line arguments with which to run the program.
+This function runs @var{program}, waits for it to finish, and returns
+its output as a list of strings.  Each string in the list holds a
+single line of text output by the program; the end-of-line characters
+are stripped from each line.  The arguments beyond @var{program},
+@var{args}, are strings that specify command-line arguments with which
+to run the program.
 
 If @var{program} exits with a non-zero exit status, this function
 signals an error.
@@ -849,6 +857,12 @@ x
 For a network connection, @code{process-status} returns one of the symbols
 @code{open} or @code{closed}.  The latter means that the other side
 closed the connection, or Emacs did @code{delete-process}.
+@end defun
+
+@defun process-live-p process
+This function returns nin-@code{nil} if @var{process} is alive.  A
+process is considered alive if its status is @code{run}, @code{open},
+@code{listen}, @code{connect} or @code{stop}.
 @end defun
 
 @defun process-type process
@@ -1786,9 +1800,9 @@ nice values get scheduled more favorably.)
 The number of threads in the process.
 
 @item start
-The time the process was started, in the @w{@code{(@var{high}
-@var{low} @var{microsec})}} format used by @code{current-time} and
-@code{file-attributes}.
+The time when the process was started, in the same
+@w{@code{(@var{high} @var{low} @var{microsec})}} format used by
+@code{current-time} and @code{file-attributes}.
 
 @item etime
 The time elapsed since the process started, in the @w{@code{(@var{high}
@@ -2474,25 +2488,17 @@ Install @var{plist} as the initial plist of the process.
 @itemx :parity
 @itemx :stopbits
 @itemx :flowcontrol
-These arguments are handled by @code{serial-process-configure}, which
-is called by @code{make-serial-process}.
+These are handled by @code{serial-process-configure}, which is called
+by @code{make-serial-process}.
 @end table
 
 The original argument list, possibly modified by later configuration,
 is available via the function @code{process-contact}.
 
-Examples:
+Here is an example:
 
 @example
 (make-serial-process :port "/dev/ttyS0" :speed 9600)
-
-(make-serial-process :port "COM1" :speed 115200 :stopbits 2)
-
-(make-serial-process :port "\\\\.\\COM13" :speed 1200
-                     :bytesize 7 :parity 'odd)
-
-(make-serial-process :port "/dev/tty.BlueConsole-SPP-1"
-                     :speed nil)
 @end example
 @end defun
 
@@ -2552,19 +2558,9 @@ flow control).  If @var{flowcontrol} is not given, it defaults to no
 flow control.
 @end table
 
-@code{serial-process-configure} is called by @code{make-serial-process} for the
-initial configuration of the serial port.
-
-Examples:
-
-@example
-(serial-process-configure :process "/dev/ttyS0" :speed 1200)
-
-(serial-process-configure :buffer "COM1" :stopbits 1
-                          :parity 'odd :flowcontrol 'hw)
-
-(serial-process-configure :port "\\\\.\\COM13" :bytesize 7)
-@end example
+@code{serial-process-configure} is called by
+@code{make-serial-process} for the initial configuration of the serial
+port.
 @end defun
 
 @node Byte Packing
@@ -3011,7 +3007,3 @@ Fetching data from this structure:
 (bindat-get-field decoded 'item 1 'id)
      @result{} "BCDEFG"
 @end lisp
-
-@ignore
-   arch-tag: ba9da253-e65f-4e7f-b727-08fba0a1df7a
-@end ignore

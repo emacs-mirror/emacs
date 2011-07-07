@@ -1,7 +1,6 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2001, 2004-2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -390,5 +389,4 @@ This should be set, e.g. by mail user agents rendering HTML to avoid
 
 (provide 'url-vars)
 
-;; arch-tag: 29205e5f-c5ce-433c-8d5d-38cbaed64b49
 ;;; url-vars.el ends here

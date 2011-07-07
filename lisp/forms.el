@@ -1,7 +1,6 @@
 ;;; forms.el --- Forms mode: edit a file as a form to fill in
 
-;; Copyright (C) 1991, 1994, 1995, 1996, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994-1997, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
 
@@ -846,7 +845,7 @@ Commands:                        Equivalent keys in read-only mode:
 (defvar forms--iif-properties nil
   "Original properties of the character being overridden.")
 
-(defun forms--iif-hook (begin end)
+(defun forms--iif-hook (_begin _end)
   "`insert-in-front-hooks' function for read-only segments."
 
   ;; Note start location.  By making it a marker that points one
@@ -1198,6 +1197,8 @@ Commands:                        Equivalent keys in read-only mode:
       (setq forms--field nil)))
    ))
 
+(defvar read-file-filter) ; bound in forms--intuit-from-file
+
 (defun forms--intuit-from-file ()
   "Get number of fields and a default form using the data file."
 
@@ -1920,7 +1921,7 @@ after writing out the data."
     (forms-jump-record cur))
   t)
 
-(defun forms--revert-buffer (&optional arg noconfirm)
+(defun forms--revert-buffer (&optional _arg noconfirm)
   "Reverts current form to un-modified."
   (interactive "P")
   (if (or noconfirm
@@ -2055,5 +2056,4 @@ Usage: (setq forms-number-of-fields
 	  (goto-char (point-max))
 	  (insert ret)))))
 
-;; arch-tag: 4a6695c7-d47a-4a21-809b-5cec7f8ec7a1
 ;;; forms.el ends here

@@ -1,7 +1,6 @@
 ;;; calc-stat.el --- statistical functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -583,5 +582,4 @@
 
 (provide 'calc-stat)
 
-;; arch-tag: 423858e9-8513-489c-9f35-710cd9d9c307
 ;;; calc-stat.el ends here

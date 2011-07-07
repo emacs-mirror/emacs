@@ -1,7 +1,6 @@
 ;;; version.el --- record version number of Emacs -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1985, 1992, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985, 1992, 1994-1995, 1999-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -88,5 +87,4 @@ to the system configuration; look at `system-configuration' instead."
 ;;version-control: never
 ;;End:
 
-;; arch-tag: e60dc445-6218-4a4c-a7df-f15a818642a0
 ;;; version.el ends here

@@ -1,7 +1,7 @@
 ;;; scheme.el --- Scheme (and DSSSL) editing mode
 
-;; Copyright (C) 1986, 1987, 1988, 1997, 1998, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1986-1988, 1997-1998, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Bill Rozas <jinx@martigny.ai.mit.edu>
 ;; Adapted-by: Dave Love <d.love@dl.ac.uk>
@@ -126,39 +126,27 @@
 (defun scheme-mode-variables ()
   (set-syntax-table scheme-mode-syntax-table)
   (setq local-abbrev-table scheme-mode-abbrev-table)
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "$\\|" page-delimiter))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
-  (make-local-variable 'paragraph-ignore-fill-prefix)
-  (setq paragraph-ignore-fill-prefix t)
-  (make-local-variable 'fill-paragraph-function)
-  (setq fill-paragraph-function 'lisp-fill-paragraph)
+  (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
+  (set (make-local-variable 'paragraph-separate) paragraph-start)
+  (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
+  (set (make-local-variable 'fill-paragraph-function) 'lisp-fill-paragraph)
   ;; Adaptive fill mode gets in the way of auto-fill,
   ;; and should make no difference for explicit fill
   ;; because lisp-fill-paragraph should do the job.
-  (make-local-variable 'adaptive-fill-mode)
-  (setq adaptive-fill-mode nil)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'lisp-indent-line)
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments t)
-  (make-local-variable 'outline-regexp)
-  (setq outline-regexp ";;; \\|(....")
-  (make-local-variable 'comment-start)
-  (setq comment-start ";")
+  (set (make-local-variable 'adaptive-fill-mode) nil)
+  (set (make-local-variable 'indent-line-function) 'lisp-indent-line)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (set (make-local-variable 'outline-regexp) ";;; \\|(....")
+  (set (make-local-variable 'comment-start) ";")
   (set (make-local-variable 'comment-add) 1)
-  (make-local-variable 'comment-start-skip)
   ;; Look within the line for a ; following an even number of backslashes
   ;; after either a non-backslash or the line beginning.
-  (setq comment-start-skip "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+[ \t]*")
+  (set (make-local-variable 'comment-start-skip)
+       "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+[ \t]*")
   (set (make-local-variable 'font-lock-comment-start-skip) ";+ *")
-  (make-local-variable 'comment-column)
-  (setq comment-column 40)
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments t)
-  (make-local-variable 'lisp-indent-function)
-  (setq lisp-indent-function 'scheme-indent-function)
+  (set (make-local-variable 'comment-column) 40)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (set (make-local-variable 'lisp-indent-function) 'scheme-indent-function)
   (setq mode-line-process '("" scheme-mode-line-process))
   (set (make-local-variable 'imenu-case-fold-search) t)
   (setq imenu-generic-expression scheme-imenu-generic-expression)
@@ -206,7 +194,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   (define-key map "\e\C-q" 'indent-sexp))
 
 ;;;###autoload
-(defun scheme-mode ()
+(define-derived-mode scheme-mode prog-mode "Scheme"
   "Major mode for editing Scheme code.
 Editing commands are similar to those of `lisp-mode'.
 
@@ -225,13 +213,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
 \\{scheme-mode-map}
 Entry to this mode calls the value of `scheme-mode-hook'
 if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map scheme-mode-map)
-  (setq major-mode 'scheme-mode)
-  (setq mode-name "Scheme")
-  (scheme-mode-variables)
-  (run-mode-hooks 'scheme-mode-hook))
+  (scheme-mode-variables))
 
 (defgroup scheme nil
   "Editing Scheme code."
@@ -404,10 +386,7 @@ Blank lines separate paragraphs.  Semicolons start comments.
 Entering this mode runs the hooks `scheme-mode-hook' and then
 `dsssl-mode-hook' and inserts the value of `dsssl-sgml-declaration' if
 that variable's value is a string."
-  (make-local-variable 'page-delimiter)
-  (setq page-delimiter "^;;;" ; ^L not valid SGML char
-	major-mode 'dsssl-mode
-	mode-name "DSSSL")
+  (set (make-local-variable 'page-delimiter) "^;;;") ; ^L not valid SGML char
   ;; Insert a suitable SGML declaration into an empty buffer.
   ;; FIXME: This should use `auto-insert-alist' instead.
   (and (zerop (buffer-size))
@@ -601,5 +580,4 @@ that variable's value is a string."
 
 (provide 'scheme)
 
-;; arch-tag: a8f06bc1-ad11-42d2-9e36-ce651df37a90
 ;;; scheme.el ends here

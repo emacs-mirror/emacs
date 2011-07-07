@@ -1,7 +1,6 @@
 ;;; bindings.el --- define standard key bindings and some variables
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985-1987, 1992-1996, 1999-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -154,17 +153,17 @@ mouse-3: Describe current input method"))
     ,(propertize
       "%z"
       'help-echo
-      #'(lambda (window object point)
-	  (with-current-buffer (window-buffer window)
-	    ;; Don't show this tip if the coding system is nil,
-	    ;; it reads like a bug, and is not useful anyway.
-	    (when buffer-file-coding-system
-	      (format "Buffer coding system %s\nmouse-1: describe coding system"
-		      (if enable-multibyte-characters
-			  (concat "(multi-byte): "
-				  (symbol-name buffer-file-coding-system))
-			(concat "(unibyte): "
-				(symbol-name buffer-file-coding-system)))))))
+      (lambda (window _object _point)
+	(with-current-buffer (window-buffer window)
+	  ;; Don't show this tip if the coding system is nil,
+	  ;; it reads like a bug, and is not useful anyway.
+	  (when buffer-file-coding-system
+	    (format "Buffer coding system %s\nmouse-1: describe coding system"
+		    (if enable-multibyte-characters
+			(concat "(multi-byte): "
+				(symbol-name buffer-file-coding-system))
+		      (concat "(unibyte): "
+			      (symbol-name buffer-file-coding-system)))))))
       'mouse-face 'mode-line-highlight
       'local-map mode-line-coding-system-map)
     (:eval (mode-line-eol-desc)))
@@ -210,7 +209,7 @@ Normally nil in most modes, since there is no process to display.")
 (defvar mode-line-modified
   (list (propertize
 	 "%1*"
-	 'help-echo (purecopy (lambda (window object point)
+	 'help-echo (purecopy (lambda (window _object _point)
  				(format "Buffer is %s\nmouse-1 toggles"
 					(save-selected-window
 					  (select-window window)
@@ -223,7 +222,7 @@ Normally nil in most modes, since there is no process to display.")
 	 'mouse-face 'mode-line-highlight)
 	(propertize
 	 "%1+"
-	 'help-echo  (purecopy (lambda (window object point)
+	 'help-echo  (purecopy (lambda (window _object _point)
 				 (format "Buffer is %sodified\nmouse-1 toggles modified state"
 					 (save-selected-window
 					   (select-window window)
@@ -243,7 +242,7 @@ Normally nil in most modes, since there is no process to display.")
   (list (propertize
 	 "%1@"
 	 'mouse-face 'mode-line-highlight
-	 'help-echo (purecopy (lambda (window object point)
+	 'help-echo (purecopy (lambda (window _object _point)
  				(format "%s"
 					(save-selected-window
 					  (select-window window)
@@ -322,7 +321,9 @@ mouse-3: Remove current window from display")
        (standard-mode-line-format
 	(list
 	 "%e"
-	 (propertize "-" 'help-echo help-echo)
+	 `(:eval (if (display-graphic-p)
+		     ,(propertize " " 'help-echo help-echo)
+		   ,(propertize "-" 'help-echo help-echo)))
 	 'mode-line-mule-info
 	 'mode-line-client
 	 'mode-line-modified
@@ -453,11 +454,6 @@ Major modes that edit things other than ordinary files may change this
 (put 'mode-line-buffer-identification 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-buffer-identification)
 
-(defun unbury-buffer () "\
-Switch to the last buffer in the buffer list."
-  (interactive)
-  (switch-to-buffer (last-buffer)))
-
 (defun mode-line-unbury-buffer (event) "\
 Call `unbury-buffer' in this window."
   (interactive "e")
@@ -475,7 +471,8 @@ Like `bury-buffer', but temporarily select EVENT's window."
 (defun mode-line-other-buffer () "\
 Switch to the most recently selected buffer other than the current one."
   (interactive)
-  (switch-to-buffer (other-buffer)))
+  (with-no-warnings ; We really do want to call `switch-to-buffer' here.
+    (switch-to-buffer (other-buffer))))
 
 (defun mode-line-next-buffer (event)
   "Like `next-buffer', but temporarily select EVENT's window."
@@ -647,13 +644,24 @@ is okay.  See `mode-line-format'.")
 
 (make-variable-buffer-local 'indent-tabs-mode)
 
-;; We have base64 and md5 functions built in now.
+;; We have base64, md5 and sha1 functions built in now.
 (provide 'base64)
 (provide 'md5)
+(provide 'sha1)
 (provide 'overlay '(display syntax-table field))
 (provide 'text-properties '(display syntax-table field point-entered))
 
 (define-key esc-map "\t" 'complete-symbol)
+
+(defun complete-symbol (arg)
+  "Perform completion on the text around point.
+The completion method is determined by `completion-at-point-functions'.
+
+With a prefix argument, this command does completion within
+the collection of symbols listed in the index of the manual for the
+language you are using."
+  (interactive "P")
+  (if arg (info-complete-symbol) (completion-at-point)))
 
 ;; Reduce total amount of space we must allocate during this function
 ;; that we will not need to keep permanently.
@@ -1204,5 +1212,4 @@ if `inhibit-field-text-motion' is non-nil."
 ;; no-update-autoloads: t
 ;; End:
 
-;; arch-tag: 23b5c7e6-e47b-49ed-8c6c-ed213c5fffe0
 ;;; bindings.el ends here

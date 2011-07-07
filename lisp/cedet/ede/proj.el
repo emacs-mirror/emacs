@@ -1,7 +1,6 @@
 ;;; ede/proj.el --- EDE Generic Project file driver
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1998-2003, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -676,5 +675,4 @@ Optional argument FORCE will force items to be regenerated."
 
 (provide 'ede/proj)
 
-;; arch-tag: eb8a40f8-0d2c-41c4-b273-af04101d1cdf
 ;;; ede/proj.el ends here

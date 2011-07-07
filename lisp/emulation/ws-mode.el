@@ -1,7 +1,6 @@
 ;;; ws-mode.el --- WordStar emulation mode for GNU Emacs
 
-;; Copyright (C) 1991, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1991, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Juergen Nickelsen <nickel@cs.tu-berlin.de>
 ;; Version: 0.7
@@ -742,5 +741,4 @@ sWith: " )
 
 (provide 'ws-mode)
 
-;; arch-tag: 6dd864bf-2ccb-4d59-af6e-492eba2890a3
 ;;; ws-mode.el ends here

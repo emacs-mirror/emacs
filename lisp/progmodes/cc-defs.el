@@ -1,8 +1,6 @@
 ;;; cc-defs.el --- compile time definitions for CC Mode
 
-;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -371,7 +369,7 @@ to it is returned.  This function does not modify the point or the mark."
 (put 'c-safe 'lisp-indent-function 0)
 
 (defmacro c-int-to-char (integer)
-  ;; In GNU Emacs, a character is an integer.  In XEmacs, a character is a
+  ;; In Emacs, a character is an integer.  In XEmacs, a character is a
   ;; type distinct from an integer.  Sometimes we need to convert integers to
   ;; characters.  `c-int-to-char' makes this conversion, if necessary.
   (if (fboundp 'int-to-char)
@@ -2259,5 +2257,4 @@ quoted."
 
 (cc-provide 'cc-defs)
 
-;; arch-tag: 3bb2629d-dd84-4ff0-ad39-584be0fe3cda
 ;;; cc-defs.el ends here

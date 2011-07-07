@@ -6,5 +6,4 @@
   (define-key input-decode-map "\e[23~" [f11]) ;Probably redundant.
   (define-key local-function-key-map [f11] [?\e]))
 
-;; arch-tag: f9f4c954-0b9e-45f9-b450-a320d32abd9c
 ;;; vt320.el ends here

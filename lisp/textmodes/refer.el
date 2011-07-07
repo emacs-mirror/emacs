@@ -1,7 +1,6 @@
 ;;; refer.el --- look up references in bibliography files
 
-;; Copyright (C) 1992, 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1996, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Ashwin Ram <ashwin@cc.gatech.edu>
 ;; Maintainer: Gernot Heiser <gernot@acm.org>
@@ -396,5 +395,4 @@ found on the last `refer-find-entry' or `refer-find-next-entry'."
         (setq refer-bib-files files))
     files))
 
-;; arch-tag: 151f641b-e79b-462b-9a29-a95c3793f300
 ;;; refer.el ends here

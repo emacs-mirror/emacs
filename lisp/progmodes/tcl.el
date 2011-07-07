@@ -1,7 +1,6 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Tom Tromey <tromey@redhat.com>
@@ -572,10 +571,7 @@ documentation for details):
 
 Turning on Tcl mode runs `tcl-mode-hook'.  Read the documentation for
 `tcl-mode-hook' to see what kinds of interesting hook functions
-already exist.
-
-Commands:
-\\{tcl-mode-map}"
+already exist."
   (unless (and (boundp 'filladapt-mode) filladapt-mode)
     (set (make-local-variable 'paragraph-ignore-fill-prefix) t))
 
@@ -664,7 +660,7 @@ Commands:
 
 
 
-(defun tcl-indent-command (&optional arg)
+(defun tcl-indent-command (&optional _arg)
   "Indent current line as Tcl code, or in some cases insert a tab character.
 If `tcl-tab-always-indent' is t (the default), always indent current line.
 If `tcl-tab-always-indent' is nil and point is not in the indentation
@@ -1064,7 +1060,7 @@ With argument, positions cursor at end of buffer."
 (defun inferior-tcl-proc ()
   "Return current inferior Tcl process.
 See variable `inferior-tcl-buffer'."
-  (let ((proc (get-buffer-process (if (eq major-mode 'inferior-tcl-mode)
+  (let ((proc (get-buffer-process (if (derived-mode-p 'inferior-tcl-mode)
 				      (current-buffer)
 				    inferior-tcl-buffer))))
     (or proc
@@ -1287,7 +1283,7 @@ to update the alist.")
 If FLAG is nil, just uses `current-word'.
 Otherwise scans backward for most likely Tcl command word."
   (if (and flag
-	   (memq major-mode '(tcl-mode inferior-tcl-mode)))
+	   (derived-mode-p 'tcl-mode 'inferior-tcl-mode))
       (condition-case nil
 	  (save-excursion
 	    ;; Look backward for first word actually in alist.
@@ -1363,7 +1359,7 @@ Prefix argument means switch to the Tcl buffer afterwards."
     ;; filename.
     (car (comint-get-source "Load Tcl file: "
 			    (or (and
-				 (eq major-mode 'tcl-mode)
+				 (derived-mode-p 'tcl-mode)
 				 (buffer-file-name))
 				tcl-previous-dir/file)
 			    '(tcl-mode) t))
@@ -1383,12 +1379,12 @@ Prefix argument means switch to the Tcl buffer afterwards."
    (list
     (car (comint-get-source "Restart with Tcl file: "
 			    (or (and
-				 (eq major-mode 'tcl-mode)
+				 (derived-mode-p 'tcl-mode)
 				 (buffer-file-name))
 				tcl-previous-dir/file)
 			    '(tcl-mode) t))
     current-prefix-arg))
-  (let* ((buf (if (eq major-mode 'inferior-tcl-mode)
+  (let* ((buf (if (derived-mode-p 'inferior-tcl-mode)
 		  (current-buffer)
 		inferior-tcl-buffer))
 	 (proc (and buf (get-process buf))))
@@ -1510,7 +1506,7 @@ The first line is assumed to look like \"#!.../program ...\"."
 ;; loading the XEmacs menu emulation code.
 ;;
 
-(defun tcl-popup-menu (e)
+(defun tcl-popup-menu (_e)
   (interactive "@e")
   (popup-menu tcl-mode-menu))
 

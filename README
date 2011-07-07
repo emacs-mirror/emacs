@@ -1,5 +1,4 @@
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-  2010  Free Software Foundation, Inc.
+Copyright (C) 2001-2011  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -63,6 +62,7 @@ There are several subdirectories:
 `leim'      holds the library of Emacs input methods, Lisp code and
             auxiliary data files required to type international characters
             which can't be directly produced by your keyboard.
+`lib'       holds source code for libraries used by Emacs and its utilities
 `lib-src'   holds the source code for some utility programs for use by or
             with Emacs, like movemail and etags.
 `etc'       holds miscellaneous architecture-independent data files Emacs
@@ -87,6 +87,14 @@ There are several subdirectories:
    Building Emacs on non-Posix platforms requires tools that aren't part
 of the standard distribution of the OS.  The platform-specific README
 files and installation instructions should list the required tools.
+
+
+NOTE ON COPYRIGHT YEARS
+
+In copyright notices where the copyright holder is the Free Software
+Foundation, then where a range of years appears, this is an inclusive
+range that applies to every year in the range.  For example: 2005-2008
+represents the years 2005, 2006, 2007, and 2008.
 
 
 This file is part of GNU Emacs.

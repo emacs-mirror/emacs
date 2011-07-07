@@ -1,6 +1,6 @@
 /* GNU Emacs case conversion functions.
-   Copyright (C) 1985, 1994, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1994, 1997-1999, 2001-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -32,27 +32,27 @@ enum case_action {CASE_UP, CASE_DOWN, CASE_CAPITALIZE, CASE_CAPITALIZE_UP};
 
 Lisp_Object Qidentity;
 
-Lisp_Object
+static Lisp_Object
 casify_object (enum case_action flag, Lisp_Object obj)
 {
   register int c, c1;
   register int inword = flag == CASE_DOWN;
 
   /* If the case table is flagged as modified, rescan it.  */
-  if (NILP (XCHAR_TABLE (current_buffer->downcase_table)->extras[1]))
-    Fset_case_table (current_buffer->downcase_table);
+  if (NILP (XCHAR_TABLE (BVAR (current_buffer, downcase_table))->extras[1]))
+    Fset_case_table (BVAR (current_buffer, downcase_table));
 
   if (INTEGERP (obj))
     {
       int flagbits = (CHAR_ALT | CHAR_SUPER | CHAR_HYPER
 		      | CHAR_SHIFT | CHAR_CTL | CHAR_META);
       int flags = XINT (obj) & flagbits;
-      int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+      int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
 
       /* If the character has higher bits set
 	 above the flags, return it unchanged.
 	 It is not a real character.  */
-      if ((unsigned) XFASTINT (obj) > (unsigned) flagbits)
+      if (UNSIGNED_CMP (XFASTINT (obj), >, flagbits))
 	return obj;
 
       c1 = XFASTINT (obj) & ~flagbits;
@@ -64,13 +64,13 @@ casify_object (enum case_action flag, Lisp_Object obj)
 	multibyte = 1;
       if (! multibyte)
 	MAKE_CHAR_MULTIBYTE (c1);
-      c = DOWNCASE (c1);
+      c = downcase (c1);
       if (inword)
 	XSETFASTINT (obj, c | flags);
       else if (c == (XFASTINT (obj) & ~flagbits))
 	{
 	  if (! inword)
-	    c = UPCASE1 (c1);
+	    c = upcase1 (c1);
 	  if (! multibyte)
 	    MAKE_CHAR_UNIBYTE (c);
 	  XSETFASTINT (obj, c | flags);
@@ -92,10 +92,10 @@ casify_object (enum case_action flag, Lisp_Object obj)
 	  MAKE_CHAR_MULTIBYTE (c);
 	  c1 = c;
 	  if (inword && flag != CASE_CAPITALIZE_UP)
-	    c = DOWNCASE (c);
-	  else if (!UPPERCASEP (c)
+	    c = downcase (c);
+	  else if (!uppercasep (c)
 		   && (!inword || flag != CASE_CAPITALIZE_UP))
-	    c = UPCASE1 (c1);
+	    c = upcase1 (c1);
 	  if ((int) flag >= (int) CASE_CAPITALIZE)
 	    inword = (SYNTAX (c) == Sword);
 	  if (c != c1)
@@ -133,16 +133,16 @@ casify_object (enum case_action flag, Lisp_Object obj)
 	    }
 	  c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i_byte, len);
 	  if (inword && flag != CASE_CAPITALIZE_UP)
-	    c = DOWNCASE (c);
-	  else if (!UPPERCASEP (c)
+	    c = downcase (c);
+	  else if (!uppercasep (c)
 		   && (!inword || flag != CASE_CAPITALIZE_UP))
-	    c = UPCASE1 (c);
+	    c = upcase1 (c);
 	  if ((int) flag >= (int) CASE_CAPITALIZE)
 	    inword = (SYNTAX (c) == Sword);
 	  o += CHAR_STRING (c, o);
 	}
       eassert (o - dst <= o_size);
-      obj = make_multibyte_string (dst, size, o - dst);
+      obj = make_multibyte_string ((char *) dst, size, o - dst);
       SAFE_FREE ();
       return obj;
     }
@@ -193,15 +193,18 @@ The argument object is not altered--the value is a copy.  */)
 /* flag is CASE_UP, CASE_DOWN or CASE_CAPITALIZE or CASE_CAPITALIZE_UP.
    b and e specify range of buffer to operate on. */
 
-void
+static void
 casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 {
   register int c;
   register int inword = flag == CASE_DOWN;
-  register int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  register int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   EMACS_INT start, end;
-  EMACS_INT start_byte, end_byte;
-  EMACS_INT first = -1, last;	/* Position of first and last changes.  */
+  EMACS_INT start_byte;
+
+  /* Position of first and last changes.  */
+  EMACS_INT first = -1, last IF_LINT (= 0);
+
   EMACS_INT opoint = PT;
   EMACS_INT opoint_byte = PT_BYTE;
 
@@ -210,8 +213,8 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
     return;
 
   /* If the case table is flagged as modified, rescan it.  */
-  if (NILP (XCHAR_TABLE (current_buffer->downcase_table)->extras[1]))
-    Fset_case_table (current_buffer->downcase_table);
+  if (NILP (XCHAR_TABLE (BVAR (current_buffer, downcase_table))->extras[1]))
+    Fset_case_table (BVAR (current_buffer, downcase_table));
 
   validate_region (&b, &e);
   start = XFASTINT (b);
@@ -219,7 +222,6 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   modify_region (current_buffer, start, end, 0);
   record_change (start, end - start);
   start_byte = CHAR_TO_BYTE (start);
-  end_byte = CHAR_TO_BYTE (end);
 
   SETUP_BUFFER_SYNTAX_TABLE();	/* For syntax_prefix_flag_p.  */
 
@@ -240,10 +242,10 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 	}
       c2 = c;
       if (inword && flag != CASE_CAPITALIZE_UP)
-	c = DOWNCASE (c);
-      else if (!UPPERCASEP (c)
+	c = downcase (c);
+      else if (!uppercasep (c)
 	       && (!inword || flag != CASE_CAPITALIZE_UP))
-	c = UPCASE1 (c);
+	c = upcase1 (c);
       if ((int) flag >= (int) CASE_CAPITALIZE)
 	inword = ((SYNTAX (c) == Sword)
 		  && (inword || !syntax_prefix_flag_p (c)));
@@ -279,7 +281,7 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 		     keeping text properties the same.  */
 		  replace_range_2 (start, start_byte,
 				   start + 1, start_byte + len,
-				   str, 1, tolen,
+				   (char *) str, 1, tolen,
 				   0);
 		  len = tolen;
 		}
@@ -415,8 +417,7 @@ With negative argument, capitalize previous words but do not move.  */)
 void
 syms_of_casefiddle (void)
 {
-  Qidentity = intern_c_string ("identity");
-  staticpro (&Qidentity);
+  DEFSYM (Qidentity, "identity");
   defsubr (&Supcase);
   defsubr (&Sdowncase);
   defsubr (&Scapitalize);
@@ -442,6 +443,3 @@ keys_of_casefiddle (void)
   initial_define_key (meta_map, 'l', "downcase-word");
   initial_define_key (meta_map, 'c', "capitalize-word");
 }
-
-/* arch-tag: 60a73c66-5489-47e7-a81f-cead4057c526
-   (do not change this comment) */

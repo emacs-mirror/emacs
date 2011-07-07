@@ -28,4 +28,3 @@
     ("COMBINING LEFTWARDS ARROW OVERLAY" #x20EA)
     ))
 
-;; arch-tag: 4b1f7ef0-287b-49a6-a9f2-910752aac517

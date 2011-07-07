@@ -1,7 +1,6 @@
 ;;; viper-macs.el --- functions implementing keyboard macros for Viper
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1997, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: viper
@@ -932,5 +931,4 @@ name from there."
     (call-last-kbd-macro)))
 
 
-;; arch-tag: ecd3cc5c-8cd0-4bbe-b2ec-7e75a4b7d0aa
 ;;; viper-macs.el ends here

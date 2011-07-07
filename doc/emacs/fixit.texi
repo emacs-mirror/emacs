@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Fixit, Keyboard Macros, Search, Top
 @chapter Commands for Fixing Typos
@@ -347,8 +347,7 @@ Quit interactive spell checking and move point back to where it was
 when you started spell checking.
 
 @item q
-Quit interactive spell checking and kill the Aspell/Ispell/Hunspell
-subprocess.
+Quit interactive spell checking and kill the spell-checker subprocess.
 
 @item ?
 Show the list of options.
@@ -401,16 +400,15 @@ is a spell checking dictionary but no word completion dictionary.
 
 @cindex Flyspell mode
 @findex flyspell-mode
+@findex turn-on-flyspell
   Flyspell mode is a fully-automatic way to check spelling as you edit
 in Emacs.  It operates by checking words as you change or insert them.
 When it finds a word that it does not recognize, it highlights that
 word.  This does not interfere with your editing, but when you see the
 highlighted word, you can move to it and fix it.  Type @kbd{M-x
 flyspell-mode} to enable or disable this mode in the current buffer.
-@findex turn-on-flyspell
-To enable @code{flyspell-mode} in all text mode buffers, add
+To enable Flyspell mode in all text mode buffers, add
 @code{turn-on-flyspell} to @code{text-mode-hook}.
-
 
   When Flyspell mode highlights a word as misspelled, you can click on
 it with @kbd{Mouse-2} to display a menu of possible corrections and
@@ -422,8 +420,5 @@ way you like.
 that it only checks words in comments and string constants.  This
 feature is useful for editing programs.  Type @kbd{M-x
 flyspell-prog-mode} to enable or disable this mode in the current
-buffer.
-
-@ignore
-   arch-tag: 3359a443-96ed-448f-9f05-c8111ba8eac0
-@end ignore
+buffer.  To enable this mode in all programming mode buffers, add
+@code{flyspell-prog-mode} to @code{prog-mode-hook} (@pxref{Hooks}).

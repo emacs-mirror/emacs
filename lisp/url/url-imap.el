@@ -1,6 +1,6 @@
 ;;; url-imap.el --- IMAP retrieval routines
 
-;; Copyright (C) 1999, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2004-2011 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;; Keywords: comm, data, processes
@@ -76,5 +76,4 @@
 	     )))
     (current-buffer)))
 
-;; arch-tag: 034991ff-5425-48ea-b911-c96c90e6f47d
 ;;; url-imap.el ends here

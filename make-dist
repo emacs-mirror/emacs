@@ -1,8 +1,7 @@
 #!/bin/sh
 ### make-dist: create an Emacs distribution tar file from current srcdir
 
-## Copyright (C) 1995, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
-##   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+## Copyright (C) 1995, 1997-1998, 2000-2011  Free Software Foundation, Inc.
 
 ## This file is part of GNU Emacs.
 
@@ -130,7 +129,6 @@ fi
 ### (Accept only absolute file names.)
 if [ $update = yes ];
 then
-  unset EMACS_UNIBYTE
   if [ -f src/emacs ];
   then
     EMACS=`pwd`/src/emacs
@@ -148,7 +146,9 @@ then
 fi
 
 ### Find out which version of Emacs this is.
-version=`sed -n '/char emacs_version/ s/^[^"]*"\([^"]*\)".*$/\1/p' src/emacs.c`
+version=`
+  sed -n 's/^AC_INIT(emacs,[	 ]*\([^	 )]*\).*/\1/p' <configure.in
+` || version=
 if [ ! "${version}" ]; then
   echo "${progname}: can't find current Emacs version in \`./src/emacs.c'" >&2
   exit 1
@@ -286,13 +286,16 @@ echo "Making links to top-level files"
 ln INSTALL README BUGS move-if-change ${tempdir}
 ln ChangeLog Makefile.in configure configure.in ${tempdir}
 ln config.bat make-dist update-subdirs vpath.sed .dir-locals.el ${tempdir}
-ln mkinstalldirs config.sub config.guess install-sh ${tempdir}
+ln config.sub config.guess install-sh ${tempdir}
+ln aclocal.m4 ${tempdir}
+ln compile depcomp missing ${tempdir}
+ln arg-nonnull.h c++defs.h warn-on-use.h ${tempdir}
 
 echo "Creating subdirectories"
 for subdir in site-lisp \
 	      leim leim/CXTERM-DIC leim/MISC-DIC \
 	      leim/SKK-DIC leim/ja-dic leim/quail \
-	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
+	      src src/m src/s src/bitmaps lib lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
 	      `find etc lisp -type d` \
 	      doc doc/emacs doc/misc doc/man doc/lispref doc/lispintro \
@@ -355,7 +358,7 @@ echo "Making links to \`src'"
  ln makefile.w32-in ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
  cd ../${tempdir}/src
- rm -f config.h epaths.h Makefile buildobj.h)
+ rm -f globals.h config.h epaths.h Makefile buildobj.h)
 
 echo "Making links to \`src/bitmaps'"
 (cd src/bitmaps
@@ -369,14 +372,20 @@ echo "Making links to \`src/s'"
 (cd src/s
  ln README [a-zA-Z0-9]*.h ../../${tempdir}/src/s)
 
+echo "Making links to \`lib'"
+(build_aux_h=`(ls *.h)`
+ cd lib
+ ln [a-zA-Z]*.[ch] ../${tempdir}/lib
+ ln gnulib.mk Makefile.am Makefile.in ../${tempdir}/lib
+ cd ../${tempdir}/lib
+ rm -f `(echo "$build_aux_h"; ls *.in.h) | sed '/[*]/d; s/.in.h$/.h/'`)
+
 echo "Making links to \`lib-src'"
 (cd lib-src
  ln [a-zA-Z]*.[ch] ../${tempdir}/lib-src
  ln ChangeLog Makefile.in README testfile vcdiff ../${tempdir}/lib-src
  ln grep-changelog rcs2log rcs-checkin ../${tempdir}/lib-src
- ln makefile.w32-in ../${tempdir}/lib-src
- cd ../${tempdir}/lib-src
- rm -f getopt.h)
+ ln makefile.w32-in ../${tempdir}/lib-src)
 
 echo "Making links to \`m4'"
 (cd m4
@@ -442,7 +451,7 @@ echo "Making links to \`lwlib'"
 echo "Making links to \`etc' and its subdirectories"
 for f in `find etc -type f`; do
   case $f in
-    etc/DOC*) continue ;;
+    etc/DOC*|etc/*.pyc) continue ;;
   esac
   ln $f $tempdir/$f
 done
@@ -478,7 +487,7 @@ echo "Making links to \`doc/man'"
 ### It would be nice if they could all be symlinks to top-level copy, but
 ### you're not supposed to have any symlinks in distribution tar files.
 echo "Making sure copying notices are all copies of \`COPYING'"
-for subdir in . etc info leim lib-src lisp lwlib msdos nt src; do
+for subdir in . etc info leim lib lib-src lisp lwlib msdos nt src; do
   rm -f ${tempdir}/${subdir}/COPYING
   cp COPYING ${tempdir}/${subdir}
 done

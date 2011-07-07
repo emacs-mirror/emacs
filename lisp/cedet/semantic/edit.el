@@ -1,7 +1,6 @@
 ;;; semantic/edit.el --- Edit Management for Semantic
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -427,7 +426,7 @@ See `semantic-edits-change-leaf-tag' for details on parents."
 	    ;; confirmed as the lineage of `overlapped-tags'
 	    ;; which must have a value by now.
 
-	    ;; Loop over the search list to find the preceeding CDR.
+	    ;; Loop over the search list to find the preceding CDR.
 	    ;; Fortunatly, (car overlapped-tags) happens to be
 	    ;; the first tag positionally.
 	    (let ((tokstart (semantic-tag-start (car overlapped-tags))))
@@ -875,7 +874,7 @@ pre-positioned to a convenient location."
 	    ))
       (message "To Remove Middle Tag: (%s)"
 	       (semantic-format-tag-name first)))
-    ;; Find in the cache the preceeding tag
+    ;; Find in the cache the preceding tag
     (while (and cachestart (not (eq first (car (cdr cachestart)))))
       (setq cachestart (cdr cachestart)))
     ;; Find the last tag
@@ -966,5 +965,4 @@ lost if not transferred into NEWTAG."
 ;; generated-autoload-load-name: "semantic/edit"
 ;; End:
 
-;; arch-tag: 91c7fbf0-a418-4220-a90a-b58c74b450e3
 ;;; semantic/edit.el ends here

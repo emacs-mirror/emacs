@@ -1,7 +1,7 @@
 ;;; telnet.el --- run a telnet session from within an Emacs buffer
 
-;; Copyright (C) 1985, 1988, 1992, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1988, 1992, 1994, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: William F. Schelter
 ;; Maintainer: FSF
@@ -263,5 +263,4 @@ Normally input is edited in Emacs and sent a line at a time."
 
 (provide 'telnet)
 
-;; arch-tag: 98218821-d04a-48b6-9058-57d0d4677a56
 ;;; telnet.el ends here

@@ -1,6 +1,5 @@
 /* Asynchronous timers.
-   Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,10 +25,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include "blockinput.h"
 #include "atimer.h"
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
@@ -68,7 +64,7 @@ static void set_alarm (void);
 static void schedule_atimer (struct atimer *);
 static struct atimer *append_atimer_lists (struct atimer *,
                                            struct atimer *);
-SIGTYPE alarm_signal_handler (int signo);
+static void alarm_signal_handler (int signo);
 
 
 /* Start a new atimer of type TYPE.  TIME specifies when the timer is
@@ -90,7 +86,7 @@ SIGTYPE alarm_signal_handler (int signo);
    to cancel_atimer; don't free it yourself.  */
 
 struct atimer *
-start_atimer (enum atimer_type type, EMACS_TIME time, atimer_callback fn,
+start_atimer (enum atimer_type type, EMACS_TIME timestamp, atimer_callback fn,
 	      void *client_data)
 {
   struct atimer *t;
@@ -98,10 +94,10 @@ start_atimer (enum atimer_type type, EMACS_TIME time, atimer_callback fn,
   /* Round TIME up to the next full second if we don't have
      itimers.  */
 #ifndef HAVE_SETITIMER
-  if (EMACS_USECS (time) != 0)
+  if (EMACS_USECS (timestamp) != 0)
     {
-      EMACS_SET_USECS (time, 0);
-      EMACS_SET_SECS (time, EMACS_SECS (time) + 1);
+      EMACS_SET_USECS (timestamp, 0);
+      EMACS_SET_SECS (timestamp, EMACS_SECS (timestamp) + 1);
     }
 #endif /* not HAVE_SETITIMER */
 
@@ -127,18 +123,18 @@ start_atimer (enum atimer_type type, EMACS_TIME time, atimer_callback fn,
   switch (type)
     {
     case ATIMER_ABSOLUTE:
-      t->expiration = time;
+      t->expiration = timestamp;
       break;
 
     case ATIMER_RELATIVE:
       EMACS_GET_TIME (t->expiration);
-      EMACS_ADD_TIME (t->expiration, t->expiration, time);
+      EMACS_ADD_TIME (t->expiration, t->expiration, timestamp);
       break;
 
     case ATIMER_CONTINUOUS:
       EMACS_GET_TIME (t->expiration);
-      EMACS_ADD_TIME (t->expiration, t->expiration, time);
-      t->interval = time;
+      EMACS_ADD_TIME (t->expiration, t->expiration, timestamp);
+      t->interval = timestamp;
       break;
     }
 
@@ -191,24 +187,24 @@ cancel_atimer (struct atimer *timer)
 }
 
 
-/* Append two lists of atimers LIST1 and LIST2 and return the
+/* Append two lists of atimers LIST_1 and LIST_2 and return the
    result list.  */
 
 static struct atimer *
-append_atimer_lists (struct atimer *list1, struct atimer *list2)
+append_atimer_lists (struct atimer *list_1, struct atimer *list_2)
 {
-  if (list1 == NULL)
-    return list2;
-  else if (list2 == NULL)
-    return list1;
+  if (list_1 == NULL)
+    return list_2;
+  else if (list_2 == NULL)
+    return list_1;
   else
     {
       struct atimer *p;
 
-      for (p = list1; p->next; p = p->next)
+      for (p = list_1; p->next; p = p->next)
 	;
-      p->next = list2;
-      return list1;
+      p->next = list_2;
+      return list_1;
     }
 }
 
@@ -250,7 +246,7 @@ stop_other_atimers (struct atimer *t)
 /* Run all timers again, if some have been stopped with a call to
    stop_other_atimers.  */
 
-void
+static void
 run_all_atimers (void)
 {
   if (stopped_atimers)
@@ -274,7 +270,7 @@ run_all_atimers (void)
 }
 
 
-/* A version of run_all_timers suitable for a record_unwind_protect.  */
+/* A version of run_all_atimers suitable for a record_unwind_protect.  */
 
 Lisp_Object
 unwind_stop_other_atimers (Lisp_Object dummy)
@@ -291,28 +287,28 @@ set_alarm (void)
 {
   if (atimers)
     {
-      EMACS_TIME now, time;
+      EMACS_TIME now, timestamp;
 #ifdef HAVE_SETITIMER
       struct itimerval it;
 #endif
 
       /* Determine s/us till the next timer is ripe.  */
       EMACS_GET_TIME (now);
-      EMACS_SUB_TIME (time, atimers->expiration, now);
+      EMACS_SUB_TIME (timestamp, atimers->expiration, now);
 
 #ifdef HAVE_SETITIMER
       /* Don't set the interval to 0; this disables the timer.  */
       if (EMACS_TIME_LE (atimers->expiration, now))
 	{
-	  EMACS_SET_SECS (time, 0);
-	  EMACS_SET_USECS (time, 1000);
+	  EMACS_SET_SECS (timestamp, 0);
+	  EMACS_SET_USECS (timestamp, 1000);
 	}
 
       memset (&it, 0, sizeof it);
-      it.it_value = time;
+      it.it_value = timestamp;
       setitimer (ITIMER_REAL, &it, 0);
 #else /* not HAVE_SETITIMER */
-      alarm (max (EMACS_SECS (time), 1));
+      alarm (max (EMACS_SECS (timestamp), 1));
 #endif /* not HAVE_SETITIMER */
     }
 }
@@ -392,7 +388,7 @@ run_timers (void)
 /* Signal handler for SIGALRM.  SIGNO is the signal number, i.e.
    SIGALRM.  */
 
-SIGTYPE
+void
 alarm_signal_handler (int signo)
 {
 #ifndef SYNC_INPUT
@@ -446,6 +442,3 @@ init_atimer (void)
   /* pending_signals is initialized in init_keyboard.*/
   signal (SIGALRM, alarm_signal_handler);
 }
-
-/* arch-tag: e6308261-eec6-404b-89fb-6e5909518d70
-   (do not change this comment) */

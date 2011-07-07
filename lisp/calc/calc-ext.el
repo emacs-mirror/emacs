@@ -1,7 +1,6 @@
 ;;; calc-ext.el --- various extension functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -136,8 +135,6 @@
   (define-key calc-mode-map "\C-w" 'calc-kill-region)
   (define-key calc-mode-map "\M-w" 'calc-copy-region-as-kill)
   (define-key calc-mode-map "\M-\C-w" 'kill-ring-save)
-  (define-key calc-mode-map "\C-_" 'calc-undo)
-  (define-key calc-mode-map "\C-xu" 'calc-undo)
   (define-key calc-mode-map "\M-\C-m" 'calc-last-args)
 
   (define-key calc-mode-map "a" nil)
@@ -423,6 +420,20 @@
   (define-key calc-mode-map "kN" 'calc-utpn)
   (define-key calc-mode-map "kP" 'calc-utpp)
   (define-key calc-mode-map "kT" 'calc-utpt)
+
+  (define-key calc-mode-map "l" nil)
+  (define-key calc-mode-map "lq" 'calc-lu-quant)
+  (define-key calc-mode-map "ld" 'calc-db)
+  (define-key calc-mode-map "ln" 'calc-np)
+  (define-key calc-mode-map "l+" 'calc-lu-plus)
+  (define-key calc-mode-map "l-" 'calc-lu-minus)
+  (define-key calc-mode-map "l*" 'calc-lu-times)
+  (define-key calc-mode-map "l/" 'calc-lu-divide)
+  (define-key calc-mode-map "ls" 'calc-spn)
+  (define-key calc-mode-map "lm" 'calc-midi)
+  (define-key calc-mode-map "lf" 'calc-freq)
+  
+  (define-key calc-mode-map "l?" 'calc-l-prefix-help)
 
   (define-key calc-mode-map "m" nil)
   (define-key calc-mode-map "m?" 'calc-m-prefix-help)
@@ -932,7 +943,11 @@ calc-store-value calc-var-name)
  ("calc-stuff" calc-explain-why calcFunc-clean
 calcFunc-pclean calcFunc-pfloat calcFunc-pfrac)
 
- ("calc-units" calcFunc-usimplify
+ ("calc-units" calcFunc-usimplify calcFunc-lufadd calcFunc-lupadd
+calcFunc-lufsub calcFunc-lupsub calcFunc-lufmul calcFunc-lupmul
+calcFunc-lufdiv calcFunc-lupdiv calcFunc-lufquant calcFunc-lupquant
+calcFunc-dbfield calcFunc-dbpower calcFunc-npfield
+calcFunc-nppower calcFunc-spn calcFunc-midi calcFunc-freq
 math-build-units-table math-build-units-table-buffer
 math-check-unit-name math-convert-temperature math-convert-units
 math-extract-units math-remove-units math-simplify-units
@@ -1049,7 +1064,8 @@ calc-full-help calc-g-prefix-help calc-help-prefix
 calc-hyperbolic-prefix-help calc-inv-hyp-prefix-help calc-option-prefix-help
 calc-inverse-prefix-help calc-j-prefix-help calc-k-prefix-help
 calc-m-prefix-help calc-r-prefix-help calc-s-prefix-help
-calc-t-prefix-help calc-u-prefix-help calc-v-prefix-help)
+calc-t-prefix-help calc-u-prefix-help calc-l-prefix-help
+calc-v-prefix-help)
 
  ("calc-incom" calc-begin-complex calc-begin-vector calc-comma
 calc-dots calc-end-complex calc-end-vector calc-semi)
@@ -1156,14 +1172,17 @@ calc-trail-kill calc-trail-last calc-trail-marker calc-trail-next
 calc-trail-out calc-trail-previous calc-trail-scroll-left
 calc-trail-scroll-right calc-trail-yank)
 
- ("calc-undo" calc-last-args calc-redo calc-undo)
+ ("calc-undo" calc-last-args calc-redo)
 
  ("calc-units" calc-autorange-units calc-base-units
 calc-convert-temperature calc-convert-units calc-define-unit
 calc-enter-units-table calc-explain-units calc-extract-units
 calc-get-unit-definition calc-permanent-units calc-quick-units
 calc-remove-units calc-simplify-units calc-undefine-unit
-calc-view-units-table)
+calc-view-units-table calc-lu-quant calc-db
+calc-np calc-lu-plus calc-lu-minus
+calc-lu-times calc-lu-divide calc-spn calc-midi
+calc-freq)
 
  ("calc-vec" calc-arrange-vector calc-build-vector calc-cnorm
 calc-conj-transpose calc-cons calc-cross calc-kron calc-diag
@@ -2853,33 +2872,25 @@ If X is not an error form, return 1."
 
 (defmacro math-defintegral (funcs &rest code)
   (setq math-integral-cache nil)
-  (append '(progn)
-	  (mapcar (function
-		   (lambda (func)
-		     (list 'put (list 'quote func) ''math-integral
-			   (list 'nconc
-				 (list 'get (list 'quote func) ''math-integral)
-				 (list 'list
-				       (list 'function
-					     (append '(lambda (u))
-						     code)))))))
-		  (if (symbolp funcs) (list funcs) funcs))))
+  (cons 'progn
+        (mapcar #'(lambda (func)
+                    `(put ',func 'math-integral
+                          (nconc
+                           (get ',func 'math-integral)
+                           (list
+                            #'(lambda (u) ,@code)))))
+                (if (symbolp funcs) (list funcs) funcs))))
 (put 'math-defintegral 'lisp-indent-hook 1)
 
 (defmacro math-defintegral-2 (funcs &rest code)
   (setq math-integral-cache nil)
-  (append '(progn)
-	  (mapcar (function
-		   (lambda (func)
-		     (list 'put (list 'quote func) ''math-integral-2
-			   (list 'nconc
-				 (list 'get (list 'quote func)
-				       ''math-integral-2)
-				 (list 'list
-				       (list 'function
-					     (append '(lambda (u v))
-						     code)))))))
-		  (if (symbolp funcs) (list funcs) funcs))))
+  (cons 'progn
+        (mapcar #'(lambda (func)
+                    `(put ',func 'math-integral-2
+                          `(nconc
+                            (get ',func 'math-integral-2)
+                            (list #'(lambda (u v) ,@code)))))
+                (if (symbolp funcs) (list funcs) funcs))))
 (put 'math-defintegral-2 'lisp-indent-hook 1)
 
 (defvar var-IntegAfterRules 'calc-IntegAfterRules)
@@ -3504,5 +3515,4 @@ A key may contain additional specs for Inverse, Hyperbolic, and Inv+Hyp.")
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: 1814ba7f-a390-49dc-9e25-a5adc205e97e
 ;;; calc-ext.el ends here

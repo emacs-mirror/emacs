@@ -66,5 +66,3 @@ XMenuChangePane(register XMenu *menu, register int p_num, char *label)
     return(p_num);
 }
 
-/* arch-tag: e267e9de-a3f0-4a0d-8c45-413afa176fd8
-   (do not change this comment) */

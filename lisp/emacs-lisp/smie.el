@@ -1,6 +1,6 @@
-;;; smie.el --- Simple Minded Indentation Engine
+;;; smie.el --- Simple Minded Indentation Engine -*- lexical-binding: t -*-
 
-;; Copyright (C) 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: languages, lisp, internal, parsing, indentation
@@ -76,8 +76,6 @@
 
 ;; TODO & BUGS:
 ;;
-;; - FIXME: I think the behavior on empty lines is wrong.  It shouldn't
-;;   look at the next token on subsequent lines.
 ;; - Using the structural information SMIE gives us, it should be possible to
 ;;   implement a `smie-align' command that would automatically figure out what
 ;;   there is to align and how to do it (something like: align the token of
@@ -86,6 +84,26 @@
 ;; - Maybe accept two juxtaposed non-terminals in the BNF under the condition
 ;;   that the first always ends with a terminal, or that the second always
 ;;   starts with a terminal.
+;; - Permit EBNF-style notation.
+;; - If the grammar has conflicts, the only way is to make the lexer return
+;;   different tokens for the different cases.  This extra work performed by
+;;   the lexer can be costly and unnecessary: we perform this extra work every
+;;   time we find the conflicting token, regardless of whether or not the
+;;   difference between the various situations is relevant to the current
+;;   situation.  E.g. we may try to determine whether a ";" is a ";-operator"
+;;   or a ";-separator" in a case where we're skipping over a "begin..end" pair
+;;   where the difference doesn't matter.  For frequently occurring tokens and
+;;   rarely occurring conflicts, this can be a significant performance problem.
+;;   We could try and let the lexer return a "set of possible tokens
+;;   plus a refinement function" and then let parser call the refinement
+;;   function if needed.
+;; - Make it possible to better specify the behavior in the face of
+;;   syntax errors.  IOW provide some control over the choice of precedence
+;;   levels within the limits of the constraints.  E.g. make it possible for
+;;   the grammar to specify that "begin..end" has lower precedence than
+;;   "Module..EndModule", so that if a "begin" is missing, scanning from the
+;;   "end" will stop at "Module" rather than going past it (and similarly,
+;;   scanning from "Module" should not stop at a spurious "end").
 
 ;;; Code:
 
@@ -180,7 +198,7 @@ one of those elements share the same precedence level and associativity."
   ;; Maybe also add (or <elem1> <elem2>...) for things like
   ;; (exp (exp (or "+" "*" "=" ..) exp)).
   ;; Basically, make it EBNF (except for the specification of a separator in
-  ;; the repetition).
+  ;; the repetition, maybe).
   (let ((nts (mapcar 'car bnf))         ;Non-terminals
         (first-ops-table ())
         (last-ops-table ())
@@ -211,14 +229,18 @@ one of those elements share the same precedence level and associativity."
               ;; the trouble, and it lets the writer of the BNF
               ;; be a bit more sloppy by skipping uninteresting base
               ;; cases which are terminals but not OPs.
-              (assert (not (member (cadr rhs) nts)))
+              (when (member (cadr rhs) nts)
+                (error "Adjacent non-terminals: %s %s"
+                       (car rhs) (cadr rhs)))
               (pushnew (cadr rhs) first-ops)))
           (let ((shr (reverse rhs)))
             (if (not (member (car shr) nts))
                 (pushnew (car shr) last-ops)
               (pushnew (car shr) last-nts)
               (when (consp (cdr shr))
-                (assert (not (member (cadr shr) nts)))
+                (when (member (cadr shr) nts)
+                  (error "Adjacent non-terminals: %s %s"
+                         (cadr shr) (car shr)))
                 (pushnew (cadr shr) last-ops)))))
         (push (cons nt first-ops) first-ops-table)
         (push (cons nt last-ops) last-ops-table)
@@ -470,7 +492,7 @@ PREC2 is a table as returned by `smie-precs->prec2' or
               (to (cdar eqs)))
           (setq eqs (cdr eqs))
           (if (eq to from)
-              nil                   ;Nothing to do.
+              nil                       ;Nothing to do.
             (dolist (other-eq eqs)
               (if (eq from (cdr other-eq)) (setcdr other-eq to))
               (when (eq from (car other-eq))
@@ -523,24 +545,23 @@ PREC2 is a table as returned by `smie-precs->prec2' or
         (setcar (car eq) (cadr eq))
         ;; (smie-check-grammar table prec2 'step2)
         )
-      ;; Finally, fill in the remaining vars (which only appeared on the
-      ;; right side of the < constraints).
-      (let ((classification-table (gethash :smie-open/close-alist prec2)))
-        (dolist (x table)
-          ;; When both sides are nil, it means this operator binds very
-          ;; very tight, but it's still just an operator, so we give it
-          ;; the highest precedence.
-          ;; OTOH if only one side is nil, it usually means it's like an
-          ;; open-paren, which is very important for indentation purposes,
-          ;; so we keep it nil if so, to make it easier to recognize.
-          (unless (or (nth 1 x)
-                      (eq 'opener (cdr (assoc (car x) classification-table))))
-            (setf (nth 1 x) i)
-            (incf i))                   ;See other (incf i) above.
-          (unless (or (nth 2 x)
-                      (eq 'closer (cdr (assoc (car x) classification-table))))
-            (setf (nth 2 x) i)
-            (incf i)))))                ;See other (incf i) above.
+      ;; Finally, fill in the remaining vars (which did not appear on the
+      ;; left side of any < constraint).
+      (dolist (x table)
+        (unless (nth 1 x)
+          (setf (nth 1 x) i)
+          (incf i))                     ;See other (incf i) above.
+        (unless (nth 2 x)
+          (setf (nth 2 x) i)
+          (incf i))))                   ;See other (incf i) above.
+    ;; Mark closers and openers.
+    (dolist (x (gethash :smie-open/close-alist prec2))
+      (let* ((token (car x))
+             (cons (case (cdr x)
+                     (closer (cddr (assoc token table)))
+                     (opener (cdr (assoc token table))))))
+        (assert (numberp (car cons)))
+        (setf (car cons) (list (car cons)))))
     (let ((ca (gethash :smie-closer-alist prec2)))
       (when ca (push (cons :smie-closer-alist ca) table)))
     ;; (smie-check-grammar table prec2 'step3)
@@ -611,6 +632,8 @@ OP-FORW is the accessor to the forward level of the level data.
 OP-BACK is the accessor to the backward level of the level data.
 HALFSEXP if non-nil, means skip over a partial sexp if needed.  I.e. if the
 first token we see is an operator, skip over its left-hand-side argument.
+HALFSEXP can also be a token, in which case it means to parse as if
+we had just successfully passed this token.
 Possible return values:
   (FORW-LEVEL POS TOKEN): we couldn't skip TOKEN because its back-level
     is too high.  FORW-LEVEL is the forw-level of TOKEN,
@@ -619,7 +642,10 @@ Possible return values:
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
   (catch 'return
-    (let ((levels ()))
+    (let ((levels
+           (if (stringp halfsexp)
+               (prog1 (list (cdr (assoc halfsexp smie-grammar)))
+                 (setq halfsexp nil)))))
       (while
           (let* ((pos (point))
                  (token (funcall next-token))
@@ -697,6 +723,8 @@ Possible return values:
   "Skip over one sexp.
 HALFSEXP if non-nil, means skip over a partial sexp if needed.  I.e. if the
 first token we see is an operator, skip over its left-hand-side argument.
+HALFSEXP can also be a token, in which case we should skip the text
+assuming it is the left-hand-side argument of that token.
 Possible return values:
   (LEFT-LEVEL POS TOKEN): we couldn't skip TOKEN because its right-level
     is too high.  LEFT-LEVEL is the left-level of TOKEN,
@@ -714,7 +742,9 @@ Possible return values:
 (defun smie-forward-sexp (&optional halfsexp)
   "Skip over one sexp.
 HALFSEXP if non-nil, means skip over a partial sexp if needed.  I.e. if the
-first token we see is an operator, skip over its left-hand-side argument.
+first token we see is an operator, skip over its right-hand-side argument.
+HALFSEXP can also be a token, in which case we should skip the text
+assuming it is the right-hand-side argument of that token.
 Possible return values:
   (RIGHT-LEVEL POS TOKEN): we couldn't skip TOKEN because its left-level
     is too high.  RIGHT-LEVEL is the right-level of TOKEN,
@@ -791,7 +821,7 @@ Possible return values:
                            (push (car other) found))))))
                  (cond
                   ((null found) (error "No known closer for opener %s" open))
-                  ;; FIXME: what should we do if there are various closers?
+                  ;; What should we do if there are various closers?
                   (t (car found))))))))))
     (unless (save-excursion (skip-chars-backward " \t") (bolp))
       (newline))
@@ -909,7 +939,7 @@ This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'.
                      ;; anything else than this trigger char, lest we'd blink
                      ;; both when inserting the trigger char and when
                      ;; inserting a subsequent trigger char like SPC.
-                     (or (eq (point) pos)
+                     (or (eq (char-before) last-command-event)
                          (not (memq (char-before)
                                     smie-blink-matching-triggers)))
                      (or smie-blink-matching-inners
@@ -992,7 +1022,10 @@ the beginning of a line."
           (unless (numberp (cadr (assoc tok smie-grammar)))
             (goto-char pos))
           (setq smie--parent
-                (smie-backward-sexp 'halfsexp))))))
+                (or (smie-backward-sexp 'halfsexp)
+                    (let (res)
+                      (while (null (setq res (smie-backward-sexp))))
+                      (list nil (point) (nth 2 res)))))))))
 
 (defun smie-rule-parent-p (&rest parents)
   "Return non-nil if the current token's parent is among PARENTS.
@@ -1094,9 +1127,6 @@ Only meaningful when called from within `smie-rules-function'."
   ;; line, in which case we want to align it with its enclosing parent.
   (cond
    ((and (eq method :before) (smie-rule-bolp) (not (smie-rule-sibling-p)))
-    ;; FIXME: Rather than consult the number of spaces, we could *set* the
-    ;; number of spaces so as to align the separator with the close-paren
-    ;; while aligning the content with the rest.
     (let ((parent-col (cdr (smie-rule-parent)))
           (parent-pos-col     ;FIXME: we knew this when computing smie--parent.
            (save-excursion
@@ -1225,39 +1255,48 @@ in order to figure out the indentation of some other (further down) point."
             (smie-indent-virtual))      ;:not-hanging
         (scan-error nil)))))
 
-(defun smie-indent-keyword ()
-  ;; Align closing token with the corresponding opening one.
-  ;; (e.g. "of" with "case", or "in" with "let").
+(defun smie-indent-keyword (&optional token)
+  "Indent point based on the token that follows it immediately.
+If TOKEN is non-nil, assume that that is the token that follows point.
+Returns either a column number or nil if it considers that indentation
+should not be computed on the basis of the following token."
   (save-excursion
     (let* ((pos (point))
-           (toklevels (smie-indent-forward-token))
-           (token (pop toklevels)))
+           (toklevels
+            (if token
+                (assoc token smie-grammar)
+              (let* ((res (smie-indent-forward-token)))
+                ;; Ignore tokens on subsequent lines.
+                (if (and (< pos (line-beginning-position))
+                         ;; Make sure `token' also *starts* on another line.
+                         (save-excursion
+                           (smie-indent-backward-token)
+                           (< pos (line-beginning-position))))
+                    nil
+                  (goto-char pos)
+                  res)))))
+      (setq token (pop toklevels))
       (cond
-       ((< pos (line-beginning-position))
-        ;; The token we just read is actually not on the line where we started.
-        nil)
+       ((null (cdr toklevels)) nil)     ;Not a keyword.
        ((not (numberp (car toklevels)))
-        (save-excursion
-          (goto-char pos)
-          ;; Different cases:
-          ;; - smie-indent--bolp: "indent according to others".
-          ;; - common hanging: "indent according to others".
-          ;; - SML-let hanging: "indent like parent".
-          ;; - if-after-else: "indent-like parent".
-          ;; - middle-of-line: "trust current position".
-          (cond
-           ((null (cdr toklevels)) nil) ;Not a keyword.
-           ((smie-indent--rule :before token))
-           ((smie-indent--bolp)         ;I.e. non-virtual indent.
-            ;; For an open-paren-like thingy at BOL, always indent only
-            ;; based on other rules (typically smie-indent-after-keyword).
-            nil)
-           (t
-            ;; By default use point unless we're hanging.
-            (unless (smie-indent--hanging-p) (current-column))))))
+        ;; Different cases:
+        ;; - smie-indent--bolp: "indent according to others".
+        ;; - common hanging: "indent according to others".
+        ;; - SML-let hanging: "indent like parent".
+        ;; - if-after-else: "indent-like parent".
+        ;; - middle-of-line: "trust current position".
+        (cond
+         ((smie-indent--rule :before token))
+         ((smie-indent--bolp)           ;I.e. non-virtual indent.
+          ;; For an open-paren-like thingy at BOL, always indent only
+          ;; based on other rules (typically smie-indent-after-keyword).
+          nil)
+         (t
+          ;; By default use point unless we're hanging.
+          (unless (smie-indent--hanging-p) (current-column)))))
        (t
         ;; FIXME: This still looks too much like black magic!!
-        (let* ((parent (smie-backward-sexp 'halfsexp)))
+        (let* ((parent (smie-backward-sexp token)))
           ;; Different behaviors:
           ;; - align with parent.
           ;; - parent + offset.
@@ -1391,6 +1430,10 @@ in order to figure out the indentation of some other (further down) point."
   (and (nth 4 (syntax-ppss))
        'noindent))
 
+(defun smie-indent-inside-string ()
+  (and (nth 3 (syntax-ppss))
+       'noindent))
+
 (defun smie-indent-after-keyword ()
   ;; Indentation right after a special keyword.
   (save-excursion
@@ -1464,8 +1507,9 @@ in order to figure out the indentation of some other (further down) point."
 
 (defvar smie-indent-functions
   '(smie-indent-fixindent smie-indent-bob smie-indent-close
-                          smie-indent-comment smie-indent-comment-continue smie-indent-comment-close
-                          smie-indent-comment-inside smie-indent-keyword smie-indent-after-keyword
+    smie-indent-comment smie-indent-comment-continue smie-indent-comment-close
+    smie-indent-comment-inside smie-indent-inside-string
+    smie-indent-keyword smie-indent-after-keyword
                           smie-indent-exps)
   "Functions to compute the indentation.
 Each function is called with no argument, shouldn't move point, and should

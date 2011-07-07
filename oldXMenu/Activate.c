@@ -3,8 +3,7 @@
 #include "copyright.h"
 
 /*
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -123,7 +122,7 @@ XMenuActivate(
     int y_pos,				/* Y coordinate of menu position. */
     unsigned int event_mask,		/* Mouse button event mask. */
     char **data,			/* Pointer to return data value. */
-    void (* help_callback) (char *, int, int)) /* Help callback.  */
+    void (*help_callback) (char const *, int, int)) /* Help callback.  */
 {
     int status;				/* X routine call status. */
     int orig_x;				/* Upper left menu origin X coord. */
@@ -607,6 +606,3 @@ XMenuActivate(
     return(ret_val);
 
 }
-
-/* arch-tag: 6b90b578-ecea-4328-b460-a0c96963f872
-   (do not change this comment) */

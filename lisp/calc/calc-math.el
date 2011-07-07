@@ -1,7 +1,6 @@
 ;;; calc-math.el --- mathematical functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -1575,7 +1574,7 @@ If this can't be done, return NIL."
 	 (if calc-infinite-mode
 	     '(neg (var inf var-inf))
 	   (math-reject-arg x "*Logarithm of zero")))
-	(calc-symbolic-mode (signal 'inexact-result nil))
+        (calc-symbolic-mode (signal 'inexact-result nil))
 	((Math-numberp x)
 	 (math-with-extra-prec 2
 	   (let ((xf (math-float x)))
@@ -2165,5 +2164,4 @@ If this can't be done, return NIL."
 
 (provide 'calc-math)
 
-;; arch-tag: c7367e8e-d0b8-4f70-8577-2fb3f31dbb4c
 ;;; calc-math.el ends here

@@ -1,8 +1,6 @@
 ;;; font-lock.el --- Electric font lock mode
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992-2011  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski
 ;;	Richard Stallman
@@ -276,13 +274,14 @@ decoration for buffers in C++ mode, and level 1 decoration otherwise."
 				      (integer :tag "level" 1)))))
   :group 'font-lock)
 
-(defcustom font-lock-verbose 0
+(defcustom font-lock-verbose nil
   "If non-nil, means show status messages for buffer fontification.
 If a number, only buffers greater than this size have fontification messages."
   :type '(choice (const :tag "never" nil)
 		 (other :tag "always" t)
 		 (integer :tag "size"))
-  :group 'font-lock)
+  :group 'font-lock
+  :version "24.1")
 
 
 ;; Originally these variable values were face names such as `bold' etc.
@@ -564,7 +563,7 @@ we recommend setting `syntax-begin-function' instead.
 
 This is normally set via `font-lock-defaults'.")
 (make-obsolete-variable 'font-lock-beginning-of-syntax-function
-                        'syntax-begin-function "23.3")
+                        'syntax-begin-function "23.3" 'set)
 
 (defvar font-lock-mark-block-function nil
   "*Non-nil means use this function to mark a block of text.
@@ -1766,8 +1765,7 @@ variables directly.
 Note: This function will erase modifications done by
 `font-lock-add-keywords' or `font-lock-remove-keywords', but will
 preserve `hi-lock-mode' highlighting patterns."
-  (let ((hi-lock--inhibit-font-lock-hook t))
-    (font-lock-mode -1))
+  (font-lock-mode -1)
   (kill-local-variable 'font-lock-set-defaults)
   (font-lock-mode 1))
 
@@ -1906,7 +1904,7 @@ Sets various variables using `font-lock-defaults' and
 (defface font-lock-builtin-face
   '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
     (((class grayscale) (background dark)) (:foreground "DimGray" :weight bold))
-    (((class color) (min-colors 88) (background light)) (:foreground "MediumOrchid4"))
+    (((class color) (min-colors 88) (background light)) (:foreground "dark slate blue"))
     (((class color) (min-colors 88) (background dark)) (:foreground "LightSteelBlue"))
     (((class color) (min-colors 16) (background light)) (:foreground "Orchid"))
     (((class color) (min-colors 16) (background dark)) (:foreground "LightSteelBlue"))
@@ -2243,7 +2241,7 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		"\\)\\)\\>"
 		;; Any whitespace and defined object.
 		"[ \t'\(]*"
-		"\\(setf[ \t]+\\sw+)\\|\\sw+\\)?")
+		"\\(setf[ \t]+\\sw+\\|\\sw+\\)?")
        (1 font-lock-keyword-face)
        (9 (cond ((match-beginning 3) font-lock-function-name-face)
 		((match-beginning 6) font-lock-variable-name-face)

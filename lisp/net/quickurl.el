@@ -1,7 +1,6 @@
 ;;; quickurl.el --- insert an URL based on text at point in buffer
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Maintainer: Dave Pearson <davep@davep.org>
@@ -512,15 +511,15 @@ TYPE dictates what will be inserted, options are:
         (with-current-buffer quickurl-list-last-buffer
           (insert
            (case type
-             ('url         (funcall quickurl-format-function url))
-             ('naked-url   (quickurl-url-url url))
-             ('with-lookup (format "%s <URL:%s>"
+             (url         (funcall quickurl-format-function url))
+             (naked-url   (quickurl-url-url url))
+             (with-lookup (format "%s <URL:%s>"
                                    (quickurl-url-keyword url)
                                    (quickurl-url-url url)))
-             ('with-desc   (format "%S <URL:%s>"
+             (with-desc   (format "%S <URL:%s>"
                                    (quickurl-url-description url)
                                    (quickurl-url-url url)))
-             ('lookup      (quickurl-url-keyword url)))))
+             (lookup      (quickurl-url-keyword url)))))
       (error "No URL details on that line"))
     url))
 

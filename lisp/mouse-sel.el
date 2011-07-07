@@ -1,7 +1,6 @@
 ;;; mouse-sel.el --- multi-click selection support
 
-;; Copyright (C) 1993, 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1995, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mdub@bigfoot.com>
 ;; Keywords: mouse
@@ -549,7 +548,6 @@ See documentation for mouse-select-internal for more details."
 	  (let* ((thing-symbol (mouse-sel-selection-thing selection))
 		 (overlay (mouse-sel-selection-overlay selection))
 		 (orig-window (selected-window))
-		 (orig-window-frame (window-frame orig-window))
 		 (top (nth 1 (window-edges orig-window)))
 		 (bottom (nth 3 (window-edges orig-window)))
 		 (mark-active nil)	; inhibit normal region highlight

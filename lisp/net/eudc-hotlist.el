@@ -1,7 +1,6 @@
 ;;; eudc-hotlist.el --- hotlist management for EUDC
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -90,7 +89,7 @@ These are the special commands of this mode:
 	    "------" gap "--------\n"
 	    "\n")
     (setq eudc-hotlist-list-beginning (point))
-    (mapc '(lambda (entry)
+    (mapc (lambda (entry)
 	     (insert (car entry))
 	     (indent-to proto-col)
 	     (insert (symbol-name (cdr entry)) "\n"))
@@ -104,7 +103,7 @@ These are the special commands of this mode:
       (error "Not in a EUDC hotlist edit buffer"))
   (let ((server (read-from-minibuffer "Server: "))
 	(protocol (completing-read "Protocol: "
-				   (mapcar '(lambda (elt)
+				   (mapcar (lambda (elt)
 					      (cons (symbol-name elt)
 						    elt))
 					   eudc-known-protocols)))
@@ -194,5 +193,4 @@ These are the special commands of this mode:
     ""
     eudc-hotlist-menu))
 
-;; arch-tag: 9b633ab3-6a6e-4b46-b12e-d96739a7e0e8
 ;;; eudc-hotlist.el ends here

@@ -1,7 +1,6 @@
 ;;; unrmail.el --- convert Rmail Babyl files to mailbox files
 
-;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -245,5 +244,4 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 
 (provide 'unrmail)
 
-;; arch-tag: 14c6290d-60b2-456f-8909-5c2387de6acb
 ;;; unrmail.el ends here

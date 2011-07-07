@@ -1,7 +1,6 @@
 ;;; timeclock.el --- mode for keeping track of how much you work
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 25 Mar 1999
@@ -546,11 +545,7 @@ non-nil, the amount returned will be relative to past time worked."
 (defalias 'timeclock-time-to-seconds (if (fboundp 'float-time) 'float-time
 				       'time-to-seconds))
 
-(defsubst timeclock-seconds-to-time (seconds)
-  "Convert SECONDS (a floating point number) to an Emacs time structure."
-  (list (floor seconds 65536)
-	(floor (mod seconds 65536))
-	(floor (* (- seconds (ffloor seconds)) 1000000))))
+(defalias 'timeclock-seconds-to-time 'seconds-to-time)
 
 ;; Should today-only be removed in favour of timeclock-relative? - gm
 (defsubst timeclock-when-to-leave (&optional today-only)
@@ -1026,11 +1021,10 @@ lists:
   timeclock-current-debt LOG-DATA
 
 See the documentation for the given function if more info is needed."
-  (let* ((log-data (list 0.0 nil nil))
-	 (now (current-time))
-	 (todays-date (timeclock-time-to-date now))
-	 last-date-limited last-date-seconds last-date
-	 (line 0) last beg day entry event)
+  (let ((log-data (list 0.0 nil nil))
+	(now (current-time))
+	last-date-limited last-date-seconds last-date
+	(line 0) last beg day entry event)
     (with-temp-buffer
       (insert-file-contents (or filename timeclock-file))
       (when recent-only
@@ -1116,7 +1110,7 @@ discrepancy, today's discrepancy, and the time worked today."
   (let* ((now (current-time))
 	 (todays-date (timeclock-time-to-date now))
 	 (first t) (accum 0) (elapsed 0)
-	 event beg last-date avg
+	 event beg last-date
 	 last-date-limited last-date-seconds)
     (unless timeclock-discrepancy
       (when (file-readable-p timeclock-file)

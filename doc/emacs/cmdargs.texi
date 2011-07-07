@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Emacs Invocation, X Resources, GNU Free Documentation License, Top
 @appendix Command Line Arguments for Emacs Invocation
@@ -474,9 +474,8 @@ when you specify a relative directory name.
 Directory for the architecture-independent files that come with Emacs.
 This is used to initialize the Lisp variable @code{data-directory}.
 @item EMACSDOC
-Directory for the documentation string file,
-@file{DOC-@var{emacsversion}}.  This is used to initialize the Lisp
-variable @code{doc-directory}.
+Directory for the documentation string file, which is used to
+initialize the Lisp variable @code{doc-directory}.
 @item EMACSLOADPATH
 A colon-separated list of directories@footnote{
 Here and below, whenever we say ``colon-separated list of directories,''
@@ -722,14 +721,14 @@ window displayed at their local terminal.  You might need to log in
 to another system because the files you want to edit are there, or
 because the Emacs executable file you want to run is there.
 
-  The syntax of the @env{DISPLAY} environment variable is
+  @env{DISPLAY} has the syntax
 @samp{@var{host}:@var{display}.@var{screen}}, where @var{host} is the
 host name of the X Window System server machine, @var{display} is an
-arbitrarily-assigned number that distinguishes your server (X terminal)
-from other servers on the same machine, and @var{screen} is a
-rarely-used field that allows an X server to control multiple terminal
-screens.  The period and the @var{screen} field are optional.  If
-included, @var{screen} is usually zero.
+arbitrarily-assigned number that distinguishes your server (X
+terminal) from other servers on the same machine, and @var{screen} is
+a rarely-used field that allows an X server to control multiple
+terminal screens.  The period and the @var{screen} field are optional.
+If included, @var{screen} is usually zero.
 
   For example, if your host is named @samp{glasperle} and your server is
 the first (or perhaps the only) server listed in the configuration, your
@@ -1163,7 +1162,3 @@ test case that simplifies debugging of display problems.
 
   The @samp{--xrm} option (@pxref{Resources}) specifies additional
 X resource values.
-
-@ignore
-   arch-tag: fffecd9e-7329-4a51-a3cc-dd4a9889340e
-@end ignore

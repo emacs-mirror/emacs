@@ -1,8 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/display
 @node Display, System Interface, Processes, Top
@@ -1443,9 +1441,9 @@ specify a particular attribute for certain text.  @xref{Face
 Attributes}.
 
 @item
-A cons cell, either of the form @code{(foreground-color . @var{color-name})} or
-@code{(background-color . @var{color-name})}.  These elements specify
-just the foreground color or just the background color.
+A cons cell, of the form @code{(foreground-color . @var{color-name})}
+or @code{(background-color . @var{color-name})}.  These elements
+specify just the foreground color or just the background color.
 
 @code{(foreground-color . @var{color-name})} has the same effect as
 @code{(:foreground @var{color-name})}; likewise for the background.
@@ -2094,7 +2092,10 @@ Draw a box with lines of width 1, in color @var{color}.
 
 @item @code{(:line-width @var{width} :color @var{color} :style @var{style})}
 This way you can explicitly specify all aspects of the box.  The value
-@var{width} specifies the width of the lines to draw; it defaults to 1.
+@var{width} specifies the width of the lines to draw; it defaults to
+1.  A negative width @var{-n} means to draw a line of width @var{n}
+that occupies the space of the underlying text, thus avoiding any
+increase in the character height or width.
 
 The value @var{color} specifies the color to draw with.  The default is
 the foreground color of the face for simple boxes, and the background
@@ -3659,9 +3660,8 @@ display specifications and what they mean.
 * Replacing Specs::      Display specs that replace the text.
 * Specified Space::      Displaying one space with a specified width.
 * Pixel Specification::  Specifying space width or height in pixels.
-* Other Display Specs::  Displaying an image; magnifying text; moving it
-                          up or down on the page; adjusting the width
-                          of spaces within text.
+* Other Display Specs::     Displaying an image; adjusting the height,
+                              spacing, and other properties of text.
 * Display Margins::     Displaying text or images to the side of the main text.
 @end menu
 
@@ -3824,9 +3824,10 @@ pixels per inch, millimeter, and centimeter, respectively.  The
 and height of the current face.  An image specification @code{image}
 corresponds to the width or height of the image.
 
-  The @code{left-fringe}, @code{right-fringe}, @code{left-margin},
-@code{right-margin}, @code{scroll-bar}, and @code{text} elements
-specify to the width of the corresponding area of the window.
+  The elements @code{left-fringe}, @code{right-fringe},
+@code{left-margin}, @code{right-margin}, @code{scroll-bar}, and
+@code{text} specify to the width of the corresponding area of the
+window.
 
   The @code{left}, @code{center}, and @code{right} positions can be
 used with @code{:align-to} to specify a position relative to the left
@@ -3891,6 +3892,13 @@ instead of the text that has the display specification, at the same
 position as that text.  It is equivalent to using just @var{string},
 but it is done as a special case of marginal display (@pxref{Display
 Margins}).
+
+@item (left-fringe @var{bitmap} @r{[}@var{face}@r{]})
+@itemx (right-fringe @var{bitmap} @r{[}@var{face}@r{]})
+This display specification on any character of a line of text causes
+the specified @var{bitmap} be displayed in the left or right fringes
+for that line.  The optional @var{face} specifies the colors to be
+used for the bitmap.  @xref{Fringe Bitmaps}, for the details.
 
 @item (space-width @var{factor})
 This display specification affects all the space characters within the
@@ -4209,14 +4217,14 @@ Laplace edge-detection currently uses a matrix of
 @tex
 $$\pmatrix{1 & 0 & 0 \cr
    0&  0 &  0 \cr
-   9 & 9 & -1 \cr}$$
+   0 & 0 & -1 \cr}$$
 @end tex
 @end iftex
 @ifnottex
 @display
   (1  0  0
    0  0  0
-   9  9 -1)
+   0  0 -1)
 @end display
 @end ifnottex
 
@@ -4648,16 +4656,14 @@ If @var{no-error} is non-@code{nil} and a suitable path can't be
 found, don't signal an error.  Instead, return a list of directories as
 before, except that @code{nil} appears in place of the image directory.
 
-Here is an example that uses a common idiom to provide compatibility
-with versions of Emacs that lack the variable @code{image-load-path}:
+Here is an example of using @code{image-load-path-for-library}:
 
 @example
 (defvar image-load-path) ; shush compiler
 (let* ((load-path (image-load-path-for-library
-                        "mh-e" "mh-logo.xpm"))
+                    "mh-e" "mh-logo.xpm"))
        (image-load-path (cons (car load-path)
-                              (when (boundp 'image-load-path)
-                                image-load-path))))
+                              image-load-path)))
   (mh-tool-bar-folder-buttons-init))
 @end example
 @end defun
@@ -4697,10 +4703,17 @@ it a @code{display} property which specifies @var{image}.  @xref{Display
 Property}.
 @end defun
 
+@cindex slice, image
+@cindex image slice
 @defun insert-sliced-image image &optional string area rows cols
 This function inserts @var{image} in the current buffer at point, like
 @code{insert-image}, but splits the image into @var{rows}x@var{cols}
 equally sized slices.
+
+If an image is inserted ``sliced'', then the Emacs display engine will
+treat each slice as a separate image, and allow more intuitive
+scrolling up/down, instead of jumping up/down the entire image when
+paging through a buffer that displays (large) images.
 @end defun
 
 @defun put-image image pos &optional string area
@@ -5005,8 +5018,9 @@ and returns it.
 button actually part of the text instead of being a property of the
 buffer.  Buttons using text properties do not create markers into the
 buffer, which is important for speed when you use extremely large
-numbers of buttons.  Both functions return the position of the start
-of the new button:
+numbers of buttons.  (However, if there is an existing face text
+property at the site of the button, the button face may not be visible.)
+Both functions return the position of the start of the new button:
 
 @defun make-text-button beg end &rest properties
 This makes a button from @var{beg} to @var{end} in the current buffer, using
@@ -5196,7 +5210,7 @@ element value into the current buffer.
   Typically, you define an ewoc with @code{ewoc-create}, and then pass
 the resulting ewoc structure to other functions in the Ewoc package to
 build nodes within it, and display it in the buffer.  Once it is
-displayed in the buffer, other functions determine the correspondance
+displayed in the buffer, other functions determine the correspondence
 between buffer positions and nodes, move point from one node's textual
 representation to another, and so forth.  @xref{Abstract Display
 Functions}.
@@ -5394,8 +5408,10 @@ value) in various ways.
                         (aref colorcomp-data 2)))
           (samp " (sample text) "))
       (insert "Color\t: "
-              (propertize samp 'face `(foreground-color . ,cstr))
-              (propertize samp 'face `(background-color . ,cstr))
+              (propertize samp 'face
+                          `(foreground-color . ,cstr))
+              (propertize samp 'face
+                          `(background-color . ,cstr))
               "\n"))))
 
 (defun colorcomp (color)
@@ -5947,7 +5963,3 @@ This hook is used for internal purposes: setting up communication with
 the window system, and creating the initial window.  Users should not
 interfere with it.
 @end defvar
-
-@ignore
-   arch-tag: ffdf5714-7ecf-415b-9023-fbc6b409c2c6
-@end ignore

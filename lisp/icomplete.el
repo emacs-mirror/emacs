@@ -1,7 +1,7 @@
 ;;; icomplete.el --- minibuffer completion incremental feedback
 
-;; Copyright (C) 1992, 1993, 1994, 1997, 1999, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992-1994, 1997, 1999, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@i.am>
 ;; Maintainer: Ken Manheimer <klm@i.am>
@@ -179,8 +179,11 @@ otherwise turn it off."
   (if icomplete-mode
       ;; The following is not really necessary after first time -
       ;; no great loss.
-      (add-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup)
-    (remove-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup)))
+      (progn
+	(setq completion-show-inline-help nil)
+	(add-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup))
+    (remove-hook 'minibuffer-setup-hook 'icomplete-minibuffer-setup)
+    (setq completion-show-inline-help t)))
 
 ;;;_ > icomplete-simple-completing-p ()
 (defun icomplete-simple-completing-p ()
@@ -284,6 +287,7 @@ matches exist.  \(Keybindings for uniquely matched commands
 are exhibited within the square braces.)"
 
   (let* ((non-essential t)
+         (md (completion--field-metadata (field-beginning)))
 	 (comps (completion-all-sorted-completions))
          (last (if (consp comps) (last comps)))
          (base-size (cdr last))
@@ -296,11 +300,11 @@ are exhibited within the square braces.)"
       (let* ((most-try
               (if (and base-size (> base-size 0))
                   (completion-try-completion
-                   name candidates predicate (length name))
+                   name candidates predicate (length name) md)
                 ;; If the `comps' are 0-based, the result should be
                 ;; the same with `comps'.
                 (completion-try-completion
-                 name comps nil (length name))))
+                 name comps nil (length name) md)))
 	     (most (if (consp most-try) (car most-try)
                      (if most-try (car comps) "")))
              ;; Compare name and most, so we can determine if name is
@@ -376,5 +380,4 @@ are exhibited within the square braces.)"
 ;;allout-layout: (-2 :)
 ;;End:
 
-;; arch-tag: 339ec25a-0741-4eb6-be63-997532e89b0f
 ;;; icomplete.el ends here

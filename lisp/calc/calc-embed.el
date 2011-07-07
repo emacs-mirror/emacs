@@ -1,7 +1,6 @@
 ;;; calc-embed.el --- embed Calc in a buffer
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -1382,5 +1381,4 @@ The command \\[yank] can retrieve it from there."
 ;; generated-autoload-file: "calc-loaddefs.el"
 ;; End:
 
-;; arch-tag: 1b8f311e-fba1-40d3-b8c3-1d6f68fd26fc
 ;;; calc-embed.el ends here

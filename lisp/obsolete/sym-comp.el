@@ -1,6 +1,6 @@
 ;;; sym-comp.el --- mode-dependent symbol completion
 
-;; Copyright (C) 2004, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: extensions
@@ -51,7 +51,7 @@ Uses `current-word' with the buffer narrowed to the part before
 point."
   (save-restriction
     ;; Narrow in case point is in the middle of a symbol -- we want
-    ;; just the preceeding part.
+    ;; just the preceding part.
     (narrow-to-region (point-min) (point))
     (current-word)))
 
@@ -227,5 +227,4 @@ completion:
 
 (provide 'sym-comp)
 
-;; arch-tag: 6fcce616-f3c4-4751-94b4-710e83144124
 ;;; sym-comp.el ends here

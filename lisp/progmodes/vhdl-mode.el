@@ -1,8 +1,6 @@
 ;;; vhdl-mode.el --- major mode for editing VHDL code
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1992-2011  Free Software Foundation, Inc.
 
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
@@ -1777,7 +1775,7 @@ NOTE: Activate the new setting by restarting Emacs.
 
 (defcustom vhdl-intelligent-tab t
   "*Non-nil means `TAB' does indentation, word completion and tab insertion.
-That is, if preceeding character is part of a word then complete word,
+That is, if preceding character is part of a word then complete word,
 else if not at beginning of line then insert tab,
 else if last command was a `TAB' or `RET' then dedent one step,
 else indent current line (i.e. `TAB' is bound to `vhdl-electric-tab').
@@ -1939,7 +1937,7 @@ Here is the current list of valid syntactic element symbols:
  comment                -- a line containing only a comment
  arglist-intro          -- the first line in an argument list
  arglist-cont           -- subsequent argument list lines when no
-                           arguments follow on the same line as the
+                           arguments follow on the same line as
                            the arglist opening paren
  arglist-cont-nonempty  -- subsequent argument list lines when at
                            least one argument follows on the same
@@ -4117,7 +4115,10 @@ The directory of the current source file is scanned."
 ;; performs all buffer local initializations
 
 ;;;###autoload
-(defun vhdl-mode ()
+(define-derived-mode vhdl-mode prog-mode
+  '("VHDL" (vhdl-electric-mode "/" (vhdl-stutter-mode "/"))
+           (vhdl-electric-mode "e")
+           (vhdl-stutter-mode "s"))
   "Major mode for editing VHDL code.
 
 Usage:
@@ -4650,26 +4651,13 @@ Key bindings:
 -------------
 
 \\{vhdl-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'vhdl-mode)
-  (setq mode-name '("VHDL"
-                    (vhdl-electric-mode "/" (vhdl-stutter-mode "/"))
-                    (vhdl-electric-mode "e")
-                    (vhdl-stutter-mode "s")))
-
-  ;; set maps and tables
-  (use-local-map vhdl-mode-map)
-  (set-syntax-table vhdl-mode-syntax-table)
-  (setq local-abbrev-table vhdl-mode-abbrev-table)
+  :abbrev-table vhdl-mode-abbrev-table
 
   ;; set local variables
   (set (make-local-variable 'paragraph-start)
        "\\s-*\\(--+\\s-*$\\|[^ -]\\|$\\)")
   (set (make-local-variable 'paragraph-separate) paragraph-start)
   (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
-  (set (make-local-variable 'require-final-newline)
-       (if vhdl-emacs-22 mode-require-final-newline t))
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'indent-line-function) 'vhdl-indent-line)
   (set (make-local-variable 'comment-start) "--")
@@ -4686,8 +4674,7 @@ Key bindings:
   ;; setup the comment indent variable in a Emacs version portable way
   ;; ignore any byte compiler warnings you might get here
   (when (boundp 'comment-indent-function)
-    (make-local-variable 'comment-indent-function)
-    (setq comment-indent-function 'vhdl-comment-indent))
+    (set (make-local-variable 'comment-indent-function) 'vhdl-comment-indent))
 
   ;; initialize font locking
   (set (make-local-variable 'font-lock-defaults)
@@ -4731,12 +4718,7 @@ Key bindings:
   (vhdl-ps-print-init)
   (vhdl-write-file-hooks-init)
   (message "VHDL Mode %s.%s" vhdl-version
-	   (if noninteractive "" "  See menu for documentation and release notes."))
-
-  ;; run hooks
-  (if vhdl-emacs-22
-      (run-mode-hooks 'vhdl-mode-hook)
-    (run-hooks 'vhdl-mode-hook)))
+	   (if noninteractive "" "  See menu for documentation and release notes.")))
 
 (defun vhdl-activate-customizations ()
   "Activate all customizations on local variables."
@@ -4754,10 +4736,10 @@ Key bindings:
 (defun vhdl-write-file-hooks-init ()
   "Add/remove hooks when buffer is saved."
   (if vhdl-modify-date-on-saving
-      (add-hook 'local-write-file-hooks 'vhdl-template-modify-noerror)
-    (remove-hook 'local-write-file-hooks 'vhdl-template-modify-noerror))
-  (make-local-variable 'after-save-hook)
-  (add-hook 'after-save-hook 'vhdl-add-modified-file))
+      (add-hook 'local-write-file-hooks 'vhdl-template-modify-noerror nil t)
+    (remove-hook 'local-write-file-hooks 'vhdl-template-modify-noerror t))
+  (if (featurep 'xemacs) (make-local-hook 'after-save-hook))
+  (add-hook 'after-save-hook 'vhdl-add-modified-file nil t))
 
 (defun vhdl-process-command-line-option (option)
   "Process command line options for VHDL Mode."
@@ -5271,13 +5253,12 @@ argument.  The styles are chosen from the `vhdl-style-alist' variable."
       (lambda (varentry)
 	(let ((var (car varentry))
 	      (val (cdr varentry)))
-	  (and local
-	       (make-local-variable var))
 	  ;; special case for vhdl-offsets-alist
 	  (if (not (eq var 'vhdl-offsets-alist))
-	      (set var val)
+	      (set (if local (make-local-variable var) var) val)
 	    ;; reset vhdl-offsets-alist to the default value first
-	    (setq vhdl-offsets-alist (copy-alist vhdl-offsets-alist-default))
+	    (set (if local (make-local-variable var) var)
+                 (copy-alist vhdl-offsets-alist-default))
 	    ;; now set the langelems that are different
 	    (mapcar
 	     (function
@@ -6965,7 +6946,7 @@ only-lines."
 ;; Indentation commands
 
 (defun vhdl-electric-tab (&optional prefix-arg)
-  "If preceeding character is part of a word or a paren then hippie-expand,
+  "If preceding character is part of a word or a paren then hippie-expand,
 else if right of non whitespace on line then insert tab,
 else if last command was a tab or return then dedent one step or if a comment
 toggle between normal indent and inline comment indent,
@@ -10415,7 +10396,7 @@ with double-quotes is to be inserted.  DEFAULT specifies a default string."
   (if vhdl-upper-case-keywords (upcase-word num) (downcase-word num)))
 
 (defun vhdl-minibuffer-tab (&optional prefix-arg)
-  "If preceeding character is part of a word or a paren then hippie-expand,
+  "If preceding character is part of a word or a paren then hippie-expand,
 else insert tab (used for word completion in VHDL minibuffer)."
   (interactive "P")
   (cond
@@ -12500,10 +12481,10 @@ File statistics: \"%s\"\n\
 	    (cons (list 'vhdl-mode vhdl-hs-start-regexp nil "--\\( \\|$\\)"
 			'vhdl-hs-forward-sexp-func nil)
 		  hs-special-modes-alist)))
-    (make-local-variable 'hs-minor-mode-hook)
+    (if (featurep 'xemacs) (make-local-hook 'hs-minor-mode-hook))
     (if vhdl-hide-all-init
-	(add-hook 'hs-minor-mode-hook 'hs-hide-all)
-      (remove-hook 'hs-minor-mode-hook 'hs-hide-all))
+	(add-hook 'hs-minor-mode-hook 'hs-hide-all nil t)
+      (remove-hook 'hs-minor-mode-hook 'hs-hide-all t))
     (hs-minor-mode arg)
     (force-mode-line-update)))		; hack to update menu bar
 
@@ -12970,8 +12951,8 @@ This does background highlighting of translate-off regions.")
   (if (featurep 'xemacs)
       (when (boundp 'ps-print-color-p)
 	(vhdl-ps-print-settings))
-    (make-local-variable 'ps-print-hook)
-    (add-hook 'ps-print-hook 'vhdl-ps-print-settings)))
+    (if (featurep 'xemacs) (make-local-hook 'ps-print-hook))
+    (add-hook 'ps-print-hook 'vhdl-ps-print-settings nil t)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -13075,7 +13056,7 @@ hierarchy otherwise.")
 ;; Scan functions
 
 (defun vhdl-scan-context-clause ()
-  "Scan the context clause that preceeds a design unit."
+  "Scan the context clause that precedes a design unit."
   (let (lib-alist)
     (save-excursion
       (when (re-search-backward "^[ \t]*\\(architecture\\|configuration\\|entity\\|package\\)\\>" nil t)

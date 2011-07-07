@@ -1,6 +1,6 @@
 /* font.h -- Interface definition for font handling.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-   Copyright (C) 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2006-2011 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -36,22 +36,22 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    FONT-ENTITY
 
-	Pseudo vector (length FONT_ENTITY_MAX) of fully instanciated
+	Pseudo vector (length FONT_ENTITY_MAX) of fully instantiated
 	font properties that a font-driver returns upon a request of
 	FONT-SPEC.
 
 	Note: Only the method `list' and `match' of a font-driver can
-	create this object, and should never be modified by Lisp.
+	create this object, and it should never be modified by Lisp.
 
    FONT-OBJECT
 
-	Pseudo vector (length FONT_OBJECT_MAX) of a opend font.
+	Pseudo vector (length FONT_OBJECT_MAX) of an opened font.
 
 	Lisp object encapsulating "struct font".  This corresponds to
 	an opened font.
 
 	Note: Only the method `open' of a font-driver can create this
-	object, and should never be modified by Lisp.  */
+	object, and it should never be modified by Lisp.  */
 
 extern Lisp_Object Qfont_spec, Qfont_entity, Qfont_object;
 
@@ -68,7 +68,7 @@ struct glyph_string;
 enum font_property_index
   {
     /* FONT-TYPE is a symbol indicating a font backend; currently `x',
-       `xft', `ftx' are available on X, `uniscribe' and `gdi' on
+       `xft', and `ftx' are available on X, `uniscribe' and `gdi' on
        Windows, and `ns' under Cocoa / GNUstep.  */
     FONT_TYPE_INDEX,
 
@@ -86,26 +86,26 @@ enum font_property_index
     FONT_REGISTRY_INDEX,
 
     /* FONT-WEIGHT is a numeric value of weight (e.g. medium, bold) of
-       the font.  The lowest 8-bit is an index determining the
+       the font.  The lowest 8 bits is an index determining the
        symbolic name, and the higher bits is the actual numeric value
        defined in `font-weight-table'. */
     FONT_WEIGHT_INDEX,
 
     /* FONT-SLANT is a numeric value of slant (e.g. r, i, o) of the
-       font.  The lowest 8-bit is an index determining the symbolic
+       font.  The lowest 8 bits is an index determining the symbolic
        name, and the higher bits is the actual numeric value defined
        in `font-slant-table'.  */
     FONT_SLANT_INDEX,
 
     /* FONT-WIDTH is a numeric value of setwidth (e.g. normal) of the
-       font.  The lowest 8-bit is an index determining the symbolic
+       font.  The lowest 8 bits is an index determining the symbolic
        name, and the higher bits is the actual numeric value defined
        `font-width-table'.  */
     FONT_WIDTH_INDEX,
 
     /* FONT-SIZE is a size of the font.  If integer, it is a pixel
-       size.  For a font-spec, the value can be float specifying a
-       point size.  The value zero means that the font is
+       size.  For a font-spec, the value can be a float specifying
+       the point size.  The value zero means that the font is
        scalable.  */
     FONT_SIZE_INDEX,
 
@@ -129,18 +129,18 @@ enum font_property_index
 
     /* FONT-STYLE is a 24-bit integer containing indices for
        style-related properties WEIGHT, SLANT, and WIDTH.  The lowest
-       8-bit is an indice to the weight table AREF (font_style_table,
-       0), the next 8-bit is an indice to the slant table AREF
-       (font_style_table, 1), the highest 8-bit is an indice to the
-       slant table AREF (font_style_table, 2).  The indice 0 indicates
+       8 bits is an index to the weight table AREF (font_style_table,
+       0), the next 8 bits is an index to the slant table AREF
+       (font_style_table, 1), the highest 8 bits is an index to the
+       slant table AREF (font_style_table, 2).  The index 0 indicates
        that the corresponding style is not specified.  This way, we
        can represent at most 255 different names for each style, which
        is surely sufficient.  */
     FONT_STYLE_INDEX,
 
     /* FONT-METRICS is a 27-bit integer containing metrics-related
-       properties DPI, AVGWIDTH, SPACING.  The lowest 12-bit is for
-       DPI, the next 12-bit is for AVGWIDTH, the highest 3-bit is for
+       properties DPI, AVGWIDTH, SPACING.  The lowest 12 bits is for
+       DPI, the next 12 bits is for AVGWIDTH, the highest 3 bits is for
        SPACING.  In each bit field, the highest bit indicates that the
        corresponding value is set or not.  This way, we can represent
        DPI by 11-bit (0 to 2047), AVGWIDTH by 11-bit (0 to 2047),
@@ -176,7 +176,7 @@ enum font_property_index
     FONT_NAME_INDEX = FONT_ENTITY_MAX,
 
     /* Full name of the font (string).  It is the name extracted from
-       the opend font, and may be different from the above.  It may be
+       the opened font, and may be different from the above.  It may be
        nil if the opened font doesn't give a name.  */
     FONT_FULLNAME_INDEX,
 
@@ -239,7 +239,7 @@ enum font_property_index
   ASET ((font), prop, make_number (font_style_to_value (prop, val, 1)))
 
 extern Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClang, QCscript;
-extern Lisp_Object QCavgwidth, QCantialias, QCfont_entity, QCfc_unknown_spec;
+extern Lisp_Object QCavgwidth, QCantialias, QCfont_entity;
 extern Lisp_Object Qp;
 
 
@@ -254,8 +254,7 @@ extern Lisp_Object Qja, Qko;
 
 struct font_spec
 {
-  EMACS_UINT size;
-  struct Lisp_Vector *next;
+  struct vectorlike_header header;
   Lisp_Object props[FONT_SPEC_MAX];
 };
 
@@ -263,8 +262,7 @@ struct font_spec
 
 struct font_entity
 {
-  EMACS_UINT size;
-  struct Lisp_Vector *next;
+  struct vectorlike_header header;
   Lisp_Object props[FONT_ENTITY_MAX];
 };
 
@@ -277,8 +275,7 @@ struct font_entity
 
 struct font
 {
-  EMACS_UINT size;
-  struct Lisp_Vector *next;
+  struct vectorlike_header header;
 
   /* All Lisp_Object components must come first.
      That ensures they are all aligned normally.  */
@@ -303,7 +300,7 @@ struct font
   int space_width;
 
   /* Average width of glyphs in the font.  If the font itself doesn't
-     have that information but has glyphs of ASCII character, the
+     have that information but has glyphs of ASCII characters, the
      value is the average with of those glyphs.  Otherwise, the value
      is 0.  */
   int average_width;
@@ -324,7 +321,7 @@ struct font
   int underline_position;
 
   /* 1 if `vertical-centering-font-regexp' matches this font name.
-     In this case, we render characters at vartical center positions
+     In this case, we render characters at vertical center positions
      of lines.  */
   int vertical_centering;
 
@@ -338,27 +335,27 @@ struct font
   unsigned char encoding_type;
 
   /* The baseline position of a font is normally `ascent' value of the
-     font.  However, there exists many fonts which don't set `ascent'
+     font.  However, there exist many fonts which don't set `ascent' to
      an appropriate value to be used as baseline position.  This is
      typical in such ASCII fonts which are designed to be used with
      Chinese, Japanese, Korean characters.  When we use mixture of
      such fonts and normal fonts (having correct `ascent' value), a
      display line gets very ugly.  Since we have no way to fix it
-     automatically, it is users responsibility to supply well designed
+     automatically, it is user's responsibility to supply well designed
      fonts or correct `ascent' value of fonts.  But, the latter
      requires heavy work (modifying all bitmap data in BDF files).
      So, Emacs accepts a private font property
      `_MULE_BASELINE_OFFSET'.  If a font has this property, we
      calculate the baseline position by subtracting the value from
-     `ascent'.  In other words, the value indicates how many bits
-     higher we should draw a character of the font than normal ASCII
-     text for a better looking.
+     `ascent'.  In other words, the value indicates how many pixels
+     higher than normal ASCII text we should draw a character of the
+     font for better appearance.
 
      We also have to consider the fact that the concept of `baseline'
      differs among scripts to which each character belongs.  For
-     instance, baseline should be at the bottom most position of all
+     instance, baseline should be at the bottom-most position of all
      glyphs for Chinese, Japanese, and Korean.  But, many of existing
-     fonts for those characters doesn't have correct `ascent' values
+     fonts for those characters don't have correct `ascent' values
      because they are designed to be used with ASCII fonts.  To
      display characters of different language on the same line, the
      best way will be to arrange them in the middle of the line.  So,
@@ -368,20 +365,20 @@ struct font
      of a line.  */
   int baseline_offset;
 
-  /* Non zero means a character should be composed at a position
+  /* Non-zero means a character should be composed at a position
      relative to the height (or depth) of previous glyphs in the
      following cases:
 	(1) The bottom of the character is higher than this value.  In
 	this case, the character is drawn above the previous glyphs.
 	(2) The top of the character is lower than 0 (i.e. baseline
-	height).  In this case, the character is drawn beneath the
+	height).  In this case, the character is drawn below the
 	previous glyphs.
 
      This value is taken from a private font property
      `_MULE_RELATIVE_COMPOSE' which is introduced by Emacs.  */
   int relative_compose;
 
-  /* Non zero means an ascent value to be used for a character
+  /* Non-zero means an ascent value to be used for a character
      registered in char-table `use-default-ascent'.  */
   int default_ascent;
 
@@ -401,8 +398,8 @@ struct font
      determine it.  */
   int repertory_charset;
 
-  /* There will be more to this structure, but they are private to a
-     font-driver.  */
+  /* There are more members in this structure, but they are private
+     to the font-driver.  */
 };
 
 enum font_spacing
@@ -487,8 +484,8 @@ struct font_bitmap
 #define POINT_TO_PIXEL(POINT, DPI) ((POINT) * (DPI) / PT_PER_INCH + 0.5)
 
 /* Return a point size corresponding to POINT size (integer)
-   on resolution DPI. Note that though point size is a double, we expect
-   it to be rounded to an int, so we add 0.5 here. If the desired value
+   on resolution DPI.  Note that though point size is a double, we expect
+   it to be rounded to an int, so we add 0.5 here.  If the desired value
    is tenths of points (as in xfld specs), then the pixel size should
    be multiplied BEFORE the conversion to avoid magnifying the error.  */
 #define PIXEL_TO_POINT(PIXEL, DPI) ((PIXEL) * PT_PER_INCH / (DPI) + 0.5)
@@ -585,7 +582,7 @@ struct font_driver
      If FONT doesn't have such a glyph, return FONT_INVALID_CODE.  */
   unsigned (*encode_char) (struct font *font, int c);
 
-  /* Computate the total metrics of the NGLYPHS glyphs specified by
+  /* Compute the total metrics of the NGLYPHS glyphs specified by
      the font FONT and the sequence of glyph codes CODE, and store the
      result in METRICS.  */
   int (*text_extents) (struct font *font,
@@ -638,7 +635,7 @@ struct font_driver
 
      FEATURES specifies which OTF features to apply in this format:
 	(SCRIPT LANGSYS GSUB-FEATURE GPOS-FEATURE)
-     See the documentation of `font-drive-otf' for the detail.
+     See the documentation of `font-drive-otf' for the details.
 
      This method applies the specified features to the codes in the
      elements of GSTRING-IN (between FROMth and TOth).  The output
@@ -713,7 +710,7 @@ struct font_driver
 
 struct font_driver_list
 {
-  /* 1 iff this driver is currently used.  It is igonred in the global
+  /* 1 iff this driver is currently used.  It is ignored in the global
      font driver list.*/
   int on;
   /* Pointer to the font driver.  */
@@ -737,16 +734,13 @@ struct font_data_list
 };
 
 EXFUN (Ffont_spec, MANY);
-EXFUN (Fcopy_font_spec, 1);
-EXFUN (Fmerge_font_spec, 2);
+extern Lisp_Object copy_font_spec (Lisp_Object);
+extern Lisp_Object merge_font_spec (Lisp_Object, Lisp_Object);
 EXFUN (Ffont_get, 2);
 EXFUN (Ffont_put, 3);
 EXFUN (Flist_fonts, 4);
-EXFUN (Ffont_family_list, 1);
-EXFUN (Fclear_font_cache, 0);
 EXFUN (Ffont_xlfd_name, 2);
 
-extern Lisp_Object font_make_spec (void);
 extern Lisp_Object font_make_entity (void);
 extern Lisp_Object font_make_object (int, Lisp_Object, int);
 
@@ -767,11 +761,9 @@ extern Lisp_Object font_get_name (Lisp_Object font_object);
 extern Lisp_Object font_spec_from_name (Lisp_Object font_name);
 extern Lisp_Object font_get_frame (Lisp_Object font_object);
 extern int font_has_char (FRAME_PTR, Lisp_Object, int);
-extern unsigned font_encode_char (Lisp_Object, int);
 
 extern void font_clear_prop (Lisp_Object *attrs,
                              enum font_property_index prop);
-extern void font_update_lface (FRAME_PTR f, Lisp_Object *attrs);
 extern Lisp_Object font_find_for_lface (FRAME_PTR f, Lisp_Object *lface,
                                         Lisp_Object spec, int c);
 extern Lisp_Object font_open_for_lface (FRAME_PTR f, Lisp_Object entity,
@@ -784,29 +776,23 @@ extern void font_done_for_face (FRAME_PTR f, struct face *face);
 
 extern Lisp_Object font_open_by_spec (FRAME_PTR f, Lisp_Object spec);
 extern Lisp_Object font_open_by_name (FRAME_PTR f, const char *name);
-extern void font_close_object (FRAME_PTR f, Lisp_Object font_object);
 
-extern Lisp_Object font_intern_prop (const char *str, int len, int force_symbol);
+extern Lisp_Object font_intern_prop (const char *str, ptrdiff_t len,
+				     int force_symbol);
 extern void font_update_sort_order (int *order);
 
 extern void font_parse_family_registry (Lisp_Object family,
                                         Lisp_Object registry,
                                         Lisp_Object spec);
-extern Lisp_Object font_spec_from_family_registry (Lisp_Object family,
-                                                   Lisp_Object registry);
 
 extern int font_parse_xlfd (char *name, Lisp_Object font);
 extern int font_unparse_xlfd (Lisp_Object font, int pixel_size,
                               char *name, int bytes);
-extern int font_parse_fcname (char *name, Lisp_Object font);
 extern int font_unparse_fcname (Lisp_Object font, int pixel_size,
                                 char *name, int bytes);
-extern int font_unparse_gtkname (Lisp_Object, struct frame *, char *, int);
 extern void register_font_driver (struct font_driver *driver, FRAME_PTR f);
 extern void free_font_driver_list (FRAME_PTR f);
 extern Lisp_Object font_update_drivers (FRAME_PTR f, Lisp_Object list);
-extern Lisp_Object font_at (int c, EMACS_INT pos, struct face *face,
-                            struct window *w, Lisp_Object object);
 extern Lisp_Object font_range (EMACS_INT, EMACS_INT *,
 			       struct window *, struct face *,
 			       Lisp_Object);
@@ -832,13 +818,14 @@ extern void syms_of_ftfont (void);
 #endif	/* HAVE_FREETYPE */
 #ifdef HAVE_X_WINDOWS
 extern struct font_driver xfont_driver;
-extern struct font_driver ftxfont_driver;
 extern void syms_of_xfont (void);
 extern void syms_of_ftxfont (void);
 #ifdef HAVE_XFT
 extern struct font_driver xftfont_driver;
 extern void syms_of_xftfont (void);
-#endif	/* HAVE_XFT */
+#elif defined HAVE_FREETYPE
+extern struct font_driver ftxfont_driver;
+#endif
 #ifdef HAVE_BDFFONT
 extern void syms_of_bdffont (void);
 #endif	/* HAVE_BDFFONT */
@@ -858,9 +845,8 @@ extern void syms_of_nsfont (void);
 #define FONT_DEBUG
 #endif
 
-extern Lisp_Object QCfoundry, QCadstyle, QCregistry;
+extern Lisp_Object QCfoundry;
 
-extern Lisp_Object Vfont_log;
 extern void font_add_log (const char *, Lisp_Object, Lisp_Object);
 extern void font_deferred_log (const char *, Lisp_Object, Lisp_Object);
 
@@ -883,6 +869,3 @@ extern void font_deferred_log (const char *, Lisp_Object, Lisp_Object);
 #endif	/* not FONT_DEBUG */
 
 #endif	/* not EMACS_FONT_H */
-
-/* arch-tag: 3b7260c3-5bec-4d6b-a0db-95c1b431b1a2
-   (do not change this comment) */

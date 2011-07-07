@@ -236,5 +236,3 @@ _is_executable(const char *filename, int fhandle, const char *extension)
   return 0;
 }
 
-/* arch-tag: b0965811-8c3e-4bc4-8d81-4447a3594785
-   (do not change this comment) */

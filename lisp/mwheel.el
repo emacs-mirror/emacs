@@ -1,7 +1,6 @@
 ;;; mwheel.el --- Wheel mouse support
 
-;; Copyright (C) 1998, 2000, 2001, 2002, 2002, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2011  Free Software Foundation, Inc.
 ;; Maintainer: William M. Perry <wmperry@gnu.org>
 ;; Keywords: mouse
 ;; Package: emacs
@@ -285,5 +284,4 @@ Return non-nil if the new state is enabled."
 
 (provide 'mwheel)
 
-;; arch-tag: 50ed00e7-3686-4b7a-8037-fb31aa5c237f
 ;;; mwheel.el ends here

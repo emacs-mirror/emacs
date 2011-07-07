@@ -1,6 +1,6 @@
 ;;; tramp-gvfs.el --- Tramp access functions for GVFS daemon
 
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -124,8 +124,8 @@
 
 ;; Add a default for `tramp-default-user-alist'.  Rule: For the SYNCE
 ;; method, no user is chosen.
-(add-to-list 'tramp-default-user-alist
-	     '("synce" nil nil))
+;;;###tramp-autoload
+(add-to-list 'tramp-default-user-alist '("\\`synce\\'" nil nil))
 
 (defcustom tramp-gvfs-zeroconf-domain "local"
   "*Zeroconf domain to be used for discovering services, like host names."
@@ -142,7 +142,7 @@
       (add-to-list 'tramp-methods (cons elt nil)))))
 
 (defconst tramp-gvfs-path-tramp (concat dbus-path-emacs "/Tramp")
-  "The preceeding object path for own objects.")
+  "The preceding object path for own objects.")
 
 (defconst tramp-gvfs-service-daemon "org.gtk.vfs.Daemon"
   "The well known name of the GVFS daemon.")
@@ -541,7 +541,7 @@ is no information where to trace the message.")
   "Like `copy-file' for Tramp files."
   (with-parsed-tramp-file-name
       (if (tramp-tramp-file-p filename) filename newname) nil
-    (with-progress-reporter
+    (tramp-with-progress-reporter
 	v 0 (format "Copying %s to %s" filename newname)
       (condition-case err
 	  (let ((args
@@ -745,7 +745,7 @@ is no information where to trace the message.")
   "Like `rename-file' for Tramp files."
   (with-parsed-tramp-file-name
       (if (tramp-tramp-file-p filename) filename newname) nil
-    (with-progress-reporter
+    (tramp-with-progress-reporter
 	v 0 (format "Renaming %s to %s" filename newname)
       (condition-case err
 	  (rename-file
@@ -1203,7 +1203,7 @@ connection if a previous connection has died for some reason."
 	    (tramp-gvfs-object-path
 	     (tramp-make-tramp-file-name method user host ""))))
 
-      (with-progress-reporter
+      (tramp-with-progress-reporter
 	  vec 3
 	  (if (zerop (length user))
 	      (format "Opening connection for %s using %s" host method)
@@ -1212,14 +1212,14 @@ connection if a previous connection has died for some reason."
 	;; Enable auth-sorce and password-cache.
 	(tramp-set-connection-property vec "first-password-request" t)
 
-	;; There will be a callback of "askPassword", when a password is
+	;; There will be a callback of "askPassword" when a password is
 	;; needed.
 	(dbus-register-method
 	 :session dbus-service-emacs object-path
 	 tramp-gvfs-interface-mountoperation "askPassword"
 	 'tramp-gvfs-handler-askpassword)
 
-	;; There could be a callback of "askQuestion", when adding fingerprint.
+	;; There could be a callback of "askQuestion" when adding fingerprint.
 	(dbus-register-method
 	 :session dbus-service-emacs object-path
 	 tramp-gvfs-interface-mountoperation "askQuestion"
@@ -1426,11 +1426,10 @@ They are retrieved from the hal daemon."
 ;;; TODO:
 
 ;; * Host name completion via smb-server or smb-network.
-;; * Check, how two shares of the same SMB server can be mounted in
+;; * Check how two shares of the same SMB server can be mounted in
 ;;   parallel.
 ;; * Apply SDP on bluetooth devices, in order to filter out obex
 ;;   capability.
 ;; * Implement obex for other serial communication but bluetooth.
 
-;; arch-tag: f7f660ce-77f4-4132-9663-f5c25a47f7ed
 ;;; tramp-gvfs.el ends here

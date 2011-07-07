@@ -1,7 +1,6 @@
 ;;; nndraft.el --- draft article access for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -25,13 +24,20 @@
 
 ;;; Code:
 
+;; For Emacs <22.2 and XEmacs.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (require 'nnheader)
 (require 'nnmail)
 (require 'gnus-start)
+(require 'gnus-group)
 (require 'nnmh)
 (require 'nnoo)
 (require 'mm-util)
 (eval-when-compile (require 'cl))
+
+(declare-function nndraft-request-list "nnmh" (&rest args))
 
 (nnoo-declare nndraft
   nnmh)
@@ -162,6 +168,25 @@ are generated if and only if they are also in `message-draft-headers'.")
      (message-headers-to-generate
       nndraft-required-headers message-draft-headers nil))))
 
+(defun nndraft-update-unread-articles ()
+  "Update groups' unread articles in the group buffer."
+  (nndraft-request-list)
+  (with-current-buffer gnus-group-buffer
+    (let* ((groups (mapcar (lambda (elem)
+			     (gnus-group-prefixed-name (car elem)
+						       (list 'nndraft "")))
+			   (nnmail-get-active)))
+	   (gnus-group-marked (copy-sequence groups))
+	   (inhibit-read-only t))
+      (gnus-group-get-new-news-this-group nil t)
+      (dolist (group groups)
+	(unless (and gnus-permanently-visible-groups
+		     (string-match gnus-permanently-visible-groups
+				   group))
+	  (gnus-group-goto-group group)
+	  (when (zerop (gnus-group-group-unread))
+	    (gnus-delete-line)))))))
+
 (deffoo nndraft-request-associate-buffer (group)
   "Associate the current buffer with some article in the draft group."
   (nndraft-open-server "")
@@ -183,6 +208,10 @@ are generated if and only if they are also in `message-draft-headers'.")
 		  'write-contents-hooks)))
       (gnus-make-local-hook hook)
       (add-hook hook 'nndraft-generate-headers nil t))
+    (gnus-make-local-hook 'after-save-hook)
+    (add-hook 'after-save-hook 'nndraft-update-unread-articles nil t)
+    (message-add-action '(nndraft-update-unread-articles)
+			'exit 'postpone 'kill)
     article))
 
 (deffoo nndraft-request-group (group &optional server dont-check info)

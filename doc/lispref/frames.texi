@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/frames
@@ -521,6 +520,11 @@ you don't specify a name, Emacs sets the frame name automatically
 If you specify the frame name explicitly when you create the frame, the
 name is also used (instead of the name of the Emacs executable) when
 looking up X resources for the frame.
+
+@item explicit-name
+If the frame name was specified explicitly when the frame was created,
+this parameter will be that name.  If the frame wasn't explicitly
+named, this parameter will be @code{nil}.
 @end table
 
 @node Position Parameters
@@ -682,17 +686,20 @@ use the default width.
 @itemx right-fringe
 The default width of the left and right fringes of windows in this
 frame (@pxref{Fringes}).  If either of these is zero, that effectively
-removes the corresponding fringe.  A value of @code{nil} stands for
-the standard fringe width, which is the width needed to display the
-fringe bitmaps.
+removes the corresponding fringe.
+
+When you use @code{frame-parameter} to query the value of either of
+these two frame parameters, the return value is always an integer.
+When using @code{set-frame-parameter}, passing a @code{nil} value
+imposes an actual default value of 8 pixels.
 
 The combined fringe widths must add up to an integral number of
-columns, so the actual default fringe widths for the frame may be
-larger than the specified values.  The extra width needed to reach an
-acceptable total is distributed evenly between the left and right
-fringe.  However, you can force one fringe or the other to a precise
-width by specifying that width as a negative integer.  If both widths are
-negative, only the left fringe gets the specified width.
+columns, so the actual default fringe widths for the frame, as
+reported by @code{frame-parameter}, may be larger than what you
+specify.  Any extra width is distributed evenly between the left and
+right fringe.  However, you can force one fringe or the other to a
+precise width by specifying that width as a negative integer.  If both
+widths are negative, only the left fringe gets the specified width.
 
 @vindex menu-bar-lines, a frame parameter
 @item menu-bar-lines
@@ -1366,7 +1373,7 @@ minibuffer-window}).
 
 However, you can also create a frame with no minibuffer.  Such a frame
 must use the minibuffer window of some other frame.  When you create the
-frame, you can specify explicitly the minibuffer window to use (in some
+frame, you can explicitly specify the minibuffer window to use (in some
 other frame).  If you don't, then the minibuffer is found in the frame
 which is the value of the variable @code{default-minibuffer-frame}.  Its
 value should be a frame that does have a minibuffer.
@@ -1791,9 +1798,13 @@ without actually displaying or popping up the menu.
 The argument @var{menu} says what to display in the menu.  It can be a
 keymap or a list of keymaps (@pxref{Menu Keymaps}).  In this case, the
 return value is the list of events corresponding to the user's choice.
-(This list has more than one element if the choice occurred in a
-submenu.)  Note that @code{x-popup-menu} does not actually execute the
-command bound to that sequence of events.
+This list has more than one element if the choice occurred in a
+submenu.  (Note that @code{x-popup-menu} does not actually execute the
+command bound to that sequence of events.)  On toolkits that support
+menu titles, the title is taken from the prompt string of @var{menu}
+if @var{menu} is a keymap, or from the prompt string of the first
+keymap in @var{menu} if it is a list of keymaps (@pxref{Defining
+Menus}).
 
 Alternatively, @var{menu} can have the following form:
 
@@ -2012,8 +2023,8 @@ clipboard as empty.
 If this is non-@code{nil}, the Emacs yank functions consult the
 clipboard before the primary selection, and the kill functions store in
 the clipboard as well as the primary selection.  Otherwise they do not
-access the clipboard at all.  The default is @code{nil} on most systems,
-but @code{t} on MS-Windows.
+access the clipboard at all.  The default is @code{t} on systems with
+clipboards.
 @end defopt
 
 @node Drag and Drop
@@ -2477,7 +2488,3 @@ The functions @code{x-pixel-width} and @code{x-pixel-height} return the
 width and height of an X Window frame, measured in pixels.
 @end ignore
 
-
-@ignore
-   arch-tag: 94977df6-3dca-4730-b57b-c6329e9282ba
-@end ignore

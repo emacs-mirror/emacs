@@ -1,14 +1,13 @@
 ;;; org-src.el --- Source code examples in Org
 ;;
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;	   Bastien Guerry <bzg AT altern DOT org>
 ;;         Dan Davison <davison at stats dot ox dot ac dot uk>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -170,8 +169,10 @@ For example, there is no ocaml-mode in Emacs, but the mode to use is
 
 ;;; Editing source examples
 
-(defvar org-src-mode-map (make-sparse-keymap))
-(define-key org-src-mode-map "\C-c'" 'org-edit-src-exit)
+(defvar org-src-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c'" 'org-edit-src-exit)
+    map))
 
 (defvar org-edit-src-force-single-line nil)
 (defvar org-edit-src-from-org-mode nil)
@@ -240,8 +241,8 @@ buffer."
 	    block-nindent (nth 5 info)
 	    lang-f (intern (concat lang "-mode"))
 	    begline (save-excursion (goto-char beg) (org-current-line)))
-      (if (and mark (>= mark beg) (<= mark end))
-	  (save-excursion (goto-char mark)
+      (if (and mark (>= mark beg) (<= mark (1+ end)))
+	  (save-excursion (goto-char (min mark end))
 			  (setq markline (org-current-line)
 				markcol (current-column))))
       (if (equal lang-f 'table.el-mode)
@@ -334,26 +335,26 @@ buffer."
 
 (defun org-src-switch-to-buffer (buffer context)
   (case org-src-window-setup
-    ('current-window
+    (current-window
      (switch-to-buffer buffer))
-    ('other-window
+    (other-window
      (switch-to-buffer-other-window buffer))
-    ('other-frame
+    (other-frame
      (case context
-       ('exit
+       (exit
 	(let ((frame (selected-frame)))
 	  (switch-to-buffer-other-frame buffer)
 	  (delete-frame frame)))
-       ('save
+       (save
 	(kill-buffer (current-buffer))
 	(switch-to-buffer buffer))
        (t
 	(switch-to-buffer-other-frame buffer))))
-    ('reorganize-frame
+    (reorganize-frame
      (if (eq context 'edit) (delete-other-windows))
      (org-switch-to-buffer-other-window buffer)
      (if (eq context 'exit) (delete-other-windows)))
-    ('switch-invisibly
+    (switch-invisibly
      (set-buffer buffer))
     (t
      (message "Invalid value %s for org-src-window-setup"
@@ -673,7 +674,7 @@ the language, a switch telling if the content should be in a single line."
 (defun org-src-mode-configure-edit-buffer ()
   (when (org-bound-and-true-p org-edit-src-from-org-mode)
     (org-add-hook 'kill-buffer-hook
-		  '(lambda () (delete-overlay org-edit-src-overlay)) nil 'local)
+		  (lambda () (delete-overlay org-edit-src-overlay)) nil 'local)
     (if (org-bound-and-true-p org-edit-src-allow-write-back-p)
 	(progn
 	  (setq buffer-offer-save t)
@@ -807,5 +808,4 @@ LANG is a string, and the returned major mode is a symbol."
 
 (provide 'org-src)
 
-;; arch-tag: 6a1fc84f-dec7-47be-a416-64be56bea5d8
 ;;; org-src.el ends here

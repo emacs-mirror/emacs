@@ -1,7 +1,6 @@
 ;;; shadow.el --- locate Emacs Lisp file shadowings
 
-;; Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Terry Jones <terry@santafe.edu>
 ;; Keywords: lisp
@@ -116,7 +115,7 @@ See the documentation for `list-load-path-shadows' for further information."
 	  ;; FILE now contains the current file name, with no suffix.
 	  (unless (or (member file files-seen-this-dir)
 		      ;; Ignore these files.
-		      (member file '("subdirs")))
+		      (member file '("subdirs" "leim-list")))
 	    ;; File has not been seen yet in this directory.
 	    ;; This test prevents us declaring that XXX.el shadows
 	    ;; XXX.elc (or vice-versa) when they are in the same directory.

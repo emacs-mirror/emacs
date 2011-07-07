@@ -1,8 +1,6 @@
 ;;; vc-rcs.el --- support for RCS version-control
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1992-2011  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -27,14 +25,10 @@
 
 ;; See vc.el
 
-;; Some features will not work with old RCS versions.  Where
+;; Some features will not work with ancient RCS versions.  Where
 ;; appropriate, VC finds out which version you have, and allows or
-;; disallows those features (stealing locks, for example, works only
-;; from 5.6.2 onwards).
-;; Even initial checkins will fail if your RCS version is so old that ci
-;; doesn't understand -t-; this has been known to happen to people running
-;; NExTSTEP 3.0.
-;;
+;; disallows those features.
+
 ;; You can support the RCS -x option by customizing vc-rcs-master-templates.
 
 ;;; Code:
@@ -393,7 +387,7 @@ whether to remove it."
 	  (vc-rcs-set-default-branch file
 				     (if (vc-rcs-trunk-p new-version) nil
 				       (vc-branch-part new-version)))
-	  ;; If this is an old RCS release, we might have
+	  ;; If this is an old (pre-1992!) RCS release, we might have
 	  ;; to remove a remaining lock.
 	  (if (not (vc-rcs-release-p "5.6.2"))
 	      ;; exit status of 1 is also accepted.
@@ -1467,5 +1461,4 @@ The `:insn' key is a keyword to distinguish it as a vc-rcs.el extension."
 
 (provide 'vc-rcs)
 
-;; arch-tag: 759b4916-5b0d-431d-b647-b185b8c652cf
 ;;; vc-rcs.el ends here

@@ -1,6 +1,5 @@
 /* Indentation functions.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1998, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1988, 1993-1995, 1998, 2000-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -38,11 +37,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dispextern.h"
 #include "region-cache.h"
 
-/* Indentation can insert tabs if this is non-zero;
-   otherwise always uses spaces.  */
-
-static int indent_tabs_mode;
-
 #define CR 015
 
 /* These three values memorize the current column to avoid recalculation.  */
@@ -51,7 +45,7 @@ static int indent_tabs_mode;
    Some things in set last_known_column_point to -1
    to mark the memorized value as invalid.  */
 
-static double last_known_column;
+static EMACS_INT last_known_column;
 
 /* Value of point when current_column was called.  */
 
@@ -61,8 +55,8 @@ EMACS_INT last_known_column_point;
 
 static int last_known_column_modified;
 
-static double current_column_1 (void);
-static double position_indentation (int);
+static EMACS_INT current_column_1 (void);
+static EMACS_INT position_indentation (int);
 
 /* Cache of beginning of line found by the last call of
    current_column. */
@@ -76,7 +70,7 @@ buffer_display_table (void)
 {
   Lisp_Object thisbuf;
 
-  thisbuf = current_buffer->display_table;
+  thisbuf = BVAR (current_buffer, display_table);
   if (DISP_TABLE_P (thisbuf))
     return XCHAR_TABLE (thisbuf);
   if (DISP_TABLE_P (Vstandard_display_table))
@@ -99,7 +93,7 @@ character_width (int c, struct Lisp_Char_Table *dp)
   /* Everything can be handled by the display table, if it's
      present and the element is right.  */
   if (dp && (elt = DISP_CHAR_VECTOR (dp, c), VECTORP (elt)))
-    return XVECTOR (elt)->size;
+    return ASIZE (elt);
 
   /* Some characters are special.  */
   if (c == '\n' || c == '\t' || c == '\015')
@@ -127,7 +121,7 @@ disptab_matches_widthtab (struct Lisp_Char_Table *disptab, struct Lisp_Vector *w
 {
   int i;
 
-  if (widthtab->size != 256)
+  if (widthtab->header.size != 256)
     abort ();
 
   for (i = 0; i < 256; i++)
@@ -146,10 +140,10 @@ recompute_width_table (struct buffer *buf, struct Lisp_Char_Table *disptab)
   int i;
   struct Lisp_Vector *widthtab;
 
-  if (!VECTORP (buf->width_table))
-    buf->width_table = Fmake_vector (make_number (256), make_number (0));
-  widthtab = XVECTOR (buf->width_table);
-  if (widthtab->size != 256)
+  if (!VECTORP (BVAR (buf, width_table)))
+    BVAR (buf, width_table) = Fmake_vector (make_number (256), make_number (0));
+  widthtab = XVECTOR (BVAR (buf, width_table));
+  if (widthtab->header.size != 256)
     abort ();
 
   for (i = 0; i < 256; i++)
@@ -162,17 +156,17 @@ recompute_width_table (struct buffer *buf, struct Lisp_Char_Table *disptab)
 static void
 width_run_cache_on_off (void)
 {
-  if (NILP (current_buffer->cache_long_line_scans)
+  if (NILP (BVAR (current_buffer, cache_long_line_scans))
       /* And, for the moment, this feature doesn't work on multibyte
          characters.  */
-      || !NILP (current_buffer->enable_multibyte_characters))
+      || !NILP (BVAR (current_buffer, enable_multibyte_characters)))
     {
       /* It should be off.  */
       if (current_buffer->width_run_cache)
         {
           free_region_cache (current_buffer->width_run_cache);
           current_buffer->width_run_cache = 0;
-          current_buffer->width_table = Qnil;
+          BVAR (current_buffer, width_table) = Qnil;
         }
     }
   else
@@ -277,25 +271,22 @@ skip_invisible (EMACS_INT pos, EMACS_INT *next_boundary_p, EMACS_INT to, Lisp_Ob
 
    DP is a display table or NULL.
 
-   This macro is used in current_column_1, Fmove_to_column, and
+   This macro is used in scan_for_column and in
    compute_motion.  */
 
-#define MULTIBYTE_BYTES_WIDTH(p, dp)					\
+#define MULTIBYTE_BYTES_WIDTH(p, dp, bytes, width)			\
   do {									\
-    int c;								\
+    int ch;								\
     									\
-    wide_column = 0;							\
-    c = STRING_CHAR_AND_LENGTH (p, bytes);				\
+    ch = STRING_CHAR_AND_LENGTH (p, bytes);				\
     if (BYTES_BY_CHAR_HEAD (*p) != bytes)				\
       width = bytes * 4;						\
     else								\
       {									\
-	if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))		\
-	  width = XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;		\
+	if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, ch)))		\
+	  width = ASIZE (DISP_CHAR_VECTOR (dp, ch));			\
 	else								\
-	  width = CHAR_WIDTH (c);					\
-	if (width > 1)							\
-	  wide_column = width;						\
+	  width = CHAR_WIDTH (ch);					\
       }									\
   } while (0)
 
@@ -315,7 +306,7 @@ Text that has an invisible property is considered as having width 0, unless
   (void)
 {
   Lisp_Object temp;
-  XSETFASTINT (temp, (int) current_column ()); /* iftc */
+  XSETFASTINT (temp, current_column ());
   return temp;
 }
 
@@ -327,16 +318,25 @@ invalidate_current_column (void)
   last_known_column_point = 0;
 }
 
-double
+/* Return a non-outlandish value for the tab width.  */
+
+static int
+sane_tab_width (void)
+{
+  EMACS_INT n = XFASTINT (BVAR (current_buffer, tab_width));
+  return 0 < n && n <= 1000 ? n : 8;
+}
+
+EMACS_INT
 current_column (void)
 {
-  register int col;
+  register EMACS_INT col;
   register unsigned char *ptr, *stop;
   register int tab_seen;
-  int post_tab;
+  EMACS_INT post_tab;
   register int c;
-  register int tab_width = XINT (current_buffer->tab_width);
-  int ctl_arrow = !NILP (current_buffer->ctl_arrow);
+  int tab_width = sane_tab_width ();
+  int ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
   register struct Lisp_Char_Table *dp = buffer_display_table ();
 
   if (PT == last_known_column_point
@@ -364,9 +364,6 @@ current_column (void)
     stop = BEGV_ADDR;
   else
     stop = GAP_END_ADDR;
-
-  if (tab_width <= 0 || tab_width > 1000)
-    tab_width = 8;
 
   col = 0, tab_seen = 0, post_tab = 0;
 
@@ -423,7 +420,7 @@ current_column (void)
 	    col++;
 	  else if (c == '\n'
 		   || (c == '\r'
-		       && EQ (current_buffer->selective_display, Qt)))
+		       && EQ (BVAR (current_buffer, selective_display), Qt)))
 	    {
 	      ptr++;
 	      goto start_of_line_found;
@@ -518,10 +515,10 @@ check_display_width (EMACS_INT pos, EMACS_INT col, EMACS_INT *endpos)
 static void
 scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 {
-  register EMACS_INT tab_width = XINT (current_buffer->tab_width);
-  register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
+  int tab_width = sane_tab_width ();
+  register int ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
   register struct Lisp_Char_Table *dp = buffer_display_table ();
-  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   struct composition_it cmp_it;
   Lisp_Object window;
   struct window *w;
@@ -544,7 +541,6 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
   window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
   w = ! NILP (window) ? XWINDOW (window) : NULL;
 
-  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
   memset (&cmp_it, 0, sizeof cmp_it);
   cmp_it.id = -1;
   composition_compute_stop_pos (&cmp_it, scan, scan_byte, end, Qnil);
@@ -575,14 +571,14 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
       prev_col = col;
 
       { /* Check display property.  */
-	EMACS_INT end;
-	int width = check_display_width (scan, col, &end);
+	EMACS_INT endp;
+	int width = check_display_width (scan, col, &endp);
 	if (width >= 0)
 	  {
 	    col += width;
-	    if (end > scan) /* Avoid infinite loops with 0-width overlays.  */
+	    if (endp > scan) /* Avoid infinite loops with 0-width overlays.  */
 	      {
-		scan = end; scan_byte = charpos_to_bytepos (scan);
+		scan = endp; scan_byte = charpos_to_bytepos (scan);
 		continue;
 	      }
 	  }
@@ -643,7 +639,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 
 	      if (c == '\n')
 		goto endloop;
-	      if (c == '\r' && EQ (current_buffer->selective_display, Qt))
+	      if (c == '\r' && EQ (BVAR (current_buffer, selective_display), Qt))
 		goto endloop;
 	      if (c == '\t')
 		{
@@ -661,7 +657,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 
 	  if (c == '\n')
 	    goto endloop;
-	  if (c == '\r' && EQ (current_buffer->selective_display, Qt))
+	  if (c == '\r' && EQ (BVAR (current_buffer, selective_display), Qt))
 	    goto endloop;
 	  if (c == '\t')
 	    {
@@ -672,10 +668,10 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 	    {
 	      /* Start of multi-byte form.  */
 	      unsigned char *ptr;
-	      int bytes, width, wide_column;
+	      int bytes, width;
 
 	      ptr = BYTE_POS_ADDR (scan_byte);
-	      MULTIBYTE_BYTES_WIDTH (ptr, dp);
+	      MULTIBYTE_BYTES_WIDTH (ptr, dp, bytes, width);
 	      /* Subtract one to compensate for the increment
 		 that is going to happen below.  */
 	      scan_byte += bytes - 1;
@@ -711,7 +707,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
    This function handles characters that are invisible
    due to text properties or overlays.  */
 
-static double
+static EMACS_INT
 current_column_1 (void)
 {
   EMACS_INT col = MOST_POSITIVE_FIXNUM;
@@ -737,7 +733,7 @@ string_display_width (string, beg, end)
   register int tab_seen;
   int post_tab;
   register int c;
-  register int tab_width = XINT (current_buffer->tab_width);
+  int tab_width = sane_tab_width ();
   int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Char_Table *dp = buffer_display_table ();
   int b, e;
@@ -764,8 +760,6 @@ string_display_width (string, beg, end)
      going backwards from point.  */
   stop = SDATA (string) + b;
 
-  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
-
   col = 0, tab_seen = 0, post_tab = 0;
 
   while (1)
@@ -775,7 +769,7 @@ string_display_width (string, beg, end)
 
       c = *--ptr;
       if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
-	col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
+	col += ASIZE (DISP_CHAR_VECTOR (dp, c));
       else if (c >= 040 && c < 0177)
 	col++;
       else if (c == '\n')
@@ -813,9 +807,9 @@ even if that goes past COLUMN; by default, MINIMUM is zero.
 The return value is COLUMN.  */)
   (Lisp_Object column, Lisp_Object minimum)
 {
-  int mincol;
-  register int fromcol;
-  register int tab_width = XINT (current_buffer->tab_width);
+  EMACS_INT mincol;
+  register EMACS_INT fromcol;
+  int tab_width = sane_tab_width ();
 
   CHECK_NUMBER (column);
   if (NILP (minimum))
@@ -828,8 +822,6 @@ The return value is COLUMN.  */)
 
   if (fromcol == mincol)
     return make_number (mincol);
-
-  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   if (indent_tabs_mode)
     {
@@ -855,8 +847,6 @@ The return value is COLUMN.  */)
 }
 
 
-static double position_indentation (int);
-
 DEFUN ("current-indentation", Fcurrent_indentation, Scurrent_indentation,
        0, 0, 0,
        doc: /* Return the indentation of the current line.
@@ -869,23 +859,21 @@ following any initial whitespace.  */)
 
   scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, 1);
 
-  XSETFASTINT (val, (int) position_indentation (PT_BYTE)); /* iftc */
+  XSETFASTINT (val, position_indentation (PT_BYTE));
   SET_PT_BOTH (opoint, opoint_byte);
   return val;
 }
 
-static double
+static EMACS_INT
 position_indentation (register int pos_byte)
 {
   register EMACS_INT column = 0;
-  register EMACS_INT tab_width = XINT (current_buffer->tab_width);
+  int tab_width = sane_tab_width ();
   register unsigned char *p;
   register unsigned char *stop;
   unsigned char *start;
   EMACS_INT next_boundary_byte = pos_byte;
   EMACS_INT ceiling = next_boundary_byte;
-
-  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   p = BYTE_POS_ADDR (pos_byte);
   /* STOP records the value of P at which we will need
@@ -930,7 +918,7 @@ position_indentation (register int pos_byte)
       switch (*p++)
 	{
 	case 0240:
-	  if (! NILP (current_buffer->enable_multibyte_characters))
+	  if (! NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	    return column;
 	case ' ':
 	  column++;
@@ -940,7 +928,7 @@ position_indentation (register int pos_byte)
 	  break;
 	default:
 	  if (ASCII_BYTE_P (p[-1])
-	      || NILP (current_buffer->enable_multibyte_characters))
+	      || NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	    return column;
 	  {
 	    int c;
@@ -964,9 +952,9 @@ position_indentation (register int pos_byte)
    preceding line.  */
 
 int
-indented_beyond_p (EMACS_INT pos, EMACS_INT pos_byte, double column)
+indented_beyond_p (EMACS_INT pos, EMACS_INT pos_byte, EMACS_INT column)
 {
-  double val;
+  EMACS_INT val;
   EMACS_INT opoint = PT, opoint_byte = PT_BYTE;
 
   SET_PT_BOTH (pos, pos_byte);
@@ -975,7 +963,7 @@ indented_beyond_p (EMACS_INT pos, EMACS_INT pos_byte, double column)
 
   val = position_indentation (PT_BYTE);
   SET_PT_BOTH (opoint, opoint_byte);
-  return val >= column;                 /* hmm, float comparison */
+  return val >= column;
 }
 
 DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2, "p",
@@ -1055,7 +1043,7 @@ The return value is the current column.  */)
 
 /* compute_motion: compute buffer posn given screen posn and vice versa */
 
-struct position val_compute_motion;
+static struct position val_compute_motion;
 
 /* Scan the current buffer forward from offset FROM, pretending that
    this is at line FROMVPOS, column FROMHPOS, until reaching buffer
@@ -1113,8 +1101,8 @@ struct position val_compute_motion;
 	    WINDOW_HAS_VERTICAL_SCROLL_BAR (window)
 	  and frame_cols = FRAME_COLS (XFRAME (window->frame))
 
-   Or you can let window_box_text_cols do this all for you, and write:
-	window_box_text_cols (w) - 1
+   Or you can let window_body_cols do this all for you, and write:
+	window_body_cols (w) - 1
 
    The `-1' accounts for the continuation-line backslashes; the rest
    accounts for window borders if the window is split horizontally, and
@@ -1129,16 +1117,16 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
   register EMACS_INT pos;
   EMACS_INT pos_byte;
   register int c = 0;
-  register EMACS_INT tab_width = XFASTINT (current_buffer->tab_width);
-  register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
+  int tab_width = sane_tab_width ();
+  register int ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
   register struct Lisp_Char_Table *dp = window_display_table (win);
-  int selective
-    = (INTEGERP (current_buffer->selective_display)
-       ? XINT (current_buffer->selective_display)
-       : !NILP (current_buffer->selective_display) ? -1 : 0);
+  EMACS_INT selective
+    = (INTEGERP (BVAR (current_buffer, selective_display))
+       ? XINT (BVAR (current_buffer, selective_display))
+       : !NILP (BVAR (current_buffer, selective_display)) ? -1 : 0);
   int selective_rlen
     = (selective && dp && VECTORP (DISP_INVIS_VECTOR (dp))
-       ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
+       ? ASIZE (DISP_INVIS_VECTOR (dp)) : 0);
   /* The next location where the `invisible' property changes, or an
      overlay starts or ends.  */
   EMACS_INT next_boundary = from;
@@ -1157,7 +1145,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
   EMACS_INT next_width_run = from;
   Lisp_Object window;
 
-  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
   /* If previous char scanned was a wide character,
      this is the column where it ended.  Otherwise, this is 0.  */
   EMACS_INT wide_column_end_hpos = 0;
@@ -1176,21 +1164,18 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 
   width_run_cache_on_off ();
   if (dp == buffer_display_table ())
-    width_table = (VECTORP (current_buffer->width_table)
-                   ? XVECTOR (current_buffer->width_table)->contents
+    width_table = (VECTORP (BVAR (current_buffer, width_table))
+                   ? XVECTOR (BVAR (current_buffer, width_table))->contents
                    : 0);
   else
     /* If the window has its own display table, we can't use the width
        run cache, because that's based on the buffer's display table.  */
     width_table = 0;
 
-  if (tab_width <= 0 || tab_width > 1000)
-    tab_width = 8;
-
   /* Negative width means use all available text columns.  */
   if (width < 0)
     {
-      width = window_box_text_cols (win);
+      width = window_body_cols (win);
       /* We must make room for continuation marks if we don't have fringes.  */
 #ifdef HAVE_WINDOW_SYSTEM
       if (!FRAME_WINDOW_P (XFRAME (win->frame)))
@@ -1256,7 +1241,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 	      unsigned char *ovstr;
 	      EMACS_INT ovlen = overlay_strings (pos, win, &ovstr);
 	      hpos += ((multibyte && ovlen > 0)
-		       ? strwidth (ovstr, ovlen) : ovlen);
+		       ? strwidth ((char *) ovstr, ovlen) : ovlen);
 	    }
 	  did_motion = 0;
 
@@ -1343,7 +1328,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 	    }
 
 	  if (hscroll || truncate
-	      || !NILP (current_buffer->truncate_lines))
+	      || !NILP (BVAR (current_buffer, truncate_lines)))
 	    {
 	      /* Truncating: skip to newline, unless we are already past
                  TO (we need to go back below).  */
@@ -1596,8 +1581,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 	      else if (c == '\n')
 		{
 		  if (selective > 0
-		      && indented_beyond_p (pos, pos_byte,
-                                            (double) selective)) /* iftc */
+		      && indented_beyond_p (pos, pos_byte, selective))
 		    {
 		      /* If (pos == to), we don't have to take care of
 			 selective display.  */
@@ -1613,7 +1597,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 			    }
 			  while (pos < to
 				 && indented_beyond_p (pos, pos_byte,
-                                                       (double) selective)); /* iftc */
+                                                       selective));
 			  /* Allow for the " ..." that is displayed for them. */
 			  if (selective_rlen)
 			    {
@@ -1666,15 +1650,15 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 		{
 		  /* Start of multi-byte form.  */
 		  unsigned char *ptr;
-		  int bytes, width, wide_column;
+		  int mb_bytes, mb_width;
 
 		  pos_byte--;	/* rewind POS_BYTE */
 		  ptr = BYTE_POS_ADDR (pos_byte);
-		  MULTIBYTE_BYTES_WIDTH (ptr, dp);
-		  pos_byte += bytes;
-		  if (wide_column)
-		    wide_column_end_hpos = hpos + wide_column;
-		  hpos += width;
+		  MULTIBYTE_BYTES_WIDTH (ptr, dp, mb_bytes, mb_width);
+		  pos_byte += mb_bytes;
+		  if (mb_width > 1 && BYTES_BY_CHAR_HEAD (*ptr) == mb_bytes)
+		    wide_column_end_hpos = hpos + mb_width;
+		  hpos += mb_width;
 		}
 	      else if (VECTORP (charvec))
 		++hpos;
@@ -1759,7 +1743,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
   struct window *w;
   Lisp_Object bufpos, hpos, vpos, prevhpos;
   struct position *pos;
-  int hscroll, tab_offset;
+  EMACS_INT hscroll, tab_offset;
 
   CHECK_NUMBER_COERCE_MARKER (from);
   CHECK_CONS (frompos);
@@ -1804,7 +1788,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 			 ? window_internal_height (w)
 			 : XINT (XCDR (topos))),
 			(NILP (topos)
-			 ? (window_box_text_cols (w)
+			 ? (window_body_cols (w)
 			    - (
 #ifdef HAVE_WINDOW_SYSTEM
 			       FRAME_WINDOW_P (XFRAME (w->frame)) ? 0 :
@@ -1830,7 +1814,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 
 /* Fvertical_motion and vmotion */
 
-struct position val_vmotion;
+static struct position val_vmotion;
 
 struct position *
 vmotion (register EMACS_INT from, register EMACS_INT vtarget, struct window *w)
@@ -1843,10 +1827,10 @@ vmotion (register EMACS_INT from, register EMACS_INT vtarget, struct window *w)
   register EMACS_INT first;
   EMACS_INT from_byte;
   EMACS_INT lmargin = hscroll > 0 ? 1 - hscroll : 0;
-  int selective
-    = (INTEGERP (current_buffer->selective_display)
-       ? XINT (current_buffer->selective_display)
-       : !NILP (current_buffer->selective_display) ? -1 : 0);
+  EMACS_INT selective
+    = (INTEGERP (BVAR (current_buffer, selective_display))
+       ? XINT (BVAR (current_buffer, selective_display))
+       : !NILP (BVAR (current_buffer, selective_display)) ? -1 : 0);
   Lisp_Object window;
   EMACS_INT start_hpos = 0;
   int did_motion;
@@ -1878,7 +1862,7 @@ vmotion (register EMACS_INT from, register EMACS_INT vtarget, struct window *w)
 		 && ((selective > 0
 		      && indented_beyond_p (prevline,
 					    CHAR_TO_BYTE (prevline),
-					    (double) selective)) /* iftc */
+					    selective))
 		     /* Watch out for newlines with `invisible' property.
 			When moving upward, check the newline before.  */
 		     || (propval = Fget_char_property (make_number (prevline - 1),
@@ -1935,7 +1919,7 @@ vmotion (register EMACS_INT from, register EMACS_INT vtarget, struct window *w)
 	     && ((selective > 0
 		  && indented_beyond_p (prevline,
 					CHAR_TO_BYTE (prevline),
-					(double) selective)) /* iftc */
+					selective))
 		 /* Watch out for newlines with `invisible' property.
 		    When moving downward, check the newline after.  */
 		 || (propval = Fget_char_property (make_number (prevline),
@@ -2004,7 +1988,7 @@ whether or not it is currently displayed in some window.  */)
   Lisp_Object old_buffer;
   struct gcpro gcpro1;
   Lisp_Object lcols = Qnil;
-  double cols;
+  double cols IF_LINT (= 0);
 
   /* Allow LINES to be of the form (HPOS . VPOS) aka (COLUMNS . LINES).  */
   if (CONSP (lines) && (NUMBERP (XCAR (lines))))
@@ -2038,7 +2022,8 @@ whether or not it is currently displayed in some window.  */)
     }
   else
     {
-      int it_start, first_x, it_overshoot_expected;
+      EMACS_INT it_start;
+      int first_x, it_overshoot_expected IF_LINT (= 0);
 
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
@@ -2052,7 +2037,7 @@ whether or not it is currently displayed in some window.  */)
 	    it_overshoot_expected = 1;
 	  else if (it.method == GET_FROM_STRING)
 	    {
-	      const char *s = SDATA (it.string);
+	      const char *s = SSDATA (it.string);
 	      const char *e = s + SBYTES (it.string);
 	      while (s < e && *s != '\n')
 		++s;
@@ -2081,7 +2066,7 @@ whether or not it is currently displayed in some window.  */)
 	  /* Do this even if LINES is 0, so that we move back to the
 	     beginning of the current line as we ought.  */
 	  if (XINT (lines) == 0 || IT_CHARPOS (it) > 0)
-	    move_it_by_lines (&it, XINT (lines), 0);
+	    move_it_by_lines (&it, XINT (lines));
 	}
       else
 	{
@@ -2099,9 +2084,9 @@ whether or not it is currently displayed in some window.  */)
 		  || (it_overshoot_expected < 0
 		      && it.method == GET_FROM_BUFFER
 		      && it.c == '\n'))
-		move_it_by_lines (&it, -1, 0);
+		move_it_by_lines (&it, -1);
 	      it.vpos = 0;
-	      move_it_by_lines (&it, XINT (lines), 0);
+	      move_it_by_lines (&it, XINT (lines));
 	    }
 	  else
 	    {
@@ -2114,15 +2099,15 @@ whether or not it is currently displayed in some window.  */)
 		  while (IT_CHARPOS (it) <= it_start)
 		    {
 		      it.vpos = 0;
-		      move_it_by_lines (&it, 1, 0);
+		      move_it_by_lines (&it, 1);
 		    }
 		  if (XINT (lines) > 1)
-		    move_it_by_lines (&it, XINT (lines) - 1, 0);
+		    move_it_by_lines (&it, XINT (lines) - 1);
 		}
 	      else
 		{
 		  it.vpos = 0;
-		  move_it_by_lines (&it, XINT (lines), 0);
+		  move_it_by_lines (&it, XINT (lines));
 		}
 	    }
 	}
@@ -2159,7 +2144,7 @@ whether or not it is currently displayed in some window.  */)
 void
 syms_of_indent (void)
 {
-  DEFVAR_BOOL ("indent-tabs-mode", &indent_tabs_mode,
+  DEFVAR_BOOL ("indent-tabs-mode", indent_tabs_mode,
 	       doc: /* *Indentation can insert tabs if this is non-nil.  */);
   indent_tabs_mode = 1;
 
@@ -2170,6 +2155,3 @@ syms_of_indent (void)
   defsubr (&Svertical_motion);
   defsubr (&Scompute_motion);
 }
-
-/* arch-tag: 9adfea44-71f7-4988-8ee3-96da15c502cc
-   (do not change this comment) */

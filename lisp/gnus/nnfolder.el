@@ -1,7 +1,6 @@
 ;;; nnfolder.el --- mail folder access for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org> (adding MARKS)
 ;;      ShengHuo Zhu <zsh@cs.rochester.edu> (adding NOV)
@@ -322,20 +321,20 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
   (when nnfolder-get-new-mail
     (nnfolder-possibly-change-group group server)
     (nnmail-get-new-mail
-     'nnfolder
-     (lambda ()
-       (let ((bufs nnfolder-buffer-alist))
-	 (save-excursion
-	   (while bufs
-	     (if (not (gnus-buffer-live-p (nth 1 (car bufs))))
-		 (setq nnfolder-buffer-alist
-		       (delq (car bufs) nnfolder-buffer-alist))
-	       (set-buffer (nth 1 (car bufs)))
-	       (nnfolder-save-buffer)
-	       (kill-buffer (current-buffer)))
-	     (setq bufs (cdr bufs))))))
-     nnfolder-directory
-     group)))
+     'nnfolder 'nnfolder-save-all-buffers
+     nnfolder-directory group)))
+
+(defun nnfolder-save-all-buffers ()
+  (let ((bufs nnfolder-buffer-alist))
+    (save-excursion
+      (while bufs
+	(if (not (gnus-buffer-live-p (nth 1 (car bufs))))
+	    (setq nnfolder-buffer-alist
+		  (delq (car bufs) nnfolder-buffer-alist))
+	  (set-buffer (nth 1 (car bufs)))
+	  (nnfolder-save-buffer)
+	  (kill-buffer (current-buffer)))
+	(setq bufs (cdr bufs))))))
 
 ;; Don't close the buffer if we're not shutting down the server.  This way,
 ;; we can keep the buffer in the group buffer cache, and not have to grovel
@@ -488,6 +487,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
       (nnfolder-save-buffer)
       (nnfolder-adjust-min-active newsgroup)
       (nnfolder-save-active nnfolder-group-alist nnfolder-active-file)
+      (nnfolder-save-all-buffers)
       (gnus-sorted-difference articles (nreverse deleted-articles)))))
 
 (deffoo nnfolder-request-move-article (article group server accept-form
@@ -1083,6 +1083,8 @@ This command does not work if you use short group names."
 	 (or nnfolder-nov-directory nnfolder-directory)))
     (concat (nnfolder-group-pathname group) nnfolder-nov-file-suffix)))
 
+(defvar copyright-update)
+
 (defun nnfolder-save-buffer ()
   "Save the buffer."
   (when (buffer-modified-p)
@@ -1090,8 +1092,8 @@ This command does not work if you use short group names."
     (gnus-make-directory (file-name-directory (buffer-file-name)))
     (let ((coding-system-for-write
 	   (or nnfolder-file-coding-system-for-write
-	       nnfolder-file-coding-system))
-	  (copyright-update nil))
+	       nnfolder-file-coding-system)))
+      (set (make-local-variable 'copyright-update) nil)
       (save-buffer)))
   (unless (or gnus-nov-is-evil nnfolder-nov-is-evil)
     (nnfolder-save-nov)))

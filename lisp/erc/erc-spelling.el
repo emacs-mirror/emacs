@@ -1,6 +1,6 @@
 ;;; erc-spelling.el --- use flyspell in ERC
 
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2011 Free Software Foundation, Inc.
 
 ;; Author: Jorgen Schaefer <forcer@forcix.cx>
 ;; Keywords: irc
@@ -106,5 +106,4 @@ The cadr is the beginning and the caddr is the end."
 
 (provide 'erc-spelling)
 
-;; arch-tag: 04ae1c46-0fd1-4e1a-8b80-55bfa471c945
 ;;; erc-spelling.el ends here

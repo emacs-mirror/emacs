@@ -1,7 +1,6 @@
 ;;; url-gw.el --- Gateway munging for URL loading
 
-;; Copyright (C) 1997, 1998, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -29,8 +28,6 @@
 ;; Fixme: support SSH explicitly or via a url-gateway-rlogin-program?
 
 (autoload 'socks-open-network-stream "socks")
-(autoload 'open-ssl-stream "ssl")
-(autoload 'open-tls-stream "tls")
 
 (defgroup url-gateway nil
   "URL gateway variables."
@@ -220,13 +217,6 @@ Might do a non-blocking connection; use `process-status' to check."
 			       host))
 			 'native
 		       url-gateway-method))
-;;; 	;; This hack is for OS/2 Emacs so that it will not do bogus CRLF
-;;; 	;; conversions while trying to be 'helpful'
-;;; 	(tcp-binary-process-output-services (if (stringp service)
-;;; 						(list service)
-;;; 					      (list service
-;;; 						    (int-to-string service))))
-
 	  ;; An attempt to deal with denied connections, and attempt
 	  ;; to reconnect
 	  (cur-retries 0)
@@ -244,19 +234,15 @@ Might do a non-blocking connection; use `process-status' to check."
 	  (let ((coding-system-for-read 'binary)
 		(coding-system-for-write 'binary))
 	    (setq conn (case gw-method
-			 (tls
-			  (funcall (if (fboundp 'open-gnutls-stream)
-				       'open-gnutls-stream
-				     'open-tls-stream)
-				   name buffer host service))
-			 (ssl
-			  (open-ssl-stream name buffer host service))
-			 ((native)
-			  ;; Use non-blocking socket if we can.
-			  (make-network-process :name name :buffer buffer
-						:host host :service service
-						:nowait
-						(featurep 'make-network-process '(:nowait t))))
+			 ((tls ssl native)
+			  (if (eq gw-method 'native)
+			      (setq gw-method 'plain))
+			  (open-network-stream
+			   name buffer host service
+			   :type gw-method
+			   ;; Use non-blocking socket if we can.
+			   :nowait (featurep 'make-network-process
+					     '(:nowait t))))
 			 (socks
 			  (socks-open-network-stream name buffer host service))
 			 (telnet
@@ -265,16 +251,9 @@ Might do a non-blocking connection; use `process-status' to check."
 			  (url-open-rlogin name buffer host service))
 			 (otherwise
 			  (error "Bad setting of url-gateway-method: %s"
-				 url-gateway-method)))))
-        ;; Ignoring errors here seems wrong.  E.g. it'll throw away the
-        ;; error signaled two lines above.  It was also found inconvenient
-        ;; during debugging.
-	;; (error
-	;;  (setq conn nil))
-	)
+				 url-gateway-method))))))
       conn)))
 
 (provide 'url-gw)
 
-;; arch-tag: 1c4c0317-6d03-45b8-b3f3-838bd8f9d838
 ;;; url-gw.el ends here

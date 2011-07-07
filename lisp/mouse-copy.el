@@ -1,7 +1,6 @@
 ;;; mouse-copy.el --- one-click text copy and move
 
-;; Copyright (C) 1996, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: John Heidemann <johnh@ISI.EDU>
 ;; Keywords: mouse
@@ -222,5 +221,4 @@ by johnh@ficus.cs.ucla.edu."
 
 (provide 'mouse-copy)
 
-;; arch-tag: 3d50293b-c089-4273-b412-4fc96a5f26ff
 ;;; mouse-copy.el ends here

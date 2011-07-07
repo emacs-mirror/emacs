@@ -1,7 +1,6 @@
 ;;; ede-proj-elisp.el --- EDE Generic Project Emacs Lisp support
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -209,7 +208,7 @@ is found, such as a `-version' variable, or the standard header."
       (error "Don't know how to update load path"))))
 
 (defmethod ede-proj-tweak-autoconf ((this ede-proj-target-elisp))
-  "Tweak the configure file (current buffer) to accomodate THIS."
+  "Tweak the configure file (current buffer) to accommodate THIS."
   (call-next-method)
   ;; Ok, now we have to tweak the autoconf provided `elisp-comp' program.
   (let ((ec (ede-expand-filename this "elisp-comp" 'newfile)))
@@ -233,7 +232,7 @@ is found, such as a `-version' variable, or the standard header."
 	(save-buffer)) )))
 
 (defmethod ede-proj-flush-autoconf ((this ede-proj-target-elisp))
-  "Flush the configure file (current buffer) to accomodate THIS."
+  "Flush the configure file (current buffer) to accommodate THIS."
   ;; Remove crufty old paths from elisp-compile
   (let ((ec (ede-expand-filename this "elisp-comp" 'newfile))
 	)
@@ -373,11 +372,11 @@ Argument THIS is the target which needs to insert an info file."
   )
 
 (defmethod ede-proj-tweak-autoconf ((this ede-proj-target-elisp-autoloads))
-  "Tweak the configure file (current buffer) to accomodate THIS."
+  "Tweak the configure file (current buffer) to accommodate THIS."
   (error "Autoloads not supported in autoconf yet"))
 
 (defmethod ede-proj-flush-autoconf ((this ede-proj-target-elisp-autoloads))
-  "Flush the configure file (current buffer) to accomodate THIS."
+  "Flush the configure file (current buffer) to accommodate THIS."
   nil)
 
 (provide 'ede/proj-elisp)

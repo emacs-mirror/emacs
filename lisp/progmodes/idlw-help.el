@@ -1,7 +1,6 @@
 ;;; idlw-help.el --- HTML Help code for IDLWAVE
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 ;;
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>
@@ -195,8 +194,7 @@ support."
   :type 'string)
 
 (defface idlwave-help-link
-  '((((class color)) (:foreground "Blue"))
-    (t (:weight bold)))
+  '((t :inherit link))
   "Face for highlighting links into IDLWAVE online help."
   :group 'idlwave-online-help)
 
@@ -221,22 +219,23 @@ support."
 
 ;; Define the key bindings for the Help application
 
-(defvar idlwave-help-mode-map (make-sparse-keymap)
+(defvar idlwave-help-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "q" 'idlwave-help-quit)
+    (define-key map "w" 'widen)
+    (define-key map "\C-m" (lambda (arg)
+                             (interactive "p")
+                             (scroll-up arg)))
+    (define-key map " " 'scroll-up)
+    (define-key map [delete] 'scroll-down)
+    (define-key map "h" 'idlwave-help-find-header)
+    (define-key map "H" 'idlwave-help-find-first-header)
+    (define-key map "." 'idlwave-help-toggle-header-match-and-def)
+    (define-key map "F" 'idlwave-help-fontify)
+    (define-key map "\M-?" 'idlwave-help-return-to-calling-frame)
+    (define-key map "x" 'idlwave-help-return-to-calling-frame)
+    map)
   "The keymap used in `idlwave-help-mode'.")
-
-(define-key idlwave-help-mode-map "q" 'idlwave-help-quit)
-(define-key idlwave-help-mode-map "w" 'widen)
-(define-key idlwave-help-mode-map "\C-m" (lambda (arg)
-					   (interactive "p")
-					   (scroll-up arg)))
-(define-key idlwave-help-mode-map " " 'scroll-up)
-(define-key idlwave-help-mode-map [delete] 'scroll-down)
-(define-key idlwave-help-mode-map "h" 'idlwave-help-find-header)
-(define-key idlwave-help-mode-map "H" 'idlwave-help-find-first-header)
-(define-key idlwave-help-mode-map "." 'idlwave-help-toggle-header-match-and-def)
-(define-key idlwave-help-mode-map "F" 'idlwave-help-fontify)
-(define-key idlwave-help-mode-map "\M-?" 'idlwave-help-return-to-calling-frame)
-(define-key idlwave-help-mode-map "x" 'idlwave-help-return-to-calling-frame)
 
 ;; Define the menu for the Help application
 
@@ -288,7 +287,7 @@ support."
 (declare-function idlwave-what-module-find-class "idlwave")
 (declare-function idlwave-where "idlwave")
 
-(defun idlwave-help-mode ()
+(define-derived-mode idlwave-help-mode special-mode "IDLWAVE Help"
   "Major mode for displaying IDL Help.
 
 This is a VIEW mode for the ASCII version of IDL Help files,
@@ -308,11 +307,7 @@ Jump:               [h] to function doclib header
 
 Here are all keybindings.
 \\{idlwave-help-mode-map}"
-  (kill-all-local-variables)
   (buffer-disable-undo)
-  (setq major-mode 'idlwave-help-mode
-	mode-name "IDLWAVE Help")
-  (use-local-map idlwave-help-mode-map)
   (easy-menu-add idlwave-help-menu idlwave-help-mode-map)
   (setq truncate-lines t)
   (setq case-fold-search t)
@@ -325,8 +320,7 @@ Here are all keybindings.
   (setq buffer-read-only t)
   (set (make-local-variable 'idlwave-help-def-pos) nil)
   (set (make-local-variable 'idlwave-help-args) nil)
-  (set (make-local-variable 'idlwave-help-in-header) nil)
-  (run-hooks 'idlwave-help-mode-hook))
+  (set (make-local-variable 'idlwave-help-in-header) nil))
 
 (defun idlwave-html-help-location ()
   "Return the help directory where HTML files are, or nil if that is unknown."
@@ -841,7 +835,7 @@ see if a link is set for it.  Try extra help functions if necessary."
 
      ((or idlwave-help-browser-is-local
 	  (string-match "w3" (symbol-name idlwave-help-browser-function)))
-      (idlwave-help-display-help-window '(lambda () (browse-url full-link))))
+      (idlwave-help-display-help-window (lambda () (browse-url full-link))))
 
      (t (browse-url full-link)))))
 

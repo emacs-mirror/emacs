@@ -1,7 +1,6 @@
 ;;; ede/proj-obj.el --- EDE Generic Project Object code generation support
 
-;;; Copyright (C) 1998, 1999, 2000, 2005, 2008, 2009, 2010
-;;; Free Software Foundation, Inc.
+;;; Copyright (C) 1998-2000, 2005, 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -320,5 +319,4 @@ Optional argument MORESOURCE is not used."
 
 (provide 'ede/proj-obj)
 
-;; arch-tag: f521b89f-1a3f-4910-ba81-65de3f421698
 ;;; ede/proj-obj.el ends here

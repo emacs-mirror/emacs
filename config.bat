@@ -2,7 +2,8 @@
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MSDOS
 rem   Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003
-rem   2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+rem   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011  Free Software Foundation,
+rem   Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -155,9 +156,9 @@ rm -f epaths.tmp
 
 rem   Create "config.h"
 rm -f config.h2 config.tmp
-sed -e '' config.in > config.tmp
+sed -e '' ../autogen/config.in > config.tmp
 if "%X11%" == "" goto src4
-sed -f ../msdos/sed2x.inp <config.in >config.tmp
+sed -f ../msdos/sed2x.inp < ..\autogen\config.in > config.tmp
 :src4
 sed -f ../msdos/sed2v2.inp <config.tmp >config.h2
 Rem See if DECL_ALIGN can be supported with this GCC
@@ -210,7 +211,7 @@ if exist dir.h ren dir.h vmsdir.h
 
 rem   Create "makefile" from "makefile.in".
 rm -f Makefile makefile.tmp
-copy Makefile.in+deps.mk makefile.tmp
+copy Makefile.in+lisp.mk+deps.mk makefile.tmp
 sed -f ../msdos/sed1v2.inp <makefile.tmp >Makefile
 rm -f makefile.tmp
 
@@ -273,6 +274,29 @@ Rem supports long file names but DJGPP does not
 for %%d in (emacs lispref lispintro lispintr misc) do sed -f ../msdos/sed6.inp < %%d\Makefile.in > %%d\Makefile
 cd ..
 rem   ----------------------------------------------------------------------
+Echo Configuring the lib directory...
+If Exist c++defs.h update c++defs.h cxxdefs.h
+cd lib
+Rem Rename files like djtar on plain DOS filesystem would.
+If Exist c++defs.h update c++defs.h cxxdefs.h
+If Exist getopt.in.h update getopt.in.h getopt.in-h
+If Exist stdbool.in.h update stdbool.in.h stdbool.in-h
+If Exist stddef.in.h update stddef.in.h  stddef.in-h
+If Exist stdint.in.h update stdint.in.h  stdint.in-h
+If Exist stdio.in.h update stdio.in.h stdio.in-h
+If Exist stdlib.in.h update stdlib.in.h stdlib.in-h
+If Exist sys_stat.in.h update sys_stat.in.h sys_stat.in-h
+If Exist time.in.h update time.in.h time.in-h
+If Exist unistd.in.h update unistd.in.h unistd.in-h
+sed -f ../msdos/sedlibcf.inp < ..\autogen\Makefile.in > makefile.tmp
+sed -f ../msdos/sedlibmk.inp < makefile.tmp > Makefile
+rm -f makefile.tmp
+Rem Create .Po files for new files in lib/
+If Not Exist deps\stamp mkdir deps
+for %%f in (*.c) do @call ..\msdos\depfiles.bat %%f
+echo deps-stamp > deps\stamp
+cd ..
+rem   ----------------------------------------------------------------------
 Echo Configuring the lisp directory...
 cd lisp
 If Exist gnus\.dir-locals.el update gnus/.dir-locals.el gnus/_dir-locals.el
@@ -316,6 +340,3 @@ set djgpp_ver=
 set sys_malloc=
 set libxml=
 
-goto skipArchTag
-   arch-tag: 2d2fed23-4dc6-4006-a2e4-49daf0031f33
-:skipArchTag

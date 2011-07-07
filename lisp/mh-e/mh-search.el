@@ -1,8 +1,6 @@
 ;;; mh-search  ---  MH-Search mode
 
-;; Copyright (C) 1993, 1995,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Indexed search by Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -323,7 +321,8 @@ folder containing the index search results."
                        count (> (hash-table-count msg-hash) 0)))))))
 
 ;; Shush compiler.
-(defvar pick-folder)                    ; XEmacs
+(mh-do-in-xemacs
+  (defvar pick-folder))
 
 (defun mh-search-folder (folder window-config)
   "Search FOLDER for messages matching a pattern.
@@ -403,8 +402,9 @@ or nothing to search all folders."
   (mh-index-sequenced-messages folders mh-tick-seq))
 
 ;; Shush compiler.
-(defvar mh-mairix-folder)               ; XEmacs
-(defvar mh-flists-search-folders)       ; XEmacs
+(mh-do-in-xemacs
+  (defvar mh-mairix-folder)
+  (defvar mh-flists-search-folders))
 
 ;;;###mh-autoload
 (defun mh-index-sequenced-messages (folders sequence)
@@ -1444,7 +1444,8 @@ being the list of messages originally from that folder."
   mh-index-data)
 
 ;; Shush compiler
-(defvar mh-speed-flists-inhibit-flag)   ; XEmacs
+(mh-do-in-xemacs
+  (defvar mh-speed-flists-inhibit-flag))
 
 ;;;###mh-autoload
 (defun mh-index-execute-commands ()
@@ -1931,5 +1932,4 @@ folder buffer."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: 607762ad-0dff-4fe1-a27e-6c0dde0dcc47
 ;;; mh-search ends here

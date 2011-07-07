@@ -1,7 +1,6 @@
 /* Header for composite sequence handler.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-   Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2001-2011 Free Software Foundation, Inc.
+   Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
    Copyright (C) 2003, 2006
@@ -127,27 +126,37 @@ extern Lisp_Object composition_temp;
 	->contents[(n) * 2 - 1])
 
 /* Decode encoded composition rule RULE_CODE into GREF (global
-   reference point code), NREF (new reference point code), XOFF
-   (horizontal offset) YOFF (vertical offset).  Don't check RULE_CODE,
+   reference point code), NREF (new ref. point code).  Don't check RULE_CODE;
    always set GREF and NREF to valid values.  By side effect,
    RULE_CODE is modified.  */
 
-#define COMPOSITION_DECODE_RULE(rule_code, gref, nref, xoff, yoff)	\
+#define COMPOSITION_DECODE_REFS(rule_code, gref, nref)			\
   do {									\
-    xoff = (rule_code) >> 16;						\
-    yoff = ((rule_code) >> 8) & 0xFF;					\
     rule_code &= 0xFF;							\
     gref = (rule_code) / 12;						\
     if (gref > 12) gref = 11;						\
     nref = (rule_code) % 12;						\
   } while (0)
 
+/* Like COMPOSITION_DECODE_REFS (RULE_CODE, GREF, NREF), but also
+   decode RULE_CODE into XOFF and YOFF (vertical offset).  */
+
+#define COMPOSITION_DECODE_RULE(rule_code, gref, nref, xoff, yoff)	\
+  do {									\
+    xoff = (rule_code) >> 16;						\
+    yoff = ((rule_code) >> 8) & 0xFF;					\
+    COMPOSITION_DECODE_REFS (rule_code, gref, nref);			\
+  } while (0)
+
+/* Nonzero if the global reference point GREF and new reference point NREF are
+   valid.  */
+#define COMPOSITION_ENCODE_RULE_VALID(gref, nref)	\
+  (UNSIGNED_CMP (gref, <, 12) && UNSIGNED_CMP (nref, <, 12))
+
 /* Return encoded composition rule for the pair of global reference
-   point GREF and new reference point NREF.  If arguments are invalid,
-   return -1. */
+   point GREF and new reference point NREF.  Arguments must be valid.  */
 #define COMPOSITION_ENCODE_RULE(gref, nref)		\
-  ((unsigned) (gref) < 12 && (unsigned) (nref) < 12	\
-   ? (gref) * 12 + (nref) : -1)
+  ((gref) * 12 + (nref))
 
 /* Data structure that records information about a composition
    currently used in some buffers or strings.
@@ -177,7 +186,7 @@ struct composition {
   enum composition_method method;
 
   /* Index to the composition hash table.  */
-  int hash_index;
+  EMACS_INT hash_index;
 
   /* For which font we have calculated the remaining members.  The
      actual type is device dependent.  */
@@ -207,11 +216,6 @@ extern int n_compositions;
 
 extern Lisp_Object Qcomposition;
 extern Lisp_Object composition_hash_table;
-extern Lisp_Object Qauto_composed;
-extern Lisp_Object Vauto_composition_function;
-extern Lisp_Object Qauto_composition_function;
-extern Lisp_Object Vcomposition_function_table;
-
 extern int get_composition_id (EMACS_INT, EMACS_INT, EMACS_INT,
 			       Lisp_Object, Lisp_Object);
 extern int find_composition (EMACS_INT, EMACS_INT, EMACS_INT *, EMACS_INT *,
@@ -261,10 +265,7 @@ enum lglyph_indices
 #define LGLYPH_CODE(g)						\
   (NILP (AREF ((g), LGLYPH_IX_CODE))				\
    ? FONT_INVALID_CODE						\
-   : CONSP (AREF ((g), LGLYPH_IX_CODE))				\
-   ? ((XFASTINT (XCAR (AREF ((g), LGLYPH_IX_CODE))) << 16)	\
-      | (XFASTINT (XCDR (AREF ((g), LGLYPH_IX_CODE)))))		\
-   : XFASTINT (AREF ((g), LGLYPH_IX_CODE)))
+   : cons_to_unsigned (AREF (g, LGLYPH_IX_CODE), TYPE_MAXIMUM (unsigned)))
 #define LGLYPH_WIDTH(g) XINT (AREF ((g), LGLYPH_IX_WIDTH))
 #define LGLYPH_LBEARING(g) XINT (AREF ((g), LGLYPH_IX_LBEARING))
 #define LGLYPH_RBEARING(g) XINT (AREF ((g), LGLYPH_IX_RBEARING))
@@ -276,16 +277,9 @@ enum lglyph_indices
 #define LGLYPH_SET_CHAR(g, val) ASET ((g), LGLYPH_IX_CHAR, make_number (val))
 /* Callers must assure that VAL is not negative!  */
 #define LGLYPH_SET_CODE(g, val)						\
-  do {									\
-    if (val == FONT_INVALID_CODE)					\
-      ASET ((g), LGLYPH_IX_CODE, Qnil);					\
-    else if ((EMACS_INT)val > MOST_POSITIVE_FIXNUM)			\
-      ASET ((g), LGLYPH_IX_CODE, Fcons (make_number ((val) >> 16),	\
-					make_number ((val) & 0xFFFF)));	\
-    else								\
-      ASET ((g), LGLYPH_IX_CODE, make_number (val));			\
-  } while (0)
-      
+  ASET (g, LGLYPH_IX_CODE,						\
+	val == FONT_INVALID_CODE ? Qnil : INTEGER_TO_CONS (val))
+
 #define LGLYPH_SET_WIDTH(g, val) ASET ((g), LGLYPH_IX_WIDTH, make_number (val))
 #define LGLYPH_SET_LBEARING(g, val) ASET ((g), LGLYPH_IX_LBEARING, make_number (val))
 #define LGLYPH_SET_RBEARING(g, val) ASET ((g), LGLYPH_IX_RBEARING, make_number (val))
@@ -304,7 +298,7 @@ struct composition_it;
 struct face;
 struct font_metrics;
 
-extern Lisp_Object composition_gstring_put_cache (Lisp_Object, int);
+extern Lisp_Object composition_gstring_put_cache (Lisp_Object, EMACS_INT);
 extern Lisp_Object composition_gstring_from_id (int);
 extern int composition_gstring_p (Lisp_Object);
 extern int composition_gstring_width (Lisp_Object, EMACS_INT, EMACS_INT,
@@ -322,11 +316,4 @@ extern int composition_update_it (struct composition_it *,
 
 extern EMACS_INT composition_adjust_point (EMACS_INT, EMACS_INT);
 
-EXFUN (Fcompose_region_internal, 4);
-EXFUN (Fcompose_string_internal, 5);
-EXFUN (Fcomposition_get_gstring, 4);
-
 #endif /* not EMACS_COMPOSITE_H */
-
-/* arch-tag: 59524d89-c645-47bd-b5e6-65e861690118
-   (do not change this comment) */

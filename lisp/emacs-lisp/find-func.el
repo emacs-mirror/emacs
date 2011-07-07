@@ -1,7 +1,6 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point
 
-;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
 ;; Maintainer: petersen@kurims.kyoto-u.ac.jp
@@ -142,6 +141,15 @@ See the functions `find-function' and `find-variable'."
     (dolist (suffix (get-load-suffixes) (nreverse suffixes))
       (unless (string-match "elc" suffix) (push suffix suffixes)))))
 
+(defun find-library--load-name (library)
+  (let ((name library))
+    (dolist (dir load-path)
+      (let ((rel (file-relative-name library dir)))
+        (if (and (not (string-match "\\`\\.\\./" rel))
+                 (< (length rel) (length name)))
+            (setq name rel))))
+    (unless (equal name library) name)))
+
 (defun find-library-name (library)
   "Return the absolute file name of the Emacs Lisp source of LIBRARY.
 LIBRARY should be a string (the name of the library)."
@@ -149,13 +157,23 @@ LIBRARY should be a string (the name of the library)."
   ;; the same name.
   (if (string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
       (setq library (replace-match "" t t library)))
-  (or 
+  (or
    (locate-file library
 		(or find-function-source-path load-path)
 		(find-library-suffixes))
    (locate-file library
 		(or find-function-source-path load-path)
 		load-file-rep-suffixes)
+   (when (file-name-absolute-p library)
+     (let ((rel (find-library--load-name library)))
+       (when rel
+         (or
+          (locate-file rel
+                       (or find-function-source-path load-path)
+                       (find-library-suffixes))
+          (locate-file rel
+                       (or find-function-source-path load-path)
+                       load-file-rep-suffixes)))))
    (error "Can't find library %s" library)))
 
 (defvar find-function-C-source-directory
@@ -563,5 +581,4 @@ Set mark before moving, if the buffer already existed."
 
 (provide 'find-func)
 
-;; arch-tag: 43ecd81c-74dc-4d9a-8f63-a61e55670d64
 ;;; find-func.el ends here

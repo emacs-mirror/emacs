@@ -1,7 +1,7 @@
 ;;; compare-w.el --- compare text between windows for Emacs
 
-;; Copyright (C) 1986, 1989, 1993, 1997, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1989, 1993, 1997, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience files vc
@@ -389,5 +389,4 @@ on third call it again advances points to the next difference and so on."
 
 (provide 'compare-w)
 
-;; arch-tag: 4177aab1-48e6-4a98-b7a1-000ee285de46
 ;;; compare-w.el ends here

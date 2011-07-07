@@ -1,6 +1,6 @@
 ;;; semantic/scope.el --- Analyzer Scope Calculations
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -814,5 +814,4 @@ hits in order, with the first tag being in the closest scope."
 ;; generated-autoload-load-name: "semantic/scope"
 ;; End:
 
-;; arch-tag: 056ab514-3e28-4d6e-84ed-9283dce5a01e
 ;;; semantic/scope.el ends here

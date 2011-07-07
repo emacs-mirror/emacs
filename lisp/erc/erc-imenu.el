@@ -1,6 +1,6 @@
 ;;; erc-imenu.el -- Imenu support for ERC
 
-;; Copyright (C) 2001, 2002, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001-2002, 2004, 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Keywords: comm
@@ -133,4 +133,3 @@ Don't rely on this function, read it first!"
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 35c69082-ca29-43f7-a050-8da5f400de81

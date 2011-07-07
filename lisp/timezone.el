@@ -1,7 +1,7 @@
 ;;; timezone.el --- time zone package for GNU Emacs
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 1996, 1999, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 1996, 1999, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Masanobu Umeda
 ;; Maintainer: umerin@mse.kyutech.ac.jp
@@ -403,5 +403,4 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
 
 (provide 'timezone)
 
-;; arch-tag: e23d5bc6-f32d-48ba-8996-323e9d654b3f
 ;;; timezone.el ends here

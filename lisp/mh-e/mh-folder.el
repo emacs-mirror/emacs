@@ -1,7 +1,6 @@
 ;;; mh-folder.el --- MH-Folder mode
 
-;; Copyright (C) 2002, 2003, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2011  Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -78,7 +77,7 @@ the MH mail system."
 ;;; Desktop Integration
 
 ;; desktop-buffer-mode-handlers appeared in Emacs 22.
-(if (fboundp 'desktop-buffer-mode-handlers)
+(if (boundp 'desktop-buffer-mode-handlers)
     (add-to-list 'desktop-buffer-mode-handlers
                  '(mh-folder-mode . mh-restore-desktop-buffer)))
 
@@ -527,7 +526,8 @@ font-lock is done highlighting.")
 ;; Shush compiler.
 (defvar desktop-save-buffer)
 (defvar font-lock-auto-fontify)
-(defvar font-lock-defaults)             ; XEmacs
+(mh-do-in-xemacs
+  (defvar font-lock-defaults))
 
 ;; Ensure new buffers won't get this mode if default major-mode is nil.
 (put 'mh-folder-mode 'mode-class 'special)
@@ -1974,5 +1974,4 @@ If MSG is nil then act on the message at point"
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: aa97b758-d4f6-4c86-bc5a-1950921da1e7
 ;;; mh-folder.el ends here

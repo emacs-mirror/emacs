@@ -1,7 +1,6 @@
 ;;; semantic/tag-ls.el --- Language Specific override functions for tags
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2004, 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -251,5 +250,4 @@ Return the name of TAG found in the toplevel STREAM."
 ;; generated-autoload-load-name: "semantic/tag-ls"
 ;; End:
 
-;; arch-tag: 06041439-e4bf-46f9-ab30-7805888d4464
 ;;; semantic/tag-ls.el ends here

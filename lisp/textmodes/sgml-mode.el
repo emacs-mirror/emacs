@@ -1,7 +1,7 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes -*- coding: utf-8 -*-
 
-;; Copyright (C) 1992, 1995, 1996, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1995-1996, 1998, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
 ;; Maintainer: FSF
@@ -384,6 +384,9 @@ a DOCTYPE or an XML declaration."
   (save-excursion
     (goto-char (point-min))
     (or (string= "xml" (file-name-extension (or buffer-file-name "")))
+        ;; Maybe the buffer-size check isn't needed, I don't know.
+        (and (zerop (buffer-size))
+             (string= "xhtml" (file-name-extension (or buffer-file-name ""))))
 	(looking-at "\\s-*<\\?xml")
 	(when (re-search-forward
 	       (eval-when-compile
@@ -424,7 +427,12 @@ a DOCTYPE or an XML declaration."
 		  (format-mode-line mode-name))))))
 
 (defun sgml-fill-nobreak ()
-  ;; Don't break between a tag name and its first argument.
+  "Don't break between a tag name and its first argument.
+This function is designed for use in `fill-nobreak-predicate'.
+
+    <a href=\"some://where\" type=\"text/plain\">
+      ^                   ^
+      | no break here     | but still allowed here"
   (save-excursion
     (skip-chars-backward " \t")
     (and (not (zerop (skip-syntax-backward "w_")))
@@ -2153,5 +2161,4 @@ Can be used as a value for `html-mode-hook'."
 
 (provide 'sgml-mode)
 
-;; arch-tag: 9675da94-b7f9-4bda-ad19-73ed7b4fb401
 ;;; sgml-mode.el ends here

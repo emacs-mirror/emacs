@@ -1,7 +1,6 @@
-;;; bibtex-style.el --- Major mode for BibTeX Style files
+;;; bibtex-style.el --- Major mode for BibTeX Style files -*- lexical-binding: t -*-
 
-;; Copyright (C) 2005, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: tex
@@ -142,7 +141,7 @@
 		(looking-at "if\\$"))
 	    (scan-error nil))))
      (save-excursion
-       (condition-case err
+       (condition-case nil
 	   (while (progn
 		    (backward-sexp 1)
 		    (save-excursion (skip-chars-backward " \t{") (not (bolp)))))
@@ -152,5 +151,4 @@
 
 
 (provide 'bibtex-style)
-;; arch-tag: b20ad41a-fd36-466e-8fd2-cc6137f9c55c
 ;;; bibtex-style.el ends here

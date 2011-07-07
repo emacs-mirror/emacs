@@ -84,5 +84,3 @@ XMenuPost(register Display *display, register XMenu *menu, register int *p_num, 
     }
 }
 
-/* arch-tag: 7b6104e5-fa32-4342-aa17-05296a30dd70
-   (do not change this comment) */

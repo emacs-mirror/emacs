@@ -1,7 +1,6 @@
 ;;; x-dnd.el --- drag and drop support for X  -*- coding: utf-8 -*-
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: FSF
@@ -146,7 +145,7 @@ any protocol specific data.")
   "Return the state in `x-dnd-current-state' for a frame or window."
   (cdr (x-dnd-get-state-cons-for-frame frame-or-window)))
 
-(defun x-dnd-default-test-function (window action types)
+(defun x-dnd-default-test-function (_window _action types)
   "The default test function for drag and drop.
 WINDOW is where the mouse is when this function is called.  It may be
 a frame if the mouse is over the menu bar, scroll bar or tool bar.
@@ -226,8 +225,7 @@ DATA is encoded in utf-16.  Decode the URL and call `x-dnd-handle-uri-list'."
 	 (string (decode-coding-string data coding))
 	 (strings (split-string string "[\r\n]" t))
 	 ;; Can one drop more than one moz-url ??  Assume not.
-	 (url (car strings))
-	 (title (car (cdr strings))))
+	 (url (car strings)))
     (x-dnd-handle-uri-list window action url)))
 
 (defun x-dnd-insert-utf8-text (window action text)
@@ -362,7 +360,7 @@ Currently XDND, Motif and old KDE 1.x protocols are recognized."
 (declare-function x-window-property "xfns.c"
 		  (prop &optional frame type source delete-p vector-ret-p))
 
-(defun x-dnd-handle-old-kde (event frame window message format data)
+(defun x-dnd-handle-old-kde (_event frame window _message _format _data)
   "Open the files in a KDE 1.x drop."
   (let ((values (x-window-property "DndSelection" frame nil 0 t)))
     (x-dnd-handle-uri-list window 'private
@@ -435,16 +433,29 @@ otherwise return the frame coordinates."
 (declare-function x-get-selection-internal "xselect.c"
 		  (selection-symbol target-type &optional time-stamp))
 
-(defun x-dnd-handle-xdnd (event frame window message format data)
+(defun x-dnd-version-from-flags (flags)
+  "Return the version byte from the 32 bit FLAGS in an XDndEnter message"
+  (if (consp flags)   ;; Long as cons
+      (ash (car flags) -8)
+    (ash flags -24))) ;; Ordinary number
+
+(defun x-dnd-more-than-3-from-flags (flags)
+  "Return the nmore-than3 bit from the 32 bit FLAGS in an XDndEnter message"
+  (if (consp flags)
+      (logand (cdr flags) 1)
+    (logand flags 1)))
+      
+(defun x-dnd-handle-xdnd (event frame window message _format data)
   "Receive one XDND event (client message) and send the appropriate reply.
 EVENT is the client message.  FRAME is where the mouse is now.
 WINDOW is the window within FRAME where the mouse is now.
 FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
   (cond ((equal "XdndEnter" message)
 	 (let* ((flags (aref data 1))
-		(version (and (consp flags) (ash (car flags) -8)))
-		(more-than-3 (and (consp flags) (cdr flags)))
+		(version (x-dnd-version-from-flags flags))
+		(more-than-3 (x-dnd-more-than-3-from-flags flags))
 		(dnd-source (aref data 0)))
+	(message "%s %s" version  more-than-3)
 	   (if version  ;; If flags is bad, version will be nil.
 	       (x-dnd-save-state
 		window nil nil
@@ -457,11 +468,8 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 			  (x-get-atom-name (aref data 4))))))))
 
 	((equal "XdndPosition" message)
-	 (let* ((x (car (aref data 2)))
-		(y (cdr (aref data 2)))
-		(action (x-get-atom-name (aref data 4)))
+	 (let* ((action (x-get-atom-name (aref data 4)))
 		(dnd-source (aref data 0))
-		(dnd-time (aref data 3))
 		(action-type (x-dnd-maybe-call-test-function
 			      window
 			      (cdr (assoc action x-dnd-xdnd-to-action))))
@@ -492,7 +500,7 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 			    (x-get-selection-internal
 			     'XdndSelection
 			     (intern (x-dnd-current-type window)))))
-		success action ret-action)
+		success action)
 
 	   (setq action (if value
 			    (condition-case info
@@ -503,11 +511,6 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 			       nil))))
 
 	   (setq success (if action 1 0))
-	   (setq ret-action
-		 (if (eq success 1)
-		     (or (car (rassoc action x-dnd-xdnd-to-action))
-			 "XdndActionPrivate")
-		   0))
 
 	   (x-send-client-message
 	    frame dnd-source frame "XdndFinished" 32
@@ -592,7 +595,7 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
     (2 . private)) ; Motif does not have private, so use copy for private.
   "Mapping from number to operation for Motif DND.")
 
-(defun x-dnd-handle-motif (event frame window message-atom format data)
+(defun x-dnd-handle-motif (event frame window message-atom _format data)
   (let* ((message-type (cdr (assoc (aref data 0) x-dnd-motif-message-types)))
 	 (source-byteorder (aref data 1))
 	 (my-byteorder (byteorder))

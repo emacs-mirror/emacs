@@ -1,11 +1,11 @@
 ;;; swedish.el --- miscellaneous functions for dealing with Swedish
 
-;; Copyright (C) 1988, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
 ;; Keywords: i18n
+;; Obsolete-since: 22.1
 
 ;; This file is part of GNU Emacs.
 
@@ -23,8 +23,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; This file has been obsolete since Emacs 22.1.
 
 ;; Fixme: Is this actually used?  if so, it should be in language,
 ;; possibly as a feature property of Swedish, probably defining a
@@ -159,5 +157,4 @@ Leaves point just after the word that looks Swedish."
 
 (provide 'swedish)
 
-;; arch-tag: a117019d-acac-4ac4-8eac-0dbd49a41d32
 ;;; swedish.el ends here

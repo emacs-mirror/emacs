@@ -1,6 +1,6 @@
 ;;; tv-util.el --- support for Tai Viet			-*- coding: utf-8 -*-
 
-;; Copyright (C) 2007, 2008, 2009, 2010
+;; Copyright (C) 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
@@ -139,4 +139,3 @@
 ;;
 (provide 'tai-viet-util)
 
-;; arch-tag: a45ac3fc-07d0-44d5-8841-2ebea7e11f5b

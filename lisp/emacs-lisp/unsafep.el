@@ -1,6 +1,6 @@
 ;;;; unsafep.el -- Determine whether a Lisp form is safe to evaluate
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
@@ -202,6 +202,9 @@ UNSAFEP-VARS is a list of symbols with local bindings."
 	      (dolist (x (nthcdr 3 form))
 		(setq reason (unsafep-progn (cdr x)))
 		(if reason (throw 'unsafep reason))))))
+       ((eq fun '\`)
+	;; Backquoted form - safe if its expansion is.
+	(unsafep (cdr (backquote-process (cadr form)))))
        (t
 	;;First unsafep-function call above wasn't nil, no special case applies
 	reason)))))
@@ -258,5 +261,4 @@ If TO-BIND is t, check whether SYM is safe to bind."
 	     (local-variable-p sym)))
     `(global-variable ,sym))))
 
-;; arch-tag: 6216f98b-eb8f-467a-9c33-7a7644f50658
 ;;; unsafep.el ends here

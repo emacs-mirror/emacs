@@ -1,6 +1,5 @@
 /* Mark beginning of data space to dump as pure, for GNU Emacs.
-   Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -32,5 +31,3 @@ extern int initialized;
 static int * dummy = &initialized;
 #endif
 
-/* arch-tag: a6c0d2dd-00c3-4ba5-95a5-9c8ab82f39b2
-   (do not change this comment) */

@@ -2,8 +2,7 @@
    This file describes the parameters that system description files
    should define or not.
 
-Copyright (C) 1985, 1986, 1992, 1999, 2001, 2002, 2003, 2004, 2005,
-  2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1985-1986, 1992, 1999, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -78,15 +77,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    a file that someone else has modified in his Emacs.  */
 #define CLASH_DETECTION
 
-/* Define this if your operating system declares signal handlers to
-   have a type other than the usual.  `The usual' is `void' for ANSI C
-   systems (i.e. when the __STDC__ macro is defined), and `int' for
-   pre-ANSI systems.  If you're using GCC on an older system, __STDC__
-   will be defined, but the system's include files will still say that
-   signal returns int or whatever; in situations like that, define
-   this to be what the system's include files want.  */
-/* #define SIGTYPE int */
-
 /* If the character used to separate elements of the executable path
    is not ':', #define this to be the appropriate character constant.  */
 /* #define SEPCHAR ':' */
@@ -121,5 +111,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    you should also check `etc/MACHINES' to make sure its descriptions
    of known problems in that configuration should be updated.  */
 
-/* arch-tag: 4b426b11-cb2e-4c0e-a488-e663f76a0515
-   (do not change this comment) */

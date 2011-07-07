@@ -1,7 +1,6 @@
 ;;; em-dirs.el --- directory navigation commands
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -59,8 +58,9 @@ they lack somewhat in feel from the typical shell equivalents."
 
 ;;; User Variables:
 
-(defcustom eshell-dirs-load-hook '(eshell-dirs-initialize)
+(defcustom eshell-dirs-load-hook nil
   "A hook that gets run when `eshell-dirs' is loaded."
+  :version "24.1"			; removed eshell-dirs-initialize
   :type 'hook
   :group 'eshell-dirs)
 
@@ -234,7 +234,7 @@ Thus, this does not include the current directory.")
 
 (defun eshell-save-some-last-dir ()
   "Save the list-dir-ring for any open Eshell buffers."
-  (eshell-for buf (buffer-list)
+  (dolist (buf (buffer-list))
     (if (buffer-live-p buf)
 	(with-current-buffer buf
 	  (if (and eshell-mode
@@ -573,5 +573,4 @@ in the minibuffer:
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 1e9c5a95-f1bd-45f8-ad36-55aac706e787
 ;;; em-dirs.el ends here

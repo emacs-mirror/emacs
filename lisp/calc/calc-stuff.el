@@ -1,7 +1,6 @@
 ;;; calc-stuff.el --- miscellaneous functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -295,5 +294,4 @@ With a prefix, push that prefix as a number onto the stack."
 
 (provide 'calc-stuff)
 
-;; arch-tag: 789332ef-a178-49d3-8fb7-5d7ed7e21f56
 ;;; calc-stuff.el ends here

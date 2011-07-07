@@ -1,9 +1,8 @@
 ;;; characters.el --- set syntax and category for multibyte characters
 
-;; Copyright (C) 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 2003
@@ -1207,22 +1206,8 @@ Setup char-width-table appropriate for non-CJK language environment."
 
 ;;; Setting unicode-category-table.
 
-;; This macro is to build unicode-category-table at compile time so
-;; that C code can access the table efficiently.
-(defmacro build-unicode-category-table ()
-  (let ((table (make-char-table 'unicode-category-table nil)))
-    (dotimes (i #x110000)
-      (if (or (< i #xD800)
-	      (and (>= i #xF900) (< i #x30000))
-	      (and (>= i #xE0000) (< i #xE0200)))
-	  (aset table i (get-char-code-property i 'general-category))))
-    (set-char-table-range table '(#xE000 . #xF8FF) 'Co)
-    (set-char-table-range table '(#xF0000 . #xFFFFD) 'Co)
-    (set-char-table-range table '(#x100000 . #x10FFFD) 'Co)
-    (optimize-char-table table 'eq)
-    table))
-
-(setq unicode-category-table (build-unicode-category-table))
+(setq unicode-category-table
+      (unicode-property-table-internal 'general-category))
 (map-char-table #'(lambda (key val)
 		    (if (and val
 			     (or (and (/= (aref (symbol-name val) 0) ?M)
@@ -1305,7 +1290,12 @@ This function updates the char-table `glyphless-char-display'."
 	  (error "Invalid glyphless character display method: %s" method))
       (cond ((eq target 'c0-control)
 	     (set-char-table-range glyphless-char-display '(#x00 . #x1F)
-				   method))
+				   method)
+	     ;; Users will not expect their newlines and TABs be
+	     ;; displayed as anything but themselves, so exempt those
+	     ;; two characters from c0-control.
+	     (set-char-table-range glyphless-char-display #x9 nil)
+	     (set-char-table-range glyphless-char-display #xa nil))
 	    ((eq target 'c1-control)
 	     (set-char-table-range glyphless-char-display '(#x80 . #x9F)
 				   method))
@@ -1344,7 +1334,7 @@ specifying the method of displaying characters belonging to that
 group.
 
 GROUP must be one of these symbols:
-  `c0-control':     U+0000..U+001F.
+  `c0-control':     U+0000..U+001F, but excluding newline and TAB.
   `c1-control':     U+0080..U+009F.
   `format-control': Characters of Unicode General Category `Cf',
                     such as U+200C (ZWNJ), U+200E (LRM), but
@@ -1409,5 +1399,4 @@ METHOD must be one of these symbols:
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: 85889c35-9f4d-4912-9bf5-82de31b0d42d
 ;;; characters.el ends here

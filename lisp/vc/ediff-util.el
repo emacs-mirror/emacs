@@ -1,8 +1,6 @@
 ;;; ediff-util.el --- the core commands and utilities of ediff
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1994-2011  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -94,6 +92,7 @@ This mode is entered through one of the following commands:
 
 Commands:
 \\{ediff-mode-map}"
+  ;; FIXME: Use define-derived-mode.
   (kill-all-local-variables)
   (setq major-mode 'ediff-mode)
   (setq mode-name "Ediff")
@@ -1683,7 +1682,7 @@ the width of the A/B/C windows."
 			    'ediff-get-lines-to-region-start)
 			   ((eq op 'scroll-up)
 			    'ediff-get-lines-to-region-end)
-			   (t '(lambda (a b c) 0))))
+			   (t (lambda (a b c) 0))))
 	       (max-lines (max (funcall func 'A n ctl-buf)
 			       (funcall func 'B n ctl-buf)
 			       (if (ediff-buffer-live-p ediff-buffer-C)
@@ -4145,15 +4144,9 @@ Mail anyway? (y or n) ")
 
 ;; calculate time used by command
 (defun ediff-calc-command-time ()
-  (let ((end (current-time))
-	micro sec)
-    (setq micro
-	  (if (>= (nth 2 end) (nth 2 ediff-command-begin-time))
-	      (- (nth 2 end) (nth 2 ediff-command-begin-time))
-	    (+ (nth 2 end) (- 1000000 (nth 2 ediff-command-begin-time)))))
-    (setq sec (- (nth 1 end) (nth 1 ediff-command-begin-time)))
-    (or (equal ediff-command-begin-time '(0 0 0))
-	(message "Elapsed time: %d second(s) + %d microsecond(s)" sec micro))))
+  (or (equal ediff-command-begin-time '(0 0 0))
+      (message "Elapsed time: %g second(s)"
+	       (float-time (time-since ediff-command-begin-time)))))
 
 (defsubst ediff-save-time ()
   (setq ediff-command-begin-time (current-time)))

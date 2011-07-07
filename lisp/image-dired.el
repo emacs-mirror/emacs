@@ -1,6 +1,6 @@
 ;;; image-dired.el --- use dired to browse and manipulate your images
 ;;
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2005-2011 Free Software Foundation, Inc.
 ;;
 ;; Version: 0.4.11
 ;; Keywords: multimedia
@@ -187,19 +187,19 @@ that allows sharing of thumbnails across different programs."
   :group 'image-dired)
 
 (defcustom image-dired-db-file
-  (locate-user-emacs-file "image-dired/.image-dired_db")
+  (expand-file-name ".image-dired_db" image-dired-dir)
   "Database file where file names and their associated tags are stored."
   :type 'string
   :group 'image-dired)
 
 (defcustom image-dired-temp-image-file
-  (locate-user-emacs-file "image-dired/.image-dired_temp")
+  (expand-file-name ".image-dired_temp" image-dired-dir)
   "Name of temporary image file used by various commands."
   :type 'string
   :group 'image-dired)
 
 (defcustom image-dired-gallery-dir
-  (locate-user-emacs-file "image-dired/.image-dired_gallery")
+  (expand-file-name ".image-dired_gallery" image-dired-dir)
   "Directory to store generated gallery html pages.
 This path needs to be \"shared\" to the public so that it can access
 the index.html page that image-dired creates."
@@ -344,7 +344,7 @@ original image file name and %t which is replaced by
   :group 'image-dired)
 
 (defcustom image-dired-temp-rotate-image-file
-  (locate-user-emacs-file "image-dired/.image-dired_rotate_temp")
+  (expand-file-name ".image-dired_rotate_temp" image-dired-dir)
   "Temporary file for rotate operations."
   :type 'string
   :group 'image-dired)
@@ -384,7 +384,7 @@ Used together with `image-dired-cmd-read-exif-data-program-options'."
   "%p -s -s -s -%t \"%f\""
   "Format of command used to read EXIF data.
 Available options are %p which is replaced by
-`image-dired-cmd-write-exif-data-options', %f which is replaced
+`image-dired-cmd-write-exif-data-program', %f which is replaced
 by the image file name and %t which is replaced by the tag name."
   :type 'string
   :group 'image-dired)
@@ -551,7 +551,7 @@ Create the thumbnails directory if it does not exist."
     ))
 
 (defun image-dired-insert-thumbnail (file original-file-name
-                                    associated-dired-buffer)
+                                     associated-dired-buffer)
   "Insert thumbnail image FILE.
 Add text properties ORIGINAL-FILE-NAME and ASSOCIATED-DIRED-BUFFER."
   (let (beg end)
@@ -816,7 +816,7 @@ used or not.  If non-nil, use `display-buffer' instead of
 thumbnail buffer to be selected."
   (interactive "P")
   (let ((buf (image-dired-create-thumbnail-buffer))
-        curr-file thumb-name files count dired-buf beg)
+        thumb-name files dired-buf)
     (if arg
         (setq files (list (dired-get-filename)))
       (setq files (dired-get-marked-files)))
@@ -918,7 +918,7 @@ FILE-TAGS is an alist in the following form:
   "For all FILES, remove TAG from the image database."
   (image-dired-sane-db-file)
   (save-excursion
-    (let (end buf start)
+    (let (end buf)
       (setq buf (find-file image-dired-db-file))
       (if (not (listp files))
           (if (stringp files)
@@ -974,7 +974,7 @@ FILE-TAGS is an alist in the following form:
   "Tag marked file(s) in dired.  With prefix ARG, tag file at point."
   (interactive "P")
   (let ((tag (read-string "Tags to add (separate tags with a semicolon): "))
-        curr-file files)
+        files)
     (if arg
         (setq files (list (dired-get-filename)))
       (setq files (dired-get-marked-files)))
@@ -1598,7 +1598,7 @@ Note that n, p and <down> and <up> will be hijacked and bound to
 With prefix argument ARG, create thumbnails even if they already exist
 \(i.e. use this to refresh your thumbnails)."
   (interactive "P")
-  (let (curr-file thumb-name files count)
+  (let (thumb-name files)
     (setq files (dired-get-marked-files))
     (mapcar
      (lambda (curr-file)
@@ -1906,7 +1906,7 @@ overwritten.  This confirmation can be turned off using
   (if (not (image-dired-image-at-point-p))
       (message "No image at point")
     (let ((file (image-dired-original-file-name))
-          command temp-file)
+          command)
       (if (not (string-match "\.[jJ][pP[eE]?[gG]$" file))
           (error "Only JPEG images can be rotated!"))
       (setq command (format-spec
@@ -2194,26 +2194,25 @@ matching tag will be marked in the dired buffer."
 Track this in associated dired buffer if `image-dired-track-movement' is
 non-nil."
   (interactive "e")
-  (let (file)
-    (mouse-set-point event)
-    (goto-char (posn-point (event-end event)))
-    (setq file (image-dired-original-file-name))
-    (if image-dired-track-movement
-        (image-dired-track-original-file))
-    (image-dired-create-display-image-buffer)
-    (display-buffer image-dired-display-image-buffer)
-    (image-dired-display-image file)))
+  (mouse-set-point event)
+  (goto-char (posn-point (event-end event)))
+  (let ((file (image-dired-original-file-name)))
+    (when file
+      (if image-dired-track-movement
+	  (image-dired-track-original-file))
+      (image-dired-create-display-image-buffer)
+      (display-buffer image-dired-display-image-buffer)
+      (image-dired-display-image file))))
 
 (defun image-dired-mouse-select-thumbnail (event)
   "Use mouse EVENT to select thumbnail image.
 Track this in associated dired buffer if `image-dired-track-movement' is
 non-nil."
   (interactive "e")
-  (let (file)
-    (mouse-set-point event)
-    (goto-char (posn-point (event-end event)))
-    (if image-dired-track-movement
-        (image-dired-track-original-file)))
+  (mouse-set-point event)
+  (goto-char (posn-point (event-end event)))
+  (if image-dired-track-movement
+      (image-dired-track-original-file))
   (image-dired-display-thumb-properties))
 
 (defun image-dired-mouse-toggle-mark (event)
@@ -2221,11 +2220,10 @@ non-nil."
 Track this in associated dired buffer if `image-dired-track-movement' is
 non-nil."
   (interactive "e")
-  (let (file)
-    (mouse-set-point event)
-    (goto-char (posn-point (event-end event)))
-    (if image-dired-track-movement
-        (image-dired-track-original-file)))
+  (mouse-set-point event)
+  (goto-char (posn-point (event-end event)))
+  (if image-dired-track-movement
+      (image-dired-track-original-file))
   (image-dired-toggle-mark-thumb-original-file))
 
 (defun image-dired-dired-display-properties ()
@@ -2374,7 +2372,7 @@ it easier to generate, then HTML-files are created in
 when using per-directory thumbnail file storage"))
   (image-dired-create-gallery-lists)
   (let ((tags image-dired-tag-file-list)
-        count curr tag index-buf tag-buf
+        count tag index-buf tag-buf
         comment file-tags tag-link tag-link-list)
     ;; Make sure gallery root exist
     (if (file-exists-p image-dired-gallery-dir)
@@ -2533,7 +2531,7 @@ the operation by activating the Cancel button.\n\n")
     (widget-insert "\n")
     (widget-create 'push-button
                  :notify
-                 (lambda (&rest ignore)
+                 (lambda (&rest _ignore)
                    (image-dired-save-information-from-widgets)
                    (bury-buffer)
                    (message "Done."))
@@ -2541,7 +2539,7 @@ the operation by activating the Cancel button.\n\n")
     (widget-insert " ")
     (widget-create 'push-button
                    :notify
-                   (lambda (&rest ignore)
+                   (lambda (&rest _ignore)
                      (bury-buffer)
                      (message "Operation canceled."))
                    "Cancel")
@@ -2592,7 +2590,7 @@ tags to their respective image file.  Internal function used by
 ;;                 `(,(nth 4 fattribs) ,(nth 7 fattribs) ,f)))
 ;;             (directory-files (image-dired-dir) t ".+\.thumb\..+$"))
 ;;            ;; Sort function. Compare time between two files.
-;;            '(lambda (l1 l2)
+;;            (lambda (l1 l2)
 ;;               (time-less-p (car l1) (car l2)))))
 ;;          (dirsize (apply '+ (mapcar (lambda (x) (cadr x)) files))))
 ;;     (while (> dirsize image-dired-dir-max-size)
@@ -2622,5 +2620,4 @@ tags to their respective image file.  Internal function used by
 
 (provide 'image-dired)
 
-;; arch-tag: 9d11411d-331f-4380-8b44-8adfe3a0343e
 ;;; image-dired.el ends here

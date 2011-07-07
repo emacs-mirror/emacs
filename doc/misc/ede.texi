@@ -5,8 +5,7 @@
 @copying
 This file describes EDE, the Emacs Development Environment.
 
-Copyright @copyright{} 1998, 1999, 2000, 2001, 2004, 2005, 2008, 2009,
-2010  Free Software Foundation, Inc.
+Copyright @copyright{} 1998-2001, 2004-2005, 2008-2011  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -22,9 +21,9 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs misc features
 @direntry
-* ede: (ede).                   Project management for Emacs.
+* EDE: (ede).                   The Emacs Development Environment.
 @end direntry
 
 @titlepage
@@ -242,7 +241,7 @@ To add the current file to an existing target, type @kbd{C-c . a}
 You can add a file to more than one target; this is OK.
 
 To remove the current file from a target, type @kbd{C-c . d}
-(@code{ede-remove-file}), or or use the @samp{Remove File} menu item
+(@code{ede-remove-file}), or use the @samp{Remove File} menu item
 in the @samp{Target Options} submenu.  If the file belongs to multiple
 targets, this command prompts for each target it could be removed
 from.
@@ -2124,7 +2123,7 @@ Results in --add-missing being passed to automake.
 @end deffn
 
 @deffn Method ede-proj-flush-autoconf :AFTER this
-Flush the configure file (current buffer) to accomodate @var{THIS}.
+Flush the configure file (current buffer) to accommodate @var{THIS}.
 By flushing, remove any cruft that may be in the file.  Subsequent
 calls to @dfn{ede-proj-tweak-autoconf} can restore items removed by flush.
 @end deffn
@@ -2175,7 +2174,7 @@ These are removed with make clean.
 @end deffn
 
 @deffn Method ede-proj-tweak-autoconf :AFTER this
-Tweak the configure file (current buffer) to accomodate @var{THIS}.
+Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-proj-compilers :AFTER obj
@@ -2685,7 +2684,7 @@ Bonus: Return a cons cell: (COMPILED . UPTODATE).
 @end deffn
 
 @deffn Method ede-proj-flush-autoconf :AFTER this
-Flush the configure file (current buffer) to accomodate @var{THIS}.
+Flush the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-buffer-mine :AFTER this buffer
@@ -2698,7 +2697,7 @@ Return the variable name for @var{THIS}'s sources.
 @end deffn
 
 @deffn Method ede-proj-tweak-autoconf :AFTER this
-Tweak the configure file (current buffer) to accomodate @var{THIS}.
+Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-update-version-in-source :AFTER this version
@@ -2778,7 +2777,7 @@ Create or update the autoload target.
 @end deffn
 
 @deffn Method ede-proj-flush-autoconf :AFTER this
-Flush the configure file (current buffer) to accomodate @var{THIS}.
+Flush the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-buffer-mine :AFTER this buffer
@@ -2797,7 +2796,7 @@ Argument @var{THIS} is the target which needs to insert an info file.
 @end deffn
 
 @deffn Method ede-proj-tweak-autoconf :AFTER this
-Tweak the configure file (current buffer) to accomodate @var{THIS}.
+Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-update-version-in-source :AFTER this version
@@ -3009,7 +3008,7 @@ The preferred interpreter for this code.
 @subsubsection Specialized Methods
 
 @deffn Method ede-proj-tweak-autoconf :AFTER this
-Tweak the configure file (current buffer) to accomodate @var{THIS}.
+Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 
@@ -3537,7 +3536,7 @@ For example, C code uses .o on unix, and Emacs Lisp uses .elc.
 @subsubsection Specialized Methods
 
 @deffn Method ede-proj-flush-autoconf :AFTER this
-Flush the configure file (current buffer) to accomodate @var{THIS}.
+Flush the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 @deffn Method ede-proj-makefile-insert-rules :AFTER this
@@ -3559,7 +3558,7 @@ Retrieves the slot @code{sourcetype} from an object of class @code{ede-compilati
 @end deffn
 
 @deffn Method ede-proj-tweak-autoconf :AFTER this
-Tweak the configure file (current buffer) to accomodate @var{THIS}.
+Tweak the configure file (current buffer) to accommodate @var{THIS}.
 @end deffn
 
 
@@ -3791,7 +3790,3 @@ For example, C code uses .o on unix, and Emacs Lisp uses .elc.
 @end table
 
 @bye
-
-@ignore
-   arch-tag: c9bfdc6e-e6e9-4e87-97f7-d8348342fbf4
-@end ignore

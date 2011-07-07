@@ -1,6 +1,6 @@
 ;;; srecode.el --- Semantic buffer evaluator.
 
-;;; Copyright (C) 2005, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2005, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: codegeneration
@@ -52,5 +52,4 @@
 
 (provide 'srecode)
 
-;; arch-tag: 6c671a1c-40e5-4ed3-ab05-84249c3afdaf
 ;;; srecode.el ends here

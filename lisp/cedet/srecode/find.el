@@ -1,6 +1,6 @@
 ;;;; srecode/find.el --- Tools for finding templates in the database.
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -278,5 +278,4 @@ DEFAULT is what to use if the user presses RET."
 
 (provide 'srecode/find)
 
-;; arch-tag: 49d18e58-45a0-48f5-92e1-4a1dcd4e36a6
 ;;; srecode/find.el ends here

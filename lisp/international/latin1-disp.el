@@ -1,7 +1,6 @@
 ;;; latin1-disp.el --- display tables for other ISO 8859 on Latin-1 terminals -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -3196,5 +3195,4 @@ isn't changed if the display can render Unicode characters."
 
 (provide 'latin1-disp)
 
-;; arch-tag: 68b2872e-d667-4f48-8e2f-ec2ba2d29406
 ;;; latin1-disp.el ends here

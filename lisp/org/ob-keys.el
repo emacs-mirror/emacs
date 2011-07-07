@@ -1,11 +1,11 @@
 ;;; ob-keys.el --- key bindings for org-babel
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -93,6 +93,5 @@ a-list placed behind the generic `org-babel-key-prefix'.")
 
 (provide 'ob-keys)
 
-;; arch-tag: 01e348ee-4906-46fa-839a-6b7b6f989048
 
 ;;; ob-keys.el ends here

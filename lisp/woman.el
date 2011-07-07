@@ -1,7 +1,6 @@
 ;;; woman.el --- browse UN*X manual pages `wo (without) man'
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: FSF
@@ -1087,6 +1086,9 @@ Set by .PD; used by .SH, .SS, .TP, .LP, .PP, .P, .IP, .HP.")
 (defvar woman-nospace nil
   "Current no-space mode: nil for normal spacing.
 Set by `.ns' request; reset by any output or `.rs' request")
+;; Used for message logging
+(defvar WoMan-current-file nil)		; bound in woman-really-find-file
+(defvar WoMan-Log-header-point-max nil)
 
 (defsubst woman-reset-nospace ()
   "Set `woman-nospace' to nil."
@@ -1282,8 +1284,7 @@ cache to be re-read."
   ;; completions, but to return only a case-sensitive match.  This
   ;; does not seem to work properly by default, so I re-do the
   ;; completion if necessary.
-  (let (files
-	(default (current-word)))
+  (let (files)
     (or (stringp topic)
 	(and (if (boundp 'woman-use-topic-at-point)
 		 woman-use-topic-at-point
@@ -1368,16 +1369,17 @@ regexp that is the final component of DIR.  Log a warning if list is empty."
   (or (file-accessible-directory-p dir)
       (WoMan-warn "Ignoring inaccessible `man-page' directory `%s'!" dir)))
 
-(defun woman-expand-directory-path (woman-manpath woman-path)
-  "Expand the manual directories in WOMAN-MANPATH and WOMAN-PATH.
-WOMAN-MANPATH should be a list of general manual directories, while
-WOMAN-PATH should be a list of specific manual directory regexps.
+(defun woman-expand-directory-path (path-dirs path-regexps)
+  "Expand the manual directories in PATH-DIRS and PATH-REGEXPS.
+PATH-DIRS should be a list of general manual directories (like
+`woman-manpath'), while PATH-REGEXPS should be a list of specific
+manual directory regexps (like `woman-path').
 Ignore any paths that are unreadable or not directories."
   ;; Allow each path to be a single string or a list of strings:
-  (if (not (listp woman-manpath)) (setq woman-manpath (list woman-manpath)))
-  (if (not (listp woman-path)) (setq woman-path (list woman-path)))
+  (if (not (listp path-dirs)) (setq path-dirs (list path-dirs)))
+  (if (not (listp path-regexps)) (setq path-regexps (list path-regexps)))
   (let (head dirs path)
-    (dolist (dir woman-manpath)
+    (dolist (dir path-dirs)
       (when (consp dir)
 	(unless path
 	  (setq path (split-string (getenv "PATH") path-separator t)))
@@ -1391,7 +1393,7 @@ Ignore any paths that are unreadable or not directories."
 	  (setq dir (woman-canonicalize-dir dir)
 		dirs (nconc dirs (directory-files
 				  dir t woman-manpath-man-regexp)))))
-    (dolist (dir woman-path)
+    (dolist (dir path-regexps)
       (if (or (null dir)
 	      (null (setq dir (woman-canonicalize-dir dir)
 			  head (file-name-directory dir)))
@@ -1576,6 +1578,8 @@ Also make each path-info component into a list.
 
 
 ;;; tar-mode support
+
+(defvar global-font-lock-mode)  ; defined in font-core.el
 
 (defun woman-tar-extract-file ()
   "In tar mode, run the WoMan man-page browser on this file."
@@ -2153,8 +2157,8 @@ No external programs are used."
   (run-hooks 'woman-pre-format-hook)
   (and (boundp 'font-lock-mode) font-lock-mode (font-lock-mode -1))
   ;; (fundamental-mode)
-  (let ((start-time (current-time))	; (HIGH LOW MICROSEC)
-	time)				; HIGH * 2**16 + LOW seconds
+  (let ((start-time (current-time))
+	time)
     (message "WoMan formatting buffer...")
 ;  (goto-char (point-min))
 ;  (cond
@@ -2163,10 +2167,8 @@ No external programs are used."
 ;    (delete-region (point-min) (point))) ; potentially dangerous!
 ;   (t (message "WARNING: .TH request not found -- not man-page format?")))
     (woman-decode-region (point-min) (point-max))
-    (setq time (current-time)
-	  time (+ (* (- (car time) (car start-time)) 65536)
-		  (- (cadr time) (cadr start-time))))
-    (message "WoMan formatting buffer...done in %d seconds" time)
+    (setq time (float-time (time-since start-time)))
+    (message "WoMan formatting buffer...done in %g seconds" time)
     (WoMan-log-end time))
   (run-hooks 'woman-post-format-hook))
 
@@ -2244,7 +2246,7 @@ To be called on original buffer and any .so insertions."
 This applies to text between .TE and .TS directives.
 Currently set only from '\" t in the first line of the source file.")
 
-(defun woman-decode-region (from to)
+(defun woman-decode-region (from _to)
   "Decode the region between FROM and TO in UN*X man-page source format."
   ;; Suitable for use in format-alist.
   ;; But this requires care to control major mode implied font locking.
@@ -2479,10 +2481,22 @@ Start at FROM and re-scan new text as appropriate."
 	(woman0-search-regex-start woman0-search-regex-start)
 	(woman0-search-regex
 	 (concat woman0-search-regex-start woman0-search-regex-end))
+	processed-first-hunk
 	woman0-rename-alist)
     (set-marker-insertion-type woman0-if-to t)
     (while (re-search-forward woman0-search-regex nil t)
       (setq woman-request (match-string 1))
+
+      ;; Process escape sequences prior to first request (Bug#7843).
+      (unless processed-first-hunk
+	(setq processed-first-hunk t)
+	(let ((process-escapes-to-marker (point-marker)))
+	  (set-marker-insertion-type process-escapes-to-marker t)
+	  (save-match-data
+	    (save-excursion
+	      (goto-char from)
+	      (woman2-process-escapes process-escapes-to-marker)))))
+
       (cond ((string= woman-request "ig") (woman0-ig))
 	    ((string= woman-request "if") (woman0-if "if"))
 	    ((string= woman-request "ie") (woman0-if "ie"))
@@ -4353,9 +4367,9 @@ Format paragraphs upto TO."
   (setq tab-stop-list (reverse tab-stop-list))
   (woman2-format-paragraphs to))
 
-(defsubst woman-get-tab-stop (tab-stop-list)
-  "If TAB-STOP-LIST is a cons, return its car, else return TAB-STOP-LIST."
-  (if (consp tab-stop-list) (car tab-stop-list) tab-stop-list))
+(defsubst woman-get-tab-stop (tab-stops)
+  "If TAB-STOPS is a cons, return its car, else return TAB-STOPS."
+  (if (consp tab-stops) (car tab-stops) tab-stops))
 
 (defun woman-tab-to-tab-stop ()
   "Insert spaces to next defined tab-stop column.
@@ -4473,9 +4487,6 @@ Format paragraphs upto TO."
 ;; The basis for this logging code was shamelessly pirated from bytecomp.el
 ;; by Jamie Zawinski <jwz@lucid.com> & Hallvard Furuseth <hbf@ulrik.uio.no>
 
-(defvar WoMan-current-file nil)		; bound in woman-really-find-file
-(defvar WoMan-Log-header-point-max nil)
-
 (defun WoMan-log-begin ()
   "Log the beginning of formatting in *WoMan-Log*."
   (let ((WoMan-current-buffer (buffer-name)))
@@ -4516,7 +4527,7 @@ IGNORED is a string appended to the log message."
   "Log the end of formatting in *WoMan-Log*.
 TIME specifies the time it took to format the man page, to be printed
 with the message."
-  (WoMan-log-1 (format "Formatting time %d seconds." time) 'end))
+  (WoMan-log-1 (format "Formatting time %g seconds." time) 'end))
 
 (defun WoMan-log-1 (string &optional end)
   "Log a message STRING in *WoMan-Log*.

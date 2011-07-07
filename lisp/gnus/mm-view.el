@@ -1,7 +1,6 @@
 ;;; mm-view.el --- functions for viewing MIME objects
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -32,6 +31,7 @@
 (require 'mm-bodies)
 (require 'mm-decode)
 (require 'smime)
+(require 'mml-smime)
 
 (autoload 'gnus-completing-read "gnus-util")
 (autoload 'gnus-window-inside-pixel-edges "gnus-ems")
@@ -455,7 +455,7 @@
 	  (narrow-to-region (point) (point))
 	  (mm-insert-part handle)
 	  (goto-char (point-max)))
-      (insert (mm-decode-string (mm-get-part handle) charset)))
+      (mm-display-inline-fontify handle))
     (when (and mm-fill-flowed
 	       (equal type "plain")
 	       (equal (cdr (assoc 'format (mm-handle-type handle)))
@@ -565,15 +565,16 @@
 		     (face-property 'default prop) (current-buffer))))
 	      (delete-region ,(point-min-marker) ,(point-max-marker)))))))))
 
-(defun mm-display-inline-fontify (handle mode)
+(defun mm-display-inline-fontify (handle &optional mode)
+  "Insert HANDLE inline fontifying with MODE.
+If MODE is not set, try to find mode automatically."
   (let ((charset (mail-content-type-get (mm-handle-type handle) 'charset))
 	text coding-system)
     (unless (eq charset 'gnus-decoded)
       (mm-with-unibyte-buffer
 	(mm-insert-part handle)
 	(mm-decompress-buffer
-	 (or (mail-content-type-get (mm-handle-disposition handle) 'name)
-	     (mail-content-type-get (mm-handle-disposition handle) 'filename))
+         (mm-handle-filename handle)
 	 t t)
 	(unless charset
 	  (setq coding-system (mm-find-buffer-file-coding-system)))
@@ -601,9 +602,15 @@
 	    (font-lock-support-mode nil)
 	    ;; I find font-lock a bit too verbose.
 	    (font-lock-verbose nil))
-	(funcall mode)
+        (setq buffer-file-name (mm-handle-filename handle))
+        (set (make-local-variable 'enable-local-variables) nil)
+        (if mode
+            (funcall mode)
+          (set-auto-mode))
 	;; The mode function might have already turned on font-lock.
-	(unless (symbol-value 'font-lock-mode)
+        ;; Do not fontify if the guess mode is fundamental.
+	(unless (or (symbol-value 'font-lock-mode)
+                    (eq major-mode 'fundamental-mode))
 	  (font-lock-fontify-buffer)))
       ;; By default, XEmacs font-lock uses non-duplicable text
       ;; properties.  This code forces all the text properties
@@ -614,6 +621,9 @@
 		       nil)
 		     nil nil nil nil nil 'text-prop))
       (setq text (buffer-string))
+      ;; Set buffer unmodified to avoid confirmation when killing the
+      ;; buffer.
+      (set-buffer-modified-p nil)
       (kill-buffer (current-buffer)))
     (mm-insert-inline handle text)))
 
@@ -630,6 +640,18 @@
 
 (defun mm-display-dns-inline (handle)
   (mm-display-inline-fontify handle 'dns-mode))
+
+(defun mm-display-org-inline (handle)
+  "Show an Org mode text from HANDLE inline."
+  (mm-display-inline-fontify handle 'org-mode))
+
+(defun mm-display-shell-script-inline (handle)
+  "Show a shell script from HANDLE inline."
+  (mm-display-inline-fontify handle 'shell-script-mode))
+
+(defun mm-display-javascript-inline (handle)
+  "Show JavsScript code from HANDLE inline."
+  (mm-display-inline-fontify handle 'javascript-mode))
 
 ;;      id-signedData OBJECT IDENTIFIER ::= { iso(1) member-body(2)
 ;;          us(840) rsadsi(113549) pkcs(1) pkcs7(7) 2 }
@@ -683,17 +705,23 @@
 (defun mm-view-pkcs7-decrypt (handle &optional from)
   (insert-buffer-substring (mm-handle-buffer handle))
   (goto-char (point-min))
-  (insert "MIME-Version: 1.0\n")
-  (mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")
-  (smime-decrypt-region
-   (point-min) (point-max)
-   (if (= (length smime-keys) 1)
-       (cadar smime-keys)
-     (smime-get-key-by-email
-      (gnus-completing-read
-       "Decipher using key"
-       smime-keys nil nil nil (car-safe (car-safe smime-keys)))))
-   from)
+  (if (eq mml-smime-use 'epg)
+      ;; Use EPG/gpgsm
+      (let ((part (base64-decode-string (buffer-string))))
+	(erase-buffer)
+	(insert (epg-decrypt-string (epg-make-context 'CMS) part)))
+    ;; Use openssl
+    (insert "MIME-Version: 1.0\n")
+    (mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")
+    (smime-decrypt-region
+     (point-min) (point-max)
+     (if (= (length smime-keys) 1)
+	 (cadar smime-keys)
+       (smime-get-key-by-email
+	(gnus-completing-read
+	 "Decipher using key"
+	 smime-keys nil nil nil (car-safe (car-safe smime-keys)))))
+     from))
   (goto-char (point-min))
   (while (search-forward "\r\n" nil t)
     (replace-match "\n"))

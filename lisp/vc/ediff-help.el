@@ -1,7 +1,6 @@
 ;;; ediff-help.el --- Code related to the contents of Ediff help buffers
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -318,5 +317,4 @@ the value of this variable and the variables `ediff-help-message-*' in
 (provide 'ediff-help)
 
 
-;; arch-tag: 05659813-7fcf-4274-964f-d2f577431a9d
 ;;; ediff-help.el ends here

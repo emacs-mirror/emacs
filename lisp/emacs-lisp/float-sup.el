@@ -1,7 +1,6 @@
 ;;; float-sup.el --- define some constants useful for floating point numbers.
 
-;; Copyright (C) 1985, 1986, 1987, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1985-1987, 2001-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -29,7 +28,13 @@
 ;; Provide an easy hook to tell if we are running with floats or not.
 ;; Define pi and e via math-lib calls (much less prone to killer typos).
 (defconst float-pi (* 4 (atan 1)) "The value of Pi (3.1415926...).")
-(defconst pi float-pi "Obsolete since Emacs-23.3.  Use `float-pi' instead.")
+(progn
+  ;; Simulate a defconst that doesn't declare the variable dynamically bound.
+  (setq-default pi float-pi)
+  (put 'pi 'variable-documentation
+       "Obsolete since Emacs-23.3.  Use `float-pi' instead.")
+  (put 'pi 'risky-local-variable t)
+  (push 'pi current-load-list))
 
 (defconst float-e (exp 1) "The value of e (2.7182818...).")
 

@@ -1,8 +1,7 @@
 ;;; bruce.el --- bruce phrase utility for overloading the Communications -*- no-byte-compile: t -*-
 ;;; Decency Act snoops, if any.
 
-;; Copyright (C) 1988, 1993, 1997, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1993, 1997, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: games
@@ -146,5 +145,4 @@
 
 (provide 'bruce)
 
-;; arch-tag: b83ded51-4ccb-41ef-8bd6-3b521e81dd9b
 ;;; bruce.el ends here

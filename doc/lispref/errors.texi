@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1999, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c Copyright (C) 1990-1993, 1999, 2001-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/errors
 @node Standard Errors, Standard Buffer-Local Variables, GNU Emacs Internals, Top
@@ -203,7 +202,3 @@ This is a subcategory of @code{domain-error}.@*
 This is a subcategory of @code{domain-error}.@*
 @xref{Math Functions}.
 @end table
-
-@ignore
-   arch-tag: 717c6048-5d9d-4c7d-9a62-df57390b6f19
-@end ignore

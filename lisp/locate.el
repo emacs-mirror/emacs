@@ -1,7 +1,6 @@
 ;;; locate.el --- interface to the locate command
 
-;; Copyright (C) 1996, 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1998, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Keywords: unix files
@@ -145,6 +144,11 @@ the version.)"
   :type 'string
   :group 'locate)
 
+(defcustom locate-post-command-hook nil
+  "List of hook functions run after `locate' (see `run-hooks')."
+  :type  'hook
+  :group 'locate)
+
 (defvar locate-history-list nil
   "The history list used by the \\[locate] command.")
 
@@ -225,6 +229,11 @@ Setting this option non-nil actually inverts the meaning of a prefix arg;
 that is, with a prefix arg, you get the default behavior."
   :group 'locate
   :type 'boolean)
+
+(defcustom locate-mode-hook nil
+  "List of hook functions run by `locate-mode' (see `run-mode-hooks')."
+  :type  'hook
+  :group 'locate)
 
 ;; Functions
 
@@ -471,9 +480,9 @@ do not work in subdirectories.
   (make-local-variable 'directory-listing-before-filename-regexp)
   ;; This should support both Unix and Windoze style names
   (setq directory-listing-before-filename-regexp
-	(concat "^."
+	(concat "^.\\("
 		(make-string (1- locate-filename-indentation) ?\s)
-		"\\(/\\|[A-Za-z]:\\)\\|"
+		 "\\)\\|"
 		(default-value 'directory-listing-before-filename-regexp)))
   (make-local-variable 'dired-actual-switches)
   (setq dired-actual-switches "")
@@ -579,7 +588,7 @@ do not work in subdirectories.
     (message "This command only works inside main listing.")))
 
 ;; From Stephen Eglen <stephen@cns.ed.ac.uk>
-(defun locate-update (ignore1 ignore2)
+(defun locate-update (_ignore1 _ignore2)
   "Revert the *Locate* buffer.
 If `locate-update-when-revert' is non-nil, offer to update the
 locate database using the shell command in `locate-update-command'."

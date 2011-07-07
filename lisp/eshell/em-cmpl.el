@@ -1,7 +1,6 @@
 ;;; em-cmpl.el --- completion using the TAB key
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -85,8 +84,9 @@ variable names, arguments, etc."
 
 ;;; User Variables:
 
-(defcustom eshell-cmpl-load-hook '(eshell-cmpl-initialize)
+(defcustom eshell-cmpl-load-hook nil
   "A list of functions to run when `eshell-cmpl' is loaded."
+  :version "24.1"			; removed eshell-cmpl-initialize
   :type 'hook
   :group 'eshell-cmpl)
 
@@ -455,5 +455,4 @@ to writing a completion function."
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 0e914699-673a-45f8-8cbf-82e1dbc571bc
 ;;; em-cmpl.el ends here

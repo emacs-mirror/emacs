@@ -1,7 +1,6 @@
 ;;; ns-win.el --- lisp side of interface with NeXT/Open/GNUstep/MacOS X window system
 
-;; Copyright (C) 1993, 1994, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 2005-2011  Free Software Foundation, Inc.
 
 ;; Authors: Carl Edman
 ;;	Christian Limpach
@@ -171,7 +170,9 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [ns-change-font] 'ns-respond-to-change-font)
 (define-key global-map [ns-open-file-line] 'ns-open-file-select-line)
 (define-key global-map [ns-spi-service-call] 'ns-spi-service-call)
+(define-key global-map [ns-new-frame] 'make-frame)
 (define-key global-map [ns-toggle-toolbar] 'ns-toggle-toolbar)
+(define-key global-map [ns-show-prefs] 'customize)
 
 
 ;; Set up a number of aliases and other layers to pretend we're using
@@ -486,7 +487,9 @@ unless the current buffer is a scratch buffer."
 (defun ns-find-file ()
   "Do a `find-file' with the `ns-input-file' as argument."
   (interactive)
-  (let* ((f (file-truename (pop ns-input-file)))
+  (let* ((f (file-truename
+	     (expand-file-name (pop ns-input-file)
+			       command-line-default-directory)))
          (file (find-file-noselect f))
          (bufwin1 (get-buffer-window file 'visible))
          (bufwin2 (get-buffer-window "*scratch*" 'visibile)))
@@ -889,6 +892,7 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 (declare-function ns-list-services "nsfns.m" ())
 (declare-function x-open-connection "nsfns.m"
                   (display &optional xrm-string must-succeed))
+(declare-function ns-set-resource "nsfns.m" (owner name value))
 
 ;; Do the actual Nextstep Windows setup here; the above code just
 ;; defines functions and variables that we use now.
@@ -912,6 +916,11 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
   ;; FIXME: This will surely lead to "MODIFIED OUTSIDE CUSTOM" warnings.
   (menu-bar-mode (if (get-lisp-resource nil "Menus") 1 -1))
+
+  ;; OS X Lion introduces PressAndHold, which is unsupported by this port.
+  ;; See this thread for more details:
+  ;; http://lists.gnu.org/archive/html/emacs-devel/2011-06/msg00505.html
+  (ns-set-resource nil "ApplePressAndHoldEnabled" "NO")
 
   (setq ns-initialized t))
 

@@ -1,7 +1,6 @@
 ;;; mailabbrev.el --- abbrev-expansion of mail aliases
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1996, 1997, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985-1987, 1992-1993, 1996-1997, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com; now jwz@jwz.org>
@@ -566,7 +565,6 @@ of a mail alias.  The value is set up, buffer-local, when first needed.")
 
 (defun mail-abbrev-complete-alias ()
   "Perform completion on alias preceding point."
-  ;; Based on lisp.el:lisp-complete-symbol
   (interactive)
   (mail-abbrev-make-syntax-table)
   (let ((end (point))
@@ -609,5 +607,4 @@ In other respects, this behaves like `end-of-buffer', which see."
 
 (provide 'mailabbrev)
 
-;; arch-tag: 5aa2d901-73f8-4ad7-b73c-4802282ad2ff
 ;;; mailabbrev.el ends here

@@ -1,7 +1,6 @@
 /* test.c --- Semantic unit test for C.
 
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-   2010 Free Software Foundation, Inc.
+   Copyright (C) 2001-2011 Free Software Foundation, Inc.
 
    Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -241,5 +240,3 @@ int funk4_fixme(arg_61, arg_62)
 
 /* End of C tests */
 
-/* arch-tag: ac9c7740-05ad-4821-a0b4-5db4357750ae
-   (do not change this comment) */

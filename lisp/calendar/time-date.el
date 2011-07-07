@@ -1,7 +1,6 @@
 ;;; time-date.el --- Date and time handling functions
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu Umeda <umerin@mse.kyutech.ac.jp>
@@ -244,8 +243,6 @@ DATE1 and DATE2 should be date-time strings."
 TIME should be a time value.
 The Gregorian date Sunday, December 31, 1bce is imaginary."
   (let* ((tim (decode-time time))
-	 (month (nth 4 tim))
-	 (day (nth 3 tim))
 	 (year (nth 5 tim)))
     (+ (time-to-day-in-year time)	; 	Days this year
        (* 365 (1- year))		;	+ Days in prior years
@@ -309,13 +306,9 @@ This function does not work for SECONDS greater than `most-positive-fixnum'."
       (setq start (match-end 0)
             spec (match-string 1 string))
       (unless (string-equal spec "%")
-	;; `assoc-string' is not available in XEmacs.  So when compiling
-	;; Gnus (`time-date.el' is part of Gnus) with XEmacs, we get
-	;; a warning here.  But `format-seconds' is not used anywhere in
-	;; Gnus so it's not a real problem. --rsteib
-        (or (setq match (assoc-string spec units t))
+        (or (setq match (assoc (downcase spec) units))
             (error "Bad format specifier: `%s'" spec))
-        (if (assoc-string spec usedunits t)
+        (if (assoc (downcase spec) usedunits)
             (error "Multiple instances of specifier: `%s'" spec))
         (if (string-equal (car match) "z")
             (setq zeroflag t)

@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002, 2003,
-@c   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Abbrevs
 @chapter Abbrevs
@@ -455,7 +455,3 @@ customize dynamic abbrev expansion to handle optional prefixes by setting
 the variable @code{dabbrev-abbrev-skip-leading-regexp}.  Its value
 should be a regular expression that matches the optional prefix that
 dynamic abbrev expression should ignore.
-
-@ignore
-   arch-tag: 638e0079-9540-48ec-9166-414083e16445
-@end ignore

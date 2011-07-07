@@ -28,5 +28,3 @@ xaw_pop_instance (widget_instance *, Boolean);
 
 #endif /* LWLIB_XAW_H */
 
-/* arch-tag: 7c0fb4de-afd9-4112-9214-24b663cc1870
-   (do not change this comment) */

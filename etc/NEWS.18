@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.  17-Aug-1988
 
-Copyright (C) 1988, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1988, 2006-2011  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -1621,4 +1621,3 @@ Local variables:
 mode: text
 end:
 
-arch-tag: 8fed393b-c9c5-47d1-afbb-c0e7a135094a

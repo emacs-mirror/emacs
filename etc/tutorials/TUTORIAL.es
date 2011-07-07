@@ -1179,8 +1179,7 @@ Por favor, en caso de duda, sólo es válido el original en inglés de la
 siguiente nota de derechos de reproducción (que puede encontrar en el
 archivo TUTORIAL).
 
-Copyright (C) 1985, 1996, 1998, 2001, 2002, 2003, 2004,
-   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1985, 1996, 1998, 2001-2011  Free Software Foundation, Inc.
 
    Se permite a cualquiera hacer o distribuir copias literales de este
    documento como se recibe, en cualquier medio, siempre que la nota
@@ -1205,4 +1204,3 @@ compartiendo software libre!
 ;;;   coding: latin-1
 ;;; End:
 
-;;; arch-tag: 66aae86e-6f86-4a3e-b82a-44a783f774fd

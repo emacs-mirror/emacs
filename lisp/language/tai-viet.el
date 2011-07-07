@@ -1,9 +1,9 @@
 ;;; tai-viet.el --- support for Tai Viet -*- coding: utf-8; no-byte-compile: t -*-
 
-;; Copyright (C) 2007, 2008, 2009, 2010
+;; Copyright (C) 2007-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
-;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, Tai Viet, i18n
 
@@ -61,5 +61,3 @@ is available at this web page:
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
-
-;; arch-tag: db4e3377-2ba7-47a0-b173-e44420d540c3

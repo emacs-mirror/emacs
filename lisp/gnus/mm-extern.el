@@ -1,7 +1,6 @@
 ;;; mm-extern.el --- showing message/external-body
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: message external-body
@@ -91,7 +90,7 @@
   (let (mm-extern-anonymous)
     (mm-extern-anon-ftp handle)))
 
-(declare-function message-goto-body "message" (&optional interactivep))
+(declare-function message-goto-body "message" ())
 
 (defun mm-extern-mail-server (handle)
   (require 'message)

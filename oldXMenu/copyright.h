@@ -16,5 +16,3 @@ without express or implied warranty.
 
 */
 
-/* arch-tag: c689b1bc-a3ba-41a1-baa0-a3622b5445b2
-   (do not change this comment) */

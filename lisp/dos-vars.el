@@ -1,7 +1,6 @@
 ;;; dos-vars.el --- MS-Dos specific user options
 
-;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -44,5 +43,4 @@ in `standard-display-table' as appropriate for your codepage, if
   :type '(hook)
   :version "20.3.3")
 
-;; arch-tag: dce8a0d9-ab29-413f-84ed-8b89d6190546
 ;;; dos-vars.el ends here

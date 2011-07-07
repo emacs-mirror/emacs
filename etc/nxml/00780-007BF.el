@@ -51,4 +51,3 @@
     ("THAANA LETTER NAA" #x07B1)
     ))
 
-;; arch-tag: e1974c30-0604-412a-af3d-b6e688e0586c

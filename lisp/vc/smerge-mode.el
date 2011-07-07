@@ -1,7 +1,6 @@
-;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts
+;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts -*- lexical-binding: t -*-
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc, tools, revision control, merge, diff3, cvs, conflict
@@ -46,7 +45,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'diff-mode)                    ;For diff-auto-refine-mode.
-
+(require 'newcomment)
 
 ;;; The real definition comes later.
 (defvar smerge-mode)
@@ -444,7 +443,7 @@ BUF contains a plain diff between match-1 and match-3."
             (setq othertext
                   (if (null otherlines) ""
                     (let ((pos (point)))
-                      (dotimes (i otherlines) (delete-char 2) (forward-line 1))
+                      (dotimes (_i otherlines) (delete-char 2) (forward-line 1))
                       (buffer-substring pos (point)))))
             (with-current-buffer textbuf
               (forward-line (- startline line))
@@ -454,6 +453,37 @@ BUF contains a plain diff between match-1 and match-3."
               (forward-line lines)
               (insert ">>>>>>> " name3 "\n")
               (setq line endline))))))))
+
+(defconst smerge-resolve--normalize-re "[\n\t][ \t\n]*\\| [ \t\n]+")
+
+(defun smerge-resolve--extract-comment (beg end)
+  "Extract the text within the comments that span BEG..END."
+  (save-excursion
+    (let ((comments ())
+          combeg)
+      (goto-char beg)
+      (while (and (< (point) end)
+                  (setq combeg (comment-search-forward end t)))
+        (let ((beg (point)))
+          (goto-char combeg)
+          (comment-forward 1)
+          (save-excursion
+            (comment-enter-backward)
+            (push " " comments)
+            (push (buffer-substring-no-properties beg (point)) comments))))
+      (push " " comments)
+      (with-temp-buffer
+        (apply #'insert (nreverse comments))
+        (goto-char (point-min))
+        (while (re-search-forward smerge-resolve--normalize-re
+                                  nil t)
+          (replace-match " "))
+        (buffer-string)))))
+
+(defun smerge-resolve--normalize (beg end)
+  (replace-regexp-in-string
+   smerge-resolve--normalize-re " "
+   (concat " " (buffer-substring-no-properties beg end) " ")))
 
 (defun smerge-resolve (&optional safe)
   "Resolve the conflict at point intelligently.
@@ -472,7 +502,8 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
 	(m2e (match-end 2))
 	(m3e (match-end 3))
 	(buf (generate-new-buffer " *smerge*"))
-        m b o)
+        m b o
+        choice)
     (unwind-protect
 	(progn
           (cond
@@ -535,7 +566,7 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
 	      (with-current-buffer buf
 		(zerop (call-process-region
 			(point-min) (point-max) "patch" t nil nil
-			"-r" "/dev/null" "--no-backup-if-mismatch"
+			"-r" null-device "--no-backup-if-mismatch"
 			"-fl" o))))
 	    (save-restriction
 	      (narrow-to-region m0b m0e)
@@ -551,12 +582,49 @@ major modes.  Uses `smerge-resolve-function' to do the actual work."
 	      (with-current-buffer buf
 		(zerop (call-process-region
 			(point-min) (point-max) "patch" t nil nil
-			"-r" "/dev/null" "--no-backup-if-mismatch"
+			"-r" null-device "--no-backup-if-mismatch"
 			"-fl" m))))
 	    (save-restriction
 	      (narrow-to-region m0b m0e)
               (smerge-remove-props m0b m0e)
 	      (insert-file-contents m nil nil nil t)))
+           ;; If the conflict is only made of comments, and one of the two
+           ;; changes is only rearranging spaces (e.g. reflowing text) while
+           ;; the other is a real change, drop the space-rearrangement.
+           ((and m2e
+                 (comment-only-p m1b m1e)
+                 (comment-only-p m2b m2e)
+                 (comment-only-p m3b m3e)
+                 (let ((t1 (smerge-resolve--extract-comment m1b m1e))
+                       (t2 (smerge-resolve--extract-comment m2b m2e))
+                       (t3 (smerge-resolve--extract-comment m3b m3e)))
+                   (cond
+                    ((and (equal t1 t2) (not (equal t2 t3)))
+                     (setq choice 3))
+                    ((and (not (equal t1 t2)) (equal t2 t3))
+                     (setq choice 1)))))
+            (set-match-data md)
+	    (smerge-keep-n choice))
+           ;; Idem, when the conflict is contained within a single comment.
+           ((save-excursion
+              (and m2e
+                   (nth 4 (syntax-ppss m0b))
+                   ;; If there's a conflict earlier in the file,
+                   ;; syntax-ppss is not reliable.
+                   (not (re-search-backward smerge-begin-re nil t))
+                   (progn (goto-char (nth 8 (syntax-ppss m0b)))
+                          (forward-comment 1)
+                          (> (point) m0e))
+                   (let ((t1 (smerge-resolve--normalize m1b m1e))
+                         (t2 (smerge-resolve--normalize m2b m2e))
+                         (t3 (smerge-resolve--normalize m3b m3e)))
+                     (cond
+                    ((and (equal t1 t2) (not (equal t2 t3)))
+                     (setq choice 3))
+                    ((and (not (equal t1 t2)) (equal t2 t3))
+                     (setq choice 1))))))
+            (set-match-data md)
+	    (smerge-keep-n choice))
            (t
             (error "Don't know how to resolve"))))
       (if (buffer-name buf) (kill-buffer buf))
@@ -842,7 +910,7 @@ It has the following disadvantages:
                ;; whitespace changes, it'll report added/removed lines :-(
                (not smerge-refine-weight-hack))
       (setq re (concat "[ \t]*\\(?:" re "\\)")))
-    (dotimes (i n)
+    (dotimes (_i n)
       (unless (looking-at re) (error "Smerge refine internal error"))
       (goto-char (match-end 0)))))
 
@@ -880,7 +948,7 @@ chars to try and eliminate some spurious differences."
           (unless (eq (char-before) ?\n) (insert ?\n))
           ;; HACK ALERT!!
           (if smerge-refine-weight-hack
-              (dotimes (i (1- (length s))) (insert s "\n")))))
+              (dotimes (_i (1- (length s))) (insert s "\n")))))
       (unless (bolp) (error "Smerge refine internal error"))
       (let ((coding-system-for-write 'emacs-mule))
         (write-region (point-min) (point-max) file nil 'nomessage)))))
@@ -923,6 +991,7 @@ a copy of a region, just before preparing it to for `diff'.  It can be
 used to replace chars to try and eliminate some spurious differences."
   (let* ((buf (current-buffer))
          (pos (point))
+         deactivate-mark         ; The code does not modify any visible buffer.
          (file1 (make-temp-file "diff1"))
          (file2 (make-temp-file "diff2")))
     ;; Chop up regions into smaller elements and save into files.
@@ -1231,5 +1300,4 @@ If no conflict maker is found, turn off `smerge-mode'."
 
 (provide 'smerge-mode)
 
-;; arch-tag: 605c8d1e-e43d-4943-a6f3-1bcc4333e690
 ;;; smerge-mode.el ends here

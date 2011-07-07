@@ -1,7 +1,6 @@
 ;;; ibuf-macs.el --- macros for ibuffer
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -301,5 +300,4 @@ bound to the current value of the filter.
 
 (provide 'ibuf-macs)
 
-;; arch-tag: 2748edce-82c9-4cd9-9d9d-bd73e43c20c5
 ;;; ibuf-macs.el ends here

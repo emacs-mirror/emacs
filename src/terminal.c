@@ -1,5 +1,5 @@
 /* Functions related to terminal devices.
-   Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2005-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -36,9 +36,6 @@ static int next_terminal_id;
 
 /* The initial terminal device, created by initial_term_init. */
 struct terminal *initial_terminal;
-
-/* Function to use to ring the bell.  */
-Lisp_Object Vring_bell_function;
 
 static void delete_initial_terminal (struct terminal *);
 
@@ -112,7 +109,7 @@ void
 raw_cursor_to (struct frame *f, int row, int col)
 {
   if (FRAME_TERMINAL (f)->raw_cursor_to_hook)
-    (*FRAME_TERMINAL (f)->raw_cursor_to_hook) (f, row, col);  
+    (*FRAME_TERMINAL (f)->raw_cursor_to_hook) (f, row, col);
 }
 
 /* Erase operations */
@@ -226,6 +223,7 @@ struct terminal *
 create_terminal (void)
 {
   struct terminal *terminal = allocate_terminal ();
+  Lisp_Object terminal_coding, keyboard_coding;
 
   terminal->name = NULL;
   terminal->next_terminal = terminal_list;
@@ -238,10 +236,28 @@ create_terminal (void)
   terminal->terminal_coding =
     (struct coding_system *) xmalloc (sizeof (struct coding_system));
 
-  setup_coding_system (Qno_conversion, terminal->keyboard_coding);
-  setup_coding_system (Qundecided, terminal->terminal_coding);
+  /* If default coding systems for the terminal and the keyboard are
+     already defined, use them in preference to the defaults.  This is
+     needed when Emacs runs in daemon mode.  */
+  keyboard_coding =
+    find_symbol_value (intern ("default-keyboard-coding-system"));
+  if (NILP (keyboard_coding)
+      || EQ (keyboard_coding, Qunbound)
+      || NILP (Fcoding_system_p (keyboard_coding)))
+    keyboard_coding = Qno_conversion;
+  terminal_coding =
+    find_symbol_value (intern ("default-terminal-coding-system"));
+  if (NILP (terminal_coding)
+      || EQ (terminal_coding, Qunbound)
+      || NILP (Fcoding_system_p (terminal_coding)))
+    terminal_coding = Qundecided;
+
+  setup_coding_system (keyboard_coding, terminal->keyboard_coding);
+  setup_coding_system (terminal_coding, terminal->terminal_coding);
 
   terminal->param_alist = Qnil;
+  terminal->charset_list = Qnil;
+  terminal->Vselection_alist = Qnil;
   return terminal;
 }
 
@@ -291,8 +307,6 @@ delete_terminal (struct terminal *terminal)
 
 Lisp_Object Qrun_hook_with_args;
 static Lisp_Object Qdelete_terminal_functions;
-static Lisp_Object Vdelete_terminal_functions;
-
 DEFUN ("delete-terminal", Fdelete_terminal, Sdelete_terminal, 0, 2, 0,
        doc: /* Delete TERMINAL by deleting all frames on it and closing the terminal.
 TERMINAL may be a terminal object, a frame, or nil (meaning the
@@ -429,20 +443,10 @@ selected frame's terminal). */)
 
 
 
-/* Return the value of terminal parameter PARAM in terminal T.  */
-Lisp_Object
-get_terminal_param (struct terminal *t, Lisp_Object param)
-{
-  Lisp_Object tem = Fassq (param, t->param_alist);
-  if (EQ (tem, Qnil))
-    return tem;
-  return Fcdr (tem);
-}
-
 /* Set the value of terminal parameter PARAMETER in terminal D to VALUE.
    Return the previous value.  */
 
-Lisp_Object
+static Lisp_Object
 store_terminal_param (struct terminal *t, Lisp_Object parameter, Lisp_Object value)
 {
   Lisp_Object old_alist_elt = Fassq (parameter, t->param_alist);
@@ -540,21 +544,19 @@ void
 syms_of_terminal (void)
 {
 
-  DEFVAR_LISP ("ring-bell-function", &Vring_bell_function,
+  DEFVAR_LISP ("ring-bell-function", Vring_bell_function,
     doc: /* Non-nil means call this function to ring the bell.
 The function should accept no arguments.  */);
   Vring_bell_function = Qnil;
 
-  DEFVAR_LISP ("delete-terminal-functions", &Vdelete_terminal_functions,
+  DEFVAR_LISP ("delete-terminal-functions", Vdelete_terminal_functions,
     doc: /* Special hook run when a terminal is deleted.
 Each function is called with argument, the terminal.
 This may be called just before actually deleting the terminal,
 or some time later.  */);
   Vdelete_terminal_functions = Qnil;
-  Qdelete_terminal_functions = intern_c_string ("delete-terminal-functions");
-  staticpro (&Qdelete_terminal_functions);
-  Qrun_hook_with_args = intern_c_string ("run-hook-with-args");
-  staticpro (&Qrun_hook_with_args);
+  DEFSYM (Qdelete_terminal_functions, "delete-terminal-functions");
+  DEFSYM (Qrun_hook_with_args, "run-hook-with-args");
 
   defsubr (&Sdelete_terminal);
   defsubr (&Sframe_terminal);
@@ -567,6 +569,3 @@ or some time later.  */);
 
   Fprovide (intern_c_string ("multi-tty"), Qnil);
 }
-
-/* arch-tag: e9af6f27-b483-47dc-bb1a-730c1c5cab03
-   (do not change this comment) */

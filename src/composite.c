@@ -1,7 +1,6 @@
 /* Composite sequence support.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
-   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 2001-2011 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
    Copyright (C) 2003, 2006
@@ -153,20 +152,14 @@ int n_compositions;
    COMPOSITION-ID.  */
 Lisp_Object composition_hash_table;
 
-/* Function to call to adjust composition.  */
-Lisp_Object Vcompose_chars_after_function;
-
-Lisp_Object Qauto_composed;
-Lisp_Object Vauto_composition_mode;
-Lisp_Object Vauto_composition_function;
-Lisp_Object Qauto_composition_function;
-Lisp_Object Vcomposition_function_table;
-
+static Lisp_Object Qauto_composed;
+static Lisp_Object Qauto_composition_function;
 /* Maximum number of characters to look back for
    auto-compositions.  */
 #define MAX_AUTO_COMPOSITION_LOOKBACK 3
 
-EXFUN (Fremove_list_of_text_properties, 4);
+static Lisp_Object Fcomposition_get_gstring (Lisp_Object, Lisp_Object,
+					     Lisp_Object, Lisp_Object);
 
 /* Temporary variable used in macros COMPOSITION_XXX.  */
 Lisp_Object composition_temp;
@@ -186,8 +179,8 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
   Lisp_Object id, length, components, key, *key_contents;
   int glyph_len;
   struct Lisp_Hash_Table *hash_table = XHASH_TABLE (composition_hash_table);
-  int hash_index;
-  unsigned hash_code;
+  EMACS_INT hash_index;
+  EMACS_UINT hash_code;
   struct composition *cmp;
   EMACS_INT i;
   int ch;
@@ -292,7 +285,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
       && VECTORP (AREF (components, 0)))
     {
       /* COMPONENTS is a glyph-string.  */
-      EMACS_UINT len = ASIZE (key);
+      EMACS_INT len = ASIZE (key);
 
       for (i = 1; i < len; i++)
 	if (! VECTORP (AREF (key, i)))
@@ -300,7 +293,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
     }
   else if (VECTORP (components) || CONSP (components))
     {
-      EMACS_UINT len = XVECTOR (key)->size;
+      EMACS_INT len = ASIZE (key);
 
       /* The number of elements should be odd.  */
       if ((len % 2) == 0)
@@ -333,8 +326,8 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 		    : COMPOSITION_WITH_RULE_ALTCHARS));
   cmp->hash_index = hash_index;
   glyph_len = (cmp->method == COMPOSITION_WITH_RULE_ALTCHARS
-	       ? (XVECTOR (key)->size + 1) / 2
-	       : XVECTOR (key)->size);
+	       ? (ASIZE (key) + 1) / 2
+	       : ASIZE (key));
   cmp->glyph_len = glyph_len;
   cmp->offsets = (short *) xmalloc (sizeof (short) * glyph_len * 2);
   cmp->font = NULL;
@@ -362,7 +355,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 
       for (i = 1; i < glyph_len; i += 2)
 	{
-	  int rule, gref, nref, xoff, yoff;
+	  int rule, gref, nref;
 	  int this_width;
 	  float this_left;
 
@@ -384,7 +377,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 		|       |
 		6---7---8 -- descent
 	  */
-	  COMPOSITION_DECODE_RULE (rule, gref, nref, xoff, yoff);
+	  COMPOSITION_DECODE_REFS (rule, gref, nref);
 	  this_left = (leftmost
 		       + (gref % 3) * (rightmost - leftmost) / 2.0
 		       - (nref % 3) * this_width / 2.0);
@@ -663,30 +656,31 @@ static Lisp_Object
 gstring_lookup_cache (Lisp_Object header)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
-  int i = hash_lookup (h, header, NULL);
+  EMACS_INT i = hash_lookup (h, header, NULL);
 
   return (i >= 0 ? HASH_VALUE (h, i) : Qnil);
 }
 
 Lisp_Object
-composition_gstring_put_cache (Lisp_Object gstring, int len)
+composition_gstring_put_cache (Lisp_Object gstring, EMACS_INT len)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
-  unsigned hash;
+  EMACS_UINT hash;
   Lisp_Object header, copy;
-  int i;
+  EMACS_INT i;
 
   header = LGSTRING_HEADER (gstring);
   hash = h->hashfn (h, header);
   if (len < 0)
     {
-      len = LGSTRING_GLYPH_LEN (gstring);
-      for (i = 0; i < len; i++)
-	if (NILP (LGSTRING_GLYPH (gstring, i)))
+      EMACS_INT j, glyph_len = LGSTRING_GLYPH_LEN (gstring);
+      for (j = 0; j < glyph_len; j++)
+	if (NILP (LGSTRING_GLYPH (gstring, j)))
 	  break;
-      len = i;
+      len = j;
     }
 
+  lint_assume (len <= TYPE_MAXIMUM (EMACS_INT) - 2);
   copy = Fmake_vector (make_number (len + 2), Qnil);
   LGSTRING_SET_HEADER (copy, Fcopy_sequence (header));
   for (i = 0; i < len; i++)
@@ -712,7 +706,7 @@ int
 composition_gstring_p (Lisp_Object gstring)
 {
   Lisp_Object header;
-  int i;
+  EMACS_INT i;
 
   if (! VECTORP (gstring) || ASIZE (gstring) < 2)
     return 0;
@@ -804,7 +798,7 @@ fill_gstring_header (Lisp_Object header, Lisp_Object start, Lisp_Object end, Lis
 
   if (NILP (string))
     {
-      if (NILP (current_buffer->enable_multibyte_characters))
+      if (NILP (BVAR (current_buffer, enable_multibyte_characters)))
 	error ("Attempt to shape unibyte text");
       validate_region (&start, &end);
       from = XFASTINT (start);
@@ -865,7 +859,7 @@ fill_gstring_body (Lisp_Object gstring)
   for (i = 0; i < len; i++)
     {
       Lisp_Object g = LGSTRING_GLYPH (gstring, i);
-      EMACS_INT c = XINT (AREF (header, i + 1));
+      int c = XFASTINT (AREF (header, i + 1));
 
       if (NILP (g))
 	{
@@ -979,11 +973,11 @@ static int _work_char;
    category Z? or C? are not composable except for ZWNJ and ZWJ. */
 
 #define CHAR_COMPOSABLE_P(C)						\
-  ((C) == 0x200C || (C) == 0x200D					\
-   || (_work_val = CHAR_TABLE_REF (Vunicode_category_table, (C)),	\
-       (SYMBOLP (_work_val)						\
-	&& (_work_char = SDATA (SYMBOL_NAME (_work_val))[0]) != 'C'	\
-	&& _work_char != 'Z')))
+  ((C) > ' '								\
+   && ((C) == 0x200C || (C) == 0x200D					\
+       || (_work_val = CHAR_TABLE_REF (Vunicode_category_table, (C)),	\
+	   (INTEGERP (_work_val)					\
+	    && (XINT (_work_val) <= UNICODE_CATEGORY_So)))))
 
 /* Update cmp_it->stop_pos to the next position after CHARPOS (and
    BYTEPOS) where character composition may happen.  If BYTEPOS is
@@ -1001,7 +995,8 @@ static int _work_char;
 void
 composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT endpos, Lisp_Object string)
 {
-  EMACS_INT start, end, c;
+  EMACS_INT start, end;
+  int c;
   Lisp_Object prop, val;
   /* This is from forward_to_next_line_start in xdisp.c.  */
   const int MAX_NEWLINE_DISTANCE = 500;
@@ -1036,7 +1031,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
       cmp_it->stop_pos = endpos = start;
       cmp_it->ch = -1;
     }
-  if (NILP (current_buffer->enable_multibyte_characters)
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters))
       || NILP (Vauto_composition_mode))
     return;
   if (bytepos < 0)
@@ -1123,7 +1118,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
 	  if (! NILP (val))
 	    {
 	      Lisp_Object elt;
-	      int ridx, back, len;
+	      int ridx, back, blen;
 
 	      for (ridx = 0; CONSP (val); val = XCDR (val), ridx++)
 		{
@@ -1140,17 +1135,17 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
 			bpos = (NILP (string) ? CHAR_TO_BYTE (cpos)
 				: string_char_to_byte (string, cpos));
 		      if (STRINGP (AREF (elt, 0)))
-			len = fast_looking_at (AREF (elt, 0), cpos, bpos,
-					       start + 1, limit, string);
+			blen = fast_looking_at (AREF (elt, 0), cpos, bpos,
+						start + 1, limit, string);
 		      else
-			len = 1;
-		      if (len > 0)
+			blen = 1;
+		      if (blen > 0)
 			{
 			  /* Make CPOS point to the last character of
-			     match.  Note that LEN is byte-length.  */
-			  if (len > 1)
+			     match.  Note that BLEN is byte-length.  */
+			  if (blen > 1)
 			    {
-			      bpos += len;
+			      bpos += blen;
 			      if (NILP (string))
 				cpos = BYTE_TO_CHAR (bpos) - 1;
 			      else
@@ -1256,8 +1251,8 @@ composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
   else if (w)
     {
       Lisp_Object lgstring = Qnil;
-      Lisp_Object val, elt, re;
-      int len, i;
+      Lisp_Object val, elt;
+      EMACS_INT i;
 
       val = CHAR_TABLE_REF (Vcomposition_function_table, cmp_it->ch);
       for (i = 0; i < cmp_it->rule_idx; i++, val = XCDR (val));
@@ -1372,7 +1367,7 @@ composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
 int
 composition_update_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_INT bytepos, Lisp_Object string)
 {
-  int i, c;
+  int i, c IF_LINT (= 0);
 
   if (cmp_it->ch < 0)
     {
@@ -1478,7 +1473,7 @@ struct position_record
 /* Update the members of POSITION to the previous character boundary.  */
 #define BACKWARD_CHAR(POSITION, STOP)		\
   do {						\
-    if ((POSITION).pos == STOP)			\
+    if ((POSITION).pos == (STOP))		\
       (POSITION).p = GPT_ADDR;			\
     do {					\
       (POSITION).pos_byte--;			\
@@ -1488,175 +1483,199 @@ struct position_record
   } while (0)
 
 /* This is like find_composition, but find an automatic composition
-   instead.  If found, set *GSTRING to the glyph-string representing
-   the composition, and return 1.  Otherwise, return 0.  */
+   instead.  It is assured that POS is not within a static
+   composition.  If found, set *GSTRING to the glyph-string
+   representing the composition, and return 1.  Otherwise, *GSTRING to
+   Qnil, and return 0.  */
 
 static int
-find_automatic_composition (EMACS_INT pos, EMACS_INT limit, EMACS_INT *start, EMACS_INT *end, Lisp_Object *gstring, Lisp_Object string)
+find_automatic_composition (EMACS_INT pos, EMACS_INT limit,
+			    EMACS_INT *start, EMACS_INT *end,
+			    Lisp_Object *gstring, Lisp_Object string)
 {
   EMACS_INT head, tail, stop;
-  /* Limit to check a composition after POS.  */
+  /* Forward limit position of checking a composition taking a
+     looking-back count into account.  */
   EMACS_INT fore_check_limit;
-  struct position_record orig, cur, check, prev;
-  Lisp_Object check_val, val, elt;
-  int check_lookback;
+  struct position_record cur, prev;
   int c;
   Lisp_Object window;
   struct window *w;
+  int need_adjustment = 0;
 
   window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
   if (NILP (window))
     return 0;
   w = XWINDOW (window);
 
-  orig.pos = pos;
+  cur.pos = pos;
   if (NILP (string))
     {
       head = BEGV, tail = ZV, stop = GPT;
-      orig.pos_byte = CHAR_TO_BYTE (orig.pos);
-      orig.p = BYTE_POS_ADDR (orig.pos_byte);
+      cur.pos_byte = CHAR_TO_BYTE (cur.pos);
+      cur.p = BYTE_POS_ADDR (cur.pos_byte);
     }
   else
     {
       head = 0, tail = SCHARS (string), stop = -1;
-      orig.pos_byte = string_char_to_byte (string, orig.pos);
-      orig.p = SDATA (string) + orig.pos_byte;
+      cur.pos_byte = string_char_to_byte (string, cur.pos);
+      cur.p = SDATA (string) + cur.pos_byte;
     }
-  if (limit < pos)
-    fore_check_limit = min (tail, pos + MAX_AUTO_COMPOSITION_LOOKBACK);
+  if (limit < 0)
+    /* Finding a composition covering the character after POS is the
+       same as setting LIMIT to POS.  */
+    limit = pos;
+  if (limit <= pos)
+    fore_check_limit = min (tail, pos + 1 + MAX_AUTO_COMPOSITION_LOOKBACK);
   else
     fore_check_limit = min (tail, limit + MAX_AUTO_COMPOSITION_LOOKBACK);
-  cur = orig;
 
- retry:
-  check_val = Qnil;
-  /* At first, check if POS is composable.  */
-  c = STRING_CHAR (cur.p);
-  if (! CHAR_COMPOSABLE_P (c))
-    {
-      if (limit < 0)
-	return 0;
-      if (limit >= cur.pos)
-	goto search_forward;
-    }
-  else
-    {
-      val = CHAR_TABLE_REF (Vcomposition_function_table, c);
-      if (! NILP (val))
-	check_val = val, check = cur;
-      else
-	while (cur.pos + 1 < fore_check_limit)
-	  {
-	    EMACS_INT b, e;
+  /* Provided that we have these possible compositions now:
 
-	    FORWARD_CHAR (cur, stop);
-	    if (get_property_and_range (cur.pos, Qcomposition, &val, &b, &e,
-					Qnil)
-		&& COMPOSITION_VALID_P (b, e, val))
-	      {
-		fore_check_limit = cur.pos;
-		break;
-	      }
-	    c = STRING_CHAR (cur.p);
-	    if (! CHAR_COMPOSABLE_P (c))
-	      break;
-	    val = CHAR_TABLE_REF (Vcomposition_function_table, c);
-	    if (NILP (val))
-	      continue;
-	    check_val = val, check = cur;
-	    break;
-	  }
-      cur = orig;
-    }
-  /* Rewind back to the position where we can safely search forward
-     for compositions.  */
-  while (cur.pos > head)
-    {
-      EMACS_INT b, e;
+	   POS:	1 2 3 4 5 6 7 8 9
+		        |-A-|
+		  |-B-|-C-|--D--|
 
-      BACKWARD_CHAR (cur, stop);
-      if (get_property_and_range (cur.pos, Qcomposition, &val, &b, &e, Qnil)
-	  && COMPOSITION_VALID_P (b, e, val))
-	break;
+     Here, it is known that characters after positions 1 and 9 can
+     never be composed (i.e. ! CHAR_COMPOSABLE_P (CH)), and
+     composition A is an invalid one because it's partially covered by
+     the valid composition C.  And to know whether a composition is
+     valid or not, the only way is to start searching forward from a
+     position that can not be a tail part of composition (it's 2 in
+     the above case).
+
+     Now we have these cases (1 through 4):
+
+                   -- character after POS is ... --
+                   not composable         composable
+     LIMIT <= POS  (1)                    (3)
+     POS < LIMIT   (2)                    (4)
+
+     Among them, in case (2), we simply search forward from POS.
+
+     In the other cases, we at first rewind back to the position where
+     the previous character is not composable or the beginning of
+     buffer (string), then search compositions forward.  In case (1)
+     and (3) we repeat this process until a composition is found.  */
+
+  while (1)
+    {
       c = STRING_CHAR (cur.p);
       if (! CHAR_COMPOSABLE_P (c))
-	break;
-      val = CHAR_TABLE_REF (Vcomposition_function_table, c);
-      if (! NILP (val))
-	check_val = val, check = cur;
-    }
-  prev = cur;
-  /* Now search forward.  */
- search_forward:
-  *gstring = Qnil;
-  if (! NILP (check_val) || limit >= orig.pos)
-    {
-      if (NILP (check_val))
-	cur = orig;
-      else
-	cur = check;
+	{
+	  if (limit <= pos)	/* case (1)  */
+	    {
+	      do {
+		if (cur.pos <= limit)
+		  return 0;
+		BACKWARD_CHAR (cur, stop);
+		c = STRING_CHAR (cur.p);
+	      } while (! CHAR_COMPOSABLE_P (c));
+	      fore_check_limit = cur.pos + 1;
+	    }
+	  else			/* case (2) */
+	    /* No need of rewinding back.  */
+	    goto search_forward;
+	}
+
+      /* Rewind back to the position where we can safely search
+	 forward for compositions.  It is assured that the character
+	 at cur.pos is composable.  */
+      while (head < cur.pos)
+	{
+	  prev = cur;
+	  BACKWARD_CHAR (cur, stop);
+	  c = STRING_CHAR (cur.p);
+	  if (! CHAR_COMPOSABLE_P (c))
+	    {
+	      cur = prev;
+	      break;
+	    }
+	}
+
+    search_forward:
+      /* Now search forward. */
+      *gstring = Qnil;
+      prev = cur;	/* remember the start of searching position. */
       while (cur.pos < fore_check_limit)
 	{
-	  int need_adjustment = 0;
+	  Lisp_Object val;
 
-	  if (NILP (check_val))
+	  c = STRING_CHAR (cur.p);
+	  for (val = CHAR_TABLE_REF (Vcomposition_function_table, c);
+	       CONSP (val); val = XCDR (val))
 	    {
-	      c = STRING_CHAR (cur.p);
-	      check_val = CHAR_TABLE_REF (Vcomposition_function_table, c);
-	    }
-	  for (; CONSP (check_val); check_val = XCDR (check_val))
-	    {
-	      elt = XCAR (check_val);
-	      if (VECTORP (elt) && ASIZE (elt) == 3 && NATNUMP (AREF (elt, 1))
-		  && cur.pos - XFASTINT (AREF (elt, 1)) >= head)
+	      Lisp_Object elt = XCAR (val);
+
+	      if (VECTORP (elt) && ASIZE (elt) == 3 && NATNUMP (AREF (elt, 1)))
 		{
-		  check.pos = cur.pos - XFASTINT (AREF (elt, 1));
-		  if (check.pos == cur.pos)
-		    check.pos_byte = cur.pos_byte;
-		  else
-		    check.pos_byte = CHAR_TO_BYTE (check.pos);
-		  val = autocmp_chars (elt, check.pos, check.pos_byte,
-				       tail, w, NULL, string);
+		  EMACS_INT check_pos = cur.pos - XFASTINT (AREF (elt, 1));
+		  struct position_record check;
+
+		  if (check_pos < head
+		      || (limit <= pos ? pos < check_pos
+			  : limit <= check_pos))
+		    continue;
+		  for (check = cur; check_pos < check.pos; )
+		    BACKWARD_CHAR (check, stop);
+		  *gstring = autocmp_chars (elt, check.pos, check.pos_byte,
+					    tail, w, NULL, string);
 		  need_adjustment = 1;
-		  if (! NILP (val))
+		  if (NILP (*gstring))
 		    {
-		      *gstring = val;
+		      /* As we have called Lisp, there's a possibility
+			 that buffer/string is relocated.  */
+		      if (NILP (string))
+			cur.p  = BYTE_POS_ADDR (cur.pos_byte);
+		      else
+			cur.p = SDATA (string) + cur.pos_byte;
+		    }
+		  else
+		    {
+		      /* We found a candidate of a target composition.  */
 		      *start = check.pos;
 		      *end = check.pos + LGSTRING_CHAR_LEN (*gstring);
-		      if (*start <= orig.pos ? *end > orig.pos
-			  : limit >= orig.pos)
+		      if (pos < limit
+			  ? pos < *end
+			  : *start <= pos && pos < *end)
+			/* This is the target composition. */
 			return 1;
 		      cur.pos = *end;
-		      cur.pos_byte = CHAR_TO_BYTE (cur.pos);
+		      if (NILP (string))
+			{
+			  cur.pos_byte = CHAR_TO_BYTE (cur.pos);
+			  cur.p  = BYTE_POS_ADDR (cur.pos_byte);
+			}
+		      else
+			{
+			  cur.pos_byte = string_char_to_byte (string, cur.pos);
+			  cur.p = SDATA (string) + cur.pos_byte;
+			}
 		      break;
 		    }
 		}
 	    }
-	  if (need_adjustment)
-	    {
-	      /* As we have called Lisp, there's a possibility that
-		 buffer/string is relocated.  */
-	      if (NILP (string))
-		cur.p  = BYTE_POS_ADDR (cur.pos_byte);
-	      else
-		cur.p = SDATA (string) + cur.pos_byte;
-	    }
-	  if (! CONSP (check_val))
+	  if (! CONSP (val))
+	    /* We found no composition here.  */
 	    FORWARD_CHAR (cur, stop);
-	  check_val = Qnil;
 	}
-    }
-  if (! NILP (*gstring))
-    return (limit >= 0 || (*start <= orig.pos && *end > orig.pos));
-  if (limit >= 0 && limit < orig.pos && prev.pos > head)
-    {
+
+      if (pos < limit)		/* case (2) and (4)*/
+	return 0;
+      if (! NILP (*gstring))
+	return 1;
+      if (prev.pos == head)
+	return 0;
       cur = prev;
+      if (need_adjustment)
+	{
+	  if (NILP (string))
+	    cur.p  = BYTE_POS_ADDR (cur.pos_byte);
+	  else
+	    cur.p = SDATA (string) + cur.pos_byte;
+	}
       BACKWARD_CHAR (cur, stop);
-      orig = cur;
-      fore_check_limit = orig.pos;
-      goto retry;
     }
-  return 0;
 }
 
 /* Return the adjusted point provided that point is moved from LAST_PT
@@ -1665,9 +1684,8 @@ find_automatic_composition (EMACS_INT pos, EMACS_INT limit, EMACS_INT *start, EM
 EMACS_INT
 composition_adjust_point (EMACS_INT last_pt, EMACS_INT new_pt)
 {
-  EMACS_INT charpos, bytepos, startpos, beg, end, pos;
+  EMACS_INT i, beg, end;
   Lisp_Object val;
-  int i;
 
   if (new_pt == BEGV || new_pt == ZV)
     return new_pt;
@@ -1682,7 +1700,7 @@ composition_adjust_point (EMACS_INT last_pt, EMACS_INT new_pt)
       return new_pt;
     }
 
-  if (NILP (current_buffer->enable_multibyte_characters)
+  if (NILP (BVAR (current_buffer, enable_multibyte_characters))
       || NILP (Vauto_composition_mode))
     return new_pt;
 
@@ -1859,7 +1877,7 @@ See `find-composition' for more details.  */)
 
   if (!find_composition (from, to, &start, &end, &prop, string))
     {
-      if (!NILP (current_buffer->enable_multibyte_characters)
+      if (!NILP (BVAR (current_buffer, enable_multibyte_characters))
 	  && ! NILP (Vauto_composition_mode)
 	  && find_automatic_composition (from, to, &start, &end, &gstring,
 					 string))
@@ -1918,8 +1936,7 @@ syms_of_composite (void)
 {
   int i;
 
-  Qcomposition = intern_c_string ("composition");
-  staticpro (&Qcomposition);
+  DEFSYM (Qcomposition, "composition");
 
   /* Make a hash table for static composition.  */
   {
@@ -1964,7 +1981,7 @@ syms_of_composite (void)
   Vtext_property_default_nonsticky
     = Fcons (Fcons (Qcomposition, Qt), Vtext_property_default_nonsticky);
 
-  DEFVAR_LISP ("compose-chars-after-function", &Vcompose_chars_after_function,
+  DEFVAR_LISP ("compose-chars-after-function", Vcompose_chars_after_function,
 	       doc: /* Function to adjust composition of buffer text.
 
 This function is called with three arguments: FROM, TO, and OBJECT.
@@ -1978,18 +1995,15 @@ valid.
 The default value is the function `compose-chars-after'.  */);
   Vcompose_chars_after_function = intern_c_string ("compose-chars-after");
 
-  Qauto_composed = intern_c_string ("auto-composed");
-  staticpro (&Qauto_composed);
+  DEFSYM (Qauto_composed, "auto-composed");
+  DEFSYM (Qauto_composition_function, "auto-composition-function");
 
-  Qauto_composition_function = intern_c_string ("auto-composition-function");
-  staticpro (&Qauto_composition_function);
-
-  DEFVAR_LISP ("auto-composition-mode", &Vauto_composition_mode,
+  DEFVAR_LISP ("auto-composition-mode", Vauto_composition_mode,
 	       doc: /* Non-nil if Auto-Composition mode is enabled.
 Use the command `auto-composition-mode' to change this variable. */);
   Vauto_composition_mode = Qt;
 
-  DEFVAR_LISP ("auto-composition-function", &Vauto_composition_function,
+  DEFVAR_LISP ("auto-composition-function", Vauto_composition_function,
 	       doc: /* Function to call to compose characters automatically.
 This function is called from the display routine with four arguments:
 FROM, TO, WINDOW, and STRING.
@@ -2002,7 +2016,7 @@ string.  In this case, the function must compose characters in the
 string.  */);
   Vauto_composition_function = Qnil;
 
-  DEFVAR_LISP ("composition-function-table", &Vcomposition_function_table,
+  DEFVAR_LISP ("composition-function-table", Vcomposition_function_table,
 	       doc: /* Char-table of functions for automatic character composition.
 For each character that has to be composed automatically with
 preceding and/or following characters, this char-table contains
@@ -2040,6 +2054,3 @@ See also the documentation of `auto-composition-mode'.  */);
   defsubr (&Sfind_composition_internal);
   defsubr (&Scomposition_get_gstring);
 }
-
-/* arch-tag: 79cefaf8-ca48-4eed-97e5-d5afb290d272
-   (do not change this comment) */

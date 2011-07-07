@@ -1,12 +1,12 @@
 ;;; scribe.el --- scribe mode, and its idiosyncratic commands
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: William Sommerfeld
 ;; (according to ack.texi)
 ;; Maintainer: FSF
 ;; Keywords: wp
+;; Obsolete-since: 22.1
 
 ;; This file is part of GNU Emacs.
 
@@ -24,8 +24,6 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;; This file has been obsolete since Emacs 22.1.
 
 ;; A major mode for editing source in written for the Scribe text formatter.
 ;; Knows about Scribe syntax and standard layout rules.  The command to
@@ -326,5 +324,4 @@ preceding text is of the form @Command."
 
 (provide 'scribe)
 
-;; arch-tag: 64f454c4-7544-4ea2-9d14-f0b668f2cdc6
 ;;; scribe.el ends here

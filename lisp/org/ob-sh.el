@@ -1,11 +1,11 @@
 ;;; ob-sh.el --- org-babel functions for shell evaluation
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -100,7 +100,7 @@ var of the same value."
                           (if (listp el)
                               (mapcar #'deep-string el)
 			    (org-babel-sh-var-to-sh el sep))))
-	(format "$(cat <<BABEL_TABLE\n%s\nBABEL_TABLE\n)"
+	(format "$(cat <<'BABEL_TABLE'\n%s\nBABEL_TABLE\n)"
 		(orgtbl-to-generic
 		 (deep-string (if (listp (car var)) var (list var)))
 		 (list :sep (or sep "\t")))))
@@ -114,16 +114,7 @@ var of the same value."
   "Convert RESULTS to an appropriate elisp value.
 If the results look like a table, then convert them into an
 Emacs-lisp table, otherwise return the results as a string."
-  (org-babel-read
-   (if (string-match "^\\[.+\\]$" results)
-       (org-babel-read
-        (concat "'"
-                (replace-regexp-in-string
-                 "\\[" "(" (replace-regexp-in-string
-                            "\\]" ")" (replace-regexp-in-string
-                                       ", " " " (replace-regexp-in-string
-                                                 "'" "\"" results))))))
-     results)))
+  (org-babel-script-escape results))
 
 (defun org-babel-sh-initiate-session (&optional session params)
   "Initiate a session named SESSION according to PARAMS."
@@ -175,6 +166,5 @@ return the value of the last statement in BODY."
 
 (provide 'ob-sh)
 
-;; arch-tag: 416dd531-c230-4b0a-a5bf-8d948f990f2d
 
 ;;; ob-sh.el ends here

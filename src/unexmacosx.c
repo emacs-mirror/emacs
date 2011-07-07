@@ -1,6 +1,5 @@
 /* Dump Emacs in Mach-O format for use on Mac OS X.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2001-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -86,8 +85,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    be changed accordingly.
 */
 
-#include <stdio.h>
+/* config.h #define:s malloc/realloc/free and then includes stdlib.h.
+   We want the undefined versions, but if config.h includes stdlib.h
+   with the #define:s in place, the prototypes will be wrong and we get
+   warnings.  To prevent that, include stdlib.h before config.h.  */
+
 #include <stdlib.h>
+#include <config.h>
+#undef malloc
+#undef realloc
+#undef free
+
+#include "unexec.h"
+
+#include <stdio.h>
 #include <fcntl.h>
 #include <stdarg.h>
 #include <sys/types.h>
@@ -98,10 +109,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined (__ppc__)
 #include <mach-o/ppc/reloc.h>
 #endif
-#include <config.h>
-#undef malloc
-#undef realloc
-#undef free
 #ifdef HAVE_MALLOC_MALLOC_H
 #include <malloc/malloc.h>
 #else
@@ -824,6 +831,7 @@ copy_data_segment (struct load_command *lc)
 	}
       else if (strncmp (sectp->sectname, "__la_symbol_ptr", 16) == 0
 	       || strncmp (sectp->sectname, "__nl_symbol_ptr", 16) == 0
+	       || strncmp (sectp->sectname, "__got", 16) == 0
 	       || strncmp (sectp->sectname, "__la_sym_ptr2", 16) == 0
 	       || strncmp (sectp->sectname, "__dyld", 16) == 0
 	       || strncmp (sectp->sectname, "__const", 16) == 0
@@ -1219,7 +1227,7 @@ dump_it (void)
    from it.  The file names of the output and input files are outfile
    and infile, respectively.  The three other parameters are
    ignored.  */
-int
+void
 unexec (const char *outfile, const char *infile)
 {
   if (in_dumped_exec)
@@ -1250,7 +1258,6 @@ unexec (const char *outfile, const char *infile)
   dump_it ();
 
   close (outfd);
-  return 0;
 }
 
 
@@ -1375,6 +1382,3 @@ unexec_free (void *ptr)
   else
     malloc_zone_free (emacs_zone, (unexec_malloc_header_t *) ptr - 1);
 }
-
-/* arch-tag: 1a784f7b-a184-4c4f-9544-da8619593d72
-   (do not change this comment) */

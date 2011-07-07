@@ -1,7 +1,6 @@
 ;;; em-basic.el --- basic shell builtin commands
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -184,5 +183,4 @@ or `eshell-printn' for display."
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: 385a31b1-cb95-46f0-9829-9d352ee77db8
 ;;; em-basic.el ends here

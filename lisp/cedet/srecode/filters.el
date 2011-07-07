@@ -1,6 +1,6 @@
 ;;; srecode/filters.el --- Filters for use in template variables.
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -54,4 +54,3 @@
 
 ;;; srecode/filters.el ends here
 
-;; arch-tag: fcc95ddc-8d9a-4b15-bb51-2707ead986c7

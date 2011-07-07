@@ -1,7 +1,6 @@
 ;;; gnus-group.el --- group mode commands for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -698,7 +697,8 @@ simple manner.")
   "M" gnus-group-list-all-matching
   "l" gnus-group-list-level
   "c" gnus-group-list-cached
-  "?" gnus-group-list-dormant)
+  "?" gnus-group-list-dormant
+  "!" gnus-group-list-ticked)
 
 (gnus-define-keys (gnus-group-list-limit-map "/" gnus-group-list-map)
   "k"  gnus-group-list-limit
@@ -850,7 +850,8 @@ simple manner.")
 	["List all groups matching..." gnus-group-list-all-matching t]
 	["List active file" gnus-group-list-active t]
 	["List groups with cached" gnus-group-list-cached t]
-	["List groups with dormant" gnus-group-list-dormant t])
+	["List groups with dormant" gnus-group-list-dormant t]
+	["List groups with ticked" gnus-group-list-ticked t])
        ("Sort"
 	["Default sort" gnus-group-sort-groups t]
 	["Sort by method" gnus-group-sort-groups-by-method t]
@@ -1436,7 +1437,8 @@ if it is a string, only list groups matching REGEXP."
 	   (gnus-dribble-enter
 	    (concat "(gnus-group-set-info '"
 		    (gnus-prin1-to-string (nth 2 entry))
-		    ")")))
+		    ")")
+	    (concat "^(gnus-group-set-info '(\"" (regexp-quote group) "\"")))
       (setq gnus-group-indentation (gnus-group-group-indentation))
       (gnus-delete-line)
       (gnus-group-insert-group-line-info group)
@@ -1677,10 +1679,18 @@ and ends at END."
           " "))
     " "))
 
-(defun gnus-group-update-group (group &optional visible-only)
+
+(defun gnus-group-refresh-group (group)
+  (gnus-activate-group group)
+  (gnus-get-unread-articles-in-group (gnus-get-info group)
+				     (gnus-active group))
+  (gnus-group-update-group group))
+
+(defun gnus-group-update-group (group &optional visible-only
+				      info-unchanged)
   "Update all lines where GROUP appear.
 If VISIBLE-ONLY is non-nil, the group won't be displayed if it isn't
-already."
+already.  If INFO-UNCHANGED is non-nil, dribble buffer is not updated."
   (with-current-buffer gnus-group-buffer
     (save-excursion
       ;; The buffer may be narrowed.
@@ -1689,14 +1699,17 @@ already."
         (let ((ident (gnus-intern-safe group gnus-active-hashtb))
               (loc (point-min))
               found buffer-read-only)
-          ;; Enter the current status into the dribble buffer.
-          (let ((entry (gnus-group-entry group)))
-            (when (and entry
-                       (not (gnus-ephemeral-group-p group)))
-              (gnus-dribble-enter
-               (concat "(gnus-group-set-info '"
-                       (gnus-prin1-to-string (nth 2 entry))
-                       ")"))))
+	  (unless info-unchanged
+	    ;; Enter the current status into the dribble buffer.
+	    (let ((entry (gnus-group-entry group)))
+	      (when (and entry
+			 (not (gnus-ephemeral-group-p group)))
+		(gnus-dribble-enter
+		 (concat "(gnus-group-set-info '"
+			 (gnus-prin1-to-string (nth 2 entry))
+			 ")")
+		 (concat "^(gnus-group-set-info '(\""
+			 (regexp-quote group) "\"")))))
           ;; Find all group instances.  If topics are in use, each group
           ;; may be listed in more than once.
           (while (setq loc (text-property-any
@@ -2307,9 +2320,10 @@ Return the name of the group if selection was successful."
 		       gnus-fetch-old-ephemeral-headers))
 		  (gnus-group-read-group (or number t) t group select-articles))
 	    group)
-	;;(error nil)
 	(quit
-	 (message "Quit reading the ephemeral group")
+	 (if debug-on-quit
+	     (debug "Quit")
+	   (message "Quit reading the ephemeral group"))
 	 nil)))))
 
 (defcustom gnus-gmane-group-download-format
@@ -2401,33 +2415,41 @@ Valid input formats include:
     (gnus-read-ephemeral-gmane-group group start range)))
 
 (defcustom gnus-bug-group-download-format-alist
-  '((emacs . "http://debbugs.gnu.org/%s;mbox=yes")
+  '((emacs . "http://debbugs.gnu.org/%s;mboxstat=yes")
     (debian
-     . "http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s&mbox=yes"))
+     . "http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=%s&mbox=yes;mboxmaint=yes"))
   "Alist of symbols for bug trackers and the corresponding URL format string.
 The URL format string must contain a single \"%s\", specifying
 the bug number, and browsing the URL must return mbox output."
   :group 'gnus-group-foreign
-  :version "23.2" ;; No Gnus
+  ;; Added mboxmaint=yes.  This gets the version with the messages as
+  ;; they went out, not as they came in.
+  ;; Eg bug-gnu-emacs is replaced by ###@debbugs.
+  :version "24.1"
   :type '(repeat (cons (symbol) (string :tag "URL format string"))))
 
-(defun gnus-read-ephemeral-bug-group (number mbox-url)
+(defun gnus-read-ephemeral-bug-group (ids mbox-url &optional window-conf)
   "Browse bug NUMBER as ephemeral group."
   (interactive (list (read-string "Enter bug number: "
 				  (thing-at-point 'word) nil)
 		     ;; FIXME: Add completing-read from
 		     ;; `gnus-emacs-bug-group-download-format' ...
 		     (cdr (assoc 'emacs gnus-bug-group-download-format-alist))))
-  (when (stringp number)
-    (setq number (string-to-number number)))
-  (let ((tmpfile (mm-make-temp-file "gnus-temp-group-")))
+  (when (stringp ids)
+    (setq ids (string-to-number ids)))
+  (unless (listp ids)
+    (setq ids (list ids)))
+  (let ((tmpfile (mm-make-temp-file "gnus-temp-group-"))
+	(coding-system-for-write 'binary)
+	(coding-system-for-read 'binary))
     (with-temp-file tmpfile
-      (url-insert-file-contents (format mbox-url number))
+      (dolist (id ids)
+	(url-insert-file-contents (format mbox-url id)))
       (goto-char (point-min))
       ;; Add the debbugs address so that we can respond to reports easily.
       (while (re-search-forward "^To: " nil t)
 	(end-of-line)
-	(insert (format ", %s@%s" number
+	(insert (format ", %s@%s" (car ids)
 			(gnus-replace-in-string
 			 (gnus-replace-in-string mbox-url "^http://" "")
 			 "/.*$" ""))))
@@ -2435,7 +2457,8 @@ the bug number, and browsing the URL must return mbox output."
       (gnus-group-read-ephemeral-group
        "gnus-read-ephemeral-bug"
        `(nndoc ,tmpfile
-	       (nndoc-article-type mbox))))
+	       (nndoc-article-type mbox))
+       nil window-conf))
     (delete-file tmpfile)))
 
 (defun gnus-read-ephemeral-debian-bug-group (number)
@@ -2446,13 +2469,23 @@ the bug number, and browsing the URL must return mbox output."
    number
    (cdr (assoc 'debian gnus-bug-group-download-format-alist))))
 
-(defun gnus-read-ephemeral-emacs-bug-group (number)
-  "Browse Emacs bug NUMBER as ephemeral group."
-  (interactive (list (read-string "Enter bug number: "
-				  (thing-at-point 'word) nil)))
+(defvar debbugs-bug-number)		; debbugs-gnu
+
+(defun gnus-read-ephemeral-emacs-bug-group (ids &optional window-conf)
+  "Browse Emacs bugs IDS as an ephemeral group."
+  (interactive (list (string-to-number
+		      (read-string "Enter bug number: "
+				   (thing-at-point 'word) nil))))
+  (unless (listp ids)
+    (setq ids (list ids)))
   (gnus-read-ephemeral-bug-group
-   number
-   (cdr (assoc 'emacs gnus-bug-group-download-format-alist))))
+   ids
+   (cdr (assoc 'emacs gnus-bug-group-download-format-alist))
+   window-conf)
+  (when (fboundp 'debbugs-summary-mode)
+    (with-current-buffer (window-buffer (selected-window))
+      (debbugs-summary-mode 1)
+      (set (make-local-variable 'debbugs-bug-number) (car ids)))))
 
 (defun gnus-group-jump-to-group (group &optional prompt)
   "Jump to newsgroup GROUP.
@@ -2461,7 +2494,7 @@ If PROMPT (the prefix) is a number, use the prompt specified in
 `gnus-group-jump-to-group-prompt'."
   (interactive
    (list (gnus-group-completing-read
-          nil nil (gnus-read-active-file-p)
+          nil nil nil
           (if current-prefix-arg
               (cdr (assq current-prefix-arg gnus-group-jump-to-group-prompt))
             (or (and (stringp gnus-group-jump-to-group-prompt)
@@ -2703,7 +2736,8 @@ server."
     (unless (gnus-ephemeral-group-p name)
       (gnus-dribble-enter
        (concat "(gnus-group-set-info '"
-	       (gnus-prin1-to-string (cdr info)) ")")))
+	       (gnus-prin1-to-string (cdr info)) ")")
+       (concat "^(gnus-group-set-info '(\"" (regexp-quote name) "\"")))
     ;; Insert the line.
     (gnus-group-insert-group-line-info nname)
     (forward-line -1)
@@ -2733,6 +2767,15 @@ server."
       (gnus-group-iterate arg
 	(lambda (group)
 	  (gnus-group-delete-group group nil t))))))
+
+(defun gnus-group-delete-articles (group)
+  "Delete all articles in the current group."
+  (interactive (list (gnus-group-group-name)))
+  (let ((articles (gnus-uncompress-range (gnus-active group))))
+    (when (gnus-yes-or-no-p
+	   (format "Do you really want to delete these %d articles forever? "
+		   (length articles)))
+      (gnus-request-expire-articles articles group 'force))))
 
 (defun gnus-group-delete-group (group &optional force no-prompt)
   "Delete the current group.  Only meaningful with editable groups.
@@ -3087,7 +3130,7 @@ The user will be prompted for a directory.  The contents of this
 directory will be used as a newsgroup.  The directory should contain
 mail messages or news articles in files that have numeric names."
   (interactive
-   (list (read-file-name "Create group from directory: ")))
+   (list (read-directory-name "Create group from directory: ")))
   (unless (file-exists-p dir)
     (error "No such directory"))
   (unless (file-directory-p dir)
@@ -3546,7 +3589,8 @@ or nil if no action could be taken."
 	(gnus-add-marked-articles group 'tick nil nil 'force)
 	(gnus-add-marked-articles group 'dormant nil nil 'force))
       ;; Do auto-expirable marks if that's required.
-      (when (gnus-group-auto-expirable-p group)
+      (when (and (gnus-group-auto-expirable-p group)
+		 (not (gnus-group-read-only-p group)))
         (gnus-range-map
 	 (lambda (article)
 	   (gnus-add-marked-articles group 'expire (list article))
@@ -3781,6 +3825,8 @@ of groups killed."
 		  gnus-list-of-killed-groups))
 	  (gnus-group-change-level
 	   (if entry entry group) gnus-level-killed (if entry nil level))
+	  (when (numberp (gnus-group-unread group))
+	    (gnus-request-update-group-status group 'unsubscribe))
 	  (message "Killed group %s" (gnus-group-decoded-name group)))
       ;; If there are lots and lots of groups to be killed, we use
       ;; this thing instead.
@@ -3803,7 +3849,9 @@ of groups killed."
 	  (setq gnus-zombie-list (delete group gnus-zombie-list))))
 	;; There may be more than one instance displayed.
 	(while (gnus-group-goto-group group)
-	  (gnus-delete-line)))
+	  (gnus-delete-line))
+	(when (numberp (gnus-group-unread group))
+	  (gnus-request-update-group-status group 'unsubscribe)))
       (gnus-make-hashtable-from-newsrc-alist))
 
     (gnus-group-position-point)
@@ -3831,6 +3879,7 @@ yanked) a list of yanked groups is returned."
        (and prev (gnus-group-entry prev))
        t)
       (gnus-group-insert-group-line-info group)
+      (gnus-request-update-group-status group 'subscribe)
       (gnus-undo-register
 	`(when (gnus-group-goto-group ,group)
 	   (gnus-group-kill-group 1))))
@@ -4005,7 +4054,7 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
 	    (when gnus-agent
 	      (gnus-agent-save-group-info
 	       method (gnus-group-real-name group) active))
-	    (gnus-group-update-group group))
+	    (gnus-group-update-group group nil t))
 	(if (eq (gnus-server-status (gnus-find-method-for-group group))
 		'denied)
 	    (gnus-error 3 "Server denied access")
@@ -4380,6 +4429,21 @@ and the second element is the address."
 (defun gnus-group-set-params-info (group params)
   (gnus-group-set-info params group 'params))
 
+;; Ad-hoc function for inserting data from a different newsrc.eld
+;; file.  Use with caution, if at all.
+(defun gnus-import-other-newsrc-file (file)
+  (with-temp-buffer
+    (insert-file-contents file)
+    (let (form)
+      (while (ignore-errors
+	       (setq form (read (current-buffer))))
+	(when (and (consp form)
+		   (eq (cadr form) 'gnus-newsrc-alist))
+	  (let ((infos (cadr (nth 2 form))))
+	    (dolist (info infos)
+	      (when (gnus-get-info (car info))
+		(gnus-set-info (car info) info)))))))))
+
 (defun gnus-add-marked-articles (group type articles &optional info force)
   ;; Add ARTICLES of TYPE to the info of GROUP.
   ;; If INFO is non-nil, use that info.  If FORCE is non-nil, don't
@@ -4500,6 +4564,28 @@ This command may read the active file."
   (goto-char (point-min))
   (gnus-group-position-point))
 
+(defun gnus-group-list-ticked (level &optional lowest)
+  "List all groups with ticked articles.
+If the prefix LEVEL is non-nil, it should be a number that says which
+level to cut off listing groups.
+If LOWEST, don't list groups with level lower than LOWEST.
+
+This command may read the active file."
+  (interactive "P")
+  (when level
+    (setq level (prefix-numeric-value level)))
+  (when (or (not level) (>= level gnus-level-zombie))
+    (gnus-cache-open))
+  (funcall gnus-group-prepare-function
+	   (or level gnus-level-subscribed)
+	   #'(lambda (info)
+	       (let ((marks (gnus-info-marks info)))
+		 (assq 'tick marks)))
+	   lowest
+	   'ignore)
+  (goto-char (point-min))
+  (gnus-group-position-point))
+
 (defun gnus-group-listed-groups ()
   "Return a list of listed groups."
   (let (point groups)
@@ -4567,10 +4653,11 @@ This command may read the active file."
 		  (push n gnus-newsgroup-unselected))
 		(setq n (1+ n)))
 	      (setq gnus-newsgroup-unselected
-		    (nreverse gnus-newsgroup-unselected)))))
+		    (sort gnus-newsgroup-unselected '<)))))
       (gnus-activate-group group)
       (gnus-group-make-articles-read group (list article))
-      (when (gnus-group-auto-expirable-p group)
+      (when (and (gnus-group-auto-expirable-p group)
+		 (not (gnus-group-read-only-p group)))
 	(gnus-add-marked-articles
 	 group 'expire (list article))))))
 

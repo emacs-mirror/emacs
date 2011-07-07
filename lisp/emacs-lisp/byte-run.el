@@ -1,7 +1,6 @@
 ;;; byte-run.el --- byte-compiler support for inlining
 
-;; Copyright (C) 1992, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -73,7 +72,7 @@ The return value of this function is not used."
 ;;   "Cause the named functions to be open-coded when called from compiled code.
 ;; They will only be compiled open-coded when byte-compile-optimize is true."
 ;;   (cons 'eval-and-compile
-;; 	(mapcar '(lambda (x)
+;; 	(mapcar (lambda (x)
 ;; 		   (or (memq (get x 'byte-optimizer)
 ;; 			     '(nil byte-compile-inline-expand))
 ;; 		       (error
@@ -86,7 +85,7 @@ The return value of this function is not used."
 ;; (defmacro proclaim-notinline (&rest fns)
 ;;   "Cause the named functions to no longer be open-coded."
 ;;   (cons 'eval-and-compile
-;; 	(mapcar '(lambda (x)
+;; 	(mapcar (lambda (x)
 ;; 		   (if (eq (get x 'byte-optimizer) 'byte-compile-inline-expand)
 ;; 		       (put x 'byte-optimizer nil))
 ;; 		   (list 'if (list 'eq (list 'get (list 'quote x) ''byte-optimizer)
@@ -121,15 +120,13 @@ convention was modified."
 The warning will say that CURRENT-NAME should be used instead.
 If CURRENT-NAME is a string, that is the `use instead' message
 \(it should end with a period, and not start with a capital).
-If provided, WHEN should be a string indicating when the function
+WHEN should be a string indicating when the function
 was first made obsolete, for example a date or a release number."
   (interactive "aMake function obsolete: \nxObsoletion replacement: ")
-  (let ((handler (get obsolete-name 'byte-compile)))
-    (if (eq 'byte-compile-obsolete handler)
-	(setq handler (nth 1 (get obsolete-name 'byte-obsolete-info)))
-      (put obsolete-name 'byte-compile 'byte-compile-obsolete))
-    (put obsolete-name 'byte-obsolete-info
-	 (list (purecopy current-name) handler (purecopy when))))
+  (put obsolete-name 'byte-obsolete-info
+       ;; The second entry used to hold the `byte-compile' handler, but
+       ;; is not used any more nowadays.
+       (purecopy (list current-name nil when)))
   obsolete-name)
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.
@@ -156,27 +153,21 @@ See the docstrings of `defalias' and `make-obsolete' for more details."
  'define-obsolete-function-alias
  '(obsolete-name current-name when &optional docstring) "23.1")
 
-(defun make-obsolete-variable (obsolete-name current-name &optional when)
+(defun make-obsolete-variable (obsolete-name current-name &optional when access-type)
   "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
 The warning will say that CURRENT-NAME should be used instead.
 If CURRENT-NAME is a string, that is the `use instead' message.
-If provided, WHEN should be a string indicating when the variable
-was first made obsolete, for example a date or a release number."
-  (interactive
-   (list
-    (let ((str (completing-read "Make variable obsolete: " obarray 'boundp t)))
-      (if (equal str "") (error ""))
-      (intern str))
-    (car (read-from-string (read-string "Obsoletion replacement: ")))))
+WHEN should be a string indicating when the variable
+was first made obsolete, for example a date or a release number.
+ACCESS-TYPE if non-nil should specify the kind of access that will trigger
+  obsolescence warnings; it can be either `get' or `set'."
   (put obsolete-name 'byte-obsolete-variable
-       (cons
-	(if (stringp current-name)
-	    (purecopy current-name)
-	  current-name) (purecopy when)))
+       (purecopy (list current-name access-type when)))
   obsolete-name)
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.
- 'make-obsolete-variable '(obsolete-name current-name when) "23.1")
+ 'make-obsolete-variable
+ '(obsolete-name current-name when &optional access-type) "23.1")
 
 (defmacro define-obsolete-variable-alias (obsolete-name current-name
 						 &optional when docstring)
@@ -292,5 +283,4 @@ In interpreted code, this is entirely equivalent to `progn'."
 ;;       (file-format emacs19))"
 ;;   nil)
 
-;; arch-tag: 76f8328a-1f66-4df2-9b6d-5c3666dc05e9
 ;;; byte-run.el ends here

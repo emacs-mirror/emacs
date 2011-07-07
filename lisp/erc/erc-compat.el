@@ -1,7 +1,6 @@
 ;;; erc-compat.el --- ERC compatibility code for XEmacs
 
-;; Copyright (C) 2002, 2003, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2003, 2005-2011  Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki/ERC
@@ -165,4 +164,3 @@ If START or END is negative, it counts from the end."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 8948ffe0-aff8-4ad8-a196-368ebbfd58ff

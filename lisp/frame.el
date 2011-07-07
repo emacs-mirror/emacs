@@ -1,7 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1993-1994, 1996-1997, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -32,7 +31,7 @@
   (list (cons nil
 	      (if (fboundp 'tty-create-frame-with-faces)
 		  'tty-create-frame-with-faces
-                (lambda (parameters)
+                (lambda (_parameters)
                   (error "Can't create multiple frames without a window system")))))
   "Alist of window-system dependent functions to call to create a new frame.
 The window system startup file should add its frame creation
@@ -95,96 +94,6 @@ appended when the minibuffer frame is created."
 		       (symbol :tag "Parameter")
 		       (sexp :tag "Value")))
   :group 'frames)
-
-(defcustom pop-up-frame-alist nil
-  "Alist of parameters for automatically generated new frames.
-You can set this in your init file; for example,
-
-  (setq pop-up-frame-alist '((width . 80) (height . 20)))
-
-If non-nil, the value you specify here is used by the default
-`pop-up-frame-function' for the creation of new frames.
-
-Since `pop-up-frame-function' is used by `display-buffer' for
-making new frames, any value specified here by default affects
-the automatic generation of new frames via `display-buffer' and
-all functions based on it.  The behavior of `make-frame' is not
-affected by this variable."
-  :type '(repeat (cons :format "%v"
-		       (symbol :tag "Parameter")
-		       (sexp :tag "Value")))
-  :group 'frames)
-
-(defcustom pop-up-frame-function
-  (lambda () (make-frame pop-up-frame-alist))
-  "Function used by `display-buffer' for creating a new frame.
-This function is called with no arguments and should return a new
-frame.  The default value calls `make-frame' with the argument
-`pop-up-frame-alist'."
-  :type 'function
-  :group 'frames)
-
-(defcustom special-display-frame-alist
-  '((height . 14) (width . 80) (unsplittable . t))
-  "Alist of parameters for special frames.
-Special frames are used for buffers whose names are listed in
-`special-display-buffer-names' and for buffers whose names match
-one of the regular expressions in `special-display-regexps'.
-
-This variable can be set in your init file, like this:
-
-  (setq special-display-frame-alist '((width . 80) (height . 20)))
-
-These supersede the values given in `default-frame-alist'."
-  :type '(repeat (cons :format "%v"
-			 (symbol :tag "Parameter")
-			 (sexp :tag "Value")))
-  :group 'frames)
-
-(defun special-display-popup-frame (buffer &optional args)
-  "Display BUFFER and return the window chosen.
-If BUFFER is already displayed in a visible or iconified frame,
-raise that frame.  Otherwise, display BUFFER in a new frame.
-
-Optional argument ARGS is a list specifying additional
-information.
-
-If ARGS is an alist, use it as a list of frame parameters.  If
-these parameters contain \(same-window . t), display BUFFER in
-the selected window.  If they contain \(same-frame . t), display
-BUFFER in a window of the selected frame.
-
-If ARGS is a list whose car is a symbol, use (car ARGS) as a
-function to do the work.  Pass it BUFFER as first argument,
-and (cdr ARGS) as second."
-  (if (and args (symbolp (car args)))
-      (apply (car args) buffer (cdr args))
-    (let ((window (get-buffer-window buffer 0)))
-      (or
-       ;; If we have a window already, make it visible.
-       (when window
-	 (let ((frame (window-frame window)))
-	   (make-frame-visible frame)
-	   (raise-frame frame)
-	   window))
-       ;; Reuse the current window if the user requested it.
-       (when (cdr (assq 'same-window args))
-	 (condition-case nil
-	     (progn (switch-to-buffer buffer) (selected-window))
-	   (error nil)))
-       ;; Stay on the same frame if requested.
-       (when (or (cdr (assq 'same-frame args)) (cdr (assq 'same-window args)))
-	 (let* ((pop-up-windows t)
-		pop-up-frames
-		special-display-buffer-names special-display-regexps)
-	   (display-buffer buffer)))
-       ;; If no window yet, make one in a new frame.
-       (let ((frame
-	      (with-current-buffer buffer
-		(make-frame (append args special-display-frame-alist)))))
-	 (set-window-buffer (frame-selected-window frame) buffer)
-	 (set-window-dedicated-p (frame-selected-window frame) t)
-	 (frame-selected-window frame))))))
 
 (defun handle-delete-frame (event)
   "Handle delete-frame events from the X server."
@@ -938,6 +847,116 @@ If there is no frame by that name, signal an error."
     (if frame
 	(select-frame-set-input-focus frame)
       (error "There is no frame named `%s'" name))))
+
+
+;;;; Background mode.
+
+(defcustom frame-background-mode nil
+  "The brightness of the background.
+Set this to the symbol `dark' if your background color is dark,
+`light' if your background is light, or nil (automatic by default)
+if you want Emacs to examine the brightness for you.  Don't set this
+variable with `setq'; this won't have the expected effect."
+  :group 'faces
+  :set #'(lambda (var value)
+	   (set-default var value)
+	   (mapc 'frame-set-background-mode (frame-list)))
+  :initialize 'custom-initialize-changed
+  :type '(choice (const dark)
+		 (const light)
+		 (const :tag "automatic" nil)))
+
+(declare-function x-get-resource "frame.c"
+		  (attribute class &optional component subclass))
+
+(defvar inhibit-frame-set-background-mode nil)
+
+(defun frame-set-background-mode (frame &optional keep-face-specs)
+  "Set up display-dependent faces on FRAME.
+Display-dependent faces are those which have different definitions
+according to the `background-mode' and `display-type' frame parameters.
+
+If optional arg KEEP-FACE-SPECS is non-nil, don't recalculate
+face specs for the new background mode."
+  (unless inhibit-frame-set-background-mode
+    (let* ((frame-default-bg-mode (frame-terminal-default-bg-mode frame))
+	   (bg-color (frame-parameter frame 'background-color))
+	   (tty-type (tty-type frame))
+	   (default-bg-mode
+	     (if (or (window-system frame)
+		     (and tty-type
+			  (string-match "^\\(xterm\\|\\rxvt\\|dtterm\\|eterm\\)"
+					tty-type)))
+		 'light
+	       'dark))
+	   (non-default-bg-mode (if (eq default-bg-mode 'light) 'dark 'light))
+	   (bg-mode
+	    (cond (frame-default-bg-mode)
+		  ((equal bg-color "unspecified-fg") ; inverted colors
+		   non-default-bg-mode)
+		  ((not (color-values bg-color frame))
+		   default-bg-mode)
+		  ((>= (apply '+ (color-values bg-color frame))
+		       ;; Just looking at the screen, colors whose
+		       ;; values add up to .6 of the white total
+		       ;; still look dark to me.
+		       (* (apply '+ (color-values "white" frame)) .6))
+		   'light)
+		  (t 'dark)))
+	   (display-type
+	    (cond ((null (window-system frame))
+		   (if (tty-display-color-p frame) 'color 'mono))
+		  ((display-color-p frame)
+		   'color)
+		  ((x-display-grayscale-p frame)
+		   'grayscale)
+		  (t 'mono)))
+	   (old-bg-mode
+	    (frame-parameter frame 'background-mode))
+	   (old-display-type
+	    (frame-parameter frame 'display-type)))
+
+      (unless (and (eq bg-mode old-bg-mode) (eq display-type old-display-type))
+	(let ((locally-modified-faces nil)
+	      ;; Prevent face-spec-recalc from calling this function
+	      ;; again, resulting in a loop (bug#911).
+	      (inhibit-frame-set-background-mode t)
+	      (params (list (cons 'background-mode bg-mode)
+			    (cons 'display-type display-type))))
+	  (if keep-face-specs
+	      (modify-frame-parameters frame params)
+	    ;; If we are recomputing face specs, first collect a list
+	    ;; of faces that don't match their face-specs.  These are
+	    ;; the faces modified on FRAME, and we avoid changing them
+	    ;; below.  Use a negative list to avoid consing (we assume
+	    ;; most faces are unmodified).
+	    (dolist (face (face-list))
+	      (and (not (get face 'face-override-spec))
+		   (not (face-spec-match-p face
+					   (face-user-default-spec face)
+					   (selected-frame)))
+		   (push face locally-modified-faces)))
+	    ;; Now change to the new frame parameters
+	    (modify-frame-parameters frame params)
+	    ;; For all unmodified named faces, choose face specs
+	    ;; matching the new frame parameters.
+	    (dolist (face (face-list))
+	      (unless (memq face locally-modified-faces)
+		(face-spec-recalc face frame)))))))))
+
+(defun frame-terminal-default-bg-mode (frame)
+  "Return the default background mode of FRAME.
+This checks the `frame-background-mode' variable, the X resource
+named \"backgroundMode\" (if FRAME is an X frame), and finally
+the `background-mode' terminal parameter."
+  (or frame-background-mode
+      (let ((bg-resource
+	     (and (window-system frame)
+		  (x-get-resource "backgroundMode" "BackgroundMode"))))
+	(if bg-resource
+	    (intern (downcase bg-resource))))
+      (terminal-parameter frame 'background-mode)))
+
 
 ;;;; Frame configurations
 
@@ -1431,7 +1450,7 @@ Examples (measures in pixels) -
 
 In the 3rd, 4th, and 6th examples, the returned value is relative to
 the opposite frame edge from the edge indicated in the input spec."
-  (cons (car spec) (frame-geom-value-cons (car spec) (cdr spec))))
+  (cons (car spec) (frame-geom-value-cons (car spec) (cdr spec) frame)))
 
 
 (defun delete-other-frames (&optional frame)
@@ -1545,7 +1564,7 @@ cursor display.  On a text-only terminal, this is not implemented."
   :init-value (not (or noninteractive
 		       no-blinking-cursor
 		       (eq system-type 'ms-dos)
-		       (not (memq window-system '(x w32)))))
+		       (not (memq window-system '(x w32 ns)))))
   :initialize 'custom-initialize-delay
   :group 'cursor
   :global t

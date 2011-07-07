@@ -87,5 +87,3 @@ XMenuDeletePane(register Display *display, register XMenu *menu, register int p_
     return(p_num);
 }
 
-/* arch-tag: 32a5bfd4-4bac-4090-bb53-844110f4908e
-   (do not change this comment) */

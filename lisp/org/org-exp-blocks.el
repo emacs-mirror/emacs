@@ -1,10 +1,9 @@
 ;;; org-exp-blocks.el --- pre-process blocks when exporting org files
 
-;; Copyright (C) 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -201,9 +200,6 @@ which defaults to the value of `org-export-blocks-witheld'."
 	(interblock start (point-max))
 	(run-hooks 'org-export-blocks-postblock-hook)))))
 
-(add-hook 'org-export-preprocess-after-include-files-hook
-	  'org-export-blocks-preprocess)
-
 ;;================================================================================
 ;; type specific functions
 
@@ -355,5 +351,4 @@ other backends, it converts the comment into an EXAMPLE segment."
 
 (provide 'org-exp-blocks)
 
-;; arch-tag: 1c365fe9-8808-4f72-bb15-0b00f36d8024
 ;;; org-exp-blocks.el ends here

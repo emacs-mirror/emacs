@@ -1,7 +1,6 @@
 ;;; em-ls.el --- implementation of ls in Lisp
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -56,6 +55,13 @@ properties to colorize its output based on the setting of
       (fset 'insert-directory eshell-ls-orig-insert-directory))))
   "When unloading `eshell-ls', restore the definition of `insert-directory'."
   :type 'hook
+  :group 'eshell-ls)
+
+(defcustom eshell-ls-date-format "%Y-%m-%d"
+  "How to display time information in `eshell-ls-file'.
+This is passed to `format-time-string' as a format string.
+To display the date using the current locale, use \"%b \%e\"."
+  :type 'string
   :group 'eshell-ls)
 
 (defcustom eshell-ls-initial-args nil
@@ -509,7 +515,7 @@ whose cdr is the list of file attributes."
 		    str))
 		" " (format-time-string
 		     (concat
-		      "%b %e "
+		      eshell-ls-date-format " "
 		      (if (= (nth 5 (decode-time (current-time)))
 			     (nth 5 (decode-time
 				     (nth (cond
@@ -562,7 +568,7 @@ relative to that directory."
 	  (when (or (eq listing-style 'long-listing) show-size)
 	    (let ((total 0.0))
 	      (setq size-width 0)
-	      (eshell-for e entries
+	      (dolist (e entries)
 		(if (nth 7 (cdr e))
 		    (setq total (+ total (nth 7 (cdr e)))
 			  size-width
@@ -652,7 +658,7 @@ Each member of FILES is either a string or a cons cell of the form
 	       (not (eq eshell-in-pipeline-p 'last))
 	       (not (eq listing-style 'by-lines)))
 	  (memq listing-style '(long-listing single-column)))
-      (eshell-for file files
+      (dolist (file files)
 	(if file
 	    (eshell-ls-file file size-width copy-fileinfo)))
     (let ((f files)
@@ -677,7 +683,7 @@ Each member of FILES is either a string or a cons cell of the form
 	      (setcdr f (cddr f))))))
       (if (not show-size)
 	  (setq display-files (mapcar 'eshell-ls-annotate files))
-	(eshell-for file files
+	(dolist (file files)
 	  (let* ((str (eshell-ls-printable-size (nth 7 (cdr file)) t))
 		 (len (length str)))
 	    (if (< len size-width)
@@ -697,7 +703,7 @@ Each member of FILES is either a string or a cons cell of the form
 	     (columns (length col-widths))
 	     (col-index 1)
 	     need-return)
-	(eshell-for file display-files
+	(dolist (file display-files)
 	  (let ((name
 		 (if (car file)
 		     (if show-size
@@ -732,7 +738,7 @@ ROOT-DIR, if non-nil, specifies the root directory of the listing, to
 which non-absolute directory names will be made relative if ever they
 need to be printed."
   (let (dirs files show-names need-return (size-width 0))
-    (eshell-for entry entries
+    (dolist (entry entries)
       (if (and (not dir-literal)
 	       (or (eshell-ls-filetype-p (cdr entry) ?d)
 		   (and (eshell-ls-filetype-p (cdr entry) ?l)
@@ -758,7 +764,7 @@ need to be printed."
       (setq need-return t))
     (setq show-names (or show-recursive
 			 (> (+ (length files) (length dirs)) 1)))
-    (eshell-for dir (eshell-ls-sort-entries dirs)
+    (dolist (dir (eshell-ls-sort-entries dirs))
       (if (and need-return (not dir-literal))
 	  (funcall insert-func "\n"))
       (eshell-ls-dir dir show-names

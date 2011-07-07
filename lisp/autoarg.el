@@ -1,7 +1,6 @@
 ;;; autoarg.el --- make digit keys supply prefix args
 
-;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Created: 1998-09-04
@@ -144,5 +143,4 @@ which invoked this function, excluding the Autoarg keymap."
 
 (provide 'autoarg)
 
-;; arch-tag: 2ba2ab4f-d60e-402a-ae4d-37e29af723c2
 ;;; autoarg.el ends here

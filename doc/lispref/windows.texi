@@ -1,7 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1990-1995, 1998-1999, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/windows
@@ -827,8 +826,8 @@ This function updates the buffer list just like @code{switch-to-buffer}
 unless @var{norecord} is non-@code{nil}.
 @end deffn
 
-@deffn Command pop-to-buffer buffer-or-name &optional other-window norecord
-This command makes @var{buffer-or-name} the current buffer and switches
+@defun pop-to-buffer buffer-or-name &optional other-window norecord
+This function makes @var{buffer-or-name} the current buffer and switches
 to it in some window, preferably not the window previously selected.
 The ``popped-to'' window becomes the selected window.  Its frame is
 given the X server's focus, if possible; see @ref{Input Focus}.  The
@@ -867,7 +866,7 @@ All the variables that affect @code{display-buffer} affect
 
 This function updates the buffer list just like @code{switch-to-buffer}
 unless @var{norecord} is non-@code{nil}.
-@end deffn
+@end defun
 
 @deffn Command replace-buffer-in-windows &optional buffer-or-name
 This function replaces @var{buffer-or-name} in all windows displaying
@@ -1015,7 +1014,7 @@ a window only if the space taken up by that window can accommodate two
 windows one above the other that are both at least
 @code{window-min-height} lines tall.  Moreover, if the window that shall
 be split has a mode line, @code{split-window-sensibly} does not split
-the window unless the new window can accomodate a mode line too.
+the window unless the new window can accommodate a mode line too.
 @end defopt
 
 @defopt split-width-threshold
@@ -1463,10 +1462,10 @@ to the current position of point in @var{window}; @var{window}, to the
 selected window.  If @var{position} is @code{t}, that means to check the
 last visible position in @var{window}.
 
-The @code{pos-visible-in-window-p} function considers only vertical
-scrolling.  If @var{position} is out of view only because @var{window}
-has been scrolled horizontally, @code{pos-visible-in-window-p} returns
-non-@code{nil} anyway.  @xref{Horizontal Scrolling}.
+This function considers only vertical scrolling.  If @var{position} is
+out of view only because @var{window} has been scrolled horizontally,
+@code{pos-visible-in-window-p} returns non-@code{nil} anyway.
+@xref{Horizontal Scrolling}.
 
 If @var{position} is visible, @code{pos-visible-in-window-p} returns
 @code{t} if @var{partially} is @code{nil}; if @var{partially} is
@@ -2607,7 +2606,3 @@ frame selected.
 Lock fontification function, which will be called whenever parts of a
 buffer are (re)fontified because a window was scrolled or its size
 changed.  @xref{Other Font Lock Variables}.
-
-@ignore
-   arch-tag: 3f6c36e8-df49-4986-b757-417feed88be3
-@end ignore

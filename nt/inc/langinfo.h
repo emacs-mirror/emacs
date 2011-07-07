@@ -1,5 +1,6 @@
 /* Replacement langinfo.h file for building GNU Emacs on Windows.
-   Copyright (C) 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+
+Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -58,5 +59,3 @@ extern char *nl_langinfo (nl_item);
 
 #endif /* _LANGINFO_H */
 
-/* arch-tag: a8917b7c-fb2c-4685-902b-742d0f67661b
-   (do not change this comment) */

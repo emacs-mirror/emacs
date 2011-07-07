@@ -1,11 +1,11 @@
 ;;; ob-matlab.el --- org-babel support for matlab evaluation
 
-;; Copyright (C) 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 ;; Author: Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -43,6 +43,5 @@
 
 (provide 'ob-matlab)
 
-;; arch-tag: 6b234299-c1f7-4eb1-ace8-7b93344065ac
 
 ;;; ob-matlab.el ends here

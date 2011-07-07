@@ -1,7 +1,7 @@
 ;;; lunar.el --- calendar functions for phases of the moon
 
-;; Copyright (C) 1992, 1993, 1995, 1997, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1992-1993, 1995, 1997, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -408,5 +408,4 @@ as governed by the values of `calendar-daylight-savings-starts',
 
 (provide 'lunar)
 
-;; arch-tag: 72f0b8a4-7bcc-4a1b-b67a-ff53c4a1d222
 ;;; lunar.el ends here

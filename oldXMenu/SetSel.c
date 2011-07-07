@@ -49,5 +49,3 @@ XMenuSetSelection(register XMenu *menu, register int p_num, register int s_num, 
     return(s_num);
 }
 
-/* arch-tag: 79198ae0-c5a4-4d31-adb0-5747f833f56a
-   (do not change this comment) */

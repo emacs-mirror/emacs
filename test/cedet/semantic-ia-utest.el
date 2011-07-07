@@ -1,6 +1,6 @@
 ;;; semantic-ia-utest.el --- Analyzer unit tests
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -525,5 +525,4 @@ Pass ARGS to format to create the log message."
 
 (provide 'semantic-ia-utest)
 
-;; arch-tag: 03ede3fb-7ef0-4500-a7c2-bbf647957310
 ;;; semantic-ia-utest.el ends here

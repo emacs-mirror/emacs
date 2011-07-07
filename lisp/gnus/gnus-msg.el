@@ -1,7 +1,6 @@
 ;;; gnus-msg.el --- mail and post interface for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011  Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -55,7 +54,7 @@ method to use when posting."
 		 (sexp :tag "Methods" ,gnus-select-method)))
 
 (defcustom gnus-outgoing-message-group nil
-  "*All outgoing messages will be put in this group.
+  "All outgoing messages will be put in this group.
 If you want to store all your outgoing mail and articles in the group
 \"nnml:archive\", you set this variable to that value.  This variable
 can also be a list of group names.
@@ -69,6 +68,8 @@ of names)."
 		 (function)
 		 (string :tag "Group")
 		 (repeat :tag "List of groups" (string :tag "Group"))))
+
+(make-obsolete-variable 'gnus-outgoing-message-group 'gnus-message-archive-group "24.1")
 
 (defcustom gnus-mailing-list-groups nil
   "*If non-nil a regexp matching groups that are really mailing lists.
@@ -241,10 +242,10 @@ See also the `mml-default-sign-method' variable."
   :group 'gnus-message
   :type 'boolean)
 
-(defcustom gnus-message-replyencrypt
-  nil
+(defcustom gnus-message-replyencrypt t
   "Automatically encrypt replies to encrypted messages.
 See also the `mml-default-encrypt-method' variable."
+  :version "24.1"
   :group 'gnus-message
   :type 'boolean)
 
@@ -350,6 +351,7 @@ Thank you for your help in stamping out bugs.
   "r" gnus-summary-reply
   "y" gnus-summary-yank-message
   "R" gnus-summary-reply-with-original
+  "L" gnus-summary-reply-to-list-with-original
   "w" gnus-summary-wide-reply
   "W" gnus-summary-wide-reply-with-original
   "v" gnus-summary-very-wide-reply
@@ -382,11 +384,13 @@ Thank you for your help in stamping out bugs.
 (defvar gnus-article-reply nil)
 (defmacro gnus-setup-message (config &rest forms)
   (let ((winconf (make-symbol "gnus-setup-message-winconf"))
+	(winconf-name (make-symbol "gnus-setup-message-winconf-name"))
 	(buffer (make-symbol "gnus-setup-message-buffer"))
 	(article (make-symbol "gnus-setup-message-article"))
 	(yanked (make-symbol "gnus-setup-yanked-articles"))
 	(group (make-symbol "gnus-setup-message-group")))
     `(let ((,winconf (current-window-configuration))
+	   (,winconf-name gnus-current-window-configuration)
 	   (,buffer (buffer-name (current-buffer)))
 	   (,article gnus-article-reply)
 	   (,yanked gnus-article-yanked-articles)
@@ -397,7 +401,6 @@ Thank you for your help in stamping out bugs.
 	   (message-mode-hook (copy-sequence message-mode-hook)))
        (setq mml-buffer-list nil)
        (add-hook 'message-header-setup-hook 'gnus-inews-insert-gcc)
-       (add-hook 'message-header-setup-hook 'gnus-inews-insert-archive-gcc)
        ;; message-newsreader and message-mailer were formerly set in
        ;; gnus-inews-add-send-actions, but this is too late when
        ;; message-generate-headers-first is used. --ansel
@@ -432,7 +435,7 @@ Thank you for your help in stamping out bugs.
 	   (progn
 	     ,@forms)
 	 (gnus-inews-add-send-actions ,winconf ,buffer ,article ,config
-				      ,yanked)
+				      ,yanked ',winconf-name)
 	 (setq gnus-message-buffer (current-buffer))
 	 (set (make-local-variable 'gnus-message-group-art)
 	      (cons ,group ,article))
@@ -475,7 +478,7 @@ Thank you for your help in stamping out bugs.
 
 ;;;###autoload
 (defun gnus-msg-mail (&optional to subject other-headers continue
-				switch-action yank-action send-actions)
+		      switch-action yank-action send-actions return-action)
   "Start editing a mail message to be sent.
 Like `message-mail', but with Gnus paraphernalia, particularly the
 Gcc: header for archiving purposes."
@@ -484,7 +487,7 @@ Gcc: header for archiving purposes."
 	mail-buf)
     (gnus-setup-message 'message
       (message-mail to subject other-headers continue
-		    nil yank-action send-actions))
+		    nil yank-action send-actions return-action))
     (when switch-action
       (setq mail-buf (current-buffer))
       (switch-to-buffer buf)
@@ -527,7 +530,8 @@ Gcc: header for archiving purposes."
 	    (throw 'found (cons (cadr elem) (caddr elem)))))))))
 
 (defun gnus-inews-add-send-actions (winconf buffer article
-					    &optional config yanked)
+					    &optional config yanked
+					    winconf-name)
   (gnus-make-local-hook 'message-sent-hook)
   (add-hook 'message-sent-hook (if gnus-agent 'gnus-agent-possibly-do-gcc
 				 'gnus-inews-do-gcc) nil t)
@@ -538,8 +542,10 @@ Gcc: header for archiving purposes."
 	`(lambda (&optional arg)
 	   (gnus-post-method arg ,gnus-newsgroup-name)))
   (message-add-action
-   `(when (gnus-buffer-exists-p ,buffer)
-      (set-window-configuration ,winconf))
+   `(progn
+      (setq gnus-current-window-configuration ',winconf-name)
+      (when (gnus-buffer-exists-p ,buffer)
+	(set-window-configuration ,winconf)))
    'exit 'postpone 'kill)
   (let ((to-be-marked (cond
 		       (yanked
@@ -826,7 +832,6 @@ header line with the old Message-ID."
 	       (gnus-summary-mark-as-read ,article gnus-canceled-mark)))))
        message-send-actions)
       ;; Add Gcc header.
-      (gnus-inews-insert-archive-gcc)
       (gnus-inews-insert-gcc))))
 
 
@@ -1082,14 +1087,14 @@ If VERY-WIDE, make a very wide reply."
 	      (gnus-summary-work-articles 1))))
   ;; Allow user to require confirmation before replying by mail to the
   ;; author of a news article (or mail message).
-  (when (or
-	    (not (or (gnus-news-group-p gnus-newsgroup-name)
+  (when (or (not (or (gnus-news-group-p gnus-newsgroup-name)
 		     gnus-confirm-treat-mail-like-news))
 	    (not (cond ((stringp gnus-confirm-mail-reply-to-news)
 			(string-match gnus-confirm-mail-reply-to-news
 				      gnus-newsgroup-name))
 		       ((functionp gnus-confirm-mail-reply-to-news)
-			(funcall gnus-confirm-mail-reply-to-news gnus-newsgroup-name))
+			(funcall gnus-confirm-mail-reply-to-news
+				 gnus-newsgroup-name))
 		       (t gnus-confirm-mail-reply-to-news)))
 	    (if (or wide very-wide)
 		t ;; Ignore gnus-confirm-mail-reply-to-news for wide and very
@@ -1124,7 +1129,7 @@ If VERY-WIDE, make a very wide reply."
 	    (insert headers))
 	  (goto-char (point-max)))
 	(mml-quote-region (point) (point-max))
-	(message-reply nil wide)
+	(message-reply nil wide 'switch-to-buffer)
 	(when yank
 	  (gnus-inews-yank-articles yank))
 	(gnus-summary-handle-replysign)))))
@@ -1149,6 +1154,16 @@ If VERY-WIDE, make a very wide reply."
 The original article will be yanked."
   (interactive "P")
   (gnus-summary-reply (gnus-summary-work-articles n) wide))
+
+(defun gnus-summary-reply-to-list-with-original (n &optional wide)
+  "Start composing a reply mail to the current message.
+The reply goes only to the mailing list.
+The original article will be yanked."
+  (interactive "P")
+  (let ((message-reply-to-function
+	 (lambda nil
+	   `((To . ,(gnus-mailing-list-followup-to))))))
+    (gnus-summary-reply (gnus-summary-work-articles n) wide)))
 
 (defun gnus-summary-reply-broken-reply-to (&optional yank wide very-wide)
   "Like `gnus-summary-reply' except removing reply-to field.
@@ -1294,7 +1309,6 @@ composing a new message."
 	(goto-char (point-max))
 	(insert mail-header-separator)
 	;; Add Gcc header.
-	(gnus-inews-insert-archive-gcc)
 	(gnus-inews-insert-gcc)
 	(goto-char (point-min))
 	(when (re-search-forward "^To:\\|^Newsgroups:" nil 'move)
@@ -1306,24 +1320,6 @@ composing a new message."
 See `gnus-summary-mail-forward' for ARG."
   (interactive "P")
   (gnus-summary-mail-forward arg t))
-
-(defvar gnus-nastygram-message
-  "The following article was inappropriately posted to %s.\n\n"
-  "Format string to insert in nastygrams.
-The current group name will be inserted at \"%s\".")
-
-(defun gnus-summary-mail-nastygram (n)
-  "Send a nastygram to the author of the current article."
-  (interactive "P")
-  (when (or gnus-expert-user
-	    (gnus-y-or-n-p
-	     "Really send a nastygram to the author of the current article? "))
-    (let ((group gnus-newsgroup-name))
-      (gnus-summary-reply-with-original n)
-      (set-buffer gnus-message-buffer)
-      (message-goto-body)
-      (insert (format gnus-nastygram-message group))
-      (message-send-and-exit))))
 
 (defun gnus-summary-mail-crosspost-complaint (n)
   "Send a complaint about crossposting to the current article(s)."
@@ -1459,12 +1455,20 @@ If YANK is non-nil, include the original article."
 	(goto-char (point-min)))
       (message-pop-to-buffer "*Gnus Bug*"))
     (let ((message-this-is-mail t))
-      (message-setup `((To . ,gnus-maintainer) (Subject . ""))))
+      (message-setup `((To . ,gnus-maintainer)
+                       (Subject . "")
+                       (X-Debbugs-Package
+                        . ,(format "%s" gnus-bug-package))
+                       (X-Debbugs-Version
+                        . ,(format "%s" (gnus-continuum-version))))))
     (when gnus-bug-create-help-buffer
       (push `(gnus-bug-kill-buffer) message-send-actions))
     (goto-char (point-min))
     (re-search-forward (concat "^" (regexp-quote mail-header-separator) "$"))
     (forward-line 1)
+    (insert (format "Package: %s\n" gnus-bug-package))
+    (insert (format "Version: %s\n" (gnus-continuum-version)))
+    (insert "\n")
     (insert (gnus-version) "\n"
 	    (emacs-version) "\n")
     (when (and (boundp 'nntp-server-type)
@@ -1476,7 +1480,10 @@ If YANK is non-nil, include the original article."
 	(erase-buffer)
 	(gnus-debug)
 	(setq text (buffer-string)))
-      (insert "<#part type=application/emacs-lisp disposition=inline description=\"User settings\">\n" text "\n<#/part>"))
+      (insert "<#part type=application/emacs-lisp "
+	      "disposition=inline description=\"User settings\">\n"
+	      text
+	      "\n<#/part>"))
     (goto-char (point-min))
     (search-forward "Subject: " nil t)
     (message "")))
@@ -1580,7 +1587,6 @@ this is a reply."
     (gnus-setup-message 'compose-bounce
       (message-bounce)
       ;; Add Gcc header.
-      (gnus-inews-insert-archive-gcc)
       (gnus-inews-insert-gcc)
       ;; If there are references, we fetch the article we answered to.
       (when parent
@@ -1694,44 +1700,13 @@ this is a reply."
 		(gnus-group-mark-article-read group (cdr group-art)))
 	      (kill-buffer (current-buffer)))))))))
 
-(defun gnus-inews-insert-gcc ()
-  "Insert Gcc headers based on `gnus-outgoing-message-group'."
-  (save-excursion
-    (save-restriction
-      (message-narrow-to-headers)
-      (let* ((group gnus-outgoing-message-group)
-	     (gcc (cond
-		   ((functionp group)
-		    (funcall group))
-		   ((or (stringp group) (listp group))
-		    group))))
-	(when gcc
-	  (insert "Gcc: "
-		  (if (stringp gcc)
-		      (if (string-match " " gcc)
-			  (concat "\"" gcc "\"")
-			gcc)
-		    (mapconcat (lambda (group)
-				 (if (string-match " " group)
-				     (concat "\"" group "\"")
-				   group))
-			       gcc " "))
-		  "\n"))))))
-
-(defun gnus-inews-insert-archive-gcc (&optional group)
+(defun gnus-inews-insert-gcc (&optional group)
   "Insert the Gcc to say where the article is to be archived."
-  (setq group (cond (group
-		     (gnus-group-decoded-name group))
-		    (gnus-newsgroup-name
-		     (gnus-group-decoded-name gnus-newsgroup-name))
-		    (t
-		     "")))
-  (let* ((var gnus-message-archive-group)
+  (let* ((group (or group gnus-newsgroup-name))
+         (group (when group (gnus-group-decoded-name group)))
+         (var (or gnus-outgoing-message-group gnus-message-archive-group))
 	 (gcc-self-val
-	  (and gnus-newsgroup-name
-	       (not (equal gnus-newsgroup-name ""))
-	       (gnus-group-find-parameter
-		gnus-newsgroup-name 'gcc-self)))
+	  (and group (gnus-group-find-parameter group 'gcc-self)))
 	 result
 	 (groups
 	  (cond
@@ -1824,7 +1799,10 @@ this is a reply."
   "Configure posting styles according to `gnus-posting-styles'."
   (unless gnus-inhibit-posting-styles
     (let ((group (or group-name gnus-newsgroup-name ""))
-	  (styles gnus-posting-styles)
+	  (styles (if (gnus-buffer-live-p gnus-summary-buffer)
+		      (with-current-buffer gnus-summary-buffer
+			gnus-posting-styles)
+		    gnus-posting-styles))
 	  style match attribute value v results
 	  filep name address element)
       ;; If the group has a posting-style parameter, add it at the end with a

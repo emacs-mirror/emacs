@@ -1,7 +1,6 @@
 ;;; align.el --- align text to a specific column, by regexp
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: FSF
@@ -1107,7 +1106,7 @@ documentation for `align-region-separate' for more details."
 	     (setq seps (cdr seps))))
 	   yes))))
 
-(defun align-adjust-col-for-rule (column rule spacing tab-stop)
+(defun align-adjust-col-for-rule (column _rule spacing tab-stop)
   "Adjust COLUMN according to the given RULE.
 SPACING specifies how much spacing to use.
 TAB-STOP specifies whether SPACING refers to tab-stop boundaries."
@@ -1162,7 +1161,7 @@ have been aligned.  No changes will be made to the buffer."
 	 (justify (cdr (assq 'justify rule)))
 	 (col (or fixed 0))
 	 (width 0)
-	 ecol change look)
+	 ecol change)
 
     ;; Determine the alignment column.
     (let ((a areas))
@@ -1286,7 +1285,6 @@ purpose where you might want to know where the regions that the
 aligner would have dealt with are."
   (let ((end-mark (and end (copy-marker end t)))
 	(real-beg beg)
-	(real-end end)
 	(report (and (not func) align-large-region beg end
 		     (>= (- end beg) align-large-region)))
 	(rule-index 1)
@@ -1315,7 +1313,7 @@ aligner would have dealt with are."
 		 tab-stop tab-stop-c
 		 repeat repeat-c
 		 valid valid-c
-		 pos-list first
+		 first
 		 regions index
 		 last-point b e
 		 save-match-data
@@ -1605,5 +1603,4 @@ aligner would have dealt with are."
 
 (run-hooks 'align-load-hook)
 
-;; arch-tag: ef79cccf-1db8-4888-a8a1-d7ce2d1532f7
 ;;; align.el ends here

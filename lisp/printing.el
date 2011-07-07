@@ -1,7 +1,6 @@
 ;;; printing.el --- printing utilities
 
-;; Copyright (C) 2000, 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2001, 2003-2011  Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -5708,8 +5707,8 @@ If menu binding was not done, calls `pr-menu-bind'."
   (let* ((dir-name   (file-name-directory (or (buffer-file-name)
 					      default-directory)))
 	 (fmt-prompt (concat "%s[" mess "] Directory to print: "))
-	 (dir        (read-file-name (format fmt-prompt "")
-				     "" dir-name nil dir-name))
+	 (dir        (read-directory-name (format fmt-prompt "")
+					  "" dir-name nil dir-name))
 	 prompt)
     (while (cond ((not (file-directory-p dir))
 		  (ding)
@@ -5719,8 +5718,8 @@ If menu binding was not done, calls `pr-menu-bind'."
 		  (setq prompt "Directory is unreadable! "))
 		 (t nil))
       (setq dir-name (file-name-directory dir)
-	    dir      (read-file-name (format fmt-prompt prompt)
-				     "" dir-name nil dir-name)))
+	    dir      (read-directory-name (format fmt-prompt prompt)
+					  "" dir-name nil dir-name)))
     (file-name-as-directory dir)))
 
 

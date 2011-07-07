@@ -1,7 +1,6 @@
 ;;; benchmark.el --- support for benchmarking code
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Love  <fx@gnu.org>
 ;; Keywords: lisp, extensions
@@ -40,9 +39,8 @@
        (setq ,t1 (current-time))
        ,@forms
        (setq ,t2 (current-time))
-       (+ (* (- (car ,t2) (car ,t1)) 65536.0)
-	  (- (nth 1 ,t2) (nth 1 ,t1))
-	  (* (- (nth 2 ,t2) (nth 2 ,t1)) 1.0e-6)))))
+       (float-time (time-subtract ,t2 ,t1)))))
+
 (put 'benchmark-elapse 'edebug-form-spec t)
 (put 'benchmark-elapse 'lisp-indent-function 0)
 
@@ -116,5 +114,4 @@ For non-interactive use see also `benchmark-run' and
 
 (provide 'benchmark)
 
-;; arch-tag: be570e24-4b51-4784-adf3-fa2b56c31946
 ;;; benchmark.el ends here

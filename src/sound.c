@@ -1,6 +1,5 @@
 /* sound.c -- sound support.
-   Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1998-1999, 2001-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -95,9 +94,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Symbols.  */
 
-Lisp_Object QCvolume, QCdevice;
-Lisp_Object Qsound;
-Lisp_Object Qplay_sound_functions;
+static Lisp_Object QCvolume, QCdevice;
+static Lisp_Object Qsound;
+static Lisp_Object Qplay_sound_functions;
 
 /* Indices of attributes in a sound attributes vector.  */
 
@@ -236,11 +235,11 @@ struct sound_device
 
   /* Return a preferred data size in bytes to be sent to write (below)
      each time.  2048 is used if this is NULL.  */
-  int (* period_size) (struct sound_device *sd);
+  EMACS_INT (* period_size) (struct sound_device *sd);
 
   /* Write NYBTES bytes from BUFFER to device SD.  */
   void (* write) (struct sound_device *sd, const char *buffer,
-                  int nbytes);
+                  EMACS_INT nbytes);
 
   /* A place for devices to store additional data.  */
   void *data;
@@ -282,8 +281,8 @@ struct sound
 /* These are set during `play-sound-internal' so that sound_cleanup has
    access to them.  */
 
-struct sound_device *current_sound_device;
-struct sound *current_sound;
+static struct sound_device *current_sound_device;
+static struct sound *current_sound;
 
 /* Function prototypes.  */
 
@@ -292,7 +291,7 @@ static void vox_configure (struct sound_device *);
 static void vox_close (struct sound_device *sd);
 static void vox_choose_format (struct sound_device *, struct sound *);
 static int vox_init (struct sound_device *);
-static void vox_write (struct sound_device *, const char *, int);
+static void vox_write (struct sound_device *, const char *, EMACS_INT);
 static void find_sound_type (struct sound *);
 static u_int32_t le2hl (u_int32_t);
 static u_int16_t le2hs (u_int16_t);
@@ -345,7 +344,7 @@ sound_perror (const char *msg)
 static void
 sound_warning (const char *msg)
 {
-  message (msg);
+  message ("%s", msg);
 }
 
 
@@ -461,8 +460,8 @@ sound_cleanup (Lisp_Object arg)
     current_sound_device->close (current_sound_device);
   if (current_sound->fd > 0)
     emacs_close (current_sound->fd);
-  free (current_sound_device);
-  free (current_sound);
+  xfree (current_sound_device);
+  xfree (current_sound);
 
   return Qnil;
 }
@@ -596,14 +595,14 @@ wav_play (struct sound *s, struct sound_device *sd)
      files I found so far.  If someone feels inclined to implement the
      whole RIFF-WAVE spec, please do.  */
   if (STRINGP (s->data))
-    sd->write (sd, SDATA (s->data) + sizeof *header,
+    sd->write (sd, SSDATA (s->data) + sizeof *header,
 	       SBYTES (s->data) - sizeof *header);
   else
     {
       char *buffer;
-      int nbytes;
-      int blksize = sd->period_size ? sd->period_size (sd) : 2048;
-      int data_left = header->data_length;
+      EMACS_INT nbytes = 0;
+      EMACS_INT blksize = sd->period_size ? sd->period_size (sd) : 2048;
+      EMACS_INT data_left = header->data_length;
 
       buffer = (char *) alloca (blksize);
       lseek (s->fd, sizeof *header, SEEK_SET);
@@ -687,13 +686,13 @@ au_play (struct sound *s, struct sound_device *sd)
   sd->configure (sd);
 
   if (STRINGP (s->data))
-    sd->write (sd, SDATA (s->data) + header->data_offset,
+    sd->write (sd, SSDATA (s->data) + header->data_offset,
 	       SBYTES (s->data) - header->data_offset);
   else
     {
-      int blksize = sd->period_size ? sd->period_size (sd) : 2048;
+      EMACS_INT blksize = sd->period_size ? sd->period_size (sd) : 2048;
       char *buffer;
-      int nbytes;
+      EMACS_INT nbytes;
 
       /* Seek */
       lseek (s->fd, header->data_offset, SEEK_SET);
@@ -896,10 +895,9 @@ vox_init (struct sound_device *sd)
 /* Write NBYTES bytes from BUFFER to device SD.  */
 
 static void
-vox_write (struct sound_device *sd, const char *buffer, int nbytes)
+vox_write (struct sound_device *sd, const char *buffer, EMACS_INT nbytes)
 {
-  int nwritten = emacs_write (sd->fd, buffer, nbytes);
-  if (nwritten < 0)
+  if (emacs_write (sd->fd, buffer, nbytes) != nbytes)
     sound_perror ("Error writing to sound device");
 }
 
@@ -954,7 +952,7 @@ alsa_open (struct sound_device *sd)
     alsa_sound_perror (file, err);
 }
 
-static int
+static EMACS_INT
 alsa_period_size (struct sound_device *sd)
 {
   struct alsa_params *p = (struct alsa_params *) sd->data;
@@ -1096,7 +1094,7 @@ alsa_close (struct sound_device *sd)
           snd_pcm_drain (p->handle);
           snd_pcm_close (p->handle);
         }
-      free (p);
+      xfree (p);
     }
 }
 
@@ -1105,7 +1103,6 @@ alsa_close (struct sound_device *sd)
 static void
 alsa_choose_format (struct sound_device *sd, struct sound *s)
 {
-  struct alsa_params *p = (struct alsa_params *) sd->data;
   if (s->type == RIFF)
     {
       struct wav_header *h = (struct wav_header *) s->header;
@@ -1158,13 +1155,13 @@ alsa_choose_format (struct sound_device *sd, struct sound *s)
 /* Write NBYTES bytes from BUFFER to device SD.  */
 
 static void
-alsa_write (struct sound_device *sd, const char *buffer, int nbytes)
+alsa_write (struct sound_device *sd, const char *buffer, EMACS_INT nbytes)
 {
   struct alsa_params *p = (struct alsa_params *) sd->data;
 
   /* The the third parameter to snd_pcm_writei is frames, not bytes. */
   int fact = snd_pcm_format_size (sd->format, 1) * sd->channels;
-  int nwritten = 0;
+  EMACS_INT nwritten = 0;
   int err;
 
   while (nwritten < nbytes)
@@ -1411,7 +1408,7 @@ Internal use only, use `play-sound' instead.  */)
     {
       int len = SCHARS (attrs[SOUND_DEVICE]);
       current_sound_device->file = (char *) alloca (len + 1);
-      strcpy (current_sound_device->file, SDATA (attrs[SOUND_DEVICE]));
+      strcpy (current_sound_device->file, SSDATA (attrs[SOUND_DEVICE]));
     }
 
   if (INTEGERP (attrs[SOUND_VOLUME]))
@@ -1450,7 +1447,7 @@ Internal use only, use `play-sound' instead.  */)
     }
   else if (FLOATP (attrs[SOUND_VOLUME]))
     {
-      ui_volume_tmp = (unsigned long) XFLOAT_DATA (attrs[SOUND_VOLUME]) * 100;
+      ui_volume_tmp = XFLOAT_DATA (attrs[SOUND_VOLUME]) * 100;
     }
   /*
     Based on some experiments I have conducted, a value of 100 or less
@@ -1480,14 +1477,10 @@ Internal use only, use `play-sound' instead.  */)
 void
 syms_of_sound (void)
 {
-  QCdevice = intern_c_string(":device");
-  staticpro (&QCdevice);
-  QCvolume = intern_c_string (":volume");
-  staticpro (&QCvolume);
-  Qsound = intern_c_string ("sound");
-  staticpro (&Qsound);
-  Qplay_sound_functions = intern_c_string ("play-sound-functions");
-  staticpro (&Qplay_sound_functions);
+  DEFSYM (QCdevice, ":device");
+  DEFSYM (QCvolume, ":volume");
+  DEFSYM (Qsound, "sound");
+  DEFSYM (Qplay_sound_functions, "play-sound-functions");
 
   defsubr (&Splay_sound_internal);
 }
@@ -1499,6 +1492,3 @@ init_sound (void)
 }
 
 #endif /* HAVE_SOUND */
-
-/* arch-tag: dd850ad8-0433-4e2c-9cba-b7aeeccc0dbd
-   (do not change this comment) */

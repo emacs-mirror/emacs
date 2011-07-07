@@ -1,6 +1,6 @@
 /* Definitions and headers for GTK widgets.
-   Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-     Free Software Foundation, Inc.
+
+Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -135,6 +135,7 @@ extern void xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
                                              int position,
                                              int whole);
 extern int xg_event_is_for_scrollbar (FRAME_PTR f, XEvent *event);
+extern int xg_get_default_scrollbar_width (void);
 
 extern void update_frame_tool_bar (FRAME_PTR f);
 extern void free_frame_tool_bar (FRAME_PTR f);
@@ -185,5 +186,3 @@ extern int xg_ignore_gtk_scrollbar;
 #endif /* USE_GTK */
 #endif /* GTKUTIL_H */
 
-/* arch-tag: 0757f3dc-00c7-4cee-9e4c-282cf1d34c72
-   (do not change this comment) */

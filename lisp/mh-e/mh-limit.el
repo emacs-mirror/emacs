@@ -1,7 +1,6 @@
 ;;; mh-limit.el --- MH-E display limits
 
-;; Copyright (C) 2001, 2002, 2003, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2003, 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -334,5 +333,4 @@ The MH command pick is used to do the match."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: b0d24378-1234-4c42-aa3f-7abad25b40a1
 ;;; mh-limit.el ends here

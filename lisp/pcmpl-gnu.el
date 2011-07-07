@@ -1,7 +1,6 @@
 ;;; pcmpl-gnu.el --- completions for GNU project tools
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011 Free Software Foundation, Inc.
 
 ;; Package: pcomplete
 
@@ -307,5 +306,4 @@
 ;;;###autoload
 (defalias 'pcomplete/gdb 'pcomplete/xargs)
 
-;; arch-tag: 06d2b429-dcb1-4a57-84e1-f70d87781183
 ;;; pcmpl-gnu.el ends here

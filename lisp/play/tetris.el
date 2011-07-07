@@ -1,7 +1,6 @@
 ;;; tetris.el --- implementation of Tetris for Emacs
 
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 2.01
@@ -194,32 +193,32 @@ If the return value is a number, it is used as the timer period."
 ;; ;;;;;;;;;;;;; constants ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defconst tetris-shapes
-  [[[[0  0] [1  0] [0  1] [1  1]]]  
-   
-   [[[0  0] [1  0] [2  0] [2  1]] 
-    [[1 -1] [1  0] [1  1] [0  1]] 
-    [[0 -1] [0  0] [1  0] [2  0]] 
-    [[1 -1] [2 -1] [1  0] [1  1]]] 
-   
-   [[[0  0] [1  0] [2  0] [0  1]] 
-    [[0 -1] [1 -1] [1  0] [1  1]] 
-    [[2 -1] [0  0] [1  0] [2  0]] 
-    [[1 -1] [1  0] [1  1] [2  1]]]  
-   
-   [[[0  0] [1  0] [1  1] [2  1]] 
+  [[[[0  0] [1  0] [0  1] [1  1]]]
+
+   [[[0  0] [1  0] [2  0] [2  1]]
+    [[1 -1] [1  0] [1  1] [0  1]]
+    [[0 -1] [0  0] [1  0] [2  0]]
+    [[1 -1] [2 -1] [1  0] [1  1]]]
+
+   [[[0  0] [1  0] [2  0] [0  1]]
+    [[0 -1] [1 -1] [1  0] [1  1]]
+    [[2 -1] [0  0] [1  0] [2  0]]
+    [[1 -1] [1  0] [1  1] [2  1]]]
+
+   [[[0  0] [1  0] [1  1] [2  1]]
     [[1  0] [0  1] [1  1] [0  2]]]
-   
-   [[[1  0] [2  0] [0  1] [1  1]] 
-    [[0  0] [0  1] [1  1] [1  2]]]  
-   
-   [[[1  0] [0  1] [1  1] [2  1]] 
-    [[1  0] [1  1] [2  1] [1  2]]                
-    [[0  1] [1  1] [2  1] [1  2]] 
+
+   [[[1  0] [2  0] [0  1] [1  1]]
+    [[0  0] [0  1] [1  1] [1  2]]]
+
+   [[[1  0] [0  1] [1  1] [2  1]]
+    [[1  0] [1  1] [2  1] [1  2]]
+    [[0  1] [1  1] [2  1] [1  2]]
     [[1  0] [0  1] [1  1] [1  2]]]
-   
+
    [[[0  0] [1  0] [2  0] [3  0]]
     [[1 -1] [1  0] [1  1] [1  2]]]]
-  "Each shape is described by a vector that contains the coordinates of 
+  "Each shape is described by a vector that contains the coordinates of
 each one of its four blocks.")
 
 ;;the scoring rules were taken from "xtetris".  Blocks score differently
@@ -237,7 +236,7 @@ each one of its four blocks.")
 
 (defconst tetris-space 9)
 
-(defun tetris-default-update-speed-function (shapes rows)
+(defun tetris-default-update-speed-function (_shapes rows)
   (/ 20.0 (+ 50.0 rows)))
 
 ;; ;;;;;;;;;;;;; variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -381,10 +380,10 @@ each one of its four blocks.")
   (loop for i from 0 to 3 do
         (let ((c (tetris-get-shape-cell i)))
           (gamegrid-set-cell (+ tetris-top-left-x
-                                tetris-pos-x 
+                                tetris-pos-x
                                 (aref c 0))
                              (+ tetris-top-left-y
-                                tetris-pos-y 
+                                tetris-pos-y
                                 (aref c 1))
                              tetris-blank))))
 
@@ -394,14 +393,14 @@ each one of its four blocks.")
           (unless hit
             (setq hit
                   (let* ((c (tetris-get-shape-cell i))
-                         (xx (+ tetris-pos-x 
+                         (xx (+ tetris-pos-x
                                 (aref c 0)))
-                         (yy (+ tetris-pos-y 
+                         (yy (+ tetris-pos-y
                                 (aref c 1))))
                     (or (>= xx tetris-width)
                         (>= yy tetris-height)
-                        (/= (gamegrid-get-cell 
-                             (+ xx tetris-top-left-x) 
+                        (/= (gamegrid-get-cell
+                             (+ xx tetris-top-left-x)
                              (+ yy tetris-top-left-y))
                             tetris-blank))))))
     hit))
@@ -538,10 +537,10 @@ Drops the shape one square, testing for collision."
   (interactive)
   (unless tetris-paused
       (tetris-erase-shape)
-      (setq tetris-rot (% (+ 1 tetris-rot) 
+      (setq tetris-rot (% (+ 1 tetris-rot)
                           (tetris-shape-rotations)))
       (if (tetris-test-shape)
-          (setq tetris-rot (% (+ 3 tetris-rot) 
+          (setq tetris-rot (% (+ 3 tetris-rot)
                               (tetris-shape-rotations))))
       (tetris-draw-shape)))
 
@@ -641,5 +640,4 @@ tetris-mode keybindings:
 
 (provide 'tetris)
 
-;; arch-tag: fb780d53-3ff0-49f0-8e19-f7f13cf2d49e
 ;;; tetris.el ends here

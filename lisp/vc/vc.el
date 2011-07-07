@@ -1,8 +1,6 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1992-1998, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -622,7 +620,7 @@
 ;;   buffer, if one is present, instead of adding to the ChangeLog.
 ;;
 ;; - When vc-next-action calls vc-checkin it could pre-fill the
-;;   *VC-log* buffer with some obvious items: the list of files that
+;;   *vc-log* buffer with some obvious items: the list of files that
 ;;   were added, the list of files that were removed.  If the diff is
 ;;   available, maybe it could even call something like
 ;;   `diff-add-change-log-entries-other-window' to create a detailed
@@ -655,6 +653,7 @@
 
 (require 'vc-hooks)
 (require 'vc-dispatcher)
+(require 'ediff)
 
 (eval-when-compile
   (require 'cl)
@@ -775,6 +774,12 @@ See also `log-edit-done-hook'."
 See `run-hooks'."
   :type 'hook
   :group 'vc)
+
+(defcustom vc-revert-show-diff t
+  "If non-nil, `vc-revert' shows a `vc-diff' buffer before querying."
+  :type 'boolean
+  :group 'vc
+  :version "24.1")
 
 ;; Header-insertion hair
 
@@ -1117,9 +1122,12 @@ merge in the changes into your working copy."
 	(dolist (file files)
 	  (unless (file-writable-p file)
 	    ;; Make the file+buffer read-write.
-	    (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue?" file))
+	    (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue? " file))
 	      (error "Aborted"))
-	    (set-file-modes file (logior (file-modes file) 128))
+            ;; Maybe we somehow lost permissions on the directory.
+            (condition-case nil
+                (set-file-modes file (logior (file-modes file) 128))
+              (error (error "Unable to make file writable")))
 	    (let ((visited (get-file-buffer file)))
 	      (when visited
 		(with-current-buffer visited
@@ -1406,7 +1414,7 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
    (vc-start-logentry
     files comment initial-contents
     "Enter a change comment."
-    "*VC-log*"
+    "*vc-log*"
     (lambda ()
       (vc-call-backend backend 'log-edit-mode))
     (lexical-let ((rev rev))
@@ -1532,10 +1540,13 @@ to override the value of `vc-diff-switches' and `diff-switches'."
 (defvar vc-diff-added-files nil
   "If non-nil, diff added files by comparing them to /dev/null.")
 
-(defun vc-diff-internal (async vc-fileset rev1 rev2 &optional verbose)
+(defun vc-diff-internal (async vc-fileset rev1 rev2 &optional verbose buffer)
   "Report diffs between two revisions of a fileset.
-Diff output goes to the *vc-diff* buffer.  The function
-returns t if the buffer had changes, nil otherwise."
+Output goes to the buffer BUFFER, which defaults to *vc-diff*.
+BUFFER, if non-nil, should be a buffer or a buffer name.
+Return t if the buffer had changes, nil otherwise."
+  (unless buffer
+    (setq buffer "*vc-diff*"))
   (let* ((files (cadr vc-fileset))
 	 (messages (cons (format "Finding changes in %s..."
                                  (vc-delistify files))
@@ -1547,7 +1558,7 @@ returns t if the buffer had changes, nil otherwise."
 	 ;; be to call the back end separately for each file.
 	 (coding-system-for-read
 	  (if files (vc-coding-system-for-diff (car files)) 'undecided)))
-    (vc-setup-buffer "*vc-diff*")
+    (vc-setup-buffer buffer)
     (message "%s" (car messages))
     ;; Many backends don't handle well the case of a file that has been
     ;; added but not yet committed to the repo (notably CVS and Subversion).
@@ -1572,13 +1583,13 @@ returns t if the buffer had changes, nil otherwise."
                 (error "No revisions of %s exist" file)
               ;; We regard this as "changed".
               ;; Diff it against /dev/null.
-              (apply 'vc-do-command "*vc-diff*"
+              (apply 'vc-do-command buffer
                      1 "diff" file
                      (append (vc-switches nil 'diff) '("/dev/null"))))))
         (setq files (nreverse filtered))))
     (let ((vc-disable-async-diff (not async)))
-      (vc-call-backend (car vc-fileset) 'diff files rev1 rev2 "*vc-diff*"))
-    (set-buffer "*vc-diff*")
+      (vc-call-backend (car vc-fileset) 'diff files rev1 rev2 buffer))
+    (set-buffer buffer)
     (if (and (zerop (buffer-size))
              (not (get-buffer-process (current-buffer))))
         ;; Treat this case specially so as not to pop the buffer.
@@ -1616,45 +1627,48 @@ returns t if the buffer had changes, nil otherwise."
                          nil nil initial-input nil default)
       (read-string prompt initial-input nil default))))
 
+(defun vc-diff-build-argument-list-internal ()
+  "Build argument list for calling internal diff functions."
+  (let* ((vc-fileset (vc-deduce-fileset t)) ;FIXME: why t?  --Stef
+         (files (cadr vc-fileset))
+         (backend (car vc-fileset))
+         (first (car files))
+         (rev1-default nil)
+         (rev2-default nil))
+    (cond
+     ;; someday we may be able to do revision completion on non-singleton
+     ;; filesets, but not yet.
+     ((/= (length files) 1)
+      nil)
+     ;; if it's a directory, don't supply any revision default
+     ((file-directory-p first)
+      nil)
+     ;; if the file is not up-to-date, use working revision as older revision
+     ((not (vc-up-to-date-p first))
+      (setq rev1-default (vc-working-revision first)))
+     ;; if the file is not locked, use last and previous revisions as defaults
+     (t
+      (setq rev1-default (vc-call-backend backend 'previous-revision first
+                                          (vc-working-revision first)))
+      (when (string= rev1-default "") (setq rev1-default nil))
+      (setq rev2-default (vc-working-revision first))))
+    ;; construct argument list
+    (let* ((rev1-prompt (if rev1-default
+                            (concat "Older revision (default "
+                                    rev1-default "): ")
+                          "Older revision: "))
+           (rev2-prompt (concat "Newer revision (default "
+                                (or rev2-default "current source") "): "))
+           (rev1 (vc-read-revision rev1-prompt files backend rev1-default))
+           (rev2 (vc-read-revision rev2-prompt files backend rev2-default)))
+      (when (string= rev1 "") (setq rev1 nil))
+      (when (string= rev2 "") (setq rev2 nil))
+      (list files rev1 rev2))))
+
 ;;;###autoload
 (defun vc-version-diff (files rev1 rev2)
   "Report diffs between revisions of the fileset in the repository history."
-  (interactive
-   (let* ((vc-fileset (vc-deduce-fileset t)) ;FIXME: why t?  --Stef
-	  (files (cadr vc-fileset))
-          (backend (car vc-fileset))
-	  (first (car files))
-	  (rev1-default nil)
-	  (rev2-default nil))
-     (cond
-      ;; someday we may be able to do revision completion on non-singleton
-      ;; filesets, but not yet.
-      ((/= (length files) 1)
-       nil)
-      ;; if it's a directory, don't supply any revision default
-      ((file-directory-p first)
-       nil)
-      ;; if the file is not up-to-date, use working revision as older revision
-      ((not (vc-up-to-date-p first))
-       (setq rev1-default (vc-working-revision first)))
-      ;; if the file is not locked, use last and previous revisions as defaults
-      (t
-       (setq rev1-default (vc-call-backend backend 'previous-revision first
-                                           (vc-working-revision first)))
-       (when (string= rev1-default "") (setq rev1-default nil))
-       (setq rev2-default (vc-working-revision first))))
-     ;; construct argument list
-     (let* ((rev1-prompt (if rev1-default
-			     (concat "Older revision (default "
-				     rev1-default "): ")
-			   "Older revision: "))
-	    (rev2-prompt (concat "Newer revision (default "
-				 (or rev2-default "current source") "): "))
-	    (rev1 (vc-read-revision rev1-prompt files backend rev1-default))
-	    (rev2 (vc-read-revision rev2-prompt files backend rev2-default)))
-       (when (string= rev1 "") (setq rev1 nil))
-       (when (string= rev2 "") (setq rev2 nil))
-       (list files rev1 rev2))))
+  (interactive (vc-diff-build-argument-list-internal))
   ;; All that was just so we could do argument completion!
   (when (and (not rev1) rev2)
     (error "Not a valid revision range"))
@@ -1678,6 +1692,48 @@ saving the buffer."
     (when buffer-file-name (vc-buffer-sync not-urgent))
     (vc-diff-internal t (vc-deduce-fileset t) nil nil
 		      (called-interactively-p 'interactive))))
+
+(declare-function ediff-vc-internal (rev1 rev2 &optional startup-hooks))
+
+;;;###autoload
+(defun vc-version-ediff (files rev1 rev2)
+  "Show differences between revisions of the fileset in the
+repository history using ediff."
+  (interactive (vc-diff-build-argument-list-internal))
+  ;; All that was just so we could do argument completion!
+  (when (and (not rev1) rev2)
+    (error "Not a valid revision range"))
+
+  (message "%s" (format "Finding changes in %s..." (vc-delistify files)))
+
+  ;; Functions ediff-(vc|rcs)-internal use "" instead of nil.
+  (when (null rev1) (setq rev1 ""))
+  (when (null rev2) (setq rev2 ""))
+
+  (cond
+   ;; FIXME We only support running ediff on one file for now.
+   ;; We could spin off an ediff session per file in the file set.
+   ((= (length files) 1)
+    (ediff-load-version-control)
+    (find-file (car files))             ;FIXME: find-file from Elisp is bad.
+    (ediff-vc-internal rev1 rev2 nil))
+   (t
+    (error "More than one file is not supported"))))
+
+;;;###autoload
+(defun vc-ediff (historic &optional not-urgent)
+  "Display diffs between file revisions using ediff.
+Normally this compares the currently selected fileset with their
+working revisions.  With a prefix argument HISTORIC, it reads two revision
+designators specifying which revisions to compare.
+
+The optional argument NOT-URGENT non-nil means it is ok to say no to
+saving the buffer."
+  (interactive (list current-prefix-arg t))
+  (if historic
+      (call-interactively 'vc-version-ediff)
+    (when buffer-file-name (vc-buffer-sync not-urgent))
+    (vc-version-ediff (cadr (vc-deduce-fileset t)) nil nil)))
 
 ;;;###autoload
 (defun vc-root-diff (historic &optional not-urgent)
@@ -1820,7 +1876,7 @@ The headers are reset to their non-expanded form."
     (vc-start-logentry
      files oldcomment t
      "Enter a replacement change comment."
-     "*VC-log*"
+     "*vc-log*"
      (lambda () (vc-call-backend backend 'log-edit-mode))
      (lexical-let ((rev rev))
        (lambda (files comment)
@@ -1956,7 +2012,7 @@ checked out in that new branch."
 	  ;; For VC's that do not work at file level, it's pointless
 	  ;; to ask for a directory, branches are created at repository level.
 	  default-directory
-	(read-file-name "Directory: " default-directory default-directory t))
+	(read-directory-name "Directory: " default-directory default-directory t))
       (read-string (if current-prefix-arg "New branch name: " "New tag name: "))
       current-prefix-arg)))
   (message "Making %s... " (if branchp "branch" "tag"))
@@ -1982,7 +2038,7 @@ allowed and simply skipped)."
 	  ;; For VC's that do not work at file level, it's pointless
 	  ;; to ask for a directory, branches are created at repository level.
 	  default-directory
-	(read-file-name "Directory: " default-directory default-directory t))
+	(read-directory-name "Directory: " default-directory default-directory t))
       (read-string "Tag name to retrieve (default latest revisions): "))))
   (let ((update (yes-or-no-p "Update any affected buffers? "))
 	(msg (if (or (not name) (string= name ""))
@@ -2016,22 +2072,20 @@ Not all VC backends support short logs!")
     (goto-char (point-max))
     (lexical-let ((working-revision working-revision)
 		  (limit limit))
-      (widget-create 'push-button
-		     :notify (lambda (&rest ignore)
-			       (vc-print-log-internal
-				log-view-vc-backend log-view-vc-fileset
-				working-revision nil (* 2 limit)))
-		     :help-echo "Show the log again, and double the number of log entries shown"
-		     "Show 2X entries")
-      (widget-insert "    ")
-      (widget-create 'push-button
-		     :notify (lambda (&rest ignore)
-			       (vc-print-log-internal
-				log-view-vc-backend log-view-vc-fileset
-				working-revision nil nil))
-		     :help-echo "Show the log again, showing all entries"
-		     "Show unlimited entries"))
-    (widget-setup)))
+      (insert "\n")
+      (insert-text-button "Show 2X entries"
+			  'action (lambda (&rest ignore)
+				    (vc-print-log-internal
+				     log-view-vc-backend log-view-vc-fileset
+				     working-revision nil (* 2 limit)))
+			  'help-echo "Show the log again, and double the number of log entries shown")
+      (insert "    ")
+      (insert-text-button "Show unlimited entries"
+			  'action (lambda (&rest ignore)
+				    (vc-print-log-internal
+				     log-view-vc-backend log-view-vc-fileset
+				     working-revision nil nil))
+			  'help-echo "Show the log again, including all entries"))))
 
 (defun vc-print-log-internal (backend files working-revision
                                       &optional is-start-revision limit)
@@ -2211,11 +2265,12 @@ This asks for confirmation if the buffer contents are not identical
 to the working revision (except for keyword expansion)."
   (interactive)
   (let* ((vc-fileset (vc-deduce-fileset))
-	 (files (cadr vc-fileset)))
-    ;; If any of the files is visited by the current buffer, make
-    ;; sure buffer is saved.  If the user says `no', abort since
-    ;; we cannot show the changes and ask for confirmation to
-    ;; discard them.
+	 (files (cadr vc-fileset))
+	 (queried nil)
+	 diff-buffer)
+    ;; If any of the files is visited by the current buffer, make sure
+    ;; buffer is saved.  If the user says `no', abort since we cannot
+    ;; show the changes and ask for confirmation to discard them.
     (when (or (not files) (memq (buffer-file-name) files))
       (vc-buffer-sync nil))
     (dolist (file files)
@@ -2223,20 +2278,29 @@ to the working revision (except for keyword expansion)."
 	(when (and buf (buffer-modified-p buf))
 	  (error "Please kill or save all modified buffers before reverting")))
       (when (vc-up-to-date-p file)
-	(unless (yes-or-no-p (format "%s seems up-to-date.  Revert anyway? " file))
+	(if (yes-or-no-p (format "%s seems up-to-date.  Revert anyway? " file))
+	    (setq queried t)
 	  (error "Revert canceled"))))
-    (when (vc-diff-internal vc-allow-async-revert vc-fileset nil nil)
-      (unless (yes-or-no-p
-	       (format "Discard changes in %s? "
-		       (let ((str (vc-delistify files))
-			     (nfiles (length files)))
-			 (if (< (length str) 50)
-			     str
-			   (format "%d file%s" nfiles
-				   (if (= nfiles 1) "" "s"))))))
-	(error "Revert canceled"))
-      (delete-windows-on "*vc-diff*")
-      (kill-buffer "*vc-diff*"))
+    (unwind-protect
+	(when (if vc-revert-show-diff
+		  (progn
+		    (setq diff-buffer (generate-new-buffer-name "*vc-diff*"))
+		    (vc-diff-internal vc-allow-async-revert vc-fileset
+				      nil nil nil diff-buffer))
+		;; Avoid querying the user again.
+		(null queried))
+	  (unless (yes-or-no-p
+		   (format "Discard changes in %s? "
+			   (let ((str (vc-delistify files))
+				 (nfiles (length files)))
+			     (if (< (length str) 50)
+				 str
+			       (format "%d file%s" nfiles
+				       (if (= nfiles 1) "" "s"))))))
+	    (error "Revert canceled")))
+      (when diff-buffer
+	(delete-windows-on diff-buffer)
+	(kill-buffer diff-buffer)))
     (dolist (file files)
       (message "Reverting %s..." (vc-delistify files))
       (vc-revert-file file)
@@ -2299,7 +2363,7 @@ depending on the underlying version-control system."
 (define-obsolete-function-alias 'vc-revert-buffer 'vc-revert "23.1")
 
 ;;;###autoload
-(defun vc-update (&optional arg)
+(defun vc-pull (&optional arg)
   "Update the current fileset or branch.
 On a distributed version control system, this runs a \"pull\"
 operation to update the current branch, prompting for an argument
@@ -2339,7 +2403,7 @@ tip revision are merged into the working file."
       (error "VC update is unsupported for `%s'" backend)))))
 
 ;;;###autoload
-(defalias 'vc-pull 'vc-update)
+(defalias 'vc-update 'vc-pull)
 
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.
@@ -2618,9 +2682,6 @@ log entries should be gathered."
     (when index
       (substring rev 0 index))))
 
-(define-obsolete-function-alias
-  'vc-default-previous-version 'vc-default-previous-revision "23.1")
-
 (defun vc-default-responsible-p (backend file)
   "Indicate whether BACKEND is reponsible for FILE.
 The default is to return nil always."
@@ -2775,5 +2836,4 @@ Invoke FUNC f ARGS on each VC-managed file f underneath it."
 
 (provide 'vc)
 
-;; arch-tag: ca82c1de-3091-4e26-af92-460abc6213a6
 ;;; vc.el ends here

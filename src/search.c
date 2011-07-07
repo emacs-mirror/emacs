@@ -1,6 +1,5 @@
 /* String search routines for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1997, 1998, 1999, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1985-1987, 1993-1994, 1997-1999, 2001-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -54,10 +53,10 @@ struct regexp_cache
 };
 
 /* The instances of that struct.  */
-struct regexp_cache searchbufs[REGEXP_CACHE_SIZE];
+static struct regexp_cache searchbufs[REGEXP_CACHE_SIZE];
 
 /* The head of the linked list; points to the most recently used buffer.  */
-struct regexp_cache *searchbuf_head;
+static struct regexp_cache *searchbuf_head;
 
 
 /* Every call to re_match, etc., must pass &search_regs as the regs
@@ -86,27 +85,19 @@ static Lisp_Object last_thing_searched;
 
 /* error condition signaled when regexp compile_pattern fails */
 
-Lisp_Object Qinvalid_regexp;
+static Lisp_Object Qinvalid_regexp;
 
 /* Error condition used for failing searches */
-Lisp_Object Qsearch_failed;
-
-Lisp_Object Vsearch_spaces_regexp;
-
-/* If non-nil, the match data will not be changed during call to
-   searching or matching functions.  This variable is for internal use
-   only.  */
-Lisp_Object Vinhibit_changing_match_data;
+static Lisp_Object Qsearch_failed;
 
 static void set_search_regs (EMACS_INT, EMACS_INT);
 static void save_search_regs (void);
 static EMACS_INT simple_search (EMACS_INT, unsigned char *, EMACS_INT,
 				EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT,
                                 EMACS_INT, EMACS_INT);
-static EMACS_INT boyer_moore (EMACS_INT, unsigned char *, EMACS_INT, EMACS_INT,
-                              Lisp_Object, Lisp_Object,
-                              EMACS_INT, EMACS_INT,
-                              EMACS_INT, EMACS_INT, int);
+static EMACS_INT boyer_moore (EMACS_INT, unsigned char *, EMACS_INT,
+                              Lisp_Object, Lisp_Object, EMACS_INT,
+                              EMACS_INT, int);
 static EMACS_INT search_buffer (Lisp_Object, EMACS_INT, EMACS_INT,
                                 EMACS_INT, EMACS_INT, EMACS_INT, int,
                                 Lisp_Object, Lisp_Object, int);
@@ -122,17 +113,13 @@ matcher_overflow (void)
    PATTERN is the pattern to compile.
    CP is the place to put the result.
    TRANSLATE is a translation table for ignoring case, or nil for none.
-   REGP is the structure that says where to store the "register"
-   values that will result from matching this pattern.
-   If it is 0, we should compile the pattern not to record any
-   subexpression bounds.
    POSIX is nonzero if we want full backtracking (POSIX style)
    for this pattern.  0 means backtrack only enough to get a valid match.
 
    The behavior also depends on Vsearch_spaces_regexp.  */
 
 static void
-compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern, Lisp_Object translate, struct re_registers *regp, int posix)
+compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern, Lisp_Object translate, int posix)
 {
   char *val;
   reg_syntax_t old;
@@ -156,16 +143,16 @@ compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern, Lisp_Object tra
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
 
   if (STRINGP (Vsearch_spaces_regexp))
-    re_set_whitespace_regexp (SDATA (Vsearch_spaces_regexp));
+    re_set_whitespace_regexp (SSDATA (Vsearch_spaces_regexp));
   else
     re_set_whitespace_regexp (NULL);
 
-  val = (char *) re_compile_pattern ((char *) SDATA (pattern),
+  val = (char *) re_compile_pattern (SSDATA (pattern),
 				     SBYTES (pattern), &cp->buf);
 
   /* If the compiled pattern hard codes some of the contents of the
      syntax-table, it can only be reused with *this* syntax table.  */
-  cp->syntax_table = cp->buf.used_syntax ? current_buffer->syntax_table : Qt;
+  cp->syntax_table = cp->buf.used_syntax ? BVAR (current_buffer, syntax_table) : Qt;
 
   re_set_whitespace_regexp (NULL);
 
@@ -244,7 +231,7 @@ compile_pattern (Lisp_Object pattern, struct re_registers *regp, Lisp_Object tra
 	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
 	  && cp->posix == posix
 	  && (EQ (cp->syntax_table, Qt)
-	      || EQ (cp->syntax_table, current_buffer->syntax_table))
+	      || EQ (cp->syntax_table, BVAR (current_buffer, syntax_table)))
 	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_spaces_regexp))
 	  && cp->buf.charset_unibyte == charset_unibyte)
 	break;
@@ -255,7 +242,7 @@ compile_pattern (Lisp_Object pattern, struct re_registers *regp, Lisp_Object tra
       if (cp->next == 0)
 	{
 	compile_it:
-	  compile_pattern_1 (cp, pattern, translate, regp, posix);
+	  compile_pattern_1 (cp, pattern, translate, posix);
 	  break;
 	}
     }
@@ -293,17 +280,17 @@ looking_at_1 (Lisp_Object string, int posix)
     save_search_regs ();
 
   /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
-  XCHAR_TABLE (current_buffer->case_canon_table)->extras[2]
-    = current_buffer->case_eqv_table;
+  XCHAR_TABLE (BVAR (current_buffer, case_canon_table))->extras[2]
+    = BVAR (current_buffer, case_eqv_table);
 
   CHECK_STRING (string);
   bufp = compile_pattern (string,
 			  (NILP (Vinhibit_changing_match_data)
 			   ? &search_regs : NULL),
-			  (!NILP (current_buffer->case_fold_search)
-			   ? current_buffer->case_canon_table : Qnil),
+			  (!NILP (BVAR (current_buffer, case_fold_search))
+			   ? BVAR (current_buffer, case_canon_table) : Qnil),
 			  posix,
-			  !NILP (current_buffer->enable_multibyte_characters));
+			  !NILP (BVAR (current_buffer, enable_multibyte_characters)));
 
   immediate_quit = 1;
   QUIT;			/* Do a pending quit right away, to avoid paradoxical behavior */
@@ -381,7 +368,7 @@ data if you want to preserve them.  */)
 static Lisp_Object
 string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start, int posix)
 {
-  int val;
+  EMACS_INT val;
   struct re_pattern_buffer *bufp;
   EMACS_INT pos, pos_byte;
   int i;
@@ -408,20 +395,20 @@ string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start, int p
     }
 
   /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
-  XCHAR_TABLE (current_buffer->case_canon_table)->extras[2]
-    = current_buffer->case_eqv_table;
+  XCHAR_TABLE (BVAR (current_buffer, case_canon_table))->extras[2]
+    = BVAR (current_buffer, case_eqv_table);
 
   bufp = compile_pattern (regexp,
 			  (NILP (Vinhibit_changing_match_data)
 			   ? &search_regs : NULL),
-			  (!NILP (current_buffer->case_fold_search)
-			   ? current_buffer->case_canon_table : Qnil),
+			  (!NILP (BVAR (current_buffer, case_fold_search))
+			   ? BVAR (current_buffer, case_canon_table) : Qnil),
 			  posix,
 			  STRING_MULTIBYTE (string));
   immediate_quit = 1;
   re_match_object = string;
 
-  val = re_search (bufp, (char *) SDATA (string),
+  val = re_search (bufp, SSDATA (string),
 		   SBYTES (string), pos_byte,
 		   SBYTES (string) - pos_byte,
 		   (NILP (Vinhibit_changing_match_data)
@@ -481,10 +468,10 @@ matched by parenthesis constructs in the pattern.  */)
    and return the index of the match, or negative on failure.
    This does not clobber the match data.  */
 
-int
+EMACS_INT
 fast_string_match (Lisp_Object regexp, Lisp_Object string)
 {
-  int val;
+  EMACS_INT val;
   struct re_pattern_buffer *bufp;
 
   bufp = compile_pattern (regexp, 0, Qnil,
@@ -492,7 +479,7 @@ fast_string_match (Lisp_Object regexp, Lisp_Object string)
   immediate_quit = 1;
   re_match_object = string;
 
-  val = re_search (bufp, (char *) SDATA (string),
+  val = re_search (bufp, SSDATA (string),
 		   SBYTES (string), 0,
 		   SBYTES (string), 0);
   immediate_quit = 0;
@@ -504,10 +491,10 @@ fast_string_match (Lisp_Object regexp, Lisp_Object string)
    This does not clobber the match data.
    We assume that STRING contains single-byte characters.  */
 
-int
+EMACS_INT
 fast_c_string_match_ignore_case (Lisp_Object regexp, const char *string)
 {
-  int val;
+  EMACS_INT val;
   struct re_pattern_buffer *bufp;
   size_t len = strlen (string);
 
@@ -524,10 +511,10 @@ fast_c_string_match_ignore_case (Lisp_Object regexp, const char *string)
 
 /* Like fast_string_match but ignore case.  */
 
-int
+EMACS_INT
 fast_string_match_ignore_case (Lisp_Object regexp, Lisp_Object string)
 {
-  int val;
+  EMACS_INT val;
   struct re_pattern_buffer *bufp;
 
   bufp = compile_pattern (regexp, 0, Vascii_canon_table,
@@ -535,7 +522,7 @@ fast_string_match_ignore_case (Lisp_Object regexp, Lisp_Object string)
   immediate_quit = 1;
   re_match_object = string;
 
-  val = re_search (bufp, (char *) SDATA (string),
+  val = re_search (bufp, SSDATA (string),
 		   SBYTES (string), 0,
 		   SBYTES (string), 0);
   immediate_quit = 0;
@@ -594,7 +581,7 @@ fast_looking_at (Lisp_Object regexp, EMACS_INT pos, EMACS_INT pos_byte, EMACS_IN
 	  s2 = 0;
 	}
       re_match_object = Qnil;
-      multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+      multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
     }
 
   buf = compile_pattern (regexp, 0, Qnil, 0, multibyte);
@@ -616,7 +603,7 @@ fast_looking_at (Lisp_Object regexp, EMACS_INT pos, EMACS_INT pos_byte, EMACS_IN
 static void
 newline_cache_on_off (struct buffer *buf)
 {
-  if (NILP (buf->cache_long_line_scans))
+  if (NILP (BVAR (buf, cache_long_line_scans)))
     {
       /* It should be off.  */
       if (buf->newline_cache)
@@ -656,7 +643,7 @@ newline_cache_on_off (struct buffer *buf)
 
 EMACS_INT
 scan_buffer (register int target, EMACS_INT start, EMACS_INT end,
-	     EMACS_INT count, int *shortage, int allow_quit)
+	     EMACS_INT count, EMACS_INT *shortage, int allow_quit)
 {
   struct region_cache *newline_cache;
   int direction;
@@ -946,7 +933,7 @@ scan_newline (EMACS_INT start, EMACS_INT start_byte,
 EMACS_INT
 find_next_newline_no_quit (EMACS_INT from, EMACS_INT cnt)
 {
-  return scan_buffer ('\n', from, 0, cnt, (int *) 0, 0);
+  return scan_buffer ('\n', from, 0, cnt, (EMACS_INT *) 0, 0);
 }
 
 /* Like find_next_newline, but returns position before the newline,
@@ -956,7 +943,7 @@ find_next_newline_no_quit (EMACS_INT from, EMACS_INT cnt)
 EMACS_INT
 find_before_next_newline (EMACS_INT from, EMACS_INT to, EMACS_INT cnt)
 {
-  int shortage;
+  EMACS_INT shortage;
   EMACS_INT pos = scan_buffer ('\n', from, to, cnt, &shortage, 1);
 
   if (shortage == 0)
@@ -971,9 +958,9 @@ static Lisp_Object
 search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
 		Lisp_Object count, int direction, int RE, int posix)
 {
-  register int np;
+  register EMACS_INT np;
   EMACS_INT lim, lim_byte;
-  int n = direction;
+  EMACS_INT n = direction;
 
   if (!NILP (count))
     {
@@ -1004,15 +991,15 @@ search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror,
     }
 
   /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
-  XCHAR_TABLE (current_buffer->case_canon_table)->extras[2]
-    = current_buffer->case_eqv_table;
+  XCHAR_TABLE (BVAR (current_buffer, case_canon_table))->extras[2]
+    = BVAR (current_buffer, case_eqv_table);
 
   np = search_buffer (string, PT, PT_BYTE, lim, lim_byte, n, RE,
-		      (!NILP (current_buffer->case_fold_search)
-		       ? current_buffer->case_canon_table
+		      (!NILP (BVAR (current_buffer, case_fold_search))
+		       ? BVAR (current_buffer, case_canon_table)
 		       : Qnil),
-		      (!NILP (current_buffer->case_fold_search)
-		       ? current_buffer->case_eqv_table
+		      (!NILP (BVAR (current_buffer, case_fold_search))
+		       ? BVAR (current_buffer, case_eqv_table)
 		       : Qnil),
 		      posix);
   if (np <= 0)
@@ -1141,7 +1128,7 @@ search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
 			      (NILP (Vinhibit_changing_match_data)
 			       ? &search_regs : &search_regs_1),
 			      trt, posix,
-			      !NILP (current_buffer->enable_multibyte_characters));
+			      !NILP (BVAR (current_buffer, enable_multibyte_characters)));
 
       immediate_quit = 1;	/* Quit immediately if user types ^G,
 				   because letting this function finish
@@ -1262,7 +1249,7 @@ search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
       EMACS_INT raw_pattern_size;
       EMACS_INT raw_pattern_size_byte;
       unsigned char *patbuf;
-      int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+      int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
       unsigned char *base_pat;
       /* Set to positive if we find a non-ASCII char that need
 	 translation.  Otherwise set to zero later.  */
@@ -1275,7 +1262,7 @@ search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
 
       if (multibyte == STRING_MULTIBYTE (string))
 	{
-	  raw_pattern = (unsigned char *) SDATA (string);
+	  raw_pattern = SDATA (string);
 	  raw_pattern_size = SCHARS (string);
 	  raw_pattern_size_byte = SBYTES (string);
 	}
@@ -1428,15 +1415,14 @@ search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
 	}
 
       len_byte = pat - patbuf;
-      len = raw_pattern_size;
       pat = base_pat = patbuf;
 
       if (boyer_moore_ok)
-	return boyer_moore (n, pat, len, len_byte, trt, inverse_trt,
-			    pos, pos_byte, lim, lim_byte,
+	return boyer_moore (n, pat, len_byte, trt, inverse_trt,
+			    pos_byte, lim_byte,
 			    char_base);
       else
-	return simple_search (n, pat, len, len_byte, trt,
+	return simple_search (n, pat, raw_pattern_size, len_byte, trt,
 			      pos, pos_byte, lim, lim_byte);
     }
 }
@@ -1459,7 +1445,7 @@ simple_search (EMACS_INT n, unsigned char *pat,
 	       EMACS_INT pos, EMACS_INT pos_byte,
 	       EMACS_INT lim, EMACS_INT lim_byte)
 {
-  int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+  int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
   int forward = n > 0;
   /* Number of buffer bytes matched.  Note that this may be different
      from len_byte in a multibyte buffer.  */
@@ -1566,7 +1552,6 @@ simple_search (EMACS_INT n, unsigned char *pat,
 
 	    while (this_len > 0)
 	      {
-		int charlen;
 		int pat_ch, buf_ch;
 
 		DEC_BOTH (this_pos, this_pos_byte);
@@ -1649,8 +1634,8 @@ simple_search (EMACS_INT n, unsigned char *pat,
 }
 
 /* Do Boyer-Moore search N times for the string BASE_PAT,
-   whose length is LEN/LEN_BYTE,
-   from buffer position POS/POS_BYTE until LIM/LIM_BYTE.
+   whose length is LEN_BYTE,
+   from buffer position POS_BYTE until LIM_BYTE.
    DIRECTION says which direction we search in.
    TRT and INVERSE_TRT are translation tables.
    Characters in PAT are already translated by TRT.
@@ -1665,10 +1650,10 @@ simple_search (EMACS_INT n, unsigned char *pat,
 
 static EMACS_INT
 boyer_moore (EMACS_INT n, unsigned char *base_pat,
-	     EMACS_INT len, EMACS_INT len_byte,
+	     EMACS_INT len_byte,
 	     Lisp_Object trt, Lisp_Object inverse_trt,
-	     EMACS_INT pos, EMACS_INT pos_byte,
-	     EMACS_INT lim, EMACS_INT lim_byte, int char_base)
+	     EMACS_INT pos_byte, EMACS_INT lim_byte,
+             int char_base)
 {
   int direction = ((n > 0) ? 1 : -1);
   register EMACS_INT dirlen;
@@ -1679,7 +1664,7 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
   register EMACS_INT i;
   register int j;
   unsigned char *pat, *pat_end;
-  int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+  int multibyte = ! NILP (BVAR (current_buffer, enable_multibyte_characters));
 
   unsigned char simple_translate[0400];
   /* These are set to the preceding bytes of a byte to be translated
@@ -1689,7 +1674,6 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
   int translate_prev_byte1 = 0;
   int translate_prev_byte2 = 0;
   int translate_prev_byte3 = 0;
-  int translate_prev_byte4 = 0;
 
   /* The general approach is that we are going to maintain that we know
      the first (closest to the present position, in whatever direction
@@ -1738,18 +1722,14 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
       /* Setup translate_prev_byte1/2/3/4 from CHAR_BASE.  Only a
 	 byte following them are the target of translation.  */
       unsigned char str[MAX_MULTIBYTE_LENGTH];
-      int len = CHAR_STRING (char_base, str);
+      int cblen = CHAR_STRING (char_base, str);
 
-      translate_prev_byte1 = str[len - 2];
-      if (len > 2)
+      translate_prev_byte1 = str[cblen - 2];
+      if (cblen > 2)
 	{
-	  translate_prev_byte2 = str[len - 3];
-	  if (len > 3)
-	    {
-	      translate_prev_byte3 = str[len - 4];
-	      if (len > 4)
-		translate_prev_byte4 = str[len - 5];
-	    }
+	  translate_prev_byte2 = str[cblen - 3];
+	  if (cblen > 3)
+	    translate_prev_byte3 = str[cblen - 4];
 	}
     }
 
@@ -1789,8 +1769,8 @@ boyer_moore (EMACS_INT n, unsigned char *base_pat,
 	    stride_for_teases = BM_tab[j];
 
 	  BM_tab[j] = dirlen - i;
-	  /* A translation table is accompanied by its inverse -- see */
-	  /* comment following downcase_table for details */
+	  /* A translation table is accompanied by its inverse -- see
+	     comment following downcase_table for details.  */
 	  if (ch >= 0)
 	    {
 	      int starting_ch = ch;
@@ -2106,7 +2086,7 @@ set_search_regs (EMACS_INT beg_byte, EMACS_INT nbytes)
 static Lisp_Object
 wordify (Lisp_Object string, int lax)
 {
-  register unsigned char *p, *o;
+  register unsigned char *o;
   register EMACS_INT i, i_byte, len, punct_count = 0, word_count = 0;
   Lisp_Object val;
   int prev_c = 0;
@@ -2114,7 +2094,6 @@ wordify (Lisp_Object string, int lax)
   int whitespace_at_end;
 
   CHECK_STRING (string);
-  p = SDATA (string);
   len = SCHARS (string);
 
   for (i = 0, i_byte = 0; i < len; )
@@ -2126,7 +2105,7 @@ wordify (Lisp_Object string, int lax)
       if (SYNTAX (c) != Sword)
 	{
 	  punct_count++;
-	  if (i > 0 && SYNTAX (prev_c) == Sword)
+	  if (SYNTAX (prev_c) == Sword)
 	    word_count++;
 	}
 
@@ -2139,10 +2118,11 @@ wordify (Lisp_Object string, int lax)
       whitespace_at_end = 0;
     }
   else
-    whitespace_at_end = 1;
-
-  if (!word_count)
-    return empty_unibyte_string;
+    {
+      whitespace_at_end = 1;
+      if (!word_count)
+	return empty_unibyte_string;
+    }
 
   adjust = - punct_count + 5 * (word_count - 1)
     + ((lax && !whitespace_at_end) ? 2 : 4);
@@ -2170,7 +2150,7 @@ wordify (Lisp_Object string, int lax)
 	  memcpy (o, SDATA (string) + i_byte_orig, i_byte - i_byte_orig);
 	  o += i_byte - i_byte_orig;
 	}
-      else if (i > 0 && SYNTAX (prev_c) == Sword && --word_count)
+      else if (SYNTAX (prev_c) == Sword && --word_count)
 	{
 	  *o++ = '\\';
 	  *o++ = 'W';
@@ -2482,7 +2462,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	  else
 	    FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c, string, pos, pos_byte);
 
-	  if (LOWERCASEP (c))
+	  if (lowercasep (c))
 	    {
 	      /* Cannot be all caps if any original char is lower case */
 
@@ -2492,7 +2472,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	      else
 		some_multiletter_word = 1;
 	    }
-	  else if (UPPERCASEP (c))
+	  else if (uppercasep (c))
 	    {
 	      some_uppercase = 1;
 	      if (SYNTAX (prevc) != Sword)
@@ -2544,7 +2524,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	  /* We build up the substituted string in ACCUM.  */
 	  Lisp_Object accum;
 	  Lisp_Object middle;
-	  int length = SBYTES (newtext);
+	  EMACS_INT length = SBYTES (newtext);
 
 	  accum = Qnil;
 
@@ -2647,12 +2627,9 @@ since only regular expressions have distinguished subexpressions.  */)
       EMACS_INT length = SBYTES (newtext);
       unsigned char *substed;
       EMACS_INT substed_alloc_size, substed_len;
-      int buf_multibyte = !NILP (current_buffer->enable_multibyte_characters);
+      int buf_multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
       int str_multibyte = STRING_MULTIBYTE (newtext);
-      Lisp_Object rev_tbl;
       int really_changed = 0;
-
-      rev_tbl = Qnil;
 
       substed_alloc_size = length * 2 + 100;
       substed = (unsigned char *) xmalloc (substed_alloc_size + 1);
@@ -2673,7 +2650,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	    {
 	      FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, newtext, pos, pos_byte);
 	      if (!buf_multibyte)
-		c = multibyte_char_to_unibyte (c, rev_tbl);
+		c = multibyte_char_to_unibyte (c);
 	    }
 	  else
 	    {
@@ -2696,7 +2673,7 @@ since only regular expressions have distinguished subexpressions.  */)
 		  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, newtext,
 						      pos, pos_byte);
 		  if (!buf_multibyte && !ASCII_CHAR_P (c))
-		    c = multibyte_char_to_unibyte (c, rev_tbl);
+		    c = multibyte_char_to_unibyte (c);
 		}
 	      else
 		{
@@ -2713,7 +2690,7 @@ since only regular expressions have distinguished subexpressions.  */)
 		    idx = c - '0';
 		}
 	      else if (c == '\\')
-		add_len = 1, add_stuff = "\\";
+		add_len = 1, add_stuff = (unsigned char *) "\\";
 	      else
 		{
 		  xfree (substed);
@@ -2763,10 +2740,11 @@ since only regular expressions have distinguished subexpressions.  */)
 	      EMACS_INT nchars =
 		multibyte_chars_in_text (substed, substed_len);
 
-	      newtext = make_multibyte_string (substed, nchars, substed_len);
+	      newtext = make_multibyte_string ((char *) substed, nchars,
+					       substed_len);
 	    }
 	  else
-	    newtext = make_unibyte_string (substed, substed_len);
+	    newtext = make_unibyte_string ((char *) substed, substed_len);
 	}
       xfree (substed);
     }
@@ -2902,7 +2880,7 @@ Return value is undefined if the last search failed.  */)
   len = 0;
   for (i = 0; i < search_regs.num_regs; i++)
     {
-      int start = search_regs.start[i];
+      EMACS_INT start = search_regs.start[i];
       if (start >= 0)
 	{
 	  if (EQ (last_thing_searched, Qt)
@@ -3153,17 +3131,17 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
        doc: /* Return a regexp string which matches exactly STRING and nothing else.  */)
   (Lisp_Object string)
 {
-  register unsigned char *in, *out, *end;
-  register unsigned char *temp;
+  register char *in, *out, *end;
+  register char *temp;
   int backslashes_added = 0;
 
   CHECK_STRING (string);
 
-  temp = (unsigned char *) alloca (SBYTES (string) * 2);
+  temp = (char *) alloca (SBYTES (string) * 2);
 
   /* Now copy the data into the new string, inserting escapes. */
 
-  in = SDATA (string);
+  in = SSDATA (string);
   end = in + SBYTES (string);
   out = temp;
 
@@ -3203,10 +3181,8 @@ syms_of_search (void)
     }
   searchbuf_head = &searchbufs[0];
 
-  Qsearch_failed = intern_c_string ("search-failed");
-  staticpro (&Qsearch_failed);
-  Qinvalid_regexp = intern_c_string ("invalid-regexp");
-  staticpro (&Qinvalid_regexp);
+  DEFSYM (Qsearch_failed, "search-failed");
+  DEFSYM (Qinvalid_regexp, "invalid-regexp");
 
   Fput (Qsearch_failed, Qerror_conditions,
 	pure_cons (Qsearch_failed, pure_cons (Qerror, Qnil)));
@@ -3224,7 +3200,7 @@ syms_of_search (void)
   saved_last_thing_searched = Qnil;
   staticpro (&saved_last_thing_searched);
 
-  DEFVAR_LISP ("search-spaces-regexp", &Vsearch_spaces_regexp,
+  DEFVAR_LISP ("search-spaces-regexp", Vsearch_spaces_regexp,
       doc: /* Regexp to substitute for bunches of spaces in regexp search.
 Some commands use this for user-specified regexps.
 Spaces that occur inside character classes or repetition operators
@@ -3232,7 +3208,7 @@ or other such regexp constructs are not replaced with this.
 A value of nil (which is the normal value) means treat spaces literally.  */);
   Vsearch_spaces_regexp = Qnil;
 
-  DEFVAR_LISP ("inhibit-changing-match-data", &Vinhibit_changing_match_data,
+  DEFVAR_LISP ("inhibit-changing-match-data", Vinhibit_changing_match_data,
       doc: /* Internal use only.
 If non-nil, the primitive searching and matching functions
 such as `looking-at', `string-match', `re-search-forward', etc.,
@@ -3261,6 +3237,3 @@ is to bind it with `let' around a small expression.  */);
   defsubr (&Sset_match_data);
   defsubr (&Sregexp_quote);
 }
-
-/* arch-tag: a6059d79-0552-4f14-a2cb-d379a4e3c78f
-   (do not change this comment) */

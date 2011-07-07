@@ -1,7 +1,7 @@
 ;;; elp.el --- Emacs Lisp Profiler
 
-;; Copyright (C) 1994, 1995, 1997, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1995, 1997-1998, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw
 ;; Maintainer: FSF
@@ -282,7 +282,7 @@ FUNSYM must be a symbol of a defined function."
     ;; the function so that non-local exists are still recorded. TBD:
     ;; I haven't tested non-local exits at all, so no guarantees.
     ;;
-    ;; The 1st element is the total amount of time in usecs that have
+    ;; The 1st element is the total amount of time in seconds that has
     ;; been spent inside this function.  This number is added to on
     ;; function exit.
     ;;
@@ -424,9 +424,7 @@ Use optional LIST if provided instead."
 
 
 (defsubst elp-elapsed-time (start end)
-  (+ (* (- (car end) (car start)) 65536.0)
-     (- (car (cdr end)) (car (cdr start)))
-     (/ (- (car (cdr (cdr end))) (car (cdr (cdr start)))) 1000000.0)))
+  (float-time (time-subtract end start)))
 
 (defun elp-wrapper (funsym interactive-p args)
   "This function has been instrumented for profiling by the ELP.
@@ -630,7 +628,7 @@ displayed."
                                    'display (list 'space :align-to column)
                                    'face 'fixed-pitch)
                        title)
-                    (setq column (+ column 1
+                    (setq column (+ column 2
                                     (if (= column 0)
                                         elp-field-len
                                       (length title))))))
@@ -660,5 +658,4 @@ displayed."
 
 (provide 'elp)
 
-;; arch-tag: c4eef311-9b3e-4bb2-8a54-3485d41b4eb1
 ;;; elp.el ends here

@@ -1,7 +1,6 @@
 ;;; calc-arith.el --- arithmetic functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -3067,5 +3066,4 @@
 
 (provide 'calc-arith)
 
-;; arch-tag: 6c396b5b-14c6-40ed-bb2a-7cc2e8111465
 ;;; calc-arith.el ends here

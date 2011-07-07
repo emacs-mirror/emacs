@@ -1,8 +1,6 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages
 
-;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1992-2011  Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -95,6 +93,7 @@
 (cc-require 'cc-cmds)
 (cc-require 'cc-align)
 (cc-require 'cc-menus)
+(cc-require 'cc-guess)
 
 ;; Silence the compiler.
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs
@@ -487,15 +486,10 @@ that requires a literal mode spec at compile time."
 
   ;; these variables should always be buffer local; they do not affect
   ;; indentation style.
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (make-local-variable 'indent-line-function)
-  (make-local-variable 'indent-region-function)
-  (make-local-variable 'normal-auto-fill-function)
   (make-local-variable 'comment-start)
   (make-local-variable 'comment-end)
   (make-local-variable 'comment-start-skip)
-  (make-local-variable 'comment-multi-line)
-  (make-local-variable 'comment-line-break-function)
+  
   (make-local-variable 'paragraph-start)
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-ignore-fill-prefix)
@@ -503,18 +497,18 @@ that requires a literal mode spec at compile time."
   (make-local-variable 'adaptive-fill-regexp)
 
   ;; now set their values
-  (setq parse-sexp-ignore-comments t
-	indent-line-function 'c-indent-line
-	indent-region-function 'c-indent-region
-	normal-auto-fill-function 'c-do-auto-fill
-	comment-multi-line t
-	comment-line-break-function 'c-indent-new-comment-line)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
+  (set (make-local-variable 'indent-line-function) 'c-indent-line)
+  (set (make-local-variable 'indent-region-function) 'c-indent-region)
+  (set (make-local-variable 'normal-auto-fill-function) 'c-do-auto-fill)
+  (set (make-local-variable 'comment-multi-line) t)
+  (set (make-local-variable 'comment-line-break-function)
+       'c-indent-new-comment-line)
 
   ;; Install `c-fill-paragraph' on `fill-paragraph-function' so that a
   ;; direct call to `fill-paragraph' behaves better.  This still
   ;; doesn't work with filladapt but it's better than nothing.
-  (make-local-variable 'fill-paragraph-function)
-  (setq fill-paragraph-function 'c-fill-paragraph)
+  (set (make-local-variable 'fill-paragraph-function) 'c-fill-paragraph)
 
   ;; Initialise the cache of brace pairs, and opening braces/brackets/parens.
   (c-state-cache-init)
@@ -532,22 +526,19 @@ that requires a literal mode spec at compile time."
 
     ;; Emacs.
     (when (boundp 'parse-sexp-lookup-properties)
-      (make-local-variable 'parse-sexp-lookup-properties)
-      (setq parse-sexp-lookup-properties t))
+      (set (make-local-variable 'parse-sexp-lookup-properties) t))
 
     ;; Same as above for XEmacs.
     (when (boundp 'lookup-syntax-properties)
-      (make-local-variable 'lookup-syntax-properties)
-      (setq lookup-syntax-properties t)))
+      (set (make-local-variable 'lookup-syntax-properties) t)))
 
   ;; Use this in Emacs 21+ to avoid meddling with the rear-nonsticky
   ;; property on each character.
   (when (boundp 'text-property-default-nonsticky)
-    (make-local-variable 'text-property-default-nonsticky)
     (mapc (lambda (tprop)
 	    (unless (assq tprop text-property-default-nonsticky)
-	      (setq text-property-default-nonsticky
-		    (cons `(,tprop . t) text-property-default-nonsticky))))
+	      (set (make-local-variable 'text-property-default-nonsticky)
+                   (cons `(,tprop . t) text-property-default-nonsticky))))
 	  '(syntax-table category c-type)))
 
   ;; In Emacs 21 and later it's possible to turn off the ad-hoc
@@ -563,11 +554,7 @@ that requires a literal mode spec at compile time."
   (c-clear-found-types)
 
   ;; now set the mode style based on default-style
-  (let ((style (if (stringp default-style)
-		   default-style
-		 (or (cdr (assq mode default-style))
-		     (cdr (assq 'other default-style))
-		     "gnu"))))
+  (let ((style (cc-choose-style-for-mode mode default-style)))
     ;; Override style variables if `c-old-style-variable-behavior' is
     ;; set.  Also override if we are using global style variables,
     ;; have already initialized a style once, and are switching to a
@@ -587,8 +574,7 @@ that requires a literal mode spec at compile time."
   (setq c-offsets-alist (copy-alist c-offsets-alist))
 
   ;; setup the comment indent variable in a Emacs version portable way
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'c-comment-indent)
+  (set (make-local-variable 'comment-indent-function) 'c-comment-indent)
 
 ;;   ;; Put submode indicators onto minor-mode-alist, but only once.
 ;;   (or (assq 'c-submode-indicators minor-mode-alist)
@@ -660,16 +646,14 @@ compatible with old code; callers should always specify it."
 	  (funcall c-before-font-lock-function (point-min) (point-max)
 		   (- (point-max) (point-min))))))
 
-  (make-local-variable 'outline-regexp)
-  (make-local-variable 'outline-level)
-  (setq outline-regexp "[^#\n\^M]"
-	outline-level 'c-outline-level)
+  (set (make-local-variable 'outline-regexp) "[^#\n\^M]")
+  (set (make-local-variable 'outline-level) 'c-outline-level)
 
   (let ((rfn (assq mode c-require-final-newline)))
     (when rfn
-      (make-local-variable 'require-final-newline)
       (and (cdr rfn)
-	   (setq require-final-newline mode-require-final-newline)))))
+	   (set (make-local-variable 'require-final-newline)
+                mode-require-final-newline)))))
 
 (defun c-count-cfss (lv-alist)
   ;; LV-ALIST is an alist like `file-local-variables-alist'.  Count how many
@@ -705,7 +689,8 @@ This function is called from the hook `before-hack-local-variables-hook'."
 		   (c-count-cfss file-local-variables-alist))
 		  (cfs-in-dir-count (c-count-cfss dir-local-variables-alist)))
 	      (c-set-style stile
-			   (= cfs-in-file-and-dir-count cfs-in-dir-count)))
+			   (and (= cfs-in-file-and-dir-count cfs-in-dir-count)
+				'keep-defaults)))
 	  (c-set-style stile)))
       (when offsets
 	(mapc
@@ -1100,8 +1085,7 @@ Note that the style variables are always made local to the buffer."
 This does not load the font-lock package.  Use after
 `c-basic-common-init' and after cc-fonts has been loaded."
 
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults
+  (set (make-local-variable 'font-lock-defaults)
 	`(,(if (c-major-mode-is 'awk-mode)
 	       ;; awk-mode currently has only one font lock level.
 	       'awk-font-lock-keywords
@@ -1188,7 +1172,7 @@ This does not load the font-lock package.  Use after
 
 
 ;;;###autoload
-(defun c-mode ()
+(define-derived-mode c-mode prog-mode "C"
   "Major mode for editing K&R and ANSI C code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from a
 c-mode buffer.  This automatically sets up a mail buffer with version
@@ -1202,13 +1186,9 @@ initialization, then `c-mode-hook'.
 
 Key bindings:
 \\{c-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table c-mode-syntax-table)
-  (setq major-mode 'c-mode
-	mode-name "C"
-	local-abbrev-table c-mode-abbrev-table
+  (setq local-abbrev-table c-mode-abbrev-table
 	abbrev-mode t)
   (use-local-map c-mode-map)
   (c-init-language-vars-for 'c-mode)
@@ -1250,7 +1230,7 @@ Key bindings:
 		  (cons "C++" (c-lang-const c-mode-menu c++)))
 
 ;;;###autoload
-(defun c++-mode ()
+(define-derived-mode c++-mode prog-mode "C++"
   "Major mode for editing C++ code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from a
 c++-mode buffer.  This automatically sets up a mail buffer with
@@ -1265,13 +1245,9 @@ initialization, then `c++-mode-hook'.
 
 Key bindings:
 \\{c++-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table c++-mode-syntax-table)
-  (setq major-mode 'c++-mode
-	mode-name "C++"
-	local-abbrev-table c++-mode-abbrev-table
+  (setq local-abbrev-table c++-mode-abbrev-table
 	abbrev-mode t)
   (use-local-map c++-mode-map)
   (c-init-language-vars-for 'c++-mode)
@@ -1311,7 +1287,7 @@ Key bindings:
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.m\\'" . objc-mode))
 
 ;;;###autoload
-(defun objc-mode ()
+(define-derived-mode objc-mode prog-mode "ObjC"
   "Major mode for editing Objective C code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from an
 objc-mode buffer.  This automatically sets up a mail buffer with
@@ -1326,13 +1302,9 @@ initialization, then `objc-mode-hook'.
 
 Key bindings:
 \\{objc-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table objc-mode-syntax-table)
-  (setq major-mode 'objc-mode
-	mode-name "ObjC"
-	local-abbrev-table objc-mode-abbrev-table
+  (setq local-abbrev-table objc-mode-abbrev-table
 	abbrev-mode t)
   (use-local-map objc-mode-map)
   (c-init-language-vars-for 'objc-mode)
@@ -1381,7 +1353,7 @@ Key bindings:
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.java\\'" . java-mode))
 
 ;;;###autoload
-(defun java-mode ()
+(define-derived-mode java-mode prog-mode "Java"
   "Major mode for editing Java code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from a
 java-mode buffer.  This automatically sets up a mail buffer with
@@ -1396,13 +1368,9 @@ initialization, then `java-mode-hook'.
 
 Key bindings:
 \\{java-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table java-mode-syntax-table)
-  (setq major-mode 'java-mode
- 	mode-name "Java"
- 	local-abbrev-table java-mode-abbrev-table
+  (setq local-abbrev-table java-mode-abbrev-table
 	abbrev-mode t)
   (use-local-map java-mode-map)
   (c-init-language-vars-for 'java-mode)
@@ -1440,7 +1408,7 @@ Key bindings:
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.idl\\'" . idl-mode))
 
 ;;;###autoload
-(defun idl-mode ()
+(define-derived-mode idl-mode prog-mode "IDL"
   "Major mode for editing CORBA's IDL, PSDL and CIDL code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from an
 idl-mode buffer.  This automatically sets up a mail buffer with
@@ -1455,13 +1423,9 @@ initialization, then `idl-mode-hook'.
 
 Key bindings:
 \\{idl-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table idl-mode-syntax-table)
-  (setq major-mode 'idl-mode
-	mode-name "IDL"
-	local-abbrev-table idl-mode-abbrev-table)
+  (setq local-abbrev-table idl-mode-abbrev-table)
   (use-local-map idl-mode-map)
   (c-init-language-vars-for 'idl-mode)
   (c-common-init 'idl-mode)
@@ -1501,7 +1465,7 @@ Key bindings:
 ;;;###autoload (add-to-list 'interpreter-mode-alist '("pike" . pike-mode))
 
 ;;;###autoload
-(defun pike-mode ()
+(define-derived-mode pike-mode prog-mode "Pike"
   "Major mode for editing Pike code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from a
 pike-mode buffer.  This automatically sets up a mail buffer with
@@ -1516,13 +1480,9 @@ initialization, then `pike-mode-hook'.
 
 Key bindings:
 \\{pike-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table pike-mode-syntax-table)
-  (setq major-mode 'pike-mode
- 	mode-name "Pike"
- 	local-abbrev-table pike-mode-abbrev-table
+  (setq local-abbrev-table pike-mode-abbrev-table
 	abbrev-mode t)
   (use-local-map pike-mode-map)
   (c-init-language-vars-for 'pike-mode)
@@ -1575,7 +1535,8 @@ Key bindings:
 (defvar awk-mode-syntax-table)
 (declare-function c-awk-unstick-NL-prop "cc-awk" ())
 
-(defun awk-mode ()
+;;;###autoload
+(define-derived-mode awk-mode prog-mode "AWK"
   "Major mode for editing AWK code.
 To submit a problem report, enter `\\[c-submit-bug-report]' from an
 awk-mode buffer.  This automatically sets up a mail buffer with version
@@ -1589,14 +1550,10 @@ initialization, then `awk-mode-hook'.
 
 Key bindings:
 \\{awk-mode-map}"
-  (interactive)
   (require 'cc-awk)			; Added 2003/6/10.
-  (kill-all-local-variables)
   (c-initialize-cc-mode t)
   (set-syntax-table awk-mode-syntax-table)
-  (setq major-mode 'awk-mode
-	mode-name "AWK"
-	local-abbrev-table awk-mode-abbrev-table
+  (setq local-abbrev-table awk-mode-abbrev-table
 	abbrev-mode t)
   (use-local-map awk-mode-map)
   (c-init-language-vars-for 'awk-mode)
@@ -1680,7 +1637,7 @@ Key bindings:
 		     adaptive-fill-regexp)
 		   nil)))
 	(mapc (lambda (var) (unless (boundp var)
-			      (setq vars (delq var vars))))
+                         (setq vars (delq var vars))))
 	      '(signal-error-on-buffer-boundary
 		filladapt-mode
 		defun-prompt-regexp
@@ -1697,5 +1654,4 @@ Key bindings:
 
 (cc-provide 'cc-mode)
 
-;; arch-tag: 7825e5c4-fd09-439f-a04d-4c13208ba3d7
 ;;; cc-mode.el ends here

@@ -1,7 +1,6 @@
 ;;; flyspell.el --- on-the-fly spell checker
 
-;; Copyright (C) 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: FSF
@@ -72,13 +71,23 @@ Detection of repeated words is not implemented in
   :type 'boolean)
 
 (defcustom flyspell-mark-duplications-exceptions
-  '(("francais" . ("nous" "vous")))
+  '((nil . ("that" "had")) ; Common defaults for English.
+    ("\\`francais" . ("nous" "vous")))
   "A list of exceptions for duplicated words.
-It should be a list of (LANGUAGE . EXCEPTION-LIST).  LANGUAGE is matched
-against the current dictionary and EXCEPTION-LIST is a list of strings.
-The duplicated word is downcased before it is compared with the exceptions."
+It should be a list of (LANGUAGE . EXCEPTION-LIST).
+
+LANGUAGE is nil, which means the exceptions apply regardless of
+the current dictionary, or a regular expression matching the
+dictionary name (`ispell-local-dictionary' or
+`ispell-dictionary') for which the exceptions should apply.
+
+EXCEPTION-LIST is a list of strings.  The checked word is
+downcased before comparing with these exceptions."
   :group 'flyspell
-  :type '(alist :key-type string :value-type (repeat string)))
+  :type '(alist :key-type (choice (const :tag "All dictionaries" nil)
+				  string)
+		:value-type (repeat string))
+  :version "24.1")
 
 (defcustom flyspell-sort-corrections nil
   "Non-nil means, sort the corrections alphabetically before popping them."
@@ -287,7 +296,7 @@ If this variable is nil, all regions are treated as small."
 ;;*    using flyspell with mail-mode add the following expression       */
 ;;*    in your .emacs file:                                             */
 ;;*       (add-hook 'mail-mode                                          */
-;;*    	     '(lambda () (setq flyspell-generic-check-word-predicate    */
+;;*    	     (lambda () (setq flyspell-generic-check-word-predicate    */
 ;;*    			       'mail-mode-flyspell-verify)))            */
 ;;*---------------------------------------------------------------------*/
 (defvar flyspell-generic-check-word-predicate nil
@@ -984,14 +993,17 @@ Mostly we check word delimiters."
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-word-search-backward ...                                */
 ;;*---------------------------------------------------------------------*/
-(defun flyspell-word-search-backward (word bound)
+(defun flyspell-word-search-backward (word bound &optional ignore-case)
   (save-excursion
     (let ((r '())
 	  (inhibit-point-motion-hooks t)
 	  p)
       (while (and (not r) (setq p (search-backward word bound t)))
 	(let ((lw (flyspell-get-word)))
-	  (if (and (consp lw) (string-equal (car lw) word))
+	  (if (and (consp lw)
+		   (if ignore-case
+		       (string-equal (downcase (car lw)) (downcase word))
+		     (string-equal (car lw) word)))
 	      (setq r p)
 	    (goto-char p))))
       r)))
@@ -1045,12 +1057,14 @@ misspelling and skips redundant spell-checking step."
 			  (not (memq (char-after (1- start)) '(?\} ?\\)))))
 		 flyspell-mark-duplications-flag
 		 (not (catch 'exception
-			(dolist (except flyspell-mark-duplications-exceptions)
-			  (and (string= (or ispell-local-dictionary
-					    ispell-dictionary)
-					(car except))
-			       (member (downcase word) (cdr except))
-			       (throw 'exception t)))))
+			(let ((dict (or ispell-local-dictionary
+					ispell-dictionary)))
+			  (dolist (except flyspell-mark-duplications-exceptions)
+			    (and (or (null (car except))
+				     (and (stringp dict)
+					  (string-match (car except) dict)))
+				 (member (downcase word) (cdr except))
+				 (throw 'exception t))))))
 		 (save-excursion
 		   (goto-char start)
 		   (let* ((bound
@@ -1058,7 +1072,7 @@ misspelling and skips redundant spell-checking step."
 			      (- end start)
 			      (- (skip-chars-backward " \t\n\f"))))
 			  (p (when (>= bound (point-min))
-			       (flyspell-word-search-backward word bound))))
+			       (flyspell-word-search-backward word bound t))))
 		     (and p (/= p start)))))
 	    ;; yes, this is a doublon
 	    (flyspell-highlight-incorrect-region start end 'doublon)

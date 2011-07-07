@@ -1,6 +1,5 @@
 /* Menu support for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1986, 1988, 1993, 1994, 1996, 1998, 1999, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+   Copyright (C) 1986, 1988, 1993-1994, 1996, 1998-1999, 2001-2011
                  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -34,7 +33,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "buffer.h"
 #include "charset.h"
-#include "character.h"
 #include "coding.h"
 #include "menu.h"
 
@@ -84,17 +82,6 @@ AppendMenuW_Proc unicode_append_menu = NULL;
 MessageBoxW_Proc unicode_message_box = NULL;
 
 Lisp_Object Qdebug_on_next_call;
-
-extern Lisp_Object Qmenu_bar;
-
-extern Lisp_Object QCtoggle, QCradio;
-
-extern Lisp_Object Voverriding_local_map;
-extern Lisp_Object Voverriding_local_map_menu_flag;
-
-extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
-
-extern Lisp_Object Qmenu_bar_update_hook;
 
 void set_frame_menubar (FRAME_PTR, int, int);
 
@@ -158,7 +145,7 @@ otherwise it is "Question". */)
       FRAME_PTR new_f = SELECTED_FRAME ();
       Lisp_Object bar_window;
       enum scroll_bar_part part;
-      unsigned long time;
+      Time time;
       Lisp_Object x, y;
 
       (*mouse_position_hook) (&new_f, 1, &bar_window, &part, &x, &y, &time);
@@ -439,11 +426,10 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
-      submenu_start = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
-      submenu_end = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
-      submenu_n_panes = (int *) alloca (XVECTOR (items)->size * sizeof (int));
-      submenu_top_level_items
-	= (int *) alloca (XVECTOR (items)->size * sizeof (int *));
+      submenu_start = (int *) alloca (ASIZE (items) * sizeof (int));
+      submenu_end = (int *) alloca (ASIZE (items) * sizeof (int));
+      submenu_n_panes = (int *) alloca (ASIZE (items) * sizeof (int));
+      submenu_top_level_items = (int *) alloca (ASIZE (items) * sizeof (int));
       init_menu_items ();
       for (i = 0; i < ASIZE (items); i += 4)
 	{
@@ -530,7 +516,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 	  string = AREF (items, i + 1);
 	  if (NILP (string))
 	    break;
-	  wv->name = (char *) SDATA (string);
+	  wv->name = SSDATA (string);
 	  update_submenu_strings (wv->contents);
 	  wv = wv->next;
 	}
@@ -558,7 +544,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 	    break;
 
 	  wv = xmalloc_widget_value ();
-	  wv->name = (char *) SDATA (string);
+	  wv->name = SSDATA (string);
 	  wv->value = 0;
 	  wv->enabled = 1;
 	  wv->button_type = BUTTON_TYPE_NONE;
@@ -748,7 +734,7 @@ w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	    }
 
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) SDATA (pane_name));
+			 ? "" : SSDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
 	     under the top-level menu.  */
 	  if (menu_items_n_panes == 1)
@@ -816,9 +802,9 @@ w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	    prev_wv->next = wv;
 	  else
 	    save_wv->contents = wv;
-	  wv->name = (char *) SDATA (item_name);
+	  wv->name = SSDATA (item_name);
 	  if (!NILP (descrip))
-	    wv->key = (char *) SDATA (descrip);
+	    wv->key = SSDATA (descrip);
 	  wv->value = 0;
 	  /* Use the contents index as call_data, since we are
              restricted to 16-bits.  */
@@ -864,7 +850,7 @@ w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
       else if (STRING_MULTIBYTE (title))
 	title = ENCODE_SYSTEM (title);
 
-      wv_title->name = (char *) SDATA (title);
+      wv_title->name = SSDATA (title);
       wv_title->enabled = TRUE;
       wv_title->title = TRUE;
       wv_title->button_type = BUTTON_TYPE_NONE;
@@ -1024,7 +1010,7 @@ w32_dialog_show (FRAME_PTR f, int keymaps,
     pane_name = AREF (menu_items, MENU_ITEMS_PANE_NAME);
     prefix = AREF (menu_items, MENU_ITEMS_PANE_PREFIX);
     pane_string = (NILP (pane_name)
-		   ? "" : (char *) SDATA (pane_name));
+		   ? "" : SSDATA (pane_name));
     prev_wv = xmalloc_widget_value ();
     prev_wv->value = pane_string;
     if (keymaps && !NILP (prefix))
@@ -1072,8 +1058,8 @@ w32_dialog_show (FRAME_PTR f, int keymaps,
 	prev_wv->next = wv;
 	wv->name = (char *) button_names[nb_buttons];
 	if (!NILP (descrip))
-	  wv->key = (char *) SDATA (descrip);
-	wv->value = (char *) SDATA (item_name);
+	  wv->key = SSDATA (descrip);
+	wv->value = SSDATA (item_name);
 	wv->call_data = (void *) &AREF (menu_items, i);
 	wv->enabled = !NILP (enable);
 	wv->help = Qnil;
@@ -1326,27 +1312,12 @@ simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
 #endif  /* !HAVE_DIALOGS  */
 
 
-/* Is this item a separator? */
-static int
-name_is_separator (const char *name)
-{
-  const char *start = name;
-
-  /* Check if name string consists of only dashes ('-').  */
-  while (*name == '-') name++;
-  /* Separators can also be of the form "--:TripleSuperMegaEtched"
-     or "--deep-shadow".  We don't implement them yet, se we just treat
-     them like normal separators.  */
-  return (*name == '\0' || start + 2 == name);
-}
-
 /* UTF8: 0xxxxxxx, 110xxxxx 10xxxxxx, 1110xxxx, 10xxxxxx, 10xxxxxx */
 static void
 utf8to16 (unsigned char * src, int len, WCHAR * dest)
 {
   while (len > 0)
     {
-      int utf16;
       if (*src < 0x80)
 	{
 	  *dest = (WCHAR) *src;
@@ -1388,7 +1359,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
   int return_value;
   size_t nlen, orig_len;
 
-  if (name_is_separator (wv->name))
+  if (menu_separator_name_p (wv->name))
     {
       fuFlags = MF_SEPARATOR;
       out_string = NULL;
@@ -1572,8 +1543,6 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 static int
 fill_in_menu (HMENU menu, widget_value *wv)
 {
-  int items_added = 0;
-
   for ( ; wv != NULL; wv = wv->next)
     {
       if (wv->contents)
@@ -1645,7 +1614,7 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
       else
 	/* X version has a loop through frames here, which doesn't
 	   appear to do anything, unless it has some side effect.  */
-	show_help_echo (help, Qnil, Qnil, Qnil, 1);
+	show_help_echo (help, Qnil, Qnil, Qnil);
     }
 }
 
@@ -1747,6 +1716,3 @@ globals_of_w32menu (void)
   unicode_append_menu = (AppendMenuW_Proc) GetProcAddress (user32, "AppendMenuW");
   unicode_message_box = (MessageBoxW_Proc) GetProcAddress (user32, "MessageBoxW");
 }
-
-/* arch-tag: 0eaed431-bb4e-4aac-a527-95a1b4f1fed0
-   (do not change this comment) */

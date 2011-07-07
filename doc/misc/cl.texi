@@ -5,8 +5,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright @copyright{} 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001-2011  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -22,7 +21,7 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
-@dircategory Emacs
+@dircategory Emacs lisp libraries
 @direntry
 * CL: (cl).                     Partial Common Lisp support for Emacs Lisp.
 @end direntry
@@ -2450,22 +2449,33 @@ one of these types of clauses with other clauses like @code{for ... to}
 or @code{while}.
 
 @item for @var{var} being the hash-keys of @var{hash-table}
-This clause iterates over the entries in @var{hash-table}.  For each
-hash table entry, @var{var} is bound to the entry's key.  If you write
-@samp{the hash-values} instead, @var{var} is bound to the values
-of the entries.  The clause may be followed by the additional
-term @samp{using (hash-values @var{var2})} (where @code{hash-values}
-is the opposite word of the word following @code{the}) to cause
-@var{var} and @var{var2} to be bound to the two parts of each
-hash table entry.
+@itemx for @var{var} being the hash-values of @var{hash-table}
+This clause iterates over the entries in @var{hash-table} with
+@var{var} bound to each key, or value.  A @samp{using} clause can bind
+a second variable to the opposite part.
+
+@example
+(loop for k being the hash-keys of h
+            using (hash-values v)
+      do
+      (message "key %S -> value %S" k v))
+@end example
 
 @item for @var{var} being the key-codes of @var{keymap}
+@itemx for @var{var} being the key-bindings of @var{keymap}
 This clause iterates over the entries in @var{keymap}.
 The iteration does not enter nested keymaps but does enter inherited
 (parent) keymaps.
-You can use @samp{the key-bindings} to access the commands bound to
-the keys rather than the key codes, and you can add a @code{using}
-clause to access both the codes and the bindings together.
+A @code{using} clause can access both the codes and the bindings
+together.
+
+@example
+(loop for c being the key-codes of (current-local-map)
+            using (key-bindings b)
+      do
+      (message "key %S -> binding %S" c b))
+@end example
+
 
 @item for @var{var} being the key-seqs of @var{keymap}
 This clause iterates over all key sequences defined by @var{keymap}
@@ -2494,15 +2504,18 @@ term restricts the search to just the specified property.  The
 @code{of} term may specify either a buffer or a string.
 
 @item for @var{var} being the frames
-This clause iterates over all frames, i.e., X window system windows
-open on Emacs files.  The
-clause @code{screens} is a synonym for @code{frames}.  The frames
-are visited in @code{next-frame} order starting from
-@code{selected-frame}.
+This clause iterates over all Emacs frames. The clause @code{screens} is
+a synonym for @code{frames}.  The frames are visited in
+@code{next-frame} order starting from @code{selected-frame}.
 
 @item for @var{var} being the windows [of @var{frame}]
 This clause iterates over the windows (in the Emacs sense) of
-the current frame, or of the specified @var{frame}.
+the current frame, or of the specified @var{frame}.  It visits windows
+in @code{next-window} order starting from @code{selected-window}
+(or @code{frame-selected-window} if you specify @var{frame}).
+This clause treats the minibuffer window in the same way as
+@code{next-window} does.  For greater flexibility, consider using
+@code{walk-windows} instead.
 
 @item for @var{var} being the buffers
 This clause iterates over all buffers in Emacs.  It is equivalent
@@ -5322,6 +5335,3 @@ recursion.
 
 @bye
 
-@ignore
-   arch-tag: b61e7200-3bfa-4a70-a9d3-095e152696f8
-@end ignore

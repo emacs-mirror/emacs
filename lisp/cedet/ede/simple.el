@@ -1,6 +1,6 @@
 ;;; ede/simple.el --- Overlay an EDE structure on an existing project
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -117,5 +117,4 @@ Each directory needs a project file to control it.")
 
 (provide 'ede/simple)
 
-;; arch-tag: a0c4264a-89ce-4364-afab-2512acd3b22a
 ;;; ede/simple.el ends here

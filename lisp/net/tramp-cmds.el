@@ -1,6 +1,6 @@
 ;;; tramp-cmds.el --- Interactive commands for Tramp
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -98,6 +98,15 @@ When called interactively, a Tramp connection has to be selected."
 		   (get-buffer (tramp-debug-buffer-name vec))
 		   (tramp-get-connection-property vec "process-buffer" nil)))
       (when (bufferp buf) (kill-buffer buf)))))
+
+;;;###tramp-autoload
+(defun tramp-cleanup-this-connection ()
+  "Flush all connection related objects of the current buffer's connection."
+  (interactive)
+  (and (stringp default-directory)
+       (file-remote-p default-directory)
+       (tramp-cleanup-connection
+	(tramp-dissect-file-name default-directory 'noexpand))))
 
 ;;;###tramp-autoload
 (defun tramp-cleanup-all-connections ()
@@ -258,8 +267,8 @@ buffer in your bug report.
   (dolist (buffer
 	   (delq nil
 		 (mapcar
-		  '(lambda (b)
-		     (when (string-match "\\*tramp/" (buffer-name b)) b))
+		  (lambda (b)
+                    (when (string-match "\\*tramp/" (buffer-name b)) b))
 		  (buffer-list))))
     (let ((reporter-eval-buffer buffer)
 	  (buffer-name (buffer-name buffer))
@@ -281,6 +290,12 @@ buffer in your bug report.
 	(insert ")\n"))
       (insert-buffer-substring elbuf)))
 
+  ;; Dump load-path shadows.
+  (insert "\nload-path shadows:\n==================\n")
+  (ignore-errors
+    (mapc (lambda (x) (when (string-match "tramp" x) (insert x "\n")))
+	  (split-string (list-load-path-shadows t) "\n")))
+
   ;; Append buffers only when we are in message mode.
   (when (and
 	 (eq major-mode 'message-mode)
@@ -293,7 +308,7 @@ buffer in your bug report.
 
       ;; There is at least one Tramp buffer.
       (when buffer-list
-	(switch-to-buffer (list-buffers-noselect nil))
+	(tramp-compat-pop-to-buffer-same-window (list-buffers-noselect nil))
 	(delete-other-windows)
 	(setq buffer-read-only nil)
 	(goto-char (point-min))
@@ -328,7 +343,7 @@ the debug buffer(s).")
 	    ;; OK, let's send.  First we delete the buffer list.
 	    (progn
 	      (kill-buffer nil)
-	      (switch-to-buffer curbuf)
+	      (tramp-compat-pop-to-buffer-same-window curbuf)
 	      (goto-char (point-max))
 	      (insert "\n\
 This is a special notion of the `gnus/message' package.  If you
@@ -363,12 +378,5 @@ please ensure that the buffers are attached to your email.\n\n")
 ;;   flavor)  (Reiner Steib)
 ;; * Let the user edit the connection properties interactively.
 ;;   Something like `gnus-server-edit-server' in Gnus' *Server* buffer.
-;; * It's just that when I come to Customize `tramp-default-user-alist'
-;;   I'm presented with a mismatch and raw lisp for a value.  It is my
-;;   understanding that a variable declared with defcustom is a User
-;;   Option and should not be modified by the code.  add-to-list is
-;;   called in several places. One way to handle that is to have a new
-;;   ordinary variable that gets its initial value from
-;;   tramp-default-user-alist and then is added to.  (Pete Forman)
 
 ;;; tramp-cmds.el ends here

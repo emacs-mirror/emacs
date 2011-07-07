@@ -1,6 +1,7 @@
 /* Primitive operations on floating point for GNU Emacs Lisp interpreter.
-   Copyright (C) 1988, 1993, 1994, 1999, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1988, 1993-1994, 1999, 2001-2011
+  Free Software Foundation, Inc.
 
 Author: Wolfgang Rupprecht
 (according to ack.texi)
@@ -102,7 +103,7 @@ extern double logb (double);
 #endif
 
 #ifdef FLOAT_CATCH_SIGILL
-static SIGTYPE float_error ();
+static void float_error ();
 #endif
 
 /* Nonzero while executing in floating point.
@@ -125,7 +126,7 @@ static const char *float_error_fn_name;
    Handle errors which may result in signals or may set errno.
 
    Note that float_error may be declared to return void, so you can't
-   just cast the zero after the colon to (SIGTYPE) to make the types
+   just cast the zero after the colon to (void) to make the types
    check properly.  */
 
 #ifdef FLOAT_CHECK_ERRNO
@@ -186,8 +187,10 @@ static const char *float_error_fn_name;
   xsignal3 (Qrange_error, build_string ((op)), (a1), (a2))
 #define domain_error(op,arg) \
   xsignal2 (Qdomain_error, build_string ((op)), (arg))
+#ifdef FLOAT_CHECK_DOMAIN
 #define domain_error2(op,a1,a2) \
   xsignal3 (Qdomain_error, build_string ((op)), (a1), (a2))
+#endif
 
 /* Extract a Lisp number as a `double', or signal an error.  */
 
@@ -325,9 +328,9 @@ If X is zero, both parts (SGNFCAND and EXP) are zero.  */)
     return Fcons (make_float (0.0), make_number (0));
   else
     {
-      int    exp;
-      double sgnfcand = frexp (f, &exp);
-      return Fcons (make_float (sgnfcand), make_number (exp));
+      int exponent;
+      double sgnfcand = frexp (f, &exponent);
+      return Fcons (make_float (sgnfcand), make_number (exponent));
     }
 }
 
@@ -335,10 +338,10 @@ DEFUN ("ldexp", Fldexp, Sldexp, 1, 2, 0,
        doc: /* Construct number X from significand SGNFCAND and exponent EXP.
 Returns the floating point value resulting from multiplying SGNFCAND
 (the significand) by 2 raised to the power of EXP (the exponent).   */)
-  (Lisp_Object sgnfcand, Lisp_Object exp)
+  (Lisp_Object sgnfcand, Lisp_Object exponent)
 {
-  CHECK_NUMBER (exp);
-  return make_float (ldexp (XFLOATINT (sgnfcand), XINT (exp)));
+  CHECK_NUMBER (exponent);
+  return make_float (ldexp (XFLOATINT (sgnfcand), XINT (exponent)));
 }
 #endif
 
@@ -504,7 +507,7 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
 	      if (y & 1)
 		acc *= x;
 	      x *= x;
-	      y = (unsigned)y >> 1;
+	      y >>= 1;
 	    }
 	}
       XSETINT (val, acc);
@@ -957,7 +960,7 @@ Rounds the value toward zero.  */)
 }
 
 #ifdef FLOAT_CATCH_SIGILL
-static SIGTYPE
+static void
 float_error (signo)
      int signo;
 {
@@ -1036,7 +1039,7 @@ syms_of_floatfns (void)
   defsubr (&Scopysign);
   defsubr (&Sfrexp);
   defsubr (&Sldexp);
-#endif 
+#endif
 #if 0
   defsubr (&Sacosh);
   defsubr (&Sasinh);
@@ -1073,6 +1076,3 @@ syms_of_floatfns (void)
   defsubr (&Sround);
   defsubr (&Struncate);
 }
-
-/* arch-tag: be05bf9d-049e-4e31-91b9-e6153d483ae7
-   (do not change this comment) */

@@ -1,5 +1,4 @@
-/* Copyright (C) 1985, 1986, 1987, 1988, 1992, 1993, 1994, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+/* Copyright (C) 1985-1988, 1992-1994, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -51,6 +50,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  */
 
 #include <config.h>
+#include "unexec.h"
+
 #define PERROR(file) report_error (file, new)
 
 #ifndef CANNOT_DUMP  /* all rest of file!  */
@@ -523,7 +524,7 @@ adjust_lnnoptrs (int writedesc, int readdesc, const char *new_name)
  *
  * driving logic.
  */
-int
+void
 unexec (const char *new_name, const char *a_name)
 {
   int new = -1, a_out = -1;
@@ -544,17 +545,13 @@ unexec (const char *new_name, const char *a_name)
       )
     {
       close (new);
-      return -1;
+      return;
     }
 
   close (new);
   if (a_out >= 0)
     close (a_out);
   mark_x (new_name);
-  return 0;
 }
 
 #endif /* not CANNOT_DUMP */
-
-/* arch-tag: 62409b69-e27a-4a7c-9413-0210d6b54e7f
-   (do not change this comment) */

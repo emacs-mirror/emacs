@@ -1,6 +1,6 @@
 ;;; semantic/analyze/refs.el --- Analysis of the references between tags.
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -350,5 +350,4 @@ Only works for tags in the global namespace."
 ;; generated-autoload-load-name: "semantic/analyze/refs"
 ;; End:
 
-;; arch-tag: f8c59a91-1829-42b3-b083-437c6881841c
 ;;; semantic/analyze/refs.el ends here

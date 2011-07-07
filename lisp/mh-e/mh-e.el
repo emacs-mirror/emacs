@@ -1,8 +1,6 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
-;; Copyright (C) 1985, 1986, 1987, 1988,
-;;   1990, 1992, 1993, 1994, 1995, 1997, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985-1988, 1990, 1992-1995, 1997, 1999-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
@@ -92,10 +90,7 @@
 ;; Provide functions to the rest of MH-E. However, mh-e.el must not
 ;; use any definitions in files that require mh-e from mh-loaddefs,
 ;; for if it does it will introduce a require loop.
-(eval-and-compile
-  ;; Load it during compilation as well, since it defines the macro
-  ;; mh-require-cl.
-  (load "mh-loaddefs" nil 'nomessage))
+(require 'mh-loaddefs)
 
 (mh-require-cl)
 
@@ -618,7 +613,8 @@ Output is expected to be shown to user, not parsed by MH-E."
   (mh-exchange-point-and-mark-preserving-active-mark))
 
 ;; Shush compiler.
-(defvar mark-active)                    ; XEmacs
+(mh-do-in-xemacs
+  (defvar mark-active))
 
 (defun mh-exchange-point-and-mark-preserving-active-mark ()
   "Put the mark where point is now, and point where the mark is now.
@@ -935,7 +931,7 @@ finally GNU mailutils MH."
      (t
       (message "Unknown variant %s; use %s"
                variant
-               (mapconcat '(lambda (x) (format "%s" (car x)))
+               (mapconcat (lambda (x) (format "%s" (car x)))
                           (mh-variants) " or "))))))
 
 (defcustom-mh mh-variant 'autodetect
@@ -1181,7 +1177,7 @@ lowercase for mailing lists and uppercase for people."
   "*Non-nil means to expand aliases entered in the minibuffer.
 
 In other words, aliases entered in the minibuffer will be
-expanded to the full address in the message draft. By default,
+expanded to the full address in the message draft.  By default,
 this expansion is not performed."
   :type 'boolean
   :group 'mh-alias
@@ -3727,5 +3723,4 @@ The background and foreground are used in the image."
 ;; sentence-end-double-space: nil
 ;; End:
 
-;; arch-tag: cce884de-bd37-4104-9963-e4439d5ed22b
 ;;; mh-e.el ends here

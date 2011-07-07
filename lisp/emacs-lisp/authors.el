@@ -1,7 +1,6 @@
 ;;; authors.el --- utility for maintaining Emacs' AUTHORS file -*-coding: utf-8;-*-
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011  Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: Kim F. Storm <storm@cua.dk>
@@ -438,7 +437,7 @@ Changes to files in this list are not listed.")
      ;; No longer distributed.
 ;;;     "vmspaths.h" "build.com" "compile.com" "kepteditor.com" "precomp.com"
 ;;;     "vmsproc.el" :wrote "logout.com" "mailemacs.com")
-    ("Guillermo J. Rozas" :wrote "fakemail.c")
+;;;    ("Guillermo J. Rozas" :wrote "fakemail.c")
     ("Wolfgang Rupprecht" :changed "lisp-mode.el" "loadup.el"
      "sort.el" "alloc.c" "callint.c"
      ;; config.in renamed from config.h.in; ecrt0.c from crt0.c.

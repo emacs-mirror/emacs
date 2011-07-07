@@ -1,7 +1,6 @@
 ;;; mml-smime.el --- S/MIME support for MML
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: Gnus, MIME, S/MIME, MML
@@ -37,7 +36,12 @@
 (autoload 'message-narrow-to-headers "message")
 (autoload 'message-fetch-field "message")
 
-(defvar mml-smime-use 'openssl)
+(defcustom mml-smime-use (if (featurep 'epg) 'epg 'openssl)
+  "Whether to use OpenSSL or EPG to decrypt S/MIME messages.
+Defaults to EPG if it's loaded."
+  :group 'mime-security
+  :type '(choice (const :tag "EPG" epg)
+                 (const :tag "OpenSSL" openssl)))
 
 (defvar mml-smime-function-alist
   '((openssl mml-smime-openssl-sign

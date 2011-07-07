@@ -1,6 +1,6 @@
 ;;; pulse.el --- Pulsing Overlays
 
-;;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;; Version: 1.0
@@ -255,5 +255,4 @@ Only pulses the line if `pulse-command-advice-flag' is non-nil."
 
 (provide 'pulse)
 
-;; arch-tag: 6e2f78c1-65b3-4164-a141-872cb1552959
 ;;; pulse.el ends here

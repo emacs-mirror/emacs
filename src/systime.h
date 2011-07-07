@@ -1,6 +1,5 @@
 /* systime.h - System-dependent definitions for time manipulations.
-   Copyright (C) 1993, 1994, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1993-1994, 2002-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -29,6 +28,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #else
 #include <time.h>
 #endif
+#endif
+
+#ifdef emacs
+# ifdef HAVE_X_WINDOWS
+#  include <X11/X.h>
+# else
+typedef unsigned long Time;
+# endif
 #endif
 
 #ifdef HAVE_TZNAME
@@ -145,10 +152,8 @@ extern void set_waiting_for_input (EMACS_TIME *);
    happen when this files is used outside the src directory).
    Use GCPRO1 to determine if lisp.h was included.  */
 #ifdef GCPRO1
-/* defined in dired.c */
-extern Lisp_Object make_time (time_t);
-
 /* defined in editfns.c*/
+extern Lisp_Object make_time (time_t);
 extern int lisp_time_argument (Lisp_Object, time_t *, int *);
 #endif
 
@@ -173,6 +178,3 @@ extern int lisp_time_argument (Lisp_Object, time_t *, int *);
 #define EMACS_TIME_LE(T1, T2) (EMACS_TIME_CMP (T1, T2) <= 0)
 
 #endif /* EMACS_SYSTIME_H */
-
-/* arch-tag: dcb79915-cf99-4bce-9778-aade71d07651
-   (do not change this comment) */

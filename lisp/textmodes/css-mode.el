@@ -1,6 +1,6 @@
-;;; css-mode.el --- Major mode to edit CSS files
+;;; css-mode.el --- Major mode to edit CSS files -*- lexical-binding: t -*-
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: hypermedia
@@ -213,7 +213,7 @@
 (defconst css-nmstart-re (concat "\\(?:[[:alpha:]]\\|" css-escapes-re "\\)"))
 (defconst css-ident-re (concat css-nmstart-re css-nmchar-re "*"))
 (defconst css-proprietary-nmstart-re ;; Vendor-specific properties.
-  "[-_]\\(?:ms\\|moz\\|o\\|webkit\\|khtml\\)-")
+  (concat "[-_]" (regexp-opt '("ms" "moz" "o" "khtml" "webkit")) "-"))
 (defconst css-name-re (concat css-nmchar-re "+"))
 
 (defface css-selector '((t :inherit font-lock-function-name-face))
@@ -240,7 +240,7 @@
     ;; thus prevent this highlighting from being applied (actually now that
     ;; I use `append' this should work better).  But really the part of hte
     ;; selector between [...] should simply not be highlighted.
-    (,(concat "^\\([ \t]*[^@:{\n][^:{\n]+\\(?::" (regexp-opt css-pseudo-ids t)
+    (,(concat "^\\([ \t]*[^@:{}\n][^:{}]+\\(?::" (regexp-opt css-pseudo-ids t)
               "\\(?:([^)]+)\\)?[^:{\n]*\\)*\\)\\(?:\n[ \t]*\\)*{")
      (1 'css-selector append))
     ;; In the above rule, we allow the open-brace to be on some subsequent
@@ -483,5 +483,4 @@
         (indent-line-to indent)))))
 
 (provide 'css-mode)
-;; arch-tag: b4d8b8e2-b130-4e74-b3aa-cd8f1ab659d0
 ;;; css-mode.el ends here

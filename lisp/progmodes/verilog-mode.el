@@ -1,7 +1,6 @@
 ;; verilog-mode.el --- major mode for editing verilog source in Emacs
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011  Free Software Foundation, Inc.
 
 ;; Author: Michael McNamara (mac@verilog.com),
 ;;    Wilson Snyder (wsnyder@wsnyder.org)
@@ -1533,16 +1532,14 @@ portion, will be substituted."
   (cond
    ((or (file-exists-p "makefile")	;If there is a makefile, use it
 	(file-exists-p "Makefile"))
-    (make-local-variable 'compile-command)
-    (setq compile-command "make "))
+    (set (make-local-variable 'compile-command) "make "))
    (t
-    (make-local-variable 'compile-command)
-    (setq compile-command
-	  (if verilog-tool
-	      (if (string-match "%s" (eval verilog-tool))
-		  (format (eval verilog-tool) (or buffer-file-name ""))
-		(concat (eval verilog-tool) " " (or buffer-file-name "")))
-	    ""))))
+    (set (make-local-variable 'compile-command)
+         (if verilog-tool
+             (if (string-match "%s" (eval verilog-tool))
+                 (format (eval verilog-tool) (or buffer-file-name ""))
+               (concat (eval verilog-tool) " " (or buffer-file-name "")))
+           ""))))
   (verilog-modify-compile-command))
 
 (defun verilog-expand-command (command)
@@ -1566,8 +1563,8 @@ be substituted."
   (when (and
 	 (stringp compile-command)
 	 (string-match "\\b\\(__FLAGS__\\|__FILE__\\)\\b" compile-command))
-    (make-local-variable 'compile-command)
-    (setq compile-command (verilog-expand-command compile-command))))
+    (set (make-local-variable 'compile-command)
+         (verilog-expand-command compile-command))))
 
 (if (featurep 'xemacs)
     ;; Following code only gets called from compilation-mode-hook on XEmacs to add error handling.
@@ -1588,8 +1585,8 @@ find the errors."
 			    (cdr compilation-error-regexp-alist-alist)))))
       (if (boundp 'compilation-font-lock-keywords)
 	  (progn
-	    (make-local-variable 'compilation-font-lock-keywords)
-	    (setq compilation-font-lock-keywords  verilog-error-font-lock-keywords)
+            (set (make-local-variable 'compilation-font-lock-keywords)
+                 verilog-error-font-lock-keywords)
 	    (font-lock-set-defaults)))
       ;; Need to re-run compilation-error-regexp builder
       (if (fboundp 'compilation-build-compilation-error-regexp-alist)
@@ -2975,7 +2972,7 @@ Use filename, if current buffer being edited shorten to just buffer name."
 ;;
 (defvar verilog-which-tool 1)
 ;;;###autoload
-(defun verilog-mode ()
+(define-derived-mode verilog-mode prog-mode "Verilog"
   "Major mode for editing Verilog code.
 \\<verilog-mode-map>
 See \\[describe-function] verilog-auto (\\[verilog-auto]) for details on how
@@ -3103,30 +3100,21 @@ All key bindings can be seen in a Verilog-buffer with \\[describe-bindings].
 Key bindings specific to `verilog-mode-map' are:
 
 \\{verilog-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map verilog-mode-map)
-  (setq major-mode 'verilog-mode)
-  (setq mode-name "Verilog")
-  (setq local-abbrev-table verilog-mode-abbrev-table)
+  :abbrev-table verilog-mode-abbrev-table
   (set (make-local-variable 'beginning-of-defun-function)
        'verilog-beg-of-defun)
   (set (make-local-variable 'end-of-defun-function)
        'verilog-end-of-defun)
   (set-syntax-table verilog-mode-syntax-table)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'verilog-indent-line-relative)
+  (set (make-local-variable 'indent-line-function)
+       #'verilog-indent-line-relative)
   (setq comment-indent-function 'verilog-comment-indent)
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments nil)
-  (make-local-variable 'comment-start)
-  (make-local-variable 'comment-end)
-  (make-local-variable 'comment-multi-line)
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start "// "
-	comment-end ""
-	comment-start-skip "/\\*+ *\\|// *"
-	comment-multi-line nil)
+  (set (make-local-variable 'parse-sexp-ignore-comments) nil)
+
+  (set (make-local-variable 'comment-start) "// ")
+  (set (make-local-variable 'comment-end) "")
+  (set (make-local-variable 'comment-start-skip) "/\\*+ *\\|// *")
+  (set (make-local-variable 'comment-multi-line) nil)
   ;; Set up for compilation
   (setq verilog-which-tool 1)
   (setq verilog-tool 'verilog-linter)
@@ -3166,10 +3154,10 @@ Key bindings specific to `verilog-mode-map' are:
     (add-hook 'after-change-functions 'verilog-highlight-region t t))
 
   ;; Tell imenu how to handle Verilog.
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression verilog-imenu-generic-expression)
+  (set (make-local-variable 'imenu-generic-expression)
+       verilog-imenu-generic-expression)
   ;; Tell which-func-modes that imenu knows about verilog
-  (when (boundp 'which-function-modes)
+  (when (boundp 'which-func-modes)
     (add-to-list 'which-func-modes 'verilog-mode))
   ;; hideshow support
   (when (boundp 'hs-special-modes-alist)
@@ -3180,8 +3168,7 @@ Key bindings specific to `verilog-mode-map' are:
 		  hs-special-modes-alist))))
 
   ;; Stuff for autos
-  (add-hook 'write-contents-hooks 'verilog-auto-save-check) ; already local
-  (run-hooks 'verilog-mode-hook))
+  (add-hook 'write-contents-hooks 'verilog-auto-save-check nil 'local))
 
 
 ;;
@@ -4599,7 +4586,7 @@ This lets programs calling batch mode to easily extract error messages."
 	       (verilog-mode))))
 	 (buffer-list))
    ;; Process the files
-   (mapcar '(lambda (buf)
+   (mapcar (lambda (buf)
 	      (when (buffer-file-name buf)
 		(save-excursion
 		  (if (not (file-exists-p (buffer-file-name buf)))
@@ -6386,7 +6373,7 @@ for matches of `str' and adding the occurrence tp `all' through point END."
 
 (defun verilog-keyword-completion (keyword-list)
   "Give list of all possible completions of keywords in KEYWORD-LIST."
-  (mapcar '(lambda (s)
+  (mapcar (lambda (s)
 	     (if (string-match (concat "\\<" verilog-str) s)
 		 (if (or (null verilog-pred)
 			 (funcall verilog-pred s))
@@ -6506,7 +6493,7 @@ and `verilog-separator-keywords'.)"
 		    (all-completions verilog-str 'verilog-completion)))
 	 (match (if verilog-toggle-completions
 		    "" (try-completion
-			verilog-str (mapcar '(lambda (elm)
+			verilog-str (mapcar (lambda (elm)
 					      (cons elm 0)) allcomp)))))
     ;; Delete old string
     (delete-region b e)
@@ -8042,8 +8029,7 @@ Optionally associate it with the specified enumeration ENUMNAME."
 	(let ((enumvar (intern (concat "venum-" enumname))))
 	  ;;(message "Define %s=%s" defname defvalue) (sleep-for 1)
 	  (unless (boundp enumvar) (set enumvar nil))
-	  (make-local-variable enumvar)
-	  (add-to-list enumvar defname)))))
+          (add-to-list (make-local-variable enumvar) defname)))))
 
 (defun verilog-read-defines (&optional filename recurse subcall)
   "Read `defines and parameters for the current file, or optional FILENAME.
@@ -9349,10 +9335,9 @@ Typing \\[verilog-inject-auto] will make this into:
 (defun verilog-auto-reeval-locals (&optional force)
   "Read file local variable segment at bottom of file if it has changed.
 If FORCE, always reread it."
-  (make-local-variable 'verilog-auto-last-file-locals)
   (let ((curlocal (verilog-auto-read-locals)))
     (when (or force (not (equal verilog-auto-last-file-locals curlocal)))
-      (setq verilog-auto-last-file-locals curlocal)
+      (set (make-local-variable 'verilog-auto-last-file-locals) curlocal)
       ;; Note this may cause this function to be recursively invoked,
       ;; because hack-local-variables may call (verilog-mode)
       ;; The above when statement will prevent it from recursing forever.
@@ -11462,13 +11447,13 @@ Wilson Snyder (wsnyder@wsnyder.org)."
 	       (verilog-auto-re-search-do "/\\*AUTOINOUTCOMP([^)]*)\\*/" 'verilog-auto-inout-comp)
 	       ;; next in/outs which need previous sucked inputs first
 	       (verilog-auto-re-search-do "/\\*AUTOOUTPUT\\((\"[^\"]*\")\\)\\*/"
-					  '(lambda () (verilog-auto-output t)))
+					  (lambda () (verilog-auto-output t)))
 	       (verilog-auto-re-search-do "/\\*AUTOOUTPUT\\*/" 'verilog-auto-output)
 	       (verilog-auto-re-search-do "/\\*AUTOINPUT\\((\"[^\"]*\")\\)\\*/"
-					  '(lambda () (verilog-auto-input t)))
+					  (lambda () (verilog-auto-input t)))
 	       (verilog-auto-re-search-do "/\\*AUTOINPUT\\*/"  'verilog-auto-input)
 	       (verilog-auto-re-search-do "/\\*AUTOINOUT\\((\"[^\"]*\")\\)\\*/"
-					  '(lambda () (verilog-auto-inout t)))
+					  (lambda () (verilog-auto-inout t)))
 	       (verilog-auto-re-search-do "/\\*AUTOINOUT\\*/" 'verilog-auto-inout)
 	       ;; Then tie off those in/outs
 	       (verilog-auto-re-search-do "/\\*AUTOTIEOFF\\*/" 'verilog-auto-tieoff)

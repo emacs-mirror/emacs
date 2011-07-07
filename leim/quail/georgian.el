@@ -1,7 +1,6 @@
 ;;; georgian.el --- Quail package for inputting Georgian characters  -*-coding: utf-8;-*-
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -81,5 +80,4 @@
  ("e1" ?) ;; Letter not in Unicode (private use code).
  )
 
-;; arch-tag: 7b26f205-7091-435e-a2cf-8778f899dc8a
 ;;; georgian.el ends here

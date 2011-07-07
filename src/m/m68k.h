@@ -1,7 +1,6 @@
 /* Machine description file for generic Motorola 68k.
 
-Copyright (C) 1985, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-  2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1985, 1995, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -24,13 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define m68k
 #endif
 
-/* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
-   the 24-bit bit field into an int.  In other words, if bit fields
-   are always unsigned.
-
-   This flag only matters if you use USE_LISP_UNION_TYPE.  */
-#define EXPLICIT_SIGN_EXTEND
-
 #ifdef GNU_LINUX
 #ifdef __ELF__
 #define DATA_SEG_BITS 0x80000000
@@ -38,5 +30,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #endif
 
-/* arch-tag: 4eadd161-b4e8-4b82-82a1-e4ce7f42969d
-   (do not change this comment) */

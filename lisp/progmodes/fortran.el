@@ -1,8 +1,6 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
-;; Copyright (C) 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1993-1995, 1997-2011  Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -293,7 +291,7 @@ buffer).  This corresponds to the g77 compiler option
   :type 'integer
   :safe 'integerp
   :initialize 'custom-initialize-default
-  :set (lambda (symbol value)
+  :set (lambda (_symbol value)
          ;; Do all fortran buffers, and the default.
          (fortran-line-length value t))
   :version "23.1"
@@ -494,7 +492,7 @@ This varies according to the value of LINE-LENGTH.
 This is used to fontify fixed-format Fortran comments."
   ;; This results in a non-byte-compiled function.  We could pass it through
   ;; `byte-compile', but simple benchmarks indicate that it's probably not
-  ;; worth the trouble (about ½% of slow down).
+  ;; worth the trouble (about 0.5% of slow down).
   (eval                         ;I hate `eval', but it's hard to avoid it here.
    `(syntax-propertize-rules
      ("^[cd\\*]" (0 "<"))
@@ -602,6 +600,7 @@ Used in the Fortran entry in `hs-special-modes-alist'.")
     (modify-syntax-entry ?=  "."  table)
     (modify-syntax-entry ?*  "."  table)
     (modify-syntax-entry ?/  "."  table)
+    (modify-syntax-entry ?%  "."  table) ; bug#8820
     (modify-syntax-entry ?\' "\"" table)
     (modify-syntax-entry ?\" "\"" table)
     ;; Consistent with GNU Fortran's default -- see the manual.

@@ -1,3 +1,4 @@
+# -*- coding: cn-big5 -*-
 # HANZI input table for cxterm
 # Generated from Punct-b5.cit by cit2tit
 # To be used by cxterm, convert me to .cit format first
@@ -138,4 +139,3 @@ unit	¢a
 }	¡¢¡b¡d
 ~	¡\¡ã¡Û
 
-# arch-tag: 6c85fd95-a46d-4b07-8a87-2121eb14e132

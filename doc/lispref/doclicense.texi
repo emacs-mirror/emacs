@@ -508,7 +508,3 @@ to permit their use in free software.
 @c Local Variables:
 @c ispell-local-pdict: "ispell-dict"
 @c End:
-
-@ignore
-   arch-tag: 9014cf6e-f3c4-401d-b8da-4fe52723984c
-@end ignore

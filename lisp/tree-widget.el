@@ -1,6 +1,6 @@
 ;;; tree-widget.el --- Tree widget
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -657,6 +657,8 @@ This hook should be local in the buffer setup to display widgets.")
                                    (widget-get tree :dynargs)))
     tree))
 
+(defvar widget-glyph-enable) ; XEmacs
+
 (defun tree-widget-value-create (tree)
   "Create the TREE tree-widget."
   (let* ((node   (tree-widget-node tree))
@@ -792,7 +794,7 @@ Each function is passed a tree-widget.  If the value of the :open
 property is non-nil the tree has been expanded, else collapsed.
 This hook should be local in the buffer setup to display widgets.")
 
-(defun tree-widget-action (tree &optional event)
+(defun tree-widget-action (tree &optional _event)
   "Handle the :action of the TREE tree-widget.
 That is, toggle expansion of the TREE tree-widget.
 Ignore the EVENT argument."
@@ -818,5 +820,4 @@ That is, if TREE :args is nil."
 
 (provide 'tree-widget)
 
-;; arch-tag: c3a1ada2-1663-41dc-9d16-2479ed8320e8
 ;;; tree-widget.el ends here

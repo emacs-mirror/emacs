@@ -1,6 +1,6 @@
 ;;; semantic/symref/list.el --- Symref Output List UI.
 
-;; Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -189,6 +189,7 @@ Display the references in`semantic-symref-results-mode'."
   "The current results in a results mode buffer.")
 
 (defun semantic-symref-results-mode (results)
+  ;; FIXME: Use define-derived-mode.
   "Major-mode for displaying Semantic Symbol Reference RESULTS.
 RESULTS is an object of class `semantic-symref-results'."
   (interactive)
@@ -204,7 +205,7 @@ RESULTS is an object of class `semantic-symref-results'."
   (buffer-disable-undo)
   (set (make-local-variable 'font-lock-global-modes) nil)
   (font-lock-mode -1)
-  (run-hooks 'semantic-symref-results-mode-hook)
+  (run-mode-hooks 'semantic-symref-results-mode-hook)
   )
 
 (defun semantic-symref-hide-buffer ()

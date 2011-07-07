@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Dired, Calendar/Diary, Rmail, Top
@@ -24,7 +23,7 @@ files.  You first mark certain files in order to operate on all of
 them with one command.
 
   The Dired-X package provides various extra features for Dired mode.
-@xref{Top, Dired-X,,dired-x, Dired Extra Version 2 User's Manual}.
+@xref{Top, Dired-X,,dired-x, Dired Extra User's Manual}.
 
   You can also view a list of files in a directory with @kbd{C-x C-d}
 (@code{list-directory}).  Unlike Dired, this command does not allow
@@ -985,8 +984,9 @@ to the parent directory in the same Dired buffer.
 
 Use the @kbd{l} command (@code{dired-do-redisplay}) to update the
 subdirectory's contents.  Use @kbd{C-u k} on the subdirectory header
-line to delete the subdirectory (@pxref{Dired Updating}).  You can also
-hide and show inserted subdirectories (@pxref{Hiding Subdirectories}).
+line to remove the subdirectory listing (@pxref{Dired Updating}).  You
+can also hide and show inserted subdirectories (@pxref{Hiding
+Subdirectories}).
 
 @ifnottex
 @include dired-xtra.texi
@@ -1146,9 +1146,9 @@ current file as a last resort.
 
   If you use @kbd{k} with a numeric prefix argument to kill the line
 for a file that is a directory, which you have inserted in the Dired
-buffer as a subdirectory, it deletes that subdirectory from the buffer
-as well.  Typing @kbd{C-u k} on the header line for a subdirectory
-also deletes the subdirectory from the Dired buffer.
+buffer as a subdirectory, it removed that subdirectory line from the
+buffer as well.  Typing @kbd{C-u k} on the header line for a
+subdirectory also removes the subdirectory line from the Dired buffer.
 
   The @kbd{g} command brings back any individual lines that you have
 killed in this way, but not subdirectories---you must use @kbd{i} to
@@ -1404,7 +1404,3 @@ it onto a Dired buffer; this either moves, copies, or creates a link
 to the file in that directory.  Precisely which action is taken is
 determined by the originating program.  Dragging files out of a Dired
 buffer is currently not supported.
-
-@ignore
-   arch-tag: d105f9b9-fc1b-4c5f-a949-9b2cf3ca2fc1
-@end ignore

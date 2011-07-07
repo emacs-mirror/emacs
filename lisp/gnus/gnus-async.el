@@ -1,7 +1,6 @@
 ;;; gnus-async.el --- asynchronous support for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -238,6 +237,12 @@ that was fetched."
       (save-excursion
 	(save-restriction
 	  (narrow-to-region mark (point-max))
+	  ;; Put the articles into the agent, if they aren't already.
+	  (when (and gnus-agent
+		     (gnus-agent-group-covered-p group))
+	    (save-restriction
+	      (narrow-to-region mark (point-max))
+	      (gnus-agent-store-article article group)))
 	  ;; Prefetch images for the groups that want that.
 	  (when (fboundp 'gnus-html-prefetch-images)
 	    (gnus-html-prefetch-images summary))

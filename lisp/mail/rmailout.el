@@ -1,7 +1,7 @@
 ;;; rmailout.el --- "RMAIL" mail reader for Emacs: output message to a file
 
-;; Copyright (C) 1985, 1987, 1993, 1994, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1993-1994, 2001-2011
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -603,5 +603,4 @@ than appending to it.  Deletes the message after writing if
   (if rmail-delete-after-output
       (rmail-delete-forward)))
 
-;; arch-tag: 4059abf0-f249-4be4-8e0d-602d370d01d1
 ;;; rmailout.el ends here

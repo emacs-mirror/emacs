@@ -1,7 +1,6 @@
 ;;; cus-dep.el --- find customization dependencies
 ;;
-;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001-2011  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -43,9 +42,12 @@ ldefs-boot\\|cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
 (defun custom-make-dependencies ()
   "Batch function to extract custom dependencies from .el files.
 Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
-  (let ((enable-local-eval nil))
+  (let ((enable-local-eval nil)
+	subdir)
     (with-temp-buffer
-      (dolist (subdir command-line-args-left)
+      ;; Use up command-line-args-left else Emacs can try to open
+      ;; the args as directories after we are done.
+      (while (setq subdir (pop command-line-args-left))
         (message "Directory %s" subdir)
         (let ((files (directory-files subdir nil "\\`[^=].*\\.el\\'"))
               (default-directory (expand-file-name subdir))
@@ -172,5 +174,4 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 
 
 
-;; arch-tag: b7b6421a-bf7a-44fd-a382-6f44976bdf68
 ;;; cus-dep.el ends here

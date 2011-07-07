@@ -1,6 +1,6 @@
 # Generate data for bidi_mirroring_table, see src/bidi.c:bidi_initialize.
 
-# Copyright (C) 2010, Free Software Foundation, Inc.
+# Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 

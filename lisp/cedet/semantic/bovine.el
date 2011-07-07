@@ -1,6 +1,6 @@
 ;;; semantic/bovine.el --- LL Parser/Analyzer core.
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2009, 2010
+;; Copyright (C) 1999-2004, 2006-2007, 2009-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
@@ -293,5 +293,4 @@ list of semantic tokens found."
 ;; generated-autoload-load-name: "semantic/bovine"
 ;; End:
 
-;; arch-tag: 1e820899-2a26-499a-b0c0-57301365a6b0
 ;;; semantic/bovine.el ends here

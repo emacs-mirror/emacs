@@ -1,6 +1,6 @@
 ;;; dynamic-setting.el --- Support dynamic changes
 
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: FSF
@@ -86,7 +86,9 @@ current form for the frame (i.e. hinting or somesuch changed)."
 Changes can be
   The monospace font. If `font-use-system-font' is nil, the font
     is not changed.
+  The normal font.
   Xft parameters, like DPI and hinting.
+  The Gtk+ theme name.
   The tool bar style."
   (interactive "e")
   (let ((type (nth 1 event))
@@ -107,4 +109,3 @@ Changes can be
 (define-key special-event-map [config-changed-event]
   'dynamic-setting-handle-config-changed-event)
 
-;; arch-tag: 3a57e78f-1cd6-48b6-ab75-98f160dcc017

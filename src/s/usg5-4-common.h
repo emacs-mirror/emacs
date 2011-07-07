@@ -1,7 +1,6 @@
 /* Definitions file for GNU Emacs running on AT&T's System V Release 4
 
-Copyright (C) 1987, 1990, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-  2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1987, 1990, 1999-2011  Free Software Foundation, Inc.
 
 Written by James Van Artsdalen of Dell Computer Corp. james@bigtex.cactus.org.
 Subsequently improved for Dell 2.2 by Eric S. Raymond <esr@snark.thyrsus.com>.
@@ -31,12 +30,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "usg-unix-v"
 
-/* The file containing the kernel's symbol table is called /unix.  */
-#define KERNEL_FILE "/unix"
-
-/* The kernel symbol where the load average is found is named avenrun.  */
-#define LDAV_SYMBOL "avenrun"
-
 /* setjmp and longjmp can safely replace _setjmp and _longjmp,
    but they will run slower.  */
 #define _setjmp setjmp
@@ -44,9 +37,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* The docs for system V/386 suggest v.3 has sigpause, so let's try it.  */
 #define HAVE_SYSV_SIGPAUSE
-
-/* On USG systems signal handlers return void.  */
-#define SIGTYPE void
 
 /* Get FIONREAD from <sys/filio.h>.  Get <sys/ttold.h> to get struct tchars.
    But get <termio.h> first to make sure ttold.h doesn't interfere.
@@ -98,14 +88,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Push various streams modules onto a PTY channel.  */
 #define SETUP_SLAVE_PTY \
   if (ioctl (xforkin, I_PUSH, "ptem") == -1)	\
-    fatal ("ioctl I_PUSH ptem", errno);		\
+    fatal ("ioctl I_PUSH ptem");		\
   if (ioctl (xforkin, I_PUSH, "ldterm") == -1)	\
-    fatal ("ioctl I_PUSH ldterm", errno);	\
+    fatal ("ioctl I_PUSH ldterm");	\
   if (ioctl (xforkin, I_PUSH, "ttcompat") == -1) \
-    fatal ("ioctl I_PUSH ttcompat", errno);
+    fatal ("ioctl I_PUSH ttcompat");
 
 /* This definition was suggested for next release.  So give it a try.  */
 #define HAVE_SOCKETS
-
-/* arch-tag: 1a0ed909-5faa-434b-b7c3-9d86c63d53a6
-   (do not change this comment) */

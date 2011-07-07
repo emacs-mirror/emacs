@@ -1,8 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990-1995, 1998-2011  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/text
 @node Text, Non-ASCII Characters, Markers, Top
@@ -87,7 +85,7 @@ buffer is @samp{@@}:
 
 @example
 @group
-(char-to-string (char-after 1))
+(string (char-after 1))
      @result{} "@@"
 @end group
 @end example
@@ -122,9 +120,9 @@ but there is no peace.
 @end group
 
 @group
-(char-to-string (preceding-char))
+(string (preceding-char))
      @result{} "a"
-(char-to-string (following-char))
+(string (following-char))
      @result{} "c"
 @end group
 @end example
@@ -866,7 +864,7 @@ adds it to the most recent element.  It determines automatically (using
 @code{last-command}) whether the previous command was a kill command,
 and if so appends the killed text to the most recent entry.
 
-@deffn Command kill-region start end &optional yank-handler
+@deffn Command kill-region start end
 This function kills the text in the region defined by @var{start} and
 @var{end}.  The text is deleted but saved in the kill ring, along with
 its text properties.  The value is always @code{nil}.
@@ -874,17 +872,10 @@ its text properties.  The value is always @code{nil}.
 In an interactive call, @var{start} and @var{end} are point and
 the mark.
 
-@c Emacs 19 feature
 If the buffer or text is read-only, @code{kill-region} modifies the kill
 ring just the same, then signals an error without modifying the buffer.
 This is convenient because it lets the user use a series of kill
 commands to copy text from a read-only buffer into the kill ring.
-
-If @var{yank-handler} is non-@code{nil}, this puts that value onto
-the string of killed text, as a @code{yank-handler} text property.
-@xref{Yanking}.  Note that if @var{yank-handler} is @code{nil}, any
-@code{yank-handler} properties present on the killed text are copied
-onto the kill ring, like other text properties.
 @end deffn
 
 @defopt kill-read-only-ok
@@ -1069,7 +1060,7 @@ it returns the entry pointed at by the yanking pointer and does not
 move the yanking pointer.
 @end defun
 
-@defun kill-new string &optional replace yank-handler
+@defun kill-new string &optional replace
 This function pushes the text @var{string} onto the kill ring and
 makes the yanking pointer point to it.  It discards the oldest entry
 if appropriate.  It also invokes the value of
@@ -1078,25 +1069,15 @@ if appropriate.  It also invokes the value of
 If @var{replace} is non-@code{nil}, then @code{kill-new} replaces the
 first element of the kill ring with @var{string}, rather than pushing
 @var{string} onto the kill ring.
-
-If @var{yank-handler} is non-@code{nil}, this puts that value onto
-the string of killed text, as a @code{yank-handler} property.
-@xref{Yanking}.  Note that if @var{yank-handler} is @code{nil}, then
-@code{kill-new} copies any @code{yank-handler} properties present on
-@var{string} onto the kill ring, as it does with other text properties.
 @end defun
 
-@defun kill-append string before-p &optional yank-handler
+@defun kill-append string before-p
 This function appends the text @var{string} to the first entry in the
 kill ring and makes the yanking pointer point to the combined entry.
 Normally @var{string} goes at the end of the entry, but if
 @var{before-p} is non-@code{nil}, it goes at the beginning.  This
 function also invokes the value of @code{interprogram-cut-function}
-(see below).  This handles @var{yank-handler} just like
-@code{kill-new}, except that if @var{yank-handler} is different from
-the @code{yank-handler} property of the first entry of the kill ring,
-@code{kill-append} pushes the concatenated string onto the kill ring,
-instead of replacing the original first entry with it.
+(see below).
 @end defun
 
 @defvar interprogram-paste-function
@@ -2220,11 +2201,11 @@ The functions in this section return unpredictable values.
 @defvar indent-line-function
 This variable's value is the function to be used by @key{TAB} (and
 various commands) to indent the current line.  The command
-@code{indent-according-to-mode} does no more than call this function.
+@code{indent-according-to-mode} does little more than call this function.
 
 In Lisp mode, the value is the symbol @code{lisp-indent-line}; in C
 mode, @code{c-indent-line}; in Fortran mode, @code{fortran-indent-line}.
-The default value is @code{indent-relative}.
+The default value is @code{indent-relative}.  @xref{Auto-Indentation}.
 @end defvar
 
 @deffn Command indent-according-to-mode
@@ -2825,9 +2806,9 @@ construct each part with @code{propertize} and then combine them with
 @end smallexample
 @end defun
 
-  See also the function @code{buffer-substring-no-properties}
-(@pxref{Buffer Contents}) which copies text from the buffer
-but does not copy its properties.
+  @xref{Buffer Contents}, for the function
+@code{buffer-substring-no-properties}, which copies text from the
+buffer but does not copy its properties.
 
 @node Property Search
 @subsection Text Property Search Functions
@@ -3011,13 +2992,6 @@ face attribute name and @var{value} is a meaningful value for that
 attribute.  With this feature, you do not need to create a face each
 time you want to specify a particular attribute for certain text.
 @xref{Face Attributes}.
-
-@item
-A cons cell with the form @code{(foreground-color . @var{color-name})}
-or @code{(background-color . @var{color-name})}.  These are old,
-deprecated equivalents for @code{(:foreground @var{color-name})} and
-@code{(:background @var{color-name})}.  Please convert code that uses
-them.
 @end itemize
 
 It works to use the latter two forms directly as the value
@@ -3029,18 +3003,18 @@ the context.
 
 @item font-lock-face
 @kindex font-lock-face @r{(text property)}
-The @code{font-lock-face} property is equivalent to the @code{face}
-property when Font Lock mode is enabled.  When Font Lock mode is disabled,
+This property specifies a value for the @code{face} property that Font
+Lock mode should apply to the underlying text.  It is one of the
+fontification methods used by Font Lock mode, and is useful for
+special modes that implement their own highlighting.
+@xref{Precalculated Fontification}.  When Font Lock mode is disabled,
 @code{font-lock-face} has no effect.
-
-The @code{font-lock-face} property is useful for special modes that
-implement their own highlighting.  @xref{Precalculated Fontification}.
 
 @item mouse-face
 @kindex mouse-face @r{(text property)}
-The property @code{mouse-face} is used instead of @code{face} when the
-mouse is on or near the character.  For this purpose, ``near'' means
-that all text between the character and where the mouse is have the same
+This property is used instead of @code{face} when the mouse is on or
+near the character.  For this purpose, ``near'' means that all text
+between the character and where the mouse is have the same
 @code{mouse-face} property value.
 
 @item fontified
@@ -3291,15 +3265,28 @@ functions (which may be the same function).  In any case, all the
 @code{point-left} functions are called first, followed by all the
 @code{point-entered} functions.
 
-It is possible with @code{char-after} to examine characters at various
+It is possible to use @code{char-after} to examine characters at various
 buffer positions without moving point to those positions.  Only an
 actual change in the value of point runs these hook functions.
 
+The variable @code{inhibit-point-motion-hooks} can inhibit running the
+@code{point-left} and @code{point-entered} hooks, see @ref{Inhibit
+point motion hooks}.
+
+@item composition
+@kindex composition @r{(text property)}
+This text property is used to display a sequence of characters as a
+single glyph composed from components.  But the value of the property
+itself is completely internal to Emacs and should not be manipulated
+directly by, for instance, @code{put-text-property}.
+
+@end table
+
 @defvar inhibit-point-motion-hooks
-When this variable is non-@code{nil}, @code{point-left} and
-@code{point-entered} hooks are not run, and the @code{intangible}
-property has no effect.  Do not set this variable globally; bind it with
-@code{let}.
+@anchor{Inhibit point motion hooks} When this variable is
+non-@code{nil}, @code{point-left} and @code{point-entered} hooks are
+not run, and the @code{intangible} property has no effect.  Do not set
+this variable globally; bind it with @code{let}.
 @end defvar
 
 @defvar show-help-function
@@ -3311,15 +3298,6 @@ Bar}).  The specified function is called with one argument, the help
 string to display.  Tooltip mode (@pxref{Tooltips,,, emacs, The GNU Emacs
 Manual}) provides an example.
 @end defvar
-
-@item composition
-@kindex composition @r{(text property)}
-This text property is used to display a sequence of characters as a
-single glyph composed from components.  But the value of the property
-itself is completely internal to Emacs and should not be manipulated
-directly by, for instance, @code{put-text-property}.
-
-@end table
 
 @node Format Properties
 @subsection Formatted Text Properties
@@ -4114,17 +4092,16 @@ coding instead.
 @node Parsing HTML
 @section Parsing HTML
 @cindex parsing html
-@cindex parsing xml
 
-Emacs provides an interface to the @code{libxml2} library via two
-functions: @code{html-parse-buffer} and @code{xml-parse-buffer}.  The
-HTML function will parse ``real world'' HTML and try to return a
-sensible parse tree, while the XML function is somewhat stricter about
-syntax.
+@defun libxml-parse-html-region start end &optional base-url
+This function provides HTML parsing via the @code{libxml2} library.
+It parses ``real world'' HTML and tries to return a sensible parse tree
+regardless.
 
-They both take a two optional parameter.  The first is a buffer, and
-the second is a base URL to be used to expand relative URLs in the
-document, if any.
+In addition to @var{start} and @var{end} (specifying the start and end
+of the region to act on), it takes an optional parameter,
+@var{base-url}, which is used to expand relative URLs in the document,
+if any.
 
 Here's an example demonstrating the structure of the parsed data you
 get out.  Given this HTML document:
@@ -4153,12 +4130,21 @@ values.
 
 Attributes are coded the same way as child nodes, but with @samp{:} as
 the first character.
+@end defun
+
+@cindex parsing xml
+@defun libxml-parse-xml-region start end &optional base-url
+
+This is much the same as @code{libxml-parse-html-region} above, but
+operates on XML instead of HTML, and is correspondingly stricter about
+syntax.
+@end defun
 
 @node Atomic Changes
 @section Atomic Change Groups
 @cindex atomic changes
 
-  In data base terminology, an @dfn{atomic} change is an indivisible
+  In database terminology, an @dfn{atomic} change is an indivisible
 change---it can succeed entirely or it can fail entirely, but it
 cannot partly succeed.  A Lisp program can make a series of changes to
 one or several buffers as an @dfn{atomic change group}, meaning that

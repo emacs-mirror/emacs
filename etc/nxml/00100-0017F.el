@@ -129,4 +129,3 @@
     ("LATIN SMALL LETTER LONG S" #x017F)
     ))
 
-;; arch-tag: 30e6e868-1bc7-4cd1-b75b-7fd4354cf8fe

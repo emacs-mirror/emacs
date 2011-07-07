@@ -1,7 +1,7 @@
 /* unexec() support for Cygwin;
    complete rewrite of xemacs Cygwin unexec() code
 
-   Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2004-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include "unexec.h"
+
 #include <setjmp.h>
 #include <lisp.h>
 #include <stdio.h>
@@ -247,7 +249,7 @@ add_exe_suffix_if_necessary (const char *name, char *modified)
   return (modified);
 }
 
-int
+void
 unexec (const char *outfile, const char *infile)
 {
   char infile_buffer[FILENAME_MAX];
@@ -261,7 +263,7 @@ unexec (const char *outfile, const char *infile)
     {
       /* can only dump once */
       printf ("You can only dump Emacs once on this platform.\n");
-      return (1);
+      return;
     }
 
   report_sheap_usage (1);
@@ -296,9 +298,4 @@ unexec (const char *outfile, const char *infile)
 
   ret = close (fd_out);
   assert (ret == 0);
-
-  return (0);
 }
-
-/* arch-tag: fc44f6c3-ca0a-45e0-a5a2-58b6101b1e65
-   (do not change this comment) */

@@ -1,8 +1,6 @@
 ;;; browse-url.el --- pass a URL to a WWW browser
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011  Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
 ;; Maintainer: FSF
@@ -324,7 +322,7 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
   :group 'browse-url)
 
 (defcustom browse-url-firefox-program
-  (let ((candidates '("firefox" "iceweasel")))
+  (let ((candidates '("firefox" "iceweasel" "icecat")))
     (while (and candidates (not (executable-find (car candidates))))
       (setq candidates (cdr candidates)))
     (or (car candidates) "firefox"))
@@ -649,7 +647,6 @@ regarding its parameter treatment."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; URL input
 
-;;;###autoload
 (defun browse-url-url-at-point ()
   (let ((url (thing-at-point 'url)))
     (set-text-properties 0 (length url) nil url)
@@ -772,7 +769,10 @@ narrowed."
 (defun browse-url-of-dired-file ()
   "In Dired, ask a WWW browser to display the file named on this line."
   (interactive)
-  (browse-url-of-file (dired-get-filename)))
+  (let ((tem (dired-get-filename t t)))
+    (if tem
+	(browse-url-of-file (expand-file-name tem))
+      (error "No file on this line"))))
 
 ;;;###autoload
 (defun browse-url-of-region (min max)
@@ -801,7 +801,12 @@ first, if that exists."
   (let ((process-environment (copy-sequence process-environment))
 	(function (or (and (string-match "\\`mailto:" url)
 			   browse-url-mailto-function)
-		      browse-url-browser-function)))
+		      browse-url-browser-function))
+	;; Ensure that `default-directory' exists and is readable (b#6077).
+	(default-directory (if (and (file-directory-p default-directory)
+				    (file-readable-p default-directory))
+			       default-directory
+			     (expand-file-name "~/"))))
     ;; When connected to various displays, be careful to use the display of
     ;; the currently selected frame, rather than the original start display,
     ;; which may not even exist any more.
@@ -893,7 +898,6 @@ one showing the selected frame."
     (and (not (equal display (getenv "DISPLAY")))
          display)))
 
-;;;###autoload
 (defun browse-url-default-browser (url &rest args)
   "Find a suitable browser and ask it to load URL.
 Default to the URL around or before point.
@@ -954,7 +958,7 @@ Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
 ;;;###autoload
 (defun browse-url-xdg-open (url &optional new-window)
   (interactive (browse-url-interactive-arg "URL: "))
-  (call-process "nohup" nil nil nil "xdg-open" url))
+  (call-process "xdg-open" nil 0 nil url))
 
 ;;;###autoload
 (defun browse-url-netscape (url &optional new-window)
@@ -1110,8 +1114,7 @@ URL in a new window."
 		 browse-url-firefox-program
 		 (append
 		  browse-url-firefox-arguments
-		  (if (or (featurep 'dos-w32)
-			  (string-match "win32" system-configuration))
+		  (if (memq system-type '(windows-nt ms-dos))
 		      (list url)
 		    (list "-remote"
 			  (concat "openURL("

@@ -1,7 +1,6 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
-;; Copyright (C) 1985, 1994, 1997, 1998, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985, 1994, 1997-1998, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
@@ -78,6 +77,12 @@ Used for querying duplicates and linking to existing bugs.")
 (declare-function message-sort-headers "message" ())
 (defvar message-strip-special-text-properties)
 
+(defun report-emacs-bug-can-use-osx-open ()
+  "Check if OSX open can be used to insert bug report into mailer"
+  (and (featurep 'ns)
+       (equal (executable-find "open") "/usr/bin/open")
+       (memq system-type '(darwin))))
+
 (defun report-emacs-bug-can-use-xdg-email ()
   "Check if xdg-email can be used, i.e. we are on Gnome, KDE or xfce4."
   (and (getenv "DISPLAY")
@@ -117,10 +122,15 @@ Used for querying duplicates and linking to existing bugs.")
 		   (if (> (point-max) (point))
 		       (buffer-substring-no-properties (point) (point-max))))))
       (if (and to subject body)
-	  (start-process "xdg-email" nil "xdg-email"
-			 "--subject" subject
-			 "--body" body
-			 (concat "mailto:" to))
+	  (if (report-emacs-bug-can-use-osx-open)
+	      (start-process "/usr/bin/open" nil "open"
+			     (concat "mailto:" to
+				     "?subject=" (url-hexify-string subject)
+				     "&body=" (url-hexify-string body)))
+	    (start-process "xdg-email" nil "xdg-email"
+			   "--subject" subject
+			   "--body" body
+			   (concat "mailto:" to)))
 	(error "Subject, To or body not found")))))
 
 ;;;###autoload
@@ -140,9 +150,10 @@ Prompts for bug subject.  Leaves you in a mail buffer."
         ;; Put these properties on semantically-void text.
         ;; report-emacs-bug-hook deletes these regions before sending.
         (prompt-properties '(field emacsbug-prompt
-                                   intangible but-helpful
-                                   rear-nonsticky t))
-	(can-xdg-email (report-emacs-bug-can-use-xdg-email))
+                             intangible but-helpful
+                             rear-nonsticky t))
+	(can-insert-mail (or (report-emacs-bug-can-use-xdg-email)
+			     (report-emacs-bug-can-use-osx-open)))
         user-point message-end-point)
     (setq message-end-point
 	  (with-current-buffer (get-buffer-create "*Messages*")
@@ -164,24 +175,36 @@ Prompts for bug subject.  Leaves you in a mail buffer."
       (backward-char (length signature)))
     (unless report-emacs-bug-no-explanations
       ;; Insert warnings for novice users.
-      (when (string-match "@gnu\\.org$" report-emacs-bug-address)
-	(insert "This bug report will be sent to the Free Software Foundation,\n")
-	(let ((pos (point)))
-	  (insert "not to your local site managers!")
-          (overlay-put (make-overlay pos (point)) 'face 'highlight)))
-      (insert "\nPlease write in ")
-      (let ((pos (point)))
-	(insert "English")
-        (overlay-put (make-overlay pos (point)) 'face 'highlight))
-      (insert " if possible, because the Emacs maintainers
-usually do not have translators to read other languages for them.\n\n")
-      (insert (format "Your report will be posted to the %s mailing list"
-		      report-emacs-bug-address))
-      (insert "\nand the gnu.emacs.bug news group, and at http://debbugs.gnu.org.\n\n"))
+      (if (not (equal "bug-gnu-emacs@gnu.org" report-emacs-bug-address))
+	  (insert (format "The report will be sent to %s.\n\n"
+			  report-emacs-bug-address))
+	(insert "This bug report will be sent to the ")
+	(insert-button
+	 "Bug-GNU-Emacs"
+	 'face 'link
+	 'help-echo (concat "mouse-2, RET: Follow this link")
+	 'action (lambda (button)
+		   (browse-url "http://lists.gnu.org/archive/html/bug-gnu-emacs/"))
+	 'follow-link t)
+	(insert " mailing list\nand the GNU bug tracker at ")
+	(insert-button
+	 "debbugs.gnu.org"
+	 'face 'link
+	 'help-echo (concat "mouse-2, RET: Follow this link")
+	 'action (lambda (button)
+		   (browse-url "http://debbugs.gnu.org/"))
+	 'follow-link t)
 
-    (insert "Please describe exactly what actions triggered the bug\n"
-	    "and the precise symptoms of the bug.  If you can, give\n"
-	    "a recipe starting from `emacs -Q':\n\n")
+	(insert ".  Please check that
+the From: line contains a valid email address.  After a delay of up
+to one day, you should receive an acknowledgement at that address.
+
+Please write in English if possible, as the Emacs maintainers
+usually do not have translators for other languages.\n\n")))
+
+    (insert "Please describe exactly what actions triggered the bug, and\n"
+	    "the precise symptoms of the bug.  If you can, give a recipe\n"
+	    "starting from `emacs -Q':\n\n")
     (add-text-properties (save-excursion
                            (rfc822-goto-eoh)
                            (line-beginning-position 2))
@@ -214,8 +237,8 @@ usually do not have translators to read other languages for them.\n\n")
 		system-configuration-options "'\n\n"))
     (insert "Important settings:\n")
     (mapc
-     '(lambda (var)
-	(insert (format "  value of $%s: %s\n" var (getenv var))))
+     (lambda (var)
+       (insert (format "  value of $%s: %s\n" var (getenv var))))
      '("LC_ALL" "LC_COLLATE" "LC_CTYPE" "LC_MESSAGES"
        "LC_MONETARY" "LC_NUMERIC" "LC_TIME" "LANG" "XMODIFIERS"))
     (insert (format "  locale-coding-system: %s\n" locale-coding-system))
@@ -276,19 +299,14 @@ usually do not have translators to read other languages for them.\n\n")
     ;; This is so the user has to type something in order to send easily.
     (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
     (define-key (current-local-map) "\C-c\C-i" 'report-emacs-bug-info)
-    (if can-xdg-email
+    (if can-insert-mail
 	(define-key (current-local-map) "\C-cm"
 	  'report-emacs-bug-insert-to-mailer))
-    ;; Could test major-mode instead.
-    (cond ((memq mail-user-agent '(message-user-agent gnus-user-agent))
-           (setq report-emacs-bug-send-command "message-send-and-exit"
-                 report-emacs-bug-send-hook 'message-send-hook))
-          ((eq mail-user-agent 'sendmail-user-agent)
-           (setq report-emacs-bug-send-command "mail-send-and-exit"
-                 report-emacs-bug-send-hook 'mail-send-hook))
-          ((eq mail-user-agent 'mh-e-user-agent)
-           (setq report-emacs-bug-send-command "mh-send-letter"
-                 report-emacs-bug-send-hook 'mh-before-send-letter-hook)))
+    (setq report-emacs-bug-send-command (get mail-user-agent 'sendfunc)
+	  report-emacs-bug-send-hook (get mail-user-agent 'hookvar))
+    (if report-emacs-bug-send-command
+	(setq report-emacs-bug-send-command
+	      (symbol-name report-emacs-bug-send-command)))
     (unless report-emacs-bug-no-explanations
       (with-output-to-temp-buffer "*Bug Help*"
 	(princ "While in the mail buffer:\n\n")
@@ -298,7 +316,7 @@ usually do not have translators to read other languages for them.\n\n")
                             report-emacs-bug-send-command))))
 	(princ (substitute-command-keys
 		"  Type \\[kill-buffer] RET to cancel (don't send it).\n"))
-	(if can-xdg-email
+	(if can-insert-mail
 	    (princ (substitute-command-keys
 		    "  Type \\[report-emacs-bug-insert-to-mailer] to insert text to you preferred mail program.\n")))
 	(terpri)
@@ -322,6 +340,10 @@ usually do not have translators to read other languages for them.\n\n")
   (interactive)
   (info "(emacs)Bugs"))
 
+;; It's the default mail mode, so it seems OK to use its features.
+(autoload 'message-bogus-recipient-p "message")
+(defvar message-send-mail-function)
+
 (defun report-emacs-bug-hook ()
   "Do some checking before sending a bug report."
   (save-excursion
@@ -332,23 +354,29 @@ usually do not have translators to read other languages for them.\n\n")
          (string-equal (buffer-substring-no-properties (point-min) (point))
                        report-emacs-bug-orig-text)
          (error "No text entered in bug report"))
-    ;; Check the buffer contents and reject non-English letters.
-    ;; FIXME message-mode probably does this anyway.
-    (goto-char (point-min))
-    (skip-chars-forward "\0-\177")
-    (unless (eobp)
-      (if (or report-emacs-bug-no-confirmation
-              (y-or-n-p "Convert non-ASCII letters to hexadecimal? "))
-          (while (progn (skip-chars-forward "\0-\177")
-                        (not (eobp)))
-            (let ((ch (following-char)))
-              (delete-char 1)
-              (insert (format "=%02x" ch))))))
-
+    (or report-emacs-bug-no-confirmation
+	;; mailclient.el does not handle From (at present).
+	(if (derived-mode-p 'message-mode)
+	    (eq message-send-mail-function 'message-send-mail-with-mailclient)
+	  (eq send-mail-function 'mailclient-send-it))
+	;; Not narrowing to the headers, but that's OK.
+	(let ((from (mail-fetch-field "From")))
+	  (and (or (not from)
+		   (message-bogus-recipient-p from)
+		   ;; This is the default user-mail-address.  On today's
+		   ;; systems, it seems more likely to be wrong than right,
+		   ;; since most people don't run their own mail server.
+		   (string-match (format "\\<%s@%s\\>"
+					 (regexp-quote (user-login-name))
+					 (regexp-quote (system-name)))
+				 from))
+	       (not (yes-or-no-p
+		     (format "Is `%s' really your email address? " from)))
+	       (error "Please edit the From address and try again"))))
     ;; The last warning for novice users.
     (unless (or report-emacs-bug-no-confirmation
-                (yes-or-no-p
-                 "Send this bug report to the Emacs maintainers? "))
+		(yes-or-no-p
+		 "Send this bug report to the Emacs maintainers? "))
       (goto-char (point-min))
       (if (search-forward "To: ")
           (delete-region (point) (line-end-position)))
@@ -380,30 +408,33 @@ and send the mail again%s."
 
 ;; Querying the bug database
 
+(defvar report-emacs-bug-bug-alist nil)
+(make-variable-buffer-local 'report-emacs-bug-bug-alist)
+(defvar report-emacs-bug-choice-widget nil)
+(make-variable-buffer-local 'report-emacs-bug-choice-widget)
+
 (defun report-emacs-bug-create-existing-bugs-buffer (bugs keywords)
   (switch-to-buffer (get-buffer-create "*Existing Emacs Bugs*"))
   (setq buffer-read-only t)
   (let ((inhibit-read-only t))
     (erase-buffer)
-    (make-local-variable 'bug-alist)
-    (setq bug-alist bugs)
-    (make-local-variable 'bug-choice-widget)
+    (setq report-emacs-bug-bug-alist bugs)
     (widget-insert (propertize (concat "Already known bugs ("
 				       keywords "):\n\n")
 			       'face 'bold))
     (if bugs
-	(setq bug-choice-widget
+	(setq report-emacs-bug-choice-widget
 	      (apply 'widget-create 'radio-button-choice
-		     :value (car (first bugs))
+		     :value (caar bugs)
 		     (let (items)
 		       (dolist (bug bugs)
 			 (push (list
 				'url-link
-				:format (concat "Bug#" (number-to-string (third bug))
-						": " (second bug) "\n    %[%v%]\n")
+				:format (concat "Bug#" (number-to-string (nth 2 bug))
+						": " (cadr bug) "\n    %[%v%]\n")
 				;; FIXME: Why is only the link of the
 				;; active item clickable?
-				(first bug))
+				(car bug))
 			       items))
 		       (nreverse items))))
       (widget-insert "No bugs maching your keywords found.\n"))
@@ -417,10 +448,10 @@ and send the mail again%s."
       (widget-insert " ")
       (widget-create 'push-button
 		     :notify (lambda (&rest ignore)
-			       (let ((val (widget-value bug-choice-widget)))
+			       (let ((val (widget-value report-emacs-bug-choice-widget)))
 				 ;; TODO: Do something!
 				 (message "Appending to bug %s!"
-					  (third (assoc val bug-alist)))))
+					  (nth 2 (assoc val report-emacs-bug-bug-alist)))))
 		     "Append to chosen bug"))
     (widget-insert " ")
     (widget-create 'push-button

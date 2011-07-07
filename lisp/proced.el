@@ -1,6 +1,6 @@
 ;;; proced.el --- operate on system processes like dired
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Roland Winkler <winkler@gnu.org>
 ;; Keywords: Processes, Unix
@@ -1676,7 +1676,7 @@ After updating a displayed Proced buffer run the normal hook
         (message (if revert "Updating process information...done."
                    "Updating process display...done.")))))
 
-(defun proced-revert (&rest args)
+(defun proced-revert (&rest _args)
   "Reevaluate the process listing based on the currently running processes.
 Preserves point and marks."
   (proced-update t))
@@ -1735,8 +1735,9 @@ After sending the signal, this command runs the normal hook
                    (pnum (if (= 1 (length process-alist))
                              "1 process"
                            (format "%d processes" (length process-alist))))
-                   (completion-annotate-function
-                    (lambda (s) (cdr (assoc s proced-signal-list)))))
+                   (completion-extra-properties
+                    '(:annotation-function
+                      (lambda (s) (cdr (assoc s proced-signal-list))))))
               (setq signal
                     (completing-read (concat "Send signal [" pnum
                                              "] (default TERM): ")
@@ -1770,7 +1771,7 @@ After sending the signal, this command runs the normal hook
                                       (number-to-string signal) signal))))
           (dolist (process process-alist)
             (with-temp-buffer
-              (condition-case err
+              (condition-case nil
                   (if (zerop (call-process
                               proced-signal-function nil t nil
                               signal (number-to-string (car process))))
@@ -1868,17 +1869,6 @@ buffer.  You can use it to recover marks."
   (message "Change in Proced buffer undone.
 Killed processes cannot be recovered by Emacs."))
 
-(defun proced-unload-function ()
-  "Unload the Proced library."
-  (save-current-buffer
-    (dolist (buf (buffer-list))
-      (set-buffer buf)
-      (when (eq major-mode 'proced-mode)
-        (funcall (or (default-value 'major-mode) 'fundamental-mode)))))
-  ;; continue standard unloading
-  nil)
-
 (provide 'proced)
 
-;; arch-tag: a6e312ad-9032-45aa-972d-31a8cfc545af
 ;;; proced.el ends here

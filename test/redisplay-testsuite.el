@@ -1,6 +1,6 @@
 ;;; redisplay-testsuite.el --- Test suite for redisplay.
 
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Chong Yidong <cyd@stupidchicken.com>
 ;; Keywords:       internal
@@ -178,4 +178,3 @@ static unsigned char x_bits[] = {0xff, 0x81, 0xbd, 0xa5, 0xa5, 0xbd, 0x81, 0xff 
     (test-redisplay-3)
     (goto-char (point-min))))
 
-;; arch-tag: fcee53c8-024f-403d-9154-61ae3ce0bfb8

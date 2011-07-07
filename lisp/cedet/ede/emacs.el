@@ -1,6 +1,6 @@
 ;;; ede/emacs.el --- Special project for Emacs
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -299,5 +299,4 @@ Knows about how the Emacs source tree is organized."
 ;; generated-autoload-load-name: "ede/emacs"
 ;; End:
 
-;; arch-tag: 7cd0be95-663d-4101-8799-2f8216fd8233
 ;;; ede/emacs.el ends here

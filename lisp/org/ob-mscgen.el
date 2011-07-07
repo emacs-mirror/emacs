@@ -1,11 +1,11 @@
 ;;; ob-msc.el --- org-babel functions for mscgen evaluation
 
-;; Copyright (C) 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 ;; Author: Juan Pechiar
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 
 ;; This file is part of GNU Emacs.
 
@@ -81,6 +81,5 @@ ERROR: no output file specified. Add \":file name.png\" to the src header"))
 
 (provide 'ob-mscgen)
 
-;; arch-tag: 74695b1e-715f-4b5a-a3a9-d78ee39ba5c8
 
 ;;; ob-msc.el ends here

@@ -1,7 +1,6 @@
 ;;; cap-words.el --- minor mode for motion in CapitalizedWordIdentifiers
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: languages
@@ -92,5 +91,4 @@ Obsoletes `c-forward-into-nomenclature'."
 
 (provide 'cap-words)
 
-;; arch-tag: 46513b64-fe5a-4c0b-902c-ed235c22975f
 ;;; cap-words.el ends here

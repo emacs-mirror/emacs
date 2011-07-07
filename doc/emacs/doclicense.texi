@@ -506,7 +506,3 @@ to permit their use in free software.
 @c ispell-local-pdict: "ispell-dict"
 @c End:
 
-@ignore
-   arch-tag: d68e7b7a-0c7c-4c15-905b-a9482214e25a
-@end ignore
-

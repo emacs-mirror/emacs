@@ -1,12 +1,11 @@
 ;;; org-html.el --- HTML export for Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -1091,74 +1090,74 @@ lang=\"%s\" xml:lang=\"%s\">
 	    (push "<div id=\"text-table-of-contents\">\n" thetoc)
 	    (push "<ul>\n<li>" thetoc)
 	    (setq lines
-		  (mapcar '(lambda (line)
-			     (if (and (string-match org-todo-line-regexp line)
-				      (not (get-text-property 0 'org-protected line)))
-				 ;; This is a headline
-				 (progn
-				   (setq have-headings t)
-				   (setq level (- (match-end 1) (match-beginning 1)
-						  level-offset)
-					 level (org-tr-level level)
-					 txt (save-match-data
-					       (org-html-expand
-						(org-export-cleanup-toc-line
-						 (match-string 3 line))))
-					 todo
-					 (or (and org-export-mark-todo-in-toc
-						  (match-beginning 2)
-						  (not (member (match-string 2 line)
-							       org-done-keywords)))
+		  (mapcar (lambda (line)
+                            (if (and (string-match org-todo-line-regexp line)
+                                     (not (get-text-property 0 'org-protected line)))
+                                ;; This is a headline
+                                (progn
+                                  (setq have-headings t)
+                                  (setq level (- (match-end 1) (match-beginning 1)
+                                                 level-offset)
+                                        level (org-tr-level level)
+                                        txt (save-match-data
+                                              (org-html-expand
+                                               (org-export-cleanup-toc-line
+                                                (match-string 3 line))))
+                                        todo
+                                        (or (and org-export-mark-todo-in-toc
+                                                 (match-beginning 2)
+                                                 (not (member (match-string 2 line)
+                                                              org-done-keywords)))
 					; TODO, not DONE
-					     (and org-export-mark-todo-in-toc
-						  (= level umax-toc)
-						  (org-search-todo-below
-						   line lines level))))
-				   (if (string-match
-					(org-re "[ \t]+:\\([[:alnum:]_@:]+\\):[ \t]*$") txt)
-				       (setq txt (replace-match  "&nbsp;&nbsp;&nbsp;<span class=\"tag\"> \\1</span>" t nil txt)))
-				   (if (string-match quote-re0 txt)
-				       (setq txt (replace-match "" t t txt)))
-				   (setq snumber (org-section-number level))
-				   (if org-export-with-section-numbers
-				       (setq txt (concat snumber " " txt)))
-				   (if (<= level (max umax umax-toc))
-				       (setq head-count (+ head-count 1)))
-				   (if (<= level umax-toc)
-				       (progn
-					 (if (> level org-last-level)
-					     (progn
-					       (setq cnt (- level org-last-level))
-					       (while (>= (setq cnt (1- cnt)) 0)
-						 (push "\n<ul>\n<li>" thetoc))
-					       (push "\n" thetoc)))
-					 (if (< level org-last-level)
-					     (progn
-					       (setq cnt (- org-last-level level))
-					       (while (>= (setq cnt (1- cnt)) 0)
-						 (push "</li>\n</ul>" thetoc))
-					       (push "\n" thetoc)))
-					 ;; Check for targets
-					 (while (string-match org-any-target-regexp line)
-					   (setq line (replace-match
-						       (concat "@<span class=\"target\">" (match-string 1 line) "@</span> ")
-						       t t line)))
-					 (while (string-match "&lt;\\(&lt;\\)+\\|&gt;\\(&gt;\\)+" txt)
-					   (setq txt (replace-match "" t t txt)))
-					 (setq href
-					       (replace-regexp-in-string
-						"\\." "_" (format "sec-%s" snumber)))
-					 (setq href (or (cdr (assoc href org-export-preferred-target-alist)) href))
-					 (push
-					  (format
-					   (if todo
-					       "</li>\n<li><a href=\"#%s\"><span class=\"todo\">%s</span></a>"
-					     "</li>\n<li><a href=\"#%s\">%s</a>")
-					   href txt) thetoc)
+                                            (and org-export-mark-todo-in-toc
+                                                 (= level umax-toc)
+                                                 (org-search-todo-below
+                                                  line lines level))))
+                                  (if (string-match
+                                       (org-re "[ \t]+:\\([[:alnum:]_@:]+\\):[ \t]*$") txt)
+                                      (setq txt (replace-match  "&nbsp;&nbsp;&nbsp;<span class=\"tag\"> \\1</span>" t nil txt)))
+                                  (if (string-match quote-re0 txt)
+                                      (setq txt (replace-match "" t t txt)))
+                                  (setq snumber (org-section-number level))
+                                  (if org-export-with-section-numbers
+                                      (setq txt (concat snumber " " txt)))
+                                  (if (<= level (max umax umax-toc))
+                                      (setq head-count (+ head-count 1)))
+                                  (if (<= level umax-toc)
+                                      (progn
+                                        (if (> level org-last-level)
+                                            (progn
+                                              (setq cnt (- level org-last-level))
+                                              (while (>= (setq cnt (1- cnt)) 0)
+                                                (push "\n<ul>\n<li>" thetoc))
+                                              (push "\n" thetoc)))
+                                        (if (< level org-last-level)
+                                            (progn
+                                              (setq cnt (- org-last-level level))
+                                              (while (>= (setq cnt (1- cnt)) 0)
+                                                (push "</li>\n</ul>" thetoc))
+                                              (push "\n" thetoc)))
+                                        ;; Check for targets
+                                        (while (string-match org-any-target-regexp line)
+                                          (setq line (replace-match
+                                                      (concat "@<span class=\"target\">" (match-string 1 line) "@</span> ")
+                                                      t t line)))
+                                        (while (string-match "&lt;\\(&lt;\\)+\\|&gt;\\(&gt;\\)+" txt)
+                                          (setq txt (replace-match "" t t txt)))
+                                        (setq href
+                                              (replace-regexp-in-string
+                                               "\\." "_" (format "sec-%s" snumber)))
+                                        (setq href (or (cdr (assoc href org-export-preferred-target-alist)) href))
+                                        (push
+                                         (format
+                                          (if todo
+                                              "</li>\n<li><a href=\"#%s\"><span class=\"todo\">%s</span></a>"
+                                            "</li>\n<li><a href=\"#%s\">%s</a>")
+                                          href txt) thetoc)
 
-					 (setq org-last-level level))
-				     )))
-			     line)
+                                        (setq org-last-level level))
+                                    )))
+                            line)
 			  lines))
 	    (while (> org-last-level (1- org-min-level))
 	      (setq org-last-level (1- org-last-level))
@@ -1213,7 +1212,11 @@ lang=\"%s\" xml:lang=\"%s\">
 	    (throw 'nextline nil))
 
 	  ;; Protected HTML
-	  (when (get-text-property 0 'org-protected line)
+	  (when (and (get-text-property 0 'org-protected line)
+		     ;; Make sure it is the entire line that is protected
+		     (not (< (or (next-single-property-change
+				  0 'org-protected line) 10000)
+			     (length line))))
 	    (let (par (ind (get-text-property 0 'original-indentation line)))
 	      (when (re-search-backward
 		     "\\(<p>\\)\\([ \t\r\n]*\\)\\=" (- (point) 100) t)
@@ -2316,10 +2319,9 @@ When TITLE is nil, just close all open levels."
 	 (extra-class (and title (org-get-text-property-any 0 'html-container-class title)))
 	 (preferred (and target
 			 (cdr (assoc target org-export-preferred-target-alist))))
-	 (remove (or preferred target))
 	 (l org-level-max)
 	 snumber snu href suffix)
-    (setq extra-targets (remove remove extra-targets))
+    (setq extra-targets (remove (or preferred target) extra-targets))
     (setq extra-targets
 	  (mapconcat (lambda (x)
 		       (if (org-uuidgen-p x) (setq x (concat "ID-" x)))
@@ -2358,12 +2360,13 @@ When TITLE is nil, just close all open levels."
 		(progn
 		  (org-close-li)
 		  (if target
-		      (insert (format "<li id=\"%s\">" target) extra-targets title "<br/>\n")
+		      (insert (format "<li id=\"%s\">" (or preferred target))
+			      extra-targets title "<br/>\n")
 		    (insert "<li>" title "<br/>\n")))
 	      (aset org-levels-open (1- level) t)
 	      (org-close-par-maybe)
 	      (if target
-		  (insert (format "<ul>\n<li id=\"%s\">" target)
+		  (insert (format "<ul>\n<li id=\"%s\">" (or preferred target))
 			  extra-targets title "<br/>\n")
 		(insert "<ul>\n<li>" title "<br/>\n"))))
 	(aset org-levels-open (1- level) t)
@@ -2411,5 +2414,4 @@ Replaces invalid characters with \"_\" and then prepends a prefix."
 
 (provide 'org-html)
 
-;; arch-tag: 8109d84d-eb8f-460b-b1a8-f45f3a6c7ea1
 ;;; org-html.el ends here

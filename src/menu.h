@@ -1,5 +1,5 @@
 /* Functions to manipulate menus.
-   Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -19,7 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef MENU_H
 #define MENU_H
 
-extern Lisp_Object Vmenu_updating_frame;
+#include "systime.h" /* for Time */
 
 extern void x_set_menu_bar_lines (struct frame *f,
                                   Lisp_Object value,
@@ -50,8 +50,5 @@ extern Lisp_Object w32_menu_show (FRAME_PTR, int, int, int, int,
 extern Lisp_Object ns_menu_show (FRAME_PTR, int, int, int, int,
 				 Lisp_Object, const char **);
 extern Lisp_Object xmenu_show (FRAME_PTR, int, int, int, int,
-			       Lisp_Object, const char **, EMACS_UINT);
+			       Lisp_Object, const char **, Time);
 #endif /* MENU_H */
-
-/* arch-tag: c32b2778-724d-4e85-81d7-45f98530a988
-   (do not change this comment) */

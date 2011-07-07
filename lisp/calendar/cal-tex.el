@@ -1,7 +1,6 @@
 ;;; cal-tex.el --- calendar functions for printing calendars with LaTeX
 
-;; Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Steve Fisk <fisk@bowdoin.edu>
 ;;         Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -254,7 +253,7 @@ This definition is the heart of the calendar!")
                  3)))
          holidays in-range a)
     (calendar-increment-month displayed-month displayed-year 1)
-    (dotimes (idummy number-of-intervals)
+    (dotimes (_idummy number-of-intervals)
       (setq holidays (append holidays (calendar-holiday-list)))
       (calendar-increment-month displayed-month displayed-year 3))
     (dolist (hol holidays)
@@ -526,7 +525,7 @@ indicates a buffer position to use instead of point."
     (cal-tex-insert-day-names)
     (cal-tex-nl ".2cm")
     (cal-tex-insert-blank-days month year cal-tex-day-prefix)
-    (dotimes (idummy n)
+    (dotimes (_idummy n)
       (cal-tex-insert-days month year diary-list holidays cal-tex-day-prefix)
       (when (= (calendar-week-end-day)
                (calendar-day-of-week
@@ -643,7 +642,7 @@ in the calendar starting in MONTH YEAR."
   ;; start of the last week in the month.
   (catch 'found
     (let ((last-day (calendar-last-day-of-month month year))
-          day dow)
+          dow)
       (dotimes (i 7)
         (if (memq (setq dow (calendar-day-of-week
                              (list month (- last-day i) year)))
@@ -718,7 +717,7 @@ entries are not shown).  The calendar shows the hours 8-12am, 1-5pm."
       (cal-tex-e-center)
       (cal-tex-hspace "-.2in")
       (cal-tex-b-parbox "l" "7in")
-      (dotimes (jdummy 7)
+      (dotimes (_jdummy 7)
         (cal-tex-week-hours date holidays "3.1")
         (setq date (cal-tex-incr-date date)))
       (cal-tex-e-parbox)
@@ -750,7 +749,6 @@ Optional EVENT indicates a buffer position to use instead of point."
                   (calendar-cursor-to-date t event)))))
          (month (calendar-extract-month date))
          (year (calendar-extract-year date))
-         (d date)
          (d1 (calendar-absolute-from-gregorian date))
          (d2 (+ (* 7 n) d1))
          (holidays (if cal-tex-holidays
@@ -774,7 +772,7 @@ Optional EVENT indicates a buffer position to use instead of point."
       (cal-tex-e-center)
       (cal-tex-hspace "-.2in")
       (cal-tex-b-parbox "l" "\\textwidth")
-      (dotimes (jdummy 3)
+      (dotimes (_jdummy 3)
         (cal-tex-week-hours date holidays "5")
         (setq date (cal-tex-incr-date date)))
       (cal-tex-e-parbox)
@@ -802,7 +800,7 @@ Optional EVENT indicates a buffer position to use instead of point."
       (insert "}")
       (cal-tex-nl)
       (cal-tex-b-parbox "l" "\\textwidth")
-      (dotimes (jdummy 4)
+      (dotimes (_jdummy 4)
         (cal-tex-week-hours date holidays "5")
         (setq date (cal-tex-incr-date date)))
       (cal-tex-e-parbox)
@@ -864,7 +862,7 @@ position to use instead of point."
       (cal-tex-nl ".5cm")
       (cal-tex-e-center)
       (cal-tex-b-parbox "l" "\\textwidth")
-      (dotimes (j 7)
+      (dotimes (_j 7)
         (cal-tex-b-parbox "t" "\\textwidth")
         (cal-tex-b-parbox "t" "\\textwidth")
         (cal-tex-rule "0pt" "\\textwidth" ".2mm")
@@ -1113,7 +1111,7 @@ Optional EVENT indicates a buffer position to use instead of point."
                       (cal-tex-month-name (calendar-extract-month d))
                       (calendar-extract-year d))))))
       (insert "%\n")
-      (dotimes (jdummy 7)
+      (dotimes (_jdummy 7)
         (if (zerop (mod i 2))
             (insert "\\rightday")
           (insert "\\leftday"))
@@ -1217,7 +1215,7 @@ Optional EVENT indicates a buffer position to use instead of point."
                      (cal-tex-month-name (calendar-extract-month d))
                      (calendar-extract-year d))))))
       (insert "%\n")
-      (dotimes (jdummy 3)
+      (dotimes (_jdummy 3)
         (insert "\\leftday")
         (cal-tex-arg (cal-tex-LaTeXify-string (calendar-day-name date)))
         (cal-tex-arg (number-to-string (calendar-extract-day date)))
@@ -1248,7 +1246,7 @@ Optional EVENT indicates a buffer position to use instead of point."
                      (cal-tex-month-name (calendar-extract-month d))
                      (calendar-extract-year d))))))
       (insert "%\n")
-      (dotimes (jdummy 2)
+      (dotimes (_jdummy 2)
         (insert "\\rightday")
         (cal-tex-arg (cal-tex-LaTeXify-string (calendar-day-name date)))
         (cal-tex-arg (number-to-string (calendar-extract-day date)))
@@ -1257,7 +1255,7 @@ Optional EVENT indicates a buffer position to use instead of point."
         (cal-tex-arg (eval cal-tex-daily-string))
         (insert "%\n")
         (setq date (cal-tex-incr-date date)))
-      (dotimes (jdummy 2)
+      (dotimes (_jdummy 2)
         (insert "\\weekend")
         (cal-tex-arg (cal-tex-LaTeXify-string (calendar-day-name date)))
         (cal-tex-arg (number-to-string (calendar-extract-day date)))
@@ -1363,7 +1361,7 @@ Optional EVENT indicates a buffer position to use instead of point."
         (cal-tex-newpage)
         (setq date (cal-tex-incr-date date)))
       (insert "%\n")
-      (dotimes (jdummy 2)
+      (dotimes (_jdummy 2)
         (insert "\\lefthead")
         (cal-tex-arg (calendar-date-string date))
         (insert "\\weekend")
@@ -1524,7 +1522,7 @@ Optional string COLSEP gives the column separation (default \"1mm\")."
                     (if (= i 6)
                         "\\\\[0.7mm]\n"
                       " & "))))
-    (dotimes (idummy blank-days)
+    (dotimes (_idummy blank-days)
       (setq str (concat str " & ")))
     (dotimes (i last)
       (setq str (concat str (number-to-string (1+ i)))
@@ -1588,6 +1586,16 @@ FINAL-SEPARATOR is non-nil."
 Insert the trailer to LaTeX document, pop to LaTeX buffer, add
 informative header, and run HOOK."
   (cal-tex-e-document)
+  (or (and cal-tex-preamble-extra
+           (string-match "inputenc" cal-tex-preamble-extra))
+      (not (re-search-backward "[^[:ascii:]]" nil 'move))
+      (progn
+        (goto-char (point-min))
+        (when (search-forward "documentclass" nil t)
+          (forward-line 1)
+          ;; Eg for some Bahai holidays.
+          ;; FIXME latin1 might not always be right.
+          (insert "\\usepackage[latin1]{inputenc}\n"))))
   (latex-mode)
   (pop-to-buffer cal-tex-buffer)
   (goto-char (point-min))
@@ -1832,5 +1840,4 @@ Add trailing COMMENT if present."
 
 (provide 'cal-tex)
 
-;; arch-tag: ca8168a4-5a00-4508-a565-17e3bccce6d0
 ;;; cal-tex.el ends here

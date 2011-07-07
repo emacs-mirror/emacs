@@ -1,7 +1,6 @@
 ;;; sort.el --- Utilities for sorting and re-arranging tag tables.
 
-;;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007,
-;;; 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 1999-2005, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: syntax
@@ -566,5 +565,4 @@ See `semantic-tag-external-class' for details."
 ;; generated-autoload-load-name: "semantic/sort"
 ;; End:
 
-;; arch-tag: 9231c8e7-ac7f-4b35-9302-651a02e5fef0
 ;;; semantic-sort.el ends here

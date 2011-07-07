@@ -37,8 +37,7 @@
 @end macro
 
 @copying
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright @copyright{} 1999-2011 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -55,7 +54,7 @@ supports it in developing GNU and promoting software freedom.''
 @end copying
 
 @c Entries for @command{install-info} to use
-@dircategory @value{emacsname}
+@dircategory @value{emacsname} network features
 @direntry
 * TRAMP: (tramp).               Transparent Remote Access, Multiple Protocol
                                 @value{emacsname} remote file access via rsh and rcp.
@@ -370,13 +369,12 @@ behind the scenes when you open a file with @value{tramp}.
 @cindex obtaining Tramp
 
 @value{tramp} is freely available on the Internet and the latest
-release may be downloaded from
-@uref{ftp://ftp.gnu.org/gnu/tramp/}.  This release includes the full
-documentation and code for @value{tramp}, suitable for installation.
-But GNU Emacs (22 or later) includes @value{tramp} already, and there
-is a @value{tramp} package for XEmacs, as well.  So maybe it is easier
-to just use those.  But if you want the bleeding edge, read
-on@dots{...}
+release may be downloaded from @uref{ftp://ftp.gnu.org/gnu/tramp/}.
+This release includes the full documentation and code for
+@value{tramp}, suitable for installation.  But Emacs (22 or later)
+includes @value{tramp} already, and there is a @value{tramp} package
+for XEmacs, as well.  So maybe it is easier to just use those.  But if
+you want the bleeding edge, read on@dots{...}
 
 For the especially brave, @value{tramp} is available from CVS.  The CVS
 version is the latest version of the code and may contain incomplete
@@ -444,15 +442,12 @@ Support of gateways exists since April 2007.
 @ifset emacsgvfs
 GVFS integration started in February 2009.
 @end ifset
-@ifset emacsimap
-Storing files into IMAP mailboxes has been added in September 2009.
-@end ifset
 
 In December 2001, @value{tramp} has been added to the XEmacs package
-repository.  Being part of the GNU Emacs repository happened in June
-2002, the first release including @value{tramp} was GNU Emacs 22.1.
+repository.  Being part of the Emacs repository happened in June 2002,
+the first release including @value{tramp} was Emacs 22.1.
 
-@value{tramp} is also a GNU/Linux Debian package since February 2001.
+@value{tramp} is also a Debian GNU/Linux package since February 2001.
 
 
 @c Installation chapter is necessary only in case of standalone
@@ -694,6 +689,14 @@ This supports the @samp{-p} argument.
 
 This method is also similar to @option{ssh}.  It only uses the
 @command{krlogin -x} command to log in to the remote host.
+
+
+@item @option{ksu}
+@cindex method ksu
+@cindex ksu method
+@cindex Kerberos (with ksu method)
+
+This is another method from the Kerberos suite.  It behaves like @option{su}.
 
 
 @item @option{plink}
@@ -949,7 +952,7 @@ anyway.
 @cindex method ftp
 @cindex ftp method
 
-This is not a native @value{tramp} method.  Instead of, it forwards all
+This is not a native @value{tramp} method.  Instead, it forwards all
 requests to @value{ftppackagename}.
 @ifset xemacs
 This works only for unified filenames, see @ref{Issues}.
@@ -964,20 +967,20 @@ This is another not natural @value{tramp} method.  It uses the
 @command{smbclient} command on different Unices in order to connect to
 an SMB server.  An SMB server might be a Samba (or CIFS) server on
 another UNIX host or, more interesting, a host running MS Windows.  So
-far, it is tested towards MS Windows NT, MS Windows 2000, and MS
+far, it is tested against MS Windows NT, MS Windows 2000, and MS
 Windows XP.
 
 The first directory in the localname must be a share name on the remote
-host.  Remember, that the @code{$} character in which default shares
+host.  Remember that the @code{$} character, in which default shares
 usually end, must be written @code{$$} due to environment variable
 substitution in file names.  If no share name is given (i.e. remote
 directory @code{/}), all available shares are listed.
 
-Since authorization is done on share level, you will be prompted
-always for a password if you access another share on the same host.
+Since authorization is done on share level, you will always be
+prompted for a password if you access another share on the same host.
 This can be suppressed by @ref{Password handling}.
 
-MS Windows uses for authorization both a user name and a domain name.
+For authorization, MS Windows uses both a user name and a domain name.
 Because of this, the @value{tramp} syntax has been extended: you can
 specify a user name which looks like @code{user%domain} (the real user
 name, then a percent sign, then the domain name).  So, to connect to
@@ -1001,33 +1004,10 @@ methods, where in such a case the local user name is taken.
 The @option{smb} method supports the @samp{-p} argument.
 
 @strong{Please note:} If @value{emacsname} runs locally under MS
-Windows, this method isn't available.  Instead of, you can use UNC
+Windows, this method isn't available.  Instead, you can use UNC
 file names like @file{//melancholia/daniel$$/.emacs}.  The only
 disadvantage is that there's no possibility to specify another user
 name.
-
-
-@ifset emacsimap
-@item @option{imap}
-@cindex method imap
-@cindex method imaps
-@cindex imap method
-@cindex imaps method
-
-Accessing an IMAP mailbox is intended to save files there as encrypted
-message.  It could be used in case there are no other remote file
-storages available.
-
-@value{tramp} supports both @option{imap} and @option{imaps} methods.
-The latter one accesses the IMAP server over ssl.
-
-Both methods support the port number specification.
-
-Note, that special handling is needed for declaring a passphrase for
-encryption / decryption of the messages (@pxref{Using an
-authentication file}).
-
-@end ifset
 @end table
 
 
@@ -1041,7 +1021,7 @@ authentication file}).
 The connection methods described in this section are based on GVFS
 @uref{http://en.wikipedia.org/wiki/GVFS}.  Via GVFS, the remote
 filesystem is mounted locally through FUSE.  @value{tramp} uses
-internally this local mounted directory.
+this local mounted directory internally.
 
 The communication with GVFS is implemented via D-Bus messages.
 Therefore, your @value{emacsname} must have D-Bus integration,
@@ -1066,7 +1046,7 @@ Both methods support the port number specification as discussed above.
 @cindex obex method
 
 OBEX is an FTP-like access protocol for simple devices, like cell
-phones.  Until now @value{tramp} supports only OBEX over Bluetooth.
+phones.  For the time being, @value{tramp} only supports OBEX over Bluetooth.
 
 
 @item @option{synce}
@@ -1075,11 +1055,11 @@ phones.  Until now @value{tramp} supports only OBEX over Bluetooth.
 
 The @option{synce} method allows communication with Windows Mobile
 devices.  Beside GVFS for mounting remote files and directories via
-FUSE, it needs also the SYNCE-GVFS plugin.
+FUSE, it also needs the SYNCE-GVFS plugin.
 @end table
 
 @defopt tramp-gvfs-methods
-This customer option, a list, defines the external methods, which
+This customer option, a list, defines the external methods which
 shall be used with GVFS.  Per default, these are @option{dav},
 @option{davs}, @option{obex} and @option{synce}.  Other possible
 values are @option{ftp}, @option{sftp} and @option{smb}.
@@ -1098,10 +1078,10 @@ These methods are intended to pass firewalls or proxy servers.
 Therefore, they can be used for proxy host declarations
 (@pxref{Multi-hops}) only.
 
-A gateway method must come always along with a method who supports
+A gateway method must always come along with a method which supports
 port setting.  This is because @value{tramp} targets the accompanied
 method to @file{localhost#random_port}, from where the firewall or
-proxy server is accessed to.
+proxy server is accessed.
 
 Gateway methods support user name and password declarations.  These
 are used to authenticate towards the corresponding firewall or proxy
@@ -1559,7 +1539,8 @@ can return user names only.
 @item @code{tramp-parse-netrc}
 @findex tramp-parse-netrc
 
-Finally, a function which parses @file{~/.netrc} like files.
+Finally, a function which parses @file{~/.netrc} like files.  This
+includes also @file{~/.authinfo}-style files.
 @end table
 
 If you want to keep your own data in a file, with your own structure,
@@ -1618,17 +1599,9 @@ The port can be any @value{tramp} method (@pxref{Inline methods},
 @pxref{External methods}), to match only this method.  When you omit
 the port, you match all @value{tramp} methods.
 
-@ifset emacsimap
-A special case are @option{imap}-like methods.  Authentication with
-the IMAP server is performed via @file{imap.el}, there is no special
-need from @value{tramp} point of view.  An additional passphrase, used
-for symmetric encryption and decryption of the stored messages, should
-be given with the special port indication @option{tramp-imap}:
+In case of problems, setting @code{auth-source-debug} to @code{t}
+gives useful debug messages.
 
-@example
-machine melancholia port tramp-imap login daniel password ultrageheim
-@end example
-@end ifset
 
 @anchor{Caching passwords}
 @subsection Caching passwords
@@ -1704,7 +1677,7 @@ multiple hops (@pxref{Multi-hops}).
 When @value{tramp} detects a changed operating system version on a
 remote host (via the command @command{uname -sr}), it flushes all
 connection related information for this host, and opens the
-connection, again.
+connection again.
 
 
 @node Remote Programs
@@ -1735,9 +1708,10 @@ By default, this is set to a reasonable set of defaults for most
 machines.  The symbol @code{tramp-default-remote-path} is a place
 holder, it is replaced by the list of directories received via the
 command @command{getconf PATH} on your remote machine.  For example,
-on GNU Debian this is @file{/bin:/usr/bin}, whereas on Solaris this is
-@file{/usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin}.  It is
-recommended to apply this symbol on top of @code{tramp-remote-path}.
+on Debian GNU/Linux this is @file{/bin:/usr/bin}, whereas on Solaris
+this is @file{/usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin}.
+It is recommended to apply this symbol on top of
+@code{tramp-remote-path}.
 
 It is possible, however, that your local (or remote ;) system
 administrator has put the tools you want in some obscure local
@@ -1759,7 +1733,7 @@ as:
 @end lisp
 
 Another possibility is to reuse the path settings of your remote
-account, when you log in.  Usually, these settings are overwritten,
+account when you log in.  Usually, these settings are overwritten,
 because they might not be useful for @value{tramp}.  The place holder
 @code{tramp-own-remote-path} preserves these settings.  You can
 activate it via
@@ -2419,8 +2393,8 @@ If the configuration files (@pxref{Customizing Completion}), which
 @value{tramp} uses for analysis of completion, offer user names, those user
 names will be taken into account as well.
 
-Remote machines, which have been visited in the past and kept
-persistently (@pxref{Connection caching}), will be offered too.
+Remote machines which have been visited in the past and kept
+persistently (@pxref{Connection caching}) will be offered too.
 
 Once the remote machine identification is completed, it comes to
 filename completion on the remote host.  This works pretty much like
@@ -2460,8 +2434,8 @@ Example:
 
 A remote directory might have changed its contents out of
 @value{emacsname} control, for example by creation or deletion of
-files by other processes.  Therefore, during filename completion the
-remote directory contents is reread regularly in order to detect such
+files by other processes.  Therefore, during filename completion, the
+remote directory contents are reread regularly in order to detect such
 changes, which would be invisible otherwise (@pxref{Connection caching}).
 
 @defopt tramp-completion-reread-directory-timeout
@@ -2482,6 +2456,15 @@ allows to exploit @value{emacsname} packages without modification for
 remote file names.  It does not work for the @option{ftp} and
 @option{smb} methods.  Association of a pty, as specified in
 @code{start-file-process}, is not supported.
+
+@code{process-file} and @code{start-file-process} work on the remote
+host when the variable @code{default-directory} is remote:
+
+@lisp
+(let ((default-directory "/ssh:remote.host:"))
+  (start-file-process "grep" (get-buffer-create "*grep*")
+                      "/bin/sh" "-c" "grep -e tramp *"))
+@end lisp
 
 @ifset emacsgvfs
 If the remote host is mounted via GVFS (see @ref{GVFS based methods}),
@@ -2562,7 +2545,28 @@ Another trick might be that you put @code{ForwardX11 yes} or
 that host.
 
 
-@subsection Running shell-command on a remote host
+@subsection Running @code{shell} on a remote host
+@cindex shell
+
+Calling @code{M-x shell} in a buffer related to a remote host runs the
+local shell as defined in @option{shell-file-name}.  This might be
+also a valid path name for a shell to be applied on the remote host,
+but it will fail at least when your local and remote hosts belong to
+different system types, like @samp{windows-nt} and @samp{gnu/linux}.
+
+You must set the variable @option{explicit-shell-file-name} to the
+shell path name on the remote host, in order to start that shell on
+the remote host.
+
+@ifset emacs
+Starting with Emacs 24 this won't be necessary, if you call
+@code{shell} interactively.  You will be asked for the remote shell
+path, if you are on a remote buffer, and if
+@option{explicit-shell-file-name} is equal to @code{nil}.
+@end ifset
+
+
+@subsection Running @code{shell-command} on a remote host
 @cindex shell-command
 
 @code{shell-command} allows to execute commands in a shell, either
@@ -2578,13 +2582,13 @@ You will see the buffer @file{*Async Shell Command*}, containing the
 continuous output of the @command{tail} command.
 
 
-@subsection Running eshell on a remote host
+@subsection Running @code{eshell} on a remote host
 @cindex eshell
 
 @value{tramp} is integrated into @file{eshell.el}.  That is, you can
 open an interactive shell on your remote host, and run commands there.
-After you have started @code{eshell}, you could perform commands like
-this:
+After you have started @code{M-x eshell}, you could perform commands
+like this:
 
 @example
 @b{~ $} cd @trampfn{sudo, , , /etc} @key{RET}
@@ -2676,6 +2680,12 @@ handling}), file cache, connection cache (@pxref{Connection caching}),
 connection buffers.
 @end deffn
 
+@deffn Command tramp-cleanup-this-connection
+This command flushes all objects of the current buffer's remote
+connection.  The same objects are removed as in
+@code{tramp-cleanup-connection}.
+@end deffn
+
 @deffn Command tramp-cleanup-all-connections
 This command flushes objects for all active remote connections.  The
 same objects are removed as in @code{tramp-cleanup-connection}.
@@ -2762,13 +2772,13 @@ There is also a Savannah project page.
 @item
 Which systems does it work on?
 
-The package has been used successfully on GNU Emacs 22, GNU Emacs 23,
-XEmacs 21 (starting with 21.4), and SXEmacs 22.
+The package has been used successfully on Emacs 22, Emacs 23, Emacs
+24, XEmacs 21 (starting with 21.4), and SXEmacs 22.
 
 The package was intended to work on Unix, and it really expects a
-Unix-like system on the remote end (except the @option{smb} and
-@option{imap} methods), but some people seemed to have some success
-getting it to work on MS Windows XP/Vista/7 @value{emacsname}.
+Unix-like system on the remote end (except the @option{smb} method),
+but some people seemed to have some success getting it to work on MS
+Windows XP/Vista/7 @value{emacsname}.
 
 
 @item
@@ -2786,7 +2796,7 @@ Use caching.  This is already enabled by default.  Information about
 the remote host as well as the remote files are cached for reuse.  The
 information about remote hosts is kept in the file specified in
 @code{tramp-persistency-file-name}.  Keep this file.  If you are
-confident, that files on remote hosts are not changed out of
+confident that files on remote hosts are not changed out of
 @value{emacsname}' control, set @code{remote-file-name-inhibit-cache}
 to @code{nil}.
 
@@ -2813,12 +2823,11 @@ When @value{tramp} does not connect to the remote host, there are three
 reasons heading the bug mailing list:
 
 @itemize @minus
-
 @item
 Unknown characters in the prompt
 
 @value{tramp} needs to recognize the prompt on the remote machine
-after execution any command.  This is not possible, when the prompt
+after execution any command.  This is not possible when the prompt
 contains unknown characters like escape sequences for coloring.  This
 should be avoided on the remote side.  @xref{Remote shell setup}. for
 setting the regular expression detecting the prompt.
@@ -2842,6 +2851,9 @@ the following command:
 @example
 [ $TERM = "dumb" ] && unsetopt zle && PS1='$ '
 @end example
+
+Furthermore it has been reported, that @value{tramp} (like sshfs,
+incidentally) doesn't work with WinSSHD due to strange prompt settings.
 
 @item
 Echoed characters after login
@@ -2880,7 +2892,6 @@ checksum.
     (when (file-remote-p default-directory)
       (set (make-local-variable 'file-precious-flag) t))))
 @end lisp
-
 @end itemize
 
 
@@ -2890,7 +2901,7 @@ checksum.
 When your network connection is down, @command{ssh} sessions might
 hang.  @value{tramp} cannot detect it safely, because it still sees a
 running @command{ssh} process.  Timeouts cannot be used as well,
-because it cannot be predicted, how long a remote command will last,
+because it cannot be predicted how long a remote command will last,
 for example when copying very large files.
 
 Therefore, you must configure the @command{ssh} process to die
@@ -3100,7 +3111,7 @@ You can define default methods and user names for hosts,
 The file name left to type would be
 @kbd{C-x C-f @trampfn{, , news.my.domain, /opt/news/etc}}.
 
-Note, that there are some useful settings already.  Accessing your
+Note that there are some useful settings already.  Accessing your
 local host as @samp{root} user, is possible just by @kbd{C-x C-f
 @trampfn{su, , ,}}.
 
@@ -3132,7 +3143,7 @@ Lisp:
 @end lisp
 
 Then you need simply to type @kbd{C-x C-f $xy @key{RET}}, and here you
-are.  The disadvantage is, that you cannot edit the file name, because
+are.  The disadvantage is that you cannot edit the file name, because
 environment variables are not expanded during editing in the
 minibuffer.
 
@@ -3304,7 +3315,7 @@ You need to load @file{bbdb}:
 
 Then you can create a BBDB entry via @kbd{M-x bbdb-create-ftp-site}.
 Because BBDB is not prepared for @value{tramp} syntax, you must
-specify a method together with the user name, when needed. Example:
+specify a method together with the user name when needed. Example:
 
 @example
 @kbd{M-x bbdb-create-ftp-site @key{RET}}
@@ -3321,7 +3332,7 @@ pressing the key @key{F}.
 
 @end enumerate
 
-I would like to thank all @value{tramp} users, who have contributed to
+I would like to thank all @value{tramp} users who have contributed to
 the different recipes!
 
 
@@ -3344,7 +3355,7 @@ On the remote host, you start the Emacs Server:
 (server-start)
 @end lisp
 
-Make sure, that the result of @code{(system-name)} can be resolved on
+Make sure that the result of @code{(system-name)} can be resolved on
 your local host; otherwise you might use a hard coded IP address.
 
 The resulting file @file{~/.emacs.d/server/server} must be copied to
@@ -3375,14 +3386,43 @@ export EDITOR=/path/to/emacsclient.sh
 
 
 @item
-How can I disable @value{tramp}?
+There are packages which call @value{tramp} although I haven't entered
+a remote file name ever.  I dislike it, how could I disable it?
+
+In general, @value{tramp} functions are used only when
+you apply remote file name syntax.  However, some packages enable
+@value{tramp} on their own.
+
+@itemize @minus
+@item
+@file{ido.el}
+
+You could disable @value{tramp} file name completion:
+
+@lisp
+(custom-set-variables
+ '(ido-enable-tramp-completion nil))
+@end lisp
+
+@item
+@file{rlogin.el}
+
+You could disable remote directory tracking mode:
+
+@lisp
+(rlogin-directory-tracking-mode -1)
+@end lisp
+@end itemize
+
+
+@item
+How can I disable @value{tramp} at all?
 
 Shame on you, why did you read until now?
 
 @itemize @minus
-
-@item
 @ifset emacs
+@item
 If you just want to have @value{ftppackagename} as default remote
 files access package, you should apply the following code:
 
@@ -3478,7 +3518,7 @@ its complete cache keeping attributes for all files of the remote host
 it has seen so far.
 
 This is a performance degradation, because the lost file attributes
-must be recomputed, when needed again.  In cases the caller of
+must be recomputed when needed again.  In cases the caller of
 @code{process-file} knows that there are no file attribute changes, it
 shall let-bind the variable @code{process-file-side-effects} to
 @code{nil}.  @value{tramp} wouldn't flush the file attributes cache then.
@@ -3602,9 +3642,9 @@ printed and deleted.
 But I have decided that this is too fragile to reliably work, so on some
 systems you'll have to do without the uuencode methods.
 
-@item The @value{tramp} filename syntax differs between GNU Emacs and XEmacs.
+@item The @value{tramp} filename syntax differs between Emacs and XEmacs.
 
-The GNU Emacs maintainers wish to use a unified filename syntax for
+The Emacs maintainers wish to use a unified filename syntax for
 Ange-FTP and @value{tramp} so that users don't have to learn a new
 syntax.  It is sufficient to learn some extensions to the old syntax.
 
@@ -3665,7 +3705,3 @@ for @value{emacsothername}.
 @c * Use `filename' resp. `file name' consistently.
 @c * Use `host' resp. `machine' consistently.
 @c * Consistent small or capitalized words especially in menues.
-
-@ignore
-   arch-tag: f96dd66e-6dd3-4c92-8d77-9c56205ba808
-@end ignore

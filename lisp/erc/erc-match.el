@@ -1,7 +1,6 @@
 ;;; erc-match.el --- Highlight messages matching certain regexps
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002-2011 Free Software Foundation, Inc.
 
 ;; Author: Andreas Fuchs <asf@void.at>
 ;; Keywords: comm, faces
@@ -635,4 +634,3 @@ This function is meant to be called from `erc-text-matched-hook'."
 ;; tab-width: 8
 ;; End:
 
-;; arch-tag: 1f1f595e-abcc-4b0b-83db-598a1d3f0f82

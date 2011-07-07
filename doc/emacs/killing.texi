@@ -1,15 +1,10 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 
-@node Killing, Yanking, Mark, Top
+@node Killing, Registers, Mark, Top
 @chapter Killing and Moving Text
-
-@ifnottex
-@raisesections
-@end ifnottex
 
   @dfn{Killing} means erasing text and copying it into the @dfn{kill
 ring}, from which you can bring it back into the buffer by
@@ -19,9 +14,16 @@ moving or copying text within Emacs.  It is very versatile, because
 there are commands for killing many different types of syntactic
 units.
 
-@iftex
+@menu
+* Deletion and Killing:: Commands that remove text.
+* Yanking::              Commands that insert text.
+* Accumulating Text::    Other methods to add text to the buffer.
+* Rectangles::           Operating on text in rectangular areas.
+* CUA Bindings::         Using C-x/C-c/C-v to kill and yank.
+@end menu
+
+@node Deletion and Killing
 @section Deletion and Killing
-@end iftex
 
 @cindex killing text
 @cindex cutting text
@@ -233,7 +235,7 @@ explain why the text has not been erased.
 non-@code{nil} value, identical subsequent kills yield a single
 kill-ring entry, without duplication.
 
-@node Yanking, Accumulating Text, Killing, Top
+@node Yanking
 @section Yanking
 @cindex moving text
 @cindex copying text
@@ -416,7 +418,7 @@ saved.
 @code{kill-ring}; you can view the entire contents of the kill ring with
 the command @kbd{C-h v kill-ring}.
 
-@node Accumulating Text, Rectangles, Yanking, Top
+@node Accumulating Text
 @section Accumulating Text
 @findex append-to-buffer
 @findex prepend-to-buffer
@@ -487,7 +489,7 @@ can lead to losing some of your editing.
   Another way to move text around is to store it in a register.
 @xref{Registers}.
 
-@node Rectangles, CUA Bindings, Accumulating Text, Top
+@node Rectangles
 @section Rectangles
 @cindex rectangle
 @cindex columns (and rectangles)
@@ -613,7 +615,7 @@ rectangle shifts right.
 @code{string-rectangle}, but inserts the string on each line,
 shifting the original text to the right.
 
-@node CUA Bindings, Registers, Rectangles, Top
+@node CUA Bindings
 @section CUA Bindings
 @findex cua-mode
 @vindex cua-mode
@@ -664,11 +666,3 @@ navigate to each of the words you want in the list, mark it (e.g. with
 @kbd{S-M-f}), copy it to the list with @kbd{C-c} or @kbd{M-w}, and
 insert a newline after the word in the target list by pressing
 @key{RET}.
-
-@ifnottex
-@lowersections
-@end ifnottex
-
-@ignore
-   arch-tag: d8da8f96-0928-449a-816e-ff2d3497866c
-@end ignore

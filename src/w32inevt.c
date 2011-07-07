@@ -1,6 +1,5 @@
 /* Input event support for Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1993, 1995, 2001, 2002, 2003, 2004, 2005, 2006,
-                 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1992-1993, 1995, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -41,35 +40,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32heap.h"
 #include "w32term.h"
 
-/* stdin, from ntterm */
+/* stdin, from w32console.c */
 extern HANDLE keyboard_handle;
 
 /* Info for last mouse motion */
 static COORD movement_pos;
-static DWORD movement_time;
-
-/* from keyboard.c */
-extern void reinvoke_input_signal (void);
-
-/* from w32console.c */
-extern int w32_use_full_screen_buffer;
+static Time movement_time;
 
 /* from w32fns.c */
-extern Lisp_Object Vw32_alt_is_meta;
 extern unsigned int map_keypad_keys (unsigned int, unsigned int);
-
-/* from w32term */
-extern Lisp_Object Vw32_capslock_is_shiftlock;
-extern Lisp_Object Vw32_enable_caps_lock;
-extern Lisp_Object Vw32_enable_num_lock;
-extern Lisp_Object Vw32_recognize_altgr;
-extern Lisp_Object Vw32_pass_lwindow_to_system;
-extern Lisp_Object Vw32_pass_rwindow_to_system;
-extern Lisp_Object Vw32_phantom_key_code;
-extern Lisp_Object Vw32_lwindow_modifier;
-extern Lisp_Object Vw32_rwindow_modifier;
-extern Lisp_Object Vw32_apps_modifier;
-extern Lisp_Object Vw32_scroll_lock_modifier;
 extern unsigned int w32_key_to_modifier (int key);
 
 /* Event queue */
@@ -278,8 +257,6 @@ w32_kbd_patch_key (KEY_EVENT_RECORD *event)
   return isdead;
 }
 
-
-extern const char *const lispy_function_keys[];
 
 static int faked_key = 0;
 
@@ -567,7 +544,7 @@ w32_console_mouse_position (FRAME_PTR *f,
 			    enum scroll_bar_part *part,
 			    Lisp_Object *x,
 			    Lisp_Object *y,
-			    unsigned long *time)
+			    Time *time)
 {
   BLOCK_INPUT;
 
@@ -700,7 +677,6 @@ w32_console_read_socket (struct terminal *terminal,
                          int expected,
                          struct input_event *hold_quit)
 {
-  BOOL no_events = TRUE;
   int nev, ret = 0, add;
   int isdead;
 
@@ -780,4 +756,3 @@ w32_console_read_socket (struct terminal *terminal,
   UNBLOCK_INPUT;
   return ret;
 }
-

@@ -33,4 +33,3 @@
     ("QUADRANT UPPER RIGHT AND LOWER LEFT AND LOWER RIGHT" #x259F)
     ))
 
-;; arch-tag: 51c971a7-cd90-42a5-bf18-dd9683bcab41

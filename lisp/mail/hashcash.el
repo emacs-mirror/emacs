@@ -1,7 +1,6 @@
 ;;; hashcash.el --- Add hashcash payments to email
 
-;; Copyright (C) 2003, 2004, 2005, 2007, 2008, 2009, 2010
-;;   Free Software Foundation
+;; Copyright (C) 2003-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Written by: Paul Foley <mycroft@actrix.gen.nz> (1997-2002)
 ;; Maintainer: Paul Foley <mycroft@actrix.gen.nz>

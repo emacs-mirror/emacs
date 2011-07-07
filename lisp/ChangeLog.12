@@ -10699,9 +10699,6 @@
 	output of the next command.  Reported by M Jared Finder
 	<jared@hpalace.com>.
 
-	* net/tramp-vc.el (vc-user-login-name): Wrap defadvice with a test
-	for `process-file', in order to let it work for older Emacsen too.
-
 2006-04-17  Ralf Angeli  <angeli@iwi.uni-sb.de>
 
 	* textmodes/tex-mode.el (tex-font-lock-match-suscript): New function.
@@ -11678,7 +11675,7 @@
 	make underlining work for wide characters.
 	(org-goto-map, org-agenda-mode-map, org-mode-map): Explicitly bind
 	TAB to `org-cycle', to make sure that no binding in
-	`outline-mode-map' can supercede it.
+	`outline-mode-map' can supersede it.
 
 2006-03-14  Ken Manheimer  <ken.manheimer@gmail.com>
 
@@ -19139,7 +19136,7 @@
 	* pgg.el (pgg-decrypt): Passing along PASSPHRASE in call to
 	pgg-decrypt-region.
 	(pgg-pending-timers): A new hash for tracking the passphrase cache
-	timers, so that new ones supercede old ones.
+	timers, so that new ones supersede old ones.
 	(pgg-add-passphrase-to-cache): Rename from
 	`pgg-add-passphrase-cache' to reduce confusion (all callers
 	changed).  Modified to cancel old timers when new ones are added.
@@ -19225,7 +19222,7 @@
 	* pgg.el (pgg-decrypt): Passing along PASSPHRASE in call to
 	pgg-decrypt-region.
 	(pgg-pending-timers): A new hash for tracking the passphrase cache
-	timers, so that new ones supercede old ones.
+	timers, so that new ones supersede old ones.
 	(pgg-add-passphrase-to-cache): Rename from
 	`pgg-add-passphrase-cache' to reduce confusion (all callers
 	changed).  Modified to cancel old timers when new ones are added.
@@ -33349,7 +33346,7 @@ See ChangeLog.11 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+    Copyright (C) 2005-2011 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -33366,4 +33363,3 @@ See ChangeLog.11 for earlier changes.
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; arch-tag: e39939be-dab3-400e-86f5-0e2701a883c1

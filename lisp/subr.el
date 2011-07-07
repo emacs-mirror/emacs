@@ -1,7 +1,6 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985-1986, 1992, 1994-1995, 1999-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -60,7 +59,7 @@ function-definitions that `check-declare' does not recognize, e.g.
 `defstruct'.
 
 To specify a value for FILEONLY without passing an argument list,
-set ARGLIST to `t'.  This is necessary because `nil' means an
+set ARGLIST to t.  This is necessary because nil means an
 empty argument list, rather than an unspecified one.
 
 Note that for the purposes of `check-declare', this statement
@@ -93,7 +92,7 @@ Both SYMBOL and SPEC are unevaluated.  The SPEC can be:
 0 (instrument no arguments); t (instrument all arguments);
 a symbol (naming a function with an Edebug specification); or a list.
 The elements of the list describe the argument types; see
-\(info \"(elisp)Specification List\") for details."
+Info node `(elisp)Specification List' for details."
   `(put (quote ,symbol) 'edebug-form-spec (quote ,spec)))
 
 (defmacro lambda (&rest cdr)
@@ -116,6 +115,17 @@ BODY should be a list of Lisp expressions.
   ;; Note that this definition should not use backquotes; subr.el should not
   ;; depend on backquote.el.
   (list 'function (cons 'lambda cdr)))
+
+;; Partial application of functions (similar to "currying").
+;; This function is here rather than in subr.el because it uses CL.
+(defun apply-partially (fun &rest args)
+  "Return a function that is a partial application of FUN to ARGS.
+ARGS is a list of the first N arguments to pass to FUN.
+The result is a new function which does the same as FUN, except that
+the first N arguments are fixed at the values with which this function
+was called."
+  `(closure (t) (&rest args)
+            (apply ',fun ,@(mapcar (lambda (arg) `',arg) args) args)))
 
 (if (null (featurep 'cl))
     (progn
@@ -164,8 +174,6 @@ value of last one, or nil if there are none.
   ;; If we reload subr.el after having loaded CL, be careful not to
   ;; overwrite CL's extended definition of `dolist', `dotimes',
   ;; `declare', `push' and `pop'.
-(defvar --dolist-tail-- nil
-  "Temporary variable used in `dolist' expansion.")
 
 (defmacro dolist (spec &rest body)
   "Loop over a list.
@@ -177,18 +185,29 @@ Then evaluate RESULT to get return value, default nil.
   ;; It would be cleaner to create an uninterned symbol,
   ;; but that uses a lot more space when many functions in many files
   ;; use dolist.
+  ;; FIXME: This cost disappears in byte-compiled lexical-binding files.
   (let ((temp '--dolist-tail--))
-    `(let ((,temp ,(nth 1 spec))
-	   ,(car spec))
-       (while ,temp
-	 (setq ,(car spec) (car ,temp))
-	 ,@body
-	 (setq ,temp (cdr ,temp)))
-       ,@(if (cdr (cdr spec))
-	     `((setq ,(car spec) nil) ,@(cdr (cdr spec)))))))
-
-(defvar --dotimes-limit-- nil
-  "Temporary variable used in `dotimes' expansion.")
+    ;; This is not a reliable test, but it does not matter because both
+    ;; semantics are acceptable, tho one is slightly faster with dynamic
+    ;; scoping and the other is slightly faster (and has cleaner semantics)
+    ;; with lexical scoping.
+    (if lexical-binding
+        `(let ((,temp ,(nth 1 spec)))
+           (while ,temp
+             (let ((,(car spec) (car ,temp)))
+               ,@body
+               (setq ,temp (cdr ,temp))))
+           ,@(if (cdr (cdr spec))
+                 ;; FIXME: This let often leads to "unused var" warnings.
+                 `((let ((,(car spec) nil)) ,@(cdr (cdr spec))))))
+      `(let ((,temp ,(nth 1 spec))
+             ,(car spec))
+         (while ,temp
+           (setq ,(car spec) (car ,temp))
+           ,@body
+           (setq ,temp (cdr ,temp)))
+         ,@(if (cdr (cdr spec))
+               `((setq ,(car spec) nil) ,@(cdr (cdr spec))))))))
 
 (defmacro dotimes (spec &rest body)
   "Loop a certain number of times.
@@ -201,17 +220,32 @@ the return value (nil if RESULT is omitted).
   ;; It would be cleaner to create an uninterned symbol,
   ;; but that uses a lot more space when many functions in many files
   ;; use dotimes.
+  ;; FIXME: This cost disappears in byte-compiled lexical-binding files.
   (let ((temp '--dotimes-limit--)
 	(start 0)
 	(end (nth 1 spec)))
-    `(let ((,temp ,end)
-	   (,(car spec) ,start))
-       (while (< ,(car spec) ,temp)
-	 ,@body
-	 (setq ,(car spec) (1+ ,(car spec))))
-       ,@(cdr (cdr spec)))))
+    ;; This is not a reliable test, but it does not matter because both
+    ;; semantics are acceptable, tho one is slightly faster with dynamic
+    ;; scoping and the other has cleaner semantics.
+    (if lexical-binding
+        (let ((counter '--dotimes-counter--))
+          `(let ((,temp ,end)
+                 (,counter ,start))
+             (while (< ,counter ,temp)
+               (let ((,(car spec) ,counter))
+                 ,@body)
+               (setq ,counter (1+ ,counter)))
+             ,@(if (cddr spec)
+                   ;; FIXME: This let often leads to "unused var" warnings.
+                   `((let ((,(car spec) ,counter)) ,@(cddr spec))))))
+      `(let ((,temp ,end)
+             (,(car spec) ,start))
+         (while (< ,(car spec) ,temp)
+           ,@body
+           (setq ,(car spec) (1+ ,(car spec))))
+         ,@(cdr (cdr spec))))))
 
-(defmacro declare (&rest specs)
+(defmacro declare (&rest _specs)
   "Do not evaluate any arguments and return nil.
 Treated as a declaration when used at the right place in a
 `defmacro' form.  \(See Info anchor `(elisp)Definition of declare'.)"
@@ -226,7 +260,7 @@ Otherwise, return result of last form in BODY."
 
 ;;;; Basic Lisp functions.
 
-(defun ignore (&rest ignore)
+(defun ignore (&rest _ignore)
   "Do nothing and return nil.
 This function accepts any number of arguments, but ignores them."
   (interactive)
@@ -250,20 +284,6 @@ Any list whose car is `frame-configuration' is assumed to be a frame
 configuration."
   (and (consp object)
        (eq (car object) 'frame-configuration)))
-
-(defun functionp (object)
-  "Non-nil if OBJECT is a function."
-  (or (and (symbolp object) (fboundp object)
-	   (condition-case nil
-	       (setq object (indirect-function object))
-	     (error nil))
-	   (eq (car-safe object) 'autoload)
-	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
-      (and (subrp object)
-           ;; Filter out special forms.
-           (not (eq 'unevalled (cdr (subr-arity object)))))
-      (byte-code-function-p object)
-      (eq (car-safe object) 'lambda)))
 
 ;;;; List functions.
 
@@ -417,7 +437,7 @@ Unibyte strings are converted to multibyte for comparison."
   (assoc-string key alist nil))
 
 (defun member-ignore-case (elt list)
-  "Like `member', but ignores differences in case and text representation.
+  "Like `member', but ignore differences in case and text representation.
 ELT must be a string.  Upper-case and lower-case letters are treated as equal.
 Unibyte strings are converted to multibyte for comparison.
 Non-strings in LIST are ignored."
@@ -470,6 +490,7 @@ SEQ must be a list, vector, or string.  The comparison is done with `equal'."
   "Return LIST with all occurrences of ELT removed.
 The comparison is done with `eq'.  Contrary to `delq', this does not use
 side-effects, and the argument LIST is not modified."
+  (while (eq elt (car list)) (setq list (cdr list)))
   (if (memq elt list)
       (delq elt (copy-sequence list))
     list))
@@ -483,6 +504,7 @@ saving keyboard macros (see `edmacro-mode')."
   (read-kbd-macro keys))
 
 (defun undefined ()
+  "Beep to tell the user this binding is undefined."
   (interactive)
   (ding))
 
@@ -570,31 +592,88 @@ Don't call this function; it is for internal use only."
     (dolist (p list)
       (funcall function (car p) (cdr p)))))
 
+(defun keymap--menu-item-binding (val)
+  "Return the binding part of a menu-item."
+  (cond
+   ((not (consp val)) val)              ;Not a menu-item.
+   ((eq 'menu-item (car val))
+    (let* ((binding (nth 2 val))
+           (plist (nthcdr 3 val))
+           (filter (plist-get plist :filter)))
+      (if filter (funcall filter binding)
+        binding)))
+   ((and (consp (cdr val)) (stringp (cadr val)))
+    (cddr val))
+   ((stringp (car val))
+    (cdr val))
+   (t val)))                            ;Not a menu-item either.
+
+(defun keymap--menu-item-with-binding (item binding)
+  "Build a menu-item like ITEM but with its binding changed to BINDING."
+  (cond
+   ((eq 'menu-item (car item))
+    (setq item (copy-sequence item))
+    (let ((tail (nthcdr 2 item)))
+      (setcar tail binding)
+      ;; Remove any potential filter.
+      (if (plist-get (cdr tail) :filter)
+          (setcdr tail (plist-put (cdr tail) :filter nil))))
+    item)
+   ((and (consp (cdr item)) (stringp (cadr item)))
+    (cons (car item) (cons (cadr item) binding)))
+   (t (cons (car item) binding))))
+
+(defun keymap--merge-bindings (val1 val2)
+  "Merge bindings VAL1 and VAL2."
+  (let ((map1 (keymap--menu-item-binding val1))
+        (map2 (keymap--menu-item-binding val2)))
+    (if (not (and (keymapp map1) (keymapp map2)))
+        ;; There's nothing to merge: val1 takes precedence.
+        val1
+      (let ((map (list 'keymap map1 map2))
+            (item (if (keymapp val1) (if (keymapp val2) nil val2) val1)))
+        (keymap--menu-item-with-binding item map)))))
+
 (defun keymap-canonicalize (map)
-  "Return an equivalent keymap, without inheritance."
+  "Return a simpler equivalent keymap.
+This resolves inheritance and redefinitions.  The returned keymap
+should behave identically to a copy of KEYMAP w.r.t `lookup-key'
+and use in active keymaps and menus.
+Subkeymaps may be modified but are not canonicalized."
+  ;; FIXME: Problem with the difference between a nil binding
+  ;; that hides a binding in an inherited map and a nil binding that's ignored
+  ;; to let some further binding visible.  Currently a nil binding hides all.
+  ;; FIXME: we may want to carefully (re)order elements in case they're
+  ;; menu-entries.
   (let ((bindings ())
         (ranges ())
 	(prompt (keymap-prompt map)))
     (while (keymapp map)
-      (setq map (map-keymap-internal
+      (setq map (map-keymap ;; -internal
                  (lambda (key item)
                    (if (consp key)
                        ;; Treat char-ranges specially.
                        (push (cons key item) ranges)
                      (push (cons key item) bindings)))
                  map)))
+    ;; Create the new map.
     (setq map (funcall (if ranges 'make-keymap 'make-sparse-keymap) prompt))
     (dolist (binding ranges)
-      ;; Treat char-ranges specially.
+      ;; Treat char-ranges specially.  FIXME: need to merge as well.
       (define-key map (vector (car binding)) (cdr binding)))
+    ;; Process the bindings starting from the end.
     (dolist (binding (prog1 bindings (setq bindings ())))
       (let* ((key (car binding))
              (item (cdr binding))
              (oldbind (assq key bindings)))
-        ;; Newer bindings override older.
-        (if oldbind (setq bindings (delq oldbind bindings)))
-        (when item                      ;nil bindings just hide older ones.
-          (push binding bindings))))
+        (push (if (not oldbind)
+                  ;; The normal case: no duplicate bindings.
+                  binding
+                ;; This is the second binding for this key.
+                (setq bindings (delq oldbind bindings))
+                (cons key (keymap--merge-bindings (cdr binding)
+                                                  (cdr oldbind))))
+              bindings)))
     (nconc map bindings)))
 
 (put 'keyboard-translate-table 'char-table-extra-slots 0)
@@ -852,24 +931,37 @@ in the current Emacs session, then this function may return nil."
 
 (defsubst event-start (event)
   "Return the starting position of EVENT.
-If EVENT is a mouse or key press or a mouse click, this returns the location
-of the event.
-If EVENT is a drag, this returns the drag's starting position.
-The return value is of the form
+EVENT should be a click, drag, or key press event.
+If it is a key press event, the return value has the form
+    (WINDOW POS (0 . 0) 0)
+If it is a click or drag event, it has the form
    (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
     IMAGE (DX . DY) (WIDTH . HEIGHT))
-The `posn-' functions access elements of such lists."
+The `posn-' functions access elements of such lists.
+For more information, see Info node `(elisp)Click Events'.
+
+If EVENT is a mouse or key press or a mouse click, this is the
+position of the event.  If EVENT is a drag, this is the starting
+position of the drag."
   (if (consp event) (nth 1 event)
     (list (selected-window) (point) '(0 . 0) 0)))
 
 (defsubst event-end (event)
   "Return the ending location of EVENT.
 EVENT should be a click, drag, or key press event.
-If EVENT is a click event, this function is the same as `event-start'.
-The return value is of the form
+If EVENT is a key press event, the return value has the form
+    (WINDOW POS (0 . 0) 0)
+If EVENT is a click event, this function is the same as
+`event-start'.  For click and drag events, the return value has
+the form
    (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
     IMAGE (DX . DY) (WIDTH . HEIGHT))
-The `posn-' functions access elements of such lists."
+The `posn-' functions access elements of such lists.
+For more information, see Info node `(elisp)Click Events'.
+
+If EVENT is a mouse or key press or a mouse click, this is the
+position of the event.  If EVENT is a drag, this is the starting
+position of the drag."
   (if (consp event) (nth (if (consp (nth 2 event)) 2 1) event)
     (list (selected-window) (point) '(0 . 0) 0)))
 
@@ -915,8 +1007,9 @@ Select the corresponding window as well."
 
 (defsubst posn-x-y (position)
   "Return the x and y coordinates in POSITION.
-POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions."
+The return value has the form (X . Y), where X and Y are given in
+pixels.  POSITION should be a list of the form returned by
+`event-start' and `event-end'."
   (nth 2 position))
 
 (declare-function scroll-bar-scale "scroll-bar" (num-denom whole))
@@ -955,7 +1048,9 @@ and `event-end' functions."
 	       (setq spacing 0)))
 	(cons (/ (car pair) (frame-char-width frame))
 	      (- (/ (cdr pair) (+ (frame-char-height frame) spacing))
-		 (if (null header-line-format) 0 1))))))))
+		 (if (null (with-current-buffer (window-buffer window)
+			     header-line-format))
+		     0 1))))))))
 
 (defun posn-actual-col-row (position)
   "Return the actual column and row in POSITION, measured in characters.
@@ -996,14 +1091,15 @@ and `event-end' functions."
 
 (defsubst posn-object-x-y (position)
   "Return the x and y coordinates relative to the object of POSITION.
-POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions."
+The return value has the form (DX . DY), where DX and DY are
+given in pixels.  POSITION should be a list of the form returned
+by `event-start' and `event-end'."
   (nth 8 position))
 
 (defsubst posn-object-width-height (position)
   "Return the pixel width and height of the object of POSITION.
-POSITION should be a list of the form returned by the `event-start'
-and `event-end' functions."
+The return value has the form (WIDTH . HEIGHT).  POSITION should
+be a list of the form returned by `event-start' and `event-end'."
   (nth 9 position))
 
 
@@ -1084,6 +1180,8 @@ is converted into a string by expressing it in decimal."
 
 (make-obsolete-variable 'define-key-rebound-commands nil "23.2")
 (make-obsolete-variable 'redisplay-end-trigger-functions 'jit-lock-register "23.1")
+(make-obsolete-variable 'deferred-action-list 'post-command-hook "24.1")
+(make-obsolete-variable 'deferred-action-function 'post-command-hook "24.1")
 (make-obsolete 'window-redisplay-end-trigger nil "23.1")
 (make-obsolete 'set-window-redisplay-end-trigger nil "23.1")
 
@@ -1239,6 +1337,67 @@ the hook's buffer-local value rather than its default value."
 	    (kill-local-variable hook)
 	  (set hook hook-value))))))
 
+(defmacro letrec (binders &rest body)
+  "Bind variables according to BINDERS then eval BODY.
+The value of the last form in BODY is returned.
+Each element of BINDERS is a list (SYMBOL VALUEFORM) which binds
+SYMBOL to the value of VALUEFORM.
+All symbols are bound before the VALUEFORMs are evalled."
+  ;; Only useful in lexical-binding mode.
+  ;; As a special-form, we could implement it more efficiently (and cleanly,
+  ;; making the vars actually unbound during evaluation of the binders).
+  (declare (debug let) (indent 1))
+  `(let ,(mapcar #'car binders)
+     ,@(mapcar (lambda (binder) `(setq ,@binder)) binders)
+     ,@body))
+
+(defmacro with-wrapper-hook (var args &rest body)
+  "Run BODY wrapped with the VAR hook.
+VAR is a special hook: its functions are called with a first argument
+which is the \"original\" code (the BODY), so the hook function can wrap
+the original function, or call it any number of times (including not calling
+it at all).  This is similar to an `around' advice.
+VAR is normally a symbol (a variable) in which case it is treated like
+a hook, with a buffer-local and a global part.  But it can also be an
+arbitrary expression.
+ARGS is a list of variables which will be passed as additional arguments
+to each function, after the initial argument, and which the first argument
+expects to receive when called."
+  (declare (indent 2) (debug t))
+  ;; We need those two gensyms because CL's lexical scoping is not available
+  ;; for function arguments :-(
+  (let ((funs (make-symbol "funs"))
+        (global (make-symbol "global"))
+        (argssym (make-symbol "args"))
+        (runrestofhook (make-symbol "runrestofhook")))
+    ;; Since the hook is a wrapper, the loop has to be done via
+    ;; recursion: a given hook function will call its parameter in order to
+    ;; continue looping.
+    `(letrec ((,runrestofhook
+               (lambda (,funs ,global ,argssym)
+                 ;; `funs' holds the functions left on the hook and `global'
+                 ;; holds the functions left on the global part of the hook
+                 ;; (in case the hook is local).
+                 (if (consp ,funs)
+                     (if (eq t (car ,funs))
+                         (funcall ,runrestofhook
+                                  (append ,global (cdr ,funs)) nil ,argssym)
+                       (apply (car ,funs)
+                              (apply-partially
+                               (lambda (,funs ,global &rest ,argssym)
+                                 (funcall ,runrestofhook ,funs ,global ,argssym))
+                               (cdr ,funs) ,global)
+                              ,argssym))
+                   ;; Once there are no more functions on the hook, run
+                   ;; the original body.
+                   (apply (lambda ,args ,@body) ,argssym)))))
+       (funcall ,runrestofhook ,var
+                ;; The global part of the hook, if any.
+                ,(if (symbolp var)
+                     `(if (local-variable-p ',var)
+                          (default-value ',var)))
+                (list ,@args)))))
+
 (defun add-to-list (list-var element &optional append compare-fn)
   "Add ELEMENT to the value of LIST-VAR if it isn't there yet.
 The test for presence of ELEMENT is done with `equal',
@@ -1355,9 +1514,8 @@ if it is empty or a duplicate."
 
 (defun run-mode-hooks (&rest hooks)
   "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
-Execution is delayed if `delay-mode-hooks' is non-nil.
-If `delay-mode-hooks' is nil, run `after-change-major-mode-hook'
-after running the mode hooks.
+Execution is delayed if the variable `delay-mode-hooks' is non-nil.
+Otherwise, runs the mode hooks and then `after-change-major-mode-hook'.
 Major mode functions should use this instead of `run-hooks' when running their
 FOO-mode-hook."
   (if delay-mode-hooks
@@ -1479,26 +1637,6 @@ If TOGGLE has a `:menu-tag', that is used for the menu item's label."
 
 ;;; Load history
 
-;; (defvar symbol-file-load-history-loaded nil
-;;   "Non-nil means we have loaded the file `fns-VERSION.el' in `exec-directory'.
-;; That file records the part of `load-history' for preloaded files,
-;; which is cleared out before dumping to make Emacs smaller.")
-
-;; (defun load-symbol-file-load-history ()
-;;   "Load the file `fns-VERSION.el' in `exec-directory' if not already done.
-;; That file records the part of `load-history' for preloaded files,
-;; which is cleared out before dumping to make Emacs smaller."
-;;   (unless symbol-file-load-history-loaded
-;;     (load (expand-file-name
-;; 	   ;; fns-XX.YY.ZZ.el does not work on DOS filesystem.
-;; 	   (if (eq system-type 'ms-dos)
-;; 	       "fns.el"
-;; 	     (format "fns-%s.el" emacs-version))
-;; 	   exec-directory)
-;; 	  ;; The file name fns-%s.el already has a .el extension.
-;; 	  nil nil t)
-;;     (setq symbol-file-load-history-loaded t)))
-
 (defun symbol-file (symbol &optional type)
   "Return the name of the file that defined SYMBOL.
 The value is normally an absolute file name.  It can also be nil,
@@ -1616,11 +1754,7 @@ extension for a compressed format \(e.g. \".gz\") on FILE will not affect
 this name matching.
 
 Alternatively, FILE can be a feature (i.e. a symbol), in which case FORM
-is evaluated whenever that feature is `provide'd.  Note that although
-provide statements are usually at the end of files, this is not always
-the case (e.g., sometimes they are at the start to avoid a recursive
-load error).  If your FORM should not be evaluated until the code in
-FILE has been, do not use the symbol form for FILE in such cases.
+is evaluated at the end of any file that `provide's this feature.
 
 Usually FILE is just a library name like \"font-lock\" or a feature name
 like 'font-lock.
@@ -1629,11 +1763,29 @@ This function makes or adds to an entry on `after-load-alist'."
   ;; Add this FORM into after-load-alist (regardless of whether we'll be
   ;; evaluating it now).
   (let* ((regexp-or-feature
-	  (if (stringp file) (setq file (purecopy (load-history-regexp file))) file))
+	  (if (stringp file)
+              (setq file (purecopy (load-history-regexp file)))
+            file))
 	 (elt (assoc regexp-or-feature after-load-alist)))
     (unless elt
       (setq elt (list regexp-or-feature))
       (push elt after-load-alist))
+    ;; Make sure `form' is evalled in the current lexical/dynamic code.
+    (setq form `(funcall ',(eval `(lambda () ,form) lexical-binding)))
+    (when (symbolp regexp-or-feature)
+      ;; For features, the after-load-alist elements get run when `provide' is
+      ;; called rather than at the end of the file.  So add an indirection to
+      ;; make sure that `form' is really run "after-load" in case the provide
+      ;; call happens early.
+      (setq form
+            `(when load-file-name
+               (let ((fun (make-symbol "eval-after-load-helper")))
+                 (fset fun `(lambda (file)
+                              (if (not (equal file ',load-file-name))
+                                  nil
+                                (remove-hook 'after-load-functions ',fun)
+                                ,',form)))
+                 (add-hook 'after-load-functions fun)))))
     ;; Add FORM to the element unless it's already there.
     (unless (member form (cdr elt))
       (nconc elt (purecopy (list form))))
@@ -1678,6 +1830,19 @@ This makes or adds to an entry on `after-load-alist'.
 FILE should be the name of a library, with no directory name."
   (eval-after-load file (read)))
 (make-obsolete 'eval-next-after-load `eval-after-load "23.2")
+
+(defun display-delayed-warnings ()
+  "Display delayed warnings from `delayed-warnings-list'.
+This is the default value of `delayed-warnings-hook'."
+  (dolist (warning (nreverse delayed-warnings-list))
+    (apply 'display-warning warning))
+  (setq delayed-warnings-list nil))
+
+(defvar delayed-warnings-hook '(display-delayed-warnings)
+  "Normal hook run to process delayed warnings.
+Functions in this hook should access the `delayed-warnings-list'
+variable (which see) and remove from it the warnings they process.")
+
 
 ;;;; Process stuff.
 
@@ -1698,27 +1863,12 @@ Signal an error if the program returns with a non-zero exit status."
 	  (forward-line 1))
 	(nreverse lines)))))
 
-;; open-network-stream is a wrapper around make-network-process.
-
-(when (featurep 'make-network-process)
-  (defun open-network-stream (name buffer host service)
-    "Open a TCP connection for a service to a host.
-Returns a subprocess-object to represent the connection.
-Input and output work as for subprocesses; `delete-process' closes it.
-
-NAME is the name for the process.  It is modified if necessary to make
- it unique.
-BUFFER is the buffer (or buffer name) to associate with the
- process.  Process output goes at end of that buffer.  BUFFER may
- be nil, meaning that this process is not associated with any buffer.
-HOST is the name or IP address of the host to connect to.
-SERVICE is the name of the service desired, or an integer specifying
- a port number to connect to.
-
-This is a wrapper around `make-network-process', and only offers a
-subset of its functionality."
-    (make-network-process :name name :buffer buffer
-				     :host host :service service)))
+(defun process-live-p (process)
+  "Returns non-nil if PROCESS is alive.
+A process is considered alive if its status is `run', `open',
+`listen', `connect' or `stop'."
+  (memq (process-status process)
+        '(run open listen connect stop)))
 
 ;; compatibility
 
@@ -1726,7 +1876,7 @@ subset of its functionality."
  'process-kill-without-query
  "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
  "22.1")
-(defun process-kill-without-query (process &optional flag)
+(defun process-kill-without-query (process &optional _flag)
   "Say no query needed if PROCESS is running when Emacs is exited.
 Optional second argument if non-nil says to require a query.
 Value is t if a query was formerly required."
@@ -1889,7 +2039,7 @@ This function echoes `.' for each character that the user types.
 The user ends with RET, LFD, or ESC.  DEL or C-h rubs out.
 C-y yanks the current kill.  C-u kills line.
 C-g quits; if `inhibit-quit' was non-nil around this function,
-then it returns nil if the user types C-g, but quit-flag remains set.
+then it returns nil if the user types C-g, but `quit-flag' remains set.
 
 Once the caller uses the password, it can erase the password
 by doing (clear-string STRING)."
@@ -1987,6 +2137,35 @@ The value of DEFAULT is inserted into PROMPT."
 	    t)))
     n))
 
+(defun read-char-choice (prompt chars &optional inhibit-keyboard-quit)
+  "Read and return one of CHARS, prompting for PROMPT.
+Any input that is not one of CHARS is ignored.
+
+If optional argument INHIBIT-KEYBOARD-QUIT is non-nil, ignore
+keyboard-quit events while waiting for a valid input."
+  (unless (consp chars)
+    (error "Called `read-char-choice' without valid char choices"))
+  (let (char done)
+    (let ((cursor-in-echo-area t)
+          (executing-kbd-macro executing-kbd-macro))
+      (while (not done)
+        (unless (get-text-property 0 'face prompt)
+          (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
+        (setq char (let ((inhibit-quit inhibit-keyboard-quit))
+                     (read-key prompt)))
+        (cond
+         ((not (numberp char)))
+         ((memq char chars)
+          (setq done t))
+         ((and executing-kbd-macro (= char -1))
+          ;; read-event returns -1 if we are in a kbd macro and
+          ;; there are no more events in the macro.  Attempt to
+          ;; get an event interactively.
+          (setq executing-kbd-macro nil)))))
+    ;; Display the question with the answer.  But without cursor-in-echo-area.
+    (message "%s%s" prompt (char-to-string char))
+    char))
+
 (defun sit-for (seconds &optional nodisp obsolete)
   "Perform redisplay, then wait for SECONDS seconds or until input is available.
 SECONDS may be a floating-point value.
@@ -2028,6 +2207,56 @@ floating point support."
 	    (push read unread-command-events)
 	    nil))))))
 (set-advertised-calling-convention 'sit-for '(seconds &optional nodisp) "22.1")
+
+(defun y-or-n-p (prompt)
+  "Ask user a \"y or n\" question.  Return t if answer is \"y\".
+PROMPT is the string to display to ask the question.  It should
+end in a space; `y-or-n-p' adds \"(y or n) \" to it.
+
+No confirmation of the answer is requested; a single character is enough.
+Also accepts Space to mean yes, or Delete to mean no.  \(Actually, it uses
+the bindings in `query-replace-map'; see the documentation of that variable
+for more information.  In this case, the useful bindings are `act', `skip',
+`recenter', and `quit'.\)
+
+Under a windowing system a dialog box will be used if `last-nonmenu-event'
+is nil and `use-dialog-box' is non-nil."
+  ;; ¡Beware! when I tried to edebug this code, Emacs got into a weird state
+  ;; where all the keys were unbound (i.e. it somehow got triggered
+  ;; within read-key, apparently).  I had to kill it.
+  (let ((answer 'recenter))
+    (if (and (display-popup-menus-p)
+             (listp last-nonmenu-event)
+             use-dialog-box)
+        (setq answer
+              (x-popup-dialog t `(,prompt ("yes" . act) ("No" . skip))))
+      (setq prompt (concat prompt
+                           (if (eq ?\s (aref prompt (1- (length prompt))))
+                               "" " ")
+                           "(y or n) "))
+      (while
+          (let* ((key
+                  (let ((cursor-in-echo-area t))
+                    (when minibuffer-auto-raise
+                      (raise-frame (window-frame (minibuffer-window))))
+                    (read-key (propertize (if (eq answer 'recenter)
+                                              prompt
+                                            (concat "Please answer y or n.  "
+                                                    prompt))
+                                          'face 'minibuffer-prompt)))))
+            (setq answer (lookup-key query-replace-map (vector key) t))
+            (cond
+             ((memq answer '(skip act)) nil)
+             ((eq answer 'recenter) (recenter) t)
+             ((memq answer '(exit-prefix quit)) (signal 'quit nil) t)
+             (t t)))
+        (ding)
+        (discard-input)))
+    (let ((ret (eq answer 'act)))
+      (unless noninteractive
+        (message "%s %s" prompt (if ret "y" "n")))
+      ret)))
+
 
 ;;; Atomic change groups.
 
@@ -2287,11 +2516,16 @@ directory if it does not exist."
        ;; unless we're in batch mode or dumping Emacs
        (or noninteractive
 	   purify-flag
-	   (file-accessible-directory-p (directory-file-name user-emacs-directory))
-	   (make-directory user-emacs-directory))
+	   (file-accessible-directory-p
+	    (directory-file-name user-emacs-directory))
+	   (let ((umask (default-file-modes)))
+	     (unwind-protect
+		 (progn
+		   (set-default-file-modes ?\700)
+		   (make-directory user-emacs-directory))
+	       (set-default-file-modes umask))))
        (abbreviate-file-name
         (expand-file-name new-name user-emacs-directory))))))
-
 
 ;;;; Misc. useful functions.
 
@@ -2349,32 +2583,63 @@ Note: :data and :device are currently not supported on Windows."
 
 (defun shell-quote-argument (argument)
   "Quote ARGUMENT for passing as argument to an inferior shell."
-  (if (or (eq system-type 'ms-dos)
-          (and (eq system-type 'windows-nt) (w32-shell-dos-semantics)))
-      ;; Quote using double quotes, but escape any existing quotes in
-      ;; the argument with backslashes.
-      (let ((result "")
-	    (start 0)
-	    end)
-	(if (or (null (string-match "[^\"]" argument))
-		(< (match-end 0) (length argument)))
-	    (while (string-match "[\"]" argument start)
-	      (setq end (match-beginning 0)
-		    result (concat result (substring argument start end)
-				   "\\" (substring argument end (1+ end)))
-		    start (1+ end))))
-	(concat "\"" result (substring argument start) "\""))
+  (cond
+   ((eq system-type 'ms-dos)
+    ;; Quote using double quotes, but escape any existing quotes in
+    ;; the argument with backslashes.
+    (let ((result "")
+          (start 0)
+          end)
+      (if (or (null (string-match "[^\"]" argument))
+              (< (match-end 0) (length argument)))
+          (while (string-match "[\"]" argument start)
+            (setq end (match-beginning 0)
+                  result (concat result (substring argument start end)
+                                 "\\" (substring argument end (1+ end)))
+                  start (1+ end))))
+      (concat "\"" result (substring argument start) "\"")))
+
+   ((and (eq system-type 'windows-nt) (w32-shell-dos-semantics))
+
+    ;; First, quote argument so that CommandLineToArgvW will
+    ;; understand it.  See
+    ;; http://msdn.microsoft.com/en-us/library/17w5ykft%28v=vs.85%29.aspx
+    ;; After we perform that level of quoting, escape shell
+    ;; metacharacters so that cmd won't mangle our argument.  If the
+    ;; argument contains no double quote characters, we can just
+    ;; surround it with double quotes.  Otherwise, we need to prefix
+    ;; each shell metacharacter with a caret.
+
+    (setq argument
+          ;; escape backslashes at end of string
+          (replace-regexp-in-string
+           "\\(\\\\*\\)$"
+           "\\1\\1"
+           ;; escape backslashes and quotes in string body
+           (replace-regexp-in-string
+            "\\(\\\\*\\)\""
+            "\\1\\1\\\\\""
+            argument)))
+
+    (if (string-match "[%!\"]" argument)
+        (concat
+         "^\""
+         (replace-regexp-in-string
+          "\\([%!()\"<>&|^]\\)"
+          "^\\1"
+          argument)
+         "^\"")
+      (concat "\"" argument "\"")))
+
+   (t
     (if (equal argument "")
         "''"
       ;; Quote everything except POSIX filename characters.
       ;; This should be safe enough even for really weird shells.
-      (let ((result "") (start 0) end)
-        (while (string-match "[^-0-9a-zA-Z_./]" argument start)
-          (setq end (match-beginning 0)
-                result (concat result (substring argument start end)
-                               "\\" (substring argument end (1+ end)))
-                start (1+ end)))
-        (concat result (substring argument start))))))
+      (replace-regexp-in-string
+       "\n" "'\n'"
+       (replace-regexp-in-string "[^-0-9a-zA-Z_./\n]" "\\\\\\&" argument))))
+   ))
 
 (defun string-or-null-p (object)
   "Return t if OBJECT is a string or nil.
@@ -2392,6 +2657,14 @@ Otherwise, return nil."
     (if (eq raw-field 'boundary)
 	(get-char-property (1- (field-end pos)) 'field)
       raw-field)))
+
+(defun sha1 (object &optional start end binary)
+  "Return the SHA1 (Secure Hash Algorithm) of an OBJECT.
+OBJECT is either a string or a buffer.  Optional arguments START and
+END are character positions specifying which portion of OBJECT for
+computing the hash.  If BINARY is non-nil, return a string in binary
+form."
+  (secure-hash 'sha1 object start end binary))
 
 
 ;;;; Support for yanking and text properties.
@@ -2432,7 +2705,7 @@ Replaces `category' properties with their defined properties."
 (defvar yank-undo-function)
 
 (defun insert-for-yank (string)
-  "Calls `insert-for-yank-1' repetitively for each `yank-handler' segment.
+  "Call `insert-for-yank-1' repetitively for each `yank-handler' segment.
 
 See `insert-for-yank-1' for more details."
   (let (to)
@@ -2458,7 +2731,7 @@ If PARAM is present and non-nil, it replaces STRING as the object
  `yank-rectangle', PARAM may be a list of strings to insert as a
  rectangle.
 If NOEXCLUDE is present and non-nil, the normal removal of the
- yank-excluded-properties is not performed; instead FUNCTION is
+ `yank-excluded-properties' is not performed; instead FUNCTION is
  responsible for removing those properties.  This may be necessary
  if FUNCTION adjusts point before or after inserting the object.
 If UNDO is present and non-nil, it is a function that will be called
@@ -2674,6 +2947,72 @@ nor the buffer list."
 	 (when (buffer-live-p ,old-buffer)
 	   (set-buffer ,old-buffer))))))
 
+(defmacro save-window-excursion (&rest body)
+  "Execute BODY, preserving window sizes and contents.
+Return the value of the last form in BODY.
+Restore which buffer appears in which window, where display starts,
+and the value of point and mark for each window.
+Also restore the choice of selected window.
+Also restore which buffer is current.
+Does not restore the value of point in current buffer.
+
+BEWARE: Most uses of this macro introduce bugs.
+E.g. it should not be used to try and prevent some code from opening
+a new window, since that window may sometimes appear in another frame,
+in which case `save-window-excursion' cannot help."
+  (declare (indent 0) (debug t))
+  (let ((c (make-symbol "wconfig")))
+    `(let ((,c (current-window-configuration)))
+       (unwind-protect (progn ,@body)
+         (set-window-configuration ,c)))))
+
+(defmacro with-output-to-temp-buffer (bufname &rest body)
+  "Bind `standard-output' to buffer BUFNAME, eval BODY, then show that buffer.
+
+This construct makes buffer BUFNAME empty before running BODY.
+It does not make the buffer current for BODY.
+Instead it binds `standard-output' to that buffer, so that output
+generated with `prin1' and similar functions in BODY goes into
+the buffer.
+
+At the end of BODY, this marks buffer BUFNAME unmodifed and displays
+it in a window, but does not select it.  The normal way to do this is
+by calling `display-buffer', then running `temp-buffer-show-hook'.
+However, if `temp-buffer-show-function' is non-nil, it calls that
+function instead (and does not run `temp-buffer-show-hook').  The
+function gets one argument, the buffer to display.
+
+The return value of `with-output-to-temp-buffer' is the value of the
+last form in BODY.  If BODY does not finish normally, the buffer
+BUFNAME is not displayed.
+
+This runs the hook `temp-buffer-setup-hook' before BODY,
+with the buffer BUFNAME temporarily current.  It runs the hook
+`temp-buffer-show-hook' after displaying buffer BUFNAME, with that
+buffer temporarily current, and the window that was used to display it
+temporarily selected.  But it doesn't run `temp-buffer-show-hook'
+if it uses `temp-buffer-show-function'."
+  (declare (debug t))
+  (let ((old-dir (make-symbol "old-dir"))
+        (buf (make-symbol "buf")))
+    `(let* ((,old-dir default-directory)
+            (,buf
+             (with-current-buffer (get-buffer-create ,bufname)
+               (prog1 (current-buffer)
+                 (kill-all-local-variables)
+                 ;; FIXME: delete_all_overlays
+                 (setq default-directory ,old-dir)
+                 (setq buffer-read-only nil)
+                 (setq buffer-file-name nil)
+                 (setq buffer-undo-list t)
+                 (let ((inhibit-read-only t)
+                       (inhibit-modification-hooks t))
+                   (erase-buffer)
+                   (run-hooks 'temp-buffer-setup-hook)))))
+            (standard-output ,buf))
+       (prog1 (progn ,@body)
+         (internal-temp-output-buffer-show ,buf)))))
+
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
 The value returned is the value of the last form in BODY.
@@ -2816,7 +3155,7 @@ but which should be robust in the unexpected case that an error is signaled."
   (let ((err (make-symbol "err")))
     `(condition-case-no-debug ,err
          (progn ,@body)
-       (error (message "Error: %s" ,err) nil))))
+       (error (message "Error: %S" ,err) nil))))
 
 (defmacro combine-after-change-calls (&rest body)
   "Execute BODY, but don't call the after-change functions till the end.
@@ -3116,7 +3455,7 @@ is non-nil, start replacements at that index in STRING.
 REP is either a string used as the NEWTEXT arg of `replace-match' or a
 function.  If it is a function, it is called with the actual text of each
 match, and its value is used as the replacement text.  When REP is called,
-the match-data are the result of matching REGEXP against a substring
+the match data are the result of matching REGEXP against a substring
 of STRING.
 
 To replace only the first match (if any), make REGEXP match up to \\'
@@ -3229,7 +3568,7 @@ If SYNTAX is nil, return nil."
 
 ;;;; Text clones
 
-(defun text-clone-maintain (ol1 after beg end &optional len)
+(defun text-clone-maintain (ol1 after beg end &optional _len)
   "Propagate the changes made under the overlay OL1 to the other clones.
 This is used on the `modification-hooks' property of text clones."
   (when (and after (not undo-in-progress) (overlay-start ol1))
@@ -3322,56 +3661,6 @@ clone should be incorporated in the clone."
     (overlay-put ol2 'evaporate t)
     (overlay-put ol2 'text-clones dups)))
 
-;;;; Misc functions moved over from the C side.
-
-(defun y-or-n-p (prompt)
-  "Ask user a \"y or n\" question.  Return t if answer is \"y\".
-The argument PROMPT is the string to display to ask the question.
-It should end in a space; `y-or-n-p' adds `(y or n) ' to it.
-No confirmation of the answer is requested; a single character is enough.
-Also accepts Space to mean yes, or Delete to mean no.  \(Actually, it uses
-the bindings in `query-replace-map'; see the documentation of that variable
-for more information.  In this case, the useful bindings are `act', `skip',
-`recenter', and `quit'.\)
-
-Under a windowing system a dialog box will be used if `last-nonmenu-event'
-is nil and `use-dialog-box' is non-nil."
-  ;; ¡Beware! when I tried to edebug this code, Emacs got into a weird state
-  ;; where all the keys were unbound (i.e. it somehow got triggered
-  ;; within read-key, apparently).  I had to kill it.
-  (let ((answer 'recenter))
-    (if (and (display-popup-menus-p)
-             (listp last-nonmenu-event)
-             use-dialog-box)
-        (setq answer
-              (x-popup-dialog t `(,prompt ("yes" . act) ("No" . skip))))
-      (setq prompt (concat prompt
-                           (if (eq ?\s (aref prompt (1- (length prompt))))
-                               "" " ")
-                           "(y or n) "))
-      (while
-          (let* ((key
-                  (let ((cursor-in-echo-area t))
-                    (when minibuffer-auto-raise
-                      (raise-frame (window-frame (minibuffer-window))))
-                    (read-key (propertize (if (eq answer 'recenter)
-                                              prompt
-                                            (concat "Please answer y or n.  "
-                                                    prompt))
-                                          'face 'minibuffer-prompt)))))
-            (setq answer (lookup-key query-replace-map (vector key) t))
-            (cond
-             ((memq answer '(skip act)) nil)
-             ((eq answer 'recenter) (recenter) t)
-             ((memq answer '(exit-prefix quit)) (signal 'quit nil) t)
-             (t t)))
-        (ding)
-        (discard-input)))
-    (let ((ret (eq answer 'act)))
-      (unless noninteractive
-        (message "%s %s" prompt (if ret "y" "n")))
-      ret)))
-
 ;;;; Mail user agents.
 
 ;; Here we include just enough for other packages to be able
@@ -3479,6 +3768,8 @@ echo area updates (default is 0.2 seconds.)  If the function
 `float-time' is not present, time is not tracked at all.  If the
 OS is not capable of measuring fractions of seconds, this
 parameter is effectively rounded up."
+  (when (string-match "[[:alnum:]]\\'" message)
+    (setq message (concat message "...")))
   (unless min-time
     (setq min-time 0.2))
   (let ((reporter
@@ -3818,9 +4109,9 @@ which is higher than \"1alpha\"."
 
 ;; The following statement ought to be in print.c, but `provide' can't
 ;; be used there.
+;; http://lists.gnu.org/archive/html/emacs-devel/2009-08/msg00236.html
 (when (hash-table-p (car (read-from-string
 			  (prin1-to-string (make-hash-table)))))
   (provide 'hashtable-print-readable))
 
-;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here

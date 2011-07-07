@@ -1,7 +1,6 @@
 ;;; vcursor.el --- manipulate an alternative ("virtual") cursor
 
-;; Copyright (C) 1994, 1996, 1998, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996, 1998, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author:   Peter Stephenson <pws@ibmth.df.unipi.it>
 ;; Maintainer: FSF
@@ -1144,5 +1143,4 @@ line is treated like ordinary characters."
 
 (provide 'vcursor)
 
-;; arch-tag: cdfe1cdc-2c46-4046-88e4-ed57d20f7aca
 ;;; vcursor.el ends here

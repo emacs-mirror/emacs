@@ -1,7 +1,6 @@
 ;;; em-script.el --- Eshell script files
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -35,8 +34,9 @@ commands, as a script file."
 
 ;;; User Variables:
 
-(defcustom eshell-script-load-hook '(eshell-script-initialize)
+(defcustom eshell-script-load-hook nil
   "A list of functions to call when loading `eshell-script'."
+  :version "24.1"                       ; removed eshell-script-initialize
   :type 'hook
   :group 'eshell-script)
 
@@ -142,5 +142,4 @@ environment, binding ARGS to $1, $2, etc.")
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: a346439d-5ba8-4faf-ac2b-3aacfeaa4647
 ;;; em-script.el ends here

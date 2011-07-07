@@ -1,7 +1,6 @@
 ;;; calc-vec.el --- vector functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -760,12 +759,13 @@
 	  (math-reject-arg n "*Index out of range")))))
 
 (defun calcFunc-subscr (mat n &optional m)
-  (setq mat (calcFunc-mrow mat n))
-  (if m
-      (if (math-num-integerp n)
-	  (calcFunc-mrow mat m)
-	(calcFunc-mcol mat m))
-    mat))
+  (if (eq (car-safe mat) 'var) nil
+    (setq mat (calcFunc-mrow mat n))
+    (if m
+        (if (math-num-integerp n)
+            (calcFunc-mrow mat m)
+          (calcFunc-mcol mat m))
+      mat)))
 
 ;;; Get the Nth column of a matrix.
 (defun math-mat-col (mat n)
@@ -1675,5 +1675,4 @@ of two matrices is a matrix."
 
 (provide 'calc-vec)
 
-;; arch-tag: 7902a7af-ec69-440a-8635-ebb4db263402
 ;;; calc-vec.el ends here

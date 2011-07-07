@@ -1,6 +1,7 @@
-/* Calculate what line insertion or deletion to do, and do it,
-   Copyright (C) 1985, 1986, 1990, 1993, 1994, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+/* Calculate what line insertion or deletion to do, and do it
+
+Copyright (C) 1985-1986, 1990, 1993-1994, 2001-2011
+  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -238,14 +239,16 @@ calculate_scrolling (FRAME_PTR frame,
    of lines.  */
 
 static void
-do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix, struct matrix_elt *matrix, int window_size, int unchanged_at_top)
+do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
+              struct matrix_elt *matrix, int window_size,
+              int unchanged_at_top)
 {
   struct matrix_elt *p;
   int i, j, k;
 
   /* Set to 1 if we have set a terminal window with
-     set_terminal_window.  */
-  int terminal_window_p = 0;
+     set_terminal_window.  It's unsigned to work around GCC bug 48228.  */
+  unsigned int terminal_window_p = 0;
 
   /* A queue for line insertions to be done.  */
   struct queue { int count, pos; };
@@ -261,15 +264,17 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix, struct m
   for (k = 0; k < window_size; ++k)
     copy_from[k] = -1;
 
-#define CHECK_BOUNDS							\
+#if GLYPH_DEBUG
+# define CHECK_BOUNDS							\
   do									\
     {									\
-      int k;								\
-      for (k = 0; k < window_size; ++k)					\
-	xassert (copy_from[k] == -1					\
-		 || (copy_from[k] >= 0 && copy_from[k] < window_size));	\
+      int ck;								\
+      for (ck = 0; ck < window_size; ++ck)				\
+	xassert (copy_from[ck] == -1					\
+		 || (copy_from[ck] >= 0 && copy_from[ck] < window_size)); \
     }									\
   while (0);
+#endif
 
   /* When j is advanced, this corresponds to deleted lines.
      When i is advanced, this corresponds to inserted lines.  */
@@ -828,7 +833,9 @@ scrolling_1 (FRAME_PTR frame, int window_size, int unchanged_at_top,
    such a line will have little weight.  */
 
 int
-scrolling_max_lines_saved (int start, int end, int *oldhash, int *newhash, int *cost)
+scrolling_max_lines_saved (int start, int end,
+                           int *oldhash, int *newhash,
+                           int *cost)
 {
   struct { int hash; int count; } lines[01000];
   register int i, h;
@@ -875,50 +882,12 @@ scrolling_max_lines_saved (int start, int end, int *oldhash, int *newhash, int *
   return matchcount;
 }
 
-/* Return a measure of the cost of moving the lines starting with vpos
-   FROM, up to but not including vpos TO, down by AMOUNT lines (AMOUNT
-   may be negative).  These are the same arguments that might be given
-   to scroll_frame_lines to perform this scrolling.  */
-
-int
-scroll_cost (FRAME_PTR frame, int from, int to, int amount)
-{
-  /* Compute how many lines, at bottom of frame,
-     will not be involved in actual motion.  */
-  EMACS_INT limit = to;
-  EMACS_INT offset;
-  EMACS_INT height = FRAME_LINES (frame);
-
-  if (amount == 0)
-    return 0;
-
-  if (! FRAME_SCROLL_REGION_OK (frame))
-    limit = height;
-  else if (amount > 0)
-    limit += amount;
-
-  if (amount < 0)
-    {
-      int temp = to;
-      to = from + amount;
-      from = temp + amount;
-      amount = - amount;
-    }
-
-  offset = height - limit;
-
-  return
-    (FRAME_INSERT_COST (frame)[offset + from]
-     + (amount - 1) * FRAME_INSERTN_COST (frame)[offset + from]
-     + FRAME_DELETE_COST (frame)[offset + to]
-     + (amount - 1) * FRAME_DELETEN_COST (frame)[offset + to]);
-}
-
 /* Calculate the line insertion/deletion
    overhead and multiply factor values */
 
 static void
-line_ins_del (FRAME_PTR frame, int ov1, int pf1, int ovn, int pfn, register int *ov, register int *mf)
+line_ins_del (FRAME_PTR frame, int ov1, int pf1, int ovn, int pfn,
+              register int *ov, register int *mf)
 {
   register EMACS_INT i;
   register EMACS_INT frame_lines = FRAME_LINES (frame);
@@ -936,8 +905,8 @@ line_ins_del (FRAME_PTR frame, int ov1, int pf1, int ovn, int pfn, register int 
 
 static void
 ins_del_costs (FRAME_PTR frame,
-	       char *one_line_string, char *multi_string,
-	       char *setup_string, char *cleanup_string,
+	       const char *one_line_string, const char *multi_string,
+	       const char *setup_string, const char *cleanup_string,
 	       int *costvec, int *ncostvec,
 	       int coefficient)
 {
@@ -992,9 +961,12 @@ ins_del_costs (FRAME_PTR frame,
 
 void
 do_line_insertion_deletion_costs (FRAME_PTR frame,
-				  char *ins_line_string, char *multi_ins_string,
-				  char *del_line_string, char *multi_del_string,
-				  char *setup_string, char *cleanup_string,
+				  const char *ins_line_string,
+				  const char *multi_ins_string,
+				  const char *del_line_string,
+				  const char *multi_del_string,
+				  const char *setup_string,
+				  const char *cleanup_string,
 				  int coefficient)
 {
   if (FRAME_INSERT_COST (frame) != 0)
@@ -1035,6 +1007,3 @@ do_line_insertion_deletion_costs (FRAME_PTR frame,
 		 FRAME_DELETE_COST (frame), FRAME_DELETEN_COST (frame),
 		 coefficient);
 }
-
-/* arch-tag: cdb7149c-48e7-4793-a948-2786c8e45485
-   (do not change this comment) */

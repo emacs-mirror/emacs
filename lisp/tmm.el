@@ -1,7 +1,6 @@
 ;;; tmm.el --- text mode access to menu-bar
 
-;; Copyright (C) 1994, 1995, 1996, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994-1996, 2000-2011 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich <ilya@math.mps.ohio-state.edu>
 ;; Maintainer: FSF
@@ -168,14 +167,13 @@ Its value should be an event that has a binding in MENU."
     ;; It has no other elements.
     ;; The order of elements in tmm-km-list is the order of the menu bar.
     (mapc (lambda (elt)
-	    (if (stringp elt)
-		(setq gl-str elt)
-	      (cond
-	       ((listp elt) (tmm-get-keymap elt not-menu))
-	       ((vectorp elt)
-		(dotimes (i (length elt))
-		  (tmm-get-keymap (cons i (aref elt i)) not-menu))))))
-	    menu)
+            (cond
+             ((stringp elt) (setq gl-str elt))
+             ((listp elt) (tmm-get-keymap elt not-menu))
+             ((vectorp elt)
+              (dotimes (i (length elt))
+                (tmm-get-keymap (cons i (aref elt i)) not-menu)))))
+          menu)
     ;; Choose an element of tmm-km-list; put it in choice.
     (if (and not-menu (= 1 (length tmm-km-list)))
 	;; If this is the top-level of an x-popup-menu menu,
@@ -368,32 +366,31 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
   (add-hook 'minibuffer-exit-hook 'tmm-delete-map nil t)
   (unless tmm-c-prompt
     (error "No active menu entries"))
-  (let ((win (selected-window)))
-    (setq tmm-old-mb-map (tmm-define-keys t))
-    ;; Get window and hide it for electric mode to get correct size
-    (save-window-excursion
-      (let ((completions
-	     (mapcar 'car minibuffer-completion-table)))
-        (or tmm-completion-prompt
-            (add-hook 'completion-setup-hook
-                      'tmm-completion-delete-prompt 'append))
-        (unwind-protect
-            (with-output-to-temp-buffer "*Completions*"
-              (display-completion-list completions))
-          (remove-hook 'completion-setup-hook 'tmm-completion-delete-prompt)))
-      (set-buffer "*Completions*")
-      (tmm-remove-inactive-mouse-face)
-      (when tmm-completion-prompt
-	(let ((buffer-read-only nil))
-	  (goto-char (point-min))
-	  (insert tmm-completion-prompt))))
-    (save-selected-window
-      (other-window 1)			; Electric-pop-up-window does
+  (setq tmm-old-mb-map (tmm-define-keys t))
+  ;; Get window and hide it for electric mode to get correct size
+  (save-window-excursion
+    (let ((completions
+           (mapcar 'car minibuffer-completion-table)))
+      (or tmm-completion-prompt
+          (add-hook 'completion-setup-hook
+                    'tmm-completion-delete-prompt 'append))
+      (unwind-protect
+          (with-output-to-temp-buffer "*Completions*"
+            (display-completion-list completions))
+        (remove-hook 'completion-setup-hook 'tmm-completion-delete-prompt)))
+    (set-buffer "*Completions*")
+    (tmm-remove-inactive-mouse-face)
+    (when tmm-completion-prompt
+      (let ((buffer-read-only nil))
+        (goto-char (point-min))
+        (insert tmm-completion-prompt))))
+  (save-selected-window
+    (other-window 1)			; Electric-pop-up-window does
 					; not work in minibuffer
-      (Electric-pop-up-window "*Completions*")
-      (with-current-buffer "*Completions*"
-	(setq tmm-old-comp-map (tmm-define-keys nil))))
-    (insert tmm-c-prompt)))
+    (Electric-pop-up-window "*Completions*")
+    (with-current-buffer "*Completions*"
+      (setq tmm-old-comp-map (tmm-define-keys nil))))
+  (insert tmm-c-prompt))
 
 (defun tmm-delete-map ()
   (remove-hook 'minibuffer-exit-hook 'tmm-delete-map t)
@@ -497,7 +494,7 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 	       (if (or in-x-menu (stringp (car-safe elt)))
 		   (setq str event event nil km elt)
 		 (setq str event event nil km (cons 'keymap elt)))))
-        (unless (eq km 'ignore)
+        (unless (or (eq km 'ignore) (null str))
           (let ((binding (where-is-internal km nil t)))
             (when binding
               (setq binding (key-description binding))
@@ -568,5 +565,4 @@ of `menu-bar-final-items'."
 
 (provide 'tmm)
 
-;; arch-tag: e7ddbdb6-4b95-4da3-afbe-ad6063d112f4
 ;;; tmm.el ends here

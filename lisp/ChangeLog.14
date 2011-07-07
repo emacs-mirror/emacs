@@ -4287,7 +4287,7 @@
 	(proced-descend): New variable.
 	(proced-sort): New arg descend.
 	(proced-sort-interactive): Repeated calls toggle sort order.
-	(proced-format): Accomodate changes of proced-format-alist.
+	(proced-format): Accommodate changes of proced-format-alist.
 	Undefined attributes are displayed as "?".
 	(proced-process-attributes): New optional arg pid-list.
 	Ignore processes with empty attribute list.
@@ -4421,7 +4421,7 @@
 2008-12-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term/xterm.el (terminal-init-xterm): Discard pending input
-	before reading a reply to the terminal attributes query.
+	before reading a reply to the terminal attributes query.  (Bug#1495)
 
 2008-12-05  Andreas Schwab  <schwab@suse.de>
 
@@ -20551,7 +20551,7 @@ See ChangeLog.13 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+    Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -20568,4 +20568,3 @@ See ChangeLog.13 for earlier changes.
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;; arch-tag: c241c1f9-d668-48bf-920a-2897ed0340bc

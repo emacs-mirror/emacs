@@ -1,7 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1988, 1993, 1994, 1997, 1998, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1985-1986, 1988, 1993-1994, 1997-1998, 2000-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -238,11 +237,11 @@ Note: The search is conducted only within 10%, at the beginning of the file."
 (defvar change-log-font-lock-keywords
   `(;;
     ;; Date lines, new (2000-01-01) and old (Sat Jan  1 00:00:00 2000) styles.
-    ;; Fixme: this regepx is just an approximate one and may match
+    ;; Fixme: this regexp is just an approximate one and may match
     ;; wrongly with a non-date line existing as a random note.  In
     ;; addition, using any kind of fixed setting like this doesn't
     ;; work if a user customizes add-log-time-format.
-    ("^[0-9-]+ +\\|^ \\{11,\\}\\|^\\(Sun\\|Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\) [A-z][a-z][a-z] [0-9:+ ]+"
+    ("^[0-9-]+ +\\|^ \\{11,\\}\\|^\t \\{3,\\}\\|^\\(Sun\\|Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\) [A-z][a-z][a-z] [0-9:+ ]+"
      (0 'change-log-date-face)
      ;; Name and e-mail; some people put e-mail in parens, not angles.
      ("\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]" nil nil
@@ -278,7 +277,7 @@ Note: The search is conducted only within 10%, at the beginning of the file."
     ;; Note that the FSF does not use "Patches by"; our convention
     ;; is to put the name of the author of the changes at the top
     ;; of the change log entry.
-    ("\\(^\\( +\\|\t\\)\\|  \\)\\(Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
+    ("\\(^\\( +\\|\t\\)\\|  \\)\\(Thanks to\\|Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
      3 'change-log-acknowledgement))
   "Additional expressions to highlight in Change Log mode.")
 
@@ -579,7 +578,7 @@ It takes the same format as the TZ argument of `set-time-zone-rule'.
 If nil, use local time.
 If t, use universal time.")
 (put 'add-log-time-zone-rule 'safe-local-variable
-     '(lambda (x) (or (booleanp x) (stringp x))))
+     (lambda (x) (or (booleanp x) (stringp x))))
 
 (defun add-log-iso8601-time-zone (&optional time)
   (let* ((utc-offset (or (car (current-time-zone time)) 0))
@@ -866,8 +865,12 @@ non-nil, otherwise in local time."
         (if (and (not add-log-always-start-new-record)
                  (let ((hit nil))
                    (dolist (entry new-entries hit)
-                     (when (looking-at (regexp-quote entry))
-                       (setq hit t)))))
+                     (and (looking-at (regexp-quote entry))
+			  ;; Reject multiple author entries.  (Bug#8645)
+			  (save-excursion
+			    (forward-line 1)
+			    (not (looking-at "[ \t]+.*<.*>$")))
+			  (setq hit t)))))
             (forward-line 1)
           (insert (nth (random (length new-entries))
                        new-entries)
@@ -887,7 +890,7 @@ non-nil, otherwise in local time."
              (point))))
 
       ;; Now insert the new line for this item.
-      (cond ((re-search-forward "^\\s *\\*\\s *$" bound t)
+      (cond ((re-search-forward "^\\s *\\* *$" bound t)
              ;; Put this file name into the existing empty item.
              (if item
                  (insert item)))
@@ -929,7 +932,7 @@ non-nil, otherwise in local time."
 	;; No function name, so put in a colon unless we have just a star.
 	(unless (save-excursion
 		  (beginning-of-line 1)
-		  (looking-at "\\s *\\(\\*\\s *\\)?$"))
+		  (looking-at "\\s *\\(\\* *\\)?$"))
 	  (insert ": ")
 	  (if version (insert version ?\s)))
       ;; Make it easy to get rid of the function name.
@@ -1048,8 +1051,8 @@ Runs `change-log-mode-hook'.
   (set (make-local-variable 'fill-indent-according-to-mode) t)
   ;; Avoid that filling leaves behind a single "*" on a line.
   (add-hook 'fill-nobreak-predicate
-	    '(lambda ()
-	       (looking-back "^\\s *\\*\\s *" (line-beginning-position)))
+	    (lambda ()
+              (looking-back "^\\s *\\*\\s *" (line-beginning-position)))
 	    nil t)
   (set (make-local-variable 'indent-line-function) 'change-log-indent)
   (set (make-local-variable 'tab-always-indent) nil)
@@ -1367,5 +1370,4 @@ old-style time formats for entries are supported."
 
 (provide 'add-log)
 
-;; arch-tag: 81eee6fc-088f-4372-a37f-80ad9620e762
 ;;; add-log.el ends here

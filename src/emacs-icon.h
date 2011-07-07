@@ -1,7 +1,7 @@
 /* XPM */
 /* Emacs icon
 
-Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 2008-2011  Free Software Foundation, Inc.
 
 Author:  Kentaro Ohkouchi <nanasess@fsm.ne.jp>
 
@@ -351,5 +351,3 @@ static unsigned char gnu_xbm_bits[] = {
    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
    0x00, 0x00};
 
-/* arch-tag: b57020c7-c937-4d77-8ca6-3875178d9828
-   (do not change this comment) */

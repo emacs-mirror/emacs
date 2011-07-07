@@ -54,7 +54,7 @@ typedef struct _XAssoc {
 	struct _XAssoc *prev;	/* Previous obejct in this bucket. */
 	Display *display;	/* Display which owns the id. */
 	XID x_id;		/* X Window System id. */
-	char *data;		/* Pointer to untyped memory. */
+	void *data;		/* Pointer to untyped memory. */
 } XAssoc;
 
 /*
@@ -75,6 +75,3 @@ XAssocTable *XCreateAssocTable(int size);
 char *XLookUpAssoc(Display *dpy, XAssocTable *table, XID x_id);
 
 #endif /* _X10_H_ */
-
-/* arch-tag: b0b749fb-757b-470b-b405-af7d033a5aad
-   (do not change this comment) */

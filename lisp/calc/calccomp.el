@@ -1,7 +1,6 @@
 ;;; calccomp.el --- composition functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -1283,12 +1282,7 @@
 		 (let ((prefix "") mrg wid)
 		   (setq mrg (aref math-comp-buf-margin i))
 		   (if (> mrg 12)  ; indenting too far, go back to far left
-		       (let ((j i) (new (if calc-line-numbering 5 1)))
-			 '(while (<= j math-comp-level)
-			   (aset math-comp-buf-margin j
-				 (+ (aref math-comp-buf-margin j) (- new mrg)))
-			   (setq j (1+ j)))
-			 (setq mrg new)))
+		       (setq mrg (if calc-line-numbering 5 1)))
 		   (setq wid (+ (length str) math-comp-margin))
 		   (and (> (length str) 0) (= (aref str 0) ? )
 			(> (length math-comp-buf) 0)
@@ -1675,5 +1669,4 @@
 ;; coding: utf-8
 ;; End:
 
-;; arch-tag: 7c45d10a-a286-4dab-af49-7ae8989fbf78
 ;;; calccomp.el ends here

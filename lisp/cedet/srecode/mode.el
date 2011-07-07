@@ -1,6 +1,6 @@
 ;;; srecode/mode.el --- Minor mode for managing and using SRecode templates
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -396,5 +396,4 @@ programming modes."
 ;; generated-autoload-load-name: "srecode/mode"
 ;; End:
 
-;; arch-tag: 56ad9d6b-899b-4a68-8636-1432b6bc149b
 ;;; srecode/mode.el ends here

@@ -1,7 +1,6 @@
 ;;; midnight.el --- run something every midnight, e.g., kill old buffers
 
-;; Copyright (C) 1998, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: Sam Steingold <sds@gnu.org>
 ;; Maintainer: Sam Steingold <sds@gnu.org>
@@ -40,8 +39,6 @@
 (eval-when-compile
  (require 'cl))
 
-(require 'timer)
-
 (defgroup midnight nil
   "Run something every day at midnight."
   :group 'calendar
@@ -66,12 +63,6 @@ call `cancel-timer' or `timer-activate' on `midnight-timer' instead."
              (cancel-timer midnight-timer))))
 
 ;;; time conversion
-
-(defun midnight-time-float (num)
-  "Convert the float number of seconds since epoch to the list of 3 integers."
-  (let* ((div (ash 1 16)) (1st (floor num div)))
-    (list 1st (floor (- num (* (float div) 1st)))
-          (round (* 10000000 (mod num 1))))))
 
 (defun midnight-buffer-display-time (&optional buffer)
   "Return the time-stamp of BUFFER, or current buffer, as float."
@@ -126,7 +117,7 @@ See also `clean-buffer-list-kill-regexps',
   :group 'midnight)
 
 (defcustom clean-buffer-list-kill-never-buffer-names
-    '("*scratch*" "*Messages*" "*server*")
+    '("*scratch*" "*Messages*")
   "List of buffer names which will never be killed by `clean-buffer-list'.
 See also `clean-buffer-list-kill-never-regexps'.
 Note that this does override `clean-buffer-list-kill-regexps' and
@@ -234,5 +225,4 @@ first argument to `run-at-time'."
 
 (provide 'midnight)
 
-;; arch-tag: a5979be9-2890-46a3-ba84-791f0a4a6e80
 ;;; midnight.el ends here

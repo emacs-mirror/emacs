@@ -1,7 +1,6 @@
 ;;; gnus-srvr.el --- virtual server support for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995-2011 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -363,7 +362,8 @@ The following commands are available:
       (when entry
 	(gnus-dribble-enter
 	 (concat "(gnus-server-set-info \"" server "\" '"
-		 (gnus-prin1-to-string (cdr entry)) ")\n")))
+		 (gnus-prin1-to-string (cdr entry)) ")\n")
+	 (concat "^(gnus-server-set-info \"" (regexp-quote server) "\"")))
       (when (or entry oentry)
 	;; Buffer may be narrowed.
 	(save-restriction
@@ -382,7 +382,8 @@ The following commands are available:
   (when (and server info)
     (gnus-dribble-enter
      (concat "(gnus-server-set-info \"" server "\" '"
-	     (gnus-prin1-to-string info) ")"))
+	     (gnus-prin1-to-string info) ")")
+     (concat "^(gnus-server-set-info \"" (regexp-quote server) "\""))
     (let* ((server (nth 1 info))
 	   (entry (assoc server gnus-server-alist))
 	   (cached (assoc server gnus-server-method-cache)))
@@ -766,7 +767,8 @@ claim them."
       (with-current-buffer nntp-server-buffer
 	(let ((cur (current-buffer)))
 	  (goto-char (point-min))
-	  (unless (string= gnus-ignored-newsgroups "")
+         (unless (or (null gnus-ignored-newsgroups)
+                     (string= gnus-ignored-newsgroups ""))
 	    (delete-matching-lines gnus-ignored-newsgroups))
 	  ;; We treat NNTP as a special case to avoid problems with
 	  ;; garbage group names like `"foo' that appear in some badly
@@ -992,7 +994,8 @@ how new groups will be entered into the group buffer."
 		;; mechanism for new group subscription.
 		(gnus-call-subscribe-functions
 		 gnus-browse-subscribe-newsgroup-method
-		 group)))
+		 group)
+		(gnus-request-update-group-status group 'subscribe)))
 	    (delete-char 1)
 	    (insert (let ((lvl (gnus-group-level group)))
 		      (cond

@@ -1,7 +1,6 @@
 ;;; cal-islam.el --- calendar functions for the Islamic calendar
 
-;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -345,5 +344,4 @@ Prefix argument ARG makes the entry nonmarking."
 
 (provide 'cal-islam)
 
-;; arch-tag: a951b6c1-6f47-48d5-bac3-1b505cd719f7
 ;;; cal-islam.el ends here

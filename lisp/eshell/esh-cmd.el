@@ -1,7 +1,6 @@
 ;;; esh-cmd.el --- command invocation
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -230,8 +229,9 @@ return non-nil if the command is complex."
 
 ;;; User Variables:
 
-(defcustom eshell-cmd-load-hook '(eshell-cmd-initialize)
+(defcustom eshell-cmd-load-hook nil
   "A hook that gets run when `eshell-cmd' is loaded."
+  :version "24.1"		       ; removed eshell-cmd-initialize
   :type 'hook
   :group 'eshell-cmd)
 
@@ -319,18 +319,6 @@ otherwise t.")
   (when (eshell-using-module 'eshell-cmpl)
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-lisp-symbols nil t)))
-
-(eshell-deftest var last-result-var
-  "\"last result\" variable"
-  (eshell-command-result-p "+ 1 2; + $$ 2" "3\n5\n"))
-
-(eshell-deftest var last-result-var2
-  "\"last result\" variable"
-  (eshell-command-result-p "+ 1 2; + $$ $$" "3\n6\n"))
-
-(eshell-deftest var last-arg-var
-  "\"last arg\" variable"
-  (eshell-command-result-p "+ 1 2; + $_ 4" "3\n6\n"))
 
 (defun eshell-complete-lisp-symbols ()
   "If there is a user reference, complete it."
@@ -441,31 +429,11 @@ hooks should be run before and after the command."
 	   (eq (caar terms) 'eshell-command-to-value))
       (car (cdar terms))))
 
-(eshell-deftest cmd lisp-command
-  "Evaluate Lisp command"
-  (eshell-command-result-p "(+ 1 2)" "3"))
-
-(eshell-deftest cmd lisp-command-args
-  "Evaluate Lisp command (ignore args)"
-  (eshell-command-result-p "(+ 1 2) 3" "3"))
-
 (defun eshell-rewrite-initial-subcommand (terms)
   "Rewrite a subcommand in initial position, such as '{+ 1 2}'."
   (if (and (listp (car terms))
 	   (eq (caar terms) 'eshell-as-subcommand))
       (car terms)))
-
-(eshell-deftest cmd subcommand
-  "Run subcommand"
-  (eshell-command-result-p "{+ 1 2}" "3\n"))
-
-(eshell-deftest cmd subcommand-args
-  "Run subcommand (ignore args)"
-  (eshell-command-result-p "{+ 1 2} 3" "3\n"))
-
-(eshell-deftest cmd subcommand-lisp
-  "Run subcommand + Lisp form"
-  (eshell-command-result-p "{(+ 1 2)}" "3\n"))
 
 (defun eshell-rewrite-named-command (terms)
   "If no other rewriting rule transforms TERMS, assume a named command."
@@ -477,10 +445,6 @@ hooks should be run before and after the command."
     (if args
 	(list sym cmd (append (list 'list) (cdr terms)))
       (list sym cmd))))
-
-(eshell-deftest cmd named-command
-  "Execute named command"
-  (eshell-command-result-p "+ 1 2" "3\n"))
 
 (defvar eshell-command-body)
 (defvar eshell-test-body)
@@ -988,7 +952,7 @@ at the moment are:
 	 (not (member name eshell-complex-commands))
 	 (catch 'simple
 	   (progn
-	    (eshell-for pred eshell-complex-commands
+	    (dolist (pred eshell-complex-commands)
 	      (if (and (functionp pred)
 		       (funcall pred name))
 		  (throw 'simple nil)))
@@ -1166,7 +1130,7 @@ be finished later after the completion of an asynchronous subprocess."
 	(if (and (eq (car form) 'let)
 		 (not (eq (car (cadr args)) 'eshell-do-eval)))
 	    (eshell-manipulate "evaluating let args"
-	      (eshell-for letarg (car args)
+	      (dolist (letarg (car args))
 		(if (and (listp letarg)
 			 (not (eq (cadr letarg) 'quote)))
 		    (setcdr letarg
@@ -1242,7 +1206,7 @@ be finished later after the completion of an asynchronous subprocess."
 
 (defun eshell/which (command &rest names)
   "Identify the COMMAND, and where it is located."
-  (eshell-for name (cons command names)
+  (dolist (name (cons command names))
     (let (program alias direct)
       (if (eq (aref name 0) eshell-explicit-command-char)
 	  (setq name (substring name 1)
@@ -1434,5 +1398,4 @@ messages, and errors."
 
 (provide 'esh-cmd)
 
-;; arch-tag: 8e4f3867-a0c5-441f-96ba-ddd142d94366
 ;;; esh-cmd.el ends here

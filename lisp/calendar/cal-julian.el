@@ -1,7 +1,6 @@
 ;;; cal-julian.el --- calendar functions for the Julian calendar
 
-;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -218,5 +217,4 @@ Echo astronomical (Julian) day number unless NOECHO is non-nil."
 
 (provide 'cal-julian)
 
-;; arch-tag: 0520acdd-1c60-4188-9aa8-9b8c24d856ae
 ;;; cal-julian.el ends here

@@ -1,7 +1,6 @@
 ;;; em-glob.el --- extended file name globbing
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -62,8 +61,9 @@ by zsh for filename generation."
 
 ;;; User Variables:
 
-(defcustom eshell-glob-load-hook '(eshell-glob-initialize)
+(defcustom eshell-glob-load-hook nil
   "A list of functions to run when `eshell-glob' is loaded."
+  :version "24.1"			; removed eshell-glob-initialize
   :type 'hook
   :group 'eshell-glob)
 
@@ -148,10 +148,10 @@ This option slows down recursive glob processing by quite a bit."
     ;; if this is a glob pattern than needs to be expanded, then it
     ;; will need to expand each member of the resulting glob list
     (add-to-list 'eshell-current-modifiers
-		 '(lambda (list)
-		    (if (listp list)
-			(mapcar 'expand-file-name list)
-		      (expand-file-name list)))))
+		 (lambda (list)
+                   (if (listp list)
+                       (mapcar 'expand-file-name list)
+                     (expand-file-name list)))))
   (add-to-list 'eshell-current-modifiers 'eshell-extended-glob))
 
 (defun eshell-parse-glob-chars ()

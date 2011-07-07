@@ -1,6 +1,6 @@
 ;;; project-am.el --- A project management scheme based on automake files.
 
-;; Copyright (C) 1998, 1999, 2000, 2003, 2005, 2007, 2008, 2009, 2010
+;; Copyright (C) 1998-2000, 2003, 2005, 2007-2011
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
@@ -1020,5 +1020,4 @@ per file or in .dir-locals.el or similar."
 
 (provide 'ede/project-am)
 
-;; arch-tag: 528db935-f186-4240-b647-e305c5b784a2
 ;;; ede/project-am.el ends here

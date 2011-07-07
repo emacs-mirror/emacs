@@ -28,8 +28,7 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-Copyright (C) 1984, 1987, 1988, 1989, 1993, 1994, 1995, 1998, 1999,
-  2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+Copyright (C) 1984, 1987-1989, 1993-1995, 1998-2011
   Free Software Foundation, Inc.
 
 This file is not considered part of GNU Emacs.
@@ -94,8 +93,11 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
-  /* On some systems, Emacs defines static as nothing for the sake
-     of unexec.  We don't want that here since we don't use unexec. */
+  /* This is probably not necessary any more.  On some systems, config.h
+     used to define static as nothing for the sake of unexec.  We don't
+     want that here since we don't use unexec.  None of these systems
+     are supported any more, but the idea is still mentioned in
+     etc/PROBLEMS.  */
 # undef static
 # ifndef PTR			/* for XEmacs */
 #   define PTR void *
@@ -172,9 +174,8 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # endif
 #endif /* !WINDOWSNT */
 
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#else
+#include <unistd.h>
+#ifndef HAVE_UNISTD_H
 # if defined (HAVE_GETCWD) && !defined (WINDOWSNT)
     extern char *getcwd (char *buf, size_t size);
 # endif
@@ -190,10 +191,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #ifdef NDEBUG
 # undef  assert			/* some systems have a buggy assert.h */
 # define assert(x) ((void) 0)
-#endif
-
-#if !defined (S_ISREG) && defined (S_IFREG)
-# define S_ISREG(m)	(((m) & S_IFMT) == S_IFREG)
 #endif
 
 #ifdef NO_LONG_OPTIONS		/* define this if you don't have GNU getopt */
@@ -245,7 +242,6 @@ If you want regular expression support, you should delete this notice and
 #define ISLOWER(c)	islower (CHAR(c))
 
 #define lowcase(c)	tolower (CHAR(c))
-#define upcase(c)	toupper (CHAR(c))
 
 
 /*
@@ -891,7 +887,7 @@ static void
 print_version (void)
 {
   /* Makes it easier to update automatically. */
-  char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
+  char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
 
   printf ("%s (%s %s)\n", (CTAGS) ? "ctags" : "etags", EMACS_NAME, VERSION);
   puts (emacs_copyright);
@@ -2364,14 +2360,7 @@ and replace lines between %< and %> with its output, then:
 struct C_stab_entry { const char *name; int c_ext; enum sym_type type; };
 /* maximum key range = 33, duplicates = 0 */
 
-#ifdef __GNUC__
-__inline
-#else
-#ifdef __cplusplus
-inline
-#endif
-#endif
-static unsigned int
+static inline unsigned int
 hash (register const char *str, register unsigned int len)
 {
   static unsigned char asso_values[] =
@@ -3985,10 +3974,8 @@ Yacc_entries (FILE *inf)
 static void
 just_read_file (FILE *inf)
 {
-  register char *dummy;
-
-  LOOP_ON_INPUT_LINES (inf, lb, dummy)
-    continue;
+  while (!feof (inf))
+    readline (&lb, inf);
 }
 
 
@@ -4205,7 +4192,7 @@ Ada_funcs (FILE *inf)
 	  /* Skip a string i.e. "abcd". */
 	  if (inquote || (*dbp == '"'))
 	    {
-	      dbp = etags_strchr ((inquote) ? dbp : dbp+1, '"');
+	      dbp = etags_strchr (dbp + !inquote, '"');
 	      if (dbp != NULL)
 		{
 		  inquote = FALSE;
@@ -5261,16 +5248,16 @@ HTML_labels (FILE *inf)
  * Original code by Sunichirou Sugou (1989)
  * Rewritten by Anders Lindgren (1996)
  */
-static int prolog_pr (char *, char *);
+static size_t prolog_pr (char *, char *);
 static void prolog_skip_comment (linebuffer *, FILE *);
-static int prolog_atom (char *, int);
+static size_t prolog_atom (char *, size_t);
 
 static void
 Prolog_functions (FILE *inf)
 {
   char *cp, *last;
-  int len;
-  int allocated;
+  size_t len;
+  size_t allocated;
 
   allocated = 0;
   len = 0;
@@ -5327,16 +5314,16 @@ prolog_skip_comment (linebuffer *plb, FILE *inf)
  * Return the size of the name of the predicate or rule, or 0 if no
  * header was found.
  */
-static int
+static size_t
 prolog_pr (char *s, char *last)
-             
+
                 		/* Name of last clause. */
 {
-  int pos;
-  int len;
+  size_t pos;
+  size_t len;
 
   pos = prolog_atom (s, 0);
-  if (pos < 1)
+  if (! pos)
     return 0;
 
   len = pos;
@@ -5346,7 +5333,7 @@ prolog_pr (char *s, char *last)
        || (s[pos] == '(' && (pos += 1))
        || (s[pos] == ':' && s[pos + 1] == '-' && (pos += 2)))
       && (last == NULL		/* save only the first clause */
-	  || len != (int)strlen (last)
+	  || len != strlen (last)
 	  || !strneq (s, last, len)))
 	{
 	  make_tag (s, len, TRUE, s, pos, lineno, linecharno);
@@ -5358,17 +5345,17 @@ prolog_pr (char *s, char *last)
 
 /*
  * Consume a Prolog atom.
- * Return the number of bytes consumed, or -1 if there was an error.
+ * Return the number of bytes consumed, or 0 if there was an error.
  *
  * A prolog atom, in this context, could be one of:
  * - An alphanumeric sequence, starting with a lower case letter.
  * - A quoted arbitrary string. Single quotes can escape themselves.
  *   Backslash quotes everything.
  */
-static int
-prolog_atom (char *s, int pos)
+static size_t
+prolog_atom (char *s, size_t pos)
 {
-  int origpos;
+  size_t origpos;
 
   origpos = pos;
 
@@ -5397,11 +5384,11 @@ prolog_atom (char *s, int pos)
 	    }
 	  else if (s[pos] == '\0')
 	    /* Multiline quoted atoms are ignored. */
-	    return -1;
+	    return 0;
 	  else if (s[pos] == '\\')
 	    {
 	      if (s[pos+1] == '\0')
-		return -1;
+		return 0;
 	      pos += 2;
 	    }
 	  else
@@ -5410,7 +5397,7 @@ prolog_atom (char *s, int pos)
       return pos - origpos;
     }
   else
-    return -1;
+    return 0;
 }
 
 
@@ -5486,7 +5473,7 @@ Erlang_functions (FILE *inf)
  */
 static int
 erlang_func (char *s, char *last)
-             
+
                 		/* Name of last clause. */
 {
   int pos;
@@ -6644,7 +6631,7 @@ filename_is_absolute (char *fn)
 	  );
 }
 
-/* Upcase DOS drive letter and collapse separators into single slashes.
+/* Downcase DOS drive letter and collapse separators into single slashes.
    Works in place. */
 static void
 canonicalize_filename (register char *fn)
@@ -6654,8 +6641,9 @@ canonicalize_filename (register char *fn)
 
 #ifdef DOS_NT
   /* Canonicalize drive letter case.  */
-  if (fn[0] != '\0' && fn[1] == ':' && ISLOWER (fn[0]))
-    fn[0] = upcase (fn[0]);
+# define ISUPPER(c)	isupper (CHAR(c))
+  if (fn[0] != '\0' && fn[1] == ':' && ISUPPER (fn[0]))
+    fn[0] = lowcase (fn[0]);
 
   sep = '\\';
 #endif
@@ -6724,8 +6712,5 @@ xrealloc (char *ptr, unsigned int size)
  * c-file-style: "gnu"
  * End:
  */
-
-/* arch-tag: 8a9b748d-390c-4922-99db-2eeefa921051
-   (do not change this comment) */
 
 /* etags.c ends here */

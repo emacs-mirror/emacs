@@ -1,7 +1,6 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands
 
-;; Copyright (C) 1985, 1986, 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1999-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
@@ -39,46 +38,46 @@
 (define-abbrev-table 'lisp-mode-abbrev-table ())
 
 (defvar emacs-lisp-mode-syntax-table
-  (let ((table (make-syntax-table)))
-    (let ((i 0))
-      (while (< i ?0)
-	(modify-syntax-entry i "_   " table)
-	(setq i (1+ i)))
-      (setq i (1+ ?9))
-      (while (< i ?A)
-	(modify-syntax-entry i "_   " table)
-	(setq i (1+ i)))
-      (setq i (1+ ?Z))
-      (while (< i ?a)
-	(modify-syntax-entry i "_   " table)
-	(setq i (1+ i)))
-      (setq i (1+ ?z))
-      (while (< i 128)
-	(modify-syntax-entry i "_   " table)
-	(setq i (1+ i)))
-      (modify-syntax-entry ?\s "    " table)
-      ;; Non-break space acts as whitespace.
-      (modify-syntax-entry ?\x8a0 "    " table)
-      (modify-syntax-entry ?\t "    " table)
-      (modify-syntax-entry ?\f "    " table)
-      (modify-syntax-entry ?\n ">   " table)
-      ;; This is probably obsolete since nowadays such features use overlays.
-      ;; ;; Give CR the same syntax as newline, for selective-display.
-      ;; (modify-syntax-entry ?\^m ">   " table)
-      (modify-syntax-entry ?\; "<   " table)
-      (modify-syntax-entry ?` "'   " table)
-      (modify-syntax-entry ?' "'   " table)
-      (modify-syntax-entry ?, "'   " table)
-      (modify-syntax-entry ?@ "'   " table)
-      ;; Used to be singlequote; changed for flonums.
-      (modify-syntax-entry ?. "_   " table)
-      (modify-syntax-entry ?# "'   " table)
-      (modify-syntax-entry ?\" "\"    " table)
-      (modify-syntax-entry ?\\ "\\   " table)
-      (modify-syntax-entry ?\( "()  " table)
-      (modify-syntax-entry ?\) ")(  " table)
-      (modify-syntax-entry ?\[ "(]  " table)
-      (modify-syntax-entry ?\] ")[  " table))
+  (let ((table (make-syntax-table))
+        (i 0))
+    (while (< i ?0)
+      (modify-syntax-entry i "_   " table)
+      (setq i (1+ i)))
+    (setq i (1+ ?9))
+    (while (< i ?A)
+      (modify-syntax-entry i "_   " table)
+      (setq i (1+ i)))
+    (setq i (1+ ?Z))
+    (while (< i ?a)
+      (modify-syntax-entry i "_   " table)
+      (setq i (1+ i)))
+    (setq i (1+ ?z))
+    (while (< i 128)
+      (modify-syntax-entry i "_   " table)
+      (setq i (1+ i)))
+    (modify-syntax-entry ?\s "    " table)
+    ;; Non-break space acts as whitespace.
+    (modify-syntax-entry ?\x8a0 "    " table)
+    (modify-syntax-entry ?\t "    " table)
+    (modify-syntax-entry ?\f "    " table)
+    (modify-syntax-entry ?\n ">   " table)
+    ;; This is probably obsolete since nowadays such features use overlays.
+    ;; ;; Give CR the same syntax as newline, for selective-display.
+    ;; (modify-syntax-entry ?\^m ">   " table)
+    (modify-syntax-entry ?\; "<   " table)
+    (modify-syntax-entry ?` "'   " table)
+    (modify-syntax-entry ?' "'   " table)
+    (modify-syntax-entry ?, "'   " table)
+    (modify-syntax-entry ?@ "'   " table)
+    ;; Used to be singlequote; changed for flonums.
+    (modify-syntax-entry ?. "_   " table)
+    (modify-syntax-entry ?# "'   " table)
+    (modify-syntax-entry ?\" "\"    " table)
+    (modify-syntax-entry ?\\ "\\   " table)
+    (modify-syntax-entry ?\( "()  " table)
+    (modify-syntax-entry ?\) ")(  " table)
+    (modify-syntax-entry ?\[ "(]  " table)
+    (modify-syntax-entry ?\] ")[  " table)
     table)
   "Syntax table used in `emacs-lisp-mode'.")
 
@@ -526,7 +525,6 @@ if that value is non-nil."
   "Keymap for Lisp Interaction mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
 
-(defvar lisp-interaction-mode-abbrev-table lisp-mode-abbrev-table)
 (define-derived-mode lisp-interaction-mode emacs-lisp-mode "Lisp Interaction"
   "Major mode for typing and evaluating Lisp forms.
 Like Lisp mode except that \\[eval-print-last-sexp] evals the Lisp expression
@@ -700,7 +698,9 @@ If CHAR is not a character, return nil."
   "Evaluate sexp before point; print value in minibuffer.
 With argument, print output into current buffer."
   (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t)))
-    (eval-last-sexp-print-value (eval (preceding-sexp)))))
+    ;; Setup the lexical environment if lexical-binding is enabled.
+    (eval-last-sexp-print-value
+     (eval (eval-sexp-add-defvars (preceding-sexp)) lexical-binding))))
 
 
 (defun eval-last-sexp-print-value (value)
@@ -727,6 +727,23 @@ With argument, print output into current buffer."
 
 
 (defvar eval-last-sexp-fake-value (make-symbol "t"))
+
+(defun eval-sexp-add-defvars (exp &optional pos)
+  "Prepend EXP with all the `defvar's that precede it in the buffer.
+POS specifies the starting position where EXP was found and defaults to point."
+  (if (not lexical-binding)
+      exp
+    (save-excursion
+      (unless pos (setq pos (point)))
+      (let ((vars ()))
+        (goto-char (point-min))
+        (while (re-search-forward
+                "^(def\\(?:var\\|const\\|custom\\)[ \t\n]+\\([^; '()\n\t]+\\)"
+                pos t)
+          (let ((var (intern (match-string 1))))
+            (unless (special-variable-p var)
+              (push var vars))))
+        `(progn ,@(mapcar (lambda (v) `(defvar ,v)) vars) ,exp)))))
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
@@ -764,30 +781,33 @@ Reinitialize the face according to the `defface' specification."
 	;; `defcustom' is now macroexpanded to
 	;; `custom-declare-variable' with a quoted value arg.
 	((and (eq (car form) 'custom-declare-variable)
-	      (default-boundp (eval (nth 1 form))))
+	      (default-boundp (eval (nth 1 form) lexical-binding)))
 	 ;; Force variable to be bound.
-	 (set-default (eval (nth 1 form)) (eval (nth 1 (nth 2 form))))
+	 (set-default (eval (nth 1 form) lexical-binding)
+                      (eval (nth 1 (nth 2 form)) lexical-binding))
 	 form)
 	;; `defface' is macroexpanded to `custom-declare-face'.
 	((eq (car form) 'custom-declare-face)
 	 ;; Reset the face.
-	 (setq face-new-frame-defaults
-	       (assq-delete-all (eval (nth 1 form)) face-new-frame-defaults))
-	 (put (eval (nth 1 form)) 'face-defface-spec nil)
-	 ;; Setting `customized-face' to the new spec after calling
-	 ;; the form, but preserving the old saved spec in `saved-face',
-	 ;; imitates the situation when the new face spec is set
-	 ;; temporarily for the current session in the customize
-	 ;; buffer, thus allowing `face-user-default-spec' to use the
-	 ;; new customized spec instead of the saved spec.
-	 ;; Resetting `saved-face' temporarily to nil is needed to let
-	 ;; `defface' change the spec, regardless of a saved spec.
-	 (prog1 `(prog1 ,form
-		   (put ,(nth 1 form) 'saved-face
-			',(get (eval (nth 1 form)) 'saved-face))
-		   (put ,(nth 1 form) 'customized-face
-			,(nth 2 form)))
-	   (put (eval (nth 1 form)) 'saved-face nil)))
+	 (let ((face-symbol (eval (nth 1 form) lexical-binding)))
+	   (setq face-new-frame-defaults
+		 (assq-delete-all face-symbol face-new-frame-defaults))
+	   (put face-symbol 'face-defface-spec nil)
+	   (put face-symbol 'face-documentation (nth 3 form))
+	   ;; Setting `customized-face' to the new spec after calling
+	   ;; the form, but preserving the old saved spec in `saved-face',
+	   ;; imitates the situation when the new face spec is set
+	   ;; temporarily for the current session in the customize
+	   ;; buffer, thus allowing `face-user-default-spec' to use the
+	   ;; new customized spec instead of the saved spec.
+	   ;; Resetting `saved-face' temporarily to nil is needed to let
+	   ;; `defface' change the spec, regardless of a saved spec.
+	   (prog1 `(prog1 ,form
+		     (put ,(nth 1 form) 'saved-face
+			  ',(get face-symbol 'saved-face))
+		     (put ,(nth 1 form) 'customized-face
+			  ,(nth 2 form)))
+	     (put face-symbol 'saved-face nil))))
 	((eq (car form) 'progn)
 	 (cons 'progn (mapcar 'eval-defun-1 (cdr form))))
 	(t form)))
@@ -823,7 +843,7 @@ Return the result of evaluation."
 	   (end-of-defun)
 	   (beginning-of-defun)
 	   (setq beg (point))
-	   (setq form (read (current-buffer)))
+	   (setq form (eval-sexp-add-defvars (read (current-buffer))))
 	   (setq end (point)))
 	 ;; Alter the form if necessary.
 	 (setq form (eval-defun-1 (macroexpand form)))
@@ -1206,7 +1226,6 @@ This function also returns nil meaning don't specify the indentation."
 (put 'prog1 'lisp-indent-function 1)
 (put 'prog2 'lisp-indent-function 2)
 (put 'save-excursion 'lisp-indent-function 0)
-(put 'save-window-excursion 'lisp-indent-function 0)
 (put 'save-restriction 'lisp-indent-function 0)
 (put 'save-match-data 'lisp-indent-function 0)
 (put 'save-current-buffer 'lisp-indent-function 0)

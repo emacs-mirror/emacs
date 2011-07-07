@@ -71,5 +71,3 @@ XMenuDeleteSelection(register Display *display, register XMenu *menu, register i
     return(s_num);
 }
 
-/* arch-tag: 24ca2bc7-8a37-471a-8095-e6363fc1ed10
-   (do not change this comment) */

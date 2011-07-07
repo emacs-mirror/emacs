@@ -1,7 +1,6 @@
 ;;; python.el --- silly walks for Python  -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2003-2011  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: FSF
@@ -100,7 +99,9 @@
 	     "import" "in" "is" "lambda" "not" "or" "pass" "print"
 	     "raise" "return" "try" "while" "with" "yield"
              ;; Not real keywords, but close enough to be fontified as such
-             "self" "True" "False")
+             "self" "True" "False"
+             ;; Python 3
+             "nonlocal")
 	 symbol-end)
     (,(rx symbol-start "None" symbol-end)	; see § Keywords in 2.7 manual
      . font-lock-constant-face)
@@ -500,44 +501,6 @@ statement."
   :type 'integer)
 
 
-(defcustom python-default-interpreter 'cpython
-  "*Which Python interpreter is used by default.
-The value for this variable can be either `cpython' or `jpython'.
-
-When the value is `cpython', the variables `python-python-command' and
-`python-python-command-args' are consulted to determine the interpreter
-and arguments to use.
-
-When the value is `jpython', the variables `python-jpython-command' and
-`python-jpython-command-args' are consulted to determine the interpreter
-and arguments to use.
-
-Note that this variable is consulted only the first time that a Python
-mode buffer is visited during an Emacs session.  After that, use
-\\[python-toggle-shells] to change the interpreter shell."
-  :type '(choice (const :tag "Python (a.k.a. CPython)" cpython)
-		 (const :tag "JPython" jpython))
-  :group 'python)
-
-(defcustom python-python-command-args '("-i")
-  "*List of string arguments to be used when starting a Python shell."
-  :type '(repeat string)
-  :group 'python)
-
-(defcustom python-jython-command-args '("-i")
-  "*List of string arguments to be used when starting a Jython shell."
-  :type '(repeat string)
-  :group 'python
-  :tag "JPython Command Args")
-
-;; for toggling between CPython and JPython
-(defvar python-which-shell nil)
-(defvar python-which-args  python-python-command-args)
-(defvar python-which-bufname "Python")
-(make-variable-buffer-local 'python-which-shell)
-(make-variable-buffer-local 'python-which-args)
-(make-variable-buffer-local 'python-which-bufname)
-
 (defcustom python-pdbtrack-do-tracking-p t
   "*Controls whether the pdbtrack feature is enabled or not.
 
@@ -562,11 +525,6 @@ having to restart the program."
 (or (assq 'python-pdbtrack-is-tracking-p minor-mode-alist)
     (push '(python-pdbtrack-is-tracking-p python-pdbtrack-minor-mode-string)
 	  minor-mode-alist))
-
-;; Bind python-file-queue before installing the kill-emacs-hook.
-(defvar python-file-queue nil
-  "Queue of Python temp files awaiting execution.
-Currently-active file is at the head of the list.")
 
 (defcustom python-shell-prompt-alist
   '(("ipython" . "^In \\[[0-9]+\\]: *")
@@ -1317,7 +1275,7 @@ See `python-check-command' for the default."
 				  (let ((name (buffer-file-name)))
 				    (if name
 					(file-name-nondirectory name))))))))
-  (setq python-saved-check-command command)
+  (set (make-local-variable 'python-saved-check-command) command)
   (require 'compile)                    ;To define compilation-* variables.
   (save-some-buffers (not compilation-ask-about-save) nil)
   (let ((compilation-error-regexp-alist
@@ -1462,6 +1420,16 @@ Default ignores all inputs of 0, 1, or 2 non-blank characters."
   :type 'regexp
   :group 'python)
 
+(defcustom python-remove-cwd-from-path t
+  "Whether to allow loading of Python modules from the current directory.
+If this is non-nil, Emacs removes '' from sys.path when starting
+an inferior Python process.  This is the default, for security
+reasons, as it is easy for the Python process to be started
+without the user's realization (e.g. to perform completion)."
+  :type 'boolean
+  :group 'python
+  :version "23.3")
+
 (defun python-input-filter (str)
   "`comint-input-filter' function for inferior Python.
 Don't save anything for STR matching `inferior-python-filter-regexp'."
@@ -1559,20 +1527,24 @@ print version_info >= (2, 2) and version_info < (3, 0)\""))))
 ;;;###autoload
 (defun run-python (&optional cmd noshow new)
   "Run an inferior Python process, input and output via buffer *Python*.
-CMD is the Python command to run.  NOSHOW non-nil means don't show the
-buffer automatically.
+CMD is the Python command to run.  NOSHOW non-nil means don't
+show the buffer automatically.
 
-Normally, if there is a process already running in `python-buffer',
-switch to that buffer.  Interactively, a prefix arg allows you to edit
-the initial command line (default is `python-command'); `-i' etc. args
-will be added to this as appropriate.  A new process is started if:
-one isn't running attached to `python-buffer', or interactively the
-default `python-command', or argument NEW is non-nil.  See also the
-documentation for `python-buffer'.
+Interactively, a prefix arg means to prompt for the initial
+Python command line (default is `python-command').
 
-Runs the hook `inferior-python-mode-hook' \(after the
-`comint-mode-hook' is run).  \(Type \\[describe-mode] in the process
-buffer for a list of commands.)"
+A new process is started if one isn't running attached to
+`python-buffer', or if called from Lisp with non-nil arg NEW.
+Otherwise, if a process is already running in `python-buffer',
+switch to that buffer.
+
+This command runs the hook `inferior-python-mode-hook' after
+running `comint-mode-hook'.  Type \\[describe-mode] in the
+process buffer for a list of commands.
+
+By default, Emacs inhibits the loading of Python modules from the
+current working directory, for security reasons.  To disable this
+behavior, change `python-remove-cwd-from-path' to nil."
   (interactive (if current-prefix-arg
 		   (list (read-string "Run Python: " python-command) nil t)
 		 (list python-command)))
@@ -1586,13 +1558,9 @@ buffer for a list of commands.)"
   (when (or new (not (comint-check-proc python-buffer)))
     (with-current-buffer
 	(let* ((cmdlist
-		(append (python-args-to-list cmd)
-                        ;; It's easy for the user to cause the process to be
-			;; started without realizing it (e.g. to perform
-			;; completion); for this reason loading files from the
-			;; current directory is a security risk.  See
-			;; http://article.gmane.org/gmane.emacs.devel/103569
-			'("-i" "-c" "import sys; sys.path.remove('')")))
+		(append (python-args-to-list cmd) '("-i")
+			(if python-remove-cwd-from-path
+			    '("-c" "import sys; sys.path.remove('')"))))
 	       (path (getenv "PYTHONPATH"))
 	       (process-environment	; to import emacs.py
 		(cons (concat "PYTHONPATH="
@@ -1900,6 +1868,7 @@ instance.  Assumes an inferior Python is running."
 
 (declare-function info-lookup-maybe-add-help "info-look" (&rest arg))
 
+;;;###autoload
 (defun python-after-info-look ()
   "Set up info-look for Python.
 Used with `eval-after-load'."
@@ -2393,6 +2362,7 @@ Interactively, prompt for the name with completion."
 
 (autoload 'pymacs-load "pymacs" nil t)
 (autoload 'brm-init "bikemacs")
+(defvar brm-menu)
 
 ;; I'm not sure how useful BRM really is, and it's certainly dangerous
 ;; the way it modifies files outside Emacs...  Also note that the
@@ -2412,7 +2382,7 @@ without confirmation."
 	      (features (cons 'python-mode features))) ; and requires this
 	  (brm-init)			; second line of normal recipe
 	  (remove-hook 'python-mode-hook ; undo this from `brm-init'
-		       '(lambda () (easy-menu-add brm-menu)))
+		       (lambda () (easy-menu-add brm-menu)))
 	  (easy-menu-define
 	    python-brm-menu python-mode-map
 	    "Bicycle Repair Man"
@@ -2451,7 +2421,7 @@ without confirmation."
 (defvar python-mode-running)            ;Dynamically scoped var.
 
 ;;;###autoload
-(define-derived-mode python-mode fundamental-mode "Python"
+(define-derived-mode python-mode prog-mode "Python"
   "Major mode for editing Python files.
 Turns on Font Lock mode unconditionally since it is currently required
 for correct parsing of the source.
@@ -2512,7 +2482,6 @@ with skeleton expansions for compound statement templates.
   (set (make-local-variable 'outline-heading-end-regexp) ":\\s-*\n")
   (set (make-local-variable 'outline-level) #'python-outline-level)
   (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
-  (make-local-variable 'python-saved-check-command)
   (set (make-local-variable 'beginning-of-defun-function)
        'python-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function) 'python-end-of-defun)
@@ -2530,7 +2499,7 @@ with skeleton expansions for compound statement templates.
   ;; doesn't seem to work properly.
   (add-to-list 'hs-special-modes-alist
 	       `(python-mode "^\\s-*\\(?:def\\|class\\)\\>" nil "#"
-		 ,(lambda (arg)
+		 ,(lambda (_arg)
 		    (python-end-of-defun)
 		    (skip-chars-backward " \t\n"))
 		 nil))
@@ -2540,7 +2509,6 @@ with skeleton expansions for compound statement templates.
 	 (^ '(- (1+ (current-indentation))))))
   ;; Python defines TABs as being 8-char wide.
   (set (make-local-variable 'tab-width) 8)
-  (unless font-lock-mode (font-lock-mode 1))
   (when python-guess-indent (python-guess-indent))
   ;; Let's make it harder for the user to shoot himself in the foot.
   (unless (= tab-width python-indent)
@@ -2577,20 +2545,6 @@ Runs `jython-mode-hook' after `python-mode-hook'."
 
 ;; pdbtrack features
 
-(defun python-comint-output-filter-function (string)
-  "Watch output for Python prompt and exec next file waiting in queue.
-This function is appropriate for `comint-output-filter-functions'."
-  ;; TBD: this should probably use split-string
-  (when (and (string-match python--prompt-regexp string)
-	     python-file-queue)
-    (condition-case nil
-        (delete-file (car python-file-queue))
-      (error nil))
-    (setq python-file-queue (cdr python-file-queue))
-    (if python-file-queue
-	(let ((pyproc (get-buffer-process (current-buffer))))
-	  (python-execute-file pyproc (car python-file-queue))))))
-
 (defun python-pdbtrack-overlay-arrow (activation)
   "Activate or deactivate arrow at beginning-of-line in current buffer."
   (if activation
@@ -2604,7 +2558,7 @@ This function is appropriate for `comint-output-filter-functions'."
     (setq overlay-arrow-position nil
           python-pdbtrack-is-tracking-p nil)))
 
-(defun python-pdbtrack-track-stack-file (text)
+(defun python-pdbtrack-track-stack-file (_text)
   "Show the file indicated by the pdb stack entry line, in a separate window.
 
 Activity is disabled if the buffer-local variable
@@ -2716,8 +2670,8 @@ problem."
     )
   )
 
-(defun python-pdbtrack-grub-for-buffer (funcname lineno)
-  "Find recent python-mode buffer named, or having function named funcname."
+(defun python-pdbtrack-grub-for-buffer (funcname _lineno)
+  "Find recent Python mode buffer named, or having function named FUNCNAME."
   (let ((buffers (buffer-list))
         buf
         got)
@@ -2734,45 +2688,6 @@ problem."
                                                      (point-max))))))
           (setq got buf)))
     got))
-
-(defun python-toggle-shells (arg)
-  "Toggles between the CPython and JPython shells.
-
-With positive argument ARG (interactively \\[universal-argument]),
-uses the CPython shell, with negative ARG uses the JPython shell, and
-with a zero argument, toggles the shell.
-
-Programmatically, ARG can also be one of the symbols `cpython' or
-`jpython', equivalent to positive arg and negative arg respectively."
-  (interactive "P")
-  ;; default is to toggle
-  (if (null arg)
-      (setq arg 0))
-  ;; preprocess arg
-  (cond
-   ((equal arg 0)
-    ;; toggle
-    (if (string-equal python-which-bufname "Python")
-	(setq arg -1)
-      (setq arg 1)))
-   ((equal arg 'cpython) (setq arg 1))
-   ((equal arg 'jpython) (setq arg -1)))
-  (let (msg)
-    (cond
-     ((< 0 arg)
-      ;; set to CPython
-      (setq python-which-shell python-python-command
-	    python-which-args python-python-command-args
-	    python-which-bufname "Python"
-	    msg "CPython"
-	    mode-name "Python"))
-     ((> 0 arg)
-      (setq python-which-shell python-jython-command
-	    python-which-args python-jython-command-args
-	    python-which-bufname "JPython"
-	    msg "JPython"
-	    mode-name "JPython")))
-    (message "Using the %s shell" msg)))
 
 ;; Python subprocess utilities and filters
 (defun python-execute-file (proc filename)
@@ -2794,71 +2709,6 @@ comint believe the user typed this string so that
       (set-buffer curbuf))
     (process-send-string proc cmd)))
 
-;;;###autoload
-(defun python-shell (&optional argprompt)
-  "Start an interactive Python interpreter in another window.
-This is like Shell mode, except that Python is running in the window
-instead of a shell.  See the `Interactive Shell' and `Shell Mode'
-sections of the Emacs manual for details, especially for the key
-bindings active in the `*Python*' buffer.
-
-With optional \\[universal-argument], the user is prompted for the
-flags to pass to the Python interpreter.  This has no effect when this
-command is used to switch to an existing process, only when a new
-process is started.  If you use this, you will probably want to ensure
-that the current arguments are retained (they will be included in the
-prompt).  This argument is ignored when this function is called
-programmatically.
-
-Note: You can toggle between using the CPython interpreter and the
-JPython interpreter by hitting \\[python-toggle-shells].  This toggles
-buffer local variables which control whether all your subshell
-interactions happen to the `*JPython*' or `*Python*' buffers (the
-latter is the name used for the CPython buffer).
-
-Warning: Don't use an interactive Python if you change sys.ps1 or
-sys.ps2 from their default values, or if you're running code that
-prints `>>> ' or `... ' at the start of a line.  `python-mode' can't
-distinguish your output from Python's output, and assumes that `>>> '
-at the start of a line is a prompt from Python.  Similarly, the Emacs
-Shell mode code assumes that both `>>> ' and `... ' at the start of a
-line are Python prompts.  Bad things can happen if you fool either
-mode.
-
-Warning:  If you do any editing *in* the process buffer *while* the
-buffer is accepting output from Python, do NOT attempt to `undo' the
-changes.  Some of the output (nowhere near the parts you changed!) may
-be lost if you do.  This appears to be an Emacs bug, an unfortunate
-interaction between undo and process filters; the same problem exists in
-non-Python process buffers using the default (Emacs-supplied) process
-filter."
-  (interactive "P")
-  (require 'ansi-color) ; For ipython
-  ;; Set the default shell if not already set
-  (when (null python-which-shell)
-    (python-toggle-shells python-default-interpreter))
-  (let ((args python-which-args))
-    (when (and argprompt
-	       (called-interactively-p 'interactive)
-	       (fboundp 'split-string))
-      ;; TBD: Perhaps force "-i" in the final list?
-      (setq args (split-string
-		  (read-string (concat python-which-bufname
-				       " arguments: ")
-			       (concat
-				(mapconcat 'identity python-which-args " ") " ")
-			       ))))
-    (switch-to-buffer-other-window
-     (apply 'make-comint python-which-bufname python-which-shell nil args))
-    (set-process-sentinel (get-buffer-process (current-buffer))
-                          'python-sentinel)
-    (python--set-prompt-regexp)
-    (add-hook 'comint-output-filter-functions
-	      'python-comint-output-filter-function nil t)
-    ;; pdbtrack
-    (set-syntax-table python-mode-syntax-table)
-    (use-local-map python-shell-map)))
-
 (defun python-pdbtrack-toggle-stack-tracking (arg)
   (interactive "P")
   (if (not (get-buffer-process (current-buffer)))
@@ -2879,8 +2729,18 @@ filter."
   (interactive)
   (python-pdbtrack-toggle-stack-tracking 0))
 
-(defun python-sentinel (proc msg)
+(defun python-sentinel (_proc _msg)
   (setq overlay-arrow-position nil))
+
+(defun python-unload-function ()
+  "Unload the Python library."
+  (remove-hook 'comint-output-filter-functions 'python-pdbtrack-track-stack-file)
+  (setq minor-mode-alist (assq-delete-all 'python-pdbtrack-is-tracking-p
+                                          minor-mode-alist))
+  (dolist (error '("^No symbol" "^Can't shift all lines enough"))
+    (setq debug-ignored-errors (delete error debug-ignored-errors)))
+  ;; continue standard unloading
+  nil)
 
 (provide 'python)
 (provide 'python-21)

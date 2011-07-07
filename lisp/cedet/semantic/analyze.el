@@ -1,7 +1,6 @@
 ;;; semantic/analyze.el --- Analyze semantic tags against local context
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2000-2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 
@@ -101,7 +100,7 @@ Usually bound to the dimension of a single symbol or command.")
 	   :type list
 	   :documentation "List of tags defining local text.
 This can be nil, or a list where the last element can be a string
-representing text that may be incomplete.  Preceeding elements
+representing text that may be incomplete.  Preceding elements
 must be semantic tags representing variables or functions
 called in a dereference sequence.")
    (prefixclass :initarg :prefixclass
@@ -795,5 +794,4 @@ CONTEXT's content is described in `semantic-analyze-current-context'."
 ;; generated-autoload-load-name: "semantic/analyze"
 ;; End:
 
-;; arch-tag: 1102143a-1c05-4631-83e8-45aafc6b4a59
 ;;; semantic/analyze.el ends here

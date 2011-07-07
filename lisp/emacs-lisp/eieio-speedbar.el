@@ -1,7 +1,6 @@
 ;;; eieio-speedbar.el -- Classes for managing speedbar displays.
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2005, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1999-2002, 2005, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.2
@@ -422,5 +421,4 @@ to create a speedbar button."
 
 (provide 'eieio-speedbar)
 
-;; arch-tag: eaac1283-10b0-4419-a929-982b87e83234
 ;;; eieio-speedbar.el ends here

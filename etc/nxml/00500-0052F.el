@@ -17,4 +17,3 @@
     ("CYRILLIC SMALL LETTER KOMI TJE" #x050F)
     ))
 
-;; arch-tag: 3ae51d36-3921-4ec5-b6be-3e9c895be9f3

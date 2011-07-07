@@ -1,6 +1,6 @@
 ;;; ede/proj-archive.el --- EDE Generic Project archive support
 
-;;  Copyright (C) 1998, 1999, 2000, 2001, 2009, 2010  Free Software Foundation, Inc.
+;;  Copyright (C) 1998-2001, 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: project, make
@@ -61,5 +61,4 @@ This makes sure that the archive is removed with 'make clean'."
 
 (provide 'ede/proj-archive)
 
-;; arch-tag: a0b2cfe8-0d11-4a4f-8e47-ebfb11b6ac33
 ;;; ede/proj-archive.el ends here

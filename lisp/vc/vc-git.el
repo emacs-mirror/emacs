@@ -1,6 +1,6 @@
 ;;; vc-git.el --- VC backend for the git version control system
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
 ;; Keywords: vc tools
@@ -119,8 +119,38 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "23.1"
   :group 'vc)
 
+(defcustom vc-git-program "git"
+  "Name of the Git executable (excluding any arguments)."
+  :version "24.1"
+  :type 'string
+  :group 'vc)
+
+(defcustom vc-git-root-log-format
+  '("%d%h..: %an %ad %s"
+    ;; The first shy group matches the characters drawn by --graph.
+    ;; We use numbered groups because `log-view-message-re' wants the
+    ;; revision number to be group 1.
+    "^\\(?:[*/\\| ]+ \\)?\\(?2: ([^)]+)\\)?\\(?1:[0-9a-z]+\\)..: \
+\\(?3:.*?\\)[ \t]+\\(?4:[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}\\)"
+    ((1 'log-view-message-face)
+     (2 'change-log-list nil lax)
+     (3 'change-log-name)
+     (4 'change-log-date)))
+  "Git log format for `vc-print-root-log'.
+This should be a list (FORMAT REGEXP KEYWORDS), where FORMAT is a
+format string (which is passed to \"git log\" via the argument
+\"--pretty=tformat:FORMAT\"), REGEXP is a regular expression
+matching the resulting Git log output, and KEYWORDS is a list of
+`font-lock-keywords' for highlighting the Log View buffer."
+  :type '(list string string (repeat sexp))
+  :group 'vc
+  :version "24.1")
+
 (defvar vc-git-commits-coding-system 'utf-8
   "Default coding system for git commits.")
+
+;; History of Git commands.
+(defvar vc-git-history nil)
 
 ;;; BACKEND PROPERTIES
 
@@ -526,6 +556,21 @@ or an empty string if none."
 		    'help-echo stash-help-echo
 		    'face 'font-lock-variable-name-face))))))
 
+(defun vc-git-branches ()
+  "Return the existing branches, as a list of strings.
+The car of the list is the current branch."
+  (with-temp-buffer
+    (call-process vc-git-program nil t nil "branch")
+    (goto-char (point-min))
+    (let (current-branch branches)
+      (while (not (eobp))
+	(when (looking-at "^\\([ *]\\) \\(.+\\)$")
+	  (if (string-equal (match-string 1) "*")
+	      (setq current-branch (match-string 2))
+	    (push (match-string 2) branches)))
+	(forward-line 1))
+      (cons current-branch (nreverse branches)))))
+
 ;;; STATE-CHANGING FUNCTIONS
 
 (defun vc-git-create-repo ()
@@ -587,6 +632,47 @@ or an empty string if none."
     (vc-git-command nil 0 file "reset" "-q" "--")
     (vc-git-command nil nil file "checkout" "-q" "--")))
 
+(defun vc-git-pull (prompt)
+  "Pull changes into the current Git branch.
+Normally, this runs \"git pull\".  If PROMPT is non-nil, prompt
+for the Git command to run."
+  (let* ((root (vc-git-root default-directory))
+	 (buffer (format "*vc-git : %s*" (expand-file-name root)))
+	 (command "pull")
+	 (git-program vc-git-program)
+	 args)
+    ;; If necessary, prompt for the exact command.
+    (when prompt
+      (setq args (split-string
+		  (read-shell-command "Git pull command: "
+                                      (format "%s pull" git-program)
+				      'vc-git-history)
+		  " " t))
+      (setq git-program (car  args)
+	    command     (cadr args)
+	    args        (cddr args)))
+    (apply 'vc-do-async-command buffer root git-program command args)
+    (vc-set-async-update buffer)))
+
+(defun vc-git-merge-branch ()
+  "Merge changes into the current Git branch.
+This prompts for a branch to merge from."
+  (let* ((root (vc-git-root default-directory))
+	 (buffer (format "*vc-git : %s*" (expand-file-name root)))
+	 (branches (cdr (vc-git-branches)))
+	 (merge-source
+	  (completing-read "Merge from branch: "
+			   (if (or (member "FETCH_HEAD" branches)
+				   (not (file-readable-p
+					 (expand-file-name ".git/FETCH_HEAD"
+							   root))))
+			       branches
+			     (cons "FETCH_HEAD" branches))
+			   nil t)))
+    (apply 'vc-do-async-command buffer root vc-git-program "merge"
+	   (list merge-source))
+    (vc-set-async-update buffer)))
+
 ;;; HISTORY FUNCTIONS
 
 (defun vc-git-print-log (files buffer &optional shortlog start-revision limit)
@@ -607,8 +693,10 @@ for the --graph option."
 	       (append
 		'("log" "--no-color")
 		(when shortlog
-		  '("--graph" "--decorate" "--date=short"
-                    "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit"))
+		  `("--graph" "--decorate" "--date=short"
+                    ,(format "--pretty=tformat:%s"
+			     (car vc-git-root-log-format))
+		    "--abbrev-commit"))
 		(when limit (list "-n" (format "%s" limit)))
 		(when start-revision (list start-revision))
 		'("--")))))))
@@ -619,7 +707,8 @@ for the --graph option."
    buffer 0 nil
    "log"
    "--no-color" "--graph" "--decorate" "--date=short"
-   "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit"
+   (format "--pretty=tformat:%s" (car vc-git-root-log-format))
+   "--abbrev-commit"
    (concat (if (string= remote-location "")
 	       "@{upstream}"
 	     remote-location)
@@ -630,9 +719,10 @@ for the --graph option."
   (vc-git-command nil 0 nil "fetch")
   (vc-git-command
    buffer 0 nil
-   "log" 
+   "log"
    "--no-color" "--graph" "--decorate" "--date=short"
-   "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit"
+   (format "--pretty=tformat:%s" (car vc-git-root-log-format))
+   "--abbrev-commit"
    (concat "HEAD.." (if (string= remote-location "")
 			"@{upstream}"
 		      remote-location))))
@@ -641,6 +731,7 @@ for the --graph option."
 (defvar log-view-file-re)
 (defvar log-view-font-lock-keywords)
 (defvar log-view-per-file-logs)
+(defvar log-view-expanded-log-entry-function)
 
 (define-derived-mode vc-git-log-view-mode log-view-mode "Git-Log-View"
   (require 'add-log) ;; We need the faces add-log.
@@ -649,37 +740,37 @@ for the --graph option."
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-message-re)
        (if (not (eq vc-log-view-type 'long))
-	   "^\\(?:[*/\\| ]+ \\)?\\(?: ([^)]+)\\)?\\([0-9a-z]+\\)  \\([-a-z0-9]+\\)  \\(.*\\)"
+	   (cadr vc-git-root-log-format)
 	 "^commit *\\([0-9a-z]+\\)"))
+  ;; Allow expanding short log entries
+  (when (eq vc-log-view-type 'short)
+    (setq truncate-lines t)
+    (set (make-local-variable 'log-view-expanded-log-entry-function)
+	 'vc-git-expanded-log-entry))
   (set (make-local-variable 'log-view-font-lock-keywords)
        (if (not (eq vc-log-view-type 'long))
-	   '(
-	     ;; Same as log-view-message-re, except that we don't
-	     ;; want the shy group for the tag name.
-	     ("^\\(?:[*/\\| ]+ \\)?\\( ([^)]+)\\)?\\([0-9a-z]+\\)  \\([-a-z0-9]+\\)  \\(.*\\)"
-	      (1 'highlight nil lax)
-	      (2 'change-log-acknowledgement)
-	      (3 'change-log-date)))
-       (append
-        `((,log-view-message-re (1 'change-log-acknowledgement)))
-        ;; Handle the case:
-        ;; user: foo@bar
-        '(("^Author:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
-           (1 'change-log-email))
-          ;; Handle the case:
-          ;; user: FirstName LastName <foo@bar>
-          ("^Author:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
-           (1 'change-log-name)
-           (2 'change-log-email))
-          ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
-           (1 'change-log-name))
-          ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
-           (1 'change-log-name)
-           (2 'change-log-email))
-          ("^Merge: \\([0-9a-z]+\\) \\([0-9a-z]+\\)"
-           (1 'change-log-acknowledgement)
-           (2 'change-log-acknowledgement))
-          ("^Date:   \\(.+\\)" (1 'change-log-date))
+	   (list (cons (nth 1 vc-git-root-log-format)
+		       (nth 2 vc-git-root-log-format)))
+	 (append
+	  `((,log-view-message-re (1 'change-log-acknowledgement)))
+	  ;; Handle the case:
+	  ;; user: foo@bar
+	  '(("^Author:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
+	     (1 'change-log-email))
+	    ;; Handle the case:
+	    ;; user: FirstName LastName <foo@bar>
+	    ("^Author:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+	     (1 'change-log-name)
+	     (2 'change-log-email))
+	    ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
+	     (1 'change-log-name))
+	    ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+	     (1 'change-log-name)
+	     (2 'change-log-email))
+	    ("^Merge: \\([0-9a-z]+\\) \\([0-9a-z]+\\)"
+	     (1 'change-log-acknowledgement)
+	     (2 'change-log-acknowledgement))
+	    ("^Date:   \\(.+\\)" (1 'change-log-date))
 	    ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
 
 
@@ -698,6 +789,15 @@ or BRANCH^ (where \"^\" can be repeated)."
                 (1+ (length (match-string 0 revision))))
                (t nil))))
     (beginning-of-line)))
+
+(defun vc-git-expanded-log-entry (revision)
+  (with-temp-buffer
+    (apply 'vc-git-command t nil nil (list "log" revision "-1"))
+    (goto-char (point-min))
+    (unless (eobp)
+      ;; Indent the expanded log entry.
+      (indent-region (point-min) (point-max) 2)
+      (buffer-string))))
 
 (defun vc-git-diff (files &optional rev1 rev2 buffer)
   "Get a difference report using Git between two revisions of FILES."
@@ -989,8 +1089,10 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 
 (defun vc-git-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-git.el.
-The difference to vc-do-command is that this function always invokes `git'."
-  (apply 'vc-do-command (or buffer "*vc*") okstatus "git" file-or-list flags))
+The difference to vc-do-command is that this function always invokes
+`vc-git-program'."
+  (apply 'vc-do-command (or buffer "*vc*") okstatus vc-git-program
+         file-or-list flags))
 
 (defun vc-git--empty-db-p ()
   "Check if the git db is empty (no commit done yet)."
@@ -1001,7 +1103,7 @@ The difference to vc-do-command is that this function always invokes `git'."
   ;; We don't need to care the arguments.  If there is a file name, it
   ;; is always a relative one.  This works also for remote
   ;; directories.
-  (apply 'process-file "git" nil buffer nil command args))
+  (apply 'process-file vc-git-program nil buffer nil command args))
 
 (defun vc-git--out-ok (command &rest args)
   (zerop (apply 'vc-git--call '(t nil) command args)))
@@ -1036,5 +1138,4 @@ Returns nil if not possible."
 
 (provide 'vc-git)
 
-;; arch-tag: bd10664a-0e5b-48f5-a877-6c17b135be12
 ;;; vc-git.el ends here

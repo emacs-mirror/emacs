@@ -1,10 +1,10 @@
 ;;; org-mobile.el --- Code for asymmetric sync with a mobile device
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.3
+;; Version: 7.4
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -1083,7 +1083,6 @@ A and B must be strings or nil."
 
 (provide 'org-mobile)
 
-;; arch-tag: ace0e26c-58f2-4309-8a61-05ec1535f658
 
 ;;; org-mobile.el ends here
 

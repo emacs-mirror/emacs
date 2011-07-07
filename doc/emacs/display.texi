@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 
 @c See file emacs.texi for copying conditions.
@@ -62,11 +61,11 @@ order; also, maybe redisplay the screen (@code{recenter-top-bottom}).
 @item C-v
 @itemx @key{next}
 @itemx @key{PageDown}
-Scroll forward by nearly a full window (@code{scroll-up}).
+Scroll forward by nearly a full window (@code{scroll-up-command}).
 @item M-v
 @itemx @key{prior}
 @itemx @key{PageUp}
-Scroll backward (@code{scroll-down}).
+Scroll backward (@code{scroll-down-command}).
 @item C-M-l
 Scroll heuristically to bring useful information onto the screen
 (@code{reposition-window}).
@@ -184,7 +183,20 @@ visible portion of the text.
 if you set @code{scroll-conservatively} to a small number @var{n},
 then if you move point just a little off the screen (less than @var{n}
 lines), Emacs scrolls the text just far enough to bring point back on
-screen.  By default, @code{scroll-conservatively} is@tie{}0.
+screen.  By default, @code{scroll-conservatively} is@tie{}0.  If you
+set @code{scroll-conservatively} to a large number (larger than 100),
+Emacs will never center point as result of scrolling, even if point
+moves far away from the text previously displayed in the window.  With
+such a large value, Emacs will always scroll text just enough for
+bringing point into view, so point will end up at the top or bottom of
+the window, depending on the scroll direction.
+
+@vindex scroll-step
+  The variable @code{scroll-step} determines how many lines to scroll
+the window when point moves off the screen.  If moving by that number
+of lines fails to bring point back into view, point is centered
+instead.  The default value is zero, which causes point to always be
+centered after scrolling.
 
 @cindex aggressive scrolling
 @vindex scroll-up-aggressively
@@ -194,16 +206,21 @@ how aggressively it scrolls by setting the variables
 @code{scroll-up-aggressively} and @code{scroll-down-aggressively}.
 The value of @code{scroll-up-aggressively} should be either
 @code{nil}, or a fraction @var{f} between 0 and 1.  A fraction
-specifies where on the screen to put point when scrolling upward: when
-a window scrolls up because point is above the window start, the new
+specifies where on the screen to put point when scrolling upward,
+i.e.@: when point moves forward in the buffer, and therefore text
+scrolls up in the window.  When point goes off the window end, the new
 start position is chosen to put point @var{f} parts of the window
-height from the top.  Thus, larger @var{f} means more aggressive
-scrolling.  The default value, @code{nil}, is equivalent to 0.5.
+height from the bottom.  Thus, larger @var{f} means more aggressive
+scrolling: more new text is brought into view.  The default value,
+@code{nil}, is equivalent to 0.5.
 
   Likewise, @code{scroll-down-aggressively} is used for scrolling
-down.  The value specifies how far point should be placed from the
-bottom of the window; thus, as with @code{scroll-up-aggressively}, a
-larger value is more aggressive.
+down, i.e.@: moving point back in the buffer.  The value specifies how
+far point should be placed from the top of the window; thus, as with
+@code{scroll-up-aggressively}, a larger value is more aggressive.
+
+  These two variables are ignored if either @code{scroll-step} or
+@code{scroll-conservatively} are set to a non-zero value.
 
 @vindex scroll-margin
   The variable @code{scroll-margin} restricts how close point can come
@@ -645,17 +662,17 @@ that follows an open-parenthesis or open-brace in the leftmost column
 that is inside a string or comment.
 
 @cindex slow display during scrolling
-  The variable @code{font-lock-beginning-of-syntax-function} (always
-buffer-local) specifies how Font Lock mode can find a position
-guaranteed to be outside any comment or string.  In modes which use the
-leftmost column parenthesis convention, the default value of the variable
-is @code{beginning-of-defun}---that tells Font Lock mode to use the
-convention.  If you set this variable to @code{nil}, Font Lock no longer
-relies on the convention.  This avoids incorrect results, but the price
-is that, in some cases, fontification for a changed text must rescan
-buffer text from the beginning of the buffer.  This can considerably
-slow down redisplay while scrolling, particularly if you are close to
-the end of a large buffer.
+  The variable @code{font-lock-beginning-of-syntax-function}, which is
+always buffer-local, specifies how Font Lock mode can find a position
+guaranteed to be outside any comment or string.  In modes which use
+the leftmost column parenthesis convention, the default value of the
+variable is @code{beginning-of-defun}---that tells Font Lock mode to
+use the convention.  If you set this variable to @code{nil}, Font Lock
+no longer relies on the convention.  This avoids incorrect results,
+but the price is that, in some cases, fontification for a changed text
+must rescan buffer text from the beginning of the buffer.  This can
+considerably slow down redisplay while scrolling, particularly if you
+are close to the end of a large buffer.
 
 @findex font-lock-add-keywords
   Font Lock highlighting patterns already exist for many modes, but you
@@ -668,7 +685,8 @@ comments, use this:
 (add-hook 'c-mode-hook
           (lambda ()
            (font-lock-add-keywords nil
-            '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))))
+            '(("\\<\\(FIXME\\):" 1
+               font-lock-warning-face t)))))
 @end example
 
 @findex font-lock-remove-keywords
@@ -875,9 +893,9 @@ the location of point is enough to show you that the spaces are
 present.
 
 @findex delete-trailing-whitespace
-  To delete all trailing whitespace within the buffer's accessible
-portion (@pxref{Narrowing}), type @kbd{M-x delete-trailing-whitespace
-@key{RET}}.  This command does not remove newline characters.
+  Type @kbd{M-x delete-trailing-whitespace @key{RET}} to delete all
+trailing whitespace within the buffer's accessible portion
+(@pxref{Narrowing}).  This command does not remove newline characters.
 
 @vindex indicate-empty-lines
 @cindex unused lines
@@ -1000,8 +1018,7 @@ value is 200 characters.
   Emacs can optionally display the time and system load in all mode
 lines.  To enable this feature, type @kbd{M-x display-time} or customize
 the option @code{display-time-mode}.  The information added to the mode
-line usually appears after the buffer name, before the mode names and
-their parentheses.  It looks like this:
+line looks like this:
 
 @example
 @var{hh}:@var{mm}pm @var{l.ll}
@@ -1010,11 +1027,12 @@ their parentheses.  It looks like this:
 @noindent
 @vindex display-time-24hr-format
 Here @var{hh} and @var{mm} are the hour and minute, followed always by
-@samp{am} or @samp{pm}.  @var{l.ll} is the average number of running
-processes in the whole system recently.  (Some fields may be missing if
-your operating system cannot support them.)  If you prefer time display
-in 24-hour format, set the variable @code{display-time-24hr-format}
-to @code{t}.
+@samp{am} or @samp{pm}.  @var{l.ll} is the average number, collected
+for the last few minutes, of processes in the whole system that were
+either running or ready to run (i.e.@: were waiting for an available
+processor).  (Some fields may be missing if your operating system
+cannot support them.)  If you prefer time display in 24-hour format,
+set the variable @code{display-time-24hr-format} to @code{t}.
 
 @cindex mail (on mode line)
 @vindex display-time-use-mail-icon
@@ -1400,7 +1418,3 @@ page for other output.  On such terminals, you might want to set the variable
 @code{no-redraw-on-reenter} non-@code{nil}; this tells Emacs to
 assume, when resumed, that the screen page it is using still contains
 what Emacs last wrote there.
-
-@ignore
-   arch-tag: 2219f910-2ff0-4521-b059-1bd231a536c4
-@end ignore

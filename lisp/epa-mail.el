@@ -1,5 +1,5 @@
-;;; epa-mail.el --- the EasyPG Assistant, minor-mode for mail composer
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;; epa-mail.el --- the EasyPG Assistant, minor-mode for mail composer -*- lexical-binding: t -*-
+;; Copyright (C) 2006-2011 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG, mail, message
@@ -117,7 +117,7 @@ Don't use this command in Lisp programs!"
    (save-excursion
      (let ((verbose current-prefix-arg)
 	   (context (epg-make-context epa-protocol))
-	   recipients-string recipients recipient-key)
+	   recipients-string recipients recipient-key sign)
        (goto-char (point-min))
        (save-restriction
 	 (narrow-to-region (point)
@@ -197,5 +197,4 @@ Don't use this command in Lisp programs!"
 
 (provide 'epa-mail)
 
-;; arch-tag: a6f82b3f-d177-4a11-af95-040da55927d2
 ;;; epa-mail.el ends here

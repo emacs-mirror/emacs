@@ -1,7 +1,6 @@
 ;;; eudcb-bbdb.el --- Emacs Unified Directory Client - BBDB Backend
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998-2011 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -74,32 +73,29 @@
   "Return RECORD if it matches `eudc-bbdb-current-query', nil otherwise."
   (catch 'unmatch
     (progn
-      (mapc
-       (function
-	(lambda (condition)
-	  (let ((attr (car condition))
-		(val (cdr condition))
-		(case-fold-search t)
-		bbdb-val)
-	    (or (and (memq attr '(firstname lastname aka company phones addresses net))
-		     (progn
-		       (setq bbdb-val
-			     (eval (list (intern (concat "bbdb-record-"
-							 (symbol-name attr)))
-					 'record)))
-		       (if (listp bbdb-val)
-			   (if eudc-bbdb-enable-substring-matches
-			       (eval `(or ,@(mapcar '(lambda (subval)
-						       (string-match val
-								     subval))
-						  bbdb-val)))
-			     (member (downcase val)
-				     (mapcar 'downcase bbdb-val)))
-			 (if eudc-bbdb-enable-substring-matches
-			     (string-match val bbdb-val)
-			   (string-equal (downcase val) (downcase bbdb-val))))))
-		(throw 'unmatch nil)))))
-       eudc-bbdb-current-query)
+      (dolist (condition eudc-bbdb-current-query)
+        (let ((attr (car condition))
+              (val (cdr condition))
+              (case-fold-search t)
+              bbdb-val)
+          (or (and (memq attr '(firstname lastname aka company phones
+                                addresses net))
+                   (progn
+                     (setq bbdb-val
+                           (eval (list (intern (concat "bbdb-record-"
+                                                       (symbol-name attr)))
+                                       'record)))
+                     (if (listp bbdb-val)
+                         (if eudc-bbdb-enable-substring-matches
+                             (eval `(or ,@(mapcar (lambda (subval)
+                                                    (string-match val subval))
+                                                  bbdb-val)))
+                           (member (downcase val)
+                                   (mapcar 'downcase bbdb-val)))
+                       (if eudc-bbdb-enable-substring-matches
+                           (string-match val bbdb-val)
+                         (string-equal (downcase val) (downcase bbdb-val))))))
+              (throw 'unmatch nil))))
       record)))
 
 ;; External.
@@ -243,5 +239,4 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
 
 (provide 'eudcb-bbdb)
 
-;; arch-tag: 38276208-75de-4dbc-ba6f-8db684c32e0a
 ;;; eudcb-bbdb.el ends here

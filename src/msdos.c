@@ -1,7 +1,6 @@
 /* MS-DOS specific C utilities.          -*- coding: raw-text -*-
-   Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2000, 2001, 2002,
-                 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+
+Copyright (C) 1993-1997, 1999-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -81,6 +80,9 @@ extern int spawnve (int, const char *, char *const [], char *const []);
 
 #include <signal.h>
 #include "syssignal.h"
+
+#include "careadlinkat.h"
+#include "allocator.h"
 
 #ifndef SYSTEM_MALLOC
 
@@ -285,7 +287,7 @@ mouse_button_depressed (int b, int *xp, int *yp)
 void
 mouse_get_pos (FRAME_PTR *f, int insist, Lisp_Object *bar_window,
 	       enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y,
-	       unsigned long *time)
+	       Time *time)
 {
   int ix, iy;
   Lisp_Object frame, tail;
@@ -404,9 +406,6 @@ static unsigned long screen_old_address = 0;
 /* Segment and offset of the virtual screen.  If 0, DOS/V is NOT loaded.  */
 static unsigned short screen_virtual_segment = 0;
 static unsigned short screen_virtual_offset = 0;
-/* A flag to control how to display unibyte 8-bit characters.  */
-extern int unibyte_display_via_language_environment;
-
 extern Lisp_Object Qcursor_type;
 extern Lisp_Object Qbar, Qhbar;
 
@@ -843,12 +842,12 @@ IT_set_face (int face)
 
 /* According to RBIL (INTERRUP.A, V-1000), 160 is the maximum possible
    width of a DOS display in any known text mode.  We multiply by 2 to
-   accomodate the screen attribute byte.  */
+   accommodate the screen attribute byte.  */
 #define MAX_SCREEN_BUF 160*2
 
-Lisp_Object Vdos_unsupported_char_glyph;
 extern unsigned char *encode_terminal_code (struct glyph *, int,
 					    struct coding_system *);
+
 static void
 IT_write_glyphs (struct frame *f, struct glyph *str, int str_len)
 {
@@ -1322,12 +1321,12 @@ IT_frame_up_to_date (struct frame *f)
     {
       struct buffer *b = XBUFFER (sw->buffer);
 
-      if (EQ (b->cursor_type, Qt))
+      if (EQ (BVAR (b,cursor_type), Qt))
 	new_cursor = frame_desired_cursor;
-      else if (NILP (b->cursor_type)) /* nil means no cursor */
+      else if (NILP (BVAR (b, cursor_type))) /* nil means no cursor */
 	new_cursor = Fcons (Qbar, make_number (0));
       else
-	new_cursor = b->cursor_type;
+	new_cursor = BVAR (b, cursor_type);
     }
 
   IT_set_cursor_type (f, new_cursor);
@@ -1394,8 +1393,6 @@ IT_delete_glyphs (struct frame *f, int n)
 void
 x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
-  extern void set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
-
   set_menu_bar_lines (f, value, oldval);
 }
 
@@ -1798,7 +1795,7 @@ internal_terminal_init (void)
     }
 
   tty = FRAME_TTY (sf);
-  current_kboard->Vwindow_system = Qpc;
+  KVAR (current_kboard, Vwindow_system) = Qpc;
   sf->output_method = output_msdos_raw;
   if (init_needed)
     {
@@ -2815,7 +2812,7 @@ dos_keyread (void)
    left), but I don't think it's worth the effort.  */
 
 /* These hold text of the current and the previous menu help messages.  */
-static char *menu_help_message, *prev_menu_help_message;
+static const char *menu_help_message, *prev_menu_help_message;
 /* Pane number and item number of the menu item which generated the
    last menu help message.  */
 static int menu_help_paneno, menu_help_itemno;
@@ -2842,7 +2839,7 @@ IT_menu_make_room (XMenu *menu)
       menu->text = (char **) xmalloc (count * sizeof (char *));
       menu->submenu = (XMenu **) xmalloc (count * sizeof (XMenu *));
       menu->panenumber = (int *) xmalloc (count * sizeof (int));
-      menu->help_text = (char **) xmalloc (count * sizeof (char *));
+      menu->help_text = (const char **) xmalloc (count * sizeof (char *));
     }
   else if (menu->allocated == menu->count)
     {
@@ -2854,7 +2851,7 @@ IT_menu_make_room (XMenu *menu)
       menu->panenumber
 	= (int *) xrealloc (menu->panenumber, count * sizeof (int));
       menu->help_text
-	= (char **) xrealloc (menu->help_text, count * sizeof (char *));
+	= (const char **) xrealloc (menu->help_text, count * sizeof (char *));
     }
 }
 
@@ -3005,17 +3002,17 @@ XMenuCreate (Display *foo1, Window foo2, char *foo3)
    to do.  */
 
 int
-XMenuAddPane (Display *foo, XMenu *menu, char *txt, int enable)
+XMenuAddPane (Display *foo, XMenu *menu, const char *txt, int enable)
 {
   int len;
-  char *p;
+  const char *p;
 
   if (!enable)
     abort ();
 
   IT_menu_make_room (menu);
   menu->submenu[menu->count] = IT_menu_create ();
-  menu->text[menu->count] = txt;
+  menu->text[menu->count] = (char *)txt;
   menu->panenumber[menu->count] = ++menu->panecount;
   menu->help_text[menu->count] = NULL;
   menu->count++;
@@ -3036,7 +3033,7 @@ XMenuAddPane (Display *foo, XMenu *menu, char *txt, int enable)
 
 int
 XMenuAddSelection (Display *bar, XMenu *menu, int pane,
-		   int foo, char *txt, int enable, char *help_text)
+		   int foo, char *txt, int enable, char const *help_text)
 {
   int len;
   char *p;
@@ -3089,7 +3086,7 @@ struct IT_menu_state
 int
 XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 	       int x0, int y0, unsigned ButtonMask, char **txt,
-	       void (*help_callback)(char *, int, int))
+	       void (*help_callback)(char const *, int, int))
 {
   struct IT_menu_state *state;
   int statecount, x, y, i, b, screensize, leave, result, onepane;
@@ -3927,6 +3924,53 @@ croak (char *badfunc)
  */
 int setpgrp (void) {return 0; }
 int setpriority (int x, int y, int z) { return 0; }
+
+#if __DJGPP__ == 2 && __DJGPP_MINOR__ < 4
+ssize_t
+readlink (const char *name, char *dummy1, size_t dummy2)
+{
+  /* `access' is much faster than `stat' on MS-DOS.  */
+  if (access (name, F_OK) == 0)
+    errno = EINVAL;
+  return -1;
+}
+#endif
+
+char *
+careadlinkat (int fd, char const *filename,
+              char *buffer, size_t buffer_size,
+              struct allocator const *alloc,
+              ssize_t (*preadlinkat) (int, char const *, char *, size_t))
+{
+  if (!buffer)
+    {
+      /* We don't support the fancy auto-allocation feature.  */
+      if (!buffer_size)
+	errno = ENOSYS;
+      else
+	errno = EINVAL;
+      buffer = NULL;
+    }
+  else
+    {
+      ssize_t len = preadlinkat (fd, filename, buffer, buffer_size);
+
+      if (len < 0 || len == buffer_size)
+	buffer = NULL;
+      else
+	buffer[len + 1] = '\0';
+    }
+  return buffer;
+}
+
+ssize_t
+careadlinkatcwd (int fd, char const *filename, char *buffer,
+                 size_t buffer_size)
+{
+  (void) fd;
+  return readlink (filename, buffer, buffer_size);
+}
+
 
 #if __DJGPP__ == 2 && __DJGPP_MINOR__ < 2
 
@@ -4223,10 +4267,9 @@ syms_of_msdos (void)
 #ifndef HAVE_X_WINDOWS
 
   /* The following two are from xfns.c:  */
-  Qreverse = intern_c_string ("reverse");
-  staticpro (&Qreverse);
+  DEFSYM (Qreverse, "reverse");
 
-  DEFVAR_LISP ("dos-unsupported-char-glyph", &Vdos_unsupported_char_glyph,
+  DEFVAR_LISP ("dos-unsupported-char-glyph", Vdos_unsupported_char_glyph,
 	       doc: /* *Glyph to display instead of chars not supported by current codepage.
 This variable is used only by MS-DOS terminals.  */);
   Vdos_unsupported_char_glyph = make_number ('\177');
@@ -4241,6 +4284,3 @@ This variable is used only by MS-DOS terminals.  */);
 }
 
 #endif /* MSDOS */
-
-/* arch-tag: db404e92-52a5-475f-9eb2-1cb78dd05f30
-   (do not change this comment) */

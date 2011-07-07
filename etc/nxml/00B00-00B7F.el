@@ -80,4 +80,3 @@
     ("ORIYA ISSHAR" #x0B70)
     ))
 
-;; arch-tag: 3a780627-f875-450a-b482-6b25f28c6f96

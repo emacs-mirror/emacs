@@ -1,7 +1,6 @@
 /* Definitions file for GNU Emacs running on Solaris 2.6.
 
-Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-  2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -45,7 +44,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define PTY_TTY_NAME_SPRINTF			\
   {						\
-    char *ptsname (), *ptyname;			\
+    char *ptsname (int), *ptyname;		\
 						\
     sigblock (sigmask (SIGCLD));		\
     if (grantpt (fd) == -1)			\
@@ -61,6 +60,3 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
-
-/* arch-tag: 71ea3857-89dc-4395-9623-77964e6ed3ca
-   (do not change this comment) */

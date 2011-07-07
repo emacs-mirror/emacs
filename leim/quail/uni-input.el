@@ -1,8 +1,7 @@
 ;;; uni-input.el --- Hex Unicode input method
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -127,5 +126,4 @@ Input as Unicode: U<hex> or u<hex>, where <hex> is a four-digit hex number.")))
 
 (provide 'uni-input)
 
-;; arch-tag: e0d91c7c-19a1-43d3-8f2b-28c0e031efaa
 ;;; uni-input.el ends here

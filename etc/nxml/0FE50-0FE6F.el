@@ -27,4 +27,3 @@
     ("SMALL COMMERCIAL AT" #xFE6B)
     ))
 
-;; arch-tag: 4facf8e4-cea2-4194-bc17-f0959c358f7f

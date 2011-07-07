@@ -1,6 +1,6 @@
 ;;; nxml-outln.el --- outline support for nXML mode
 
-;; Copyright (C) 2004, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007-2011  Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -82,7 +82,7 @@
 
 (defcustom nxml-section-element-name-regexp
   "article\\|\\(sub\\)*section\\|chapter\\|div\\|appendix\\|part\\|preface\\|reference\\|simplesect\\|bibliography\\|bibliodiv\\|glossary\\|glossdiv"
-  "*Regular expression matching the name of elements used as sections.
+  "Regular expression matching the name of elements used as sections.
 An XML element is treated as a section if:
 
 - its local name (that is, the name without the prefix) matches
@@ -97,7 +97,7 @@ element has a local name matching the variable
   :type 'regexp)
 
 (defcustom nxml-heading-element-name-regexp "title\\|head"
-  "*Regular expression matching the name of elements used as headings.
+  "Regular expression matching the name of elements used as headings.
 An XML element is only recognized as a heading if it occurs as or
 within the first child of an element that is recognized as a section.
 See the variable `nxml-section-element-name-regexp' for more details."
@@ -105,7 +105,7 @@ See the variable `nxml-section-element-name-regexp' for more details."
   :type 'regexp)
 
 (defcustom nxml-outline-child-indent 2
-  "*Indentation in an outline for child element relative to parent element."
+  "Indentation in an outline for child element relative to parent element."
   :group 'nxml
   :type 'integer)
 
@@ -1037,5 +1037,4 @@ immediately after the section's start-tag."
 
 (provide 'nxml-outln)
 
-;; arch-tag: 1f1b7454-e573-4cd7-a505-d9dc64eef828
 ;;; nxml-outln.el ends here

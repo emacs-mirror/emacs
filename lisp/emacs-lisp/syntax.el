@@ -1,7 +1,6 @@
 ;;; syntax.el --- helper functions to find syntactic context
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000-2011 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -399,8 +398,9 @@ point (where the PPSS is equivalent to nil).")
 
 (defun syntax-ppss (&optional pos)
   "Parse-Partial-Sexp State at POS, defaulting to point.
-The returned value is the same as `parse-partial-sexp' except that
-the 2nd and 6th values of the returned state cannot be relied upon.
+The returned value is the same as that of `parse-partial-sexp'
+run from point-min to POS except that values at positions 2 and 6
+in the returned list (counting from 0) cannot be relied upon.
 Point is at POS when this function returns."
   ;; Default values.
   (unless pos (setq pos (point)))
@@ -578,5 +578,4 @@ Point is at POS when this function returns."
 
 (provide 'syntax)
 
-;; arch-tag: 302f1eeb-e77c-4680-a8c5-c543e01161a5
 ;;; syntax.el ends here

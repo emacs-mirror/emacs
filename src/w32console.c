@@ -1,6 +1,5 @@
 /* Terminal hooks for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-                 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1992, 1999, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -42,12 +41,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* from window.c */
 extern Lisp_Object Frecenter (Lisp_Object);
 
-/* from keyboard.c */
-extern int detect_input_pending (void);
-
-/* from sysdep.c */
-extern int read_input_pending (void);
-
 static void w32con_move_cursor (struct frame *f, int row, int col);
 static void w32con_clear_to_end (struct frame *f);
 static void w32con_clear_frame (struct frame *f);
@@ -72,13 +65,6 @@ static DWORD	prev_console_mode;
 static CONSOLE_CURSOR_INFO prev_console_cursor;
 #endif
 
-extern Lisp_Object Vtty_defined_color_alist;
-
-/* Determine whether to make frame dimensions match the screen buffer,
-   or the current window size.  The former is desirable when running
-   over telnet, while the latter is more useful when working directly at
-   the console with a large scroll-back buffer.  */
-int w32_use_full_screen_buffer;
 HANDLE  keyboard_handle;
 
 
@@ -284,9 +270,6 @@ w32con_insert_glyphs (struct frame *f, register struct glyph *start,
       w32con_clear_end_of_line (f, cursor_coords.X + len);
     }
 }
-
-extern unsigned char *encode_terminal_code (struct glyph *, int,
-                                            struct coding_system *);
 
 static void
 w32con_write_glyphs (struct frame *f, register struct glyph *string,
@@ -722,13 +705,27 @@ initialize_w32_display (struct terminal *term)
 
 
 DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
-       doc: /* Set screen colors.  */)
+       doc: /* Set screen foreground and background colors.
+
+Arguments should be indices between 0 and 15, see w32console.el.  */)
   (Lisp_Object foreground, Lisp_Object background)
 {
   char_attr_normal = XFASTINT (foreground) + (XFASTINT (background) << 4);
 
   Frecenter (Qnil);
   return Qt;
+}
+
+DEFUN ("get-screen-color", Fget_screen_color, Sget_screen_color, 0, 0, 0,
+       doc: /* Get color indices of the current screen foreground and background.
+
+The colors are returned as a list of 2 indices (FOREGROUND BACKGROUND).
+See w32console.el and `tty-defined-color-alist' for mapping of indices
+to colors.  */)
+  (void)
+{
+  return Fcons (make_number (char_attr_normal & 0x000f),
+		Fcons (make_number ((char_attr_normal >> 4) & 0x000f), Qnil));
 }
 
 DEFUN ("set-cursor-size", Fset_cursor_size, Sset_cursor_size, 1, 1, 0,
@@ -747,7 +744,7 @@ void
 syms_of_ntterm (void)
 {
   DEFVAR_BOOL ("w32-use-full-screen-buffer",
-               &w32_use_full_screen_buffer,
+               w32_use_full_screen_buffer,
 	       doc: /* Non-nil means make terminal frames use the full screen buffer dimensions.
 This is desirable when running Emacs over telnet.
 A value of nil means use the current console window dimensions; this
@@ -756,9 +753,8 @@ scroll-back buffer.  */);
   w32_use_full_screen_buffer = 0;
 
   defsubr (&Sset_screen_color);
+  defsubr (&Sget_screen_color);
   defsubr (&Sset_cursor_size);
   defsubr (&Sset_message_beep);
 }
 
-/* arch-tag: a390a07f-f661-42bc-aeb4-e6d8bf860337
-   (do not change this comment) */

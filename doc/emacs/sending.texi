@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Sending Mail
@@ -713,7 +712,3 @@ buffer, and their commands are different as well.
   Similarly, to specify your preferred method for reading mail,
 customize the variable @code{read-mail-command}.  The default is
 @code{rmail} (@pxref{Rmail}).
-
-@ignore
-   arch-tag: d8a3dfc3-5d87-45c5-a7f2-69871b8e4fd6
-@end ignore

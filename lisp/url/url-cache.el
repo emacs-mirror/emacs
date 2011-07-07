@@ -1,7 +1,6 @@
 ;;; url-cache.el --- Uniform Resource Locator retrieval tool
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
-;;   2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996-1999, 2004-2011  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -193,6 +192,7 @@ Very fast if you have an `md5' primitive function, suitably fast otherwise."
 (defun url-cache-extract (fnam)
   "Extract FNAM from the local disk cache."
   (erase-buffer)
+  (set-buffer-multibyte nil)
   (insert-file-contents-literally fnam))
 
 (defun url-cache-expired (url &optional expire-time)
@@ -211,5 +211,4 @@ If `url-standalone-mode' is non-nil, cached items never expire."
 
 (provide 'url-cache)
 
-;; arch-tag: 95b050a6-8e81-4f23-8e63-191b9d1d657c
 ;;; url-cache.el ends here

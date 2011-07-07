@@ -1,8 +1,6 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
-Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-              2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-              Free Software Foundation, Inc.
+Copyright (C) 1992-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -30,7 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
-#include "getopt.h"
+#include <getopt.h>
 
 /* The SunOS compiler doesn't have SEEK_END.  */
 #ifndef SEEK_END
@@ -43,12 +41,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define streq(X, Y) (*(X) == *(Y) && strcmp ((X) + 1, (Y) + 1) == 0)
 
-/* The ubiquitous `max' and `min' macros.  */
-
-#ifndef max
-#define max(X, Y)	((X) > (Y) ? (X) : (Y))
-#define min(X, Y)	((X) < (Y) ? (X) : (Y))
-#endif
+#include <min-max.h>
 
 /* Files are read in chunks of this number of bytes.  */
 
@@ -84,7 +77,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define TREE_HEADER_STRUCT	"[ebrowse-hs "
 #define TREE_STRUCT		"[ebrowse-ts "
 #define MEMBER_STRUCT		"[ebrowse-ms "
-#define BROWSE_STRUCT		"[ebrowse-bs "
 #define CLASS_STRUCT		"[ebrowse-cs "
 
 /* The name of the symbol table entry for global functions, variables,
@@ -386,7 +378,7 @@ int max_regexp = 50;
 
 char *inbuffer;
 char *in;
-int inbuffer_size;
+size_t inbuffer_size;
 
 /* Return the current buffer position in the input file.  */
 
@@ -467,59 +459,16 @@ struct search_path *search_path_tail;
 
 /* Function prototypes.  */
 
-int yylex (void);
-void yyparse (void);
-void re_init_parser (void);
-const char *token_string (int);
-char *matching_regexp (void);
-void init_sym (void);
-struct sym *add_sym (const char *, struct sym *);
-void add_link (struct sym *, struct sym *);
-void add_member_defn (struct sym *, char *, char *,
-                      int, unsigned, int, int, int);
-void add_member_decl (struct sym *, char *, char *, int,
-                      unsigned, int, int, int, int);
-void dump_roots (FILE *);
-void *xmalloc (int);
-void xfree (void *);
-void add_global_defn (char *, char *, int, unsigned, int, int, int);
-void add_global_decl (char *, char *, int, unsigned, int, int, int);
-void add_define (char *, char *, int);
-void mark_inherited_virtual (void);
-void leave_namespace (void);
-void enter_namespace (char *);
-void register_namespace_alias (char *, struct link *);
-void insert_keyword (const char *, int);
-void re_init_scanner (void);
-void init_scanner (void);
-void process_file (char *);
-void add_search_path (char *);
-FILE *open_file (char *);
-int process_pp_line (void);
-int dump_members (FILE *, struct member *);
-void dump_sym (FILE *, struct sym *);
-int dump_tree (FILE *, struct sym *);
-struct member *find_member (struct sym *, char *, int, int, unsigned);
-struct member *add_member (struct sym *, char *, int, int, unsigned);
-void mark_virtual (struct sym *);
-struct sym *make_namespace (char *, struct sym *);
-char *sym_scope (struct sym *);
-char *sym_scope_1 (struct sym *);
-int skip_to (int);
-void skip_matching (void);
-void member (struct sym *, int);
-void class_body (struct sym *, int);
-void class_definition (struct sym *, int, int, int);
-void declaration (int);
-unsigned parm_list (int *);
-char *operator_name (int *);
-struct sym *parse_classname (void);
-struct sym *parse_qualified_ident_or_type (char **);
-void parse_qualified_param_ident_or_type (char **);
-int globals (int);
-void yyerror (const char *, const char *);
-void usage (int) NO_RETURN;
-void version (void) NO_RETURN;
+static char *matching_regexp (void);
+static struct sym *add_sym (const char *, struct sym *);
+static void add_global_defn (char *, char *, int, unsigned, int, int, int);
+static void add_global_decl (char *, char *, int, unsigned, int, int, int);
+static struct member *add_member (struct sym *, char *, int, int, unsigned);
+static void class_definition (struct sym *, int, int, int);
+static char *operator_name (int *);
+static void parse_qualified_param_ident_or_type (char **);
+static void usage (int) NO_RETURN;
+static void version (void) NO_RETURN;
 
 
 
@@ -530,7 +479,7 @@ void version (void) NO_RETURN;
 /* Print an error in a printf-like style with the current input file
    name and line number.  */
 
-void
+static void
 yyerror (const char *format, const char *s)
 {
   fprintf (stderr, "%s:%d: ", filename, yyline);
@@ -542,8 +491,8 @@ yyerror (const char *format, const char *s)
 /* Like malloc but print an error and exit if not enough memory is
    available.  */
 
-void *
-xmalloc (int nbytes)
+static void *
+xmalloc (size_t nbytes)
 {
   void *p = malloc (nbytes);
   if (p == NULL)
@@ -557,8 +506,8 @@ xmalloc (int nbytes)
 
 /* Like realloc but print an error and exit if out of memory.  */
 
-void *
-xrealloc (void *p, int sz)
+static void *
+xrealloc (void *p, size_t sz)
 {
   p = realloc (p, sz);
   if (p == NULL)
@@ -573,7 +522,7 @@ xrealloc (void *p, int sz)
 /* Like strdup, but print an error and exit if not enough memory is
    available..  If S is null, return null.  */
 
-char *
+static char *
 xstrdup (char *s)
 {
   if (s)
@@ -590,7 +539,7 @@ xstrdup (char *s)
 /* Initialize the symbol table.  This currently only sets up the
    special symbol for globals (`*Globals*').  */
 
-void
+static void
 init_sym (void)
 {
   global_symbols = add_sym (GLOBALS_NAME, NULL);
@@ -604,7 +553,7 @@ init_sym (void)
    If a symbol for NAME already exists, return that.  Otherwise
    create a new symbol and set it to default values.  */
 
-struct sym *
+static struct sym *
 add_sym (const char *name, struct sym *nested_in_class)
 {
   struct sym *sym;
@@ -645,7 +594,7 @@ add_sym (const char *name, struct sym *nested_in_class)
 
 /* Add links between superclass SUPER and subclass SUB.  */
 
-void
+static void
 add_link (struct sym *super, struct sym *sub)
 {
   struct link *lnk, *lnk2, *p, *prev;
@@ -685,7 +634,7 @@ add_link (struct sym *super, struct sym *sub)
    parameter types of functions.  Value is a pointer to the member
    found or null if not found.  */
 
-struct member *
+static struct member *
 find_member (struct sym *cls, char *name, int var, int sc, unsigned int hash)
 {
   struct member **list;
@@ -735,7 +684,7 @@ find_member (struct sym *cls, char *name, int var, int sc, unsigned int hash)
    a bit set giving additional information about the member (see the
    F_* defines).  */
 
-void
+static void
 add_member_decl (struct sym *cls, char *name, char *regexp, int pos, unsigned int hash, int var, int sc, int vis, int flags)
 {
   struct member *m;
@@ -783,7 +732,7 @@ add_member_decl (struct sym *cls, char *name, char *regexp, int pos, unsigned in
    a bit set giving additional information about the member (see the
    F_* defines).  */
 
-void
+static void
 add_member_defn (struct sym *cls, char *name, char *regexp, int pos, unsigned int hash, int var, int sc, int flags)
 {
   struct member *m;
@@ -825,7 +774,7 @@ add_member_defn (struct sym *cls, char *name, char *regexp, int pos, unsigned in
    REGEXP is a regular expression matching the define in the source,
    if it is non-null.  POS is the position in the file.  */
 
-void
+static void
 add_define (char *name, char *regexp, int pos)
 {
   add_global_defn (name, regexp, pos, 0, 1, SC_FRIEND, F_DEFINE);
@@ -843,7 +792,7 @@ add_define (char *name, char *regexp, int pos)
    a bit set giving additional information about the member (see the
    F_* defines).  */
 
-void
+static void
 add_global_defn (char *name, char *regexp, int pos, unsigned int hash, int var, int sc, int flags)
 {
   int i;
@@ -874,7 +823,7 @@ add_global_defn (char *name, char *regexp, int pos, unsigned int hash, int var, 
    a bit set giving additional information about the member (see the
    F_* defines).  */
 
-void
+static void
 add_global_decl (char *name, char *regexp, int pos, unsigned int hash, int var, int sc, int flags)
 {
   /* Add declaration only if not already declared.  Header files must
@@ -913,7 +862,7 @@ add_global_decl (char *name, char *regexp, int pos, unsigned int hash, int var, 
    member.  HASH is a hash code for the parameter types of a function.
    Value is a pointer to the member's structure.  */
 
-struct member *
+static struct member *
 add_member (struct sym *cls, char *name, int var, int sc, unsigned int hash)
 {
   struct member *m = (struct member *) xmalloc (sizeof *m + strlen (name));
@@ -984,7 +933,7 @@ add_member (struct sym *cls, char *name, int var, int sc, unsigned int hash)
    recursively, marking functions as virtual that are declared virtual
    in base classes.  */
 
-void
+static void
 mark_virtual (struct sym *r)
 {
   struct link *p;
@@ -1008,7 +957,7 @@ mark_virtual (struct sym *r)
 /* For all roots of the class tree, mark functions as virtual that
    are virtual because of a virtual declaration in a base class.  */
 
-void
+static void
 mark_inherited_virtual (void)
 {
   struct sym *r;
@@ -1023,7 +972,7 @@ mark_inherited_virtual (void)
 
 /* Create and return a symbol for a namespace with name NAME.  */
 
-struct sym *
+static struct sym *
 make_namespace (char *name, struct sym *context)
 {
   struct sym *s = (struct sym *) xmalloc (sizeof *s + strlen (name));
@@ -1038,7 +987,7 @@ make_namespace (char *name, struct sym *context)
 
 /* Find the symbol for namespace NAME.  If not found, retrun NULL */
 
-struct sym *
+static struct sym *
 check_namespace (char *name, struct sym *context)
 {
   struct sym *p = NULL;
@@ -1055,7 +1004,7 @@ check_namespace (char *name, struct sym *context)
 /* Find the symbol for namespace NAME.  If not found, add a new symbol
    for NAME to all_namespaces.  */
 
-struct sym *
+static struct sym *
 find_namespace (char *name, struct sym *context)
 {
   struct sym *p = check_namespace (name, context);
@@ -1069,7 +1018,7 @@ find_namespace (char *name, struct sym *context)
 
 /* Find namespace alias with name NAME. If not found return NULL. */
 
-struct link *
+static struct link *
 check_namespace_alias (char *name)
 {
   struct link *p = NULL;
@@ -1093,7 +1042,7 @@ check_namespace_alias (char *name)
 
 /* Register the name NEW_NAME as an alias for namespace list OLD_NAME.  */
 
-void
+static void
 register_namespace_alias (char *new_name, struct link *old_name)
 {
   unsigned h;
@@ -1121,7 +1070,7 @@ register_namespace_alias (char *new_name, struct link *old_name)
 
 /* Enter namespace with name NAME.  */
 
-void
+static void
 enter_namespace (char *name)
 {
   struct sym *p = find_namespace (name, current_namespace);
@@ -1142,7 +1091,7 @@ enter_namespace (char *name)
 
 /* Leave the current namespace.  */
 
-void
+static void
 leave_namespace (void)
 {
   assert (namespace_sp > 0);
@@ -1158,22 +1107,23 @@ leave_namespace (void)
 /* Write string S to the output file FP in a Lisp-readable form.
    If S is null, write out `()'.  */
 
-#define PUTSTR(s, fp)				\
-  do {						\
-    if (!s)					\
-      {						\
-        putc ('(', fp);				\
-        putc (')', fp);				\
-        putc (' ', fp);				\
-      }						\
-    else					\
-      {						\
-        putc ('"', fp);				\
-        fputs (s, fp);				\
-        putc ('"', fp);				\
-        putc (' ', fp);				\
-      }						\
-   } while (0)
+static inline void
+putstr (const char *s, FILE *fp)
+{
+  if (!s)
+    {
+      putc ('(', fp);
+      putc (')', fp);
+      putc (' ', fp);
+    }
+  else
+    {
+      putc ('"', fp);
+      fputs (s, fp);
+      putc ('"', fp);
+      putc (' ', fp);
+    }
+}
 
 /* A dynamically allocated buffer for constructing a scope name.  */
 
@@ -1184,7 +1134,7 @@ int scope_buffer_len;
 
 /* Make sure scope_buffer has enough room to add LEN chars to it.  */
 
-void
+static void
 ensure_scope_buffer_room (int len)
 {
   if (scope_buffer_len + len >= scope_buffer_size)
@@ -1200,7 +1150,7 @@ ensure_scope_buffer_room (int len)
    namespaces to scope_buffer.  Value is a pointer to the complete
    scope name constructed.  */
 
-char *
+static char *
 sym_scope_1 (struct sym *p)
 {
   int len;
@@ -1234,7 +1184,7 @@ sym_scope_1 (struct sym *p)
 /* Return the scope of symbol P in printed representation, i.e.
    as it would appear in a C*+ source file.  */
 
-char *
+static char *
 sym_scope (struct sym *p)
 {
   if (!scope_buffer)
@@ -1256,7 +1206,7 @@ sym_scope (struct sym *p)
 /* Dump the list of members M to file FP.  Value is the length of the
    list.  */
 
-int
+static int
 dump_members (FILE *fp, struct member *m)
 {
   int n;
@@ -1266,16 +1216,16 @@ dump_members (FILE *fp, struct member *m)
   for (n = 0; m; m = m->next, ++n)
     {
       fputs (MEMBER_STRUCT, fp);
-      PUTSTR (m->name, fp);
-      PUTSTR (NULL, fp);		/* FIXME? scope for globals */
+      putstr (m->name, fp);
+      putstr (NULL, fp);		/* FIXME? scope for globals */
       fprintf (fp, "%u ", (unsigned) m->flags);
-      PUTSTR (m->filename, fp);
-      PUTSTR (m->regexp, fp);
+      putstr (m->filename, fp);
+      putstr (m->regexp, fp);
       fprintf (fp, "%u ", (unsigned) m->pos);
       fprintf (fp, "%u ", (unsigned) m->vis);
       putc (' ', fp);
-      PUTSTR (m->def_filename, fp);
-      PUTSTR (m->def_regexp, fp);
+      putstr (m->def_filename, fp);
+      putstr (m->def_regexp, fp);
       fprintf (fp, "%u", (unsigned) m->def_pos);
       putc (']', fp);
       putc ('\n', fp);
@@ -1289,24 +1239,24 @@ dump_members (FILE *fp, struct member *m)
 
 /* Dump class ROOT to stream FP.  */
 
-void
+static void
 dump_sym (FILE *fp, struct sym *root)
 {
   fputs (CLASS_STRUCT, fp);
-  PUTSTR (root->name, fp);
+  putstr (root->name, fp);
 
   /* Print scope, if any.  */
   if (root->namesp)
-    PUTSTR (sym_scope (root), fp);
+    putstr (sym_scope (root), fp);
   else
-    PUTSTR (NULL, fp);
+    putstr (NULL, fp);
 
   /* Print flags.  */
   fprintf (fp, "%u", root->flags);
-  PUTSTR (root->filename, fp);
-  PUTSTR (root->regexp, fp);
+  putstr (root->filename, fp);
+  putstr (root->regexp, fp);
   fprintf (fp, "%u", (unsigned) root->pos);
-  PUTSTR (root->sfilename, fp);
+  putstr (root->sfilename, fp);
   putc (']', fp);
   putc ('\n', fp);
 }
@@ -1315,7 +1265,7 @@ dump_sym (FILE *fp, struct sym *root)
 /* Dump class ROOT and its subclasses to file FP.  Value is the
    number of classes written.  */
 
-int
+static int
 dump_tree (FILE *fp, struct sym *root)
 {
   struct link *lk;
@@ -1362,7 +1312,7 @@ dump_tree (FILE *fp, struct sym *root)
 
 /* Dump the entire class tree to file FP.  */
 
-void
+static void
 dump_roots (FILE *fp)
 {
   int i, n = 0;
@@ -1373,7 +1323,7 @@ dump_roots (FILE *fp)
   if (!f_append)
     {
       fputs (TREE_HEADER_STRUCT, fp);
-      PUTSTR (EBROWSE_FILE_VERSION, fp);
+      putstr (EBROWSE_FILE_VERSION, fp);
 
       putc ('\"', fp);
       if (!f_structs)
@@ -1436,7 +1386,7 @@ do {						\
 /* Process a preprocessor line.  Value is the next character from the
    input buffer not consumed.  */
 
-int
+static int
 process_pp_line (void)
 {
   int in_comment = 0, in_string = 0;
@@ -1507,7 +1457,7 @@ process_pp_line (void)
 
 /* Value is the next token from the input buffer.  */
 
-int
+static int
 yylex (void)
 {
   int c;
@@ -1700,6 +1650,11 @@ yylex (void)
             case '/':
 	      while (GET (c) && c != '\n')
 		;
+	      /* Don't try to read past the end of the input buffer if
+		 the file ends in a C++ comment without a newline.  */
+	      if (c == 0)
+		return YYEOF;
+
 	      INCREMENT_LINENO;
 	      break;
 
@@ -1924,7 +1879,7 @@ static char *matching_regexp_buffer, *matching_regexp_end_buf;
    position in the input buffer, or maybe a bit more if that string is
    shorter than min_regexp.  */
 
-char *
+static char *
 matching_regexp (void)
 {
   char *p;
@@ -1975,7 +1930,7 @@ matching_regexp (void)
 
 /* Return a printable representation of token T.  */
 
-const char *
+static const char *
 token_string (int t)
 {
   static char b[3];
@@ -2092,7 +2047,7 @@ token_string (int t)
 
 /* Reinitialize the scanner for a new input file.  */
 
-void
+static void
 re_init_scanner (void)
 {
   in = inbuffer;
@@ -2107,11 +2062,11 @@ re_init_scanner (void)
 }
 
 
-/* Insert a keyword NAME with token value TK into the keyword hash
+/* Insert a keyword NAME with token value TKV into the keyword hash
    table.  */
 
-void
-insert_keyword (const char *name, int tk)
+static void
+insert_keyword (const char *name, int tkv)
 {
   const char *s;
   unsigned h = 0;
@@ -2122,7 +2077,7 @@ insert_keyword (const char *name, int tk)
 
   h %= KEYWORD_TABLE_SIZE;
   k->name = name;
-  k->tk = tk;
+  k->tk = tkv;
   k->next = keyword_table[h];
   keyword_table[h] = k;
 }
@@ -2131,7 +2086,7 @@ insert_keyword (const char *name, int tk)
 /* Initialize the scanner for the first file.  This sets up the
    character class vectors and fills the keyword hash table.  */
 
-void
+static void
 init_scanner (void)
 {
   int i;
@@ -2275,7 +2230,7 @@ init_scanner (void)
 /* Skip forward until a given token TOKEN or YYEOF is seen and return
    the current lookahead token after skipping.  */
 
-int
+static int
 skip_to (int token)
 {
   while (!LOOKING_AT2 (YYEOF, token))
@@ -2286,7 +2241,7 @@ skip_to (int token)
 /* Skip over pairs of tokens (parentheses, square brackets,
    angle brackets, curly brackets) matching the current lookahead.  */
 
-void
+static void
 skip_matching (void)
 {
   int open, close, n;
@@ -2329,7 +2284,7 @@ skip_matching (void)
     }
 }
 
-void
+static void
 skip_initializer (void)
 {
   for (;;)
@@ -2356,7 +2311,7 @@ skip_initializer (void)
 
 /* Build qualified namespace alias (A::B::c) and return it. */
 
-struct link *
+static struct link *
 match_qualified_namespace_alias (void)
 {
   struct link *head = NULL;
@@ -2393,7 +2348,7 @@ match_qualified_namespace_alias (void)
 
 /* Re-initialize the parser by resetting the lookahead token.  */
 
-void
+static void
 re_init_parser (void)
 {
   tk = -1;
@@ -2406,7 +2361,7 @@ re_init_parser (void)
    Returns a hash code for the parameter types.  This value is used to
    distinguish between overloaded functions.  */
 
-unsigned
+static unsigned
 parm_list (int *flags)
 {
   unsigned hash = 0;
@@ -2519,7 +2474,7 @@ parm_list (int *flags)
 
 /* Print position info to stdout.  */
 
-void
+static void
 print_info (void)
 {
   if (info_position >= 0 && BUFFER_POS () <= info_position)
@@ -2534,7 +2489,7 @@ print_info (void)
    the access specifier for the member (private, protected,
    public).  */
 
-void
+static void
 member (struct sym *cls, int vis)
 {
   char *id = NULL;
@@ -2743,7 +2698,7 @@ member (struct sym *cls, int vis)
 /* Parse the body of class CLS.  TAG is the tag of the class (struct,
    union, class).  */
 
-void
+static void
 class_body (struct sym *cls, int tag)
 {
   int vis = tag == CLASS ? PRIVATE : PUBLIC;
@@ -2804,7 +2759,7 @@ class_body (struct sym *cls, int tag)
    qualified ident has the form `X<..>::Y<...>::T<...>.  Returns a
    symbol for that class.  */
 
-struct sym *
+static struct sym *
 parse_classname (void)
 {
   struct sym *last_class = NULL;
@@ -2834,13 +2789,13 @@ parse_classname (void)
    implicitly static operator has been parsed.  Value is a pointer to
    a static buffer holding the constructed operator name string.  */
 
-char *
+static char *
 operator_name (int *sc)
 {
-  static int id_size = 0;
+  static size_t id_size = 0;
   static char *id = NULL;
   const char *s;
-  int len;
+  size_t len;
 
   MATCH ();
 
@@ -2856,7 +2811,7 @@ operator_name (int *sc)
       len = strlen (s) + 10;
       if (len > id_size)
 	{
-	  int new_size = max (len, 2 * id_size);
+	  size_t new_size = max (len, 2 * id_size);
 	  id = (char *) xrealloc (id, new_size);
 	  id_size = new_size;
 	}
@@ -2877,7 +2832,7 @@ operator_name (int *sc)
     }
   else
     {
-      int tokens_matched = 0;
+      size_t tokens_matched = 0;
 
       len = 20;
       if (len > id_size)
@@ -2898,7 +2853,7 @@ operator_name (int *sc)
 	  len += strlen (s) + 2;
 	  if (len > id_size)
 	    {
-	      int new_size = max (len, 2 * id_size);
+	      size_t new_size = max (len, 2 * id_size);
 	      id = (char *) xrealloc (id, new_size);
 	      id_size = new_size;
 	    }
@@ -2924,7 +2879,7 @@ operator_name (int *sc)
    `X::Y::z'.  This IDENT is returned in LAST_ID.  Value is the
    symbol structure for the ident.  */
 
-struct sym *
+static struct sym *
 parse_qualified_ident_or_type (char **last_id)
 {
   struct sym *cls = NULL;
@@ -2989,14 +2944,16 @@ parse_qualified_ident_or_type (char **last_id)
    `X::Y::z'.  This IDENT is returned in LAST_ID.  Value is the
    symbol structure for the ident.  */
 
-void
+static void
 parse_qualified_param_ident_or_type (char **last_id)
 {
   struct sym *cls = NULL;
   static char *id = NULL;
   static int id_size = 0;
 
-  while (LOOKING_AT (IDENT))
+  assert (LOOKING_AT (IDENT));
+
+  do
     {
       int len = strlen (yytext) + 1;
       if (len > id_size)
@@ -3019,6 +2976,7 @@ parse_qualified_param_ident_or_type (char **last_id)
       else
 	break;
     }
+  while (LOOKING_AT (IDENT));
 }
 
 
@@ -3031,7 +2989,7 @@ parse_qualified_param_ident_or_type (char **last_id)
 
    Current lookahead is the class name.  */
 
-void
+static void
 class_definition (struct sym *containing, int tag, int flags, int nested)
 {
   struct sym *current;
@@ -3128,7 +3086,7 @@ class_definition (struct sym *containing, int tag, int flags, int nested)
    the storage class of *ID.  FLAGS is a bit set giving additional
    information about the member (see the F_* defines).  */
 
-void
+static void
 add_declarator (struct sym **cls, char **id, int flags, int sc)
 {
   if (LOOKING_AT2 (';', ','))
@@ -3171,7 +3129,7 @@ add_declarator (struct sym **cls, char **id, int flags, int sc)
 
 /* Parse a declaration.  */
 
-void
+static void
 declaration (int flags)
 {
   char *id = NULL;
@@ -3325,7 +3283,7 @@ declaration (int flags)
    parsing in an `extern "C"' block.  Value is 1 if EOF is reached, 0
    otherwise.  */
 
-int
+static int
 globals (int start_flags)
 {
   int anonymous;
@@ -3443,7 +3401,7 @@ globals (int start_flags)
 
 /* Parse the current input file.  */
 
-void
+static void
 yyparse (void)
 {
   while (globals (0) == 0)
@@ -3459,7 +3417,7 @@ yyparse (void)
 /* Add the list of paths PATH_LIST to the current search path for
    input files.  */
 
-void
+static void
 add_search_path (char *path_list)
 {
   while (*path_list)
@@ -3494,7 +3452,7 @@ add_search_path (char *path_list)
    opened.  Try to find FILE in search_path first, then try the
    unchanged file name.  */
 
-FILE *
+static FILE *
 open_file (char *file)
 {
   FILE *fp = NULL;
@@ -3553,7 +3511,7 @@ Usage: ebrowse [options] {files}\n\
       --version			display version info\n\
 "
 
-void
+static void
 usage (int error)
 {
   puts (USAGE);
@@ -3562,17 +3520,17 @@ usage (int error)
 
 
 /* Display version and copyright info.  The VERSION macro is set
-   from the Makefile and contains the Emacs version.  */
+   from config.h and contains the Emacs version.  */
 
 #ifndef VERSION
 # define VERSION "21"
 #endif
 
-void
+static void
 version (void)
 {
   /* Makes it easier to update automatically. */
-  char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
+  char emacs_copyright[] = "Copyright (C) 2011 Free Software Foundation, Inc.";
 
   printf ("ebrowse %s\n", VERSION);
   puts (emacs_copyright);
@@ -3584,7 +3542,7 @@ version (void)
 /* Parse one input file FILE, adding classes and members to the symbol
    table.  */
 
-void
+static void
 process_file (char *file)
 {
   FILE *fp;
@@ -3592,7 +3550,7 @@ process_file (char *file)
   fp = open_file (file);
   if (fp)
     {
-      int nread, nbytes;
+      size_t nread, nbytes;
 
       /* Give a progress indication if needed.  */
       if (f_very_verbose)
@@ -3616,12 +3574,10 @@ process_file (char *file)
 	    }
 
 	  nbytes = fread (inbuffer + nread, 1, READ_CHUNK_SIZE, fp);
-	  if (nbytes <= 0)
+	  if (nbytes == 0)
 	    break;
 	  nread += nbytes;
 	}
-      if (nread < 0)
-	nread = 0;
       inbuffer[nread] = '\0';
 
       /* Reinitialize scanner and parser for the new input file.  */
@@ -3639,7 +3595,7 @@ process_file (char *file)
    containing its contents without the terminating newline.  Value
    is null when EOF is reached.  */
 
-char *
+static char *
 read_line (FILE *fp)
 {
   static char *buffer;
@@ -3809,7 +3765,7 @@ main (int argc, char **argv)
 	      yyerror ("error getting size of file `%s'", out_filename);
 	      exit (EXIT_FAILURE);
 	    }
-	  
+
 	  else if (rc == 0)
 	    {
 	      yyerror ("file `%s' is empty", out_filename);
@@ -3871,8 +3827,5 @@ main (int argc, char **argv)
 
   return EXIT_SUCCESS;
 }
-
-/* arch-tag: fc03b4bc-91a9-4c3d-b3b9-12a77fa86dd8
-   (do not change this comment) */
 
 /* ebrowse.c ends here */

@@ -1,8 +1,7 @@
 ;;; indian.el --- Indian languages support -*- coding: utf-8; -*-
 
-;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 1997, 1999, 2001-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -389,5 +388,4 @@ South Indian language Malayalam is supported in this language environment."))
 
 (provide 'indian)
 
-;; arch-tag: 83aa8fc7-7ee2-4364-a6e5-498f5e3b8c2f
 ;;; indian.el ends here

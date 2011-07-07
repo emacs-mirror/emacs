@@ -1,8 +1,6 @@
-;;; startup.el --- process Emacs shell arguments
+;;; startup.el --- process Emacs shell arguments  -*- lexical-binding: t -*-
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992, 1994-2011  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -100,6 +98,7 @@ the remaining command-line args are in the variable `command-line-args-left'.")
   "List of command-line args not yet processed.")
 
 (defvaralias 'argv 'command-line-args-left
+  ;; FIXME: Bad name for a dynamically bound variable.
   "List of command-line args not yet processed.
 This is a convenience alias, so that one can write \(pop argv\)
 inside of --eval command line arguments in order to access
@@ -328,7 +327,7 @@ this variable usefully is to set it while building and dumping Emacs."
   :type '(choice (const :tag "none" nil) string)
   :group 'initialization
   :initialize 'custom-initialize-default
-  :set (lambda (variable value)
+  :set (lambda (_variable _value)
 	  (error "Customizing `site-run-file' does not work")))
 
 (defcustom mail-host-address nil
@@ -394,6 +393,15 @@ Warning Warning!!!  Pure space overflow    !!!Warning Warning
   :type 'directory
   :initialize 'custom-initialize-delay)
 
+(defconst package-subdirectory-regexp
+  "\\([^.].*?\\)-\\([0-9]+\\(?:[.][0-9]+\\|\\(?:pre\\|beta\\|alpha\\)[0-9]+\\)*\\)"
+  "Regular expression matching the name of a package subdirectory.
+The first subexpression is the package name.
+The second subexpression is the version string.
+
+The regexp should not contain a starting \"\\`\" or a trailing
+ \"\\'\"; those are added automatically by callers.")
+
 (defun normal-top-level-add-subdirs-to-load-path ()
   "Add all subdirectories of current directory to `load-path'.
 More precisely, this uses only the subdirectories whose names
@@ -411,34 +419,31 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	     (default-directory this-dir)
 	     (canonicalized (if (fboundp 'untranslated-canonical-name)
 				(untranslated-canonical-name this-dir))))
-	;; The Windows version doesn't report meaningful inode
-	;; numbers, so use the canonicalized absolute file name of the
-	;; directory instead.
+	;; The Windows version doesn't report meaningful inode numbers, so
+	;; use the canonicalized absolute file name of the directory instead.
 	(setq attrs (or canonicalized
 			(nthcdr 10 (file-attributes this-dir))))
 	(unless (member attrs normal-top-level-add-subdirs-inode-list)
 	  (push attrs normal-top-level-add-subdirs-inode-list)
 	  (dolist (file contents)
-	    ;; The lower-case variants of RCS and CVS are for DOS/Windows.
-	    (unless (member file '("." ".." "RCS" "CVS" "rcs" "cvs"))
-	      (when (and (string-match "\\`[[:alnum:]]" file)
-			 ;; Avoid doing a `stat' when it isn't necessary
-			 ;; because that can cause trouble when an NFS server
-			 ;; is down.
-			 (not (string-match "\\.elc?\\'" file))
-			 (file-directory-p file))
-		(let ((expanded (expand-file-name file)))
-		  (unless (file-exists-p (expand-file-name ".nosearch"
-							   expanded))
-		    (setq pending (nconc pending (list expanded)))))))))))
+	    (and (string-match "\\`[[:alnum:]]" file)
+		 ;; The lower-case variants of RCS and CVS are for DOS/Windows.
+		 (not (member file '("RCS" "CVS" "rcs" "cvs")))
+		 ;; Avoid doing a `stat' when it isn't necessary because
+		 ;; that can cause trouble when an NFS server is down.
+		 (not (string-match "\\.elc?\\'" file))
+		 (file-directory-p file)
+		 (let ((expanded (expand-file-name file)))
+		   (or (file-exists-p (expand-file-name ".nosearch" expanded))
+		       (setq pending (nconc pending (list expanded))))))))))
     (normal-top-level-add-to-load-path (cdr (nreverse dirs)))))
 
-;; This function is called from a subdirs.el file.
-;; It assumes that default-directory is the directory
-;; in which the subdirs.el file exists,
-;; and it adds to load-path the subdirs of that directory
-;; as specified in DIRS.  Normally the elements of DIRS are relative.
 (defun normal-top-level-add-to-load-path (dirs)
+  "This function is called from a subdirs.el file.
+It assumes that `default-directory' is the directory in which the
+subdirs.el file exists, and it adds to `load-path' the subdirs of
+that directory as specified in DIRS.  Normally the elements of
+DIRS are relative."
   (let ((tail load-path)
 	(thisdir (directory-file-name default-directory)))
     (while (and tail
@@ -615,8 +620,8 @@ function to this list.  The function should take no arguments,
 and initialize the window system environment to prepare for
 opening the first frame (e.g. open a connection to an X server).")
 
-;; Handle the X-like command-line arguments "-fg", "-bg", "-name", etc.
 (defun tty-handle-args (args)
+  "Handle the X-like command-line arguments \"-fg\", \"-bg\", \"-name\", etc."
   (let (rest)
     (message "%S" args)
     (while (and args
@@ -688,9 +693,6 @@ opening the first frame (e.g. open a connection to an X server).")
 
 (defvar server-name)
 (defvar server-process)
-;; Autoload in package.el, but when we bootstrap, we don't have loaddefs yet.
-(defvar package-enable-at-startup)
-(declare-function package-initialize "package" (&optional no-activate))
 
 (defun command-line ()
   (setq before-init-time (current-time)
@@ -904,7 +906,8 @@ opening the first frame (e.g. open a connection to an X server).")
       ;; spec, but mark it as changed outside of Customize.
       (let ((color (x-get-resource "cursorColor" "CursorColor")))
 	(when color
-	  (face-spec-set 'cursor `((t (:background ,color))))
+	  (put 'cursor 'theme-face
+	       `((changed ((t :background ,color)))))
 	  (put 'cursor 'face-modified t)))))
     (frame-initialize))
 
@@ -1014,19 +1017,22 @@ opening the first frame (e.g. open a connection to an X server).")
 		(if init-file-user
 		    (let ((user-init-file-1
 			   (cond
-			    ((eq system-type 'ms-dos)
-			     (concat "~" init-file-user "/_emacs"))
-			    ((eq system-type 'windows-nt)
-			     ;; Prefer .emacs on Windows.
-			     (if (directory-files "~" nil "^\\.emacs\\(\\.elc?\\)?$")
-				 "~/.emacs"
-			       ;; Also support _emacs for compatibility.
-			       (if (directory-files "~" nil "^_emacs\\(\\.elc?\\)?$")
-				   "~/_emacs"
-				 ;; But default to .emacs if _emacs does not exist.
-				 "~/.emacs")))
-			    (t
-			     (concat "~" init-file-user "/.emacs")))))
+			     ((eq system-type 'ms-dos)
+			      (concat "~" init-file-user "/_emacs"))
+			     ((not (eq system-type 'windows-nt))
+			      (concat "~" init-file-user "/.emacs"))
+			     ;; Else deal with the Windows situation
+			     ((directory-files "~" nil "^\\.emacs\\(\\.elc?\\)?$")
+			      ;; Prefer .emacs on Windows.
+			      "~/.emacs")
+			     ((directory-files "~" nil "^_emacs\\(\\.elc?\\)?$")
+			      ;; Also support _emacs for compatibility, but warn about it.
+			      (push '(initialization
+				      "`_emacs' init file is deprecated, please use `.emacs'")
+				    delayed-warnings-list)
+			      "~/_emacs")
+			     (t ;; But default to .emacs if _emacs does not exist.
+			      "~/.emacs"))))
 		      ;; This tells `load' to store the file name found
 		      ;; into user-init-file.
 		      (setq user-init-file t)
@@ -1090,7 +1096,8 @@ the `--debug-init' option to view a complete error backtrace."
 		      user-init-file
 		      (get (car error) 'error-message)
 		      (if (cdr error) ": " "")
-		      (mapconcat (lambda (s) (prin1-to-string s t)) (cdr error) ", "))
+		      (mapconcat (lambda (s) (prin1-to-string s t))
+                                 (cdr error) ", "))
 	      :warning)
 	     (setq init-file-had-error t))))
 
@@ -1198,9 +1205,9 @@ the `--debug-init' option to view a complete error backtrace."
 	     (when (file-directory-p dir)
 	       (dolist (subdir (directory-files dir))
 		 (when (and (file-directory-p (expand-file-name subdir dir))
-			    ;; package-subdirectory-regexp from package.el
-			    (string-match "^\\([^.].*\\)-\\([0-9]+\\(?:[.][0-9]+\\)*\\)$"
-					  subdir))
+			    (string-match
+			     (concat "\\`" package-subdirectory-regexp "\\'")
+			     subdir))
 		   (throw 'package-dir-found t)))))))
        (package-initialize))
 
@@ -1286,25 +1293,25 @@ If this is nil, no message will be displayed."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defconst fancy-startup-text
-  '((:face (variable-pitch (:foreground "red"))
+  `((:face (variable-pitch (:foreground "red"))
      "Welcome to "
      :link ("GNU Emacs"
-	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/"))
+	    ,(lambda (_button) (browse-url "http://www.gnu.org/software/emacs/"))
 	    "Browse http://www.gnu.org/software/emacs/")
      ", one component of the "
      :link
-     (lambda ()
+     ,(lambda ()
        (if (eq system-type 'gnu/linux)
-	   '("GNU/Linux"
-	     (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
+            `("GNU/Linux"
+              ,(lambda (_button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
 	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
-	 '("GNU" (lambda (button) (describe-gnu-project))
+          `("GNU" ,(lambda (_button) (describe-gnu-project))
 	   "Display info on the GNU project")))
      " operating system.\n\n"
      :face variable-pitch
-     :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
+     :link ("Emacs Tutorial" ,(lambda (_button) (help-with-tutorial)))
      "\tLearn basic keystroke commands"
-     (lambda ()
+     ,(lambda ()
        (let* ((en "TUTORIAL")
 	      (tut (or (get-language-info current-language-environment
 					  'tutorial)
@@ -1322,19 +1329,20 @@ If this is nil, no message will be displayed."
 	   (concat " (" title ")"))))
      "\n"
      :link ("Emacs Guided Tour"
-	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/"))
+	    ,(lambda (_button)
+               (browse-url "http://www.gnu.org/software/emacs/tour/"))
 	    "Browse http://www.gnu.org/software/emacs/tour/")
      "\tOverview of Emacs features at gnu.org\n"
-     :link ("View Emacs Manual" (lambda (button) (info-emacs-manual)))
+     :link ("View Emacs Manual" ,(lambda (_button) (info-emacs-manual)))
      "\tView the Emacs manual using Info\n"
-     :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
+     :link ("Absence of Warranty" ,(lambda (_button) (describe-no-warranty)))
      "\tGNU Emacs comes with "
      :face (variable-pitch (:slant oblique))
      "ABSOLUTELY NO WARRANTY\n"
      :face variable-pitch
-     :link ("Copying Conditions" (lambda (button) (describe-copying)))
+     :link ("Copying Conditions" ,(lambda (_button) (describe-copying)))
      "\tConditions for redistributing and changing Emacs\n"
-     :link ("Ordering Manuals" (lambda (button) (view-order-manuals)))
+     :link ("Ordering Manuals" ,(lambda (_button) (view-order-manuals)))
      "\tPurchasing printed copies of manuals\n"
      "\n"))
   "A list of texts to show in the middle part of splash screens.
@@ -1342,61 +1350,62 @@ Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
 
 (defconst fancy-about-text
-  '((:face (variable-pitch (:foreground "red"))
+  `((:face (variable-pitch (:foreground "red"))
      "This is "
      :link ("GNU Emacs"
-	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/"))
+	    ,(lambda (_button) (browse-url "http://www.gnu.org/software/emacs/"))
 	    "Browse http://www.gnu.org/software/emacs/")
      ", one component of the "
      :link
-     (lambda ()
+     ,(lambda ()
        (if (eq system-type 'gnu/linux)
-	   '("GNU/Linux"
-	     (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
+	   `("GNU/Linux"
+	     ,(lambda (_button)
+                (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
 	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
-	 '("GNU" (lambda (button) (describe-gnu-project))
+	 `("GNU" ,(lambda (_button) (describe-gnu-project))
 	   "Display info on the GNU project.")))
      " operating system.\n"
-     :face (lambda ()
+     :face ,(lambda ()
 	     (list 'variable-pitch
 		   (list :foreground
 			 (if (eq (frame-parameter nil 'background-mode) 'dark)
 			     "cyan" "darkblue"))))
      "\n"
-     (lambda () (emacs-version))
+     ,(lambda () (emacs-version))
      "\n"
      :face (variable-pitch (:height 0.8))
-     (lambda () emacs-copyright)
+     ,(lambda () emacs-copyright)
      "\n\n"
      :face variable-pitch
      :link ("Authors"
-	    (lambda (button)
+	    ,(lambda (_button)
 	      (view-file (expand-file-name "AUTHORS" data-directory))
 	      (goto-char (point-min))))
      "\tMany people have contributed code included in GNU Emacs\n"
      :link ("Contributing"
-	    (lambda (button)
+	    ,(lambda (_button)
 	      (view-file (expand-file-name "CONTRIBUTE" data-directory))
 	      (goto-char (point-min))))
      "\tHow to contribute improvements to Emacs\n"
      "\n"
-     :link ("GNU and Freedom" (lambda (button) (describe-gnu-project)))
+     :link ("GNU and Freedom" ,(lambda (_button) (describe-gnu-project)))
      "\tWhy we developed GNU Emacs, and the GNU operating system\n"
-     :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
+     :link ("Absence of Warranty" ,(lambda (_button) (describe-no-warranty)))
      "\tGNU Emacs comes with "
      :face (variable-pitch (:slant oblique))
      "ABSOLUTELY NO WARRANTY\n"
      :face variable-pitch
-     :link ("Copying Conditions" (lambda (button) (describe-copying)))
+     :link ("Copying Conditions" ,(lambda (_button) (describe-copying)))
      "\tConditions for redistributing and changing Emacs\n"
-     :link ("Getting New Versions" (lambda (button) (describe-distribution)))
+     :link ("Getting New Versions" ,(lambda (_button) (describe-distribution)))
      "\tHow to obtain the latest version of Emacs\n"
-     :link ("Ordering Manuals" (lambda (button) (view-order-manuals)))
+     :link ("Ordering Manuals" ,(lambda (_button) (view-order-manuals)))
      "\tBuying printed manuals from the FSF\n"
      "\n"
-     :link ("Emacs Tutorial" (lambda (button) (help-with-tutorial)))
+     :link ("Emacs Tutorial" ,(lambda (_button) (help-with-tutorial)))
      "\tLearn basic Emacs keystroke commands"
-     (lambda ()
+     ,(lambda ()
        (let* ((en "TUTORIAL")
 	      (tut (or (get-language-info current-language-environment
 					  'tutorial)
@@ -1414,7 +1423,8 @@ Each element in the list should be a list of strings or pairs
 	   (concat " (" title ")"))))
      "\n"
      :link ("Emacs Guided Tour"
-	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/tour/"))
+	    ,(lambda (_button)
+               (browse-url "http://www.gnu.org/software/emacs/tour/"))
 	    "Browse http://www.gnu.org/software/emacs/tour/")
      "\tSee an overview of Emacs features at gnu.org"
      ))
@@ -1521,7 +1531,7 @@ a face or button specification."
 	(make-button (prog1 (point) (insert-image img)) (point)
 		     'face 'default
 		     'help-echo "mouse-2, RET: Browse http://www.gnu.org/"
-		     'action (lambda (button) (browse-url "http://www.gnu.org/"))
+		     'action (lambda (_button) (browse-url "http://www.gnu.org/"))
 		     'follow-link t)
 	(insert "\n\n")))))
 
@@ -1533,16 +1543,16 @@ a face or button specification."
       (fancy-splash-insert
        :face 'variable-pitch
        "\nTo start...     "
-       :link '("Open a File"
-	       (lambda (button) (call-interactively 'find-file))
+       :link `("Open a File"
+	       ,(lambda (_button) (call-interactively 'find-file))
 	       "Specify a new file's name, to edit the file")
        "     "
-       :link '("Open Home Directory"
-	       (lambda (button) (dired "~"))
+       :link `("Open Home Directory"
+	       ,(lambda (_button) (dired "~"))
 	       "Open your home directory, to operate on its files")
        "     "
-       :link '("Customize Startup"
-	       (lambda (button) (customize-group 'initialization))
+       :link `("Customize Startup"
+	       ,(lambda (_button) (customize-group 'initialization))
 	       "Change initialization settings including this screen")
        "\n"))
     (fancy-splash-insert
@@ -1581,15 +1591,15 @@ a face or button specification."
     (when concise
       (fancy-splash-insert
        :face 'variable-pitch "\n"
-       :link '("Dismiss this startup screen"
-	       (lambda (button)
-		 (when startup-screen-inhibit-startup-screen
-		   (customize-set-variable 'inhibit-startup-screen t)
-		   (customize-mark-to-save 'inhibit-startup-screen)
-		   (custom-save-all))
-		 (let ((w (get-buffer-window "*GNU Emacs*")))
-		   (and w (not (one-window-p)) (delete-window w)))
-		 (kill-buffer "*GNU Emacs*")))
+       :link `("Dismiss this startup screen"
+	       ,(lambda (_button)
+                  (when startup-screen-inhibit-startup-screen
+                    (customize-set-variable 'inhibit-startup-screen t)
+                    (customize-mark-to-save 'inhibit-startup-screen)
+                    (custom-save-all))
+                  (let ((w (get-buffer-window "*GNU Emacs*")))
+                    (and w (not (one-window-p)) (delete-window w)))
+                  (kill-buffer "*GNU Emacs*")))
        "  ")
       (when (or user-init-file custom-file)
 	(let ((checked (create-image "checked.xpm"
@@ -1666,11 +1676,7 @@ splash screen in another window."
     (save-selected-window
       (select-frame frame)
       (switch-to-buffer "*About GNU Emacs*")
-      (setq buffer-undo-list t
-	    mode-line-format
-	    (concat "----"
-		    (propertize "%b" 'face 'mode-line-buffer-id)
-		    "%-"))
+      (setq buffer-undo-list t)
       (let ((inhibit-read-only t))
 	(erase-buffer)
 	(if pure-space-overflow
@@ -1733,9 +1739,6 @@ splash screen in another window."
       (erase-buffer)
       (setq default-directory command-line-default-directory)
       (set (make-local-variable 'tab-width) 8)
-      (if (not startup)
-	  (set (make-local-variable 'mode-line-format)
-	       (propertize "---- %b %-" 'face 'mode-line-buffer-id)))
 
       (if pure-space-overflow
 	  (insert pure-space-overflow-message))
@@ -1804,37 +1807,37 @@ To quit a partially entered command, type Control-g.\n")
 
   (insert "\nImportant Help menu items:\n")
   (insert-button "Emacs Tutorial"
-		 'action (lambda (button) (help-with-tutorial))
+		 'action (lambda (_button) (help-with-tutorial))
 		 'follow-link t)
   (insert "\t\tLearn basic Emacs keystroke commands\n")
   (insert-button "Read the Emacs Manual"
-		 'action (lambda (button) (info-emacs-manual))
+		 'action (lambda (_button) (info-emacs-manual))
 		 'follow-link t)
   (insert "\tView the Emacs manual using Info\n")
   (insert-button "\(Non)Warranty"
-		 'action (lambda (button) (describe-no-warranty))
+		 'action (lambda (_button) (describe-no-warranty))
 		 'follow-link t)
   (insert "\t\tGNU Emacs comes with ABSOLUTELY NO WARRANTY\n")
   (insert-button "Copying Conditions"
-		 'action (lambda (button) (describe-copying))
+		 'action (lambda (_button) (describe-copying))
 		 'follow-link t)
   (insert "\tConditions for redistributing and changing Emacs\n")
   (insert-button "More Manuals / Ordering Manuals"
-		 'action (lambda (button) (view-order-manuals))
+		 'action (lambda (_button) (view-order-manuals))
 		 'follow-link t)
   (insert "  How to order printed manuals from the FSF\n")
 
   (insert "\nUseful tasks:\n")
   (insert-button "Visit New File"
-		 'action (lambda (button) (call-interactively 'find-file))
+		 'action (lambda (_button) (call-interactively 'find-file))
 		 'follow-link t)
   (insert "\t\tSpecify a new file's name, to edit the file\n")
   (insert-button "Open Home Directory"
-		 'action (lambda (button) (dired "~"))
+		 'action (lambda (_button) (dired "~"))
 		 'follow-link t)
   (insert "\tOpen your home directory, to operate on its files\n")
   (insert-button "Customize Startup"
-		 'action (lambda (button) (customize-group 'initialization))
+		 'action (lambda (_button) (customize-group 'initialization))
 		 'follow-link t)
   (insert "\tChange initialization settings including this screen\n")
 
@@ -1868,20 +1871,20 @@ To quit a partially entered command, type Control-g.\n")
                        (where (key-description where))
                        (t "M-x help")))))
     (insert-button "Emacs manual"
-                   'action (lambda (button) (info-emacs-manual))
+                   'action (lambda (_button) (info-emacs-manual))
                    'follow-link t)
     (insert (substitute-command-keys"\t   \\[info-emacs-manual]\t"))
     (insert-button "Browse manuals"
-                   'action (lambda (button) (Info-directory))
+                   'action (lambda (_button) (Info-directory))
                    'follow-link t)
     (insert (substitute-command-keys "\t   \\[info]\n"))
     (insert-button "Emacs tutorial"
-                   'action (lambda (button) (help-with-tutorial))
+                   'action (lambda (_button) (help-with-tutorial))
                    'follow-link t)
     (insert (substitute-command-keys
              "\t   \\[help-with-tutorial]\tUndo changes\t   \\[undo]\n"))
     (insert-button "Buy manuals"
-                   'action (lambda (button) (view-order-manuals))
+                   'action (lambda (_button) (view-order-manuals))
                    'follow-link t)
     (insert (substitute-command-keys
              "\t   \\[view-order-manuals]\tExit Emacs\t   \\[save-buffers-kill-terminal]")))
@@ -1889,7 +1892,7 @@ To quit a partially entered command, type Control-g.\n")
   ;; Say how to use the menu bar with the keyboard.
   (insert "\n")
   (insert-button "Activate menubar"
-		 'action (lambda (button) (tmm-menubar))
+		 'action (lambda (_button) (tmm-menubar))
 		 'follow-link t)
   (if (and (eq (key-binding "\M-`") 'tmm-menubar)
 	   (eq (key-binding [f10]) 'tmm-menubar))
@@ -1905,21 +1908,21 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
   (insert "\nUseful tasks:\n")
 
   (insert-button "Visit New File"
-		 'action (lambda (button) (call-interactively 'find-file))
+		 'action (lambda (_button) (call-interactively 'find-file))
 		 'follow-link t)
   (insert "\t\t\t")
   (insert-button "Open Home Directory"
-		 'action (lambda (button) (dired "~"))
+		 'action (lambda (_button) (dired "~"))
 		 'follow-link t)
   (insert "\n")
 
   (insert-button "Customize Startup"
-		 'action (lambda (button) (customize-group 'initialization))
+		 'action (lambda (_button) (customize-group 'initialization))
 		 'follow-link t)
   (insert "\t\t")
   (insert-button "Open *scratch* buffer"
-		 'action (lambda (button) (switch-to-buffer
-					   (get-buffer-create "*scratch*")))
+		 'action (lambda (_button) (switch-to-buffer
+                                       (get-buffer-create "*scratch*")))
 		 'follow-link t)
   (insert "\n")
   (insert "\n" (emacs-version) "\n" emacs-copyright "\n")
@@ -1932,36 +1935,36 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 	 "
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for ")
 	(insert-button "full details"
-		       'action (lambda (button) (describe-no-warranty))
+		       'action (lambda (_button) (describe-no-warranty))
 		       'follow-link t)
 	(insert ".
 Emacs is Free Software--Free as in Freedom--so you can redistribute copies
 of Emacs and modify it; type C-h C-c to see ")
 	(insert-button "the conditions"
-		       'action (lambda (button) (describe-copying))
+		       'action (lambda (_button) (describe-copying))
 		       'follow-link t)
 	(insert ".
 Type C-h C-d for information on ")
 	(insert-button "getting the latest version"
-		       'action (lambda (button) (describe-distribution))
+		       'action (lambda (_button) (describe-distribution))
 		       'follow-link t)
 	(insert "."))
     (insert (substitute-command-keys
 	     "
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for "))
     (insert-button "full details"
-		   'action (lambda (button) (describe-no-warranty))
+		   'action (lambda (_button) (describe-no-warranty))
 		   'follow-link t)
     (insert (substitute-command-keys ".
 Emacs is Free Software--Free as in Freedom--so you can redistribute copies
 of Emacs and modify it; type \\[describe-copying] to see "))
     (insert-button "the conditions"
-		   'action (lambda (button) (describe-copying))
+		   'action (lambda (_button) (describe-copying))
 		   'follow-link t)
     (insert (substitute-command-keys".
 Type \\[describe-distribution] for information on "))
     (insert-button "getting the latest version"
-		   'action (lambda (button) (describe-distribution))
+		   'action (lambda (_button) (describe-distribution))
 		   'follow-link t)
     (insert ".")))
 
@@ -1972,7 +1975,7 @@ Type \\[describe-distribution] for information on "))
 
   (insert-button "Authors"
 		 'action
-		 (lambda (button)
+		 (lambda (_button)
 		   (view-file (expand-file-name "AUTHORS" data-directory))
 		   (goto-char (point-min)))
 		 'follow-link t)
@@ -1980,34 +1983,34 @@ Type \\[describe-distribution] for information on "))
 
   (insert-button "Contributing"
 		 'action
-		 (lambda (button)
+		 (lambda (_button)
 		   (view-file (expand-file-name "CONTRIBUTE" data-directory))
 		   (goto-char (point-min)))
 		 'follow-link t)
   (insert "\tHow to contribute improvements to Emacs\n\n")
 
   (insert-button "GNU and Freedom"
-		 'action (lambda (button) (describe-gnu-project))
+		 'action (lambda (_button) (describe-gnu-project))
 		 'follow-link t)
   (insert "\t\tWhy we developed GNU Emacs and the GNU system\n")
 
   (insert-button "Absence of Warranty"
-		 'action (lambda (button) (describe-no-warranty))
+		 'action (lambda (_button) (describe-no-warranty))
 		 'follow-link t)
   (insert "\tGNU Emacs comes with ABSOLUTELY NO WARRANTY\n")
 
   (insert-button "Copying Conditions"
-		 'action (lambda (button) (describe-copying))
+		 'action (lambda (_button) (describe-copying))
 		 'follow-link t)
   (insert "\tConditions for redistributing and changing Emacs\n")
 
   (insert-button "Getting New Versions"
-		 'action (lambda (button) (describe-distribution))
+		 'action (lambda (_button) (describe-distribution))
 		 'follow-link t)
   (insert "\tHow to get the latest version of GNU Emacs\n")
 
   (insert-button "More Manuals / Ordering Manuals"
-		 'action (lambda (button) (view-order-manuals))
+		 'action (lambda (_button) (view-order-manuals))
 		 'follow-link t)
   (insert "\tBuying printed manuals from the FSF\n"))
 
@@ -2023,7 +2026,7 @@ Type \\[describe-distribution] for information on "))
 
 (defun display-startup-echo-area-message ()
   (let ((resize-mini-windows t))
-    (or noninteractive ;(input-pending-p) init-file-had-error
+    (or noninteractive                  ;(input-pending-p) init-file-had-error
 	;; t if the init file says to inhibit the echo area startup message.
 	(and inhibit-startup-echo-area-message
 	     user-init-file
@@ -2033,24 +2036,21 @@ Type \\[describe-distribution] for information on "))
 				 (user-login-name)
 			       init-file-user)))
 		 ;; Wasn't set with custom; see if .emacs has a setq.
-		 (let ((buffer (get-buffer-create " *temp*")))
-		   (prog1
-		       (condition-case nil
-			   (with-current-buffer buffer
-			     (insert-file-contents user-init-file)
-			     (re-search-forward
-			      (concat
-			       "([ \t\n]*setq[ \t\n]+"
-			       "inhibit-startup-echo-area-message[ \t\n]+"
-			       (regexp-quote
-				(prin1-to-string
-				 (if (equal init-file-user "")
-				     (user-login-name)
-				   init-file-user)))
-			       "[ \t\n]*)")
-			      nil t))
-			 (error nil))
-		     (kill-buffer buffer)))))
+                 (condition-case nil
+                     (with-temp-buffer
+                       (insert-file-contents user-init-file)
+                       (re-search-forward
+                        (concat
+                         "([ \t\n]*setq[ \t\n]+"
+                         "inhibit-startup-echo-area-message[ \t\n]+"
+                         (regexp-quote
+                          (prin1-to-string
+                           (if (equal init-file-user "")
+                               (user-login-name)
+                             init-file-user)))
+                         "[ \t\n]*)")
+                        nil t))
+                   (error nil))))
 	(message "%s" (startup-echo-area-message)))))
 
 (defun display-startup-screen (&optional concise)
@@ -2076,7 +2076,7 @@ A fancy display is used on graphic displays, normal otherwise."
 (defalias 'about-emacs 'display-about-screen)
 (defalias 'display-splash-screen 'display-startup-screen)
 
-(defun command-line-1 (command-line-args-left)
+(defun command-line-1 (args-left)
   (display-startup-echo-area-message)
   (when (and pure-space-overflow
 	     (not noninteractive))
@@ -2087,14 +2087,12 @@ A fancy display is used on graphic displays, normal otherwise."
      :warning))
 
   (let ((file-count 0)
+        (command-line-args-left args-left)
 	first-file-buffer)
     (when command-line-args-left
       ;; We have command args; process them.
-      ;; Note that any local variables in this function affect the
-      ;; ability of -f batch-byte-compile to detect free variables.
-      ;; So we give some of them with common names a cl1- prefix.
-      (let ((cl1-dir command-line-default-directory)
-	    cl1-tem
+      (let ((dir command-line-default-directory)
+	    tem
 	    ;; This approach loses for "-batch -L DIR --eval "(require foo)",
 	    ;; if foo is intended to be found in DIR.
 	    ;;
@@ -2117,8 +2115,8 @@ A fancy display is used on graphic displays, normal otherwise."
                      "--find-file" "--visit" "--file" "--no-desktop")
                    (mapcar (lambda (elt) (concat "-" (car elt)))
 			     command-switch-alist)))
-	    (cl1-line 0)
-	    (cl1-column 0))
+	    (line 0)
+	    (column 0))
 
 	;; Add the long X options to longopts.
 	(dolist (tem command-line-x-option-alist)
@@ -2159,12 +2157,12 @@ A fancy display is used on graphic displays, normal otherwise."
 			  argi orig-argi)))))
 
 	    ;; Execute the option.
-	    (cond ((setq cl1-tem (assoc argi command-switch-alist))
+	    (cond ((setq tem (assoc argi command-switch-alist))
 		   (if argval
 		       (let ((command-line-args-left
 			      (cons argval command-line-args-left)))
-			 (funcall (cdr cl1-tem) argi))
-		     (funcall (cdr cl1-tem) argi)))
+			 (funcall (cdr tem) argi))
+		     (funcall (cdr tem) argi)))
 
 		  ((equal argi "-no-splash")
 		   (setq inhibit-startup-screen t))
@@ -2173,22 +2171,22 @@ A fancy display is used on graphic displays, normal otherwise."
 				  "-funcall"
 				  "-e"))  ; what the source used to say
 		   (setq inhibit-startup-screen t)
-		   (setq cl1-tem (intern (or argval (pop command-line-args-left))))
-		   (if (commandp cl1-tem)
-		       (command-execute cl1-tem)
-		     (funcall cl1-tem)))
+		   (setq tem (intern (or argval (pop command-line-args-left))))
+		   (if (commandp tem)
+		       (command-execute tem)
+		     (funcall tem)))
 
 		  ((member argi '("-eval" "-execute"))
 		   (setq inhibit-startup-screen t)
 		   (eval (read (or argval (pop command-line-args-left)))))
 
 		  ((member argi '("-L" "-directory"))
-		   (setq cl1-tem (expand-file-name
+		   (setq tem (expand-file-name
 			      (command-line-normalize-file-name
 			       (or argval (pop command-line-args-left)))))
-		   (cond (splice (setcdr splice (cons cl1-tem (cdr splice)))
+		   (cond (splice (setcdr splice (cons tem (cdr splice)))
 				 (setq splice (cdr splice)))
-			 (t (setq load-path (cons cl1-tem load-path)
+			 (t (setq load-path (cons tem load-path)
 				  splice load-path))))
 
 		  ((member argi '("-l" "-load"))
@@ -2212,10 +2210,10 @@ A fancy display is used on graphic displays, normal otherwise."
 
 		  ((equal argi "-insert")
 		   (setq inhibit-startup-screen t)
-		   (setq cl1-tem (or argval (pop command-line-args-left)))
-		   (or (stringp cl1-tem)
+		   (setq tem (or argval (pop command-line-args-left)))
+		   (or (stringp tem)
 		       (error "File name omitted from `-insert' option"))
-		   (insert-file-contents (command-line-normalize-file-name cl1-tem)))
+		   (insert-file-contents (command-line-normalize-file-name tem)))
 
 		  ((equal argi "-kill")
 		   (kill-emacs t))
@@ -2228,42 +2226,42 @@ A fancy display is used on graphic displays, normal otherwise."
 		   (message "\"--no-desktop\" ignored because the Desktop package is not loaded"))
 
 		  ((string-match "^\\+[0-9]+\\'" argi)
-		   (setq cl1-line (string-to-number argi)))
+		   (setq line (string-to-number argi)))
 
 		  ((string-match "^\\+\\([0-9]+\\):\\([0-9]+\\)\\'" argi)
-		   (setq cl1-line (string-to-number (match-string 1 argi))
-			 cl1-column (string-to-number (match-string 2 argi))))
+		   (setq line (string-to-number (match-string 1 argi))
+			 column (string-to-number (match-string 2 argi))))
 
-		  ((setq cl1-tem (assoc orig-argi command-line-x-option-alist))
+		  ((setq tem (assoc orig-argi command-line-x-option-alist))
 		   ;; Ignore X-windows options and their args if not using X.
 		   (setq command-line-args-left
-			 (nthcdr (nth 1 cl1-tem) command-line-args-left)))
+			 (nthcdr (nth 1 tem) command-line-args-left)))
 
-		  ((setq cl1-tem (assoc orig-argi command-line-ns-option-alist))
+		  ((setq tem (assoc orig-argi command-line-ns-option-alist))
 		   ;; Ignore NS-windows options and their args if not using NS.
 		   (setq command-line-args-left
-			 (nthcdr (nth 1 cl1-tem) command-line-args-left)))
+			 (nthcdr (nth 1 tem) command-line-args-left)))
 
 		  ((member argi '("-find-file" "-file" "-visit"))
 		   (setq inhibit-startup-screen t)
 		   ;; An explicit option to specify visiting a file.
-		   (setq cl1-tem (or argval (pop command-line-args-left)))
-		   (unless (stringp cl1-tem)
+		   (setq tem (or argval (pop command-line-args-left)))
+		   (unless (stringp tem)
 		     (error "File name omitted from `%s' option" argi))
 		   (setq file-count (1+ file-count))
 		   (let ((file (expand-file-name
-				(command-line-normalize-file-name cl1-tem)
-				cl1-dir)))
+				(command-line-normalize-file-name tem)
+				dir)))
 		     (if (= file-count 1)
 			 (setq first-file-buffer (find-file file))
 		       (find-file-other-window file)))
-		   (unless (zerop cl1-line)
+		   (unless (zerop line)
 		     (goto-char (point-min))
-		     (forward-line (1- cl1-line)))
-		   (setq cl1-line 0)
-		   (unless (< cl1-column 1)
-		     (move-to-column (1- cl1-column)))
-		   (setq cl1-column 0))
+		     (forward-line (1- line)))
+		   (setq line 0)
+		   (unless (< column 1)
+		     (move-to-column (1- column)))
+		   (setq column 0))
 
 		  ;; These command lines now have no effect.
 		  ((string-match "\\`--?\\(no-\\)?\\(uni\\|multi\\)byte$" argi)
@@ -2291,19 +2289,19 @@ A fancy display is used on graphic displays, normal otherwise."
 			   (let ((file
 				  (expand-file-name
 				   (command-line-normalize-file-name orig-argi)
-				   cl1-dir)))
+				   dir)))
 			     (cond ((= file-count 1)
 				    (setq first-file-buffer (find-file file)))
 				   (inhibit-startup-screen
 				    (find-file-other-window file))
 				   (t (find-file file))))
-			   (unless (zerop cl1-line)
+			   (unless (zerop line)
 			     (goto-char (point-min))
-			     (forward-line (1- cl1-line)))
-			   (setq cl1-line 0)
-			   (unless (< cl1-column 1)
-			     (move-to-column (1- cl1-column)))
-			   (setq cl1-column 0))))))
+			     (forward-line (1- line)))
+			   (setq line 0)
+			   (unless (< column 1)
+			     (move-to-column (1- column)))
+			   (setq column 0))))))
 	    ;; In unusual circumstances, the execution of Lisp code due
 	    ;; to command-line options can cause the last visible frame
 	    ;; to be deleted.  In this case, kill emacs to avoid an

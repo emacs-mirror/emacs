@@ -1,7 +1,6 @@
 ;;; em-term.el --- running visual commands
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -47,8 +46,9 @@ which commands are considered visual in nature."
 
 ;;; User Variables:
 
-(defcustom eshell-term-load-hook '(eshell-term-initialize)
+(defcustom eshell-term-load-hook nil
   "A list of functions to call when loading `eshell-term'."
+  :version "24.1"			; removed eshell-term-initialize
   :type 'hook
   :group 'eshell-term)
 
@@ -267,5 +267,4 @@ allowed."
 ;; generated-autoload-file: "esh-groups.el"
 ;; End:
 
-;; arch-tag: ab7c8fe4-3101-4257-925b-1354c6b2fe9d
 ;;; em-term.el ends here

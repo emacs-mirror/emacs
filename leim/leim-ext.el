@@ -1,8 +1,7 @@
 ;; leim-ext.el -- extra leim configuration	-*- coding:utf-8; -*-
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
 
@@ -89,4 +88,3 @@ HELP-TEXT is a text set in `hangul-input-method-help-text'.")
  'hangul390-input-method
  "Input method: korean-hangul390 (mode line indicator:한390)\n\nHangul 3-Bulsik 390 input method.")
 
-;; arch-tag: 75cfdfc7-de85-44f9-b408-ff67d1ec664e

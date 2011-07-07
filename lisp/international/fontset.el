@@ -1,9 +1,8 @@
 ;;; fontset.el --- commands for handling fontset
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 2003, 2006
@@ -1152,5 +1151,4 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 ;;
 (provide 'fontset)
 
-;; arch-tag: bb53e629-0234-403c-950e-551e61554849
 ;;; fontset.el ends here

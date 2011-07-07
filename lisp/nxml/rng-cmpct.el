@@ -1,6 +1,6 @@
 ;;; rng-cmpct.el --- parsing of RELAX NG Compact Syntax schemas
 
-;; Copyright (C) 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG
@@ -938,4 +938,3 @@ Current token after parse is token following ]."
 
 ;;; rng-cmpct.el
 
-;; arch-tag: 90395eb1-283b-4146-bbc1-6d6ef1704e57

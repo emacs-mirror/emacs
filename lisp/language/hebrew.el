@@ -1,9 +1,8 @@
 ;;; hebrew.el --- support for Hebrew -*- coding: utf-8 -*-
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   2005, 2006, 2007, 2008, 2009, 2010, 2011
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
@@ -259,5 +258,4 @@ Bidirectional editing is supported.")))
 
 (provide 'hebrew)
 
-;; arch-tag: 3ca04f32-3f1e-498e-af46-8267498ba5d9
 ;;; hebrew.el ends here

@@ -1,6 +1,5 @@
 /* Definitions and headers for communication on the Microsoft W32 API.
-   Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005,
-                 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1995, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -20,6 +19,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_W32GUI_H
 #define EMACS_W32GUI_H
 #include <windows.h>
+
+#include "systime.h" /* for Time */
 
 /* Local memory management for menus.  */
 #define local_heap (GetProcessHeap ())
@@ -48,7 +49,6 @@ typedef char * XrmDatabase;
 
 typedef XGCValues * GC;
 typedef COLORREF Color;
-typedef DWORD Time;
 typedef HWND Window;
 typedef HDC Display;  /* HDC so it doesn't conflict with xpm lib.  */
 typedef HCURSOR Cursor;
@@ -148,6 +148,3 @@ typedef struct {
 
 
 #endif /* EMACS_W32GUI_H */
-
-/* arch-tag: 9172e5fb-45a5-4684-afd9-ca0e81324604
-   (do not change this comment) */

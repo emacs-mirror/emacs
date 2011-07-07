@@ -1,7 +1,6 @@
 ;;; electric.el --- window maker and Command loop for `electric' modes
 
-;; Copyright (C) 1985, 1986, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1995, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -64,11 +63,12 @@
 ;; conditions for any error that occurred or nil if none.
 
 (defun Electric-command-loop (return-tag
-			      &optional prompt inhibit-quit
+			      &optional prompt inhibit-quitting
 					loop-function loop-state)
 
   (let (cmd
         (err nil)
+        (inhibit-quit inhibit-quitting)
         (prompt-string prompt))
     (while t
       (if (functionp prompt)
@@ -217,15 +217,16 @@ Returns nil when we can't find this char."
                (not (nth 8 (save-excursion (syntax-ppss pos)))))
       ;; For newline, we want to reindent both lines and basically behave like
       ;; reindent-then-newline-and-indent (whose code we hence copied).
-      (when (and (< (1- pos) (line-beginning-position))
-                 ;; Don't reindent the previous line if the indentation
-                 ;; function is not a real one.
-                 (not (memq indent-line-function
-                            '(indent-relative indent-relative-maybe))))
+      (when (< (1- pos) (line-beginning-position))
         (let ((before (copy-marker (1- pos) t)))
           (save-excursion
-            (goto-char before)
-            (indent-according-to-mode)
+            (unless (memq indent-line-function
+                          '(indent-relative indent-to-left-margin
+                            indent-relative-maybe))
+              ;; Don't reindent the previous line if the indentation function
+              ;; is not a real one.
+              (goto-char before)
+              (indent-according-to-mode))
             ;; We are at EOL before the call to indent-according-to-mode, and
             ;; after it we usually are as well, but not always.  We tried to
             ;; address it with `save-excursion' but that uses a normal marker
@@ -235,7 +236,8 @@ Returns nil when we can't find this char."
             ;; Remove the trailing whitespace after indentation because
             ;; indentation may (re)introduce the whitespace.
             (delete-horizontal-space t))))
-      (indent-according-to-mode))))
+      (unless (memq indent-line-function '(indent-to-left-margin))
+        (indent-according-to-mode)))))
 
 ;;;###autoload
 (define-minor-mode electric-indent-mode
@@ -383,5 +385,4 @@ one of those symbols.")
 
 (provide 'electric)
 
-;; arch-tag: dae045eb-dc2d-4fb7-9f27-9cc2ce277be8
 ;;; electric.el ends here

@@ -1,8 +1,7 @@
 ;;; derived.el --- allow inheritance of major modes
 ;; (formerly mode-clone.el)
 
-;; Copyright (C) 1993, 1994, 1999, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1993-1994, 1999, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: David Megginson (dmeggins@aix1.uottawa.ca)
 ;; Maintainer: FSF
@@ -202,7 +201,7 @@ No problems result if this variable is not bound.
 		       name))))
        (unless (boundp ',map)
 	 (put ',map 'definition-name ',child))
-       (defvar ,map (make-sparse-keymap))
+       (with-no-warnings (defvar ,map (make-sparse-keymap)))
        (unless (get ',map 'variable-documentation)
 	 (put ',map 'variable-documentation
 	      (purecopy ,(format "Keymap for `%s'." child))))
@@ -254,8 +253,14 @@ No problems result if this variable is not bound.
 		   `(let ((parent (char-table-parent ,syntax)))
 		      (unless (and parent
 				   (not (eq parent (standard-syntax-table))))
-			(set-char-table-parent ,syntax (syntax-table)))))))
-
+			(set-char-table-parent ,syntax (syntax-table)))))
+                ,(when declare-abbrev
+                   `(unless (or (abbrev-table-get ,abbrev :parents)
+                                ;; This can happen if the major mode defines
+                                ;; the abbrev-table to be its parent's.
+                                (eq ,abbrev local-abbrev-table))
+                      (abbrev-table-put ,abbrev :parents
+                                        (list local-abbrev-table))))))
 	  (use-local-map ,map)
 	  ,(when syntax `(set-syntax-table ,syntax))
 	  ,(when abbrev `(setq local-abbrev-table ,abbrev))
@@ -457,5 +462,4 @@ Where the new table already has an entry, nothing is copied from the old one."
 
 (provide 'derived)
 
-;; arch-tag: 630be248-47d1-4f02-afa0-8207de0ebea0
 ;;; derived.el ends here

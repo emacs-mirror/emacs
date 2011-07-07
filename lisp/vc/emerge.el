@@ -1271,10 +1271,10 @@ Otherwise, the A or B file present is copied to the output file."
 (defun emerge-merge-directories (a-dir b-dir ancestor-dir output-dir)
   (interactive
    (list
-    (read-file-name "A directory: " nil nil 'confirm)
-    (read-file-name "B directory: " nil nil 'confirm)
-    (read-file-name "Ancestor directory (null for none): " nil nil 'confirm)
-    (read-file-name "Output directory (null for none): " nil nil 'confirm)))
+    (read-directory-name "A directory: " nil nil 'confirm)
+    (read-directory-name "B directory: " nil nil 'confirm)
+    (read-directory-name "Ancestor directory (null for none): " nil nil 'confirm)
+    (read-directory-name "Output directory (null for none): " nil nil 'confirm)))
   ;; Check that we're not on a line
   (if (not (and (bolp) (eolp)))
       (error "There is text on this line"))
@@ -3176,21 +3176,26 @@ See also `auto-save-file-name-p'."
 
 ;; Metacharacters that have to be protected from the shell when executing
 ;; a diff/diff3 command.
-(defcustom emerge-metachars "[ \t\n!\"#$&'()*;<=>?[\\^`{|~]"
-  "Characters that must be quoted with \\ when used in a shell command line.
+(defcustom emerge-metachars
+  (if (memq system-type '(ms-dos windows-nt))
+      "[ \t\"<>|?*^&=]"
+    "[ \t\n!\"#$&'()*;<=>?[\\^`{|~]")
+  "Characters that must be quoted when used in a shell command line.
 More precisely, a [...] regexp to match any one such character."
   :type 'regexp
   :group 'emerge)
 
 ;; Quote metacharacters (using \) when executing a diff/diff3 command.
 (defun emerge-protect-metachars (s)
-  (let ((limit 0))
-    (while (string-match emerge-metachars s limit)
-      (setq s (concat (substring s 0 (match-beginning 0))
-		      "\\"
-		      (substring s (match-beginning 0))))
-      (setq limit (1+ (match-end 0)))))
-  s)
+  (if (memq system-type '(ms-dos windows-nt))
+      (shell-quote-argument s)
+    (let ((limit 0))
+      (while (string-match emerge-metachars s limit)
+	(setq s (concat (substring s 0 (match-beginning 0))
+			"\\"
+			(substring s (match-beginning 0))))
+	(setq limit (1+ (match-end 0)))))
+    s))
 
 (provide 'emerge)
 

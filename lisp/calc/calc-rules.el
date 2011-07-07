@@ -1,7 +1,6 @@
 ;;; calc-rules.el --- rules for simplifying algebraic expressions in Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990-1993, 2001-2011 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -445,5 +444,4 @@ fitparam(n) = x  :=  x ]"))
 
 (provide 'calc-rules)
 
-;; arch-tag: 0ed54a52-38f3-4ed7-9ca7-b8ecf8f2febe
 ;;; calc-rules.el ends here

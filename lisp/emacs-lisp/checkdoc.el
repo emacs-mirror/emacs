@@ -1,7 +1,6 @@
 ;;; checkdoc.el --- check documentation strings for style requirements
 
-;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1997-1998, 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.6.2
@@ -39,8 +38,7 @@
 ;;      or [menu-bar emacs-lisp eval-buffer].  Additional key-bindings
 ;;      are also provided under C-c ? KEY
 ;;        (require 'checkdoc)
-;;        (add-hook 'emacs-lisp-mode-hook
-;;	             '(lambda () (checkdoc-minor-mode 1)))
+;;        (add-hook 'emacs-lisp-mode-hook 'checkdoc-minor-mode)
 ;;
 ;; Using `checkdoc':
 ;;
@@ -1798,7 +1796,9 @@ Replace with \"%s\"? " original replace)
        (let ((found nil) (start (point)) (msg nil) (ms nil))
 	 (while (and (not msg)
 		     (re-search-forward
-		      "[^-([`':a-zA-Z]\\(\\w+[:-]\\(\\w\\|\\s_\\)+\\)[^]']"
+		      ;; Ignore manual page references like
+		      ;; git-config(1).
+		      "[^-([`':a-zA-Z]\\(\\w+[:-]\\(\\w\\|\\s_\\)+\\)[^](']"
 		      e t))
 	   (setq ms (match-string 1))
 	   ;; A . is a \s_ char, so we must remove periods from
@@ -2045,7 +2045,7 @@ If the offending word is in a piece of quoted text, then it is skipped."
                                     ;; piece of an abbreviation
                                     ;; FIXME etc
                                     (looking-at
-                                     "\\([a-z]\\|[iI]\\.?e\\|[eE]\\.?g\\)\\."))
+                                     "\\([a-zA-Z]\\|[iI]\\.?e\\|[eE]\\.?g\\)\\."))
                                 (error t))))
                   (if (checkdoc-autofix-ask-replace
                        b e

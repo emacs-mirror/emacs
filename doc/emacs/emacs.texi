@@ -1,4 +1,4 @@
-\input texinfo
+\input texinfo  @c -*- coding: iso-latin-1 -*-
 
 @setfilename ../../info/emacs
 @settitle GNU Emacs Manual
@@ -11,9 +11,7 @@
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},@*
 updated for Emacs version @value{EMACSVER}.
 
-Copyright @copyright{} 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997,
-1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-2010  Free Software Foundation, Inc.
+Copyright @copyright{} 1985-1987, 1993-2011  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -31,6 +29,8 @@ developing GNU and promoting software freedom.''
 @end quotation
 @end copying
 
+@documentencoding ISO-8859-1
+
 @dircategory Emacs
 @direntry
 * Emacs: (emacs).       The extensible self-documenting text editor.
@@ -39,7 +39,7 @@ developing GNU and promoting software freedom.''
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  The manual should go
 @c onto the distribution in the full, 8.5 x 11" size.
-@c set smallbook
+@c @smallbook
 
 @ifset smallbook
 @smallbook
@@ -771,6 +771,7 @@ Version Control
 * Introduction to VC::  How version control works in general.
 * VC Mode Line::        How the mode line shows version control status.
 * Basic VC Editing::    How to edit a file under version control.
+* Log Buffer::          Features available in log entry buffers.
 * Old Revisions::       Examining and comparing old versions.
 * Secondary VC Commands:: The commands used a little less frequently.
 * VC Directory Mode::   Listing files managed by version control.
@@ -785,6 +786,9 @@ Introduction to Version Control
 * Why Version Control?::    Understanding the problems it addresses.
 * Version Control Systems:: Supported version control back-end systems.
 * VCS Concepts::            Words and concepts related to version control.
+* VCS Merging::             How file conflicts are handled.
+* VCS Changesets::          Changesets in version control.
+* VCS Repositories::        Where version control repositories are stored.
 * Types of Log File::       The VCS log in contrast to the ChangeLog.
 
 Basic Editing under Version Control
@@ -792,7 +796,6 @@ Basic Editing under Version Control
 * VC With A Merging VCS::  Without locking: default mode for CVS.
 * VC With A Locking VCS::  RCS in its default mode, SCCS, and optionally CVS.
 * Advanced C-x v v::       Advanced features available with a prefix argument.
-* Log Buffer::             Features available in log entry buffers.
 
 The Secondary Commands of VC
 
@@ -1189,6 +1192,7 @@ Emacs and Mac OS / GNUstep
 
 Emacs and Microsoft Windows/MS-DOS
 
+* Windows Startup::     How to start Emacs on Windows.
 * Text and Binary::     Text files use CRLF to terminate lines.
 * Windows Files::       File-name conventions on Windows.
 * ls in Lisp::          Emulation of @code{ls} for Dired.
@@ -1348,7 +1352,7 @@ Abrahamsson, Jay K.@: Adams, Michael Albinus, Nagy Andras, Ralf Angeli,
 Joe Arceneaux, Miles Bader, David Bakhash, Juanma Barranquero, Eli
 Barzilay, Thomas Baumann, Steven L.@: Baur, Jay Belanger, Alexander L.@:
 Belikoff, Boaz Ben-Zvi, Karl Berry, Anna M.@: Bigatti, Ray Blaak, Jim
-Blandy, Johan Bockg@aa{}rd, Jan Böcker, Lennart Borgman, Per Bothner,
+Blandy, Johan Bockgård, Jan Böcker, Lennart Borgman, Per Bothner,
 Terrence Brannon, Frank Bresz, Peter Breton, Emmanuel Briot, Kevin
 Broadey, Vincent Broman, David M.@: Brown, Georges Brun-Cottan, Joe
 Buehler, W@l{}odek Bzyl, Bill Carpenter, Per Cederqvist, Hans Chalupsky,
@@ -1356,16 +1360,16 @@ Chong Yidong, Chris Chase, Bob Chassell, Andrew Choi, Sacha Chua, James
 Clark, Mike Clarkson, Glynn Clements, Daniel Colascione, Andrew Csillag,
 Baoqiu Cui, Doug Cutting, Mathias Dahl, Julien Danjou, Satyaki Das,
 Vivek Dasmohapatra, Michael DeCorte, Gary Delp, Matthieu Devin, Eri
-Ding, Jan Dj@"{a}rv, Carsten Dominik, Scott Draves, Benjamin Drieu,
+Ding, Jan Djärv, Carsten Dominik, Scott Draves, Benjamin Drieu,
 Viktor Dukhovni, Dmitry Dzhus, John Eaton, Rolf Ebert, Paul Eggert,
-Stephen Eglen, Torbj@"orn Einarsson, Tsugutomo Enami, Hans Henrik
+Stephen Eglen, Torbjörn Einarsson, Tsugutomo Enami, Hans Henrik
 Eriksen, Michael Ernst, Ata Etemadi, Frederick Farnbach, Oscar
 Figueiredo, Fred Fish, Karl Fogel, Gary Foster, Romain Francoise, Noah
 Friedman, Andreas Fuchs, Hallvard Furuseth, Keith Gabryelski, Peter S.@:
-Galbraith, Kevin Gallagher, Kevin Gallo, Juan Le@'{o}n Lahoz
-Garc@'{@dotless{i}}a, Howard Gayle, Daniel German, Stephen Gildea,
+Galbraith, Kevin Gallagher, Kevin Gallo, Juan León Lahoz
+García, Howard Gayle, Daniel German, Stephen Gildea,
 Julien Gilles, David Gillespie, Bob Glickstein, Deepak Goel, Boris
-Goldowsky, Michelangelo Grigni, Odd Gripenstam, Kai Gro@ss{}johann,
+Goldowsky, Michelangelo Grigni, Odd Gripenstam, Kai Großjohann,
 Michael Gschwind, Bastien Guerry, Henry Guillaume, Doug Gwyn, Ken'ichi
 Handa, Lars Hansen, Chris Hanson, K. Shane Hartman, John Heidemann, Jon
 K.@: Hellan, Jesper Harder, Magnus Henoch, Markus Heritsch, Karl Heuer,
@@ -1373,17 +1377,17 @@ Manabu Higashida, Anders Holst, Jeffrey C.@: Honig, Tassilo Horn, Kurt
 Hornik, Tom Houlder, Joakim Hove, Denis Howe, Lars Ingebrigtsen, Andrew
 Innes, Seiichiro Inoue, Philip Jackson, Pavel Janik, Paul Jarc, Ulf
 Jasper, Michael K. Johnson, Kyle Jones, Terry Jones, Simon Josefsson,
-Arne J@o{}rgensen, Tomoji Kagatani, Brewster Kahle, Tokuya Kameshima,
+Arne Jørgensen, Tomoji Kagatani, Brewster Kahle, Tokuya Kameshima,
 Lute Kamstra, David Kastrup, David Kaufman, Henry Kautz, Taichi
 Kawabata, Howard Kaye, Michael Kifer, Richard King, Peter Kleiweg, Karel
-Kl@'{@dotless{i}}@v{c}, Shuhei Kobayashi, Pavel Kobiakov, Larry K.@:
+Klí@v{c}, Shuhei Kobayashi, Pavel Kobiakov, Larry K.@:
 Kolodney, David M.@: Koppelman, Koseki Yoshinori, Robert Krawitz,
-Sebastian Kremer, Ryszard Kubiak, David K@aa{}gedal, Daniel LaLiberte,
+Sebastian Kremer, Ryszard Kubiak, David Kågedal, Daniel LaLiberte,
 Karl Landstrom, Mario Lang, Aaron Larson, James R.@: Larus, Vinicius
 Jose Latorre, Werner Lemberg, Frederic Lepied, Peter Liljenberg, Lars
 Lindberg, Chris Lindblad, Anders Lindgren, Thomas Link, Juri Linkov,
-Francis Litterio, Emilio C. Lopes, K@'{a}roly L@H{o}rentey, Dave Love,
-Sascha L@"{u}decke, Eric Ludlam, Alan Mackenzie, Christopher J.@:
+Francis Litterio, Emilio C. Lopes, Károly L@H{o}rentey, Dave Love,
+Sascha Lüdecke, Eric Ludlam, Alan Mackenzie, Christopher J.@:
 Madsen, Neil M.@: Mager, Ken Manheimer, Bill Mann, Brian Marick, Simon
 Marshall, Bengt Martensson, Charlie Martin, Thomas May, Roland McGrath,
 Will Mengarini, David Megginson, Ben A. Mesander, Wayne Mesard, Brad
@@ -1391,15 +1395,15 @@ Miller, Lawrence Mitchell, Richard Mlynarik, Gerd Moellmann, Stefan
 Monnier, Morioka Tomohiko, Keith Moore, Jan Moringen, Glenn Morris,
 Diane Murray, Sen Nagata, Erik Naggum, Thomas Neumann, Thien-Thi Nguyen,
 Mike Newton, Jurgen Nickelsen, Dan Nicolaescu, Hrvoje Niksic, Jeff
-Norden, Andrew Norman, Alexandre Oliva, Bob Olson, Michael Olson,
-Takaaki Ota, Pieter E.@: J.@: Pareit, Ross Patterson, David Pearson,
-Jeff Peck, Damon Anton Permezel, Tom Perrine, William M.@: Perry, Per
-Persson, Jens Petersen, Daniel Pfeiffer, Richard L.@: Pieri, Fred
-Pierresteguy, Christian Plaunt, David Ponce, Francesco A.@: Potorti,
-Michael D. Prange, Mukesh Prasad, Ken Raeburn, Marko Rahamaa, Ashwin
-Ram, Eric S. Raymond, Paul Reilly, Edward M. Reingold, Alex Rezinsky,
-Rob Riepel, David Reitter, Adrian Robert, Nick Roberts, Roland B.@:
-Roberts, John Robinson, Danny Roozendaal, Sebastian Rose, William
+Norden, Andrew Norman, Christian Ohler, Alexandre Oliva, Bob Olson,
+Michael Olson, Takaaki Ota, Pieter E.@: J.@: Pareit, Ross Patterson,
+David Pearson, Jeff Peck, Damon Anton Permezel, Tom Perrine, William
+M.@: Perry, Per Persson, Jens Petersen, Daniel Pfeiffer, Richard L.@:
+Pieri, Fred Pierresteguy, Christian Plaunt, David Ponce, Francesco A.@:
+Potorti, Michael D. Prange, Mukesh Prasad, Ken Raeburn, Marko Rahamaa,
+Ashwin Ram, Eric S. Raymond, Paul Reilly, Edward M. Reingold, Alex
+Rezinsky, Rob Riepel, David Reitter, Adrian Robert, Nick Roberts, Roland
+B.@: Roberts, John Robinson, Danny Roozendaal, Sebastian Rose, William
 Rosenblatt, Guillermo J.@: Rozas, Martin Rudalics, Ivar Rummelhoff,
 Jason Rumney, Wolfgang Rupprecht, Kevin Ryde, James B. Salem, Masahiko
 Sato, Jorgen Schaefer, Holger Schauer, William Schelter, Ralph

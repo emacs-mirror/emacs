@@ -1,6 +1,6 @@
 ;;; ede/make.el --- General information about "make"
 
-;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -105,5 +105,4 @@ If NOERROR is nil, then throw an error on failure.  Return t otherwise."
 ;; generated-autoload-load-name: "ede/make"
 ;; End:
 
-;; arch-tag: cc54abdb-7ca5-4902-9735-eda3c6a77852
 ;;; ede/make.el ends here

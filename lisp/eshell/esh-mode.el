@@ -1,7 +1,6 @@
 ;;; esh-mode.el --- user interface
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1999-2011  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -90,9 +89,10 @@ That is to say, the first time during an Emacs session."
   :type 'hook
   :group 'eshell-mode)
 
-(defcustom eshell-exit-hook '(eshell-query-kill-processes)
+(defcustom eshell-exit-hook nil
   "A hook that is run whenever `eshell' is exited.
 This hook is only run if exiting actually kills the buffer."
+  :version "24.1"                       ; removed eshell-query-kill-processes
   :type 'hook
   :group 'eshell-mode)
 
@@ -288,6 +288,17 @@ This is used by `eshell-watch-for-password-prompt'."
 
 ;;; User Functions:
 
+(defun eshell-kill-buffer-function ()
+  "Function added to `kill-buffer-hook' in Eshell buffers.
+This runs the function `eshell-kill-processes-on-exit',
+and the hook `eshell-exit-hook'."
+  ;; It's fine to run this unconditionally since it can be customized
+  ;; via the `eshell-kill-processes-on-exit' variable.
+  (and (fboundp 'eshell-query-kill-processes)
+       (not (memq 'eshell-query-kill-processes eshell-exit-hook))
+       (eshell-query-kill-processes))
+  (run-hooks 'eshell-exit-hook))
+
 ;;;###autoload
 (defun eshell-mode ()
   "Emacs shell interactive mode.
@@ -390,7 +401,7 @@ This is used by `eshell-watch-for-password-prompt'."
   ;; load extension modules into memory.  This will cause any global
   ;; variables they define to be visible, since some of the core
   ;; modules sometimes take advantage of their functionality if used.
-  (eshell-for module eshell-modules-list
+  (dolist (module eshell-modules-list)
     (let ((module-fullname (symbol-name module))
 	  module-shortname)
       (if (string-match "^eshell-\\(.*\\)" module-fullname)
@@ -404,17 +415,15 @@ This is used by `eshell-watch-for-password-prompt'."
   (unless (file-exists-p eshell-directory-name)
     (eshell-make-private-directory eshell-directory-name t))
 
-  ;; load core Eshell modules for this session
-  (eshell-for module (eshell-subgroups 'eshell)
-    (run-hooks (intern-soft (concat (symbol-name module)
-				    "-load-hook"))))
-
-  ;; load extension modules for this session
-  (eshell-for module eshell-modules-list
-    (let ((load-hook (intern-soft (concat (symbol-name module)
-					  "-load-hook"))))
-      (if (and load-hook (boundp load-hook))
-	  (run-hooks load-hook))))
+  ;; Load core Eshell modules, then extension modules, for this session.
+  (dolist (module (append (eshell-subgroups 'eshell) eshell-modules-list))
+    (let ((load-hook (intern-soft (format "%s-load-hook" module)))
+          (initfunc (intern-soft (format "%s-initialize" module))))
+      (when (and load-hook (boundp load-hook))
+        (if (memq initfunc (symbol-value load-hook)) (setq initfunc nil))
+        (run-hooks load-hook))
+      ;; So we don't need the -initialize functions on the hooks (b#5375).
+      (and initfunc (fboundp initfunc) (funcall initfunc))))
 
   (if eshell-send-direct-to-subprocesses
       (add-hook 'pre-command-hook 'eshell-intercept-commands t t))
@@ -429,10 +438,7 @@ This is used by `eshell-watch-for-password-prompt'."
     (add-hook 'eshell-pre-command-hook 'eshell-command-started nil t)
     (add-hook 'eshell-post-command-hook 'eshell-command-finished nil t))
 
-  (add-hook 'kill-buffer-hook
-	    (function
-	     (lambda ()
-	       (run-hooks 'eshell-exit-hook))) t t)
+  (add-hook 'kill-buffer-hook 'eshell-kill-buffer-function t t)
 
   (if eshell-first-time-p
       (run-hooks 'eshell-first-time-mode-hook))
@@ -440,19 +446,6 @@ This is used by `eshell-watch-for-password-prompt'."
   (run-hooks 'eshell-post-command-hook))
 
 (put 'eshell-mode 'mode-class 'special)
-
-(eshell-deftest mode major-mode
-  "Major mode is correct"
-  (eq major-mode 'eshell-mode))
-
-(eshell-deftest mode eshell-mode-variable
-  "`eshell-mode' is true"
-  (eq eshell-mode t))
-
-(eshell-deftest var window-height
-  "LINES equals window height"
-  (let ((eshell-stringify-t t))
-    (eshell-command-result-p "= $LINES (window-height)" "t\n")))
 
 (defun eshell-command-started ()
   "Indicate in the modeline that a command has started."
@@ -463,13 +456,6 @@ This is used by `eshell-watch-for-password-prompt'."
   "Indicate in the modeline that a command has finished."
   (setq eshell-command-running-string "--")
   (force-mode-line-update))
-
-(eshell-deftest mode command-running-p
-  "Modeline shows no command running"
-  (or (featurep 'xemacs)
-      (not eshell-status-in-modeline)
-      (and (memq 'eshell-command-running-string mode-line-format)
-	   (equal eshell-command-running-string "--"))))
 
 ;;; Internal Functions:
 
@@ -511,6 +497,8 @@ This is used by `eshell-watch-for-password-prompt'."
       (if intercept
 	  (setq this-command 'eshell-self-insert-command)))))
 
+(declare-function find-tag-interactive "etags" (prompt &optional no-default))
+
 (defun eshell-find-tag (&optional tagname next-p regexp-p)
   "A special version of `find-tag' that ignores read-onlyness."
   (interactive)
@@ -518,8 +506,7 @@ This is used by `eshell-watch-for-password-prompt'."
   (let ((inhibit-read-only t)
 	(no-default (eobp))
 	(find-tag-default-function 'ignore))
-    (with-no-warnings
-      (setq tagname (car (find-tag-interactive "Find tag: "))))
+    (setq tagname (car (find-tag-interactive "Find tag: " no-default)))
     (find-tag tagname next-p regexp-p)))
 
 (defun eshell-move-argument (limit func property arg)
@@ -539,20 +526,6 @@ This is used by `eshell-watch-for-password-prompt'."
     (if (and (eq func 'forward-char)
 	     (= (1+ pos) limit))
 	(forward-char 1))))
-
-(eshell-deftest arg forward-arg
-  "Move across command arguments"
-  (eshell-insert-command "echo $(+ 1 (- 4 3)) \"alpha beta\" file" 'ignore)
-  (let ((here (point)) begin valid)
-    (eshell-bol)
-    (setq begin (point))
-    (eshell-forward-argument 4)
-    (setq valid (= here (point)))
-    (eshell-backward-argument 4)
-    (prog1
-	(and valid (= begin (point)))
-      (eshell-bol)
-      (delete-region (point) (point-max)))))
 
 (defun eshell-forward-argument (&optional arg)
   "Move forward ARG arguments."
@@ -653,17 +626,6 @@ waiting for input."
   (interactive "P")
   (eshell-send-input use-region t))
 
-(eshell-deftest mode queue-input
-  "Queue command input"
-  (eshell-insert-command "sleep 2")
-  (eshell-insert-command "echo alpha" 'eshell-queue-input)
-  (let ((count 10))
-    (while (and eshell-current-command
-		(> count 0))
-      (sit-for 1 0)
-      (setq count (1- count))))
-  (eshell-match-result "alpha\n"))
-
 (defun eshell-send-input (&optional use-region queue-p no-newline)
   "Send the input received to Eshell for parsing and processing.
 After `eshell-last-output-end', sends all text from that marker to
@@ -741,20 +703,6 @@ newline."
 		(concat (error-message-string err) "\n"))
 	       (run-hooks 'eshell-post-command-hook)
 	       (insert-and-inherit input)))))))))
-
-; (eshell-deftest proc send-to-subprocess
-;   "Send input to a subprocess"
-;   ;; jww (1999-12-06): what about when bc is unavailable?
-;   (if (not (eshell-search-path "bc"))
-;       t
-;     (eshell-insert-command "bc")
-;     (eshell-insert-command "1 + 2")
-;     (sit-for 1 0)
-;     (forward-line -1)
-;     (prog1
-; 	(looking-at "3\n")
-;       (eshell-insert-command "quit")
-;       (sit-for 1 0))))
 
 (defsubst eshell-kill-new ()
   "Add the last input text to the kill ring."
@@ -901,14 +849,6 @@ Does not delete the prompt."
     (insert "*** output flushed ***\n")
     (delete-region (point) (eshell-end-of-output))))
 
-(eshell-deftest io flush-output
-  "Flush previous output"
-  (eshell-insert-command "echo alpha")
-  (eshell-kill-output)
-  (and (eshell-match-result (regexp-quote "*** output flushed ***\n"))
-       (forward-line)
-       (= (point) eshell-last-output-start)))
-
 (defun eshell-show-output (&optional arg)
   "Display start of this batch of interpreter output at top of window.
 Sets mark to the value of point when this command is run.
@@ -968,12 +908,6 @@ When run interactively, widen the buffer first."
   (let ((input (eshell-get-old-input)))
     (goto-char eshell-last-output-end)
     (insert-and-inherit input)))
-
-(eshell-deftest mode run-old-command
-  "Re-run an old command"
-  (eshell-insert-command "echo alpha")
-  (goto-char eshell-last-input-start)
-  (string= (eshell-get-old-input) "echo alpha"))
 
 (defun eshell/exit ()
   "Leave or kill the Eshell buffer, depending on `eshell-kill-on-exit'."
@@ -1083,5 +1017,4 @@ This function could be in the list `eshell-output-filter-functions'."
 (custom-add-option 'eshell-output-filter-functions
 		   'eshell-handle-ansi-color)
 
-;; arch-tag: ec65bc2b-da14-4547-81d3-a32af3a4dc57
 ;;; esh-mode.el ends here

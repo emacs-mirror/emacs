@@ -1,6 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Mark, Killing, Help, Top
@@ -447,7 +446,3 @@ mode only until the mark is deactivated.  One reason you may want to
 use them is that some commands operate on the entire buffer instead of
 the region when Transient Mark mode is off.  Enabling Transient Mark
 mode momentarily gives you a way to use these commands on the region.
-
-@ignore
-   arch-tag: f35e4d82-911b-4cfc-a3d7-3c87b2abba20
-@end ignore

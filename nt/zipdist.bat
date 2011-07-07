@@ -1,6 +1,5 @@
 @echo off
-rem Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-rem   Free Software Foundation, Inc.
+rem Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 rem Author: Christoph Scholtes cschol2112 at gmail.com
 

@@ -59,5 +59,3 @@ xm_manage_resizing (Widget w, Boolean flag);
 
 #endif /* LWLIB_XM_H */
 
-/* arch-tag: 61561304-c146-437b-8ed3-dc33818703c6
-   (do not change this comment) */

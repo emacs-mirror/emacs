@@ -1,6 +1,5 @@
 /* Code for doing intervals.
-   Copyright (C) 1993, 1994, 1995, 1997, 1998, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+   Copyright (C) 1993-1995, 1997-1998, 2001-2011  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -40,6 +39,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <setjmp.h>
+#include <intprops.h>
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -52,7 +52,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define TMEM(sym, set) (CONSP (set) ? ! NILP (Fmemq (sym, set)) : ! NILP (set))
 
-Lisp_Object merge_properties_sticky (Lisp_Object pleft, Lisp_Object pright);
+static Lisp_Object merge_properties_sticky (Lisp_Object, Lisp_Object);
+static INTERVAL merge_interval_right (INTERVAL);
 static INTERVAL reproduce_tree (INTERVAL, INTERVAL);
 static INTERVAL reproduce_tree_obj (INTERVAL, Lisp_Object);
 
@@ -312,7 +313,7 @@ root_interval (interval)
      c		  c
 */
 
-static INLINE INTERVAL
+static inline INTERVAL
 rotate_right (INTERVAL interval)
 {
   INTERVAL i;
@@ -359,7 +360,7 @@ rotate_right (INTERVAL interval)
     c               c
 */
 
-static INLINE INTERVAL
+static inline INTERVAL
 rotate_left (INTERVAL interval)
 {
   INTERVAL i;
@@ -437,7 +438,7 @@ balance_an_interval (INTERVAL i)
 /* Balance INTERVAL, potentially stuffing it back into its parent
    Lisp Object.  */
 
-static INLINE INTERVAL
+static inline INTERVAL
 balance_possible_root_interval (register INTERVAL interval)
 {
   Lisp_Object parent;
@@ -587,7 +588,7 @@ split_interval_left (INTERVAL interval, EMACS_INT offset)
    Don't use this function on an interval which is the child
    of another interval!  */
 
-int
+static int
 interval_start_pos (INTERVAL source)
 {
   Lisp_Object parent;
@@ -778,7 +779,7 @@ update_interval (register INTERVAL i, EMACS_INT pos)
 	      i = i->right;		/* Move to the right child */
 	    }
 	  else if (NULL_PARENT (i))
-	    error ("Point %d after end of properties", pos);
+	    error ("Point %"pI"d after end of properties", pos);
 	  else
             i = INTERVAL_PARENT (i);
 	  continue;
@@ -805,9 +806,9 @@ update_interval (register INTERVAL i, EMACS_INT pos)
 static INTERVAL
 adjust_intervals_for_insertion (tree, position, length)
      INTERVAL tree;
-     int position, length;
+     EMACS_INT position, length;
 {
-  register int relative_position;
+  register EMACS_INT relative_position;
   register INTERVAL this;
 
   if (TOTAL_LENGTH (tree) == 0)	/* Paranoia */
@@ -1090,7 +1091,7 @@ FR     8  9  A  B
        left rear-nonsticky = t,   right front-sticky = nil (inherit none)
 */
 
-Lisp_Object
+static Lisp_Object
 merge_properties_sticky (Lisp_Object pleft, Lisp_Object pright)
 {
   register Lisp_Object props, front, rear;
@@ -1259,7 +1260,7 @@ delete_node (register INTERVAL i)
    I is presumed to be empty; that is, no adjustments are made
    for the length of I.  */
 
-void
+static void
 delete_interval (register INTERVAL i)
 {
   register INTERVAL parent;
@@ -1326,8 +1327,8 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
   if (relative_position < LEFT_TOTAL_LENGTH (tree))
     {
       EMACS_INT subtract = interval_deletion_adjustment (tree->left,
-							  relative_position,
-							  amount);
+							 relative_position,
+							 amount);
       tree->total_length -= subtract;
       CHECK_TOTAL_LENGTH (tree);
       return subtract;
@@ -1424,10 +1425,15 @@ adjust_intervals_for_deletion (struct buffer *buffer,
 /* Make the adjustments necessary to the interval tree of BUFFER to
    represent an addition or deletion of LENGTH characters starting
    at position START.  Addition or deletion is indicated by the sign
-   of LENGTH.  */
+   of LENGTH.
 
-INLINE void
-offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
+   The two inline functions (one static) pacify Sun C 5.8, a pre-C99
+   compiler that does not allow calling a static function (here,
+   adjust_intervals_for_deletion) from a non-static inline function.  */
+
+static inline void
+static_offset_intervals (struct buffer *buffer, EMACS_INT start,
+			 EMACS_INT length)
 {
   if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)) || length == 0)
     return;
@@ -1435,7 +1441,16 @@ offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
   if (length > 0)
     adjust_intervals_for_insertion (BUF_INTERVALS (buffer), start, length);
   else
-    adjust_intervals_for_deletion (buffer, start, -length);
+    {
+      IF_LINT (if (length < - TYPE_MAXIMUM (EMACS_INT)) abort ();)
+      adjust_intervals_for_deletion (buffer, start, -length);
+    }
+}
+
+inline void
+offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
+{
+  static_offset_intervals (buffer, start, length);
 }
 
 /* Merge interval I with its lexicographic successor. The resulting
@@ -1447,7 +1462,7 @@ offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
    The caller must verify that this is not the last (rightmost)
    interval.  */
 
-INTERVAL
+static INTERVAL
 merge_interval_right (register INTERVAL i)
 {
   register EMACS_INT absorb = LENGTH (i);
@@ -1678,7 +1693,7 @@ graft_intervals_into_buffer (INTERVAL source, EMACS_INT position,
 			     EMACS_INT length, struct buffer *buffer,
 			     int inherit)
 {
-  register INTERVAL under, over, this, prev;
+  register INTERVAL under, over, this;
   register INTERVAL tree;
   EMACS_INT over_used;
 
@@ -1768,7 +1783,8 @@ graft_intervals_into_buffer (INTERVAL source, EMACS_INT position,
       /* This call may have some effect because previous_interval may
          update `position' fields of intervals.  Thus, don't ignore it
          for the moment.  Someone please tell me the truth (K.Handa).  */
-      prev = previous_interval (under);
+      INTERVAL prev = previous_interval (under);
+      (void) prev;
 #if 0
       /* But, this code surely has no effect.  And, anyway,
          END_NONSTICKY_P is unreliable now.  */
@@ -1878,7 +1894,7 @@ lookup_char_property (Lisp_Object plist, register Lisp_Object prop, int textprop
 /* Set point in BUFFER "temporarily" to CHARPOS, which corresponds to
    byte position BYTEPOS.  */
 
-INLINE void
+inline void
 temp_set_point_both (struct buffer *buffer,
 		     EMACS_INT charpos, EMACS_INT bytepos)
 {
@@ -1893,13 +1909,12 @@ temp_set_point_both (struct buffer *buffer,
   if (charpos > BUF_ZV (buffer) || charpos < BUF_BEGV (buffer))
     abort ();
 
-  BUF_PT_BYTE (buffer) = bytepos;
-  BUF_PT (buffer) = charpos;
+  SET_BUF_PT_BOTH (buffer, charpos, bytepos);
 }
 
 /* Set point "temporarily", without checking any text properties.  */
 
-INLINE void
+inline void
 temp_set_point (struct buffer *buffer, EMACS_INT charpos)
 {
   temp_set_point_both (buffer, charpos,
@@ -1979,7 +1994,7 @@ set_point_both (EMACS_INT charpos, EMACS_INT bytepos)
   int have_overlays;
   EMACS_INT original_position;
 
-  current_buffer->point_before_scroll = Qnil;
+  BVAR (current_buffer, point_before_scroll) = Qnil;
 
   if (charpos == PT)
     return;
@@ -2313,10 +2328,9 @@ get_local_map (register EMACS_INT position, register struct buffer *buffer,
   old_zv = BUF_ZV (buffer);
   old_begv_byte = BUF_BEGV_BYTE (buffer);
   old_zv_byte = BUF_ZV_BYTE (buffer);
-  BUF_BEGV (buffer) = BUF_BEG (buffer);
-  BUF_ZV (buffer) = BUF_Z (buffer);
-  BUF_BEGV_BYTE (buffer) = BUF_BEG_BYTE (buffer);
-  BUF_ZV_BYTE (buffer) = BUF_Z_BYTE (buffer);
+
+  SET_BUF_BEGV_BOTH (buffer, BUF_BEG (buffer), BUF_BEG_BYTE (buffer));
+  SET_BUF_ZV_BOTH (buffer, BUF_Z (buffer), BUF_Z_BYTE (buffer));
 
   XSETFASTINT (lispy_position, position);
   XSETBUFFER (lispy_buffer, buffer);
@@ -2330,10 +2344,8 @@ get_local_map (register EMACS_INT position, register struct buffer *buffer,
   if (NILP (prop))
     prop = get_pos_property (lispy_position, type, lispy_buffer);
 
-  BUF_BEGV (buffer) = old_begv;
-  BUF_ZV (buffer) = old_zv;
-  BUF_BEGV_BYTE (buffer) = old_begv_byte;
-  BUF_ZV_BYTE (buffer) = old_zv_byte;
+  SET_BUF_BEGV_BOTH (buffer, old_begv, old_begv_byte);
+  SET_BUF_ZV_BOTH (buffer, old_zv, old_zv_byte);
 
   /* Use the local map only if it is valid.  */
   prop = get_keymap (prop, 0, 0);
@@ -2343,7 +2355,7 @@ get_local_map (register EMACS_INT position, register struct buffer *buffer,
   if (EQ (type, Qkeymap))
     return Qnil;
   else
-    return buffer->keymap;
+    return BVAR (buffer, keymap);
 }
 
 /* Produce an interval tree reflecting the intervals in
@@ -2391,7 +2403,7 @@ copy_intervals (INTERVAL tree, EMACS_INT start, EMACS_INT length)
 
 /* Give STRING the properties of BUFFER from POSITION to LENGTH.  */
 
-INLINE void
+inline void
 copy_intervals_to_string (Lisp_Object string, struct buffer *buffer,
 			  EMACS_INT position, EMACS_INT length)
 {
@@ -2564,6 +2576,3 @@ set_intervals_multibyte (int multi_flag)
     set_intervals_multibyte_1 (BUF_INTERVALS (current_buffer), multi_flag,
 			       BEG, BEG_BYTE, Z, Z_BYTE);
 }
-
-/* arch-tag: 3d402b60-083c-4271-b4a3-ebd9a74bfe27
-   (do not change this comment) */

@@ -1,3 +1,4 @@
+# -*- coding: cn-big5 -*-
 # HANZI input table for cxterm
 # Generated from ZOZY.cit by cit2tit
 # To be used by cxterm, convert me to .cit format first
@@ -1580,4 +1581,3 @@ zp4	¥÷©Á¾Ä¼«¤ÀÁTàóô\Ê®ÏıèßéÃêëğx
 zp6	¼XµI¨WÌŞÙÈÓÇóFñãånåıóVï´Ê·ÍZÓbãËøtÊÒêıöc
 zul4	ßú
 
-# arch-tag: e40a2740-dae5-4fd9-a32e-bedf6503dc65

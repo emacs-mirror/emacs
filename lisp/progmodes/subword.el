@@ -1,6 +1,6 @@
 ;;; subword.el --- Handling capitalized subwords in a nomenclature
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO
 
@@ -277,5 +277,4 @@ Optional argument ARG is the same as for `capitalize-word'."
 
 (provide 'subword)
 
-;; arch-tag: b8a01202-8a52-4a71-ae0a-d753fafd67ef
 ;;; subword.el ends here

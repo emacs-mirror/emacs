@@ -1,7 +1,6 @@
 ;;; sieve-manage.el --- Implementation of the managesive protocol in elisp
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-;;   2010  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2011  Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -84,7 +83,7 @@
   (require 'starttls))
 (autoload 'sasl-find-mechanism "sasl")
 (autoload 'starttls-open-stream "starttls")
-(autoload 'auth-source-user-or-password "auth-source")
+(autoload 'auth-source-search "auth-source")
 
 ;; User customizable variables:
 
@@ -274,16 +273,21 @@ Valid states are `closed', `initial', `nonauth', and `auth'.")
   "Login to server using the SASL MECH method."
   (message "sieve: Authenticating using %s..." mech)
   (with-current-buffer buffer
-    (let* ((user-password (auth-source-user-or-password
-                           '("login" "password")
-                           sieve-manage-server
-                           "sieve" nil t))
+    (let* ((auth-info (auth-source-search :host sieve-manage-server
+                                          :port "sieve"
+                                          :max 1
+                                          :create t))
+           (user-name (or (plist-get (nth 0 auth-info) :user) ""))
+           (user-password (or (plist-get (nth 0 auth-info) :secret) ""))
+           (user-password (if (functionp user-password)
+                              (funcall user-password)
+                            user-password))
            (client (sasl-make-client (sasl-find-mechanism (list mech))
-                                     (car user-password) "sieve" sieve-manage-server))
+                                     user-name "sieve" sieve-manage-server))
            (sasl-read-passphrase
             ;; We *need* to copy the password, because sasl will modify it
             ;; somehow.
-            `(lambda (prompt) ,(copy-sequence (cadr user-password))))
+            `(lambda (prompt) ,(copy-sequence user-password)))
            (step (sasl-next-step client nil))
            (tag (sieve-manage-send
                  (concat
@@ -390,13 +394,14 @@ Optional argument AUTH indicates authenticator to use, see
 If nil, chooses the best stream the server is capable of.
 Optional argument BUFFER is buffer (buffer, or string naming buffer)
 to work in."
-  (setq buffer (or buffer (format " *sieve* %s:%s" server (or port sieve-manage-default-port))))
+  (or port (setq port sieve-manage-default-port))
+  (setq buffer (or buffer (format " *sieve* %s:%s" server port)))
   (with-current-buffer (get-buffer-create buffer)
     (mapc 'make-local-variable sieve-manage-local-variables)
     (sieve-manage-disable-multibyte)
     (buffer-disable-undo)
     (setq sieve-manage-server (or server sieve-manage-server))
-    (setq sieve-manage-port (or port sieve-manage-port))
+    (setq sieve-manage-port port)
     (setq sieve-manage-stream (or stream sieve-manage-stream))
     (message "sieve: Connecting to %s..." sieve-manage-server)
     (if (let ((sieve-manage-stream

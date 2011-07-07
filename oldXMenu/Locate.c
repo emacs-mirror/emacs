@@ -77,5 +77,3 @@ XMenuLocate(register Display *display, register XMenu *menu, int p_num, int s_nu
     return(XM_SUCCESS);
 }
 
-/* arch-tag: 1ff94bab-cf67-4c92-bff4-dc0130153173
-   (do not change this comment) */
