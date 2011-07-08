@@ -1,3 +1,11 @@
+2011-07-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/sendmail.el (sendmail-query-once): If we aren't allowed to
+	save customizations (with "emacs -Q"), just set the variable
+	instead of erroring out.
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Ditto.
+
 2011-07-08  Juri Linkov  <juri@jurta.org>
 
 	* arc-mode.el (archive-zip-expunge, archive-zip-update)

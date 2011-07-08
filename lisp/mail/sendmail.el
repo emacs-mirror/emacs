@@ -168,44 +168,48 @@ This is used by the default mail-sending commands.  See also
 (defvar sendmail-query-once-function 'query
   "Either a function to send email, or the symbol `query'.")
 
+(autoload 'custom-file "cus-edit")
+
 ;;;###autoload
 (defun sendmail-query-once ()
   "Send an email via `sendmail-query-once-function'.
 If `sendmail-query-once-function' is `query', ask the user what
 function to use, and then save that choice."
   (when (equal sendmail-query-once-function 'query)
-    (let ((default
-	    (cond
-	     ((or (and window-system (eq system-type 'darwin))
-		  (eq system-type 'windows-nt))
-	      'mailclient-send-it)
-	     ((and sendmail-program
-		   (executable-find sendmail-program))
-	      'sendmail-send-it))))
-      (customize-save-variable
-       'sendmail-query-once-function
-       (if (or (not default)
-	       ;; We have detected no OS-level mail senders, or we
-	       ;; have already configured smtpmail, so we use the
-	       ;; internal SMTP service.
-	       (and (boundp 'smtpmail-smtp-server)
-		    smtpmail-smtp-server))
-	   'smtpmail-send-it
-	 ;; Query the user.
-	 (unwind-protect
-	     (progn
-	       (pop-to-buffer "*Mail Help*")
-	       (erase-buffer)
-	       (insert "Sending mail from Emacs hasn't been set up yet.\n\n"
-		       "Type `y' to configure outgoing SMTP, or `n' to use\n"
-		       "the default mail sender on your system.\n\n"
-		       "To change this again at a later date, customize the\n"
-		       "`send-mail-function' variable.\n")
-	       (goto-char (point-min))
-	       (if (y-or-n-p "Configure outgoing SMTP in Emacs? ")
-		   'smtpmail-send-it
-		 default))
-	   (kill-buffer (current-buffer)))))))
+    (let* ((default
+	     (cond
+	      ((or (and window-system (eq system-type 'darwin))
+		   (eq system-type 'windows-nt))
+	       'mailclient-send-it)
+	      ((and sendmail-program
+		    (executable-find sendmail-program))
+	       'sendmail-send-it)))
+	   (function
+	    (if (or (not default)
+		    ;; We have detected no OS-level mail senders, or we
+		    ;; have already configured smtpmail, so we use the
+		    ;; internal SMTP service.
+		    (and (boundp 'smtpmail-smtp-server)
+			 smtpmail-smtp-server))
+		'smtpmail-send-it
+	      ;; Query the user.
+	      (unwind-protect
+		  (progn
+		    (pop-to-buffer "*Mail Help*")
+		    (erase-buffer)
+		    (insert "Sending mail from Emacs hasn't been set up yet.\n\n"
+			    "Type `y' to configure outgoing SMTP, or `n' to use\n"
+			    "the default mail sender on your system.\n\n"
+			    "To change this again at a later date, customize the\n"
+			    "`send-mail-function' variable.\n")
+		    (goto-char (point-min))
+		    (if (y-or-n-p "Configure outgoing SMTP in Emacs? ")
+			'smtpmail-send-it
+		      default))
+		(kill-buffer (current-buffer))))))
+      (if (ignore-errors (custom-file))
+	  (customize-save-variable 'sendmail-query-once-function function)
+	(setq sendmail-query-once-function function))))
   (funcall sendmail-query-once-function))
 
 ;;;###autoload(custom-initialize-delay 'send-mail-function nil)
