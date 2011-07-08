@@ -1,5 +1,7 @@
 2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsgui.h: Fix compiler warning about gnulib redefining verify.
+
 	* nsselect.m (ns_get_local_selection): Change to extern (Bug#8842).
 
 	* nsmenu.m (ns_update_menubar): Remove useless setDelegate call
