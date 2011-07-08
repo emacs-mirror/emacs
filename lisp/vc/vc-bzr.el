@@ -1174,7 +1174,7 @@ stream.  Standard error output is discarded."
   (defconst vc-bzr-revision-keywords
     ;; bzr help revisionspec  | sed -ne 's/^\([a-z]*\):$/"\1"/p' | sort -u
     '("ancestor" "annotate" "before" "branch" "date" "last" "mainline" "revid"
-      "revno" "submit" "svn" "tag")))
+      "revno" "submit" "tag")))
 
 (defun vc-bzr-revision-completion-table (files)
   (lexical-let ((files files))

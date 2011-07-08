@@ -2819,11 +2819,15 @@ displayed there."
 (defun next-buffer ()
   "In selected window switch to next buffer."
   (interactive)
+  (if (window-minibuffer-p)
+      (error "Cannot switch buffers in minibuffer window"))
   (switch-to-next-buffer))
 
 (defun previous-buffer ()
   "In selected window switch to previous buffer."
   (interactive)
+  (if (window-minibuffer-p)
+      (error "Cannot switch buffers in minibuffer window"))
   (switch-to-prev-buffer))
 
 (defun delete-windows-on (&optional buffer-or-name frame)

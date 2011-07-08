@@ -1,3 +1,8 @@
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* ediff.texi (Major Entry Points): Remove mention of `require',
+	since that's not pertinent in the installed Emacs (bug#9016).
+
 2011-07-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Expiring Mail): Document gnus-auto-expirable-marks.

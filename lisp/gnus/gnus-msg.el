@@ -1464,26 +1464,13 @@ If YANK is non-nil, include the original article."
     (when gnus-bug-create-help-buffer
       (push `(gnus-bug-kill-buffer) message-send-actions))
     (goto-char (point-min))
-    (re-search-forward (concat "^" (regexp-quote mail-header-separator) "$"))
-    (forward-line 1)
-    (insert (format "Package: %s\n" gnus-bug-package))
-    (insert (format "Version: %s\n" (gnus-continuum-version)))
-    (insert "\n")
+    (message-goto-body)
+    (insert "\n\n\n\n\n")
     (insert (gnus-version) "\n"
 	    (emacs-version) "\n")
     (when (and (boundp 'nntp-server-type)
 	       (stringp nntp-server-type))
       (insert nntp-server-type))
-    (insert "\n\n\n\n\n")
-    (let (text)
-      (with-current-buffer (gnus-get-buffer-create " *gnus environment info*")
-	(erase-buffer)
-	(gnus-debug)
-	(setq text (buffer-string)))
-      (insert "<#part type=application/emacs-lisp "
-	      "disposition=inline description=\"User settings\">\n"
-	      text
-	      "\n<#/part>"))
     (goto-char (point-min))
     (search-forward "Subject: " nil t)
     (message "")))
@@ -1502,62 +1489,6 @@ If YANK is non-nil, include the original article."
       (gnus-summary-select-article))
     (with-current-buffer buffer
       (message-yank-buffer gnus-article-buffer))))
-
-(defun gnus-debug ()
-  "Attempts to go through the Gnus source file and report what variables have been changed.
-The source file has to be in the Emacs load path."
-  (interactive)
-  (let ((files gnus-debug-files)
-	(point (point))
-	file expr olist sym)
-    (gnus-message 4 "Please wait while we snoop your variables...")
-    (sit-for 0)
-    ;; Go through all the files looking for non-default values for variables.
-    (with-current-buffer (gnus-get-buffer-create " *gnus bug info*")
-      (while files
-	(erase-buffer)
-	(when (and (setq file (locate-library (pop files)))
-		   (file-exists-p file))
-	  (insert-file-contents file)
-	  (goto-char (point-min))
-	  (if (not (re-search-forward "^;;* *Internal variables" nil t))
-	      (gnus-message 4 "Malformed sources in file %s" file)
-	    (narrow-to-region (point-min) (point))
-	    (goto-char (point-min))
-	    (while (setq expr (ignore-errors (read (current-buffer))))
-	      (ignore-errors
-		(and (or (eq (car expr) 'defvar)
-			 (eq (car expr) 'defcustom))
-		     (stringp (nth 3 expr))
-		     (not (memq (nth 1 expr) gnus-debug-exclude-variables))
-		     (or (not (boundp (nth 1 expr)))
-			 (not (equal (eval (nth 2 expr))
-				     (symbol-value (nth 1 expr)))))
-		     (push (nth 1 expr) olist)))))))
-      (kill-buffer (current-buffer)))
-    (when (setq olist (nreverse olist))
-      (insert "------------------ Environment follows ------------------\n\n"))
-    (while olist
-      (if (boundp (car olist))
-	  (ignore-errors
-	   (gnus-pp
-	    `(setq ,(car olist)
-		   ,(if (or (consp (setq sym (symbol-value (car olist))))
-			    (and (symbolp sym)
-				 (not (or (eq sym nil)
-					  (eq sym t)))))
-			(list 'quote (symbol-value (car olist)))
-		      (symbol-value (car olist))))))
-	(insert ";; (makeunbound '" (symbol-name (car olist)) ")\n"))
-      (setq olist (cdr olist)))
-    (insert "\n\n")
-    ;; Remove any control chars - they seem to cause trouble for some
-    ;; mailers.  (Byte-compiled output from the stuff above.)
-    (goto-char point)
-    (while (re-search-forward (mm-string-to-multibyte
-			       "[\000-\010\013-\037\200-\237]") nil t)
-      (replace-match (format "\\%03o" (string-to-char (match-string 0)))
-		     t t))))
 
 ;;; Treatment of rejected articles.
 ;;; Bounced mail.

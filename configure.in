@@ -231,8 +231,8 @@ AC_ARG_ENABLE(asserts,
       USE_XASSERTS=no)
 
 AC_ARG_ENABLE(maintainer-mode,
-[AS_HELP_STRING([--enable-maintainer-mode],
-                [enable make rules and dependencies not useful (and sometimes
+[AS_HELP_STRING([--disable-maintainer-mode],
+                [disable make rules and dependencies not useful (and sometimes
 		 confusing) to the casual installer])],
       USE_MAINTAINER_MODE=$enableval,
       USE_MAINTAINER_MODE=yes)
@@ -536,7 +536,7 @@ case "${canonical}" in
   ## Silicon Graphics machines
   ## Iris 4D
   mips-sgi-irix6.5 )
-    machine=iris4d opsys=irix6-5
+    opsys=irix6-5
     # Without defining _LANGUAGE_C, things get masked out in the headers
     # so that, for instance, grepping for `free' in stdlib.h fails and
     # AC_HEADER_STD_C fails.   (MIPSPro 7.2.1.2m compilers, Irix 6.5.3m).

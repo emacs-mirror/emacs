@@ -162,7 +162,7 @@ check_ns_display_info (Lisp_Object frame)
       struct terminal *t = get_terminal (frame, 1);
 
       if (t->type != output_ns)
-        error ("Terminal %d is not a Nextstep display", XINT (frame));
+        error ("Terminal %ld is not a Nextstep display", (long) XINT (frame));
 
       return t->display_info.ns;
     }
@@ -1728,8 +1728,9 @@ terminate Emacs if we can't open the connection.
 
   /* Register our external input/output types, used for determining
      applicable services and also drag/drop eligibility. */
-  ns_send_types = [[NSArray arrayWithObject: NSStringPboardType] retain];
-  ns_return_types = [[NSArray arrayWithObject: NSStringPboardType] retain];
+  ns_send_types = [[NSArray arrayWithObjects: NSStringPboardType, nil] retain];
+  ns_return_types = [[NSArray arrayWithObjects: NSStringPboardType, nil]
+                      retain];
   ns_drag_types = [[NSArray arrayWithObjects:
                             NSStringPboardType,
                             NSTabularTextPboardType,
@@ -1876,6 +1877,10 @@ DEFUN ("ns-list-services", Fns_list_services, Sns_list_services, 0, 0, 0,
        doc: /* List available Nextstep services by querying NSApp.  */)
      (void)
 {
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+  /* You can't get services like this in 10.6+.  */
+  return Qnil;
+#else
   Lisp_Object ret = Qnil;
   NSMenu *svcs;
   id delegate;
@@ -1919,6 +1924,7 @@ DEFUN ("ns-list-services", Fns_list_services, Sns_list_services, 0, 0, 0,
 
   ret = interpret_services_menu (svcs, Qnil, ret);
   return ret;
+#endif
 }
 
 

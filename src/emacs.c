@@ -129,6 +129,10 @@ Lisp_Object empty_unibyte_string, empty_multibyte_string;
   on subsequent starts.  */
 int initialized;
 
+#ifdef DARWIN_OS
+extern void unexec_init_emacs_zone (void);
+#endif
+
 #ifdef DOUG_LEA_MALLOC
 /* Preserves a pointer to the memory allocated that copies that
    static data inside glibc's malloc.  */
