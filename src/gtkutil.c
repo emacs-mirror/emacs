@@ -633,6 +633,9 @@ qttip_cb (GtkWidget  *widget,
   struct x_output *x = f->output_data.x;
   if (x->ttip_widget == NULL)
     {
+      GtkWidget *p;
+      GList *list, *iter;
+
       g_object_set (G_OBJECT (widget), "has-tooltip", FALSE, NULL);
       x->ttip_widget = tooltip;
       g_object_ref (G_OBJECT (tooltip));
@@ -640,6 +643,19 @@ qttip_cb (GtkWidget  *widget,
       g_object_ref (G_OBJECT (x->ttip_lbl));
       gtk_tooltip_set_custom (tooltip, x->ttip_lbl);
       x->ttip_window = GTK_WINDOW (gtk_widget_get_toplevel (x->ttip_lbl));
+
+      /* Change stupid Gtk+ default line wrapping.  */
+      p = gtk_widget_get_parent (x->ttip_lbl);
+      list = gtk_container_get_children (GTK_CONTAINER (p));
+      iter;
+      for (iter = list; iter; iter = g_list_next (iter))
+        {
+          GtkWidget *w = GTK_WIDGET (iter->data);
+          if (GTK_IS_LABEL (w))
+            gtk_label_set_line_wrap (GTK_LABEL (w), FALSE);
+        }
+      g_list_free (list);
+
       /* ATK needs an empty title for some reason.  */
       gtk_window_set_title (x->ttip_window, "");
       /* Realize so we can safely get screen later on.  */
@@ -700,9 +716,7 @@ xg_prepare_tooltip (FRAME_PTR f,
   /* Put our dummy widget in so we can get callbacks for unrealize and
      hierarchy-changed.  */
   gtk_tooltip_set_custom (x->ttip_widget, widget);
-
-  gtk_tooltip_set_text (x->ttip_widget, "");
-  gtk_label_set_text (GTK_LABEL (x->ttip_lbl), SSDATA (encoded_string));
+  gtk_tooltip_set_text (x->ttip_widget, SSDATA (encoded_string));
   gtk_widget_get_preferred_size (GTK_WIDGET (x->ttip_window), NULL, &req);
   if (width) *width = req.width;
   if (height) *height = req.height;

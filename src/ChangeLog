@@ -1,5 +1,11 @@
 2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (qttip_cb): Set line wrap to FALSE for tooltip widget.
+	(xg_prepare_tooltip): Revert text in x->ttip_lbl, margins was
+	wrong (Bug#8591).
+
+2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
+
 	* gtkutil.c (xg_prepare_tooltip): Fix indentation and comment.
 	Put text in x->ttip_lbl instead of gtk_tooltip_set_text (Bug#8591).
 	(xg_hide_tooltip): Fix comment.
