@@ -2690,8 +2690,13 @@ the result will be a local, non-Tramp, filename."
     ;; When PROGRAM is nil, we just provide a tty.
     (let ((command
 	   (when (stringp program)
-	     (format "cd %s; exec %s"
+	     (format "cd %s; exec env PS1=%s %s"
 		     (tramp-shell-quote-argument localname)
+		     ;; Use a human-friendly prompt, for example for `shell'.
+		     (tramp-shell-quote-argument
+		      (format "%s %s"
+			      (file-remote-p default-directory)
+			      tramp-initial-end-of-output))
 		     (mapconcat 'tramp-shell-quote-argument
 				(cons program args) " "))))
 	  (tramp-process-connection-type
