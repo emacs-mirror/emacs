@@ -1729,7 +1729,8 @@ terminate Emacs if we can't open the connection.
   /* Register our external input/output types, used for determining
      applicable services and also drag/drop eligibility. */
   ns_send_types = [[NSArray arrayWithObjects: NSStringPboardType, nil] retain];
-  ns_return_types = [[NSArray arrayWithObjects: nil] retain];
+  ns_return_types = [[NSArray arrayWithObjects: NSStringPboardType, nil]
+                      retain];
   ns_drag_types = [[NSArray arrayWithObjects:
                             NSStringPboardType,
                             NSTabularTextPboardType,

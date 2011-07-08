@@ -1,3 +1,12 @@
+2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (initFrameFromEmacs): Don't use ns_return_types
+	in registerServicesMenuSendTypes.
+	(validRequestorForSendType): Don't check ns_return_types.
+
+	* nsfns.m (Fx_open_connection): Put NSStringPboardType into
+	ns_return_type.
+
 2011-07-08  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_wnd_proc) [WM_TIMER, WM_SET_CURSOR]: Avoid using
