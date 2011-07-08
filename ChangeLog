@@ -1,5 +1,19 @@
 2011-07-08  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Add gnulib support for pthread_sigmask (Bug#9010).
+	* Makefile.in (GNULIB_MODULES): Add pthread_sigmask.
+	* configure.in (AC_TYPE_UID_T): New dummy macro.
+	Configure gnulib after adjusting LIBS,
+	so that gnulib can assume the libraries in LIBS.
+	* lib/signal.in.h, m4/pthread_sigmask.m4, m4/signal_h.m4:
+	* lib/pthread_sigprocmask.c, lib/sigprocmask.c, m4/signalblocking.m4:
+	New files, automatically imported from gnulib.
+	* lib/gnulib.mk, m4/gl-comp.m4: Automatically-imported update
+	due to the above changes.
+	* .bzrignore: Add lib/signal.h.
+	* src/Makefile.in (LIB_PTHREAD_SIGMASK): New macro.
+	(LIBES): Use it.
+
 	* lib/getopt.c, lib/unistd.in.h, m4/getopt.m4: Merge from gnulib.
 
 2011-07-07  Andreas Schwab  <schwab@linux-m68k.org>

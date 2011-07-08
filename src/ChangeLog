@@ -1,3 +1,15 @@
+2011-07-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use pthread_sigmask, not sigprocmask (Bug#9010).
+	sigprocmask is portable only for single-threaded applications, and
+	Emacs can be multi-threaded when it uses GTK.
+	* Makefile.in (LIB_PTHREAD_SIGMASK): New macro.
+	(LIBES): Use it.
+	* callproc.c (Fcall_process):
+	* process.c (create_process):
+	* sysdep.c (sys_sigblock, sys_sigunblock, sys_sigsetmask):
+	Use pthread_sigmask, not sigprocmask.
+
 2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (qttip_cb): Set line wrap to FALSE for tooltip widget.
