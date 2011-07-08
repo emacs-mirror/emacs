@@ -55,6 +55,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module pthread_sigmask:
   # Code from module readlink:
   # Code from module signal:
+  # Code from module sigprocmask:
   # Code from module socklen:
   # Code from module ssize_t:
   # Code from module stat:
@@ -142,7 +143,10 @@ if test $REPLACE_MKTIME = 1; then
 fi
 gl_TIME_MODULE_INDICATOR([mktime])
 gl_MULTIARCH
-gl_PTHREAD_SIGMASK
+gl_FUNC_PTHREAD_SIGMASK
+if test $HAVE_PTHREAD_SIGMASK = 0 || test $REPLACE_PTHREAD_SIGMASK = 1; then
+  AC_LIBOBJ([pthread_sigmask])
+fi
 gl_SIGNAL_MODULE_INDICATOR([pthread_sigmask])
 gl_FUNC_READLINK
 if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
@@ -184,6 +188,7 @@ AC_REQUIRE([AC_C_INLINE])
 gl_UNISTD_H
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
+  gl_gnulib_enabled_sigprocmask=false
   gl_gnulib_enabled_stat=false
   gl_gnulib_enabled_strtoull=false
   gl_gnulib_enabled_verify=false
@@ -199,6 +204,18 @@ gl_UNISTD_H
 AC_SUBST([LIBINTL])
 AC_SUBST([LTLIBINTL])
       gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=true
+    fi
+  }
+  func_gl_gnulib_m4code_sigprocmask ()
+  {
+    if ! $gl_gnulib_enabled_sigprocmask; then
+gl_SIGNALBLOCKING
+if test $HAVE_POSIX_SIGNALBLOCKING = 0; then
+  AC_LIBOBJ([sigprocmask])
+  gl_PREREQ_SIGPROCMASK
+fi
+gl_SIGNAL_MODULE_INDICATOR([sigprocmask])
+      gl_gnulib_enabled_sigprocmask=true
     fi
   }
   func_gl_gnulib_m4code_stat ()
@@ -246,7 +263,7 @@ gl_STDLIB_MODULE_INDICATOR([strtoull])
   if test $REPLACE_LSTAT = 1; then
     func_gl_gnulib_m4code_stat
   fi
-  if test $REPLACE_PTHREAD_SIGMASK = 1; then
+  if test $HAVE_PTHREAD_SIGMASK = 0 || test $REPLACE_PTHREAD_SIGMASK = 1; then
     func_gl_gnulib_m4code_sigprocmask
   fi
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
@@ -261,6 +278,7 @@ gl_STDLIB_MODULE_INDICATOR([strtoull])
   m4_pattern_allow([^gl_GNULIB_ENABLED_])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_dosname], [$gl_gnulib_enabled_dosname])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36], [$gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_sigprocmask], [$gl_gnulib_enabled_sigprocmask])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_stat], [$gl_gnulib_enabled_stat])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_strtoull], [$gl_gnulib_enabled_strtoull])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_verify], [$gl_gnulib_enabled_verify])
@@ -434,6 +452,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/md5.h
   lib/mktime-internal.h
   lib/mktime.c
+  lib/pthread_sigmask.c
   lib/readlink.c
   lib/sha1.c
   lib/sha1.h
@@ -442,6 +461,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sha512.c
   lib/sha512.h
   lib/signal.in.h
+  lib/sigprocmask.c
   lib/stat.c
   lib/stdarg.in.h
   lib/stdbool.in.h
@@ -485,6 +505,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/sha256.m4
   m4/sha512.m4
   m4/signal_h.m4
+  m4/signalblocking.m4
   m4/socklen.m4
   m4/ssize_t.m4
   m4/st_dm_mode.m4

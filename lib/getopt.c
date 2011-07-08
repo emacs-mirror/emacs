@@ -829,7 +829,7 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
         return '?';
       }
     /* Convenience. Treat POSIX -W foo same as long option --foo */
-    if (temp[0] == 'W' && temp[1] == ';' && longopts)
+    if (temp[0] == 'W' && temp[1] == ';')
       {
         char *nameend;
         const struct option *p;
@@ -838,6 +838,9 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
         int ambig = 0;
         int indfound = 0;
         int option_index;
+
+        if (longopts == NULL)
+          goto no_longs;
 
         /* This is an option that requires an argument.  */
         if (*d->__nextchar != '\0')
@@ -1046,8 +1049,10 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
               }
             return pfound->val;
           }
-          d->__nextchar = NULL;
-          return 'W';   /* Let the application handle it.   */
+
+      no_longs:
+        d->__nextchar = NULL;
+        return 'W';   /* Let the application handle it.   */
       }
     if (temp[1] == ':')
       {

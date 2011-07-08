@@ -984,6 +984,8 @@ fi
 
 # Suppress obsolescent Autoconf test for size_t; Emacs assumes C89 or better.
 AC_DEFUN([AC_TYPE_SIZE_T])
+# Likewise for obsolescent test for uid_t, gid_t; Emacs assumes them.
+AC_DEFUN([AC_TYPE_UID_T])
 
 dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
@@ -2725,11 +2727,6 @@ AC_FUNC_FSEEKO
 
 AC_FUNC_GETPGRP
 
-# Configure gnulib.
-gl_ASSERT_NO_GNULIB_POSIXCHECK
-gl_ASSERT_NO_GNULIB_TESTS
-gl_INIT
-
 # UNIX98 PTYs.
 AC_CHECK_FUNCS(grantpt)
 
@@ -3333,6 +3330,10 @@ AC_SUBST(CYGWIN_OBJ)
 AC_SUBST(PRE_ALLOC_OBJ)
 AC_SUBST(POST_ALLOC_OBJ)
 
+# Configure gnulib here, now that we know LIBS.
+gl_ASSERT_NO_GNULIB_POSIXCHECK
+gl_ASSERT_NO_GNULIB_TESTS
+gl_INIT
 
 case "$opsys" in
   aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;
