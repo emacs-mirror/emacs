@@ -352,16 +352,22 @@ ns_string_from_pasteboard (id pb)
       utfStr = [mstr UTF8String];
       length = [mstr lengthOfBytesUsingEncoding: NSUTF8StringEncoding];
 
+#if ! defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
       if (!utfStr) 
         {
           utfStr = [mstr cString];
           length = strlen (utfStr);
         }
+#endif
     }
   NS_HANDLER
     {
       message1 ("ns_string_from_pasteboard: UTF8String failed\n");
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
+      utfStr = "Conversion failed";
+#else
       utfStr = [str lossyCString];
+#endif
       length = strlen (utfStr);
     }
   NS_ENDHANDLER

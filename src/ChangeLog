@@ -1,5 +1,30 @@
 2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.m (keyDown): Call to wantsToDelayTextChangeNotifications and
+	variable firstTime not needed on OSX >= 10.6.
+	(setPosition): setFloatValue:knobProportion: is deprecated on OSX
+	>= 10.5.  Use setKnobProportion, setDoubleValue.
+
+	* nsterm.h (MAC_OS_X_VERSION_10_3, MAC_OS_X_VERSION_10_4)
+	(MAC_OS_X_VERSION_10_5): Define if not defined.
+	(EmacsView, EmacsTooltip): Implements NSWindowDelegate on OSX >= 10.6.
+	(EmacsMenu): Implements NSMenuDelegate on OSX >= 10.6.
+	(EmacsToolbar): Implements NSToolbarDelegate on OSX >= 10.6.
+
+	* nsselect.m (ns_string_from_pasteboard): Don't use deprecated methods
+	cString and lossyCString on OSX >= 10.4
+
+	* nsmenu.m (fillWithWidgetValue): Don't use depercated method
+	sizeToFit on OSX >= 10.2.
+
+	* nsimage.m (allocInitFromFile): Don't use deprecated method
+	bestRepresentationForDevice on OSX >= 10.6.
+
+	* nsfns.m (check_ns_display_info): Cast to long and use %ld in error
+	to avoid warning.
+
+	* emacs.c: Declare unexec_init_emacs_zone.
+
 	* nsgui.h: Fix compiler warning about gnulib redefining verify.
 
 	* nsselect.m (ns_get_local_selection): Change to extern (Bug#8842).

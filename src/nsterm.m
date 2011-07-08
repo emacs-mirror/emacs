@@ -4515,7 +4515,9 @@ ns_term_shutdown (int sig)
   unsigned fnKeysym = 0;
   int flags;
   static NSMutableArray *nsEvArray;
+#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
   static BOOL firstTime = YES;
+#endif
   int left_is_none;
 
   NSTRACE (keyDown);
@@ -4703,13 +4705,15 @@ ns_term_shutdown (int sig)
         }
     }
 
+  
+#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
   /* if we get here we should send the key for input manager processing */
   if (firstTime && [[NSInputManager currentInputManager]
                      wantsToDelayTextChangeNotifications] == NO)
     fprintf (stderr,
           "Emacs: WARNING: TextInput mgr wants marked text to be permanent!\n");
   firstTime = NO;
-
+#endif
   if (NS_KEYLOG && !processingCompose)
     fprintf (stderr, "keyDown: Begin compose sequence.\n");
 
@@ -6066,14 +6070,26 @@ ns_term_shutdown (int sig)
   em_whole = whole;
 
   if (portion >= whole)
-    [self setFloatValue: 0.0 knobProportion: 1.0];
+    {
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
+      [self setKnobProportion: 1.0];
+      [self setDoubleValue: 1.0];
+#else
+      [self setFloatValue: 0.0 knobProportion: 1.0];
+#endif
+    }
   else
     {
       float pos, por;
       portion = max ((float)whole*min_portion/pixel_height, portion);
       pos = (float)position / (whole - portion);
       por = (float)portion/whole;
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
+      [self setKnobProportion: por];
+      [self setDoubleValue: pos];
+#else
       [self setFloatValue: pos knobProportion: por];
+#endif
     }
   return self;
 }

@@ -695,8 +695,10 @@ set_frame_menubar (struct frame *f, int first_time, int deep_p)
   if ([[self window] isVisible])
     [self sizeToFit];
 #else
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_2
   if ([self supermenu] == nil)
     [self sizeToFit];
+#endif
 #endif
 }
 

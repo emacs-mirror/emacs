@@ -162,7 +162,7 @@ check_ns_display_info (Lisp_Object frame)
       struct terminal *t = get_terminal (frame, 1);
 
       if (t->type != output_ns)
-        error ("Terminal %d is not a Nextstep display", XINT (frame));
+        error ("Terminal %ld is not a Nextstep display", (long) XINT (frame));
 
       return t->display_info.ns;
     }
