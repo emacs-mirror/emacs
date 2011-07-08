@@ -1,3 +1,43 @@
+2011-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unidata/makefile.w32-in (charprop-SH, charprop-CMD):
+	Duplicate change in Makefile.in (revno:105007).
+
+2011-07-06  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/unidata-gen.el (unidata-dir): New variable.
+	(unidata-setup-list): Expand unidata-text-file in unidata-dir.
+	(unidata-prop-alist): INDEX element may be a function.  New
+	optional element VAL-LIST (for general-category and bidi-class).
+	New entry `mirroring'.
+	(unidata-prop-default, unidata-prop-val-list): New subst.
+	(unidata-get-character, unidata-put-character): Delete them.
+	(unidata-gen-table-character): New arg IGNORE.  Adjusted for the
+	above changes.
+	(unidata-get-symbol, unidata-get-integer, unidata-get-numeric)
+	(unidata-put-symbol, unidata-put-integer, unidata-put-numeric):
+	Delete them.
+	(unidata-encode-val): Assume that the first element of VAL-LIST is
+	a cons (nil . 0).
+	(unidata-gen-table): Change argument DEFAULT-VALUE to VAL-LIST.
+	Always store the encoded value.
+	(unidata-gen-table-symbol): New args DEFAULT-VALUE and VAL-LIST.
+	Set the 1st and the 2nd extra slots to index numbers for C
+	functions.
+	(unidata-gen-table-integer): Likewise.
+	(unidata-gen-table-numeric): Likewise.
+	(unidata-gen-table-name): New arg IGNORE.
+	(unidata-gen-table-decomposition): Likewise.
+	(unidata-describe-general-category): Add the case nil to the
+	description alist.
+	(unidata-gen-mirroring-list): New function.
+	(unidata-gen-files): New arg DATA-DIR.  Adjusted for the change of
+	unidata-prop-alist.  Handle the case of storing multiple
+	char-tables in a file.
+
+	* unidata/Makefile.in (${DSTDIR}/charprop.el): New arg to
+	unidata-gen-files.
+
 2011-05-21  Glenn Morris  <rgm@gnu.org>
 
 	* bzrmerge.el (bzrmerge-resolve): Suppress prompts about file-locals.
@@ -187,7 +227,7 @@
 	* unidata/BidiMirroring.txt: New file from
 	http://www.unicode.org/Public/6.0.0/ucd/BidiMirroring-6.0.0d1.txt.
 
-	* unidata/Makefile.in: (../../src/bidimirror.h): New target.
+	* unidata/Makefile.in (../../src/bidimirror.h): New target.
 	(all): Depend on ../../src/biditype.h and ../../src/bidimirror.h.
 
 	* unidata/makefile.w32-in (../../src/bidimirror.h): New target.
@@ -236,7 +276,7 @@
 
 	* quick-install-emacs: Use more portable shell syntax.
 
-	* quick-install-emacs: (AVOID): Be more picky about files we avoid
+	* quick-install-emacs (AVOID): Be more picky about files we avoid
 	installing.
 
 2010-02-14  Juanma Barranquero  <lekktu@gmail.com>

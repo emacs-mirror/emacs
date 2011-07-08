@@ -1,3 +1,131 @@
+2011-07-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/sendmail.el (sendmail-query-once): If we aren't allowed to
+	save customizations (with "emacs -Q"), just set the variable
+	instead of erroring out.
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Ditto.
+
+2011-07-08  Juri Linkov  <juri@jurta.org>
+
+	* arc-mode.el (archive-zip-expunge, archive-zip-update)
+	(archive-zip-update-case): Use 7z if found by `executable-find'.
+	The order of searching the available programs is the same as in
+	`archive-zip-extract' (bug#8968).
+
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-line-wrapping-menu): Revert last change.
+	(menu-bar-options-menu): Tweak descriptions.
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* menu-bar.el (menu-bar-line-wrapping-menu): Make all the Options
+	menu items into verb phrases (bug#1421).  Also refill to fit under
+	80 columns.
+
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.el (info, Info-read-node-name-2, Info-read-node-name-1)
+	(Info-read-node-name): Doc fix (Bug#1084).
+
+	* thingatpt.el (forward-thing, bounds-of-thing-at-point)
+	(thing-at-point, beginning-of-thing, end-of-thing, in-string-p)
+	(end-of-sexp, beginning-of-sexp)
+	(thing-at-point-bounds-of-list-at-point, forward-whitespace)
+	(forward-symbol, forward-same-syntax, word-at-point)
+	(sentence-at-point): Doc fix (Bug#1144).
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* info.el (Info-mode-map): Remove S-TAB binding, since [backtab]
+	should cover it (bug#1281).
+
+	* cus-edit.el (custom-show): Marked as obsolete.
+
+	* net/network-stream.el (network-stream-open-starttls): If gnutls
+	negotiation fails, then possibly try again with a non-encrypted
+	connection (bug#9017).
+
+	* mail/smtpmail.el (smtpmail-stream-type): Note that `plain' can
+	be used.
+
+2011-07-07  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-next-error-move): Use `compilation-message'
+	property, and handle its changed format.
+	Look for the correct line number.
+	Use file's line contents (but not past first =) to find
+	correct line in message.
+
+2011-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el (build-unicode-category-table):
+	Delete it.
+	(unicode-category-table): Set it by
+	unicode-prroperty-table-internal.
+
+	* international/mule-cmds.el (char-code-property-alist): Moved to
+	to src/chartab.c.
+	(get-char-code-property): Call unicode-property-table-internal to
+	load a file.  Call get-unicode-property-internal where necessary.
+	(put-char-code-property): Call unicode-property-table-internal to
+	load a file.  Call put-unicode-property-internal where necessary.
+	put-unicode-property-internal where necessary.
+	(char-code-property-description): Call
+	unicode-property-table-internal to load a file.
+
+	* international/charprop.el:
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-combining.el:
+	* international/uni-comment.el:
+	* international/uni-decimal.el:
+	* international/uni-decomposition.el:
+	* international/uni-digit.el:
+	* international/uni-lowercase.el:
+	* international/uni-mirrored.el:
+	* international/uni-name.el:
+	* international/uni-numeric.el:
+	* international/uni-old-name.el:
+	* international/uni-titlecase.el:
+	* international/uni-uppercase.el: Regenerate.
+
+	* loadup.el: Load international/charprop.el before
+	international/characters.
+
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (next-buffer, previous-buffer): Signal an error if
+	called from a minibuffer window.
+
+	* bindings.el: Revert 2011-07-04 change.
+
+2011-07-06  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-process): Use markers for buf positions.
+	(rmail-mime-insert-bulk, rmail-mime-insert-text):
+	Treat markers like ints.
+	(rmail-mime-entity): Doc fix.
+
+2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-default-smtp-server): Made into a
+	defcustom again for backwards compatibility.
+
+	* simple.el (shell-command-on-region): Fill.
+
+	* dired-aux.el (dired-kill-line): Add a doc string.
+
+	* dabbrev.el (dabbrev-abbrev-char-regexp): Note that nil defaults
+	to "\\sw\\|\\s_" (bug#358).
+
+	* dired.el (dired-mode): Clarify "unmark or unflag" (bug#8770).
+	(dired-unmark-backward): Ditto.
+	(dired-flag-backup-files): Ditto.
+
+	* dired-x.el (dired-mark-sexp): Ditto.
+
 2011-07-06  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmailmm.el: Give entity a new slot, TRUNCATED.

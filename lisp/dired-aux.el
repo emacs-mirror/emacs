@@ -699,6 +699,9 @@ can be produced by `dired-get-marked-files', for example."
 ;; Commands that delete or redisplay part of the dired buffer.
 
 (defun dired-kill-line (&optional arg)
+  "Kill the current line (not the files).
+With a prefix argument, kill that many lines starting with the current line.
+\(A negative argument kills backward.)"
   (interactive "P")
   (setq arg (prefix-numeric-value arg))
   (let (buffer-read-only file)

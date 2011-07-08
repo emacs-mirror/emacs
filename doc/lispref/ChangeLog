@@ -1,3 +1,16 @@
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* text.texi (Special Properties): Clarify the format of `face'
+	(bug#1375).
+
+	* commands.texi (Interactive Call): Add a `call-interactively'
+	example (bug#1010).
+
+2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* functions.texi (Calling Functions): Link to the "Interactive
+	Call" node (bug#1001).
+
 2011-07-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* customize.texi (Composite Types): Move alist and plist to here

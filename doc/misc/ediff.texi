@@ -334,18 +334,6 @@ Brings up Ediff session registry.  This feature enables you to quickly find
 and restart active Ediff sessions.
 @end table
 
-@noindent
-If you want Ediff to be loaded from the very beginning of your Emacs
-session, you should put this line in your @file{~/.emacs} file:
-
-@example
-(require 'ediff)
-@end example
-
-@noindent
-Otherwise, Ediff will be loaded automatically when you use one of the
-above functions, either directly or through the menus.
-
 When the above functions are invoked, the user is prompted for all the
 necessary information---typically the files or buffers to compare, merge, or
 patch.  Ediff tries to be smart about these prompts.  For instance, in

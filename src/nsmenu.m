@@ -457,7 +457,6 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
             {
               /* but we need to make sure it will update on demand */
               [svcsMenu setFrame: f];
-              [svcsMenu setDelegate: svcsMenu];
             }
           else
 #endif

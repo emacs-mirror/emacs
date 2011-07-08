@@ -1829,6 +1829,7 @@ item in another window.\n\n"))
 ;; We want simple widgets to be displayed by default, but complex
 ;; widgets to be hidden.
 
+;; This widget type is obsolete as of Emacs 24.1.
 (widget-put (get 'item 'widget-type) :custom-show t)
 (widget-put (get 'editable-field 'widget-type)
 	    :custom-show (lambda (_widget value)
@@ -2257,6 +2258,7 @@ and `face'."
 	     (setq widget nil)))))
   (widget-setup))
 
+(make-obsolete 'custom-show "this widget type is no longer supported." "24.1")
 (defun custom-show (widget value)
   "Non-nil if WIDGET should be shown with VALUE by default."
   (let ((show (widget-get widget :custom-show)))

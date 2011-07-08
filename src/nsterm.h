@@ -25,6 +25,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_NS
 
+#ifdef NS_IMPL_COCOA
+#ifndef MAC_OS_X_VERSION_10_6
+#define MAC_OS_X_VERSION_10_6 1060
+#endif
+#endif
+
 #ifdef __OBJC__
 
 /* ==========================================================================
@@ -700,6 +706,8 @@ extern void check_ns (void);
 extern Lisp_Object ns_map_event_to_object ();
 extern Lisp_Object ns_string_from_pasteboard ();
 extern void ns_string_to_pasteboard ();
+extern Lisp_Object ns_get_local_selection (Lisp_Object selection_name,
+                                           Lisp_Object target_type);
 extern void nxatoms_of_nsselect ();
 extern int ns_lisp_to_cursor_type ();
 extern Lisp_Object ns_cursor_type_to_lisp (int arg);

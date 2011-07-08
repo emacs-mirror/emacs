@@ -175,7 +175,7 @@ ns_string_to_pasteboard_internal (id pb, Lisp_Object str, NSString *gtype)
 }
 
 
-static Lisp_Object
+Lisp_Object
 ns_get_local_selection (Lisp_Object selection_name,
                        Lisp_Object target_type)
 {

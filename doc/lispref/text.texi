@@ -2978,8 +2978,7 @@ character.
 You can use the property @code{face} to control the font and color of
 text.  @xref{Faces}, for more information.
 
-In the simplest case, the value is a face name.  It can also be a list;
-then each element can be any of these possibilities;
+@code{face} can be the following:
 
 @itemize @bullet
 @item
@@ -2994,8 +2993,8 @@ time you want to specify a particular attribute for certain text.
 @xref{Face Attributes}.
 @end itemize
 
-It works to use the latter two forms directly as the value
-of the @code{face} property.
+@code{face} can also be a list, where each element uses one of the
+forms listed above.
 
 Font Lock mode (@pxref{Font Lock Mode}) works in most buffers by
 dynamically updating the @code{face} property of characters based on

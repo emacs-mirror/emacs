@@ -33,24 +33,25 @@
 ;;
 ;;   charprop.el
 ;;	It contains a series of forms of this format:
-;;	  (char-code-property-register PROP FILE)
+;;	  (define-char-code-property PROP FILE)
 ;;	where PROP is a symbol representing a character property
-;;	(name, generic-category, etc), and FILE is a name of one of
+;;	(name, general-category, etc), and FILE is a name of one of
 ;;	the following files.
 ;;
 ;;   uni-name.el, uni-category.el, uni-combining.el, uni-bidi.el,
 ;;   uni-decomposition.el, uni-decimal.el, uni-digit.el, uni-numeric.el,
 ;;   uni-mirrored.el, uni-old-name.el, uni-comment.el, uni-uppercase.el,
 ;;   uni-lowercase.el, uni-titlecase.el
-;;	They each contain a single form of this format:
-;;	  (char-code-property-register PROP CHAR-TABLE)
+;;	They contain one or more forms of this format:
+;;	  (define-char-code-property PROP CHAR-TABLE)
 ;;	where PROP is the same as above, and CHAR-TABLE is a
 ;;	char-table containing property values in a compressed format.
 ;;
 ;;   When they are installed in .../lisp/international/, the file
 ;;   "charprop.el" is preloaded in loadup.el.  The other files are
-;;   automatically loaded when the functions `get-char-code-property'
-;;   and `put-char-code-property' are called.
+;;   automatically loaded when the Lisp functions
+;;   `get-char-code-property' and `put-char-code-property', and C
+;;   function uniprop_table are called.
 ;;
 ;; FORMAT OF A CHAR TABLE
 ;;
@@ -62,17 +63,22 @@
 ;;   data in a char-table as below.
 ;;
 ;;   If succeeding 128*N characters have the same property value, we
-;;   store that value for them.  Otherwise, compress values for
-;;   succeeding 128 characters into a single string and store it as a
-;;   value for those characters.  The way of compression depends on a
-;;   property.  See the section "SIMPLE TABLE", "RUN-LENGTH TABLE",
-;;   and "WORD-LIST TABLE".
+;;   store that value (or the encoded one) for them.  Otherwise,
+;;   compress values (or the encoded ones) for succeeding 128
+;;   characters into a single string and store it for those
+;;   characters.  The way of compression depends on a property.  See
+;;   the section "SIMPLE TABLE", "RUN-LENGTH TABLE", and "WORD-LIST
+;;   TABLE".
 
-;;   The char table has four extra slots:
+;;   The char table has five extra slots:
 ;;      1st: property symbol
-;;	2nd: function to call to get a property value
-;;	3nd: function to call to put a property value
-;;	4th: function to call to get a description of a property value
+;;	2nd: function to call to get a property value,
+;;	     or an index number of C function to decode the value,
+;;	     or nil if the value can be directly got from the table.
+;;	3nd: function to call to put a property value,
+;;	     or an index number of C function to encode the value,
+;;	     or nil if the value can be directly stored in the table.
+;;	4th: function to call to get a description of a property value, or nil
 ;;	5th: data referred by the above functions
 
 ;; List of elements of this form:
@@ -82,6 +88,11 @@
 
 (defvar unidata-list nil)
 
+;; Name of the directory containing files of Unicode Character
+;; Database.
+
+(defvar unidata-dir nil)
+
 (defun unidata-setup-list (unidata-text-file)
   (let* ((table (list nil))
 	 (tail table)
@@ -90,6 +101,7 @@
 			("^<.*Surrogate" . nil)
 			("^<.*Private Use" . PRIVATE\ USE)))
 	 val char name)
+    (setq unidata-text-file (expand-file-name unidata-text-file unidata-dir))
     (or (file-readable-p unidata-text-file)
 	(error "File not readable: %s" unidata-text-file))
     (with-temp-buffer
@@ -134,12 +146,17 @@
     (setq unidata-list (cdr table))))
 
 ;; Alist of this form:
-;;   (PROP INDEX GENERATOR FILENAME)
+;;   (PROP INDEX GENERATOR FILENAME DOCSTRING DESCRIBER VAL-LIST)
 ;; PROP: character property
-;; INDEX: index to each element of unidata-list for PROP
+;; INDEX: index to each element of unidata-list for PROP.
+;;   It may be a function that generates an alist of character codes
+;;   vs. the corresponding property values.
 ;; GENERATOR: function to generate a char-table
 ;; FILENAME: filename to store the char-table
+;; DOCSTRING: docstring for the property
 ;; DESCRIBER: function to call to get a description string of property value
+;; DEFAULT: the default value of the property
+;; VAL-LIST: list of specially ordered property values
 
 (defconst unidata-prop-alist
   '((name
@@ -152,7 +169,12 @@ Property value is a string.")
 Property value is one of the following symbols:
   Lu, Ll, Lt, Lm, Lo, Mn, Mc, Me, Nd, Nl, No, Pc, Pd, Ps, Pe, Pi, Pf, Po,
   Sm, Sc, Sk, So, Zs, Zl, Zp, Cc, Cf, Cs, Co, Cn"
-     unidata-describe-general-category)
+     unidata-describe-general-category
+     nil
+     ;; The order of elements must be in sync with unicode_category_t
+     ;; in src/character.h.
+     (Lu Ll Lt Lm Lo Mn Mc Me Nd Nl No Pc Pd Ps Pe Pi Pf Po
+	 Sm Sc Sk So Zs Zl Zp Cc Cf Cs Co Cn))
     (canonical-combining-class
      3 unidata-gen-table-integer "uni-combining.el"
      "Unicode canonical combining class.
@@ -164,7 +186,11 @@ Property value is an integer."
 Property value is one of the following symbols:
   L, LRE, LRO, R, AL, RLE, RLO, PDF, EN, ES, ET,
   AN, CS, NSM, BN, B, S, WS, ON"
-     unidata-describe-bidi-class)
+     unidata-describe-bidi-class
+     L
+     ;; The order of elements must be in sync with bidi_type_t in
+     ;; src/dispextern.h.
+     (L R EN AN BN B AL LRE LRO RLE RLO PDF ES ET CS NSM S WS ON))
     (decomposition
      5 unidata-gen-table-decomposition "uni-decomposition.el"
      "Unicode decomposition mapping.
@@ -188,7 +214,7 @@ Property value is an integer or a floating point.")
     (mirrored
      9 unidata-gen-table-symbol "uni-mirrored.el"
      "Unicode bidi mirrored flag.
-Property value is a symbol `Y' or `N'.")
+Property value is a symbol `Y' or `N'.  See also the property `mirroring'.")
     (old-name
      10 unidata-gen-table-name "uni-old-name.el"
      "Unicode old names as published in Unicode 1.0.
@@ -211,7 +237,12 @@ Property value is a character."
      14 unidata-gen-table-character "uni-titlecase.el"
      "Unicode simple titlecase mapping.
 Property value is a character."
-     string)))
+     string)
+    (mirroring
+     unidata-gen-mirroring-list unidata-gen-table-character "uni-mirrored.el"
+     "Unicode bidi-mirroring characters.
+Property value is a character that has the corresponding mirroring image,
+or nil for non-mirrored character.")))
 
 ;; Functions to access the above data.
 (defsubst unidata-prop-index (prop) (nth 1 (assq prop unidata-prop-alist)))
@@ -219,6 +250,8 @@ Property value is a character."
 (defsubst unidata-prop-file (prop) (nth 3 (assq prop unidata-prop-alist)))
 (defsubst unidata-prop-docstring (prop) (nth 4 (assq prop unidata-prop-alist)))
 (defsubst unidata-prop-describer (prop) (nth 5 (assq prop unidata-prop-alist)))
+(defsubst unidata-prop-default (prop) (nth 6 (assq prop unidata-prop-alist)))
+(defsubst unidata-prop-val-list (prop) (nth 7 (assq prop unidata-prop-alist)))
 
 
 ;; SIMPLE TABLE
@@ -227,52 +260,34 @@ Property value is a character."
 ;; values of succeeding character codes are usually different, we use
 ;; a char-table described here to store such values.
 ;;
-;; If succeeding 128 characters has no property, a char-table has the
-;; symbol t for them.  Otherwise a char-table has a string of the
-;; following format for them.
+;; A char-table divides character code space (#x0..#x3FFFFF) into
+;; #x8000 blocks (each block contains 128 characters).
+
+;; If all characters of a block have no property, a char-table has the
+;; symbol nil for that block.  Otherwise a char-table has a string of
+;; the following format for it.
 ;;
-;; The first character of the string is FIRST-INDEX.
-;; The Nth (N > 0) character of the string is a property value of the
-;; character (BLOCK-HEAD + FIRST-INDEX + N - 1), where BLOCK-HEAD is
-;; the first of the characters in the block.
+;; The first character of the string is ?\001.
+;; The second character of the string is FIRST-INDEX.
+;; The Nth (N > 1) character of the string is a property value of the
+;; character (BLOCK-HEAD + FIRST-INDEX + N - 2), where BLOCK-HEAD is
+;; the first character of the block.
 ;;
-;; The 4th extra slot of a char-table is nil.
+;; This kind of char-table has these extra slots:
+;;   1st: the property symbol
+;;   2nd: nil
+;;   3rd: 0 (corresponding to uniprop_encode_character in chartab.c)
+;;   4th to 5th: nil
 
-(defun unidata-get-character (char val table)
-  (cond
-   ((characterp val)
-    val)
-
-   ((stringp val)
-    (let* ((len (length val))
-	   (block-head (lsh (lsh char -7) 7))
-	   (vec (make-vector 128 nil))
-	   (first-index (aref val 0)))
-      (dotimes (i (1- len))
-	(let ((elt (aref val (1+ i))))
-	  (if (> elt 0)
-	      (aset vec (+ first-index i) elt))))
-      (dotimes (i 128)
-	(aset table (+ block-head i) (aref vec i)))
-      (aref vec (- char block-head))))))
-
-(defun unidata-put-character (char val table)
-  (or (characterp val)
-      (not val)
-      (error "Not a character nor nil: %S" val))
-  (let ((current-val (aref table char)))
-    (unless (eq current-val val)
-      (if (stringp current-val)
-	  (funcall (char-table-extra-slot table 1) char current-val table))
-      (aset table char val))))
-
-(defun unidata-gen-table-character (prop)
+(defun unidata-gen-table-character (prop &rest ignore)
   (let ((table (make-char-table 'char-code-property-table))
 	(prop-idx (unidata-prop-index prop))
 	(vec (make-vector 128 0))
 	(tail unidata-list)
 	elt range val idx slot)
-    (set-char-table-range table (cons 0 (max-char)) t)
+    (if (functionp prop-idx)
+	(setq tail (funcall prop-idx)
+	      prop-idx 1))
     (while tail
       (setq elt (car tail) tail (cdr tail))
       (setq range (car elt)
@@ -301,7 +316,7 @@ Property value is a character."
 		  (setq first-index last-index)))
 	    (setq tail (cdr tail)))
 	  (when first-index
-	    (let ((str (string first-index))
+	    (let ((str (string 1 first-index))
 		  c)
 	      (while (<= first-index last-index)
 		(setq str (format "%s%c"  str (or (aref vec first-index) 0))
@@ -309,184 +324,78 @@ Property value is a character."
 	      (set-char-table-range table (cons start limit) str))))))
 
     (set-char-table-extra-slot table 0 prop)
-    (byte-compile 'unidata-get-character)
-    (byte-compile 'unidata-put-character)
-    (set-char-table-extra-slot table 1 (symbol-function 'unidata-get-character))
-    (set-char-table-extra-slot table 2 (symbol-function 'unidata-put-character))
-
+    (set-char-table-extra-slot table 2 0)
     table))
 
 
 
 ;; RUN-LENGTH TABLE
 ;;
-;; If the type of character property value is symbol, integer,
-;; boolean, or character, we use a char-table described here to store
-;; the values.
+;; If many characters of successive character codes have the same
+;; property value, we use a char-table described here to store the
+;; values.
 ;;
-;; The 4th extra slot is a vector of property values (VAL-TABLE), and
-;; values for succeeding 128 characters are encoded into this
-;; character sequence:
+;; At first, instead of a value itself, we store an index number to
+;; the VAL-TABLE (5th extra slot) in the table.  We call that index
+;; number as VAL-CODE here after.
+;;
+;; A char-table divides character code space (#x0..#x3FFFFF) into
+;; #x8000 blocks (each block contains 128 characters).
+;;
+;; If all characters of a block have the same value, a char-table has
+;; VAL-CODE for that block.  Otherwise a char-table has a string of
+;; the following format for that block.
+;;
+;; The first character of the string is ?\002.
+;; The following characters has this form:
 ;;   ( VAL-CODE RUN-LENGTH ? ) +
 ;; where:
-;;   VAL-CODE (0..127):
-;;     (VAL-CODE - 1) is an index into VAL-TABLE.
-;;     The value 0 means no-value.
+;;   VAL-CODE (0..127): index into VAL-TABLE.
 ;;   RUN-LENGTH (130..255):
 ;;     (RUN-LENGTH - 128) specifies how many characters have the same
 ;;     value.  If omitted, it means 1.
-
-
-;; Return a symbol-type character property value of CHAR.  VAL is the
-;; current value of (aref TABLE CHAR).
-
-(defun unidata-get-symbol (char val table)
-  (let ((val-table (char-table-extra-slot table 4)))
-    (cond ((symbolp val)
-	   val)
-	  ((stringp val)
-	   (let ((first-char (lsh (lsh char -7) 7))
-		 (str val)
-		 (len (length val))
-		 (idx 0)
-		 this-val count)
-	     (set-char-table-range table (cons first-char (+ first-char 127))
-				   nil)
-	     (while (< idx len)
-	       (setq val (aref str idx) idx (1+ idx)
-		     count (if (< idx len) (aref str idx) 1))
-	       (setq val (and (> val 0) (aref val-table (1- val)))
-		     count (if (< count 128)
-			       1
-			     (prog1 (- count 128) (setq idx (1+ idx)))))
-	       (dotimes (i count)
-		 (if val
-		     (aset table first-char val))
-		 (if (= first-char char)
-		     (setq this-val val))
-		 (setq first-char (1+ first-char))))
-	     this-val))
-	  ((> val 0)
-	   (aref val-table (1- val))))))
-
-;; Return a integer-type character property value of CHAR.  VAL is the
-;; current value of (aref TABLE CHAR).
-
-(defun unidata-get-integer (char val table)
-  (let ((val-table (char-table-extra-slot table 4)))
-    (cond ((integerp val)
-	   val)
-	  ((stringp val)
-	   (let ((first-char (lsh (lsh char -7) 7))
-		 (str val)
-		 (len (length val))
-		 (idx 0)
-		 this-val count)
-	     (while (< idx len)
-	       (setq val (aref str idx) idx (1+ idx)
-		     count (if (< idx len) (aref str idx) 1))
-	       (setq val (and (> val 0) (aref val-table (1- val)))
-		     count (if (< count 128)
-			       1
-			     (prog1 (- count 128) (setq idx (1+ idx)))))
-	       (dotimes (i count)
-		 (aset table first-char val)
-		 (if (= first-char char)
-		     (setq this-val val))
-		 (setq first-char (1+ first-char))))
-	     this-val)))))
-
-;; Return a numeric-type (integer or float) character property value
-;; of CHAR.  VAL is the current value of (aref TABLE CHAR).
-
-(defun unidata-get-numeric (char val table)
-  (cond
-   ((numberp val)
-    val)
-   ((stringp val)
-    (let ((val-table (char-table-extra-slot table 4))
-	  (first-char (lsh (lsh char -7) 7))
-	  (str val)
-	  (len (length val))
-	  (idx 0)
-	  this-val count)
-      (while (< idx len)
-	(setq val (aref str idx) idx (1+ idx)
-	      count (if (< idx len) (aref str idx) 1))
-	(setq val (and (> val 0) (aref val-table (1- val)))
-	      count (if (< count 128)
-			1
-		      (prog1 (- count 128) (setq idx (1+ idx)))))
-	(dotimes (i count)
-	  (aset table first-char val)
-	  (if (= first-char char)
-	      (setq this-val val))
-	  (setq first-char (1+ first-char))))
-      this-val))))
-
-;; Store VAL (symbol) as a character property value of CHAR in TABLE.
-
-(defun unidata-put-symbol (char val table)
-  (or (symbolp val)
-      (error "Not a symbol: %S" val))
-  (let ((current-val (aref table char)))
-    (unless (eq current-val val)
-      (if (stringp current-val)
-	  (funcall (char-table-extra-slot table 1) char current-val table))
-      (aset table char val))))
-
-;; Store VAL (integer) as a character property value of CHAR in TABLE.
-
-(defun unidata-put-integer (char val table)
-  (or (integerp val)
-      (not val)
-      (error "Not an integer nor nil: %S" val))
-  (let ((current-val (aref table char)))
-    (unless (eq current-val val)
-      (if (stringp current-val)
-	  (funcall (char-table-extra-slot table 1) char current-val table))
-      (aset table char val))))
-
-;; Store VAL (integer or float) as a character property value of CHAR
-;; in TABLE.
-
-(defun unidata-put-numeric (char val table)
-  (or (numberp val)
-      (not val)
-      (error "Not a number nor nil: %S" val))
-  (let ((current-val (aref table char)))
-    (unless (equal current-val val)
-      (if (stringp current-val)
-	  (funcall (char-table-extra-slot table 1) char current-val table))
-      (aset table char val))))
+;;
+;; This kind of char-table has these extra slots:
+;;   1st: the property symbol
+;;   2nd: 0 (corresponding to uniprop_decode_value in chartab.c)
+;;   3rd: 1..3 (corresponding to uniprop_encode_xxx in chartab.c)
+;;   4th: function or nil
+;;   5th: VAL-TABLE
 
 ;; Encode the character property value VAL into an integer value by
 ;; VAL-LIST.  By side effect, VAL-LIST is modified.
 ;; VAL-LIST has this form:
-;;   (t (VAL1 . VAL-CODE1) (VAL2 . VAL-CODE2) ...)
-;; If VAL is one of VALn, just return VAL-CODEn.  Otherwise,
-;; VAL-LIST is modified to this:
-;;   (t (VAL . (1+ VAL-CODE1)) (VAL1 . VAL-CODE1) (VAL2 . VAL-CODE2) ...)
+;;   ((nil . 0) (VAL1 . 1) (VAL2 . 2) ...)
+;; If VAL is one of VALn, just return n.
+;; Otherwise, VAL-LIST is modified to this:
+;;   ((nil . 0) (VAL1 . 1) (VAL2 . 2) ... (VAL . n+1))
 
 (defun unidata-encode-val (val-list val)
   (let ((slot (assoc val val-list))
 	val-code)
     (if slot
 	(cdr slot)
-      (setq val-code (if (cdr val-list) (1+ (cdr (nth 1 val-list))) 1))
-      (setcdr val-list (cons (cons val val-code) (cdr val-list)))
+      (setq val-code (length val-list))
+      (nconc val-list (list (cons val val-code)))
       val-code)))
 
 ;; Generate a char-table for the character property PROP.
 
-(defun unidata-gen-table (prop val-func default-value)
+(defun unidata-gen-table (prop val-func default-value val-list)
   (let ((table (make-char-table 'char-code-property-table))
 	(prop-idx (unidata-prop-index prop))
-	(val-list (list t))
 	(vec (make-vector 128 0))
 	tail elt range val val-code idx slot
 	prev-range-data)
-    (set-char-table-range table (cons 0 (max-char)) default-value)
+    (setq val-list (cons nil (copy-sequence val-list)))
+    (setq tail val-list val-code 0)
+    ;; Convert (nil A B ...) to ((nil . 0) (A . 1) (B . 2) ...)
+    (while tail
+      (setcar tail (cons (car tail) val-code))
+      (setq tail (cdr tail) val-code (1+ val-code)))
+    (setq default-value (unidata-encode-val val-list default-value))
+    (set-char-table-range table t default-value)
+    (set-char-table-range table nil default-value)
     (setq tail unidata-list)
     (while tail
       (setq elt (car tail) tail (cdr tail))
@@ -495,7 +404,7 @@ Property value is a character."
       (setq val-code (if val (unidata-encode-val val-list val)))
       (if (consp range)
 	  (when val-code
-	    (set-char-table-range table range val)
+	    (set-char-table-range table range val-code)
 	    (let ((from (car range)) (to (cdr range)))
 	      ;; If RANGE doesn't end at the char-table boundary (each
 	      ;; 128 characters), we may have to carry over the data
@@ -534,7 +443,7 @@ Property value is a character."
 	    (if val-code
 		(aset vec (- range start) val-code))
 	    (setq tail (cdr tail)))
-	  (setq str "" val-code -1 count 0)
+	  (setq str "\002" val-code -1 count 0)
 	  (mapc #'(lambda (x)
 		    (if (= val-code x)
 			(setq count (1+ count))
@@ -549,7 +458,7 @@ Property value is a character."
 		vec)
 	  (if (= count 128)
 	      (if val
-		  (set-char-table-range table (cons start limit) val))
+		  (set-char-table-range table (cons start limit) val-code))
 	    (if (= val-code 0)
 		(set-char-table-range table (cons start limit) str)
 	      (if (> count 2)
@@ -559,34 +468,29 @@ Property value is a character."
 		  (setq str (concat str (string val-code)))))
 	      (set-char-table-range table (cons start limit) str))))))
 
-    (setq val-list (nreverse (cdr val-list)))
     (set-char-table-extra-slot table 0 prop)
     (set-char-table-extra-slot table 4 (vconcat (mapcar 'car val-list)))
     table))
 
-(defun unidata-gen-table-symbol (prop)
+(defun unidata-gen-table-symbol (prop default-value val-list)
   (let ((table (unidata-gen-table prop
 				  #'(lambda (x) (and (> (length x) 0)
 						     (intern x)))
-				  0)))
-    (byte-compile 'unidata-get-symbol)
-    (byte-compile 'unidata-put-symbol)
-    (set-char-table-extra-slot table 1 (symbol-function 'unidata-get-symbol))
-    (set-char-table-extra-slot table 2 (symbol-function 'unidata-put-symbol))
+				  default-value val-list)))
+    (set-char-table-extra-slot table 1 0)
+    (set-char-table-extra-slot table 2 1)
     table))
 
-(defun unidata-gen-table-integer (prop)
+(defun unidata-gen-table-integer (prop default-value val-list)
   (let ((table (unidata-gen-table prop
 				  #'(lambda (x) (and (> (length x) 0)
 						     (string-to-number x)))
-				  t)))
-    (byte-compile 'unidata-get-integer)
-    (byte-compile 'unidata-put-integer)
-    (set-char-table-extra-slot table 1 (symbol-function 'unidata-get-integer))
-    (set-char-table-extra-slot table 2 (symbol-function 'unidata-put-integer))
+				  default-value val-list)))
+    (set-char-table-extra-slot table 1 0)
+    (set-char-table-extra-slot table 2 1)
     table))
 
-(defun unidata-gen-table-numeric (prop)
+(defun unidata-gen-table-numeric (prop default-value val-list)
   (let ((table (unidata-gen-table prop
 				  #'(lambda (x)
 				      (if (string-match "/" x)
@@ -595,11 +499,9 @@ Property value is a character."
 					      (substring x (match-end 0))))
 					(if (> (length x) 0)
 					    (string-to-number x))))
-				  t)))
-    (byte-compile 'unidata-get-numeric)
-    (byte-compile 'unidata-put-numeric)
-    (set-char-table-extra-slot table 1 (symbol-function 'unidata-get-numeric))
-    (set-char-table-extra-slot table 2 (symbol-function 'unidata-put-numeric))
+				  default-value val-list)))
+    (set-char-table-extra-slot table 1 0)
+    (set-char-table-extra-slot table 2 2)
     table))
 
 
@@ -892,7 +794,6 @@ Property value is a character."
 	word-table
 	block-list block-word-table block-end
 	tail elt range val idx slot)
-    (set-char-table-range table (cons 0 (max-char)) 0)
     (setq tail unidata-list)
     (setq block-end -1)
     (while tail
@@ -1025,7 +926,7 @@ Property value is a character."
 		      idx (1+ i)))))
 	(nreverse (cons (intern (substring str idx)) l))))))
 
-(defun unidata-gen-table-name (prop)
+(defun unidata-gen-table-name (prop &rest ignore)
   (let* ((table (unidata-gen-table-word-list prop 'unidata-split-name))
 	 (word-tables (char-table-extra-slot table 4)))
     (byte-compile 'unidata-get-name)
@@ -1064,7 +965,7 @@ Property value is a character."
 	(nreverse l)))))
 
 
-(defun unidata-gen-table-decomposition (prop)
+(defun unidata-gen-table-decomposition (prop &rest ignore)
   (let* ((table (unidata-gen-table-word-list prop 'unidata-split-decomposition))
 	 (word-tables (char-table-extra-slot table 4)))
     (byte-compile 'unidata-get-decomposition)
@@ -1080,7 +981,8 @@ Property value is a character."
 
 (defun unidata-describe-general-category (val)
   (cdr (assq val
-	     '((Lu . "Letter, Uppercase")
+	     '((nil . "Uknown")
+	       (Lu . "Letter, Uppercase")
 	       (Ll . "Letter, Lowercase")
 	       (Lt . "Letter, Titlecase")
 	       (Lm . "Letter, Modifier")
@@ -1171,6 +1073,19 @@ Property value is a character."
 		 (string ?'))))
    val " "))
 
+(defun unidata-gen-mirroring-list ()
+  (let ((head (list nil))
+	tail)
+    (with-temp-buffer
+      (insert-file-contents (expand-file-name "BidiMirroring.txt" unidata-dir))
+      (goto-char (point-min))
+      (setq tail head)
+      (while (re-search-forward "^\\([0-9A-F]+\\);\\s +\\([0-9A-F]+\\)" nil t)
+	(let ((char (string-to-number (match-string 1) 16))
+	      (mirror (match-string 2)))
+	  (setq tail (setcdr tail (list (list char mirror)))))))
+    (cdr head)))
+
 ;; Verify if we can retrieve correct values from the generated
 ;; char-tables.
 
@@ -1212,13 +1127,21 @@ Property value is a character."
 ;; The entry function.  It generates files described in the header
 ;; comment of this file.
 
-(defun unidata-gen-files (&optional unidata-text-file)
-  (or unidata-text-file
-      (setq unidata-text-file (car command-line-args-left)
+(defun unidata-gen-files (&optional data-dir unidata-text-file)
+  (or data-dir
+      (setq data-dir (car command-line-args-left)
+	    command-line-args-left (cdr command-line-args-left)
+	    unidata-text-file (car command-line-args-left)
 	    command-line-args-left (cdr command-line-args-left)))
-  (unidata-setup-list unidata-text-file)
   (let ((coding-system-for-write 'utf-8-unix)
-	(charprop-file "charprop.el"))
+	(charprop-file "charprop.el")
+	(unidata-dir data-dir))
+    (dolist (elt unidata-prop-alist)
+      (let* ((prop (car elt))
+	     (file (unidata-prop-file prop)))
+	(if (file-exists-p file)
+	    (delete-file file))))
+    (unidata-setup-list unidata-text-file)
     (with-temp-file charprop-file
       (insert ";; Automatically generated by unidata-gen.el.\n")
       (dolist (elt unidata-prop-alist)
@@ -1227,31 +1150,41 @@ Property value is a character."
 	       (file (unidata-prop-file prop))
 	       (docstring (unidata-prop-docstring prop))
 	       (describer (unidata-prop-describer prop))
+	       (default-value (unidata-prop-default prop))
+	       (val-list (unidata-prop-val-list prop))
 	       table)
 	  ;; Filename in this comment line is extracted by sed in
 	  ;; Makefile.
 	  (insert (format ";; FILE: %s\n" file))
 	  (insert (format "(define-char-code-property '%S %S\n  %S)\n"
 			  prop file docstring))
-	  (with-temp-file file
+	  (with-temp-buffer
 	    (message "Generating %s..." file)
-	    (setq table (funcall generator prop))
+	    (when (file-exists-p file)
+	      (insert-file-contents file)
+	      (goto-char (point-max))
+	      (search-backward ";; Local Variables:"))
+	    (setq table (funcall generator prop default-value val-list))
 	    (when describer
 	      (unless (subrp (symbol-function describer))
 		(byte-compile describer)
 		(setq describer (symbol-function describer)))
 	      (set-char-table-extra-slot table 3 describer))
-	    (insert ";; Copyright (C) 1991-2009 Unicode, Inc.
-;; This file was generated from the Unicode data file at
-;; http://www.unicode.org/Public/UNIDATA/UnicodeData.txt.
-;; See lisp/international/README for the copyright and permission notice.\n"
-		    (format "(define-char-code-property '%S %S %S)\n"
-			    prop table docstring)
-		    ";; Local Variables:\n"
-		    ";; coding: utf-8\n"
-		    ";; no-byte-compile: t\n"
-		    ";; End:\n\n"
-		    (format ";; %s ends here\n" file)))))
+	    (if (bobp)
+		(insert ";; Copyright (C) 1991-2009 Unicode, Inc.
+;; This file was generated from the Unicode data files at
+;; http://www.unicode.org/Public/UNIDATA/.
+;; See lisp/international/README for the copyright and permission notice.\n"))
+	    (insert (format "(define-char-code-property '%S %S %S)\n"
+			    prop table docstring))
+	    (if (eobp)
+		(insert ";; Local Variables:\n"
+			";; coding: utf-8\n"
+			";; no-byte-compile: t\n"
+			";; End:\n\n"
+			(format ";; %s ends here\n" file)))
+	    (write-file file)
+	    (message "Generating %s...done" file))))
       (message "Writing %s..." charprop-file)
       (insert ";; Local Variables:\n"
 	      ";; coding: utf-8\n"

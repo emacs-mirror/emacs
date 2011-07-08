@@ -193,8 +193,8 @@ has these values:
   raw: displayed by the raw MIME data (for the header and body only)
 
 HEADER and BODY are vectors [BEG END DISPLAY-FLAG], where BEG and
-END specify the region of the header or body lines in RMAIL's
-data (mbox) buffer, and DISPLAY-FLAG non-nil means that the
+END are markers that specify the region of the header or body lines
+in RMAIL's data (mbox) buffer, and DISPLAY-FLAG non-nil means that the
 header or body is, by default, displayed by the decoded
 presentation form.
 
@@ -547,7 +547,7 @@ HEADER is a header component of a MIME-entity object (see
 	(beg (point))
 	(segment (rmail-mime-entity-segment (point) entity)))
 
-    (or (integerp (aref body 0))
+    (or (integerp (aref body 0)) (markerp (aref body 0))
 	(let ((data (buffer-string)))
 	  (aset body 0 data)
 	  (delete-region (point-min) (point-max))))
@@ -704,7 +704,7 @@ directly."
 	 (segment (rmail-mime-entity-segment (point) entity))
 	 beg data size)
 
-    (if (integerp (aref body 0))
+    (if (or (integerp (aref body 0)) (markerp (aref body 0)))
 	(setq data entity
 	      size (car bulk-data))
       (if (stringp (aref body 0))
@@ -1129,9 +1129,10 @@ modified."
 
     (if parse-tag
 	(let* ((is-inline (string= (car content-disposition) "inline"))
-	       (header (vector (point-min) end nil))
+	       (hdr-end (copy-marker end))
+	       (header (vector (point-min-marker) hdr-end nil))
 	       (tagline (vector parse-tag (cons nil nil) t))
-	       (body (vector end (point-max) is-inline))
+	       (body (vector hdr-end (point-max-marker) is-inline))
 	       (new (vector (aref header 2) (aref tagline 2) (aref body 2)))
 	       children handler entity)
 	  (cond ((string-match "multipart/.*" (car content-type))
@@ -1180,11 +1181,11 @@ modified."
       ;; Hide headers and handle the part.
       (put-text-property (point-min) (point-max) 'rmail-mime-entity
 			 (rmail-mime-entity
-			 content-type content-disposition
-			 content-transfer-encoding
-			 (vector (vector 'raw nil 'raw) (vector 'raw nil 'raw))
-			 (vector nil nil 'raw) (vector "" (cons nil nil) nil)
-			 (vector nil nil 'raw) nil nil))
+			  content-type content-disposition
+			  content-transfer-encoding
+			  (vector (vector 'raw nil 'raw) (vector 'raw nil 'raw))
+			  (vector nil nil 'raw) (vector "" (cons nil nil) nil)
+			  (vector nil nil 'raw) nil nil))
       (save-restriction
 	(cond ((string= (car content-type) "message/rfc822")
 	       (narrow-to-region end (point-max)))

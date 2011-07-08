@@ -216,10 +216,10 @@ Archive and member name will be added."
 ;; Zip archive configuration
 
 (defcustom archive-zip-extract
-  (cond ((executable-find "unzip") '("unzip" "-qq" "-c"))
-	((executable-find "7z") '("7z" "x" "-so"))
+  (cond ((executable-find "unzip")   '("unzip" "-qq" "-c"))
+	((executable-find "7z")      '("7z" "x" "-so"))
 	((executable-find "pkunzip") '("pkunzip" "-e" "-o-"))
-	(t '("unzip" "-qq" "-c")))
+	(t                           '("unzip" "-qq" "-c")))
   "Program and its options to run in order to extract a zip file member.
 Extraction should happen to standard output.  Archive and member name will
 be added."
@@ -235,44 +235,44 @@ be added."
 ;; names.
 
 (defcustom archive-zip-expunge
-  (if (and (not (executable-find "zip"))
-           (executable-find "pkzip"))
-      '("pkzip" "-d")
-    '("zip" "-d" "-q"))
+  (cond ((executable-find "zip")     '("zip" "-d" "-q"))
+	((executable-find "7z")      '("7z" "d"))
+	((executable-find "pkzip")   '("pkzip" "-d"))
+	(t                           '("zip" "-d" "-q")))
   "Program and its options to run in order to delete zip file members.
 Archive and member names will be added."
   :type '(list (string :tag "Program")
-		(repeat :tag "Options"
-			:inline t
-			(string :format "%v")))
+	       (repeat :tag "Options"
+		       :inline t
+		       (string :format "%v")))
   :group 'archive-zip)
 
 (defcustom archive-zip-update
-  (if (and (not (executable-find "zip"))
-           (executable-find "pkzip"))
-      '("pkzip" "-u" "-P")
-    '("zip" "-q"))
+  (cond ((executable-find "zip")     '("zip" "-q"))
+	((executable-find "7z")      '("7z" "u"))
+	((executable-find "pkzip")   '("pkzip" "-u" "-P"))
+	(t                           '("zip" "-q")))
   "Program and its options to run in order to update a zip file member.
 Options should ensure that specified directory will be put into the zip
 file.  Archive and member name will be added."
   :type '(list (string :tag "Program")
-		(repeat :tag "Options"
-			:inline t
-			(string :format "%v")))
+	       (repeat :tag "Options"
+		       :inline t
+		       (string :format "%v")))
   :group 'archive-zip)
 
 (defcustom archive-zip-update-case
-  (if (and (not (executable-find "zip"))
-           (executable-find "pkzip"))
-      '("pkzip" "-u" "-P")
-    '("zip" "-q" "-k"))
+  (cond ((executable-find "zip")     '("zip" "-q" "-k"))
+	((executable-find "7z")      '("7z" "u"))
+	((executable-find "pkzip")   '("pkzip" "-u" "-P"))
+	(t                           '("zip" "-q" "-k")))
   "Program and its options to run in order to update a case fiddled zip member.
 Options should ensure that specified directory will be put into the zip file.
 Archive and member name will be added."
   :type '(list (string :tag "Program")
-		(repeat :tag "Options"
-			:inline t
-			(string :format "%v")))
+	       (repeat :tag "Options"
+		       :inline t
+		       (string :format "%v")))
   :group 'archive-zip)
 
 (defcustom archive-zip-case-fiddle t

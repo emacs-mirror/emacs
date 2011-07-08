@@ -1,4 +1,4 @@
-2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use pthread_sigmask, not sigprocmask (Bug#9010).
 	* callproc.c (Fcall_process):
@@ -6,6 +6,111 @@
 	* process.c (create_process):
 	sigprocmask is portable only for single-threaded applications, and
 	Emacs can be multi-threaded when it uses GTK.
+
+2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsgui.h: Fix compiler warning about gnulib redefining verify.
+
+	* nsselect.m (ns_get_local_selection): Change to extern (Bug#8842).
+
+	* nsmenu.m (ns_update_menubar): Remove useless setDelegate call
+	on svcsMenu (Bug#8842).
+
+	* nsfns.m (Fx_open_connection): Remove NSStringPboardType from
+	ns_return_types.
+	(Fns_list_services): Just return Qnil on 10.6, code not working there.
+
+	* nsterm.m (QUTF8_STRING): Declare.
+	(initFrameFromEmacs): Call registerServicesMenuSendTypes.
+	(validRequestorForSendType): Return type is (id).
+	Change indexOfObjectIdenticalTo to indexOfObject.
+	Check if we have local selection before returning self (Bug#8842).
+	(writeSelectionToPasteboard): Put local selection into paste board
+	if we have a local selection (Bug#8842).
+	(syms_of_nsterm): DEFSYM QUTF8_STRING.
+
+	* nsterm.h (MAC_OS_X_VERSION_10_6): Define here instead of nsterm.m.
+	(ns_get_local_selection): Declare.
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* keymap.c (describe_map_tree): Don't insert a double newline at
+	the end of the buffer (bug#1169) and return whether we inserted
+	something.
+
+	* callint.c (Fcall_interactively): Change "reading args" to
+	"providing args" to try to clarify what it does (bug#1010).
+
+2011-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (composition_compute_stop_pos): Ignore a static
+	composition starting before CHARPOS (Bug#8915).
+
+	* xdisp.c (handle_composition_prop): Likewise.
+
+2011-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (produce_glyphs) <xassert>: Allow IT_GLYPHLESS in it->what.
+	(Bug#9015)
+
+2011-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* character.h (unicode_category_t): New enum type.
+
+	* chartab.c (uniprop_decoder_t, uniprop_encoder_t): New types.
+	(Qchar_code_property_table): New variable.
+	(UNIPROP_TABLE_P, UNIPROP_GET_DECODER)
+	(UNIPROP_COMPRESSED_FORM_P): New macros.
+	(char_table_ascii): Uncompress the compressed values.
+	(sub_char_table_ref): New arg is_uniprop.  Callers changed.
+	Uncompress the compressed values.
+	(sub_char_table_ref_and_range):  Likewise.
+	(char_table_ref_and_range): Uncompress the compressed values.
+	(sub_char_table_set): New arg is_uniprop.  Callers changed.
+	Uncompress the compressed values.
+	(sub_char_table_set_range): Args changed.  Callers changed.
+	(char_table_set_range): Adjuted for the above change.
+	(map_sub_char_table): Delete args default_val and parent.  Add arg
+	top.  Give decoded values to a Lisp function.
+	(map_char_table): Adjusted for the above change.  Give decoded
+	values to a Lisp function.  Gcpro more variables.
+	(uniprop_table_uncompress)
+	(uniprop_decode_value_run_length): New functions.
+	(uniprop_decoder, uniprop_decoder_count): New variables.
+	(uniprop_get_decoder, uniprop_encode_value_character)
+	(uniprop_encode_value_run_length, uniprop_encode_value_numeric):
+	New functions.
+	(uniprop_encoder, uniprop_encoder_count): New variables.
+	(uniprop_get_encoder, uniprop_table)
+	(Funicode_property_table_internal, Fget_unicode_property_internal)
+	(Fput_unicode_property_internal): New functions.
+	(syms_of_chartab): DEFSYM Qchar_code_property_table, defsubr
+	Sunicode_property_table_internal, Sget_unicode_property_internal,
+	and Sput_unicode_property_internal. Defvar_lisp
+	char-code-property-alist.
+
+	* composite.c (CHAR_COMPOSABLE_P): Adjusted for the change of
+	Vunicode_category_table.
+
+	* font.c (font_range): Adjusted for the change of
+	Vunicode_category_table.
+
+2011-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/iris4d.h: Remove file, move contents ...
+	* s/irix6-5.h: ... here.
+
+2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Remove unportable assumption about struct layout (Bug#8884).
+	* alloc.c (mark_buffer):
+	* buffer.c (reset_buffer_local_variables, Fbuffer_local_variables)
+	(clone_per_buffer_values): Don't assume that
+	sizeof (struct buffer) is a multiple of sizeof (Lisp_Object).
+	This isn't true in general, and it's particularly not true
+	if Emacs is configured with --with-wide-int.
+	* buffer.h (FIRST_FIELD_PER_BUFFER, LAST_FIELD_PER_BUFFER):
+	New macros, used in the buffer.c change.
 
 2011-07-05  Jan Djärv  <jan.h.d@swipnet.se>
 
