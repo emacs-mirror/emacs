@@ -1,3 +1,9 @@
+2011-07-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* plstore.el: Revert the editing feature since it is not urgent.
+	(plstore-mode, plstore-mode-toggle-display, plstore-mode-original)
+	(plstore-mode-decoded): Remove.
+
 2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-msg.el (gnus-bug): Don't insert user variables.  It usually
