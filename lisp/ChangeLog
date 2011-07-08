@@ -1,3 +1,10 @@
+2011-07-08  Juri Linkov  <juri@jurta.org>
+
+	* arc-mode.el (archive-zip-expunge, archive-zip-update)
+	(archive-zip-update-case): Use 7z if found by `executable-find'.
+	The order of searching the available programs is the same as in
+	`archive-zip-extract' (bug#8968).
+
 2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* menu-bar.el (menu-bar-line-wrapping-menu): Revert last change.
