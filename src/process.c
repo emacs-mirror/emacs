@@ -1652,7 +1652,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
   sigaddset (&blocked, SIGHUP );  sigaction (SIGHUP , 0, &sighup_action );
 #endif
 #endif /* HAVE_WORKING_VFORK */
-  sigprocmask (SIG_BLOCK, &blocked, &procmask);
+  pthread_sigmask (SIG_BLOCK, &blocked, &procmask);
 
   FD_SET (inchannel, &input_wait_mask);
   FD_SET (inchannel, &non_keyboard_wait_mask);
@@ -1808,7 +1808,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	signal (SIGPIPE, SIG_DFL);
 
 	/* Stop blocking signals in the child.  */
-	sigprocmask (SIG_SETMASK, &procmask, 0);
+	pthread_sigmask (SIG_SETMASK, &procmask, 0);
 
 	if (pty_flag)
 	  child_setup_tty (xforkout);
@@ -1900,7 +1900,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 #endif
 #endif /* HAVE_WORKING_VFORK */
   /* Stop blocking signals in the parent.  */
-  sigprocmask (SIG_SETMASK, &procmask, 0);
+  pthread_sigmask (SIG_SETMASK, &procmask, 0);
 
   /* Now generate the error if vfork failed.  */
   if (pid < 0)

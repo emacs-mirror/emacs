@@ -596,7 +596,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     sigemptyset (&blocked);
     sigaddset (&blocked, SIGPIPE);
     sigaction (SIGPIPE, 0, &sigpipe_action);
-    sigprocmask (SIG_BLOCK, &blocked, &procmask);
+    pthread_sigmask (SIG_BLOCK, &blocked, &procmask);
 #endif
 
     BLOCK_INPUT;
@@ -633,7 +633,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	   in the child.  */
 	//signal (SIGPIPE, SIG_DFL);
 #ifdef HAVE_WORKING_VFORK
-	sigprocmask (SIG_SETMASK, &procmask, 0);
+	pthread_sigmask (SIG_SETMASK, &procmask, 0);
 #endif
 
 	child_setup (filefd, fd1, fd_error, (char **) new_argv,
@@ -645,7 +645,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 #ifdef HAVE_WORKING_VFORK
     /* Restore the signal state.  */
     sigaction (SIGPIPE, &sigpipe_action, 0);
-    sigprocmask (SIG_SETMASK, &procmask, 0);
+    pthread_sigmask (SIG_SETMASK, &procmask, 0);
 #endif
 
 #endif /* not WINDOWSNT */
