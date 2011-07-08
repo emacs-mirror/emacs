@@ -1,3 +1,26 @@
+2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsselect.m (ns_get_local_selection): Change to extern (Bug#8842).
+
+	* nsmenu.m (ns_update_menubar): Remove useless setDelegate call
+	on svcsMenu (Bug#8842).
+
+	* nsfns.m (Fx_open_connection): Remove NSStringPboardType from
+	ns_return_types.
+	(Fns_list_services): Just return Qnil on 10.6, code not working there.
+
+	* nsterm.m (QUTF8_STRING): Declare.
+	(initFrameFromEmacs): Call registerServicesMenuSendTypes.
+	(validRequestorForSendType): Return type is (id).
+	Change indexOfObjectIdenticalTo to indexOfObject.
+	Check if we have local selection before returning self (Bug#8842).
+	(writeSelectionToPasteboard): Put local selection into paste board
+	if we have a local selection (Bug#8842).
+	(syms_of_nsterm): DEFSYM QUTF8_STRING.
+
+	* nsterm.h (MAC_OS_X_VERSION_10_6): Define here instead of nsterm.m.
+	(ns_get_local_selection): Declare.
+
 2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* keymap.c (describe_map_tree): Don't insert a double newline at
