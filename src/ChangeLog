@@ -1,3 +1,8 @@
+2011-07-08  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) [WM_TIMER, WM_SET_CURSOR]: Avoid using
+	frame struct members of non-existent frames (Bug#6284).
+
 2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (keyDown): Call to wantsToDelayTextChangeNotifications and
