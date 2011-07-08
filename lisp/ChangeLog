@@ -1,3 +1,9 @@
+2011-07-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* mail/sendmail.el (send-mail-function): No longer delay custom
+	initialization.
+	* custom.el (custom-initialize-delay): Doc fix.
+
 2011-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* abbrev.el (expand-abbrev): Try to preserve point (bug#5805).
