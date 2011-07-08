@@ -2557,6 +2557,7 @@ extern void sweep_weak_hash_tables (void);
 extern Lisp_Object Qcursor_in_echo_area;
 extern Lisp_Object Qstring_lessp;
 extern Lisp_Object QCsize, QCtest, QCweakness, Qequal, Qeq, Qeql;
+EMACS_UINT hash_string (char const *, ptrdiff_t);
 EMACS_UINT sxhash (Lisp_Object, int);
 Lisp_Object make_hash_table (Lisp_Object, Lisp_Object, Lisp_Object,
                              Lisp_Object, Lisp_Object, Lisp_Object,

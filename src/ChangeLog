@@ -1,3 +1,15 @@
+2011-07-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Improve hashing quality when configured --with-wide-int.
+	* fns.c (hash_string): New function, taken from sxhash_string.
+	Do not discard information about ASCII character case; this
+	discarding is no longer needed.
+	(sxhash-string): Use it.  Change sig to match it.  Caller changed.
+	* lisp.h: Declare it.
+	* lread.c (hash_string): Remove, since we now use fns.c's version.
+	The fns.c version returns a wider integer if --with-wide-int is
+	specified, so this should help the quality of the hashing a bit.
+
 2011-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacs.c: Integer overflow minor fix.
