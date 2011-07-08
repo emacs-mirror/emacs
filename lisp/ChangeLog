@@ -1,3 +1,8 @@
+2011-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-bzr.el (vc-bzr-revision-keywords): Remove svn, it's only
+	provided by a particular plugin.
+
 2011-07-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/sendmail.el (sendmail-query-once): If we aren't allowed to
@@ -41,7 +46,7 @@
 	* info.el (Info-mode-map): Remove S-TAB binding, since [backtab]
 	should cover it (bug#1281).
 
-	* cus-edit.el (custom-show): Marked as obsolete.
+	* cus-edit.el (custom-show): Mark as obsolete.
 
 	* net/network-stream.el (network-stream-open-starttls): If gnutls
 	negotiation fails, then possibly try again with a non-encrypted
@@ -62,18 +67,17 @@
 
 	* international/characters.el (build-unicode-category-table):
 	Delete it.
-	(unicode-category-table): Set it by
-	unicode-prroperty-table-internal.
+	(unicode-category-table): Set it by unicode-property-table-internal.
 
-	* international/mule-cmds.el (char-code-property-alist): Moved to
+	* international/mule-cmds.el (char-code-property-alist): Move to
 	to src/chartab.c.
 	(get-char-code-property): Call unicode-property-table-internal to
 	load a file.  Call get-unicode-property-internal where necessary.
 	(put-char-code-property): Call unicode-property-table-internal to
 	load a file.  Call put-unicode-property-internal where necessary.
 	put-unicode-property-internal where necessary.
-	(char-code-property-description): Call
-	unicode-property-table-internal to load a file.
+	(char-code-property-description):
+	Call unicode-property-table-internal to load a file.
 
 	* international/charprop.el:
 	* international/uni-bidi.el:
@@ -142,8 +146,8 @@
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* emacs-lisp/lisp-mode.el (eval-defun-1): Update the documentation
-	of faces when `M-C-x'-ing their definitions (bug#8378).  Also
-	clean up the code slightly.
+	of faces when `M-C-x'-ing their definitions (bug#8378).
+	Also clean up the code slightly.
 
 	* progmodes/grep.el (rgrep): Don't bind `process-connection-type',
 	because that makes the colours go away.
@@ -167,39 +171,38 @@
 2011-07-06  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el: Version 3.0
-	(sql-product-alist): Added product :completion-object,
+	(sql-product-alist): Add product :completion-object,
 	:completion-column, and :statement attributes.
-	(sql-mode-menu, sql-interactive-mode-map): Fixed List entries.
+	(sql-mode-menu, sql-interactive-mode-map): Fix List entries.
 	(sql-mode-syntax-table): Mark all punctuation.
-	(sql-font-lock-keywords-builder): Temporarily removed fallback on
+	(sql-font-lock-keywords-builder): Temporarily remove fallback on
 	ansi keywords.
 	(sql-regexp-abbrev, sql-regexp-abbrev-list): New functions.
-	(sql-mode-oracle-font-lock-keywords): Improved.
+	(sql-mode-oracle-font-lock-keywords): Improve.
 	(sql-oracle-show-reserved-words): New function for development.
 	(sql-product-font-lock): Simplify for source code buffers.
 	(sql-product-syntax-table, sql-product-font-lock-syntax-alist):
 	New functions.
 	(sql-highlight-product): Set product specific syntax table.
-	(sql-mode-map): Added statement movement functions.
-	(sql-ansi-statement-starters, sql-oracle-statement-starters): New
-	variable.
+	(sql-mode-map): Add statement movement functions.
+	(sql-ansi-statement-starters, sql-oracle-statement-starters):
+	New variable.
 	(sql-statement-regexp, sql-beginning-of-statement)
 	(sql-end-of-statement, sql-signum): New functions.
-	(sql-buffer-live-p, sql=find-sqli-buffer): Added CONNECTION
-	parameter.
+	(sql-buffer-live-p, sql=find-sqli-buffer): Add CONNECTION parameter.
 	(sql-show-sqli-buffer): Bug fix.
 	(sql-interactive-mode): Store connection data as buffer local.
-	(sql-connect): Added NEW-NAME parameter.  Redesigned interaction
+	(sql-connect): Add NEW-NAME parameter.  Redesign interaction
 	with sql-interactive-mode.
 	(sql-save-connection): Save buffer local settings.
-	(sql-connection-menu-filter): Changed menu entry name.
+	(sql-connection-menu-filter): Change menu entry name.
 	(sql-product-interactive): Bug fix.
 	(sql-preoutput-hold): New variable.
 	(sql-interactive-remove-continuation-prompt): Bug fixes.
 	(sql-debug-redirect): New variable.
 	(sql-str-literal): New function.
 	(sql-redirect, sql-redirect-one, sql-redirect-value, sql-execute):
-	Redesigned.
+	Redesign.
 	(sql-oracle-save-settings, sql-oracle-restore-settings)
 	(sql-oracle-list-all, sql-oracle-list-table): New functions.
 	(sql-completion-object, sql-completion-column)
@@ -372,9 +375,8 @@
 	buffer-saved-size and some allout state to not inhibit auto-saves
 	if there are no longer any plain-text topics pending encryption.
 
-	(allout-next-topic-pending-encryption),
-	(allout-encrypt-decrypted): No longer provide for exemption of the
-	current topic.
+	(allout-next-topic-pending-encryption, allout-encrypt-decrypted):
+	No longer provide for exemption of the current topic.
 
 2011-07-04  Juri Linkov  <juri@jurta.org>
 
