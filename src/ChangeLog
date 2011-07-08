@@ -9,6 +9,55 @@
 
 2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (qttip_cb): Set line wrap to FALSE for tooltip widget.
+	(xg_prepare_tooltip): Revert text in x->ttip_lbl, margins was
+	wrong (Bug#8591).
+
+2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_prepare_tooltip): Fix indentation and comment.
+	Put text in x->ttip_lbl instead of gtk_tooltip_set_text (Bug#8591).
+	(xg_hide_tooltip): Fix comment.
+
+	* nsterm.m (initFrameFromEmacs): Don't use ns_return_types
+	in registerServicesMenuSendTypes.
+	(validRequestorForSendType): Don't check ns_return_types.
+
+	* nsfns.m (Fx_open_connection): Put NSStringPboardType into
+	ns_return_type.
+
+2011-07-08  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) [WM_TIMER, WM_SET_CURSOR]: Avoid using
+	frame struct members of non-existent frames (Bug#6284).
+
+2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (keyDown): Call to wantsToDelayTextChangeNotifications and
+	variable firstTime not needed on OSX >= 10.6.
+	(setPosition): setFloatValue:knobProportion: is deprecated on OSX
+	>= 10.5.  Use setKnobProportion, setDoubleValue.
+
+	* nsterm.h (MAC_OS_X_VERSION_10_3, MAC_OS_X_VERSION_10_4)
+	(MAC_OS_X_VERSION_10_5): Define if not defined.
+	(EmacsView, EmacsTooltip): Implements NSWindowDelegate on OSX >= 10.6.
+	(EmacsMenu): Implements NSMenuDelegate on OSX >= 10.6.
+	(EmacsToolbar): Implements NSToolbarDelegate on OSX >= 10.6.
+
+	* nsselect.m (ns_string_from_pasteboard): Don't use deprecated methods
+	cString and lossyCString on OSX >= 10.4
+
+	* nsmenu.m (fillWithWidgetValue): Don't use depercated method
+	sizeToFit on OSX >= 10.2.
+
+	* nsimage.m (allocInitFromFile): Don't use deprecated method
+	bestRepresentationForDevice on OSX >= 10.6.
+
+	* nsfns.m (check_ns_display_info): Cast to long and use %ld in error
+	to avoid warning.
+
+	* emacs.c: Declare unexec_init_emacs_zone.
+
 	* nsgui.h: Fix compiler warning about gnulib redefining verify.
 
 	* nsselect.m (ns_get_local_selection): Change to extern (Bug#8842).

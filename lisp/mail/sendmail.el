@@ -138,14 +138,6 @@ Otherwise, let mailer send back a message to report errors."
   :group 'sendmail
   :version "23.1")
 
-;; Prevent problems with `window-system' not having the correct value
-;; when loaddefs.el is loaded. `custom-reevaluate-setting' needs the
-;; standard value.
-;;;###autoload
-(put 'send-mail-function 'standard-value
-     ;; MS-Windows can access the clipboard even under -nw.
-     '('sendmail-query-once))
-
 ;; Useful to set in site-init.el
 ;;;###autoload
 (defcustom send-mail-function 'sendmail-query-once
@@ -161,7 +153,6 @@ This is used by the default mail-sending commands.  See also
 		(function-item feedmail-send-it :tag "Use Feedmail package")
 		(function-item mailclient-send-it :tag "Use Mailclient package")
 		function)
-  :initialize 'custom-initialize-delay
   :version "24.1"
   :group 'sendmail)
 
@@ -211,8 +202,6 @@ function to use, and then save that choice."
 	  (customize-save-variable 'sendmail-query-once-function function)
 	(setq sendmail-query-once-function function))))
   (funcall sendmail-query-once-function))
-
-;;;###autoload(custom-initialize-delay 'send-mail-function nil)
 
 ;;;###autoload
 (defcustom mail-header-separator (purecopy "--text follows this line--")

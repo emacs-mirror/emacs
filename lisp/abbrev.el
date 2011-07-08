@@ -814,19 +814,28 @@ Returns the abbrev symbol, if expansion took place."
     (destructuring-bind (&optional sym name wordstart wordend)
         (abbrev--before-point)
       (when sym
-        (unless (or ;; executing-kbd-macro
-                 noninteractive
-                 (window-minibuffer-p (selected-window)))
-          ;; Add an undo boundary, in case we are doing this for
-          ;; a self-inserting command which has avoided making one so far.
-          (undo-boundary))
-        ;; Now sym is the abbrev symbol.
-        (setq last-abbrev-text name)
-        (setq last-abbrev sym)
-        (setq last-abbrev-location wordstart)
-        ;; If this abbrev has an expansion, delete the abbrev
-        ;; and insert the expansion.
-        (abbrev-insert sym name wordstart wordend)))))
+        (let ((startpos (copy-marker (point) t))
+              (endmark (copy-marker wordend t)))
+          (unless (or ;; executing-kbd-macro
+                   noninteractive
+                   (window-minibuffer-p (selected-window)))
+            ;; Add an undo boundary, in case we are doing this for
+            ;; a self-inserting command which has avoided making one so far.
+            (undo-boundary))
+          ;; Now sym is the abbrev symbol.
+          (setq last-abbrev-text name)
+          (setq last-abbrev sym)
+          (setq last-abbrev-location wordstart)
+          ;; If this abbrev has an expansion, delete the abbrev
+          ;; and insert the expansion.
+          (prog1
+              (abbrev-insert sym name wordstart wordend)
+            ;; Yuck!!  If expand-abbrev is called with point slightly
+            ;; further than the end of the abbrev, move point back to
+            ;; where it started.
+            (if (and (> startpos endmark)
+                     (= (point) endmark)) ;Obey skeletons that move point.
+                (goto-char startpos))))))))
 
 (defun unexpand-abbrev ()
   "Undo the expansion of the last abbrev that expanded.

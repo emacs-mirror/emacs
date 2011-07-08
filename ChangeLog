@@ -14,6 +14,8 @@
 	* src/Makefile.in (LIB_PTHREAD_SIGMASK): New macro.
 	(LIBES): Use it.
 
+	* lib/getopt.c, lib/unistd.in.h, m4/getopt.m4: Merge from gnulib.
+
 2011-07-07  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.in (maintainer-mode): Reflect default in help string.
