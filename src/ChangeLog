@@ -1,5 +1,9 @@
 2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (xg_prepare_tooltip): Fix indentation and comment.
+	Put text in x->ttip_lbl instead of gtk_tooltip_set_text (Bug#8591).
+	(xg_hide_tooltip): Fix comment.
+
 	* nsterm.m (initFrameFromEmacs): Don't use ns_return_types
 	in registerServicesMenuSendTypes.
 	(validRequestorForSendType): Don't check ns_return_types.

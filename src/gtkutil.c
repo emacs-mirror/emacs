@@ -659,8 +659,8 @@ qttip_cb (GtkWidget  *widget,
 
 int
 xg_prepare_tooltip (FRAME_PTR f,
-                      Lisp_Object string,
-                      int *width,
+                    Lisp_Object string,
+                    int *width,
                     int *height)
 {
 #ifndef USE_GTK_TOOLTIP
@@ -697,11 +697,12 @@ xg_prepare_tooltip (FRAME_PTR f,
                      (gtk_widget_get_display (GTK_WIDGET (x->ttip_window))),
                      "gdk-display-current-tooltip", NULL);
 
-  /* Put out dummy widget in so we can get callbacks for unrealize and
+  /* Put our dummy widget in so we can get callbacks for unrealize and
      hierarchy-changed.  */
   gtk_tooltip_set_custom (x->ttip_widget, widget);
 
-  gtk_tooltip_set_text (x->ttip_widget, SSDATA (encoded_string));
+  gtk_tooltip_set_text (x->ttip_widget, "");
+  gtk_label_set_text (GTK_LABEL (x->ttip_lbl), SSDATA (encoded_string));
   gtk_widget_get_preferred_size (GTK_WIDGET (x->ttip_window), NULL, &req);
   if (width) *width = req.width;
   if (height) *height = req.height;
@@ -731,7 +732,7 @@ xg_show_tooltip (FRAME_PTR f, int root_x, int root_y)
 }
 
 /* Hide tooltip if shown.  Do nothing if not shown.
-   Return non-zero if tip was hidden, non-ero if not (i.e. not using
+   Return non-zero if tip was hidden, non-zero if not (i.e. not using
    system tooltips).  */
 
 int
