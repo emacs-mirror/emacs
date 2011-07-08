@@ -7,12 +7,11 @@
 	so that gnulib can assume the libraries in LIBS.
 	* lib/signal.in.h, m4/pthread_sigmask.m4, m4/signal_h.m4:
 	* lib/pthread_sigprocmask.c, lib/sigprocmask.c, m4/signalblocking.m4:
+	* lib/pthread_sigmask.c:
 	New files, automatically imported from gnulib.
 	* lib/gnulib.mk, m4/gl-comp.m4: Automatically-imported update
 	due to the above changes.
 	* .bzrignore: Add lib/signal.h.
-	* src/Makefile.in (LIB_PTHREAD_SIGMASK): New macro.
-	(LIBES): Use it.
 
 	* lib/getopt.c, lib/unistd.in.h, m4/getopt.m4: Merge from gnulib.
 
