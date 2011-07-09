@@ -1,3 +1,32 @@
+2011-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c: Integer signedness and overflow and related fixes.
+	This is not an exhaustive set of fixes, but it's time to
+	record what I've got.
+	(lookup_pixel_color, check_image_size): Remove redundant decls.
+	(check_image_size): Don't assume that arbitrary EMACS_INT values
+	fit in 'int', or that arbitrary 'double' values fit in 'int'.
+	(x_alloc_image_color, x_create_x_image_and_pixmap, png_load)
+	(tiff_load, imagemagick_load_image):
+	Check for overflow in size calculations.
+	(x_create_x_image_and_pixmap): Remove unnecessary test for
+	xmalloc returning NULL; that can't happen.
+	(xbm_read_bitmap_data): Don't assume sizes fit into 'int'.
+	(xpm_color_bucket): Use better integer hashing function.
+	(xpm_cache_color): Don't possibly over-allocate memory.
+	(struct png_memory_storage, tiff_memory_source, tiff_seek_in_memory)
+	(gif_memory_source):
+	Use ptrdiff_t, not int or size_t, to record sizes.
+	(png_load): Don't assume values greater than 2**31 fit in 'int'.
+	(our_stdio_fill_input_buffer): Prefer ptrdiff_t to size_t when
+	either works, as we prefer signed integers.
+	(tiff_read_from_memory, tiff_write_from_memory):
+	Return tsize_t, not size_t, since that's what the TIFF API wants.
+	(tiff_read_from_memory): Don't fail simply because the read would
+	go past EOF; instead, return a short read.
+	(tiff_load): Omit no-longer-needed casts.
+	(Fimagemagick_types): Don't assume size fits into 'int'.
+
 2011-07-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Improve hashing quality when configured --with-wide-int.
