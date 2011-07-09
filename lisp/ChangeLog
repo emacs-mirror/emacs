@@ -1,3 +1,7 @@
+2011-07-09  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (remq): Handle the empty list.  (Bug#9024)
+
 2011-07-08  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* mail/sendmail.el (send-mail-function): No longer delay custom
