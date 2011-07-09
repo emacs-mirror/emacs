@@ -1143,7 +1143,6 @@ uniprop_table_uncompress (Lisp_Object table, int idx)
   Lisp_Object sub = make_sub_char_table (3, min_char, Qnil);
   struct Lisp_Sub_Char_Table *subtbl = XSUB_CHAR_TABLE (sub);
   const unsigned char *p, *pend;
-  int i;
 
   XSUB_CHAR_TABLE (table)->contents[idx] = sub;
   p = SDATA (val), pend = p + SBYTES (val);

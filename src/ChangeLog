@@ -1,3 +1,7 @@
+2011-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* chartab.c (uniprop_table_uncompress): Remove unused local variable.
+
 2011-07-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (qttip_cb): Remove code without function.
