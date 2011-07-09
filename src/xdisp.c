@@ -1222,6 +1222,7 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
 	       int *rtop, int *rbot, int *rowh, int *vpos)
 {
   struct it it;
+  void *itdata = bidi_shelve_cache ();
   struct text_pos top;
   int visible_p = 0;
   struct buffer *old_buffer = NULL;
@@ -1252,13 +1253,21 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
   move_it_to (&it, charpos, -1, it.last_visible_y-1, -1,
 	      (charpos >= 0 ? MOVE_TO_POS : 0) | MOVE_TO_Y);
 
-  if (charpos >= 0 && IT_CHARPOS (it) >= charpos)
+  if (charpos >= 0
+      && (((!it.bidi_p || it.bidi_it.scan_dir == 1)
+	   && IT_CHARPOS (it) >= charpos)
+	  /* When scanning backwards under bidi iteration, move_it_to
+	     stops at or _before_ CHARPOS, because it stops at or to
+	     the _right_ of the character at CHARPOS. */
+	  || (it.bidi_p && it.bidi_it.scan_dir == -1
+	      && IT_CHARPOS (it) <= charpos)))
     {
       /* We have reached CHARPOS, or passed it.  How the call to
-	 move_it_to can overshoot: (i) If CHARPOS is on invisible
-	 text, move_it_to stops at the end of the invisible text,
-	 after CHARPOS.  (ii) If CHARPOS is in a display vector,
-	 move_it_to stops on its last glyph.  */
+	 move_it_to can overshoot: (i) If CHARPOS is on invisible text
+	 or covered by a display property, move_it_to stops at the end
+	 of the invisible text, to the right of CHARPOS.  (ii) If
+	 CHARPOS is in a display vector, move_it_to stops on its last
+	 glyph.  */
       int top_x = it.current_x;
       int top_y = it.current_y;
       enum it_method it_method = it.method;
@@ -1307,6 +1316,7 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
     }
   else
     {
+      /* We were asked to provide info about WINDOW_END.  */
       struct it it2;
       void *it2data = NULL;
 
@@ -1333,6 +1343,7 @@ pos_visible_p (struct window *w, EMACS_INT charpos, int *x, int *y,
       else
 	xfree (it2data);
     }
+  bidi_unshelve_cache (itdata);
 
   if (old_buffer)
     set_buffer_internal_1 (old_buffer);
@@ -7525,6 +7536,7 @@ move_it_in_display_line_to (struct it *it,
   int may_wrap = 0;
   enum it_method prev_method = it->method;
   EMACS_INT prev_pos = IT_CHARPOS (*it);
+  int saw_smaller_pos = prev_pos < to_charpos;
 
   /* Don't produce glyphs in produce_glyphs.  */
   saved_glyph_row = it->glyph_row;
@@ -7565,15 +7577,16 @@ move_it_in_display_line_to (struct it *it,
   ((IT)->current_x = x, (IT)->max_ascent = ascent,	\
    (IT)->max_descent = descent)
 
-      /* Stop if we move beyond TO_CHARPOS (after an image or stretch
-	 glyph).  */
+      /* Stop if we move beyond TO_CHARPOS (after an image or a
+	 display string or stretch glyph).  */
       if ((op & MOVE_TO_POS) != 0
 	  && BUFFERP (it->object)
 	  && it->method == GET_FROM_BUFFER
 	  && ((!it->bidi_p && IT_CHARPOS (*it) > to_charpos)
 	      || (it->bidi_p
 		  && (prev_method == GET_FROM_IMAGE
-		      || prev_method == GET_FROM_STRETCH)
+		      || prev_method == GET_FROM_STRETCH
+		      || prev_method == GET_FROM_STRING)
 		  /* Passed TO_CHARPOS from left to right.  */
 		  && ((prev_pos < to_charpos
 		       && IT_CHARPOS (*it) > to_charpos)
@@ -7593,9 +7606,6 @@ move_it_in_display_line_to (struct it *it,
 	    SAVE_IT (atpos_it, *it, atpos_data);
 	}
 
-      prev_method = it->method;
-      if (it->method == GET_FROM_BUFFER)
-	prev_pos = IT_CHARPOS (*it);
       /* Stop when ZV reached.
          We used to stop here when TO_CHARPOS reached as well, but that is
          too soon if this glyph does not fit on this line.  So we handle it
@@ -7659,6 +7669,9 @@ move_it_in_display_line_to (struct it *it,
 
       if (it->area != TEXT_AREA)
 	{
+	  prev_method = it->method;
+	  if (it->method == GET_FROM_BUFFER)
+	    prev_pos = IT_CHARPOS (*it);
 	  set_iterator_to_next (it, 1);
 	  if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
 	    SET_TEXT_POS (this_line_min_pos,
@@ -7770,6 +7783,9 @@ move_it_in_display_line_to (struct it *it,
 				}
 			    }
 
+			  prev_method = it->method;
+			  if (it->method == GET_FROM_BUFFER)
+			    prev_pos = IT_CHARPOS (*it);
 			  set_iterator_to_next (it, 1);
 			  if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
 			    SET_TEXT_POS (this_line_min_pos,
@@ -7863,10 +7879,20 @@ move_it_in_display_line_to (struct it *it,
       /* Is this a line end?  If yes, we're done.  */
       if (ITERATOR_AT_END_OF_LINE_P (it))
 	{
-	  result = MOVE_NEWLINE_OR_CR;
+	  /* If we are past TO_CHARPOS, but never saw any character
+	     positions smaller than TO_CHARPOS, return
+	     MOVE_POS_MATCH_OR_ZV, like the unidirectional display
+	     did.  */
+	  if ((op & MOVE_TO_POS) != 0
+	      && !saw_smaller_pos
+	      && IT_CHARPOS (*it) > to_charpos)
+	    result = MOVE_POS_MATCH_OR_ZV;
+	  else
+	    result = MOVE_NEWLINE_OR_CR;
 	  break;
 	}
 
+      prev_method = it->method;
       if (it->method == GET_FROM_BUFFER)
 	prev_pos = IT_CHARPOS (*it);
       /* The current display element has been consumed.  Advance
@@ -7874,6 +7900,8 @@ move_it_in_display_line_to (struct it *it,
       set_iterator_to_next (it, 1);
       if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
 	SET_TEXT_POS (this_line_min_pos, IT_CHARPOS (*it), IT_BYTEPOS (*it));
+      if (IT_CHARPOS (*it) < to_charpos)
+	saw_smaller_pos = 1;
 
       /* Stop if lines are truncated and IT's current x-position is
 	 past the right edge of the window now.  */
@@ -7967,8 +7995,8 @@ move_it_in_display_line (struct it *it,
    description of enum move_operation_enum.
 
    If TO_CHARPOS is in invisible text, e.g. a truncated part of a
-   screen line, this function will set IT to the next position >
-   TO_CHARPOS.  */
+   screen line, this function will set IT to the next position that is
+   displayed to the right of TO_CHARPOS on the screen.  */
 
 void
 move_it_to (struct it *it, EMACS_INT to_charpos, int to_x, int to_y, int to_vpos, int op)
