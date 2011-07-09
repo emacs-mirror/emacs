@@ -1452,6 +1452,14 @@ sigprocmask (int how, const sigset_t *set, sigset_t *oset)
 }
 
 int
+pthread_sigmask (int how, const sigset_t *set, sigset_t *oset)
+{
+  if (sigprocmask (how, set, oset) == -1)
+    return EINVAL;
+  return 0;
+}
+
+int
 setpgrp (int pid, int gid)
 {
   return 0;
