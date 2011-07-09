@@ -1,5 +1,8 @@
 2011-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lib/stdint.in.h: Merge from gnulib (Bug#9025).
+	This fixes a build problem on older Mac OS X hosts.
+
 	* m4/pthread_sigmask.m4 (gl_FUNC_PTHREAD_SIGMASK): Omit gl_THREADLIB
 	test, which runs afoul of Automake installations where, for example,
 	/usr/share/aclocal contains a copy of gl_THREADLIB.
