@@ -454,12 +454,12 @@ search all folders."
 
 (defvar mh-flists-search-folders)
 
-(defun mh-flists-execute (&rest args)
+(defun mh-flists-execute (&rest ignored)
   "Execute flists.
 Search for messages belonging to `mh-flists-sequence' in the
 folders specified by `mh-flists-search-folders'. If
 `mh-recursive-folders-flag' is t, then the folders are searched
-recursively. All parameters ARGS are ignored."
+recursively. All arguments are IGNORED."
   (set-buffer (get-buffer-create mh-temp-index-buffer))
   (erase-buffer)
   (unless (executable-find "sh")

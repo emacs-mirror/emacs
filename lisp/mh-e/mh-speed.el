@@ -126,9 +126,9 @@ With non-nil FORCE, the update is always carried out."
         ;; Otherwise on to your regular programming
         (t t)))
 
-(defun mh-speed-toggle (&rest args)
+(defun mh-speed-toggle (&rest ignored)
   "Toggle the display of child folders in the speedbar.
-The optional ARGS from speedbar are ignored."
+The optional arguments from speedbar are IGNORED."
   (interactive)
   (declare (ignore args))
   (beginning-of-line)
@@ -165,9 +165,9 @@ The optional ARGS from speedbar are ignored."
               (mh-line-beginning-position) (1+ (line-beginning-position))
               `(mh-expanded t)))))))
 
-(defun mh-speed-view (&rest args)
+(defun mh-speed-view (&rest ignored)
   "Visits the selected folder just as if you had used \\<mh-folder-mode-map>\\[mh-visit-folder].
-The optional ARGS from speedbar are ignored."
+The optional arguments from speedbar are IGNORED."
   (interactive)
   (declare (ignore args))
   (let* ((folder (get-text-property (mh-line-beginning-position) 'mh-folder))
