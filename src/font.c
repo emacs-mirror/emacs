@@ -3739,8 +3739,9 @@ font_range (EMACS_INT pos, EMACS_INT *limit, struct window *w, struct face *face
       else
 	FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, string, pos, pos_byte);
       category = CHAR_TABLE_REF (Vunicode_category_table, c);
-      if (EQ (category, QCf)
-	  || CHAR_VARIATION_SELECTOR_P (c))
+      if (INTEGERP (category)
+	  && (XINT (category) == UNICODE_CATEGORY_Cf
+	      || CHAR_VARIATION_SELECTOR_P (c)))
 	continue;
       if (NILP (font_object))
 	{

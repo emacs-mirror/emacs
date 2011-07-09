@@ -597,6 +597,45 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    : (c) <= 0xDFFF ? 2			\
    : 0)
 
+/* Data type for Unicode general category.
+
+   The order of members must be in sync with the 8th element of the
+   member of unidata-prop-alist (in admin/unidata/unidata-getn.el) for
+   Unicode character property `general-category'.  */
+
+typedef enum {
+  UNICODE_CATEGORY_UNKNOWN = 0,
+  UNICODE_CATEGORY_Lu,
+  UNICODE_CATEGORY_Ll,
+  UNICODE_CATEGORY_Lt,
+  UNICODE_CATEGORY_Lm,
+  UNICODE_CATEGORY_Lo,
+  UNICODE_CATEGORY_Mn,
+  UNICODE_CATEGORY_Mc,
+  UNICODE_CATEGORY_Me,
+  UNICODE_CATEGORY_Nd,
+  UNICODE_CATEGORY_Nl,
+  UNICODE_CATEGORY_No,
+  UNICODE_CATEGORY_Pc,
+  UNICODE_CATEGORY_Pd,
+  UNICODE_CATEGORY_Ps,
+  UNICODE_CATEGORY_Pe,
+  UNICODE_CATEGORY_Pi,
+  UNICODE_CATEGORY_Pf,
+  UNICODE_CATEGORY_Po,
+  UNICODE_CATEGORY_Sm,
+  UNICODE_CATEGORY_Sc,
+  UNICODE_CATEGORY_Sk,
+  UNICODE_CATEGORY_So,
+  UNICODE_CATEGORY_Zs,
+  UNICODE_CATEGORY_Zl,
+  UNICODE_CATEGORY_Zp,
+  UNICODE_CATEGORY_Cc,
+  UNICODE_CATEGORY_Cf,
+  UNICODE_CATEGORY_Cs,
+  UNICODE_CATEGORY_Co,
+  UNICODE_CATEGORY_Cn
+} unicode_category_t;
 
 extern int char_resolve_modifier_mask (int);
 extern int char_string (unsigned, unsigned char *);

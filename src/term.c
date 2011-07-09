@@ -1546,7 +1546,8 @@ produce_glyphs (struct it *it)
   /* Nothing but characters are supported on terminal frames.  */
   xassert (it->what == IT_CHARACTER
 	   || it->what == IT_COMPOSITION
-	   || it->what == IT_STRETCH);
+	   || it->what == IT_STRETCH
+	   || it->what == IT_GLYPHLESS);
 
   if (it->what == IT_STRETCH)
     {

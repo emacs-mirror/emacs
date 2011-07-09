@@ -1,3 +1,23 @@
+2011-07-07  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* themes/tsdh-light-theme.el:
+	* themes/tsdh-dark-theme.el: Make `gnus-button' face inherit from
+	`button', `gnus-header-name' boxed, and define `rcirc-my-nick'
+	face.
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Clarify `smtpmail-auth-credentials' non-existence.
+	Mention the `send-mail-function' default change.
+
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* themes/dichromacy-theme.el:
+	* themes/tango-theme.el:
+	* themes/tango-dark-theme.el:
+	* themes/wheatgrass-theme.el: Don't define button face separately;
+	it inherits from link now.
+
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* NEWS: Clarify that `smtpmail-starttls-credentials' doesn't exist.

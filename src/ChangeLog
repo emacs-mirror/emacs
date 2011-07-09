@@ -27,8 +27,6 @@
 	(tiff_load): Omit no-longer-needed casts.
 	(Fimagemagick_types): Don't assume size fits into 'int'.
 
-2011-07-08  Paul Eggert  <eggert@cs.ucla.edu>
-
 	Improve hashing quality when configured --with-wide-int.
 	* fns.c (hash_string): New function, taken from sxhash_string.
 	Do not discard information about ASCII character case; this
@@ -38,8 +36,6 @@
 	* lread.c (hash_string): Remove, since we now use fns.c's version.
 	The fns.c version returns a wider integer if --with-wide-int is
 	specified, so this should help the quality of the hashing a bit.
-
-2011-07-07  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* emacs.c: Integer overflow minor fix.
 	(heap_bss_diff): Now uprintmax_t, not unsigned long.  All used changed.
@@ -143,8 +139,6 @@
 	(STDC_HEADERS): Remove obsolete defines.
 	* sysdep.c: Include limits.h unconditionally.
 
-2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
-
 	Assume support for memcmp, memcpy, memmove, memset.
 	* lisp.h, sysdep.c (memcmp, memcpy, memmove, memset):
 	* regex.c (memcmp, memcpy):
@@ -156,6 +150,160 @@
 	* lisp.h (struct vectorlike_header, struct Lisp_Subr):  Signed sizes.
 	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
 	well either way, and we prefer signed to unsigned.
+
+2011-07-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Use pthread_sigmask, not sigprocmask (Bug#9010).
+	sigprocmask is portable only for single-threaded applications, and
+	Emacs can be multi-threaded when it uses GTK.
+	* Makefile.in (LIB_PTHREAD_SIGMASK): New macro.
+	(LIBES): Use it.
+	* callproc.c (Fcall_process):
+	* process.c (create_process):
+	* sysdep.c (sys_sigblock, sys_sigunblock, sys_sigsetmask):
+	Use pthread_sigmask, not sigprocmask.
+
+2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (qttip_cb): Set line wrap to FALSE for tooltip widget.
+	(xg_prepare_tooltip): Revert text in x->ttip_lbl, margins was
+	wrong (Bug#8591).
+
+2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_prepare_tooltip): Fix indentation and comment.
+	Put text in x->ttip_lbl instead of gtk_tooltip_set_text (Bug#8591).
+	(xg_hide_tooltip): Fix comment.
+
+	* nsterm.m (initFrameFromEmacs): Don't use ns_return_types
+	in registerServicesMenuSendTypes.
+	(validRequestorForSendType): Don't check ns_return_types.
+
+	* nsfns.m (Fx_open_connection): Put NSStringPboardType into
+	ns_return_type.
+
+2011-07-08  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) [WM_TIMER, WM_SET_CURSOR]: Avoid using
+	frame struct members of non-existent frames (Bug#6284).
+
+2011-07-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (keyDown): Call to wantsToDelayTextChangeNotifications and
+	variable firstTime not needed on OSX >= 10.6.
+	(setPosition): setFloatValue:knobProportion: is deprecated on OSX
+	>= 10.5.  Use setKnobProportion, setDoubleValue.
+
+	* nsterm.h (MAC_OS_X_VERSION_10_3, MAC_OS_X_VERSION_10_4)
+	(MAC_OS_X_VERSION_10_5): Define if not defined.
+	(EmacsView, EmacsTooltip): Implements NSWindowDelegate on OSX >= 10.6.
+	(EmacsMenu): Implements NSMenuDelegate on OSX >= 10.6.
+	(EmacsToolbar): Implements NSToolbarDelegate on OSX >= 10.6.
+
+	* nsselect.m (ns_string_from_pasteboard): Don't use deprecated methods
+	cString and lossyCString on OSX >= 10.4
+
+	* nsmenu.m (fillWithWidgetValue): Don't use depercated method
+	sizeToFit on OSX >= 10.2.
+
+	* nsimage.m (allocInitFromFile): Don't use deprecated method
+	bestRepresentationForDevice on OSX >= 10.6.
+
+	* nsfns.m (check_ns_display_info): Cast to long and use %ld in error
+	to avoid warning.
+
+	* emacs.c: Declare unexec_init_emacs_zone.
+
+	* nsgui.h: Fix compiler warning about gnulib redefining verify.
+
+	* nsselect.m (ns_get_local_selection): Change to extern (Bug#8842).
+
+	* nsmenu.m (ns_update_menubar): Remove useless setDelegate call
+	on svcsMenu (Bug#8842).
+
+	* nsfns.m (Fx_open_connection): Remove NSStringPboardType from
+	ns_return_types.
+	(Fns_list_services): Just return Qnil on 10.6, code not working there.
+
+	* nsterm.m (QUTF8_STRING): Declare.
+	(initFrameFromEmacs): Call registerServicesMenuSendTypes.
+	(validRequestorForSendType): Return type is (id).
+	Change indexOfObjectIdenticalTo to indexOfObject.
+	Check if we have local selection before returning self (Bug#8842).
+	(writeSelectionToPasteboard): Put local selection into paste board
+	if we have a local selection (Bug#8842).
+	(syms_of_nsterm): DEFSYM QUTF8_STRING.
+
+	* nsterm.h (MAC_OS_X_VERSION_10_6): Define here instead of nsterm.m.
+	(ns_get_local_selection): Declare.
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* keymap.c (describe_map_tree): Don't insert a double newline at
+	the end of the buffer (bug#1169) and return whether we inserted
+	something.
+
+	* callint.c (Fcall_interactively): Change "reading args" to
+	"providing args" to try to clarify what it does (bug#1010).
+
+2011-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (composition_compute_stop_pos): Ignore a static
+	composition starting before CHARPOS (Bug#8915).
+
+	* xdisp.c (handle_composition_prop): Likewise.
+
+2011-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (produce_glyphs) <xassert>: Allow IT_GLYPHLESS in it->what.
+	(Bug#9015)
+
+2011-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* character.h (unicode_category_t): New enum type.
+
+	* chartab.c (uniprop_decoder_t, uniprop_encoder_t): New types.
+	(Qchar_code_property_table): New variable.
+	(UNIPROP_TABLE_P, UNIPROP_GET_DECODER)
+	(UNIPROP_COMPRESSED_FORM_P): New macros.
+	(char_table_ascii): Uncompress the compressed values.
+	(sub_char_table_ref): New arg is_uniprop.  Callers changed.
+	Uncompress the compressed values.
+	(sub_char_table_ref_and_range):  Likewise.
+	(char_table_ref_and_range): Uncompress the compressed values.
+	(sub_char_table_set): New arg is_uniprop.  Callers changed.
+	Uncompress the compressed values.
+	(sub_char_table_set_range): Args changed.  Callers changed.
+	(char_table_set_range): Adjuted for the above change.
+	(map_sub_char_table): Delete args default_val and parent.  Add arg
+	top.  Give decoded values to a Lisp function.
+	(map_char_table): Adjusted for the above change.  Give decoded
+	values to a Lisp function.  Gcpro more variables.
+	(uniprop_table_uncompress)
+	(uniprop_decode_value_run_length): New functions.
+	(uniprop_decoder, uniprop_decoder_count): New variables.
+	(uniprop_get_decoder, uniprop_encode_value_character)
+	(uniprop_encode_value_run_length, uniprop_encode_value_numeric):
+	New functions.
+	(uniprop_encoder, uniprop_encoder_count): New variables.
+	(uniprop_get_encoder, uniprop_table)
+	(Funicode_property_table_internal, Fget_unicode_property_internal)
+	(Fput_unicode_property_internal): New functions.
+	(syms_of_chartab): DEFSYM Qchar_code_property_table, defsubr
+	Sunicode_property_table_internal, Sget_unicode_property_internal,
+	and Sput_unicode_property_internal. Defvar_lisp
+	char-code-property-alist.
+
+	* composite.c (CHAR_COMPOSABLE_P): Adjusted for the change of
+	Vunicode_category_table.
+
+	* font.c (font_range): Adjusted for the change of
+	Vunicode_category_table.
+
+2011-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/iris4d.h: Remove file, move contents ...
+	* s/irix6-5.h: ... here.
 
 2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
 

@@ -231,8 +231,8 @@ AC_ARG_ENABLE(asserts,
       USE_XASSERTS=no)
 
 AC_ARG_ENABLE(maintainer-mode,
-[AS_HELP_STRING([--enable-maintainer-mode],
-                [enable make rules and dependencies not useful (and sometimes
+[AS_HELP_STRING([--disable-maintainer-mode],
+                [disable make rules and dependencies not useful (and sometimes
 		 confusing) to the casual installer])],
       USE_MAINTAINER_MODE=$enableval,
       USE_MAINTAINER_MODE=yes)
@@ -536,7 +536,7 @@ case "${canonical}" in
   ## Silicon Graphics machines
   ## Iris 4D
   mips-sgi-irix6.5 )
-    machine=iris4d opsys=irix6-5
+    opsys=irix6-5
     # Without defining _LANGUAGE_C, things get masked out in the headers
     # so that, for instance, grepping for `free' in stdlib.h fails and
     # AC_HEADER_STD_C fails.   (MIPSPro 7.2.1.2m compilers, Irix 6.5.3m).
@@ -984,6 +984,8 @@ fi
 
 # Suppress obsolescent Autoconf test for size_t; Emacs assumes C89 or better.
 AC_DEFUN([AC_TYPE_SIZE_T])
+# Likewise for obsolescent test for uid_t, gid_t; Emacs assumes them.
+AC_DEFUN([AC_TYPE_UID_T])
 
 dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
@@ -2724,11 +2726,6 @@ AC_FUNC_FSEEKO
 
 AC_FUNC_GETPGRP
 
-# Configure gnulib.
-gl_ASSERT_NO_GNULIB_POSIXCHECK
-gl_ASSERT_NO_GNULIB_TESTS
-gl_INIT
-
 # UNIX98 PTYs.
 AC_CHECK_FUNCS(grantpt)
 
@@ -3330,6 +3327,10 @@ AC_SUBST(CYGWIN_OBJ)
 AC_SUBST(PRE_ALLOC_OBJ)
 AC_SUBST(POST_ALLOC_OBJ)
 
+# Configure gnulib here, now that we know LIBS.
+gl_ASSERT_NO_GNULIB_POSIXCHECK
+gl_ASSERT_NO_GNULIB_TESTS
+gl_INIT
 
 case "$opsys" in
   aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;

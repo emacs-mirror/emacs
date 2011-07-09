@@ -1,4 +1,4 @@
-2011-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume freestanding C89 headers, string.h, stdlib.h.
 	Again, this simplifies the code, and all current platforms have these.
@@ -7,13 +7,44 @@
 	(AC_CHECK_FUNCS): No need to check for strchr, strrchr.
 	(strchr, strrchr): Remove fallback macros.
 
-2011-07-06  Paul Eggert  <eggert@cs.ucla.edu>
-
 	Assume support for memcmp, memcpy, memmove, memset.
 	This simplifies the code a bit.  All current platforms have these,
 	as they are required for C89.  If this turns into a problem we
 	can add the gnulib modules for these (a 1-line change to Makefile.in).
 	* configure.in: Don't check for memcmp, memcpy, memmove, memset.
+
+2011-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add gnulib's strtoimax module, needed on Solaris 8.
+	* Makefile.in (GNULIB_MODULES): Add strtoimax.
+	* lib/strtoll.c, m4/strtoimax.m4, m4/strtoll.m4: New files,
+	automatically imported from gnulib.
+	* lib/gnulib.mk, m4/gl-comp.m4: Regenerate.
+
+2011-07-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add gnulib support for pthread_sigmask (Bug#9010).
+	* Makefile.in (GNULIB_MODULES): Add pthread_sigmask.
+	* configure.in (AC_TYPE_UID_T): New dummy macro.
+	Configure gnulib after adjusting LIBS,
+	so that gnulib can assume the libraries in LIBS.
+	* lib/signal.in.h, m4/pthread_sigmask.m4, m4/signal_h.m4:
+	* lib/pthread_sigprocmask.c, lib/sigprocmask.c, m4/signalblocking.m4:
+	* lib/pthread_sigmask.c:
+	New files, automatically imported from gnulib.
+	* lib/gnulib.mk, m4/gl-comp.m4: Automatically-imported update
+	due to the above changes.
+	* .bzrignore: Add lib/signal.h.
+
+	* lib/getopt.c, lib/unistd.in.h, m4/getopt.m4: Merge from gnulib.
+
+2011-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in (maintainer-mode): Reflect default in help string.
+
+2011-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove reference to iris4d.h.
 
 2011-07-05  Jan Djärv  <jan.h.d@swipnet.se>
 

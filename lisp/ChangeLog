@@ -1,3 +1,141 @@
+2011-07-09  Leo Liu  <sdl.web@gmail.com>
+
+	* register.el (insert-register): Restore accidental change on
+	2011-06-26.  (Bug#9028)
+
+2011-07-09  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (remq): Handle the empty list.  (Bug#9024)
+
+2011-07-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* mail/sendmail.el (send-mail-function): No longer delay custom
+	initialization.
+	* custom.el (custom-initialize-delay): Doc fix.
+
+2011-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* abbrev.el (expand-abbrev): Try to preserve point (bug#5805).
+
+2011-07-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Use a
+	human-friendly prompt.
+
+2011-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-bzr.el (vc-bzr-revision-keywords): Remove svn, it's only
+	provided by a particular plugin.
+
+2011-07-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/sendmail.el (sendmail-query-once): If we aren't allowed to
+	save customizations (with "emacs -Q"), just set the variable
+	instead of erroring out.
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Ditto.
+
+2011-07-08  Juri Linkov  <juri@jurta.org>
+
+	* arc-mode.el (archive-zip-expunge, archive-zip-update)
+	(archive-zip-update-case): Use 7z if found by `executable-find'.
+	The order of searching the available programs is the same as in
+	`archive-zip-extract' (bug#8968).
+
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-line-wrapping-menu): Revert last change.
+	(menu-bar-options-menu): Tweak descriptions.
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* menu-bar.el (menu-bar-line-wrapping-menu): Make all the Options
+	menu items into verb phrases (bug#1421).  Also refill to fit under
+	80 columns.
+
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.el (info, Info-read-node-name-2, Info-read-node-name-1)
+	(Info-read-node-name): Doc fix (Bug#1084).
+
+	* thingatpt.el (forward-thing, bounds-of-thing-at-point)
+	(thing-at-point, beginning-of-thing, end-of-thing, in-string-p)
+	(end-of-sexp, beginning-of-sexp)
+	(thing-at-point-bounds-of-list-at-point, forward-whitespace)
+	(forward-symbol, forward-same-syntax, word-at-point)
+	(sentence-at-point): Doc fix (Bug#1144).
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* info.el (Info-mode-map): Remove S-TAB binding, since [backtab]
+	should cover it (bug#1281).
+
+	* cus-edit.el (custom-show): Mark as obsolete.
+
+	* net/network-stream.el (network-stream-open-starttls): If gnutls
+	negotiation fails, then possibly try again with a non-encrypted
+	connection (bug#9017).
+
+	* mail/smtpmail.el (smtpmail-stream-type): Note that `plain' can
+	be used.
+
+2011-07-07  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-next-error-move): Use `compilation-message'
+	property, and handle its changed format.
+	Look for the correct line number.
+	Use file's line contents (but not past first =) to find
+	correct line in message.
+
+2011-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el (build-unicode-category-table):
+	Delete it.
+	(unicode-category-table): Set it by unicode-property-table-internal.
+
+	* international/mule-cmds.el (char-code-property-alist): Move to
+	to src/chartab.c.
+	(get-char-code-property): Call unicode-property-table-internal to
+	load a file.  Call get-unicode-property-internal where necessary.
+	(put-char-code-property): Call unicode-property-table-internal to
+	load a file.  Call put-unicode-property-internal where necessary.
+	put-unicode-property-internal where necessary.
+	(char-code-property-description):
+	Call unicode-property-table-internal to load a file.
+
+	* international/charprop.el:
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-combining.el:
+	* international/uni-comment.el:
+	* international/uni-decimal.el:
+	* international/uni-decomposition.el:
+	* international/uni-digit.el:
+	* international/uni-lowercase.el:
+	* international/uni-mirrored.el:
+	* international/uni-name.el:
+	* international/uni-numeric.el:
+	* international/uni-old-name.el:
+	* international/uni-titlecase.el:
+	* international/uni-uppercase.el: Regenerate.
+
+	* loadup.el: Load international/charprop.el before
+	international/characters.
+
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (next-buffer, previous-buffer): Signal an error if
+	called from a minibuffer window.
+
+	* bindings.el: Revert 2011-07-04 change.
+
+2011-07-06  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-process): Use markers for buf positions.
+	(rmail-mime-insert-bulk, rmail-mime-insert-text):
+	Treat markers like ints.
+	(rmail-mime-entity): Doc fix.
+
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-default-smtp-server): Made into a
@@ -32,8 +170,8 @@
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* emacs-lisp/lisp-mode.el (eval-defun-1): Update the documentation
-	of faces when `M-C-x'-ing their definitions (bug#8378).  Also
-	clean up the code slightly.
+	of faces when `M-C-x'-ing their definitions (bug#8378).
+	Also clean up the code slightly.
 
 	* progmodes/grep.el (rgrep): Don't bind `process-connection-type',
 	because that makes the colours go away.
@@ -57,39 +195,38 @@
 2011-07-06  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el: Version 3.0
-	(sql-product-alist): Added product :completion-object,
+	(sql-product-alist): Add product :completion-object,
 	:completion-column, and :statement attributes.
-	(sql-mode-menu, sql-interactive-mode-map): Fixed List entries.
+	(sql-mode-menu, sql-interactive-mode-map): Fix List entries.
 	(sql-mode-syntax-table): Mark all punctuation.
-	(sql-font-lock-keywords-builder): Temporarily removed fallback on
+	(sql-font-lock-keywords-builder): Temporarily remove fallback on
 	ansi keywords.
 	(sql-regexp-abbrev, sql-regexp-abbrev-list): New functions.
-	(sql-mode-oracle-font-lock-keywords): Improved.
+	(sql-mode-oracle-font-lock-keywords): Improve.
 	(sql-oracle-show-reserved-words): New function for development.
 	(sql-product-font-lock): Simplify for source code buffers.
 	(sql-product-syntax-table, sql-product-font-lock-syntax-alist):
 	New functions.
 	(sql-highlight-product): Set product specific syntax table.
-	(sql-mode-map): Added statement movement functions.
-	(sql-ansi-statement-starters, sql-oracle-statement-starters): New
-	variable.
+	(sql-mode-map): Add statement movement functions.
+	(sql-ansi-statement-starters, sql-oracle-statement-starters):
+	New variable.
 	(sql-statement-regexp, sql-beginning-of-statement)
 	(sql-end-of-statement, sql-signum): New functions.
-	(sql-buffer-live-p, sql=find-sqli-buffer): Added CONNECTION
-	parameter.
+	(sql-buffer-live-p, sql=find-sqli-buffer): Add CONNECTION parameter.
 	(sql-show-sqli-buffer): Bug fix.
 	(sql-interactive-mode): Store connection data as buffer local.
-	(sql-connect): Added NEW-NAME parameter.  Redesigned interaction
+	(sql-connect): Add NEW-NAME parameter.  Redesign interaction
 	with sql-interactive-mode.
 	(sql-save-connection): Save buffer local settings.
-	(sql-connection-menu-filter): Changed menu entry name.
+	(sql-connection-menu-filter): Change menu entry name.
 	(sql-product-interactive): Bug fix.
 	(sql-preoutput-hold): New variable.
 	(sql-interactive-remove-continuation-prompt): Bug fixes.
 	(sql-debug-redirect): New variable.
 	(sql-str-literal): New function.
 	(sql-redirect, sql-redirect-one, sql-redirect-value, sql-execute):
-	Redesigned.
+	Redesign.
 	(sql-oracle-save-settings, sql-oracle-restore-settings)
 	(sql-oracle-list-all, sql-oracle-list-table): New functions.
 	(sql-completion-object, sql-completion-column)
@@ -262,9 +399,8 @@
 	buffer-saved-size and some allout state to not inhibit auto-saves
 	if there are no longer any plain-text topics pending encryption.
 
-	(allout-next-topic-pending-encryption),
-	(allout-encrypt-decrypted): No longer provide for exemption of the
-	current topic.
+	(allout-next-topic-pending-encryption, allout-encrypt-decrypted):
+	No longer provide for exemption of the current topic.
 
 2011-07-04  Juri Linkov  <juri@jurta.org>
 

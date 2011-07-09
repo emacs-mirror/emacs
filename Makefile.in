@@ -335,8 +335,9 @@ GNULIB_MODULES = \
   alloca-opt \
   careadlinkat crypto/md5 crypto/sha1 crypto/sha256 crypto/sha512 dtoastr \
   dup2 \
-  filemode getloadavg getopt-gnu ignore-value intprops lstat mktime readlink \
-  socklen stdarg stdio strftime strtoumax symlink sys_stat
+  filemode getloadavg getopt-gnu ignore-value intprops lstat \
+  mktime pthread_sigmask readlink \
+  socklen stdarg stdio strftime strtoimax strtoumax symlink sys_stat
 GNULIB_TOOL_FLAGS = \
  --conditional-dependencies --import --no-changelog --no-vc-files \
  --makefile-name=gnulib.mk
