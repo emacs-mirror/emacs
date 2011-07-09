@@ -35,10 +35,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    details about its algorithm that finds the next visual-order
    character by resolving their levels on the fly.
 
-   The two other entry points are bidi_paragraph_init and
+   Two other entry points are bidi_paragraph_init and
    bidi_mirror_char.  The first determines the base direction of a
    paragraph, while the second returns the mirrored version of its
    argument character.
+
+   A few auxiliary entry points are used to initialize the bidi
+   iterator for iterating an object (buffer or string), push and pop
+   the bidi iterator state, and save and restore the state of the bidi
+   cache.
 
    If you want to understand the code, you will have to read it
    together with the relevant portions of UAX#9.  The comments include
