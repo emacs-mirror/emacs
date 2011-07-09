@@ -1,3 +1,7 @@
+2011-07-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (pthread_sigmask): New stub.
+
 2011-07-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use pthread_sigmask, not sigprocmask (Bug#9010).
