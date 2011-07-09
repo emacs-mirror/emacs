@@ -94,7 +94,7 @@ error, its exit status is 1.
 ** Emacs now supports display and editing of bidirectional text.
 
 See the node "Bidirectional Editing" in the Emacs Manual for some
-initial documentation.
+additional documentation.
 
 To turn this on in any given buffer, set the buffer-local variable
 `bidi-display-reordering' to a non-nil value.  The default is nil.
@@ -112,10 +112,6 @@ value of paragraph base direction at point.
 Reordering of bidirectional text for display in Emacs is a "Full
 bidirectionality" class implementation of the Unicode Bidirectional
 Algorithm.
-
-Note that some advanced display features, such as overlay strings and
-`display' text properties, do not yet work correctly when
-bidirectional text is reordered for display.
 
 ** GTK scroll-bars are now placed on the right by default.
 Use `set-scroll-bar-mode' to change this.
