@@ -70,9 +70,6 @@
 	The order of searching the available programs is the same as in
 	`archive-zip-extract' (bug#8968).
 
-2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
-
-	* cus-edit.el (custom-show): Marked as obsolete.
 2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* menu-bar.el (menu-bar-line-wrapping-menu): Revert last change.
