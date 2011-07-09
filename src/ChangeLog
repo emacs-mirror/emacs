@@ -1,5 +1,8 @@
 2011-07-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* bidi.c (bidi_fetch_char): Fix the type of `len' according to
+	what STRING_CHAR_AND_LENGTH expects.
+
 	* xdisp.c (move_it_in_display_line_to): Record prev_method and
 	prev_pos immediately before the call to set_iterator_to_next.
 	Fixes cursor motion in bidi-reordered lines with stretch glyphs

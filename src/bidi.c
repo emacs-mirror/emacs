@@ -922,7 +922,7 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
     {
       if (string->s)
 	{
-	  EMACS_INT len;
+	  int len;
 
 	  if (!string->unibyte)
 	    {
@@ -937,7 +937,7 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
 	}
       else if (STRINGP (string->lstring))
 	{
-	  EMACS_INT len;
+	  int len;
 
 	  if (!string->unibyte)
 	    {
