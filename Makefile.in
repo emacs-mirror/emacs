@@ -337,7 +337,7 @@ GNULIB_MODULES = \
   dup2 \
   filemode getloadavg getopt-gnu ignore-value intprops lstat \
   mktime pthread_sigmask readlink \
-  socklen stdarg stdio strftime strtoumax symlink sys_stat
+  socklen stdarg stdio strftime strtoimax strtoumax symlink sys_stat
 GNULIB_TOOL_FLAGS = \
  --conditional-dependencies --import --no-changelog --no-vc-files \
  --makefile-name=gnulib.mk
