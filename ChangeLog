@@ -1,3 +1,11 @@
+2011-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add strtoimax module, needed for Solaris 8 port.
+	* Makefile.in (GNULIB_MODULES): Add strtoimax.
+	* lib/strtoll.c, m4/strtoimax.m4, m4/strtoll.m4: New files,
+	automatically imported from gnulib.
+	* lib/gnulib.mk, m4/gl-comp.m4: Regenerate.
+
 2011-07-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Add gnulib support for pthread_sigmask (Bug#9010).

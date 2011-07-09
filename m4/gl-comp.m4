@@ -71,6 +71,8 @@ AC_DEFUN([gl_EARLY],
   # Code from module stdio:
   # Code from module stdlib:
   # Code from module strftime:
+  # Code from module strtoimax:
+  # Code from module strtoll:
   # Code from module strtoull:
   # Code from module strtoumax:
   # Code from module symlink:
@@ -164,6 +166,12 @@ gl_STDINT_H
 gl_STDIO_H
 gl_STDLIB_H
 gl_FUNC_GNU_STRFTIME
+gl_FUNC_STRTOIMAX
+if test "$ac_cv_have_decl_strtoimax" != yes && test $ac_cv_func_strtoimax = no; then
+  AC_LIBOBJ([strtoimax])
+  gl_PREREQ_STRTOIMAX
+fi
+gl_INTTYPES_MODULE_INDICATOR([strtoimax])
 gl_FUNC_STRTOUMAX
 if test "$ac_cv_have_decl_strtoumax" != yes && test $ac_cv_func_strtoumax = no; then
   AC_LIBOBJ([strtoumax])
@@ -190,6 +198,7 @@ gl_UNISTD_H
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
   gl_gnulib_enabled_sigprocmask=false
   gl_gnulib_enabled_stat=false
+  gl_gnulib_enabled_strtoll=false
   gl_gnulib_enabled_strtoull=false
   gl_gnulib_enabled_verify=false
   func_gl_gnulib_m4code_dosname ()
@@ -236,6 +245,18 @@ gl_SYS_STAT_MODULE_INDICATOR([stat])
       fi
     fi
   }
+  func_gl_gnulib_m4code_strtoll ()
+  {
+    if ! $gl_gnulib_enabled_strtoll; then
+gl_FUNC_STRTOLL
+if test $HAVE_STRTOLL = 0; then
+  AC_LIBOBJ([strtoll])
+  gl_PREREQ_STRTOLL
+fi
+gl_STDLIB_MODULE_INDICATOR([strtoll])
+      gl_gnulib_enabled_strtoll=true
+    fi
+  }
   func_gl_gnulib_m4code_strtoull ()
   {
     if ! $gl_gnulib_enabled_strtoull; then
@@ -269,6 +290,12 @@ gl_STDLIB_MODULE_INDICATOR([strtoull])
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     func_gl_gnulib_m4code_stat
   fi
+  if test "$ac_cv_have_decl_strtoimax" != yes && test $ac_cv_func_strtoimax = no; then
+    func_gl_gnulib_m4code_verify
+  fi
+  if test "$ac_cv_have_decl_strtoimax" != yes && test $ac_cv_func_strtoimax = no && test $ac_cv_type_long_long_int = yes; then
+    func_gl_gnulib_m4code_strtoll
+  fi
   if test "$ac_cv_have_decl_strtoumax" != yes && test $ac_cv_func_strtoumax = no; then
     func_gl_gnulib_m4code_verify
   fi
@@ -280,6 +307,7 @@ gl_STDLIB_MODULE_INDICATOR([strtoull])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36], [$gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_sigprocmask], [$gl_gnulib_enabled_sigprocmask])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_stat], [$gl_gnulib_enabled_stat])
+  AM_CONDITIONAL([gl_GNULIB_ENABLED_strtoll], [$gl_gnulib_enabled_strtoll])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_strtoull], [$gl_gnulib_enabled_strtoull])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_verify], [$gl_gnulib_enabled_verify])
   # End of code from modules
@@ -473,6 +501,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/strftime.h
   lib/strtoimax.c
   lib/strtol.c
+  lib/strtoll.c
   lib/strtoul.c
   lib/strtoull.c
   lib/strtoumax.c
@@ -517,6 +546,8 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/stdio_h.m4
   m4/stdlib_h.m4
   m4/strftime.m4
+  m4/strtoimax.m4
+  m4/strtoll.m4
   m4/strtoull.m4
   m4/strtoumax.m4
   m4/symlink.m4
