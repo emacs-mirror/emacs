@@ -1,6 +1,6 @@
 2011-07-08  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Fix minor problems found by static checking.
+	Fix minor problems found by static checking (Bug#9031).
 	* chartab.c (char_table_set_range, map_sub_char_table)
 	(uniprop_table_uncompress): Remove unused locals.
 	(uniprop_table): Now static.
