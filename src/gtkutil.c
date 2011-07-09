@@ -647,7 +647,6 @@ qttip_cb (GtkWidget  *widget,
       /* Change stupid Gtk+ default line wrapping.  */
       p = gtk_widget_get_parent (x->ttip_lbl);
       list = gtk_container_get_children (GTK_CONTAINER (p));
-      iter;
       for (iter = list; iter; iter = g_list_next (iter))
         {
           GtkWidget *w = GTK_WIDGET (iter->data);

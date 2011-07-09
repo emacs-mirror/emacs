@@ -967,7 +967,6 @@ autocmp_chars (Lisp_Object rule, EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT
 }
 
 static Lisp_Object _work_val;
-static int _work_char;
 
 /* 1 iff the character C is composable.  Characters of general
    category Z? or C? are not composable except for ZWNJ and ZWJ. */

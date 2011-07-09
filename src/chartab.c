@@ -485,7 +485,6 @@ Lisp_Object
 char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val)
 {
   struct Lisp_Char_Table *tbl = XCHAR_TABLE (table);
-  Lisp_Object *contents = tbl->contents;
 
   if (from == to)
     char_table_set (table, from, val);
@@ -759,8 +758,6 @@ map_sub_char_table (void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object),
 		    Lisp_Object function, Lisp_Object table, Lisp_Object arg, Lisp_Object val,
 		    Lisp_Object range, Lisp_Object top)
 {
-  /* Pointer to the elements of TABLE. */
-  Lisp_Object *contents;
   /* Depth of TABLE.  */
   int depth;
   /* Minimum and maxinum characters covered by TABLE. */
@@ -777,14 +774,12 @@ map_sub_char_table (void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object),
       struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
 
       depth = XINT (tbl->depth);
-      contents = tbl->contents;
       min_char = XINT (tbl->min_char);
       max_char = min_char + chartab_chars[depth - 1] - 1;
     }
   else
     {
       depth = 0;
-      contents = XCHAR_TABLE (table)->contents;
       min_char = 0;
       max_char = MAX_CHAR;
     }
@@ -1143,7 +1138,6 @@ uniprop_table_uncompress (Lisp_Object table, int idx)
   Lisp_Object sub = make_sub_char_table (3, min_char, Qnil);
   struct Lisp_Sub_Char_Table *subtbl = XSUB_CHAR_TABLE (sub);
   const unsigned char *p, *pend;
-  int i;
 
   XSUB_CHAR_TABLE (table)->contents[idx] = sub;
   p = SDATA (val), pend = p + SBYTES (val);
@@ -1316,7 +1310,7 @@ uniprop_get_encoder (Lisp_Object table)
    function may load a Lisp file and thus may cause
    garbage-collection.  */
 
-Lisp_Object
+static Lisp_Object
 uniprop_table (Lisp_Object prop)
 {
   Lisp_Object val, table, result;
