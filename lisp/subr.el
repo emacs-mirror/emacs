@@ -490,7 +490,7 @@ SEQ must be a list, vector, or string.  The comparison is done with `equal'."
   "Return LIST with all occurrences of ELT removed.
 The comparison is done with `eq'.  Contrary to `delq', this does not use
 side-effects, and the argument LIST is not modified."
-  (while (eq elt (car list)) (setq list (cdr list)))
+  (while (and (eq elt (car list)) (setq list (cdr list))))
   (if (memq elt list)
       (delq elt (copy-sequence list))
     list))
