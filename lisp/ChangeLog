@@ -1,3 +1,8 @@
+2011-07-09  Bob Nnamtrop  <bobnnamtrop@gmail.com>  (tiny change)
+
+	* emulation/viper-cmd.el (viper-change-state-to-vi): Limit
+	triggering of abbrev expansion (Bug#9038).
+
 2011-07-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-default-specifiers): Remove.
