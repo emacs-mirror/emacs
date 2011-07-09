@@ -607,55 +607,6 @@ SUBDIR_MAKEFILES_IN
 LIB_GCC
 LD_FIRSTFLAG
 LD_SWITCH_SYSTEM_TEMACS
-POST_ALLOC_OBJ
-PRE_ALLOC_OBJ
-CYGWIN_OBJ
-RALLOC_OBJ
-OLDXMENU_DEPS
-LIBX_OTHER
-LIBXMENU
-OLDXMENU
-OLDXMENU_TARGET
-LIBXT_OTHER
-TOOLKIT_LIBW
-WIDGET_OBJ
-XOBJ
-XMENU_OBJ
-FONT_OBJ
-OTHER_FILES
-GNU_OBJC_CFLAGS
-ns_appsrc
-ns_appresdir
-ns_appbindir
-ns_appdir
-S_FILE
-M_FILE
-X_TOOLKIT_TYPE
-C_SWITCH_X_SYSTEM
-C_SWITCH_X_SITE
-LD_SWITCH_X_SITE
-gameuser
-gamedir
-bitmapdir
-archlibdir
-etcdir
-x_default_search_path
-lisppath
-locallisppath
-lispdir
-srcdir
-canonical
-configuration
-version
-KRB4LIB
-DESLIB
-KRB5LIB
-CRYPTOLIB
-COM_ERRLIB
-LIBRESOLV
-LIBHESIOD
-TERMCAP_OBJ
-LIBS_TERMCAP
 LIBGNU_LTLIBDEPS
 LIBGNU_LIBDEPS
 gltests_WITNESS
@@ -663,8 +614,12 @@ gl_GNULIB_ENABLED_verify_FALSE
 gl_GNULIB_ENABLED_verify_TRUE
 gl_GNULIB_ENABLED_strtoull_FALSE
 gl_GNULIB_ENABLED_strtoull_TRUE
+gl_GNULIB_ENABLED_strtoll_FALSE
+gl_GNULIB_ENABLED_strtoll_TRUE
 gl_GNULIB_ENABLED_stat_FALSE
 gl_GNULIB_ENABLED_stat_TRUE
+gl_GNULIB_ENABLED_sigprocmask_FALSE
+gl_GNULIB_ENABLED_sigprocmask_TRUE
 gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_FALSE
 gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_TRUE
 gl_GNULIB_ENABLED_dosname_FALSE
@@ -798,6 +753,22 @@ GL_GENERATE_STDARG_H_TRUE
 STDARG_H
 NEXT_AS_FIRST_DIRECTIVE_STDARG_H
 NEXT_STDARG_H
+NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H
+NEXT_SIGNAL_H
+REPLACE_PTHREAD_SIGMASK
+HAVE_SIGHANDLER_T
+HAVE_TYPE_VOLATILE_SIG_ATOMIC_T
+HAVE_STRUCT_SIGACTION_SA_SIGACTION
+HAVE_SIGACTION
+HAVE_SIGINFO_T
+HAVE_SIGSET_T
+HAVE_PTHREAD_SIGMASK
+HAVE_POSIX_SIGNALBLOCKING
+GNULIB_SIGACTION
+GNULIB_SIGPROCMASK
+GNULIB_SIGNAL_H_SIGPIPE
+GNULIB_PTHREAD_SIGMASK
+LIB_PTHREAD_SIGMASK
 REPLACE_TIMEGM
 REPLACE_NANOSLEEP
 REPLACE_MKTIME
@@ -1076,6 +1047,55 @@ ALLOCA_H
 ALLOCA
 GL_COND_LIBTOOL_FALSE
 GL_COND_LIBTOOL_TRUE
+POST_ALLOC_OBJ
+PRE_ALLOC_OBJ
+CYGWIN_OBJ
+RALLOC_OBJ
+OLDXMENU_DEPS
+LIBX_OTHER
+LIBXMENU
+OLDXMENU
+OLDXMENU_TARGET
+LIBXT_OTHER
+TOOLKIT_LIBW
+WIDGET_OBJ
+XOBJ
+XMENU_OBJ
+FONT_OBJ
+OTHER_FILES
+GNU_OBJC_CFLAGS
+ns_appsrc
+ns_appresdir
+ns_appbindir
+ns_appdir
+S_FILE
+M_FILE
+X_TOOLKIT_TYPE
+C_SWITCH_X_SYSTEM
+C_SWITCH_X_SITE
+LD_SWITCH_X_SITE
+gameuser
+gamedir
+bitmapdir
+archlibdir
+etcdir
+x_default_search_path
+lisppath
+locallisppath
+lispdir
+srcdir
+canonical
+configuration
+version
+KRB4LIB
+DESLIB
+KRB5LIB
+CRYPTOLIB
+COM_ERRLIB
+LIBRESOLV
+LIBHESIOD
+TERMCAP_OBJ
+LIBS_TERMCAP
 BLESSMAIL_TARGET
 LIBS_MAIL
 liblockfile
@@ -2571,6 +2591,60 @@ $as_echo "$ac_res" >&6; }
 
 } # ac_fn_c_check_func
 
+# ac_fn_c_check_type LINENO TYPE VAR INCLUDES
+# -------------------------------------------
+# Tests whether TYPE exists after having included INCLUDES, setting cache
+# variable VAR accordingly.
+ac_fn_c_check_type ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
+$as_echo_n "checking for $2... " >&6; }
+if { as_var=$3; eval "test \"\${$as_var+set}\" = set"; }; then :
+  $as_echo_n "(cached) " >&6
+else
+  eval "$3=no"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+int
+main ()
+{
+if (sizeof ($2))
+	 return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+int
+main ()
+{
+if (sizeof (($2)))
+	    return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+else
+  eval "$3=yes"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
+
+} # ac_fn_c_check_type
+
 # ac_fn_c_compute_int LINENO EXPR VAR INCLUDES
 # --------------------------------------------
 # Tries to find the compile-time value of EXPR in a program that includes
@@ -2748,60 +2822,6 @@ rm -f conftest.val
   as_fn_set_status $ac_retval
 
 } # ac_fn_c_compute_int
-
-# ac_fn_c_check_type LINENO TYPE VAR INCLUDES
-# -------------------------------------------
-# Tests whether TYPE exists after having included INCLUDES, setting cache
-# variable VAR accordingly.
-ac_fn_c_check_type ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
-$as_echo_n "checking for $2... " >&6; }
-if { as_var=$3; eval "test \"\${$as_var+set}\" = set"; }; then :
-  $as_echo_n "(cached) " >&6
-else
-  eval "$3=no"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-int
-main ()
-{
-if (sizeof ($2))
-	 return 0;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-int
-main ()
-{
-if (sizeof (($2)))
-	    return 0;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-
-else
-  eval "$3=yes"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-eval ac_res=\$$3
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-  eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
-
-} # ac_fn_c_check_type
 cat >config.log <<_ACEOF
 This file contains any messages produced by compilers while
 running configure, to aid debugging if configure makes a mistake.
@@ -3097,6 +3117,7 @@ as_fn_append ac_header_list " stdint.h"
 as_fn_append ac_header_list " inttypes.h"
 as_fn_append ac_func_list " lstat"
 as_fn_append ac_func_list " alarm"
+as_fn_append ac_func_list " pthread_sigmask"
 as_fn_append ac_func_list " readlink"
 as_fn_append ac_header_list " sys/socket.h"
 as_fn_append ac_func_list " tzset"
@@ -6579,7 +6600,10 @@ esac
   # Code from module lstat:
   # Code from module mktime:
   # Code from module multiarch:
+  # Code from module pthread_sigmask:
   # Code from module readlink:
+  # Code from module signal:
+  # Code from module sigprocmask:
   # Code from module socklen:
   # Code from module ssize_t:
   # Code from module stat:
@@ -6591,6 +6615,8 @@ esac
   # Code from module stdio:
   # Code from module stdlib:
   # Code from module strftime:
+  # Code from module strtoimax:
+  # Code from module strtoll:
   # Code from module strtoull:
   # Code from module strtoumax:
   # Code from module symlink:
@@ -7454,6 +7480,8 @@ else
 fi
 
 # Suppress obsolescent Autoconf test for size_t; Emacs assumes C89 or better.
+
+# Likewise for obsolescent test for uid_t, gid_t; Emacs assumes them.
 
 
 # Check whether --enable-largefile was given.
@@ -13915,7 +13943,1766 @@ $as_echo "#define GETPGRP_VOID 1" >>confdefs.h
 fi
 
 
-# Configure gnulib.
+# UNIX98 PTYs.
+for ac_func in grantpt
+do :
+  ac_fn_c_check_func "$LINENO" "grantpt" "ac_cv_func_grantpt"
+if test "x$ac_cv_func_grantpt" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GRANTPT 1
+_ACEOF
+
+fi
+done
+
+
+# PTY-related GNU extensions.
+for ac_func in getpt
+do :
+  ac_fn_c_check_func "$LINENO" "getpt" "ac_cv_func_getpt"
+if test "x$ac_cv_func_getpt" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GETPT 1
+_ACEOF
+
+fi
+done
+
+
+# Check this now, so that we will NOT find the above functions in ncurses.
+# That is because we have not set up to link ncurses in lib-src.
+# It's better to believe a function is not available
+# than to expect to find it in ncurses.
+# Also we need tputs and friends to be able to build at all.
+have_tputs_et_al=true
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing tputs" >&5
+$as_echo_n "checking for library containing tputs... " >&6; }
+if test "${ac_cv_search_tputs+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char tputs ();
+int
+main ()
+{
+return tputs ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' ncurses terminfo termcap; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_tputs=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if test "${ac_cv_search_tputs+set}" = set; then :
+  break
+fi
+done
+if test "${ac_cv_search_tputs+set}" = set; then :
+
+else
+  ac_cv_search_tputs=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_tputs" >&5
+$as_echo "$ac_cv_search_tputs" >&6; }
+ac_res=$ac_cv_search_tputs
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else
+  have_tputs_et_al=false
+fi
+
+if test "$have_tputs_et_al" != true; then
+  as_fn_error "I couldn't find termcap functions (tputs and friends).
+Maybe some development libraries/packages are missing?  Try installing
+libncurses-dev(el), libterminfo-dev(el) or similar." "$LINENO" 5
+fi
+# Must define this when any termcap library is found.
+
+$as_echo "#define HAVE_LIBNCURSES 1" >>confdefs.h
+
+## FIXME This was the cpp logic, but I am not sure it is right.
+## The above test has not necessarily found libncurses.
+HAVE_LIBNCURSES=yes
+
+## Use terminfo instead of termcap?
+## Note only system files NOT using terminfo are:
+## freebsd < 40000, ms-w32, msdos, netbsd < 599002500, and
+## darwin|gnu without ncurses.
+TERMINFO=no
+LIBS_TERMCAP=
+case "$opsys" in
+  ## cygwin: Fewer environment variables to go wrong, more terminal types.
+  ## hpux10-20: Use the system provided termcap(3) library.
+  ## openbsd: David Mazieres <dm@reeducation-labor.lcs.mit.edu> says this
+  ##  is necessary.  Otherwise Emacs dumps core when run -nw.
+  aix4-2|cygwin|hpux*|irix6-5|openbsd|sol2*|unixware) TERMINFO=yes ;;
+
+  ## darwin: Prevents crashes when running Emacs in Terminal.app under 10.2.
+  ##  The ncurses library has been moved out of the System framework in
+  ##  Mac OS X 10.2.  So if configure detects it, set the command-line
+  ##  option to use it.
+  darwin|gnu*)
+    ## (HAVE_LIBNCURSES was not always true, but is since 2010-03-18.)
+    if test "x$HAVE_LIBNCURSES" = "xyes"; then
+      TERMINFO=yes
+      LIBS_TERMCAP="-lncurses"
+    fi
+    ;;
+
+  freebsd)
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether FreeBSD is new enough to use terminfo" >&5
+$as_echo_n "checking whether FreeBSD is new enough to use terminfo... " >&6; }
+    if test "${emacs_cv_freebsd_terminfo+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <osreldate.h>
+int
+main ()
+{
+#if __FreeBSD_version < 400000
+fail;
+#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  emacs_cv_freebsd_terminfo=yes
+else
+  emacs_cv_freebsd_terminfo=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_freebsd_terminfo" >&5
+$as_echo "$emacs_cv_freebsd_terminfo" >&6; }
+
+    if test $emacs_cv_freebsd_terminfo = yes; then
+      TERMINFO=yes
+      LIBS_TERMCAP="-lncurses"
+    else
+      LIBS_TERMCAP="-ltermcap"
+    fi
+    ;;
+
+  netbsd)
+    if test $ac_cv_search_tputs = -lterminfo; then
+      TERMINFO=yes
+      LIBS_TERMCAP="-lterminfo"
+    else
+      LIBS_TERMCAP="-ltermcap"
+    fi
+    ;;
+
+esac
+
+case "$opsys" in
+  ## hpux: Make sure we get select from libc rather than from libcurses
+  ##  because libcurses on HPUX 10.10 has a broken version of select.
+  ##  We used to use -lc -lcurses, but this may be cleaner.
+  hpux*) LIBS_TERMCAP="-ltermcap" ;;
+
+  openbsd) LIBS_TERMCAP="-lncurses" ;;
+
+  ## Must use system termcap, if we use any termcap.  It does special things.
+  sol2*) test "$TERMINFO" != yes && LIBS_TERMCAP="-ltermcap" ;;
+esac
+
+TERMCAP_OBJ=tparam.o
+if test $TERMINFO = yes; then
+
+$as_echo "#define TERMINFO 1" >>confdefs.h
+
+
+  ## Default used to be -ltermcap.  Add a case above if need something else.
+  test "x$LIBS_TERMCAP" = "x" && LIBS_TERMCAP="-lcurses"
+
+  TERMCAP_OBJ=terminfo.o
+fi
+
+
+
+
+# Do we have res_init, for detecting changes in /etc/resolv.conf?
+resolv=no
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <resolv.h>
+int
+main ()
+{
+return res_init();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  have_res_init=yes
+else
+  have_res_init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+if test "$have_res_init" = no; then
+  OLIBS="$LIBS"
+  LIBS="$LIBS -lresolv"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_init with -lresolv" >&5
+$as_echo_n "checking for res_init with -lresolv... " >&6; }
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <netinet/in.h>
+#include <arpa/nameser.h>
+#include <resolv.h>
+int
+main ()
+{
+return res_init();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  have_res_init=yes
+else
+  have_res_init=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_res_init" >&5
+$as_echo "$have_res_init" >&6; }
+  if test "$have_res_init" = yes ; then
+    resolv=yes
+  fi
+  LIBS="$OLIBS"
+fi
+
+if test "$have_res_init" = yes; then
+
+$as_echo "#define HAVE_RES_INIT 1" >>confdefs.h
+
+fi
+
+# Do we need the Hesiod library to provide the support routines?
+LIBHESIOD=
+if test "$with_hesiod" != no ; then
+  # Don't set $LIBS here -- see comments above.  FIXME which comments?
+  ac_fn_c_check_func "$LINENO" "res_send" "ac_cv_func_res_send"
+if test "x$ac_cv_func_res_send" = x""yes; then :
+
+else
+  ac_fn_c_check_func "$LINENO" "__res_send" "ac_cv_func___res_send"
+if test "x$ac_cv_func___res_send" = x""yes; then :
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_send in -lresolv" >&5
+$as_echo_n "checking for res_send in -lresolv... " >&6; }
+if test "${ac_cv_lib_resolv_res_send+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lresolv  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char res_send ();
+int
+main ()
+{
+return res_send ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_resolv_res_send=yes
+else
+  ac_cv_lib_resolv_res_send=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_resolv_res_send" >&5
+$as_echo "$ac_cv_lib_resolv_res_send" >&6; }
+if test "x$ac_cv_lib_resolv_res_send" = x""yes; then :
+  resolv=yes
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for __res_send in -lresolv" >&5
+$as_echo_n "checking for __res_send in -lresolv... " >&6; }
+if test "${ac_cv_lib_resolv___res_send+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lresolv  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char __res_send ();
+int
+main ()
+{
+return __res_send ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_resolv___res_send=yes
+else
+  ac_cv_lib_resolv___res_send=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_resolv___res_send" >&5
+$as_echo "$ac_cv_lib_resolv___res_send" >&6; }
+if test "x$ac_cv_lib_resolv___res_send" = x""yes; then :
+  resolv=yes
+fi
+
+fi
+
+fi
+
+fi
+
+  if test "$resolv" = yes ; then
+    RESOLVLIB=-lresolv
+  else
+    RESOLVLIB=
+  fi
+  ac_fn_c_check_func "$LINENO" "hes_getmailhost" "ac_cv_func_hes_getmailhost"
+if test "x$ac_cv_func_hes_getmailhost" = x""yes; then :
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for hes_getmailhost in -lhesiod" >&5
+$as_echo_n "checking for hes_getmailhost in -lhesiod... " >&6; }
+if test "${ac_cv_lib_hesiod_hes_getmailhost+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lhesiod $RESOLVLIB $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char hes_getmailhost ();
+int
+main ()
+{
+return hes_getmailhost ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_hesiod_hes_getmailhost=yes
+else
+  ac_cv_lib_hesiod_hes_getmailhost=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_hesiod_hes_getmailhost" >&5
+$as_echo "$ac_cv_lib_hesiod_hes_getmailhost" >&6; }
+if test "x$ac_cv_lib_hesiod_hes_getmailhost" = x""yes; then :
+  hesiod=yes
+else
+  :
+fi
+
+fi
+
+
+  if test x"$hesiod" = xyes; then
+
+$as_echo "#define HAVE_LIBHESIOD 1" >>confdefs.h
+
+    LIBHESIOD=-lhesiod
+  fi
+fi
+
+
+# Do we need libresolv (due to res_init or Hesiod)?
+if test "$resolv" = yes ; then
+
+$as_echo "#define HAVE_LIBRESOLV 1" >>confdefs.h
+
+  LIBRESOLV=-lresolv
+else
+  LIBRESOLV=
+fi
+
+
+# These tell us which Kerberos-related libraries to use.
+COM_ERRLIB=
+CRYPTOLIB=
+KRB5LIB=
+DESLIB=
+KRB4LIB=
+
+if test "${with_kerberos}" != no; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for com_err in -lcom_err" >&5
+$as_echo_n "checking for com_err in -lcom_err... " >&6; }
+if test "${ac_cv_lib_com_err_com_err+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcom_err  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char com_err ();
+int
+main ()
+{
+return com_err ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_com_err_com_err=yes
+else
+  ac_cv_lib_com_err_com_err=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_com_err_com_err" >&5
+$as_echo "$ac_cv_lib_com_err_com_err" >&6; }
+if test "x$ac_cv_lib_com_err_com_err" = x""yes; then :
+  have_com_err=yes
+else
+  have_com_err=no
+fi
+
+  if test $have_com_err = yes; then
+    COM_ERRLIB=-lcom_err
+    LIBS="$COM_ERRLIB $LIBS"
+
+$as_echo "#define HAVE_LIBCOM_ERR 1" >>confdefs.h
+
+  fi
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mit_des_cbc_encrypt in -lcrypto" >&5
+$as_echo_n "checking for mit_des_cbc_encrypt in -lcrypto... " >&6; }
+if test "${ac_cv_lib_crypto_mit_des_cbc_encrypt+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcrypto  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char mit_des_cbc_encrypt ();
+int
+main ()
+{
+return mit_des_cbc_encrypt ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_crypto_mit_des_cbc_encrypt=yes
+else
+  ac_cv_lib_crypto_mit_des_cbc_encrypt=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_crypto_mit_des_cbc_encrypt" >&5
+$as_echo "$ac_cv_lib_crypto_mit_des_cbc_encrypt" >&6; }
+if test "x$ac_cv_lib_crypto_mit_des_cbc_encrypt" = x""yes; then :
+  have_crypto=yes
+else
+  have_crypto=no
+fi
+
+  if test $have_crypto = yes; then
+    CRYPTOLIB=-lcrypto
+    LIBS="$CRYPTOLIB $LIBS"
+
+$as_echo "#define HAVE_LIBCRYPTO 1" >>confdefs.h
+
+  fi
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mit_des_cbc_encrypt in -lk5crypto" >&5
+$as_echo_n "checking for mit_des_cbc_encrypt in -lk5crypto... " >&6; }
+if test "${ac_cv_lib_k5crypto_mit_des_cbc_encrypt+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lk5crypto  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char mit_des_cbc_encrypt ();
+int
+main ()
+{
+return mit_des_cbc_encrypt ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_k5crypto_mit_des_cbc_encrypt=yes
+else
+  ac_cv_lib_k5crypto_mit_des_cbc_encrypt=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_k5crypto_mit_des_cbc_encrypt" >&5
+$as_echo "$ac_cv_lib_k5crypto_mit_des_cbc_encrypt" >&6; }
+if test "x$ac_cv_lib_k5crypto_mit_des_cbc_encrypt" = x""yes; then :
+  have_k5crypto=yes
+else
+  have_k5crypto=no
+fi
+
+  if test $have_k5crypto = yes; then
+    CRYPTOLIB=-lk5crypto
+    LIBS="$CRYPTOLIB $LIBS"
+
+$as_echo "#define HAVE_LIBK5CRYPTO 1" >>confdefs.h
+
+  fi
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for krb5_init_context in -lkrb5" >&5
+$as_echo_n "checking for krb5_init_context in -lkrb5... " >&6; }
+if test "${ac_cv_lib_krb5_krb5_init_context+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lkrb5  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char krb5_init_context ();
+int
+main ()
+{
+return krb5_init_context ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_krb5_krb5_init_context=yes
+else
+  ac_cv_lib_krb5_krb5_init_context=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_krb5_krb5_init_context" >&5
+$as_echo "$ac_cv_lib_krb5_krb5_init_context" >&6; }
+if test "x$ac_cv_lib_krb5_krb5_init_context" = x""yes; then :
+  have_krb5=yes
+else
+  have_krb5=no
+fi
+
+  if test $have_krb5=yes; then
+    KRB5LIB=-lkrb5
+    LIBS="$KRB5LIB $LIBS"
+
+$as_echo "#define HAVE_LIBKRB5 1" >>confdefs.h
+
+  fi
+    if test "${with_kerberos5}" = no; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for des_cbc_encrypt in -ldes425" >&5
+$as_echo_n "checking for des_cbc_encrypt in -ldes425... " >&6; }
+if test "${ac_cv_lib_des425_des_cbc_encrypt+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ldes425  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char des_cbc_encrypt ();
+int
+main ()
+{
+return des_cbc_encrypt ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_des425_des_cbc_encrypt=yes
+else
+  ac_cv_lib_des425_des_cbc_encrypt=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_des425_des_cbc_encrypt" >&5
+$as_echo "$ac_cv_lib_des425_des_cbc_encrypt" >&6; }
+if test "x$ac_cv_lib_des425_des_cbc_encrypt" = x""yes; then :
+  have_des425=yes
+else
+  have_des425=no
+fi
+
+    if test $have_des425 = yes; then
+      DESLIB=-ldes425
+      LIBS="$DESLIB $LIBS"
+
+$as_echo "#define HAVE_LIBDES425 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for des_cbc_encrypt in -ldes" >&5
+$as_echo_n "checking for des_cbc_encrypt in -ldes... " >&6; }
+if test "${ac_cv_lib_des_des_cbc_encrypt+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ldes  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char des_cbc_encrypt ();
+int
+main ()
+{
+return des_cbc_encrypt ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_des_des_cbc_encrypt=yes
+else
+  ac_cv_lib_des_des_cbc_encrypt=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_des_des_cbc_encrypt" >&5
+$as_echo "$ac_cv_lib_des_des_cbc_encrypt" >&6; }
+if test "x$ac_cv_lib_des_des_cbc_encrypt" = x""yes; then :
+  have_des=yes
+else
+  have_des=no
+fi
+
+      if test $have_des = yes; then
+        DESLIB=-ldes
+        LIBS="$DESLIB $LIBS"
+
+$as_echo "#define HAVE_LIBDES 1" >>confdefs.h
+
+      fi
+    fi
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for krb_get_cred in -lkrb4" >&5
+$as_echo_n "checking for krb_get_cred in -lkrb4... " >&6; }
+if test "${ac_cv_lib_krb4_krb_get_cred+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lkrb4  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char krb_get_cred ();
+int
+main ()
+{
+return krb_get_cred ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_krb4_krb_get_cred=yes
+else
+  ac_cv_lib_krb4_krb_get_cred=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_krb4_krb_get_cred" >&5
+$as_echo "$ac_cv_lib_krb4_krb_get_cred" >&6; }
+if test "x$ac_cv_lib_krb4_krb_get_cred" = x""yes; then :
+  have_krb4=yes
+else
+  have_krb4=no
+fi
+
+    if test $have_krb4 = yes; then
+      KRB4LIB=-lkrb4
+      LIBS="$KRB4LIB $LIBS"
+
+$as_echo "#define HAVE_LIBKRB4 1" >>confdefs.h
+
+    else
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for krb_get_cred in -lkrb" >&5
+$as_echo_n "checking for krb_get_cred in -lkrb... " >&6; }
+if test "${ac_cv_lib_krb_krb_get_cred+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lkrb  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char krb_get_cred ();
+int
+main ()
+{
+return krb_get_cred ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_krb_krb_get_cred=yes
+else
+  ac_cv_lib_krb_krb_get_cred=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_krb_krb_get_cred" >&5
+$as_echo "$ac_cv_lib_krb_krb_get_cred" >&6; }
+if test "x$ac_cv_lib_krb_krb_get_cred" = x""yes; then :
+  have_krb=yes
+else
+  have_krb=no
+fi
+
+      if test $have_krb = yes; then
+        KRB4LIB=-lkrb
+        LIBS="$KRB4LIB $LIBS"
+
+$as_echo "#define HAVE_LIBKRB 1" >>confdefs.h
+
+      fi
+    fi
+  fi
+
+  if test "${with_kerberos5}" != no; then
+    for ac_header in krb5.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "krb5.h" "ac_cv_header_krb5_h" "$ac_includes_default"
+if test "x$ac_cv_header_krb5_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_KRB5_H 1
+_ACEOF
+ ac_fn_c_check_member "$LINENO" "krb5_error" "text" "ac_cv_member_krb5_error_text" "#include <krb5.h>
+"
+if test "x$ac_cv_member_krb5_error_text" = x""yes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_KRB5_ERROR_TEXT 1
+_ACEOF
+
+
+fi
+ac_fn_c_check_member "$LINENO" "krb5_error" "e_text" "ac_cv_member_krb5_error_e_text" "#include <krb5.h>
+"
+if test "x$ac_cv_member_krb5_error_e_text" = x""yes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_KRB5_ERROR_E_TEXT 1
+_ACEOF
+
+
+fi
+
+fi
+
+done
+
+  else
+    for ac_header in des.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "des.h" "ac_cv_header_des_h" "$ac_includes_default"
+if test "x$ac_cv_header_des_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DES_H 1
+_ACEOF
+
+else
+  for ac_header in kerberosIV/des.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "kerberosIV/des.h" "ac_cv_header_kerberosIV_des_h" "$ac_includes_default"
+if test "x$ac_cv_header_kerberosIV_des_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_KERBEROSIV_DES_H 1
+_ACEOF
+
+else
+  for ac_header in kerberos/des.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "kerberos/des.h" "ac_cv_header_kerberos_des_h" "$ac_includes_default"
+if test "x$ac_cv_header_kerberos_des_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_KERBEROS_DES_H 1
+_ACEOF
+
+fi
+
+done
+
+fi
+
+done
+
+fi
+
+done
+
+    for ac_header in krb.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "krb.h" "ac_cv_header_krb_h" "$ac_includes_default"
+if test "x$ac_cv_header_krb_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_KRB_H 1
+_ACEOF
+
+else
+  for ac_header in kerberosIV/krb.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "kerberosIV/krb.h" "ac_cv_header_kerberosIV_krb_h" "$ac_includes_default"
+if test "x$ac_cv_header_kerberosIV_krb_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_KERBEROSIV_KRB_H 1
+_ACEOF
+
+else
+  for ac_header in kerberos/krb.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "kerberos/krb.h" "ac_cv_header_kerberos_krb_h" "$ac_includes_default"
+if test "x$ac_cv_header_kerberos_krb_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_KERBEROS_KRB_H 1
+_ACEOF
+
+fi
+
+done
+
+fi
+
+done
+
+fi
+
+done
+
+  fi
+  for ac_header in com_err.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "com_err.h" "ac_cv_header_com_err_h" "$ac_includes_default"
+if test "x$ac_cv_header_com_err_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_COM_ERR_H 1
+_ACEOF
+
+fi
+
+done
+
+fi
+
+
+
+
+
+
+
+# Solaris requires -lintl if you want strerror (which calls dgettext)
+# to return localized messages.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dgettext in -lintl" >&5
+$as_echo_n "checking for dgettext in -lintl... " >&6; }
+if test "${ac_cv_lib_intl_dgettext+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lintl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char dgettext ();
+int
+main ()
+{
+return dgettext ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_intl_dgettext=yes
+else
+  ac_cv_lib_intl_dgettext=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_intl_dgettext" >&5
+$as_echo "$ac_cv_lib_intl_dgettext" >&6; }
+if test "x$ac_cv_lib_intl_dgettext" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBINTL 1
+_ACEOF
+
+  LIBS="-lintl $LIBS"
+
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether localtime caches TZ" >&5
+$as_echo_n "checking whether localtime caches TZ... " >&6; }
+if test "${emacs_cv_localtime_cache+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test x$ac_cv_func_tzset = xyes; then
+if test "$cross_compiling" = yes; then :
+  # If we have tzset, assume the worst when cross-compiling.
+emacs_cv_localtime_cache=yes
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <time.h>
+char TZ_GMT0[] = "TZ=GMT0";
+char TZ_PST8[] = "TZ=PST8";
+main()
+{
+  time_t now = time ((time_t *) 0);
+  int hour_GMT0, hour_unset;
+  if (putenv (TZ_GMT0) != 0)
+    exit (1);
+  hour_GMT0 = localtime (&now)->tm_hour;
+  unsetenv("TZ");
+  hour_unset = localtime (&now)->tm_hour;
+  if (putenv (TZ_PST8) != 0)
+    exit (1);
+  if (localtime (&now)->tm_hour == hour_GMT0)
+    exit (1);
+  unsetenv("TZ");
+  if (localtime (&now)->tm_hour != hour_unset)
+    exit (1);
+  exit (0);
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  emacs_cv_localtime_cache=no
+else
+  emacs_cv_localtime_cache=yes
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+else
+	# If we lack tzset, report that localtime does not cache TZ,
+	# since we can't invalidate the cache if we don't have tzset.
+	emacs_cv_localtime_cache=no
+fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_localtime_cache" >&5
+$as_echo "$emacs_cv_localtime_cache" >&6; }
+if test $emacs_cv_localtime_cache = yes; then
+
+$as_echo "#define LOCALTIME_CACHE 1" >>confdefs.h
+
+fi
+
+if test "x$HAVE_TIMEVAL" = xyes; then
+  for ac_func in gettimeofday
+do :
+  ac_fn_c_check_func "$LINENO" "gettimeofday" "ac_cv_func_gettimeofday"
+if test "x$ac_cv_func_gettimeofday" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_GETTIMEOFDAY 1
+_ACEOF
+
+fi
+done
+
+  if test $ac_cv_func_gettimeofday = yes; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether gettimeofday can accept two arguments" >&5
+$as_echo_n "checking whether gettimeofday can accept two arguments... " >&6; }
+if test "${emacs_cv_gettimeofday_two_arguments+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#ifdef TIME_WITH_SYS_TIME
+#include <sys/time.h>
+#include <time.h>
+#else
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+#endif
+int
+main ()
+{
+struct timeval time;
+       gettimeofday (&time, 0);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  emacs_cv_gettimeofday_two_arguments=yes
+else
+  emacs_cv_gettimeofday_two_arguments=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_gettimeofday_two_arguments" >&5
+$as_echo "$emacs_cv_gettimeofday_two_arguments" >&6; }
+    if test $emacs_cv_gettimeofday_two_arguments = no; then
+
+$as_echo "#define GETTIMEOFDAY_ONE_ARGUMENT 1" >>confdefs.h
+
+    fi
+  fi
+fi
+
+ok_so_far=yes
+ac_fn_c_check_func "$LINENO" "socket" "ac_cv_func_socket"
+if test "x$ac_cv_func_socket" = x""yes; then :
+
+else
+  ok_so_far=no
+fi
+
+if test $ok_so_far = yes; then
+  ac_fn_c_check_header_mongrel "$LINENO" "netinet/in.h" "ac_cv_header_netinet_in_h" "$ac_includes_default"
+if test "x$ac_cv_header_netinet_in_h" = x""yes; then :
+
+else
+  ok_so_far=no
+fi
+
+
+fi
+if test $ok_so_far = yes; then
+  ac_fn_c_check_header_mongrel "$LINENO" "arpa/inet.h" "ac_cv_header_arpa_inet_h" "$ac_includes_default"
+if test "x$ac_cv_header_arpa_inet_h" = x""yes; then :
+
+else
+  ok_so_far=no
+fi
+
+
+fi
+if test $ok_so_far = yes; then
+
+$as_echo "#define HAVE_INET_SOCKETS 1" >>confdefs.h
+
+fi
+
+if test -f /usr/lpp/X11/bin/smt.exp; then
+
+$as_echo "#define HAVE_AIX_SMT_EXP 1" >>confdefs.h
+
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether system supports dynamic ptys" >&5
+$as_echo_n "checking whether system supports dynamic ptys... " >&6; }
+if test -d /dev/pts && ls -d /dev/ptmx > /dev/null 2>&1 ; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_DEV_PTMX 1" >>confdefs.h
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+ac_fn_c_check_type "$LINENO" "pid_t" "ac_cv_type_pid_t" "$ac_includes_default"
+if test "x$ac_cv_type_pid_t" = x""yes; then :
+
+else
+
+cat >>confdefs.h <<_ACEOF
+#define pid_t int
+_ACEOF
+
+fi
+
+for ac_header in vfork.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "vfork.h" "ac_cv_header_vfork_h" "$ac_includes_default"
+if test "x$ac_cv_header_vfork_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_VFORK_H 1
+_ACEOF
+
+fi
+
+done
+
+for ac_func in fork vfork
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+if test "x$ac_cv_func_fork" = xyes; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for working fork" >&5
+$as_echo_n "checking for working fork... " >&6; }
+if test "${ac_cv_func_fork_works+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+  ac_cv_func_fork_works=cross
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+
+	  /* By Ruediger Kuhlmann. */
+	  return fork () < 0;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  ac_cv_func_fork_works=yes
+else
+  ac_cv_func_fork_works=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_func_fork_works" >&5
+$as_echo "$ac_cv_func_fork_works" >&6; }
+
+else
+  ac_cv_func_fork_works=$ac_cv_func_fork
+fi
+if test "x$ac_cv_func_fork_works" = xcross; then
+  case $host in
+    *-*-amigaos* | *-*-msdosdjgpp*)
+      # Override, as these systems have only a dummy fork() stub
+      ac_cv_func_fork_works=no
+      ;;
+    *)
+      ac_cv_func_fork_works=yes
+      ;;
+  esac
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: result $ac_cv_func_fork_works guessed because of cross compilation" >&5
+$as_echo "$as_me: WARNING: result $ac_cv_func_fork_works guessed because of cross compilation" >&2;}
+fi
+ac_cv_func_vfork_works=$ac_cv_func_vfork
+if test "x$ac_cv_func_vfork" = xyes; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for working vfork" >&5
+$as_echo_n "checking for working vfork... " >&6; }
+if test "${ac_cv_func_vfork_works+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "$cross_compiling" = yes; then :
+  ac_cv_func_vfork_works=cross
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+/* Thanks to Paul Eggert for this test.  */
+$ac_includes_default
+#include <sys/wait.h>
+#ifdef HAVE_VFORK_H
+# include <vfork.h>
+#endif
+/* On some sparc systems, changes by the child to local and incoming
+   argument registers are propagated back to the parent.  The compiler
+   is told about this with #include <vfork.h>, but some compilers
+   (e.g. gcc -O) don't grok <vfork.h>.  Test for this by using a
+   static variable whose address is put into a register that is
+   clobbered by the vfork.  */
+static void
+#ifdef __cplusplus
+sparc_address_test (int arg)
+# else
+sparc_address_test (arg) int arg;
+#endif
+{
+  static pid_t child;
+  if (!child) {
+    child = vfork ();
+    if (child < 0) {
+      perror ("vfork");
+      _exit(2);
+    }
+    if (!child) {
+      arg = getpid();
+      write(-1, "", 0);
+      _exit (arg);
+    }
+  }
+}
+
+int
+main ()
+{
+  pid_t parent = getpid ();
+  pid_t child;
+
+  sparc_address_test (0);
+
+  child = vfork ();
+
+  if (child == 0) {
+    /* Here is another test for sparc vfork register problems.  This
+       test uses lots of local variables, at least as many local
+       variables as main has allocated so far including compiler
+       temporaries.  4 locals are enough for gcc 1.40.3 on a Solaris
+       4.1.3 sparc, but we use 8 to be safe.  A buggy compiler should
+       reuse the register of parent for one of the local variables,
+       since it will think that parent can't possibly be used any more
+       in this routine.  Assigning to the local variable will thus
+       munge parent in the parent process.  */
+    pid_t
+      p = getpid(), p1 = getpid(), p2 = getpid(), p3 = getpid(),
+      p4 = getpid(), p5 = getpid(), p6 = getpid(), p7 = getpid();
+    /* Convince the compiler that p..p7 are live; otherwise, it might
+       use the same hardware register for all 8 local variables.  */
+    if (p != p1 || p != p2 || p != p3 || p != p4
+	|| p != p5 || p != p6 || p != p7)
+      _exit(1);
+
+    /* On some systems (e.g. IRIX 3.3), vfork doesn't separate parent
+       from child file descriptors.  If the child closes a descriptor
+       before it execs or exits, this munges the parent's descriptor
+       as well.  Test for this by closing stdout in the child.  */
+    _exit(close(fileno(stdout)) != 0);
+  } else {
+    int status;
+    struct stat st;
+
+    while (wait(&status) != child)
+      ;
+    return (
+	 /* Was there some problem with vforking?  */
+	 child < 0
+
+	 /* Did the child fail?  (This shouldn't happen.)  */
+	 || status
+
+	 /* Did the vfork/compiler bug occur?  */
+	 || parent != getpid()
+
+	 /* Did the file descriptor bug occur?  */
+	 || fstat(fileno(stdout), &st) != 0
+	 );
+  }
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  ac_cv_func_vfork_works=yes
+else
+  ac_cv_func_vfork_works=no
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_func_vfork_works" >&5
+$as_echo "$ac_cv_func_vfork_works" >&6; }
+
+fi;
+if test "x$ac_cv_func_fork_works" = xcross; then
+  ac_cv_func_vfork_works=$ac_cv_func_vfork
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: result $ac_cv_func_vfork_works guessed because of cross compilation" >&5
+$as_echo "$as_me: WARNING: result $ac_cv_func_vfork_works guessed because of cross compilation" >&2;}
+fi
+
+if test "x$ac_cv_func_vfork_works" = xyes; then
+
+$as_echo "#define HAVE_WORKING_VFORK 1" >>confdefs.h
+
+else
+
+$as_echo "#define vfork fork" >>confdefs.h
+
+fi
+if test "x$ac_cv_func_fork_works" = xyes; then
+
+$as_echo "#define HAVE_WORKING_FORK 1" >>confdefs.h
+
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for nl_langinfo and CODESET" >&5
+$as_echo_n "checking for nl_langinfo and CODESET... " >&6; }
+if test "${emacs_cv_langinfo_codeset+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <langinfo.h>
+int
+main ()
+{
+char* cs = nl_langinfo(CODESET);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  emacs_cv_langinfo_codeset=yes
+else
+  emacs_cv_langinfo_codeset=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_langinfo_codeset" >&5
+$as_echo "$emacs_cv_langinfo_codeset" >&6; }
+if test $emacs_cv_langinfo_codeset = yes; then
+
+$as_echo "#define HAVE_LANGINFO_CODESET 1" >>confdefs.h
+
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for mbstate_t" >&5
+$as_echo_n "checking for mbstate_t... " >&6; }
+if test "${ac_cv_type_mbstate_t+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$ac_includes_default
+#	    include <wchar.h>
+int
+main ()
+{
+mbstate_t x; return sizeof x;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_type_mbstate_t=yes
+else
+  ac_cv_type_mbstate_t=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_type_mbstate_t" >&5
+$as_echo "$ac_cv_type_mbstate_t" >&6; }
+   if test $ac_cv_type_mbstate_t = yes; then
+
+$as_echo "#define HAVE_MBSTATE_T 1" >>confdefs.h
+
+   else
+
+$as_echo "#define mbstate_t int" >>confdefs.h
+
+   fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for C restricted array declarations" >&5
+$as_echo_n "checking for C restricted array declarations... " >&6; }
+if test "${emacs_cv_c_restrict_arr+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+void fred (int x[__restrict]);
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  emacs_cv_c_restrict_arr=yes
+else
+  emacs_cv_c_restrict_arr=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_c_restrict_arr" >&5
+$as_echo "$emacs_cv_c_restrict_arr" >&6; }
+if test "$emacs_cv_c_restrict_arr" = yes; then
+
+$as_echo "#define __restrict_arr __restrict" >>confdefs.h
+
+fi
+
+
+
+# Set up the CFLAGS for real compilation, so we can substitute it.
+CFLAGS="$REAL_CFLAGS"
+CPPFLAGS="$REAL_CPPFLAGS"
+
+## Hack to detect a buggy GCC version.
+if test "x$GCC" = xyes \
+   && test x"`$CC --version 2> /dev/null | grep 'gcc.* 4.5.0'`" != x \
+   && test x"`echo $CFLAGS | grep '\-O[23]'`" != x \
+   && test x"`echo $CFLAGS | grep '\-fno-optimize-sibling-calls'`" = x; then
+   as_fn_error "GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEMS'." "$LINENO" 5
+fi
+
+version=$PACKAGE_VERSION
+
+### Specify what sort of things we'll be editing into Makefile and config.h.
+### Use configuration here uncanonicalized to avoid exceeding size limits.
+
+
+## Unused?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## FIXME? Nothing uses @LD_SWITCH_X_SITE@.
+## src/Makefile.in did add LD_SWITCH_X_SITE (as a cpp define) to the
+## end of LIBX_BASE, but nothing ever set it.
+
+
+
+
+## Used in lwlib/Makefile.in.
+
+if test -n "${machfile}"; then
+  M_FILE="\$(srcdir)/${machfile}"
+else
+  M_FILE=
+fi
+S_FILE="\$(srcdir)/${opsysfile}"
+
+
+
+
+
+
+
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define EMACS_CONFIGURATION "${canonical}"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define EMACS_CONFIG_OPTIONS "${ac_configure_args}"
+_ACEOF
+
+if test -n "$machfile"; then
+
+cat >>confdefs.h <<_ACEOF
+#define config_machfile "${machfile}"
+_ACEOF
+
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define config_opsysfile "${opsysfile}"
+_ACEOF
+
+
+XMENU_OBJ=
+XOBJ=
+FONT_OBJ=
+if test "${HAVE_X_WINDOWS}" = "yes" ; then
+
+$as_echo "#define HAVE_X_WINDOWS 1" >>confdefs.h
+
+  XMENU_OBJ=xmenu.o
+  XOBJ="xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o xsettings.o xgselect.o"
+  FONT_OBJ=xfont.o
+  if test "$HAVE_XFT" = "yes"; then
+    FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
+  elif test "$HAVE_FREETYPE" = "yes"; then
+    FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
+  fi
+
+fi
+
+
+
+
+WIDGET_OBJ=
+MOTIF_LIBW=
+if test "${USE_X_TOOLKIT}" != "none" ; then
+  WIDGET_OBJ=widget.o
+
+$as_echo "#define USE_X_TOOLKIT 1" >>confdefs.h
+
+  if test "${USE_X_TOOLKIT}" = "LUCID"; then
+
+$as_echo "#define USE_LUCID 1" >>confdefs.h
+
+  elif test "${USE_X_TOOLKIT}" = "MOTIF"; then
+
+$as_echo "#define USE_MOTIF 1" >>confdefs.h
+
+    MOTIF_LIBW=-lXm
+    case "$opsys" in
+      gnu-linux)
+        ## Paul Abrahams <abrahams at equinox.shaysnet.com> says this is needed.
+        MOTIF_LIBW="$MOTIF_LIBW -lXpm"
+        ;;
+
+      unixware)
+        ## Richard Anthony Ryan <ryanr at ellingtn.ftc.nrcs.usda.gov>
+        ## says -lXimp is needed in UNIX_SV ... 4.2 1.1.2.
+        MOTIF_LIBW="MOTIF_LIBW -lXimp"
+        ;;
+
+      aix4-2)
+        ## olson@mcs.anl.gov says -li18n is needed by -lXm.
+        MOTIF_LIBW="$MOTIF_LIBW -li18n"
+        ;;
+    esac
+    MOTIF_LIBW="$MOTIF_LIBW $LIBXP"
+  fi
+fi
+
+
+TOOLKIT_LIBW=
+case "$USE_X_TOOLKIT" in
+  MOTIF) TOOLKIT_LIBW="$MOTIF_LIBW" ;;
+  LUCID) TOOLKIT_LIBW="$LUCID_LIBW" ;;
+  none) test "x$HAVE_GTK" = "xyes" && TOOLKIT_LIBW="$GTK_LIBS" ;;
+esac
+
+
+if test "$USE_X_TOOLKIT" = "none"; then
+  LIBXT_OTHER="\$(LIBXSM)"
+  OLDXMENU_TARGET="really-oldXMenu"
+else
+  LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
+  OLDXMENU_TARGET="really-lwlib"
+fi
+
+
+## The X Menu stuff is present in the X10 distribution, but missing
+## from X11.  If we have X10, just use the installed library;
+## otherwise, use our own copy.
+if test "${HAVE_X11}" = "yes" ; then
+
+$as_echo "#define HAVE_X11 1" >>confdefs.h
+
+
+  if test "$USE_X_TOOLKIT" = "none"; then
+    OLDXMENU="\${oldXMenudir}/libXMenu11.a"
+  else
+    OLDXMENU="\${lwlibdir}/liblw.a"
+  fi
+  LIBXMENU="\$(OLDXMENU)"
+  LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
+  OLDXMENU_DEPS="\${OLDXMENU} ../src/\${OLDXMENU}"
+else
+  ## For a syntactically valid Makefile; not actually used for anything.
+  ## See comments in src/Makefile.in.
+  OLDXMENU=nothing
+  ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
+  if test "${HAVE_X_WINDOWS}" = "yes"; then
+    LIBXMENU="-lXMenu"
+  else
+    LIBXMENU=
+  fi
+  LIBX_OTHER=
+  OLDXMENU_DEPS=
+fi
+
+if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
+  OLDXMENU_TARGET=
+  OLDXMENU=nothing
+  LIBXMENU=
+  OLDXMENU_DEPS=
+fi
+
+
+
+
+
+
+
+if test "${HAVE_MENUS}" = "yes" ; then
+
+$as_echo "#define HAVE_MENUS 1" >>confdefs.h
+
+fi
+
+if test "${GNU_MALLOC}" = "yes" ; then
+
+$as_echo "#define GNU_MALLOC 1" >>confdefs.h
+
+fi
+
+RALLOC_OBJ=
+if test "${REL_ALLOC}" = "yes" ; then
+
+$as_echo "#define REL_ALLOC 1" >>confdefs.h
+
+
+  test "$system_malloc" != "yes" && RALLOC_OBJ=ralloc.o
+fi
+
+
+if test "$opsys" = "cygwin"; then
+  CYGWIN_OBJ="sheap.o"
+  ## Cygwin differs because of its unexec().
+  PRE_ALLOC_OBJ=
+  POST_ALLOC_OBJ=lastfile.o
+else
+  CYGWIN_OBJ=
+  PRE_ALLOC_OBJ=lastfile.o
+  POST_ALLOC_OBJ=
+fi
+
+
+
+
+# Configure gnulib here, now that we know LIBS.
 
 
 
@@ -16308,6 +18095,48 @@ _ACEOF
 
 
 
+  GNULIB_PTHREAD_SIGMASK=0;
+  GNULIB_SIGNAL_H_SIGPIPE=0;
+  GNULIB_SIGPROCMASK=0;
+  GNULIB_SIGACTION=0;
+    HAVE_POSIX_SIGNALBLOCKING=1;
+  HAVE_PTHREAD_SIGMASK=1;
+  HAVE_SIGSET_T=1;
+  HAVE_SIGINFO_T=1;
+  HAVE_SIGACTION=1;
+  HAVE_STRUCT_SIGACTION_SA_SIGACTION=1;
+
+  HAVE_TYPE_VOLATILE_SIG_ATOMIC_T=1;
+
+  HAVE_SIGHANDLER_T=1;
+  REPLACE_PTHREAD_SIGMASK=0;
+
+
+
+
+  ac_fn_c_check_type "$LINENO" "sigset_t" "ac_cv_type_sigset_t" "
+      #include <signal.h>
+      /* Mingw defines sigset_t not in <signal.h>, but in <sys/types.h>.  */
+      #include <sys/types.h>
+
+"
+if test "x$ac_cv_type_sigset_t" = x""yes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_SIGSET_T 1
+_ACEOF
+
+gl_cv_type_sigset_t=yes
+else
+  gl_cv_type_sigset_t=no
+fi
+
+  if test $gl_cv_type_sigset_t != yes; then
+    HAVE_SIGSET_T=0
+  fi
+
+
+
 
 
    if test $ac_cv_header_sys_socket_h = no; then
@@ -16559,6 +18388,17 @@ fi
 
 
 
+
+ac_fn_c_check_decl "$LINENO" "strtoimax" "ac_cv_have_decl_strtoimax" "$ac_includes_default"
+if test "x$ac_cv_have_decl_strtoimax" = x""yes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_STRTOIMAX $ac_have_decl
+_ACEOF
 
 ac_fn_c_check_decl "$LINENO" "strtoumax" "ac_cv_have_decl_strtoumax" "$ac_includes_default"
 if test "x$ac_cv_have_decl_strtoumax" = x""yes; then :
@@ -17963,6 +19803,99 @@ fi
 
 
 
+  LIB_PTHREAD_SIGMASK=
+            if test $ac_cv_func_pthread_sigmask != yes; then
+      gl_save_LIBS=$LIBS
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing pthread_sigmask" >&5
+$as_echo_n "checking for library containing pthread_sigmask... " >&6; }
+if test "${ac_cv_search_pthread_sigmask+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pthread_sigmask ();
+int
+main ()
+{
+return pthread_sigmask ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' pthread c_r; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_pthread_sigmask=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if test "${ac_cv_search_pthread_sigmask+set}" = set; then :
+  break
+fi
+done
+if test "${ac_cv_search_pthread_sigmask+set}" = set; then :
+
+else
+  ac_cv_search_pthread_sigmask=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_pthread_sigmask" >&5
+$as_echo "$ac_cv_search_pthread_sigmask" >&6; }
+ac_res=$ac_cv_search_pthread_sigmask
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+fi
+
+      LIBS=$gl_save_LIBS
+      if test "$ac_cv_search_pthread_sigmask" = no; then
+        HAVE_PTHREAD_SIGMASK=0
+      elif test "$ac_cv_search_pthread_sigmask" != 'none required'; then
+        LIB_PTHREAD_SIGMASK=$ac_cv_search_pthread_sigmask
+      fi
+    fi
+
+
+if test $HAVE_PTHREAD_SIGMASK = 0 || test $REPLACE_PTHREAD_SIGMASK = 1; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS pthread_sigmask.$ac_objext"
+
+fi
+
+
+
+
+
+          GNULIB_PTHREAD_SIGMASK=1
+
+
+
+
+
+
+
 
   if test $ac_cv_func_readlink = no; then
     HAVE_READLINK=0
@@ -18063,6 +19996,92 @@ fi
 
           GNULIB_READLINK=1
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     if test $gl_cv_have_include_next = yes; then
+       gl_cv_next_signal_h='<'signal.h'>'
+     else
+       { $as_echo "$as_me:${as_lineno-$LINENO}: checking absolute name of <signal.h>" >&5
+$as_echo_n "checking absolute name of <signal.h>... " >&6; }
+if test "${gl_cv_next_signal_h+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+
+               cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <signal.h>
+
+_ACEOF
+                                                                                                                        case "$host_os" in
+                 aix*) gl_absname_cpp="$ac_cpp -C" ;;
+                 *)    gl_absname_cpp="$ac_cpp" ;;
+               esac
+                                                            gl_cv_next_signal_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
+                  sed -n '\#/signal.h#{
+                    s#.*"\(.*/signal.h\)".*#\1#
+                    s#^/[^/]#//&#
+                    p
+                    q
+                  }'`'"'
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $gl_cv_next_signal_h" >&5
+$as_echo "$gl_cv_next_signal_h" >&6; }
+     fi
+     NEXT_SIGNAL_H=$gl_cv_next_signal_h
+
+     if test $gl_cv_have_include_next = yes || test $gl_cv_have_include_next = buggy; then
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include_next'
+       gl_next_as_first_directive='<'signal.h'>'
+     else
+       # INCLUDE_NEXT_AS_FIRST_DIRECTIVE='include'
+       gl_next_as_first_directive=$gl_cv_next_signal_h
+     fi
+     NEXT_AS_FIRST_DIRECTIVE_SIGNAL_H=$gl_next_as_first_directive
+
+
+
+
+
+# AIX declares sig_atomic_t to already include volatile, and C89 compilers
+# then choke on 'volatile sig_atomic_t'.  C99 requires that it compile.
+  ac_fn_c_check_type "$LINENO" "volatile sig_atomic_t" "ac_cv_type_volatile_sig_atomic_t" "
+#include <signal.h>
+
+"
+if test "x$ac_cv_type_volatile_sig_atomic_t" = x""yes; then :
+
+else
+  HAVE_TYPE_VOLATILE_SIG_ATOMIC_T=0
+fi
+
+
+
+
+
+  ac_fn_c_check_type "$LINENO" "sighandler_t" "ac_cv_type_sighandler_t" "
+#include <signal.h>
+
+"
+if test "x$ac_cv_type_sighandler_t" = x""yes; then :
+
+else
+  HAVE_SIGHANDLER_T=0
+fi
 
 
 
@@ -18618,6 +20637,62 @@ $as_echo "#define my_strftime nstrftime" >>confdefs.h
 
 
 
+  if test "$ac_cv_have_decl_strtoimax" != yes; then
+    HAVE_DECL_STRTOIMAX=0
+
+    for ac_func in strtoimax
+do :
+  ac_fn_c_check_func "$LINENO" "strtoimax" "ac_cv_func_strtoimax"
+if test "x$ac_cv_func_strtoimax" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRTOIMAX 1
+_ACEOF
+
+fi
+done
+
+  fi
+
+if test "$ac_cv_have_decl_strtoimax" != yes && test $ac_cv_func_strtoimax = no; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS strtoimax.$ac_objext"
+
+
+  ac_fn_c_check_decl "$LINENO" "strtoll" "ac_cv_have_decl_strtoll" "$ac_includes_default"
+if test "x$ac_cv_have_decl_strtoll" = x""yes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_STRTOLL $ac_have_decl
+_ACEOF
+
+
+
+fi
+
+
+
+
+
+          GNULIB_STRTOIMAX=1
+
+
+
+
+
+
+
+
   if test "$ac_cv_have_decl_strtoumax" != yes; then
     HAVE_DECL_STRTOUMAX=0
 
@@ -18990,7 +21065,9 @@ $as_echo "$gl_cv_next_unistd_h" >&6; }
 
   gl_gnulib_enabled_dosname=false
   gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=false
+  gl_gnulib_enabled_sigprocmask=false
   gl_gnulib_enabled_stat=false
+  gl_gnulib_enabled_strtoll=false
   gl_gnulib_enabled_strtoull=false
   gl_gnulib_enabled_verify=false
   func_gl_gnulib_m4code_dosname ()
@@ -19005,6 +21082,50 @@ $as_echo "$gl_cv_next_unistd_h" >&6; }
 
 
       gl_gnulib_enabled_be453cec5eecf5731a274f2de7f2db36=true
+    fi
+  }
+  func_gl_gnulib_m4code_sigprocmask ()
+  {
+    if ! $gl_gnulib_enabled_sigprocmask; then
+
+
+
+  if test $gl_cv_type_sigset_t = yes; then
+    ac_fn_c_check_func "$LINENO" "sigprocmask" "ac_cv_func_sigprocmask"
+if test "x$ac_cv_func_sigprocmask" = x""yes; then :
+  gl_cv_func_sigprocmask=1
+fi
+
+  fi
+  if test -z "$gl_cv_func_sigprocmask"; then
+    HAVE_POSIX_SIGNALBLOCKING=0
+  fi
+
+if test $HAVE_POSIX_SIGNALBLOCKING = 0; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS sigprocmask.$ac_objext"
+
+  :
+fi
+
+
+
+
+
+          GNULIB_SIGPROCMASK=1
+
+
+
+
+
+      gl_gnulib_enabled_sigprocmask=true
     fi
   }
   func_gl_gnulib_m4code_stat ()
@@ -19144,6 +21265,58 @@ fi
       fi
     fi
   }
+  func_gl_gnulib_m4code_strtoll ()
+  {
+    if ! $gl_gnulib_enabled_strtoll; then
+
+
+
+  if test "$ac_cv_type_long_long_int" = yes; then
+    for ac_func in strtoll
+do :
+  ac_fn_c_check_func "$LINENO" "strtoll" "ac_cv_func_strtoll"
+if test "x$ac_cv_func_strtoll" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRTOLL 1
+_ACEOF
+
+fi
+done
+
+    if test $ac_cv_func_strtoll = no; then
+      HAVE_STRTOLL=0
+    fi
+  fi
+
+if test $HAVE_STRTOLL = 0; then
+
+
+
+
+
+
+
+
+  gl_LIBOBJS="$gl_LIBOBJS strtoll.$ac_objext"
+
+
+  :
+
+fi
+
+
+
+
+
+          GNULIB_STRTOLL=1
+
+
+
+
+
+      gl_gnulib_enabled_strtoll=true
+    fi
+  }
   func_gl_gnulib_m4code_strtoull ()
   {
     if ! $gl_gnulib_enabled_strtoull; then
@@ -19211,8 +21384,17 @@ fi
   if test $REPLACE_LSTAT = 1; then
     func_gl_gnulib_m4code_stat
   fi
+  if test $HAVE_PTHREAD_SIGMASK = 0 || test $REPLACE_PTHREAD_SIGMASK = 1; then
+    func_gl_gnulib_m4code_sigprocmask
+  fi
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     func_gl_gnulib_m4code_stat
+  fi
+  if test "$ac_cv_have_decl_strtoimax" != yes && test $ac_cv_func_strtoimax = no; then
+    func_gl_gnulib_m4code_verify
+  fi
+  if test "$ac_cv_have_decl_strtoimax" != yes && test $ac_cv_func_strtoimax = no && test $ac_cv_type_long_long_int = yes; then
+    func_gl_gnulib_m4code_strtoll
   fi
   if test "$ac_cv_have_decl_strtoumax" != yes && test $ac_cv_func_strtoumax = no; then
     func_gl_gnulib_m4code_verify
@@ -19237,12 +21419,28 @@ else
   gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_FALSE=
 fi
 
+   if $gl_gnulib_enabled_sigprocmask; then
+  gl_GNULIB_ENABLED_sigprocmask_TRUE=
+  gl_GNULIB_ENABLED_sigprocmask_FALSE='#'
+else
+  gl_GNULIB_ENABLED_sigprocmask_TRUE='#'
+  gl_GNULIB_ENABLED_sigprocmask_FALSE=
+fi
+
    if $gl_gnulib_enabled_stat; then
   gl_GNULIB_ENABLED_stat_TRUE=
   gl_GNULIB_ENABLED_stat_FALSE='#'
 else
   gl_GNULIB_ENABLED_stat_TRUE='#'
   gl_GNULIB_ENABLED_stat_FALSE=
+fi
+
+   if $gl_gnulib_enabled_strtoll; then
+  gl_GNULIB_ENABLED_strtoll_TRUE=
+  gl_GNULIB_ENABLED_strtoll_FALSE='#'
+else
+  gl_GNULIB_ENABLED_strtoll_TRUE='#'
+  gl_GNULIB_ENABLED_strtoll_FALSE=
 fi
 
    if $gl_gnulib_enabled_strtoull; then
@@ -19299,1766 +21497,6 @@ fi
   LIBGNU_LIBDEPS="$gl_libdeps"
 
   LIBGNU_LTLIBDEPS="$gl_ltlibdeps"
-
-
-
-# UNIX98 PTYs.
-for ac_func in grantpt
-do :
-  ac_fn_c_check_func "$LINENO" "grantpt" "ac_cv_func_grantpt"
-if test "x$ac_cv_func_grantpt" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_GRANTPT 1
-_ACEOF
-
-fi
-done
-
-
-# PTY-related GNU extensions.
-for ac_func in getpt
-do :
-  ac_fn_c_check_func "$LINENO" "getpt" "ac_cv_func_getpt"
-if test "x$ac_cv_func_getpt" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_GETPT 1
-_ACEOF
-
-fi
-done
-
-
-# Check this now, so that we will NOT find the above functions in ncurses.
-# That is because we have not set up to link ncurses in lib-src.
-# It's better to believe a function is not available
-# than to expect to find it in ncurses.
-# Also we need tputs and friends to be able to build at all.
-have_tputs_et_al=true
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing tputs" >&5
-$as_echo_n "checking for library containing tputs... " >&6; }
-if test "${ac_cv_search_tputs+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char tputs ();
-int
-main ()
-{
-return tputs ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' ncurses terminfo termcap; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_tputs=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if test "${ac_cv_search_tputs+set}" = set; then :
-  break
-fi
-done
-if test "${ac_cv_search_tputs+set}" = set; then :
-
-else
-  ac_cv_search_tputs=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_tputs" >&5
-$as_echo "$ac_cv_search_tputs" >&6; }
-ac_res=$ac_cv_search_tputs
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-else
-  have_tputs_et_al=false
-fi
-
-if test "$have_tputs_et_al" != true; then
-  as_fn_error "I couldn't find termcap functions (tputs and friends).
-Maybe some development libraries/packages are missing?  Try installing
-libncurses-dev(el), libterminfo-dev(el) or similar." "$LINENO" 5
-fi
-# Must define this when any termcap library is found.
-
-$as_echo "#define HAVE_LIBNCURSES 1" >>confdefs.h
-
-## FIXME This was the cpp logic, but I am not sure it is right.
-## The above test has not necessarily found libncurses.
-HAVE_LIBNCURSES=yes
-
-## Use terminfo instead of termcap?
-## Note only system files NOT using terminfo are:
-## freebsd < 40000, ms-w32, msdos, netbsd < 599002500, and
-## darwin|gnu without ncurses.
-TERMINFO=no
-LIBS_TERMCAP=
-case "$opsys" in
-  ## cygwin: Fewer environment variables to go wrong, more terminal types.
-  ## hpux10-20: Use the system provided termcap(3) library.
-  ## openbsd: David Mazieres <dm@reeducation-labor.lcs.mit.edu> says this
-  ##  is necessary.  Otherwise Emacs dumps core when run -nw.
-  aix4-2|cygwin|hpux*|irix6-5|openbsd|sol2*|unixware) TERMINFO=yes ;;
-
-  ## darwin: Prevents crashes when running Emacs in Terminal.app under 10.2.
-  ##  The ncurses library has been moved out of the System framework in
-  ##  Mac OS X 10.2.  So if configure detects it, set the command-line
-  ##  option to use it.
-  darwin|gnu*)
-    ## (HAVE_LIBNCURSES was not always true, but is since 2010-03-18.)
-    if test "x$HAVE_LIBNCURSES" = "xyes"; then
-      TERMINFO=yes
-      LIBS_TERMCAP="-lncurses"
-    fi
-    ;;
-
-  freebsd)
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether FreeBSD is new enough to use terminfo" >&5
-$as_echo_n "checking whether FreeBSD is new enough to use terminfo... " >&6; }
-    if test "${emacs_cv_freebsd_terminfo+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <osreldate.h>
-int
-main ()
-{
-#if __FreeBSD_version < 400000
-fail;
-#endif
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  emacs_cv_freebsd_terminfo=yes
-else
-  emacs_cv_freebsd_terminfo=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-fi
-
-
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_freebsd_terminfo" >&5
-$as_echo "$emacs_cv_freebsd_terminfo" >&6; }
-
-    if test $emacs_cv_freebsd_terminfo = yes; then
-      TERMINFO=yes
-      LIBS_TERMCAP="-lncurses"
-    else
-      LIBS_TERMCAP="-ltermcap"
-    fi
-    ;;
-
-  netbsd)
-    if test $ac_cv_search_tputs = -lterminfo; then
-      TERMINFO=yes
-      LIBS_TERMCAP="-lterminfo"
-    else
-      LIBS_TERMCAP="-ltermcap"
-    fi
-    ;;
-
-esac
-
-case "$opsys" in
-  ## hpux: Make sure we get select from libc rather than from libcurses
-  ##  because libcurses on HPUX 10.10 has a broken version of select.
-  ##  We used to use -lc -lcurses, but this may be cleaner.
-  hpux*) LIBS_TERMCAP="-ltermcap" ;;
-
-  openbsd) LIBS_TERMCAP="-lncurses" ;;
-
-  ## Must use system termcap, if we use any termcap.  It does special things.
-  sol2*) test "$TERMINFO" != yes && LIBS_TERMCAP="-ltermcap" ;;
-esac
-
-TERMCAP_OBJ=tparam.o
-if test $TERMINFO = yes; then
-
-$as_echo "#define TERMINFO 1" >>confdefs.h
-
-
-  ## Default used to be -ltermcap.  Add a case above if need something else.
-  test "x$LIBS_TERMCAP" = "x" && LIBS_TERMCAP="-lcurses"
-
-  TERMCAP_OBJ=terminfo.o
-fi
-
-
-
-
-# Do we have res_init, for detecting changes in /etc/resolv.conf?
-resolv=no
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <netinet/in.h>
-#include <arpa/nameser.h>
-#include <resolv.h>
-int
-main ()
-{
-return res_init();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  have_res_init=yes
-else
-  have_res_init=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-if test "$have_res_init" = no; then
-  OLIBS="$LIBS"
-  LIBS="$LIBS -lresolv"
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_init with -lresolv" >&5
-$as_echo_n "checking for res_init with -lresolv... " >&6; }
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <netinet/in.h>
-#include <arpa/nameser.h>
-#include <resolv.h>
-int
-main ()
-{
-return res_init();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  have_res_init=yes
-else
-  have_res_init=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_res_init" >&5
-$as_echo "$have_res_init" >&6; }
-  if test "$have_res_init" = yes ; then
-    resolv=yes
-  fi
-  LIBS="$OLIBS"
-fi
-
-if test "$have_res_init" = yes; then
-
-$as_echo "#define HAVE_RES_INIT 1" >>confdefs.h
-
-fi
-
-# Do we need the Hesiod library to provide the support routines?
-LIBHESIOD=
-if test "$with_hesiod" != no ; then
-  # Don't set $LIBS here -- see comments above.  FIXME which comments?
-  ac_fn_c_check_func "$LINENO" "res_send" "ac_cv_func_res_send"
-if test "x$ac_cv_func_res_send" = x""yes; then :
-
-else
-  ac_fn_c_check_func "$LINENO" "__res_send" "ac_cv_func___res_send"
-if test "x$ac_cv_func___res_send" = x""yes; then :
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_send in -lresolv" >&5
-$as_echo_n "checking for res_send in -lresolv... " >&6; }
-if test "${ac_cv_lib_resolv_res_send+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lresolv  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char res_send ();
-int
-main ()
-{
-return res_send ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_resolv_res_send=yes
-else
-  ac_cv_lib_resolv_res_send=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_resolv_res_send" >&5
-$as_echo "$ac_cv_lib_resolv_res_send" >&6; }
-if test "x$ac_cv_lib_resolv_res_send" = x""yes; then :
-  resolv=yes
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for __res_send in -lresolv" >&5
-$as_echo_n "checking for __res_send in -lresolv... " >&6; }
-if test "${ac_cv_lib_resolv___res_send+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lresolv  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char __res_send ();
-int
-main ()
-{
-return __res_send ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_resolv___res_send=yes
-else
-  ac_cv_lib_resolv___res_send=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_resolv___res_send" >&5
-$as_echo "$ac_cv_lib_resolv___res_send" >&6; }
-if test "x$ac_cv_lib_resolv___res_send" = x""yes; then :
-  resolv=yes
-fi
-
-fi
-
-fi
-
-fi
-
-  if test "$resolv" = yes ; then
-    RESOLVLIB=-lresolv
-  else
-    RESOLVLIB=
-  fi
-  ac_fn_c_check_func "$LINENO" "hes_getmailhost" "ac_cv_func_hes_getmailhost"
-if test "x$ac_cv_func_hes_getmailhost" = x""yes; then :
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for hes_getmailhost in -lhesiod" >&5
-$as_echo_n "checking for hes_getmailhost in -lhesiod... " >&6; }
-if test "${ac_cv_lib_hesiod_hes_getmailhost+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lhesiod $RESOLVLIB $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char hes_getmailhost ();
-int
-main ()
-{
-return hes_getmailhost ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_hesiod_hes_getmailhost=yes
-else
-  ac_cv_lib_hesiod_hes_getmailhost=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_hesiod_hes_getmailhost" >&5
-$as_echo "$ac_cv_lib_hesiod_hes_getmailhost" >&6; }
-if test "x$ac_cv_lib_hesiod_hes_getmailhost" = x""yes; then :
-  hesiod=yes
-else
-  :
-fi
-
-fi
-
-
-  if test x"$hesiod" = xyes; then
-
-$as_echo "#define HAVE_LIBHESIOD 1" >>confdefs.h
-
-    LIBHESIOD=-lhesiod
-  fi
-fi
-
-
-# Do we need libresolv (due to res_init or Hesiod)?
-if test "$resolv" = yes ; then
-
-$as_echo "#define HAVE_LIBRESOLV 1" >>confdefs.h
-
-  LIBRESOLV=-lresolv
-else
-  LIBRESOLV=
-fi
-
-
-# These tell us which Kerberos-related libraries to use.
-COM_ERRLIB=
-CRYPTOLIB=
-KRB5LIB=
-DESLIB=
-KRB4LIB=
-
-if test "${with_kerberos}" != no; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for com_err in -lcom_err" >&5
-$as_echo_n "checking for com_err in -lcom_err... " >&6; }
-if test "${ac_cv_lib_com_err_com_err+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lcom_err  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char com_err ();
-int
-main ()
-{
-return com_err ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_com_err_com_err=yes
-else
-  ac_cv_lib_com_err_com_err=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_com_err_com_err" >&5
-$as_echo "$ac_cv_lib_com_err_com_err" >&6; }
-if test "x$ac_cv_lib_com_err_com_err" = x""yes; then :
-  have_com_err=yes
-else
-  have_com_err=no
-fi
-
-  if test $have_com_err = yes; then
-    COM_ERRLIB=-lcom_err
-    LIBS="$COM_ERRLIB $LIBS"
-
-$as_echo "#define HAVE_LIBCOM_ERR 1" >>confdefs.h
-
-  fi
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mit_des_cbc_encrypt in -lcrypto" >&5
-$as_echo_n "checking for mit_des_cbc_encrypt in -lcrypto... " >&6; }
-if test "${ac_cv_lib_crypto_mit_des_cbc_encrypt+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lcrypto  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char mit_des_cbc_encrypt ();
-int
-main ()
-{
-return mit_des_cbc_encrypt ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_crypto_mit_des_cbc_encrypt=yes
-else
-  ac_cv_lib_crypto_mit_des_cbc_encrypt=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_crypto_mit_des_cbc_encrypt" >&5
-$as_echo "$ac_cv_lib_crypto_mit_des_cbc_encrypt" >&6; }
-if test "x$ac_cv_lib_crypto_mit_des_cbc_encrypt" = x""yes; then :
-  have_crypto=yes
-else
-  have_crypto=no
-fi
-
-  if test $have_crypto = yes; then
-    CRYPTOLIB=-lcrypto
-    LIBS="$CRYPTOLIB $LIBS"
-
-$as_echo "#define HAVE_LIBCRYPTO 1" >>confdefs.h
-
-  fi
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for mit_des_cbc_encrypt in -lk5crypto" >&5
-$as_echo_n "checking for mit_des_cbc_encrypt in -lk5crypto... " >&6; }
-if test "${ac_cv_lib_k5crypto_mit_des_cbc_encrypt+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lk5crypto  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char mit_des_cbc_encrypt ();
-int
-main ()
-{
-return mit_des_cbc_encrypt ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_k5crypto_mit_des_cbc_encrypt=yes
-else
-  ac_cv_lib_k5crypto_mit_des_cbc_encrypt=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_k5crypto_mit_des_cbc_encrypt" >&5
-$as_echo "$ac_cv_lib_k5crypto_mit_des_cbc_encrypt" >&6; }
-if test "x$ac_cv_lib_k5crypto_mit_des_cbc_encrypt" = x""yes; then :
-  have_k5crypto=yes
-else
-  have_k5crypto=no
-fi
-
-  if test $have_k5crypto = yes; then
-    CRYPTOLIB=-lk5crypto
-    LIBS="$CRYPTOLIB $LIBS"
-
-$as_echo "#define HAVE_LIBK5CRYPTO 1" >>confdefs.h
-
-  fi
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for krb5_init_context in -lkrb5" >&5
-$as_echo_n "checking for krb5_init_context in -lkrb5... " >&6; }
-if test "${ac_cv_lib_krb5_krb5_init_context+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lkrb5  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char krb5_init_context ();
-int
-main ()
-{
-return krb5_init_context ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_krb5_krb5_init_context=yes
-else
-  ac_cv_lib_krb5_krb5_init_context=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_krb5_krb5_init_context" >&5
-$as_echo "$ac_cv_lib_krb5_krb5_init_context" >&6; }
-if test "x$ac_cv_lib_krb5_krb5_init_context" = x""yes; then :
-  have_krb5=yes
-else
-  have_krb5=no
-fi
-
-  if test $have_krb5=yes; then
-    KRB5LIB=-lkrb5
-    LIBS="$KRB5LIB $LIBS"
-
-$as_echo "#define HAVE_LIBKRB5 1" >>confdefs.h
-
-  fi
-    if test "${with_kerberos5}" = no; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for des_cbc_encrypt in -ldes425" >&5
-$as_echo_n "checking for des_cbc_encrypt in -ldes425... " >&6; }
-if test "${ac_cv_lib_des425_des_cbc_encrypt+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-ldes425  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char des_cbc_encrypt ();
-int
-main ()
-{
-return des_cbc_encrypt ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_des425_des_cbc_encrypt=yes
-else
-  ac_cv_lib_des425_des_cbc_encrypt=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_des425_des_cbc_encrypt" >&5
-$as_echo "$ac_cv_lib_des425_des_cbc_encrypt" >&6; }
-if test "x$ac_cv_lib_des425_des_cbc_encrypt" = x""yes; then :
-  have_des425=yes
-else
-  have_des425=no
-fi
-
-    if test $have_des425 = yes; then
-      DESLIB=-ldes425
-      LIBS="$DESLIB $LIBS"
-
-$as_echo "#define HAVE_LIBDES425 1" >>confdefs.h
-
-    else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for des_cbc_encrypt in -ldes" >&5
-$as_echo_n "checking for des_cbc_encrypt in -ldes... " >&6; }
-if test "${ac_cv_lib_des_des_cbc_encrypt+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-ldes  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char des_cbc_encrypt ();
-int
-main ()
-{
-return des_cbc_encrypt ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_des_des_cbc_encrypt=yes
-else
-  ac_cv_lib_des_des_cbc_encrypt=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_des_des_cbc_encrypt" >&5
-$as_echo "$ac_cv_lib_des_des_cbc_encrypt" >&6; }
-if test "x$ac_cv_lib_des_des_cbc_encrypt" = x""yes; then :
-  have_des=yes
-else
-  have_des=no
-fi
-
-      if test $have_des = yes; then
-        DESLIB=-ldes
-        LIBS="$DESLIB $LIBS"
-
-$as_echo "#define HAVE_LIBDES 1" >>confdefs.h
-
-      fi
-    fi
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for krb_get_cred in -lkrb4" >&5
-$as_echo_n "checking for krb_get_cred in -lkrb4... " >&6; }
-if test "${ac_cv_lib_krb4_krb_get_cred+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lkrb4  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char krb_get_cred ();
-int
-main ()
-{
-return krb_get_cred ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_krb4_krb_get_cred=yes
-else
-  ac_cv_lib_krb4_krb_get_cred=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_krb4_krb_get_cred" >&5
-$as_echo "$ac_cv_lib_krb4_krb_get_cred" >&6; }
-if test "x$ac_cv_lib_krb4_krb_get_cred" = x""yes; then :
-  have_krb4=yes
-else
-  have_krb4=no
-fi
-
-    if test $have_krb4 = yes; then
-      KRB4LIB=-lkrb4
-      LIBS="$KRB4LIB $LIBS"
-
-$as_echo "#define HAVE_LIBKRB4 1" >>confdefs.h
-
-    else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for krb_get_cred in -lkrb" >&5
-$as_echo_n "checking for krb_get_cred in -lkrb... " >&6; }
-if test "${ac_cv_lib_krb_krb_get_cred+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lkrb  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char krb_get_cred ();
-int
-main ()
-{
-return krb_get_cred ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_krb_krb_get_cred=yes
-else
-  ac_cv_lib_krb_krb_get_cred=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_krb_krb_get_cred" >&5
-$as_echo "$ac_cv_lib_krb_krb_get_cred" >&6; }
-if test "x$ac_cv_lib_krb_krb_get_cred" = x""yes; then :
-  have_krb=yes
-else
-  have_krb=no
-fi
-
-      if test $have_krb = yes; then
-        KRB4LIB=-lkrb
-        LIBS="$KRB4LIB $LIBS"
-
-$as_echo "#define HAVE_LIBKRB 1" >>confdefs.h
-
-      fi
-    fi
-  fi
-
-  if test "${with_kerberos5}" != no; then
-    for ac_header in krb5.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "krb5.h" "ac_cv_header_krb5_h" "$ac_includes_default"
-if test "x$ac_cv_header_krb5_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_KRB5_H 1
-_ACEOF
- ac_fn_c_check_member "$LINENO" "krb5_error" "text" "ac_cv_member_krb5_error_text" "#include <krb5.h>
-"
-if test "x$ac_cv_member_krb5_error_text" = x""yes; then :
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_KRB5_ERROR_TEXT 1
-_ACEOF
-
-
-fi
-ac_fn_c_check_member "$LINENO" "krb5_error" "e_text" "ac_cv_member_krb5_error_e_text" "#include <krb5.h>
-"
-if test "x$ac_cv_member_krb5_error_e_text" = x""yes; then :
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_KRB5_ERROR_E_TEXT 1
-_ACEOF
-
-
-fi
-
-fi
-
-done
-
-  else
-    for ac_header in des.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "des.h" "ac_cv_header_des_h" "$ac_includes_default"
-if test "x$ac_cv_header_des_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_DES_H 1
-_ACEOF
-
-else
-  for ac_header in kerberosIV/des.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "kerberosIV/des.h" "ac_cv_header_kerberosIV_des_h" "$ac_includes_default"
-if test "x$ac_cv_header_kerberosIV_des_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_KERBEROSIV_DES_H 1
-_ACEOF
-
-else
-  for ac_header in kerberos/des.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "kerberos/des.h" "ac_cv_header_kerberos_des_h" "$ac_includes_default"
-if test "x$ac_cv_header_kerberos_des_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_KERBEROS_DES_H 1
-_ACEOF
-
-fi
-
-done
-
-fi
-
-done
-
-fi
-
-done
-
-    for ac_header in krb.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "krb.h" "ac_cv_header_krb_h" "$ac_includes_default"
-if test "x$ac_cv_header_krb_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_KRB_H 1
-_ACEOF
-
-else
-  for ac_header in kerberosIV/krb.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "kerberosIV/krb.h" "ac_cv_header_kerberosIV_krb_h" "$ac_includes_default"
-if test "x$ac_cv_header_kerberosIV_krb_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_KERBEROSIV_KRB_H 1
-_ACEOF
-
-else
-  for ac_header in kerberos/krb.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "kerberos/krb.h" "ac_cv_header_kerberos_krb_h" "$ac_includes_default"
-if test "x$ac_cv_header_kerberos_krb_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_KERBEROS_KRB_H 1
-_ACEOF
-
-fi
-
-done
-
-fi
-
-done
-
-fi
-
-done
-
-  fi
-  for ac_header in com_err.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "com_err.h" "ac_cv_header_com_err_h" "$ac_includes_default"
-if test "x$ac_cv_header_com_err_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_COM_ERR_H 1
-_ACEOF
-
-fi
-
-done
-
-fi
-
-
-
-
-
-
-
-# Solaris requires -lintl if you want strerror (which calls dgettext)
-# to return localized messages.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dgettext in -lintl" >&5
-$as_echo_n "checking for dgettext in -lintl... " >&6; }
-if test "${ac_cv_lib_intl_dgettext+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lintl  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char dgettext ();
-int
-main ()
-{
-return dgettext ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_intl_dgettext=yes
-else
-  ac_cv_lib_intl_dgettext=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_intl_dgettext" >&5
-$as_echo "$ac_cv_lib_intl_dgettext" >&6; }
-if test "x$ac_cv_lib_intl_dgettext" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBINTL 1
-_ACEOF
-
-  LIBS="-lintl $LIBS"
-
-fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether localtime caches TZ" >&5
-$as_echo_n "checking whether localtime caches TZ... " >&6; }
-if test "${emacs_cv_localtime_cache+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test x$ac_cv_func_tzset = xyes; then
-if test "$cross_compiling" = yes; then :
-  # If we have tzset, assume the worst when cross-compiling.
-emacs_cv_localtime_cache=yes
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <time.h>
-char TZ_GMT0[] = "TZ=GMT0";
-char TZ_PST8[] = "TZ=PST8";
-main()
-{
-  time_t now = time ((time_t *) 0);
-  int hour_GMT0, hour_unset;
-  if (putenv (TZ_GMT0) != 0)
-    exit (1);
-  hour_GMT0 = localtime (&now)->tm_hour;
-  unsetenv("TZ");
-  hour_unset = localtime (&now)->tm_hour;
-  if (putenv (TZ_PST8) != 0)
-    exit (1);
-  if (localtime (&now)->tm_hour == hour_GMT0)
-    exit (1);
-  unsetenv("TZ");
-  if (localtime (&now)->tm_hour != hour_unset)
-    exit (1);
-  exit (0);
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  emacs_cv_localtime_cache=no
-else
-  emacs_cv_localtime_cache=yes
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-else
-	# If we lack tzset, report that localtime does not cache TZ,
-	# since we can't invalidate the cache if we don't have tzset.
-	emacs_cv_localtime_cache=no
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_localtime_cache" >&5
-$as_echo "$emacs_cv_localtime_cache" >&6; }
-if test $emacs_cv_localtime_cache = yes; then
-
-$as_echo "#define LOCALTIME_CACHE 1" >>confdefs.h
-
-fi
-
-if test "x$HAVE_TIMEVAL" = xyes; then
-  for ac_func in gettimeofday
-do :
-  ac_fn_c_check_func "$LINENO" "gettimeofday" "ac_cv_func_gettimeofday"
-if test "x$ac_cv_func_gettimeofday" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_GETTIMEOFDAY 1
-_ACEOF
-
-fi
-done
-
-  if test $ac_cv_func_gettimeofday = yes; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether gettimeofday can accept two arguments" >&5
-$as_echo_n "checking whether gettimeofday can accept two arguments... " >&6; }
-if test "${emacs_cv_gettimeofday_two_arguments+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#ifdef TIME_WITH_SYS_TIME
-#include <sys/time.h>
-#include <time.h>
-#else
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#else
-#include <time.h>
-#endif
-#endif
-int
-main ()
-{
-struct timeval time;
-       gettimeofday (&time, 0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  emacs_cv_gettimeofday_two_arguments=yes
-else
-  emacs_cv_gettimeofday_two_arguments=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_gettimeofday_two_arguments" >&5
-$as_echo "$emacs_cv_gettimeofday_two_arguments" >&6; }
-    if test $emacs_cv_gettimeofday_two_arguments = no; then
-
-$as_echo "#define GETTIMEOFDAY_ONE_ARGUMENT 1" >>confdefs.h
-
-    fi
-  fi
-fi
-
-ok_so_far=yes
-ac_fn_c_check_func "$LINENO" "socket" "ac_cv_func_socket"
-if test "x$ac_cv_func_socket" = x""yes; then :
-
-else
-  ok_so_far=no
-fi
-
-if test $ok_so_far = yes; then
-  ac_fn_c_check_header_mongrel "$LINENO" "netinet/in.h" "ac_cv_header_netinet_in_h" "$ac_includes_default"
-if test "x$ac_cv_header_netinet_in_h" = x""yes; then :
-
-else
-  ok_so_far=no
-fi
-
-
-fi
-if test $ok_so_far = yes; then
-  ac_fn_c_check_header_mongrel "$LINENO" "arpa/inet.h" "ac_cv_header_arpa_inet_h" "$ac_includes_default"
-if test "x$ac_cv_header_arpa_inet_h" = x""yes; then :
-
-else
-  ok_so_far=no
-fi
-
-
-fi
-if test $ok_so_far = yes; then
-
-$as_echo "#define HAVE_INET_SOCKETS 1" >>confdefs.h
-
-fi
-
-if test -f /usr/lpp/X11/bin/smt.exp; then
-
-$as_echo "#define HAVE_AIX_SMT_EXP 1" >>confdefs.h
-
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether system supports dynamic ptys" >&5
-$as_echo_n "checking whether system supports dynamic ptys... " >&6; }
-if test -d /dev/pts && ls -d /dev/ptmx > /dev/null 2>&1 ; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
-$as_echo "#define HAVE_DEV_PTMX 1" >>confdefs.h
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-ac_fn_c_check_type "$LINENO" "pid_t" "ac_cv_type_pid_t" "$ac_includes_default"
-if test "x$ac_cv_type_pid_t" = x""yes; then :
-
-else
-
-cat >>confdefs.h <<_ACEOF
-#define pid_t int
-_ACEOF
-
-fi
-
-for ac_header in vfork.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "vfork.h" "ac_cv_header_vfork_h" "$ac_includes_default"
-if test "x$ac_cv_header_vfork_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_VFORK_H 1
-_ACEOF
-
-fi
-
-done
-
-for ac_func in fork vfork
-do :
-  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
-ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
-eval as_val=\$$as_ac_var
-   if test "x$as_val" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
-_ACEOF
-
-fi
-done
-
-if test "x$ac_cv_func_fork" = xyes; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for working fork" >&5
-$as_echo_n "checking for working fork... " >&6; }
-if test "${ac_cv_func_fork_works+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test "$cross_compiling" = yes; then :
-  ac_cv_func_fork_works=cross
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$ac_includes_default
-int
-main ()
-{
-
-	  /* By Ruediger Kuhlmann. */
-	  return fork () < 0;
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  ac_cv_func_fork_works=yes
-else
-  ac_cv_func_fork_works=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_func_fork_works" >&5
-$as_echo "$ac_cv_func_fork_works" >&6; }
-
-else
-  ac_cv_func_fork_works=$ac_cv_func_fork
-fi
-if test "x$ac_cv_func_fork_works" = xcross; then
-  case $host in
-    *-*-amigaos* | *-*-msdosdjgpp*)
-      # Override, as these systems have only a dummy fork() stub
-      ac_cv_func_fork_works=no
-      ;;
-    *)
-      ac_cv_func_fork_works=yes
-      ;;
-  esac
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: result $ac_cv_func_fork_works guessed because of cross compilation" >&5
-$as_echo "$as_me: WARNING: result $ac_cv_func_fork_works guessed because of cross compilation" >&2;}
-fi
-ac_cv_func_vfork_works=$ac_cv_func_vfork
-if test "x$ac_cv_func_vfork" = xyes; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for working vfork" >&5
-$as_echo_n "checking for working vfork... " >&6; }
-if test "${ac_cv_func_vfork_works+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test "$cross_compiling" = yes; then :
-  ac_cv_func_vfork_works=cross
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-/* Thanks to Paul Eggert for this test.  */
-$ac_includes_default
-#include <sys/wait.h>
-#ifdef HAVE_VFORK_H
-# include <vfork.h>
-#endif
-/* On some sparc systems, changes by the child to local and incoming
-   argument registers are propagated back to the parent.  The compiler
-   is told about this with #include <vfork.h>, but some compilers
-   (e.g. gcc -O) don't grok <vfork.h>.  Test for this by using a
-   static variable whose address is put into a register that is
-   clobbered by the vfork.  */
-static void
-#ifdef __cplusplus
-sparc_address_test (int arg)
-# else
-sparc_address_test (arg) int arg;
-#endif
-{
-  static pid_t child;
-  if (!child) {
-    child = vfork ();
-    if (child < 0) {
-      perror ("vfork");
-      _exit(2);
-    }
-    if (!child) {
-      arg = getpid();
-      write(-1, "", 0);
-      _exit (arg);
-    }
-  }
-}
-
-int
-main ()
-{
-  pid_t parent = getpid ();
-  pid_t child;
-
-  sparc_address_test (0);
-
-  child = vfork ();
-
-  if (child == 0) {
-    /* Here is another test for sparc vfork register problems.  This
-       test uses lots of local variables, at least as many local
-       variables as main has allocated so far including compiler
-       temporaries.  4 locals are enough for gcc 1.40.3 on a Solaris
-       4.1.3 sparc, but we use 8 to be safe.  A buggy compiler should
-       reuse the register of parent for one of the local variables,
-       since it will think that parent can't possibly be used any more
-       in this routine.  Assigning to the local variable will thus
-       munge parent in the parent process.  */
-    pid_t
-      p = getpid(), p1 = getpid(), p2 = getpid(), p3 = getpid(),
-      p4 = getpid(), p5 = getpid(), p6 = getpid(), p7 = getpid();
-    /* Convince the compiler that p..p7 are live; otherwise, it might
-       use the same hardware register for all 8 local variables.  */
-    if (p != p1 || p != p2 || p != p3 || p != p4
-	|| p != p5 || p != p6 || p != p7)
-      _exit(1);
-
-    /* On some systems (e.g. IRIX 3.3), vfork doesn't separate parent
-       from child file descriptors.  If the child closes a descriptor
-       before it execs or exits, this munges the parent's descriptor
-       as well.  Test for this by closing stdout in the child.  */
-    _exit(close(fileno(stdout)) != 0);
-  } else {
-    int status;
-    struct stat st;
-
-    while (wait(&status) != child)
-      ;
-    return (
-	 /* Was there some problem with vforking?  */
-	 child < 0
-
-	 /* Did the child fail?  (This shouldn't happen.)  */
-	 || status
-
-	 /* Did the vfork/compiler bug occur?  */
-	 || parent != getpid()
-
-	 /* Did the file descriptor bug occur?  */
-	 || fstat(fileno(stdout), &st) != 0
-	 );
-  }
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  ac_cv_func_vfork_works=yes
-else
-  ac_cv_func_vfork_works=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_func_vfork_works" >&5
-$as_echo "$ac_cv_func_vfork_works" >&6; }
-
-fi;
-if test "x$ac_cv_func_fork_works" = xcross; then
-  ac_cv_func_vfork_works=$ac_cv_func_vfork
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: result $ac_cv_func_vfork_works guessed because of cross compilation" >&5
-$as_echo "$as_me: WARNING: result $ac_cv_func_vfork_works guessed because of cross compilation" >&2;}
-fi
-
-if test "x$ac_cv_func_vfork_works" = xyes; then
-
-$as_echo "#define HAVE_WORKING_VFORK 1" >>confdefs.h
-
-else
-
-$as_echo "#define vfork fork" >>confdefs.h
-
-fi
-if test "x$ac_cv_func_fork_works" = xyes; then
-
-$as_echo "#define HAVE_WORKING_FORK 1" >>confdefs.h
-
-fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for nl_langinfo and CODESET" >&5
-$as_echo_n "checking for nl_langinfo and CODESET... " >&6; }
-if test "${emacs_cv_langinfo_codeset+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <langinfo.h>
-int
-main ()
-{
-char* cs = nl_langinfo(CODESET);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  emacs_cv_langinfo_codeset=yes
-else
-  emacs_cv_langinfo_codeset=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_langinfo_codeset" >&5
-$as_echo "$emacs_cv_langinfo_codeset" >&6; }
-if test $emacs_cv_langinfo_codeset = yes; then
-
-$as_echo "#define HAVE_LANGINFO_CODESET 1" >>confdefs.h
-
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for mbstate_t" >&5
-$as_echo_n "checking for mbstate_t... " >&6; }
-if test "${ac_cv_type_mbstate_t+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$ac_includes_default
-#	    include <wchar.h>
-int
-main ()
-{
-mbstate_t x; return sizeof x;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_type_mbstate_t=yes
-else
-  ac_cv_type_mbstate_t=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_type_mbstate_t" >&5
-$as_echo "$ac_cv_type_mbstate_t" >&6; }
-   if test $ac_cv_type_mbstate_t = yes; then
-
-$as_echo "#define HAVE_MBSTATE_T 1" >>confdefs.h
-
-   else
-
-$as_echo "#define mbstate_t int" >>confdefs.h
-
-   fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for C restricted array declarations" >&5
-$as_echo_n "checking for C restricted array declarations... " >&6; }
-if test "${emacs_cv_c_restrict_arr+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-void fred (int x[__restrict]);
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  emacs_cv_c_restrict_arr=yes
-else
-  emacs_cv_c_restrict_arr=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_c_restrict_arr" >&5
-$as_echo "$emacs_cv_c_restrict_arr" >&6; }
-if test "$emacs_cv_c_restrict_arr" = yes; then
-
-$as_echo "#define __restrict_arr __restrict" >>confdefs.h
-
-fi
-
-
-
-# Set up the CFLAGS for real compilation, so we can substitute it.
-CFLAGS="$REAL_CFLAGS"
-CPPFLAGS="$REAL_CPPFLAGS"
-
-## Hack to detect a buggy GCC version.
-if test "x$GCC" = xyes \
-   && test x"`$CC --version 2> /dev/null | grep 'gcc.* 4.5.0'`" != x \
-   && test x"`echo $CFLAGS | grep '\-O[23]'`" != x \
-   && test x"`echo $CFLAGS | grep '\-fno-optimize-sibling-calls'`" = x; then
-   as_fn_error "GCC 4.5.0 has problems compiling Emacs; see etc/PROBLEMS'." "$LINENO" 5
-fi
-
-version=$PACKAGE_VERSION
-
-### Specify what sort of things we'll be editing into Makefile and config.h.
-### Use configuration here uncanonicalized to avoid exceeding size limits.
-
-
-## Unused?
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## FIXME? Nothing uses @LD_SWITCH_X_SITE@.
-## src/Makefile.in did add LD_SWITCH_X_SITE (as a cpp define) to the
-## end of LIBX_BASE, but nothing ever set it.
-
-
-
-
-## Used in lwlib/Makefile.in.
-
-if test -n "${machfile}"; then
-  M_FILE="\$(srcdir)/${machfile}"
-else
-  M_FILE=
-fi
-S_FILE="\$(srcdir)/${opsysfile}"
-
-
-
-
-
-
-
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define EMACS_CONFIGURATION "${canonical}"
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define EMACS_CONFIG_OPTIONS "${ac_configure_args}"
-_ACEOF
-
-if test -n "$machfile"; then
-
-cat >>confdefs.h <<_ACEOF
-#define config_machfile "${machfile}"
-_ACEOF
-
-fi
-
-cat >>confdefs.h <<_ACEOF
-#define config_opsysfile "${opsysfile}"
-_ACEOF
-
-
-XMENU_OBJ=
-XOBJ=
-FONT_OBJ=
-if test "${HAVE_X_WINDOWS}" = "yes" ; then
-
-$as_echo "#define HAVE_X_WINDOWS 1" >>confdefs.h
-
-  XMENU_OBJ=xmenu.o
-  XOBJ="xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o xsettings.o xgselect.o"
-  FONT_OBJ=xfont.o
-  if test "$HAVE_XFT" = "yes"; then
-    FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
-  elif test "$HAVE_FREETYPE" = "yes"; then
-    FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
-  fi
-
-fi
-
-
-
-
-WIDGET_OBJ=
-MOTIF_LIBW=
-if test "${USE_X_TOOLKIT}" != "none" ; then
-  WIDGET_OBJ=widget.o
-
-$as_echo "#define USE_X_TOOLKIT 1" >>confdefs.h
-
-  if test "${USE_X_TOOLKIT}" = "LUCID"; then
-
-$as_echo "#define USE_LUCID 1" >>confdefs.h
-
-  elif test "${USE_X_TOOLKIT}" = "MOTIF"; then
-
-$as_echo "#define USE_MOTIF 1" >>confdefs.h
-
-    MOTIF_LIBW=-lXm
-    case "$opsys" in
-      gnu-linux)
-        ## Paul Abrahams <abrahams at equinox.shaysnet.com> says this is needed.
-        MOTIF_LIBW="$MOTIF_LIBW -lXpm"
-        ;;
-
-      unixware)
-        ## Richard Anthony Ryan <ryanr at ellingtn.ftc.nrcs.usda.gov>
-        ## says -lXimp is needed in UNIX_SV ... 4.2 1.1.2.
-        MOTIF_LIBW="MOTIF_LIBW -lXimp"
-        ;;
-
-      aix4-2)
-        ## olson@mcs.anl.gov says -li18n is needed by -lXm.
-        MOTIF_LIBW="$MOTIF_LIBW -li18n"
-        ;;
-    esac
-    MOTIF_LIBW="$MOTIF_LIBW $LIBXP"
-  fi
-fi
-
-
-TOOLKIT_LIBW=
-case "$USE_X_TOOLKIT" in
-  MOTIF) TOOLKIT_LIBW="$MOTIF_LIBW" ;;
-  LUCID) TOOLKIT_LIBW="$LUCID_LIBW" ;;
-  none) test "x$HAVE_GTK" = "xyes" && TOOLKIT_LIBW="$GTK_LIBS" ;;
-esac
-
-
-if test "$USE_X_TOOLKIT" = "none"; then
-  LIBXT_OTHER="\$(LIBXSM)"
-  OLDXMENU_TARGET="really-oldXMenu"
-else
-  LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
-  OLDXMENU_TARGET="really-lwlib"
-fi
-
-
-## The X Menu stuff is present in the X10 distribution, but missing
-## from X11.  If we have X10, just use the installed library;
-## otherwise, use our own copy.
-if test "${HAVE_X11}" = "yes" ; then
-
-$as_echo "#define HAVE_X11 1" >>confdefs.h
-
-
-  if test "$USE_X_TOOLKIT" = "none"; then
-    OLDXMENU="\${oldXMenudir}/libXMenu11.a"
-  else
-    OLDXMENU="\${lwlibdir}/liblw.a"
-  fi
-  LIBXMENU="\$(OLDXMENU)"
-  LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
-  OLDXMENU_DEPS="\${OLDXMENU} ../src/\${OLDXMENU}"
-else
-  ## For a syntactically valid Makefile; not actually used for anything.
-  ## See comments in src/Makefile.in.
-  OLDXMENU=nothing
-  ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
-  if test "${HAVE_X_WINDOWS}" = "yes"; then
-    LIBXMENU="-lXMenu"
-  else
-    LIBXMENU=
-  fi
-  LIBX_OTHER=
-  OLDXMENU_DEPS=
-fi
-
-if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
-  OLDXMENU_TARGET=
-  OLDXMENU=nothing
-  LIBXMENU=
-  OLDXMENU_DEPS=
-fi
-
-
-
-
-
-
-
-if test "${HAVE_MENUS}" = "yes" ; then
-
-$as_echo "#define HAVE_MENUS 1" >>confdefs.h
-
-fi
-
-if test "${GNU_MALLOC}" = "yes" ; then
-
-$as_echo "#define GNU_MALLOC 1" >>confdefs.h
-
-fi
-
-RALLOC_OBJ=
-if test "${REL_ALLOC}" = "yes" ; then
-
-$as_echo "#define REL_ALLOC 1" >>confdefs.h
-
-
-  test "$system_malloc" != "yes" && RALLOC_OBJ=ralloc.o
-fi
-
-
-if test "$opsys" = "cygwin"; then
-  CYGWIN_OBJ="sheap.o"
-  ## Cygwin differs because of its unexec().
-  PRE_ALLOC_OBJ=
-  POST_ALLOC_OBJ=lastfile.o
-else
-  CYGWIN_OBJ=
-  PRE_ALLOC_OBJ=lastfile.o
-  POST_ALLOC_OBJ=
-fi
-
-
 
 
 
@@ -21472,8 +21910,16 @@ if test -z "${gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36_TRUE}" && test 
   as_fn_error "conditional \"gl_GNULIB_ENABLED_be453cec5eecf5731a274f2de7f2db36\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
+if test -z "${gl_GNULIB_ENABLED_sigprocmask_TRUE}" && test -z "${gl_GNULIB_ENABLED_sigprocmask_FALSE}"; then
+  as_fn_error "conditional \"gl_GNULIB_ENABLED_sigprocmask\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${gl_GNULIB_ENABLED_stat_TRUE}" && test -z "${gl_GNULIB_ENABLED_stat_FALSE}"; then
   as_fn_error "conditional \"gl_GNULIB_ENABLED_stat\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${gl_GNULIB_ENABLED_strtoll_TRUE}" && test -z "${gl_GNULIB_ENABLED_strtoll_FALSE}"; then
+  as_fn_error "conditional \"gl_GNULIB_ENABLED_strtoll\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${gl_GNULIB_ENABLED_strtoull_TRUE}" && test -z "${gl_GNULIB_ENABLED_strtoull_FALSE}"; then
