@@ -18,10 +18,11 @@ format'') source code (normally Fortran 77).  For editing more modern
 ``free form'' source code (Fortran 90, 95, 2003, 2008), use F90 mode
 (@code{f90-mode}).  Emacs normally uses Fortran mode for files with
 extension @samp{.f}, @samp{.F} or @samp{.for}, and F90 mode for the
-extensions @samp{.f90} and @samp{.f95}.  Customize
-@code{auto-mode-alist} to add more extensions.  GNU Fortran supports
-both free and fixed form.  This manual mainly documents Fortran mode,
-but the corresponding F90 mode features are mentioned when revelant.
+extensions @samp{.f90}, @samp{.f95}, @samp{.f03} and @samp{.f08}.
+Customize @code{auto-mode-alist} to add more extensions.  GNU Fortran
+supports both free and fixed form.  This manual mainly documents Fortran
+mode, but the corresponding F90 mode features are mentioned when
+revelant.
 
   Fortran mode provides special motion commands for Fortran statements
 and subprograms, and indentation commands that understand Fortran
