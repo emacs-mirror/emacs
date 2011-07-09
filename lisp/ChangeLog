@@ -1,3 +1,8 @@
+2011-07-09  Leo Liu  <sdl.web@gmail.com>
+
+	* register.el (insert-register): Restore accidental change on
+	2011-06-26.  (Bug#9028)
+
 2011-07-09  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (remq): Handle the empty list.  (Bug#9024)
