@@ -1350,7 +1350,7 @@ Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
 
 (defconst fancy-about-text
-  `((:face (:inherit (variable-pitch font-lock-comment-face))
+  `((:face (variable-pitch font-lock-comment-face)
      "This is "
      :link ("GNU Emacs"
 	    ,(lambda (_button) (browse-url "http://www.gnu.org/software/emacs/"))
