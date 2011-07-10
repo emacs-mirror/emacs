@@ -1,5 +1,8 @@
 2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* screen.texi (Mode Line): Clarify that coding systems are
+	characters, not letters (bug#1749).
+
 	* cmdargs.texi (Environment): Mention removing variables
 	(bug#1615).  Text suggested by Kevin Rodgers.
 
