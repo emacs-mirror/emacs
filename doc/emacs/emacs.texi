@@ -585,8 +585,6 @@ Filling Text
 * Fill Prefix::         Filling paragraphs that are indented
                           or in a comment, etc.
 * Adaptive Fill::       How Emacs can determine the fill prefix automatically.
-* Refill::              Keeping paragraphs filled.
-* Longlines::           Editing text with very long lines.
 
 Outline Mode
 
