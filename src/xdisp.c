@@ -10509,7 +10509,7 @@ DEFUN ("tool-bar-lines-needed", Ftool_bar_lines_needed, Stool_bar_lines_needed,
   f = XFRAME (frame);
 
   if (WINDOWP (f->tool_bar_window)
-      || (w = XWINDOW (f->tool_bar_window),
+      && (w = XWINDOW (f->tool_bar_window),
 	  WINDOW_TOTAL_LINES (w) > 0))
     {
       update_tool_bar (f, 1);
