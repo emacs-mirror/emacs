@@ -5347,7 +5347,7 @@ buffer display specifiers."
 
       ;; `even-window-heights'
       (unless (and (boundp 'even-window-heights)
-		   (not even-window-heights))
+		   even-window-heights)
 	(setq specifiers
 	      (cons (cons 'reuse-window-even-sizes t) specifiers)))
 

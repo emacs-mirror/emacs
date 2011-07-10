@@ -1,3 +1,9 @@
+2011-07-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-normalize-default): Don't invert
+	meaning of even-window-heights.  Reported by Eli Zaretskii
+	<eliz@gnu.org>.
+
 2011-07-10  Bob Rogers  <rogers@rgrjr.dyndns.org>
 
 	* vc/vc.el (vc-diff-internal): Fix race condition (Bug#1256).
