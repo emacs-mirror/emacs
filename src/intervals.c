@@ -247,8 +247,7 @@ static int zero_length;
 INTERVAL search_interval, found_interval;
 
 void
-check_for_interval (i)
-     register INTERVAL i;
+check_for_interval (INTERVAL i)
 {
   if (i == search_interval)
     {
@@ -258,8 +257,7 @@ check_for_interval (i)
 }
 
 INTERVAL
-search_for_interval (i, tree)
-     register INTERVAL i, tree;
+search_for_interval (INTERVAL i, INTERVAL tree)
 {
   icount = 0;
   search_interval = i;
@@ -269,8 +267,7 @@ search_for_interval (i, tree)
 }
 
 static void
-inc_interval_count (i)
-     INTERVAL i;
+inc_interval_count (INTERVAL i)
 {
   icount++;
   if (LENGTH (i) == 0)
@@ -280,8 +277,7 @@ inc_interval_count (i)
 }
 
 int
-count_intervals (i)
-     register INTERVAL i;
+count_intervals (INTERVAL i)
 {
   icount = 0;
   idepth = 0;
@@ -292,8 +288,7 @@ count_intervals (i)
 }
 
 static INTERVAL
-root_interval (interval)
-     INTERVAL interval;
+root_interval (INTERVAL interval)
 {
   register INTERVAL i = interval;
 
@@ -804,9 +799,8 @@ update_interval (register INTERVAL i, EMACS_INT pos)
    to the root.  */
 
 static INTERVAL
-adjust_intervals_for_insertion (tree, position, length)
-     INTERVAL tree;
-     EMACS_INT position, length;
+adjust_intervals_for_insertion (INTERVAL tree, EMACS_INT position,
+				EMACS_INT length)
 {
   register EMACS_INT relative_position;
   register INTERVAL this;
@@ -1615,9 +1609,7 @@ reproduce_tree_obj (INTERVAL source, Lisp_Object parent)
    interval.  */
 
 static INTERVAL
-make_new_interval (intervals, start, length)
-     INTERVAL intervals;
-     EMACS_INT start, length;
+make_new_interval (INTERVAL intervals, EMACS_INT start, EMACS_INT length)
 {
   INTERVAL slot;
 

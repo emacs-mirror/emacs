@@ -961,8 +961,7 @@ Rounds the value toward zero.  */)
 
 #ifdef FLOAT_CATCH_SIGILL
 static void
-float_error (signo)
-     int signo;
+float_error (int signo)
 {
   if (! in_float)
     fatal_error_signal (signo);

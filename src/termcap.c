@@ -338,8 +338,7 @@ static int name_match (char *line, char *name);
 
 #ifdef MSDOS /* MW, May 1993 */
 static int
-valid_filename_p (fn)
-     char *fn;
+valid_filename_p (char *fn)
 {
   return *fn == '/' || fn[1] == ':';
 }
@@ -669,9 +668,29 @@ gobble_line (int fd, register struct termcap_buffer *bufp, char *append_end)
 
 #include <stdio.h>
 
-main (argc, argv)
-     int argc;
-     char **argv;
+static void
+tprint (char *cap)
+{
+  char *x = tgetstr (cap, 0);
+  register char *y;
+
+  printf ("%s: ", cap);
+  if (x)
+    {
+      for (y = x; *y; y++)
+	if (*y <= ' ' || *y == 0177)
+	  printf ("\\%0o", *y);
+	else
+	  putchar (*y);
+      free (x);
+    }
+  else
+    printf ("none");
+  putchar ('\n');
+}
+
+int
+main (int argc, char **argv)
 {
   char *term;
   char *buf;
@@ -693,27 +712,8 @@ main (argc, argv)
 
   printf ("co: %d\n", tgetnum ("co"));
   printf ("am: %d\n", tgetflag ("am"));
-}
 
-tprint (cap)
-     char *cap;
-{
-  char *x = tgetstr (cap, 0);
-  register char *y;
-
-  printf ("%s: ", cap);
-  if (x)
-    {
-      for (y = x; *y; y++)
-	if (*y <= ' ' || *y == 0177)
-	  printf ("\\%0o", *y);
-	else
-	  putchar (*y);
-      free (x);
-    }
-  else
-    printf ("none");
-  putchar ('\n');
+  return 0;
 }
 
 #endif /* TEST */
