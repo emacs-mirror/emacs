@@ -1,5 +1,7 @@
 2011-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
+	* misc.texi (Amusements): Don't mention Yow; it's crippled.
+
 	* modes.texi: Rename from major.texi.
 	(Modes): New node.  Make Major Modes and Minor Modes subsections
 	of this.  All callers changed.
