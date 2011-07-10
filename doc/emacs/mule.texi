@@ -1,7 +1,7 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1997, 1999-2011  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node International, Major Modes, Frames, Top
+@node International, Modes, Frames, Top
 @chapter International Character Set Support
 @c This node is referenced in the tutorial.  When renaming or deleting
 @c it, the tutorial needs to be adjusted.  (TUTORIAL.de)
