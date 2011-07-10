@@ -1,3 +1,8 @@
+2011-07-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (menu_highlight_callback): Only pass frame to show_help_event
+	for non-popups (Bug#3642).
+
 2011-07-10  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* alloc.c (reset_malloc_hooks): Protoize.
