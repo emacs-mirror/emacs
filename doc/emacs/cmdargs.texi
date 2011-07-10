@@ -427,10 +427,11 @@ software) inherit the environment from Emacs, too.
 @vindex initial-environment
   Inside Emacs, the command @kbd{M-x getenv} gets the value of an
 environment variable.  @kbd{M-x setenv} sets a variable in the Emacs
-environment.  (Environment variable substitutions with @samp{$} work
-in the value just as in file names; see @ref{File Names with $}.)  The
-variable @code{initial-environment} stores the initial environment
-inherited by Emacs.
+environment, and @kbd{C-u M-x setenv} removes a variable.
+(Environment variable substitutions with @samp{$} work in the value
+just as in file names; see @ref{File Names with $}.)  The variable
+@code{initial-environment} stores the initial environment inherited by
+Emacs.
 
   The way to set environment variables outside of Emacs depends on the
 operating system, and especially the shell that you are using.  For

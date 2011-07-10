@@ -1,3 +1,8 @@
+2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* cmdargs.texi (Environment): Mention removing variables
+	(bug#1615).  Text suggested by Kevin Rodgers.
+
 2011-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* misc.texi (Amusements): Don't mention Yow; it's crippled.
