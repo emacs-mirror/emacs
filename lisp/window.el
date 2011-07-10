@@ -5737,19 +5737,19 @@ this list as arguments."
       (or (and (window-live-p window) window)
 	  ;; on the selected frame,
 	  (display-buffer-reuse-window
-	   buffer '(nil nil nil) other-window)
+	   buffer '(nil nil nil) nil other-window)
 	  ;; showing BUFFER on any visible frame,
 	  (display-buffer-reuse-window
-	   buffer '(nil same visible) other-window)
+	   buffer '(nil same visible) nil other-window)
 	  ;; not showing BUFFER on any visible frame,
 	  (display-buffer-reuse-window
-	   buffer '(nil other visible) other-window)
+	   buffer '(nil other visible) nil other-window)
 	  ;; showing BUFFER on any visible or iconified frame,
 	  (display-buffer-reuse-window
-	   buffer '(nil same 0) other-window)
+	   buffer '(nil same 0) nil other-window)
 	  ;; not showing BUFFER on any visible or iconified frame.
 	  (display-buffer-reuse-window
-	   buffer '(nil other 0) other-window)
+	   buffer '(nil other 0) nil other-window)
 	  ;; If everything failed so far, try popping up a new frame
 	  ;; regardless of graphic-only restrictions.
 	  (display-buffer-pop-up-frame buffer)))))
