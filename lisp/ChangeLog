@@ -7,6 +7,11 @@
 	* window.el (display-buffer): Fix arguments to
 	display-buffer-reuse-window in last change.
 
+	* faces.el (link): Use a less saturated blue on light backgrounds.
+
+	* startup.el (fancy-startup-text, fancy-about-text)
+	(fancy-startup-tail): Use font-lock faces, for background safety.
+
 2011-07-09  Bob Nnamtrop  <bobnnamtrop@gmail.com>  (tiny change)
 
 	* emulation/viper-cmd.el (viper-change-state-to-vi): Limit
