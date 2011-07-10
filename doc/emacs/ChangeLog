@@ -1,5 +1,14 @@
 2011-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
+	* custom.texi (Syntax): Node deleted.
+
+	* help.texi (Help Summary):
+	* major.texi (Major Modes):
+	* programs.texi (Parentheses):
+	* search.texi (Regexp Backslash, Regexp Backslash)
+	(Regexp Backslash):
+	* text.texi (Words): Callers changed.
+
 	* text.texi (Refill, Longlines): Delete nodes.
 
 	* ack.texi (Acknowledgments): Longlines removed from manual.

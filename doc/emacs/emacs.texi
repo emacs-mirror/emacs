@@ -168,15 +168,13 @@ Important Text-Changing Commands
 * Killing::             Killing (cutting) text.
 * Yanking::             Recovering killed text.  Moving text. (Pasting.)
 * Accumulating Text::   Other ways of copying text.
-* Rectangles::          Operating on the text inside a rectangle on the screen.
-* CUA Bindings::        Using @kbd{C-x}, @kbd{C-c}, @kbd{C-v} for copy
-                          and paste, with enhanced rectangle support.
+* Rectangles::          Operating on text in rectangular areas.
+* CUA Bindings::        Using @kbd{C-x}, @kbd{C-c}, @kbd{C-v} to kill and yank.
 * Registers::           Saving a text string or a location in the buffer.
 * Display::             Controlling what text is displayed.
 * Search::              Finding or replacing occurrences of a string.
 * Fixit::               Commands especially useful for fixing typos.
-* Keyboard Macros::     A keyboard macro records a sequence of
-                          keystrokes to be replayed with a single command.
+* Keyboard Macros::     Recording a sequence of keystrokes to be replayed.
 
 Major Structures of Emacs
 * Files::               All about handling files.
@@ -192,7 +190,7 @@ Advanced Features
 * Programs::            Commands and modes for editing programs.
 * Building::            Compiling, running and debugging programs.
 * Maintaining::         Features for maintaining large programs.
-* Abbrevs::             How to define text abbreviations to reduce
+* Abbrevs::             Defining text abbreviations to reduce
                           the number of characters you must type.
 @c AFAICS, the tex stuff generates its own index and does not use this one.
 @ifnottex
@@ -204,9 +202,9 @@ Advanced Features
 * Dired::               You can ``edit'' a directory to manage files in it.
 * Calendar/Diary::      The calendar and diary facilities.
 * Document View::       Viewing PDF, PS and DVI files.
-* Gnus::                How to read netnews with Emacs.
+* Gnus::                A flexible mail and news reader.
 * Shell::               Executing shell commands from Emacs.
-* Emacs Server::        Using Emacs as an editing server for @code{mail}, etc.
+* Emacs Server::        Using Emacs as an editing server.
 * Printing::            Printing hardcopies of buffers or regions.
 * Sorting::             Sorting lines, paragraphs or pages within Emacs.
 * Narrowing::           Restricting display and editing to a portion
@@ -1066,10 +1064,8 @@ Customization
 * Variables::           Many Emacs commands examine Emacs variables
                           to decide what to do; by setting variables,
                           you can control their functioning.
-* Key Bindings::        The keymaps say what command each key runs.
-                          By changing them, you can "redefine keys".
-* Syntax::              The syntax table controls how words and
-                          expressions are parsed.
+* Key Bindings::        Keymaps say what command each key runs.
+                          By changing them, you can ``redefine'' keys.
 * Init File::           How to write common customizations in the
                           @file{.emacs} file.
 

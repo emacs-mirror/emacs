@@ -19,7 +19,7 @@ units.
 * Yanking::              Commands that insert text.
 * Accumulating Text::    Other methods to add text to the buffer.
 * Rectangles::           Operating on text in rectangular areas.
-* CUA Bindings::         Using C-x/C-c/C-v to kill and yank.
+* CUA Bindings::         Using @kbd{C-x}/@kbd{C-c}/@kbd{C-v} to kill and yank.
 @end menu
 
 @node Deletion and Killing

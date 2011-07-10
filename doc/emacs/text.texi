@@ -154,9 +154,10 @@ the mark by one additional word.  @kbd{M-@@} also accepts a numeric
 argument that says how many words to scan for the place to put the
 mark.
 
-  The word commands' understanding of word boundaries is controlled
-by the syntax table.  Any character can, for example, be declared to
-be a word delimiter.  @xref{Syntax}.
+  The word commands' understanding of word boundaries is controlled by
+the syntax table.  Any character can, for example, be declared to be a
+word delimiter.  @xref{Syntax Tables,, Syntax Tables, elisp, The Emacs
+Lisp Reference Manual}.
 
 @node Sentences
 @section Sentences

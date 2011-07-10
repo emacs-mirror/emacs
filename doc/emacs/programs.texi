@@ -643,8 +643,9 @@ balanced.
   When talking about these facilities, the term ``parenthesis'' also
 includes braces, brackets, or whatever delimiters are defined to match
 in pairs.  The major mode controls which delimiters are significant,
-through the syntax table (@pxref{Syntax}).  In Lisp, only parentheses
-count; in C, these commands apply to braces and brackets too.
+through the syntax table (@pxref{Syntax Tables,, Syntax Tables, elisp,
+The Emacs Lisp Reference Manual}).  In Lisp, only parentheses count;
+in C, these commands apply to braces and brackets too.
 
   You can use @kbd{M-x check-parens} to find any unbalanced
 parentheses and unbalanced string quotes in the buffer.

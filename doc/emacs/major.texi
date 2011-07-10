@@ -31,7 +31,6 @@ prefix key @kbd{C-c} normally contains mode-specific commands.  In
 addition, the commands which handle comments use the mode to determine
 how comments are to be delimited.  Many major modes redefine the
 syntactical properties of characters appearing in the buffer.
-@xref{Syntax}.
 
   The major modes fall into three major groups.  The first group
 contains modes for normal text, either plain or with mark-up.  It
