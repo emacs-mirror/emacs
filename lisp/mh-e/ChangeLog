@@ -1,5 +1,9 @@
 2011-07-10  Bill Wohler  <wohler@newt.com>
 
+	* mh-utils.el (mh-sub-folders-actual): Remove FIXME question.
+
+	* mh-mime.el (mh-decode-message-subject): Fix case of Subject.
+
 	* mh-folder.el (mh-inc-folder, mh-modify, mh-scan-folder)
 	(mh-make-folder): Replace calls to switch-to-buffer with of
 	pop-to-buffer. The former is intended for interactive use only and
