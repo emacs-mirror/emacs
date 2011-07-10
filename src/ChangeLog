@@ -1,3 +1,15 @@
+2011-07-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* chartab.c (uniprop_table_uncompress): Remove unused local variable.
+
+2011-07-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (qttip_cb): Remove code without function.
+
+2011-07-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (pthread_sigmask): New stub.
+
 2011-07-08  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor problems found by static checking (Bug#9031).

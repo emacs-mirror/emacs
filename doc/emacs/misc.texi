@@ -2794,7 +2794,6 @@ userenced and properbose.  Have fun.  Your buggestions are welcome.
 @section Other Amusements
 @cindex boredom
 @findex hanoi
-@findex yow
 @findex gomoku
 @cindex tower of Hanoi
 
@@ -2881,9 +2880,6 @@ Likewise, @kbd{M-x snake} provides an implementation of Snake.
 
   When you are frustrated, try the famous Eliza program.  Just do
 @kbd{M-x doctor}.  End each input by typing @key{RET} twice.
-
-@cindex Zippy
-  When you are feeling strange, type @kbd{M-x yow}.
 
 @findex zone
 The command @kbd{M-x zone} plays games with the display when Emacs is

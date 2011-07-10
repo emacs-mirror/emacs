@@ -1,3 +1,18 @@
+2011-07-09  Bill Wohler  <wohler@newt.com>
+
+	* mh-speed.el (mh-speed-toggle,mh-speed-view): Document "ignored"
+	arguments to keep checkdoc happy.
+
+	* mh-search.el (mh-flists-execute): Ditto.
+
+	* mh-funcs.el (mh-undo-folder): Ditto.
+
+	* mh-comp.el (mh-user-agent-compose): Ditto.
+
+	* mh-xface.el (mh-face-to-png, mh-uncompface)
+	(mh-picon-file-contents): Only call set-buffer-multibyte if it
+	exists, which it doesn't in XEmacs.
+
 2011-07-04  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el: Just require mh-loaddefs since loading it in an

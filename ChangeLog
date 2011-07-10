@@ -1,5 +1,16 @@
 2011-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lib/stdint.in.h: Merge from gnulib (Bug#9025).
+	This fixes a build problem on older Mac OS X hosts.
+
+	* m4/pthread_sigmask.m4 (gl_FUNC_PTHREAD_SIGMASK): Omit gl_THREADLIB
+	test, which runs afoul of Automake installations where, for example,
+	/usr/share/aclocal contains a copy of gl_THREADLIB.
+	Problem reported by Sven Joachim in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-07/msg00529.html>.
+	This is just a quick temporary fix, specific to Emacs; I'll work
+	with the other gnulib maintainers to get a more-permanent fix.
+
 	Add gnulib's strtoimax module, needed on Solaris 8.
 	* Makefile.in (GNULIB_MODULES): Add strtoimax.
 	* lib/strtoll.c, m4/strtoimax.m4, m4/strtoll.m4: New files,
