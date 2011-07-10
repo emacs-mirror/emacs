@@ -1,3 +1,7 @@
+2011-07-10  Andy Moreton  <andrewjmoreton@gmail.com>  (tiny change)
+
+	* makefile.w32-in (EMACSSOURCES): Replace major.texi with modes.texi.
+
 2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* screen.texi (Mode Line): Clarify that coding systems are
