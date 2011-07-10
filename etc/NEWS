@@ -473,6 +473,10 @@ $ESHELL nor variable `explicit-shell-file-name' is set.
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
+** MH-E
+
+*** Upgraded to MH-E version 8.2.90.  See MH-E-NEWS for details.
+
 ** comint and modes derived from it use the generic completion code.
 
 ** Compilation mode

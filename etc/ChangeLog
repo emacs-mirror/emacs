@@ -1,3 +1,9 @@
+2011-07-10  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.90.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.90.
+
 2011-07-07  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* themes/tsdh-light-theme.el:
