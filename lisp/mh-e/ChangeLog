@@ -1,5 +1,9 @@
 2011-07-10  Bill Wohler  <wohler@newt.com>
 
+	Release MH-E version 8.9.90.
+
+	* mh-e.el (Version, mh-version): Update for release 8.2.90.
+
 	* mh-utils.el (mh-sub-folders-actual): Remove FIXME question.
 
 	* mh-mime.el (mh-decode-message-subject): Fix case of Subject.
