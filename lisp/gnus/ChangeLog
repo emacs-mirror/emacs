@@ -1,3 +1,8 @@
+2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): `debbugs-*'
+	renamed to `debbugs-gnu-*'.
+
 2011-07-08  Daiki Ueno  <ueno@unixuser.org>
 
 	* plstore.el: Revert the editing feature since it is not urgent.
