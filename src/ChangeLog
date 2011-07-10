@@ -1,3 +1,11 @@
+2011-07-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking (Bug#9031).
+	* chartab.c (char_table_set_range, map_sub_char_table):
+	Remove unused locals.
+	(uniprop_table): Now static.
+	* composite.c (_work_char): Remove unused static var.
+
 2011-07-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* chartab.c (uniprop_table_uncompress): Remove unused local variable.
@@ -11,13 +19,6 @@
 	* w32.c (pthread_sigmask): New stub.
 
 2011-07-08  Paul Eggert  <eggert@cs.ucla.edu>
-
-	Fix minor problems found by static checking (Bug#9031).
-	* chartab.c (char_table_set_range, map_sub_char_table)
-	(uniprop_table_uncompress): Remove unused locals.
-	(uniprop_table): Now static.
-	* composite.c (_work_char): Remove unused static var.
-	* gtkutil.c (qttip_cb): Remove stray no-effect statement.
 
 	Use pthread_sigmask, not sigprocmask (Bug#9010).
 	sigprocmask is portable only for single-threaded applications, and
