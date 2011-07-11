@@ -1,5 +1,10 @@
 2011-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* dispnew.c (init_display): Use *_RANGE_OVERFLOW macros.
+	The plain *_OVERFLOW macros run afoul of GCC bug 49705
+	<http://gcc.gnu.org/bugzilla/show_bug.cgi?id=49705>
+	and therefore cause GCC to emit a bogus diagnostic in some cases.
+
 	* image.c: Integer signedness and overflow and related fixes.
 	This is not an exhaustive set of fixes, but it's time to
 	record what I've got.
