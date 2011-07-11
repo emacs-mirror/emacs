@@ -1,3 +1,9 @@
+2011-07-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-feature-special-hooks):
+	Add `auto-coding-functions', `fill-nobreak-predicate' and
+	`find-directory-functions' (bug#5327).
+
 2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* vc/ediff.el (ediff-patch-file): Clarify doc string (bug#3138).
