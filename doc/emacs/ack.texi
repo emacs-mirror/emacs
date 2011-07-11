@@ -190,9 +190,7 @@ prior to Emacs 23 for Mac OS.
 
 @item
 Chong Yidong was the Emacs co-maintainer for Emacs 23.  He made many
-improvements to the Emacs display engine; and, together with Kai
-Groﬂjohann and Alex Schroeder, wrote @file{longlines.el}, a minor
-mode for wrapping long lines.
+improvements to the Emacs display engine.
 
 @item
 James Clark wrote SGML mode, a mode for editing SGML documents; and
@@ -689,14 +687,12 @@ the current window on which point is; @file{cap-words.el}, a minor mode
 for motion in ``CapitalizedWordIdentifiers''; @file{latin1-disp.el}, a
 package that lets you display ISO 8859 characters on Latin-1 terminals
 by setting up appropriate display tables; @file{python.el}, a major mode
-for the Python programming language; @file{refill.el}, a mode for
-automatic paragraph refilling, akin to typical word processors;
-@file{smiley.el}, a facility for displaying smiley faces;
-@file{sym-comp.el}, a library for performing mode-dependent symbol
-completion; @file{benchmark.el} for timing code execution; and
-@file{tool-bar.el}, a mode to control the display of the Emacs tool bar.
-With Riccardo Murri he wrote @file{vc-bzr.el}, support for the Bazaar
-version control system.
+for the Python programming language; @file{smiley.el}, a facility for
+displaying smiley faces; @file{sym-comp.el}, a library for performing
+mode-dependent symbol completion; @file{benchmark.el} for timing code
+execution; and @file{tool-bar.el}, a mode to control the display of
+the Emacs tool bar.  With Riccardo Murri he wrote @file{vc-bzr.el},
+support for the Bazaar version control system.
 
 @item
 Eric Ludlam wrote the Speedbar package; @file{checkdoc.el}, for checking

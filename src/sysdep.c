@@ -1800,8 +1800,7 @@ get_random (void)
 #ifndef HAVE_STRERROR
 #ifndef WINDOWSNT
 char *
-strerror (errnum)
-     int errnum;
+strerror (int errnum)
 {
   extern char *sys_errlist[];
   extern int sys_nerr;

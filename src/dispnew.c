@@ -1029,8 +1029,7 @@ increment_row_positions (struct glyph_row *row,
    B without changing glyph pointers in A and B.  */
 
 static void
-swap_glyphs_in_rows (a, b)
-     struct glyph_row *a, *b;
+swap_glyphs_in_rows (struct glyph_row *a, struct glyph_row *b)
 {
   int area;
 

@@ -1,3 +1,11 @@
+2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* modes.texi (Mode Line Variables): Document `mode-line-remote'
+	and `mode-line-client' (bug#2974).
+
+	* text.texi (Insertion): Clarify marker movements (bug#1651).
+	Text from Drew Adams.
+
 2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* text.texi (Special Properties): Clarify the format of `face'

@@ -962,7 +962,7 @@ special Emacs commands for moving over and operating on paragraphs.
 @item Parsing
 We say that certain Emacs commands parse words or expressions in the
 text being edited.  Really, all they know how to do is find the other
-end of a word or expression.  @xref{Syntax}.
+end of a word or expression.
 
 @item Point
 Point is the place in the buffer at which insertion and deletion
@@ -1212,7 +1212,8 @@ See `font lock.'
 @item Syntax Table
 The syntax table tells Emacs which characters are part of a word,
 which characters balance each other like parentheses, etc.
-@xref{Syntax}.
+@xref{Syntax Tables,, Syntax Tables, elisp, The Emacs Lisp Reference
+Manual}.
 
 @item Super
 Super is the name of a modifier bit that a keyboard input character may

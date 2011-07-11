@@ -44,7 +44,8 @@
 ;; when you are on a tty.  I hope that won't cause too much trouble -- rms.
 (define-minor-mode tool-bar-mode
   "Toggle use of the tool bar.
-With numeric ARG, display the tool bar if and only if ARG is positive.
+With a numeric argument, if the argument is positive, turn on the
+tool bar; otherwise, turn off the tool bar.
 
 See `tool-bar-add-item' and `tool-bar-add-item-from-menu' for
 conveniently adding tool bar items."

@@ -76,7 +76,7 @@ EMACSSOURCES= \
 	$(srcdir)/windows.texi \
 	$(srcdir)/frames.texi \
 	$(srcdir)/mule.texi \
-	$(srcdir)/major.texi \
+	$(srcdir)/modes.texi \
 	$(srcdir)/indent.texi \
 	$(srcdir)/text.texi \
 	$(srcdir)/programs.texi \

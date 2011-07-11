@@ -596,7 +596,6 @@ Expects FOLDER to have already been normalized with
                   (setq name (substring name 0 (1- (length name)))))
                 (push
                  (cons name
-                       ;; FIXME: what is this used for?  --Stef
                        (search-forward "(others)" (mh-line-end-position) t))
                  results))))
           (forward-line 1))))
