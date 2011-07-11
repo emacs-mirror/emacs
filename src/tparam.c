@@ -265,9 +265,8 @@ tparam1 (const char *string, char *outstring, int len,
 
 #ifdef DEBUG
 
-main (argc, argv)
-     int argc;
-     char **argv;
+int
+main (int argc, char **argv)
 {
   char buf[50];
   int args[3];

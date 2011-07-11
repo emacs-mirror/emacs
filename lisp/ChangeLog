@@ -1,3 +1,33 @@
+2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* tool-bar.el (tool-bar-mode): Clarify positive/negative arguments
+	(bug#1526).
+
+2011-07-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-normalize-default): Don't invert
+	meaning of even-window-heights.  Reported by Eli Zaretskii
+	<eliz@gnu.org>.
+
+2011-07-10  Bob Rogers  <rogers@rgrjr.dyndns.org>
+
+	* vc/vc.el (vc-diff-internal): Fix race condition (Bug#1256).
+
+2011-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (display-buffer): Fix arguments to
+	display-buffer-reuse-window in last change.
+
+	* faces.el (link): Use a less saturated blue on light backgrounds.
+
+	* startup.el (fancy-startup-text, fancy-about-text)
+	(fancy-startup-tail): Use font-lock faces, for background safety.
+
+2011-07-09  Bob Nnamtrop  <bobnnamtrop@gmail.com>  (tiny change)
+
+	* emulation/viper-cmd.el (viper-change-state-to-vi): Limit
+	triggering of abbrev expansion (Bug#9038).
+
 2011-07-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-default-specifiers): Remove.

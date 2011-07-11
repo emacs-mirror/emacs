@@ -2736,8 +2736,7 @@ Both must be integers or markers.  */)
 
 #ifndef HAVE_FMOD
 double
-fmod (f1, f2)
-     double f1, f2;
+fmod (double f1, double f2)
 {
   double r = f1;
 

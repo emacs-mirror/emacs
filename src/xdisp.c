@@ -2209,8 +2209,7 @@ safe_call2 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2)
    This is for debugging.  It is too slow to do unconditionally.  */
 
 static void
-check_it (it)
-     struct it *it;
+check_it (struct it *it)
 {
   if (it->method == GET_FROM_STRING)
     {
@@ -10510,7 +10509,7 @@ DEFUN ("tool-bar-lines-needed", Ftool_bar_lines_needed, Stool_bar_lines_needed,
   f = XFRAME (frame);
 
   if (WINDOWP (f->tool_bar_window)
-      || (w = XWINDOW (f->tool_bar_window),
+      && (w = XWINDOW (f->tool_bar_window),
 	  WINDOW_TOTAL_LINES (w) > 0))
     {
       update_tool_bar (f, 1);

@@ -725,8 +725,7 @@ current_column_1 (void)
    If END is nil, that stands for the end of STRING.  */
 
 static double
-string_display_width (string, beg, end)
-     Lisp_Object string, beg, end;
+string_display_width (Lisp_Object string, Lisp_Object beg, Lisp_Object end)
 {
   register int col;
   register unsigned char *ptr, *stop;

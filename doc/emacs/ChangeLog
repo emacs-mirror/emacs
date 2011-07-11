@@ -1,3 +1,54 @@
+2011-07-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* killing.texi (Killing, Deletion and Killing, Killing by Lines)
+	(Other Kill Commands, Kill Options): Copyedits.
+	(Deletion and Killing, Kill Ring): Kill/yank now use clipboard.
+	(Yanking): Move yank-excluded properties discussion here.
+	(Cut and Paste): Move from frames.texi.  Update subnodes to
+	describe x-select-enable-clipboard case.
+
+	* frames.texi: Move Cut and Paste node and subnodes into
+	killing.texi, except Mouse Commands and Word and Line Mouse.
+
+2011-07-10  Andy Moreton  <andrewjmoreton@gmail.com>  (tiny change)
+
+	* makefile.w32-in (EMACSSOURCES): Replace major.texi with modes.texi.
+
+2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* screen.texi (Mode Line): Clarify that coding systems are
+	characters, not letters (bug#1749).
+
+	* cmdargs.texi (Environment): Mention removing variables
+	(bug#1615).  Text suggested by Kevin Rodgers.
+
+2011-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Amusements): Don't mention Yow; it's crippled.
+
+	* modes.texi: Rename from major.texi.
+	(Modes): New node.  Make Major Modes and Minor Modes subsections
+	of this.  All callers changed.
+
+	* custom.texi (Minor Modes): Move to modes.texi.
+
+2011-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Syntax): Node deleted.
+
+	* help.texi (Help Summary):
+	* major.texi (Major Modes):
+	* programs.texi (Parentheses):
+	* search.texi (Regexp Backslash, Regexp Backslash)
+	(Regexp Backslash):
+	* text.texi (Words): Callers changed.
+
+	* text.texi (Refill, Longlines): Delete nodes.
+
+	* ack.texi (Acknowledgments): Longlines removed from manual.
+
+	* emacs.texi (Top): Update node listing.
+
 2011-07-09  Glenn Morris  <rgm@gnu.org>
 
 	* fortran-xtra.texi (Fortran): Update handled extensions.

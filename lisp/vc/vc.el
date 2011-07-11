@@ -1605,10 +1605,13 @@ Return t if the buffer had changes, nil otherwise."
       ;; bindings are nicer for read only buffers. pcl-cvs does the
       ;; same thing.
       (setq buffer-read-only t)
-      (vc-exec-after `(vc-diff-finish ,(current-buffer) ',(when verbose
-                                                            messages)))
       ;; Display the buffer, but at the end because it can change point.
       (pop-to-buffer (current-buffer))
+      ;; The diff process may finish early, so call `vc-diff-finish'
+      ;; after `pop-to-buffer'; the former assumes the diff buffer is
+      ;; shown in some window.
+      (vc-exec-after `(vc-diff-finish ,(current-buffer)
+				      ',(when verbose messages)))
       ;; In the async case, we return t even if there are no differences
       ;; because we don't know that yet.
       t)))

@@ -511,7 +511,7 @@ decoding the same message multiple times."
   (when mh-decode-mime-flag
     (save-excursion
       (let ((buffer-read-only nil))
-        (rfc2047-decode-region (progn (mh-goto-header-field "subject:") (point))
+        (rfc2047-decode-region (progn (mh-goto-header-field "Subject:") (point))
                                (progn (mh-header-field-end) (point)))))))
 
 ;;;###mh-autoload

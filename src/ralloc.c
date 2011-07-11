@@ -1079,7 +1079,7 @@ r_alloc_reinit (void)
 #include <assert.h>
 
 void
-r_alloc_check ()
+r_alloc_check (void)
 {
   int found = 0;
   heap_ptr h, ph = 0;

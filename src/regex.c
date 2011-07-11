@@ -2202,10 +2202,9 @@ extend_range_table_work_area (struct range_table_work_area *work_area)
    Returns -1 if successful, REG_ESPACE if ran out of space.  */
 
 static int
-set_image_of_range_1 (work_area, start, end, translate)
-     RE_TRANSLATE_TYPE translate;
-     struct range_table_work_area *work_area;
-     re_wchar_t start, end;
+set_image_of_range_1 (struct range_table_work_area *work_area,
+		      re_wchar_t start, re_wchar_t end,
+		      RE_TRANSLATE_TYPE translate)
 {
   /* `one_case' indicates a character, or a run of characters,
      each of which is an isolate (no case-equivalents).
@@ -2355,10 +2354,9 @@ set_image_of_range_1 (work_area, start, end, translate)
    Returns -1 if successful, REG_ESPACE if ran out of space.  */
 
 static int
-set_image_of_range (work_area, start, end, translate)
-     RE_TRANSLATE_TYPE translate;
-     struct range_table_work_area *work_area;
-     re_wchar_t start, end;
+set_image_of_range (struct range_table_work_area *work_area,
+		    re_wchar_t start, re_wchar_t end,
+		    RE_TRANSLATE_TYPE translate)
 {
   re_wchar_t cmin, cmax;
 
@@ -2445,8 +2443,7 @@ static re_char **best_regstart, **best_regend;
    but don't make them smaller.  */
 
 static
-regex_grow_registers (num_regs)
-     int num_regs;
+regex_grow_registers (int num_regs)
 {
   if (num_regs > regs_allocated_size)
     {

@@ -224,8 +224,7 @@ get_wm_shell (Widget w)
 #if 0 /* Currently not used.  */
 
 static void
-mark_shell_size_user_specified (wmshell)
-     Widget wmshell;
+mark_shell_size_user_specified (Widget wmshell)
 {
   if (! XtIsWMShell (wmshell)) abort ();
   /* This is kind of sleazy, but I can't see how else to tell it to make it
@@ -510,8 +509,7 @@ update_wm_hints (EmacsFrame ew)
 #if 0
 
 static void
-create_frame_gcs (ew)
-     EmacsFrame ew;
+create_frame_gcs (EmacsFrame ew)
 {
   struct frame *s = ew->emacs_frame.frame;
 

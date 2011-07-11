@@ -349,7 +349,7 @@ See `mh-store-msg' for a description of DIRECTORY."
         (error "Error occurred during execution of %s" command)))))
 
 ;;;###mh-autoload
-(defun mh-undo-folder (&rest _ignored)
+(defun mh-undo-folder (&rest ignored)
   "Undo all refiles and deletes in the current folder.
 Arguments are IGNORED (for `revert-buffer')."
   (interactive)

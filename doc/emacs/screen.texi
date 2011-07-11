@@ -190,7 +190,7 @@ sometimes useful to have this information.
 Systems}).  If it is a dash (@samp{-}), that indicates the default
 state of affairs: no special character set handling, except for the
 end-of-line translations described in the next paragraph.  @samp{=}
-means no conversion whatsoever.  Letters represent various nontrivial
+means no conversion whatsoever.  Characters represent various nontrivial
 @dfn{coding systems}---for example, @samp{1} represents ISO Latin-1.
 On a text-only terminal, @var{cs} is preceded by two additional
 characters that describe the coding system for keyboard input and the
