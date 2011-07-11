@@ -3012,7 +3012,7 @@ An integer, which stands for itself.
 
 @item
 A list of one element, which is an integer.  This form of prefix
-argument results from one or a succession of @kbd{C-u}'s with no
+argument results from one or a succession of @kbd{C-u}s with no
 digits.  The numeric value is the integer in the list, but some
 commands make a distinction between such a list and an integer alone.
 

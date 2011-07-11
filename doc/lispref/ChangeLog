@@ -1,3 +1,8 @@
+2011-07-11  Deniz Dogan  <deniz@dogan.se>
+
+	* commands.texi (Prefix Command Arguments): Remove excessive
+	apostrophe.
+
 2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* syntax.texi (Syntax Descriptors): Clarify that the ". 23" syntax
