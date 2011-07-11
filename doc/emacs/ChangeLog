@@ -1,3 +1,12 @@
+2011-07-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* killing.texi (Primary Selection): Document `only' setting for
+	select-active-regions.
+
+	* mark.texi (Setting Mark): Reference Shift Selection node.
+
+	* frames.texi (Mouse Commands): Document mouse-yank-primary.
+
 2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mark.texi (Setting Mark): Clarify what's meant by "Shifted

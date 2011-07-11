@@ -119,16 +119,21 @@ entirely on the screen.  The number of lines scrolled per step depends
 on how far away from the window edge the mouse has gone; the variable
 @code{mouse-scroll-min-lines} specifies a minimum step size.
 
+@findex mouse-yank-primary
 @findex mouse-yank-at-click
-@vindex mouse-yank-at-point
   Clicking with the middle mouse button, @kbd{Mouse-2}, moves point to
-the position where you clicked and performs a yank
-(@code{mouse-yank-at-click}).  @xref{Yanking}.  If you change the
-variable @code{mouse-yank-at-point} to a non-@code{nil} value,
-@kbd{Mouse-2} does not move point.  Then it does not matter where you
-click, or even which of the frame's windows you click on; the yank
-occurs at the existing point.  This variable also affects yanking the
-primary and secondary selections (@pxref{Primary Selection}).
+the position where you clicked and inserts the contents of the primary
+selection (@code{mouse-yank-primary}).  @xref{Primary Selection}.
+This behavior is consistent with other X applications; alternatively,
+you can rebind @kbd{Mouse-2} to @code{mouse-yank-at-click}, which
+performs a yank at point.
+
+@vindex mouse-yank-at-point
+  If you change the variable @code{mouse-yank-at-point} to a
+non-@code{nil} value, @kbd{Mouse-2} does not move point; it inserts
+the text at point, regardless of where you clicked or even which of
+the frame's windows you clicked on.  This variable affects both
+@code{mouse-yank-primary} and @code{mouse-yank-at-click}.
 
 @findex mouse-save-then-kill
   Clicking with the right mouse button, @kbd{Mouse-3}, runs the
