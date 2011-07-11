@@ -1,5 +1,11 @@
 2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mail/sendmail.el (sendmail-query-once): Use
+	`customize-save-variable' unconditionally, now that it works under
+	emacs -Q.
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Ditto.
+
 	* cus-edit.el (custom-file): Take an optional no-error variable.
 	(customize-save-variable): Set the variable, and give a warning if
 	running under "emacs -q".
