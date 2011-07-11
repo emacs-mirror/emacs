@@ -1,3 +1,7 @@
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* printing.el: Add documentation to all the `pr-toggle-' commands.
+
 2011-07-11  Leo  <sdl.web@gmail.com>  (tiny change)
 
 	* files.el (toggle-read-only): Only do the `C-x C-q' warning on VC
