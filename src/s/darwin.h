@@ -181,7 +181,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    end of the header for adding load commands.  Needed for dumping.
    0x690 is the total size of 30 segment load commands (at 56
    each); under Cocoa 31 commands are required.  */
-#define LD_SWITCH_SYSTEM_TEMACS -prebind LIBS_NSGUI -Xlinker -headerpad -Xlinker HEADERPAD_EXTRA
+#define LD_SWITCH_SYSTEM_TEMACS -fno-pie -prebind LIBS_NSGUI -Xlinker -headerpad -Xlinker HEADERPAD_EXTRA
 
 #define C_SWITCH_SYSTEM_TEMACS -Dtemacs
 
