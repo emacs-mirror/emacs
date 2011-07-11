@@ -338,13 +338,13 @@ Killing and Yanking on Graphical Displays
 
 Registers
 
-* RegPos::              Saving positions in registers.
-* RegText::             Saving text in registers.
-* RegRect::             Saving rectangles in registers.
-* RegConfig::           Saving window configurations in registers.
-* RegNumbers::          Numbers in registers.
-* RegFiles::            File names in registers.
-* Bookmarks::           Bookmarks are like registers, but persistent.
+* Position Registers::      Saving positions in registers.
+* Text Registers::          Saving text in registers.
+* Rectangle Registers::     Saving rectangles in registers.
+* Configuration Registers:: Saving window configurations in registers.
+* Number Registers::        Numbers in registers.
+* File Registers::          File names in registers.
+* Bookmarks::               Bookmarks are like registers, but persistent.
 
 Controlling the Display
 

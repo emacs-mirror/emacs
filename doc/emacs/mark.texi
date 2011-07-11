@@ -307,8 +307,8 @@ is non-@code{nil} by default.
 
   If you want to move back to the same place over and over, the mark
 ring may not be convenient enough.  If so, you can record the position
-in a register for later retrieval (@pxref{RegPos,, Saving Positions in
-Registers}).
+in a register for later retrieval (@pxref{Position Registers,, Saving
+Positions in Registers}).
 
 @node Global Mark Ring
 @section The Global Mark Ring
