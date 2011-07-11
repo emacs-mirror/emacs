@@ -1,3 +1,8 @@
+2011-07-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* configure.in (LD_SWITCH_SYSTEM_TEMACS): Add -fno-pie on Darwin
+	so as to suppress address randomization (Bug#8395).
+
 2011-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* lib/stdint.in.h: Merge from gnulib (Bug#9025).
