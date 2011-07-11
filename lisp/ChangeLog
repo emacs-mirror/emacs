@@ -1,5 +1,7 @@
 2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* vc/ediff.el (ediff-patch-file): Clarify doc string (bug#3138).
+
 	* cus-edit.el (custom-guess-name-alist): -alist variables should
 	use the `alist' type (bug#3120).  Suggested by Drew Adams.
 
