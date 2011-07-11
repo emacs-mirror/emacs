@@ -594,7 +594,7 @@ WIDGET is the widget to apply the filter entries of MENU on."
     ("-function\\'" function)
     ("-functions\\'" (repeat function))
     ("-list\\'" (repeat sexp))
-    ("-alist\\'" (repeat (cons sexp sexp))))
+    ("-alist\\'" (alist :key-type sexp :value-type sexp)))
   "Alist of (MATCH TYPE).
 
 MATCH should be a regexp matching the name of a symbol, and TYPE should

@@ -1,5 +1,8 @@
 2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* cus-edit.el (custom-guess-name-alist): -alist variables should
+	use the `alist' type (bug#3120).  Suggested by Drew Adams.
+
 	* printing.el: Add documentation to all the `pr-toggle-' commands.
 
 2011-07-11  Leo  <sdl.web@gmail.com>  (tiny change)
