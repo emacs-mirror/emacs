@@ -1072,7 +1072,7 @@ You can set this variable in your ~/.emacs.  For example, to add rules for
   :type 'boolean)
 
 (defun dired-guess-default (files)
-  "Guess a shell commands for FILES.  Return command or list of commands.
+  "Return a shell command, or a list of commands, appropriate for FILES.
 See `dired-guess-shell-alist-user'."
 
   (let* ((case-fold-search dired-guess-shell-case-fold-search)

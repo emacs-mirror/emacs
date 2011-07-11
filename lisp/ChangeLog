@@ -2,6 +2,7 @@
 
 	* dired-x.el (dired-guess-default): Remove duplicate shell command
 	entries (bug#2028).
+	(dired-guess-default): Fix grammar in doc string (bug#2028).
 
 	* subr.el (remove-duplicates): New conveniency function.
 
