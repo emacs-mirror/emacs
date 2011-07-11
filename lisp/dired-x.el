@@ -1056,12 +1056,11 @@ You can set this variable in your ~/.emacs.  For example, to add rules for
 `.foo' and `.bar' files, write
 
  \(setq dired-guess-shell-alist-user
-       (list (list \"\\\\.foo\\\\'\" \"FOO-COMMAND\");; fixed rule
-              ;; possibly more rules ...
-              (list \"\\\\.bar\\\\'\";; rule with condition test
-                    '(if condition
-                          \"BAR-COMMAND-1\"
-                        \"BAR-COMMAND-2\")))\)"
+        '((\"\\\\.foo\\\\'\" \"FOO-COMMAND\")
+          (\"\\\\.bar\\\\'\"
+           (if condition
+              \"BAR-COMMAND-1\"
+            \"BAR-COMMAND-2\"))))"
   :group 'dired-x
   :type '(alist :key-type regexp :value-type (repeat sexp)))
 
