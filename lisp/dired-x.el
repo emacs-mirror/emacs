@@ -1103,9 +1103,10 @@ See `dired-guess-shell-alist-user'."
 
     ;; Return commands or nil if flist is still non-nil.
     ;; Evaluate the commands in order that any logical testing will be done.
-    (if (cdr cmds)
-        (mapcar #'eval cmds)
-      (eval (car cmds))))) ; single command
+    (remove-duplicates
+     (if (cdr cmds)
+	 (mapcar #'eval cmds)
+       (eval (car cmds))))))		; single command
 
 (defun dired-guess-shell-command (prompt files)
   "Ask user with PROMPT for a shell command, guessing a default from FILES."

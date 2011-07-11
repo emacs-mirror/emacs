@@ -1,5 +1,8 @@
 2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* dired-x.el (dired-guess-default): Remove duplicate shell command
+	entries (bug#2028).
+
 	* subr.el (remove-duplicates): New conveniency function.
 
 2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
