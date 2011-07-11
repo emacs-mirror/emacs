@@ -354,8 +354,7 @@ fatal_error_signal (int sig)
 
 /* Handler for SIGDANGER.  */
 void
-memory_warning_signal (sig)
-     int sig;
+memory_warning_signal (int sig)
 {
   signal (sig, memory_warning_signal);
   SIGNAL_THREAD_CHECK (sig);

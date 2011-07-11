@@ -5007,9 +5007,7 @@ pbm_scan_number (unsigned char **s, unsigned char *end)
    occurred.  *SIZE is set to the size of the file.  */
 
 static char *
-pbm_read_file (file, size)
-     Lisp_Object file;
-     int *size;
+pbm_read_file (Lisp_Object file, int *size)
 {
   FILE *fp = NULL;
   char *buf = NULL;

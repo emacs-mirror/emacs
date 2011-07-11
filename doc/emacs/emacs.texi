@@ -167,6 +167,7 @@ Important Text-Changing Commands
 * Mark::                The mark: how to delimit a ``region'' of text.
 * Killing::             Killing (cutting) text.
 * Yanking::             Recovering killed text.  Moving text. (Pasting.)
+* Cut and Paste::       Clipboard and selections on graphical displays.
 * Accumulating Text::   Other ways of copying text.
 * Rectangles::          Operating on text in rectangular areas.
 * CUA Bindings::        Using @kbd{C-x}, @kbd{C-c}, @kbd{C-v} to kill and yank.
@@ -328,6 +329,12 @@ Yanking
 * Kill Ring::           Where killed text is stored.  Basic yanking.
 * Appending Kills::     Several kills in a row all yank together.
 * Earlier Kills::       Yanking something killed some time ago.
+
+Killing and Yanking on Graphical Displays
+
+* Clipboard::           How Emacs interacts with the system clipboard.
+* Primary Selection::   The temporarily selected text selection.
+* Secondary Selection:: Cutting without altering point and mark.
 
 Registers
 
@@ -493,7 +500,8 @@ Multiple Windows
 
 Frames and Graphical Displays
 
-* Cut and Paste::       Mouse commands for cut and paste.
+* Mouse Commands::      Moving, cutting, and pasting, with the mouse.
+* Word and Line Mouse:: Mouse commands for selecting whole words or lines.
 * Mouse References::    Using the mouse to select an item from a list.
 * Menu Mouse Clicks::   Mouse clicks that bring up menus.
 * Mode Line Mouse::     Mouse clicks on the mode line.
@@ -514,14 +522,6 @@ Frames and Graphical Displays
 * Mouse Avoidance::     Moving the mouse pointer out of the way.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
 * Text-Only Mouse::     Using the mouse in text-only terminals.
-
-Killing and Yanking on Graphical Displays
-
-* Mouse Commands::      Moving, cutting, and pasting, with the mouse.
-* Word and Line Mouse:: Mouse commands for selecting whole words or lines.
-* Cut/Paste Other App:: Transfering text between Emacs and other apps.
-* Secondary Selection:: Cutting without altering point and mark.
-* Clipboard::           Using the clipboard for selections.
 
 International Character Set Support
 

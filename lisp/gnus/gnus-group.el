@@ -2469,7 +2469,7 @@ the bug number, and browsing the URL must return mbox output."
    number
    (cdr (assoc 'debian gnus-bug-group-download-format-alist))))
 
-(defvar debbugs-bug-number)		; debbugs-gnu
+(defvar debbugs-gnu-bug-number)		; debbugs-gnu
 
 (defun gnus-read-ephemeral-emacs-bug-group (ids &optional window-conf)
   "Browse Emacs bugs IDS as an ephemeral group."
@@ -2482,10 +2482,10 @@ the bug number, and browsing the URL must return mbox output."
    ids
    (cdr (assoc 'emacs gnus-bug-group-download-format-alist))
    window-conf)
-  (when (fboundp 'debbugs-summary-mode)
+  (when (fboundp 'debbugs-gnu-summary-mode)
     (with-current-buffer (window-buffer (selected-window))
-      (debbugs-summary-mode 1)
-      (set (make-local-variable 'debbugs-bug-number) (car ids)))))
+      (debbugs-gnu-summary-mode 1)
+      (set (make-local-variable 'debbugs-gnu-bug-number) (car ids)))))
 
 (defun gnus-group-jump-to-group (group &optional prompt)
   "Jump to newsgroup GROUP.

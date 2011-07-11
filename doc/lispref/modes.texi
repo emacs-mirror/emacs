@@ -1866,6 +1866,15 @@ default value also displays the recursive editing level, information
 on the process status, and whether narrowing is in effect.
 @end defopt
 
+@defopt mode-line-remote
+This variable is used to show whether @code{default-directory} for the
+current buffer is remote.
+@end defopt
+
+@defopt mode-line-client
+This variable is used to identify @code{emacsclient} frames.
+@end defopt
+
   The following three variables are used in @code{mode-line-modes}:
 
 @defvar mode-name

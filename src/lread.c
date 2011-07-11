@@ -4000,9 +4000,7 @@ defsubr (struct Lisp_Subr *sname)
 
 #ifdef NOTDEF /* use fset in subr.el now */
 void
-defalias (sname, string)
-     struct Lisp_Subr *sname;
-     char *string;
+defalias (struct Lisp_Subr *sname, char *string)
 {
   Lisp_Object sym;
   sym = intern (string);

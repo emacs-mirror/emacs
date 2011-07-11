@@ -1258,7 +1258,7 @@ emacs_blocked_realloc (void *ptr, size_t size, const void *ptr2)
    calls malloc because it is the first call, and we have an endless loop.  */
 
 void
-reset_malloc_hooks ()
+reset_malloc_hooks (void)
 {
   __free_hook = old_free_hook;
   __malloc_hook = old_malloc_hook;
