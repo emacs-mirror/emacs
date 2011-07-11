@@ -1,5 +1,8 @@
 2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* syntax.texi (Syntax Descriptors): Clarify that the ". 23" syntax
+	description is a string (bug#3313).
+
 	* frames.texi (Display Feature Testing): Try to explain what all
 	the visual classes mean (bug#3042).
 
