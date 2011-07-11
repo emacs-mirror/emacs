@@ -1,3 +1,8 @@
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* frames.texi (Display Feature Testing): Try to explain what all
+	the visual classes mean (bug#3042).
+
 2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* modes.texi (Mode Line Variables): Document `mode-line-remote'
