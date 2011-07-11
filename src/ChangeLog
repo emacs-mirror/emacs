@@ -1,3 +1,8 @@
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* term.c (init_tty): Remove support for supdup, c10 and perq
+	terminals, which are no longer supported (bug#1482).
+
 2011-07-10  Johan Bockgård  <bojohan@gnu.org>
 
 	* xdisp.c (Ftool_bar_lines_needed): Fix WINDOWP check.
