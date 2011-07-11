@@ -68,9 +68,10 @@ Set point and the mark around the text you drag across.
 @item Mouse-3
 Set the mark at point, then move point to where you click
 (@code{mouse-save-then-kill}).
-@item @samp{Shifted motion keys}
-Set the mark at point if the mark is inactive, then move point.
 @end table
+
+Also, the shifted motion keys (for example, @key{S-Right}) will set
+the mark at point if the mark is inactive, then move point.
 
 @kindex C-SPC
 @kindex C-@@
@@ -307,8 +308,8 @@ is non-@code{nil} by default.
 
   If you want to move back to the same place over and over, the mark
 ring may not be convenient enough.  If so, you can record the position
-in a register for later retrieval (@pxref{RegPos,, Saving Positions in
-Registers}).
+in a register for later retrieval (@pxref{Position Registers,, Saving
+Positions in Registers}).
 
 @node Global Mark Ring
 @section The Global Mark Ring

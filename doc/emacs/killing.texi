@@ -758,8 +758,7 @@ rectangle and then yank it beside the first line of the list.
 @xref{Two-Column}, for another way to edit multi-column text.
 
   You can also copy rectangles into and out of registers with @kbd{C-x r
-r @var{r}} and @kbd{C-x r i @var{r}}.  @xref{RegRect,,Rectangle
-Registers}.
+r @var{r}} and @kbd{C-x r i @var{r}}.  @xref{Rectangle Registers}.
 
 @kindex C-x r o
 @findex open-rectangle

@@ -173,7 +173,7 @@ value of last one, or nil if there are none.
     (progn
   ;; If we reload subr.el after having loaded CL, be careful not to
   ;; overwrite CL's extended definition of `dolist', `dotimes',
-  ;; `declare', `push' and `pop'.
+  ;; `declare', `push', `pop' and `remove-duplicates'.
 
 (defmacro dolist (spec &rest body)
   "Loop over a list.
@@ -250,6 +250,15 @@ the return value (nil if RESULT is omitted).
 Treated as a declaration when used at the right place in a
 `defmacro' form.  \(See Info anchor `(elisp)Definition of declare'.)"
   nil)
+
+(defun remove-duplicates (list)
+  "Return a copy of LIST with all duplicate elements removed."
+  (let ((result nil))
+    (while list
+      (unless (member (car list) result)
+	(push (car list) result))
+      (pop list))
+    (nreverse result)))
 ))
 
 (defmacro ignore-errors (&rest body)

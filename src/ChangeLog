@@ -156,6 +156,14 @@
 	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
 	well either way, and we prefer signed to unsigned.
 
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xdisp.c (syms_of_xdisp): Make it explicit that the mini-windows
+	are the mini-buffer and the echo area (bug#3320).
+
+	* term.c (init_tty): Remove support for supdup, c10 and perq
+	terminals, which are no longer supported (bug#1482).
+
 2011-07-10  Johan Bockgård  <bojohan@gnu.org>
 
 	* xdisp.c (Ftool_bar_lines_needed): Fix WINDOWP check.

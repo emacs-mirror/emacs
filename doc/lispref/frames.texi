@@ -2446,10 +2446,13 @@ For a tty display, it is log to base two of the number of colors supported.
 @end defun
 
 @defun display-visual-class &optional display
-This function returns the visual class for the screen.  The value is one
-of the symbols @code{static-gray}, @code{gray-scale},
-@code{static-color}, @code{pseudo-color}, @code{true-color}, and
-@code{direct-color}.
+This function returns the visual class for the screen.  The value is
+one of the symbols @code{static-gray} (a limited, unchangeable number
+of grays), @code{gray-scale} (a full range of grays),
+@code{static-color} (a limited, unchangeable number of colors),
+@code{pseudo-color} (a limited number of colors), @code{true-color} (a
+full range of colors), and @code{direct-color} (a full range of
+colors).
 @end defun
 
 @defun display-color-cells &optional display

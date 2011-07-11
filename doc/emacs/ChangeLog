@@ -1,3 +1,11 @@
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mark.texi (Setting Mark): Clarify what's meant by "Shifted
+	motion keys" (bug#3503).
+
+	* emacs.texi: Change all the register node names from "RegPos"
+	(etc.) to "Positional Registers" (etc.) (bug#3314).
+
 2011-07-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* killing.texi (Killing, Deletion and Killing, Killing by Lines)
