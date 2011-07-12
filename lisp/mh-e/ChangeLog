@@ -1,5 +1,9 @@
 2011-07-12  Bill Wohler  <wohler@newt.com>
 
+	Release MH-E version 8.2.91.
+
+	* mh-e.el (Version, mh-version): Update for release 8.2.91.
+
 	* mh-compat.el (mh-pop-to-buffer-same-window): Add compatibility
 	function to call switch-to-buffer on systems that lack
 	pop-to-buffer-same-window.
