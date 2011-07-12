@@ -2831,8 +2831,12 @@ also offers to kill buffers visiting deleted files and directories."
   (if (= 1 count) "" "s"))
 
 (defun dired-mark-prompt (arg files)
-  "Return a string for use in a prompt, either the current file
-name, or the marker and a count of marked files."
+  "Return a string suitable for use in a Dired prompt.
+ARG is normally the prefix argument for the calling command.
+FILES should be a list of file names.
+
+The return value has a form like \"foo.txt\", \"[next 3 files]\",
+or \"* [3 files]\"."
   ;; distinguish-one-marked can cause the first element to be just t.
   (if (eq (car files) t) (setq files (cdr files)))
   (let ((count (length files)))
@@ -4104,7 +4108,7 @@ instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump-other-window dired-jump)
-;;;;;;  "dired-x" "dired-x.el" "90459fb5998296fc67986945701b2bfc")
+;;;;;;  "dired-x" "dired-x.el" "cb07aa079a02fde43b9fe1354a8b7a31")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

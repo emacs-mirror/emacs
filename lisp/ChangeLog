@@ -1,3 +1,8 @@
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-mark-prompt):
+	* dired-aux.el (dired-read-shell-command): Doc fix.
+
 2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/sendmail.el (sendmail-query-once): Use
