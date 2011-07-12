@@ -159,8 +159,6 @@ This is used by the default mail-sending commands.  See also
 (defvar sendmail-query-once-function 'query
   "Either a function to send email, or the symbol `query'.")
 
-(autoload 'custom-file "cus-edit")
-
 ;;;###autoload
 (defun sendmail-query-once ()
   "Send an email via `sendmail-query-once-function'.
@@ -198,9 +196,7 @@ function to use, and then save that choice."
 			'smtpmail-send-it
 		      default))
 		(kill-buffer (current-buffer))))))
-      (if (ignore-errors (custom-file))
-	  (customize-save-variable 'sendmail-query-once-function function)
-	(setq sendmail-query-once-function function))))
+      (customize-save-variable 'sendmail-query-once-function function)))
   (funcall sendmail-query-once-function))
 
 ;;;###autoload

@@ -587,8 +587,6 @@ The list is in preference order.")
 (defun smtpmail-response-text (response)
   (mapconcat 'identity (cdr response) "\n"))
 
-(autoload 'custom-file "cus-edit")
-
 (defun smtpmail-query-smtp-server ()
   (let ((server (read-string "Outgoing SMTP mail server: "))
 	(ports '(587 "smtp"))
@@ -600,12 +598,8 @@ The list is in preference order.")
 		(setq port (pop ports)))
       (when (setq stream (ignore-errors
 			   (open-network-stream "smtp" nil server port)))
-	(if (ignore-errors (custom-file))
-	    (progn
-	      (customize-save-variable 'smtpmail-smtp-server server)
-	      (customize-save-variable 'smtpmail-smtp-service port))
-	  (setq smtpmail-smtp-server server
-		smtpmail-smtp-service port))
+	(customize-save-variable 'smtpmail-smtp-server server)
+	(customize-save-variable 'smtpmail-smtp-service port)
 	(delete-process stream)))
     (unless smtpmail-smtp-server
       (error "Couldn't contact an SMTP server"))))

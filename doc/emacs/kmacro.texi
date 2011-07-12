@@ -332,8 +332,8 @@ numbers stored in registers.
 
   If you use a register as a counter, incrementing it on each
 repetition of the macro, that accomplishes the same thing as a
-keyboard macro counter.  @xref{RegNumbers}.  For most purposes, it is
-simpler to use a keyboard macro counter.
+keyboard macro counter.  @xref{Number Registers}.  For most purposes,
+it is simpler to use a keyboard macro counter.
 
 @node Keyboard Macro Query
 @section Executing Macros with Variations

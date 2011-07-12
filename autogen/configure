@@ -21515,7 +21515,7 @@ case "$opsys" in
      libs_nsgui=
      headerpad_extra=690
    fi
-   LD_SWITCH_SYSTEM_TEMACS="-prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
+   LD_SWITCH_SYSTEM_TEMACS="-fno-pie -prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
 
    ## This is here because src/Makefile.in did some extra fiddling around
    ## with LD_SWITCH_SYSTEM.  The cpp logic was:
