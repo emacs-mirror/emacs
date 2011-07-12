@@ -1,3 +1,8 @@
+2011-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix recently-introduced minor problems.
+	* term.c (init_tty): Remove unused local.
+
 2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (Vresize_mini_windows): Minor doc fix (Bug#3300).
