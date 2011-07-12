@@ -673,7 +673,8 @@ by \"Save Options\" in Custom buffers.")
 ;; Function for setting/saving default font.
 
 (defun menu-set-font ()
-  "Interactively select a font and make it the default."
+  "Interactively select a font and make it the default.
+This new default will be saved for future Emacs sessions."
   (interactive)
   (let ((font (if (fboundp 'x-select-font)
   		  (x-select-font)
