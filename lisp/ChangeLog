@@ -1,3 +1,12 @@
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse-sel.el: Hack restoring functionality, while keeping
+	compatibility with 2010-07-03 changes to mouse selection.
+	(mouse-sel-primary-overlay): New var.
+	(mouse-sel-selection-alist): Use it.
+	(mouse-sel-mode): Doc fix; remove points that are default features
+	of mouse.el.
+
 2011-07-12  Johan Bockgård  <bojohan@gnu.org>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
