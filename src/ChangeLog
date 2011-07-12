@@ -2,6 +2,9 @@
 
 	Fix recently-introduced minor problems.
 	* term.c (init_tty): Remove unused local.
+	* xsettings.c (store_monospaced_changed): Define this function only
+	if (defined HAVE_GSETTINGS || define defined HAVE_GCONF), as it's
+	not used otherwise.
 
 2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
 
