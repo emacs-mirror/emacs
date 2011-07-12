@@ -1,3 +1,8 @@
+2011-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* character.c (Fcharacterp): Don't advertise optional ignored
+	argument. (Bug#4026)
+
 2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* keymap.c (syms_of_keymap): Clarify that "modifier" is "modifier
