@@ -1,3 +1,8 @@
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* window.c (Fset_window_start): Doc fix (bug#4199).
+	(Fset_window_hscroll): Ditto.
+
 2011-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor new problems caught by GCC 4.6.1.
