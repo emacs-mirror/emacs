@@ -1,3 +1,7 @@
+2011-07-12  Johan Bockgård  <bojohan@gnu.org>
+
+	* mouse-sel.el (mouse-sel-primary-overlay): Use the `region' face.
+
 2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse-sel.el: Hack restoring functionality, while keeping

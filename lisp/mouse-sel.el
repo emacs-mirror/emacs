@@ -279,7 +279,7 @@ kill ring; mouse-1 or mouse-3 kills it."
 (defconst mouse-sel-primary-overlay
   (let ((ol (make-overlay (point-min) (point-min))))
     (delete-overlay ol)
-    (overlay-put ol 'face 'secondary-selection)
+    (overlay-put ol 'face 'region)
     ol)
   "An overlay which records the current primary selection.
 This is used by Mouse Sel mode only.")
