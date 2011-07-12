@@ -1,3 +1,8 @@
+2011-07-12  Johan Bockgård  <bojohan@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Fix previous fix (bug#2490).
+
 2011-07-12  Roland Winkler  <winkler@gnu.org>
 
 	* textmodes/bibtex.el (bibtex-initialize): Use
