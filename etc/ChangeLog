@@ -1,5 +1,9 @@
 2011-07-12  Bill Wohler  <wohler@newt.com>
 
+	Release MH-E version 8.2.91.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.91.
+
 	* MH-E-NEWS: Mention that SourceForge MH-E users will have to
 	update their load-paths.
 
