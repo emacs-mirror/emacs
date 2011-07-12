@@ -1,3 +1,8 @@
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* emacs.texi (Top): Change "inferiors" to "subnodes" for greater
+	clarity (bug#3523).
+
 2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cmdargs.texi (Initial Options): Document --no-site-lisp.

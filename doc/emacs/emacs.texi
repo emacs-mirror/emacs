@@ -251,7 +251,7 @@ Appendices
  --- The Detailed Node Listing ---
  ---------------------------------
 
-Here are some other nodes which are really inferiors of the ones
+Here are some other nodes which are really subnodes of the ones
 already listed, mentioned here so you can get to them in one step:
 
 The Organization of the Screen
