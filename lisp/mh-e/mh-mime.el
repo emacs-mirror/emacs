@@ -1690,19 +1690,19 @@ buffer, while END defaults to the end of the buffer."
   (unless begin (setq begin (point-min)))
   (unless end (setq end (point-max)))
   (save-excursion
-    (block 'search-for-mh-directive
+    (block search-for-mh-directive
       (goto-char begin)
       (while (re-search-forward "^#" end t)
         (let ((s (buffer-substring-no-properties
                   (point) (mh-line-end-position))))
           (cond ((equal s ""))
                 ((string-match "^forw[ \t\n]+" s)
-                 (return-from 'search-for-mh-directive t))
+                 (return-from search-for-mh-directive t))
                 (t (let ((first-token (car (split-string s "[ \t;@]"))))
                      (when (and first-token
                                 (string-match mh-media-type-regexp
                                               first-token))
-                       (return-from 'search-for-mh-directive t)))))))
+                       (return-from search-for-mh-directive t)))))))
       nil)))
 
 (defun mh-minibuffer-read-type (filename &optional default)
