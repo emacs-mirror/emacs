@@ -1,3 +1,7 @@
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (Vresize_mini_windows): Minor doc fix (Bug#3300).
+
 2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* xdisp.c (syms_of_xdisp): Make it explicit that the mini-windows
