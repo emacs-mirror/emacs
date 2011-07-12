@@ -1,8 +1,5 @@
 2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* menu-bar.el (menu-set-font): Clarify that the default will be
-	saved (bug#3527).
-
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
 	Fontise bytecomp Error lines more correctly (bug#2490).  Fix
 	suggested by Johan Bockgård.
