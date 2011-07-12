@@ -2506,16 +2506,16 @@ Recognize tables within the current region and activate them.
 Deactivate tables within the current region.
 @findex table-recognize-table
 @item M-x table-recognize-table
-Recognize the table under point and activate it.
+Recognize the table at point and activate it.
 @findex table-unrecognize-table
 @item M-x table-unrecognize-table
-Deactivate the table under point.
+Deactivate the table at point.
 @findex table-recognize-cell
 @item M-x table-recognize-cell
-Recognize the cell under point and activate it.
+Recognize the cell at point and activate it.
 @findex table-unrecognize-cell
 @item M-x table-unrecognize-cell
-Deactivate the cell under point.
+Deactivate the cell at point.
 @end table
 
   For another way of converting text into tables, see @ref{Table
