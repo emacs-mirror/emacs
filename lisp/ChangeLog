@@ -1,3 +1,9 @@
+2011-07-12  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-initialize): Use
+	pop-to-buffer-same-window.
+	(bibtex-search-entries): Fix interactive call.
+
 2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
