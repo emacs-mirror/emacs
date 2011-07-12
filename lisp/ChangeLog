@@ -1,3 +1,9 @@
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* subr.el (remove-duplicates): Remove; `delete-dups' is sufficient.
+
+	* dired-x.el (dired-guess-default): Use `delete-dups'.
+
 2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.el (dired-mark-prompt):
