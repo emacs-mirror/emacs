@@ -1314,7 +1314,7 @@ window."
 (defun split-window-horizontally (&optional size)
   "Split selected window into two windows side by side.
 The selected window becomes the left one and gets SIZE columns.
-SIZE negative means the right window gets -SIZE lines.
+SIZE negative means the right window gets -SIZE columns.
 
 SIZE includes the width of the window's scroll bar; if there are
 no scroll bars, it includes the width of the divider column to

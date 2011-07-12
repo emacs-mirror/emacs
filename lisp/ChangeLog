@@ -1,3 +1,7 @@
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (split-window-horizontally): Doc fix (Bug#9060).
+
 2011-06-27  Markus Heiser  <markus.heiser@darmarit.de>  (tiny change)
 
 	* progmodes/gud.el (gud-pdb-marker-regexp): Accept \r char (Bug#5653).
