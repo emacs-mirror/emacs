@@ -1,5 +1,9 @@
 2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Fontise bytecomp Error lines more correctly (bug#2490).  Fix
+	suggested by Johan Bockgård.
+
 	* subr.el (remove-duplicates): Remove; `delete-dups' is sufficient.
 
 	* dired-x.el (dired-guess-default): Use `delete-dups'.
