@@ -5910,8 +5910,8 @@ differently.  An Emacs frame is a single window as far as X is
 concerned; the individual Emacs windows are not known to X at all.
 
 @defvar window-system
-This frame-local variable tells Lisp programs what window system Emacs is using
-for displaying the frame.  The possible values are
+This terminal-local variable tells Lisp programs what window system
+Emacs is using for displaying the frame.  The possible values are
 
 @table @code
 @item x

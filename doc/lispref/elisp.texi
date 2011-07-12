@@ -430,7 +430,6 @@ Variables
 * File Local Variables::    Handling local variable lists in files.
 * Directory Local Variables:: Local variables common to all files in a
                                 directory.
-* Frame-Local Variables::   Frame-local bindings for variables.
 * Variable Aliases::        Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
