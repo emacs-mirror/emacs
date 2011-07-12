@@ -1,3 +1,7 @@
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacsclient.1: Document exit status.
+
 2011-06-25  Andreas Rottmann  <a.rottmann@gmx.at>
 
 	* emacsclient.1: Mention --frame-parameters.

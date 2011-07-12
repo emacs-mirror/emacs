@@ -445,10 +445,10 @@ any name mentioned in @ref{Init File}.
 
 @cindex @file{_emacs} init file, MS-Windows
   Because MS-DOS does not allow file names with leading dots, and
-because older Windows systems made it hard to create files with such
-names, the Windows port of Emacs supports an alternative name
-@file{_emacs} as a fallback, if such a file exists in the home
-directory, whereas @file{.emacs} does not.
+older Windows systems made it hard to create files with such names,
+the Windows port of Emacs supports an init file name @file{_emacs}, if
+such a file exists in the home directory and @file{.emacs} does not.
+This name is considered obsolete.
 
 @node Windows Keyboard
 @section Keyboard Usage on MS-Windows

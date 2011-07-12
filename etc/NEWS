@@ -58,13 +58,16 @@ automatically select it.
 
 * Startup Changes in Emacs 24.1
 
+---
 ** The --unibyte, --multibyte, --no-multibyte, and --no-unibyte
 command line arguments, and the EMACS_UNIBYTE environment variable, no
 longer have any effect.  (They were declared obsolete in Emacs 23.)
 
++++
 ** New command line option `--no-site-lisp' removes site-lisp directories
 from load-path.  -Q now implies this.
 
+---
 ** On Windows, Emacs now warns when the obsolete _emacs init file is used,
 and also when HOME is set to C:\ by default.
 
@@ -77,6 +80,7 @@ pops up *Messages*" feature, which can now easily be changed.
 
 ** emacsclient changes
 
++++
 *** New emacsclient argument --parent-id ID can be used to open a
 client frame in parent X window ID, via XEmbed.  This works like the
 --parent-id argument to Emacs.
@@ -88,10 +92,12 @@ client frame in parent X window ID, via XEmbed.  This works like the
 *** New emacsclient argument --frame-parameters can be used to set the
 frame parameters of a newly-created graphical frame.
 
++++
 *** If emacsclient shuts down as a result of Emacs signalling an
 error, its exit status is 1.
 
 ** Completion
+
 *** shell-mode uses pcomplete rules, with the standard completion UI.
 
 *** Many packages have been changed to use completion-at-point rather than
@@ -353,6 +359,7 @@ replaced with Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 ** The standalone program `fakemail' has been removed.
 If you need it, feedmail.el ought to provide a superset of the functionality.
 
++++
 ** The variable `focus-follows-mouse' now always defaults to nil.
 
 ** New primitive `secure-hash' that supports many secure hash algorithms
