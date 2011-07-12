@@ -1,3 +1,10 @@
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* display.texi (Cursor Display): Mention `cursor-type'.
+
+	* screen.texi (Point): Clarify that it's only if you use a block
+	cursor that it appears to be on a character (bug#4345).
+
 2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* misc.texi (Amusements): Move dissociated press here, from its

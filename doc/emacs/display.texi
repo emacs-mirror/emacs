@@ -1211,6 +1211,10 @@ terminal itself blinks the cursor, and Emacs has no control over it.)
 You can control how the cursor appears when it blinks off by setting
 the variable @code{blink-cursor-alist}.
 
+@vindex cursor-type
+  You can change the shape of the cursor from the default ``box'' look
+to a bar by altering the @code{cursor-type} variable.
+
 @vindex visible-cursor
   Some text terminals offer two different cursors: the normal cursor
 and the very visible cursor, where the latter may be e.g. bigger or
