@@ -1,5 +1,9 @@
 2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* files.el (after-find-file): Give a better error message when
+	trying to find a symlink that points to a file that doesn't exist
+	(bug#4398).
+
 	* progmodes/cc-vars.el: Remove (probably) misleading comment
 	(bug#4396).
 
