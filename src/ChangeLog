@@ -1,3 +1,9 @@
+2011-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xfaces.c (Fbitmap_spec_p): Fix integer overflow bug.
+	Without this fix, (bitmap-spec-p '(34359738368 1 "x"))
+	would wrongly return t on a 64-bit host.
+
 2011-07-11  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* dispnew.c (init_display): Use *_RANGE_OVERFLOW macros.
