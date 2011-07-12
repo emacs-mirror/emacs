@@ -1,3 +1,8 @@
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* elisp.texi: Change "inferiors" to "subnodes" in three places
+	(bug#3523).
+
 2011-07-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frames.texi (Window System Selections): Discussion of
