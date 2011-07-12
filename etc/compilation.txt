@@ -254,6 +254,7 @@ foo.c:8.23-45: Informational: message
 foo.c:8-23: message
 foo.c:8-45.3: message
 foo.c:8.23-9.1: message
+foo.el:3:1:Error: End of file during parsing
 jade:dbcommon.dsl:133:17:E: missing argument for function call
 G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found.
 file:G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found.
