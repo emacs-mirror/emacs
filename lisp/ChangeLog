@@ -1,3 +1,8 @@
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* progmodes/cc-vars.el: Remove (probably) misleading comment
+	(bug#4396).
+
 2011-07-12  Johan Bockgård  <bojohan@gnu.org>
 
 	* mouse-sel.el (mouse-sel-primary-overlay): Use the `region' face.
