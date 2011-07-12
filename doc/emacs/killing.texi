@@ -520,17 +520,19 @@ contents are more ``fragile''; they are overwritten by any mouse
 selection, whereas the clipboard is only overwritten by explicit
 ``cut'' or ``copy'' commands.
 
-  Under X, whenever you select some text in Emacs by dragging or
-clicking the mouse (@pxref{Mouse Commands}), it is also saved to the
-primary selection.
+  Under X, whenever you set an active region (@pxref{Mark}), Emacs
+saves the text in the active region to the primary selection.  This
+applies to active regions made by dragging or clicking the mouse
+(@pxref{Mouse Commands}), and those made by keyboard commands (e.g. by
+typing @kbd{C-@key{SPC}} and moving point; see @ref{Setting Mark}).
 
 @vindex select-active-regions
-  If you set the region using the keyboard---for instance, by typing
-@kbd{C-@key{SPC}} and moving point away from the mark---the text in
-the region is also saved to the primary selection.  (The updating of
-the primary selection is done at the end of each command, as long as
-the region is active and non-empty.)  To disable this behavior, change
-the variable @code{select-active-regions} to @code{nil}.
+  If you change the variable @code{select-active-regions} to
+@code{only}, Emacs saves only temporarily active regions to the
+primary selection, i.e. those made with the mouse or with shift
+selection (@pxref{Shift Selection}).  If you change
+@code{select-active-regions} to @code{nil}, Emacs avoids saving active
+regions to the primary selection entirely.
 
   To insert the primary selection into an Emacs buffer, click
 @kbd{mouse-2} (@code{mouse-yank-primary}) where you want to insert it.

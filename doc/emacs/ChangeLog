@@ -1,3 +1,41 @@
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Amusements): Move dissociated press here, from its
+	own section.
+
+	* emacs.texi (Top): Update node listing.
+
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* emacs.texi (Top): Change "inferiors" to "subnodes" for greater
+	clarity (bug#3523).
+
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cmdargs.texi (Initial Options): Document --no-site-lisp.
+	(Misc X): Document --parent-id.
+
+	* frames.texi (Frame Commands): Note that focus-follows-mouse now
+	defaults to nil.
+
+	* misc.texi (emacsclient Options): Document --parent-id.
+
+	* msdog.texi (Windows HOME): Document _emacs as obsolete.
+
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* emacs.texi: Use "..." instead of ``...'' in the menus
+	(bug#3503).
+
+2011-07-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* killing.texi (Primary Selection): Document `only' setting for
+	select-active-regions.
+
+	* mark.texi (Setting Mark): Reference Shift Selection node.
+
+	* frames.texi (Mouse Commands): Document mouse-yank-primary.
+
 2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mark.texi (Setting Mark): Clarify what's meant by "Shifted

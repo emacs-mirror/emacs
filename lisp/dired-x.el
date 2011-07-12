@@ -1103,7 +1103,7 @@ See `dired-guess-shell-alist-user'."
     ;; Return commands or nil if flist is still non-nil.
     ;; Evaluate the commands in order that any logical testing will be done.
     (if (cdr cmds)
-	(remove-duplicates (mapcar #'eval cmds))
+	(delete-dups (mapcar #'eval cmds))
       (eval (car cmds)))))		; single command
 
 (defun dired-guess-shell-command (prompt files)

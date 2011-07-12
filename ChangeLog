@@ -1,4 +1,4 @@
-2011-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume freestanding C89 headers, string.h, stdlib.h.
 	Again, this simplifies the code, and all current platforms have these.
@@ -12,6 +12,11 @@
 	as they are required for C89.  If this turns into a problem we
 	can add the gnulib modules for these (a 1-line change to Makefile.in).
 	* configure.in: Don't check for memcmp, memcpy, memmove, memset.
+
+2011-07-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* configure.in (LD_SWITCH_SYSTEM_TEMACS): Add -fno-pie on Darwin
+	so as to suppress address randomization (Bug#8395).
 
 2011-07-09  Paul Eggert  <eggert@cs.ucla.edu>
 

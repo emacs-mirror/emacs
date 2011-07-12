@@ -26852,12 +26852,12 @@ If an integer, it specifies a number of lines.  */);
   Vmax_mini_window_height = make_float (0.25);
 
   DEFVAR_LISP ("resize-mini-windows", Vresize_mini_windows,
-    doc: /* *How to resize mini-windows (the minibuffer and the echo area).
+    doc: /* How to resize mini-windows (the minibuffer and the echo area).
 A value of nil means don't automatically resize mini-windows.
 A value of t means resize them to fit the text displayed in them.
-A value of `grow-only', the default, means let mini-windows grow
-only, until their display becomes empty, at which point the windows
-go back to their normal size.  */);
+A value of `grow-only', the default, means let mini-windows grow only;
+they return to their normal size when the minibuffer is closed, or the
+echo area becomes empty.  */);
   Vresize_mini_windows = Qgrow_only;
 
   DEFVAR_LISP ("blink-cursor-alist", Vblink_cursor_alist,

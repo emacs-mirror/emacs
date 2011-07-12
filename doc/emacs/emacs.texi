@@ -164,7 +164,7 @@ Fundamental Editing Commands
 * Help::                Commands for asking Emacs about its commands.
 
 Important Text-Changing Commands
-* Mark::                The mark: how to delimit a ``region'' of text.
+* Mark::                The mark: how to delimit a "region" of text.
 * Killing::             Killing (cutting) text.
 * Yanking::             Recovering killed text.  Moving text. (Pasting.)
 * Cut and Paste::       Clipboard and selections on graphical displays.
@@ -200,7 +200,7 @@ Advanced Features
 @end ifnottex
 * Sending Mail::        Sending mail in Emacs.
 * Rmail::               Reading mail in Emacs.
-* Dired::               You can ``edit'' a directory to manage files in it.
+* Dired::               You can "edit" a directory to manage files in it.
 * Calendar/Diary::      The calendar and diary facilities.
 * Document View::       Viewing PDF, PS and DVI files.
 * Gnus::                A flexible mail and news reader.
@@ -219,7 +219,6 @@ Advanced Features
                           "recursive editing level".
 * Emulation::           Emulating some other editors with Emacs.
 * Hyperlinking::        Following links in buffers.
-* Dissociated Press::   Dissociating text for fun.
 * Amusements::          Various games and hacks.
 * Customization::       Modifying the behavior of Emacs.
 
@@ -251,7 +250,7 @@ Appendices
  --- The Detailed Node Listing ---
  ---------------------------------
 
-Here are some other nodes which are really inferiors of the ones
+Here are some other nodes which are really subnodes of the ones
 already listed, mentioned here so you can get to them in one step:
 
 The Organization of the Screen
@@ -1066,7 +1065,7 @@ Customization
                           to decide what to do; by setting variables,
                           you can control their functioning.
 * Key Bindings::        Keymaps say what command each key runs.
-                          By changing them, you can ``redefine'' keys.
+                          By changing them, you can "redefine" keys.
 * Init File::           How to write common customizations in the
                           @file{.emacs} file.
 

@@ -68,10 +68,10 @@ Set point and the mark around the text you drag across.
 @item Mouse-3
 Set the mark at point, then move point to where you click
 (@code{mouse-save-then-kill}).
+@item @samp{Shifted cursor motion keys}
+Set the mark at point if the mark is inactive, then move point.
+@xref{Shift Selection}.
 @end table
-
-Also, the shifted motion keys (for example, @key{S-Right}) will set
-the mark at point if the mark is inactive, then move point.
 
 @kindex C-SPC
 @kindex C-@@

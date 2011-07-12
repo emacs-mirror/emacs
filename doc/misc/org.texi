@@ -13981,25 +13981,25 @@ particular, you may use the functions @code{org-agenda-skip-entry-if}
 and @code{org-agenda-skip-subtree-if} in this form, for example:
 
 @table @code
-@item '(org-agenda-skip-entry-if 'scheduled)
+@item (org-agenda-skip-entry-if 'scheduled)
 Skip current entry if it has been scheduled.
-@item '(org-agenda-skip-entry-if 'notscheduled)
+@item (org-agenda-skip-entry-if 'notscheduled)
 Skip current entry if it has not been scheduled.
-@item '(org-agenda-skip-entry-if 'deadline)
+@item (org-agenda-skip-entry-if 'deadline)
 Skip current entry if it has a deadline.
-@item '(org-agenda-skip-entry-if 'scheduled 'deadline)
+@item (org-agenda-skip-entry-if 'scheduled 'deadline)
 Skip current entry if it has a deadline, or if it is scheduled.
-@item '(org-agenda-skip-entry-if 'todo '("TODO" "WAITING"))
+@item (org-agenda-skip-entry-if 'todo '("TODO" "WAITING"))
 Skip current entry if the TODO keyword is TODO or WAITING.
-@item '(org-agenda-skip-entry-if 'todo 'done)
+@item (org-agenda-skip-entry-if 'todo 'done)
 Skip current entry if the TODO keyword marks a DONE state.
-@item '(org-agenda-skip-entry-if 'timestamp)
+@item (org-agenda-skip-entry-if 'timestamp)
 Skip current entry if it has any timestamp, may also be deadline or scheduled.
-@item '(org-agenda-skip-entry 'regexp "regular expression")
+@item (org-agenda-skip-entry 'regexp "regular expression")
 Skip current entry if the regular expression matches in the entry.
-@item '(org-agenda-skip-entry 'notregexp "regular expression")
+@item (org-agenda-skip-entry 'notregexp "regular expression")
 Skip current entry unless the regular expression matches.
-@item '(org-agenda-skip-subtree-if 'regexp "regular expression")
+@item (org-agenda-skip-subtree-if 'regexp "regular expression")
 Same as above, but check and skip the entire subtree.
 @end table
 

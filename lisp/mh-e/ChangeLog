@@ -1,3 +1,23 @@
+2011-07-12  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.91.
+
+	* mh-e.el (Version, mh-version): Update for release 8.2.91.
+
+	* mh-compat.el (mh-pop-to-buffer-same-window): Add compatibility
+	function to call switch-to-buffer on systems that lack
+	pop-to-buffer-same-window.
+	* mh-folder.el (mh-inc-folder, mh-modify, mh-scan-folder)
+	(mh-make-folder): Call mh-pop-to-buffer-same-window instead of
+	switch-to-buffer. The previous change which used pop-to-buffer
+	produced the wrong behavior.
+
+2011-07-12  Henrique Martins  <henrique@martins.cc>   (tiny change)
+
+	* mh-xface.el (mh-picon-get-image): Remove quote from block
+	argument.
+	* mh-mime.el (mh-mh-directive-present-p): Ditto.
+
 2011-07-10  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.2.90.

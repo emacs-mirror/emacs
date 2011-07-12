@@ -6,8 +6,6 @@
 	Without this fix, (bitmap-spec-p '(34359738368 1 "x"))
 	would wrongly return t on a 64-bit host.
 
-2011-07-11  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* dispnew.c (init_display): Use *_RANGE_OVERFLOW macros.
 	The plain *_OVERFLOW macros run afoul of GCC bug 49705
 	<http://gcc.gnu.org/bugzilla/show_bug.cgi?id=49705>
@@ -163,6 +161,18 @@
 	* lisp.h (struct vectorlike_header, struct Lisp_Subr):  Signed sizes.
 	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
 	well either way, and we prefer signed to unsigned.
+
+2011-07-12  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor new problems caught by GCC 4.6.1.
+	* term.c (init_tty): Remove unused local.
+	* xsettings.c (store_monospaced_changed): Define this function only
+	if (defined HAVE_GSETTINGS || defined HAVE_GCONF), as it's
+	not used otherwise.
+
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (Vresize_mini_windows): Minor doc fix (Bug#3300).
 
 2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

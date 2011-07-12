@@ -3097,7 +3097,6 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   char *area = NULL;
   char **address = &area;
   int buffer_size = 4096;
-  register char *p = NULL;
   int status;
   struct tty_display_info *tty = NULL;
   struct terminal *terminal = NULL;
