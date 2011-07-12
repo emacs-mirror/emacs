@@ -1,3 +1,7 @@
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* org.texi (Special agenda views): Fix double quoting (bug#3509).
+
 2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* ediff.texi (Major Entry Points): Remove mention of `require',
