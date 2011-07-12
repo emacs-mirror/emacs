@@ -1,5 +1,7 @@
 2011-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* bidi.c (bidi_dump_cached_states): Use pD to print ptrdiff_t.
+
 	* xfaces.c (Fbitmap_spec_p): Fix integer overflow bug.
 	Without this fix, (bitmap-spec-p '(34359738368 1 "x"))
 	would wrongly return t on a 64-bit host.
