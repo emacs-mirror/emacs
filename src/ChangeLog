@@ -1,5 +1,8 @@
 2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* keymap.c (syms_of_keymap): Clarify that "modifier" is "modifier
+	key" (bug#4257).
+
 	* window.c (Fset_window_start): Doc fix (bug#4199).
 	(Fset_window_hscroll): Ditto.
 
