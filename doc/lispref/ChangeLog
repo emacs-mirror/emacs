@@ -1,5 +1,10 @@
 2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
 
+	* display.texi (Face Attributes, Font Selection): Add references
+	to the Fonts node in the Emacs manual (Bug#4178).
+
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
 	* display.texi (Window Systems): `window-system' is
 	terminal-local.
 

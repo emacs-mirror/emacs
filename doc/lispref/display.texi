@@ -1800,9 +1800,9 @@ height.
 @cindex faces
 
   A @dfn{face} is a collection of graphical attributes for displaying
-text: font family, foreground color, background color, optional
-underlining, and so on.  Faces control how buffer text is displayed,
-and how some parts of the frame, such as the mode-line, are displayed.
+text: font, foreground color, background color, optional underlining,
+and so on.  Faces control how buffer text is displayed, and how some
+parts of the frame, such as the mode-line, are displayed.
 @xref{Standard Faces,,, emacs, The GNU Emacs Manual}, for the list of
 faces Emacs normally comes with.
 
@@ -2001,16 +2001,17 @@ attribute is ignored.
 
 @table @code
 @item :family
-Font family name or fontset name (a string).  If you specify a font
-family name, the wild-card characters @samp{*} and @samp{?} are
-allowed.  The function @code{font-family-list}, described below,
-returns a list of available family names.  @xref{Fontsets}, for
-information about fontsets.
+Font family or fontset (a string).  @xref{Fonts,,, emacs, The GNU
+Emacs Manual}.  If you specify a font family name, the wild-card
+characters @samp{*} and @samp{?} are allowed.  The function
+@code{font-family-list}, described below, returns a list of available
+family names.  @xref{Fontsets}, for information about fontsets.
 
 @item :foundry
-The name of the @dfn{font foundry} in which the font family specified
-by the @code{:family} attribute is located (a string).  The wild-card
-characters @samp{*} and @samp{?} are allowed.
+The name of the @dfn{font foundry} for the font family specified by
+the @code{:family} attribute (a string).  The wild-card characters
+@samp{*} and @samp{?} are allowed.  @xref{Fonts,,, emacs, The GNU
+Emacs Manual}.
 
 @item :width
 Relative proportionate character width, also known as the character
@@ -2684,14 +2685,15 @@ usually assign faces to around 400 to 600 characters at each call.
   Before Emacs can draw a character on a particular display, it must
 select a @dfn{font} for that character@footnote{In this context, the
 term @dfn{font} has nothing to do with Font Lock (@pxref{Font Lock
-Mode}).}.  Normally, Emacs automatically chooses a font based on the
-faces assigned to that character---specifically, the face attributes
-@code{:family}, @code{:weight}, @code{:slant}, and @code{:width}
-(@pxref{Face Attributes}).  The choice of font also depends on the
-character to be displayed; some fonts can only display a limited set
-of characters.  If no available font exactly fits the requirements,
-Emacs looks for the @dfn{closest matching font}.  The variables in
-this section control how Emacs makes this selection.
+Mode}).}.  @xref{Fonts,,, emacs, The GNU Emacs Manual}.  Normally,
+Emacs automatically chooses a font based on the faces assigned to that
+character---specifically, the face attributes @code{:family},
+@code{:weight}, @code{:slant}, and @code{:width} (@pxref{Face
+Attributes}).  The choice of font also depends on the character to be
+displayed; some fonts can only display a limited set of characters.
+If no available font exactly fits the requirements, Emacs looks for
+the @dfn{closest matching font}.  The variables in this section
+control how Emacs makes this selection.
 
 @defopt face-font-family-alternatives
 If a given family is specified but does not exist, this variable
