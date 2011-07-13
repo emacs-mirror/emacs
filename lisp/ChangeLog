@@ -1,3 +1,8 @@
+2011-07-13  Sergei Organov  <osv@javad.com>  (tiny change)
+
+	* vc/vc.el (vc-revert-file):
+	Don't set file time-stamp in the past.  (Bug#5181)
+
 2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* files.el (after-find-file): Give a better error message when
