@@ -1172,6 +1172,7 @@ CBARGS as the arguments."
 		    url-http-after-change-function
 		    url-callback-function
 		    url-callback-arguments
+		    url-show-status
 		    url-http-method
 		    url-http-extra-headers
 		    url-http-data
@@ -1206,6 +1207,7 @@ CBARGS as the arguments."
 		       url-http-chunked-start
 		       url-callback-function
 		       url-callback-arguments
+		       url-show-status
 		       url-http-process
 		       url-http-method
 		       url-http-extra-headers
