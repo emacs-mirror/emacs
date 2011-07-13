@@ -1,5 +1,8 @@
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* startup.el (initial-buffer-choice): Add `none' as a choice
+	(bug#6234).
+
 	* subr.el (add-hook): Clarify section about buffer-local hooks
 	(bug#6218).
 
