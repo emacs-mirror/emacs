@@ -594,9 +594,12 @@ is okay.  See `mode-line-format'.")
 	 ".fas" ".lib" ".mem"
 	 ;; CMUCL
 	 ".x86f" ".sparcf"
-         ;; Other CL implementations (Allegro, LispWorks, OpenMCL)
-         ".fasl" ".ufsl" ".fsl" ".dxl" ".pfsl" ".dfsl"
-	 ".p64fsl" ".d64fsl" ".dx64fsl"
+	 ;; OpenMCL / Clozure CL
+	 ".dfsl" ".pfsl" ".d64fsl" ".p64fsl" ".lx64fsl" ".lx32fsl"
+	 ".dx64fsl" ".dx32fsl" ".fx64fsl" ".fx32fsl" ".sx64fsl"
+	 ".sx32fsl" ".wx64fsl" ".wx32fsl"
+         ;; Other CL implementations (Allegro, LispWorks)
+         ".fasl" ".ufsl" ".fsl" ".dxl"
 	 ;; Libtool
 	 ".lo" ".la"
 	 ;; Gettext

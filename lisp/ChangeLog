@@ -1,3 +1,8 @@
+2011-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bindings.el (completion-ignored-extensions): Add OpenMCL/Clozure
+	binary endings (bug#4440).
+
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* info.el (info-insert-file-contents): Inhibit jka-compr messages,
