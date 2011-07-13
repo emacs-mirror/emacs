@@ -1175,7 +1175,7 @@ If HDR is non-nil, insert a header line with the directory name."
 	(insert "  wildcard " (file-name-nondirectory dir) "\n")))))
 
 (defun dired-insert-set-properties (beg end)
-  "Make the file names highlight when the mouse is on them."
+  "Add various text properties to the lines in the region."
   (save-excursion
     (goto-char beg)
     (while (< (point) end)

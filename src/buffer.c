@@ -4500,7 +4500,7 @@ mmap_init (void)
    is at END - 1.  */
 
 static struct mmap_region *
-mmap_find (POINTER_TYPE *start, POINTER_TYPE *end);
+mmap_find (POINTER_TYPE *start, POINTER_TYPE *end)
 {
   struct mmap_region *r;
   char *s = (char *) start, *e = (char *) end;

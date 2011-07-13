@@ -464,6 +464,7 @@ be last in the list.")
   "Insert the contents of an Info file in the current buffer.
 Do the right thing if the file has been compressed or zipped."
   (let* ((tail Info-suffix-list)
+	 (jka-compr-verbose nil)
 	 (lfn (if (fboundp 'msdos-long-file-names)
 		  (msdos-long-file-names)
 		t))
@@ -728,6 +729,11 @@ just return nil (no error)."
 			  (append Info-directory-list
 				  Info-additional-directory-list)
 			Info-directory-list)))))
+	;; Fall back on the installation directory if we can't find
+	;; the info node anywhere else.
+	(when installation-directory
+	  (setq dirs (append dirs (list (expand-file-name
+					 "info" installation-directory)))))
 	;; Search the directory list for file FILENAME.
 	(while (and dirs (not found))
 	  (setq temp (expand-file-name filename (car dirs)))

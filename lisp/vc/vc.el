@@ -2428,7 +2428,7 @@ its name; otherwise return nil."
    (list file)
    (let ((backup-file (vc-version-backup-file file)))
      (when backup-file
-       (copy-file backup-file file 'ok-if-already-exists 'keep-date)
+       (copy-file backup-file file 'ok-if-already-exists)
        (vc-delete-automatic-version-backups file))
      (vc-call revert file backup-file))
    `((vc-state . up-to-date)
