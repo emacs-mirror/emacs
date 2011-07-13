@@ -1,3 +1,8 @@
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* info.el (Info-find-file): Fall back on the installation
+	directory if we can't find the info node anywhere else.
+
 2011-07-13  Sergei Organov  <osv@javad.com>  (tiny change)
 
 	* vc/vc.el (vc-revert-file):
