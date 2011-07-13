@@ -8,6 +8,9 @@
 
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* files.el (make-directory): Clarify that an error will be raised
+	if there's an error (bug#6397).
+
 	* startup.el (initial-buffer-choice): Add `none' as a choice
 	(bug#6234).
 
