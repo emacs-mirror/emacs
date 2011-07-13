@@ -1,5 +1,8 @@
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* keymaps.texi (Menu Bar): Mention :visible and :enable
+	(bug#6344).  Text by Drew Adams.
+
 	* modes.texi (Running Hooks): Mention buffer-local hook variables
 	(bug#6218).
 
