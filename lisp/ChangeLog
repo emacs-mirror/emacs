@@ -1,3 +1,9 @@
+2011-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* font-lock.el (font-lock-comment-face): Use the high contrast
+	"yellow" color for font-lock-comment-face on low color terminals
+	using a dark background color (bug#4221).
+
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* dired.el (dired-insert-set-properties): Make the doc string
