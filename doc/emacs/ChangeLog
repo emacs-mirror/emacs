@@ -1,3 +1,7 @@
+2011-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired.texi (Dired Enter): Mention --dired.  (Bug#9039)
+
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mark.texi (Mark Ring): Clarify how many locations are saved
