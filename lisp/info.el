@@ -464,6 +464,7 @@ be last in the list.")
   "Insert the contents of an Info file in the current buffer.
 Do the right thing if the file has been compressed or zipped."
   (let* ((tail Info-suffix-list)
+	 (jka-compr-verbose nil)
 	 (lfn (if (fboundp 'msdos-long-file-names)
 		  (msdos-long-file-names)
 		t))

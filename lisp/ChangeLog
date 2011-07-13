@@ -1,5 +1,8 @@
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* info.el (info-insert-file-contents): Inhibit jka-compr messages,
+	which can be pretty annoying (bug#8971).
+
 	* jka-compr.el (jka-compr-verbose): New variable, and use
 	throughout (bug#8971).
 
