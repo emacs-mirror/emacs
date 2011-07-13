@@ -1,3 +1,15 @@
+2011-07-13  Johan Bockgård  <bojohan@gnu.org>
+
+	Fix execution of x selection hooks.
+	* xselect.c (Qx_lost_selection_functions)
+	(Qx_sent_selection_functions): New vars.
+	(syms_of_xselect): DEFSYM them.
+	(x_handle_selection_request): Pass Qx_sent_selection_functions
+	rather than Vx_sent_selection_functions to Frun_hook_with_args.
+	(x_handle_selection_clear,x_clear_frame_selections):
+	Pass Qx_lost_selection_functions rather than
+	Vx_lost_selection_functions to Frun_hook_with_args.
+
 2011-07-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* buffer.c (Fget_buffer_create): Initialized inhibit_shrinking.
