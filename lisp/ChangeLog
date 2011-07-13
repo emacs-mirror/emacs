@@ -1,3 +1,47 @@
+2011-07-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (switch-to-buffer): New arg FORCE-SAME-WINDOW.  Use
+	pop-to-buffer buffer-or-name if it is nil.
+
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Remove switch-to-buffer.
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* startup.el (initial-buffer-choice): Add `none' as a choice
+	(bug#6234).
+
+	* subr.el (add-hook): Clarify section about buffer-local hooks
+	(bug#6218).
+
+	* dired.el (dired-flagged): Clarify doc string (bug#6117).
+
+2011-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tabify.el (untabify): Preserve the current column so that point
+	doesn't move (bug#6032).
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* progmodes/cperl-mode.el (cperl-syntaxify-by-font-lock): Rewrite
+	to avoid awkward possessive "s" (bug#5986).
+
+2011-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-use-ls-dired): Doc fix.  (Bug#9039).
+	(dired-insert-directory): Give a message the first time
+	if ls is found not to support --dired.
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* simple.el (toggle-truncate-lines): Clarify what is toggled
+	(bug#5580).  Text by Drew Adams.
+
+2011-07-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (blink-matching-open): Make the error message from the
+	last change less verbose.
+
 2011-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* font-lock.el (font-lock-comment-face): Use the high contrast

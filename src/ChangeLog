@@ -1,3 +1,7 @@
+2011-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnutls.c (init_gnutls_functions): Honor gnutls_log_level (bug#9059).
+
 2011-07-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* buffer.c (mmap_find): Fix a typo.
@@ -16,7 +20,7 @@
 
 2011-07-13  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* buffer.c (Fget_buffer_create): Initialized inhibit_shrinking.
+	* buffer.c (Fget_buffer_create): Initialize inhibit_shrinking.
 	The old code sometimes used this field without initializing it.
 
 	* alloc.c (gc_sweep): Don't read past end of array.
@@ -26,7 +30,7 @@
 2011-07-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* character.c (Fcharacterp): Don't advertise optional ignored
-	argument. (Bug#4026)
+	argument.  (Bug#4026)
 
 2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -240,7 +244,7 @@
 	(char_table_ascii): Uncompress the compressed values.
 	(sub_char_table_ref): New arg is_uniprop.  Callers changed.
 	Uncompress the compressed values.
-	(sub_char_table_ref_and_range):  Likewise.
+	(sub_char_table_ref_and_range): Likewise.
 	(char_table_ref_and_range): Uncompress the compressed values.
 	(sub_char_table_set): New arg is_uniprop.  Callers changed.
 	Uncompress the compressed values.
@@ -1918,7 +1922,7 @@
 	(xpm_put_color_table_h):
 	* lisp.h (struct Lisp_Hash_Table):
 	* minibuf.c (Ftry_completion, Fall_completions, Ftest_completion):
-	* print.c (print):  Use 'EMACS_UINT' and 'EMACS_INT'
+	* print.c (print): Use 'EMACS_UINT' and 'EMACS_INT'
 	for hashes and hash indexes, instead of 'unsigned' and 'int'.
 	* alloc.c (allocate_vectorlike):
 	Check for overflow in vector size calculations.
@@ -2215,7 +2219,7 @@
 
 	* dispnew.c (shift_glyph_matrix, scrolling_window): Mark scrolled row
 	for fringe update if it has periodic bitmap.
-	(row_equal_p): Also compare left_fringe_offset,	right_fringe_offset,
+	(row_equal_p): Also compare left_fringe_offset, right_fringe_offset,
 	and fringe_bitmap_periodic_p.
 
 	* fringe.c (get_fringe_bitmap_data): New function.

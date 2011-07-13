@@ -5303,11 +5303,12 @@ The variable `selective-display' has a separate value for each buffer."
 (defvaralias 'indicate-unused-lines 'indicate-empty-lines)
 
 (defun toggle-truncate-lines (&optional arg)
-  "Toggle whether to fold or truncate long lines for the current buffer.
+  "Toggle truncating of long lines for the current buffer.
+When truncating is off, long lines are folded.
 With prefix argument ARG, truncate long lines if ARG is positive,
-otherwise don't truncate them.  Note that in side-by-side windows,
-this command has no effect if `truncate-partial-width-windows'
-is non-nil."
+otherwise fold them.  Note that in side-by-side windows, this
+command has no effect if `truncate-partial-width-windows' is
+non-nil."
   (interactive "P")
   (setq truncate-lines
 	(if (null arg)
@@ -5487,19 +5488,15 @@ The function should return non-nil if the two tokens do not match.")
   (when (and (not (bobp))
 	     blink-matching-paren)
     (let* ((oldpos (point))
-	   (limit-message "")
 	   (message-log-max nil) ; Don't log messages about paren matching.
 	   (blinkpos
             (save-excursion
               (save-restriction
-                (when blink-matching-paren-distance
-		  (let ((start (- (point) blink-matching-paren-distance)))
-		    (when (> start (minibuffer-prompt-end))
-		      (setq limit-message " within the limit"))
-		    (narrow-to-region
-		     (max (minibuffer-prompt-end) ;(point-min) unless minibuf.
-			  start)
-		     oldpos)))
+                (if blink-matching-paren-distance
+                    (narrow-to-region
+                     (max (minibuffer-prompt-end) ;(point-min) unless minibuf.
+                          (- (point) blink-matching-paren-distance))
+                     oldpos))
                 (let ((parse-sexp-ignore-comments
                        (and parse-sexp-ignore-comments
                             (not blink-matching-paren-dont-ignore-comments))))
@@ -5521,11 +5518,11 @@ The function should return non-nil if the two tokens do not match.")
        (mismatch
         (if blinkpos
             (if (minibufferp)
-                (minibuffer-message "Mismatched parentheses%s" limit-message)
-              (message "Mismatched parentheses%s" limit-message))
+                (minibuffer-message "Mismatched parentheses")
+              (message "Mismatched parentheses"))
           (if (minibufferp)
-              (minibuffer-message "Unmatched parenthesis%s" limit-message)
-            (message "Unmatched parenthesis%s" limit-message))))
+              (minibuffer-message "No matching parenthesis found")
+            (message "No matching parenthesis found"))))
        ((not blinkpos) nil)
        ((pos-visible-in-window-p blinkpos)
         ;; Matching open within window, temporarily move to blinkpos but only
