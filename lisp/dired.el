@@ -351,11 +351,11 @@ Subexpression 2 must end right before the \\n or \\r.")
 
 (defface dired-flagged
   '((t (:inherit font-lock-warning-face)))
-  "Face used for flagged files."
+  "Face used for files flagged for deletion."
   :group 'dired-faces
   :version "22.1")
 (defvar dired-flagged-face 'dired-flagged
-  "Face name used for flagged files.")
+  "Face name used for files flagged for deletion.")
 
 (defface dired-warning
   ;; Inherit from font-lock-warning-face since with min-colors 8
