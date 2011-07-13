@@ -2,8 +2,6 @@
 
 	* image.c (png_load): Don't assume height * row_bytes fits in 'int'.
 
-2011-07-12  Paul Eggert  <eggert@cs.ucla.edu>
-
 	* bidi.c (bidi_dump_cached_states): Use pD to print ptrdiff_t.
 
 	* xfaces.c (Fbitmap_spec_p): Fix integer overflow bug.
@@ -92,8 +90,8 @@
 	* bidi.c: Integer signedness and overflow fixes.
 	(bidi_cache_idx, bidi_cache_last_idx, bidi_cache_fetch_state)
 	(bidi_cache_search, bidi_cache_find_level_change)
-	(bidi_cache_iterator_state, bidi_cache_find, bidi_find_other_level_edge)
-	(bidi_dump_cached_states):
+	(bidi_cache_iterator_state, bidi_cache_find)
+	(bidi_find_other_level_edge, bidi_dump_cached_states):
 	Don't arbitrarily limit cache indexes to int; use ptrdiff_t instead.
 	(bidi_cache_size): Use ptrdiff_t rather than size_t, as we prefer
 	signed integers.
@@ -165,6 +163,40 @@
 	* lisp.h (struct vectorlike_header, struct Lisp_Subr):  Signed sizes.
 	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
 	well either way, and we prefer signed to unsigned.
+
+2011-07-13  Johan Bockgård  <bojohan@gnu.org>
+
+	Fix execution of x selection hooks.
+	* xselect.c (Qx_lost_selection_functions)
+	(Qx_sent_selection_functions): New vars.
+	(syms_of_xselect): DEFSYM them.
+	(x_handle_selection_request): Pass Qx_sent_selection_functions
+	rather than Vx_sent_selection_functions to Frun_hook_with_args.
+	(x_handle_selection_clear,x_clear_frame_selections):
+	Pass Qx_lost_selection_functions rather than
+	Vx_lost_selection_functions to Frun_hook_with_args.
+
+2011-07-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.c (Fget_buffer_create): Initialized inhibit_shrinking.
+	The old code sometimes used this field without initializing it.
+
+	* alloc.c (gc_sweep): Don't read past end of array.
+	In theory, the old code could also have corrupted Emacs internals,
+	though it'd be very unlikely.
+
+2011-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* character.c (Fcharacterp): Don't advertise optional ignored
+	argument. (Bug#4026)
+
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* keymap.c (syms_of_keymap): Clarify that "modifier" is "modifier
+	key" (bug#4257).
+
+	* window.c (Fset_window_start): Doc fix (bug#4199).
+	(Fset_window_hscroll): Ditto.
 
 2011-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 

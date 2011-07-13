@@ -3712,11 +3712,11 @@ the same way.  The "active" keymaps in each alist are used before
   Vemulation_mode_map_alists = Qnil;
 
   DEFVAR_LISP ("where-is-preferred-modifier", Vwhere_is_preferred_modifier,
-	       doc: /* Preferred modifier to use for `where-is'.
+	       doc: /* Preferred modifier key to use for `where-is'.
 When a single binding is requested, `where-is' will return one that
-uses this modifier if possible.  If nil, or if no such binding exists,
-bindings using keys without modifiers (or only with meta) will be
-preferred.  */);
+uses this modifier key if possible.  If nil, or if no such binding
+exists, bindings using keys without modifiers (or only with meta) will
+be preferred.  */);
   Vwhere_is_preferred_modifier = Qnil;
   where_is_preferred_modifier = 0;
 

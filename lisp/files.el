@@ -2060,7 +2060,11 @@ unless NOMODES is non-nil."
 	     ((not warn) nil)
 	     ((and error (file-attributes buffer-file-name))
 	      (setq buffer-read-only t)
-	      "File exists, but cannot be read")
+	      (if (and (file-symlink-p buffer-file-name)
+		       (not (file-exists-p
+			     (file-chase-links buffer-file-name))))
+		  "Symbolic link that points to nonexistent file"
+		"File exists, but cannot be read"))
 	     ((not buffer-read-only)
 	      (if (and warn
 		       ;; No need to warn if buffer is auto-saved
