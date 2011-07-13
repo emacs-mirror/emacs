@@ -1,3 +1,8 @@
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* simple.el (toggle-truncate-lines): Clarify what is toggled
+	(bug#5580).  Text by Drew Adams.
+
 2011-07-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (blink-matching-open): Make the error message from the

@@ -5303,11 +5303,12 @@ The variable `selective-display' has a separate value for each buffer."
 (defvaralias 'indicate-unused-lines 'indicate-empty-lines)
 
 (defun toggle-truncate-lines (&optional arg)
-  "Toggle whether to fold or truncate long lines for the current buffer.
+  "Toggle truncating of long lines for the current buffer.
+When truncating is off, long lines are folded.
 With prefix argument ARG, truncate long lines if ARG is positive,
-otherwise don't truncate them.  Note that in side-by-side windows,
-this command has no effect if `truncate-partial-width-windows'
-is non-nil."
+otherwise fold them.  Note that in side-by-side windows, this
+command has no effect if `truncate-partial-width-windows' is
+non-nil."
   (interactive "P")
   (setq truncate-lines
 	(if (null arg)
