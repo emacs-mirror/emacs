@@ -1,3 +1,11 @@
+2011-07-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (switch-to-buffer): New arg FORCE-SAME-WINDOW.  Use
+	pop-to-buffer buffer-or-name if it is nil.
+
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Remove switch-to-buffer.
+
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* startup.el (initial-buffer-choice): Add `none' as a choice
