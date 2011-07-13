@@ -1,3 +1,22 @@
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Face Attributes, Font Selection): Add references
+	to the Fonts node in the Emacs manual (Bug#4178).
+
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Window Systems): `window-system' is
+	terminal-local.
+
+	* frames.texi (Frame Parameters, Parameter Access): Don't mention
+	frame-local variables.
+
+	* variables.texi (Buffer-Local Variables): Don't mention obsolete
+	frame-local variables.
+	(Frame-Local Variables): Node deleted.
+
+	* elisp.texi (Top): Update node listing.
+
 2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* elisp.texi: Change "inferiors" to "subnodes" in three places

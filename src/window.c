@@ -683,6 +683,7 @@ WINDOW must be a live window and defaults to the selected one.  */)
 
 DEFUN ("set-window-hscroll", Fset_window_hscroll, Sset_window_hscroll, 2, 2, 0,
        doc: /* Set number of columns WINDOW is scrolled from left margin to NCOL.
+If WINDOW is nil, the selected window is used.
 Return NCOL.  NCOL should be zero or positive.
 
 Note that if `automatic-hscrolling' is non-nil, you cannot scroll the
@@ -1410,7 +1411,7 @@ Return POS.  */)
 
 DEFUN ("set-window-start", Fset_window_start, Sset_window_start, 2, 3, 0,
        doc: /* Make display in WINDOW start at position POS in WINDOW's buffer.
-WINDOW defaults to the selected window.  Return POS.
+If WINDOW is nil, the selected window is used.  Return POS.
 Optional third arg NOFORCE non-nil inhibits next redisplay from
 overriding motion of point in order to display at this exact start.  */)
   (Lisp_Object window, Lisp_Object pos, Lisp_Object noforce)

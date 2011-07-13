@@ -1,3 +1,25 @@
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* files.el (after-find-file): Give a better error message when
+	trying to find a symlink that points to a file that doesn't exist
+	(bug#4398).
+
+	* progmodes/cc-vars.el: Remove (probably) misleading comment
+	(bug#4396).
+
+2011-07-12  Johan Bockgård  <bojohan@gnu.org>
+
+	* mouse-sel.el (mouse-sel-primary-overlay): Use the `region' face.
+
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse-sel.el: Hack restoring functionality, while keeping
+	compatibility with 2010-07-03 changes to mouse selection.
+	(mouse-sel-primary-overlay): New var.
+	(mouse-sel-selection-alist): Use it.
+	(mouse-sel-mode): Doc fix; remove points that are default features
+	of mouse.el.
+
 2011-07-12  Johan Bockgård  <bojohan@gnu.org>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
