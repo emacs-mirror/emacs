@@ -1,3 +1,7 @@
+2011-07-13  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (png_load): Don't assume height * row_bytes fits in 'int'.
+
 2011-07-12  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* bidi.c (bidi_dump_cached_states): Use pD to print ptrdiff_t.

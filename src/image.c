@@ -5558,7 +5558,8 @@ png_load (struct frame *f, struct image *img)
 {
   Lisp_Object file, specified_file;
   Lisp_Object specified_data;
-  int x, y, i;
+  int x, y;
+  ptrdiff_t i;
   XImagePtr ximg, mask_img = NULL;
   png_struct *png_ptr = NULL;
   png_info *info_ptr = NULL, *end_info = NULL;
