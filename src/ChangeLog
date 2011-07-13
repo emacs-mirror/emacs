@@ -1,3 +1,8 @@
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* editfns.c (Fstring_to_char): Clarify just what is returned
+	(bug#6576).  Text by Eli Zaretskii.
+
 2011-07-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnutls.c (init_gnutls_functions): Honor gnutls_log_level (bug#9059).
