@@ -1,3 +1,8 @@
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* progmodes/cperl-mode.el (cperl-syntaxify-by-font-lock): Rewrite
+	to avoid awkward possessive "s" (bug#5986).
+
 2011-07-13  Glenn Morris  <rgm@gnu.org>
 
 	* dired.el (dired-use-ls-dired): Doc fix.  (Bug#9039).
