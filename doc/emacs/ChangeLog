@@ -1,3 +1,9 @@
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mark.texi (Mark Ring): Clarify how many locations are saved
+	(bug#5770).
+	(Global Mark Ring): Ditto.
+
 2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* text.texi (Table Recognition): Use "at point" instead of "under
