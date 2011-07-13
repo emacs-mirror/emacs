@@ -1,5 +1,8 @@
 2011-07-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* buffer.c (Fget_buffer_create): Initialized inhibit_shrinking.
+	The old code sometimes used this field without initializing it.
+
 	* alloc.c (gc_sweep): Don't read past end of array.
 	In theory, the old code could also have corrupted Emacs internals,
 	though it'd be very unlikely.
