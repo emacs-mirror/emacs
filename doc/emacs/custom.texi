@@ -820,6 +820,12 @@ the versions you added will remain in the hook variable together.  You
 can clear out individual functions by calling @code{remove-hook}, or
 do @code{(setq @var{hook-variable} nil)} to remove everything.
 
+@cindex buffer-local hooks
+  If the hook variable is buffer-local, the buffer-local variable will
+be used instead of the global variable.  However, if the buffer-local
+variable contains the element @code{t}, the global hook variable will
+be run as well.
+
 @node Locals
 @subsection Local Variables
 

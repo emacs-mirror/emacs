@@ -1,5 +1,8 @@
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* subr.el (add-hook): Clarify section about buffer-local hooks
+	(bug#6218).
+
 	* dired.el (dired-flagged): Clarify doc string (bug#6117).
 
 2011-07-13  Juanma Barranquero  <lekktu@gmail.com>
