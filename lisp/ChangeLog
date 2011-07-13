@@ -1,5 +1,8 @@
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* simple.el (blink-matching-open): Say that we were unable to find
+	the match within the limit, if we're limited (bug#5122).
+
 	* international/mule-cmds.el (prefer-coding-system): Add an
 	example (bug#4869).
 
