@@ -1,5 +1,8 @@
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* dired.el (dired-insert-set-properties): Make the doc string
+	reflect what it does now (bug#5325).
+
 	* simple.el (blink-matching-open): Say that we were unable to find
 	the match within the limit, if we're limited (bug#5122).
 
