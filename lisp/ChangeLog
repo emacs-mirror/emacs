@@ -1,3 +1,8 @@
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* simple.el (eval-expression): Note what it does if called
+	interactively (bug#6495).
+
 2011-07-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* window.el (switch-to-buffer): New arg FORCE-SAME-WINDOW.  Use
