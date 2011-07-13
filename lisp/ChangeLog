@@ -1,3 +1,9 @@
+2011-07-13  Lawrence Mitchell  <wence@gmx.li>
+
+	* net/browse-url.el (browse-url-default-browser)
+	(browse-url-browser-function): Make the default browser choice a
+	bit more logical (bug#4300).  Also clean up the doc string.
+
 2011-07-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bindings.el (completion-ignored-extensions): Add OpenMCL/Clozure

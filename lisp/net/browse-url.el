@@ -214,13 +214,7 @@
 
 ;;;###autoload
 (defcustom browse-url-browser-function
-  (cond
-   ((memq system-type '(windows-nt ms-dos cygwin))
-    'browse-url-default-windows-browser)
-   ((memq system-type '(darwin))
-    'browse-url-default-macosx-browser)
-   (t
-    'browse-url-default-browser))
+  'browse-url-default-browser
   "Function to display the current buffer in a WWW browser.
 This is used by the `browse-url-at-point', `browse-url-at-mouse', and
 `browse-url-of-file' commands.
@@ -908,12 +902,13 @@ a random existing one.  A non-nil interactive prefix argument reverses
 the effect of `browse-url-new-window-flag'.
 
 When called non-interactively, optional second argument NEW-WINDOW is
-used instead of `browse-url-new-window-flag'.
-
-The order attempted is gnome-moz-remote, Mozilla, Firefox,
-Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
+used instead of `browse-url-new-window-flag'."
   (apply
    (cond
+    ((memq system-type '(windows-nt ms-dos cygwin))
+     'browse-url-default-windows-browser)
+    ((memq system-type '(darwin))
+     'browse-url-default-macosx-browser)
     ((browse-url-can-use-xdg-open) 'browse-url-xdg-open)
     ((executable-find browse-url-gnome-moz-program) 'browse-url-gnome-moz)
     ((executable-find browse-url-mozilla-program) 'browse-url-mozilla)
