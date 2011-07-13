@@ -1,3 +1,9 @@
+2011-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-use-ls-dired): Doc fix.  (Bug#9039).
+	(dired-insert-directory): Give a message the first time
+	if ls is found not to support --dired.
+
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* simple.el (toggle-truncate-lines): Clarify what is toggled
