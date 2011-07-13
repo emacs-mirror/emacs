@@ -1,5 +1,8 @@
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* modes.texi (Running Hooks): Mention buffer-local hook variables
+	(bug#6218).
+
 	* objects.texi (General Escape Syntax): "a with grave accent" is
 	?xe0, not ?x8e0 (bug#5259).
 
