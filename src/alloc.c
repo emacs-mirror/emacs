@@ -5733,7 +5733,7 @@ gc_sweep (void)
 	int ilim = (lim + BITS_PER_INT - 1) / BITS_PER_INT;
 
 	/* Scan the mark bits an int at a time.  */
-	for (i = 0; i <= ilim; i++)
+	for (i = 0; i < ilim; i++)
 	  {
 	    if (cblk->gcmarkbits[i] == -1)
 	      {
