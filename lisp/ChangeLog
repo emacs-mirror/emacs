@@ -1,5 +1,8 @@
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* subr.el (with-silent-modifications): Clarify somewhat what the
+	macro inhibits (bug#6525).
+
 	* simple.el (eval-expression): Note what it does if called
 	interactively (bug#6495).
 
