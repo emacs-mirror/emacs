@@ -269,8 +269,8 @@ xg_get_pixbuf_from_pixmap (FRAME_PTR f, Pixmap pix)
                                       GDK_COLORSPACE_RGB,
                                       FALSE,
                                       xim->bitmap_unit,
-                                      (int) width,
-                                      (int) height,
+                                      width,
+                                      height,
                                       xim->bytes_per_line,
                                       NULL,
                                       NULL);
@@ -3646,7 +3646,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
 	      gtk_adjustment_set_page_size (adj, size);
 	      gtk_adjustment_set_step_increment (adj, new_step);
 	      /* Assume a page increment is about 95% of the page size  */
-	      gtk_adjustment_set_page_increment (adj,(int) (0.95*size));
+	      gtk_adjustment_set_page_increment (adj, size - size / 20);
 	      changed = 1;
 	    }
 	}

@@ -1,5 +1,9 @@
 2011-07-13  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* gtkutil.c: Omit integer casts.
+	(xg_get_pixbuf_from_pixmap): Remove unnecessary cast.
+	(xg_set_toolkit_scroll_bar_thumb): Rewrite to avoid need for cast.
+
 	* image.c (png_load): Don't assume height * row_bytes fits in 'int'.
 
 	* bidi.c (bidi_dump_cached_states): Use pD to print ptrdiff_t.
