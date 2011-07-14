@@ -1,3 +1,8 @@
+2011-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (version<, version<=, version=): Mention "-CVS" and
+	"-12345" alpha version numbers.
+
 2011-07-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* bindings.el: Add advertised binding for set-mark-command
