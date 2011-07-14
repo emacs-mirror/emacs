@@ -1,5 +1,8 @@
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* simple.el (current-kill): Clarify what
+	`interprogram-paste-function' does (bug#7500).
+
 	* printing.el (pr-toggle-region): Clarify the documentation
 	slightly (bug#7493).
 
