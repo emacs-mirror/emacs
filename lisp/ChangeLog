@@ -10,6 +10,9 @@
 
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* man.el (Man-bgproc-sentinel): Skip any arguments and only output
+	the man page name (bug#7929).
+
 	* image.el (put-image): Mention the `put-image' overlay property
 	(bug#7834).
 

@@ -1257,12 +1257,20 @@ manpage command."
 	  (Man-mode)
 
 	  (if (not Man-page-list)
-	      (let ((args Man-arguments))
+ 	      (let ((args Man-arguments))
 		(kill-buffer (current-buffer))
-		(error "Can't find the %s manpage" args)))
-
-          (set-buffer-modified-p nil)
-          ))
+		(error "Can't find the %s manpage"
+		       ;; Skip arguments and only print the page name.
+		       (mapconcat
+			'identity
+			(delete nil
+				(mapcar
+				 (lambda (elem)
+				   (and (not (string-match "^-" elem))
+					elem))
+				 (split-string args " ")))
+			" ")))
+	    (set-buffer-modified-p nil))))
 	;; Restore case-fold-search before calling
 	;; Man-notify-when-ready because it may switch buffers.
 
