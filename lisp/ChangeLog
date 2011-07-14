@@ -1,5 +1,9 @@
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* time.el (display-time-update): Allow
+	`display-time-mail-function' to return nil (bug#7158).  Fix
+	suggested by Detlev Zundel.
+
 	* vc/diff.el (diff): Clarify the order the file names are read
 	(bug#7111).
 

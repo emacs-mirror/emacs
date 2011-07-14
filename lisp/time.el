@@ -423,30 +423,31 @@ update which can wait for the next redisplay."
                               (getenv "MAIL")
                               (concat rmail-spool-directory
                                       (user-login-name))))
-	 (mail (or (and display-time-mail-function
-			(funcall display-time-mail-function))
-		   (and display-time-mail-directory
-			(display-time-mail-check-directory))
-		   (and (stringp mail-spool-file)
-			(or (null display-time-server-down-time)
-			    ;; If have been down for 20 min, try again.
-			    (> (- (nth 1 now) display-time-server-down-time)
-			       1200)
-			    (and (< (nth 1 now) display-time-server-down-time)
-				 (> (- (nth 1 now)
-				       display-time-server-down-time)
-				    -64336)))
-			(let ((start-time (current-time)))
-			  (prog1
-			      (display-time-file-nonempty-p mail-spool-file)
-			    (if (> (- (nth 1 (current-time))
-				      (nth 1 start-time))
-				   20)
-				;; Record that mail file is not accessible.
-				(setq display-time-server-down-time
-				      (nth 1 (current-time)))
-			      ;; Record that mail file is accessible.
-			      (setq display-time-server-down-time nil)))))))
+	 (mail (cond
+		(display-time-mail-function
+		 (funcall display-time-mail-function))
+		(display-time-mail-directory
+		 (display-time-mail-check-directory))
+		((and (stringp mail-spool-file)
+		      (or (null display-time-server-down-time)
+			  ;; If have been down for 20 min, try again.
+			  (> (- (nth 1 now) display-time-server-down-time)
+			     1200)
+			  (and (< (nth 1 now) display-time-server-down-time)
+			       (> (- (nth 1 now)
+				     display-time-server-down-time)
+				  -64336))))
+		 (let ((start-time (current-time)))
+		   (prog1
+		       (display-time-file-nonempty-p mail-spool-file)
+		     (if (> (- (nth 1 (current-time))
+			       (nth 1 start-time))
+			    20)
+			 ;; Record that mail file is not accessible.
+			 (setq display-time-server-down-time
+			       (nth 1 (current-time)))
+		       ;; Record that mail file is accessible.
+		       (setq display-time-server-down-time nil)))))))
          (24-hours (substring time 11 13))
          (hour (string-to-number 24-hours))
          (12-hours (int-to-string (1+ (% (+ hour 11) 12))))
