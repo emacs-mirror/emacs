@@ -463,7 +463,7 @@ DEFUN ("floatp", Ffloatp, Sfloatp, 1, 1, 0,
 /* Extract and set components of lists */
 
 DEFUN ("car", Fcar, Scar, 1, 1, 0,
-       doc: /* Return the car (first element) of LIST.  If arg is nil, return nil.
+       doc: /* Return the car of LIST.  If arg is nil, return nil.
 Error if arg is not nil and not a cons cell.  See also `car-safe'.
 
 See Info node `(elisp)Cons Cells' for a discussion of related basic
@@ -481,7 +481,7 @@ DEFUN ("car-safe", Fcar_safe, Scar_safe, 1, 1, 0,
 }
 
 DEFUN ("cdr", Fcdr, Scdr, 1, 1, 0,
-       doc: /* Return the cdr (rest) of LIST.  If arg is nil, return nil.
+       doc: /* Return the cdr of LIST.  If arg is nil, return nil.
 Error if arg is not nil and not a cons cell.  See also `cdr-safe'.
 
 See Info node `(elisp)Cons Cells' for a discussion of related basic
