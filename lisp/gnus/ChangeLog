@@ -5,7 +5,7 @@
 
 	* gnus-int.el (gnus-request-thread): Add group argument.
 
-	* gnus-sum.el (gnus-request-thread): Use it.
+	* gnus-sum.el (gnus-summary-refer-thread): Use it.
 
 2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
