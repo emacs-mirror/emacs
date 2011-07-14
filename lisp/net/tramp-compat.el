@@ -502,15 +502,6 @@ EOL-TYPE can be one of `dos', `unix', or `mac'."
 			"`dos', `unix', or `mac'")))))
         (t (error "Can't change EOL conversion -- is MULE missing?"))))
 
-;; `pop-to-buffer-same-window'  has been introduced with Emacs 24.1.
-(defun tramp-compat-pop-to-buffer-same-window
-  (&optional buffer-or-name norecord label)
-  "Pop to buffer specified by BUFFER-OR-NAME in the selected window."
-  (if (fboundp 'pop-to-buffer-same-window)
-      (tramp-compat-funcall
-       'pop-to-buffer-same-window buffer-or-name norecord label)
-    (tramp-compat-funcall 'switch-to-buffer buffer-or-name norecord)))
-
 (add-hook 'tramp-unload-hook
 	  (lambda ()
 	    (unload-feature 'tramp-compat 'force)))

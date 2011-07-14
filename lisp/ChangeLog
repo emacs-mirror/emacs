@@ -1,3 +1,14 @@
+2011-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el (mode-line-other-buffer):
+	* bookmark.el (bookmark-bmenu-2-window):
+	* bs.el (bs-cycle-next, bs-cycle-previous):
+	* net/tramp-cmds.el (tramp-append-tramp-buffers): Revert to using
+	switch-to-buffer.
+
+	* net/tramp-compat.el (tramp-compat-pop-to-buffer-same-window):
+	Deleted.
+
 2011-07-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* follow.el (follow-debug-message, follow-redisplay):
