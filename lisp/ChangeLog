@@ -1,5 +1,8 @@
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mouse.el (mouse-set-region): Link to `mouse-drag-copy-region' in
+	the doc string (bug#7015).
+
 	* font-lock.el (font-lock-maximum-decoration): Mention what
 	numeric levels mean (bug#6935).
 
