@@ -1,5 +1,8 @@
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* vc/diff.el (diff): Clarify the order the file names are read
+	(bug#7111).
+
 	* mouse.el (mouse-set-region): Link to `mouse-drag-copy-region' in
 	the doc string (bug#7015).
 
