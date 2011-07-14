@@ -639,6 +639,37 @@ up on top of all others
 
 **** Undo for color-drag face customization.
 
+** Bidirectional editing
+
+*** Allow the user to control the direction of the UI
+
+**** Introduce user option to control direction of mode line.
+This requires to figure out what to do with unibyte strings that are
+used in constructing the mode line.  Currently, unibyte strings are
+not reordered by bidi.c, without which R2L mode line will not display
+correctly.  One possibility would be to STRING_SET_MULTIBYTE all Lisp
+strings involved in the mode line, and then pass them through bidi.c.
+
+Another problem is the header line, which is produced by the same
+routines as the mode line.  While it makes sense to have the mode-line
+direction controlled by a single global variable, header lines are
+buffer-specific, so they need a separate treatment in this regard.
+
+**** User options to control direction of menu bar and tool bar.
+For the tool bar, it's relatively easy: set it.paragraph_embedding
+in redisplay_tool_bar according to the user variable, and make
+f->desired_tool_bar_string multibyte with STRING_SET_MULTIBYTE.  Some
+minor changes will be needed to set the right_box_line_p and
+left_box_line_p flags correctly for the R2L tool bar.
+
+However, it makes no sense to display the tool bar right to left if
+the menu bar cannot be displayed in the same direction.
+
+R2L menu bar is tricky for the same reasons as the mode line.  In
+addition, toolkit builds create their menu bars in toolkit-specific
+parts of code, bypassing xdisp.c, so those parts need to be enhanced
+with toolkit-specific code to display the menu bar right to left.
+
 ** ImageMagick support
 
 *** image-type-header-regexps priorities the jpeg loader over the
@@ -663,8 +694,8 @@ view, page-flipping becomes uselessly slow.
 
 *** Integrate with image-dired.
 
-*** Integrate with docview. 
-  
+*** Integrate with docview.
+
 *** Integrate with image-mode.
 Some work has been done, e.g. M-x image-transform-fit-to-height will
 fit the image to the height of the Emacs window.

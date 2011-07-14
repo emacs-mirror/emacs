@@ -1,3 +1,13 @@
+2011-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* buff-menu.el (Buffer-menu-buffer+size): Accept an additional
+	argument LRM; if non-nil, append an invisible LRM character to the
+	buffer name.
+	(list-buffers-noselect): Call Buffer-menu-buffer+size with the
+	last argument non-nil, when formatting buffer names.
+	(Buffer-menu-mode, list-buffers-noselect): Force left-to-right
+	paragraph direction.
+
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* image.el (put-image): Mention the `put-image' overlay property

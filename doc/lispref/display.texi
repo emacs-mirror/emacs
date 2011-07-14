@@ -3899,7 +3899,8 @@ Margins}).
 @itemx (right-fringe @var{bitmap} @r{[}@var{face}@r{]})
 This display specification on any character of a line of text causes
 the specified @var{bitmap} be displayed in the left or right fringes
-for that line.  The optional @var{face} specifies the colors to be
+for that line, instead of the characters that have the display
+specification.  The optional @var{face} specifies the colors to be
 used for the bitmap.  @xref{Fringe Bitmaps}, for the details.
 
 @item (space-width @var{factor})

@@ -677,7 +677,7 @@ end
 
 define xvectype
   xgetptr $
-  set $size = ((struct Lisp_Vector *) $ptr)->size
+  set $size = ((struct Lisp_Vector *) $ptr)->header.size
   output ($size & PVEC_FLAG) ? (enum pvec_type) ($size & PVEC_TYPE_MASK) : $size & ~gdb_array_mark_flag
   echo \n
 end
@@ -818,7 +818,7 @@ end
 define xvector
   xgetptr $
   print (struct Lisp_Vector *) $ptr
-  output ($->size > 50) ? 0 : ($->contents[0])@($->size & ~gdb_array_mark_flag)
+  output ($->header.size > 50) ? 0 : ($->contents[0])@($->header.size & ~gdb_array_mark_flag)
 echo \n
 end
 document xvector
@@ -853,7 +853,7 @@ end
 define xcompiled
   xgetptr $
   print (struct Lisp_Vector *) $ptr
-  output ($->contents[0])@($->size & 0xff)
+  output ($->contents[0])@($->header.size & 0xff)
 end
 document xcompiled
 Print $ as a compiled function pointer.
@@ -903,7 +903,7 @@ define xchartable
   print (struct Lisp_Char_Table *) $ptr
   printf "Purpose: "
   xprintsym $->purpose
-  printf "  %d extra slots", ($->size & 0x1ff) - 68
+  printf "  %d extra slots", ($->header.size & 0x1ff) - 68
   echo \n
 end
 document xchartable
@@ -927,7 +927,7 @@ end
 define xboolvector
   xgetptr $
   print (struct Lisp_Bool_Vector *) $ptr
-  output ($->size > 256) ? 0 : ($->data[0])@((($->size & ~gdb_array_mark_flag) + 7)/ 8)
+  output ($->header.size > 256) ? 0 : ($->data[0])@((($->header.size & ~gdb_array_mark_flag) + 7)/ 8)
   echo \n
 end
 document xboolvector
@@ -1093,7 +1093,7 @@ define xpr
 #    end
   end
   if $type == Lisp_Vectorlike
-    set $size = ((struct Lisp_Vector *) $ptr)->size
+    set $size = ((struct Lisp_Vector *) $ptr)->header.size
     if ($size & PVEC_FLAG)
       set $vec = (enum pvec_type) ($size & PVEC_TYPE_MASK)
       if $vec == PVEC_NORMAL_VECTOR
@@ -1202,7 +1202,7 @@ end
 
 define xfont
   xgetptr $
-  set $size = (((struct Lisp_Vector *) $ptr)->size & 0x1FF)
+  set $size = (((struct Lisp_Vector *) $ptr)->header.size & 0x1FF)
   if $size == FONT_SPEC_MAX
     print (struct font_spec *) $ptr
   else
@@ -1229,7 +1229,7 @@ define xbacktrace
       printf "0x%x ", $ptr
       if $type == Lisp_Vectorlike
 	xgetptr (*$bt->function)
-        set $size = ((struct Lisp_Vector *) $ptr)->size
+        set $size = ((struct Lisp_Vector *) $ptr)->header.size
         output ($size & PVEC_FLAG) ? (enum pvec_type) ($size & PVEC_TYPE_MASK) : $size & ~gdb_array_mark_flag
       else
         printf "Lisp type %d", $type
