@@ -1565,8 +1565,9 @@ textual parts.")
 (declare-function gnus-fetch-headers "gnus-sum"
 		  (articles &optional limit force-new dependencies))
 
-(deffoo nnimap-request-thread (header)
-  (let* ((id (mail-header-id header))
+(deffoo nnimap-request-thread (header &optional group server)
+  (when (nnimap-possibly-change-group group server)
+      (let* ((id (mail-header-id header))
 	 (refs (split-string
 		(or (mail-header-references header)
 		    "")))
@@ -1584,7 +1585,7 @@ textual parts.")
       (gnus-fetch-headers
        (and (car result) (delete 0 (mapcar #'string-to-number
 					   (cdr (assoc "SEARCH" (cdr result))))))
-       nil t))))
+       nil t)))))
 
 (defun nnimap-possibly-change-group (group server)
   (let ((open-result t))

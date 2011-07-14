@@ -76,10 +76,10 @@ delete the temporary files so named."
 ;;;###autoload
 (defun diff (old new &optional switches no-async)
   "Find and display the differences between OLD and NEW files.
-When called interactively, read OLD and NEW using the minibuffer;
-the default for NEW is the current buffer's file name, and the
-default for OLD is a backup file for NEW, if one exists.
-If NO-ASYNC is non-nil, call diff synchronously.
+When called interactively, read NEW, then OLD, using the
+minibuffer.  The default for NEW is the current buffer's file
+name, and the default for OLD is a backup file for NEW, if one
+exists.  If NO-ASYNC is non-nil, call diff synchronously.
 
 When called interactively with a prefix argument, prompt
 interactively for diff switches.  Otherwise, the switches

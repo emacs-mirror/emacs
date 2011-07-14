@@ -698,15 +698,8 @@ If at all possible, give a full recipe for an Emacs started with the
 @cindex dribble file
 @cindex logging keystrokes
 One way to record the input to Emacs precisely is to write a dribble
-file.  To start the file, execute the Lisp expression
-
-@example
-(open-dribble-file "~/dribble")
-@end example
-
-@noindent
-using @kbd{M-:} or from the @samp{*scratch*} buffer just after
-starting Emacs.  From then on, Emacs copies all your input to the
+file.  To start the file, use the @kbd{M-x open-dribble-file
+@key{RET}} command.  From then on, Emacs copies all your input to the
 specified dribble file until the Emacs process is killed.
 
 @item
