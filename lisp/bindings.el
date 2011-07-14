@@ -849,6 +849,8 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key global-map "\C-@" 'set-mark-command)
 ;; Many people are used to typing C-SPC and getting C-@.
 (define-key global-map [?\C- ] 'set-mark-command)
+(put 'set-mark-command :advertised-binding [?\C- ])
+
 (define-key ctl-x-map "\C-x" 'exchange-point-and-mark)
 (define-key ctl-x-map "\C-@" 'pop-global-mark)
 (define-key ctl-x-map [?\C- ] 'pop-global-mark)

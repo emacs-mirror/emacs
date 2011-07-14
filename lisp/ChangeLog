@@ -1,5 +1,10 @@
 2011-07-14  Chong Yidong  <cyd@stupidchicken.com>
 
+	* bindings.el: Add advertised binding for set-mark-command
+	(Bug#5772).
+
+2011-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
 	* bindings.el (mode-line-other-buffer):
 	* bookmark.el (bookmark-bmenu-2-window):
 	* bs.el (bs-cycle-next, bs-cycle-previous):
