@@ -1,5 +1,10 @@
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* rect.el (apply-on-rectangle): Return the point after the last
+	operation.
+	(string-rectangle): Go to the point after the last operation
+	(bug#7522).
+
 	* simple.el (current-kill): Clarify what
 	`interprogram-paste-function' does (bug#7500).
 
