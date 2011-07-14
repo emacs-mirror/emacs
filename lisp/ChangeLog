@@ -1,5 +1,8 @@
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* image.el (put-image): Mention the `put-image' overlay property
+	(bug#7834).
+
 	* scroll-bar.el (set-scroll-bar-mode): Mention that
 	`scroll-bar-mode' lists the values (bug#7772).
 
