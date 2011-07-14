@@ -4611,7 +4611,7 @@ bottom."
 
 ;;;###autoload
 (defun pr-toggle-region ()
-  "Toggle auto region."
+  "Toggle whether the region is automagically detected."
   (interactive)
   (pr-toggle-region-menu t))
 

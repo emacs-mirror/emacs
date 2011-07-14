@@ -1,5 +1,8 @@
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* printing.el (pr-toggle-region): Clarify the documentation
+	slightly (bug#7493).
+
 	* time.el (display-time-update): Allow
 	`display-time-mail-function' to return nil (bug#7158).  Fix
 	suggested by Detlev Zundel.
