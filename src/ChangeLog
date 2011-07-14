@@ -2,6 +2,10 @@
 
 	Integer signedness and overflow and related fixes.  (Bug#9079)
 
+	* alloc.c (__malloc_size_t): Remove.
+	All uses replaced by size_t.  See Andreas Schwab's note
+	<http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9079#8>.
+
 	* image.c: Improve checking for integer overflow.
 	(check_image_size): Assume that f is nonnull, since
 	it is always nonnull in practice.  This is one less thing to

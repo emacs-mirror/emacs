@@ -68,10 +68,6 @@ extern POINTER_TYPE *sbrk ();
 #ifdef DOUG_LEA_MALLOC
 
 #include <malloc.h>
-/* malloc.h #defines this as size_t, at least in glibc2.  */
-#ifndef __malloc_size_t
-#define __malloc_size_t size_t
-#endif
 
 /* Specify maximum number of areas to mmap.  It would be nice to use a
    value that explicitly means "no limit".  */
@@ -82,9 +78,8 @@ extern POINTER_TYPE *sbrk ();
 
 /* The following come from gmalloc.c.  */
 
-#define	__malloc_size_t		size_t
-extern __malloc_size_t _bytes_used;
-extern __malloc_size_t __malloc_extra_blocks;
+extern size_t _bytes_used;
+extern size_t __malloc_extra_blocks;
 
 #endif /* not DOUG_LEA_MALLOC */
 
@@ -1111,11 +1106,11 @@ static void (*old_free_hook) (void*, const void*);
 #  define BYTES_USED _bytes_used
 #endif
 
-static __malloc_size_t bytes_used_when_reconsidered;
+static size_t bytes_used_when_reconsidered;
 
 /* Value of _bytes_used, when spare_memory was freed.  */
 
-static __malloc_size_t bytes_used_when_full;
+static size_t bytes_used_when_full;
 
 /* This function is used as the hook for free to call.  */
 
