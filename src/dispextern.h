@@ -1820,9 +1820,21 @@ struct bidi_stack {
   bidi_dir_t override;
 };
 
+/* Data type for storing information about a string being iterated on.  */
+struct bidi_string_data {
+  Lisp_Object lstring;		/* Lisp string to reorder, or nil */
+  const unsigned char *s;	/* string data, or NULL if reordering buffer */
+  EMACS_INT schars;		/* the number of characters in the string,
+				   excluding the terminating null */
+  EMACS_INT bufpos;		/* buffer position of lstring, or 0 if N/A */
+  unsigned from_disp_str : 1;	/* 1 means the string comes from a
+				   display property */
+  unsigned unibyte : 1;		/* 1 means the string is unibyte */
+};
+
 /* Data type for reordering bidirectional text.  */
 struct bidi_it {
-  EMACS_INT bytepos;		/* iterator's position in buffer */
+  EMACS_INT bytepos;		/* iterator's position in buffer/string */
   EMACS_INT charpos;
   int ch;			/* character at that position, or u+FFFC
 				   ("object replacement character") for a run
@@ -1852,12 +1864,13 @@ struct bidi_it {
      iterator state is saved, pushed, or popped.  So only put here
      stuff that is not part of the bidi iterator's state!  */
   struct bidi_stack level_stack[BIDI_MAXLEVEL]; /* stack of embedding levels */
-  int first_elt;		/* if non-zero, examine current char first */
+  struct bidi_string_data string;	/* string to reorder */
   bidi_dir_t paragraph_dir;	/* current paragraph direction */
-  int new_paragraph;		/* if non-zero, we expect a new paragraph */
-  int frame_window_p;		/* non-zero if displaying on a GUI frame */
   EMACS_INT separator_limit;	/* where paragraph separator should end */
   EMACS_INT disp_pos;		/* position of display string after ch */
+  unsigned first_elt : 1;	/* if non-zero, examine current char first */
+  unsigned new_paragraph : 1;	/* if non-zero, we expect a new paragraph */
+  unsigned frame_window_p : 1;	/* non-zero if displaying on a GUI frame */
 };
 
 /* Value is non-zero when the bidi iterator is at base paragraph
@@ -2134,6 +2147,10 @@ struct it
      Don't handle some `display' properties in these strings.  */
   unsigned string_from_display_prop_p : 1;
 
+  /* 1 means we are iterating an object that came from a value of a
+     `display' property.  */
+  unsigned from_disp_prop_p : 1;
+
   /* When METHOD == next_element_from_display_vector,
      this is 1 if we're doing an ellipsis.  Otherwise meaningless.  */
   unsigned ellipsis_p : 1;
@@ -2153,7 +2170,9 @@ struct it
   Lisp_Object *dpvec, *dpend;
 
   /* Length in bytes of the char that filled dpvec.  A value of zero
-     means that no such character is involved.  */
+     means that no such character is involved.  A negative value means
+     the rest of the line from the current iterator position onwards
+     is hidden by selective display or ellipsis.  */
   int dpvec_char_len;
 
   /* Face id to use for all characters in display vector.  -1 if unused. */
@@ -2245,10 +2264,13 @@ struct it
     Lisp_Object from_overlay;
     enum glyph_row_area area;
     enum it_method method;
+    bidi_dir_t paragraph_embedding;
     unsigned multibyte_p : 1;
     unsigned string_from_display_prop_p : 1;
     unsigned display_ellipsis_p : 1;
     unsigned avoid_cursor_p : 1;
+    unsigned bidi_p:1;
+    unsigned from_disp_prop_p : 1;
     enum line_wrap_method line_wrap;
 
     /* properties from display property that are reset by another display property. */
@@ -2469,7 +2491,7 @@ struct it
 
   /* Non-zero means we need to reorder bidirectional text for display
      in the visual order.  */
-  int bidi_p;
+  unsigned bidi_p : 1;
 
   /* For iterating over bidirectional text.  */
   struct bidi_it bidi_it;
@@ -2951,6 +2973,10 @@ extern void bidi_init_it (EMACS_INT, EMACS_INT, int, struct bidi_it *);
 extern void bidi_move_to_visually_next (struct bidi_it *);
 extern void bidi_paragraph_init (bidi_dir_t, struct bidi_it *, int);
 extern int  bidi_mirror_char (int);
+extern void bidi_push_it (struct bidi_it *);
+extern void bidi_pop_it (struct bidi_it *);
+extern void *bidi_shelve_cache (void);
+extern void bidi_unshelve_cache (void *);
 
 /* Defined in xdisp.c */
 
@@ -3008,8 +3034,10 @@ extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
 extern int calc_pixel_width_or_height (double *, struct it *, Lisp_Object,
                                        struct font *, int, int *);
-extern EMACS_INT compute_display_string_pos (EMACS_INT, int);
-extern EMACS_INT compute_display_string_end (EMACS_INT);
+extern EMACS_INT compute_display_string_pos (struct text_pos *,
+					     struct bidi_string_data *, int);
+extern EMACS_INT compute_display_string_end (EMACS_INT,
+					     struct bidi_string_data *);
 
 #ifdef HAVE_WINDOW_SYSTEM
 

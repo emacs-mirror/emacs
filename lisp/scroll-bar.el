@@ -81,7 +81,8 @@ SIDE must be the symbol `left' or `right'."
 This is nil while loading `scroll-bar.el', and t afterward.")
 
 (defun set-scroll-bar-mode (value)
-  "Set `scroll-bar-mode' to VALUE and put the new value into effect."
+  "Set the scroll bar mode to VALUE and put the new value into effect.
+See the `scroll-bar-mode' variable for possible values to use."
   (if scroll-bar-mode
       (setq previous-scroll-bar-mode scroll-bar-mode))
 

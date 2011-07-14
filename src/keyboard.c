@@ -10643,7 +10643,8 @@ DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
 DEFUN ("open-dribble-file", Fopen_dribble_file, Sopen_dribble_file, 1, 1,
        "FOpen dribble file: ",
        doc: /* Start writing all keyboard characters to a dribble file called FILE.
-If FILE is nil, close any open dribble file.  */)
+If FILE is nil, close any open dribble file.
+The file will be closed when Emacs exits.  */)
   (Lisp_Object file)
 {
   if (dribble)

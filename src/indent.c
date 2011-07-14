@@ -1989,6 +1989,7 @@ whether or not it is currently displayed in some window.  */)
   struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object lcols = Qnil;
   double cols IF_LINT (= 0);
+  void *itdata = NULL;
 
   /* Allow LINES to be of the form (HPOS . VPOS) aka (COLUMNS . LINES).  */
   if (CONSP (lines) && (NUMBERP (XCAR (lines))))
@@ -2029,6 +2030,7 @@ whether or not it is currently displayed in some window.  */)
       EMACS_INT it_start;
       int first_x, it_overshoot_expected IF_LINT (= 0);
 
+      itdata = bidi_shelve_cache ();
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
       first_x = it.first_visible_x;
@@ -2133,6 +2135,7 @@ whether or not it is currently displayed in some window.  */)
 	}
 
       SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
+      bidi_unshelve_cache (itdata);
     }
 
   if (BUFFERP (old_buffer))

@@ -266,7 +266,10 @@ Letters do not insert themselves; instead, they are commands.
   (set (make-local-variable 'buffer-stale-function)
        (lambda (&optional _noconfirm) 'fast))
   (setq truncate-lines t)
-  (setq buffer-read-only t))
+  (setq buffer-read-only t)
+  ;; Force L2R direction, to avoid messing the display if the first
+  ;; buffer in the list happens to begin with a strong R2L character.
+  (setq bidi-paragraph-direction 'left-to-right))
 
 (define-obsolete-variable-alias 'buffer-menu-mode-hook
   'Buffer-menu-mode-hook "23.1")
@@ -663,7 +666,7 @@ For more information, see the function `buffer-menu'."
   ":" ;; (if (char-displayable-p ?…) "…" ":")
   )
 
-(defun Buffer-menu-buffer+size (name size &optional name-props size-props)
+(defun Buffer-menu-buffer+size (name size &optional name-props size-props lrm)
   (if (> (+ (string-width name) (string-width size) 2)
          Buffer-menu-buffer+size-width)
       (setq name
@@ -678,9 +681,17 @@ For more information, see the function `buffer-menu'."
                           (string-width tail)
                           2))
                       Buffer-menu-short-ellipsis
-                      tail)))
+                      tail
+		      ;; Append an invisible LRM character to the
+		      ;; buffer's name to avoid ugly display with the
+		      ;; buffer size to the left of the name, when the
+		      ;; name begins with R2L character.
+		      (if lrm (propertize (string ?\x200e) 'invisible t) ""))))
     ;; Don't put properties on (buffer-name).
-    (setq name (copy-sequence name)))
+    (setq name (concat (copy-sequence name)
+		       (if lrm
+			   (propertize (string ?\x200e) 'invisible t)
+			 ""))))
   (add-text-properties 0 (length name) name-props name)
   (add-text-properties 0 (length size) size-props size)
   (let ((name+space-width (- Buffer-menu-buffer+size-width
@@ -813,6 +824,10 @@ For more information, see the function `buffer-menu'."
       (setq buffer-read-only nil)
       (erase-buffer)
       (setq standard-output (current-buffer))
+      ;; Force L2R direction, to avoid messing the display if the
+      ;; first buffer in the list happens to begin with a strong R2L
+      ;; character.
+      (setq bidi-paragraph-direction 'left-to-right)
       (unless Buffer-menu-use-header-line
         ;; Use U+2014 (EM DASH) to underline if possible, else use ASCII
         ;; (i.e. U+002D, HYPHEN-MINUS).
@@ -914,7 +929,8 @@ For more information, see the function `buffer-menu'."
 						   (max (length size) 3)
 						   2))
 					    name
-					  "mouse-2: select this buffer"))))
+					  "mouse-2: select this buffer"))
+			 nil t))
 		"  "
 		(if (> (string-width (nth 4 buffer)) Buffer-menu-mode-width)
 		    (truncate-string-to-width (nth 4 buffer)

@@ -1,3 +1,8 @@
+2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* trouble.texi (Checklist): Use an `M-x' example instead of an
+	Emacs Lisp form to switch on the dribble file (bug#8056).
+
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* custom.texi (Hooks): Mention buffer-local hooks (bug#6218).
