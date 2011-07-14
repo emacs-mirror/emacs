@@ -1,6 +1,6 @@
 2011-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Integer signedness and overflow and related fixes.
+	Integer signedness and overflow and related fixes.  (Bug#9079)
 
 	* image.c: Improve checking for integer overflow.
 	(check_image_size): Assume that f is nonnull, since
