@@ -11140,23 +11140,23 @@ fi
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for glib-2.0 >= 2.26" >&5
-$as_echo_n "checking for glib-2.0 >= 2.26... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gio-2.0 >= 2.26" >&5
+$as_echo_n "checking for gio-2.0 >= 2.26... " >&6; }
 
-        if $PKG_CONFIG --exists "glib-2.0 >= 2.26" 2>&5; then
+        if $PKG_CONFIG --exists "gio-2.0 >= 2.26" 2>&5; then
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
             succeeded=yes
 
             { $as_echo "$as_me:${as_lineno-$LINENO}: checking GSETTINGS_CFLAGS" >&5
 $as_echo_n "checking GSETTINGS_CFLAGS... " >&6; }
-            GSETTINGS_CFLAGS=`$PKG_CONFIG --cflags "glib-2.0 >= 2.26"|sed -e 's,///*,/,g'`
+            GSETTINGS_CFLAGS=`$PKG_CONFIG --cflags "gio-2.0 >= 2.26"|sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GSETTINGS_CFLAGS" >&5
 $as_echo "$GSETTINGS_CFLAGS" >&6; }
 
             { $as_echo "$as_me:${as_lineno-$LINENO}: checking GSETTINGS_LIBS" >&5
 $as_echo_n "checking GSETTINGS_LIBS... " >&6; }
-            GSETTINGS_LIBS=`$PKG_CONFIG --libs "glib-2.0 >= 2.26"|sed -e 's,///*,/,g'`
+            GSETTINGS_LIBS=`$PKG_CONFIG --libs "gio-2.0 >= 2.26"|sed -e 's,///*,/,g'`
             { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GSETTINGS_LIBS" >&5
 $as_echo "$GSETTINGS_LIBS" >&6; }
         else
@@ -11166,7 +11166,7 @@ $as_echo "no" >&6; }
             GSETTINGS_LIBS=""
             ## If we have a custom action on failure, don't print errors, but
             ## do set a variable so people can do so.
-            GSETTINGS_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "glib-2.0 >= 2.26"`
+            GSETTINGS_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "gio-2.0 >= 2.26"`
 
         fi
 

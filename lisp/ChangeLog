@@ -1,3 +1,42 @@
+2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* rect.el (apply-on-rectangle): Return the point after the last
+	operation.
+	(string-rectangle): Go to the point after the last operation
+	(bug#7522).
+
+	* simple.el (current-kill): Clarify what
+	`interprogram-paste-function' does (bug#7500).
+
+	* printing.el (pr-toggle-region): Clarify the documentation
+	slightly (bug#7493).
+
+	* time.el (display-time-update): Allow
+	`display-time-mail-function' to return nil (bug#7158).  Fix
+	suggested by Detlev Zundel.
+
+	* vc/diff.el (diff): Clarify the order the file names are read
+	(bug#7111).
+
+	* mouse.el (mouse-set-region): Link to `mouse-drag-copy-region' in
+	the doc string (bug#7015).
+
+	* font-lock.el (font-lock-maximum-decoration): Mention what
+	numeric levels mean (bug#6935).
+
+	* startup.el (initial-buffer-choice): Don't mention the `none'
+	selection, which is against policy.
+
+2011-07-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-normalize-special): Replace
+	`dedicated' by `dedicate' to dedicate window (Bug#9072).
+
+2011-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (version<, version<=, version=): Mention "-CVS" and
+	"-12345" alpha version numbers.
+
 2011-07-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* bindings.el: Add advertised binding for set-mark-command

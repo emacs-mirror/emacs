@@ -4087,7 +4087,8 @@ If all LST elements are zeros or LST is nil, return zero."
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
 etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
-which is higher than \"1alpha\"."
+which is higher than \"1alpha\".  Also, \"-CVS\" and \"-NNN\" are treated
+as alpha versions."
   (version-list-< (version-to-list v1) (version-to-list v2)))
 
 
@@ -4097,7 +4098,8 @@ which is higher than \"1alpha\"."
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
 etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
-which is higher than \"1alpha\"."
+which is higher than \"1alpha\".  Also, \"-CVS\" and \"-NNN\" are treated
+as alpha versions."
   (version-list-<= (version-to-list v1) (version-to-list v2)))
 
 (defun version= (v1 v2)
@@ -4106,7 +4108,8 @@ which is higher than \"1alpha\"."
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
 etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
-which is higher than \"1alpha\"."
+which is higher than \"1alpha\".  Also, \"-CVS\" and \"-NNN\" are treated
+as alpha versions."
   (version-list-= (version-to-list v1) (version-to-list v2)))
 
 

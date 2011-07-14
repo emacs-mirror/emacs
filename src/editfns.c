@@ -3160,10 +3160,9 @@ It returns the number of characters changed.  */)
 }
 
 DEFUN ("delete-region", Fdelete_region, Sdelete_region, 2, 2, "r",
-       doc: /* Delete the text between point and mark.
-
-When called from a program, expects two arguments,
-positions (integers or markers) specifying the stretch to be deleted.  */)
+       doc: /* Delete the text between START and END.
+If called interactively, delete the region between point and mark.
+This command deletes buffer text without modifying the kill ring.  */)
   (Lisp_Object start, Lisp_Object end)
 {
   validate_region (&start, &end);

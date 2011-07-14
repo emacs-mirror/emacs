@@ -687,7 +687,9 @@ This should be bound to a mouse click event type."
 
 (defun mouse-set-region (click)
   "Set the region to the text dragged over, and copy to kill ring.
-This should be bound to a mouse drag event."
+This should be bound to a mouse drag event.
+See the `mouse-drag-copy-region' variable to control whether this
+command alters the kill ring or not."
   (interactive "e")
   (mouse-minibuffer-check click)
   (select-window (posn-window (event-start click)))

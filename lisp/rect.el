@@ -93,8 +93,9 @@ Point is at the end of the segment of this line within the rectangle."
   "Call FUNCTION for each line of rectangle with corners at START, END.
 FUNCTION is called with two arguments: the start and end columns of the
 rectangle, plus ARGS extra arguments.  Point is at the beginning of line when
-the function is called."
-  (let (startcol startpt endcol endpt)
+the function is called.
+The final point after the last operation will be returned."
+  (let (startcol startpt endcol endpt final-point)
     (save-excursion
       (goto-char start)
       (setq startcol (current-column))
@@ -112,8 +113,9 @@ the function is called."
       (goto-char startpt)
       (while (< (point) endpt)
 	(apply function startcol endcol args)
+	(setq final-point (point))
 	(forward-line 1)))
-    ))
+    final-point))
 
 (defun delete-rectangle-line (startcol endcol fill)
   (when (= (move-to-column startcol (if fill t 'coerce)) startcol)
@@ -323,7 +325,8 @@ Called from a program, takes three args; START, END and STRING."
 				(or (car string-rectangle-history) ""))
 			nil 'string-rectangle-history
 			(car string-rectangle-history)))))
-  (apply-on-rectangle 'string-rectangle-line start end string t))
+  (goto-char
+   (apply-on-rectangle 'string-rectangle-line start end string t)))
 
 ;;;###autoload
 (defalias 'replace-rectangle 'string-rectangle)

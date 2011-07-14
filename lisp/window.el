@@ -5317,12 +5317,12 @@ user preferences expressed in `display-buffer-alist'."
        (unless display-buffer-mark-dedicated
 	 ;; Don't make anything created above dedicated unless requested.
 	 ;; Otherwise the dedication request below gets in our way.
-	 '((dedicated . nil)))
+	 '((dedicate . nil)))
        `((pop-up-frame t)
 	 ,(append '(pop-up-frame-alist)
 		  (when (listp args) args)
 		  special-display-frame-alist)
-	 (dedicated . t))))))
+	 (dedicate . t))))))
 
 (defun display-buffer-normalize-default (buffer-or-name)
   "Subroutine of `display-buffer-normalize-specifiers'.

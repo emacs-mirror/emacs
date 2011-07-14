@@ -119,7 +119,7 @@
 	* bidi.c: Integer signedness and overflow fixes.
 	(bidi_cache_idx, bidi_cache_last_idx, bidi_cache_fetch_state)
 	(bidi_cache_search, bidi_cache_find_level_change)
-p	(bidi_cache_iterator_state, bidi_cache_find)
+	(bidi_cache_iterator_state, bidi_cache_find)
 	(bidi_find_other_level_edge, bidi_dump_cached_states):
 	Don't arbitrarily limit cache indexes to int; use ptrdiff_t instead.
 	(bidi_cache_size): Use ptrdiff_t rather than size_t, as we prefer
@@ -192,6 +192,16 @@ p	(bidi_cache_iterator_state, bidi_cache_find)
 	* lisp.h (struct vectorlike_header, struct Lisp_Subr): Signed sizes.
 	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
 	well either way, and we prefer signed to unsigned.
+
+2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* editfns.c (Fdelete_region): Clarify the use of the named
+	parameters (bug#6788).
+
+2011-07-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* indent.c (Fvertical_motion): Set and restore w->pointm when
+	saving and restoring the window's buffer (Bug#9006).
 
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
