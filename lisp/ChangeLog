@@ -1,3 +1,8 @@
+2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* man.el (Man-fontify-manpage): Fix message when formatting the
+	man page (bug#7929).
+
 2011-07-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* buff-menu.el (Buffer-menu-buffer+size): Accept an additional
