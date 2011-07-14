@@ -1,5 +1,8 @@
 2011-07-14  Eli Zaretskii  <eliz@gnu.org>
 
+	* bidi.c (bidi_dump_cached_states): Fix format of displaying
+	bidi_cache_idx.
+
 	Support bidi reordering of display and overlay strings.
 	* xdisp.c (compute_display_string_pos)
 	(compute_display_string_end): Accept additional argument STRING.
