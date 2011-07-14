@@ -1,3 +1,9 @@
+2011-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el (follow-debug-message, follow-redisplay):
+	* jka-cmpr-hook.el (with-auto-compression-mode):
+	Fix typos in docstrings.
+
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* subr.el (with-silent-modifications): Clarify somewhat what the
