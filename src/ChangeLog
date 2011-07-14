@@ -31,8 +31,6 @@
 
 	* image.c (png_load): Don't assume height * row_bytes fits in 'int'.
 
-	* bidi.c (bidi_dump_cached_states): Use pD to print ptrdiff_t.
-
 	* xfaces.c (Fbitmap_spec_p): Fix integer overflow bug.
 	Without this fix, (bitmap-spec-p '(34359738368 1 "x"))
 	would wrongly return t on a 64-bit host.
@@ -115,17 +113,6 @@
 	(alloc_buffer_text, enlarge_buffer_text):
 	Use ptrdiff_t rather than size_t when either will do, as we prefer
 	signed integers.
-
-	* bidi.c: Integer signedness and overflow fixes.
-	(bidi_cache_idx, bidi_cache_last_idx, bidi_cache_fetch_state)
-	(bidi_cache_search, bidi_cache_find_level_change)
-	(bidi_cache_iterator_state, bidi_cache_find)
-	(bidi_find_other_level_edge, bidi_dump_cached_states):
-	Don't arbitrarily limit cache indexes to int; use ptrdiff_t instead.
-	(bidi_cache_size): Use ptrdiff_t rather than size_t, as we prefer
-	signed integers.
-	(elsz): Make it a (signed) constant.
-	(bidi_cache_iterator_state): Check for size-calculation overflow.
 
 	* alloc.c: Integer signedness and overflow fixes.
 	Do not impose an arbitrary 32-bit limit on malloc sizes when debugging.
