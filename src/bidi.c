@@ -336,7 +336,7 @@ bidi_cache_shrink (void)
 }
 
 static inline void
-bidi_cache_fetch_state (int idx, struct bidi_it *bidi_it)
+bidi_cache_fetch_state (EMACS_INT idx, struct bidi_it *bidi_it)
 {
   int current_scan_dir = bidi_it->scan_dir;
 
@@ -352,10 +352,10 @@ bidi_cache_fetch_state (int idx, struct bidi_it *bidi_it)
    level less or equal to LEVEL.  if LEVEL is -1, disregard the
    resolved levels in cached states.  DIR, if non-zero, means search
    in that direction from the last cache hit.  */
-static inline int
+static inline EMACS_INT
 bidi_cache_search (EMACS_INT charpos, int level, int dir)
 {
-  int i, i_start;
+  EMACS_INT i, i_start;
 
   if (bidi_cache_idx > bidi_cache_start)
     {
@@ -417,12 +417,12 @@ bidi_cache_search (EMACS_INT charpos, int level, int dir)
    C, searching backwards (DIR = -1) for LEVEL = 2 will return the
    index of slot B or A, depending whether BEFORE is, respectively,
    non-zero or zero.  */
-static int
+static EMACS_INT
 bidi_cache_find_level_change (int level, int dir, int before)
 {
   if (bidi_cache_idx)
     {
-      int i = dir ? bidi_cache_last_idx : bidi_cache_idx - 1;
+      EMACS_INT i = dir ? bidi_cache_last_idx : bidi_cache_idx - 1;
       int incr = before ? 1 : 0;
 
       xassert (!dir || bidi_cache_last_idx >= 0);
@@ -458,7 +458,7 @@ bidi_cache_find_level_change (int level, int dir, int before)
 }
 
 static inline void
-bidi_cache_ensure_space (int idx)
+bidi_cache_ensure_space (EMACS_INT idx)
 {
   /* Enlarge the cache as needed.  */
   if (idx >= bidi_cache_size)
@@ -473,7 +473,7 @@ bidi_cache_ensure_space (int idx)
 static inline void
 bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
 {
-  int idx;
+  EMACS_INT idx;
 
   /* We should never cache on backward scans.  */
   if (bidi_it->scan_dir == -1)
@@ -528,7 +528,7 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
 static inline bidi_type_t
 bidi_cache_find (EMACS_INT charpos, int level, struct bidi_it *bidi_it)
 {
-  int i = bidi_cache_search (charpos, level, bidi_it->scan_dir);
+  EMACS_INT i = bidi_cache_search (charpos, level, bidi_it->scan_dir);
 
   if (i >= bidi_cache_start)
     {
@@ -560,7 +560,7 @@ bidi_peek_at_next_level (struct bidi_it *bidi_it)
 /* 5-slot stack for saving the start of the previous level of the
    cache.  xdisp.c maintains a 5-slot stack for its iterator state,
    and we need the same size of our stack.  */
-static int bidi_cache_start_stack[IT_STACK_SIZE];
+static EMACS_INT bidi_cache_start_stack[IT_STACK_SIZE];
 static int bidi_cache_sp;
 
 /* Push the bidi iterator state in preparation for reordering a
@@ -2123,7 +2123,7 @@ static void
 bidi_find_other_level_edge (struct bidi_it *bidi_it, int level, int end_flag)
 {
   int dir = end_flag ? -bidi_it->scan_dir : bidi_it->scan_dir;
-  int idx;
+  EMACS_INT idx;
 
   /* Try the cache first.  */
   if ((idx = bidi_cache_find_level_change (level, dir, end_flag))
