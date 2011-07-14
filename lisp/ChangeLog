@@ -1,5 +1,8 @@
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* image-mode.el (image-mode-fit-frame): Mention that it's a toggle
+	command (bug#7729).
+
 	* rect.el (apply-on-rectangle): Return the point after the last
 	operation.
 	(string-rectangle): Go to the point after the last operation
