@@ -1,5 +1,8 @@
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* search.c (Fre_search_backward): Mention `case-fold-search' in
+	all the re_search_* functions (bug#8138).
+
 	* keyboard.c (Fopen_dribble_file): Document when the file is
 	closed (bug#8056).
 
