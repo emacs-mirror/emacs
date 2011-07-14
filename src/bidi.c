@@ -299,8 +299,8 @@ bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
 
 #define BIDI_CACHE_CHUNK 200
 static struct bidi_it *bidi_cache;
-static size_t bidi_cache_size = 0;
-static size_t elsz = sizeof (struct bidi_it);
+static EMACS_INT bidi_cache_size = 0;
+enum { elsz = sizeof (struct bidi_it) };
 static EMACS_INT bidi_cache_idx;	/* next unused cache slot */
 static EMACS_INT bidi_cache_last_idx;	/* slot of last cache hit */
 static EMACS_INT bidi_cache_start = 0;	/* start of cache for this
