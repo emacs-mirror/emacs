@@ -1,5 +1,7 @@
 2011-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Integer signedness and overflow and related fixes.
+
 	* image.c: Improve checking for integer overflow.
 	(check_image_size): Assume that f is nonnull, since
 	it is always nonnull in practice.  This is one less thing to
@@ -18,8 +20,6 @@
 	(tiff_load): Treat overly large images as if
 	x_create_x_image_and_pixmap failed, not as malloc failures.
 	(gs_load): Use x_check_image_size.
-
-2011-07-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* gtkutil.c: Omit integer casts.
 	(xg_get_pixbuf_from_pixmap): Remove unnecessary cast.
@@ -115,7 +115,7 @@
 	* bidi.c: Integer signedness and overflow fixes.
 	(bidi_cache_idx, bidi_cache_last_idx, bidi_cache_fetch_state)
 	(bidi_cache_search, bidi_cache_find_level_change)
-	(bidi_cache_iterator_state, bidi_cache_find)
+p	(bidi_cache_iterator_state, bidi_cache_find)
 	(bidi_find_other_level_edge, bidi_dump_cached_states):
 	Don't arbitrarily limit cache indexes to int; use ptrdiff_t instead.
 	(bidi_cache_size): Use ptrdiff_t rather than size_t, as we prefer
@@ -185,9 +185,22 @@
 	* gmalloc.c (memcpy, memset, memmove): Remove; we assume C89 now.
 	(__malloc_safe_bcopy): Remove; no longer needed.
 
-	* lisp.h (struct vectorlike_header, struct Lisp_Subr):  Signed sizes.
+	* lisp.h (struct vectorlike_header, struct Lisp_Subr): Signed sizes.
 	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
 	well either way, and we prefer signed to unsigned.
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* editfns.c (Fstring_to_char): Clarify just what is returned
+	(bug#6576).  Text by Eli Zaretskii.
+
+2011-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnutls.c (init_gnutls_functions): Honor gnutls_log_level (bug#9059).
+
+2011-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (mmap_find): Fix a typo.
 
 2011-07-13  Johan Bockgård  <bojohan@gnu.org>
 
@@ -203,7 +216,7 @@
 
 2011-07-13  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* buffer.c (Fget_buffer_create): Initialized inhibit_shrinking.
+	* buffer.c (Fget_buffer_create): Initialize inhibit_shrinking.
 	The old code sometimes used this field without initializing it.
 
 	* alloc.c (gc_sweep): Don't read past end of array.
@@ -213,7 +226,7 @@
 2011-07-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* character.c (Fcharacterp): Don't advertise optional ignored
-	argument. (Bug#4026)
+	argument.  (Bug#4026)
 
 2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -427,7 +440,7 @@
 	(char_table_ascii): Uncompress the compressed values.
 	(sub_char_table_ref): New arg is_uniprop.  Callers changed.
 	Uncompress the compressed values.
-	(sub_char_table_ref_and_range):  Likewise.
+	(sub_char_table_ref_and_range): Likewise.
 	(char_table_ref_and_range): Uncompress the compressed values.
 	(sub_char_table_set): New arg is_uniprop.  Callers changed.
 	Uncompress the compressed values.
@@ -2105,7 +2118,7 @@
 	(xpm_put_color_table_h):
 	* lisp.h (struct Lisp_Hash_Table):
 	* minibuf.c (Ftry_completion, Fall_completions, Ftest_completion):
-	* print.c (print):  Use 'EMACS_UINT' and 'EMACS_INT'
+	* print.c (print): Use 'EMACS_UINT' and 'EMACS_INT'
 	for hashes and hash indexes, instead of 'unsigned' and 'int'.
 	* alloc.c (allocate_vectorlike):
 	Check for overflow in vector size calculations.
@@ -2402,7 +2415,7 @@
 
 	* dispnew.c (shift_glyph_matrix, scrolling_window): Mark scrolled row
 	for fringe update if it has periodic bitmap.
-	(row_equal_p): Also compare left_fringe_offset,	right_fringe_offset,
+	(row_equal_p): Also compare left_fringe_offset, right_fringe_offset,
 	and fringe_bitmap_periodic_p.
 
 	* fringe.c (get_fringe_bitmap_data): New function.

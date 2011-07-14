@@ -5925,7 +5925,7 @@ buffer with the name BUFFER-OR-NAME and return that buffer."
 	    buffer))
     (other-buffer)))
 
-(defun switch-to-buffer (buffer-or-name &optional norecord)
+(defun switch-to-buffer (buffer-or-name &optional norecord force-same-window)
   "Switch to buffer BUFFER-OR-NAME in the selected window.
 If called interactively, prompt for the buffer name using the
 minibuffer.  The variable `confirm-nonexistent-file-or-buffer'
@@ -5941,25 +5941,33 @@ BUFFER-OR-NAME is nil, switch to the buffer returned by
 Optional argument NORECORD non-nil means do not put the buffer
 specified by BUFFER-OR-NAME at the front of the buffer list and
 do not make the window displaying it the most recently selected
-one.  Return the buffer switched to.
+one.
 
-This function is intended for interactive use only.  Lisp
-functions should call `pop-to-buffer-same-window' instead."
+If FORCE-SAME-WINDOW is non-nil, BUFFER-OR-NAME must be displayed
+in the currently selected window; signal an error if that is
+impossible (e.g. if the selected window is minibuffer-only).
+If non-nil, BUFFER-OR-NAME may be displayed in another window.
+
+Return the buffer switched to."
   (interactive
-   (list (read-buffer-to-switch "Switch to buffer: ")))
+   (list (read-buffer-to-switch "Switch to buffer: ") nil nil))
   (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
-    (cond
-     ;; Don't call set-window-buffer if it's not needed since it
-     ;; might signal an error (e.g. if the window is dedicated).
-     ((eq buffer (window-buffer)) nil)
-     ((window-minibuffer-p)
-      (error "Cannot switch buffers in minibuffer window"))
-     ((eq (window-dedicated-p) t)
-      (error "Cannot switch buffers in a dedicated window"))
-     (t (set-window-buffer nil buffer)))
-    (unless norecord
-      (select-window (selected-window)))
-    (set-buffer buffer)))
+    (if (null force-same-window)
+	(pop-to-buffer buffer-or-name
+		       '(same-window (reuse-window-dedicated . weak))
+		       norecord nil)
+      (cond
+       ;; Don't call set-window-buffer if it's not needed since it
+       ;; might signal an error (e.g. if the window is dedicated).
+       ((eq buffer (window-buffer)) nil)
+       ((window-minibuffer-p)
+	(error "Cannot switch buffers in minibuffer window"))
+       ((eq (window-dedicated-p) t)
+	(error "Cannot switch buffers in a dedicated window"))
+       (t (set-window-buffer nil buffer)))
+      (unless norecord
+	(select-window (selected-window)))
+      (set-buffer buffer))))
 
 (defun switch-to-buffer-same-frame (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME in a window on the selected frame.

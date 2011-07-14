@@ -1262,10 +1262,10 @@ unless the optional argument APPEND is non-nil, in which case
 FUNCTION is added at the end.
 
 The optional fourth argument, LOCAL, if non-nil, says to modify
-the hook's buffer-local value rather than its default value.
-This makes the hook buffer-local if needed, and it makes t a member
-of the buffer-local value.  That acts as a flag to run the hook
-functions in the default value as well as in the local value.
+the hook's buffer-local value rather than its global value.
+This makes the hook buffer-local, and it makes t a member of the
+buffer-local value.  That acts as a flag to run the hook
+functions of the global value as well as in the local value.
 
 HOOK should be a symbol, and FUNCTION may be any valid function.  If
 HOOK is void, it is first set to nil.  If HOOK's value is a single
@@ -3072,8 +3072,15 @@ See also `with-temp-file' and `with-output-to-string'."
   "Execute BODY, pretending it does not modify the buffer.
 If BODY performs real modifications to the buffer's text, other
 than cosmetic ones, undo data may become corrupted.
-Typically used around modifications of text-properties which do not really
-affect the buffer's content."
+
+This macro will run BODY normally, but doesn't count its buffer
+modifications as being buffer modifications.  This affects things
+like buffer-modified-p, checking whether the file is locked by
+someone else, running buffer modification hooks, and other things
+of that nature.
+
+Typically used around modifications of text-properties which do
+not really affect the buffer's content."
   (declare (debug t) (indent 0))
   (let ((modified (make-symbol "modified")))
     `(let* ((,modified (buffer-modified-p))

@@ -1856,19 +1856,13 @@ Sets various variables using `font-lock-defaults' and
     (((class color) (min-colors 8) (background light))
      (:foreground "red"))
     (((class color) (min-colors 8) (background dark))
-     )
+     (:foreground "yellow"))
     (t (:weight bold :slant italic)))
   "Font Lock mode face used to highlight comments."
   :group 'font-lock-faces)
 
 (defface font-lock-comment-delimiter-face
-  '((default :inherit font-lock-comment-face)
-    (((class grayscale)))
-    (((class color) (min-colors 16)))
-    (((class color) (min-colors 8) (background light))
-     :foreground "red")
-    (((class color) (min-colors 8) (background dark))
-     :foreground "red1"))
+  '((default :inherit font-lock-comment-face))
   "Font Lock mode face used to highlight comment delimiters."
   :group 'font-lock-faces)
 

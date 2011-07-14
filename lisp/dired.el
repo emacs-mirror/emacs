@@ -78,10 +78,22 @@ If nil, `dired-listing-switches' is used."
   :type 'file)
 
 (defcustom dired-use-ls-dired 'unspecified
-  "Non-nil means Dired should use \"ls --dired\".
+  "Non-nil means Dired should pass the \"--dired\" option to \"ls\".
 The special value of `unspecified' means to check explicitly, and
 save the result in this variable.  This is performed the first
-time `dired-insert-directory' is called."
+time `dired-insert-directory' is called.
+
+Note that if you set this option to nil, either through choice or
+because your \"ls\" program does not support \"--dired\", Dired
+will fail to parse some \"unusual\" file names, e.g. those with leading
+spaces.  You might want to install ls from GNU Coreutils, which does
+support this option.  Alternatively, you might want to use Emacs's
+own emulation of \"ls\", by using:
+  \(setq ls-lisp-use-insert-directory-program nil)
+  \(require 'ls-lisp)
+This is used by default on MS Windows, which does not have an \"ls\" program.
+Note that `ls-lisp' does not support as many options as GNU ls, though.
+For more details, see Info node `(emacs)ls in Lisp'."
   :group 'dired
   :type '(choice (const :tag "Check for --dired support" unspecified)
                  (const :tag "Do not use --dired" nil)
@@ -339,11 +351,11 @@ Subexpression 2 must end right before the \\n or \\r.")
 
 (defface dired-flagged
   '((t (:inherit font-lock-warning-face)))
-  "Face used for flagged files."
+  "Face used for files flagged for deletion."
   :group 'dired-faces
   :version "22.1")
 (defvar dired-flagged-face 'dired-flagged
-  "Face name used for flagged files.")
+  "Face name used for files flagged for deletion.")
 
 (defface dired-warning
   ;; Inherit from font-lock-warning-face since with min-colors 8
@@ -1119,9 +1131,13 @@ If HDR is non-nil, insert a header line with the directory name."
 	 (or (if (eq dired-use-ls-dired 'unspecified)
 		 ;; Check whether "ls --dired" gives exit code 0, and
 		 ;; save the answer in `dired-use-ls-dired'.
-		 (setq dired-use-ls-dired
-		       (eq (call-process insert-directory-program nil nil nil "--dired")
-			   0))
+		 (or (setq dired-use-ls-dired
+			   (eq 0 (call-process insert-directory-program
+					     nil nil nil "--dired")))
+		     (progn
+		       (message "ls does not support --dired; \
+see `dired-use-ls-dired' for more details.")
+		       nil))
 	       dired-use-ls-dired)
 	     (file-remote-p dir)))
 	(setq switches (concat "--dired " switches)))
@@ -1175,7 +1191,7 @@ If HDR is non-nil, insert a header line with the directory name."
 	(insert "  wildcard " (file-name-nondirectory dir) "\n")))))
 
 (defun dired-insert-set-properties (beg end)
-  "Make the file names highlight when the mouse is on them."
+  "Add various text properties to the lines in the region."
   (save-excursion
     (goto-char beg)
     (while (< (point) end)

@@ -1,3 +1,17 @@
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* custom.texi (Hooks): Mention buffer-local hooks (bug#6218).
+
+2011-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired.texi (Dired Enter): Mention --dired.  (Bug#9039)
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mark.texi (Mark Ring): Clarify how many locations are saved
+	(bug#5770).
+	(Global Mark Ring): Ditto.
+
 2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* text.texi (Table Recognition): Use "at point" instead of "under

@@ -1,3 +1,127 @@
+2011-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el: Add advertised binding for set-mark-command
+	(Bug#5772).
+
+2011-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el (mode-line-other-buffer):
+	* bookmark.el (bookmark-bmenu-2-window):
+	* bs.el (bs-cycle-next, bs-cycle-previous):
+	* net/tramp-cmds.el (tramp-append-tramp-buffers): Revert to using
+	switch-to-buffer.
+
+	* net/tramp-compat.el (tramp-compat-pop-to-buffer-same-window):
+	Deleted.
+
+2011-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el (follow-debug-message, follow-redisplay):
+	* jka-cmpr-hook.el (with-auto-compression-mode):
+	Fix typos in docstrings.
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* subr.el (with-silent-modifications): Clarify somewhat what the
+	macro inhibits (bug#6525).
+
+	* simple.el (eval-expression): Note what it does if called
+	interactively (bug#6495).
+
+2011-07-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (switch-to-buffer): New arg FORCE-SAME-WINDOW.  Use
+	pop-to-buffer buffer-or-name if it is nil.
+
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Remove switch-to-buffer.
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* files.el (make-directory): Clarify that an error will be raised
+	if there's an error (bug#6397).
+
+	* startup.el (initial-buffer-choice): Add `none' as a choice
+	(bug#6234).
+
+	* subr.el (add-hook): Clarify section about buffer-local hooks
+	(bug#6218).
+
+	* dired.el (dired-flagged): Clarify doc string (bug#6117).
+
+2011-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tabify.el (untabify): Preserve the current column so that point
+	doesn't move (bug#6032).
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* progmodes/cperl-mode.el (cperl-syntaxify-by-font-lock): Rewrite
+	to avoid awkward possessive "s" (bug#5986).
+
+2011-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-use-ls-dired): Doc fix.  (Bug#9039).
+	(dired-insert-directory): Give a message the first time
+	if ls is found not to support --dired.
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* simple.el (toggle-truncate-lines): Clarify what is toggled
+	(bug#5580).  Text by Drew Adams.
+
+2011-07-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (blink-matching-open): Make the error message from the
+	last change less verbose.
+
+2011-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* font-lock.el (font-lock-comment-face): Use the high contrast
+	"yellow" color for font-lock-comment-face on low color terminals
+	using a dark background color (bug#4221).
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.el (dired-insert-set-properties): Make the doc string
+	reflect what it does now (bug#5325).
+
+	* simple.el (blink-matching-open): Say that we were unable to find
+	the match within the limit, if we're limited (bug#5122).
+
+	* international/mule-cmds.el (prefer-coding-system): Add an
+	example (bug#4869).
+
+	* progmodes/etags.el (tags-search): Document `file-list-form'
+	(bug#4731).
+
+2011-07-13  Lawrence Mitchell  <wence@gmx.li>
+
+	* net/browse-url.el (browse-url-default-browser)
+	(browse-url-browser-function): Make the default browser choice a
+	bit more logical (bug#4300).  Also clean up the doc string.
+
+2011-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bindings.el (completion-ignored-extensions): Add OpenMCL/Clozure
+	binary endings (bug#4440).
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* info.el (info-insert-file-contents): Inhibit jka-compr messages,
+	which can be pretty annoying (bug#8971).
+
+	* jka-compr.el (jka-compr-verbose): New variable, and use
+	throughout (bug#8971).
+
+	* info.el (Info-find-file): Fall back on the installation
+	directory if we can't find the info node anywhere else.
+
+2011-07-13  Sergei Organov  <osv@javad.com>  (tiny change)
+
+	* vc/vc.el (vc-revert-file):
+	Don't set file time-stamp in the past.  (Bug#5181)
+
 2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* files.el (after-find-file): Give a better error message when

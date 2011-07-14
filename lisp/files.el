@@ -4778,7 +4778,10 @@ visited a file in a nonexistent directory.
 
 Noninteractively, the second (optional) argument PARENTS, if
 non-nil, says whether to create parent directories that don't
-exist.  Interactively, this happens by default."
+exist.  Interactively, this happens by default.
+
+If creating the directory or directories fail, an error will be
+raised."
   (interactive
    (list (read-file-name "Make directory: " default-directory default-directory
 			 nil nil)

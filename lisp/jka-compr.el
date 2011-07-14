@@ -97,6 +97,11 @@ NOTE: Not used in MS-DOS and Windows systems."
   :type 'string
   :group 'jka-compr)
 
+(defcustom jka-compr-verbose t
+  "If non-nil, output messages whenever compressing or uncompressing files."
+  :type 'boolean
+  :group 'jka-compr)
+
 (defvar jka-compr-use-shell
   (not (memq system-type '(ms-dos windows-nt))))
 
@@ -309,6 +314,7 @@ There should be no more than seven characters after the final `/'."
 
 	  (and
 	   compress-message
+	   jka-compr-verbose
 	   (message "%s %s..." compress-message base-name))
 
 	  (jka-compr-run-real-handler 'write-region
@@ -341,6 +347,7 @@ There should be no more than seven characters after the final `/'."
 
 	  (and
 	   compress-message
+	   jka-compr-verbose
 	   (message "%s %s...done" compress-message base-name))
 
 	  (cond
@@ -404,6 +411,7 @@ There should be no more than seven characters after the final `/'."
 
               (and
                uncompress-message
+	       jka-compr-verbose
                (message "%s %s..." uncompress-message base-name))
 
               (condition-case error-code
@@ -479,6 +487,7 @@ There should be no more than seven characters after the final `/'."
 
         (and
          uncompress-message
+	 jka-compr-verbose
          (message "%s %s...done" uncompress-message base-name))
 
         (and
@@ -534,6 +543,7 @@ There should be no more than seven characters after the final `/'."
 
 		(and
 		 uncompress-message
+		 jka-compr-verbose
 		 (message "%s %s..." uncompress-message base-name))
 
 		;; Here we must read the output of uncompress program
@@ -554,6 +564,7 @@ There should be no more than seven characters after the final `/'."
 
 		  (and
 		   uncompress-message
+		   jka-compr-verbose
 		   (message "%s %s...done" uncompress-message base-name))
 
 		  (write-region
