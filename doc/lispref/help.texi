@@ -78,11 +78,12 @@ function or variable that it describes:
 @item
 @kindex function-documentation
 The documentation for a function is usually stored in the function
-definition itself (@pxref{Lambda Expressions}).  The function
-@code{documentation} knows how to extract it.  You can also put
-function documentation in the @code{function-documentation} property
-of the function name.  That is useful with definitions such as
-keyboard macros that can't hold a documentation string.
+definition itself (@pxref{Lambda Expressions} and @pxref{Function
+Documentation}).  The function @code{documentation} knows how to
+extract it.  You can also put function documentation in the
+@code{function-documentation} property of the function name.  That is
+useful with definitions such as keyboard macros that can't hold a
+documentation string.
 
 @item
 @kindex variable-documentation

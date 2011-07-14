@@ -340,7 +340,7 @@ Return the new status of auto compression (non-nil means on)."
      (t (jka-compr-uninstall)))))
 
 (defmacro with-auto-compression-mode (&rest body)
-  "Evalute BODY with automatic file compression and uncompression enabled."
+  "Evaluate BODY with automatic file compression and uncompression enabled."
   (declare (indent 0))
   (let ((already-installed (make-symbol "already-installed")))
     `(let ((,already-installed (jka-compr-installed-p)))

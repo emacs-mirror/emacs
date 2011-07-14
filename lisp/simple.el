@@ -1152,6 +1152,8 @@ display the result of expression evaluation."
 (defun eval-expression (eval-expression-arg
 			&optional eval-expression-insert-value)
   "Evaluate EVAL-EXPRESSION-ARG and print value in the echo area.
+When called interactively, read an Emacs Lisp expression and
+evaluate it.
 Value is also consed on to front of the variable `values'.
 Optional argument EVAL-EXPRESSION-INSERT-VALUE non-nil (interactively,
 with prefix argument) means insert the result into the current buffer

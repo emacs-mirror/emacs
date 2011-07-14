@@ -1841,8 +1841,7 @@ With a prefix arg, prompts for a file to save them in."
         (menu (current-buffer))
         (pop-up-windows t))
     (delete-other-windows)
-    (with-no-warnings ; We really do want to call `switch-to-buffer' here.
-      (switch-to-buffer (other-buffer)))
+    (switch-to-buffer (other-buffer) nil t)
     (bookmark--jump-via bmrk 'pop-to-buffer)
     (bury-buffer menu)))
 
