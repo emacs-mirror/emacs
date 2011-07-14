@@ -180,6 +180,18 @@
 	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
 	well either way, and we prefer signed to unsigned.
 
+2011-07-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Fix minor problems found by static checking.
+	* bidi.c (bidi_cache_size): Now EMACS_INT, not size_t.
+	(elsz): Now a signed constant, not a size_t var.  We prefer signed
+	types to unsigned, to avoid integer comparison confusion.  Without
+	this change, GCC 4.6.1 with -Wunsafe-loop-optimizations complains
+	"cannot optimize loop, the loop counter may overflow", a symptom
+	of the confusion.
+	* indent.c (Fvertical_motion): Mark locals as initialized.
+	* xdisp.c (reseat_to_string): Fix pointer signedness issue.
+
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* data.c (Fcdr, Fcar): Revert the last change, since it didn't
