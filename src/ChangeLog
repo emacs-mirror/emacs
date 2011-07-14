@@ -2,6 +2,20 @@
 
 	Integer signedness and overflow and related fixes.  (Bug#9079)
 
+	* bidi.c: Integer size and overflow fixes.
+	(bidi_cache_size, bidi_cache_idx, bidi_cache_last_idx)
+	(bidi_cache_start, bidi_cache_fetch_state, bidi_cache_search)
+	(bidi_cache_find_level_change, bidi_cache_ensure_space)
+	(bidi_cache_iterator_state, bidi_cache_find, bidi_cache_start_stack)
+	(bidi_find_other_level_edge):
+	Use ptrdiff_t instead of EMACS_INT where either will do.
+	This works better on 32-bit hosts configured --with-wide-int.
+	(bidi_cache_ensure_space): Check for size-calculation overflow.
+	Use % rather than repeated addition, for better worst-case speed.
+	Don't set bidi_cache_size until after xrealloc returns, because it
+	might not return.
+	(bidi_dump_cached_states): Use ptrdiff_t, not int, to avoid overflow.
+
 	* alloc.c (__malloc_size_t): Remove.
 	All uses replaced by size_t.  See Andreas Schwab's note
 	<http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9079#8>.
