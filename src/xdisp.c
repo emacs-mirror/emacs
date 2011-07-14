@@ -5890,7 +5890,7 @@ reseat_to_string (struct it *it, const char *s, Lisp_Object string,
       if (it->bidi_p)
 	{
 	  it->bidi_it.string.lstring = Qnil;
-	  it->bidi_it.string.s = s;
+	  it->bidi_it.string.s = (const unsigned char *) s;
 	  it->bidi_it.string.schars = it->end_charpos;
 	  it->bidi_it.string.bufpos = 0;
 	  it->bidi_it.string.from_disp_str = 0;
