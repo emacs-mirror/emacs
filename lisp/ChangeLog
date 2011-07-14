@@ -1,5 +1,8 @@
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* scroll-bar.el (set-scroll-bar-mode): Mention that
+	`scroll-bar-mode' lists the values (bug#7772).
+
 	* image-mode.el (image-mode-fit-frame): Mention that it's a toggle
 	command (bug#7729).
 
