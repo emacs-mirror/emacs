@@ -43,14 +43,12 @@
 If the value is nil and `inhibit-startup-screen' is nil, show the
 startup screen.  If the value is string, visit the specified file
 or directory using `find-file'.  If t, open the `*scratch*'
-buffer.  If `none', don't select anything, but show the
-buffer (if any) selected by the startup file."
+buffer."
   :type '(choice
 	  (const     :tag "Startup screen" nil)
 	  (directory :tag "Directory" :value "~/")
 	  (file      :tag "File" :value "~/.emacs")
-	  (const     :tag "Lisp scratch buffer" t)
-	  (const     :tag "Select no buffer" 'none))
+	  (const     :tag "Lisp scratch buffer" t))
   :version "23.1"
   :group 'initialization)
 
