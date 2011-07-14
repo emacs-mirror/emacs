@@ -1,3 +1,24 @@
+2011-07-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c: Improve checking for integer overflow.
+	(check_image_size): Assume that f is nonnull, since
+	it is always nonnull in practice.  This is one less thing to
+	worry about when checking for integer overflow later.
+	(x_check_image_size): New function, which checks for integer
+	overflow issues inside X.
+	(x_create_x_image_and_pixmap, xbm_read_bitmap_data): Use it.
+	This removes the need for a memory_full check.
+	(xbm_image_p): Rewrite to avoid integer multiplication overflow.
+	(Create_Pixmap_From_Bitmap_Data, xbm_load): Use x_check_image_size.
+	(xbm_read_bitmap_data): Change locals back to 'int', since
+	their values must fit in 'int'.
+	(xpm_load_image, png_load, tiff_load):
+	Invoke x_create_x_image_and_pixmap earlier,
+	to avoid much needless work if the image is too large.
+	(tiff_load): Treat overly large images as if
+	x_create_x_image_and_pixmap failed, not as malloc failures.
+	(gs_load): Use x_check_image_size.
+
 2011-07-13  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* gtkutil.c: Omit integer casts.

@@ -1053,13 +1053,9 @@ check_image_size (struct frame *f, int width, int height)
 	    && height <= XINT (Vmax_image_size));
   else if (FLOATP (Vmax_image_size))
     {
-      if (f != NULL)
-	{
-	  w = FRAME_PIXEL_WIDTH (f);
-	  h = FRAME_PIXEL_HEIGHT (f);
-	}
-      else
-	w = h = 1024;  /* Arbitrary size for unknown frame. */
+      xassert (f);
+      w = FRAME_PIXEL_WIDTH (f);
+      h = FRAME_PIXEL_HEIGHT (f);
       return (width <= XFLOAT_DATA (Vmax_image_size) * w
 	      && height <= XFLOAT_DATA (Vmax_image_size) * h);
     }
@@ -1910,6 +1906,38 @@ static int x_create_x_image_and_pixmap (struct frame *, int, int, int,
 static void x_destroy_x_image (XImagePtr);
 static void x_put_x_image (struct frame *, XImagePtr, Pixmap, int, int);
 
+/* Return nonzero if XIMG's size WIDTH x HEIGHT doesn't break X.
+   WIDTH and HEIGHT must both be positive.
+   If XIMG is null, assume it is a bitmap.  */
+static int
+x_check_image_size (XImagePtr ximg, int width, int height)
+{
+  /* Respect Xlib's limits: it cannot deal with images that have more
+     than INT_MAX (and/or UINT_MAX) bytes.  And respect Emacs's limits
+     of PTRDIFF_MAX (and/or SIZE_MAX) bytes for any object.  For now,
+     assume all windowing systems have the same limits that X does.  */
+  enum
+  {
+    XLIB_BYTES_MAX = min (INT_MAX, UINT_MAX),
+    X_IMAGE_BYTES_MAX = min (XLIB_BYTES_MAX, min (PTRDIFF_MAX, SIZE_MAX))
+  };
+
+  int bitmap_pad, depth, bytes_per_line;
+  if (ximg)
+    {
+      bitmap_pad = ximg->bitmap_pad;
+      depth = ximg->depth;
+      bytes_per_line = ximg->bytes_per_line;
+    }
+  else
+    {
+      bitmap_pad = 8;
+      depth = 1;
+      bytes_per_line = (width >> 3) + ((width & 7) != 0);
+    }
+  return (width <= (INT_MAX - (bitmap_pad - 1)) / depth
+	  && height <= X_IMAGE_BYTES_MAX / bytes_per_line);
+}
 
 /* Create an XImage and a pixmap of size WIDTH x HEIGHT for use on
    frame F.  Set *XIMG and *PIXMAP to the XImage and Pixmap created.
@@ -1942,9 +1970,16 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
       return 0;
     }
 
+  if (! x_check_image_size (*ximg, width, height))
+    {
+      x_destroy_x_image (*ximg);
+      *ximg = NULL;
+      image_error ("Image too large (%dx%d)",
+		   make_number (width), make_number (height));
+      return 0;
+    }
+
   /* Allocate image raster.  */
-  if (min (PTRDIFF_MAX, SIZE_MAX) / height < (*ximg)->bytes_per_line)
-    memory_full (SIZE_MAX);
   (*ximg)->data = (char *) xmalloc ((*ximg)->bytes_per_line * height);
 
   /* Allocate a pixmap of the same size.  */
@@ -2361,7 +2396,7 @@ xbm_image_p (Lisp_Object object)
 	}
       else if (BOOL_VECTOR_P (data))
 	{
-	  if (XBOOL_VECTOR (data)->size < width * height)
+	  if (XBOOL_VECTOR (data)->size / height < width)
 	    return 0;
 	}
       else
@@ -2557,13 +2592,15 @@ Create_Pixmap_From_Bitmap_Data (struct frame *f, struct image *img, char *data,
   img->pixmap = ns_image_from_XBM (data, img->width, img->height);
 
 #else
-  img->pixmap
-    = XCreatePixmapFromBitmapData (FRAME_X_DISPLAY (f),
+  img->pixmap =
+   (x_check_image_size (0, img->width, img->height)
+    ? XCreatePixmapFromBitmapData (FRAME_X_DISPLAY (f),
 				   FRAME_X_WINDOW (f),
 				   data,
 				   img->width, img->height,
 				   fg, bg,
-				   DefaultDepthOfScreen (FRAME_X_SCREEN (f)));
+				   DefaultDepthOfScreen (FRAME_X_SCREEN (f)))
+    : NO_PIXMAP);
 #endif /* !HAVE_NTGUI && !HAVE_NS */
 }
 
@@ -2587,8 +2624,7 @@ xbm_read_bitmap_data (struct frame *f, unsigned char *contents, unsigned char *e
   char buffer[BUFSIZ];
   int padding_p = 0;
   int v10 = 0;
-  int bytes_per_line;
-  ptrdiff_t i, nbytes;
+  int bytes_per_line, i, nbytes;
   char *p;
   int value;
   int LA1;
@@ -2671,9 +2707,14 @@ xbm_read_bitmap_data (struct frame *f, unsigned char *contents, unsigned char *e
   expect ('=');
   expect ('{');
 
+  if (! x_check_image_size (0, *width, *height))
+    {
+      if (!inhibit_image_error)
+	image_error ("Image too large (%dx%d)",
+		     make_number (*width), make_number (*height));
+      goto failure;
+    }
   bytes_per_line = (*width + 7) / 8 + padding_p;
-  if (min (PTRDIFF_MAX - 1, SIZE_MAX) / *height < bytes_per_line)
-    memory_full (SIZE_MAX);
   nbytes = bytes_per_line * *height;
   p = *data = (char *) xmalloc (nbytes);
 
@@ -2863,6 +2904,12 @@ xbm_load (struct frame *f, struct image *img)
 	  img->width = XFASTINT (fmt[XBM_WIDTH].value);
 	  img->height = XFASTINT (fmt[XBM_HEIGHT].value);
 	  xassert (img->width > 0 && img->height > 0);
+	  if (!check_image_size (f, img->width, img->height))
+	    {
+	      image_error ("Invalid image size (see `max-image-size')",
+			   Qnil, Qnil);
+	      return 0;
+	    }
 	}
 
       /* Get foreground and background colors, maybe allocate colors.  */
@@ -2924,9 +2971,13 @@ xbm_load (struct frame *f, struct image *img)
 #endif
 	  /* Create the pixmap.  */
 
-	  Create_Pixmap_From_Bitmap_Data (f, img, bits,
-					  foreground, background,
-					  non_default_colors);
+	  if (x_check_image_size (0, img->width, img->height))
+	    Create_Pixmap_From_Bitmap_Data (f, img, bits,
+					    foreground, background,
+					    non_default_colors);
+	  else
+	    img->pixmap = NO_PIXMAP;
+
 	  if (img->pixmap)
 	    success_p = 1;
 	  else
@@ -3844,6 +3895,18 @@ xpm_load_image (struct frame *f,
       goto failure;
     }
 
+  if (!x_create_x_image_and_pixmap (f, width, height, 0,
+				    &ximg, &img->pixmap)
+#ifndef HAVE_NS
+      || !x_create_x_image_and_pixmap (f, width, height, 1,
+				       &mask_img, &img->mask)
+#endif
+      )
+    {
+      image_error ("Image too large", Qnil, Qnil);
+      goto failure;
+    }
+
   expect (',');
 
   XSETFRAME (frame, f);
@@ -3935,18 +3998,6 @@ xpm_load_image (struct frame *f,
 	(*put_color_table) (color_table, beg, chars_per_pixel, color_val);
 
       expect (',');
-    }
-
-  if (!x_create_x_image_and_pixmap (f, width, height, 0,
-				    &ximg, &img->pixmap)
-#ifndef HAVE_NS
-      || !x_create_x_image_and_pixmap (f, width, height, 1,
-				       &mask_img, &img->mask)
-#endif
-      )
-    {
-      image_error ("Out of memory (%s)", img->spec, Qnil);
-      goto error;
     }
 
   for (y = 0; y < height; y++)
@@ -5685,6 +5736,13 @@ png_load (struct frame *f, struct image *img)
       image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
       goto error;
     }
+
+  /* Create the X image and pixmap now, so that the work below can be
+     omitted if the image is too large for X.  */
+  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg,
+				    &img->pixmap))
+    goto error;
+
   /* If image contains simply transparency data, we prefer to
      construct a clipping mask.  */
   if (fn_png_get_valid (png_ptr, info_ptr, PNG_INFO_tRNS))
@@ -5789,11 +5847,6 @@ png_load (struct frame *f, struct image *img)
       fclose (fp);
       fp = NULL;
     }
-
-  /* Create the X image and pixmap.  */
-  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg,
-				    &img->pixmap))
-    goto error;
 
   /* Create an image and pixmap serving as mask if the PNG image
      contains an alpha channel.  */
@@ -6804,8 +6857,15 @@ tiff_load (struct frame *f, struct image *img)
       return 0;
     }
 
-  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *buf / width < height)
-    memory_full (SIZE_MAX);
+  /* Create the X image and pixmap.  */
+  if (! (height <= min (PTRDIFF_MAX, SIZE_MAX) / sizeof *buf / width
+	 && x_create_x_image_and_pixmap (f, width, height, 0,
+					 &ximg, &img->pixmap)))
+    {
+      fn_TIFFClose (tiff);
+      return 0;
+    }
+
   buf = (uint32 *) xmalloc (sizeof *buf * width * height);
 
   rc = fn_TIFFReadRGBAImage (tiff, width, height, buf, 0);
@@ -6823,13 +6883,6 @@ tiff_load (struct frame *f, struct image *img)
   if (!rc)
     {
       image_error ("Error reading TIFF image `%s'", img->spec, Qnil);
-      xfree (buf);
-      return 0;
-    }
-
-  /* Create the X image and pixmap.  */
-  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
-    {
       xfree (buf);
       return 0;
     }
@@ -8428,12 +8481,15 @@ gs_load (struct frame *f, struct image *img)
   /* Create the pixmap.  */
   xassert (img->pixmap == NO_PIXMAP);
 
-  /* Only W32 version did BLOCK_INPUT here.  ++kfs */
-  BLOCK_INPUT;
-  img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			       img->width, img->height,
-			       DefaultDepthOfScreen (FRAME_X_SCREEN (f)));
-  UNBLOCK_INPUT;
+  if (x_check_image_size (0, img->width, img->height))
+    {
+      /* Only W32 version did BLOCK_INPUT here.  ++kfs */
+      BLOCK_INPUT;
+      img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				   img->width, img->height,
+				   DefaultDepthOfScreen (FRAME_X_SCREEN (f)));
+      UNBLOCK_INPUT;
+    }
 
   if (!img->pixmap)
     {
