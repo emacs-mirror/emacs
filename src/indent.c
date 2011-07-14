@@ -1985,7 +1985,7 @@ whether or not it is currently displayed in some window.  */)
   struct text_pos pt;
   struct window *w;
   Lisp_Object old_buffer;
-  EMACS_INT old_charpos, old_bytepos;
+  EMACS_INT old_charpos IF_LINT (= 0), old_bytepos IF_LINT (= 0);
   struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object lcols = Qnil;
   double cols IF_LINT (= 0);

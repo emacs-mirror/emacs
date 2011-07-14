@@ -1,5 +1,6 @@
 2011-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* indent.c (Fvertical_motion): Mark locals as initialized.
 	* xdisp.c (reseat_to_string): Fix pointer signedness issue.
 
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
