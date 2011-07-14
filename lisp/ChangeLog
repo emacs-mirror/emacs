@@ -1,5 +1,8 @@
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* font-lock.el (font-lock-maximum-decoration): Mention what
+	numeric levels mean (bug#6935).
+
 	* startup.el (initial-buffer-choice): Don't mention the `none'
 	selection, which is against policy.
 
