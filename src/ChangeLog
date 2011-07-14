@@ -1,3 +1,8 @@
+2011-07-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* indent.c (Fvertical_motion): Set and restore w->pointm when
+	saving and restoring the window's buffer (Bug#9006).
+
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* editfns.c (Fstring_to_char): Clarify just what is returned

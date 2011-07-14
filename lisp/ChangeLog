@@ -1,3 +1,8 @@
+2011-07-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-normalize-special): Replace
+	`dedicated' by `dedicate' to dedicate window (Bug#9072).
+
 2011-07-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (version<, version<=, version=): Mention "-CVS" and

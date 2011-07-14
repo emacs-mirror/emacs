@@ -1985,7 +1985,8 @@ whether or not it is currently displayed in some window.  */)
   struct text_pos pt;
   struct window *w;
   Lisp_Object old_buffer;
-  struct gcpro gcpro1;
+  EMACS_INT old_charpos, old_bytepos;
+  struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object lcols = Qnil;
   double cols IF_LINT (= 0);
 
@@ -2005,12 +2006,16 @@ whether or not it is currently displayed in some window.  */)
   w = XWINDOW (window);
 
   old_buffer = Qnil;
-  GCPRO1 (old_buffer);
+  GCPRO3 (old_buffer, old_charpos, old_bytepos);
   if (XBUFFER (w->buffer) != current_buffer)
     {
       /* Set the window's buffer temporarily to the current buffer.  */
       old_buffer = w->buffer;
+      old_charpos = XMARKER (w->pointm)->charpos;
+      old_bytepos = XMARKER (w->pointm)->bytepos;
       XSETBUFFER (w->buffer, current_buffer);
+      set_marker_both
+	(w->pointm, w->buffer, BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
     }
 
   if (noninteractive)
@@ -2131,7 +2136,10 @@ whether or not it is currently displayed in some window.  */)
     }
 
   if (BUFFERP (old_buffer))
-    w->buffer = old_buffer;
+    {
+      w->buffer = old_buffer;
+      set_marker_both (w->pointm, w->buffer, old_charpos, old_bytepos);
+    }
 
   RETURN_UNGCPRO (make_number (it.vpos));
 }
