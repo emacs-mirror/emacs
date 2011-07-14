@@ -1,3 +1,12 @@
+2011-07-14  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnimap.el (nnimap-request-thread): Ensure search is performed in
+	correct group.
+
+	* gnus-int.el (gnus-request-thread): Add group argument.
+
+	* gnus-sum.el (gnus-request-thread): Use it.
+
 2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): `debbugs-*'

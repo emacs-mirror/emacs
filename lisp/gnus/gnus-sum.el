@@ -8970,7 +8970,7 @@ variable."
 	   'list gnus-newsgroup-headers
 	   (if (gnus-check-backend-function
 		'request-thread gnus-newsgroup-name)
-	       (gnus-request-thread header)
+	       (gnus-request-thread header gnus-newsgroup-name)
 	     (let* ((last (if (numberp limit)
 			      (min (+ (mail-header-number header)
 				      limit)
