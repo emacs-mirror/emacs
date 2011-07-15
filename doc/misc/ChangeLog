@@ -1,3 +1,8 @@
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* flymake.texi (Example -- Configuring a tool called via make):
+	Use /dev/null instead of the Windows "nul" (bug#8715).
+
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* widget.texi (Setting Up the Buffer): Remove mention of the
