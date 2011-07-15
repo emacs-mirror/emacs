@@ -2161,7 +2161,9 @@ keyboard-quit events while waiting for a valid input."
           ;; read-event returns -1 if we are in a kbd macro and
           ;; there are no more events in the macro.  Attempt to
           ;; get an event interactively.
-          (setq executing-kbd-macro nil)))))
+          (setq executing-kbd-macro nil))
+	 ((and (not inhibit-keyboard-quit) (eq char ?\C-g))
+	  (keyboard-quit)))))
     ;; Display the question with the answer.  But without cursor-in-echo-area.
     (message "%s%s" prompt (char-to-string char))
     char))
