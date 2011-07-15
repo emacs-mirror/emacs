@@ -1,3 +1,8 @@
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* debugging.texi (Using Debugger): Mention
+	@code{eval-expression-debug-on-error} (bug#8549).
+
 2011-07-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Other Display Specs): Document that `left-fringe'
