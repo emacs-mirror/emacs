@@ -1,5 +1,7 @@
 2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* emacs-lisp/cl-macs.el (declare): Doc string fix-up.
+
 	* international/mule-cmds.el
 	(describe-specified-language-support): Make the error message
 	clearer (bug#8905).
