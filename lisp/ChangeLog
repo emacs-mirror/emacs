@@ -1,6 +1,9 @@
 2011-07-15  Glenn Morris  <rgm@gnu.org>
 
-	* info.el (info-insert-file-contents): Require jka-compr.  (Bug#9090)
+	* jka-compr.el (jka-compr-verbose): Move from here...
+	* jka-cmpr-hook.el (jka-compr-verbose): ... to here.  (Bug#9090)
+	Add missing :version tag.
+	* info.el: No need to require jka-compr when compiling.
 
 2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
