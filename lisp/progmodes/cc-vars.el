@@ -1633,8 +1633,7 @@ as designated in the variable `c-file-style'.")
 ;; It isn't possible to specify a doc-string without specifying an
 ;; initial value with `defvar', so the following two variables have been
 ;; given doc-strings by setting the property `variable-documentation'
-;; directly.  C-h v will read this documentation only for versions of GNU
-;; Emacs from 22.1.  It's really good not to have an initial value for
+;; directly.  It's really good not to have an initial value for
 ;; variables like these that always should be dynamically bound, so it's
 ;; worth the inconvenience.
 

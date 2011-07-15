@@ -514,22 +514,25 @@ to the end of the list of defaults just after the default value."
 
 ;; This is an extra function so that you can redefine it, e.g., to use gmhist.
 (defun dired-read-shell-command (prompt arg files)
-  "Read a dired shell command prompting with PROMPT.
-Passes the prefix argument ARG to `dired-mark-prompt', so that it
-can be used in the prompt to indicate which FILES are affected.
-Normally reads the command with `read-shell-command', but if the
-`dired-x' packages is loaded, uses `dired-guess-shell-command' to offer
-a smarter default choice of shell command."
+  "Read a dired shell command.
+PROMPT should be a format string with one \"%s\" format sequence,
+which is replaced by the value returned by `dired-mark-prompt',
+with ARG and FILES as its arguments.  FILES should be a list of
+file names.  The result is used as the prompt.
+
+This normally reads using `read-shell-command', but if the
+`dired-x' package is loaded, use `dired-guess-shell-command' to
+offer a smarter default choice of shell command."
   (minibuffer-with-setup-hook
       (lambda ()
 	(set (make-local-variable 'minibuffer-default-add-function)
 	     'minibuffer-default-add-dired-shell-commands))
     (setq prompt (format prompt (dired-mark-prompt arg files)))
-    (if (featurep 'dired-x)
+    (if (functionp 'dired-guess-shell-command)
 	(dired-mark-pop-up nil 'shell files
-			   #'dired-guess-shell-command prompt files)
+			   'dired-guess-shell-command prompt files)
       (dired-mark-pop-up nil 'shell files
-			 #'read-shell-command prompt nil nil))))
+			 'read-shell-command prompt nil nil))))
 
 ;;;###autoload
 (defun dired-do-async-shell-command (command &optional arg file-list)
@@ -699,6 +702,9 @@ can be produced by `dired-get-marked-files', for example."
 ;; Commands that delete or redisplay part of the dired buffer.
 
 (defun dired-kill-line (&optional arg)
+  "Kill the current line (not the files).
+With a prefix argument, kill that many lines starting with the current line.
+\(A negative argument kills backward.)"
   (interactive "P")
   (setq arg (prefix-numeric-value arg))
   (let (buffer-read-only file)

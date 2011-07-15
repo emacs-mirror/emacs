@@ -2060,7 +2060,11 @@ unless NOMODES is non-nil."
 	     ((not warn) nil)
 	     ((and error (file-attributes buffer-file-name))
 	      (setq buffer-read-only t)
-	      "File exists, but cannot be read")
+	      (if (and (file-symlink-p buffer-file-name)
+		       (not (file-exists-p
+			     (file-chase-links buffer-file-name))))
+		  "Symbolic link that points to nonexistent file"
+		"File exists, but cannot be read"))
 	     ((not buffer-read-only)
 	      (if (and warn
 		       ;; No need to warn if buffer is auto-saved
@@ -4694,7 +4698,7 @@ and `view-read-only' is non-nil, enter view mode."
       (view-mode-enter))
      (t (setq buffer-read-only (not buffer-read-only))
         (force-mode-line-update)))
-    (if (vc-backend buffer-file-name)
+    (if (memq (vc-backend buffer-file-name) '(RCS SCCS))
         (message "%s" (substitute-command-keys
                   (concat "File is under version-control; "
                           "use \\[vc-next-action] to check in/out"))))))
@@ -4774,7 +4778,10 @@ visited a file in a nonexistent directory.
 
 Noninteractively, the second (optional) argument PARENTS, if
 non-nil, says whether to create parent directories that don't
-exist.  Interactively, this happens by default."
+exist.  Interactively, this happens by default.
+
+If creating the directory or directories fail, an error will be
+raised."
   (interactive
    (list (read-file-name "Make directory: " default-directory default-directory
 			 nil nil)

@@ -392,7 +392,7 @@ value is more important than the @acronym{ASCII} representation.
 and the hexadecimal character code.  You can use any number of hex
 digits, so you can represent any character code in this way.
 Thus, @samp{?\x41} for the character @kbd{A}, @samp{?\x1} for the
-character @kbd{C-a}, and @code{?\x8e0} for the Latin-1 character
+character @kbd{C-a}, and @code{?\xe0} for the Latin-1 character
 @iftex
 @samp{@`a}.
 @end iftex
@@ -1037,7 +1037,7 @@ digits as necessary.  (Multibyte non-@acronym{ASCII} character codes are all
 greater than 256.)  Any character which is not a valid hex digit
 terminates this construct.  If the next character in the string could be
 interpreted as a hex digit, write @w{@samp{\ }} (backslash and space) to
-terminate the hex escape---for example, @w{@samp{\x8e0\ }} represents
+terminate the hex escape---for example, @w{@samp{\xe0\ }} represents
 one character, @samp{a} with grave accent.  @w{@samp{\ }} in a string
 constant is just like backslash-newline; it does not contribute any
 character to the string, but it does terminate the preceding hex escape.

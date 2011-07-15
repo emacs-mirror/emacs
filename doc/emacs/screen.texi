@@ -73,14 +73,14 @@ different places in the buffer; for example, you can place point by
 clicking mouse button 1 (normally the left button) at the desired
 location.
 
-  While the cursor appears to be @emph{on} a character, you should
-think of point as @emph{between} two characters; it points @emph{before}
-the character that appears under the cursor.  For example, if your text
-looks like @samp{frob} with the cursor over the @samp{b}, then point is
-between the @samp{o} and the @samp{b}.  If you insert the character
-@samp{!} at that position, the result is @samp{fro!b}, with point
-between the @samp{!} and the @samp{b}.  Thus, the cursor remains over
-the @samp{b}, as before.
+  If you use a block cursor, the cursor appears to be @emph{on} a
+character, but you should think of point as @emph{between} two
+characters; it points @emph{before} the character that appears under
+the cursor.  For example, if your text looks like @samp{frob} with the
+cursor over the @samp{b}, then point is between the @samp{o} and the
+@samp{b}.  If you insert the character @samp{!} at that position, the
+result is @samp{fro!b}, with point between the @samp{!} and the
+@samp{b}.  Thus, the cursor remains over the @samp{b}, as before.
 
   Sometimes people speak of ``the cursor'' when they mean ``point,'' or
 speak of commands that move point as ``cursor motion'' commands.
@@ -92,12 +92,14 @@ it again later.  When Emacs displays multiple windows, each window has
 its own point location.  If the same buffer appears in more than one
 window, each window has its own point position in that buffer.
 
-  On a graphical display, Emacs shows a cursor in each window; the
-selected window's cursor is solid and blinking, and the other cursors
-are hollow.  On a text-only terminal, there is just one cursor, in the
-selected window; even though the unselected windows have their own
-point positions, they do not display a cursor.  @xref{Cursor Display},
-for customizable variables that control cursor display.
+  On a graphical display, Emacs shows a cursor in each window.  The
+selected window's cursor will be blinking.  If you use the default,
+@code{box} cursor type, the selected window's cursor will be solid,
+and the other cursors are hollow.  On a text-only terminal, there is
+just one cursor, in the selected window; even though the unselected
+windows have their own point positions, they do not display a cursor.
+@xref{Cursor Display}, for customizable variables that control cursor
+display.
 
 @node Echo Area
 @section The Echo Area
@@ -190,7 +192,7 @@ sometimes useful to have this information.
 Systems}).  If it is a dash (@samp{-}), that indicates the default
 state of affairs: no special character set handling, except for the
 end-of-line translations described in the next paragraph.  @samp{=}
-means no conversion whatsoever.  Letters represent various nontrivial
+means no conversion whatsoever.  Characters represent various nontrivial
 @dfn{coding systems}---for example, @samp{1} represents ISO Latin-1.
 On a text-only terminal, @var{cs} is preceded by two additional
 characters that describe the coding system for keyboard input and the

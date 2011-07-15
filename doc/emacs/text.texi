@@ -154,9 +154,10 @@ the mark by one additional word.  @kbd{M-@@} also accepts a numeric
 argument that says how many words to scan for the place to put the
 mark.
 
-  The word commands' understanding of word boundaries is controlled
-by the syntax table.  Any character can, for example, be declared to
-be a word delimiter.  @xref{Syntax}.
+  The word commands' understanding of word boundaries is controlled by
+the syntax table.  Any character can, for example, be declared to be a
+word delimiter.  @xref{Syntax Tables,, Syntax Tables, elisp, The Emacs
+Lisp Reference Manual}.
 
 @node Sentences
 @section Sentences
@@ -406,8 +407,6 @@ Text}).
 * Fill Commands::  Commands to refill paragraphs and center lines.
 * Fill Prefix::    Filling paragraphs that are indented or in a comment, etc.
 * Adaptive Fill::  How Emacs can determine the fill prefix automatically.
-* Refill::         Keeping paragraphs filled.
-* Longlines::      Editing text with very long lines.
 @end menu
 
 @node Auto Fill
@@ -721,92 +720,6 @@ function.  This function is called with point after the left margin of a
 line, and it should return the appropriate fill prefix based on that
 line.  If it returns @code{nil}, @code{adaptive-fill-regexp} gets
 a chance to find a prefix.
-
-@node Refill
-@subsection Refill Mode
-@cindex refilling text, word processor style
-@cindex modes, Refill
-@cindex Refill minor mode
-
-  Refill minor mode provides support for keeping paragraphs filled as
-you type or modify them in other ways.  It provides an effect similar
-to typical word processor behavior.  This works by running a
-paragraph-filling command at suitable times.
-
-  To toggle the use of Refill mode in the current buffer, type
-@kbd{M-x refill-mode}.  When you are typing text, only characters
-which normally trigger auto filling, like the space character, will
-trigger refilling.  This is to avoid making it too slow.  Apart from
-self-inserting characters, other commands which modify the text cause
-refilling.
-
-  The current implementation is preliminary and not robust.  You can
-get better ``line wrapping'' behavior using Longlines mode.
-@xref{Longlines}.  However, Longlines mode has an important
-side-effect: the newlines that it inserts for you are not saved to
-disk, so the files that you make with Longlines mode will appear to be
-completely unfilled if you edit them without Longlines mode.
-
-@node Longlines
-@subsection Long Lines Mode
-@cindex refilling text, word processor style
-@cindex modes, Long Lines
-@cindex word wrap
-@cindex Long Lines minor mode
-
-  Sometimes, you may come across ``unfilled'' text files, which Emacs
-normally displays as a bunch of extremely long lines.  Comfortably
-reading and editing such files normally requires ``word wrap'', a
-feature that breaks up each long text line into multiple screen lines
-in a readable manner---by putting the breaks at word boundaries.  Many
-text editors, such as those built into many web browsers, perform word
-wrapping by default.
-
-  There are two different minor modes in Emacs that perform word
-wrapping.  The first is Visual Line mode, which does it by altering
-the behavior of screen line continuation.  @xref{Visual Line Mode},
-for information about Visual Line mode.
-
-@findex longlines-mode
-  Instead of using Visual Line mode, you can use a minor mode called
-Long Lines mode.  Long Lines mode wraps lines by inserting or deleting
-@dfn{soft newlines} as you type (@pxref{Hard and Soft Newlines}).
-These soft newlines won't show up when you save the buffer into a
-file, or when you copy the text into the kill ring, clipboard, or a
-register.  Unlike Visual Line mode, Lone Lines mode breaks long lines
-at the fill column (@pxref{Fill Commands}), rather than the right
-window edge.  To enable Long Lines mode, type @kbd{M-x
-longlines-mode}.  If the text is full of long lines, this also
-immediately ``wraps'' them all.
-
-@findex longlines-auto-wrap
-  The word wrap performed by Long Lines mode is @emph{not} the same as
-ordinary filling (@pxref{Fill Commands}).  It does not contract
-multiple spaces into a single space, recognize fill prefixes
-(@pxref{Fill Prefix}), or perform adaptive filling (@pxref{Adaptive
-Fill}).  The reason for this is that a wrapped line is still,
-conceptually, a single line.  Each soft newline is equivalent to
-exactly one space in that long line, and vice versa.  However, you can
-still call filling functions such as @kbd{M-q}, and these will work as
-expected, inserting soft newlines that won't show up on disk or when
-the text is copied.  You can even rely entirely on the normal fill
-commands by turning off automatic line wrapping, with @kbd{C-u M-x
-longlines-auto-wrap}.  To turn automatic line wrapping back on, type
-@kbd{M-x longlines-auto-wrap}.
-
-@findex longlines-show-hard-newlines
-  Type @kbd{RET} to insert a hard newline, one which automatic
-refilling will not remove.  If you want to see where all the hard
-newlines are, type @kbd{M-x longlines-show-hard-newlines}.  This will
-mark each hard newline with a special symbol.  The same command with a
-prefix argument turns this display off.
-
-  Long Lines mode does not change normal text files that are already
-filled, since the existing newlines are considered hard newlines.
-Before Long Lines can do anything, you need to transform each
-paragraph into a long line.  One way is to set @code{fill-column} to a
-large number (e.g., @kbd{C-u 9999 C-x f}), re-fill all the paragraphs,
-and then set @code{fill-column} back to its original value.
 
 @node Case
 @section Case Conversion Commands
@@ -2593,16 +2506,16 @@ Recognize tables within the current region and activate them.
 Deactivate tables within the current region.
 @findex table-recognize-table
 @item M-x table-recognize-table
-Recognize the table under point and activate it.
+Recognize the table at point and activate it.
 @findex table-unrecognize-table
 @item M-x table-unrecognize-table
-Deactivate the table under point.
+Deactivate the table at point.
 @findex table-recognize-cell
 @item M-x table-recognize-cell
-Recognize the cell under point and activate it.
+Recognize the cell at point and activate it.
 @findex table-unrecognize-cell
 @item M-x table-unrecognize-cell
-Deactivate the cell under point.
+Deactivate the cell at point.
 @end table
 
   For another way of converting text into tables, see @ref{Table

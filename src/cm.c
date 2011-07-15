@@ -305,7 +305,8 @@ done:
 }
 
 #if 0
-losecursor ()
+void
+losecursor (void)
 {
   curY = -1;
 }

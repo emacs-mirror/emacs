@@ -86,7 +86,6 @@ Semantic, and Ansi-Color faces are included.")
    `(font-lock-variable-name-face ((,class (:foreground ,orange-1))))
    `(font-lock-warning-face ((,class (:foreground ,red-0))))
    ;; Button and link faces
-   `(button ((,class (:underline t :foreground ,blue-1))))
    `(link ((,class (:underline t :foreground ,blue-1))))
    `(link-visited ((,class (:underline t :foreground ,blue-2))))
    ;; Gnus faces

@@ -120,8 +120,10 @@ the :set function.
 For variables in preloaded files, you can simply use this
 function for the :initialize property.  For autoloaded variables,
 you will also need to add an autoload stanza calling this
-function, and another one setting the standard-value property.
-See `send-mail-function' in sendmail.el for an example."
+function, and another one setting the standard-value property."
+  ;; No longer true:
+  ;; "See `send-mail-function' in sendmail.el for an example."
+
   ;; Until the var is actually initialized, it is kept unbound.
   ;; This seemed to be at least as good as setting it to an arbitrary
   ;; value like nil (evaluating `value' is not an option because it

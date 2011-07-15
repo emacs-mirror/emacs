@@ -35,16 +35,16 @@ Bookmarks are similar enough in spirit to registers that they
 seem to belong in this chapter.
 
 @menu
-* Position: RegPos.           Saving positions in registers.
-* Text: RegText.              Saving text in registers.
-* Rectangle: RegRect.         Saving rectangles in registers.
-* Configurations: RegConfig.  Saving window configurations in registers.
-* Numbers: RegNumbers.        Numbers in registers.
-* Files: RegFiles.            File names in registers.
-* Bookmarks::                 Bookmarks are like registers, but persistent.
+* Position Registers::       Saving positions in registers.
+* Text Registers::           Saving text in registers.
+* Rectangle Registers::      Saving rectangles in registers.
+* Configuration Registers::  Saving window configurations in registers.
+* Number Registers::         Numbers in registers.
+* File Registers::           File names in registers.
+* Bookmarks::                Bookmarks are like registers, but persistent.
 @end menu
 
-@node RegPos
+@node Position Registers
 @section Saving Positions in Registers
 @cindex saving position in a register
 
@@ -76,7 +76,7 @@ was saved from has been killed, @kbd{C-x r j} tries to create the buffer
 again by visiting the same file.  Of course, this works only for buffers
 that were visiting files.
 
-@node RegText
+@node Text Registers
 @section Saving Text in Registers
 @cindex saving text in a register
 
@@ -123,7 +123,7 @@ the region text to the text in the register instead of
 after, but with a numeric argument (@kbd{C-u}) it puts point after the
 text and the mark before.
 
-@node RegRect
+@node Rectangle Registers
 @section Saving Rectangles in Registers
 @cindex saving rectangle in a register
 
@@ -150,7 +150,7 @@ one.
   See also the command @code{sort-columns}, which you can think of
 as sorting a rectangle.  @xref{Sorting}.
 
-@node RegConfig
+@node Configuration Registers
 @section Saving Window Configurations in Registers
 @cindex saving window configuration in a register
 
@@ -178,7 +178,7 @@ restore a frame configuration, any existing frames not included in the
 configuration become invisible.  If you wish to delete these frames
 instead, use @kbd{C-u C-x r j @var{r}}.
 
-@node RegNumbers
+@node Number Registers
 @section Keeping Numbers in Registers
 @cindex saving number in a register
 
@@ -205,7 +205,7 @@ register contents into the buffer.  @kbd{C-x r +} with no numeric
 argument increments the register value by 1; @kbd{C-x r n} with no
 numeric argument stores zero in the register.
 
-@node RegFiles
+@node File Registers
 @section Keeping File Names in Registers
 @cindex saving file name in a register
 

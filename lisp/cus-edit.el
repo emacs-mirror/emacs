@@ -594,7 +594,7 @@ WIDGET is the widget to apply the filter entries of MENU on."
     ("-function\\'" function)
     ("-functions\\'" (repeat function))
     ("-list\\'" (repeat sexp))
-    ("-alist\\'" (repeat (cons sexp sexp))))
+    ("-alist\\'" (alist :key-type sexp :value-type sexp)))
   "Alist of (MATCH TYPE).
 
 MATCH should be a regexp matching the name of a symbol, and TYPE should
@@ -1033,7 +1033,11 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
  	 (put variable 'saved-variable-comment comment)))
   (put variable 'customized-value nil)
   (put variable 'customized-variable-comment nil)
-  (custom-save-all)
+  (if (custom-file t)
+      (custom-save-all)
+    (message "Setting `%s' temporarily since \"emacs -q\" would overwrite customizations"
+	     variable)
+    (set variable value))
   value)
 
 ;; Some parts of Emacs might prompt the user to save customizations,
@@ -1829,6 +1833,7 @@ item in another window.\n\n"))
 ;; We want simple widgets to be displayed by default, but complex
 ;; widgets to be hidden.
 
+;; This widget type is obsolete as of Emacs 24.1.
 (widget-put (get 'item 'widget-type) :custom-show t)
 (widget-put (get 'editable-field 'widget-type)
 	    :custom-show (lambda (_widget value)
@@ -2257,6 +2262,7 @@ and `face'."
 	     (setq widget nil)))))
   (widget-setup))
 
+(make-obsolete 'custom-show "this widget type is no longer supported." "24.1")
 (defun custom-show (widget value)
   "Non-nil if WIDGET should be shown with VALUE by default."
   (let ((show (widget-get widget :custom-show)))
@@ -4401,23 +4407,27 @@ Click on \"More\" \(or position point there and press RETURN)
 if only the first line of the docstring is shown."))
   :group 'customize)
 
-(defun custom-file ()
+(defun custom-file (&optional no-error)
   "Return the file name for saving customizations."
-  (file-chase-links
-   (or custom-file
-       (let ((user-init-file user-init-file)
-	     (default-init-file
-	       (if (eq system-type 'ms-dos) "~/_emacs" "~/.emacs")))
-	 (when (null user-init-file)
-	   (if (or (file-exists-p default-init-file)
-		   (and (eq system-type 'windows-nt)
-			(file-exists-p "~/_emacs")))
-	       ;; Started with -q, i.e. the file containing
-	       ;; Custom settings hasn't been read.  Saving
-	       ;; settings there would overwrite other settings.
-	       (error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
-	   (setq user-init-file default-init-file))
-	 user-init-file))))
+  (let ((file
+	 (or custom-file
+	     (let ((user-init-file user-init-file)
+		   (default-init-file
+		     (if (eq system-type 'ms-dos) "~/_emacs" "~/.emacs")))
+	       (when (null user-init-file)
+		 (if (or (file-exists-p default-init-file)
+			 (and (eq system-type 'windows-nt)
+			      (file-exists-p "~/_emacs")))
+		     ;; Started with -q, i.e. the file containing
+		     ;; Custom settings hasn't been read.  Saving
+		     ;; settings there would overwrite other settings.
+		     (if no-error
+			 nil
+		       (error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
+		   (setq user-init-file default-init-file)))
+	       user-init-file))))
+    (and file
+	 (file-chase-links file))))
 
 ;; If recentf-mode is non-nil, this is defined.
 (declare-function recentf-expand-file-name "recentf" (name))

@@ -138,25 +138,9 @@ Otherwise, let mailer send back a message to report errors."
   :group 'sendmail
   :version "23.1")
 
-;; Prevent problems with `window-system' not having the correct value
-;; when loaddefs.el is loaded. `custom-reevaluate-setting' needs the
-;; standard value.
-;;;###autoload
-(put 'send-mail-function 'standard-value
-     ;; MS-Windows can access the clipboard even under -nw.
-     '((if (or (and window-system (eq system-type 'darwin))
-	       (eq system-type 'windows-nt))
-	   'mailclient-send-it
-	 'sendmail-send-it)))
-
 ;; Useful to set in site-init.el
 ;;;###autoload
-(defcustom send-mail-function
-  (if (or (and window-system (eq system-type 'darwin))
-	  ;; MS-Windows can access the clipboard even under -nw.
-	  (eq system-type 'windows-nt))
-      'mailclient-send-it
-    'sendmail-send-it)
+(defcustom send-mail-function 'sendmail-query-once
   "Function to call to send the current buffer as mail.
 The headers should be delimited by a line which is
 not a valid RFC822 header or continuation line,
@@ -169,52 +153,51 @@ This is used by the default mail-sending commands.  See also
 		(function-item feedmail-send-it :tag "Use Feedmail package")
 		(function-item mailclient-send-it :tag "Use Mailclient package")
 		function)
-  :initialize 'custom-initialize-delay
+  :version "24.1"
   :group 'sendmail)
 
 (defvar sendmail-query-once-function 'query
   "Either a function to send email, or the symbol `query'.")
 
+;;;###autoload
 (defun sendmail-query-once ()
   "Send an email via `sendmail-query-once-function'.
 If `sendmail-query-once-function' is `query', ask the user what
 function to use, and then save that choice."
   (when (equal sendmail-query-once-function 'query)
-    (let ((default
-	    (cond
-	     ((or (and window-system (eq system-type 'darwin))
-		  (eq system-type 'windows-nt))
-	      'mailclient-send-it)
-	     ((and sendmail-program
-		   (executable-find sendmail-program))
-	      'sendmail-send-it))))
-      (customize-save-variable
-       'sendmail-query-once-function
-       (if (or (not default)
-	       ;; We have detected no OS-level mail senders, or we
-	       ;; have already configured smtpmail, so we use the
-	       ;; internal SMTP service.
-	       (and (boundp 'smtpmail-smtp-server)
-		    smtpmail-smtp-server))
-	   'smtpmail-send-it
-	 ;; Query the user.
-	 (unwind-protect
-	     (progn
-	       (pop-to-buffer "*Mail Help*")
-	       (erase-buffer)
-	       (insert "Sending mail from Emacs hasn't been set up yet.\n\n"
-		       "Type `y' to configure outgoing SMTP, or `n' to use\n"
-		       "the default mail sender on your system.\n\n"
-		       "To change this again at a later date, customize the\n"
-		       "`send-mail-function' variable.\n")
-	       (goto-char (point-min))
-	       (if (y-or-n-p "Configure outgoing SMTP in Emacs? ")
-		   'smtpmail-send-it
-		 default))
-	   (kill-buffer (current-buffer)))))))
+    (let* ((default
+	     (cond
+	      ((or (and window-system (eq system-type 'darwin))
+		   (eq system-type 'windows-nt))
+	       'mailclient-send-it)
+	      ((and sendmail-program
+		    (executable-find sendmail-program))
+	       'sendmail-send-it)))
+	   (function
+	    (if (or (not default)
+		    ;; We have detected no OS-level mail senders, or we
+		    ;; have already configured smtpmail, so we use the
+		    ;; internal SMTP service.
+		    (and (boundp 'smtpmail-smtp-server)
+			 smtpmail-smtp-server))
+		'smtpmail-send-it
+	      ;; Query the user.
+	      (unwind-protect
+		  (progn
+		    (pop-to-buffer "*Mail Help*")
+		    (erase-buffer)
+		    (insert "Sending mail from Emacs hasn't been set up yet.\n\n"
+			    "Type `y' to configure outgoing SMTP, or `n' to use\n"
+			    "the default mail sender on your system.\n\n"
+			    "To change this again at a later date, customize the\n"
+			    "`send-mail-function' variable.\n")
+		    (goto-char (point-min))
+		    (if (y-or-n-p "Configure outgoing SMTP in Emacs? ")
+			'smtpmail-send-it
+		      default))
+		(kill-buffer (current-buffer))))))
+      (customize-save-variable 'sendmail-query-once-function function)))
   (funcall sendmail-query-once-function))
-
-;;;###autoload(custom-initialize-delay 'send-mail-function nil)
 
 ;;;###autoload
 (defcustom mail-header-separator (purecopy "--text follows this line--")

@@ -516,11 +516,12 @@ If BUFFER, insert the article in that group."
 	     article (gnus-group-real-name group)
 	     (nth 1 gnus-command-method) buffer)))
 
-(defun gnus-request-thread (header)
+(defun gnus-request-thread (header group)
   "Request the headers in the thread containing the article specified by HEADER."
-  (let ((gnus-command-method (gnus-find-method-for-group gnus-newsgroup-name)))
+  (let ((gnus-command-method (gnus-find-method-for-group group)))
     (funcall (gnus-get-function gnus-command-method 'request-thread)
-	     header)))
+	     header
+	     (gnus-group-real-name group))))
 
 (defun gnus-warp-to-article ()
   "Warps from an article in a virtual group to the article in its

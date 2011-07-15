@@ -1348,7 +1348,7 @@ buffer."
 
 ;;;###autoload
 (defun ediff-patch-file (&optional arg patch-buf)
-  "Run Ediff by patching SOURCE-FILENAME.
+  "Query for a file name, and then run Ediff by patching that file.
 If optional PATCH-BUF is given, use the patch in that buffer
 and don't ask the user.
 If prefix argument, then: if even argument, assume that the patch is in a

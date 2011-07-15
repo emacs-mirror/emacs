@@ -1534,7 +1534,7 @@ sigset_t
 sys_sigblock (sigset_t new_mask)
 {
   sigset_t old_mask;
-  sigprocmask (SIG_BLOCK, &new_mask, &old_mask);
+  pthread_sigmask (SIG_BLOCK, &new_mask, &old_mask);
   return (old_mask);
 }
 
@@ -1542,7 +1542,7 @@ sigset_t
 sys_sigunblock (sigset_t new_mask)
 {
   sigset_t old_mask;
-  sigprocmask (SIG_UNBLOCK, &new_mask, &old_mask);
+  pthread_sigmask (SIG_UNBLOCK, &new_mask, &old_mask);
   return (old_mask);
 }
 
@@ -1550,7 +1550,7 @@ sigset_t
 sys_sigsetmask (sigset_t new_mask)
 {
   sigset_t old_mask;
-  sigprocmask (SIG_SETMASK, &new_mask, &old_mask);
+  pthread_sigmask (SIG_SETMASK, &new_mask, &old_mask);
   return (old_mask);
 }
 
@@ -1802,8 +1802,7 @@ get_random (void)
 #ifndef HAVE_STRERROR
 #ifndef WINDOWSNT
 char *
-strerror (errnum)
-     int errnum;
+strerror (int errnum)
 {
   extern char *sys_errlist[];
   extern int sys_nerr;

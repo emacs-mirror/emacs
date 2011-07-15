@@ -1,3 +1,23 @@
+2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* widget.texi (Setting Up the Buffer): Remove mention of the
+	global keymap parent, which doesn't seem to be accurate
+	(bug#7045).
+
+2010-07-10  Kevin Ryde  <user42@zip.com.au>
+
+	* cl.texi (For Clauses): Add destructuring example processing an
+	alist (bug#6596).
+
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* org.texi (Special agenda views): Fix double quoting (bug#3509).
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* ediff.texi (Major Entry Points): Remove mention of `require',
+	since that's not pertinent in the installed Emacs (bug#9016).
+
 2011-07-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Expiring Mail): Document gnus-auto-expirable-marks.

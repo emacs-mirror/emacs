@@ -3025,9 +3025,13 @@ or forward if N is negative."
 MSG-POS is a marker pointing at the error message in the grep buffer.
 BAD-MARKER is a marker that ought to point at where to move to,
 but probably is garbage."
-  (let* ((message (car (get-text-property msg-pos 'message (marker-buffer msg-pos))))
-	 (column (car message))
-	 (linenum (cadr message))
+
+  (let* ((message-loc (compilation--message->loc
+		       (get-text-property msg-pos 'compilation-message
+					  (marker-buffer msg-pos))))
+	 (column (car message-loc))
+	 (linenum (cadr message-loc))
+	 line-text
 	 pos
 	 msgnum msgbeg msgend
 	 header-field
@@ -3041,10 +3045,18 @@ but probably is garbage."
       (save-excursion
 	;; Find the line that the error message points at.
 	(goto-char (point-min))
-	(forward-line linenum)
+	(forward-line (1- linenum))
 	(setq pos (point))
 
-	;; Find which message that's in,
+	;; Find the text at the start of the line,
+	;; before the first = sign.
+	;; This text has a good chance of being also in the
+	;; decoded message.
+	(save-excursion
+	  (skip-chars-forward "^=\n")
+	  (setq line-text (buffer-substring pos (point))))
+
+	;; Find which message this position is in,
 	;; and the limits of that message.
 	(setq msgnum (rmail-what-message pos))
 	(setq msgbeg (rmail-msgbeg msgnum))
@@ -3071,11 +3083,23 @@ but probably is garbage."
     (rmail-show-message msgnum)
 
     ;; Move to the right position within the displayed message.
+    ;; Or at least try.  The decoded message's lines may not
+    ;; correspond to the lines in the inbox file.
+    (goto-char (point-min))
     (if header-field
-	(re-search-forward (concat "^" (regexp-quote header-field)) nil t)
-      (search-forward "\n\n" nil t))
-    (forward-line line-number-within)
-    (forward-char column)))
+	(progn 
+	  (re-search-forward (concat "^" (regexp-quote header-field)) nil t)
+	  (forward-line line-number-within))
+      (search-forward "\n\n" nil t)
+      (if (re-search-forward (concat "^" (regexp-quote line-text)) nil t)
+	  (goto-char (match-beginning 0))))
+    (if (eobp)
+	;; If the decoded message doesn't have enough lines,
+	;; go to the beginning rather than the end.
+	(goto-char (point-min))
+      ;; Otherwise, go to the right column.
+      (if column
+	  (forward-char column)))))
 
 (defun rmail-what-message (&optional pos)
   "Return message number POS (or point) is in."
@@ -4379,7 +4403,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "30ab95e291380f184dff5fa6cde75520")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "a7d3e7205efa4e20ca9038c9b260ce83")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\

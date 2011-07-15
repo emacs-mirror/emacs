@@ -490,7 +490,7 @@ SEQ must be a list, vector, or string.  The comparison is done with `equal'."
   "Return LIST with all occurrences of ELT removed.
 The comparison is done with `eq'.  Contrary to `delq', this does not use
 side-effects, and the argument LIST is not modified."
-  (while (eq elt (car list)) (setq list (cdr list)))
+  (while (and (eq elt (car list)) (setq list (cdr list))))
   (if (memq elt list)
       (delq elt (copy-sequence list))
     list))
@@ -1262,10 +1262,10 @@ unless the optional argument APPEND is non-nil, in which case
 FUNCTION is added at the end.
 
 The optional fourth argument, LOCAL, if non-nil, says to modify
-the hook's buffer-local value rather than its default value.
-This makes the hook buffer-local if needed, and it makes t a member
-of the buffer-local value.  That acts as a flag to run the hook
-functions in the default value as well as in the local value.
+the hook's buffer-local value rather than its global value.
+This makes the hook buffer-local, and it makes t a member of the
+buffer-local value.  That acts as a flag to run the hook
+functions of the global value as well as in the local value.
 
 HOOK should be a symbol, and FUNCTION may be any valid function.  If
 HOOK is void, it is first set to nil.  If HOOK's value is a single
@@ -3072,8 +3072,15 @@ See also `with-temp-file' and `with-output-to-string'."
   "Execute BODY, pretending it does not modify the buffer.
 If BODY performs real modifications to the buffer's text, other
 than cosmetic ones, undo data may become corrupted.
-Typically used around modifications of text-properties which do not really
-affect the buffer's content."
+
+This macro will run BODY normally, but doesn't count its buffer
+modifications as being buffer modifications.  This affects things
+like buffer-modified-p, checking whether the file is locked by
+someone else, running buffer modification hooks, and other things
+of that nature.
+
+Typically used around modifications of text-properties which do
+not really affect the buffer's content."
   (declare (debug t) (indent 0))
   (let ((modified (make-symbol "modified")))
     `(let* ((,modified (buffer-modified-p))
@@ -4080,7 +4087,8 @@ If all LST elements are zeros or LST is nil, return zero."
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
 etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
-which is higher than \"1alpha\"."
+which is higher than \"1alpha\".  Also, \"-CVS\" and \"-NNN\" are treated
+as alpha versions."
   (version-list-< (version-to-list v1) (version-to-list v2)))
 
 
@@ -4090,7 +4098,8 @@ which is higher than \"1alpha\"."
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
 etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
-which is higher than \"1alpha\"."
+which is higher than \"1alpha\".  Also, \"-CVS\" and \"-NNN\" are treated
+as alpha versions."
   (version-list-<= (version-to-list v1) (version-to-list v2)))
 
 (defun version= (v1 v2)
@@ -4099,7 +4108,8 @@ which is higher than \"1alpha\"."
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
 etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
-which is higher than \"1alpha\"."
+which is higher than \"1alpha\".  Also, \"-CVS\" and \"-NNN\" are treated
+as alpha versions."
   (version-list-= (version-to-list v1) (version-to-list v2)))
 
 

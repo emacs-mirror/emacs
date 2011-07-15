@@ -143,10 +143,12 @@ static int
 init_gnutls_functions (Lisp_Object libraries)
 {
   HMODULE library;
+  Lisp_Object gnutls_log_level = Fsymbol_value (Qgnutls_log_level);
+  int max_log_level = 1;
 
   if (!(library = w32_delayed_load (libraries, Qgnutls_dll)))
     {
-      GNUTLS_LOG (1, 1, "GnuTLS library not found");
+      GNUTLS_LOG (1, max_log_level, "GnuTLS library not found");
       return 0;
     }
 
@@ -189,7 +191,10 @@ init_gnutls_functions (Lisp_Object libraries)
   LOAD_GNUTLS_FN (library, gnutls_x509_crt_import);
   LOAD_GNUTLS_FN (library, gnutls_x509_crt_init);
 
-  GNUTLS_LOG2 (1, 1, "GnuTLS library loaded:",
+  if (NUMBERP (gnutls_log_level))
+    max_log_level = XINT (gnutls_log_level);
+
+  GNUTLS_LOG2 (1, max_log_level, "GnuTLS library loaded:",
                SDATA (Fget (Qgnutls_dll, QCloaded_from)));
   return 1;
 }

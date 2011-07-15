@@ -270,26 +270,36 @@ typedef unsigned long int gl_uintptr_t;
 /* Note: These types are compiler dependent. It may be unwise to use them in
    public header files. */
 
-#undef intmax_t
-#if @HAVE_LONG_LONG_INT@ && LONG_MAX >> 30 == 1
+/* If the system defines INTMAX_MAX, assume that intmax_t works, and
+   similarly for UINTMAX_MAX and uintmax_t.  This avoids problems with
+   assuming one type where another is used by the system.  */
+
+#ifndef INTMAX_MAX
+# undef INTMAX_C
+# undef intmax_t
+# if @HAVE_LONG_LONG_INT@ && LONG_MAX >> 30 == 1
 typedef long long int gl_intmax_t;
-# define intmax_t gl_intmax_t
-#elif defined GL_INT64_T
-# define intmax_t int64_t
-#else
+#  define intmax_t gl_intmax_t
+# elif defined GL_INT64_T
+#  define intmax_t int64_t
+# else
 typedef long int gl_intmax_t;
-# define intmax_t gl_intmax_t
+#  define intmax_t gl_intmax_t
+# endif
 #endif
 
-#undef uintmax_t
-#if @HAVE_UNSIGNED_LONG_LONG_INT@ && ULONG_MAX >> 31 == 1
+#ifndef UINTMAX_MAX
+# undef UINTMAX_C
+# undef uintmax_t
+# if @HAVE_UNSIGNED_LONG_LONG_INT@ && ULONG_MAX >> 31 == 1
 typedef unsigned long long int gl_uintmax_t;
-# define uintmax_t gl_uintmax_t
-#elif defined GL_UINT64_T
-# define uintmax_t uint64_t
-#else
+#  define uintmax_t gl_uintmax_t
+# elif defined GL_UINT64_T
+#  define uintmax_t uint64_t
+# else
 typedef unsigned long int gl_uintmax_t;
-# define uintmax_t gl_uintmax_t
+#  define uintmax_t gl_uintmax_t
+# endif
 #endif
 
 /* Verify that intmax_t and uintmax_t have the same size.  Too much code
@@ -431,21 +441,23 @@ typedef int _verify_intmax_size[sizeof (intmax_t) == sizeof (uintmax_t)
 
 /* 7.18.2.5. Limits of greatest-width integer types */
 
-#undef INTMAX_MIN
-#undef INTMAX_MAX
-#ifdef INT64_MAX
-# define INTMAX_MIN  INT64_MIN
-# define INTMAX_MAX  INT64_MAX
-#else
-# define INTMAX_MIN  INT32_MIN
-# define INTMAX_MAX  INT32_MAX
+#ifndef INTMAX_MAX
+# undef INTMAX_MIN
+# ifdef INT64_MAX
+#  define INTMAX_MIN  INT64_MIN
+#  define INTMAX_MAX  INT64_MAX
+# else
+#  define INTMAX_MIN  INT32_MIN
+#  define INTMAX_MAX  INT32_MAX
+# endif
 #endif
 
-#undef UINTMAX_MAX
-#ifdef UINT64_MAX
-# define UINTMAX_MAX  UINT64_MAX
-#else
-# define UINTMAX_MAX  UINT32_MAX
+#ifndef UINTMAX_MAX
+# ifdef UINT64_MAX
+#  define UINTMAX_MAX  UINT64_MAX
+# else
+#  define UINTMAX_MAX  UINT32_MAX
+# endif
 #endif
 
 /* 7.18.3. Limits of other integer types */
@@ -568,22 +580,24 @@ typedef int _verify_intmax_size[sizeof (intmax_t) == sizeof (uintmax_t)
 
 /* 7.18.4.2. Macros for greatest-width integer constants */
 
-#undef INTMAX_C
-#if @HAVE_LONG_LONG_INT@ && LONG_MAX >> 30 == 1
-# define INTMAX_C(x)   x##LL
-#elif defined GL_INT64_T
-# define INTMAX_C(x)   INT64_C(x)
-#else
-# define INTMAX_C(x)   x##L
+#ifndef INTMAX_C
+# if @HAVE_LONG_LONG_INT@ && LONG_MAX >> 30 == 1
+#  define INTMAX_C(x)   x##LL
+# elif defined GL_INT64_T
+#  define INTMAX_C(x)   INT64_C(x)
+# else
+#  define INTMAX_C(x)   x##L
+# endif
 #endif
 
-#undef UINTMAX_C
-#if @HAVE_UNSIGNED_LONG_LONG_INT@ && ULONG_MAX >> 31 == 1
-# define UINTMAX_C(x)  x##ULL
-#elif defined GL_UINT64_T
-# define UINTMAX_C(x)  UINT64_C(x)
-#else
-# define UINTMAX_C(x)  x##UL
+#ifndef UINTMAX_C
+# if @HAVE_UNSIGNED_LONG_LONG_INT@ && ULONG_MAX >> 31 == 1
+#  define UINTMAX_C(x)  x##ULL
+# elif defined GL_UINT64_T
+#  define UINTMAX_C(x)  UINT64_C(x)
+# else
+#  define UINTMAX_C(x)  x##UL
+# endif
 #endif
 
 #endif /* !defined __cplusplus || defined __STDC_CONSTANT_MACROS */

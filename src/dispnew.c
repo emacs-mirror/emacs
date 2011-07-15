@@ -1062,8 +1062,7 @@ increment_row_positions (struct glyph_row *row,
    B without changing glyph pointers in A and B.  */
 
 static void
-swap_glyphs_in_rows (a, b)
-     struct glyph_row *a, *b;
+swap_glyphs_in_rows (struct glyph_row *a, struct glyph_row *b)
 {
   int area;
 
@@ -5276,10 +5275,12 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
   struct image *img = 0;
 #endif
   int x0, x1, to_x;
+  void *itdata = NULL;
 
   /* We used to set current_buffer directly here, but that does the
      wrong thing with `face-remapping-alist' (bug#2044).  */
   Fset_buffer (w->buffer);
+  itdata = bidi_shelve_cache ();
   SET_TEXT_POS_FROM_MARKER (startp, w->start);
   CHARPOS (startp) = min (ZV, max (BEGV, CHARPOS (startp)));
   BYTEPOS (startp) = min (ZV_BYTE, max (BEGV_BYTE, BYTEPOS (startp)));
@@ -5313,6 +5314,7 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
      argument is ZV to prevent move_it_in_display_line from matching
      based on buffer positions.  */
   move_it_in_display_line (&it, ZV, to_x, MOVE_TO_X);
+  bidi_unshelve_cache (itdata);
 
   Fset_buffer (old_current_buffer);
 

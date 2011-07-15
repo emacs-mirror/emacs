@@ -2951,9 +2951,11 @@ You type        Translation\n\
    to look through.
 
    If MENTION_SHADOW is nonzero, then when something is shadowed by SHADOW,
-   don't omit it; instead, mention it but say it is shadowed.  */
+   don't omit it; instead, mention it but say it is shadowed.
 
-void
+   Return whether something was inserted or not.  */
+
+int
 describe_map_tree (Lisp_Object startmap, int partial, Lisp_Object shadow,
 		   Lisp_Object prefix, const char *title, int nomenu, int transl,
 		   int always_title, int mention_shadow)
@@ -3063,10 +3065,8 @@ key             binding\n\
     skip: ;
     }
 
-  if (something)
-    insert_string ("\n");
-
   UNGCPRO;
+  return something;
 }
 
 static int previous_description_column;
@@ -3712,11 +3712,11 @@ the same way.  The "active" keymaps in each alist are used before
   Vemulation_mode_map_alists = Qnil;
 
   DEFVAR_LISP ("where-is-preferred-modifier", Vwhere_is_preferred_modifier,
-	       doc: /* Preferred modifier to use for `where-is'.
+	       doc: /* Preferred modifier key to use for `where-is'.
 When a single binding is requested, `where-is' will return one that
-uses this modifier if possible.  If nil, or if no such binding exists,
-bindings using keys without modifiers (or only with meta) will be
-preferred.  */);
+uses this modifier key if possible.  If nil, or if no such binding
+exists, bindings using keys without modifiers (or only with meta) will
+be preferred.  */);
   Vwhere_is_preferred_modifier = Qnil;
   where_is_preferred_modifier = 0;
 

@@ -101,6 +101,11 @@ one, with no arguments.
 The hook variable's value can also be a single function---either a
 lambda expression or a symbol with a function definition---which
 @code{run-hooks} calls.  But this usage is obsolete.
+
+If the hook variable is buffer-local, the buffer-local variable will
+be used instead of the global variable.  However, if the buffer-local
+variable contains the element @code{t}, the global hook variable will
+be run as well.
 @end defun
 
 @defun run-hook-with-args hook &rest args
@@ -169,11 +174,11 @@ function goes at the end of the hook list and will be executed last.
 value is a single function; it sets or changes the value to a list of
 functions.
 
-If @var{local} is non-@code{nil}, that says to add @var{function} to
-the buffer-local hook list instead of to the global hook list.  If
-needed, this makes the hook buffer-local and adds @code{t} to the
-buffer-local value.  The latter acts as a flag to run the hook
-functions in the default value as well as in the local value.
+If @var{local} is non-@code{nil}, that says to add @var{function} to the
+buffer-local hook list instead of to the global hook list.  This makes
+the hook buffer-local and adds @code{t} to the buffer-local value.  The
+latter acts as a flag to run the hook functions in the default value as
+well as in the local value.
 @end defun
 
 @defun remove-hook hook function &optional local
@@ -1864,6 +1869,15 @@ line, or @code{nil} for no version control.
 This variable displays the buffer's major and minor modes.  Its
 default value also displays the recursive editing level, information
 on the process status, and whether narrowing is in effect.
+@end defopt
+
+@defopt mode-line-remote
+This variable is used to show whether @code{default-directory} for the
+current buffer is remote.
+@end defopt
+
+@defopt mode-line-client
+This variable is used to identify @code{emacsclient} frames.
 @end defopt
 
   The following three variables are used in @code{mode-line-modes}:

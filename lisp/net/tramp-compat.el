@@ -23,9 +23,9 @@
 
 ;;; Commentary:
 
-;; Tramp's main Emacs version for development is GNU Emacs 24.  This
-;; package provides compatibility functions for GNU Emacs 22, GNU
-;; Emacs 23 and XEmacs 21.4+.
+;; Tramp's main Emacs version for development is Emacs 24.  This
+;; package provides compatibility functions for Emacs 22, Emacs 23,
+;; XEmacs 21.4+ and SXEmacs 22.
 
 ;;; Code:
 
@@ -286,9 +286,8 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
 	  (tramp-compat-funcall 'file-attributes filename id-format)
 	(wrong-number-of-arguments (file-attributes filename))))))
 
-;; PRESERVE-UID-GID has been introduced with Emacs 23.  It does not
-;; hurt to ignore it for other (X)Emacs versions.
-;; PRESERVE-SELINUX-CONTEXT has been introduced with Emacs 24.
+;; PRESERVE-UID-GID does not exist in XEmacs.
+;; PRESERVE-SELINUX-CONTEXT has been introduced with Emacs 24.1.
 (defun tramp-compat-copy-file
   (filename newname &optional ok-if-already-exists keep-date
 	    preserve-uid-gid preserve-selinux-context)
@@ -484,10 +483,7 @@ exiting if process is running."
       (tramp-compat-funcall 'set-process-query-on-exit-flag process flag)
     (tramp-compat-funcall 'process-kill-without-query process flag)))
 
-(add-hook 'tramp-unload-hook
-	  (lambda ()
-	    (unload-feature 'tramp-compat 'force)))
-
+;; There exist different implementations for this function.
 (defun tramp-compat-coding-system-change-eol-conversion (coding-system eol-type)
   "Return a coding system like CODING-SYSTEM but with given EOL-TYPE.
 EOL-TYPE can be one of `dos', `unix', or `mac'."
@@ -505,6 +501,10 @@ EOL-TYPE can be one of `dos', `unix', or `mac'."
 			eol-type
 			"`dos', `unix', or `mac'")))))
         (t (error "Can't change EOL conversion -- is MULE missing?"))))
+
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'tramp-compat 'force)))
 
 (provide 'tramp-compat)
 

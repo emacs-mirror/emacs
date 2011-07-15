@@ -25,6 +25,21 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_NS
 
+#ifdef NS_IMPL_COCOA
+#ifndef MAC_OS_X_VERSION_10_3
+#define MAC_OS_X_VERSION_10_3 1030
+#endif
+#ifndef MAC_OS_X_VERSION_10_4
+#define MAC_OS_X_VERSION_10_4 1040
+#endif
+#ifndef MAC_OS_X_VERSION_10_5
+#define MAC_OS_X_VERSION_10_5 1050
+#endif
+#ifndef MAC_OS_X_VERSION_10_6
+#define MAC_OS_X_VERSION_10_6 1060
+#endif
+#endif /* NS_IMPL_COCOA */
+
 #ifdef __OBJC__
 
 /* ==========================================================================
@@ -55,7 +70,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 @class EmacsToolbar;
 
-@interface EmacsView : NSView <NSTextInput> /* 10.6+: NSWindowDelegate */
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+@interface EmacsView : NSView <NSTextInput, NSWindowDelegate>
+#else
+@interface EmacsView : NSView <NSTextInput>
+#endif
    {
    char *old_title;
    BOOL windowClosing;
@@ -106,7 +125,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    ========================================================================== */
 
-@interface EmacsMenu : NSMenu  /* 10.6+: <NSMenuDelegate> */
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+@interface EmacsMenu : NSMenu  <NSMenuDelegate>
+#else
+@interface EmacsMenu : NSMenu
+#endif
 {
   struct frame *frame;
   unsigned long keyEquivModMask;
@@ -133,7 +156,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 @class EmacsImage;
 
-@interface EmacsToolbar : NSToolbar  /* 10.6+: <NSToolbarDelegate> */
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+@interface EmacsToolbar : NSToolbar <NSToolbarDelegate>
+#else
+@interface EmacsToolbar : NSToolbar
+#endif
    {
      EmacsView *emacsView;
      NSMutableDictionary *identifierToItem;
@@ -176,7 +203,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (Lisp_Object)runDialogAt: (NSPoint)p;
 @end
 
-@interface EmacsTooltip : NSObject  /* 10.6+: <NSWindowDelegate> */
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+@interface EmacsTooltip : NSObject <NSWindowDelegate>
+#else
+@interface EmacsTooltip : NSObject
+#endif
   {
     NSWindow *win;
     NSTextField *textField;
@@ -700,6 +731,8 @@ extern void check_ns (void);
 extern Lisp_Object ns_map_event_to_object ();
 extern Lisp_Object ns_string_from_pasteboard ();
 extern void ns_string_to_pasteboard ();
+extern Lisp_Object ns_get_local_selection (Lisp_Object selection_name,
+                                           Lisp_Object target_type);
 extern void nxatoms_of_nsselect ();
 extern int ns_lisp_to_cursor_type ();
 extern Lisp_Object ns_cursor_type_to_lisp (int arg);

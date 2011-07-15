@@ -725,8 +725,7 @@ current_column_1 (void)
    If END is nil, that stands for the end of STRING.  */
 
 static double
-string_display_width (string, beg, end)
-     Lisp_Object string, beg, end;
+string_display_width (Lisp_Object string, Lisp_Object beg, Lisp_Object end)
 {
   register int col;
   register unsigned char *ptr, *stop;
@@ -1986,9 +1985,11 @@ whether or not it is currently displayed in some window.  */)
   struct text_pos pt;
   struct window *w;
   Lisp_Object old_buffer;
-  struct gcpro gcpro1;
+  EMACS_INT old_charpos IF_LINT (= 0), old_bytepos IF_LINT (= 0);
+  struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object lcols = Qnil;
   double cols IF_LINT (= 0);
+  void *itdata = NULL;
 
   /* Allow LINES to be of the form (HPOS . VPOS) aka (COLUMNS . LINES).  */
   if (CONSP (lines) && (NUMBERP (XCAR (lines))))
@@ -2006,12 +2007,16 @@ whether or not it is currently displayed in some window.  */)
   w = XWINDOW (window);
 
   old_buffer = Qnil;
-  GCPRO1 (old_buffer);
+  GCPRO3 (old_buffer, old_charpos, old_bytepos);
   if (XBUFFER (w->buffer) != current_buffer)
     {
       /* Set the window's buffer temporarily to the current buffer.  */
       old_buffer = w->buffer;
+      old_charpos = XMARKER (w->pointm)->charpos;
+      old_bytepos = XMARKER (w->pointm)->bytepos;
       XSETBUFFER (w->buffer, current_buffer);
+      set_marker_both
+	(w->pointm, w->buffer, BUF_PT (current_buffer), BUF_PT_BYTE (current_buffer));
     }
 
   if (noninteractive)
@@ -2025,6 +2030,7 @@ whether or not it is currently displayed in some window.  */)
       EMACS_INT it_start;
       int first_x, it_overshoot_expected IF_LINT (= 0);
 
+      itdata = bidi_shelve_cache ();
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
       first_x = it.first_visible_x;
@@ -2129,10 +2135,14 @@ whether or not it is currently displayed in some window.  */)
 	}
 
       SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
+      bidi_unshelve_cache (itdata);
     }
 
   if (BUFFERP (old_buffer))
-    w->buffer = old_buffer;
+    {
+      w->buffer = old_buffer;
+      set_marker_both (w->pointm, w->buffer, old_charpos, old_bytepos);
+    }
 
   RETURN_UNGCPRO (make_number (it.vpos));
 }

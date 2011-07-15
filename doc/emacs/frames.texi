@@ -33,7 +33,8 @@ so that you can use many of the features described in this chapter.
 @end ifnottex
 
 @menu
-* Cut and Paste::       Mouse commands for cut and paste.
+* Mouse Commands::      Moving, cutting, and pasting, with the mouse.
+* Word and Line Mouse:: Mouse commands for selecting whole words or lines.
 * Mouse References::    Using the mouse to select an item from a list.
 * Menu Mouse Clicks::   Mouse clicks that bring up menus.
 * Mode Line Mouse::     Mouse clicks on the mode line.
@@ -56,22 +57,8 @@ so that you can use many of the features described in this chapter.
 * Text-Only Mouse::     Using the mouse in text-only terminals.
 @end menu
 
-@node Cut and Paste
-@section Cutting and Pasting on Graphical Displays
-
-  This section describes commands for selecting a region, cutting, and
-pasting using the mouse.
-
-@menu
-* Mouse Commands::      Moving, cutting, and pasting, with the mouse.
-* Word and Line Mouse:: Mouse commands for selecting whole words or lines.
-* Cut/Paste Other App:: Transfering text between Emacs and other apps.
-* Secondary Selection:: Cutting without altering point and mark.
-* Clipboard::           Using the clipboard for selections.
-@end menu
-
 @node Mouse Commands
-@subsection Mouse Commands for Editing
+@section Mouse Commands for Editing
 @cindex mouse buttons (what they do)
 
 @kindex Mouse-1
@@ -132,16 +119,21 @@ entirely on the screen.  The number of lines scrolled per step depends
 on how far away from the window edge the mouse has gone; the variable
 @code{mouse-scroll-min-lines} specifies a minimum step size.
 
+@findex mouse-yank-primary
 @findex mouse-yank-at-click
-@vindex mouse-yank-at-point
   Clicking with the middle mouse button, @kbd{Mouse-2}, moves point to
-the position where you clicked and performs a yank
-(@code{mouse-yank-at-click}).  @xref{Yanking}.  If you change the
-variable @code{mouse-yank-at-point} to a non-@code{nil} value,
-@kbd{Mouse-2} does not move point.  Then it does not matter where you
-click, or even which of the frame's windows you click on; the yank
-occurs at the existing point.  This variable also affects yanking the
-primary and secondary selections (@pxref{Cut/Paste Other App}).
+the position where you clicked and inserts the contents of the primary
+selection (@code{mouse-yank-primary}).  @xref{Primary Selection}.
+This behavior is consistent with other X applications; alternatively,
+you can rebind @kbd{Mouse-2} to @code{mouse-yank-at-click}, which
+performs a yank at point.
+
+@vindex mouse-yank-at-point
+  If you change the variable @code{mouse-yank-at-point} to a
+non-@code{nil} value, @kbd{Mouse-2} does not move point; it inserts
+the text at point, regardless of where you clicked or even which of
+the frame's windows you clicked on.  This variable affects both
+@code{mouse-yank-primary} and @code{mouse-yank-at-click}.
 
 @findex mouse-save-then-kill
   Clicking with the right mouse button, @kbd{Mouse-3}, runs the
@@ -195,7 +187,7 @@ make Emacs behave this way by enabling Delete Selection mode.
 @xref{Using Region}.
 
 @node Word and Line Mouse
-@subsection Mouse Commands for Words and Lines
+@section Mouse Commands for Words and Lines
 
   These variants of @kbd{Mouse-1} select entire words or lines at a
 time.  Emacs activates the region around the selected text, which is
@@ -223,164 +215,6 @@ Select the line you click on.
 @item Triple-Drag-Mouse-1
 Select the text you drag across, in the form of whole lines.
 @end table
-
-@node Cut/Paste Other App
-@subsection Cut and Paste with Other Window Applications
-
-@cindex X cutting and pasting
-@cindex X selection
-@cindex primary selection
-@cindex selection, primary
-  When running Emacs under the X window system, you can easily
-transfer text between Emacs and other X applications using the
-@dfn{primary selection} (also called the @dfn{X selection}).  This is
-@emph{not} the same thing as the @dfn{clipboard}, which is a separate
-facility used on desktop environments such as Gnome, and on operating
-systems such as Microsoft Windows (@pxref{Clipboard}).
-
-  Under X, whenever you select some text in Emacs by dragging or
-clicking the mouse (@pxref{Mouse Commands}), it is also saved in the
-primary selection.  You can then @dfn{paste} that text into any other
-X application, usually by clicking @kbd{Mouse-2} in that application.
-Unlike the Emacs kill ring (@pxref{Kill Ring}), the primary selection
-has no ``memory'': each time you save something in the primary
-selection, either in Emacs or in another X application, the previous
-contents of the primary selection are lost.
-
-@cindex MS-Windows, and primary selection
-  MS-Windows provides no primary selection, but Emacs emulates it
-within a single Emacs session, by storing the selected text
-internally.  Therefore, all the features and commands related to the
-primary selection work on Windows as they do on X, for cutting and
-pasting within the same session, but not across Emacs sessions or with
-other applications.
-
-  Whenever you kill some text using a command such as @kbd{C-w}
-(@code{kill-region}), or copy it into the kill ring using a command
-such as @kbd{M-w} (@code{kill-ring-save}), that text is also saved in
-the primary selection.  @xref{Killing}.
-
-@vindex select-active-regions
-  If you set the region using the keyboard---for instance, by typing
-@kbd{C-@key{SPC}} and moving point away from the mark---the text in
-the region is not normally saved to the primary selection.  However,
-if you change the variable @code{select-active-regions} to @code{t},
-the region is saved to the primary selection whenever you activate the
-mark.  Each change to the region also updates the primary selection.
-
-@vindex yank-pop-change-selection
-  If you change @code{yank-pop-change-selection} to @code{t}, rotating
-the kill ring with @kbd{M-y} (@code{yank-pop}) also saves the new yank
-to the primary selection (@pxref{Yanking}).
-
-@vindex save-interprogram-paste-before-kill
-  If you change @code{save-interprogram-paste-before-kill} to
-@code{t}, each kill command first saves the existing selection onto
-the kill ring.  This prevents you from losing the existing selection,
-at the risk of large memory consumption if other applications generate
-large selections.
-
-  You can yank the primary selection into Emacs using the usual yank
-commands, such as @kbd{C-y} (@code{yank}) and @kbd{Mouse-2}
-(@code{mouse-yank-at-click}).  These commands actually check the
-primary selection before referring to the kill ring; if no primary
-selection is available, the kill ring contents are used.  To prevent
-yank commands from accessing the primary selection, set the variable
-@code{x-select-enable-primary} to @code{nil}.
-
-  The standard coding system for the primary selection is
-@code{compound-text-with-extensions}.  You may find that the pasted
-text is not what you expected.  In such a case, you can specify
-another coding system for the selection by typing @kbd{C-x @key{RET}
-x} or @kbd{C-x @key{RET} X}.  Alternatively, you can request a
-different data type by modifying the variable
-@code{x-select-request-type}.  @xref{Communication Coding}.
-
-@node Secondary Selection
-@subsection Secondary Selection
-@cindex secondary selection
-
-  In addition to the primary selection, the X Window System provides a
-second similar facility known as the @dfn{secondary selection}.
-Nowadays, few X applications make use of the secondary selection, but
-you can access it using the following Emacs commands:
-
-@table @kbd
-@findex mouse-set-secondary
-@kindex M-Drag-Mouse-1
-@item M-Drag-Mouse-1
-Set the secondary selection, with one end at the place where you press
-down the button, and the other end at the place where you release it
-(@code{mouse-set-secondary}).  The selected text is highlighted, using
-the @code{secondary-selection} face, as you drag.  The window scrolls
-automatically if you drag the mouse off the top or bottom of the
-window, just like @code{mouse-set-region} (@pxref{Mouse Commands}).
-
-This command does not alter the kill ring.
-
-@findex mouse-start-secondary
-@kindex M-Mouse-1
-@item M-Mouse-1
-Set one endpoint for the @dfn{secondary selection}
-(@code{mouse-start-secondary}).
-
-@findex mouse-secondary-save-then-kill
-@kindex M-Mouse-3
-@item M-Mouse-3
-Set the secondary selection, with one end at the position clicked and
-the other at the position specified with @kbd{M-Mouse-1}
-(@code{mouse-secondary-save-then-kill}).  This also puts the selected
-text in the kill ring.  A second @kbd{M-Mouse-3} at the same place
-kills the secondary selection just made.
-
-@findex mouse-yank-secondary
-@kindex M-Mouse-2
-@item M-Mouse-2
-Insert the secondary selection where you click, placing point at the
-end of the yanked text (@code{mouse-yank-secondary}).
-@end table
-
-Double or triple clicking of @kbd{M-Mouse-1} operates on words and
-lines, much like @kbd{Mouse-1}.
-
-If @code{mouse-yank-at-point} is non-@code{nil}, @kbd{M-Mouse-2} yanks
-at point.  Then it does not matter precisely where you click, or even
-which of the frame's windows you click on.  @xref{Mouse Commands}.
-
-@node Clipboard
-@subsection Using the Clipboard
-@cindex clipboard
-
-  In desktop environments such as Gnome, and operating systems such as
-Microsoft Windows and Mac OS X, you can transfer data (usually text)
-between different applications using the @dfn{clipboard}.  The
-clipboard is distinct from the primary selection and secondary
-selection discussed earlier.  You can access the clipboard through the
-@samp{Edit} menu of the menu bar (@pxref{Menu Bar}).
-
-@cindex cut
-@findex clipboard-kill-region
-  The command @code{clipboard-kill-region}, which is bound to the
-@code{Cut} menu item, kills the region and saves it in the clipboard.
-
-@cindex copy
-@findex clipboard-kill-ring-save
-  The command @code{clipboard-kill-ring-save}, which is bound to the
-@code{Copy} menu item, copies the region to the kill ring and saves it
-in the clipboard.
-
-@findex clipboard-yank
-@cindex paste
-  The @code{Paste} menu item in the Edit menu yanks the contents of
-the clipboard at point (@code{clipboard-yank}).
-
-@vindex x-select-enable-clipboard
-  You can customize the variable @code{x-select-enable-clipboard} to
-make the Emacs yank functions consult the clipboard before the primary
-selection, and to make the kill functions to store in the clipboard as
-well as the primary selection.  Otherwise, these commands do not
-access the clipboard at all.  Using the clipboard is the default on
-MS-Windows and Mac OS, but not on other systems.
 
 @node Mouse References
 @section Following References with the Mouse
@@ -626,15 +460,15 @@ this case, @kbd{C-x 5 0} can delete the last interactive frame; you
 can use @command{emacsclient} to reconnect to the Emacs session.
 
 @vindex focus-follows-mouse
-  On X, you may have to tell Emacs how the system (or the window
-manager) handles focus-switching between windows, in order for the
-command @kbd{C-x 5 o} (@code{other-frame}) to work properly.
-Unfortunately, there is no way for Emacs to detect this automatically,
-so you should set the variable @code{focus-follows-mouse}.  If simply
-moving the mouse onto a window selects it and gives it focus, the
-variable should be @code{t}; if you have to click on the window to
-select it, the variable should be @code{nil}.  The default is
-@code{t}.
+  On X, you may have to tell Emacs how the window manager handles
+focus-switching between windows, in order for @kbd{C-x 5 o}
+(@code{other-frame}) to work properly.  Unfortunately, there is no way
+for Emacs to detect this automatically, so you should set the variable
+@code{focus-follows-mouse}.  The default is @code{nil}, meaning you
+have to click on the window to select it (the default for most modern
+window managers).  You should change it to @code{t} if your window
+manager selects and window and gives it focus anytime you move the
+mouse onto the window.
 
   The window manager that is part of MS-Windows always gives focus to
 a frame that raises, so this variable has no effect in the native

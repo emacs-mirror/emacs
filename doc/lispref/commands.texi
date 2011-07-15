@@ -597,13 +597,32 @@ realistic example of using @code{commandp}.
 
 @defun call-interactively command &optional record-flag keys
 This function calls the interactively callable function @var{command},
-reading arguments according to its interactive calling specifications.
-It returns whatever @var{command} returns.  An error is signaled if
-@var{command} is not a function or if it cannot be called
-interactively (i.e., is not a command).  Note that keyboard macros
-(strings and vectors) are not accepted, even though they are
-considered commands, because they are not functions.  If @var{command}
-is a symbol, then @code{call-interactively} uses its function definition.
+providing arguments according to its interactive calling specifications.
+It returns whatever @var{command} returns.
+
+If, for instance, you have a function with the following signature:
+
+@example
+(defun foo (begin end)
+  (interactive "r")
+  ...)
+@end example
+
+then saying
+
+@example
+(call-interactively 'foo)
+@end example
+
+will call @code{foo} with the region (@code{point} and @code{mark}) as
+the arguments.
+
+An error is signaled if @var{command} is not a function or if it
+cannot be called interactively (i.e., is not a command).  Note that
+keyboard macros (strings and vectors) are not accepted, even though
+they are considered commands, because they are not functions.  If
+@var{command} is a symbol, then @code{call-interactively} uses its
+function definition.
 
 @cindex record command history
 If @var{record-flag} is non-@code{nil}, then this command and its
@@ -2993,7 +3012,7 @@ An integer, which stands for itself.
 
 @item
 A list of one element, which is an integer.  This form of prefix
-argument results from one or a succession of @kbd{C-u}'s with no
+argument results from one or a succession of @kbd{C-u}s with no
 digits.  The numeric value is the integer in the list, but some
 commands make a distinction between such a list and an integer alone.
 

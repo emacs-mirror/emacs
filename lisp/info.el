@@ -464,6 +464,7 @@ be last in the list.")
   "Insert the contents of an Info file in the current buffer.
 Do the right thing if the file has been compressed or zipped."
   (let* ((tail Info-suffix-list)
+	 (jka-compr-verbose nil)
 	 (lfn (if (fboundp 'msdos-long-file-names)
 		  (msdos-long-file-names)
 		t))
@@ -621,7 +622,7 @@ in `Info-file-supports-index-cookies-list'."
 Optional argument FILE-OR-NODE specifies the file to examine;
 the default is the top-level directory of Info.
 Called from a program, FILE-OR-NODE may specify an Info node of the form
-`(FILENAME)NODENAME'.
+\"(FILENAME)NODENAME\".
 Optional argument BUFFER specifies the Info buffer name;
 the default buffer name is *info*.  If BUFFER exists,
 just switch to BUFFER.  Otherwise, create a new buffer
@@ -728,6 +729,11 @@ just return nil (no error)."
 			  (append Info-directory-list
 				  Info-additional-directory-list)
 			Info-directory-list)))))
+	;; Fall back on the installation directory if we can't find
+	;; the info node anywhere else.
+	(when installation-directory
+	  (setq dirs (append dirs (list (expand-file-name
+					 "info" installation-directory)))))
 	;; Search the directory list for file FILENAME.
 	(while (and dirs (not found))
 	  (setq temp (expand-file-name filename (car dirs)))
@@ -1572,7 +1578,12 @@ If FORK is a string, it is the name to use for the new buffer."
 (defvar Info-read-node-completion-table)
 
 (defun Info-read-node-name-2 (dirs suffixes string pred action)
-  "Virtual completion table for file names input in Info node names."
+  "Internal function used to complete Info node names.
+Return a completion table for Info files---the FILENAME part of a
+node named \"(FILENAME)NODENAME\".  DIRS is a list of Info
+directories to search if FILENAME is not absolute; SUFFIXES is a
+list of valid filename suffixes for Info files.  See
+`try-completion' for a description of the remaining arguments."
   (setq suffixes (remove "" suffixes))
   (when (file-name-absolute-p string)
     (setq dirs (list (file-name-directory string))))
@@ -1602,10 +1613,9 @@ If FORK is a string, it is the name to use for the new buffer."
 	    (push (if string-dir (concat string-dir file) file) names)))))
     (complete-with-action action names string pred)))
 
-;; This function is used as the "completion table" while reading a node name.
-;; It does completion using the alist in Info-read-node-completion-table
-;; unless STRING starts with an open-paren.
 (defun Info-read-node-name-1 (string predicate code)
+  "Internal function used by `Info-read-node-name'.
+See `completing-read' for a description of arguments and usage."
   (cond
    ;; First complete embedded file names.
    ((string-match "\\`([^)]*\\'" string)
@@ -1618,7 +1628,6 @@ If FORK is a string, it is the name to use for the new buffer."
      (substring string 1)
      predicate
      code))
-
    ;; If a file name was given, then any node is fair game.
    ((string-match "\\`(" string)
     (cond
@@ -1630,9 +1639,10 @@ If FORK is a string, it is the name to use for the new buffer."
        code Info-read-node-completion-table string predicate))))
 
 ;; Arrange to highlight the proper letters in the completion list buffer.
-
-
 (defun Info-read-node-name (prompt)
+  "Read an Info node name with completion, prompting with PROMPT.
+A node name can have the form \"NODENAME\", referring to a node
+in the current Info file, or \"(FILENAME)NODENAME\"."
   (let* ((completion-ignore-case t)
 	 (Info-read-node-completion-table (Info-build-node-completions))
 	 (nodename (completing-read prompt 'Info-read-node-name-1 nil t)))
@@ -3645,7 +3655,6 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "\C-m" 'Info-follow-nearest-node)
     (define-key map "\t" 'Info-next-reference)
     (define-key map "\e\t" 'Info-prev-reference)
-    (define-key map [(shift tab)] 'Info-prev-reference)
     (define-key map [backtab] 'Info-prev-reference)
     (define-key map "1" 'Info-nth-menu-item)
     (define-key map "2" 'Info-nth-menu-item)

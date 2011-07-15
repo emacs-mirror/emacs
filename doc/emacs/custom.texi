@@ -23,168 +23,15 @@ Reference Manual}.
 @end ifnottex
 
 @menu
-* Minor Modes::         Each minor mode is a feature you can turn on
-                          independently of any others.
 * Easy Customization::  Convenient way to browse and change settings.
 * Variables::           Many Emacs commands examine Emacs variables
                           to decide what to do; by setting variables,
                           you can control their functioning.
 * Key Bindings::        The keymaps say what command each key runs.
                           By changing them, you can "redefine keys".
-* Syntax::              The syntax table controls how words and
-                          expressions are parsed.
 * Init File::           How to write common customizations in the
                           @file{.emacs} file.
 @end menu
-
-@node Minor Modes
-@section Minor Modes
-@cindex minor modes
-@cindex mode, minor
-
-  Minor modes are optional features which you can turn on or off.  For
-example, Auto Fill mode is a minor mode in which @key{SPC} breaks
-lines between words as you type.  Minor modes are independent of one
-another and of the selected major mode.  Most minor modes say in the
-mode line when they are enabled; for example, @samp{Fill} in the mode
-line means that Auto Fill mode is enabled.
-
-  Each minor mode is associated with a command, called the @dfn{mode
-command}, which turns it on or off.  The name of this command consists
-of the name of the minor mode, followed by @samp{-mode}; for instance,
-the mode command for Auto Fill mode is @code{auto-fill-mode}.  Calling
-the minor mode command with no prefix argument @dfn{toggles} the mode,
-turning it on if it was off, and off if it was on.  A positive
-argument always turns the mode on, and a zero or negative argument
-always turns it off.  Mode commands are usually invoked with
-@kbd{M-x}, but you can bind keys to them if you wish (@pxref{Key
-Bindings}).
-
-  Most minor modes also have a @dfn{mode variable}, with the same name
-as the mode command.  Its value is non-@code{nil} if the mode is
-enabled, and @code{nil} if it is disabled.  In some minor modes---but
-not all---the value of the variable alone determines whether the mode
-is active: the mode command works simply by setting the variable, and
-changing the value of the variable has the same effect as calling the
-mode command.  Because not all minor modes work this way, we recommend
-that you avoid changing the mode variables directly; use the mode
-commands instead.
-
-  Some minor modes are @dfn{buffer-local}: they apply only to the
-current buffer, so you can enable the mode in certain buffers and not
-others.  Other minor modes are @dfn{global}: while enabled, they
-affect everything you do in the Emacs session, in all buffers.  Some
-global minor modes are enabled by default.
-
-  The following is a list of some buffer-local minor modes:
-
-@itemize @bullet
-@item
-Abbrev mode automatically expands text based on pre-defined
-abbreviation definitions.  @xref{Abbrevs}.
-
-@item
-Auto Fill mode inserts newlines as you type to prevent lines from
-becoming too long.  @xref{Filling}.
-
-@item
-Auto Save mode saves the buffer contents periodically to reduce the
-amount of work you can lose in case of a crash.  @xref{Auto Save}.
-
-@item
-Enriched mode enables editing and saving of formatted text.
-@xref{Formatted Text}.
-
-@item
-Flyspell mode automatically highlights misspelled words.
-@xref{Spelling}.
-
-@item
-Font-Lock mode automatically highlights certain textual units found in
-programs.  It is enabled globally by default, but you can disable it
-in individual buffers.  @xref{Faces}.
-
-@findex linum-mode
-@cindex Linum mode
-@item
-Linum mode displays each line's line number in the window's left
-margin.  Its mode command is @code{linum-mode}.
-
-@item
-Outline minor mode provides similar facilities to the major mode
-called Outline mode.  @xref{Outline Mode}.
-
-@cindex Overwrite mode
-@cindex mode, Overwrite
-@findex overwrite-mode
-@kindex INSERT
-@item
-Overwrite mode causes ordinary printing characters to replace existing
-text instead of shoving it to the right.  For example, if point is in
-front of the @samp{B} in @samp{FOOBAR}, then in Overwrite mode typing
-a @kbd{G} changes it to @samp{FOOGAR}, instead of producing
-@samp{FOOGBAR} as usual.  In Overwrite mode, the command @kbd{C-q}
-inserts the next character whatever it may be, even if it is a
-digit---this gives you a way to insert a character instead of
-replacing an existing character.  The mode command,
-@code{overwrite-mode}, is bound to the @key{Insert} key.
-
-@findex binary-overwrite-mode
-@item
-Binary Overwrite mode is a variant of Overwrite mode for editing
-binary files; it treats newlines and tabs like other characters, so
-that they overwrite other characters and can be overwritten by them.
-In Binary Overwrite mode, digits after @kbd{C-q} specify an octal
-character code, as usual.
-
-@item
-Visual Line mode performs ``word wrapping'', causing long lines to be
-wrapped at word boundaries.  @xref{Visual Line Mode}.
-@end itemize
-
-  Here are some useful global minor modes.  Since Line Number mode and
-Transient Mark mode can be enabled or disabled just by setting the
-value of the minor mode variable, you @emph{can} set them differently
-for particular buffers, by explicitly making the corresponding
-variable local in those buffers.  @xref{Locals}.
-
-@itemize @bullet
-@item
-Column Number mode enables display of the current column number in the
-mode line.  @xref{Mode Line}.
-
-@item
-Delete Selection mode causes text insertion to first delete the text
-in the region, if the region is active.  @xref{Using Region}.
-
-@item
-Icomplete mode displays an indication of available completions when
-you are in the minibuffer and completion is active.  @xref{Completion
-Options}.
-
-@item
-Line Number mode enables display of the current line number in the
-mode line.  It is enabled by default.  @xref{Mode Line}.
-
-@item
-Menu Bar mode gives each frame a menu bar.  It is enabled by default.
-@xref{Menu Bars}.
-
-@item
-Scroll Bar mode gives each window a scroll bar.  It is enabled by
-default, but the scroll bar is only displayed on graphical terminals.
-@xref{Scroll Bars}.
-
-@item
-Tool Bar mode gives each frame a tool bar.  It is enabled by default,
-but the tool bar is only displayed on graphical terminals.  @xref{Tool
-Bars}.
-
-@item
-Transient Mark mode highlights the region, and makes many Emacs
-commands operate on the region when the mark is active.  It is enabled
-by default.  @xref{Mark}.
-@end itemize
 
 @node Easy Customization
 @section Easy Customization Interface
@@ -972,6 +819,12 @@ function by calling @code{add-hook} over and over, remember that all
 the versions you added will remain in the hook variable together.  You
 can clear out individual functions by calling @code{remove-hook}, or
 do @code{(setq @var{hook-variable} nil)} to remove everything.
+
+@cindex buffer-local hooks
+  If the hook variable is buffer-local, the buffer-local variable will
+be used instead of the global variable.  However, if the buffer-local
+variable contains the element @code{t}, the global hook variable will
+be run as well.
 
 @node Locals
 @subsection Local Variables
@@ -2084,36 +1937,6 @@ because Emacs has not read your init file.
 invoke it; disabling also applies if the command is invoked using
 @kbd{M-x}.  However, disabling a command has no effect on calling it
 as a function from Lisp programs.
-
-@node Syntax
-@section The Syntax Table
-@cindex syntax table
-
-  All the Emacs commands which parse words or balance parentheses are
-controlled by the @dfn{syntax table}.  The syntax table says which
-characters are opening delimiters, which are parts of words, which are
-string quotes, and so on.  It does this by assigning each character to
-one of fifteen-odd @dfn{syntax classes}.  In some cases it specifies
-some additional information also.
-
-  Each major mode has its own syntax table (though related major modes
-sometimes share one syntax table), which it installs in each buffer
-that uses the mode.  The syntax table installed in the current buffer
-is the one that all commands use, so we call it ``the'' syntax table.
-
-@kindex C-h s
-@findex describe-syntax
-  To display a description of the contents of the current syntax
-table, type @kbd{C-h s} (@code{describe-syntax}).  The description of
-each character includes the string you would have to give to
-@code{modify-syntax-entry} to set up that character's current syntax,
-starting with the character which designates its syntax class, plus
-some English text to explain its meaning.
-
-  A syntax table is actually a Lisp object, a char-table, whose
-elements are cons cells.  For full information on the syntax table,
-see @ref{Syntax Tables,, Syntax Tables, elisp, The Emacs Lisp
-Reference Manual}.
 
 @node Init File
 @section The Init File, @file{~/.emacs}

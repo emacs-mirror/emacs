@@ -125,7 +125,8 @@ in this order is used."
 (defun mh-face-to-png (data)
   "Convert base64 encoded DATA to png image."
   (with-temp-buffer
-    (set-buffer-multibyte nil)
+    (if (fboundp 'set-buffer-multibyte)
+        (set-buffer-multibyte nil))
     (insert data)
     (ignore-errors (base64-decode-region (point-min) (point-max)))
     (buffer-string)))
@@ -133,7 +134,8 @@ in this order is used."
 (defun mh-uncompface (data)
   "Run DATA through `uncompface' to generate bitmap."
   (with-temp-buffer
-    (set-buffer-multibyte nil)
+    (if (fboundp 'set-buffer-multibyte)
+        (set-buffer-multibyte nil))
     (insert data)
     (when (and mh-uncompface-executable
                (equal (call-process-region (point-min) (point-max)
@@ -205,7 +207,7 @@ The directories are searched for in the order they appear in the list.")
       (cond (cached-value (return-from mh-picon-get-image cached-value))
             ((not host-list) (return-from mh-picon-get-image nil)))
       (setq match
-            (block 'loop
+            (block loop
               ;; u@h search
               (loop for dir in mh-picon-existing-directory-list
                     do (loop for type in mh-picon-image-types
@@ -213,15 +215,15 @@ The directories are searched for in the order they appear in the list.")
                              for file1 = (format "%s/%s.%s"
                                                  dir canonical-address type)
                              when (file-exists-p file1)
-                             do (return-from 'loop file1)
+                             do (return-from loop file1)
                              ;; [path]user
                              for file2 = (format "%s/%s.%s" dir user type)
                              when (file-exists-p file2)
-                             do (return-from 'loop file2)
+                             do (return-from loop file2)
                              ;; [path]host
                              for file3 = (format "%s/%s.%s" dir host type)
                              when (file-exists-p file3)
-                             do (return-from 'loop file3)))
+                             do (return-from loop file3)))
               ;; facedb search
               ;; Search order for user@foo.net:
               ;;   [path]net/foo/user
@@ -239,11 +241,11 @@ The directories are searched for in the order they appear in the list.")
                                       do (loop for type in mh-picon-image-types
                                                for z1 = (format "%s.%s" y type)
                                                when (file-exists-p z1)
-                                               do (return-from 'loop z1)
+                                               do (return-from loop z1)
                                                for z2 = (format "%s/face.%s"
                                                                 y type)
                                                when (file-exists-p z2)
-                                               do (return-from 'loop z2)))))))
+                                               do (return-from loop z2)))))))
       (setf (gethash canonical-address mh-picon-cache)
             (mh-picon-file-contents match)))))
 
@@ -271,7 +273,8 @@ file contents as a string is returned. If FILE is nil, then both
 elements of the list are nil."
   (if (stringp file)
       (with-temp-buffer
-        (set-buffer-multibyte nil)
+        (if (fboundp 'set-buffer-multibyte)
+            (set-buffer-multibyte nil))
         (let ((type (and (string-match ".*\\.\\(...\\)$" file)
                          (intern (match-string 1 file)))))
           (insert-file-contents-literally file)

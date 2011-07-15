@@ -2109,7 +2109,7 @@ terminal type to a different value."
 
 (defface link
   '((((class color) (min-colors 88) (background light))
-     :foreground "blue1" :underline t)
+     :foreground "RoyalBlue3" :underline t)
     (((class color) (background light))
      :foreground "blue" :underline t)
     (((class color) (min-colors 88) (background dark))

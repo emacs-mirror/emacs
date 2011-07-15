@@ -211,7 +211,7 @@ Appendices
  --- The Detailed Node Listing ---
  ---------------------------------
 
-Here are other nodes that are inferiors of those already listed,
+Here are other nodes that are subnodes of those already listed,
 mentioned here so you can get to them in one step:
 
 Introduction

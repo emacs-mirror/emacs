@@ -1860,7 +1860,11 @@ nil, we exit; otherwise we scan the next file."
 Stops when a match is found.
 To continue searching for next match, use command \\[tags-loop-continue].
 
-See documentation of variable `tags-file-name'."
+If `file-list-form' is non-nil, it should be a form that, when
+evaluated, will return a list of file names.  The search will be
+restricted to these files.
+
+Aleso see the documentation of the `tags-file-name' variable."
   (interactive "sTags search (regexp): ")
   (if (and (equal regexp "")
 	   (eq (car tags-loop-scan) 're-search-forward)

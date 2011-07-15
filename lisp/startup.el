@@ -41,8 +41,9 @@
 (defcustom initial-buffer-choice nil
   "Buffer to show after starting Emacs.
 If the value is nil and `inhibit-startup-screen' is nil, show the
-startup screen.  If the value is string, visit the specified file or
-directory using `find-file'.  If t, open the `*scratch*' buffer."
+startup screen.  If the value is string, visit the specified file
+or directory using `find-file'.  If t, open the `*scratch*'
+buffer."
   :type '(choice
 	  (const     :tag "Startup screen" nil)
 	  (directory :tag "Directory" :value "~/")
@@ -1293,7 +1294,7 @@ If this is nil, no message will be displayed."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defconst fancy-startup-text
-  `((:face (variable-pitch (:foreground "red"))
+  `((:face (variable-pitch font-lock-comment-face)
      "Welcome to "
      :link ("GNU Emacs"
 	    ,(lambda (_button) (browse-url "http://www.gnu.org/software/emacs/"))
@@ -1350,7 +1351,7 @@ Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
 
 (defconst fancy-about-text
-  `((:face (variable-pitch (:foreground "red"))
+  `((:face (variable-pitch font-lock-comment-face)
      "This is "
      :link ("GNU Emacs"
 	    ,(lambda (_button) (browse-url "http://www.gnu.org/software/emacs/"))
@@ -1366,11 +1367,7 @@ Each element in the list should be a list of strings or pairs
 	 `("GNU" ,(lambda (_button) (describe-gnu-project))
 	   "Display info on the GNU project.")))
      " operating system.\n"
-     :face ,(lambda ()
-	     (list 'variable-pitch
-		   (list :foreground
-			 (if (eq (frame-parameter nil 'background-mode) 'dark)
-			     "cyan" "darkblue"))))
+     :face (variable-pitch font-lock-builtin-face)
      "\n"
      ,(lambda () (emacs-version))
      "\n"
@@ -1426,8 +1423,7 @@ Each element in the list should be a list of strings or pairs
 	    ,(lambda (_button)
                (browse-url "http://www.gnu.org/software/emacs/tour/"))
 	    "Browse http://www.gnu.org/software/emacs/tour/")
-     "\tSee an overview of Emacs features at gnu.org"
-     ))
+     "\tSee an overview of Emacs features at gnu.org"))
   "A list of texts to show in the middle part of the About screen.
 Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
@@ -1537,93 +1533,91 @@ a face or button specification."
 
 (defun fancy-startup-tail (&optional concise)
   "Insert the tail part of the splash screen into the current buffer."
-  (let ((fg (if (eq (frame-parameter nil 'background-mode) 'dark)
-		"cyan" "darkblue")))
-    (unless concise
-      (fancy-splash-insert
-       :face 'variable-pitch
-       "\nTo start...     "
-       :link `("Open a File"
-	       ,(lambda (_button) (call-interactively 'find-file))
-	       "Specify a new file's name, to edit the file")
-       "     "
-       :link `("Open Home Directory"
-	       ,(lambda (_button) (dired "~"))
-	       "Open your home directory, to operate on its files")
-       "     "
-       :link `("Customize Startup"
-	       ,(lambda (_button) (customize-group 'initialization))
-	       "Change initialization settings including this screen")
-       "\n"))
+  (unless concise
     (fancy-splash-insert
-     :face 'variable-pitch "To quit a partially entered command, type "
-     :face 'default "Control-g"
-     :face 'variable-pitch ".\n")
-    (fancy-splash-insert :face `(variable-pitch (:foreground ,fg))
-			 "\nThis is "
-			 (emacs-version)
-			 "\n"
-			 :face '(variable-pitch (:height 0.8))
-			 emacs-copyright
-			 "\n")
-    (and auto-save-list-file-prefix
-	 ;; Don't signal an error if the
-	 ;; directory for auto-save-list files
-	 ;; does not yet exist.
-	 (file-directory-p (file-name-directory
-			    auto-save-list-file-prefix))
-	 (directory-files
-	  (file-name-directory auto-save-list-file-prefix)
-	  nil
-	  (concat "\\`"
-		  (regexp-quote (file-name-nondirectory
-				 auto-save-list-file-prefix)))
-	  t)
-	 (fancy-splash-insert :face '(variable-pitch (:foreground "red"))
-			      "\nIf an Emacs session crashed recently, "
-			      "type "
-			      :face '(fixed-pitch :foreground "red")
-			      "Meta-x recover-session RET"
-			      :face '(variable-pitch (:foreground "red"))
-			      "\nto recover"
-			      " the files you were editing."))
+     :face 'variable-pitch
+     "\nTo start...     "
+     :link `("Open a File"
+	     ,(lambda (_button) (call-interactively 'find-file))
+	     "Specify a new file's name, to edit the file")
+     "     "
+     :link `("Open Home Directory"
+	     ,(lambda (_button) (dired "~"))
+	     "Open your home directory, to operate on its files")
+     "     "
+     :link `("Customize Startup"
+	     ,(lambda (_button) (customize-group 'initialization))
+	     "Change initialization settings including this screen")
+     "\n"))
+  (fancy-splash-insert
+   :face 'variable-pitch "To quit a partially entered command, type "
+   :face 'default "Control-g"
+   :face 'variable-pitch ".\n")
+  (fancy-splash-insert :face `(variable-pitch font-lock-builtin-face)
+		       "\nThis is "
+		       (emacs-version)
+		       "\n"
+		       :face '(variable-pitch (:height 0.8))
+		       emacs-copyright
+		       "\n")
+  (and auto-save-list-file-prefix
+       ;; Don't signal an error if the
+       ;; directory for auto-save-list files
+       ;; does not yet exist.
+       (file-directory-p (file-name-directory
+			  auto-save-list-file-prefix))
+       (directory-files
+	(file-name-directory auto-save-list-file-prefix)
+	nil
+	(concat "\\`"
+		(regexp-quote (file-name-nondirectory
+			       auto-save-list-file-prefix)))
+	t)
+       (fancy-splash-insert :face '(variable-pitch font-lock-comment-face)
+			    "\nIf an Emacs session crashed recently, "
+			    "type "
+			    :face '(fixed-pitch font-lock-comment-face)
+			    "Meta-x recover-session RET"
+			    :face '(variable-pitch font-lock-comment-face)
+			    "\nto recover"
+			    " the files you were editing."))
 
-    (when concise
-      (fancy-splash-insert
-       :face 'variable-pitch "\n"
-       :link `("Dismiss this startup screen"
-	       ,(lambda (_button)
-                  (when startup-screen-inhibit-startup-screen
-                    (customize-set-variable 'inhibit-startup-screen t)
-                    (customize-mark-to-save 'inhibit-startup-screen)
-                    (custom-save-all))
-                  (let ((w (get-buffer-window "*GNU Emacs*")))
-                    (and w (not (one-window-p)) (delete-window w)))
-                  (kill-buffer "*GNU Emacs*")))
-       "  ")
-      (when (or user-init-file custom-file)
-	(let ((checked (create-image "checked.xpm"
-				     nil nil :ascent 'center))
-	      (unchecked (create-image "unchecked.xpm"
-				       nil nil :ascent 'center)))
-	  (insert-button
-	   " "
-	   :on-glyph checked
-	   :off-glyph unchecked
-	   'checked nil 'display unchecked 'follow-link t
-	   'action (lambda (button)
-		     (if (overlay-get button 'checked)
-			 (progn (overlay-put button 'checked nil)
-				(overlay-put button 'display
-					     (overlay-get button :off-glyph))
-				(setq startup-screen-inhibit-startup-screen
-				      nil))
-		       (overlay-put button 'checked t)
-		       (overlay-put button 'display
-				    (overlay-get button :on-glyph))
-		       (setq startup-screen-inhibit-startup-screen t)))))
-	(fancy-splash-insert :face '(variable-pitch (:height 0.9))
-			     " Never show it again.")))))
+  (when concise
+    (fancy-splash-insert
+     :face 'variable-pitch "\n"
+     :link `("Dismiss this startup screen"
+	     ,(lambda (_button)
+		(when startup-screen-inhibit-startup-screen
+		  (customize-set-variable 'inhibit-startup-screen t)
+		  (customize-mark-to-save 'inhibit-startup-screen)
+		  (custom-save-all))
+		(let ((w (get-buffer-window "*GNU Emacs*")))
+		  (and w (not (one-window-p)) (delete-window w)))
+		(kill-buffer "*GNU Emacs*")))
+     "  ")
+    (when (or user-init-file custom-file)
+      (let ((checked (create-image "checked.xpm"
+				   nil nil :ascent 'center))
+	    (unchecked (create-image "unchecked.xpm"
+				     nil nil :ascent 'center)))
+	(insert-button
+	 " "
+	 :on-glyph checked
+	 :off-glyph unchecked
+	 'checked nil 'display unchecked 'follow-link t
+	 'action (lambda (button)
+		   (if (overlay-get button 'checked)
+		       (progn (overlay-put button 'checked nil)
+			      (overlay-put button 'display
+					   (overlay-get button :off-glyph))
+			      (setq startup-screen-inhibit-startup-screen
+				    nil))
+		     (overlay-put button 'checked t)
+		     (overlay-put button 'display
+				  (overlay-get button :on-glyph))
+		     (setq startup-screen-inhibit-startup-screen t)))))
+      (fancy-splash-insert :face '(variable-pitch (:height 0.9))
+			   " Never show it again."))))
 
 (defun exit-splash-screen ()
   "Stop displaying the splash screen buffer."

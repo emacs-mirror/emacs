@@ -1,3 +1,7 @@
+2011-07-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* update-game-score.c (usage): Update usage line.
+
 2011-07-02  Jason Rumney  <jasonr@gnu.org>
 
 	* emacsclient.c (decode_options) [WINDOWSNT]: Avoid tty mode on

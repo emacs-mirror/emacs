@@ -1738,8 +1738,7 @@ font_parse_family_registry (Lisp_Object family, Lisp_Object registry, Lisp_Objec
 #define LGSTRING_GLYPH_SIZE 8
 
 static int
-check_gstring (gstring)
-     Lisp_Object gstring;
+check_gstring (Lisp_Object gstring)
 {
   Lisp_Object val;
   int i, j;
@@ -1793,8 +1792,7 @@ check_gstring (gstring)
 }
 
 static void
-check_otf_features (otf_features)
-     Lisp_Object otf_features;
+check_otf_features (Lisp_Object otf_features)
 {
   Lisp_Object val;
 
@@ -1827,8 +1825,7 @@ check_otf_features (otf_features)
 Lisp_Object otf_list;
 
 static Lisp_Object
-otf_tag_symbol (tag)
-     OTF_Tag tag;
+otf_tag_symbol (OTF_Tag tag)
 {
   char name[5];
 
@@ -1837,8 +1834,7 @@ otf_tag_symbol (tag)
 }
 
 static OTF *
-otf_open (file)
-     Lisp_Object file;
+otf_open (Lisp_Object file)
 {
   Lisp_Object val = Fassoc (file, otf_list);
   OTF *otf;
@@ -1860,8 +1856,7 @@ otf_open (file)
    (struct font_driver).otf_capability.  */
 
 Lisp_Object
-font_otf_capability (font)
-     struct font *font;
+font_otf_capability (struct font *font)
 {
   OTF *otf;
   Lisp_Object capability = Fcons (Qnil, Qnil);
@@ -1935,9 +1930,7 @@ font_otf_capability (font)
    FEATURES.  */
 
 static void
-generate_otf_features (spec, features)
-     Lisp_Object spec;
-     char *features;
+generate_otf_features (Lisp_Object spec, char *features)
 {
   Lisp_Object val;
   char *p;
@@ -1972,8 +1965,7 @@ generate_otf_features (spec, features)
 }
 
 Lisp_Object
-font_otf_DeviceTable (device_table)
-     OTF_DeviceTable *device_table;
+font_otf_DeviceTable (OTF_DeviceTable *device_table)
 {
   int len = device_table->StartSize - device_table->EndSize + 1;
 
@@ -1982,9 +1974,7 @@ font_otf_DeviceTable (device_table)
 }
 
 Lisp_Object
-font_otf_ValueRecord (value_format, value_record)
-     int value_format;
-     OTF_ValueRecord *value_record;
+font_otf_ValueRecord (int value_format, OTF_ValueRecord *value_record)
 {
   Lisp_Object val = Fmake_vector (make_number (8), Qnil);
 
@@ -2008,8 +1998,7 @@ font_otf_ValueRecord (value_format, value_record)
 }
 
 Lisp_Object
-font_otf_Anchor (anchor)
-     OTF_Anchor *anchor;
+font_otf_Anchor (OTF_Anchor *anchor)
 {
   Lisp_Object val;
 
@@ -3739,8 +3728,9 @@ font_range (EMACS_INT pos, EMACS_INT *limit, struct window *w, struct face *face
       else
 	FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, string, pos, pos_byte);
       category = CHAR_TABLE_REF (Vunicode_category_table, c);
-      if (EQ (category, QCf)
-	  || CHAR_VARIATION_SELECTOR_P (c))
+      if (INTEGERP (category)
+	  && (XINT (category) == UNICODE_CATEGORY_Cf
+	      || CHAR_VARIATION_SELECTOR_P (c)))
 	continue;
       if (NILP (font_object))
 	{

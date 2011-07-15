@@ -263,8 +263,16 @@ functionality.
 	;; The server said it was OK to begin STARTTLS negotiations.
 	(if builtin-starttls
 	    (let ((cert (network-stream-certificate host service parameters)))
-	      (gnutls-negotiate :process stream :hostname host
-				:keylist (and cert (list cert))))
+	      (condition-case nil
+		  (gnutls-negotiate :process stream :hostname host
+				    :keylist (and cert (list cert)))
+		;; If we get a gnutls-specific error (for instance if
+		;; the certificate the server gives us is completely
+		;; syntactically invalid), then close the connection
+		;; and possibly (further down) try to create a
+		;; non-encrypted connection.
+		(gnutls-error
+		 (delete-process stream))))
 	  (unless (starttls-negotiate stream)
 	    (delete-process stream)))
 	(if (memq (process-status stream) '(open run))
@@ -281,18 +289,14 @@ functionality.
 	      (network-stream-command stream capability-command eo-capa))))
 
     ;; If TLS is mandatory, close the connection if it's unencrypted.
-    (when (and (or require-tls
-		   ;; The server said it was possible to do STARTTLS,
-		   ;; and we wanted to use it...
-		   (and starttls-command
-			(plist-get parameters :use-starttls-if-possible)))
+    (when (and require-tls
 	       ;; ... but Emacs wasn't able to -- either no built-in
 	       ;; support, or no gnutls-cli installed.
 	       (eq resulting-type 'plain))
-	  (setq error
-		(if require-tls
-		    "Server does not support TLS"
-		  "Server supports STARTTLS, but Emacs does not have support for it"))
+      (setq error
+	    (if require-tls
+		"Server does not support TLS"
+	      "Server supports STARTTLS, but Emacs does not have support for it"))
       (delete-process stream)
       (setq stream nil))
     ;; Return value:

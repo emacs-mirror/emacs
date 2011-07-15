@@ -1,39 +1,569 @@
+2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* man.el (Man-fontify-manpage): Fix message when formatting the
+	man page (bug#7929).
+
+2011-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* buff-menu.el (Buffer-menu-buffer+size): Accept an additional
+	argument LRM; if non-nil, append an invisible LRM character to the
+	buffer name.
+	(list-buffers-noselect): Call Buffer-menu-buffer+size with the
+	last argument non-nil, when formatting buffer names.
+	(Buffer-menu-mode, list-buffers-noselect): Force left-to-right
+	paragraph direction.
+
+2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* man.el (Man-bgproc-sentinel): Skip any arguments and only output
+	the man page name (bug#7929).
+
+	* image.el (put-image): Mention the `put-image' overlay property
+	(bug#7834).
+
+	* scroll-bar.el (set-scroll-bar-mode): Mention that
+	`scroll-bar-mode' lists the values (bug#7772).
+
+	* image-mode.el (image-mode-fit-frame): Mention that it's a toggle
+	command (bug#7729).
+
+	* rect.el (apply-on-rectangle): Return the point after the last
+	operation.
+	(string-rectangle): Go to the point after the last operation
+	(bug#7522).
+
+	* simple.el (current-kill): Clarify what
+	`interprogram-paste-function' does (bug#7500).
+
+	* printing.el (pr-toggle-region): Clarify the documentation
+	slightly (bug#7493).
+
+	* time.el (display-time-update): Allow
+	`display-time-mail-function' to return nil (bug#7158).  Fix
+	suggested by Detlev Zundel.
+
+	* vc/diff.el (diff): Clarify the order the file names are read
+	(bug#7111).
+
+	* mouse.el (mouse-set-region): Link to `mouse-drag-copy-region' in
+	the doc string (bug#7015).
+
+	* font-lock.el (font-lock-maximum-decoration): Mention what
+	numeric levels mean (bug#6935).
+
+	* startup.el (initial-buffer-choice): Don't mention the `none'
+	selection, which is against policy.
+
+2011-07-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-normalize-special): Replace
+	`dedicated' by `dedicate' to dedicate window (Bug#9072).
+
+2011-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (version<, version<=, version=): Mention "-CVS" and
+	"-12345" alpha version numbers.
+
+2011-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el: Add advertised binding for set-mark-command
+	(Bug#5772).
+
+2011-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el (mode-line-other-buffer):
+	* bookmark.el (bookmark-bmenu-2-window):
+	* bs.el (bs-cycle-next, bs-cycle-previous):
+	* net/tramp-cmds.el (tramp-append-tramp-buffers): Revert to using
+	switch-to-buffer.
+
+	* net/tramp-compat.el (tramp-compat-pop-to-buffer-same-window):
+	Deleted.
+
+2011-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el (follow-debug-message, follow-redisplay):
+	* jka-cmpr-hook.el (with-auto-compression-mode):
+	Fix typos in docstrings.
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* subr.el (with-silent-modifications): Clarify somewhat what the
+	macro inhibits (bug#6525).
+
+	* simple.el (eval-expression): Note what it does if called
+	interactively (bug#6495).
+
+2011-07-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (switch-to-buffer): New arg FORCE-SAME-WINDOW.  Use
+	pop-to-buffer buffer-or-name if it is nil.
+
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Remove switch-to-buffer.
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* files.el (make-directory): Clarify that an error will be raised
+	if there's an error (bug#6397).
+
+	* startup.el (initial-buffer-choice): Add `none' as a choice
+	(bug#6234).
+
+	* subr.el (add-hook): Clarify section about buffer-local hooks
+	(bug#6218).
+
+	* dired.el (dired-flagged): Clarify doc string (bug#6117).
+
+2011-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tabify.el (untabify): Preserve the current column so that point
+	doesn't move (bug#6032).
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* progmodes/cperl-mode.el (cperl-syntaxify-by-font-lock): Rewrite
+	to avoid awkward possessive "s" (bug#5986).
+
+2011-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-use-ls-dired): Doc fix.  (Bug#9039).
+	(dired-insert-directory): Give a message the first time
+	if ls is found not to support --dired.
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* simple.el (toggle-truncate-lines): Clarify what is toggled
+	(bug#5580).  Text by Drew Adams.
+
+2011-07-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (blink-matching-open): Make the error message from the
+	last change less verbose.
+
+2011-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* font-lock.el (font-lock-comment-face): Use the high contrast
+	"yellow" color for font-lock-comment-face on low color terminals
+	using a dark background color (bug#4221).
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.el (dired-insert-set-properties): Make the doc string
+	reflect what it does now (bug#5325).
+
+	* simple.el (blink-matching-open): Say that we were unable to find
+	the match within the limit, if we're limited (bug#5122).
+
+	* international/mule-cmds.el (prefer-coding-system): Add an
+	example (bug#4869).
+
+	* progmodes/etags.el (tags-search): Document `file-list-form'
+	(bug#4731).
+
+2011-07-13  Lawrence Mitchell  <wence@gmx.li>
+
+	* net/browse-url.el (browse-url-default-browser)
+	(browse-url-browser-function): Make the default browser choice a
+	bit more logical (bug#4300).  Also clean up the doc string.
+
+2011-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bindings.el (completion-ignored-extensions): Add OpenMCL/Clozure
+	binary endings (bug#4440).
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* info.el (info-insert-file-contents): Inhibit jka-compr messages,
+	which can be pretty annoying (bug#8971).
+
+	* jka-compr.el (jka-compr-verbose): New variable, and use
+	throughout (bug#8971).
+
+	* info.el (Info-find-file): Fall back on the installation
+	directory if we can't find the info node anywhere else.
+
+2011-07-13  Sergei Organov  <osv@javad.com>  (tiny change)
+
+	* vc/vc.el (vc-revert-file):
+	Don't set file time-stamp in the past.  (Bug#5181)
+
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* files.el (after-find-file): Give a better error message when
+	trying to find a symlink that points to a file that doesn't exist
+	(bug#4398).
+
+	* progmodes/cc-vars.el: Remove (probably) misleading comment
+	(bug#4396).
+
+2011-07-12  Johan Bockgård  <bojohan@gnu.org>
+
+	* mouse-sel.el (mouse-sel-primary-overlay): Use the `region' face.
+
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse-sel.el: Hack restoring functionality, while keeping
+	compatibility with 2010-07-03 changes to mouse selection.
+	(mouse-sel-primary-overlay): New var.
+	(mouse-sel-selection-alist): Use it.
+	(mouse-sel-mode): Doc fix; remove points that are default features
+	of mouse.el.
+
+2011-07-12  Johan Bockgård  <bojohan@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Fix previous fix (bug#2490).
+
+2011-07-12  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-initialize): Use
+	pop-to-buffer-same-window.
+	(bibtex-search-entries): Fix interactive call.
+
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Fontise bytecomp Error lines more correctly (bug#2490).  Fix
+	suggested by Johan Bockgård.
+
+	* subr.el (remove-duplicates): Remove; `delete-dups' is sufficient.
+
+	* dired-x.el (dired-guess-default): Use `delete-dups'.
+
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-mark-prompt):
+	* dired-aux.el (dired-read-shell-command): Doc fix.
+
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/sendmail.el (sendmail-query-once): Use
+	`customize-save-variable' unconditionally, now that it works under
+	emacs -Q.
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Ditto.
+
+	* cus-edit.el (custom-file): Take an optional no-error variable.
+	(customize-save-variable): Set the variable, and give a warning if
+	running under "emacs -q".
+
+2011-07-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-feature-special-hooks):
+	Add `auto-coding-functions', `fill-nobreak-predicate' and
+	`find-directory-functions' (bug#5327).
+
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* vc/ediff.el (ediff-patch-file): Clarify doc string (bug#3138).
+
+	* cus-edit.el (custom-guess-name-alist): -alist variables should
+	use the `alist' type (bug#3120).  Suggested by Drew Adams.
+
+	* printing.el: Add documentation to all the `pr-toggle-' commands.
+
+2011-07-11  Leo  <sdl.web@gmail.com>  (tiny change)
+
+	* files.el (toggle-read-only): Only do the `C-x C-q' warning on VC
+	backends where it makes sense (bug#2623).
+
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dired-x.el (dired-guess-default): Remove duplicate shell command
+	entries (bug#2028).
+	(dired-guess-default): Fix grammar in doc string (bug#2028).
+	(dired-guess-shell-alist-user): Clarify the example a bit (bug#2030).
+
+	* subr.el (remove-duplicates): New conveniency function.
+
+2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* tool-bar.el (tool-bar-mode): Clarify positive/negative arguments
+	(bug#1526).
+
+2011-07-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-normalize-default): Don't invert
+	meaning of even-window-heights.  Reported by Eli Zaretskii
+	<eliz@gnu.org>.
+
+2011-07-10  Bob Rogers  <rogers@rgrjr.dyndns.org>
+
+	* vc/vc.el (vc-diff-internal): Fix race condition (Bug#1256).
+
+2011-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (display-buffer): Fix arguments to
+	display-buffer-reuse-window in last change.
+
+	* faces.el (link): Use a less saturated blue on light backgrounds.
+
+	* startup.el (fancy-startup-text, fancy-about-text)
+	(fancy-startup-tail): Use font-lock faces, for background safety.
+
+2011-07-09  Bob Nnamtrop  <bobnnamtrop@gmail.com>  (tiny change)
+
+	* emulation/viper-cmd.el (viper-change-state-to-vi): Limit
+	triggering of abbrev expansion (Bug#9038).
+
+2011-07-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-default-specifiers): Remove.
+	(display-buffer-macro-specifiers): Remove default specifiers.
+	(display-buffer-alist): Default to nil.
+	(display-buffer-reuse-window): New optional argument
+	other-window.
+	(display-buffer-pop-up-window): Allow splitting internal
+	windows.  Check whether a live window was created.
+	(display-buffer-other-window-means-other-frame)
+	(display-buffer-normalize-arguments): Rename to
+	display-buffer-normalize-argument and rewrite.  Set the
+	other-window specifier.
+	(display-buffer-normalize-special): New function.
+	(display-buffer-normalize-options): Rename to
+	display-buffer-normalize-default and rewrite.
+	(display-buffer-normalize-options-inhibit): Remove.
+	(display-buffer-normalize-specifiers): Rewrite.
+	(display-buffer): Process other-window specifier and call
+	display-buffer-reuse-window with it.  Emulate Emacs 23 behavior
+	more faithfully.
+	(pop-up-windows, even-window-heights): Restore Emacs 23 default
+	values.
+	(display-buffer-alist-set): Don't handle 'unset default values.
+	(display-buffer-in-window, display-buffer-alist-set): Replace
+	symbol "dedicated" by "dedicate".  Reported by Tassilo Horn
+	<tassilo@member.fsf.org>.
+
+2011-07-09  Leo Liu  <sdl.web@gmail.com>
+
+	* register.el (insert-register): Restore accidental change on
+	2011-06-26.  (Bug#9028)
+
+2011-07-09  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (remq): Handle the empty list.  (Bug#9024)
+
+2011-07-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* mail/sendmail.el (send-mail-function): No longer delay custom
+	initialization.
+	* custom.el (custom-initialize-delay): Doc fix.
+
+2011-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* abbrev.el (expand-abbrev): Try to preserve point (bug#5805).
+
+2011-07-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Use a
+	human-friendly prompt.
+
+2011-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-bzr.el (vc-bzr-revision-keywords): Remove svn, it's only
+	provided by a particular plugin.
+
+2011-07-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/sendmail.el (sendmail-query-once): If we aren't allowed to
+	save customizations (with "emacs -Q"), just set the variable
+	instead of erroring out.
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Ditto.
+
+2011-07-08  Juri Linkov  <juri@jurta.org>
+
+	* arc-mode.el (archive-zip-expunge, archive-zip-update)
+	(archive-zip-update-case): Use 7z if found by `executable-find'.
+	The order of searching the available programs is the same as in
+	`archive-zip-extract' (bug#8968).
+
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-line-wrapping-menu): Revert last change.
+	(menu-bar-options-menu): Tweak descriptions.
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* menu-bar.el (menu-bar-line-wrapping-menu): Make all the Options
+	menu items into verb phrases (bug#1421).  Also refill to fit under
+	80 columns.
+
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.el (info, Info-read-node-name-2, Info-read-node-name-1)
+	(Info-read-node-name): Doc fix (Bug#1084).
+
+	* thingatpt.el (forward-thing, bounds-of-thing-at-point)
+	(thing-at-point, beginning-of-thing, end-of-thing, in-string-p)
+	(end-of-sexp, beginning-of-sexp)
+	(thing-at-point-bounds-of-list-at-point, forward-whitespace)
+	(forward-symbol, forward-same-syntax, word-at-point)
+	(sentence-at-point): Doc fix (Bug#1144).
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* info.el (Info-mode-map): Remove S-TAB binding, since [backtab]
+	should cover it (bug#1281).
+
+	* cus-edit.el (custom-show): Mark as obsolete.
+
+	* net/network-stream.el (network-stream-open-starttls): If gnutls
+	negotiation fails, then possibly try again with a non-encrypted
+	connection (bug#9017).
+
+	* mail/smtpmail.el (smtpmail-stream-type): Note that `plain' can
+	be used.
+
+2011-07-07  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-next-error-move): Use `compilation-message'
+	property, and handle its changed format.
+	Look for the correct line number.
+	Use file's line contents (but not past first =) to find
+	correct line in message.
+
+2011-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el (build-unicode-category-table):
+	Delete it.
+	(unicode-category-table): Set it by unicode-property-table-internal.
+
+	* international/mule-cmds.el (char-code-property-alist): Move to
+	to src/chartab.c.
+	(get-char-code-property): Call unicode-property-table-internal to
+	load a file.  Call get-unicode-property-internal where necessary.
+	(put-char-code-property): Call unicode-property-table-internal to
+	load a file.  Call put-unicode-property-internal where necessary.
+	put-unicode-property-internal where necessary.
+	(char-code-property-description):
+	Call unicode-property-table-internal to load a file.
+
+	* international/charprop.el:
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-combining.el:
+	* international/uni-comment.el:
+	* international/uni-decimal.el:
+	* international/uni-decomposition.el:
+	* international/uni-digit.el:
+	* international/uni-lowercase.el:
+	* international/uni-mirrored.el:
+	* international/uni-name.el:
+	* international/uni-numeric.el:
+	* international/uni-old-name.el:
+	* international/uni-titlecase.el:
+	* international/uni-uppercase.el: Regenerate.
+
+	* loadup.el: Load international/charprop.el before
+	international/characters.
+
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (next-buffer, previous-buffer): Signal an error if
+	called from a minibuffer window.
+
+	* bindings.el: Revert 2011-07-04 change.
+
+2011-07-06  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-process): Use markers for buf positions.
+	(rmail-mime-insert-bulk, rmail-mime-insert-text):
+	Treat markers like ints.
+	(rmail-mime-entity): Doc fix.
+
+2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-default-smtp-server): Made into a
+	defcustom again for backwards compatibility.
+
+	* simple.el (shell-command-on-region): Fill.
+
+	* dired-aux.el (dired-kill-line): Add a doc string.
+
+	* dabbrev.el (dabbrev-abbrev-char-regexp): Note that nil defaults
+	to "\\sw\\|\\s_" (bug#358).
+
+	* dired.el (dired-mode): Clarify "unmark or unflag" (bug#8770).
+	(dired-unmark-backward): Ditto.
+	(dired-flag-backup-files): Ditto.
+
+	* dired-x.el (dired-mark-sexp): Ditto.
+
+2011-07-06  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmailmm.el: Give entity a new slot, TRUNCATED.
+	(rmail-mime-entity): New arg TRUNCATED.
+	(rmail-mime-entity-truncated, rmail-mime-entity-set-truncated):
+	New functions.
+	(rmail-mime-save): Warn if entity is truncated.
+	(rmail-mime-toggle-hidden): Likewise, for showing.
+	(rmail-mime-process-multipart): Record when an entity is truncated.
+
+	* mail/rmailmm.el (rmail-search-mime-message): Don't get confused
+	if ENTITY is a string.
+
+2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* emacs-lisp/lisp-mode.el (eval-defun-1): Update the documentation
+	of faces when `M-C-x'-ing their definitions (bug#8378).
+	Also clean up the code slightly.
+
+	* progmodes/grep.el (rgrep): Don't bind `process-connection-type',
+	because that makes the colours go away.
+
+	* mail/sendmail.el (send-mail-function): Change the default to
+	`sendmail-query-once'.
+	(sendmail-query-once): Add an autoload cookie.
+
+	* net/network-stream.el (network-stream-open-starttls): Try using
+	a plain connection even if the server offered STARTTLS, and we
+	kinda wanted to use it, if Emacs doesn't have any STARTTLS
+	capability.  This should make smtpmail.el work in slightly more
+	configurations.
+
+2011-07-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (tramp-compat-pop-to-buffer-same-window):
+	New defun.
+	* net/tramp-cmds.el (tramp-append-tramp-buffers): Use it.
+
 2011-07-06  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el: Version 3.0
-	(sql-product-alist): Added product :completion-object,
+	(sql-product-alist): Add product :completion-object,
 	:completion-column, and :statement attributes.
-	(sql-mode-menu, sql-interactive-mode-map): Fixed List entries.
+	(sql-mode-menu, sql-interactive-mode-map): Fix List entries.
 	(sql-mode-syntax-table): Mark all punctuation.
-	(sql-font-lock-keywords-builder): Temporarily removed fallback on
+	(sql-font-lock-keywords-builder): Temporarily remove fallback on
 	ansi keywords.
 	(sql-regexp-abbrev, sql-regexp-abbrev-list): New functions.
-	(sql-mode-oracle-font-lock-keywords): Improved.
+	(sql-mode-oracle-font-lock-keywords): Improve.
 	(sql-oracle-show-reserved-words): New function for development.
 	(sql-product-font-lock): Simplify for source code buffers.
 	(sql-product-syntax-table, sql-product-font-lock-syntax-alist):
 	New functions.
 	(sql-highlight-product): Set product specific syntax table.
-	(sql-mode-map): Added statement movement functions.
-	(sql-ansi-statement-starters, sql-oracle-statement-starters): New
-	variable.
+	(sql-mode-map): Add statement movement functions.
+	(sql-ansi-statement-starters, sql-oracle-statement-starters):
+	New variable.
 	(sql-statement-regexp, sql-beginning-of-statement)
 	(sql-end-of-statement, sql-signum): New functions.
-	(sql-buffer-live-p, sql=find-sqli-buffer): Added CONNECTION
-	parameter.
+	(sql-buffer-live-p, sql=find-sqli-buffer): Add CONNECTION parameter.
 	(sql-show-sqli-buffer): Bug fix.
 	(sql-interactive-mode): Store connection data as buffer local.
-	(sql-connect): Added NEW-NAME parameter.  Redesigned interaction
+	(sql-connect): Add NEW-NAME parameter.  Redesign interaction
 	with sql-interactive-mode.
 	(sql-save-connection): Save buffer local settings.
-	(sql-connection-menu-filter): Changed menu entry name.
+	(sql-connection-menu-filter): Change menu entry name.
 	(sql-product-interactive): Bug fix.
 	(sql-preoutput-hold): New variable.
 	(sql-interactive-remove-continuation-prompt): Bug fixes.
 	(sql-debug-redirect): New variable.
 	(sql-str-literal): New function.
 	(sql-redirect, sql-redirect-one, sql-redirect-value, sql-execute):
-	Redesigned.
+	Redesign.
 	(sql-oracle-save-settings, sql-oracle-restore-settings)
 	(sql-oracle-list-all, sql-oracle-list-table): New functions.
 	(sql-completion-object, sql-completion-column)
@@ -206,9 +736,8 @@
 	buffer-saved-size and some allout state to not inhibit auto-saves
 	if there are no longer any plain-text topics pending encryption.
 
-	(allout-next-topic-pending-encryption),
-	(allout-encrypt-decrypted): No longer provide for exemption of the
-	current topic.
+	(allout-next-topic-pending-encryption, allout-encrypt-decrypted):
+	No longer provide for exemption of the current topic.
 
 2011-07-04  Juri Linkov  <juri@jurta.org>
 

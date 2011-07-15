@@ -4611,7 +4611,7 @@ bottom."
 
 ;;;###autoload
 (defun pr-toggle-region ()
-  "Toggle auto region."
+  "Toggle whether the region is automagically detected."
   (interactive)
   (pr-toggle-region-menu t))
 
@@ -5346,102 +5346,119 @@ If menu binding was not done, calls `pr-menu-bind'."
 
 
 (defun pr-toggle-file-duplex-menu (&optional no-menu)
+  "Toggle whether to print PostScript files in duplex mode."
   (interactive)
   (pr-toggle 'pr-file-duplex "PS file duplex" nil 7 5 nil
 	     '("PostScript Print" "File") no-menu))
 
 
 (defun pr-toggle-file-tumble-menu (&optional no-menu)
+  "Toggle whether to print PostScript files in tumble mode."
   (interactive)
   (pr-toggle 'pr-file-tumble "PS file tumble" nil 8 5 nil
 	     '("PostScript Print" "File") no-menu))
 
 
 (defun pr-toggle-file-landscape-menu (&optional no-menu)
+  "Toggle whether to print PostScript files in landscape orientation."
   (interactive)
   (pr-toggle 'pr-file-landscape "PS file landscape" nil 6 5 nil
 	     '("PostScript Print" "File") no-menu))
 
 
 (defun pr-toggle-ghostscript-menu (&optional no-menu)
+  "Toggle whether to print using ghostscript."
   (interactive)
   (pr-toggle 'pr-print-using-ghostscript "Printing using ghostscript"
 	     'postscript-process 2 12 'toggle nil no-menu))
 
 
 (defun pr-toggle-faces-menu (&optional no-menu)
+  "Toggle whether to print with face attributes."
   (interactive)
   (pr-toggle 'pr-faces-p "Printing with faces"
 	     'postscript-process 1 12 'toggle nil no-menu))
 
 
 (defun pr-toggle-spool-menu (&optional no-menu)
+  "Toggle whether to spool printing in a buffer."
   (interactive)
   (pr-toggle 'pr-spool-p "Spooling printing"
 	     'postscript-process 0 12 'toggle nil no-menu))
 
 
 (defun pr-toggle-duplex-menu (&optional no-menu)
+  "Toggle whether to generate PostScript for a two-sided printer."
   (interactive)
   (pr-toggle 'ps-spool-duplex "Printing duplex"
 	     'postscript-options 5 12 'toggle nil no-menu))
 
 
 (defun pr-toggle-tumble-menu (&optional no-menu)
+  "Toggle how pages on opposite sides of a sheet are oriented."
   (interactive)
   (pr-toggle 'ps-spool-tumble "Tumble"
 	     'postscript-options 6 12 'toggle nil no-menu))
 
 
 (defun pr-toggle-landscape-menu (&optional no-menu)
+  "Toggle whether to print in landscape mode."
   (interactive)
   (pr-toggle 'ps-landscape-mode "Landscape"
 	     'postscript-options 0 12 'toggle nil no-menu))
 
 
 (defun pr-toggle-upside-down-menu (&optional no-menu)
+  "Toggle whether to print upside-down (that is, rotated by 180 degrees)."
   (interactive)
   (pr-toggle 'ps-print-upside-down "Upside-Down"
 	     'postscript-options 7 12 'toggle nil no-menu))
 
 
 (defun pr-toggle-line-menu (&optional no-menu)
+  "Toggle whether to means print line numbers."
   (interactive)
   (pr-toggle 'ps-line-number "Line number"
 	     'postscript-options 3 12 'toggle nil no-menu))
 
 
 (defun pr-toggle-zebra-menu (&optional no-menu)
+  "Toggle whether to print zebra stripes."
   (interactive)
   (pr-toggle 'ps-zebra-stripes "Zebra stripe"
 	     'postscript-options 4 12 'toggle nil no-menu))
 
 
 (defun pr-toggle-header-menu (&optional no-menu)
+  "Toggle whether to print a header at the top of each page."
   (interactive)
   (pr-toggle 'ps-print-header "Print header"
 	     'postscript-options 1 12 'toggle nil no-menu))
 
 
 (defun pr-toggle-header-frame-menu (&optional no-menu)
+  "Toggle whether to draw a gaudy frame around the header."
   (interactive)
   (pr-toggle 'ps-print-header-frame "Print header frame"
 	     'postscript-options 2 12 'toggle nil no-menu))
 
 
 (defun pr-toggle-lock-menu (&optional no-menu)
+  "Toggle whether the menu is locked while selecting toggle options."
   (interactive)
   (pr-toggle 'pr-menu-lock "Menu lock"
 	     'printing 2 12 'toggle nil no-menu))
 
 
 (defun pr-toggle-region-menu (&optional no-menu)
+  "Toggle whether the region is automagically detected."
   (interactive)
   (pr-toggle 'pr-auto-region "Auto region"
 	     'printing 0 12 'toggle nil no-menu))
 
 
 (defun pr-toggle-mode-menu (&optional no-menu)
+  "Toggle whether major-mode specific printing is prefered over normal printing."
   (interactive)
   (pr-toggle 'pr-auto-mode "Auto mode"
 	     'printing 1 12 'toggle nil no-menu))

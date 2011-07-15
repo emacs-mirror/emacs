@@ -108,7 +108,7 @@ Then come the characters for any desired flags.  If no matching
 character or flags are needed, one character is sufficient.
 
   For example, the syntax descriptor for the character @samp{*} in C
-mode is @samp{@w{. 23}} (i.e., punctuation, matching character slot
+mode is @code{". 23"} (i.e., punctuation, matching character slot
 unused, second character of a comment-starter, first character of a
 comment-ender), and the entry for @samp{/} is @samp{@w{. 14}} (i.e.,
 punctuation, matching character slot unused, first character of a

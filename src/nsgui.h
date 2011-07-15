@@ -30,6 +30,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef init_process
 #endif  /* NS_IMPL_COCOA */
 
+#undef verify
+
 #import <AppKit/AppKit.h>
 
 #ifdef NS_IMPL_COCOA
@@ -44,6 +46,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #endif /* __OBJC__ */
 
+#undef verify
+#undef _GL_VERIFY_H
+#include <verify.h>
 
 /* menu-related */
 #define free_widget_value(wv) xfree (wv)

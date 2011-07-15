@@ -1135,17 +1135,18 @@ mail status in mode line"))
   (let ((menu (make-sparse-keymap "Line Wrapping")))
 
     (define-key menu [word-wrap]
-      `(menu-item ,(purecopy "Word Wrap (Visual Line mode)")
-                  (lambda ()
-                    (interactive)
-                    (unless visual-line-mode
-                      (visual-line-mode 1))
-                    (message ,(purecopy "Visual-Line mode enabled")))
-                  :help ,(purecopy "Wrap long lines at word boundaries")
-                  :button (:radio . (and (null truncate-lines)
-                                         (not (truncated-partial-width-window-p))
-                                         word-wrap))
-                  :visible (menu-bar-menu-frame-live-and-visible-p)))
+      `(menu-item
+	,(purecopy "Word Wrap (Visual Line mode)")
+	(lambda ()
+	  (interactive)
+	  (unless visual-line-mode
+	    (visual-line-mode 1))
+	  (message ,(purecopy "Visual-Line mode enabled")))
+	:help ,(purecopy "Wrap long lines at word boundaries")
+	:button (:radio . (and (null truncate-lines)
+			       (not (truncated-partial-width-window-p))
+			       word-wrap))
+	:visible (menu-bar-menu-frame-live-and-visible-p)))
 
     (define-key menu [truncate]
       `(menu-item ,(purecopy "Truncate Long Lines")
@@ -1238,78 +1239,88 @@ mail status in mode line"))
       menu-bar-separator)
 
     (define-key menu [blink-cursor-mode]
-      (menu-bar-make-mm-toggle blink-cursor-mode
-                               "Blinking Cursor"
-                               "Whether the cursor blinks (Blink Cursor mode)"))
+      (menu-bar-make-mm-toggle
+       blink-cursor-mode
+       "Blink Cursor"
+       "Whether the cursor blinks (Blink Cursor mode)"))
     (define-key menu [cursor-separator]
       menu-bar-separator)
 
     (define-key menu [save-place]
-      (menu-bar-make-toggle toggle-save-place-globally save-place
-                            "Save Place in Files between Sessions"
-                            "Saving place in files %s"
-                            "Visit files of previous session when restarting Emacs"
-                            (require 'saveplace)
-                            ;; Do it by name, to avoid a free-variable
-                            ;; warning during byte compilation.
-                            (set-default
-                             'save-place (not (symbol-value 'save-place)))))
+      (menu-bar-make-toggle
+       toggle-save-place-globally save-place
+       "Save Place in Files between Sessions"
+       "Saving place in files %s"
+       "Visit files of previous session when restarting Emacs"
+       (require 'saveplace)
+       ;; Do it by name, to avoid a free-variable
+       ;; warning during byte compilation.
+       (set-default
+	'save-place (not (symbol-value 'save-place)))))
 
     (define-key menu [uniquify]
-      (menu-bar-make-toggle toggle-uniquify-buffer-names uniquify-buffer-name-style
-                            "Use Directory Names in Buffer Names"
-                            "Directory name in buffer names (uniquify) %s"
-                            "Uniquify buffer names by adding parent directory names"
-                            (require 'uniquify)
-                            (setq uniquify-buffer-name-style
-                                  (if (not uniquify-buffer-name-style)
-                                      'forward))))
+      (menu-bar-make-toggle
+       toggle-uniquify-buffer-names uniquify-buffer-name-style
+       "Use Directory Names in Buffer Names"
+       "Directory name in buffer names (uniquify) %s"
+       "Uniquify buffer names by adding parent directory names"
+       (require 'uniquify)
+       (setq uniquify-buffer-name-style
+	     (if (not uniquify-buffer-name-style)
+		 'forward))))
 
     (define-key menu [edit-options-separator]
       menu-bar-separator)
     (define-key menu [cua-mode]
-      (menu-bar-make-mm-toggle cua-mode
-                               "C-x/C-c/C-v Cut and Paste (CUA)"
-                               "Use C-z/C-x/C-c/C-v keys for undo/cut/copy/paste"
-                               (:visible (or (not (boundp 'cua-enable-cua-keys))
-                                             cua-enable-cua-keys))))
+      (menu-bar-make-mm-toggle
+       cua-mode
+       "Use CUA Keys (Cut/Paste with C-x/C-c/C-v)"
+       "Use C-z/C-x/C-c/C-v keys for undo/cut/copy/paste"
+       (:visible (or (not (boundp 'cua-enable-cua-keys))
+		     cua-enable-cua-keys))))
 
     (define-key menu [cua-emulation-mode]
-      (menu-bar-make-mm-toggle cua-mode
-                               "Shift movement mark region (CUA)"
-                               "Use shifted movement keys to set and extend the region"
-                               (:visible (and (boundp 'cua-enable-cua-keys)
-                                              (not cua-enable-cua-keys)))))
+      (menu-bar-make-mm-toggle
+       cua-mode
+       "Shift movement mark region (CUA)"
+       "Use shifted movement keys to set and extend the region"
+       (:visible (and (boundp 'cua-enable-cua-keys)
+		      (not cua-enable-cua-keys)))))
 
     (define-key menu [case-fold-search]
-      (menu-bar-make-toggle toggle-case-fold-search case-fold-search
-                            "Case-Insensitive Search"
-                            "Case-Insensitive Search %s"
-                            "Ignore letter-case in search commands"))
+      (menu-bar-make-toggle
+       toggle-case-fold-search case-fold-search
+       "Ignore Case for Search"
+       "Case-Insensitive Search %s"
+       "Ignore letter-case in search commands"))
 
     (define-key menu [auto-fill-mode]
-      `(menu-item ,(purecopy "Auto Fill in Text Modes")
-                  menu-bar-text-mode-auto-fill
-                  :help ,(purecopy "Automatically fill text while typing (Auto Fill mode)")
-                  :button (:toggle . (if (listp text-mode-hook)
-                                         (member 'turn-on-auto-fill text-mode-hook)
-                                       (eq 'turn-on-auto-fill text-mode-hook)))))
+      `(menu-item
+	,(purecopy "Auto Fill in Text Modes")
+	menu-bar-text-mode-auto-fill
+	:help ,(purecopy "Automatically fill text while typing (Auto Fill mode)")
+	:button (:toggle . (if (listp text-mode-hook)
+			       (member 'turn-on-auto-fill text-mode-hook)
+			     (eq 'turn-on-auto-fill text-mode-hook)))))
 
     (define-key menu [line-wrapping]
-      `(menu-item ,(purecopy "Line Wrapping in this Buffer") ,menu-bar-line-wrapping-menu))
+      `(menu-item ,(purecopy "Line Wrapping in this Buffer")
+		  ,menu-bar-line-wrapping-menu))
 
 
     (define-key menu [highlight-separator]
       menu-bar-separator)
     (define-key menu [highlight-paren-mode]
-      (menu-bar-make-mm-toggle show-paren-mode
-                               "Paren Match Highlighting"
-                               "Highlight matching/mismatched parentheses at cursor (Show Paren mode)"))
+      (menu-bar-make-mm-toggle
+       show-paren-mode
+       "Highlight Matching Parentheses"
+       "Highlight matching/mismatched parentheses at cursor (Show Paren mode)"))
     (define-key menu [transient-mark-mode]
-      (menu-bar-make-mm-toggle transient-mark-mode
-                               "Active Region Highlighting"
-                               "Make text in active region stand out in color (Transient Mark mode)"
-                               (:enable (not cua-mode))))
+      (menu-bar-make-mm-toggle
+       transient-mark-mode
+       "Highlight Active Region"
+       "Make text in active region stand out in color (Transient Mark mode)"
+       (:enable (not cua-mode))))
     menu))
 
 

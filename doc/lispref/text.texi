@@ -364,14 +364,13 @@ after point.  Some insertion functions leave point before the inserted
 text, while other functions leave it after.  We call the former
 insertion @dfn{after point} and the latter insertion @dfn{before point}.
 
-  Insertion relocates markers that point at positions after the
-insertion point, so that they stay with the surrounding text
-(@pxref{Markers}).  When a marker points at the place of insertion,
-insertion may or may not relocate the marker, depending on the marker's
-insertion type (@pxref{Marker Insertion Types}).  Certain special
-functions such as @code{insert-before-markers} relocate all such markers
-to point after the inserted text, regardless of the markers' insertion
-type.
+  Insertion moves markers located at positions after the insertion
+point, so that they stay with the surrounding text (@pxref{Markers}).
+When a marker points at the place of insertion, insertion may or may
+not relocate the marker, depending on the marker's insertion type
+(@pxref{Marker Insertion Types}).  Certain special functions such as
+@code{insert-before-markers} relocate all such markers to point after
+the inserted text, regardless of the markers' insertion type.
 
   Insertion functions signal an error if the current buffer is
 read-only or if they insert within read-only text.
@@ -2978,8 +2977,7 @@ character.
 You can use the property @code{face} to control the font and color of
 text.  @xref{Faces}, for more information.
 
-In the simplest case, the value is a face name.  It can also be a list;
-then each element can be any of these possibilities;
+@code{face} can be the following:
 
 @itemize @bullet
 @item
@@ -2994,8 +2992,8 @@ time you want to specify a particular attribute for certain text.
 @xref{Face Attributes}.
 @end itemize
 
-It works to use the latter two forms directly as the value
-of the @code{face} property.
+@code{face} can also be a list, where each element uses one of the
+forms listed above.
 
 Font Lock mode (@pxref{Font Lock Mode}) works in most buffers by
 dynamically updating the @code{face} property of characters based on
