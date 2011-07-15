@@ -1606,7 +1606,8 @@ For instance
 
   \(declare (warn 0))
 
-will turn off byte-compile warnings in the function."
+will turn off byte-compile warnings in the function.
+See Info node `(cl)Declarations' for details."
   (if (cl-compiling-file)
       (while specs
 	(if (listp cl-declare-stack) (push (car specs) cl-declare-stack))

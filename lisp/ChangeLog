@@ -1,5 +1,7 @@
 2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* emacs-lisp/cl-macs.el (declare): Link to the "Declarations" node.
+
 	* info.el (Info-beginning-of-buffer): New command.
 	(Info-mode-map): Use it instead of `beginning-of-buffer' to allow
 	announcing `b' as the key (bug#8325).
