@@ -1,5 +1,9 @@
 2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* info.el (Info-beginning-of-buffer): New command.
+	(Info-mode-map): Use it instead of `beginning-of-buffer' to allow
+	announcing `b' as the key (bug#8325).
+
 	* emacs-lisp/cl-macs.el (declare): Doc string fix-up.
 
 	* international/mule-cmds.el
