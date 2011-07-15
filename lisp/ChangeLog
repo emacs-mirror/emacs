@@ -1,6 +1,7 @@
 2011-07-15  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (read-char-choice): Allow quitting.  (Bug#9001)
+	Respect help-form.
 
 2011-07-09  Lawrence Mitchell  <wence@gmx.li>
 
