@@ -3,6 +3,7 @@
 	* info.el (Info-beginning-of-buffer): New command.
 	(Info-mode-map): Use it instead of `beginning-of-buffer' to allow
 	announcing `b' as the key (bug#8325).
+	(Info-mode-menu): Use `Info-beginning-of-buffer' for consistency.
 
 	* emacs-lisp/cl-macs.el (declare): Doc string fix-up.
 

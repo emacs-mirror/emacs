@@ -3731,7 +3731,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     :help "Go backward one node, considering all as a sequence"]
    ["Forward" Info-forward-node
     :help "Go forward one node, considering all as a sequence"]
-   ["Beginning" beginning-of-buffer
+   ["Beginning" Info-beginning-of-buffer
     :help "Go to beginning of this node"]
    ["Top" Info-top-node
     :help "Go to top node of file"]
