@@ -1,3 +1,8 @@
+2011-07-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-buffer): Call pop-to-buffer with normalized
+	buffer argument (Bug#9083) and self-identifying label argument.
+
 2011-07-15  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/debug.el (debug): Doc fix.  (Bug#8273)
