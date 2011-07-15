@@ -1,3 +1,7 @@
+2011-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/debug.el (debug): Doc fix.  (Bug#8273)
+
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* man.el (Man-fontify-manpage): Fix message when formatting the
