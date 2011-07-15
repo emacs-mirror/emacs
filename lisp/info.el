@@ -32,7 +32,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'jka-compr) (require 'cl))
+(eval-when-compile (require 'cl))
 
 (defgroup info nil
   "Info subsystem."
@@ -463,6 +463,7 @@ be last in the list.")
 (defun info-insert-file-contents (filename &optional visit)
   "Insert the contents of an Info file in the current buffer.
 Do the right thing if the file has been compressed or zipped."
+  (require 'jka-compr)			; bug #9090
   (let* ((tail Info-suffix-list)
 	 (jka-compr-verbose nil)
 	 (lfn (if (fboundp 'msdos-long-file-names)
