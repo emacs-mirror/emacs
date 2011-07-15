@@ -702,8 +702,8 @@ Substrings of the form \\=\\{MAPVAR} are replaced by summaries
 \(made by `describe-bindings') of the value of MAPVAR, taken as a keymap.
 Substrings of the form \\=\\<MAPVAR> specify to use the value of MAPVAR
 as the keymap for future \\=\\[COMMAND] substrings.
-\\=\\= quotes the following character and is discarded;
-thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ into the output.
+\\=\\= quotes the following character and is discarded.
+In particular, \\=\\=\\ puts \\ into the output.
 
 Returns original STRING if no substitutions were made.  Otherwise,
 a new string, without any text properties, is returned.  */)

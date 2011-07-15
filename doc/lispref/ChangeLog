@@ -1,5 +1,9 @@
 2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* help.texi (Keys in Documentation): Clarify that \= only quotes
+	the next character, and doesn't affect longer sequences in
+	particular (bug#8935).
+
 	* debugging.texi (Using Debugger): Mention
 	@code{eval-expression-debug-on-error} (bug#8549).
 

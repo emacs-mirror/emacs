@@ -1,5 +1,9 @@
 2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* doc.c (Fsubstitute_command_keys): Clarify that \= really only
+	quotes the next character, and doesn't affect other longer
+	sequences (bug#8935).
+
 	* lread.c (syms_of_lread): Clarify that is isn't only
 	`eval-buffer' and `eval-defun' that's affected by
 	`lexical-binding' (bug#8460).

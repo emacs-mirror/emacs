@@ -324,9 +324,8 @@ specifies @var{mapvar}'s value as the keymap for any following
 @samp{\[@var{command}]} sequences in this documentation string.
 
 @item \=
-quotes the following character and is discarded; thus, @samp{\=\[} puts
-@samp{\[} into the output, and @samp{\=\=} puts @samp{\=} into the
-output.
+quotes the following character and is discarded; thus, @samp{\=\} puts
+@samp{\} into the output.
 @end table
 
 @strong{Please note:} Each @samp{\} must be doubled when written in a
