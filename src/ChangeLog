@@ -1,3 +1,9 @@
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* lread.c (syms_of_lread): Clarify that is isn't only
+	`eval-buffer' and `eval-defun' that's affected by
+	`lexical-binding' (bug#8460).
+
 2011-07-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_in_display_line_to): Fix vertical motion with
