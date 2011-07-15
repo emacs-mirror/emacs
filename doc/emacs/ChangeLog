@@ -1,3 +1,8 @@
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* help.texi (Misc Help): Mention `describe-prefix-bindings'
+	explicitly (bug#8904).
+
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* trouble.texi (Checklist): Use an `M-x' example instead of an
