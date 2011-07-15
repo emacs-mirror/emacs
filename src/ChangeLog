@@ -15,6 +15,9 @@
 	Don't set bidi_cache_size until after xrealloc returns, because it
 	might not return.
 	(bidi_dump_cached_states): Use ptrdiff_t, not int, to avoid overflow.
+	(bidi_cache_ensure_space): Also check that the bidi cache size
+	does not exceed that of the largest Lisp string or buffer.  See Eli
+	Zaretskii in <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9079#29>.
 
 	* alloc.c (__malloc_size_t): Remove.
 	All uses replaced by size_t.  See Andreas Schwab's note
