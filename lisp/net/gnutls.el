@@ -47,6 +47,13 @@
   :type 'integer
   :group 'gnutls)
 
+(defcustom gnutls-algorithm-priority nil
+  "If non-nil, this should be a TLS priority string.
+For instance, if you want to skip the \"dhe-rsa\" algorithm,
+set this variable to \"normal:-dhe-rsa\"."
+  :type '(choice (const nil)
+		 string))
+
 (defun open-gnutls-stream (name buffer host service)
   "Open a SSL/TLS connection for a service to a host.
 Returns a subprocess-object to represent the connection.
@@ -145,7 +152,7 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
                                ((eq type 'gnutls-anon)
                                 "NORMAL:+ANON-DH:!ARCFOUR-128")
                                ((eq type 'gnutls-x509pki)
-                                "NORMAL"))))
+                                (or gnutls-algorithm-priority "NORMAL")))))
          (params `(:priority ,priority-string
                              :hostname ,hostname
                              :loglevel ,gnutls-log-level

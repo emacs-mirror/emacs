@@ -7,6 +7,9 @@
 
 2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/gnutls.el (gnutls-algorithm-priority): New variable.
+	(gnutls-negotiate): Use it.
+
 	* emacs-lisp/cl-macs.el (declare): Link to the "Declarations" node.
 
 	* info.el (Info-beginning-of-buffer): New command.
