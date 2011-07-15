@@ -1,3 +1,9 @@
+2011-07-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): Fix vertical motion with
+	bidi redisplay when a line includes both an image and is
+	truncated.
+
 2011-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor problems found by static checking.
