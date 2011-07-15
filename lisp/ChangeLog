@@ -1,5 +1,7 @@
 2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* emacs-lisp/cl-macs.el (declare): Add a doc string (bug#8690).
+
 	* isearch.el (isearch-barrier): Add a doc string, since it's
 	mentioned in a function doc string (bug#8678).
 
