@@ -2059,7 +2059,7 @@ See `set-language-info-alist' for use in programs."
 		  (or (not (eq last-command-event 'Default))
 		      (setq last-command-event 'English))
 		  (setq language-name (symbol-name last-command-event))))
-	(error "Bogus calling sequence"))
+	(error "This command should only be called from the menu bar"))
     (describe-language-environment language-name)))
 
 (defun describe-language-environment (language-name)

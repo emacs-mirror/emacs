@@ -1,5 +1,9 @@
 2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* international/mule-cmds.el
+	(describe-specified-language-support): Make the error message
+	clearer (bug#8905).
+
 	* emacs-lisp/cl-macs.el (declare): Add a doc string (bug#8690).
 
 	* isearch.el (isearch-barrier): Add a doc string, since it's
