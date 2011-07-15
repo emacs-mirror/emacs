@@ -152,7 +152,9 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
                                ((eq type 'gnutls-anon)
                                 "NORMAL:+ANON-DH:!ARCFOUR-128")
                                ((eq type 'gnutls-x509pki)
-                                (or gnutls-algorithm-priority "NORMAL")))))
+				(if gnutls-algorithm-priority
+				    (upcase gnutls-algorithm-priority)
+				  "NORMAL")))))
          (params `(:priority ,priority-string
                              :hostname ,hostname
                              :loglevel ,gnutls-log-level
