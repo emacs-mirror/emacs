@@ -1,5 +1,8 @@
 2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* doc-view.el (doc-view-make-safe-dir): Rewrite the error message
+	to clarify what the problem is (bug#4291).
+
 	* simple.el (current-kill): Clarify what
 	`interprogram-paste-function' does (bug#7500).
 	(auto-fill-mode): Document `auto-fill-function' in relation to
