@@ -1,3 +1,11 @@
+2011-07-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (select-frame-set-input-focus): New argument
+	NORECORD.
+	* window.el (pop-to-buffer): Select window used even if it was
+	selected before, see discussion of (Bug#8615), (Bug#6954).  Pass
+	argument NORECORD on to select-frame-set-input-focus.
+
 2011-07-15  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (read-char-choice): Allow quitting.  (Bug#9001)
