@@ -488,7 +488,7 @@ $ESHELL nor variable `explicit-shell-file-name' is set.
 
 ** MH-E
 
-*** Upgraded to MH-E version 8.2.91.  See MH-E-NEWS for details.
+*** Upgraded to MH-E version 8.2.92.  See MH-E-NEWS for details.
 
 ** comint and modes derived from it use the generic completion code.
 

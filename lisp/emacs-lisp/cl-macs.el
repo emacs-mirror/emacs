@@ -2396,8 +2396,10 @@ value, that slot cannot be set via `setf'.
 	      (push (cons accessor t) side-eff)
 	      (push (list 'define-setf-method accessor '(cl-x)
 			     (if (cadr (memq :read-only (cddr desc)))
-				 (list 'error (format "%s is a read-only slot"
-						      accessor))
+                                 (list 'progn '(ignore cl-x)
+                                       (list 'error
+                                             (format "%s is a read-only slot"
+                                                     'accessor)))
 			       ;; If cl is loaded only for compilation,
 			       ;; the call to cl-struct-setf-expander would
 			       ;; cause a warning because it may not be
