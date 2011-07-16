@@ -4,6 +4,9 @@
 
 2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnutls.c (syms_of_gnutls): Define `gnutls-log-level' here, since
+	it's used from the C level.
+
 	* process.c: Use the same condition for POLL_FOR_INPUT in both
 	keyboard.c and process.c (bug#1858).
 
