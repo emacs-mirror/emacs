@@ -3137,6 +3137,12 @@ next_overlay_change (EMACS_INT pos)
   return endpos;
 }
 
+/* Record one cached display string position found recently by
+   compute_display_string_pos.  */
+static EMACS_INT cached_disp_pos;
+static struct buffer *cached_disp_buffer;
+static int cached_disp_modiff;
+
 /* Return the character position of a display string at or after
    position specified by POSITION.  If no display string exists at or
    after POSITION, return ZV.  A display string is either an overlay
@@ -3158,6 +3164,7 @@ compute_display_string_pos (struct text_pos *position,
   EMACS_INT begb = string_p ? 0 : BEGV;
   EMACS_INT bufpos, charpos = CHARPOS (*position);
   struct text_pos tpos;
+  struct buffer *b;
 
   if (charpos >= eob
       /* We don't support display properties whose values are strings
@@ -3166,6 +3173,23 @@ compute_display_string_pos (struct text_pos *position,
       /* C strings cannot have display properties.  */
       || (string->s && !STRINGP (object)))
     return eob;
+
+  /* Check the cached values.  */
+  if (!STRINGP (object))
+    {
+      if (NILP (object))
+	b = current_buffer;
+      else
+	b = XBUFFER (object);
+      if (b == cached_disp_buffer
+	  && BUF_MODIFF (b) == cached_disp_modiff
+	  && charpos <= cached_disp_pos)
+	return cached_disp_pos;
+
+      /* Record new values in the cache.  */
+      cached_disp_buffer = b;
+      cached_disp_modiff = BUF_MODIFF (b);
+    }
 
   /* If the character at CHARPOS is where the display string begins,
      return CHARPOS.  */
@@ -3182,7 +3206,11 @@ compute_display_string_pos (struct text_pos *position,
 		  spec))
       && handle_display_spec (NULL, spec, object, Qnil, &tpos, bufpos,
 			      frame_window_p))
-    return charpos;
+    {
+      if (!STRINGP (object))
+	cached_disp_pos = charpos;
+      return charpos;
+    }
 
   /* Look forward for the first character with a `display' property
      that will replace the underlying text when displayed.  */
@@ -3202,6 +3230,8 @@ compute_display_string_pos (struct text_pos *position,
 	   || !handle_display_spec (NULL, spec, object, Qnil, &tpos, bufpos,
 				    frame_window_p));
 
+  if (!STRINGP (object))
+    cached_disp_pos = CHARPOS (tpos);
   return CHARPOS (tpos);
 }
 

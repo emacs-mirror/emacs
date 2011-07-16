@@ -1,3 +1,10 @@
+2011-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c <cached_disp_pos, cached_disp_buffer, cached_disp_modiff>:
+	Cache for last found display string position.
+	(compute_display_string_pos): Return the cached position if asked
+	about the same buffer.
+
 2011-07-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_cache_fetch_state, bidi_cache_search)
