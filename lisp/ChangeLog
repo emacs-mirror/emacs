@@ -7321,11 +7321,11 @@
 	* bookmark.el (bookmark-bmenu-list): Don't use switch-to-buffer if
 	we're inside a dedicated or minibuffer window.
 
-2009-10-24  Karl Fogel  <kfogel@red-bean.com>
+2009-10-24  Drew Adams  <drew.adams@oracle.com>
+	    Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el: Update documentation, especially documentation
-	of `bookmark-alist' and of the bookmark file format.
-	Patch by Drew Adams, with minor tweaks from me.  (Bug#4195)
+	of `bookmark-alist' and of the bookmark file format.  (Bug#4195)
 
 2009-10-24  Chong Yidong  <cyd@stupidchicken.com>
 
