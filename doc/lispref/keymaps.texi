@@ -2262,6 +2262,17 @@ the double-dash and replacing each single dash with capitalization of
 the following word.  Thus, @code{"--:singleLine"}, is equivalent to
 @code{"--single-line"}.
 
+  You can use a longer form to specify keywords such as @code{:enable}
+and @code{:visible} for a menu separator:
+
+@code{(menu-item @var{separator-type} nil . @var{item-property-list})}
+  
+For example:
+  
+@example
+(menu-item "--" nil :visible (boundp 'foo))
+@end example
+
   Some systems and display toolkits don't really handle all of these
 separator types.  If you use a type that isn't supported, the menu
 displays a similar kind of separator that is supported.

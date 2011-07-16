@@ -361,6 +361,7 @@ even if it is dead.  The return value is never nil.  */)
   BUF_END_UNCHANGED (b) = 0;
   BUF_BEG_UNCHANGED (b) = 0;
   *(BUF_GPT_ADDR (b)) = *(BUF_Z_ADDR (b)) = 0; /* Put an anchor '\0'.  */
+  b->text->inhibit_shrinking = 0;
 
   b->newline_cache = 0;
   b->width_run_cache = 0;
@@ -4499,7 +4500,7 @@ mmap_init (void)
    is at END - 1.  */
 
 static struct mmap_region *
-mmap_find (POINTER_TYPE *start, POINTER_TYPE *end);
+mmap_find (POINTER_TYPE *start, POINTER_TYPE *end)
 {
   struct mmap_region *r;
   char *s = (char *) start, *e = (char *) end;

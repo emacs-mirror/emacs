@@ -1,3 +1,336 @@
+2011-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (read-char-choice): Allow quitting.  (Bug#9001)
+	Respect help-form.
+
+2011-07-09  Lawrence Mitchell  <wence@gmx.li>
+
+	* net/gnutls.el (gnutls-min-prime-bits): New variable.
+	(gnutls-negotiate): Use it.
+
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/gnutls.el (gnutls-negotiate): Upcase
+	`gnutls-algorithm-priority'.
+
+2011-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* jka-compr.el (jka-compr-verbose): Move from here...
+	* jka-cmpr-hook.el (jka-compr-verbose): ... to here.  (Bug#9090)
+	Add missing :version tag.
+	* info.el: No need to require jka-compr when compiling.
+
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/gnutls.el (gnutls-algorithm-priority): New variable.
+	(gnutls-negotiate): Use it.
+
+	* emacs-lisp/cl-macs.el (declare): Link to the "Declarations" node.
+
+	* info.el (Info-beginning-of-buffer): New command.
+	(Info-mode-map): Use it instead of `beginning-of-buffer' to allow
+	announcing `b' as the key (bug#8325).
+	(Info-mode-menu): Use `Info-beginning-of-buffer' for consistency.
+
+	* emacs-lisp/cl-macs.el (declare): Doc string fix-up.
+
+	* international/mule-cmds.el
+	(describe-specified-language-support): Make the error message
+	clearer (bug#8905).
+
+	* emacs-lisp/cl-macs.el (declare): Add a doc string (bug#8690).
+
+	* isearch.el (isearch-barrier): Add a doc string, since it's
+	mentioned in a function doc string (bug#8678).
+
+2011-07-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-buffer): Call pop-to-buffer with normalized
+	buffer argument (Bug#9083) and self-identifying label argument.
+
+2011-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/debug.el (debug): Doc fix.  (Bug#8273)
+
+2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* man.el (Man-fontify-manpage): Fix message when formatting the
+	man page (bug#7929).
+
+2011-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* buff-menu.el (Buffer-menu-buffer+size): Accept an additional
+	argument LRM; if non-nil, append an invisible LRM character to the
+	buffer name.
+	(list-buffers-noselect): Call Buffer-menu-buffer+size with the
+	last argument non-nil, when formatting buffer names.
+	(Buffer-menu-mode, list-buffers-noselect): Force left-to-right
+	paragraph direction.
+
+2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* man.el (Man-bgproc-sentinel): Skip any arguments and only output
+	the man page name (bug#7929).
+
+	* image.el (put-image): Mention the `put-image' overlay property
+	(bug#7834).
+
+	* scroll-bar.el (set-scroll-bar-mode): Mention that
+	`scroll-bar-mode' lists the values (bug#7772).
+
+	* image-mode.el (image-mode-fit-frame): Mention that it's a toggle
+	command (bug#7729).
+
+	* rect.el (apply-on-rectangle): Return the point after the last
+	operation.
+	(string-rectangle): Go to the point after the last operation
+	(bug#7522).
+
+	* simple.el (current-kill): Clarify what
+	`interprogram-paste-function' does (bug#7500).
+
+	* printing.el (pr-toggle-region): Clarify the documentation
+	slightly (bug#7493).
+
+	* time.el (display-time-update): Allow
+	`display-time-mail-function' to return nil (bug#7158).  Fix
+	suggested by Detlev Zundel.
+
+	* vc/diff.el (diff): Clarify the order the file names are read
+	(bug#7111).
+
+	* mouse.el (mouse-set-region): Link to `mouse-drag-copy-region' in
+	the doc string (bug#7015).
+
+	* font-lock.el (font-lock-maximum-decoration): Mention what
+	numeric levels mean (bug#6935).
+
+	* startup.el (initial-buffer-choice): Don't mention the `none'
+	selection, which is against policy.
+
+2011-07-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-normalize-special): Replace
+	`dedicated' by `dedicate' to dedicate window (Bug#9072).
+
+2011-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (version<, version<=, version=): Mention "-CVS" and
+	"-12345" alpha version numbers.
+
+2011-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el: Add advertised binding for set-mark-command
+	(Bug#5772).
+
+2011-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el (mode-line-other-buffer):
+	* bookmark.el (bookmark-bmenu-2-window):
+	* bs.el (bs-cycle-next, bs-cycle-previous):
+	* net/tramp-cmds.el (tramp-append-tramp-buffers): Revert to using
+	switch-to-buffer.
+
+	* net/tramp-compat.el (tramp-compat-pop-to-buffer-same-window):
+	Deleted.
+
+2011-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el (follow-debug-message, follow-redisplay):
+	* jka-cmpr-hook.el (with-auto-compression-mode):
+	Fix typos in docstrings.
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* subr.el (with-silent-modifications): Clarify somewhat what the
+	macro inhibits (bug#6525).
+
+	* simple.el (eval-expression): Note what it does if called
+	interactively (bug#6495).
+
+2011-07-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (switch-to-buffer): New arg FORCE-SAME-WINDOW.  Use
+	pop-to-buffer buffer-or-name if it is nil.
+
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Remove switch-to-buffer.
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* files.el (make-directory): Clarify that an error will be raised
+	if there's an error (bug#6397).
+
+	* startup.el (initial-buffer-choice): Add `none' as a choice
+	(bug#6234).
+
+	* subr.el (add-hook): Clarify section about buffer-local hooks
+	(bug#6218).
+
+	* dired.el (dired-flagged): Clarify doc string (bug#6117).
+
+2011-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tabify.el (untabify): Preserve the current column so that point
+	doesn't move (bug#6032).
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* progmodes/cperl-mode.el (cperl-syntaxify-by-font-lock): Rewrite
+	to avoid awkward possessive "s" (bug#5986).
+
+2011-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-use-ls-dired): Doc fix.  (Bug#9039).
+	(dired-insert-directory): Give a message the first time
+	if ls is found not to support --dired.
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* simple.el (toggle-truncate-lines): Clarify what is toggled
+	(bug#5580).  Text by Drew Adams.
+
+2011-07-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (blink-matching-open): Make the error message from the
+	last change less verbose.
+
+2011-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* font-lock.el (font-lock-comment-face): Use the high contrast
+	"yellow" color for font-lock-comment-face on low color terminals
+	using a dark background color (bug#4221).
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.el (dired-insert-set-properties): Make the doc string
+	reflect what it does now (bug#5325).
+
+	* simple.el (blink-matching-open): Say that we were unable to find
+	the match within the limit, if we're limited (bug#5122).
+
+	* international/mule-cmds.el (prefer-coding-system): Add an
+	example (bug#4869).
+
+	* progmodes/etags.el (tags-search): Document `file-list-form'
+	(bug#4731).
+
+2011-07-13  Lawrence Mitchell  <wence@gmx.li>
+
+	* net/browse-url.el (browse-url-default-browser)
+	(browse-url-browser-function): Make the default browser choice a
+	bit more logical (bug#4300).  Also clean up the doc string.
+
+2011-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bindings.el (completion-ignored-extensions): Add OpenMCL/Clozure
+	binary endings (bug#4440).
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* info.el (info-insert-file-contents): Inhibit jka-compr messages,
+	which can be pretty annoying (bug#8971).
+
+	* jka-compr.el (jka-compr-verbose): New variable, and use
+	throughout (bug#8971).
+
+	* info.el (Info-find-file): Fall back on the installation
+	directory if we can't find the info node anywhere else.
+
+2011-07-13  Sergei Organov  <osv@javad.com>  (tiny change)
+
+	* vc/vc.el (vc-revert-file):
+	Don't set file time-stamp in the past.  (Bug#5181)
+
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* files.el (after-find-file): Give a better error message when
+	trying to find a symlink that points to a file that doesn't exist
+	(bug#4398).
+
+	* progmodes/cc-vars.el: Remove (probably) misleading comment
+	(bug#4396).
+
+2011-07-12  Johan Bockgård  <bojohan@gnu.org>
+
+	* mouse-sel.el (mouse-sel-primary-overlay): Use the `region' face.
+
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse-sel.el: Hack restoring functionality, while keeping
+	compatibility with 2010-07-03 changes to mouse selection.
+	(mouse-sel-primary-overlay): New var.
+	(mouse-sel-selection-alist): Use it.
+	(mouse-sel-mode): Doc fix; remove points that are default features
+	of mouse.el.
+
+2011-07-12  Johan Bockgård  <bojohan@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Fix previous fix (bug#2490).
+
+2011-07-12  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-initialize): Use
+	pop-to-buffer-same-window.
+	(bibtex-search-entries): Fix interactive call.
+
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Fontise bytecomp Error lines more correctly (bug#2490).  Fix
+	suggested by Johan Bockgård.
+
+	* subr.el (remove-duplicates): Remove; `delete-dups' is sufficient.
+
+	* dired-x.el (dired-guess-default): Use `delete-dups'.
+
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-mark-prompt):
+	* dired-aux.el (dired-read-shell-command): Doc fix.
+
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/sendmail.el (sendmail-query-once): Use
+	`customize-save-variable' unconditionally, now that it works under
+	emacs -Q.
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Ditto.
+
+	* cus-edit.el (custom-file): Take an optional no-error variable.
+	(customize-save-variable): Set the variable, and give a warning if
+	running under "emacs -q".
+
+2011-07-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-feature-special-hooks):
+	Add `auto-coding-functions', `fill-nobreak-predicate' and
+	`find-directory-functions' (bug#5327).
+
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* vc/ediff.el (ediff-patch-file): Clarify doc string (bug#3138).
+
+	* cus-edit.el (custom-guess-name-alist): -alist variables should
+	use the `alist' type (bug#3120).  Suggested by Drew Adams.
+
+	* printing.el: Add documentation to all the `pr-toggle-' commands.
+
+2011-07-11  Leo  <sdl.web@gmail.com>  (tiny change)
+
+	* files.el (toggle-read-only): Only do the `C-x C-q' warning on VC
+	backends where it makes sense (bug#2623).
+
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dired-x.el (dired-guess-default): Remove duplicate shell command
+	entries (bug#2028).
+	(dired-guess-default): Fix grammar in doc string (bug#2028).
+	(dired-guess-shell-alist-user): Clarify the example a bit (bug#2030).
+
+	* subr.el (remove-duplicates): New conveniency function.
+
 2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* tool-bar.el (tool-bar-mode): Clarify positive/negative arguments

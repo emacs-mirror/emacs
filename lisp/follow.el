@@ -118,7 +118,7 @@
 ;; (setq pixel-vertical-clip-threshold 30)
 
 
-;; The correct way to cofigurate Follow mode, or any other mode for
+;; The correct way to configurate Follow mode, or any other mode for
 ;; that matter, is to create one or more functions that do
 ;; whatever you would like to do.  These functions are then added to
 ;; a hook.
@@ -189,7 +189,7 @@
 ;; positions in the text? Here are two simple methods to use:
 ;;
 ;; 1) Use multiple frames; `follow' mode only affects windows displayed
-;;    in the same frame. (My apoligies to you who can't use frames.)
+;;    in the same frame. (My apologies to you who can't use frames.)
 ;;
 ;; 2) Bind `follow-mode' to key so you can turn it off whenever
 ;;    you want to view two locations.  Of course, `follow' mode can
@@ -209,15 +209,15 @@
 ;;
 ;; Follow mode does this in three places:
 ;; 1) After each user command.
-;; 2) After a process output has been perfomed.
+;; 2) After a process output has been performed.
 ;; 3) When a scrollbar has been moved.
 ;;
 ;; This will cover most situations. (Let me know if there are other
 ;; situations that should be covered.)
 ;;
 ;; Note that only the selected window is checked, for the reason of
-;; efficiency and code complexity. (I.e. it is possible to make a
-;; non-selected windows unaligned.  It will, however, pop right back
+;; efficiency and code complexity.  (I.e. it is possible to make a
+;; non-selected window unaligned.  It will, however, pop right back
 ;; when it is selected.)
 
 ;;}}}
@@ -244,7 +244,7 @@
 ;;	(funcall (symbol-function 'set) 'bar ...)
 ;;
 ;; Note: When this file is interpreted, `eval-when-compile' is
-;; evaluted.  Since it doesn't hurt to evaluate it, but it is a bit
+;; evaluated.  Since it doesn't hurt to evaluate it, but it is a bit
 ;; annoying, we test if the byte-compiler has been loaded.  This can,
 ;; of course, lead to some occasional unintended evaluation...
 ;;
@@ -456,7 +456,7 @@ Used by `follow-window-size-change'.")
 ;; the variable is not set.
 
 (defsubst follow-debug-message (&rest args)
-  "Like message, but only active when `follow-debug' is non-nil."
+  "Like `message', but only active when `follow-debug' is non-nil."
   (if (and (boundp 'follow-debug) follow-debug)
       (apply 'message args)))
 
@@ -1000,7 +1000,7 @@ Note that this handles the case when the cache has been set to nil."
     res))
 
 
-;; Make sure WIN always starts at the beginning of an whole screen
+;; Make sure WIN always starts at the beginning of a whole screen
 ;; line. If WIN is not aligned the start is updated which probably
 ;; will lead to a redisplay of the screen later on.
 ;;
@@ -1057,8 +1057,8 @@ Return the selected window."
     win))
 
 
-;; Lets select a window showing the end. Make sure we only select it if it
-;; it wasn't just moved here. (i.e. M-> shall not unconditionally place
+;; Lets select a window showing the end. Make sure we only select it if
+;; it wasn't just moved here. (I.e. M-> shall not unconditionally place
 ;; the point in the selected window.)
 ;;
 ;; (Compatibility cludge: in Emacs `window-end' is equal to `point-max';
@@ -1134,7 +1134,7 @@ Otherwise, return nil."
   "Reposition the WINDOWS around WIN.
 Should the point be too close to the roof we redisplay everything
 from the top.  WINDOWS should contain a list of windows to
-redisplay, it is assumed that WIN is a member of the list.
+redisplay; it is assumed that WIN is a member of the list.
 Should WINDOWS be nil, the windows displaying the
 same buffer as WIN, in the current frame, are used.
 Should WIN be nil, the selected window is used.
@@ -1231,7 +1231,7 @@ should be a member of WINDOWS, starts at position START."
 		 (setq done t res (point)))
 		((= win-start start)	; Perfect match, use this value
 		 (setq done t res (point)))
-		((< win-start start)	; Walked to far, use preious result
+		((< win-start start)	; Walked to far, use previous result
 		 (setq done t))
 		(t			; Store result for next iteration
 		 (setq res (point))))))
@@ -1241,12 +1241,12 @@ should be a member of WINDOWS, starts at position START."
 ;;{{{ Avoid tail recenter
 
 ;; This sets the window internal flag `force_start'. The effect is that
-;; windows only displaying the tail isn't recentered.
+;; windows only displaying the tail aren't recentered.
 ;; Has to be called before every redisplay... (Great isn't it?)
 ;;
 ;; XEmacs doesn't recenter the tail, GOOD!
 ;;
-;; A window displaying only the tail, is a windows whose
+;; A window displaying only the tail, is a window whose
 ;; window-start position is equal to (point-max) of the buffer it
 ;; displays.
 ;;
@@ -1487,12 +1487,12 @@ non-first windows in Follow mode."
 ;;;; Scroll-bar support code.
 
 ;; Why is it needed? Well, if the selected window is in follow mode,
-;; all its follower stick to it blindly. If one of them is scrolled,
+;; all its followers stick to it blindly. If one of them is scrolled,
 ;; it immediately returns to the original position when the mouse is
 ;; released. If the selected window is not a follower of the dragged
 ;; window the windows will be unaligned.
 
-;; The advices doesn't get compiled. Aestetically, this might be a
+;; The advices don't get compiled. Aesthetically, this might be a
 ;; problem but in practical life it isn't.
 
 ;; Discussion: Now when the other windows in the chain follow the
@@ -1700,8 +1700,8 @@ magic stuff before the real process filter is called."
 ;;}}}
 ;;{{{ Start/stop interception of processes.
 
-;; Normally, all new processed are intercepted by our `set-process-filter'.
-;; This is needed to intercept old processed that were started before we were
+;; Normally, all new processes are intercepted by our `set-process-filter'.
+;; This is needed to intercept old processes that were started before we were
 ;; loaded, and processes we have forgotten by calling
 ;; `follow-stop-intercept-process-output'.
 
@@ -1749,7 +1749,7 @@ report this using the `report-emacs-bug' function."
 
 ;; The following section is a naive method to make buffers with
 ;; process output to work with Follow mode. Whenever the start of the
-;; window displaying the buffer is moved, we moves it back to its
+;; window displaying the buffer is moved, we move it back to its
 ;; original position and try to select a new window.  (If we fail,
 ;; the normal redisplay functions of Emacs will scroll it right
 ;; back!)
@@ -1767,7 +1767,7 @@ report this using the `report-emacs-bug' function."
 
     ;; If input is pending, the `sit-for' below won't redraw the
     ;; display. In that case, calling `follow-avoid-tail-recenter' may
-    ;; provoke the process hadnling code to sceduling a redisplay.
+    ;; provoke the process handling code to schedule a redisplay.
     ;(or (input-pending-p)
     ; (follow-avoid-tail-recenter))
 
@@ -1788,7 +1788,7 @@ report this using the `report-emacs-bug' function."
 	      (inhibit-read-only t))
 	  (save-excursion
 	    (goto-char (process-mark proc))
-	    ;; `insert-before-markers' just in case the users next
+	    ;; `insert-before-markers' just in case the user's next
 	    ;; command is M-y.
 	    (insert-before-markers output)
 	    (set-marker (process-mark proc) (point)))
@@ -1848,7 +1848,7 @@ report this using the `report-emacs-bug' function."
 		   (t
 		    (follow-debug-message "filter: nothing")))
 
-		  ;; Here we have slected a window. Make sure the
+		  ;; Here we have selected a window. Make sure the
 		  ;; windows are aligned and the point is visible
 		  ;; in the selected window.
 		  (if (and (not (follow-pos-visible
@@ -1866,7 +1866,7 @@ report this using the `report-emacs-bug' function."
     ;; return to the original window.
     (if return-to-orig-win
 	(select-window orig-win))
-    ;; Restore the orignal buffer, unless the filter explicitly
+    ;; Restore the original buffer, unless the filter explicitly
     ;; changed buffer or killed the old buffer.
     (if (and (eq buf (current-buffer))
 	     (buffer-name old-buffer))

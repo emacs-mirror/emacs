@@ -1152,6 +1152,8 @@ display the result of expression evaluation."
 (defun eval-expression (eval-expression-arg
 			&optional eval-expression-insert-value)
   "Evaluate EVAL-EXPRESSION-ARG and print value in the echo area.
+When called interactively, read an Emacs Lisp expression and
+evaluate it.
 Value is also consed on to front of the variable `values'.
 Optional argument EVAL-EXPRESSION-INSERT-VALUE non-nil (interactively,
 with prefix argument) means insert the result into the current buffer
@@ -5303,11 +5305,12 @@ The variable `selective-display' has a separate value for each buffer."
 (defvaralias 'indicate-unused-lines 'indicate-empty-lines)
 
 (defun toggle-truncate-lines (&optional arg)
-  "Toggle whether to fold or truncate long lines for the current buffer.
+  "Toggle truncating of long lines for the current buffer.
+When truncating is off, long lines are folded.
 With prefix argument ARG, truncate long lines if ARG is positive,
-otherwise don't truncate them.  Note that in side-by-side windows,
-this command has no effect if `truncate-partial-width-windows'
-is non-nil."
+otherwise fold them.  Note that in side-by-side windows, this
+command has no effect if `truncate-partial-width-windows' is
+non-nil."
   (interactive "P")
   (setq truncate-lines
 	(if (null arg)
@@ -5520,8 +5523,8 @@ The function should return non-nil if the two tokens do not match.")
                 (minibuffer-message "Mismatched parentheses")
               (message "Mismatched parentheses"))
           (if (minibufferp)
-              (minibuffer-message "Unmatched parenthesis")
-            (message "Unmatched parenthesis"))))
+              (minibuffer-message "No matching parenthesis found")
+            (message "No matching parenthesis found"))))
        ((not blinkpos) nil)
        ((pos-visible-in-window-p blinkpos)
         ;; Matching open within window, temporarily move to blinkpos but only

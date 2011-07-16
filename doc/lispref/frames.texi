@@ -337,9 +337,6 @@ parameters @code{foreground-color}, @code{background-color},
 If the terminal supports frame transparency, the parameter
 @code{alpha} is also meaningful.
 
-  You can use frame parameters to define frame-local bindings for
-variables.  @xref{Frame-Local Variables}.
-
 @menu
 * Parameter Access::       How to change a frame's parameters.
 * Initial Parameters::     Specifying frame parameters when you make a frame.
@@ -374,9 +371,6 @@ elements of @var{alist}.  Each element of @var{alist} has the form
 parameter.  If you don't mention a parameter in @var{alist}, its value
 doesn't change.  If @var{frame} is @code{nil}, it defaults to the selected
 frame.
-
-You can use this function to define frame-local bindings for
-variables, see @ref{Frame-Local Variables}.
 @end defun
 
 @defun set-frame-parameter frame parm value
@@ -1959,30 +1953,34 @@ defined in the file @file{lisp/term/x-win.el}.  Use @kbd{M-x apropos
 @node Window System Selections
 @section Window System Selections
 @cindex selection (for window systems)
+@cindex clipboard
+@cindex primary selection
+@cindex secondary selection
 
-The X server records a set of @dfn{selections} which permit transfer of
-data between application programs.  The various selections are
-distinguished by @dfn{selection types}, represented in Emacs by
-symbols.  X clients including Emacs can read or set the selection for
-any given type.
+  In the X window system, data can be transferred between different
+applications by means of @dfn{selections}.  X defines an arbitrary
+number of @dfn{selection types}, each of which can store its own data;
+however, only three are commonly used: the @dfn{clipboard},
+@dfn{primary selection}, and @dfn{secondary selection}.  @xref{Cut and
+Paste,, Cut and Paste, emacs, The GNU Emacs Manual}, for Emacs
+commands that make use of these selections.  This section documents
+the low-level functions for reading and setting X selections.
 
 @deffn Command x-set-selection type data
-This function sets a ``selection'' in the X server.  It takes two
-arguments: a selection type @var{type}, and the value to assign to it,
-@var{data}.  If @var{data} is @code{nil}, it means to clear out the
-selection.  Otherwise, @var{data} may be a string, a symbol, an integer
-(or a cons of two integers or list of two integers), an overlay, or a
-cons of two markers pointing to the same buffer.  An overlay or a pair
-of markers stands for text in the overlay or between the markers.
+This function sets an X selection.  It takes two arguments: a
+selection type @var{type}, and the value to assign to it, @var{data}.
 
-The argument @var{data} may also be a vector of valid non-vector
-selection values.
+@var{type} should be a symbol; it is usually one of @code{PRIMARY},
+@code{SECONDARY} or @code{CLIPBOARD}.  These are symbols with
+upper-case names, in accord with X Window System conventions.  If
+@var{type} is @code{nil}, that stands for @code{PRIMARY}.
 
-Each possible @var{type} has its own selection value, which changes
-independently.  The usual values of @var{type} are @code{PRIMARY},
-@code{SECONDARY} and @code{CLIPBOARD}; these are symbols with upper-case
-names, in accord with X Window System conventions.  If @var{type} is
-@code{nil}, that stands for @code{PRIMARY}.
+If @var{data} is @code{nil}, it means to clear out the selection.
+Otherwise, @var{data} may be a string, a symbol, an integer (or a cons
+of two integers or list of two integers), an overlay, or a cons of two
+markers pointing to the same buffer.  An overlay or a pair of markers
+stands for text in the overlay or between the markers.  The argument
+@var{data} may also be a vector of valid non-vector selection values.
 
 This function returns @var{data}.
 @end deffn
@@ -2018,14 +2016,6 @@ general, but it does support the clipboard.  @code{x-get-selection}
 and @code{x-set-selection} on MS-Windows support the text data type
 only; if the clipboard holds other types of data, Emacs treats the
 clipboard as empty.
-
-@defopt x-select-enable-clipboard
-If this is non-@code{nil}, the Emacs yank functions consult the
-clipboard before the primary selection, and the kill functions store in
-the clipboard as well as the primary selection.  Otherwise they do not
-access the clipboard at all.  The default is @code{t} on systems with
-clipboards.
-@end defopt
 
 @node Drag and Drop
 @section Drag and Drop
@@ -2446,10 +2436,13 @@ For a tty display, it is log to base two of the number of colors supported.
 @end defun
 
 @defun display-visual-class &optional display
-This function returns the visual class for the screen.  The value is one
-of the symbols @code{static-gray}, @code{gray-scale},
-@code{static-color}, @code{pseudo-color}, @code{true-color}, and
-@code{direct-color}.
+This function returns the visual class for the screen.  The value is
+one of the symbols @code{static-gray} (a limited, unchangeable number
+of grays), @code{gray-scale} (a full range of grays),
+@code{static-color} (a limited, unchangeable number of colors),
+@code{pseudo-color} (a limited number of colors), @code{true-color} (a
+full range of colors), and @code{direct-color} (a full range of
+colors).
 @end defun
 
 @defun display-color-cells &optional display

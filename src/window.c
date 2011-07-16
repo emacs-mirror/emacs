@@ -683,6 +683,7 @@ WINDOW must be a live window and defaults to the selected one.  */)
 
 DEFUN ("set-window-hscroll", Fset_window_hscroll, Sset_window_hscroll, 2, 2, 0,
        doc: /* Set number of columns WINDOW is scrolled from left margin to NCOL.
+If WINDOW is nil, the selected window is used.
 Return NCOL.  NCOL should be zero or positive.
 
 Note that if `automatic-hscrolling' is non-nil, you cannot scroll the
@@ -1350,6 +1351,7 @@ if it isn't already recorded.  */)
       struct text_pos startp;
       struct it it;
       struct buffer *old_buffer = NULL;
+      void *itdata = NULL;
 
       /* Cannot use Fvertical_motion because that function doesn't
 	 cope with variable-height lines.  */
@@ -1371,11 +1373,13 @@ if it isn't already recorded.  */)
       else
 	SET_TEXT_POS_FROM_MARKER (startp, w->start);
 
+      itdata = bidi_shelve_cache ();
       start_display (&it, w, startp);
       move_it_vertically (&it, window_box_height (w));
       if (it.current_y < it.last_visible_y)
 	move_it_past_eol (&it);
       value = make_number (IT_CHARPOS (it));
+      bidi_unshelve_cache (itdata);
 
       if (old_buffer)
 	set_buffer_internal (old_buffer);
@@ -1410,7 +1414,7 @@ Return POS.  */)
 
 DEFUN ("set-window-start", Fset_window_start, Sset_window_start, 2, 3, 0,
        doc: /* Make display in WINDOW start at position POS in WINDOW's buffer.
-WINDOW defaults to the selected window.  Return POS.
+If WINDOW is nil, the selected window is used.  Return POS.
 Optional third arg NOFORCE non-nil inhibits next redisplay from
 overriding motion of point in order to display at this exact start.  */)
   (Lisp_Object window, Lisp_Object pos, Lisp_Object noforce)
@@ -4237,6 +4241,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
   /* True if we fiddled the window vscroll field without really scrolling.  */
   int vscrolled = 0;
   int x, y, rtop, rbot, rowh, vpos;
+  void *itdata = NULL;
 
   SET_TEXT_POS_FROM_MARKER (start, w->start);
 
@@ -4247,6 +4252,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 
   if (!pos_visible_p (w, PT, &x, &y, &rtop, &rbot, &rowh, &vpos))
     {
+      itdata = bidi_shelve_cache ();
       /* Move backward half the height of the window.  Performance note:
 	 vmotion used here is about 10% faster, but would give wrong
 	 results for variable height lines.  */
@@ -4267,6 +4273,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	}
 
       start = it.current.pos;
+      bidi_unshelve_cache (itdata);
     }
   else if (auto_window_vscroll_p)
     {
@@ -4329,6 +4336,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
       Fset_window_vscroll (window, make_number (0), Qt);
     }
 
+  itdata = bidi_shelve_cache ();
   /* If scroll_preserve_screen_position is non-nil, we try to set
      point in the same window line as it is now, so get that line.  */
   if (!NILP (Vscroll_preserve_screen_position))
@@ -4407,12 +4415,16 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 			    - it.current_y + it.max_ascent + it.max_descent);
 	      adjust_glyphs (it.f);
 	    }
-	  else if (noerror)
-	    return;
-	  else if (n < 0)	/* could happen with empty buffers */
-	    xsignal0 (Qbeginning_of_buffer);
 	  else
-	    xsignal0 (Qend_of_buffer);
+	    {
+	      bidi_unshelve_cache (itdata);
+	      if (noerror)
+		return;
+	      else if (n < 0)	/* could happen with empty buffers */
+		xsignal0 (Qbeginning_of_buffer);
+	      else
+		xsignal0 (Qend_of_buffer);
+	    }
 	}
       else
 	{
@@ -4420,10 +4432,14 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	    /* The first line was only partially visible, make it fully
 	       visible. */
 	    w->vscroll = 0;
-	  else if (noerror)
-	    return;
 	  else
-	    xsignal0 (Qbeginning_of_buffer);
+	    {
+	      bidi_unshelve_cache (itdata);
+	      if (noerror)
+		return;
+	      else
+		xsignal0 (Qbeginning_of_buffer);
+	    }
 	}
 
       /* If control gets here, then we vscrolled.  */
@@ -4567,6 +4583,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	    SET_PT_BOTH (charpos, bytepos);
 	}
     }
+  bidi_unshelve_cache (itdata);
 }
 
 
@@ -4969,6 +4986,7 @@ displayed_window_lines (struct window *w)
   int height = window_box_height (w);
   struct buffer *old_buffer;
   int bottom_y;
+  void *itdata = NULL;
 
   if (XBUFFER (w->buffer) != current_buffer)
     {
@@ -4988,9 +5006,11 @@ displayed_window_lines (struct window *w)
   else
     SET_TEXT_POS_FROM_MARKER (start, w->start);
 
+  itdata = bidi_shelve_cache ();
   start_display (&it, w, start);
   move_it_vertically (&it, height);
   bottom_y = line_bottom_y (&it);
+  bidi_unshelve_cache (itdata);
 
   /* rms: On a non-window display,
      the value of it.vpos at the bottom of the screen
@@ -5089,12 +5109,14 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	{
 	  struct it it;
 	  struct text_pos pt;
+	  void *itdata = bidi_shelve_cache ();
 
 	  SET_TEXT_POS (pt, PT, PT_BYTE);
 	  start_display (&it, w, pt);
 	  move_it_vertically_backward (&it, window_box_height (w) / 2);
 	  charpos = IT_CHARPOS (it);
 	  bytepos = IT_BYTEPOS (it);
+	  bidi_unshelve_cache (itdata);
 	}
       else if (iarg < 0)
 	{
@@ -5103,6 +5125,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	  int nlines = -iarg;
 	  int extra_line_spacing;
 	  int h = window_box_height (w);
+	  void *itdata = bidi_shelve_cache ();
 
 	  iarg = - max (-iarg, this_scroll_margin);
 
@@ -5140,7 +5163,10 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	      h -= nlines * (FRAME_LINE_HEIGHT (it.f) + extra_line_spacing);
 	    }
 	  if (h <= 0)
-	    return Qnil;
+	    {
+	      bidi_unshelve_cache (itdata);
+	      return Qnil;
+	    }
 
 	  /* Now find the new top line (starting position) of the window.  */
 	  start_display (&it, w, pt);
@@ -5160,6 +5186,8 @@ and redisplay normally--don't erase and redraw the frame.  */)
 
 	  charpos = IT_CHARPOS (it);
 	  bytepos = IT_BYTEPOS (it);
+
+	  bidi_unshelve_cache (itdata);
 	}
       else
 	{

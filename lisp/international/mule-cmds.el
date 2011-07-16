@@ -397,7 +397,11 @@ If CODING-SYSTEM specifies a certain type of EOL conversion, the coding
 systems set by this function will use that type of EOL conversion.
 
 A coding system that requires automatic detection of text+encoding
-\(e.g. undecided, unix) can't be preferred."
+\(e.g. undecided, unix) can't be preferred.
+
+To prefer, for instance, utf-8, say the following:
+
+  \(prefer-coding-system 'utf-8)"
   (interactive "zPrefer coding system: ")
   (if (not (and coding-system (coding-system-p coding-system)))
       (error "Invalid coding system `%s'" coding-system))
@@ -2055,7 +2059,7 @@ See `set-language-info-alist' for use in programs."
 		  (or (not (eq last-command-event 'Default))
 		      (setq last-command-event 'English))
 		  (setq language-name (symbol-name last-command-event))))
-	(error "Bogus calling sequence"))
+	(error "This command should only be called from the menu bar"))
     (describe-language-environment language-name)))
 
 (defun describe-language-environment (language-name)

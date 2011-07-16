@@ -613,7 +613,7 @@ One should tune up `cperl-close-paren-offset' as well."
 (defcustom cperl-syntaxify-by-font-lock
   (and cperl-can-font-lock
        (boundp 'parse-sexp-lookup-properties))
-  "*Non-nil means that CPerl uses `font-lock's routines for syntaxification."
+  "*Non-nil means that CPerl uses the `font-lock' routines for syntaxification."
   :type '(choice (const message) boolean)
   :group 'cperl-speed)
 

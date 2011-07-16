@@ -1215,8 +1215,7 @@ by buffer configuration `bs-cycle-configuration-name'."
         ;; We don't want the frame iconified if the only window in the frame
         ;; happens to be dedicated.
         (bury-buffer (current-buffer))
-        (with-no-warnings ; We really do want to call `switch-to-buffer' here.
-          (switch-to-buffer next))
+	(switch-to-buffer next nil t)
 	(setq bs--cycle-list (append (cdr cycle-list)
 				     (list (car cycle-list))))
 	(bs-message-without-log "Next buffers: %s"
@@ -1245,8 +1244,7 @@ by buffer configuration `bs-cycle-configuration-name'."
 					    bs--cycle-list)))
 	     (prev-buffer (car tupel))
 	     (cycle-list (cdr tupel)))
-        (with-no-warnings ; We really do want to call `switch-to-buffer' here.
-          (switch-to-buffer prev-buffer))
+	(switch-to-buffer prev-buffer nil t)
 	(setq bs--cycle-list (append (last cycle-list)
 				     (reverse (cdr (reverse cycle-list)))))
 	(bs-message-without-log "Previous buffers: %s"

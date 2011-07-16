@@ -3060,7 +3060,7 @@ When called interactively, FORCE is t, CURRENT is t if current buffer uses
     ;; select BibTeX buffer
     (if select
         (if buffer-list
-            (switch-to-buffer
+            (pop-to-buffer-same-window
              (completing-read "Switch to BibTeX buffer: "
                               (mapcar 'buffer-name buffer-list)
                               nil t
@@ -5179,7 +5179,7 @@ where FILE is the BibTeX file of ENTRY."
           (delete-dups
            (apply 'append
                   bibtex-user-optional-fields
-                  (mapcar (lambda (x) (mapcar 'car (apply 'append (cdr x))))
+                  (mapcar (lambda (x) (mapcar 'car (apply 'append (nthcdr 2 x))))
                           bibtex-entry-alist))) nil t)
          (read-string "Regexp: ")
          (if bibtex-search-entry-globally

@@ -194,8 +194,12 @@ DEFUN ("byte-to-string", Fbyte_to_string, Sbyte_to_string, 1, 1, 0,
 }
 
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
-       doc: /* Convert arg STRING to a character, the first character of that string.
-A multibyte character is handled correctly.  */)
+       doc: /* Return the first character in STRING.
+A multibyte character is handled correctly.
+The value returned is a Unicode codepoint if it is below #x110000 (in
+hex).  Codepoints beyond that are Emacs extensions of Unicode.  In
+particular, eight-bit characters are returned as codepoints in the
+range #x3FFF80 through #x3FFFFF, inclusive.  */)
   (register Lisp_Object string)
 {
   register Lisp_Object val;
@@ -3156,10 +3160,9 @@ It returns the number of characters changed.  */)
 }
 
 DEFUN ("delete-region", Fdelete_region, Sdelete_region, 2, 2, "r",
-       doc: /* Delete the text between point and mark.
-
-When called from a program, expects two arguments,
-positions (integers or markers) specifying the stretch to be deleted.  */)
+       doc: /* Delete the text between START and END.
+If called interactively, delete the region between point and mark.
+This command deletes buffer text without modifying the kill ring.  */)
   (Lisp_Object start, Lisp_Object end)
 {
   validate_region (&start, &end);

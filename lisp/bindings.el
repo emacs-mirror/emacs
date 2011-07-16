@@ -471,8 +471,7 @@ Like `bury-buffer', but temporarily select EVENT's window."
 (defun mode-line-other-buffer () "\
 Switch to the most recently selected buffer other than the current one."
   (interactive)
-  (with-no-warnings ; We really do want to call `switch-to-buffer' here.
-    (switch-to-buffer (other-buffer))))
+  (switch-to-buffer (other-buffer) nil t))
 
 (defun mode-line-next-buffer (event)
   "Like `next-buffer', but temporarily select EVENT's window."
@@ -594,9 +593,12 @@ is okay.  See `mode-line-format'.")
 	 ".fas" ".lib" ".mem"
 	 ;; CMUCL
 	 ".x86f" ".sparcf"
-         ;; Other CL implementations (Allegro, LispWorks, OpenMCL)
-         ".fasl" ".ufsl" ".fsl" ".dxl" ".pfsl" ".dfsl"
-	 ".p64fsl" ".d64fsl" ".dx64fsl"
+	 ;; OpenMCL / Clozure CL
+	 ".dfsl" ".pfsl" ".d64fsl" ".p64fsl" ".lx64fsl" ".lx32fsl"
+	 ".dx64fsl" ".dx32fsl" ".fx64fsl" ".fx32fsl" ".sx64fsl"
+	 ".sx32fsl" ".wx64fsl" ".wx32fsl"
+         ;; Other CL implementations (Allegro, LispWorks)
+         ".fasl" ".ufsl" ".fsl" ".dxl"
 	 ;; Libtool
 	 ".lo" ".la"
 	 ;; Gettext
@@ -847,6 +849,8 @@ if `inhibit-field-text-motion' is non-nil."
 (define-key global-map "\C-@" 'set-mark-command)
 ;; Many people are used to typing C-SPC and getting C-@.
 (define-key global-map [?\C- ] 'set-mark-command)
+(put 'set-mark-command :advertised-binding [?\C- ])
+
 (define-key ctl-x-map "\C-x" 'exchange-point-and-mark)
 (define-key ctl-x-map "\C-@" 'pop-global-mark)
 (define-key ctl-x-map [?\C- ] 'pop-global-mark)

@@ -308,7 +308,7 @@ buffer in your bug report.
 
       ;; There is at least one Tramp buffer.
       (when buffer-list
-	(tramp-compat-pop-to-buffer-same-window (list-buffers-noselect nil))
+	(switch-to-buffer (list-buffers-noselect nil))
 	(delete-other-windows)
 	(setq buffer-read-only nil)
 	(goto-char (point-min))
@@ -343,7 +343,7 @@ the debug buffer(s).")
 	    ;; OK, let's send.  First we delete the buffer list.
 	    (progn
 	      (kill-buffer nil)
-	      (tramp-compat-pop-to-buffer-same-window curbuf)
+	      (switch-to-buffer curbuf)
 	      (goto-char (point-max))
 	      (insert "\n\
 This is a special notion of the `gnus/message' package.  If you

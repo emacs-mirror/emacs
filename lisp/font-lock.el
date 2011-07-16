@@ -254,6 +254,7 @@ for buffers in Rmail mode, and size is irrelevant otherwise."
 If nil, use the default decoration (typically the minimum available).
 If t, use the maximum decoration available.
 If a number, use that level of decoration (or if not available the maximum).
+The higher the number, the more decoration is done.
 If a list, each element should be a cons pair of the form (MAJOR-MODE . LEVEL),
 where MAJOR-MODE is a symbol or t (meaning the default).  For example:
  ((c-mode . t) (c++-mode . 2) (t . 1))
@@ -1856,19 +1857,13 @@ Sets various variables using `font-lock-defaults' and
     (((class color) (min-colors 8) (background light))
      (:foreground "red"))
     (((class color) (min-colors 8) (background dark))
-     )
+     (:foreground "yellow"))
     (t (:weight bold :slant italic)))
   "Font Lock mode face used to highlight comments."
   :group 'font-lock-faces)
 
 (defface font-lock-comment-delimiter-face
-  '((default :inherit font-lock-comment-face)
-    (((class grayscale)))
-    (((class color) (min-colors 16)))
-    (((class color) (min-colors 8) (background light))
-     :foreground "red")
-    (((class color) (min-colors 8) (background dark))
-     :foreground "red1"))
+  '((default :inherit font-lock-comment-face))
   "Font Lock mode face used to highlight comment delimiters."
   :group 'font-lock-faces)
 

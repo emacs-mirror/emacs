@@ -39,7 +39,6 @@ representing the variable.
 * Buffer-Local Variables::      Variable values in effect only in one buffer.
 * File Local Variables::        Handling local variable lists in files.
 * Directory Local Variables::   Local variables common to all files in a directory.
-* Frame-Local Variables::       Frame-local bindings for variables.
 * Variable Aliases::            Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
@@ -1100,11 +1099,12 @@ use short names like @code{x}.
 @node Lexical Binding
 @subsection Use of Lexical Scoping
 
-Emacs Lisp can be evaluated in two different modes: in dynamic binding mode or
-lexical binding mode.  In dynamic binding mode, all local variables use dynamic
-scoping, whereas in lexical binding mode variables that have been declared
-@dfn{special} (i.e., declared with @code{defvar} or @code{defconst}) use
-dynamic scoping and all others use lexical scoping.
+Emacs Lisp can be evaluated in two different modes: in dynamic binding
+mode or lexical binding mode.  In dynamic binding mode, all local
+variables use dynamic scoping, whereas in lexical binding mode
+variables that have been declared @dfn{special} (i.e., declared with
+@code{defvar}, @code{defcustom} or @code{defconst}) use dynamic
+scoping and all others use lexical scoping.
 
 @defvar lexical-binding
 When non-nil, evaluation of Lisp code uses lexical scoping for non-special
@@ -1187,8 +1187,7 @@ additional, unusual kinds of variable binding, such as
 @dfn{buffer-local} bindings, which apply only in one buffer.  Having
 different values for a variable in different buffers is an important
 customization method.  (Variables can also have bindings that are
-local to each terminal, or to each frame.  @xref{Multiple Terminals},
-and @xref{Frame-Local Variables}.)
+local to each terminal.  @xref{Multiple Terminals}.)
 
 @menu
 * Intro to Buffer-Local::       Introduction and concepts.
@@ -1287,9 +1286,8 @@ buffer-local binding of buffer @samp{b}.
 values when you visit the file.  @xref{File Variables,,, emacs, The
 GNU Emacs Manual}.
 
-  A buffer-local variable cannot be made frame-local
-(@pxref{Frame-Local Variables}) or terminal-local (@pxref{Multiple
-Terminals}).
+  A buffer-local variable cannot be made terminal-local
+(@pxref{Multiple Terminals}).
 
 @node Creating Buffer-Local
 @subsection Creating and Deleting Buffer-Local Bindings
@@ -1340,9 +1338,9 @@ is not current either on entry to or exit from the @code{let}.  This is
 because @code{let} does not distinguish between different kinds of
 bindings; it knows only which variable the binding was made for.
 
-If the variable is terminal-local (@pxref{Multiple Terminals}), or
-frame-local (@pxref{Frame-Local Variables}), this function signals an
-error.  Such variables cannot have buffer-local bindings as well.
+If the variable is terminal-local (@pxref{Multiple Terminals}), this
+function signals an error.  Such variables cannot have buffer-local
+bindings as well.
 
 @strong{Warning:} do not use @code{make-local-variable} for a hook
 variable.  The hook variables are automatically made buffer-local as
@@ -1879,36 +1877,6 @@ modification times of the associated directory local variables file
 (if there is one).  The function @code{dir-locals-set-directory-class}
 updates this list.
 @end defvar
-
-@node Frame-Local Variables
-@section Frame-Local Values for Variables
-@cindex frame-local variables
-
-  In addition to buffer-local variable bindings (@pxref{Buffer-Local
-Variables}), Emacs supports @dfn{frame-local} bindings.  A frame-local
-binding for a variable is in effect in a frame for which it was
-defined.
-
-  In practice, frame-local variables have not proven very useful.
-Ordinary frame parameters are generally used instead (@pxref{Frame
-Parameters}).  The function @code{make-variable-frame-local}, which
-was used to define frame-local variables, has been deprecated since
-Emacs 22.2.  However, you can still define a frame-specific binding
-for a variable @var{var} in frame @var{frame}, by setting the
-@var{var} frame parameter for that frame:
-
-@lisp
-  (modify-frame-parameters @var{frame} '((@var{var} . @var{value})))
-@end lisp
-
-@noindent
-This causes the variable @var{var} to be bound to the specified
-@var{value} in the named @var{frame}.  To check the frame-specific
-values of such variables, use @code{frame-parameter}.  @xref{Parameter
-Access}.
-
-  Note that you cannot have a frame-local binding for a variable that
-has a buffer-local binding.
 
 @node Variable Aliases
 @section Variable Aliases
