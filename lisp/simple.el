@@ -3056,10 +3056,11 @@ If `interprogram-cut-function' is set, pass the resulting kill to it."
 
 (defun current-kill (n &optional do-not-move)
   "Rotate the yanking point by N places, and then return that kill.
-If N is zero, `interprogram-paste-function' is set, and calling
-it returns a string or list of strings, then that string (or
-list) is added to the front of the kill ring and the string (or
-first string in the list) is returned as the latest kill.
+If N is zero and `interprogram-paste-function' is set to a
+function that returns a string or a list of strings, and if that
+function doesn't return nil, then that string (or list) is added
+to the front of the kill ring and the string (or first string in
+the list) is returned as the latest kill.
 
 If N is not zero, and if `yank-pop-change-selection' is
 non-nil, use `interprogram-cut-function' to transfer the

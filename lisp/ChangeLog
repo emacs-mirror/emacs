@@ -1,3 +1,8 @@
+2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* simple.el (current-kill): Clarify what
+	`interprogram-paste-function' does (bug#7500).
+
 2011-07-16  Lawrence Mitchell  <wence@gmx.li>
 
 	* emacs-lisp/cl-macs.el (defstruct): Ignore argument to setf
