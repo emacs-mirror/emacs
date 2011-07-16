@@ -2,6 +2,8 @@
 
 	* simple.el (current-kill): Clarify what
 	`interprogram-paste-function' does (bug#7500).
+	(auto-fill-mode): Document `auto-fill-function' in relation to
+	`auto-fill-mode' (bug#2470).
 
 2011-07-16  Lawrence Mitchell  <wence@gmx.li>
 

@@ -5237,13 +5237,15 @@ Some major modes set this.")
 ;; auto-fill-function to nil in a file-local setting is safe and
 ;; can be useful to prevent auto-filling.
 (put 'auto-fill-function 'safe-local-variable 'null)
-;; FIXME: turn into a proper minor mode.
-;; Add a global minor mode version of it.
+
 (define-minor-mode auto-fill-mode
   "Toggle Auto Fill mode.
 With ARG, turn Auto Fill mode on if and only if ARG is positive.
 In Auto Fill mode, inserting a space at a column beyond `current-fill-column'
 automatically breaks the line at a previous space.
+
+When `auto-fill-mode' is on, the `auto-fill-function' variable is
+non-`nil'.
 
 The value of `normal-auto-fill-function' specifies the function to use
 for `auto-fill-function' when turning Auto Fill mode on."
