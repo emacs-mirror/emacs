@@ -5953,13 +5953,13 @@ Return the buffer switched to."
    (list (read-buffer-to-switch "Switch to buffer: ") nil nil))
   (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
     (if (null force-same-window)
-	(pop-to-buffer buffer-or-name
-		       '(same-window (reuse-window-dedicated . weak))
-		       norecord nil)
+	(pop-to-buffer
+	 buffer '(same-window (reuse-window-dedicated . weak))
+	 norecord 'switch-to-buffer)
       (cond
        ;; Don't call set-window-buffer if it's not needed since it
        ;; might signal an error (e.g. if the window is dedicated).
-       ((eq buffer (window-buffer)) nil)
+       ((eq buffer (window-buffer)))
        ((window-minibuffer-p)
 	(error "Cannot switch buffers in minibuffer window"))
        ((eq (window-dedicated-p) t)

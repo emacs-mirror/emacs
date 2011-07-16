@@ -50,6 +50,7 @@ static Lisp_Object Qgnutls_bootprop_crlfiles;
 static Lisp_Object Qgnutls_bootprop_callbacks;
 static Lisp_Object Qgnutls_bootprop_loglevel;
 static Lisp_Object Qgnutls_bootprop_hostname;
+static Lisp_Object Qgnutls_bootprop_min_prime_bits;
 static Lisp_Object Qgnutls_bootprop_verify_flags;
 static Lisp_Object Qgnutls_bootprop_verify_hostname_error;
 
@@ -105,6 +106,8 @@ DEF_GNUTLS_FN (int, gnutls_certificate_verify_peers2,
 DEF_GNUTLS_FN (int, gnutls_credentials_set,
                (gnutls_session_t, gnutls_credentials_type_t, void *));
 DEF_GNUTLS_FN (void, gnutls_deinit, (gnutls_session_t));
+DEF_GNUTLS_FN (void, gnutls_dh_set_prime_bits,
+               (gnutls_session_t, unsigned int));
 DEF_GNUTLS_FN (int, gnutls_error_is_fatal, (int));
 DEF_GNUTLS_FN (int, gnutls_global_init, (void));
 DEF_GNUTLS_FN (void, gnutls_global_set_log_function, (gnutls_log_func));
@@ -169,6 +172,7 @@ init_gnutls_functions (Lisp_Object libraries)
   LOAD_GNUTLS_FN (library, gnutls_certificate_verify_peers2);
   LOAD_GNUTLS_FN (library, gnutls_credentials_set);
   LOAD_GNUTLS_FN (library, gnutls_deinit);
+  LOAD_GNUTLS_FN (library, gnutls_dh_set_prime_bits);
   LOAD_GNUTLS_FN (library, gnutls_error_is_fatal);
   LOAD_GNUTLS_FN (library, gnutls_global_init);
   LOAD_GNUTLS_FN (library, gnutls_global_set_log_function);
@@ -218,6 +222,7 @@ init_gnutls_functions (Lisp_Object libraries)
 #define fn_gnutls_certificate_verify_peers2	gnutls_certificate_verify_peers2
 #define fn_gnutls_credentials_set		gnutls_credentials_set
 #define fn_gnutls_deinit			gnutls_deinit
+#define fn_gnutls_dh_set_prime_bits		gnutls_dh_set_prime_bits
 #define fn_gnutls_error_is_fatal		gnutls_error_is_fatal
 #define fn_gnutls_global_init			gnutls_global_init
 #define fn_gnutls_global_set_log_function	gnutls_global_set_log_function
@@ -646,6 +651,9 @@ gnutls_certificate_set_verify_flags.
 :verify-hostname-error, if non-nil, makes a hostname mismatch an
 error.  Otherwise it will be just a warning.
 
+:min-prime-bits is the minimum accepted number of bits the client will
+accept in Diffie-Hellman key exchange.
+
 The debug level will be set for this process AND globally for GnuTLS.
 So if you set it higher or lower at any point, it affects global
 debugging.
@@ -698,6 +706,7 @@ one trustfile (usually a CA bundle).  */)
   Lisp_Object verify_flags;
   /* Lisp_Object verify_error; */
   Lisp_Object verify_hostname_error;
+  Lisp_Object prime_bits;
 
   CHECK_PROCESS (proc);
   CHECK_SYMBOL (type);
@@ -719,6 +728,7 @@ one trustfile (usually a CA bundle).  */)
   verify_flags          = Fplist_get (proplist, Qgnutls_bootprop_verify_flags);
   /* verify_error       = Fplist_get (proplist, Qgnutls_bootprop_verify_error); */
   verify_hostname_error = Fplist_get (proplist, Qgnutls_bootprop_verify_hostname_error);
+  prime_bits            = Fplist_get (proplist, Qgnutls_bootprop_min_prime_bits);
 
   if (!STRINGP (hostname))
     error ("gnutls-boot: invalid :hostname parameter");
@@ -936,6 +946,11 @@ one trustfile (usually a CA bundle).  */)
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_PRIORITY;
 
+  if (!EQ (prime_bits, Qnil))
+    {
+      fn_gnutls_dh_set_prime_bits (state, XUINT (prime_bits));
+    }
+
   if (EQ (type, Qgnutls_x509pki))
     {
       ret = fn_gnutls_credentials_set (state, GNUTLS_CRD_CERTIFICATE, x509_cred);
@@ -1114,6 +1129,7 @@ syms_of_gnutls (void)
   DEFSYM (Qgnutls_bootprop_crlfiles, ":crlfiles");
   DEFSYM (Qgnutls_bootprop_callbacks, ":callbacks");
   DEFSYM (Qgnutls_bootprop_callbacks_verify, "verify");
+  DEFSYM (Qgnutls_bootprop_min_prime_bits, ":min-prime-bits");
   DEFSYM (Qgnutls_bootprop_loglevel, ":loglevel");
   DEFSYM (Qgnutls_bootprop_verify_flags, ":verify-flags");
   DEFSYM (Qgnutls_bootprop_verify_hostname_error, ":verify-hostname-error");

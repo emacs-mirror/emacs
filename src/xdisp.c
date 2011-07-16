@@ -7928,7 +7928,14 @@ move_it_in_display_line_to (struct it *it,
 	      || IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    {
 	      if (!get_next_display_element (it)
-		  || BUFFER_POS_REACHED_P ())
+		  || BUFFER_POS_REACHED_P ()
+		  /* If we are past TO_CHARPOS, but never saw any
+		     character positions smaller than TO_CHARPOS,
+		     return MOVE_POS_MATCH_OR_ZV, like the
+		     unidirectional display did.  */
+		  || ((op & MOVE_TO_POS) != 0
+		      && !saw_smaller_pos
+		      && IT_CHARPOS (*it) > to_charpos))
 		{
 		  result = MOVE_POS_MATCH_OR_ZV;
 		  break;
@@ -7938,6 +7945,13 @@ move_it_in_display_line_to (struct it *it,
 		  result = MOVE_NEWLINE_OR_CR;
 		  break;
 		}
+	    }
+	  else if ((op & MOVE_TO_POS) != 0
+		   && !saw_smaller_pos
+		   && IT_CHARPOS (*it) > to_charpos)
+	    {
+	      result = MOVE_POS_MATCH_OR_ZV;
+	      break;
 	    }
 	  result = MOVE_LINE_TRUNCATED;
 	  break;

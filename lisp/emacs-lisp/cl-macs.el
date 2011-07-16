@@ -1601,6 +1601,13 @@ values.  For compatibility, (values A B C) is a synonym for (list A B C).
 
 ;;;###autoload
 (defmacro declare (&rest specs)
+  "Declare SPECS about the current function while compiling.
+For instance
+
+  \(declare (warn 0))
+
+will turn off byte-compile warnings in the function.
+See Info node `(cl)Declarations' for details."
   (if (cl-compiling-file)
       (while specs
 	(if (listp cl-declare-stack) (push (car specs) cl-declare-stack))
