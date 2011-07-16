@@ -1,5 +1,8 @@
 2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* textmodes/fill.el (adaptive-fill-regexp): Include EN DASH as an
+	indentation character (bug#6380).
+
 	* files.el (buffer-offer-save): Made permanently local (bug#6241).
 
 	* doc-view.el (doc-view-make-safe-dir): Rewrite the error message
