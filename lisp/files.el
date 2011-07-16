@@ -151,6 +151,7 @@ Automatically local in all buffers."
   :type 'boolean
   :group 'backup)
 (make-variable-buffer-local 'buffer-offer-save)
+(put 'buffer-offer-save 'permanent-local t)
 
 (defcustom find-file-existing-other-name t
   "Non-nil means find a file under alternative names, in existing buffers.
