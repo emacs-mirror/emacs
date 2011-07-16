@@ -1,3 +1,7 @@
+2011-07-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Fcopy_file): Don't diagnose fchown failures.  (Bug#9002)
+
 2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* process.c: Use the same condition for POLL_FOR_INPUT in both
