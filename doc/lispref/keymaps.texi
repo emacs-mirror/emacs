@@ -2318,7 +2318,7 @@ The various toolkits with which you can build Emacs do not all support
 the same set of features for menus.  Some code works as expected with
 one toolkit, but not under another.
 
-For example: menu actions or buttons in a top-level menu-bar.  The
+One example is menu actions or buttons in a top-level menu-bar.  The
 following works with the Lucid toolkit or on MS Windows, but not with
 GTK or Nextstep, where clicking on the item has no effect.
 
