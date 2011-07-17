@@ -1,3 +1,8 @@
+2011-07-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Query the user for
+	password if we get errors 550 to 554.
+
 2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/gnutls.el (gnutls-log-level): Removed.
