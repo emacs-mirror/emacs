@@ -1,5 +1,9 @@
 2011-07-17  Bill Wohler  <wohler@newt.com>
 
+	Release MH-E version 8.2.93.
+
+	* mh-e.el (Version, mh-version): Update for release 8.2.93.
+
 	* mh-compat.el (mh-pop-to-buffer-same-window): Delete.
 	* mh-folder.el (mh-inc-folder, mh-modify, mh-scan-folder)
 	(mh-make-folder): Revert to switch-to-buffer, as the Emacs folks
