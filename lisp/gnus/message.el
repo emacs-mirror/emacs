@@ -1310,7 +1310,9 @@ text and it replaces `self-insert-command' with the other command, e.g.
   :type '(repeat function))
 
 (defcustom message-auto-save-directory
-  (file-name-as-directory (expand-file-name "drafts" message-directory))
+  (if (file-exists-p message-directory)
+      (file-name-as-directory (expand-file-name "drafts" message-directory))
+    "~/")
   "*Directory where Message auto-saves buffers if Gnus isn't running.
 If nil, Message won't auto-save."
   :group 'message-buffers
