@@ -2327,8 +2327,7 @@ read_integer (Lisp_Object readcharfun, EMACS_INT radix)
 	  c = READCHAR;
 	}
 
-      if (c >= 0)
-	UNREAD (c);
+      UNREAD (c);
       *p = '\0';
     }
 
@@ -2583,8 +2582,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      nskip *= 10;
 	      nskip += c - '0';
 	    }
-	  if (c >= 0)
-	    UNREAD (c);
+	  UNREAD (c);
 
 	  if (load_force_doc_strings
 	      && (EQ (readcharfun, Qget_file_char)
@@ -2663,12 +2661,11 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  if (!(c > 040
 		&& c != 0x8a0
 		&& (c >= 0200
-		    || !(strchr ("\"';()[]#`,", c)))))
+		    || strchr ("\"';()[]#`,", c) == NULL)))
 	    {
 	      /* No symbol character follows, this is the empty
 		 symbol.  */
-	      if (c >= 0)
-		UNREAD (c);
+	      UNREAD (c);
 	      return Fmake_symbol (build_string (""));
 	    }
 	  goto read_symbol;
@@ -2852,7 +2849,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	next_char = READCHAR;
 	ok = (next_char <= 040
 	      || (next_char < 0200
-		  && (strchr ("\"';()[]#?`,.", next_char))));
+		  && strchr ("\"';()[]#?`,.", next_char) != NULL));
 	UNREAD (next_char);
 	if (ok)
 	  return make_number (c);
@@ -2977,11 +2974,6 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	    /* Otherwise, READ_BUFFER contains only ASCII.  */
 	  }
 
-	/* We want readchar_count to be the number of characters, not
-	   bytes.  Hence we adjust for multibyte characters in the
-	   string.  ... But it doesn't seem to be necessary, because
-	   READCHAR *does* read multibyte characters from buffers. */
-	/* readchar_count -= (p - read_buffer) - nchars; */
 	if (read_pure)
 	  return make_pure_string (read_buffer, nchars, p - read_buffer,
 				   (force_multibyte
@@ -2998,7 +2990,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	if (next_char <= 040
 	    || (next_char < 0200
-		&& (strchr ("\"';([#?`,", next_char))))
+		&& strchr ("\"';([#?`,", next_char) != NULL))
 	  {
 	    *pch = c;
 	    return Qnil;
@@ -3018,6 +3010,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
       {
 	char *p = read_buffer;
 	int quoted = 0;
+	int start_position = readchar_count - 1;
 
 	{
 	  char *end = read_buffer + read_buffer_size;
@@ -3048,10 +3041,11 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      else
 		*p++ = c;
 	      c = READCHAR;
-	    } while (c > 040
-		     && c != 0x8a0 /* NBSP */
-		     && (c >= 0200
-			 || !(strchr ("\"';()[]#`,", c))));
+	    }
+	  while (c > 040
+		 && c != 0x8a0 /* NBSP */
+		 && (c >= 0200
+		     || strchr ("\"';()[]#`,", c) == NULL));
 
 	  if (p == end)
 	    {
@@ -3064,8 +3058,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      end = read_buffer + read_buffer_size;
 	    }
 	  *p = 0;
-	  if (c >= 0)
-	    UNREAD (c);
+	  UNREAD (c);
 	}
 
 	if (!quoted && !uninterned_symbol)
@@ -3093,12 +3086,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  if (EQ (Vread_with_symbol_positions, Qt)
 	      || EQ (Vread_with_symbol_positions, readcharfun))
 	    Vread_symbol_positions_list =
-	      /* Kind of a hack; this will probably fail if characters
-		 in the symbol name were escaped.  Not really a big
-		 deal, though.  */
-	      Fcons (Fcons (result,
-			    make_number (readchar_count
-					 - XFASTINT (Flength (Fsymbol_name (result))))),
+	      Fcons (Fcons (result, make_number (start_position)),
 		     Vread_symbol_positions_list);
 	  return result;
 	}

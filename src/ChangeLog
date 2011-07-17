@@ -1,5 +1,8 @@
 2011-07-17  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* lread.c (read_integer): Unread even EOF character.
+	(read1): Likewise.  Properly record start position of symbol.
+
 	* lread.c (read1): Read `#:' as empty uninterned symbol if no
 	symbol character follows.
 
