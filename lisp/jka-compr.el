@@ -97,11 +97,6 @@ NOTE: Not used in MS-DOS and Windows systems."
   :type 'string
   :group 'jka-compr)
 
-(defcustom jka-compr-verbose t
-  "If non-nil, output messages whenever compressing or uncompressing files."
-  :type 'boolean
-  :group 'jka-compr)
-
 (defvar jka-compr-use-shell
   (not (memq system-type '(ms-dos windows-nt))))
 

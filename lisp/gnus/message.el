@@ -1310,7 +1310,9 @@ text and it replaces `self-insert-command' with the other command, e.g.
   :type '(repeat function))
 
 (defcustom message-auto-save-directory
-  (file-name-as-directory (expand-file-name "drafts" message-directory))
+  (if (file-exists-p message-directory)
+      (file-name-as-directory (expand-file-name "drafts" message-directory))
+    "~/")
   "*Directory where Message auto-saves buffers if Gnus isn't running.
 If nil, Message won't auto-save."
   :group 'message-buffers
@@ -6878,20 +6880,19 @@ Useful functions to put in this list include:
       (unless follow-to
 	(setq follow-to (message-get-reply-headers wide to-address))))
 
-    (unless (message-mail-user-agent)
-      (message-pop-to-buffer
-       (message-buffer-name
-	(if wide "wide reply" "reply") from
-	(if wide to-address nil))
-       switch-function))
-
-    (setq message-reply-headers
-	  (vector 0 subject from date message-id references 0 0 ""))
-
-    (message-setup
-     `((Subject . ,subject)
-       ,@follow-to)
-     cur)))
+    (let ((headers
+	   `((Subject . ,subject)
+	     ,@follow-to)))
+      (unless (message-mail-user-agent)
+	(message-pop-to-buffer
+	 (message-buffer-name
+	  (if wide "wide reply" "reply") from
+	  (if wide to-address nil))
+	 switch-function))
+      (setq message-reply-headers
+	    (vector 0 (cdr (assq 'Subject headers))
+		    from date message-id references 0 0 ""))
+      (message-setup headers cur))))
 
 ;;;###autoload
 (defun message-wide-reply (&optional to-address)

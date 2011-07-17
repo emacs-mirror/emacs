@@ -42,9 +42,24 @@
   :prefix "gnutls-"
   :group 'net-utils)
 
-(defcustom gnutls-log-level 0
-  "Logging level to be used by `starttls-negotiate' and GnuTLS."
-  :type 'integer
+(defcustom gnutls-algorithm-priority nil
+  "If non-nil, this should be a TLS priority string.
+For instance, if you want to skip the \"dhe-rsa\" algorithm,
+set this variable to \"normal:-dhe-rsa\"."
+  :type '(choice (const nil)
+		 string))
+
+;;;###autoload
+(defcustom gnutls-min-prime-bits nil
+  "The minimum number of bits to be used in Diffie-Hellman key exchange.
+
+This sets the minimum accepted size of the key to be used in a
+client-server handshake.  If the server sends a prime with fewer than
+the specified number of bits the handshake will fail.
+
+A value of nil says to use the default gnutls value."
+  :type '(choice (const :tag "Use default value" nil)
+                 (integer :tag "Number of bits" 512))
   :group 'gnutls)
 
 (defun open-gnutls-stream (name buffer host service)
@@ -90,8 +105,8 @@ trust and key files, and priority string."
 (defun* gnutls-negotiate
     (&rest spec
            &key process type hostname priority-string
-           trustfiles crlfiles keylist verify-flags
-           verify-error verify-hostname-error
+           trustfiles crlfiles keylist min-prime-bits
+           verify-flags verify-error verify-hostname-error
            &allow-other-keys)
   "Negotiate a SSL/TLS connection.  Returns proc. Signals gnutls-error.
 
@@ -104,6 +119,9 @@ PRIORITY-STRING is as per the GnuTLS docs, default is \"NORMAL\".
 TRUSTFILES is a list of CA bundles.
 CRLFILES is a list of CRL files.
 KEYLIST is an alist of (client key file, client cert file) pairs.
+MIN-PRIME-BITS is the minimum acceptable size of Diffie-Hellman keys
+\(see `gnutls-min-prime-bits' for more information).  Use nil for the
+default.
 
 When VERIFY-HOSTNAME-ERROR is not nil, an error will be raised
 when the hostname does not match the presented certificate's host
@@ -145,10 +163,14 @@ defaults to GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT."
                                ((eq type 'gnutls-anon)
                                 "NORMAL:+ANON-DH:!ARCFOUR-128")
                                ((eq type 'gnutls-x509pki)
-                                "NORMAL"))))
+				(if gnutls-algorithm-priority
+				    (upcase gnutls-algorithm-priority)
+				  "NORMAL")))))
+         (min-prime-bits (or min-prime-bits gnutls-min-prime-bits))
          (params `(:priority ,priority-string
                              :hostname ,hostname
                              :loglevel ,gnutls-log-level
+                             :min-prime-bits ,min-prime-bits
                              :trustfiles ,trustfiles
                              :crlfiles ,crlfiles
                              :keylist ,keylist

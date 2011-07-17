@@ -1,3 +1,22 @@
+2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+	    Tim Cross  <theophilusx@gmail.com>  (tiny change)
+	    Glenn Morris   <rgm@gnu.org>
+
+	* keymaps.texi (Toolkit Differences): New node.  (Bug#8176)
+
+2011-07-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* help.texi (Keys in Documentation): Revert last change.
+
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* help.texi (Keys in Documentation): Clarify that \= only quotes
+	the next character, and doesn't affect longer sequences in
+	particular (bug#8935).
+
+	* debugging.texi (Using Debugger): Mention
+	@code{eval-expression-debug-on-error} (bug#8549).
+
 2011-07-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Other Display Specs): Document that `left-fringe'

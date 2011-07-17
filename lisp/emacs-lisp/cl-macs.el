@@ -1601,6 +1601,13 @@ values.  For compatibility, (values A B C) is a synonym for (list A B C).
 
 ;;;###autoload
 (defmacro declare (&rest specs)
+  "Declare SPECS about the current function while compiling.
+For instance
+
+  \(declare (warn 0))
+
+will turn off byte-compile warnings in the function.
+See Info node `(cl)Declarations' for details."
   (if (cl-compiling-file)
       (while specs
 	(if (listp cl-declare-stack) (push (car specs) cl-declare-stack))
@@ -2389,8 +2396,10 @@ value, that slot cannot be set via `setf'.
 	      (push (cons accessor t) side-eff)
 	      (push (list 'define-setf-method accessor '(cl-x)
 			     (if (cadr (memq :read-only (cddr desc)))
-				 (list 'error (format "%s is a read-only slot"
-						      accessor))
+                                 (list 'progn '(ignore cl-x)
+                                       (list 'error
+                                             (format "%s is a read-only slot"
+                                                     'accessor)))
 			       ;; If cl is loaded only for compilation,
 			       ;; the call to cl-struct-setf-expander would
 			       ;; cause a warning because it may not be

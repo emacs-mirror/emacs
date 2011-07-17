@@ -100,7 +100,7 @@ Put first the functions more likely to cause a change and cheaper to compute.")
   (cons beg end))
 
 (defvar syntax-propertize--done -1
-  "Position upto which syntax-table properties have been set.")
+  "Position up to which syntax-table properties have been set.")
 (make-variable-buffer-local 'syntax-propertize--done)
 
 (defun syntax-propertize--shift-groups (re n)
@@ -283,7 +283,7 @@ The return value is a function suitable for `syntax-propertize-function'."
           (setq keywords font-lock-syntactic-keywords))))))
 
 (defun syntax-propertize (pos)
-  "Ensure that syntax-table properties are set upto POS."
+  "Ensure that syntax-table properties are set until POS."
   (when (and syntax-propertize-function
              (< syntax-propertize--done pos))
     ;; (message "Needs to syntax-propertize from %s to %s"

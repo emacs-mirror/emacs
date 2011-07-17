@@ -4491,9 +4491,11 @@ to load.  See also `load-dangerous-libraries'.  */);
   staticpro (&Qlexical_binding);
   DEFVAR_LISP ("lexical-binding", Vlexical_binding,
 	       doc: /* If non-nil, use lexical binding when evaluating code.
-This only applies to code evaluated by `eval-buffer' and `eval-region'.
-This variable is automatically set from the file variables of an interpreted
-  Lisp file read using `load'.  */);
+This applies to code evaluated by `eval-buffer' and `eval-region' and
+other commands that call these functions, like `eval-defun' and
+the like.
+This variable is automatically set from the file variables of an
+interpreted Lisp file read using `load'.  */);
   Fmake_variable_buffer_local (Qlexical_binding);
 
   DEFVAR_LISP ("eval-buffer-list", Veval_buffer_list,

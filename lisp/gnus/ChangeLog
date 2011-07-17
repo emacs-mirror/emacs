@@ -1,3 +1,18 @@
+2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-auto-save-directory): If the ~/Mail directory
+	doesn't exist, use ~ as the auto-save directory (bug#4432).
+
+	* gnus-group.el (gnus-group-read-ephemeral-group): Start Gnus if it
+	hasn't already been started.
+
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (debbugs-gnu): Renamed from debbugs-emacs.
+
+	* message.el (message-reply): Work around mysterious bug where
+	`message-mode' seems to overwrite the locally bound `subject' variable.
+
 2011-07-14  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnimap.el (nnimap-request-thread): Ensure search is performed in
@@ -5,7 +20,7 @@
 
 	* gnus-int.el (gnus-request-thread): Add group argument.
 
-	* gnus-sum.el (gnus-request-thread): Use it.
+	* gnus-sum.el (gnus-summary-refer-thread): Use it.
 
 2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

@@ -3272,7 +3272,7 @@ window."
 (defun split-window-side-by-side (&optional size)
   "Split selected window into two windows side by side.
 The selected window becomes the left one and gets SIZE columns.
-SIZE negative means the right window gets -SIZE lines.
+SIZE negative means the right window gets -SIZE columns.
 
 SIZE includes the width of the window's scroll bar; if there are
 no scroll bars, it includes the width of the divider column to
@@ -5836,15 +5836,13 @@ additional information."
 	new-window new-frame)
     (set-buffer buffer)
     (setq new-window (display-buffer buffer specifiers label))
-    (unless (eq new-window old-window)
-      ;; `display-buffer' has chosen another window, select it.
-      (select-window new-window norecord)
-      (setq new-frame (window-frame new-window))
-      (unless (eq new-frame old-frame)
-	;; `display-buffer' has chosen another frame, make sure it gets
-	;; input focus and is risen.
-	(select-frame-set-input-focus new-frame)))
-
+    (setq new-frame (window-frame new-window))
+    (if (eq old-frame new-frame)
+	;; Make sure new-window gets selected (Bug#8615), (Bug#6954).
+	(select-window new-window norecord)
+      ;; `display-buffer' has chosen another frame, make sure it gets
+      ;; input focus and is risen.
+      (select-frame-set-input-focus new-frame norecord))
     buffer))
 
 (defsubst pop-to-buffer-same-window (&optional buffer-or-name norecord label)
@@ -5953,13 +5951,13 @@ Return the buffer switched to."
    (list (read-buffer-to-switch "Switch to buffer: ") nil nil))
   (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
     (if (null force-same-window)
-	(pop-to-buffer buffer-or-name
-		       '(same-window (reuse-window-dedicated . weak))
-		       norecord nil)
+	(pop-to-buffer
+	 buffer '(same-window (reuse-window-dedicated . weak))
+	 norecord 'switch-to-buffer)
       (cond
        ;; Don't call set-window-buffer if it's not needed since it
        ;; might signal an error (e.g. if the window is dedicated).
-       ((eq buffer (window-buffer)) nil)
+       ((eq buffer (window-buffer)))
        ((window-minibuffer-p)
 	(error "Cannot switch buffers in minibuffer window"))
        ((eq (window-dedicated-p) t)

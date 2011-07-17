@@ -1,3 +1,9 @@
+2011-07-16  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.92.
+
+	* mh-e.el (Version, mh-version): Update for release 8.2.92.
+
 2011-07-12  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.2.91.

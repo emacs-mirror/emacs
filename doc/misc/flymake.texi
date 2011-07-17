@@ -483,7 +483,7 @@ our case this target might look like this:
 
 @verbatim
 check-syntax:
-	gcc -o nul -S ${CHK_SOURCES}
+	gcc -o /dev/null -S ${CHK_SOURCES}
 @end verbatim
 
 The format of error messages reported by @code{gcc} is already

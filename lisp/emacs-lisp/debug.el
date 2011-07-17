@@ -102,7 +102,7 @@ and `debugger-reenable' to temporarily disable debug-on-entry.")
 (setq debugger 'debug)
 ;;;###autoload
 (defun debug (&rest debugger-args)
-  "Enter debugger.  To return, type \\<debugger-mode-map>`\\[debugger-continue]'.
+  "Enter debugger.  \\<debugger-mode-map>`\\[debugger-continue]' returns from the debugger.
 Arguments are mainly for use when this is called from the internals
 of the evaluator.
 

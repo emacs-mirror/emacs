@@ -35,7 +35,6 @@ static int
 emacs_gnutls_handle_error (gnutls_session_t, int err);
 
 static Lisp_Object Qgnutls_dll;
-static Lisp_Object Qgnutls_log_level;
 static Lisp_Object Qgnutls_code;
 static Lisp_Object Qgnutls_anon, Qgnutls_x509pki;
 static Lisp_Object Qgnutls_e_interrupted, Qgnutls_e_again,
@@ -50,6 +49,7 @@ static Lisp_Object Qgnutls_bootprop_crlfiles;
 static Lisp_Object Qgnutls_bootprop_callbacks;
 static Lisp_Object Qgnutls_bootprop_loglevel;
 static Lisp_Object Qgnutls_bootprop_hostname;
+static Lisp_Object Qgnutls_bootprop_min_prime_bits;
 static Lisp_Object Qgnutls_bootprop_verify_flags;
 static Lisp_Object Qgnutls_bootprop_verify_hostname_error;
 
@@ -105,6 +105,8 @@ DEF_GNUTLS_FN (int, gnutls_certificate_verify_peers2,
 DEF_GNUTLS_FN (int, gnutls_credentials_set,
                (gnutls_session_t, gnutls_credentials_type_t, void *));
 DEF_GNUTLS_FN (void, gnutls_deinit, (gnutls_session_t));
+DEF_GNUTLS_FN (void, gnutls_dh_set_prime_bits,
+               (gnutls_session_t, unsigned int));
 DEF_GNUTLS_FN (int, gnutls_error_is_fatal, (int));
 DEF_GNUTLS_FN (int, gnutls_global_init, (void));
 DEF_GNUTLS_FN (void, gnutls_global_set_log_function, (gnutls_log_func));
@@ -143,7 +145,6 @@ static int
 init_gnutls_functions (Lisp_Object libraries)
 {
   HMODULE library;
-  Lisp_Object gnutls_log_level = Fsymbol_value (Qgnutls_log_level);
   int max_log_level = 1;
 
   if (!(library = w32_delayed_load (libraries, Qgnutls_dll)))
@@ -169,6 +170,7 @@ init_gnutls_functions (Lisp_Object libraries)
   LOAD_GNUTLS_FN (library, gnutls_certificate_verify_peers2);
   LOAD_GNUTLS_FN (library, gnutls_credentials_set);
   LOAD_GNUTLS_FN (library, gnutls_deinit);
+  LOAD_GNUTLS_FN (library, gnutls_dh_set_prime_bits);
   LOAD_GNUTLS_FN (library, gnutls_error_is_fatal);
   LOAD_GNUTLS_FN (library, gnutls_global_init);
   LOAD_GNUTLS_FN (library, gnutls_global_set_log_function);
@@ -191,8 +193,8 @@ init_gnutls_functions (Lisp_Object libraries)
   LOAD_GNUTLS_FN (library, gnutls_x509_crt_import);
   LOAD_GNUTLS_FN (library, gnutls_x509_crt_init);
 
-  if (NUMBERP (gnutls_log_level))
-    max_log_level = XINT (gnutls_log_level);
+  if (NUMBERP (Vgnutls_log_level))
+    max_log_level = XINT (Vgnutls_log_level);
 
   GNUTLS_LOG2 (1, max_log_level, "GnuTLS library loaded:",
                SDATA (Fget (Qgnutls_dll, QCloaded_from)));
@@ -218,6 +220,7 @@ init_gnutls_functions (Lisp_Object libraries)
 #define fn_gnutls_certificate_verify_peers2	gnutls_certificate_verify_peers2
 #define fn_gnutls_credentials_set		gnutls_credentials_set
 #define fn_gnutls_deinit			gnutls_deinit
+#define fn_gnutls_dh_set_prime_bits		gnutls_dh_set_prime_bits
 #define fn_gnutls_error_is_fatal		gnutls_error_is_fatal
 #define fn_gnutls_global_init			gnutls_global_init
 #define fn_gnutls_global_set_log_function	gnutls_global_set_log_function
@@ -394,7 +397,6 @@ emacs_gnutls_read (struct Lisp_Process *proc, char *buf, EMACS_INT nbyte)
 static int
 emacs_gnutls_handle_error (gnutls_session_t session, int err)
 {
-  Lisp_Object gnutls_log_level = Fsymbol_value (Qgnutls_log_level);
   int max_log_level = 0;
 
   int ret;
@@ -404,8 +406,8 @@ emacs_gnutls_handle_error (gnutls_session_t session, int err)
   if (err >= 0)
     return 0;
 
-  if (NUMBERP (gnutls_log_level))
-    max_log_level = XINT (gnutls_log_level);
+  if (NUMBERP (Vgnutls_log_level))
+    max_log_level = XINT (Vgnutls_log_level);
 
   /* TODO: use gnutls-error-fatalp and gnutls-error-string.  */
 
@@ -646,6 +648,9 @@ gnutls_certificate_set_verify_flags.
 :verify-hostname-error, if non-nil, makes a hostname mismatch an
 error.  Otherwise it will be just a warning.
 
+:min-prime-bits is the minimum accepted number of bits the client will
+accept in Diffie-Hellman key exchange.
+
 The debug level will be set for this process AND globally for GnuTLS.
 So if you set it higher or lower at any point, it affects global
 debugging.
@@ -698,6 +703,7 @@ one trustfile (usually a CA bundle).  */)
   Lisp_Object verify_flags;
   /* Lisp_Object verify_error; */
   Lisp_Object verify_hostname_error;
+  Lisp_Object prime_bits;
 
   CHECK_PROCESS (proc);
   CHECK_SYMBOL (type);
@@ -719,6 +725,7 @@ one trustfile (usually a CA bundle).  */)
   verify_flags          = Fplist_get (proplist, Qgnutls_bootprop_verify_flags);
   /* verify_error       = Fplist_get (proplist, Qgnutls_bootprop_verify_error); */
   verify_hostname_error = Fplist_get (proplist, Qgnutls_bootprop_verify_hostname_error);
+  prime_bits            = Fplist_get (proplist, Qgnutls_bootprop_min_prime_bits);
 
   if (!STRINGP (hostname))
     error ("gnutls-boot: invalid :hostname parameter");
@@ -936,6 +943,11 @@ one trustfile (usually a CA bundle).  */)
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_PRIORITY;
 
+  if (!EQ (prime_bits, Qnil))
+    {
+      fn_gnutls_dh_set_prime_bits (state, XUINT (prime_bits));
+    }
+
   if (EQ (type, Qgnutls_x509pki))
     {
       ret = fn_gnutls_credentials_set (state, GNUTLS_CRD_CERTIFICATE, x509_cred);
@@ -1103,7 +1115,6 @@ syms_of_gnutls (void)
   gnutls_global_initialized = 0;
 
   DEFSYM (Qgnutls_dll, "gnutls");
-  DEFSYM (Qgnutls_log_level, "gnutls-log-level");
   DEFSYM (Qgnutls_code, "gnutls-code");
   DEFSYM (Qgnutls_anon, "gnutls-anon");
   DEFSYM (Qgnutls_x509pki, "gnutls-x509pki");
@@ -1114,6 +1125,7 @@ syms_of_gnutls (void)
   DEFSYM (Qgnutls_bootprop_crlfiles, ":crlfiles");
   DEFSYM (Qgnutls_bootprop_callbacks, ":callbacks");
   DEFSYM (Qgnutls_bootprop_callbacks_verify, "verify");
+  DEFSYM (Qgnutls_bootprop_min_prime_bits, ":min-prime-bits");
   DEFSYM (Qgnutls_bootprop_loglevel, ":loglevel");
   DEFSYM (Qgnutls_bootprop_verify_flags, ":verify-flags");
   DEFSYM (Qgnutls_bootprop_verify_hostname_error, ":verify-hostname-error");
@@ -1142,6 +1154,10 @@ syms_of_gnutls (void)
   defsubr (&Sgnutls_deinit);
   defsubr (&Sgnutls_bye);
   defsubr (&Sgnutls_available_p);
+
+  DEFVAR_INT ("gnutls-log-level", Vgnutls_log_level,
+	      doc: /* Logging level used by the GnuTLS functions. */);
+  Vgnutls_log_level = make_number (0);
 }
 
 #endif /* HAVE_GNUTLS */
