@@ -197,6 +197,14 @@
 	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
 	well either way, and we prefer signed to unsigned.
 
+2011-07-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Fcopy_file): Pacify gcc re fchown.  (Bug#9002)
+	This works around a problem with the previous change to Fcopy_file.
+	Recent glibc declares fchown with __attribute__((warn_unused_result)),
+	and without this change, GCC might complain about discarding
+	fchown's return value.
+
 2011-07-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (GLOBAL_SOURCES): Add gnutls.c (followup to bug#9059).
