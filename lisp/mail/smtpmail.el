@@ -788,10 +788,11 @@ The list is in preference order.")
 		  nil)
 		 ((and auth-mechanisms
 		       (not ask-for-password)
-		       (= (car result) 550))
-		  ;; We got a "550 relay not permitted", and the server
-		  ;; accepts credentials, so we try again, but ask for a
-		  ;; password first.
+		       (>= (car result) 550)
+		       (<= (car result) 554))
+		  ;; We got a "550 relay not permitted" (or the like),
+		  ;; and the server accepts credentials, so we try
+		  ;; again, but ask for a password first.
 		  (smtpmail-send-command process "QUIT")
 		  (smtpmail-read-response process)
 		  (delete-process process)
