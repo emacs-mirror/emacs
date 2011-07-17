@@ -39,6 +39,12 @@
   "jka-compr customization."
   :group 'compression)
 
+(defcustom jka-compr-verbose t
+  "If non-nil, output messages whenever compressing or uncompressing files."
+  :version "24.1"
+  :type 'boolean
+  :group 'jka-compr)
+
 ;; List of all the elements we actually added to file-coding-system-alist.
 (defvar jka-compr-added-to-file-coding-system-alist nil)
 

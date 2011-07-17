@@ -589,11 +589,13 @@ displays the contents of the syntax table, with explanations of each
 character's syntax (@pxref{Syntax Tables,, Syntax Tables, elisp, The
 Emacs Lisp Reference Manual}).
 
+@findex describe-prefix-bindings
   You can get a list of subcommands for a particular prefix key by
-typing @kbd{C-h} after the prefix key.  (There are a few prefix keys
-for which this does not work---those that provide their own bindings
-for @kbd{C-h}.  One of these is @key{ESC}, because @kbd{@key{ESC} C-h}
-is actually @kbd{C-M-h}, which marks a defun.)
+typing @kbd{C-h} (@code{describe-prefix-bindings}) after the prefix
+key.  (There are a few prefix keys for which this does not
+work---those that provide their own bindings for @kbd{C-h}.  One of
+these is @key{ESC}, because @kbd{@key{ESC} C-h} is actually
+@kbd{C-M-h}, which marks a defun.)
 
 @node Help Files
 @section Help Files

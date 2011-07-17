@@ -1,4 +1,4 @@
-2011-07-14  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer signedness and overflow and related fixes.  (Bug#9079)
 
@@ -197,6 +197,47 @@
 	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
 	well either way, and we prefer signed to unsigned.
 
+2011-07-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (GLOBAL_SOURCES): Add gnutls.c (followup to bug#9059).
+
+2011-07-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Fcopy_file): Don't diagnose fchown failures.  (Bug#9002)
+
+2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (syms_of_gnutls): Define `gnutls-log-level' here, since
+	it's used from the C level.
+
+	* process.c: Use the same condition for POLL_FOR_INPUT in both
+	keyboard.c and process.c (bug#1858).
+
+2011-07-09  Lawrence Mitchell  <wence@gmx.li>
+
+	* gnutls.c (Qgnutls_bootprop_min_prime_bits): New variable.
+	(Fgnutls_boot): Use it.
+
+2011-07-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* doc.c (Fsubstitute_command_keys): Revert last change.
+
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* doc.c (Fsubstitute_command_keys): Clarify that \= really only
+	quotes the next character, and doesn't affect other longer
+	sequences (bug#8935).
+
+	* lread.c (syms_of_lread): Clarify that is isn't only
+	`eval-buffer' and `eval-defun' that's affected by
+	`lexical-binding' (bug#8460).
+
+2011-07-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): Fix vertical motion with
+	bidi redisplay when a line includes both an image and is
+	truncated.
+
 2011-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor problems found by static checking.
@@ -210,9 +251,6 @@
 	* xdisp.c (reseat_to_string): Fix pointer signedness issue.
 
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
-
-	* data.c (Fcdr, Fcar): Revert the last change, since it didn't
-	really clarify much.
 
 	* search.c (Fre_search_backward): Mention `case-fold-search' in
 	all the re_search_* functions (bug#8138).

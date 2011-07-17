@@ -569,18 +569,18 @@ at the top edge of the page moves to the previous page."
 (defun doc-view-make-safe-dir (dir)
   (condition-case nil
       (let ((umask (default-file-modes)))
-        (unwind-protect
-            (progn
-              ;; Create temp files with strict access rights.  It's easy to
-              ;; loosen them later, whereas it's impossible to close the
-              ;; time-window of loose permissions otherwise.
-              (set-default-file-modes #o0700)
-              (make-directory dir))
-          ;; Reset the umask.
-          (set-default-file-modes umask)))
+	(unwind-protect
+	    (progn
+	      ;; Create temp files with strict access rights.  It's easy to
+	      ;; loosen them later, whereas it's impossible to close the
+	      ;; time-window of loose permissions otherwise.
+	      (set-default-file-modes #o0700)
+	      (make-directory dir))
+	  ;; Reset the umask.
+	  (set-default-file-modes umask)))
     (file-already-exists
-     (if (file-symlink-p dir)
-         (error "Danger: %s points to a symbolic link" dir))
+     (when (file-symlink-p dir)
+       (error "Danger: %s points to a symbolic link" dir))
      ;; In case it was created earlier with looser rights.
      ;; We could check the mode info returned by file-attributes, but it's
      ;; a pain to parse and it may not tell you what we want under
@@ -589,7 +589,12 @@ at the top edge of the page moves to the previous page."
      ;; This also ends up checking a bunch of useful conditions: it makes
      ;; sure we have write-access to the directory and that we own it, thus
      ;; closing a bunch of security holes.
-     (set-file-modes dir #o0700))))
+     (condition-case error
+	 (set-file-modes dir #o0700)
+       (file-error
+	(error
+	 (format "Unable to use temporary directory %s: %s"
+		 dir (mapconcat 'identity (cdr error) " "))))))))
 
 (defun doc-view-current-cache-dir ()
   "Return the directory where the png files of the current doc should be saved.

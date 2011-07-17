@@ -632,3 +632,11 @@ mytest       my.email.address
 
 Then if you do all your testing with 'Package: mytest', the resulting
 mails should only go to your email address.
+
+** Adding new tags
+
+Add them to @gTags in /etc/debbugs/config.
+I think you also have to add them to 'tags' and 'tags_single_letter'
+in /usr/share/perl5/Debbugs/Config.pm.
+And update /var/www/Developer.html with a description of what the tag means.
+And the "valid tags" list in /var/www/index.html.

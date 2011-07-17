@@ -1959,8 +1959,8 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
      owner and group.  */
   if (input_file_statable_p)
     {
-      if (!NILP (preserve_uid_gid) && fchown (ofd, st.st_uid, st.st_gid) != 0)
-	report_file_error ("Doing chown", Fcons (newname, Qnil));
+      if (!NILP (preserve_uid_gid))
+	fchown (ofd, st.st_uid, st.st_gid);
       if (fchmod (ofd, st.st_mode & 07777) != 0)
 	report_file_error ("Doing chmod", Fcons (newname, Qnil));
     }

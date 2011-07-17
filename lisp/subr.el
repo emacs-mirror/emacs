@@ -2145,23 +2145,34 @@ If optional argument INHIBIT-KEYBOARD-QUIT is non-nil, ignore
 keyboard-quit events while waiting for a valid input."
   (unless (consp chars)
     (error "Called `read-char-choice' without valid char choices"))
-  (let (char done)
+  (let (char done show-help (helpbuf " *Char Help*"))
     (let ((cursor-in-echo-area t)
           (executing-kbd-macro executing-kbd-macro))
-      (while (not done)
-        (unless (get-text-property 0 'face prompt)
-          (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
-        (setq char (let ((inhibit-quit inhibit-keyboard-quit))
-                     (read-key prompt)))
-        (cond
-         ((not (numberp char)))
-         ((memq char chars)
-          (setq done t))
-         ((and executing-kbd-macro (= char -1))
-          ;; read-event returns -1 if we are in a kbd macro and
-          ;; there are no more events in the macro.  Attempt to
-          ;; get an event interactively.
-          (setq executing-kbd-macro nil)))))
+      (save-window-excursion	      ; in case we call help-form-show
+	(while (not done)
+	  (unless (get-text-property 0 'face prompt)
+	    (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
+	  (setq char (let ((inhibit-quit inhibit-keyboard-quit))
+		       (read-key prompt)))
+	  (and show-help (buffer-live-p helpbuf)
+	       (kill-buffer helpbuf))
+	  (cond
+	   ((not (numberp char)))
+	   ;; If caller has set help-form, that's enough.
+	   ;; They don't explicitly have to add help-char to chars.
+	   ((and help-form
+		 (eq char help-char)
+		 (setq show-help t)
+		 (help-form-show)))
+	   ((memq char chars)
+	    (setq done t))
+	   ((and executing-kbd-macro (= char -1))
+	    ;; read-event returns -1 if we are in a kbd macro and
+	    ;; there are no more events in the macro.  Attempt to
+	    ;; get an event interactively.
+	    (setq executing-kbd-macro nil))
+	   ((and (not inhibit-keyboard-quit) (eq char ?\C-g))
+	    (keyboard-quit))))))
     ;; Display the question with the answer.  But without cursor-in-echo-area.
     (message "%s%s" prompt (char-to-string char))
     char))

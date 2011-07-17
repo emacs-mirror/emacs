@@ -1,3 +1,87 @@
+2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/gnutls.el (gnutls-log-level): Removed.
+
+	* textmodes/fill.el (adaptive-fill-regexp): Include EN DASH as an
+	indentation character (bug#6380).
+
+	* files.el (buffer-offer-save): Made permanently local (bug#6241).
+
+	* doc-view.el (doc-view-make-safe-dir): Rewrite the error message
+	to clarify what the problem is (bug#4291).
+
+	* simple.el (current-kill): Clarify what
+	`interprogram-paste-function' does (bug#7500).
+	(auto-fill-mode): Document `auto-fill-function' in relation to
+	`auto-fill-mode' (bug#2470).
+
+2011-07-16  Lawrence Mitchell  <wence@gmx.li>
+
+	* emacs-lisp/cl-macs.el (defstruct): Ignore argument to setf
+	method if slot is read-only (bug#9035).
+
+2011-07-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (select-frame-set-input-focus): New argument
+	NORECORD.
+	* window.el (pop-to-buffer): Select window used even if it was
+	selected before, see discussion of (Bug#8615), (Bug#6954).  Pass
+	argument NORECORD on to select-frame-set-input-focus.
+
+2011-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (read-char-choice): Allow quitting.  (Bug#9001)
+	Respect help-form.
+
+2011-07-09  Lawrence Mitchell  <wence@gmx.li>
+
+	* net/gnutls.el (gnutls-min-prime-bits): New variable.
+	(gnutls-negotiate): Use it.
+
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/gnutls.el (gnutls-negotiate): Upcase
+	`gnutls-algorithm-priority'.
+
+2011-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* jka-compr.el (jka-compr-verbose): Move from here...
+	* jka-cmpr-hook.el (jka-compr-verbose): ... to here.  (Bug#9090)
+	Add missing :version tag.
+	* info.el: No need to require jka-compr when compiling.
+
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/gnutls.el (gnutls-algorithm-priority): New variable.
+	(gnutls-negotiate): Use it.
+
+	* emacs-lisp/cl-macs.el (declare): Link to the "Declarations" node.
+
+	* info.el (Info-beginning-of-buffer): New command.
+	(Info-mode-map): Use it instead of `beginning-of-buffer' to allow
+	announcing `b' as the key (bug#8325).
+	(Info-mode-menu): Use `Info-beginning-of-buffer' for consistency.
+
+	* emacs-lisp/cl-macs.el (declare): Doc string fix-up.
+
+	* international/mule-cmds.el
+	(describe-specified-language-support): Make the error message
+	clearer (bug#8905).
+
+	* emacs-lisp/cl-macs.el (declare): Add a doc string (bug#8690).
+
+	* isearch.el (isearch-barrier): Add a doc string, since it's
+	mentioned in a function doc string (bug#8678).
+
+2011-07-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-buffer): Call pop-to-buffer with normalized
+	buffer argument (Bug#9083) and self-identifying label argument.
+
+2011-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/debug.el (debug): Doc fix.  (Bug#8273)
+
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* man.el (Man-fontify-manpage): Fix message when formatting the
