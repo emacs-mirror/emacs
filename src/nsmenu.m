@@ -1014,7 +1014,7 @@ update_frame_tool_bar (FRAME_PTR f)
       BOOL enabled_p = !NILP (TOOLPROP (TOOL_BAR_ITEM_ENABLED_P));
       BOOL selected_p = !NILP (TOOLPROP (TOOL_BAR_ITEM_SELECTED_P));
       int idx;
-      int img_id;
+      ptrdiff_t img_id;
       struct image *img;
       Lisp_Object image;
       Lisp_Object helpObj;

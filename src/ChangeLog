@@ -1,3 +1,48 @@
+2011-07-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Overflow, signedness and related fixes for images.
+
+	* dispextern.h (struct it.stack[0].u.image.image_id)
+	(struct_it.image_id, struct image.id, struct image_cache.size)
+	(struct image_cache.used, struct image_cache.ref_count):
+	* gtkutil.c (update_frame_tool_bar):
+	* image.c (x_reference_bitmap, Fimage_size, Fimage_mask_p)
+	(Fimage_metadata, free_image_cache, clear_image_cache, lookup_image)
+	(cache_image, mark_image_cache, x_kill_gs_process, Flookup_image):
+	* nsmenu.m (update_frame_tool_bar):
+	* xdisp.c (calc_pixel_width_or_height):
+	* xfns.c (image_cache_refcount):
+	Image IDs are now ptrdiff_t, not int, to avoid arbitrary limits
+	on typical 64-bit hosts.
+
+	* image.c (RANGED_INTEGERP, TYPE_RANGED_INTEGERP): New macros.
+	(x_bitmap_pixmap, x_create_x_image_and_pixmap):
+	Omit unnecessary casts to int.
+	(parse_image_spec): Check that integers fall into 'int' range
+	when the callers expect that.
+	(image_ascent): Redo ascent calculation to avoid int overflow.
+	(clear_image_cache): Avoid overflow when sqrt (INT_MAX) < nimages.
+	(lookup_image): Remove unnecessary tests.
+	(xbm_image_p): Locals are now of int, not EMACS_INT,
+	since parse_image_check makes sure they fit into int.
+	(png_load, gif_load, svg_load_image):
+	Prefer int to unsigned where either will do.
+	(tiff_handler): New function, combining the cores of the
+	old tiff_error_handler and tiff_warning_handler.  This
+	function is rewritten to use vsnprintf and thereby avoid
+	stack buffer overflows.  It uses only the features of vsnprintf
+	that are common to both POSIX and native Microsoft.
+	(tiff_error_handler, tiff_warning_handler): Use it.
+	(tiff_load, gif_load, imagemagick_load_image):
+	Don't assume :index value fits in 'int'.
+	(gif_load): Omit unnecessary cast to double, and avoid double-rounding.
+	(imagemagick_load_image): Check that crop parameters fit into
+	the integer types that MagickCropImage accepts.  Don't assume
+	Vimagemagick_render_type has a nonnegative value.  Don't assume
+	size_t fits in 'long'.
+	(gs_load): Use printmax_t to print the widest integers possible.
+	Check for integer overflow when computing image height and width.
+
 2011-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer signedness and overflow and related fixes.  (Bug#9079)

@@ -4429,7 +4429,7 @@ update_frame_tool_bar (FRAME_PTR f)
       int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
       int idx;
-      int img_id;
+      ptrdiff_t img_id;
       int icon_size = 0;
       struct image *img = NULL;
       Lisp_Object image;

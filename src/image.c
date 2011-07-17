@@ -48,6 +48,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "font.h"
 
+#define RANGED_INTEGERP(lo, x, hi) \
+  (INTEGERP (x) && (lo) <= XINT (x) && XINT (x) <= (hi))
+#define TYPE_RANGED_INTEGERP(type, x) \
+  RANGED_INTEGERP (TYPE_MINIMUM (type), x, TYPE_MAXIMUM (type))
+
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #include <sys/types.h>
@@ -196,7 +201,7 @@ x_bitmap_width (FRAME_PTR f, ptrdiff_t id)
 int
 x_bitmap_pixmap (FRAME_PTR f, ptrdiff_t id)
 {
-  return (int) FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].pixmap;
+  return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].pixmap;
 }
 #endif
 
@@ -245,7 +250,7 @@ x_allocate_bitmap_record (FRAME_PTR f)
 /* Add one reference to the reference count of the bitmap with id ID.  */
 
 void
-x_reference_bitmap (FRAME_PTR f, int id)
+x_reference_bitmap (FRAME_PTR f, ptrdiff_t id)
 {
   ++FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].refcount;
 }
@@ -807,29 +812,30 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	  break;
 
 	case IMAGE_POSITIVE_INTEGER_VALUE:
-	  if (!INTEGERP (value) || XINT (value) <= 0)
+	  if (! RANGED_INTEGERP (1, value, INT_MAX))
 	    return 0;
 	  break;
 
 	case IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR:
-	  if (INTEGERP (value) && XINT (value) >= 0)
+	  if (RANGED_INTEGERP (1, value, INT_MAX))
 	    break;
 	  if (CONSP (value)
-	      && INTEGERP (XCAR (value)) && INTEGERP (XCDR (value))
-	      && XINT (XCAR (value)) >= 0 && XINT (XCDR (value)) >= 0)
+	      && RANGED_INTEGERP (1, XCAR (value), INT_MAX)
+	      && RANGED_INTEGERP (1, XCDR (value), INT_MAX))
 	    break;
 	  return 0;
 
 	case IMAGE_ASCENT_VALUE:
 	  if (SYMBOLP (value) && EQ (value, Qcenter))
 	    break;
-	  else if (INTEGERP (value)
-		   && XINT (value) >= 0
-		   && XINT (value) <= 100)
+	  else if (RANGED_INTEGERP (0, value, 100))
 	    break;
 	  return 0;
 
 	case IMAGE_NON_NEGATIVE_INTEGER_VALUE:
+	  /* Unlike the other integer-related cases, this one does not
+	     verify that VALUE fits in 'int'.  This is because callers
+	     want EMACS_INT.  */
 	  if (!INTEGERP (value) || XINT (value) < 0)
 	    return 0;
 	  break;
@@ -849,7 +855,7 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	  break;
 
 	case IMAGE_INTEGER_VALUE:
-	  if (!INTEGERP (value))
+	  if (! TYPE_RANGED_INTEGERP (int, value))
 	    return 0;
 	  break;
 
@@ -919,7 +925,7 @@ or omitted means use the selected frame.  */)
   if (valid_image_p (spec))
     {
       struct frame *f = check_x_frame (frame);
-      int id = lookup_image (f, spec);
+      ptrdiff_t id = lookup_image (f, spec);
       struct image *img = IMAGE_FROM_ID (f, id);
       int width = img->width + 2 * img->hmargin;
       int height = img->height + 2 * img->vmargin;
@@ -949,7 +955,7 @@ or omitted means use the selected frame.  */)
   if (valid_image_p (spec))
     {
       struct frame *f = check_x_frame (frame);
-      int id = lookup_image (f, spec);
+      ptrdiff_t id = lookup_image (f, spec);
       struct image *img = IMAGE_FROM_ID (f, id);
       if (img->mask)
 	mask = Qt;
@@ -972,7 +978,7 @@ or omitted means use the selected frame.  */)
   if (valid_image_p (spec))
     {
       struct frame *f = check_x_frame (frame);
-      int id = lookup_image (f, spec);
+      ptrdiff_t id = lookup_image (f, spec);
       struct image *img = IMAGE_FROM_ID (f, id);
       ext = img->lisp_data;
     }
@@ -1121,7 +1127,7 @@ image_ascent (struct image *img, struct face *face, struct glyph_slice *slice)
 	ascent = height / 2;
     }
   else
-    ascent = (int) (height * img->ascent / 100.0);
+    ascent = height * (img->ascent / 100.0);
 
   return ascent;
 }
@@ -1466,7 +1472,7 @@ free_image_cache (struct frame *f)
   struct image_cache *c = FRAME_IMAGE_CACHE (f);
   if (c)
     {
-      int i;
+      ptrdiff_t i;
 
       /* Cache should not be referenced by any frame when freed.  */
       xassert (c->refcount == 0);
@@ -1496,7 +1502,7 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 
   if (c)
     {
-      int i, nfreed = 0;
+      ptrdiff_t i, nfreed = 0;
 
       /* Block input so that we won't be interrupted by a SIGIO
 	 while being in an inconsistent state.  */
@@ -1520,8 +1526,8 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 	{
 	  /* Free cache based on timestamp.  */
 	  EMACS_TIME t;
-	  time_t old;
-	  int delay, nimages = 0;
+	  double old, delay;
+	  ptrdiff_t nimages = 0;
 
 	  for (i = 0; i < c->used; ++i)
 	    if (c->images[i])
@@ -1529,9 +1535,10 @@ clear_image_cache (struct frame *f, Lisp_Object filter)
 
 	  /* If the number of cached images has grown unusually large,
 	     decrease the cache eviction delay (Bug#6230).  */
-	  delay = XFASTINT (Vimage_cache_eviction_delay);
+	  delay = XINT (Vimage_cache_eviction_delay);
 	  if (nimages > 40)
-	    delay = max (1, 1600 * delay / (nimages*nimages));
+	    delay = 1600 * delay / nimages / nimages;
+	  delay = max (delay, 1);
 
 	  EMACS_GET_TIME (t);
 	  old = EMACS_SECS (t) - delay;
@@ -1707,7 +1714,7 @@ postprocess_image (struct frame *f, struct image *img)
 /* Return the id of image with Lisp specification SPEC on frame F.
    SPEC must be a valid Lisp image specification (see valid_image_p).  */
 
-int
+ptrdiff_t
 lookup_image (struct frame *f, Lisp_Object spec)
 {
   struct image *img;
@@ -1766,15 +1773,12 @@ lookup_image (struct frame *f, Lisp_Object spec)
 	    img->ascent = CENTERED_IMAGE_ASCENT;
 
 	  margin = image_spec_value (spec, QCmargin, NULL);
-	  if (INTEGERP (margin) && XINT (margin) >= 0)
+	  if (INTEGERP (margin))
 	    img->vmargin = img->hmargin = XFASTINT (margin);
-	  else if (CONSP (margin) && INTEGERP (XCAR (margin))
-		   && INTEGERP (XCDR (margin)))
+	  else if (CONSP (margin))
 	    {
-	      if (XINT (XCAR (margin)) > 0)
-		img->hmargin = XFASTINT (XCAR (margin));
-	      if (XINT (XCDR (margin)) > 0)
-		img->vmargin = XFASTINT (XCDR (margin));
+	      img->hmargin = XFASTINT (XCAR (margin));
+	      img->vmargin = XFASTINT (XCDR (margin));
 	    }
 
 	  relief = image_spec_value (spec, QCrelief, NULL);
@@ -1821,7 +1825,7 @@ static void
 cache_image (struct frame *f, struct image *img)
 {
   struct image_cache *c = FRAME_IMAGE_CACHE (f);
-  int i;
+  ptrdiff_t i;
 
   /* Find a free slot in c->images.  */
   for (i = 0; i < c->used; ++i)
@@ -1875,7 +1879,7 @@ mark_image_cache (struct image_cache *c)
 {
   if (c)
     {
-      int i;
+      ptrdiff_t i;
       for (i = 0; i < c->used; ++i)
 	if (c->images[i])
 	  mark_image (c->images[i]);
@@ -2066,7 +2070,7 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
       DWORD err = GetLastError ();
       Lisp_Object errcode;
       /* All system errors are < 10000, so the following is safe.  */
-      XSETINT (errcode, (int) err);
+      XSETINT (errcode, err);
       image_error ("Unable to create bitmap, error code %d", errcode, Qnil);
       x_destroy_x_image (*ximg);
       return 0;
@@ -2345,7 +2349,7 @@ xbm_image_p (Lisp_Object object)
   else
     {
       Lisp_Object data;
-      EMACS_INT width, height;
+      int width, height;
 
       /* Entries for `:width', `:height' and `:data' must be present.  */
       if (!kw[XBM_WIDTH].count
@@ -5870,7 +5874,7 @@ png_load (struct frame *f, struct image *img)
 
       for (x = 0; x < width; ++x)
 	{
-	  unsigned r, g, b;
+	  int r, g, b;
 
 	  r = *p++ << 8;
 	  g = *p++ << 8;
@@ -6735,17 +6739,29 @@ tiff_size_of_memory (thandle_t data)
 }
 
 
+static void tiff_handler (const char *, const char *, const char *, va_list)
+  ATTRIBUTE_FORMAT_PRINTF (3, 0);
+static void
+tiff_handler (const char *log_format, const char *title,
+	      const char *format, va_list ap)
+{
+  /* doprnt is not suitable here, as TIFF handlers are called from
+     libtiff and are passed arbitrary printf directives.  Instead, use
+     vsnprintf, taking care to be portable to nonstandard environments
+     where vsnprintf returns -1 on buffer overflow.  Since it's just a
+     log entry, it's OK to truncate it.  */
+  char buf[4000];
+  int len = vsnprintf (buf, sizeof buf, format, ap);
+  add_to_log (log_format, build_string (title),
+	      make_string (buf, max (0, min (len, sizeof buf - 1))));
+}
+
 static void tiff_error_handler (const char *, const char *, va_list)
   ATTRIBUTE_FORMAT_PRINTF (2, 0);
 static void
 tiff_error_handler (const char *title, const char *format, va_list ap)
 {
-  char buf[512];
-  int len;
-
-  len = sprintf (buf, "TIFF error: %s ", title);
-  vsprintf (buf + len, format, ap);
-  add_to_log (buf, Qnil, Qnil);
+  tiff_handler ("TIFF error: %s %s", title, format, ap);
 }
 
 
@@ -6754,12 +6770,7 @@ static void tiff_warning_handler (const char *, const char *, va_list)
 static void
 tiff_warning_handler (const char *title, const char *format, va_list ap)
 {
-  char buf[512];
-  int len;
-
-  len = sprintf (buf, "TIFF warning: %s ", title);
-  vsprintf (buf + len, format, ap);
-  add_to_log (buf, Qnil, Qnil);
+  tiff_handler ("TIFF warning: %s %s", title, format, ap);
 }
 
 
@@ -6835,8 +6846,9 @@ tiff_load (struct frame *f, struct image *img)
   image = image_spec_value (img->spec, QCindex, NULL);
   if (INTEGERP (image))
     {
-      int ino = XFASTINT (image);
-      if (!fn_TIFFSetDirectory (tiff, ino))
+      EMACS_INT ino = XFASTINT (image);
+      if (! (TYPE_MINIMUM (tdir_t) <= ino && ino <= TYPE_MAXIMUM (tdir_t)
+	     && fn_TIFFSetDirectory (tiff, ino)))
 	{
 	  image_error ("Invalid image number `%s' in image `%s'",
 		       image, img->spec);
@@ -7135,7 +7147,7 @@ gif_load (struct frame *f, struct image *img)
   Lisp_Object specified_file = image_spec_value (img->spec, QCfile, NULL);
   Lisp_Object specified_data = image_spec_value (img->spec, QCdata, NULL);
   unsigned long bgcolor = 0;
-  int idx;
+  EMACS_INT idx;
 
   if (NILP (specified_data))
     {
@@ -7365,7 +7377,7 @@ gif_load (struct frame *f, struct image *img)
   img->lisp_data = Qnil;
   if (gif->SavedImages[idx].ExtensionBlockCount > 0)
     {
-      unsigned int delay = 0;
+      int delay = 0;
       ExtensionBlock *ext = gif->SavedImages[idx].ExtensionBlocks;
       for (i = 0; i < gif->SavedImages[idx].ExtensionBlockCount; i++, ext++)
 	/* Append (... FUNCTION "BYTES") */
@@ -7386,7 +7398,7 @@ gif_load (struct frame *f, struct image *img)
       if (delay)
 	img->lisp_data
 	  = Fcons (Qdelay,
-		   Fcons (make_float (((double) delay) * 0.01),
+		   Fcons (make_float (delay / 100.0),
 			  img->lisp_data));
     }
 
@@ -7562,10 +7574,10 @@ imagemagick_load_image (struct frame *f, struct image *img,
   Lisp_Object image;
   Lisp_Object value;
   Lisp_Object crop;
-  long ino;
+  EMACS_INT ino;
   int desired_width, desired_height;
   double rotation;
-  int imagemagick_rendermethod;
+  EMACS_INT imagemagick_rendermethod;
   int pixelwidth;
   ImageInfo  *image_info;
   ExceptionInfo *exception;
@@ -7592,7 +7604,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
       status = MagickPingImageBlob (ping_wand, contents, size);
     }
 
-  if (ino >= MagickGetNumberImages (ping_wand))
+  if (! (0 <= ino && ino < MagickGetNumberImages (ping_wand)))
     {
       image_error ("Invalid image number `%s' in image `%s'",
 		   image, img->spec);
@@ -7667,28 +7679,28 @@ imagemagick_load_image (struct frame *f, struct image *img,
      efficient.  */
   crop = image_spec_value (img->spec, QCcrop, NULL);
 
-  if (CONSP (crop) && INTEGERP (XCAR (crop)))
+  if (CONSP (crop) && TYPE_RANGED_INTEGERP (size_t, XCAR (crop)))
     {
       /* After some testing, it seems MagickCropImage is the fastest crop
          function in ImageMagick.  This crop function seems to do less copying
          than the alternatives, but it still reads the entire image into memory
-         before croping, which is aparently difficult to avoid when using
+         before cropping, which is apparently difficult to avoid when using
          imagemagick.  */
-      int w, h;
-      w = XFASTINT (XCAR (crop));
+      size_t crop_width = XINT (XCAR (crop));
       crop = XCDR (crop);
-      if (CONSP (crop) && INTEGERP (XCAR (crop)))
+      if (CONSP (crop) && TYPE_RANGED_INTEGERP (size_t, XCAR (crop)))
 	{
-	  h = XFASTINT (XCAR (crop));
+	  size_t crop_height = XINT (XCAR (crop));
 	  crop = XCDR (crop);
-	  if (CONSP (crop) && INTEGERP (XCAR (crop)))
+	  if (CONSP (crop) && TYPE_RANGED_INTEGERP (ssize_t, XCAR (crop)))
 	    {
-	      x = XFASTINT (XCAR (crop));
+	      ssize_t crop_x = XINT (XCAR (crop));
 	      crop = XCDR (crop);
-	      if (CONSP (crop) && INTEGERP (XCAR (crop)))
+	      if (CONSP (crop) && TYPE_RANGED_INTEGERP (ssize_t, XCAR (crop)))
 		{
-		  y = XFASTINT (XCAR (crop));
-		  MagickCropImage (image_wand, w, h, x, y);
+		  ssize_t crop_y = XINT (XCAR (crop));
+		  MagickCropImage (image_wand, crop_width, crop_height,
+				   crop_x, crop_y);
 		}
 	    }
 	}
@@ -7734,9 +7746,11 @@ imagemagick_load_image (struct frame *f, struct image *img,
 
   init_color_table ();
   imagemagick_rendermethod = (INTEGERP (Vimagemagick_render_type)
-                              ? XFASTINT (Vimagemagick_render_type) : 0);
+                              ? XINT (Vimagemagick_render_type) : 0);
   if (imagemagick_rendermethod == 0)
     {
+      size_t image_height;
+
       /* Try to create a x pixmap to hold the imagemagick pixmap.  */
       if (!x_create_x_image_and_pixmap (f, width, height, 0,
                                         &ximg, &img->pixmap))
@@ -7765,7 +7779,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
           goto imagemagick_error;
         }
 
-      for (y = 0; y < (long) MagickGetImageHeight (image_wand); y++)
+      image_height = MagickGetImageHeight (image_wand);
+      for (y = 0; y < image_height; y++)
         {
           pixels = PixelGetNextIteratorRow (iterator, &width);
           if (pixels == (PixelWand **) NULL)
@@ -8271,10 +8286,10 @@ svg_load_image (struct frame *f,         /* Pointer to emacs frame structure.  *
     {
       for (x = 0; x < width; ++x)
 	{
-	  unsigned red;
-	  unsigned green;
-	  unsigned blue;
-	  unsigned opacity;
+	  int red;
+	  int green;
+	  int blue;
+	  int opacity;
 
 	  red     = *pixels++;
 	  green   = *pixels++;
@@ -8455,7 +8470,8 @@ gs_image_p (Lisp_Object object)
 static int
 gs_load (struct frame *f, struct image *img)
 {
-  char buffer[100];
+  uprintmax_t printnum1, printnum2;
+  char buffer[sizeof " " + INT_STRLEN_BOUND (printmax_t)];
   Lisp_Object window_and_pixmap_id = Qnil, loader, pt_height, pt_width;
   Lisp_Object frame;
   double in_width, in_height;
@@ -8467,16 +8483,19 @@ gs_load (struct frame *f, struct image *img)
      info.  */
   pt_width = image_spec_value (img->spec, QCpt_width, NULL);
   in_width = INTEGERP (pt_width) ? XFASTINT (pt_width) / 72.0 : 0;
-  img->width = in_width * FRAME_X_DISPLAY_INFO (f)->resx;
+  in_width *= FRAME_X_DISPLAY_INFO (f)->resx;
   pt_height = image_spec_value (img->spec, QCpt_height, NULL);
   in_height = INTEGERP (pt_height) ? XFASTINT (pt_height) / 72.0 : 0;
-  img->height = in_height * FRAME_X_DISPLAY_INFO (f)->resy;
+  in_height *= FRAME_X_DISPLAY_INFO (f)->resy;
 
-  if (!check_image_size (f, img->width, img->height))
+  if (! (in_width <= INT_MAX && in_height <= INT_MAX
+	 && check_image_size (f, in_width, in_height)))
     {
       image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
       return 0;
     }
+  img->width = in_width;
+  img->height = in_height;
 
   /* Create the pixmap.  */
   xassert (img->pixmap == NO_PIXMAP);
@@ -8501,14 +8520,14 @@ gs_load (struct frame *f, struct image *img)
      if successful.  We do not record_unwind_protect here because
      other places in redisplay like calling window scroll functions
      don't either.  Let the Lisp loader use `unwind-protect' instead.  */
-  sprintf (buffer, "%lu %lu",
-	   (unsigned long) FRAME_X_WINDOW (f),
-	   (unsigned long) img->pixmap);
+  printnum1 = FRAME_X_WINDOW (f);
+  printnum2 = img->pixmap;
+  sprintf (buffer, "%"pMu" %"pMu, printnum1, printnum2);
   window_and_pixmap_id = build_string (buffer);
 
-  sprintf (buffer, "%lu %lu",
-	   FRAME_FOREGROUND_PIXEL (f),
-	   FRAME_BACKGROUND_PIXEL (f));
+  printnum1 = FRAME_FOREGROUND_PIXEL (f);
+  printnum2 = FRAME_BACKGROUND_PIXEL (f);
+  sprintf (buffer, "%"pMu" %"pMu, printnum1, printnum2);
   pixel_colors = build_string (buffer);
 
   XSETFRAME (frame, f);
@@ -8533,7 +8552,8 @@ void
 x_kill_gs_process (Pixmap pixmap, struct frame *f)
 {
   struct image_cache *c = FRAME_IMAGE_CACHE (f);
-  int class, i;
+  int class;
+  ptrdiff_t i;
   struct image *img;
 
   /* Find the image containing PIXMAP.  */
@@ -8637,7 +8657,7 @@ DEFUN ("imagep", Fimagep, Simagep, 1, 1, 0,
 DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
   (Lisp_Object spec)
 {
-  int id = -1;
+  ptrdiff_t id = -1;
 
   if (valid_image_p (spec))
     id = lookup_image (SELECTED_FRAME (), spec);
