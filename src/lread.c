@@ -2660,7 +2660,18 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	{
 	  uninterned_symbol = 1;
 	  c = READCHAR;
-	  goto default_label;
+	  if (!(c > 040
+		&& c != 0x8a0
+		&& (c >= 0200
+		    || !(strchr ("\"';()[]#`,", c)))))
+	    {
+	      /* No symbol character follows, this is the empty
+		 symbol.  */
+	      if (c >= 0)
+		UNREAD (c);
+	      return Fmake_symbol (build_string (""));
+	    }
+	  goto read_symbol;
 	}
       /* Reader forms that can reuse previously read objects.  */
       if (c >= '0' && c <= '9')
@@ -3002,6 +3013,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
       if (c <= 040) goto retry;
       if (c == 0x8a0) /* NBSP */
 	goto retry;
+
+    read_symbol:
       {
 	char *p = read_buffer;
 	int quoted = 0;

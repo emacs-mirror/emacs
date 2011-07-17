@@ -1,3 +1,8 @@
+2011-07-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lread.c (read1): Read `#:' as empty uninterned symbol if no
+	symbol character follows.
+
 2011-07-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c (Fcopy_file): Pacify gcc re fchown.  (Bug#9002)
