@@ -3010,7 +3010,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
       {
 	char *p = read_buffer;
 	int quoted = 0;
-	int start_position = readchar_count - 1;
+	EMACS_INT start_position = readchar_count - 1;
 
 	{
 	  char *end = read_buffer + read_buffer_size;
