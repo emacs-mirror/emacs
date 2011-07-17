@@ -1,5 +1,18 @@
 2011-07-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.c: Overflow, signedness and related fixes.
+	(make_lispy_movement): Use same integer type in forward decl
+	that is used in the definition.
+	(read_key_sequence, keyremap_step):
+	Change bufsize argument back to int, undoing my 2011-03-30 change.
+	We prefer signed types, and int is wide enough here.
+	(parse_tool_bar_item): Don't assume tool_bar_max_label_size is less
+	than TYPE_MAXIMUM (EMACS_INT) / 2.  Don't let the label size grow
+	larger than STRING_BYTES_BOUND.  Use ptrdiff_t for Emacs string
+	length, not size_t.  Use ptrdiff_t for index, not int.
+	(keyremap_step, read_key_sequence): Redo bufsize check to avoid
+	possibility of integer overflow.
+
 	Overflow, signedness and related fixes for images.
 
 	* dispextern.h (struct it.stack[0].u.image.image_id)

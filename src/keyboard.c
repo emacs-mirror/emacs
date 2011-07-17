@@ -444,7 +444,7 @@ static Lisp_Object make_lispy_event (struct input_event *);
 static Lisp_Object make_lispy_movement (struct frame *, Lisp_Object,
                                         enum scroll_bar_part,
                                         Lisp_Object, Lisp_Object,
-                                        unsigned long);
+					Time);
 #endif
 static Lisp_Object modify_event_symbol (EMACS_INT, unsigned, Lisp_Object,
                                         Lisp_Object, const char *const *,
@@ -1300,7 +1300,7 @@ some_mouse_moved (void)
 /* This is the actual command reading loop,
    sans error-handling encapsulation.  */
 
-static int read_key_sequence (Lisp_Object *, size_t, Lisp_Object,
+static int read_key_sequence (Lisp_Object *, int, Lisp_Object,
                               int, int, int);
 void safe_run_hooks (Lisp_Object);
 static void adjust_point_for_property (EMACS_INT, int);
@@ -8274,10 +8274,11 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       Lisp_Object tcapt = PROP (TOOL_BAR_ITEM_CAPTION);
       const char *label = SYMBOLP (tkey) ? SSDATA (SYMBOL_NAME (tkey)) : "";
       const char *capt = STRINGP (tcapt) ? SSDATA (tcapt) : "";
-      EMACS_INT max_lbl = 2 * tool_bar_max_label_size;
+      ptrdiff_t max_lbl =
+	2 * max (0, min (tool_bar_max_label_size, STRING_BYTES_BOUND / 2));
       char *buf = (char *) xmalloc (max_lbl + 1);
       Lisp_Object new_lbl;
-      size_t caption_len = strlen (capt);
+      ptrdiff_t caption_len = strlen (capt);
 
       if (caption_len <= max_lbl && capt[0] != '\0')
         {
@@ -8290,7 +8291,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 
       if (strlen (label) <= max_lbl && label[0] != '\0')
         {
-          int j;
+          ptrdiff_t j;
           if (label != buf)
 	    strcpy (buf, label);
 
@@ -8849,7 +8850,7 @@ access_keymap_keyremap (Lisp_Object map, Lisp_Object key, Lisp_Object prompt,
    The return value is non-zero if the remapping actually took place.  */
 
 static int
-keyremap_step (Lisp_Object *keybuf, size_t bufsize, volatile keyremap *fkey,
+keyremap_step (Lisp_Object *keybuf, int bufsize, volatile keyremap *fkey,
 	       int input, int doit, int *diff, Lisp_Object prompt)
 {
   Lisp_Object next, key;
@@ -8871,7 +8872,7 @@ keyremap_step (Lisp_Object *keybuf, size_t bufsize, volatile keyremap *fkey,
 
       *diff = len - (fkey->end - fkey->start);
 
-      if (input + *diff >= bufsize)
+      if (bufsize - input <= *diff)
 	error ("Key sequence too long");
 
       /* Shift the keys that follow fkey->end.  */
@@ -8942,7 +8943,7 @@ keyremap_step (Lisp_Object *keybuf, size_t bufsize, volatile keyremap *fkey,
    from the selected window's buffer.  */
 
 static int
-read_key_sequence (Lisp_Object *keybuf, size_t bufsize, Lisp_Object prompt,
+read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		   int dont_downcase_last, int can_return_switch_frame,
 		   int fix_current_buffer)
 {
@@ -9549,7 +9550,7 @@ read_key_sequence (Lisp_Object *keybuf, size_t bufsize, Lisp_Object prompt,
 		  && (NILP (fake_prefixed_keys)
 		      || NILP (Fmemq (key, fake_prefixed_keys))))
 		{
-		  if (t + 1 >= bufsize)
+		  if (bufsize - t <= 1)
 		    error ("Key sequence too long");
 
 		  keybuf[t]     = posn;
@@ -9630,7 +9631,7 @@ read_key_sequence (Lisp_Object *keybuf, size_t bufsize, Lisp_Object prompt,
 		 insert the dummy prefix event `menu-bar'.  */
 	      if (EQ (posn, Qmenu_bar) || EQ (posn, Qtool_bar))
 		{
-		  if (t + 1 >= bufsize)
+		  if (bufsize - t <= 1)
 		    error ("Key sequence too long");
 		  keybuf[t] = posn;
 		  keybuf[t+1] = key;
