@@ -1,5 +1,7 @@
 2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/gnutls.el (gnutls-log-level): Removed.
+
 	* textmodes/fill.el (adaptive-fill-regexp): Include EN DASH as an
 	indentation character (bug#6380).
 

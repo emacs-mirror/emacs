@@ -1,3 +1,11 @@
+2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-auto-save-directory): If the ~/Mail directory
+	doesn't exist, use ~ as the auto-save directory (bug#4432).
+
+	* gnus-group.el (gnus-group-read-ephemeral-group): Start Gnus if it
+	hasn't already been started.
+
 2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.el (debbugs-gnu): Renamed from debbugs-emacs.

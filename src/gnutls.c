@@ -35,7 +35,6 @@ static int
 emacs_gnutls_handle_error (gnutls_session_t, int err);
 
 static Lisp_Object Qgnutls_dll;
-static Lisp_Object Qgnutls_log_level;
 static Lisp_Object Qgnutls_code;
 static Lisp_Object Qgnutls_anon, Qgnutls_x509pki;
 static Lisp_Object Qgnutls_e_interrupted, Qgnutls_e_again,
@@ -146,7 +145,6 @@ static int
 init_gnutls_functions (Lisp_Object libraries)
 {
   HMODULE library;
-  Lisp_Object gnutls_log_level = Fsymbol_value (Qgnutls_log_level);
   int max_log_level = 1;
 
   if (!(library = w32_delayed_load (libraries, Qgnutls_dll)))
@@ -195,8 +193,8 @@ init_gnutls_functions (Lisp_Object libraries)
   LOAD_GNUTLS_FN (library, gnutls_x509_crt_import);
   LOAD_GNUTLS_FN (library, gnutls_x509_crt_init);
 
-  if (NUMBERP (gnutls_log_level))
-    max_log_level = XINT (gnutls_log_level);
+  if (NUMBERP (Vgnutls_log_level))
+    max_log_level = XINT (Vgnutls_log_level);
 
   GNUTLS_LOG2 (1, max_log_level, "GnuTLS library loaded:",
                SDATA (Fget (Qgnutls_dll, QCloaded_from)));
@@ -399,7 +397,6 @@ emacs_gnutls_read (struct Lisp_Process *proc, char *buf, EMACS_INT nbyte)
 static int
 emacs_gnutls_handle_error (gnutls_session_t session, int err)
 {
-  Lisp_Object gnutls_log_level = Fsymbol_value (Qgnutls_log_level);
   int max_log_level = 0;
 
   int ret;
@@ -409,8 +406,8 @@ emacs_gnutls_handle_error (gnutls_session_t session, int err)
   if (err >= 0)
     return 0;
 
-  if (NUMBERP (gnutls_log_level))
-    max_log_level = XINT (gnutls_log_level);
+  if (NUMBERP (Vgnutls_log_level))
+    max_log_level = XINT (Vgnutls_log_level);
 
   /* TODO: use gnutls-error-fatalp and gnutls-error-string.  */
 
@@ -1118,7 +1115,6 @@ syms_of_gnutls (void)
   gnutls_global_initialized = 0;
 
   DEFSYM (Qgnutls_dll, "gnutls");
-  DEFSYM (Qgnutls_log_level, "gnutls-log-level");
   DEFSYM (Qgnutls_code, "gnutls-code");
   DEFSYM (Qgnutls_anon, "gnutls-anon");
   DEFSYM (Qgnutls_x509pki, "gnutls-x509pki");
@@ -1158,6 +1154,10 @@ syms_of_gnutls (void)
   defsubr (&Sgnutls_deinit);
   defsubr (&Sgnutls_bye);
   defsubr (&Sgnutls_available_p);
+
+  DEFVAR_INT ("gnutls-log-level", Vgnutls_log_level,
+	      doc: /* Logging level used by the GnuTLS functions. */);
+  Vgnutls_log_level = make_number (0);
 }
 
 #endif /* HAVE_GNUTLS */

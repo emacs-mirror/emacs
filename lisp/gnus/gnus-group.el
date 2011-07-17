@@ -2282,6 +2282,8 @@ Return the name of the group if selection was successful."
     (gnus-group-completing-read)
     (gnus-read-method "From method")))
   ;; Transform the select method into a unique server.
+  (unless (gnus-alive-p)
+    (gnus-no-server))
   (when (stringp method)
     (setq method (gnus-server-to-method method)))
   (setq method
