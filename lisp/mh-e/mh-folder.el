@@ -795,7 +795,7 @@ instead."
              (setq threading-needed-flag mh-show-threads-flag)
              (setq mh-previous-window-config config))
             ((not (eq (current-buffer) (get-buffer folder)))
-             (mh-pop-to-buffer-same-window folder)
+             (switch-to-buffer folder)
              (setq mh-previous-window-config config))))
     (mh-get-new-mail file)
     (when (and threading-needed-flag
@@ -855,7 +855,7 @@ From a program, edit MESSAGE; nil means edit current message."
 
     ;; Just show the edit buffer...
     (delete-other-windows)
-    (mh-pop-to-buffer-same-window edit-buffer)))
+    (switch-to-buffer edit-buffer)))
 
 ;;;###mh-autoload
 (defun mh-next-button (&optional backward-flag)
@@ -1705,7 +1705,7 @@ DONT-EXEC-PENDING is non-nil."
          (unless dont-exec-pending
            (mh-process-or-undo-commands folder)
            (mh-reset-threads-and-narrowing))
-         (mh-pop-to-buffer-same-window folder)))
+         (switch-to-buffer folder)))
   (mh-regenerate-headers range)
   (if (zerop (buffer-size))
       (if (equal range "all")
@@ -1786,7 +1786,7 @@ Also removes all content from the folder buffer."
 (defun mh-make-folder (name)
   "Create a new mail folder called NAME.
 Make it the current folder."
-  (mh-pop-to-buffer-same-window name)
+  (switch-to-buffer name)
   (setq buffer-read-only nil)
   (erase-buffer)
   (if mh-adaptive-cmd-note-flag
