@@ -38,6 +38,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <selinux/context.h>
 #endif
 
+#include <ignore-value.h>
+
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -1960,7 +1962,7 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
   if (input_file_statable_p)
     {
       if (!NILP (preserve_uid_gid))
-	fchown (ofd, st.st_uid, st.st_gid);
+	ignore_value (fchown (ofd, st.st_uid, st.st_gid));
       if (fchmod (ofd, st.st_mode & 07777) != 0)
 	report_file_error ("Doing chmod", Fcons (newname, Qnil));
     }
