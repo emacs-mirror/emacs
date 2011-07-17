@@ -1,5 +1,7 @@
 2011-07-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* progmodes/etags.el (tags-search): Doc typo fix.
+
 	* mail/smtpmail.el (smtpmail-via-smtp): Query the user for
 	password if we get errors 550 to 554.
 
