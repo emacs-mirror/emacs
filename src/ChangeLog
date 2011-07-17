@@ -1,5 +1,11 @@
 2011-07-17  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.c: don't go over XClientMessageEvent limit
+	(scroll_bar_windows_size): Now ptrdiff_t, as we prefer signed.
+	(x_send_scroll_bar_event): Likewise.  Check that the size does not
+	exceed limits imposed by XClientMessageEvent, as well as the usual
+	ptrdiff_t and size_t limits.
+
 	* keyboard.c: Overflow, signedness and related fixes.
 	(make_lispy_movement): Use same integer type in forward decl
 	that is used in the definition.

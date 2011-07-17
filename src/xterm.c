@@ -4190,7 +4190,7 @@ xt_action_hook (Widget widget, XtPointer client_data, String action_name,
    x_send_scroll_bar_event and x_scroll_bar_to_input_event.  */
 
 static struct window **scroll_bar_windows;
-static size_t scroll_bar_windows_size;
+static ptrdiff_t scroll_bar_windows_size;
 
 
 /* Send a client message with message type Xatom_Scrollbar for a
@@ -4205,7 +4205,7 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
   XClientMessageEvent *ev = (XClientMessageEvent *) &event;
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
-  size_t i;
+  ptrdiff_t i;
 
   BLOCK_INPUT;
 
@@ -4226,12 +4226,16 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
 
   if (i == scroll_bar_windows_size)
     {
-      size_t new_size = max (10, 2 * scroll_bar_windows_size);
-      size_t nbytes = new_size * sizeof *scroll_bar_windows;
-      size_t old_nbytes = scroll_bar_windows_size * sizeof *scroll_bar_windows;
-
-      if ((size_t) -1 / sizeof *scroll_bar_windows < new_size)
+      ptrdiff_t new_size, old_nbytes, nbytes;
+      /* Check the 32-bit XClientMessageEvent limit, as well as the
+	 usual ptrdiff_t/size_t limit.  */
+      if (min (0x7fffffff,
+	       min (PTRDIFF_MAX, SIZE_MAX) / sizeof *scroll_bar_windows / 2)
+	  < scroll_bar_windows_size)
 	memory_full (SIZE_MAX);
+      new_size = max (10, 2 * scroll_bar_windows_size);
+      nbytes = new_size * sizeof *scroll_bar_windows;
+      old_nbytes = scroll_bar_windows_size * sizeof *scroll_bar_windows;
       scroll_bar_windows = (struct window **) xrealloc (scroll_bar_windows,
 							nbytes);
       memset (&scroll_bar_windows[i], 0, nbytes - old_nbytes);
