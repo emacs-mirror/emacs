@@ -1,3 +1,9 @@
+2011-07-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* charset.c (read_hex): New arg OVERFLOW.  All uses changed.
+	Remove unreachable code.
+	(read_hex, load_charset_map_from_file): Check for integer overflow.
+
 2011-07-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xterm.c: don't go over XClientMessageEvent limit
