@@ -1,3 +1,19 @@
+2011-07-18  Alan Mackenzie  <acm@muc.de>
+
+	Fontify declarators properly when, e.g., a jit-lock chunk begins
+	inside a declaration.
+
+	* progmodes/cc-langs.el (c-symbol-chars): Correct a typo.
+
+	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls): New
+	function.
+	(c-complex-decl-matchers): Insert reference to
+	c-font-lock-enclosing-decls.
+
+	* progmodes/cc-engine.el (c-backward-single-comment):
+	(c-backward-comments): Bind open-paren-in-column-0-is-defun-start
+	to nil around calls to (forward-comment -1).
+
 2011-07-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* image.el (put-image): Doc typo fix.
