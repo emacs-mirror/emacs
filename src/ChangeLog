@@ -1,5 +1,8 @@
 2011-07-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fileio.c: Integer overflow issues with file modes.
+	(Fset_file_modes, auto_save_1): Don't assume EMACS_INT fits in int.
+
 	* charset.c (read_hex): New arg OVERFLOW.  All uses changed.
 	Remove unreachable code.
 	(read_hex, load_charset_map_from_file): Check for integer overflow.
