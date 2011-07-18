@@ -1,3 +1,8 @@
+2011-07-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* charsets/GB180302.map: Update to 2005 edition.
+	* charsets/GB180304.map: Likewise.
+
 2011-07-17  Bill Wohler  <wohler@newt.com>
 
 	Release MH-E version 8.2.93.
