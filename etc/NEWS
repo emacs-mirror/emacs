@@ -1077,6 +1077,11 @@ syntactic rules.
 ** Syntax tables support a new "comment style c" additionally to style b.
 ** frame-local variables cannot be let-bound any more.
 ** prog-mode is a new major-mode meant to be the parent of programming mode.
+The prog-mode-hook it defines can be used to enable features for
+programming modes.  For example:
+(add-hook 'prog-mode-hook 'flyspell-prog-mode)
+enables on the fly spell checking for comments and strings for
+programming modes.
 ** define-minor-mode accepts a new keyword :variable.
 
 ** `delete-file' and `delete-directory' now accept optional arg TRASH.
