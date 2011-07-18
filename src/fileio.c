@@ -38,8 +38,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <selinux/context.h>
 #endif
 
-#include <ignore-value.h>
-
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -1961,9 +1959,21 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
      owner and group.  */
   if (input_file_statable_p)
     {
+      int mode_mask = 07777;
       if (!NILP (preserve_uid_gid))
-	ignore_value (fchown (ofd, st.st_uid, st.st_gid));
-      if (fchmod (ofd, st.st_mode & 07777) != 0)
+	{
+	  /* Attempt to change owner and group.  If that doesn't work
+	     attempt to change just the group, as that is sometimes allowed.
+	     Adjust the mode mask to eliminate setuid or setgid bits
+	     that are inappropriate if the owner and group are wrong.  */
+	  if (fchown (ofd, st.st_uid, st.st_gid) != 0)
+	    {
+	      mode_mask &= ~06000;
+	      if (fchown (ofd, -1, st.st_gid) == 0)
+		mode_mask |= 02000;
+	    }
+	}
+      if (fchmod (ofd, st.st_mode & mode_mask) != 0)
 	report_file_error ("Doing chmod", Fcons (newname, Qnil));
     }
 #endif	/* not MSDOS */

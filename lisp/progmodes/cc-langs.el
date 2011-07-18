@@ -523,7 +523,7 @@ operator at the top level."
 
 (c-lang-defconst c-symbol-chars
   "Set of characters that can be part of a symbol.
-This is on the form that fits inside [ ] in a regexp."
+This is of the form that fits inside [ ] in a regexp."
   ;; Pike note: With the backquote identifiers this would include most
   ;; operator chars too, but they are handled with other means instead.
   t    (concat c-alnum "_$")
