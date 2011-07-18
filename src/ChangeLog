@@ -1,5 +1,8 @@
 2011-07-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c (valid_pointer_p): Use pipe, not open.
+	This fixes some permissions issues when debugging.
+
 	* fileio.c (Fcopy_file): Adjust mode if fchown fails.  (Bug#9002)
 	If fchown fails to set both uid and gid, try to set just gid,
 	as that is sometimes allowed.  Adjust the file's mode to eliminate

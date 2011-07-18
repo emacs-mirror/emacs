@@ -4415,18 +4415,18 @@ valid_pointer_p (void *p)
 #ifdef WINDOWSNT
   return w32_valid_pointer_p (p, 16);
 #else
-  int fd;
+  int fd[2];
 
   /* Obviously, we cannot just access it (we would SEGV trying), so we
      trick the o/s to tell us whether p is a valid pointer.
      Unfortunately, we cannot use NULL_DEVICE here, as emacs_write may
      not validate p in that case.  */
 
-  if ((fd = emacs_open ("__Valid__Lisp__Object__", O_CREAT | O_WRONLY | O_TRUNC, 0666)) >= 0)
+  if (pipe (fd) == 0)
     {
-      int valid = (emacs_write (fd, (char *)p, 16) == 16);
-      emacs_close (fd);
-      unlink ("__Valid__Lisp__Object__");
+      int valid = (emacs_write (fd[1], (char *) p, 16) == 16);
+      emacs_close (fd[1]);
+      emacs_close (fd[0]);
       return valid;
     }
 
