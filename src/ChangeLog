@@ -1,3 +1,11 @@
+2011-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (next_element_from_string, next_element_from_buffer): Use EQ
+	to compare Lisp_Objects.
+	* gnutls.c (syms_of_gnutls): Rename Vgnutls_log_level to
+	global_gnutls_log_level, don't mistake it for a Lisp_Object.
+	(init_gnutls_functions, emacs_gnutls_handle_error): Fix up uses.
+
 2011-07-17  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* lread.c (read_integer): Unread even EOF character.

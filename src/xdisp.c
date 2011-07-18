@@ -6945,7 +6945,7 @@ next_element_from_string (struct it *it)
   struct text_pos position;
 
   xassert (STRINGP (it->string));
-  xassert (!it->bidi_p || it->string == it->bidi_it.string.lstring);
+  xassert (!it->bidi_p || EQ (it->string, it->bidi_it.string.lstring));
   xassert (IT_STRING_CHARPOS (*it) >= 0);
   position = it->current.string_pos;
 
@@ -7259,7 +7259,7 @@ next_element_from_buffer (struct it *it)
   xassert (IT_CHARPOS (*it) >= BEGV);
   xassert (NILP (it->string) && !it->s);
   xassert (!it->bidi_p
-	   || (it->bidi_it.string.lstring == Qnil
+	   || (EQ (it->bidi_it.string.lstring, Qnil)
 	       && it->bidi_it.string.s == NULL));
 
   /* With bidi reordering, the character to display might not be the
