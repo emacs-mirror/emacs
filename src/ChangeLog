@@ -1,3 +1,10 @@
+2011-07-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Fcopy_file): Adjust mode if fchown fails.  (Bug#9002)
+	If fchown fails to set both uid and gid, try to set just gid,
+	as that is sometimes allowed.  Adjust the file's mode to eliminate
+	setuid or setgid bits that are inappropriate if fchown fails.
+
 2011-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (next_element_from_string, next_element_from_buffer): Use EQ
