@@ -1,5 +1,9 @@
 2011-07-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fileio.c (Fcopy_file) [!MSDOS]: Tighten created file's mask.
+	This fixes some race conditions on the permissions of any newly
+	created file.
+
 	* alloc.c (valid_pointer_p): Use pipe, not open.
 	This fixes some permissions issues when debugging.
 
