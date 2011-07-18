@@ -2478,10 +2478,7 @@ init_iterator (struct it *it, struct window *w,
   else if (INTEGERP (w->redisplay_end_trigger))
     it->redisplay_end_trigger_charpos = XINT (w->redisplay_end_trigger);
 
-  /* Correct bogus values of tab_width.  */
-  it->tab_width = XINT (BVAR (current_buffer, tab_width));
-  if (it->tab_width <= 0 || it->tab_width > 1000)
-    it->tab_width = 8;
+  it->tab_width = SANE_TAB_WIDTH (current_buffer);
 
   /* Are lines in the display truncated?  */
   if (base_face_id != DEFAULT_FACE_ID

@@ -556,6 +556,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   } while (0)
 
 
+/* Return a non-outlandish value for the tab width.  */
+
+#define SANE_TAB_WIDTH(buf) sanitize_width (XFASTINT (BVAR (buf, tab_width)))
+
+static inline int
+sanitize_width (EMACS_INT width)
+{
+  return 0 < width && width <= 1000 ? width : 8;
+}
+
 /* Return the width of ASCII character C.  The width is measured by
    how many columns C will occupy on the screen when displayed in the
    current buffer.  */
@@ -563,7 +573,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define ASCII_CHAR_WIDTH(c)						\
   (c < 0x20								\
    ? (c == '\t'								\
-      ? XFASTINT (BVAR (current_buffer, tab_width))				\
+      ? SANE_TAB_WIDTH (current_buffer)					\
       : (c == '\n' ? 0 : (NILP (BVAR (current_buffer, ctl_arrow)) ? 4 : 2)))	\
    : (c < 0x7f								\
       ? 1								\

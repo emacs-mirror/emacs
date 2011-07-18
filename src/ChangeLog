@@ -1,5 +1,13 @@
 2011-07-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Don't assume that tab-width fits in int.
+	* character.h (sanitize_width): New inline function.
+	(SANE_TAB_WIDTH): New macro.
+	(ASCII_CHAR_WIDTH): Use it.
+	* indent.c (sane_tab_width): Remove.  All uses replaced by
+	SANE_TAB_WIDTH (current_buffer).
+	* xdisp.c (init_iterator): Use SANE_TAB_WIDTH.
+
 	* fileio.c: Integer overflow issues with file modes.
 	(Fset_file_modes, auto_save_1): Don't assume EMACS_INT fits in int.
 
