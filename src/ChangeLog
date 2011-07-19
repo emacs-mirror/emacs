@@ -106,6 +106,8 @@
 	(gs_load): Use printmax_t to print the widest integers possible.
 	Check for integer overflow when computing image height and width.
 
+2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Integer signedness and overflow and related fixes.  (Bug#9079)
 
 	* bidi.c: Integer size and overflow fixes.
@@ -302,6 +304,24 @@
 	* lisp.h (struct vectorlike_header, struct Lisp_Subr): Signed sizes.
 	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
 	well either way, and we prefer signed to unsigned.
+
+2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to OpenBSD.
+	See http://lists.gnu.org/archive/html/emacs-devel/2011-07/msg00688.html
+	and the surrounding thread.
+	* minibuf.c (read_minibuf_noninteractive): Rewrite to use getchar
+	rather than fgets, and retry after EINTR.  Otherwise, 'emacs
+	--batch -f byte-compile-file' fails on OpenBSD if an inactivity
+	timer goes off.
+	* s/openbsd.h (BROKEN_SIGIO): Define.
+	* unexelf.c (unexec) [__OpenBSD__]:
+	Don't update the .mdebug section of the Alpha COFF symbol table.
+
+2011-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* lread.c (syms_of_lread): Clarify when `lexical-binding' is used
+	(bug#8460).
 
 2011-07-18  Paul Eggert  <eggert@cs.ucla.edu>
 

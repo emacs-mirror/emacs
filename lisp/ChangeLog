@@ -1,3 +1,16 @@
+2011-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* view.el (view-buffer): Allow running in `special' modes if we're
+	visiting a file (bug#8615).
+
+2011-07-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-alist-of-strings-p)
+	(display-buffer-alist-set-1, display-buffer-alist-set-2): New
+	functions.
+	(display-buffer-alist-set): Rewrite to handle Emacs 23 options
+	more accurately.
+
 2011-07-18  Alan Mackenzie  <acm@muc.de>
 
 	Fontify declarators properly when, e.g., a jit-lock chunk begins

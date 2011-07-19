@@ -311,9 +311,10 @@ file: Users may suspend viewing in order to modify the buffer.
 Exiting View mode will then discard the user's edits.  Setting
 EXIT-ACTION to `kill-buffer-if-not-modified' avoids this."
   (interactive "bView buffer: ")
-  (if (eq (with-current-buffer buffer
-	    (get major-mode 'mode-class))
-	  'special)
+  (if (with-current-buffer buffer
+	(and (eq (get major-mode 'mode-class)
+		 'special)
+	     (null buffer-file-name)))
       (progn
 	(switch-to-buffer buffer)
 	(message "Not using View mode because the major mode is special"))
