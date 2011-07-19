@@ -1,3 +1,8 @@
+2011-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* lread.c (syms_of_lread): Clarify when `lexical-binding' is used
+	(bug#8460).
+
 2011-07-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c (Fcopy_file) [!MSDOS]: Tighten created file's mask.
