@@ -1053,7 +1053,7 @@ temacs:
       memcpy (NEW_SECTION_H (nn).sh_offset + new_base, src,
 	      NEW_SECTION_H (nn).sh_size);
 
-#ifdef __alpha__
+#if defined __alpha__ && !defined __OpenBSD__
       /* Update Alpha COFF symbol table: */
       if (strcmp (old_section_names + OLD_SECTION_H (n).sh_name, ".mdebug")
 	  == 0)
@@ -1072,7 +1072,7 @@ temacs:
 	  symhdr->cbRfdOffset += new_data2_size;
 	  symhdr->cbExtOffset += new_data2_size;
 	}
-#endif /* __alpha__ */
+#endif /* __alpha__ && !__OpenBSD__ */
 
 #if defined (_SYSTYPE_SYSV)
       if (NEW_SECTION_H (nn).sh_type == SHT_MIPS_DEBUG

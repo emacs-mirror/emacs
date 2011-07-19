@@ -1,4 +1,4 @@
-2011-07-17  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer signedness and overflow and related fixes.  (Bug#9079)
 
@@ -196,6 +196,54 @@
 	* lisp.h (struct vectorlike_header, struct Lisp_Subr): Signed sizes.
 	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
 	well either way, and we prefer signed to unsigned.
+
+2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to OpenBSD.
+	See http://lists.gnu.org/archive/html/emacs-devel/2011-07/msg00688.html
+	and the surrounding thread.
+	* minibuf.c (read_minibuf_noninteractive): Rewrite to use getchar
+	rather than fgets, and retry after EINTR.  Otherwise, 'emacs
+	--batch -f byte-compile-file' fails on OpenBSD if an inactivity
+	timer goes off.
+	* s/openbsd.h (BROKEN_SIGIO): Define.
+	* unexelf.c (unexec) [__OpenBSD__]:
+	Don't update the .mdebug section of the Alpha COFF symbol table.
+
+2011-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* lread.c (syms_of_lread): Clarify when `lexical-binding' is used
+	(bug#8460).
+
+2011-07-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Fcopy_file) [!MSDOS]: Tighten created file's mask.
+	This fixes some race conditions on the permissions of any newly
+	created file.
+
+	* alloc.c (valid_pointer_p): Use pipe, not open.
+	This fixes some permissions issues when debugging.
+
+	* fileio.c (Fcopy_file): Adjust mode if fchown fails.  (Bug#9002)
+	If fchown fails to set both uid and gid, try to set just gid,
+	as that is sometimes allowed.  Adjust the file's mode to eliminate
+	setuid or setgid bits that are inappropriate if fchown fails.
+
+2011-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (next_element_from_string, next_element_from_buffer): Use EQ
+	to compare Lisp_Objects.
+	* gnutls.c (syms_of_gnutls): Rename Vgnutls_log_level to
+	global_gnutls_log_level, don't mistake it for a Lisp_Object.
+	(init_gnutls_functions, emacs_gnutls_handle_error): Fix up uses.
+
+2011-07-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lread.c (read_integer): Unread even EOF character.
+	(read1): Likewise.  Properly record start position of symbol.
+
+	* lread.c (read1): Read `#:' as empty uninterned symbol if no
+	symbol character follows.
 
 2011-07-17  Paul Eggert  <eggert@cs.ucla.edu>
 
