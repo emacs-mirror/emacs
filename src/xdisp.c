@@ -3140,8 +3140,12 @@ next_overlay_change (EMACS_INT pos)
 /* Record one cached display string position found recently by
    compute_display_string_pos.  */
 static EMACS_INT cached_disp_pos;
+static EMACS_INT cached_prev_pos;
 static struct buffer *cached_disp_buffer;
 static int cached_disp_modiff;
+static int cached_disp_overlay_modiff;
+
+static int ignore_display_strings;
 
 /* Return the character position of a display string at or after
    position specified by POSITION.  If no display string exists at or
@@ -3171,7 +3175,8 @@ compute_display_string_pos (struct text_pos *position,
 	 that have display string properties.  */
       || string->from_disp_str
       /* C strings cannot have display properties.  */
-      || (string->s && !STRINGP (object)))
+      || (string->s && !STRINGP (object))
+      || ignore_display_strings)
     return eob;
 
   /* Check the cached values.  */
@@ -3183,12 +3188,22 @@ compute_display_string_pos (struct text_pos *position,
 	b = XBUFFER (object);
       if (b == cached_disp_buffer
 	  && BUF_MODIFF (b) == cached_disp_modiff
-	  && charpos <= cached_disp_pos)
-	return cached_disp_pos;
+	  && BUF_OVERLAY_MODIFF (b) == cached_disp_overlay_modiff)
+	{
+	  if (cached_prev_pos
+	      && cached_prev_pos < charpos && charpos <= cached_disp_pos)
+	    return cached_disp_pos;
+	  /* Handle overstepping eather end of the known interval.  */
+	  if (charpos > cached_disp_pos)
+	    cached_prev_pos = cached_disp_pos;
+	  else	/* charpos <= cached_prev_pos */
+	    cached_prev_pos = max (charpos - 1, BEGV);
+	}
 
       /* Record new values in the cache.  */
       cached_disp_buffer = b;
       cached_disp_modiff = BUF_MODIFF (b);
+      cached_disp_overlay_modiff = BUF_OVERLAY_MODIFF (b);
     }
 
   /* If the character at CHARPOS is where the display string begins,
@@ -5758,17 +5773,11 @@ reseat (struct it *it, struct text_pos pos, int force_p)
 	{
 	  /* For bidi iteration, we need to prime prev_stop and
 	     base_level_stop with our best estimations.  */
-	  if (CHARPOS (pos) < it->prev_stop)
-	    {
-	      handle_stop_backwards (it, BEGV);
-	      if (CHARPOS (pos) < it->base_level_stop)
-		it->base_level_stop = 0;
-	    }
-	  else if (CHARPOS (pos) > it->stop_charpos
-		   && it->stop_charpos >= BEGV)
-	    handle_stop_backwards (it, it->stop_charpos);
-	  else	/* force_p */
-	    handle_stop (it);
+	  if (CHARPOS (pos) != it->prev_stop)
+	    it->prev_stop = CHARPOS (pos);
+	  if (CHARPOS (pos) < it->base_level_stop)
+	    it->base_level_stop = 0;
+	  handle_stop (it);
 	}
       else
 	{
@@ -7022,10 +7031,10 @@ next_element_from_string (struct it *it)
 		  embedding level, so test for that explicitly.  */
 	       && !BIDI_AT_BASE_LEVEL (it->bidi_it))
 	{
-	  /* If we lost track of base_level_stop, we have no better place
-	     for handle_stop_backwards to start from than BEGV.  This
-	     happens, e.g., when we were reseated to the previous
-	     screenful of text by vertical-motion.  */
+	  /* If we lost track of base_level_stop, we have no better
+	     place for handle_stop_backwards to start from than string
+	     beginning.  This happens, e.g., when we were reseated to
+	     the previous screenful of text by vertical-motion.  */
 	  if (it->base_level_stop <= 0
 	      || IT_STRING_CHARPOS (*it) < it->base_level_stop)
 	    it->base_level_stop = 0;
@@ -7230,6 +7239,7 @@ handle_stop_backwards (struct it *it, EMACS_INT charpos)
   struct text_pos save_position = it->position;
   struct text_pos pos1;
   EMACS_INT next_stop;
+  int found_stop = 0;
 
   /* Scan in strict logical order.  */
   it->bidi_p = 0;
@@ -7247,17 +7257,24 @@ handle_stop_backwards (struct it *it, EMACS_INT charpos)
       /* We must advance forward, right?  */
       if (it->stop_charpos <= it->prev_stop)
 	abort ();
+      /* Did we find at least one stop_pos between CHARPOS and IT's
+	 current position?  */
+      if (it->stop_charpos <= where_we_are)
+	found_stop = 1;
       charpos = it->stop_charpos;
     }
   while (charpos <= where_we_are);
 
-  next_stop = it->stop_charpos;
-  it->stop_charpos = it->prev_stop;
   it->bidi_p = 1;
   it->current = save_current;
   it->position = save_position;
-  handle_stop (it);
-  it->stop_charpos = next_stop;
+  if (found_stop)
+    {
+      next_stop = it->stop_charpos;
+      it->stop_charpos = it->prev_stop;
+      handle_stop (it);
+      it->stop_charpos = next_stop;
+    }
 }
 
 /* Load IT with the next display element from current_buffer.  Value
@@ -7352,14 +7369,16 @@ next_element_from_buffer (struct it *it)
 	      embedding level, so test for that explicitly.  */
 	   && !BIDI_AT_BASE_LEVEL (it->bidi_it))
     {
-      /* If we lost track of base_level_stop, we have no better place
-	 for handle_stop_backwards to start from than BEGV.  This
-	 happens, e.g., when we were reseated to the previous
-	 screenful of text by vertical-motion.  */
+      EMACS_INT start_from;
+      /* If we lost track of base_level_stop, we try looking backwards
+	 for at most 1000 characters.  This happens, e.g., when we
+	 were reseated to the previous screenful of text by
+	 vertical-motion.  */
       if (it->base_level_stop <= 0
 	  || IT_CHARPOS (*it) < it->base_level_stop)
 	it->base_level_stop = BEGV;
-      handle_stop_backwards (it, it->base_level_stop);
+      start_from = max (it->base_level_stop, IT_CHARPOS (*it) - 1000);
+      handle_stop_backwards (it, start_from);
       return GET_NEXT_DISPLAY_ELEMENT (it);
     }
   else

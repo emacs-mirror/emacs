@@ -1,3 +1,18 @@
+2011-07-19  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix a significant slow-down of vertical-motion when leaning on C-n
+	or C-p in a fontified buffer.
+	* xdisp.c (reseat): Don't look for prev_stop, as that could mean a
+	very long run.
+	(next_element_from_buffer): When iterator oversteps prev_pos
+	backwards, don't search for a new prev_stop more than 1000
+	characters back.
+	(handle_stop_backwards): Don't assume that CHARPOS is necessarily
+	a stop_pos.
+	(compute_display_string_pos): Check also BUF_OVERLAY_MODIFF for a
+	match, when testing the cached display string position for
+	applicability.
+
 2011-07-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c <cached_disp_pos, cached_disp_buffer, cached_disp_modiff>:
