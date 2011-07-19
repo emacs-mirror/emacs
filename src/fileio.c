@@ -1937,10 +1937,19 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
 		    | (NILP (ok_if_already_exists) ? O_EXCL : 0),
 		    S_IREAD | S_IWRITE);
 #else  /* not MSDOS */
-  ofd = emacs_open (SSDATA (encoded_newname),
-		    O_WRONLY | O_TRUNC | O_CREAT
-		    | (NILP (ok_if_already_exists) ? O_EXCL : 0),
-		    0666);
+  {
+    int new_mask = 0666;
+    if (input_file_statable_p)
+      {
+	if (!NILP (preserve_uid_gid))
+	  new_mask = 0600;
+	new_mask &= st.st_mode;
+      }
+    ofd = emacs_open (SSDATA (encoded_newname),
+		      (O_WRONLY | O_TRUNC | O_CREAT
+		       | (NILP (ok_if_already_exists) ? O_EXCL : 0)),
+		      new_mask);
+  }
 #endif /* not MSDOS */
   if (ofd < 0)
     report_file_error ("Opening output file", Fcons (newname, Qnil));

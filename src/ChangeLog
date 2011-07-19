@@ -1,4 +1,16 @@
+2011-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* lread.c (syms_of_lread): Clarify when `lexical-binding' is used
+	(bug#8460).
+
 2011-07-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Fcopy_file) [!MSDOS]: Tighten created file's mask.
+	This fixes some race conditions on the permissions of any newly
+	created file.
+
+	* alloc.c (valid_pointer_p): Use pipe, not open.
+	This fixes some permissions issues when debugging.
 
 	* fileio.c (Fcopy_file): Adjust mode if fchown fails.  (Bug#9002)
 	If fchown fails to set both uid and gid, try to set just gid,
