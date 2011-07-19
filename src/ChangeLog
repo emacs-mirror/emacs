@@ -1,5 +1,9 @@
 2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* charset.c (Fdefine_charset_internal): Check for integer overflow.
+	Add a FIXME comment about memory leaks.
+	(syms_of_charset): Don't assume xmalloc returns.
+
 	Don't assume that stated character widths fit in int.
 	* character.c (Fchar_width, c_string_width, lisp_string_width):
 	* character.h (CHAR_WIDTH):

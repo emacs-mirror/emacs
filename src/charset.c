@@ -1150,13 +1150,28 @@ usage: (define-charset-internal ...)  */)
 				     hash_code);
       if (charset_table_used == charset_table_size)
 	{
-	  struct charset *new_table
+	  struct charset *new_table;
+	  /* Ensure that charset IDs fit into 'int' as well as into the
+	     restriction imposed by fixnums, ptrdiff_t, and size_t.
+	     Although the 'int' restriction could be removed, too much other
+	     code would need altering; for example, the IDs are stuffed into
+	     struct coding_system.charbuf[i] entries, which are 'int'.  */
+	  int charset_table_size_max =
+	    min (min (INT_MAX, MOST_POSITIVE_FIXNUM),
+		 min (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct charset));
+	  if (charset_table_size_max - 16 < charset_table_size)
+	    memory_full (SIZE_MAX);
+	  new_table
 	    = (struct charset *) xmalloc (sizeof (struct charset)
 					  * (charset_table_size + 16));
 	  memcpy (new_table, charset_table,
 		  sizeof (struct charset) * charset_table_size);
 	  charset_table_size += 16;
 	  charset_table = new_table;
+	  /* FIXME: Doesn't this leak memory?  The old charset_table
+	     becomes unreachable.  If the memory leak is intentional,
+	     a comment should be added to explain this.  If not, the
+	     old charset_table should be freed, using xfree.  */
 	}
       id = charset_table_used++;
       new_definition_p = 1;
@@ -2347,9 +2362,8 @@ syms_of_charset (void)
     Vcharset_hash_table = Fmake_hash_table (2, args);
   }
 
+  charset_table = (struct charset *) xmalloc (sizeof (struct charset) * 128);
   charset_table_size = 128;
-  charset_table = ((struct charset *)
-		   xmalloc (sizeof (struct charset) * charset_table_size));
   charset_table_used = 0;
 
   defsubr (&Scharsetp);
