@@ -415,7 +415,7 @@ struct coding_system
      setup_coding_system.  At the early stage of building time, this
      value is -1 in the array coding_categories to indicate that no
      coding-system of that category is yet defined.  */
-  int id;
+  ptrdiff_t id;
 
   /* Flag bits of the coding system.  The meaning of each bit is common
      to all types of coding systems.  */

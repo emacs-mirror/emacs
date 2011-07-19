@@ -148,7 +148,7 @@ struct charset
   int id;
 
   /* Index to Vcharset_hash_table.  */
-  EMACS_INT hash_index;
+  ptrdiff_t hash_index;
 
   /* Dimension of the charset: 1, 2, 3, or 4.  */
   int dimension;
@@ -341,7 +341,7 @@ extern int emacs_mule_charset[256];
    number of the charset.  Otherwise, signal an error. */
 #define CHECK_CHARSET_GET_ID(x, id)					\
   do {									\
-    int idx;								\
+    ptrdiff_t idx;							\
 									\
     if (! SYMBOLP (x) || (idx = CHARSET_SYMBOL_HASH_INDEX (x)) < 0)	\
       wrong_type_argument (Qcharsetp, (x));				\

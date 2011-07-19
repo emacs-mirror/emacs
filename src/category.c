@@ -67,7 +67,7 @@ static Lisp_Object
 hash_get_category_set (Lisp_Object table, Lisp_Object category_set)
 {
   struct Lisp_Hash_Table *h;
-  EMACS_INT i;
+  ptrdiff_t i;
   EMACS_UINT hash;
 
   if (NILP (XCHAR_TABLE (table)->extras[1]))

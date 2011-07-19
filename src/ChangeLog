@@ -1,5 +1,20 @@
 2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use ptrdiff_t for hash table indexes.
+	* category.c (hash_get_category_set):
+	* ccl.c (ccl_driver):
+	* charset.h (struct charset.hash_index, CHECK_CHARSET_GET_ID):
+	* coding.c (coding_system_charset_list, detect_coding_system):
+	* coding.h (struct coding_system.id):
+	* composite.c (get_composition_id, gstring_lookup_cache):
+	* fns.c (hash_lookup, hash_put, Fgethash, Fputhash):
+	* image.c (xpm_get_color_table_h):
+	* lisp.h (hash_lookup, hash_put):
+	* minibuf.c (Ftest_completion):
+	Use ptrdiff_t for hash table indexes, not int (which is too
+	narrow, on 64-bit hosts) or EMACS_INT (which is too wide, on
+	32-bit --with-wide-int hosts).
+
 	* charset.c (Fdefine_charset_internal): Check for integer overflow.
 	Add a FIXME comment about memory leaks.
 	(syms_of_charset): Don't assume xmalloc returns.

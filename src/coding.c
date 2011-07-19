@@ -5838,7 +5838,7 @@ coding_charset_list (struct coding_system *coding)
 Lisp_Object
 coding_system_charset_list (Lisp_Object coding_system)
 {
-  int id;
+  ptrdiff_t id;
   Lisp_Object attrs, charset_list;
 
   CHECK_CODING_SYSTEM_GET_ID (coding_system, id);
@@ -8076,7 +8076,7 @@ detect_coding_system (const unsigned char *src,
   Lisp_Object attrs, eol_type;
   Lisp_Object val = Qnil;
   struct coding_system coding;
-  int id;
+  ptrdiff_t id;
   struct coding_detection_info detect_info;
   enum coding_category base_category;
   int null_byte_found = 0, eight_bit_found = 0;

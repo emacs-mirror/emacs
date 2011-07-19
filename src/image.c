@@ -3807,8 +3807,8 @@ xpm_get_color_table_h (Lisp_Object color_table,
                        int chars_len)
 {
   struct Lisp_Hash_Table *table = XHASH_TABLE (color_table);
-  int i = hash_lookup (table, make_unibyte_string (chars_start, chars_len),
-		       NULL);
+  ptrdiff_t i =
+    hash_lookup (table, make_unibyte_string (chars_start, chars_len), NULL);
 
   return i >= 0 ? HASH_VALUE (table, i) : Qnil;
 }
