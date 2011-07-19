@@ -1,3 +1,8 @@
+2011-07-19  Stephen Berman  <stephen.berman@gmx.net>
+
+	* proced.el (proced-format): Make header lines align with the text
+	(bug#1779).
+
 2011-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* view.el (view-buffer): Allow running in `special' modes if we're
