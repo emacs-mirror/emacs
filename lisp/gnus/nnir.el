@@ -1640,6 +1640,7 @@ server is of form 'backend:name'."
   (let ((method (gnus-server-to-method server)))
     (cond ((and method (assq key (cddr method)))
     	   (nth 1 (assq key (cddr method))))
+	  ((boundp key) (symbol-value key))
     	  (t nil))))
 
 (defun nnir-possibly-change-server (server)

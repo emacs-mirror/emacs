@@ -1,3 +1,37 @@
+2011-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-read-ephemeral-group): Make sure we don't
+	enter invalid buffer configurations into the quit form (bug#9107).
+	(gnus-group-tool-bar-gnome): Replace connect/disconnect with
+	unplugged/plugged.
+
+	* gnus-sum.el (gnus-summary-refer-thread): When inserting new headers,
+	keep track of which ones are unread (bug#9061).
+
+	* gnus.el (gnus-refer-article-method): Allow entering any sexp
+	(bug#9055).
+
+	* gnus-art.el (gnus-article-show-images): Allow working if using w3m
+	(bug#9041).
+
+	* gnus-html.el (mm-util): Require (bug#9073).
+
+	* gnus-sum.el (gnus-delete-duplicate-headers): New function.
+	(gnus-summary-refer-thread): Use it to remove duplicates in the
+	un-threaded view (bug#9053).
+	(gnus-summary-insert-subject): Document USE-OLD-HEADER (bug#9070).
+
+2011-07-07  Kan-Ru Chen  <kanru@kanru.info>
+
+	* nnir.el (nnir-read-server-parm): Use default value from global
+	variable.  Without this the default search engine parameters aren't
+	used at all.
+
+2011-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-unique-id): Don't use the undocumented return
+	value from (random t) (bug#9118).
+
 2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* message.el (message-auto-save-directory): If the ~/Mail directory

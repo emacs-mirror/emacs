@@ -1435,6 +1435,7 @@ list, Gnus will try all the methods in the list until it finds a match."
 		 (const current)
 		 (const :tag "Google" (nnweb "refer" (nnweb-type google)))
 		 gnus-select-method
+		 sexp
 		 (repeat :menu-tag "Try multiple"
 			 :tag "Multiple"
 			 :value (current (nnweb "refer" (nnweb-type google)))
