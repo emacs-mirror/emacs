@@ -29,8 +29,6 @@
 	now that we have two such functions.  All uses changed.
 	(sanitize_char_width): New inline function.
 
-2011-07-18  Paul Eggert  <eggert@cs.ucla.edu>
-
 	Don't assume that tab-width fits in int.
 	* character.h (sanitize_width): New inline function.
 	(SANE_TAB_WIDTH): New macro.
@@ -45,8 +43,6 @@
 	* charset.c (read_hex): New arg OVERFLOW.  All uses changed.
 	Remove unreachable code.
 	(read_hex, load_charset_map_from_file): Check for integer overflow.
-
-2011-07-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xterm.c: don't go over XClientMessageEvent limit
 	(scroll_bar_windows_size): Now ptrdiff_t, as we prefer signed.
@@ -109,8 +105,6 @@
 	size_t fits in 'long'.
 	(gs_load): Use printmax_t to print the widest integers possible.
 	Check for integer overflow when computing image height and width.
-
-2011-07-17  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer signedness and overflow and related fixes.  (Bug#9079)
 
@@ -308,6 +302,36 @@
 	* lisp.h (struct vectorlike_header, struct Lisp_Subr): Signed sizes.
 	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
 	well either way, and we prefer signed to unsigned.
+
+2011-07-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Fcopy_file) [!MSDOS]: Tighten created file's mask.
+	This fixes some race conditions on the permissions of any newly
+	created file.
+
+	* alloc.c (valid_pointer_p): Use pipe, not open.
+	This fixes some permissions issues when debugging.
+
+	* fileio.c (Fcopy_file): Adjust mode if fchown fails.  (Bug#9002)
+	If fchown fails to set both uid and gid, try to set just gid,
+	as that is sometimes allowed.  Adjust the file's mode to eliminate
+	setuid or setgid bits that are inappropriate if fchown fails.
+
+2011-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (next_element_from_string, next_element_from_buffer): Use EQ
+	to compare Lisp_Objects.
+	* gnutls.c (syms_of_gnutls): Rename Vgnutls_log_level to
+	global_gnutls_log_level, don't mistake it for a Lisp_Object.
+	(init_gnutls_functions, emacs_gnutls_handle_error): Fix up uses.
+
+2011-07-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lread.c (read_integer): Unread even EOF character.
+	(read1): Likewise.  Properly record start position of symbol.
+
+	* lread.c (read1): Read `#:' as empty uninterned symbol if no
+	symbol character follows.
 
 2011-07-17  Paul Eggert  <eggert@cs.ucla.edu>
 

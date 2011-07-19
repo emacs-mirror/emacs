@@ -1301,12 +1301,13 @@ This function does not do any hidden buffer changes."
       ;; same line.
       (re-search-forward "\\=\\s *[\n\r]" start t)
 
-      (if (if (forward-comment -1)
+      (if (if (let (open-paren-in-column-0-is-defun-start) (forward-comment -1))
 	      (if (eolp)
 		  ;; If forward-comment above succeeded and we're at eol
 		  ;; then the newline we moved over above didn't end a
 		  ;; line comment, so we give it another go.
-		  (forward-comment -1)
+		  (let (open-paren-in-column-0-is-defun-start)
+		    (forward-comment -1))
 		t))
 
 	  ;; Emacs <= 20 and XEmacs move back over the closer of a
@@ -1333,7 +1334,8 @@ comment at the start of cc-engine.el for more info."
 	    ;; return t when moving backwards at bob.
 	    (not (bobp))
 
-	    (if (forward-comment -1)
+	    (if (let (open-paren-in-column-0-is-defun-start)
+		  (forward-comment -1))
 		(if (looking-at "\\*/")
 		    ;; Emacs <= 20 and XEmacs move back over the
 		    ;; closer of a block comment that lacks an opener.

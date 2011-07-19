@@ -141,7 +141,7 @@ struct Lisp_Process
 /* Every field in the preceding structure except for the first two
    must be a Lisp_Object, for GC's sake.  */
 
-#define ChannelMask(n) (1<<(n))
+#define ChannelMask(n) (1 << (n))
 
 /* True if we are about to fork off a synchronous process or if we
    are waiting for it.  */

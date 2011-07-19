@@ -193,8 +193,7 @@ init_gnutls_functions (Lisp_Object libraries)
   LOAD_GNUTLS_FN (library, gnutls_x509_crt_import);
   LOAD_GNUTLS_FN (library, gnutls_x509_crt_init);
 
-  if (NUMBERP (Vgnutls_log_level))
-    max_log_level = XINT (Vgnutls_log_level);
+  max_log_level = global_gnutls_log_level;
 
   GNUTLS_LOG2 (1, max_log_level, "GnuTLS library loaded:",
                SDATA (Fget (Qgnutls_dll, QCloaded_from)));
@@ -406,8 +405,7 @@ emacs_gnutls_handle_error (gnutls_session_t session, int err)
   if (err >= 0)
     return 0;
 
-  if (NUMBERP (Vgnutls_log_level))
-    max_log_level = XINT (Vgnutls_log_level);
+  max_log_level = global_gnutls_log_level;
 
   /* TODO: use gnutls-error-fatalp and gnutls-error-string.  */
 
@@ -1155,9 +1153,9 @@ syms_of_gnutls (void)
   defsubr (&Sgnutls_bye);
   defsubr (&Sgnutls_available_p);
 
-  DEFVAR_INT ("gnutls-log-level", Vgnutls_log_level,
-	      doc: /* Logging level used by the GnuTLS functions. */);
-  Vgnutls_log_level = make_number (0);
+  DEFVAR_INT ("gnutls-log-level", global_gnutls_log_level,
+	      doc: /* Logging level used by the GnuTLS functions.  */);
+  global_gnutls_log_level = 0;
 }
 
 #endif /* HAVE_GNUTLS */

@@ -251,18 +251,6 @@ The argument STRING is ignored."
   (buffer-substring-no-properties
    (match-beginning num) (match-end num)))
 
-(defun-mh mh-pop-to-buffer-same-window
-  pop-to-buffer-same-window (&optional buffer-or-name norecord label)
-  "Pop to buffer specified by BUFFER-OR-NAME in the selected window.
-Another window will be used only if the buffer can't be shown in
-the selected window, usually because it is dedicated to another
-buffer. Optional arguments BUFFER-OR-NAME, NORECORD and LABEL are
-as for `pop-to-buffer'. This macro is used by Emacs versions that
-lack the `pop-to-buffer-same-window' function, introduced in
-Emacs 24. The function `switch-to-buffer' is used instead and
-LABEL is ignored."
-  (switch-to-buffer buffer-or-name norecord))
-
 (defun-mh mh-replace-regexp-in-string replace-regexp-in-string
   (regexp rep string &optional fixedcase literal subexp start)
   "Replace REGEXP with REP everywhere in STRING and return result.
