@@ -6588,6 +6588,15 @@ split."
 
 ;; Functions for converting Emacs 23 buffer display options to buffer
 ;; display specifiers.
+(defun display-buffer-alist-of-strings-p (list)
+  "Return t if LIST is a non-empty list of strings."
+  (when list
+    (catch 'failed
+      (dolist (item list)
+	(unless (stringp item)
+	  (throw 'failed nil)))
+      t)))
+
 (defun display-buffer-alist-add (identifiers specifiers &optional no-custom)
   "Helper function for `display-buffer-alist-set'."
   (unless identifiers
@@ -6602,6 +6611,40 @@ split."
      'display-buffer-alist
      (cons (cons identifiers specifiers) display-buffer-alist))))
 
+(defun display-buffer-alist-set-1 ()
+  "Helper function for `display-buffer-alist-set'."
+  (progn ;; with-no-warnings
+    (append
+     '(reuse-window (reuse-window nil same 0))
+     `(pop-up-frame (pop-up-frame t)
+		    ,(append '(pop-up-frame-alist)
+			     special-display-frame-alist))
+     '((dedicate . weak)))))
+
+(defun display-buffer-alist-set-2 (args)
+  "Helper function for `display-buffer-alist-set'."
+  (progn ;; with-no-warnings
+    (if (and (listp args) (symbolp (car args)))
+	`(function (function ,(car args) ,(cdr args)))
+      (append
+       '(reuse-window (reuse-window nil same 0))
+       (when (and (listp args) (cdr (assq 'same-window args)))
+	 '(reuse-window
+	   (reuse-window same nil nil) (reuse-window-dedicated . weak)))
+       (when (and (listp args)
+		  (or (cdr (assq 'same-frame args))
+		      (cdr (assq 'same-window args))))
+	 '(pop-up-window (pop-up-window (largest . nil) (lru . nil))))
+       (when (and (listp args)
+		  (or (cdr (assq 'same-frame args))
+		      (cdr (assq 'same-window args))))
+	 '(reuse-window (reuse-window nil nil nil)))
+       `(pop-up-frame (pop-up-frame t)
+		      ,(append '(pop-up-frame-alist)
+			       (when (listp args) args)
+			       special-display-frame-alist))
+       '((dedicate . weak))))))
+
 (defun display-buffer-alist-set (&optional no-custom add)
   "Set `display-buffer-alist' from Emacs 23 buffer display options.
 Optional argument NO-CUSTOM nil means use `customize-set-variable'
@@ -6611,201 +6654,164 @@ means to use `setq' instead.
 Optional argument ADD nil means to replace the actual value of
 `display-buffer-alist' with the value calculated here.  ADD
 non-nil means prepend the value calculated here to the current
-value of `display-buffer-alist'."
+value of `display-buffer-alist'.  Return `display-buffer-alist'."
   (unless add
     (if no-custom
 	(setq display-buffer-alist nil)
       (customize-set-variable 'display-buffer-alist nil)))
 
   ;; Disable warnings, there are too many obsolete options here.
-  (with-no-warnings
-    ;; `pop-up-windows'
-    (display-buffer-alist-add
-     nil
-     (let ((fun (unless (eq split-window-preferred-function
-			    'split-window-sensibly)
-		  ;; `split-window-sensibly' has been merged into the
-		  ;; `display-buffer-split-window' code as `nil'.
-		  split-window-preferred-function))
-	   (min-height
-	    (if (numberp split-height-threshold)
-		(/ split-height-threshold 2)
-	      ;; Undocumented hack.
-	      1.0))
-	   (min-width
-	    (if (numberp split-width-threshold)
-		(/ split-width-threshold 2)
-	      ;; Undocumented hack.
-	      1.0)))
-       (list
-	'pop-up-window
-	(when pop-up-windows
-	  (list
-	   'pop-up-window
-	   (cons 'largest fun)
-	   (cons 'lru fun)))
-	(cons 'pop-up-window-min-height min-height)
-	(cons 'pop-up-window-min-width min-width)))
-     no-custom)
+  (progn ;; with-no-warnings
+    `other-window-means-other-frame'
+    (when pop-up-frames
+      (display-buffer-alist-add
+       nil '(pop-up-frame
+    	     (other-window-means-other-frame . t)) no-custom))
 
-    ;; `pop-up-frames'
-    (display-buffer-alist-add
-     nil
-     (list
-      'pop-up-frame
-      (when pop-up-frames
-	(list 'pop-up-frame pop-up-frames))
-      (when pop-up-frame-function
-	(cons 'pop-up-frame-function pop-up-frame-function))
-      (when pop-up-frame-alist
-	(cons 'pop-up-frame-alist pop-up-frame-alist)))
-     no-custom)
+    ;; `reuse-window-even-sizes'
+    (when even-window-heights
+      (display-buffer-alist-add
+       nil '(reuse-window (reuse-window-even-sizes . t)) no-custom))
 
-    ;; `special-display-regexps'
-    (dolist (entry special-display-regexps)
-      (cond
-       ((stringp entry)
-	;; Plain string.
-	(display-buffer-alist-add
-	 `((regexp . ,entry))
-	 (list
-	  'function
-	  (list 'function special-display-function
-		special-display-frame-alist))
-	 no-custom))
-       ((consp entry)
-	(let ((name (car entry))
-	      (rest (cdr entry)))
-	  (cond
-	   ((functionp (car rest))
-	    ;; A function.
-	    (display-buffer-alist-add
-	     `((name . ,name))
-	     (list
-	      'function
-	      ;; Weary.
-	      (list 'function (car rest) (cadr rest)))
-	     no-custom))
-	   ((listp rest)
-	    ;; A list of parameters.
-	    (cond
-	     ((assq 'same-window rest)
-	      (display-buffer-alist-add
-	       `((name . ,name))
-	       (list 'reuse-window
-		     (list 'reuse-window 'same)
-		     (list 'reuse-window-dedicated 'weak))
-	       no-custom))
-	     ((assq 'same-frame rest)
-	      (display-buffer-alist-add
-	       `((name . ,name)) (list 'same-frame) no-custom))
-	     (t
-	      (display-buffer-alist-add
-	       `((name . ,name))
-	       (list
-		'function
-		(list 'function special-display-function
-		      special-display-frame-alist))
-	       no-custom)))))))))
-
-    ;; `special-display-buffer-names'
-    (dolist (entry special-display-buffer-names)
-      (cond
-       ((stringp entry)
-	;; Plain string.
-	(display-buffer-alist-add
-	 `((name . ,entry))
-	 (list
-	  'function
-	  (list 'function special-display-function
-		special-display-frame-alist))
-	 no-custom))
-       ((consp entry)
-	(let ((name (car entry))
-	      (rest (cdr entry)))
-	  (cond
-	   ((functionp (car rest))
-	    ;; A function.
-	    (display-buffer-alist-add
-	     `((name . ,name))
-	     (list
-	      'function
-	      ;; Weary.
-	      (list 'function (car rest) (cadr rest)))
-	     no-custom))
-	   ((listp rest)
-	    ;; A list of parameters.
-	    (cond
-	     ((assq 'same-window rest)
-	      (display-buffer-alist-add
-	       `((name . ,name))
-	       (list 'reuse-window
-		     (list 'reuse-window 'same)
-		     (list 'reuse-window-dedicated 'weak))
-	       no-custom))
-	     ((assq 'same-frame rest)
-	      (display-buffer-alist-add
-	       `((name . ,name)) (list 'same-frame) no-custom))
-	     (t
-	      (display-buffer-alist-add
-	       `((name . ,name))
-	       (list
-		'function
-		(list 'function special-display-function
-		      special-display-frame-alist))
-	       no-custom)))))))))
-
-    ;; `same-window-regexps'
-    (dolist (entry same-window-regexps)
-      (cond
-       ((stringp entry)
-	(display-buffer-alist-add
-	 `((regexp . ,entry))
-	 (list 'reuse-window (list 'reuse-window 'same))
-	 no-custom))
-       ((consp entry)
-	(display-buffer-alist-add
-	 `((regexp . ,(car entry)))
-	 (list 'reuse-window (list 'reuse-window 'same))
-	 no-custom))))
-
-    ;; `same-window-buffer-names'
-    (dolist (entry same-window-buffer-names)
-      (cond
-       ((stringp entry)
-	(display-buffer-alist-add
-	 `((name . ,entry))
-	 (list 'reuse-window (list 'reuse-window 'same))
-	 no-custom))
-       ((consp entry)
-	(display-buffer-alist-add
-	 `((name . ,(car entry)))
-	 (list 'reuse-window (list 'reuse-window 'same))
-	 no-custom))))
-
-    ;; `reuse-window'
-    (display-buffer-alist-add
-     nil
-     (list
-      'reuse-window
-      (list 'reuse-window nil 'same
-	    (when (or display-buffer-reuse-frames pop-up-frames)
-	      ;; "0" (all visible and iconified frames) is hardcoded in
-	      ;; Emacs 23.
-	      0))
-      (when even-window-heights
-	(cons 'reuse-window-even-sizes t)))
-     no-custom)
-
-    ;; `display-buffer-mark-dedicated'
+    ;; `dedicate'
     (when display-buffer-mark-dedicated
+      (display-buffer-alist-add
+       nil '(dedicate (display-buffer-mark-dedicated . t)) no-custom))
+
+    ;; `pop-up-window' group
+    (let ((fun (unless (eq split-window-preferred-function
+    			   'split-window-sensibly)
+    		 split-window-preferred-function))
+    	  (min-height
+    	   (if (numberp split-height-threshold)
+    	       (/ split-height-threshold 2)
+    	     1.0))
+    	  (min-width
+    	   (if (numberp split-width-threshold)
+    	       (/ split-width-threshold 2)
+    	     1.0)))
       (display-buffer-alist-add
        nil
        (list
-	(cons 'dedicate display-buffer-mark-dedicated))
-       no-custom)))
+    	'pop-up-window
+    	;; `pop-up-window'
+    	(when pop-up-windows
+    	  (list 'pop-up-window (cons 'largest fun) (cons 'lru fun)))
+    	;; `pop-up-window-min-height'
+    	(cons 'pop-up-window-min-height min-height)
+    	;; `pop-up-window-min-width'
+    	(cons 'pop-up-window-min-width min-width))
+       no-custom))
 
-  display-buffer-alist)
+    ;; `pop-up-frame' group
+    (when (or pop-up-frames
+    	      (not (equal pop-up-frame-function
+    			  '(lambda nil
+    			     (make-frame pop-up-frame-alist))))
+    	      pop-up-frame-alist)
+      (display-buffer-alist-add
+       nil
+       (list
+    	'pop-up-frame
+    	(when pop-up-frames
+    	  ;; `pop-up-frame'
+    	  (list 'pop-up-frame
+    		(when (eq pop-up-frames 'graphic-only)
+    		  t)))
+    	(unless (equal pop-up-frame-function
+    		       '(lambda nil
+    			  (make-frame pop-up-frame-alist)))
+    	  ;; `pop-up-frame-function'
+    	  (cons 'pop-up-frame-function pop-up-frame-function))
+    	(when pop-up-frame-alist
+    	  ;; `pop-up-frame-alist'
+    	  (cons 'pop-up-frame-alist pop-up-frame-alist)))
+       no-custom))
+
+    ;; `special-display-regexps'
+    (if (display-buffer-alist-of-strings-p special-display-regexps)
+    	;; Handle case where `special-display-regexps' is a plain list
+    	;; of strings specially.
+	(let (list)
+	  (dolist (regexp special-display-regexps)
+	    (setq list (cons (cons 'regexp regexp) list)))
+	  (setq list (nreverse list))
+	  (display-buffer-alist-add
+	   list (display-buffer-alist-set-1) no-custom))
+      ;; Else iterate over the entries.
+      (dolist (item special-display-regexps)
+    	(if (stringp item)
+    	    (display-buffer-alist-add
+    	     `((regexp . ,item)) (display-buffer-alist-set-1)
+	     no-custom)
+	  (display-buffer-alist-add
+	   `((regexp . ,(car item)))
+	   (display-buffer-alist-set-2 (cdr item))
+	   no-custom))))
+
+    ;; `special-display-buffer-names'
+    (if (display-buffer-alist-of-strings-p special-display-buffer-names)
+    	;; Handle case where `special-display-buffer-names' is a plain
+    	;; list of strings specially.
+	(let (list)
+	  (dolist (name special-display-buffer-names)
+	    (setq list (cons (cons 'name name) list)))
+	  (setq list (nreverse list))
+	  (display-buffer-alist-add
+	   list (display-buffer-alist-set-1) no-custom))
+      ;; Else iterate over the entries.
+      (dolist (item special-display-buffer-names)
+    	(if (stringp item)
+    	    (display-buffer-alist-add
+    	     `((name . ,item)) (display-buffer-alist-set-1)
+	     no-custom)
+	  (display-buffer-alist-add
+	   `((name . ,(car item)))
+	   (display-buffer-alist-set-2 (cdr item))
+	   no-custom))))
+
+    ;; `same-window-regexps'
+    (if (display-buffer-alist-of-strings-p same-window-regexps)
+    	;; Handle case where `same-window-regexps' is a plain list of
+    	;; strings specially.
+	(let (list)
+	  (dolist (regexp same-window-regexps)
+	    (setq list (cons (cons 'regexp regexp) list)))
+	  (setq list (nreverse list))
+	  (display-buffer-alist-add
+	   list '(reuse-window (reuse-window same nil nil)) no-custom))
+      (dolist (entry same-window-regexps)
+	(display-buffer-alist-add
+	 `((regexp . ,(if (stringp entry) entry (car entry))))
+	 '(reuse-window (reuse-window same nil nil)) no-custom)))
+
+    ;; `same-window-buffer-names'
+    (if (display-buffer-alist-of-strings-p same-window-buffer-names)
+    	;; Handle case where `same-window-buffer-names' is a plain list
+    	;; of strings specially.
+	(let (list)
+	  (dolist (name same-window-buffer-names)
+	    (setq list (cons (cons 'name name) list)))
+	  (setq list (nreverse list))
+	  (display-buffer-alist-add
+	   list '(reuse-window (reuse-window same nil nil)) no-custom))
+      (dolist (entry same-window-buffer-names)
+	(display-buffer-alist-add
+	 `((name . ,(if (stringp entry) entry (car entry))))
+	 '(reuse-window (reuse-window same nil nil)) no-custom)))
+
+    ;; `reuse-window'
+    (display-buffer-alist-add
+     nil `(reuse-window
+	   (reuse-window
+	    nil same
+	    ,(when (or display-buffer-reuse-frames pop-up-frames)
+	       ;; "0" (all visible and iconified frames) is
+	       ;; hardcoded in Emacs 23.
+	       0)))
+     no-custom)
+
+    display-buffer-alist))
 
 (defun set-window-text-height (window height)
   "Set the height in lines of the text display area of WINDOW to HEIGHT.
