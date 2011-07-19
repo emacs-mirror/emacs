@@ -326,7 +326,7 @@ usage: (char-width CHAR)  */)
   disp = dp ? DISP_CHAR_VECTOR (dp, c) : Qnil;
 
   if (VECTORP (disp))
-    width = ASIZE (disp);
+    width = sanitize_char_width (ASIZE (disp));
   else
     width = CHAR_WIDTH (c);
 
@@ -358,7 +358,7 @@ c_string_width (const unsigned char *str, EMACS_INT len, int precision,
 	{
 	  val = DISP_CHAR_VECTOR (dp, c);
 	  if (VECTORP (val))
-	    thiswidth = ASIZE (val);
+	    thiswidth = sanitize_char_width (ASIZE (val));
 	  else
 	    thiswidth = CHAR_WIDTH (c);
 	}
@@ -451,7 +451,7 @@ lisp_string_width (Lisp_Object string, EMACS_INT precision,
 	    {
 	      val = DISP_CHAR_VECTOR (dp, c);
 	      if (VECTORP (val))
-		thiswidth = ASIZE (val);
+		thiswidth = sanitize_char_width (ASIZE (val));
 	      else
 		thiswidth = CHAR_WIDTH (c);
 	    }

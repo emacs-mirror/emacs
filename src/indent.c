@@ -284,7 +284,7 @@ skip_invisible (EMACS_INT pos, EMACS_INT *next_boundary_p, EMACS_INT to, Lisp_Ob
     else								\
       {									\
 	if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, ch)))		\
-	  width = ASIZE (DISP_CHAR_VECTOR (dp, ch));			\
+	  width = sanitize_char_width (ASIZE (DISP_CHAR_VECTOR (dp, ch))); \
 	else								\
 	  width = CHAR_WIDTH (ch);					\
       }									\

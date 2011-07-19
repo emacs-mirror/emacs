@@ -1,3 +1,15 @@
+2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Don't assume that stated character widths fit in int.
+	* character.c (Fchar_width, c_string_width, lisp_string_width):
+	* character.h (CHAR_WIDTH):
+	* indent.c (MULTIBYTE_BYTES_WIDTH):
+	Use sanitize_char_width to avoid undefined and/or bad behavior
+	with outlandish widths.
+	* character.h (sanitize_tab_width): Renamed from sanitize_width,
+	now that we have two such functions.  All uses changed.
+	(sanitize_char_width): New inline function.
+
 2011-07-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Don't assume that tab-width fits in int.

@@ -558,10 +558,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Return a non-outlandish value for the tab width.  */
 
-#define SANE_TAB_WIDTH(buf) sanitize_width (XFASTINT (BVAR (buf, tab_width)))
-
+#define SANE_TAB_WIDTH(buf) \
+  sanitize_tab_width (XFASTINT (BVAR (buf, tab_width)))
 static inline int
-sanitize_width (EMACS_INT width)
+sanitize_tab_width (EMACS_INT width)
 {
   return 0 < width && width <= 1000 ? width : 8;
 }
@@ -579,6 +579,14 @@ sanitize_width (EMACS_INT width)
       ? 1								\
       : ((NILP (BVAR (current_buffer, ctl_arrow)) ? 4 : 2))))
 
+/* Return a non-outlandish value for a character width.  */
+
+static inline int
+sanitize_char_width (EMACS_INT width)
+{
+  return 0 <= width && width <= 1000 ? width : 1000;
+}
+
 /* Return the width of character C.  The width is measured by how many
    columns C will occupy on the screen when displayed in the current
    buffer.  */
@@ -586,7 +594,7 @@ sanitize_width (EMACS_INT width)
 #define CHAR_WIDTH(c)		\
   (ASCII_CHAR_P (c)		\
    ? ASCII_CHAR_WIDTH (c)	\
-   : XINT (CHAR_TABLE_REF (Vchar_width_table, c)))
+   : sanitize_char_width (XINT (CHAR_TABLE_REF (Vchar_width_table, c))))
 
 /* If C is a variation selector, return the index numnber of the
    variation selector (1..256).  Otherwise, return 0.  */
