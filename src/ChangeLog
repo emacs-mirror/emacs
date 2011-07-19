@@ -1,3 +1,16 @@
+2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to OpenBSD.
+	See http://lists.gnu.org/archive/html/emacs-devel/2011-07/msg00688.html
+	and the surrounding thread.
+	* minibuf.c (read_minibuf_noninteractive): Rewrite to use getchar
+	rather than fgets, and retry after EINTR.  Otherwise, 'emacs
+	--batch -f byte-compile-file' fails on OpenBSD if an inactivity
+	timer goes off.
+	* s/openbsd.h (BROKEN_SIGIO): Define.
+	* unexelf.c (unexec) [__OpenBSD__]:
+	Don't update the .mdebug section of the Alpha COFF symbol table.
+
 2011-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* lread.c (syms_of_lread): Clarify when `lexical-binding' is used
