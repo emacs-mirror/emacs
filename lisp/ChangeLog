@@ -1,3 +1,8 @@
+2011-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* view.el (view-buffer): Allow running in `special' modes if we're
+	visiting a file (bug#8615).
+
 2011-07-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-alist-of-strings-p)
