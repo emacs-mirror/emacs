@@ -423,7 +423,7 @@ lisp_string_width (Lisp_Object string, EMACS_INT precision,
     {
       EMACS_INT chars, bytes, thiswidth;
       Lisp_Object val;
-      int cmp_id;
+      ptrdiff_t cmp_id;
       EMACS_INT ignore, end;
 
       if (find_composition (i, -1, &ignore, &end, &val, string)

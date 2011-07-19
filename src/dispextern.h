@@ -1240,7 +1240,7 @@ struct glyph_string
   struct composition *cmp;
 
   /* If not negative, this string describes a compos.  */
-  int cmp_id;
+  ptrdiff_t cmp_id;
 
   /* Start and end glyph indices in a glyph-string.  */
   int cmp_from, cmp_to;
@@ -2056,7 +2056,7 @@ struct composition_it
   EMACS_INT stop_pos;
   /* ID number of the composition or glyph-string.  If negative, we
      are not iterating over a composition now.  */
-  int id;
+  ptrdiff_t id;
   /* If non-negative, character that triggers the automatic
      composition at `stop_pos', and this is an automatic composition.
      If negative, this is a static composition.  This is set to -2

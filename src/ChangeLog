@@ -1,5 +1,16 @@
 2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Use ptrdiff_t for composition IDs.
+	* character.c (lisp_string_width):
+	* composite.c (composition_table_size, n_compositions)
+	(get_composition_id, composition_gstring_from_id):
+	* dispextern.h (struct glyph_string.cmp_id, struct composition_it.id):
+	* xdisp.c (BUILD_COMPOSITE_GLYPH_STRING):
+	* window.c (Frecenter):
+	Use ptrdiff_t, not int, for composition IDs.
+	* composite.c (get_composition_id): Check for integer overflow.
+	* composite.h: Adjust prototypes to match the above changes.
+
 	Use ptrdiff_t for hash table indexes.
 	* category.c (hash_get_category_set):
 	* ccl.c (ccl_driver):

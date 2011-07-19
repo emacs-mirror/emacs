@@ -204,7 +204,7 @@ struct composition {
    COMPOSITION-ID.  */
 extern struct composition **composition_table;
 /* Number of the currently registered compositions.  */
-extern int n_compositions;
+extern ptrdiff_t n_compositions;
 
 /* Mask bits for CHECK_MASK arg to update_compositions.
    For a change in the region FROM and TO, check compositions ... */
@@ -216,8 +216,8 @@ extern int n_compositions;
 
 extern Lisp_Object Qcomposition;
 extern Lisp_Object composition_hash_table;
-extern int get_composition_id (EMACS_INT, EMACS_INT, EMACS_INT,
-			       Lisp_Object, Lisp_Object);
+extern ptrdiff_t get_composition_id (EMACS_INT, EMACS_INT, EMACS_INT,
+				     Lisp_Object, Lisp_Object);
 extern int find_composition (EMACS_INT, EMACS_INT, EMACS_INT *, EMACS_INT *,
 			     Lisp_Object *, Lisp_Object);
 extern void update_compositions (EMACS_INT, EMACS_INT, int);
@@ -299,7 +299,7 @@ struct face;
 struct font_metrics;
 
 extern Lisp_Object composition_gstring_put_cache (Lisp_Object, EMACS_INT);
-extern Lisp_Object composition_gstring_from_id (int);
+extern Lisp_Object composition_gstring_from_id (ptrdiff_t);
 extern int composition_gstring_p (Lisp_Object);
 extern int composition_gstring_width (Lisp_Object, EMACS_INT, EMACS_INT,
                                       struct font_metrics *);

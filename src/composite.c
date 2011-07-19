@@ -142,10 +142,10 @@ Lisp_Object Qcomposition;
 struct composition **composition_table;
 
 /* The current size of `composition_table'.  */
-static int composition_table_size;
+static ptrdiff_t composition_table_size;
 
 /* Number of compositions currently made. */
-int n_compositions;
+ptrdiff_t n_compositions;
 
 /* Hash table for compositions.  The key is COMPONENTS-VEC of
    `composition' property.  The value is the corresponding
@@ -172,7 +172,7 @@ Lisp_Object composition_temp;
 
    If the composition is invalid, return -1.  */
 
-int
+ptrdiff_t
 get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 		    Lisp_Object prop, Lisp_Object string)
 {
@@ -260,18 +260,22 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
   /* Check if we have sufficient memory to store this information.  */
   if (composition_table_size == 0)
     {
-      composition_table_size = 256;
       composition_table
-	= (struct composition **) xmalloc (sizeof (composition_table[0])
-					   * composition_table_size);
+	= (struct composition **) xmalloc (sizeof (composition_table[0]) * 256);
+      composition_table_size = 256;
     }
   else if (composition_table_size <= n_compositions)
     {
-      composition_table_size += 256;
+      if ((min (MOST_POSITIVE_FIXNUM,
+		min (PTRDIFF_MAX, SIZE_MAX) / sizeof composition_table[0])
+	   - 256)
+	  < composition_table_size)
+	memory_full (SIZE_MAX);
       composition_table
 	= (struct composition **) xrealloc (composition_table,
 					    sizeof (composition_table[0])
-					    * composition_table_size);
+					    * (composition_table_size + 256));
+      composition_table_size += 256;
     }
 
   key_contents = XVECTOR (key)->contents;
@@ -691,7 +695,7 @@ composition_gstring_put_cache (Lisp_Object gstring, EMACS_INT len)
 }
 
 Lisp_Object
-composition_gstring_from_id (int id)
+composition_gstring_from_id (ptrdiff_t id)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
 
