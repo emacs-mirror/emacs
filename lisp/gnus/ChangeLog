@@ -1,3 +1,7 @@
+2011-07-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-comment): Ignore HTML comments.
+
 2011-07-20  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el (gnus-group-make-nnir-group): Allow optional search query
