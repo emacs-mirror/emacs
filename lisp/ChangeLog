@@ -1,3 +1,18 @@
+2011-07-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* proced.el (proced-update): Revert yesterday's bug#1779 patch,
+	which apparently didn't work.
+
+2011-07-19  Roland Winkler  <winkler@gnu.org>
+
+	* proced.el (proced-send-signal): For *Marked Processes* buffer
+	put point at beginning of buffer.
+
+2011-07-19  Stephen Berman  <stephen.berman@gmx.net>
+
+	* proced.el (proced-format): Make header lines align with the text
+	(bug#1779).
+
 2011-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* view.el (view-buffer): Allow running in `special' modes if we're

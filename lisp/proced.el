@@ -1724,7 +1724,9 @@ After sending the signal, this command runs the normal hook
             (buffer-disable-undo)
             (setq buffer-read-only t)
             (dolist (process process-alist)
-              (insert "  " (cdr process) "\n")))
+              (insert "  " (cdr process) "\n"))
+            (delete-char -1)
+            (goto-char (point-min)))
           (save-window-excursion
             ;; Analogous to `dired-pop-to-buffer'
             ;; Don't split window horizontally.  (Bug#1806)
