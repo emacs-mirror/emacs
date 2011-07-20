@@ -1,3 +1,7 @@
+2011-07-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (make_dom): Return comments, too.
+
 2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Port to OpenBSD.

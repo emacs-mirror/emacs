@@ -71,6 +71,14 @@ make_dom (xmlNode *node)
       else
 	return Qnil;
     }
+  else if (node->type == XML_COMMENT_NODE)
+    {
+      if (node->content)
+	return list3 (intern ("comment"), Qnil,
+		      build_string ((char *) node->content));
+      else
+	return Qnil;
+    }
   else
     return Qnil;
 }
