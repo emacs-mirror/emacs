@@ -1,3 +1,8 @@
+2011-07-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* proced.el (proced-update): Revert yesterday's bug#1779 patch,
+	which apparently didn't work.
+
 2011-07-19  Roland Winkler  <winkler@gnu.org>
 
 	* proced.el (proced-send-signal): For *Marked Processes* buffer

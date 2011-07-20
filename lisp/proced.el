@@ -1509,16 +1509,6 @@ Replace newline characters by \"^J\" (two characters)."
     (if (string-match "[ \t]+$" proced-header-line)
         (setq proced-header-line (substring proced-header-line 0
                                             (match-beginning 0))))
-     (setq proced-header-line (concat "  " proced-header-line))
-     ;; From buff-menu.el: Turn whitespace chars in the header into
-     ;; stretch specs so they work regardless of the header-line face.
-     (let ((pos 0)
-     	  (header proced-header-line))
-     	(while (string-match "[ \t\n]+" header pos)
-     	  (setq pos (match-end 0))
-     	  (put-text-property (match-beginning 0) pos 'display
-     			     (list 'space :align-to pos)
-     			     header)))
     ;; (delete-trailing-whitespace)
     (goto-char (point-min))
     (while (re-search-forward "[ \t\r]+$" nil t)
@@ -1612,6 +1602,7 @@ After updating a displayed Proced buffer run the normal hook
     (while (not (eobp))
       (insert "  ")
       (forward-line))
+    (setq proced-header-line (concat "  " proced-header-line))
     (if revert (set-buffer-modified-p nil))
 
     ;; set `goal-column'
