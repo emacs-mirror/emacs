@@ -1,5 +1,10 @@
 2011-07-20  Andrew Cohen  <cohen@andy.bu.edu>
 
+	* nnir.el (gnus-group-make-nnir-group): Allow optional search query
+	argument.
+	(gnus-group-make-nnir-group, nnir-request-group, nnir-run-query): Use
+	`nnir-address' to handle server info rather than passing an arg.
+
 	* nnimap.el (nnimap-make-thread-query): New utility function to format
 	an imap thread search query.
 	(nnimap-request-thread): Use it.
