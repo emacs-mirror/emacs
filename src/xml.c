@@ -125,9 +125,21 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
 
   if (doc != NULL)
     {
-      node = xmlDocGetRootElement (doc);
-      if (node != NULL)
-	result = make_dom (node);
+      xmlNode *n = doc->children->next;
+      Lisp_Object r = Qnil;
+
+      while (n) {
+	if (r != Qnil)
+	  result = Fcons (r, result);
+	r = make_dom (n);
+	n = n->next;
+      }
+
+      if (result == Qnil)
+	result = r;
+      else
+	result = Fnreverse (Fcons (r, result));
+
       xmlFreeDoc (doc);
       xmlCleanupParser ();
     }
