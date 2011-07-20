@@ -1,3 +1,7 @@
+2011-07-19  Roland Winkler  <winkler@gnu.org>
+	* proced.el (proced-send-signal): For *Marked Processes* buffer
+	put point at beginning of buffer.
+
 2011-07-19  Stephen Berman  <stephen.berman@gmx.net>
 
 	* proced.el (proced-format): Make header lines align with the text
