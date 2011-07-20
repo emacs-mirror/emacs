@@ -7339,6 +7339,9 @@ The state which existed when entering the ephemeral is reset."
   (if (not (buffer-name (car quit-config)))
       (gnus-configure-windows 'group 'force)
     (set-buffer (car quit-config))
+    (unless (eq (cdr quit-config) 'group)
+      (setq gnus-current-select-method
+	    (gnus-find-method-for-group gnus-newsgroup-name)))
     (cond ((eq major-mode 'gnus-summary-mode)
 	   (gnus-set-global-variables))
 	  ((eq major-mode 'gnus-article-mode)
