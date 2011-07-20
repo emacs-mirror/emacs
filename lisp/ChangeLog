@@ -1,4 +1,5 @@
 2011-07-19  Roland Winkler  <winkler@gnu.org>
+
 	* proced.el (proced-send-signal): For *Marked Processes* buffer
 	put point at beginning of buffer.
 
