@@ -1,3 +1,12 @@
+2011-07-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-pop-up-window)
+	(display-buffer-pop-up-side-window)
+	(display-buffer-in-side-window): Call display-buffer-set-height
+	and display-buffer-set-width after setting the new window's
+	buffer so `fit-window-to-buffer' and friends work on the right
+	buffer.
+
 2011-07-20  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/etags.el (etags-file-of-tag, etags-tags-table-files)
