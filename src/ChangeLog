@@ -1,3 +1,8 @@
+2011-07-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Fmodify_frame_parameters): In tty case, update the
+	default face if necessary (Bug#4238).
+
 2011-07-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* s/darwin.h (LD_SWITCH_SYSTEM_TEMACS): Add -fno-pie so as to suppress
