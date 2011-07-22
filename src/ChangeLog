@@ -1,3 +1,8 @@
+2011-07-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Fmodify_frame_parameters): In tty case, update the
+	default face if necessary (Bug#4238).
+
 2011-07-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* editfns.c (Fstring_to_char): No need to explain what a character
