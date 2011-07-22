@@ -3193,7 +3193,7 @@ compute_display_string_pos (struct text_pos *position,
 	  if (cached_prev_pos
 	      && cached_prev_pos < charpos && charpos <= cached_disp_pos)
 	    return cached_disp_pos;
-	  /* Handle overstepping eather end of the known interval.  */
+	  /* Handle overstepping either end of the known interval.  */
 	  if (charpos > cached_disp_pos)
 	    cached_prev_pos = cached_disp_pos;
 	  else	/* charpos <= cached_prev_pos */
@@ -7222,6 +7222,50 @@ next_element_from_stretch (struct it *it)
   return 1;
 }
 
+/* Scan backwards from IT's current position until we find a stop
+   position, or until BEGV.  This is called when we find ourself
+   before both the last known prev_stop and base_level_stop while
+   reordering bidirectional text.  */
+
+static void
+compute_stop_pos_backwards (struct it *it)
+{
+  const int SCAN_BACK_LIMIT = 1000;
+  struct text_pos pos;
+  struct display_pos save_current = it->current;
+  struct text_pos save_position = it->position;
+  EMACS_INT charpos = IT_CHARPOS (*it);
+  EMACS_INT where_we_are = charpos;
+  EMACS_INT save_stop_pos = it->stop_charpos;
+  EMACS_INT save_end_pos = it->end_charpos;
+
+  xassert (NILP (it->string) && !it->s);
+  xassert (it->bidi_p);
+  it->bidi_p = 0;
+  do
+    {
+      it->end_charpos = min (charpos + 1, ZV);
+      charpos = max (charpos - SCAN_BACK_LIMIT, BEGV);
+      SET_TEXT_POS (pos, charpos, BYTE_TO_CHAR (charpos));
+      reseat_1 (it, pos, 0);
+      compute_stop_pos (it);
+      /* We must advance forward, right?  */
+      if (it->stop_charpos <= charpos)
+	abort ();
+    }
+  while (charpos > BEGV && it->stop_charpos >= it->end_charpos);
+
+  if (it->stop_charpos <= where_we_are)
+    it->prev_stop = it->stop_charpos;
+  else
+    it->prev_stop = BEGV;
+  it->bidi_p = 1;
+  it->current = save_current;
+  it->position = save_position;
+  it->stop_charpos = save_stop_pos;
+  it->end_charpos = save_end_pos;
+}
+
 /* Scan forward from CHARPOS in the current buffer/string, until we
    find a stop position > current IT's position.  Then handle the stop
    position before that.  This is called when we bump into a stop
@@ -7239,9 +7283,9 @@ handle_stop_backwards (struct it *it, EMACS_INT charpos)
   struct text_pos save_position = it->position;
   struct text_pos pos1;
   EMACS_INT next_stop;
-  int found_stop = 0;
 
   /* Scan in strict logical order.  */
+  xassert (it->bidi_p);
   it->bidi_p = 0;
   do
     {
@@ -7257,10 +7301,6 @@ handle_stop_backwards (struct it *it, EMACS_INT charpos)
       /* We must advance forward, right?  */
       if (it->stop_charpos <= it->prev_stop)
 	abort ();
-      /* Did we find at least one stop_pos between CHARPOS and IT's
-	 current position?  */
-      if (it->stop_charpos <= where_we_are)
-	found_stop = 1;
       charpos = it->stop_charpos;
     }
   while (charpos <= where_we_are);
@@ -7268,13 +7308,10 @@ handle_stop_backwards (struct it *it, EMACS_INT charpos)
   it->bidi_p = 1;
   it->current = save_current;
   it->position = save_position;
-  if (found_stop)
-    {
-      next_stop = it->stop_charpos;
-      it->stop_charpos = it->prev_stop;
-      handle_stop (it);
-      it->stop_charpos = next_stop;
-    }
+  next_stop = it->stop_charpos;
+  it->stop_charpos = it->prev_stop;
+  handle_stop (it);
+  it->stop_charpos = next_stop;
 }
 
 /* Load IT with the next display element from current_buffer.  Value
@@ -7369,16 +7406,19 @@ next_element_from_buffer (struct it *it)
 	      embedding level, so test for that explicitly.  */
 	   && !BIDI_AT_BASE_LEVEL (it->bidi_it))
     {
-      EMACS_INT start_from;
-      /* If we lost track of base_level_stop, we try looking backwards
-	 for at most 1000 characters.  This happens, e.g., when we
-	 were reseated to the previous screenful of text by
-	 vertical-motion.  */
       if (it->base_level_stop <= 0
 	  || IT_CHARPOS (*it) < it->base_level_stop)
-	it->base_level_stop = BEGV;
-      start_from = max (it->base_level_stop, IT_CHARPOS (*it) - 1000);
-      handle_stop_backwards (it, start_from);
+	{
+	  /* If we lost track of base_level_stop, we need to find
+	     prev_stop by looking backwards.  This happens, e.g., when
+	     we were reseated to the previous screenful of text by
+	     vertical-motion.  */
+	  it->base_level_stop = BEGV;
+	  compute_stop_pos_backwards (it);
+	  handle_stop_backwards (it, it->prev_stop);
+	}
+      else
+	handle_stop_backwards (it, it->base_level_stop);
       return GET_NEXT_DISPLAY_ELEMENT (it);
     }
   else

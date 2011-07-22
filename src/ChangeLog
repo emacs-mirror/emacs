@@ -1,3 +1,12 @@
+2011-07-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (compute_stop_pos_backwards): New function.
+	(handle_stop_backwards): Revert last change.
+	(next_element_from_buffer): Call compute_stop_pos_backwards to
+	find a suitable prev_stop when we find ourselves before
+	base_level_stop.  Remove the funky search for 1000 character
+	positions back.
+
 2011-07-19  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix a significant slow-down of vertical-motion when leaning on C-n
