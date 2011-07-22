@@ -1,3 +1,8 @@
+2011-07-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-handler): Avoid recursive
+	loading.  (Bug#9114)
+
 2011-07-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-pop-up-window)
