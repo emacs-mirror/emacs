@@ -1,3 +1,8 @@
+2011-07-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (rows_from_pos_range): Don't ignore glyphs whose object
+	is an integer, which is important for empty lines.  (Bug#9149)
+
 2011-07-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (Fmodify_frame_parameters): In tty case, update the

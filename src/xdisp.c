@@ -25029,7 +25029,7 @@ rows_from_pos_range (struct window *w,
 
 	  while (g < e)
 	    {
-	      if (BUFFERP (g->object)
+	      if ((BUFFERP (g->object) || INTEGERP (g->object))
 		  && start_charpos <= g->charpos && g->charpos < end_charpos)
 		*start = row;
 	      g++;
@@ -25079,7 +25079,7 @@ rows_from_pos_range (struct window *w,
 
 	  while (g < e)
 	    {
-	      if (BUFFERP (g->object)
+	      if ((BUFFERP (g->object) || INTEGERP (g->object))
 		  && start_charpos <= g->charpos && g->charpos < end_charpos)
 		break;
 	      g++;
