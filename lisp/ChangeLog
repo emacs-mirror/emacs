@@ -1,3 +1,14 @@
+2011-07-22  Alan Mackenzie  <acm@muc.de>
+
+	Prevent cc-langs.elc being loaded at run time.
+
+	* progmodes/cc-mode.el: Remove two autoload forms which loaded
+	cc-langs.
+
+	* /progmodes/cc-langs.el (c-make-init-lang-vars-fun): Don't emit
+	"(require 'cc-langs)".  Quote a form so it will evaluate at
+	(cc-mode's) compilation time.
+
 2011-07-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-file-name-handler): Avoid recursive

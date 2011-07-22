@@ -3092,10 +3092,9 @@ accomplish that conveniently."
 		 ;;	      ',mode ,c-version c-version)
 		 ;;  (put ',mode 'c-has-warned-lang-consts t))
 
-		 (require 'cc-langs)
 		 (setq source-eval t)
-		 (let ((init (append (cdr c-emacs-variable-inits)
-				     (cdr c-lang-variable-inits))))
+		 (let ((init ',(append (cdr c-emacs-variable-inits)
+				       (cdr c-lang-variable-inits))))
 		   (while init
 		     (setq current-var (caar init))
 		     (set (caar init) (eval (cadar init)))
