@@ -19,6 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #include <config.h>
+#include <errno.h>
 #include <stdio.h>
 #include <setjmp.h>
 
@@ -236,8 +237,9 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
 			     int allow_props, int inherit_input_method)
 {
   ptrdiff_t size, len;
-  char *line, *s;
+  char *line;
   Lisp_Object val;
+  int c;
 
   fprintf (stdout, "%s", SDATA (prompt));
   fflush (stdout);
@@ -246,22 +248,30 @@ read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
   size = 100;
   len = 0;
   line = (char *) xmalloc (size);
-  while ((s = fgets (line + len, size - len, stdin)) != NULL
-	 && (len = strlen (line),
-	     len == size - 1 && line[len - 1] != '\n'))
+
+  while ((c = getchar ()) != '\n')
     {
-      if (STRING_BYTES_BOUND / 2 < size)
-	memory_full (SIZE_MAX);
-      size *= 2;
-      line = (char *) xrealloc (line, size);
+      if (c < 0)
+	{
+	  if (errno != EINTR)
+	    break;
+	}
+      else
+	{
+	  if (len == size)
+	    {
+	      if (STRING_BYTES_BOUND / 2 < size)
+		memory_full (SIZE_MAX);
+	      size *= 2;
+	      line = (char *) xrealloc (line, size);
+	    }
+	  line[len++] = c;
+	}
     }
 
-  if (s)
+  if (len)
     {
-      char *nl = strchr (line, '\n');
-      if (nl)
-	*nl = '\0';
-      val = build_string (line);
+      val = make_string (line, len);
       xfree (line);
     }
   else
