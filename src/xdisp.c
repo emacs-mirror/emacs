@@ -23256,7 +23256,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
   base_width = font->average_width;
 
   /* Get a face ID for the glyph by utilizing a cache (the same way as
-     doen for `escape-glyph' in get_next_display_element).  */
+     done for `escape-glyph' in get_next_display_element).  */
   if (it->f == last_glyphless_glyph_frame
       && it->face_id == last_glyphless_glyph_face_id)
     {
