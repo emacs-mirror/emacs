@@ -1,5 +1,8 @@
 2011-07-23  Eli Zaretskii  <eliz@gnu.org>
 
+	* xfns.c (unwind_create_frame) [GLYPH_DEBUG]: Adapt to changes in
+	revision 84777 on 2008-02-22.
+
 	* xdisp.c (move_it_in_display_line_to): Record the best matching
 	position for TO_CHARPOS while scanning the line, and restore it on
 	exit if none of the characters scanned was an exact match.  Fixes
