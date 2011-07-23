@@ -1,5 +1,24 @@
 2011-07-22  Eli Zaretskii  <eliz@gnu.org>
 
+	Fix a significant slow-down of cursor motion with C-n, C-p,
+	C-f/C-b, and C-v/M-v that couldn't keep up with keyboard
+	auto-repeat under bidi redisplay in fontified buffers.
+	* xdisp.c (compute_stop_pos_backwards): New function.
+	(next_element_from_buffer): Call compute_stop_pos_backwards to
+	find a suitable prev_stop when we find ourselves before
+	base_level_stop.
+	(reseat): Don't look for prev_stop, as that could mean a very long
+	run.
+	<cached_disp_pos, cached_disp_buffer, cached_disp_modiff>
+	<cached_disp_overlay_modiff>: Cache for last found display string
+	position.
+	(compute_display_string_pos): Return the cached position if asked
+	about the same buffer in the same area of character positions, and
+	the buffer wasn't changed since the time the display string
+	position was cached.
+
+2011-07-22  Eli Zaretskii  <eliz@gnu.org>
+
 	* xdisp.c (rows_from_pos_range): Don't ignore glyphs whose object
 	is an integer, which is important for empty lines.  (Bug#9149)
 
