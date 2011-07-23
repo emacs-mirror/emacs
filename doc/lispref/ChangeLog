@@ -1,3 +1,7 @@
+2011-07-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Bidirectional Display): New section.
+
 2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 	    Tim Cross  <theophilusx@gmail.com>  (tiny change)
 	    Glenn Morris   <rgm@gnu.org>
