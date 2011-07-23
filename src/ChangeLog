@@ -1,3 +1,12 @@
+2011-07-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): Record the best matching
+	position for TO_CHARPOS while scanning the line, and restore it on
+	exit if none of the characters scanned was an exact match.  Fixes
+	vertical-motion and pos-visible-in-window-p under bidi redisplay
+	when exact match is impossible due to invisible text, and the
+	lines are truncated.
+
 2011-07-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (initFrameFromEmacs): Set NSTitledWindowMask in styleMask

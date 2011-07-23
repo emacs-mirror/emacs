@@ -7641,8 +7641,9 @@ move_it_in_display_line_to (struct it *it,
 {
   enum move_it_result result = MOVE_UNDEFINED;
   struct glyph_row *saved_glyph_row;
-  struct it wrap_it, atpos_it, atx_it;
+  struct it wrap_it, atpos_it, atx_it, ppos_it;
   void *wrap_data = NULL, *atpos_data = NULL, *atx_data = NULL;
+  void *ppos_data = NULL;
   int may_wrap = 0;
   enum it_method prev_method = it->method;
   EMACS_INT prev_pos = IT_CHARPOS (*it);
@@ -7660,6 +7661,19 @@ move_it_in_display_line_to (struct it *it,
   wrap_it.sp = -1;
   atpos_it.sp = -1;
   atx_it.sp = -1;
+
+  /* Use ppos_it under bidi reordering to save a copy of IT for the
+     position > CHARPOS that is the closest to CHARPOS.  We restore
+     that position in IT when we have scanned the entire display line
+     without finding a match for CHARPOS and all the character
+     positions are greater than CHARPOS.  */
+  if (it->bidi_p)
+    {
+      SAVE_IT (ppos_it, *it, ppos_data);
+      SET_TEXT_POS (ppos_it.current.pos, ZV, ZV_BYTE);
+      if ((op & MOVE_TO_POS) && IT_CHARPOS (*it) >= to_charpos)
+	SAVE_IT (ppos_it, *it, ppos_data);
+    }
 
 #define BUFFER_POS_REACHED_P()					\
   ((op & MOVE_TO_POS) != 0					\
@@ -7786,6 +7800,11 @@ move_it_in_display_line_to (struct it *it,
 	  if (IT_CHARPOS (*it) < CHARPOS (this_line_min_pos))
 	    SET_TEXT_POS (this_line_min_pos,
 			  IT_CHARPOS (*it), IT_BYTEPOS (*it));
+	  if (it->bidi_p
+	      && (op & MOVE_TO_POS)
+	      && IT_CHARPOS (*it) > to_charpos
+	      && IT_CHARPOS (*it) < IT_CHARPOS (ppos_it))
+	    SAVE_IT (ppos_it, *it, ppos_data);
 	  continue;
 	}
 
@@ -7996,7 +8015,11 @@ move_it_in_display_line_to (struct it *it,
 	  if ((op & MOVE_TO_POS) != 0
 	      && !saw_smaller_pos
 	      && IT_CHARPOS (*it) > to_charpos)
-	    result = MOVE_POS_MATCH_OR_ZV;
+	    {
+	      result = MOVE_POS_MATCH_OR_ZV;
+	      if (it->bidi_p && IT_CHARPOS (ppos_it) < ZV)
+		RESTORE_IT (it, &ppos_it, ppos_data);
+	    }
 	  else
 	    result = MOVE_NEWLINE_OR_CR;
 	  break;
@@ -8012,6 +8035,11 @@ move_it_in_display_line_to (struct it *it,
 	SET_TEXT_POS (this_line_min_pos, IT_CHARPOS (*it), IT_BYTEPOS (*it));
       if (IT_CHARPOS (*it) < to_charpos)
 	saw_smaller_pos = 1;
+      if (it->bidi_p
+	  && (op & MOVE_TO_POS)
+	  && IT_CHARPOS (*it) >= to_charpos
+	  && IT_CHARPOS (*it) < IT_CHARPOS (ppos_it))
+	SAVE_IT (ppos_it, *it, ppos_data);
 
       /* Stop if lines are truncated and IT's current x-position is
 	 past the right edge of the window now.  */
@@ -8021,7 +8049,9 @@ move_it_in_display_line_to (struct it *it,
 	  if (!FRAME_WINDOW_P (it->f)
 	      || IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    {
-	      if (!get_next_display_element (it)
+	      int at_eob_p = 0;
+
+	      if ((at_eob_p = !get_next_display_element (it))
 		  || BUFFER_POS_REACHED_P ()
 		  /* If we are past TO_CHARPOS, but never saw any
 		     character positions smaller than TO_CHARPOS,
@@ -8032,6 +8062,8 @@ move_it_in_display_line_to (struct it *it,
 		      && IT_CHARPOS (*it) > to_charpos))
 		{
 		  result = MOVE_POS_MATCH_OR_ZV;
+		  if (it->bidi_p && !at_eob_p && IT_CHARPOS (ppos_it) < ZV)
+		    RESTORE_IT (it, &ppos_it, ppos_data);
 		  break;
 		}
 	      if (ITERATOR_AT_END_OF_LINE_P (it))
@@ -8045,6 +8077,8 @@ move_it_in_display_line_to (struct it *it,
 		   && IT_CHARPOS (*it) > to_charpos)
 	    {
 	      result = MOVE_POS_MATCH_OR_ZV;
+	      if (it->bidi_p && IT_CHARPOS (ppos_it) < ZV)
+		RESTORE_IT (it, &ppos_it, ppos_data);
 	      break;
 	    }
 	  result = MOVE_LINE_TRUNCATED;
@@ -8070,6 +8104,8 @@ move_it_in_display_line_to (struct it *it,
     xfree (atx_data);
   if (wrap_data)
     xfree (wrap_data);
+  if (ppos_data)
+    xfree (ppos_data);
 
   /* Restore the iterator settings altered at the beginning of this
      function.  */
