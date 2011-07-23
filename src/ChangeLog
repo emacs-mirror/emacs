@@ -1,3 +1,8 @@
+2011-07-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xml.c (parse_region): Remove unused local
+	that was recently introduced.
+
 2011-07-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* xfns.c (unwind_create_frame) [GLYPH_DEBUG]: Adapt to changes in
