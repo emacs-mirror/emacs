@@ -1,3 +1,9 @@
+2011-07-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (compute_display_string_pos): Fix logic of caching
+	previous display string position.  Initialize cached_prev_pos to
+	-1.  Fixes slow-down at the beginning of a buffer.
+
 2011-07-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_in_display_line_to): Record the best matching
