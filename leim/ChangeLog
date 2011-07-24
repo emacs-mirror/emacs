@@ -1,3 +1,7 @@
+2011-07-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (install): install-sh is now in build-aux.
+
 2011-07-23  Yair F  <yair.f.lists@gmail.com>
 
 	* quail/hebrew.el ("hebrew"): Additional key mappings.

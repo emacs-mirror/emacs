@@ -1,3 +1,12 @@
+2011-07-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib.
+	* notes/copyright: The files compile, config.guess, config.sub,
+	depcomp, install-sh, missing, and move-if-change are now in the
+	new build-aux subdirectory.  The files arg-nonnull.h, c++defs.h,
+	and warn-on-use.h are now in build-aux/snippets.  New file
+	build-aux/snippets/_Noreturn.h.
+
 2011-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* unidata/makefile.w32-in (charprop-SH, charprop-CMD):

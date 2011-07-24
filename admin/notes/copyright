@@ -143,7 +143,7 @@ m4/*.m4
 lib/Makefile.in
  - copyright FSF, with MIT-like license
 
-install-sh
+build-aux/install-sh
  - this file is copyright MIT, which is OK. Leave the copyright alone.
 
 etc/refcards/*.tex
@@ -545,16 +545,17 @@ of writing) GPL >= 2. rms says may as well leave the licenses of these
 alone (may import them from Gnulib again). These are:
 
     Gnulib:
-    arg-nonnull.h
-    c++defs.h
-    compile
-    config.guess
-    config.sub
-    depcomp
+    build-aux/compile
+    build-aux/config.guess
+    build-aux/config.sub
+    build-aux/depcomp
+    build-aux/missing
+    build-aux/move-if-change
+    build-aux/snippet/_Noreturn.h
+    build-aux/snippet/arg-nonnull.h
+    build-aux/snippet/c++defs.h
+    build-aux/snippet/warn-on-use.h
     doc/man/texinfo.tex
-    missing
-    move-if-change
-    warn-on-use.h
     lib/*.[ch]
     lib/gnulib.mk
     src/gmalloc.c

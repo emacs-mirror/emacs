@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 26
+# gnulib-common.m4 serial 28
 dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -12,6 +12,19 @@ AC_DEFUN([gl_COMMON], [
   AC_REQUIRE([gl_COMMON_BODY])
 ])
 AC_DEFUN([gl_COMMON_BODY], [
+  AH_VERBATIM([_Noreturn],
+[/* The _Noreturn keyword of draft C1X.  */
+#ifndef _Noreturn
+# if (3 <= __GNUC__ || (__GNUC__ == 2 && 8 <= __GNUC_MINOR__) \
+      || 0x5110 <= __SUNPRO_C)
+#  define _Noreturn __attribute__ ((__noreturn__))
+# elif 1200 <= _MSC_VER
+#  define _Noreturn __declspec (noreturn)
+# else
+#  define _Noreturn
+# endif
+#endif
+])
   AH_VERBATIM([isoc99_inline],
 [/* Work around a bug in Apple GCC 4.0.1 build 5465: In C99 mode, it supports
    the ISO C 99 semantics of 'extern inline' (unlike the GNU C semantics of

@@ -229,13 +229,13 @@ maybe-blessmail: $(BLESSMAIL_TARGET)
 $(DESTDIR)${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
-	umask 022; $(top_srcdir)/install-sh -d $(DESTDIR)${archlibdir}
+	umask 022; $(top_srcdir)/build-aux/install-sh -d $(DESTDIR)${archlibdir}
 	if [ `(cd $(DESTDIR)${archlibdir} && /bin/pwd)` != `/bin/pwd` ]; then \
 	  for file in ${UTILITIES}; do \
 	    $(INSTALL_PROGRAM) $(INSTALL_STRIP) $$file $(DESTDIR)${archlibdir}/$$file ; \
 	  done ; \
         fi
-	umask 022; $(top_srcdir)/install-sh -d $(DESTDIR)${gamedir}; \
+	umask 022; $(top_srcdir)/build-aux/install-sh -d $(DESTDIR)${gamedir}; \
 	touch $(DESTDIR)${gamedir}/snake-scores; \
 	touch $(DESTDIR)${gamedir}/tetris-scores
 	-if chown ${gameuser} $(DESTDIR)${archlibdir}/update-game-score && chmod u+s $(DESTDIR)${archlibdir}/update-game-score; then \

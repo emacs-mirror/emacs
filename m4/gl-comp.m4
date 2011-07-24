@@ -28,8 +28,6 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([AC_PROG_RANLIB])
   # Code from module alloca-opt:
   # Code from module allocator:
-  # Code from module arg-nonnull:
-  # Code from module c++defs:
   # Code from module careadlinkat:
   # Code from module crypto/md5:
   # Code from module crypto/sha1:
@@ -52,10 +50,15 @@ AC_DEFUN([gl_EARLY],
   # Code from module lstat:
   # Code from module mktime:
   # Code from module multiarch:
+  # Code from module nocrash:
   # Code from module pthread_sigmask:
   # Code from module readlink:
   # Code from module signal:
   # Code from module sigprocmask:
+  # Code from module snippet/_Noreturn:
+  # Code from module snippet/arg-nonnull:
+  # Code from module snippet/c++defs:
+  # Code from module snippet/warn-on-use:
   # Code from module socklen:
   # Code from module ssize_t:
   # Code from module stat:
@@ -82,7 +85,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module u64:
   # Code from module unistd:
   # Code from module verify:
-  # Code from module warn-on-use:
 ])
 
 # This macro should be invoked from ./configure.in, in the section
@@ -148,6 +150,7 @@ gl_MULTIARCH
 gl_FUNC_PTHREAD_SIGMASK
 if test $HAVE_PTHREAD_SIGMASK = 0 || test $REPLACE_PTHREAD_SIGMASK = 1; then
   AC_LIBOBJ([pthread_sigmask])
+  gl_PREREQ_PTHREAD_SIGMASK
 fi
 gl_SIGNAL_MODULE_INDICATOR([pthread_sigmask])
 gl_FUNC_READLINK
@@ -451,9 +454,10 @@ AC_DEFUN([gltests_LIBSOURCES], [
 # This macro records the list of files which have been installed by
 # gnulib-tool and may be removed by future gnulib-tool invocations.
 AC_DEFUN([gl_FILE_LIST], [
-  build-aux/arg-nonnull.h
-  build-aux/c++defs.h
-  build-aux/warn-on-use.h
+  build-aux/snippet/_Noreturn.h
+  build-aux/snippet/arg-nonnull.h
+  build-aux/snippet/c++defs.h
+  build-aux/snippet/warn-on-use.h
   lib/alloca.in.h
   lib/allocator.c
   lib/allocator.h
@@ -528,6 +532,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/md5.m4
   m4/mktime.m4
   m4/multiarch.m4
+  m4/nocrash.m4
   m4/pthread_sigmask.m4
   m4/readlink.m4
   m4/sha1.m4

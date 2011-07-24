@@ -1,3 +1,8 @@
+2011-07-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in ($(DESTDIR)${archlibdir}): install-sh moved
+	to build-aux.
+
 2011-07-09  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* update-game-score.c (usage): Update usage line.

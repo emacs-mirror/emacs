@@ -1,3 +1,7 @@
+2011-07-24  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (gl-stamp): move-if-change is now in build-aux.
+
 2011-07-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* xfaces.c (check_lface_attrs) [HAVE_WINDOW_SYSTEM]: Allow `nil'
