@@ -289,6 +289,7 @@ is `(valuefunc member)'."
   (autoload 'nnimap-buffer "nnimap")
   (autoload 'nnimap-command "nnimap")
   (autoload 'nnimap-possibly-change-group "nnimap")
+  (autoload 'nnimap-make-thread-query "nnimap")
   (autoload 'gnus-registry-action "gnus-registry")
   (defvar gnus-registry-install))
 
@@ -1649,6 +1650,16 @@ server is of form 'backend:name'."
     (nnir-open-server server)))
 
 
+(defun nnir-search-thread (header)
+  "Make an nnir group based on the thread containing the article header"
+  (let ((parm (list
+	       (cons 'query
+		     (nnimap-make-thread-query header))
+	       (cons 'criteria "")
+	       (cons 'server (gnus-method-to-server
+			      (gnus-find-method-for-group
+			       gnus-newsgroup-name))))))
+    (gnus-group-make-nnir-group nil parm)))
 
 ;; unused?
 (defun nnir-artlist-groups (artlist)

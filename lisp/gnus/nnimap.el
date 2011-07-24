@@ -1566,15 +1566,17 @@ textual parts.")
 		  (articles &optional limit force-new dependencies))
 
 (deffoo nnimap-request-thread (header &optional group server)
-  (when (nnimap-possibly-change-group group server)
-    (let* ((cmd (nnimap-make-thread-query header))
-	   (result (with-current-buffer (nnimap-buffer)
-		     (nnimap-command  "UID SEARCH %s" cmd))))
-      (when result
-	(gnus-fetch-headers
-	 (and (car result) (delete 0 (mapcar #'string-to-number
-					     (cdr (assoc "SEARCH" (cdr result))))))
-	 nil t)))))
+  (if gnus-refer-thread-use-nnir 
+      (nnir-search-thread header)
+    (when (nnimap-possibly-change-group group server)
+      (let* ((cmd (nnimap-make-thread-query header))
+             (result (with-current-buffer (nnimap-buffer)
+                       (nnimap-command  "UID SEARCH %s" cmd))))
+        (when result
+          (gnus-fetch-headers
+           (and (car result) (delete 0 (mapcar #'string-to-number
+                                               (cdr (assoc "SEARCH" (cdr result))))))
+           nil t))))))
 
 (defun nnimap-possibly-change-group (group server)
   (let ((open-result t))
