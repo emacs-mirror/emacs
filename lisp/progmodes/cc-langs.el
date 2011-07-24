@@ -523,7 +523,7 @@ operator at the top level."
 
 (c-lang-defconst c-symbol-chars
   "Set of characters that can be part of a symbol.
-This is on the form that fits inside [ ] in a regexp."
+This is of the form that fits inside [ ] in a regexp."
   ;; Pike note: With the backquote identifiers this would include most
   ;; operator chars too, but they are handled with other means instead.
   t    (concat c-alnum "_$")
@@ -3092,10 +3092,9 @@ accomplish that conveniently."
 		 ;;	      ',mode ,c-version c-version)
 		 ;;  (put ',mode 'c-has-warned-lang-consts t))
 
-		 (require 'cc-langs)
 		 (setq source-eval t)
-		 (let ((init (append (cdr c-emacs-variable-inits)
-				     (cdr c-lang-variable-inits))))
+		 (let ((init ',(append (cdr c-emacs-variable-inits)
+				       (cdr c-lang-variable-inits))))
 		   (while init
 		     (setq current-var (caar init))
 		     (set (caar init) (eval (cadar init)))

@@ -1,3 +1,118 @@
+2011-07-22  Alan Mackenzie  <acm@muc.de>
+
+	Prevent cc-langs.elc being loaded at run time.
+
+	* progmodes/cc-mode.el: Remove two autoload forms which loaded
+	cc-langs.
+
+	* /progmodes/cc-langs.el (c-make-init-lang-vars-fun): Don't emit
+	"(require 'cc-langs)".  Quote a form so it will evaluate at
+	(cc-mode's) compilation time.
+
+2011-07-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-handler): Avoid recursive
+	loading.  (Bug#9114)
+
+2011-07-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-pop-up-window)
+	(display-buffer-pop-up-side-window)
+	(display-buffer-in-side-window): Call display-buffer-set-height
+	and display-buffer-set-width after setting the new window's
+	buffer so `fit-window-to-buffer' and friends work on the right
+	buffer.
+
+2011-07-20  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/etags.el (etags-file-of-tag, etags-tags-table-files)
+	(etags-tags-included-tables): Call `convert-standard-filename' on
+	the file names contained in TAGS so that windows Emacs can handle
+	TAGS files created by cygwin ctags.
+
+2011-07-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* proced.el (proced-update): Revert yesterday's bug#1779 patch,
+	which apparently didn't work.
+
+2011-07-19  Roland Winkler  <winkler@gnu.org>
+
+	* proced.el (proced-send-signal): For *Marked Processes* buffer
+	put point at beginning of buffer.
+
+2011-07-19  Stephen Berman  <stephen.berman@gmx.net>
+
+	* proced.el (proced-format): Make header lines align with the text
+	(bug#1779).
+
+2011-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* view.el (view-buffer): Allow running in `special' modes if we're
+	visiting a file (bug#8615).
+
+2011-07-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-alist-of-strings-p)
+	(display-buffer-alist-set-1, display-buffer-alist-set-2): New
+	functions.
+	(display-buffer-alist-set): Rewrite to handle Emacs 23 options
+	more accurately.
+
+2011-07-18  Alan Mackenzie  <acm@muc.de>
+
+	Fontify declarators properly when, e.g., a jit-lock chunk begins
+	inside a declaration.
+
+	* progmodes/cc-langs.el (c-symbol-chars): Correct a typo.
+
+	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls): New
+	function.
+	(c-complex-decl-matchers): Insert reference to
+	c-font-lock-enclosing-decls.
+
+	* progmodes/cc-engine.el (c-backward-single-comment):
+	(c-backward-comments): Bind open-paren-in-column-0-is-defun-start
+	to nil around calls to (forward-comment -1).
+
+2011-07-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* image.el (put-image): Doc typo fix.
+
+	* progmodes/etags.el (tags-search): Doc typo fix.
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Query the user for
+	password if we get errors 550 to 554.
+
+2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/gnutls.el (gnutls-log-level): Removed.
+
+	* textmodes/fill.el (adaptive-fill-regexp): Include EN DASH as an
+	indentation character (bug#6380).
+
+	* files.el (buffer-offer-save): Made permanently local (bug#6241).
+
+	* doc-view.el (doc-view-make-safe-dir): Rewrite the error message
+	to clarify what the problem is (bug#4291).
+
+	* simple.el (current-kill): Clarify what
+	`interprogram-paste-function' does (bug#7500).
+	(auto-fill-mode): Document `auto-fill-function' in relation to
+	`auto-fill-mode' (bug#2470).
+
+2011-07-16  Lawrence Mitchell  <wence@gmx.li>
+
+	* emacs-lisp/cl-macs.el (defstruct): Ignore argument to setf
+	method if slot is read-only (bug#9035).
+
+2011-07-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (select-frame-set-input-focus): New argument
+	NORECORD.
+	* window.el (pop-to-buffer): Select window used even if it was
+	selected before, see discussion of (Bug#8615), (Bug#6954).  Pass
+	argument NORECORD on to select-frame-set-input-focus.
+
 2011-07-15  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (read-char-choice): Allow quitting.  (Bug#9001)

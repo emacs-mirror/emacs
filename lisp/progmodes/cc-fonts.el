@@ -1346,6 +1346,50 @@ casts and declarations are fontified.  Used on level 2 and higher."
       (c-font-lock-declarators limit t nil)))
   nil)
 
+(defun c-font-lock-enclosing-decls (limit)
+  ;; Fontify the declarators of (nested) declarations we're in the middle of.
+  ;; This is mainly for when a jit-lock etc. chunk starts inside the brace
+  ;; block of a struct/union/class, etc.
+  ;; 
+  ;; This function will be called from font-lock for a region bounded by POINT
+  ;; and LIMIT, as though it were to identify a keyword for
+  ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
+  ;; prevent a repeat invocation.  See elisp/lispref page "Search-based
+  ;; Fontification".
+  (let* ((paren-state (c-parse-state))
+	 (start (point))
+	 decl-context bo-decl in-typedef type-type ps-elt)
+
+    ;; First, are we actually in a "local" declaration?
+    (setq decl-context (c-beginning-of-decl-1)
+	  bo-decl (point)
+	  in-typedef (looking-at c-typedef-key))
+    (if in-typedef (c-forward-token-2))
+    (when (and (eq (car decl-context) 'same)
+	       (< bo-decl start))
+      ;; Are we genuinely at a type?
+      (setq type-type (c-forward-type t))
+      (if (and type-type
+	       (or (not (eq type-type 'maybe))
+		   (looking-at c-symbol-key)))
+	  (c-font-lock-declarators limit t in-typedef)))
+
+    ;; Secondly, are we in any nested struct/union/class/etc. braces?
+    (while paren-state
+      (setq ps-elt (car paren-state)
+	    paren-state (cdr paren-state))
+      (when (and (atom ps-elt)
+		 (eq (char-after ps-elt) ?\{))
+	(goto-char ps-elt)
+	(setq decl-context (c-beginning-of-decl-1)
+	      in-typedef (looking-at c-typedef-key))
+	(if in-typedef (c-forward-token-2))
+	(when (looking-at c-opt-block-decls-with-vars-key)
+	  (goto-char ps-elt)
+	  (when (c-safe (c-forward-sexp))
+	    (c-forward-syntactic-ws)
+	    (c-font-lock-declarators limit t in-typedef)))))))
+	
 (c-lang-defconst c-simple-decl-matchers
   "Simple font lock matchers for types and declarations.  These are used
 on level 2 only and so aren't combined with `c-complex-decl-matchers'."
@@ -1451,6 +1495,9 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 
       ;; Fontify all declarations, casts and normal labels.
       c-font-lock-declarations
+
+      ;; Fontify declarators when POINT is within their declaration.
+      c-font-lock-enclosing-decls
 
       ;; Fontify angle bracket arglists like templates in C++.
       ,@(when (c-lang-const c-recognize-<>-arglists)

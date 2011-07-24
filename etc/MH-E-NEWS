@@ -3,6 +3,16 @@
 Copyright (C) 2001-2011  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
+* Changes in MH-E 8.2.93
+
+Version 8.2.93 reverts back to using `switch-to-buffer' which the
+Emacs developers decided was fine to call from programs after all.
+
+* Changes in MH-E 8.2.92
+
+Version 8.2.92 actually corrects the error in the modeline glyph when
+running XEmacs 21.5.31 in a terminal.
+
 * Changes in MH-E 8.2.91
 
 Version 8.2.91 fixes the folder window problem that was introduced
@@ -13,8 +23,6 @@ Another implication of the VCS change is that users who download MH-E
 from SourceForge and explicitly load MH-E will have to be change their
 `load-path' to "/path/to/mh-e/emacs/trunk/lisp/mh-e" instead. Note the
 addition of "trunk."
-
-This version of MH-E is packaged with GNU Emacs 24.1
 
 * Changes in MH-E 8.2.90
 
@@ -31,6 +39,15 @@ meaning that `+f/b/b TAB' can complete to `+foo/bar/baz'.
 
 Also, RFC 2047-encoded Subject header fields in replies are now
 decoded.
+
+This version of MH-E is packaged with GNU Emacs 24.1
+
+** Bug Fixes in MH-E 8.2.90
+
+*** Make mh-showing a legitimate minor mode
+
+The `mh-showing-mode' variable is now defined with `define-minor-mode'
+(closes SF #482666).
 
 
 

@@ -42,11 +42,6 @@
   :prefix "gnutls-"
   :group 'net-utils)
 
-(defcustom gnutls-log-level 0
-  "Logging level to be used by `starttls-negotiate' and GnuTLS."
-  :type 'integer
-  :group 'gnutls)
-
 (defcustom gnutls-algorithm-priority nil
   "If non-nil, this should be a TLS priority string.
 For instance, if you want to skip the \"dhe-rsa\" algorithm,

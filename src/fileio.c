@@ -1937,10 +1937,19 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
 		    | (NILP (ok_if_already_exists) ? O_EXCL : 0),
 		    S_IREAD | S_IWRITE);
 #else  /* not MSDOS */
-  ofd = emacs_open (SSDATA (encoded_newname),
-		    O_WRONLY | O_TRUNC | O_CREAT
-		    | (NILP (ok_if_already_exists) ? O_EXCL : 0),
-		    0666);
+  {
+    int new_mask = 0666;
+    if (input_file_statable_p)
+      {
+	if (!NILP (preserve_uid_gid))
+	  new_mask = 0600;
+	new_mask &= st.st_mode;
+      }
+    ofd = emacs_open (SSDATA (encoded_newname),
+		      (O_WRONLY | O_TRUNC | O_CREAT
+		       | (NILP (ok_if_already_exists) ? O_EXCL : 0)),
+		      new_mask);
+  }
 #endif /* not MSDOS */
   if (ofd < 0)
     report_file_error ("Opening output file", Fcons (newname, Qnil));
@@ -1959,9 +1968,21 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
      owner and group.  */
   if (input_file_statable_p)
     {
-      if (!NILP (preserve_uid_gid) && fchown (ofd, st.st_uid, st.st_gid) != 0)
-	report_file_error ("Doing chown", Fcons (newname, Qnil));
-      if (fchmod (ofd, st.st_mode & 07777) != 0)
+      int mode_mask = 07777;
+      if (!NILP (preserve_uid_gid))
+	{
+	  /* Attempt to change owner and group.  If that doesn't work
+	     attempt to change just the group, as that is sometimes allowed.
+	     Adjust the mode mask to eliminate setuid or setgid bits
+	     that are inappropriate if the owner and group are wrong.  */
+	  if (fchown (ofd, st.st_uid, st.st_gid) != 0)
+	    {
+	      mode_mask &= ~06000;
+	      if (fchown (ofd, -1, st.st_gid) == 0)
+		mode_mask |= 02000;
+	    }
+	}
+      if (fchmod (ofd, st.st_mode & mode_mask) != 0)
 	report_file_error ("Doing chmod", Fcons (newname, Qnil));
     }
 #endif	/* not MSDOS */

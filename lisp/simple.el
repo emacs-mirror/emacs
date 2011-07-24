@@ -3056,10 +3056,11 @@ If `interprogram-cut-function' is set, pass the resulting kill to it."
 
 (defun current-kill (n &optional do-not-move)
   "Rotate the yanking point by N places, and then return that kill.
-If N is zero, `interprogram-paste-function' is set, and calling
-it returns a string or list of strings, then that string (or
-list) is added to the front of the kill ring and the string (or
-first string in the list) is returned as the latest kill.
+If N is zero and `interprogram-paste-function' is set to a
+function that returns a string or a list of strings, and if that
+function doesn't return nil, then that string (or list) is added
+to the front of the kill ring and the string (or first string in
+the list) is returned as the latest kill.
 
 If N is not zero, and if `yank-pop-change-selection' is
 non-nil, use `interprogram-cut-function' to transfer the
@@ -5236,13 +5237,15 @@ Some major modes set this.")
 ;; auto-fill-function to nil in a file-local setting is safe and
 ;; can be useful to prevent auto-filling.
 (put 'auto-fill-function 'safe-local-variable 'null)
-;; FIXME: turn into a proper minor mode.
-;; Add a global minor mode version of it.
+
 (define-minor-mode auto-fill-mode
   "Toggle Auto Fill mode.
 With ARG, turn Auto Fill mode on if and only if ARG is positive.
 In Auto Fill mode, inserting a space at a column beyond `current-fill-column'
 automatically breaks the line at a previous space.
+
+When `auto-fill-mode' is on, the `auto-fill-function' variable is
+non-`nil'.
 
 The value of `normal-auto-fill-function' specifies the function to use
 for `auto-fill-function' when turning Auto Fill mode on."
