@@ -2,6 +2,11 @@
 
 	* Makefile.in (gl-stamp): move-if-change is now in build-aux.
 
+2011-07-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bidi.c (bidi_dump_cached_states): Fix printf format mismatch.
+	Found by GCC static checking and --with-wide-int on a 32-bit host.
+
 2011-07-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (compute_display_string_pos): Fix logic of caching
