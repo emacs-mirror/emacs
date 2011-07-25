@@ -1,3 +1,13 @@
+2011-07-25  Deniz Dogan  <deniz@dogan.se>
+
+	* image.el (insert-image): Clarifying docstring.
+
+2011-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-barf-unless-okay): Return the value of
+	`tramp-send-command-and-check' if there is no error.
+	(tramp-send-command-and-read): Suppress *all* errors if NOERROR.
+
 2011-07-22  Alan Mackenzie  <acm@muc.de>
 
 	Prevent cc-langs.elc being loaded at run time.

@@ -1918,7 +1918,8 @@ check_lface_attrs (Lisp_Object *attrs)
 	   || IGNORE_DEFFACE_P (attrs[LFACE_FONT_INDEX])
 	   || FONTP (attrs[LFACE_FONT_INDEX]));
   xassert (UNSPECIFIEDP (attrs[LFACE_FONTSET_INDEX])
-	   || STRINGP (attrs[LFACE_FONTSET_INDEX]));
+	   || STRINGP (attrs[LFACE_FONTSET_INDEX])
+	   || NILP (attrs[LFACE_FONTSET_INDEX]));
 #endif
 }
 

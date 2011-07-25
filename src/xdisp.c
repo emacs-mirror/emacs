@@ -3137,7 +3137,7 @@ next_overlay_change (EMACS_INT pos)
 /* Record one cached display string position found recently by
    compute_display_string_pos.  */
 static EMACS_INT cached_disp_pos;
-static EMACS_INT cached_prev_pos;
+static EMACS_INT cached_prev_pos = -1;
 static struct buffer *cached_disp_buffer;
 static int cached_disp_modiff;
 static int cached_disp_overlay_modiff;
@@ -3184,18 +3184,22 @@ compute_display_string_pos (struct text_pos *position,
 	  && BUF_MODIFF (b) == cached_disp_modiff
 	  && BUF_OVERLAY_MODIFF (b) == cached_disp_overlay_modiff)
 	{
-	  if (cached_prev_pos
+	  if (cached_prev_pos >= 0
 	      && cached_prev_pos < charpos && charpos <= cached_disp_pos)
 	    return cached_disp_pos;
 	  /* Handle overstepping either end of the known interval.  */
 	  if (charpos > cached_disp_pos)
 	    cached_prev_pos = cached_disp_pos;
 	  else	/* charpos <= cached_prev_pos */
-	    cached_prev_pos = max (charpos - 1, BEGV);
+	    cached_prev_pos = max (charpos - 1, 0);
 	}
 
       /* Record new values in the cache.  */
-      cached_disp_buffer = b;
+      if (b != cached_disp_buffer)
+	{
+	  cached_disp_buffer = b;
+	  cached_prev_pos = max (charpos - 1, 0);
+	}
       cached_disp_modiff = BUF_MODIFF (b);
       cached_disp_overlay_modiff = BUF_OVERLAY_MODIFF (b);
     }

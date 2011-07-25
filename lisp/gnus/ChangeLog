@@ -1,3 +1,18 @@
+2011-07-24  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnimap.el (nnimap-make-thread-query): Quote message-ids for gmail.
+
+2011-07-23  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-search-thread): New function to make an nnir group
+	based on a thread query.
+
+	* gnus-sum.el (gnus-refer-thread-use-nnir): New variable to control use
+	of nnir in thread referral.
+	(gnus-summary-refer-thread): Use it.
+
+	* nnimap.el (nnimap-request-thread): Use it.
+
 2011-07-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-tag-comment): Ignore HTML comments.
