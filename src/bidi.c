@@ -2308,7 +2308,7 @@ bidi_dump_cached_states (void)
       fprintf (stderr, "The cache is empty.\n");
       return;
     }
-  fprintf (stderr, "Total of  %"pD"d state%s in cache:\n",
+  fprintf (stderr, "Total of  %"pI"d state%s in cache:\n",
 	   bidi_cache_idx, bidi_cache_idx == 1 ? "" : "s");
 
   for (i = bidi_cache[bidi_cache_idx - 1].charpos; i > 0; i /= 10)
