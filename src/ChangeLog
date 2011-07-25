@@ -1,6 +1,6 @@
 2011-07-25  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* Makefile.in (gl-stamp): move-if-change is now in build-aux.
+	* Makefile.in (gl-stamp): move-if-change is now in build-aux (Bug#9169).
 
 2011-07-25  Paul Eggert  <eggert@cs.ucla.edu>
 

@@ -1,6 +1,6 @@
 2011-07-25  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Merge from gnulib.
+	Merge from gnulib (Bug#9169).
 	* notes/copyright: The files compile, config.guess, config.sub,
 	depcomp, install-sh, missing, and move-if-change are now in the
 	new build-aux subdirectory.  The files arg-nonnull.h, c++defs.h,

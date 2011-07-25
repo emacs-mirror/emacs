@@ -1,7 +1,7 @@
 2011-07-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in ($(DESTDIR)${archlibdir}): install-sh moved
-	to build-aux.
+	to build-aux (Bug#9169).
 
 2011-07-09  Andreas Schwab  <schwab@linux-m68k.org>
 

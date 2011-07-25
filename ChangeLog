@@ -1,6 +1,6 @@
 2011-07-25  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Merge from gnulib, using build-aux to remove clutter.
+	Merge from gnulib, using build-aux to remove clutter (Bug#9169).
 	* m4/largefile.m4: New file, so that Emacs does not mess up when
 	accessing files with large inode numbers in MacOS X 10.5 and later.
 	* m4/nocrash.m4: New file, to avoid triggering background debugger
