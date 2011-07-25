@@ -1,4 +1,4 @@
-2011-07-24  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (install): install-sh is now in build-aux.
 

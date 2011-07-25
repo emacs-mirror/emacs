@@ -413,8 +413,8 @@ means display it in the right marginal area."
 (defun insert-image (image &optional string area slice)
   "Insert IMAGE into current buffer at point.
 IMAGE is displayed by inserting STRING into the current buffer
-with a `display' property whose value is the image.  STRING is
-defaulted if you omit it.
+with a `display' property whose value is the image.  STRING
+defaults to the empty string if you omit it.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'

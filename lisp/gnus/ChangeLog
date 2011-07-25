@@ -1,3 +1,7 @@
+2011-07-24  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnimap.el (nnimap-make-thread-query): Quote message-ids for gmail.
+
 2011-07-23  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el (nnir-search-thread): New function to make an nnir group

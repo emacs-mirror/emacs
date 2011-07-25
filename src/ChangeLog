@@ -1,6 +1,12 @@
-2011-07-24  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (gl-stamp): move-if-change is now in build-aux.
+
+2011-07-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (compute_display_string_pos): Fix logic of caching
+	previous display string position.  Initialize cached_prev_pos to
+	-1.  Fixes slow-down at the beginning of a buffer.
 
 2011-07-24  Eli Zaretskii  <eliz@gnu.org>
 

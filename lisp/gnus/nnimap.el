@@ -1947,13 +1947,13 @@ textual parts.")
 	 (refs (split-string
 		(or (mail-header-references header)
 		    "")))
-	(value
-	 (format
-	  "(OR HEADER REFERENCES %s HEADER Message-Id %s)"
-	  id id)))
+	 (value
+	  (format
+	   "(OR HEADER REFERENCES %S HEADER Message-Id %S)"
+	   id id)))
     (dolist (refid refs value)
       (setq value (format
-		   "(OR (OR HEADER Message-Id %s HEADER REFERENCES %s) %s)"
+		   "(OR (OR HEADER Message-Id %S HEADER REFERENCES %S) %s)"
 		   refid refid value)))))
 
 

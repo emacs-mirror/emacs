@@ -1,4 +1,4 @@
-2011-07-24  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-25  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, using build-aux to remove clutter.
 	* m4/largefile.m4: New file, so that Emacs does not mess up when
