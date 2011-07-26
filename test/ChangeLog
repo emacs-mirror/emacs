@@ -1,3 +1,25 @@
+2011-07-26  Ulf Jasper  <ulf.jasper@web.de>
+
+	* automated/icalendar-tests.el (icalendar-tests--compare-strings):
+	Removed, simply use string=.
+	(icalendar--diarytime-to-isotime)
+	(icalendar--datetime-to-diary-date)
+	(icalendar--datestring-to-isodate)
+	(icalendar--format-ical-event)
+	(icalendar--parse-summary-and-rest)
+	(icalendar-tests--do-test-import)
+	(icalendar-tests--do-test-cycle) : Changed argument order of
+	string= to EXPECTED ACTUAL.
+	(icalendar--import-format-sample)
+	(icalendar--format-ical-event)
+	(icalendar-import-non-recurring)
+	(icalendar-import-rrule)
+	(icalendar-import-duration)
+	(icalendar-import-bug-6766)
+	(icalendar-real-world): Adjusted to string= instead of
+	icalendar-tests--compare-strings.
+	(icalendar-import-multiple-vcalendars): New.
+
 2011-05-11  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* automated/gnus-tests.el: Add wrapper for Gnus tests.
