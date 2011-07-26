@@ -1,3 +1,21 @@
+2011-07-26  Alan Mackenzie  <acm@muc.de>
+
+	Fontify bitfield declarations properly.
+
+	* progmodes/cc-langs.el (c-has-bitfields): New lang variable.
+	(c-symbol-chars): Now exported as a lang variable.
+	(c-not-primitive-type-keywords): New lang variable.
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Jump over the
+	QT keyword "more" to prevent "more slots: ...." being spuriously
+	parsed as a bitfield declaraion.
+
+	* progmodes/cc-engine.el (c-beginning-of-statement-1): Refactor
+	and enhance to handle bitfield declarations.
+	(c-punctuation-in): New function.
+	(c-forward-decl-or-cast-1): Enhance CASE 3 to handle bitfield
+	declarations properly.
+
 2011-07-26  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar--all-events): Take care of
