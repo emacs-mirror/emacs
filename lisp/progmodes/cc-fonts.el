@@ -1179,6 +1179,14 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		  (goto-char start-pos)))
 
 	    ;; Now analyze the construct.
+	    ;; In QT, "more" is an irritating keyword that expands to nothing.
+	    ;; We skip over it to prevent recognition of "more slots: <symbol>"
+	    ;; as a bitfield declaration.
+	    (when (and (c-major-mode-is 'c++-mode)
+		       (looking-at
+			(concat "\\(more\\)\\([^" c-symbol-chars "]\\|$\\)")))
+	      (goto-char (match-end 1))
+	      (c-forward-syntactic-ws))
 	    (setq decl-or-cast (c-forward-decl-or-cast-1
 				match-pos context last-cast-end))
 

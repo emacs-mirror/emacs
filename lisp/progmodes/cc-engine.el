@@ -709,6 +709,9 @@ comment at the start of cc-engine.el for more info."
 	;; content was found in the label.  Note that we might still
 	;; regard it a label if it starts with `c-label-kwds'.
 	label-good-pos
+	;; Putative positions of the components of a bitfield declaration,
+	;; e.g. "int foo : NUM_FOO_BITS ;"
+	bitfield-type-pos bitfield-id-pos bitfield-size-pos
 	;; Symbol just scanned back over (e.g. 'while or 'boundary).
 	;; See above.
 	sym
@@ -765,13 +768,22 @@ comment at the start of cc-engine.el for more info."
 	    ;; Record this as the first token if not starting inside it.
 	    (setq tok start))
 
-        ;; The following while loop goes back one sexp (balanced parens,
-        ;; etc. with contents, or symbol or suchlike) each iteration.  This
-        ;; movement is accomplished with a call to scan-sexps approx 130 lines
-        ;; below.
+
+	;; The following while loop goes back one sexp (balanced parens,
+	;; etc. with contents, or symbol or suchlike) each iteration.  This
+	;; movement is accomplished with a call to c-backward-sexp approx 170
+	;; lines below.
+	;;
+	;; The loop is exited only by throwing nil to the (catch 'loop ...):
+	;; 1. On reaching the start of a macro;
+	;; 2. On having passed a stmt boundary with the PDA stack empty;
+	;; 3. On reaching the start of an Objective C method def;
+	;; 4. From macro `c-bos-pop-state'; when the stack is empty;
+	;; 5. From macro `c-bos-pop-state-and-retry' when the stack is empty.
 	(while
 	    (catch 'loop ;; Throw nil to break, non-nil to continue.
 	      (cond
+	       ;; Are we in a macro, just after the opening #?
 	       ((save-excursion
 		  (and macro-start	; Always NIL for AWK.
 		       (progn (skip-chars-backward " \t")
@@ -792,7 +804,7 @@ comment at the start of cc-engine.el for more info."
 		  (setq pos saved
 			ret 'macro
 			ignore-labels t))
-		(throw 'loop nil))
+		(throw 'loop nil))	; 1. Start of macro.
 
 	       ;; Do a round through the automaton if we've just passed a
 	       ;; statement boundary or passed a "while"-like token.
@@ -801,7 +813,7 @@ comment at the start of cc-engine.el for more info."
 			 (setq sym (intern (match-string 1)))))
 
 		(when (and (< pos start) (null stack))
-		  (throw 'loop nil))
+		  (throw 'loop nil))	; 2. Statement boundary.
 
 		;; The PDA state handling.
                 ;;
@@ -918,19 +930,14 @@ comment at the start of cc-engine.el for more info."
                 ;; HERE IS THE SINGLE PLACE INSIDE THE PDA LOOP WHERE WE MOVE
 		;; BACKWARDS THROUGH THE SOURCE.
 
-		;; This is typically fast with the caching done by
-		;; c-(backward|forward)-sws.
 		(c-backward-syntactic-ws)
-
 		(let ((before-sws-pos (point))
-		      ;; Set as long as we have to continue jumping by sexps.
-		      ;; It's the position to use as end in the next round.
-		      sexp-loop-continue-pos
 		      ;; The end position of the area to search for statement
 		      ;; barriers in this round.
-		      (sexp-loop-end-pos pos))
+		      (maybe-after-boundary-pos pos))
 
-		  ;; The following while goes back one sexp per iteration.
+		  ;; Go back over exactly one logical sexp, taking proper
+		  ;; account of macros and escaped EOLs.
 		  (while
 		      (progn
 			(unless (c-safe (c-backward-sexp) t)
@@ -938,81 +945,87 @@ comment at the start of cc-engine.el for more info."
 			  ;; stack won't be empty the code below will report a
 			  ;; suitable error.
 			  (throw 'loop nil))
+			(cond
+			 ;; Have we moved into a macro?
+			 ((and (not macro-start)
+			       (c-beginning-of-macro))
+			  ;; Have we crossed a statement boundary?  If not,
+			  ;; keep going back until we find one or a "real" sexp.
+			  (and
+			   (save-excursion
+			     (c-end-of-macro)
+			     (not (c-crosses-statement-barrier-p
+				   (point) maybe-after-boundary-pos)))
+			   (setq maybe-after-boundary-pos (point))))
+			 ;; Have we just gone back over an escaped NL?  This
+			 ;; doesn't count as a sexp.
+			 ((looking-at "\\\\$")))))
 
-			;; Check if the sexp movement crossed a statement or
-			;; declaration boundary.  But first modify the point
-			;; so that `c-crosses-statement-barrier-p' only looks
-			;; at the non-sexp chars following the sexp.
-			(save-excursion
-			  (when (setq
-				 boundary-pos
-				 (cond
-				  ((if macro-start
-				       nil
-				     (save-excursion
-				       (when (c-beginning-of-macro)
-					 ;; Set continuation position in case
-					 ;; `c-crosses-statement-barrier-p'
-					 ;; doesn't detect anything below.
-					 (setq sexp-loop-continue-pos (point)))))
-				   ;; If the sexp movement took us into a
-				   ;; macro then there were only some non-sexp
-				   ;; chars after it.  Skip out of the macro
-				   ;; to analyze them but not the non-sexp
-				   ;; chars that might be inside the macro.
-				   (c-end-of-macro)
-				   (c-crosses-statement-barrier-p
-				    (point) sexp-loop-end-pos))
-
-				  ((and
-				    (eq (char-after) ?{)
-				    (not (c-looking-at-inexpr-block lim nil t)))
-				   ;; Passed a block sexp.  That's a boundary
-				   ;; alright.
-				   (point))
-
-				  ((looking-at "\\s\(")
-				   ;; Passed some other paren.  Only analyze
-				   ;; the non-sexp chars after it.
-				   (goto-char (1+ (c-down-list-backward
-						   before-sws-pos)))
-				   ;; We're at a valid token start position
-				   ;; (outside the `save-excursion') if
-				   ;; `c-crosses-statement-barrier-p' failed.
-				   (c-crosses-statement-barrier-p
-				    (point) sexp-loop-end-pos))
-
-				  (t
-				   ;; Passed a symbol sexp or line
-				   ;; continuation.  It doesn't matter that
-				   ;; it's included in the analyzed region.
-				   (if (c-crosses-statement-barrier-p
-					(point) sexp-loop-end-pos)
-				       t
-				     ;; If it was a line continuation then we
-				     ;; have to continue looping.
-				     (if (looking-at "\\\\$")
-					 (setq sexp-loop-continue-pos (point)))
-				     nil))))
-
-			    (setq pptok ptok
-				  ptok tok
-				  tok boundary-pos
-				  sym 'boundary)
-			    ;; Like a C "continue".  Analyze the next sexp.
-			    (throw 'loop t)))
-
-			sexp-loop-continue-pos)	; End of "go back a sexp" loop condition.
-		    (goto-char sexp-loop-continue-pos)
-		    (setq sexp-loop-end-pos sexp-loop-continue-pos
-			  sexp-loop-continue-pos nil))))
+		  ;; Have we crossed a statement boundary?
+		  (setq boundary-pos
+			(cond
+			 ;; Are we at a macro beginning?
+			 ((and (not macro-start)
+			       c-opt-cpp-prefix
+			       (looking-at c-opt-cpp-prefix))
+			  (save-excursion
+			    (c-end-of-macro)
+			    (c-crosses-statement-barrier-p
+			     (point) maybe-after-boundary-pos)))
+			 ;; Just gone back over a brace block?
+			 ((and
+			   (eq (char-after) ?{)
+			   (not (c-looking-at-inexpr-block lim nil t)))
+			  (save-excursion
+			    (c-forward-sexp) (point)))
+			 ;; Just gone back over some paren block?
+			 ((looking-at "\\s\(")
+			  (save-excursion
+			    (goto-char (1+ (c-down-list-backward
+					    before-sws-pos)))
+			    (c-crosses-statement-barrier-p
+			     (point) maybe-after-boundary-pos)))
+			 ;; Just gone back over an ordinary symbol of some sort?
+			 (t (c-crosses-statement-barrier-p
+			     (point) maybe-after-boundary-pos))))
+	
+		  (when boundary-pos
+		    (setq pptok ptok
+			  ptok tok
+			  tok boundary-pos
+			  sym 'boundary)
+		    ;; Like a C "continue".  Analyze the next sexp.
+		    (throw 'loop t))))
 
 	      ;; ObjC method def?
 	      (when (and c-opt-method-key
 			 (setq saved (c-in-method-def-p)))
 		(setq pos saved
 		      ignore-labels t)	; Avoid the label check on exit.
-		(throw 'loop nil))
+		(throw 'loop nil))	; 3. ObjC method def.
+
+	      ;; Might we have a bitfield declaration, "<type> <id> : <size>"?
+	      (if c-has-bitfields
+		  (cond
+		   ;; The : <size> and <id> fields?
+		   ((and (numberp c-maybe-labelp)
+			 (not bitfield-size-pos)
+			 (save-excursion
+			   (goto-char (or tok start))
+			   (not (looking-at c-keywords-regexp)))
+			 (not (looking-at c-keywords-regexp))
+			 (not (c-punctuation-in (point) c-maybe-labelp)))
+		    (setq bitfield-size-pos (or tok start)
+			  bitfield-id-pos (point)))
+		   ;; The <type> field?
+		   ((and bitfield-id-pos
+			 (not bitfield-type-pos))
+		    (if (and (looking-at c-symbol-key) ; Can only be an integer type.  :-)
+			     (not (looking-at c-not-primitive-type-keywords-regexp))
+			     (not (c-punctuation-in (point) tok)))
+			(setq bitfield-type-pos (point))
+		      (setq bitfield-size-pos nil
+			    bitfield-id-pos nil)))))
 
 	      ;; Handle labels.
 	      (unless (eq ignore-labels t)
@@ -1044,8 +1057,10 @@ comment at the start of cc-engine.el for more info."
 		    pptok ptok
 		    ptok tok
 		    tok (point)
-		    pos tok)))		; Not nil (for the while loop).
-
+		    pos tok) ; always non-nil
+	      )		     ; end of (catch loop ....)
+	  )		     ; end of sexp-at-a-time (while ....)
+	
 	;; If the stack isn't empty there might be errors to report.
 	(while stack
 	  (if (and (vectorp saved-pos) (eq (length saved-pos) 3))
@@ -1067,6 +1082,7 @@ comment at the start of cc-engine.el for more info."
 		   (eq c-maybe-labelp t)
 		   (not (eq ret 'beginning))
 		   after-labels-pos
+		   (not bitfield-type-pos) ; Bitfields take precedence over labels.
 		   (or (not label-good-pos)
 		       (<= label-good-pos pos)
 		       (progn
@@ -1103,6 +1119,19 @@ comment at the start of cc-engine.el for more info."
 	(setq pos (point)))
       (goto-char pos)
       ret)))
+
+(defun c-punctuation-in (from to)
+  "Return non-nil if there is a non-comment non-macro punctuation character
+between FROM and TO.  FROM must not be in a string or comment.  The returned
+value is the position of the first such character."
+  (save-excursion
+    (goto-char from)
+    (let ((pos (point)))
+      (while (progn (skip-chars-forward c-symbol-chars to)
+		    (c-forward-syntactic-ws to)
+		    (> (point) pos))
+	(setq pos (point))))
+    (and (< (point) to) (point))))
 
 (defun c-crosses-statement-barrier-p (from to)
   "Return non-nil if buffer positions FROM to TO cross one or more
@@ -6618,19 +6647,27 @@ comment at the start of cc-engine.el for more info."
 	  (if backup-at-type
 	      (progn
 
-		;; CASE 3
-		(when (= (point) start)
-		  ;; Got a plain list of identifiers.  If a colon follows it's
-		   ;; a valid label.  Otherwise the last one probably is the
-		   ;; declared identifier and we should back up to the previous
-		   ;; type, providing it isn't a cast.
+
+		 ;; CASE 3
+		 (when (= (point) start)
+		   ;; Got a plain list of identifiers. If a colon follows it's
+		   ;; a valid label, or maybe a bitfield.  Otherwise the last
+		   ;; one probably is the declared identifier and we should
+		   ;; back up to the previous type, providing it isn't a cast.
 		   (if (and (eq (char-after) ?:)
 			    (not (c-major-mode-is 'java-mode)))
-		       ;; If we've found a specifier keyword then it's a
-		       ;; declaration regardless.
-		       (throw 'at-decl-or-cast (eq at-decl-or-cast t))
-		    (setq backup-if-not-cast t)
-		    (throw 'at-decl-or-cast t)))
+		       (cond
+			;; If we've found a specifier keyword then it's a
+			;; declaration regardless.
+			((eq at-decl-or-cast t)
+			 (throw 'at-decl-or-cast t))
+			((and c-has-bitfields
+			      (eq at-decl-or-cast 'ids)) ; bitfield.
+			 (setq backup-if-not-cast t)
+			 (throw 'at-decl-or-cast t)))
+
+		     (setq backup-if-not-cast t)
+		     (throw 'at-decl-or-cast t)))
 
 		;; CASE 4
 		(when (and got-suffix
