@@ -1,3 +1,8 @@
+2011-07-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (emacs_gnutls_read): Don't message anything if the peer
+	closes the connection while we're reading (bug#9182).
+
 2011-07-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsmenu.m (ns_popup_dialog): Add an "ok" button if no buttons
