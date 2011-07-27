@@ -1,3 +1,8 @@
+2011-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-maybe-send-script): Don't let-bind the
+	connection process, it could be nil.
+
 2011-07-27  Leo Liu  <sdl.web@gmail.com>
 
 	Simplify url handling in rcirc-mode.
