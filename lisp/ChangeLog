@@ -1,3 +1,11 @@
+2011-07-27  Leo Liu  <sdl.web@gmail.com>
+
+	Simplify url handling in rcirc-mode.
+
+	* net/rcirc.el (rcirc-browse-url-map, rcirc-browse-url-at-point)
+	(rcirc-browse-url-at-mouse): Remove.
+	* net/rcirc.el (rcirc-markup-urls): Use `make-button'.
+
 2011-07-26  Alan Mackenzie  <acm@muc.de>
 
 	Fontify bitfield declarations properly.
