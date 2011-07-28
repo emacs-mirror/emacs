@@ -1,7 +1,7 @@
 2011-07-28  Eli Zaretskii  <eliz@gnu.org>
 
-	* buffer.c (init_buffer_once, syms_of_buffer): Set
-	bidi-display-reordering to t by default.
+	* buffer.c (init_buffer_once): Set bidi-display-reordering to t by
+	default.
 
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
