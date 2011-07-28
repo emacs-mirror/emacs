@@ -1,5 +1,12 @@
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* editfns.c: Integer and memory overflow fixes.
+	(set_time_zone_rule): Don't assume environment length fits in int.
+	(message_length): Now ptrdiff_t, not int.
+	(Fmessage_box): Don't update size until allocation succeeds.
+	Don't assume message length fits in int.
+	(Fformat): Use ptrdiff_t, not EMACS_INT, where ptrdiff_t will do.
+
 	* doc.c: Integer and memory overflow fixes.
 	(get_doc_string_buffer_size): Now ptrdiff_t, not int.
 	(get_doc_string): Check for size calculation overflow.
