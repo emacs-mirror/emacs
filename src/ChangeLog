@@ -1,3 +1,9 @@
+2011-07-28  Eli Zaretskii  <eliz@fencepost.gnu.org>
+
+	* xdisp.c (compute_display_string_pos): Don't use cached display
+	string position if the buffer had its restriction changed.
+	(Bug#9184)
+
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* callproc.c (Fcall_process): Use 'volatile' to avoid vfork clobbering.

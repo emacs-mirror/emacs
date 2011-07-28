@@ -3182,7 +3182,8 @@ compute_display_string_pos (struct text_pos *position,
 	b = XBUFFER (object);
       if (b == cached_disp_buffer
 	  && BUF_MODIFF (b) == cached_disp_modiff
-	  && BUF_OVERLAY_MODIFF (b) == cached_disp_overlay_modiff)
+	  && BUF_OVERLAY_MODIFF (b) == cached_disp_overlay_modiff
+	  && !b->clip_changed)
 	{
 	  if (cached_prev_pos >= 0
 	      && cached_prev_pos < charpos && charpos <= cached_disp_pos)
