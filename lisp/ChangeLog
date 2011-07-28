@@ -1,3 +1,8 @@
+2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xt-mouse.el (xterm-mouse-event-read): Try to recover the raw
+	character.  (Bug#6594)
+
 2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* window.el (split-window-horizontally): Doc fix (Bug#9060).
