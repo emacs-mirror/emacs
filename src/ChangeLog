@@ -1,5 +1,8 @@
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* composite.c: Integer overflow fixes.
+	(get_composition_id): Check for overflow in glyph length calculations.
+
 	* coding.c: Integer and memory overflow fixes.
 	(produce_chars): Redo buffer-overflow calculations to avoid
 	unnecessary integer overflow.  Check for size overflow.

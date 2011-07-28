@@ -177,13 +177,23 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 		    Lisp_Object prop, Lisp_Object string)
 {
   Lisp_Object id, length, components, key, *key_contents;
-  int glyph_len;
+  ptrdiff_t glyph_len;
   struct Lisp_Hash_Table *hash_table = XHASH_TABLE (composition_hash_table);
   ptrdiff_t hash_index;
   EMACS_UINT hash_code;
+  enum composition_method method;
   struct composition *cmp;
   EMACS_INT i;
   int ch;
+
+  /* Maximum length of a string of glyphs.  XftGlyphExtents limits this
+     to INT_MAX, and Emacs may limit it further.  */
+  enum {
+    glyph_len_max =
+      min (INT_MAX,
+	   (min (PTRDIFF_MAX, SIZE_MAX)
+	    / max (MAX_MULTIBYTE_LENGTH, 2 * sizeof (short))))
+  };
 
   /* PROP should be
 	Form-A: ((LENGTH . COMPONENTS) . MODIFICATION-FUNC)
@@ -320,18 +330,24 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
   /* Register the composition in composition_hash_table.  */
   hash_index = hash_put (hash_table, key, id, hash_code);
 
+  method = (NILP (components)
+	    ? COMPOSITION_RELATIVE
+	    : ((INTEGERP (components) || STRINGP (components))
+	       ? COMPOSITION_WITH_ALTCHARS
+	       : COMPOSITION_WITH_RULE_ALTCHARS));
+
+  glyph_len = (method == COMPOSITION_WITH_RULE_ALTCHARS
+	       ? (ASIZE (key) + 1) / 2
+	       : ASIZE (key));
+
+  if (glyph_len_max < glyph_len)
+    memory_full (SIZE_MAX);
+
   /* Register the composition in composition_table.  */
   cmp = (struct composition *) xmalloc (sizeof (struct composition));
 
-  cmp->method = (NILP (components)
-		 ? COMPOSITION_RELATIVE
-		 : ((INTEGERP (components) || STRINGP (components))
-		    ? COMPOSITION_WITH_ALTCHARS
-		    : COMPOSITION_WITH_RULE_ALTCHARS));
+  cmp->method = method;
   cmp->hash_index = hash_index;
-  glyph_len = (cmp->method == COMPOSITION_WITH_RULE_ALTCHARS
-	       ? (ASIZE (key) + 1) / 2
-	       : ASIZE (key));
   cmp->glyph_len = glyph_len;
   cmp->offsets = (short *) xmalloc (sizeof (short) * glyph_len * 2);
   cmp->font = NULL;
