@@ -337,7 +337,7 @@ static int
 lock_file_1 (char *lfname, int force)
 {
   register int err;
-  intmax_t boot, pid;
+  printmax_t boot, pid;
   const char *user_name;
   const char *host_name;
   char *lock_info_str;
@@ -354,15 +354,15 @@ lock_file_1 (char *lfname, int force)
   else
     host_name = "";
   lock_info_str = (char *)alloca (strlen (user_name) + strlen (host_name)
-				  + 2 * INT_STRLEN_BOUND (intmax_t)
+				  + 2 * INT_STRLEN_BOUND (printmax_t)
 				  + sizeof "@.:");
   pid = getpid ();
 
   if (boot)
-    sprintf (lock_info_str, "%s@%s.%"PRIdMAX":%"PRIdMAX,
+    sprintf (lock_info_str, "%s@%s.%"pMd":%"pMd,
 	     user_name, host_name, pid, boot);
   else
-    sprintf (lock_info_str, "%s@%s.%"PRIdMAX,
+    sprintf (lock_info_str, "%s@%s.%"pMd,
 	     user_name, host_name, pid);
 
   err = symlink (lock_info_str, lfname);
@@ -542,7 +542,7 @@ lock_file (Lisp_Object fn)
   register Lisp_Object attack, orig_fn, encoded_fn;
   register char *lfname, *locker;
   lock_info_type lock_info;
-  intmax_t pid;
+  printmax_t pid;
   struct gcpro gcpro1;
 
   /* Don't do locking while dumping Emacs.
@@ -581,9 +581,10 @@ lock_file (Lisp_Object fn)
 
   /* Else consider breaking the lock */
   locker = (char *) alloca (strlen (lock_info.user) + strlen (lock_info.host)
-			    + INT_STRLEN_BOUND (intmax_t) + sizeof "@ (pid )");
+			    + INT_STRLEN_BOUND (printmax_t)
+			    + sizeof "@ (pid )");
   pid = lock_info.pid;
-  sprintf (locker, "%s@%s (pid %"PRIdMAX")",
+  sprintf (locker, "%s@%s (pid %"pMd")",
 	   lock_info.user, lock_info.host, pid);
   FREE_LOCK_INFO (lock_info);
 

@@ -1,3 +1,10 @@
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume freestanding C89 headers, string.h, stdlib.h.
+	* config.nt (HAVE_LIMITS_H, HAVE_STRING_H, HAVE_STDLIB_H)
+	(STDC_HEADERS): Remove.
+	Iinclude string.h, stdlib.h unconditionally.
+
 2011-06-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/stdint.h (INT32_MAX, INT64_MAX, INTPTR_MAX, PTRDIFF_MAX)

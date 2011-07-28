@@ -1,10 +1,10 @@
 ;;; org-attach.el --- Manage file attachments to org-mode tasks
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Keywords: org data task
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -96,9 +96,16 @@ ln    create a hard link.  Note that this is not supported
   :group 'org-attach
   :type 'boolean)
 
-
 (defvar org-attach-inherited nil
   "Indicates if the last access to the attachment directory was inherited.")
+
+(defcustom org-attach-store-link-p nil
+  "Non-nil means store a link to a file when attaching it."
+  :group 'org-attach
+  :type '(choice
+	  (const :tag "Don't store link" nil)
+	  (const :tag "Link to origin location" t)
+	  (const :tag "Link to the attach-dir location" 'attached)))
 
 ;;;###autoload
 (defun org-attach ()
@@ -246,10 +253,10 @@ This checks for the existence of a \".git\" directory in that directory."
 	(cd dir)
 	(shell-command "git add .")
 	(shell-command "git ls-files --deleted" t)
-	(mapc (lambda (file)
-                (unless (string= file "")
-                  (shell-command
-                   (concat "git rm \"" file "\""))))
+	(mapc #'(lambda (file)
+		 (unless (string= file "")
+		   (shell-command
+		    (concat "git rm \"" file "\""))))
 	      (split-string (buffer-string) "\n"))
 	(shell-command "git commit -m 'Synchronized attachments'")))))
 
@@ -263,6 +270,14 @@ This checks for the existence of a \".git\" directory in that directory."
 (defun org-attach-untag ()
   "Turn the autotag off."
   (org-attach-tag 'off))
+
+(defun org-attach-store-link (file)
+  "Add a link to `org-stored-link' when attaching a file.
+Only do this when `org-attach-store-link-p' is non-nil."
+  (setq org-stored-links
+	(cons (list (org-attach-expand-link file)
+		    (file-name-nondirectory file))
+	      org-stored-links)))
 
 (defun org-attach-attach (file &optional visit-dir method)
   "Move/copy/link FILE into the attachment directory of the current task.
@@ -282,6 +297,10 @@ METHOD may be `cp', `mv', or `ln', default taken from `org-attach-method'."
        ((eq method 'ln) (add-name-to-file file fname)))
       (org-attach-commit)
       (org-attach-tag)
+      (cond ((eq org-attach-store-link-p 'attached)
+	     (org-attach-store-link fname))
+	    ((eq org-attach-store-link-p t)
+	     (org-attach-store-link file)))
       (if visit-dir
 	  (dired attach-dir)
 	(message "File \"%s\" is now a task attachment." basename)))))
@@ -418,4 +437,5 @@ prefix."
 
 (provide 'org-attach)
 
+;; arch-tag: fce93c2e-fe07-4fa3-a905-e10dcc7a6248
 ;;; org-attach.el ends here

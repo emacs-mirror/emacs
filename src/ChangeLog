@@ -1,6 +1,235 @@
-2011-07-25  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* Makefile.in (gl-stamp): move-if-change is now in build-aux (Bug#9169).
+	* Makefile.in (gl-stamp): move-if-change now in build-aux (Bug#9169).
+
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (x_check_image_size) [!HAVE_X_WINDOWS]: Return 1.
+	In other words, assume that every image size is allowed, on non-X
+	hosts.  This assumption is probably wrong, but it lets Emacs compile.
+
+2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* regex.c (re_iswctype): Convert return values to boolean.
+
+2011-07-28  Eli Zaretskii  <eliz@fencepost.gnu.org>
+
+	* xdisp.c (compute_display_string_pos): Don't use cached display
+	string position if the buffer had its restriction changed.
+	(Bug#9184)
+
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* callproc.c (Fcall_process): Use 'volatile' to avoid vfork clobbering.
+
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Integer signedness and overflow and related fixes.  (Bug#9079)
+
+	* bidi.c: Integer size and overflow fixes.
+	(bidi_cache_size, bidi_cache_idx, bidi_cache_last_idx)
+	(bidi_cache_start, bidi_cache_fetch_state, bidi_cache_search)
+	(bidi_cache_find_level_change, bidi_cache_ensure_space)
+	(bidi_cache_iterator_state, bidi_cache_find, bidi_cache_start_stack)
+	(bidi_find_other_level_edge):
+	Use ptrdiff_t instead of EMACS_INT where either will do.
+	This works better on 32-bit hosts configured --with-wide-int.
+	(bidi_cache_ensure_space): Check for size-calculation overflow.
+	Use % rather than repeated addition, for better worst-case speed.
+	Don't set bidi_cache_size until after xrealloc returns, because it
+	might not return.
+	(bidi_dump_cached_states): Use ptrdiff_t, not int, to avoid overflow.
+	(bidi_cache_ensure_space): Also check that the bidi cache size
+	does not exceed that of the largest Lisp string or buffer.  See Eli
+	Zaretskii in <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9079#29>.
+
+	* alloc.c (__malloc_size_t): Remove.
+	All uses replaced by size_t.  See Andreas Schwab's note
+	<http://debbugs.gnu.org/cgi/bugreport.cgi?bug=9079#8>.
+
+	* image.c: Improve checking for integer overflow.
+	(check_image_size): Assume that f is nonnull, since
+	it is always nonnull in practice.  This is one less thing to
+	worry about when checking for integer overflow later.
+	(x_check_image_size): New function, which checks for integer
+	overflow issues inside X.
+	(x_create_x_image_and_pixmap, xbm_read_bitmap_data): Use it.
+	This removes the need for a memory_full check.
+	(xbm_image_p): Rewrite to avoid integer multiplication overflow.
+	(Create_Pixmap_From_Bitmap_Data, xbm_load): Use x_check_image_size.
+	(xbm_read_bitmap_data): Change locals back to 'int', since
+	their values must fit in 'int'.
+	(xpm_load_image, png_load, tiff_load):
+	Invoke x_create_x_image_and_pixmap earlier,
+	to avoid much needless work if the image is too large.
+	(tiff_load): Treat overly large images as if
+	x_create_x_image_and_pixmap failed, not as malloc failures.
+	(gs_load): Use x_check_image_size.
+
+	* gtkutil.c: Omit integer casts.
+	(xg_get_pixbuf_from_pixmap): Remove unnecessary cast.
+	(xg_set_toolkit_scroll_bar_thumb): Rewrite to avoid need for cast.
+
+	* image.c (png_load): Don't assume height * row_bytes fits in 'int'.
+
+	* xfaces.c (Fbitmap_spec_p): Fix integer overflow bug.
+	Without this fix, (bitmap-spec-p '(34359738368 1 "x"))
+	would wrongly return t on a 64-bit host.
+
+	* dispnew.c (init_display): Use *_RANGE_OVERFLOW macros.
+	The plain *_OVERFLOW macros run afoul of GCC bug 49705
+	<http://gcc.gnu.org/bugzilla/show_bug.cgi?id=49705>
+	and therefore cause GCC to emit a bogus diagnostic in some cases.
+
+	* image.c: Integer signedness and overflow and related fixes.
+	This is not an exhaustive set of fixes, but it's time to
+	record what I've got.
+	(lookup_pixel_color, check_image_size): Remove redundant decls.
+	(check_image_size): Don't assume that arbitrary EMACS_INT values
+	fit in 'int', or that arbitrary 'double' values fit in 'int'.
+	(x_alloc_image_color, x_create_x_image_and_pixmap, png_load)
+	(tiff_load, imagemagick_load_image):
+	Check for overflow in size calculations.
+	(x_create_x_image_and_pixmap): Remove unnecessary test for
+	xmalloc returning NULL; that can't happen.
+	(xbm_read_bitmap_data): Don't assume sizes fit into 'int'.
+	(xpm_color_bucket): Use better integer hashing function.
+	(xpm_cache_color): Don't possibly over-allocate memory.
+	(struct png_memory_storage, tiff_memory_source, tiff_seek_in_memory)
+	(gif_memory_source):
+	Use ptrdiff_t, not int or size_t, to record sizes.
+	(png_load): Don't assume values greater than 2**31 fit in 'int'.
+	(our_stdio_fill_input_buffer): Prefer ptrdiff_t to size_t when
+	either works, as we prefer signed integers.
+	(tiff_read_from_memory, tiff_write_from_memory):
+	Return tsize_t, not size_t, since that's what the TIFF API wants.
+	(tiff_read_from_memory): Don't fail simply because the read would
+	go past EOF; instead, return a short read.
+	(tiff_load): Omit no-longer-needed casts.
+	(Fimagemagick_types): Don't assume size fits into 'int'.
+
+	Improve hashing quality when configured --with-wide-int.
+	* fns.c (hash_string): New function, taken from sxhash_string.
+	Do not discard information about ASCII character case; this
+	discarding is no longer needed.
+	(sxhash-string): Use it.  Change sig to match it.  Caller changed.
+	* lisp.h: Declare it.
+	* lread.c (hash_string): Remove, since we now use fns.c's version.
+	The fns.c version returns a wider integer if --with-wide-int is
+	specified, so this should help the quality of the hashing a bit.
+
+	* emacs.c: Integer overflow minor fix.
+	(heap_bss_diff): Now uprintmax_t, not unsigned long.  All used changed.
+	Define only if GNU_LINUX.
+	(main, Fdump_emacs): Set and use heap_bss_diff only if GNU_LINUX.
+
+	* dispnew.c: Integer signedness and overflow fixes.
+	Remove unnecessary forward decls, that were a maintenance hassle.
+	(history_tick): Now uprintmax_t, so it's more likely to avoid overflow.
+	All uses changed.
+	(adjust_glyph_matrix, realloc_glyph_pool, adjust_frame_message_buffer)
+	(scrolling_window): Use ptrdiff_t, not int, for byte count.
+	(prepare_desired_row, line_draw_cost):
+	Use int, not unsigned, where either works.
+	(save_current_matrix, restore_current_matrix):
+	Use ptrdiff_t, not size_t, where either works.
+	(init_display): Check for overflow more accurately, and without
+	relying on undefined behavior.
+
+	* editfns.c (pWIDE, pWIDElen, signed_wide, unsigned_wide):
+	Remove, replacing with the new symbols in lisp.h.  All uses changed.
+	* fileio.c (make_temp_name):
+	* filelock.c (lock_file_1, lock_file):
+	* xdisp.c (message_dolog):
+	Don't assume PRIdMAX etc. works; this isn't portable to pre-C99 hosts.
+	Use pMd etc. instead.
+	* lisp.h (printmax_t, uprintmax_t, pMd, pMu): New types and macros,
+	replacing the pWIDE etc. symbols removed from editfns.c.
+
+	* keyboard.h (num_input_events): Now uintmax_t.
+	This is (very slightly) less likely to mess up due to wraparound.
+	All uses changed.
+
+	* buffer.c: Integer signedness fixes.
+	(alloc_buffer_text, enlarge_buffer_text):
+	Use ptrdiff_t rather than size_t when either will do, as we prefer
+	signed integers.
+
+	* alloc.c: Integer signedness and overflow fixes.
+	Do not impose an arbitrary 32-bit limit on malloc sizes when debugging.
+	(__malloc_size_t): Default to size_t, not to int.
+	(pure_size, pure_bytes_used_before_overflow, stack_copy_size)
+	(Fgarbage_collect, mark_object_loop_halt, mark_object):
+	Prefer ptrdiff_t to size_t when either would do, as we prefer
+	signed integers.
+	(XMALLOC_OVERRUN_CHECK_OVERHEAD): New macro.
+	(xmalloc_overrun_check_header, xmalloc_overrun_check_trailer):
+	Now const.  Initialize with values that are in range even if char
+	is signed.
+	(XMALLOC_PUT_SIZE, XMALLOC_GET_SIZE): Remove, replacing with ...
+	(xmalloc_put_size, xmalloc_get_size): New functions.  All uses changed.
+	These functions do the right thing with sizes > 2**32.
+	(check_depth): Now ptrdiff_t, not int.
+	(overrun_check_malloc, overrun_check_realloc, overrun_check_free):
+	Adjust to new way of storing sizes.  Check for size overflow bugs
+	in rest of code.
+	(STRING_BYTES_MAX): Adjust to new overheads.  The old code was
+	slightly wrong anyway, as it missed one instance of
+	XMALLOC_OVERRUN_CHECK_OVERHEAD.
+	(refill_memory_reserve): Omit needless cast to size_t.
+	(mark_object_loop_halt): Mark as externally visible.
+
+	* xselect.c: Integer signedness and overflow fixes.
+	(Fx_register_dnd_atom, x_handle_dnd_message):
+	Use ptrdiff_t, not size_t, since we prefer signed.
+	(Fx_register_dnd_atom): Check for ptrdiff_t (and size_t) overflow.
+	* xterm.h (struct x_display_info): Use ptrdiff_t, not size_t, for
+	x_dnd_atoms_size and x_dnd_atoms_length.
+
+	* doprnt.c: Prefer signed to unsigned when either works.
+	* eval.c (verror):
+	* doprnt.c (doprnt):
+	* lisp.h (doprnt):
+	* xdisp.c (vmessage):
+	Use ptrdiff_t, not size_t, when using or implementing doprnt,
+	since the sizes cannot exceed ptrdiff_t bounds anyway, and we
+	prefer signed arithmetic to avoid comparison confusion.
+	* doprnt.c (doprnt): Avoid a "+ 1" that can't overflow,
+	but is a bit tricky.
+
+	Assume freestanding C89 headers, string.h, stdlib.h.
+	* data.c, doprnt.c, floatfns.c, print.c:
+	Include float.h unconditionally.
+	* gmalloc.c: Assume C89-at-least behavior for preprocessor,
+	limits.h, stddef.h, string.h.  Use memset instead of 'flood'.
+	* regex.c: Likewise for stddef.h, string.h.
+	(ISASCII): Remove; can assume it returns 1 now.  All uses removed.
+	* s/aix4-2.h (HAVE_STRING_H): Remove obsolete undef.
+	* s/ms-w32.h (HAVE_LIMITS_H, HAVE_STRING_H, HAVE_STDLIB_H)
+	(STDC_HEADERS): Remove obsolete defines.
+	* sysdep.c: Include limits.h unconditionally.
+
+	Assume support for memcmp, memcpy, memmove, memset.
+	* lisp.h, sysdep.c (memcmp, memcpy, memmove, memset):
+	* regex.c (memcmp, memcpy):
+	Remove; we assume C89 now.
+
+	* gmalloc.c (memcpy, memset, memmove): Remove; we assume C89 now.
+	(__malloc_safe_bcopy): Remove; no longer needed.
+
+	* lisp.h (struct vectorlike_header, struct Lisp_Subr): Signed sizes.
+	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
+	well either way, and we prefer signed to unsigned.
+
+2011-07-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (emacs_gnutls_read): Don't message anything if the peer
+	closes the connection while we're reading (bug#9182).
+
+2011-07-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (ns_popup_dialog): Add an "ok" button if no buttons
+	are specified (Bug#9168).
 
 2011-07-25  Paul Eggert  <eggert@cs.ucla.edu>
 

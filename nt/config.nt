@@ -131,12 +131,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_LINUX_VERSION_H
 #undef HAVE_SYS_SYSTEMINFO_H
 #undef HAVE_TERMIOS_H
-#undef HAVE_LIMITS_H
-#undef HAVE_STRING_H
 #undef HAVE_STRINGS_H
-#undef HAVE_STDLIB_H
 #undef HAVE_PWD_H
-#undef STDC_HEADERS
 
 #undef HAVE_LIBDNET
 #undef HAVE_LIBPTHREADS
@@ -506,15 +502,11 @@ extern char *getenv ();
 #define PROTOTYPES 1
 #endif
 
-#ifdef HAVE_STRING_H
 #include "string.h"
-#endif
 #ifdef HAVE_STRINGS_H
 #include "strings.h"
 #endif
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
 #ifndef NO_RETURN
 #if defined __GNUC__ && (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR >= 5))

@@ -170,8 +170,10 @@ char *stack_bottom;
 /* The address where the heap starts (from the first sbrk (0) call).  */
 static void *my_heap_start;
 
+#ifdef GNU_LINUX
 /* The gap between BSS end and heap start as far as we can tell.  */
-static unsigned long heap_bss_diff;
+static uprintmax_t heap_bss_diff;
+#endif
 
 /* Nonzero means running Emacs without interactive terminal.  */
 int noninteractive;
@@ -716,6 +718,7 @@ main (int argc, char **argv)
   setenv ("G_SLICE", "always-malloc", 1);
 #endif
 
+#ifdef GNU_LINUX
   if (!initialized)
     {
       extern char my_endbss[];
@@ -726,6 +729,7 @@ main (int argc, char **argv)
 
       heap_bss_diff = (char *)my_heap_start - max (my_endbss, my_endbss_static);
     }
+#endif
 
 #ifdef RUN_TIME_REMAP
   if (initialized)
@@ -2134,7 +2138,7 @@ You must run Emacs in batch mode in order to dump it.  */)
     {
       fprintf (stderr, "**************************************************\n");
       fprintf (stderr, "Warning: Your system has a gap between BSS and the\n");
-      fprintf (stderr, "heap (%lu bytes).  This usually means that exec-shield\n",
+      fprintf (stderr, "heap (%"pMu" bytes).  This usually means that exec-shield\n",
                heap_bss_diff);
       fprintf (stderr, "or something similar is in effect.  The dump may\n");
       fprintf (stderr, "fail because of this.  See the section about\n");

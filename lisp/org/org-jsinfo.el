@@ -1,11 +1,12 @@
 ;;; org-jsinfo.el --- Support for org-info.js Javascript in Org HTML export
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -204,5 +205,6 @@ Option settings will replace the %MANAGER-OPTIONS cookie."
 (provide 'org-infojs)
 (provide 'org-jsinfo)
 
+;; arch-tag: c71d1d85-3337-4817-a066-725e74ac9eac
 
 ;;; org-jsinfo.el ends here

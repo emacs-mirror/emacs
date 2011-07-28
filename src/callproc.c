@@ -603,6 +603,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
     /* vfork, and prevent local vars from being clobbered by the vfork.  */
     {
+      int volatile fd1_volatile = fd1;
       int volatile fd_error_volatile = fd_error;
       int volatile fd_output_volatile = fd_output;
       int volatile output_to_buffer_volatile = output_to_buffer;
@@ -610,6 +611,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
       pid = vfork ();
 
+      fd1 = fd1_volatile;
       fd_error = fd_error_volatile;
       fd_output = fd_output_volatile;
       output_to_buffer = output_to_buffer_volatile;

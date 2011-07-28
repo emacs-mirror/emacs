@@ -3457,8 +3457,10 @@ Fall back to normal file name handler if no Tramp handler exists."
 (defun tramp-maybe-send-script (vec script name)
   "Define in remote shell function NAME implemented as SCRIPT.
 Only send the definition if it has not already been done."
-  (let* ((p (tramp-get-connection-process vec))
-	 (scripts (tramp-get-connection-property p "scripts" nil)))
+  ;; We cannot let-bind (tramp-get-connection-process vec) because it
+  ;; might be nil.
+  (let ((scripts (tramp-get-connection-property
+		  (tramp-get-connection-process vec) "scripts" nil)))
     (unless (member name scripts)
       (tramp-with-progress-reporter vec 5 (format "Sending script `%s'" name)
 	;; The script could contain a call of Perl.  This is masked with `%s'.
@@ -3467,7 +3469,8 @@ Only send the definition if it has not already been done."
 	 (format "%s () {\n%s\n}" name
 		 (format script (tramp-get-remote-perl vec)))
 	 "Script %s sending failed" name)
-	(tramp-set-connection-property p "scripts" (cons name scripts))))))
+	(tramp-set-connection-property
+	 (tramp-get-connection-process vec) "scripts" (cons name scripts))))))
 
 (defun tramp-set-auto-save ()
   (when (and ;; ange-ftp has its own auto-save mechanism

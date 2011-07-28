@@ -1,3 +1,45 @@
+2011-07-28  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* simple.el (goto-line): Use string-to-number to provide a
+	numeric argument to read-number.
+
+2011-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-maybe-send-script): Don't let-bind the
+	connection process, it could be nil.
+
+2011-07-27  Leo Liu  <sdl.web@gmail.com>
+
+	Simplify url handling in rcirc-mode.
+
+	* net/rcirc.el (rcirc-browse-url-map, rcirc-browse-url-at-point)
+	(rcirc-browse-url-at-mouse): Remove.
+	* net/rcirc.el (rcirc-markup-urls): Use `make-button'.
+
+2011-07-26  Alan Mackenzie  <acm@muc.de>
+
+	Fontify bitfield declarations properly.
+
+	* progmodes/cc-langs.el (c-has-bitfields): New lang variable.
+	(c-symbol-chars): Now exported as a lang variable.
+	(c-not-primitive-type-keywords): New lang variable.
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Jump over the
+	QT keyword "more" to prevent "more slots: ...." being spuriously
+	parsed as a bitfield declaraion.
+
+	* progmodes/cc-engine.el (c-beginning-of-statement-1): Refactor
+	and enhance to handle bitfield declarations.
+	(c-punctuation-in): New function.
+	(c-forward-decl-or-cast-1): Enhance CASE 3 to handle bitfield
+	declarations properly.
+
+2011-07-26  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar--all-events): Take care of
+	multiple vcalendars in a single file.
+	(icalendar--convert-float-to-ical): checkdoc fixes.
+
 2011-07-25  Deniz Dogan  <deniz@dogan.se>
 
 	* image.el (insert-image): Clarifying docstring.

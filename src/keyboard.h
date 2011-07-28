@@ -191,8 +191,8 @@ extern KBOARD *current_kboard;
 /* A list of all kboard objects, linked through next_kboard.  */
 extern KBOARD *all_kboards;
 
-/* Total number of times read_char has returned, modulo SIZE_MAX + 1.  */
-extern size_t num_input_events;
+/* Total number of times read_char has returned, modulo UINTMAX_MAX + 1.  */
+extern uintmax_t num_input_events;
 
 /* Nonzero means polling for input is temporarily suppressed.  */
 extern int poll_suppress_count;

@@ -1,9 +1,10 @@
 ;;; org-exp-blocks.el --- pre-process blocks when exporting org files
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -47,13 +48,15 @@
 ;;
 ;;; Currently Implemented Block Types
 ;;
-;; ditaa :: Convert ascii pictures to actual images using ditaa
+;; ditaa :: (DEPRECATED--use "#+begin_src ditaa" code blocks) Convert
+;;          ascii pictures to actual images using ditaa
 ;;          http://ditaa.sourceforge.net/.  To use this set
 ;;          `org-ditaa-jar-path' to the path to ditaa.jar on your
 ;;          system (should be set automatically in most cases) .
 ;;
-;; dot :: Convert graphs defined using the dot graphing language to
-;;        images using the dot utility.  For information on dot see
+;; dot :: (DEPRECATED--use "#+begin_src dot" code blocks) Convert
+;;        graphs defined using the dot graphing language to images
+;;        using the dot utility.  For information on dot see
 ;;        http://www.graphviz.org/
 ;;
 ;; comment :: Wrap comments with titles and author information, in
@@ -72,11 +75,6 @@
 (eval-when-compile
   (require 'cl))
 (require 'org)
-
-(defvar htmlp)
-(defvar latexp)
-(defvar docbookp)
-(defvar asciip)
 
 (defun org-export-blocks-set (var value)
   "Set the value of `org-export-blocks' and install fontification."
@@ -170,33 +168,52 @@ which defaults to the value of `org-export-blocks-witheld'."
   (save-window-excursion
     (let ((case-fold-search t)
 	  (types '())
-	  indentation type func start body headers preserve-indent progress-marker)
+	  matched indentation type func
+	  start end body headers preserve-indent progress-marker)
       (flet ((interblock (start end)
 			 (mapcar (lambda (pair) (funcall (second pair) start end))
 				 org-export-interblocks)))
 	(goto-char (point-min))
 	(setq start (point))
-	(while (re-search-forward
-		"^\\([ \t]*\\)#\\+begin_\\(\\S-+\\)[ \t]*\\(.*\\)?[\r\n]\\([^\000]*?\\)[\r\n][ \t]*#\\+end_\\S-+.*[\r\n]?" nil t)
-          (setq indentation (length (match-string 1)))
-	  (setq type (intern (downcase (match-string 2))))
-	  (setq headers (save-match-data (org-split-string (match-string 3) "[ \t]+")))
-	  (setq body (match-string 4))
-	  (setq preserve-indent (or org-src-preserve-indentation (member "-i" headers)))
-	  (unless preserve-indent
-	    (setq body (save-match-data (org-remove-indentation body))))
-	  (unless (memq type types) (setq types (cons type types)))
-	  (save-match-data (interblock start (match-beginning 0)))
-	  (when (setq func (cadr (assoc type org-export-blocks)))
-            (let ((replacement (save-match-data
-                                 (if (memq type org-export-blocks-witheld) ""
-                                   (apply func body headers)))))
-              (when replacement
-                (replace-match replacement t t)
-                (unless preserve-indent
-                  (indent-code-rigidly
-                   (match-beginning 0) (match-end 0) indentation)))))
-	  (setq start (match-end 0)))
+	(let ((beg-re "^\\([ \t]*\\)#\\+begin_\\(\\S-+\\)[ \t]*\\(.*\\)?[\r\n]"))
+	  (while (re-search-forward beg-re nil t)
+	    (let* ((match-start (match-beginning 0))
+		   (body-start (match-end 0))
+		   (indentation (length (match-string 1)))
+		   (inner-re (format "[\r\n]*[ \t]*#\\+\\(begin\\|end\\)_%s"
+				     (regexp-quote (downcase (match-string 2)))))
+		   (type (intern (downcase (match-string 2))))
+		   (headers (save-match-data
+			      (org-split-string (match-string 3) "[ \t]+")))
+		   (balanced 1)
+		   (preserve-indent (or org-src-preserve-indentation
+					(member "-i" headers)))
+		   match-end)
+	      (while (and (not (zerop balanced))
+			  (re-search-forward inner-re nil t))
+		(if (string= (downcase (match-string 1)) "end")
+		    (decf balanced)
+		  (incf balanced)))
+	      (when (not (zerop balanced))
+		(error "unbalanced begin/end_%s blocks with %S"
+		       type (buffer-substring match-start (point))))
+	      (setq match-end (match-end 0))
+	      (unless preserve-indent
+		(setq body (save-match-data (org-remove-indentation
+					     (buffer-substring
+					      body-start (match-beginning 0))))))
+	      (unless (memq type types) (setq types (cons type types)))
+	      (save-match-data (interblock start match-start))
+	      (when (setq func (cadr (assoc type org-export-blocks)))
+		(let ((replacement (save-match-data
+				     (if (memq type org-export-blocks-witheld) ""
+				       (apply func body headers)))))
+		  (when replacement
+		    (delete-region match-start match-end)
+		    (goto-char match-start) (insert replacement)
+		    (unless preserve-indent
+		      (indent-code-rigidly match-start (point) indentation))))))
+	    (setq start (point))))
 	(interblock start (point-max))
 	(run-hooks 'org-export-blocks-postblock-hook)))))
 
@@ -216,12 +233,15 @@ which defaults to the value of `org-export-blocks-witheld'."
 				(file-name-directory (or load-file-name buffer-file-name)))))))
   "Path to the ditaa jar executable.")
 
+(defvar org-export-current-backend) ; dynamically bound in org-exp.el
 (defun org-export-blocks-format-ditaa (body &rest headers)
-  "Pass block BODY to the ditaa utility creating an image.
+  "DEPRECATED: use begin_src ditaa code blocks
+
+Pass block BODY to the ditaa utility creating an image.
 Specify the path at which the image should be saved as the first
 element of headers, any additional elements of headers will be
 passed to the ditaa utility as command line arguments."
-  (message "ditaa-formatting...")
+  (message "begin_ditaa blocks are DEPRECATED, use begin_src blocks")
   (let* ((args (if (cdr headers) (mapconcat 'identity (cdr headers) " ")))
          (data-file (make-temp-file "org-ditaa"))
 	 (hash (progn
@@ -240,8 +260,9 @@ passed to the ditaa utility as command line arguments."
 		 (mapconcat (lambda (x) (substring x (if (> (length x) 1) 2 1)))
 			    (org-split-string body "\n")
 			    "\n")))
+    (prog1
     (cond
-     ((or htmlp latexp docbookp)
+     ((member org-export-current-backend '(html latex docbook))
       (unless (file-exists-p out-file)
         (mapc ;; remove old hashed versions of this file
          (lambda (file)
@@ -261,13 +282,16 @@ passed to the ditaa utility as command line arguments."
      (t (concat
 	 "\n#+BEGIN_EXAMPLE\n"
 	 body (if (string-match "\n$" body) "" "\n")
-	 "#+END_EXAMPLE\n")))))
+	 "#+END_EXAMPLE\n")))
+    (message "begin_ditaa blocks are DEPRECATED, use begin_src blocks"))))
 
 ;;--------------------------------------------------------------------------------
 ;; dot: create graphs using the dot graphing language
 ;;      (require the dot executable to be in your path)
 (defun org-export-blocks-format-dot (body &rest headers)
-  "Pass block BODY to the dot graphing utility creating an image.
+  "DEPRECATED: use \"#+begin_src dot\" code blocks
+
+Pass block BODY to the dot graphing utility creating an image.
 Specify the path at which the image should be saved as the first
 element of headers, any additional elements of headers will be
 passed to the dot utility as command line arguments.  Don't
@@ -283,7 +307,7 @@ digraph data_relationships {
   \"data_requirement\" -> \"data_product\"
 }
 #+end_dot"
-  (message "dot-formatting...")
+  (message "begin_dot blocks are DEPRECATED, use begin_src blocks")
   (let* ((args (if (cdr headers) (mapconcat 'identity (cdr headers) " ")))
          (data-file (make-temp-file "org-ditaa"))
 	 (hash (progn
@@ -295,28 +319,30 @@ digraph data_relationships {
 				   (match-string 2 raw-out-file))
 			   (cons raw-out-file "png")))
 	 (out-file (concat (car out-file-parts) "_" hash "." (cdr out-file-parts))))
+    (prog1
     (cond
-     ((or htmlp latexp docbookp)
+     ((member org-export-current-backend '(html latex docbook))
       (unless (file-exists-p out-file)
-        (mapc ;; remove old hashed versions of this file
-         (lambda (file)
-           (when (and (string-match (concat (regexp-quote (car out-file-parts))
-                                            "_\\([[:alnum:]]+\\)\\."
-                                            (regexp-quote (cdr out-file-parts)))
-                                    file)
-                      (= (length (match-string 1 out-file)) 40))
-             (delete-file (expand-file-name file
-                                            (file-name-directory out-file)))))
-         (directory-files (or (file-name-directory out-file)
-                              default-directory)))
-        (with-temp-file data-file (insert body))
-        (message (concat "dot " data-file " " args " -o " out-file))
-        (shell-command (concat "dot " data-file " " args " -o " out-file)))
+	(mapc ;; remove old hashed versions of this file
+	 (lambda (file)
+	   (when (and (string-match (concat (regexp-quote (car out-file-parts))
+					    "_\\([[:alnum:]]+\\)\\."
+					    (regexp-quote (cdr out-file-parts)))
+				    file)
+		      (= (length (match-string 1 out-file)) 40))
+	     (delete-file (expand-file-name file
+					    (file-name-directory out-file)))))
+	 (directory-files (or (file-name-directory out-file)
+			      default-directory)))
+	(with-temp-file data-file (insert body))
+	(message (concat "dot " data-file " " args " -o " out-file))
+	(shell-command (concat "dot " data-file " " args " -o " out-file)))
       (format "\n[[file:%s]]\n" out-file))
      (t (concat
 	 "\n#+BEGIN_EXAMPLE\n"
 	 body (if (string-match "\n$" body) "" "\n")
-	 "#+END_EXAMPLE\n")))))
+	 "#+END_EXAMPLE\n")))
+    (message "begin_dot blocks are DEPRECATED, use begin_src blocks"))))
 
 ;;--------------------------------------------------------------------------------
 ;; comment: export comments in author-specific css-stylable divs
@@ -327,17 +353,17 @@ other backends, it converts the comment into an EXAMPLE segment."
   (let ((owner (if headers (car headers)))
 	(title (if (cdr headers) (mapconcat 'identity (cdr headers) " "))))
     (cond
-     (htmlp ;; We are exporting to HTML
+     ((eq org-export-current-backend 'html) ;; We are exporting to HTML
       (concat "#+BEGIN_HTML\n"
 	      "<div class=\"org-comment\""
 	      (if owner (format " id=\"org-comment-%s\" " owner))
 	      ">\n"
 	      (if owner (concat "<b>" owner "</b> ") "")
-	      (if (and title (> (length title) 0)) (concat " -- " title "</br>\n") "</br>\n")
+	      (if (and title (> (length title) 0)) (concat " -- " title "<br/>\n") "<br/>\n")
 	      "<p>\n"
 	      "#+END_HTML\n"
 	      body
-	      "#+BEGIN_HTML\n"
+	      "\n#+BEGIN_HTML\n"
 	      "</p>\n"
 	      "</div>\n"
 	      "#+END_HTML\n"))
@@ -351,4 +377,5 @@ other backends, it converts the comment into an EXAMPLE segment."
 
 (provide 'org-exp-blocks)
 
+;; arch-tag: 1c365fe9-8808-4f72-bb15-0b00f36d8024
 ;;; org-exp-blocks.el ends here

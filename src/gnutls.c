@@ -382,6 +382,9 @@ emacs_gnutls_read (struct Lisp_Process *proc, char *buf, EMACS_INT nbyte)
   rtnval = fn_gnutls_record_recv (state, buf, nbyte);
   if (rtnval >= 0)
     return rtnval;
+  else if (rtnval == GNUTLS_E_UNEXPECTED_PACKET_LENGTH)
+    /* The peer closed the connection. */
+    return 0;
   else if (emacs_gnutls_handle_error (state, rtnval) == 0)
     /* non-fatal error */
     return -1;

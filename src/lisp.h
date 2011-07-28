@@ -61,6 +61,23 @@ extern void check_cons_list (void);
 # define EMACS_UINT unsigned EMACS_INT
 #endif
 
+/* printmax_t and uprintmax_t are types for printing large integers.
+   These are the widest integers that are supported for printing.
+   pMd etc. are conversions for printing them.
+   On C99 hosts, there's no problem, as even the widest integers work.
+   Fall back on EMACS_INT on pre-C99 hosts.  */
+#ifdef PRIdMAX
+typedef intmax_t printmax_t;
+typedef uintmax_t uprintmax_t;
+# define pMd PRIdMAX
+# define pMu PRIuMAX
+#else
+typedef EMACS_INT printmax_t;
+typedef EMACS_UINT uprintmax_t;
+# define pMd pI"d"
+# define pMu pI"u"
+#endif
+
 /* Use pD to format ptrdiff_t values, which suffice for indexes into
    buffers and strings.  Emacs never allocates objects larger than
    PTRDIFF_MAX bytes, as they cause problems with pointer subtraction.
@@ -833,7 +850,7 @@ struct Lisp_String
    <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=8546>.  */
 struct vectorlike_header
   {
-    EMACS_UINT size;
+    EMACS_INT size;
 
     /* Pointer to the next vector-like object.  It is generally a buffer or a
        Lisp_Vector alias, so for convenience it is a union instead of a
@@ -1028,7 +1045,7 @@ struct Lisp_Bool_Vector
 
 struct Lisp_Subr
   {
-    EMACS_UINT size;
+    EMACS_INT size;
     union {
       Lisp_Object (*a0) (void);
       Lisp_Object (*a1) (Lisp_Object);
@@ -2540,6 +2557,7 @@ extern void sweep_weak_hash_tables (void);
 extern Lisp_Object Qcursor_in_echo_area;
 extern Lisp_Object Qstring_lessp;
 extern Lisp_Object QCsize, QCtest, QCweakness, Qequal, Qeq, Qeql;
+EMACS_UINT hash_string (char const *, ptrdiff_t);
 EMACS_UINT sxhash (Lisp_Object, int);
 Lisp_Object make_hash_table (Lisp_Object, Lisp_Object, Lisp_Object,
                              Lisp_Object, Lisp_Object, Lisp_Object,
@@ -2868,7 +2886,8 @@ extern void float_to_string (char *, double);
 extern void syms_of_print (void);
 
 /* Defined in doprnt.c */
-extern size_t doprnt (char *, size_t, const char *, const char *, va_list);
+extern ptrdiff_t doprnt (char *, ptrdiff_t, const char *, const char *,
+			 va_list);
 
 /* Defined in lread.c.  */
 extern Lisp_Object Qvariable_documentation, Qstandard_input;
@@ -3429,18 +3448,6 @@ extern EMACS_INT emacs_read (int, char *, EMACS_INT);
 extern EMACS_INT emacs_write (int, const char *, EMACS_INT);
 enum { READLINK_BUFSIZE = 1024 };
 extern char *emacs_readlink (const char *, char [READLINK_BUFSIZE]);
-#ifndef HAVE_MEMSET
-extern void *memset (void *, int, size_t);
-#endif
-#ifndef HAVE_MEMCPY
-extern void *memcpy (void *, void *, size_t);
-#endif
-#ifndef HAVE_MEMMOVE
-extern void *memmove (void *, void *, size_t);
-#endif
-#ifndef HAVE_MEMCMP
-extern int memcmp (void *, void *, size_t);
-#endif
 
 EXFUN (Funlock_buffer, 0);
 extern void unlock_all_files (void);

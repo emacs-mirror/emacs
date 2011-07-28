@@ -1,11 +1,11 @@
 ;;; org-mac-message.el --- Links to Apple Mail.app messages from within Org-mode
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;;         Christopher Suckling <suckling at gmail dot com>
 
-;; Version: 7.4
+;; Version: 7.7
 ;; Keywords: outlines, hypermedia, calendar, wp
 
 ;; This file is part of GNU Emacs.
@@ -214,5 +214,6 @@ list of message:// links to flagged mail after heading."
 
 (provide 'org-mac-message)
 
+;; arch-tag: 3806d0c1-abe1-4db6-9c31-f3ed7d4a9b32
 
 ;;; org-mac-message.el ends here

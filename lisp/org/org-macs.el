@@ -1,11 +1,12 @@
 ;;; org-macs.el --- Top-level definitions for Org-mode
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -34,19 +35,26 @@
 
 (eval-and-compile
   (unless (fboundp 'declare-function)
-    (defmacro declare-function (fn file &optional arglist fileonly))))
+    (defmacro declare-function (fn file &optional arglist fileonly)))
+  (if (>= emacs-major-version 23)
+      (defsubst org-char-to-string(c)
+	"Defsubst to decode UTF-8 character values in emacs 23 and beyond."
+	(char-to-string c))
+    (defsubst org-char-to-string (c)
+      "Defsubst to decode UTF-8 character values in emacs 22."
+      (string (decode-char 'ucs c)))))
 
 (declare-function org-add-props "org-compat" (string plist &rest props))
 (declare-function org-string-match-p "org-compat" (&rest args))
 
 (defmacro org-called-interactively-p (&optional kind)
-  `(if (featurep 'xemacs)
-       (interactive-p)
+  (if (featurep 'xemacs)
+       `(interactive-p)
      (if (or (> emacs-major-version 23)
 	     (and (>= emacs-major-version 23)
 		  (>= emacs-minor-version 2)))
-	 (with-no-warnings (called-interactively-p ,kind)) ;; defined with no argument in <=23.1
-       (interactive-p))))
+	 `(with-no-warnings (called-interactively-p ,kind)) ;; defined with no argument in <=23.1
+       `(interactive-p))))
 
 (if (and (not (fboundp 'with-silent-modifications))
 	 (or (< emacs-major-version 23)
@@ -104,13 +112,15 @@ Also, do not record undo information."
        (org-move-to-column _col))))
 
 (defmacro org-without-partial-completion (&rest body)
-  `(let ((pc-mode (and (boundp 'partial-completion-mode)
-		       partial-completion-mode)))
+  `(if (and (boundp 'partial-completion-mode)
+	    partial-completion-mode
+	    (fboundp 'partial-completion-mode))
      (unwind-protect
 	 (progn
-	   (if pc-mode (partial-completion-mode -1))
+	   (partial-completion-mode -1)
 	   ,@body)
-       (if pc-mode (partial-completion-mode 1)))))
+       (partial-completion-mode 1))
+     ,@body))
 
 (defmacro org-maybe-intangible (props)
   "Add '(intangible t) to PROPS if Emacs version is earlier than Emacs 22.
@@ -126,11 +136,12 @@ We use a macro so that the test can happen at compilation time."
 
 (defmacro org-with-point-at (pom &rest body)
   "Move to buffer and point of point-or-marker POM for the duration of BODY."
-  `(save-excursion
-     (if (markerp ,pom) (set-buffer (marker-buffer ,pom)))
+  `(let ((pom ,pom))
      (save-excursion
-       (goto-char (or ,pom (point)))
-       ,@body)))
+       (if (markerp pom) (set-buffer (marker-buffer pom)))
+       (save-excursion
+	 (goto-char (or pom (point)))
+	 ,@body))))
 (put 'org-with-point-at 'lisp-indent-function 1)
 
 (defmacro org-no-warnings (&rest body)
@@ -183,6 +194,7 @@ We use a macro so that the test can happen at compilation time."
 	 ;; remember which buffer to undo
 	 (push (list _cmd _cline _buf1 _c1 _buf2 _c2)
 	       org-agenda-undo-list)))))
+(put 'org-with-remote-undo 'lisp-indent-function 1)
 
 (defmacro org-no-read-only (&rest body)
   "Inhibit read-only for BODY."
@@ -313,35 +325,53 @@ but it also means that the buffer should stay alive
 during the operation, because otherwise all these markers will
 point nowhere."
   (declare (indent 1))
-  `(let ((data (org-outline-overlay-data ,use-markers)))
+  `(let ((data (org-outline-overlay-data ,use-markers))
+	 rtn)
      (unwind-protect
 	 (progn
-	   ,@body
+	   (setq rtn (progn ,@body))
 	   (org-set-outline-overlay-data data))
        (when ,use-markers
 	 (mapc (lambda (c)
 		 (and (markerp (car c)) (move-marker (car c) nil))
 		 (and (markerp (cdr c)) (move-marker (cdr c) nil)))
-	       data)))))
+	       data)))
+     rtn))
+
+(defmacro org-with-wide-buffer (&rest body)
+ "Execute body while temporarily widening the buffer."
+ `(save-excursion
+    (save-restriction
+       (widen)
+       ,@body)))
 
 (defmacro org-with-limited-levels (&rest body)
   "Execute BODY with limited number of outline levels."
-  `(let* ((outline-regexp (org-get-limited-outline-regexp)))
+  `(let* ((org-outline-regexp (org-get-limited-outline-regexp))
+	  (outline-regexp org-outline-regexp)
+	  (org-outline-regexp-at-bol (concat "^" org-outline-regexp)))
      ,@body))
 
+(defvar org-outline-regexp) ; defined in org.el
 (defvar org-odd-levels-only) ; defined in org.el
 (defvar org-inlinetask-min-level) ; defined in org-inlinetask.el
 (defun org-get-limited-outline-regexp ()
   "Return outline-regexp with limited number of levels.
 The number of levels is controlled by `org-inlinetask-min-level'"
   (if (or (not (org-mode-p)) (not (featurep 'org-inlinetask)))
-
-      outline-regexp
+      org-outline-regexp
     (let* ((limit-level (1- org-inlinetask-min-level))
 	   (nstars (if org-odd-levels-only (1- (* limit-level 2)) limit-level)))
       (format "\\*\\{1,%d\\} " nstars))))
 
+(defun org-format-seconds (string seconds)
+  "Compatibility function replacing format-seconds"
+  (if (fboundp 'format-seconds)
+      (format-seconds string seconds)
+    (format-time-string string (seconds-to-time seconds))))
+
 (provide 'org-macs)
 
+;; arch-tag: 7e6a73ce-aac9-4fc0-9b30-ce6f89dc6668
 
 ;;; org-macs.el ends here
