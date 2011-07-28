@@ -4926,7 +4926,7 @@ init_buffer_once (void)
   BVAR (&buffer_defaults, truncate_lines) = Qnil;
   BVAR (&buffer_defaults, word_wrap) = Qnil;
   BVAR (&buffer_defaults, ctl_arrow) = Qt;
-  BVAR (&buffer_defaults, bidi_display_reordering) = Qnil;
+  BVAR (&buffer_defaults, bidi_display_reordering) = Qt;
   BVAR (&buffer_defaults, bidi_paragraph_direction) = Qnil;
   BVAR (&buffer_defaults, cursor_type) = Qt;
   BVAR (&buffer_defaults, extra_line_spacing) = Qnil;
@@ -5500,7 +5500,7 @@ The variable `coding-system-for-write', if non-nil, overrides this variable.
 This variable is never applied to a way of decoding a file while reading it.  */);
 
   DEFVAR_PER_BUFFER ("bidi-display-reordering",
-		     &BVAR (current_buffer, bidi_display_reordering), Qnil,
+		     &BVAR (current_buffer, bidi_display_reordering), Qt,
 		     doc: /* Non-nil means reorder bidirectional text for display in the visual order.  */);
 
   DEFVAR_PER_BUFFER ("bidi-paragraph-direction",
