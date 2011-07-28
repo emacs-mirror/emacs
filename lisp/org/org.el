@@ -10287,7 +10287,8 @@ This can be done with a 0 prefix: `C-0 C-c C-w'"
   (unless org-refile-target-table
     (error "No refile targets"))
   (let* ((cbuf (current-buffer))
-	 (partial-completion-mode nil)
+	 (when (boundp 'partial-completion-mode) 
+	   (partial-completion-mode nil))
 	 (cfn (buffer-file-name (buffer-base-buffer cbuf)))
 	 (cfunc (if (and org-refile-use-outline-path
 			 org-outline-path-complete-in-steps)
