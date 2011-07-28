@@ -1,5 +1,9 @@
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* eval.c: Integer and memory overflow fixes.
+	(init_eval_once, grow_specpdl): Don't update size until alloc succeeds.
+	(call_debugger, grow_specpdl): Redo calculations to avoid overflow.
+
 	* emacs.c (main, sort_args): Check for size-calculation overflow.
 
 	* editfns.c: Integer and memory overflow fixes.
