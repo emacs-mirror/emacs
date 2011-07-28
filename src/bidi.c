@@ -299,11 +299,11 @@ bidi_copy_it (struct bidi_it *to, struct bidi_it *from)
 
 #define BIDI_CACHE_CHUNK 200
 static struct bidi_it *bidi_cache;
-static EMACS_INT bidi_cache_size = 0;
+static ptrdiff_t bidi_cache_size = 0;
 enum { elsz = sizeof (struct bidi_it) };
-static EMACS_INT bidi_cache_idx;	/* next unused cache slot */
-static EMACS_INT bidi_cache_last_idx;	/* slot of last cache hit */
-static EMACS_INT bidi_cache_start = 0;	/* start of cache for this
+static ptrdiff_t bidi_cache_idx;	/* next unused cache slot */
+static ptrdiff_t bidi_cache_last_idx;	/* slot of last cache hit */
+static ptrdiff_t bidi_cache_start = 0;	/* start of cache for this
 					   "stack" level */
 
 /* Reset the cache state to the empty state.  We only reset the part
@@ -336,7 +336,7 @@ bidi_cache_shrink (void)
 }
 
 static inline void
-bidi_cache_fetch_state (EMACS_INT idx, struct bidi_it *bidi_it)
+bidi_cache_fetch_state (ptrdiff_t idx, struct bidi_it *bidi_it)
 {
   int current_scan_dir = bidi_it->scan_dir;
 
@@ -352,10 +352,10 @@ bidi_cache_fetch_state (EMACS_INT idx, struct bidi_it *bidi_it)
    level less or equal to LEVEL.  if LEVEL is -1, disregard the
    resolved levels in cached states.  DIR, if non-zero, means search
    in that direction from the last cache hit.  */
-static inline EMACS_INT
+static inline ptrdiff_t
 bidi_cache_search (EMACS_INT charpos, int level, int dir)
 {
-  EMACS_INT i, i_start;
+  ptrdiff_t i, i_start;
 
   if (bidi_cache_idx > bidi_cache_start)
     {
@@ -417,12 +417,12 @@ bidi_cache_search (EMACS_INT charpos, int level, int dir)
    C, searching backwards (DIR = -1) for LEVEL = 2 will return the
    index of slot B or A, depending whether BEFORE is, respectively,
    non-zero or zero.  */
-static EMACS_INT
+static ptrdiff_t
 bidi_cache_find_level_change (int level, int dir, int before)
 {
   if (bidi_cache_idx)
     {
-      EMACS_INT i = dir ? bidi_cache_last_idx : bidi_cache_idx - 1;
+      ptrdiff_t i = dir ? bidi_cache_last_idx : bidi_cache_idx - 1;
       int incr = before ? 1 : 0;
 
       xassert (!dir || bidi_cache_last_idx >= 0);
@@ -458,22 +458,33 @@ bidi_cache_find_level_change (int level, int dir, int before)
 }
 
 static inline void
-bidi_cache_ensure_space (EMACS_INT idx)
+bidi_cache_ensure_space (ptrdiff_t idx)
 {
   /* Enlarge the cache as needed.  */
   if (idx >= bidi_cache_size)
     {
-      while (idx >= bidi_cache_size)
-	bidi_cache_size += BIDI_CACHE_CHUNK;
-      bidi_cache =
-	(struct bidi_it *) xrealloc (bidi_cache, bidi_cache_size * elsz);
+      ptrdiff_t new_size;
+
+      /* The bidi cache cannot be larger than the largest Lisp string
+	 or buffer.  */
+      ptrdiff_t string_or_buffer_bound =
+	max (BUF_BYTES_MAX, STRING_BYTES_BOUND);
+
+      /* Also, it cannot be larger than what C can represent.  */
+      ptrdiff_t c_bound = min (PTRDIFF_MAX, SIZE_MAX) / elsz;
+
+      if (min (string_or_buffer_bound, c_bound) <= idx)
+	memory_full (SIZE_MAX);
+      new_size = idx - idx % BIDI_CACHE_CHUNK + BIDI_CACHE_CHUNK;
+      bidi_cache = (struct bidi_it *) xrealloc (bidi_cache, new_size * elsz);
+      bidi_cache_size = new_size;
     }
 }
 
 static inline void
 bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
 {
-  EMACS_INT idx;
+  ptrdiff_t idx;
 
   /* We should never cache on backward scans.  */
   if (bidi_it->scan_dir == -1)
@@ -528,7 +539,7 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
 static inline bidi_type_t
 bidi_cache_find (EMACS_INT charpos, int level, struct bidi_it *bidi_it)
 {
-  EMACS_INT i = bidi_cache_search (charpos, level, bidi_it->scan_dir);
+  ptrdiff_t i = bidi_cache_search (charpos, level, bidi_it->scan_dir);
 
   if (i >= bidi_cache_start)
     {
@@ -560,7 +571,7 @@ bidi_peek_at_next_level (struct bidi_it *bidi_it)
 /* 5-slot stack for saving the start of the previous level of the
    cache.  xdisp.c maintains a 5-slot stack for its iterator state,
    and we need the same size of our stack.  */
-static EMACS_INT bidi_cache_start_stack[IT_STACK_SIZE];
+static ptrdiff_t bidi_cache_start_stack[IT_STACK_SIZE];
 static int bidi_cache_sp;
 
 /* Push the bidi iterator state in preparation for reordering a
@@ -2123,7 +2134,7 @@ static void
 bidi_find_other_level_edge (struct bidi_it *bidi_it, int level, int end_flag)
 {
   int dir = end_flag ? -bidi_it->scan_dir : bidi_it->scan_dir;
-  EMACS_INT idx;
+  ptrdiff_t idx;
 
   /* Try the cache first.  */
   if ((idx = bidi_cache_find_level_change (level, dir, end_flag))
@@ -2300,7 +2311,7 @@ void bidi_dump_cached_states (void) EXTERNALLY_VISIBLE;
 void
 bidi_dump_cached_states (void)
 {
-  int i;
+  ptrdiff_t i;
   int ndigits = 1;
 
   if (bidi_cache_idx == 0)
@@ -2308,7 +2319,7 @@ bidi_dump_cached_states (void)
       fprintf (stderr, "The cache is empty.\n");
       return;
     }
-  fprintf (stderr, "Total of  %"pI"d state%s in cache:\n",
+  fprintf (stderr, "Total of  %"pD"d state%s in cache:\n",
 	   bidi_cache_idx, bidi_cache_idx == 1 ? "" : "s");
 
   for (i = bidi_cache[bidi_cache_idx - 1].charpos; i > 0; i /= 10)

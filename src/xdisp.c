@@ -8842,7 +8842,7 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
       if (nlflag)
 	{
 	  EMACS_INT this_bol, this_bol_byte, prev_bol, prev_bol_byte;
-	  intmax_t dups;
+	  printmax_t dups;
 	  insert_1 ("\n", 1, 1, 0, 0);
 
 	  scan_newline (Z, Z_BYTE, BEG, BEG_BYTE, -2, 0);
@@ -8866,12 +8866,12 @@ message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
 		  if (dups > 1)
 		    {
 		      char dupstr[sizeof " [ times]"
-				  + INT_STRLEN_BOUND (intmax_t)];
+				  + INT_STRLEN_BOUND (printmax_t)];
 		      int duplen;
 
 		      /* If you change this format, don't forget to also
 			 change message_log_check_duplicate.  */
-		      sprintf (dupstr, " [%"PRIdMAX" times]", dups);
+		      sprintf (dupstr, " [%"pMd" times]", dups);
 		      duplen = strlen (dupstr);
 		      TEMP_SET_PT_BOTH (Z - 1, Z_BYTE - 1);
 		      insert_1 (dupstr, duplen, 1, 0, 1);
@@ -9264,7 +9264,7 @@ vmessage (const char *m, va_list ap)
 	{
 	  if (m)
 	    {
-	      size_t len;
+	      ptrdiff_t len;
 
 	      len = doprnt (FRAME_MESSAGE_BUF (f),
 			    FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, ap);
