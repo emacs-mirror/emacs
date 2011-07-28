@@ -1,3 +1,19 @@
+2011-07-26  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	Implement strike-through and overline on NextStep (Bug#8863).
+
+	* nsfont.m (nsfont_open): Use underline position provided by font,
+	instead of hard-coded value of 2.
+	(nsfont_draw): Call ns_draw_text_decoration instead.
+
+	* nsterm.h: Add declaration for ns_draw_text_decoration.
+
+	* nsterm.m (ns_draw_text_decoration): New function for drawing
+	underline, overline, and strike-through.
+	(ns_dumpglyphs_image, ns_dumpglyphs_stretch): Add call to
+	ns_draw_text_decoration.  Change treatment of cursor drawing to
+	accomodate underlining, etc.
+
 2011-07-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* buffer.c (init_buffer_once): Set bidi-display-reordering to t by

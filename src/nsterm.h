@@ -825,6 +825,13 @@ extern unsigned long ns_get_rgb_color (struct frame *f,
                                        float r, float g, float b, float a);
 extern NSPoint last_mouse_motion_position;
 
+/* From nsterm.m, needed in nsfont.m. */
+#ifdef __OBJC__
+extern void
+ns_draw_text_decoration (struct glyph_string *s, struct face *face,
+                         NSColor *defaultCol, CGFloat width, CGFloat x);
+#endif
+
 #ifdef NS_IMPL_GNUSTEP
 extern char gnustep_base_version[];  /* version tracking */
 #endif
