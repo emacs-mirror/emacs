@@ -1,5 +1,13 @@
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* doc.c: Integer and memory overflow fixes.
+	(get_doc_string_buffer_size): Now ptrdiff_t, not int.
+	(get_doc_string): Check for size calculation overflow.
+	Don't update size until allocation succeeds.
+	(get_doc_string, Fsubstitute_command_keys): Use ptrdiff_t, not
+	EMACS_INT, where ptrdiff_t will do.
+	(Fsubstitute_command_keys): Check for string overflow.
+
 	Integer and memory overflow fixes for display code.
 	* dispextern.h (struct glyph_pool.nglyphs): Now ptrdiff_t, not int.
 	* dispnew.c (adjust_glyph_matrix, realloc_glyph_pool, scrolling_window):
