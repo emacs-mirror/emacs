@@ -1,3 +1,9 @@
+2011-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfaces.c (update_face_from_frame_parameter): Move out of
+	HAVE_WINDOW_SYSTEM portion.  Condition window-system only parts
+	with HAVE_WINDOW_SYSTEM.
+
 2011-07-26  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* fontset.c (fontset_get_font_group): Add proper type checks.
