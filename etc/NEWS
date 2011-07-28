@@ -1167,6 +1167,11 @@ as well as those in the -*- line.
 ** rx.el has a new `group-n' construct for explicitly numbered groups.
 
 ** keymaps can inherit from multiple parents.
+
+** New reader macro ## which stands for the empty symbol.
+This means that the empty symbol can now be read back.  Also, #: by itself
+(when not immediately followed by a possible symbol character) stands for
+an empty uninterned symbol.
 
 * Changes in Emacs 24.1 on non-free operating systems
 
