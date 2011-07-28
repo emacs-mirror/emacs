@@ -467,7 +467,6 @@ struct nsfont_info
 #endif
   char bold, ital;  /* convenience flags */
   char synthItal;
-  float voffset;  /* mean of ascender/descender offsets */
   XCharStruct max_bounds;
   /* we compute glyph codes and metrics on-demand in blocks of 256 indexed
      by hibyte, lobyte */

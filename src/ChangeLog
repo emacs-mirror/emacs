@@ -12,6 +12,12 @@
 	* nsterm.m (ns_dumpglyphs_stretch): Avoid overwriting left fringe
 	or scroll bar (Bug#8470).
 
+	* nsfont.m (nsfont_open): Remove assignment to voffset and
+	unnecessary vars hshink, expand, hd, full_height, min_height.
+	(nsfont_draw): Use s->ybase as baseline for glyph drawing (Bug#8913).
+
+	* nsterm.h (nsfont_info): Remove voffset field.
+
 2011-07-28  Alp Aker  <alp.tekin.aker@gmail.com>
 
 	Implement strike-through and overline on NextStep (Bug#8863).

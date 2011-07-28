@@ -804,8 +804,6 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   font->props[FONT_FILE_INDEX] = Qnil;
 
   {
-    double expand, hshrink;
-    float full_height, min_height, hd;
     const char *fontName = [[nsfont fontName] UTF8String];
     int len = strlen (fontName);
 
@@ -837,26 +835,16 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
       [sfont maximumAdvancement].width : ns_char_width (sfont, '0');
 
     brect =  [sfont boundingRectForFont];
-    full_height = brect.size.height;
-    min_height = [sfont ascender] - adjusted_descender;
-    hd = full_height - min_height;
-
-    /* standard height, similar to Carbon. Emacs.app: was 0.5 by default. */
-    expand = 0.0;
-    hshrink = 1.0;
 
     font_info->underpos = [sfont underlinePosition];
     font_info->underwidth = [sfont underlineThickness];
     font_info->size = font->pixel_size;
-    font_info->voffset = lrint (hshrink * [sfont ascender] + expand * hd / 2);
 
     /* max bounds */
-    font_info->max_bounds.ascent =
-      lrint (hshrink * [sfont ascender] + expand * hd/2);
+    font_info->max_bounds.ascent = lrint ([sfont ascender]);
     /* Descender is usually negative.  Use floor to avoid
        clipping descenders. */
-    font_info->max_bounds.descent =
-      -lrint (floor(hshrink* adjusted_descender - expand*hd/2));
+    font_info->max_bounds.descent = -lrint (floor(adjusted_descender));
     font_info->height =
       font_info->max_bounds.ascent + font_info->max_bounds.descent;
     font_info->max_bounds.width = lrint (font_info->width);
@@ -1165,7 +1153,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
 
   /* set up for character rendering */
-  r.origin.y += font->voffset + (s->height - font->height)/2;
+  r.origin.y = s->ybase;
 
   col = (NS_FACE_FOREGROUND (face) != 0
          ? ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f)
