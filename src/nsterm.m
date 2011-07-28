@@ -3110,11 +3110,23 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
         {
           if (!s->row->full_width_p)
             {
+	      int overrun, leftoverrun;
+
               /* truncate to avoid overwriting fringe and/or scrollbar */
-              int overrun = max (0, (s->x + s->background_width)
-                                  - (WINDOW_BOX_RIGHT_EDGE_X (s->w)
-                                    - WINDOW_RIGHT_FRINGE_WIDTH (s->w)));
+	      overrun = max (0, (s->x + s->background_width)
+			     - (WINDOW_BOX_RIGHT_EDGE_X (s->w)
+				- WINDOW_RIGHT_FRINGE_WIDTH (s->w)));
               r[i].size.width -= overrun;
+
+	      /* truncate to avoid overwriting to left of the window box */
+	      leftoverrun = (WINDOW_BOX_LEFT_EDGE_X (s->w)
+			     + WINDOW_LEFT_FRINGE_WIDTH (s->w)) - s->x;
+
+	      if (leftoverrun > 0)
+		{
+		  r[i].origin.x += leftoverrun;
+		  r[i].size.width -= leftoverrun;
+		}
 
               /* XXX: Try to work between problem where a stretch glyph on
                  a partially-visible bottom row will clear part of the

@@ -9,6 +9,9 @@
 	(EmacsTooltip -init): Remove bezels and add shadows to
 	tooltip windows.
 
+	* nsterm.m (ns_dumpglyphs_stretch): Avoid overwriting left fringe
+	or scroll bar (Bug#8470).
+
 2011-07-28  Alp Aker  <alp.tekin.aker@gmail.com>
 
 	Implement strike-through and overline on NextStep (Bug#8863).
