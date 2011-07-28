@@ -1,11 +1,12 @@
 ;;; org-archive.el --- Archiving for Org-mode
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -70,6 +71,14 @@ This variable is obsolete and has no effect anymore, instead add or remove
   :group 'org-archive
   :type 'boolean)
 
+(defcustom org-archive-subtree-add-inherited-tags 'infile
+  "Non-nil means append inherited tags when archiving a subtree."
+  :group 'org-archive
+  :type '(choice
+	  (const :tag "Never" nil)
+	  (const :tag "When archiving a subtree to the same file" infile)
+	  (const :tag "Always" t)))
+
 (defcustom org-archive-save-context-info '(time file olpath category todo itags)
   "Parts of context info that should be stored as properties when archiving.
 When a subtree is moved to an archive file, it loses information given by
@@ -87,7 +96,7 @@ olpath     The outline path to the item.  These are all headlines above
            the current item, separated by /, like a file path.
 
 For each symbol present in the list, a property will be created in
-the archived entry, with a prefix \"PRE_ARCHIVE_\", to remember this
+the archived entry, with a prefix \"ARCHIVE_\", to remember this
 information."
   :group 'org-archive
   :type '(set :greedy t
@@ -156,10 +165,11 @@ if LOCATION is not given, the value of `org-archive-location' is used."
   (setq location (or location org-archive-location))
   (if (string-match "\\(.*\\)::\\(.*\\)" location)
       (if (= (match-beginning 1) (match-end 1))
-	  (buffer-file-name)
+	  (buffer-file-name (buffer-base-buffer))
 	(expand-file-name
 	 (format (match-string 1 location)
-		 (file-name-nondirectory buffer-file-name))))))
+		 (file-name-nondirectory
+		  (buffer-file-name (buffer-base-buffer))))))))
 
 (defun org-extract-archive-heading (&optional location)
   "Extract the heading from archive LOCATION.
@@ -167,7 +177,8 @@ if LOCATION is not given, the value of `org-archive-location' is used."
   (setq location (or location org-archive-location))
   (if (string-match "\\(.*\\)::\\(.*\\)" location)
       (format (match-string 2 location)
-	      (file-name-nondirectory buffer-file-name))))
+	      (file-name-nondirectory
+	       (buffer-file-name (buffer-base-buffer))))))
 
 (defun org-archive-subtree (&optional find-done)
   "Move the current subtree to the archive.
@@ -193,21 +204,24 @@ this heading."
 	  (tr-org-todo-line-regexp org-todo-line-regexp)
 	  (tr-org-odd-levels-only org-odd-levels-only)
 	  (this-buffer (current-buffer))
-          ;; start of variables that will be used for saving context
+	  ;; start of variables that will be used for saving context
 	  ;; The compiler complains about them - keep them anyway!
-	  (file (abbreviate-file-name (buffer-file-name)))
+	  (file (abbreviate-file-name
+		 (or (buffer-file-name (buffer-base-buffer))
+		     (error "No file associated to buffer"))))
 	  (olpath (mapconcat 'identity (org-get-outline-path) "/"))
 	  (time (format-time-string
 		 (substring (cdr org-time-stamp-formats) 1 -1)
 		 (current-time)))
-	  category todo priority ltags itags
-          ;; end of variables that will be used for saving context
-	  location afile heading buffer level newfile-p visiting)
+	  category todo priority ltags itags atags
+	  ;; end of variables that will be used for saving context
+	  location afile heading buffer level newfile-p infile-p visiting)
 
       ;; Find the local archive location
       (setq location (org-get-local-archive-location)
 	    afile (org-extract-archive-file location)
-	    heading (org-extract-archive-heading location))
+	    heading (org-extract-archive-heading location)
+	    infile-p (equal file (abbreviate-file-name afile)))
       (unless afile
 	(error "Invalid `org-archive-location'"))
 
@@ -225,14 +239,14 @@ this heading."
       (save-excursion
 	(org-back-to-heading t)
 	;; Get context information that will be lost by moving the tree
-	(org-refresh-category-properties)
-	(setq category (org-get-category)
+	(setq category (org-get-category nil 'force-refresh)
 	      todo (and (looking-at org-todo-line-regexp)
 			(match-string 2))
 	      priority (org-get-priority
 			(if (match-end 3) (match-string 3) ""))
 	      ltags (org-get-tags)
-	      itags (org-delete-all ltags (org-get-tags-at)))
+	      itags (org-delete-all ltags (org-get-tags-at))
+	      atags (org-get-tags-at))
 	(setq ltags (mapconcat 'identity ltags " ")
 	      itags (mapconcat 'identity itags " "))
 	;; We first only copy, in case something goes wrong
@@ -289,7 +303,12 @@ this heading."
 	    (goto-char (point-max)) (insert "\n"))
 	  ;; Paste
 	  (org-paste-subtree (org-get-valid-level level (and heading 1)))
-
+	  ;; Shall we append inherited tags?
+	  (and itags
+	       (or (and (eq org-archive-subtree-add-inherited-tags 'infile)
+			infile-p)
+		   (eq org-archive-subtree-add-inherited-tags t))
+	       (org-set-tags-to atags))
 	  ;; Mark the entry as done
 	  (when (and org-archive-mark-done
 		     (looking-at org-todo-line-regexp)
@@ -311,8 +330,7 @@ this heading."
 
 	  ;; Save and kill the buffer, if it is not the same buffer.
 	  (when (not (eq this-buffer buffer))
-	    (save-buffer))
-	  ))
+	    (save-buffer))))
       ;; Here we are back in the original buffer.  Everything seems to have
       ;; worked.  So now cut the tree and finish up.
       (let (this-command) (org-cut-subtree))
@@ -388,7 +406,7 @@ sibling does not exist, it will be created at the end of the subtree."
 If the cursor is not on a headline, try all level 1 trees.  If
 it is on a headline, try all direct children.
 When TAG is non-nil, don't move trees, but mark them with the ARCHIVE tag."
-  (let ((re (concat "^\\*+ +" org-not-done-regexp)) re1
+  (let ((re (concat org-outline-regexp-bol "+" org-not-done-regexp)) re1
 	(rea (concat ".*:" org-archive-tag ":"))
 	(begm (make-marker))
 	(endm (make-marker))
@@ -465,5 +483,6 @@ This command is set with the variable `org-archive-default-command'."
 
 (provide 'org-archive)
 
+;; arch-tag: 0837f601-9699-43c3-8b90-631572ae6c85
 
 ;;; org-archive.el ends here

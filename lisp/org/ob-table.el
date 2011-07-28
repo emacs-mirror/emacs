@@ -1,11 +1,11 @@
 ;;; ob-table.el --- support for calling org-babel functions from tables
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -97,7 +97,8 @@ example above."
 	   variables)))
     (unless (stringp source-block)
       (setq source-block (symbol-name source-block)))
-    (org-babel-table-truncate-at-newline ;; org-table cells can't be multi-line
+    ((lambda (result)
+       (org-babel-trim (if (stringp result) result (format "%S" result))))
      (if (and source-block (> (length source-block) 0))
          (let ((params
                 (eval `(org-babel-parse-header-arguments
@@ -120,5 +121,6 @@ example above."
 
 (provide 'ob-table)
 
+;; arch-tag: 4234cc7c-4fc8-4e92-abb0-2892de1a493b
 
 ;;; ob-table.el ends here

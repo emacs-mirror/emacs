@@ -1,11 +1,12 @@
 ;;; org-info.el --- Support for links to Info nodes from within Org-Mode
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -51,9 +52,9 @@
     (let (link desc)
       (setq link (org-make-link "info:"
 				(file-name-nondirectory Info-current-file)
-				":" Info-current-node))
+				"#" Info-current-node))
       (setq desc (concat (file-name-nondirectory Info-current-file)
-			 ":" Info-current-node))
+			 "#" Info-current-node))
       (org-store-link-props :type "info" :file Info-current-file
 			    :node Info-current-node
 			    :link link :desc desc)
@@ -66,7 +67,7 @@
 
 (defun org-info-follow-link (name)
   "Follow an Info file and node link specified by NAME."
-  (if (or (string-match "\\(.*\\)::?\\(.*\\)" name)
+  (if (or (string-match "\\(.*\\)[#:]:?\\(.*\\)" name)
           (string-match "\\(.*\\)" name))
       (progn
 	(require 'info)
@@ -77,5 +78,6 @@
 
 (provide 'org-info)
 
+;; arch-tag: 1e289f54-7176-487f-b575-dd4854bab15e
 
 ;;; org-info.el ends here

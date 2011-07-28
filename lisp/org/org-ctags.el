@@ -1,12 +1,12 @@
 ;;; org-ctags.el - Integrate Emacs "tags" facility with org mode.
 ;;
-;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Paul Sexton <eeeickythump@gmail.com>
-;; Version: 7.4
+;; Version: 7.7
 
 ;; Keywords: org, wp
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -139,6 +139,8 @@
 (eval-when-compile (require 'cl))
 
 (require 'org)
+
+(declare-function org-pop-to-buffer-same-window "org-compat" (&optional buffer-or-name norecord label))
 
 (defgroup org-ctags nil
   "Options concerning use of ctags within org mode."
@@ -385,7 +387,7 @@ the new file."
     (cond
      ((get-buffer (concat name ".org"))
       ;; Buffer is already open
-      (switch-to-buffer (get-buffer (concat name ".org"))))
+      (org-pop-to-buffer-same-window (get-buffer (concat name ".org"))))
      ((file-exists-p filename)
       ;; File exists but is not open --> open it
       (message "Opening existing org file `%S'..."
@@ -537,4 +539,5 @@ a new topic."
 
 (provide 'org-ctags)
 
+;; arch-tag: 4b1ddd5a-8529-4b17-bcde-96a922d26343
 ;;; org-ctags.el ends here
