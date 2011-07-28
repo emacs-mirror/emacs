@@ -2572,9 +2572,9 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
 		    memory_full (SIZE_MAX);
 		  /* Make it work with an initial len == 0.  */
 		  len = len * 2 + 4;
-		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
+		  *len_ptr = len;
 		}
 	      else
 		inhibit_storing = 1;
@@ -2615,9 +2615,9 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
 		    memory_full (SIZE_MAX);
 		  /* Make it work with an initial len == 0.  */
 		  len = len * 2 + 4;
-		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
+		  *len_ptr = len;
 		}
 	      else
 		inhibit_storing = 1;
@@ -2712,9 +2712,9 @@ overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
 		    memory_full (SIZE_MAX);
 		  /* Make it work with an initial len == 0.  */
 		  len = len * 2 + 4;
-		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
+		  *len_ptr = len;
 		}
 	      else
 		inhibit_storing = 1;
@@ -2760,9 +2760,9 @@ overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
 		    memory_full (SIZE_MAX);
 		  /* Make it work with an initial len == 0.  */
 		  len = len * 2 + 4;
-		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
+		  *len_ptr = len;
 		}
 	      else
 		inhibit_storing = 1;
@@ -2978,15 +2978,12 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
 
   if (ssl->used == ssl->size)
     {
-      if (min (PTRDIFF_MAX, SIZE_MAX) / (sizeof (struct sortstr) * 2)
-	  < ssl->size)
+      ptrdiff_t ssl_size = 0 < ssl->size ? ssl->size * 2 : 5;
+      if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct sortstr) < ssl_size)
 	memory_full (SIZE_MAX);
-      else if (0 < ssl->size)
-	ssl->size *= 2;
-      else
-	ssl->size = 5;
       ssl->buf = ((struct sortstr *)
-		  xrealloc (ssl->buf, ssl->size * sizeof (struct sortstr)));
+		  xrealloc (ssl->buf, ssl_size * sizeof (struct sortstr)));
+      ssl->size = ssl_size;
     }
   ssl->buf[ssl->used].string = str;
   ssl->buf[ssl->used].string2 = str2;
@@ -3111,9 +3108,9 @@ overlay_strings (EMACS_INT pos, struct window *w, unsigned char **pstr)
 
       if (total > overlay_str_len)
 	{
-	  overlay_str_len = total;
 	  overlay_str_buf = (unsigned char *)xrealloc (overlay_str_buf,
 						       total);
+	  overlay_str_len = total;
 	}
       p = overlay_str_buf;
       for (i = overlay_tails.used; --i >= 0;)
