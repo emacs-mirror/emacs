@@ -193,7 +193,7 @@ struct composition {
   void *font;
 
   /* Pointer to an array of x-offset and y-offset (by pixels) of
-     glyphs.  This points to a sufficient memory space (sizeof (int) *
+     glyphs.  This points to a sufficient memory space (sizeof (short) *
      glyph_len * 2) that is allocated when the composition is
      registered in composition_table.  X-offset and Y-offset of Nth
      glyph are (2N)th and (2N+1)th elements respectively.  */
