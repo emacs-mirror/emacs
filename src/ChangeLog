@@ -1,5 +1,9 @@
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* alloc.c (memory_full) [!SYNC_INPUT]: Fix signal-related race.
+	Without this fix, if a signal arrives just after memory fills up,
+	'malloc' might be invoked reentrantly.
+
 	* image.c (x_check_image_size) [!HAVE_X_WINDOWS]: Return 1.
 	In other words, assume that every image size is allowed, on non-X
 	hosts.  This assumption is probably wrong, but it lets Emacs compile.
