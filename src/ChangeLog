@@ -1,5 +1,20 @@
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Integer and memory overflow fixes for display code.
+	* dispextern.h (struct glyph_pool.nglyphs): Now ptrdiff_t, not int.
+	* dispnew.c (adjust_glyph_matrix, realloc_glyph_pool, scrolling_window):
+	Check for overflow in size calculations.
+	(line_draw_cost, realloc_glyph_pool, add_row_entry):
+	Don't assume glyph table len fits in int.
+	(struct row_entry.bucket, row_entry_pool_size, row_entry_idx)
+	(row_table_size): Now ptrdiff_t, not int.
+	(scrolling_window): Avoid overflow in size calculations.
+	Don't update size until allocation succeeds.
+	* fns.c (concat): Check for overflow in size calculations.
+	(next_almost_prime): Verify NEXT_ALMOST_PRIME_LIMIT.
+	* lisp.h (RANGED_INTEGERP, TYPE_RANGED_INTEGERP): New macros.
+	(NEXT_ALMOST_PRIME_LIMIT): New constant.
+
 	* composite.c: Integer overflow fixes.
 	(get_composition_id): Check for overflow in glyph length calculations.
 

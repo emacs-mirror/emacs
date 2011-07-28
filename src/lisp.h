@@ -1704,6 +1704,11 @@ typedef struct {
 #define NUMBERP(x) (INTEGERP (x) || FLOATP (x))
 #define NATNUMP(x) (INTEGERP (x) && XINT (x) >= 0)
 
+#define RANGED_INTEGERP(lo, x, hi) \
+  (INTEGERP (x) && (lo) <= XINT (x) && XINT (x) <= (hi))
+#define TYPE_RANGED_INTEGERP(type, x) \
+  RANGED_INTEGERP (TYPE_MINIMUM (type), x, TYPE_MAXIMUM (type))
+
 #define INTEGERP(x) (LISP_INT_TAG_P (XTYPE ((x))))
 #define SYMBOLP(x) (XTYPE ((x)) == Lisp_Symbol)
 #define MISCP(x) (XTYPE ((x)) == Lisp_Misc)
@@ -2551,6 +2556,7 @@ extern void syms_of_syntax (void);
 
 /* Defined in fns.c */
 extern Lisp_Object QCrehash_size, QCrehash_threshold;
+enum { NEXT_ALMOST_PRIME_LIMIT = 11 };
 extern EMACS_INT next_almost_prime (EMACS_INT);
 extern Lisp_Object larger_vector (Lisp_Object, EMACS_INT, Lisp_Object);
 extern void sweep_weak_hash_tables (void);

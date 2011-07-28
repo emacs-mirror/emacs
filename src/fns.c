@@ -602,7 +602,12 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
 
   prev = Qnil;
   if (STRINGP (val))
-    SAFE_ALLOCA (textprops, struct textprop_rec *, sizeof (struct textprop_rec) * nargs);
+    {
+      if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *textprops < nargs)
+	memory_full (SIZE_MAX);
+      SAFE_ALLOCA (textprops, struct textprop_rec *,
+		   sizeof *textprops * nargs);
+    }
 
   for (argnum = 0; argnum < nargs; argnum++)
     {
@@ -3395,11 +3400,13 @@ check_hash_table (Lisp_Object obj)
 
 
 /* Value is the next integer I >= N, N >= 0 which is "almost" a prime
-   number.  */
+   number.  A number is "almost" a prime number if it is not divisible
+   by any integer in the range 2 .. (NEXT_ALMOST_PRIME_LIMIT - 1).  */
 
 EMACS_INT
 next_almost_prime (EMACS_INT n)
 {
+  verify (NEXT_ALMOST_PRIME_LIMIT == 11);
   for (n |= 1; ; n += 2)
     if (n % 3 != 0 && n % 5 != 0 && n % 7 != 0)
       return n;

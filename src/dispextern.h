@@ -575,7 +575,7 @@ struct glyph_pool
   struct glyph *glyphs;
 
   /* Allocated size of `glyphs'.  */
-  int nglyphs;
+  ptrdiff_t nglyphs;
 
   /* Number of rows and columns in a matrix.  */
   int nrows, ncolumns;
