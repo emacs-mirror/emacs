@@ -114,17 +114,17 @@ extern int xg_event_is_for_menubar (FRAME_PTR f, XEvent *event);
 
 extern int xg_have_tear_offs (void);
 
-extern int xg_get_scroll_id_for_window (Display *dpy, Window wid);
+extern ptrdiff_t xg_get_scroll_id_for_window (Display *dpy, Window wid);
 
 extern void xg_create_scroll_bar (FRAME_PTR f,
                                   struct scroll_bar *bar,
                                   GCallback scroll_callback,
                                   GCallback end_callback,
                                   const char *scroll_bar_name);
-extern void xg_remove_scroll_bar (FRAME_PTR f, int scrollbar_id);
+extern void xg_remove_scroll_bar (FRAME_PTR f, ptrdiff_t scrollbar_id);
 
 extern void xg_update_scrollbar_pos (FRAME_PTR f,
-                                     int scrollbar_id,
+                                     ptrdiff_t scrollbar_id,
                                      int top,
                                      int left,
                                      int width,
@@ -185,4 +185,3 @@ extern int xg_ignore_gtk_scrollbar;
 
 #endif /* USE_GTK */
 #endif /* GTKUTIL_H */
-

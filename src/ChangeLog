@@ -1,5 +1,18 @@
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* gtkutil.c: Integer overflow fixes.
+	(get_utf8_string, xg_store_widget_in_map):
+	Check for size-calculation overflow.
+	(get_utf8_string): Use ptrdiff_t, not size_t, where either will
+	do, as we prefer signed integers.
+	(id_to_widget.max_size, id_to_widget.used)
+	(xg_store_widget_in_map, xg_remove_widget_from_map)
+	(xg_get_widget_from_map, xg_get_scroll_id_for_window)
+	(xg_remove_scroll_bar, xg_update_scrollbar_pos):
+	Use and return ptrdiff_t, not int.
+	(xg_gtk_scroll_destroy): Don't assume ptrdiff_t fits in int.
+	* gtkutil.h: Change prototypes to match the above.
+
 	* ftfont.c: Check for size overflow.
 	(ftfont_get_open_type_spec, setup_otf_gstring, ftfont_shape_by_flt):
 	Check for integer overflow in size calculations.
