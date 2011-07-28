@@ -102,13 +102,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include <ctype.h>
 #include <setjmp.h>
-
-#ifdef STDC_HEADERS
 #include <float.h>
-#endif
-
 #include <unistd.h>
-
 #include <limits.h>
 
 #include "lisp.h"
@@ -134,8 +129,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    String arguments are passed as C strings.
    Integers are passed as C integers.  */
 
-size_t
-doprnt (char *buffer, register size_t bufsize, const char *format,
+ptrdiff_t
+doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	const char *format_end, va_list ap)
 {
   const char *fmt = format;	/* Pointer into format string */
@@ -145,7 +140,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
   char tembuf[DBL_MAX_10_EXP + 100];
 
   /* Size of sprintf_buffer.  */
-  size_t size_allocated = sizeof (tembuf);
+  ptrdiff_t size_allocated = sizeof (tembuf);
 
   /* Buffer to use for sprintf.  Either tembuf or same as BIG_BUFFER.  */
   char *sprintf_buffer = tembuf;
@@ -164,7 +159,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
   if (format_end == 0)
     format_end = format + strlen (format);
 
-  if ((format_end - format + 1) < sizeof (fixed_buffer))
+  if (format_end - format < sizeof (fixed_buffer) - 1)
     fmtcpy = fixed_buffer;
   else
     SAFE_ALLOCA (fmtcpy, char *, format_end - format + 1);
@@ -176,7 +171,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
     {
       if (*fmt == '%')	/* Check for a '%' character */
 	{
-	  size_t size_bound = 0;
+	  ptrdiff_t size_bound = 0;
 	  EMACS_INT width;  /* Columns occupied by STRING on display.  */
 	  int long_flag = 0;
 	  int pIlen = sizeof pI - 1;
@@ -194,16 +189,16 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 		     This might be a field width or a precision; e.g.
 		     %1.1000f and %1000.1f both might need 1000+ bytes.
 		     Parse the width or precision, checking for overflow.  */
-		  size_t n = *fmt - '0';
+		  ptrdiff_t n = *fmt - '0';
 		  while (fmt + 1 < format_end
 			 && '0' <= fmt[1] && fmt[1] <= '9')
 		    {
-		      /* Avoid size_t overflow.  Avoid int overflow too, as
+		      /* Avoid ptrdiff_t, size_t, and int overflow, as
 			 many sprintfs mishandle widths greater than INT_MAX.
 			 This test is simple but slightly conservative: e.g.,
 			 (INT_MAX - INT_MAX % 10) is reported as an overflow
 			 even when it's not.  */
-		      if (n >= min (INT_MAX, SIZE_MAX) / 10)
+		      if (n >= min (INT_MAX, min (PTRDIFF_MAX, SIZE_MAX)) / 10)
 			error ("Format width or precision too large");
 		      n = n * 10 + fmt[1] - '0';
 		      *string++ = *++fmt;
@@ -235,7 +230,7 @@ doprnt (char *buffer, register size_t bufsize, const char *format,
 
 	  /* Make the size bound large enough to handle floating point formats
 	     with large numbers.  */
-	  if (size_bound > SIZE_MAX - DBL_MAX_10_EXP - 50)
+	  if (size_bound > min (PTRDIFF_MAX, SIZE_MAX) - DBL_MAX_10_EXP - 50)
 	    error ("Format width or precision too large");
 	  size_bound += DBL_MAX_10_EXP + 50;
 

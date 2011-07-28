@@ -412,10 +412,15 @@ children."
               (setq result subresult)))))
     result))
 
-                                        ; private
+;; private
 (defun icalendar--all-events (icalendar)
   "Return the list of all existing events in the given ICALENDAR."
-  (icalendar--get-children (car icalendar) 'VEVENT))
+  (let ((result '()))
+    (mapc (lambda (elt)
+	    (setq result (append (icalendar--get-children elt 'VEVENT)
+                                 result)))
+	  (nreverse icalendar))
+    result))
 
 (defun icalendar--split-value (value-string)
   "Split VALUE-STRING at ';='."
@@ -1571,8 +1576,8 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                (n (nth 3 sexp))
                (day (nth 4 sexp))
                (summary
-		(replace-regexp-in-string 
-		 "\\(^\s+\\|\s+$\\)" "" 
+		(replace-regexp-in-string
+		 "\\(^\s+\\|\s+$\\)" ""
 		 (buffer-substring (point) (point-max)))))
 
           (when day
@@ -1590,7 +1595,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                      (null (let ((date (calendar-current-date))
                                  (entry entry-main))
                              (diary-float month dayname n)))
-                   (concat 
+                   (concat
                     "\nEXDATE;VALUE=DATE:"
                     (format-time-string "%Y%m%d" (current-time))))
                  "\nRRULE:"

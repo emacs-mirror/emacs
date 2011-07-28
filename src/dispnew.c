@@ -103,57 +103,24 @@ struct dim
 
 /* Function prototypes.  */
 
-static struct glyph_matrix *save_current_matrix (struct frame *);
-static void restore_current_matrix (struct frame *, struct glyph_matrix *);
-static int showing_window_margins_p (struct window *);
-static void fake_current_matrices (Lisp_Object);
-static void redraw_overlapping_rows (struct window *, int);
-static void redraw_overlapped_rows (struct window *, int);
-static int count_blanks (struct glyph *, int);
-static int count_match (struct glyph *, struct glyph *,
-                        struct glyph *, struct glyph *);
-static unsigned line_draw_cost (struct glyph_matrix *, int);
 static void update_frame_line (struct frame *, int);
-static struct dim allocate_matrices_for_frame_redisplay
-     (Lisp_Object, int, int, int, int *);
 static int required_matrix_height (struct window *);
 static int required_matrix_width (struct window *);
-static void allocate_matrices_for_window_redisplay (struct window *);
-static int realloc_glyph_pool (struct glyph_pool *, struct dim);
 static void adjust_frame_glyphs (struct frame *);
-static struct glyph_matrix *new_glyph_matrix (struct glyph_pool *);
-static void free_glyph_matrix (struct glyph_matrix *);
-static void adjust_glyph_matrix (struct window *, struct glyph_matrix *,
-                                 int, int, struct dim);
 static void change_frame_size_1 (struct frame *, int, int, int, int, int);
 static void increment_row_positions (struct glyph_row *, EMACS_INT, EMACS_INT);
-static void swap_glyph_pointers (struct glyph_row *, struct glyph_row *);
-#if GLYPH_DEBUG
-static int glyph_row_slice_p (struct glyph_row *, struct glyph_row *);
-#endif
 static void fill_up_frame_row_with_spaces (struct glyph_row *, int);
 static void build_frame_matrix_from_window_tree (struct glyph_matrix *,
                                                  struct window *);
 static void build_frame_matrix_from_leaf_window (struct glyph_matrix *,
                                                  struct window *);
-static struct glyph_pool *new_glyph_pool (void);
-static void free_glyph_pool (struct glyph_pool *);
-static void adjust_frame_glyphs_initially (void);
 static void adjust_frame_message_buffer (struct frame *);
 static void adjust_decode_mode_spec_buffer (struct frame *);
 static void fill_up_glyph_row_with_spaces (struct glyph_row *);
-static void build_frame_matrix (struct frame *);
-void clear_current_matrices (struct frame *);
-void scroll_glyph_matrix_range (struct glyph_matrix *, int, int,
-                                int, int);
 static void clear_window_matrices (struct window *, int);
 static void fill_up_glyph_row_area_with_spaces (struct glyph_row *, int);
 static int scrolling_window (struct window *, int);
 static int update_window_line (struct window *, int, int *);
-static void update_marginal_area (struct window *, int, int);
-static int update_text_area (struct window *, int);
-static void make_current (struct glyph_matrix *, struct glyph_matrix *,
-                          int);
 static void mirror_make_current (struct window *, int);
 #if GLYPH_DEBUG
 static void check_matrix_pointers (struct glyph_matrix *,
@@ -286,7 +253,7 @@ static int history_idx;
 /* A tick that's incremented each time something is added to the
    history.  */
 
-static unsigned history_tick;
+static uprintmax_t history_tick;
 
 static void add_frame_display_history (struct frame *, int);
 
@@ -305,7 +272,7 @@ add_window_display_history (struct window *w, const char *msg, int paused_p)
   buf = redisplay_history[history_idx].trace;
   ++history_idx;
 
-  sprintf (buf, "%d: window %p (`%s')%s\n",
+  sprintf (buf, "%"pMu": window %p (`%s')%s\n",
 	   history_tick++,
 	   w,
 	   ((BUFFERP (w->buffer)
@@ -331,7 +298,7 @@ add_frame_display_history (struct frame *f, int paused_p)
   buf = redisplay_history[history_idx].trace;
   ++history_idx;
 
-  sprintf (buf, "%d: update frame %p%s",
+  sprintf (buf, "%"pMu": update frame %p%s",
 	   history_tick++,
 	   f, paused_p ? " ***paused***" : "");
 }
@@ -532,7 +499,7 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
   /* Enlarge MATRIX->rows if necessary.  New rows are cleared.  */
   if (matrix->rows_allocated < dim.height)
     {
-      int size = dim.height * sizeof (struct glyph_row);
+      ptrdiff_t size = dim.height * sizeof (struct glyph_row);
       new_rows = dim.height - matrix->rows_allocated;
       matrix->rows = (struct glyph_row *) xrealloc (matrix->rows, size);
       memset (matrix->rows + matrix->rows_allocated, 0,
@@ -1198,7 +1165,7 @@ prepare_desired_row (struct glyph_row *row)
 {
   if (!row->enabled_p)
     {
-      unsigned rp = row->reversed_p;
+      int rp = row->reversed_p;
 
       clear_glyph_row (row);
       row->enabled_p = 1;
@@ -1242,7 +1209,7 @@ line_hash_code (struct glyph_row *row)
    the number of characters in the line.  If must_write_spaces is
    zero, leading and trailing spaces are ignored.  */
 
-static unsigned int
+static int
 line_draw_cost (struct glyph_matrix *matrix, int vpos)
 {
   struct glyph_row *row = matrix->rows + vpos;
@@ -1435,7 +1402,7 @@ realloc_glyph_pool (struct glyph_pool *pool, struct dim matrix_dim)
   needed = matrix_dim.width * matrix_dim.height;
   if (needed > pool->nglyphs)
     {
-      int size = needed * sizeof (struct glyph);
+      ptrdiff_t size = needed * sizeof (struct glyph);
 
       if (pool->glyphs)
 	{
@@ -2061,7 +2028,7 @@ save_current_matrix (struct frame *f)
     {
       struct glyph_row *from = f->current_matrix->rows + i;
       struct glyph_row *to = saved->rows + i;
-      size_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
+      ptrdiff_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
       to->glyphs[TEXT_AREA] = (struct glyph *) xmalloc (nbytes);
       memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
@@ -2083,7 +2050,7 @@ restore_current_matrix (struct frame *f, struct glyph_matrix *saved)
     {
       struct glyph_row *from = saved->rows + i;
       struct glyph_row *to = f->current_matrix->rows + i;
-      size_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
+      ptrdiff_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
       memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
       xfree (from->glyphs[TEXT_AREA]);
@@ -2271,7 +2238,7 @@ adjust_frame_glyphs_for_window_redisplay (struct frame *f)
 static void
 adjust_frame_message_buffer (struct frame *f)
 {
-  int size = FRAME_MESSAGE_BUF_SIZE (f) + 1;
+  ptrdiff_t size = FRAME_MESSAGE_BUF_SIZE (f) + 1;
 
   if (FRAME_MESSAGE_BUF (f))
     {
@@ -4301,7 +4268,8 @@ scrolling_window (struct window *w, int header_line_p)
   struct glyph_matrix *current_matrix = w->current_matrix;
   int yb = window_text_bottom_y (w);
   int i, j, first_old, first_new, last_old, last_new;
-  int nruns, nbytes, n, run_idx;
+  int nruns, n, run_idx;
+  ptrdiff_t nbytes;
   struct row_entry *entry;
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 
@@ -6329,11 +6297,14 @@ init_display (void)
     int width = FRAME_TOTAL_COLS (sf);
     int height = FRAME_LINES (sf);
 
-    unsigned int total_glyphs = height * (width + 2) * sizeof (struct glyph);
-
     /* If these sizes are so big they cause overflow, just ignore the
-       change.  It's not clear what better we could do.  */
-    if (total_glyphs / sizeof (struct glyph) / height != width + 2)
+       change.  It's not clear what better we could do.  The rest of
+       the code assumes that (width + 2) * height * sizeof (struct glyph)
+       does not overflow and does not exceed PTRDIFF_MAX or SIZE_MAX.  */
+    if (INT_ADD_RANGE_OVERFLOW (width, 2, INT_MIN, INT_MAX)
+	|| INT_MULTIPLY_RANGE_OVERFLOW (width + 2, height, INT_MIN, INT_MAX)
+	|| (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct glyph)
+	    < (width + 2) * height))
       fatal ("screen size %dx%d too big", width, height);
   }
 

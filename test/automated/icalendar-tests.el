@@ -51,35 +51,6 @@
   (replace-regexp-in-string "[ \t\n]+\\'" ""
                             (replace-regexp-in-string "\\`[ \t\n]+" "" string)))
 
-(defun icalendar-tests--compare-strings (str1 str2)
-  "Compare strings STR1 and STR2.
-Return t if strings are equal, else return substring indicating first difference.
-FIXME: make this a little smarter."
-  (let* ((s1 (icalendar-tests--trim str1))
-         (s2 (icalendar-tests--trim str2))
-         (result (compare-strings s1 0 nil s2 0 nil))
-         (len (length str2)))
-    (if (numberp result)
-        (if (> result 0)
-            (concat "..." (substring str2 (- result 1)
-                                     (min len (+ (- result 1) 3))) "...")
-          (concat "..." (substring str2 (- (+ result 1))
-                                   (min len  (+ (- (+ result 1)) 3))) "..."))
-      t)))
-
-(ert-deftest icalendar-tests--compare-strings ()
-  "Test icalendar-tests--compare-strings."
-  (should (equal t (icalendar-tests--compare-strings " abcde" "abcde ")))
-  (should
-   (string= "...def..."
-            (icalendar-tests--compare-strings "abcxe" "abcdefghijklmn")))
-  (should (string= "...xe..."
-                   (icalendar-tests--compare-strings "abcde" "abcxe")))
-  (should (string= "...ddd..."
-           (icalendar-tests--compare-strings "abc" "abcdddddd")))
-  (should (string= "......"
-                   (icalendar-tests--compare-strings "abcdefghij" "abc"))))
-
 ;; ======================================================================
 ;; Tests of functions
 ;; ======================================================================
@@ -269,85 +240,85 @@ END:VTIMEZONE
 
 (ert-deftest icalendar--diarytime-to-isotime ()
   "Test method for `icalendar--diarytime-to-isotime'."
-  (should (string= (icalendar--diarytime-to-isotime "01:15" "")
-                   "T011500"))
-  (should (string= (icalendar--diarytime-to-isotime "1:15" "")
-                   "T011500"))
-  (should (string= (icalendar--diarytime-to-isotime "0:01" "")
-                   "T000100"))
-  (should (string= (icalendar--diarytime-to-isotime "0100" "")
-                   "T010000"))
-  (should (string= (icalendar--diarytime-to-isotime "0100" "am")
-                   "T010000"))
-  (should (string= (icalendar--diarytime-to-isotime "0100" "pm")
-                   "T130000"))
-  (should (string= (icalendar--diarytime-to-isotime "1200" "")
-                   "T120000"))
-  (should (string= (icalendar--diarytime-to-isotime "17:17" "")
-                   "T171700"))
-  (should (string= (icalendar--diarytime-to-isotime "1200" "am")
-                   "T000000"))
-  (should (string= (icalendar--diarytime-to-isotime "1201" "am")
-                   "T000100"))
-  (should (string= (icalendar--diarytime-to-isotime "1259" "am")
-                   "T005900"))
-  (should (string= (icalendar--diarytime-to-isotime "1200" "pm")
-                   "T120000"))
-  (should (string= (icalendar--diarytime-to-isotime "1201" "pm")
-                   "T120100"))
-  (should (string= (icalendar--diarytime-to-isotime "1259" "pm")
-                   "T125900")))
+  (should (string= "T011500"
+		   (icalendar--diarytime-to-isotime "01:15" "")))
+  (should (string= "T011500"
+		   (icalendar--diarytime-to-isotime "1:15" "")))
+  (should (string= "T000100"
+		   (icalendar--diarytime-to-isotime "0:01" "")))
+  (should (string= "T010000"
+		   (icalendar--diarytime-to-isotime "0100" "")))
+  (should (string= "T010000"
+		   (icalendar--diarytime-to-isotime "0100" "am")))
+  (should (string= "T130000"
+		   (icalendar--diarytime-to-isotime "0100" "pm")))
+  (should (string= "T120000"
+		   (icalendar--diarytime-to-isotime "1200" "")))
+  (should (string= "T171700"
+		   (icalendar--diarytime-to-isotime "17:17" "")))
+  (should (string= "T000000"
+		   (icalendar--diarytime-to-isotime "1200" "am")))
+  (should (string= "T000100"
+		   (icalendar--diarytime-to-isotime "1201" "am")))
+  (should (string= "T005900"
+		   (icalendar--diarytime-to-isotime "1259" "am")))
+  (should (string= "T120000"
+		   (icalendar--diarytime-to-isotime "1200" "pm")))
+  (should (string= "T120100"
+		   (icalendar--diarytime-to-isotime "1201" "pm")))
+  (should (string= "T125900"
+		   (icalendar--diarytime-to-isotime "1259" "pm"))))
 
 (ert-deftest icalendar--datetime-to-diary-date ()
   "Test method for `icalendar--datetime-to-diary-date'."
   (let* ((datetime '(59 59 23 31 12 2008))
          (calendar-date-style 'iso))
-    (should (string= (icalendar--datetime-to-diary-date datetime)
-                     "2008 12 31"))
+    (should (string= "2008 12 31"
+		     (icalendar--datetime-to-diary-date datetime)))
     (setq calendar-date-style 'european)
-    (should (string= (icalendar--datetime-to-diary-date datetime)
-                     "31 12 2008"))
+    (should (string= "31 12 2008"
+		     (icalendar--datetime-to-diary-date datetime)))
     (setq calendar-date-style 'american)
-    (should (string= (icalendar--datetime-to-diary-date datetime)
-                     "12 31 2008"))))
+    (should (string= "12 31 2008"
+		     (icalendar--datetime-to-diary-date datetime)))))
 
 (ert-deftest icalendar--datestring-to-isodate ()
   "Test method for `icalendar--datestring-to-isodate'."
   (let ((calendar-date-style 'iso))
     ;; numeric iso
-    (should (string= (icalendar--datestring-to-isodate "2008 05 11")
-                     "20080511"))
-    (should (string= (icalendar--datestring-to-isodate "2008 05 31")
-                     "20080531"))
-    (should (string= (icalendar--datestring-to-isodate "2008 05 31" 2)
-                     "20080602"))
+    (should (string= "20080511"
+		      (icalendar--datestring-to-isodate "2008 05 11")))
+    (should (string= "20080531"
+		     (icalendar--datestring-to-isodate "2008 05 31")))
+    (should (string= "20080602"
+		     (icalendar--datestring-to-isodate "2008 05 31" 2)))
 
     ;; numeric european
     (setq calendar-date-style 'european)
-    (should (string= (icalendar--datestring-to-isodate "11 05 2008")
-                     "20080511"))
-    (should (string= (icalendar--datestring-to-isodate "31 05 2008")
-                     "20080531"))
-    (should (string= (icalendar--datestring-to-isodate "31 05 2008" 2)
-                     "20080602"))
+    (should (string= "20080511"
+		     (icalendar--datestring-to-isodate "11 05 2008")))
+    (should (string= "20080531"
+		     (icalendar--datestring-to-isodate "31 05 2008")))
+    (should (string= "20080602"
+		     (icalendar--datestring-to-isodate "31 05 2008" 2)))
 
     ;; numeric american
     (setq calendar-date-style 'american)
-    (should (string= (icalendar--datestring-to-isodate "11 05 2008")
-                     "20081105"))
-    (should (string= (icalendar--datestring-to-isodate "12 30 2008")
-                     "20081230"))
-    (should (string= (icalendar--datestring-to-isodate "12 30 2008" 2)
-                     "20090101"))
+    (should (string= "20081105"
+		     (icalendar--datestring-to-isodate "11 05 2008")))
+    (should (string= "20081230"
+		     (icalendar--datestring-to-isodate "12 30 2008")))
+    (should (string= "20090101"
+		     (icalendar--datestring-to-isodate "12 30 2008" 2)))
 
     ;; non-numeric
     (setq calendar-date-style nil)      ;not necessary for conversion
-    (should (string= (icalendar--datestring-to-isodate "Nov 05 2008")
-                     "20081105"))
-    (should (string= (icalendar--datestring-to-isodate "05 Nov 2008")
-                     "20081105"))
-    (should (string= (icalendar--datestring-to-isodate "2008 Nov 05")
-                     "20081105"))))
+    (should (string= "20081105"
+		     (icalendar--datestring-to-isodate "Nov 05 2008")))
+    (should (string= "20081105"
+		     (icalendar--datestring-to-isodate "05 Nov 2008")))
+    (should (string= "20081105"
+		     (icalendar--datestring-to-isodate "2008 Nov 05")))))
 
 (ert-deftest icalendar--first-weekday-of-year ()
   "Test method for `icalendar-first-weekday-of-year'."
@@ -363,7 +334,9 @@ END:VTIMEZONE
 
 (ert-deftest icalendar--import-format-sample ()
   "Test method for `icalendar-import-format-sample'."
-  (should (string= (icalendar-import-format-sample
+  (should (string= (concat "SUMMARY=`a' DESCRIPTION=`b' LOCATION=`c' "
+                           "ORGANIZER=`d' STATUS=`' URL=`' CLASS=`'")
+		   (icalendar-import-format-sample
                     (icalendar-tests--get-ical-event "BEGIN:VEVENT
 DTSTAMP:20030509T043439Z
 DTSTART:20030509T103000
@@ -373,9 +346,7 @@ LOCATION:c
 DTEND:20030509T153000
 DESCRIPTION:b
 END:VEVENT
-"))
-                   (concat "SUMMARY=`a' DESCRIPTION=`b' LOCATION=`c' "
-                           "ORGANIZER=`d' STATUS=`' URL=`' CLASS=`'"))))
+")))))
 
 (ert-deftest icalendar--format-ical-event ()
   "Test `icalendar--format-ical-event'."
@@ -397,12 +368,11 @@ DTEND:20030509T153000
 DESCRIPTION:des
 END:VEVENT
 ")))
-    (should (string= (icalendar--format-ical-event event)
-                     "SUM sum DES des LOC loc ORG org"))
+    (should (string= "SUM sum DES des LOC loc ORG org"
+		     (icalendar--format-ical-event event)))
     (setq icalendar-import-format (lambda (&rest ignore)
                                     "helloworld"))
-    (should (string= (icalendar--format-ical-event event)
-                     "helloworld"))
+    (should (string= "helloworld"  (icalendar--format-ical-event event)))
     (setq icalendar-import-format
           (lambda (e)
             (format "-%s-%s-%s-%s-%s-%s-%s-"
@@ -413,8 +383,8 @@ END:VEVENT
                     (icalendar--get-event-property event 'STATUS)
                     (icalendar--get-event-property event 'URL)
                     (icalendar--get-event-property event 'CLASS))))
-    (should (string= (icalendar--format-ical-event event)
-                     "-sum-des-loc-org-nil-nil-nil-"))))
+    (should (string= "-sum-des-loc-org-nil-nil-nil-"
+		     (icalendar--format-ical-event event)))))
 
 (ert-deftest icalendar--parse-summary-and-rest ()
   "Test `icalendar--parse-summary-and-rest'."
@@ -428,15 +398,15 @@ END:VEVENT
         (icalendar-import-format-class " CLA %s")
         (result))
     (setq result (icalendar--parse-summary-and-rest "SUM sum ORG org"))
-    (should (string= (cdr (assoc 'org result)) "org"))
+    (should (string= "org"  (cdr (assoc 'org result))))
 
     (setq result (icalendar--parse-summary-and-rest
                   "SUM sum DES des LOC loc ORG org STA sta URL url CLA cla"))
-    (should (string= (cdr (assoc 'des result)) "des"))
-    (should (string= (cdr (assoc 'loc result)) "loc"))
-    (should (string= (cdr (assoc 'org result)) "org"))
-    (should (string= (cdr (assoc 'sta result)) "sta"))
-    (should (string= (cdr (assoc 'cla result)) "cla"))
+    (should (string= "des" (cdr (assoc 'des result))))
+    (should (string= "loc" (cdr (assoc 'loc result))))
+    (should (string= "org" (cdr (assoc 'org result))))
+    (should (string= "sta" (cdr (assoc 'sta result))))
+    (should (string= "cla" (cdr (assoc 'cla result))))
 
     (setq icalendar-import-format (lambda () "Hello world"))
     (setq result (icalendar--parse-summary-and-rest
@@ -738,12 +708,10 @@ Argument INPUT input icalendar string.
 Argument EXPECTED-OUTPUT expected diary string."
   (let ((temp-file (make-temp-file "icalendar-test-diary")))
     (icalendar-import-buffer temp-file t t)
-    (unwind-protect
-	(save-excursion
-	  (find-file temp-file)
-	  (let ((result (buffer-substring-no-properties (point-min) (point-max))))
-	    (should (icalendar-tests--compare-strings result
-						      expected-output))))
+    (save-excursion
+      (find-file temp-file)
+      (let ((result (buffer-substring-no-properties (point-min) (point-max))))
+	(should (string= expected-output result)))
       (kill-buffer (find-buffer-visiting temp-file))
       (delete-file temp-file))))
 
@@ -753,23 +721,23 @@ Argument EXPECTED-OUTPUT expected diary string."
    "SUMMARY:non-recurring
 DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000"
-   "&2003/9/19 09:00-11:30 non-recurring"
-   "&19/9/2003 09:00-11:30 non-recurring"
-   "&9/19/2003 09:00-11:30 non-recurring")
+   "&2003/9/19 09:00-11:30 non-recurring\n"
+   "&19/9/2003 09:00-11:30 non-recurring\n"
+   "&9/19/2003 09:00-11:30 non-recurring\n")
   (icalendar-tests--test-import
    "SUMMARY:non-recurring allday
 DTSTART;VALUE=DATE-TIME:20030919"
-   "&2003/9/19 non-recurring allday"
-   "&19/9/2003 non-recurring allday"
-   "&9/19/2003 non-recurring allday")
+   "&2003/9/19 non-recurring allday\n"
+   "&19/9/2003 non-recurring allday\n"
+   "&9/19/2003 non-recurring allday\n")
   (icalendar-tests--test-import
    ;; do not remove the trailing blank after "long"!
-   "SUMMARY:long
+   "SUMMARY:long 
  summary
 DTSTART;VALUE=DATE:20030919"
-   "&2003/9/19 long summary"
-   "&19/9/2003 long summary"
-   "&9/19/2003 long summary")
+   "&2003/9/19 long summary\n"
+   "&19/9/2003 long summary\n"
+   "&9/19/2003 long summary\n")
   (icalendar-tests--test-import
    "UID:748f2da0-0d9b-11d8-97af-b4ec8686ea61
 SUMMARY:Sommerferien
@@ -791,7 +759,8 @@ DTSTAMP:20031103T011641Z
 "
    "&%%(and (diary-block 7 19 2004 8 27 2004)) Sommerferien
  Status: TENTATIVE
- Class: PRIVATE")
+ Class: PRIVATE
+")
   (icalendar-tests--test-import
    "UID
  :04979712-3902-11d9-93dd-8f9f4afe08da
@@ -814,13 +783,13 @@ LAST-MODIFIED
 "
    "&2004/11/23 14:00-14:30 folded summary
  Status: TENTATIVE
- Class: PRIVATE"
+ Class: PRIVATE\n"
    "&23/11/2004 14:00-14:30 folded summary
  Status: TENTATIVE
- Class: PRIVATE"
+ Class: PRIVATE\n"
    "&11/23/2004 14:00-14:30 folded summary
  Status: TENTATIVE
- Class: PRIVATE")
+ Class: PRIVATE\n")
 
   (icalendar-tests--test-import
    "UID
@@ -842,13 +811,13 @@ DTSTAMP
 "
    "&2004/11/23 14:45-15:45 another example
  Status: TENTATIVE
- Class: PRIVATE"
+ Class: PRIVATE\n"
    "&23/11/2004 14:45-15:45 another example
  Status: TENTATIVE
- Class: PRIVATE"
+ Class: PRIVATE\n"
    "&11/23/2004 14:45-15:45 another example
  Status: TENTATIVE
- Class: PRIVATE"))
+ Class: PRIVATE\n"))
 
 (ert-deftest icalendar-import-rrule ()
   (icalendar-tests--test-import
@@ -857,9 +826,9 @@ DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=DAILY;
 "
-   "&%%(and (diary-cyclic 1 2003 9 19)) 09:00-11:30 rrule daily"
-   "&%%(and (diary-cyclic 1 19 9 2003)) 09:00-11:30 rrule daily"
-   "&%%(and (diary-cyclic 1 9 19 2003)) 09:00-11:30 rrule daily")
+   "&%%(and (diary-cyclic 1 2003 9 19)) 09:00-11:30 rrule daily\n"
+   "&%%(and (diary-cyclic 1 19 9 2003)) 09:00-11:30 rrule daily\n"
+   "&%%(and (diary-cyclic 1 9 19 2003)) 09:00-11:30 rrule daily\n")
   ;; RRULE examples
   (icalendar-tests--test-import
    "SUMMARY:rrule daily
@@ -867,9 +836,9 @@ DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=DAILY;INTERVAL=2
 "
-   "&%%(and (diary-cyclic 2 2003 9 19)) 09:00-11:30 rrule daily"
-   "&%%(and (diary-cyclic 2 19 9 2003)) 09:00-11:30 rrule daily"
-   "&%%(and (diary-cyclic 2 9 19 2003)) 09:00-11:30 rrule daily")
+   "&%%(and (diary-cyclic 2 2003 9 19)) 09:00-11:30 rrule daily\n"
+   "&%%(and (diary-cyclic 2 19 9 2003)) 09:00-11:30 rrule daily\n"
+   "&%%(and (diary-cyclic 2 9 19 2003)) 09:00-11:30 rrule daily\n")
   (icalendar-tests--test-import
    "SUMMARY:rrule daily with exceptions
 DTSTART;VALUE=DATE-TIME:20030919T090000
@@ -877,36 +846,36 @@ DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=DAILY;INTERVAL=2
 EXDATE:20030921,20030925
 "
-   "&%%(and (not (diary-date 2003 9 25)) (not (diary-date 2003 9 21)) (diary-cyclic 2 2003 9 19)) 09:00-11:30 rrule daily with exceptions"
-   "&%%(and (not (diary-date 25 9 2003)) (not (diary-date 21 9 2003)) (diary-cyclic 2 19 9 2003)) 09:00-11:30 rrule daily with exceptions"
-   "&%%(and (not (diary-date 9 25 2003)) (not (diary-date 9 21 2003)) (diary-cyclic 2 9 19 2003)) 09:00-11:30 rrule daily with exceptions")
+   "&%%(and (not (diary-date 2003 9 25)) (not (diary-date 2003 9 21)) (diary-cyclic 2 2003 9 19)) 09:00-11:30 rrule daily with exceptions\n"
+   "&%%(and (not (diary-date 25 9 2003)) (not (diary-date 21 9 2003)) (diary-cyclic 2 19 9 2003)) 09:00-11:30 rrule daily with exceptions\n"
+   "&%%(and (not (diary-date 9 25 2003)) (not (diary-date 9 21 2003)) (diary-cyclic 2 9 19 2003)) 09:00-11:30 rrule daily with exceptions\n")
   (icalendar-tests--test-import
    "SUMMARY:rrule weekly
 DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=WEEKLY;
 "
-   "&%%(and (diary-cyclic 7 2003 9 19)) 09:00-11:30 rrule weekly"
-   "&%%(and (diary-cyclic 7 19 9 2003)) 09:00-11:30 rrule weekly"
-   "&%%(and (diary-cyclic 7 9 19 2003)) 09:00-11:30 rrule weekly")
+   "&%%(and (diary-cyclic 7 2003 9 19)) 09:00-11:30 rrule weekly\n"
+   "&%%(and (diary-cyclic 7 19 9 2003)) 09:00-11:30 rrule weekly\n"
+   "&%%(and (diary-cyclic 7 9 19 2003)) 09:00-11:30 rrule weekly\n")
   (icalendar-tests--test-import
    "SUMMARY:rrule monthly no end
 DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=MONTHLY;
 "
-   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 9999 1 1)) 09:00-11:30 rrule monthly no end"
-   "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 1 1 9999)) 09:00-11:30 rrule monthly no end"
-   "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 1 1 9999)) 09:00-11:30 rrule monthly no end")
+   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 9999 1 1)) 09:00-11:30 rrule monthly no end\n"
+   "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 1 1 9999)) 09:00-11:30 rrule monthly no end\n"
+   "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 1 1 9999)) 09:00-11:30 rrule monthly no end\n")
   (icalendar-tests--test-import
    "SUMMARY:rrule monthly with end
 DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=MONTHLY;UNTIL=20050819;
 "
-   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 2005 8 19)) 09:00-11:30 rrule monthly with end"
-   "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 19 8 2005)) 09:00-11:30 rrule monthly with end"
-   "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 8 19 2005)) 09:00-11:30 rrule monthly with end")
+   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 2005 8 19)) 09:00-11:30 rrule monthly with end\n"
+   "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 19 8 2005)) 09:00-11:30 rrule monthly with end\n"
+   "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 8 19 2005)) 09:00-11:30 rrule monthly with end\n")
   (icalendar-tests--test-import
    "DTSTART;VALUE=DATE:20040815
 DTEND;VALUE=DATE:20040816
@@ -914,81 +883,81 @@ SUMMARY:Maria Himmelfahrt
 UID:CC56BEA6-49D2-11D8-8833-00039386D1C2-RID
 RRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH=8
 "
-   "&%%(and (diary-anniversary 2004 8 15))  Maria Himmelfahrt"
-   "&%%(and (diary-anniversary 15 8 2004))  Maria Himmelfahrt"
-   "&%%(and (diary-anniversary 8 15 2004))  Maria Himmelfahrt")
+   "&%%(and (diary-anniversary 2004 8 15))  Maria Himmelfahrt\n"
+   "&%%(and (diary-anniversary 15 8 2004))  Maria Himmelfahrt\n"
+   "&%%(and (diary-anniversary 8 15 2004))  Maria Himmelfahrt\n")
   (icalendar-tests--test-import
    "SUMMARY:rrule yearly
 DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=YEARLY;INTERVAL=2
 "
-   "&%%(and (diary-anniversary 2003 9 19)) 09:00-11:30 rrule yearly" ;FIXME
-   "&%%(and (diary-anniversary 19 9 2003)) 09:00-11:30 rrule yearly" ;FIXME
-   "&%%(and (diary-anniversary 9 19 2003)) 09:00-11:30 rrule yearly") ;FIXME
+   "&%%(and (diary-anniversary 2003 9 19)) 09:00-11:30 rrule yearly\n" ;FIXME
+   "&%%(and (diary-anniversary 19 9 2003)) 09:00-11:30 rrule yearly\n" ;FIXME
+   "&%%(and (diary-anniversary 9 19 2003)) 09:00-11:30 rrule yearly\n") ;FIXME
   (icalendar-tests--test-import
    "SUMMARY:rrule count daily short
 DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=DAILY;COUNT=1;INTERVAL=1
 "
-   "&%%(and (diary-cyclic 1 2003 9 19) (diary-block 2003 9 19 2003 9 19)) 09:00-11:30 rrule count daily short"
-   "&%%(and (diary-cyclic 1 19 9 2003) (diary-block 19 9 2003 19 9 2003)) 09:00-11:30 rrule count daily short"
-   "&%%(and (diary-cyclic 1 9 19 2003) (diary-block 9 19 2003 9 19 2003)) 09:00-11:30 rrule count daily short")
+   "&%%(and (diary-cyclic 1 2003 9 19) (diary-block 2003 9 19 2003 9 19)) 09:00-11:30 rrule count daily short\n"
+   "&%%(and (diary-cyclic 1 19 9 2003) (diary-block 19 9 2003 19 9 2003)) 09:00-11:30 rrule count daily short\n"
+   "&%%(and (diary-cyclic 1 9 19 2003) (diary-block 9 19 2003 9 19 2003)) 09:00-11:30 rrule count daily short\n")
   (icalendar-tests--test-import
    "SUMMARY:rrule count daily long
 DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=DAILY;COUNT=14;INTERVAL=1
 "
-   "&%%(and (diary-cyclic 1 2003 9 19) (diary-block 2003 9 19 2003 10 2)) 09:00-11:30 rrule count daily long"
-   "&%%(and (diary-cyclic 1 19 9 2003) (diary-block 19 9 2003 2 10 2003)) 09:00-11:30 rrule count daily long"
-   "&%%(and (diary-cyclic 1 9 19 2003) (diary-block 9 19 2003 10 2 2003)) 09:00-11:30 rrule count daily long")
+   "&%%(and (diary-cyclic 1 2003 9 19) (diary-block 2003 9 19 2003 10 2)) 09:00-11:30 rrule count daily long\n"
+   "&%%(and (diary-cyclic 1 19 9 2003) (diary-block 19 9 2003 2 10 2003)) 09:00-11:30 rrule count daily long\n"
+   "&%%(and (diary-cyclic 1 9 19 2003) (diary-block 9 19 2003 10 2 2003)) 09:00-11:30 rrule count daily long\n")
   (icalendar-tests--test-import
    "SUMMARY:rrule count bi-weekly 3 times
 DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=WEEKLY;COUNT=3;INTERVAL=2
 "
-   "&%%(and (diary-cyclic 14 2003 9 19) (diary-block 2003 9 19 2003 10 31)) 09:00-11:30 rrule count bi-weekly 3 times"
-   "&%%(and (diary-cyclic 14 19 9 2003) (diary-block 19 9 2003 31 10 2003)) 09:00-11:30 rrule count bi-weekly 3 times"
-   "&%%(and (diary-cyclic 14 9 19 2003) (diary-block 9 19 2003 10 31 2003)) 09:00-11:30 rrule count bi-weekly 3 times")
+   "&%%(and (diary-cyclic 14 2003 9 19) (diary-block 2003 9 19 2003 10 31)) 09:00-11:30 rrule count bi-weekly 3 times\n"
+   "&%%(and (diary-cyclic 14 19 9 2003) (diary-block 19 9 2003 31 10 2003)) 09:00-11:30 rrule count bi-weekly 3 times\n"
+   "&%%(and (diary-cyclic 14 9 19 2003) (diary-block 9 19 2003 10 31 2003)) 09:00-11:30 rrule count bi-weekly 3 times\n")
   (icalendar-tests--test-import
    "SUMMARY:rrule count monthly
 DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=MONTHLY;INTERVAL=1;COUNT=5
 "
-   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 2004 1 19)) 09:00-11:30 rrule count monthly"
-   "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 19 1 2004)) 09:00-11:30 rrule count monthly"
-   "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 1 19 2004)) 09:00-11:30 rrule count monthly")
+   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 2004 1 19)) 09:00-11:30 rrule count monthly\n"
+   "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 19 1 2004)) 09:00-11:30 rrule count monthly\n"
+   "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 1 19 2004)) 09:00-11:30 rrule count monthly\n")
   (icalendar-tests--test-import
    "SUMMARY:rrule count every second month
 DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=MONTHLY;INTERVAL=2;COUNT=5
 "
-   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 2004 5 19)) 09:00-11:30 rrule count every second month" ;FIXME
-   "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 19 5 2004)) 09:00-11:30 rrule count every second month" ;FIXME
-   "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 5 19 2004)) 09:00-11:30 rrule count every second month") ;FIXME
+   "&%%(and (diary-date t t 19) (diary-block 2003 9 19 2004 5 19)) 09:00-11:30 rrule count every second month\n" ;FIXME
+   "&%%(and (diary-date 19 t t) (diary-block 19 9 2003 19 5 2004)) 09:00-11:30 rrule count every second month\n" ;FIXME
+   "&%%(and (diary-date t 19 t) (diary-block 9 19 2003 5 19 2004)) 09:00-11:30 rrule count every second month\n") ;FIXME
   (icalendar-tests--test-import
    "SUMMARY:rrule count yearly
 DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=YEARLY;INTERVAL=1;COUNT=5
 "
-   "&%%(and (diary-date t 9 19) (diary-block 2003 9 19 2007 9 19)) 09:00-11:30 rrule count yearly"
-   "&%%(and (diary-date 19 9 t) (diary-block 19 9 2003 19 9 2007)) 09:00-11:30 rrule count yearly"
-   "&%%(and (diary-date 9 19 t) (diary-block 9 19 2003 9 19 2007)) 09:00-11:30 rrule count yearly")
+   "&%%(and (diary-date t 9 19) (diary-block 2003 9 19 2007 9 19)) 09:00-11:30 rrule count yearly\n"
+   "&%%(and (diary-date 19 9 t) (diary-block 19 9 2003 19 9 2007)) 09:00-11:30 rrule count yearly\n"
+   "&%%(and (diary-date 9 19 t) (diary-block 9 19 2003 9 19 2007)) 09:00-11:30 rrule count yearly\n")
   (icalendar-tests--test-import
    "SUMMARY:rrule count every second year
 DTSTART;VALUE=DATE-TIME:20030919T090000
 DTEND;VALUE=DATE-TIME:20030919T113000
 RRULE:FREQ=YEARLY;INTERVAL=2;COUNT=5
 "
-   "&%%(and (diary-date t 9 19) (diary-block 2003 9 19 2011 9 19)) 09:00-11:30 rrule count every second year" ;FIXME!!!
-   "&%%(and (diary-date 19 9 t) (diary-block 19 9 2003 19 9 2011)) 09:00-11:30 rrule count every second year" ;FIXME!!!
-   "&%%(and (diary-date 9 19 t) (diary-block 9 19 2003 9 19 2011)) 09:00-11:30 rrule count every second year") ;FIXME!!!
+   "&%%(and (diary-date t 9 19) (diary-block 2003 9 19 2011 9 19)) 09:00-11:30 rrule count every second year\n" ;FIXME!!!
+   "&%%(and (diary-date 19 9 t) (diary-block 19 9 2003 19 9 2011)) 09:00-11:30 rrule count every second year\n" ;FIXME!!!
+   "&%%(and (diary-date 9 19 t) (diary-block 9 19 2003 9 19 2011)) 09:00-11:30 rrule count every second year\n") ;FIXME!!!
 )
 
 (ert-deftest icalendar-import-duration ()
@@ -998,9 +967,9 @@ RRULE:FREQ=YEARLY;INTERVAL=2;COUNT=5
 SUMMARY:duration
 DURATION:P7D
 "
-   "&%%(and (diary-block 2005 2 17 2005 2 23)) duration"
-   "&%%(and (diary-block 17 2 2005 23 2 2005)) duration"
-   "&%%(and (diary-block 2 17 2005 2 23 2005)) duration")
+   "&%%(and (diary-block 2005 2 17 2005 2 23)) duration\n"
+   "&%%(and (diary-block 17 2 2005 23 2 2005)) duration\n"
+   "&%%(and (diary-block 2 17 2005 2 23 2005)) duration\n")
   (icalendar-tests--test-import
    "UID:20041127T183329Z-18215-1001-4536-49109@andromeda
 DTSTAMP:20041127T183315Z
@@ -1014,11 +983,11 @@ SEQUENCE:1
 CREATED:20041127T183329
 "
    "&%%(and (diary-cyclic 1 2001 12 21) (diary-block 2001 12 21 2001 12 29))  Urlaub
- Class: PUBLIC"
+ Class: PUBLIC\n"
    "&%%(and (diary-cyclic 1 21 12 2001) (diary-block 21 12 2001 29 12 2001))  Urlaub
- Class: PUBLIC"
+ Class: PUBLIC\n"
    "&%%(and (diary-cyclic 1 12 21 2001) (diary-block 12 21 2001 12 29 2001))  Urlaub
- Class: PUBLIC"))
+ Class: PUBLIC\n"))
 
 (ert-deftest icalendar-import-bug-6766 ()
   ;;bug#6766 -- multiple byday values in a weekly rrule
@@ -1049,20 +1018,62 @@ UID:8814e3f9-7482-408f-996c-3bfe486a1263
  Status: CONFIRMED
  Class: PUBLIC
 &%%(and (memq (calendar-day-of-week date) '(2 4)) (diary-cyclic 1 2010 4 22)) Tues + Thurs thinking
- Class: PUBLIC"
-
+ Class: PUBLIC
+"
 "&%%(and (memq (calendar-day-of-week date) '(1 3 4 5)) (diary-cyclic 1 21 4 2010)) 11:30-12:00 Scrum
  Status: CONFIRMED
  Class: PUBLIC
 &%%(and (memq (calendar-day-of-week date) '(2 4)) (diary-cyclic 1 22 4 2010)) Tues + Thurs thinking
- Class: PUBLIC"
-
+ Class: PUBLIC
+"
 "&%%(and (memq (calendar-day-of-week date) '(1 3 4 5)) (diary-cyclic 1 4 21 2010)) 11:30-12:00 Scrum
  Status: CONFIRMED
  Class: PUBLIC
 &%%(and (memq (calendar-day-of-week date) '(2 4)) (diary-cyclic 1 4 22 2010)) Tues + Thurs thinking
- Class: PUBLIC"))
+ Class: PUBLIC
+"))
 
+(ert-deftest icalendar-import-multiple-vcalendars ()
+  (icalendar-tests--test-import
+   "DTSTART;VALUE=DATE:20110723
+SUMMARY:event-1
+"
+   "&2011/7/23 event-1\n"
+   "&23/7/2011 event-1\n"
+   "&7/23/2011 event-1\n")
+  
+  (icalendar-tests--test-import
+   "BEGIN:VCALENDAR
+PRODID:-//Emacs//NONSGML icalendar.el//EN
+VERSION:2.0\nBEGIN:VEVENT
+DTSTART;VALUE=DATE:20110723
+SUMMARY:event-1
+END:VEVENT
+END:VCALENDAR
+BEGIN:VCALENDAR
+PRODID:-//Emacs//NONSGML icalendar.el//EN
+VERSION:2.0
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20110724
+SUMMARY:event-2
+END:VEVENT
+END:VCALENDAR
+BEGIN:VCALENDAR
+PRODID:-//Emacs//NONSGML icalendar.el//EN
+VERSION:2.0
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20110725
+SUMMARY:event-3a
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20110725
+SUMMARY:event-3b
+END:VEVENT
+END:VCALENDAR
+"
+   "&2011/7/23 event-1\n&2011/7/24 event-2\n&2011/7/25 event-3a\n&2011/7/25 event-3b\n"
+   "&23/7/2011 event-1\n&24/7/2011 event-2\n&25/7/2011 event-3a\n&25/7/2011 event-3b\n"
+   "&7/23/2011 event-1\n&7/24/2011 event-2\n&7/25/2011 event-3a\n&7/25/2011 event-3b\n"))
 
 ;; ======================================================================
 ;; Cycle
@@ -1113,7 +1124,7 @@ Argument INPUT icalendar event string."
 	    (when (re-search-forward "\nUID:.*\n" nil t)
 	      (replace-match "\n"))
 	    (let ((cycled (buffer-substring-no-properties (point-min) (point-max))))
-	      (should (icalendar-tests--compare-strings cycled org-input)))))
+	      (should (string= org-input cycled)))))
       ;; clean up
       (kill-buffer (find-buffer-visiting temp-diary))
       (save-excursion
@@ -1211,12 +1222,14 @@ END:VCALENDAR"
  Desc: 10:30am - Blah
  Location: Cccc
  Organizer: MAILTO:aaaaaaa@aaaaaaa.com
- Status: CONFIRMED"
+ Status: CONFIRMED
+"
    "&5/9/2003 10:30-15:30 On-Site Interview
  Desc: 10:30am - Blah
  Location: Cccc
  Organizer: MAILTO:aaaaaaa@aaaaaaa.com
- Status: CONFIRMED")
+ Status: CONFIRMED
+")
 
   ;; 2003-06-18 a
   (icalendar-tests--test-import
@@ -1255,12 +1268,14 @@ END:VALARM"
  Desc: 753 Zeichen hier radiert
  Location: 555 or TN 555-5555 ID 5555 & NochWas (see below)
  Organizer: MAILTO:xxx@xxxxx.com
- Status: CONFIRMED"
+ Status: CONFIRMED
+"
    "&6/23/2003 11:00-12:00 Dress Rehearsal for XXXX-XXXX
  Desc: 753 Zeichen hier radiert
  Location: 555 or TN 555-5555 ID 5555 & NochWas (see below)
  Organizer: MAILTO:xxx@xxxxx.com
- Status: CONFIRMED")
+ Status: CONFIRMED
+")
   ;; 2003-06-18 b -- uses timezone
   (icalendar-tests--test-import
    "BEGIN:VCALENDAR
@@ -1323,12 +1338,14 @@ END:VCALENDAR"
  Desc: Viele Zeichen standen hier früher
  Location: 123 or TN 123-1234 ID abcd & SonstWo (see below)
  Organizer: MAILTO:bbb@bbbbb.com
- Status: CONFIRMED"
+ Status: CONFIRMED
+"
    "&6/23/2003 17:00-18:00 Updated: Dress Rehearsal for ABC01-15
  Desc: Viele Zeichen standen hier früher
  Location: 123 or TN 123-1234 ID abcd & SonstWo (see below)
  Organizer: MAILTO:bbb@bbbbb.com
- Status: CONFIRMED")
+ Status: CONFIRMED
+")
   ;; export 2004-10-28 block entries
   (icalendar-tests--test-export
    nil
@@ -1697,7 +1714,8 @@ END:VCALENDAR
  Class: PRIVATE
 &%%(and (diary-cyclic 7 1 11 2004)) Wwww aa hhhh
  Status: TENTATIVE
- Class: PRIVATE"
+ Class: PRIVATE
+"
    "&11/23/2004 14:00-14:30 Jjjjj & Wwwww
  Status: TENTATIVE
  Class: PRIVATE
@@ -1716,7 +1734,8 @@ END:VCALENDAR
  Class: PRIVATE
 &%%(and (diary-cyclic 7 11 1 2004)) Wwww aa hhhh
  Status: TENTATIVE
- Class: PRIVATE")
+ Class: PRIVATE
+")
 
   ;; 2004-09-09 pg
   (icalendar-tests--test-export
@@ -1771,11 +1790,13 @@ DTSTAMP
    "&%%(and (diary-block 6 2 2005 6 2 2005)) Waitangi Day
  Desc: abcdef
  Status: CONFIRMED
- Class: PRIVATE"
+ Class: PRIVATE
+"
    "&%%(and (diary-block 2 6 2005 2 6 2005)) Waitangi Day
  Desc: abcdef
  Status: CONFIRMED
- Class: PRIVATE")
+ Class: PRIVATE
+")
 
   ;; 2005-03-01 lt
   (icalendar-tests--test-import
@@ -1785,8 +1806,8 @@ UID:6AFA7558-6994-11D9-8A3A-000A95A0E830-RID
 DTSTAMP:20050118T210335Z
 DURATION:P7D"
    nil
-   "&%%(and (diary-block 17 2 2005 23 2 2005)) Hhhhhh Aaaaa ii Aaaaaaaa"
-   "&%%(and (diary-block 2 17 2005 2 23 2005)) Hhhhhh Aaaaa ii Aaaaaaaa")
+   "&%%(and (diary-block 17 2 2005 23 2 2005)) Hhhhhh Aaaaa ii Aaaaaaaa\n"
+   "&%%(and (diary-block 2 17 2005 2 23 2005)) Hhhhhh Aaaaa ii Aaaaaaaa\n")
 
   ;; 2005-03-23 lt
   (icalendar-tests--test-export

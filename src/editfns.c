@@ -3504,22 +3504,6 @@ usage: (propertize STRING &rest PROPERTIES)  */)
   RETURN_UNGCPRO (string);
 }
 
-/* pWIDE is a conversion for printing large decimal integers (possibly with a
-   trailing "d" that is ignored).  pWIDElen is its length.  signed_wide and
-   unsigned_wide are signed and unsigned types for printing them.  Use widest
-   integers if available so that more floating point values can be converted.  */
-#ifdef PRIdMAX
-# define pWIDE PRIdMAX
-enum { pWIDElen = sizeof PRIdMAX - 2 }; /* Don't count trailing "d".  */
-typedef intmax_t signed_wide;
-typedef uintmax_t unsigned_wide;
-#else
-# define pWIDE pI
-enum { pWIDElen = sizeof pI - 1 };
-typedef EMACS_INT signed_wide;
-typedef EMACS_UINT unsigned_wide;
-#endif
-
 DEFUN ("format", Fformat, Sformat, 1, MANY, 0,
        doc: /* Format a string out of a format-string and arguments.
 The first argument is a format control string.
@@ -3901,7 +3885,11 @@ usage: (format STRING &rest OBJECTS)  */)
 		   precision is no more than DBL_USEFUL_PRECISION_MAX.
 		   On all practical hosts, %f is the worst case.  */
 		SPRINTF_BUFSIZE =
-		  sizeof "-." + (DBL_MAX_10_EXP + 1) + USEFUL_PRECISION_MAX
+		  sizeof "-." + (DBL_MAX_10_EXP + 1) + USEFUL_PRECISION_MAX,
+
+		/* Length of pM (that is, of pMd without the
+		   trailing "d").  */
+		pMlen = sizeof pMd - 2
 	      };
 	      verify (0 < USEFUL_PRECISION_MAX);
 
@@ -3914,7 +3902,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	      /* Copy of conversion specification, modified somewhat.
 		 At most three flags F can be specified at once.  */
-	      char convspec[sizeof "%FFF.*d" + pWIDElen];
+	      char convspec[sizeof "%FFF.*d" + pMlen];
 
 	      /* Avoid undefined behavior in underlying sprintf.  */
 	      if (conversion == 'd' || conversion == 'i')
@@ -3922,7 +3910,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	      /* Create the copy of the conversion specification, with
 		 any width and precision removed, with ".*" inserted,
-		 and with pWIDE inserted for integer formats.  */
+		 and with pM inserted for integer formats.  */
 	      {
 		char *f = convspec;
 		*f++ = '%';
@@ -3937,8 +3925,8 @@ usage: (format STRING &rest OBJECTS)  */)
 		    || conversion == 'o' || conversion == 'x'
 		    || conversion == 'X')
 		  {
-		    memcpy (f, pWIDE, pWIDElen);
-		    f += pWIDElen;
+		    memcpy (f, pMd, pMlen);
+		    f += pMlen;
 		    zero_flag &= ~ precision_given;
 		  }
 		*f++ = conversion;
@@ -3978,7 +3966,7 @@ usage: (format STRING &rest OBJECTS)  */)
 		  /* For float, maybe we should use "%1.0f"
 		     instead so it also works for values outside
 		     the integer range.  */
-		  signed_wide x;
+		  printmax_t x;
 		  if (INTEGERP (args[n]))
 		    x = XINT (args[n]);
 		  else
@@ -3986,13 +3974,13 @@ usage: (format STRING &rest OBJECTS)  */)
 		      double d = XFLOAT_DATA (args[n]);
 		      if (d < 0)
 			{
-			  x = TYPE_MINIMUM (signed_wide);
+			  x = TYPE_MINIMUM (printmax_t);
 			  if (x < d)
 			    x = d;
 			}
 		      else
 			{
-			  x = TYPE_MAXIMUM (signed_wide);
+			  x = TYPE_MAXIMUM (printmax_t);
 			  if (d < x)
 			    x = d;
 			}
@@ -4002,7 +3990,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	      else
 		{
 		  /* Don't sign-extend for octal or hex printing.  */
-		  unsigned_wide x;
+		  uprintmax_t x;
 		  if (INTEGERP (args[n]))
 		    x = XUINT (args[n]);
 		  else
@@ -4012,7 +4000,7 @@ usage: (format STRING &rest OBJECTS)  */)
 			x = 0;
 		      else
 			{
-			  x = TYPE_MAXIMUM (unsigned_wide);
+			  x = TYPE_MAXIMUM (uprintmax_t);
 			  if (d < x)
 			    x = d;
 			}

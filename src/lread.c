@@ -3648,8 +3648,6 @@ static Lisp_Object initial_obarray;
 
 static size_t oblookup_last_bucket_number;
 
-static size_t hash_string (const char *ptr, size_t len);
-
 /* Get an error if OBARRAY is not an obarray.
    If it is one, return it.  */
 
@@ -3891,23 +3889,6 @@ oblookup (Lisp_Object obarray, register const char *ptr, EMACS_INT size, EMACS_I
       }
   XSETINT (tem, hash);
   return tem;
-}
-
-static size_t
-hash_string (const char *ptr, size_t len)
-{
-  register const char *p = ptr;
-  register const char *end = p + len;
-  register unsigned char c;
-  register size_t hash = 0;
-
-  while (p != end)
-    {
-      c = *p++;
-      if (c >= 0140) c -= 40;
-      hash = (hash << 3) + (hash >> (CHAR_BIT * sizeof hash - 4)) + c;
-    }
-  return hash;
 }
 
 void
