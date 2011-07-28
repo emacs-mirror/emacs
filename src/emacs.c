@@ -1360,9 +1360,12 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
        This requires inserting a new element into argv.  */
     if (displayname != 0 && skip_args - count_before == 1)
       {
-	char **new = (char **) xmalloc (sizeof (char *) * (argc + 2));
+	char **new;
 	int j;
 
+	if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (char *) - 2 < argc)
+	  memory_full (SIZE_MAX);
+	new = (char **) xmalloc (sizeof *new * argc + sizeof *new * 2);
 	for (j = 0; j < count_before + 1; j++)
 	  new[j] = argv[j];
 	new[count_before + 1] = (char *) "-d";
@@ -1838,12 +1841,18 @@ sort_args (int argc, char **argv)
      0 for an option that takes no arguments,
      1 for an option that takes one argument, etc.
      -1 for an ordinary non-option argument.  */
-  int *options = (int *) xmalloc (sizeof (int) * argc);
-  int *priority = (int *) xmalloc (sizeof (int) * argc);
+  int *options;
+  int *priority;
   int to = 1;
   int incoming_used = 1;
   int from;
   int i;
+
+  if (sizeof (char *) < sizeof (int)
+      && min (PTRDIFF_MAX, SIZE_MAX) / sizeof (int) < argc)
+    memory_full (SIZE_MAX);
+  options = (int *) xmalloc (sizeof (int) * argc);
+  priority = (int *) xmalloc (sizeof (int) * argc);
 
   /* Categorize all the options,
      and figure out which argv elts are option arguments.  */

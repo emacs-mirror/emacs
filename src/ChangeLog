@@ -1,5 +1,7 @@
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* emacs.c (main, sort_args): Check for size-calculation overflow.
+
 	* editfns.c: Integer and memory overflow fixes.
 	(set_time_zone_rule): Don't assume environment length fits in int.
 	(message_length): Now ptrdiff_t, not int.
