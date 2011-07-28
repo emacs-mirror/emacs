@@ -2093,23 +2093,23 @@ re_iswctype (int ch, re_wctype_t cc)
 {
   switch (cc)
     {
-    case RECC_ALNUM: return ISALNUM (ch);
-    case RECC_ALPHA: return ISALPHA (ch);
-    case RECC_BLANK: return ISBLANK (ch);
-    case RECC_CNTRL: return ISCNTRL (ch);
-    case RECC_DIGIT: return ISDIGIT (ch);
-    case RECC_GRAPH: return ISGRAPH (ch);
-    case RECC_LOWER: return ISLOWER (ch);
-    case RECC_PRINT: return ISPRINT (ch);
-    case RECC_PUNCT: return ISPUNCT (ch);
-    case RECC_SPACE: return ISSPACE (ch);
-    case RECC_UPPER: return ISUPPER (ch);
-    case RECC_XDIGIT: return ISXDIGIT (ch);
-    case RECC_ASCII: return IS_REAL_ASCII (ch);
-    case RECC_NONASCII: return !IS_REAL_ASCII (ch);
-    case RECC_UNIBYTE: return ISUNIBYTE (ch);
-    case RECC_MULTIBYTE: return !ISUNIBYTE (ch);
-    case RECC_WORD: return ISWORD (ch);
+    case RECC_ALNUM: return ISALNUM (ch) != 0;
+    case RECC_ALPHA: return ISALPHA (ch) != 0;
+    case RECC_BLANK: return ISBLANK (ch) != 0;
+    case RECC_CNTRL: return ISCNTRL (ch) != 0;
+    case RECC_DIGIT: return ISDIGIT (ch) != 0;
+    case RECC_GRAPH: return ISGRAPH (ch) != 0;
+    case RECC_LOWER: return ISLOWER (ch) != 0;
+    case RECC_PRINT: return ISPRINT (ch) != 0;
+    case RECC_PUNCT: return ISPUNCT (ch) != 0;
+    case RECC_SPACE: return ISSPACE (ch) != 0;
+    case RECC_UPPER: return ISUPPER (ch) != 0;
+    case RECC_XDIGIT: return ISXDIGIT (ch) != 0;
+    case RECC_ASCII: return IS_REAL_ASCII (ch) != 0;
+    case RECC_NONASCII: return !IS_REAL_ASCII (ch) != 0;
+    case RECC_UNIBYTE: return ISUNIBYTE (ch) != 0;
+    case RECC_MULTIBYTE: return !ISUNIBYTE (ch) != 0;
+    case RECC_WORD: return ISWORD (ch) != 0;
     case RECC_ERROR: return false;
     default:
       abort();

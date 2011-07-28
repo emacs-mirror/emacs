@@ -1,3 +1,7 @@
+2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* regex.c (re_iswctype): Convert return values to boolean.
+
 2011-07-28  Eli Zaretskii  <eliz@fencepost.gnu.org>
 
 	* xdisp.c (compute_display_string_pos): Don't use cached display
