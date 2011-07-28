@@ -1340,7 +1340,7 @@ Lisp_Object
 ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 {
   id dialog;
-  Lisp_Object window, tem;
+  Lisp_Object window, tem, title;
   struct frame *f;
   NSPoint p;
   BOOL isQ;
@@ -1388,6 +1388,14 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 
   p.x = (int)f->left_pos + ((int)FRAME_COLUMN_WIDTH (f) * f->text_cols)/2;
   p.y = (int)f->top_pos + (FRAME_LINE_HEIGHT (f) * f->text_lines)/2;
+
+  title = Fcar (contents);
+  CHECK_STRING (title);
+
+  if (NILP (Fcar (Fcdr (contents))))
+    /* No buttons specified, add an "Ok" button so users can pop down
+       the dialog.  */
+    contents = Fcons (title, Fcons (Fcons (build_string ("Ok"), Qt), Qnil));
 
   BLOCK_INPUT;
   dialog = [[EmacsDialogPanel alloc] initFromContents: contents

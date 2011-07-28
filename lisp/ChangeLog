@@ -1,3 +1,82 @@
+2011-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-maybe-send-script): Don't let-bind the
+	connection process, it could be nil.
+
+2011-07-27  Leo Liu  <sdl.web@gmail.com>
+
+	Simplify url handling in rcirc-mode.
+
+	* net/rcirc.el (rcirc-browse-url-map, rcirc-browse-url-at-point)
+	(rcirc-browse-url-at-mouse): Remove.
+	* net/rcirc.el (rcirc-markup-urls): Use `make-button'.
+
+2011-07-26  Alan Mackenzie  <acm@muc.de>
+
+	Fontify bitfield declarations properly.
+
+	* progmodes/cc-langs.el (c-has-bitfields): New lang variable.
+	(c-symbol-chars): Now exported as a lang variable.
+	(c-not-primitive-type-keywords): New lang variable.
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Jump over the
+	QT keyword "more" to prevent "more slots: ...." being spuriously
+	parsed as a bitfield declaraion.
+
+	* progmodes/cc-engine.el (c-beginning-of-statement-1): Refactor
+	and enhance to handle bitfield declarations.
+	(c-punctuation-in): New function.
+	(c-forward-decl-or-cast-1): Enhance CASE 3 to handle bitfield
+	declarations properly.
+
+2011-07-26  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar--all-events): Take care of
+	multiple vcalendars in a single file.
+	(icalendar--convert-float-to-ical): checkdoc fixes.
+
+2011-07-25  Deniz Dogan  <deniz@dogan.se>
+
+	* image.el (insert-image): Clarifying docstring.
+
+2011-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-barf-unless-okay): Return the value of
+	`tramp-send-command-and-check' if there is no error.
+	(tramp-send-command-and-read): Suppress *all* errors if NOERROR.
+
+2011-07-22  Alan Mackenzie  <acm@muc.de>
+
+	Prevent cc-langs.elc being loaded at run time.
+
+	* progmodes/cc-mode.el: Remove two autoload forms which loaded
+	cc-langs.
+
+	* /progmodes/cc-langs.el (c-make-init-lang-vars-fun): Don't emit
+	"(require 'cc-langs)".  Quote a form so it will evaluate at
+	(cc-mode's) compilation time.
+
+2011-07-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-handler): Avoid recursive
+	loading.  (Bug#9114)
+
+2011-07-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-pop-up-window)
+	(display-buffer-pop-up-side-window)
+	(display-buffer-in-side-window): Call display-buffer-set-height
+	and display-buffer-set-width after setting the new window's
+	buffer so `fit-window-to-buffer' and friends work on the right
+	buffer.
+
+2011-07-20  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/etags.el (etags-file-of-tag, etags-tags-table-files)
+	(etags-tags-included-tables): Call `convert-standard-filename' on
+	the file names contained in TAGS so that windows Emacs can handle
+	TAGS files created by cygwin ctags.
+
 2011-07-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* proced.el (proced-update): Revert yesterday's bug#1779 patch,

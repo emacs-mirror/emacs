@@ -118,6 +118,13 @@ If t, fetch all the available old headers."
   :type '(choice number
 		 (sexp :menu-tag "other" t)))
 
+(defcustom gnus-refer-thread-use-nnir nil
+  "*Use nnir to search an entire server when referring threads. A
+nil value will only search for thread-related articles in the
+current group."
+  :group 'gnus-thread
+  :type 'boolean)
+
 (defcustom gnus-summary-make-false-root 'adopt
   "*nil means that Gnus won't gather loose threads.
 If the root of a thread has expired or been read in a previous
@@ -8972,11 +8979,16 @@ Return the number of articles fetched."
     result))
 
 (defun gnus-summary-refer-thread (&optional limit)
-  "Fetch all articles in the current thread.
-If no backend-specific 'request-thread function is available
-fetch LIMIT (the numerical prefix) old headers. If LIMIT is nil
-fetch what's specified by the `gnus-refer-thread-limit'
-variable."
+  "Fetch all articles in the current thread. For backends that
+know how to search for threads (currently only 'nnimap) a
+non-numeric prefix arg will use nnir to search the entire
+server; without a prefix arg only the current group is
+searched. If the variable `gnus-refer-thread-use-nnir' is
+non-nil the prefix arg has the reverse meaning. If no
+backend-specific 'request-thread function is available fetch
+LIMIT (the numerical prefix) old headers. If LIMIT is
+non-numeric or nil fetch the number specified by the
+`gnus-refer-thread-limit' variable."
   (interactive "P")
   (gnus-warp-to-article)
   (let* ((header (gnus-summary-article-header))
@@ -8984,13 +8996,16 @@ variable."
 	 (gnus-inhibit-demon t)
 	 (gnus-summary-ignore-duplicates t)
 	 (gnus-read-all-available-headers t)
-	 (limit (if limit (prefix-numeric-value limit)
-		  gnus-refer-thread-limit))
+	 (gnus-refer-thread-use-nnir
+	  (if (and (not (null limit)) (listp limit))
+	      (not gnus-refer-thread-use-nnir) gnus-refer-thread-use-nnir))
 	 (new-headers
 	  (if (gnus-check-backend-function
 	       'request-thread gnus-newsgroup-name)
 	      (gnus-request-thread header gnus-newsgroup-name)
-	    (let* ((last (if (numberp limit)
+	    (let* ((limit (if (numberp limit) (prefix-numeric-value limit)
+			    gnus-refer-thread-limit))
+		   (last (if (numberp limit)
 			     (min (+ (mail-header-number header)
 				     limit)
 				  gnus-newsgroup-highest)
@@ -9005,17 +9020,19 @@ variable."
 		       (regexp-opt (append refs (list id subject)))))))
 	      (gnus-fetch-headers (list last) (if (numberp limit)
 						  (* 2 limit) limit) t)))))
-    (dolist (header new-headers)
-      (when (member (mail-header-number header) gnus-newsgroup-unselected)
-	(push (mail-header-number header) gnus-newsgroup-unreads)
-	(setq gnus-newsgroup-unselected
-	      (delete (mail-header-number header) gnus-newsgroup-unselected))))
-    (setq gnus-newsgroup-headers
-	  (gnus-delete-duplicate-headers
-	   (gnus-merge
-	    'list gnus-newsgroup-headers new-headers
-	    'gnus-article-sort-by-number)))
-    (gnus-summary-limit-include-thread id)))
+    (when (listp new-headers)
+      (dolist (header new-headers)
+	(when (member (mail-header-number header) gnus-newsgroup-unselected)
+          (push (mail-header-number header) gnus-newsgroup-unreads)
+          (setq gnus-newsgroup-unselected
+                (delete (mail-header-number header)
+			gnus-newsgroup-unselected))))
+      (setq gnus-newsgroup-headers
+            (gnus-delete-duplicate-headers
+             (gnus-merge
+              'list gnus-newsgroup-headers new-headers
+              'gnus-article-sort-by-number)))
+      (gnus-summary-limit-include-thread id))))
 
 (defun gnus-summary-refer-article (message-id)
   "Fetch an article specified by MESSAGE-ID."

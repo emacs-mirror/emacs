@@ -1,4 +1,4 @@
-2011-07-14  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume freestanding C89 headers, string.h, stdlib.h.
 	Again, this simplifies the code, and all current platforms have these.
@@ -12,6 +12,12 @@
 	as they are required for C89.  If this turns into a problem we
 	can add the gnulib modules for these (a 1-line change to Makefile.in).
 	* configure.in: Don't check for memcmp, memcpy, memmove, memset.
+
+2011-07-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* GNUmakefile: New file.
+	This is for convenience, so that one can run GNU make in an
+	unconfigured source tree, and get a default build.
 
 2011-07-13  Jan Djärv  <jan.h.d@swipnet.se>
 

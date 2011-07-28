@@ -1,3 +1,10 @@
+2011-07-23  Yair F  <yair.f.lists@gmail.com>
+
+	* quail/hebrew.el ("hebrew"): Additional key mappings.
+	("hebrew-new", "hebrew-lyx", "hebrew-full")
+	("hebrew-biblical-tiro", "hebrew-biblical-sil", "yiddish-royal")
+	("yiddish-keyman"): New input methods.
+
 2011-06-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* SKK-DIC/SKK-JISYO.L: Add proper coding tag.

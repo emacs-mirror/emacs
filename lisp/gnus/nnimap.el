@@ -1566,15 +1566,17 @@ textual parts.")
 		  (articles &optional limit force-new dependencies))
 
 (deffoo nnimap-request-thread (header &optional group server)
-  (when (nnimap-possibly-change-group group server)
-    (let* ((cmd (nnimap-make-thread-query header))
-	   (result (with-current-buffer (nnimap-buffer)
-		     (nnimap-command  "UID SEARCH %s" cmd))))
-      (when result
-	(gnus-fetch-headers
-	 (and (car result) (delete 0 (mapcar #'string-to-number
-					     (cdr (assoc "SEARCH" (cdr result))))))
-	 nil t)))))
+  (if gnus-refer-thread-use-nnir 
+      (nnir-search-thread header)
+    (when (nnimap-possibly-change-group group server)
+      (let* ((cmd (nnimap-make-thread-query header))
+             (result (with-current-buffer (nnimap-buffer)
+                       (nnimap-command  "UID SEARCH %s" cmd))))
+        (when result
+          (gnus-fetch-headers
+           (and (car result) (delete 0 (mapcar #'string-to-number
+                                               (cdr (assoc "SEARCH" (cdr result))))))
+           nil t))))))
 
 (defun nnimap-possibly-change-group (group server)
   (let ((open-result t))
@@ -1945,13 +1947,13 @@ textual parts.")
 	 (refs (split-string
 		(or (mail-header-references header)
 		    "")))
-	(value
-	 (format
-	  "(OR HEADER REFERENCES %s HEADER Message-Id %s)"
-	  id id)))
+	 (value
+	  (format
+	   "(OR HEADER REFERENCES %S HEADER Message-Id %S)"
+	   id id)))
     (dolist (refid refs value)
       (setq value (format
-		   "(OR (OR HEADER Message-Id %s HEADER REFERENCES %s) %s)"
+		   "(OR (OR HEADER Message-Id %S HEADER REFERENCES %S) %s)"
 		   refid refid value)))))
 
 

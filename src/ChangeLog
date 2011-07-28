@@ -1,4 +1,4 @@
-2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer signedness and overflow and related fixes.  (Bug#9079)
 
@@ -196,6 +196,101 @@
 	* lisp.h (struct vectorlike_header, struct Lisp_Subr): Signed sizes.
 	Use EMACS_INT, not EMACS_UINT, for sizes.  The code works equally
 	well either way, and we prefer signed to unsigned.
+
+2011-07-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (emacs_gnutls_read): Don't message anything if the peer
+	closes the connection while we're reading (bug#9182).
+
+2011-07-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (ns_popup_dialog): Add an "ok" button if no buttons
+	are specified (Bug#9168).
+
+2011-07-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bidi.c (bidi_dump_cached_states): Fix printf format mismatch.
+	Found by GCC static checking and --with-wide-int on a 32-bit host.
+
+2011-07-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (compute_display_string_pos): Fix logic of caching
+	previous display string position.  Initialize cached_prev_pos to
+	-1.  Fixes slow-down at the beginning of a buffer.
+
+2011-07-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfaces.c (check_lface_attrs) [HAVE_WINDOW_SYSTEM]: Allow `nil'
+	for attrs[LFACE_FONTSET_INDEX].
+
+2011-07-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xml.c (parse_region): Remove unused local
+	that was recently introduced.
+
+2011-07-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfns.c (unwind_create_frame) [GLYPH_DEBUG]: Adapt to changes in
+	revision 84777 on 2008-02-22.
+
+	* xdisp.c (move_it_in_display_line_to): Record the best matching
+	position for TO_CHARPOS while scanning the line, and restore it on
+	exit if none of the characters scanned was an exact match.  Fixes
+	vertical-motion and pos-visible-in-window-p under bidi redisplay
+	when exact match is impossible due to invisible text, and the
+	lines are truncated.
+
+2011-07-23  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (initFrameFromEmacs): Set NSTitledWindowMask in styleMask
+	for OSX >= 10.7.
+
+2011-07-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix a significant slow-down of cursor motion with C-n, C-p,
+	C-f/C-b, and C-v/M-v that couldn't keep up with keyboard
+	auto-repeat under bidi redisplay in fontified buffers.
+	* xdisp.c (compute_stop_pos_backwards): New function.
+	(next_element_from_buffer): Call compute_stop_pos_backwards to
+	find a suitable prev_stop when we find ourselves before
+	base_level_stop.
+	(reseat): Don't look for prev_stop, as that could mean a very long
+	run.
+	<cached_disp_pos, cached_disp_buffer, cached_disp_modiff>
+	<cached_disp_overlay_modiff>: Cache for last found display string
+	position.
+	(compute_display_string_pos): Return the cached position if asked
+	about the same buffer in the same area of character positions, and
+	the buffer wasn't changed since the time the display string
+	position was cached.
+
+2011-07-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (rows_from_pos_range): Don't ignore glyphs whose object
+	is an integer, which is important for empty lines.  (Bug#9149)
+
+2011-07-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Fmodify_frame_parameters): In tty case, update the
+	default face if necessary (Bug#4238).
+
+2011-07-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Fstring_to_char): No need to explain what a character
+	is in the docstring (Bug#6576).
+
+2011-07-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (parse_region): Make sure we always return a tree.
+
+2011-07-20  HAMANO Kiyoto  <khiker.mail@gmail.com>
+
+	* xml.c (parse_region): If a document contains only comments,
+	return that, too.
+
+2011-07-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (make_dom): Return comments, too.
 
 2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
 

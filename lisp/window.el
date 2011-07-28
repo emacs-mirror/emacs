@@ -5051,14 +5051,22 @@ description."
 		      (funcall side window)))))
 
 	    (when (window-live-p window)
-	      ;; Adjust sizes if asked for.
-	      (display-buffer-set-height window specifiers)
-	      (display-buffer-set-width window specifiers)
+	      ;; In `quit-restore' parameter record that we popped up
+	      ;; this window, its buffer and which window was selected.
 	      (set-window-parameter
 	       window 'quit-restore (list 'new-window buffer selected-window))
+	      ;; For `display-buffer-window' mark window as new.
 	      (setq display-buffer-window (cons window 'new-window))
+	      ;; Install BUFFER in the new window.
 	      (display-buffer-in-window buffer window specifiers)
+	      ;; Adjust sizes if asked for (for `fit-window-to-buffer'
+	      ;; and friends BUFFER must be already shown in the new
+	      ;; window).
+	      (display-buffer-set-height window specifiers)
+	      (display-buffer-set-width window specifiers)
+	      ;; Reset list of window's previous buffers to nil.
 	      (set-window-prev-buffers window nil)
+	      ;; Return the new window.
 	      (throw 'done window))))))))
 
 (defun display-buffer-pop-up-frame (buffer &optional graphic-only specifiers)
@@ -5113,26 +5121,33 @@ failed."
 	  (display-buffer-split-window main-or-root on-side specifiers))
 	 fun)
     (when window
+      ;; We were able to split off a new window.
       (unless main
 	(walk-window-subtree
 	 (lambda (window)
 	   ;; Make all main-or-root subwindows main windows.
 	   (set-window-parameter window 'window-side 'none))
 	 main-or-root t))
-      ;; Make sure that parent's window-side is nil.
+      ;; Reset window-side parameter of new window's parent to nil.
       (set-window-parameter (window-parent window) 'window-side nil)
-      ;; Initialize side.
+      ;; Initialize window-side parameter of new window to SIDE.
       (set-window-parameter window 'window-side side)
-      ;; Adjust sizes if asked for.
-      (display-buffer-set-height window specifiers)
-      (display-buffer-set-width window specifiers)
-      ;; Set window parameters.
+      ;; Install window-slot parameter of new window.
+      (set-window-parameter window 'window-slot slot)
+      ;; In `quit-restore' parameter record that we popped up a new
+      ;; window.
       (set-window-parameter
        window 'quit-restore (list 'new-window buffer selected-window))
+      ;; For `display-buffer-window' mark window as new.
       (setq display-buffer-window (cons window 'new-window))
-      (set-window-parameter window 'window-slot slot)
+      ;; Install BUFFER in new window.
       (display-buffer-in-window buffer window specifiers)
+      ;; Adjust sizes of new window if asked for.
+      (display-buffer-set-height window specifiers)
+      (display-buffer-set-width window specifiers)
+      ;; Reset list of new window's previous buffers to nil.
       (set-window-prev-buffers window nil)
+      ;; Return the new window.
       window)))
 
 (defun display-buffer-in-side-window (buffer side &optional slot specifiers)
@@ -5160,7 +5175,7 @@ SPECIFIERS must be a list of buffer display specifiers."
 		window-sides-slots))
 	 (selected-window (selected-window))
 	 window this-window this-slot prev-window next-window
-	 best-window best-slot abs-slot dedicated)
+	 best-window best-slot abs-slot dedicated new-window)
 
     (unless (numberp slot)
       (setq slot 0))
@@ -5233,13 +5248,16 @@ SPECIFIERS must be a list of buffer display specifiers."
 			  (setq window (display-buffer-split-window
 					prev-window prev-side specifiers)))))
 	       (progn
-		 (display-buffer-set-height window specifiers)
-		 (display-buffer-set-width window specifiers)
+		 ;; In `quit-restore' parameter record that we popped up
+		 ;; this window, its buffer and the old selected window.
 		 (set-window-parameter
 		  window 'quit-restore
 		  (list 'new-window buffer selected-window))
+		 ;; For `display-buffer-window' mark window as new.
 		 (setq display-buffer-window (cons window 'new-window))
-		 window))
+		 ;; Record that window is new, we need this for
+		 ;; adjusting sizes below.
+		 (setq new-window window)))
 	  (and best-window
 	       (setq window best-window)
 	       ;; Reuse best window (the window nearest to SLOT).
@@ -5262,7 +5280,17 @@ SPECIFIERS must be a list of buffer display specifiers."
 	(unless (window-parameter window 'window-slot)
 	  ;; Don't change exisiting slot value.
 	  (set-window-parameter window 'window-slot slot))
-	(display-buffer-in-window buffer window specifiers)))))
+	;; Install BUFFER in the window.
+	(display-buffer-in-window buffer window specifiers)
+	(when new-window
+	  ;; Adjust sizes if asked for (for `fit-window-to-buffer' and
+	  ;; friends BUFFER must be already shown in the new window).
+	  (display-buffer-set-height window specifiers)
+	  (display-buffer-set-width window specifiers)
+	  ;; Reset list of new window's previous buffers to nil.
+	  (set-window-prev-buffers window nil))
+	;; Return the window used.
+	window))))
 
 (defun window-normalize-buffer-to-display (buffer-or-name)
   "Normalize BUFFER-OR-NAME argument for buffer display functions.
@@ -6926,7 +6954,7 @@ WINDOW was scrolled."
     ;; `with-selected-window' should orderly restore the current buffer.
     (with-selected-window window
       ;; We are in WINDOW's buffer now.
-      (let* ( ;; Adjust MIN-HEIGHT.
+      (let* (;; Adjust MIN-HEIGHT.
 	     (min-height
 	      (if override
 		  (window-min-size window nil window)
