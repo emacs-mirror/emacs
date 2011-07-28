@@ -1,5 +1,7 @@
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fringe.c (Fdefine_fringe_bitmap): Don't update size until alloc works.
+
 	* frame.h (struct frame): Use int, not EMACS_INT, where int works.
 	This is for the members text_lines, text_cols, total_lines, total_cols,
 	where the system imposes an 'int' limit.
