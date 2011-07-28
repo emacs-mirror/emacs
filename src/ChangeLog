@@ -1,5 +1,10 @@
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* coding.c: Integer and memory overflow fixes.
+	(produce_chars): Redo buffer-overflow calculations to avoid
+	unnecessary integer overflow.  Check for size overflow.
+	(encode_coding_object): Don't update size until xmalloc succeeds.
+
 	* character.c (Fstring): Check for size-calculation overflow.
 
 	* ccl.c: Integer and memory overflow fixes.

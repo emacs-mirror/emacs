@@ -6683,8 +6683,12 @@ produce_chars (struct coding_system *coding, Lisp_Object translation_table,
 		    break;
 		}
 
-	      if (dst + MAX_MULTIBYTE_LENGTH * to_nchars > dst_end)
+	      if ((dst_end - dst) / MAX_MULTIBYTE_LENGTH < to_nchars)
 		{
+		  if (((min (PTRDIFF_MAX, SIZE_MAX) - (buf_end - buf))
+		       / MAX_MULTIBYTE_LENGTH)
+		      < to_nchars)
+		    memory_full (SIZE_MAX);
 		  dst = alloc_destination (coding,
 					   buf_end - buf
 					   + MAX_MULTIBYTE_LENGTH * to_nchars,
@@ -7888,11 +7892,10 @@ encode_coding_object (struct coding_system *coding,
     }
   else if (EQ (dst_object, Qt))
     {
+      ptrdiff_t dst_bytes = max (1, coding->src_chars);
       coding->dst_object = Qnil;
-      coding->dst_bytes = coding->src_chars;
-      if (coding->dst_bytes == 0)
-	coding->dst_bytes = 1;
-      coding->destination = (unsigned char *) xmalloc (coding->dst_bytes);
+      coding->destination = (unsigned char *) xmalloc (dst_bytes);
+      coding->dst_bytes = dst_bytes;
       coding->dst_multibyte = 0;
     }
   else
