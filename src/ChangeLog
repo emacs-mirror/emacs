@@ -1,4 +1,10 @@
-2011-07-26  Alp Aker  <alp.tekin.aker@gmail.com>
+2011-07-28  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* nsfns.m (x_set_foreground_color): Set f->foreground_pixel when
+	setting frame foreground color (Bug#9175).
+	(x_set_background_color): Likewise.
+
+2011-07-28  Alp Aker  <alp.tekin.aker@gmail.com>
 
 	Implement strike-through and overline on NextStep (Bug#8863).
 
