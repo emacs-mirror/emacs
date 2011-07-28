@@ -1,3 +1,9 @@
+2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* print.c (print_object): Print empty symbol as ##.
+
+	* lread.c (read1): Read ## as empty symbol.
+
 2011-07-28  Alp Aker  <alp.tekin.aker@gmail.com>
 
 	* nsfns.m (x_set_foreground_color): Set f->foreground_pixel when
