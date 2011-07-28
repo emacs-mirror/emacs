@@ -1,5 +1,9 @@
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* frame.h (struct frame): Use int, not EMACS_INT, where int works.
+	This is for the members text_lines, text_cols, total_lines, total_cols,
+	where the system imposes an 'int' limit.
+
 	* frame.c: Integer overflow fixes.
 	(set_menu_bar_lines, x_set_frame_parameters, x_set_scroll_bar_width)
 	(x_figure_window_size): Check for integer overflow.
