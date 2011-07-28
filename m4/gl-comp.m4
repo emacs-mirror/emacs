@@ -47,6 +47,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module include_next:
   # Code from module intprops:
   # Code from module inttypes-incomplete:
+  # Code from module largefile:
   # Code from module lstat:
   # Code from module mktime:
   # Code from module multiarch:
@@ -111,6 +112,9 @@ gl_SHA256
 gl_SHA512
 AC_REQUIRE([gl_C99_STRTOLD])
 gl_FUNC_DUP2
+if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
+  AC_LIBOBJ([dup2])
+fi
 gl_UNISTD_MODULE_INDICATOR([dup2])
 gl_FILEMODE
 gl_GETLOADAVG
@@ -527,6 +531,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/gnulib-common.m4
   m4/include_next.m4
   m4/inttypes.m4
+  m4/largefile.m4
   m4/longlong.m4
   m4/lstat.m4
   m4/md5.m4
