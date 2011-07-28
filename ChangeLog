@@ -1,3 +1,8 @@
+2011-07-28  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* configure.in (HAVE_RSVG): Allow use of -lrsvg-2 for any NextStep
+	build, not just GNUstep (Bug#9177).
+
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume freestanding C89 headers, string.h, stdlib.h.
