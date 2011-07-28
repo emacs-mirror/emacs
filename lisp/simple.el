@@ -900,10 +900,11 @@ rather than line counts."
 	      (save-excursion
 		(skip-chars-backward "0-9")
 		(if (looking-at "[0-9]")
-		    (buffer-substring-no-properties
-		     (point)
-		     (progn (skip-chars-forward "0-9")
-			    (point))))))
+		    (string-to-number
+		     (buffer-substring-no-properties
+		      (point)
+		      (progn (skip-chars-forward "0-9")
+			     (point)))))))
 	    ;; Decide if we're switching buffers.
 	    (buffer
 	     (if (consp current-prefix-arg)
