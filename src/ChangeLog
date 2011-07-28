@@ -1,5 +1,9 @@
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* callproc.c (Fcall_process): Use 'volatile' to avoid vfork clobbering.
+
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Integer signedness and overflow and related fixes.  (Bug#9079)
 
 	* bidi.c: Integer size and overflow fixes.
