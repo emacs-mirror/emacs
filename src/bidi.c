@@ -306,6 +306,21 @@ static ptrdiff_t bidi_cache_last_idx;	/* slot of last cache hit */
 static ptrdiff_t bidi_cache_start = 0;	/* start of cache for this
 					   "stack" level */
 
+/* 5-slot stack for saving the start of the previous level of the
+   cache.  xdisp.c maintains a 5-slot stack for its iterator state,
+   and we need the same size of our stack.  */
+static ptrdiff_t bidi_cache_start_stack[IT_STACK_SIZE];
+static int bidi_cache_sp;
+
+/* Size of header used by bidi_shelve_cache.  */
+enum
+  {
+    bidi_shelve_header_size =
+      (sizeof (bidi_cache_idx) + sizeof (bidi_cache_start_stack)
+       + sizeof (bidi_cache_sp) + sizeof (bidi_cache_start)
+       + sizeof (bidi_cache_last_idx))
+  };
+
 /* Reset the cache state to the empty state.  We only reset the part
    of the cache relevant to iteration of the current object.  Previous
    objects, which are pushed on the display iterator's stack, are left
@@ -471,7 +486,8 @@ bidi_cache_ensure_space (ptrdiff_t idx)
 	max (BUF_BYTES_MAX, STRING_BYTES_BOUND);
 
       /* Also, it cannot be larger than what C can represent.  */
-      ptrdiff_t c_bound = min (PTRDIFF_MAX, SIZE_MAX) / elsz;
+      ptrdiff_t c_bound =
+	(min (PTRDIFF_MAX, SIZE_MAX) - bidi_shelve_header_size) / elsz;
 
       if (min (string_or_buffer_bound, c_bound) <= idx)
 	memory_full (SIZE_MAX);
@@ -568,11 +584,6 @@ bidi_peek_at_next_level (struct bidi_it *bidi_it)
 /***********************************************************************
 	     Pushing and popping the bidi iterator state
  ***********************************************************************/
-/* 5-slot stack for saving the start of the previous level of the
-   cache.  xdisp.c maintains a 5-slot stack for its iterator state,
-   and we need the same size of our stack.  */
-static ptrdiff_t bidi_cache_start_stack[IT_STACK_SIZE];
-static int bidi_cache_sp;
 
 /* Push the bidi iterator state in preparation for reordering a
    different object, e.g. display string found at certain buffer
@@ -629,11 +640,8 @@ bidi_shelve_cache (void)
   if (bidi_cache_idx == 0)
     return NULL;
 
-  databuf = xmalloc (sizeof (bidi_cache_idx)
-		     + bidi_cache_idx * sizeof (struct bidi_it)
-		     + sizeof (bidi_cache_start_stack)
-		     + sizeof (bidi_cache_sp) + sizeof (bidi_cache_start)
-		     + sizeof (bidi_cache_last_idx));
+  databuf = xmalloc (bidi_shelve_header_size
+		     + bidi_cache_idx * sizeof (struct bidi_it));
   memcpy (databuf, &bidi_cache_idx, sizeof (bidi_cache_idx));
   memcpy (databuf + sizeof (bidi_cache_idx),
 	  bidi_cache, bidi_cache_idx * sizeof (struct bidi_it));

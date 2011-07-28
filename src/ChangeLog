@@ -1,3 +1,10 @@
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bidi.c: Integer overflow fix.
+	(bidi_shelve_header_size): New constant.
+	(bidi_cache_ensure_space, bidi_shelve_cache): Use it.
+	(bidi_cache_ensure_space): Avoid integer overflow when allocating.
+
 2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Use ptrdiff_t for composition IDs.
