@@ -1,5 +1,10 @@
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* ccl.c: Integer and memory overflow fixes.
+	(Fccl_execute_on_string): Check for memory overflow.
+	Use ptrdiff_t rather than EMACS_INT where ptrdiff_t will do.
+	Redo buffer-overflow calculations to avoid integer overflow.
+
 	* callproc.c (child_setup): Don't assume strlen fits in int.
 
 	* buffer.c: Memory overflow fixes.

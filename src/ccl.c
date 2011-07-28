@@ -2061,12 +2061,12 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
   Lisp_Object val;
   struct ccl_program ccl;
   int i;
-  EMACS_INT outbufsize;
+  ptrdiff_t outbufsize;
   unsigned char *outbuf, *outp;
-  EMACS_INT str_chars, str_bytes;
+  ptrdiff_t str_chars, str_bytes;
 #define CCL_EXECUTE_BUF_SIZE 1024
   int source[CCL_EXECUTE_BUF_SIZE], destination[CCL_EXECUTE_BUF_SIZE];
-  EMACS_INT consumed_chars, consumed_bytes, produced_chars;
+  ptrdiff_t consumed_chars, consumed_bytes, produced_chars;
 
   if (setup_ccl_program (&ccl, ccl_prog) < 0)
     error ("Invalid CCL program");
@@ -2093,6 +2093,10 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	ccl.ic = i;
     }
 
+  if (((min (PTRDIFF_MAX, SIZE_MAX) - 256)
+       / (ccl.buf_magnification ? ccl.buf_magnification : 1))
+      < str_bytes)
+    memory_full (SIZE_MAX);
   outbufsize = (ccl.buf_magnification
 		? str_bytes * ccl.buf_magnification + 256
 		: str_bytes + 256);
@@ -2127,11 +2131,19 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	  produced_chars += ccl.produced;
 	  if (NILP (unibyte_p))
 	    {
-	      if (outp - outbuf + MAX_MULTIBYTE_LENGTH * ccl.produced
-		  > outbufsize)
+	      ptrdiff_t offset = outp - outbuf;
+	      if ((outbufsize - offset) / MAX_MULTIBYTE_LENGTH < ccl.produced)
 		{
-		  EMACS_INT offset = outp - outbuf;
-		  outbufsize += MAX_MULTIBYTE_LENGTH * ccl.produced;
+		  ptrdiff_t produced;
+		  if (((min (PTRDIFF_MAX, SIZE_MAX) - outbufsize)
+		       / MAX_MULTIBYTE_LENGTH)
+		      < ccl.produced)
+		    {
+		      xfree (outbuf);
+		      memory_full (SIZE_MAX);
+		    }
+		  produced = ccl.produced;
+		  outbufsize += MAX_MULTIBYTE_LENGTH * produced;
 		  outbuf = (unsigned char *) xrealloc (outbuf, outbufsize);
 		  outp = outbuf + offset;
 		}
@@ -2140,9 +2152,14 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	    }
 	  else
 	    {
-	      if (outp - outbuf + ccl.produced > outbufsize)
+	      ptrdiff_t offset = outp - outbuf;
+	      if (outbufsize - offset < ccl.produced)
 		{
-		  EMACS_INT offset = outp - outbuf;
+		  if (min (PTRDIFF_MAX, SIZE_MAX) - outbufsize < ccl.produced)
+		    {
+		      xfree (outbuf);
+		      memory_full (SIZE_MAX);
+		    }
 		  outbufsize += ccl.produced;
 		  outbuf = (unsigned char *) xrealloc (outbuf, outbufsize);
 		  outp = outbuf + offset;
