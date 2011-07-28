@@ -1145,9 +1145,11 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
      cleaned up in the usual way. */
   {
     register char *temp;
-    register int i;
+    register ptrdiff_t i;
 
     i = SBYTES (current_dir);
+    if (min (PTRDIFF_MAX, SIZE_MAX) - 6 < i)
+      memory_full (SIZE_MAX);
 #ifdef MSDOS
     /* MSDOS must have all environment variables malloc'ed, because
        low-level libc functions that launch subsidiary processes rely

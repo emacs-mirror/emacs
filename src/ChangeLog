@@ -1,5 +1,7 @@
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* callproc.c (child_setup): Don't assume strlen fits in int.
+
 	* buffer.c: Memory overflow fixes.
 	(overlays_at, overlays_in, record_overlay_string, overlay_strings):
 	Don't update size of array until after memory allocation succeeds,
