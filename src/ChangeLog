@@ -4,6 +4,11 @@
 	setting frame foreground color (Bug#9175).
 	(x_set_background_color): Likewise.
 
+	* nsmenu.m (-setText): Size tooltip dimensions precisely to
+	contents (Bug#9176).
+	(EmacsTooltip -init): Remove bezels and add shadows to
+	tooltip windows.
+
 2011-07-28  Alp Aker  <alp.tekin.aker@gmail.com>
 
 	Implement strike-through and overline on NextStep (Bug#8863).
