@@ -1,3 +1,9 @@
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (x_check_image_size) [!HAVE_X_WINDOWS]: Return 1.
+	In other words, assume that every image size is allowed, on non-X
+	hosts.  This assumption is probably wrong, but it lets Emacs compile.
+
 2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* regex.c (re_iswctype): Convert return values to boolean.

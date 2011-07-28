@@ -1906,16 +1906,17 @@ static int x_create_x_image_and_pixmap (struct frame *, int, int, int,
 static void x_destroy_x_image (XImagePtr);
 static void x_put_x_image (struct frame *, XImagePtr, Pixmap, int, int);
 
-/* Return nonzero if XIMG's size WIDTH x HEIGHT doesn't break X.
+/* Return nonzero if XIMG's size WIDTH x HEIGHT doesn't break the
+   windowing system.
    WIDTH and HEIGHT must both be positive.
    If XIMG is null, assume it is a bitmap.  */
 static int
 x_check_image_size (XImagePtr ximg, int width, int height)
 {
+#ifdef HAVE_X_WINDOWS
   /* Respect Xlib's limits: it cannot deal with images that have more
      than INT_MAX (and/or UINT_MAX) bytes.  And respect Emacs's limits
-     of PTRDIFF_MAX (and/or SIZE_MAX) bytes for any object.  For now,
-     assume all windowing systems have the same limits that X does.  */
+     of PTRDIFF_MAX (and/or SIZE_MAX) bytes for any object.  */
   enum
   {
     XLIB_BYTES_MAX = min (INT_MAX, UINT_MAX),
@@ -1937,6 +1938,11 @@ x_check_image_size (XImagePtr ximg, int width, int height)
     }
   return (width <= (INT_MAX - (bitmap_pad - 1)) / depth
 	  && height <= X_IMAGE_BYTES_MAX / bytes_per_line);
+#else
+  /* FIXME: Implement this check for the HAVE_NS and HAVE_NTGUI cases.
+     For now, assume that every image size is allowed on these systems.  */
+  return 1;
+#endif
 }
 
 /* Create an XImage and a pixmap of size WIDTH x HEIGHT for use on
