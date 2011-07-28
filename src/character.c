@@ -902,6 +902,8 @@ usage: (string &rest CHARACTERS)  */)
   Lisp_Object str;
   USE_SAFE_ALLOCA;
 
+  if (min (PTRDIFF_MAX, SIZE_MAX) / MAX_MULTIBYTE_LENGTH < n)
+    memory_full (SIZE_MAX);
   SAFE_ALLOCA (buf, unsigned char *, MAX_MULTIBYTE_LENGTH * n);
   p = buf;
 

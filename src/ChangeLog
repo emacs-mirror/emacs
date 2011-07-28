@@ -1,5 +1,7 @@
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* character.c (Fstring): Check for size-calculation overflow.
+
 	* ccl.c: Integer and memory overflow fixes.
 	(Fccl_execute_on_string): Check for memory overflow.
 	Use ptrdiff_t rather than EMACS_INT where ptrdiff_t will do.
