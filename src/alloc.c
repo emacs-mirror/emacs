@@ -3282,12 +3282,16 @@ memory_full (size_t nbytes)
   int enough_free_memory = 0;
   if (SPARE_MEMORY < nbytes)
     {
-      void *p = malloc (SPARE_MEMORY);
+      void *p;
+
+      MALLOC_BLOCK_INPUT;
+      p = malloc (SPARE_MEMORY);
       if (p)
 	{
 	  free (p);
 	  enough_free_memory = 1;
 	}
+      MALLOC_UNBLOCK_INPUT;
     }
 
   if (! enough_free_memory)

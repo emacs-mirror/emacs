@@ -1,11 +1,11 @@
 ;;; ob-C.el --- org-babel functions for C and similar languages
 
-;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +38,9 @@
 (declare-function org-entry-get "org"
 		  (pom property &optional inherit literal-nil))
 
-(add-to-list 'org-babel-tangle-lang-exts '("c++" . "cpp"))
+
+(defvar org-babel-tangle-lang-exts)
+(add-to-list 'org-babel-tangle-lang-exts '("C++" . "cpp"))
 
 (defvar org-babel-default-header-args:C '())
 
@@ -46,8 +48,8 @@
   "Command used to compile a C source code file into an
   executable.")
 
-(defvar org-babel-c++-compiler "g++"
-  "Command used to compile a c++ source code file into an
+(defvar org-babel-C++-compiler "g++"
+  "Command used to compile a C++ source code file into an
   executable.")
 
 (defvar org-babel-c-variant nil
@@ -56,15 +58,15 @@ is currently being evaluated.")
 
 (defun org-babel-execute:cpp (body params)
   "Execute BODY according to PARAMS.  This function calls
-`org-babel-execute:C'."
-  (org-babel-execute:C body params))
+`org-babel-execute:C++'."
+  (org-babel-execute:C++ body params))
 
-(defun org-babel-execute:c++ (body params)
+(defun org-babel-execute:C++ (body params)
     "Execute a block of C++ code with org-babel.  This function is
 called by `org-babel-execute-src-block'."
   (let ((org-babel-c-variant 'cpp)) (org-babel-C-execute body params)))
 
-(defun org-babel-expand-body:c++ (body params)
+(defun org-babel-expand-body:C++ (body params)
   "Expand a block of C++ code with org-babel according to it's
 header arguments (calls `org-babel-C-expand')."
   (let ((org-babel-c-variant 'cpp)) (org-babel-C-expand body params)))
@@ -81,7 +83,7 @@ header arguments (calls `org-babel-C-expand')."
 
 (defun org-babel-C-execute (body params)
   "This function should only be called by `org-babel-execute:C'
-or `org-babel-execute:c++'."
+or `org-babel-execute:C++'."
   (let* ((tmp-src-file (org-babel-temp-file
 			"C-src-"
 			(cond
@@ -98,7 +100,7 @@ or `org-babel-execute:c++'."
 	     (format "%s -o %s %s %s"
 		     (cond
 		      ((equal org-babel-c-variant 'c) org-babel-C-compiler)
-		      ((equal org-babel-c-variant 'cpp) org-babel-c++-compiler))
+		      ((equal org-babel-c-variant 'cpp) org-babel-C++-compiler))
 		     (org-babel-process-file-name tmp-bin-file)
 		     (mapconcat 'identity
 				(if (listp flags) flags (list flags)) " ")
@@ -189,5 +191,6 @@ of the same value."
 
 (provide 'ob-C)
 
+;; arch-tag: 8f49e462-54e3-417b-9a8d-423864893b37
 
 ;;; ob-C.el ends here

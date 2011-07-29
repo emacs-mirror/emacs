@@ -194,12 +194,7 @@ DEFUN ("byte-to-string", Fbyte_to_string, Sbyte_to_string, 1, 1, 0,
 }
 
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
-       doc: /* Return the first character in STRING.
-A multibyte character is handled correctly.
-The value returned is a Unicode codepoint if it is below #x110000 (in
-hex).  Codepoints beyond that are Emacs extensions of Unicode.  In
-particular, eight-bit characters are returned as codepoints in the
-range #x3FFF80 through #x3FFFFF, inclusive.  */)
+       doc: /* Return the first character in STRING.  */)
   (register Lisp_Object string)
 {
   register Lisp_Object val;

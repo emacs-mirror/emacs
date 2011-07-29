@@ -2267,6 +2267,8 @@ unfolded."
       (dolist (elem gnus-article-image-alist)
 	(gnus-delete-images (car elem))))))
 
+(autoload 'w3m-toggle-inline-images "w3m")
+
 (defun gnus-article-show-images ()
   "Show any images that are in the HTML-rendered article buffer.
 This only works if the article in question is HTML."
@@ -2274,11 +2276,14 @@ This only works if the article in question is HTML."
   (gnus-with-article-buffer
     (save-restriction
       (widen)
-      (dolist (region (gnus-find-text-property-region (point-min) (point-max)
-						      'image-displayer))
-	(destructuring-bind (start end function) region
-	  (funcall function (get-text-property start 'image-url)
-		   start end))))))
+      (if (eq mm-text-html-renderer 'w3m)
+	  (let ((mm-inline-text-html-with-images nil))
+	    (w3m-toggle-inline-images))
+	(dolist (region (gnus-find-text-property-region (point-min) (point-max)
+							'image-displayer))
+	  (destructuring-bind (start end function) region
+	    (funcall function (get-text-property start 'image-url)
+		     start end)))))))
 
 (defun gnus-article-treat-fold-newsgroups ()
   "Unfold folded message headers.

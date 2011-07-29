@@ -34,6 +34,8 @@ that Emacs presents to the user.
 * Display Tables::      How to specify other conventions.
 * Beeping::             Audible signal to the user.
 * Window Systems::      Which window system is being used.
+* Bidirectional Display:: Display of bidirectional scripts, such as
+                             Arabic and Farsi.
 @end menu
 
 @node Refresh Screen
@@ -5966,3 +5968,131 @@ This hook is used for internal purposes: setting up communication with
 the window system, and creating the initial window.  Users should not
 interfere with it.
 @end defvar
+
+@node Bidirectional Display
+@section Bidirectional Display
+@cindex bidirectional display
+@cindex right-to-left text
+
+  Emacs can display text written in scripts, such as Arabic, Farsi,
+and Hebrew, whose natural ordering of horizontal text for display is
+from right to left.  However, digits and Latin text embedded in these
+scripts are still displayed left to right.  It is also not uncommon to
+have small portions of text in Arabic or Hebrew embedded in otherwise
+Latin document, e.g., as comments and strings in a program source
+file.  Likewise, small portions of Latin text can be embedded in an
+Arabic or Farsi document.  For these reasons, text that uses these
+scripts is actually @dfn{bidirectional}: a mixture of runs of
+left-to-right and right-to-left characters.
+
+  This section describes the facilities and options provided by Emacs
+for editing and displaying bidirectional text.
+
+@cindex logical order
+@cindex visual order
+@cindex unicode bidirectional algorithm
+  Emacs stores right-to-left and bidirectional text in the so-called
+@dfn{logical} (or @dfn{reading}) order: the buffer or string position
+of the first character you read precedes that of the next character.
+Reordering of bidirectional text into the @dfn{visual} order happens
+at display time.  As result, character positions no longer increase
+monotonically with their positions on display.  Emacs implements the
+Unicode Bidirectional Algorithm (a.k.a.@: @acronym{UBA}) described in
+the Unicode Standard Annex #9, for reordering of bidirectional text
+for display.  Reordering of bidirectional text for display in Emacs is
+a ``Full bidirectionality'' class implementation of the @acronym{UBA}.
+
+@defvar bidi-display-reordering
+  The buffer-local variable @code{bidi-display-reordering} controls
+whether text in the buffer is reordered for display.  If its value is
+non-@code{nil}, Emacs reorders characters that have right-to-left
+directionality when they are displayed.  The default value is
+@code{t}.  Text in overlay strings (@pxref{Overlay
+Properties,,before-string}), display strings (@pxref{Overlay
+Properties,,display}), and @code{display} text properties
+(@pxref{Display Property}) is also reordered if the buffer whose text
+includes these strings is reordered for display.  Turning off
+@code{bidi-display-reordering} for a buffer turns off reordering of
+all the overlay and display strings in that buffer.
+
+  Reordering of strings that are unrelated to any buffer, such as text
+displayed on the mode line (@pxref{Mode Line Format}) or header line
+(@pxref{Header Lines}), is controlled by the default value of
+@code{bidi-display-reordering}.
+@end defvar
+
+@cindex unibyte buffers, and bidi reordering
+  Emacs does not reorder text in unibyte buffers, even if
+@code{bidi-display-reordering} is non-@code{nil} in such a buffer.
+This is because unibyte buffers contain raw bytes, not characters, and
+thus don't have bidirectional properties defined for them which are
+required for correct reordering.  Therefore, to test whether text in a
+buffer will be reordered for display, it is not enough to test the
+value of @code{bidi-display-reordering} alone.  The correct test is
+this:
+
+@example
+ (if (and enable-multibyte-characters
+          bidi-display-reordering)
+     ;; Buffer is being reordered for display
+   )
+@end example
+
+  In contrast to unibyte buffers, unibyte display and overlay strings
+@emph{are} reordered, if their parent buffer is reordered.  This is
+because plain-@sc{ascii} strings are stored by Emacs as unibyte
+strings.  If a unibyte display or overlay string includes
+non-@sc{ascii} characters, these characters are assumed to have
+left-to-right direction.
+
+@cindex display properties, and bidi reordering of text
+  Text covered by @code{display} text properties, by overlays with
+@code{display} properties whose value is a string, and by any other
+properties that replace buffer text, is treated as a single unit when
+it is reordered for display.  That is, the entire chunk of text
+covered by these properties is reordered together.  Moreover, the
+bidirectional properties of the characters in this chunk of text are
+ignored, and Emacs reorders them as if they were replaced with a
+single character @code{u+FFFC}, known as the @dfn{Object Replacement
+Character}.  This means that placing a display property over a portion
+of text may change the way that the surrounding text is reordered for
+display.  To prevent this unexpected effect, always place such
+properties on text whose directionality is identical with text that
+surrounds it.
+
+@cindex base direction of a paragraph
+  Each paragraph of bidirectional text can have its own @dfn{base
+direction}, either right-to-left or left-to-right.  Text in
+left-to-right paragraphs is displayed beginning at the left margin of
+the window and is truncated or continued when it reaches the right
+margin.  By contrast, display of text in right-to-left paragraphs
+begins at the right margin and is continued or truncated at the left
+margin.
+
+@defvar bidi-paragraph-direction
+  Emacs determines the base direction of each paragraph dynamically,
+based on the text at the beginning of the paragraph.  The precise
+method of determining the base direction is specified by the
+@acronym{UBA}; in a nutshell, the first character in a paragraph that
+has an explicit directionality determines the base direction of the
+paragraph.  However, sometimes a buffer may need to force a certain
+base direction for its paragraphs.  For example, a buffer that visits
+a source code of a program should force all its paragraphs to be
+displayed left to right.  The variable
+@code{bidi-paragraph-direction}, if non-@code{nil}, disables the
+dynamic determination of the base direction, and instead forces all
+paragraphs in the buffer to have the direction specified by its
+buffer-local value.  The value can be either @code{right-to-left} or
+@code{left-to-right}.  Any other value is interpreted as @code{nil}.
+@end defvar
+
+@defun current-bidi-paragraph-direction &optional buffer
+This function returns the paragraph direction at point in the named
+@var{buffer}.  The returned value is a symbol, either
+@code{left-to-right} or @code{right-to-left}.  If @var{buffer} is
+omitted or @code{nil}, it defaults to the current buffer.  If the
+buffer-local value of the variable @code{bidi-paragraph-direction} is
+non-@code{nil}, the returned value will be identical to that value;
+otherwise, the returned value reflects the paragraph direction
+determined dynamically by Emacs.
+@end defun

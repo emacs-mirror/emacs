@@ -1,4 +1,4 @@
-2011-07-11  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume freestanding C89 headers, string.h, stdlib.h.
 	* ebrowse.c: Include stdlib.h unconditionally.

@@ -38,6 +38,7 @@
 (require 'url-cache)
 (require 'xml)
 (require 'browse-url)
+(require 'mm-util)
 (eval-and-compile (unless (featurep 'xemacs) (require 'help-fns)))
 
 (defcustom gnus-html-image-cache-ttl (days-to-time 7)

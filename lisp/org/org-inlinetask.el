@@ -1,11 +1,11 @@
 ;;; org-inlinetask.el --- Tasks independent of outline hierarchy
 
-;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -42,7 +42,9 @@
 ;;
 ;; Export commands do not treat these nodes as part of the sectioning
 ;; structure, but as a special inline text that is either removed, or
-;; formatted in some special way.
+;; formatted in some special way.  This in handled by
+;; `org-inlinetask-export' and `org-inlinetask-export-templates'
+;; variables.
 ;;
 ;; Special fontification of inline tasks, so that they can be immediately
 ;; recognized.  From the stars of the headline, only the first and the
@@ -52,14 +54,18 @@
 ;; An inline task is identified solely by a minimum outline level, given
 ;; by the variable `org-inlinetask-min-level', default 15.
 ;;
-;; Inline tasks are normally assumed to contain at most a time planning
-;; line (DEADLINE etc) after it, and then any number of drawers, for
-;; example LOGBOOK of PROPERTIES.  No empty lines are allowed.
-;; If you need to have normal text as part of an inline task, you
-;; can do so by adding an "END" headline with the same number of stars,
-;; for example
+;; If you need to have a time planning line (DEADLINE etc), drawers,
+;; for example LOGBOOK of PROPERTIES, or even normal text as part of
+;; the inline task, you must add an "END" headline with the same
+;; number of stars.
 ;;
-;;    **************** TODO some small task
+;; As an example, here are two valid inline tasks:
+;;
+;;    **************** TODO a small task
+;;
+;; and
+;;
+;;    **************** TODO another small task
 ;;                     DEADLINE: <2009-03-30 Mon>
 ;;                     :PROPERTIES:
 ;;                       :SOMETHING: or other
@@ -101,12 +107,12 @@ When nil, they will not be exported."
   :type 'boolean)
 
 (defvar org-inlinetask-export-templates
-  '((html "<pre class=\"inlinetask\"><b>%s%s</b><br>%s</pre>"
+  '((html "<pre class=\"inlinetask\"><b>%s%s</b><br />%s</pre>"
 	  '((unless (eq todo "")
 	      (format "<span class=\"%s %s\">%s%s</span> "
 		      class todo todo priority))
 	    heading content))
-    (latex "\\begin\{description\}\\item[%s%s]%s\\end\{description\}"
+    (latex "\\begin\{description\}\n\\item[%s%s]~%s\\end\{description\}"
 	   '((unless (eq todo "") (format "\\textsc\{%s%s\} " todo priority))
 	     heading content))
     (ascii "     -- %s%s%s"
@@ -193,38 +199,50 @@ The number of levels is controlled by `org-inlinetask-min-level'."
 		  org-inlinetask-min-level)))
     (format "^\\(\\*\\{%d,\\}\\)[ \t]+" nstars)))
 
+(defun org-inlinetask-at-task-p ()
+  "Return true if point is at beginning of an inline task."
+  (save-excursion
+    (beginning-of-line)
+    (and (looking-at (concat (org-inlinetask-outline-regexp)  "\\(.*\\)"))
+	 (not (string-match "^end[ \t]*$" (downcase (match-string 2)))))))
+
 (defun org-inlinetask-in-task-p ()
   "Return true if point is inside an inline task."
   (save-excursion
-    (let* ((stars-re (org-inlinetask-outline-regexp))
+    (beginning-of-line)
+    (let* ((case-fold-search t)
+	   (stars-re (org-inlinetask-outline-regexp))
 	   (task-beg-re (concat stars-re "\\(?:.*\\)"))
-	   (task-end-re (concat stars-re "\\(?:END\\|end\\)[ \t]*$")))
-      (beginning-of-line)
-      (or (looking-at task-beg-re)
+	   (task-end-re (concat stars-re "END[ \t]*$")))
+      (or (org-looking-at-p task-beg-re)
 	  (and (re-search-forward "^\\*+[ \t]+" nil t)
-	       (progn (beginning-of-line) (looking-at task-end-re)))))))
+	       (progn (beginning-of-line) (org-looking-at-p task-end-re)))))))
 
 (defun org-inlinetask-goto-beginning ()
   "Go to the beginning of the inline task at point."
   (end-of-line)
-  (re-search-backward (org-inlinetask-outline-regexp) nil t)
-  (when (org-looking-at-p (concat (org-inlinetask-outline-regexp) "END[ \t]*$"))
-    (re-search-backward (org-inlinetask-outline-regexp) nil t)))
+  (let ((case-fold-search t)
+	(inlinetask-re (org-inlinetask-outline-regexp)))
+    (re-search-backward inlinetask-re nil t)
+    (when (org-looking-at-p (concat inlinetask-re "END[ \t]*$"))
+      (re-search-backward inlinetask-re nil t))))
 
 (defun org-inlinetask-goto-end ()
   "Go to the end of the inline task at point."
   (beginning-of-line)
-  (cond
-   ((org-looking-at-p (concat (org-inlinetask-outline-regexp) "END[ \t]*$"))
-    (forward-line 1))
-   ((org-looking-at-p (org-inlinetask-outline-regexp))
-    (forward-line 1)
-    (when (org-inlinetask-in-task-p)
-      (re-search-forward (org-inlinetask-outline-regexp) nil t)
-      (forward-line 1)))
-   (t
-    (re-search-forward (org-inlinetask-outline-regexp) nil t)
-    (forward-line 1))))
+  (let ((case-fold-search t)
+	(inlinetask-re (org-inlinetask-outline-regexp)))
+    (cond
+     ((org-looking-at-p (concat inlinetask-re "END[ \t]*$"))
+      (forward-line 1))
+     ((org-looking-at-p inlinetask-re)
+      (forward-line 1)
+      (when (org-inlinetask-in-task-p)
+	(re-search-forward inlinetask-re nil t)
+	(forward-line 1)))
+     (t
+      (re-search-forward inlinetask-re nil t)
+      (forward-line 1)))))
 
 (defun org-inlinetask-get-task-level ()
   "Get the level of the inline task around.
@@ -234,65 +252,128 @@ This assumes the point is inside an inline task."
     (re-search-backward (org-inlinetask-outline-regexp) nil t)
     (- (match-end 1) (match-beginning 1))))
 
-(defvar backend) ; dynamically scoped into the next function
+(defun org-inlinetask-promote ()
+  "Promote the inline task at point.
+If the task has an end part, promote it.  Also, prevents level from
+going below `org-inlinetask-min-level'."
+  (interactive)
+  (if (not (org-inlinetask-in-task-p))
+      (error "Not in an inline task")
+    (save-excursion
+      (let* ((lvl (org-inlinetask-get-task-level))
+	     (next-lvl (org-get-valid-level lvl -1))
+	     (diff (- next-lvl lvl))
+	     (down-task (concat (make-string next-lvl ?*)))
+	     beg)
+	(if (< next-lvl org-inlinetask-min-level)
+	    (error "Cannot promote an inline task at minimum level")
+	  (org-inlinetask-goto-beginning)
+	  (setq beg (point))
+	  (replace-match down-task nil t nil 1)
+	  (org-inlinetask-goto-end)
+	  (if (eobp) (beginning-of-line) (forward-line -1))
+	  (unless (= (point) beg)
+	    (replace-match down-task nil t nil 1)
+	    (when org-adapt-indentation
+	      (goto-char beg)
+	      (org-fixup-indentation diff))))))))
+
+(defun org-inlinetask-demote ()
+  "Demote the inline task at point.
+If the task has an end part, also demote it."
+  (interactive)
+  (if (not (org-inlinetask-in-task-p))
+      (error "Not in an inline task")
+    (save-excursion
+      (let* ((lvl (org-inlinetask-get-task-level))
+	     (next-lvl (org-get-valid-level lvl 1))
+	     (diff (- next-lvl lvl))
+	     (down-task (concat (make-string next-lvl ?*)))
+	     beg)
+	(org-inlinetask-goto-beginning)
+	(setq beg (point))
+	(replace-match down-task nil t nil 1)
+	(org-inlinetask-goto-end)
+	(if (eobp) (beginning-of-line) (forward-line -1))
+	(unless (= (point) beg)
+	  (replace-match down-task nil t nil 1)
+	  (when org-adapt-indentation
+	    (goto-char beg)
+	    (org-fixup-indentation diff)))))))
+
+(defvar org-export-current-backend) ; dynamically bound in org-exp.el
 (defun org-inlinetask-export-handler ()
   "Handle headlines with level larger or equal to `org-inlinetask-min-level'.
 Either remove headline and meta data, or do special formatting."
   (goto-char (point-min))
-  (let* ((nstars (if org-odd-levels-only
-		     (1- (* 2 (or org-inlinetask-min-level 200)))
-		   (or org-inlinetask-min-level 200)))
-	 (re1 (format "^\\(\\*\\{%d,\\}\\) .*\n" nstars))
-	 (re2 (concat "^[ \t]*" org-keyword-time-regexp))
-	 headline beg end stars content)
-    (while (re-search-forward re1 nil t)
-      (setq headline (match-string 0)
-	    stars (match-string 1)
-	    content nil)
-      (replace-match "")
-      (while (looking-at re2)
-	(delete-region (point) (1+ (point-at-eol))))
-      (while (looking-at org-drawer-regexp)
-	(setq beg (point))
-	(if (re-search-forward org-property-end-re nil t)
-	    (delete-region beg (1+ (match-end 0)))))
-      (setq beg (point))
-      (when (and (re-search-forward "^\\(\\*+\\) " nil t)
-		 (= (length (match-string 1)) (length stars))
-		 (progn (goto-char (match-end 0))
-			(looking-at "END[ \t]*$")))
-	(setq content (buffer-substring beg (1- (point-at-bol))))
-	(delete-region beg (1+ (match-end 0))))
+  (let* ((keywords-re (concat "^[ \t]*" org-keyword-time-regexp))
+	 (inline-re (concat (org-inlinetask-outline-regexp) ".*")))
+    (while (re-search-forward inline-re nil t)
+      (let ((headline (match-string 0))
+	    (beg (point-at-bol))
+	    (end (copy-marker (save-excursion
+				(org-inlinetask-goto-end) (point))))
+	    content)
+      ;; Delete SCHEDULED, DEADLINE...
+      (while (re-search-forward keywords-re end t)
+	(delete-region (point-at-bol) (1+ (point-at-eol))))
       (goto-char beg)
+      ;; Delete drawers
+      (while (re-search-forward org-drawer-regexp end t)
+	(when (save-excursion (re-search-forward org-property-end-re nil t))
+	  (delete-region beg (1+ (match-end 0)))))
+      ;; Get CONTENT, if any.
+      (goto-char beg)
+      (forward-line 1)
+      (unless (= (point) end)
+	(setq content (buffer-substring (point)
+					(save-excursion (goto-char end)
+							(forward-line -1)
+							(point)))))
+      ;; Remove the task.
+      (goto-char beg)
+      (delete-region beg end)
       (when org-inlinetask-export
-	;; content formatting
-	(when content
-	    (if (not (string-match "\\S-" content))
-		(setq content nil)
-	      (if (string-match "[ \t\n]+\\'" content)
+	;; Format CONTENT, if appropriate.
+	(setq content
+	      (if (not (and content (string-match "\\S-" content)))
+		  ""
+		;; Ensure CONTENT has minimal indentation, a single
+		;; newline character at its boundaries, and isn't
+		;; protected.
+		(when (string-match "`\\([ \t]*\n\\)+" content)
+		  (setq content (substring content (match-end 0))))
+		(when (string-match "[ \t\n]+\\'" content)
 		  (setq content (substring content 0 (match-beginning 0))))
-	      (setq content (org-remove-indentation content))))
-	(setq content (or content ""))
-	;; grab elements to export
+		(org-add-props (concat "\n" (org-remove-indentation content) "\n")
+		    '(org-protected nil))))
 	(when (string-match org-complex-heading-regexp headline)
-	  (let* ((todo (or (match-string 2 headline) ""))
+	  (let* ((nil-to-str
+		  (function
+		   ;; Change nil arguments into empty strings.
+		   (lambda (el) (or (eval el) ""))))
+		 ;;  Set up keywords provided to templates.
+		 (todo (or (match-string 2 headline) ""))
 		 (class (or (and (eq "" todo) "")
 			    (if (member todo org-done-keywords) "done" "todo")))
 		 (priority (or (match-string 3 headline) ""))
 		 (heading (or (match-string 4 headline) ""))
 		 (tags (or (match-string 5 headline) ""))
-		 (backend-spec (assq backend org-inlinetask-export-templates))
-		 (format-str (nth 1 backend-spec))
+		 ;; Read `org-inlinetask-export-templates'.
+		 (backend-spec (assq org-export-current-backend
+				     org-inlinetask-export-templates))
+		 (format-str (org-add-props (nth 1 backend-spec)
+				 '(org-protected t)))
 		 (tokens (cadr (nth 2 backend-spec)))
-		 ;; change nil arguments into empty strings
-		 (nil-to-str (lambda (el) (or (eval el) "")))
-		 ;; build and protect export string
+		 ;; Build export string. Ensure it won't break
+		 ;; surrounding lists by giving it arbitrary high
+		 ;; indentation.
 		 (export-str (org-add-props
 				 (eval (append '(format format-str)
 					       (mapcar nil-to-str tokens)))
-				 nil 'org-protected t)))
-	    ;; eventually insert it
-	    (insert export-str "\n")))))))
+				 '(original-indentation 1000))))
+	    (insert export-str)
+	    (unless (bolp) (insert "\n")))))))))
 
 (defun org-inlinetask-get-current-indentation ()
   "Get the indentation of the last non-while line above this one."
@@ -321,6 +402,22 @@ Either remove headline and meta data, or do special formatting."
       (add-text-properties (match-beginning 3) (match-end 3)
 			   '(face shadow font-lock-fontified t)))))
 
+(defun org-inlinetask-toggle-visibility ()
+  "Toggle visibility of inline task at point."
+  (let ((end (save-excursion
+	       (org-inlinetask-goto-end)
+	       (if (bolp) (1- (point)) (point))))
+	(start (save-excursion
+		 (org-inlinetask-goto-beginning)
+		 (point-at-eol))))
+    (cond
+     ;; Nothing to show/hide.
+     ((= end start))
+     ;; Inlinetask was folded: expand it.
+     ((get-char-property (1+ start) 'invisible)
+      (outline-flag-region start end nil))
+     (t (outline-flag-region start end t)))))
+
 (defun org-inlinetask-remove-END-maybe ()
   "Remove an END line when present."
   (when (looking-at (format "\\([ \t]*\n\\)*\\*\\{%d,\\}[ \t]+END[ \t]*$"
@@ -328,7 +425,7 @@ Either remove headline and meta data, or do special formatting."
     (replace-match "")))
 
 (eval-after-load "org-exp"
-  '(add-hook 'org-export-preprocess-after-tree-selection-hook
+  '(add-hook 'org-export-preprocess-before-backend-specifics-hook
 	     'org-inlinetask-export-handler))
 (eval-after-load "org"
   '(add-hook 'org-font-lock-hook 'org-inlinetask-fontify))

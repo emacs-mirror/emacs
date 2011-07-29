@@ -1,10 +1,10 @@
 ;;; org-mouse.el --- Better mouse support for org-mode
 
-;; Copyright (C) 2006-2011 Free Software Foundation
+;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation
 ;;
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
 ;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -149,6 +149,8 @@
 		  (newhead hdmarker &optional fixface just-this))
 (declare-function org-verify-change-for-undo "org-agenda" (l1 l2))
 (declare-function org-apply-on-list "org-list" (function init-value &rest args))
+(declare-function org-agenda-earlier "org-agenda" (arg))
+(declare-function org-agenda-later "org-agenda" (arg))
 
 (defvar org-mouse-plain-list-regexp "\\([ \t]*\\)\\([-+*]\\|[0-9]+[.)]\\) "
   "Regular expression that matches a plain list.")
@@ -476,11 +478,11 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 
 (defun org-mouse-agenda-type (type)
   (case type
-   (tags "Tags: ")
-   (todo "TODO: ")
-   (tags-tree "Tags tree: ")
-   (todo-tree "TODO tree: ")
-   (occur-tree "Occur tree: ")
+   ('tags "Tags: ")
+   ('todo "TODO: ")
+   ('tags-tree "Tags tree: ")
+   ('todo-tree "TODO tree: ")
+   ('occur-tree "Occur tree: ")
    (t "Agenda command ???")))
 
 
@@ -526,7 +528,7 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ("Check Tags"
       ,@(org-mouse-keyword-menu
 	 (sort (mapcar 'car (org-get-buffer-tags)) 'string-lessp)
-	 (lambda (tag) (org-tags-sparse-tree nil tag)))
+	 #'(lambda (tag) (org-tags-sparse-tree nil tag)))
       "--"
       ["Custom Tag ..." org-tags-sparse-tree t])
      ["Check Phrase ..." org-occur]
@@ -537,18 +539,18 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
      ("Display Tags"
       ,@(org-mouse-keyword-menu
 	 (sort (mapcar 'car (org-get-buffer-tags)) 'string-lessp)
-	 (lambda (tag) (org-tags-view nil tag)))
+	 #'(lambda (tag) (org-tags-view nil tag)))
       "--"
       ["Custom Tag ..." org-tags-view t])
      ["Display Calendar" org-goto-calendar t]
      "--"
      ,@(org-mouse-keyword-menu
 	(mapcar 'car org-agenda-custom-commands)
-	(lambda (key)
+	#'(lambda (key)
 	   (eval `(flet ((read-char-exclusive () (string-to-char ,key)))
 		      (org-agenda nil))))
 	nil
-	(lambda (key)
+	#'(lambda (key)
 	   (let ((entry (assoc key org-agenda-custom-commands)))
 	     (org-mouse-clip-text
 	      (cond
@@ -580,8 +582,8 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 (defun org-mouse-for-each-item (funct)
   ;; Functions called by `org-apply-on-list' need an argument
   (let ((wrap-fun (lambda (c) (funcall funct))))
-    (when (org-in-item-p)
-      (org-apply-on-list wrap-fun nil))))
+    (when (ignore-errors (goto-char (org-in-item-p)))
+      (save-excursion (org-apply-on-list wrap-fun nil)))))
 
 (defun org-mouse-bolp ()
   "Return true if there only spaces, tabs, and '*' before point.
@@ -614,12 +616,12 @@ This means, between the beginning of line and the point."
   (beginning-of-line))
 
 (defadvice dnd-insert-text (around org-mouse-dnd-insert-text activate)
-  (if (eq major-mode 'org-mode)
+  (if (org-mode-p)
       (org-mouse-insert-item text)
     ad-do-it))
 
 (defadvice dnd-open-file (around org-mouse-dnd-open-file activate)
-  (if (eq major-mode 'org-mode)
+  (if (org-mode-p)
       (org-mouse-insert-item uri)
     ad-do-it))
 
@@ -633,7 +635,7 @@ This means, between the beginning of line and the point."
 (defun org-mouse-match-todo-keyword ()
   (save-excursion
     (org-back-to-heading)
-    (if (looking-at outline-regexp) (goto-char (match-end 0)))
+    (if (looking-at org-outline-regexp) (goto-char (match-end 0)))
     (or (looking-at (concat " +" org-todo-regexp " *"))
 	(looking-at " \\( *\\)"))))
 
@@ -832,7 +834,7 @@ This means, between the beginning of line and the point."
 	 ("Tags and Priorities"
 	  ,@(org-mouse-keyword-menu
 	     (org-mouse-priority-list)
-	     (lambda (keyword)
+	     #'(lambda (keyword)
 		(org-mouse-set-priority (string-to-char keyword)))
 	     priority "Priority %s")
 	  "--"
@@ -905,7 +907,7 @@ This means, between the beginning of line and the point."
     (mouse-drag-region event)))
 
 (add-hook 'org-mode-hook
-  (lambda ()
+  #'(lambda ()
      (setq org-mouse-context-menu-function 'org-mouse-context-menu)
 
      (when (memq 'context-menu org-mouse-features)
@@ -925,7 +927,7 @@ This means, between the beginning of line and the point."
      (when (memq 'activate-stars org-mouse-features)
        (font-lock-add-keywords
 	nil
-	`((,outline-regexp
+	`((,org-outline-regexp
 	   0 `(face org-link mouse-face highlight keymap ,org-mouse-map)
 	   'prepend))
 	t))
@@ -997,7 +999,7 @@ This means, between the beginning of line and the point."
 	(end-of-line)
 	(if (eobp) (newline) (forward-char)))
 
-      (when (looking-at outline-regexp)
+      (when (looking-at org-outline-regexp)
 	(let ((level (- (match-end 0) (match-beginning 0))))
 	  (when (> end (match-end 0))
 	    (outline-end-of-subtree)
@@ -1017,11 +1019,11 @@ This means, between the beginning of line and the point."
 	(replace-text (concat (match-string 0) "* ")))
     (beginning-of-line 2)
     (save-excursion
-      (while (not (or (eobp) (looking-at outline-regexp)))
+      (while (not (or (eobp) (looking-at org-outline-regexp)))
 	(when (looking-at org-mouse-plain-list-regexp)
 	  (setq minlevel (min minlevel (- (match-end 1) (match-beginning 1)))))
 	(forward-line)))
-    (while (not (or (eobp) (looking-at outline-regexp)))
+    (while (not (or (eobp) (looking-at org-outline-regexp)))
       (when (and (looking-at org-mouse-plain-list-regexp)
 		 (eq minlevel (- (match-end 1) (match-beginning 1))))
 	(replace-match replace-text))
@@ -1128,20 +1130,22 @@ This means, between the beginning of line and the point."
 
 
 ; (setq org-agenda-mode-hook nil)
+(defvar org-agenda-mode-map)
 (add-hook 'org-agenda-mode-hook
-   (lambda ()
+   #'(lambda ()
      (setq org-mouse-context-menu-function 'org-mouse-agenda-context-menu)
      (org-defkey org-agenda-mode-map [mouse-3] 'org-mouse-show-context-menu)
      (org-defkey org-agenda-mode-map [down-mouse-3] 'org-mouse-move-tree-start)
      (org-defkey org-agenda-mode-map [C-mouse-4] 'org-agenda-earlier)
      (org-defkey org-agenda-mode-map [C-mouse-5] 'org-agenda-later)
      (org-defkey org-agenda-mode-map [drag-mouse-3]
-       (lambda (event) (interactive "e")
+       #'(lambda (event) (interactive "e")
 	  (case (org-mouse-get-gesture event)
 	    (:left (org-agenda-earlier 1))
 	    (:right (org-agenda-later 1)))))))
 
 (provide 'org-mouse)
 
+;; arch-tag: ff1ae557-3529-41a3-95c6-baaebdcc280f
 
 ;;; org-mouse.el ends here

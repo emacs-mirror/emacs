@@ -1,11 +1,12 @@
 ;;; org-remember.el --- Fast note taking in Org-mode
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -33,12 +34,16 @@
 (eval-when-compile
   (require 'cl))
 (require 'org)
+(require 'org-compat)
 (require 'org-datetree)
 
 (declare-function remember-mode "remember" ())
 (declare-function remember "remember" (&optional initial))
 (declare-function remember-buffer-desc "remember" ())
 (declare-function remember-finalize "remember" ())
+(declare-function org-pop-to-buffer-same-window 
+		  "org-compat" (&optional buffer-or-name norecord label))
+
 (defvar remember-save-after-remembering)
 (defvar remember-register)
 (defvar remember-buffer)
@@ -214,11 +219,7 @@ The remember buffer is still current when this hook runs."
   :group 'org-remember
   :type 'hook)
 
-(defvar org-remember-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'org-remember-finalize)
-    (define-key map "\C-c\C-k" 'org-remember-kill)
-    map)
+(defvar org-remember-mode-map (make-sparse-keymap)
   "Keymap for `org-remember-mode', a minor mode.
 Use this map to set additional keybindings for when Org-mode is used
 for a Remember buffer.")
@@ -227,7 +228,10 @@ for a Remember buffer.")
 
 (define-minor-mode org-remember-mode
   "Minor mode for special key bindings in a remember buffer."
-  nil " Rem" org-remember-mode-map)
+  nil " Rem" org-remember-mode-map
+  (run-hooks 'org-remember-mode-hook))
+(define-key org-remember-mode-map "\C-c\C-c" 'org-remember-finalize)
+(define-key org-remember-mode-map "\C-c\C-k" 'org-remember-kill)
 
 (defcustom org-remember-clock-out-on-exit 'query
   "Non-nil means stop the clock when exiting a clocking remember buffer.
@@ -785,7 +789,7 @@ The user is queried for the template."
       (setq heading org-remember-default-headline))
     (setq visiting (org-find-base-buffer-visiting file))
     (if (not visiting) (find-file-noselect file))
-    (switch-to-buffer (or visiting (get-file-buffer file)))
+    (org-pop-to-buffer-same-window (or visiting (get-file-buffer file)))
     (widen)
     (goto-char (point-min))
     (if (re-search-forward
@@ -1004,7 +1008,7 @@ See also the variable `org-reverse-note-order'."
 	     ((eq org-remember-interactive-interface 'outline-path-completion)
 	      (let ((org-refile-targets '((nil . (:maxlevel . 10))))
 		    (org-refile-use-outline-path t))
-		(setq spos (org-refile-get-location "Heading: ")
+		(setq spos (org-refile-get-location "Heading")
 		      exitcmd 'return
 		      spos (nth 3 spos))))
 	     (t (error "This should not happen")))
@@ -1072,7 +1076,7 @@ See also the variable `org-reverse-note-order'."
 		   (save-restriction
 		     (widen)
 		     (goto-char (point-min))
-		     (re-search-forward "^\\*+ " nil t)
+		     (re-search-forward org-outline-regexp-bol nil t)
 		     (beginning-of-line 1)
 		     (org-paste-subtree 1 txt)
 		     (and org-auto-align-tags (org-set-tags nil t))
@@ -1149,6 +1153,7 @@ See also the variable `org-reverse-note-order'."
 
 (provide 'org-remember)
 
+;; arch-tag: 497f30d0-4bc3-4097-8622-2d27ac5f2698
 
 ;;; org-remember.el ends here
 

@@ -1228,8 +1228,8 @@ update_frame_tool_bar (FRAME_PTR f)
 
   [textField setEditable: NO];
   [textField setSelectable: NO];
-  [textField setBordered: YES];
-  [textField setBezeled: YES];
+  [textField setBordered: NO];
+  [textField setBezeled: NO];
   [textField setDrawsBackground: YES];
 
   win = [[NSWindow alloc]
@@ -1237,6 +1237,7 @@ update_frame_tool_bar (FRAME_PTR f)
                       styleMask: 0
                         backing: NSBackingStoreBuffered
                           defer: YES];
+  [win setHasShadow: YES];
   [win setReleasedWhenClosed: NO];
   [win setDelegate: self];
   [[win contentView] addSubview: textField];
@@ -1257,17 +1258,15 @@ update_frame_tool_bar (FRAME_PTR f)
 - (void) setText: (char *)text
 {
   NSString *str = [NSString stringWithUTF8String: text];
-  NSRect r = [textField frame];
-  NSSize textSize = [str sizeWithAttributes:
-     [NSDictionary dictionaryWithObject: [[textField font] screenFont]
-				 forKey: NSFontAttributeName]];
-  NSSize padSize = [[[textField font] screenFont]
-		     boundingRectForFont].size;
+  NSRect r  = [textField frame];
+  NSSize tooltipDims;
 
-  r.size.width = textSize.width + padSize.width/2;
-  r.size.height = textSize.height + padSize.height/2;
-  [textField setFrame: r];
   [textField setStringValue: str];
+  tooltipDims = [[textField cell] cellSize];
+
+  r.size.width = tooltipDims.width;
+  r.size.height = tooltipDims.height;
+  [textField setFrame: r];
 }
 
 - (void) showAtX: (int)x Y: (int)y for: (int)seconds
@@ -1340,7 +1339,7 @@ Lisp_Object
 ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 {
   id dialog;
-  Lisp_Object window, tem;
+  Lisp_Object window, tem, title;
   struct frame *f;
   NSPoint p;
   BOOL isQ;
@@ -1388,6 +1387,14 @@ ns_popup_dialog (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 
   p.x = (int)f->left_pos + ((int)FRAME_COLUMN_WIDTH (f) * f->text_cols)/2;
   p.y = (int)f->top_pos + (FRAME_LINE_HEIGHT (f) * f->text_lines)/2;
+
+  title = Fcar (contents);
+  CHECK_STRING (title);
+
+  if (NILP (Fcar (Fcdr (contents))))
+    /* No buttons specified, add an "Ok" button so users can pop down
+       the dialog.  */
+    contents = Fcons (title, Fcons (Fcons (build_string ("Ok"), Qt), Qnil));
 
   BLOCK_INPUT;
   dialog = [[EmacsDialogPanel alloc] initFromContents: contents

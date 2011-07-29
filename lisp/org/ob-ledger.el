@@ -1,11 +1,11 @@
 ;;; ob-ledger.el --- org-babel functions for ledger evaluation
 
-;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric S Fraga
 ;; Keywords: literate programming, reproducible research, accounting
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -52,7 +52,7 @@ called by `org-babel-execute-src-block'."
         (in-file (org-babel-temp-file "ledger-"))
 	(out-file (org-babel-temp-file "ledger-output-")))
     (with-temp-file in-file (insert body))
-    (message (concat "ledger"
+    (message "%s" (concat "ledger"
 		     " -f " (org-babel-process-file-name in-file)
 		     " " cmdline))
     (with-output-to-string
@@ -67,5 +67,6 @@ called by `org-babel-execute-src-block'."
 
 (provide 'ob-ledger)
 
+;; arch-tag: 7bbb529e-95a1-4236-9d29-b0000b918c7c
 
 ;;; ob-ledger.el ends here

@@ -1,12 +1,13 @@
-;;; org-complete.el --- In-buffer completion code
+;;; org-pcomplete.el --- In-buffer completion code
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;;         John Wiegley <johnw at gnu dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -121,7 +122,7 @@ When completing for #+STARTUP, for example, this function returns
 	(cons (reverse args) (reverse begins))))))
 
 
-(defun org-complete-initial ()
+(defun org-pcomplete-initial ()
   "Calls the right completion function for first argument completions."
   (ignore
    (funcall (or (pcomplete-find-completion-function
@@ -133,7 +134,7 @@ When completing for #+STARTUP, for example, this function returns
   "Complete against all valid file options."
   (require 'org-exp)
   (pcomplete-here
-   (org-complete-case-double
+   (org-pcomplete-case-double
     (mapcar (lambda (x)
 	      (if (= ?: (aref x (1- (length x))))
 		  (concat x " ")
@@ -174,8 +175,10 @@ When completing for #+STARTUP, for example, this function returns
 (defun pcomplete/org-mode/link ()
   "Complete against defined #+LINK patterns."
   (pcomplete-here
-   (pcomplete-uniqify-list (append (mapcar 'car org-link-abbrev-alist-local)
-				   (mapcar 'car org-link-abbrev-alist)))))
+   (pcomplete-uniqify-list
+    (copy-sequence
+     (append (mapcar 'car org-link-abbrev-alist-local)
+	     (mapcar 'car org-link-abbrev-alist))))))
 
 (defvar org-entities)
 (defun pcomplete/org-mode/tex ()
@@ -188,7 +191,7 @@ When completing for #+STARTUP, for example, this function returns
 (defvar org-todo-keywords-1)
 (defun pcomplete/org-mode/todo ()
   "Complete against known TODO keywords."
-  (pcomplete-here (pcomplete-uniqify-list org-todo-keywords-1)))
+  (pcomplete-here (pcomplete-uniqify-list (copy-sequence org-todo-keywords-1))))
 
 (defvar org-todo-line-regexp)
 (defun pcomplete/org-mode/searchhead ()
@@ -231,7 +234,8 @@ This needs more work, to handle headings with lots of spaces in them."
    (mapcar (lambda (x)
 	     (concat x ": "))
 	   (let ((lst (pcomplete-uniqify-list
-		       (org-buffer-property-keys nil t t))))
+		       (copy-sequence
+			(org-buffer-property-keys nil t t)))))
 	     (dolist (prop (org-entry-properties))
 	       (setq lst (delete (car prop) lst)))
 	     lst))
@@ -262,7 +266,7 @@ Complete a language in the first field, the header arguments and switches."
 			   ":tcolumns" ":level" ":compact" ":timestamp"
 			   ":formula" ":formatter"))))
 
-(defun org-complete-case-double (list)
+(defun org-pcomplete-case-double (list)
   "Return list with both upcase and downcase version of all strings in LIST."
   (let (e res)
     (while (setq e (pop list))
@@ -271,7 +275,8 @@ Complete a language in the first field, the header arguments and switches."
 
 ;;;; Finish up
 
-(provide 'org-complete)
+(provide 'org-pcomplete)
 
+;; arch-tag: 
 
-;;; org-complete.el ends here
+;;; org-pcomplete.el ends here

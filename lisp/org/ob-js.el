@@ -1,11 +1,11 @@
 ;;; ob-js.el --- org-babel functions for Javascript
 
-;; Copyright (C) 2010-2011 Free Software Foundation
+;; Copyright (C) 2010 Free Software Foundation
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, js
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;;; License:
 
@@ -160,5 +160,6 @@ then create.  Return the initialized session."
 
 (provide 'ob-js)
 
+;; arch-tag: 84401fb3-b8d9-4bb6-9a90-cbe2d103d494
 
 ;;; ob-js.el ends here

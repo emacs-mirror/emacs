@@ -1703,7 +1703,7 @@ Annex #9, for reordering of bidirectional text for display.
 whether text in the buffer is reordered for display.  If its value is
 non-@code{nil}, Emacs reorders characters that have right-to-left
 directionality when they are displayed.  The default value is
-@code{nil}.
+@code{t}.
 
   Each paragraph of bidirectional text can have its own @dfn{base
 direction}, either right-to-left or left-to-right.  (Paragraph

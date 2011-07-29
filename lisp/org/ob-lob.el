@@ -1,11 +1,11 @@
 ;;; ob-lob.el --- functions supporting the Library of Babel
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte, Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -22,13 +22,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;; Commentary:
-
-;; See the online documentation for more information
-;; 
-;;   http://orgmode.org/worg/org-contrib/babel/
-
 ;;; Code:
+(eval-when-compile
+  (require 'cl))
 (require 'ob)
 (require 'ob-table)
 
@@ -43,11 +39,14 @@ To add files to this list use the `org-babel-lob-ingest' command."
   :group 'org-babel
   :type 'list)
 
+(defvar org-babel-default-lob-header-args '((:exports . "results"))
+  "Default header arguments to use when exporting #+lob/call lines.")
+
 ;;;###autoload
 (defun org-babel-lob-ingest (&optional file)
   "Add all named source-blocks defined in FILE to
 `org-babel-library-of-babel'."
-  (interactive "f")
+  (interactive "fFile: ")
   (let ((lob-ingest-count 0))
     (org-babel-map-src-blocks file
       (let* ((info (org-babel-get-src-block-info 'light))
@@ -67,12 +66,25 @@ To add files to this list use the `org-babel-lob-ingest' command."
 If you change the value of this variable then your files may
   become unusable by other org-babel users, and vice versa.")
 
-(defconst org-babel-lob-one-liner-regexp
+(defconst org-babel-block-lob-one-liner-regexp
   (concat
    "^\\([ \t]*\\)#\\+\\(?:"
    (mapconcat #'regexp-quote org-babel-lob-call-aliases "\\|")
    "\\):[ \t]+\\([^\(\)\n]+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)"
-   "\(\\([^\n]*\\)\)\\(\\[.+\\]\\|\\)[ \t]*\\([^\n]*\\)")
+   "\(\\([^\n]*\\)\)\\(\\[.+\\]\\|\\)[ \t]*\\(\\([^\n]*\\)\\)?")
+  "Regexp to match non-inline calls to predefined source block functions.")
+
+(defconst org-babel-inline-lob-one-liner-regexp
+  (concat
+   "\\([^\n]*\\)\\(?:"
+   (mapconcat #'regexp-quote org-babel-lob-call-aliases "\\|")
+   "\\)_\\([^\(\)\n]+?\\)\\(\\[\\(.*\\)\\]\\|\\(\\)\\)"
+   "\(\\([^\n]*\\)\)\\(\\[\\(.*?\\)\\]\\)?")
+  "Regexp to match inline calls to predefined source block functions.")
+
+(defconst org-babel-lob-one-liner-regexp
+  (concat "\\(" org-babel-block-lob-one-liner-regexp
+	  "\\|" org-babel-inline-lob-one-liner-regexp "\\)")
   "Regexp to match calls to predefined source block functions.")
 
 ;; functions for executing lob one-liners
@@ -88,20 +100,25 @@ if so then run the appropriate source block from the Library."
 ;;;###autoload
 (defun org-babel-lob-get-info ()
   "Return a Library of Babel function call as a string."
-  (let ((case-fold-search t))
-    (save-excursion
-      (beginning-of-line 1)
-      (if (looking-at org-babel-lob-one-liner-regexp)
-          (append
+  (flet ((nonempty (a b)
+		   (let ((it (match-string a)))
+		     (if (= (length it) 0) (match-string b) it))))
+    (let ((case-fold-search t))
+      (save-excursion
+	(beginning-of-line 1)
+	(when (looking-at org-babel-lob-one-liner-regexp)
+	  (append
 	   (mapcar #'org-babel-clean-text-properties 
 		   (list
 		    (format "%s%s(%s)%s"
-			    (match-string 2)
-			    (if (match-string 4)
-				(concat "[" (match-string 4) "]") "")
-			    (or (match-string 6) "") (match-string 7))
-		    (match-string 8)))
-	   (list (length (match-string 1))))))))
+			    (nonempty 3 12)
+			    (if (not (= 0 (length (nonempty 5 13))))
+				(concat "[" (nonempty 5 13) "]") "")
+			    (or (nonempty 7 16) "")
+			    (or (nonempty 8 19) ""))
+		    (nonempty 9 18)))
+	   (list (length (if (= (length (match-string 12)) 0)
+			     (match-string 2) (match-string 11))))))))))
   
 (defun org-babel-lob-execute (info)
   "Execute the lob call specified by INFO."
@@ -119,5 +136,6 @@ if so then run the appropriate source block from the Library."
 
 (provide 'ob-lob)
 
+;; arch-tag: ce0712c9-2147-4019-ba3f-42341b8b474b
 
 ;;; ob-lob.el ends here

@@ -1,11 +1,11 @@
 ;;; ob-ocaml.el --- org-babel functions for ocaml evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -44,6 +44,7 @@
 (declare-function tuareg-run-caml "ext:tuareg" ())
 (declare-function tuareg-interactive-send-input "ext:tuareg" ())
 
+(defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("ocaml" . "ml"))
 
 (defvar org-babel-default-header-args:ocaml '())
@@ -125,32 +126,20 @@ OUTPUT is string output from an ocaml process."
   "Convert RESULTS into an elisp table or string.
 If the results look like a table, then convert them into an
 Emacs-lisp table, otherwise return the results as a string."
-  (org-babel-read
-   (if (and (stringp results) (string-match "^\\[.+\\]$" results))
-       (org-babel-read
-        (replace-regexp-in-string
-         "\\[" "(" (replace-regexp-in-string
-                    "\\]" ")" (replace-regexp-in-string
-                               "; " " " (replace-regexp-in-string
-                                         "'" "\"" results)))))
-     results)))
+  (org-babel-script-escape (replace-regexp-in-string ";" "," results)))
 
 (defun org-babel-ocaml-read-array (results)
   "Convert RESULTS into an elisp table or string.
 If the results look like a table, then convert them into an
 Emacs-lisp table, otherwise return the results as a string."
-  (org-babel-read
-   (if (and (stringp results) (string-match "^\\[.+\\]$" results))
-       (org-babel-read
-	(concat
-	 "'" (replace-regexp-in-string
-	      "\\[|" "(" (replace-regexp-in-string
-			  "|\\]" ")" (replace-regexp-in-string
-				      "; " " " (replace-regexp-in-string
-						"'" "\"" results))))))
-     results)))
+    (org-babel-script-escape
+     (replace-regexp-in-string
+      "\\[|" "[" (replace-regexp-in-string
+		  "|\\]" "]" (replace-regexp-in-string
+			      "; " "," results)))))
 
 (provide 'ob-ocaml)
 
+;; arch-tag: 2e815f4d-365e-4d69-b1df-dd17fdd7b7b7
 
 ;;; ob-ocaml.el ends here

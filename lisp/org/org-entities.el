@@ -1,12 +1,12 @@
 ;;; org-entities.el --- Support for special entities in Org-mode
 
-;; Copyright (C) 2010-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>,
 ;;         Ulf Stegemann <ulf at zeitform dot de>
 ;; Keywords: outlines, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -304,7 +304,7 @@ loaded, add these packages to `org-export-latex-packages-alist'."
     ("prod" "\\prod" t "&prod;" "[product]" "[n-ary product]" "∏")
     ("micro" "\\textmu{}" nil "&micro;" "micro" "µ" "µ")
     ("macr" "\\textasciimacron{}" nil "&macr;" "[macron]" "¯" "¯")
-    ("deg" "\\textdegree{}" nil "deg" "degree" "°" "°")
+    ("deg" "\\textdegree{}" nil "&deg;" "degree" "°" "°")
     ("prime" "\\prime" t "&prime;" "'" "'" "′")
     ("Prime" "\\prime{}\\prime" t "&Prime;" "''" "''" "″")
     ("infin" "\\propto" t "&infin;" "[infinity]" "[infinity]" "∞")
@@ -568,5 +568,6 @@ Kind can be any of `latex', `html', `ascii', `latin1', or `utf8'."
 ;; coding: utf-8
 ;; End:
 
+;; arch-tag: e6bd163f-7419-4009-9c93-a74623016424
 
 ;;; org-entities.el ends here

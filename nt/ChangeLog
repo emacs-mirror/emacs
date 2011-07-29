@@ -1,4 +1,4 @@
-2011-07-07  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume freestanding C89 headers, string.h, stdlib.h.
 	* config.nt (HAVE_LIMITS_H, HAVE_STRING_H, HAVE_STDLIB_H)
