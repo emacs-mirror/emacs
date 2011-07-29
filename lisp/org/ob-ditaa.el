@@ -1,11 +1,11 @@
 ;;; ob-ditaa.el --- org-babel functions for ditaa evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -40,7 +40,7 @@
 (require 'ob)
 
 (defvar org-babel-default-header-args:ditaa
-  '((:results . "file") (:exports . "results"))
+  '((:results . "file") (:exports . "results") (:java . "-Dfile.encoding=UTF-8"))
   "Default arguments for evaluating a ditaa source block.")
 
 (defvar org-ditaa-jar-path)
@@ -48,10 +48,15 @@
   "Execute a block of Ditaa code with org-babel.
 This function is called by `org-babel-execute-src-block'."
   (let* ((result-params (split-string (or (cdr (assoc :results params)) "")))
-	 (out-file (cdr (assoc :file params)))
+	 (out-file ((lambda (el)
+		      (or el
+			  (error
+			   "ditaa code block requires :file header argument")))
+		    (cdr (assoc :file params))))
 	 (cmdline (cdr (assoc :cmdline params)))
+	 (java (cdr (assoc :java params)))
 	 (in-file (org-babel-temp-file "ditaa-"))
-	 (cmd (concat "java -jar "
+	 (cmd (concat "java " java " -jar "
 		      (shell-quote-argument
 		       (expand-file-name org-ditaa-jar-path))
 		      " " cmdline
@@ -61,7 +66,7 @@ This function is called by `org-babel-execute-src-block'."
       (error "Could not find ditaa.jar at %s" org-ditaa-jar-path))
     (with-temp-file in-file (insert body))
     (message cmd) (shell-command cmd)
-    out-file))
+    nil)) ;; signal that output has already been written to file
 
 (defun org-babel-prep-session:ditaa (session params)
   "Return an error because ditaa does not support sessions."
@@ -69,5 +74,6 @@ This function is called by `org-babel-execute-src-block'."
 
 (provide 'ob-ditaa)
 
+;; arch-tag: 492cd006-07d9-4fac-bef6-5bb60b48842e
 
 ;;; ob-ditaa.el ends here

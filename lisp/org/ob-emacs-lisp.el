@@ -1,11 +1,11 @@
 ;;; ob-emacs-lisp.el --- org-babel functions for emacs-lisp code evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc
+;; Copyright (C) 2009, 2010  Free Software Foundation, Inc
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -56,15 +56,26 @@
 (defun org-babel-execute:emacs-lisp (body params)
   "Execute a block of emacs-lisp code with Babel."
   (save-window-excursion
-    (org-babel-reassemble-table
-     (eval (read (format "(progn %s)"
-			 (org-babel-expand-body:emacs-lisp body params))))
-     (org-babel-pick-name (cdr (assoc :colname-names params))
-			  (cdr (assoc :colnames params)))
-       (org-babel-pick-name (cdr (assoc :rowname-names params))
-			    (cdr (assoc :rownames params))))))
+    ((lambda (result)
+       (if (or (member "scalar" (cdr (assoc :result-params params)))
+	       (member "verbatim" (cdr (assoc :result-params params))))
+	   (let ((print-level nil)
+		 (print-length nil))
+	     (format "%S" result))
+	 (org-babel-reassemble-table
+	  result
+	  (org-babel-pick-name (cdr (assoc :colname-names params))
+			       (cdr (assoc :colnames params)))
+	  (org-babel-pick-name (cdr (assoc :rowname-names params))
+			       (cdr (assoc :rownames params))))))
+     (eval (read (format (if (member "output"
+				     (cdr (assoc :result-params params)))
+			     "(with-output-to-string %s)"
+			   "(progn %s)")
+			 (org-babel-expand-body:emacs-lisp body params)))))))
 
 (provide 'ob-emacs-lisp)
 
+;; arch-tag: e9a3acca-dc84-472a-9f5a-23c35befbcd6
 
 ;;; ob-emacs-lisp.el ends here

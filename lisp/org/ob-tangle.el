@@ -1,11 +1,11 @@
 ;;; ob-tangle.el --- extract source code from org-mode files
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -37,6 +37,7 @@
 (declare-function org-back-to-heading "org" (invisible-ok))
 (declare-function org-fill-template "org" (template alist))
 (declare-function org-babel-update-block-body "org" (new-body))
+(declare-function make-directory "files" (dir &optional parents))
 
 ;;;###autoload
 (defcustom org-babel-tangle-lang-exts
@@ -62,10 +63,10 @@ then the name of the language is used."
   :group 'org-babel
   :type 'hook)
 
-(defcustom org-babel-tangle-pad-newline t
-  "Switch indicating whether to pad tangled code with newlines."
+(defcustom org-babel-tangle-body-hook nil
+  "Hook run over the contents of each code block body."
   :group 'org-babel
-  :type 'boolean)
+  :type 'hook)
 
 (defcustom org-babel-tangle-comment-format-beg "[[%link][%source-name]]"
   "Format of inserted comments in tangled code files.
@@ -153,7 +154,7 @@ used to limit the exported source code blocks by language."
     (save-window-excursion
       (find-file file)
       (setq to-be-removed (current-buffer))
-      (org-babel-tangle target-file lang))
+      (org-babel-tangle nil target-file lang))
     (unless visited-p
       (kill-buffer to-be-removed))))
 
@@ -162,15 +163,24 @@ used to limit the exported source code blocks by language."
   (mapc (lambda (el) (copy-file el pub-dir t)) (org-babel-tangle-file filename)))
 
 ;;;###autoload
-(defun org-babel-tangle (&optional target-file lang)
+(defun org-babel-tangle (&optional only-this-block target-file lang)
   "Write code blocks to source-specific files.
 Extract the bodies of all source code blocks from the current
 file into their own source-specific files.  Optional argument
 TARGET-FILE can be used to specify a default export file for all
 source blocks.  Optional argument LANG can be used to limit the
 exported source code blocks by language."
-  (interactive)
+  (interactive "P")
   (run-hooks 'org-babel-pre-tangle-hook)
+  ;; possibly restrict the buffer to the current code block
+  (save-restriction
+  (when only-this-block
+    (unless (org-babel-where-is-src-block-head)
+      (error "Point is not currently inside of a code block"))
+    (unless target-file
+      (setq target-file
+	    (read-from-minibuffer "Tangle to: " (buffer-file-name))))
+    (narrow-to-region (match-beginning 0) (match-end 0)))
   (save-excursion
     (let ((block-counter 0)
 	  (org-babel-default-header-args
@@ -210,13 +220,17 @@ exported source code blocks by language."
                                     (if (and ext (string= "yes" tangle))
                                         (concat base-name "." ext) base-name))))
                   (when file-name
+		    ;; possibly create the parent directories for file
+		    (when ((lambda (m) (and m (not (string= m "no"))))
+			   (get-spec :mkdirp))
+		      (make-directory (file-name-directory file-name) 'parents))
                     ;; delete any old versions of file
                     (when (and (file-exists-p file-name)
                                (not (member file-name path-collector)))
                       (delete-file file-name))
                     ;; drop source-block to file
                     (with-temp-buffer
-                      (when (fboundp lang-f) (funcall lang-f))
+                      (when (fboundp lang-f) (ignore-errors (funcall lang-f)))
                       (when (and she-bang (not (member file-name she-banged)))
                         (insert (concat she-bang "\n"))
                         (setq she-banged (cons file-name she-banged)))
@@ -238,7 +252,8 @@ exported source code blocks by language."
        (org-babel-tangle-collect-blocks lang))
       (message "tangled %d code block%s from %s" block-counter
                (if (= block-counter 1) "" "s")
-	       (file-name-nondirectory (buffer-file-name (current-buffer))))
+	       (file-name-nondirectory
+		(buffer-file-name (or (buffer-base-buffer) (current-buffer)))))
       ;; run `org-babel-post-tangle-hook' in all tangled files
       (when org-babel-post-tangle-hook
 	(mapc
@@ -246,7 +261,7 @@ exported source code blocks by language."
 	   (org-babel-with-temp-filebuffer file
 	     (run-hooks 'org-babel-post-tangle-hook)))
 	 path-collector))
-      path-collector)))
+      path-collector))))
 
 (defun org-babel-tangle-clean ()
   "Remove comments inserted by `org-babel-tangle'.
@@ -263,6 +278,7 @@ references."
                    (save-excursion (end-of-line 1) (forward-char 1) (point)))))
 
 (defvar org-stored-links)
+(defvar org-bracket-link-regexp)
 (defun org-babel-tangle-collect-blocks (&optional language)
   "Collect source blocks in the current Org-mode file.
 Return an association list of source-code block specifications of
@@ -290,9 +306,11 @@ code blocks by language."
           (unless (and language (not (string= language src-lang)))
 	    (let* ((info (org-babel-get-src-block-info))
 		   (params (nth 2 info))
-		   (link (progn (call-interactively 'org-store-link)
-				(org-babel-clean-text-properties
-				 (car (pop org-stored-links)))))
+		   (link ((lambda (link)
+			    (and (string-match org-bracket-link-regexp link)
+				 (match-string 1 link)))
+			  (org-babel-clean-text-properties
+			   (org-store-link nil))))
 		   (source-name
 		    (intern (or (nth 4 info)
 				(format "%s:%d"
@@ -302,22 +320,27 @@ code blocks by language."
 		   (assignments-cmd
 		    (intern (concat "org-babel-variable-assignments:" src-lang)))
 		   (body
-		    ((lambda (body)
-		       (if (assoc :no-expand params)
-			   body
-			 (if (fboundp expand-cmd)
-			     (funcall expand-cmd body params)
-			   (org-babel-expand-body:generic
-			    body params
-			    (and (fboundp assignments-cmd)
-				 (funcall assignments-cmd params))))))
-		     (if (and (cdr (assoc :noweb params))
-			      (let ((nowebs (split-string
-					     (cdr (assoc :noweb params)))))
-				(or (member "yes" nowebs)
-				    (member "tangle" nowebs))))
-			 (org-babel-expand-noweb-references info)
-		       (nth 1 info))))
+		    ((lambda (body) ;; run the tangle-body-hook
+		       (with-temp-buffer
+			 (insert body)
+			 (run-hooks 'org-babel-tangle-body-hook)
+			 (buffer-string)))
+		     ((lambda (body) ;; expand the body in language specific manner
+			(if (assoc :no-expand params)
+			    body
+			  (if (fboundp expand-cmd)
+			      (funcall expand-cmd body params)
+			    (org-babel-expand-body:generic
+			     body params
+			     (and (fboundp assignments-cmd)
+				  (funcall assignments-cmd params))))))
+		      (if (and (cdr (assoc :noweb params)) ;; expand noweb refs
+			       (let ((nowebs (split-string
+					      (cdr (assoc :noweb params)))))
+				 (or (member "yes" nowebs)
+				     (member "tangle" nowebs))))
+			  (org-babel-expand-noweb-references info)
+			(nth 1 info)))))
 		   (comment
 		    (when (or (string= "both" (cdr (assoc :comments params)))
 			      (string= "org" (cdr (assoc :comments params))))
@@ -363,8 +386,9 @@ form
 	 (body (nth 5 spec))
 	 (comment (nth 6 spec))
 	 (comments (cdr (assoc :comments (nth 4 spec))))
+	 (padline (not (string= "no" (cdr (assoc :padline (nth 4 spec))))))
 	 (link-p (or (string= comments "both") (string= comments "link")
-		     (string= comments "yes")))
+		     (string= comments "yes") (string= comments "noweb")))
 	 (link-data (mapcar (lambda (el)
 			      (cons (symbol-name el)
 				    ((lambda (le)
@@ -375,14 +399,14 @@ form
             (let ((text (org-babel-trim text)))
 	      (when (and comments (not (string= comments "no"))
 			 (> (length text) 0))
-		(when org-babel-tangle-pad-newline (insert "\n"))
+		(when padline (insert "\n"))
 		(comment-region (point) (progn (insert text) (point)))
 		(end-of-line nil) (insert "\n")))))
       (when comment (insert-comment comment))
       (when link-p
 	(insert-comment
 	 (org-fill-template org-babel-tangle-comment-format-beg link-data)))
-      (when org-babel-tangle-pad-newline (insert "\n"))
+      (when padline (insert "\n"))
       (insert
        (format
 	"%s\n"
@@ -393,7 +417,24 @@ form
 	(insert-comment
 	 (org-fill-template org-babel-tangle-comment-format-end link-data))))))
 
-;; detangling functions
+(defun org-babel-tangle-comment-links ( &optional info)
+  "Return a list of begin and end link comments for the code block at point."
+  (let* ((start-line (org-babel-where-is-src-block-head))
+	 (file (buffer-file-name))
+	 (link (org-link-escape (progn (call-interactively 'org-store-link)
+				       (org-babel-clean-text-properties
+					(car (pop org-stored-links))))))
+	 (source-name (nth 4 (or info (org-babel-get-src-block-info 'light))))
+	 (link-data (mapcar (lambda (el)
+			      (cons (symbol-name el)
+				    ((lambda (le)
+				       (if (stringp le) le (format "%S" le)))
+				     (eval el))))
+			    '(start-line file link source-name))))
+    (list (org-fill-template org-babel-tangle-comment-format-beg link-data)
+	  (org-fill-template org-babel-tangle-comment-format-end link-data))))
+
+;; de-tangling functions
 (defvar org-bracket-link-analytic-regexp)
 (defun org-babel-detangle (&optional source-code-file)
   "Propagate changes in source file back original to Org-mode file.
@@ -420,20 +461,24 @@ which enable the original code blocks to be found."
   "Jump from a tangled code file to the related Org-mode file."
   (interactive)
   (let ((mid (point))
-        target-buffer target-char
-        start end link path block-name body)
+	start end done
+        target-buffer target-char link path block-name body)
     (save-window-excursion
       (save-excursion
-        (unless (and (re-search-backward org-bracket-link-analytic-regexp nil t)
-                     (setq start (point-at-eol))
-                     (setq link (match-string 0))
-                     (setq path (match-string 3))
-                     (setq block-name (match-string 5))
-                     (re-search-forward
-                      (concat " " (regexp-quote block-name) " ends here") nil t)
-                     (setq end (point-at-bol))
-                     (< start mid) (< mid end))
-          (error "not in tangled code"))
+	(while (and (re-search-backward org-bracket-link-analytic-regexp nil t)
+		    (not ; ever wider searches until matching block comments
+		     (and (setq start (point-at-eol))
+			  (setq link (match-string 0))
+			  (setq path (match-string 3))
+			  (setq block-name (match-string 5))
+			  (save-excursion
+			    (save-match-data
+			      (re-search-forward
+			       (concat " " (regexp-quote block-name)
+				       " ends here") nil t)
+			      (setq end (point-at-bol))))))))
+	(unless (and start (< start mid) (< mid end))
+	  (error "not in tangled code"))
         (setq body (org-babel-trim (buffer-substring start end))))
       (when (string-match "::" path)
         (setq path (substring path 0 (match-beginning 0))))
@@ -449,5 +494,6 @@ which enable the original code blocks to be found."
 
 (provide 'ob-tangle)
 
+;; arch-tag: 413ced93-48f5-4216-86e4-3fc5df8c8f24
 
 ;;; ob-tangle.el ends here

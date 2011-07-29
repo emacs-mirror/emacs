@@ -1,10 +1,10 @@
 ;;; org-indent.el --- Dynamic indentation for  Org-mode
-;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -212,12 +212,12 @@ useful to make it ever so slightly different."
       (remove-text-properties beg end '(line-prefix nil wrap-prefix nil)))))
 
 (defun org-indent-remove-properties-from-string (string)
-  "Remove indentations between BEG and END."
+  "Remove indentation properties from STRING."
   (remove-text-properties 0 (length string)
 			  '(line-prefix nil wrap-prefix nil) string)
   string)
 
-(defvar org-indent-outline-re (concat "^" org-outline-regexp)
+(defvar org-indent-outline-re org-outline-regexp-bol
   "Outline heading regexp.")
 
 (defun org-indent-add-properties (beg end)
@@ -273,7 +273,7 @@ Point is assumed to be at the beginning of a headline."
   (when org-indent-mode
     (let (beg end)
       (save-excursion
-	(when (ignore-errors (let ((outline-regexp (format "\\*\\{1,%s\\}[ \t]+"
+	(when (ignore-errors (let ((org-outline-regexp (format "\\*\\{1,%s\\}[ \t]+"
 				(if (featurep 'org-inlinetask)
 				    (1- org-inlinetask-min-level)
 				  ""))))
@@ -290,7 +290,7 @@ Point is assumed to be at the beginning of a headline."
   (when org-indent-mode
     (let ((beg (point)) (end limit))
       (save-excursion
-	(and (ignore-errors (let ((outline-regexp (format "\\*\\{1,%s\\}[ \t]+"
+	(and (ignore-errors (let ((org-outline-regexp (format "\\*\\{1,%s\\}[ \t]+"
 				(if (featurep 'org-inlinetask)
 				    (1- org-inlinetask-min-level)
 				  ""))))
@@ -322,4 +322,5 @@ Point is assumed to be at the beginning of a headline."
 
 (provide 'org-indent)
 
+;; arch-tag: b76736bc-9f4a-43cd-977c-ecfd6689846a
 ;;; org-indent.el ends here

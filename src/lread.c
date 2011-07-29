@@ -2670,6 +2670,9 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	    }
 	  goto read_symbol;
 	}
+      /* ## is the empty symbol.  */
+      if (c == '#')
+	return Fintern (build_string (""), Qnil);
       /* Reader forms that can reuse previously read objects.  */
       if (c >= '0' && c <= '9')
 	{

@@ -804,8 +804,6 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
   font->props[FONT_FILE_INDEX] = Qnil;
 
   {
-    double expand, hshrink;
-    float full_height, min_height, hd;
     const char *fontName = [[nsfont fontName] UTF8String];
     int len = strlen (fontName);
 
@@ -837,26 +835,16 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
       [sfont maximumAdvancement].width : ns_char_width (sfont, '0');
 
     brect =  [sfont boundingRectForFont];
-    full_height = brect.size.height;
-    min_height = [sfont ascender] - adjusted_descender;
-    hd = full_height - min_height;
 
-    /* standard height, similar to Carbon. Emacs.app: was 0.5 by default. */
-    expand = 0.0;
-    hshrink = 1.0;
-
-    font_info->underpos = 2; /*[sfont underlinePosition] is often clipped out */
+    font_info->underpos = [sfont underlinePosition];
     font_info->underwidth = [sfont underlineThickness];
     font_info->size = font->pixel_size;
-    font_info->voffset = lrint (hshrink * [sfont ascender] + expand * hd / 2);
 
     /* max bounds */
-    font_info->max_bounds.ascent =
-      lrint (hshrink * [sfont ascender] + expand * hd/2);
+    font_info->max_bounds.ascent = lrint ([sfont ascender]);
     /* Descender is usually negative.  Use floor to avoid
        clipping descenders. */
-    font_info->max_bounds.descent =
-      -lrint (floor(hshrink* adjusted_descender - expand*hd/2));
+    font_info->max_bounds.descent = -lrint (floor(adjusted_descender));
     font_info->height =
       font_info->max_bounds.ascent + font_info->max_bounds.descent;
     font_info->max_bounds.width = lrint (font_info->width);
@@ -1165,7 +1153,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 
 
   /* set up for character rendering */
-  r.origin.y += font->voffset + (s->height - font->height)/2;
+  r.origin.y = s->ybase;
 
   col = (NS_FACE_FOREGROUND (face) != 0
          ? ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f)
@@ -1196,20 +1184,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
 /*[context GSSetTextDrawingMode: GSTextFill]; /// not implemented yet */
       }
 
-    /* do underline */
-    if (face->underline_p)
-      {
-        if (face->underline_color != 0)
-          [ns_lookup_indexed_color (face->underline_color, s->f) set];
-        else
-          [col set];
-        DPSmoveto (context, r.origin.x, r.origin.y + font->underpos);
-        DPSlineto (context, r.origin.x+r.size.width, r.origin.y+font->underpos);
-        if (face->underline_color != 0)
-          [col set];
-      }
-    else
-      [col set];
+    [col set];
 
     /* draw with DPSxshow () */
     DPSmoveto (context, r.origin.x, r.origin.y);
@@ -1255,23 +1230,7 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
         CGContextSetTextDrawingMode (gcontext, kCGTextFill);
       }
 
-    if (face->underline_p)
-      {
-        if (face->underline_color != 0)
-          [ns_lookup_indexed_color (face->underline_color, s->f) set];
-        else
-          [col set];
-        CGContextBeginPath (gcontext);
-        CGContextMoveToPoint (gcontext,
-                              r.origin.x, r.origin.y + font->underpos);
-        CGContextAddLineToPoint (gcontext, r.origin.x + r.size.width,
-                                r.origin.y + font->underpos);
-        CGContextStrokePath (gcontext);
-        if (face->underline_color != 0)
-          [col set];
-      }
-    else
-      [col set];
+    [col set];
 
     CGContextSetTextPosition (gcontext, r.origin.x, r.origin.y);
     CGContextShowGlyphsWithAdvances (gcontext, s->char2b + s->cmp_from,
@@ -1287,6 +1246,10 @@ nsfont_draw (struct glyph_string *s, int from, int to, int x, int y,
     CGContextRestoreGState (gcontext);
   }
 #endif  /* NS_IMPL_COCOA */
+
+  /* Draw underline, overline, strike-through. */
+  ns_draw_text_decoration (s, face, col, r.size.width, r.origin.x);
+
   return to-from;
 }
 

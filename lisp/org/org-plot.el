@@ -1,11 +1,11 @@
 ;;; org-plot.el --- Support for plotting from Org-mode
 
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 ;;
 ;; Author: Eric Schulte <schulte dot eric at gmail dot com>
 ;; Keywords: tables, plotting
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -206,18 +206,18 @@ manner suitable for prepending to a user-specified script."
 	 (y-labels (plist-get params :ylabels))
 	 (plot-str "'%s' using %s%d%s with %s title '%s'")
 	 (plot-cmd (case type
-		     (2d "plot")
-		     (3d "splot")
-		     (grid "splot")))
+		     ('2d "plot")
+		     ('3d "splot")
+		     ('grid "splot")))
 	 (script "reset") plot-lines)
     (flet ((add-to-script (line) (setf script (format "%s\n%s" script line))))
       (when file ;; output file
 	(add-to-script (format "set term %s" (file-name-extension file)))
 	(add-to-script (format "set output '%s'" file)))
       (case type ;; type
-	(2d ())
-	(3d (if map (add-to-script "set map")))
-	(grid (if map
+	('2d ())
+	('3d (if map (add-to-script "set map")))
+	('grid (if map
 		   (add-to-script "set pm3d map")
 		 (add-to-script "set pm3d"))))
       (when title (add-to-script (format "set title '%s'" title))) ;; title
@@ -243,7 +243,7 @@ manner suitable for prepending to a user-specified script."
 				   "%Y-%m-%d-%H:%M:%S") "\"")))
       (unless preface
         (case type ;; plot command
-	(2d (dotimes (col num-cols)
+	('2d (dotimes (col num-cols)
 	       (unless (and (equal type '2d)
 			    (or (and ind (equal (+ 1 col) ind))
 				(and deps (not (member (+ 1 col) deps)))))
@@ -258,10 +258,10 @@ manner suitable for prepending to a user-specified script."
 				with
 				(or (nth col col-labels) (format "%d" (+ 1 col))))
 			plot-lines)))))
-	(3d
+	('3d
 	 (setq plot-lines (list (format "'%s' matrix with %s title ''"
 					data-file with))))
-	(grid
+	('grid
 	 (setq plot-lines (list (format "'%s' with %s title ''"
 					data-file with)))))
         (add-to-script
@@ -305,9 +305,9 @@ line directly before or after the table."
 			(setf params (org-plot/collect-options params))))
       ;; dump table to datafile (very different for grid)
       (case (plist-get params :plot-type)
-	(2d   (org-plot/gnuplot-to-data table data-file params))
-	(3d   (org-plot/gnuplot-to-data table data-file params))
-	(grid (let ((y-labels (org-plot/gnuplot-to-grid-data
+	('2d   (org-plot/gnuplot-to-data table data-file params))
+	('3d   (org-plot/gnuplot-to-data table data-file params))
+	('grid (let ((y-labels (org-plot/gnuplot-to-grid-data
 				table data-file params)))
 		 (when y-labels (plist-put params :ylabels y-labels)))))
       ;; check for timestamp ind column
@@ -350,4 +350,5 @@ line directly before or after the table."
 
 (provide 'org-plot)
 
+;; arch-tag: 5763f7c6-0c75-416d-b070-398ee4ec0eca
 ;;; org-plot.el ends here

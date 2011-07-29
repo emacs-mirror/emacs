@@ -1,11 +1,12 @@
 ;;; org-faces.el --- Face definitions for Org-mode.
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
+;;   Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -49,6 +50,11 @@
   "Faces in Org-mode."
   :tag "Org Faces"
   :group 'org-appearance)
+
+(defface org-default
+  (org-compatible-face 'default nil)
+  "Face used for default text."
+  :group 'org-faces)
 
 (defface org-hide
   '((((background light)) (:foreground "white"))
@@ -136,7 +142,7 @@ color of the frame."
   :group 'org-faces)
 
 (defface org-special-keyword ;; originally copied from font-lock-string-face
-  (org-compatible-face nil
+  (org-compatible-face 'font-lock-keyword-face
     '((((class color) (min-colors 16) (background light)) (:foreground "RosyBrown"))
       (((class color) (min-colors 16) (background dark)) (:foreground "LightSalmon"))
       (t (:italic t))))
@@ -246,7 +252,10 @@ column view defines special faces for each outline level.  See the file
   :group 'org-faces)
 
 (defface org-link
-  '((t :inherit link))
+  (org-compatible-face 'link
+    '((((class color) (background light)) (:foreground "Purple" :underline t))
+      (((class color) (background dark)) (:foreground "Cyan" :underline t))
+      (t (:underline t))))
   "Face for links."
   :group 'org-faces)
 
@@ -318,7 +327,7 @@ specific tags."
       (((class color) (min-colors 8)) (:foreground "green"))
       (t (:bold nil))))
   "Face used in agenda, to indicate lines switched to DONE.
-This face is used to de-emphasize items that where brightly colord in the
+This face is used to de-emphasize items that where brightly colored in the
 agenda because they were things to do, or overdue.  The DONE state itself
 is of course immediately visible, but for example a passed deadline is
 \(by default) very bright read.  This face could be simply the default face
@@ -507,6 +516,15 @@ follows a #+DATE:, #+AUTHOR: or #+EMAIL: keyword."
   :group 'org-faces
   :version "22.1")
 
+(defface org-block-background '((t ()))
+  "Face used for the source block background.")
+
+(org-copy-face 'org-meta-line 'org-block-begin-line
+  "Face used for the line delimiting the begin of source blocks.")
+
+(org-copy-face 'org-meta-line 'org-block-end-line
+  "Face used for the line delimiting the end of source blocks.")
+
 (defface org-verbatim
   (org-compatible-face 'shadow
     '((((class color grayscale) (min-colors 88) (background light))
@@ -664,6 +682,9 @@ month and 365.24 days for a year)."
   "Face used for time grids."
   :group 'org-faces)
 
+(org-copy-face 'org-time-grid 'org-agenda-current-time
+  "Face used to show the current time in the time grid.")
+
 (defface org-agenda-diary
   (org-compatible-face 'default
     nil)
@@ -715,5 +736,6 @@ level org-n-level-faces"
 
 (provide 'org-faces)
 
+;; arch-tag: 9dab5f91-c4b9-4d6f-bac3-1f6211ad0a04
 
 ;;; org-faces.el ends here

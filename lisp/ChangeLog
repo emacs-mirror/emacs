@@ -1,3 +1,8 @@
+2011-07-28  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* simple.el (goto-line): Use string-to-number to provide a
+	numeric argument to read-number.
+
 2011-07-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-maybe-send-script): Don't let-bind the

@@ -321,6 +321,7 @@ static void
 x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSColor *col;
+  CGFloat r, g, b, alpha;
 
   if (ns_lisp_to_color (arg, &col))
     {
@@ -331,6 +332,10 @@ x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   [col retain];
   [f->output_data.ns->foreground_color release];
   f->output_data.ns->foreground_color = col;
+
+  [col getRed: &r green: &g blue: &b alpha: &alpha];
+  FRAME_FOREGROUND_PIXEL (f) =
+    ARGB_TO_ULONG ((int)(alpha*0xff), (int)(r*0xff), (int)(g*0xff), (int)(b*0xff));
 
   if (FRAME_NS_VIEW (f))
     {
@@ -348,7 +353,7 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   struct face *face;
   NSColor *col;
   NSView *view = FRAME_NS_VIEW (f);
-  float alpha;
+  CGFloat r, g, b, alpha;
 
   if (ns_lisp_to_color (arg, &col))
     {
@@ -364,10 +369,14 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   [col retain];
   [f->output_data.ns->background_color release];
   f->output_data.ns->background_color = col;
+
+  [col getRed: &r green: &g blue: &b alpha: &alpha];
+  FRAME_BACKGROUND_PIXEL (f) =
+    ARGB_TO_ULONG ((int)(alpha*0xff), (int)(r*0xff), (int)(g*0xff), (int)(b*0xff));
+
   if (view != nil)
     {
       [[view window] setBackgroundColor: col];
-      alpha = [col alphaComponent];
 
       if (alpha != 1.0)
           [[view window] setOpaque: NO];

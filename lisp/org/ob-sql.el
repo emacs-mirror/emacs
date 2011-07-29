@@ -1,11 +1,11 @@
 ;;; ob-sql.el --- org-babel functions for sql evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -65,28 +65,47 @@ This function is called by `org-babel-execute-src-block'."
          (in-file (org-babel-temp-file "sql-in-"))
          (out-file (or (cdr (assoc :out-file params))
                        (org-babel-temp-file "sql-out-")))
+	 (header-delim "")
          (command (case (intern engine)
-                    (msosql (format "osql %s -s \"\t\" -i %s -o %s"
+                    ('msosql (format "osql %s -s \"\t\" -i %s -o %s"
+                                     (or cmdline "")
+                                     (org-babel-process-file-name in-file)
+                                     (org-babel-process-file-name out-file)))
+                    ('mysql (format "mysql %s < %s > %s"
                                     (or cmdline "")
-                                    (org-babel-process-file-name in-file)
-                                    (org-babel-process-file-name out-file)))
-                    (mysql (format "mysql %s -e \"source %s\" > %s"
-                                   (or cmdline "")
-                                   (org-babel-process-file-name in-file)
-                                   (org-babel-process-file-name out-file)))
-		    (postgresql (format "psql -A -P footer=off -F \"\t\"  -f %s -o %s %s"
-                                        (org-babel-process-file-name in-file)
-                                        (org-babel-process-file-name out-file)
-                                        (or cmdline "")))
+				    (org-babel-process-file-name in-file)
+				    (org-babel-process-file-name out-file)))
+		    ('postgresql (format
+				  "psql -A -P footer=off -F \"\t\"  -f %s -o %s %s"
+				    (org-babel-process-file-name in-file)
+				    (org-babel-process-file-name out-file)
+				    (or cmdline "")))
                     (t (error "no support for the %s sql engine" engine)))))
     (with-temp-file in-file
       (insert (org-babel-expand-body:sql body params)))
     (message command)
     (shell-command command)
     (with-temp-buffer
+      ;; need to figure out what the delimiter is for the header row
+      (with-temp-buffer
+        (insert-file-contents out-file)
+        (goto-char (point-min))
+        (when (re-search-forward "^\\(-+\\)[^-]" nil t)
+          (setq header-delim (match-string-no-properties 1)))
+        (goto-char (point-max))
+        (forward-char -1)
+        (while (looking-at "\n")
+          (delete-char 1)
+          (goto-char (point-max))
+          (forward-char -1))
+        (write-file out-file))
       (org-table-import out-file '(16))
       (org-babel-reassemble-table
-       (org-table-to-lisp)
+       (mapcar (lambda (x)
+                 (if (string= (car x) header-delim)
+                     'hline
+                   x))
+               (org-table-to-lisp))
        (org-babel-pick-name (cdr (assoc :colname-names params))
 			    (cdr (assoc :colnames params)))
        (org-babel-pick-name (cdr (assoc :rowname-names params))
@@ -121,5 +140,6 @@ This function is called by `org-babel-execute-src-block'."
 
 (provide 'ob-sql)
 
+;; arch-tag: a43ff944-6de1-4566-a83c-626814e3dad2
 
 ;;; ob-sql.el ends here
