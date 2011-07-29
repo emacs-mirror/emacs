@@ -48,11 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "font.h"
 
-#define RANGED_INTEGERP(lo, x, hi) \
-  (INTEGERP (x) && (lo) <= XINT (x) && XINT (x) <= (hi))
-#define TYPE_RANGED_INTEGERP(type, x) \
-  RANGED_INTEGERP (TYPE_MINIMUM (type), x, TYPE_MAXIMUM (type))
-
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #include <sys/types.h>
@@ -223,9 +218,9 @@ x_allocate_bitmap_record (FRAME_PTR f)
 
   if (dpyinfo->bitmaps == NULL)
     {
-      dpyinfo->bitmaps_size = 10;
       dpyinfo->bitmaps
-	= (Bitmap_Record *) xmalloc (dpyinfo->bitmaps_size * sizeof (Bitmap_Record));
+	= (Bitmap_Record *) xmalloc (10 * sizeof (Bitmap_Record));
+      dpyinfo->bitmaps_size = 10;
       dpyinfo->bitmaps_last = 1;
       return 1;
     }
@@ -240,10 +235,11 @@ x_allocate_bitmap_record (FRAME_PTR f)
   if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Bitmap_Record) / 2
       < dpyinfo->bitmaps_size)
     memory_full (SIZE_MAX);
-  dpyinfo->bitmaps_size *= 2;
   dpyinfo->bitmaps
     = (Bitmap_Record *) xrealloc (dpyinfo->bitmaps,
-				  dpyinfo->bitmaps_size * sizeof (Bitmap_Record));
+				  (dpyinfo->bitmaps_size
+				   * (2 * sizeof (Bitmap_Record))));
+  dpyinfo->bitmaps_size *= 2;
   return ++dpyinfo->bitmaps_last;
 }
 
@@ -1373,11 +1369,12 @@ x_alloc_image_color (struct frame *f, struct image *img, Lisp_Object color_name,
     {
       /* This isn't called frequently so we get away with simply
 	 reallocating the color vector to the needed size, here.  */
-      ++img->ncolors;
+      ptrdiff_t ncolors = img->ncolors + 1;
       img->colors =
 	(unsigned long *) xrealloc (img->colors,
-				    img->ncolors * sizeof *img->colors);
-      img->colors[img->ncolors - 1] = color.pixel;
+				    ncolors * sizeof *img->colors);
+      img->colors[ncolors - 1] = color.pixel;
+      img->ncolors = ncolors;
       result = color.pixel;
     }
   else
@@ -1405,8 +1402,9 @@ make_image_cache (void)
   int size;
 
   memset (c, 0, sizeof *c);
-  c->size = 50;
-  c->images = (struct image **) xmalloc (c->size * sizeof *c->images);
+  size = 50;
+  c->images = (struct image **) xmalloc (size * sizeof *c->images);
+  c->size = size;
   size = IMAGE_CACHE_BUCKETS_SIZE * sizeof *c->buckets;
   c->buckets = (struct image **) xmalloc (size);
   memset (c->buckets, 0, size);
@@ -1837,9 +1835,10 @@ cache_image (struct frame *f, struct image *img)
     {
       if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *c->images / 2 < c->size)
 	memory_full (SIZE_MAX);
+      c->images =
+	(struct image **) xrealloc (c->images,
+				    c->size * (2 * sizeof *c->images));
       c->size *= 2;
-      c->images = (struct image **) xrealloc (c->images,
-					      c->size * sizeof *c->images);
     }
 
   /* Add IMG to c->images, and assign IMG an id.  */
@@ -3581,9 +3580,12 @@ xpm_load (struct frame *f, struct image *img)
 #endif /* HAVE_NTGUI */
 
       /* Remember allocated colors.  */
-      img->ncolors = attrs.nalloc_pixels;
+      if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *img->colors
+	  < attrs.nalloc_pixels)
+	memory_full (SIZE_MAX);
       img->colors = (unsigned long *) xmalloc (img->ncolors
 					       * sizeof *img->colors);
+      img->ncolors = attrs.nalloc_pixels;
       for (i = 0; i < attrs.nalloc_pixels; ++i)
 	{
 	  img->colors[i] = attrs.alloc_pixels[i];
@@ -4157,6 +4159,12 @@ static struct ct_color **ct_table;
 /* Number of entries in the color table.  */
 
 static int ct_colors_allocated;
+enum
+{
+  ct_colors_allocated_max =
+    min (INT_MAX,
+	 min (PTRDIFF_MAX, SIZE_MAX) / sizeof (unsigned long))
+};
 
 /* Initialize the color table.  */
 
@@ -4243,7 +4251,14 @@ lookup_rgb_color (struct frame *f, int r, int g, int b)
       XColor color;
       Colormap cmap;
       int rc;
+#else
+      COLORREF color;
+#endif
 
+      if (ct_colors_allocated_max <= ct_colors_allocated)
+	return FRAME_FOREGROUND_PIXEL (f);
+
+#ifdef HAVE_X_WINDOWS
       color.red = r;
       color.green = g;
       color.blue = b;
@@ -4265,7 +4280,6 @@ lookup_rgb_color (struct frame *f, int r, int g, int b)
 	return FRAME_FOREGROUND_PIXEL (f);
 
 #else
-      COLORREF color;
 #ifdef HAVE_NTGUI
       color = PALETTERGB (r, g, b);
 #else
@@ -4305,6 +4319,9 @@ lookup_pixel_color (struct frame *f, unsigned long pixel)
       XColor color;
       Colormap cmap;
       int rc;
+
+      if (ct_colors_allocated_max <= ct_colors_allocated)
+	return FRAME_FOREGROUND_PIXEL (f);
 
 #ifdef HAVE_X_WINDOWS
       cmap = FRAME_X_COLORMAP (f);
@@ -4444,7 +4461,9 @@ x_to_xcolors (struct frame *f, struct image *img, int rgb_p)
   HGDIOBJ prev;
 #endif /* HAVE_NTGUI */
 
-  colors = (XColor *) xmalloc (img->width * img->height * sizeof *colors);
+  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *colors / img->width < img->height)
+    memory_full (SIZE_MAX);
+  colors = (XColor *) xmalloc (sizeof *colors * img->width * img->height);
 
 #ifndef HAVE_NTGUI
   /* Get the X image IMG->pixmap.  */
@@ -4596,7 +4615,9 @@ x_detect_edges (struct frame *f, struct image *img, int *matrix, int color_adjus
 
 #define COLOR(A, X, Y) ((A) + (Y) * img->width + (X))
 
-  new = (XColor *) xmalloc (img->width * img->height * sizeof *new);
+  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *new / img->width < img->height)
+    memory_full (SIZE_MAX);
+  new = (XColor *) xmalloc (sizeof *new * img->width * img->height);
 
   for (y = 0; y < img->height; ++y)
     {

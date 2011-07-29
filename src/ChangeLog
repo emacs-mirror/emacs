@@ -1,3 +1,18 @@
+2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c: Integer and memory overflow fixes.
+	(RANGED_INTEGERP, TYPE_RANGED_INTEGERP): Remove; these are duplicate
+	now that they've been promoted to lisp.h.
+	(x_allocate_bitmap_record, x_alloc_image_color)
+	(make_image_cache, cache_image, xpm_load):
+	Don't update size until alloc is done.
+	(xpm_load, lookup_rgb_color, lookup_pixel_color, x_to_xcolors)
+	(x_detect_edges):
+	Check for size calculation overflow.
+	(ct_colors_allocated_max): New constant.
+	(x_to_xcolors, x_detect_edges): Reorder multiplicands to avoid
+	overflow.
+
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* gtkutil.c: Integer overflow fixes.
