@@ -1,5 +1,11 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* termcap.c: Integer and memory overflow issues.
+	(tgetent): Use ptrdiff_t, not int, to record results of
+	subtracting pointers.
+	(gobble_line): Check for overflow more carefully.  Don't update size
+	until alloc done.
+
 	* term.c: Integer and memory overflow issues.
 	(max_frame_lines): Remove; unused.
 	(encode_terminal_src_size, encode_terminal_dst_size): Now ptrdiff_t,
