@@ -1,17 +1,188 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* xterm.c: Integer and memory overflow issues.
-	(x_color_cells, handle_one_xevent, x_term_init):
+	Integer and memory overflow issues.
+
+	* bidi.c (bidi_shelve_header_size): New constant.
+	(bidi_cache_ensure_space, bidi_shelve_cache): Use it.
+	(bidi_cache_ensure_space): Avoid integer overflow when allocating.
+
+	* buffer.c (overlays_at, overlays_in, record_overlay_string)
+	(overlay_strings):
+	Don't update size of array until after memory allocation succeeds,
+	because xmalloc/xrealloc may not return.
+
+	* callproc.c (child_setup): Don't assume strlen fits in int.
+
+	* ccl.c (Fccl_execute_on_string): Check for memory overflow.
+	Use ptrdiff_t rather than EMACS_INT where ptrdiff_t will do.
+	Redo buffer-overflow calculations to avoid integer overflow.
+
+	* character.c (Fstring): Check for size-calculation overflow.
+
+	* coding.c (produce_chars): Redo buffer-overflow calculations to avoid
+	unnecessary integer overflow.  Check for size overflow.
+	(encode_coding_object): Don't update size until xmalloc succeeds.
+
+	* composite.c (get_composition_id): Check for overflow in glyph
+	length calculations.
+
+	Integer and memory overflow fixes for display code.
+	* dispextern.h (struct glyph_pool.nglyphs): Now ptrdiff_t, not int.
+	* dispnew.c (adjust_glyph_matrix, realloc_glyph_pool)
+	(scrolling_window): Check for overflow in size calculations.
+	(line_draw_cost, realloc_glyph_pool, add_row_entry):
+	Don't assume glyph table len fits in int.
+	(struct row_entry.bucket, row_entry_pool_size, row_entry_idx)
+	(row_table_size): Now ptrdiff_t, not int.
+	(scrolling_window): Avoid overflow in size calculations.
+	Don't update size until allocation succeeds.
+	* fns.c (concat): Check for overflow in size calculations.
+	(next_almost_prime): Verify NEXT_ALMOST_PRIME_LIMIT.
+	* lisp.h (RANGED_INTEGERP, TYPE_RANGED_INTEGERP): New macros.
+	(NEXT_ALMOST_PRIME_LIMIT): New constant.
+
+	* doc.c (get_doc_string_buffer_size): Now ptrdiff_t, not int.
+	(get_doc_string): Check for size calculation overflow.
+	Don't update size until allocation succeeds.
+	(get_doc_string, Fsubstitute_command_keys): Use ptrdiff_t, not
+	EMACS_INT, where ptrdiff_t will do.
+	(Fsubstitute_command_keys): Check for string overflow.
+
+	* editfns.c (set_time_zone_rule): Don't assume environment length
+	fits in int.
+	(message_length): Now ptrdiff_t, not int.
+	(Fmessage_box): Don't update size until allocation succeeds.
+	Don't assume message length fits in int.
+	(Fformat): Use ptrdiff_t, not EMACS_INT, where ptrdiff_t will do.
+
+	* emacs.c (main, sort_args): Check for size-calculation overflow.
+
+	* eval.c (init_eval_once, grow_specpdl): Don't update size until
+	alloc succeeds.
+	(call_debugger, grow_specpdl): Redo calculations to avoid overflow.
+
+	* frame.c (set_menu_bar_lines, x_set_frame_parameters)
+	(x_set_scroll_bar_width, x_figure_window_size):
+	Check for integer overflow.
+	(x_set_alpha): Do not assume XINT fits in int.
+
+	* frame.h (struct frame): Use int, not EMACS_INT, where int works.
+	This is for the members text_lines, text_cols, total_lines, total_cols,
+	where the system imposes an 'int' limit.
+
+	* fringe.c (Fdefine_fringe_bitmap):
+	Don't update size until alloc works.
+
+	* ftfont.c (ftfont_get_open_type_spec, setup_otf_gstring)
+	(ftfont_shape_by_flt): Check for integer overflow in size calculations.
+
+	* gtkutil.c (get_utf8_string, xg_store_widget_in_map):
+	Check for size-calculation overflow.
+	(get_utf8_string): Use ptrdiff_t, not size_t, where either will
+	do, as we prefer signed integers.
+	(id_to_widget.max_size, id_to_widget.used)
+	(xg_store_widget_in_map, xg_remove_widget_from_map)
+	(xg_get_widget_from_map, xg_get_scroll_id_for_window)
+	(xg_remove_scroll_bar, xg_update_scrollbar_pos):
+	Use and return ptrdiff_t, not int.
+	(xg_gtk_scroll_destroy): Don't assume ptrdiff_t fits in int.
+	* gtkutil.h: Change prototypes to match the above.
+
+	* image.c (RANGED_INTEGERP, TYPE_RANGED_INTEGERP): Remove; these
+	are duplicate now that they've been promoted to lisp.h.
+	(x_allocate_bitmap_record, x_alloc_image_color)
+	(make_image_cache, cache_image, xpm_load):
+	Don't update size until alloc is done.
+	(xpm_load, lookup_rgb_color, lookup_pixel_color, x_to_xcolors)
+	(x_detect_edges):
 	Check for size calculation overflow.
-	(x_color_cells): Don't store size until memory allocation succeeds.
-	(handle_one_xevent): Use ptrdiff_t, not int, for byte counts.
-	(x_term_init): Don't assume length fits in int (sprintf is limited
-	to int size).
+	(ct_colors_allocated_max): New constant.
+	(x_to_xcolors, x_detect_edges): Reorder multiplicands to avoid
+	overflow.
 
-	* xsmfns.c (smc_save_yourself_CB): Check for size calc overflow.
+	* keyboard.c (read_char, menu_bar_items, tool_bar_items)
+	(read_char_x_menu_prompt, read_char_minibuf_menu_width)
+	(read_char_minibuf_menu_prompt, follow_key, read_key_sequence):
+	Use ptrdiff_t, not int, to count maps.
+	(read_char_minibuf_menu_prompt): Check for overflow in size
+	calculations.  Don't update size until allocation succeeds.  Redo
+	calculations to avoid overflow.
+	* keyboard.h: Change prototypes to match the above.
 
-	* xselect.c: Integer and memory overflow issues.
-	(X_LONG_SIZE, X_USHRT_MAX, X_ULONG_MAX): New macros.
+	* keymap.c (cmm_size, current_minor_maps): Use ptrdiff_t, not int,
+	to count maps.
+	(current_minor_maps): Check for size calculation overflow.
+	* keymap.h: Change prototypes to match the above.
+
+	* lread.c (read1, init_obarray): Don't update size until alloc done.
+
+	* macros.c (Fstart_kbd_macro): Don't update size until alloc done.
+	(store_kbd_macro_char): Reorder multiplicands to avoid overflow.
+
+	* minibuf.c (read_minibuf_noninteractive): Don't leak memory
+	on memory overflow.
+
+	* nsterm.h (struct ns_color_table.size, struct ns_color_table.avail):
+	Now ptrdiff_t, not int.
+	* nsterm.m (ns_index_color): Use ptrdiff_t, not int, for table indexes.
+	(ns_draw_fringe_bitmap): Rewrite to avoid overflow.
+
+	* process.c (Fnetwork_interface_list): Check for overflow
+	in size calculation.
+
+	* region-cache.c (move_cache_gap): Check for size calculation overflow.
+
+	* scroll.c (do_line_insertion_deletion_costs): Check for size calc
+	overflow.  Don't bother calling xmalloc when xrealloc will do.
+
+	* search.c (Freplace_match): Check for size calculation overflow.
+	(Fset_match_data): Don't assume list lengths fit in 'int'.
+
+	* sysdep.c (system_process_attributes): Use ptrdiff_t, not int,
+	for command line length.  Do not attempt to address one before the
+	beginning of an array, as that's not portable.
+
+	* term.c (max_frame_lines): Remove; unused.
+	(encode_terminal_src_size, encode_terminal_dst_size): Now ptrdiff_t,
+	not int.
+	(encode_terminal_code, calculate_costs): Check for size
+	calculation overflow.
+	(encode_terminal_code): Use ptrdiff_t, not int, to record glyph
+	table lengths and related sizes.  Don't update size until alloc
+	done.  Redo calculations to avoid overflow.
+	(calculate_costs): Don't bother calling xmalloc when xrealloc will do.
+
+	* termcap.c (tgetent): Use ptrdiff_t, not int, to record results of
+	subtracting pointers.
+	(gobble_line): Check for overflow more carefully.  Don't update size
+	until alloc done.
+
+	* tparam.c (tparam1): Use ptrdiff_t, not int, for sizes.
+	Don't update size until alloc done.
+	Redo size calculations to avoid overflow.
+	Check for size calculation overflow.
+
+	* xdisp.c (store_mode_line_noprop_char, x_consider_frame_title):
+	Use ptrdiff_t, not int, for sizes.
+	(store_mode_line_noprop_char): Don't update size until alloc done.
+
+	* xfaces.c (Finternal_make_lisp_face): Use ptrdiff_t, not int, for
+	sizes.  Check for size calculation overflow.
+	(cache_face): Do not overflow in size calculation.
+
+	* xfns.c (x_encode_text, x_set_name_internal)
+	(Fx_change_window_property): Use ptrdiff_t, not int, to count
+	sizes, since they can exceed INT_MAX in size.  Check for size
+	calculation overflow.
+
+	* xgselect.c (xg_select): Check for size calculation overflow.
+	Don't update size until alloc done.
+
+	* xrdb.c (magic_file_p): Plug memory leak on size overflow.
+	(get_environ_db): Don't assume path length fits in int,
+	as sprintf is limited to int lengths.
+
+	* xselect.c (X_LONG_SIZE, X_USHRT_MAX, X_ULONG_MAX): New macros.
 	Use them to make the following changes clearer.
 	(MAX_SELECTION_QUANTUM): Make the other bounds on this value clearer.
 	This change doesn't affect the value now, but it may help remind
@@ -56,203 +227,14 @@
 	a wider type due to X limits.
 	(x_handle_dnd_message): Use unsigned int, to avoid int overflow.
 
-	* xrdb.c: Integer and memory overflow issues.
-	(magic_file_p): Plug memory leak on size overflow.
-	(get_environ_db): Don't assume path length fits in int,
-	as sprintf is limited to int lengths.
+	* xsmfns.c (smc_save_yourself_CB): Check for size calc overflow.
 
-	* xgselect.c (xg_select): Check for size calculation overflow.
-	Don't update size until alloc done.
-
-	* xfns.c: Integer and memory overflow fixes.
-	(x_encode_text, x_set_name_internal, Fx_change_window_property):
-	Use ptrdiff_t, not int, to count sizes, since they can exceed
-	INT_MAX in size.  Check for size calculation overflow.
-
-	* xfaces.c: Integer and memory overflow fixes.
-	(Finternal_make_lisp_face): Use ptrdiff_t, not int, for sizes.
+	* xterm.c (x_color_cells, handle_one_xevent, x_term_init):
 	Check for size calculation overflow.
-	(cache_face): Do not overflow in size calculation.
-
-	* xdisp.c: Integer and memory overflow fixes.
-	(store_mode_line_noprop_char, x_consider_frame_title):
-	Use ptrdiff_t, not int, for sizes.
-	(store_mode_line_noprop_char): Don't update size until alloc done.
-
-	* tparam.c: Integer and memory overflow fixes.
-	(tparam1): Use ptrdiff_t, not int, for sizes.
-	Don't update size until alloc done.
-	Redo size calculations to avoid overflow.
-	Check for size calculation overflow.
-
-	* termcap.c: Integer and memory overflow issues.
-	(tgetent): Use ptrdiff_t, not int, to record results of
-	subtracting pointers.
-	(gobble_line): Check for overflow more carefully.  Don't update size
-	until alloc done.
-
-	* term.c: Integer and memory overflow issues.
-	(max_frame_lines): Remove; unused.
-	(encode_terminal_src_size, encode_terminal_dst_size): Now ptrdiff_t,
-	not int.
-	(encode_terminal_code, calculate_costs): Check for size
-	calculation overflow.
-	(encode_terminal_code): Use ptrdiff_t, not int, to record glyph
-	table lengths and related sizes.  Don't update size until alloc
-	done.  Redo calculations to avoid overflow.
-	(calculate_costs): Don't bother calling xmalloc when xrealloc will do.
-
-	* sysdep.c: Integer and memory overflow issues.
-	(system_process_attributes): Use ptrdiff_t, not int, for command
-	line length.  Do not attempt to address one before the beginning
-	of an array, as that's not portable.
-
-	* search.c: Integer and memory overflow fixes.
-	(Freplace_match): Check for size calculation overflow.
-	(Fset_match_data): Don't assume list lengths fit in 'int'.
-
-	* scroll.c: Integer and memory overflow fixes.
-	(do_line_insertion_deletion_costs): Check for size calculation overflow.
-	Don't bother calling xmalloc when xrealloc will do.
-
-	* region-cache.c (move_cache_gap): Check for size calculation overflow.
-
-	* process.c (Fnetwork_interface_list): Check for overflow
-	in size calculation.
-
-	* nsterm.h (struct ns_color_table.size, struct ns_color_table.avail):
-	Now ptrdiff_t, not int.
-	* nsterm.m (ns_index_color): Use ptrdiff_t, not int, for table indexes.
-	(ns_draw_fringe_bitmap): Rewrite to avoid overflow.
-
-	* minibuf.c (read_minibuf_noninteractive): Don't leak memory
-	on memory overflow.
-
-	* macros.c: Integer and memory overflow fixes.
-	(Fstart_kbd_macro): Don't update size until alloc done.
-	(store_kbd_macro_char): Reorder multiplicands to avoid overflow.
-
-	* lread.c (read1, init_obarray): Don't update size until alloc done.
-
-	* keymap.c: Integer overflow fixes.
-	(cmm_size, current_minor_maps): Use ptrdiff_t, not int, to count maps.
-	(current_minor_maps): Check for size calculation overflow.
-	* keymap.h: Change prototypes to match the above.
-
-	* keyboard.c: Integer and memory overflow fixes.
-	(read_char, menu_bar_items, tool_bar_items, read_char_x_menu_prompt)
-	(read_char_minibuf_menu_width, read_char_minibuf_menu_prompt)
-	(follow_key, read_key_sequence): Use ptrdiff_t, not int, to count maps.
-	(read_char_minibuf_menu_prompt): Check for overflow in size
-	calculations.  Don't update size until allocation succeeds.  Redo
-	calculations to avoid overflow.
-	* keyboard.h: Change prototypes to match the above.
-
-	* image.c: Integer and memory overflow fixes.
-	(RANGED_INTEGERP, TYPE_RANGED_INTEGERP): Remove; these are duplicate
-	now that they've been promoted to lisp.h.
-	(x_allocate_bitmap_record, x_alloc_image_color)
-	(make_image_cache, cache_image, xpm_load):
-	Don't update size until alloc is done.
-	(xpm_load, lookup_rgb_color, lookup_pixel_color, x_to_xcolors)
-	(x_detect_edges):
-	Check for size calculation overflow.
-	(ct_colors_allocated_max): New constant.
-	(x_to_xcolors, x_detect_edges): Reorder multiplicands to avoid
-	overflow.
-
-2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
-
-	* gtkutil.c: Integer overflow fixes.
-	(get_utf8_string, xg_store_widget_in_map):
-	Check for size-calculation overflow.
-	(get_utf8_string): Use ptrdiff_t, not size_t, where either will
-	do, as we prefer signed integers.
-	(id_to_widget.max_size, id_to_widget.used)
-	(xg_store_widget_in_map, xg_remove_widget_from_map)
-	(xg_get_widget_from_map, xg_get_scroll_id_for_window)
-	(xg_remove_scroll_bar, xg_update_scrollbar_pos):
-	Use and return ptrdiff_t, not int.
-	(xg_gtk_scroll_destroy): Don't assume ptrdiff_t fits in int.
-	* gtkutil.h: Change prototypes to match the above.
-
-	* ftfont.c: Check for size overflow.
-	(ftfont_get_open_type_spec, setup_otf_gstring, ftfont_shape_by_flt):
-	Check for integer overflow in size calculations.
-
-	* fringe.c (Fdefine_fringe_bitmap): Don't update size until alloc works.
-
-	* frame.h (struct frame): Use int, not EMACS_INT, where int works.
-	This is for the members text_lines, text_cols, total_lines, total_cols,
-	where the system imposes an 'int' limit.
-
-	* frame.c: Integer overflow fixes.
-	(set_menu_bar_lines, x_set_frame_parameters, x_set_scroll_bar_width)
-	(x_figure_window_size): Check for integer overflow.
-	(x_set_alpha): Do not assume XINT fits in int.
-
-	* eval.c: Integer and memory overflow fixes.
-	(init_eval_once, grow_specpdl): Don't update size until alloc succeeds.
-	(call_debugger, grow_specpdl): Redo calculations to avoid overflow.
-
-	* emacs.c (main, sort_args): Check for size-calculation overflow.
-
-	* editfns.c: Integer and memory overflow fixes.
-	(set_time_zone_rule): Don't assume environment length fits in int.
-	(message_length): Now ptrdiff_t, not int.
-	(Fmessage_box): Don't update size until allocation succeeds.
-	Don't assume message length fits in int.
-	(Fformat): Use ptrdiff_t, not EMACS_INT, where ptrdiff_t will do.
-
-	* doc.c: Integer and memory overflow fixes.
-	(get_doc_string_buffer_size): Now ptrdiff_t, not int.
-	(get_doc_string): Check for size calculation overflow.
-	Don't update size until allocation succeeds.
-	(get_doc_string, Fsubstitute_command_keys): Use ptrdiff_t, not
-	EMACS_INT, where ptrdiff_t will do.
-	(Fsubstitute_command_keys): Check for string overflow.
-
-	Integer and memory overflow fixes for display code.
-	* dispextern.h (struct glyph_pool.nglyphs): Now ptrdiff_t, not int.
-	* dispnew.c (adjust_glyph_matrix, realloc_glyph_pool, scrolling_window):
-	Check for overflow in size calculations.
-	(line_draw_cost, realloc_glyph_pool, add_row_entry):
-	Don't assume glyph table len fits in int.
-	(struct row_entry.bucket, row_entry_pool_size, row_entry_idx)
-	(row_table_size): Now ptrdiff_t, not int.
-	(scrolling_window): Avoid overflow in size calculations.
-	Don't update size until allocation succeeds.
-	* fns.c (concat): Check for overflow in size calculations.
-	(next_almost_prime): Verify NEXT_ALMOST_PRIME_LIMIT.
-	* lisp.h (RANGED_INTEGERP, TYPE_RANGED_INTEGERP): New macros.
-	(NEXT_ALMOST_PRIME_LIMIT): New constant.
-
-	* composite.c: Integer overflow fixes.
-	(get_composition_id): Check for overflow in glyph length calculations.
-
-	* coding.c: Integer and memory overflow fixes.
-	(produce_chars): Redo buffer-overflow calculations to avoid
-	unnecessary integer overflow.  Check for size overflow.
-	(encode_coding_object): Don't update size until xmalloc succeeds.
-
-	* character.c (Fstring): Check for size-calculation overflow.
-
-	* ccl.c: Integer and memory overflow fixes.
-	(Fccl_execute_on_string): Check for memory overflow.
-	Use ptrdiff_t rather than EMACS_INT where ptrdiff_t will do.
-	Redo buffer-overflow calculations to avoid integer overflow.
-
-	* callproc.c (child_setup): Don't assume strlen fits in int.
-
-	* buffer.c: Memory overflow fixes.
-	(overlays_at, overlays_in, record_overlay_string, overlay_strings):
-	Don't update size of array until after memory allocation succeeds,
-	because xmalloc/xrealloc may not return.
-
-	* bidi.c: Integer overflow fix.
-	(bidi_shelve_header_size): New constant.
-	(bidi_cache_ensure_space, bidi_shelve_cache): Use it.
-	(bidi_cache_ensure_space): Avoid integer overflow when allocating.
+	(x_color_cells): Don't store size until memory allocation succeeds.
+	(handle_one_xevent): Use ptrdiff_t, not int, for byte counts.
+	(x_term_init): Don't assume length fits in int (sprintf is limited
+	to int size).
 
 2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
 
