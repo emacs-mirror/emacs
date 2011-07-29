@@ -1,5 +1,7 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* region-cache.c (move_cache_gap): Check for size calculation overflow.
+
 	* process.c (Fnetwork_interface_list): Check for overflow
 	in size calculation.
 

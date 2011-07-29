@@ -247,11 +247,16 @@ move_cache_gap (struct region_cache *c, EMACS_INT pos, EMACS_INT min_size)
   if (gap_len < min_size)
     {
       EMACS_INT i;
+      ptrdiff_t cache_len_max =
+	min (PTRDIFF_MAX, SIZE_MAX) / sizeof *c->boundaries;
+      ptrdiff_t min_size_max = cache_len_max - c->cache_len;
 
-      /* Always make at least NEW_CACHE_GAP elements, as long as we're
-         expanding anyway.  */
-      if (min_size < NEW_CACHE_GAP)
-        min_size = NEW_CACHE_GAP;
+      if (min_size_max < min_size)
+	memory_full (SIZE_MAX);
+
+      /* Unless running out of space, make at least NEW_CACHE_GAP
+         elements, as long as we're expanding anyway.  */
+      min_size = max (min_size, min (min_size_max, NEW_CACHE_GAP));
 
       c->boundaries =
         (struct boundary *) xrealloc (c->boundaries,
