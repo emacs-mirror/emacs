@@ -1,5 +1,9 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* macros.c: Integer and memory overflow fixes.
+	(Fstart_kbd_macro): Don't update size until alloc done.
+	(store_kbd_macro_char): Reorder multiplicands to avoid overflow.
+
 	* lread.c (read1, init_obarray): Don't update size until alloc done.
 
 	* keymap.c: Integer overflow fixes.

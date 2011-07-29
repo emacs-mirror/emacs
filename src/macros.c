@@ -62,9 +62,9 @@ macro before appending to it. */)
 
   if (!current_kboard->kbd_macro_buffer)
     {
-      current_kboard->kbd_macro_bufsize = 30;
       current_kboard->kbd_macro_buffer
 	= (Lisp_Object *)xmalloc (30 * sizeof (Lisp_Object));
+      current_kboard->kbd_macro_bufsize = 30;
     }
   update_mode_lines++;
   if (NILP (append))
@@ -202,7 +202,7 @@ store_kbd_macro_char (Lisp_Object c)
 	  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *kb->kbd_macro_buffer / 2
 	      < kb->kbd_macro_bufsize)
 	    memory_full (SIZE_MAX);
-	  nbytes = kb->kbd_macro_bufsize * 2 * sizeof *kb->kbd_macro_buffer;
+	  nbytes = kb->kbd_macro_bufsize * (2 * sizeof *kb->kbd_macro_buffer);
 	  kb->kbd_macro_buffer
 	    = (Lisp_Object *) xrealloc (kb->kbd_macro_buffer, nbytes);
 	  kb->kbd_macro_bufsize *= 2;
