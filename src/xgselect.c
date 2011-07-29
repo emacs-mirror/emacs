@@ -54,10 +54,16 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   do {
     if (n_gfds > gfds_size)
       {
-        while (n_gfds > gfds_size)
-          gfds_size *= 2;
+	int gfds_size_max =
+	  min (INT_MAX, min (PTRDIFF_MAX, SIZE_MAX) / sizeof *gfds);
+	int size;
+	if (gfds_size_max / 2 < n_gfds)
+	  memory_full (SIZE_MAX);
+	size = 2 * n_gfds;
+	gfds_size = 0;
         xfree (gfds);
-        gfds = xmalloc (sizeof (*gfds) * gfds_size);
+	gfds = xmalloc (sizeof *gfds * size);
+	gfds_size = size;
       }
 
     n_gfds = g_main_context_query (context,
