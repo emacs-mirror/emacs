@@ -3293,9 +3293,10 @@
 	* org-capture.el (org-capture-fill-template): fix bug with the
 	display of interactive prompt in templates expansion.
 
-2011-07-28  Reiner Steib  <reinersteib+gmane@imap.cc>
+2011-07-28  Reiner Steib  <reiner.steib@gmx.de>
 
-	* org-clock.el (org-clock-display): docstring fiw.
+	* org-clock.el (org-clock-display): Document how to remove subtree
+	times.
 
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
 

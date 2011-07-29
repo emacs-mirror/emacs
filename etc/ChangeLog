@@ -1,3 +1,7 @@
+2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* NEWS: Document ## and #:.
+
 2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* refcards/orgcard.tex: Document `org-copy-visible'.

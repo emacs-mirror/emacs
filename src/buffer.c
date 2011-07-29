@@ -4926,7 +4926,7 @@ init_buffer_once (void)
   BVAR (&buffer_defaults, truncate_lines) = Qnil;
   BVAR (&buffer_defaults, word_wrap) = Qnil;
   BVAR (&buffer_defaults, ctl_arrow) = Qt;
-  BVAR (&buffer_defaults, bidi_display_reordering) = Qnil;
+  BVAR (&buffer_defaults, bidi_display_reordering) = Qt;
   BVAR (&buffer_defaults, bidi_paragraph_direction) = Qnil;
   BVAR (&buffer_defaults, cursor_type) = Qt;
   BVAR (&buffer_defaults, extra_line_spacing) = Qnil;

@@ -467,7 +467,6 @@ struct nsfont_info
 #endif
   char bold, ital;  /* convenience flags */
   char synthItal;
-  float voffset;  /* mean of ascender/descender offsets */
   XCharStruct max_bounds;
   /* we compute glyph codes and metrics on-demand in blocks of 256 indexed
      by hibyte, lobyte */
@@ -824,6 +823,13 @@ extern int ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 extern unsigned long ns_get_rgb_color (struct frame *f,
                                        float r, float g, float b, float a);
 extern NSPoint last_mouse_motion_position;
+
+/* From nsterm.m, needed in nsfont.m. */
+#ifdef __OBJC__
+extern void
+ns_draw_text_decoration (struct glyph_string *s, struct face *face,
+                         NSColor *defaultCol, CGFloat width, CGFloat x);
+#endif
 
 #ifdef NS_IMPL_GNUSTEP
 extern char gnustep_base_version[];  /* version tracking */

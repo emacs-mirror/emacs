@@ -1,8 +1,64 @@
-2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (gl-stamp): move-if-change now in build-aux (Bug#9169).
 
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (check_image_size): Use 1024x1024 if unknown frame (Bug#9189).
+	This is needed if max-image-size is a floating-point number.
+
+2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* print.c (print_object): Print empty symbol as ##.
+
+	* lread.c (read1): Read ## as empty symbol.
+
+2011-07-28  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* nsfns.m (x_set_foreground_color): Set f->foreground_pixel when
+	setting frame foreground color (Bug#9175).
+	(x_set_background_color): Likewise.
+
+	* nsmenu.m (-setText): Size tooltip dimensions precisely to
+	contents (Bug#9176).
+	(EmacsTooltip -init): Remove bezels and add shadows to
+	tooltip windows.
+
+	* nsterm.m (ns_dumpglyphs_stretch): Avoid overwriting left fringe
+	or scroll bar (Bug#8470).
+
+	* nsfont.m (nsfont_open): Remove assignment to voffset and
+	unnecessary vars hshink, expand, hd, full_height, min_height.
+	(nsfont_draw): Use s->ybase as baseline for glyph drawing (Bug#8913).
+
+	* nsterm.h (nsfont_info): Remove voffset field.
+
+2011-07-28  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	Implement strike-through and overline on NextStep (Bug#8863).
+
+	* nsfont.m (nsfont_open): Use underline position provided by font,
+	instead of hard-coded value of 2.
+	(nsfont_draw): Call ns_draw_text_decoration instead.
+
+	* nsterm.h: Add declaration for ns_draw_text_decoration.
+
+	* nsterm.m (ns_draw_text_decoration): New function for drawing
+	underline, overline, and strike-through.
+	(ns_dumpglyphs_image, ns_dumpglyphs_stretch): Add call to
+	ns_draw_text_decoration.  Change treatment of cursor drawing to
+	accomodate underlining, etc.
+
+2011-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (init_buffer_once): Set bidi-display-reordering to t by
+	default.
+
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* alloc.c (memory_full) [!SYNC_INPUT]: Fix signal-related race.
+	Without this fix, if a signal arrives just after memory fills up,
+	'malloc' might be invoked reentrantly.
 
 	* image.c (x_check_image_size) [!HAVE_X_WINDOWS]: Return 1.
 	In other words, assume that every image size is allowed, on non-X

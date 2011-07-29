@@ -1,4 +1,4 @@
-2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, using build-aux to remove clutter (Bug#9169).
 	* m4/largefile.m4: New file, so that Emacs does not mess up when
@@ -29,6 +29,11 @@
 	Solaris, enables MacOS extensions, and enables nocrash during
 	'configure'.
 	* make-dist: Adjust to new build-aux and build-aux/snippit dirs.
+
+2011-07-28  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* configure.in (HAVE_RSVG): Allow use of -lrsvg-2 for any NextStep
+	build, not just GNUstep (Bug#9177).
 
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 

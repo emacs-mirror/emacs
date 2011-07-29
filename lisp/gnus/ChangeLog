@@ -1,3 +1,8 @@
+2011-07-29  Daniel Dehennin  <daniel.dehennin@baby-gnu.org>
+
+	* mm-decode.el (mm-dissect-buffer): Add a default content-disposition
+	in mm handle if none is specified.
+
 2011-07-24  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnimap.el (nnimap-make-thread-query): Quote message-ids for gmail.

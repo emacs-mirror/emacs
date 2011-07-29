@@ -6007,7 +6007,7 @@ a ``Full bidirectionality'' class implementation of the @acronym{UBA}.
 whether text in the buffer is reordered for display.  If its value is
 non-@code{nil}, Emacs reorders characters that have right-to-left
 directionality when they are displayed.  The default value is
-@code{nil}.  Text in overlay strings (@pxref{Overlay
+@code{t}.  Text in overlay strings (@pxref{Overlay
 Properties,,before-string}), display strings (@pxref{Overlay
 Properties,,display}), and @code{display} text properties
 (@pxref{Display Property}) is also reordered if the buffer whose text
