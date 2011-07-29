@@ -1,5 +1,10 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfns.c: Integer and memory overflow fixes.
+	(x_encode_text, x_set_name_internal, Fx_change_window_property):
+	Use ptrdiff_t, not int, to count sizes, since they can exceed
+	INT_MAX in size.  Check for size calculation overflow.
+
 	* xfaces.c: Integer and memory overflow fixes.
 	(Finternal_make_lisp_face): Use ptrdiff_t, not int, for sizes.
 	Check for size calculation overflow.
