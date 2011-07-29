@@ -1,5 +1,16 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* term.c: Integer and memory overflow issues.
+	(max_frame_lines): Remove; unused.
+	(encode_terminal_src_size, encode_terminal_dst_size): Now ptrdiff_t,
+	not int.
+	(encode_terminal_code, calculate_costs): Check for size
+	calculation overflow.
+	(encode_terminal_code): Use ptrdiff_t, not int, to record glyph
+	table lengths and related sizes.  Don't update size until alloc
+	done.  Redo calculations to avoid overflow.
+	(calculate_costs): Don't bother calling xmalloc when xrealloc will do.
+
 	* sysdep.c: Integer and memory overflow issues.
 	(system_process_attributes): Use ptrdiff_t, not int, for command
 	line length.  Do not attempt to address one before the beginning
