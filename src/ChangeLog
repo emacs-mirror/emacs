@@ -1,5 +1,10 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xfaces.c: Integer and memory overflow fixes.
+	(Finternal_make_lisp_face): Use ptrdiff_t, not int, for sizes.
+	Check for size calculation overflow.
+	(cache_face): Do not overflow in size calculation.
+
 	* xdisp.c: Integer and memory overflow fixes.
 	(store_mode_line_noprop_char, x_consider_frame_title):
 	Use ptrdiff_t, not int, for sizes.

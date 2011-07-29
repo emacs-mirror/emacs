@@ -2667,8 +2667,13 @@ Value is a vector of face attributes.  */)
 	 property `face' of the Lisp face name.  */
       if (next_lface_id == lface_id_to_name_size)
 	{
-	  int new_size = max (50, 2 * lface_id_to_name_size);
-	  int sz = new_size * sizeof *lface_id_to_name;
+	  ptrdiff_t new_size, sz;
+	  if (min (min (PTRDIFF_MAX, SIZE_MAX) / 2 / sizeof *lface_id_to_name,
+		   MOST_POSITIVE_FIXNUM)
+	      < lface_id_to_name_size)
+	    memory_full (SIZE_MAX);
+	  new_size = max (50, 2 * lface_id_to_name_size);
+	  sz = new_size * sizeof *lface_id_to_name;
 	  lface_id_to_name = (Lisp_Object *) xrealloc (lface_id_to_name, sz);
 	  lface_id_to_name_size = new_size;
 	}
@@ -4411,7 +4416,10 @@ cache_face (struct face_cache *c, struct face *face, unsigned int hash)
       if (c->used == c->size)
 	{
 	  int new_size, sz;
-	  new_size = min (2 * c->size, MAX_FACE_ID);
+	  new_size =
+	    min (2 * c->size,
+		 min (MAX_FACE_ID,
+		      min (PTRDIFF_MAX, SIZE_MAX) / sizeof *c->faces_by_id));
 	  if (new_size == c->size)
 	    abort ();  /* Alternatives?  ++kfs */
 	  sz = new_size * sizeof *c->faces_by_id;
