@@ -1,5 +1,10 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xrdb.c: Integer and memory overflow issues.
+	(magic_file_p): Plug memory leak on size overflow.
+	(get_environ_db): Don't assume path length fits in int,
+	as sprintf is limited to int lengths.
+
 	* xgselect.c (xg_select): Check for size calculation overflow.
 	Don't update size until alloc done.
 

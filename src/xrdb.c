@@ -204,7 +204,10 @@ magic_file_p (const char *string, EMACS_INT string_len, const char *class,
       if (path_size - path_len <= next_len)
 	{
 	  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 - 1 - path_len < next_len)
-	    memory_full (SIZE_MAX);
+	    {
+	      xfree (path);
+	      memory_full (SIZE_MAX);
+	    }
 	  path_size = (path_len + next_len + 1) * 2;
 	  path = (char *) xrealloc (path, path_size);
 	}
@@ -426,24 +429,22 @@ get_environ_db (void)
 {
   XrmDatabase db;
   char *p;
-  char *path = 0, *home = 0;
-  const char *host;
+  char *path = 0;
 
   if ((p = getenv ("XENVIRONMENT")) == NULL)
     {
-      home = gethomedir ();
-      host = get_system_name ();
-      path = (char *) xmalloc (strlen (home)
-			      + sizeof (".Xdefaults-")
-			      + strlen (host));
-      sprintf (path, "%s%s%s", home, ".Xdefaults-", host);
+      static char const xdefaults[] = ".Xdefaults-";
+      char *home = gethomedir ();
+      char const *host = get_system_name ();
+      ptrdiff_t pathsize = strlen (home) + sizeof xdefaults + strlen (host);
+      path = (char *) xrealloc (home, pathsize);
+      strcat (strcat (path, xdefaults), host);
       p = path;
     }
 
   db = XrmGetFileDatabase (p);
 
   xfree (path);
-  xfree (home);
 
   return db;
 }
