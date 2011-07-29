@@ -2648,6 +2648,8 @@ since only regular expressions have distinguished subexpressions.  */)
       int really_changed = 0;
 
       substed_alloc_size = length * 2 + 100;
+      if (min (PTRDIFF_MAX, SIZE_MAX) - 1 < substed_alloc_size)
+	memory_full (SIZE_MAX);
       substed = (unsigned char *) xmalloc (substed_alloc_size + 1);
       substed_len = 0;
 
@@ -2736,6 +2738,13 @@ since only regular expressions have distinguished subexpressions.  */)
 	  /* Make sure SUBSTED is big enough.  */
 	  if (substed_len + add_len >= substed_alloc_size)
 	    {
+	      ptrdiff_t add_len_max =
+		min (PTRDIFF_MAX, SIZE_MAX) - 1 - 500 - substed_len;
+	      if (add_len_max < add_len)
+		{
+		  xfree (substed);
+		  memory_full (SIZE_MAX);
+		}
 	      substed_alloc_size = substed_len + add_len + 500;
 	      substed = (unsigned char *) xrealloc (substed,
 						    substed_alloc_size + 1);
@@ -2973,7 +2982,7 @@ LIST should have been created by calling `match-data' previously.
 If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
   (register Lisp_Object list, Lisp_Object reseat)
 {
-  register int i;
+  ptrdiff_t i;
   register Lisp_Object marker;
 
   if (running_asynch_code)
@@ -2987,10 +2996,13 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
 
   /* Allocate registers if they don't already exist.  */
   {
-    int length = XFASTINT (Flength (list)) / 2;
+    ptrdiff_t length = XFASTINT (Flength (list)) / 2;
 
     if (length > search_regs.num_regs)
       {
+	if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (regoff_t) < length)
+	  memory_full (SIZE_MAX);
+
 	if (search_regs.num_regs == 0)
 	  {
 	    search_regs.start

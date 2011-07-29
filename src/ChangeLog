@@ -1,5 +1,9 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* search.c: Integer and memory overflow fixes.
+	(Freplace_match): Check for size calculation overflow.
+	(Fset_match_data): Don't assume list lengths fit in 'int'.
+
 	* scroll.c: Integer and memory overflow fixes.
 	(do_line_insertion_deletion_costs): Check for size calculation overflow.
 	Don't bother calling xmalloc when xrealloc will do.
