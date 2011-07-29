@@ -1,5 +1,10 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* nsterm.h (struct ns_color_table.size, struct ns_color_table.avail):
+	Now ptrdiff_t, not int.
+	* nsterm.m (ns_index_color): Use ptrdiff_t, not int, for table indexes.
+	(ns_draw_fringe_bitmap): Rewrite to avoid overflow.
+
 	* minibuf.c (read_minibuf_noninteractive): Don't leak memory
 	on memory overflow.
 

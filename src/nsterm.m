@@ -1343,7 +1343,7 @@ unsigned long
 ns_index_color (NSColor *color, struct frame *f)
 {
   struct ns_color_table *color_table = FRAME_NS_DISPLAY_INFO (f)->color_table;
-  int idx;
+  ptrdiff_t idx;
   NSNumber *index;
 
   if (!color_table->colors)
@@ -1358,7 +1358,7 @@ ns_index_color (NSColor *color, struct frame *f)
 
   /* do we already have this color ? */
   {
-    int i;
+    ptrdiff_t i;
     for (i = 1; i < color_table->avail; i++)
       {
         if (color_table->colors[i] && [color_table->colors[i] isEqual: color])
@@ -1373,16 +1373,23 @@ ns_index_color (NSColor *color, struct frame *f)
     {
       index = [color_table->empty_indices anyObject];
       [color_table->empty_indices removeObject: index];
-      idx = [index unsignedIntValue];
+      idx = [index unsignedLongValue];
     }
   else
     {
       if (color_table->avail == color_table->size)
         {
-          color_table->size += NS_COLOR_CAPACITY;
+	  ptrdiff_t size;
+	  ptrdiff_t size_max =
+	    min (ULONG_MAX,
+		 min (PTRDIFF_MAX, SIZE_MAX) / sizeof (NSColor *));
+	  if (size_max - NS_COLOR_CAPACITY < color_table->size)
+	    memory_full (SIZE_MAX);
+	  size = color_table->size + NS_COLOR_CAPACITY;
           color_table->colors
 	    = (NSColor **)xrealloc (color_table->colors,
-				    color_table->size * sizeof (NSColor *));
+				    size * sizeof (NSColor *));
+	  color_table->size = size;
         }
       idx = color_table->avail++;
     }
@@ -2323,7 +2330,7 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       if (!img)
         {
           unsigned short *bits = p->bits + p->dh;
-          int len = 8 * p->h/8;
+          int len = p->h;
           int i;
           unsigned char *cbits = xmalloc (len);
 
@@ -4705,7 +4712,7 @@ ns_term_shutdown (int sig)
         }
     }
 
-  
+
 #if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
   /* if we get here we should send the key for input manager processing */
   if (firstTime && [[NSInputManager currentInputManager]
