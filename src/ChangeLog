@@ -1,5 +1,7 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* lread.c (read1, init_obarray): Don't update size until alloc done.
+
 	* keymap.c: Integer overflow fixes.
 	(cmm_size, current_minor_maps): Use ptrdiff_t, not int, to count maps.
 	(current_minor_maps): Check for size calculation overflow.
