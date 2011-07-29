@@ -440,7 +440,7 @@ struct input_event;
 
 extern Lisp_Object parse_modifiers (Lisp_Object);
 extern Lisp_Object reorder_modifiers (Lisp_Object);
-extern Lisp_Object read_char (int, int, Lisp_Object *, Lisp_Object,
+extern Lisp_Object read_char (int, ptrdiff_t, Lisp_Object *, Lisp_Object,
                               int *, EMACS_TIME *);
 extern int parse_solitary_modifier (Lisp_Object symbol);
 

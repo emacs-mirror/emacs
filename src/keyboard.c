@@ -435,9 +435,9 @@ static void (*keyboard_init_hook) (void);
 static int read_avail_input (int);
 static void get_input_pending (int *, int);
 static int readable_events (int);
-static Lisp_Object read_char_x_menu_prompt (int, Lisp_Object *,
+static Lisp_Object read_char_x_menu_prompt (ptrdiff_t, Lisp_Object *,
                                             Lisp_Object, int *);
-static Lisp_Object read_char_minibuf_menu_prompt (int, int,
+static Lisp_Object read_char_minibuf_menu_prompt (int, ptrdiff_t,
                                                   Lisp_Object *);
 static Lisp_Object make_lispy_event (struct input_event *);
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
@@ -2267,7 +2267,8 @@ do { if (polling_stopped_here) start_polling ();	\
    Value is t if we showed a menu and the user rejected it.  */
 
 Lisp_Object
-read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event,
+read_char (int commandflag, ptrdiff_t nmaps, Lisp_Object *maps,
+	   Lisp_Object prev_event,
 	   int *used_mouse_menu, struct timeval *end_time)
 {
   volatile Lisp_Object c;
@@ -7405,7 +7406,7 @@ menu_bar_items (Lisp_Object old)
 {
   /* The number of keymaps we're scanning right now, and the number of
      keymaps we have allocated space for.  */
-  int nmaps;
+  ptrdiff_t nmaps;
 
   /* maps[0..nmaps-1] are the prefix definitions of KEYBUF[0..t-1]
      in the current keymaps, or nil where it is not a prefix.  */
@@ -7413,7 +7414,7 @@ menu_bar_items (Lisp_Object old)
 
   Lisp_Object def, tail;
 
-  int mapno;
+  ptrdiff_t mapno;
   Lisp_Object oquit;
 
   /* In order to build the menus, we need to call the keymap
@@ -7458,7 +7459,7 @@ menu_bar_items (Lisp_Object old)
 	   recognized when the menu-bar (or mode-line) is updated,
 	   which does not normally happen after every command.  */
 	Lisp_Object tem;
-	int nminor;
+	ptrdiff_t nminor;
 	nminor = current_minor_maps (NULL, &tmaps);
 	maps = (Lisp_Object *) alloca ((nminor + 3) * sizeof (maps[0]));
 	nmaps = 0;
@@ -7962,7 +7963,7 @@ Lisp_Object
 tool_bar_items (Lisp_Object reuse, int *nitems)
 {
   Lisp_Object *maps;
-  int nmaps, i;
+  ptrdiff_t nmaps, i;
   Lisp_Object oquit;
   Lisp_Object *tmaps;
 
@@ -8002,7 +8003,7 @@ tool_bar_items (Lisp_Object reuse, int *nitems)
 	 recognized when the tool-bar (or mode-line) is updated,
 	 which does not normally happen after every command.  */
       Lisp_Object tem;
-      int nminor;
+      ptrdiff_t nminor;
       nminor = current_minor_maps (NULL, &tmaps);
       maps = (Lisp_Object *) alloca ((nminor + 3) * sizeof (maps[0]));
       nmaps = 0;
@@ -8400,10 +8401,10 @@ append_tool_bar_item (void)
    and do auto-saving in the inner call of read_char. */
 
 static Lisp_Object
-read_char_x_menu_prompt (int nmaps, Lisp_Object *maps, Lisp_Object prev_event,
-			 int *used_mouse_menu)
+read_char_x_menu_prompt (ptrdiff_t nmaps, Lisp_Object *maps,
+			 Lisp_Object prev_event, int *used_mouse_menu)
 {
-  int mapno;
+  ptrdiff_t mapno;
 
   if (used_mouse_menu)
     *used_mouse_menu = 0;
@@ -8431,7 +8432,7 @@ read_char_x_menu_prompt (int nmaps, Lisp_Object *maps, Lisp_Object prev_event,
       Lisp_Object *realmaps
 	= (Lisp_Object *) alloca (nmaps * sizeof (Lisp_Object));
       Lisp_Object value;
-      int nmaps1 = 0;
+      ptrdiff_t nmaps1 = 0;
 
       /* Use the maps that are not nil.  */
       for (mapno = 0; mapno < nmaps; mapno++)
@@ -8482,17 +8483,18 @@ read_char_x_menu_prompt (int nmaps, Lisp_Object *maps, Lisp_Object prev_event,
    We make this bigger when necessary, and never free it.  */
 static char *read_char_minibuf_menu_text;
 /* Size of that buffer.  */
-static int read_char_minibuf_menu_width;
+static ptrdiff_t read_char_minibuf_menu_width;
 
 static Lisp_Object
-read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
+read_char_minibuf_menu_prompt (int commandflag,
+			       ptrdiff_t nmaps, Lisp_Object *maps)
 {
-  int mapno;
+  ptrdiff_t mapno;
   register Lisp_Object name;
-  int nlength;
+  ptrdiff_t nlength;
   /* FIXME: Use the minibuffer's frame width.  */
-  int width = FRAME_COLS (SELECTED_FRAME ()) - 4;
-  int idx = -1;
+  ptrdiff_t width = FRAME_COLS (SELECTED_FRAME ()) - 4;
+  ptrdiff_t idx = -1;
   int nobindings = 1;
   Lisp_Object rest, vector;
   char *menu;
@@ -8517,16 +8519,13 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
 
   /* Make sure we have a big enough buffer for the menu text.  */
   width = max (width, SBYTES (name));
-  if (read_char_minibuf_menu_text == 0)
+  if (STRING_BYTES_BOUND - 4 < width)
+    memory_full (SIZE_MAX);
+  if (width + 4 > read_char_minibuf_menu_width)
     {
-      read_char_minibuf_menu_width = width + 4;
-      read_char_minibuf_menu_text = (char *) xmalloc (width + 4);
-    }
-  else if (width + 4 > read_char_minibuf_menu_width)
-    {
-      read_char_minibuf_menu_width = width + 4;
       read_char_minibuf_menu_text
 	= (char *) xrealloc (read_char_minibuf_menu_text, width + 4);
+      read_char_minibuf_menu_width = width + 4;
     }
   menu = read_char_minibuf_menu_text;
 
@@ -8545,7 +8544,7 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
   while (1)
     {
       int notfirst = 0;
-      int i = nlength;
+      ptrdiff_t i = nlength;
       Lisp_Object obj;
       Lisp_Object orig_defn_macro;
 
@@ -8644,7 +8643,7 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
 		      < width
 		      || !notfirst)
 		    {
-		      int thiswidth;
+		      ptrdiff_t thiswidth;
 
 		      /* Punctuate between strings.  */
 		      if (notfirst)
@@ -8660,9 +8659,7 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
 		      if (! char_matches)
 			{
 			  /* Add as much of string as fits.  */
-			  thiswidth = SCHARS (desc);
-			  if (thiswidth + i > width)
-			    thiswidth = width - i;
+			  thiswidth = min (SCHARS (desc), width - i);
 			  memcpy (menu + i, SDATA (desc), thiswidth);
 			  i += thiswidth;
 			  strcpy (menu + i, " = ");
@@ -8670,9 +8667,7 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
 			}
 
 		      /* Add as much of string as fits.  */
-		      thiswidth = SCHARS (s);
-		      if (thiswidth + i > width)
-			thiswidth = width - i;
+		      thiswidth = min (SCHARS (s), width - i);
 		      memcpy (menu + i, SDATA (s), thiswidth);
 		      i += thiswidth;
 		      menu[i] = 0;
@@ -8747,10 +8742,10 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
    NEXT may be the same array as CURRENT.  */
 
 static int
-follow_key (Lisp_Object key, int nmaps, Lisp_Object *current, Lisp_Object *defs,
-	    Lisp_Object *next)
+follow_key (Lisp_Object key, ptrdiff_t nmaps, Lisp_Object *current,
+	    Lisp_Object *defs, Lisp_Object *next)
 {
-  int i, first_binding;
+  ptrdiff_t i, first_binding;
 
   first_binding = nmaps;
   for (i = nmaps - 1; i >= 0; i--)
@@ -8960,8 +8955,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 
   /* The number of keymaps we're scanning right now, and the number of
      keymaps we have allocated space for.  */
-  int nmaps;
-  int nmaps_allocated = 0;
+  ptrdiff_t nmaps;
+  ptrdiff_t nmaps_allocated = 0;
 
   /* defs[0..nmaps-1] are the definitions of KEYBUF[0..t-1] in
      the current keymaps.  */
@@ -8985,7 +8980,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
   /* The index in submaps[] of the first keymap that has a binding for
      this key sequence.  In other words, the lowest i such that
      submaps[i] is non-nil.  */
-  int first_binding;
+  ptrdiff_t first_binding;
   /* Index of the first key that has no binding.
      It is useless to try fkey.start larger than that.  */
   int first_unbound;
@@ -9146,8 +9141,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
     }
   else
     {
-      int nminor;
-      int total;
+      ptrdiff_t nminor;
+      ptrdiff_t total;
       Lisp_Object *maps;
 
       nminor = current_minor_maps (0, &maps);
@@ -9213,7 +9208,8 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 	 echo_local_start and keys_local_start allow us to throw away
 	 just one key.  */
       int echo_local_start IF_LINT (= 0);
-      int keys_local_start, local_first_binding;
+      int keys_local_start;
+      ptrdiff_t local_first_binding;
 
       eassert (indec.end == t || (indec.end > t && indec.end <= mock_input));
       eassert (indec.start <= indec.end);

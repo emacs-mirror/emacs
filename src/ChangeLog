@@ -1,5 +1,14 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* keyboard.c: Integer and memory overflow fixes.
+	(read_char, menu_bar_items, tool_bar_items, read_char_x_menu_prompt)
+	(read_char_minibuf_menu_width, read_char_minibuf_menu_prompt)
+	(follow_key, read_key_sequence): Use ptrdiff_t, not int, to count maps.
+	(read_char_minibuf_menu_prompt): Check for overflow in size
+	calculations.  Don't update size until allocation succeeds.  Redo
+	calculations to avoid overflow.
+	* keyboard.h: Change prototypes to match the above.
+
 	* image.c: Integer and memory overflow fixes.
 	(RANGED_INTEGERP, TYPE_RANGED_INTEGERP): Remove; these are duplicate
 	now that they've been promoted to lisp.h.
