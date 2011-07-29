@@ -1,5 +1,8 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* minibuf.c (read_minibuf_noninteractive): Don't leak memory
+	on memory overflow.
+
 	* macros.c: Integer and memory overflow fixes.
 	(Fstart_kbd_macro): Don't update size until alloc done.
 	(store_kbd_macro_char): Reorder multiplicands to avoid overflow.
