@@ -1,5 +1,51 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xselect.c: Integer and memory overflow issues.
+	(X_LONG_SIZE, X_USHRT_MAX, X_ULONG_MAX): New macros.
+	Use them to make the following changes clearer.
+	(MAX_SELECTION_QUANTUM): Make the other bounds on this value clearer.
+	This change doesn't affect the value now, but it may help remind
+	future maintainers not to raise the value too much later.
+	(SELECTION_QUANTUM): Remove, replacing with ...
+	(selection_quantum): ... new function, which avoids overflow.
+	All uses changed.
+	(struct selection_data.size): Now ptrdiff_t, not int, to avoid
+	assumption that selection length fits in 'int'.
+	(x_reply_selection_request, x_handle_selection_request)
+	(x_get_window_property, receive_incremental_selection)
+	(x_get_window_property_as_lisp_data, selection_data_to_lisp_data)
+	(lisp_data_to_selection_data, clean_local_selection_data):
+	Use ptrdiff_t, not int, to record length of selection.
+	(x_reply_selection_request, x_get_window_property)
+	(receive_incremental_selection, x_property_data_to_lisp):
+	Redo calculations to avoid overflow.
+	(x_reply_selection_request): When sending hint, ceiling it at
+	X_ULONG_MAX rather than relying on wraparound overflow to send
+	something.
+	(x_get_window_property, receive_incremental_selection)
+	(lisp_data_to_selection_data, x_property_data_to_lisp):
+	Check for size-calculation overflow.
+	(x_get_window_property, receive_incremental_selection)
+	(lisp_data_to_selection_data, Fx_register_dnd_atom):
+	Don't store size until memory allocation succeeds.
+	(x_get_window_property): Plug memory leak on memory exhaustion.
+	Don't double-block input; malloc is safe here.  Don't assume 2**34
+	- 4 fits in unsigned long.  Add an xassert to check
+	XGetWindowProperty overflow.  Be more careful about overflow
+	calculations, and distinguish size from memory overflow better.
+	(receive_incremental_selection): When tracing, don't assume
+	unsigned int is less than INT_MAX.
+	(x_selection_data_to_lisp_data): Remove unnecessary (and in theory
+	harmful) conversions of unsigned short to int.
+	(lisp_data_to_selection_data): Don't assume that integers
+	in the range -65535 through -1 fit in an X unsigned short.
+	Don't assume that ULONG_MAX == X_ULONG_MAX.  Don't store into
+	result parameters unless successful.  Rely on cons_to_unsigned
+	to report problems with elements; the old code wasn't right anyway.
+	(x_check_property_data): Check for int overflow; we cannot use
+	a wider type due to X limits.
+	(x_handle_dnd_message): Use unsigned int, to avoid int overflow.
+
 	* xrdb.c: Integer and memory overflow issues.
 	(magic_file_p): Plug memory leak on size overflow.
 	(get_environ_db): Don't assume path length fits in int,
