@@ -3567,6 +3567,12 @@ format; see the description of ADDRESS in `make-network-process'.  */)
     return Qnil;
 
  again:
+  if (min (INT_MAX, min (PTRDIFF_MAX, SIZE_MAX)) / sizeof *ifreqs - 25
+      < ifaces)
+    {
+      xfree (ifreqs);
+      memory_full (SIZE_MAX);
+    }
   ifaces += 25;
   buf_size = ifaces * sizeof (ifreqs[0]);
   ifreqs = (struct ifreq *)xrealloc(ifreqs, buf_size);

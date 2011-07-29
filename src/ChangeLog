@@ -1,5 +1,8 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* process.c (Fnetwork_interface_list): Check for overflow
+	in size calculation.
+
 	* nsterm.h (struct ns_color_table.size, struct ns_color_table.avail):
 	Now ptrdiff_t, not int.
 	* nsterm.m (ns_index_color): Use ptrdiff_t, not int, for table indexes.
