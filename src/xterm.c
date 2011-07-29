@@ -1625,19 +1625,21 @@ x_color_cells (Display *dpy, int *ncells)
   if (dpyinfo->color_cells == NULL)
     {
       Screen *screen = dpyinfo->screen;
+      int ncolor_cells = XDisplayCells (dpy, XScreenNumberOfScreen (screen));
       int i;
 
-      dpyinfo->ncolor_cells
-	= XDisplayCells (dpy, XScreenNumberOfScreen (screen));
+      if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (XColor) < ncolor_cells)
+	memory_full (SIZE_MAX);
       dpyinfo->color_cells
-	= (XColor *) xmalloc (dpyinfo->ncolor_cells
+	= (XColor *) xmalloc (ncolor_cells
 			      * sizeof *dpyinfo->color_cells);
+      dpyinfo->ncolor_cells = ncolor_cells;
 
-      for (i = 0; i < dpyinfo->ncolor_cells; ++i)
+      for (i = 0; i < ncolor_cells; ++i)
 	dpyinfo->color_cells[i].pixel = i;
 
       XQueryColors (dpy, dpyinfo->cmap,
-		    dpyinfo->color_cells, dpyinfo->ncolor_cells);
+		    dpyinfo->color_cells, ncolor_cells);
     }
 
   *ncells = dpyinfo->ncolor_cells;
@@ -5817,7 +5819,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
   } inev;
   int count = 0;
   int do_help = 0;
-  int nbytes = 0;
+  ptrdiff_t nbytes = 0;
   struct frame *f = NULL;
   struct coding_system coding;
   XEvent event = *eventptr;
@@ -6515,7 +6517,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 	    }
 
 	  {	/* Raw bytes, not keysym.  */
-	    register int i;
+	    ptrdiff_t i;
 	    int nchars, len;
 
 	    for (i = 0, nchars = 0; i < nbytes; i++)
@@ -6528,7 +6530,11 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 	    if (nchars < nbytes)
 	      {
 		/* Decode the input data.  */
-		int require;
+		ptrdiff_t require;
+
+		if (min (PTRDIFF_MAX, SIZE_MAX) / MAX_MULTIBYTE_LENGTH
+		    < nbytes)
+		  memory_full (SIZE_MAX);
 
 		/* The input should be decoded with `coding_system'
 		   which depends on which X*LookupString function
@@ -9826,6 +9832,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   struct x_display_info *dpyinfo;
   XrmDatabase xrdb;
   Mouse_HLInfo *hlinfo;
+  ptrdiff_t lim;
 
   BLOCK_INPUT;
 
@@ -10044,12 +10051,15 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   XSetAfterFunction (x_current_display, x_trace_wire);
 #endif /* ! 0 */
 
+  lim = min (PTRDIFF_MAX, SIZE_MAX) - sizeof "@";
+  if (lim - SBYTES (Vinvocation_name) < SBYTES (Vsystem_name))
+    memory_full (SIZE_MAX);
   dpyinfo->x_id_name
     = (char *) xmalloc (SBYTES (Vinvocation_name)
 			+ SBYTES (Vsystem_name)
 			+ 2);
-  sprintf (dpyinfo->x_id_name, "%s@%s",
-	   SSDATA (Vinvocation_name), SSDATA (Vsystem_name));
+  strcat (strcat (strcpy (dpyinfo->x_id_name, SSDATA (Vinvocation_name)), "@"),
+	  SSDATA (Vsystem_name));
 
   /* Figure out which modifier bits mean what.  */
   x_find_modifier_meanings (dpyinfo);

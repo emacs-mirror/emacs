@@ -1,5 +1,13 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xterm.c: Integer and memory overflow issues.
+	(x_color_cells, handle_one_xevent, x_term_init):
+	Check for size calculation overflow.
+	(x_color_cells): Don't store size until memory allocation succeeds.
+	(handle_one_xevent): Use ptrdiff_t, not int, for byte counts.
+	(x_term_init): Don't assume length fits in int (sprintf is limited
+	to int size).
+
 	* xsmfns.c (smc_save_yourself_CB): Check for size calc overflow.
 
 	* xselect.c: Integer and memory overflow issues.
