@@ -1,5 +1,10 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* sysdep.c: Integer and memory overflow issues.
+	(system_process_attributes): Use ptrdiff_t, not int, for command
+	line length.  Do not attempt to address one before the beginning
+	of an array, as that's not portable.
+
 	* search.c: Integer and memory overflow fixes.
 	(Freplace_match): Check for size calculation overflow.
 	(Fset_match_data): Don't assume list lengths fit in 'int'.
