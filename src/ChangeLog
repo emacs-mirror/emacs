@@ -1,5 +1,9 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* scroll.c: Integer and memory overflow fixes.
+	(do_line_insertion_deletion_costs): Check for size calculation overflow.
+	Don't bother calling xmalloc when xrealloc will do.
+
 	* region-cache.c (move_cache_gap): Check for size calculation overflow.
 
 	* process.c (Fnetwork_interface_list): Check for overflow
