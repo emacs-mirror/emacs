@@ -1053,9 +1053,13 @@ check_image_size (struct frame *f, int width, int height)
 	    && height <= XINT (Vmax_image_size));
   else if (FLOATP (Vmax_image_size))
     {
-      xassert (f);
-      w = FRAME_PIXEL_WIDTH (f);
-      h = FRAME_PIXEL_HEIGHT (f);
+      if (f != NULL)
+	{
+	  w = FRAME_PIXEL_WIDTH (f);
+	  h = FRAME_PIXEL_HEIGHT (f);
+	}
+      else
+	w = h = 1024;  /* Arbitrary size for unknown frame. */
       return (width <= XFLOAT_DATA (Vmax_image_size) * w
 	      && height <= XFLOAT_DATA (Vmax_image_size) * h);
     }

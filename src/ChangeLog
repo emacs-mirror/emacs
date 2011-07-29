@@ -1,3 +1,8 @@
+2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (check_image_size): Use 1024x1024 if unknown frame (Bug#9189).
+	This is needed if max-image-size is a floating-point number.
+
 2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* print.c (print_object): Print empty symbol as ##.
