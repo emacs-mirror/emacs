@@ -1,5 +1,7 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xsmfns.c (smc_save_yourself_CB): Check for size calc overflow.
+
 	* xselect.c: Integer and memory overflow issues.
 	(X_LONG_SIZE, X_USHRT_MAX, X_ULONG_MAX): New macros.
 	Use them to make the following changes clearer.
