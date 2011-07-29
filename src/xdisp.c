@@ -10252,8 +10252,12 @@ store_mode_line_noprop_char (char c)
      double the buffer's size.  */
   if (mode_line_noprop_ptr == mode_line_noprop_buf_end)
     {
-      int len = MODE_LINE_NOPROP_LEN (0);
-      int new_size = 2 * len * sizeof *mode_line_noprop_buf;
+      ptrdiff_t len = MODE_LINE_NOPROP_LEN (0);
+      ptrdiff_t new_size;
+
+      if (STRING_BYTES_BOUND / 2 < len)
+	memory_full (SIZE_MAX);
+      new_size = 2 * len;
       mode_line_noprop_buf = (char *) xrealloc (mode_line_noprop_buf, new_size);
       mode_line_noprop_buf_end = mode_line_noprop_buf + new_size;
       mode_line_noprop_ptr = mode_line_noprop_buf + len;
@@ -10317,9 +10321,9 @@ x_consider_frame_title (Lisp_Object frame)
       /* Do we have more than one visible frame on this X display?  */
       Lisp_Object tail;
       Lisp_Object fmt;
-      int title_start;
+      ptrdiff_t title_start;
       char *title;
-      int len;
+      ptrdiff_t len;
       struct it it;
       int count = SPECPDL_INDEX ();
 
