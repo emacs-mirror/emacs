@@ -1,5 +1,11 @@
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* tparam.c: Integer and memory overflow fixes.
+	(tparam1): Use ptrdiff_t, not int, for sizes.
+	Don't update size until alloc done.
+	Redo size calculations to avoid overflow.
+	Check for size calculation overflow.
+
 	* termcap.c: Integer and memory overflow issues.
 	(tgetent): Use ptrdiff_t, not int, to record results of
 	subtracting pointers.

@@ -79,33 +79,38 @@ tparam1 (const char *string, char *outstring, int len,
   register const char *p = string;
   register char *op = outstring;
   char *outend;
-  int outlen = 0;
+  char *new = 0;
+  ptrdiff_t outlen = 0;
 
   register int tem;
   int *old_argp = argp;                 /* can move */
   int *fixed_argp = argp;               /* never moves */
   int explicit_param_p = 0;             /* set by %p */
-  int doleft = 0;
-  int doup = 0;
+  ptrdiff_t doleft = 0;
+  ptrdiff_t doup = 0;
+  ptrdiff_t append_len = 0;
 
   outend = outstring + len;
 
   while (1)
     {
       /* If the buffer might be too short, make it bigger.  */
-      if (op + 5 >= outend)
+      while (outend - op - append_len <= 5)
 	{
-	  register char *new;
-	  int offset = op - outstring;
+	  ptrdiff_t offset = op - outstring;
 
 	  if (outlen == 0)
 	    {
+	      if (min (PTRDIFF_MAX, SIZE_MAX) - 40 < len)
+		goto out_of_memory;
 	      outlen = len + 40;
 	      new = (char *) xmalloc (outlen);
 	      memcpy (new, outstring, offset);
 	    }
 	  else
 	    {
+	      if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < outlen)
+		goto out_of_memory;
 	      outlen *= 2;
 	      new = (char *) xrealloc (outstring, outlen);
 	    }
@@ -167,11 +172,19 @@ tparam1 (const char *string, char *outstring, int len,
 		     and this is one of them, increment it.  */
 		  while (tem == 0 || tem == '\n' || tem == '\t')
 		    {
+		      ptrdiff_t append_len_incr;
 		      tem++;
 		      if (argp == old_argp)
-			doup++, outend -= strlen (up);
+			doup++, append_len_incr = strlen (up);
 		      else
-			doleft++, outend -= strlen (left);
+			doleft++, append_len_incr = strlen (left);
+		      if (PTRDIFF_MAX - append_len < append_len_incr)
+			{
+			out_of_memory:
+			  xfree (new);
+			  memory_full (SIZE_MAX);
+			}
+		      append_len += append_len_incr;
 		    }
 		}
 	      *op++ = tem ? tem : 0200;
