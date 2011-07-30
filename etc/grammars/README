@@ -1,0 +1,18 @@
+This directory contains grammar files in Bison and Wisent, used to
+generate the parser data in the lisp/semantic/bovine/ and
+lisp/semantic/wisent/ directories.  You can run the parser generators
+with
+
+emacs -batch --no-site-file \
+ -l semantic/bovine -l semantic/wisent -l semantic/grammar \
+ -l semantic/lex -l bovine-grammar.el \
+ -f semantic-mode -f semantic-grammar-batch-build-packages *.by
+
+emacs -batch --no-site-file \
+ -l semantic/bovine -l semantic/wisent -l semantic/grammar \
+ -l semantic/lex -l wisent-grammar.el \
+ -f semantic-mode -f semantic-grammar-batch-build-packages *.wy
+
+Currently, the parser files in lisp/ are not generated directly from
+these grammar files when making Emacs.  This state of affairs, and the
+contents of this directory, will change in a future version of Emacs.
