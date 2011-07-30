@@ -436,4 +436,4 @@ Menu items are appended to the common grammar menu.")
 
 (provide 'semantic/bovine/grammar)
 
-;;; semantic/bovine/grammar.el ends here
+;;; bovine-grammar.el ends here
