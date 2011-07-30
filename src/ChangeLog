@@ -1,3 +1,9 @@
+2011-07-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* regex.c (re_comp): Protoize.
+	(re_exec): Fix return type.
+	(regexec): Fix type of `ret'.  (Bug#9203)
+
 2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* image.c (check_image_size): Use 1024x1024 if unknown frame (Bug#9189).

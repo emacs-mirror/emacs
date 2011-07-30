@@ -6381,8 +6381,7 @@ char *
    regcomp/regexec below without link errors.  */
 weak_function
 # endif
-re_comp (s)
-    const char *s;
+re_comp (const char *s)
 {
   reg_errcode_t ret;
 
@@ -6421,7 +6420,7 @@ re_comp (s)
 }
 
 
-regoff_t
+int
 # ifdef _LIBC
 weak_function
 # endif
@@ -6558,7 +6557,7 @@ reg_errcode_t
 regexec (const regex_t *__restrict preg, const char *__restrict string,
 	 size_t nmatch, regmatch_t pmatch[__restrict_arr], int eflags)
 {
-  reg_errcode_t ret;
+  regoff_t ret;
   struct re_registers regs;
   regex_t private_preg;
   size_t len = strlen (string);
