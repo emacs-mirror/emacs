@@ -86,7 +86,7 @@
 ;; Settings
 ;; --------
 
-%package python-wy
+%package wisent-python-wy
 
 %languagemode python-mode
 

@@ -22,7 +22,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-%package java-tags-wy
+%package wisent-java-tags-wy
 
 %languagemode  java-mode
 
@@ -733,17 +733,17 @@ It ignores whitespaces, newlines and comments."
   semantic-lex-ignore-newline
   semantic-lex-ignore-comments
   ;;;; Auto-generated analyzers.
-  semantic/wisent/java-tags-wy--<number>-regexp-analyzer
-  semantic/wisent/java-tags-wy--<string>-sexp-analyzer
+  wisent-java-tags-wy--<number>-regexp-analyzer
+  wisent-java-tags-wy--<string>-sexp-analyzer
   ;; Must detect keywords before other symbols
-  semantic/wisent/java-tags-wy--<keyword>-keyword-analyzer
-  semantic/wisent/java-tags-wy--<symbol>-regexp-analyzer
-  semantic/wisent/java-tags-wy--<punctuation>-string-analyzer
-  semantic/wisent/java-tags-wy--<block>-block-analyzer
+  wisent-java-tags-wy--<keyword>-keyword-analyzer
+  wisent-java-tags-wy--<symbol>-regexp-analyzer
+  wisent-java-tags-wy--<punctuation>-string-analyzer
+  wisent-java-tags-wy--<block>-block-analyzer
   ;; In theory, unicode chars should be turned into normal chars
   ;; and then combined into regular ascii keywords and text.  This
   ;; analyzer just keeps these things from making the lexer go boom.
-  semantic/wisent/java-tags-wy--<unicode>-regexp-analyzer
+  wisent-java-tags-wy--<unicode>-regexp-analyzer
   ;;;;
   semantic-lex-default-action)
 

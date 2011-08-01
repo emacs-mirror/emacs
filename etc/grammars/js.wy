@@ -1,7 +1,7 @@
 ;;; javascript-jv.wy -- LALR grammar for Javascript
 
 ;; Copyright (C) 2005-2011 Free Software Foundation, Inc.
-;; Copyright (C) Ecma International.
+;; Copyright (C) 1998-2011 Ecma International.
 
 ;; Author: Joakim Verona
 
@@ -57,7 +57,7 @@
 ;; USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 ;; DAMAGE.
 
-%package javascript-jv-wy
+%package wisent-javascript-jv-wy
 ;; JAVE I prefere ecmascript-mode
 %languagemode ecmascript-mode javascript-mode
 
@@ -509,14 +509,14 @@ OptionalExpression : Expression
   semantic-lex-ignore-comments
 
   ;;stuff generated from the wy file(one for each "type" declaration)
-  semantic/wisent/javascript-jv-wy--<number>-regexp-analyzer
-  semantic/wisent/javascript-jv-wy--<string>-sexp-analyzer
+  wisent-javascript-jv-wy--<number>-regexp-analyzer
+  wisent-javascript-jv-wy--<string>-sexp-analyzer
 
-  semantic/wisent/javascript-jv-wy--<keyword>-keyword-analyzer
+  wisent-javascript-jv-wy--<keyword>-keyword-analyzer
 
-  semantic/wisent/javascript-jv-wy--<symbol>-regexp-analyzer
-  semantic/wisent/javascript-jv-wy--<punctuation>-string-analyzer
-  semantic/wisent/javascript-jv-wy--<block>-block-analyzer
+  wisent-javascript-jv-wy--<symbol>-regexp-analyzer
+  wisent-javascript-jv-wy--<punctuation>-string-analyzer
+  wisent-javascript-jv-wy--<block>-block-analyzer
 
 
   ;;;;more std stuff

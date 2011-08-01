@@ -26,8 +26,12 @@
 ;; Major mode for editing Wisent's input grammar (.wy) files.
 
 ;;; Code:
+(require 'semantic)
 (require 'semantic/grammar)
 (require 'semantic/find)
+(require 'semantic/lex)
+(require 'semantic/wisent)
+(require 'semantic/bovine)
 
 (defsubst wisent-grammar-region-placeholder (symb)
   "Given a $N placeholder symbol in SYMB, return a $regionN symbol.

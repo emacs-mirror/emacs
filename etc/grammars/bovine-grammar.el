@@ -32,6 +32,9 @@
 (require 'semantic)
 (require 'semantic/grammar)
 (require 'semantic/find)
+(require 'semantic/lex)
+(require 'semantic/wisent)
+(require 'semantic/bovine)
 
 (defun bovine-grammar-EXPAND (bounds nonterm)
   "Expand call to EXPAND grammar macro.
@@ -112,7 +115,6 @@ FORM is a list in which we are substituting.
 Argument QUOTEMODE is non-nil if we are in backquote mode.
 When non-nil, optional argument INPLACE indicates that FORM is being
 expanded from elsewhere."
-  (when (listp form)
   (when (eq (car form) 'quote)
     (setq form (cdr form))
     (cond
@@ -218,7 +220,7 @@ expanded from elsewhere."
          ))
       (if inlist (insert ")"))
       (if inplace (insert ")")))
-    )))
+    ))
 
 (defun bovine-grammar-expand-action (textform quotemode)
   "Expand semantic action string TEXTFORM into Lisp code.
@@ -226,7 +228,6 @@ QUOTEMODE is the mode in which quoted symbols are slurred."
   (if (string= "" textform)
       nil
     (let ((sexp (read textform)))
-
       ;; We converted the lambda string into a list.  Now write it
       ;; out as the bovine lambda expression, and do macro-like
       ;; conversion upon it.
@@ -339,7 +340,6 @@ manual."
         (when (member nterm '("bovine-toplevel" "bovine-inner-scope"))
           (error "`%s' is a reserved internal name" nterm))
         (insert "\n(" nterm)
-
         ;; Process each rule
         (while rules
           (setq items (semantic-tag-get-attribute (car rules) :value)
@@ -375,7 +375,6 @@ manual."
                  (t
                   (insert (semantic-grammar-item-text item)))
                  ))))
-
           (if prec
               (message "%%prec %S ignored" prec))
           (if actn

@@ -3,15 +3,17 @@ generate the parser data in the lisp/semantic/bovine/ and
 lisp/semantic/wisent/ directories.  You can run the parser generators
 with
 
-emacs -batch --no-site-file \
- -l semantic/bovine -l semantic/wisent -l semantic/grammar \
- -l semantic/lex -l bovine-grammar.el \
- -f semantic-mode -f semantic-grammar-batch-build-packages *.by
+emacs -batch --no-site-file -l bovine-grammar.el -f semantic-mode \
+ -f semantic-grammar-batch-build-packages *.by
 
-emacs -batch --no-site-file \
- -l semantic/bovine -l semantic/wisent -l semantic/grammar \
- -l semantic/lex -l wisent-grammar.el \
- -f semantic-mode -f semantic-grammar-batch-build-packages *.wy
+emacs -batch --no-site-file -l wisent-grammar.el -f semantic-mode \
+ -f semantic-grammar-batch-build-packages *.wy
+
+The output files were subsequently edited by hand to fix copyright
+headers, variable names (to follow library name conventions), and
+feature names.  These changes do not alter the code logic, and can be
+viewed by diffing to the files in lisp/semantic/bovine/ and
+lisp/semantic/wisent/.
 
 Currently, the parser files in lisp/ are not generated directly from
 these grammar files when making Emacs.  This state of affairs, and the
