@@ -1,3 +1,7 @@
+2011-08-01  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-handler-333): Clarify docstring.
+
 2011-07-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.2.2.
