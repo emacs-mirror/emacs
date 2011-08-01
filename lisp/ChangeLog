@@ -1,3 +1,12 @@
+2011-08-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-in-window): Don't set dedicated status
+	of window here (Bug#9215).
+	(display-buffer-pop-up-window, display-buffer-pop-up-frame)
+	(display-buffer-pop-up-side-window)
+	(display-buffer-in-side-window): Set dedicated status of window
+	here.
+
 2011-08-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/package.el (package-generate-autoloads): Load autoloads
