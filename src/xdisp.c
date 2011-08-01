@@ -5730,29 +5730,36 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
 	{
 	  if (IT_STRING_CHARPOS (*it) > 0)
 	    {
-	      --IT_STRING_CHARPOS (*it);
-	      --IT_STRING_BYTEPOS (*it);
-	      if (it->bidi_p)
+	      if (!it->bidi_p)
+		{
+		  --IT_STRING_CHARPOS (*it);
+		  --IT_STRING_BYTEPOS (*it);
+		}
+	      else
 		{
 		  /* We need to restore the bidi iterator to the state
-		     it had on the newline.  */
+		     it had on the newline, and resync the IT's
+		     position with that.  */
 		  it->bidi_it = bidi_it_prev;
-		  xassert (IT_STRING_CHARPOS (*it) == it->bidi_it.charpos
-			   && IT_STRING_BYTEPOS (*it) == it->bidi_it.bytepos);
+		  IT_STRING_CHARPOS (*it) = it->bidi_it.charpos;
+		  IT_STRING_BYTEPOS (*it) = it->bidi_it.bytepos;
 		}
 	    }
 	}
       else if (IT_CHARPOS (*it) > BEGV)
 	{
-	  --IT_CHARPOS (*it);
-	  --IT_BYTEPOS (*it);
-	  if (it->bidi_p)
+	  if (!it->bidi_p)
+	    {
+	      --IT_CHARPOS (*it);
+	      --IT_BYTEPOS (*it);
+	    }
+	  else
 	    {
 	      /* We need to restore the bidi iterator to the state it
-		 had on the newline.  */
+		 had on the newline and resync IT with that.  */
 	      it->bidi_it = bidi_it_prev;
-	      xassert (IT_CHARPOS (*it) == it->bidi_it.charpos
-		       && IT_BYTEPOS (*it) == it->bidi_it.bytepos);
+	      IT_CHARPOS (*it) = it->bidi_it.charpos;
+	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	    }
 	  reseat (it, it->current.pos, 0);
 	}
