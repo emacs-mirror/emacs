@@ -1,3 +1,12 @@
+2011-08-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (forward_to_next_line_start): Accept additional argument
+	BIDI_IT_PREV, and store into it the state of the bidi iterator had
+	on the newline.
+	(reseat_at_next_visible_line_start): Use the bidi iterator state
+	returned by forward_to_next_line_start to restore the state of
+	it->bidi_it after backing up to previous newline.  (Bug#9212)
+
 2011-07-30  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* regex.c (re_comp): Protoize.

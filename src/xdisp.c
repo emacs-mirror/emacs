@@ -899,7 +899,7 @@ static void init_to_row_start (struct it *, struct window *,
 static int init_to_row_end (struct it *, struct window *,
                             struct glyph_row *);
 static void back_to_previous_line_start (struct it *);
-static int forward_to_next_line_start (struct it *, int *);
+static int forward_to_next_line_start (struct it *, int *, struct bidi_it *);
 static struct text_pos string_pos_nchars_ahead (struct text_pos,
                                                 Lisp_Object, EMACS_INT);
 static struct text_pos string_pos (EMACS_INT, Lisp_Object);
@@ -5494,6 +5494,9 @@ back_to_previous_line_start (struct it *it)
    continuously over the text).  Otherwise, don't change the value
    of *SKIPPED_P.
 
+   If BIDI_IT_PREV is non-NULL, store into it the state of the bidi
+   iterator on the newline, if it was found.
+
    Newlines may come from buffer text, overlay strings, or strings
    displayed via the `display' property.  That's the reason we can't
    simply use find_next_newline_no_quit.
@@ -5506,7 +5509,8 @@ back_to_previous_line_start (struct it *it)
    leads to wrong cursor motion.  */
 
 static int
-forward_to_next_line_start (struct it *it, int *skipped_p)
+forward_to_next_line_start (struct it *it, int *skipped_p,
+			    struct bidi_it *bidi_it_prev)
 {
   EMACS_INT old_selective;
   int newline_found_p, n;
@@ -5518,6 +5522,8 @@ forward_to_next_line_start (struct it *it, int *skipped_p)
       && it->c == '\n'
       && CHARPOS (it->position) == IT_CHARPOS (*it))
     {
+      if (it->bidi_p && bidi_it_prev)
+	*bidi_it_prev = it->bidi_it;
       set_iterator_to_next (it, 0);
       it->c = 0;
       return 1;
@@ -5539,6 +5545,8 @@ forward_to_next_line_start (struct it *it, int *skipped_p)
       if (!get_next_display_element (it))
 	return 0;
       newline_found_p = it->what == IT_CHARACTER && it->c == '\n';
+      if (newline_found_p && it->bidi_p && bidi_it_prev)
+	*bidi_it_prev = it->bidi_it;
       set_iterator_to_next (it, 0);
     }
 
@@ -5573,6 +5581,8 @@ forward_to_next_line_start (struct it *it, int *skipped_p)
 		 && !newline_found_p)
 	    {
 	      newline_found_p = ITERATOR_AT_END_OF_LINE_P (it);
+	      if (newline_found_p && it->bidi_p && bidi_it_prev)
+		*bidi_it_prev = it->bidi_it;
 	      set_iterator_to_next (it, 0);
 	    }
 	}
@@ -5696,8 +5706,9 @@ static void
 reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
 {
   int newline_found_p, skipped_p = 0;
+  struct bidi_it bidi_it_prev;
 
-  newline_found_p = forward_to_next_line_start (it, &skipped_p);
+  newline_found_p = forward_to_next_line_start (it, &skipped_p, &bidi_it_prev);
 
   /* Skip over lines that are invisible because they are indented
      more than the value of IT->selective.  */
@@ -5708,7 +5719,8 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
       {
 	xassert (IT_BYTEPOS (*it) == BEGV
 		 || FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
-	newline_found_p = forward_to_next_line_start (it, &skipped_p);
+	newline_found_p =
+	  forward_to_next_line_start (it, &skipped_p, &bidi_it_prev);
       }
 
   /* Position on the newline if that's what's requested.  */
@@ -5718,29 +5730,30 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
 	{
 	  if (IT_STRING_CHARPOS (*it) > 0)
 	    {
-	      if (!it->bidi_p)
+	      --IT_STRING_CHARPOS (*it);
+	      --IT_STRING_BYTEPOS (*it);
+	      if (it->bidi_p)
 		{
-		  --IT_STRING_CHARPOS (*it);
-		  --IT_STRING_BYTEPOS (*it);
+		  /* We need to restore the bidi iterator to the state
+		     it had on the newline.  */
+		  it->bidi_it = bidi_it_prev;
+		  xassert (IT_STRING_CHARPOS (*it) == it->bidi_it.charpos
+			   && IT_STRING_BYTEPOS (*it) == it->bidi_it.bytepos);
 		}
-	      else
-		/* Setting this flag will cause
-		   bidi_move_to_visually_next not to advance, but
-		   instead deliver the current character (newline),
-		   which is what the ON_NEWLINE_P flag wants.  */
-		it->bidi_it.first_elt = 1;
 	    }
 	}
       else if (IT_CHARPOS (*it) > BEGV)
 	{
-	  if (!it->bidi_p)
+	  --IT_CHARPOS (*it);
+	  --IT_BYTEPOS (*it);
+	  if (it->bidi_p)
 	    {
-	      --IT_CHARPOS (*it);
-	      --IT_BYTEPOS (*it);
+	      /* We need to restore the bidi iterator to the state it
+		 had on the newline.  */
+	      it->bidi_it = bidi_it_prev;
+	      xassert (IT_CHARPOS (*it) == it->bidi_it.charpos
+		       && IT_BYTEPOS (*it) == it->bidi_it.bytepos);
 	    }
-	  /* With bidi iteration, the call to `reseat' will cause
-	     bidi_move_to_visually_next deliver the current character,
-	     the newline, instead of advancing.  */
 	  reseat (it, it->current.pos, 0);
 	}
     }
