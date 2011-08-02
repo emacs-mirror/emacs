@@ -282,7 +282,7 @@ Not documented
 ;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
 ;;;;;;  do* do loop return-from return block etypecase typecase ecase
 ;;;;;;  case load-time-value eval-when destructuring-bind function*
-;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "9f551dc739a39b3c8b420fbd1ab71879")
+;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "9452c0e16fd960fce5c19e5c067a7160")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -541,7 +541,13 @@ values.  For compatibility, (values A B C) is a synonym for (list A B C).
 \(fn TYPE FORM)" nil (quote macro))
 
 (autoload 'declare "cl-macs" "\
+Declare SPECS about the current function while compiling.
+For instance
 
+  (declare (warn 0))
+
+will turn off byte-compile warnings in the function.
+See Info node `(cl)Declarations' for details.
 
 \(fn &rest SPECS)" nil (quote macro))
 

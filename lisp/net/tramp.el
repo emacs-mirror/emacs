@@ -1876,7 +1876,17 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 	    ;; Call the backend function.
 	    (if foreign
 		(condition-case err
-		    (apply foreign operation args)
+		    (let ((sf (symbol-function foreign)))
+		      ;; Some packages set the default directory to a
+		      ;; remote path, before respective Tramp packages
+		      ;; are already loaded.  This results in
+		      ;; recursive loading.  Therefore, we load the
+		      ;; Tramp packages locally.
+		      (when (and (listp sf) (eq (car sf) 'autoload))
+			(let ((default-directory
+				(tramp-compat-temporary-file-directory)))
+			  (load (cadr sf) 'noerror)))
+		      (apply foreign operation args))
 
 		  ;; Trace that somebody has interrupted the operation.
 		  (quit

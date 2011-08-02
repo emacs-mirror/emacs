@@ -32,7 +32,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'jka-compr) (require 'cl))
+(eval-when-compile (require 'cl))
 
 (defgroup info nil
   "Info subsystem."
@@ -2789,6 +2789,11 @@ N is the digit argument used to invoke this command."
 	       (goto-char (point-max)))))
 	(t (error "No previous nodes"))))
 
+(defun Info-beginning-of-buffer ()
+  "Go to the beginnning of the buffer."
+  (interactive)
+  (goto-char (point-min)))
+
 (defun Info-scroll-up ()
   "Scroll one screenful forward in Info, considering all nodes as one sequence.
 Once you scroll far enough in a node that its menu appears on the screen
@@ -3650,7 +3655,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
 (defvar Info-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map)
-    (define-key map "." 'beginning-of-buffer)
+    (define-key map "." 'Info-beginning-of-buffer)
     (define-key map " " 'Info-scroll-up)
     (define-key map "\C-m" 'Info-follow-nearest-node)
     (define-key map "\t" 'Info-next-reference)
@@ -3671,7 +3676,8 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     (define-key map "[" 'Info-backward-node)
     (define-key map "<" 'Info-top-node)
     (define-key map ">" 'Info-final-node)
-    (define-key map "b" 'beginning-of-buffer)
+    (define-key map "b" 'Info-beginning-of-buffer)
+    (put 'Info-beginning-of-buffer :advertised-binding "b")
     (define-key map "d" 'Info-directory)
     (define-key map "e" 'Info-edit)
     (define-key map "f" 'Info-follow-reference)
@@ -3725,7 +3731,7 @@ If FORK is non-nil, it is passed to `Info-goto-node'."
     :help "Go backward one node, considering all as a sequence"]
    ["Forward" Info-forward-node
     :help "Go forward one node, considering all as a sequence"]
-   ["Beginning" beginning-of-buffer
+   ["Beginning" Info-beginning-of-buffer
     :help "Go to beginning of this node"]
    ["Top" Info-top-node
     :help "Go to top node of file"]
@@ -3931,7 +3937,7 @@ Moving within a node:
 \\[Info-scroll-down]	Normally, scroll backward.  If the beginning of the buffer is
 	  already visible, try to go to the previous menu entry, or up
 	  if there is none.
-\\[beginning-of-buffer]	Go to beginning of node.
+\\[Info-beginning-of-buffer]	Go to beginning of node.
 
 Advanced commands:
 \\[Info-search]	Search through this Info file for specified regexp,

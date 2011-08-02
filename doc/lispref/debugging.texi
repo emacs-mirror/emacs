@@ -306,6 +306,16 @@ and it is wise to go back to the backtrace buffer and exit the debugger
 the debugger gets out of the recursive edit and kills the backtrace
 buffer.
 
+  When the debugger has been entered, the @code{debug-on-error}
+variable is temporarily set according to
+@code{eval-expression-debug-on-error}.  If the latter variable is
+non-@code{nil}, @code{debug-on-error} will temporarily be set to
+@code{t}.  This means that any further errors that occur while doing a
+debugging session will (by default) trigger another backtrace.  If
+this is not want you want, you can either set
+@code{eval-expression-debug-on-error} to @code{nil}, or set
+@code{debug-on-error} to @code{nil} in @code{debugger-mode-hook}.
+
 @cindex current stack frame
   The backtrace buffer shows you the functions that are executing and
 their argument values.  It also allows you to specify a stack frame by

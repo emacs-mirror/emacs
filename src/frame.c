@@ -2437,11 +2437,9 @@ use is not recommended.  Explicitly check for a frame-parameter instead.  */)
 	  val = values[i];
 	  store_frame_param (f, prop, val);
 
-	  /* Changing the background color might change the background
-	     mode, so that we have to load new defface specs.
-	     Call frame-set-background-mode to do that.  */
-	  if (EQ (prop, Qbackground_color))
-	    call1 (Qframe_set_background_mode, frame);
+	  if (EQ (prop, Qforeground_color)
+	      || EQ (prop, Qbackground_color))
+	    update_face_from_frame_parameter (f, prop, val);
 	}
     }
   return Qnil;

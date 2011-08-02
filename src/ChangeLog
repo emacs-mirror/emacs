@@ -1,3 +1,190 @@
+2011-07-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsmenu.m (ns_popup_dialog): Add an "ok" button if no buttons
+	are specified (Bug#9168).
+
+2011-07-25  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bidi.c (bidi_dump_cached_states): Fix printf format mismatch.
+	Found by GCC static checking and --with-wide-int on a 32-bit host.
+
+2011-07-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (compute_display_string_pos): Fix logic of caching
+	previous display string position.  Initialize cached_prev_pos to
+	-1.  Fixes slow-down at the beginning of a buffer.
+
+2011-07-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfaces.c (check_lface_attrs) [HAVE_WINDOW_SYSTEM]: Allow `nil'
+	for attrs[LFACE_FONTSET_INDEX].
+
+2011-07-23  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xml.c (parse_region): Remove unused local
+	that was recently introduced.
+
+2011-07-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* xfns.c (unwind_create_frame) [GLYPH_DEBUG]: Adapt to changes in
+	revision 84777 on 2008-02-22.
+
+	* xdisp.c (move_it_in_display_line_to): Record the best matching
+	position for TO_CHARPOS while scanning the line, and restore it on
+	exit if none of the characters scanned was an exact match.  Fixes
+	vertical-motion and pos-visible-in-window-p under bidi redisplay
+	when exact match is impossible due to invisible text, and the
+	lines are truncated.
+
+2011-07-23  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (initFrameFromEmacs): Set NSTitledWindowMask in styleMask
+	for OSX >= 10.7.
+
+2011-07-22  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix a significant slow-down of cursor motion with C-n, C-p,
+	C-f/C-b, and C-v/M-v that couldn't keep up with keyboard
+	auto-repeat under bidi redisplay in fontified buffers.
+	* xdisp.c (compute_stop_pos_backwards): New function.
+	(next_element_from_buffer): Call compute_stop_pos_backwards to
+	find a suitable prev_stop when we find ourselves before
+	base_level_stop.
+	(reseat): Don't look for prev_stop, as that could mean a very long
+	run.
+	<cached_disp_pos, cached_disp_buffer, cached_disp_modiff>
+	<cached_disp_overlay_modiff>: Cache for last found display string
+	position.
+	(compute_display_string_pos): Return the cached position if asked
+	about the same buffer in the same area of character positions, and
+	the buffer wasn't changed since the time the display string
+	position was cached.
+
+2011-07-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (rows_from_pos_range): Don't ignore glyphs whose object
+	is an integer, which is important for empty lines.  (Bug#9149)
+
+2011-07-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Fmodify_frame_parameters): In tty case, update the
+	default face if necessary (Bug#4238).
+
+2011-07-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Fstring_to_char): No need to explain what a character
+	is in the docstring (Bug#6576).
+
+2011-07-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (parse_region): Make sure we always return a tree.
+
+2011-07-20  HAMANO Kiyoto  <khiker.mail@gmail.com>
+
+	* xml.c (parse_region): If a document contains only comments,
+	return that, too.
+
+2011-07-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (make_dom): Return comments, too.
+
+2011-07-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Port to OpenBSD.
+	See http://lists.gnu.org/archive/html/emacs-devel/2011-07/msg00688.html
+	and the surrounding thread.
+	* minibuf.c (read_minibuf_noninteractive): Rewrite to use getchar
+	rather than fgets, and retry after EINTR.  Otherwise, 'emacs
+	--batch -f byte-compile-file' fails on OpenBSD if an inactivity
+	timer goes off.
+	* s/openbsd.h (BROKEN_SIGIO): Define.
+	* unexelf.c (unexec) [__OpenBSD__]:
+	Don't update the .mdebug section of the Alpha COFF symbol table.
+
+2011-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* lread.c (syms_of_lread): Clarify when `lexical-binding' is used
+	(bug#8460).
+
+2011-07-18  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Fcopy_file) [!MSDOS]: Tighten created file's mask.
+	This fixes some race conditions on the permissions of any newly
+	created file.
+
+	* alloc.c (valid_pointer_p): Use pipe, not open.
+	This fixes some permissions issues when debugging.
+
+	* fileio.c (Fcopy_file): Adjust mode if fchown fails.  (Bug#9002)
+	If fchown fails to set both uid and gid, try to set just gid,
+	as that is sometimes allowed.  Adjust the file's mode to eliminate
+	setuid or setgid bits that are inappropriate if fchown fails.
+
+2011-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (next_element_from_string, next_element_from_buffer): Use EQ
+	to compare Lisp_Objects.
+	* gnutls.c (syms_of_gnutls): Rename Vgnutls_log_level to
+	global_gnutls_log_level, don't mistake it for a Lisp_Object.
+	(init_gnutls_functions, emacs_gnutls_handle_error): Fix up uses.
+
+2011-07-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lread.c (read_integer): Unread even EOF character.
+	(read1): Likewise.  Properly record start position of symbol.
+
+	* lread.c (read1): Read `#:' as empty uninterned symbol if no
+	symbol character follows.
+
+2011-07-17  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Fcopy_file): Pacify gcc re fchown.  (Bug#9002)
+	This works around a problem with the previous change to Fcopy_file.
+	Recent glibc declares fchown with __attribute__((warn_unused_result)),
+	and without this change, GCC might complain about discarding
+	fchown's return value.
+
+2011-07-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (GLOBAL_SOURCES): Add gnutls.c (followup to bug#9059).
+
+2011-07-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c (Fcopy_file): Don't diagnose fchown failures.  (Bug#9002)
+
+2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (syms_of_gnutls): Define `gnutls-log-level' here, since
+	it's used from the C level.
+
+	* process.c: Use the same condition for POLL_FOR_INPUT in both
+	keyboard.c and process.c (bug#1858).
+
+2011-07-09  Lawrence Mitchell  <wence@gmx.li>
+
+	* gnutls.c (Qgnutls_bootprop_min_prime_bits): New variable.
+	(Fgnutls_boot): Use it.
+
+2011-07-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* doc.c (Fsubstitute_command_keys): Revert last change.
+
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* doc.c (Fsubstitute_command_keys): Clarify that \= really only
+	quotes the next character, and doesn't affect other longer
+	sequences (bug#8935).
+
+	* lread.c (syms_of_lread): Clarify that is isn't only
+	`eval-buffer' and `eval-defun' that's affected by
+	`lexical-binding' (bug#8460).
+
+2011-07-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): Fix vertical motion with
+	bidi redisplay when a line includes both an image and is
+	truncated.
+
 2011-07-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Fix minor problems found by static checking.
@@ -11,9 +198,6 @@
 	* xdisp.c (reseat_to_string): Fix pointer signedness issue.
 
 2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
-
-	* data.c (Fcdr, Fcar): Revert the last change, since it didn't
-	really clarify much.
 
 	* search.c (Fre_search_backward): Mention `case-fold-search' in
 	all the re_search_* functions (bug#8138).

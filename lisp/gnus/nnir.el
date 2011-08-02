@@ -289,12 +289,16 @@ is `(valuefunc member)'."
   (autoload 'nnimap-buffer "nnimap")
   (autoload 'nnimap-command "nnimap")
   (autoload 'nnimap-possibly-change-group "nnimap")
+  (autoload 'nnimap-make-thread-query "nnimap")
   (autoload 'gnus-registry-action "gnus-registry")
   (defvar gnus-registry-install))
 
 
 (nnoo-declare nnir)
 (nnoo-define-basics nnir)
+
+(defvoo nnir-address nil
+  "The address of the nnir server.")
 
 (gnus-declare-backend "nnir" 'mail)
 
@@ -582,18 +586,17 @@ Add an entry here when adding a new search engine.")
 
 ;; Gnus glue.
 
-(defun gnus-group-make-nnir-group (nnir-extra-parms)
+(defun gnus-group-make-nnir-group (nnir-extra-parms &optional parms)
   "Create an nnir group.  Asks for query."
   (interactive "P")
   (setq nnir-current-query nil
 	nnir-current-server nil
 	nnir-current-group-marked nil
 	nnir-artlist nil)
-  (let* ((query (read-string "Query: " nil 'nnir-search-history))
-	 (parms (list (cons 'query query)))
-	 (srv (if (gnus-server-server-name)
-		  "all"	"")))
-    (add-to-list 'parms (cons 'unique-id (message-unique-id)) t)
+  (let* ((query (unless parms (read-string "Query: " nil 'nnir-search-history)))
+	 (parms (or parms (list (cons 'query query))))
+	 (srv (or (cdr (assq 'server parms)) (gnus-server-server-name) "nnir")))
+   (add-to-list 'parms (cons 'unique-id (message-unique-id)) t)
     (gnus-group-read-ephemeral-group
      (concat "nnir:" (prin1-to-string parms)) (list 'nnir srv) t
      (cons (current-buffer) gnus-current-window-configuration)
@@ -617,7 +620,7 @@ Add an entry here when adding a new search engine.")
                (equal server nnir-current-server)))
       nnir-artlist
     ;; Cache miss.
-    (setq nnir-artlist (nnir-run-query group server)))
+    (setq nnir-artlist (nnir-run-query group)))
   (with-current-buffer nntp-server-buffer
     (setq nnir-current-query group)
     (when server (setq nnir-current-server server))
@@ -1594,14 +1597,13 @@ actually)."
 
 (autoload 'gnus-group-topic-name "gnus-topic")
 
-(defun nnir-run-query (query nserver)
+(defun nnir-run-query (query)
   "Invoke appropriate search engine function (see `nnir-engines').
   If some groups were process-marked, run the query for each of the groups
   and concat the results."
   (let ((q (car (read-from-string query)))
-        (groups (if (string= "all-ephemeral" nserver)
-		    (with-current-buffer gnus-server-buffer
-		      (list (list (gnus-server-server-name))))
+        (groups (if (not (string= "nnir" nnir-address))
+		    (list (list nnir-address))
 		  (nnir-categorize
 		   (or gnus-group-marked
 		       (if (gnus-group-group-name)
@@ -1640,6 +1642,7 @@ server is of form 'backend:name'."
   (let ((method (gnus-server-to-method server)))
     (cond ((and method (assq key (cddr method)))
     	   (nth 1 (assq key (cddr method))))
+	  ((boundp key) (symbol-value key))
     	  (t nil))))
 
 (defun nnir-possibly-change-server (server)
@@ -1647,6 +1650,16 @@ server is of form 'backend:name'."
     (nnir-open-server server)))
 
 
+(defun nnir-search-thread (header)
+  "Make an nnir group based on the thread containing the article header"
+  (let ((parm (list
+	       (cons 'query
+		     (nnimap-make-thread-query header))
+	       (cons 'criteria "")
+	       (cons 'server (gnus-method-to-server
+			      (gnus-find-method-for-group
+			       gnus-newsgroup-name))))))
+    (gnus-group-make-nnir-group nil parm)))
 
 ;; unused?
 (defun nnir-artlist-groups (artlist)

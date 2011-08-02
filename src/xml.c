@@ -71,6 +71,14 @@ make_dom (xmlNode *node)
       else
 	return Qnil;
     }
+  else if (node->type == XML_COMMENT_NODE)
+    {
+      if (node->content)
+	return list3 (intern ("comment"), Qnil,
+		      build_string ((char *) node->content));
+      else
+	return Qnil;
+    }
   else
     return Qnil;
 }
@@ -79,7 +87,6 @@ static Lisp_Object
 parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int htmlp)
 {
   xmlDoc *doc;
-  xmlNode *node;
   Lisp_Object result = Qnil;
   const char *burl = "";
   EMACS_INT bytes;
@@ -117,9 +124,22 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
 
   if (doc != NULL)
     {
-      node = xmlDocGetRootElement (doc);
-      if (node != NULL)
-	result = make_dom (node);
+      xmlNode *n = doc->children->next;
+      Lisp_Object r = Qnil;
+
+      while (n) {
+	if (!NILP (r))
+	  result = Fcons (r, result);
+	r = make_dom (n);
+	n = n->next;
+      }
+
+      if (NILP (result))
+	result = r;
+      else
+	result = Fcons (intern ("top"),
+			Fcons (Qnil, Fnreverse (Fcons (r, result))));
+
       xmlFreeDoc (doc);
       xmlCleanupParser ();
     }

@@ -120,11 +120,6 @@
 ;   '
 (require 'cc-fonts) ;)
 
-;; cc-langs isn't loaded when we're byte compiled, so add autoload
-;; directives for the interface functions.
-(autoload 'c-make-init-lang-vars-fun "cc-langs")
-(autoload 'c-init-language-vars "cc-langs" nil nil 'macro)
-
 
 ;; Other modes and packages which depend on CC Mode should do the
 ;; following to make sure everything is loaded and available for their
