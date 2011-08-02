@@ -326,8 +326,8 @@ struct x_display_info
 
   /* Atoms that are drag and drop atoms */
   Atom *x_dnd_atoms;
-  size_t x_dnd_atoms_size;
-  size_t x_dnd_atoms_length;
+  ptrdiff_t x_dnd_atoms_size;
+  ptrdiff_t x_dnd_atoms_length;
 
   /* Extended window manager hints, Atoms supported by the window manager and
      atoms for settig the window type.  */

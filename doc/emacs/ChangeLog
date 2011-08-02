@@ -1,3 +1,13 @@
+2011-07-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* mini.texi (Minibuffer File): Insert a reference to Tramp for
+	remote file name completion.  (Bug#9197)
+
+2011-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Bidirectional Editing): Document the fact that
+	bidi-display-reordering is t by default.
+
 2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* help.texi (Misc Help): Mention `describe-prefix-bindings'

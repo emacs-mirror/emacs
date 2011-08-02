@@ -1,11 +1,11 @@
 ;;; ob-calc.el --- org-babel functions for calc code evaluation
 
-;; Copyright (C) 2010-2011  Free Software Foundation, Inc
+;; Copyright (C) 2010  Free Software Foundation, Inc
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -29,7 +29,8 @@
 ;;; Code:
 (require 'ob)
 (require 'calc)
-(require 'calc-trail)
+(require 'calc-store)
+(unless (featurep 'xemacs) (require 'calc-trail))
 (eval-when-compile (require 'ob-comint))
 
 (defvar org-babel-default-header-args:calc nil
@@ -68,21 +69,16 @@
 		      ((math-read-number res) (math-read-number res))
 		      ((listp res) (error "calc error \"%s\" on input \"%s\""
 					  (cadr res) line))
-		      (t (calc-eval
-			  (math-evaluate-expr
-			   ;; resolve user variables, calc built in
-			   ;; variables are handled automatically
-			   ;; upstream by calc
-			   (mapcar (lambda (el)
-				     (if (and (consp el) (equal 'var (car el))
-					      (member (cadr el) var-syms))
-					 (progn
-					   (calc-recall (cadr el))
-					   (prog1 (calc-top 1)
-					     (calc-pop 1)))
-				       el))
-				   ;; parse line into calc objects
-				   (car (math-read-exprs line))))))))
+		      (t (replace-regexp-in-string
+			  "'\\[" "["
+			  (calc-eval
+			   (math-evaluate-expr
+			    ;; resolve user variables, calc built in
+			    ;; variables are handled automatically
+			    ;; upstream by calc
+			    (mapcar #'ob-calc-maybe-resolve-var
+				    ;; parse line into calc objects
+				    (car (math-read-exprs line)))))))))
 		   (calc-eval line))))))))
      (mapcar #'org-babel-trim
 	     (split-string (org-babel-expand-body:calc body params) "[\n\r]"))))
@@ -90,7 +86,19 @@
     (with-current-buffer (get-buffer "*Calculator*")
       (calc-eval (calc-top 1)))))
 
+(defvar var-syms) ; Dynamically scoped from org-babel-execute:calc
+(defun ob-calc-maybe-resolve-var (el)
+  (if (consp el)
+      (if (and (equal 'var (car el)) (member (cadr el) var-syms))
+	  (progn
+	    (calc-recall (cadr el))
+	    (prog1 (calc-top 1)
+	      (calc-pop 1)))
+	(mapcar #'ob-calc-maybe-resolve-var el))
+    el))
+
 (provide 'ob-calc)
 
+;; arch-tag: 5c57a3b7-5818-4c6c-acda-7a94831a6449
 
 ;;; ob-calc.el ends here

@@ -1,10 +1,10 @@
 ;;; org-irc.el --- Store links to IRC sessions
 ;;
-;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 ;;
 ;; Author: Philip Jackson <emacs@shellarchive.co.uk>
 ;; Keywords: erc, irc, link, org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -60,6 +60,8 @@
 (declare-function erc-server-buffer "erc" ())
 (declare-function erc-get-server-nickname-list "erc" ())
 (declare-function erc-cmd-JOIN "erc" (channel &optional key))
+(declare-function org-pop-to-buffer-same-window 
+		  "org-compat" (&optional buffer-or-name norecord label))
 
 (defvar org-irc-client 'erc
   "The IRC client to act on.")
@@ -232,7 +234,7 @@ default."
 				      (throw 'found x))))))
 		(if chan-buf
 		    (progn
-		      (switch-to-buffer chan-buf)
+		      (org-pop-to-buffer-same-window chan-buf)
 		      ;; if we got a nick, and they're in the chan,
 		      ;; then start a chat with them
 		      (let ((nick (pop link)))
@@ -243,13 +245,14 @@ default."
 				(insert (concat nick ": ")))
 			      (error "%s not found in %s" nick chan-name)))))
 		    (progn
-		      (switch-to-buffer server-buffer)
+		      (org-pop-to-buffer-same-window server-buffer)
 		      (erc-cmd-JOIN chan-name))))
-	      (switch-to-buffer server-buffer)))
+	      (org-pop-to-buffer-same-window server-buffer)))
 	;; no server match, make new connection
 	(erc-select :server server :port port))))
 
 (provide 'org-irc)
 
+;; arch-tag: 018d7dda-53b8-4a35-ba92-6670939e525a
 
 ;;; org-irc.el ends here

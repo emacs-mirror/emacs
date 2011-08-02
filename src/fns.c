@@ -4098,25 +4098,33 @@ sweep_weak_hash_tables (void)
 #define SXHASH_REDUCE(X) \
   ((((X) ^ (X) >> (BITS_PER_EMACS_INT - FIXNUM_BITS))) & INTMASK)
 
-/* Return a hash for string PTR which has length LEN.  The hash
-   code returned is guaranteed to fit in a Lisp integer.  */
+/* Return a hash for string PTR which has length LEN.  The hash value
+   can be any EMACS_UINT value.  */
 
-static EMACS_UINT
-sxhash_string (unsigned char *ptr, EMACS_INT len)
+EMACS_UINT
+hash_string (char const *ptr, ptrdiff_t len)
 {
-  unsigned char *p = ptr;
-  unsigned char *end = p + len;
+  char const *p = ptr;
+  char const *end = p + len;
   unsigned char c;
   EMACS_UINT hash = 0;
 
   while (p != end)
     {
       c = *p++;
-      if (c >= 0140)
-	c -= 40;
       hash = SXHASH_COMBINE (hash, c);
     }
 
+  return hash;
+}
+
+/* Return a hash for string PTR which has length LEN.  The hash
+   code returned is guaranteed to fit in a Lisp integer.  */
+
+static EMACS_UINT
+sxhash_string (char const *ptr, ptrdiff_t len)
+{
+  EMACS_UINT hash = hash_string (ptr, len);
   return SXHASH_REDUCE (hash);
 }
 
@@ -4231,7 +4239,7 @@ sxhash (Lisp_Object obj, int depth)
       /* Fall through.  */
 
     case Lisp_String:
-      hash = sxhash_string (SDATA (obj), SCHARS (obj));
+      hash = sxhash_string (SSDATA (obj), SBYTES (obj));
       break;
 
       /* This can be everything from a vector to an overlay.  */

@@ -8046,7 +8046,7 @@ $as_echo "#define HAVE_SOUND 1" >>confdefs.h
 fi
 
 for ac_header in sys/select.h sys/time.h unistd.h utime.h \
-  linux/version.h sys/systeminfo.h limits.h \
+  linux/version.h sys/systeminfo.h \
   stdio_ext.h fcntl.h coff.h pty.h sys/mman.h \
   sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
   sys/utsname.h pwd.h utmp.h dirent.h util.h
@@ -8103,118 +8103,6 @@ _ACEOF
 fi
 
 done
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ANSI C header files" >&5
-$as_echo_n "checking for ANSI C header files... " >&6; }
-if test "${ac_cv_header_stdc+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <float.h>
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_cv_header_stdc=yes
-else
-  ac_cv_header_stdc=no
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-if test $ac_cv_header_stdc = yes; then
-  # SunOS 4.x string.h does not declare mem*, contrary to ANSI.
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <string.h>
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "memchr" >/dev/null 2>&1; then :
-
-else
-  ac_cv_header_stdc=no
-fi
-rm -f conftest*
-
-fi
-
-if test $ac_cv_header_stdc = yes; then
-  # ISC 2.0.2 stdlib.h does not declare free, contrary to ANSI.
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <stdlib.h>
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "free" >/dev/null 2>&1; then :
-
-else
-  ac_cv_header_stdc=no
-fi
-rm -f conftest*
-
-fi
-
-if test $ac_cv_header_stdc = yes; then
-  # /bin/cc in Irix-4.0.5 gets non-ANSI ctype macros unless using -ansi.
-  if test "$cross_compiling" = yes; then :
-  :
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <ctype.h>
-#include <stdlib.h>
-#if ((' ' & 0x0FF) == 0x020)
-# define ISLOWER(c) ('a' <= (c) && (c) <= 'z')
-# define TOUPPER(c) (ISLOWER(c) ? 'A' + ((c) - 'a') : (c))
-#else
-# define ISLOWER(c) \
-		   (('a' <= (c) && (c) <= 'i') \
-		     || ('j' <= (c) && (c) <= 'r') \
-		     || ('s' <= (c) && (c) <= 'z'))
-# define TOUPPER(c) (ISLOWER(c) ? ((c) | 0x40) : (c))
-#endif
-
-#define XOR(e, f) (((e) && !(f)) || (!(e) && (f)))
-int
-main ()
-{
-  int i;
-  for (i = 0; i < 256; i++)
-    if (XOR (islower (i), ISLOWER (i))
-	|| toupper (i) != TOUPPER (i))
-      return 2;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-
-else
-  ac_cv_header_stdc=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-fi
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_header_stdc" >&5
-$as_echo "$ac_cv_header_stdc" >&6; }
-if test $ac_cv_header_stdc = yes; then
-
-$as_echo "#define STDC_HEADERS 1" >>confdefs.h
-
-fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether time.h and sys/time.h may both be included" >&5
 $as_echo_n "checking whether time.h and sys/time.h may both be included... " >&6; }
@@ -10352,7 +10240,7 @@ fi
 
 ### Use -lrsvg-2 if available, unless `--with-rsvg=no' is specified.
 HAVE_RSVG=no
-if test "${HAVE_X11}" = "yes" || test "${NS_IMPL_GNUSTEP}" = "yes"; then
+if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
     RSVG_REQUIRED=2.11.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
@@ -13777,10 +13665,10 @@ rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
 random lrand48 logb frexp fmod rint cbrt ftime setsid \
 strerror fpathconf select euidaccess getpagesize tzset setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
-__fpending mblen mbrlen mbsinit strsignal setitimer ualarm strchr strrchr \
+__fpending mblen mbrlen mbsinit strsignal setitimer ualarm \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap memmove fsync sync \
-memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign \
+gai_strerror mkstemp getline getdelim mremap fsync sync \
+difftime mempcpy mblen mbrlen posix_memalign \
 cfmakeraw cfsetspeed isnan copysign __executable_start
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
@@ -15458,7 +15346,6 @@ if test "$emacs_cv_c_restrict_arr" = yes; then
 $as_echo "#define __restrict_arr __restrict" >>confdefs.h
 
 fi
-
 
 
 # Set up the CFLAGS for real compilation, so we can substitute it.

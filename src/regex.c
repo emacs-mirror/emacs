@@ -37,9 +37,9 @@
 # include <config.h>
 #endif
 
-#if defined STDC_HEADERS && !defined emacs
-# include <stddef.h>
-#else
+#include <stddef.h>
+
+#ifdef emacs
 /* We need this for `regex.h', and perhaps for the Emacs include files.  */
 # include <sys/types.h>
 #endif
@@ -238,18 +238,7 @@ xrealloc (void *block, size_t size)
 # endif
 # define realloc xrealloc
 
-/* This is the normal way of making sure we have memcpy, memcmp and memset.  */
-# if defined HAVE_STRING_H || defined STDC_HEADERS || defined _LIBC
-#  include <string.h>
-# else
-#  include <strings.h>
-#  ifndef memcmp
-#   define memcmp(s1, s2, n)	bcmp (s1, s2, n)
-#  endif
-#  ifndef memcpy
-#   define memcpy(d, s, n)	(bcopy (s, d, n), (d))
-#  endif
-# endif
+# include <string.h>
 
 /* Define the syntax stuff for \<, \>, etc.  */
 
@@ -357,25 +346,6 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 
 #else /* not emacs */
 
-/* Jim Meyering writes:
-
-   "... Some ctype macros are valid only for character codes that
-   isascii says are ASCII (SGI's IRIX-4.0.5 is one such system --when
-   using /bin/cc or gcc but without giving an ansi option).  So, all
-   ctype uses should be through macros like ISPRINT...  If
-   STDC_HEADERS is defined, then autoconf has verified that the ctype
-   macros don't need to be guarded with references to isascii. ...
-   Defining isascii to 1 should let any compiler worth its salt
-   eliminate the && through constant folding."
-   Solaris defines some of these symbols so we must undefine them first.  */
-
-# undef ISASCII
-# if defined STDC_HEADERS || (!defined isascii && !defined HAVE_ISASCII)
-#  define ISASCII(c) 1
-# else
-#  define ISASCII(c) isascii(c)
-# endif
-
 /* 1 if C is an ASCII character.  */
 # define IS_REAL_ASCII(c) ((c) < 0200)
 
@@ -383,27 +353,28 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 # define ISUNIBYTE(c) 1
 
 # ifdef isblank
-#  define ISBLANK(c) (ISASCII (c) && isblank (c))
+#  define ISBLANK(c) isblank (c)
 # else
 #  define ISBLANK(c) ((c) == ' ' || (c) == '\t')
 # endif
 # ifdef isgraph
-#  define ISGRAPH(c) (ISASCII (c) && isgraph (c))
+#  define ISGRAPH(c) isgraph (c)
 # else
-#  define ISGRAPH(c) (ISASCII (c) && isprint (c) && !isspace (c))
+#  define ISGRAPH(c) (isprint (c) && !isspace (c))
 # endif
 
+/* Solaris defines ISPRINT so we must undefine it first.  */
 # undef ISPRINT
-# define ISPRINT(c) (ISASCII (c) && isprint (c))
-# define ISDIGIT(c) (ISASCII (c) && isdigit (c))
-# define ISALNUM(c) (ISASCII (c) && isalnum (c))
-# define ISALPHA(c) (ISASCII (c) && isalpha (c))
-# define ISCNTRL(c) (ISASCII (c) && iscntrl (c))
-# define ISLOWER(c) (ISASCII (c) && islower (c))
-# define ISPUNCT(c) (ISASCII (c) && ispunct (c))
-# define ISSPACE(c) (ISASCII (c) && isspace (c))
-# define ISUPPER(c) (ISASCII (c) && isupper (c))
-# define ISXDIGIT(c) (ISASCII (c) && isxdigit (c))
+# define ISPRINT(c) isprint (c)
+# define ISDIGIT(c) isdigit (c)
+# define ISALNUM(c) isalnum (c)
+# define ISALPHA(c) isalpha (c)
+# define ISCNTRL(c) iscntrl (c)
+# define ISLOWER(c) islower (c)
+# define ISPUNCT(c) ispunct (c)
+# define ISSPACE(c) isspace (c)
+# define ISUPPER(c) isupper (c)
+# define ISXDIGIT(c) isxdigit (c)
 
 # define ISWORD(c) ISALPHA(c)
 
@@ -450,10 +421,6 @@ init_syntax_once (void)
 
 #endif /* not emacs */
 
-#ifndef NULL
-# define NULL (void *)0
-#endif
-
 /* We remove any previous definition of `SIGN_EXTEND_CHAR',
    since ours (we hope) works properly with all combinations of
    machines, compilers, `char' and `unsigned char' argument types.
@@ -2126,23 +2093,23 @@ re_iswctype (int ch, re_wctype_t cc)
 {
   switch (cc)
     {
-    case RECC_ALNUM: return ISALNUM (ch);
-    case RECC_ALPHA: return ISALPHA (ch);
-    case RECC_BLANK: return ISBLANK (ch);
-    case RECC_CNTRL: return ISCNTRL (ch);
-    case RECC_DIGIT: return ISDIGIT (ch);
-    case RECC_GRAPH: return ISGRAPH (ch);
-    case RECC_LOWER: return ISLOWER (ch);
-    case RECC_PRINT: return ISPRINT (ch);
-    case RECC_PUNCT: return ISPUNCT (ch);
-    case RECC_SPACE: return ISSPACE (ch);
-    case RECC_UPPER: return ISUPPER (ch);
-    case RECC_XDIGIT: return ISXDIGIT (ch);
-    case RECC_ASCII: return IS_REAL_ASCII (ch);
-    case RECC_NONASCII: return !IS_REAL_ASCII (ch);
-    case RECC_UNIBYTE: return ISUNIBYTE (ch);
-    case RECC_MULTIBYTE: return !ISUNIBYTE (ch);
-    case RECC_WORD: return ISWORD (ch);
+    case RECC_ALNUM: return ISALNUM (ch) != 0;
+    case RECC_ALPHA: return ISALPHA (ch) != 0;
+    case RECC_BLANK: return ISBLANK (ch) != 0;
+    case RECC_CNTRL: return ISCNTRL (ch) != 0;
+    case RECC_DIGIT: return ISDIGIT (ch) != 0;
+    case RECC_GRAPH: return ISGRAPH (ch) != 0;
+    case RECC_LOWER: return ISLOWER (ch) != 0;
+    case RECC_PRINT: return ISPRINT (ch) != 0;
+    case RECC_PUNCT: return ISPUNCT (ch) != 0;
+    case RECC_SPACE: return ISSPACE (ch) != 0;
+    case RECC_UPPER: return ISUPPER (ch) != 0;
+    case RECC_XDIGIT: return ISXDIGIT (ch) != 0;
+    case RECC_ASCII: return IS_REAL_ASCII (ch) != 0;
+    case RECC_NONASCII: return !IS_REAL_ASCII (ch) != 0;
+    case RECC_UNIBYTE: return ISUNIBYTE (ch) != 0;
+    case RECC_MULTIBYTE: return !ISUNIBYTE (ch) != 0;
+    case RECC_WORD: return ISWORD (ch) != 0;
     case RECC_ERROR: return false;
     default:
       abort();
@@ -6414,8 +6381,7 @@ char *
    regcomp/regexec below without link errors.  */
 weak_function
 # endif
-re_comp (s)
-    const char *s;
+re_comp (const char *s)
 {
   reg_errcode_t ret;
 
@@ -6454,7 +6420,7 @@ re_comp (s)
 }
 
 
-regoff_t
+int
 # ifdef _LIBC
 weak_function
 # endif
@@ -6591,7 +6557,7 @@ reg_errcode_t
 regexec (const regex_t *__restrict preg, const char *__restrict string,
 	 size_t nmatch, regmatch_t pmatch[__restrict_arr], int eflags)
 {
-  reg_errcode_t ret;
+  regoff_t ret;
   struct re_registers regs;
   regex_t private_preg;
   size_t len = strlen (string);

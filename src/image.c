@@ -136,7 +136,6 @@ static unsigned long lookup_rgb_color (struct frame *f, int r, int g, int b);
 #ifdef COLOR_TABLE_SUPPORT
 static void free_color_table (void);
 static unsigned long *colors_in_color_table (int *n);
-static unsigned long lookup_pixel_color (struct frame *f, unsigned long p);
 #endif
 static Lisp_Object Finit_image_library (Lisp_Object, Lisp_Object);
 
@@ -987,7 +986,6 @@ or omitted means use the selected frame.  */)
  ***********************************************************************/
 
 static void free_image (struct frame *f, struct image *img);
-static int check_image_size (struct frame *f, int width, int height);
 
 #define MAX_IMAGE_SIZE 6.0
 /* Allocate and return a new image structure for image specification
@@ -1042,7 +1040,7 @@ free_image (struct frame *f, struct image *img)
 /* Return 1 if the given widths and heights are valid for display;
    otherwise, return 0. */
 
-int
+static int
 check_image_size (struct frame *f, int width, int height)
 {
   int w, h;
@@ -1051,7 +1049,8 @@ check_image_size (struct frame *f, int width, int height)
     return 0;
 
   if (INTEGERP (Vmax_image_size))
-    w = h = XINT (Vmax_image_size);
+    return (width <= XINT (Vmax_image_size)
+	    && height <= XINT (Vmax_image_size));
   else if (FLOATP (Vmax_image_size))
     {
       if (f != NULL)
@@ -1061,13 +1060,11 @@ check_image_size (struct frame *f, int width, int height)
 	}
       else
 	w = h = 1024;  /* Arbitrary size for unknown frame. */
-      w = (int) (XFLOAT_DATA (Vmax_image_size) * w);
-      h = (int) (XFLOAT_DATA (Vmax_image_size) * h);
+      return (width <= XFLOAT_DATA (Vmax_image_size) * w
+	      && height <= XFLOAT_DATA (Vmax_image_size) * h);
     }
   else
     return 1;
-
-  return (width <= w && height <= h);
 }
 
 /* Prepare image IMG for display on frame F.  Must be called before
@@ -1368,7 +1365,9 @@ x_alloc_image_color (struct frame *f, struct image *img, Lisp_Object color_name,
 
   xassert (STRINGP (color_name));
 
-  if (x_defined_color (f, SSDATA (color_name), &color, 1))
+  if (x_defined_color (f, SSDATA (color_name), &color, 1)
+      && img->ncolors < min (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *img->colors,
+			     INT_MAX))
     {
       /* This isn't called frequently so we get away with simply
 	 reallocating the color vector to the needed size, here.  */
@@ -1911,6 +1910,44 @@ static int x_create_x_image_and_pixmap (struct frame *, int, int, int,
 static void x_destroy_x_image (XImagePtr);
 static void x_put_x_image (struct frame *, XImagePtr, Pixmap, int, int);
 
+/* Return nonzero if XIMG's size WIDTH x HEIGHT doesn't break the
+   windowing system.
+   WIDTH and HEIGHT must both be positive.
+   If XIMG is null, assume it is a bitmap.  */
+static int
+x_check_image_size (XImagePtr ximg, int width, int height)
+{
+#ifdef HAVE_X_WINDOWS
+  /* Respect Xlib's limits: it cannot deal with images that have more
+     than INT_MAX (and/or UINT_MAX) bytes.  And respect Emacs's limits
+     of PTRDIFF_MAX (and/or SIZE_MAX) bytes for any object.  */
+  enum
+  {
+    XLIB_BYTES_MAX = min (INT_MAX, UINT_MAX),
+    X_IMAGE_BYTES_MAX = min (XLIB_BYTES_MAX, min (PTRDIFF_MAX, SIZE_MAX))
+  };
+
+  int bitmap_pad, depth, bytes_per_line;
+  if (ximg)
+    {
+      bitmap_pad = ximg->bitmap_pad;
+      depth = ximg->depth;
+      bytes_per_line = ximg->bytes_per_line;
+    }
+  else
+    {
+      bitmap_pad = 8;
+      depth = 1;
+      bytes_per_line = (width >> 3) + ((width & 7) != 0);
+    }
+  return (width <= (INT_MAX - (bitmap_pad - 1)) / depth
+	  && height <= X_IMAGE_BYTES_MAX / bytes_per_line);
+#else
+  /* FIXME: Implement this check for the HAVE_NS and HAVE_NTGUI cases.
+     For now, assume that every image size is allowed on these systems.  */
+  return 1;
+#endif
+}
 
 /* Create an XImage and a pixmap of size WIDTH x HEIGHT for use on
    frame F.  Set *XIMG and *PIXMAP to the XImage and Pixmap created.
@@ -1940,6 +1977,15 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
   if (*ximg == NULL)
     {
       image_error ("Unable to allocate X image", Qnil, Qnil);
+      return 0;
+    }
+
+  if (! x_check_image_size (*ximg, width, height))
+    {
+      x_destroy_x_image (*ximg);
+      *ximg = NULL;
+      image_error ("Image too large (%dx%d)",
+		   make_number (width), make_number (height));
       return 0;
     }
 
@@ -1989,11 +2035,6 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
     palette_colors = 1 << depth - 1;
 
   *ximg = xmalloc (sizeof (XImage) + palette_colors * sizeof (RGBQUAD));
-  if (*ximg == NULL)
-    {
-      image_error ("Unable to allocate memory for XImage", Qnil, Qnil);
-      return 0;
-    }
 
   header = &(*ximg)->info.bmiHeader;
   memset (&(*ximg)->info, 0, sizeof (BITMAPINFO));
@@ -2365,7 +2406,7 @@ xbm_image_p (Lisp_Object object)
 	}
       else if (BOOL_VECTOR_P (data))
 	{
-	  if (XBOOL_VECTOR (data)->size < width * height)
+	  if (XBOOL_VECTOR (data)->size / height < width)
 	    return 0;
 	}
       else
@@ -2561,13 +2602,15 @@ Create_Pixmap_From_Bitmap_Data (struct frame *f, struct image *img, char *data,
   img->pixmap = ns_image_from_XBM (data, img->width, img->height);
 
 #else
-  img->pixmap
-    = XCreatePixmapFromBitmapData (FRAME_X_DISPLAY (f),
+  img->pixmap =
+   (x_check_image_size (0, img->width, img->height)
+    ? XCreatePixmapFromBitmapData (FRAME_X_DISPLAY (f),
 				   FRAME_X_WINDOW (f),
 				   data,
 				   img->width, img->height,
 				   fg, bg,
-				   DefaultDepthOfScreen (FRAME_X_SCREEN (f)));
+				   DefaultDepthOfScreen (FRAME_X_SCREEN (f)))
+    : NO_PIXMAP);
 #endif /* !HAVE_NTGUI && !HAVE_NS */
 }
 
@@ -2674,6 +2717,13 @@ xbm_read_bitmap_data (struct frame *f, unsigned char *contents, unsigned char *e
   expect ('=');
   expect ('{');
 
+  if (! x_check_image_size (0, *width, *height))
+    {
+      if (!inhibit_image_error)
+	image_error ("Image too large (%dx%d)",
+		     make_number (*width), make_number (*height));
+      goto failure;
+    }
   bytes_per_line = (*width + 7) / 8 + padding_p;
   nbytes = bytes_per_line * *height;
   p = *data = (char *) xmalloc (nbytes);
@@ -2864,6 +2914,12 @@ xbm_load (struct frame *f, struct image *img)
 	  img->width = XFASTINT (fmt[XBM_WIDTH].value);
 	  img->height = XFASTINT (fmt[XBM_HEIGHT].value);
 	  xassert (img->width > 0 && img->height > 0);
+	  if (!check_image_size (f, img->width, img->height))
+	    {
+	      image_error ("Invalid image size (see `max-image-size')",
+			   Qnil, Qnil);
+	      return 0;
+	    }
 	}
 
       /* Get foreground and background colors, maybe allocate colors.  */
@@ -2925,9 +2981,13 @@ xbm_load (struct frame *f, struct image *img)
 #endif
 	  /* Create the pixmap.  */
 
-	  Create_Pixmap_From_Bitmap_Data (f, img, bits,
-					  foreground, background,
-					  non_default_colors);
+	  if (x_check_image_size (0, img->width, img->height))
+	    Create_Pixmap_From_Bitmap_Data (f, img, bits,
+					    foreground, background,
+					    non_default_colors);
+	  else
+	    img->pixmap = NO_PIXMAP;
+
 	  if (img->pixmap)
 	    success_p = 1;
 	  else
@@ -3125,12 +3185,8 @@ xpm_free_color_cache (void)
 static int
 xpm_color_bucket (char *color_name)
 {
-  unsigned h = 0;
-  char *s;
-
-  for (s = color_name; *s; ++s)
-    h = (h << 2) ^ *s;
-  return h %= XPM_COLOR_CACHE_BUCKETS;
+  EMACS_UINT hash = hash_string (color_name, strlen (color_name));
+  return hash % XPM_COLOR_CACHE_BUCKETS;
 }
 
 
@@ -3147,7 +3203,7 @@ xpm_cache_color (struct frame *f, char *color_name, XColor *color, int bucket)
   if (bucket < 0)
     bucket = xpm_color_bucket (color_name);
 
-  nbytes = sizeof *p + strlen (color_name);
+  nbytes = offsetof (struct xpm_cached_color, name) + strlen (color_name) + 1;
   p = (struct xpm_cached_color *) xmalloc (nbytes);
   strcpy (p->name, color_name);
   p->color = *color;
@@ -3849,6 +3905,18 @@ xpm_load_image (struct frame *f,
       goto failure;
     }
 
+  if (!x_create_x_image_and_pixmap (f, width, height, 0,
+				    &ximg, &img->pixmap)
+#ifndef HAVE_NS
+      || !x_create_x_image_and_pixmap (f, width, height, 1,
+				       &mask_img, &img->mask)
+#endif
+      )
+    {
+      image_error ("Image too large", Qnil, Qnil);
+      goto failure;
+    }
+
   expect (',');
 
   XSETFRAME (frame, f);
@@ -3940,18 +4008,6 @@ xpm_load_image (struct frame *f,
 	(*put_color_table) (color_table, beg, chars_per_pixel, color_val);
 
       expect (',');
-    }
-
-  if (!x_create_x_image_and_pixmap (f, width, height, 0,
-				    &ximg, &img->pixmap)
-#ifndef HAVE_NS
-      || !x_create_x_image_and_pixmap (f, width, height, 1,
-				       &mask_img, &img->mask)
-#endif
-      )
-    {
-      image_error ("Out of memory (%s)", img->spec, Qnil);
-      goto error;
     }
 
   for (y = 0; y < height; y++)
@@ -5518,8 +5574,8 @@ my_png_warning (png_struct *png_ptr, const char *msg)
 struct png_memory_storage
 {
   unsigned char *bytes;		/* The data       */
-  size_t len;			/* How big is it? */
-  int index;			/* Where are we?  */
+  ptrdiff_t len;		/* How big is it? */
+  ptrdiff_t index;		/* Where are we?  */
 };
 
 
@@ -5563,7 +5619,8 @@ png_load (struct frame *f, struct image *img)
 {
   Lisp_Object file, specified_file;
   Lisp_Object specified_data;
-  int x, y, i;
+  int x, y;
+  ptrdiff_t i;
   XImagePtr ximg, mask_img = NULL;
   png_struct *png_ptr = NULL;
   png_info *info_ptr = NULL, *end_info = NULL;
@@ -5683,11 +5740,19 @@ png_load (struct frame *f, struct image *img)
   fn_png_get_IHDR (png_ptr, info_ptr, &width, &height, &bit_depth, &color_type,
 		   &interlace_type, NULL, NULL);
 
-  if (!check_image_size (f, width, height))
+  if (! (width <= INT_MAX && height <= INT_MAX
+	 && check_image_size (f, width, height)))
     {
       image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
       goto error;
     }
+
+  /* Create the X image and pixmap now, so that the work below can be
+     omitted if the image is too large for X.  */
+  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg,
+				    &img->pixmap))
+    goto error;
+
   /* If image contains simply transparency data, we prefer to
      construct a clipping mask.  */
   if (fn_png_get_valid (png_ptr, info_ptr, PNG_INFO_tRNS))
@@ -5776,7 +5841,10 @@ png_load (struct frame *f, struct image *img)
   row_bytes = fn_png_get_rowbytes (png_ptr, info_ptr);
 
   /* Allocate memory for the image.  */
-  pixels = (png_byte *) xmalloc (row_bytes * height * sizeof *pixels);
+  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *rows < height
+      || min (PTRDIFF_MAX, SIZE_MAX) / sizeof *pixels / height < row_bytes)
+    memory_full (SIZE_MAX);
+  pixels = (png_byte *) xmalloc (sizeof *pixels * row_bytes * height);
   rows = (png_byte **) xmalloc (height * sizeof *rows);
   for (i = 0; i < height; ++i)
     rows[i] = pixels + i * row_bytes;
@@ -5789,11 +5857,6 @@ png_load (struct frame *f, struct image *img)
       fclose (fp);
       fp = NULL;
     }
-
-  /* Create the X image and pixmap.  */
-  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg,
-				    &img->pixmap))
-    goto error;
 
   /* Create an image and pixmap serving as mask if the PNG image
      contains an alpha channel.  */
@@ -6192,7 +6255,7 @@ our_stdio_fill_input_buffer (j_decompress_ptr cinfo)
   src = (struct jpeg_stdio_mgr *) cinfo->src;
   if (!src->finished)
     {
-      size_t bytes;
+      ptrdiff_t bytes;
 
       bytes = fread (src->buffer, 1, JPEG_STDIO_BUFFER_SIZE, src->file);
       if (bytes > 0)
@@ -6602,34 +6665,33 @@ init_tiff_functions (Lisp_Object libraries)
 typedef struct
 {
   unsigned char *bytes;
-  size_t len;
-  int index;
+  ptrdiff_t len;
+  ptrdiff_t index;
 }
 tiff_memory_source;
 
-static size_t
+static tsize_t
 tiff_read_from_memory (thandle_t data, tdata_t buf, tsize_t size)
 {
   tiff_memory_source *src = (tiff_memory_source *) data;
 
-  if (size > src->len - src->index)
-    return (size_t) -1;
+  size = min (size, src->len - src->index);
   memcpy (buf, src->bytes + src->index, size);
   src->index += size;
   return size;
 }
 
-static size_t
+static tsize_t
 tiff_write_from_memory (thandle_t data, tdata_t buf, tsize_t size)
 {
-  return (size_t) -1;
+  return -1;
 }
 
 static toff_t
 tiff_seek_in_memory (thandle_t data, toff_t off, int whence)
 {
   tiff_memory_source *src = (tiff_memory_source *) data;
-  int idx;
+  ptrdiff_t idx;
 
   switch (whence)
     {
@@ -6765,8 +6827,8 @@ tiff_load (struct frame *f, struct image *img)
       memsrc.index = 0;
 
       tiff = fn_TIFFClientOpen ("memory_source", "r", (thandle_t)&memsrc,
-				(TIFFReadWriteProc) tiff_read_from_memory,
-				(TIFFReadWriteProc) tiff_write_from_memory,
+				tiff_read_from_memory,
+				tiff_write_from_memory,
 				tiff_seek_in_memory,
 				tiff_close_memory,
 				tiff_size_of_memory,
@@ -6805,7 +6867,16 @@ tiff_load (struct frame *f, struct image *img)
       return 0;
     }
 
-  buf = (uint32 *) xmalloc (width * height * sizeof *buf);
+  /* Create the X image and pixmap.  */
+  if (! (height <= min (PTRDIFF_MAX, SIZE_MAX) / sizeof *buf / width
+	 && x_create_x_image_and_pixmap (f, width, height, 0,
+					 &ximg, &img->pixmap)))
+    {
+      fn_TIFFClose (tiff);
+      return 0;
+    }
+
+  buf = (uint32 *) xmalloc (sizeof *buf * width * height);
 
   rc = fn_TIFFReadRGBAImage (tiff, width, height, buf, 0);
 
@@ -6822,13 +6893,6 @@ tiff_load (struct frame *f, struct image *img)
   if (!rc)
     {
       image_error ("Error reading TIFF image `%s'", img->spec, Qnil);
-      xfree (buf);
-      return 0;
-    }
-
-  /* Create the X image and pixmap.  */
-  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
-    {
       xfree (buf);
       return 0;
     }
@@ -7034,8 +7098,8 @@ init_gif_functions (Lisp_Object libraries)
 typedef struct
 {
   unsigned char *bytes;
-  size_t len;
-  int index;
+  ptrdiff_t len;
+  ptrdiff_t index;
 }
 gif_memory_source;
 
@@ -7668,7 +7732,8 @@ imagemagick_load_image (struct frame *f, struct image *img,
   height = MagickGetImageHeight (image_wand);
   width = MagickGetImageWidth (image_wand);
 
-  if (! check_image_size (f, width, height))
+  if (! (width <= INT_MAX && height <= INT_MAX
+	 && check_image_size (f, width, height)))
     {
       image_error ("Invalid image size (see `max-image-size')", Qnil, Qnil);
       goto imagemagick_error;
@@ -7872,7 +7937,7 @@ recognize as images, such as C.  See `imagemagick-types-inhibit'.  */)
   size_t numf = 0;
   ExceptionInfo ex;
   char **imtypes = GetMagickList ("*", &numf, &ex);
-  int i;
+  size_t i;
   Lisp_Object Qimagemagicktype;
   for (i = 0; i < numf; i++)
     {
@@ -8426,12 +8491,15 @@ gs_load (struct frame *f, struct image *img)
   /* Create the pixmap.  */
   xassert (img->pixmap == NO_PIXMAP);
 
-  /* Only W32 version did BLOCK_INPUT here.  ++kfs */
-  BLOCK_INPUT;
-  img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			       img->width, img->height,
-			       DefaultDepthOfScreen (FRAME_X_SCREEN (f)));
-  UNBLOCK_INPUT;
+  if (x_check_image_size (0, img->width, img->height))
+    {
+      /* Only W32 version did BLOCK_INPUT here.  ++kfs */
+      BLOCK_INPUT;
+      img->pixmap = XCreatePixmap (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				   img->width, img->height,
+				   DefaultDepthOfScreen (FRAME_X_SCREEN (f)));
+      UNBLOCK_INPUT;
+    }
 
   if (!img->pixmap)
     {

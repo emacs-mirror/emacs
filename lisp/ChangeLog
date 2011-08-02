@@ -1,3 +1,44 @@
+2011-08-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-in-window): Don't set dedicated status
+	of window here (Bug#9215).
+	(display-buffer-pop-up-window, display-buffer-pop-up-frame)
+	(display-buffer-pop-up-side-window)
+	(display-buffer-in-side-window): Set dedicated status of window
+	here.
+
+2011-08-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-generate-autoloads): Load autoloads
+	before binding generated-autoload-file.
+
+2011-08-01  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-handler-333): Clarify docstring.
+
+2011-07-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.2.
+
+	* net/trampver.el: Update release number.
+
+2011-07-30  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-touch-initial): Remove function.
+	(dired-do-chxxx): For op-symbol `touch', set `initial' to the
+	current time, and `default' to the last modification time of the
+	current marked file (bug#6887).
+
+2011-07-28  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* simple.el (goto-line): Use string-to-number to provide a
+	numeric argument to read-number (bug#9163).
+
+2011-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-maybe-send-script): Don't let-bind the
+	connection process, it could be nil.
+
 2011-07-27  Leo Liu  <sdl.web@gmail.com>
 
 	Simplify url handling in rcirc-mode.

@@ -1,3 +1,27 @@
+2011-07-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* grammars: New directory.
+
+2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* NEWS: Document ## and #:.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* refcards/orgcard.tex: Document `org-copy-visible'.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* refcards/orgcard.tex: Documentation of new Babel function.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* refcards/orgcard.tex: Adding line for org-babel-check-src-block.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* refcards/orgcard.tex: Document key for clock consistency check.
+
 2011-07-18  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* charsets/GB180302.map: Update to 2005 edition.

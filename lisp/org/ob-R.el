@@ -1,11 +1,11 @@
 ;;; ob-R.el --- org-babel functions for R code evaluation
 
-;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte, Dan Davison
 ;; Keywords: literate programming, reproducible research, R, statistics
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -51,15 +51,24 @@
 (defvar org-babel-R-command "R --slave --no-save"
   "Name of command to use for executing R code.")
 
-(defun org-babel-expand-body:R (body params)
+(defvar ess-local-process-name)
+(defun org-babel-edit-prep:R (info)
+  (let ((session (cdr (assoc :session (nth 2 info)))))
+    (when (and session (string-match "^\\*\\(.+?\\)\\*$" session))
+      (save-match-data (org-babel-R-initiate-session session nil))
+      (setq ess-local-process-name (match-string 1 session)))))
+
+(defun org-babel-expand-body:R (body params &optional graphics-file)
   "Expand BODY according to PARAMS, return the expanded body."
-  (let ((out-file (cdr (assoc :file params))))
+  (let ((graphics-file
+	 (or graphics-file (org-babel-R-graphical-output-file params))))
     (mapconcat
      #'identity
      ((lambda (inside)
-	(if out-file
+	(if graphics-file
 	    (append
-	     (list (org-babel-R-construct-graphics-device-call out-file params))
+	     (list (org-babel-R-construct-graphics-device-call
+		    graphics-file params))
 	     inside
 	     (list "dev.off()"))
 	  inside))
@@ -75,8 +84,8 @@ This function is called by `org-babel-execute-src-block'."
 		     (cdr (assoc :session params)) params))
 	   (colnames-p (cdr (assoc :colnames params)))
 	   (rownames-p (cdr (assoc :rownames params)))
-	   (out-file (cdr (assoc :file params)))
-	   (full-body (org-babel-expand-body:R body params))
+	   (graphics-file (org-babel-R-graphical-output-file params))
+	   (full-body (org-babel-expand-body:R body params graphics-file))
 	   (result
 	    (org-babel-R-evaluate
 	     session full-body result-type
@@ -86,8 +95,7 @@ This function is called by `org-babel-execute-src-block'."
 	     (or (equal "yes" rownames-p)
 		 (org-babel-pick-name
 		  (cdr (assoc :rowname-names params)) rownames-p)))))
-      (message "result is %S" result)
-      (or out-file result))))
+      (if graphics-file nil result))))
 
 (defun org-babel-prep-session:R (session params)
   "Prepare SESSION according to the header arguments specified in PARAMS."
@@ -177,6 +185,11 @@ current code buffer."
 	(process-name (get-buffer-process session)))
   (ess-make-buffer-current))
 
+(defun org-babel-R-graphical-output-file (params)
+  "Name of file to which R should send graphical output."
+  (and (member "graphics" (cdr (assq :result-params params)))
+       (cdr (assq :file params))))
+
 (defun org-babel-R-construct-graphics-device-call (out-file params)
   "Construct the call to the graphics device."
   (let ((devices
@@ -214,7 +227,8 @@ current code buffer."
 
 (defvar org-babel-R-eoe-indicator "'org_babel_R_eoe'")
 (defvar org-babel-R-eoe-output "[1] \"org_babel_R_eoe\"")
-(defvar org-babel-R-write-object-command "{function(object, transfer.file) {invisible(if(inherits(try(write.table(object, file=transfer.file, sep=\"\\t\", na=\"nil\",row.names=%s, col.names=%s, quote=FALSE), silent=TRUE),\"try-error\")) {if(!file.exists(transfer.file)) file.create(transfer.file)})}}(object=%s, transfer.file=\"%s\")")
+
+(defvar org-babel-R-write-object-command "{function(object,transfer.file){object;invisible(if(inherits(try({tfile<-tempfile();write.table(object,file=tfile,sep=\"\\t\",na=\"nil\",row.names=%s,col.names=%s,quote=FALSE);file.rename(tfile,transfer.file)},silent=TRUE),\"try-error\")){if(!file.exists(transfer.file))file.create(transfer.file)})}}(object=%s,transfer.file=\"%s\")")
 
 (defun org-babel-R-evaluate
   (session body result-type column-names-p row-names-p)
@@ -298,5 +312,6 @@ Insert hline if column names in output have been requested."
 
 (provide 'ob-R)
 
+;; arch-tag: cd4c7298-503b-450f-a3c2-f3e74b630237
 
 ;;; ob-R.el ends here

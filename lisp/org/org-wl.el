@@ -1,12 +1,13 @@
 ;;; org-wl.el --- Support for links to Wanderlust messages from within Org-mode
 
-;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Tokuya Kameshima <kames at fa2 dot so-net dot ne dot jp>
 ;;         David Maus <dmaus at ictsoc dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -309,5 +310,6 @@ for namazu index."
 
 (provide 'org-wl)
 
+;; arch-tag: 29b75a0f-ef2e-430b-8abc-acff75bde54a
 
 ;;; org-wl.el ends here

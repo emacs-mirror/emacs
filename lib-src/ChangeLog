@@ -1,3 +1,16 @@
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume freestanding C89 headers, string.h, stdlib.h.
+	* ebrowse.c: Include stdlib.h unconditionally.
+	* etags.c, update-game-score.c:
+	Include string.h and stdlib.h unconditionally.
+	* makefile.w32-in (LOCAL_CFLAGS): Don't define STDC_HEADERS.
+	* movemail.c, pop.c: Include string.h unconditionally.
+	* update-game-score.c: No need to include stdarg.h; not used.
+
+	Assume support for memcmp, memcpy, memmove, memset.
+	* etags.c (absolute_filename): Assume memmove exists.
+
 2011-07-09  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* update-game-score.c (usage): Update usage line.

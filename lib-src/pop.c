@@ -65,9 +65,7 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
 #include <netdb.h>
 #include <errno.h>
 #include <stdio.h>
-#ifdef STDC_HEADERS
 #include <string.h>
-#endif
 #include <unistd.h>
 
 #ifdef KERBEROS

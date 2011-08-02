@@ -1,11 +1,11 @@
 ;;; org-mks.el --- Multi-key-selection for Org-mode
 
-;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2010  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -132,5 +132,6 @@ only the bare key is returned."
 
 (provide 'org-mks)
 
+;; arch-tag: 4ea90d0e-c6e4-4684-bd61-baf878712f9f
 
 ;;; org-mks.el ends here

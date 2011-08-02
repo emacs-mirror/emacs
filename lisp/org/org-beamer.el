@@ -1,8 +1,8 @@
 ;;; org-beamer.el --- Beamer-specific LaTeX export for org-mode
 ;;
-;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 ;;
-;; Version: 7.4
+;; Version: 7.7
 ;; Author: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;; Maintainer: Carsten Dominik <carsten.dominik AT gmail DOT com>
 ;; Keywords: org, wp, tex
@@ -139,6 +139,7 @@ open    The opening template for the environment, with the following escapes
         %h   the headline text
         %H   if there is headline text, that text in {} braces
         %U   if there is headline text, that text in [] brackets
+        %x   the content of the BEAMER_extra property
 close   The closing string of the environment."
 
   :group 'org-beamer
@@ -399,7 +400,7 @@ the value will be inserted right after the documentclass statement."
       (insert org-beamer-header-extra)
       (or (bolp) (insert "\n"))))))
 
-(defcustom org-beamer-fragile-re "^[ \t]*\\\\begin{\\(verbatim\\|lstlisting\\)}"
+(defcustom org-beamer-fragile-re "^[ \t]*\\\\begin{\\(verbatim\\|lstlisting\\|minted\\)}"
   "If this regexp matches in a frame, the frame is marked as fragile."
   :group 'org-beamer
   :type 'regexp)
@@ -631,5 +632,6 @@ include square brackets."
 
 (provide 'org-beamer)
 
+;; arch-tag: 68bac91a-a946-43a3-8173-a9269306f67c
 
 ;;; org-beamer.el ends here

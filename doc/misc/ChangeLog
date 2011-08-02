@@ -1,3 +1,274 @@
+2011-07-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.2.
+
+	* trampver.texi: Update release number.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Using the mapping API): mention 'region as a possible
+	scope for `org-map-entries'.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Visibility cycling): Document `org-copy-visible'.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Template expansion): order template sequences in the
+	proper order.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (eval): Expand discussion of the :eval header argument.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Languages): Add Lilypond and Awk as supported
+	languages.
+
+2011-07-28  Achim Gratz  <stromeko@nexgo.de>
+
+	* org.texi: document that both CLOCK_INTO_DRAWER and
+	LOG_INTO_DRAWER can be used to override the contents of variable
+	org-clock-into-drawer (or if unset, org-log-into-drawer).
+
+	* org.texi: replace @xref->@pxref.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Evaluating code blocks): Documenting the new option
+	for inline call lines.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Results of evaluation): More explicit about the
+	mechanism through which interactive evaluation of code is
+	performed.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (noweb-ref): New header argument documentation.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Extracting source code): Documentation of the new
+	org-babel-tangle-named-block-combination variable.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Structure of code blocks): explicitly state that the
+	behavior of multiple blocks of the same name is undefined
+
+2011-07-28  Christian Egli  <christian.egli@sbszh.ch>
+
+	* org.texi (TaskJuggler export): Modify the example to reflect the
+	new effort durations.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org.texi (Images in LaTeX export): Escape curly brackets in
+	LaTeX example.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (The clock table): Document the :properties and
+	:inherit-props arguments for the clocktable.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Tables in LaTeX export): Document specifying placement
+	options for tables.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Evaluating code blocks): More specific documentation
+	about the different types of header arguments.
+
+2011-07-28  Manuel Giraud  <manuel.giraud@univ-nantes.fr>
+
+	* org.texi (Sitemap): Document `:sitemap-sans-extension' property.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Built-in table editor): Document the table field
+	follow mode.
+
+2011-07-28  Robert P. Goldman  <rpgoldman@real-time.com>
+
+	* org.texi (Easy Templates): Document new template.
+
+2011-07-28  Robert P. Goldman  <rpgoldman@real-time.com>
+
+	* org.texi (Literal examples): Add a cross-reference from "Literal
+	Examples" to "Easy Templates."
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (The clock table): Add link to match syntax.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Agenda commands): Document clock consistency checks.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Built-in table editor): Document that \vert represents
+	a vertical bar in a table field.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Literal examples): Link from "Markup" > "Literate
+	Examples" to "Working with Source Code".
+
+2011-07-28  Puneeth Chaganti  <punchagan@gmail.com>
+
+	* org.texi (Agenda commands): Doc for function option to bulk
+	action.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Template expansion): Document new %<...> template
+	escape.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Selective export): Document exclusion of any tasks
+	from export.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Selective export): Document how to exclude DONE tasks
+	from export.
+	(Publishing options): Document the properties to be used to turn off
+	export of DONE tasks.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (The date/time prompt): Document date range protection.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (padline): Documentation of the new padline header
+	argument.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (var): Adding "[" to list of characters triggering
+	elisp evaluation.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (var): Documentation of Emacs Lisp evaluation during
+	variable assignment.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (colnames): Reference indexing into variables, and note
+	that colnames are *not* removed before indexing occurs.
+	(rownames): Reference indexing into variables, and note that
+	rownames are *not* removed before indexing occurs.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (var): Clarification of indexing into tabular
+	variables.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (results): Documentation of the `:results wrap' header
+	argument.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (LaTeX and PDF export): add a note about a limitation
+	of the LaTeX export: the org file has to be properly structured.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.texi (Dynamic blocks, Structure editing): Mention
+	the function `org-narrow-to-block'.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Languages): Updating list of code block supported
+	languages.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Special properties): CATEGORY is a special property,
+	but it may also used in the drawer.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (mkdirp): Documentation of the :mkdirp header argument.
+
+2011-07-28  Puneeth Chaganti  <punchagan@gmail.com>
+
+	* org.texi (Include files): Document :lines.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (comments): Documentation of the ":comments noweb" code
+	block header argument.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Conflicts): Changed "yasnippets" to "yasnippet" and
+	added extra whitespace around functions to be consistent with the
+	rest of the section.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Evaluating code blocks):  Expanded discussion of
+	#+call: line syntax.
+	(Header arguments in function calls): Expanded discussion of
+	#+call: line syntax.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Evaluating code blocks): More explicit about how to
+	pass variables to #+call lines.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Results of evaluation): Link to the :results header
+	argument list from the "Results of evaluation" section.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Conflicts): Adding additional information about
+	resolving org/yasnippet conflicts.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org.texi (Publishing options): Document style-include-scripts
+	publishing project property.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi (Sparse trees): Document the next-error /
+	previous-error functionality.
+
+2011-07-28  Tom Dye  <tsd@tsdye.com>
+
+	* org.texi (cache): Improved documentation of code block caches.
+
+2011-07-28  Tom Dye  <tsd@tsdye.com>
+
+	* org.texi (Code block specific header arguments): Documentation
+	of multi-line header arguments.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Code evaluation security): Add example for using a
+	function.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.texi (Tables in LaTeX export): Documentation of new
+	attr_latex options for tables.
+
 2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* flymake.texi (Example -- Configuring a tool called via make):

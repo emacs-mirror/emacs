@@ -152,7 +152,7 @@ Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
 Lisp_Object Qinsert_behind_hooks;
 
-static void alloc_buffer_text (struct buffer *, size_t);
+static void alloc_buffer_text (struct buffer *, ptrdiff_t);
 static void free_buffer_text (struct buffer *b);
 static struct Lisp_Overlay * copy_overlays (struct buffer *, struct Lisp_Overlay *);
 static void modify_overlay (struct buffer *, EMACS_INT, EMACS_INT);
@@ -4796,7 +4796,7 @@ extern void r_alloc_free (POINTER_TYPE **ptr);
 /* Allocate NBYTES bytes for buffer B's text buffer.  */
 
 static void
-alloc_buffer_text (struct buffer *b, size_t nbytes)
+alloc_buffer_text (struct buffer *b, ptrdiff_t nbytes)
 {
   POINTER_TYPE *p;
 
@@ -4826,8 +4826,8 @@ void
 enlarge_buffer_text (struct buffer *b, EMACS_INT delta)
 {
   POINTER_TYPE *p;
-  size_t nbytes = (BUF_Z_BYTE (b) - BUF_BEG_BYTE (b) + BUF_GAP_SIZE (b) + 1
-		   + delta);
+  ptrdiff_t nbytes = (BUF_Z_BYTE (b) - BUF_BEG_BYTE (b) + BUF_GAP_SIZE (b) + 1
+		      + delta);
   BLOCK_INPUT;
 #if defined USE_MMAP_FOR_BUFFERS
   p = mmap_realloc ((POINTER_TYPE **) &b->text->beg, nbytes);
@@ -4926,7 +4926,7 @@ init_buffer_once (void)
   BVAR (&buffer_defaults, truncate_lines) = Qnil;
   BVAR (&buffer_defaults, word_wrap) = Qnil;
   BVAR (&buffer_defaults, ctl_arrow) = Qt;
-  BVAR (&buffer_defaults, bidi_display_reordering) = Qnil;
+  BVAR (&buffer_defaults, bidi_display_reordering) = Qt;
   BVAR (&buffer_defaults, bidi_paragraph_direction) = Qnil;
   BVAR (&buffer_defaults, cursor_type) = Qt;
   BVAR (&buffer_defaults, extra_line_spacing) = Qnil;

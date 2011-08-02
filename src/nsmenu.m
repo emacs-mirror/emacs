@@ -1228,8 +1228,8 @@ update_frame_tool_bar (FRAME_PTR f)
 
   [textField setEditable: NO];
   [textField setSelectable: NO];
-  [textField setBordered: YES];
-  [textField setBezeled: YES];
+  [textField setBordered: NO];
+  [textField setBezeled: NO];
   [textField setDrawsBackground: YES];
 
   win = [[NSWindow alloc]
@@ -1237,6 +1237,7 @@ update_frame_tool_bar (FRAME_PTR f)
                       styleMask: 0
                         backing: NSBackingStoreBuffered
                           defer: YES];
+  [win setHasShadow: YES];
   [win setReleasedWhenClosed: NO];
   [win setDelegate: self];
   [[win contentView] addSubview: textField];
@@ -1257,17 +1258,15 @@ update_frame_tool_bar (FRAME_PTR f)
 - (void) setText: (char *)text
 {
   NSString *str = [NSString stringWithUTF8String: text];
-  NSRect r = [textField frame];
-  NSSize textSize = [str sizeWithAttributes:
-     [NSDictionary dictionaryWithObject: [[textField font] screenFont]
-				 forKey: NSFontAttributeName]];
-  NSSize padSize = [[[textField font] screenFont]
-		     boundingRectForFont].size;
+  NSRect r  = [textField frame];
+  NSSize tooltipDims;
 
-  r.size.width = textSize.width + padSize.width/2;
-  r.size.height = textSize.height + padSize.height/2;
-  [textField setFrame: r];
   [textField setStringValue: str];
+  tooltipDims = [[textField cell] cellSize];
+
+  r.size.width = tooltipDims.width;
+  r.size.height = tooltipDims.height;
+  [textField setFrame: r];
 }
 
 - (void) showAtX: (int)x Y: (int)y for: (int)seconds

@@ -173,8 +173,11 @@ in your ~/.authinfo file instead.
 See the node "Bidirectional Editing" in the Emacs Manual for some
 additional documentation.
 
-To turn this on in any given buffer, set the buffer-local variable
-`bidi-display-reordering' to a non-nil value.  The default is nil.
+To turn this off in any given buffer, set the buffer-local variable
+`bidi-display-reordering' to a nil value.  The default is t.  For text
+that includes no right-to-left characters, the result of reordering
+looks exactly as it did in previous versions, i.e. there's no
+reordering at all.
 
 The buffer-local variable `bidi-paragraph-direction', if non-nil,
 forces each paragraph in the buffer to have its base direction
@@ -1164,6 +1167,11 @@ as well as those in the -*- line.
 ** rx.el has a new `group-n' construct for explicitly numbered groups.
 
 ** keymaps can inherit from multiple parents.
+
+** New reader macro ## which stands for the empty symbol.
+This means that the empty symbol can now be read back.  Also, #: by itself
+(when not immediately followed by a possible symbol character) stands for
+an empty uninterned symbol.
 
 * Changes in Emacs 24.1 on non-free operating systems
 

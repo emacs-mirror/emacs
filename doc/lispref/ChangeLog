@@ -1,3 +1,8 @@
+2011-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Bidirectional Display): Document the fact that
+	bidi-display-reordering is t by default.
+
 2011-07-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Bidirectional Display): New section.

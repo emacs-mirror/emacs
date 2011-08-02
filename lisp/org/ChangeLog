@@ -1,3 +1,5195 @@
+2011-07-30  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* ob.el (org-babel-src-block-regexp): If a code block has a body,
+	its last character must be a newline.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-publish.el (org-publish-index-generate-theindex): rename
+	from `org-publish-index-generate-theindex.inc'.  Use the file
+	theindex.org directly instead of including theindex.inc.
+	(org-publish-projects): Don't delete .orgx files.
+	(org-publish-aux-preprocess): Use .file.orgx.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-html-preamble-format): New default for
+	the HTML preamble: don't include the title.  Also improve the
+	docstring.
+	(org-export-html-postamble-format): Improve the docstring.
+	(org-export-as-html): Add the title within the "content" div.
+	This is necessary for interaction with the org-info.js script.
+
+2011-07-28  Michael Brand  <michael.ch.brand@gmail.com>
+
+	* org-table.el (org-table-edit-field): Display field coordinates.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-publish.el (org-publish-find-title): bugfix: kill buffers
+	unless they were already visited.
+	(org-sitemap-sort-files, org-sitemap-sort-folders)
+	(org-sitemap-ignore-case, org-sitemap-requested)
+	(org-sitemap-date-format, org-sitemap-file-entry-format): use
+	a correct prefix.
+	(org-publish-projects): Make sure to delete .orgx files.
+	(org-publish-index-generate-theindex.inc): Small docstring
+	fix.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-table.el (org-table-duration-custom-format): New defcustom
+	to select output format of durations computations.
+	(org-table-time-seconds-to-string): Use the new variable.
+	(org-table-eval-formula): Allow `t' as a flag, on top of `T'.  `t'
+	will use the custom output format defined in
+	`org-table-duration-custom-format'.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el: search blank lines down to the end of the item
+	instead of stopping at the item, in order to possibly match such
+	lines within the item.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-latex.el (org-export-latex-href-format): docstring fix to
+	reflect the fact that you can use only one "%s".
+	(org-export-latex-links): allow `org-export-latex-href-format' to
+	have only one "%s".
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-org-menu): Add `org-copy-visible' to the menu.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-copy-visible): New command.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-capture.el (org-capture-templates): docstring fix.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-view-src-block-info): New function to inspect
+	code blocks.
+
+	* ob-keys.el (org-babel-key-bindings): Key bindings for
+	org-babel-view-src-block-info.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-exp.el (org-infile-export-plist): Handle recursively
+	included setup files.  The value of the last included file always
+	takes precedence over previous values.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-timestamp-change): keep point in the same category
+	when updating a time-stamp.  This requires to be careful, as,
+	depending on the locale, name of day might change of length during
+	the process.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-create-definition): when skipping
+	already written footnotes definition, the algorithme would assume
+	each one was only one-line long.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-table.el (org-table-eval-formula): Fix bug when a formula
+	"range" is just one cell.
+	(org-table-time-string-to-seconds): don't check whether
+	we manipulate a string.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-exp.el (org-export-mark-list-end)
+	(org-export-mark-list-properties): don't remove the ending regexp
+	when it consists in blank lines.
+
+	* org-list.el (org-list-parse-list): ditto, but remove it
+	completely when it isn't made of blank lines (i.e. during export
+	process).
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-table.el (org-table-time-string-to-seconds): match either
+	HH:MM:SS or HH:MM (instead of MM:SS).
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-ctrl-c-ctrl-c-final-hook): New hook to be run when
+	`org-ctrl-c-ctrl-c' cannot do anything useful in the given
+	context.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-html-with-timestamp)
+	(org-export-html-html-helper-timestamp): These are obsolete
+	variables as of Org version 7.7 as you can already export the
+	timestamp from the preamble or the postamble.
+	(org-export-html-before-content-div): Delete variable.
+	(org-export-html-content-div): obsolete variable as of 7.7.
+	(org-export-html-divs): New variable to define divs used in
+	HTML export.
+	(org-export-as-html): Now the preamble and the postamble are
+	surrounded by a <div ...>.  The name of the div is defined
+	through `org-export-html-divs'.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-table.el (org-table-eval-formula): Throw an error when
+	trying to replace complex range with invalid references.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-macs.el (org-with-limited-levels): some functions, like
+	`org-back-to-heading', being deeply based on outline-mode, still
+	refer to `outline-regexp' instead of `org-outline-regexp'.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-refile-get-targets): new optional argument
+	`excluded-entries' to exclude entries from the targets.
+	(org-refile-get-location): From an org-mode buffer, exclude
+	current heading and subheadings from the list of targets when
+	org-refile-use-cache is nil.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-imenu-get-tree): note to self: headlines start at
+	bol.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-maxima.el: New file.  Fixed self-proclaimed file name.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-sha1-hash): Only call copy-seq on proper lists.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-kill-is-subtree-p): matched string needs to start at
+	bol.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-paste-subtree, org-kill-is-subtree-p)
+	(org-yank-folding-would-swallow-text, org-yank-generic): use
+	`org-with-limited-levels' macro.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-macs.el (org-with-limited-levels): also modify, when
+	appropriate, `org-outline-regexp-at-bol'.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-timestamp-change): some locales don't use the same
+	length for date abbreviations. Set a marker at origin in case
+	length of new timestamp is different.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-imenu-get-tree): browse only true headlines.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-archive.el (org-archive-subtree): while it might be possible
+	to archive an headline of a temporary buffer (i.e. not visiting a
+	file), it wouldn't be really sensical.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-archive.el (org-extract-archive-file)
+	(org-extract-archive-heading, org-archive-subtree):
+	buffer-file-name is nil in an indirect buffer.  Thus, use
+	(buffer-file-name (buffer-base-buffer)), which will, in any case,
+	return the file-name.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-capture.el (org-capture): if dired isn't loaded,
+	`dired-buffers' isn't defined, and %F will fail.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-java.el (org-babel-execute:java): Don't create empty package
+	directories.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-java.el: New file.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-execute-src-block): Replaced call to defunct
+	function `org-babel-result-hash'.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-in-valid-context-p): avoid cited
+	lines and headers in message-mode.
+	(org-footnote-at-reference-p): remove check for cited lines, this
+	is now handled by the previous function.  Refactor.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-capture.el (org-capture): if no file is associated to
+	current buffer, check dired buffer and try to retreive a possibly
+	directory associated.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-results): Resolve hashes in the current
+	(not original) file buffer.
+
+	* ob.el (org-babel-current-result-hash): More informative name,
+	and remove useless optional argument.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-refile-get-location): exclude current heading from
+	the refile table.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-at-reference-p): test if match is
+	in cited text, when replying to a message.
+	(org-footnote-new): do not create a new footnote at bol, as it might
+	be seen as a definition.
+	(org-footnote-at-definition-p): ignore definitions in forbidden
+	blocks, as it is already the case for references.
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org-bibtex.el (org-bibtex-create, org-bibtex-write): Change
+	argument of `org-toggle-tag' to 'on. (Other arguments, e.g., t,
+	have no effect).
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-bibtex.el (org-bibtex-get): Don't let trimming turn nils
+	into empty strings.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-insert-item): actualize code comments.
+	(org-insert-item): for consistency, point cannot be moved at
+	a surprising place when the user is being asked to choose a new
+	description term to insert in the list. Point should stay where the
+	user called the command.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-toc.el (org-toc-before-first-heading-p, org-toc-show)
+	(org-toc-get-headlines-status): Use `org-outline-regexp-bol'.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-outline-regexp-bol): New defconst.
+	(org-outline-level, org-set-font-lock-defaults, org-cycle)
+	(org-overview, org-content, org-flag-drawer)
+	(org-first-headline-recenter, org-insert-todo-heading)
+	(org-map-region, org-move-subtree-down, org-paste-subtree)
+	(org-kill-is-subtree-p, org-context-p, org-refile)
+	(org-refile-new-child, org-toggle-comment, org-todo)
+	(org-add-planning-info, org-add-log-setup, org-scan-tags)
+	(org-set-tags, org-insert-property-drawer)
+	(org-prepare-agenda-buffers, org-preview-latex-fragment)
+	(org-speed-command-default-hook, org-check-for-hidden)
+	(org-toggle-item, org-toggle-heading)
+	(org-indent-line-function, org-set-autofill-regexps)
+	(org-fill-paragraph, org-toggle-fixed-width-section)
+	(org-yank-generic, org-yank-folding-would-swallow-text)
+	(org-first-sibling-p, org-goto-sibling)
+	(org-goto-first-child, org-show-entry): Use
+	`org-outline-regexp' and `org-outline-regexp-bol'.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-update-parent-todo-statistics): COOKIE_DATA should
+	be checked for parent, not current headline. Also, this function
+	doesn't need to be interactive.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-send-item, org-list-struct-apply-struct)
+	(org-apply-on-list, org-toggle-checkbox): make markers point
+	nowhere when they have become useless.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-insert-item): when insertion point is in
+	some white line after the end of the list, remove all unnecessary
+	white lines there before proceeding. Also refactor a snippet of
+	code.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-latex.el (org-export-latex-image-default-option): Change
+	default value.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-fontify-meta-lines-and-blocks-1): blocks cannot be
+	correctly fontified when the buffer is missing a final newline.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* ob.el (org-babel-strip-protective-commas): Return `nil' instead
+	of an error if no argument is given.
+	(org-babel-parse-src-block-match): Make sure body is defined
+	in the let construct.
+
+2011-07-28  Jon Anders Skorpen  <jonas@ifi.uio.no>  (tiny change)
+
+	* org-publish.el (org-publish-cache-file-needs-publishing): Regexp
+	did not find includes with double quoted file names.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-normalize): footnote section
+	should be inserted only if there are footnotes to insert.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-at-definition-p)
+	(org-footnote-normalize): do not grab signature in the definition
+	of the last footnote.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-bibtex.el (org-babel-trim): Declare this function to the
+	compiler.
+	(org-bibtex-get): Trimming whitespace off of bibtex fields read from
+	properties.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-exp.el (org-export-preprocess-string): add the possibility
+	to call recursively the function. Also change order of some
+	function calls. Comment export process for footnotes.
+
+	* org-footnote.el (org-footnote-normalize): change the export
+	specific parameter to hold properties of export. Thus, the
+	function can send every footnote definition in the buffer through
+	`org-export-process-string'.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-latex.el (org-export-latex-preprocess): first insert
+	footnotes in the temporary buffer so their contents can properly
+	be protected from further transformations if required.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-indent-offset): new variable.
+	(org-list-struct-fix-ind): make use of the new variable.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-latex.el (org-export-latex-list-parameters): complete
+	default value with cbtrans option.
+
+	* org-list.el (org-list-to-latex): set a more consistent default
+	value.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-swap-items): move it to a meaningful
+	position in source code (i.e. before any function using it), and
+	rename it to an easier name.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-separating-blank-lines-number): if there
+	are blank lines already in the whole list, add a blank line.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-use-circular-move): new variable.
+	(org-previous-item, org-next-item): make use of the new variable.
+	(org-move-item-down, org-move-item-up): make use of the new
+	variable. Simplify code.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-delete-item, org-list-send-item): new
+	functions.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-agenda.el (org-agenda-bulk-custom-functions): New variable
+	for custom bulk action functions.
+	(org-agenda-bulk-action): Use it.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-latex.el (org-export-latex-quotes): New defcustom.
+	(org-export-latex-quotation-marks): Use it.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-capture.el (org-capture-finalize): bugfix about inserted
+	blank line when killing the capture buffer and
+	`org-blank-before-new-entry' tells to not insert anything before a
+	heading.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-html-content-div): Rename from
+	`org-export-content-div'.
+	(org-export-as-html): Use new name.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-latex.el (org-export-latex-header-defs-re): Delete.
+
+2011-07-28  Bastien  <bzg@gnu.org>
+
+	* org.el (org-last-set-property): New variable.
+	(org-read-property-name): Use the new variable: the prompt
+	defaults to the last property set, unless there is a property
+	in the line at point.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-capture.el (org-capture-before-finalize-hook)
+	(org-capture-after-finalize-hook, org-capture-mode-map)
+	(org-capture-mode, org-capture-goto-last-stored): Fix docstring,
+	consistently refer to capture, not remember.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-clojure.el (org-babel-execute:clojure): Respects "scalar" and
+	"verbatim" results params.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-awk.el (org-babel-execute:awk): Use "verbatim" as synonym for
+	"scalar".
+
+	* ob-sh.el (org-babel-sh-evaluate): Use "verbatim" as synonym for
+	"scalar".
+
+	* ob-sqlite.el (org-babel-execute:sqlite): Use "verbatim" as
+	synonym for "scalar".
+
+	* ob.el (org-babel-merge-params): Use "verbatim" as synonym for
+	"scalar".
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-script-escape): Parse odd parens when nested
+	isnide lists.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-clojure.el (org-babel-execute:clojure): No longer force
+	results into elisp if they don't naturally fit.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-clojure.el (org-babel-execute:clojure): Stop re-reading
+	already parsed lisp results.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-plain-list-ordered-item-terminator): remove
+	incorrect assumption.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-forbidden-blocks): add missing
+	exporter specific blocks.
+
+	* org-list.el (org-list-forbidden-blocks): ditto.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-latex.el (org-export-latex-tables): Bugfix: remove
+	properties from fields.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-shiftcontrolup, org-shiftcontroldown): New commands
+	to use `org-clock-timestamps-change'.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-timestamp-up, org-timestamp-down): mention time
+	changes in the docstring.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-clock.el (org-clock-remove-empty-clock-drawer): New function
+	to remove empty clock drawer.
+	(org-clock-out-hook): Add the new function as a hook.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-in-valid-context-p): use `org-in-block-p'.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-in-block-p): new function.
+
+	* org-footnote.el (org-footnote-forbidden-blocks): new variable.
+	(org-footnote-in-valid-context-p): new function.
+	(org-footnote-at-reference-p): use new function. Allow inline
+	footnotes to start at bol.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-lparse.el (org-lparse-use-flashy-warning): New defcustom.
+	(org-lparse-warn): Use it.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-ascii.el (org-export-as-utf8): fix call to
+	`org-called-interactively-p': it requires an argument.  Also fix
+	the docstring.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-lilypond.el (show-all): Declaring function from outline.el.
+	(org-babel-default-header-args:lilypond): Declared.
+	(ly-process-basic): Use the appropriate prefix for the temporary
+	file, and don't call a function from ob-dot.el.
+	(ly-version): Let-bind a free variable.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-lilypond.el: New file.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-publish.el
+	(org-publish-cache-file-needs-publishing): only check against .org
+	files.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-mode): Use org-default as
+	the default face in org-mode.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-publish.el
+	(org-publish-cache-file-needs-publishing): Takes care of more
+	recently included files, returning `t' in case the file including
+	them needs to be republished.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-exp.el (org-export-preprocess-string): if the last subtree
+	is a task, footnotes may be removed along with the subtree. This
+	patch ensures footnotes are put at the end of the buffer after the
+	subtree has been removed.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-at-reference-p): verify that what
+	looks like a footnote doesn't belong to a link.
+	(org-footnote-next-reference-or-definition): check more strictly
+	footnote definitions.
+
+2011-07-28  Deech  <deech@deech-ThinkPad-X200.(none)>
+
+	* ob-tangle.el (org-babel-tangle): Ignore errors thrown by
+	language modes.
+
+2011-07-28  Suvayu Ali  <fatkasuvayu+linux@gmail.com>
+
+	* Mention use of keywords like multicolumn and float
+
+	* Remove previous mention of hack with placement option as per
+	comments on the mailing list. The hack is better suited for Worg.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-python.el (org-babel-python-evaluate-session): Inhibit return
+	of the eoe string during session evaluation.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-python.el (org-babel-python-evaluate-session): Enough
+	newlines to ensure a return when ":results output :session".
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-python.el (org-babel-python-evaluate-session): Introduced a
+	new local function for sending input with a slight delay to allow
+	pythong to re-draw the prompt.  No longer removing newlines inside
+	code block bodies (was due to a defective regexp).
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-table.el
+	(org-table-time-seconds-to-string): use `org-format-seconds'
+	instead of `format-seconds'.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-publish.el (org-publish-cache-ctime-of-src): Properly handle
+	relative symlinks.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-latex.el (org-export-latex-preprocess): Use function
+	argument instead of dynamically scoped symbol.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-freemind.el (org-freemind-convert-links-helper)
+	(org-freemind-convert-text-p, org-freemind-write-mm-buffer)
+	(org-freemind-get-node-style): Use org-string-match-p for backward
+	compatibility with Emacs22.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-html.el (org-export-html-protect-char-alist): Add missing
+	:group keyword in defcustom.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* ob-haskell.el (org-babel-haskell-export-to-lhs): Call
+	kill-buffer with argument indiciating to kill current
+	buffer. Emacs 22 compatibility.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-macs.el (org-without-partial-completion): Toggle
+	partial-completion-mode only if it is turned on.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-add-planning-info): fix
+	issues with timestamps not being inserted at the same position.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-table.el
+	(org-table-time-string-to-seconds)
+	(org-table-time-seconds-to-string): New functions.
+	(org-table-eval-formula): Implement the "T" (time) flag for
+	computing durations.
+
+2011-07-28  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org.el (org-modules): Add org-lparse and org-odt as contrib
+	modules.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.el (org-fontify-meta-lines-and-blocks-1): Include header
+	lines.
+	(org-additional-option-like-keywords): Include data as a synonym for
+	results.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-sha1-hash): Improving code layout and removing
+	export-variable headers in cache sha1.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-ref.el (org-babel-ref-goto-headline-id): Don't let org-id
+	rescan all IDs when trying to resolve a reference.
+
+2011-07-28  Julien Barnier  <julien@nozav.org>
+
+	* org.el (org-fontify-meta-lines-and-blocks-1): Fix test for src
+	blocks lang attribute
+
+2011-07-28  Eric S Fraga  <e.fraga@ucl.ac.uk>
+
+	* Allow for a different markup for inactive time stamps on latex
+	export
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-org.el (org-babel-expand-body:org): Implemented this
+	function, only action is to expand variables.
+	(org-babel-execute:org): Uses the new body-expansion function.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-full-item-re): allow counter and check-box
+	to be separated by white spaces.
+	(org-list-struct-apply-struct): reflect changes made to
+	`org-list-full-item-re'.
+
+	* org-html.el (org-html-export-list-line): recognize spaces
+	between counter and check-boxes as valid.
+
+	* org-docbook.el (org-export-docbook-list-line): ditto.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-insert-item): make sure point is moved to
+	the specified POS before starting the function.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-activate-footnote-links): properly fontify inline
+	footnotes.
+	(org-set-font-lock-defaults): apply changes to previous function.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-at-reference-p): first check if
+	point is at the beginning of a footnote. Indeed `org-in-regexp'
+	first checks backwards and might find an incorrect footnote if
+	they are side-by-side.
+
+2011-07-28  Michael Brand  <michael.ch.brand@gmail.com>
+
+	* org-agenda.el (org-agenda-compact-blocks): Improve docstring.
+	(org-agenda-block-separator): Add nil to docstring and customization.
+	(org-prepare-agenda): Skip agenda block separator additionally if
+	org-agenda-block-separator is nil.
+	(org-agenda-overriding-header): Improve docstring.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-set-tags): Remove useless
+	`org-without-partial-completion'.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-footnote.el (org-fill-paragraph): Declare function for the
+	compiler.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-ref.el (org-narrow-to-subtree): Declare unknown function.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-inline-lob-one-liner-regexp): Declare variable
+	to appease compiler.
+
+2011-07-28  Michael Markert  <markert.michael@googlemail.com>
+
+	* ob.el (org-babel-sha1-hash): Adding optional argument KIND to
+	all org-called-interactively-p function invocations.
+
+	* org-agenda.el (org-agenda-redo): Adding optional argument KIND
+	to all org-called-interactively-p function invocations.
+	(org-agenda-show-1): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+	(org-agenda-set-tags): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+
+	* org-ascii.el (org-export-as-latin1): Adding optional argument
+	KIND to all org-called-interactively-p function invocations.
+	(org-export-as-latin1-to-buffer): Adding optional argument KIND to
+	all org-called-interactively-p function invocations.
+	(org-export-as-utf8-to-buffer): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+	(org-export-region-as-ascii): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+
+	* org-docbook.el (org-export-region-as-docbook): Adding optional
+	argument KIND to all org-called-interactively-p function
+	invocations.
+
+	* org-html.el (org-export-region-as-html): Adding optional
+	argument KIND to all org-called-interactively-p function
+	invocations.
+
+	* org-latex.el (org-export-region-as-latex): Adding optional
+	argument KIND to all org-called-interactively-p function
+	invocations.
+
+	* org-table.el (org-table-blank-field): Adding optional argument
+	KIND to all org-called-interactively-p function invocations.
+	(org-table-current-column): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+	(org-table-current-dline): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+	(org-table-sort-lines): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+	(org-table-sum): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+	(org-table-rotate-recalc-marks): Adding optional argument KIND to
+	all org-called-interactively-p function invocations.
+	(org-table-eval-formula): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+	(orgtbl-send-table): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+
+	* org.el (org-mode): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+	(org-copy-subtree): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+	(org-paste-subtree): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+	(org-store-link): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+	(org-todo): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+	(org-occur): Adding optional argument KIND to all
+	org-called-interactively-p function invocations.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-action): offer to create
+	definition when none is found.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-re): avoid matching inactive
+	time-stamps or check-box cookies.
+	(org-footnote-next-reference-or-definition): adapt to the new regexp.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-exp.el (org-export-preprocess-string): if the last subtree
+	is commented, footnotes inserted during normalizing at the end of
+	the buffer may get deleted. This patch ensures deletion comes
+	first, normalization second.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-exp.el (org-export-footnotes-data): change docstring.
+	(org-export-footnotes-seen): renamed from
+	org-export-footnotes-markers.
+
+	* org-ascii.el (org-export-as-ascii): apply change.
+
+	* org-docbook.el (org-export-as-docbook): apply change.
+
+	* org-footnote.el (org-footnote-normalize): apply change.
+
+	* org-html.el (org-export-as-html): apply change.
+
+	* org-latex.el (org-export-as-latex): apply change.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-latex.el (org-export-latex-preprocess): rely on
+	`org-export-footnotes-markers' to retreive definition of the
+	current footnote during export.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-normalize): remember footnotes
+	seen so far by the exporter when choosing the new marker.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-normalize): make use of
+	`org-footnote-insert-pos-for-preprocessor'.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-normalize): add `org-footnote'
+	property to footnote markers when preparing for exportation.
+
+	* org-html.el (org-export-as-html): read new property to decide
+	when to export a footnote.
+
+	* org-docbook.el (org-export-as-docbook): read new property to
+	decide when to export a footnote.
+
+	* org-latex.el (org-export-latex-preprocess): ensure footnote at
+	column 0 cannot end a list containing it by adding
+	`original-indentation' property to it.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-exp (org-export-preprocess-string): normalize footnotes
+	before marking lists ending.
+
+	* org-latex.el (org-export-latex-preprocess): work with labels as
+	strings and not as numbers.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-docbook.el (org-export-docbook-footnote-separator): new
+	variable
+	(org-export-as-docbook): add a separator between footnotes.
+
+	* org-html.el (org-export-html-footnote-separator): new variable.
+	(org-export-as-html): add a separator between footnotes.
+
+	* org-latex.el (org-export-latex-footnote-separator): new
+	variable.
+	(org-export-latex-preprocess): add a separator between footnotes.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-exp.el (org-export-footnotes-markers)
+	(org-export-footnotes-data): new variables.
+	(org-export-preprocess-string): use a more explicit argument.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-goto-definition): now, determining
+	if point is at a footnote reference is entirely determined by
+	`org-footnote-at-reference-p'. No need to check if pattern isn't
+	at beginning of the line elsewhere.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-next-reference-or-definition): new
+	function.
+
+	* org.el (org-activate-footnote-links): activate the whole
+	footnote, but only fontify its label.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-normalize): make use of changes to
+	`org-footnote-at-reference-p' and creation of various functions..
+	Also comment code.
+	(org-footnote-get-next-reference, org-footnote-delete-references,
+	org-footnote-delete-definitions): new functions
+	(org-footnote-goto-previous-reference, org-footnote-all-labels,
+	org-insert-footnote-reference-near-definition, org-footnote-delete):
+	rewrite to use org-footnote-get-next-reference.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-footnote.el (org-footnote-re): don't end an inline footnote
+	at unrelated closing square brackets.
+	(org-footnote-at-reference-p): improve accuracy of the function to
+	determine if point is at a reference and to extract definition of an
+	inline footnote.
+	(org-footnote-all-labels, org-footnote-action, org-footnote-delete,
+	org-footnote-auto-adjust-maybe): make use of previous function.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-deadline, org-schedule):
+	keep warning cookie when rescheduling/redeadlining.
+	(org-time-stamp): Fix problem with warning cookie.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-clojure.el (org-babel-execute:clojure): Force escaping of
+	clojure source into elisp source.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-script-escape): Treats {} in the same manner as
+	[] and allows for forcing string conversion.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-exp.el (org-export-select-backend-specific-text): Strip
+	protective commas from literal code blocks.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-ref.el (org-babel-ref-goto-headline-id): Fix bug.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-ref.el (org-babel-ref-goto-headline-id): Split out into its
+	own function.
+	(org-babel-ref-headline-body): Split out into its own function.
+	(org-babel-ref-resolve): Using new functions, and alignment.
+
+	* ob.el (org-babel-ref-goto-headline-id): Declare function.
+	(org-babel-ref-headline-body): Declare function.
+	(org-babel-expand-noweb-references): Now expands noweb references to
+	headlines during expansion.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-ref.el (org-babel-ref-resolve): Now resolves references to
+	headlines by either global or custom id, in which case the
+	contents of the headline are returned literally.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-in-example-or-verbatim): Also check for in
+	verbatim emphasis.
+	(org-babel-exp-lob-one-liners): Cleaner checking for escaped call
+	lines.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-cycle-item-indentation): cycling back to
+	original position deleted any additional information in the item,
+	like a counter or a tag.
+
+2011-07-28  Pieter Praet  <pieter@praet.org>
+
+	* org-crypt.el (org-crypt-disable-auto-save): New defcustom.
+	(org-decrypt-entry): before decrypting, check whether
+	`auto-save-mode' is enabled for the current buffer, and act on it
+	according to how `org-crypt-disable-auto-save' is set.  Remove
+	comment re "encrypt[ing] Org auto-saved buffers".  Remove on-init
+	check for `auto-save-default'.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-merge-params): Ensure variable parameters are
+	not reversed.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-insert-result): Fix results insertion for
+	inline blocks which happen to start a line.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-lob-one-liners): Fix the logic checking
+	if a call line is commented.
+
+2011-07-28  Vincent Belaïche  <vincentb1@users.sourceforge.net>
+
+	* org.el (org-read-property-name): Propose default property name.
+
+2011-07-28  Achim Gratz  <stromeko@nexgo.de>
+
+	* org.el (defcustom org-log-into-drawer): correct typo
+
+	* org-clock.el (org-clock-into-drawer): New function to change the
+	location of clock events based on properties CLOCK_INTO_DRAWER or,
+	as fallback, LOG_INTO_DRAWER, like it is already possible for
+	state change logs.
+
+	* org-clock.el (org-clock-jump-to-current-clock): add statement to
+	let clause to bind org-clock-into-drawer to result of function
+	eval
+
+	* org-clock.el (org-clock-find-position): add statement to let
+	clause to bind org-clock-into-drawer to result of function eval,
+	change let to let* since the binding is used later in the same
+	clause
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-lob.el (require): Ensure 'cl is loaded during compilation so
+	we can use flet.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-lob.el (org-babel-lob-get-info): Correctly indent results of
+	non-inline call lines.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-lob-one-liners): Don't export inline
+	call_ blocks which aren't whitespace padded.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-merge-params): Do not reverse variable order,
+	and be sure to increment variable index as appropriate.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-lob.el (org-babel-inline-lob-one-liner-regexp): Updated to
+	successfully match optional trailing header arguments in square
+	brackets.
+	(org-babel-lob-get-info): Updated to match the new regexp.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-lob.el (org-babel-lob-get-info): If the arguments are empty,
+	then allow them to be so.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-merge-params): If variables are not named they
+	are assigned in order.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el: Remove code comment about online documentation.
+
+	* ob-exp.el: Remove code comment about online documentation.
+
+	* ob-lob.el: Remove code comment about online documentation.
+
+2011-07-28  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org-exp.el (org-export-format-source-code-or-example): Fix
+	signature of org-<backend>-format-source-code-or-example function.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-sha1-hash): Replace call to
+	called-interactively-p with backwards-compatible interactive-p.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-lob-one-liners): Appropriate
+	replacement of inline call blocks with their results.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-lob.el (org-babel-inline-lob-one-liner-regexp): Removing this
+	trailing space ensures that the insertion of the results looks
+	nice.
+
+	* ob.el (org-babel-insert-result): Insert inline lob line results
+	as inline results.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-lob-one-liners): Calculate length
+	appropriately given the style (block or inline) of the lob line.
+
+	* ob-lob.el (org-babel-block-lob-one-liner-regexp): New regexp
+	specific for block lob lines.
+	(org-babel-inline-lob-one-liner-regexp): New regexp specific for
+	inline lob lines.
+	(org-babel-lob-one-liner-regexp): Combination of two lob regexps.
+	(org-babel-lob-get-info): Return info from *either* the block or
+	inline lob lines.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-lob-one-liners): Corrected the
+	structure of the resulting info list.
+
+	* ob-lob.el (org-babel-default-lob-header-args): Export the
+	results of call lines by default.
+
+2011-07-28  Niels Giesen  <niels.giesen@gmail.com>  (tiny change)
+
+	* org-icalendar.el (org-print-icalendar-entries): Add 'uid text
+	property based on the ID property of the org entry to the first
+	character of the diary entry.
+
+2011-07-28  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org-footnote.el
+	(org-footnote-insert-pos-for-preprocessor): New variable.
+	(org-footnote-normalize): Use it.
+
+2011-07-28  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org-exp.el (org-export-format-source-code-or-example):
+	Simplify. Also add `org-native-text' as a text property to the
+	formatted text and throw error for unknown backends.
+
+2011-07-28  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org-exp.el (org-export-format-source-code-or-example): Add
+	support for: - custom formatters for existing backends - seamless
+	plugging in of new backends.
+
+2011-07-28  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org-exp.el (org-export-backends): New variable.
+	(org-export-select-backend-specific-text): Use above
+	variable. Also mark text between #+BACKEND and
+	#+BEGIN_BACKEND...#+END_BACKEND with org-native-text
+	property. This text property is currently used only by the new
+	line-oriented generic exporter (which is not yet part of the
+	repo).
+
+2011-07-28  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org-exp.el (org-export): Reserve keys 'o' and 'O' for
+	OpenDocumentText export and bind them to org-export-as-odt and
+	org-export-as-odt-and-open.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-src-block): Less verbose when in batch
+	mode.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-clojure.el (org-babel-execute:clojure): Convert vectors to
+	lists before reading into emacs-lisp.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-C.el (ob-tangle): initialize variable from ob-tangle.
+
+	* ob-asymptote.el (ob-tangle): initialize variable from ob-tangle.
+
+	* ob-awk.el (ob-tangle): initialize variable from ob-tangle.
+
+	* ob-clojure.el (ob-tangle): initialize variable from ob-tangle.
+
+	* ob-haskell.el (ob-tangle): initialize variable from ob-tangle.
+
+	* ob-latex.el (ob-tangle): initialize variable from ob-tangle.
+
+	* ob-lisp.el (ob-tangle): initialize variable from ob-tangle.
+
+	* ob-ocaml.el (ob-tangle): initialize variable from ob-tangle.
+
+	* ob-perl.el (ob-tangle): initialize variable from ob-tangle.
+
+	* ob-python.el (ob-tangle): initialize variable from ob-tangle.
+
+	* ob-ruby.el (ob-tangle): initialize variable from ob-tangle.
+
+	* ob-tangle.el (ob-tangle): initialize variable from ob-tangle.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-awk.el: New file.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-emacs-lisp.el (org-babel-execute:emacs-lisp): Respects
+	":results verbatim".
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-float): Aliases for `diary-float'.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-python.el (org-babel-python-evaluate-session): Send
+	comint-send-input after every line when interacting with an
+	interactive python process.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-reset-checkbox-state-subtree): make the command
+	more robust, and correctly update check-boxes in the whole
+	sub-tree.
+	(org-update-checkbox-count): fix bug accumulating count of checkboxes
+	when walking a subtree.
+	(org-update-checkbox-count-maybe): add an optional argument passed to
+	org-update-checkbox-count.
+
+2011-07-28  Ted Zlatanov  <tzz@lifelogs.com>
+
+	* org.el (org-fontify-meta-lines-and-blocks): Ignore errors.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-emacs-lisp.el (org-babel-execute:emacs-lisp): Respect the
+	":results scalar" header argument combination.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* org-src.el: Append a space character to copied text so that the
+	final text property change is picked up correctly.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-tangle.el (org-babel-tangle-file): Use the new argument list
+	to org-babel-tangle.
+	(org-babel-tangle): Now when called with a prefix argument, only the
+	current code block is tangled.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-parse-list): replace transitional
+	check-boxes with "[CBTRANS]" string during parsing.
+	(org-list-to-generic): use the new property `:cbtrans' to configure
+	export string for transitional check-boxes.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-add-entry-to-org-agenda-diary-file):
+	Use stable internal `org-anniversary' instead of
+	diary-anniversary.
+	(org-class): New function.
+	(org-diary-class): Use `org-class'.
+	(org-anniversary, org-cyclic, org-date, org-block): New functions.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-header-arg-names): Adding noweb-ref to the list
+	of header argument names.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-expand-noweb-references): Concatenating all
+	bodies with the appropriate name or :noweb-ref header argument.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>  (tiny change)
+
+	* org.el (org-find-dblock):
+	(org-clocktable-try-shift): Make regexp work also when #+begin
+	line is indentex.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-src-block-regexp): Babel: code block may have
+	empty bodies.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-macs.el (org-without-partial-completion): Avoid calling by
+	name a function unknown to the compiler but explicitly checked by
+	program logic.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-mouse.el (org-agenda-earlier): Declaring previously unknown
+	function.
+	(org-agenda-later): Declaring previously unknown function.
+	(org-agenda-mode-map): Declaring previously unknown variable.
+
+	* org.el (org-read-date-analyze): Explicitly ignore the return
+	value of a function.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-agenda.el (org-agenda-mode): Globally replace
+	buffer-substring-filters with filter-buffer-substring-functions.
+
+	* org-indent.el (org-indent-mode): Globally replace
+	buffer-substring-filters with filter-buffer-substring-functions.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-ascii.el (org-export-as-ascii): Replacing '(λ...) with
+	#'(λ...).
+
+	* org-attach.el: Replacing '(λ...) with #'(λ...).
+	(org-attach-commit): Replacing '(λ...) with #'(λ...).
+
+	* org-exp.el: Replacing '(λ...) with #'(λ...).
+	(org-export-handle-include-files): Replacing '(λ...) with #'(λ...).
+
+	* org-html.el: Replacing '(λ...) with #'(λ...).
+	(org-export-as-html): Replacing '(λ...) with #'(λ...).
+
+	* org-mouse.el: Replacing '(λ...) with #'(λ...).
+	(org-mouse-popup-global-menu): Replacing '(λ...) with
+	(org-mode-hook): Replacing '(λ...) with #'(λ...).
+	(org-agenda-mode-hook): Replacing '(λ...) with #'(λ...).
+
+	* org-src.el: Replacing '(λ...) with #'(λ...).
+	(org-src-mode-configure-edit-buffer): Replacing '(λ...) with #'(λ...).
+
+	* org-table.el: Replacing '(λ...) with #'(λ...).
+	(org-table-fix-formulas-confirm): Replacing '(λ...) with #'(λ...).
+
+	* org.el: Replacing '(λ...) with #'(λ...).
+	(org-confirm-shell-link-function): Replacing '(λ...) with
+	(org-category): Replacing '(λ...) with #'(λ...).
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.el (mailcap-parse-mailcaps): Declaring functions used by
+	`org-open-file'.
+	(mailcap-extension-to-mime): Declaring functions used by
+	`org-open-file'.
+	(mailcap-mime-info): Declaring functions used by `org-open-file'.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-agenda.el (org-agenda-redo): Replacing call to now-defunct
+	function `interactive-p'.
+	(org-agenda-show-1): Replacing call to now-defunct function
+	`interactive-p'.
+	(org-agenda-set-tags): Replacing call to now-defunct function `interactive-p'.
+
+	* org-ascii.el: Replacing call to now-defunct function
+	`interactive-p'.
+	(org-export-as-latin1): Replacing call to now-defunct function
+	`interactive-p'.
+	(org-export-as-latin1-to-buffer): Replacing call to now-defunct
+	function `interactive-p'.
+	(org-export-as-utf8): Replacing call to now-defunct function
+	`interactive-p'.
+	(org-export-as-utf8-to-buffer): Replacing call to now-defunct function
+	`interactive-p'.
+	(org-export-region-as-ascii): Replacing call to now-defunct function
+	`interactive-p'.Replacing call to now-defunct function `interactive-p'.
+
+	* org-docbook.el: Replacing call to now-defunct function
+	`interactive-p'.
+	(org-export-region-as-docbook): Replacing call to now-defunct function
+	`interactive-p'.Replacing call to now-defunct function `interactive-p'.
+
+	* org-html.el: Replacing call to now-defunct function
+	`interactive-p'.
+	(org-export-region-as-html): Replacing call to now-defunct function
+	`interactive-p'.Replacing call to now-defunct function `interactive-p'.
+
+	* org-latex.el: Replacing call to now-defunct function
+	`interactive-p'.
+	(org-export-region-as-latex): Replacing call to now-defunct function
+	`interactive-p'.Replacing call to now-defunct function `interactive-p'.
+
+	* org-macs.el: Replacing call to now-defunct function
+	`interactive-p'.
+	(org-called-interactively-p): Replacing call to now-defunct function
+	`interactive-p'.Replacing call to now-defunct function `interactive-p'.
+
+	* org-table.el: Replacing call to now-defunct function
+	`interactive-p'.
+	(org-table-blank-field): Replacing call to now-defunct function
+	`interactive-p'.
+	(org-table-current-column): Replacing call to now-defunct function
+	`interactive-p'.Replacing call to now-defunct function
+	`interactive-p'.
+	(org-table-current-dline): Replacing call to now-defunct function
+	`interactive-p'.Replacing call to now-defunct function
+	`interactive-p'.
+	(org-table-sort-lines): Replacing call to now-defunct function
+	`interactive-p'.
+	(org-table-sum): Replacing call to now-defunct function
+	`interactive-p'.
+	(org-table-rotate-recalc-marks): Replacing call to now-defunct
+	function `interactive-p'.
+	(org-table-eval-formula): Replacing call to now-defunct function
+	`interactive-p'.
+	(orgtbl-send-table): Replacing call to now-defunct function `interactive-p'.
+
+	* org.el: Replacing call to now-defunct function `interactive-p'.
+	(org-mode): Replacing call to now-defunct function `interactive-p'.
+	(org-copy-subtree): Replacing call to now-defunct function
+	`interactive-p'.
+	(org-paste-subtree): Replacing call to now-defunct function
+	`interactive-p'.
+	(org-store-link): Replacing call to now-defunct function
+	`interactive-p'.
+	(org-todo): Replacing call to now-defunct function `interactive-p'.
+	(org-occur): Replacing call to now-defunct function `interactive-p'.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-R.el (ess-local-process-name): This variable wasn't known to
+	be defined.
+
+	* ob-lisp.el (org-babel-lisp-dir-fmt): This defcustom now has a
+	group specified.
+
+	* ob-tangle.el (org-bracket-link-regexp): This variable wasn't
+	known to be defined.
+	(org-babel-tangle-combine-named-blocks): Roll my own version of a
+	forbidden common lisp function.
+
+	* ob.el (org-babel-sha1-hash): Using a non-deprecated version of
+	called-interactively.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-latex.el (org-export-latex-tables): Check for the
+	"multiline" option and set the `floatp' option to true when
+	multicolumn tables are requested.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-html.el (org-export-as-html):
+	(org-html-level-start): Only convert section number underscores to dashes.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-bulk-action): Fix bug caused by
+	`days-to-time, converting relative to 1 BC, while the code assumed
+	it would return a time relative to 1970.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-tangle.el (org-babel-tangle-combine-named-blocks): No longer
+	inserting newlines between appended code blocks.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el: We may no longer need to export names along with code
+	blocks.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-exp-blocks.el (org-export-blocks-preprocess): Ensure
+	balanced nested begin/end blocks in block bodies.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* org-latex.el: Add -shell-escape to pdflatex commands.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-tangle.el (org-babel-tangle-named-block-combination): Block
+	combination can now take a number of values.
+	(org-babel-tangle-combine-named-blocks): More sophisticated block
+	combination behavior.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-tangle.el (org-babel-tangle-do-combine-named-blocks): Switch
+	to turn on the combination of code blocks of the same name.
+	(org-babel-tangle-combine-named-blocks): Combine blocks of the same
+	name.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-ruby.el (xmp): Declaring this function to appease the
+	compiler.
+	(org-babel-execute:ruby): "xmp" result option for outputting
+	annotated source code.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>  (tiny change)
+
+	* org-list.el (org-list-to-latex): the enumerate environment in
+	latex increments the counter before using it. Therefore, org-mode
+	should set the enumeration counter to the desired value minus one.
+
+2011-07-28  Michael Brand  <michael.ch.brand@gmail.com>  (tiny change)
+
+	* org.el (org-toggle-heading): More comments and fix number of
+	stars when toggling from list items.
+
+2011-07-28  Christian Egli  <christian.egli@sbszh.ch>
+
+	* org-taskjuggler.el (org-taskjuggler-clean-effort): handle any
+	effort that is accepted by `org-duration-string-to-minutes´.
+
+2011-07-28  Julien Barnier  <julien@nozav.org>
+
+	* ob-sh.el (org-babel-sh-evaluate) : when sending input to comint,
+	wait until previous line execution is finished
+
+	* ob-comint.el (org-babel-comint-with-output) : when looking for
+	end-of-evaluation indicator, search forward for the indicator
+	before searching forward for the prompt
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-entities.el (org-entities): Fix HTML entity for degree.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-auto-align-tags): change docstring.
+	(org-update-parent-todo-statistics): keep tags aligned even when
+	statistics cookies are shifting them.
+
+	* org-list.el (org-update-checkbox-count): keep tags aligned even
+	when statistics cookies are shifting them.
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* ob.el (org-babel-sha1-hash): Don't modify info argument by
+	side-effect when sorting result-params list.
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* ob.el (org-babel-result-regexp): Use non-shy group around
+	org-babel-data-names.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-insert-link): Set truncate-line in the *Org Link*
+	buffer and make sure that it really is set there.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-lisp.el (org-babel-lisp-dir-fmt): Defcustom for use in
+	changing how/if the current directory is represented to lisp code.
+	(org-babel-execute:lisp): More general handling of the default
+	directory value.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-lisp.el (org-babel-execute:lisp): Setting the value of
+	*default-pathname-defaults* to either the value of the :dir header
+	argument or the directory of the containing Org-mode file.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-lisp.el (org-babel-execute:lisp): No real functional change,
+	just aesthetic.
+
+2011-07-28  Sébastien Delafond  <sdelafond@gmail.com>
+
+	* org.el (org-mode-flyspell-verify): This is useful when using
+	flyspell with a non-English dictionary, or if some of your
+	keywords are in another language.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-exp.el (org-export): Use new compatibility function
+	`org-activate-mark'.
+
+	* org-compat.el (org-activate-mark): New function. Provide
+	`activate-mark' if not present (e.g. Emacs22).
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-table.el (org-table-follow-field-mode): Declare variable to
+	keep byte compiler happy.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-footnote.el (org-id-uuid): Declare function, silence byte
+	compiler.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-bibtex.el (org-bibtex-headline): Don't use equalp at
+	run-time, compare downcased strings.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-bibtex.el (org-id-locations): Declare variable to silence
+	byte compiler.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-id.el (org-id-locations): Fix docstring, remove reference to
+	non-existent option.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org.el (org-self-insert-command): Use `delete-char' instead of
+	`delete-backward-char'.
+
+	* org-table.el (orgtbl-self-insert-command): Dto.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-latex.el (org-export-latex-special-chars): Save match data
+	when checking for table.el table.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org.el (org-re-property): Move before its first use.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-latex.el (org-export-latex-preprocess): add
+	`original-indentation' property to footnotes so they cannot
+	possibly end a list by being less indented than the item they
+	belong to.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-lisp.el (org-babel-expand-body:lisp): No longer wraps biddies
+	in `progn'.
+	(org-babel-execute:lisp): Wraps bodies in `progn' as they are passed
+	to swank.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-clock.el (org-clocktable-write-default): Implement adding
+	property columns to the clock table.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-toggle-item): Move parenthesis to correct location.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-default-priority):
+	(org-priority-start-cycle-with-default): Improve docstring.
+	(org-priority): Throw error when priority is out of range.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-self-insert-command): Catch the case of
+	buffer-undo-list eq t.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-toggle-heading): region should be considered as made
+	of full lines, without the last one if region-end is at bol.
+	Removed unused variables. Refactored and commented code.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-toggle-item): when region includes an headline less
+	indented than first one, set it as the new reference.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-to-subtree): if the list is before first
+	heading and `org-odd-levels-only' is non-nil, the first item gets
+	two stars instead of one.
+
+	* org.el (org-reduced-level): a level of 0 was reduced to 1 with
+	`org-odd-levels-only' non-nil.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-toggle-item): converting an heading to an item would
+	sometimes insert unnecessary spaces before it, and unwanted space
+	with `org-indent-mode' on. Changing some text into an item
+	wouldn't always preserve indentation.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-capture.el (org-capture-current-plist): Improve docstring.
+	(org-capture-put): Add docstring.
+	(org-capture-get): Add docstring.
+	(org-capture-member): Add LOCAL argument. Add docstring.
+	(org-capture-set-target-location): Store the time received from a date
+	prompt into the :prompt-time property.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-exp.el (org-export-mark-list-properties): even if context is
+	invalid, mark list item with `list-context' property.
+
+	* org-list.el (org-list-forbidden-blocks): add exporters specific
+	blocks to the list of forbidden blocks.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-sort-list): function tries to intern
+	getkey-func before it is defined, so it's always nil.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.el (org-babel-load-languages): Adding ob-awk to the list of
+	executable languages.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-table.el (org-table-get-field): Make sure the new field
+	content is at least one space character.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-crypt.el: Check for `daemonp' before using it.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-sh.el (ob-ref): Uses ob-ref to resolve the value of the
+	:stdin header argument.
+	(org-babel-execute:sh): Use the :stdin header argument.
+	(org-babel-sh-var-to-sh): Split the bulk of this function off into a
+	new sub-function.
+	(org-babel-sh-var-to-string): New function for converting elisp
+	values to strings that make sense for parsing with sh.
+	(org-babel-sh-evaluate): Adding "stdin" option to session and
+	external evaluation options.
+
+2011-07-28  Roland Kaufmann  <rlndkfmn+orgmode@gmail.com>  (tiny change)
+
+	* org-exp.el (org-remove-formatting-on-newlines-in-region): New
+	function.
+	(org-export-format-source-code-or-example): Call
+	`org-remove-formatting-on-newlines-in-region'.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org.el (org-entry-put): Prevent adding of extra space to value
+	if property already exists.
+
+2011-07-28  Jambunathan K  <kjambunathan@gmail.com>
+
+	* org-html.el (org-export-as-html): Don't expand non-data lines of
+	table.el tables.
+	(org-html-expand): Removed the (buggy) test for non-data lines
+	in table.el tables. The test is now done as part of
+	org-export-as-html.
+	(org-format-table-table-html-using-table-generate-source):
+	Added test for spanning of cells in table.el tables using
+	table.el's own library routine. Optionlly Suppress export of
+	simple table.el tables.
+	(org-format-table-html): Removed the (buggy) test for spanned
+	table.el tables. The test is now done as part of
+	org-format-table-table-html-using-table-generate-source.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-latex.el (org-export-latex-special-chars): Do nothing in
+	table.el tables.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-capture.el (org-capture): Ignore errors when creating a
+	link.
+
+2011-07-28  Nick Dokos  <nick@dokosmarshall.org>  (tiny change)
+
+	* org-exp.el (org-export-define-heading-targets): Use dash instead
+	of underscore to make labels valid.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob-R.el (org-babel-R-write-object-command): Ensure that all data
+	is written to the results file before Emacs notices that the file
+	exists.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-code): Remove usage of a macro which is
+	defined locally on my system, but not globally in Emacs.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-do-export): Use `org-babel-exp-code' to
+	generate code block output.
+	(org-babel-exp-code): Re-create the code block body for exporting
+	source code.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>  (tiny change)
+
+	* org.el (org-read-date): Bury Calendar buffer after using it for
+	selecting a date.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-separating-blank-lines-number): fix
+	confusion between point and item beginning. Now, if no information
+	is avalaible, truly follow user preference when it inserts blank
+	lines manually.
+	(org-list-insert-item): send correct argument to the preceding
+	function.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-src-block-regexp): Keep the now-mandatory
+	newline inside of the code block body.
+
+2011-07-28  Sean O'Halpin  <sean.ohalpin@gmail.com>
+
+	* ob.el: Avoid spurious matches to literal.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-indent-line-function): don't include #+include
+	lines.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-keys.el (org-babel-key-bindings): Adding key sequence for
+	org-babel-check-src-block.
+
+	* ob.el (org-babel-expand-src-block): Fit within 80 cols.
+	(org-babel-edit-distance): Returns the edit distance of two strings.
+	(org-babel-check-src-block): Check a code block for errors.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>  (tiny change)
+
+	* org-capture.el (org-capture-templates): Fix bug in customization
+	setup.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-table.el
+	(org-table-exit-follow-field-mode-when-leaving-table): New option.
+	(org-table-check-inside-data-field): New optional argument `noerror'.
+	When set, the function will only return nil instead of throwing an
+	error.
+	(org-table-edit-field): Interpret double prefix argument, and improve
+	the properties of the editing window.
+	(org-table-follow-field-mode): New minor mode.
+	(org-table-follow-fields-with-editor): New function.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-get-todos): Call `org-agenda-skip'
+	first, then check if timestamps cause exclusion.
+
+	* org.el (org-scan-tags): Call `org-agenda-skip' first, then check
+	if timestamps cause exclusion.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-full-item-re): allow description term to
+	have a newline character after the colons.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-sort-list): no longer ignore with-case
+	argument: the function sorted case-sensitively, regardless of
+	argument.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-ref.el (org-babel-ref-resolve): Using the new result regexp.
+
+	* ob.el (org-babel-data-names): Configurable list of names of
+	data.
+	(org-babel-result-regexp): Using new results regexp.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-special-properties): Add CLOCKSUM to the special
+	properties.
+
+2011-07-28  Robert P. Goldman  <rpgoldman@real-time.com>
+
+	* ob-exp.el (org-babel-exp-in-export-file): Bind
+	`org-link-search-inhibit-query' to t to inhibit prompts.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-contacts.el: Merge org-contacts-wl.el.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export-add-options-to-plist): Use the right
+	match group.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-latex.el (org-export-latex-preprocess): Protect index string
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-latex.el (org-export-latex-preprocess): Pipe index entries
+	through org-export-latex-fontify-headline.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export-add-options-to-plist): Fix the option
+	parser
+
+2011-07-28  Robert P. Goldman  <rpgoldman@real-time.com>
+
+	* org-latex.el (org-export-latex-preprocess): Replace index
+	entries.
+
+2011-07-28  Robert P. Goldman  <rpgoldman@real-time.com>
+
+	* org.el (org-structure-template-alist): Add an easy template for
+	index (i), and move include file to I from i.
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org-agenda.el (org-agenda-open-link): Pass entire text of agenda
+	line to org-offer-links-in-entry.
+
+2011-07-28  Michael Markert  <markert.michael@googlemail.com>
+
+	* org-contacts-wl.el: New file.
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org-bibtex.el (org-bibtex-search): New function.
+	(org-bibtex-export-to-kill-ring): New function.  Export to kill
+	ring.
+	(org-bibtex-create-in-current-entry): New function
+	(org-bibtex-create): Make it easier to add bib fields to an
+	existing headline.
+	(org-bibtex-export-arbitrary-fields)
+	(org-bibtex-treat-headline-as-title): Fix typos
+	(org-bibtex-fleshout): Don't upcase optional field; remove ":" from
+	type completion.
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org-bibtex.el (org-bibtex-treat-headline-as-title): New
+	defcustom.
+	(org-bibtex-headline): Only use headline text (not TODO or other
+	metadata) to generate title field and auto key.
+	(org-bibtex-fleshout): Allow user to choose whether to treat
+	headline as title.
+
+2011-07-28  Tom Dye  <tsd@tsdye.com>
+
+	* org-bibtex.el: Added crossref field to other fields
+
+2011-07-28  Tom Dye  <tsd@tsdye.com>
+
+	* org-bibtex.el: Add crossref option to incollection
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org-bibtex.el (org-bibtex-headline): Don't export TYPE property
+	as field.
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org-bibtex.el (org-bibtex-key-property): When storing key in ID,
+	warn if a duplicate ID is generated.
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org-bibtex.el (org-bibtex-tags): New variable
+	(org-bibtex-tags-are-keywords): New variable
+	(org-bibtex-no-export-tags): New variable
+	(org-bibtex-headline): Export tags as comma-separated bibtex keywords
+	(org-bibtex-read): Import bibtex keywords field as tags
+
+2011-07-28  Manuel Giraud  <manuel.giraud@univ-nantes.fr>
+
+	* org-publish.el (org-publish-find-date): optimization
+
+2011-07-28  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* org-gnus.el (org-gnus-follow-link): Don't request scan of group
+	when following link.
+
+2011-07-28  Manuel Giraud  <manuel.giraud@univ-nantes.fr>
+
+	* org-publish.el (org-publish-project-alist): Document new
+	:sitemap-sans-extension property.
+	(org-publish-org-sitemap): Use new sitemap-sans-extension setting.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-remove-uninherited-tags): Renamed from
+	org-remove-iniherited-tags.
+	(org-scan-tags): Fix typo in function call.
+	(org-get-tags-at): Fix typo in function call.
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org.el (org-get-tags-at): Don't include filetags if local is t.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-clojure.el (org-babel-expand-body:clojure): Qualify pp
+	dispatch functions, wrap body in `(do )'.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-fontify-meta-lines-and-blocks): Fix bug which
+	resulted in the creation of multiple overlays in src blocks.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-clojure.el (org-babel-execute:clojure): If results are not
+	readable by lisp, then return them as a string.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-bibtex.el (org-bibtex): Now prompts for a file name.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-bibtex.el (org-bibtex-create): Adding prefix argument which
+	will result in prompting for optional fields.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-bibtex.el (org-bibtex-headline): Renamed flet function `get'
+	which was causing compile problems.
+	(org-bibtex-fleshout): Renamed flet function `get' which was causing
+	compile problems.
+	(org-bibtex-write): Renamed flet function `get' which was causing
+	compile problems.
+
+2011-07-28  Christian Egli  <christian.egli@sbszh.ch>
+
+	* org-taskjuggler.el (org-taskjuggler-clean-id): Make sure an id
+	never starts with a number.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-bibtex.el (org-bibtex-export-arbitrary-fields): New option.
+	(org-bibtex-key-property): New option.
+	(org-bibtex-put): Make use of new `org-bibtex-key-property' variable.
+	(org-bibtex-headline):  Make use of new
+	`org-bibtex-export-arbitrary-fields' and `org-bibtex-key-property'
+	variables.
+	(org-bibtex-autokey):  Make use of new `org-bibtex-key-property'
+	variable.
+	(org-bibtex-fleshout):  Make use of new `org-bibtex-key-property'
+	variable.
+	(org-bibtex-write):  Make use of new `org-bibtex-key-property'
+	variable.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-bibtex.el: Updating Copyright dates, author information,
+	commentary and history notes.
+	(org-bibtex-types): List of bibtex types with descriptions and
+	required and optional fields.
+	(org-bibtex-fields): List of bibtex fields with descriptions.
+	(*org-bibtex-entries*): Special variable to hold parsed bibtex
+	entries.
+	(org-bibtex-autogen-keys): Custom variable controlling whether
+	bibtex keys are automatically generated
+	(org-bibtex-prefix): Custom variable allowing use of optional prefix
+	for bibtex properties in Org-mode headlines.
+	(org-bibtex-get): Helper function for accessing bibtex elements of a
+	property list.
+	(org-bibtex-put): Helper function for inserting bibtex element into
+	a property list.
+	(org-bibtex-headline): Return a bibtex entry of the given headline
+	as a string.
+	(org-bibtex-ask): Prompt the user to fill in the value of a bibtex
+	field.
+	(org-bibtex-autokey): Generate a bibtex key for the current
+	headline.
+	(org-bibtex-fleshout): Fill in missing bibtex properties of the
+	current headline.
+	(org-bibtex): Export the current Org-mode buffer to a bibtex buffer.
+	(org-bibtex-check): Check that all bibtex properties are present in
+	the current headline.
+	(org-bibtex-check-all): Check all headlines in the current buffer.
+	(org-bibtex-create): Create a new bibtex headline at the current
+	level.
+	(org-bibtex-read): Read the current bibtex entry from a bibtex file.
+	(org-bibtex-write): Write the most recently read bibtex entry into
+	an Org-mode file.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-clock-consistency-checks): Allow to
+	set properties.
+	(org-agenda-show-clocking-issues): Handle faces.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-ditaa.el (org-babel-default-header-args:ditaa): Specify utf8
+	content by default with "-Dfile.encoding=UTF-8".
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-ditaa.el (org-babel-execute:ditaa): New ":java" header
+	argument.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-exp.el (org-export-preprocess-string): mark list end before
+	expanding macros. Thus, a macro inside a list and containing blank
+	lines cannot break the list structure.
+	(org-export-preprocess-apply-macros): multi-lines macros get
+	indented with the same indentation as the first line. Thus, we are
+	sure that every line belongs to the same list as the first line, if
+	such list exists. Also add comments in code.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-clock-consistency-checks): New option.
+	(org-agenda-list): Handle display change to clock check.
+	(org-agenda-get-progress): Show only clock entries if we are doing the
+	consistency check.
+	(org-agenda-show-clocking-issues): New function.
+	(org-agenda-check-clock-gap): New function.
+	(org-agenda-view-mode-dispatch): Offer consistency check.
+	(org-agenda-log-mode): Handle switch to clock only display.
+	(org-agenda-set-mode-name): Show lighter for Clockcheck.
+
+	* org.el (org-hh:mm-string-to-minutes): Accept an integer argument
+	and return it unchanged.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-struct): when walking down the list, the
+	function would not pay attention to drawers or blocks indentation.
+	Thus, such constructs couldn't consistently end an item or a list.
+	This patch ensures line indentation is stored (if applicable)
+	before skipping them. Also fixed doc-string and comments.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export): Add EXPORT_FILE_NAME to the enclosing
+	tree properties
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export): Define a bound for finding enclosing
+	tree with class/title definition.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export): Go to next heading before searching
+	backward, so make this also work if we are on the headline of the
+	entry with the property...
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-promote):
+	(org-demote): Soften the previous change, by only removing the
+	flyspell function from after-change functions, because that was the
+	one causing the slowdown - at least much of it.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org.el (org-promote):
+	(org-demote): Turn off after-change-functions to speed up the
+	reindentation of text.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-ocaml.el (org-babel-ocaml-read-list): Using
+	`org-babel-script-escape'.
+	(org-babel-ocaml-read-array): Using `org-babel-script-escape'.
+
+2011-07-28  Manuel Giraud  <manuel.giraud@univ-nantes.fr>
+
+	* org-html.el (org-html-handle-links): add an alternate for inline
+	images
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-bulk-action): Do not use the entries
+	variable before it is defined
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-src.el (org-src-lang-modes): Added a language alias of "C"
+	to "c".
+
+2011-07-28  Shaun Johnson  <shaun@slugfest.demon.co.uk>  (tiny change)
+
+	* ob-tangle.el (org-babel-tangle): Make it work in an indirect
+	buffer.
+
+2011-07-28  Manuel Giraud  <manuel.giraud@univ-nantes.fr>
+
+	* org-html.el (org-html-make-link): correct a bug in coderef link.
+
+2011-07-28  Bernt Hansen  <bernt@norang.ca>
+
+	* org-agenda.el (org-agenda-filter-by-tag): Fix variable name typo
+
+2011-07-28  Bernt Hansen  <bernt@norang.ca>
+
+	* org-agenda.el (org-agenda-get-timestamps): Fix agenda display
+	when headlines are missing
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-mobile.el (org-mobile-push): Move call to hook, make it the
+	first thing of the push operation.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-params-from-buffer): Now looking for header
+	arguments in #+Properties: as well as #+Babel:.  Also, we're no
+	longer caching these results into a file local variable.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-python.el (org-babel-python-evaluate-external-process): Allow
+	parsing as a table in the case of ":results output table".
+	(org-babel-python-evaluate-session):   Allow parsing as a table in
+	the case of ":results output table".
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-bulk-action): Allow bulk scatter in
+	all possible agenda views.  Use `org-agenda-schedule' instead of
+	`org-agenda-date-later'.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-emacs-lisp.el (org-babel-execute:emacs-lisp): Now supports
+	":results output".
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org.el (org-entry-get):
+	(org-entry-delete):
+	(org-entry-put):
+	(org-property-values):
+	(org-delete-property-globally): Use org-re-property.
+	(org-re-property): New function allowing to build a regexp to match a
+	property.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org.el (org-property-values): Enhance docstring.
+
+2011-07-28  Ethan Ligon  <ligon@are.berkeley.edu>
+
+	* Illustration of bug in html export - This has a space after the
+	colons :: so will work in latex and html - This doesn't have a
+	space after the colons ::so is an invalid description item
+	according to the org manual.  Won't work in html or docbook.  Will
+	nevertheless work in latex, provided /first/ description item is
+	valid.  - Has a terminating space :: - So it works in both html
+	and latex export!  - Even though it's difficult to distinguish
+	from the next example.  - Lacks a terminating space :: - At
+	present, *doesn't* work in html or docbook export, does in latex.
+	This is the case that the following patch fixes.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-table.el (org-table-cleanup-narrow-column-properties): Use
+	point-min rather than 1 when moving in the buffer.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-in-valid-context-p): renamed from
+	org-list-in-valid-block-p.
+	(org-at-item-p,org-list-search-generic): use renamed function.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-set-font-lock-defaults): Be more strict when
+	recognizing description items, and do not fontify wrong cases
+	like: "- term ::description" or "1. term :: description"
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-latex.el: pay attention to end of footnote.  Before closing
+	the command, ensure that list is properly closed or that last link
+	is separated from the curly brace.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-indent-line-function): footnote definition must stay
+	at column 0 to be recognized as such. Body below can have normal
+	indentation, so it should ignore its definition when computing
+	indentation.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-protocol.el (org-protocol-remember)
+	(org-protocol-capture): More appropriate message.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-capture.el (org-capture-clock-keep): New local variable.
+	(org-capture, org-capture-finalize): Use it and fix a bug when
+	:clock-keep is set to `t'.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>  (tiny change)
+
+	* org-exp.el (org-export-preprocess-string): Handle include files
+	before processing macros.
+
+2011-07-28  Bernt Hansen  <bernt@norang.ca>
+
+	* org-agenda.el: Remove obsolete code for adding todo list in
+	front of the agenda
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* org-latex.el (org-export-latex-convert-table.el-table): Fix
+	format-string for insertion of captions.
+
+2011-07-28  Nick Dokos  <nicholas.dokos@hp.com>
+
+	* org-exp.el (org-export-remove-comment-blocks-and-subtrees): Fix
+	regexp.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>  (tiny change)
+
+	* org.el (org-read-date-analyze): Help matching dotted European
+	dates, like 31. 12. 2007
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-lisp.el (org-babel-execute:lisp): Fix typo.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-lisp.el (org-babel-execute:lisp): Turn vectors into lists
+	before reading by elisp
+	(org-bable-lisp-vector-to-list): Stub of a vector->list function,
+	should be replaced with a cl-vector->el-vector function.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-lisp.el (org-babel-execute:lisp): Now using
+	`org-babel-reassemble-table' to apply the appropriate header
+	arguments to results.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-end-of-meta-data-and-drawers): New function.
+
+	* org-capture.el (org-capture-place-plain-text): Implement adding
+	plain text templates to Org nodes.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-beamer.el (org-beamer-environments-extra): Fix docstring
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* org-exp.el (org-export-handle-comments): Add the org-protected
+	property to the replacement string.
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* org-html.el (org-export-as-html) (org-html-level-start): Fix
+	logic for section number printing when NUM is an integer.
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* org-latex.el (org-export-latex-special-chars): Fix regexp for
+	`single' special characters and ellipsis.
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* org.el (org-point-at-end-of-empty-headline): Bind
+	case-fold-search to nil.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-capture.el (org-capture-fill-template): Resolve new %<...>
+	template escape.
+	(org-capture-templates): Document new %<...> template escape.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-process-params): Make this function idempotent,
+	as it will sometimes be called multiple times.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-ts-regexp-both): Add "]" to class of characters that
+	should not be matched.
+	(org-ts-regexp0):
+	(org-ts-regexp1): Do not start a class with "^]-+", because that tries
+	to (not) match characters between "]" and "+".  Instead, move the "-"
+	to the end of the class where it causes no harm.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-R.el (org-babel-edit-prep:R): Associate the appropriate R
+	process with the edit buffer when :session is specified.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-tangle.el (org-babel-tangle-collect-blocks): Brought the link
+	extraction code into line with a newer version of the
+	org-store-link function.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-lisp.el (org-babel-expand-body:lisp): New body expansion
+	wrapping the expression in either a let or progn, and possibly a
+	pretty-print function invocation.
+	(org-babel-execute:lisp): Greatly simplified method of executing
+	lisp code blocks.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el: move org-update-checkbox-count-maybe call outside
+	of save-excursion to get back to original position.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-numbered-action-format): New option.
+	(org-new-numbered-action): New command.
+	(org-collect-todos-in-subtree): New command.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp.el (org-export-with-tasks): New option.
+	(org-export-plist-vars): Add :tasks property.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-ascii.el (org-export-as-ascii):
+
+	* org-docbook.el (org-export-as-docbook):
+
+	* org-html.el (org-export-as-html):
+
+	* org-latex.el (org-export-as-latex): Pass the :done-tasks
+	property to the export preprocessor.
+
+	* org-exp.el (org-export-with-done-tasks): New option.
+	(org-export-plist-vars): Add entry for :done-tasks.
+	(org-export-preprocess-string): Call `org-export-remove-done-tasks'.
+	(org-export-remove-done-tasks): New function.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-latex.el (org-export-latex-keywords-maybe): Protect # in
+	tags.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-find-olp): Use the level of the correct match to
+	continue search.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-toggle-checkbox): build value of
+	org-keyword-time-regexp instead of using it directly, as it's
+	buffer-local, and function might be called outside Org.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-struct,org-in-item-p): don't assume end of
+	blocks or drawers necessarily start somewhere. It it isn't the
+	case, treat them as normal text.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-results): Use code block name when
+	finding cached results.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-latex.el (org-export-latex-date-format): Change default date
+	format to \today. This has the same result but respects the
+	language set in the document by default.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-checkbox): when called from an headline,
+	function would normally skip drawers, but not if a SCHEDULED or
+	DEADLINE keyword is standing before the drawer. Also avoid
+	problems if function is called in buffers not is Org mode.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-clock.el (org-clock-report): change the scope of the
+	inserted clock report depending on whether the point is within a
+	subtree (:scope subtree) or not (:scope file).
+
+2011-07-28  Puneeth Chaganti  <punchagan@gmail.com>
+
+	* org-html.el (org-export-as-html): Fix export of footnotes
+	containing lists, tables, quotes, etc.
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* org-latex.el (org-export-latex-preprocess): Correctly match
+	starred command names.
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* org-html.el (org-export-as-html): Get local value of
+	org-export-with-section-numbers from the buffer's plist.  Deal
+	specially with the case the resulting value is an integer.
+	(org-html-level-start): New optional argument of the option plist used
+	instead of `org-export-with-section-numbers'.  Also deal specially
+	with the case that the value is an integer.
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* org-latex.el (org-export-latex-subcontent): Deal specially with
+	the case that NUM is an integer.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-protocol.el (org-protocol-do-capture): allow template keys
+	of two characters.
+	(org-protocol-default-template-key): Update the docstring to
+	reflect the change in `org-protocol-do-capture'.
+
+2011-07-28  Christian Egli  <christian.egli@sbszh.ch>
+
+	* org-taskjuggler.el: Fix a typo in the commentary.
+
+2011-07-28  Christian Egli  <christian.egli@sbszh.ch>
+
+	* org-taskjuggler.el (org-taskjuggler-open-task): Only emit a
+	"purge allocations" statement if we are not targeting tj3.
+
+2011-07-28  Christian Egli  <christian.egli@sbszh.ch>
+
+	* org-taskjuggler.el (org-taskjuggler-assign-resource-ids):
+	Replace recursive implementation with an iterative one.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-sh.el (org-babel-sh-var-to-sh): Fixed insertion of tabular
+	data into shell variables.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-html.el (org-html-handle-time-stamps): Protected linebreak
+	element after timestamp markup.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-html.el (org-html-handle-links): Don't protect img tag in
+	link description.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-table.el (org-table-formula-handle-first/last-rc): Bind
+	`char'.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-in-item-p): re-build org-drawer-regexp,
+	whatever the major mode is.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-inlinetask.el (org-inlinetask-export-templates): fix default
+	templates.
+	(org-inlinetask-export-handler): Ensure contents of inline task, if
+	any, starts and ends with a newline character. Refactor and comment
+	code.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-capture.el (org-datetree-find-date-create): Lower-case for
+	variable names in define-function form.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-table.el (org-table-convert-region): Throw error when
+	SEPARATOR is smaller than 1.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-colview.el (org-columns-display-here): Fix heading retrieval
+	in Org buffers.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-latex.el (org-export-latex-preprocess): last brace shouldn't
+	be on the same line as a list end marker.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org.el (org-icompleting-read): Do not use useless lambda.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-agenda.el (org-format-agenda-item): Fix length computing.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-agenda.el (org-format-agenda-item): Fix comment and use
+	`add-text-properties'.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-agenda.el (org-agenda-highlight-todo): Remove useless
+	`concat'.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-to-generic): set a default term for
+	ill-formed description lists. Do not insert newline characters
+	unless told to.
+	(org-list-to-texinfo,org-list-to-html): apply changes to
+	`org-list-parse-liste'.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-clock.el (org-clock-clocktable-language-setup): Add a
+	string.
+	(org-clocktable-write-default): Use the new localized string
+	in `org-clock-clocktable-language-setup'.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-taskjuggler.el (org-taskjuggler-compute-task-leafiness):
+	(org-taskjuggler-assign-resource-ids): Replace recursive
+	implementation with an iterative one.
+
+2011-07-28  Christian Egli  <christian.egli@alumni.ethz.ch>
+
+	* org-taskjuggler.el (org-taskjuggler-components): Escape quotes
+	in headlines.
+
+2011-07-28  Christian Egli  <christian.egli@alumni.ethz.ch>
+
+	* org-taskjuggler.el (org-taskjuggler-compute-task-leafiness):
+	Compute the leafiness of a node.
+	(org-taskjuggler-open-task, org-export-as-taskjuggler): Mark a node as
+	a milestone if it is a leaf and has no effort.
+
+2011-07-28  Christian Egli  <christian.egli@alumni.ethz.ch>
+
+	* org-taskjuggler.el (org-export-taskjuggler-target-version):
+	(org-taskjuggler-targeting-tj3-p): Add some minimal infrastructure to
+	handle export to both tj2 and tj3.
+	(org-taskjuggler-open-task): Use a different way to purge allocations
+	for tj2 and tj3.
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org-footnote.el (org-footnote-auto-label): New random option.
+
+	* org-footnote.el (org-footnote-new): Create random footnote
+	labels with unique ids.
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org-footnote.el (org-footnote-create-definition): Allow for
+	footnote sections above the current footnote insertion point.
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org-footnote.el (org-footnote-create-definition): Don't search
+	for last footnote when in org-mode file.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-as-html): Handle links with
+	`org-html-handle-links' after we handle special characters
+	conversions.
+	(org-html-make-link, org-export-html-format-image): Don't
+	protect html with @ anymore, as links are now handled after
+	special characters conversions.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-agenda.el (org-agenda-get-timestamps):
+	(org-agenda-get-scheduled): Fix call to `org-format-agenda-item'.
+	(org-format-agenda-item): Remove no-prefix argument.
+	(org-agenda-change-all-lines): Call org-format-agenda-item without the
+	no-prefix argument.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-agenda.el (org-agenda-highlight-todo): Stop using
+	prefix-length.
+	(org-cmp-alpha): Stop using prefix-length.
+	(org-agenda-open-link): Stop using prefix-length.
+	(org-agenda-change-all-lines): Stop using prefix-length.
+
+	* org-colview-xemacs.el (org-columns-display-here): Stop using
+	prefix-length. Always return claned items.
+
+	* org-colview.el (org-columns-display-here): Stop using
+	prefix-length. Always return claned items.
+
+	* org-mobile.el (org-mobile-write-agenda-for-mobile): Stop using
+	prefix-length.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-tangle.el (org-babel-tangle-collect-blocks): Don't call
+	`org-store-link' interactively as it can confuse the setting of
+	`org-link-to-org-use-id' and cause undue edits to the org-mode
+	buffer during tangling.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-html.el (org-export-html-format-image): Protect <p> element
+	of image caption.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-read-date-force-compatible-dates): New option.
+	(org-read-date, org-read-date-analyze): Check representable date range.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-as-html): fix export of email.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-tangle.el (org-babel-spec-to-string): Check value of padline
+	on tangling, no longer use the now-removed variable
+	`org-babel-tangle-pad-newline'.
+
+	* ob.el (org-babel-header-arg-names): Add padline to the list of
+	header argument names.
+	(org-babel-default-header-args): Set the default value of padline to
+	"yes".
+	(org-babel-merge-params): Cleaned up the merge logic, added padline.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-header-arg-names): Adding "shebang" to known
+	code block header argument names.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-crypt.el: remove useless TODO in comments.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-as-html): the default postamble now only
+	export a date paragraph if `org-export-time-stamp-file' is
+	non-nil.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-exp.el (org-export-xml): Remove the defgroup of
+	org-export-xml.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-html-insert-plist-item): Remove.
+	(org-export-html-preamble): Default to `t'.  Accept functions.
+	(org-export-html-postamble): Default to `auto'.  Accept
+	functions and distinguish between 'auto (no formatting string)
+	and `t' (default formatting string).
+	(org-export-as-html): Handle org-export-html-preamble and
+	org-export-html-postamble new defaults/allowed values.
+	Define email and creator-info before using them.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-html-protect-char-alist): Fix typo in
+	custom type definition.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-do-export): Now runs for empty :session
+	arguments.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-parse-list): fixed regexp.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-html.el (org-export-html-format-image): Protect image
+	elements.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-tangle.el (org-babel-tangle-body-hook): Hook for changing the
+	contents of a code block body on export.
+	(org-babel-tangle-collect-blocks): Apply
+	`org-babel-tangle-body-hook' to the collected bodies of code blocks.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-html.el (org-html-make-link, org-html-handle-links): Protect
+	generated XHTML elements.
+	(org-export-as-html): Expand character entities after creating markup
+	for links and timestamps.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-as-html): bugfix: insert email
+	correctly.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el: Bugfix: prevent infinite matching of the `&'
+	character.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-fill-paragraph): fill-forward-paragraph function has
+	been introduced with emacs 23.1.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-attach.el: Allow to store a link to the attach-dir location.
+
+2011-07-28  Puneeth Chaganti  <punchagan@gmail.com>
+
+	* org-agenda.el (org-agenda-bulk-action): Allow the user to run a
+	function.
+
+2011-07-28  Bernt Hansen  <bernt@norang.ca>
+
+	* org-clock.el (org-clock-in): Allow clocking in new tasks
+	inserted before the current clocking task
+
+2011-07-28  Bernt Hansen  <bernt@norang.ca>
+
+	* org-clock.el (org-clock-in): Set default clocking task when
+	already clocking the task
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-adaptive-fill-function): when a region is specified
+	first line of paragraph isn't skipped, so fill-paragraph have to
+	be computed even if point is at an item.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-in-valid-block-p): new function.
+	(org-at-item-p,org-list-search-generic): use new function.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-indent-line-function): text in both a list and a
+	valid block is indented with regards to current item, not to block
+	boundaries.
+
+2011-07-28  Manuel Giraud  <manuel.giraud@univ-nantes.fr>
+
+	* org-html.el (org-format-org-table-html): fix anchors in HTML
+	export (thanks to <aankhen@gmail.com>)
+	(org-html-protect): fix a  bug that prevents some target to be
+	rendered correctly.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-default-properties): Add EXPORT_TEXT.
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org-footnote.el (org-footnote-create-definition)
+	(org-insert-footnote-reference-near-definition): Fix sorting
+	of footnotes.
+
+2011-07-28  Manuel Giraud  <manuel.giraud@univ-nantes.fr>
+
+	* org-html.el (org-export-as-html): Bugfix: don't insert closing
+	HTML tags when exporting body only.
+
+2011-07-28  Jason Dunsmore  <emacs-orgmode@deathroller.dunsmor.com>
+
+	* org.el (org-back-over-empty-lines): Bugfix.  Honor
+	`org-blank-before-new-entry' correctly in various contexts.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-macs.el (org-with-wide-buffer): Bugfix: use `save-excursion'
+	and `save-restriction'.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-timer.el (org-timer-item): save-excursion prevents
+	`org-list-struct' to get the list structure when point isn't on
+	the first line of the item.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-capture.el (org-capture-templates): New option
+	:no-clock-out.
+	(org-capture): Use the new option.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-update-checkbox-count): Ensure cookies on an
+	heading are correctly updated when checkboxes are hidden. It
+	allows, for example, to use C-c C-x C-b on a collapsed tree and
+	still get the update.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-exp.el (org-export-visible): Accept keys for
+	`org-export-as-html-to-buffer' and `org-export-region-as-html'.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-duration-string-to-minutes): Don't use
+	`rx-to-string'.
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* org.el (org-effort-durations): New variable.
+
+	* org.el (org-duration-string-to-minutes): New function.
+
+	* org-agenda.el (org-agenda-filter-effort-form)
+	(org-format-agenda-item): Use it.
+
+	* org-clock.el (org-clock-notify-once-if-expired)
+	(org-clock-modify-effort-estimate, org-clock-get-clock-string): Use it.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-agenda.el (org-agenda-run-series): Rename from
+	`org-run-agenda-series'.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-capture.el: Don't allow currentfile anymore.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-agenda.el (org-agenda-list): Fix bug: don't rely on
+	`org-agenda-current-span' when calling `org-agenda-list'.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-capture.el (org-capture-put-target-region-and-position): New
+	function to store information about the target buffer.
+	(org-capture-set-target-location): Use it.
+	(org-capture-finalize): restore the target buffer in its
+	possibly narrowed state.  Also restore the cursor position.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-crypt.el (auto-save-default): make sure entries are
+	encrypted before auto-saving.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-inlinetask.el (org-inlinetask-promote)
+	(org-inlinetask-demote): new functions.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-demote-subtree,org-promote-subtree): wrap
+	org-map-tree into org-with-limited-levels macro, so it avoids
+	operating on inline tasks.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-narrow-to-subtree): ensure `org-back-to-heading'
+	will move point to a real heading and not an inline task by
+	wraping function into a org-with-limited-levels macro.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-capture.el (org-capture-finalize): New argument clock-out,
+	to tell whether finalizing the capture process should clock out
+	the running clock.
+	(org-capture): Use the new argument.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-refile-get-targets): Rename from
+	`org-get-refile-targets.'
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-exp.el (org-export-table-remove-empty-lines): New custom
+	variable.
+	(org-export-remove-special-table-lines): Use it.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-table.el (org-table-fix-formulas-confirm): new custom
+	variable.
+	(org-table-insert-column, org-table-delete-column)
+	(org-table-move-column, org-table-move-row)
+	(org-table-insert-row, org-table-kill-row): Use it.
+
+2011-07-28  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* org.el (org-refile-get-location): Set and show default value.
+	(org-goto, org-refile): Adapt calls.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-mobile.el (org-mobile-files-exclude-regexp): New custom
+	variable.
+	(org-mobile-files-alist): Use it.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-todo): Bugfix: use `org-with-wide-buffer' to check
+	against headings outside of a narrowed buffer.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-confirm-shell-link-not-regexp)
+	(org-confirm-elisp-link-not-regexp): New custom variables.
+	(org-open-at-point): Use the new custom variables.
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* org-latex.el: place \title \author \date before
+	\begin{document}.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-html-preamble)
+	(org-export-html-postamble): now default to `nil'.
+	(org-export-as-html): when :html-pre/postamble is nil, fall
+	back on the default pre/postamble, which depends on the
+	:author-info, :email-info, :creator-info options.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-results): Don't use cached results if
+	there is no hash.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-table.el (org-table-eval-formula): Treat relative column
+	refs.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-table.el (org-table-use-standard-references): Change default
+	to `from'.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-move-subtree-down): leave the cursor at the same
+	column we were at.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-attach.el (org-attach-store-link-p): New variable.
+	(org-attach-store-link): New function.
+	(org-attach-attach): When `org-attach-store-link-p' is
+	non-nil, store a link in `org-stored-links' to a newly
+	attached file.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-exp.el (org-export-remove-headline-metadata): bugfix: don't
+	case-fold-search to avoid mixing TODO keywords with real headline
+	words.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-table.el (org-table-fedit-finish): Read more general LHS of
+	formulas.
+	(org-table-formula-handle-@L): New function to hanle @L references.
+	(org-table-current-ncol): New variable.
+	(org-table-line-to-dline): New function.
+	(org-table-get-stored-formulas): Accept range formulas as matches.
+	(org-table-get-specials): Compute and store the number of columns.
+	(org-table-get-range): New optional argument CORNERS-ONLY, to retrieve
+	only the region marked by the range, not the content.
+	(org-table-recalculate): Call `org-table-expand-lhs-ranges' to expand
+	range targets.  Also check for duplicate access to fields.
+	(org-table-expand-lhs-ranges): New funktion.
+	(org-table-get-remote-range): Bind `org-table-current-ncol' to protect
+	the caller's value.
+	(org-table-edit-formulas): Support highlighting of range targets.
+	(org-table-field-info): Handle renge formulas.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-html-postamble-format)
+	(org-export-html-preamble-format): explain how to escape the
+	`%' character.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-exp-bibtex.el (org-export-bibtex-preprocess): Use
+	`org-export-current-backend'.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-read): Read string variable values wrapped in
+	double quotes, removing the quotes.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-results): Ensure that processed params
+	are send to org-babel-execute-src-block.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-special-blocks.el
+	(org-special-blocks-make-special-cookies): Use
+	`org-export-current-backend'.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-in-export-file): Now takes the language
+	as an argument.
+	(org-babel-exp-src-block): Explicitly pass language to
+	`org-babel-exp-in-export-file'.
+	(org-babel-exp-inline-src-blocks): Removed unused code.
+	(org-babel-exp-results): Explicitly pass language to
+	`org-babel-exp-in-export-file'.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-calc.el (org-babel-execute:calc): Unquote quoted vectors
+	returned from calc-eval.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-read): Pass elisp vectors through to code
+	blocks.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* ob.el (org-src-lang-modes): Defvar.
+	(org-at-item-p): Declare function.
+
+	* ob-calc.el (calc-store): Require.
+	(var-syms): Defvar.
+
+	* ob-python.el (py-default-interpreter): Defvar.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-exp-blocks.el (backend): defvar.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-get-scheduled):
+	(org-agenda-get-timestamps): Bind local variable `show-all'.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* ob-ref.el (org-at-item-p): Declare function.
+
+	* org-agenda.el (diary-time-regexp): defvar.
+
+	* org-archive.el (org-archive-subtree): Bind local variable
+	`infile-p'.
+
+	* org-capture.el (org-capture-insert-template-here): Get template
+	text from property list, to avoid byte compiler message.
+
+	* org-latex.el (org-export-latex-tables): Bind local variable
+	`width'.
+
+	* org-special-blocks.el (org-compat): Add require statement.
+
+	* org-table.el (orgtbl-ctrl-c-ctrl-c): Bind local variable
+	`const-str'.
+
+	* org.el (org-eval): Moved function here from org-agenda.el.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-read-table): Inhibit lisp evaluation of values
+	when reading from tables.
+	(org-babel-read-list): Inhibit lisp evaluation of values when
+	reading from lists.
+	(org-babel-read): Add optional argument which can be used to inhibit
+	lisp evaluation of value.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-table.el (sbe): Ensure that ob-trim is only called on
+	strings.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-results): On export, ensure that the
+	result hash is resolved in the original org-mode file.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-exp.el (org-export-mark-list-end): change end marker
+
+	* org-docbook.el (org-export-docbook-list-line): use new marker.
+
+	* org-html.el (org-html-export-list-line): use new marker
+
+	* org-latex.el (org-export-latex-lists): use new marker
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-latex.el (org-export-latex-lists): make sure markers used
+	for export are taken into account by temporarily setting an
+	appropriate value for `org-list-ending-method'.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-exp-blocks.el (org-exp-blocks-block-regexp): Wrapping block
+	regexp into its own variable, also allowing match of empty bodies.
+	(org-export-blocks-preprocess): Using new regexp variable.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-src-block-regexp): Code block regexp now
+	matches blocks with empty bodies.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-script-escape): If script escaped value doesn't
+	parse cleanly, then return it literally.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-src-block): When block will eventually
+	be evaluated, pre-calculate the hash before noweb expansion, and
+	expand the parameters before hash calculation.
+	(org-babel-exp-do-export): Pass pre-calculated hash through to
+	`org-babel-exp-results'.
+	(org-babel-exp-results): Compare pre-calculated hash to results hash.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-sha1-hash): Sort list values to header
+	arguments, and sort the words in strings.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-ref.el (org-babel-ref-index-list): Special handling of hline
+	rows.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-macs.el (org-with-point-at): Store evaluated version of
+	pom. This fixes a potential bug when using (org-with-point-at
+	(func) …), where (func) would be evaluated multiple times,
+	therefore might return different results if a marker was returned
+	and different each time.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-open-at-point): if a link to a radio target is the
+	first, (resp. the last), element of a buffer, function cannot find
+	the property change required to get its boundaries, and
+	`buffer-substring' is called with an invalid nil argument.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-table.el (org-table-copy-down): fix docstring.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-latex.el (org-babel-execute:latex): Add imagemagick options,
+	and for file types other than png and pdf it uses imagemagick to
+	convert a compiled pdf file to the desired file type.
+	(convert-pdf): Convert a pdf file to a new file type using
+	imagemagick.
+
+2011-07-28  Puneeth Chaganti  <punchagan@gmail.com>
+
+	* org-capture.el (org-capture-fill-template): fix bug with the
+	display of interactive prompt in templates expansion.
+
+2011-07-28  Reiner Steib  <reiner.steib@gmx.de>
+
+	* org-clock.el (org-clock-display): Document how to remove subtree
+	times.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-exp-blocks.el (org-export-blocks-format-comment): Explicitly
+	append a newline to the body.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-insert-item): when computing size of item
+	being inserted, function has to take into account that indentation
+	may not only be made of spaces.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-clock.el (org-clock-find-position): if a list was adjacent
+	to some clocks and a drawer was going to be created, only the
+	first element of the list would make it into the drawer.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-toggle-checkbox): fix bug where top item in
+	list was omitted when checking boxes.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob-R.el: Don't print result to echo area after evaluation.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-capture.el (org-capture-refile): Fix typo in docstring.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-calc.el (org-babel-execute:calc): Call out to new function
+	for variables resolution.
+	(ob-calc-maybe-resolve-var): Resolve (possibly recursively)
+	variables in calc expressions.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-C.el (org-babel-tangle-lang-exts): Replace "c++" with "C++".
+	(org-babel-C++-compiler): Replace "c++" with "C++".
+	(org-babel-execute:cpp): Replace "c" with "C++".
+	(org-babel-execute:C++): Replace "c" with "C++".
+	(org-babel-expand-body:C++): Replace "c" with "C++".
+	(org-babel-C-execute): Replace "c" with "C++".
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-ref.el (org-babel-ref-at-ref-p): Only try to read results as
+	a list if at the *beginning* of a list item.
+
+	* ob.el (org-babel-read-result): Only try to read results as a
+	list if at the *beginning* of a list item.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list (org-cycle-item-indentation): do not break an
+	indentation cycle because visibility cycling is requested. This
+	happens when an item becomes a parent, due to indentation change.
+	Not considered empty anymore, the function cannot change its
+	indentation again.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-clock.el (org-clocktable-write-default): Bugfix: falls back
+	on `org-export-default-language' when no :lang parameter is set.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-capture.el (org-capture-expand-file): New function.
+	(org-capture-target-buffer):
+	(org-capture-set-target-location): Use `org-capture-expand-file'.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-read-list): Reading the value of a list has
+	been updated to reflect the new structure of org-mode lists in
+	elisp.
+	(org-babel-insert-result): Writing code block results to lists has
+	been updated to reflect the new list structure.
+	(org-babel-result-end): Remove a previous change to end-of-list
+	marker detection
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-cycle-item-indentation): each time the function
+	moves item back to child position, a white space is added to the
+	line.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-process-params): Allow elisp code in
+	specification of results header arguments.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-agenda.el (org-agenda-append-agenda): New command.
+	(org-agenda-mode-map): New keybinding to this new command.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-ctrl-c-ctrl-c): call `org-list-send-list' only when
+	cursor it at very first item of the list, as specified in the
+	manual. Also refactored the list part of the function a bit.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-agenda.el (org-agenda): Set the 'last-args property to nil
+	when calling `org-agenda'.  Don't kill the local variable
+	`org-agenda-current-span'.
+	(org-run-agenda-series): Use the new property 'last-args.
+	(org-agenda-change-time-span): Use the dynamically set
+	`org-agenda-overriding-arguments' variable when non-nil.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-result-end): Adjust marker of list end to
+	changes in the list format.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-toggle-checkbox, org-update-checkbox-count): no
+	need to wrap org-entry-get in ignore-errors since commit
+	7dd425cc5d42fb297f547f713edfdc936f9271f0
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-toggle-item, org-toggle-heading): make sure every
+	sub-item in a list is changed into a sub-heading and sub-headings
+	are translated into sub-items. Also ignore inline tasks in the
+	process.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-exp.el (org-export-select-backend-specific-text): add
+	`original-indentation' property when replacing #+begin_backend and
+	#+backend blocks with their content. This is needed for lists, as
+	they must know if the block belonged to them.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-html.el (org-html-export-list-line): insert a newline
+	character before ending an item, as anchor could be on a line
+	going to be deleted, like a drawer ending string.
+
+	* org-list.el (org-list-to-html): same.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-set-autofill-regexps): use `org-item-re' in
+	`paragraph-start' to recognize alphabetical lists.
+	(org-fill-paragraph): enforce a pre-computed fill-prefix before
+	calling fill-paragraph when point in in an item. Also prevent
+	paragraphs getting merged into an adjacent list upon filling.
+	(org-adaptive-fill-function): make sure to determine real fill-prefix
+	for auto-fill.
+	(org-auto-fill-function): use a pre-computed fill-prefix before
+	calling do-auto-fill.
+
+	* org-list.el (org-list-item-body-column): new function
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-inlinetask.el (org-inlinetask-at-task-p)
+	(org-inlinetask-toggle-visibility): new functions.
+
+	* org-list.el (org-list-set-item-visibility): new function.
+
+	* org.el (org-cycle, org-cycle-internal-local): separate lists and
+	inline tasks from headlines.
+	(org-outline-level): do not consider lists as headlines.
+	Cycling visibility is using different tools.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-struct): mark items less indented than top
+	item of the list, so that they will be modified.
+	(org-list-struct-apply-struct): compare struct's indentation with
+	line's indentation instead of old-struct's. This is needed because
+	`org-list-struct' automatically fixes indentation so changes might not
+	be seen otherwise.
+
+	* org.el (org-ctrl-c-ctrl-c): small refactoring.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-update-checkbox-count): when a part of the
+	buffer is processed to count checkboxes, lists are read from top
+	to bottom, but inside lists (in drawers, blocks, or inline tasks)
+	are skipped. Thus, cookies cannot be updated. This patch enforces
+	reading of such lists if counter is itself in a special context.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-struct-apply-struct): inline tasks along
+	with their content must stay at column 0 even if the item is
+	gaining indentation. Moreover, fix indentation of text in an
+	inline task, now it can be in such a task within a list.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-at-item-p): also verify context is valid.
+	Otherwise it would recognize valid items where org-in-item-p
+	wouldn't.
+	(org-in-item-p, org-list-struct-apply-struct): use shorter version of
+	org-at-item-p.
+	(org-cycle-list-bullet): fix typo.
+	(org-list-parse-list): avoid calling org-at-item-p two times by using
+	an appropriate regexp
+
+	* org.el (org-indent-line-function): use an appropriate regexp
+	instead of calling org-at-item-p two times.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-in-item-p): When point was just after
+	org-list-end-re, check wouldn't be done for starting line. So, if
+	the first line was an item, it wouln't be noticed and function
+	would return nil. Simplify and comment code.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-toggle-item): when used on normal text, ensure every
+	line in region is included in the new item, regardless of its
+	original indentation.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-struct-apply-struct): if end of list was
+	at eol, for example, with list inside a block, the last list
+	wouldn't be shifted. Thus, the patch ensures no blank lines is
+	skipped.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-toggle-item): Now accepts a prefix argument. When
+	used without argument on normal text, it will make the whole
+	region one item. With an argument, it defaults to old behavior:
+	change each line in region into an item.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-return): when called from inside an item with the
+	indent flag, function should keep text moved inside the item. This
+	allows to use C-j to separate lines in an item: cursor won't go
+	back to column 0.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-struct): when a line has org-example
+	property, skip the entire block. This is needed during export, for
+	example when src blocks in org markup contain lists, and are
+	returned verbatim because org isn't in the list of interpreted
+	languages.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-in-item-p): handle special cases when function
+	is called with cursor amidst `org-list-end-re' or at an inline
+	task.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* ob.el (org-babel-result-end): apply renaming.
+
+	* org-exp.el (org-export-mark-list-properties): apply renaming.
+
+	* org-list.el (org-list-prevs-alist): renamed from
+	org-list-struct-prev-alist.
+	(org-list-parents-alist): renamed from org-list-struct-parent-alist.
+	(org-list-write-struct): renamed from org-list-struct-fix-struct.
+	(org-list-parse-list, org-sort-list, org-list-indent-item-generic,
+	org-toggle-checkbox, org-update-checkbox-count, org-cycle-list-bullet,
+	org-list-repair, org-insert-item, org-move-item-up, org-move-item-up,
+	org-move-item-down, org-next-item, org-previous-item,
+	org-end-of-item-list, org-beginning-of-item-list, org-apply-on-list):
+	apply renaming.
+	(org-get-bullet): removed function, as it is not needed anymore.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-insert-item-generic): change arguments.
+	The function now accepts structure and previous items alist. This
+	allow to insert an item programmatically more easily.
+	(org-insert-item): Apply changes to org-list-insert-item-generic. The
+	function now takes care about repairing structure and updating
+	checkboxes.
+
+	* org-timer.el (org-timer-item): Apply changes to
+	org-list-insert-item-generic. The function now takes care about
+	repairing structure.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-make-subtree): function now uses
+	org-list-parse-list mechanism.
+	(org-list-make-subtrees): removed function.
+	(org-list-to-generic): added a parameter and every parameter can be a
+	sexp returning a string, for finer control.
+	(org-list-to-html, org-list-to-latex, org-list-to-texinfo): slight
+	modifications to apply changes to org-list-to-generic.
+	(org-list-to-subtree): new function.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-beginning-of-line): apply changes to
+	`org-item-beginning-re' to correct sub-expression reference.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-docbook.el (org-export-docbook-list-line): even with
+	alphabetical lists, Org shouldn't enforce a particular list type
+	to exporters. This is a job for style files.
+
+	* org-html.el (org-html-export-list-line): ib idem.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-at-item-counter-p): new function.
+	(org-list-parse-list): handle counters and list depth.
+	(org-list-to-generic): a special string is used when an item has a
+	counter.
+	(org-list-to-latex): use new special string for counters. This fixes
+	the counter bug in LaTeX export, as the enumi counter was the only one
+	modified.
+
+	* org-latex.el (org-export-latex-lists): use new
+	`org-list-parse-list' output.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-get-list-type): new function.
+	(org-list-parse-list): use new function.
+
+	* org-html.el (org-html-export-list-line): use new function.
+
+	* org-docbook.el (org-export-docbook-list-line): use new function.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-alphabetical-lists): new variable
+	(org-item-re, org-list-full-item, org-cycle-list-bullet,
+	org-list-struct-fix-bul, org-list-inc-bullet-maybe): reflect
+	introduction of the new variable.
+	(org-item-beginning-re): changed into a function, so any modification
+	of `org-alphabetical-lists' will not require reloading Org.
+	(org-at-item-p, org-toggle-checkbox, org-update-checkbox-count,
+	org-list-parse-list, org-list-send-list): reflect changes to
+	`org-item-beginning-re'.
+	(org-list-use-alpha-bul-p): new function.
+
+	* org.el (org-check-for-hidden): reflect changes to
+	`org-item-beginning-re'.
+
+	* org-capture.el (org-capture-place-item): reflect changes to
+	`org-item-beginning-re'.
+
+	* org-docbook.el (org-export-docbook-list-line): handle new type
+	of items.
+
+	* org-exp.el (org-export-mark-list-end)
+	(org-export-mark-list-properties): reflect changes to
+	`org-item-beginning-re'.
+
+	* org-html.el (org-html-export-list-line): handle new type of
+	items.
+
+	* org-latex.el (org-export-latex-lists): handle new type of items
+	and reflect changes to `org-item-beginning-re'.
+
+	* org-ascii.el (org-export-ascii-preprocess): handle new counters.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-end-re): removed function and made it a
+	variable. There's no need for the overhead of calling the function
+	every at every line in a list. User will have to reload Org if he
+	change value of either `org-list-end-regexp' or
+	`org-empty-line-terminates-plain-lists'.
+	(org-in-item-p,org-list-struct,org-list-parse-list): apply change.
+
+	* org-exp.el (org-export-mark-list-end)
+	(org-export-mark-list-properties): apply change
+
+	* org-latex.el (org-export-latex-lists): apply change. Also
+	prevent items with org-example property to be considered as real
+	items.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-inlinetask.el (org-inlinetask-export-templates): slightly
+	modify templates so environment boundaries don't interfere with
+	content of task. Unprotect content of task so it might benefit
+	from further transformations. Set original-indentation property to
+	a high value to ensure that task is always in the last item of the
+	list.  Also, apply templates later in export process.
+
+	* org-list.el (org-list-struct): fix inline task skipping.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-latex.el (org-export-latex-lists): Search for unprotected
+	items only, and redefine `org-at-item'. This change is required
+	when verbatim lists are inserted during export, usually by Babel.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* ob.el (org-babel-result-end): end position is end of current
+	sublist instead of bottom point, as results might be inserted in a
+	list themselves.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-automatic-rules): removed insert rule.
+	(org-list-insert-item-generic): removed code preventing user to insert
+	another item in a block within a list. It is because new list context
+	make it impossible to see if a point in a block is also in a list.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-exp.el (org-export-preprocess-string): mark list endings
+	before babel blocks preprocessing starts, so blank lines that may
+	be inserted do not break list's structure. Then, mark list with
+	special properties required by exporters. Thus output from babel
+	can easily be included in lists.
+	(org-export-mark-list-end): new function
+	(org-export-mark-list-properties): new function
+	(org-export-mark-lists): removed function. It was split into the two
+	preceding functions.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-update-checkbox-count): do not recompute every
+	list before next heading when there are more than one cookie in an
+	headline. Moreover, ignore the case where cookie is inserted
+	neither at an heading nor at an item.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-sort-list): fix number of arguments to
+	`org-list-repair', plus make end-record go to end of item before
+	any blank line to keep them from being swallowed in the sorting.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-forbidden-blocks): variable renamed from
+	org-list-blocks.
+	(org-list-export-context): new variable
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-search-generic): renamed form
+	org-search-unenclosed-generic to reflect now behavior. Now, match
+	can only be in a valid context for lists, as determined by
+	`org-list-context'.
+	(org-list-search-backward): renamed from
+	org-search-backward-unenclosed.
+	(org-list-search-forward): renamed from org-search-forward-unenclosed.
+	(org-toggle-checkbox,org-update-checkbox-count): use new functions.
+	(org-sort-list): using default regexp search functions as context is
+	not required in this case.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-exp.el (org-export-mark-lists): new function, replacing
+	org-export-mark-list-ending. It adds information as text
+	properties to every list, before changes done by exporter destruct
+	them.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-get-first-item): new alias for
+	org-list-get-list-begin
+	(org-list-get-last-item): new function
+	(org-list-get-list-end): use org-list-get-last-item
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-get-string-indentation): moved in generally useful
+	functions section, as it wasn't specific to plain lists and that
+	no code was using it in org-list.el.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-skip-over-state-notes,org-store-log-note): use new
+	accessors.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-indent-item-generic): remove error
+	messages happening before process. This belongs to interactive
+	functions.
+	(org-indent-item,org-indent-item-tree)
+	(org-outdent-item,org-outdent-item-tree): ensure point or region
+	is correct before computing list structure. Return an error
+	message otherwise.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-apply-on-list): use new structures. Function is
+	now applied in reverse order so modifications do not change
+	positions of items in buffer.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-parse-list): rewrite of function to allow
+	text following a sub-list in the same item. See docstring for an
+	example of output.
+	(org-list-to-generic): use new parsing function.
+	(org-list-to-latex,org-list-to-html): minor change for clearer
+	export.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-has-child-p): renamed from
+	org-list-get-child.  Returning first child is only useful as a
+	predicate, as we're allowing an item to have more than one
+	sub-list.
+	(org-list-indent-item-generic): use `org-list-has-child-p' instead of
+	org-list-get-child.
+	(org-in-item-p): also return item beginning when list starts at
+	context beginning.
+	(org-list-get-parent): use of `org-list-struct-parent-alist' helper
+	function is not optional anymore.
+	(org-list-get-all-items): shorten code with the help of cl.el.
+	(org-list-get-children): now returns all children of item, even if
+	they do not belong to the same list. Renamed from
+	org-list-get-all-children.
+	(org-list-get-list-begin): function wasn't return value when item was
+	already the first item of the list at point.
+	(org-list-get-list-end): function wasn't return value when item was
+	already the last item of the list at point.
+	(org-list-struct-fix-box,org-update-checkbox-count): now uses
+	`org-list-get-children'.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-indent-line-function): Indentation of item's body
+	starts just after the bullet, not after a checkbox. Moreover, As
+	`org-in-item-p' also returns item beginning position when point is
+	in a list, do not compute it a second time.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-ctrl-c-ctrl-c): when called at a list item, replace
+	usage `org-repair-list', forcing another reading of the list, with
+	only needed subroutines.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-separating-blank-lines-number): use new
+	accessors.
+	(org-list-insert-item-generic): use list structures to insert a new
+	item.
+	(org-list-exchange-items): refactor and comment code. Now return new
+	struct instead of modifying it, as list sorting would sometimes eat
+	first item.
+	(org-move-item-down,org-move-item-up): reflect changes to
+	`org-list-exchange-items'.
+	(org-insert-item): as `org-in-item-p' also computes item beginning
+	when applicable, reuse the result.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-in-item-p): unify methods for this
+	predicate.
+	(org-list-in-item-p-with-indent): removed function
+	(org-list-ending-between): removed function
+	(org-list-maybe-skip-block): removed function
+	(org-list-in-item-p-with-regexp): removed function
+	(org-list-top-point-with-regexp): removed function
+	(org-list-top-point-with-indent): removed function
+	(org-list-bottom-point-with-indent): removed function
+	(org-list-bottom-point-with-regexp): removed function
+	(org-list-get-item-same-level): removed function
+	(org-list-top-point): removed function
+	(org-list-bottom-point): removed function
+	(org-get-item-beginning): renamed to org-list-get-item-begin to be
+	consistent with naming policy of non-interactive functions.
+	(org-get-beginning-of-list): removed function
+	(org-beginning-of-item-list): use new accessors
+	(org-get-end-of-list): removed function
+	(org-end-of-list): use new accessors
+	(org-get-end-of-item): removed function
+	(org-end-of-item): use new accessors
+	(org-get-previous-item): removed function
+	(org-previous-item): use new accessors
+	(org-get-next-item): removed function
+	(org-next-item): use new accessors
+	(org-end-of-item-before-blank): renamed to
+	(org-list-get-item-end-before-blank): Use new accessors.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-repair): removed optional argument
+	FORCE-BULLET. The job of this interactive function is to
+	completely fix a list at point. Changing bullets is a separate
+	task. Also removed others optional arguments TOP and BOTTOM to
+	follow the new structures.
+	(org-list-indent-item-generic): remove need for TOP and BOTTOM. STRUCT
+	is a new required argument. This avoids computing a list structure
+	many times when function is called more than once in a row, for
+	example in org-cycle-item-indentation. Use new accessors. Now, also
+	call `org-update-checkbox-count-maybe'.
+	(org-outdent-item,org-indent-item,org-outdent-item-tree,org-indent-item-tree):
+	remove need for TOP and BOTTOM.
+	(org-list-insert-item-generic): reflect changes to `org-list-repair'.
+	(org-list-exchange-items): use new accessors. Now modify struct to
+	avoid re-reading it later.
+	(org-move-item-down): reflect changes to `org-list-repair'. Use new
+	accessors.
+	(org-move-item-up): reflect changes to `org-list-repair'. Use new
+	accessors.
+	(org-cycle-list-bullet): use new structures. Also use a shortcut to
+	`org-list-struct-fix-struct' in order to avoid unnecessary fixes, like
+	`org-list-struct-fix-box'
+	(org-sort-list): use of new structures. Renamed an internal function
+	for a little more clarity.
+	(org-cycle-item-indentation): remove dependency on org-list-repair.
+	Use new accessors.
+	(org-list-get-child): correct bug when asking for the child of the
+	last item
+	(org-list-exchange-items): use new accessors.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-blocks): new variable
+	(org-list-context): new function
+	(org-list-full-item-re): new variable
+	(org-list-struct-assoc-at-point): use new varible
+	(org-list-struct): rewrite of function. Now, list data is collected by
+	looking at the list line after line. It reads the whole list each time
+	because reading only a subtree was not enough for some operations,
+	like fixing checkboxes. It also removes the need to get
+	`org-list-top-point' and `org-list-bottom-point' first. An added data
+	is the position of item ending. This aims to be able to have list
+	followed by text inside an item.
+	(org-list-struct-assoc-end): new function
+	(org-list-struct-parent-alist): new function
+	(org-list-get-parent): new function
+	(org-list-get-child): new function
+	(org-list-get-next-item): new function
+	(org-list-get-prev-item): new function
+	(org-list-get-subtree): use helper function `org-list-struct-prev-alist'.
+	(org-list-get-all-items): new function
+	(org-list-get-all-children): new function
+	(org-list-get-top-point): new function
+	(org-list-get-bottom-point): new function
+	(org-list-get-counter): new function
+	(org-list-get-item-end): new function
+	(org-list-struct-fix-bul): rewrite for cleaner code. Make use of new
+	accessors.
+	(org-list-struct-fix-ind): make use of new accessors.
+	(org-list-struct-fix-box): new function
+	(org-list-struct-fix-checkboxes): removed function
+	(org-list-struct-outdent): use new accessors. Use the fact that there
+	is no longer a virtual item at beginning of structure.
+	(org-list-struct-indent): use helper functions
+	`org-list-struct-prev-alist' and `org-list-struct-parent-alist'. Also
+	use new accessors.
+	(org-list-struct-fix-struct): comment function. Call directly
+	`org-list-struct-apply-struct', without removing unchanged items
+	first.
+	(org-list-struct-apply-struct): comment function. Rewrite using new
+	accessors. Use new variable `org-list-full-item-re'.
+	(org-list-shift-item-indentation): removed function, now included in
+	`org-list-struct-apply-struct' because it is too specific.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-toggle-checkbox): use structures to fix
+	checkboxes of a list
+	(org-update-checkbox-count): use structures to update cookies
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-struct-fix-checkboxes): new function
+	(org-checkbox-blocked-p): removed function
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-get-all-items): new function
+	(org-list-get-all-children): new function
+	(org-list-get-nth): new function
+	(org-list-set-nth): new function
+	(org-list-get-ind): new function
+	(org-list-set-ind): new function
+	(org-list-get-bullet): new function
+	(org-list-set-bullet): new function
+	(org-list-get-checkbox): new function
+	(org-list-set-checkbox): new function
+	(org-list-struct-fix-bul): use new accessors
+	(org-list-repair): use new accessors
+	(org-list-indent-item-generic): make use of accessors
+	(org-list-get-parent): renamed from org-list-struct-get-parent
+	(org-list-get-child): renamed from org-list-struct-get-child
+	(org-list-struct-fix-ind): make use of accessors
+	(org-list-get-next-item): new function
+	(org-list-get-subtree): new function
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-list.el (org-list-struct-assoc-at-point): add checkbox to
+	list structure
+
+	* org-list.el (org-list-struct-assoc-at-point): add checkbox as
+	value in structure
+
+	* org-list.el (org-list-struct-apply-struct): also apply
+	checkboxes
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-latex.el (org-export-latex-content): bind local variables
+	for export in the temporary export buffer.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-protocol.el (org-protocol-unhex-single-byte-sequence)
+	(org-protocol-unhex-string, org-protocol-unhex-compound): Change date
+	of obsolete declaration to 2011-02-17.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org.el (org-link-escape): Throw error if encoding character in
+	utf8 fails.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-protocol.el (org-protocol-split-data)
+	(org-protocol-open-source): Use `org-link-unescape' instead of
+	obsolete unhex string function.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org.el (org-link-escape, org-link-escape-chars-browser)
+	(org-link-escape-chars): Always percent escape the percent sign.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org.el (org-link-unescape): Simpler algorithm for replacing
+	percent escapes.
+	(org-link-unescape-compound): Use cond statements instead of nested
+	if, convert hex string with string-to-number, save match data.
+	(org-link-unescape-single-byte-sequence): Use mapconcat and
+	string-to-number for unescaping single byte sequence.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org.el (org-link-escape): Rename lambda argument.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org.el (org-link-escape-chars-browser, org-link-escape-chars):
+	Add percent sign to list of escape chars.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-mobile.el (org-mobile-escape-olp): Use new percent escape
+	character table format.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-mobile.el (org-mobile-locate-entry): Remove obsolete
+	argument in call to org-link-unescape.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-protocol.el (org-protocol-unhex-string)
+	(org-protocol-unhex-compound)
+	(org-protocol-unhex-single-byte-sequence): Declare obsolete and
+	alias to respective org-link-unescape-* functions.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org.el (org-link-unescape, org-link-unescape-compound)
+	(org-link-unescape-single-byte-sequence): Functions moved and renamed
+	from org-protocol.el.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-macs.el (org-char-to-string): Inline function to properly
+	decode utf8 characters in Emacs 22.  Moved and renamed from
+	org-protocol.el.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org.el (org-link-escape): New optional argument.  Merge user
+	table with default table.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org.el (org-link-escape): Fixup doc string.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org.el (org-link-escape-chars, org-link-escape-chars-browser):
+	New format of percent escape table.
+	(org-link-escape): Use new table format.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org.el (org-link-escape): New unicode aware percent encoding
+	algorithm.
+
+2011-07-28  Sebastian Rose  <sebastian_rose@gmx.de>
+
+	* org-protocol.el (org-protocol-unhex-single-byte-sequence): New
+	function.  Decode hex-encoded singly byte sequences.
+	(org-protocol-unhex-compound): Use new function if decoding sequence
+	as unicode character failed.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-as-html): expand the HTML title.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-publish.el (org-publish-cache-ctime-of-src): improve
+	docstring.
+	(org-publish-find-title): New option to explicitly reset the
+	title in the cache.
+	(org-publish-format-file-entry): Use this new option.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* org-exp.el (org-export-preprocess-string): Set the source buffer
+	and use `org-clone-local-variables' to get local variables from
+	it.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* org-exp.el (org-export-format-source-code-or-example): Allow
+	empty string as second element in minted/listings options
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* org-exp.el (org-export-format-source-code-or-example): Support
+	new user-customizable options
+	(org-export-latex-custom-lang-environments): Ensure new variable is defined
+	(org-export-latex-listings-options): Ensure new variable is defined
+	(org-export-latex-minted-options): Ensure new variable is defined
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-as-html): handle the case when
+	`org-export-html-validation-link' is nil to keep backward
+	compatible with the old default value of this variable.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-insert-result): Don't choke if indent is not a
+	number.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* 2011
+	** 2011-02 monthname
+	*** 2011-02-13 dayname
+
+2011-07-28  Christian Moe  <mail@christianmoe.com>  (tiny change)
+
+	* org-bbdb.el (org-bbdb-export): When a link description has been
+	added by org-export-normalize-links, use path instead (remove the
+	`bbdb:' prefix).
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-ascii.el (org-export-ascii-underline): Put the level's
+	characters in the right order, as documented by the docstring.
+	(org-ascii-level-start): select the right char for underlining
+	headlines.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-src.el (org-edit-src-code): allow to edit source code from
+	modes derived from Org.
+
+2011-07-28  Niels Giesen  <niels.giesen@gmail.com>
+
+	* org-clock.el (org-clock-clocktable-language-setup): Add list of
+	dutch strings.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* org-beamer.el: Mark frame as fragile when it is using minted for
+	src block export.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-agenda.el (org-agenda-date-later)
+	(org-agenda-date-earlier): Enhance docstrings.
+	(org-agenda-bulk-mark-regexp): Only match against headlines.
+	Send a message when no entry is marked.
+	(org-agenda-bulk-action): Fix bug about scattering deadlines.
+	Send an error when trying to scatter outside an agenda or a
+	timeline view.  Silently fail when trying to scatter sexp
+	entries.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-clock.el (org-clock-clocktable-language-setup): New custom
+	variable.
+	(org-clocktable-defaults): Set the default language.
+	(org-clocktable-write-default): Use the new variable.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob.el (org-babel-src-block-names): Don't strip text properties
+	from search hits.
+	(org-babel-result-names): Don't strip text properties from search
+	hits.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob-python.el (org-babel-python-evaluate-session): Pass nil as
+	remove-echo part of META argument to
+	`org-babel-comint-with-output'.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob.el (org-babel-script-escape): Use `substring' comparison
+	instead of regexp matching.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* org-src.el (org-edit-src-code): When generating the code edit
+	buffer, it is necessary for several variables to inherit their
+	values from the parent org buffer. These changes collect all such
+	variables together into a single association list of
+	(variable-name value) pairs. In addition, a new variable is added
+	to the list: `org-edit-src-content-indentation'. This has the
+	effect that a buffer local value can be used for that variable.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob-table.el (sbe): Don't truncate sbe results.
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* org-exp.el (org-export-add-options-to-plist): Require match to
+	start at a word-boundary.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-latex.el (org-export-latex-hyperref-format): Update
+	docstring.
+
+2011-07-28  Tom Dye  <tsd@tsdye.com>
+
+	* org.el: Update documentation of `org-add-link-type'.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* org.el (org-open-at-point): Fix bug when using prefix arg to
+	construct `org-link-search' call. Rename prefix arg with a more
+	generic name, to reflect its diverse uses in this function.
+
+2011-07-28  Rémi Vanicat  <vanicat@debian.org>
+
+	* org-icalendar.el (org-icalendar-use-UTC-date-time): remove.
+	(org-icalendar-date-time-format): New custom variable.
+	(org-icalendar-use-UTC-date-timep): New function.
+	(org-ical-ts-to-string): Use the new variable.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-vm.el (org-vm-store-link): Make sure the buffer is
+	associated with a file when trying to store an Org link.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob.el (org-babel-params-from-properties): Test for
+	"header-arg-name" and ":header-arg-name", in that order.
+
+2011-07-28  Bastien  <bastien.guerry@wikimedia.fr>
+
+	* org-capture.el (org-capture-templates): document currentfile for
+	capture template.
+	(org-capture-templates): Allow to use currentfile for capture
+	templates.
+	(org-capture-set-target-location): Handle currentfile as a way
+	to setting the capture buffer.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* ob.el (org-babel-params-from-properties): don't wrap
+	org-entry-get into condition-case.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* org.el (org-entry-get): Don't look for a property drawer if we
+	are before the first heading in the file.
+	(org-entry-get-with-inheritance): Don't attempt to move up the tree if
+	we are before the first heading in the file. Also, enclose less of the
+	function in the save-excursion.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob.el (org-babel-params-from-buffer): Return desired value
+	rather than nil from failed re search.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-agenda.el (org-get-entries-from-diary): Put multiline diary
+	entries on a single line when lines don't start with a diary time.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-html-protect-char-alist): New custom
+	variable to define characters to be HTML protected.
+	(org-html-protect): Use the new variable.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-info.el (org-info-store-link): use "#" to separate the info
+	file and the node.
+	(org-info-follow-link): use both "#" to separate the info file
+	and the node.  Continue to use ":" for backward compatibility.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-icalendar.el (org-icalendar-honor-noexport-tag): New custom
+	variable.
+	(org-print-icalendar-entries): Use this new variable to
+	prevent export of entries with a :noexport: tag.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-exp.el (org-export-initial-scope): new custom variable.
+	(org-export): Use this new variable.  If there is an active
+	region, tell it when prompting the user for an export command.
+	Also change the way the function handles selection of buffer
+	and subtree export.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-html-auto-preamble)
+	(org-export-html-auto-postamble): Remove.
+	(org-export-html-preamble, org-export-html-postamble): Turn
+	into custom variables.  Update the docstrings.
+	(org-export-html-preamble-format)
+	(org-export-html-postamble-format): New custom variables.
+	(org-export-as-html): Use org-export-html-postamble-format and
+	org-export-html-preamble-format.
+	(org-export-html-title-format): delete.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-exp-blocks.el (org-export-blocks-format-ditaa): This
+	function is begin deprecated in favor of begin_src blocks.
+	(org-export-blocks-format-dot): This function is begin deprecated in
+	favor of begin_src blocks.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-header-arg-names): no-expand is now part of the
+	default header argument names list.
+
+2011-07-28  Manuel Giraud  <manuel.giraud@univ-nantes.fr>
+
+	* org-publish.el (org-publish-sitemap-date-format)
+	(org-publish-sitemap-file-entry-format): new custom variables.
+	(org-publish-projects): use these variables to format the sitemap
+	entries.
+
+2011-07-28  Ulf Stegemann  <ulf-news@zeitform.de>
+
+	* org-gnus.el (org-gnus-store-link): Allow org-link creation from
+	message-mode.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-filter-by-tag): Refresh agenda when
+	updating the filter while the clock report is following the
+	filter.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-agenda.el (org-agenda): Kill all local variables. This
+	assures we are not keeping buffer variable from an old agenda view
+	when switching to a new custom agenda.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-crypt.el (org-encrypt-string): New function.
+	(org-encrypt-entry): Use org-encrypt-string to encrypt, so we use cached
+	crypted values.
+	(org-decrypt-entry): Store crypted text in decrypted text.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob-exp.el (org-babel-exp-lob-one-liners): Only replace the match
+	if a non-nil result is returned
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-get-day-entries): Compare DATE with
+	modified today.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-update-parent-todo-statistics): fix bug when
+	updating statistics from the column view.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-agenda.el (org-agenda-bulk-mark-regexp): New command.
+	(org-agenda-menu): Add the new command to the menu.
+	(org-agenda-mode-map): Add % as the keybinding for the new
+	command.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-exp.el (org-export-target-internal-links): Locally turn on
+	`org-link-search-must-match-exact-headline' to match exact
+	internal links.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-faces.el (org-special-keyword): Make it inherited from
+	font-lock-keyword-face.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-faces.el (org-link): Make org-link inherits from link face.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-narrow-to-block): New function to narrow to block.
+	Bound this function to `C-x n b'.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-schedule, org-deadline): Fix bug: take care of
+	repeating timestamps like ".+1d/3d" or "+1d 10d".
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-agenda.el (org-agenda-repeating-timestamp-show-all): Allow
+	to use a list of TODO keywords as the value of this variable.  The
+	agenda will show repeating stamps for entries matching these TODO
+	keywords.
+	(org-agenda-get-timestamps, org-agenda-get-deadlines)
+	(org-agenda-get-scheduled): Allow the use of a list of keywords in
+	`org-agenda-repeating-timestamp-show-all'.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-latex.el (org-export-latex-emph-format): Don't use
+	`org-export-latex-use-verb'.  Remove this variable.
+
+2011-07-28  Jason Dunsmore  <emacs-orgmode@dunsmor.com>
+
+	* org-html.el (org-html-handle-time-stamps): fix bug when exporing
+	inactive timestamps.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-archive.el (org-archive-save-context-info): Fix docstring
+	typo.
+	(org-archive-subtree-add-inherited-tags): New variable to control
+	whether inherited tags should be appended to local tags when
+	archiving subtrees.
+	(org-archive-subtree): Use the new variable.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-archive.el (org-archive-save-context-info): Fix docstring
+	typo.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-crypt.el (org-decrypt-entry): Delete \n on top level
+	heading.  This avoids a display bug showing the heading outlined
+	where the text is not since it does not have the outline property.
+	Restore subtree visibility state after decryption.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-agenda.el (org-agenda-list): Use org-agenda-current-span as
+	a possible default span if it is set.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* org-src.el (org-edit-src-persistent-message): Change docstring.
+	(org-edit-src-code): Get rid of help message in echo area.
+
+	* ob.el (org-babel-do-in-edit-buffer): Do not pass 'quietly
+	argument to org-edit-src-code as this has been removed
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-latex.el (org-export-latex-emphasis-alist): use
+	\protectedtexttt for the =...= emphasis and \verb for the ~...~
+	emphasis.
+	(org-export-latex-use-verb): now defaults to t.
+	(org-export-latex-emph-format): distinguish between =...= and
+	~...~ emphasis.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* test-org-html.el (test-org-html/export-link-alist): New
+	variable. Abstract link export test definition.
+	(test-org-html/export-link-factory): New function. Create tests for
+	link export.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-test.el (org-test-strip-text-props): New function. Strip
+	text properties.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org.el (org-link-expand-abbrev): Allow any type of character in
+	link expand.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob-lob.el (org-babel-lob-ingest): Add prefix to file prompt.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob-ref.el (org-babel-ref-resolve): save-window-excursion when
+	resolving references.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org-html.el (org-export-html-html-helper-timestamp): use <hr/>
+	instead of <hr> to keep w3c validator happy.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob.el (org-babel-where-is-src-block-head): Detect src block if
+	point is on a #+header line.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob.el (org-babel-where-is-src-block-head): Skip over intervening
+	#+header lines when searching for block associated with block name
+	line.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-result-end): Replace call to org-in-item-p to
+	the more specific org-at-item-p.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-latex.el (org-latex-default-figure-position): New defcustom
+	for default placement of latex figures.
+	(org-export-latex-tables): Positioning tables using the new
+	defcustom variable.
+	(org-export-latex-format-image): Positioning images using the new
+	defcustom variable.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-ditaa.el (org-babel-execute:ditaa): Throw error when
+	evaluated and :file header argument is missing.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-do-export): Simplified, no longer need
+	to do anything to export code.
+	(org-babel-exp-results): No longer returns a replacement for the
+	code block.
+	(org-babel-exp-inline-src-blocks): Simplified.
+	(org-babel-exp-src-block): Removed unnecessary pluralization from
+	function name.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-exp.el (org-babel-exp-inline-src-blocks): Simplified
+	exportation of inline code blocks using normal code block
+	execution mechanism to insert results.
+	(org-babel-exp-results): Results exportation mechanism is unified
+	for both inline and regular code blocks.
+
+	* ob.el (org-babel-where-is-src-block-result): Returns the point
+	after an inline code block for inline code blocks.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-insert-result): Special handling of the
+	position of results of inline code blocks.
+	(org-babel-examplize-region): Now able to comment inline regions.
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* org-exp.el (org-export-with-LaTeX-fragments): Fix docstring so
+	that \\[ a = b \\] is not interpreted as a keybinding by
+	`substitute-command-keys'.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* org-latex.el (org-export-as-latex): Process export property list
+	with `org-export-process-option-filters' early in latex export
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org.el: Remove org-invisible-p: outline-invisible-p is available
+	in Emacs 22 and in recent XEmacs 21. Replace in various files.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-agenda.el (org-agenda-get-progress): Fix regexp for statep:
+	it must has \\ at the end of the line. This avoid matching the
+	following heading when there's no newline between the logged state
+	and the next heading.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-agenda.el (org-format-agenda-item): Simplify time comuting.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org.el (org-current-level):
+	(org-store-link):
+	(org-mark-subtree): Use `org-with-limited-levels'.
+
+2011-07-28  Jan Seeger  <jan.seeger@thenybble.de>
+
+	* org-publish.el (org-publish-get-base-files): Add sitemap file.
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org-agenda.el (org-agenda-todo-ignore-deadlines): New option.
+	(org-agenda-todo-ignore-scheduled): New option.
+	(org-agenda-todo-ignore-timestamp): New option.
+	(org-agenda-check-for-timestamp-as-reason-to-ignore-todo-item):
+	Allow user to specify custom distance to ignore (future or past).
+	(org-agenda-todo-custom-ignore-p): New function.
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org-habit.el (org-habit-parse-todo) Don't parse more days than
+	needed.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-map-inline-src-blocks): Macro for executing
+	code in each inline code block.
+	(org-babel-execute-buffer): Executes inline code blocks as well as
+	regular code blocks.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-result-end): Now recognizes "#+begin_org"
+	blocks for removal.
+
+2011-07-28  Benjamin Drieu  <bdrieu@april.org>  (tiny change)
+
+	* org-clock.el (org-clock-before-select-task-hook): New hook.
+	(org-clock-select-task): Run new hook.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-agenda.el (org-agenda-get-blocks): Fix time of start/end of
+	events with range. This display things like: <2011-01-22 Sat
+	14:00>--<2011-01-23 Sun 20:00> correctly, with the event starting
+	at 14:00 and ending at 20:00.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob.el (org-babel-inline-src-block-regexp): Character preceding
+	"src_" can now be anything as long as it is neither alphanumeric
+	nor '-'.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob.el (org-babel-merge-params): docstring typo.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob.el (org-babel-params-from-buffer): Process all #+babel: lines
+	in the buffer.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob.el (org-babel-get-src-block-info): Alter order of merge
+	arguments
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob-python.el: Test whether non-nil buffer is #<killed buffer>
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-insert-result): Ensure all parts of result
+	wrappers end in newlines.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-tangle.el (org-babel-tangle): New :mkdirp header argument
+	optionally creates parent directories of tangle targets.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-ascii.el (org-ascii-level-start): Catch the case of levels
+	which do not have an equivalent in the list of underline
+	characters.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-sh.el (org-babel-sh-var-quote-fmt): Now possible to customize
+	the format string used to escape arguments to shell code blocks.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-agenda.el (org-agenda-reset-view): New function.
+	(org-agenda-view-mode-dispatch): Bind space to org-agenda-reset-view.
+
+2011-07-28  Puneeth Chaganti  <punchagan@gmail.com>
+
+	* org-exp.el (org-export-handle-include-files): Support :lines
+	property.
+	(org-get-file-contents): New argument lines to include specify a range
+	of lines to include.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-fast-tag-selection): Fix bug when assigning keys
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* org-latex.el (org-export-latex-make-header): Export email in
+	author line if `org-export-email-info' is non-nil.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-agenda.el (org-agenda-goto-today): Respect current span.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-complete.el (pcomplete/org-mode/link):
+	(pcomplete/org-mode/todo):
+	(pcomplete/org-mode/prop): Copy list before uniquifying.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-tangle.el (org-babel-spec-to-string): Adding "noweb" as a
+	linking comment type
+	(org-babel-tangle-comment-links): Returns comment links for the
+	source code block at point
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* org.el (org-refile-check-position): send a more explicit message
+	on how to clear the cache before refiling again.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-skip-function-global): New option.
+	(org-agenda-skip-eval): New function.
+	(org-agenda-skip): Use `org-agenda-skip-eval' and also check for the
+	global skipping condition.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-html.el (org-export-as-html): Handle timestamps after
+	handling links.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-tangle.el (org-babel-tangle-jump-to-org): Ever wider searches
+	until either a matching block is found, or the limits of the file
+	are reached.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-update-block-body): Literal argument to
+	`replace-match' to allow insertion of text containing '\'.
+
+2011-07-28  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* org-gnus.el (org-gnus-store-link):
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-ref.el (org-babel-ref-parse): Allow passing empty strings
+	into code blocks.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* test-org-table.el
+	(test-org-table/org-table-convert-refs-to-rc/3)
+	(test-org-table/org-table-convert-refs-to-rc/2)
+	(test-org-table/org-table-convert-refs-to-rc/1)
+	(test-org-table/org-table-convert-refs-to-an/3)
+	(test-org-table/org-table-convert-refs-to-an/2)
+	(test-org-table/org-table-convert-refs-to-an/1): Provide tests for
+	table formular format conversion.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-sort-entries): Fix sorting with a bold emphasis at
+	bol
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-open-src-block-result): Must collect result
+	*before* jumping to the result buffer.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-src-block-names): Fix bug, wrong match-string
+	used after update to regexp.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-temp-file): Ensure that
+	org-babel-temporary-directory is bound before using.
+	(org-babel-remove-temporary-directory):  Safer error throwing.
+
+2011-07-28  niels giesen  <niels.giesen@gmail.com>
+
+	* org-docbook.el (org-export-docbook-finalize-table): Do literal
+	replacements.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-execute-src-block): Uses org-src-lang-modes to
+	resolve language names for evaluation.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-capture.el (org-capture-templates): Add %f and %F escapes
+	(org-capture): Add more information to capture property list
+	(org-capture-fill-template): Handle %f and %F escapes
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-publish.el (org-publish-cache-ctime-of-src): Use mtime of
+	symlink target.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-occur-next-match): New function.
+	(org-mode): Set the variable `next-error-function'.
+	(org-highlight-new-match): Add an `org-type' property to the overlays.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-calc.el: No longer require `calc-trail' on XEmacs
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
+	* simple.el (mail-user-agent): Default to the
+	upwardly-UI-compatible and more featureful message-mode.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-modules): Add `org-eshell'.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-special-blocks.el (htmlp):
+	(latexp):
+	(line): Add defvars for dynamically scoped variables.
+
+	* org.el (org-modules): Move org-special-blocks into the core
+	modules section.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-special-blocks.el: New file.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-plist-delete): Remove duplicate definition.
+
+2011-07-28  Bernt Hansen  <bernt@norang.ca>
+
+	* org-agenda.el (org-agenda-goto): Display invisible entry text
+
+	* org-agenda.el (org-agenda-switch-to): Display invisible entry
+	text
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.el (org-get-category): New optional argument FORCE-REFRESH.
+	Automatically refresh if the property is not there.
+	(org-entry-properties): Remove refresh - this is now done in
+	org-get-category.
+
+	* org-clock.el (org-clock-insert-selection-line): Let
+	`org-get-category' do the property refresh.
+
+	* org-archive.el (org-archive-subtree): Force a refresh of
+	category properties.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-icalendar.el (org-print-icalendar-entries): Do not manually
+	refresh categories.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* org.el (org-display-inline-images): Check for clear-image-cache
+	before using it.
+
+2011-07-28  Bernt Hansen  <bernt@norang.ca>
+
+	* org.el: Document missing value for org-link-frame-setup.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob-R.el (org-babel-R-write-object-command): Force evaluation of
+	user code prior to the R exception-handling, so that errors in
+	user code are unhandled.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* org-src.el (org-src-font-lock-fontify-block): Test, early on,
+	that a major-mode function corresponding to the language string
+	exists.
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-exp.el (org-export-mark-list-ending): insert additional
+	newline characters if end-list-marker is at a wrong position.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-script-escape): Replace commas with spaces for
+	better list reading when list items are packed with commas,
+	e.g. Haskell list output.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-sass.el (org-babel-execute:sass): Uses ob-eval for better
+	error reporting.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-confirm-evaluate): Fix for the case when
+	org-confirm-babel-evaluate is a function (used to always ask no
+	matter what the function returns).
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob-R.el: Delete duplicated function.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-execute-src-block): Removed unused flet
+	function.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob-asymptote.el (org-babel-execute:asymptote): Return nil to
+	signal that the intended content has been written to file.
+
+	* ob-ditaa.el (org-babel-execute:ditaa): Return nil to signal that
+	the intended content has been written to file.
+
+	* ob-dot.el (org-babel-execute:dot): Return nil to signal that the
+	intended content has been written to file.
+
+	* ob-gnuplot.el (org-babel-execute:gnuplot): Return nil to signal
+	that the intended content has been written to file.
+
+	* ob-latex.el (org-babel-execute:latex): Return nil to signal that
+	the intended content has been written to file.
+
+	* ob-mscgen.el (org-babel-execute:mscgen): Return nil to signal
+	that the intended content has been written to file.
+
+	* ob-octave.el (org-babel-execute:octave): Return result; not name
+	of output file.
+
+	* ob-plantuml.el (org-babel-execute:plantuml): Return nil to
+	signal that the intended content has been written to file.
+
+	* ob-python.el (org-babel-execute:python): Return result; not name
+	of output file.
+
+	* ob-ruby.el (org-babel-execute:ruby): Return result; not name of
+	output file.
+
+	* ob-sass.el (org-babel-execute:sass): Return nil if result has
+	been written to file
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob-R.el (org-babel-R-graphical-output-file): New function
+	returns the name of the output file iff R has been instructed to
+	send graphical output to file by means of the ":results graphics"
+	directive.
+	(org-babel-expand-body:R): Use `org-babel-R-graphical-output-file'
+	when constructing the R code to evaluate, which may be augmented with
+	code implementing the writing of graohical output to file.
+	(org-babel-execute:R): Use `org-babel-R-graphical-output-file' to
+	determine whether R is taking responsibility for writing output to
+	file; if so, this is signalled to ob.el by returning a nil result.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob.el (org-babel-format-result): New function to format results
+	of src block execution.
+	(org-babel-execute-src-block): Use `org-babel-format-result' when
+	writing to file.
+	(org-babel-open-src-block-result): Use `org-babel-format-result' when
+	displaying results in a buffer; name results buffer differently.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob.el (org-babel-execute-src-block): Avoid calling
+	`orgtbl-to-generic' on number results.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-execute-src-block): Allow specification of
+	table separator with :sep header argument.
+	(org-babel-open-src-block-result): Allow specification of table
+	separator with :sep header argument.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob.el (org-babel-execute-buffer): Wipe error buffer at outset of
+	executing buffer (note that this handles execute subtree also).
+
+2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
+
+	* org-inlinetask.el (org-inlinetask-in-task-p): small refactoring,
+	do not modify match data either.
+	(org-inlinetask-goto-end): small refactoring, remove case-sensitivity.
+	(org-inlinetask-goto-beginning): small refactoring, remove case-sensitivity.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-capture.el (org-capture-set-target-location): Use
+	`current-time'.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-capture.el (org-capture-set-target-location): Use
+	`current-time'.
+
+2011-07-28  Bernt Hansen  <bernt@norang.ca>
+
+	* org.el (org-before-first-heading-p): If point is on an org-mode
+	heading line then we are not before the first heading.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>  (tiny change)
+
+	* org-timer.el (org-timer-continue-hook): Define the variable
+	(org-timer-pause-or-continue): Run hook after relative timer is
+	continued.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-agenda.el (org-compile-prefix-format): Allow %() expression.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-capture.el (org-capture-fill-template): Use org-eval.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-agenda.el (org-eval): New function.
+
+2011-07-28  Dan Davison  <dandavison7@gmail.com>
+
+	* ob.el (org-babel-execute-src-block): With :results file, when
+	:file is not supplied, interpret result as a file link as long as
+	it is a string.
+
+2011-07-28  David Maus  <dmaus@ictsoc.de>
+
+	* org-latex.el (org-export-latex-preprocess): Don't convert link
+	description parts that look like numeric footnote.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-latex.el (org-export-latex-tables): Allowing specification
+	of tabular[xy] inner environments through the ATTR_LaTeX line.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-capture.el (org-capture-fill-template): Use
+	`org-set-property' directly.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-agenda.el (org-agenda-prefix-format): Add missing `search'
+	item in docstring.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* org-exp.el (org-export-string): Use `format' to construct
+	function call to allow symbolic or string arguments.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-capture.el (org-capture-place-entry):
+	(org-capture-insert-template-here): Check tree for validity before
+	pasting it.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org-gnus.el (org-gnus-store-link): Trim date.
+
+2011-07-28  Julien Danjou  <julien@danjou.info>
+
+	* org.el (org-email-link-description): Allow to retrieve email
+	link date.
+
+2011-07-28  Lawrence Mitchell  <wence@gmx.li>
+
+	* org.el (org-make-target-link-regexp): regexp-quote target before
+	replacing whitespace.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-expand-noweb-references): Noweb references can
+	now be resolved from the library of babel.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob.el (org-babel-result-end): No longer leaving trailing new
+	line after block removal.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-latex.el (org-export-latex-first-lines): Anchor outline
+	regexp during LaTeX tree export
+
+2011-07-28  Konrad Hinsen  <konrad.hinsen@fastmail.net>
+
+	* ob-python.el (org-babel-python-initiate-session-by-key): Make
+	sure that py-which-bufname is initialized, as otherwise it will be
+	overwritten the first time a Python buffer is created.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-sh.el (org-babel-sh-var-to-sh): Better escaping of variables
+	with spaces.
+
+2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+
+	* ob-org.el (org-babel-execute:org): Padding code block with an
+	empty title on LaTeX export.
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org.el (org-entry-properties): Stop scanning for timestamps if a
+	specific timestamp property (e.g., DEADLINE, SCHEDULED, etc.) is
+	requested and a match is found. Also, if a specific timestamp
+	property is requested, do not push non-relevant timestamps onto
+	property list.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-add-time-grid-maybe): Show time only
+	when grid is being made for today.
+
+2011-07-28  Matt Lundin  <mdl@imapmail.org>
+
+	* org-agenda.el (org-agenda-get-scheduled): Don't call
+	`org-is-habit-p' until after checking for
+	`org-agenda-skip-scheduled-if-done'.
+
+2011-07-28  Achim Gratz  <Stromeko@nexgo.de>
+
+	* org.el: remove spurious linebreak introduced by earlier patch.
+
+	* ob.el, ob-ref.el: remove double fix of the same problem.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-table.el (orgtbl-ctrl-c-ctrl-c): Parse buffer for constants.
+
+2011-07-28  Łukasz Stelmach  <lukasz.stelmach@iem.pw.edu.pl>
+
+	* org-html.el (org-export-html-mathjax-template): displaymath
+	environment and MathJax.
+
+2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-faces.el (org-agenda-current-time): New face.
+
+	* org-agenda.el (org-agenda-show-current-time-in-grid):
+	(org-agenda-current-time-string): New options.
+	(org-agenda-add-time-grid-maybe): Add current time to time grid.
+
 2011-05-10  Jim Meyering  <meyering@redhat.com>
 
 	Fix doubled-word typos.
