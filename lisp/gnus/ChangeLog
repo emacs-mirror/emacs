@@ -1,3 +1,15 @@
+2011-08-02  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-search-thread): Position point on referring article
+	line.
+	(nnir-warp-to-article): Clean up summary buffers.
+
+	* nnimap.el (nnimap-request-thread): Whitespace fix.
+
+2011-08-02  Steve Purcell  <steve@sanityinc.com>  (tiny change)
+
+	* nnimap.el (nnimap-get-groups): Decode "&" correctly.
+
 2011-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* starttls.el (starttls-available-p): Renamed from
