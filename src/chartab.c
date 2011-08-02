@@ -1310,7 +1310,7 @@ uniprop_get_encoder (Lisp_Object table)
    function may load a Lisp file and thus may cause
    garbage-collection.  */
 
-static Lisp_Object
+Lisp_Object
 uniprop_table (Lisp_Object prop)
 {
   Lisp_Object val, table, result;
