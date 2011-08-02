@@ -1,5 +1,8 @@
 2011-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* emacs-lisp/cl-macs.el (dolist): Mention that there's a nil block
+	(bug#4433).
+
 	* ido.el (ido-mode): Switch off the message if called
 	non-interactively.
 
