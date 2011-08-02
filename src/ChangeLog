@@ -1,6 +1,6 @@
 2011-08-02  Kenichi Handa  <handa@m17n.org>
 
-	* lisp.h: (uniprop_table): Extern it.
+	* lisp.h (uniprop_table): Extern it.
 
 	* chartab.c (uniprop_table): Make it non-static.
 
