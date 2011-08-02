@@ -1,5 +1,8 @@
 2011-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* dired.el (dired-flagged): Use different faces for marked and
+	flagged files (bug#6117).
+
 	* emacs-lisp/cl-macs.el (dolist): Mention that there's a nil block
 	(bug#4433).
 

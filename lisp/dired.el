@@ -350,7 +350,7 @@ Subexpression 2 must end right before the \\n or \\r.")
   "Face name used for marked files.")
 
 (defface dired-flagged
-  '((t (:inherit font-lock-warning-face)))
+  '((t (:inherit font-lock-variable-name-face)))
   "Face used for files flagged for deletion."
   :group 'dired-faces
   :version "22.1")
