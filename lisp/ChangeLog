@@ -1,5 +1,8 @@
 2011-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* ido.el (ido-mode): Switch off the message if called
+	non-interactively.
+
 	* mail/smtpmail.el (smtpmail-query-smtp-server): Try port 25
 	before 587, since it appears that that's more likely to work for
 	more people.
