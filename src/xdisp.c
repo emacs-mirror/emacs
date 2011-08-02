@@ -3134,13 +3134,10 @@ next_overlay_change (EMACS_INT pos)
   return endpos;
 }
 
-/* Record one cached display string position found recently by
-   compute_display_string_pos.  */
-static EMACS_INT cached_disp_pos;
-static EMACS_INT cached_prev_pos = -1;
-static struct buffer *cached_disp_buffer;
-static int cached_disp_modiff;
-static int cached_disp_overlay_modiff;
+/* How many characters forward to search for a display property or
+   display string.  Enough for a screenful of 100 lines x 50
+   characters in a line.  */
+#define MAX_DISP_SCAN 5000
 
 /* Return the character position of a display string at or after
    position specified by POSITION.  If no display string exists at or
@@ -3152,18 +3149,23 @@ static int cached_disp_overlay_modiff;
    on a GUI frame.  */
 EMACS_INT
 compute_display_string_pos (struct text_pos *position,
-			    struct bidi_string_data *string, int frame_window_p)
+			    struct bidi_string_data *string,
+			    int frame_window_p, int *disp_prop_p)
 {
   /* OBJECT = nil means current buffer.  */
   Lisp_Object object =
     (string && STRINGP (string->lstring)) ? string->lstring : Qnil;
-  Lisp_Object pos, spec;
+  Lisp_Object pos, spec, limpos;
   int string_p = (string && (STRINGP (string->lstring) || string->s));
   EMACS_INT eob = string_p ? string->schars : ZV;
   EMACS_INT begb = string_p ? 0 : BEGV;
   EMACS_INT bufpos, charpos = CHARPOS (*position);
+  EMACS_INT lim =
+    (charpos < eob - MAX_DISP_SCAN) ? charpos + MAX_DISP_SCAN : eob;
   struct text_pos tpos;
   struct buffer *b;
+
+  *disp_prop_p = 1;
 
   if (charpos >= eob
       /* We don't support display properties whose values are strings
@@ -3171,38 +3173,9 @@ compute_display_string_pos (struct text_pos *position,
       || string->from_disp_str
       /* C strings cannot have display properties.  */
       || (string->s && !STRINGP (object)))
-    return eob;
-
-  /* Check the cached values.  */
-  if (!STRINGP (object))
     {
-      if (NILP (object))
-	b = current_buffer;
-      else
-	b = XBUFFER (object);
-      if (b == cached_disp_buffer
-	  && BUF_MODIFF (b) == cached_disp_modiff
-	  && BUF_OVERLAY_MODIFF (b) == cached_disp_overlay_modiff
-	  && !b->clip_changed)
-	{
-	  if (cached_prev_pos >= 0
-	      && cached_prev_pos < charpos && charpos <= cached_disp_pos)
-	    return cached_disp_pos;
-	  /* Handle overstepping either end of the known interval.  */
-	  if (charpos > cached_disp_pos)
-	    cached_prev_pos = cached_disp_pos;
-	  else	/* charpos <= cached_prev_pos */
-	    cached_prev_pos = max (charpos - 1, 0);
-	}
-
-      /* Record new values in the cache.  */
-      if (b != cached_disp_buffer)
-	{
-	  cached_disp_buffer = b;
-	  cached_prev_pos = max (charpos - 1, 0);
-	}
-      cached_disp_modiff = BUF_MODIFF (b);
-      cached_disp_overlay_modiff = BUF_OVERLAY_MODIFF (b);
+      *disp_prop_p = 0;
+      return eob;
     }
 
   /* If the character at CHARPOS is where the display string begins,
@@ -3221,22 +3194,24 @@ compute_display_string_pos (struct text_pos *position,
       && handle_display_spec (NULL, spec, object, Qnil, &tpos, bufpos,
 			      frame_window_p))
     {
-      if (!STRINGP (object))
-	cached_disp_pos = charpos;
       return charpos;
     }
 
   /* Look forward for the first character with a `display' property
      that will replace the underlying text when displayed.  */
+  limpos = make_number (lim);
   do {
-    pos = Fnext_single_char_property_change (pos, Qdisplay, object, Qnil);
+    pos = Fnext_single_char_property_change (pos, Qdisplay, object, limpos);
     CHARPOS (tpos) = XFASTINT (pos);
+    if (CHARPOS (tpos) >= lim)
+      {
+	*disp_prop_p = 0;
+	break;
+      }
     if (STRINGP (object))
       BYTEPOS (tpos) = string_char_to_byte (object, CHARPOS (tpos));
     else
       BYTEPOS (tpos) = CHAR_TO_BYTE (CHARPOS (tpos));
-    if (CHARPOS (tpos) >= eob)
-      break;
     spec = Fget_char_property (pos, Qdisplay, object);
     if (!STRINGP (object))
       bufpos = CHARPOS (tpos);
@@ -3244,8 +3219,6 @@ compute_display_string_pos (struct text_pos *position,
 	   || !handle_display_spec (NULL, spec, object, Qnil, &tpos, bufpos,
 				    frame_window_p));
 
-  if (!STRINGP (object))
-    cached_disp_pos = CHARPOS (tpos);
   return CHARPOS (tpos);
 }
 

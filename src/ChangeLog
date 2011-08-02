@@ -1,3 +1,21 @@
+2011-08-02  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix slow cursor motion and scrolling in large buffers with
+	selective display, like Org Mode buffers.  (Bug#9218)
+
+	* dispextern.h (struct bidi_it): New member disp_prop_p.
+
+	* xdisp.c: Remove one-slot cache of display string positions.
+	(compute_display_string_pos): Accept an additional argument
+	DISP_PROP_P; callers changed. Scan at most 5K characters forward
+	for a display string or property.  If found, set DISP_PROP_P
+	non-zero.
+
+	* bidi.c (bidi_fetch_char): Accept an additional argument
+	DISP_PROP_P, and pass it to compute_display_string_pos.  Only
+	handle text covered by a display string if DISP_PROP_P is returned
+	non-zero.  All callers of bidi_fetch_char changed.
+
 2011-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (Fdefine_key): Fix Lisp_Object/int mixup; apply some CSE.
