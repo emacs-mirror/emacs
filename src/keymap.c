@@ -1217,16 +1217,9 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
       keymap = get_keymap (cmd, 0, 1);
       if (!CONSP (keymap))
 	{
-	  char trailing_esc[5];
-	  if (c == meta_prefix_char && metized)
-	    {
-	      if (idx == 0)
-		strcpy(trailing_esc, "ESC");
-	      else
-		strcpy(trailing_esc, " ESC");
-	    }
-	  else
-	      strcpy(trailing_esc, "");
+	  const char *trailing_esc = ((EQ (c, meta_prefix_char) && metized)
+				      ? (idx == 0 ? "ESC" : " ESC")
+				      : "");
 
 	  /* We must use Fkey_description rather than just passing key to
 	     error; key might be a vector, not a string.  */
