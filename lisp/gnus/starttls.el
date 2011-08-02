@@ -295,18 +295,11 @@ GNUTLS requires a port number."
       (starttls-set-process-query-on-exit-flag process nil)
       process)))
 
-(defun starttls-any-program-available ()
-  (let ((program (if starttls-use-gnutls
-		     starttls-gnutls-program
-		   starttls-program)))
-    (condition-case ()
-	(progn
-	  (call-process program)
-	  program)
-      (error (progn
-	       (message "No STARTTLS program was available (tried '%s')"
-			program)
-	       nil)))))
+(defun starttls-available-p ()
+  "Say whether the STARTTLS programs are available."
+  (executable-find (if starttls-use-gnutls
+		       starttls-gnutls-program
+		     starttls-program)))
 
 (provide 'starttls)
 

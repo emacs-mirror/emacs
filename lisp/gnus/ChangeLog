@@ -1,3 +1,8 @@
+2011-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* starttls.el (starttls-available-p): Renamed from
+	`starttls-any-program-available' and changed return convention.
+
 2011-07-31  Lars Ingebrigtsen  <larsi@gnus.org>
 
 	* nnmaildir.el (nnmaildir-request-accept-article): Don't call
