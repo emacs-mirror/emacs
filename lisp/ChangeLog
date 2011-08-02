@@ -1,5 +1,9 @@
 2011-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Try port 25
+	before 587, since it appears that that's more likely to work for
+	more people.
+
 	* cus-edit.el (custom-file): When running under emacs -q, always
 	refuse to save the customisations, even if the .emacs file doesn't
 	exist.
