@@ -1,5 +1,8 @@
 2011-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* info.el: Remove the `Info-beginning-of-buffer' function
+	(bug#8325).
+
 	* net/network-stream.el (network-stream-open-starttls): Use
 	`starttls-available-p' to see whether starttls.el can be used.
 
