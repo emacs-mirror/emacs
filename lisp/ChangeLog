@@ -1,5 +1,8 @@
 2011-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mail/sendmail.el (sendmail-query-once): Restore the current
+	buffer after querying (bug#9074).
+
 	* dired.el (dired-flagged): Use different faces for marked and
 	flagged files (bug#6117).
 
