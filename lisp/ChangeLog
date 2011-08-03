@@ -1,3 +1,8 @@
+2011-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-paren): Don't mistake "main" for
+	"in" (bug#9190).
+
 2011-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/sendmail.el (sendmail-query-once): Restore the current
@@ -23,8 +28,8 @@
 	* info.el: Remove the `Info-beginning-of-buffer' function
 	(bug#8325).
 
-	* net/network-stream.el (network-stream-open-starttls): Use
-	`starttls-available-p' to see whether starttls.el can be used.
+	* net/network-stream.el (network-stream-open-starttls):
+	Use `starttls-available-p' to see whether starttls.el can be used.
 
 2011-08-01  Martin Rudalics  <rudalics@gmx.at>
 
@@ -32,8 +37,7 @@
 	of window here (Bug#9215).
 	(display-buffer-pop-up-window, display-buffer-pop-up-frame)
 	(display-buffer-pop-up-side-window)
-	(display-buffer-in-side-window): Set dedicated status of window
-	here.
+	(display-buffer-in-side-window): Set dedicated status of window here.
 
 2011-08-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -87,8 +91,8 @@
 	QT keyword "more" to prevent "more slots: ...." being spuriously
 	parsed as a bitfield declaraion.
 
-	* progmodes/cc-engine.el (c-beginning-of-statement-1): Refactor
-	and enhance to handle bitfield declarations.
+	* progmodes/cc-engine.el (c-beginning-of-statement-1):
+	Refactor and enhance to handle bitfield declarations.
 	(c-punctuation-in): New function.
 	(c-forward-decl-or-cast-1): Enhance CASE 3 to handle bitfield
 	declarations properly.
@@ -97,7 +101,7 @@
 
 	* calendar/icalendar.el (icalendar--all-events): Take care of
 	multiple vcalendars in a single file.
-	(icalendar--convert-float-to-ical): checkdoc fixes.
+	(icalendar--convert-float-to-ical): Checkdoc fixes.
 
 2011-07-25  Deniz Dogan  <deniz@dogan.se>
 
@@ -131,8 +135,7 @@
 	(display-buffer-pop-up-side-window)
 	(display-buffer-in-side-window): Call display-buffer-set-height
 	and display-buffer-set-width after setting the new window's
-	buffer so `fit-window-to-buffer' and friends work on the right
-	buffer.
+	buffer so `fit-window-to-buffer' and friends work on the right buffer.
 
 2011-07-20  Sam Steingold  <sds@gnu.org>
 
@@ -164,8 +167,8 @@
 2011-07-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-alist-of-strings-p)
-	(display-buffer-alist-set-1, display-buffer-alist-set-2): New
-	functions.
+	(display-buffer-alist-set-1, display-buffer-alist-set-2):
+	New functions.
 	(display-buffer-alist-set): Rewrite to handle Emacs 23 options
 	more accurately.
 
@@ -176,8 +179,8 @@
 
 	* progmodes/cc-langs.el (c-symbol-chars): Correct a typo.
 
-	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls): New
-	function.
+	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls):
+	New function.
 	(c-complex-decl-matchers): Insert reference to
 	c-font-lock-enclosing-decls.
 
@@ -196,7 +199,7 @@
 
 2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/gnutls.el (gnutls-log-level): Removed.
+	* net/gnutls.el (gnutls-log-level): Remove.
 
 	* textmodes/fill.el (adaptive-fill-regexp): Include EN DASH as an
 	indentation character (bug#6380).
@@ -218,11 +221,10 @@
 
 2011-07-16  Martin Rudalics  <rudalics@gmx.at>
 
-	* frame.el (select-frame-set-input-focus): New argument
-	NORECORD.
+	* frame.el (select-frame-set-input-focus): New argument NORECORD.
 	* window.el (pop-to-buffer): Select window used even if it was
-	selected before, see discussion of (Bug#8615), (Bug#6954).  Pass
-	argument NORECORD on to select-frame-set-input-focus.
+	selected before, see discussion of (Bug#8615), (Bug#6954).
+	Pass argument NORECORD on to select-frame-set-input-focus.
 
 2011-07-15  Glenn Morris  <rgm@gnu.org>
 
@@ -236,8 +238,8 @@
 
 2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/gnutls.el (gnutls-negotiate): Upcase
-	`gnutls-algorithm-priority'.
+	* net/gnutls.el (gnutls-negotiate):
+	Upcase `gnutls-algorithm-priority'.
 
 2011-07-15  Glenn Morris  <rgm@gnu.org>
 
@@ -318,9 +320,9 @@
 	* printing.el (pr-toggle-region): Clarify the documentation
 	slightly (bug#7493).
 
-	* time.el (display-time-update): Allow
-	`display-time-mail-function' to return nil (bug#7158).  Fix
-	suggested by Detlev Zundel.
+	* time.el (display-time-update):
+	Allow `display-time-mail-function' to return nil (bug#7158).
+	Fix suggested by Detlev Zundel.
 
 	* vc/diff.el (diff): Clarify the order the file names are read
 	(bug#7111).
@@ -336,8 +338,8 @@
 
 2011-07-14  Martin Rudalics  <rudalics@gmx.at>
 
-	* window.el (display-buffer-normalize-special): Replace
-	`dedicated' by `dedicate' to dedicate window (Bug#9072).
+	* window.el (display-buffer-normalize-special):
+	Replace `dedicated' by `dedicate' to dedicate window (Bug#9072).
 
 2011-07-14  Eli Zaretskii  <eliz@gnu.org>
 
@@ -358,7 +360,7 @@
 	switch-to-buffer.
 
 	* net/tramp-compat.el (tramp-compat-pop-to-buffer-same-window):
-	Deleted.
+	Delete.
 
 2011-07-14  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -376,8 +378,8 @@
 
 2011-07-13  Chong Yidong  <cyd@stupidchicken.com>
 
-	* window.el (switch-to-buffer): New arg FORCE-SAME-WINDOW.  Use
-	pop-to-buffer buffer-or-name if it is nil.
+	* window.el (switch-to-buffer): New arg FORCE-SAME-WINDOW.
+	Use pop-to-buffer buffer-or-name if it is nil.
 
 	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
 	Remove switch-to-buffer.
@@ -402,8 +404,8 @@
 
 2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* progmodes/cperl-mode.el (cperl-syntaxify-by-font-lock): Rewrite
-	to avoid awkward possessive "s" (bug#5986).
+	* progmodes/cperl-mode.el (cperl-syntaxify-by-font-lock):
+	Rewrite to avoid awkward possessive "s" (bug#5986).
 
 2011-07-13  Glenn Morris  <rgm@gnu.org>
 
@@ -497,15 +499,15 @@
 
 2011-07-12  Roland Winkler  <winkler@gnu.org>
 
-	* textmodes/bibtex.el (bibtex-initialize): Use
-	pop-to-buffer-same-window.
+	* textmodes/bibtex.el (bibtex-initialize):
+	Use pop-to-buffer-same-window.
 	(bibtex-search-entries): Fix interactive call.
 
 2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
-	Fontise bytecomp Error lines more correctly (bug#2490).  Fix
-	suggested by Johan Bockgård.
+	Fontise bytecomp Error lines more correctly (bug#2490).
+	Fix suggested by Johan Bockgård.
 
 	* subr.el (remove-duplicates): Remove; `delete-dups' is sufficient.
 
@@ -518,8 +520,8 @@
 
 2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* mail/sendmail.el (sendmail-query-once): Use
-	`customize-save-variable' unconditionally, now that it works under
+	* mail/sendmail.el (sendmail-query-once):
+	Use `customize-save-variable' unconditionally, now that it works under
 	emacs -Q.
 
 	* mail/smtpmail.el (smtpmail-query-smtp-server): Ditto.
@@ -584,16 +586,15 @@
 
 2011-07-09  Bob Nnamtrop  <bobnnamtrop@gmail.com>  (tiny change)
 
-	* emulation/viper-cmd.el (viper-change-state-to-vi): Limit
-	triggering of abbrev expansion (Bug#9038).
+	* emulation/viper-cmd.el (viper-change-state-to-vi):
+	Limit triggering of abbrev expansion (Bug#9038).
 
 2011-07-09  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-default-specifiers): Remove.
 	(display-buffer-macro-specifiers): Remove default specifiers.
 	(display-buffer-alist): Default to nil.
-	(display-buffer-reuse-window): New optional argument
-	other-window.
+	(display-buffer-reuse-window): New optional argument other-window.
 	(display-buffer-pop-up-window): Allow splitting internal
 	windows.  Check whether a live window was created.
 	(display-buffer-other-window-means-other-frame)
@@ -608,11 +609,10 @@
 	(display-buffer): Process other-window specifier and call
 	display-buffer-reuse-window with it.  Emulate Emacs 23 behavior
 	more faithfully.
-	(pop-up-windows, even-window-heights): Restore Emacs 23 default
-	values.
+	(pop-up-windows, even-window-heights): Restore Emacs 23 default values.
 	(display-buffer-alist-set): Don't handle 'unset default values.
-	(display-buffer-in-window, display-buffer-alist-set): Replace
-	symbol "dedicated" by "dedicate".  Reported by Tassilo Horn
+	(display-buffer-in-window, display-buffer-alist-set):
+	Replace symbol "dedicated" by "dedicate".  Reported by Tassilo Horn
 	<tassilo@member.fsf.org>.
 
 2011-07-09  Leo Liu  <sdl.web@gmail.com>
