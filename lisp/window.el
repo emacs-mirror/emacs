@@ -4715,15 +4715,12 @@ documentation of `display-buffer-alist' for a description."
   (setq window (window-normalize-live-window window))
   (let* ((old-frame (selected-frame))
 	 (new-frame (window-frame window))
-	 (dedicate (cdr (assq 'dedicate specifiers)))
 	 (no-other-window (cdr (assq 'no-other-window specifiers))))
     ;; Show BUFFER in WINDOW.
     (unless (eq buffer (window-buffer window))
       ;; If we show another buffer in WINDOW, undedicate it first.
       (set-window-dedicated-p window nil))
     (set-window-buffer window buffer)
-    (when dedicate
-      (set-window-dedicated-p window dedicate))
     (when no-other-window
       (set-window-parameter window 'no-other-window t))
     (unless (or (eq old-frame new-frame)
@@ -4965,7 +4962,7 @@ Return the new window, nil if it could not be created."
 	(selected-window (selected-window))
 	root new new-parent)
 
-      ;; We are in an atomic window.
+    ;; We are in an atomic window.
     (when (and (window-parameter window 'window-atom) (not nest))
       ;; Split the root window.
       (setq window (window-atom-root window)))
@@ -5059,6 +5056,10 @@ description."
 	      (setq display-buffer-window (cons window 'new-window))
 	      ;; Install BUFFER in the new window.
 	      (display-buffer-in-window buffer window specifiers)
+	      (let ((dedicate (cdr (assq 'dedicate specifiers))))
+		(when dedicate
+		  ;; Dedicate window to buffer.
+		  (set-window-dedicated-p window dedicate)))
 	      ;; Adjust sizes if asked for (for `fit-window-to-buffer'
 	      ;; and friends BUFFER must be already shown in the new
 	      ;; window).
@@ -5094,7 +5095,12 @@ documentation of `display-buffer-alist' for a description."
 	  (set-window-parameter
 	   window 'quit-restore (list 'new-frame buffer selected-window))
 	  (setq display-buffer-window (cons window 'new-frame))
-	  (display-buffer-in-window buffer window specifiers))))))
+	  (display-buffer-in-window buffer window specifiers)
+	  (let ((dedicate (cdr (assq 'dedicate specifiers))))
+	    (when dedicate
+	      ;; Dedicate window to buffer.
+	      (set-window-dedicated-p window dedicate)))
+	  window)))))
 
 (defun display-buffer-pop-up-side-window (buffer side slot &optional specifiers)
   "Display BUFFER in a new window on SIDE of the selected frame.
@@ -5142,6 +5148,10 @@ failed."
       (setq display-buffer-window (cons window 'new-window))
       ;; Install BUFFER in new window.
       (display-buffer-in-window buffer window specifiers)
+      (let ((dedicate (cdr (assq 'dedicate specifiers))))
+	(when dedicate
+	  ;; Dedicate window to buffer.
+	  (set-window-dedicated-p window dedicate)))
       ;; Adjust sizes of new window if asked for.
       (display-buffer-set-height window specifiers)
       (display-buffer-set-width window specifiers)
@@ -5282,6 +5292,10 @@ SPECIFIERS must be a list of buffer display specifiers."
 	  (set-window-parameter window 'window-slot slot))
 	;; Install BUFFER in the window.
 	(display-buffer-in-window buffer window specifiers)
+	(let ((dedicate (cdr (assq 'dedicate specifiers))))
+	  (when dedicate
+	    ;; Dedicate window to buffer.
+	    (set-window-dedicated-p window dedicate)))
 	(when new-window
 	  ;; Adjust sizes if asked for (for `fit-window-to-buffer' and
 	  ;; friends BUFFER must be already shown in the new window).

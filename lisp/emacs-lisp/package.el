@@ -570,11 +570,11 @@ EXTRA-PROPERTIES is currently unused."
   file)
 
 (defun package-generate-autoloads (name pkg-dir)
+  (require 'autoload)         ;Load before we let-bind generated-autoload-file!
   (let* ((auto-name (concat name "-autoloads.el"))
 	 (ignore-name (concat name "-pkg.el"))
 	 (generated-autoload-file (expand-file-name auto-name pkg-dir))
 	 (version-control 'never))
-    (require 'autoload)
     (unless (fboundp 'autoload-ensure-default-file)
       (package-autoload-ensure-default-file generated-autoload-file))
     (update-directory-autoloads pkg-dir)))

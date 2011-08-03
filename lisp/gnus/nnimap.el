@@ -1107,9 +1107,9 @@ textual parts.")
 	    (separator (read (current-buffer)))
 	    (group (read (current-buffer))))
 	(unless (member '%NoSelect flags)
-	  (push (if (stringp group)
-		    group
-		  (format "%s" group))
+	  (push (utf7-decode (if (stringp group)
+				 group
+			       (format "%s" group)) t)
 		groups))))
     (nreverse groups)))
 
@@ -1168,7 +1168,7 @@ textual parts.")
 		       (nnimap-get-groups)))
 	(unless (assoc group nnimap-current-infos)
 	  ;; Insert dummy numbers here -- they don't matter.
-	  (insert (format "%S 0 1 y\n" group))))
+	  (insert (format "%S 0 1 y\n" (utf7-encode group)))))
       t)))
 
 (deffoo nnimap-retrieve-group-data-early (server infos)
@@ -1566,7 +1566,7 @@ textual parts.")
 		  (articles &optional limit force-new dependencies))
 
 (deffoo nnimap-request-thread (header &optional group server)
-  (if gnus-refer-thread-use-nnir 
+  (if gnus-refer-thread-use-nnir
       (nnir-search-thread header)
     (when (nnimap-possibly-change-group group server)
       (let* ((cmd (nnimap-make-thread-query header))

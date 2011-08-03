@@ -350,7 +350,7 @@ Subexpression 2 must end right before the \\n or \\r.")
   "Face name used for marked files.")
 
 (defface dired-flagged
-  '((t (:inherit font-lock-warning-face)))
+  '((t (:inherit font-lock-variable-name-face)))
   "Face used for files flagged for deletion."
   :group 'dired-faces
   :version "22.1")
@@ -3663,7 +3663,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "ab62f310329f404f96a29e4f0ab8df73")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "bbb53a5b6bf56c413fe0f898559bef8d")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\

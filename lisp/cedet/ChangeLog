@@ -1,3 +1,8 @@
+2011-07-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* semantic/grammar.el (semantic-grammar-insert-defanalyzers): Fix
+	require.
+
 2011-07-04  Darren Hoo  <darren.hoo@gmail.com>  (tiny change)
 
 	* semantic/db.el (semanticdb-file-table-object): Don't bug out on

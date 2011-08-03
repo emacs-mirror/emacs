@@ -1,3 +1,9 @@
+2011-07-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.2.
+
+	* trampver.texi: Update release number.
+
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Using the mapping API): mention 'region as a possible

@@ -9015,9 +9015,9 @@ non-numeric or nil fetch the number specified by the
 		   (refs (split-string (or (mail-header-references header)
 					   "")))
 		   (gnus-parse-headers-hook
-		    (lambda () (goto-char (point-min))
+		    `(lambda () (goto-char (point-min))
 		      (keep-lines
-		       (regexp-opt (append refs (list id subject)))))))
+		       (regexp-opt ',(append refs (list id subject)))))))
 	      (gnus-fetch-headers (list last) (if (numberp limit)
 						  (* 2 limit) limit) t)))))
     (when (listp new-headers)
@@ -12851,26 +12851,26 @@ If ALL is a number, fetch this number of articles."
 (defun gnus-summary-insert-new-articles ()
   "Insert all new articles in this group."
   (interactive)
-  (prog1
-      (let ((old (sort (mapcar 'car gnus-newsgroup-data) '<))
-	    (old-high gnus-newsgroup-highest)
-	    (nnmail-fetched-sources (list t))
-	    i new)
-	(setq gnus-newsgroup-active
-	      (gnus-copy-sequence
-	       (gnus-activate-group gnus-newsgroup-name 'scan)))
-	(setq i (cdr gnus-newsgroup-active)
-	      gnus-newsgroup-highest i)
-	(while (> i old-high)
-	  (push i new)
-	  (decf i))
-	(if (not new)
-	    (message "No gnus is bad news")
-	  (gnus-summary-insert-articles new)
-	  (setq gnus-newsgroup-unreads
-		(gnus-sorted-nunion gnus-newsgroup-unreads new))
-	  (gnus-summary-limit (gnus-sorted-nunion old new))))
-    (gnus-summary-position-point)))
+  (let ((old (sort (mapcar 'car gnus-newsgroup-data) '<))
+	(old-high gnus-newsgroup-highest)
+	(nnmail-fetched-sources (list t))
+	(new-active (gnus-activate-group gnus-newsgroup-name 'scan))
+	i new)
+    (unless new-active
+      (error "Couldn't fetch new data"))
+    (setq gnus-newsgroup-active (gnus-copy-sequence new-active))
+    (setq i (cdr gnus-newsgroup-active)
+	  gnus-newsgroup-highest i)
+    (while (> i old-high)
+      (push i new)
+      (decf i))
+    (if (not new)
+	(message "No gnus is bad news")
+      (gnus-summary-insert-articles new)
+      (setq gnus-newsgroup-unreads
+	    (gnus-sorted-nunion gnus-newsgroup-unreads new))
+      (gnus-summary-limit (gnus-sorted-nunion old new))))
+  (gnus-summary-position-point))
 
 ;;; Bookmark support for Gnus.
 (declare-function bookmark-make-record-default

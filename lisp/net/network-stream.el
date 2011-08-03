@@ -230,7 +230,7 @@ functionality.
 	       (or builtin-starttls
 		   (and (or require-tls
 			    (plist-get parameters :use-starttls-if-possible))
-			(executable-find "gnutls-cli")))
+			(starttls-available-p)))
 	       (not (eq (plist-get parameters :type) 'plain)))
       ;; If using external STARTTLS, drop this connection and start
       ;; anew with `starttls-open-stream'.

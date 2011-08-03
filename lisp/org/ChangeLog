@@ -1,3 +1,8 @@
+2011-07-30  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* ob.el (org-babel-src-block-regexp): If a code block has a body,
+	its last character must be a newline.
+
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
 	* org-publish.el (org-publish-index-generate-theindex): rename

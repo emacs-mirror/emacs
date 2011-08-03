@@ -165,7 +165,8 @@ This is used by the default mail-sending commands.  See also
 If `sendmail-query-once-function' is `query', ask the user what
 function to use, and then save that choice."
   (when (equal sendmail-query-once-function 'query)
-    (let* ((default
+    (let* ((mail-buffer (current-buffer))
+	   (default
 	     (cond
 	      ((or (and window-system (eq system-type 'darwin))
 		   (eq system-type 'windows-nt))
@@ -195,7 +196,8 @@ function to use, and then save that choice."
 		    (if (y-or-n-p "Configure outgoing SMTP in Emacs? ")
 			'smtpmail-send-it
 		      default))
-		(kill-buffer (current-buffer))))))
+		(kill-buffer (current-buffer))
+		(set-buffer mail-buffer)))))
       (customize-save-variable 'sendmail-query-once-function function)))
   (funcall sendmail-query-once-function))
 

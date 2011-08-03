@@ -1,3 +1,56 @@
+2011-08-02  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix slow cursor motion and scrolling in large buffers with
+	selective display, like Org Mode buffers.  (Bug#9218)
+
+	* dispextern.h (struct bidi_it): New member disp_prop_p.
+
+	* xdisp.c: Remove one-slot cache of display string positions.
+	(compute_display_string_pos): Accept an additional argument
+	DISP_PROP_P; callers changed. Scan at most 5K characters forward
+	for a display string or property.  If found, set DISP_PROP_P
+	non-zero.
+
+	* bidi.c (bidi_fetch_char): Accept an additional argument
+	DISP_PROP_P, and pass it to compute_display_string_pos.  Only
+	handle text covered by a display string if DISP_PROP_P is returned
+	non-zero.  All callers of bidi_fetch_char changed.
+
+2011-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fdefine_key): Fix Lisp_Object/int mixup; apply some CSE.
+
+2010-12-03  Don March  <don@ohspite.net>
+
+	* keymap.c (Fdefine_key): Fix non-prefix key error message when
+	last character M-[char] is translated to ESC [char] (bug#7541).
+
+2011-08-02  Kenichi Handa  <handa@m17n.org>
+
+	* lisp.h (uniprop_table): Extern it.
+
+	* chartab.c (uniprop_table): Make it non-static.
+
+2011-08-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (forward_to_next_line_start): Accept additional argument
+	BIDI_IT_PREV, and store into it the state of the bidi iterator had
+	on the newline.
+	(reseat_at_next_visible_line_start): Use the bidi iterator state
+	returned by forward_to_next_line_start to restore the state of
+	it->bidi_it after backing up to previous newline.  (Bug#9212)
+
+2011-07-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* regex.c (re_comp): Protoize.
+	(re_exec): Fix return type.
+	(regexec): Fix type of `ret'.  (Bug#9203)
+
+2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (check_image_size): Use 1024x1024 if unknown frame (Bug#9189).
+	This is needed if max-image-size is a floating-point number.
+
 2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* print.c (print_object): Print empty symbol as ##.
