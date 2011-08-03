@@ -1,6 +1,6 @@
 ;;; cedet-integ-test.el --- CEDET full integration tests.
 
-;; Copyright (C) 2008, 2009, 2010 Eric M. Ludlam
+;; Copyright (C) 2008, 2009, 2010, 2011 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -110,6 +110,7 @@
 (require 'cit-el)
 (require 'cit-texi)
 (require 'cit-externaldb)
+(require 'cit-android)
 (require 'cit-gnustep)
 (require 'cit-dist)
 
@@ -195,7 +196,7 @@ Optional argument MAKE-TYPE is the style of EDE project to test."
   "Run the CEDET integration test using GNUStep style project."
   (interactive)
 
-  ;; Do a EDE GNUstep-Make Project
+  ;; Do an EDE GNUstep-Make Project
   (make-directory (concat cedet-integ-target "_ede_GSMake") t)
   (find-file (expand-file-name "README" (concat cedet-integ-target "_ede_GSMake"))) ;; only to change dir
   (let ((ede-auto-add-method 'always))
@@ -203,6 +204,18 @@ Optional argument MAKE-TYPE is the style of EDE project to test."
 
   (cit-finish-message "PASSED" "GNUStep")
   )
+
+(defun cedet-integ-test-android ()
+  "Run the Cedet integration test using the android style project."
+  (interactive)
+
+  (let ((ede-auto-add-method 'never))
+    (global-ede-mode 1)
+    ;; Do an ede android project. use cedet-android.el for project fabrication.
+    (cit-ede-android-test)
+
+    (cit-finish-message "Passed" "Android")
+    ))
 
 (defun cit-finish-message (message style)
   "Display a MESSAGE that some test is now finished.
@@ -223,7 +236,7 @@ Argument STYLE is the type of build done."
 (defun cit-make-dir (dir)
   "Make directory DIR if it doesn't exist."
   (when (not (file-exists-p dir))
-    (make-directory dir)))
+    (make-directory dir t)))
 
 (defun cit-file (filename)
   "Return a testing filename.
@@ -231,13 +244,13 @@ Append FILENAME to the target directory."
   (expand-file-name filename cedet-integ-target))
 
 (defun cit-srecode-fill-with-stuff (filename tags &rest
-					     empty-dict-entries)
+                                             empty-dict-entries)
   "Fill up FILENAME with some TAGS.
 Argument FILENAME is the file to fill up.
 Argument TAGS is the list of tags to insert into FILENAME.
 EMPTY-DICT-ENTRIES are dictionary entries for the EMPTY fill macro."
   (let ((post-empty-tags nil)
-	)
+        )
 
     ;;
     ;; Fill up foo.h, header file with class in it.
@@ -245,8 +258,8 @@ EMPTY-DICT-ENTRIES are dictionary entries for the EMPTY fill macro."
     (find-file (cit-file filename))
     (srecode-load-tables-for-mode major-mode)
     (condition-case nil
-	;; Protect against a font-lock bug.
-	(erase-buffer)
+        ;; Protect against a font-lock bug.
+        (erase-buffer)
       (error nil))
     (apply 'srecode-insert "file:empty" empty-dict-entries)
 
@@ -266,13 +279,13 @@ EMPTY-DICT-ENTRIES are dictionary entries for the EMPTY fill macro."
       ;; 3 b) Srecode to make more sources
       ;; 3 c) Test incremental parsers (by side-effect)
       (let ((e (srecode-semantic-insert-tag tag))
-	    (code (semantic-tag-get-attribute tag :code)))
+            (code (semantic-tag-get-attribute tag :code)))
 
-	(when code (insert code))
+        (when code (insert code))
 
-	(goto-char e)
-	(sit-for 0)
-	)
+        (goto-char e)
+        (sit-for 0)
+        )
       )
 
     (save-buffer)
@@ -280,19 +293,19 @@ EMPTY-DICT-ENTRIES are dictionary entries for the EMPTY fill macro."
     ;; Make sure the tags we have are the same as the tags we tried
     ;; to insert.
     (cit-srecode-verify-tags (semantic-fetch-tags)
-			     tags
-			     post-empty-tags)
+                             tags
+                             post-empty-tags)
 
 
     ))
 
 (defclass cit-tag-verify-error-debug ()
   ((actual :initarg :actual
-	   :documentation
-	   "The actual value found in the buffer.")
+           :documentation
+           "The actual value found in the buffer.")
    (expected :initarg :expected
-	     :documentation
-	     "The expected value found in the buffer.")
+             :documentation
+             "The expected value found in the buffer.")
    )
   "Debugging object for cit tag verifier.")
 
@@ -303,42 +316,42 @@ are found, but don't error if they are not their."
   (while actual
 
     (let ((T1 (car actual))
-	  (T2 (car expected)))
+          (T2 (car expected)))
 
       (cond
        ((semantic-tag-similar-p T1 T2
-				:Default-Value
-				:Code
-				:Documentation ;; Todo - Can We Get This Removed?
-				)
+                                :Default-Value
+                                :Code
+                                :Documentation ;; Todo - Can We Get This Removed?
+                                )
 
-	(let ((mem1 (semantic-tag-components T1))
-	      (mem2 (semantic-tag-components T2)))
+        (let ((mem1 (semantic-tag-components T1))
+              (mem2 (semantic-tag-components T2)))
 
-	  (when (and (or mem1 mem2)
-		     (semantic-tag-p (car mem1)))
-	    (cit-srecode-verify-tags mem1 mem2))
+          (when (and (or mem1 mem2)
+                     (semantic-tag-p (car mem1)))
+            (cit-srecode-verify-tags mem1 mem2))
 
-	  (setq expected (cdr expected)))
-	)
+          (setq expected (cdr expected)))
+        )
 
-	;;it might be in a list of extra tags???
+       ;;it might be in a list of extra tags???
        ((semantic-tag-similar-p T1 (car extra) :default-value :members)
 
-	;; Don't check members.  These should be simple cases for now.
-	(setq extra (cdr extra))
-	)
+        ;; Don't check members.  These should be simple cases for now.
+        (setq extra (cdr extra))
+        )
 
        (t ;; Not the same
-	(data-debug-new-buffer "*Test Failure*")
-	(data-debug-insert-thing
-	 (cit-tag-verify-error-debug "Dbg" :actual T1 :expected T2)
-	 ">" "")
+        (data-debug-new-buffer "*Test Failure*")
+        (data-debug-insert-thing
+         (cit-tag-verify-error-debug "Dbg" :actual T1 :expected T2)
+         ">" "")
 
-	(error "Tag %s does not match %s"
-	       (semantic-format-tag-name T1)
-	       (semantic-format-tag-name T2))
-	)
+        (error "Tag %s does not match %s"
+               (semantic-format-tag-name T1)
+               (semantic-format-tag-name T2))
+        )
        ))
 
     (setq actual (cdr actual))
@@ -349,16 +362,33 @@ are found, but don't error if they are not their."
 Optional ARGS are additional arguments to add to the compile command,
 such as 'clean'."
   (let ((bufftokill (find-file (cit-file "Project.ede"))))
-    ;; 1 f) Create a build file.
+    ;; 1 F) Create A Build File If Needed..
+    (if (ede-proj-project-child-p (ede-current-project))
+	(ede-proj-regenerate))
     (ede-proj-regenerate)
     ;; 1 g) build the sources.
-    (compile (concat ede-make-command (or ARGS "")))
+    (if (not args)
+	(cit-compile-and-wait-using-ede-command)
 
-    (cit-wait-for-compilation)
-    (cit-check-compilation-for-error)
+      ;; If args, use our own command.
+      (compile (concat ede-make-command (or args "")))
 
+      (cit-wait-for-compilation)
+      (cit-check-compilation-for-error))
+
+    ;; kill off tmp buffer.
     (kill-buffer bufftokill)
     ))
+
+(defun cit-compile-and-wait-using-ede-command ()
+  "Compile our current project using ede commands, but wait for it to finish.
+optional arguments can't be used."
+  ;; 1 g) Build the sources.
+  (ede-compile-project)
+
+  (cit-wait-for-compilation)
+  (cit-check-compilation-for-error)
+  )
 
 (defun cit-wait-for-compilation ()
   "Wait for a compilation to finish."
@@ -380,17 +410,17 @@ compilation succeeded."
     (goto-char (point-max))
 
     (if (re-search-backward "Compilation exited abnormally " nil t)
-	(when (not inverse)
-	  (error "Compilation failed!"))
+        (when (not inverse)
+          (error "Compilation failed!"))
       (when inverse
-	(error "Compilation succeeded erroneously!"))
+        (error "Compilation succeeded erroneously!"))
       )))
 
 (defun cit-run-target (command)
   "Run the program (or whatever) that is associated w/ the current target.
 Use COMMAND to run the program."
   (let ((target ede-object)
-	(cnt 0))
+        (cnt 0))
     ;; Run the target.
     (project-run-target target command)
     ;; Did it produce errors or anything?
@@ -399,13 +429,13 @@ Use COMMAND to run the program."
       (goto-char (point-min))
       ;; Wait for prompt.
       (unwind-protect
-	  (while (not (re-search-forward "MOOSE" nil t))
-	    (setq cnt (1+ cnt))
-	    (when (> cnt 10) (error "Program output not detected"))
-	    (sit-for .1))
-	;; Show program output
-	(sit-for .2)
-	)
+          (while (not (re-search-forward "MOOSE" nil t))
+            (setq cnt (1+ cnt))
+            (when (> cnt 10) (error "Program output not detected"))
+            (sit-for .1))
+        ;; Show program output
+        (sit-for .2)
+        )
       )))
 
 (provide 'cedet-integ-test)
