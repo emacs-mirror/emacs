@@ -2754,15 +2754,12 @@ See `completing-read' for the meaning of the arguments."
                      base-keymap
                    ;; Layer minibuffer-local-filename-completion-map
                    ;; on top of the base map.
-                   ;; Use make-composed-keymap so that set-keymap-parent
-                   ;; doesn't modify minibuffer-local-filename-completion-map.
-                   (let ((map (make-composed-keymap
-                               minibuffer-local-filename-completion-map)))
-                     ;; Set base-keymap as the parent, so that nil bindings
-                     ;; in minibuffer-local-filename-completion-map can
-                     ;; override bindings in base-keymap.
-                     (set-keymap-parent map base-keymap)
-                     map)))
+                   (make-composed-keymap
+                    minibuffer-local-filename-completion-map
+                    ;; Set base-keymap as the parent, so that nil bindings
+                    ;; in minibuffer-local-filename-completion-map can
+                    ;; override bindings in base-keymap.
+                    base-keymap)))
          (result (read-from-minibuffer prompt initial-input keymap
                                        nil hist def inherit-input-method)))
     (when (and (equal result "") def)
