@@ -1624,7 +1624,7 @@ actually)."
 	      (let* ((server (car x))
 		     (nnir-search-engine
 		      (or (nnir-read-server-parm 'nnir-search-engine
-						 server)
+						 server t)
 			  (cdr (assoc (car
 				       (gnus-server-to-method server))
 				      nnir-method-default-engines))))
@@ -1643,14 +1643,16 @@ actually)."
 		  nil)))
 	    groups))))
 
-(defun nnir-read-server-parm (key server)
-  "Returns the parameter value of key for the given server, where
-server is of form 'backend:name'."
+(defun nnir-read-server-parm (key server &optional not-global)
+  "Returns the parameter value corresponding to `key' for
+`server'. If no server-specific value is found consult the global
+environment unless `not-global' is non-nil."
   (let ((method (gnus-server-to-method server)))
     (cond ((and method (assq key (cddr method)))
-    	   (nth 1 (assq key (cddr method))))
-	  ((boundp key) (symbol-value key))
-    	  (t nil))))
+           (nth 1 (assq key (cddr method))))
+          ((and (not not-global) (boundp key)) (symbol-value key))
+          (t nil))))
+
 
 (defun nnir-possibly-change-server (server)
   (unless (and server (nnir-server-opened server))

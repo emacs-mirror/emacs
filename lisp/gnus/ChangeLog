@@ -1,3 +1,11 @@
+2011-08-03  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-read-server-parm): Add an argument to restrict to
+	server-variables only. This should fix a bug introduced with commit
+	e1889675b7f4adf057833c5513c9374134c4e053.
+	(nnir-run-query): 'nnir-search-engine should not be set from the global
+	environment.
+
 2011-08-02  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el (nnir-search-thread): Position point on referring article
