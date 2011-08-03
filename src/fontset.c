@@ -2100,6 +2100,8 @@ DEFUN ("fontset-list", Ffontset_list, Sfontset_list, 0, 0, 0,
 
 #ifdef FONTSET_DEBUG
 
+Lisp_Object dump_fontset (Lisp_Object) EXTERNALLY_VISIBLE;
+
 Lisp_Object
 dump_fontset (Lisp_Object fontset)
 {

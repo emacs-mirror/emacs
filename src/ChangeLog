@@ -1,5 +1,8 @@
 2011-08-03  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* fontset.c (dump_fontset) [FONTSET_DEBUG]: Declare EXTERNALLY_VISIBLE
+	so that it is not optimized away.
+
 	* xdisp.c (compute_display_string_pos): Remove unused local.
 
 2011-08-02  Eli Zaretskii  <eliz@gnu.org>
