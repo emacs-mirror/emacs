@@ -1,3 +1,10 @@
+2011-08-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_find_topmost_parent): New function.
+	(x_set_frame_alpha): Find topmost parent window with
+	x_find_topmost_parent and set the property there also (bug#9181).
+	(handle_one_xevent): Call x_set_frame_alpha on ReparentNotify.
+
 2011-08-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* callproc.c (Fcall_process): Avoid vfork clobbering
