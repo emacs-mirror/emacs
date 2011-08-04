@@ -1,3 +1,8 @@
+2011-08-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* regex.c (re_iswctype): Remove some redundant boolean
+	conversions.
+
 2011-08-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_find_topmost_parent): New function.
