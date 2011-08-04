@@ -1,3 +1,8 @@
+2011-08-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* callproc.c (Fcall_process): Avoid vfork clobbering
+	the local vars buffer, coding_systems, current_dir.
+
 2011-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (Fmake_composed_keymap): Move to subr.el.
