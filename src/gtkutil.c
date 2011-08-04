@@ -1907,12 +1907,12 @@ xg_get_file_name (FRAME_PTR f,
   int filesel_done = 0;
   xg_get_file_func func;
 
-#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
   /* I really don't know why this is needed, but without this the GLIBC add on
      library linuxthreads hangs when the Gnome file chooser backend creates
      threads.  */
   sigblock (sigmask (__SIGRTMIN));
-#endif /* HAVE_GTK_AND_PTHREAD */
+#endif /* HAVE_PTHREAD */
 
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
 
@@ -1932,7 +1932,7 @@ xg_get_file_name (FRAME_PTR f,
 
   filesel_done = xg_dialog_run (f, w);
 
-#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
   sigunblock (sigmask (__SIGRTMIN));
 #endif
 
@@ -1960,9 +1960,9 @@ xg_get_font_name (FRAME_PTR f, const char *default_name)
   char *fontname = NULL;
   int done = 0;
 
-#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
   sigblock (sigmask (__SIGRTMIN));
-#endif /* HAVE_GTK_AND_PTHREAD */
+#endif /* HAVE_PTHREAD */
 
   w = gtk_font_selection_dialog_new ("Pick a font");
   if (!default_name)
@@ -1974,7 +1974,7 @@ xg_get_font_name (FRAME_PTR f, const char *default_name)
 
   done = xg_dialog_run (f, w);
 
-#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
   sigunblock (sigmask (__SIGRTMIN));
 #endif
 

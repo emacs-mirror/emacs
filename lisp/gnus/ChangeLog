@@ -1,3 +1,10 @@
+2011-08-04  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml1991.el (mml1991-epg-find-usable-key)
+	(mml1991-epg-find-usable-secret-key): New function.
+	(mml1991-epg-sign): Check if signing key is usable.
+	(mml1991-epg-encrypt): Check if encrypting key is usable (bug#8955).
+
 2011-08-03  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* nnir.el (nnir-read-server-parm): Add an argument to restrict to

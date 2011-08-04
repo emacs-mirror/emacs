@@ -1120,7 +1120,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #if defined (USG5) && defined (INTERRUPT_INPUT)
       setpgrp ();
 #endif
-#if defined (HAVE_GTK_AND_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
+#if defined (HAVE_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
       {
         extern void malloc_enable_thread (void);
 
@@ -2185,7 +2185,7 @@ You must run Emacs in batch mode in order to dump it.  */)
     memory_warnings (my_edata, malloc_warning);
   }
 #endif /* not WINDOWSNT */
-#if defined (HAVE_GTK_AND_PTHREAD) && !defined SYNC_INPUT
+#if defined (HAVE_PTHREAD) && !defined SYNC_INPUT
   /* Pthread may call malloc before main, and then we will get an endless
      loop, because pthread_self (see alloc.c) calls malloc the first time
      it is called on some systems.  */

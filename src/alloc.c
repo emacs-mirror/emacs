@@ -24,7 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <signal.h>
 
-#ifdef HAVE_GTK_AND_PTHREAD
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
 #endif
 
@@ -84,12 +84,14 @@ extern size_t __malloc_extra_blocks;
 #endif /* not DOUG_LEA_MALLOC */
 
 #if ! defined SYSTEM_MALLOC && ! defined SYNC_INPUT
-#ifdef HAVE_GTK_AND_PTHREAD
+#ifdef HAVE_PTHREAD
 
 /* When GTK uses the file chooser dialog, different backends can be loaded
    dynamically.  One such a backend is the Gnome VFS backend that gets loaded
    if you run Gnome.  That backend creates several threads and also allocates
    memory with malloc.
+
+   Also, gconf and gsettings may create several threads.
 
    If Emacs sets malloc hooks (! SYSTEM_MALLOC) and the emacs_blocked_*
    functions below are called from malloc, there is a chance that one
@@ -122,12 +124,12 @@ static pthread_mutex_t alloc_mutex;
     }                                                   \
   while (0)
 
-#else /* ! defined HAVE_GTK_AND_PTHREAD */
+#else /* ! defined HAVE_PTHREAD */
 
 #define BLOCK_INPUT_ALLOC BLOCK_INPUT
 #define UNBLOCK_INPUT_ALLOC UNBLOCK_INPUT
 
-#endif /* ! defined HAVE_GTK_AND_PTHREAD */
+#endif /* ! defined HAVE_PTHREAD */
 #endif /* ! defined SYSTEM_MALLOC && ! defined SYNC_INPUT */
 
 /* Mark, unmark, query mark bit of a Lisp string.  S must be a pointer
@@ -1265,7 +1267,7 @@ emacs_blocked_realloc (void *ptr, size_t size, const void *ptr2)
 }
 
 
-#ifdef HAVE_GTK_AND_PTHREAD
+#ifdef HAVE_PTHREAD
 /* Called from Fdump_emacs so that when the dumped Emacs starts, it has a
    normal malloc.  Some thread implementations need this as they call
    malloc before main.  The pthread_self call in BLOCK_INPUT_ALLOC then
@@ -1278,7 +1280,7 @@ reset_malloc_hooks (void)
   __malloc_hook = old_malloc_hook;
   __realloc_hook = old_realloc_hook;
 }
-#endif /* HAVE_GTK_AND_PTHREAD */
+#endif /* HAVE_PTHREAD */
 
 
 /* Called from main to set up malloc to use our hooks.  */
@@ -1286,7 +1288,7 @@ reset_malloc_hooks (void)
 void
 uninterrupt_malloc (void)
 {
-#ifdef HAVE_GTK_AND_PTHREAD
+#ifdef HAVE_PTHREAD
 #ifdef DOUG_LEA_MALLOC
   pthread_mutexattr_t attr;
 
@@ -1300,7 +1302,7 @@ uninterrupt_malloc (void)
      and the bundled gmalloc.c doesn't require it.  */
   pthread_mutex_init (&alloc_mutex, NULL);
 #endif /* !DOUG_LEA_MALLOC */
-#endif /* HAVE_GTK_AND_PTHREAD */
+#endif /* HAVE_PTHREAD */
 
   if (__free_hook != emacs_blocked_free)
     old_free_hook = __free_hook;

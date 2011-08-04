@@ -2106,9 +2106,9 @@ re_iswctype (int ch, re_wctype_t cc)
     case RECC_UPPER: return ISUPPER (ch) != 0;
     case RECC_XDIGIT: return ISXDIGIT (ch) != 0;
     case RECC_ASCII: return IS_REAL_ASCII (ch) != 0;
-    case RECC_NONASCII: return !IS_REAL_ASCII (ch) != 0;
+    case RECC_NONASCII: return !IS_REAL_ASCII (ch);
     case RECC_UNIBYTE: return ISUNIBYTE (ch) != 0;
-    case RECC_MULTIBYTE: return !ISUNIBYTE (ch) != 0;
+    case RECC_MULTIBYTE: return !ISUNIBYTE (ch);
     case RECC_WORD: return ISWORD (ch) != 0;
     case RECC_ERROR: return false;
     default:

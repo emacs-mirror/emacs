@@ -37,7 +37,7 @@ Fifth Floor, Boston, MA 02110-1301, USA.
 #include <config.h>
 #endif
 
-#ifdef HAVE_GTK_AND_PTHREAD
+#ifdef HAVE_PTHREAD
 #define USE_PTHREAD
 #endif
 

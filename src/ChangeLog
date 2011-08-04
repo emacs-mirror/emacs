@@ -1,3 +1,28 @@
+2011-08-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (LIB_PTHREAD): New variable.
+	(LIBES): Add LIB_PTHREAD (Bug#9216).
+
+	* alloc.c, emacs.c, gmalloc.c, gtkutil.c, keyboard.c, syssignal.h:
+	Rename HAVE_GTK_AND_PTHREAD to HAVE_PTHREAD (Bug#9216).
+
+2011-08-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* regex.c (re_iswctype): Remove some redundant boolean
+	conversions.
+
+2011-08-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_find_topmost_parent): New function.
+	(x_set_frame_alpha): Find topmost parent window with
+	x_find_topmost_parent and set the property there also (bug#9181).
+	(handle_one_xevent): Call x_set_frame_alpha on ReparentNotify.
+
+2011-08-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* callproc.c (Fcall_process): Avoid vfork clobbering
+	the local vars buffer, coding_systems, current_dir.
+
 2011-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (Fmake_composed_keymap): Move to subr.el.
