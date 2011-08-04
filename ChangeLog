@@ -1,3 +1,8 @@
+2011-08-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_PTHREAD): Add check for -lpthread (Bug#9216).
+	(HAVE_GTK_AND_PTHREAD): Remove.
+
 2011-07-28  Alp Aker  <alp.tekin.aker@gmail.com>
 
 	* configure.in (HAVE_RSVG): Allow use of -lrsvg-2 for any NextStep

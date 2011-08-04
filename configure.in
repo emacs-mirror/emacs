@@ -1687,6 +1687,21 @@ dnl AC_CHECK_LIB(resolv, gethostbyname)
 dnl FIXME replace main with a function we actually want from this library.
 AC_CHECK_LIB(Xbsd, main, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
+dnl Check if pthreads is available.
+LIB_PTHREAD=
+AC_CHECK_HEADERS(pthread.h)
+if test "$ac_cv_header_pthread_h"; then
+  AC_CHECK_LIB(pthread, pthread_self, HAVE_PTHREAD=yes)
+fi
+if test "$HAVE_PTHREAD" = yes; then
+  case "${canonical}" in
+    *-hpux*) ;;
+    *) LIB_PTHREAD="-lpthread" ;;
+  esac
+  AC_DEFINE(HAVE_PTHREAD, 1, [Define to 1 if you have pthread (-lpthread).])
+fi
+AC_SUBST([LIB_PTHREAD])
+
 AC_CHECK_LIB(pthreads, cma_open)
 
 ## Note: when using cpp in s/aix4.2.h, this definition depended on
@@ -1943,21 +1958,6 @@ if test "${HAVE_GTK}" = "yes"; then
     AC_CHECK_FUNCS(gtk_file_selection_new)
   fi
 
-  dnl Check if pthreads are available.  Emacs only needs this when using
-  dnl gtk_file_chooser under Gnome.
-    HAVE_GTK_AND_PTHREAD=no
-    AC_CHECK_HEADERS(pthread.h)
-    if test "$ac_cv_header_pthread_h"; then
-      AC_CHECK_LIB(pthread, pthread_self, HAVE_GTK_AND_PTHREAD=yes)
-    fi
-    if test "$HAVE_GTK_AND_PTHREAD" = yes; then
-      case "${canonical}" in
-        *-hpux*) ;;
-        *) GTK_LIBS="$GTK_LIBS -lpthread" ;;
-      esac
-      AC_DEFINE(HAVE_GTK_AND_PTHREAD, 1,
-               [Define to 1 if you have GTK and pthread (-lpthread).])
-    fi
 
   dnl Check for functions introduced in 2.14 and later.
   AC_CHECK_FUNCS(gtk_widget_get_window gtk_widget_set_has_window \
