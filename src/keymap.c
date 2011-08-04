@@ -150,17 +150,6 @@ in case you use it as a menu with `x-popup-menu'.  */)
   return Fcons (Qkeymap, Qnil);
 }
 
-DEFUN ("make-composed-keymap", Fmake_composed_keymap, Smake_composed_keymap,
-       0, MANY, 0,
-       doc: /* Construct and return a new keymap composed of KEYMAPS.
-When looking up a key in the returned map, the key is looked in each
-keymap in turn until a binding is found.
-usage: (make-composed-keymap &rest KEYMAPS)  */)
-  (ptrdiff_t nargs, Lisp_Object *args)
-{
-  return Fcons (Qkeymap, Flist (nargs, args));
-}
-
 /* This function is used for installing the standard key bindings
    at initialization time.
 
@@ -3761,7 +3750,6 @@ be preferred.  */);
   defsubr (&Sset_keymap_parent);
   defsubr (&Smake_keymap);
   defsubr (&Smake_sparse_keymap);
-  defsubr (&Smake_composed_keymap);
   defsubr (&Smap_keymap_internal);
   defsubr (&Smap_keymap);
   defsubr (&Scopy_keymap);

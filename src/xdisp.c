@@ -3163,7 +3163,8 @@ compute_display_string_pos (struct text_pos *position,
   EMACS_INT lim =
     (charpos < eob - MAX_DISP_SCAN) ? charpos + MAX_DISP_SCAN : eob;
   struct text_pos tpos;
-  struct buffer *b;
+
+  *disp_prop_p = 1;
 
   *disp_prop_p = 1;
 

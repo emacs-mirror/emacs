@@ -3640,11 +3640,11 @@ file exists and nonzero exit status otherwise."
       (when extra-args (setq shell (concat shell " " extra-args)))
       (tramp-send-command
        vec (format "exec env ENV='' PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s"
-		   (shell-quote-argument tramp-end-of-output) shell)
+		   (tramp-shell-quote-argument tramp-end-of-output) shell)
        t))
     ;; Setting prompts.
     (tramp-send-command
-     vec (format "PS1=%s" (shell-quote-argument tramp-end-of-output)) t)
+     vec (format "PS1=%s" (tramp-shell-quote-argument tramp-end-of-output)) t)
     (tramp-send-command vec "PS2=''" t)
     (tramp-send-command vec "PS3=''" t)
     (tramp-send-command vec "PROMPT_COMMAND=''" t)))
@@ -3736,7 +3736,7 @@ process to set up.  VEC specifies the connection."
 
   (tramp-message vec 5 "Setting shell prompt")
   (tramp-send-command
-   vec (format "PS1=%s" (shell-quote-argument tramp-end-of-output)) t)
+   vec (format "PS1=%s" (tramp-shell-quote-argument tramp-end-of-output)) t)
   (tramp-send-command vec "PS2=''" t)
   (tramp-send-command vec "PS3=''" t)
   (tramp-send-command vec "PROMPT_COMMAND=''" t)
