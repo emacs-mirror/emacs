@@ -1,3 +1,8 @@
+2011-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Prefer the candidate glyph that
+	came from a string character with a `cursor' property.  (Bug#9229)
+
 2011-08-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Makefile.in (LIB_PTHREAD): New variable.

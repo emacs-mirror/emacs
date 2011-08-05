@@ -13706,14 +13706,12 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
       w->cursor.vpos >= 0
       /* that candidate is not the row we are processing */
       && MATRIX_ROW (matrix, w->cursor.vpos) != row
-      /* the row we are processing is part of a continued line */
-      && (row->continued_p || MATRIX_ROW_CONTINUATION_LINE_P (row))
       /* Make sure cursor.vpos specifies a row whose start and end
 	 charpos occlude point.  This is because some callers of this
 	 function leave cursor.vpos at the row where the cursor was
 	 displayed during the last redisplay cycle.  */
       && MATRIX_ROW_START_CHARPOS (MATRIX_ROW (matrix, w->cursor.vpos)) <= pt_old
-      && pt_old < MATRIX_ROW_END_CHARPOS (MATRIX_ROW (matrix, w->cursor.vpos)))
+      && pt_old <= MATRIX_ROW_END_CHARPOS (MATRIX_ROW (matrix, w->cursor.vpos)))
     {
       struct glyph *g1 =
 	MATRIX_ROW_GLYPH_START (matrix, w->cursor.vpos) + w->cursor.hpos;
@@ -13722,15 +13720,20 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
       if (!(row->reversed_p ? glyph > glyphs_end : glyph < glyphs_end))
 	return 0;
       /* Keep the candidate whose buffer position is the closest to
-	 point.  */
+	 point or has the `cursor' property.  */
       if (/* previous candidate is a glyph in TEXT_AREA of that row */
 	  w->cursor.hpos >= 0
 	  && w->cursor.hpos < MATRIX_ROW_USED (matrix, w->cursor.vpos)
-	  && BUFFERP (g1->object)
-	  && (g1->charpos == pt_old /* an exact match always wins */
-	      || (BUFFERP (glyph->object)
-		  && eabs (g1->charpos - pt_old)
-		   < eabs (glyph->charpos - pt_old))))
+	  && ((BUFFERP (g1->object)
+	       && (g1->charpos == pt_old /* an exact match always wins */
+		   || (BUFFERP (glyph->object)
+		       && eabs (g1->charpos - pt_old)
+		       < eabs (glyph->charpos - pt_old))))
+	      /* previous candidate is a glyph from a string that has
+		 a non-nil `cursor' property */
+	      || (STRINGP (g1->object)
+		  && !NILP (Fget_char_property (make_number (g1->charpos),
+						Qcursor, g1->object)))))
 	return 0;
       /* If this candidate gives an exact match, use that.  */
       if (!(BUFFERP (glyph->object) && glyph->charpos == pt_old)
