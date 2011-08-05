@@ -1190,7 +1190,7 @@ if it isn't already recorded.  */)
       if (it.current_y < it.last_visible_y)
 	move_it_past_eol (&it);
       value = make_number (IT_CHARPOS (it));
-      bidi_unshelve_cache (itdata);
+      bidi_unshelve_cache (itdata, 0);
 
       if (old_buffer)
 	set_buffer_internal (old_buffer);
@@ -4771,7 +4771,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	}
 
       start = it.current.pos;
-      bidi_unshelve_cache (itdata);
+      bidi_unshelve_cache (itdata, 0);
     }
   else if (auto_window_vscroll_p)
     {
@@ -4915,7 +4915,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	    }
 	  else
 	    {
-	      bidi_unshelve_cache (itdata);
+	      bidi_unshelve_cache (itdata, 0);
 	      if (noerror)
 		return;
 	      else if (n < 0)	/* could happen with empty buffers */
@@ -4932,7 +4932,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	    w->vscroll = 0;
 	  else
 	    {
-	      bidi_unshelve_cache (itdata);
+	      bidi_unshelve_cache (itdata, 0);
 	      if (noerror)
 		return;
 	      else
@@ -5081,7 +5081,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	    SET_PT_BOTH (charpos, bytepos);
 	}
     }
-  bidi_unshelve_cache (itdata);
+  bidi_unshelve_cache (itdata, 0);
 }
 
 
@@ -5508,7 +5508,7 @@ displayed_window_lines (struct window *w)
   start_display (&it, w, start);
   move_it_vertically (&it, height);
   bottom_y = line_bottom_y (&it);
-  bidi_unshelve_cache (itdata);
+  bidi_unshelve_cache (itdata, 0);
 
   /* rms: On a non-window display,
      the value of it.vpos at the bottom of the screen
@@ -5614,7 +5614,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	  move_it_vertically_backward (&it, window_box_height (w) / 2);
 	  charpos = IT_CHARPOS (it);
 	  bytepos = IT_BYTEPOS (it);
-	  bidi_unshelve_cache (itdata);
+	  bidi_unshelve_cache (itdata, 0);
 	}
       else if (iarg < 0)
 	{
@@ -5662,7 +5662,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	    }
 	  if (h <= 0)
 	    {
-	      bidi_unshelve_cache (itdata);
+	      bidi_unshelve_cache (itdata, 0);
 	      return Qnil;
 	    }
 
@@ -5685,7 +5685,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	  charpos = IT_CHARPOS (it);
 	  bytepos = IT_BYTEPOS (it);
 
-	  bidi_unshelve_cache (itdata);
+	  bidi_unshelve_cache (itdata, 0);
 	}
       else
 	{

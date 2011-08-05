@@ -1,3 +1,23 @@
+2011-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	*xdisp.c (display_line): Release buffer allocated for shelved bidi
+	cache.  (Bug#9221)
+
+	* bidi.c (bidi_shelve_cache, bidi_unshelve_cache): Track total
+	amount allocated this far in `bidi_cache_total_alloc'.
+	(bidi_unshelve_cache): Accept an additional argument JUST_FREE; if
+	non-zero, only free the data buffer without restoring the cache
+	contents.  All callers changed.
+
+	* dispextern.h (bidi_unshelve_cache): Update prototype.
+
+	* xdisp.c (SAVE_IT, pos_visible_p, move_it_in_display_line_to)
+	(move_it_in_display_line, move_it_to)
+	(move_it_vertically_backward, move_it_by_lines): Replace the call
+	to xfree to an equivalent call to bidi_unshelve_cache.
+	(move_it_in_display_line_to): Fix logic of returning
+	MOVE_POS_MATCH_OR_ZV in the bidi case.
+
 2011-07-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (compute_display_string_pos): Fix logic of caching
