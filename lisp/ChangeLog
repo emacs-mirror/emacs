@@ -1,5 +1,8 @@
 2011-08-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/js.el (js--regexp-literal): Accept regexps at the beginning
+	of statements and in a few more cases (bug#9183).
+
 	* emacs-lisp/cl-macs.el (cl--make-usage-var, cl--make-usage-args):
 	New functions.
 	(cl-transform-lambda): Use them (bug#9239).
