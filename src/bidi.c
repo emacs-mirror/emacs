@@ -620,7 +620,7 @@ bidi_pop_it (struct bidi_it *bidi_it)
   bidi_cache_last_idx = -1;
 }
 
-ptrdiff_t bidi_cache_total_alloc;
+static ptrdiff_t bidi_cache_total_alloc;
 
 /* Stash away a copy of the cache and its control variables.  */
 void *
@@ -768,6 +768,7 @@ bidi_initialize (void)
   staticpro (&paragraph_separate_re);
 
   bidi_cache_sp = 0;
+  bidi_cache_total_alloc = 0;
 
   bidi_initialized = 1;
 }

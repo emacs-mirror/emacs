@@ -1,5 +1,8 @@
 2011-08-05  Eli Zaretskii  <eliz@gnu.org>
 
+	* bidi.c <bidi_cache_total_alloc>: Now static.
+	(bidi_initialize): Initialize bidi_cache_total_alloc.
+
 	*xdisp.c (display_line): Release buffer allocated for shelved bidi
 	cache.  (Bug#9221)
 
