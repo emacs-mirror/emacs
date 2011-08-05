@@ -1,3 +1,9 @@
+2011-08-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/cl-macs.el (cl--make-usage-var, cl--make-usage-args):
+	New functions.
+	(cl-transform-lambda): Use them (bug#9239).
+
 2011-08-05  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-same-window)
