@@ -321,9 +321,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `gtk_adjustment_get_page_size' function. */
 #undef HAVE_GTK_ADJUSTMENT_GET_PAGE_SIZE
 
-/* Define to 1 if you have GTK and pthread (-lpthread). */
-#undef HAVE_GTK_AND_PTHREAD
-
 /* Define to 1 if you have the `gtk_dialog_get_action_area' function. */
 #undef HAVE_GTK_DIALOG_GET_ACTION_AREA
 
@@ -581,6 +578,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `pstat_getdynamic' function. */
 #undef HAVE_PSTAT_GETDYNAMIC
+
+/* Define to 1 if you have pthread (-lpthread). */
+#undef HAVE_PTHREAD
 
 /* Define to 1 if you have the <pthread.h> header file. */
 #undef HAVE_PTHREAD_H
