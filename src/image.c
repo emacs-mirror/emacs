@@ -3586,11 +3586,7 @@ xpm_load (struct frame *f, struct image *img)
 #endif /* HAVE_NTGUI */
 
       /* Remember allocated colors.  */
-      if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *img->colors
-	  < attrs.nalloc_pixels)
-	memory_full (SIZE_MAX);
-      img->colors = (unsigned long *) xmalloc (img->ncolors
-					       * sizeof *img->colors);
+      img->colors = xnmalloc (attrs.nalloc_pixels, sizeof *img->colors);
       img->ncolors = attrs.nalloc_pixels;
       for (i = 0; i < attrs.nalloc_pixels; ++i)
 	{

@@ -625,7 +625,7 @@ struct glyph_matrix
   struct glyph_row *rows;
 
   /* Number of elements allocated for the vector rows above.  */
-  int rows_allocated;
+  ptrdiff_t rows_allocated;
 
   /* The number of rows used by the window if all lines were displayed
      with the smallest possible character height.  */
@@ -1708,7 +1708,8 @@ struct face_cache
   struct face **faces_by_id;
 
   /* The allocated size, and number of used slots of faces_by_id.  */
-  int size, used;
+  ptrdiff_t size;
+  int used;
 
   /* Flag indicating that attributes of the `menu' face have been
      changed.  */

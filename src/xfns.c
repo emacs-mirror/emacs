@@ -1490,10 +1490,8 @@ x_encode_text (Lisp_Object string, Lisp_Object coding_system, int selectionp,
   coding.mode |= (CODING_MODE_SAFE_ENCODING | CODING_MODE_LAST_BLOCK);
   /* We suppress producing escape sequences for composition.  */
   coding.common_flags &= ~CODING_ANNOTATION_MASK;
-  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < SCHARS (string))
-    memory_full (SIZE_MAX);
+  coding.destination = xnmalloc (SCHARS (string), 2);
   coding.dst_bytes = SCHARS (string) * 2;
-  coding.destination = (unsigned char *) xmalloc (coding.dst_bytes);
   encode_coding_object (&coding, string, 0, 0,
 			SCHARS (string), SBYTES (string), Qnil);
   *text_bytes = coding.produced;
@@ -4214,9 +4212,7 @@ FRAME.  Default is to change on the edit X window.  */)
 	 This applies even if long is more than 32 bits.  The X library
 	 converts to 32 bits before sending to the X server.  */
       elsize = element_format == 32 ? sizeof (long) : element_format >> 3;
-      if (min (PTRDIFF_MAX, SIZE_MAX) / elsize < nelements)
-	memory_full (SIZE_MAX);
-      data = (unsigned char *) xmalloc (nelements * elsize);
+      data = xnmalloc (nelements, elsize);
 
       x_fill_property_data (FRAME_X_DISPLAY (f), value, data, element_format);
     }

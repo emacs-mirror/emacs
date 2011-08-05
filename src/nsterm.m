@@ -1376,19 +1376,9 @@ ns_index_color (NSColor *color, struct frame *f)
   else
     {
       if (color_table->avail == color_table->size)
-        {
-	  ptrdiff_t size;
-	  ptrdiff_t size_max =
-	    min (ULONG_MAX,
-		 min (PTRDIFF_MAX, SIZE_MAX) / sizeof (NSColor *));
-	  if (size_max - NS_COLOR_CAPACITY < color_table->size)
-	    memory_full (SIZE_MAX);
-	  size = color_table->size + NS_COLOR_CAPACITY;
-          color_table->colors
-	    = (NSColor **)xrealloc (color_table->colors,
-				    size * sizeof (NSColor *));
-	  color_table->size = size;
-        }
+	color_table->colors =
+	  xpalloc (color_table->colors, &color_table->size, 1,
+		   min (ULONG_MAX, PTRDIFF_MAX), sizeof *color_table->colors);
       idx = color_table->avail++;
     }
 

@@ -3318,14 +3318,12 @@ xg_store_widget_in_map (GtkWidget *w)
   if (id_to_widget.max_size == id_to_widget.used)
     {
       ptrdiff_t new_size;
-      ptrdiff_t lim = min (TYPE_MAXIMUM (Window),
-			   min (PTRDIFF_MAX, SIZE_MAX) / sizeof (GtkWidget *));
-      if (lim - ID_TO_WIDGET_INCR < id_to_widget.max_size)
+      if (TYPE_MAXIMUM (Window) - ID_TO_WIDGET_INCR < id_to_widget.max_size)
 	memory_full (SIZE_MAX);
 
       new_size = id_to_widget.max_size + ID_TO_WIDGET_INCR;
-      id_to_widget.widgets = xrealloc (id_to_widget.widgets,
-                                       sizeof (GtkWidget *)*new_size);
+      id_to_widget.widgets = xnrealloc (id_to_widget.widgets,
+					new_size, sizeof (GtkWidget *));
 
       for (i = id_to_widget.max_size; i < new_size; ++i)
         id_to_widget.widgets[i] = 0;

@@ -170,7 +170,7 @@ extern Lisp_Object composition_temp;
 
 struct composition {
   /* Number of glyphs of the composition components.  */
-  unsigned glyph_len;
+  int glyph_len;
 
   /* Width, ascent, and descent pixels of the composition.  */
   short pixel_width, ascent, descent;

@@ -1,6 +1,47 @@
-2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+2011-08-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues.
+
+	* charset.c (charset_table_size)
+	(struct charset_sort_data.priority): Now ptrdiff_t.
+	(charset_compare): Don't overflow if priorities differ greatly.
+	(Fsort_charsets): Don't assume list length fits in int.
+	Check for size-calculation overflow when allocating sort data.
+	(syms_of_charset): Allocate an initial charset table that is
+	just under 64 KiB, to avoid problems with glibc malloc and mmap.
+
+	* cmds.c (internal_self_insert): Check for size-calculation overflow.
+
+	* composite.h (struct composition.glyph_len): Now int, not unsigned.
+	The actual value is always <= INT_MAX, and leaving it unsigned made
+	overflow checking harder.
+
+	* dispextern.h (struct glyph_matrix.rows_allocated)
+	(struct face_cache.size): Now ptrdiff_t, for convenience in use
+	with xpalloc.  The values are still always <= INT_MAX.
+
+	* indent.c (compute_motion): Adjust to region_cache_forward sig change.
+
+	* lisp.h (xnmalloc, xnrealloc, xpalloc): New decls.
+	(SAFE_NALLOCA): New macro.
+
+	* region-cache.c (struct boundary.pos, find_cache_boundary)
+	(move_cache_gap, insert_cache_boundary, delete_cache_boundaries)
+	(set_cache_region, invalidate_region_cache)
+	(revalidate_region_cache, know_region_cache, region_cache_forward)
+	(region_cache_backward, pp_cache):
+	Use ptrdiff_t, not EMACS_INT, since either will do.  This is needed
+	so that ptrdiff_t * can be passed to xpalloc.
+	(struct region_cache): Similarly, for gap_start, gap_len, cache_len,
+	beg_unchanged, end_unchanged, buffer_beg, buffer_end members.
+	(pp_cache): Don't assume cache_len fits in int.
+	* region-cache.h: Adjust extern decls to match.
+
+	* search.c (scan_buffer, Freplace_match): Use ptrdiff_t, not
+	EMACS_INT, since either will do, for xpalloc.
+
+	* alloc.c: Include verify.h, and check that int fits in ptrdiff_t.
+	(xnmalloc, xnrealloc, xpalloc): New functions.
 
 	* bidi.c (bidi_shelve_header_size): New constant.
 	(bidi_cache_ensure_space, bidi_shelve_cache): Use it.
@@ -10,12 +51,21 @@
 	(overlay_strings):
 	Don't update size of array until after memory allocation succeeds,
 	because xmalloc/xrealloc may not return.
+	(struct sortstrlist.bytes): Now ptrdiff_t, as EMACS_INT doesn't help
+	now that we have proper integer overflow checking.
+	(record_overlay_string, overlay_strings): Catch overflows when
+	calculating size of overlay_str_buf.
 
-	* callproc.c (child_setup): Don't assume strlen fits in int.
+	* callproc.c (Fcall_process): Check for size overflow when
+	calculating size of args2.
+	(child_setup): Avoid overflow by using size_t rather than ptrdiff_t.
+	Normally we prefer signed values, but sticking with ptrdiff_t would
+	require adding more-complicated checks.
 
 	* ccl.c (Fccl_execute_on_string): Check for memory overflow.
 	Use ptrdiff_t rather than EMACS_INT where ptrdiff_t will do.
 	Redo buffer-overflow calculations to avoid integer overflow.
+	Add a FIXME comment where memory seems to be over-allocated.
 
 	* character.c (Fstring): Check for size-calculation overflow.
 
@@ -55,7 +105,10 @@
 	Don't assume message length fits in int.
 	(Fformat): Use ptrdiff_t, not EMACS_INT, where ptrdiff_t will do.
 
-	* emacs.c (main, sort_args): Check for size-calculation overflow.
+	* emacs.c (main): Do not reallocate argv, since there is a null at
+	the end that can be overwritten, and this way there's no need to
+	worry about size-calculation overflow.
+	(sort_args): Check for size-calculation overflow.
 
 	* eval.c (init_eval_once, grow_specpdl): Don't update size until
 	alloc succeeds.
@@ -119,9 +172,6 @@
 	* macros.c (Fstart_kbd_macro): Don't update size until alloc done.
 	(store_kbd_macro_char): Reorder multiplicands to avoid overflow.
 
-	* minibuf.c (read_minibuf_noninteractive): Don't leak memory
-	on memory overflow.
-
 	* nsterm.h (struct ns_color_table.size, struct ns_color_table.avail):
 	Now ptrdiff_t, not int.
 	* nsterm.m (ns_index_color): Use ptrdiff_t, not int, for table indexes.
@@ -161,25 +211,29 @@
 	Don't update size until alloc done.
 	Redo size calculations to avoid overflow.
 	Check for size calculation overflow.
+	(main) [DEBUG]: Fix typo in invoking tparam1.
 
 	* xdisp.c (store_mode_line_noprop_char, x_consider_frame_title):
 	Use ptrdiff_t, not int, for sizes.
 	(store_mode_line_noprop_char): Don't update size until alloc done.
 
-	* xfaces.c (Finternal_make_lisp_face): Use ptrdiff_t, not int, for
-	sizes.  Check for size calculation overflow.
-	(cache_face): Do not overflow in size calculation.
+	* xfaces.c (lface_id_to_name_size, Finternal_make_lisp_face):
+	Use ptrdiff_t, not int, for sizes.
+	(Finternal_make_lisp_face, cache_face):
+	Check for size calculation overflow.
+	(cache_face): Treat size calculation overflows as if they were
+	memory exhaustion (the usual treatment), rather than aborting.
 
 	* xfns.c (x_encode_text, x_set_name_internal)
 	(Fx_change_window_property): Use ptrdiff_t, not int, to count
 	sizes, since they can exceed INT_MAX in size.  Check for size
 	calculation overflow.
 
-	* xgselect.c (xg_select): Check for size calculation overflow.
+	* xgselect.c (gfds_size): Now ptrdiff_t, for convenience with xpalloc.
+	(xg_select): Check for size calculation overflow.
 	Don't update size until alloc done.
 
-	* xrdb.c (magic_file_p): Plug memory leak on size overflow.
-	(get_environ_db): Don't assume path length fits in int,
+	* xrdb.c (get_environ_db): Don't assume path length fits in int,
 	as sprintf is limited to int lengths.
 
 	* xselect.c (X_LONG_SIZE, X_USHRT_MAX, X_ULONG_MAX): New macros.
@@ -229,10 +283,11 @@
 
 	* xsmfns.c (smc_save_yourself_CB): Check for size calc overflow.
 
-	* xterm.c (x_color_cells, handle_one_xevent, x_term_init):
-	Check for size calculation overflow.
+	* xterm.c (x_color_cells, x_send_scrollbar_event, handle_one_xevent)
+	(x_term_init): Check for size calculation overflow.
 	(x_color_cells): Don't store size until memory allocation succeeds.
 	(handle_one_xevent): Use ptrdiff_t, not int, for byte counts.
+	Don't assume alloca size is less than MAX_ALLOCA.
 	(x_term_init): Don't assume length fits in int (sprintf is limited
 	to int size).
 

@@ -61,7 +61,7 @@ Lisp_Object Vcharset_hash_table;
 /* Table of struct charset.  */
 struct charset *charset_table;
 
-static int charset_table_size;
+static ptrdiff_t charset_table_size;
 static int charset_table_used;
 
 Lisp_Object Qcharsetp;
@@ -1150,28 +1150,25 @@ usage: (define-charset-internal ...)  */)
 				     hash_code);
       if (charset_table_used == charset_table_size)
 	{
-	  struct charset *new_table;
 	  /* Ensure that charset IDs fit into 'int' as well as into the
-	     restriction imposed by fixnums, ptrdiff_t, and size_t.
-	     Although the 'int' restriction could be removed, too much other
-	     code would need altering; for example, the IDs are stuffed into
-	     struct coding_system.charbuf[i] entries, which are 'int'.  */
-	  int charset_table_size_max =
-	    min (min (INT_MAX, MOST_POSITIVE_FIXNUM),
-		 min (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct charset));
-	  if (charset_table_size_max - 16 < charset_table_size)
-	    memory_full (SIZE_MAX);
-	  new_table
-	    = (struct charset *) xmalloc (sizeof (struct charset)
-					  * (charset_table_size + 16));
-	  memcpy (new_table, charset_table,
-		  sizeof (struct charset) * charset_table_size);
-	  charset_table_size += 16;
+	     restriction imposed by fixnums.  Although the 'int' restriction
+	     could be removed, too much other code would need altering; for
+	     example, the IDs are stuffed into struct
+	     coding_system.charbuf[i] entries, which are 'int'.  */
+	  int old_size = charset_table_size;
+	  struct charset *new_table =
+	    xpalloc (0, &charset_table_size, 1,
+		     min (INT_MAX, MOST_POSITIVE_FIXNUM),
+		     sizeof *charset_table);
+	  memcpy (new_table, charset_table, old_size * sizeof *new_table);
 	  charset_table = new_table;
-	  /* FIXME: Doesn't this leak memory?  The old charset_table
-	     becomes unreachable.  If the memory leak is intentional,
-	     a comment should be added to explain this.  If not, the
-	     old charset_table should be freed, using xfree.  */
+	  /* FIXME: Doesn't this leak memory?  The old charset_table becomes
+	     unreachable.  It could be that this is intentional, because the
+	     old charset table may be in a dumped emacs, and reallocating such
+	     a table may not work.  If the memory leak is intentional, a
+	     comment should be added to explain this.  If not, the old
+	     charset_table should be freed, by passing it as the 1st argument
+	     to xpalloc and removing the memcpy.  */
 	}
       id = charset_table_used++;
       new_definition_p = 1;
@@ -2230,14 +2227,16 @@ struct charset_sort_data
 {
   Lisp_Object charset;
   int id;
-  int priority;
+  ptrdiff_t priority;
 };
 
 static int
 charset_compare (const void *d1, const void *d2)
 {
   const struct charset_sort_data *data1 = d1, *data2 = d2;
-  return (data1->priority - data2->priority);
+  if (data1->priority != data2->priority)
+    return data1->priority < data2->priority ? -1 : 1;
+  return 0;
 }
 
 DEFUN ("sort-charsets", Fsort_charsets, Ssort_charsets, 1, 1, 0,
@@ -2247,7 +2246,8 @@ See also `charset-priority-list' and `set-charset-priority'.  */)
      (Lisp_Object charsets)
 {
   Lisp_Object len = Flength (charsets);
-  int n = XFASTINT (len), i, j, done;
+  ptrdiff_t n = XFASTINT (len), i, j;
+  int done;
   Lisp_Object tail, elt, attrs;
   struct charset_sort_data *sort_data;
   int id, min_id = INT_MAX, max_id = INT_MIN;
@@ -2255,7 +2255,7 @@ See also `charset-priority-list' and `set-charset-priority'.  */)
 
   if (n == 0)
     return Qnil;
-  SAFE_ALLOCA (sort_data, struct charset_sort_data *, sizeof (*sort_data) * n);
+  SAFE_NALLOCA (sort_data, 1, n);
   for (tail = charsets, i = 0; CONSP (tail); tail = XCDR (tail), i++)
     {
       elt = XCAR (tail);
@@ -2330,6 +2330,17 @@ init_charset_once (void)
 void
 syms_of_charset (void)
 {
+  /* Allocate an initial charset table that is just under 64 KiB in size.
+     This should be large enough so that the charset table need not be
+     reallocated during an initial bootstrap.  Allocating anything larger than
+     64 KiB in an initial run may not work, because glibc malloc might use
+     mmap for larger allocations, and these don't work well across dumped
+     systems.  */
+  enum {
+    initial_malloc_max = (1 << 16) - 1,
+    charset_table_size_init = initial_malloc_max / sizeof (struct charset)
+  };
+
   DEFSYM (Qcharsetp, "charsetp");
 
   DEFSYM (Qascii, "ascii");
@@ -2362,8 +2373,9 @@ syms_of_charset (void)
     Vcharset_hash_table = Fmake_hash_table (2, args);
   }
 
-  charset_table = (struct charset *) xmalloc (sizeof (struct charset) * 128);
-  charset_table_size = 128;
+  charset_table = (struct charset *) xmalloc (sizeof (struct charset)
+					      * charset_table_size_init);
+  charset_table_size = charset_table_size_init;
   charset_table_used = 0;
 
   defsubr (&Scharsetp);

@@ -2568,13 +2568,10 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
 		 Either make it bigger, or don't store any more in it.  */
 	      if (extend)
 		{
-		  if ((OVERLAY_COUNT_MAX - 4) / 2 < len)
-		    memory_full (SIZE_MAX);
-		  /* Make it work with an initial len == 0.  */
-		  len = len * 2 + 4;
-		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
+		  vec = xpalloc (vec, len_ptr, 1, OVERLAY_COUNT_MAX,
+				 sizeof *vec);
 		  *vec_ptr = vec;
-		  *len_ptr = len;
+		  len = *len_ptr;
 		}
 	      else
 		inhibit_storing = 1;
@@ -2611,13 +2608,10 @@ overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
 	    {
 	      if (extend)
 		{
-		  if ((OVERLAY_COUNT_MAX - 4) / 2 < len)
-		    memory_full (SIZE_MAX);
-		  /* Make it work with an initial len == 0.  */
-		  len = len * 2 + 4;
-		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
+		  vec = xpalloc (vec, len_ptr, 1, OVERLAY_COUNT_MAX,
+				 sizeof *vec);
 		  *vec_ptr = vec;
-		  *len_ptr = len;
+		  len = *len_ptr;
 		}
 	      else
 		inhibit_storing = 1;
@@ -2708,13 +2702,10 @@ overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
 		 Either make it bigger, or don't store any more in it.  */
 	      if (extend)
 		{
-		  if ((OVERLAY_COUNT_MAX - 4) / 2 < len)
-		    memory_full (SIZE_MAX);
-		  /* Make it work with an initial len == 0.  */
-		  len = len * 2 + 4;
-		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
+		  vec = xpalloc (vec, len_ptr, 1, OVERLAY_COUNT_MAX,
+				 sizeof *vec);
 		  *vec_ptr = vec;
-		  *len_ptr = len;
+		  len = *len_ptr;
 		}
 	      else
 		inhibit_storing = 1;
@@ -2756,13 +2747,10 @@ overlays_in (EMACS_INT beg, EMACS_INT end, int extend,
 	    {
 	      if (extend)
 		{
-		  if ((OVERLAY_COUNT_MAX - 4) / 2 < len)
-		    memory_full (SIZE_MAX);
-		  /* Make it work with an initial len == 0.  */
-		  len = len * 2 + 4;
-		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
+		  vec = xpalloc (vec, len_ptr, 1, OVERLAY_COUNT_MAX,
+				 sizeof *vec);
 		  *vec_ptr = vec;
-		  *len_ptr = len;
+		  len = *len_ptr;
 		}
 	      else
 		inhibit_storing = 1;
@@ -2944,7 +2932,7 @@ struct sortstrlist
   struct sortstr *buf;	/* An array that expands as needed; never freed.  */
   ptrdiff_t size;	/* Allocated length of that array.  */
   ptrdiff_t used;	/* How much of the array is currently in use.  */
-  EMACS_INT bytes;		/* Total length of the strings in buf.  */
+  ptrdiff_t bytes;	/* Total length of the strings in buf.  */
 };
 
 /* Buffers for storing information about the overlays touching a given
@@ -2977,14 +2965,7 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
   EMACS_INT nbytes;
 
   if (ssl->used == ssl->size)
-    {
-      ptrdiff_t ssl_size = 0 < ssl->size ? ssl->size * 2 : 5;
-      if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct sortstr) < ssl_size)
-	memory_full (SIZE_MAX);
-      ssl->buf = ((struct sortstr *)
-		  xrealloc (ssl->buf, ssl_size * sizeof (struct sortstr)));
-      ssl->size = ssl_size;
-    }
+    ssl->buf = xpalloc (ssl->buf, &ssl->size, 5, -1, sizeof *ssl->buf);
   ssl->buf[ssl->used].string = str;
   ssl->buf[ssl->used].string2 = str2;
   ssl->buf[ssl->used].size = size;
@@ -2999,6 +2980,8 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
   else
     nbytes = SBYTES (str);
 
+  if (INT_ADD_OVERFLOW (ssl->bytes, nbytes))
+    memory_full (SIZE_MAX);
   ssl->bytes += nbytes;
 
   if (STRINGP (str2))
@@ -3011,6 +2994,8 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str,
       else
 	nbytes = SBYTES (str2);
 
+      if (INT_ADD_OVERFLOW (ssl->bytes, nbytes))
+	memory_full (SIZE_MAX);
       ssl->bytes += nbytes;
     }
 }
@@ -3104,14 +3089,15 @@ overlay_strings (EMACS_INT pos, struct window *w, unsigned char **pstr)
       Lisp_Object tem;
       EMACS_INT i;
       unsigned char *p;
-      EMACS_INT total = overlay_heads.bytes + overlay_tails.bytes;
+      ptrdiff_t total;
 
+      if (INT_ADD_OVERFLOW (overlay_heads.bytes, overlay_tails.bytes))
+	memory_full (SIZE_MAX);
+      total = overlay_heads.bytes + overlay_tails.bytes;
       if (total > overlay_str_len)
-	{
-	  overlay_str_buf = (unsigned char *)xrealloc (overlay_str_buf,
-						       total);
-	  overlay_str_len = total;
-	}
+	overlay_str_buf = xpalloc (overlay_str_buf, &overlay_str_len,
+				   total - overlay_str_len, -1, 1);
+
       p = overlay_str_buf;
       for (i = overlay_tails.used; --i >= 0;)
 	{

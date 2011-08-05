@@ -1503,17 +1503,9 @@ receive_incremental_selection (Display *display, Window window, Atom property,
       UNBLOCK_INPUT;
 
       if (*size_bytes_ret - offset < tmp_size_bytes)
-	{
-	  ptrdiff_t size;
-	  if (min (PTRDIFF_MAX, SIZE_MAX) - offset < tmp_size_bytes)
-	    {
-	      xfree (tmp_data);
-	      memory_full (SIZE_MAX);
-	    }
-	  size = offset + tmp_size_bytes;
-	  *data_ret = (unsigned char *) xrealloc (*data_ret, size);
-	  *size_bytes_ret = size;
-	}
+	*data_ret = xpalloc (*data_ret, size_bytes_ret,
+			     tmp_size_bytes - (*size_bytes_ret - offset),
+			     -1, 1);
 
       memcpy ((*data_ret) + offset, tmp_data, tmp_size_bytes);
       offset += tmp_size_bytes;
@@ -1806,14 +1798,12 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
       if (SYMBOLP (XVECTOR (obj)->contents [0]))
 	/* This vector is an ATOM set */
 	{
-	  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Atom) < size)
-	    memory_full (SIZE_MAX);
 	  if (NILP (type)) type = QATOM;
 	  for (i = 0; i < size; i++)
 	    if (!SYMBOLP (XVECTOR (obj)->contents [i]))
 	      signal_error ("All elements of selection vector must have same type", obj);
 
-	  *data_ret = (unsigned char *) xmalloc (size * sizeof (Atom));
+	  *data_ret = xnmalloc (size, sizeof (Atom));
 	  *format_ret = 32;
 	  *size_ret = size;
 	  for (i = 0; i < size; i++)
@@ -1824,7 +1814,7 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 	/* This vector is an INTEGER set, or something like it */
 	{
 	  int format = 16;
-          int data_size = 2;
+	  int data_size = sizeof (short);
 	  if (NILP (type)) type = QINTEGER;
 	  for (i = 0; i < size; i++)
 	    if (X_USHRT_MAX
@@ -1836,9 +1826,7 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 		data_size = sizeof (long);
 		format = 32;
 	      }
-	  if (min (PTRDIFF_MAX, SIZE_MAX) / data_size < size)
-	    memory_full (SIZE_MAX);
-	  *data_ret = (unsigned char *) xmalloc (size * data_size);
+	  *data_ret = xnmalloc (size, data_size);
 	  *format_ret = format;
 	  *size_ret = size;
 	  for (i = 0; i < size; i++)

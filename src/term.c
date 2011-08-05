@@ -551,12 +551,10 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 
 	  if (encode_terminal_src_size - nbytes < required)
 	    {
-	      ptrdiff_t size;
-	      if (min (PTRDIFF_MAX, SIZE_MAX) - nbytes < required)
-		memory_full (SIZE_MAX);
-	      size = nbytes + required;
-	      encode_terminal_src = xrealloc (encode_terminal_src, size);
-	      encode_terminal_src_size = size;
+	      encode_terminal_src =
+		xpalloc (encode_terminal_src, &encode_terminal_src_size,
+			 required - (encode_terminal_src_size - nbytes),
+			 -1, 1);
 	      buf = encode_terminal_src + nbytes;
 	    }
 
@@ -629,13 +627,9 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 	      nbytes = buf - encode_terminal_src;
 	      if (encode_terminal_src_size - nbytes < MAX_MULTIBYTE_LENGTH)
 		{
-		  ptrdiff_t size;
-		  if (min (PTRDIFF_MAX, SIZE_MAX) - MAX_MULTIBYTE_LENGTH
-		      < nbytes)
-		    memory_full (SIZE_MAX);
-		  size = nbytes + MAX_MULTIBYTE_LENGTH;
-		  encode_terminal_src = xrealloc (encode_terminal_src, size);
-		  encode_terminal_src_size = size;
+		  encode_terminal_src =
+		    xpalloc (encode_terminal_src, &encode_terminal_src_size,
+			     MAX_MULTIBYTE_LENGTH, -1, 1);
 		  buf = encode_terminal_src + nbytes;
 		}
 	      if (CHAR_BYTE8_P (c)
@@ -665,12 +659,11 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 	      nbytes = buf - encode_terminal_src;
 	      if (encode_terminal_src_size - nbytes < SBYTES (string))
 		{
-		  ptrdiff_t size;
-		  if (min (PTRDIFF_MAX, SIZE_MAX) - SBYTES (string) < nbytes)
-		    memory_full (SIZE_MAX);
-		  size = nbytes + SBYTES (string);
-		  encode_terminal_src = xrealloc (encode_terminal_src, size);
-		  encode_terminal_src_size = size;
+		  encode_terminal_src =
+		    xpalloc (encode_terminal_src, &encode_terminal_src_size,
+			     (SBYTES (string)
+			      - (encode_terminal_src_size - nbytes)),
+			     -1, 1);
 		  buf = encode_terminal_src + nbytes;
 		}
 	      memcpy (buf, SDATA (string), SBYTES (string));
@@ -1161,16 +1154,16 @@ calculate_costs (struct frame *frame)
          X turns off char_ins_del_ok. */
 
       max_frame_cols = max (max_frame_cols, FRAME_COLS (frame));
-      if ((min (PTRDIFF_MAX, SIZE_MAX) / sizeof (int) - 1) / 2 < max_frame_cols)
+      if ((min (PTRDIFF_MAX, SIZE_MAX) / sizeof (int) - 1) / 2
+	  < max_frame_cols)
 	memory_full (SIZE_MAX);
 
-      char_ins_del_vector
-	= (int *) xrealloc (char_ins_del_vector,
-			    (sizeof (int)
-			     + 2 * max_frame_cols * sizeof (int)));
+      char_ins_del_vector =
+	xrealloc (char_ins_del_vector,
+		  (sizeof (int) + 2 * sizeof (int) * max_frame_cols));
 
       memset (char_ins_del_vector, 0,
-	      (sizeof (int) + 2 * max_frame_cols * sizeof (int)));
+	      (sizeof (int) + 2 * sizeof (int) * max_frame_cols));
 
 
       if (f && (!tty->TS_ins_line && !tty->TS_del_line))

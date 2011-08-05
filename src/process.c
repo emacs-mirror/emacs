@@ -3558,7 +3558,7 @@ format; see the description of ADDRESS in `make-network-process'.  */)
 {
   struct ifconf ifconf;
   struct ifreq *ifreqs = NULL;
-  int ifaces = 0;
+  ptrdiff_t ifaces = 0;
   int buf_size, s;
   Lisp_Object res;
 
@@ -3567,21 +3567,9 @@ format; see the description of ADDRESS in `make-network-process'.  */)
     return Qnil;
 
  again:
-  if (min (INT_MAX, min (PTRDIFF_MAX, SIZE_MAX)) / sizeof *ifreqs - 25
-      < ifaces)
-    {
-      xfree (ifreqs);
-      memory_full (SIZE_MAX);
-    }
-  ifaces += 25;
+  ifreqs = xpalloc (ifreqs, &ifaces, 25,
+		    INT_MAX / sizeof *ifreqs, sizeof *ifreqs);
   buf_size = ifaces * sizeof (ifreqs[0]);
-  ifreqs = (struct ifreq *)xrealloc(ifreqs, buf_size);
-  if (!ifreqs)
-    {
-      close (s);
-      return Qnil;
-    }
-
   ifconf.ifc_len = buf_size;
   ifconf.ifc_req = ifreqs;
   if (ioctl (s, SIOCGIFCONF, &ifconf))

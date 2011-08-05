@@ -2067,6 +2067,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 #define CCL_EXECUTE_BUF_SIZE 1024
   int source[CCL_EXECUTE_BUF_SIZE], destination[CCL_EXECUTE_BUF_SIZE];
   ptrdiff_t consumed_chars, consumed_bytes, produced_chars;
+  int buf_magnification;
 
   if (setup_ccl_program (&ccl, ccl_prog) < 0)
     error ("Invalid CCL program");
@@ -2093,9 +2094,9 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	ccl.ic = i;
     }
 
-  if (((min (PTRDIFF_MAX, SIZE_MAX) - 256)
-       / (ccl.buf_magnification ? ccl.buf_magnification : 1))
-      < str_bytes)
+  buf_magnification = ccl.buf_magnification ? ccl.buf_magnification : 1;
+
+  if ((min (PTRDIFF_MAX, SIZE_MAX) - 256) / buf_magnification < str_bytes)
     memory_full (SIZE_MAX);
   outbufsize = (ccl.buf_magnification
 		? str_bytes * ccl.buf_magnification + 256
@@ -2131,20 +2132,18 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	  produced_chars += ccl.produced;
 	  if (NILP (unibyte_p))
 	    {
+	      /* FIXME: Surely this should be buf_magnification instead.
+		 MAX_MULTIBYTE_LENGTH overestimates the storage needed.  */
+	      int magnification = MAX_MULTIBYTE_LENGTH;
+
 	      ptrdiff_t offset = outp - outbuf;
-	      if ((outbufsize - offset) / MAX_MULTIBYTE_LENGTH < ccl.produced)
+	      ptrdiff_t shortfall;
+	      if (INT_MULTIPLY_OVERFLOW (ccl.produced, magnification))
+		memory_full (SIZE_MAX);
+	      shortfall = ccl.produced * magnification - (outbufsize - offset);
+	      if (0 < shortfall)
 		{
-		  ptrdiff_t produced;
-		  if (((min (PTRDIFF_MAX, SIZE_MAX) - outbufsize)
-		       / MAX_MULTIBYTE_LENGTH)
-		      < ccl.produced)
-		    {
-		      xfree (outbuf);
-		      memory_full (SIZE_MAX);
-		    }
-		  produced = ccl.produced;
-		  outbufsize += MAX_MULTIBYTE_LENGTH * produced;
-		  outbuf = (unsigned char *) xrealloc (outbuf, outbufsize);
+		  outbuf = xpalloc (outbuf, &outbufsize, shortfall, -1, 1);
 		  outp = outbuf + offset;
 		}
 	      for (j = 0; j < ccl.produced; j++)
@@ -2153,15 +2152,10 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	  else
 	    {
 	      ptrdiff_t offset = outp - outbuf;
-	      if (outbufsize - offset < ccl.produced)
+	      ptrdiff_t shortfall = ccl.produced - (outbufsize - offset);
+	      if (0 < shortfall)
 		{
-		  if (min (PTRDIFF_MAX, SIZE_MAX) - outbufsize < ccl.produced)
-		    {
-		      xfree (outbuf);
-		      memory_full (SIZE_MAX);
-		    }
-		  outbufsize += ccl.produced;
-		  outbuf = (unsigned char *) xrealloc (outbuf, outbufsize);
+		  outbuf = xpalloc (outbuf, &outbufsize, shortfall, -1, 1);
 		  outp = outbuf + offset;
 		}
 	      for (j = 0; j < ccl.produced; j++)

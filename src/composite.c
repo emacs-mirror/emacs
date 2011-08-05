@@ -186,13 +186,14 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
   EMACS_INT i;
   int ch;
 
-  /* Maximum length of a string of glyphs.  XftGlyphExtents limits this
-     to INT_MAX, and Emacs may limit it further.  */
+  /* Maximum length of a string of glyphs.  XftGlyphExtents limits
+     this to INT_MAX, and Emacs limits it further.  Divide INT_MAX - 1
+     by 2 because x_produce_glyphs computes glyph_len * 2 + 1.  Divide
+     the size by MAX_MULTIBYTE_LENGTH because encode_terminal_code
+     multiplies glyph_len by MAX_MULTIBYTE_LENGTH.  */
   enum {
-    glyph_len_max =
-      min (INT_MAX,
-	   (min (PTRDIFF_MAX, SIZE_MAX)
-	    / max (MAX_MULTIBYTE_LENGTH, 2 * sizeof (short))))
+    GLYPH_LEN_MAX = min ((INT_MAX - 1) / 2,
+			 min (PTRDIFF_MAX, SIZE_MAX) / MAX_MULTIBYTE_LENGTH)
   };
 
   /* PROP should be
@@ -268,25 +269,9 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
   /* This composition is a new one.  We must register it.  */
 
   /* Check if we have sufficient memory to store this information.  */
-  if (composition_table_size == 0)
-    {
-      composition_table
-	= (struct composition **) xmalloc (sizeof (composition_table[0]) * 256);
-      composition_table_size = 256;
-    }
-  else if (composition_table_size <= n_compositions)
-    {
-      if ((min (MOST_POSITIVE_FIXNUM,
-		min (PTRDIFF_MAX, SIZE_MAX) / sizeof composition_table[0])
-	   - 256)
-	  < composition_table_size)
-	memory_full (SIZE_MAX);
-      composition_table
-	= (struct composition **) xrealloc (composition_table,
-					    sizeof (composition_table[0])
-					    * (composition_table_size + 256));
-      composition_table_size += 256;
-    }
+  if (composition_table_size <= n_compositions)
+    composition_table = xpalloc (composition_table, &composition_table_size,
+				 1, -1, sizeof *composition_table);
 
   key_contents = XVECTOR (key)->contents;
 
@@ -340,7 +325,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 	       ? (ASIZE (key) + 1) / 2
 	       : ASIZE (key));
 
-  if (glyph_len_max < glyph_len)
+  if (GLYPH_LEN_MAX < glyph_len)
     memory_full (SIZE_MAX);
 
   /* Register the composition in composition_table.  */
@@ -349,7 +334,7 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
   cmp->method = method;
   cmp->hash_index = hash_index;
   cmp->glyph_len = glyph_len;
-  cmp->offsets = (short *) xmalloc (sizeof (short) * glyph_len * 2);
+  cmp->offsets = xnmalloc (glyph_len, 2 * sizeof *cmp->offsets);
   cmp->font = NULL;
 
   if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)

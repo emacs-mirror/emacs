@@ -174,15 +174,9 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
       if (space_left == 0)
 	{
 	  ptrdiff_t in_buffer = p - get_doc_string_buffer;
-	  enum { incr = 16 * 1024 };
-	  ptrdiff_t size;
-	  if (min (PTRDIFF_MAX, SIZE_MAX) - 1 - incr
-	      < get_doc_string_buffer_size)
-	    memory_full (SIZE_MAX);
-	  size = get_doc_string_buffer_size + incr;
-	  get_doc_string_buffer
-	    = (char *) xrealloc (get_doc_string_buffer, size + 1);
-	  get_doc_string_buffer_size = size;
+	  get_doc_string_buffer =
+	    xpalloc (get_doc_string_buffer, &get_doc_string_buffer_size,
+		     16 * 1024, -1, 1);
 	  p = get_doc_string_buffer + in_buffer;
 	  space_left = (get_doc_string_buffer_size
 			- (p - get_doc_string_buffer));

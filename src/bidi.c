@@ -478,8 +478,6 @@ bidi_cache_ensure_space (ptrdiff_t idx)
   /* Enlarge the cache as needed.  */
   if (idx >= bidi_cache_size)
     {
-      ptrdiff_t new_size;
-
       /* The bidi cache cannot be larger than the largest Lisp string
 	 or buffer.  */
       ptrdiff_t string_or_buffer_bound =
@@ -489,11 +487,10 @@ bidi_cache_ensure_space (ptrdiff_t idx)
       ptrdiff_t c_bound =
 	(min (PTRDIFF_MAX, SIZE_MAX) - bidi_shelve_header_size) / elsz;
 
-      if (min (string_or_buffer_bound, c_bound) <= idx)
-	memory_full (SIZE_MAX);
-      new_size = idx - idx % BIDI_CACHE_CHUNK + BIDI_CACHE_CHUNK;
-      bidi_cache = (struct bidi_it *) xrealloc (bidi_cache, new_size * elsz);
-      bidi_cache_size = new_size;
+      bidi_cache =
+	xpalloc (bidi_cache, &bidi_cache_size,
+		 max (BIDI_CACHE_CHUNK, idx - bidi_cache_size + 1),
+		 min (string_or_buffer_bound, c_bound), elsz);
     }
 }
 

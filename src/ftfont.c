@@ -1764,18 +1764,10 @@ static OTF_GlyphString otf_gstring;
 static void
 setup_otf_gstring (int size)
 {
-  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (OTF_Glyph) < size)
-    memory_full (SIZE_MAX);
-
-  if (otf_gstring.size == 0)
+  if (otf_gstring.size < size)
     {
-      otf_gstring.glyphs = (OTF_Glyph *) xmalloc (sizeof (OTF_Glyph) * size);
-      otf_gstring.size = size;
-    }
-  else if (otf_gstring.size < size)
-    {
-      otf_gstring.glyphs = xrealloc (otf_gstring.glyphs,
-				     sizeof (OTF_Glyph) * size);
+      otf_gstring.glyphs = xnrealloc (otf_gstring.glyphs,
+				      size, sizeof (OTF_Glyph));
       otf_gstring.size = size;
     }
   otf_gstring.used = size;
@@ -2396,8 +2388,6 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
   struct MFLTFontFT flt_font_ft;
   MFLT *flt = NULL;
   int with_variation_selector = 0;
-  int allocated_max = min (INT_MAX,
-			   min (PTRDIFF_MAX, SIZE_MAX) / sizeof (MFLTGlyph));
 
   if (! m17n_flt_initialized)
     {
@@ -2453,20 +2443,19 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
 	}
     }
 
-  if (allocated_max / 2 < len)
+  if (INT_MAX / 2 < len)
     memory_full (SIZE_MAX);
 
   if (gstring.allocated == 0)
     {
-      gstring.allocated = len * 2;
       gstring.glyph_size = sizeof (MFLTGlyph);
-      gstring.glyphs = xmalloc (sizeof (MFLTGlyph) * gstring.allocated);
+      gstring.glyphs = xnmalloc (len * 2, sizeof (MFLTGlyph));
+      gstring.allocated = len * 2;
     }
   else if (gstring.allocated < len * 2)
     {
+      gstring.glyphs = xnrealloc (gstring.glyphs, len * 2, sizeof (MFLTGlyph));
       gstring.allocated = len * 2;
-      gstring.glyphs = xrealloc (gstring.glyphs,
-				 sizeof (MFLTGlyph) * gstring.allocated);
     }
   memset (gstring.glyphs, 0, sizeof (MFLTGlyph) * len);
   for (i = 0; i < len; i++)
@@ -2515,11 +2504,11 @@ ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
       int result = mflt_run (&gstring, 0, len, &flt_font_ft.flt_font, flt);
       if (result != -2)
 	break;
-      if (allocated_max / 2 < gstring.allocated)
+      if (INT_MAX / 2 < gstring.allocated)
 	memory_full (SIZE_MAX);
-      gstring.allocated += gstring.allocated;
-      gstring.glyphs = xrealloc (gstring.glyphs,
-				 sizeof (MFLTGlyph) * gstring.allocated);
+      gstring.glyphs = xnrealloc (gstring.glyphs,
+				  gstring.allocated, 2 * sizeof (MFLTGlyph));
+      gstring.allocated *= 2;
     }
   if (gstring.used > LGSTRING_GLYPH_LEN (lgstring))
     return Qnil;

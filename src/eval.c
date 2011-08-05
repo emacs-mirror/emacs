@@ -3288,8 +3288,7 @@ grow_specpdl (void)
 	signal_error ("Variable binding depth exceeds max-specpdl-size", Qnil);
     }
   size = specpdl_size < max_size / 2 ? 2 * specpdl_size : max_size;
-  specpdl = ((struct specbinding *)
-	     xrealloc (specpdl, size * sizeof (struct specbinding)));
+  specpdl = xnrealloc (specpdl, size, sizeof *specpdl);
   specpdl_size = size;
   specpdl_ptr = specpdl + count;
 }

@@ -204,10 +204,7 @@ magic_file_p (const char *string, EMACS_INT string_len, const char *class,
       if (path_size - path_len <= next_len)
 	{
 	  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 - 1 - path_len < next_len)
-	    {
-	      xfree (path);
-	      memory_full (SIZE_MAX);
-	    }
+	    memory_full (SIZE_MAX);
 	  path_size = (path_len + next_len + 1) * 2;
 	  path = (char *) xrealloc (path, path_size);
 	}

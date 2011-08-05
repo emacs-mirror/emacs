@@ -499,15 +499,12 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
   /* Enlarge MATRIX->rows if necessary.  New rows are cleared.  */
   if (matrix->rows_allocated < dim.height)
     {
-      ptrdiff_t size;
-      if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct glyph_row) < dim.height)
-	memory_full (SIZE_MAX);
-      size = dim.height * sizeof (struct glyph_row);
+      int old_alloc = matrix->rows_allocated;
       new_rows = dim.height - matrix->rows_allocated;
-      matrix->rows = (struct glyph_row *) xrealloc (matrix->rows, size);
-      memset (matrix->rows + matrix->rows_allocated, 0,
-	      new_rows * sizeof *matrix->rows);
-      matrix->rows_allocated = dim.height;
+      matrix->rows = xpalloc (matrix->rows, &matrix->rows_allocated,
+			      new_rows, INT_MAX, sizeof *matrix->rows);
+      memset (matrix->rows + old_alloc, 0,
+	      (matrix->rows_allocated - old_alloc) * sizeof *matrix->rows);
     }
   else
     new_rows = 0;
@@ -576,15 +573,11 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
 	  struct glyph_row *row = matrix->rows;
 	  struct glyph_row *end = row + matrix->rows_allocated;
 
-	  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct glyph) < dim.width)
-	    memory_full (SIZE_MAX);
-
 	  while (row < end)
 	    {
 	      row->glyphs[LEFT_MARGIN_AREA]
-		= (struct glyph *) xrealloc (row->glyphs[LEFT_MARGIN_AREA],
-					     (dim.width
-					      * sizeof (struct glyph)));
+		= xnrealloc (row->glyphs[LEFT_MARGIN_AREA],
+			     dim.width, sizeof (struct glyph));
 
 	      /* The mode line never has marginal areas.  */
 	      if (row == matrix->rows + dim.height - 1
@@ -1404,20 +1397,18 @@ realloc_glyph_pool (struct glyph_pool *pool, struct dim matrix_dim)
 	       || matrix_dim.height != pool->nrows
 	       || matrix_dim.width != pool->ncolumns);
 
-  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct glyph) / matrix_dim.width
-      < matrix_dim.height)
-    memory_full (SIZE_MAX);
-
   /* Enlarge the glyph pool.  */
   needed = matrix_dim.width;
+  if (INT_MULTIPLY_OVERFLOW (needed, matrix_dim.height))
+    memory_full (SIZE_MAX);
   needed *= matrix_dim.height;
   if (needed > pool->nglyphs)
     {
-      ptrdiff_t size = needed * sizeof (struct glyph);
-      pool->glyphs = (struct glyph *) xrealloc (pool->glyphs, size);
-      memset (pool->glyphs + pool->nglyphs, 0,
-	      size - pool->nglyphs * sizeof (struct glyph));
-      pool->nglyphs = needed;
+      ptrdiff_t old_nglyphs = pool->nglyphs;
+      pool->glyphs = xpalloc (pool->glyphs, &pool->nglyphs,
+			      needed - old_nglyphs, -1, sizeof *pool->glyphs);
+      memset (pool->glyphs + old_nglyphs, 0,
+	      (pool->nglyphs - old_nglyphs) * sizeof *pool->glyphs);
     }
 
   /* Remember the number of rows and columns because (a) we use them
@@ -4198,12 +4189,12 @@ static ptrdiff_t row_table_size;
    current and desired matrix, and the size of the vectors.  */
 
 static struct row_entry **old_lines, **new_lines;
-static int old_lines_size, new_lines_size;
+static ptrdiff_t old_lines_size, new_lines_size;
 
 /* A pool to allocate run structures from, and its size.  */
 
 static struct run *run_pool;
-static int runs_size;
+static ptrdiff_t runs_size;
 
 /* A vector of runs of lines found during scrolling.  */
 
@@ -4271,7 +4262,7 @@ scrolling_window (struct window *w, int header_line_p)
   ptrdiff_t i;
   int j, first_old, first_new, last_old, last_new;
   int nruns, run_idx;
-  ptrdiff_t n, nbytes;
+  ptrdiff_t n;
   struct row_entry *entry;
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 
@@ -4356,7 +4347,7 @@ scrolling_window (struct window *w, int header_line_p)
   if (last_new == first_new)
     return 0;
 
-  /* Check for integer overflow in xrealloc size calculation.
+  /* Check for integer overflow in size calculation.
 
      If next_almost_prime checks (N) for divisibility by 2..10, then
      it can return at most N + 10, e.g., next_almost_prime (1) == 11.
@@ -4369,63 +4360,45 @@ scrolling_window (struct window *w, int header_line_p)
   {
     verify (NEXT_ALMOST_PRIME_LIMIT == 11);
     enum { next_almost_prime_increment_max = 10 };
-    ptrdiff_t alloc_max = min (PTRDIFF_MAX, SIZE_MAX);
     ptrdiff_t row_table_max =
-      ((alloc_max - next_almost_prime_increment_max)
-       / (3 * sizeof *row_table));
-    ptrdiff_t row_entry_pool_max = alloc_max / sizeof *row_entry_pool;
-    int n_max = min (INT_MAX, min (row_table_max, row_entry_pool_max));
-    ptrdiff_t old_lines_max = alloc_max / sizeof *old_lines;
-    int current_nrows_max = min (n_max - desired_matrix->nrows, old_lines_max);
-    int desired_nrows_max =
-      min (INT_MAX,
-	   alloc_max / max (sizeof *new_lines,
-			    max (sizeof *runs, sizeof *run_pool)));
-    if (current_nrows_max < current_matrix->nrows
-	|| desired_nrows_max < desired_matrix->nrows)
+      (min (PTRDIFF_MAX, SIZE_MAX) / (3 * sizeof *row_table)
+       - next_almost_prime_increment_max);
+    ptrdiff_t current_nrows_max = row_table_max - desired_matrix->nrows;
+    if (current_nrows_max < current_matrix->nrows)
       memory_full (SIZE_MAX);
   }
 
   /* Reallocate vectors, tables etc. if necessary.  */
 
   if (current_matrix->nrows > old_lines_size)
-    {
-      nbytes = current_matrix->nrows * sizeof *old_lines;
-      old_lines = (struct row_entry **) xrealloc (old_lines, nbytes);
-      old_lines_size = current_matrix->nrows;
-    }
+    old_lines = xpalloc (old_lines, &old_lines_size,
+			 current_matrix->nrows - old_lines_size,
+			 INT_MAX, sizeof *old_lines);
 
   if (desired_matrix->nrows > new_lines_size)
-    {
-      nbytes = desired_matrix->nrows * sizeof *new_lines;
-      new_lines = (struct row_entry **) xrealloc (new_lines, nbytes);
-      new_lines_size = desired_matrix->nrows;
-    }
+    new_lines = xpalloc (new_lines, &new_lines_size,
+			 desired_matrix->nrows - new_lines_size,
+			 INT_MAX, sizeof *new_lines);
 
   n = desired_matrix->nrows;
   n += current_matrix->nrows;
-  if (row_table_size / 3 < n)
+  if (row_table_size < 3 * n)
     {
       ptrdiff_t size = next_almost_prime (3 * n);
-      nbytes = size * sizeof *row_table;
-      row_table = (struct row_entry **) xrealloc (row_table, nbytes);
+      row_table = xnrealloc (row_table, size, sizeof *row_table);
       row_table_size = size;
-      memset (row_table, 0, nbytes);
+      memset (row_table, 0, size * sizeof *row_table);
     }
 
   if (n > row_entry_pool_size)
-    {
-      nbytes = n * sizeof *row_entry_pool;
-      row_entry_pool = (struct row_entry *) xrealloc (row_entry_pool, nbytes);
-      row_entry_pool_size = n;
-    }
+    row_entry_pool = xpalloc (row_entry_pool, &row_entry_pool_size,
+			      n - row_entry_pool_size,
+			      -1, sizeof *row_entry_pool);
 
   if (desired_matrix->nrows > runs_size)
     {
-      nbytes = desired_matrix->nrows * sizeof *runs;
-      runs = (struct run **) xrealloc (runs, nbytes);
-      nbytes = desired_matrix->nrows * sizeof *run_pool;
-      run_pool = (struct run *) xrealloc (run_pool, nbytes);
+      runs = xnrealloc (runs, desired_matrix->nrows, sizeof *runs);
+      run_pool = xnrealloc (run_pool, desired_matrix->nrows, sizeof *run_pool);
       runs_size = desired_matrix->nrows;
     }
 

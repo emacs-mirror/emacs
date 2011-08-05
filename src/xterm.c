@@ -1628,11 +1628,8 @@ x_color_cells (Display *dpy, int *ncells)
       int ncolor_cells = XDisplayCells (dpy, XScreenNumberOfScreen (screen));
       int i;
 
-      if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (XColor) < ncolor_cells)
-	memory_full (SIZE_MAX);
-      dpyinfo->color_cells
-	= (XColor *) xmalloc (ncolor_cells
-			      * sizeof *dpyinfo->color_cells);
+      dpyinfo->color_cells = xnmalloc (ncolor_cells,
+				       sizeof *dpyinfo->color_cells);
       dpyinfo->ncolor_cells = ncolor_cells;
 
       for (i = 0; i < ncolor_cells; ++i)
@@ -4228,20 +4225,15 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
 
   if (i == scroll_bar_windows_size)
     {
-      ptrdiff_t new_size, old_nbytes, nbytes;
-      /* Check the 32-bit XClientMessageEvent limit, as well as the
-	 usual ptrdiff_t/size_t limit.  */
-      if (min (0x7fffffff,
-	       min (PTRDIFF_MAX, SIZE_MAX) / sizeof *scroll_bar_windows / 2)
-	  < scroll_bar_windows_size)
-	memory_full (SIZE_MAX);
-      new_size = max (10, 2 * scroll_bar_windows_size);
-      nbytes = new_size * sizeof *scroll_bar_windows;
-      old_nbytes = scroll_bar_windows_size * sizeof *scroll_bar_windows;
-      scroll_bar_windows = (struct window **) xrealloc (scroll_bar_windows,
-							nbytes);
+      ptrdiff_t old_nbytes =
+	scroll_bar_windows_size * sizeof *scroll_bar_windows;
+      ptrdiff_t nbytes;
+      enum { XClientMessageEvent_MAX = 0x7fffffff };
+      scroll_bar_windows =
+	xpalloc (scroll_bar_windows, &scroll_bar_windows_size, 1,
+		 XClientMessageEvent_MAX, sizeof *scroll_bar_windows);
+      nbytes = scroll_bar_windows_size * sizeof *scroll_bar_windows;
       memset (&scroll_bar_windows[i], 0, nbytes - old_nbytes);
-      scroll_bar_windows_size = new_size;
     }
 
   scroll_bar_windows[i] = w;
@@ -5824,6 +5816,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
   struct coding_system coding;
   XEvent event = *eventptr;
   Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
+  USE_SAFE_ALLOCA;
 
   *finish = X_EVENT_NORMAL;
 
@@ -6530,11 +6523,6 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 	    if (nchars < nbytes)
 	      {
 		/* Decode the input data.  */
-		ptrdiff_t require;
-
-		if (min (PTRDIFF_MAX, SIZE_MAX) / MAX_MULTIBYTE_LENGTH
-		    < nbytes)
-		  memory_full (SIZE_MAX);
 
 		/* The input should be decoded with `coding_system'
 		   which depends on which X*LookupString function
@@ -6547,9 +6535,9 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 		   gives us composition information.  */
 		coding.common_flags &= ~CODING_ANNOTATION_MASK;
 
-		require = MAX_MULTIBYTE_LENGTH * nbytes;
-		coding.destination = alloca (require);
-		coding.dst_bytes = require;
+		SAFE_NALLOCA (coding.destination, MAX_MULTIBYTE_LENGTH,
+			      nbytes);
+		coding.dst_bytes = MAX_MULTIBYTE_LENGTH * nbytes;
 		coding.mode |= CODING_MODE_LAST_BLOCK;
 		decode_coding_c_string (&coding, copy_bufptr, nbytes, Qnil);
 		nbytes = coding.produced;
@@ -7008,6 +6996,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       count++;
     }
 
+  SAFE_FREE ();
   *eventptr = event;
   return count;
 }

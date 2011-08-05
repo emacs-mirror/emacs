@@ -969,21 +969,14 @@ do_line_insertion_deletion_costs (FRAME_PTR frame,
 				  const char *cleanup_string,
 				  int coefficient)
 {
-  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (int) < FRAME_LINES (frame))
-    memory_full (SIZE_MAX);
-
   FRAME_INSERT_COST (frame) =
-    (int *) xrealloc (FRAME_INSERT_COST (frame),
-		      FRAME_LINES (frame) * sizeof (int));
+    xnrealloc (FRAME_INSERT_COST (frame), FRAME_LINES (frame), sizeof (int));
   FRAME_DELETEN_COST (frame) =
-    (int *) xrealloc (FRAME_DELETEN_COST (frame),
-		      FRAME_LINES (frame) * sizeof (int));
+    xnrealloc (FRAME_DELETEN_COST (frame), FRAME_LINES (frame), sizeof (int));
   FRAME_INSERTN_COST (frame) =
-    (int *) xrealloc (FRAME_INSERTN_COST (frame),
-		      FRAME_LINES (frame) * sizeof (int));
+    xnrealloc (FRAME_INSERTN_COST (frame), FRAME_LINES (frame), sizeof (int));
   FRAME_DELETE_COST (frame) =
-    (int *) xrealloc (FRAME_DELETE_COST (frame),
-		      FRAME_LINES (frame) * sizeof (int));
+    xnrealloc (FRAME_DELETE_COST (frame), FRAME_LINES (frame), sizeof (int));
 
   ins_del_costs (frame,
 		 ins_line_string, multi_ins_string,

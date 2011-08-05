@@ -101,18 +101,13 @@ tparam1 (const char *string, char *outstring, int len,
 
 	  if (outlen == 0)
 	    {
-	      if (min (PTRDIFF_MAX, SIZE_MAX) - 40 < len)
-		goto out_of_memory;
 	      outlen = len + 40;
 	      new = (char *) xmalloc (outlen);
 	      memcpy (new, outstring, offset);
 	    }
 	  else
 	    {
-	      if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < outlen)
-		goto out_of_memory;
-	      outlen *= 2;
-	      new = (char *) xrealloc (outstring, outlen);
+	      new = xpalloc (outstring, &outlen, 1, -1, 1);
 	    }
 
 	  op = new + offset;
@@ -178,12 +173,8 @@ tparam1 (const char *string, char *outstring, int len,
 			doup++, append_len_incr = strlen (up);
 		      else
 			doleft++, append_len_incr = strlen (left);
-		      if (PTRDIFF_MAX - append_len < append_len_incr)
-			{
-			out_of_memory:
-			  xfree (new);
-			  memory_full (SIZE_MAX);
-			}
+		      if (INT_ADD_OVERFLOW (append_len, append_len_incr))
+			memory_full (SIZE_MAX);
 		      append_len += append_len_incr;
 		    }
 		}
@@ -286,7 +277,7 @@ main (int argc, char **argv)
   args[0] = atoi (argv[2]);
   args[1] = atoi (argv[3]);
   args[2] = atoi (argv[4]);
-  tparam1 (argv[1], buf, "LEFT", "UP", args);
+  tparam1 (argv[1], buf, 50, "LEFT", "UP", args);
   printf ("%s\n", buf);
   return 0;
 }

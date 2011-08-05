@@ -602,12 +602,7 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
 
   prev = Qnil;
   if (STRINGP (val))
-    {
-      if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *textprops < nargs)
-	memory_full (SIZE_MAX);
-      SAFE_ALLOCA (textprops, struct textprop_rec *,
-		   sizeof *textprops * nargs);
-    }
+    SAFE_NALLOCA (textprops, 1, nargs);
 
   for (argnum = 0; argnum < nargs; argnum++)
     {

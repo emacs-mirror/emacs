@@ -637,13 +637,10 @@ gobble_line (int fd, register struct termcap_buffer *bufp, char *append_end)
 	    {
 	      ptrdiff_t ptr_offset = bufp->ptr - buf;
 	      ptrdiff_t append_end_offset = append_end - buf;
-	      ptrdiff_t size;
-	      if ((min (PTRDIFF_MAX, SIZE_MAX) - 1) / 2 < bufp->size)
-		memory_full (SIZE_MAX);
-	      size = 2 * bufp->size;
 	      /* Add 1 to size to ensure room for terminating null.  */
-	      bufp->beg = buf = (char *) xrealloc (buf, size + 1);
-	      bufp->size = size;
+	      ptrdiff_t size = bufp->size + 1;
+	      bufp->beg = buf = xpalloc (buf, &size, 1, -1, 1);
+	      bufp->size = size - 1;
 	      bufp->ptr = buf + ptr_offset;
 	      append_end = buf + append_end_offset;
 	    }

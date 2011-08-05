@@ -3574,6 +3574,9 @@ extern int immediate_quit;	    /* Nonzero means ^G can quit instantly */
 extern POINTER_TYPE *xmalloc (size_t);
 extern POINTER_TYPE *xrealloc (POINTER_TYPE *, size_t);
 extern void xfree (POINTER_TYPE *);
+extern void *xnmalloc (ptrdiff_t, ptrdiff_t);
+extern void *xnrealloc (void *, ptrdiff_t, ptrdiff_t);
+extern void *xpalloc (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t);
 
 extern char *xstrdup (const char *);
 
@@ -3689,6 +3692,23 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 	record_unwind_protect (safe_alloca_unwind,	  \
 			       make_save_value (buf, 0)); \
       }							  \
+  } while (0)
+
+/* SAFE_NALLOCA sets BUF to a newly allocated array of MULTIPLIER *
+   NITEMS items, each of the same type as *BUF.  MULTIPLIER must
+   positive.  The code is tuned for MULTIPLIER being a constant.  */
+
+#define SAFE_NALLOCA(buf, multiplier, nitems)			\
+  do {								\
+    if ((nitems) <= MAX_ALLOCA / sizeof *(buf) / (multiplier))	\
+      (buf) = alloca (sizeof *(buf) * (multiplier) * (nitems));	\
+    else							\
+      {								 \
+	(buf) = xnmalloc (nitems, sizeof *(buf) * (multiplier)); \
+	sa_must_free = 1;					 \
+	record_unwind_protect (safe_alloca_unwind,		 \
+			       make_save_value (buf, 0));	 \
+      }								 \
   } while (0)
 
 /* SAFE_FREE frees xmalloced memory and enables GC as needed.  */
