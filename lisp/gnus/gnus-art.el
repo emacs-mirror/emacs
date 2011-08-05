@@ -4541,7 +4541,7 @@ commands:
 (defun gnus-article-stop-animations ()
   (dolist (timer (and (boundp 'timer-list)
 		      timer-list))
-    (when (eq (aref timer 5) 'image-animate-timeout)
+    (when (eq (elt timer 5) 'image-animate-timeout)
       (cancel-timer timer))))
 
 ;; Set article window start at LINE, where LINE is the number of lines

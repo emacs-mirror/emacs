@@ -125,6 +125,10 @@ file names, change the variable @code{insert-default-directory} to
 Nonetheless, relative file name arguments are still interpreted based
 on the same default directory.
 
+  For rules how to read remote file names in the minibuffer, see
+@ref{Filename completion, file name completion,, tramp}, in the Tramp
+manual.
+
 @node Minibuffer Edit
 @section Editing in the Minibuffer
 
@@ -491,7 +495,7 @@ argument (@code{previous-history-element}).
 Move to the next item in the minibuffer history
 (@code{next-history-element}).
 @item M-r @var{regexp} @key{RET}
-Move to an earlier item in the minibuffer history that 
+Move to an earlier item in the minibuffer history that
 matches @var{regexp} (@code{previous-matching-history-element}).
 @item M-s @var{regexp} @key{RET}
 Move to a later item in the minibuffer history that matches

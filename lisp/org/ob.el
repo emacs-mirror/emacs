@@ -137,7 +137,7 @@ remove code block execution from the C-c C-c keybinding."
    ;; (4) header arguments
    "\\([^\n]*\\)\n"
    ;; (5) body
-   "\\([^\000]*?\\)[ \t]*#\\+end_src")
+   "\\([^\000]*?\n\\)?[ \t]*#\\+end_src")
   "Regexp used to identify code blocks.")
 
 (defvar org-babel-inline-src-block-regexp

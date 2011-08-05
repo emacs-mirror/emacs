@@ -226,34 +226,28 @@ List has a form of (file-name full-file-name (attribute-list))."
              (file-attributes full-file-name))))
    (directory-files dir)))
 
-
-(defun dired-touch-initial (files)
-  "Create initial input value for `touch' command."
-  ;; Nobody can explain what this version is supposed to do.  (Bug#6887)
-  ;; Also, the manual says it uses "the present time".
-  ;;; (let (initial)
-  ;;;   (while files
-  ;;;     (let ((current (nth 5 (file-attributes (car files)))))
-  ;;;       (if (and initial (not (equal initial current)))
-  ;;;           (setq initial (current-time) files nil)
-  ;;;         (setq initial current))
-  ;;;       (setq files (cdr files))))
-  ;;;   (format-time-string "%Y%m%d%H%M.%S" initial)))
-  (format-time-string "%Y%m%d%H%M.%S" (current-time)))
+;;; Change file attributes
 
 (defun dired-do-chxxx (attribute-name program op-symbol arg)
-  ;; Change file attributes (mode, group, owner, timestamp) of marked files and
+  ;; Change file attributes (group, owner, timestamp) of marked files and
   ;; refresh their file lines.
   ;; ATTRIBUTE-NAME is a string describing the attribute to the user.
   ;; PROGRAM is the program used to change the attribute.
-  ;; OP-SYMBOL is the type of operation (for use in dired-mark-pop-up).
-  ;; ARG describes which files to use, as in dired-get-marked-files.
+  ;; OP-SYMBOL is the type of operation (for use in `dired-mark-pop-up').
+  ;; ARG describes which files to use, as in `dired-get-marked-files'.
   (let* ((files (dired-get-marked-files t arg))
+	 (initial
+	  (if (eq op-symbol 'touch)
+	      (format-time-string "%Y%m%d%H%M.%S")))
+	 (default
+	   (if (eq op-symbol 'touch)
+	       (and (stringp (car files))
+		    (format-time-string "%Y%m%d%H%M.%S"
+					(nth 5 (file-attributes (car files)))))))
 	 (new-attribute
 	  (dired-mark-read-string
 	   (concat "Change " attribute-name " of %s to: ")
-	   (if (eq op-symbol 'touch) (dired-touch-initial files))
-	   op-symbol arg files))
+	   initial op-symbol arg files default))
 	 (operation (concat program " " new-attribute))
 	 failures)
     (setq failures

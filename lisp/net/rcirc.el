@@ -2695,7 +2695,8 @@ the only argument."
       (setq rcirc-topic (caddr args)))))
 
 (defun rcirc-handler-333 (process sender args text)
-  "Not in rfc1459.txt"
+  "333 says who set the topic and when.
+Not in rfc1459.txt"
   (let ((buffer (or (rcirc-get-buffer process (cadr args))
 		    (rcirc-get-temp-buffer-create process (cadr args)))))
     (with-current-buffer buffer

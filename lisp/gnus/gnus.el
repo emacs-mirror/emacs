@@ -1875,7 +1875,7 @@ total number of articles in the group.")
  :variable-default (mapcar
                     (lambda (g) (list g t))
                     '("delayed$" "drafts$" "queue$" "INBOX$"
-                      "^nnmairix:" "archive"))
+                      "^nnmairix:" "^nnir:" "archive"))
  :variable-document
  "*Groups in which the registry should be turned off."
  :variable-group gnus-registry

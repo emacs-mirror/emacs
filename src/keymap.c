@@ -150,17 +150,6 @@ in case you use it as a menu with `x-popup-menu'.  */)
   return Fcons (Qkeymap, Qnil);
 }
 
-DEFUN ("make-composed-keymap", Fmake_composed_keymap, Smake_composed_keymap,
-       0, MANY, 0,
-       doc: /* Construct and return a new keymap composed of KEYMAPS.
-When looking up a key in the returned map, the key is looked in each
-keymap in turn until a binding is found.
-usage: (make-composed-keymap &rest KEYMAPS)  */)
-  (ptrdiff_t nargs, Lisp_Object *args)
-{
-  return Fcons (Qkeymap, Flist (nargs, args));
-}
-
 /* This function is used for installing the standard key bindings
    at initialization time.
 
@@ -1216,13 +1205,20 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 
       keymap = get_keymap (cmd, 0, 1);
       if (!CONSP (keymap))
-	/* We must use Fkey_description rather than just passing key to
-	   error; key might be a vector, not a string.  */
-	error ("Key sequence %s starts with non-prefix key %s",
-	       SDATA (Fkey_description (key, Qnil)),
-	       SDATA (Fkey_description (Fsubstring (key, make_number (0),
-						    make_number (idx)),
-					Qnil)));
+	{
+	  const char *trailing_esc = ((EQ (c, meta_prefix_char) && metized)
+				      ? (idx == 0 ? "ESC" : " ESC")
+				      : "");
+
+	  /* We must use Fkey_description rather than just passing key to
+	     error; key might be a vector, not a string.  */
+	  error ("Key sequence %s starts with non-prefix key %s%s",
+		 SDATA (Fkey_description (key, Qnil)),
+		 SDATA (Fkey_description (Fsubstring (key, make_number (0),
+						      make_number (idx)),
+					  Qnil)),
+		 trailing_esc);
+	}
     }
 }
 
@@ -3761,7 +3757,6 @@ be preferred.  */);
   defsubr (&Sset_keymap_parent);
   defsubr (&Smake_keymap);
   defsubr (&Smake_sparse_keymap);
-  defsubr (&Smake_composed_keymap);
   defsubr (&Smap_keymap_internal);
   defsubr (&Smap_keymap);
   defsubr (&Scopy_keymap);

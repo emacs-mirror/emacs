@@ -1,3 +1,7 @@
+2011-07-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* grammars: New directory.
+
 2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* NEWS: Document ## and #:.

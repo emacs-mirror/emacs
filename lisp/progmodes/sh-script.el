@@ -1028,45 +1028,45 @@ subshells can nest."
 
 (defun sh-font-lock-paren (start)
   (unless (nth 8 (syntax-ppss))
-  (save-excursion
-    (goto-char start)
-    ;; Skip through all patterns
-    (while
-	(progn
+    (save-excursion
+      (goto-char start)
+      ;; Skip through all patterns
+      (while
+          (progn
             (while
                 (progn
-	  (forward-comment (- (point-max)))
+                  (forward-comment (- (point-max)))
                   (when (and (eolp) (sh-is-quoted-p (point)))
                     (forward-char -1)
                     t)))
-	  ;; Skip through one pattern
-	  (while
-	      (or (/= 0 (skip-syntax-backward "w_"))
+            ;; Skip through one pattern
+            (while
+                (or (/= 0 (skip-syntax-backward "w_"))
                     (/= 0 (skip-chars-backward "-$=?[]*@/\\\\"))
-		  (and (sh-is-quoted-p (1- (point)))
-		       (goto-char (- (point) 2)))
+                    (and (sh-is-quoted-p (1- (point)))
+                         (goto-char (- (point) 2)))
                     (when (memq (char-before) '(?\" ?\' ?\}))
-		    (condition-case nil (progn (backward-sexp 1) t)
-		      (error nil)))))
-	  ;; Patterns can be preceded by an open-paren (Bug#1320).
-	  (if (eq (char-before (point)) ?\()
-	      (backward-char 1))
-          (while (progn
-                   (forward-comment (- (point-max)))
-                   ;; Maybe we've bumped into an escaped newline.
-                   (sh-is-quoted-p (point)))
-            (backward-char 1))
-	  (when (eq (char-before) ?|)
-	    (backward-char 1) t)))
-    (when (progn (backward-char 2)
-                 (if (> start (line-end-position))
-                     (put-text-property (point) (1+ start)
-                                        'syntax-multiline t))
-                 ;; FIXME: The `in' may just be a random argument to
-                 ;; a normal command rather than the real `in' keyword.
-                 ;; I.e. we should look back to try and find the
-                 ;; corresponding `case'.
-                   (and (looking-at ";[;&]\\|in")
+                      (condition-case nil (progn (backward-sexp 1) t)
+                        (error nil)))))
+            ;; Patterns can be preceded by an open-paren (Bug#1320).
+            (if (eq (char-before (point)) ?\()
+                (backward-char 1))
+            (while (progn
+                     (forward-comment (- (point-max)))
+                     ;; Maybe we've bumped into an escaped newline.
+                     (sh-is-quoted-p (point)))
+              (backward-char 1))
+            (when (eq (char-before) ?|)
+              (backward-char 1) t)))
+      (when (progn (backward-char 2)
+                   (if (> start (line-end-position))
+                       (put-text-property (point) (1+ start)
+                                          'syntax-multiline t))
+                   ;; FIXME: The `in' may just be a random argument to
+                   ;; a normal command rather than the real `in' keyword.
+                   ;; I.e. we should look back to try and find the
+                   ;; corresponding `case'.
+                   (and (looking-at ";[;&]\\|\\_<in")
                         ;; ";; esac )" is a case that looks like a case-pattern
                         ;; but it's really just a close paren after a case
                         ;; statement.  I.e. if we skipped over `esac' just now,

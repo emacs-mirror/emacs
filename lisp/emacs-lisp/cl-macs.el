@@ -1233,6 +1233,7 @@ Valid clauses are:
   "Loop over a list.
 Evaluate BODY with VAR bound to each `car' from LIST, in turn.
 Then evaluate RESULT to get return value, default nil.
+An implicit nil block is established around the loop.
 
 \(fn (VAR LIST [RESULT]) BODY...)"
   (let ((temp (make-symbol "--cl-dolist-temp--")))

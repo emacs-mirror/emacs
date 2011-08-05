@@ -564,7 +564,13 @@ Postpone undisplaying of viewers for types in
 	  (setq ct (mail-fetch-field "content-type")
 		ctl (and ct (mail-header-parse-content-type ct))
 		cte (mail-fetch-field "content-transfer-encoding")
-		cd (mail-fetch-field "content-disposition")
+                cd (or (mail-fetch-field "content-disposition")
+                       (when (and ctl
+                                  (eq 'mm-inline-text
+                                      (cadr (mm-assoc-string-match
+                                             mm-inline-media-tests
+                                             (car ctl)))))
+                         "inline"))
 		;; Newlines in description should be stripped so as
 		;; not to break the MIME tag into two or more lines.
 		description (message-fetch-field "content-description")

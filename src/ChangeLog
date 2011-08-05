@@ -408,6 +408,95 @@
 	(gs_load): Use printmax_t to print the widest integers possible.
 	Check for integer overflow when computing image height and width.
 
+2011-08-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (LIB_PTHREAD): New variable.
+	(LIBES): Add LIB_PTHREAD (Bug#9216).
+
+	* alloc.c, emacs.c, gmalloc.c, gtkutil.c, keyboard.c, syssignal.h:
+	Rename HAVE_GTK_AND_PTHREAD to HAVE_PTHREAD (Bug#9216).
+
+2011-08-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* regex.c (re_iswctype): Remove some redundant boolean
+	conversions.
+
+2011-08-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_find_topmost_parent): New function.
+	(x_set_frame_alpha): Find topmost parent window with
+	x_find_topmost_parent and set the property there also (bug#9181).
+	(handle_one_xevent): Call x_set_frame_alpha on ReparentNotify.
+
+2011-08-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* callproc.c (Fcall_process): Avoid vfork clobbering
+	the local vars buffer, coding_systems, current_dir.
+
+2011-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fmake_composed_keymap): Move to subr.el.
+
+2011-08-03  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fontset.c (dump_fontset) [FONTSET_DEBUG]: Declare EXTERNALLY_VISIBLE
+	so that it is not optimized away.
+
+	* xdisp.c (compute_display_string_pos): Remove unused local.
+
+2011-08-02  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix slow cursor motion and scrolling in large buffers with
+	selective display, like Org Mode buffers.  (Bug#9218)
+
+	* dispextern.h (struct bidi_it): New member disp_prop_p.
+
+	* xdisp.c: Remove one-slot cache of display string positions.
+	(compute_display_string_pos): Accept an additional argument
+	DISP_PROP_P; callers changed. Scan at most 5K characters forward
+	for a display string or property.  If found, set DISP_PROP_P
+	non-zero.
+
+	* bidi.c (bidi_fetch_char): Accept an additional argument
+	DISP_PROP_P, and pass it to compute_display_string_pos.
+	Only handle text covered by a display string if DISP_PROP_P is returned
+	non-zero.  All callers of bidi_fetch_char changed.
+
+2011-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fdefine_key): Fix Lisp_Object/int mixup; apply some CSE.
+
+2010-12-03  Don March  <don@ohspite.net>
+
+	* keymap.c (Fdefine_key): Fix non-prefix key error message when
+	last character M-[char] is translated to ESC [char] (bug#7541).
+
+2011-08-02  Kenichi Handa  <handa@m17n.org>
+
+	* lisp.h (uniprop_table): Extern it.
+
+	* chartab.c (uniprop_table): Make it non-static.
+
+2011-08-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (forward_to_next_line_start): Accept additional argument
+	BIDI_IT_PREV, and store into it the state of the bidi iterator had
+	on the newline.
+	(reseat_at_next_visible_line_start): Use the bidi iterator state
+	returned by forward_to_next_line_start to restore the state of
+	it->bidi_it after backing up to previous newline.  (Bug#9212)
+
+2011-07-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* regex.c (re_comp): Protoize.
+	(re_exec): Fix return type.
+	(regexec): Fix type of `ret'.  (Bug#9203)
+
+2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (check_image_size): Use 1024x1024 if unknown frame (Bug#9189).
+	This is needed if max-image-size is a floating-point number.
+
 2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* print.c (print_object): Print empty symbol as ##.
@@ -716,8 +805,8 @@
 
 	* xdisp.c (move_it_in_display_line_to): Record the best matching
 	position for TO_CHARPOS while scanning the line, and restore it on
-	exit if none of the characters scanned was an exact match.  Fixes
-	vertical-motion and pos-visible-in-window-p under bidi redisplay
+	exit if none of the characters scanned was an exact match.
+	Fixes vertical-motion and pos-visible-in-window-p under bidi redisplay
 	when exact match is impossible due to invisible text, and the
 	lines are truncated.
 
@@ -902,8 +991,8 @@
 	(reseat_to_string): Initialize bidi_it->string.s and
 	bidi_it->string.schars.
 	(Fcurrent_bidi_paragraph_direction): Initialize itb.string.s to
-	NULL (avoids a crash in bidi_paragraph_init).  Initialize
-	itb.string.lstring.
+	NULL (avoids a crash in bidi_paragraph_init).
+	Initialize itb.string.lstring.
 	(init_iterator): Call bidi_init_it only of a valid
 	buffer position was specified.  Initialize paragraph_embedding to
 	L2R.
@@ -919,12 +1008,12 @@
 	(init_iterator, reseat_1, reseat_to_string): Initialize the
 	string.bufpos member to 0 (zero, for compatibility with IT_CHARPOS
 	when iterating on a string not from display properties).
-	(compute_display_string_pos, compute_display_string_end): Fix
-	calculation of the object to scan.  Fixes an error when using
+	(compute_display_string_pos, compute_display_string_end):
+	Fix calculation of the object to scan.  Fixes an error when using
 	arrow keys.
 	(next_element_from_buffer): Don't abort when IT_CHARPOS is before
-	base_level_stop; instead, set base_level_stop to BEGV.  Fixes
-	crashes in vertical-motion.
+	base_level_stop; instead, set base_level_stop to BEGV.
+	Fixes crashes in vertical-motion.
 	(next_element_from_buffer): Improve commentary for when
 	the iterator is before prev_stop.
 	(init_iterator): Initialize bidi_p from the default value of
@@ -937,8 +1026,8 @@
 	(next_element_from_string): Support bidi reordering of Lisp
 	strings.
 	(handle_stop_backwards): Support Lisp strings as well.
-	(display_string): Support display of R2L glyph rows.  Use
-	IT_STRING_CHARPOS when displaying from a Lisp string.
+	(display_string): Support display of R2L glyph rows.
+	Use IT_STRING_CHARPOS when displaying from a Lisp string.
 	(init_iterator): Don't initialize it->bidi_p for strings
 	here.
 	(reseat_to_string): Initialize it->bidi_p for strings here.
@@ -1020,8 +1109,8 @@
 	displayed in margins.  (Bug#8133) (Bug#8867)
 	Return MOVE_POS_MATCH_OR_ZV only if iterator position is past
 	TO_CHARPOS.
-	(pos_visible_p): Support positions in bidi-reordered lines.  Save
-	and restore bidi cache.
+	(pos_visible_p): Support positions in bidi-reordered lines.
+	Save and restore bidi cache.
 
 	* bidi.c (bidi_level_of_next_char): clen should be EMACS_NT, not int.
 	(bidi_paragraph_info): Delete unused struct.
@@ -1041,8 +1130,8 @@
 	`len' according to what STRING_CHAR_AND_LENGTH expects.
 	(bidi_paragraph_init, bidi_resolve_explicit_1)
 	(bidi_resolve_explicit, bidi_resolve_weak)
-	(bidi_level_of_next_char, bidi_move_to_visually_next): Support
-	iteration over a string.
+	(bidi_level_of_next_char, bidi_move_to_visually_next):
+	Support iteration over a string.
 	(bidi_set_sor_type, bidi_resolve_explicit_1)
 	(bidi_resolve_explicit, bidi_type_of_next_char): ignore_bn_limit
 	can now be zero (for strings); special values 0 and -1 were
@@ -1073,20 +1162,20 @@
 	(bidi_cache_fetch_state, bidi_cache_search)
 	(bidi_cache_find_level_change, bidi_cache_ensure_space)
 	(bidi_cache_iterator_state, bidi_cache_find)
-	(bidi_find_other_level_edge, bidi_cache_start_stack): All
-	variables related to cache indices are now EMACS_INT.
+	(bidi_find_other_level_edge, bidi_cache_start_stack):
+	All variables related to cache indices are now EMACS_INT.
 
 	* dispextern.h (struct bidi_string_data): New structure.
 	(struct bidi_it): New member `string'.  Make flag members be 1-bit
 	fields, and put them last in the struct.
-	(compute_display_string_pos, compute_display_string_end): Update
-	prototypes.
+	(compute_display_string_pos, compute_display_string_end):
+	Update prototypes.
 	(bidi_push_it, bidi_pop_it): Add prototypes.
 	(struct iterator_stack_entry): New members bidi_p,
 	paragraph_embedding, and from_disp_prop_p.
 	(struct it): Member bidi_p is now a bit field 1 bit wide.
-	(bidi_shelve_cache, bidi_unshelve_cache): Declare
-	prototypes.
+	(bidi_shelve_cache, bidi_unshelve_cache):
+	Declare prototypes.
 
 	* .gdbinit (xvectype, xvector, xcompiled, xchartable, xboolvector)
 	(xpr, xfont, xbacktrace): Use "header.size" when accessing vectors
@@ -1368,7 +1457,7 @@
 	(char_table_set_range): Adjuted for the above change.
 	(map_sub_char_table): Delete args default_val and parent.  Add arg
 	top.  Give decoded values to a Lisp function.
-	(map_char_table): Adjusted for the above change.  Give decoded
+	(map_char_table): Adjust for the above change.  Give decoded
 	values to a Lisp function.  Gcpro more variables.
 	(uniprop_table_uncompress)
 	(uniprop_decode_value_run_length): New functions.
@@ -1385,10 +1474,10 @@
 	and Sput_unicode_property_internal. Defvar_lisp
 	char-code-property-alist.
 
-	* composite.c (CHAR_COMPOSABLE_P): Adjusted for the change of
+	* composite.c (CHAR_COMPOSABLE_P): Adjust for the change of
 	Vunicode_category_table.
 
-	* font.c (font_range): Adjusted for the change of
+	* font.c (font_range): Adjust for the change of
 	Vunicode_category_table.
 
 2011-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -1417,14 +1506,14 @@
 	(store_monospaced_changed): Add comment. Call dpyinfo_valid.
 	(struct xsettings): Move font inside HAVE_XFT.
 	(GSETTINGS_TOOL_BAR_STYLE, GSETTINGS_FONT_NAME): New defines.
-	(GSETTINGS_MONO_FONT): Renamed from SYSTEM_MONO_FONT.
+	(GSETTINGS_MONO_FONT): Rename from SYSTEM_MONO_FONT.
 	Move inside HAVE_XFT.
-	(something_changed_gsettingsCB): Renamed from something_changedCB.
+	(something_changed_gsettingsCB): Rename from something_changedCB.
 	Check for changes in GSETTINGS_TOOL_BAR_STYLE and GSETTINGS_FONT_NAME
 	also.
 	(GCONF_TOOL_BAR_STYLE, GCONF_FONT_NAME): New defines.
-	(GCONF_MONO_FONT): Renamed from SYSTEM_MONO_FONT. Move inside HAVE_XFT.
-	(something_changed_gconfCB): Renamed from something_changedCB.
+	(GCONF_MONO_FONT): Rename from SYSTEM_MONO_FONT. Move inside HAVE_XFT.
+	(something_changed_gconfCB): Rename from something_changedCB.
 	Check for changes in GCONF_TOOL_BAR_STYLE and GCONF_FONT_NAME also.
 	(parse_settings): Move check for font inside HAVE_XFT.
 	(read_settings, apply_xft_settings): Add comment.
@@ -1437,8 +1526,8 @@
 	(init_gconf): Add comment.  Get values for GCONF_TOOL_BAR_STYLE
 	and GCONF_FONT_NAME.  Move check for fonts within HAVE_XFT.
 	(xsettings_initialize): Call init_gsettings last.
-	(xsettings_get_system_font, xsettings_get_system_normal_font): Add
-	comment.
+	(xsettings_get_system_font, xsettings_get_system_normal_font):
+	Add comment.
 
 2011-07-05  Paul Eggert  <eggert@cs.ucla.edu>
 
@@ -1621,7 +1710,7 @@
 	(syms_of_xsettings): Initialize gsettings_client, gsettings_obj
 	to NULL.
 
-	* Makefile.in (SETTINGS_CFLAGS, SETTINGS_LIBS): Renamed from
+	* Makefile.in (SETTINGS_CFLAGS, SETTINGS_LIBS): Rename from
 	GCONF_CFLAGS/LIBS.
 
 2011-06-29  Martin Rudalics  <rudalics@gmx.at>
@@ -2368,7 +2457,7 @@
 
 	* character.c, coding.c, doprnt.c, editfns.c, eval.c:
 	All uses of STRING_BYTES_MAX replaced by STRING_BYTES_BOUND.
-	* lisp.h (STRING_BYTES_BOUND): Renamed from STRING_BYTES_MAX.
+	* lisp.h (STRING_BYTES_BOUND): Rename from STRING_BYTES_MAX.
 
 	* character.c (string_escape_byte8): Fix nbytes/nchars typo.
 
@@ -2477,8 +2566,8 @@
 	Qclone_number.  Remove external declaration of Qdelete_window.
 	(Fbuffer_list): Rewrite doc-string.  Minor restructuring of
 	code.
-	(Fget_buffer_create, Fmake_indirect_buffer, Frename_buffer): Run
-	Qbuffer_list_update_hook if allowed.
+	(Fget_buffer_create, Fmake_indirect_buffer, Frename_buffer):
+	Run Qbuffer_list_update_hook if allowed.
 	(Fother_buffer): Rewrite doc-string.  Major rewrite for new
 	buffer list implementation.
 	(other_buffer_safely): New function.
@@ -2489,8 +2578,8 @@
 	(record_buffer): Inhibit quitting and rewrite using quittable
 	functions.  Run Qbuffer_list_update_hook if allowed.
 	(Frecord_buffer, Funrecord_buffer): New functions.
-	(switch_to_buffer_1, Fswitch_to_buffer): Remove.  Move
-	switch-to-buffer to window.el.
+	(switch_to_buffer_1, Fswitch_to_buffer): Remove.
+	Move switch-to-buffer to window.el.
 	(bury-buffer): Move to window.el.
 	(Vbuffer_list_update_hook): New variable.
 
@@ -2518,8 +2607,8 @@
 	(select_window_norecord, select_frame_norecord): Move in front
 	of run_window_configuration_change_hook.  Remove now obsolete
 	declarations.
-	(Fset_window_buffer): Rewrite doc-string.  Call
-	Qrecord_window_buffer.
+	(Fset_window_buffer): Rewrite doc-string.
+	Call Qrecord_window_buffer.
 	(keys_of_window): Move binding for other-window to window.el.
 
 2011-06-11  Chong Yidong  <cyd@stupidchicken.com>
@@ -2601,8 +2690,8 @@
 	orig_total_lines.
 	(Fdelete_window, delete_window): Remove.  Window deletion is
 	handled by window.el.
-	(window_loop): Remove DELETE_OTHER_WINDOWS case.  Replace
-	Fdelete_window calls with calls to Qdelete_window.
+	(window_loop): Remove DELETE_OTHER_WINDOWS case.
+	Replace Fdelete_window calls with calls to Qdelete_window.
 	(Fdelete_other_windows): Remove.  Deleting other windows is
 	handled by window.el.
 	(window_fixed_size_p): Remove.  Fixed-sizeness of windows is
@@ -2625,8 +2714,8 @@
 	(grow_mini_window, shrink_mini_window): Implement by calling
 	Qresize_root_window_vertically, resize_window_check and
 	resize_window_apply.
-	(saved_window, Fset_window_configuration, save_window_save): Do
-	not handle orig_top_line, orig_total_lines, and
+	(saved_window, Fset_window_configuration, save_window_save):
+	Do not handle orig_top_line, orig_total_lines, and
 	resize_proportionally.
 	(window_min_height, window_min_width): Move to window.el.
 	(keys_of_window): Move bindings for delete-other-windows,
@@ -2646,8 +2735,8 @@
 	* xdisp.c (init_xdisp): Don't use set_window_height but set
 	heights directly.
 
-	* xfns.c (x_set_menu_bar_lines, x_set_tool_bar_lines): Use
-	resize_frame_windows instead of change_window_heights and run
+	* xfns.c (x_set_menu_bar_lines, x_set_tool_bar_lines):
+	Use resize_frame_windows instead of change_window_heights and run
 	run_window_configuration_change_hook.
 
 	* w32fns.c (x_set_tool_bar_lines): Use resize_frame_windows
@@ -2669,8 +2758,8 @@
 	(Frun_window_configuration_change_hook, make_parent_window)
 	(resize_window_check, resize_window_apply, Fresize_window_apply)
 	(resize_frame_windows, Fsplit_window_internal)
-	(Fdelete_window_internal, Fresize_mini_window_internal): New
-	functions.
+	(Fdelete_window_internal, Fresize_mini_window_internal):
+	New functions.
 	(syms_of_window): New variables Vwindow_splits and Vwindow_nest.
 
 2011-06-08  Martin Rudalics  <rudalics@gmx.at>
@@ -2690,8 +2779,8 @@
 	(Fwindow_nest, Fset_window_nest, Fwindow_new_total)
 	(Fwindow_normal_size, Fwindow_new_normal, Fwindow_prev_buffers)
 	(Fset_window_prev_buffers, Fwindow_next_buffers)
-	(Fset_window_next_buffers, Fset_window_clone_number): New
-	functions.
+	(Fset_window_next_buffers, Fset_window_clone_number):
+	New functions.
 	(Fwindow_hscroll, Fwindow_at, Fwindow_point, Fwindow_start)
 	(Fwindow_end, Fwindow_line_height, Fset_window_dedicated_p):
 	Doc-string fixes.
@@ -2717,10 +2806,10 @@
 	(Fwindow_top_line, window_body_lines, Fwindow_body_size)
 	(Fwindow_list_1): New functions.
 	(window_box_text_cols): Replace with window_body_cols.
-	(Fwindow_width, Fscroll_left, Fscroll_right): Use
-	window_body_cols instead of window_box_text_cols.
-	(delete_window, Fset_window_configuration): Call
-	delete_all_subwindows with window as argument.
+	(Fwindow_width, Fscroll_left, Fscroll_right):
+	Use window_body_cols instead of window_box_text_cols.
+	(delete_window, Fset_window_configuration):
+	Call delete_all_subwindows with window as argument.
 	(delete_all_subwindows): Take a window as argument and not a
 	structure.  Rewrite.
 	(window_loop): Remove handling of GET_LRU_WINDOW and
@@ -2731,8 +2820,8 @@
 	window_box_text_cols.  delete_all_subwindows now takes a
 	Lisp_Object as argument.
 
-	* indent.c (compute_motion, Fcompute_motion): Use
-	window_body_cols instead of window_box_text_cols.
+	* indent.c (compute_motion, Fcompute_motion):
+	Use window_body_cols instead of window_box_text_cols.
 
 	* frame.c (delete_frame): Call delete_all_subwindows with root
 	window as argument.

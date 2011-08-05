@@ -1869,6 +1869,8 @@ struct bidi_it {
   bidi_dir_t paragraph_dir;	/* current paragraph direction */
   EMACS_INT separator_limit;	/* where paragraph separator should end */
   EMACS_INT disp_pos;		/* position of display string after ch */
+  int disp_prop_p;		/* if non-zero, there really is a
+				   `display' property/string at disp_pos */
   unsigned first_elt : 1;	/* if non-zero, examine current char first */
   unsigned new_paragraph : 1;	/* if non-zero, we expect a new paragraph */
   unsigned frame_window_p : 1;	/* non-zero if displaying on a GUI frame */
@@ -3036,7 +3038,8 @@ extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
 extern int calc_pixel_width_or_height (double *, struct it *, Lisp_Object,
                                        struct font *, int, int *);
 extern EMACS_INT compute_display_string_pos (struct text_pos *,
-					     struct bidi_string_data *, int);
+					     struct bidi_string_data *,
+					     int, int *);
 extern EMACS_INT compute_display_string_end (EMACS_INT,
 					     struct bidi_string_data *);
 

@@ -767,11 +767,18 @@ Add an entry here when adding a new search engine.")
 (deffoo nnir-warp-to-article ()
   (let* ((cur (if (> (gnus-summary-article-number) 0)
 		  (gnus-summary-article-number)
-		(error "This is not a real article.")))
-	 (gnus-newsgroup-name (nnir-article-group cur))
-         (backend-number (nnir-article-number cur)))
-    (gnus-summary-read-group-1 gnus-newsgroup-name t t gnus-summary-buffer
-			       nil (list backend-number))))
+		(error "This is not a real article")))
+	 (backend-article-group (nnir-article-group cur))
+         (backend-article-number (nnir-article-number cur))
+	 (quit-config (gnus-ephemeral-group-p gnus-newsgroup-name)))
+    ;; first exit from the nnir summary buffer.
+    (gnus-summary-exit)
+    ;; and if the nnir summary buffer in turn came from another
+    ;; summary buffer we have to clean that summary up too.
+    (when (eq (cdr quit-config) 'summary)
+      (gnus-summary-exit))
+    (gnus-summary-read-group-1 backend-article-group t t  nil
+			       nil (list backend-article-number))))
 
 (nnoo-define-skeleton nnir)
 
@@ -1617,7 +1624,7 @@ actually)."
 	      (let* ((server (car x))
 		     (nnir-search-engine
 		      (or (nnir-read-server-parm 'nnir-search-engine
-						 server)
+						 server t)
 			  (cdr (assoc (car
 				       (gnus-server-to-method server))
 				      nnir-method-default-engines))))
@@ -1636,14 +1643,16 @@ actually)."
 		  nil)))
 	    groups))))
 
-(defun nnir-read-server-parm (key server)
-  "Returns the parameter value of key for the given server, where
-server is of form 'backend:name'."
+(defun nnir-read-server-parm (key server &optional not-global)
+  "Returns the parameter value corresponding to `key' for
+`server'. If no server-specific value is found consult the global
+environment unless `not-global' is non-nil."
   (let ((method (gnus-server-to-method server)))
     (cond ((and method (assq key (cddr method)))
-    	   (nth 1 (assq key (cddr method))))
-	  ((boundp key) (symbol-value key))
-    	  (t nil))))
+           (nth 1 (assq key (cddr method))))
+          ((and (not not-global) (boundp key)) (symbol-value key))
+          (t nil))))
+
 
 (defun nnir-possibly-change-server (server)
   (unless (and server (nnir-server-opened server))
@@ -1659,7 +1668,8 @@ server is of form 'backend:name'."
 	       (cons 'server (gnus-method-to-server
 			      (gnus-find-method-for-group
 			       gnus-newsgroup-name))))))
-    (gnus-group-make-nnir-group nil parm)))
+    (gnus-group-make-nnir-group nil parm)
+    (gnus-summary-goto-subject (gnus-id-to-article (mail-header-id header)))))
 
 ;; unused?
 (defun nnir-artlist-groups (artlist)
