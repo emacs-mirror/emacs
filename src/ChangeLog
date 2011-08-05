@@ -19,7 +19,7 @@
 	(move_it_vertically_backward, move_it_by_lines): Replace the call
 	to xfree to an equivalent call to bidi_unshelve_cache.
 	(move_it_in_display_line_to): Fix logic of returning
-	MOVE_POS_MATCH_OR_ZV in the bidi case.
+	MOVE_POS_MATCH_OR_ZV in the bidi case.  (Bug#9224)
 
 2011-08-05  Eli Zaretskii  <eliz@gnu.org>
 
