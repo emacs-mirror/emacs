@@ -628,17 +628,24 @@ bidi_pop_it (struct bidi_it *bidi_it)
   bidi_cache_last_idx = -1;
 }
 
+static ptrdiff_t bidi_cache_total_alloc;
+
 /* Stash away a copy of the cache and its control variables.  */
 void *
 bidi_shelve_cache (void)
 {
   unsigned char *databuf;
+  ptrdiff_t alloc;
 
+  /* Empty cache.  */
   if (bidi_cache_idx == 0)
     return NULL;
 
-  databuf = xmalloc (bidi_shelve_header_size
-		     + bidi_cache_idx * sizeof (struct bidi_it));
+  alloc = (bidi_shelve_header_size
+	   + bidi_cache_idx * sizeof (struct bidi_it));
+  databuf = xmalloc (alloc);
+  bidi_cache_total_alloc += alloc;
+
   memcpy (databuf, &bidi_cache_idx, sizeof (bidi_cache_idx));
   memcpy (databuf + sizeof (bidi_cache_idx),
 	  bidi_cache, bidi_cache_idx * sizeof (struct bidi_it));
@@ -664,7 +671,7 @@ bidi_shelve_cache (void)
 
 /* Restore the cache state from a copy stashed away by bidi_shelve_cache.  */
 void
-bidi_unshelve_cache (void *databuf)
+bidi_unshelve_cache (void *databuf, int just_free)
 {
   unsigned char *p = databuf;
 
@@ -677,30 +684,43 @@ bidi_unshelve_cache (void *databuf)
     }
   else
     {
-      memcpy (&bidi_cache_idx, p, sizeof (bidi_cache_idx));
-      bidi_cache_ensure_space (bidi_cache_idx);
-      memcpy (bidi_cache, p + sizeof (bidi_cache_idx),
-	      bidi_cache_idx * sizeof (struct bidi_it));
-      memcpy (bidi_cache_start_stack,
-	      p + sizeof (bidi_cache_idx)
-	      + bidi_cache_idx * sizeof (struct bidi_it),
-	      sizeof (bidi_cache_start_stack));
-      memcpy (&bidi_cache_sp,
-	      p + sizeof (bidi_cache_idx)
-	      + bidi_cache_idx * sizeof (struct bidi_it)
-	      + sizeof (bidi_cache_start_stack),
-	      sizeof (bidi_cache_sp));
-      memcpy (&bidi_cache_start,
-	      p + sizeof (bidi_cache_idx)
-	      + bidi_cache_idx * sizeof (struct bidi_it)
-	      + sizeof (bidi_cache_start_stack) + sizeof (bidi_cache_sp),
-	      sizeof (bidi_cache_start));
-      memcpy (&bidi_cache_last_idx,
-	      p + sizeof (bidi_cache_idx)
-	      + bidi_cache_idx * sizeof (struct bidi_it)
-	      + sizeof (bidi_cache_start_stack) + sizeof (bidi_cache_sp)
-	      + sizeof (bidi_cache_start),
-	      sizeof (bidi_cache_last_idx));
+      if (just_free)
+	{
+	  ptrdiff_t idx;
+
+	  memcpy (&idx, p, sizeof (bidi_cache_idx));
+	  bidi_cache_total_alloc -=
+	    bidi_shelve_header_size + idx * sizeof (struct bidi_it);
+	}
+      else
+	{
+	  memcpy (&bidi_cache_idx, p, sizeof (bidi_cache_idx));
+	  bidi_cache_ensure_space (bidi_cache_idx);
+	  memcpy (bidi_cache, p + sizeof (bidi_cache_idx),
+		  bidi_cache_idx * sizeof (struct bidi_it));
+	  memcpy (bidi_cache_start_stack,
+		  p + sizeof (bidi_cache_idx)
+		  + bidi_cache_idx * sizeof (struct bidi_it),
+		  sizeof (bidi_cache_start_stack));
+	  memcpy (&bidi_cache_sp,
+		  p + sizeof (bidi_cache_idx)
+		  + bidi_cache_idx * sizeof (struct bidi_it)
+		  + sizeof (bidi_cache_start_stack),
+		  sizeof (bidi_cache_sp));
+	  memcpy (&bidi_cache_start,
+		  p + sizeof (bidi_cache_idx)
+		  + bidi_cache_idx * sizeof (struct bidi_it)
+		  + sizeof (bidi_cache_start_stack) + sizeof (bidi_cache_sp),
+		  sizeof (bidi_cache_start));
+	  memcpy (&bidi_cache_last_idx,
+		  p + sizeof (bidi_cache_idx)
+		  + bidi_cache_idx * sizeof (struct bidi_it)
+		  + sizeof (bidi_cache_start_stack) + sizeof (bidi_cache_sp)
+		  + sizeof (bidi_cache_start),
+		  sizeof (bidi_cache_last_idx));
+	  bidi_cache_total_alloc -=
+	    bidi_shelve_header_size + bidi_cache_idx * sizeof (struct bidi_it);
+	}
 
       xfree (p);
     }
@@ -747,6 +767,7 @@ bidi_initialize (void)
   staticpro (&paragraph_separate_re);
 
   bidi_cache_sp = 0;
+  bidi_cache_total_alloc = 0;
 
   bidi_initialized = 1;
 }
