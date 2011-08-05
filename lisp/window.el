@@ -5796,7 +5796,7 @@ this list as arguments."
 	  ;; regardless of graphic-only restrictions.
 	  (display-buffer-pop-up-frame buffer)))))
 
-(defsubst display-buffer-same-window (&optional buffer-or-name label)
+(defun display-buffer-same-window (&optional buffer-or-name label)
   "Display buffer specified by BUFFER-OR-NAME in the selected window.
 Another window will be used only if the buffer can't be shown in
 the selected window, usually because it is dedicated to another
@@ -5805,7 +5805,7 @@ buffer.  Optional argument BUFFER-OR-NAME and LABEL are as for
   (interactive "BDisplay buffer in same window:\nP")
   (display-buffer buffer-or-name 'same-window label))
 
-(defsubst display-buffer-same-frame (&optional buffer-or-name label)
+(defun display-buffer-same-frame (&optional buffer-or-name label)
   "Display buffer specified by BUFFER-OR-NAME in a window on the same frame.
 Another frame will be used only if there is no other choice.
 Optional argument BUFFER-OR-NAME and LABEL are as for
@@ -5813,7 +5813,7 @@ Optional argument BUFFER-OR-NAME and LABEL are as for
   (interactive "BDisplay buffer on same frame:\nP")
   (display-buffer buffer-or-name 'same-frame label))
 
-(defsubst display-buffer-other-window (&optional buffer-or-name label)
+(defun display-buffer-other-window (&optional buffer-or-name label)
   "Display buffer specified by BUFFER-OR-NAME in another window.
 The selected window will be used only if there is no other
 choice.  Windows on the selected frame are preferred to windows
@@ -5887,7 +5887,7 @@ additional information."
       (select-frame-set-input-focus new-frame norecord))
     buffer))
 
-(defsubst pop-to-buffer-same-window (&optional buffer-or-name norecord label)
+(defun pop-to-buffer-same-window (&optional buffer-or-name norecord label)
   "Pop to buffer specified by BUFFER-OR-NAME in the selected window.
 Another window will be used only if the buffer can't be shown in
 the selected window, usually because it is dedicated to another
@@ -5896,7 +5896,7 @@ as for `pop-to-buffer'."
   (interactive "BPop to buffer in selected window:\nP")
   (pop-to-buffer buffer-or-name 'same-window norecord label))
 
-(defsubst pop-to-buffer-same-frame (&optional buffer-or-name norecord label)
+(defun pop-to-buffer-same-frame (&optional buffer-or-name norecord label)
   "Pop to buffer specified by BUFFER-OR-NAME in a window on the selected frame.
 Another frame will be used only if there is no other choice.
 Optional arguments BUFFER-OR-NAME, NORECORD and LABEL are as for
@@ -5904,7 +5904,7 @@ Optional arguments BUFFER-OR-NAME, NORECORD and LABEL are as for
   (interactive "BPop to buffer on same frame:\nP")
   (pop-to-buffer buffer-or-name 'same-frame norecord label))
 
-(defsubst pop-to-buffer-other-window (&optional buffer-or-name norecord label)
+(defun pop-to-buffer-other-window (&optional buffer-or-name norecord label)
   "Pop to buffer specified by BUFFER-OR-NAME in another window.
 The selected window will be used only if there is no other
 choice.  Windows on the selected frame are preferred to windows
@@ -5913,7 +5913,7 @@ LABEL are as for `pop-to-buffer'."
   (interactive "BPop to buffer in another window:\nP")
   (pop-to-buffer buffer-or-name 'other-window norecord))
 
-(defsubst pop-to-buffer-same-frame-other-window (&optional buffer-or-name norecord label)
+(defun pop-to-buffer-same-frame-other-window (&optional buffer-or-name norecord label)
   "Pop to buffer specified by BUFFER-OR-NAME in another window on the selected frame.
 The selected window or another frame will be used only if there
 is no other choice.  Optional arguments BUFFER-OR-NAME, NORECORD
@@ -5921,7 +5921,7 @@ and LABEL are as for `pop-to-buffer'."
   (interactive "BPop to buffer in another window on same frame:\nP")
   (pop-to-buffer buffer-or-name 'same-frame-other-window norecord label))
 
-(defsubst pop-to-buffer-other-frame (&optional buffer-or-name norecord label)
+(defun pop-to-buffer-other-frame (&optional buffer-or-name norecord label)
   "Pop to buffer specified by BUFFER-OR-NAME on another frame.
 The selected frame will be used only if there's no other choice.
 Optional arguments BUFFER-OR-NAME, NORECORD and LABEL are as for
@@ -5994,8 +5994,7 @@ Return the buffer switched to."
   (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
     (if (null force-same-window)
 	(pop-to-buffer
-	 buffer '(same-window (reuse-window-dedicated . weak))
-	 norecord 'switch-to-buffer)
+	 buffer '(same-window (reuse-window-dedicated . weak)) norecord)
       (cond
        ;; Don't call set-window-buffer if it's not needed since it
        ;; might signal an error (e.g. if the window is dedicated).
@@ -6005,6 +6004,7 @@ Return the buffer switched to."
        ((eq (window-dedicated-p) t)
 	(error "Cannot switch buffers in a dedicated window"))
        (t (set-window-buffer nil buffer)))
+
       (unless norecord
 	(select-window (selected-window)))
       (set-buffer buffer))))

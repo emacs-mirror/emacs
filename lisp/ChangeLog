@@ -1,3 +1,13 @@
+2011-08-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-same-window)
+	(display-buffer-same-frame, display-buffer-other-window)
+	(pop-to-buffer-same-window, pop-to-buffer-same-frame)
+	(pop-to-buffer-other-window)
+	(pop-to-buffer-same-frame-other-window)
+	(pop-to-buffer-other-frame): Make them defuns.
+	(switch-to-buffer): Don't set LABEL argument of pop-to-buffer.
+
 2011-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (make-composed-keymap): Move from C.  Change calling
