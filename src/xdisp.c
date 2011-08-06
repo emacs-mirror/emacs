@@ -8009,13 +8009,19 @@ move_it_in_display_line_to (struct it *it,
 	     positions smaller than TO_CHARPOS, return
 	     MOVE_POS_MATCH_OR_ZV, like the unidirectional display
 	     did.  */
-	  if (it->bidi_p && (op & MOVE_TO_POS) != 0
-	      && !saw_smaller_pos
-	      && IT_CHARPOS (*it) > to_charpos)
+	  if (it->bidi_p && (op & MOVE_TO_POS) != 0)
 	    {
-	      if (IT_CHARPOS (ppos_it) < ZV)
-		RESTORE_IT (it, &ppos_it, ppos_data);
-	      goto buffer_pos_reached;
+	      if (!saw_smaller_pos && IT_CHARPOS (*it) > to_charpos)
+		{
+		  if (IT_CHARPOS (ppos_it) < ZV)
+		    RESTORE_IT (it, &ppos_it, ppos_data);
+		  goto buffer_pos_reached;
+		}
+	      else if (it->line_wrap == WORD_WRAP && atpos_it.sp >= 0
+		       && IT_CHARPOS (*it) > to_charpos)
+		goto buffer_pos_reached;
+	      else
+		result = MOVE_NEWLINE_OR_CR;
 	    }
 	  else
 	    result = MOVE_NEWLINE_OR_CR;
