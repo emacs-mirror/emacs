@@ -1,3 +1,13 @@
+2011-08-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Fix cursor positioning when a
+	display property strides EOL and includes a newline, as in
+	longlines-mode.  (Bug#9254)
+
+	* bidi.c (bidi_unshelve_cache): Don't reset the cache if JUST_FREE
+	is non-zero, even if the data buffer is NULL.  Fixes a crash in
+	vertical-motion with longlines-mode.  (Bug#9254)
+
 2011-08-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c <bidi_cache_total_alloc>: Now static.
