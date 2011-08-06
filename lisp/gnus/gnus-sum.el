@@ -9037,6 +9037,7 @@ non-numeric or nil fetch the number specified by the
 (defun gnus-summary-refer-article (message-id)
   "Fetch an article specified by MESSAGE-ID."
   (interactive "sMessage-ID: ")
+  (gnus-warp-to-article)
   (when (and (stringp message-id)
 	     (not (zerop (length message-id))))
     (setq message-id (gnus-replace-in-string message-id " " ""))
