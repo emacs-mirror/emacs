@@ -8011,13 +8011,19 @@ move_it_in_display_line_to (struct it *it,
 	     positions smaller than TO_CHARPOS, return
 	     MOVE_POS_MATCH_OR_ZV, like the unidirectional display
 	     did.  */
-	  if (it->bidi_p && (op & MOVE_TO_POS) != 0
-	      && !saw_smaller_pos
-	      && IT_CHARPOS (*it) > to_charpos)
+	  if (it->bidi_p && (op & MOVE_TO_POS) != 0)
 	    {
-	      if (IT_CHARPOS (ppos_it) < ZV)
-		RESTORE_IT (it, &ppos_it, ppos_data);
-	      goto buffer_pos_reached;
+	      if (!saw_smaller_pos && IT_CHARPOS (*it) > to_charpos)
+		{
+		  if (IT_CHARPOS (ppos_it) < ZV)
+		    RESTORE_IT (it, &ppos_it, ppos_data);
+		  goto buffer_pos_reached;
+		}
+	      else if (it->line_wrap == WORD_WRAP && atpos_it.sp >= 0
+		       && IT_CHARPOS (*it) > to_charpos)
+		goto buffer_pos_reached;
+	      else
+		result = MOVE_NEWLINE_OR_CR;
 	    }
 	  else
 	    result = MOVE_NEWLINE_OR_CR;
@@ -13287,6 +13293,9 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
   /* Last buffer position covered by an overlay string with an integer
      `cursor' property.  */
   EMACS_INT bpos_covered = 0;
+  /* Non-zero means the display string on which to display the cursor
+     comes from a text property, not from an overlay.  */
+  int string_from_text_prop = 0;
 
   /* Skip over glyphs not having an object at the start and the end of
      the row.  These are special glyphs like truncation marks on
@@ -13605,9 +13614,14 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 		{
 		  Lisp_Object str;
 		  EMACS_INT tem;
+		  /* If the display property covers the newline, we
+		     need to search for it one position farther.  */
+		  EMACS_INT lim = pos_after
+		    + (pos_after == MATRIX_ROW_END_CHARPOS (row) + delta);
 
+		  string_from_text_prop = 0;
 		  str = glyph->object;
-		  tem = string_buffer_position_lim (str, pos, pos_after, 0);
+		  tem = string_buffer_position_lim (str, pos, lim, 0);
 		  if (tem == 0	/* from overlay */
 		      || pos <= tem)
 		    {
@@ -13631,7 +13645,10 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 			  EMACS_INT strpos = glyph->charpos;
 
 			  if (tem)
-			    cursor = glyph;
+			    {
+			      cursor = glyph;
+			      string_from_text_prop = 1;
+			    }
 			  for ( ;
 			       (row->reversed_p ? glyph > stop : glyph < stop)
 				 && EQ (glyph->object, str);
@@ -13732,8 +13749,17 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	      /* previous candidate is a glyph from a string that has
 		 a non-nil `cursor' property */
 	      || (STRINGP (g1->object)
-		  && !NILP (Fget_char_property (make_number (g1->charpos),
-						Qcursor, g1->object)))))
+		  && (!NILP (Fget_char_property (make_number (g1->charpos),
+						Qcursor, g1->object))
+		      /* pevious candidate is from the same display
+			 string as this one, and the display string
+			 came from a text property */
+		      || (EQ (g1->object, glyph->object)
+			  && string_from_text_prop)
+		      /* this candidate is from newline and its
+			 position is not an exact match */
+		      || (INTEGERP (glyph->object)
+			  && glyph->charpos != pt_old)))))
 	return 0;
       /* If this candidate gives an exact match, use that.  */
       if (!(BUFFERP (glyph->object) && glyph->charpos == pt_old)
