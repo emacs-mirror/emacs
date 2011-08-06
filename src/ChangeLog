@@ -1,4 +1,4 @@
-2011-08-05  Paul Eggert  <eggert@cs.ucla.edu>
+2011-08-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues.
 
@@ -236,7 +236,8 @@
 	* xrdb.c (get_environ_db): Don't assume path length fits in int,
 	as sprintf is limited to int lengths.
 
-	* xselect.c (X_LONG_SIZE, X_USHRT_MAX, X_ULONG_MAX): New macros.
+	* xselect.c (X_LONG_SIZE, X_SHRT_MAX, X_SHRT_MIN, X_LONG_MAX)
+	(X_LONG_MIN): New macros.
 	Use them to make the following changes clearer.
 	(MAX_SELECTION_QUANTUM): Make the other bounds on this value clearer.
 	This change doesn't affect the value now, but it may help remind
@@ -255,7 +256,7 @@
 	(receive_incremental_selection, x_property_data_to_lisp):
 	Redo calculations to avoid overflow.
 	(x_reply_selection_request): When sending hint, ceiling it at
-	X_ULONG_MAX rather than relying on wraparound overflow to send
+	X_LONG_MAX rather than relying on wraparound overflow to send
 	something.
 	(x_get_window_property, receive_incremental_selection)
 	(lisp_data_to_selection_data, x_property_data_to_lisp):

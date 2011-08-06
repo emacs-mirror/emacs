@@ -111,9 +111,11 @@ static Lisp_Object Qx_lost_selection_functions, Qx_sent_selection_functions;
    is not necessarily sizeof (long).  */
 #define X_LONG_SIZE 4
 
-/* Maximum unsigned 'short' and 'long' values suitable for libX11.  */
-#define X_USHRT_MAX 0xffff
-#define X_ULONG_MAX 0xffffffff
+/* Extreme 'short' and 'long' values suitable for libX11.  */
+#define X_SHRT_MAX 0x7fff
+#define X_SHRT_MIN (-1 - X_SHRT_MAX)
+#define X_LONG_MAX 0x7fffffff
+#define X_LONG_MIN (-1 - X_LONG_MAX)
 
 /* If this is a smaller number than the max-request-size of the display,
    emacs will use INCR selection transfer when the selection is larger
@@ -641,7 +643,7 @@ x_reply_selection_request (struct input_event *event, struct x_display_info *dpy
       else
 	{
 	  /* Send an INCR tag to initiate incremental transfer.  */
-	  unsigned long value[1];
+	  long value[1];
 
 	  TRACE2 ("Start sending %"pD"d bytes incrementally (%s)",
 		  bytes_remaining, XGetAtomName (display, cs->property));
@@ -651,7 +653,7 @@ x_reply_selection_request (struct input_event *event, struct x_display_info *dpy
 
 	  /* XChangeProperty expects an array of long even if long is
 	     more than 32 bits.  */
-	  value[0] = min (bytes_remaining, X_ULONG_MAX);
+	  value[0] = min (bytes_remaining, X_LONG_MAX);
 	  XChangeProperty (display, window, cs->property,
 			   dpyinfo->Xatom_INCR, 32, PropModeReplace,
 			   (unsigned char *) value, 1);
@@ -1764,13 +1766,13 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
       (*(Atom **) data_ret) [0] = symbol_to_x_atom (dpyinfo, obj);
       if (NILP (type)) type = QATOM;
     }
-  else if (RANGED_INTEGERP (0, obj, X_USHRT_MAX))
+  else if (RANGED_INTEGERP (X_SHRT_MIN, obj, X_SHRT_MAX))
     {
       *data_ret = (unsigned char *) xmalloc (sizeof (short) + 1);
       *format_ret = 16;
       *size_ret = 1;
       (*data_ret) [sizeof (short)] = 0;
-      (*(unsigned short **) data_ret) [0] = XINT (obj);
+      (*(short **) data_ret) [0] = XINT (obj);
       if (NILP (type)) type = QINTEGER;
     }
   else if (INTEGERP (obj)
@@ -1783,7 +1785,7 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
       *format_ret = 32;
       *size_ret = 1;
       (*data_ret) [sizeof (long)] = 0;
-      (*(unsigned long **) data_ret) [0] = cons_to_unsigned (obj, X_ULONG_MAX);
+      (*(long **) data_ret) [0] = cons_to_signed (obj, X_LONG_MIN, X_LONG_MAX);
       if (NILP (type)) type = QINTEGER;
     }
   else if (VECTORP (obj))
@@ -1817,25 +1819,30 @@ lisp_data_to_selection_data (Display *display, Lisp_Object obj,
 	  int data_size = sizeof (short);
 	  if (NILP (type)) type = QINTEGER;
 	  for (i = 0; i < size; i++)
-	    if (X_USHRT_MAX
-		< cons_to_unsigned (XVECTOR (obj)->contents[i], X_ULONG_MAX))
-	      {
-		/* Use sizeof (long) even if it is more than 32 bits.
-		   See comment in x_get_window_property and
-		   x_fill_property_data.  */
-		data_size = sizeof (long);
-		format = 32;
-	      }
+	    {
+	      intmax_t v = cons_to_signed (XVECTOR (obj)->contents[i],
+					   X_LONG_MIN, X_LONG_MAX);
+	      if (X_SHRT_MIN <= v && v <= X_SHRT_MAX)
+		{
+		  /* Use sizeof (long) even if it is more than 32 bits.
+		     See comment in x_get_window_property and
+		     x_fill_property_data.  */
+		  data_size = sizeof (long);
+		  format = 32;
+		}
+	    }
 	  *data_ret = xnmalloc (size, data_size);
 	  *format_ret = format;
 	  *size_ret = size;
 	  for (i = 0; i < size; i++)
-	    if (format == 32)
-	      (*((unsigned long **) data_ret)) [i] =
-		cons_to_unsigned (XVECTOR (obj)->contents[i], X_ULONG_MAX);
-	    else
-	      (*((unsigned short **) data_ret)) [i] =
-		cons_to_unsigned (XVECTOR (obj)->contents[i], X_USHRT_MAX);
+	    {
+	      long v = cons_to_signed (XVECTOR (obj)->contents[i],
+				       X_LONG_MIN, X_LONG_MAX);
+	      if (format == 32)
+		(*((long **) data_ret)) [i] = v;
+	      else
+		(*((short **) data_ret)) [i] = v;
+	    }
 	}
     }
   else
@@ -2479,7 +2486,7 @@ x_handle_dnd_message (struct frame *f, XClientMessageEvent *event, struct x_disp
   unsigned long size = 160/event->format;
   int x, y;
   unsigned char *data = (unsigned char *) event->data.b;
-  unsigned int idata[5];
+  int idata[5];
   ptrdiff_t i;
 
   for (i = 0; i < dpyinfo->x_dnd_atoms_length; ++i)
