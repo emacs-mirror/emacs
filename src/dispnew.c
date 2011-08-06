@@ -5282,7 +5282,7 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
      argument is ZV to prevent move_it_in_display_line from matching
      based on buffer positions.  */
   move_it_in_display_line (&it, ZV, to_x, MOVE_TO_X);
-  bidi_unshelve_cache (itdata);
+  bidi_unshelve_cache (itdata, 0);
 
   Fset_buffer (old_current_buffer);
 

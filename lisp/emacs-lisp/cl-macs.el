@@ -238,6 +238,37 @@ It is a list of elements of the form either:
 
 (declare-function help-add-fundoc-usage "help-fns" (docstring arglist))
 
+(defun cl--make-usage-var (x)
+  "X can be a var or a (destructuring) lambda-list."
+  (cond
+   ((symbolp x) (make-symbol (upcase (symbol-name x))))
+   ((consp x) (cl--make-usage-args x))
+   (t x)))
+
+(defun cl--make-usage-args (arglist)
+  ;; `orig-args' can contain &cl-defs (an internal
+  ;; CL thingy I don't understand), so remove it.
+  (let ((x (memq '&cl-defs arglist)))
+    (when x (setq arglist (delq (car x) (remq (cadr x) arglist)))))
+  (let ((state nil))
+    (mapcar (lambda (x)
+              (cond
+               ((symbolp x)
+                (if (eq ?\& (aref (symbol-name x) 0))
+                    (setq state x)
+                  (make-symbol (upcase (symbol-name x)))))
+               ((not (consp x)) x)
+               ((memq state '(nil &rest)) (cl--make-usage-args x))
+               (t        ;(VAR INITFORM SVAR) or ((KEYWORD VAR) INITFORM SVAR).
+                (list*
+                 (if (and (consp (car x)) (eq state '&key))
+                     (list (caar x) (cl--make-usage-var (nth 1 (car x))))
+                   (cl--make-usage-var (car x)))
+                 (nth 1 x)                          ;INITFORM.
+                 (cl--make-usage-args (nthcdr 2 x)) ;SVAR.
+                 ))))
+            arglist)))
+
 (defun cl-transform-lambda (form bind-block)
   (let* ((args (car form)) (body (cdr form)) (orig-args args)
 	 (bind-defs nil) (bind-enquote nil)
@@ -282,11 +313,8 @@ It is a list of elements of the form either:
                         (require 'help-fns)
                         (cons (help-add-fundoc-usage
                                (if (stringp (car hdr)) (pop hdr))
-                               ;; orig-args can contain &cl-defs (an internal
-                               ;; CL thingy I don't understand), so remove it.
-                               (let ((x (memq '&cl-defs orig-args)))
-                                 (if (null x) orig-args
-                                   (delq (car x) (remq (cadr x) orig-args)))))
+                               (format "(fn %S)"
+                                       (cl--make-usage-args orig-args)))
                               hdr)))
 		    (list (nconc (list 'let* bind-lets)
 				 (nreverse bind-forms) body)))))))

@@ -1,3 +1,31 @@
+2011-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c <bidi_cache_total_alloc>: Now static.
+	(bidi_initialize): Initialize bidi_cache_total_alloc.
+
+	*xdisp.c (display_line): Release buffer allocated for shelved bidi
+	cache.  (Bug#9221)
+
+	* bidi.c (bidi_shelve_cache, bidi_unshelve_cache): Track total
+	amount allocated this far in `bidi_cache_total_alloc'.
+	(bidi_unshelve_cache): Accept an additional argument JUST_FREE; if
+	non-zero, only free the data buffer without restoring the cache
+	contents.  All callers changed.
+
+	* dispextern.h (bidi_unshelve_cache): Update prototype.
+
+	* xdisp.c (SAVE_IT, pos_visible_p, move_it_in_display_line_to)
+	(move_it_in_display_line, move_it_to)
+	(move_it_vertically_backward, move_it_by_lines): Replace the call
+	to xfree to an equivalent call to bidi_unshelve_cache.
+	(move_it_in_display_line_to): Fix logic of returning
+	MOVE_POS_MATCH_OR_ZV in the bidi case.  (Bug#9224)
+
+2011-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Prefer the candidate glyph that
+	came from a string character with a `cursor' property.  (Bug#9229)
+
 2011-08-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Makefile.in (LIB_PTHREAD): New variable.

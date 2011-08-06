@@ -1,3 +1,12 @@
+2011-08-05  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-sum.el (gnus-summary-refer-article): Warp to article. This
+	allows article-referral to work from an nnir group.
+
+2011-08-04  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus.el (registry-ignore): Add nnir groups to the ignore-list.
+
 2011-08-04  Daiki Ueno  <ueno@unixuser.org>
 
 	* mml1991.el (mml1991-epg-find-usable-key)

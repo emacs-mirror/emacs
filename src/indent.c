@@ -2135,7 +2135,7 @@ whether or not it is currently displayed in some window.  */)
 	}
 
       SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
-      bidi_unshelve_cache (itdata);
+      bidi_unshelve_cache (itdata, 0);
     }
 
   if (BUFFERP (old_buffer))
