@@ -1,28 +1,27 @@
 ;;; ob-maxima.el --- org-babel functions for maxima evaluation
 
-;; Copyright (c) 2009, 2010, 2011 Eric S Fraga, Eric Schulte
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
-;; Author: Eric S Fraga, Eric Schulte
+;; Author: Eric S Fraga
+;;	   Eric Schulte
 ;; Keywords: literate programming, reproducible research, maxima
 ;; Homepage: http://orgmode.org
 ;; Version: 7.7
 
-;;; License:
+;; This file is part of GNU Emacs.
 
-;; This program is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
-;;
-;; This program is distributed in the hope that it will be useful,
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;;
+
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
