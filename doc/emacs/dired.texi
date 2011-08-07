@@ -645,8 +645,8 @@ link.
 @cindex changing file permissions (in Dired)
 @item M @var{modespec} @key{RET}
 Change the mode (also called ``permission bits'') of the specified files
-(@code{dired-do-chmod}).  This uses the @code{chmod} program, so
-@var{modespec} can be any argument that @code{chmod} can handle.
+(@code{dired-do-chmod}).  @var{modespec} can be in octal or symbolic
+notation like arguments handled by the @code{chmod} program.
 
 @findex dired-do-chgrp
 @kindex G @r{(Dired)}

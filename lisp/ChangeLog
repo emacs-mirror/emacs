@@ -1,3 +1,12 @@
+2011-08-07  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (list-faces-display): Remove extra angle bracket
+	from `help-mode-map'.
+
+	* info.el (Info-history-toc-nodes): Doc fix.
+
+	* longlines.el (longlines-mode): Doc fix.
+
 2011-08-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/js.el (js--regexp-literal): Accept regexps at the beginning
@@ -345,9 +354,6 @@
 	operation.
 	(string-rectangle): Go to the point after the last operation
 	(bug#7522).
-
-	* simple.el (current-kill): Clarify what
-	`interprogram-paste-function' does (bug#7500).
 
 	* printing.el (pr-toggle-region): Clarify the documentation
 	slightly (bug#7493).

@@ -1,3 +1,8 @@
+2011-08-07  Juri Linkov  <juri@jurta.org>
+
+	* dired.texi (Operating on Files): Rewrite according to the fact
+	that `dired-do-chmod' doesn't use the `chmod' program anymore.
+
 2011-07-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* mini.texi (Minibuffer File): Insert a reference to Tramp for
