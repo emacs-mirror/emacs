@@ -1,3 +1,8 @@
+2011-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* composite.c (autocmp_chars): Don't reset point.  That is done by
+	restore_point_unwind (Bug#5984).
+
 2011-08-07  Juri Linkov  <juri@jurta.org>
 
 	* editfns.c (Fformat_time_string): Doc fix, add tag `usage:'
