@@ -1,3 +1,8 @@
+2011-08-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ftfont.c (ftfont_pattern_entity): Copy the extras argument to
+	the font entity extracted from the cache (Bug#8109).
+
 2011-08-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* composite.c (autocmp_chars): Don't reset point.  That is done by
