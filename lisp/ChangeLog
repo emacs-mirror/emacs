@@ -1,5 +1,13 @@
 2011-08-08  Chong Yidong  <cyd@stupidchicken.com>
 
+	* image-dired.el: Don't use find-file for temporary work (Bug#7895).
+	(image-dired--with-db-file): New macro.
+	(image-dired-write-tags, image-dired-remove-tag)
+	(image-dired-create-gallery-lists, image-dired-write-comments)
+	(image-dired-get-comment, image-dired-mark-tagged-files)
+	(image-dired-list-tags, image-dired-gallery-generate): Use it.
+	(image-dired-gallery-generate): Use insert-file-contents.
+
 	* time.el (display-time-world-list, display-time-world-display):
 	* time-stamp.el (time-stamp-string):
 	* vc/add-log.el (add-change-log-entry): Use setenv instead of
