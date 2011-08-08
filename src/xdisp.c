@@ -5551,6 +5551,14 @@ forward_to_next_line_start (struct it *it, int *skipped_p,
 	    {
 	      struct bidi_it bprev;
 
+	      /* Help bidi.c avoid expensive searches for display
+		 properties and overlays, by telling it that there are
+		 none up to `limit'.  */
+	      if (it->bidi_it.disp_pos < limit)
+		{
+		  it->bidi_it.disp_pos = limit;
+		  it->bidi_it.disp_prop_p = 0;
+		}
 	      do {
 		bprev = it->bidi_it;
 		bidi_move_to_visually_next (&it->bidi_it);
