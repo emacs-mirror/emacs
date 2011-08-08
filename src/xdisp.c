@@ -5532,19 +5532,34 @@ forward_to_next_line_start (struct it *it, int *skipped_p,
 
       xassert (!STRINGP (it->string));
 
-      /* If we are not bidi-reordering, and there isn't any `display'
-	 property in sight, and no overlays, we can just use the
-	 position of the newline in buffer text.  */
-      if (!it->bidi_p
-	  && (it->stop_charpos >= limit
-	      || ((pos = Fnext_single_property_change (make_number (start),
-						       Qdisplay, Qnil,
-						       make_number (limit)),
-		   NILP (pos))
-		  && next_overlay_change (start) == ZV)))
+      /* If there isn't any `display' property in sight, and no
+	 overlays, we can just use the position of the newline in
+	 buffer text.  */
+      if (it->stop_charpos >= limit
+	  || ((pos = Fnext_single_property_change (make_number (start),
+						   Qdisplay, Qnil,
+						   make_number (limit)),
+	       NILP (pos))
+	      && next_overlay_change (start) == ZV))
 	{
-	  IT_CHARPOS (*it) = limit;
-	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (limit);
+	  if (!it->bidi_p)
+	    {
+	      IT_CHARPOS (*it) = limit;
+	      IT_BYTEPOS (*it) = CHAR_TO_BYTE (limit);
+	    }
+	  else
+	    {
+	      struct bidi_it bprev;
+
+	      do {
+		bprev = it->bidi_it;
+		bidi_move_to_visually_next (&it->bidi_it);
+	      } while (it->bidi_it.charpos != limit);
+	      IT_CHARPOS (*it) = limit;
+	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+	      if (bidi_it_prev)
+		*bidi_it_prev = bprev;
+	    }
 	  *skipped_p = newline_found_p = 1;
 	}
       else
