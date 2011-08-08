@@ -853,9 +853,9 @@ non-nil, otherwise in local time."
                             (let ((tz (getenv "TZ")))
                               (unwind-protect
                                   (progn
-                                    (set-time-zone-rule add-log-time-zone-rule)
+                                    (setenv "TZ" add-log-time-zone-rule)
                                     (funcall add-log-time-format))
-                                (set-time-zone-rule tz)))
+                                (setenv "TZ" tz)))
                           (funcall add-log-time-format))
                         "  " full-name
                         "  <" addr ">"))

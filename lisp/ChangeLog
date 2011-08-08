@@ -1,3 +1,10 @@
+2011-08-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* time.el (display-time-world-list, display-time-world-display):
+	* time-stamp.el (time-stamp-string):
+	* vc/add-log.el (add-change-log-entry): Use setenv instead of
+	set-time-zone-rule (Bug#7337).
+
 2011-08-08  Daiki Ueno  <ueno@unixuser.org>
 
 	* epg.el (epg--status-KEYEXPIRED, epg--status-KEYREVOKED): Fix typo.

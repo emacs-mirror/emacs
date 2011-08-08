@@ -1,5 +1,8 @@
 2011-08-08  Chong Yidong  <cyd@stupidchicken.com>
 
+	* editfns.c (Fset_time_zone_rule): Document relationship with the
+	setenv function.
+
 	* ftfont.c (ftfont_pattern_entity): Copy the extras argument to
 	the font entity extracted from the cache (Bug#8109).
 
