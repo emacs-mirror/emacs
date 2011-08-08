@@ -1,3 +1,16 @@
+2011-08-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg--status-KEYEXPIRED, epg--status-KEYREVOKED): Fix typo.
+	(epg-error-to-string, epg-errors-to-string): New function.
+	(epg-wait-for-completion): Reverse errors list.
+	(epg--check-error-for-decrypt, epg-sign-file, epg-sign-string)
+	(epg-encrypt-file, epg-encrypt-string, epg-export-keys-to-file)
+	(epg--import-keys-1, epg-receive-keys, epg-delete-keys)
+	(epg-sign-keys, epg-generate-key-from-file)
+	(epg-generate-key-from-string): Format errors by using
+	epg-errors-to-string (bug#9255).
+	(epg--status-INV_SGNR, epg--status-NO_SGNR): New status handler.
+
 2011-08-07  Juri Linkov  <juri@jurta.org>
 
 	* faces.el (list-faces-display): Remove extra angle bracket
