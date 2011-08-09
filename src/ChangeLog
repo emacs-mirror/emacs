@@ -1,3 +1,15 @@
+2011-08-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fontset.c (fontset_get_font_group): Add proper type checks.
+	(Bug#9172)
+
+2011-08-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (print_load_command_name): Add cases LC_FUNCTION_STARTS
+	and LC_VERSION_MIN_MACOSX.
+	(copy_linkedit_data) [LC_FUNCTION_STARTS]: New function.
+	(dump_it) [LC_FUNCTION_STARTS]: Use it.
+
 2011-08-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (forward_to_next_line_start): Allow to use the

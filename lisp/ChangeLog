@@ -1,3 +1,13 @@
+2011-08-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hi-lock.el (hi-lock-unface-buffer): Fix interactive spec
+	(Bug#7554).
+
+2011-08-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xt-mouse.el (xterm-mouse-event-read): Try to recover the raw
+	character.  (Bug#6594)
+
 2011-08-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image-dired.el: Don't use find-file for temporary work (Bug#7895).
