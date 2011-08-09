@@ -1,3 +1,8 @@
+2011-08-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hi-lock.el (hi-lock-unface-buffer): Fix interactive spec
+	(Bug#7554).
+
 2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* xt-mouse.el (xterm-mouse-event-read): Try to recover the raw
