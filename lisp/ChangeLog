@@ -1,3 +1,9 @@
+2011-08-10  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (rgrep): Don't bind `process-connection-type'.
+	This finishes incomplete reversion of revno:104787 (2011-06-30)
+	intended by revno:104988 (2011-07-06).
+
 2011-08-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* hi-lock.el (hi-lock-unface-buffer): Fix interactive spec
