@@ -1038,6 +1038,12 @@ of function value which looks like (closure ENV ARGS &rest BODY).
 *** New function `special-variable-p' to check whether a variable is
 declared as dynamically bound.
 
+** New function `string-mark-left-to-right' appends a Unicode LRM
+(left-to-right mark) character to a string if it terminates in
+right-to-left script.  This is useful when the buffer has overall
+left-to-right paragraph direction and you need to insert a string
+whose contents (and directionality) are not known in advance.
+
 ** pre/post-command-hook are not reset to nil upon error.
 Instead, the offending function is removed.
 

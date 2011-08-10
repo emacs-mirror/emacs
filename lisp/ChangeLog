@@ -1,3 +1,15 @@
+2011-08-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (string-mark-left-to-right): New function.
+
+	* buff-menu.el (Buffer-menu-buffer+size): Remove LRM argument.
+	Use string-mark-left-to-right.
+	(list-buffers-noselect): Caller changed.
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-print-entry): Use
+	string-mark-left-to-right.
+	(tabulated-list-print): Recenter after moving point.
+
 2011-08-10  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/grep.el (rgrep): Don't bind `process-connection-type'.

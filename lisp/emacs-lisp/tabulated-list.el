@@ -258,7 +258,8 @@ to the entry with the same ID element as the current line."
     ;; If REMEMBER-POS was specified, move to the "old" location.
     (if saved-pt
 	(progn (goto-char saved-pt)
-	       (move-to-column saved-col))
+	       (move-to-column saved-col)
+	       (recenter))
       (goto-char (point-min)))))
 
 (defun tabulated-list-print-entry (id cols)
@@ -282,6 +283,7 @@ of column descriptors."
 	     (> (length label) width)
 	     (setq label (concat (substring label 0 (- width 3))
 				 "...")))
+	(setq label (string-mark-left-to-right label))
 	(if (stringp desc)
 	    (insert (propertize label 'help-echo help-echo))
 	  (apply 'insert-text-button label (cdr desc)))
