@@ -1,3 +1,9 @@
+2011-08-11  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnimap.el (nnimap-transform-headers): BODYSTRUCTURE for messages of
+	type MESSAGE and subtype RFC822 is slightly different from those of
+	type TEXT.
+
 2011-08-05  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* gnus-sum.el (gnus-summary-refer-article): Warp to article. This
