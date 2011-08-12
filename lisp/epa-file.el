@@ -137,8 +137,10 @@ encryption is used."
      context
      (cons #'epa-file-passphrase-callback-function
 	   local-file))
-    (epg-context-set-progress-callback context
-				       #'epa-progress-callback-function)
+    (epg-context-set-progress-callback
+     context
+     (cons #'epa-progress-callback-function
+	   (format "Decrypting %s" file)))
     (unwind-protect
 	(progn
 	  (if replace
@@ -211,8 +213,10 @@ encryption is used."
      context
      (cons #'epa-file-passphrase-callback-function
 	   file))
-    (epg-context-set-progress-callback context
-				       #'epa-progress-callback-function)
+    (epg-context-set-progress-callback
+     context
+     (cons #'epa-progress-callback-function
+	   (format "Encrypting %s" file)))
     (epg-context-set-armor context epa-armor)
     (condition-case error
 	(setq string

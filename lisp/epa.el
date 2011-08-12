@@ -651,10 +651,17 @@ If SECRET is non-nil, list secret keys instead of public keys."
 
 (defun epa-progress-callback-function (_context what _char current total
 					       handback)
-  (message "%s%d%% (%d/%d)" (or handback
-				(concat what ": "))
-	   (if (> total 0) (floor (* (/ current (float total)) 100)) 0)
-	   current total))
+  (let ((prompt (or handback
+		    (format "Processing %s: " what))))
+    ;; According to gnupg/doc/DETAIL: a "total" of 0 indicates that
+    ;; the total amount is not known. The condition TOTAL && CUR ==
+    ;; TOTAL may be used to detect the end of an operation.
+    (if (> total 0)
+	(if (= current total)
+	    (message "%s...done" prompt)
+	  (message "%s...%d%%" prompt
+		   (floor (* (/ current (float total)) 100))))
+      (message "%s..." prompt))))
 
 ;;;###autoload
 (defun epa-decrypt-file (file)
