@@ -1,5 +1,13 @@
 2011-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/js.el (js-syntax-propertize, js-syntax-propertize-regexp):
+	New function.
+	(js--regexp-literal, js-syntax-propertize-function): Remove.
+	(js-mode): Use js-syntax-propertize to handle multilines (bug#9183).
+	(js-mode-map): Don't rebind electric keys.
+	(js-insert-and-indent): Remove.
+	(js-mode): Setup electric-layout and electric-indent instead.
+
 	* epa-file.el (epa-file-select-keys): Revert to nil default (bug#9280).
 
 2011-08-12  Daiki Ueno  <ueno@unixuser.org>
