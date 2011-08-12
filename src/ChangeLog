@@ -1,3 +1,17 @@
+2011-08-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (iterate_out_of_display_property): xassert that
+	IT->position is set to within IT->object's boundaries.  Break from
+	the loop as soon as EOB is reached; avoids infloops in redisplay
+	when IT->position is set up wrongly due to some bug.  Set
+	IT->current to match the bidi iterator unconditionally.
+	(push_display_prop): Allow GET_FROM_STRING as IT->method on
+	entry.  Force push_it to save on the stack the current
+	buffer/string position, to be restored by pop_it.  Fix flags in
+	the iterator structure wrt the object coming from a display
+	property, as `line-prefix' and `wrap-prefix' are not ``replacing''
+	properties.  (Bug#9284)
+
 2011-08-09  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* fontset.c (fontset_get_font_group): Add proper type checks.
