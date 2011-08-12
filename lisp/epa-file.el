@@ -35,7 +35,7 @@ way."
   :type 'boolean
   :group 'epa-file)
 
-(defcustom epa-file-select-keys 'silent
+(defcustom epa-file-select-keys nil
   "Control whether or not to pop up the key selection dialog.
 
 If t, always asks user to select recipients.

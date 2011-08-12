@@ -1,3 +1,7 @@
+2011-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* epa-file.el (epa-file-select-keys): Revert to nil default (bug#9280).
+
 2011-08-12  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.el (epa-progress-callback-function): Fix the logic of
@@ -14,8 +18,8 @@
 	Use string-mark-left-to-right.
 	(list-buffers-noselect): Caller changed.
 
-	* emacs-lisp/tabulated-list.el (tabulated-list-print-entry): Use
-	string-mark-left-to-right.
+	* emacs-lisp/tabulated-list.el (tabulated-list-print-entry):
+	Use string-mark-left-to-right.
 	(tabulated-list-print): Recenter after moving point.
 
 2011-08-10  Juri Linkov  <juri@jurta.org>
