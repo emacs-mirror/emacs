@@ -1,3 +1,8 @@
+2011-08-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (string-mark-left-to-right): Search the entire string
+	for RTL script, not just the terminating character.  Doc fix.
+
 2011-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/js.el (js-syntax-propertize, js-syntax-propertize-regexp):
