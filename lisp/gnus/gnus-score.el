@@ -2864,7 +2864,7 @@ The list is determined from the variable `gnus-score-file-alist'."
       (when gnus-score-use-all-scores
 	;; Get the initial score files for this group.
 	(when funcs
-	  (setq score-files (copy-list (gnus-score-find-alist group))))
+	  (setq score-files (copy-sequence (gnus-score-find-alist group))))
 	;; Add any home adapt files.
 	(let ((home (gnus-home-score-file group t)))
 	  (when home
