@@ -1299,10 +1299,20 @@ if test $emacs_cv_struct_exception != yes; then
   AC_DEFINE(NO_MATHERR, 1, [Define to 1 if you don't have struct exception in math.h.])
 fi
 
+AC_CHECK_HEADERS(sys/socket.h)
 AC_CHECK_HEADERS(net/if.h, , , [AC_INCLUDES_DEFAULT
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif])
+AC_CHECK_HEADERS(ifaddrs.h, , , [AC_INCLUDES_DEFAULT
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif])
+AC_CHECK_HEADERS(net/if_dl.h, , , [AC_INCLUDES_DEFAULT
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif])
+AC_CHECK_FUNCS(getifaddrs freeifaddrs)
 
 dnl checks for structure members
 AC_STRUCT_TM
@@ -1313,7 +1323,8 @@ AC_CHECK_MEMBER(struct tm.tm_gmtoff,
 		[#include <time.h>])
 AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr,
 		  struct ifreq.ifr_netmask, struct ifreq.ifr_broadaddr,
-		  struct ifreq.ifr_addr], , ,
+		  struct ifreq.ifr_addr,
+		  struct ifreq.ifr_addr.sa_len], , ,
 		 [AC_INCLUDES_DEFAULT
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>

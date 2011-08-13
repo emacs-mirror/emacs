@@ -1,3 +1,14 @@
+2011-08-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* process.c: Include ifaddrs.h and net/if_dl.h if available (Bug#8477).
+	(Fnetwork_interface_list): Allocate in increments of bytes instead
+	of sizeof (struct ifreq).  Iterate over ifconf.ifc_req by counting
+	bytes (Bug#8477).  Count bytes correctly when ifr_addr is a struct
+	sockaddr.
+	(struct ifflag_def): notrailers is smart on OSX.
+	(Fnetwork_interface_info): Handle case when ifr_flags is negative.
+	Get hardware address with getifaddrs if available.
+
 2011-08-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (iterate_out_of_display_property): xassert that

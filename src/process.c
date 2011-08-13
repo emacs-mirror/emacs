@@ -58,6 +58,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <net/if.h>
 #endif /* HAVE_NET_IF_H */
 
+#if defined(HAVE_IFADDRS_H)
+/* Must be after net/if.h */
+#include <ifaddrs.h>
+
+/* We only use structs from this header when we use getifaddrs.  */
+#if defined(HAVE_NET_IF_DL_H)
+#include <net/if_dl.h>
+#endif
+
+#endif
+
 #ifdef NEED_BSDTTY
 #include <bsdtty.h>
 #endif
@@ -3557,9 +3568,9 @@ format; see the description of ADDRESS in `make-network-process'.  */)
   (void)
 {
   struct ifconf ifconf;
-  struct ifreq *ifreqs = NULL;
-  int ifaces = 0;
-  int buf_size, s;
+  struct ifreq *ifreq;
+  void *buf = NULL;
+  int buf_size = 512, s, i;
   Lisp_Object res;
 
   s = socket (AF_INET, SOCK_STREAM, 0);
@@ -3567,20 +3578,19 @@ format; see the description of ADDRESS in `make-network-process'.  */)
     return Qnil;
 
  again:
-  ifaces += 25;
-  buf_size = ifaces * sizeof (ifreqs[0]);
-  ifreqs = (struct ifreq *)xrealloc(ifreqs, buf_size);
-  if (!ifreqs)
+  buf_size *= 2;
+  buf = xrealloc(buf, buf_size);
+  if (!buf)
     {
       close (s);
       return Qnil;
     }
 
-  ifconf.ifc_len = buf_size;
-  ifconf.ifc_req = ifreqs;
+  ifconf.ifc_buf = buf;
   if (ioctl (s, SIOCGIFCONF, &ifconf))
     {
       close (s);
+      xfree (buf);
       return Qnil;
     }
 
@@ -3588,15 +3598,29 @@ format; see the description of ADDRESS in `make-network-process'.  */)
     goto again;
 
   close (s);
-  ifaces = ifconf.ifc_len / sizeof (ifreqs[0]);
 
   res = Qnil;
-  while (--ifaces >= 0)
+  for (ifreq = ifconf.ifc_req;
+       (char *) ifreq < (char *) (ifconf.ifc_req) + ifconf.ifc_len;
+       )
     {
-      struct ifreq *ifq = &ifreqs[ifaces];
+      struct ifreq *ifq = ifreq;
+#ifdef HAVE_STRUCT_IFREQ_IFR_ADDR_SA_LEN
+#define SIZEOF_IFREQ(sif)                                               \
+      ((sif)->ifr_addr.sa_len < sizeof(struct sockaddr) ?               \
+       sizeof((*sif)) : sizeof ((sif)->ifr_name) + sif->ifr_addr.sa_len)
+
+      int len = SIZEOF_IFREQ (ifq);
+#else
+      int len = sizeof (*ifreq);
+#endif
       char namebuf[sizeof (ifq->ifr_name) + 1];
+      i += len;
+      ifreq = (struct ifreq*) ((char*) ifreq + len);
+
       if (ifq->ifr_addr.sa_family != AF_INET)
 	continue;
+
       memcpy (namebuf, ifq->ifr_name, sizeof (ifq->ifr_name));
       namebuf[sizeof (ifq->ifr_name)] = 0;
       res = Fcons (Fcons (build_string (namebuf),
@@ -3605,6 +3629,7 @@ format; see the description of ADDRESS in `make-network-process'.  */)
 		   res);
     }
 
+  xfree (buf);
   return res;
 }
 #endif /* SIOCGIFCONF */
@@ -3642,7 +3667,12 @@ static const struct ifflag_def ifflag_table[] = {
   { IFF_PROMISC,	"promisc" },
 #endif
 #ifdef IFF_NOTRAILERS
+#ifdef NS_IMPL_COCOA
+  /* Really means smart, notrailers is obsolete */
+  { IFF_NOTRAILERS,	"smart" },
+#else
   { IFF_NOTRAILERS,	"notrailers" },
+#endif
 #endif
 #ifdef IFF_ALLMULTI
   { IFF_ALLMULTI,	"allmulti" },
@@ -3696,6 +3726,9 @@ FLAGS is the current flags of the interface.  */)
   Lisp_Object elt;
   int s;
   int any = 0;
+#if defined(HAVE_GETIFADDRS)
+  struct ifaddrs *ifap;
+#endif
 
   CHECK_STRING (ifname);
 
@@ -3713,6 +3746,12 @@ FLAGS is the current flags of the interface.  */)
       int flags = rq.ifr_flags;
       const struct ifflag_def *fp;
       int fnum;
+
+      /* If flags is smaller than int (i.e. short) it may have the high bit set
+         due to IFF_MULTICAST.  In that case, sign extending it into
+         an int is wrong.  */
+      if (flags < 0 && sizeof (rq.ifr_flags) < sizeof (flags))
+        flags = (unsigned short) rq.ifr_flags;
 
       any = 1;
       for (fp = ifflag_table; flags != 0 && fp->flag_sym; fp++)
@@ -3747,7 +3786,38 @@ FLAGS is the current flags of the interface.  */)
 	p->contents[n] = make_number (((unsigned char *)&rq.ifr_hwaddr.sa_data[0])[n]);
       elt = Fcons (make_number (rq.ifr_hwaddr.sa_family), hwaddr);
     }
+#elif defined(HAVE_GETIFADDRS) && defined(LLADDR)
+  if (getifaddrs (&ifap) != -1)
+    {
+      Lisp_Object hwaddr = Fmake_vector (make_number (6), Qnil);
+      register struct Lisp_Vector *p = XVECTOR (hwaddr);
+      struct ifaddrs *it;
+
+      for (it = ifap; it != NULL; it = it->ifa_next)
+        {
+          struct sockaddr_dl *sdl = (struct sockaddr_dl*) it->ifa_addr;
+          unsigned char linkaddr[6];
+          int n;
+
+          if (it->ifa_addr->sa_family != AF_LINK
+              || strcmp (it->ifa_name, SSDATA (ifname)) != 0
+              || sdl->sdl_alen != 6)
+            continue;
+
+          memcpy (linkaddr, LLADDR(sdl), sdl->sdl_alen);
+          for (n = 0; n < 6; n++)
+            p->contents[n] = make_number (linkaddr[n]);
+
+          elt = Fcons (make_number (it->ifa_addr->sa_family), hwaddr);
+          break;
+        }
+    }
+#ifdef HAVE_FREEIFADDRS
+  freeifaddrs (ifap);
 #endif
+
+#endif /* HAVE_GETIFADDRS && LLADDR */
+
   res = Fcons (elt, res);
 
   elt = Qnil;
