@@ -1,3 +1,10 @@
+2011-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): Don't invoke
+	IT_RESET_X_ASCENT_DESCENT when iterator position was restored from
+	ppos_it.  Fixes vertical cursor motion when line beginning is
+	covered by an image.  (Bug#9296)
+
 2011-08-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.h (ns_run_ascript): Declare.
