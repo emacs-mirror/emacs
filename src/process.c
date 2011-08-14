@@ -3726,7 +3726,8 @@ FLAGS is the current flags of the interface.  */)
   Lisp_Object elt;
   int s;
   int any = 0;
-#if defined(HAVE_GETIFADDRS)
+#if (! (defined SIOCGIFHWADDR && defined HAVE_STRUCT_IFREQ_IFR_HWADDR)	\
+     && defined HAVE_GETIFADDRS && defined LLADDR)
   struct ifaddrs *ifap;
 #endif
 

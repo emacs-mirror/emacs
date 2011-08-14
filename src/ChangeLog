@@ -1,3 +1,7 @@
+2011-08-14  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* process.c (Fnetwork_interface_info): Declare local only if needed.
+
 2011-08-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* process.c: Include ifaddrs.h and net/if_dl.h if available (Bug#8477).
