@@ -1454,7 +1454,10 @@ specify just the foreground color or just the background color.
 @item mouse-face
 @kindex mouse-face @r{(overlay property)}
 This property is used instead of @code{face} when the mouse is within
-the range of the overlay.
+the range of the overlay.  However, Emacs ignores all face attributes
+from this property that alter the text size (e.g.  @code{:height},
+@code{:weight}, and @code{:slant}).  Those attributes are always the
+same as in the unhighlighted text.
 
 @item display
 @kindex display @r{(overlay property)}

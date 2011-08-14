@@ -3203,7 +3203,6 @@ int merge_faces (struct frame *, Lisp_Object, EMACS_INT, int);
 int compute_char_face (struct frame *, int, Lisp_Object);
 void free_all_realized_faces (Lisp_Object);
 extern Lisp_Object Qforeground_color, Qbackground_color;
-extern Lisp_Object Qframe_set_background_mode;
 extern char unspecified_fg[], unspecified_bg[];
 
 /* Defined in xfns.c  */

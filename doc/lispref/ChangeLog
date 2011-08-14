@@ -1,3 +1,14 @@
+2011-08-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Special Properties):
+	* display.texi (Overlay Properties): Note that mouse-face cannot
+	change the text size (Bug#8530).
+
+2011-08-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Time of Day): Remove set-time-zone-rule, and recommend
+	using setenv instead.
+
 2011-07-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Bidirectional Display): Document the fact that

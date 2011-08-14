@@ -1143,6 +1143,18 @@ get with the function @code{file-attributes}.
 @xref{Definition of file-attributes}.
 @end defun
 
+@defun float-time &optional time-value
+This function returns the current time as a floating-point number of
+seconds since the epoch.  The argument @var{time-value}, if given,
+specifies a time to convert instead of the current time.  The argument
+should have the same form as for @code{current-time-string} (see
+above).  Thus, it accepts the output of @code{current-time} and
+@code{file-attributes} (@pxref{Definition of file-attributes}).
+
+@emph{Warning}: Since the result is floating point, it may not be
+exact.  Do not use this function if precise time stamps are required.
+@end defun
+
 @defun current-time-zone &optional time-value
 This function returns a list describing the time zone that the user is
 in.
@@ -1165,25 +1177,11 @@ times obtained from @code{current-time} (see above) and from
 @code{file-attributes}.  @xref{Definition of file-attributes}.
 @end defun
 
-@defun set-time-zone-rule tz
-This function specifies the local time zone according to @var{tz}.  If
-@var{tz} is @code{nil}, that means to use an implementation-defined
-default time zone.  If @var{tz} is @code{t}, that means to use
-Universal Time.  Otherwise, @var{tz} should be a string specifying a
-time zone rule.
-@end defun
-
-@defun float-time &optional time-value
-This function returns the current time as a floating-point number of
-seconds since the epoch.  The argument @var{time-value}, if given,
-specifies a time to convert instead of the current time.  The argument
-should have the same form as for @code{current-time-string} (see
-above).  Thus, it accepts the output of @code{current-time} and
-@code{file-attributes} (@pxref{Definition of file-attributes}).
-
-@emph{Warning}: Since the result is floating point, it may not be
-exact.  Do not use this function if precise time stamps are required.
-@end defun
+The current time zone is determined by the @samp{TZ} environment
+variable.  @xref{System Environment}.  For example, you can tell Emacs
+to use universal time with @code{(setenv "TZ" "UTC0")}.  If @samp{TZ}
+is not in the environment, Emacs uses a platform-dependent default
+time zone.
 
 @node Time Conversion
 @section Time Conversion

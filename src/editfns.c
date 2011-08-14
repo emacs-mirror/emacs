@@ -1695,7 +1695,9 @@ The modifiers are `E' and `O'.  For certain characters X,
 %EX is a locale's alternative version of %X;
 %OX is like %X, but uses the locale's number symbols.
 
-For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
+For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".
+
+usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
   (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object universal)
 {
   time_t value;
@@ -2051,7 +2053,12 @@ static char *initial_tz;
 DEFUN ("set-time-zone-rule", Fset_time_zone_rule, Sset_time_zone_rule, 1, 1, 0,
        doc: /* Set the local time zone using TZ, a string specifying a time zone rule.
 If TZ is nil, use implementation-defined default time zone information.
-If TZ is t, use Universal Time.  */)
+If TZ is t, use Universal Time.
+
+Instead of calling this function, you typically want (setenv "TZ" TZ).
+That changes both the environment of the Emacs process and the
+variable `process-environment', whereas `set-time-zone-rule' affects
+only the former.  */)
   (Lisp_Object tz)
 {
   const char *tzstring;

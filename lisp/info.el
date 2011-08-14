@@ -2128,7 +2128,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
 	       ))
 
 (defun Info-history-toc-nodes (filename)
-  "History-specific implementation of `Info-history-toc-nodes'."
+  "History-specific implementation of `Info-toc-nodes'."
   `(,filename
     ("Top" nil nil nil)))
 

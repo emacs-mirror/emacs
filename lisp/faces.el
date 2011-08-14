@@ -1255,7 +1255,7 @@ arg, prompt for a regular expression."
 	(insert
 	 (substitute-command-keys
 	  (concat
-	   "\\<help-mode-map>>Use "
+	   "\\<help-mode-map>Use "
 	   (if (display-mouse-p) "\\[help-follow-mouse] or ")
 	   "\\[help-follow] on a face name to customize it\n"
 	   "or on its sample text for a description of the face.\n\n")))

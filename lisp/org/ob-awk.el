@@ -24,8 +24,6 @@
 
 ;;; Commentary:
 
-;;; Commentary:
-
 ;; Babel's awk can use special header argument:
 ;; 
 ;; - :in-file takes a path to a file of data to be processed by awk

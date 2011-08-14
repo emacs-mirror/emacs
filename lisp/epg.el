@@ -1069,6 +1069,59 @@ This function is for internal use only."
 	      (format " secret keys unchanged: %d\n"
 		      (epg-import-result-secret-unchanged import-result)))))
 
+(defun epg-error-to-string (error)
+  (cond
+   ((eq (car error) 'exit)
+    "Exit")
+   ((eq (car error) 'quit)
+    "Cancelled")
+   ((eq (car error) 'no-data)
+    (let ((entry (assq (cdr error) epg-no-data-reason-alist)))
+      (if entry
+	  (format "No data (%s)" (downcase (cdr entry)))
+	"No data")))
+   ((eq (car error) 'unexpected)
+    (let ((entry (assq (cdr error) epg-unexpected-reason-alist)))
+      (if entry
+	  (format "Unexpected (%s)" (downcase (cdr entry)))
+	"Unexpected")))
+   ((eq (car error) 'bad-armor)
+    "Bad armor")
+   ((memq (car error) '(invalid-recipient invalid-signer))
+    (concat
+     (if (eq (car error) 'invalid-recipient)
+	 "Unusable public key"
+       "Unusable secret key")
+     (let ((entry (assq 'requested (cdr error))))
+       (if entry
+	   (format ": %s" (cdr entry))
+	 ": <unknown>"))
+     (let ((entry (assq 'reason (cdr error))))
+       (if (and entry
+		(> (cdr entry) 0)	;no specific reason given
+		(setq entry (assq (cdr entry)
+				  epg-invalid-recipients-reason-alist)))
+	   (format " (%s)" (downcase (cdr entry)))
+	 ""))))
+   ((eq (car error) 'no-pubkey)
+    (format "No public key: %s" (cdr error)))
+   ((eq (car error) 'no-seckey)
+    (format "No secret key: %s" (cdr error)))
+   ((eq (car error) 'no-recipients)
+    "No recipients")
+   ((eq (car error) 'no-signers)
+    "No signers")
+   ((eq (car error) 'delete-problem)
+    (let ((entry (assq (cdr error) epg-delete-problem-reason-alist)))
+      (if entry
+	  (format "Delete problem (%s)" (downcase (cdr entry)))
+	"Delete problem")))
+   ((eq (car error) 'key-not-created)
+    "Key not created")))
+
+(defun epg-errors-to-string (errors)
+  (mapconcat #'epg-error-to-string errors "; "))
+
 (defun epg--start (context args)
   "Start `epg-gpg-program' in a subprocess with given ARGS."
   (if (and (epg-context-process context)
@@ -1195,7 +1248,7 @@ This function is for internal use only."
     (if epg-pending-status-list
 	(epg-context-set-result-for
 	 context 'error
-	 (cons (list 'exit)
+	 (cons '(exit)
 	       (epg-context-result-for context 'error))))))
 
 (defun epg-wait-for-completion (context)
@@ -1203,7 +1256,10 @@ This function is for internal use only."
   (while (eq (process-status (epg-context-process context)) 'run)
     (accept-process-output (epg-context-process context) 1))
   ;; This line is needed to run the process-filter right now.
-  (sleep-for 0.1))
+  (sleep-for 0.1)
+  (epg-context-set-result-for
+   context 'error
+   (nreverse (epg-context-result-for context 'error))))
 
 (defun epg-reset (context)
   "Reset the CONTEXT."
@@ -1399,11 +1455,22 @@ This function is for internal use only."
   (epg--status-*SIG context 'bad string))
 
 (defun epg--status-NO_PUBKEY (context string)
-  (let ((signature (car (epg-context-result-for context 'verify))))
-    (if (and signature
-	     (eq (epg-signature-status signature) 'error)
-	     (equal (epg-signature-key-id signature) string))
-	(epg-signature-set-status signature 'no-pubkey))))
+  (if (eq (epg-context-operation context) 'verify)
+      (let ((signature (car (epg-context-result-for context 'verify))))
+	(if (and signature
+		 (eq (epg-signature-status signature) 'error)
+		 (equal (epg-signature-key-id signature) string))
+	    (epg-signature-set-status signature 'no-pubkey)))
+    (epg-context-set-result-for
+     context 'error
+     (cons (cons 'no-pubkey string)
+	   (epg-context-result-for context 'error)))))
+
+(defun epg--status-NO_SECKEY (context string)
+  (epg-context-set-result-for
+   context 'error
+   (cons (cons 'no-seckey string)
+	 (epg-context-result-for context 'error))))
 
 (defun epg--time-from-seconds (seconds)
   (let ((number-seconds (string-to-number (concat seconds ".0"))))
@@ -1564,13 +1631,13 @@ This function is for internal use only."
    context 'key
    (cons (list 'key-expired (cons 'expiration-time
 				  (epg--time-from-seconds string)))
-	 (epg-context-result-for context 'error))))
+	 (epg-context-result-for context 'key))))
 
 (defun epg--status-KEYREVOKED (context _string)
   (epg-context-set-result-for
    context 'key
    (cons '(key-revoked)
-	 (epg-context-result-for context 'error))))
+	 (epg-context-result-for context 'key))))
 
 (defun epg--status-BADARMOR (context _string)
   (epg-context-set-result-for
@@ -1585,7 +1652,18 @@ This function is for internal use only."
        (cons (list 'invalid-recipient
 		   (cons 'reason
 			 (string-to-number (match-string 1 string)))
-		   (cons 'requested-recipient
+		   (cons 'requested
+			 (match-string 2 string)))
+	     (epg-context-result-for context 'error)))))
+
+(defun epg--status-INV_SGNR (context string)
+  (if (string-match "\\`\\([0-9]+\\) \\(.*\\)" string)
+      (epg-context-set-result-for
+       context 'error
+       (cons (list 'invalid-signer
+		   (cons 'reason
+			 (string-to-number (match-string 1 string)))
+		   (cons 'requested
 			 (match-string 2 string)))
 	     (epg-context-result-for context 'error)))))
 
@@ -1593,6 +1671,12 @@ This function is for internal use only."
   (epg-context-set-result-for
    context 'error
    (cons '(no-recipients)
+	 (epg-context-result-for context 'error))))
+
+(defun epg--status-NO_SGNR (context _string)
+  (epg-context-set-result-for
+   context 'error
+   (cons '(no-signers)
 	 (epg-context-result-for context 'error))))
 
 (defun epg--status-DELETE_PROBLEM (context string)
@@ -1960,17 +2044,13 @@ If you are unsure, use synchronous version of this function
     (epg-wait-for-status context '("BEGIN_DECRYPTION"))))
 
 (defun epg--check-error-for-decrypt (context)
-  (if (epg-context-result-for context 'decryption-failed)
-      (signal 'epg-error (list "Decryption failed")))
-  (if (epg-context-result-for context 'no-secret-key)
-      (signal 'epg-error
-	      (list "No secret key"
-		    (epg-context-result-for context 'no-secret-key))))
+  (let ((errors (epg-context-result-for context 'error)))
+    (if (epg-context-result-for context 'decryption-failed)
+	(signal 'epg-error
+		(list "Decryption failed" (epg-errors-to-string errors))))
     (unless (epg-context-result-for context 'decryption-okay)
-      (let* ((error (epg-context-result-for context 'error)))
-	(if (assq 'no-data error)
-	    (signal 'epg-error (list "No data")))
-	(signal 'epg-error (list "Can't decrypt" error)))))
+      (signal 'epg-error
+	      (list "Can't decrypt" (epg-errors-to-string errors))))))
 
 (defun epg-decrypt-file (context cipher plain)
   "Decrypt a file CIPHER and store the result to a file PLAIN.
@@ -2165,10 +2245,9 @@ Otherwise, it makes a cleartext signature."
 	(epg-start-sign context (epg-make-data-from-file plain) mode)
 	(epg-wait-for-completion context)
 	(unless (epg-context-result-for context 'sign)
-	  (if (epg-context-result-for context 'error)
-	      (error "Sign failed: %S"
-		     (epg-context-result-for context 'error))
-	    (error "Sign failed")))
+	  (let ((errors (epg-context-result-for context 'error)))
+	    (signal 'epg-error
+		    (list "Sign failed" (epg-errors-to-string errors)))))
 	(unless signature
 	  (epg-read-output context)))
     (unless signature
@@ -2203,9 +2282,9 @@ Otherwise, it makes a cleartext signature."
 	  (epg-wait-for-completion context)
 	  (unless (epg-context-result-for context 'sign)
 	    (if (epg-context-result-for context 'error)
-		(error "Sign failed: %S"
-		       (epg-context-result-for context 'error))
-	      (error "Sign failed")))
+		(let ((errors (epg-context-result-for context 'error)))
+		  (signal 'epg-error
+			  (list "Sign failed" (epg-errors-to-string errors))))))
 	  (epg-read-output context))
       (epg-delete-output-file context)
       (if input-file
@@ -2276,15 +2355,14 @@ If RECIPIENTS is nil, it performs symmetric encryption."
 	(epg-start-encrypt context (epg-make-data-from-file plain)
 			   recipients sign always-trust)
 	(epg-wait-for-completion context)
-	(if (and sign
-		 (not (epg-context-result-for context 'sign)))
-	    (if (epg-context-result-for context 'error)
-		(error "Sign failed: %S"
-		       (epg-context-result-for context 'error))
-		(error "Sign failed")))
-	(if (epg-context-result-for context 'error)
-	    (error "Encrypt failed: %S"
-		   (epg-context-result-for context 'error)))
+	(let ((errors (epg-context-result-for context 'error)))
+	  (if (and sign
+		   (not (epg-context-result-for context 'sign)))
+	      (signal 'epg-error
+		      (list "Sign failed" (epg-errors-to-string errors))))
+	  (if errors
+	      (signal 'epg-error
+		      (list "Encrypt failed" (epg-errors-to-string errors)))))
 	(unless cipher
 	  (epg-read-output context)))
     (unless cipher
@@ -2317,15 +2395,14 @@ If RECIPIENTS is nil, it performs symmetric encryption."
 			       (epg-make-data-from-string plain))
 			     recipients sign always-trust)
 	  (epg-wait-for-completion context)
-	  (if (and sign
-		   (not (epg-context-result-for context 'sign)))
-	      (if (epg-context-result-for context 'error)
-		  (error "Sign failed: %S"
-			 (epg-context-result-for context 'error))
-		(error "Sign failed")))
-	  (if (epg-context-result-for context 'error)
-	      (error "Encrypt failed: %S"
-		     (epg-context-result-for context 'error)))
+	  (let ((errors (epg-context-result-for context 'error)))
+	    (if (and sign
+		     (not (epg-context-result-for context 'sign)))
+		(signal 'epg-error
+			(list "Sign failed" (epg-errors-to-string errors))))
+	    (if errors
+		(signal 'epg-error
+			(list "Encrypt failed" (epg-errors-to-string errors)))))
 	  (epg-read-output context))
       (epg-delete-output-file context)
       (if input-file
@@ -2359,9 +2436,11 @@ If you are unsure, use synchronous version of this function
 				       (epg--make-temp-file "epg-output")))
 	(epg-start-export-keys context keys)
 	(epg-wait-for-completion context)
-	(if (epg-context-result-for context 'error)
-	    (error "Export keys failed: %S"
-		   (epg-context-result-for context 'error)))
+	(let ((errors (epg-context-result-for context 'error)))
+	  (if errors
+	      (signal 'epg-error
+		      (list "Export keys failed"
+			    (epg-errors-to-string errors)))))
 	(unless file
 	  (epg-read-output context)))
     (unless file
@@ -2398,9 +2477,11 @@ If you are unsure, use synchronous version of this function
       (progn
 	(epg-start-import-keys context keys)
 	(epg-wait-for-completion context)
-	(if (epg-context-result-for context 'error)
-	    (error "Import keys failed: %S"
-		   (epg-context-result-for context 'error))))
+	(let ((errors (epg-context-result-for context 'error)))
+	  (if errors
+	      (signal 'epg-error
+		      (list "Import keys failed"
+			    (epg-errors-to-string errors))))))
     (epg-reset context)))
 
 (defun epg-import-keys-from-file (context keys)
@@ -2431,9 +2512,11 @@ KEYS is a list of key IDs"
       (progn
 	(epg-start-receive-keys context keys)
 	(epg-wait-for-completion context)
-	(if (epg-context-result-for context 'error)
-	    (error "Receive keys failed: %S"
-		   (epg-context-result-for context 'error))))
+	(let ((errors (epg-context-result-for context 'error)))
+	  (if errors
+	      (signal 'epg-error
+		      (list "Receive keys failed"
+			    (epg-errors-to-string errors))))))
     (epg-reset context)))
 
 (defalias 'epg-import-keys-from-server 'epg-receive-keys)
@@ -2463,13 +2546,11 @@ If you are unsure, use synchronous version of this function
       (progn
 	(epg-start-delete-keys context keys allow-secret)
 	(epg-wait-for-completion context)
-	(let ((entry (assq 'delete-problem
-			   (epg-context-result-for context 'error))))
-	  (if entry
-	      (if (setq entry (assq (cdr entry)
-				    epg-delete-problem-reason-alist))
-		  (error "Delete keys failed: %s" (cdr entry))
-		(error "Delete keys failed")))))
+	(let ((errors (epg-context-result-for context 'error)))
+	  (if errors
+	      (signal 'epg-error
+		      (list "Delete keys failed"
+			    (epg-errors-to-string errors))))))
     (epg-reset context)))
 
 (defun epg-start-sign-keys (context keys &optional local)
@@ -2498,9 +2579,11 @@ If you are unsure, use synchronous version of this function
       (progn
 	(epg-start-sign-keys context keys local)
 	(epg-wait-for-completion context)
-	(if (epg-context-result-for context 'error)
-	    (error "Sign keys failed: %S"
-		   (epg-context-result-for context 'error))))
+	(let ((errors (epg-context-result-for context 'error)))
+	  (if errors
+	      (signal 'epg-error
+		      (list "Sign keys failed"
+			    (epg-errors-to-string errors))))))
     (epg-reset context)))
 (make-obsolete 'epg-sign-keys "do not use." "23.1")
 
@@ -2532,9 +2615,11 @@ PARAMETERS is a file which tells how to create the key."
       (progn
 	(epg-start-generate-key context (epg-make-data-from-file parameters))
 	(epg-wait-for-completion context)
-	(if (epg-context-result-for context 'error)
-	    (error "Generate key failed: %S"
-		   (epg-context-result-for context 'error))))
+	(let ((errors (epg-context-result-for context 'error)))
+	  (if errors
+	      (signal 'epg-error
+		      (list "Generate key failed"
+			    (epg-errors-to-string errors))))))
     (epg-reset context)))
 
 (defun epg-generate-key-from-string (context parameters)
@@ -2544,9 +2629,11 @@ PARAMETERS is a string which tells how to create the key."
       (progn
 	(epg-start-generate-key context (epg-make-data-from-string parameters))
 	(epg-wait-for-completion context)
-	(if (epg-context-result-for context 'error)
-	    (error "Generate key failed: %S"
-		   (epg-context-result-for context 'error))))
+	(let ((errors (epg-context-result-for context 'error)))
+	  (if errors
+	      (signal 'epg-error
+		      (list "Generate key failed"
+			    (epg-errors-to-string errors))))))
     (epg-reset context)))
 
 (defun epg--decode-percent-escape (string)

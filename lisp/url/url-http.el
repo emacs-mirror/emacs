@@ -563,16 +563,8 @@ should be shown to the user."
 	    ;; automatically redirect the request unless it can be
 	    ;; confirmed by the user, since this might change the
 	    ;; conditions under which the request was issued.
-	    (if (member url-http-method '("HEAD" "GET"))
-		;; Automatic redirection is ok
-		nil
-	      ;; It is just too big of a pain in the ass to get this
-	      ;; prompt all the time.  We will just silently lose our
-	      ;; data and convert to a GET method.
-	      (url-http-debug "Converting `%s' request to `GET' because of REDIRECT(%d)"
-			      url-http-method url-http-response-status)
-	      (setq url-http-method "GET"
-		    url-http-data nil)))
+	    (unless (member url-http-method '("HEAD" "GET"))
+	      (setq redirect-uri nil)))
 	   (see-other			; 303
 	    ;; The response to the request can be found under a different
 	    ;; URI and SHOULD be retrieved using a GET method on that

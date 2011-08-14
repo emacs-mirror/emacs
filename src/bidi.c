@@ -669,7 +669,11 @@ bidi_shelve_cache (void)
   return databuf;
 }
 
-/* Restore the cache state from a copy stashed away by bidi_shelve_cache.  */
+/* Restore the cache state from a copy stashed away by
+   bidi_shelve_cache, and free the buffer used to stash that copy.
+   JUST_FREE non-zero means free the buffer, but don't restore the
+   cache; used when the corresponding iterator is discarded instead of
+   being restored.  */
 void
 bidi_unshelve_cache (void *databuf, int just_free)
 {
@@ -677,10 +681,13 @@ bidi_unshelve_cache (void *databuf, int just_free)
 
   if (!p)
     {
-      /* A NULL pointer means an empty cache.  */
-      bidi_cache_start = 0;
-      bidi_cache_sp = 0;
-      bidi_cache_reset ();
+      if (!just_free)
+	{
+	  /* A NULL pointer means an empty cache.  */
+	  bidi_cache_start = 0;
+	  bidi_cache_sp = 0;
+	  bidi_cache_reset ();
+	}
     }
   else
     {
