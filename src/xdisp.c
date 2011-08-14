@@ -3166,8 +3166,6 @@ compute_display_string_pos (struct text_pos *position,
 
   *disp_prop_p = 1;
 
-  *disp_prop_p = 1;
-
   if (charpos >= eob
       /* We don't support display properties whose values are strings
 	 that have display string properties.  */
