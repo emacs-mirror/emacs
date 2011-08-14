@@ -1,3 +1,8 @@
+2011-08-14  Kenichi Handa  <handa@m17n.org>
+
+	* process.c (create_process): Call setup_process_coding_systems
+	after the pid of the process is set to -1.
+
 2011-08-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_in_display_line_to): Don't invoke

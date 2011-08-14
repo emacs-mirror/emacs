@@ -1643,7 +1643,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 
   XPROCESS (process)->pty_flag = pty_flag;
   XPROCESS (process)->status = Qrun;
-  setup_process_coding_systems (process);
 
   /* Delay interrupts until we have a chance to store
      the new fork's pid in its process structure */
@@ -1677,6 +1676,10 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
      it might cause call-process to hang and subsequent asynchronous
      processes to get their return values scrambled.  */
   XPROCESS (process)->pid = -1;
+
+  /* This must be called after the above line because it may signal an
+     error. */
+  setup_process_coding_systems (process);
 
   BLOCK_INPUT;
 
