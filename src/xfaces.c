@@ -293,7 +293,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Non-zero if face attribute ATTR is `ignore-defface'.  */
 
-#define IGNORE_DEFFACE_P(ATTR) EQ ((ATTR), Qignore_defface)
+#define IGNORE_DEFFACE_P(ATTR) EQ ((ATTR), QCignore_defface)
 
 /* Value is the number of elements of VECTOR.  */
 
@@ -332,7 +332,7 @@ static Lisp_Object Qultra_expanded;
 static Lisp_Object Qreleased_button, Qpressed_button;
 static Lisp_Object QCstyle, QCcolor, QCline_width;
 Lisp_Object Qunspecified;	/* used in dosfns.c */
-static Lisp_Object Qignore_defface;
+static Lisp_Object QCignore_defface;
 
 char unspecified_fg[] = "unspecified-fg", unspecified_bg[] = "unspecified-bg";
 
@@ -2853,7 +2853,7 @@ FRAME 0 means change the face on all frames, and change the default
 	 The value of that attribute will be inherited from some other
 	 face during face merging.  See internal_merge_in_global_face. */
       if (UNSPECIFIEDP (value))
-	value = Qignore_defface;
+	value = QCignore_defface;
     }
   else
     {
@@ -3651,7 +3651,7 @@ the only relative value that users see is `unspecified'.
 However, for :height, floating point values are also relative.  */)
   (Lisp_Object attribute, Lisp_Object value)
 {
-  if (EQ (value, Qunspecified) || (EQ (value, Qignore_defface)))
+  if (EQ (value, Qunspecified) || (EQ (value, QCignore_defface)))
     return Qt;
   else if (EQ (attribute, QCheight))
     return INTEGERP (value) ? Qnil : Qt;
@@ -3666,7 +3666,7 @@ If VALUE1 or VALUE2 are absolute (see `face-attribute-relative-p'), then
 the result will be absolute, otherwise it will be relative.  */)
   (Lisp_Object attribute, Lisp_Object value1, Lisp_Object value2)
 {
-  if (EQ (value1, Qunspecified) || EQ (value1, Qignore_defface))
+  if (EQ (value1, Qunspecified) || EQ (value1, QCignore_defface))
     return value2;
   else if (EQ (attribute, QCheight))
     return merge_face_heights (value1, value2, value1);
@@ -6484,7 +6484,7 @@ syms_of_xfaces (void)
   DEFSYM (Qbackground_color, "background-color");
   DEFSYM (Qforeground_color, "foreground-color");
   DEFSYM (Qunspecified, "unspecified");
-  DEFSYM (Qignore_defface, ":ignore-defface");
+  DEFSYM (QCignore_defface, ":ignore-defface");
 
   DEFSYM (Qface_alias, "face-alias");
   DEFSYM (Qdefault, "default");

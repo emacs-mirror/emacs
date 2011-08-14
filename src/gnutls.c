@@ -42,19 +42,19 @@ static Lisp_Object Qgnutls_e_interrupted, Qgnutls_e_again,
 static int gnutls_global_initialized;
 
 /* The following are for the property list of `gnutls-boot'.  */
-static Lisp_Object Qgnutls_bootprop_priority;
-static Lisp_Object Qgnutls_bootprop_trustfiles;
-static Lisp_Object Qgnutls_bootprop_keylist;
-static Lisp_Object Qgnutls_bootprop_crlfiles;
-static Lisp_Object Qgnutls_bootprop_callbacks;
-static Lisp_Object Qgnutls_bootprop_loglevel;
-static Lisp_Object Qgnutls_bootprop_hostname;
-static Lisp_Object Qgnutls_bootprop_min_prime_bits;
-static Lisp_Object Qgnutls_bootprop_verify_flags;
-static Lisp_Object Qgnutls_bootprop_verify_hostname_error;
+static Lisp_Object QCgnutls_bootprop_priority;
+static Lisp_Object QCgnutls_bootprop_trustfiles;
+static Lisp_Object QCgnutls_bootprop_keylist;
+static Lisp_Object QCgnutls_bootprop_crlfiles;
+static Lisp_Object QCgnutls_bootprop_callbacks;
+static Lisp_Object QCgnutls_bootprop_loglevel;
+static Lisp_Object QCgnutls_bootprop_hostname;
+static Lisp_Object QCgnutls_bootprop_min_prime_bits;
+static Lisp_Object QCgnutls_bootprop_verify_flags;
+static Lisp_Object QCgnutls_bootprop_verify_hostname_error;
 
 /* Callback keys for `gnutls-boot'.  Unused currently.  */
-static Lisp_Object Qgnutls_bootprop_callbacks_verify;
+static Lisp_Object QCgnutls_bootprop_callbacks_verify;
 
 static void gnutls_log_function (int, const char *);
 static void gnutls_log_function2 (int, const char*, const char*);
@@ -716,17 +716,17 @@ one trustfile (usually a CA bundle).  */)
       return gnutls_make_error (GNUTLS_EMACS_ERROR_NOT_LOADED);
     }
 
-  hostname              = Fplist_get (proplist, Qgnutls_bootprop_hostname);
-  priority_string       = Fplist_get (proplist, Qgnutls_bootprop_priority);
-  trustfiles            = Fplist_get (proplist, Qgnutls_bootprop_trustfiles);
-  keylist               = Fplist_get (proplist, Qgnutls_bootprop_keylist);
-  crlfiles              = Fplist_get (proplist, Qgnutls_bootprop_crlfiles);
-  /* callbacks          = Fplist_get (proplist, Qgnutls_bootprop_callbacks); */
-  loglevel              = Fplist_get (proplist, Qgnutls_bootprop_loglevel);
-  verify_flags          = Fplist_get (proplist, Qgnutls_bootprop_verify_flags);
-  /* verify_error       = Fplist_get (proplist, Qgnutls_bootprop_verify_error); */
-  verify_hostname_error = Fplist_get (proplist, Qgnutls_bootprop_verify_hostname_error);
-  prime_bits            = Fplist_get (proplist, Qgnutls_bootprop_min_prime_bits);
+  hostname              = Fplist_get (proplist, QCgnutls_bootprop_hostname);
+  priority_string       = Fplist_get (proplist, QCgnutls_bootprop_priority);
+  trustfiles            = Fplist_get (proplist, QCgnutls_bootprop_trustfiles);
+  keylist               = Fplist_get (proplist, QCgnutls_bootprop_keylist);
+  crlfiles              = Fplist_get (proplist, QCgnutls_bootprop_crlfiles);
+  /* callbacks          = Fplist_get (proplist, QCgnutls_bootprop_callbacks); */
+  loglevel              = Fplist_get (proplist, QCgnutls_bootprop_loglevel);
+  verify_flags          = Fplist_get (proplist, QCgnutls_bootprop_verify_flags);
+  /* verify_error       = Fplist_get (proplist, QCgnutls_bootprop_verify_error); */
+  verify_hostname_error = Fplist_get (proplist, QCgnutls_bootprop_verify_hostname_error);
+  prime_bits            = Fplist_get (proplist, QCgnutls_bootprop_min_prime_bits);
 
   if (!STRINGP (hostname))
     error ("gnutls-boot: invalid :hostname parameter");
@@ -1119,17 +1119,17 @@ syms_of_gnutls (void)
   DEFSYM (Qgnutls_code, "gnutls-code");
   DEFSYM (Qgnutls_anon, "gnutls-anon");
   DEFSYM (Qgnutls_x509pki, "gnutls-x509pki");
-  DEFSYM (Qgnutls_bootprop_hostname, ":hostname");
-  DEFSYM (Qgnutls_bootprop_priority, ":priority");
-  DEFSYM (Qgnutls_bootprop_trustfiles, ":trustfiles");
-  DEFSYM (Qgnutls_bootprop_keylist, ":keylist");
-  DEFSYM (Qgnutls_bootprop_crlfiles, ":crlfiles");
-  DEFSYM (Qgnutls_bootprop_callbacks, ":callbacks");
-  DEFSYM (Qgnutls_bootprop_callbacks_verify, "verify");
-  DEFSYM (Qgnutls_bootprop_min_prime_bits, ":min-prime-bits");
-  DEFSYM (Qgnutls_bootprop_loglevel, ":loglevel");
-  DEFSYM (Qgnutls_bootprop_verify_flags, ":verify-flags");
-  DEFSYM (Qgnutls_bootprop_verify_hostname_error, ":verify-hostname-error");
+  DEFSYM (QCgnutls_bootprop_hostname, ":hostname");
+  DEFSYM (QCgnutls_bootprop_priority, ":priority");
+  DEFSYM (QCgnutls_bootprop_trustfiles, ":trustfiles");
+  DEFSYM (QCgnutls_bootprop_keylist, ":keylist");
+  DEFSYM (QCgnutls_bootprop_crlfiles, ":crlfiles");
+  DEFSYM (QCgnutls_bootprop_callbacks, ":callbacks");
+  DEFSYM (QCgnutls_bootprop_callbacks_verify, "verify");
+  DEFSYM (QCgnutls_bootprop_min_prime_bits, ":min-prime-bits");
+  DEFSYM (QCgnutls_bootprop_loglevel, ":loglevel");
+  DEFSYM (QCgnutls_bootprop_verify_flags, ":verify-flags");
+  DEFSYM (QCgnutls_bootprop_verify_hostname_error, ":verify-hostname-error");
 
   DEFSYM (Qgnutls_e_interrupted, "gnutls-e-interrupted");
   Fput (Qgnutls_e_interrupted, Qgnutls_code,

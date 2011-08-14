@@ -1,3 +1,17 @@
+2011-08-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnutls.c (QCgnutls_bootprop_priority)
+	(QCgnutls_bootprop_trustfiles, QCgnutls_bootprop_keylist)
+	(QCgnutls_bootprop_crlfiles, QCgnutls_bootprop_callbacks)
+	(QCgnutls_bootprop_loglevel, QCgnutls_bootprop_hostname)
+	(QCgnutls_bootprop_min_prime_bits, QCgnutls_bootprop_verify_flags)
+	(QCgnutls_bootprop_verify_hostname_error)
+	(QCgnutls_bootprop_callbacks_verify): Rename from
+	Qgnutls_bootprop_..., all uses changed.
+
+	* xfaces.c (QCignore_defface): Rename from Qignore_defface, all
+	uses changed.
+
 2011-08-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xfaces.c (Qframe_set_background_mode): Now static.
