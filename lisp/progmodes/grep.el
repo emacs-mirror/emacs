@@ -1023,8 +1023,7 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
 		    (read-from-minibuffer "Confirm: "
 					  command nil nil 'grep-find-history))
 	    (add-to-history 'grep-find-history command))
-	  (let ((default-directory dir)
-		(process-connection-type nil))
+	  (let ((default-directory dir))
 	    (compilation-start command 'grep-mode))
 	  ;; Set default-directory if we started rgrep in the *grep* buffer.
 	  (if (eq next-error-last-buffer (current-buffer))

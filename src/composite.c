@@ -960,8 +960,6 @@ autocmp_chars (Lisp_Object rule, EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT
       args[4] = font_object;
       args[5] = string;
       lgstring = safe_call (6, args);
-      if (NILP (string))
-	TEMP_SET_PT_BOTH (pt, pt_byte);
     }
   return unbind_to (count, lgstring);
 }

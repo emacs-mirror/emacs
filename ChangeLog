@@ -1,3 +1,9 @@
+2011-08-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Add header check: sys/socket.h (Bug#8477),
+	ifaddrs.h, net/if_dl.h.  Check for getifaddrs and freeifaddrs.
+	Check for sa_len in struct ifreq.ifr_addr (Bug#8477).
+
 2011-08-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_PTHREAD): Add check for -lpthread (Bug#9216).

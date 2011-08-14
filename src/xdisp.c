@@ -5328,6 +5328,8 @@ iterate_out_of_display_property (struct it *it)
   EMACS_INT eob = (buffer_p ? ZV : it->end_charpos);
   EMACS_INT bob = (buffer_p ? BEGV : 0);
 
+  xassert (eob >= CHARPOS (it->position) && CHARPOS (it->position) >= bob);
+
   /* Maybe initialize paragraph direction.  If we are at the beginning
      of a new paragraph, next_element_from_buffer may not have a
      chance to do that.  */
@@ -5336,7 +5338,8 @@ iterate_out_of_display_property (struct it *it)
   /* prev_stop can be zero, so check against BEGV as well.  */
   while (it->bidi_it.charpos >= bob
 	 && it->prev_stop <= it->bidi_it.charpos
-	 && it->bidi_it.charpos < CHARPOS (it->position))
+	 && it->bidi_it.charpos < CHARPOS (it->position)
+	 && it->bidi_it.charpos < eob)
     bidi_move_to_visually_next (&it->bidi_it);
   /* Record the stop_pos we just crossed, for when we cross it
      back, maybe.  */
@@ -5345,14 +5348,11 @@ iterate_out_of_display_property (struct it *it)
   /* If we ended up not where pop_it put us, resync IT's
      positional members with the bidi iterator. */
   if (it->bidi_it.charpos != CHARPOS (it->position))
-    {
-      SET_TEXT_POS (it->position,
-		    it->bidi_it.charpos, it->bidi_it.bytepos);
-      if (buffer_p)
-	it->current.pos = it->position;
-      else
-	it->current.string_pos = it->position;
-    }
+    SET_TEXT_POS (it->position, it->bidi_it.charpos, it->bidi_it.bytepos);
+  if (buffer_p)
+    it->current.pos = it->position;
+  else
+    it->current.string_pos = it->position;
 }
 
 /* Restore IT's settings from IT->stack.  Called, for example, when no
@@ -5534,19 +5534,42 @@ forward_to_next_line_start (struct it *it, int *skipped_p,
 
       xassert (!STRINGP (it->string));
 
-      /* If we are not bidi-reordering, and there isn't any `display'
-	 property in sight, and no overlays, we can just use the
-	 position of the newline in buffer text.  */
-      if (!it->bidi_p
-	  && (it->stop_charpos >= limit
-	      || ((pos = Fnext_single_property_change (make_number (start),
-						       Qdisplay, Qnil,
-						       make_number (limit)),
-		   NILP (pos))
-		  && next_overlay_change (start) == ZV)))
+      /* If there isn't any `display' property in sight, and no
+	 overlays, we can just use the position of the newline in
+	 buffer text.  */
+      if (it->stop_charpos >= limit
+	  || ((pos = Fnext_single_property_change (make_number (start),
+						   Qdisplay, Qnil,
+						   make_number (limit)),
+	       NILP (pos))
+	      && next_overlay_change (start) == ZV))
 	{
-	  IT_CHARPOS (*it) = limit;
-	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (limit);
+	  if (!it->bidi_p)
+	    {
+	      IT_CHARPOS (*it) = limit;
+	      IT_BYTEPOS (*it) = CHAR_TO_BYTE (limit);
+	    }
+	  else
+	    {
+	      struct bidi_it bprev;
+
+	      /* Help bidi.c avoid expensive searches for display
+		 properties and overlays, by telling it that there are
+		 none up to `limit'.  */
+	      if (it->bidi_it.disp_pos < limit)
+		{
+		  it->bidi_it.disp_pos = limit;
+		  it->bidi_it.disp_prop_p = 0;
+		}
+	      do {
+		bprev = it->bidi_it;
+		bidi_move_to_visually_next (&it->bidi_it);
+	      } while (it->bidi_it.charpos != limit);
+	      IT_CHARPOS (*it) = limit;
+	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
+	      if (bidi_it_prev)
+		*bidi_it_prev = bprev;
+	    }
 	  *skipped_p = newline_found_p = 1;
 	}
       else
@@ -18035,16 +18058,25 @@ cursor_row_p (struct glyph_row *row)
 
 
 
-/* Push the display property PROP so that it will be rendered at the
-   current position in IT.  Return 1 if PROP was successfully pushed,
-   0 otherwise.  */
+/* Push the property PROP so that it will be rendered at the current
+   position in IT.  Return 1 if PROP was successfully pushed, 0
+   otherwise.  Called from handle_line_prefix to handle the
+   `line-prefix' and `wrap-prefix' properties.  */
 
 static int
 push_display_prop (struct it *it, Lisp_Object prop)
 {
-  xassert (it->method == GET_FROM_BUFFER);
+  struct text_pos pos =
+    (it->method == GET_FROM_STRING) ? it->current.string_pos : it->current.pos;
 
-  push_it (it, NULL);
+  xassert (it->method == GET_FROM_BUFFER
+	   || it->method == GET_FROM_STRING);
+
+  /* We need to save the current buffer/string position, so it will be
+     restored by pop_it, because iterate_out_of_display_property
+     depends on that being set correctly, but some situations leave
+     it->position not yet set when this function is called.  */
+  push_it (it, &pos);
 
   if (STRINGP (prop))
     {
@@ -18063,11 +18095,9 @@ push_display_prop (struct it *it, Lisp_Object prop)
       it->stop_charpos = 0;
       it->prev_stop = 0;
       it->base_level_stop = 0;
-      it->string_from_display_prop_p = 1;
-      it->from_disp_prop_p = 1;
 
       /* Force paragraph direction to be that of the parent
-	 buffer.  */
+	 buffer/string.  */
       if (it->bidi_p && it->bidi_it.paragraph_dir == R2L)
 	it->paragraph_embedding = it->bidi_it.paragraph_dir;
       else
@@ -18080,7 +18110,7 @@ push_display_prop (struct it *it, Lisp_Object prop)
 	  it->bidi_it.string.s = NULL;
 	  it->bidi_it.string.schars = it->end_charpos;
 	  it->bidi_it.string.bufpos = IT_CHARPOS (*it);
-	  it->bidi_it.string.from_disp_str = 1;
+	  it->bidi_it.string.from_disp_str = it->string_from_display_prop_p;
 	  it->bidi_it.string.unibyte = !it->multibyte_p;
 	  bidi_init_it (0, 0, FRAME_WINDOW_P (it->f), &it->bidi_it);
 	}

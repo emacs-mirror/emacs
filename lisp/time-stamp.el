@@ -424,10 +424,10 @@ format the string."
 	  (let ((ts-real-time-zone (getenv "TZ")))
 	    (unwind-protect
 		(progn
-		  (set-time-zone-rule time-stamp-time-zone)
+		  (setenv "TZ" time-stamp-time-zone)
 		  (format-time-string
 		   (time-stamp-string-preprocess ts-format)))
-	      (set-time-zone-rule ts-real-time-zone)))
+	      (setenv "TZ" ts-real-time-zone)))
 	(format-time-string
 	 (time-stamp-string-preprocess ts-format)))
     ;; handle version 1 compatibility

@@ -1,3 +1,65 @@
+2011-08-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* process.c: Include ifaddrs.h and net/if_dl.h if available (Bug#8477).
+	(Fnetwork_interface_list): Allocate in increments of bytes instead
+	of sizeof (struct ifreq).  Iterate over ifconf.ifc_req by counting
+	bytes (Bug#8477).  Count bytes correctly when ifr_addr is a struct
+	sockaddr.
+	(struct ifflag_def): notrailers is smart on OSX.
+	(Fnetwork_interface_info): Handle case when ifr_flags is negative.
+	Get hardware address with getifaddrs if available.
+
+2011-08-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (iterate_out_of_display_property): xassert that
+	IT->position is set to within IT->object's boundaries.  Break from
+	the loop as soon as EOB is reached; avoids infloops in redisplay
+	when IT->position is set up wrongly due to some bug.  Set
+	IT->current to match the bidi iterator unconditionally.
+	(push_display_prop): Allow GET_FROM_STRING as IT->method on
+	entry.  Force push_it to save on the stack the current
+	buffer/string position, to be restored by pop_it.  Fix flags in
+	the iterator structure wrt the object coming from a display
+	property, as `line-prefix' and `wrap-prefix' are not ``replacing''
+	properties.  (Bug#9284)
+
+2011-08-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* fontset.c (fontset_get_font_group): Add proper type checks.
+	(Bug#9172)
+
+2011-08-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (print_load_command_name): Add cases LC_FUNCTION_STARTS
+	and LC_VERSION_MIN_MACOSX.
+	(copy_linkedit_data) [LC_FUNCTION_STARTS]: New function.
+	(dump_it) [LC_FUNCTION_STARTS]: Use it.
+
+2011-08-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (forward_to_next_line_start): Allow to use the
+	no-display-properties-and-no-overlays under bidi display.  Set
+	disp_pos in the bidi iterator to avoid searches for display
+	properties and overlays.
+
+2011-08-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Fset_time_zone_rule): Document relationship with the
+	setenv function.
+
+	* ftfont.c (ftfont_pattern_entity): Copy the extras argument to
+	the font entity extracted from the cache (Bug#8109).
+
+2011-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* composite.c (autocmp_chars): Don't reset point.  That is done by
+	restore_point_unwind (Bug#5984).
+
+2011-08-07  Juri Linkov  <juri@jurta.org>
+
+	* editfns.c (Fformat_time_string): Doc fix, add tag `usage:'
+	to show the arg `TIME' instead of `TIMEVAL'.
+
 2011-08-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Fix cursor positioning when a

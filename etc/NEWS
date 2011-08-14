@@ -1038,6 +1038,16 @@ of function value which looks like (closure ENV ARGS &rest BODY).
 *** New function `special-variable-p' to check whether a variable is
 declared as dynamically bound.
 
+** New function `string-mark-left-to-right'.
+Given a string containing right-to-left (RTL) script, this function
+returns another string with a terminating LRM (left-to-right mark)
+character.  If this string is inserted into a buffer, Emacs treats the
+LRM as the end of an RTL segment and displays following text as LTR.
+
+This is useful when the buffer has overall left-to-right (LTR)
+paragraph direction and you need to insert a string whose contents
+(and hence directionality) are not known in advance.
+
 ** pre/post-command-hook are not reset to nil upon error.
 Instead, the offending function is removed.
 

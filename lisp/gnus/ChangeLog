@@ -1,3 +1,23 @@
+2011-08-13  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnus-score.el (gnus-all-score-files): Use copy-sequence instead of
+	copy-list.
+
+2011-08-12  Sam Steingold  <sds@gnu.org>
+
+	* gnus-score.el (gnus-score-find-alist): Keep the score files already
+	in the reverse order to avoid modifying the cache with `nreverse'.
+	(gnus-all-score-files): Do not modify the value returned by
+	`gnus-score-find-alist' because it lives in a cache variable.
+	(gnus-current-home-score-file): No need to `nreverse' the return value
+	of `gnus-score-find-alist', it is already in the correct order.
+
+2011-08-11  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnimap.el (nnimap-transform-headers): BODYSTRUCTURE for messages of
+	type MESSAGE and subtype RFC822 is slightly different from those of
+	type TEXT.
+
 2011-08-05  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* gnus-sum.el (gnus-summary-refer-article): Warp to article. This

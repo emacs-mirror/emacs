@@ -3015,6 +3015,11 @@ near the character.  For this purpose, ``near'' means that all text
 between the character and where the mouse is have the same
 @code{mouse-face} property value.
 
+Emacs ignores all face attributes from the @code{mouse-face} property
+that alter the text size (e.g. @code{:height}, @code{:weight}, and
+@code{:slant}).  Those attributes are always the same as for the
+unhighlighted text.
+
 @item fontified
 @kindex fontified @r{(text property)}
 This property says whether the text is ready for display.  If

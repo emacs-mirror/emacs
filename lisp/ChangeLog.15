@@ -3573,7 +3573,7 @@
 	* locate.el (locate-default-make-command-line): Don't consider
 	drive letter and root directory part of
 	`directory-listing-before-filename-regexp'.  (Bug#7308)
-	(locate-post-command-hook, locate-post-command-hook): New defcustoms.
+	(locate-post-command-hook, locate-mode-hook): New defcustoms.
 
 2010-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 

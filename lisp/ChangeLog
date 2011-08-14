@@ -1,3 +1,97 @@
+2011-08-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* startup.el (argi): Declare as global variable (bug#9275).
+
+2011-08-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (string-mark-left-to-right): Search the entire string
+	for RTL script, not just the terminating character.  Doc fix.
+
+2011-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/js.el (js-syntax-propertize, js-syntax-propertize-regexp):
+	New function.
+	(js--regexp-literal, js-syntax-propertize-function): Remove.
+	(js-mode): Use js-syntax-propertize to handle multilines (bug#9183).
+	(js-mode-map): Don't rebind electric keys.
+	(js-insert-and-indent): Remove.
+	(js-mode): Setup electric-layout and electric-indent instead.
+
+	* epa-file.el (epa-file-select-keys): Revert to nil default (bug#9280).
+
+2011-08-12  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.el (epa-progress-callback-function): Fix the logic of
+	displaying progress.
+	* epa-file.el (epa-file-insert-file-contents): Make progress
+	display more user-friendly.
+	(epa-file-write-region): Ditto.
+
+2011-08-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (string-mark-left-to-right): New function.
+
+	* buff-menu.el (Buffer-menu-buffer+size): Remove LRM argument.
+	Use string-mark-left-to-right.
+	(list-buffers-noselect): Caller changed.
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-print-entry):
+	Use string-mark-left-to-right.
+	(tabulated-list-print): Recenter after moving point.
+
+2011-08-10  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (rgrep): Don't bind `process-connection-type'.
+	This finishes incomplete reversion of revno:104787 (2011-06-30)
+	intended by revno:104988 (2011-07-06).
+
+2011-08-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hi-lock.el (hi-lock-unface-buffer): Fix interactive spec
+	(Bug#7554).
+
+2011-08-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xt-mouse.el (xterm-mouse-event-read): Try to recover the raw
+	character.  (Bug#6594)
+
+2011-08-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-dired.el: Don't use find-file for temporary work (Bug#7895).
+	(image-dired--with-db-file): New macro.
+	(image-dired-write-tags, image-dired-remove-tag)
+	(image-dired-create-gallery-lists, image-dired-write-comments)
+	(image-dired-get-comment, image-dired-mark-tagged-files)
+	(image-dired-list-tags, image-dired-gallery-generate): Use it.
+	(image-dired-gallery-generate): Use insert-file-contents.
+
+	* time.el (display-time-world-list, display-time-world-display):
+	* time-stamp.el (time-stamp-string):
+	* vc/add-log.el (add-change-log-entry): Use setenv instead of
+	set-time-zone-rule (Bug#7337).
+
+2011-08-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg--status-KEYEXPIRED, epg--status-KEYREVOKED): Fix typo.
+	(epg-error-to-string, epg-errors-to-string): New function.
+	(epg-wait-for-completion): Reverse errors list.
+	(epg--check-error-for-decrypt, epg-sign-file, epg-sign-string)
+	(epg-encrypt-file, epg-encrypt-string, epg-export-keys-to-file)
+	(epg--import-keys-1, epg-receive-keys, epg-delete-keys)
+	(epg-sign-keys, epg-generate-key-from-file)
+	(epg-generate-key-from-string): Format errors by using
+	epg-errors-to-string (bug#9255).
+	(epg--status-INV_SGNR, epg--status-NO_SGNR): New status handler.
+
+2011-08-07  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (list-faces-display): Remove extra angle bracket
+	from `help-mode-map'.
+
+	* info.el (Info-history-toc-nodes): Doc fix.
+
+	* longlines.el (longlines-mode): Doc fix.
+
 2011-08-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/js.el (js--regexp-literal): Accept regexps at the beginning
@@ -345,9 +439,6 @@
 	operation.
 	(string-rectangle): Go to the point after the last operation
 	(bug#7522).
-
-	* simple.el (current-kill): Clarify what
-	`interprogram-paste-function' does (bug#7500).
 
 	* printing.el (pr-toggle-region): Clarify the documentation
 	slightly (bug#7493).

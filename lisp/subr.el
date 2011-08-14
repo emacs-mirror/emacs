@@ -3538,6 +3538,31 @@ If IGNORE-CASE is non-nil, the comparison is done without paying attention
 to case differences."
   (eq t (compare-strings str1 nil nil
                          str2 0 (length str1) ignore-case)))
+
+(defun string-mark-left-to-right (str)
+  "Return a string that can be safely inserted in left-to-right text.
+If STR contains right-to-left (RTL) script, return a string
+consisting of STR followed by a terminating invisible
+left-to-right mark (LRM) character.
+
+The LRM character marks the end of an RTL segment, and resets the
+display direction of any subsequent text to left-to-right.
+\(Otherwise, some of that text might be displayed as part of the
+RTL segment, based on the bidirectional display algorithm.)
+
+If STR contains no RTL characters, return STR."
+  (unless (stringp str)
+    (signal 'wrong-type-argument (list 'stringp str)))
+  (let ((len (length str))
+	(n 0)
+	rtl-found)
+    (while (and (not rtl-found) (< n len))
+      (setq rtl-found (memq (get-char-code-property
+			     (aref str n) 'bidi-class) '(R AL RLO))
+	    n (1+ n)))
+    (if rtl-found
+	(concat str (propertize (string ?\x200e) 'invisible t))
+      str)))
 
 ;;;; invisibility specs
 
