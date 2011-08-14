@@ -795,6 +795,9 @@ extern void x_set_tool_bar_lines (struct frame *f,
 extern void x_activate_menubar (struct frame *);
 extern void free_frame_menubar (struct frame *);
 
+#define NSAPP_DATA2_RUNASSCRIPT 10
+extern void ns_run_ascript (void);
+
 extern void ns_init_paths (void);
 extern void syms_of_nsterm (void);
 extern void syms_of_nsfns (void);

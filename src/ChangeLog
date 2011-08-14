@@ -1,3 +1,18 @@
+2011-08-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.h (ns_run_ascript): Declare.
+	(NSAPP_DATA2_RUNASSCRIPT): Define.
+
+	* nsfns.m (as_script, as_result, as_status): New static variables.
+	(ns_run_ascript): New function.
+	(Fns_do_applescript): Set variables as_*. Make an NSApplicationDefined
+	event with data2 set to NSAPP_DATA2_RUNASSCRIPT, post it and then start
+	the event loop.  Get status from as_status (Bug#7276).
+
+	* nsterm.m (sendEvent): If event is NSApplicationDefined and
+	data2 is NSAPP_DATA2_RUNASSCRIPT, call ns_run_ascript and then exit
+	the event loop (Bug#7276).
+
 2011-08-14  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* gnutls.c (QCgnutls_bootprop_priority)

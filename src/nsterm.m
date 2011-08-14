@@ -4257,6 +4257,16 @@ ns_term_shutdown (int sig)
 /*  NSTRACE (sendEvent); */
 /*fprintf (stderr, "received event of type %d\t%d\n", type);*/
 
+#ifdef NS_IMPL_COCOA
+  if (type == NSApplicationDefined
+      && [theEvent data2] == NSAPP_DATA2_RUNASSCRIPT)
+    {
+      ns_run_ascript ();
+      [self stop: self];
+      return;
+    }
+#endif
+
   if (type == NSCursorUpdate && window == nil)
     {
       fprintf (stderr, "Dropping external cursor update event.\n");
