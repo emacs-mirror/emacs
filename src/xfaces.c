@@ -339,7 +339,7 @@ char unspecified_fg[] = "unspecified-fg", unspecified_bg[] = "unspecified-bg";
 /* The name of the function to call when the background of the frame
    has changed, frame_set_background_mode.  */
 
-Lisp_Object Qframe_set_background_mode;
+static Lisp_Object Qframe_set_background_mode;
 
 /* Names of basic faces.  */
 
