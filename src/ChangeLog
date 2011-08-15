@@ -2,6 +2,9 @@
 
 	Integer and memory overflow issues (Bug#9196).
 
+	* buffer.c (overlay_str_len): Now ptrdiff_t, not EMACS_INT,
+	since either will do and ptrdiff_t is convenient with xpalloc.
+
 	* charset.c (charset_table_size)
 	(struct charset_sort_data.priority): Now ptrdiff_t.
 	(charset_compare): Don't overflow if priorities differ greatly.

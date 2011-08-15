@@ -2943,7 +2943,7 @@ static struct sortstrlist overlay_heads, overlay_tails;
 static unsigned char *overlay_str_buf;
 
 /* Allocated length of overlay_str_buf.  */
-static EMACS_INT overlay_str_len;
+static ptrdiff_t overlay_str_len;
 
 /* A comparison function suitable for passing to qsort.  */
 static int
