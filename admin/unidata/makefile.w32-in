@@ -29,7 +29,7 @@ EMACSLOADPATH = $(lisp);$(lisp)/international;$(lisp)/emacs-lisp
 # Quote EMACS so it could be a file name with embedded whitespace
 RUNEMACS = "$(EMACS)" -Q -batch
 
-all: $(DSTDIR)/charprop.el ../../src/biditype.h ../../src/bidimirror.h
+all: $(DSTDIR)/charprop.el
 
 .el.elc:
 	$(RUNEMACS) -f batch-byte-compile $<
@@ -50,16 +50,6 @@ charprop-CMD: unidata-gen.elc unidata.txt
 	$(RUNEMACS) --eval $(ARGQUOTE)(cd $(DQUOTE)$(DSTDIR)$(DQUOTE))$(ARGQUOTE) --load $(CURDIR)/unidata-gen.elc -f unidata-gen-files $(CURDIR) unidata.txt
 
 ${DSTDIR}/charprop.el: charprop-$(SHELLTYPE)
-
-../../src/biditype.h: UnicodeData.txt
-	gawk -F";" -f biditype.awk -v BINMODE=2 $< > biditype.h
-	$(CP) biditype.h $@
-	$(DEL) biditype.h
-
-../../src/bidimirror.h: BidiMirroring.txt
-	gawk -F"[; ]+" -f bidimirror.awk -v BINMODE=2 $< > bidimirror.h
-	$(CP) bidimirror.h $@
-	$(DEL) bidimirror.h
 
 clean:
 	- $(DEL) unidata-gen.elc unidata.txt biditype.h bidimirror.h

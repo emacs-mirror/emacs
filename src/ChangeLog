@@ -409,6 +409,35 @@
 	(gs_load): Use printmax_t to print the widest integers possible.
 	Check for integer overflow when computing image height and width.
 
+2011-08-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* bidi.c (bidi_initialize): Remove unused local.
+
+2011-08-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* biditype.h: File removed.
+
+	* bidimirror.h: File removed.
+
+	* deps.mk (bidi.o): Remove biditype.h and
+	bidimirror.h.
+
+	* makefile.w32-in ($(BLD)/bidi.$(O)): Remove biditype.h and
+	bidimirror.h.
+
+	* dispextern.h: Fix a typo in the comment to bidi_type_t.
+
+	* chartab.c: Improve commentary for the uniprop_table API.
+
+	* bidi.c (bidi_paragraph_init): Support zero value of
+	bidi_ignore_explicit_marks_for_paragraph_level.
+	(bidi_initialize): Use uniprop_table instead of including
+	biditype.h and bidimirror.h.
+
+	* xdisp.c (move_it_in_display_line_to): Don't reset pixel
+	coordinates of the iterator when restoring from ppos_it.
+	(Bug#9296)
+
 2011-08-14  Kenichi Handa  <handa@m17n.org>
 
 	* process.c (create_process): Call setup_process_coding_systems

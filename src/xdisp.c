@@ -8090,7 +8090,8 @@ move_it_in_display_line_to (struct it *it,
 		{
 		  if (!at_eob_p && IT_CHARPOS (ppos_it) < ZV)
 		    RESTORE_IT (it, &ppos_it, ppos_data);
-		  goto buffer_pos_reached;
+		  result = MOVE_POS_MATCH_OR_ZV;
+		  break;
 		}
 	      if (ITERATOR_AT_END_OF_LINE_P (it))
 		{
@@ -8104,7 +8105,8 @@ move_it_in_display_line_to (struct it *it,
 	    {
 	      if (IT_CHARPOS (ppos_it) < ZV)
 		RESTORE_IT (it, &ppos_it, ppos_data);
-	      goto buffer_pos_reached;
+	      result = MOVE_POS_MATCH_OR_ZV;
+	      break;
 	    }
 	  result = MOVE_LINE_TRUNCATED;
 	  break;

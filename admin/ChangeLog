@@ -1,3 +1,17 @@
+2011-08-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/bidimirror.awk: File removed.
+
+	* unidata/biditype.awk: File removed.
+
+	* unidata/makefile.w32-in (all): Remove src/biditype.h and
+	src/bidimirror.h.
+	(../../src/biditype.h, ../../src/bidimirror.h): Deleted.
+
+	* unidata/Makefile.in (all): Remove src/biditype.h and
+	src/bidimirror.h.
+	(../../src/biditype.h, ../../src/bidimirror.h): Deleted.
+
 2011-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* unidata/makefile.w32-in (charprop-SH, charprop-CMD):

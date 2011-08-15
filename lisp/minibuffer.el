@@ -2299,7 +2299,7 @@ the commands start with a \"-\" or a SPC."
 (defun completion-pcm--string->pattern (string &optional point)
   "Split STRING into a pattern.
 A pattern is a list where each element is either a string
-or a symbol chosen among `any', `star', `point', `prefix'."
+or a symbol, see `completion-pcm--merge-completions'."
   (if (and point (< point (length string)))
       (let ((prefix (substring string 0 point))
             (suffix (substring string point)))
@@ -2515,7 +2515,19 @@ filter out additional entries (because TABLE migth not obey PRED)."
     (mapcar 'completion--sreverse strs))))
 
 (defun completion-pcm--merge-completions (strs pattern)
-  "Extract the commonality in STRS, with the help of PATTERN."
+  "Extract the commonality in STRS, with the help of PATTERN.
+PATTERN can contain strings and symbols chosen among `star', `any', `point',
+and `prefix'.  They all match anything (aka \".*\") but are merged differently:
+`any' only grows from the left (when matching \"a1b\" and \"a2b\" it gets
+  completed to just \"a\").
+`prefix' only grows from the right (when matching \"a1b\" and \"a2b\" it gets
+  completed to just \"b\").
+`star' grows from both ends and is reified into a \"*\"  (when matching \"a1b\"
+  and \"a2b\" it gets completed to \"a*b\").
+`point' is like `star' except that it gets reified as the position of point
+  instead of being reified as a \"*\" character.
+The underlying idea is that we should return a string which still matches
+the same set of elements."
   ;; When completing while ignoring case, we want to try and avoid
   ;; completing "fo" to "foO" when completing against "FOO" (bug#4219).
   ;; So we try and make sure that the string we return is all made up
@@ -2568,7 +2580,9 @@ filter out additional entries (because TABLE migth not obey PRED)."
               (let* ((prefix (try-completion fixed comps))
                      (unique (or (and (eq prefix t) (setq prefix fixed))
                                  (eq t (try-completion prefix comps)))))
-                (unless (equal prefix "") (push prefix res))
+                (unless (or (eq elem 'prefix)
+                            (equal prefix ""))
+                  (push prefix res))
                 ;; If there's only one completion, `elem' is not useful
                 ;; any more: it can only match the empty string.
                 ;; FIXME: in some cases, it may be necessary to turn an
