@@ -2648,7 +2648,7 @@ will be inserted before the group at point."
 ;;;;;;  ibuffer-backward-filter-group ibuffer-forward-filter-group
 ;;;;;;  ibuffer-toggle-filter-group ibuffer-mouse-toggle-filter-group
 ;;;;;;  ibuffer-interactive-filter-by-mode ibuffer-mouse-filter-by-mode
-;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "001cd83e8e1ff27c9a61097c840a984d")
+;;;;;;  ibuffer-auto-mode) "ibuf-ext" "ibuf-ext.el" "617b36fc8479547d679cf0103f82e3ff")
 ;;; Generated autoloads from ibuf-ext.el
 
 (autoload 'ibuffer-auto-mode "ibuf-ext" "\
@@ -2778,8 +2778,10 @@ The value from `ibuffer-saved-filter-groups' is used.
 
 (autoload 'ibuffer-filter-disable "ibuf-ext" "\
 Disable all filters currently in effect in this buffer.
+With optional arg DELETE-FILTER-GROUPS non-nil, delete all filter
+group definitions by setting `ibuffer-filter-groups' to nil.
 
-\(fn)" t nil)
+\(fn &optional DELETE-FILTER-GROUPS)" t nil)
 
 (autoload 'ibuffer-pop-filter "ibuf-ext" "\
 Remove the top filter in this buffer.
