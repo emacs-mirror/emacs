@@ -604,13 +604,6 @@
 	* ob-tangle.el (org-babel-tangle): Ignore errors thrown by
 	language modes.
 
-2011-07-28  Suvayu Ali  <fatkasuvayu+linux@gmail.com>  (tiny change)
-
-	* Mention use of keywords like multicolumn and float.
-
-	* Remove previous mention of hack with placement option as per
-	comments on the mailing list. The hack is better suited for Worg.
-
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
 
 	* ob-python.el (org-babel-python-evaluate-session): Inhibit return
@@ -905,7 +898,7 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-exp (org-export-preprocess-string): normalize footnotes
+	* org-exp.el (org-export-preprocess-string): normalize footnotes
 	before marking lists ending.
 
 	* org-latex.el (org-export-latex-preprocess): work with labels as
@@ -3355,7 +3348,7 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-list (org-cycle-item-indentation): do not break an
+	* org-list.el (org-cycle-item-indentation): do not break an
 	indentation cycle because visibility cycling is requested. This
 	happens when an item becomes a parent, due to indentation change.
 	Not considered empty anymore, the function cannot change its
@@ -4153,12 +4146,6 @@
 	* ob.el (org-babel-insert-result): Don't choke if indent is not a
 	number.
 
-2011-07-28  Bastien Guerry  <bzg@gnu.org>
-
-	* 2011
-	** 2011-02 monthname
-	*** 2011-02-13 dayname
-
 2011-07-28  Christian Moe  <mail@christianmoe.com>  (tiny change)
 
 	* org-bbdb.el (org-bbdb-export): When a link description has been
@@ -4498,18 +4485,6 @@
 	(org-export-latex-use-verb): now defaults to t.
 	(org-export-latex-emph-format): distinguish between =...= and
 	~...~ emphasis.
-
-2011-07-28  David Maus  <dmaus@ictsoc.de>
-
-	* test-org-html.el (test-org-html/export-link-alist): New
-	variable. Abstract link export test definition.
-	(test-org-html/export-link-factory): New function. Create tests for
-	link export.
-
-2011-07-28  David Maus  <dmaus@ictsoc.de>
-
-	* org-test.el (org-test-strip-text-props): New function. Strip
-	text properties.
 
 2011-07-28  Julien Danjou  <julien@danjou.info>
 
