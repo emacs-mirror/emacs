@@ -79,6 +79,11 @@ typedef enum {
   STRONG
 } bidi_category_t;
 
+/* UAX#9 says to search only for L, AL, or R types of characters, and
+   ignore RLE, RLO, LRE, and LRO, when determining the base paragraph
+   level.  Yudit indeed ignores them.  This variable is therefore set
+   by default to ignore them, but setting it to zero will take them
+   into account.  */
 extern int bidi_ignore_explicit_marks_for_paragraph_level EXTERNALLY_VISIBLE;
 int bidi_ignore_explicit_marks_for_paragraph_level = 1;
 
@@ -1178,10 +1183,6 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 	type = bidi_get_type (ch, NEUTRAL_DIR);
 
 	for (pos += nchars, bytepos += ch_len;
-	     /* NOTE: UAX#9 says to search only for L, AL, or R types
-		of characters, and ignore RLE, RLO, LRE, and LRO.
-		However, I'm not sure it makes sense to omit those 4;
-		should try with and without that to see the effect.  */
 	     (bidi_get_category (type) != STRONG)
 	       || (bidi_ignore_explicit_marks_for_paragraph_level
 		   && (type == RLE || type == RLO
@@ -1206,9 +1207,13 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 	    pos += nchars;
 	    bytepos += ch_len;
 	  }
-	if (type == STRONG_R || type == STRONG_AL) /* P3 */
+	if ((type == STRONG_R || type == STRONG_AL) /* P3 */
+	    || (!bidi_ignore_explicit_marks_for_paragraph_level
+		&& (type == RLO || type == RLE)))
 	  bidi_it->paragraph_dir = R2L;
-	else if (type == STRONG_L)
+	else if (type == STRONG_L
+		 || (!bidi_ignore_explicit_marks_for_paragraph_level
+		     && (type == LRO || type == LRE)))
 	  bidi_it->paragraph_dir = L2R;
 	if (!string_p
 	    && no_default_p && bidi_it->paragraph_dir == NEUTRAL_DIR)

@@ -1,5 +1,8 @@
 2011-08-15  Eli Zaretskii  <eliz@gnu.org>
 
+	* bidi.c (bidi_paragraph_init): Support zero value of
+	bidi_ignore_explicit_marks_for_paragraph_level.
+
 	* xdisp.c (move_it_in_display_line_to): Don't reset pixel
 	coordinates of the iterator when restoring from ppos_it.
 	(Bug#9296)
