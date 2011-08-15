@@ -42,19 +42,19 @@ static Lisp_Object Qgnutls_e_interrupted, Qgnutls_e_again,
 static int gnutls_global_initialized;
 
 /* The following are for the property list of `gnutls-boot'.  */
-static Lisp_Object Qgnutls_bootprop_priority;
-static Lisp_Object Qgnutls_bootprop_trustfiles;
-static Lisp_Object Qgnutls_bootprop_keylist;
-static Lisp_Object Qgnutls_bootprop_crlfiles;
-static Lisp_Object Qgnutls_bootprop_callbacks;
-static Lisp_Object Qgnutls_bootprop_loglevel;
-static Lisp_Object Qgnutls_bootprop_hostname;
-static Lisp_Object Qgnutls_bootprop_min_prime_bits;
-static Lisp_Object Qgnutls_bootprop_verify_flags;
-static Lisp_Object Qgnutls_bootprop_verify_hostname_error;
+static Lisp_Object QCgnutls_bootprop_priority;
+static Lisp_Object QCgnutls_bootprop_trustfiles;
+static Lisp_Object QCgnutls_bootprop_keylist;
+static Lisp_Object QCgnutls_bootprop_crlfiles;
+static Lisp_Object QCgnutls_bootprop_callbacks;
+static Lisp_Object QCgnutls_bootprop_loglevel;
+static Lisp_Object QCgnutls_bootprop_hostname;
+static Lisp_Object QCgnutls_bootprop_min_prime_bits;
+static Lisp_Object QCgnutls_bootprop_verify_flags;
+static Lisp_Object QCgnutls_bootprop_verify_hostname_error;
 
 /* Callback keys for `gnutls-boot'.  Unused currently.  */
-static Lisp_Object Qgnutls_bootprop_callbacks_verify;
+static Lisp_Object QCgnutls_bootprop_callbacks_verify;
 
 static void gnutls_log_function (int, const char *);
 static void gnutls_log_function2 (int, const char*, const char*);
@@ -72,41 +72,41 @@ static void gnutls_log_function2 (int, const char*, const char*);
   }
 
 DEF_GNUTLS_FN (gnutls_alert_description_t, gnutls_alert_get,
-               (gnutls_session_t));
+	       (gnutls_session_t));
 DEF_GNUTLS_FN (const char *, gnutls_alert_get_name,
-               (gnutls_alert_description_t));
+	       (gnutls_alert_description_t));
 DEF_GNUTLS_FN (int, gnutls_alert_send_appropriate, (gnutls_session_t, int));
 DEF_GNUTLS_FN (int, gnutls_anon_allocate_client_credentials,
-               (gnutls_anon_client_credentials_t *));
+	       (gnutls_anon_client_credentials_t *));
 DEF_GNUTLS_FN (void, gnutls_anon_free_client_credentials,
-               (gnutls_anon_client_credentials_t));
+	       (gnutls_anon_client_credentials_t));
 DEF_GNUTLS_FN (int, gnutls_bye, (gnutls_session_t, gnutls_close_request_t));
 DEF_GNUTLS_FN (int, gnutls_certificate_allocate_credentials,
-               (gnutls_certificate_credentials_t *));
+	       (gnutls_certificate_credentials_t *));
 DEF_GNUTLS_FN (void, gnutls_certificate_free_credentials,
-               (gnutls_certificate_credentials_t));
+	       (gnutls_certificate_credentials_t));
 DEF_GNUTLS_FN (const gnutls_datum_t *, gnutls_certificate_get_peers,
-               (gnutls_session_t, unsigned int *));
+	       (gnutls_session_t, unsigned int *));
 DEF_GNUTLS_FN (void, gnutls_certificate_set_verify_flags,
-               (gnutls_certificate_credentials_t, unsigned int));
+	       (gnutls_certificate_credentials_t, unsigned int));
 DEF_GNUTLS_FN (int, gnutls_certificate_set_x509_crl_file,
-               (gnutls_certificate_credentials_t, const char *,
-                gnutls_x509_crt_fmt_t));
+	       (gnutls_certificate_credentials_t, const char *,
+		gnutls_x509_crt_fmt_t));
 DEF_GNUTLS_FN (int, gnutls_certificate_set_x509_key_file,
-               (gnutls_certificate_credentials_t, const char *, const char *,
-                gnutls_x509_crt_fmt_t));
+	       (gnutls_certificate_credentials_t, const char *, const char *,
+		gnutls_x509_crt_fmt_t));
 DEF_GNUTLS_FN (int, gnutls_certificate_set_x509_trust_file,
-               (gnutls_certificate_credentials_t, const char *,
-                gnutls_x509_crt_fmt_t));
+	       (gnutls_certificate_credentials_t, const char *,
+		gnutls_x509_crt_fmt_t));
 DEF_GNUTLS_FN (gnutls_certificate_type_t, gnutls_certificate_type_get,
-               (gnutls_session_t));
+	       (gnutls_session_t));
 DEF_GNUTLS_FN (int, gnutls_certificate_verify_peers2,
-               (gnutls_session_t, unsigned int *));
+	       (gnutls_session_t, unsigned int *));
 DEF_GNUTLS_FN (int, gnutls_credentials_set,
-               (gnutls_session_t, gnutls_credentials_type_t, void *));
+	       (gnutls_session_t, gnutls_credentials_type_t, void *));
 DEF_GNUTLS_FN (void, gnutls_deinit, (gnutls_session_t));
 DEF_GNUTLS_FN (void, gnutls_dh_set_prime_bits,
-               (gnutls_session_t, unsigned int));
+	       (gnutls_session_t, unsigned int));
 DEF_GNUTLS_FN (int, gnutls_error_is_fatal, (int));
 DEF_GNUTLS_FN (int, gnutls_global_init, (void));
 DEF_GNUTLS_FN (void, gnutls_global_set_log_function, (gnutls_log_func));
@@ -118,27 +118,27 @@ DEF_GNUTLS_FN (void, gnutls_global_set_mem_functions,
 DEF_GNUTLS_FN (int, gnutls_handshake, (gnutls_session_t));
 DEF_GNUTLS_FN (int, gnutls_init, (gnutls_session_t *, gnutls_connection_end_t));
 DEF_GNUTLS_FN (int, gnutls_priority_set_direct,
-               (gnutls_session_t, const char *, const char **));
+	       (gnutls_session_t, const char *, const char **));
 DEF_GNUTLS_FN (size_t, gnutls_record_check_pending, (gnutls_session_t));
 DEF_GNUTLS_FN (ssize_t, gnutls_record_recv, (gnutls_session_t, void *, size_t));
 DEF_GNUTLS_FN (ssize_t, gnutls_record_send,
-               (gnutls_session_t, const void *, size_t));
+	       (gnutls_session_t, const void *, size_t));
 DEF_GNUTLS_FN (const char *, gnutls_strerror, (int));
 DEF_GNUTLS_FN (void, gnutls_transport_set_errno, (gnutls_session_t, int));
 DEF_GNUTLS_FN (void, gnutls_transport_set_lowat, (gnutls_session_t, int));
 DEF_GNUTLS_FN (void, gnutls_transport_set_ptr2,
-               (gnutls_session_t, gnutls_transport_ptr_t,
-                gnutls_transport_ptr_t));
+	       (gnutls_session_t, gnutls_transport_ptr_t,
+		gnutls_transport_ptr_t));
 DEF_GNUTLS_FN (void, gnutls_transport_set_pull_function,
-               (gnutls_session_t, gnutls_pull_func));
+	       (gnutls_session_t, gnutls_pull_func));
 DEF_GNUTLS_FN (void, gnutls_transport_set_push_function,
-               (gnutls_session_t, gnutls_push_func));
+	       (gnutls_session_t, gnutls_push_func));
 DEF_GNUTLS_FN (int, gnutls_x509_crt_check_hostname,
-               (gnutls_x509_crt_t, const char *));
+	       (gnutls_x509_crt_t, const char *));
 DEF_GNUTLS_FN (void, gnutls_x509_crt_deinit, (gnutls_x509_crt_t));
 DEF_GNUTLS_FN (int, gnutls_x509_crt_import,
-               (gnutls_x509_crt_t, const gnutls_datum_t *,
-                gnutls_x509_crt_fmt_t));
+	       (gnutls_x509_crt_t, const gnutls_datum_t *,
+		gnutls_x509_crt_fmt_t));
 DEF_GNUTLS_FN (int, gnutls_x509_crt_init, (gnutls_x509_crt_t *));
 
 static int
@@ -196,7 +196,7 @@ init_gnutls_functions (Lisp_Object libraries)
   max_log_level = global_gnutls_log_level;
 
   GNUTLS_LOG2 (1, max_log_level, "GnuTLS library loaded:",
-               SDATA (Fget (Qgnutls_dll, QCloaded_from)));
+	       SDATA (Fget (Qgnutls_dll, QCloaded_from)));
   return 1;
 }
 
@@ -267,29 +267,29 @@ emacs_gnutls_handshake (struct Lisp_Process *proc)
     {
 #ifdef WINDOWSNT
       /* On W32 we cannot transfer socket handles between different runtime
-         libraries, so we tell GnuTLS to use our special push/pull
-         functions.  */
+	 libraries, so we tell GnuTLS to use our special push/pull
+	 functions.  */
       fn_gnutls_transport_set_ptr2 (state,
-                                    (gnutls_transport_ptr_t) proc,
-                                    (gnutls_transport_ptr_t) proc);
+				    (gnutls_transport_ptr_t) proc,
+				    (gnutls_transport_ptr_t) proc);
       fn_gnutls_transport_set_push_function (state, &emacs_gnutls_push);
       fn_gnutls_transport_set_pull_function (state, &emacs_gnutls_pull);
 
       /* For non blocking sockets or other custom made pull/push
-         functions the gnutls_transport_set_lowat must be called, with
-         a zero low water mark value. (GnuTLS 2.10.4 documentation)
+	 functions the gnutls_transport_set_lowat must be called, with
+	 a zero low water mark value. (GnuTLS 2.10.4 documentation)
 
-         (Note: this is probably not strictly necessary as the lowat
-          value is only used when no custom pull/push functions are
-          set.)  */
+	 (Note: this is probably not strictly necessary as the lowat
+	  value is only used when no custom pull/push functions are
+	  set.)  */
       fn_gnutls_transport_set_lowat (state, 0);
 #else
       /* This is how GnuTLS takes sockets: as file descriptors passed
-         in.  For an Emacs process socket, infd and outfd are the
-         same but we use this two-argument version for clarity.  */
+	 in.  For an Emacs process socket, infd and outfd are the
+	 same but we use this two-argument version for clarity.  */
       fn_gnutls_transport_set_ptr2 (state,
-                                    (gnutls_transport_ptr_t) (long) proc->infd,
-                                    (gnutls_transport_ptr_t) (long) proc->outfd);
+				    (gnutls_transport_ptr_t) (long) proc->infd,
+				    (gnutls_transport_ptr_t) (long) proc->outfd);
 #endif
 
       proc->gnutls_initstage = GNUTLS_STAGE_TRANSPORT_POINTERS_SET;
@@ -352,12 +352,12 @@ emacs_gnutls_write (struct Lisp_Process *proc, const char *buf, EMACS_INT nbyte)
       rtnval = fn_gnutls_record_send (state, buf, nbyte);
 
       if (rtnval < 0)
-        {
-          if (rtnval == GNUTLS_E_AGAIN || rtnval == GNUTLS_E_INTERRUPTED)
-            continue;
-          else
-            break;
-        }
+	{
+	  if (rtnval == GNUTLS_E_AGAIN || rtnval == GNUTLS_E_INTERRUPTED)
+	    continue;
+	  else
+	    break;
+	}
 
       buf += rtnval;
       nbyte -= rtnval;
@@ -716,17 +716,17 @@ one trustfile (usually a CA bundle).  */)
       return gnutls_make_error (GNUTLS_EMACS_ERROR_NOT_LOADED);
     }
 
-  hostname              = Fplist_get (proplist, Qgnutls_bootprop_hostname);
-  priority_string       = Fplist_get (proplist, Qgnutls_bootprop_priority);
-  trustfiles            = Fplist_get (proplist, Qgnutls_bootprop_trustfiles);
-  keylist               = Fplist_get (proplist, Qgnutls_bootprop_keylist);
-  crlfiles              = Fplist_get (proplist, Qgnutls_bootprop_crlfiles);
-  /* callbacks          = Fplist_get (proplist, Qgnutls_bootprop_callbacks); */
-  loglevel              = Fplist_get (proplist, Qgnutls_bootprop_loglevel);
-  verify_flags          = Fplist_get (proplist, Qgnutls_bootprop_verify_flags);
-  /* verify_error       = Fplist_get (proplist, Qgnutls_bootprop_verify_error); */
-  verify_hostname_error = Fplist_get (proplist, Qgnutls_bootprop_verify_hostname_error);
-  prime_bits            = Fplist_get (proplist, Qgnutls_bootprop_min_prime_bits);
+  hostname              = Fplist_get (proplist, QCgnutls_bootprop_hostname);
+  priority_string       = Fplist_get (proplist, QCgnutls_bootprop_priority);
+  trustfiles            = Fplist_get (proplist, QCgnutls_bootprop_trustfiles);
+  keylist               = Fplist_get (proplist, QCgnutls_bootprop_keylist);
+  crlfiles              = Fplist_get (proplist, QCgnutls_bootprop_crlfiles);
+  /* callbacks          = Fplist_get (proplist, QCgnutls_bootprop_callbacks); */
+  loglevel              = Fplist_get (proplist, QCgnutls_bootprop_loglevel);
+  verify_flags          = Fplist_get (proplist, QCgnutls_bootprop_verify_flags);
+  /* verify_error       = Fplist_get (proplist, QCgnutls_bootprop_verify_error); */
+  verify_hostname_error = Fplist_get (proplist, QCgnutls_bootprop_verify_hostname_error);
+  prime_bits            = Fplist_get (proplist, QCgnutls_bootprop_min_prime_bits);
 
   if (!STRINGP (hostname))
     error ("gnutls-boot: invalid :hostname parameter");
@@ -756,26 +756,26 @@ one trustfile (usually a CA bundle).  */)
 
       if (EQ (type, Qgnutls_x509pki))
 	{
-          GNUTLS_LOG (2, max_log_level, "deallocating x509 credentials");
-          x509_cred = XPROCESS (proc)->gnutls_x509_cred;
-          fn_gnutls_certificate_free_credentials (x509_cred);
+	  GNUTLS_LOG (2, max_log_level, "deallocating x509 credentials");
+	  x509_cred = XPROCESS (proc)->gnutls_x509_cred;
+	  fn_gnutls_certificate_free_credentials (x509_cred);
 	}
       else if (EQ (type, Qgnutls_anon))
 	{
-          GNUTLS_LOG (2, max_log_level, "deallocating anon credentials");
-          anon_cred = XPROCESS (proc)->gnutls_anon_cred;
-          fn_gnutls_anon_free_client_credentials (anon_cred);
+	  GNUTLS_LOG (2, max_log_level, "deallocating anon credentials");
+	  anon_cred = XPROCESS (proc)->gnutls_anon_cred;
+	  fn_gnutls_anon_free_client_credentials (anon_cred);
 	}
       else
 	{
-          error ("unknown credential type");
-          ret = GNUTLS_EMACS_ERROR_INVALID_TYPE;
+	  error ("unknown credential type");
+	  ret = GNUTLS_EMACS_ERROR_INVALID_TYPE;
 	}
 
       if (GNUTLS_INITSTAGE (proc) >= GNUTLS_STAGE_INIT)
 	{
-          GNUTLS_LOG (1, max_log_level, "deallocating x509 credentials");
-          Fgnutls_deinit (proc);
+	  GNUTLS_LOG (1, max_log_level, "deallocating x509 credentials");
+	  Fgnutls_deinit (proc);
 	}
     }
 
@@ -790,20 +790,20 @@ one trustfile (usually a CA bundle).  */)
       fn_gnutls_certificate_allocate_credentials (&x509_cred);
 
       if (NUMBERP (verify_flags))
-        {
-          gnutls_verify_flags = XINT (verify_flags);
-          GNUTLS_LOG (2, max_log_level, "setting verification flags");
-        }
+	{
+	  gnutls_verify_flags = XINT (verify_flags);
+	  GNUTLS_LOG (2, max_log_level, "setting verification flags");
+	}
       else if (NILP (verify_flags))
-        {
-          /* The default is already GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT.  */
-          GNUTLS_LOG (2, max_log_level, "using default verification flags");
-        }
+	{
+	  /* The default is already GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT.  */
+	  GNUTLS_LOG (2, max_log_level, "using default verification flags");
+	}
       else
-        {
-          /* The default is already GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT.  */
-          GNUTLS_LOG (2, max_log_level, "ignoring invalid verify-flags");
-        }
+	{
+	  /* The default is already GNUTLS_VERIFY_ALLOW_X509_V1_CA_CRT.  */
+	  GNUTLS_LOG (2, max_log_level, "ignoring invalid verify-flags");
+	}
       fn_gnutls_certificate_set_verify_flags (x509_cred, gnutls_verify_flags);
     }
   else if (EQ (type, Qgnutls_anon))
@@ -828,76 +828,76 @@ one trustfile (usually a CA bundle).  */)
       for (tail = trustfiles; !NILP (tail); tail = Fcdr (tail))
 	{
 	  Lisp_Object trustfile = Fcar (tail);
-          if (STRINGP (trustfile))
-            {
-              GNUTLS_LOG2 (1, max_log_level, "setting the trustfile: ",
-                           SSDATA (trustfile));
-              ret = fn_gnutls_certificate_set_x509_trust_file
-                (x509_cred,
-                 SSDATA (trustfile),
-                 file_format);
+	  if (STRINGP (trustfile))
+	    {
+	      GNUTLS_LOG2 (1, max_log_level, "setting the trustfile: ",
+			   SSDATA (trustfile));
+	      ret = fn_gnutls_certificate_set_x509_trust_file
+		(x509_cred,
+		 SSDATA (trustfile),
+		 file_format);
 
-              if (ret < GNUTLS_E_SUCCESS)
-                return gnutls_make_error (ret);
-            }
-          else
-            {
-              error ("Sorry, GnuTLS can't use non-string trustfile %s",
-                     SDATA (trustfile));
-            }
-        }
+	      if (ret < GNUTLS_E_SUCCESS)
+		return gnutls_make_error (ret);
+	    }
+	  else
+	    {
+	      error ("Sorry, GnuTLS can't use non-string trustfile %s",
+		     SDATA (trustfile));
+	    }
+	}
 
       for (tail = crlfiles; !NILP (tail); tail = Fcdr (tail))
 	{
 	  Lisp_Object crlfile = Fcar (tail);
-          if (STRINGP (crlfile))
-            {
-              GNUTLS_LOG2 (1, max_log_level, "setting the CRL file: ",
-                           SSDATA (crlfile));
-              ret = fn_gnutls_certificate_set_x509_crl_file
-                (x509_cred,
-                 SSDATA (crlfile),
-                 file_format);
+	  if (STRINGP (crlfile))
+	    {
+	      GNUTLS_LOG2 (1, max_log_level, "setting the CRL file: ",
+			   SSDATA (crlfile));
+	      ret = fn_gnutls_certificate_set_x509_crl_file
+		(x509_cred,
+		 SSDATA (crlfile),
+		 file_format);
 
-              if (ret < GNUTLS_E_SUCCESS)
-                return gnutls_make_error (ret);
-            }
-          else
-            {
-              error ("Sorry, GnuTLS can't use non-string CRL file %s",
-                     SDATA (crlfile));
-            }
-        }
+	      if (ret < GNUTLS_E_SUCCESS)
+		return gnutls_make_error (ret);
+	    }
+	  else
+	    {
+	      error ("Sorry, GnuTLS can't use non-string CRL file %s",
+		     SDATA (crlfile));
+	    }
+	}
 
       for (tail = keylist; !NILP (tail); tail = Fcdr (tail))
 	{
 	  Lisp_Object keyfile = Fcar (Fcar (tail));
 	  Lisp_Object certfile = Fcar (Fcdr (tail));
-          if (STRINGP (keyfile) && STRINGP (certfile))
-            {
-              GNUTLS_LOG2 (1, max_log_level, "setting the client key file: ",
-                           SSDATA (keyfile));
-              GNUTLS_LOG2 (1, max_log_level, "setting the client cert file: ",
-                           SSDATA (certfile));
-              ret = fn_gnutls_certificate_set_x509_key_file
-                (x509_cred,
-                 SSDATA (certfile),
-                 SSDATA (keyfile),
-                 file_format);
+	  if (STRINGP (keyfile) && STRINGP (certfile))
+	    {
+	      GNUTLS_LOG2 (1, max_log_level, "setting the client key file: ",
+			   SSDATA (keyfile));
+	      GNUTLS_LOG2 (1, max_log_level, "setting the client cert file: ",
+			   SSDATA (certfile));
+	      ret = fn_gnutls_certificate_set_x509_key_file
+		(x509_cred,
+		 SSDATA (certfile),
+		 SSDATA (keyfile),
+		 file_format);
 
-              if (ret < GNUTLS_E_SUCCESS)
-                return gnutls_make_error (ret);
-            }
-          else
-            {
-              if (STRINGP (keyfile))
-                error ("Sorry, GnuTLS can't use non-string client cert file %s",
-                       SDATA (certfile));
-              else
-                error ("Sorry, GnuTLS can't use non-string client key file %s",
-                       SDATA (keyfile));
-            }
-        }
+	      if (ret < GNUTLS_E_SUCCESS)
+		return gnutls_make_error (ret);
+	    }
+	  else
+	    {
+	      if (STRINGP (keyfile))
+		error ("Sorry, GnuTLS can't use non-string client cert file %s",
+		       SDATA (certfile));
+	      else
+		error ("Sorry, GnuTLS can't use non-string client key file %s",
+		       SDATA (keyfile));
+	    }
+	}
     }
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_FILES;
@@ -925,19 +925,19 @@ one trustfile (usually a CA bundle).  */)
     {
       priority_string_ptr = SSDATA (priority_string);
       GNUTLS_LOG2 (1, max_log_level, "got non-default priority string:",
-                   priority_string_ptr);
+		   priority_string_ptr);
     }
   else
     {
       GNUTLS_LOG2 (1, max_log_level, "using default priority string:",
-                   priority_string_ptr);
+		   priority_string_ptr);
     }
 
   GNUTLS_LOG (1, max_log_level, "setting the priority string");
 
   ret = fn_gnutls_priority_set_direct (state,
-                                       priority_string_ptr,
-                                       NULL);
+				       priority_string_ptr,
+				       NULL);
 
   if (ret < GNUTLS_E_SUCCESS)
     return gnutls_make_error (ret);
@@ -990,44 +990,44 @@ one trustfile (usually a CA bundle).  */)
 
   if (XINT (loglevel) > 0 && peer_verification & GNUTLS_CERT_INVALID)
     message ("%s certificate could not be verified.",
-             c_hostname);
+	     c_hostname);
 
  if (peer_verification & GNUTLS_CERT_REVOKED)
    GNUTLS_LOG2 (1, max_log_level, "certificate was revoked (CRL):",
-                c_hostname);
+		c_hostname);
 
  if (peer_verification & GNUTLS_CERT_SIGNER_NOT_FOUND)
    GNUTLS_LOG2 (1, max_log_level, "certificate signer was not found:",
-                c_hostname);
+		c_hostname);
 
  if (peer_verification & GNUTLS_CERT_SIGNER_NOT_CA)
    GNUTLS_LOG2 (1, max_log_level, "certificate signer is not a CA:",
-                c_hostname);
+		c_hostname);
 
  if (peer_verification & GNUTLS_CERT_INSECURE_ALGORITHM)
    GNUTLS_LOG2 (1, max_log_level,
-                "certificate was signed with an insecure algorithm:",
-                c_hostname);
+		"certificate was signed with an insecure algorithm:",
+		c_hostname);
 
  if (peer_verification & GNUTLS_CERT_NOT_ACTIVATED)
    GNUTLS_LOG2 (1, max_log_level, "certificate is not yet activated:",
-                c_hostname);
+		c_hostname);
 
  if (peer_verification & GNUTLS_CERT_EXPIRED)
    GNUTLS_LOG2 (1, max_log_level, "certificate has expired:",
-                c_hostname);
+		c_hostname);
 
  if (peer_verification != 0)
    {
      if (NILP (verify_hostname_error))
        {
-         GNUTLS_LOG2 (1, max_log_level, "certificate validation failed:",
-                      c_hostname);
+	 GNUTLS_LOG2 (1, max_log_level, "certificate validation failed:",
+		      c_hostname);
        }
      else
        {
-         error ("Certificate validation failed %s, verification code %d",
-                c_hostname, peer_verification);
+	 error ("Certificate validation failed %s, verification code %d",
+		c_hostname, peer_verification);
        }
    }
 
@@ -1039,41 +1039,41 @@ one trustfile (usually a CA bundle).  */)
       ret = fn_gnutls_x509_crt_init (&gnutls_verify_cert);
 
       if (ret < GNUTLS_E_SUCCESS)
-        return gnutls_make_error (ret);
+	return gnutls_make_error (ret);
 
       gnutls_verify_cert_list =
-        fn_gnutls_certificate_get_peers (state, &gnutls_verify_cert_list_size);
+	fn_gnutls_certificate_get_peers (state, &gnutls_verify_cert_list_size);
 
       if (NULL == gnutls_verify_cert_list)
-        {
-          error ("No x509 certificate was found!\n");
-        }
+	{
+	  error ("No x509 certificate was found!\n");
+	}
 
       /* We only check the first certificate in the given chain.  */
       ret = fn_gnutls_x509_crt_import (gnutls_verify_cert,
-                                       &gnutls_verify_cert_list[0],
-                                       GNUTLS_X509_FMT_DER);
+				       &gnutls_verify_cert_list[0],
+				       GNUTLS_X509_FMT_DER);
 
       if (ret < GNUTLS_E_SUCCESS)
-        {
-          fn_gnutls_x509_crt_deinit (gnutls_verify_cert);
-          return gnutls_make_error (ret);
-        }
+	{
+	  fn_gnutls_x509_crt_deinit (gnutls_verify_cert);
+	  return gnutls_make_error (ret);
+	}
 
       if (!fn_gnutls_x509_crt_check_hostname (gnutls_verify_cert, c_hostname))
-        {
-          if (NILP (verify_hostname_error))
-            {
-              GNUTLS_LOG2 (1, max_log_level, "x509 certificate does not match:",
-                           c_hostname);
-            }
-          else
-            {
-              fn_gnutls_x509_crt_deinit (gnutls_verify_cert);
-              error ("The x509 certificate does not match \"%s\"",
-                     c_hostname);
-            }
-        }
+	{
+	  if (NILP (verify_hostname_error))
+	    {
+	      GNUTLS_LOG2 (1, max_log_level, "x509 certificate does not match:",
+			   c_hostname);
+	    }
+	  else
+	    {
+	      fn_gnutls_x509_crt_deinit (gnutls_verify_cert);
+	      error ("The x509 certificate does not match \"%s\"",
+		     c_hostname);
+	    }
+	}
 
       fn_gnutls_x509_crt_deinit (gnutls_verify_cert);
     }
@@ -1105,7 +1105,7 @@ This function may also return `gnutls-e-again', or
   state = XPROCESS (proc)->gnutls_state;
 
   ret = fn_gnutls_bye (state,
-                       NILP (cont) ? GNUTLS_SHUT_RDWR : GNUTLS_SHUT_WR);
+		       NILP (cont) ? GNUTLS_SHUT_RDWR : GNUTLS_SHUT_WR);
 
   return gnutls_make_error (ret);
 }
@@ -1119,33 +1119,33 @@ syms_of_gnutls (void)
   DEFSYM (Qgnutls_code, "gnutls-code");
   DEFSYM (Qgnutls_anon, "gnutls-anon");
   DEFSYM (Qgnutls_x509pki, "gnutls-x509pki");
-  DEFSYM (Qgnutls_bootprop_hostname, ":hostname");
-  DEFSYM (Qgnutls_bootprop_priority, ":priority");
-  DEFSYM (Qgnutls_bootprop_trustfiles, ":trustfiles");
-  DEFSYM (Qgnutls_bootprop_keylist, ":keylist");
-  DEFSYM (Qgnutls_bootprop_crlfiles, ":crlfiles");
-  DEFSYM (Qgnutls_bootprop_callbacks, ":callbacks");
-  DEFSYM (Qgnutls_bootprop_callbacks_verify, "verify");
-  DEFSYM (Qgnutls_bootprop_min_prime_bits, ":min-prime-bits");
-  DEFSYM (Qgnutls_bootprop_loglevel, ":loglevel");
-  DEFSYM (Qgnutls_bootprop_verify_flags, ":verify-flags");
-  DEFSYM (Qgnutls_bootprop_verify_hostname_error, ":verify-hostname-error");
+  DEFSYM (QCgnutls_bootprop_hostname, ":hostname");
+  DEFSYM (QCgnutls_bootprop_priority, ":priority");
+  DEFSYM (QCgnutls_bootprop_trustfiles, ":trustfiles");
+  DEFSYM (QCgnutls_bootprop_keylist, ":keylist");
+  DEFSYM (QCgnutls_bootprop_crlfiles, ":crlfiles");
+  DEFSYM (QCgnutls_bootprop_callbacks, ":callbacks");
+  DEFSYM (QCgnutls_bootprop_callbacks_verify, "verify");
+  DEFSYM (QCgnutls_bootprop_min_prime_bits, ":min-prime-bits");
+  DEFSYM (QCgnutls_bootprop_loglevel, ":loglevel");
+  DEFSYM (QCgnutls_bootprop_verify_flags, ":verify-flags");
+  DEFSYM (QCgnutls_bootprop_verify_hostname_error, ":verify-hostname-error");
 
   DEFSYM (Qgnutls_e_interrupted, "gnutls-e-interrupted");
   Fput (Qgnutls_e_interrupted, Qgnutls_code,
-        make_number (GNUTLS_E_INTERRUPTED));
+	make_number (GNUTLS_E_INTERRUPTED));
 
   DEFSYM (Qgnutls_e_again, "gnutls-e-again");
   Fput (Qgnutls_e_again, Qgnutls_code,
-        make_number (GNUTLS_E_AGAIN));
+	make_number (GNUTLS_E_AGAIN));
 
   DEFSYM (Qgnutls_e_invalid_session, "gnutls-e-invalid-session");
   Fput (Qgnutls_e_invalid_session, Qgnutls_code,
-        make_number (GNUTLS_E_INVALID_SESSION));
+	make_number (GNUTLS_E_INVALID_SESSION));
 
   DEFSYM (Qgnutls_e_not_ready_for_handshake, "gnutls-e-not-ready-for-handshake");
   Fput (Qgnutls_e_not_ready_for_handshake, Qgnutls_code,
-        make_number (GNUTLS_E_APPLICATION_ERROR_MIN));
+	make_number (GNUTLS_E_APPLICATION_ERROR_MIN));
 
   defsubr (&Sgnutls_get_initstage);
   defsubr (&Sgnutls_errorp);

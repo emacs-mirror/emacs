@@ -2468,63 +2468,6 @@ $as_echo "$ac_res" >&6; }
 
 } # ac_fn_c_check_header_preproc
 
-# ac_fn_c_check_member LINENO AGGR MEMBER VAR INCLUDES
-# ----------------------------------------------------
-# Tries to find if the field MEMBER exists in type AGGR, after including
-# INCLUDES, setting cache variable VAR accordingly.
-ac_fn_c_check_member ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2.$3" >&5
-$as_echo_n "checking for $2.$3... " >&6; }
-if { as_var=$4; eval "test \"\${$as_var+set}\" = set"; }; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$5
-int
-main ()
-{
-static $2 ac_aggr;
-if (ac_aggr.$3)
-return 0;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  eval "$4=yes"
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$5
-int
-main ()
-{
-static $2 ac_aggr;
-if (sizeof ac_aggr.$3)
-return 0;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  eval "$4=yes"
-else
-  eval "$4=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-eval ac_res=\$$4
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-  eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
-
-} # ac_fn_c_check_member
-
 # ac_fn_c_check_func LINENO FUNC VAR
 # ----------------------------------
 # Tests whether FUNC exists, setting the cache variable VAR accordingly
@@ -2591,6 +2534,63 @@ $as_echo "$ac_res" >&6; }
   eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
 
 } # ac_fn_c_check_func
+
+# ac_fn_c_check_member LINENO AGGR MEMBER VAR INCLUDES
+# ----------------------------------------------------
+# Tries to find if the field MEMBER exists in type AGGR, after including
+# INCLUDES, setting cache variable VAR accordingly.
+ac_fn_c_check_member ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2.$3" >&5
+$as_echo_n "checking for $2.$3... " >&6; }
+if { as_var=$4; eval "test \"\${$as_var+set}\" = set"; }; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$5
+int
+main ()
+{
+static $2 ac_aggr;
+if (ac_aggr.$3)
+return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$4=yes"
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$5
+int
+main ()
+{
+static $2 ac_aggr;
+if (sizeof ac_aggr.$3)
+return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$4=yes"
+else
+  eval "$4=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+eval ac_res=\$$4
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
+
+} # ac_fn_c_check_member
 
 # ac_fn_c_check_type LINENO TYPE VAR INCLUDES
 # -------------------------------------------
@@ -8359,6 +8359,18 @@ $as_echo "#define NO_MATHERR 1" >>confdefs.h
 
 fi
 
+for ac_header in sys/socket.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/socket.h" "ac_cv_header_sys_socket_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_socket_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYS_SOCKET_H 1
+_ACEOF
+
+fi
+
+done
+
 for ac_header in net/if.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "net/if.h" "ac_cv_header_net_if_h" "$ac_includes_default
@@ -8373,6 +8385,51 @@ _ACEOF
 
 fi
 
+done
+
+for ac_header in ifaddrs.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "ifaddrs.h" "ac_cv_header_ifaddrs_h" "$ac_includes_default
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+"
+if test "x$ac_cv_header_ifaddrs_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_IFADDRS_H 1
+_ACEOF
+
+fi
+
+done
+
+for ac_header in net/if_dl.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "net/if_dl.h" "ac_cv_header_net_if_dl_h" "$ac_includes_default
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+"
+if test "x$ac_cv_header_net_if_dl_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_NET_IF_DL_H 1
+_ACEOF
+
+fi
+
+done
+
+for ac_func in getifaddrs freeifaddrs
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
 done
 
 
@@ -8562,6 +8619,22 @@ if test "x$ac_cv_member_struct_ifreq_ifr_addr" = x""yes; then :
 
 cat >>confdefs.h <<_ACEOF
 #define HAVE_STRUCT_IFREQ_IFR_ADDR 1
+_ACEOF
+
+
+fi
+ac_fn_c_check_member "$LINENO" "struct ifreq" "ifr_addr.sa_len" "ac_cv_member_struct_ifreq_ifr_addr_sa_len" "$ac_includes_default
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#if HAVE_NET_IF_H
+#include <net/if.h>
+#endif
+"
+if test "x$ac_cv_member_struct_ifreq_ifr_addr_sa_len" = x""yes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_STRUCT_IFREQ_IFR_ADDR_SA_LEN 1
 _ACEOF
 
 
