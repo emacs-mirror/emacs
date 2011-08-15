@@ -1,3 +1,10 @@
+2011-08-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ibuf-ext.el (ibuffer-filter-disable): New arg for deleting
+	filter groups.
+	(ibuffer-included-in-filter-p-1): Use it.  Suggested by Rafaël
+	Fourquet (Bug#8804).
+
 2011-08-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* startup.el (argi): Declare as global variable (bug#9275).

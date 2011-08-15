@@ -218,6 +218,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `fpathconf' function. */
 #undef HAVE_FPATHCONF
 
+/* Define to 1 if you have the `freeifaddrs' function. */
+#undef HAVE_FREEIFADDRS
+
 /* Define to 1 if using the freetype and fontconfig libraries. */
 #undef HAVE_FREETYPE
 
@@ -253,6 +256,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `gethostname' function. */
 #undef HAVE_GETHOSTNAME
+
+/* Define to 1 if you have the `getifaddrs' function. */
+#undef HAVE_GETIFADDRS
 
 /* Define to 1 if you have the `getline' function. */
 #undef HAVE_GETLINE
@@ -350,6 +356,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if netdb.h declares h_errno. */
 #undef HAVE_H_ERRNO
+
+/* Define to 1 if you have the <ifaddrs.h> header file. */
+#undef HAVE_IFADDRS_H
 
 /* Define to 1 if using imagemagick. */
 #undef HAVE_IMAGEMAGICK
@@ -551,6 +560,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `mremap' function. */
 #undef HAVE_MREMAP
 
+/* Define to 1 if you have the <net/if_dl.h> header file. */
+#undef HAVE_NET_IF_DL_H
+
 /* Define to 1 if you have the <net/if.h> header file. */
 #undef HAVE_NET_IF_H
 
@@ -704,6 +716,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if `ifr_addr' is a member of `struct ifreq'. */
 #undef HAVE_STRUCT_IFREQ_IFR_ADDR
+
+/* Define to 1 if `ifr_addr.sa_len' is a member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_ADDR_SA_LEN
 
 /* Define to 1 if `ifr_broadaddr' is a member of `struct ifreq'. */
 #undef HAVE_STRUCT_IFREQ_IFR_BROADADDR

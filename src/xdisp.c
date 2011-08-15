@@ -8034,8 +8034,12 @@ move_it_in_display_line_to (struct it *it,
 	      if (!saw_smaller_pos && IT_CHARPOS (*it) > to_charpos)
 		{
 		  if (IT_CHARPOS (ppos_it) < ZV)
-		    RESTORE_IT (it, &ppos_it, ppos_data);
-		  goto buffer_pos_reached;
+		    {
+		      RESTORE_IT (it, &ppos_it, ppos_data);
+		      result = MOVE_POS_MATCH_OR_ZV;
+		    }
+		  else
+		    goto buffer_pos_reached;
 		}
 	      else if (it->line_wrap == WORD_WRAP && atpos_it.sp >= 0
 		       && IT_CHARPOS (*it) > to_charpos)
