@@ -1,3 +1,9 @@
+2011-08-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): Don't reset pixel
+	coordinates of the iterator when restoring from ppos_it.
+	(Bug#9296)
+
 2011-08-14  Kenichi Handa  <handa@m17n.org>
 
 	* process.c (create_process): Call setup_process_coding_systems
