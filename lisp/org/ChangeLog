@@ -2279,8 +2279,12 @@
 
 2011-07-28  Ethan Ligon  <ligon@are.berkeley.edu>  (tiny change)
 
-	* org-docbook.el (org-export-docbook-list-line): Fix for html &
-	docbook export of description list items.
+	* lisp/org-html.el (org-html-export-list-line): Fix regexp for
+	detecting description lists to allow "::" marker to be last
+	visible element at end of line.
+	* lisp/org-docbook.el (org-docbook-export-list-line): Fix regexp
+	for detecting description lists to allow "::" marker to be last
+	visible element at end of line.
 
 2011-07-28  Julien Danjou  <julien@danjou.info>
 
