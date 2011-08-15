@@ -8,6 +8,10 @@
 
 	* trampver.texi: Update release number.
 
+2011-07-28  Suvayu Ali  <fatkasuvayu+linux@gmail.com>  (tiny change)
+
+	* org.texi (Images in LaTeX export): rewrite.
+
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
 	* org.texi (Using the mapping API): mention 'region as a possible

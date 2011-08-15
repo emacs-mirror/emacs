@@ -599,17 +599,10 @@
 	(org-footnote-next-reference-or-definition): check more strictly
 	footnote definitions.
 
-2011-07-28  Deech  <deech@deech-ThinkPad-X200.(none)>
+2011-07-28  Deech  <deech@deech-ThinkPad-X200.(none)>  (tiny change)
 
 	* ob-tangle.el (org-babel-tangle): Ignore errors thrown by
 	language modes.
-
-2011-07-28  Suvayu Ali  <fatkasuvayu+linux@gmail.com>
-
-	* Mention use of keywords like multicolumn and float
-
-	* Remove previous mention of hack with placement option as per
-	comments on the mailing list. The hack is better suited for Worg.
 
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -905,7 +898,7 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-exp (org-export-preprocess-string): normalize footnotes
+	* org-exp.el (org-export-preprocess-string): normalize footnotes
 	before marking lists ending.
 
 	* org-latex.el (org-export-latex-preprocess): work with labels as
@@ -1052,7 +1045,7 @@
 
 2011-07-28  Achim Gratz  <stromeko@nexgo.de>
 
-	* org.el (defcustom org-log-into-drawer): correct typo
+	* org.el (defcustom org-log-into-drawer): correct typo.
 
 	* org-clock.el (org-clock-into-drawer): New function to change the
 	location of clock events based on properties CLOCK_INTO_DRAWER or,
@@ -1598,7 +1591,7 @@
 	* ob-lisp.el (org-babel-execute:lisp): No real functional change,
 	just aesthetic.
 
-2011-07-28  Sébastien Delafond  <sdelafond@gmail.com>
+2011-07-28  Sébastien Delafond  <sdelafond@gmail.com>  (tiny change)
 
 	* org.el (org-mode-flyspell-verify): This is useful when using
 	flyspell with a non-English dictionary, or if some of your
@@ -1841,7 +1834,7 @@
 	* ob.el (org-babel-src-block-regexp): Keep the now-mandatory
 	newline inside of the code block body.
 
-2011-07-28  Sean O'Halpin  <sean.ohalpin@gmail.com>
+2011-07-28  Sean O'Halpin  <sean.ohalpin@gmail.com>  (tiny change)
 
 	* ob.el: Avoid spurious matches to literal.
 
@@ -1908,7 +1901,7 @@
 	* org.el (org-special-properties): Add CLOCKSUM to the special
 	properties.
 
-2011-07-28  Robert P. Goldman  <rpgoldman@real-time.com>
+2011-07-28  Robert P. Goldman  <rpgoldman@real-time.com>  (tiny change)
 
 	* ob-exp.el (org-babel-exp-in-export-file): Bind
 	`org-link-search-inhibit-query' to t to inhibit prompts.
@@ -1936,12 +1929,12 @@
 	* org-exp.el (org-export-add-options-to-plist): Fix the option
 	parser
 
-2011-07-28  Robert P. Goldman  <rpgoldman@real-time.com>
+2011-07-28  Robert P. Goldman  <rpgoldman@real-time.com>  (tiny change)
 
 	* org-latex.el (org-export-latex-preprocess): Replace index
 	entries.
 
-2011-07-28  Robert P. Goldman  <rpgoldman@real-time.com>
+2011-07-28  Robert P. Goldman  <rpgoldman@real-time.com>  (tiny change)
 
 	* org.el (org-structure-template-alist): Add an easy template for
 	index (i), and move include file to I from i.
@@ -2277,18 +2270,14 @@
 
 	* org.el (org-property-values): Enhance docstring.
 
-2011-07-28  Ethan Ligon  <ligon@are.berkeley.edu>
+2011-07-28  Ethan Ligon  <ligon@are.berkeley.edu>  (tiny change)
 
-	* Illustration of bug in html export - This has a space after the
-	colons :: so will work in latex and html - This doesn't have a
-	space after the colons ::so is an invalid description item
-	according to the org manual.  Won't work in html or docbook.  Will
-	nevertheless work in latex, provided /first/ description item is
-	valid.  - Has a terminating space :: - So it works in both html
-	and latex export!  - Even though it's difficult to distinguish
-	from the next example.  - Lacks a terminating space :: - At
-	present, *doesn't* work in html or docbook export, does in latex.
-	This is the case that the following patch fixes.
+	* lisp/org-html.el (org-html-export-list-line): Fix regexp for
+	detecting description lists to allow "::" marker to be last
+	visible element at end of line.
+	* lisp/org-docbook.el (org-docbook-export-list-line): Fix regexp
+	for detecting description lists to allow "::" marker to be last
+	visible element at end of line.
 
 2011-07-28  Julien Danjou  <julien@danjou.info>
 
@@ -2346,7 +2335,7 @@
 	* org-latex.el (org-export-latex-convert-table.el-table): Fix
 	format-string for insertion of captions.
 
-2011-07-28  Nick Dokos  <nicholas.dokos@hp.com>
+2011-07-28  Nick Dokos  <nicholas.dokos@hp.com>  (tiny change)
 
 	* org-exp.el (org-export-remove-comment-blocks-and-subtrees): Fix
 	regexp.
@@ -2899,7 +2888,7 @@
 	* org-html.el (org-export-as-html): Bugfix: don't insert closing
 	HTML tags when exporting body only.
 
-2011-07-28  Jason Dunsmore  <emacs-orgmode@deathroller.dunsmor.com>
+2011-07-28  Jason Dunsmore  <emacs-orgmode@deathroller.dunsmor.com>  (tiny change)
 
 	* org.el (org-back-over-empty-lines): Bugfix.  Honor
 	`org-blank-before-new-entry' correctly in various contexts.
@@ -3359,7 +3348,7 @@
 
 2011-07-28  Nicolas Goaziou  <n.goaziou@gmail.com>
 
-	* org-list (org-cycle-item-indentation): do not break an
+	* org-list.el (org-cycle-item-indentation): do not break an
 	indentation cycle because visibility cycling is requested. This
 	happens when an item becomes a parent, due to indentation change.
 	Not considered empty anymore, the function cannot change its
@@ -4157,12 +4146,6 @@
 	* ob.el (org-babel-insert-result): Don't choke if indent is not a
 	number.
 
-2011-07-28  Bastien Guerry  <bzg@gnu.org>
-
-	* 2011
-	** 2011-02 monthname
-	*** 2011-02-13 dayname
-
 2011-07-28  Christian Moe  <mail@christianmoe.com>  (tiny change)
 
 	* org-bbdb.el (org-bbdb-export): When a link description has been
@@ -4455,10 +4438,10 @@
 	* org-latex.el (org-export-latex-emph-format): Don't use
 	`org-export-latex-use-verb'.  Remove this variable.
 
-2011-07-28  Jason Dunsmore  <emacs-orgmode@dunsmor.com>
+2011-07-28  Jason Dunsmore  <emacs-orgmode@dunsmor.com>  (tiny change)
 
-	* org-html.el (org-html-handle-time-stamps): fix bug when exporing
-	inactive timestamps.
+	* org-html.el (org-html-handle-time-stamps): fix bug when
+	exporting inactive timestamps.
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
@@ -4502,18 +4485,6 @@
 	(org-export-latex-use-verb): now defaults to t.
 	(org-export-latex-emph-format): distinguish between =...= and
 	~...~ emphasis.
-
-2011-07-28  David Maus  <dmaus@ictsoc.de>
-
-	* test-org-html.el (test-org-html/export-link-alist): New
-	variable. Abstract link export test definition.
-	(test-org-html/export-link-factory): New function. Create tests for
-	link export.
-
-2011-07-28  David Maus  <dmaus@ictsoc.de>
-
-	* org-test.el (org-test-strip-text-props): New function. Strip
-	text properties.
 
 2011-07-28  Julien Danjou  <julien@danjou.info>
 
@@ -4624,7 +4595,7 @@
 	(org-store-link):
 	(org-mark-subtree): Use `org-with-limited-levels'.
 
-2011-07-28  Jan Seeger  <jan.seeger@thenybble.de>
+2011-07-28  Jan Seeger  <jan.seeger@thenybble.de>  (tiny change)
 
 	* org-publish.el (org-publish-get-base-files): Add sitemap file.
 
@@ -7357,7 +7328,7 @@
 	(org-export-latex-keywords-maybe):
 	Use `org-export-latex-tag-markup'.
 
-2010-11-11  Rémi Vanicat  <vanicat@debian.org>
+2010-11-11  Rémi Vanicat  <vanicat@debian.org>  (tiny change)
 
 	* org-icalendar.el (org-icalendar-use-UTC-date-time): New option.
 	(org-ical-ts-to-string): Use UTC time when requested.

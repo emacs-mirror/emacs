@@ -1,3 +1,8 @@
+2011-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-pcm--merge-completions): Don't merge "a1b"
+	and "a2b" to "ab" for `prefix'.
+
 2011-08-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ibuf-ext.el (ibuffer-filter-disable): New arg for deleting
