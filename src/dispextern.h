@@ -1776,7 +1776,7 @@ extern int face_change_count;
    3 bits for it, so we cannot use there values larger than 7.
 
    The order of members must be in sync with the 8th element of the
-   member of unidata-prop-alist (in admin/unidata/unidata-getn.el) for
+   member of unidata-prop-alist (in admin/unidata/unidata-gen.el) for
    Unicode character property `bidi-class'.  */
 typedef enum {
   UNKNOWN_BT = 0,

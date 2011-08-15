@@ -746,25 +746,17 @@ bidi_unshelve_cache (void *databuf, int just_free)
 static void
 bidi_initialize (void)
 {
-
-#include "biditype.h"
-#include "bidimirror.h"
-
   int i;
 
-  bidi_type_table = Fmake_char_table (Qnil, make_number (STRONG_L));
+  bidi_type_table = uniprop_table (intern ("bidi-class"));
+  if (NILP (bidi_type_table))
+    abort ();
   staticpro (&bidi_type_table);
 
-  for (i = 0; i < sizeof bidi_type / sizeof bidi_type[0]; i++)
-    char_table_set_range (bidi_type_table, bidi_type[i].from, bidi_type[i].to,
-			  make_number (bidi_type[i].type));
-
-  bidi_mirror_table = Fmake_char_table (Qnil, Qnil);
+  bidi_mirror_table = uniprop_table (intern ("mirroring"));
+  if (NILP (bidi_mirror_table))
+    abort ();
   staticpro (&bidi_mirror_table);
-
-  for (i = 0; i < sizeof bidi_mirror / sizeof bidi_mirror[0]; i++)
-    char_table_set (bidi_mirror_table, bidi_mirror[i].from,
-		    make_number (bidi_mirror[i].to));
 
   Qparagraph_start = intern ("paragraph-start");
   staticpro (&Qparagraph_start);
