@@ -1,3 +1,9 @@
+2011-08-16  Richard Stallman  <rms@gnu.org>
+
+	* epa.el (epa-decrypt-region): New arg COPY-FUNCTION.
+	(epa--find-coding-system-for-mime-charset): Fix the non-xemacs case.
+	(epa-decrypt-armor-in-region): Make error message clearer.
+
 2011-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-pcm--merge-completions): Don't merge "a1b"
