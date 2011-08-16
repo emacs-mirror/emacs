@@ -88,6 +88,6 @@ and append it."
 
 (provide 'org-docview)
 
-;; arch-tag: dd147a78-cce1-481b-b40a-15869417debe
+
 
 ;;; org-docview.el ends here

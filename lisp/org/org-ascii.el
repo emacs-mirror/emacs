@@ -726,5 +726,5 @@ publishing directory."
 
 (provide 'org-ascii)
 
-;; arch-tag: aa96f882-f477-4e13-86f5-70d43e7adf3c
+
 ;;; org-ascii.el ends here

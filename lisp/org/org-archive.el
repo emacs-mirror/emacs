@@ -483,6 +483,6 @@ This command is set with the variable `org-archive-default-command'."
 
 (provide 'org-archive)
 
-;; arch-tag: 0837f601-9699-43c3-8b90-631572ae6c85
+
 
 ;;; org-archive.el ends here

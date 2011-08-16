@@ -44,6 +44,6 @@ CSS does not support sessions."
 
 (provide 'ob-css)
 
-;; arch-tag: f4447e8c-50ab-41f9-b322-b7b9574d9fbe
+
 
 ;;; ob-css.el ends here

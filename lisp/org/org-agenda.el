@@ -8446,6 +8446,6 @@ belonging to the \"Work\" category."
 
 (provide 'org-agenda)
 
-;; arch-tag: 77f7565d-7c4b-44af-a2df-9f6f7070cff1
+
 
 ;;; org-agenda.el ends here

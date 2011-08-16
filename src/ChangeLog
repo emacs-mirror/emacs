@@ -416,6 +416,28 @@
 	(gs_load): Use printmax_t to print the widest integers possible.
 	Check for integer overflow when computing image height and width.
 
+2011-08-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Don't accept a previous candidate
+	if it fails the cursor_row_p test.  Fixes cursor positioning at ZV.
+
+2011-08-16  Ken Brown  <kbrown@cornell.edu>
+
+	Fix memory allocation problems in Cygwin build (Bug#9273).
+
+	* unexcw.c ( __malloc_initialized): Declare external variable.
+	(fixup_executable): Force the dumped emacs to reinitialize malloc.
+
+	* gmalloc.c [CYGWIN] (bss_sbrk_heapbase, bss_sbrk_heapinfo): New
+	variables.
+	(malloc_initialize_1) [CYGWIN]: Prepare for reinitializing the
+	dumped emacs.
+	(_free_internal_nolock) [CYGWIN]: Ignore requests to free storage
+	in the static heap.
+	[CYGWIN] (special_realloc): New function.
+	(_realloc_internal_nolock) [CYGWIN]: Use the new function on
+	requests to realloc storage in the static heap.
+
 2011-08-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* bidi.c (bidi_initialize): Remove unused local.

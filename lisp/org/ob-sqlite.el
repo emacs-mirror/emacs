@@ -145,6 +145,6 @@ Prepare SESSION according to the header arguments specified in PARAMS."
 
 (provide 'ob-sqlite)
 
-;; arch-tag: 5c03d7f2-0f72-48b8-bbd1-35aafea248ac
+
 
 ;;; ob-sqlite.el ends here

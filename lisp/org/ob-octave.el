@@ -258,6 +258,6 @@ This removes initial blank and comment lines and then calls
 
 (provide 'ob-octave)
 
-;; arch-tag: d8e5f68b-ba13-440a-a495-b653e989e704
+
 
 ;;; ob-octave.el ends here

@@ -214,6 +214,6 @@ list of message:// links to flagged mail after heading."
 
 (provide 'org-mac-message)
 
-;; arch-tag: 3806d0c1-abe1-4db6-9c31-f3ed7d4a9b32
+
 
 ;;; org-mac-message.el ends here

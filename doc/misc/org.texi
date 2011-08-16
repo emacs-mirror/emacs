@@ -15589,10 +15589,6 @@ org-customize @key{RET}} and then click yourself through the tree.
 
 @bye
 
-@ignore
-        arch-tag: 7893d1Fe-cc57-4d13-b5e5-f494a1CBC7ac
-@end ignore
-
 @c Local variables:
 @c fill-column: 77
 @c indent-tabs-mode: nil

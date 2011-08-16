@@ -1,3 +1,19 @@
+2011-08-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* modes.texi (Major Mode Conventions): Improve the documentation
+	of `mode-class' `special' modes.
+
+	* nonascii.texi (Character Properties): Document the `mirroring'
+	property.  Add index entries.
+
+	* syntax.texi (Categories): Add an example of defining a new
+	category and category table.
+
+	* searching.texi (Regexp Backslash): Document how to display
+	existing categories.  Mention the possibility of adding
+	categories, and add an xref to where this is described.  Add an
+	index entry.
+
 2011-08-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* text.texi (Special Properties):

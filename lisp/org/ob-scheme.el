@@ -134,6 +134,6 @@ then create.  Return the initialized session."
 
 (provide 'ob-scheme)
 
-;; arch-tag: 6b2fe76f-4b25-4e87-ad1c-225b2f282a71
+
 
 ;;; ob-scheme.el ends here
