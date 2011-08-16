@@ -843,15 +843,15 @@ For example:
 		   (or coding-system-for-read
 		       (get-text-property start 'epa-coding-system-used)
 		       'undecided)))
-      (if (y-or-n-p "Replace the original text? ")
-	  (let ((inhibit-read-only t))
-	    (delete-region start end)
-	    (goto-char start)
-	    (insert plain))
-	(if make-buffer-function
-	    (with-current-buffer (funcall make-buffer-function)
-	      (let ((inhibit-read-only t))
-		(insert plain)))
+      (if make-buffer-function
+	  (with-current-buffer (funcall make-buffer-function)
+	    (let ((inhibit-read-only t))
+	      (insert plain)))
+	(if (y-or-n-p "Replace the original text? ")
+	    (let ((inhibit-read-only t))
+	      (delete-region start end)
+	      (goto-char start)
+	      (insert plain))
 	  (with-output-to-temp-buffer "*Temp*"
 	    (set-buffer standard-output)
 	      (insert plain)
