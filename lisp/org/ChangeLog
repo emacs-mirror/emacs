@@ -5,6 +5,11 @@
 
 2011-07-28  Bastien Guerry  <bzg@gnu.org>
 
+	* org-pcomplete.el: New file.  Rename from org-complete.el.
+	* org-complete.el: Delete file.
+
+2011-07-28  Bastien Guerry  <bzg@gnu.org>
+
 	* org-publish.el (org-publish-index-generate-theindex): rename
 	from `org-publish-index-generate-theindex.inc'.  Use the file
 	theindex.org directly instead of including theindex.inc.
@@ -702,8 +707,8 @@
 
 2011-07-28  Eric S Fraga  <e.fraga@ucl.ac.uk>
 
-	* Allow for a different markup for inactive time stamps on latex
-	export
+	* org-latex.el (org-export-latex-timestamp-inactive-markup):
+	New option to allow different markup for inactive timestamps.
 
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
 
@@ -2272,11 +2277,11 @@
 
 2011-07-28  Ethan Ligon  <ligon@are.berkeley.edu>  (tiny change)
 
-	* lisp/org-html.el (org-html-export-list-line): Fix regexp for
+	* org-html.el (org-html-export-list-line): Fix regexp for
 	detecting description lists to allow "::" marker to be last
 	visible element at end of line.
-	* lisp/org-docbook.el (org-docbook-export-list-line): Fix regexp
-	for detecting description lists to allow "::" marker to be last
+	* org-docbook.el (org-docbook-export-list-line): Fix regexp for
+	detecting description lists to allow "::" marker to be last
 	visible element at end of line.
 
 2011-07-28  Julien Danjou  <julien@danjou.info>
@@ -4819,11 +4824,6 @@
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
 
 	* ob-calc.el: No longer require `calc-trail' on XEmacs
-
-2011-07-28  Bastien Guerry  <bzg@gnu.org>
-
-	* simple.el (mail-user-agent): Default to the
-	upwardly-UI-compatible and more featureful message-mode.
 
 2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
 

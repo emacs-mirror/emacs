@@ -685,5 +685,5 @@ a time), or the day by one (if it does not contain a time)."
 
 (provide 'org-icalendar)
 
-;; arch-tag: 2dee2b6e-9211-4aee-8a47-a3c7e5bc30cf
+
 ;;; org-icalendar.el ends here

@@ -168,6 +168,6 @@ Return t if there is no previous link; otherwise, return nil."
 
 (provide 'org-w3m)
 
-;; arch-tag: 851d7447-488d-49f0-a14d-46c092e84352
+
 
 ;;; org-w3m.el ends here

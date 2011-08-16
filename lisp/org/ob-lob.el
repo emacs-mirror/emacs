@@ -136,6 +136,6 @@ if so then run the appropriate source block from the Library."
 
 (provide 'ob-lob)
 
-;; arch-tag: ce0712c9-2147-4019-ba3f-42341b8b474b
+
 
 ;;; ob-lob.el ends here

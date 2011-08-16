@@ -392,6 +392,6 @@ END:VEVENT\n"
 
 (provide 'org-bbdb)
 
-;; arch-tag: 9e4f275d-d080-48c1-b040-62247f66b5c2
+
 
 ;;; org-bbdb.el ends here

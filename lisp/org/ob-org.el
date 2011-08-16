@@ -66,6 +66,6 @@ This function is called by `org-babel-execute-src-block'."
 
 (provide 'ob-org)
 
-;; arch-tag: 130af5fe-cc56-46bd-9508-fa0ebd94cb1f
+
 
 ;;; ob-org.el ends here

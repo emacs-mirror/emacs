@@ -76,6 +76,6 @@
 
 (provide 'ob-emacs-lisp)
 
-;; arch-tag: e9a3acca-dc84-472a-9f5a-23c35befbcd6
+
 
 ;;; ob-emacs-lisp.el ends here

@@ -81,6 +81,6 @@ ERROR: no output file specified. Add \":file name.png\" to the src header"))
 
 (provide 'ob-mscgen)
 
-;; arch-tag: 74695b1e-715f-4b5a-a3a9-d78ee39ba5c8
+
 
 ;;; ob-msc.el ends here

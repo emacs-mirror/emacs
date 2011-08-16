@@ -291,6 +291,6 @@ If `org-store-link' was called with a prefix arg the meaning of
 
 (provide 'org-gnus)
 
-;; arch-tag: 512e0840-58fa-45b3-b456-71e10fa2376d
+
 
 ;;; org-gnus.el ends here

@@ -674,5 +674,5 @@ formatted as a string, not the original XML data."
 
 (provide 'org-feed)
 
-;; arch-tag: 0929b557-9bc4-47f4-9633-30a12dbb5ae2
+
 ;;; org-feed.el ends here

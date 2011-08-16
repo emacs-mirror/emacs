@@ -92,6 +92,6 @@
 
 (provide 'ob-clojure)
 
-;; arch-tag: a43b33f2-653e-46b1-ac56-2805cf05b7d1
+
 
 ;;; ob-clojure.el ends here

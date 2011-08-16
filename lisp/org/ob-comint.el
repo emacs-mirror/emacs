@@ -158,6 +158,6 @@ FILE exists at end of evaluation."
 
 (provide 'ob-comint)
 
-;; arch-tag: 9adddce6-0864-4be3-b0b5-6c5157dc7889
+
 
 ;;; ob-comint.el ends here

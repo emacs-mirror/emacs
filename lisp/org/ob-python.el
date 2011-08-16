@@ -294,6 +294,6 @@ last statement in BODY, as elisp."
 
 (provide 'ob-python)
 
-;; arch-tag: f19b6c3d-dfcb-4a1a-9ce0-45ade1ebc212
+
 
 ;;; ob-python.el ends here

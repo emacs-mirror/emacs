@@ -142,6 +142,6 @@ The terminal should shortly flicker."
 
 (provide 'ob-screen)
 
-;; arch-tag: 908e5afe-89a0-4f27-b982-23f1f2e3bac9
+
 
 ;;; ob-screen.el ends here

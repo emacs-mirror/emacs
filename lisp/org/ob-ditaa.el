@@ -74,6 +74,6 @@ This function is called by `org-babel-execute-src-block'."
 
 (provide 'ob-ditaa)
 
-;; arch-tag: 492cd006-07d9-4fac-bef6-5bb60b48842e
+
 
 ;;; ob-ditaa.el ends here

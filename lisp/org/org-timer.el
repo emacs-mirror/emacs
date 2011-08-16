@@ -403,6 +403,6 @@ replace any running timer."
 
 (provide 'org-timer)
 
-;; arch-tag: 97538f8c-3871-4509-8f23-1e7b3ff3d107
+
 
 ;;; org-timer.el ends here

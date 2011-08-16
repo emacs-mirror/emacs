@@ -191,6 +191,6 @@ of the same value."
 
 (provide 'ob-C)
 
-;; arch-tag: 8f49e462-54e3-417b-9a8d-423864893b37
+
 
 ;;; ob-C.el ends here

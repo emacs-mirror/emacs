@@ -645,5 +645,5 @@ project-plist is the CDR of an element in `org-publish-project-alist', reuse
 
 (provide 'org-protocol)
 
-;; arch-tag: b5c5c2ac-77cf-4a94-a649-2163dff95846
+
 ;;; org-protocol.el ends here

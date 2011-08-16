@@ -358,6 +358,6 @@ current time."
 
 (provide 'org-habit)
 
-;; arch-tag: 64e070d9-bd09-4917-bd44-44465f5ed348
+
 
 ;;; org-habit.el ends here

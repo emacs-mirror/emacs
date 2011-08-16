@@ -312,6 +312,6 @@ Insert hline if column names in output have been requested."
 
 (provide 'ob-R)
 
-;; arch-tag: cd4c7298-503b-450f-a3c2-f3e74b630237
+
 
 ;;; ob-R.el ends here

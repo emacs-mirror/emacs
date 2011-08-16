@@ -257,6 +257,6 @@ This buffer is named by `org-babel-error-buffer-name'."
 
 (provide 'ob-eval)
 
-;; arch-tag: 5328b17f-957d-42d9-94da-a2952682d04d
+
 
 ;;; ob-eval.el ends here

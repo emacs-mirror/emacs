@@ -101,6 +101,6 @@ current directory string."
 
 (provide 'ob-lisp)
 
-;; arch-tag: 18086168-009f-4947-bbb5-3532375d851d
+
 
 ;;; ob-lisp.el ends here

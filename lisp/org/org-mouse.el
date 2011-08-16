@@ -1146,6 +1146,6 @@ This means, between the beginning of line and the point."
 
 (provide 'org-mouse)
 
-;; arch-tag: ff1ae557-3529-41a3-95c6-baaebdcc280f
+
 
 ;;; org-mouse.el ends here

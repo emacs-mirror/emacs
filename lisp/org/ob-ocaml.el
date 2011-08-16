@@ -140,6 +140,6 @@ Emacs-lisp table, otherwise return the results as a string."
 
 (provide 'ob-ocaml)
 
-;; arch-tag: 2e815f4d-365e-4d69-b1df-dd17fdd7b7b7
+
 
 ;;; ob-ocaml.el ends here

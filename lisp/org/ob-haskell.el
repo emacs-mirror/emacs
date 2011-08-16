@@ -213,6 +213,6 @@ constructs (header arguments, no-web syntax etc...) are ignored."
 
 (provide 'ob-haskell)
 
-;; arch-tag: b53f75f3-ba1a-4b05-82d9-a2a0d4e70804
+
 
 ;;; ob-haskell.el ends here

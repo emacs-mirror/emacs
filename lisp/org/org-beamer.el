@@ -632,6 +632,6 @@ include square brackets."
 
 (provide 'org-beamer)
 
-;; arch-tag: 68bac91a-a946-43a3-8173-a9269306f67c
+
 
 ;;; org-beamer.el ends here

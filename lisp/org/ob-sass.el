@@ -68,6 +68,6 @@ This function is called by `org-babel-execute-src-block'."
 
 (provide 'ob-sass)
 
-;; arch-tag: 2954b169-eef4-45ce-a8e5-3e619f0f07ac
+
 
 ;;; ob-sass.el ends here

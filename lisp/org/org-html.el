@@ -2607,5 +2607,5 @@ the alist of previous items."
 
 (provide 'org-html)
 
-;; arch-tag: 8109d84d-eb8f-460b-b1a8-f45f3a6c7ea1
+
 ;;; org-html.el ends here
