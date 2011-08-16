@@ -1,3 +1,8 @@
+2011-08-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Don't accept a previous candidate
+	if it fails the cursor_row_p test.  Fixes cursor positioning at ZV.
+
 2011-08-16  Ken Brown  <kbrown@cornell.edu>
 
 	Fix memory allocation problems in Cygwin build (Bug#9273).
