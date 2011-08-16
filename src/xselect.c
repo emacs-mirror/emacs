@@ -2461,15 +2461,9 @@ FRAME is on.  If FRAME is nil, the selected frame is used.  */)
       return Qnil;
 
   if (dpyinfo->x_dnd_atoms_length == dpyinfo->x_dnd_atoms_size)
-    {
-      if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *dpyinfo->x_dnd_atoms / 2
-	  < dpyinfo->x_dnd_atoms_size)
-	memory_full (SIZE_MAX);
-      dpyinfo->x_dnd_atoms = xrealloc (dpyinfo->x_dnd_atoms,
-				       (2 * sizeof *dpyinfo->x_dnd_atoms
-					* dpyinfo->x_dnd_atoms_size));
-      dpyinfo->x_dnd_atoms_size *= 2;
-    }
+    dpyinfo->x_dnd_atoms =
+      xpalloc (dpyinfo->x_dnd_atoms, &dpyinfo->x_dnd_atoms_size,
+	       1, -1, sizeof *dpyinfo->x_dnd_atoms);
 
   dpyinfo->x_dnd_atoms[dpyinfo->x_dnd_atoms_length++] = x_atom;
   return Qnil;

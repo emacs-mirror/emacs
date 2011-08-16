@@ -216,15 +216,6 @@ x_allocate_bitmap_record (FRAME_PTR f)
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   ptrdiff_t i;
 
-  if (dpyinfo->bitmaps == NULL)
-    {
-      dpyinfo->bitmaps
-	= (Bitmap_Record *) xmalloc (10 * sizeof (Bitmap_Record));
-      dpyinfo->bitmaps_size = 10;
-      dpyinfo->bitmaps_last = 1;
-      return 1;
-    }
-
   if (dpyinfo->bitmaps_last < dpyinfo->bitmaps_size)
     return ++dpyinfo->bitmaps_last;
 
@@ -232,14 +223,9 @@ x_allocate_bitmap_record (FRAME_PTR f)
     if (dpyinfo->bitmaps[i].refcount == 0)
       return i + 1;
 
-  if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof (Bitmap_Record) / 2
-      < dpyinfo->bitmaps_size)
-    memory_full (SIZE_MAX);
-  dpyinfo->bitmaps
-    = (Bitmap_Record *) xrealloc (dpyinfo->bitmaps,
-				  (dpyinfo->bitmaps_size
-				   * (2 * sizeof (Bitmap_Record))));
-  dpyinfo->bitmaps_size *= 2;
+  dpyinfo->bitmaps =
+    xpalloc (dpyinfo->bitmaps, &dpyinfo->bitmaps_size,
+	     10, -1, sizeof *dpyinfo->bitmaps);
   return ++dpyinfo->bitmaps_last;
 }
 
@@ -1836,14 +1822,7 @@ cache_image (struct frame *f, struct image *img)
 
   /* If no free slot found, maybe enlarge c->images.  */
   if (i == c->used && c->used == c->size)
-    {
-      if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *c->images / 2 < c->size)
-	memory_full (SIZE_MAX);
-      c->images =
-	(struct image **) xrealloc (c->images,
-				    c->size * (2 * sizeof *c->images));
-      c->size *= 2;
-    }
+    c->images = xpalloc (c->images, &c->size, 1, -1, sizeof *c->images);
 
   /* Add IMG to c->images, and assign IMG an id.  */
   c->images[i] = img;

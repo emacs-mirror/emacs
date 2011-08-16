@@ -1,6 +1,10 @@
-2011-08-15  Paul Eggert  <eggert@cs.ucla.edu>
+2011-08-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
+
+	* image.c (x_allocate_bitmap_record, cache_image):
+	* xselect.c (Fx_register_dnd_atom):
+	Simplify previous changes by using xpalloc.
 
 	* buffer.c (overlay_str_len): Now ptrdiff_t, not EMACS_INT,
 	since either will do and ptrdiff_t is convenient with xpalloc.
