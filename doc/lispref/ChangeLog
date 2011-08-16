@@ -1,5 +1,8 @@
 2011-08-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* modes.texi (Major Mode Conventions): Improve the documentation
+	of `mode-class' `special' modes.
+
 	* nonascii.texi (Character Properties): Document the `mirroring'
 	property.  Add index entries.
 

@@ -505,21 +505,26 @@ this mode to any other major mode, this mode can set up a buffer-local
 value for @code{change-major-mode-hook} (@pxref{Creating Buffer-Local}).
 
 @item
-If this mode is appropriate only for specially-prepared text, then the
-major mode command symbol should have a property named @code{mode-class}
-with value @code{special}, put on as follows:
+If this mode is appropriate only for specially-prepared text produced by
+the mode itself (rather than by the user typing at the keyboard or by an
+external file), then the major mode command symbol should have a
+property named @code{mode-class} with value @code{special}, put on as
+follows:
 
 @kindex mode-class @r{(property)}
-@cindex @code{special}
+@cindex @code{special} modes
 @example
 (put 'funny-mode 'mode-class 'special)
 @end example
 
 @noindent
-This tells Emacs that new buffers created while the current buffer is
-in Funny mode should not inherit Funny mode, in case the default value
-of @code{major-mode} is @code{nil}.  Modes such as Dired, Rmail,
-and Buffer List use this feature.
+This tells Emacs that new buffers created while the current buffer is in
+Funny mode should not be put in Funny mode, even though the default
+value of @code{major-mode} is @code{nil}.  By default, the value of
+@code{nil} for @code{major-mode} means to use the current buffer's major
+mode when creating new buffers (@pxref{Auto Major Mode}), but with such
+@code{special} modes, Fundamental mode is used instead.  Modes such as
+Dired, Rmail, and Buffer List use this feature.
 
 The @code{define-derived-mode} macro automatically marks the derived
 mode as special if the parent mode is special.  The special mode
