@@ -1,3 +1,7 @@
+2011-08-16  Feng Li <fengli@gmail.com> (tiny change)
+
+	* calc/calc-ext.el (math-defintegral-2): Remove nested backquote.
+
 2011-08-16  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-state-cache-non-literal-place):

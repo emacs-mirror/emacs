@@ -2887,7 +2887,7 @@ If X is not an error form, return 1."
   (cons 'progn
         (mapcar #'(lambda (func)
                     `(put ',func 'math-integral-2
-                          `(nconc
+                          (nconc
                             (get ',func 'math-integral-2)
                             (list #'(lambda (u v) ,@code)))))
                 (if (symbolp funcs) (list funcs) funcs))))
