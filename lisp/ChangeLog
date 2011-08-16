@@ -1,5 +1,7 @@
 2011-08-16  Richard Stallman  <rms@gnu.org>
 
+	* mail/rmail.el (rmail-epa-decrypt): New command.
+
 	* epa.el (epa-decrypt-region): New arg MAKE-BUFFER-FUNCTION.
 	Don't bind buffer-read-only, just inhibit-read-only.
 	(epa--find-coding-system-for-mime-charset): Fix the non-xemacs case.
