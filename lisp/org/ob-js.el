@@ -160,6 +160,6 @@ then create.  Return the initialized session."
 
 (provide 'ob-js)
 
-;; arch-tag: 84401fb3-b8d9-4bb6-9a90-cbe2d103d494
+
 
 ;;; ob-js.el ends here

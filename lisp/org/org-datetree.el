@@ -195,6 +195,6 @@ before running this command, even though the command tries to be smart."
 
 (provide 'org-datetree)
 
-;; arch-tag: 1daea962-fd08-448b-9f98-6e8b511b3601
+
 
 ;;; org-datetree.el ends here

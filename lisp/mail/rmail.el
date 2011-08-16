@@ -4249,7 +4249,7 @@ TEXT and INDENT are not used."
    ;; rmail-output expands non-absolute filenames against rmail-default-file.
    ;; What is the point of that, anyway?
    (rmail-output (expand-file-name token))))
-
+
 ;; Functions for setting, getting and encoding the POP password.
 ;; The password is encoded to prevent it from being easily accessible
 ;; to "prying eyes."  Obviously, this encoding isn't "real security,"
@@ -4300,6 +4300,110 @@ encoded string (and the same mask) will decode the string."
      (setq i (1+ i)))
    (concat string-vector)))
 
+(defun rmail-epa-decrypt ()
+  "Decrypt OpenPGP armors in current message."
+  (interactive)
+
+  ;; Save the current buffer here for cleanliness, in case we
+  ;; change it in one of the calls to `epa-decrypt-region'.
+
+  (save-excursion
+    (let (new-buffer not-first-armor)
+      (goto-char (point-min))
+
+      ;; In case the encrypted data is inside a mime attachment,
+      ;; show it.  This is a kludge; to be clean, it should not
+      ;; modify the buffer, but I don't see how to do that.
+      (when (search-forward "octet-stream" nil t)
+	(beginning-of-line)
+	(forward-button 1)
+	(if (looking-at "Show")
+	    (rmail-mime-toggle-hidden)))
+
+      ;; Now find all armored messages in the buffer
+      ;; and decrypt them one by one.
+      (goto-char (point-min))
+      (while (re-search-forward "-----BEGIN PGP MESSAGE-----$" nil t)
+	(let (armor-start armor-end
+			  (coding-system-for-read coding-system-for-read))
+	  (setq armor-start (match-beginning 0)
+		armor-end (re-search-forward "^-----END PGP MESSAGE-----$"
+					     nil t))
+	  (unless armor-end
+	    (error "Encryption armor beginning has no matching end"))
+	  (goto-char armor-start)
+
+	  ;; Because epa--find-coding-system-for-mime-charset not autoloaded.
+	  (require 'epa)
+
+	  ;; Use the charset specified in the armor.
+	  (unless coding-system-for-read
+	    (if (re-search-forward "^Charset: \\(.*\\)" armor-end t)
+		(setq coding-system-for-read
+		      (epa--find-coding-system-for-mime-charset
+		       (intern (downcase (match-string 1)))))))
+
+	  ;; Advance over this armor.
+	  (goto-char armor-end)
+
+	  ;; Decrypt it, maybe in place, maybe making new buffer.
+	  (epa-decrypt-region
+	   armor-start armor-end
+	   ;; Call back this function to prepare the output.
+	   (lambda ()
+	     (if (or not-first-armor
+		     (y-or-n-p "Replace the original message? "))
+		 ;; User wants to decrypt in place,
+		 ;; or this isn't the first armor.
+		 ;; We only ask the question for the first armor.
+		 (let ((inhibit-read-only t))
+		   (delete-region armor-start armor-end)
+		   (goto-char armor-start)
+		   (current-buffer))
+	       ;; User says not to replace the original text.
+	       (or new-buffer
+		   (let ((from-buffer
+			  (if (rmail-buffers-swapped-p)
+			      rmail-view-buffer rmail-buffer))
+			 (from-pruned (rmail-msg-is-pruned))
+			 (beg (rmail-msgbeg rmail-current-message))
+			 (end (rmail-msgend rmail-current-message)))
+		     (with-current-buffer (generate-new-buffer "*Decrypt*")
+		       (setq buffer-read-only nil)
+		       (insert-buffer-substring from-buffer beg end)
+		       (rmail-mode)
+		       ;; This should be pruned if the original message was.
+		       (unless from-pruned (rmail-toggle-header))
+		       (goto-char (point-min))
+
+		       ;; Find the first armor in the text we just copied.
+		       ;; What we copied may not be identical
+		       ;; to the initial text.
+		       (re-search-forward "-----BEGIN PGP MESSAGE-----$")
+		       (setq armor-start (match-beginning 0))
+		       (re-search-forward "^-----END PGP MESSAGE-----$")
+		       (setq armor-end (point))
+		       ;; Delete it and put point there.
+		       (let ((inhibit-read-only t))
+			 (delete-region armor-start armor-end))
+		       (goto-char armor-start)
+		       (setq new-buffer (current-buffer))
+		       ;; Return; epa-decrypt-region will insert plaintext.
+		       ))))))
+
+	  (setq not-first-armor t)
+
+	  ;; If we copied the buffer, switch to the copy
+	  ;; for the rest of this loop.
+	  ;; Point is the only buffer pointer that is live here,
+	  ;; and it was properly set in NEW-BUFFER by `epa-decrypt-region'
+	  ;; when it inserted the decrypted epa
+	  (if new-buffer (set-buffer new-buffer))))
+
+      ;; If we decrypted into a new buffer, show it.
+      (if new-buffer
+	  (display-buffer new-buffer)))))
+
 ;;;;  Desktop support
 
 (defun rmail-restore-desktop-buffer (desktop-buffer-file-name

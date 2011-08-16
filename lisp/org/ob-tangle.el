@@ -494,6 +494,6 @@ which enable the original code blocks to be found."
 
 (provide 'ob-tangle)
 
-;; arch-tag: 413ced93-48f5-4216-86e4-3fc5df8c8f24
+
 
 ;;; ob-tangle.el ends here

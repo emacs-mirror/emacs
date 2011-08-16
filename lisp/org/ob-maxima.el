@@ -74,6 +74,6 @@ called by `org-babel-execute-src-block'."
 
 (provide 'ob-maxima)
 
-;; arch-tag: d86c97ac-7eab-4349-8d8b-302dd09779a8
+
 
 ;;; ob-maxima.el ends here

@@ -1237,7 +1237,7 @@ PATH should be a list of steps, where each step has the form
 
 (provide 'org-freemind)
 
-;; arch-tag: e7b0d776-94fd-404a-b35e-0f855fae3627
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; org-freemind.el ends here

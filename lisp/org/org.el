@@ -20537,6 +20537,6 @@ Still experimental, may disappear in the future."
 
 (run-hooks 'org-load-hook)
 
-;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
+
 
 ;;; org.el ends here

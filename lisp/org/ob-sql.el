@@ -140,6 +140,6 @@ This function is called by `org-babel-execute-src-block'."
 
 (provide 'ob-sql)
 
-;; arch-tag: a43ff944-6de1-4566-a83c-626814e3dad2
+
 
 ;;; ob-sql.el ends here

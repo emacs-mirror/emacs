@@ -50,6 +50,9 @@
   "A minor-mode for composing encrypted/clearsigned mails."
   nil " epa-mail" epa-mail-mode-map)
 
+;;; ??? Could someone please clarify this doc string?
+;;; In particular, what does USAGE look like
+;;; and what does it mean?  -- rms
 (defun epa-mail--find-usable-key (keys usage)
   "Find a usable key from KEYS for USAGE."
   (catch 'found
@@ -62,6 +65,71 @@
 	      (throw 'found (car keys)))
 	  (setq pointer (cdr pointer))))
       (setq keys (cdr keys)))))
+
+(defvar epa-mail-group-alist nil
+  "Alist of GnuPG mail groups (`group' commands in `.gnupg/gpg.conf').
+Each element has the form (GROUPNAME ADDRESSES...).
+t means the list is not yet read in.")
+
+(defvar epa-mail-group-modtime nil
+  "The modification time of `~/.gnupg/gpg.conf' file when last examined.")
+
+(defvar epa-mail-gnupg-conf-file "~/.gnupg/gpg.conf"
+  "File name of GnuPG configuration file that specifies recipient groups.")
+
+(defun epa-mail-parse-groups ()
+  "Parse `~/.gnupg/gpg.conf' and set `epa-mail-group-alist' from it."
+  (let (aliases)
+    (with-temp-buffer
+      (insert-file-contents-literally epa-mail-gnupg-conf-file)
+
+      (while (re-search-forward "^[ \t]*group[ \t]*" nil t)
+	(if (looking-at "\\([^= \t]+\\)[ \t]*=[ \t]*\\([^ \t\n]+\\)")
+	    (push (cons (match-string-no-properties 1)
+			(split-string (match-string-no-properties 2)))
+		  aliases))))
+    (setq epa-mail-group-alist aliases)))
+
+(defun epa-mail-sync-groups ()
+  "Update GnuPG groups from file if necessary."
+  (if (file-exists-p epa-mail-gnupg-conf-file)
+      (let ((modtime (nth 5 (file-attributes epa-mail-gnupg-conf-file))))
+	(if (not (equal epa-mail-group-modtime modtime))
+	    (progn
+	      (setq epa-mail-group-modtime modtime)
+	      (epa-mail-parse-groups))))
+    (setq epa-mail-group-alist nil)))
+
+(defun epa-mail-expand-recipient-1 (recipient)
+  "Expand RECIPIENT once thru `epa-mail-group-alist'.
+Returns the list of names it stands for, or nil if it isn't a group."
+  ;; Load the alias list if not loaded before.
+  (let (alist-elt)
+    (setq alist-elt (assoc recipient epa-mail-group-alist))
+    (cdr alist-elt)))
+
+(defun epa-mail-expand-recipients-2 (recipients)
+  "Expand list RECIPIENTS once thru `epa-mail-group-alist'.
+Returns the list of names they stand for."
+  ;; Load the alias list if not loaded before.
+  (let (output)
+    (dolist (r recipients)
+      (let ((expanded (epa-mail-expand-recipient-1 r)))
+	(if expanded
+	    (dolist (xr expanded)
+	      (unless (member xr output)
+		(push xr output)))
+	  (unless (member r output)
+	    (push r output)))))
+    (nreverse output)))
+
+(defun epa-mail-expand-recipients (recipients)
+  "Expand RECIPIENTS thru `epa-mail-group-alist' until it stops changing."
+  (epa-mail-sync-groups)
+  (while (not (equal recipients
+		     (setq recipients
+			   (epa-mail-expand-recipients-2 recipients)))))
+  recipients)
 
 ;;;###autoload
 (defun epa-mail-decrypt ()
@@ -140,6 +208,13 @@ Don't use this command in Lisp programs!"
 	   (setq recipients (delete ""
 				    (split-string recipients
 						  "[ \t\n]*,[ \t\n]*"))))
+
+       ;; Process all the recipients thru the list of GnuPG groups.
+       ;; Expand GnuPG group names to what they stand for.
+       ;; The code below, and elsewhere, that checks that names have keys
+       ;; does not know about these group names.
+       (setq recipients (epa-mail-expand-recipients recipients))
+
        (goto-char (point-min))
        (if (search-forward mail-header-separator nil t)
 	   (forward-line))

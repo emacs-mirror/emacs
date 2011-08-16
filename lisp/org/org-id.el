@@ -643,6 +643,6 @@ optional argument MARKERP, return the position as a new marker."
 
 ;;; org-id.el ends here
 
-;; arch-tag: e5abaca4-e16f-4b25-832a-540cfb63a712
+
 
 

@@ -814,5 +814,5 @@ LANG is a string, and the returned major mode is a symbol."
 
 (provide 'org-src)
 
-;; arch-tag: 6a1fc84f-dec7-47be-a416-64be56bea5d8
+
 ;;; org-src.el ends here

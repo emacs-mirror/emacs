@@ -263,6 +263,6 @@ Supported reference types are tables and source blocks."
 
 (provide 'ob-ref)
 
-;; arch-tag: ace4a4f4-ea38-4dac-8fe6-6f52fcc43b6d
+
 
 ;;; ob-ref.el ends here

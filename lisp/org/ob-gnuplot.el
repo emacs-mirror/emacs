@@ -230,6 +230,6 @@ Pass PARAMS through to `orgtbl-to-generic' when exporting TABLE."
 
 (provide 'ob-gnuplot)
 
-;; arch-tag: 50490ace-a9e1-4b29-a6e5-0db9f16c610b
+
 
 ;;; ob-gnuplot.el ends here

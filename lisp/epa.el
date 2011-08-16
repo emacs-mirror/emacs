@@ -803,10 +803,15 @@ If no one is selected, symmetric encryption will be performed.  ")))
 	     (file-name-nondirectory cipher))))
 
 ;;;###autoload
-(defun epa-decrypt-region (start end)
+(defun epa-decrypt-region (start end &optional make-buffer-function)
   "Decrypt the current region between START and END.
 
-Don't use this command in Lisp programs!
+If MAKE-BUFFER-FUNCTION is non-nil, call it to prepare an output buffer.
+It should return that buffer.  If it copies the input, it should
+delete the text now being decrypted.  It should leave point at the
+proper place to insert the plaintext.
+
+Be careful about using this command in Lisp programs!
 Since this function operates on regions, it does some tricks such
 as coding-system detection and unibyte/multibyte conversion.  If
 you are sure how the data in the region should be treated, you
@@ -838,16 +843,19 @@ For example:
 		   (or coding-system-for-read
 		       (get-text-property start 'epa-coding-system-used)
 		       'undecided)))
-      (if (y-or-n-p "Replace the original text? ")
-	  (let ((inhibit-read-only t)
-		buffer-read-only)
-	    (delete-region start end)
-	    (goto-char start)
-	    (insert plain))
-	(with-output-to-temp-buffer "*Temp*"
-	  (set-buffer standard-output)
-	  (insert plain)
-	  (epa-info-mode)))
+      (if make-buffer-function
+	  (with-current-buffer (funcall make-buffer-function)
+	    (let ((inhibit-read-only t))
+	      (insert plain)))
+	(if (y-or-n-p "Replace the original text? ")
+	    (let ((inhibit-read-only t))
+	      (delete-region start end)
+	      (goto-char start)
+	      (insert plain))
+	  (with-output-to-temp-buffer "*Temp*"
+	    (set-buffer standard-output)
+	      (insert plain)
+	      (epa-info-mode))))
       (if (epg-context-result-for context 'verify)
 	  (epa-display-info (epg-verify-result-to-string
 			     (epg-context-result-for context 'verify)))))))
@@ -856,12 +864,13 @@ For example:
   (if (featurep 'xemacs)
       (if (fboundp 'find-coding-system)
 	  (find-coding-system mime-charset))
+    ;; Find the first coding system which corresponds to MIME-CHARSET.
     (let ((pointer (coding-system-list)))
       (while (and pointer
-		  (eq (coding-system-get (car pointer) 'mime-charset)
-		      mime-charset))
+		  (not (eq (coding-system-get (car pointer) 'mime-charset)
+			   mime-charset)))
 	(setq pointer (cdr pointer)))
-      pointer)))
+      (car pointer))))
 
 ;;;###autoload
 (defun epa-decrypt-armor-in-region (start end)
@@ -880,7 +889,7 @@ See the reason described in the `epa-decrypt-region' documentation."
 		armor-end (re-search-forward "^-----END PGP MESSAGE-----$"
 					     nil t))
 	  (unless armor-end
-	    (error "No armor tail"))
+	    (error "Encryption armor beginning has no matching end"))
 	  (goto-char armor-start)
 	  (let ((coding-system-for-read
 		 (or coding-system-for-read

@@ -132,6 +132,6 @@ only the bare key is returned."
 
 (provide 'org-mks)
 
-;; arch-tag: 4ea90d0e-c6e4-4684-bd61-baf878712f9f
+
 
 ;;; org-mks.el ends here

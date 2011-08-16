@@ -124,5 +124,5 @@ The XOXO buffer is named *xoxo-<source buffer name>*"
 
 (provide 'org-xoxo)
 
-;; arch-tag: 16e6a31f-f4f5-46f1-af18-48dc89faa702
+
 ;;; org-xoxo.el ends here

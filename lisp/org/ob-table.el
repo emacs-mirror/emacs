@@ -121,6 +121,6 @@ example above."
 
 (provide 'ob-table)
 
-;; arch-tag: 4234cc7c-4fc8-4e92-abb0-2892de1a493b
+
 
 ;;; ob-table.el ends here

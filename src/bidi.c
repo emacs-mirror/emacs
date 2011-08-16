@@ -746,8 +746,6 @@ bidi_unshelve_cache (void *databuf, int just_free)
 static void
 bidi_initialize (void)
 {
-  int i;
-
   bidi_type_table = uniprop_table (intern ("bidi-class"));
   if (NILP (bidi_type_table))
     abort ();

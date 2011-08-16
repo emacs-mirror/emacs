@@ -67,6 +67,6 @@ called by `org-babel-execute-src-block'."
 
 (provide 'ob-ledger)
 
-;; arch-tag: 7bbb529e-95a1-4236-9d29-b0000b918c7c
+
 
 ;;; ob-ledger.el ends here

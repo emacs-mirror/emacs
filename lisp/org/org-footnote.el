@@ -862,6 +862,6 @@ If LABEL is non-nil, delete that footnote instead."
 
 (provide 'org-footnote)
 
-;; arch-tag: 1b5954df-fb5d-4da5-8709-78d944dbfc37
+
 
 ;;; org-footnote.el ends here

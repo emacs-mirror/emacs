@@ -253,6 +253,6 @@ default."
 
 (provide 'org-irc)
 
-;; arch-tag: 018d7dda-53b8-4a35-ba92-6670939e525a
+
 
 ;;; org-irc.el ends here

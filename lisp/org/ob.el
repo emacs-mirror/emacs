@@ -2198,6 +2198,6 @@ of `org-babel-temporary-directory'."
 
 (provide 'ob)
 
-;; arch-tag: 01a7ebee-06c5-4ee4-a709-e660d28c0af1
+
 
 ;;; ob.el ends here

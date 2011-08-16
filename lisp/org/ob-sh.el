@@ -193,6 +193,6 @@ return the value of the last statement in BODY."
 
 (provide 'ob-sh)
 
-;; arch-tag: 416dd531-c230-4b0a-a5bf-8d948f990f2d
+
 
 ;;; ob-sh.el ends here

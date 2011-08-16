@@ -99,6 +99,6 @@
 
 (provide 'ob-calc)
 
-;; arch-tag: 5c57a3b7-5818-4c6c-acda-7a94831a6449
+
 
 ;;; ob-calc.el ends here

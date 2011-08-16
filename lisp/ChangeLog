@@ -1,3 +1,20 @@
+2011-08-16  Richard Stallman  <rms@gnu.org>
+
+	* epa-mail.el: Handle GnuPG group definitions.
+	(epa-mail-group-alist, epa-mail-group-modtime)
+	(epa-mail-gnupg-conf-file): New variables.
+	(epa-mail-parse-groups, epa-mail-sync-groups)
+	(epa-mail-expand-recipient-1, epa-mail-expand-recipients-2)
+	(epa-mail-expand-recipients): New functions.
+	(epa-mail-encrypt): Call epa-mail-expand-recipients.
+
+	* mail/rmail.el (rmail-epa-decrypt): New command.
+
+	* epa.el (epa-decrypt-region): New arg MAKE-BUFFER-FUNCTION.
+	Don't bind buffer-read-only, just inhibit-read-only.
+	(epa--find-coding-system-for-mime-charset): Fix the non-xemacs case.
+	(epa-decrypt-armor-in-region): Make error message clearer.
+
 2011-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion-pcm--merge-completions): Don't merge "a1b"

@@ -820,6 +820,11 @@ on a D-Bus without simultaneously registering a property or a method.
 *** The option `ange-ftp-binary-file-name-regexp' has changed its
 default value to "".
 
+** Rmail
+
+*** The command `rmail-epa-decrypt' decrypts OpenPGP data
+in the Rmail incoming message.
+
 ** VC and related modes
 
 *** Support for pulling on distributed version control systems.
