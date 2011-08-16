@@ -803,10 +803,13 @@ If no one is selected, symmetric encryption will be performed.  ")))
 	     (file-name-nondirectory cipher))))
 
 ;;;###autoload
-(defun epa-decrypt-region (start end &optional copy-function)
+(defun epa-decrypt-region (start end &optional make-buffer-function)
   "Decrypt the current region between START and END.
-If COPY-FUNCTION is non-nil, call it to copy the current buffer
-into some other buffer for the output; it should return that buffer.
+
+If MAKE-BUFFER-FUNCTION is non-nil, call it to prepare an output buffer.
+It should return that buffer.  If it copies the input, it should
+delete the text now being decrypted.  It should leave point at the
+proper place to insert the plaintext.
 
 Be careful about using this command in Lisp programs!
 Since this function operates on regions, it does some tricks such
@@ -841,17 +844,13 @@ For example:
 		       (get-text-property start 'epa-coding-system-used)
 		       'undecided)))
       (if (y-or-n-p "Replace the original text? ")
-	  (let ((inhibit-read-only t)
-		buffer-read-only)
+	  (let ((inhibit-read-only t))
 	    (delete-region start end)
 	    (goto-char start)
 	    (insert plain))
 	(if copy-function
-	    (with-current-buffer (funcall copy-function)
-	      (let ((inhibit-read-only t)
-		    buffer-read-only)
-		(delete-region start end)
-		(goto-char start)
+	    (with-current-buffer (funcall make-buffer-function)
+	      (let ((inhibit-read-only t))
 		(insert plain)))
 	  (with-output-to-temp-buffer "*Temp*"
 	    (set-buffer standard-output)
