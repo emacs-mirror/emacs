@@ -1,3 +1,8 @@
+2011-08-16  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-state-cache-non-literal-place):
+	Correct, to avoid the inside of macros.
+
 2011-08-16  Richard Stallman  <rms@gnu.org>
 
 	* epa-mail.el: Handle GnuPG group definitions.
