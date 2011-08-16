@@ -848,7 +848,7 @@ For example:
 	    (delete-region start end)
 	    (goto-char start)
 	    (insert plain))
-	(if copy-function
+	(if make-buffer-function
 	    (with-current-buffer (funcall make-buffer-function)
 	      (let ((inhibit-read-only t))
 		(insert plain)))
