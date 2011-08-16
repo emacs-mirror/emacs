@@ -388,6 +388,7 @@ character's classification.
 Corresponds to the @code{Canonical_Combining_Class} Unicode property.
 The value is an integer number.
 
+@cindex bidirectional class of characters
 @item bidi-class
 Corresponds to the Unicode @code{Bidi_Class} property.  The value is a
 symbol whose name is the Unicode @dfn{directional type} of the
@@ -426,9 +427,20 @@ superscripts, Roman numerals, currency numerators, and encircled
 numbers.  For example, the value of this property for the character
 @code{U+2155} (@sc{vulgar fraction one fifth}) is @code{0.2}.
 
+@cindex mirroring of characters
 @item mirrored
 Corresponds to the Unicode @code{Bidi_Mirrored} property.  The value
 of this property is a symbol, either @code{Y} or @code{N}.
+
+@item mirroring
+Corresponds to the Unicode @code{Bidi_Mirroring_Glyph} property.  The
+value of this property is a character whose glyph represents the
+mirror image of the character's glyph, or @code{nil} if there's no
+defined mirroring glyph.  All the characters whose @code{mirrored}
+property is @code{N} have @code{nil} as their @code{mirroring}
+property; however, some characters whose @code{mirrored} property is
+@code{Y} also have @code{nil} for @code{mirroring}, because no
+appropriate characters exist with mirrored glyphs.
 
 @item old-name
 Corresponds to the Unicode @code{Unicode_1_Name} property.  The value

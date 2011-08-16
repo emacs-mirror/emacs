@@ -1,5 +1,8 @@
 2011-08-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* nonascii.texi (Character Properties): Document the `mirroring'
+	property.  Add index entries.
+
 	* syntax.texi (Categories): Add an example of defining a new
 	category and category table.
 
