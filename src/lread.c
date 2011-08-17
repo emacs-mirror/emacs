@@ -1124,6 +1124,22 @@ Return t if the file exists and loads successfully.  */)
 	handler = Ffind_file_name_handler (found, Qload);
       if (! NILP (handler))
 	return call5 (handler, Qload, found, noerror, nomessage, Qt);
+#ifdef DOS_NT
+      /* Tramp has to deal with semi-broken packages that prepend
+	 drive letters to remote files.  For that reason, Tramp
+	 catches file operations that test for file existence, which
+	 makes openp think X:/foo.elc files are remote.  However,
+	 Tramp does not catch `load' operations for such files, so we
+	 end up with a nil as the `load' handler above.  If we would
+	 continue with fd = -2, we will behave wrongly, and in
+	 particular try reading a .elc file in the "rt" mode instead
+	 of "rb".  See bug #9311 for the results.  To work around
+	 this, we try to open the file locally, and go with that if it
+	 succeeds.  */
+      fd = emacs_open (SSDATA (ENCODE_FILE (found)), O_RDONLY, 0);
+      if (fd == -1)
+	fd = -2;
+#endif
     }
 
   /* Check if we're stuck in a recursive load cycle.
@@ -1247,9 +1263,17 @@ Return t if the file exists and loads successfully.  */)
   GCPRO3 (file, found, hist_file_name);
 
 #ifdef WINDOWSNT
-  emacs_close (fd);
   efound = ENCODE_FILE (found);
-  stream = fopen (SSDATA (efound), fmode);
+  /* If we somehow got here with fd == -2, meaning the file is deemed
+     to be remote, don't even try to reopen the file locally; just
+     force a failure instead.  */
+  if (fd >= 0)
+    {
+      emacs_close (fd);
+      stream = fopen (SSDATA (efound), fmode);
+    }
+  else
+    stream = NULL;
 #else  /* not WINDOWSNT */
   stream = fdopen (fd, fmode);
 #endif /* not WINDOWSNT */

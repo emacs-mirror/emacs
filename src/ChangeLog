@@ -1,3 +1,8 @@
+2011-08-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* lread.c (Fload) [DOS_NT]: If `openp' returns -2, but the file
+	has no `load' handler, try opening the file locally.  (Bug#9311)
+
 2011-08-16  Ken Brown  <kbrown@cornell.edu>
 
 	* gmalloc.c: Expand comment.
