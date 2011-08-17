@@ -1,3 +1,14 @@
+2011-08-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-is-yours-p): Allow disabling canlock checking
+	(bug#9295).
+	(message-shoot-gnksa-feet): Add `canlock-verify'.
+	(message-auto-save-directory): Use ~/ as the auto-save directory if the
+	message directory isn't writable (bug#9304).
+
+	* auth-source.el (auth-source-netrc-saver): Make the .authinfo file
+	non-world-readable.
+
 2011-08-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nndraft.el (nndraft-update-unread-articles): Don't send delayed
