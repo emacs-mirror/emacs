@@ -1,5 +1,9 @@
 2011-08-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mail/smtpmail.el (auth-source): Require to avoid problems with
+	binding variables (bug#9298).  Also clean up some unused
+	autoloads.
+
 	* net/network-stream.el (network-stream-open-starttls): Support
 	using starttls.el without using gnutls-cli.
 
