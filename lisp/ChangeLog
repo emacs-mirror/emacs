@@ -1,3 +1,9 @@
+2011-08-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-pop-up-frame): Run frame creation
+	function with BUFFER current (as special-display-popup-frame
+	does).  Reported by Drew Adams.
+
 2011-08-17  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-mail.el: Simplify GnuPG group expansion using

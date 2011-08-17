@@ -5087,9 +5087,10 @@ documentation of `display-buffer-alist' for a description."
 	    (when (symbolp function)
 	      (cdr (assq 'pop-up-frame-alist specifiers))))
 	   (frame
-	    (if (symbolp function)
-		(funcall function parameters)
-	      (funcall function))))
+	    (with-current-buffer buffer
+	      (if (symbolp function)
+		  (funcall function parameters)
+		(funcall function)))))
       (when frame
 	(let ((window (frame-selected-window frame)))
 	  (set-window-parameter
