@@ -1,3 +1,8 @@
+2011-08-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nndraft.el (nndraft-update-unread-articles): Don't send delayed
+	articles.
+
 2011-08-13  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* gnus-score.el (gnus-all-score-files): Use copy-sequence instead of
