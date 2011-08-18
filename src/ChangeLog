@@ -1,3 +1,8 @@
+2011-08-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (Fnetwork_interface_list): Correctly determine buffer
+	size.
+
 2011-08-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* eval.c (internal_condition_case, internal_condition_case_1)
