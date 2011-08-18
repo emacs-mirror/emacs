@@ -1,3 +1,18 @@
+2011-08-18  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (error, warning, success): New faces with definitions
+	copied from old default values of `font-lock-warning-face',
+	`compilation-warning', `compilation-info' (bug#6117).
+
+	* font-lock.el (font-lock-warning-face): Inherit from `error'.
+
+	* progmodes/compile.el (compilation-error): Inherit from `error'.
+	(compilation-warning): Inherit from `warning'.
+	(compilation-info): Inherit from `success'.
+
+	* dired.el (dired-marked): Inherit from `warning'.
+	(dired-flagged): Inherit from `error'.
+
 2011-08-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (auth-source): Require to avoid problems with

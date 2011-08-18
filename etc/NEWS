@@ -234,6 +234,9 @@ these image types, minus those listed in `imagemagick-types-inhibit'.
 
 See the Emacs Lisp Reference Manual for more information.
 
+** New basic faces `error', `warning', `success' are available to
+highlight strings that indicate failure, caution or successful operation.
+
 ** The colors for selected text (the region face) are taken from the GTK
 theme when Emacs is built with GTK.
 
