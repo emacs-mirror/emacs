@@ -647,19 +647,19 @@ starting the compilation process.")
 (defvar compile-history nil)
 
 (defface compilation-error
-  '((t :inherit font-lock-warning-face))
+  '((t :inherit error))
   "Face used to highlight compiler errors."
   :group 'compilation
   :version "22.1")
 
 (defface compilation-warning
-  '((t :inherit font-lock-variable-name-face))
+  '((t :inherit warning))
   "Face used to highlight compiler warnings."
   :group 'compilation
   :version "22.1")
 
 (defface compilation-info
-  '((t :inherit font-lock-type-face))
+  '((t :inherit success))
   "Face used to highlight compiler information."
   :group 'compilation
   :version "22.1")

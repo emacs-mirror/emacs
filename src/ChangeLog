@@ -421,6 +421,18 @@
 	(gs_load): Use printmax_t to print the widest integers possible.
 	Check for integer overflow when computing image height and width.
 
+2011-08-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispextern.h (struct bidi_it): Move disp_pos and disp_prop_p
+	members before the level stack, so they would be saved and
+	restored when copying iterator state.  Fixes incorrect reordering
+	around TABs covered by display properties.
+
+2011-08-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (Fnetwork_interface_list): Correctly determine buffer
+	size.
+
 2011-08-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* eval.c (internal_condition_case, internal_condition_case_1)

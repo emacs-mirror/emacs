@@ -1860,6 +1860,9 @@ struct bidi_it {
   EMACS_INT ignore_bn_limit;	/* position until which to ignore BNs */
   bidi_dir_t sor;		/* direction of start-of-run in effect */
   int scan_dir;			/* direction of text scan, 1: forw, -1: back */
+  EMACS_INT disp_pos;		/* position of display string after ch */
+  int disp_prop_p;		/* if non-zero, there really is a
+				   `display' property/string at disp_pos */
   int stack_idx;		/* index of current data on the stack */
   /* Note: Everything from here on is not copied/saved when the bidi
      iterator state is saved, pushed, or popped.  So only put here
@@ -1868,9 +1871,6 @@ struct bidi_it {
   struct bidi_string_data string;	/* string to reorder */
   bidi_dir_t paragraph_dir;	/* current paragraph direction */
   EMACS_INT separator_limit;	/* where paragraph separator should end */
-  EMACS_INT disp_pos;		/* position of display string after ch */
-  int disp_prop_p;		/* if non-zero, there really is a
-				   `display' property/string at disp_pos */
   unsigned first_elt : 1;	/* if non-zero, examine current char first */
   unsigned new_paragraph : 1;	/* if non-zero, we expect a new paragraph */
   unsigned frame_window_p : 1;	/* non-zero if displaying on a GUI frame */
