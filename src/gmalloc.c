@@ -356,7 +356,11 @@ Fifth Floor, Boston, MA 02110-1301, USA.
    emacs uses the Cygwin heap (managed with sbrk).  When emacs starts
    on Cygwin, it reinitializes malloc, and we save the old info for
    use by free and realloc if they're called with a pointer into the
-   static heap. */
+   static heap.
+
+   Currently (2011-08-16) the Cygwin build doesn't use ralloc.c; if
+   this is changed in the future, we'll have to similarly deal with
+   reinitializing ralloc. */
 #ifdef CYGWIN
 extern __ptr_t bss_sbrk PP ((ptrdiff_t __size));
 extern int bss_sbrk_did_unexec;

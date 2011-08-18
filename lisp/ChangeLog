@@ -1,3 +1,42 @@
+2011-08-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (auth-source): Require to avoid problems with
+	binding variables (bug#9298).  Also clean up some unused
+	autoloads.
+
+	* net/network-stream.el (network-stream-open-starttls): Support
+	using starttls.el without using gnutls-cli.
+
+2011-08-17  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (rgrep): Handle the case when
+	`grep-find-command' is a cons cell (bug#9278).
+
+2011-08-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-pop-up-frame): Run frame creation
+	function with BUFFER current (as special-display-popup-frame
+	does).  Reported by Drew Adams.
+
+2011-08-17  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-mail.el: Simplify GnuPG group expansion using
+	epg-expand-group.
+	(epa-mail-group-alist, epa-mail-group-modtime)
+	(epa-mail-gnupg-conf-file, epa-mail-parse-groups)
+	(epa-mail-sync-groups, epa-mail-expand-recipient-1)
+	(epa-mail-expand-recipients-2, epa-mail-expand-recipients):
+	Remove.
+
+2011-08-16  Feng Li <fengli@gmail.com> (tiny change)
+
+	* calc/calc-ext.el (math-defintegral-2): Remove nested backquote.
+
+2011-08-16  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-state-cache-non-literal-place):
+	Correct, to avoid the inside of macros.
+
 2011-08-16  Richard Stallman  <rms@gnu.org>
 
 	* epa-mail.el: Handle GnuPG group definitions.

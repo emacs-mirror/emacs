@@ -1,4 +1,4 @@
-2011-08-16  Paul Eggert  <eggert@cs.ucla.edu>
+2011-08-18  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
 
@@ -421,6 +421,21 @@
 	(gs_load): Use printmax_t to print the widest integers possible.
 	Check for integer overflow when computing image height and width.
 
+2011-08-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eval.c (internal_condition_case, internal_condition_case_1)
+	(internal_condition_case_2, internal_condition_case_n): Remove
+	unnecessary aborts (Bug#9081).
+
+2011-08-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* lread.c (Fload) [DOS_NT]: If `openp' returns -2, but the file
+	has no `load' handler, try opening the file locally.  (Bug#9311)
+
+2011-08-16  Ken Brown  <kbrown@cornell.edu>
+
+	* gmalloc.c: Expand comment.
+
 2011-08-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Don't accept a previous candidate
@@ -475,7 +490,7 @@
 2011-08-14  Kenichi Handa  <handa@m17n.org>
 
 	* process.c (create_process): Call setup_process_coding_systems
-	after the pid of the process is set to -1.
+	after the pid of the process is set to -1 (Bug#8162).
 
 2011-08-14  Eli Zaretskii  <eliz@gnu.org>
 
