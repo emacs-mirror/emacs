@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html
+ PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transisitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<link rel = "stylesheet" type = "text/css" href = "/style/project.css">
+
+<title> Memory Pool System Build Notes </title>
+
+</head>
+
+<body>
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/manual/">Product Manuals</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+<h1> Memory Pool System Build Notes </h1>
+
+<address>
+<a href="mailto:mps-staff@ravenbrook.com">MPS staff</a>,
+<a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>
+</address>
+
+</div>
+
+<div class = "contents">
+<h2> Contents </h2>
+
+<ul>
+
+<li> <a href= "#int">Introduction</a> </li>
+
+<li> <a href="#plasup">Platform support</a> </li>
+
+<li> <a href="#uni">Unix</a> </li>
+   <ul>
+   <li><A href = "#macosx">Mac OS X</li>
+   </ul>
+
+<li> <a href="#win">Windows</a> </li>
+
+<li> <a href="#ref">References</a> </li>
+
+<li> <a href="#dochis">B. Document History</a> </li>
+
+<li> <a href="#copandlic">C. Copyright and License</a> </li>
+
+</ul>
+</div>
+
+<h2 id = "int">Introduction</h2>
+
+<p>
+This document contains build notes for the Memory Pool System Kit.
+</p>
+<p>
+The readership of this document is anyone who wants to build MPS
+binaries from the sources.  Read the readme.txt file first.
+</p>
+
+<p>
+This document is not complete; the MPS kit is buildable on many
+platforms that are not mentioned in these notes.  The MPS kit is
+easy to modify such that it builds on many more.
+</p>
+<p>
+This document is not confidential.
+<p>
+
+<h2 id = "plasup">Platform support</h2>
+
+
+<p>
+The MPS has historically been built on many platforms that are either
+now obsolete or to which we don't have convenient access.
+</p>
+
+<pre>
+Operating Systems
+
+  OS????
+
+  ia    Irix 6 N32 ABI
+  li    Linux
+  o1    OSF/1 aka Tru64
+  so    Solaris 5.x and successors
+  su    SunOS 4.x
+  s7    Mac OS 7 through 9
+
+CPU Architectures
+
+  ??AR??
+
+  al    ALPHA AXP
+  i3    Intel IA-32
+  i4    Same as i3 (a mistake)
+  m4    MIPS IV
+  pp    PowerPC (32-bit)
+  s8    SPARC v8
+  s9    SPARC v9 (32-bit)
+  m6    Motorola 68K family
+
+Compiler Toolchains
+
+  ????CC
+
+  cc    Vendor Supplied CC
+  gc    GCC
+  eg    EGCS
+  cx    SunPro C CXREF tool
+  gp    GCC with profiling
+  mv    Microsoft Visual C
+  m9    Microsoft Visual C 9.0 (temporary designation)
+  sc    SunPro C
+  ac    Apple Mr C
+  mw    Metrowerks Codewarrior
+
+The full list of platforms that have ever been supported:
+
+fri4gc  Maintained
+i5m2cc  Not maintained (no makefile)
+iam4cc  Not maintained
+lii3eg  Not maintained
+lii4gc  Maintained
+lippgc  Not maintained
+o1alcc  Not maintained
+o1algc  Not maintained
+s7m6mw  Not maintained (no makefile)
+s7ppac  Not maintained
+s7ppmw  Not maintained
+sos8cx  Not maintained
+sos8gc  Not maintained
+sos8gp  Not maintained
+sos9sc  Not maintained
+sus8gc  Not maintained
+w3almv  Not maintained (no makefile in trunk)
+w3i3mv  Maintained
+w3i3m9  Maintained
+w3ppmv  Not Maintained (no makefile in trunk)
+xci3gc  Maintained
+xcppgc  Maintained (in sunset)
+</pre>
+<p>
+Platforms listed as "maintained" are used at Ravenbrook and the MPS
+should work well on them.  OS X on PowerPC (xcppgc) is in decline as
+Apple have moved to Intel architecture and are no longer shipping
+PowerPC based systems.
+</p>
+<p>
+Platforms are generally listed as "not maintained" if Ravenbrook
+doesn't have access to a suitable machine.  Should you have access
+to such a platform though, you should find that the MPS works on
+it.  You may have to spring-clean and update the relevant makefiles
+(which we have left for exactly this purpose, even though we are unable
+to maintain them).  New files are added and sometimes reorganised
+which sometimes requires changes to makefiles; we can't do this for
+platforms we don't have access to.  Also compiler options often
+need tweaking from release to release.
+</p>
+<p>
+Generally support is modularised in way that makes it fairly easy to
+"fill in the gaps".  So that, for example, the MPS support for the SPARC
+architecture could in principle be used on a Linux/SPARC platform.  In
+practice the interfaces to architecture dependent stuff tends to be
+dependent on the operating system and toolchain being used.  For
+combinations like FreeBSD/MIPS, Solaris/IA-32 which exist, but which
+we've never had access to, it wouldn't be hard to get the MPS going on
+them.
+</p>
+
+<h2 id = "uni">Unix</h2>
+
+<p>
+Note that the first build in a clean directory will produce warnings
+because the dependency files (*.d) do not yet exist.  The warnings look
+like this:<br />
+<code>comm.gmk:533: xcppgc/hi/mpsi.d: No such file or directory</code>
+<br />
+The warnings are normal and do not indicate a problem.  After the
+warning is emitted, the build-system makes the dependency file.
+Subsequent builds in the non-clean directory see these dependency files
+and do not emit the warning.
+</p>
+
+<h3 id = "macosx">Mac OS X</h3>
+
+<p>
+2005-02-02<br />
+Building on early releases of Mac OS X (DP3? 10.1?) required various
+workarounds to get a clean compile.  These workarounds have now been
+removed from master sources.  RHSK.
+See
+&lt;<a href = http://ravenbrook.com/project/mps/issue/job000602/
+   title = "Link to ravenbrook.com/project/mps/issue/job000602/"
+   >ravenbrook.com/project/mps/issue/job000602/</A>&gt;
+
+</p>
+
+<p>
+2006-10-10<br />
+Intel Macs.  It's now possible to use xci3gc.gmk to build on Intel
+architectures.  Threads not supported.
+</p>
+<p>
+2007-12-21<br />
+Building on early releases of Mac OS X (DP3? 10.1?) required various
+(now unnecessary) compiler flags to suppress warnings from Mac OS X
+header files.  These warnings are no loner suppressed.
+Additionally, an obsolete flag for GDB (debugging) output is beleived
+no longer necessary, and has been reverted.
+See
+&lt;<a href = http://ravenbrook.com/project/mps/issue/job001714/
+   title = "Link to ravenbrook.com/project/mps/issue/job001714/"
+>ravenbrook.com/project/mps/issue/job001714/</A>&gt;
+</p>
+
+
+<h2 id = "win">Windows</h2>
+<p>
+2005-10-06 (1.105)<br />
+All MPS versions are now built with /Gs (for compilations) and /GZ
+(for linking).  This suppresses stack probe / stack check, which
+would otherwise require __chkesp from C library.  This change was
+necessary to enable the new DLL version of the MPS, "mpsdy.dll".
+RHSK.
+See
+&lt;<a href =
+ http://ravenbrook.com/project/mps/master/manual/supplement/dll-notes/
+ title =
+"Link to ravenbrook.com/project/mps/master/manual/supplement/dll-notes/"
+>ravenbrook.com/project/mps/master/manual/supplement/dll-notes/</A>&gt;
+</p>
+
+<p>
+2010-03-03 (1.109.0)<br />
+New platform "w3i3m9" -- using Microsoft Visual C++ 9.0<br />
+This platform is a clone of w3i3mv; the only differences are:
+<ul>
+<li>compiler and linker options (see commpre9.nmk);</li>
+<li>use w3i3m9.nmk (not w3i3mv.nmk) to build it;</li>
+<li>the MPS_PF_STRING in version.c is "w3i3m9" (not "w3i3mv").</li>
+</ul>
+The only reason for this to be separate from the w3i3mv platform is
+to enable builds with version 6.0 and version 9.0 compilers to be
+kept separate, to enable performance comparisons.  The w3i3m9
+clone may merge back into w3i3mv in the future.<br />
+See
+&lt;<a href = http://ravenbrook.com/project/mps/issue/job001944/
+   title = "Link to ravenbrook.com/project/mps/issue/job001944/"
+>ravenbrook.com/project/mps/issue/job001944/</A>&gt;
+</p>
+
+<p>
+The Windows linker can accept a .def file to allow re-export of MPS
+functions from a client executable that includes the MPS, such that
+other client DLLs can link to and call those MPS functions.  See the
+w3gen.def file (renamed mps-fns.def for Configura releases).  A
+suitable command-line fragment might be "/def:w3gen.def".
+See
+&lt;<a href = http://ravenbrook.com/project/mps/issue/job001936/
+   title = "Link to ravenbrook.com/project/mps/issue/job001936/"
+>ravenbrook.com/project/mps/issue/job001936/</A>&gt;
+
+</p>
+
+<h2 id = "ref">References</h2>
+
+
+<h2 id = "dochis">Document history</h2>
+
+
+<dt>2005-02-02  RHSK</dt>
+<dd>Created based on mps kit readme.txt.</dd>
+<dt>2006-10-10  DRJ</dt>
+<dd>Note re Intel Macs.</dd>
+<dt>2007-07-18  DRJ</dt>
+<dd>Added platform support section.</dd>
+<dt>2007-12-21  RHSK</dt>
+<dd>Note re PPC Mac compiler flags.</dd>
+<dt>2008-10-23  RHSK</dt>
+<dd>Note re w3i3m9 (Windows Visual C++ 9.0) platform</dd>
+<dt>2008-12-09  RHSK</dt>
+<dd>Remove w3almv and w3ppmv makefiles.</dd>
+<dt>2010-03-03  RHSK</dt>
+<dd>More w3i3m9 details.  Linker .def file for re-export.</dd>
+<dt>2011-08-18  PNJ</dt>
+<dd>Converted to HTML so the hyperlinks work, ready for further
+enhancements.</dd>
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p>This document is copyright &copy; 2005,2006,2007,2008,2010,2011
+<a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.
+All rights reserved.  This is an open source license.
+Contact Ravenbrook for commercial licensing options.</p>
+
+<p>Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:</p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+</li>
+
+<li> Redistributions in any form must be accompanied by information on
+how to obtain complete source code for this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more than
+the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains.
+It does not include source code for modules or files that typically
+accompany the major components of the operating system on which the
+executable file runs. </li>
+
+</ol>
+
+<p><strong> This software is provided by the copyright holders and
+contributors "as is" and any express or implied warranties, including,
+but not limited to, the implied warranties of merchantability, fitness
+for a particular purpose, or non-infringement, are disclaimed.  In no
+event shall the copyright holders and contributors be liable for any
+direct, indirect, incidental, special, exemplary, or consequential
+damages (including, but not limited to, procurement of substitute goods
+or services; loss of use, data, or profits; or business interruption)
+however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise) arising
+in any way out of the use of this software, even if advised of the
+possibility of such damage. </strong></p>
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/manual/">Product Manuals</a>
+</p>
+
+</div>
+
+</body>
+
+</html>
+
