@@ -6,9 +6,10 @@
 
 	* display.texi (Bidirectional Display): Document the pitfalls of
 	concatenating strings with bidirectional content, with possible
-	solutions.  Document string-mark-left-to-right.  Mention paragraph
-	direction in modes that inherit from prog-mode.  Document use of
-	`bidi-class' and `mirroring' properties as part of reordering.
+	solutions.  Document bidi-string-mark-left-to-right.  Mention
+	paragraph direction in modes that inherit from prog-mode.
+	Document use of `bidi-class' and `mirroring' properties as part of
+	reordering.
 
 2011-08-16  Eli Zaretskii  <eliz@gnu.org>
 

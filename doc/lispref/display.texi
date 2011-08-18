@@ -6132,8 +6132,8 @@ forcing correct order of fields on display:
 Append the special character @code{U+200E}, LEFT-TO-RIGHT MARK, or
 @acronym{LRM}, to the end of each field that may have bidirectional
 content, or prepend it to the beginning of the following field.  The
-function @code{string-mark-left-to-right}, described below, comes in
-handy for this purpose.  (In a right-to-left paragraph, use
+function @code{bidi-string-mark-left-to-right}, described below, comes
+in handy for this purpose.  (In a right-to-left paragraph, use
 @code{U+200F}, RIGHT-TO-LEFT MARK, or @acronym{RLM}, instead.)  This
 is one of the solutions recommended by
 @uref{http://www.unicode.org/reports/tr9/#Separators, the
@@ -6146,7 +6146,7 @@ reordering, whose effect is to make each field a separate segment, and
 thus reorder them separately.
 @end itemize
 
-@defun string-mark-left-to-right string
+@defun bidi-string-mark-left-to-right string
 This subroutine returns its argument @var{string}, possibly modified,
 such that the result can be safely concatenated with another string,
 or juxtaposed with another string in a buffer, without disrupting the
