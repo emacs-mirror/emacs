@@ -1,6 +1,6 @@
 ;;; org-beamer.el --- Beamer-specific LaTeX export for org-mode
 ;;
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 ;;
 ;; Version: 7.7
 ;; Author: Carsten Dominik <carsten.dominik AT gmail DOT com>

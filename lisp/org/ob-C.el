@@ -1,6 +1,6 @@
 ;;; ob-C.el --- org-babel functions for C and similar languages
 
-;; Copyright (C) 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research

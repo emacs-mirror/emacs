@@ -1,6 +1,6 @@
 ;;; ob-js.el --- org-babel functions for Javascript
 
-;; Copyright (C) 2010 Free Software Foundation
+;; Copyright (C) 2010-2011 Free Software Foundation
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, js

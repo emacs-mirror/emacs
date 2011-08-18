@@ -1,6 +1,6 @@
 ;;; ob-ref.el --- org-babel functions for referencing external data
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte, Dan Davison
 ;; Keywords: literate programming, reproducible research

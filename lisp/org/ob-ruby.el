@@ -1,6 +1,6 @@
 ;;; ob-ruby.el --- org-babel functions for ruby evaluation
 
-;; Copyright (C) 2009, 2010  Free Software Foundation
+;; Copyright (C) 2009-2011  Free Software Foundation
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
