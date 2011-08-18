@@ -2,6 +2,11 @@
 
 	Integer and memory overflow issues (Bug#9196).
 
+	* doc.c (get_doc_string): Rework so that
+	get_doc_string_buffer_size is the actual buffer size, rather than
+	being 1 less than the actual buffer size; this makes xpalloc more
+	convenient.
+
 	* image.c (x_allocate_bitmap_record, cache_image):
 	* xselect.c (Fx_register_dnd_atom):
 	Simplify previous changes by using xpalloc.

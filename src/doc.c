@@ -166,19 +166,19 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
   p = get_doc_string_buffer;
   while (1)
     {
-      ptrdiff_t space_left = (get_doc_string_buffer_size
+      ptrdiff_t space_left = (get_doc_string_buffer_size - 1
 			      - (p - get_doc_string_buffer));
       int nread;
 
       /* Allocate or grow the buffer if we need to.  */
-      if (space_left == 0)
+      if (space_left <= 0)
 	{
 	  ptrdiff_t in_buffer = p - get_doc_string_buffer;
 	  get_doc_string_buffer =
 	    xpalloc (get_doc_string_buffer, &get_doc_string_buffer_size,
 		     16 * 1024, -1, 1);
 	  p = get_doc_string_buffer + in_buffer;
-	  space_left = (get_doc_string_buffer_size
+	  space_left = (get_doc_string_buffer_size - 1
 			- (p - get_doc_string_buffer));
 	}
 
