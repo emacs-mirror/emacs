@@ -209,6 +209,11 @@
 	  (setq start end
 		end nil))))))
 
+(defmacro gnus-string-mark-left-to-right (string)
+  (if (fboundp 'string-mark-left-to-right)
+      `(string-mark-left-to-right ,string)
+    string))
+
 (eval-and-compile
   ;; XEmacs does not have window-inside-pixel-edges
   (defalias 'gnus-window-inside-pixel-edges
