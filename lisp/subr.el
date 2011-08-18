@@ -3539,30 +3539,23 @@ to case differences."
   (eq t (compare-strings str1 nil nil
                          str2 0 (length str1) ignore-case)))
 
-(defun string-mark-left-to-right (str)
+(defun bidi-string-mark-left-to-right (str)
   "Return a string that can be safely inserted in left-to-right text.
-If STR contains right-to-left (RTL) script, return a string
-consisting of STR followed by a terminating invisible
-left-to-right mark (LRM) character.
 
-The LRM character marks the end of an RTL segment, and resets the
-display direction of any subsequent text to left-to-right.
-\(Otherwise, some of that text might be displayed as part of the
-RTL segment, based on the bidirectional display algorithm.)
+Normally, inserting a string with right-to-left (RTL) script into
+a buffer may cause some subsequent text to be displayed as part
+of the RTL segment (usually this affects punctuation characters).
+This function returns a string which displays as STR but forces
+subsequent text to be displayed as left-to-right.
 
-If STR contains no RTL characters, return STR."
+If STR contains any RTL character, this function returns a string
+consisting of STR followed by an invisible left-to-right mark
+\(LRM) character.  Otherwise, it returns STR."
   (unless (stringp str)
     (signal 'wrong-type-argument (list 'stringp str)))
-  (let ((len (length str))
-	(n 0)
-	rtl-found)
-    (while (and (not rtl-found) (< n len))
-      (setq rtl-found (memq (get-char-code-property
-			     (aref str n) 'bidi-class) '(R AL RLO))
-	    n (1+ n)))
-    (if rtl-found
-	(concat str (propertize (string ?\x200e) 'invisible t))
-      str)))
+  (if (string-match "\\cR" str)
+      (concat str (propertize (string ?\x200e) 'invisible t))
+    str))
 
 ;;;; invisibility specs
 

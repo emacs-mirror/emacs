@@ -681,9 +681,9 @@ For more information, see the function `buffer-menu'."
                           (string-width tail)
                           2))
                       Buffer-menu-short-ellipsis
-                      (string-mark-left-to-right tail))))
+                      (bidi-string-mark-left-to-right tail))))
     ;; Don't put properties on (buffer-name).
-    (setq name (string-mark-left-to-right name)))
+    (setq name (bidi-string-mark-left-to-right name)))
   (add-text-properties 0 (length name) name-props name)
   (add-text-properties 0 (length size) size-props size)
   (let ((name+space-width (- Buffer-menu-buffer+size-width

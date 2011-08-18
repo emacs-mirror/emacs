@@ -1,3 +1,12 @@
+2011-08-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/characters.el: Add L and R categories.
+
+	* subr.el (bidi-string-mark-left-to-right): Rename from
+	string-mark-left-to-right.  Use category search.
+
+	* buff-menu.el (Buffer-menu-buffer+size): Callers changed.
+
 2011-08-18  Juri Linkov  <juri@jurta.org>
 
 	* faces.el (error, warning, success): New faces with definitions
