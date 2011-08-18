@@ -1043,6 +1043,7 @@ of function value which looks like (closure ENV ARGS &rest BODY).
 *** New function `special-variable-p' to check whether a variable is
 declared as dynamically bound.
 
++++
 ** New function `string-mark-left-to-right'.
 Given a string containing right-to-left (RTL) script, this function
 returns another string with a terminating LRM (left-to-right mark)
