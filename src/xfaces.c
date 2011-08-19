@@ -6008,9 +6008,18 @@ face_at_buffer_position (struct window *w, EMACS_INT pos,
 
   *endptr = endpos;
 
-  default_face = FACE_FROM_ID (f, base_face_id >= 0 ? base_face_id
-			       : NILP (Vface_remapping_alist) ? DEFAULT_FACE_ID
-			       : lookup_basic_face (f, DEFAULT_FACE_ID));
+  {
+    int face_id;
+
+    if (base_face_id >= 0)
+      face_id = base_face_id;
+    else if (NILP (Vface_remapping_alist))
+      face_id = DEFAULT_FACE_ID;
+    else
+      face_id = lookup_basic_face (f, DEFAULT_FACE_ID);
+
+    default_face = FACE_FROM_ID (f, face_id);
+  }
 
   /* Optimize common cases where we can use the default face.  */
   if (noverlays == 0
