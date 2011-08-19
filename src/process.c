@@ -3580,38 +3580,57 @@ format; see the description of ADDRESS in `make-network-process'.  */)
   if (s < 0)
     return Qnil;
 
- again:
-  buf_size *= 2;
-  buf = xrealloc(buf, buf_size);
-  if (!buf)
+  ifconf.ifc_buf = 0;
+  ifconf.ifc_len = 0;
+  if (ioctl (s, SIOCGIFCONF, &ifconf) == 0 && ifconf.ifc_len > 0)
     {
-      close (s);
-      return Qnil;
+      ifconf.ifc_buf = xmalloc (ifconf.ifc_len);
+      if (ifconf.ifc_buf == NULL)
+	{
+	  close (s);
+	  return Qnil;
+	}
+      if (ioctl (s, SIOCGIFCONF, &ifconf))
+	{
+	  close (s);
+	  xfree (ifconf.ifc_buf);
+	  return Qnil;
+	}
     }
+  else
+    do
+      {
+	buf_size *= 2;
+	buf = xrealloc (buf, buf_size);
+	if (!buf)
+	  {
+	    close (s);
+	    return Qnil;
+	  }
 
-  ifconf.ifc_buf = buf;
-  if (ioctl (s, SIOCGIFCONF, &ifconf))
-    {
-      close (s);
-      xfree (buf);
-      return Qnil;
-    }
+	ifconf.ifc_buf = buf;
+	ifconf.ifc_len = buf_size;
+	if (ioctl (s, SIOCGIFCONF, &ifconf))
+	  {
+	    close (s);
+	    xfree (buf);
+	    return Qnil;
+	  }
 
-  if (ifconf.ifc_len == buf_size)
-    goto again;
+      }
+    while (ifconf.ifc_len == buf_size);
 
   close (s);
 
   res = Qnil;
-  for (ifreq = ifconf.ifc_req;
-       (char *) ifreq < (char *) (ifconf.ifc_req) + ifconf.ifc_len;
-       )
+  ifreq = ifconf.ifc_req;
+  while ((char *) ifreq < (char *) ifconf.ifc_req + ifconf.ifc_len)
     {
       struct ifreq *ifq = ifreq;
 #ifdef HAVE_STRUCT_IFREQ_IFR_ADDR_SA_LEN
-#define SIZEOF_IFREQ(sif)                                               \
-      ((sif)->ifr_addr.sa_len < sizeof(struct sockaddr) ?               \
-       sizeof((*sif)) : sizeof ((sif)->ifr_name) + sif->ifr_addr.sa_len)
+#define SIZEOF_IFREQ(sif)						\
+      ((sif)->ifr_addr.sa_len < sizeof (struct sockaddr)		\
+       ? sizeof (*(sif)) : sizeof ((sif)->ifr_name) + (sif)->ifr_addr.sa_len)
 
       int len = SIZEOF_IFREQ (ifq);
 #else
@@ -3619,7 +3638,7 @@ format; see the description of ADDRESS in `make-network-process'.  */)
 #endif
       char namebuf[sizeof (ifq->ifr_name) + 1];
       i += len;
-      ifreq = (struct ifreq*) ((char*) ifreq + len);
+      ifreq = (struct ifreq *) ((char *) ifreq + len);
 
       if (ifq->ifr_addr.sa_family != AF_INET)
 	continue;

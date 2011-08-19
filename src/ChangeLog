@@ -1,3 +1,34 @@
+2011-08-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_get_type): If bidi_type_table reports zero as the
+	character bidirectional type, use STRONG_L instead.  Fixes crashes
+	in a buffer produced by `describe-categories'.
+
+	* dispextern.h (struct bidi_it): Move disp_pos and disp_prop_p
+	members before the level stack, so they would be saved and
+	restored when copying iterator state.  Fixes incorrect reordering
+	around TABs covered by display properties.
+
+2011-08-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (Fnetwork_interface_list): Correctly determine buffer
+	size.
+
+2011-08-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eval.c (internal_condition_case, internal_condition_case_1)
+	(internal_condition_case_2, internal_condition_case_n): Remove
+	unnecessary aborts (Bug#9081).
+
+2011-08-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* lread.c (Fload) [DOS_NT]: If `openp' returns -2, but the file
+	has no `load' handler, try opening the file locally.  (Bug#9311)
+
+2011-08-16  Ken Brown  <kbrown@cornell.edu>
+
+	* gmalloc.c: Expand comment.
+
 2011-08-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (set_cursor_from_row): Don't accept a previous candidate
@@ -52,7 +83,7 @@
 2011-08-14  Kenichi Handa  <handa@m17n.org>
 
 	* process.c (create_process): Call setup_process_coding_systems
-	after the pid of the process is set to -1.
+	after the pid of the process is set to -1 (Bug#8162).
 
 2011-08-14  Eli Zaretskii  <eliz@gnu.org>
 

@@ -283,7 +283,7 @@ of column descriptors."
 	     (> (length label) width)
 	     (setq label (concat (substring label 0 (- width 3))
 				 "...")))
-	(setq label (string-mark-left-to-right label))
+	(setq label (bidi-string-mark-left-to-right label))
 	(if (stringp desc)
 	    (insert (propertize label 'help-echo help-echo))
 	  (apply 'insert-text-button label (cdr desc)))

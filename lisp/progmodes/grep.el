@@ -965,7 +965,9 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
     (unless (and dir (file-directory-p dir) (file-readable-p dir))
       (setq dir default-directory))
     (if (null files)
-	(if (not (string= regexp grep-find-command))
+	(if (not (string= regexp (if (consp grep-find-command)
+				     (car grep-find-command)
+				   grep-find-command)))
 	    (compilation-start regexp 'grep-mode))
       (setq dir (file-name-as-directory (expand-file-name dir)))
       (require 'find-dired)		; for `find-name-arg'

@@ -114,6 +114,16 @@ A character which can't be placed at end of line.")
 Base characters (Unicode General Category L,N,P,S,Zs)")
 (define-category ?^ "Combining
 Combining diacritic or mark (Unicode General Category M)")
+
+;; bidi types
+(define-category ?R "Right-to-left (strong)
+Characters with \"strong\" right-to-left directionality, i.e.
+with R, AL, RLE, or RLO Unicode bidi character type.")
+
+(define-category ?L "Left-to-right (strong)
+Characters with \"strong\" left-to-right directionality, i.e.
+with L, LRE, or LRO Unicode bidi character type.")
+
 
 ;;; Setting syntax and category.
 
@@ -477,6 +487,16 @@ Combining diacritic or mark (Unicode General Category M)")
 		  (modify-syntax-entry x syntax)
 		  (modify-category-entry x category))
 	      chars)))))
+
+;; Bidi categories
+
+(map-char-table (lambda (key val)
+		  (cond
+		   ((memq val '(R AL RLO RLE))
+		    (modify-category-entry key ?R))
+		   ((memq val '(L LRE LRO))
+		    (modify-category-entry key ?L))))
+		(unicode-property-table-internal 'bidi-class))
 
 ;; Latin
 

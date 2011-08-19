@@ -392,7 +392,8 @@ The value is an integer number.
 @item bidi-class
 Corresponds to the Unicode @code{Bidi_Class} property.  The value is a
 symbol whose name is the Unicode @dfn{directional type} of the
-character.
+character.  Emacs uses this property when it reorders bidirectional
+text for display (@pxref{Bidirectional Display}).
 
 @item decomposition
 Corresponds to the Unicode @code{Decomposition_Type} and
@@ -440,7 +441,9 @@ defined mirroring glyph.  All the characters whose @code{mirrored}
 property is @code{N} have @code{nil} as their @code{mirroring}
 property; however, some characters whose @code{mirrored} property is
 @code{Y} also have @code{nil} for @code{mirroring}, because no
-appropriate characters exist with mirrored glyphs.
+appropriate characters exist with mirrored glyphs.  Emacs uses this
+property to display mirror images of characters when appropriate
+(@pxref{Bidirectional Display}).
 
 @item old-name
 Corresponds to the Unicode @code{Unicode_1_Name} property.  The value

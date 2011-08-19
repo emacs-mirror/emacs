@@ -30,6 +30,9 @@ of green, brown, and blue.")
    'wheatgrass
    `(default ((,class (:foreground "wheat" :background "black"))))
    `(cursor ((,class (:foreground "black" :background "thistle"))))
+   `(error ((,class (:foreground "salmon1"))))
+   `(warning ((,class (:foreground "orange"))))
+   `(success ((,class (:foreground "yellow green"))))
    ;; Highlighting faces
    `(highlight ((,class (:foreground "white" :background "dark green"))))
    `(region ((,class (:foreground "white" :background "dark green"))))
@@ -45,7 +48,6 @@ of green, brown, and blue.")
    `(font-lock-string-face ((,class (:foreground "dark khaki"))))
    `(font-lock-type-face ((,class (:foreground "aquamarine"))))
    `(font-lock-variable-name-face ((,class (:foreground "yellow green"))))
-   `(font-lock-warning-face ((,class (:foreground "salmon1"))))
    ;; Button and link faces
    `(link ((,class (:underline t :foreground "cyan"))))
    `(link-visited ((,class (:underline t :foreground "dark cyan"))))

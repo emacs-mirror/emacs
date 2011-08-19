@@ -5992,6 +5992,7 @@ left-to-right and right-to-left characters.
 for editing and displaying bidirectional text.
 
 @cindex logical order
+@cindex reading order
 @cindex visual order
 @cindex unicode bidirectional algorithm
   Emacs stores right-to-left and bidirectional text in the so-called
@@ -6006,17 +6007,16 @@ for display.  Reordering of bidirectional text for display in Emacs is
 a ``Full bidirectionality'' class implementation of the @acronym{UBA}.
 
 @defvar bidi-display-reordering
-  The buffer-local variable @code{bidi-display-reordering} controls
-whether text in the buffer is reordered for display.  If its value is
-non-@code{nil}, Emacs reorders characters that have right-to-left
-directionality when they are displayed.  The default value is
-@code{t}.  Text in overlay strings (@pxref{Overlay
-Properties,,before-string}), display strings (@pxref{Overlay
-Properties,,display}), and @code{display} text properties
-(@pxref{Display Property}) is also reordered if the buffer whose text
-includes these strings is reordered for display.  Turning off
-@code{bidi-display-reordering} for a buffer turns off reordering of
-all the overlay and display strings in that buffer.
+  This buffer-local variable controls whether text in the buffer is
+reordered for display.  If its value is non-@code{nil}, Emacs reorders
+characters that have right-to-left directionality when they are
+displayed.  The default value is @code{t}.  Text in overlay strings
+(@pxref{Overlay Properties,,before-string}), display strings
+(@pxref{Overlay Properties,,display}), and @code{display} text
+properties (@pxref{Display Property}) is also reordered for display if
+the buffer whose text includes these strings is reordered.  Turning
+off @code{bidi-display-reordering} for a buffer turns off reordering
+of all the overlay and display strings in that buffer.
 
   Reordering of strings that are unrelated to any buffer, such as text
 displayed on the mode line (@pxref{Mode Line Format}) or header line
@@ -6056,7 +6056,7 @@ it is reordered for display.  That is, the entire chunk of text
 covered by these properties is reordered together.  Moreover, the
 bidirectional properties of the characters in this chunk of text are
 ignored, and Emacs reorders them as if they were replaced with a
-single character @code{u+FFFC}, known as the @dfn{Object Replacement
+single character @code{U+FFFC}, known as the @dfn{Object Replacement
 Character}.  This means that placing a display property over a portion
 of text may change the way that the surrounding text is reordered for
 display.  To prevent this unexpected effect, always place such
@@ -6073,9 +6073,9 @@ begins at the right margin and is continued or truncated at the left
 margin.
 
 @defvar bidi-paragraph-direction
-  Emacs determines the base direction of each paragraph dynamically,
-based on the text at the beginning of the paragraph.  The precise
-method of determining the base direction is specified by the
+  By default, Emacs determines the base direction of each paragraph
+dynamically, based on the text at the beginning of the paragraph.  The
+precise method of determining the base direction is specified by the
 @acronym{UBA}; in a nutshell, the first character in a paragraph that
 has an explicit directionality determines the base direction of the
 paragraph.  However, sometimes a buffer may need to force a certain
@@ -6087,6 +6087,13 @@ dynamic determination of the base direction, and instead forces all
 paragraphs in the buffer to have the direction specified by its
 buffer-local value.  The value can be either @code{right-to-left} or
 @code{left-to-right}.  Any other value is interpreted as @code{nil}.
+The default is @code{nil}.
+
+@cindex @code{prog-mode}, and @code{bidi-paragraph-direction}
+Modes that are meant to display program source code should force a
+@code{left-to-right} paragraph direction.  The easiest way of doing so
+is to derive the mode from Prog Mode, which already sets
+@code{bidi-paragraph-direction} to that value.
 @end defvar
 
 @defun current-bidi-paragraph-direction &optional buffer
@@ -6099,3 +6106,70 @@ non-@code{nil}, the returned value will be identical to that value;
 otherwise, the returned value reflects the paragraph direction
 determined dynamically by Emacs.
 @end defun
+
+@cindex layout on display, and bidirectional text
+@cindex jumbled display of bidirectional text
+@cindex concatenating bidirectional strings
+  Reordering of bidirectional text for display can have surprising and
+unpleasant effects when two strings with bidirectional content are
+juxtaposed in a buffer, or otherwise programmatically concatenated
+into a string of text.  A typical example is a buffer whose lines are
+actually sequences of items, or fields, separated by whitespace or
+punctuation characters.  This is used in specialized modes such as
+Buffer-menu Mode or various email summary modes, like Rmail Summary
+Mode.  Because these separator characters are @dfn{weak}, i.e.@: have
+no strong directionality, they take on the directionality of
+surrounding text.  As result, a numeric field that follows a field
+with bidirectional content can be displayed @emph{to the left} of the
+preceding field, producing a jumbled display and messing up the
+expected layout.
+
+  To countermand this, you can use one of the following techniques for
+forcing correct order of fields on display:
+
+@itemize @minus
+@item
+Append the special character @code{U+200E}, LEFT-TO-RIGHT MARK, or
+@acronym{LRM}, to the end of each field that may have bidirectional
+content, or prepend it to the beginning of the following field.  The
+function @code{bidi-string-mark-left-to-right}, described below, comes
+in handy for this purpose.  (In a right-to-left paragraph, use
+@code{U+200F}, RIGHT-TO-LEFT MARK, or @acronym{RLM}, instead.)  This
+is one of the solutions recommended by
+@uref{http://www.unicode.org/reports/tr9/#Separators, the
+@acronym{UBA}}.
+
+@item
+Include the tab character in the field separator.  The tab character
+plays the role of @dfn{segment separator} in the @acronym{UBA}
+reordering, whose effect is to make each field a separate segment, and
+thus reorder them separately.
+@end itemize
+
+@defun bidi-string-mark-left-to-right string
+This subroutine returns its argument @var{string}, possibly modified,
+such that the result can be safely concatenated with another string,
+or juxtaposed with another string in a buffer, without disrupting the
+relative layout of this string and the next one on display.  If the
+string returned by this function is displayed as part of a
+left-to-right paragraph, it will always appear on display to the left
+of the text that follows it.  The function works by examining the
+characters of its argument, and if any of those characters could cause
+reordering on display, the function appends the @acronym{LRM}
+character to the string.  The appended @acronym{LRM} character is made
+@emph{invisible} (@pxref{Invisible Text}), to hide it on display.
+@end defun
+
+  The reordering algorithm uses the bidirectional properties of the
+characters stored as their @code{bidi-class} property
+(@pxref{Character Properties}).  Lisp programs can change these
+properties by calling the @code{put-char-code-property} function.
+However, doing this requires a thorough understanding of the
+@acronym{UBA}, and is therefore not recommended.  Any changes to the
+bidirectional properties of a character have global effect: they
+affect all Emacs frames and windows.
+
+  Similarly, the @code{mirroring} property is used to display the
+appropriate mirrored character in the reordered text.  Lisp programs
+can affect the mirrored display by changing this property.  Again, any
+such changes affect all of Emacs display.

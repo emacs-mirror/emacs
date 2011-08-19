@@ -1,3 +1,11 @@
+2011-08-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* themes/dichromacy-theme.el:
+	* themes/wheatgrass-theme.el:
+	* themes/tango-theme.el:
+	* themes/tango-dark-theme.el: Add error, warning, and success
+	faces.
+
 2011-08-15  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* refcards/orgcard.tex: Document `org-copy-visible'.

@@ -1461,13 +1461,6 @@ internal_condition_case (Lisp_Object (*bfun) (void), Lisp_Object handlers,
   struct catchtag c;
   struct handler h;
 
-  /* Since Fsignal will close off all calls to x_catch_errors,
-     we will get the wrong results if some are not closed now.  */
-#if HAVE_X_WINDOWS
-  if (x_catching_errors ())
-    abort ();
-#endif
-
   c.tag = Qnil;
   c.val = Qnil;
   c.backlist = backtrace_list;
@@ -1505,13 +1498,6 @@ internal_condition_case_1 (Lisp_Object (*bfun) (Lisp_Object), Lisp_Object arg,
   Lisp_Object val;
   struct catchtag c;
   struct handler h;
-
-  /* Since Fsignal will close off all calls to x_catch_errors,
-     we will get the wrong results if some are not closed now.  */
-#if HAVE_X_WINDOWS
-  if (x_catching_errors ())
-    abort ();
-#endif
 
   c.tag = Qnil;
   c.val = Qnil;
@@ -1555,13 +1541,6 @@ internal_condition_case_2 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object),
   struct catchtag c;
   struct handler h;
 
-  /* Since Fsignal will close off all calls to x_catch_errors,
-     we will get the wrong results if some are not closed now.  */
-#if HAVE_X_WINDOWS
-  if (x_catching_errors ())
-    abort ();
-#endif
-
   c.tag = Qnil;
   c.val = Qnil;
   c.backlist = backtrace_list;
@@ -1603,13 +1582,6 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
   Lisp_Object val;
   struct catchtag c;
   struct handler h;
-
-  /* Since Fsignal will close off all calls to x_catch_errors,
-     we will get the wrong results if some are not closed now.  */
-#if HAVE_X_WINDOWS
-  if (x_catching_errors ())
-    abort ();
-#endif
 
   c.tag = Qnil;
   c.val = Qnil;

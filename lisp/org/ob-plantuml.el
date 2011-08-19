@@ -1,6 +1,6 @@
 ;;; ob-plantuml.el --- org-babel functions for plantuml evaluation
 
-;; Copyright (C) 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 ;; Author: Zhang Weize
 ;; Keywords: literate programming, reproducible research

@@ -1310,7 +1310,7 @@ text and it replaces `self-insert-command' with the other command, e.g.
   :type '(repeat function))
 
 (defcustom message-auto-save-directory
-  (if (file-exists-p message-directory)
+  (if (file-writable-p message-directory)
       (file-name-as-directory (expand-file-name "drafts" message-directory))
     "~/")
   "*Directory where Message auto-saves buffers if Gnus isn't running.
@@ -1353,7 +1353,8 @@ candidates:
 `quoted-text-only'  Allow you to post quoted text only;
 `multiple-copies'   Allow you to post multiple copies;
 `cancel-messages'   Allow you to cancel or supersede messages from
-		    your other email addresses.")
+		    your other email addresses;
+`canlock-verify'    Allow you to cancel messages without verifying canlock.")
 
 (defsubst message-gnksa-enable-p (feature)
   (or (not (listp message-shoot-gnksa-feet))
@@ -7037,7 +7038,8 @@ regexp to match all of yours addresses."
   (save-excursion
     (save-restriction
       (message-narrow-to-head-1)
-      (if (message-fetch-field "Cancel-Lock")
+      (if (and (message-fetch-field "Cancel-Lock")
+	       (message-gnksa-enable-p 'canlock-verify))
 	  (if (null (canlock-verify))
 	      t
 	    (error "Failed to verify Cancel-lock: This article is not yours"))
