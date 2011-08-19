@@ -1,3 +1,8 @@
+2011-08-19  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (hack-local-variables-prop-line, hack-local-variables):
+	Downcase "Mode:". (Bug#9331)
+
 2011-08-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* international/characters.el: Add L and R categories.
