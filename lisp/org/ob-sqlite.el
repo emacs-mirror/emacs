@@ -1,6 +1,6 @@
 ;;; ob-sqlite.el --- org-babel functions for sqlite database interaction
 
-;; Copyright (C) 2010  Free Software Foundation
+;; Copyright (C) 2010-2011  Free Software Foundation
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research

@@ -1,4 +1,26 @@
+2011-08-18  David Engster  <dengste@eml.cc>
+
+	* nnmairix.el (nnmairix-request-set-mark)
+	(nnmairix-goto-original-article): Remove adding of article to registry,
+	since `gnus-registry-add-group' isn't available anymore.
+	(nnmairix-determine-original-group-from-registry): Use
+	`gnus-registry-get-id-key' since `gnus-registry-fetch-groups' isn't
+	available anymore.
+
 2011-08-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-spec.el (gnus-lrm-string): Use 8206 instead of ?\x200e to make
+	things work in Emacs 22 and XEmacs, too.
+
+	* gnus-sum.el (gnus-summary-from-or-to-or-newsgroups): LRM-ify the
+	default From.
+
+	* gnus-spec.el (gnus-lrm-string-p): New macro.
+	(gnus-lrm-string): New constant.
+	(gnus-summary-line-format-spec): LRM-ify the from.
+	(gnus-tilde-max-form): LRM-ify string chopping.
+
+	* gnus-ems.el (gnus-string-mark-left-to-right): New function.
 
 	* message.el (message-is-yours-p): Allow disabling canlock checking
 	(bug#9295).

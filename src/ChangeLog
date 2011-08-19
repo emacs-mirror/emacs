@@ -1,4 +1,4 @@
-2011-08-18  Paul Eggert  <eggert@cs.ucla.edu>
+2011-08-19  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
 
@@ -422,6 +422,10 @@
 	Check for integer overflow when computing image height and width.
 
 2011-08-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_get_type): If bidi_type_table reports zero as the
+	character bidirectional type, use STRONG_L instead.  Fixes crashes
+	in a buffer produced by `describe-categories'.
 
 	* dispextern.h (struct bidi_it): Move disp_pos and disp_prop_p
 	members before the level stack, so they would be saved and

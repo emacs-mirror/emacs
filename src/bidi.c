@@ -108,6 +108,8 @@ bidi_get_type (int ch, bidi_dir_t override)
     abort ();
 
   default_type = (bidi_type_t) XINT (CHAR_TABLE_REF (bidi_type_table, ch));
+  if (default_type == 0)
+    default_type = STRONG_L;
 
   if (override == NEUTRAL_DIR)
     return default_type;

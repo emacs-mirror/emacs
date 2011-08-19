@@ -1,6 +1,6 @@
 ;;; org-ctags.el - Integrate Emacs "tags" facility with org mode.
 ;;
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
 ;; Author: Paul Sexton <eeeickythump@gmail.com>
 ;; Version: 7.7
