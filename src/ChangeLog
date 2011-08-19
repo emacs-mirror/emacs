@@ -1,3 +1,10 @@
+2011-08-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (RECORD_MAX_MIN_POS): If the display element comes from
+	a composition, take its buffer position from IT->cmp_it.charpos.
+	Fixes cursor positioning at the beginning of a line that begins
+	with a composed character.
+
 2011-08-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_get_type): If bidi_type_table reports zero as the

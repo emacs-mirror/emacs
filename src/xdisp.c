@@ -18386,15 +18386,22 @@ display_line (struct it *it)
 #define RECORD_MAX_MIN_POS(IT)					\
   do								\
     {								\
-      if (IT_CHARPOS (*(IT)) < min_pos)				\
+      int composition_p = (IT)->what == IT_COMPOSITION;		\
+      EMACS_INT current_pos =					\
+	composition_p ? (IT)->cmp_it.charpos			\
+		      : IT_CHARPOS (*(IT));			\
+      EMACS_INT current_bpos =					\
+	composition_p ? CHAR_TO_BYTE (current_pos)		\
+		      : IT_BYTEPOS (*(IT));			\
+      if (current_pos < min_pos)				\
 	{							\
-	  min_pos = IT_CHARPOS (*(IT));				\
-	  min_bpos = IT_BYTEPOS (*(IT));			\
+	  min_pos = current_pos;				\
+	  min_bpos = current_bpos;				\
 	}							\
-      if (IT_CHARPOS (*(IT)) > max_pos)				\
+      if (current_pos > max_pos)				\
 	{							\
-	  max_pos = IT_CHARPOS (*(IT));				\
-	  max_bpos = IT_BYTEPOS (*(IT));			\
+	  max_pos = current_pos;				\
+	  max_bpos = current_bpos;				\
 	}							\
     }								\
   while (0)
