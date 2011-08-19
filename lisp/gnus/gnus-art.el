@@ -5700,7 +5700,8 @@ all parts."
 	      gnus-callback gnus-mm-display-part
 	      gnus-part ,gnus-tmp-id
 	      article-type annotation
-	      gnus-data ,handle))
+	      gnus-data ,handle
+	      rear-nonsticky t))
     (setq e (if (bolp)
 		;; Exclude a newline.
 		(1- (point))
@@ -6013,7 +6014,8 @@ If displaying \"text/html\" is discouraged \(see
 	     ,gnus-mouse-face-prop ,gnus-article-mouse-face
 	     face ,gnus-article-button-face
 	     gnus-part ,id
-	     article-type multipart))
+	     article-type multipart
+	     rear-nonsticky t))
 	  (widget-convert-button 'link from (point)
 				 :action 'gnus-widget-press-button
 				 :button-keymap gnus-widget-button-keymap)
@@ -6037,7 +6039,8 @@ If displaying \"text/html\" is discouraged \(see
 	       ,gnus-mouse-face-prop ,gnus-article-mouse-face
 	       face ,gnus-article-button-face
 	       gnus-part ,id
-	       gnus-data ,handle))
+	       gnus-data ,handle
+	       rear-nonsticky t))
 	    (widget-convert-button 'link from (point)
 				   :action 'gnus-widget-press-button
 				   :button-keymap gnus-widget-button-keymap)
