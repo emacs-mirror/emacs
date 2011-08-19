@@ -1,3 +1,8 @@
+2011-08-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-insert-mime-button, gnus-mime-display-alternative):
+	Make button keymap non-sticky after buttons.
+
 2011-08-18  David Engster  <dengste@eml.cc>
 
 	* nnmairix.el (nnmairix-request-set-mark)
