@@ -1,6 +1,6 @@
 ;;; semantic/utest-c.el --- C based parsing tests.
 
-;; Copyright (C) 2008, 2009, 2010 Eric M. Ludlam
+;; Copyright (C) 2008, 2009, 2010, 2011 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -109,5 +109,5 @@ those with PASS in the name will pass."
 	    )))))
   )
 
-(provide 'semantic/utest-c)
+(provide 'cedet/semantic/utest-c)
 ;;; semantic/utest-c.el ends here
