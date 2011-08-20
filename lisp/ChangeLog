@@ -1,3 +1,17 @@
+2011-08-20  Alan Mackenzie  <acm@muc.de>
+
+	Resolve invalid use of a regexp in regexp-opt.
+
+	* cc-fonts.el (c-complex-decl-matchers): Add in special detection
+	for a java annotation.
+
+	* cc-engine.el (c-forward-decl-or-cast-1): Add in special
+	detection for a java annotation.
+
+	* cc-langs.el (c-prefix-spec-kwds-re): Remove the special handling
+	for java.
+	(c-modifier-kwds): Remove the regexp "@[A-za-z0-9]+".
+
 2011-08-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (normal-top-level-add-subdirs-to-load-path): Doc fix
