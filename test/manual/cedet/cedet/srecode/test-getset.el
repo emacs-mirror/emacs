@@ -1,6 +1,6 @@
 ;;; srecode/test-getset.el --- Test the getset inserter.
 
-;; Copyright (C) 2008, 2009 Eric M. Ludlam
+;; Copyright (C) 2008, 2009, 2011 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -23,7 +23,8 @@
 ;;
 ;; Unit tests for the getset inserter application.
 
-(require 'cedet-utests)
+(require 'cedet-uutil)
+(require 'srecode/semantic)
 
 ;;; Code:
 (defvar srecode-utest-getset-pre-fill
@@ -159,5 +160,5 @@ private:
 	(semantic-go-to-tag (car tag))
       (error "Failed to jump to tag %s" tagname))))
 
-(provide 'srecode/test-getset)
+(provide 'cedet/srecode/test-getset)
 ;;; srecode/test-getset.el ends here
