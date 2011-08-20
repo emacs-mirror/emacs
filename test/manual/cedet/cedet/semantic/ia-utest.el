@@ -1,6 +1,6 @@
 ;;; semantic/ia-utest.el --- Analyzer unit tests
 
-;; Copyright (C) 2008, 2009, 2010 Eric M. Ludlam
+;; Copyright (C) 2008, 2009, 2010, 2011 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -29,7 +29,7 @@
 ;; where # is 1, 2, 3, etc, and some sort of answer list.
 
 ;;; Code:
-(require 'cedet-utests)
+(require 'cedet-uutil)
 (require 'semantic)
 (require 'semantic/analyze)
 (require 'semantic/analyze/refs)
@@ -73,7 +73,8 @@ Argument ARG specifies which set of tests to run.
       (cedet-utest-log-setup "ANALYZER")
 
       (set-buffer (semantic-find-file-noselect
-		   (locate-library "semantic/ia-utest.el")))
+		   (expand-file-name "cedet/semantic/ia-utest.el"
+				     cedet-utest-root)))
 
       (while fl
 
@@ -527,6 +528,29 @@ If the error occurs w/ a C or C++ file, rethrow the error."
 
     ))
 
+;;;###autoload
+(defun semantic-symref-test-count-hits-in-tag ()
+  "Lookup in the current tag the symbol under point.
+the count all the other references to the same symbol within the
+tag that contains point, and return that."
+  (interactive)
+  (let* ((ctxt (semantic-analyze-current-context))
+	 (target (car (reverse (oref ctxt prefix))))
+	 (tag (semantic-current-tag))
+	 (start (current-time))
+	 (Lcount 0))
+    (when (semantic-tag-p target)
+      (semantic-symref-hits-in-region
+       target (lambda (start end prefix) (setq Lcount (1+ Lcount)))
+       (semantic-tag-start tag)
+       (semantic-tag-end tag))
+      (when (cedet-called-interactively-p)
+	(message "Found %d occurances of %s in %.2f seconds"
+		 Lcount (semantic-tag-name target)
+		 (semantic-elapsed-time start (current-time))))
+      Lcount)))
+
+
 (defun semantic-ia-utest-start-log ()
   "Start up a testlog for a run."
   ;; Redo w/ CEDET utest framework.
@@ -538,5 +562,5 @@ Pass ARGS to format to create the log message."
   ;; Forward to CEDET utest framework.
   (apply 'cedet-utest-log args))
 
-(provide 'semantic/ia-utest)
+(provide 'cedet/semantic/ia-utest)
 ;;; semantic/ia-utest.el ends here
