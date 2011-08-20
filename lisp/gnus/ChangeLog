@@ -34,7 +34,7 @@
 
 2011-08-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-p	* message.el (message-fix-before-sending): Make a different warning
+	* message.el (message-fix-before-sending): Make a different warning
 	about NUL characters (bug#9270).
 
 	* gnus-sum.el (gnus-auto-select-subject): Allow specifying a function
