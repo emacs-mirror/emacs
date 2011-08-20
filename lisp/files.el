@@ -3154,7 +3154,8 @@ major-mode."
 			   (var (let ((read-circle nil))
 				  (read str)))
 			   val val2)
-		      (and (eq var 'Mode) (setq var 'mode))
+		      (and (equal (downcase (symbol-name var)) "mode")
+			   (setq var 'mode))
 		      ;; Read the variable value.
 		      (skip-chars-forward "^:")
 		      (forward-char 1)
