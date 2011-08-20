@@ -554,7 +554,9 @@ parameter.  It should return nil, `warn' or `delete'."
 		 (const delete)))
 
 (defcustom nnmail-extra-headers '(To Newsgroups)
-  "*Extra headers to parse."
+  "Extra headers to parse.
+In addition to the standard headers, these extra headers will be
+included in NOV headers (and the like) when backends parse headers."
   :version "21.1"
   :group 'nnmail
   :type '(repeat symbol))

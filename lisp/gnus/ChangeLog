@@ -1,3 +1,8 @@
+2011-08-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-transform-headers): Protect against (NIL ...)
+	bodystructures (bug#9314).
+
 2011-08-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-insert-mime-button, gnus-mime-display-alternative):
@@ -12,7 +17,28 @@
 	`gnus-registry-get-id-key' since `gnus-registry-fetch-groups' isn't
 	available anymore.
 
+2011-08-12  Simon Josefsson  <simon@josefsson.org>
+
+	* starttls.el (starttls-any-program-available): Define as obsolete
+	function.
+
+2011-08-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-util.el (gnus-y-or-n-p): Reinstate the message-clearing y-or-n-p
+	versions which Gnus use when appropriate.
+
+	* gnus-group.el (gnus-group-clear-data): Add a y-or-n query, since it's
+	a pretty destructive command.
+
+	* nnmail.el (nnmail-extra-headers): Clarify slightly (bug#9302).
+
 2011-08-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+p	* message.el (message-fix-before-sending): Make a different warning
+	about NUL characters (bug#9270).
+
+	* gnus-sum.el (gnus-auto-select-subject): Allow specifying a function
+	from custom (bug#9260).
 
 	* gnus-spec.el (gnus-lrm-string): Use 8206 instead of ?\x200e to make
 	things work in Emacs 22 and XEmacs, too.

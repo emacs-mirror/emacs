@@ -375,7 +375,8 @@ place point on some subject line."
 		 (const unread)
 		 (const first)
 		 (const unseen)
-	         (const unseen-or-unread)))
+	         (const unseen-or-unread)
+		 (function :tag "Function to call")))
 
 (defcustom gnus-auto-select-next t
   "*If non-nil, offer to go to the next group from the end of the previous.

@@ -216,9 +216,10 @@ textual parts.")
 	  (let ((structure (ignore-errors
 			     (read (current-buffer)))))
 	    (while (and (consp structure)
-			(not (stringp (car structure))))
+			(not (atom (car structure))))
 	      (setq structure (car structure)))
 	    (setq lines (if (and
+			     (stringp (car structure))
 			     (equal (upcase (nth 0 structure)) "MESSAGE")
 			     (equal (upcase (nth 1 structure)) "RFC822"))
 			    (nth 9 structure)
