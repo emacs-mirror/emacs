@@ -1,3 +1,8 @@
+2011-08-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (normal-top-level-add-subdirs-to-load-path): Doc fix
+	(Bug#9274).
+
 2011-08-20  Alan Mackenzie  <acm@muc.de>
 
 	* Fontify CPP expressions correctly when starting in the middle of
