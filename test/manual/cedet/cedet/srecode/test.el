@@ -1,6 +1,6 @@
 ;;; srecode/test.el --- SRecode Core Template tests.
 
-;; Copyright (C) 2008, 2009, 2010 Eric M. Ludlam
+;; Copyright (C) 2008, 2009, 2010, 2011 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 
@@ -24,11 +24,34 @@
 ;; Tests of SRecode template insertion routines and tricks.
 ;;
 
+(eval-when-compile (require 'cl))
+
+(require 'cedet-uutil)
+
+(require 'srecode/map)
+;; Force this test to use the templates from the CEDET install these
+;; tests are running from.
+(add-to-list 'srecode-map-load-path
+	     (expand-file-name "etc/srecode"
+			       (file-name-directory
+				(directory-file-name cedet-utest-root))))
+
 (require 'srecode/insert)
 (require 'srecode/dictionary)
-(require 'cedet-utests)
+
 
 ;;; Code:
+
+;;; MAP DUMP TESTING
+(defun srecode-utest-map-reset ()
+  "Reset, then dump the map of templates."
+  (interactive)
+  (message "SRecode Template Path: %S" srecode-map-load-path)
+  ;; Interactive call allows us to dump.
+  (call-interactively 'srecode-get-maps)
+  (switch-to-buffer "*SRECODE MAP*")
+  (message (buffer-string))
+  )
 
 ;;; OUTPUT TESTING
 ;;
@@ -106,7 +129,7 @@ Assumes that the current buffer is the testing buffer."
  ------------- vv expected vv ------------\n\n"
 		  output-1)
 	  (pop-to-buffer (current-buffer))
-	  (error "Entry %s failed; expected: %s; actual: %s"
+	  (error "Entry %s failed; expected: --[%s]--; actual: --[%s]--"
 		 (object-name o) output-1 actual)))))
   )
 
@@ -350,5 +373,5 @@ INSIDE SECTION: ARG HANDLER ONE")
       )))
 
 
-(provide 'srecode/test)
+(provide 'cedet/srecode/test)
 ;;; srecode/test.el ends here
