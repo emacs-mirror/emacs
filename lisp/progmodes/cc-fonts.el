@@ -1666,7 +1666,9 @@ on level 2 only and so aren't combined with `c-complex-decl-matchers'."
 			(unless (c-skip-comments-and-strings limit)
 			  (c-forward-syntactic-ws)
 			  ;; Handle prefix declaration specifiers.
-			  (when (looking-at c-prefix-spec-kwds-re)
+			  (when (or (looking-at c-prefix-spec-kwds-re)
+				    (and (c-major-mode-is 'java-mode)
+					 (looking-at "@[A-Za-z0-9]+")))
 			    (c-forward-keyword-clause 1))
 			  ,(if (c-major-mode-is 'c++-mode)
 			       `(when (and (c-forward-type)
