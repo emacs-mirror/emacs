@@ -1699,6 +1699,10 @@ See also the function `condition-case'.  */)
       && (!NILP (Vdebug_on_signal)
 	  /* If no handler is present now, try to run the debugger.  */
 	  || NILP (clause)
+	  /* A `debug' symbol in the handler list disables the normal
+	     suppression of the debugger.  */
+	  || (CONSP (clause) && CONSP (XCAR (clause))
+	      && !NILP (Fmemq (Qdebug, XCAR (clause))))
 	  /* Special handler that means "print a message and run debugger
 	     if requested".  */
 	  || EQ (h->handler, Qerror)))
