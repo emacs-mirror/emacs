@@ -1,5 +1,7 @@
 2011-08-20  Glenn Morris  <rgm@gnu.org>
 
+	* tutorial.el (help-with-tutorial): Avoid an error on short screens.
+
 	* tutorial.el (tutorial--default-keys): Update some default bindings.
 
 	* files.el (hack-local-variables): Fully ignore case for "mode:".

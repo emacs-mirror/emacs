@@ -889,6 +889,11 @@ Run the Viper tutorial? "))
                  (search-forward ">>")
                  (replace-match "]")))
           (beginning-of-line)
+          ;; FIXME: if the window is not tall, and especially if the
+          ;; big red "NOTICE: The main purpose..." text has been
+          ;; inserted at the start of the buffer, the "type C-v to
+          ;; move to the next screen" might not be visible on the
+          ;; first screen (n < 0).  How will the novice know what to do?
           (let ((n (- (window-height (selected-window))
                       (count-lines (point-min) (point))
                       6)))
@@ -897,7 +902,7 @@ Run the Viper tutorial? "))
                   ;; For a short gap, we don't need the [...] line,
                   ;; so delete it.
                   (delete-region (point) (progn (end-of-line) (point)))
-                  (newline n))
+                  (if (> n 0) (newline n)))
               ;; Some people get confused by the large gap.
               (newline (/ n 2))
 
