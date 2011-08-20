@@ -1357,8 +1357,12 @@ A handler is applicable to an error
 if CONDITION-NAME is one of the error's condition names.
 If an error happens, the first applicable handler is run.
 
-The car of a handler may be a list of condition names
-instead of a single condition name.  Then it handles all of them.
+The car of a handler may be a list of condition names instead of a
+single condition name; then it handles all of them.  If the special
+condition name `debug' is present in this list, it allows another
+condition in the list to run the debugger if `debug-on-error' and the
+other usual mechanisms says it should (otherwise, `condition-case'
+suppresses the debugger).
 
 When a handler handles an error, control returns to the `condition-case'
 and it executes the handler's BODY...

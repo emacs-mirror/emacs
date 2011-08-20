@@ -1,6 +1,7 @@
 2011-08-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* eval.c (Fsignal): Handle `debug' symbol in error handler (Bug#9329).
+	(Fcondition_case): Document `debug' symbol in error handler.
 
 2011-08-19  Eli Zaretskii  <eliz@gnu.org>
 
