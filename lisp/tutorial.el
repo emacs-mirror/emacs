@@ -253,7 +253,7 @@ LEFT and RIGHT are the elements to compare."
              ;; * INSERTING AND DELETING
              ;; C-u 8 * to insert ********.
              (delete-backward-char "\d")
-             (delete-forward-char [?\C-d])
+             (delete-char [?\C-d])
              (backward-kill-word [?\M-\d])
              (kill-word [?\M-d])
              (kill-line [?\C-k])
@@ -298,7 +298,7 @@ LEFT and RIGHT are the elements to compare."
              (isearch-backward [?\C-r])
 
              ;; * MULTIPLE WINDOWS
-             (split-window-vertically [?\C-x ?2])
+             (split-window-above-each-other [?\C-x ?2])
              (scroll-other-window [?\C-\M-v])
              (other-window [?\C-x ?o])
              (find-file-other-window [?\C-x ?4 ?\C-f])

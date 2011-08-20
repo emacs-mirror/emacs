@@ -7474,6 +7474,8 @@ Otherwise, consult the value of `truncate-partial-width-windows'
 	  (< (window-width window) t-p-w-w)
 	t-p-w-w))))
 
+;; Some of these are in tutorial--default-keys, so update that if you
+;; change these.
 (define-key ctl-x-map "0" 'delete-window)
 (define-key ctl-x-map "1" 'delete-other-windows)
 (define-key ctl-x-map "2" 'split-window-above-each-other)
