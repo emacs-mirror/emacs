@@ -1,3 +1,22 @@
+2011-08-20  Alan Mackenzie  <acm@muc.de>
+
+	* Fontify CPP expressions correctly when starting in the middle of
+	such a construct.  Mainly for when jit-lock etc. starts a chunk
+	here.
+
+	* progmodes/cc-fonts.el (c-font-lock-context): new buffer local
+	variable.
+	(c-make-font-lock-search-form): new function, extracted from
+	c-make-font-lock-search-function.
+	(c-make-font-lock-search-function): Use the above function.
+	(c-make-font-lock-context-search-function): New function.
+	(c-cpp-matchers): Enhance the preprocessor expression case with
+	the above function
+	(c-font-lock-complex-decl-prepare): Test for being in a CPP form
+	which takes an expression.
+
+	* progmodes/cc-langs.el (c-cpp-expr-intro-re): New lang-variable.
+
 2011-08-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-reuse-window)
