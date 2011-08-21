@@ -1,5 +1,18 @@
 2011-08-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnmail.el (nnmail-get-new-mail-1): If one mail source bugs out,
+	continue on and do the clean-up phase (bug#9188).
+
+	* gnus-sum.el (gnus-summary-expire-articles): When expiring articles,
+	just ignore groups that can't be opened instead of erroring out
+	(bug#9225).
+
+	* gnus-art.el (gnus-article-update-date-headers): Flip the default to
+	nil since some many people are fuddy-duddies.
+
+	* gnus-html.el (gnus-html-image-fetched): Don't cache zero-length
+	images.
+
 	* nntp.el (nntp-authinfo-file): Mark as obsolete -- use auth-source
 	instead.
 

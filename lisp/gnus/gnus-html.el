@@ -399,15 +399,16 @@ Use ALT-TEXT for the image string."
 (defun gnus-html-image-fetched (status buffer image)
   "Callback function called when image has been fetched."
   (unless (plist-get status :error)
-    (when gnus-html-image-automatic-caching
-      (url-store-in-cache (current-buffer)))
     (when (and (or (search-forward "\n\n" nil t)
                    (search-forward "\r\n\r\n" nil t))
-               (buffer-live-p buffer))
-      (let ((data (buffer-substring (point) (point-max))))
-        (with-current-buffer buffer
-          (let ((inhibit-read-only t))
-            (gnus-html-put-image data (car image) (cadr image)))))))
+	       (not (eobp)))
+      (when gnus-html-image-automatic-caching
+	(url-store-in-cache (current-buffer)))
+      (when (buffer-live-p buffer)
+	(let ((data (buffer-substring (point) (point-max))))
+	  (with-current-buffer buffer
+	    (let ((inhibit-read-only t))
+	      (gnus-html-put-image data (car image) (cadr image))))))))
   (kill-buffer (current-buffer)))
 
 (defun gnus-html-get-image-data (url)

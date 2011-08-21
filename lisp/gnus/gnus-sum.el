@@ -10287,34 +10287,33 @@ This will be the case if the article has both been mailed and posted."
 	;; There are expirable articles in this group, so we run them
 	;; through the expiry process.
 	(gnus-message 6 "Expiring articles...")
-	(unless (gnus-check-group gnus-newsgroup-name)
-	  (error "Can't open server for %s" gnus-newsgroup-name))
-	;; The list of articles that weren't expired is returned.
-	(save-excursion
-	  (if expiry-wait
-	      (let ((nnmail-expiry-wait-function nil)
-		    (nnmail-expiry-wait expiry-wait))
-		(setq es (gnus-request-expire-articles
-			  expirable gnus-newsgroup-name)))
-	    (setq es (gnus-request-expire-articles
-		      expirable gnus-newsgroup-name)))
-	  (unless total
-	    (setq gnus-newsgroup-expirable es))
-	  ;; We go through the old list of expirable, and mark all
-	  ;; really expired articles as nonexistent.
-	  (unless (eq es expirable) ;If nothing was expired, we don't mark.
-	    (let ((gnus-use-cache nil))
-	      (dolist (article expirable)
-		(when (and (not (memq article es))
-			   (gnus-data-find article))
-		  (gnus-summary-mark-article article gnus-canceled-mark)
-		  (run-hook-with-args 'gnus-summary-article-expire-hook
-				      'delete
-				      (gnus-data-header
-				       (assoc article (gnus-data-list nil)))
-				      gnus-newsgroup-name
-				      nil
-				      nil))))))
+	(when (gnus-check-group gnus-newsgroup-name)
+	  ;; The list of articles that weren't expired is returned.
+	  (save-excursion
+	    (if expiry-wait
+		(let ((nnmail-expiry-wait-function nil)
+		      (nnmail-expiry-wait expiry-wait))
+		  (setq es (gnus-request-expire-articles
+			    expirable gnus-newsgroup-name)))
+	      (setq es (gnus-request-expire-articles
+			expirable gnus-newsgroup-name)))
+	    (unless total
+	      (setq gnus-newsgroup-expirable es))
+	    ;; We go through the old list of expirable, and mark all
+	    ;; really expired articles as nonexistent.
+	    (unless (eq es expirable) ;If nothing was expired, we don't mark.
+	      (let ((gnus-use-cache nil))
+		(dolist (article expirable)
+		  (when (and (not (memq article es))
+			     (gnus-data-find article))
+		    (gnus-summary-mark-article article gnus-canceled-mark)
+		    (run-hook-with-args 'gnus-summary-article-expire-hook
+					'delete
+					(gnus-data-header
+					 (assoc article (gnus-data-list nil)))
+					gnus-newsgroup-name
+					nil
+					nil)))))))
 	(gnus-message 6 "Expiring articles...done")))))
 
 (defun gnus-summary-expire-articles-now ()
