@@ -622,8 +622,6 @@ The list is in preference order.")
                            (and mail-specify-envelope-from
                                 (mail-envelope-from))
                            user-mail-address))
-	(coding-system-for-read 'binary)
-	(coding-system-for-write 'binary)
 	response-code
 	process-buffer
 	result
@@ -642,21 +640,23 @@ The list is in preference order.")
 	    (erase-buffer))
 
 	  ;; open the connection to the server
-	  (setq result
-		(open-network-stream
-		 "smtpmail" process-buffer host port
-		 :type smtpmail-stream-type
-		 :return-list t
-		 :capability-command (format "EHLO %s\r\n" (smtpmail-fqdn))
-		 :end-of-command "^[0-9]+ .*\r\n"
-		 :success "^2.*\n"
-		 :always-query-capabilities t
-		 :starttls-function
-		 (lambda (capabilities)
-		   (and (string-match "-STARTTLS" capabilities)
-			"STARTTLS\r\n"))
-		 :client-certificate t
-		 :use-starttls-if-possible t))
+	  (let ((coding-system-for-read 'binary)
+		(coding-system-for-write 'binary))
+	    (setq result
+		  (open-network-stream
+		   "smtpmail" process-buffer host port
+		   :type smtpmail-stream-type
+		   :return-list t
+		   :capability-command (format "EHLO %s\r\n" (smtpmail-fqdn))
+		   :end-of-command "^[0-9]+ .*\r\n"
+		   :success "^2.*\n"
+		   :always-query-capabilities t
+		   :starttls-function
+		   (lambda (capabilities)
+		     (and (string-match "-STARTTLS" capabilities)
+			  "STARTTLS\r\n"))
+		   :client-certificate t
+		   :use-starttls-if-possible t)))
 
 	  ;; If we couldn't access the server at all, we give up.
 	  (unless (setq process (car result))
