@@ -1,3 +1,8 @@
+2011-08-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/browse-url.el (browse-url-firefox): Don't call
+	browse-url-firefox-sentinel unless using -remote (Bug#9328).
+
 2011-08-20  Glenn Morris  <rgm@gnu.org>
 
 	* tutorial.el (help-with-tutorial): Avoid an error on short screens.
