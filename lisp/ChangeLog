@@ -1,5 +1,11 @@
 2011-08-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* font-lock.el (font-lock-fontify-region)
+	(font-lock-unfontify-region, font-lock-default-fontify-buffer)
+	(font-lock-default-unfontify-buffer)
+	(font-lock-default-fontify-region)
+	(font-lock-default-unfontify-region): Add docstrings (Bug#8624).
+
 	* progmodes/compile.el (compilation-error-properties): Fix
 	confusion between file struct and message struct (Bug#9319).
 	(compilation-error-regexp-alist-alist): Fix 2011-05-09 change to
