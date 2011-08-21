@@ -1,3 +1,23 @@
+2011-08-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nntp.el (nntp-authinfo-file): Mark as obsolete -- use auth-source
+	instead.
+
+	* pop3.el (pop3-wait-for-messages): Don't use Gnus functions here.
+
+	* gnus-util.el (gnus-process-live-p): Copy over compat function.
+
+	* pop3.el (pop3-wait-for-messages): If the pop3 process dies, stop
+	processing.
+
+	* nntp.el (nntp-kill-buffer): Kill the process before killing the
+	buffer to avoid warnings.
+
+2011-08-20  Simon Josefsson  <simon@josefsson.org>
+
+	* gnus-agent.el (gnus-agent-expire-done-message): Use %.f as format
+	specified to reduce precision.
+
 2011-08-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-transform-headers): Protect against (NIL ...)

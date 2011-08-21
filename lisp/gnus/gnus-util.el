@@ -1249,6 +1249,13 @@ This function saves the current buffer."
        (with-current-buffer gnus-group-buffer
 	 (eq major-mode 'gnus-group-mode))))
 
+(defun gnus-process-live-p (process)
+  "Returns non-nil if PROCESS is alive.
+A process is considered alive if its status is `run', `open',
+`listen', `connect' or `stop'."
+  (memq (process-status process)
+        '(run open listen connect stop)))
+
 (defun gnus-remove-if (predicate sequence &optional hash-table-p)
   "Return a copy of SEQUENCE with all items satisfying PREDICATE removed.
 SEQUENCE should be a list, a vector, or a string.  Returns always a list.
