@@ -1,3 +1,8 @@
+2011-08-21  Deniz Dogan  <deniz@dogan.se>
+
+	* iswitchb.el (iswitchb-window-buffer-p): Use `member' instead of
+	`memq' (Bug#8799).
+
 2011-08-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* hi-lock.el (hi-lock-unface-buffer): Fix interactive spec
