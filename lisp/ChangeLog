@@ -1,5 +1,8 @@
 2011-08-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/compile.el (compilation-error-properties): Fix
+	confusion between file struct and message struct (Bug#9319).
+
 	* net/browse-url.el (browse-url-firefox): Don't call
 	browse-url-firefox-sentinel unless using -remote (Bug#9328).
 

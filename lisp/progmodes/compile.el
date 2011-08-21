@@ -985,12 +985,15 @@ POS and RES.")
 	    (let* ((prev
 		    (or (get-text-property (1- prev-pos) 'compilation-message)
 			(get-text-property prev-pos 'compilation-message)))
-		   (prev-struct
-		    (car (nth 2 (car prev)))))
+		   (prev-file-struct
+		    (and prev
+			 (compilation--loc->file-struct
+			  (compilation--message->loc prev)))))
+
 	      ;; Construct FILE . DIR from that.
-	      (if prev-struct
-		  (setq file (cons (car prev-struct)
-				   (cadr prev-struct))))))
+	      (if prev-file-struct
+		  (setq file (cons (caar prev-file-struct)
+				   (cadr (car prev-file-struct)))))))
 	(unless file
 	  (setq file '("*unknown*")))))
     ;; All of these fields are optional, get them only if we have an index, and
