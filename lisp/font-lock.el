@@ -1031,7 +1031,7 @@ This works by calling `font-lock-unfontify-region-function'."
     (funcall font-lock-unfontify-region-function beg end)))
 
 (defun font-lock-default-fontify-buffer ()
-  "Fontify the whole buffer using `font-lock-fontify-buffer-function'."
+  "Fontify the whole buffer using `font-lock-fontify-region-function'."
   (let ((verbose (if (numberp font-lock-verbose)
 		     (> (buffer-size) font-lock-verbose)
 		   font-lock-verbose)))
@@ -1173,8 +1173,7 @@ what properties to clear before refontifying a region.")
 
 (defun font-lock-default-unfontify-region (beg end)
   "Unfontify the text between BEG and END.
-This function is the default value of the variable
- `font-lock-unfontify-region-function'."
+This function is the default `font-lock-unfontify-region-function'."
   (remove-list-of-text-properties
    beg end (append
 	    font-lock-extra-managed-props
