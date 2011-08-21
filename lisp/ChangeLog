@@ -4,6 +4,8 @@
 	`coding-system-for-*' around the process open call to avoid
 	auth-source side effects.
 	(smtpmail-try-auth-methods): Expand the secret password.
+	(smtpmail-query-smtp-server): Allow `quit'-ing out in case the
+	probe hangs.
 
 2011-08-21  Chong Yidong  <cyd@stupidchicken.com>
 
