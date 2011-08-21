@@ -1,5 +1,7 @@
 2011-08-21  Chong Yidong  <cyd@stupidchicken.com>
 
+	* term.el (term-mouse-paste): Yank primary selection (Bug#6845).
+
 	* emacs-lisp/find-func.el (find-function-noselect): New arg
 	lisp-only.
 
