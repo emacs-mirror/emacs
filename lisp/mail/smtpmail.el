@@ -86,6 +86,11 @@ The default value would be \"smtp\" or 25."
   :type '(choice (integer :tag "Port") (string :tag "Service"))
   :group 'smtpmail)
 
+(defcustom smtpmail-smtp-user nil
+  "User name to use when looking up credentials."
+  :type '(choice (const nil) string)
+  :group 'smtpmail)
+
 (defcustom smtpmail-local-domain nil
   "Local domain name without a host name.
 If the function `system-name' returns the full internet address,
@@ -490,6 +495,7 @@ The list is in preference order.")
 		     (auth-source-search
 		      :host host
 		      :port port
+		      :user smtpmail-smtp-user
 		      :max 1
 		      :require (and ask-for-password
 				    '(:user :secret))
@@ -510,6 +516,7 @@ The list is in preference order.")
 	      :max 1
 	      :host host
 	      :port port
+	      :user smtpmail-smtp-user
 	      :require '(:user :secret)
 	      :create t))
 	    password (plist-get auth-info :secret)))

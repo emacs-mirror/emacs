@@ -1,3 +1,8 @@
+2011-08-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-smtp-user): New variable.
+	(smtpmail-try-auth-methods): Use it.
+
 2011-08-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* font-lock.el (font-lock-fontify-region)
