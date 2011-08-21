@@ -3,6 +3,7 @@
 	* mail/smtpmail.el (smtpmail-via-smtp): Only bind
 	`coding-system-for-*' around the process open call to avoid
 	auth-source side effects.
+	(smtpmail-try-auth-methods): Expand the secret password.
 
 2011-08-21  Chong Yidong  <cyd@stupidchicken.com>
 

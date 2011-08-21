@@ -505,6 +505,8 @@ The list is in preference order.")
 	 (save-function (and ask-for-password
 			     (plist-get auth-info :save-function)))
 	 ret)
+    (when (functionp password)
+      (setq password (funcall password)))
     (when (and user
 	       (not password))
       ;; The user has stored the user name, but not the password, so
