@@ -1,3 +1,8 @@
+2011-08-22  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-process-setup): Use `buffer-modified-p'
+	to check for empty output (bug#9226).
+
 2011-08-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/scheme.el (scheme-mode-syntax-table): Don't use
