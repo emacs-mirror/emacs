@@ -1,5 +1,9 @@
 2011-08-22  Juri Linkov  <juri@jurta.org>
 
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Revert regexp that highlights output switches to its old
+	pre-2010-10-28 value and remove one `?' from it (bug#9319).
+
 	* progmodes/grep.el (grep-process-setup): Use `buffer-modified-p'
 	to check for empty output (bug#9226).
 
