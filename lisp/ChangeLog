@@ -1,5 +1,8 @@
 2011-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/sh-script.el (sh-maybe-here-document): Disable magic in
+	strings and comments (bug#9333).
+
 	* emacs-lisp/debug.el (debug-arglist): New function.
 	(debug-convert-byte-code): Use it.  Handle lexical byte-codes.
 	(debug-on-entry-1): Handle interpreted closures (bug#9120).
