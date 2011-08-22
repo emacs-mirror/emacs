@@ -7699,7 +7699,12 @@ move_it_in_display_line_to (struct it *it,
   ((op & MOVE_TO_POS) != 0					\
    && BUFFERP (it->object)					\
    && (IT_CHARPOS (*it) == to_charpos				\
-       || (!it->bidi_p && IT_CHARPOS (*it) > to_charpos))	\
+       || (!it->bidi_p && IT_CHARPOS (*it) > to_charpos)	\
+       || (it->what == IT_COMPOSITION				\
+	   && ((IT_CHARPOS (*it) > to_charpos			\
+		&& to_charpos >= it->cmp_it.charpos)		\
+	       || (IT_CHARPOS (*it) < to_charpos		\
+		   && to_charpos <= it->cmp_it.charpos))))	\
    && (it->method == GET_FROM_BUFFER				\
        || (it->method == GET_FROM_DISPLAY_VECTOR		\
 	   && it->dpvec + it->current.dpvec_index + 1 >= it->dpend)))

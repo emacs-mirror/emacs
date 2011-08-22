@@ -1,3 +1,9 @@
+2011-08-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (BUFFER_POS_REACHED_P): If this is a composition,
+	consider it a hit if to_charpos is anywhere in the range of the
+	composed buffer positions.
+
 2011-08-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (gif_load): Don't assume that each subimage has the same
