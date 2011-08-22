@@ -1,3 +1,9 @@
+2011-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debug-arglist): New function.
+	(debug-convert-byte-code): Use it.  Handle lexical byte-codes.
+	(debug-on-entry-1): Handle interpreted closures (bug#9120).
+
 2011-08-22  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/compile.el (compilation-mode-font-lock-keywords):
