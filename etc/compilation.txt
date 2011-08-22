@@ -556,8 +556,10 @@ tool --output foo.o foo.c
 tool --output=foo.o foo.c
 tool --outfile foo.o foo.c
 tool --outfile=foo.o foo.c
-tool --omega foo.c
-tool --output-html-file foo.c
+tool -omega foo.c foo2.c
+tool -output-html-file foo.c foo2.c
+tool --omega foo.c foo2.c
+tool --output-html-file foo.c foo2.c
 
 Compilation started at Wed Jul 20 12:20:10
 Compilation interrupt at Wed Jul 20 12:20:10
