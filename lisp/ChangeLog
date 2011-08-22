@@ -1,3 +1,9 @@
+2011-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/scheme.el (scheme-mode-syntax-table): Don't use
+	symbol-constituent as the default, as that stops font-lock from
+	working properly (Bug#8843).
+
 2011-08-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Only bind
