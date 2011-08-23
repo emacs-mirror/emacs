@@ -1,3 +1,9 @@
+2011-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (x_produce_glyphs): Set it->nglyphs to 1.  Fixes pixel
+	coordinates reported by pos-visible-in-window-p for a composed
+	character in column zero.
+
 2011-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* cmds.c (Fself_insert_command): Mention post-self-insert-hook.
