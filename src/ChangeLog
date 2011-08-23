@@ -1,3 +1,8 @@
+2011-08-22  Kenichi Handa  <handa@m17n.org>
+
+	* chartab.c (Fset_char_table_extra_slot): Do not inhibit setting a
+	extra slot even if the purpose is char-code-property-table.
+
 2011-08-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (redisplay_window): When computing centering_position,
