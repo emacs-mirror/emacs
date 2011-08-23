@@ -1,3 +1,10 @@
+2011-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcomplete.el (pcomplete-parse-comint-arguments): Fix inf-loop.
+	Mark obsolete.
+	* shell.el (shell-parse-pcomplete-arguments): New function.
+	(shell-completion-vars): Use it instead (bug#9160).
+
 2011-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-maybe-here-document): Disable magic in
@@ -54,8 +61,8 @@
 	(font-lock-default-fontify-region)
 	(font-lock-default-unfontify-region): Add docstrings (Bug#8624).
 
-	* progmodes/compile.el (compilation-error-properties): Fix
-	confusion between file struct and message struct (Bug#9319).
+	* progmodes/compile.el (compilation-error-properties):
+	Fix confusion between file struct and message struct (Bug#9319).
 	(compilation-error-regexp-alist-alist): Fix 2011-05-09 change to
 	`ant' regexp.
 
@@ -149,8 +156,8 @@
 	binding variables (bug#9298).  Also clean up some unused
 	autoloads.
 
-	* net/network-stream.el (network-stream-open-starttls): Support
-	using starttls.el without using gnutls-cli.
+	* net/network-stream.el (network-stream-open-starttls):
+	Support using starttls.el without using gnutls-cli.
 
 2011-08-17  Juri Linkov  <juri@jurta.org>
 
