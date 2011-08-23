@@ -1,5 +1,10 @@
 2011-08-23  Eli Zaretskii  <eliz@gnu.org>
 
+	* dispnew.c (buffer_posn_from_coords): Use buf_charpos_to_bytepos
+	instead of CHAR_TO_BYTE.  Fixes a crash when a completion
+	candidate is selected by the mouse, and that candidate has a
+	composed character under the mouse.
+
 	* xdisp.c (x_produce_glyphs): Set it->nglyphs to 1.  Fixes pixel
 	coordinates reported by pos-visible-in-window-p for a composed
 	character in column zero.
