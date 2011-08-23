@@ -1,3 +1,8 @@
+2011-08-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.el (help-window-setup): Fix message displayed when other
+	window is reused.  (Bug#9341)
+
 2011-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* shell.el (shell-completion-vars): Set pcomplete-arg-quote-list.
