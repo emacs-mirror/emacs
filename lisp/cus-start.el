@@ -123,7 +123,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	      (choice
 	       (const :tag "Left to Right" left-to-right)
 	       (const :tag "Right to Left" right-to-left)
-	       (const :tag "Dynamic, according to paragraph text" nil)))
+	       (const :tag "Dynamic, according to paragraph text" nil))
+	      "24.1")
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
