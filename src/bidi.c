@@ -108,8 +108,12 @@ bidi_get_type (int ch, bidi_dir_t override)
     abort ();
 
   default_type = (bidi_type_t) XINT (CHAR_TABLE_REF (bidi_type_table, ch));
-  if (default_type == 0)
-    default_type = STRONG_L;
+  /* Every valid character code, even those that are unassigned by the
+     UCD, have some bidi-class property, according to
+     DerivedBidiClass.txt file.  Therefore, if we ever get UNKNOWN_BT
+     (= zero) code from CHAR_TABLE_REF, that's a bug.  */
+  if (default_type == UNKNOWN_BT)
+    abort ();
 
   if (override == NEUTRAL_DIR)
     return default_type;

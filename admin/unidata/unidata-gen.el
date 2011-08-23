@@ -194,7 +194,11 @@ Property value is one of the following symbols:
   L, LRE, LRO, R, AL, RLE, RLO, PDF, EN, ES, ET,
   AN, CS, NSM, BN, B, S, WS, ON"
      unidata-describe-bidi-class
-     (L (#x0600 #x06FF AL) (#x0590 #x05FF R) (#x07C0 #x08FF R)
+     ;; The assignment of default values to blocks of code points
+     ;; follows the file DerivedBidiClass.txt from the Unicode
+     ;; Character Database (UCD).
+     (L (#x0600 #x06FF AL) (#xFB50 #xFDFF AL) (#xFE70 #xFEFF AL)
+	(#x0590 #x05FF R) (#x07C0 #x08FF R)
 	(#xFB1D #xFB4F R) (#x10800 #x10FFF R) (#x1E800 #x1EFFF R))
      ;; The order of elements must be in sync with bidi_type_t in
      ;; src/dispextern.h.

@@ -1,3 +1,8 @@
+2011-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Character Properties): Document the values for
+	unassigned codepoints.
+
 2011-08-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* nonascii.texi (Character Properties): Document use of

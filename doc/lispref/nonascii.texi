@@ -369,6 +369,12 @@ replacing each @samp{_} character with a dash @samp{-}.  For example,
 @code{canonical-combining-class}.  However, sometimes we shorten the
 names to make their use easier.
 
+@cindex unassigned character codepoints
+  Some codepoints are left @dfn{unassigned} by the
+@acronym{UCD}---they don't correspond to any character.  The Unicode
+Standard defines default values of properties for such codepoints;
+they are mentioned below for each property.
+
   Here is the full list of value types for all the character
 properties that Emacs knows about:
 
@@ -376,24 +382,31 @@ properties that Emacs knows about:
 @item name
 Corresponds to the @code{Name} Unicode property.  The value is a
 string consisting of upper-case Latin letters A to Z, digits, spaces,
-and hyphen @samp{-} characters.
+and hyphen @samp{-} characters.  For unassigned codepoints, the value
+is an empty string.
 
 @cindex unicode general category
 @item general-category
 Corresponds to the @code{General_Category} Unicode property.  The
 value is a symbol whose name is a 2-letter abbreviation of the
-character's classification.
+character's classification.  For unassigned codepoints, the value
+is @code{Cn}.
 
 @item canonical-combining-class
 Corresponds to the @code{Canonical_Combining_Class} Unicode property.
-The value is an integer number.
+The value is an integer number.  For unassigned codepoints, the value
+is zero.
 
 @cindex bidirectional class of characters
 @item bidi-class
 Corresponds to the Unicode @code{Bidi_Class} property.  The value is a
 symbol whose name is the Unicode @dfn{directional type} of the
 character.  Emacs uses this property when it reorders bidirectional
-text for display (@pxref{Bidirectional Display}).
+text for display (@pxref{Bidirectional Display}).  For unassigned
+codepoints, the value depends on the code blocks to which the
+codepoint belongs: most unassigned codepoints get the value of
+@code{L} (strong L), but some get values of @code{AL} (Arabic letter)
+or @code{R} (strong R).
 
 @item decomposition
 Corresponds to the Unicode @code{Decomposition_Type} and
@@ -405,19 +418,22 @@ Note that the Unicode spec writes these tag names inside
 brackets; e.g., Unicode specifies @samp{<small>} where Emacs uses
 @samp{small}.
 }; the other elements are characters that give the compatibility
-decomposition sequence of this character.
+decomposition sequence of this character.  For unassigned codepoints,
+the value is the character itself.
 
 @item decimal-digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Digit}.  The value is an
-integer number.
+integer number.  For unassigned codepoints, the value is @code{nil},
+which means @acronym{NaN}, or ``not-a-number''.
 
 @item digit-value
 Corresponds to the Unicode @code{Numeric_Value} property for
 characters whose @code{Numeric_Type} is @samp{Decimal}.  The value is
 an integer number.  Examples of such characters include compatibility
 subscript and superscript digits, for which the value is the
-corresponding number.
+corresponding number.  For unassigned codepoints, the value is
+@code{nil}, which means @acronym{NaN}.
 
 @item numeric-value
 Corresponds to the Unicode @code{Numeric_Value} property for
@@ -426,12 +442,15 @@ this property is an integer or a floating-point number.  Examples of
 characters that have this property include fractions, subscripts,
 superscripts, Roman numerals, currency numerators, and encircled
 numbers.  For example, the value of this property for the character
-@code{U+2155} (@sc{vulgar fraction one fifth}) is @code{0.2}.
+@code{U+2155} (@sc{vulgar fraction one fifth}) is @code{0.2}.  For
+unassigned codepoints, the value is @code{nil}, which means
+@acronym{NaN}.
 
 @cindex mirroring of characters
 @item mirrored
 Corresponds to the Unicode @code{Bidi_Mirrored} property.  The value
-of this property is a symbol, either @code{Y} or @code{N}.
+of this property is a symbol, either @code{Y} or @code{N}.  For
+unassigned codepoints, the value is @code{N}.
 
 @item mirroring
 Corresponds to the Unicode @code{Bidi_Mirroring_Glyph} property.  The
@@ -443,29 +462,33 @@ property; however, some characters whose @code{mirrored} property is
 @code{Y} also have @code{nil} for @code{mirroring}, because no
 appropriate characters exist with mirrored glyphs.  Emacs uses this
 property to display mirror images of characters when appropriate
-(@pxref{Bidirectional Display}).
+(@pxref{Bidirectional Display}).  For unassigned codepoints, the value
+is @code{nil}.
 
 @item old-name
 Corresponds to the Unicode @code{Unicode_1_Name} property.  The value
-is a string.
+is a string.  For unassigned codepoints, the value is an empty string.
 
 @item iso-10646-comment
 Corresponds to the Unicode @code{ISO_Comment} property.  The value is
-a string.
+a string.  For unassigned codepoints, the value is an empty string.
 
 @item uppercase
 Corresponds to the Unicode @code{Simple_Uppercase_Mapping} property.
-The value of this property is a single character.
+The value of this property is a single character.  For unassigned
+codepoints, the value is @code{nil}, which means the character itself.
 
 @item lowercase
 Corresponds to the Unicode @code{Simple_Lowercase_Mapping} property.
-The value of this property is a single character.
+The value of this property is a single character.  For unassigned
+codepoints, the value is @code{nil}, which means the character itself.
 
 @item titlecase
 Corresponds to the Unicode @code{Simple_Titlecase_Mapping} property.
 @dfn{Title case} is a special form of a character used when the first
 character of a word needs to be capitalized.  The value of this
-property is a single character.
+property is a single character.  For unassigned codepoints, the value
+is @code{nil}, which means the character itself.
 @end table
 
 @defun get-char-code-property char propname

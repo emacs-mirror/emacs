@@ -1,3 +1,9 @@
+2011-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-prop-alist): Update the default
+	values of bidi-class according to DerivedBidiClass.txt from the
+	latest UCD.
+
 2011-08-23  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/unidata-gen.el (unidata-prop-alist): Provide default
