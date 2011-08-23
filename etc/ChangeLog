@@ -1,3 +1,8 @@
+2011-08-22  Juri Linkov  <juri@jurta.org>
+
+	* compilation.txt: Add more samples of output and non-output
+	switches (bug#9319).
+
 2011-08-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* themes/dichromacy-theme.el:

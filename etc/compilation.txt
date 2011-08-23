@@ -546,9 +546,20 @@ checking whether to build shared libraries... yes
 checking whether -lc should be explicitly linked in... (cached) no
 checking For GLIB - version >= 2.0.0... yes (version 2.1.0)
 checking FONTCONFIG_CFLAGS...
-g++ -o foo.o foo.cc
-tool1 -output=foo foo.x
-tool2 --outfile foo foo.y
+tool -o foo.o foo.c
+tool -o=foo.o foo.c
+tool -output foo.o foo.c
+tool -output=foo.o foo.c
+tool -outfile foo.o foo.c
+tool -outfile=foo.o foo.c
+tool --output foo.o foo.c
+tool --output=foo.o foo.c
+tool --outfile foo.o foo.c
+tool --outfile=foo.o foo.c
+tool -omega foo.c foo2.c
+tool -output-html-file foo.c foo2.c
+tool --omega foo.c foo2.c
+tool --output-html-file foo.c foo2.c
 
 Compilation started at Wed Jul 20 12:20:10
 Compilation interrupt at Wed Jul 20 12:20:10

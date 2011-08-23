@@ -4254,8 +4254,10 @@ conformance."
 		 "Invisible text found and made visible; continue sending? ")
 	  (error "Invisible text found and made visible")))))
   (message-check 'illegible-text
-    (let (char found choice)
+    (let (char found choice nul-chars)
       (message-goto-body)
+      (setq nul-chars (save-excursion
+			(search-forward "\000" nil t)))
       (while (progn
 	       (skip-chars-forward mm-7bit-chars)
 	       (when (get-text-property (point) 'no-illegible-text)
@@ -4281,7 +4283,9 @@ conformance."
       (when found
 	(setq choice
 	      (gnus-multiple-choice
-	       "Non-printable characters found.  Continue sending?"
+	       (if nul-chars
+		   "NUL characters found, which may cause problems.  Continue sending?"
+		 "Non-printable characters found.  Continue sending?")
 	       `((?d "Remove non-printable characters and send")
 		 (?r ,(format
 		       "Replace non-printable characters with \"%s\" and send"

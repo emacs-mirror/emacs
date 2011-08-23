@@ -3408,7 +3408,7 @@ go to the end of the last sexp, or if that is the same point, then step."
       (message "%s is already instrumented." func)
       func)
      (t
-      (let ((loc (find-function-noselect func)))
+      (let ((loc (find-function-noselect func t)))
 	(unless (cdr loc)
 	  (error "Could not find the definition in its file"))
 	(with-current-buffer (car loc)

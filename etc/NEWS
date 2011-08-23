@@ -407,7 +407,7 @@ If non-nil, C-d, [delete], and DEL delete the region if it is active
 and no prefix argument is given.  If set to `kill', these commands
 kill instead.
 
-*** New command `delete-forward-char', bound to C-d and [delete].
+*** New command `delete-forward-char', bound to [delete].
 This is meant for interactive use, and obeys `delete-active-region'.
 The command `delete-char' does not obey `delete-active-region'.
 

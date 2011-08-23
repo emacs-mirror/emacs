@@ -1103,26 +1103,32 @@ URL in a new window."
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment))
+	 (use-remote
+	  (not (memq system-type '(windows-nt ms-dos))))
 	 (process
 	  (apply 'start-process
 		 (concat "firefox " url) nil
 		 browse-url-firefox-program
 		 (append
 		  browse-url-firefox-arguments
-		  (if (memq system-type '(windows-nt ms-dos))
-		      (list url)
-		    (list "-remote"
-			  (concat "openURL("
-				  url
-				  (if (browse-url-maybe-new-window
-				       new-window)
-				      (if browse-url-firefox-new-window-is-tab
-					  ",new-tab"
-					",new-window"))
-				  ")")))))))
-    (set-process-sentinel process
-			  `(lambda (process change)
-			     (browse-url-firefox-sentinel process ,url)))))
+		  (if use-remote
+		      (list "-remote"
+			    (concat
+			     "openURL("
+			     url
+			     (if (browse-url-maybe-new-window new-window)
+				 (if browse-url-firefox-new-window-is-tab
+				     ",new-tab"
+				   ",new-window"))
+			     ")"))
+		    (list url))))))
+    ;; If we use -remote, the process exits with status code 2 if
+    ;; Firefox is not already running.  The sentinel runs firefox
+    ;; directly if that happens.
+    (when use-remote
+      (set-process-sentinel process
+			    `(lambda (process change)
+			       (browse-url-firefox-sentinel process ,url))))))
 
 (defun browse-url-firefox-sentinel (process url)
   "Handle a change to the process communicating with Firefox."

@@ -145,7 +145,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
     (ant
      "^[ \t]*\\[[^] \n]+\\][ \t]*\\([^: \n]+\\):\\([0-9]+\\):\\(?:\\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\):\\)?\
-\\( warning\\)?" 1 (2 . 4) (3 . 5) (4))
+\\( warning\\)?" 1 (2 . 4) (3 . 5) (6))
 
     (bash
      "^\\([^: \n\t]+\\): line \\([0-9]+\\):" 1 2)
@@ -523,7 +523,7 @@ you may also want to change `compilation-page-delimiter'.")
      ;; Command output lines.  Recognize `make[n]:' lines too.
      ("^\\([[:alnum:]_/.+-]+\\)\\(\\[\\([0-9]+\\)\\]\\)?[ \t]*:"
       (1 font-lock-function-name-face) (3 compilation-line-face nil t))
-     (" -\\(?:o[= ]?\\|-\\(?:outfile\\|output\\)[= ]\\)\\(\\S +\\)" . 1)
+     (" --?o\\(?:utfile\\|utput\\)?[= ]\\(\\S +\\)" . 1)
      ("^Compilation \\(finished\\).*"
       (0 '(face nil compilation-message nil help-echo nil mouse-face nil) t)
       (1 compilation-info-face))
@@ -985,12 +985,15 @@ POS and RES.")
 	    (let* ((prev
 		    (or (get-text-property (1- prev-pos) 'compilation-message)
 			(get-text-property prev-pos 'compilation-message)))
-		   (prev-struct
-		    (car (nth 2 (car prev)))))
+		   (prev-file-struct
+		    (and prev
+			 (compilation--loc->file-struct
+			  (compilation--message->loc prev)))))
+
 	      ;; Construct FILE . DIR from that.
-	      (if prev-struct
-		  (setq file (cons (car prev-struct)
-				   (cadr prev-struct))))))
+	      (if prev-file-struct
+		  (setq file (cons (caar prev-file-struct)
+				   (cadr (car prev-file-struct)))))))
 	(unless file
 	  (setq file '("*unknown*")))))
     ;; All of these fields are optional, get them only if we have an index, and

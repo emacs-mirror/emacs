@@ -409,7 +409,7 @@ The regexp should not contain a starting \"\\`\" or a trailing
  \"\\'\"; those are added automatically by callers.")
 
 (defun normal-top-level-add-subdirs-to-load-path ()
-  "Add all subdirectories of current directory to `load-path'.
+  "Add all subdirectories of `default-directory' to `load-path'.
 More precisely, this uses only the subdirectories whose names
 start with letters or digits; it excludes any subdirectory named `RCS'
 or `CVS', and any subdirectory that contains a file named `.nosearch'."

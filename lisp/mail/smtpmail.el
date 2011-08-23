@@ -86,6 +86,11 @@ The default value would be \"smtp\" or 25."
   :type '(choice (integer :tag "Port") (string :tag "Service"))
   :group 'smtpmail)
 
+(defcustom smtpmail-smtp-user nil
+  "User name to use when looking up credentials."
+  :type '(choice (const nil) string)
+  :group 'smtpmail)
+
 (defcustom smtpmail-local-domain nil
   "Local domain name without a host name.
 If the function `system-name' returns the full internet address,
@@ -490,6 +495,7 @@ The list is in preference order.")
 		     (auth-source-search
 		      :host host
 		      :port port
+		      :user smtpmail-smtp-user
 		      :max 1
 		      :require (and ask-for-password
 				    '(:user :secret))
@@ -499,6 +505,8 @@ The list is in preference order.")
 	 (save-function (and ask-for-password
 			     (plist-get auth-info :save-function)))
 	 ret)
+    (when (functionp password)
+      (setq password (funcall password)))
     (when (and user
 	       (not password))
       ;; The user has stored the user name, but not the password, so
@@ -510,6 +518,7 @@ The list is in preference order.")
 	      :max 1
 	      :host host
 	      :port port
+	      :user smtpmail-smtp-user
 	      :require '(:user :secret)
 	      :create t))
 	    password (plist-get auth-info :secret)))
@@ -593,8 +602,10 @@ The list is in preference order.")
       (push smtpmail-smtp-server ports))
     (while (and (not smtpmail-smtp-server)
 		(setq port (pop ports)))
-      (when (setq stream (ignore-errors
-			   (open-network-stream "smtp" nil server port)))
+      (when (setq stream (condition-case ()
+			     (open-network-stream "smtp" nil server port)
+			   (quit nil)
+			   (error nil)))
 	(customize-save-variable 'smtpmail-smtp-server server)
 	(customize-save-variable 'smtpmail-smtp-service port)
 	(delete-process stream)))
@@ -615,8 +626,6 @@ The list is in preference order.")
                            (and mail-specify-envelope-from
                                 (mail-envelope-from))
                            user-mail-address))
-	(coding-system-for-read 'binary)
-	(coding-system-for-write 'binary)
 	response-code
 	process-buffer
 	result
@@ -635,21 +644,23 @@ The list is in preference order.")
 	    (erase-buffer))
 
 	  ;; open the connection to the server
-	  (setq result
-		(open-network-stream
-		 "smtpmail" process-buffer host port
-		 :type smtpmail-stream-type
-		 :return-list t
-		 :capability-command (format "EHLO %s\r\n" (smtpmail-fqdn))
-		 :end-of-command "^[0-9]+ .*\r\n"
-		 :success "^2.*\n"
-		 :always-query-capabilities t
-		 :starttls-function
-		 (lambda (capabilities)
-		   (and (string-match "-STARTTLS" capabilities)
-			"STARTTLS\r\n"))
-		 :client-certificate t
-		 :use-starttls-if-possible t))
+	  (let ((coding-system-for-read 'binary)
+		(coding-system-for-write 'binary))
+	    (setq result
+		  (open-network-stream
+		   "smtpmail" process-buffer host port
+		   :type smtpmail-stream-type
+		   :return-list t
+		   :capability-command (format "EHLO %s\r\n" (smtpmail-fqdn))
+		   :end-of-command "^[0-9]+ .*\r\n"
+		   :success "^2.*\n"
+		   :always-query-capabilities t
+		   :starttls-function
+		   (lambda (capabilities)
+		     (and (string-match "-STARTTLS" capabilities)
+			  "STARTTLS\r\n"))
+		   :client-certificate t
+		   :use-starttls-if-possible t)))
 
 	  ;; If we couldn't access the server at all, we give up.
 	  (unless (setq process (car result))

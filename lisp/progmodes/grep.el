@@ -463,9 +463,12 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
   (set (make-local-variable 'compilation-exit-message-function)
        (lambda (status code msg)
 	 (if (eq status 'exit)
-	     (cond ((zerop code)
+	     ;; This relies on the fact that `compilation-start'
+	     ;; sets buffer-modified to nil before running the command,
+	     ;; so the buffer is still unmodified if there is no output.
+	     (cond ((and (zerop code) (buffer-modified-p))
 		    '("finished (matches found)\n" . "matched"))
-		   ((= code 1)
+		   ((or (= code 1) (not (buffer-modified-p)))
 		    '("finished with no matches found\n" . "no match"))
 		   (t
 		    (cons msg code)))

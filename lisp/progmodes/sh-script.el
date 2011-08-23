@@ -460,6 +460,7 @@ This is buffer-local in every such buffer.")
     (define-key map "\C-c+" 'sh-add)
     (define-key map "\C-\M-x" 'sh-execute-region)
     (define-key map "\C-c\C-x" 'executable-interpret)
+    ;; FIXME: Use post-self-insert-hook.
     (define-key map "<" 'sh-maybe-here-document)
     (define-key map "(" 'skeleton-pair-insert-maybe)
     (define-key map "{" 'skeleton-pair-insert-maybe)
@@ -3659,6 +3660,7 @@ The document is bounded by `sh-here-document-word'."
       (save-excursion
 	(backward-char 2)
 	(sh-quoted-p))
+      (nth 8 (syntax-ppss))
       (let ((tabs (if (string-match "\\`-" sh-here-document-word)
                       (make-string (/ (current-indentation) tab-width) ?\t)
                     ""))

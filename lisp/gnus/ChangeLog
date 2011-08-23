@@ -1,3 +1,41 @@
+2011-08-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnmail.el (nnmail-get-new-mail-1): If one mail source bugs out,
+	continue on and do the clean-up phase (bug#9188).
+
+	* gnus-sum.el (gnus-summary-expire-articles): When expiring articles,
+	just ignore groups that can't be opened instead of erroring out
+	(bug#9225).
+
+	* gnus-art.el (gnus-article-update-date-headers): Flip the default to
+	nil since some many people are fuddy-duddies.
+
+	* gnus-html.el (gnus-html-image-fetched): Don't cache zero-length
+	images.
+
+	* nntp.el (nntp-authinfo-file): Mark as obsolete -- use auth-source
+	instead.
+
+	* pop3.el (pop3-wait-for-messages): Don't use Gnus functions here.
+
+	* gnus-util.el (gnus-process-live-p): Copy over compat function.
+
+	* pop3.el (pop3-wait-for-messages): If the pop3 process dies, stop
+	processing.
+
+	* nntp.el (nntp-kill-buffer): Kill the process before killing the
+	buffer to avoid warnings.
+
+2011-08-20  Simon Josefsson  <simon@josefsson.org>
+
+	* gnus-agent.el (gnus-agent-expire-done-message): Use %.f as format
+	specified to reduce precision.
+
+2011-08-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-transform-headers): Protect against (NIL ...)
+	bodystructures (bug#9314).
+
 2011-08-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-insert-mime-button, gnus-mime-display-alternative):
@@ -12,7 +50,28 @@
 	`gnus-registry-get-id-key' since `gnus-registry-fetch-groups' isn't
 	available anymore.
 
+2011-08-12  Simon Josefsson  <simon@josefsson.org>
+
+	* starttls.el (starttls-any-program-available): Define as obsolete
+	function.
+
+2011-08-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-util.el (gnus-y-or-n-p): Reinstate the message-clearing y-or-n-p
+	versions which Gnus use when appropriate.
+
+	* gnus-group.el (gnus-group-clear-data): Add a y-or-n query, since it's
+	a pretty destructive command.
+
+	* nnmail.el (nnmail-extra-headers): Clarify slightly (bug#9302).
+
 2011-08-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-fix-before-sending): Make a different warning
+	about NUL characters (bug#9270).
+
+	* gnus-sum.el (gnus-auto-select-subject): Allow specifying a function
+	from custom (bug#9260).
 
 	* gnus-spec.el (gnus-lrm-string): Use 8206 instead of ?\x200e to make
 	things work in Emacs 22 and XEmacs, too.

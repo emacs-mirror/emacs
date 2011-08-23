@@ -815,6 +815,16 @@ expression."
   t (if (c-lang-const c-opt-cpp-prefix)
 	'("if" "elif")))
 
+(c-lang-defconst c-cpp-expr-intro-re
+  "Regexp which matches the start of a CPP directive which contains an
+expression, or nil if there aren't any in the language."
+  t (if (c-lang-const c-cpp-expr-directives)
+	(concat
+	 (c-lang-const c-opt-cpp-prefix)
+	 (c-make-keywords-re t (c-lang-const c-cpp-expr-directives)))))
+(c-lang-defvar c-cpp-expr-intro-re
+  (c-lang-const c-cpp-expr-intro-re))
+
 (c-lang-defconst c-cpp-expr-functions
   "List of functions in cpp expressions."
   t    (if (c-lang-const c-opt-cpp-prefix)
@@ -1813,7 +1823,7 @@ will be handled."
 	 "bindsTo" "delegatesTo" "implements" "proxy" "storedOn")
   ;; Note: "const" is not used in Java, but it's still a reserved keyword.
   java '("abstract" "const" "final" "native" "private" "protected" "public"
-	 "static" "strictfp" "synchronized" "transient" "volatile" "@[A-Za-z0-9]+")
+	 "static" "strictfp" "synchronized" "transient" "volatile")
   pike '("final" "inline" "local" "nomask" "optional" "private" "protected"
 	 "public" "static" "variant"))
 
@@ -1899,10 +1909,7 @@ one of `c-type-list-kwds', `c-ref-list-kwds',
 
 (c-lang-defconst c-prefix-spec-kwds-re
   ;; Adorned regexp of `c-prefix-spec-kwds'.
-  t (c-make-keywords-re t (c-lang-const c-prefix-spec-kwds))
-  java (replace-regexp-in-string
-     "\\\\\\[" "["
-     (replace-regexp-in-string "\\\\\\+" "+" (c-make-keywords-re t (c-lang-const c-prefix-spec-kwds)))))
+  t (c-make-keywords-re t (c-lang-const c-prefix-spec-kwds)))
 
 (c-lang-defvar c-prefix-spec-kwds-re (c-lang-const c-prefix-spec-kwds-re))
 
