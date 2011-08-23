@@ -883,7 +883,7 @@ Magic characters are those in `pcomplete-arg-quote-list'."
                        (or (run-hook-with-args-until-success
                             'pcomplete-quote-arg-hook filename index)
                            (when (memq c pcomplete-arg-quote-list)
-                             (string "\\" c))
+                             (string ?\\ c))
                            (char-to-string c))
                      (setq index (1+ index))))
                  filename

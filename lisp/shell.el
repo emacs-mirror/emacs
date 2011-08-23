@@ -412,6 +412,8 @@ to `dirtrack-mode'."
        shell-dynamic-complete-functions)
   (set (make-local-variable 'pcomplete-parse-arguments-function)
        #'shell-parse-pcomplete-arguments)
+  (set (make-local-variable 'pcomplete-arg-quote-list)
+       (append "\\ \t\n\r\"'`$|&;(){}[]<>#" nil))
   (set (make-local-variable 'pcomplete-termination-string)
        (cond ((not comint-completion-addsuffix) "")
              ((stringp comint-completion-addsuffix)

@@ -1,5 +1,8 @@
 2011-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* shell.el (shell-completion-vars): Set pcomplete-arg-quote-list.
+	* pcomplete.el (pcomplete-quote-argument): Fix thinko (bug#9161).
+
 	* pcomplete.el (pcomplete-parse-comint-arguments): Fix inf-loop.
 	Mark obsolete.
 	* shell.el (shell-parse-pcomplete-arguments): New function.
