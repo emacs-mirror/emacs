@@ -1,5 +1,8 @@
 2011-08-23  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (redisplay_window): When computing centering_position,
+	account for the height of the header line.  (Bug#8874)
+
 	* dispnew.c (buffer_posn_from_coords): Use buf_charpos_to_bytepos
 	instead of CHAR_TO_BYTE.  Fixes a crash when a completion
 	candidate is selected by the mouse, and that candidate has a

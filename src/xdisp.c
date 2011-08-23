@@ -15244,7 +15244,8 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	      if (pt_offset)
 		centering_position -= pt_offset;
 	      centering_position -=
-		FRAME_LINE_HEIGHT (f) * (1 + margin + (last_line_misfit != 0));
+		FRAME_LINE_HEIGHT (f) * (1 + margin + (last_line_misfit != 0))
+		+ WINDOW_HEADER_LINE_HEIGHT (w);
 	      /* Don't let point enter the scroll margin near top of
 		 the window.  */
 	      if (centering_position < margin * FRAME_LINE_HEIGHT (f))
