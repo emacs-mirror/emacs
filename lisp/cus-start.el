@@ -118,6 +118,12 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 				  :standard (not noninteractive)
 				  :initialize custom-initialize-delay
 				  :set custom-set-minor-mode)
+	     (bidi-paragraph-direction
+	      paragraphs
+	      (choice
+	       (const :tag "Left to Right" left-to-right)
+	       (const :tag "Right to Left" right-to-left)
+	       (const :tag "Dynamic, according to paragraph text" nil)))
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
