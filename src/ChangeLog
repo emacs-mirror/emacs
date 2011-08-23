@@ -1,3 +1,8 @@
+2011-08-22  Kenichi Handa  <handa@m17n.org>
+
+	* chartab.c (Fset_char_table_extra_slot): Do not inhibit setting a
+	extra slot even if the purpose is char-code-property-table.
+
 2011-08-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* xfaces.c (face_at_buffer_position): Avoid repeated evaluation of
