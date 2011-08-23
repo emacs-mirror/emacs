@@ -1,3 +1,7 @@
+2011-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cmds.c (Fself_insert_command): Mention post-self-insert-hook.
+
 2011-08-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (BUFFER_POS_REACHED_P): If this is a composition,
@@ -45,8 +49,8 @@
 2011-08-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* eval.c (internal_condition_case, internal_condition_case_1)
-	(internal_condition_case_2, internal_condition_case_n): Remove
-	unnecessary aborts (Bug#9081).
+	(internal_condition_case_2, internal_condition_case_n):
+	Remove unnecessary aborts (Bug#9081).
 
 2011-08-17  Eli Zaretskii  <eliz@gnu.org>
 
@@ -69,8 +73,8 @@
 	* unexcw.c ( __malloc_initialized): Declare external variable.
 	(fixup_executable): Force the dumped emacs to reinitialize malloc.
 
-	* gmalloc.c [CYGWIN] (bss_sbrk_heapbase, bss_sbrk_heapinfo): New
-	variables.
+	* gmalloc.c [CYGWIN] (bss_sbrk_heapbase, bss_sbrk_heapinfo):
+	New variables.
 	(malloc_initialize_1) [CYGWIN]: Prepare for reinitializing the
 	dumped emacs.
 	(_free_internal_nolock) [CYGWIN]: Ignore requests to free storage
@@ -172,8 +176,8 @@
 	* xdisp.c (iterate_out_of_display_property): xassert that
 	IT->position is set to within IT->object's boundaries.  Break from
 	the loop as soon as EOB is reached; avoids infloops in redisplay
-	when IT->position is set up wrongly due to some bug.  Set
-	IT->current to match the bidi iterator unconditionally.
+	when IT->position is set up wrongly due to some bug.
+	Set IT->current to match the bidi iterator unconditionally.
 	(push_display_prop): Allow GET_FROM_STRING as IT->method on
 	entry.  Force push_it to save on the stack the current
 	buffer/string position, to be restored by pop_it.  Fix flags in
@@ -196,8 +200,8 @@
 2011-08-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (forward_to_next_line_start): Allow to use the
-	no-display-properties-and-no-overlays under bidi display.  Set
-	disp_pos in the bidi iterator to avoid searches for display
+	no-display-properties-and-no-overlays under bidi display.
+	Set disp_pos in the bidi iterator to avoid searches for display
 	properties and overlays.
 
 2011-08-08  Chong Yidong  <cyd@stupidchicken.com>
@@ -235,7 +239,7 @@
 	* bidi.c <bidi_cache_total_alloc>: Now static.
 	(bidi_initialize): Initialize bidi_cache_total_alloc.
 
-	*xdisp.c (display_line): Release buffer allocated for shelved bidi
+	* xdisp.c (display_line): Release buffer allocated for shelved bidi
 	cache.  (Bug#9221)
 
 	* bidi.c (bidi_shelve_cache, bidi_unshelve_cache): Track total
