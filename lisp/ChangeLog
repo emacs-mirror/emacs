@@ -1,3 +1,8 @@
+2011-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio.el (eieio-defmethod, eieio-defgeneric):
+	Add compatibility functions (bug#9313).
+
 2011-08-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* cus-start.el (all): Add entry for bidi-paragraph-direction.
