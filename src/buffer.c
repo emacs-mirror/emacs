@@ -152,7 +152,7 @@ Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
 Lisp_Object Qinsert_behind_hooks;
 
-static void alloc_buffer_text (struct buffer *, size_t);
+static void alloc_buffer_text (struct buffer *, ptrdiff_t);
 static void free_buffer_text (struct buffer *b);
 static struct Lisp_Overlay * copy_overlays (struct buffer *, struct Lisp_Overlay *);
 static void modify_overlay (struct buffer *, EMACS_INT, EMACS_INT);
@@ -361,6 +361,7 @@ even if it is dead.  The return value is never nil.  */)
   BUF_END_UNCHANGED (b) = 0;
   BUF_BEG_UNCHANGED (b) = 0;
   *(BUF_GPT_ADDR (b)) = *(BUF_Z_ADDR (b)) = 0; /* Put an anchor '\0'.  */
+  b->text->inhibit_shrinking = 0;
 
   b->newline_cache = 0;
   b->width_run_cache = 0;
@@ -4466,24 +4467,40 @@ static int mmap_initialized_p;
 #define MMAP_ALLOCATED_P(start, end) 1
 #endif
 
-/* Function prototypes.  */
+/* Perform necessary intializations for the use of mmap.  */
 
-static int mmap_free_1 (struct mmap_region *);
-static int mmap_enlarge (struct mmap_region *, int);
-static struct mmap_region *mmap_find (POINTER_TYPE *, POINTER_TYPE *);
-static POINTER_TYPE *mmap_alloc (POINTER_TYPE **, size_t);
-static POINTER_TYPE *mmap_realloc (POINTER_TYPE **, size_t);
-static void mmap_free (POINTER_TYPE **ptr);
-static void mmap_init (void);
+static void
+mmap_init (void)
+{
+#if MAP_ANON == 0
+  /* The value of mmap_fd is initially 0 in temacs, and -1
+     in a dumped Emacs.  */
+  if (mmap_fd <= 0)
+    {
+      /* No anonymous mmap -- we need the file descriptor.  */
+      mmap_fd = open ("/dev/zero", O_RDONLY);
+      if (mmap_fd == -1)
+	fatal ("Cannot open /dev/zero: %s", emacs_strerror (errno));
+    }
+#endif /* MAP_ANON == 0 */
 
+  if (mmap_initialized_p)
+    return;
+  mmap_initialized_p = 1;
+
+#if MAP_ANON != 0
+  mmap_fd = -1;
+#endif
+
+  mmap_page_size = getpagesize ();
+}
 
 /* Return a region overlapping address range START...END, or null if
    none.  END is not including, i.e. the last byte in the range
    is at END - 1.  */
 
 static struct mmap_region *
-mmap_find (start, end)
-     POINTER_TYPE *start, *end;
+mmap_find (POINTER_TYPE *start, POINTER_TYPE *end)
 {
   struct mmap_region *r;
   char *s = (char *) start, *e = (char *) end;
@@ -4512,8 +4529,7 @@ mmap_find (start, end)
    the region.  Value is non-zero if successful.  */
 
 static int
-mmap_free_1 (r)
-     struct mmap_region *r;
+mmap_free_1 (struct mmap_region *r)
 {
   if (r->next)
     r->next->prev = r->prev;
@@ -4536,9 +4552,7 @@ mmap_free_1 (r)
    Value is non-zero if successful.  */
 
 static int
-mmap_enlarge (r, npages)
-     struct mmap_region *r;
-     int npages;
+mmap_enlarge (struct mmap_region *r, int npages)
 {
   char *region_end = (char *) r + r->nbytes_mapped;
   size_t nbytes;
@@ -4602,8 +4616,7 @@ mmap_enlarge (r, npages)
    when Emacs starts.  */
 
 void
-mmap_set_vars (restore_p)
-     int restore_p;
+mmap_set_vars (int restore_p)
 {
   struct mmap_region *r;
 
@@ -4636,9 +4649,7 @@ mmap_set_vars (restore_p)
    return null.  */
 
 static POINTER_TYPE *
-mmap_alloc (var, nbytes)
-     POINTER_TYPE **var;
-     size_t nbytes;
+mmap_alloc (POINTER_TYPE **var, size_t nbytes)
 {
   void *p;
   size_t map;
@@ -4675,15 +4686,29 @@ mmap_alloc (var, nbytes)
 }
 
 
+/* Free a block of relocatable storage whose data is pointed to by
+   PTR.  Store 0 in *PTR to show there's no block allocated.  */
+
+static void
+mmap_free (POINTER_TYPE **var)
+{
+  mmap_init ();
+
+  if (*var)
+    {
+      mmap_free_1 (MMAP_REGION (*var));
+      *var = NULL;
+    }
+}
+
+
 /* Given a pointer at address VAR to data allocated with mmap_alloc,
    resize it to size NBYTES.  Change *VAR to reflect the new block,
    and return this value.  If more memory cannot be allocated, then
    leave *VAR unchanged, and return null.  */
 
 static POINTER_TYPE *
-mmap_realloc (var, nbytes)
-     POINTER_TYPE **var;
-     size_t nbytes;
+mmap_realloc (POINTER_TYPE **var, size_t nbytes)
 {
   POINTER_TYPE *result;
 
@@ -4753,51 +4778,6 @@ mmap_realloc (var, nbytes)
 }
 
 
-/* Free a block of relocatable storage whose data is pointed to by
-   PTR.  Store 0 in *PTR to show there's no block allocated.  */
-
-static void
-mmap_free (var)
-     POINTER_TYPE **var;
-{
-  mmap_init ();
-
-  if (*var)
-    {
-      mmap_free_1 (MMAP_REGION (*var));
-      *var = NULL;
-    }
-}
-
-
-/* Perform necessary intializations for the use of mmap.  */
-
-static void
-mmap_init ()
-{
-#if MAP_ANON == 0
-  /* The value of mmap_fd is initially 0 in temacs, and -1
-     in a dumped Emacs.  */
-  if (mmap_fd <= 0)
-    {
-      /* No anonymous mmap -- we need the file descriptor.  */
-      mmap_fd = open ("/dev/zero", O_RDONLY);
-      if (mmap_fd == -1)
-	fatal ("Cannot open /dev/zero: %s", emacs_strerror (errno));
-    }
-#endif /* MAP_ANON == 0 */
-
-  if (mmap_initialized_p)
-    return;
-  mmap_initialized_p = 1;
-
-#if MAP_ANON != 0
-  mmap_fd = -1;
-#endif
-
-  mmap_page_size = getpagesize ();
-}
-
 #endif /* USE_MMAP_FOR_BUFFERS */
 
 
@@ -4816,7 +4796,7 @@ extern void r_alloc_free (POINTER_TYPE **ptr);
 /* Allocate NBYTES bytes for buffer B's text buffer.  */
 
 static void
-alloc_buffer_text (struct buffer *b, size_t nbytes)
+alloc_buffer_text (struct buffer *b, ptrdiff_t nbytes)
 {
   POINTER_TYPE *p;
 
@@ -4846,8 +4826,8 @@ void
 enlarge_buffer_text (struct buffer *b, EMACS_INT delta)
 {
   POINTER_TYPE *p;
-  size_t nbytes = (BUF_Z_BYTE (b) - BUF_BEG_BYTE (b) + BUF_GAP_SIZE (b) + 1
-		   + delta);
+  ptrdiff_t nbytes = (BUF_Z_BYTE (b) - BUF_BEG_BYTE (b) + BUF_GAP_SIZE (b) + 1
+		      + delta);
   BLOCK_INPUT;
 #if defined USE_MMAP_FOR_BUFFERS
   p = mmap_realloc ((POINTER_TYPE **) &b->text->beg, nbytes);
@@ -4946,7 +4926,7 @@ init_buffer_once (void)
   BVAR (&buffer_defaults, truncate_lines) = Qnil;
   BVAR (&buffer_defaults, word_wrap) = Qnil;
   BVAR (&buffer_defaults, ctl_arrow) = Qt;
-  BVAR (&buffer_defaults, bidi_display_reordering) = Qnil;
+  BVAR (&buffer_defaults, bidi_display_reordering) = Qt;
   BVAR (&buffer_defaults, bidi_paragraph_direction) = Qnil;
   BVAR (&buffer_defaults, cursor_type) = Qt;
   BVAR (&buffer_defaults, extra_line_spacing) = Qnil;

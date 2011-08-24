@@ -960,14 +960,11 @@ autocmp_chars (Lisp_Object rule, EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT
       args[4] = font_object;
       args[5] = string;
       lgstring = safe_call (6, args);
-      if (NILP (string))
-	TEMP_SET_PT_BOTH (pt, pt_byte);
     }
   return unbind_to (count, lgstring);
 }
 
 static Lisp_Object _work_val;
-static int _work_char;
 
 /* 1 iff the character C is composable.  Characters of general
    category Z? or C? are not composable except for ZWNJ and ZWJ. */
@@ -1026,6 +1023,7 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
   /* FIXME: Bidi is not yet handled well in static composition.  */
   if (charpos < endpos
       && find_composition (charpos, endpos, &start, &end, &prop, string)
+      && start >= charpos
       && COMPOSITION_VALID_P (start, end, prop))
     {
       cmp_it->stop_pos = endpos = start;

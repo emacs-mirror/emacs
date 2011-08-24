@@ -1,3 +1,70 @@
+2011-07-17  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.93.
+
+	* mh-e.el (Version, mh-version): Update for release 8.2.93.
+
+	* mh-compat.el (mh-pop-to-buffer-same-window): Delete.
+	* mh-folder.el (mh-inc-folder, mh-modify, mh-scan-folder)
+	(mh-make-folder): Revert to switch-to-buffer, as the Emacs folks
+	decided that it was fine to use it in programs.
+
+2011-07-16  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.92.
+
+	* mh-e.el (Version, mh-version): Update for release 8.2.92.
+
+2011-07-12  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.91.
+
+	* mh-e.el (Version, mh-version): Update for release 8.2.91.
+
+	* mh-compat.el (mh-pop-to-buffer-same-window): Add compatibility
+	function to call switch-to-buffer on systems that lack
+	pop-to-buffer-same-window.
+	* mh-folder.el (mh-inc-folder, mh-modify, mh-scan-folder)
+	(mh-make-folder): Call mh-pop-to-buffer-same-window instead of
+	switch-to-buffer. The previous change which used pop-to-buffer
+	produced the wrong behavior.
+
+2011-07-12  Henrique Martins  <henrique@martins.cc>   (tiny change)
+
+	* mh-xface.el (mh-picon-get-image): Remove quote from block
+	argument.
+	* mh-mime.el (mh-mh-directive-present-p): Ditto.
+
+2011-07-10  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.90.
+
+	* mh-e.el (Version, mh-version): Update for release 8.2.90.
+
+	* mh-utils.el (mh-sub-folders-actual): Remove FIXME question.
+
+	* mh-mime.el (mh-decode-message-subject): Fix case of Subject.
+
+	* mh-folder.el (mh-inc-folder, mh-modify, mh-scan-folder)
+	(mh-make-folder): Replace calls to switch-to-buffer with of
+	pop-to-buffer. The former is intended for interactive use only and
+	generates warnings in Emacs 24.
+
+2011-07-09  Bill Wohler  <wohler@newt.com>
+
+	* mh-speed.el (mh-speed-toggle,mh-speed-view): Document "ignored"
+	arguments to keep checkdoc happy.
+
+	* mh-search.el (mh-flists-execute): Ditto.
+
+	* mh-funcs.el (mh-undo-folder): Ditto.
+
+	* mh-comp.el (mh-user-agent-compose): Ditto.
+
+	* mh-xface.el (mh-face-to-png, mh-uncompface)
+	(mh-picon-file-contents): Only call set-buffer-multibyte if it
+	exists, which it doesn't in XEmacs.
+
 2011-07-04  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el: Just require mh-loaddefs since loading it in an

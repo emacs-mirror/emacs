@@ -269,8 +269,8 @@ xg_get_pixbuf_from_pixmap (FRAME_PTR f, Pixmap pix)
                                       GDK_COLORSPACE_RGB,
                                       FALSE,
                                       xim->bitmap_unit,
-                                      (int) width,
-                                      (int) height,
+                                      width,
+                                      height,
                                       xim->bytes_per_line,
                                       NULL,
                                       NULL);
@@ -633,6 +633,9 @@ qttip_cb (GtkWidget  *widget,
   struct x_output *x = f->output_data.x;
   if (x->ttip_widget == NULL)
     {
+      GtkWidget *p;
+      GList *list, *iter;
+
       g_object_set (G_OBJECT (widget), "has-tooltip", FALSE, NULL);
       x->ttip_widget = tooltip;
       g_object_ref (G_OBJECT (tooltip));
@@ -640,6 +643,18 @@ qttip_cb (GtkWidget  *widget,
       g_object_ref (G_OBJECT (x->ttip_lbl));
       gtk_tooltip_set_custom (tooltip, x->ttip_lbl);
       x->ttip_window = GTK_WINDOW (gtk_widget_get_toplevel (x->ttip_lbl));
+
+      /* Change stupid Gtk+ default line wrapping.  */
+      p = gtk_widget_get_parent (x->ttip_lbl);
+      list = gtk_container_get_children (GTK_CONTAINER (p));
+      for (iter = list; iter; iter = g_list_next (iter))
+        {
+          GtkWidget *w = GTK_WIDGET (iter->data);
+          if (GTK_IS_LABEL (w))
+            gtk_label_set_line_wrap (GTK_LABEL (w), FALSE);
+        }
+      g_list_free (list);
+
       /* ATK needs an empty title for some reason.  */
       gtk_window_set_title (x->ttip_window, "");
       /* Realize so we can safely get screen later on.  */
@@ -659,8 +674,8 @@ qttip_cb (GtkWidget  *widget,
 
 int
 xg_prepare_tooltip (FRAME_PTR f,
-                      Lisp_Object string,
-                      int *width,
+                    Lisp_Object string,
+                    int *width,
                     int *height)
 {
 #ifndef USE_GTK_TOOLTIP
@@ -697,10 +712,9 @@ xg_prepare_tooltip (FRAME_PTR f,
                      (gtk_widget_get_display (GTK_WIDGET (x->ttip_window))),
                      "gdk-display-current-tooltip", NULL);
 
-  /* Put out dummy widget in so we can get callbacks for unrealize and
+  /* Put our dummy widget in so we can get callbacks for unrealize and
      hierarchy-changed.  */
   gtk_tooltip_set_custom (x->ttip_widget, widget);
-
   gtk_tooltip_set_text (x->ttip_widget, SSDATA (encoded_string));
   gtk_widget_get_preferred_size (GTK_WIDGET (x->ttip_window), NULL, &req);
   if (width) *width = req.width;
@@ -731,7 +745,7 @@ xg_show_tooltip (FRAME_PTR f, int root_x, int root_y)
 }
 
 /* Hide tooltip if shown.  Do nothing if not shown.
-   Return non-zero if tip was hidden, non-ero if not (i.e. not using
+   Return non-zero if tip was hidden, non-zero if not (i.e. not using
    system tooltips).  */
 
 int
@@ -1893,12 +1907,12 @@ xg_get_file_name (FRAME_PTR f,
   int filesel_done = 0;
   xg_get_file_func func;
 
-#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
   /* I really don't know why this is needed, but without this the GLIBC add on
      library linuxthreads hangs when the Gnome file chooser backend creates
      threads.  */
   sigblock (sigmask (__SIGRTMIN));
-#endif /* HAVE_GTK_AND_PTHREAD */
+#endif /* HAVE_PTHREAD */
 
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
 
@@ -1918,7 +1932,7 @@ xg_get_file_name (FRAME_PTR f,
 
   filesel_done = xg_dialog_run (f, w);
 
-#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
   sigunblock (sigmask (__SIGRTMIN));
 #endif
 
@@ -1946,9 +1960,9 @@ xg_get_font_name (FRAME_PTR f, const char *default_name)
   char *fontname = NULL;
   int done = 0;
 
-#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
   sigblock (sigmask (__SIGRTMIN));
-#endif /* HAVE_GTK_AND_PTHREAD */
+#endif /* HAVE_PTHREAD */
 
   w = gtk_font_selection_dialog_new ("Pick a font");
   if (!default_name)
@@ -1960,7 +1974,7 @@ xg_get_font_name (FRAME_PTR f, const char *default_name)
 
   done = xg_dialog_run (f, w);
 
-#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
   sigunblock (sigmask (__SIGRTMIN));
 #endif
 
@@ -3632,7 +3646,7 @@ xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
 	      gtk_adjustment_set_page_size (adj, size);
 	      gtk_adjustment_set_step_increment (adj, new_step);
 	      /* Assume a page increment is about 95% of the page size  */
-	      gtk_adjustment_set_page_increment (adj,(int) (0.95*size));
+	      gtk_adjustment_set_page_increment (adj, size - size / 20);
 	      changed = 1;
 	    }
 	}

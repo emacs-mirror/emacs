@@ -55,15 +55,12 @@
 ;;; Code:
 
 (require 'sendmail)
+(require 'auth-source)
 (autoload 'mail-strip-quoted-names "mail-utils")
 (autoload 'message-make-date "message")
 (autoload 'message-make-message-id "message")
 (autoload 'rfc2104-hash "rfc2104")
-(autoload 'netrc-parse "netrc")
-(autoload 'netrc-machine "netrc")
-(autoload 'netrc-get "netrc")
 (autoload 'password-read "password-cache")
-(autoload 'auth-source-search "auth-source")
 
 ;;;
 (defgroup smtpmail nil
@@ -89,6 +86,11 @@ The default value would be \"smtp\" or 25."
   :type '(choice (integer :tag "Port") (string :tag "Service"))
   :group 'smtpmail)
 
+(defcustom smtpmail-smtp-user nil
+  "User name to use when looking up credentials."
+  :type '(choice (const nil) string)
+  :group 'smtpmail)
+
 (defcustom smtpmail-local-domain nil
   "Local domain name without a host name.
 If the function `system-name' returns the full internet address,
@@ -98,13 +100,14 @@ don't define this value."
 
 (defcustom smtpmail-stream-type nil
   "Connection type SMTP connections.
-This may be either nil (plain connection) or `starttls' (use the
-starttls mechanism to turn on TLS security after opening the
-stream)."
+This may be either nil (possibly upgraded to STARTTLS if
+possible), or `starttls' (refuse to send if STARTTLS isn't
+available), or `plain' (never use STARTTLS).."
   :version "24.1"
   :group 'smtpmail
-  :type '(choice (const :tag "Plain" nil)
-		 (const starttls)))
+  :type '(choice (const :tag "Possibly upgrade to STARTTLS" nil)
+		 (const :tag "Always use STARTTLS" starttls)
+		 (const :tag "Never use STARTTLS" plain)))
 
 (defcustom smtpmail-sendto-domain nil
   "Local domain name without a host name.
@@ -492,6 +495,7 @@ The list is in preference order.")
 		     (auth-source-search
 		      :host host
 		      :port port
+		      :user smtpmail-smtp-user
 		      :max 1
 		      :require (and ask-for-password
 				    '(:user :secret))
@@ -501,6 +505,8 @@ The list is in preference order.")
 	 (save-function (and ask-for-password
 			     (plist-get auth-info :save-function)))
 	 ret)
+    (when (functionp password)
+      (setq password (funcall password)))
     (when (and user
 	       (not password))
       ;; The user has stored the user name, but not the password, so
@@ -512,6 +518,7 @@ The list is in preference order.")
 	      :max 1
 	      :host host
 	      :port port
+	      :user smtpmail-smtp-user
 	      :require '(:user :secret)
 	      :create t))
 	    password (plist-get auth-info :secret)))
@@ -588,15 +595,17 @@ The list is in preference order.")
 
 (defun smtpmail-query-smtp-server ()
   (let ((server (read-string "Outgoing SMTP mail server: "))
-	(ports '(587 "smtp"))
+	(ports '("smtp" 587))
 	stream port)
     (when (and smtpmail-smtp-server
 	       (not (member smtpmail-smtp-server ports)))
       (push smtpmail-smtp-server ports))
     (while (and (not smtpmail-smtp-server)
 		(setq port (pop ports)))
-      (when (setq stream (ignore-errors
-			   (open-network-stream "smtp" nil server port)))
+      (when (setq stream (condition-case ()
+			     (open-network-stream "smtp" nil server port)
+			   (quit nil)
+			   (error nil)))
 	(customize-save-variable 'smtpmail-smtp-server server)
 	(customize-save-variable 'smtpmail-smtp-service port)
 	(delete-process stream)))
@@ -617,8 +626,6 @@ The list is in preference order.")
                            (and mail-specify-envelope-from
                                 (mail-envelope-from))
                            user-mail-address))
-	(coding-system-for-read 'binary)
-	(coding-system-for-write 'binary)
 	response-code
 	process-buffer
 	result
@@ -637,21 +644,23 @@ The list is in preference order.")
 	    (erase-buffer))
 
 	  ;; open the connection to the server
-	  (setq result
-		(open-network-stream
-		 "smtpmail" process-buffer host port
-		 :type smtpmail-stream-type
-		 :return-list t
-		 :capability-command (format "EHLO %s\r\n" (smtpmail-fqdn))
-		 :end-of-command "^[0-9]+ .*\r\n"
-		 :success "^2.*\n"
-		 :always-query-capabilities t
-		 :starttls-function
-		 (lambda (capabilities)
-		   (and (string-match "-STARTTLS" capabilities)
-			"STARTTLS\r\n"))
-		 :client-certificate t
-		 :use-starttls-if-possible t))
+	  (let ((coding-system-for-read 'binary)
+		(coding-system-for-write 'binary))
+	    (setq result
+		  (open-network-stream
+		   "smtpmail" process-buffer host port
+		   :type smtpmail-stream-type
+		   :return-list t
+		   :capability-command (format "EHLO %s\r\n" (smtpmail-fqdn))
+		   :end-of-command "^[0-9]+ .*\r\n"
+		   :success "^2.*\n"
+		   :always-query-capabilities t
+		   :starttls-function
+		   (lambda (capabilities)
+		     (and (string-match "-STARTTLS" capabilities)
+			  "STARTTLS\r\n"))
+		   :client-certificate t
+		   :use-starttls-if-possible t)))
 
 	  ;; If we couldn't access the server at all, we give up.
 	  (unless (setq process (car result))
@@ -787,10 +796,11 @@ The list is in preference order.")
 		  nil)
 		 ((and auth-mechanisms
 		       (not ask-for-password)
-		       (= (car result) 550))
-		  ;; We got a "550 relay not permitted", and the server
-		  ;; accepts credentials, so we try again, but ask for a
-		  ;; password first.
+		       (>= (car result) 550)
+		       (<= (car result) 554))
+		  ;; We got a "550 relay not permitted" (or the like),
+		  ;; and the server accepts credentials, so we try
+		  ;; again, but ask for a password first.
 		  (smtpmail-send-command process "QUIT")
 		  (smtpmail-read-response process)
 		  (delete-process process)

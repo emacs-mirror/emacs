@@ -214,13 +214,7 @@
 
 ;;;###autoload
 (defcustom browse-url-browser-function
-  (cond
-   ((memq system-type '(windows-nt ms-dos cygwin))
-    'browse-url-default-windows-browser)
-   ((memq system-type '(darwin))
-    'browse-url-default-macosx-browser)
-   (t
-    'browse-url-default-browser))
+  'browse-url-default-browser
   "Function to display the current buffer in a WWW browser.
 This is used by the `browse-url-at-point', `browse-url-at-mouse', and
 `browse-url-of-file' commands.
@@ -908,12 +902,13 @@ a random existing one.  A non-nil interactive prefix argument reverses
 the effect of `browse-url-new-window-flag'.
 
 When called non-interactively, optional second argument NEW-WINDOW is
-used instead of `browse-url-new-window-flag'.
-
-The order attempted is gnome-moz-remote, Mozilla, Firefox,
-Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
+used instead of `browse-url-new-window-flag'."
   (apply
    (cond
+    ((memq system-type '(windows-nt ms-dos cygwin))
+     'browse-url-default-windows-browser)
+    ((memq system-type '(darwin))
+     'browse-url-default-macosx-browser)
     ((browse-url-can-use-xdg-open) 'browse-url-xdg-open)
     ((executable-find browse-url-gnome-moz-program) 'browse-url-gnome-moz)
     ((executable-find browse-url-mozilla-program) 'browse-url-mozilla)
@@ -1108,26 +1103,32 @@ URL in a new window."
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
   (let* ((process-environment (browse-url-process-environment))
+	 (use-remote
+	  (not (memq system-type '(windows-nt ms-dos))))
 	 (process
 	  (apply 'start-process
 		 (concat "firefox " url) nil
 		 browse-url-firefox-program
 		 (append
 		  browse-url-firefox-arguments
-		  (if (memq system-type '(windows-nt ms-dos))
-		      (list url)
-		    (list "-remote"
-			  (concat "openURL("
-				  url
-				  (if (browse-url-maybe-new-window
-				       new-window)
-				      (if browse-url-firefox-new-window-is-tab
-					  ",new-tab"
-					",new-window"))
-				  ")")))))))
-    (set-process-sentinel process
-			  `(lambda (process change)
-			     (browse-url-firefox-sentinel process ,url)))))
+		  (if use-remote
+		      (list "-remote"
+			    (concat
+			     "openURL("
+			     url
+			     (if (browse-url-maybe-new-window new-window)
+				 (if browse-url-firefox-new-window-is-tab
+				     ",new-tab"
+				   ",new-window"))
+			     ")"))
+		    (list url))))))
+    ;; If we use -remote, the process exits with status code 2 if
+    ;; Firefox is not already running.  The sentinel runs firefox
+    ;; directly if that happens.
+    (when use-remote
+      (set-process-sentinel process
+			    `(lambda (process change)
+			       (browse-url-firefox-sentinel process ,url))))))
 
 (defun browse-url-firefox-sentinel (process url)
   "Handle a change to the process communicating with Firefox."

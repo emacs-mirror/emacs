@@ -1,3 +1,89 @@
+2011-08-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Add header check: sys/socket.h (Bug#8477),
+	ifaddrs.h, net/if_dl.h.  Check for getifaddrs and freeifaddrs.
+	Check for sa_len in struct ifreq.ifr_addr (Bug#8477).
+
+2011-08-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_PTHREAD): Add check for -lpthread (Bug#9216).
+	(HAVE_GTK_AND_PTHREAD): Remove.
+
+2011-07-28  Alp Aker  <alp.tekin.aker@gmail.com>
+
+	* configure.in (HAVE_RSVG): Allow use of -lrsvg-2 for any NextStep
+	build, not just GNUstep (Bug#9177).
+
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Assume freestanding C89 headers, string.h, stdlib.h.
+	Again, this simplifies the code, and all current platforms have these.
+	* configure.in (AC_CHECK_HEADERS): Don't check for limits.h.
+	(AC_HEADER_STDC): Remove.
+	(AC_CHECK_FUNCS): No need to check for strchr, strrchr.
+	(strchr, strrchr): Remove fallback macros.
+
+	Assume support for memcmp, memcpy, memmove, memset.
+	This simplifies the code a bit.  All current platforms have these,
+	as they are required for C89.  If this turns into a problem we
+	can add the gnulib modules for these (a 1-line change to Makefile.in).
+	* configure.in: Don't check for memcmp, memcpy, memmove, memset.
+
+2011-07-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* GNUmakefile: New file.
+	This is for convenience, so that one can run GNU make in an
+	unconfigured source tree, and get a default build.
+
+2011-07-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in (GSETTINGS): Check for gio-2.0 >= 2.26.
+
+2011-07-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* configure.in (LD_SWITCH_SYSTEM_TEMACS): Add -fno-pie on Darwin
+	so as to suppress address randomization (Bug#8395).
+
+2011-07-09  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* lib/stdint.in.h: Merge from gnulib (Bug#9025).
+	This fixes a build problem on older Mac OS X hosts.
+
+	* m4/pthread_sigmask.m4 (gl_FUNC_PTHREAD_SIGMASK): Omit gl_THREADLIB
+	test, which runs afoul of Automake installations where, for example,
+	/usr/share/aclocal contains a copy of gl_THREADLIB.
+	Problem reported by Sven Joachim in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-07/msg00529.html>.
+	This is just a quick temporary fix, specific to Emacs; I'll work
+	with the other gnulib maintainers to get a more-permanent fix.
+
+	Add gnulib's strtoimax module, needed on Solaris 8.
+	* Makefile.in (GNULIB_MODULES): Add strtoimax.
+	* lib/strtoll.c, m4/strtoimax.m4, m4/strtoll.m4: New files,
+	automatically imported from gnulib.
+	* lib/gnulib.mk, m4/gl-comp.m4: Regenerate.
+
+2011-07-08  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Add gnulib support for pthread_sigmask (Bug#9010).
+	* Makefile.in (GNULIB_MODULES): Add pthread_sigmask.
+	* configure.in (AC_TYPE_UID_T): New dummy macro.
+	Configure gnulib after adjusting LIBS,
+	so that gnulib can assume the libraries in LIBS.
+	* lib/signal.in.h, m4/pthread_sigmask.m4, m4/signal_h.m4:
+	* lib/pthread_sigprocmask.c, lib/sigprocmask.c, m4/signalblocking.m4:
+	* lib/pthread_sigmask.c:
+	New files, automatically imported from gnulib.
+	* lib/gnulib.mk, m4/gl-comp.m4: Automatically-imported update
+	due to the above changes.
+	* .bzrignore: Add lib/signal.h.
+
+	* lib/getopt.c, lib/unistd.in.h, m4/getopt.m4: Merge from gnulib.
+
+2011-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in (maintainer-mode): Reflect default in help string.
+
 2011-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Remove reference to iris4d.h.

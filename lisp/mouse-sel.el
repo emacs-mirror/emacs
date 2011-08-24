@@ -202,14 +202,10 @@ If nil, point will always be placed at the beginning of the region."
 With prefix ARG, turn Mouse Sel mode on if and only if ARG is positive.
 Returns the new status of Mouse Sel mode (non-nil means on).
 
-When Mouse Sel mode is enabled, mouse selection is enhanced in various ways:
+When Mouse Sel mode is enabled, mouse selection is enhanced in
+various ways:
 
-- Clicking mouse-1 starts (cancels) selection, dragging extends it.
-
-- Clicking or dragging mouse-3 extends the selection as well.
-
-- Double-clicking on word constituents selects words.
-Double-clicking on symbol constituents selects symbols.
+- Double-clicking on symbol constituents selects symbols.
 Double-clicking on quotes or parentheses selects sexps.
 Double-clicking on whitespace selects whitespace.
 Triple-clicking selects lines.
@@ -224,14 +220,8 @@ mouse-sel sets the variables `interprogram-cut-function' and
 - Clicking mouse-2 inserts the contents of the primary selection at
 the mouse position (or point, if `mouse-yank-at-point' is non-nil).
 
-- Pressing mouse-2 while selecting or extending copies selection
-to the kill ring.  Pressing mouse-1 or mouse-3 kills it.
-
-- Double-clicking mouse-3 also kills selection.
-
-- M-mouse-1, M-mouse-2 & M-mouse-3 work similarly to mouse-1, mouse-2
-& mouse-3, but operate on the X secondary selection rather than the
-primary selection and region."
+- mouse-2 while selecting or extending copies selection to the
+kill ring; mouse-1 or mouse-3 kills it."
   :global t
   :group 'mouse-sel
   (if mouse-sel-mode
@@ -286,8 +276,17 @@ primary selection and region."
   (setq mouse-secondary-overlay (make-overlay 1 1))
   (overlay-put mouse-secondary-overlay 'face 'secondary-selection))
 
+(defconst mouse-sel-primary-overlay
+  (let ((ol (make-overlay (point-min) (point-min))))
+    (delete-overlay ol)
+    (overlay-put ol 'face 'region)
+    ol)
+  "An overlay which records the current primary selection.
+This is used by Mouse Sel mode only.")
+
 (defconst mouse-sel-selection-alist
-  '((SECONDARY mouse-secondary-overlay mouse-sel-secondary-thing))
+  '((PRIMARY mouse-sel-primary-overlay mouse-sel-primary-thing)
+    (SECONDARY mouse-secondary-overlay mouse-sel-secondary-thing))
   "Alist associating selections with variables.
 Each element is of the form:
 

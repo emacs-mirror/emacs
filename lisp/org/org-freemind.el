@@ -5,7 +5,7 @@
 ;; Author: Lennart Borgman (lennart O borgman A gmail O com)
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -56,26 +56,6 @@
 ;; 2009-10-25: Added support for `org-odd-levels-only'.
 ;;             Added y/n question before showing in FreeMind.
 ;; 2009-11-04: Added support for #+BEGIN_HTML.
-;;
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2, or
-;; (at your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth
-;; Floor, Boston, MA 02110-1301, USA.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Code:
 
@@ -308,7 +288,7 @@ MATCHED is the link just matched."
   (let* ((link (match-string 1 matched))
          (text (match-string 2 matched))
          (ext (file-name-extension link))
-         (col-pos (string-match-p ":" link))
+         (col-pos (org-string-match-p ":" link))
          (is-img (and (image-type-from-file-name link)
                       (let ((url-type (substring link 0 col-pos)))
                         (member url-type '("file" "http" "https")))))
@@ -414,7 +394,7 @@ MATCHED is the link just matched."
 (defun org-freemind-convert-text-p (text)
   "Convert TEXT to html with <p> paragraphs."
   ;; (string-match-p "[^ ]" "  a")
-  (setq org-freemind-bol-helper-base-indent (string-match-p "[^ ]" text))
+  (setq org-freemind-bol-helper-base-indent (org-string-match-p "[^ ]" text))
   (setq text (org-freemind-escape-str-from-org text))
 
   (setq text (replace-regexp-in-string "\\([[:space:]]\\)\\(/\\)\\([^/]+\\)\\(/\\)\\([[:space:]]\\)" "\\1<i>\\3</i>\\5" text))
@@ -658,7 +638,7 @@ Otherwise give an error say the file exists."
 (defun org-freemind-write-mm-buffer (org-buffer mm-buffer node-at-line)
   (with-current-buffer org-buffer
     (dolist (node-style org-freemind-node-styles)
-      (when (string-match-p (car node-style) buffer-file-name)
+      (when (org-string-match-p (car node-style) buffer-file-name)
         (setq org-freemind-node-style (cadr node-style))))
     ;;(message "org-freemind-node-style =%s" org-freemind-node-style)
     (save-match-data
@@ -835,7 +815,7 @@ Otherwise give an error say the file exists."
     (dolist (style-list org-freemind-node-style)
       (let ((node-regexp (car style-list)))
         (message "node-regexp=%s node-name=%s" node-regexp node-name)
-        (when (string-match-p node-regexp node-name)
+        (when (org-string-match-p node-regexp node-name)
           ;;(setq node-style (org-freemind-do-apply-node-style style-list))
           (setq node-style (cadr style-list))
           (when node-style
@@ -1172,8 +1152,8 @@ PATH should be a list of steps, where each step has the form
     (when (< 0 (- level skip-levels))
       (dolist (attrib attributes)
         (case (car attrib)
-          (TEXT (setq text (cdr attrib)))
-          (text (setq text (cdr attrib)))))
+          ('TEXT (setq text (cdr attrib)))
+          ('text (setq text (cdr attrib)))))
       (unless text
         ;; There should be a richcontent node holding the text:
         (setq text (org-freemind-get-richcontent-node-text node)))
@@ -1193,7 +1173,7 @@ PATH should be a list of steps, where each step has the form
             (setq text (replace-regexp-in-string "\n $" "" text))
             (insert text))
         (case qname
-          (node
+          ('node
            (insert (make-string (- level skip-levels) ?*) " " text "\n")
            (when note
              (insert ":COMMENT:\n" note "\n:END:\n"))
@@ -1236,6 +1216,7 @@ PATH should be a list of steps, where each step has the form
           )))))
 
 (provide 'org-freemind)
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

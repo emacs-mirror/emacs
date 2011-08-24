@@ -1260,11 +1260,11 @@ buffer-local values of tags table format variables."
 (defun etags-file-of-tag (&optional relative) ; Doc string?
   (save-excursion
     (re-search-backward "\f\n\\([^\n]+\\),[0-9]*\n")
-    (let ((str (buffer-substring (match-beginning 1) (match-end 1))))
+    (let ((str (convert-standard-filename
+                (buffer-substring (match-beginning 1) (match-end 1)))))
       (if relative
 	  str
-	(expand-file-name str
-			  (file-truename default-directory))))))
+	(expand-file-name str (file-truename default-directory))))))
 
 
 (defun etags-tags-completion-table () ; Doc string?
@@ -1545,7 +1545,9 @@ hits the start of file."
       (end-of-line)
       (skip-chars-backward "^," beg)
       (or (looking-at "include$")
-	  (setq files (cons (buffer-substring beg (1- (point))) files))))
+	  (push (convert-standard-filename
+                 (buffer-substring beg (1- (point))))
+                files)))
     (nreverse files)))
 
 (defun etags-tags-included-tables () ; Doc string?
@@ -1556,10 +1558,11 @@ hits the start of file."
       (setq beg (point))
       (end-of-line)
       (skip-chars-backward "^," beg)
-      (if (looking-at "include$")
-	  ;; Expand in the default-directory of the tags table buffer.
-	  (setq files (cons (expand-file-name (buffer-substring beg (1- (point))))
-			    files))))
+      (when (looking-at "include$")
+        ;; Expand in the default-directory of the tags table buffer.
+        (push (expand-file-name (convert-standard-filename
+                                 (buffer-substring beg (1- (point)))))
+              files)))
     (nreverse files)))
 
 ;; Empty tags file support.
@@ -1860,7 +1863,11 @@ nil, we exit; otherwise we scan the next file."
 Stops when a match is found.
 To continue searching for next match, use command \\[tags-loop-continue].
 
-See documentation of variable `tags-file-name'."
+If FILE-LIST-FORM is non-nil, it should be a form that, when
+evaluated, will return a list of file names.  The search will be
+restricted to these files.
+
+Aleso see the documentation of the `tags-file-name' variable."
   (interactive "sTags search (regexp): ")
   (if (and (equal regexp "")
 	   (eq (car tags-loop-scan) 're-search-forward)

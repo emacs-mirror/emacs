@@ -329,6 +329,8 @@ Interactively, second arg is non-nil if prefix arg is supplied."
               "Don't know how to insert register %s"
               (single-key-description register))
       (funcall (registerv-insert-func val) (registerv-data val)))
+     ((consp val)
+      (insert-rectangle val))
      ((stringp val)
       (insert-for-yank val))
      ((numberp val)

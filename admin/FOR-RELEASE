@@ -123,132 +123,136 @@ names of the people who have checked it.
 
 SECTION                  READERS
 ----------------------------------
-etc/TUTORIAL             rgm (but see Bug#3783)
-etc/TUTORIAL.bg          
-etc/TUTORIAL.cn
-etc/TUTORIAL.cs          
-etc/TUTORIAL.de          Werner Lemberg
-etc/TUTORIAL.eo
-etc/TUTORIAL.es          
-etc/TUTORIAL.fr          
-etc/TUTORIAL.it          
-etc/TUTORIAL.ja		 
-etc/TUTORIAL.ko
-etc/TUTORIAL.nl		 
-etc/TUTORIAL.pl          
-etc/TUTORIAL.pt_BR       
-etc/TUTORIAL.ro
-etc/TUTORIAL.ru          
-etc/TUTORIAL.sk          
-etc/TUTORIAL.sl          
-etc/TUTORIAL.sv          
-etc/TUTORIAL.th          
-etc/TUTORIAL.zh
+TUTORIAL             
+TUTORIAL.bg          
+TUTORIAL.cn
+TUTORIAL.cs          
+TUTORIAL.de          
+TUTORIAL.eo
+TUTORIAL.es          
+TUTORIAL.fr          
+TUTORIAL.he
+TUTORIAL.it          
+TUTORIAL.ja		 
+TUTORIAL.ko
+TUTORIAL.nl		 
+TUTORIAL.pl          
+TUTORIAL.pt_BR       
+TUTORIAL.ro
+TUTORIAL.ru          
+TUTORIAL.sk          
+TUTORIAL.sl          
+TUTORIAL.sv          
+TUTORIAL.th          
+TUTORIAL.zh
 
 ** Check the manual.
 
-abbrevs.texi      -- cyd
-ack.texi          -- rgm
+abbrevs.texi      
+ack.texi          
 anti.texi
 arevert-xtra.texi
-basic.texi        -- cyd
-buffers.texi      -- cyd
-building.texi     -- cyd
-calendar.texi     -- rgm
-cal-xtra.texi     -- rgm
-cmdargs.texi      -- cyd
-commands.texi     -- cyd
-custom.texi       -- cyd
-dired.texi        -- cyd
+basic.texi        
+buffers.texi      
+building.texi     
+calendar.texi     
+cal-xtra.texi     
+cmdargs.texi      
+commands.texi     
+custom.texi       
+dired.texi        
 dired-xtra.texi
-display.texi      -- cyd
-emacs.texi        -- cyd
+display.texi      
+emacs.texi        
 emacs-xtra.texi
 emerge-xtra.texi
-entering.texi     -- cyd
-files.texi        -- cyd
-fixit.texi        -- cyd
-fortran-xtra.texi -- rgm
-frames.texi       -- cyd
+entering.texi     
+files.texi        
+fixit.texi        
+fortran-xtra.texi 
+frames.texi       
 glossary.texi
-help.texi         -- cyd
-indent.texi       -- cyd
-killing.texi      -- cyd
-kmacro.texi       -- cyd
-macos.texi     -- davidswelt
-maintaining.texi  -- cyd
-major.texi        -- cyd
-mark.texi         -- cyd
-mini.texi         -- cyd
-misc.texi         -- cyd
-msdog.texi        -- eliz
-msdog-xtra.texi   -- eliz
-mule.texi         -- cyd
-m-x.texi          -- cyd
-programs.texi     -- cyd
-regs.texi         -- cyd
-rmail.texi        -- rgm
-screen.texi       -- cyd
-search.texi       -- cyd
-sending.texi      -- rgm (maybe needs some brief mailclient.el details in
-                          "Mail Sending" section?)
-text.texi         -- cyd
-trouble.texi      -- cyd
-windows.texi      -- rudalics
-xresources.texi   -- cyd
+help.texi         
+indent.texi       
+killing.texi      
+kmacro.texi       
+macos.texi        
+maintaining.texi  
+major.texi        
+mark.texi         
+mini.texi         
+misc.texi         
+msdog.texi        
+msdog-xtra.texi   
+mule.texi         
+m-x.texi          
+picture-xtra.texi
+programs.texi     
+regs.texi         
+rmail.texi        
+screen.texi       
+search.texi       
+sending.texi      
+text.texi         
+trouble.texi      
+vc-xtra.texi
+vc1-xtra.texi
+windows.texi      
+xresources.texi   
 
 ** Check the Lisp manual.
 
-abbrevs.texi      -- cyd
-advice.texi       -- cyd
-anti.texi         -- cyd
+abbrevs.texi      
+advice.texi       
+anti.texi         
 back.texi
-backups.texi      -- cyd
-buffers.texi      -- cyd
-commands.texi     -- cyd
-compile.texi      -- cyd
-control.texi      -- cyd
-customize.texi    -- cyd
-debugging.texi    -- cyd
-display.texi      -- cyd
+backups.texi      
+buffers.texi      
+commands.texi     
+compile.texi      
+control.texi      
+customize.texi    
+debugging.texi    
+display.texi      
 edebug.texi
 elisp.texi
-errors.texi       -- cyd
-eval.texi         -- cyd
-files.texi        -- cyd
-frames.texi       -- cyd
-functions.texi    -- cyd
-hash.texi         -- cyd
-help.texi         -- cyd
-hooks.texi        -- cyd
+errors.texi       
+eval.texi         
+files.texi        
+frames.texi       
+functions.texi    
+hash.texi         
+help.texi         
+hooks.texi        
 index.texi
-internals.texi    -- cyd
-intro.texi        -- cyd
-keymaps.texi      -- cyd
-lists.texi        -- cyd
-loading.texi      -- cyd
-locals.texi       -- cyd
-macros.texi       -- cyd
-maps.texi         -- cyd
-markers.texi      -- cyd
-minibuf.texi      -- cyd
-modes.texi        -- cyd
-nonascii.texi     -- cyd
-numbers.texi      -- cyd
-objects.texi      -- cyd
-os.texi           -- cyd
-positions.texi    -- cyd
+internals.texi    
+intro.texi        
+keymaps.texi      
+lists.texi        
+loading.texi      
+locals.texi       
+macros.texi       
+maps.texi         
+markers.texi      
+minibuf.texi      
+modes.texi        
+nonascii.texi     
+numbers.texi      
+objects.texi      
+os.texi           
+package.texi
+positions.texi    
 processes.texi
-searching.texi    -- cyd
-sequences.texi    -- cyd
-streams.texi      -- cyd
-strings.texi      -- cyd
-symbols.texi      -- cyd
-syntax.texi       -- cyd
-text.texi         -- cyd
-tips.texi         -- cyd
-variables.texi    -- cyd
-windows.texi      -- rudalics
+searching.texi    
+sequences.texi    
+streams.texi      
+strings.texi      
+symbols.texi      
+syntax.texi       
+text.texi         
+tips.texi         
+variables.texi    
+windows.texi      
 
 * PLANNED ADDITIONS
 

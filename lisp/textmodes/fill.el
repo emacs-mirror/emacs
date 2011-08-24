@@ -93,7 +93,7 @@ reinserts the fill prefix in each resulting line."
   ;; Added `!' for doxygen comments starting with `//!' or `/*!'.
   ;; Added `%' for TeX comments.
   ;; RMS: deleted the code to match `1.' and `(1)'.
-  (purecopy "[ \t]*\\([-!|#%;>*·•‣⁃◦]+[ \t]*\\)*")
+  (purecopy "[ \t]*\\([-–!|#%;>*·•‣⁃◦]+[ \t]*\\)*")
   "Regexp to match text at start of line that constitutes indentation.
 If Adaptive Fill mode is enabled, a prefix matching this pattern
 on the first and second lines of a paragraph is used as the

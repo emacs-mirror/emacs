@@ -1,3 +1,84 @@
+2011-08-22  Juri Linkov  <juri@jurta.org>
+
+	* compilation.txt: Add more samples of output and non-output
+	switches (bug#9319).
+
+2011-08-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* themes/dichromacy-theme.el:
+	* themes/wheatgrass-theme.el:
+	* themes/tango-theme.el:
+	* themes/tango-dark-theme.el: Add error, warning, and success
+	faces.
+
+2011-08-15  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* refcards/orgcard.tex: Document `org-copy-visible'.
+
+2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
+
+	* refcards/orgcard.tex: Documentation of new Babel function.
+
+2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
+
+	* refcards/orgcard.tex: Adding line for org-babel-check-src-block.
+
+2011-08-15  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* refcards/orgcard.tex: Document key for clock consistency check.
+
+2011-07-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* grammars: New directory.
+
+2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* NEWS: Document ## and #:.
+
+2011-07-18  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* charsets/GB180302.map: Update to 2005 edition.
+	* charsets/GB180304.map: Likewise.
+
+2011-07-17  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.93.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.93.
+
+2011-07-16  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.92.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.92.
+
+2011-07-12  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.91.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.91.
+
+	* MH-E-NEWS: Mention that SourceForge MH-E users will have to
+	update their load-paths.
+
+2011-07-10  Bill Wohler  <wohler@newt.com>
+
+	Release MH-E version 8.2.90.
+
+	* NEWS, MH-E-NEWS: Update for MH-E release 8.2.90.
+
+2011-07-07  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* themes/tsdh-light-theme.el:
+	* themes/tsdh-dark-theme.el: Make `gnus-button' face inherit from
+	`button', `gnus-header-name' boxed, and define `rcirc-my-nick'
+	face.
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Clarify `smtpmail-auth-credentials' non-existence.
+	Mention the `send-mail-function' default change.
+
 2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* themes/dichromacy-theme.el:

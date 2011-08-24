@@ -216,9 +216,14 @@ textual parts.")
 	  (let ((structure (ignore-errors
 			     (read (current-buffer)))))
 	    (while (and (consp structure)
-			(not (stringp (car structure))))
+			(not (atom (car structure))))
 	      (setq structure (car structure)))
-	    (setq lines (nth 7 structure))))
+	    (setq lines (if (and
+			     (stringp (car structure))
+			     (equal (upcase (nth 0 structure)) "MESSAGE")
+			     (equal (upcase (nth 1 structure)) "RFC822"))
+			    (nth 9 structure)
+			  (nth 7 structure)))))
 	(delete-region (line-beginning-position) (line-end-position))
 	(insert (format "211 %s Article retrieved." article))
 	(forward-line 1)
@@ -1107,9 +1112,9 @@ textual parts.")
 	    (separator (read (current-buffer)))
 	    (group (read (current-buffer))))
 	(unless (member '%NoSelect flags)
-	  (push (if (stringp group)
-		    group
-		  (format "%s" group))
+	  (push (utf7-decode (if (stringp group)
+				 group
+			       (format "%s" group)) t)
 		groups))))
     (nreverse groups)))
 
@@ -1168,7 +1173,7 @@ textual parts.")
 		       (nnimap-get-groups)))
 	(unless (assoc group nnimap-current-infos)
 	  ;; Insert dummy numbers here -- they don't matter.
-	  (insert (format "%S 0 1 y\n" group))))
+	  (insert (format "%S 0 1 y\n" (utf7-encode group)))))
       t)))
 
 (deffoo nnimap-retrieve-group-data-early (server infos)
@@ -1565,26 +1570,18 @@ textual parts.")
 (declare-function gnus-fetch-headers "gnus-sum"
 		  (articles &optional limit force-new dependencies))
 
-(deffoo nnimap-request-thread (header)
-  (let* ((id (mail-header-id header))
-	 (refs (split-string
-		(or (mail-header-references header)
-		    "")))
-	 (cmd (let ((value
-		     (format
-		      "(OR HEADER REFERENCES %s HEADER Message-Id %s)"
-		      id id)))
-		(dolist (refid refs value)
-		  (setq value (format
-			       "(OR (OR HEADER Message-Id %s HEADER REFERENCES %s) %s)"
-			       refid refid value)))))
-	 (result (with-current-buffer (nnimap-buffer)
-		   (nnimap-command  "UID SEARCH %s" cmd))))
-    (when result
-      (gnus-fetch-headers
-       (and (car result) (delete 0 (mapcar #'string-to-number
-					   (cdr (assoc "SEARCH" (cdr result))))))
-       nil t))))
+(deffoo nnimap-request-thread (header &optional group server)
+  (if gnus-refer-thread-use-nnir
+      (nnir-search-thread header)
+    (when (nnimap-possibly-change-group group server)
+      (let* ((cmd (nnimap-make-thread-query header))
+             (result (with-current-buffer (nnimap-buffer)
+                       (nnimap-command  "UID SEARCH %s" cmd))))
+        (when result
+          (gnus-fetch-headers
+           (and (car result) (delete 0 (mapcar #'string-to-number
+                                               (cdr (assoc "SEARCH" (cdr result))))))
+           nil t))))))
 
 (defun nnimap-possibly-change-group (group server)
   (let ((open-result t))
@@ -1949,6 +1946,21 @@ textual parts.")
 		    (list (cons 'junk 1))
 		  group-art))
 	  nnimap-incoming-split-list)))
+
+(defun nnimap-make-thread-query (header)
+  (let* ((id  (mail-header-id header))
+	 (refs (split-string
+		(or (mail-header-references header)
+		    "")))
+	 (value
+	  (format
+	   "(OR HEADER REFERENCES %S HEADER Message-Id %S)"
+	   id id)))
+    (dolist (refid refs value)
+      (setq value (format
+		   "(OR (OR HEADER Message-Id %S HEADER REFERENCES %S) %s)"
+		   refid refid value)))))
+
 
 (provide 'nnimap)
 

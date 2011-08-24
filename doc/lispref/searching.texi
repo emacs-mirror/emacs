@@ -717,11 +717,15 @@ the characters that stand for them.
 @cindex @samp{\S} in regexp
 matches any character whose syntax is not @var{code}.
 
+@cindex category, regexp search for
 @item \c@var{c}
 matches any character whose category is @var{c}.  Here @var{c} is a
 character that represents a category: thus, @samp{c} for Chinese
 characters or @samp{g} for Greek characters in the standard category
-table.
+table.  You can see the list of all the currently defined categories
+with @kbd{M-x describe-categories @key{RET}}.  You can also define
+your own categories in addition to the standard ones using the
+@code{define-category} function (@pxref{Categories}).
 
 @item \C@var{c}
 matches any character whose category is not @var{c}.

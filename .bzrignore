@@ -61,6 +61,7 @@ lib/time.h
 lib/unistd.h
 lib/warn-on-use.h
 lib/getopt.in-h
+lib/signal.h
 lib/stdbool.in-h
 lib/stddef.in-h
 lib/stdint.in-h

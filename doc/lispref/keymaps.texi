@@ -2019,7 +2019,9 @@ an existing menu, you can specify its position in the menu using
                               various features.
 * Menu Separators::         Drawing a horizontal line through a menu.
 * Alias Menu Items::        Using command aliases in menu items.
+* Toolkit Differences::     Not all toolkits provide the same features.
 @end menu
+
 
 @node Simple Menu Items
 @subsubsection Simple Menu Items
@@ -2262,6 +2264,17 @@ the double-dash and replacing each single dash with capitalization of
 the following word.  Thus, @code{"--:singleLine"}, is equivalent to
 @code{"--single-line"}.
 
+  You can use a longer form to specify keywords such as @code{:enable}
+and @code{:visible} for a menu separator:
+
+@code{(menu-item @var{separator-type} nil . @var{item-property-list})}
+  
+For example:
+  
+@example
+(menu-item "--" nil :visible (boundp 'foo))
+@end example
+
   Some systems and display toolkits don't really handle all of these
 separator types.  If you use a type that isn't supported, the menu
 displays a similar kind of separator that is supported.
@@ -2297,6 +2310,28 @@ itself).  To request this, give the alias symbol a non-@code{nil}
 @noindent
 causes menu items for @code{make-read-only} and @code{make-writable} to
 show the keyboard bindings for @code{toggle-read-only}.
+
+@node Toolkit Differences
+@subsubsection Toolkit Differences
+
+The various toolkits with which you can build Emacs do not all support
+the same set of features for menus.  Some code works as expected with
+one toolkit, but not under another.
+
+One example is menu actions or buttons in a top-level menu-bar.  The
+following works with the Lucid toolkit or on MS Windows, but not with
+GTK or Nextstep, where clicking on the item has no effect.
+
+@example
+(defun menu-action-greet ()
+   (interactive)
+   (message "Hello Emacs User!"))
+
+(defun top-level-menu ()
+  (interactive)
+  (define-key lisp-interaction-mode-map [menu-bar m]
+     '(menu-item "Action Button" menu-action-greet)))
+@end example
 
 @node Mouse Menus
 @subsection Menus and the Mouse

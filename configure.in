@@ -231,8 +231,8 @@ AC_ARG_ENABLE(asserts,
       USE_XASSERTS=no)
 
 AC_ARG_ENABLE(maintainer-mode,
-[AS_HELP_STRING([--enable-maintainer-mode],
-                [enable make rules and dependencies not useful (and sometimes
+[AS_HELP_STRING([--disable-maintainer-mode],
+                [disable make rules and dependencies not useful (and sometimes
 		 confusing) to the casual installer])],
       USE_MAINTAINER_MODE=$enableval,
       USE_MAINTAINER_MODE=yes)
@@ -984,6 +984,8 @@ fi
 
 # Suppress obsolescent Autoconf test for size_t; Emacs assumes C89 or better.
 AC_DEFUN([AC_TYPE_SIZE_T])
+# Likewise for obsolescent test for uid_t, gid_t; Emacs assumes them.
+AC_DEFUN([AC_TYPE_UID_T])
 
 dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
@@ -1091,7 +1093,7 @@ if test "x$crt_files" != x; then
     dnl first there is no point asking gcc.
     crt_gcc=no
 
-    test -e $CRT_DIR/$file || crt_missing="$crt_missing $file"    
+    test -e $CRT_DIR/$file || crt_missing="$crt_missing $file"
   done                          # $crt_files
 
   test "x$crt_missing" = x || \
@@ -1211,7 +1213,7 @@ fi
 
 dnl checks for header files
 AC_CHECK_HEADERS(sys/select.h sys/time.h unistd.h utime.h \
-  linux/version.h sys/systeminfo.h limits.h \
+  linux/version.h sys/systeminfo.h \
   stdio_ext.h fcntl.h coff.h pty.h sys/mman.h \
   sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
   sys/utsname.h pwd.h utmp.h dirent.h util.h)
@@ -1230,7 +1232,6 @@ fi
 dnl On Solaris 8 there's a compilation warning for term.h because
 dnl it doesn't define `bool'.
 AC_CHECK_HEADERS(term.h, , , -)
-AC_HEADER_STDC
 AC_HEADER_TIME
 AC_CHECK_DECLS([sys_siglist])
 if test $ac_cv_have_decl_sys_siglist != yes; then
@@ -1298,10 +1299,20 @@ if test $emacs_cv_struct_exception != yes; then
   AC_DEFINE(NO_MATHERR, 1, [Define to 1 if you don't have struct exception in math.h.])
 fi
 
+AC_CHECK_HEADERS(sys/socket.h)
 AC_CHECK_HEADERS(net/if.h, , , [AC_INCLUDES_DEFAULT
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif])
+AC_CHECK_HEADERS(ifaddrs.h, , , [AC_INCLUDES_DEFAULT
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif])
+AC_CHECK_HEADERS(net/if_dl.h, , , [AC_INCLUDES_DEFAULT
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif])
+AC_CHECK_FUNCS(getifaddrs freeifaddrs)
 
 dnl checks for structure members
 AC_STRUCT_TM
@@ -1312,7 +1323,8 @@ AC_CHECK_MEMBER(struct tm.tm_gmtoff,
 		[#include <time.h>])
 AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr,
 		  struct ifreq.ifr_netmask, struct ifreq.ifr_broadaddr,
-		  struct ifreq.ifr_addr], , ,
+		  struct ifreq.ifr_addr,
+		  struct ifreq.ifr_addr.sa_len], , ,
 		 [AC_INCLUDES_DEFAULT
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -1686,6 +1698,21 @@ dnl AC_CHECK_LIB(resolv, gethostbyname)
 dnl FIXME replace main with a function we actually want from this library.
 AC_CHECK_LIB(Xbsd, main, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
+dnl Check if pthreads is available.
+LIB_PTHREAD=
+AC_CHECK_HEADERS(pthread.h)
+if test "$ac_cv_header_pthread_h"; then
+  AC_CHECK_LIB(pthread, pthread_self, HAVE_PTHREAD=yes)
+fi
+if test "$HAVE_PTHREAD" = yes; then
+  case "${canonical}" in
+    *-hpux*) ;;
+    *) LIB_PTHREAD="-lpthread" ;;
+  esac
+  AC_DEFINE(HAVE_PTHREAD, 1, [Define to 1 if you have pthread (-lpthread).])
+fi
+AC_SUBST([LIB_PTHREAD])
+
 AC_CHECK_LIB(pthreads, cma_open)
 
 ## Note: when using cpp in s/aix4.2.h, this definition depended on
@@ -1819,7 +1846,7 @@ fi
 
 ### Use -lrsvg-2 if available, unless `--with-rsvg=no' is specified.
 HAVE_RSVG=no
-if test "${HAVE_X11}" = "yes" || test "${NS_IMPL_GNUSTEP}" = "yes"; then
+if test "${HAVE_X11}" = "yes" || test "${HAVE_NS}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
     RSVG_REQUIRED=2.11.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
@@ -1942,21 +1969,6 @@ if test "${HAVE_GTK}" = "yes"; then
     AC_CHECK_FUNCS(gtk_file_selection_new)
   fi
 
-  dnl Check if pthreads are available.  Emacs only needs this when using
-  dnl gtk_file_chooser under Gnome.
-    HAVE_GTK_AND_PTHREAD=no
-    AC_CHECK_HEADERS(pthread.h)
-    if test "$ac_cv_header_pthread_h"; then
-      AC_CHECK_LIB(pthread, pthread_self, HAVE_GTK_AND_PTHREAD=yes)
-    fi
-    if test "$HAVE_GTK_AND_PTHREAD" = yes; then
-      case "${canonical}" in
-        *-hpux*) ;;
-        *) GTK_LIBS="$GTK_LIBS -lpthread" ;;
-      esac
-      AC_DEFINE(HAVE_GTK_AND_PTHREAD, 1,
-               [Define to 1 if you have GTK and pthread (-lpthread).])
-    fi
 
   dnl Check for functions introduced in 2.14 and later.
   AC_CHECK_FUNCS(gtk_widget_get_window gtk_widget_set_has_window \
@@ -1985,7 +1997,7 @@ AC_SUBST(DBUS_OBJ)
 dnl GSettings has been tested under GNU/Linux only.
 HAVE_GSETTINGS=no
 if test "${HAVE_X11}" = "yes" && test "${with_gsettings}" = "yes"; then
-   PKG_CHECK_MODULES(GSETTINGS, glib-2.0 >= 2.26, HAVE_GSETTINGS=yes, HAVE_GSETTINGS=no)
+   PKG_CHECK_MODULES(GSETTINGS, gio-2.0 >= 2.26, HAVE_GSETTINGS=yes, HAVE_GSETTINGS=no)
    if test "$HAVE_GSETTINGS" = "yes"; then
       AC_DEFINE(HAVE_GSETTINGS, 1, [Define to 1 if using GSettings.])
       SETTINGS_CFLAGS="$GSETTINGS_CFLAGS"
@@ -2702,10 +2714,10 @@ rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
 random lrand48 logb frexp fmod rint cbrt ftime setsid \
 strerror fpathconf select euidaccess getpagesize tzset setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
-__fpending mblen mbrlen mbsinit strsignal setitimer ualarm strchr strrchr \
+__fpending mblen mbrlen mbsinit strsignal setitimer ualarm \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap memmove fsync sync \
-memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign \
+gai_strerror mkstemp getline getdelim mremap fsync sync \
+difftime mempcpy mblen mbrlen posix_memalign \
 cfmakeraw cfsetspeed isnan copysign __executable_start)
 
 dnl Cannot use AC_CHECK_FUNCS
@@ -2724,11 +2736,6 @@ AC_CHECK_HEADERS(sys/un.h)
 AC_FUNC_FSEEKO
 
 AC_FUNC_GETPGRP
-
-# Configure gnulib.
-gl_ASSERT_NO_GNULIB_POSIXCHECK
-gl_ASSERT_NO_GNULIB_TESTS
-gl_INIT
 
 # UNIX98 PTYs.
 AC_CHECK_FUNCS(grantpt)
@@ -3109,8 +3116,6 @@ dnl                                and macros for terminal control.])
 dnl    AC_DEFINE(HAVE_TCATTR, 1, [Define to 1 if you have tcgetattr and tcsetattr.])
 dnl fi
 
-dnl Fixme: Use AC_FUNC_MEMCMP since memcmp is used.  (Needs libobj replacement.)
-
 # Set up the CFLAGS for real compilation, so we can substitute it.
 CFLAGS="$REAL_CFLAGS"
 CPPFLAGS="$REAL_CPPFLAGS"
@@ -3333,6 +3338,10 @@ AC_SUBST(CYGWIN_OBJ)
 AC_SUBST(PRE_ALLOC_OBJ)
 AC_SUBST(POST_ALLOC_OBJ)
 
+# Configure gnulib here, now that we know LIBS.
+gl_ASSERT_NO_GNULIB_POSIXCHECK
+gl_ASSERT_NO_GNULIB_TESTS
+gl_INIT
 
 case "$opsys" in
   aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;
@@ -3349,7 +3358,7 @@ case "$opsys" in
      libs_nsgui=
      headerpad_extra=690
    fi
-   LD_SWITCH_SYSTEM_TEMACS="-prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
+   LD_SWITCH_SYSTEM_TEMACS="-fno-pie -prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
 
    ## This is here because src/Makefile.in did some extra fiddling around
    ## with LD_SWITCH_SYSTEM.  The cpp logic was:
@@ -3583,14 +3592,6 @@ AH_BOTTOM([
 
 #include <string.h>
 #include <stdlib.h>
-
-#ifndef HAVE_STRCHR
-#define strchr(a, b) index (a, b)
-#endif
-
-#ifndef HAVE_STRRCHR
-#define strrchr(a, b) rindex (a, b)
-#endif
 
 #if defined __GNUC__ && (__GNUC__ > 2 \
                          || (__GNUC__ == 2 && __GNUC_MINOR__ >= 5))

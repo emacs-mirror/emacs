@@ -1678,6 +1678,11 @@ all server buffers are finished.  You can take as long as you like to
 edit the server buffers within Emacs, and they are @emph{not} killed
 when you type @kbd{C-x #} in them.
 
+@item --parent-id @var{ID}
+Open an @command{emacsclient} frame as a client frame in the parent X
+window with id @var{ID}, via the XEmbed protocol.  Currently, this
+option is mainly useful for developers.
+
 @item -q
 @itemx --quiet
 Do not let @command{emacsclient} display messages about waiting for
@@ -2567,7 +2572,7 @@ not use it.
 key bindings.
 @end table
 
-@node Hyperlinking, Dissociated Press, Emulation, Top
+@node Hyperlinking, Amusements, Emulation, Top
 @section Hyperlinking and Navigation Features
 
 @cindex hyperlinking
@@ -2733,82 +2738,14 @@ Display a menu of files and URLs mentioned in current buffer, then
 find the one you select (@code{ffap-menu}).
 @end table
 
-@node Dissociated Press, Amusements, Hyperlinking, Top
-@section Dissociated Press
-
-@findex dissociated-press
-  @kbd{M-x dissociated-press} is a command for scrambling a file of text
-either word by word or character by character.  Starting from a buffer of
-straight English, it produces extremely amusing output.  The input comes
-from the current Emacs buffer.  Dissociated Press writes its output in a
-buffer named @samp{*Dissociation*}, and redisplays that buffer after every
-couple of lines (approximately) so you can read the output as it comes out.
-
-  Dissociated Press asks every so often whether to continue generating
-output.  Answer @kbd{n} to stop it.  You can also stop at any time by
-typing @kbd{C-g}.  The dissociation output remains in the
-@samp{*Dissociation*} buffer for you to copy elsewhere if you wish.
-
-@cindex presidentagon
-  Dissociated Press operates by jumping at random from one point in
-the buffer to another.  In order to produce plausible output rather
-than gibberish, it insists on a certain amount of overlap between the
-end of one run of consecutive words or characters and the start of the
-next.  That is, if it has just output `president' and then decides to
-jump to a different point in the buffer, it might spot the `ent' in
-`pentagon' and continue from there, producing `presidentagon'.  Long
-sample texts produce the best results.
-
-@cindex againformation
-  A positive argument to @kbd{M-x dissociated-press} tells it to operate
-character by character, and specifies the number of overlap characters.  A
-negative argument tells it to operate word by word, and specifies the number
-of overlap words.  In this mode, whole words are treated as the elements to
-be permuted, rather than characters.  No argument is equivalent to an
-argument of two.  For your againformation, the output goes only into the
-buffer @samp{*Dissociation*}.  The buffer you start with is not changed.
-
-@cindex Markov chain
-@cindex ignoriginal
-@cindex techniquitous
-  Dissociated Press produces results fairly like those of a Markov
-chain based on a frequency table constructed from the sample text.  It
-is, however, an independent, ignoriginal invention.  Dissociated Press
-techniquitously copies several consecutive characters from the sample
-text between random jumps, unlike a Markov chain which would jump
-randomly after each word or character.  This makes for more plausible
-sounding results, and runs faster.
-
-@cindex outragedy
-@cindex buggestion
-@cindex properbose
-@cindex mustatement
-@cindex developediment
-@cindex userenced
-  It is a mustatement that too much use of Dissociated Press can be a
-developediment to your real work, sometimes to the point of outragedy.
-And keep dissociwords out of your documentation, if you want it to be well
-userenced and properbose.  Have fun.  Your buggestions are welcome.
-
-@node Amusements, Customization, Dissociated Press, Top
+@node Amusements, Customization, Hyperlinking, Top
 @section Other Amusements
 @cindex boredom
-@findex hanoi
-@findex yow
-@findex gomoku
-@cindex tower of Hanoi
 
-  If you are a little bit bored, you can try @kbd{M-x hanoi}.  If you are
-considerably bored, give it a numeric argument.  If you are very, very
-bored, try an argument of 9.  Sit back and watch.
-
-@cindex Go Moku
-  If you want a little more personal involvement, try @kbd{M-x gomoku},
-which plays the game Go Moku with you.
-
-@findex bubbles
-  @kbd{M-x bubbles} is a game in which the object is to remove as many
-bubbles as you can in the smallest number of moves.
+@findex animate-birthday-present
+@cindex animate
+  The @code{animate} package makes text dance.  For an example, try
+@kbd{M-x animate-birthday-present}.
 
 @findex blackbox
 @findex mpuz
@@ -2821,73 +2758,82 @@ puzzle with letters standing for digits in a code that you must
 guess---to guess a value, type a letter and then the digit you think it
 stands for.  The aim of @code{5x5} is to fill in all the squares.
 
+@findex bubbles
+  @kbd{M-x bubbles} is a game in which the object is to remove as many
+bubbles as you can in the smallest number of moves.
+
 @findex decipher
 @cindex ciphers
 @cindex cryptanalysis
-@kbd{M-x decipher} helps you to cryptanalyze a buffer which is encrypted
-in a simple monoalphabetic substitution cipher.
+  @kbd{M-x decipher} helps you to cryptanalyze a buffer which is
+encrypted in a simple monoalphabetic substitution cipher.
+
+@findex dissociated-press
+  @kbd{M-x dissociated-press} scrambles the text in the current Emacs
+buffer, word by word or character by character, writing its output to
+a buffer named @samp{*Dissociation*}.  A positive argument tells it to
+operate character by character, and specifies the number of overlap
+characters.  A negative argument tells it to operate word by word, and
+specifies the number of overlap words.  Dissociated Press produces
+results fairly like those of a Markov chain, but is however, an
+independent, ignoriginal invention; it techniquitously copies several
+consecutive characters from the sample text between random jumps,
+unlike a Markov chain which would jump randomly after each word or
+character.  Keep dissociwords out of your documentation, if you want
+it to be well userenced and properbose.
 
 @findex dunnet
-  @kbd{M-x dunnet} runs an adventure-style exploration game, which is
-a bigger sort of puzzle.
+  @kbd{M-x dunnet} runs an text-based adventure game.
 
-@findex lm
-@cindex landmark game
-@kbd{M-x lm} runs a relatively non-participatory game in which a robot
-attempts to maneuver towards a tree at the center of the window based on
-unique olfactory cues from each of the four directions.
+@findex gomoku
+@cindex Go Moku
+  If you want a little more personal involvement, try @kbd{M-x gomoku},
+which plays the game Go Moku with you.
+
+@cindex tower of Hanoi
+@findex hanoi
+  If you are a little bit bored, you can try @kbd{M-x hanoi}.  If you are
+considerably bored, give it a numeric argument.  If you are very, very
+bored, try an argument of 9.  Sit back and watch.
 
 @findex life
 @cindex Life
-@kbd{M-x life} runs Conway's ``Life'' cellular automaton.
+  @kbd{M-x life} runs Conway's ``Life'' cellular automaton.
+
+@findex lm
+@cindex landmark game
+  @kbd{M-x lm} runs a relatively non-participatory game in which a
+robot attempts to maneuver towards a tree at the center of the window
+based on unique olfactory cues from each of the four directions.
 
 @findex morse-region
 @findex unmorse-region
 @cindex Morse code
 @cindex --/---/.-./.../.
-@kbd{M-x morse-region} converts text in a region to Morse code and
+  @kbd{M-x morse-region} converts text in a region to Morse code and
 @kbd{M-x unmorse-region} converts it back.  No cause for remorse.
 
 @findex pong
 @cindex Pong game
-@kbd{M-x pong} plays a Pong-like game, bouncing the ball off opposing
-bats.
-
-@findex solitaire
-@cindex solitaire
-@kbd{M-x solitaire} plays a game of solitaire in which you jump pegs
-across other pegs.
-
-@findex animate-birthday-present
-@cindex animate
-The @code{animate} package makes text dance.  For an example, try
-@kbd{M-x animate-birthday-present}.
-
-@findex studlify-region
-@cindex StudlyCaps
-@kbd{M-x studlify-region} studlify-cases the region, producing
-text like this:
-
-@example
-M-x stUdlIfY-RegioN stUdlIfY-CaSeS thE region.
-@end example
-
 @findex tetris
 @cindex Tetris
 @findex snake
 @cindex Snake
-@kbd{M-x tetris} runs an implementation of the well-known Tetris game.
-Likewise, @kbd{M-x snake} provides an implementation of Snake.
+  @kbd{M-x pong}, @kbd{M-x snake} and @kbd{M-x tetris} are
+implementations of the well-known Pong, Snake and Tetris games.
 
-  When you are frustrated, try the famous Eliza program.  Just do
-@kbd{M-x doctor}.  End each input by typing @key{RET} twice.
-
-@cindex Zippy
-  When you are feeling strange, type @kbd{M-x yow}.
+@findex solitaire
+@cindex solitaire
+  @kbd{M-x solitaire} plays a game of solitaire in which you jump pegs
+across other pegs.
 
 @findex zone
-The command @kbd{M-x zone} plays games with the display when Emacs is
-idle.
+  The command @kbd{M-x zone} plays games with the display when Emacs
+is idle.
+
+  Finally, if you find yourself frustrated, try the famous Eliza
+program.  Just do @kbd{M-x doctor}.  End each input by typing
+@key{RET} twice.
 
 @ifnottex
 @lowersections

@@ -138,9 +138,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #endif /* MSDOS */
 
 #ifdef WINDOWSNT
-# include <stdlib.h>
 # include <fcntl.h>
-# include <string.h>
 # include <direct.h>
 # include <io.h>
 # define MAXPATHLEN _MAX_PATH
@@ -151,27 +149,6 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #   define HAVE_GETCWD
 # endif /* undef HAVE_GETCWD */
 #else /* not WINDOWSNT */
-# ifdef STDC_HEADERS
-#  include <stdlib.h>
-#  include <string.h>
-# else /* no standard C headers */
-   extern char *getenv (const char *);
-   extern char *strcpy (char *, const char *);
-   extern char *strncpy (char *, const char *, unsigned long);
-   extern char *strcat (char *, const char *);
-   extern char *strncat (char *, const char *, unsigned long);
-   extern int strcmp (const char *, const char *);
-   extern int strncmp (const char *, const char *, unsigned long);
-   extern int system (const char *);
-   extern unsigned long strlen (const char *);
-   extern void *malloc (unsigned long);
-   extern void *realloc (void *, unsigned long);
-   extern void exit (int);
-   extern void free (void *);
-   extern void *memmove (void *, const void *, unsigned long);
-#  define EXIT_SUCCESS	0
-#  define EXIT_FAILURE	1
-# endif
 #endif /* !WINDOWSNT */
 
 #include <unistd.h>
@@ -181,6 +158,8 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # endif
 #endif /* HAVE_UNISTD_H */
 
+#include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
@@ -6567,22 +6546,13 @@ absolute_filename (char *file, char *dir)
 	      else if (cp[0] != '/')
 		cp = slashp;
 #endif
-#ifdef HAVE_MEMMOVE
               memmove (cp, slashp + 3, strlen (slashp + 2));
-#else
-              /* Overlapping copy isn't really okay */
-	      strcpy (cp, slashp + 3);
-#endif
 	      slashp = cp;
 	      continue;
 	    }
 	  else if (slashp[2] == '/' || slashp[2] == '\0')
 	    {
-#ifdef HAVE_MEMMOVE
 	      memmove (slashp, slashp + 2, strlen (slashp + 1));
-#else
-              strcpy (slashp, slashp + 2);
-#endif
 	      continue;
 	    }
 	}

@@ -156,21 +156,24 @@ LABEL is a string to display as the label of that TIMEZONE's time."
 (defcustom display-time-world-list
   ;; Determine if zoneinfo style timezones are supported by testing that
   ;; America/New York and Europe/London return different timezones.
-  (let (gmt nyt)
-    (set-time-zone-rule "America/New_York")
-    (setq nyt (format-time-string "%z"))
-    (set-time-zone-rule "Europe/London")
-    (setq gmt (format-time-string "%z"))
-    (set-time-zone-rule nil)
+  (let ((old-tz (getenv "TZ"))
+	gmt nyt)
+    (unwind-protect
+	(progn
+	  (setenv "TZ" "America/New_York")
+	  (setq nyt (format-time-string "%z"))
+	  (setenv "TZ" "Europe/London")
+	  (setq gmt (format-time-string "%z")))
+      (setenv "TZ" old-tz))
     (if (string-equal nyt gmt)
         legacy-style-world-list
       zoneinfo-style-world-list))
   "Alist of time zones and places for `display-time-world' to display.
 Each element has the form (TIMEZONE LABEL).
-TIMEZONE should be in the format supported by `set-time-zone-rule' on
-your system.  See the documentation of `zoneinfo-style-world-list' and
-\`legacy-style-world-list' for two widely used formats.
-LABEL is a string to display as the label of that TIMEZONE's time."
+TIMEZONE should be in a format supported by your system.  See the
+documentation of `zoneinfo-style-world-list' and
+\`legacy-style-world-list' for two widely used formats.  LABEL is
+a string to display as the label of that TIMEZONE's time."
   :group 'display-time
   :type '(repeat (list string string))
   :version "23.1")
@@ -423,30 +426,31 @@ update which can wait for the next redisplay."
                               (getenv "MAIL")
                               (concat rmail-spool-directory
                                       (user-login-name))))
-	 (mail (or (and display-time-mail-function
-			(funcall display-time-mail-function))
-		   (and display-time-mail-directory
-			(display-time-mail-check-directory))
-		   (and (stringp mail-spool-file)
-			(or (null display-time-server-down-time)
-			    ;; If have been down for 20 min, try again.
-			    (> (- (nth 1 now) display-time-server-down-time)
-			       1200)
-			    (and (< (nth 1 now) display-time-server-down-time)
-				 (> (- (nth 1 now)
-				       display-time-server-down-time)
-				    -64336)))
-			(let ((start-time (current-time)))
-			  (prog1
-			      (display-time-file-nonempty-p mail-spool-file)
-			    (if (> (- (nth 1 (current-time))
-				      (nth 1 start-time))
-				   20)
-				;; Record that mail file is not accessible.
-				(setq display-time-server-down-time
-				      (nth 1 (current-time)))
-			      ;; Record that mail file is accessible.
-			      (setq display-time-server-down-time nil)))))))
+	 (mail (cond
+		(display-time-mail-function
+		 (funcall display-time-mail-function))
+		(display-time-mail-directory
+		 (display-time-mail-check-directory))
+		((and (stringp mail-spool-file)
+		      (or (null display-time-server-down-time)
+			  ;; If have been down for 20 min, try again.
+			  (> (- (nth 1 now) display-time-server-down-time)
+			     1200)
+			  (and (< (nth 1 now) display-time-server-down-time)
+			       (> (- (nth 1 now)
+				     display-time-server-down-time)
+				  -64336))))
+		 (let ((start-time (current-time)))
+		   (prog1
+		       (display-time-file-nonempty-p mail-spool-file)
+		     (if (> (- (nth 1 (current-time))
+			       (nth 1 start-time))
+			    20)
+			 ;; Record that mail file is not accessible.
+			 (setq display-time-server-down-time
+			       (nth 1 (current-time)))
+		       ;; Record that mail file is accessible.
+		       (setq display-time-server-down-time nil)))))))
          (24-hours (substring time 11 13))
          (hour (string-to-number 24-hours))
          (12-hours (int-to-string (1+ (% (+ hour 11) 12))))
@@ -520,26 +524,26 @@ See `display-time-world'."
 (defun display-time-world-display (alist)
   "Replace current buffer text with times in various zones, based on ALIST."
   (let ((inhibit-read-only t)
-	(buffer-undo-list t))
+	(buffer-undo-list t)
+	(old-tz (getenv "TZ"))
+	(max-width 0)
+	result fmt)
     (erase-buffer)
-    (let ((max-width 0)
-	  (result ())
-	  fmt)
-      (unwind-protect
-	  (dolist (zone alist)
-	    (let* ((label (cadr zone))
-		   (width (string-width label)))
-	      (set-time-zone-rule (car zone))
-	      (push (cons label
-			  (format-time-string display-time-world-time-format))
-		    result)
-	      (when (> width max-width)
-		(setq max-width width))))
-	(set-time-zone-rule nil))
-      (setq fmt (concat "%-" (int-to-string max-width) "s %s\n"))
-      (dolist (timedata (nreverse result))
-	(insert (format fmt (car timedata) (cdr timedata)))))
-    (delete-char -1)))
+    (unwind-protect
+	(dolist (zone alist)
+	  (let* ((label (cadr zone))
+		 (width (string-width label)))
+	    (setenv "TZ" (car zone))
+	    (push (cons label
+			(format-time-string display-time-world-time-format))
+		  result)
+	    (when (> width max-width)
+	      (setq max-width width))))
+      (setenv "TZ" old-tz))
+    (setq fmt (concat "%-" (int-to-string max-width) "s %s\n"))
+    (dolist (timedata (nreverse result))
+      (insert (format fmt (car timedata) (cdr timedata)))))
+  (delete-char -1))
 
 ;;;###autoload
 (defun display-time-world ()

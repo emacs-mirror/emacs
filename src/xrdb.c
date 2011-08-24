@@ -651,9 +651,7 @@ typedef char **List;
 #define free_arglist(list)
 
 static List
-member (elt, list)
-     char *elt;
-     List list;
+member (char *elt, List list)
 {
   List p;
 
@@ -665,20 +663,17 @@ member (elt, list)
 }
 
 static void
-fatal (msg, prog, x1, x2, x3, x4, x5)
-    char *msg, *prog;
-    int x1, x2, x3, x4, x5;
+fatal (char *msg, char *prog)
 {
-    if (errno)
-      perror (prog);
+  if (errno)
+    perror (prog);
 
-    (void) fprintf (stderr, msg, prog, x1, x2, x3, x4, x5);
-    exit (1);
+  (void) fprintf (stderr, msg, prog);
+  exit (1);
 }
 
-main (argc, argv)
-    int argc;
-    char **argv;
+int
+main (int argc, char **argv)
 {
   Display *display;
   char *displayname, *resource_string, *class, *name;
@@ -749,5 +744,7 @@ main (argc, argv)
   printf ("\tExit.\n\n");
 
   XCloseDisplay (display);
+
+  return 0;
 }
 #endif /* TESTRM */

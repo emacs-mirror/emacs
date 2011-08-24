@@ -5,7 +5,7 @@
 ;; Author: Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -88,13 +88,12 @@ end")
 	   body params (org-babel-variable-assignments:octave params)))
 	 (result (org-babel-octave-evaluate
 		  session full-body result-type matlabp)))
-    (or out-file
-        (org-babel-reassemble-table
-         result
-         (org-babel-pick-name
-	  (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
-         (org-babel-pick-name
-	  (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params)))))))
+    (org-babel-reassemble-table
+     result
+     (org-babel-pick-name
+      (cdr (assoc :colname-names params)) (cdr (assoc :colnames params)))
+     (org-babel-pick-name
+      (cdr (assoc :rowname-names params)) (cdr (assoc :rownames params))))))
 
 (defun org-babel-prep-session:matlab (session params)
   "Prepare SESSION according to PARAMS."
@@ -104,7 +103,7 @@ end")
   "Return list of octave statements assigning the block's variables"
   (mapcar
    (lambda (pair)
-     (format "%s=%s"
+     (format "%s=%s;"
 	     (car pair)
 	     (org-babel-octave-var-to-octave (cdr pair))))
    (mapcar #'cdr (org-babel-get-header params :var))))
@@ -258,6 +257,7 @@ This removes initial blank and comment lines and then calls
     string))
 
 (provide 'ob-octave)
+
 
 
 ;;; ob-octave.el ends here

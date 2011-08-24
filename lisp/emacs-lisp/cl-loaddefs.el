@@ -282,7 +282,7 @@ Not documented
 ;;;;;;  flet progv psetq do-all-symbols do-symbols dotimes dolist
 ;;;;;;  do* do loop return-from return block etypecase typecase ecase
 ;;;;;;  case load-time-value eval-when destructuring-bind function*
-;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "9f551dc739a39b3c8b420fbd1ab71879")
+;;;;;;  defmacro* defun* gentemp gensym) "cl-macs" "cl-macs.el" "0907093f7720996444ededb4edfe8072")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'gensym "cl-macs" "\
@@ -426,6 +426,7 @@ The Common Lisp `do*' loop.
 Loop over a list.
 Evaluate BODY with VAR bound to each `car' from LIST, in turn.
 Then evaluate RESULT to get return value, default nil.
+An implicit nil block is established around the loop.
 
 \(fn (VAR LIST [RESULT]) BODY...)" nil (quote macro))
 
@@ -541,7 +542,13 @@ values.  For compatibility, (values A B C) is a synonym for (list A B C).
 \(fn TYPE FORM)" nil (quote macro))
 
 (autoload 'declare "cl-macs" "\
+Declare SPECS about the current function while compiling.
+For instance
 
+  (declare (warn 0))
+
+will turn off byte-compile warnings in the function.
+See Info node `(cl)Declarations' for details.
 
 \(fn &rest SPECS)" nil (quote macro))
 

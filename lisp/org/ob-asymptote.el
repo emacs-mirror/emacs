@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -49,6 +49,7 @@
 (declare-function orgtbl-to-generic "org-table" (table params))
 (declare-function org-combine-plists "org" (&rest plists))
 
+(defvar org-babel-tangle-lang-exts)
 (add-to-list 'org-babel-tangle-lang-exts '("asymptote" . "asy"))
 
 (defvar org-babel-default-header-args:asymptote
@@ -80,7 +81,7 @@ This function is called by `org-babel-execute-src-block'."
 	       body params
 	       (org-babel-variable-assignments:asymptote params))))
     (message cmd) (shell-command cmd)
-    out-file))
+    nil)) ;; signal that output has already been written to file
 
 (defun org-babel-prep-session:asymptote (session params)
   "Return an error if the :session header argument is set.
@@ -158,6 +159,7 @@ of int, where every cell must be of int type."
     (or (anything-but-int data) 'int)))
 
 (provide 'ob-asymptote)
+
 
 
 ;;; ob-asymptote.el ends here

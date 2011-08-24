@@ -900,10 +900,11 @@ rather than line counts."
 	      (save-excursion
 		(skip-chars-backward "0-9")
 		(if (looking-at "[0-9]")
-		    (buffer-substring-no-properties
-		     (point)
-		     (progn (skip-chars-forward "0-9")
-			    (point))))))
+		    (string-to-number
+		     (buffer-substring-no-properties
+		      (point)
+		      (progn (skip-chars-forward "0-9")
+			     (point)))))))
 	    ;; Decide if we're switching buffers.
 	    (buffer
 	     (if (consp current-prefix-arg)
@@ -1152,6 +1153,8 @@ display the result of expression evaluation."
 (defun eval-expression (eval-expression-arg
 			&optional eval-expression-insert-value)
   "Evaluate EVAL-EXPRESSION-ARG and print value in the echo area.
+When called interactively, read an Emacs Lisp expression and
+evaluate it.
 Value is also consed on to front of the variable `values'.
 Optional argument EVAL-EXPRESSION-INSERT-VALUE non-nil (interactively,
 with prefix argument) means insert the result into the current buffer
@@ -3054,10 +3057,11 @@ If `interprogram-cut-function' is set, pass the resulting kill to it."
 
 (defun current-kill (n &optional do-not-move)
   "Rotate the yanking point by N places, and then return that kill.
-If N is zero, `interprogram-paste-function' is set, and calling
-it returns a string or list of strings, then that string (or
-list) is added to the front of the kill ring and the string (or
-first string in the list) is returned as the latest kill.
+If N is zero and `interprogram-paste-function' is set to a
+function that returns a string or a list of strings, and if that
+function doesn't return nil, then that string (or list) is added
+to the front of the kill ring and the string (or first string in
+the list) is returned as the latest kill.
 
 If N is not zero, and if `yank-pop-change-selection' is
 non-nil, use `interprogram-cut-function' to transfer the
@@ -5234,13 +5238,15 @@ Some major modes set this.")
 ;; auto-fill-function to nil in a file-local setting is safe and
 ;; can be useful to prevent auto-filling.
 (put 'auto-fill-function 'safe-local-variable 'null)
-;; FIXME: turn into a proper minor mode.
-;; Add a global minor mode version of it.
+
 (define-minor-mode auto-fill-mode
   "Toggle Auto Fill mode.
 With ARG, turn Auto Fill mode on if and only if ARG is positive.
 In Auto Fill mode, inserting a space at a column beyond `current-fill-column'
 automatically breaks the line at a previous space.
+
+When `auto-fill-mode' is on, the `auto-fill-function' variable is
+non-`nil'.
 
 The value of `normal-auto-fill-function' specifies the function to use
 for `auto-fill-function' when turning Auto Fill mode on."
@@ -5303,11 +5309,12 @@ The variable `selective-display' has a separate value for each buffer."
 (defvaralias 'indicate-unused-lines 'indicate-empty-lines)
 
 (defun toggle-truncate-lines (&optional arg)
-  "Toggle whether to fold or truncate long lines for the current buffer.
+  "Toggle truncating of long lines for the current buffer.
+When truncating is off, long lines are folded.
 With prefix argument ARG, truncate long lines if ARG is positive,
-otherwise don't truncate them.  Note that in side-by-side windows,
-this command has no effect if `truncate-partial-width-windows'
-is non-nil."
+otherwise fold them.  Note that in side-by-side windows, this
+command has no effect if `truncate-partial-width-windows' is
+non-nil."
   (interactive "P")
   (setq truncate-lines
 	(if (null arg)
@@ -5520,8 +5527,8 @@ The function should return non-nil if the two tokens do not match.")
                 (minibuffer-message "Mismatched parentheses")
               (message "Mismatched parentheses"))
           (if (minibufferp)
-              (minibuffer-message "Unmatched parenthesis")
-            (message "Unmatched parenthesis"))))
+              (minibuffer-message "No matching parenthesis found")
+            (message "No matching parenthesis found"))))
        ((not blinkpos) nil)
        ((pos-visible-in-window-p blinkpos)
         ;; Matching open within window, temporarily move to blinkpos but only

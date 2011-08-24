@@ -1,19 +1,1112 @@
+2011-08-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mpc.el (mpc--proc-filter): Don't signal mpc-proc-error since signals
+	from process filters aren't reliably transmitted to the surrounding
+	accept-process-output.
+	(mpc-proc-check): New function.
+	(mpc-proc-sync): Use it (bug#8293)
+
+2011-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio.el (eieio-defmethod, eieio-defgeneric):
+	Add compatibility functions (bug#9313).
+
+2011-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* cus-start.el (all): Add entry for bidi-paragraph-direction.
+
+	* international/uni-bidi.el: Regenerated.
+
+2011-08-23  Kenichi Handa  <handa@m17n.org>
+
+	* international/charprop.el:
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-combining.el:
+	* international/uni-comment.el:
+	* international/uni-decimal.el:
+	* international/uni-decomposition.el:
+	* international/uni-digit.el:
+	* international/uni-lowercase.el:
+	* international/uni-mirrored.el:
+	* international/uni-name.el:
+	* international/uni-numeric.el:
+	* international/uni-old-name.el:
+	* international/uni-titlecase.el:
+	* international/uni-uppercase.el: Regenerate.
+
+2011-08-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.el (help-window-setup): Fix message displayed when other
+	window is reused.  (Bug#9341)
+
+2011-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el (shell-completion-vars): Set pcomplete-arg-quote-list.
+	* pcomplete.el (pcomplete-quote-argument): Fix thinko (bug#9161).
+
+	* pcomplete.el (pcomplete-parse-comint-arguments): Fix inf-loop.
+	Mark obsolete.
+	* shell.el (shell-parse-pcomplete-arguments): New function.
+	(shell-completion-vars): Use it instead (bug#9160).
+
+2011-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-maybe-here-document): Disable magic in
+	strings and comments (bug#9333).
+
+	* emacs-lisp/debug.el (debug-arglist): New function.
+	(debug-convert-byte-code): Use it.  Handle lexical byte-codes.
+	(debug-on-entry-1): Handle interpreted closures (bug#9120).
+
+2011-08-22  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Revert regexp that highlights output switches to its old
+	pre-2010-10-28 value and remove one `?' from it (bug#9319).
+
+	* progmodes/grep.el (grep-process-setup): Use `buffer-modified-p'
+	to check for empty output (bug#9226).
+
+2011-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/scheme.el (scheme-mode-syntax-table): Don't use
+	symbol-constituent as the default, as that stops font-lock from
+	working properly (Bug#8843).
+
+2011-08-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Only bind
+	`coding-system-for-*' around the process open call to avoid
+	auth-source side effects.
+	(smtpmail-try-auth-methods): Expand the secret password.
+	(smtpmail-query-smtp-server): Allow `quit'-ing out in case the
+	probe hangs.
+
+2011-08-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term.el (term-mouse-paste): Yank primary selection (Bug#6845).
+
+	* emacs-lisp/find-func.el (find-function-noselect): New arg
+	lisp-only.
+
+	* emacs-lisp/edebug.el (edebug-instrument-function): Use it to
+	signal an error for built-in functions (Bug#6664).
+
+2011-08-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-smtp-user): New variable.
+	(smtpmail-try-auth-methods): Use it.
+
+2011-08-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font-lock.el (font-lock-fontify-region)
+	(font-lock-unfontify-region, font-lock-default-fontify-buffer)
+	(font-lock-default-unfontify-buffer)
+	(font-lock-default-fontify-region)
+	(font-lock-default-unfontify-region): Add docstrings (Bug#8624).
+
+	* progmodes/compile.el (compilation-error-properties):
+	Fix confusion between file struct and message struct (Bug#9319).
+	(compilation-error-regexp-alist-alist): Fix 2011-05-09 change to
+	`ant' regexp.
+
+	* net/browse-url.el (browse-url-firefox): Don't call
+	browse-url-firefox-sentinel unless using -remote (Bug#9328).
+
+2011-08-20  Glenn Morris  <rgm@gnu.org>
+
+	* tutorial.el (help-with-tutorial): Avoid an error on short screens.
+
+	* tutorial.el (tutorial--default-keys): Update some default bindings.
+
+	* files.el (hack-local-variables): Fully ignore case for "mode:".
+
+2011-08-20  Alan Mackenzie  <acm@muc.de>
+
+	Resolve invalid use of a regexp in regexp-opt.
+
+	* cc-fonts.el (c-complex-decl-matchers): Add in special detection
+	for a java annotation.
+
+	* cc-engine.el (c-forward-decl-or-cast-1): Add in special
+	detection for a java annotation.
+
+	* cc-langs.el (c-prefix-spec-kwds-re): Remove the special handling
+	for java.
+	(c-modifier-kwds): Remove the regexp "@[A-za-z0-9]+".
+
+2011-08-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (normal-top-level-add-subdirs-to-load-path): Doc fix
+	(Bug#9274).
+
+2011-08-20  Alan Mackenzie  <acm@muc.de>
+
+	* Fontify CPP expressions correctly when starting in the middle of
+	such a construct.  Mainly for when jit-lock etc. starts a chunk
+	here.
+
+	* progmodes/cc-fonts.el (c-font-lock-context): new buffer local
+	variable.
+	(c-make-font-lock-search-form): new function, extracted from
+	c-make-font-lock-search-function.
+	(c-make-font-lock-search-function): Use the above function.
+	(c-make-font-lock-context-search-function): New function.
+	(c-cpp-matchers): Enhance the preprocessor expression case with
+	the above function
+	(c-font-lock-complex-decl-prepare): Test for being in a CPP form
+	which takes an expression.
+
+	* progmodes/cc-langs.el (c-cpp-expr-intro-re): New lang-variable.
+
+2011-08-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-reuse-window)
+	(display-buffer-pop-up-window): Don't reuse or split a side
+	window.
+
+2011-08-19  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (hack-local-variables-prop-line, hack-local-variables):
+	Downcase "Mode:". (Bug#9331)
+
+2011-08-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* international/characters.el: Add L and R categories.
+
+	* subr.el (bidi-string-mark-left-to-right): Rename from
+	string-mark-left-to-right.  Use category search.
+
+	* buff-menu.el (Buffer-menu-buffer+size): Callers changed.
+
+2011-08-18  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (error, warning, success): New faces with definitions
+	copied from old default values of `font-lock-warning-face',
+	`compilation-warning', `compilation-info' (bug#6117).
+
+	* font-lock.el (font-lock-warning-face): Inherit from `error'.
+
+	* progmodes/compile.el (compilation-error): Inherit from `error'.
+	(compilation-warning): Inherit from `warning'.
+	(compilation-info): Inherit from `success'.
+
+	* dired.el (dired-marked): Inherit from `warning'.
+	(dired-flagged): Inherit from `error'.
+
+2011-08-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (auth-source): Require to avoid problems with
+	binding variables (bug#9298).  Also clean up some unused
+	autoloads.
+
+	* net/network-stream.el (network-stream-open-starttls):
+	Support using starttls.el without using gnutls-cli.
+
+2011-08-17  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (rgrep): Handle the case when
+	`grep-find-command' is a cons cell (bug#9278).
+
+2011-08-17  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-pop-up-frame): Run frame creation
+	function with BUFFER current (as special-display-popup-frame
+	does).  Reported by Drew Adams.
+
+2011-08-17  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-mail.el: Simplify GnuPG group expansion using
+	epg-expand-group.
+	(epa-mail-group-alist, epa-mail-group-modtime)
+	(epa-mail-gnupg-conf-file, epa-mail-parse-groups)
+	(epa-mail-sync-groups, epa-mail-expand-recipient-1)
+	(epa-mail-expand-recipients-2, epa-mail-expand-recipients):
+	Remove.
+
+2011-08-16  Feng Li <fengli@gmail.com> (tiny change)
+
+	* calc/calc-ext.el (math-defintegral-2): Remove nested backquote.
+
+2011-08-16  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-state-cache-non-literal-place):
+	Correct, to avoid the inside of macros.
+
+2011-08-16  Richard Stallman  <rms@gnu.org>
+
+	* epa-mail.el: Handle GnuPG group definitions.
+	(epa-mail-group-alist, epa-mail-group-modtime)
+	(epa-mail-gnupg-conf-file): New variables.
+	(epa-mail-parse-groups, epa-mail-sync-groups)
+	(epa-mail-expand-recipient-1, epa-mail-expand-recipients-2)
+	(epa-mail-expand-recipients): New functions.
+	(epa-mail-encrypt): Call epa-mail-expand-recipients.
+
+	* mail/rmail.el (rmail-epa-decrypt): New command.
+
+	* epa.el (epa-decrypt-region): New arg MAKE-BUFFER-FUNCTION.
+	Don't bind buffer-read-only, just inhibit-read-only.
+	(epa--find-coding-system-for-mime-charset): Fix the non-xemacs case.
+	(epa-decrypt-armor-in-region): Make error message clearer.
+
+2011-08-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-pcm--merge-completions): Don't merge "a1b"
+	and "a2b" to "ab" for `prefix'.
+
+2011-08-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ibuf-ext.el (ibuffer-filter-disable): New arg for deleting
+	filter groups.
+	(ibuffer-included-in-filter-p-1): Use it.  Suggested by Rafaël
+	Fourquet (Bug#8804).
+
+2011-08-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* startup.el (argi): Declare as global variable (bug#9275).
+
+2011-08-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (string-mark-left-to-right): Search the entire string
+	for RTL script, not just the terminating character.  Doc fix.
+
+2011-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/js.el (js-syntax-propertize, js-syntax-propertize-regexp):
+	New function.
+	(js--regexp-literal, js-syntax-propertize-function): Remove.
+	(js-mode): Use js-syntax-propertize to handle multilines (bug#9183).
+	(js-mode-map): Don't rebind electric keys.
+	(js-insert-and-indent): Remove.
+	(js-mode): Setup electric-layout and electric-indent instead.
+
+	* epa-file.el (epa-file-select-keys): Revert to nil default (bug#9280).
+
+2011-08-12  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.el (epa-progress-callback-function): Fix the logic of
+	displaying progress.
+	* epa-file.el (epa-file-insert-file-contents): Make progress
+	display more user-friendly.
+	(epa-file-write-region): Ditto.
+
+2011-08-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (string-mark-left-to-right): New function.
+
+	* buff-menu.el (Buffer-menu-buffer+size): Remove LRM argument.
+	Use string-mark-left-to-right.
+	(list-buffers-noselect): Caller changed.
+
+	* emacs-lisp/tabulated-list.el (tabulated-list-print-entry):
+	Use string-mark-left-to-right.
+	(tabulated-list-print): Recenter after moving point.
+
+2011-08-10  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (rgrep): Don't bind `process-connection-type'.
+	This finishes incomplete reversion of revno:104787 (2011-06-30)
+	intended by revno:104988 (2011-07-06).
+
+2011-08-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hi-lock.el (hi-lock-unface-buffer): Fix interactive spec
+	(Bug#7554).
+
+2011-08-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xt-mouse.el (xterm-mouse-event-read): Try to recover the raw
+	character.  (Bug#6594)
+
+2011-08-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image-dired.el: Don't use find-file for temporary work (Bug#7895).
+	(image-dired--with-db-file): New macro.
+	(image-dired-write-tags, image-dired-remove-tag)
+	(image-dired-create-gallery-lists, image-dired-write-comments)
+	(image-dired-get-comment, image-dired-mark-tagged-files)
+	(image-dired-list-tags, image-dired-gallery-generate): Use it.
+	(image-dired-gallery-generate): Use insert-file-contents.
+
+	* time.el (display-time-world-list, display-time-world-display):
+	* time-stamp.el (time-stamp-string):
+	* vc/add-log.el (add-change-log-entry): Use setenv instead of
+	set-time-zone-rule (Bug#7337).
+
+2011-08-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg.el (epg--status-KEYEXPIRED, epg--status-KEYREVOKED): Fix typo.
+	(epg-error-to-string, epg-errors-to-string): New function.
+	(epg-wait-for-completion): Reverse errors list.
+	(epg--check-error-for-decrypt, epg-sign-file, epg-sign-string)
+	(epg-encrypt-file, epg-encrypt-string, epg-export-keys-to-file)
+	(epg--import-keys-1, epg-receive-keys, epg-delete-keys)
+	(epg-sign-keys, epg-generate-key-from-file)
+	(epg-generate-key-from-string): Format errors by using
+	epg-errors-to-string (bug#9255).
+	(epg--status-INV_SGNR, epg--status-NO_SGNR): New status handler.
+
+2011-08-07  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (list-faces-display): Remove extra angle bracket
+	from `help-mode-map'.
+
+	* info.el (Info-history-toc-nodes): Doc fix.
+
+	* longlines.el (longlines-mode): Doc fix.
+
+2011-08-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/js.el (js--regexp-literal): Accept regexps at the beginning
+	of statements and in a few more cases (bug#9183).
+
+	* emacs-lisp/cl-macs.el (cl--make-usage-var, cl--make-usage-args):
+	New functions.
+	(cl-transform-lambda): Use them (bug#9239).
+
+2011-08-05  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-same-window)
+	(display-buffer-same-frame, display-buffer-other-window)
+	(pop-to-buffer-same-window, pop-to-buffer-same-frame)
+	(pop-to-buffer-other-window)
+	(pop-to-buffer-same-frame-other-window)
+	(pop-to-buffer-other-frame): Make them defuns.
+	(switch-to-buffer): Don't set LABEL argument of pop-to-buffer.
+
+2011-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (make-composed-keymap): Move from C.  Change calling
+	convention, and improve docstring to bring attention to a subtle point.
+	* minibuffer.el (completing-read-default): Adjust accordingly.
+
+2011-08-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-open-connection-setup-interactive-shell)
+	(tramp-open-shell): Use `tramp-shell-quote-argument'.
+
+	* net/trampver.el: Update release number.
+
+2011-08-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-paren): Don't mistake "main" for
+	"in" (bug#9190).
+
+2011-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/sendmail.el (sendmail-query-once): Restore the current
+	buffer after querying (bug#9074).
+
+	* dired.el (dired-flagged): Use different faces for marked and
+	flagged files (bug#6117).
+
+	* emacs-lisp/cl-macs.el (dolist): Mention that there's a nil block
+	(bug#4433).
+
+	* ido.el (ido-mode): Switch off the message if called
+	non-interactively.
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Try port 25
+	before 587, since it appears that that's more likely to work for
+	more people.
+
+	* cus-edit.el (custom-file): When running under emacs -q, always
+	refuse to save the customisations, even if the .emacs file doesn't
+	exist.
+
+	* info.el: Remove the `Info-beginning-of-buffer' function
+	(bug#8325).
+
+	* net/network-stream.el (network-stream-open-starttls):
+	Use `starttls-available-p' to see whether starttls.el can be used.
+
+2011-08-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-in-window): Don't set dedicated status
+	of window here (Bug#9215).
+	(display-buffer-pop-up-window, display-buffer-pop-up-frame)
+	(display-buffer-pop-up-side-window)
+	(display-buffer-in-side-window): Set dedicated status of window here.
+
+2011-08-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/package.el (package-generate-autoloads): Load autoloads
+	before binding generated-autoload-file.
+
+2011-08-01  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-handler-333): Clarify docstring.
+
+2011-07-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.2.2.
+
+	* net/trampver.el: Update release number.
+
+2011-07-30  Juri Linkov  <juri@jurta.org>
+
+	* dired-aux.el (dired-touch-initial): Remove function.
+	(dired-do-chxxx): For op-symbol `touch', set `initial' to the
+	current time, and `default' to the last modification time of the
+	current marked file (bug#6887).
+
+2011-07-28  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* simple.el (goto-line): Use string-to-number to provide a
+	numeric argument to read-number (bug#9163).
+
+2011-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-maybe-send-script): Don't let-bind the
+	connection process, it could be nil.
+
+2011-07-27  Leo Liu  <sdl.web@gmail.com>
+
+	Simplify url handling in rcirc-mode.
+
+	* net/rcirc.el (rcirc-browse-url-map, rcirc-browse-url-at-point)
+	(rcirc-browse-url-at-mouse): Remove.
+	* net/rcirc.el (rcirc-markup-urls): Use `make-button'.
+
+2011-07-26  Alan Mackenzie  <acm@muc.de>
+
+	Fontify bitfield declarations properly.
+
+	* progmodes/cc-langs.el (c-has-bitfields): New lang variable.
+	(c-symbol-chars): Now exported as a lang variable.
+	(c-not-primitive-type-keywords): New lang variable.
+
+	* progmodes/cc-fonts.el (c-font-lock-declarations): Jump over the
+	QT keyword "more" to prevent "more slots: ...." being spuriously
+	parsed as a bitfield declaraion.
+
+	* progmodes/cc-engine.el (c-beginning-of-statement-1):
+	Refactor and enhance to handle bitfield declarations.
+	(c-punctuation-in): New function.
+	(c-forward-decl-or-cast-1): Enhance CASE 3 to handle bitfield
+	declarations properly.
+
+2011-07-26  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar--all-events): Take care of
+	multiple vcalendars in a single file.
+	(icalendar--convert-float-to-ical): Checkdoc fixes.
+
+2011-07-25  Deniz Dogan  <deniz@dogan.se>
+
+	* image.el (insert-image): Clarifying docstring.
+
+2011-07-24  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-barf-unless-okay): Return the value of
+	`tramp-send-command-and-check' if there is no error.
+	(tramp-send-command-and-read): Suppress *all* errors if NOERROR.
+
+2011-07-22  Alan Mackenzie  <acm@muc.de>
+
+	Prevent cc-langs.elc being loaded at run time.
+
+	* progmodes/cc-mode.el: Remove two autoload forms which loaded
+	cc-langs.
+
+	* /progmodes/cc-langs.el (c-make-init-lang-vars-fun): Don't emit
+	"(require 'cc-langs)".  Quote a form so it will evaluate at
+	(cc-mode's) compilation time.
+
+2011-07-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-handler): Avoid recursive
+	loading.  (Bug#9114)
+
+2011-07-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-pop-up-window)
+	(display-buffer-pop-up-side-window)
+	(display-buffer-in-side-window): Call display-buffer-set-height
+	and display-buffer-set-width after setting the new window's
+	buffer so `fit-window-to-buffer' and friends work on the right buffer.
+
+2011-07-20  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/etags.el (etags-file-of-tag, etags-tags-table-files)
+	(etags-tags-included-tables): Call `convert-standard-filename' on
+	the file names contained in TAGS so that windows Emacs can handle
+	TAGS files created by cygwin ctags.
+
+2011-07-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* proced.el (proced-update): Revert yesterday's bug#1779 patch,
+	which apparently didn't work.
+
+2011-07-19  Roland Winkler  <winkler@gnu.org>
+
+	* proced.el (proced-send-signal): For *Marked Processes* buffer
+	put point at beginning of buffer.
+
+2011-07-19  Stephen Berman  <stephen.berman@gmx.net>
+
+	* proced.el (proced-format): Make header lines align with the text
+	(bug#1779).
+
+2011-07-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* view.el (view-buffer): Allow running in `special' modes if we're
+	visiting a file (bug#8615).
+
+2011-07-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-alist-of-strings-p)
+	(display-buffer-alist-set-1, display-buffer-alist-set-2):
+	New functions.
+	(display-buffer-alist-set): Rewrite to handle Emacs 23 options
+	more accurately.
+
+2011-07-18  Alan Mackenzie  <acm@muc.de>
+
+	Fontify declarators properly when, e.g., a jit-lock chunk begins
+	inside a declaration.
+
+	* progmodes/cc-langs.el (c-symbol-chars): Correct a typo.
+
+	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls):
+	New function.
+	(c-complex-decl-matchers): Insert reference to
+	c-font-lock-enclosing-decls.
+
+	* progmodes/cc-engine.el (c-backward-single-comment):
+	(c-backward-comments): Bind open-paren-in-column-0-is-defun-start
+	to nil around calls to (forward-comment -1).
+
+2011-07-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* image.el (put-image): Doc typo fix.
+
+	* progmodes/etags.el (tags-search): Doc typo fix.
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Query the user for
+	password if we get errors 550 to 554.
+
+2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/gnutls.el (gnutls-log-level): Remove.
+
+	* textmodes/fill.el (adaptive-fill-regexp): Include EN DASH as an
+	indentation character (bug#6380).
+
+	* files.el (buffer-offer-save): Made permanently local (bug#6241).
+
+	* doc-view.el (doc-view-make-safe-dir): Rewrite the error message
+	to clarify what the problem is (bug#4291).
+
+	* simple.el (current-kill): Clarify what
+	`interprogram-paste-function' does (bug#7500).
+	(auto-fill-mode): Document `auto-fill-function' in relation to
+	`auto-fill-mode' (bug#2470).
+
+2011-07-16  Lawrence Mitchell  <wence@gmx.li>
+
+	* emacs-lisp/cl-macs.el (defstruct): Ignore argument to setf
+	method if slot is read-only (bug#9035).
+
+2011-07-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.el (select-frame-set-input-focus): New argument NORECORD.
+	* window.el (pop-to-buffer): Select window used even if it was
+	selected before, see discussion of (Bug#8615), (Bug#6954).
+	Pass argument NORECORD on to select-frame-set-input-focus.
+
+2011-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (read-char-choice): Allow quitting.  (Bug#9001)
+	Respect help-form.
+
+2011-07-09  Lawrence Mitchell  <wence@gmx.li>
+
+	* net/gnutls.el (gnutls-min-prime-bits): New variable.
+	(gnutls-negotiate): Use it.
+
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/gnutls.el (gnutls-negotiate):
+	Upcase `gnutls-algorithm-priority'.
+
+2011-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* jka-compr.el (jka-compr-verbose): Move from here...
+	* jka-cmpr-hook.el (jka-compr-verbose): ... to here.  (Bug#9090)
+	Add missing :version tag.
+	* info.el: No need to require jka-compr when compiling.
+
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/gnutls.el (gnutls-algorithm-priority): New variable.
+	(gnutls-negotiate): Use it.
+
+	* emacs-lisp/cl-macs.el (declare): Link to the "Declarations" node.
+
+	* info.el (Info-beginning-of-buffer): New command.
+	(Info-mode-map): Use it instead of `beginning-of-buffer' to allow
+	announcing `b' as the key (bug#8325).
+	(Info-mode-menu): Use `Info-beginning-of-buffer' for consistency.
+
+	* emacs-lisp/cl-macs.el (declare): Doc string fix-up.
+
+	* international/mule-cmds.el
+	(describe-specified-language-support): Make the error message
+	clearer (bug#8905).
+
+	* emacs-lisp/cl-macs.el (declare): Add a doc string (bug#8690).
+
+	* isearch.el (isearch-barrier): Add a doc string, since it's
+	mentioned in a function doc string (bug#8678).
+
+2011-07-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (switch-to-buffer): Call pop-to-buffer with normalized
+	buffer argument (Bug#9083) and self-identifying label argument.
+
+2011-07-15  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/debug.el (debug): Doc fix.  (Bug#8273)
+
+2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* man.el (Man-fontify-manpage): Fix message when formatting the
+	man page (bug#7929).
+
+2011-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* buff-menu.el (Buffer-menu-buffer+size): Accept an additional
+	argument LRM; if non-nil, append an invisible LRM character to the
+	buffer name.
+	(list-buffers-noselect): Call Buffer-menu-buffer+size with the
+	last argument non-nil, when formatting buffer names.
+	(Buffer-menu-mode, list-buffers-noselect): Force left-to-right
+	paragraph direction.
+
+2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* man.el (Man-bgproc-sentinel): Skip any arguments and only output
+	the man page name (bug#7929).
+
+	* image.el (put-image): Mention the `put-image' overlay property
+	(bug#7834).
+
+	* scroll-bar.el (set-scroll-bar-mode): Mention that
+	`scroll-bar-mode' lists the values (bug#7772).
+
+	* image-mode.el (image-mode-fit-frame): Mention that it's a toggle
+	command (bug#7729).
+
+	* rect.el (apply-on-rectangle): Return the point after the last
+	operation.
+	(string-rectangle): Go to the point after the last operation
+	(bug#7522).
+
+	* printing.el (pr-toggle-region): Clarify the documentation
+	slightly (bug#7493).
+
+	* time.el (display-time-update):
+	Allow `display-time-mail-function' to return nil (bug#7158).
+	Fix suggested by Detlev Zundel.
+
+	* vc/diff.el (diff): Clarify the order the file names are read
+	(bug#7111).
+
+	* mouse.el (mouse-set-region): Link to `mouse-drag-copy-region' in
+	the doc string (bug#7015).
+
+	* font-lock.el (font-lock-maximum-decoration): Mention what
+	numeric levels mean (bug#6935).
+
+	* startup.el (initial-buffer-choice): Don't mention the `none'
+	selection, which is against policy.
+
+2011-07-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-normalize-special):
+	Replace `dedicated' by `dedicate' to dedicate window (Bug#9072).
+
+2011-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (version<, version<=, version=): Mention "-CVS" and
+	"-12345" alpha version numbers.
+
+2011-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el: Add advertised binding for set-mark-command
+	(Bug#5772).
+
+2011-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* bindings.el (mode-line-other-buffer):
+	* bookmark.el (bookmark-bmenu-2-window):
+	* bs.el (bs-cycle-next, bs-cycle-previous):
+	* net/tramp-cmds.el (tramp-append-tramp-buffers): Revert to using
+	switch-to-buffer.
+
+	* net/tramp-compat.el (tramp-compat-pop-to-buffer-same-window):
+	Delete.
+
+2011-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* follow.el (follow-debug-message, follow-redisplay):
+	* jka-cmpr-hook.el (with-auto-compression-mode):
+	Fix typos in docstrings.
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* subr.el (with-silent-modifications): Clarify somewhat what the
+	macro inhibits (bug#6525).
+
+	* simple.el (eval-expression): Note what it does if called
+	interactively (bug#6495).
+
+2011-07-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (switch-to-buffer): New arg FORCE-SAME-WINDOW.
+	Use pop-to-buffer buffer-or-name if it is nil.
+
+	* emacs-lisp/bytecomp.el (byte-compile-interactive-only-functions):
+	Remove switch-to-buffer.
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* files.el (make-directory): Clarify that an error will be raised
+	if there's an error (bug#6397).
+
+	* startup.el (initial-buffer-choice): Add `none' as a choice
+	(bug#6234).
+
+	* subr.el (add-hook): Clarify section about buffer-local hooks
+	(bug#6218).
+
+	* dired.el (dired-flagged): Clarify doc string (bug#6117).
+
+2011-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tabify.el (untabify): Preserve the current column so that point
+	doesn't move (bug#6032).
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* progmodes/cperl-mode.el (cperl-syntaxify-by-font-lock):
+	Rewrite to avoid awkward possessive "s" (bug#5986).
+
+2011-07-13  Glenn Morris  <rgm@gnu.org>
+
+	* dired.el (dired-use-ls-dired): Doc fix.  (Bug#9039).
+	(dired-insert-directory): Give a message the first time
+	if ls is found not to support --dired.
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* simple.el (toggle-truncate-lines): Clarify what is toggled
+	(bug#5580).  Text by Drew Adams.
+
+2011-07-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (blink-matching-open): Make the error message from the
+	last change less verbose.
+
+2011-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* font-lock.el (font-lock-comment-face): Use the high contrast
+	"yellow" color for font-lock-comment-face on low color terminals
+	using a dark background color (bug#4221).
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.el (dired-insert-set-properties): Make the doc string
+	reflect what it does now (bug#5325).
+
+	* simple.el (blink-matching-open): Say that we were unable to find
+	the match within the limit, if we're limited (bug#5122).
+
+	* international/mule-cmds.el (prefer-coding-system): Add an
+	example (bug#4869).
+
+	* progmodes/etags.el (tags-search): Document `file-list-form'
+	(bug#4731).
+
+2011-07-13  Lawrence Mitchell  <wence@gmx.li>
+
+	* net/browse-url.el (browse-url-default-browser)
+	(browse-url-browser-function): Make the default browser choice a
+	bit more logical (bug#4300).  Also clean up the doc string.
+
+2011-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bindings.el (completion-ignored-extensions): Add OpenMCL/Clozure
+	binary endings (bug#4440).
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* info.el (info-insert-file-contents): Inhibit jka-compr messages,
+	which can be pretty annoying (bug#8971).
+
+	* jka-compr.el (jka-compr-verbose): New variable, and use
+	throughout (bug#8971).
+
+	* info.el (Info-find-file): Fall back on the installation
+	directory if we can't find the info node anywhere else.
+
+2011-07-13  Sergei Organov  <osv@javad.com>  (tiny change)
+
+	* vc/vc.el (vc-revert-file):
+	Don't set file time-stamp in the past.  (Bug#5181)
+
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* files.el (after-find-file): Give a better error message when
+	trying to find a symlink that points to a file that doesn't exist
+	(bug#4398).
+
+	* progmodes/cc-vars.el: Remove (probably) misleading comment
+	(bug#4396).
+
+2011-07-12  Johan Bockgård  <bojohan@gnu.org>
+
+	* mouse-sel.el (mouse-sel-primary-overlay): Use the `region' face.
+
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse-sel.el: Hack restoring functionality, while keeping
+	compatibility with 2010-07-03 changes to mouse selection.
+	(mouse-sel-primary-overlay): New var.
+	(mouse-sel-selection-alist): Use it.
+	(mouse-sel-mode): Doc fix; remove points that are default features
+	of mouse.el.
+
+2011-07-12  Johan Bockgård  <bojohan@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Fix previous fix (bug#2490).
+
+2011-07-12  Roland Winkler  <winkler@gnu.org>
+
+	* textmodes/bibtex.el (bibtex-initialize):
+	Use pop-to-buffer-same-window.
+	(bibtex-search-entries): Fix interactive call.
+
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Fontise bytecomp Error lines more correctly (bug#2490).
+	Fix suggested by Johan Bockgård.
+
+	* subr.el (remove-duplicates): Remove; `delete-dups' is sufficient.
+
+	* dired-x.el (dired-guess-default): Use `delete-dups'.
+
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-mark-prompt):
+	* dired-aux.el (dired-read-shell-command): Doc fix.
+
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/sendmail.el (sendmail-query-once):
+	Use `customize-save-variable' unconditionally, now that it works under
+	emacs -Q.
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Ditto.
+
+	* cus-edit.el (custom-file): Take an optional no-error variable.
+	(customize-save-variable): Set the variable, and give a warning if
+	running under "emacs -q".
+
+2011-07-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadhist.el (unload-feature-special-hooks):
+	Add `auto-coding-functions', `fill-nobreak-predicate' and
+	`find-directory-functions' (bug#5327).
+
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* vc/ediff.el (ediff-patch-file): Clarify doc string (bug#3138).
+
+	* cus-edit.el (custom-guess-name-alist): -alist variables should
+	use the `alist' type (bug#3120).  Suggested by Drew Adams.
+
+	* printing.el: Add documentation to all the `pr-toggle-' commands.
+
+2011-07-11  Leo  <sdl.web@gmail.com>  (tiny change)
+
+	* files.el (toggle-read-only): Only do the `C-x C-q' warning on VC
+	backends where it makes sense (bug#2623).
+
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dired-x.el (dired-guess-default): Remove duplicate shell command
+	entries (bug#2028).
+	(dired-guess-default): Fix grammar in doc string (bug#2028).
+	(dired-guess-shell-alist-user): Clarify the example a bit (bug#2030).
+
+	* subr.el (remove-duplicates): New conveniency function.
+
+2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* tool-bar.el (tool-bar-mode): Clarify positive/negative arguments
+	(bug#1526).
+
+2011-07-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-normalize-default): Don't invert
+	meaning of even-window-heights.  Reported by Eli Zaretskii
+	<eliz@gnu.org>.
+
+2011-07-10  Bob Rogers  <rogers@rgrjr.dyndns.org>
+
+	* vc/vc.el (vc-diff-internal): Fix race condition (Bug#1256).
+
+2011-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (display-buffer): Fix arguments to
+	display-buffer-reuse-window in last change.
+
+	* faces.el (link): Use a less saturated blue on light backgrounds.
+
+	* startup.el (fancy-startup-text, fancy-about-text)
+	(fancy-startup-tail): Use font-lock faces, for background safety.
+
+2011-07-09  Bob Nnamtrop  <bobnnamtrop@gmail.com>  (tiny change)
+
+	* emulation/viper-cmd.el (viper-change-state-to-vi):
+	Limit triggering of abbrev expansion (Bug#9038).
+
+2011-07-09  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-default-specifiers): Remove.
+	(display-buffer-macro-specifiers): Remove default specifiers.
+	(display-buffer-alist): Default to nil.
+	(display-buffer-reuse-window): New optional argument other-window.
+	(display-buffer-pop-up-window): Allow splitting internal
+	windows.  Check whether a live window was created.
+	(display-buffer-other-window-means-other-frame)
+	(display-buffer-normalize-arguments): Rename to
+	display-buffer-normalize-argument and rewrite.  Set the
+	other-window specifier.
+	(display-buffer-normalize-special): New function.
+	(display-buffer-normalize-options): Rename to
+	display-buffer-normalize-default and rewrite.
+	(display-buffer-normalize-options-inhibit): Remove.
+	(display-buffer-normalize-specifiers): Rewrite.
+	(display-buffer): Process other-window specifier and call
+	display-buffer-reuse-window with it.  Emulate Emacs 23 behavior
+	more faithfully.
+	(pop-up-windows, even-window-heights): Restore Emacs 23 default values.
+	(display-buffer-alist-set): Don't handle 'unset default values.
+	(display-buffer-in-window, display-buffer-alist-set):
+	Replace symbol "dedicated" by "dedicate".  Reported by Tassilo Horn
+	<tassilo@member.fsf.org>.
+
+2011-07-09  Leo Liu  <sdl.web@gmail.com>
+
+	* register.el (insert-register): Restore accidental change on
+	2011-06-26.  (Bug#9028)
+
+2011-07-09  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (remq): Handle the empty list.  (Bug#9024)
+
+2011-07-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* mail/sendmail.el (send-mail-function): No longer delay custom
+	initialization.
+	* custom.el (custom-initialize-delay): Doc fix.
+
+2011-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* abbrev.el (expand-abbrev): Try to preserve point (bug#5805).
+
+2011-07-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-handle-start-file-process): Use a
+	human-friendly prompt.
+
+2011-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/vc-bzr.el (vc-bzr-revision-keywords): Remove svn, it's only
+	provided by a particular plugin.
+
+2011-07-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/sendmail.el (sendmail-query-once): If we aren't allowed to
+	save customizations (with "emacs -Q"), just set the variable
+	instead of erroring out.
+
+	* mail/smtpmail.el (smtpmail-query-smtp-server): Ditto.
+
+2011-07-08  Juri Linkov  <juri@jurta.org>
+
+	* arc-mode.el (archive-zip-expunge, archive-zip-update)
+	(archive-zip-update-case): Use 7z if found by `executable-find'.
+	The order of searching the available programs is the same as in
+	`archive-zip-extract' (bug#8968).
+
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-line-wrapping-menu): Revert last change.
+	(menu-bar-options-menu): Tweak descriptions.
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* menu-bar.el (menu-bar-line-wrapping-menu): Make all the Options
+	menu items into verb phrases (bug#1421).  Also refill to fit under
+	80 columns.
+
+2011-07-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.el (info, Info-read-node-name-2, Info-read-node-name-1)
+	(Info-read-node-name): Doc fix (Bug#1084).
+
+	* thingatpt.el (forward-thing, bounds-of-thing-at-point)
+	(thing-at-point, beginning-of-thing, end-of-thing, in-string-p)
+	(end-of-sexp, beginning-of-sexp)
+	(thing-at-point-bounds-of-list-at-point, forward-whitespace)
+	(forward-symbol, forward-same-syntax, word-at-point)
+	(sentence-at-point): Doc fix (Bug#1144).
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* info.el (Info-mode-map): Remove S-TAB binding, since [backtab]
+	should cover it (bug#1281).
+
+	* cus-edit.el (custom-show): Mark as obsolete.
+
+	* net/network-stream.el (network-stream-open-starttls): If gnutls
+	negotiation fails, then possibly try again with a non-encrypted
+	connection (bug#9017).
+
+	* mail/smtpmail.el (smtpmail-stream-type): Note that `plain' can
+	be used.
+
+2011-07-07  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-next-error-move): Use `compilation-message'
+	property, and handle its changed format.
+	Look for the correct line number.
+	Use file's line contents (but not past first =) to find
+	correct line in message.
+
 2011-07-07  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el (build-unicode-category-table):
 	Delete it.
-	(unicode-category-table): Set it by
-	unicode-prroperty-table-internal.
+	(unicode-category-table): Set it by unicode-property-table-internal.
 
-	* international/mule-cmds.el (char-code-property-alist): Moved to
+	* international/mule-cmds.el (char-code-property-alist): Move to
 	to src/chartab.c.
 	(get-char-code-property): Call unicode-property-table-internal to
 	load a file.  Call get-unicode-property-internal where necessary.
 	(put-char-code-property): Call unicode-property-table-internal to
 	load a file.  Call put-unicode-property-internal where necessary.
 	put-unicode-property-internal where necessary.
-	(char-code-property-description): Call
-	unicode-property-table-internal to load a file.
+	(char-code-property-description):
+	Call unicode-property-table-internal to load a file.
 
 	* international/charprop.el:
 	* international/uni-bidi.el:
@@ -82,8 +1175,8 @@
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* emacs-lisp/lisp-mode.el (eval-defun-1): Update the documentation
-	of faces when `M-C-x'-ing their definitions (bug#8378).  Also
-	clean up the code slightly.
+	of faces when `M-C-x'-ing their definitions (bug#8378).
+	Also clean up the code slightly.
 
 	* progmodes/grep.el (rgrep): Don't bind `process-connection-type',
 	because that makes the colours go away.
@@ -107,39 +1200,38 @@
 2011-07-06  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el: Version 3.0
-	(sql-product-alist): Added product :completion-object,
+	(sql-product-alist): Add product :completion-object,
 	:completion-column, and :statement attributes.
-	(sql-mode-menu, sql-interactive-mode-map): Fixed List entries.
+	(sql-mode-menu, sql-interactive-mode-map): Fix List entries.
 	(sql-mode-syntax-table): Mark all punctuation.
-	(sql-font-lock-keywords-builder): Temporarily removed fallback on
+	(sql-font-lock-keywords-builder): Temporarily remove fallback on
 	ansi keywords.
 	(sql-regexp-abbrev, sql-regexp-abbrev-list): New functions.
-	(sql-mode-oracle-font-lock-keywords): Improved.
+	(sql-mode-oracle-font-lock-keywords): Improve.
 	(sql-oracle-show-reserved-words): New function for development.
 	(sql-product-font-lock): Simplify for source code buffers.
 	(sql-product-syntax-table, sql-product-font-lock-syntax-alist):
 	New functions.
 	(sql-highlight-product): Set product specific syntax table.
-	(sql-mode-map): Added statement movement functions.
-	(sql-ansi-statement-starters, sql-oracle-statement-starters): New
-	variable.
+	(sql-mode-map): Add statement movement functions.
+	(sql-ansi-statement-starters, sql-oracle-statement-starters):
+	New variable.
 	(sql-statement-regexp, sql-beginning-of-statement)
 	(sql-end-of-statement, sql-signum): New functions.
-	(sql-buffer-live-p, sql=find-sqli-buffer): Added CONNECTION
-	parameter.
+	(sql-buffer-live-p, sql=find-sqli-buffer): Add CONNECTION parameter.
 	(sql-show-sqli-buffer): Bug fix.
 	(sql-interactive-mode): Store connection data as buffer local.
-	(sql-connect): Added NEW-NAME parameter.  Redesigned interaction
+	(sql-connect): Add NEW-NAME parameter.  Redesign interaction
 	with sql-interactive-mode.
 	(sql-save-connection): Save buffer local settings.
-	(sql-connection-menu-filter): Changed menu entry name.
+	(sql-connection-menu-filter): Change menu entry name.
 	(sql-product-interactive): Bug fix.
 	(sql-preoutput-hold): New variable.
 	(sql-interactive-remove-continuation-prompt): Bug fixes.
 	(sql-debug-redirect): New variable.
 	(sql-str-literal): New function.
 	(sql-redirect, sql-redirect-one, sql-redirect-value, sql-execute):
-	Redesigned.
+	Redesign.
 	(sql-oracle-save-settings, sql-oracle-restore-settings)
 	(sql-oracle-list-all, sql-oracle-list-table): New functions.
 	(sql-completion-object, sql-completion-column)
@@ -312,9 +1404,8 @@
 	buffer-saved-size and some allout state to not inhibit auto-saves
 	if there are no longer any plain-text topics pending encryption.
 
-	(allout-next-topic-pending-encryption),
-	(allout-encrypt-decrypted): No longer provide for exemption of the
-	current topic.
+	(allout-next-topic-pending-encryption, allout-encrypt-decrypted):
+	No longer provide for exemption of the current topic.
 
 2011-07-04  Juri Linkov  <juri@jurta.org>
 

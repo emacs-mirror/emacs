@@ -549,7 +549,8 @@ Each set is a vector of the form:
 (defvar isearch-error nil)	; Error message for failed search.
 (defvar isearch-other-end nil)	; Start (end) of match if forward (backward).
 (defvar isearch-wrapped nil)	; Searching restarted from the top (bottom).
-(defvar isearch-barrier 0)
+(defvar isearch-barrier 0
+  "Recorded minimum/maximal point for the current search.")
 (defvar isearch-just-started nil)
 (defvar isearch-start-hscroll 0)	; hscroll when starting the search.
 

@@ -35,21 +35,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
 #include <errno.h>
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 #include <stdio.h>
 #include <time.h>
 #include <pwd.h>
 #include <ctype.h>
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-#ifdef STDC_HEADERS
-#include <stdarg.h>
 #endif
 #include <sys/stat.h>
 
@@ -71,7 +64,7 @@ static int usage (int err) NO_RETURN;
 static int
 usage (int err)
 {
-  fprintf (stdout, "Usage: update-game-score [-m MAX ] [ -r ] game/scorefile SCORE DATA\n");
+  fprintf (stdout, "Usage: update-game-score [-m MAX] [-r] [-d DIR] game/scorefile SCORE DATA\n");
   fprintf (stdout, "       update-game-score -h\n");
   fprintf (stdout, " -h\t\tDisplay this help.\n");
   fprintf (stdout, " -m MAX\t\tLimit the maximum number of scores to MAX.\n");
@@ -113,8 +106,7 @@ static void lose_syserr (const char *msg) NO_RETURN;
 #ifndef HAVE_STRERROR
 #ifndef WINDOWSNT
 char *
-strerror (errnum)
-     int errnum;
+strerror (int errnum)
 {
   extern char *sys_errlist[];
   extern int sys_nerr;

@@ -442,6 +442,27 @@ x_display_info_for_display (Display *dpy)
   return 0;
 }
 
+static Window
+x_find_topmost_parent (struct frame *f)
+{
+  struct x_output *x = f->output_data.x;
+  Window win = None, wi = x->parent_desc;
+  Display *dpy = FRAME_X_DISPLAY (f);
+
+  while (wi != FRAME_X_DISPLAY_INFO (f)->root_window)
+    {
+      Window root;
+      Window *children;
+      unsigned int nchildren;
+
+      win = wi;
+      XQueryTree (dpy, win, &root, &wi, &children, &nchildren);
+      XFree (children);
+    }
+
+  return win;
+}
+
 #define OPAQUE  0xffffffff
 
 void
@@ -453,6 +474,7 @@ x_set_frame_alpha (struct frame *f)
   double alpha = 1.0;
   double alpha_min = 1.0;
   unsigned long opac;
+  Window parent;
 
   if (dpyinfo->x_highlight_frame == f)
     alpha = f->alpha[0];
@@ -473,6 +495,19 @@ x_set_frame_alpha (struct frame *f)
 
   opac = alpha * OPAQUE;
 
+  x_catch_errors (dpy);
+
+  /* If there is a parent from the window manager, put the property there
+     also, to work around broken window managers that fail to do that.
+     Do this unconditionally as this function is called on reparent when
+     alpha has not changed on the frame.  */
+
+  parent = x_find_topmost_parent (f);
+  if (parent != None)
+    XChangeProperty (dpy, parent, dpyinfo->Xatom_net_wm_window_opacity,
+                     XA_CARDINAL, 32, PropModeReplace,
+                     (unsigned char *) &opac, 1L);
+
   /* return unless necessary */
   {
     unsigned char *data;
@@ -480,7 +515,6 @@ x_set_frame_alpha (struct frame *f)
     int rc, format;
     unsigned long n, left;
 
-    x_catch_errors (dpy);
     rc = XGetWindowProperty (dpy, win, dpyinfo->Xatom_net_wm_window_opacity,
 			     0L, 1L, False, XA_CARDINAL,
 			     &actual, &format, &n, &left,
@@ -6088,6 +6122,8 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
           /* Perhaps reparented due to a WM restart.  Reset this.  */
           FRAME_X_DISPLAY_INFO (f)->wm_type = X_WMTYPE_UNKNOWN;
           FRAME_X_DISPLAY_INFO (f)->net_supported_window = 0;
+
+          x_set_frame_alpha (f);
         }
       goto OTHER;
 

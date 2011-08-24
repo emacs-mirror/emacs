@@ -396,7 +396,7 @@
   (eshell-command-result-p "+ ${+ 1 2} 3" "6\n"))
 
 (eshell-deftest var interp-lisp
-  "Interpolate Lisp form evalution"
+  "Interpolate Lisp form evaluation"
   (eshell-command-result-p "+ $(+ 1 2) 3" "6\n"))
 
 (eshell-deftest var interp-concat

@@ -6,7 +6,7 @@
 ;;         David Maus <dmaus at ictsoc dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -308,6 +308,7 @@ for namazu index."
 	     (wl-summary-redisplay))))))
 
 (provide 'org-wl)
+
 
 
 ;;; org-wl.el ends here

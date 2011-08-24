@@ -1357,8 +1357,12 @@ A handler is applicable to an error
 if CONDITION-NAME is one of the error's condition names.
 If an error happens, the first applicable handler is run.
 
-The car of a handler may be a list of condition names
-instead of a single condition name.  Then it handles all of them.
+The car of a handler may be a list of condition names instead of a
+single condition name; then it handles all of them.  If the special
+condition name `debug' is present in this list, it allows another
+condition in the list to run the debugger if `debug-on-error' and the
+other usual mechanisms says it should (otherwise, `condition-case'
+suppresses the debugger).
 
 When a handler handles an error, control returns to the `condition-case'
 and it executes the handler's BODY...
@@ -1461,13 +1465,6 @@ internal_condition_case (Lisp_Object (*bfun) (void), Lisp_Object handlers,
   struct catchtag c;
   struct handler h;
 
-  /* Since Fsignal will close off all calls to x_catch_errors,
-     we will get the wrong results if some are not closed now.  */
-#if HAVE_X_WINDOWS
-  if (x_catching_errors ())
-    abort ();
-#endif
-
   c.tag = Qnil;
   c.val = Qnil;
   c.backlist = backtrace_list;
@@ -1505,13 +1502,6 @@ internal_condition_case_1 (Lisp_Object (*bfun) (Lisp_Object), Lisp_Object arg,
   Lisp_Object val;
   struct catchtag c;
   struct handler h;
-
-  /* Since Fsignal will close off all calls to x_catch_errors,
-     we will get the wrong results if some are not closed now.  */
-#if HAVE_X_WINDOWS
-  if (x_catching_errors ())
-    abort ();
-#endif
 
   c.tag = Qnil;
   c.val = Qnil;
@@ -1555,13 +1545,6 @@ internal_condition_case_2 (Lisp_Object (*bfun) (Lisp_Object, Lisp_Object),
   struct catchtag c;
   struct handler h;
 
-  /* Since Fsignal will close off all calls to x_catch_errors,
-     we will get the wrong results if some are not closed now.  */
-#if HAVE_X_WINDOWS
-  if (x_catching_errors ())
-    abort ();
-#endif
-
   c.tag = Qnil;
   c.val = Qnil;
   c.backlist = backtrace_list;
@@ -1603,13 +1586,6 @@ internal_condition_case_n (Lisp_Object (*bfun) (ptrdiff_t, Lisp_Object *),
   Lisp_Object val;
   struct catchtag c;
   struct handler h;
-
-  /* Since Fsignal will close off all calls to x_catch_errors,
-     we will get the wrong results if some are not closed now.  */
-#if HAVE_X_WINDOWS
-  if (x_catching_errors ())
-    abort ();
-#endif
 
   c.tag = Qnil;
   c.val = Qnil;
@@ -1727,6 +1703,10 @@ See also the function `condition-case'.  */)
       && (!NILP (Vdebug_on_signal)
 	  /* If no handler is present now, try to run the debugger.  */
 	  || NILP (clause)
+	  /* A `debug' symbol in the handler list disables the normal
+	     suppression of the debugger.  */
+	  || (CONSP (clause) && CONSP (XCAR (clause))
+	      && !NILP (Fmemq (Qdebug, XCAR (clause))))
 	  /* Special handler that means "print a message and run debugger
 	     if requested".  */
 	  || EQ (h->handler, Qerror)))
@@ -1968,18 +1948,18 @@ void
 verror (const char *m, va_list ap)
 {
   char buf[4000];
-  size_t size = sizeof buf;
-  size_t size_max = STRING_BYTES_BOUND + 1;
-  size_t mlen = strlen (m);
+  ptrdiff_t size = sizeof buf;
+  ptrdiff_t size_max = STRING_BYTES_BOUND + 1;
+  char const *m_end = m + strlen (m);
   char *buffer = buf;
-  size_t used;
+  ptrdiff_t used;
   Lisp_Object string;
 
   while (1)
     {
       va_list ap_copy;
       va_copy (ap_copy, ap);
-      used = doprnt (buffer, size, m, m + mlen, ap_copy);
+      used = doprnt (buffer, size, m, m_end, ap_copy);
       va_end (ap_copy);
 
       /* Note: the -1 below is because `doprnt' returns the number of bytes

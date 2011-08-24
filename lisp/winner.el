@@ -145,7 +145,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 ;;; Saved configurations
 
-;; This variable contains the window cofiguration rings.
+;; This variable contains the window configuration rings.
 ;; The key in this alist is the frame.
 (defvar winner-ring-alist nil)
 

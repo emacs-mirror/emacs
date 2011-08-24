@@ -81,6 +81,13 @@ specified, the @code{ls} switches can include short options (that is,
 single characters) requiring no arguments, and long options (starting
 with @samp{--}) whose arguments are specified with @samp{=}.
 
+@vindex dired-use-ls-dired
+  Note that Dired automatically adds the option @samp{--dired}, if
+your @code{ls} program supports it, unless you explicitly set
+the variable @code{dired-use-ls-dired} to @code{nil}.  Without this
+option, Dired will have trouble parsing some @samp{unusual} file-names.
+See the documentation of @code{dired-use-ls-dired} for more details.
+
   On MS-Windows and MS-DOS systems, Emacs @emph{emulates} @code{ls};
 see @ref{ls in Lisp}, for options and peculiarities of that emulation.
 
@@ -638,8 +645,8 @@ link.
 @cindex changing file permissions (in Dired)
 @item M @var{modespec} @key{RET}
 Change the mode (also called ``permission bits'') of the specified files
-(@code{dired-do-chmod}).  This uses the @code{chmod} program, so
-@var{modespec} can be any argument that @code{chmod} can handle.
+(@code{dired-do-chmod}).  @var{modespec} can be in octal or symbolic
+notation like arguments handled by the @code{chmod} program.
 
 @findex dired-do-chgrp
 @kindex G @r{(Dired)}

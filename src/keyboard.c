@@ -44,7 +44,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "process.h"
 #include <errno.h>
 
-#ifdef HAVE_GTK_AND_PTHREAD
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
 #endif
 #ifdef MSDOS
@@ -210,8 +210,8 @@ Lisp_Object unread_switch_frame;
 /* Last size recorded for a current buffer which is not a minibuffer.  */
 static EMACS_INT last_non_minibuf_size;
 
-/* Total number of times read_char has returned, modulo SIZE_MAX + 1.  */
-size_t num_input_events;
+/* Total number of times read_char has returned, modulo UINTMAX_MAX + 1.  */
+uintmax_t num_input_events;
 
 /* Value of num_nonmacro_input_events as of last auto save.  */
 
@@ -10643,7 +10643,8 @@ DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
 DEFUN ("open-dribble-file", Fopen_dribble_file, Sopen_dribble_file, 1, 1,
        "FOpen dribble file: ",
        doc: /* Start writing all keyboard characters to a dribble file called FILE.
-If FILE is nil, close any open dribble file.  */)
+If FILE is nil, close any open dribble file.
+The file will be closed when Emacs exits.  */)
   (Lisp_Object file)
 {
   if (dribble)

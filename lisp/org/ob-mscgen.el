@@ -5,7 +5,7 @@
 ;; Author: Juan Pechiar
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -73,13 +73,14 @@ mscgen supported formats."
       (error "
 ERROR: no output file specified. Add \":file name.png\" to the src header"))
     (org-babel-eval (concat "mscgen -T " filetype " -o " out-file) body)
-    out-file))
+    nil)) ;; signal that output has already been written to file
 
 (defun org-babel-prep-session:mscgen (session params)
   "Raise an error because Mscgen doesn't support sessions."
   (error "Mscgen does not support sessions"))
 
 (provide 'ob-mscgen)
+
 
 
 ;;; ob-msc.el ends here

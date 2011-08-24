@@ -34,6 +34,8 @@ that Emacs presents to the user.
 * Display Tables::      How to specify other conventions.
 * Beeping::             Audible signal to the user.
 * Window Systems::      Which window system is being used.
+* Bidirectional Display:: Display of bidirectional scripts, such as
+                             Arabic and Farsi.
 @end menu
 
 @node Refresh Screen
@@ -1452,7 +1454,10 @@ specify just the foreground color or just the background color.
 @item mouse-face
 @kindex mouse-face @r{(overlay property)}
 This property is used instead of @code{face} when the mouse is within
-the range of the overlay.
+the range of the overlay.  However, Emacs ignores all face attributes
+from this property that alter the text size (e.g.  @code{:height},
+@code{:weight}, and @code{:slant}).  Those attributes are always the
+same as in the unhighlighted text.
 
 @item display
 @kindex display @r{(overlay property)}
@@ -1800,9 +1805,9 @@ height.
 @cindex faces
 
   A @dfn{face} is a collection of graphical attributes for displaying
-text: font family, foreground color, background color, optional
-underlining, and so on.  Faces control how buffer text is displayed,
-and how some parts of the frame, such as the mode-line, are displayed.
+text: font, foreground color, background color, optional underlining,
+and so on.  Faces control how buffer text is displayed, and how some
+parts of the frame, such as the mode-line, are displayed.
 @xref{Standard Faces,,, emacs, The GNU Emacs Manual}, for the list of
 faces Emacs normally comes with.
 
@@ -2001,16 +2006,17 @@ attribute is ignored.
 
 @table @code
 @item :family
-Font family name or fontset name (a string).  If you specify a font
-family name, the wild-card characters @samp{*} and @samp{?} are
-allowed.  The function @code{font-family-list}, described below,
-returns a list of available family names.  @xref{Fontsets}, for
-information about fontsets.
+Font family or fontset (a string).  @xref{Fonts,,, emacs, The GNU
+Emacs Manual}.  If you specify a font family name, the wild-card
+characters @samp{*} and @samp{?} are allowed.  The function
+@code{font-family-list}, described below, returns a list of available
+family names.  @xref{Fontsets}, for information about fontsets.
 
 @item :foundry
-The name of the @dfn{font foundry} in which the font family specified
-by the @code{:family} attribute is located (a string).  The wild-card
-characters @samp{*} and @samp{?} are allowed.
+The name of the @dfn{font foundry} for the font family specified by
+the @code{:family} attribute (a string).  The wild-card characters
+@samp{*} and @samp{?} are allowed.  @xref{Fonts,,, emacs, The GNU
+Emacs Manual}.
 
 @item :width
 Relative proportionate character width, also known as the character
@@ -2684,14 +2690,15 @@ usually assign faces to around 400 to 600 characters at each call.
   Before Emacs can draw a character on a particular display, it must
 select a @dfn{font} for that character@footnote{In this context, the
 term @dfn{font} has nothing to do with Font Lock (@pxref{Font Lock
-Mode}).}.  Normally, Emacs automatically chooses a font based on the
-faces assigned to that character---specifically, the face attributes
-@code{:family}, @code{:weight}, @code{:slant}, and @code{:width}
-(@pxref{Face Attributes}).  The choice of font also depends on the
-character to be displayed; some fonts can only display a limited set
-of characters.  If no available font exactly fits the requirements,
-Emacs looks for the @dfn{closest matching font}.  The variables in
-this section control how Emacs makes this selection.
+Mode}).}.  @xref{Fonts,,, emacs, The GNU Emacs Manual}.  Normally,
+Emacs automatically chooses a font based on the faces assigned to that
+character---specifically, the face attributes @code{:family},
+@code{:weight}, @code{:slant}, and @code{:width} (@pxref{Face
+Attributes}).  The choice of font also depends on the character to be
+displayed; some fonts can only display a limited set of characters.
+If no available font exactly fits the requirements, Emacs looks for
+the @dfn{closest matching font}.  The variables in this section
+control how Emacs makes this selection.
 
 @defopt face-font-family-alternatives
 If a given family is specified but does not exist, this variable
@@ -3897,7 +3904,8 @@ Margins}).
 @itemx (right-fringe @var{bitmap} @r{[}@var{face}@r{]})
 This display specification on any character of a line of text causes
 the specified @var{bitmap} be displayed in the left or right fringes
-for that line.  The optional @var{face} specifies the colors to be
+for that line, instead of the characters that have the display
+specification.  The optional @var{face} specifies the colors to be
 used for the bitmap.  @xref{Fringe Bitmaps}, for the details.
 
 @item (space-width @var{factor})
@@ -5910,8 +5918,8 @@ differently.  An Emacs frame is a single window as far as X is
 concerned; the individual Emacs windows are not known to X at all.
 
 @defvar window-system
-This frame-local variable tells Lisp programs what window system Emacs is using
-for displaying the frame.  The possible values are
+This terminal-local variable tells Lisp programs what window system
+Emacs is using for displaying the frame.  The possible values are
 
 @table @code
 @item x
@@ -5963,3 +5971,205 @@ This hook is used for internal purposes: setting up communication with
 the window system, and creating the initial window.  Users should not
 interfere with it.
 @end defvar
+
+@node Bidirectional Display
+@section Bidirectional Display
+@cindex bidirectional display
+@cindex right-to-left text
+
+  Emacs can display text written in scripts, such as Arabic, Farsi,
+and Hebrew, whose natural ordering of horizontal text for display is
+from right to left.  However, digits and Latin text embedded in these
+scripts are still displayed left to right.  It is also not uncommon to
+have small portions of text in Arabic or Hebrew embedded in otherwise
+Latin document, e.g., as comments and strings in a program source
+file.  Likewise, small portions of Latin text can be embedded in an
+Arabic or Farsi document.  For these reasons, text that uses these
+scripts is actually @dfn{bidirectional}: a mixture of runs of
+left-to-right and right-to-left characters.
+
+  This section describes the facilities and options provided by Emacs
+for editing and displaying bidirectional text.
+
+@cindex logical order
+@cindex reading order
+@cindex visual order
+@cindex unicode bidirectional algorithm
+  Emacs stores right-to-left and bidirectional text in the so-called
+@dfn{logical} (or @dfn{reading}) order: the buffer or string position
+of the first character you read precedes that of the next character.
+Reordering of bidirectional text into the @dfn{visual} order happens
+at display time.  As result, character positions no longer increase
+monotonically with their positions on display.  Emacs implements the
+Unicode Bidirectional Algorithm (a.k.a.@: @acronym{UBA}) described in
+the Unicode Standard Annex #9, for reordering of bidirectional text
+for display.  Reordering of bidirectional text for display in Emacs is
+a ``Full bidirectionality'' class implementation of the @acronym{UBA}.
+
+@defvar bidi-display-reordering
+  This buffer-local variable controls whether text in the buffer is
+reordered for display.  If its value is non-@code{nil}, Emacs reorders
+characters that have right-to-left directionality when they are
+displayed.  The default value is @code{t}.  Text in overlay strings
+(@pxref{Overlay Properties,,before-string}), display strings
+(@pxref{Overlay Properties,,display}), and @code{display} text
+properties (@pxref{Display Property}) is also reordered for display if
+the buffer whose text includes these strings is reordered.  Turning
+off @code{bidi-display-reordering} for a buffer turns off reordering
+of all the overlay and display strings in that buffer.
+
+  Reordering of strings that are unrelated to any buffer, such as text
+displayed on the mode line (@pxref{Mode Line Format}) or header line
+(@pxref{Header Lines}), is controlled by the default value of
+@code{bidi-display-reordering}.
+@end defvar
+
+@cindex unibyte buffers, and bidi reordering
+  Emacs does not reorder text in unibyte buffers, even if
+@code{bidi-display-reordering} is non-@code{nil} in such a buffer.
+This is because unibyte buffers contain raw bytes, not characters, and
+thus don't have bidirectional properties defined for them which are
+required for correct reordering.  Therefore, to test whether text in a
+buffer will be reordered for display, it is not enough to test the
+value of @code{bidi-display-reordering} alone.  The correct test is
+this:
+
+@example
+ (if (and enable-multibyte-characters
+          bidi-display-reordering)
+     ;; Buffer is being reordered for display
+   )
+@end example
+
+  In contrast to unibyte buffers, unibyte display and overlay strings
+@emph{are} reordered, if their parent buffer is reordered.  This is
+because plain-@sc{ascii} strings are stored by Emacs as unibyte
+strings.  If a unibyte display or overlay string includes
+non-@sc{ascii} characters, these characters are assumed to have
+left-to-right direction.
+
+@cindex display properties, and bidi reordering of text
+  Text covered by @code{display} text properties, by overlays with
+@code{display} properties whose value is a string, and by any other
+properties that replace buffer text, is treated as a single unit when
+it is reordered for display.  That is, the entire chunk of text
+covered by these properties is reordered together.  Moreover, the
+bidirectional properties of the characters in this chunk of text are
+ignored, and Emacs reorders them as if they were replaced with a
+single character @code{U+FFFC}, known as the @dfn{Object Replacement
+Character}.  This means that placing a display property over a portion
+of text may change the way that the surrounding text is reordered for
+display.  To prevent this unexpected effect, always place such
+properties on text whose directionality is identical with text that
+surrounds it.
+
+@cindex base direction of a paragraph
+  Each paragraph of bidirectional text can have its own @dfn{base
+direction}, either right-to-left or left-to-right.  Text in
+left-to-right paragraphs is displayed beginning at the left margin of
+the window and is truncated or continued when it reaches the right
+margin.  By contrast, display of text in right-to-left paragraphs
+begins at the right margin and is continued or truncated at the left
+margin.
+
+@defvar bidi-paragraph-direction
+  By default, Emacs determines the base direction of each paragraph
+dynamically, based on the text at the beginning of the paragraph.  The
+precise method of determining the base direction is specified by the
+@acronym{UBA}; in a nutshell, the first character in a paragraph that
+has an explicit directionality determines the base direction of the
+paragraph.  However, sometimes a buffer may need to force a certain
+base direction for its paragraphs.  For example, a buffer that visits
+a source code of a program should force all its paragraphs to be
+displayed left to right.  The variable
+@code{bidi-paragraph-direction}, if non-@code{nil}, disables the
+dynamic determination of the base direction, and instead forces all
+paragraphs in the buffer to have the direction specified by its
+buffer-local value.  The value can be either @code{right-to-left} or
+@code{left-to-right}.  Any other value is interpreted as @code{nil}.
+The default is @code{nil}.
+
+@cindex @code{prog-mode}, and @code{bidi-paragraph-direction}
+Modes that are meant to display program source code should force a
+@code{left-to-right} paragraph direction.  The easiest way of doing so
+is to derive the mode from Prog Mode, which already sets
+@code{bidi-paragraph-direction} to that value.
+@end defvar
+
+@defun current-bidi-paragraph-direction &optional buffer
+This function returns the paragraph direction at point in the named
+@var{buffer}.  The returned value is a symbol, either
+@code{left-to-right} or @code{right-to-left}.  If @var{buffer} is
+omitted or @code{nil}, it defaults to the current buffer.  If the
+buffer-local value of the variable @code{bidi-paragraph-direction} is
+non-@code{nil}, the returned value will be identical to that value;
+otherwise, the returned value reflects the paragraph direction
+determined dynamically by Emacs.
+@end defun
+
+@cindex layout on display, and bidirectional text
+@cindex jumbled display of bidirectional text
+@cindex concatenating bidirectional strings
+  Reordering of bidirectional text for display can have surprising and
+unpleasant effects when two strings with bidirectional content are
+juxtaposed in a buffer, or otherwise programmatically concatenated
+into a string of text.  A typical example is a buffer whose lines are
+actually sequences of items, or fields, separated by whitespace or
+punctuation characters.  This is used in specialized modes such as
+Buffer-menu Mode or various email summary modes, like Rmail Summary
+Mode.  Because these separator characters are @dfn{weak}, i.e.@: have
+no strong directionality, they take on the directionality of
+surrounding text.  As result, a numeric field that follows a field
+with bidirectional content can be displayed @emph{to the left} of the
+preceding field, producing a jumbled display and messing up the
+expected layout.
+
+  To countermand this, you can use one of the following techniques for
+forcing correct order of fields on display:
+
+@itemize @minus
+@item
+Append the special character @code{U+200E}, LEFT-TO-RIGHT MARK, or
+@acronym{LRM}, to the end of each field that may have bidirectional
+content, or prepend it to the beginning of the following field.  The
+function @code{bidi-string-mark-left-to-right}, described below, comes
+in handy for this purpose.  (In a right-to-left paragraph, use
+@code{U+200F}, RIGHT-TO-LEFT MARK, or @acronym{RLM}, instead.)  This
+is one of the solutions recommended by
+@uref{http://www.unicode.org/reports/tr9/#Separators, the
+@acronym{UBA}}.
+
+@item
+Include the tab character in the field separator.  The tab character
+plays the role of @dfn{segment separator} in the @acronym{UBA}
+reordering, whose effect is to make each field a separate segment, and
+thus reorder them separately.
+@end itemize
+
+@defun bidi-string-mark-left-to-right string
+This subroutine returns its argument @var{string}, possibly modified,
+such that the result can be safely concatenated with another string,
+or juxtaposed with another string in a buffer, without disrupting the
+relative layout of this string and the next one on display.  If the
+string returned by this function is displayed as part of a
+left-to-right paragraph, it will always appear on display to the left
+of the text that follows it.  The function works by examining the
+characters of its argument, and if any of those characters could cause
+reordering on display, the function appends the @acronym{LRM}
+character to the string.  The appended @acronym{LRM} character is made
+@emph{invisible} (@pxref{Invisible Text}), to hide it on display.
+@end defun
+
+  The reordering algorithm uses the bidirectional properties of the
+characters stored as their @code{bidi-class} property
+(@pxref{Character Properties}).  Lisp programs can change these
+properties by calling the @code{put-char-code-property} function.
+However, doing this requires a thorough understanding of the
+@acronym{UBA}, and is therefore not recommended.  Any changes to the
+bidirectional properties of a character have global effect: they
+affect all Emacs frames and windows.
+
+  Similarly, the @code{mirroring} property is used to display the
+appropriate mirrored character in the reordered text.  Lisp programs
+can affect the mirrored display by changing this property.  Again, any
+such changes affect all of Emacs display.

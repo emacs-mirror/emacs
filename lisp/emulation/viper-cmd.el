@@ -617,7 +617,10 @@
     (or (viper-overlay-p viper-replace-overlay)
       (viper-set-replace-overlay (point-min) (point-min)))
     (viper-hide-replace-overlay)
-    (if abbrev-mode (expand-abbrev))
+    ;; Expand abbrevs iff the previous character has word syntax.
+    (and abbrev-mode
+	 (eq (char-syntax (preceding-char)) ?w)
+	 (expand-abbrev))
     (if (and auto-fill-function (> (current-column) fill-column))
 	(funcall auto-fill-function))
     ;; don't leave whitespace lines around

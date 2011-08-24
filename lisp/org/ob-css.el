@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -43,6 +43,7 @@ CSS does not support sessions."
   (error "CSS sessions are nonsensical"))
 
 (provide 'ob-css)
+
 
 
 ;;; ob-css.el ends here

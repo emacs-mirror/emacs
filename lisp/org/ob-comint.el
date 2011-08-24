@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research, comint
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -93,9 +93,9 @@ or user `keyboard-quit' during execution of body."
 			  (goto-char comint-last-input-end)
 			  (not (save-excursion
 				 (and (re-search-forward
-				       comint-prompt-regexp nil t)
+				       (regexp-quote ,eoe-indicator) nil t)
 				      (re-search-forward
-				       (regexp-quote ,eoe-indicator) nil t)))))
+				       comint-prompt-regexp nil t)))))
 		   (accept-process-output (get-buffer-process (current-buffer)))
 		   ;; thought the following this would allow async
 		   ;; background running, but I was wrong...
@@ -157,6 +157,7 @@ FILE exists at end of evaluation."
   (while (not (file-exists-p file)) (sit-for (or period 0.25))))
 
 (provide 'ob-comint)
+
 
 
 ;;; ob-comint.el ends here

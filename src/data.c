@@ -35,10 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"  /* For FRAME_KBOARD reference in y-or-n-p.  */
 #include "font.h"
 
-#ifdef STDC_HEADERS
 #include <float.h>
-#endif
-
 /* If IEEE_FLOATING_POINT isn't defined, default it from FLT_*.  */
 #ifndef IEEE_FLOATING_POINT
 #if (FLT_RADIX == 2 && FLT_MANT_DIG == 24 \
@@ -2736,8 +2733,7 @@ Both must be integers or markers.  */)
 
 #ifndef HAVE_FMOD
 double
-fmod (f1, f2)
-     double f1, f2;
+fmod (double f1, double f2)
 {
   double r = f1;
 

@@ -5,7 +5,7 @@
 ;; Author: Eric S Fraga
 ;; Keywords: literate programming, reproducible research, accounting
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -52,7 +52,7 @@ called by `org-babel-execute-src-block'."
         (in-file (org-babel-temp-file "ledger-"))
 	(out-file (org-babel-temp-file "ledger-output-")))
     (with-temp-file in-file (insert body))
-    (message (concat "ledger"
+    (message "%s" (concat "ledger"
 		     " -f " (org-babel-process-file-name in-file)
 		     " " cmdline))
     (with-output-to-string
@@ -66,6 +66,7 @@ called by `org-babel-execute-src-block'."
   (error "Ledger does not support sessions"))
 
 (provide 'ob-ledger)
+
 
 
 ;;; ob-ledger.el ends here

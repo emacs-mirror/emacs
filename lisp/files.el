@@ -151,6 +151,7 @@ Automatically local in all buffers."
   :type 'boolean
   :group 'backup)
 (make-variable-buffer-local 'buffer-offer-save)
+(put 'buffer-offer-save 'permanent-local t)
 
 (defcustom find-file-existing-other-name t
   "Non-nil means find a file under alternative names, in existing buffers.
@@ -2060,7 +2061,11 @@ unless NOMODES is non-nil."
 	     ((not warn) nil)
 	     ((and error (file-attributes buffer-file-name))
 	      (setq buffer-read-only t)
-	      "File exists, but cannot be read")
+	      (if (and (file-symlink-p buffer-file-name)
+		       (not (file-exists-p
+			     (file-chase-links buffer-file-name))))
+		  "Symbolic link that points to nonexistent file"
+		"File exists, but cannot be read"))
 	     ((not buffer-read-only)
 	      (if (and warn
 		       ;; No need to warn if buffer is auto-saved
@@ -2998,9 +3003,10 @@ mode, if there is one, otherwise nil."
 						"-mode"))))
 		   (or (equal keyname "coding")
 		       (condition-case nil
-			   (push (cons (if (eq key 'eval)
-					   'eval
-					 (indirect-variable key))
+			   (push (cons (cond ((eq key 'eval) 'eval)
+					     ;; Downcase "Mode:".
+					     ((equal keyname "mode") 'mode)
+					     (t (indirect-variable key)))
 				       val) result)
 			 (error nil))))
 		 (skip-chars-forward " \t;")))
@@ -3148,6 +3154,8 @@ major-mode."
 			   (var (let ((read-circle nil))
 				  (read str)))
 			   val val2)
+		      (and (equal (downcase (symbol-name var)) "mode")
+			   (setq var 'mode))
 		      ;; Read the variable value.
 		      (skip-chars-forward "^:")
 		      (forward-char 1)
@@ -4694,7 +4702,7 @@ and `view-read-only' is non-nil, enter view mode."
       (view-mode-enter))
      (t (setq buffer-read-only (not buffer-read-only))
         (force-mode-line-update)))
-    (if (vc-backend buffer-file-name)
+    (if (memq (vc-backend buffer-file-name) '(RCS SCCS))
         (message "%s" (substitute-command-keys
                   (concat "File is under version-control; "
                           "use \\[vc-next-action] to check in/out"))))))
@@ -4774,7 +4782,10 @@ visited a file in a nonexistent directory.
 
 Noninteractively, the second (optional) argument PARENTS, if
 non-nil, says whether to create parent directories that don't
-exist.  Interactively, this happens by default."
+exist.  Interactively, this happens by default.
+
+If creating the directory or directories fail, an error will be
+raised."
   (interactive
    (list (read-file-name "Make directory: " default-directory default-directory
 			 nil nil)

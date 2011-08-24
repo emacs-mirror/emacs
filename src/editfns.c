@@ -194,8 +194,7 @@ DEFUN ("byte-to-string", Fbyte_to_string, Sbyte_to_string, 1, 1, 0,
 }
 
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
-       doc: /* Convert arg STRING to a character, the first character of that string.
-A multibyte character is handled correctly.  */)
+       doc: /* Return the first character in STRING.  */)
   (register Lisp_Object string)
 {
   register Lisp_Object val;
@@ -1696,7 +1695,9 @@ The modifiers are `E' and `O'.  For certain characters X,
 %EX is a locale's alternative version of %X;
 %OX is like %X, but uses the locale's number symbols.
 
-For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".  */)
+For example, to produce full ISO 8601 format, use "%Y-%m-%dT%T%z".
+
+usage: (format-time-string FORMAT-STRING &optional TIME UNIVERSAL)  */)
   (Lisp_Object format_string, Lisp_Object timeval, Lisp_Object universal)
 {
   time_t value;
@@ -2052,7 +2053,12 @@ static char *initial_tz;
 DEFUN ("set-time-zone-rule", Fset_time_zone_rule, Sset_time_zone_rule, 1, 1, 0,
        doc: /* Set the local time zone using TZ, a string specifying a time zone rule.
 If TZ is nil, use implementation-defined default time zone information.
-If TZ is t, use Universal Time.  */)
+If TZ is t, use Universal Time.
+
+Instead of calling this function, you typically want (setenv "TZ" TZ).
+That changes both the environment of the Emacs process and the
+variable `process-environment', whereas `set-time-zone-rule' affects
+only the former.  */)
   (Lisp_Object tz)
 {
   const char *tzstring;
@@ -3156,10 +3162,9 @@ It returns the number of characters changed.  */)
 }
 
 DEFUN ("delete-region", Fdelete_region, Sdelete_region, 2, 2, "r",
-       doc: /* Delete the text between point and mark.
-
-When called from a program, expects two arguments,
-positions (integers or markers) specifying the stretch to be deleted.  */)
+       doc: /* Delete the text between START and END.
+If called interactively, delete the region between point and mark.
+This command deletes buffer text without modifying the kill ring.  */)
   (Lisp_Object start, Lisp_Object end)
 {
   validate_region (&start, &end);
@@ -3505,22 +3510,6 @@ usage: (propertize STRING &rest PROPERTIES)  */)
 			properties, string);
   RETURN_UNGCPRO (string);
 }
-
-/* pWIDE is a conversion for printing large decimal integers (possibly with a
-   trailing "d" that is ignored).  pWIDElen is its length.  signed_wide and
-   unsigned_wide are signed and unsigned types for printing them.  Use widest
-   integers if available so that more floating point values can be converted.  */
-#ifdef PRIdMAX
-# define pWIDE PRIdMAX
-enum { pWIDElen = sizeof PRIdMAX - 2 }; /* Don't count trailing "d".  */
-typedef intmax_t signed_wide;
-typedef uintmax_t unsigned_wide;
-#else
-# define pWIDE pI
-enum { pWIDElen = sizeof pI - 1 };
-typedef EMACS_INT signed_wide;
-typedef EMACS_UINT unsigned_wide;
-#endif
 
 DEFUN ("format", Fformat, Sformat, 1, MANY, 0,
        doc: /* Format a string out of a format-string and arguments.
@@ -3903,7 +3892,11 @@ usage: (format STRING &rest OBJECTS)  */)
 		   precision is no more than DBL_USEFUL_PRECISION_MAX.
 		   On all practical hosts, %f is the worst case.  */
 		SPRINTF_BUFSIZE =
-		  sizeof "-." + (DBL_MAX_10_EXP + 1) + USEFUL_PRECISION_MAX
+		  sizeof "-." + (DBL_MAX_10_EXP + 1) + USEFUL_PRECISION_MAX,
+
+		/* Length of pM (that is, of pMd without the
+		   trailing "d").  */
+		pMlen = sizeof pMd - 2
 	      };
 	      verify (0 < USEFUL_PRECISION_MAX);
 
@@ -3916,7 +3909,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	      /* Copy of conversion specification, modified somewhat.
 		 At most three flags F can be specified at once.  */
-	      char convspec[sizeof "%FFF.*d" + pWIDElen];
+	      char convspec[sizeof "%FFF.*d" + pMlen];
 
 	      /* Avoid undefined behavior in underlying sprintf.  */
 	      if (conversion == 'd' || conversion == 'i')
@@ -3924,7 +3917,7 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	      /* Create the copy of the conversion specification, with
 		 any width and precision removed, with ".*" inserted,
-		 and with pWIDE inserted for integer formats.  */
+		 and with pM inserted for integer formats.  */
 	      {
 		char *f = convspec;
 		*f++ = '%';
@@ -3939,8 +3932,8 @@ usage: (format STRING &rest OBJECTS)  */)
 		    || conversion == 'o' || conversion == 'x'
 		    || conversion == 'X')
 		  {
-		    memcpy (f, pWIDE, pWIDElen);
-		    f += pWIDElen;
+		    memcpy (f, pMd, pMlen);
+		    f += pMlen;
 		    zero_flag &= ~ precision_given;
 		  }
 		*f++ = conversion;
@@ -3980,7 +3973,7 @@ usage: (format STRING &rest OBJECTS)  */)
 		  /* For float, maybe we should use "%1.0f"
 		     instead so it also works for values outside
 		     the integer range.  */
-		  signed_wide x;
+		  printmax_t x;
 		  if (INTEGERP (args[n]))
 		    x = XINT (args[n]);
 		  else
@@ -3988,13 +3981,13 @@ usage: (format STRING &rest OBJECTS)  */)
 		      double d = XFLOAT_DATA (args[n]);
 		      if (d < 0)
 			{
-			  x = TYPE_MINIMUM (signed_wide);
+			  x = TYPE_MINIMUM (printmax_t);
 			  if (x < d)
 			    x = d;
 			}
 		      else
 			{
-			  x = TYPE_MAXIMUM (signed_wide);
+			  x = TYPE_MAXIMUM (printmax_t);
 			  if (d < x)
 			    x = d;
 			}
@@ -4004,7 +3997,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	      else
 		{
 		  /* Don't sign-extend for octal or hex printing.  */
-		  unsigned_wide x;
+		  uprintmax_t x;
 		  if (INTEGERP (args[n]))
 		    x = XUINT (args[n]);
 		  else
@@ -4014,7 +4007,7 @@ usage: (format STRING &rest OBJECTS)  */)
 			x = 0;
 		      else
 			{
-			  x = TYPE_MAXIMUM (unsigned_wide);
+			  x = TYPE_MAXIMUM (uprintmax_t);
 			  if (d < x)
 			    x = d;
 			}

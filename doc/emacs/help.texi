@@ -139,8 +139,11 @@ command.
 @item C-h r
 Display the Emacs manual in Info (@code{info-emacs-manual}).
 @item C-h s
-Display the current contents of the syntax table, with an explanation of
-what they mean (@code{describe-syntax}).  @xref{Syntax}.
+Display the current contents of the @dfn{syntax table}, with an
+explanation of what they mean (@code{describe-syntax}).  The syntax
+table says which characters are opening delimiters, which are parts of
+words, which are string quotes, and so on.  @xref{Syntax Tables,,
+Syntax Tables, elisp, The Emacs Lisp Reference Manual}, for details.
 @item C-h t
 Enter the Emacs interactive tutorial (@code{help-with-tutorial}).
 @item C-h v @var{var} @key{RET}
@@ -583,13 +586,16 @@ bindings now in effect: first the local bindings of the current minor
 modes, then the local bindings defined by the current major mode, and
 finally the global bindings (@pxref{Key Bindings}).  @kbd{C-h s}
 displays the contents of the syntax table, with explanations of each
-character's syntax (@pxref{Syntax}).
+character's syntax (@pxref{Syntax Tables,, Syntax Tables, elisp, The
+Emacs Lisp Reference Manual}).
 
+@findex describe-prefix-bindings
   You can get a list of subcommands for a particular prefix key by
-typing @kbd{C-h} after the prefix key.  (There are a few prefix keys
-for which this does not work---those that provide their own bindings
-for @kbd{C-h}.  One of these is @key{ESC}, because @kbd{@key{ESC} C-h}
-is actually @kbd{C-M-h}, which marks a defun.)
+typing @kbd{C-h} (@code{describe-prefix-bindings}) after the prefix
+key.  (There are a few prefix keys for which this does not
+work---those that provide their own bindings for @kbd{C-h}.  One of
+these is @key{ESC}, because @kbd{@key{ESC} C-h} is actually
+@kbd{C-M-h}, which marks a defun.)
 
 @node Help Files
 @section Help Files

@@ -160,6 +160,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    don't. */
 #undef HAVE_DECL_STRMODE
 
+/* Define to 1 if you have the declaration of `strtoimax', and to 0 if you
+   don't. */
+#undef HAVE_DECL_STRTOIMAX
+
+/* Define to 1 if you have the declaration of `strtoll', and to 0 if you
+   don't. */
+#undef HAVE_DECL_STRTOLL
+
 /* Define to 1 if you have the declaration of `strtoull', and to 0 if you
    don't. */
 #undef HAVE_DECL_STRTOULL
@@ -210,6 +218,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `fpathconf' function. */
 #undef HAVE_FPATHCONF
 
+/* Define to 1 if you have the `freeifaddrs' function. */
+#undef HAVE_FREEIFADDRS
+
 /* Define to 1 if using the freetype and fontconfig libraries. */
 #undef HAVE_FREETYPE
 
@@ -245,6 +256,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `gethostname' function. */
 #undef HAVE_GETHOSTNAME
+
+/* Define to 1 if you have the `getifaddrs' function. */
+#undef HAVE_GETIFADDRS
 
 /* Define to 1 if you have the `getline' function. */
 #undef HAVE_GETLINE
@@ -313,9 +327,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `gtk_adjustment_get_page_size' function. */
 #undef HAVE_GTK_ADJUSTMENT_GET_PAGE_SIZE
 
-/* Define to 1 if you have GTK and pthread (-lpthread). */
-#undef HAVE_GTK_AND_PTHREAD
-
 /* Define to 1 if you have the `gtk_dialog_get_action_area' function. */
 #undef HAVE_GTK_DIALOG_GET_ACTION_AREA
 
@@ -345,6 +356,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if netdb.h declares h_errno. */
 #undef HAVE_H_ERRNO
+
+/* Define to 1 if you have the <ifaddrs.h> header file. */
+#undef HAVE_IFADDRS_H
 
 /* Define to 1 if using imagemagick. */
 #undef HAVE_IMAGEMAGICK
@@ -466,9 +480,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `Xmu' library (-lXmu). */
 #undef HAVE_LIBXMU
 
-/* Define to 1 if you have the <limits.h> header file. */
-#undef HAVE_LIMITS_H
-
 /* Define to 1 if you have the <linux/version.h> header file. */
 #undef HAVE_LINUX_VERSION_H
 
@@ -523,23 +534,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if <wchar.h> declares mbstate_t. */
 #undef HAVE_MBSTATE_T
 
-/* Define to 1 if you have the `memcmp' function. */
-#undef HAVE_MEMCMP
-
-/* Define to 1 if you have the `memcpy' function. */
-#undef HAVE_MEMCPY
-
-/* Define to 1 if you have the `memmove' function. */
-#undef HAVE_MEMMOVE
-
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
 /* Define to 1 if you have the `mempcpy' function. */
 #undef HAVE_MEMPCPY
-
-/* Define to 1 if you have the `memset' function. */
-#undef HAVE_MEMSET
 
 /* Define to 1 if you have mouse menus. (This is automatic if you use X, but
    the option to specify it remains.) It is also defined with other window
@@ -560,6 +559,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `mremap' function. */
 #undef HAVE_MREMAP
+
+/* Define to 1 if you have the <net/if_dl.h> header file. */
+#undef HAVE_NET_IF_DL_H
 
 /* Define to 1 if you have the <net/if.h> header file. */
 #undef HAVE_NET_IF_H
@@ -589,8 +591,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `pstat_getdynamic' function. */
 #undef HAVE_PSTAT_GETDYNAMIC
 
+/* Define to 1 if you have pthread (-lpthread). */
+#undef HAVE_PTHREAD
+
 /* Define to 1 if you have the <pthread.h> header file. */
 #undef HAVE_PTHREAD_H
+
+/* Define to 1 if you have the `pthread_sigmask' function. */
+#undef HAVE_PTHREAD_SIGMASK
 
 /* Define to 1 if you have the <pty.h> header file. */
 #undef HAVE_PTY_H
@@ -661,6 +669,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if 'wint_t' is a signed integer type. */
 #undef HAVE_SIGNED_WINT_T
 
+/* Define to 1 if the system has the type `sigset_t'. */
+#undef HAVE_SIGSET_T
+
 /* Define to 1 if you have sound support. */
 #undef HAVE_SOUND
 
@@ -679,9 +690,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
-/* Define to 1 if you have the `strchr' function. */
-#undef HAVE_STRCHR
-
 /* Define to 1 if you have the `strerror' function. */
 #undef HAVE_STRERROR
 
@@ -691,11 +699,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
-/* Define to 1 if you have the `strrchr' function. */
-#undef HAVE_STRRCHR
-
 /* Define to 1 if you have the `strsignal' function. */
 #undef HAVE_STRSIGNAL
+
+/* Define to 1 if you have the `strtoimax' function. */
+#undef HAVE_STRTOIMAX
+
+/* Define to 1 if you have the `strtoll' function. */
+#undef HAVE_STRTOLL
 
 /* Define to 1 if you have the `strtoull' function. */
 #undef HAVE_STRTOULL
@@ -705,6 +716,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if `ifr_addr' is a member of `struct ifreq'. */
 #undef HAVE_STRUCT_IFREQ_IFR_ADDR
+
+/* Define to 1 if `ifr_addr.sa_len' is a member of `struct ifreq'. */
+#undef HAVE_STRUCT_IFREQ_IFR_ADDR_SA_LEN
 
 /* Define to 1 if `ifr_broadaddr' is a member of `struct ifreq'. */
 #undef HAVE_STRUCT_IFREQ_IFR_BROADADDR
@@ -1038,9 +1052,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at runtime.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown */
+        STACK_DIRECTION > 0 => grows toward higher addresses
+        STACK_DIRECTION < 0 => grows toward lower addresses
+        STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
 /* Define to 1 if the `S_IS*' macros in <sys/stat.h> do not work properly. */
@@ -1375,14 +1389,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <string.h>
 #include <stdlib.h>
-
-#ifndef HAVE_STRCHR
-#define strchr(a, b) index (a, b)
-#endif
-
-#ifndef HAVE_STRRCHR
-#define strrchr(a, b) rindex (a, b)
-#endif
 
 #if defined __GNUC__ && (__GNUC__ > 2 \
                          || (__GNUC__ == 2 && __GNUC_MINOR__ >= 5))

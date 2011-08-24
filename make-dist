@@ -297,7 +297,7 @@ for subdir in site-lisp \
 	      leim/SKK-DIC leim/ja-dic leim/quail \
 	      src src/m src/s src/bitmaps lib lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
-	      `find etc lisp -type d` \
+	      `find etc lisp admin -type d` \
 	      doc doc/emacs doc/misc doc/man doc/lispref doc/lispintro \
 	      info m4 msdos \
 	      nextstep nextstep/Cocoa nextstep/Cocoa/Emacs.base \
@@ -447,6 +447,11 @@ echo "Making links to \`lwlib'"
 (cd lwlib
  ln *.[ch] *.in ../${tempdir}/lwlib
  ln README ChangeLog ../${tempdir}/lwlib)
+
+echo "Making links to \`admin' and its subdirectories"
+for f in `find admin -type f`; do
+  ln $f $tempdir/$f
+done
 
 echo "Making links to \`etc' and its subdirectories"
 for f in `find etc -type f`; do

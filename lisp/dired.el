@@ -78,10 +78,22 @@ If nil, `dired-listing-switches' is used."
   :type 'file)
 
 (defcustom dired-use-ls-dired 'unspecified
-  "Non-nil means Dired should use \"ls --dired\".
+  "Non-nil means Dired should pass the \"--dired\" option to \"ls\".
 The special value of `unspecified' means to check explicitly, and
 save the result in this variable.  This is performed the first
-time `dired-insert-directory' is called."
+time `dired-insert-directory' is called.
+
+Note that if you set this option to nil, either through choice or
+because your \"ls\" program does not support \"--dired\", Dired
+will fail to parse some \"unusual\" file names, e.g. those with leading
+spaces.  You might want to install ls from GNU Coreutils, which does
+support this option.  Alternatively, you might want to use Emacs's
+own emulation of \"ls\", by using:
+  \(setq ls-lisp-use-insert-directory-program nil)
+  \(require 'ls-lisp)
+This is used by default on MS Windows, which does not have an \"ls\" program.
+Note that `ls-lisp' does not support as many options as GNU ls, though.
+For more details, see Info node `(emacs)ls in Lisp'."
   :group 'dired
   :type '(choice (const :tag "Check for --dired support" unspecified)
                  (const :tag "Do not use --dired" nil)
@@ -330,7 +342,7 @@ Subexpression 2 must end right before the \\n or \\r.")
   "Face name used for dired marks.")
 
 (defface dired-marked
-  '((t (:inherit font-lock-warning-face)))
+  '((t (:inherit warning)))
   "Face used for marked files."
   :group 'dired-faces
   :version "22.1")
@@ -338,12 +350,12 @@ Subexpression 2 must end right before the \\n or \\r.")
   "Face name used for marked files.")
 
 (defface dired-flagged
-  '((t (:inherit font-lock-warning-face)))
-  "Face used for flagged files."
+  '((t (:inherit error)))
+  "Face used for files flagged for deletion."
   :group 'dired-faces
   :version "22.1")
 (defvar dired-flagged-face 'dired-flagged
-  "Face name used for flagged files.")
+  "Face name used for files flagged for deletion.")
 
 (defface dired-warning
   ;; Inherit from font-lock-warning-face since with min-colors 8
@@ -1119,9 +1131,13 @@ If HDR is non-nil, insert a header line with the directory name."
 	 (or (if (eq dired-use-ls-dired 'unspecified)
 		 ;; Check whether "ls --dired" gives exit code 0, and
 		 ;; save the answer in `dired-use-ls-dired'.
-		 (setq dired-use-ls-dired
-		       (eq (call-process insert-directory-program nil nil nil "--dired")
-			   0))
+		 (or (setq dired-use-ls-dired
+			   (eq 0 (call-process insert-directory-program
+					     nil nil nil "--dired")))
+		     (progn
+		       (message "ls does not support --dired; \
+see `dired-use-ls-dired' for more details.")
+		       nil))
 	       dired-use-ls-dired)
 	     (file-remote-p dir)))
 	(setq switches (concat "--dired " switches)))
@@ -1175,7 +1191,7 @@ If HDR is non-nil, insert a header line with the directory name."
 	(insert "  wildcard " (file-name-nondirectory dir) "\n")))))
 
 (defun dired-insert-set-properties (beg end)
-  "Make the file names highlight when the mouse is on them."
+  "Add various text properties to the lines in the region."
   (save-excursion
     (goto-char beg)
     (while (< (point) end)
@@ -2831,8 +2847,12 @@ also offers to kill buffers visiting deleted files and directories."
   (if (= 1 count) "" "s"))
 
 (defun dired-mark-prompt (arg files)
-  "Return a string for use in a prompt, either the current file
-name, or the marker and a count of marked files."
+  "Return a string suitable for use in a Dired prompt.
+ARG is normally the prefix argument for the calling command.
+FILES should be a list of file names.
+
+The return value has a form like \"foo.txt\", \"[next 3 files]\",
+or \"* [3 files]\"."
   ;; distinguish-one-marked can cause the first element to be just t.
   (if (eq (car files) t) (setq files (cdr files)))
   (let ((count (length files)))
@@ -3643,7 +3663,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "198ca311b49f0b6354f915502bba4ab6")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "bbb53a5b6bf56c413fe0f898559bef8d")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -4104,7 +4124,7 @@ instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump-other-window dired-jump)
-;;;;;;  "dired-x" "dired-x.el" "90459fb5998296fc67986945701b2bfc")
+;;;;;;  "dired-x" "dired-x.el" "219648338c42c7912fa336680b434db0")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

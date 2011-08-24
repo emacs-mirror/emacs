@@ -1310,7 +1310,9 @@ text and it replaces `self-insert-command' with the other command, e.g.
   :type '(repeat function))
 
 (defcustom message-auto-save-directory
-  (file-name-as-directory (expand-file-name "drafts" message-directory))
+  (if (file-writable-p message-directory)
+      (file-name-as-directory (expand-file-name "drafts" message-directory))
+    "~/")
   "*Directory where Message auto-saves buffers if Gnus isn't running.
 If nil, Message won't auto-save."
   :group 'message-buffers
@@ -1351,7 +1353,8 @@ candidates:
 `quoted-text-only'  Allow you to post quoted text only;
 `multiple-copies'   Allow you to post multiple copies;
 `cancel-messages'   Allow you to cancel or supersede messages from
-		    your other email addresses.")
+		    your other email addresses;
+`canlock-verify'    Allow you to cancel messages without verifying canlock.")
 
 (defsubst message-gnksa-enable-p (feature)
   (or (not (listp message-shoot-gnksa-feet))
@@ -4251,8 +4254,10 @@ conformance."
 		 "Invisible text found and made visible; continue sending? ")
 	  (error "Invisible text found and made visible")))))
   (message-check 'illegible-text
-    (let (char found choice)
+    (let (char found choice nul-chars)
       (message-goto-body)
+      (setq nul-chars (save-excursion
+			(search-forward "\000" nil t)))
       (while (progn
 	       (skip-chars-forward mm-7bit-chars)
 	       (when (get-text-property (point) 'no-illegible-text)
@@ -4278,7 +4283,9 @@ conformance."
       (when found
 	(setq choice
 	      (gnus-multiple-choice
-	       "Non-printable characters found.  Continue sending?"
+	       (if nul-chars
+		   "NUL characters found, which may cause problems.  Continue sending?"
+		 "Non-printable characters found.  Continue sending?")
 	       `((?d "Remove non-printable characters and send")
 		 (?r ,(format
 		       "Replace non-printable characters with \"%s\" and send"
@@ -4783,7 +4790,9 @@ Do not use this for anything important, it is cryptographically weak."
   (require 'sha1)
   (let (sha1-maximum-internal-length)
     (sha1 (concat (message-unique-id)
-		  (format "%x%x%x" (random) (random t) (random))
+		  (format "%x%x%x" (random)
+			  (progn (random t) (random))
+			  (random))
 		  (prin1-to-string (recent-keys))
 		  (prin1-to-string (garbage-collect))))))
 
@@ -5486,10 +5495,12 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 ;; You might for example insert a "." somewhere (not next to another dot
 ;; or string boundary), or modify the "fsf" string.
 (defun message-unique-id ()
+  (random t)
   ;; Don't use microseconds from (current-time), they may be unsupported.
   ;; Instead we use this randomly inited counter.
   (setq message-unique-id-char
-	(% (1+ (or message-unique-id-char (logand (random t) (1- (lsh 1 20)))))
+	(% (1+ (or message-unique-id-char
+		   (logand (random most-positive-fixnum) (1- (lsh 1 20)))))
 	   ;; (current-time) returns 16-bit ints,
 	   ;; and 2^16*25 just fits into 4 digits i base 36.
 	   (* 25 25)))
@@ -6878,20 +6889,19 @@ Useful functions to put in this list include:
       (unless follow-to
 	(setq follow-to (message-get-reply-headers wide to-address))))
 
-    (unless (message-mail-user-agent)
-      (message-pop-to-buffer
-       (message-buffer-name
-	(if wide "wide reply" "reply") from
-	(if wide to-address nil))
-       switch-function))
-
-    (setq message-reply-headers
-	  (vector 0 subject from date message-id references 0 0 ""))
-
-    (message-setup
-     `((Subject . ,subject)
-       ,@follow-to)
-     cur)))
+    (let ((headers
+	   `((Subject . ,subject)
+	     ,@follow-to)))
+      (unless (message-mail-user-agent)
+	(message-pop-to-buffer
+	 (message-buffer-name
+	  (if wide "wide reply" "reply") from
+	  (if wide to-address nil))
+	 switch-function))
+      (setq message-reply-headers
+	    (vector 0 (cdr (assq 'Subject headers))
+		    from date message-id references 0 0 ""))
+      (message-setup headers cur))))
 
 ;;;###autoload
 (defun message-wide-reply (&optional to-address)
@@ -7032,7 +7042,8 @@ regexp to match all of yours addresses."
   (save-excursion
     (save-restriction
       (message-narrow-to-head-1)
-      (if (message-fetch-field "Cancel-Lock")
+      (if (and (message-fetch-field "Cancel-Lock")
+	       (message-gnksa-enable-p 'canlock-verify))
 	  (if (null (canlock-verify))
 	      t
 	    (error "Failed to verify Cancel-lock: This article is not yours"))

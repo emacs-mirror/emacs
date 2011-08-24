@@ -5,7 +5,7 @@
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 8.2
+;; Version: 8.2.93
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -27,7 +27,7 @@
 
 ;; MH-E is an Emacs interface to the MH mail system.
 
-;; MH-E is supported in GNU Emacs 21 and 22, as well as XEmacs 21
+;; MH-E is supported in GNU Emacs 21 and higher, as well as XEmacs 21
 ;; (except for versions 21.5.9-21.5.16). It is compatible with MH
 ;; versions 6.8.4 and higher, all versions of nmh, and GNU mailutils
 ;; 1.0 and higher. Gnus is also required; version 5.10 or higher is
@@ -127,7 +127,7 @@
 ;; Try to keep variables local to a single file. Provide accessors if
 ;; variables are shared. Use this section as a last resort.
 
-(defconst mh-version "8.2" "Version number of MH-E.")
+(defconst mh-version "8.2.93" "Version number of MH-E.")
 
 ;; Variants
 

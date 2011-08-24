@@ -234,7 +234,7 @@ fix_command (Lisp_Object input, Lisp_Object values)
 }
 
 DEFUN ("call-interactively", Fcall_interactively, Scall_interactively, 1, 3, 0,
-       doc: /* Call FUNCTION, reading args according to its interactive calling specs.
+       doc: /* Call FUNCTION, providing args according to its interactive calling specs.
 Return the value FUNCTION returns.
 The function contains a specification of how to do the argument reading.
 In the case of user-defined functions, this is specified by placing a call
@@ -339,7 +339,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
     {
       Lisp_Object input;
       Lisp_Object funval = Findirect_function (function, Qt);
-      size_t events = num_input_events;
+      uintmax_t events = num_input_events;
       input = specs;
       /* Compute the arg values using the user's expression.  */
       GCPRO2 (input, filter_specs);

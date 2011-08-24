@@ -164,19 +164,18 @@ Fundamental Editing Commands
 * Help::                Commands for asking Emacs about its commands.
 
 Important Text-Changing Commands
-* Mark::                The mark: how to delimit a ``region'' of text.
+* Mark::                The mark: how to delimit a "region" of text.
 * Killing::             Killing (cutting) text.
 * Yanking::             Recovering killed text.  Moving text. (Pasting.)
+* Cut and Paste::       Clipboard and selections on graphical displays.
 * Accumulating Text::   Other ways of copying text.
-* Rectangles::          Operating on the text inside a rectangle on the screen.
-* CUA Bindings::        Using @kbd{C-x}, @kbd{C-c}, @kbd{C-v} for copy
-                          and paste, with enhanced rectangle support.
+* Rectangles::          Operating on text in rectangular areas.
+* CUA Bindings::        Using @kbd{C-x}, @kbd{C-c}, @kbd{C-v} to kill and yank.
 * Registers::           Saving a text string or a location in the buffer.
 * Display::             Controlling what text is displayed.
 * Search::              Finding or replacing occurrences of a string.
 * Fixit::               Commands especially useful for fixing typos.
-* Keyboard Macros::     A keyboard macro records a sequence of
-                          keystrokes to be replayed with a single command.
+* Keyboard Macros::     Recording a sequence of keystrokes to be replayed.
 
 Major Structures of Emacs
 * Files::               All about handling files.
@@ -186,13 +185,13 @@ Major Structures of Emacs
 * International::       Using non-@acronym{ASCII} character sets.
 
 Advanced Features
-* Major Modes::         Text mode vs. Lisp mode vs. C mode...
+* Modes::               Major and minor modes alter Emacs' basic behavior.
 * Indentation::         Editing the white space at the beginnings of lines.
 * Text::                Commands and modes for editing English.
 * Programs::            Commands and modes for editing programs.
 * Building::            Compiling, running and debugging programs.
 * Maintaining::         Features for maintaining large programs.
-* Abbrevs::             How to define text abbreviations to reduce
+* Abbrevs::             Defining text abbreviations to reduce
                           the number of characters you must type.
 @c AFAICS, the tex stuff generates its own index and does not use this one.
 @ifnottex
@@ -201,12 +200,12 @@ Advanced Features
 @end ifnottex
 * Sending Mail::        Sending mail in Emacs.
 * Rmail::               Reading mail in Emacs.
-* Dired::               You can ``edit'' a directory to manage files in it.
+* Dired::               You can "edit" a directory to manage files in it.
 * Calendar/Diary::      The calendar and diary facilities.
 * Document View::       Viewing PDF, PS and DVI files.
-* Gnus::                How to read netnews with Emacs.
+* Gnus::                A flexible mail and news reader.
 * Shell::               Executing shell commands from Emacs.
-* Emacs Server::        Using Emacs as an editing server for @code{mail}, etc.
+* Emacs Server::        Using Emacs as an editing server.
 * Printing::            Printing hardcopies of buffers or regions.
 * Sorting::             Sorting lines, paragraphs or pages within Emacs.
 * Narrowing::           Restricting display and editing to a portion
@@ -220,7 +219,6 @@ Advanced Features
                           "recursive editing level".
 * Emulation::           Emulating some other editors with Emacs.
 * Hyperlinking::        Following links in buffers.
-* Dissociated Press::   Dissociating text for fun.
 * Amusements::          Various games and hacks.
 * Customization::       Modifying the behavior of Emacs.
 
@@ -252,7 +250,7 @@ Appendices
  --- The Detailed Node Listing ---
  ---------------------------------
 
-Here are some other nodes which are really inferiors of the ones
+Here are some other nodes which are really subnodes of the ones
 already listed, mentioned here so you can get to them in one step:
 
 The Organization of the Screen
@@ -331,15 +329,21 @@ Yanking
 * Appending Kills::     Several kills in a row all yank together.
 * Earlier Kills::       Yanking something killed some time ago.
 
+Killing and Yanking on Graphical Displays
+
+* Clipboard::           How Emacs interacts with the system clipboard.
+* Primary Selection::   The temporarily selected text selection.
+* Secondary Selection:: Cutting without altering point and mark.
+
 Registers
 
-* RegPos::              Saving positions in registers.
-* RegText::             Saving text in registers.
-* RegRect::             Saving rectangles in registers.
-* RegConfig::           Saving window configurations in registers.
-* RegNumbers::          Numbers in registers.
-* RegFiles::            File names in registers.
-* Bookmarks::           Bookmarks are like registers, but persistent.
+* Position Registers::      Saving positions in registers.
+* Text Registers::          Saving text in registers.
+* Rectangle Registers::     Saving rectangles in registers.
+* Configuration Registers:: Saving window configurations in registers.
+* Number Registers::        Numbers in registers.
+* File Registers::          File names in registers.
+* Bookmarks::               Bookmarks are like registers, but persistent.
 
 Controlling the Display
 
@@ -495,7 +499,8 @@ Multiple Windows
 
 Frames and Graphical Displays
 
-* Cut and Paste::       Mouse commands for cut and paste.
+* Mouse Commands::      Moving, cutting, and pasting, with the mouse.
+* Word and Line Mouse:: Mouse commands for selecting whole words or lines.
 * Mouse References::    Using the mouse to select an item from a list.
 * Menu Mouse Clicks::   Mouse clicks that bring up menus.
 * Mode Line Mouse::     Mouse clicks on the mode line.
@@ -516,14 +521,6 @@ Frames and Graphical Displays
 * Mouse Avoidance::     Moving the mouse pointer out of the way.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
 * Text-Only Mouse::     Using the mouse in text-only terminals.
-
-Killing and Yanking on Graphical Displays
-
-* Mouse Commands::      Moving, cutting, and pasting, with the mouse.
-* Word and Line Mouse:: Mouse commands for selecting whole words or lines.
-* Cut/Paste Other App:: Transfering text between Emacs and other apps.
-* Secondary Selection:: Cutting without altering point and mark.
-* Clipboard::           Using the clipboard for selections.
 
 International Character Set Support
 
@@ -551,9 +548,12 @@ International Character Set Support
                               to use without multibyte characters.
 * Charsets::                How Emacs groups its internal character codes.
 
-Major Modes
+Modes
 
-* Choosing Modes::      How major modes are specified or chosen.
+* Major Modes::         Text mode vs. Lisp mode vs. C mode...
+* Minor Modes::         Each minor mode is a feature you can turn on
+                          independently of any others.
+* Choosing Modes::      How modes are chosen when visiting files.
 
 Indentation
 
@@ -585,8 +585,6 @@ Filling Text
 * Fill Prefix::         Filling paragraphs that are indented
                           or in a comment, etc.
 * Adaptive Fill::       How Emacs can determine the fill prefix automatically.
-* Refill::              Keeping paragraphs filled.
-* Longlines::           Editing text with very long lines.
 
 Outline Mode
 
@@ -1062,16 +1060,12 @@ Hyperlinking and Navigation Features
 
 Customization
 
-* Minor Modes::         Each minor mode is a feature you can turn on
-                          independently of any others.
 * Easy Customization::  Convenient way to browse and change settings.
 * Variables::           Many Emacs commands examine Emacs variables
                           to decide what to do; by setting variables,
                           you can control their functioning.
-* Key Bindings::        The keymaps say what command each key runs.
-                          By changing them, you can "redefine keys".
-* Syntax::              The syntax table controls how words and
-                          expressions are parsed.
+* Key Bindings::        Keymaps say what command each key runs.
+                          By changing them, you can "redefine" keys.
 * Init File::           How to write common customizations in the
                           @file{.emacs} file.
 
@@ -1491,7 +1485,7 @@ Lisp programming.
 @include windows.texi
 @include frames.texi
 @include mule.texi
-@include major.texi
+@include modes.texi
 @include indent.texi
 @include text.texi
 @c Includes fortran-xtra.

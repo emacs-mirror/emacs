@@ -24,7 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <signal.h>
 
-#ifdef HAVE_GTK_AND_PTHREAD
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
 #endif
 
@@ -68,10 +68,6 @@ extern POINTER_TYPE *sbrk ();
 #ifdef DOUG_LEA_MALLOC
 
 #include <malloc.h>
-/* malloc.h #defines this as size_t, at least in glibc2.  */
-#ifndef __malloc_size_t
-#define __malloc_size_t int
-#endif
 
 /* Specify maximum number of areas to mmap.  It would be nice to use a
    value that explicitly means "no limit".  */
@@ -82,19 +78,20 @@ extern POINTER_TYPE *sbrk ();
 
 /* The following come from gmalloc.c.  */
 
-#define	__malloc_size_t		size_t
-extern __malloc_size_t _bytes_used;
-extern __malloc_size_t __malloc_extra_blocks;
+extern size_t _bytes_used;
+extern size_t __malloc_extra_blocks;
 
 #endif /* not DOUG_LEA_MALLOC */
 
 #if ! defined SYSTEM_MALLOC && ! defined SYNC_INPUT
-#ifdef HAVE_GTK_AND_PTHREAD
+#ifdef HAVE_PTHREAD
 
 /* When GTK uses the file chooser dialog, different backends can be loaded
    dynamically.  One such a backend is the Gnome VFS backend that gets loaded
    if you run Gnome.  That backend creates several threads and also allocates
    memory with malloc.
+
+   Also, gconf and gsettings may create several threads.
 
    If Emacs sets malloc hooks (! SYSTEM_MALLOC) and the emacs_blocked_*
    functions below are called from malloc, there is a chance that one
@@ -127,12 +124,12 @@ static pthread_mutex_t alloc_mutex;
     }                                                   \
   while (0)
 
-#else /* ! defined HAVE_GTK_AND_PTHREAD */
+#else /* ! defined HAVE_PTHREAD */
 
 #define BLOCK_INPUT_ALLOC BLOCK_INPUT
 #define UNBLOCK_INPUT_ALLOC UNBLOCK_INPUT
 
-#endif /* ! defined HAVE_GTK_AND_PTHREAD */
+#endif /* ! defined HAVE_PTHREAD */
 #endif /* ! defined SYSTEM_MALLOC && ! defined SYNC_INPUT */
 
 /* Mark, unmark, query mark bit of a Lisp string.  S must be a pointer
@@ -214,12 +211,12 @@ EMACS_INT pure[(PURESIZE + sizeof (EMACS_INT) - 1) / sizeof (EMACS_INT)] = {1,};
 /* Pointer to the pure area, and its size.  */
 
 static char *purebeg;
-static size_t pure_size;
+static ptrdiff_t pure_size;
 
 /* Number of bytes of pure storage used before pure storage overflowed.
    If this is non-zero, this implies that an overflow occurred.  */
 
-static size_t pure_bytes_used_before_overflow;
+static ptrdiff_t pure_bytes_used_before_overflow;
 
 /* Value is non-zero if P points into pure space.  */
 
@@ -252,7 +249,7 @@ const char *pending_malloc_warning;
 
 #if MAX_SAVE_STACK > 0
 static char *stack_copy;
-static size_t stack_copy_size;
+static ptrdiff_t stack_copy_size;
 #endif
 
 /* Non-zero means ignore malloc warnings.  Set during initialization.
@@ -486,14 +483,15 @@ buffer_memory_full (EMACS_INT nbytes)
 
 
 #ifndef XMALLOC_OVERRUN_CHECK
-#define XMALLOC_OVERRUN_CHECK_SIZE 0
+#define XMALLOC_OVERRUN_CHECK_OVERHEAD 0
 #else
 
-/* Check for overrun in malloc'ed buffers by wrapping a 16 byte header
-   and a 16 byte trailer around each block.
+/* Check for overrun in malloc'ed buffers by wrapping a header and trailer
+   around each block.
 
-   The header consists of 12 fixed bytes + a 4 byte integer contaning the
-   original block size, while the trailer consists of 16 fixed bytes.
+   The header consists of 16 fixed bytes followed by sizeof (size_t) bytes
+   containing the original block size in little-endian order,
+   while the trailer consists of 16 fixed bytes.
 
    The header is used to detect whether this block has been allocated
    through these functions -- as it seems that some low-level libc
@@ -502,31 +500,47 @@ buffer_memory_full (EMACS_INT nbytes)
 
 
 #define XMALLOC_OVERRUN_CHECK_SIZE 16
+#define XMALLOC_OVERRUN_CHECK_OVERHEAD \
+  (2 * XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t))
 
-static char xmalloc_overrun_check_header[XMALLOC_OVERRUN_CHECK_SIZE-4] =
-  { 0x9a, 0x9b, 0xae, 0xaf,
-    0xbf, 0xbe, 0xce, 0xcf,
-    0xea, 0xeb, 0xec, 0xed };
+static char const xmalloc_overrun_check_header[XMALLOC_OVERRUN_CHECK_SIZE] =
+  { '\x9a', '\x9b', '\xae', '\xaf',
+    '\xbf', '\xbe', '\xce', '\xcf',
+    '\xea', '\xeb', '\xec', '\xed',
+    '\xdf', '\xde', '\x9c', '\x9d' };
 
-static char xmalloc_overrun_check_trailer[XMALLOC_OVERRUN_CHECK_SIZE] =
-  { 0xaa, 0xab, 0xac, 0xad,
-    0xba, 0xbb, 0xbc, 0xbd,
-    0xca, 0xcb, 0xcc, 0xcd,
-    0xda, 0xdb, 0xdc, 0xdd };
+static char const xmalloc_overrun_check_trailer[XMALLOC_OVERRUN_CHECK_SIZE] =
+  { '\xaa', '\xab', '\xac', '\xad',
+    '\xba', '\xbb', '\xbc', '\xbd',
+    '\xca', '\xcb', '\xcc', '\xcd',
+    '\xda', '\xdb', '\xdc', '\xdd' };
 
-/* Macros to insert and extract the block size in the header.  */
+/* Insert and extract the block size in the header.  */
 
-#define XMALLOC_PUT_SIZE(ptr, size)	\
-  (ptr[-1] = (size & 0xff),		\
-   ptr[-2] = ((size >> 8) & 0xff),	\
-   ptr[-3] = ((size >> 16) & 0xff),	\
-   ptr[-4] = ((size >> 24) & 0xff))
+static void
+xmalloc_put_size (unsigned char *ptr, size_t size)
+{
+  int i;
+  for (i = 0; i < sizeof (size_t); i++)
+    {
+      *--ptr = size & (1 << CHAR_BIT) - 1;
+      size >>= CHAR_BIT;
+    }
+}
 
-#define XMALLOC_GET_SIZE(ptr)			\
-  (size_t)((unsigned)(ptr[-1])		|	\
-	   ((unsigned)(ptr[-2]) << 8)	|	\
-	   ((unsigned)(ptr[-3]) << 16)	|	\
-	   ((unsigned)(ptr[-4]) << 24))
+static size_t
+xmalloc_get_size (unsigned char *ptr)
+{
+  size_t size = 0;
+  int i;
+  ptr -= sizeof (size_t);
+  for (i = 0; i < sizeof (size_t); i++)
+    {
+      size <<= CHAR_BIT;
+      size += *ptr++;
+    }
+  return size;
+}
 
 
 /* The call depth in overrun_check functions.  For example, this might happen:
@@ -545,10 +559,10 @@ static char xmalloc_overrun_check_trailer[XMALLOC_OVERRUN_CHECK_SIZE] =
 
    xfree(10032)
      overrun_check_free(10032)
-       decrease overhed
+       decrease overhead
        free(10016)  <-  crash, because 10000 is the original pointer.  */
 
-static int check_depth;
+static ptrdiff_t check_depth;
 
 /* Like malloc, but wraps allocated block with header and trailer.  */
 
@@ -556,15 +570,16 @@ static POINTER_TYPE *
 overrun_check_malloc (size_t size)
 {
   register unsigned char *val;
-  size_t overhead = ++check_depth == 1 ? XMALLOC_OVERRUN_CHECK_SIZE*2 : 0;
+  int overhead = ++check_depth == 1 ? XMALLOC_OVERRUN_CHECK_OVERHEAD : 0;
+  if (SIZE_MAX - overhead < size)
+    abort ();
 
   val = (unsigned char *) malloc (size + overhead);
   if (val && check_depth == 1)
     {
-      memcpy (val, xmalloc_overrun_check_header,
-	      XMALLOC_OVERRUN_CHECK_SIZE - 4);
-      val += XMALLOC_OVERRUN_CHECK_SIZE;
-      XMALLOC_PUT_SIZE(val, size);
+      memcpy (val, xmalloc_overrun_check_header, XMALLOC_OVERRUN_CHECK_SIZE);
+      val += XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t);
+      xmalloc_put_size (val, size);
       memcpy (val + size, xmalloc_overrun_check_trailer,
 	      XMALLOC_OVERRUN_CHECK_SIZE);
     }
@@ -580,31 +595,32 @@ static POINTER_TYPE *
 overrun_check_realloc (POINTER_TYPE *block, size_t size)
 {
   register unsigned char *val = (unsigned char *) block;
-  size_t overhead = ++check_depth == 1 ? XMALLOC_OVERRUN_CHECK_SIZE*2 : 0;
+  int overhead = ++check_depth == 1 ? XMALLOC_OVERRUN_CHECK_OVERHEAD : 0;
+  if (SIZE_MAX - overhead < size)
+    abort ();
 
   if (val
       && check_depth == 1
       && memcmp (xmalloc_overrun_check_header,
-		 val - XMALLOC_OVERRUN_CHECK_SIZE,
-		 XMALLOC_OVERRUN_CHECK_SIZE - 4) == 0)
+		 val - XMALLOC_OVERRUN_CHECK_SIZE - sizeof (size_t),
+		 XMALLOC_OVERRUN_CHECK_SIZE) == 0)
     {
-      size_t osize = XMALLOC_GET_SIZE (val);
+      size_t osize = xmalloc_get_size (val);
       if (memcmp (xmalloc_overrun_check_trailer, val + osize,
 		  XMALLOC_OVERRUN_CHECK_SIZE))
 	abort ();
       memset (val + osize, 0, XMALLOC_OVERRUN_CHECK_SIZE);
-      val -= XMALLOC_OVERRUN_CHECK_SIZE;
-      memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE);
+      val -= XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t);
+      memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t));
     }
 
   val = (unsigned char *) realloc ((POINTER_TYPE *)val, size + overhead);
 
   if (val && check_depth == 1)
     {
-      memcpy (val, xmalloc_overrun_check_header,
-	      XMALLOC_OVERRUN_CHECK_SIZE - 4);
-      val += XMALLOC_OVERRUN_CHECK_SIZE;
-      XMALLOC_PUT_SIZE(val, size);
+      memcpy (val, xmalloc_overrun_check_header, XMALLOC_OVERRUN_CHECK_SIZE);
+      val += XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t);
+      xmalloc_put_size (val, size);
       memcpy (val + size, xmalloc_overrun_check_trailer,
 	      XMALLOC_OVERRUN_CHECK_SIZE);
     }
@@ -623,20 +639,20 @@ overrun_check_free (POINTER_TYPE *block)
   if (val
       && check_depth == 1
       && memcmp (xmalloc_overrun_check_header,
-		 val - XMALLOC_OVERRUN_CHECK_SIZE,
-		 XMALLOC_OVERRUN_CHECK_SIZE - 4) == 0)
+		 val - XMALLOC_OVERRUN_CHECK_SIZE - sizeof (size_t),
+		 XMALLOC_OVERRUN_CHECK_SIZE) == 0)
     {
-      size_t osize = XMALLOC_GET_SIZE (val);
+      size_t osize = xmalloc_get_size (val);
       if (memcmp (xmalloc_overrun_check_trailer, val + osize,
 		  XMALLOC_OVERRUN_CHECK_SIZE))
 	abort ();
 #ifdef XMALLOC_CLEAR_FREE_MEMORY
-      val -= XMALLOC_OVERRUN_CHECK_SIZE;
-      memset (val, 0xff, osize + XMALLOC_OVERRUN_CHECK_SIZE*2);
+      val -= XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t);
+      memset (val, 0xff, osize + XMALLOC_OVERRUN_CHECK_OVERHEAD);
 #else
       memset (val + osize, 0, XMALLOC_OVERRUN_CHECK_SIZE);
-      val -= XMALLOC_OVERRUN_CHECK_SIZE;
-      memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE);
+      val -= XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t);
+      memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE + sizeof (size_t));
 #endif
     }
 
@@ -1092,11 +1108,11 @@ static void (*old_free_hook) (void*, const void*);
 #  define BYTES_USED _bytes_used
 #endif
 
-static __malloc_size_t bytes_used_when_reconsidered;
+static size_t bytes_used_when_reconsidered;
 
 /* Value of _bytes_used, when spare_memory was freed.  */
 
-static __malloc_size_t bytes_used_when_full;
+static size_t bytes_used_when_full;
 
 /* This function is used as the hook for free to call.  */
 
@@ -1251,20 +1267,20 @@ emacs_blocked_realloc (void *ptr, size_t size, const void *ptr2)
 }
 
 
-#ifdef HAVE_GTK_AND_PTHREAD
+#ifdef HAVE_PTHREAD
 /* Called from Fdump_emacs so that when the dumped Emacs starts, it has a
    normal malloc.  Some thread implementations need this as they call
    malloc before main.  The pthread_self call in BLOCK_INPUT_ALLOC then
    calls malloc because it is the first call, and we have an endless loop.  */
 
 void
-reset_malloc_hooks ()
+reset_malloc_hooks (void)
 {
   __free_hook = old_free_hook;
   __malloc_hook = old_malloc_hook;
   __realloc_hook = old_realloc_hook;
 }
-#endif /* HAVE_GTK_AND_PTHREAD */
+#endif /* HAVE_PTHREAD */
 
 
 /* Called from main to set up malloc to use our hooks.  */
@@ -1272,7 +1288,7 @@ reset_malloc_hooks ()
 void
 uninterrupt_malloc (void)
 {
-#ifdef HAVE_GTK_AND_PTHREAD
+#ifdef HAVE_PTHREAD
 #ifdef DOUG_LEA_MALLOC
   pthread_mutexattr_t attr;
 
@@ -1286,7 +1302,7 @@ uninterrupt_malloc (void)
      and the bundled gmalloc.c doesn't require it.  */
   pthread_mutex_init (&alloc_mutex, NULL);
 #endif /* !DOUG_LEA_MALLOC */
-#endif /* HAVE_GTK_AND_PTHREAD */
+#endif /* HAVE_PTHREAD */
 
   if (__free_hook != emacs_blocked_free)
     old_free_hook = __free_hook;
@@ -1661,7 +1677,8 @@ static char const string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =
    calculating a value to be passed to malloc.  */
 #define STRING_BYTES_MAX					  \
   min (STRING_BYTES_BOUND,					  \
-       ((SIZE_MAX - XMALLOC_OVERRUN_CHECK_SIZE - GC_STRING_EXTRA  \
+       ((SIZE_MAX - XMALLOC_OVERRUN_CHECK_OVERHEAD		  \
+	 - GC_STRING_EXTRA					  \
 	 - offsetof (struct sblock, first_data)			  \
 	 - SDATA_DATA_OFFSET)					  \
 	& ~(sizeof (EMACS_INT) - 1)))
@@ -3267,12 +3284,16 @@ memory_full (size_t nbytes)
   int enough_free_memory = 0;
   if (SPARE_MEMORY < nbytes)
     {
-      void *p = malloc (SPARE_MEMORY);
+      void *p;
+
+      MALLOC_BLOCK_INPUT;
+      p = malloc (SPARE_MEMORY);
       if (p)
 	{
 	  free (p);
 	  enough_free_memory = 1;
 	}
+      MALLOC_UNBLOCK_INPUT;
     }
 
   if (! enough_free_memory)
@@ -3320,7 +3341,7 @@ refill_memory_reserve (void)
 {
 #ifndef SYSTEM_MALLOC
   if (spare_memory[0] == 0)
-    spare_memory[0] = (char *) malloc ((size_t) SPARE_MEMORY);
+    spare_memory[0] = (char *) malloc (SPARE_MEMORY);
   if (spare_memory[1] == 0)
     spare_memory[1] = (char *) lisp_align_malloc (sizeof (struct cons_block),
 						  MEM_TYPE_CONS);
@@ -4415,18 +4436,18 @@ valid_pointer_p (void *p)
 #ifdef WINDOWSNT
   return w32_valid_pointer_p (p, 16);
 #else
-  int fd;
+  int fd[2];
 
   /* Obviously, we cannot just access it (we would SEGV trying), so we
      trick the o/s to tell us whether p is a valid pointer.
      Unfortunately, we cannot use NULL_DEVICE here, as emacs_write may
      not validate p in that case.  */
 
-  if ((fd = emacs_open ("__Valid__Lisp__Object__", O_CREAT | O_WRONLY | O_TRUNC, 0666)) >= 0)
+  if (pipe (fd) == 0)
     {
-      int valid = (emacs_write (fd, (char *)p, 16) == 16);
-      emacs_close (fd);
-      unlink ("__Valid__Lisp__Object__");
+      int valid = (emacs_write (fd[1], (char *) p, 16) == 16);
+      emacs_close (fd[1]);
+      emacs_close (fd[0]);
       return valid;
     }
 
@@ -4922,7 +4943,7 @@ returns nil, because real GC can't be done.  */)
   if (NILP (Vpurify_flag))
     {
       char *stack;
-      size_t stack_size;
+      ptrdiff_t stack_size;
       if (&stack_top_variable < stack_bottom)
 	{
 	  stack = &stack_top_variable;
@@ -5233,7 +5254,7 @@ static int last_marked_index;
    links of a list, in mark_object.  In debugging,
    the call to abort will hit a breakpoint.
    Normally this is zero and the check never goes off.  */
-static size_t mark_object_loop_halt;
+ptrdiff_t mark_object_loop_halt EXTERNALLY_VISIBLE;
 
 static void
 mark_vectorlike (struct Lisp_Vector *ptr)
@@ -5290,7 +5311,7 @@ mark_object (Lisp_Object arg)
   void *po;
   struct mem_node *m;
 #endif
-  size_t cdr_count = 0;
+  ptrdiff_t cdr_count = 0;
 
  loop:
 
@@ -5733,7 +5754,7 @@ gc_sweep (void)
 	int ilim = (lim + BITS_PER_INT - 1) / BITS_PER_INT;
 
 	/* Scan the mark bits an int at a time.  */
-	for (i = 0; i <= ilim; i++)
+	for (i = 0; i < ilim; i++)
 	  {
 	    if (cblk->gcmarkbits[i] == -1)
 	      {

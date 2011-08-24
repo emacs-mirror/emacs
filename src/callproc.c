@@ -596,13 +596,17 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     sigemptyset (&blocked);
     sigaddset (&blocked, SIGPIPE);
     sigaction (SIGPIPE, 0, &sigpipe_action);
-    sigprocmask (SIG_BLOCK, &blocked, &procmask);
+    pthread_sigmask (SIG_BLOCK, &blocked, &procmask);
 #endif
 
     BLOCK_INPUT;
 
     /* vfork, and prevent local vars from being clobbered by the vfork.  */
     {
+      Lisp_Object volatile buffer_volatile = buffer;
+      Lisp_Object volatile coding_systems_volatile = coding_systems;
+      Lisp_Object volatile current_dir_volatile = current_dir;
+      int volatile fd1_volatile = fd1;
       int volatile fd_error_volatile = fd_error;
       int volatile fd_output_volatile = fd_output;
       int volatile output_to_buffer_volatile = output_to_buffer;
@@ -610,6 +614,10 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
       pid = vfork ();
 
+      buffer = buffer_volatile;
+      coding_systems = coding_systems_volatile;
+      current_dir = current_dir_volatile;
+      fd1 = fd1_volatile;
       fd_error = fd_error_volatile;
       fd_output = fd_output_volatile;
       output_to_buffer = output_to_buffer_volatile;
@@ -633,7 +641,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	   in the child.  */
 	//signal (SIGPIPE, SIG_DFL);
 #ifdef HAVE_WORKING_VFORK
-	sigprocmask (SIG_SETMASK, &procmask, 0);
+	pthread_sigmask (SIG_SETMASK, &procmask, 0);
 #endif
 
 	child_setup (filefd, fd1, fd_error, (char **) new_argv,
@@ -645,7 +653,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 #ifdef HAVE_WORKING_VFORK
     /* Restore the signal state.  */
     sigaction (SIGPIPE, &sigpipe_action, 0);
-    sigprocmask (SIG_SETMASK, &procmask, 0);
+    pthread_sigmask (SIG_SETMASK, &procmask, 0);
 #endif
 
 #endif /* not WINDOWSNT */

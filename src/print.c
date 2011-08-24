@@ -46,10 +46,7 @@ static Lisp_Object Qtemp_buffer_setup_hook;
 static Lisp_Object Qfloat_output_format;
 
 #include <math.h>
-
-#if STDC_HEADERS
 #include <float.h>
-#endif
 #include <ftoastr.h>
 
 /* Default to values appropriate for IEEE floating point.  */
@@ -1539,13 +1536,19 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	else
 	  confusing = 0;
 
+	size_byte = SBYTES (name);
+
 	if (! NILP (Vprint_gensym) && !SYMBOL_INTERNED_P (obj))
 	  {
 	    PRINTCHAR ('#');
 	    PRINTCHAR (':');
 	  }
-
-	size_byte = SBYTES (name);
+	else if (size_byte == 0)
+	  {
+	    PRINTCHAR ('#');
+	    PRINTCHAR ('#');
+	    break;
+	  }
 
 	for (i = 0, i_byte = 0; i_byte < size_byte;)
 	  {
@@ -1558,7 +1561,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	      {
 		if (c == '\"' || c == '\\' || c == '\''
 		    || c == ';' || c == '#' || c == '(' || c == ')'
-		    || c == ',' || c =='.' || c == '`'
+		    || c == ',' || c == '.' || c == '`'
 		    || c == '[' || c == ']' || c == '?' || c <= 040
 		    || confusing)
 		  PRINTCHAR ('\\'), confusing = 0;

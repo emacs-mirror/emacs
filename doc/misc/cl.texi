@@ -2586,7 +2586,14 @@ the trailing values are ignored, and if there are more variables
 than values the trailing variables get the value @code{nil}.
 If @code{nil} is used as a variable name, the corresponding
 values are ignored.  Destructuring may be nested, and dotted
-lists of variables like @code{(x . y)} are allowed.
+lists of variables like @code{(x . y)} are allowed, so for example
+to process an alist
+
+@example
+(loop for (key . value) in '((a . 1) (b . 2))
+      collect value)
+     @result{} (1 2)
+@end example
 
 @node Iteration Clauses, Accumulation Clauses, For Clauses, Loop Facility
 @subsection Iteration Clauses

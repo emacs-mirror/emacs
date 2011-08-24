@@ -747,12 +747,15 @@ the user during startup."
 
 (declare-function x-focus-frame "xfns.c" (frame))
 
-(defun select-frame-set-input-focus (frame)
+(defun select-frame-set-input-focus (frame &optional norecord)
   "Select FRAME, raise it, and set input focus, if possible.
 If `mouse-autoselect-window' is non-nil, also move mouse pointer
 to FRAME's selected window.  Otherwise, if `focus-follows-mouse'
-is non-nil, move mouse cursor to FRAME."
-  (select-frame frame)
+is non-nil, move mouse cursor to FRAME.
+
+Optional argument NORECORD means to neither change the order of
+recently selected windows nor the buffer list."
+  (select-frame frame norecord)
   (raise-frame frame)
   ;; Ensure, if possible, that FRAME gets input focus.
   (when (memq (window-system frame) '(x w32 ns))

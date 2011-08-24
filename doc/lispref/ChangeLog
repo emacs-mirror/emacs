@@ -1,3 +1,156 @@
+2011-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Character Properties): Document the values for
+	unassigned codepoints.
+
+2011-08-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Character Properties): Document use of
+	`bidi-class' and `mirroring' properties as part of reordering.
+	Provide cross-references to "Bidirectional Display".
+
+	* display.texi (Bidirectional Display): Document the pitfalls of
+	concatenating strings with bidirectional content, with possible
+	solutions.  Document bidi-string-mark-left-to-right.  Mention
+	paragraph direction in modes that inherit from prog-mode.
+	Document use of `bidi-class' and `mirroring' properties as part of
+	reordering.
+
+2011-08-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* modes.texi (Major Mode Conventions): Improve the documentation
+	of `mode-class' `special' modes.
+
+	* nonascii.texi (Character Properties): Document the `mirroring'
+	property.  Add index entries.
+
+	* syntax.texi (Categories): Add an example of defining a new
+	category and category table.
+
+	* searching.texi (Regexp Backslash): Document how to display
+	existing categories.  Mention the possibility of adding
+	categories, and add an xref to where this is described.  Add an
+	index entry.
+
+2011-08-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Special Properties):
+	* display.texi (Overlay Properties): Note that mouse-face cannot
+	change the text size (Bug#8530).
+
+2011-08-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Time of Day): Remove set-time-zone-rule, and recommend
+	using setenv instead.
+
+2011-07-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Bidirectional Display): Document the fact that
+	bidi-display-reordering is t by default.
+
+2011-07-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Bidirectional Display): New section.
+
+2011-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+	    Tim Cross  <theophilusx@gmail.com>  (tiny change)
+	    Glenn Morris   <rgm@gnu.org>
+
+	* keymaps.texi (Toolkit Differences): New node.  (Bug#8176)
+
+2011-07-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* help.texi (Keys in Documentation): Revert last change.
+
+2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* help.texi (Keys in Documentation): Clarify that \= only quotes
+	the next character, and doesn't affect longer sequences in
+	particular (bug#8935).
+
+	* debugging.texi (Using Debugger): Mention
+	@code{eval-expression-debug-on-error} (bug#8549).
+
+2011-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Other Display Specs): Document that `left-fringe'
+	and `right-fringe' display specifications are of the "replacing"
+	kind.
+
+2011-07-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* help.texi (Documentation Basics): Add a link to the Function
+	Documentation node (bug#6580).
+
+2011-07-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* keymaps.texi (Menu Bar): Mention :visible and :enable
+	(bug#6344).  Text by Drew Adams.
+
+	* modes.texi (Running Hooks): Mention buffer-local hook variables
+	(bug#6218).
+
+	* objects.texi (General Escape Syntax): "a with grave accent" is
+	?xe0, not ?x8e0 (bug#5259).
+
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Face Attributes, Font Selection): Add references
+	to the Fonts node in the Emacs manual (Bug#4178).
+
+2011-07-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Window Systems): `window-system' is
+	terminal-local.
+
+	* frames.texi (Frame Parameters, Parameter Access): Don't mention
+	frame-local variables.
+
+	* variables.texi (Buffer-Local Variables): Don't mention obsolete
+	frame-local variables.
+	(Frame-Local Variables): Node deleted.
+
+	* elisp.texi (Top): Update node listing.
+
+2011-07-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* elisp.texi: Change "inferiors" to "subnodes" in three places
+	(bug#3523).
+
+2011-07-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Window System Selections): Discussion of
+	x-select-enable-clipboard moved to Emacs manual.
+
+2011-07-11  Deniz Dogan  <deniz@dogan.se>
+
+	* commands.texi (Prefix Command Arguments): Remove excessive
+	apostrophe.
+
+2011-07-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* syntax.texi (Syntax Descriptors): Clarify that the ". 23" syntax
+	description is a string (bug#3313).
+
+	* frames.texi (Display Feature Testing): Try to explain what all
+	the visual classes mean (bug#3042).
+
+2011-07-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* modes.texi (Mode Line Variables): Document `mode-line-remote'
+	and `mode-line-client' (bug#2974).
+
+	* text.texi (Insertion): Clarify marker movements (bug#1651).
+	Text from Drew Adams.
+
+2011-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* text.texi (Special Properties): Clarify the format of `face'
+	(bug#1375).
+
+	* commands.texi (Interactive Call): Add a `call-interactively'
+	example (bug#1010).
+
 2011-07-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* functions.texi (Calling Functions): Link to the "Interactive

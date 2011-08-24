@@ -129,6 +129,10 @@ Lisp_Object empty_unibyte_string, empty_multibyte_string;
   on subsequent starts.  */
 int initialized;
 
+#ifdef DARWIN_OS
+extern void unexec_init_emacs_zone (void);
+#endif
+
 #ifdef DOUG_LEA_MALLOC
 /* Preserves a pointer to the memory allocated that copies that
    static data inside glibc's malloc.  */
@@ -166,8 +170,10 @@ char *stack_bottom;
 /* The address where the heap starts (from the first sbrk (0) call).  */
 static void *my_heap_start;
 
+#ifdef GNU_LINUX
 /* The gap between BSS end and heap start as far as we can tell.  */
-static unsigned long heap_bss_diff;
+static uprintmax_t heap_bss_diff;
+#endif
 
 /* Nonzero means running Emacs without interactive terminal.  */
 int noninteractive;
@@ -350,8 +356,7 @@ fatal_error_signal (int sig)
 
 /* Handler for SIGDANGER.  */
 void
-memory_warning_signal (sig)
-     int sig;
+memory_warning_signal (int sig)
 {
   signal (sig, memory_warning_signal);
   SIGNAL_THREAD_CHECK (sig);
@@ -713,6 +718,7 @@ main (int argc, char **argv)
   setenv ("G_SLICE", "always-malloc", 1);
 #endif
 
+#ifdef GNU_LINUX
   if (!initialized)
     {
       extern char my_endbss[];
@@ -723,6 +729,7 @@ main (int argc, char **argv)
 
       heap_bss_diff = (char *)my_heap_start - max (my_endbss, my_endbss_static);
     }
+#endif
 
 #ifdef RUN_TIME_REMAP
   if (initialized)
@@ -1113,7 +1120,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #if defined (USG5) && defined (INTERRUPT_INPUT)
       setpgrp ();
 #endif
-#if defined (HAVE_GTK_AND_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
+#if defined (HAVE_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
       {
         extern void malloc_enable_thread (void);
 
@@ -2131,7 +2138,7 @@ You must run Emacs in batch mode in order to dump it.  */)
     {
       fprintf (stderr, "**************************************************\n");
       fprintf (stderr, "Warning: Your system has a gap between BSS and the\n");
-      fprintf (stderr, "heap (%lu bytes).  This usually means that exec-shield\n",
+      fprintf (stderr, "heap (%"pMu" bytes).  This usually means that exec-shield\n",
                heap_bss_diff);
       fprintf (stderr, "or something similar is in effect.  The dump may\n");
       fprintf (stderr, "fail because of this.  See the section about\n");
@@ -2178,7 +2185,7 @@ You must run Emacs in batch mode in order to dump it.  */)
     memory_warnings (my_edata, malloc_warning);
   }
 #endif /* not WINDOWSNT */
-#if defined (HAVE_GTK_AND_PTHREAD) && !defined SYNC_INPUT
+#if defined (HAVE_PTHREAD) && !defined SYNC_INPUT
   /* Pthread may call malloc before main, and then we will get an endless
      loop, because pthread_self (see alloc.c) calls malloc the first time
      it is called on some systems.  */

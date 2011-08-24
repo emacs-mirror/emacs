@@ -1,6 +1,6 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{7.4}
-\def\versionyear{2010}          % latest update
+\def\orgversionnumber{7.7}
+\def\versionyear{2011}          % latest update
 \def\year{2011}                 % latest copyright year
 
 %**start of header
@@ -309,6 +309,7 @@ are preserved on all copies.
 \metax{move subtree/list item up/down}{M-S-UP/DOWN}
 \metax{sort subtree/region/plain-list}{C-c \^{}}
 \metax{clone a subtree}{C-c C-x c}
+\metax{copy visible text}{C-c C-x v}
 \metax{kill/copy subtree}{C-c C-x C-w/M-w}
 \metax{yank subtree}{C-c C-x C-y or C-y}
 \metax{narrow buffer to subtree / widen}{C-x n s/w}
@@ -443,7 +444,9 @@ formula, \kbd{:=} a field formula.
 
 \key{execute code block at point}{C-c C-c}
 \key{open results of code block at point}{C-c C-o}
+\key{check code block at point for errors}{C-c C-v c}
 \key{view expanded body of code block at point}{C-c C-v v}
+\key{view information about code block at point}{C-c C-v I}
 \key{go to named code block}{C-c C-v g}
 \key{go to named result}{C-c C-v r}
 \key{go to the head of the current code block}{C-c C-v u}
@@ -586,10 +589,10 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 
 \key{delete other windows}{o}
 \key{view mode dispatcher}{v}
-\key{switch to day/week/month/year view}{d w vm vy}
+\key{switch to day/week/month/year/def view}{d w vm vy vSP}
 \key{toggle diary entries / time grid / habits}{D / G / K}
 \key{toggle entry text / clock report}{E / R}
-\key{toggle display of logbook entries}{l / v l/L}
+\key{toggle display of logbook entries}{l / v l/L/c}
 \key{toggle inclusion of archived trees/files}{v a/A}
 \key{refresh agenda buffer with any changes}{r / g}
 \key{filter with respect to a tag}{/}
@@ -682,4 +685,5 @@ your own key as shown under INSTALLATION.
 % Local variables:
 % compile-command: "tex refcard"
 % End:
+
 

@@ -112,6 +112,7 @@ static Lisp_Object QUTF8_STRING;	/* This is a type of selection.  */
 static Lisp_Object Qcompound_text_with_extensions;
 
 static Lisp_Object Qforeign_selection;
+static Lisp_Object Qx_lost_selection_functions, Qx_sent_selection_functions;
 
 /* If this is a smaller number than the max-request-size of the display,
    emacs will use INCR selection transfer when the selection is larger
@@ -855,7 +856,7 @@ x_handle_selection_request (struct input_event *event)
       && !EQ (Vx_sent_selection_functions, Qunbound))
     {
       Lisp_Object args[4];
-      args[0] = Vx_sent_selection_functions;
+      args[0] = Qx_sent_selection_functions;
       args[1] = selection_symbol;
       args[2] = target_symbol;
       args[3] = success ? Qt : Qnil;
@@ -979,7 +980,7 @@ x_handle_selection_clear (struct input_event *event)
   /* Run the `x-lost-selection-functions' abnormal hook.  */
   {
     Lisp_Object args[2];
-    args[0] = Vx_lost_selection_functions;
+    args[0] = Qx_lost_selection_functions;
     args[1] = selection_symbol;
     Frun_hook_with_args (2, args);
   }
@@ -1020,7 +1021,7 @@ x_clear_frame_selections (FRAME_PTR f)
     {
       /* Run the `x-lost-selection-functions' abnormal hook.  */
       Lisp_Object args[2];
-      args[0] = Vx_lost_selection_functions;
+      args[0] = Qx_lost_selection_functions;
       args[1] = Fcar (Fcar (t->Vselection_alist));
       Frun_hook_with_args (2, args);
 
@@ -1033,7 +1034,7 @@ x_clear_frame_selections (FRAME_PTR f)
 	&& EQ (frame, XCAR (XCDR (XCDR (XCDR (XCAR (XCDR (rest))))))))
       {
 	Lisp_Object args[2];
-	args[0] = Vx_lost_selection_functions;
+	args[0] = Qx_lost_selection_functions;
 	args[1] = XCAR (XCAR (XCDR (rest)));
 	Frun_hook_with_args (2, args);
 	XSETCDR (rest, XCDR (XCDR (rest)));
@@ -2380,7 +2381,7 @@ FRAME is on.  If FRAME is nil, the selected frame is used.  */)
 {
   Atom x_atom;
   struct frame *f = check_x_frame (frame);
-  size_t i;
+  ptrdiff_t i;
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
 
@@ -2401,6 +2402,9 @@ FRAME is on.  If FRAME is nil, the selected frame is used.  */)
 
   if (dpyinfo->x_dnd_atoms_length == dpyinfo->x_dnd_atoms_size)
     {
+      if (min (PTRDIFF_MAX, SIZE_MAX) / sizeof *dpyinfo->x_dnd_atoms / 2
+	  < dpyinfo->x_dnd_atoms_size)
+	memory_full (SIZE_MAX);
       dpyinfo->x_dnd_atoms_size *= 2;
       dpyinfo->x_dnd_atoms = xrealloc (dpyinfo->x_dnd_atoms,
                                        sizeof (*dpyinfo->x_dnd_atoms)
@@ -2423,7 +2427,7 @@ x_handle_dnd_message (struct frame *f, XClientMessageEvent *event, struct x_disp
   int x, y;
   unsigned char *data = (unsigned char *) event->data.b;
   int idata[5];
-  size_t i;
+  ptrdiff_t i;
 
   for (i = 0; i < dpyinfo->x_dnd_atoms_length; ++i)
     if (dpyinfo->x_dnd_atoms[i] == event->message_type) break;
@@ -2679,4 +2683,6 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   DEFSYM (QNULL, "NULL");
   DEFSYM (Qcompound_text_with_extensions, "compound-text-with-extensions");
   DEFSYM (Qforeign_selection, "foreign-selection");
+  DEFSYM (Qx_lost_selection_functions, "x-lost-selection-functions");
+  DEFSYM (Qx_sent_selection_functions, "x-sent-selection-functions");
 }

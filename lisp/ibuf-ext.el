@@ -505,7 +505,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	      (assoc (cdr filter)
 		     ibuffer-saved-filters)))
 	 (unless data
-	   (ibuffer-filter-disable)
+	   (ibuffer-filter-disable t)
 	   (error "Unknown saved filter %s" (cdr filter)))
 	 (ibuffer-included-in-filters-p buf (cadr data))))
       (t
@@ -514,7 +514,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	 ;; filterdat should be like (TYPE DESCRIPTION FUNC)
 	 ;; just a sanity check
 	(unless filterdat
-	  (ibuffer-filter-disable)
+	  (ibuffer-filter-disable t)
 	  (error "Undefined filter %s" (car filter)))
 	(not
 	 (not
@@ -768,11 +768,14 @@ The value from `ibuffer-saved-filter-groups' is used."
   (ibuffer-update nil t))
 
 ;;;###autoload
-(defun ibuffer-filter-disable ()
-  "Disable all filters currently in effect in this buffer."
+(defun ibuffer-filter-disable (&optional delete-filter-groups)
+  "Disable all filters currently in effect in this buffer.
+With optional arg DELETE-FILTER-GROUPS non-nil, delete all filter
+group definitions by setting `ibuffer-filter-groups' to nil."
   (interactive)
-  (setq ibuffer-filtering-qualifiers nil
-	ibuffer-filter-groups nil)
+  (setq ibuffer-filtering-qualifiers nil)
+  (if delete-filter-groups
+      (setq ibuffer-filter-groups nil))
   (let ((buf (ibuffer-current-buffer)))
     (ibuffer-update nil t)
     (when buf

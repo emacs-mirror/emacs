@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -203,6 +203,7 @@ Option settings will replace the %MANAGER-OPTIONS cookie."
 
 (provide 'org-infojs)
 (provide 'org-jsinfo)
+
 
 
 ;;; org-jsinfo.el ends here

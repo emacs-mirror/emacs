@@ -134,10 +134,11 @@ static unsigned convert_ns_to_X_keysym[] =
   0x1B,				0x1B   /* escape */
 };
 
-
 static Lisp_Object Qmodifier_value;
 Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper, Qnone;
 extern Lisp_Object Qcursor_color, Qcursor_type, Qns, Qleft;
+
+static Lisp_Object QUTF8_STRING;
 
 /* On OS X picks up the default NSGlobalDomain AppleAntiAliasingThreshold,
    the maximum font size to NOT antialias.  On GNUstep there is currently
@@ -261,8 +262,6 @@ void x_set_cursor_type (struct frame *, Lisp_Object, Lisp_Object);
 static void ns_condemn_scroll_bars (struct frame *f);
 static void ns_judge_scroll_bars (struct frame *f);
 void x_set_frame_alpha (struct frame *f);
-
-/* FIXME: figure out what to do with underline_minimum_offset. */
 
 
 /* ==========================================================================
@@ -2596,6 +2595,107 @@ ns_get_glyph_string_clip_rect (struct glyph_string *s, NativeRectangle *nr)
   return n;
 }
 
+void
+ns_draw_text_decoration (struct glyph_string *s, struct face *face,
+                         NSColor *defaultCol, CGFloat width, CGFloat x)
+/* --------------------------------------------------------------------------
+   Draw underline, overline, and strike-through on glyph string s.
+   -------------------------------------------------------------------------- */
+{
+  if (s->for_overlaps)
+    return;
+
+  /* Do underline. */
+  if (face->underline_p)
+    {
+      NSRect r;
+      unsigned long thickness, position;
+
+      /* If the prev was underlined, match its appearance. */
+      if (s->prev && s->prev->face->underline_p
+          && s->prev->underline_thickness > 0)
+        {
+          thickness = s->prev->underline_thickness;
+          position = s->prev->underline_position;
+        }
+      else
+        {
+          struct font *font;
+          unsigned long descent;
+
+          font=s->font;
+          descent = s->y + s->height - s->ybase;
+
+          /* Use underline thickness of font, defaulting to 1. */
+          thickness = (font && font->underline_thickness > 0)
+            ? font->underline_thickness : 1;
+
+          /* Determine the offset of underlining from the baseline. */
+          if (x_underline_at_descent_line)
+            position = descent - thickness;
+          else if (x_use_underline_position_properties
+                   && font && font->underline_position >= 0)
+            position = font->underline_position;
+          else if (font)
+            position = lround (font->descent / 2);
+          else
+            position = underline_minimum_offset;
+
+          position = max (position, underline_minimum_offset);
+
+          /* Ensure underlining is not cropped. */
+          if (descent <= position)
+            {
+              position = descent - 1;
+              thickness = 1;
+            }
+          else if (descent < position + thickness)
+            thickness = 1;
+        }
+
+      s->underline_thickness = thickness;
+      s->underline_position = position;
+
+      r = NSMakeRect (x, s->ybase + position, width, thickness);
+
+      if (face->underline_defaulted_p)
+        [defaultCol set];
+      else
+        [ns_lookup_indexed_color (face->underline_color, s->f) set];
+      NSRectFill (r);
+    }
+
+  /* Do overline. We follow other terms in using a thickness of 1
+     and ignoring overline_margin. */
+  if (face->overline_p)
+    {
+      NSRect r;
+      r = NSMakeRect (x, s->y, width, 1);
+
+      if (face->overline_color_defaulted_p)
+        [defaultCol set];
+      else
+        [ns_lookup_indexed_color (face->overline_color, s->f) set];
+      NSRectFill (r);
+    }
+
+  /* Do strike-through.  We follow other terms for thickness and
+     vertical position.*/
+  if (face->strike_through_p)
+    {
+      NSRect r;
+      unsigned long dy;
+
+      dy = lrint ((s->height - 1) / 2);
+      r = NSMakeRect (x, s->y + dy, width, 1);
+
+      if (face->strike_through_color_defaulted_p)
+        [defaultCol set];
+      else
+        [ns_lookup_indexed_color (face->strike_through_color, s->f) set];
+      NSRectFill (r);
+    }
+}
 
 static void
 ns_draw_box (NSRect r, float thickness, NSColor *col, char left_p, char right_p)
@@ -2853,6 +2953,7 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
   char raised_p;
   NSRect br;
   struct face *face;
+  NSColor *tdCol;
 
   NSTRACE (ns_dumpglyphs_image);
 
@@ -2881,10 +2982,7 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
   else
     face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
 
-  if (s->hl == DRAW_CURSOR)
-      [FRAME_CURSOR_COLOR (s->f) set];
-  else
-    [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f) set];
+  [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f) set];
 
   if (bg_height > s->slice.height || s->img->hmargin || s->img->vmargin
       || s->img->mask || s->img->pixmap == 0 || s->width != s->background_width)
@@ -2921,6 +3019,27 @@ ns_dumpglyphs_image (struct glyph_string *s, NSRect r)
   if (img != nil)
     [img compositeToPoint: NSMakePoint (x, y + s->slice.height)
                 operation: NSCompositeSourceOver];
+
+  if (s->hl == DRAW_CURSOR)
+    {
+    [FRAME_CURSOR_COLOR (s->f) set];
+    if (s->w->phys_cursor_type == FILLED_BOX_CURSOR)
+      tdCol = ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f);
+    else
+      /* Currently on NS img->mask is always 0. Since
+         get_window_cursor_type specifies a hollow box cursor when on
+         a non-masked image we never reach this clause. But we put it
+         in in antipication of better support for image masks on
+         NS. */
+      tdCol = ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f);
+    }
+  else
+    {
+      tdCol = ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f);
+    }
+
+  /* Draw underline, overline, strike-through. */
+  ns_draw_text_decoration (s, face, tdCol, br.size.width, br.origin.x);
 
   /* Draw relief, if requested */
   if (s->img->relief || s->hl ==DRAW_IMAGE_RAISED || s->hl ==DRAW_IMAGE_SUNKEN)
@@ -2966,21 +3085,48 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
   NSRect r[2];
   int n, i;
   struct face *face;
+  NSColor *fgCol, *bgCol;
 
   if (!s->background_filled_p)
     {
       n = ns_get_glyph_string_clip_rect (s, r);
       *r = NSMakeRect (s->x, s->y, s->background_width, s->height);
 
+      ns_focus (s->f, r, n);
+
+      if (s->hl == DRAW_MOUSE_FACE)
+       {
+         face = FACE_FROM_ID (s->f, MOUSE_HL_INFO (s->f)->mouse_face_face_id);
+         if (!face)
+           face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
+       }
+      else
+       face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
+
+      bgCol = ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f);
+      fgCol = ns_lookup_indexed_color (NS_FACE_FOREGROUND (face), s->f);
+
       for (i=0; i<n; i++)
         {
           if (!s->row->full_width_p)
             {
+	      int overrun, leftoverrun;
+
               /* truncate to avoid overwriting fringe and/or scrollbar */
-              int overrun = max (0, (s->x + s->background_width)
-                                  - (WINDOW_BOX_RIGHT_EDGE_X (s->w)
-                                    - WINDOW_RIGHT_FRINGE_WIDTH (s->w)));
+	      overrun = max (0, (s->x + s->background_width)
+			     - (WINDOW_BOX_RIGHT_EDGE_X (s->w)
+				- WINDOW_RIGHT_FRINGE_WIDTH (s->w)));
               r[i].size.width -= overrun;
+
+	      /* truncate to avoid overwriting to left of the window box */
+	      leftoverrun = (WINDOW_BOX_LEFT_EDGE_X (s->w)
+			     + WINDOW_LEFT_FRINGE_WIDTH (s->w)) - s->x;
+
+	      if (leftoverrun > 0)
+		{
+		  r[i].origin.x += leftoverrun;
+		  r[i].size.width -= leftoverrun;
+		}
 
               /* XXX: Try to work between problem where a stretch glyph on
                  a partially-visible bottom row will clear part of the
@@ -2997,30 +3143,37 @@ ns_dumpglyphs_stretch (struct glyph_string *s)
                                       FRAME_PIXEL_WIDTH (s->f));
             }
 
+          [bgCol set];
+
           /* NOTE: under NS this is NOT used to draw cursors, but we must avoid
              overwriting cursor (usually when cursor on a tab) */
           if (s->hl == DRAW_CURSOR)
             {
-              r[i].origin.x += s->width;
-              r[i].size.width -= s->width;
+              CGFloat x, width;
+
+              x = r[i].origin.x;
+              width = s->w->phys_cursor_width;
+              r[i].size.width -= width;
+              r[i].origin.x += width;
+
+              NSRectFill (r[i]);
+
+              /* Draw overlining, etc. on the cursor. */
+              if (s->w->phys_cursor_type == FILLED_BOX_CURSOR)
+                ns_draw_text_decoration (s, face, bgCol, width, x);
+              else
+                ns_draw_text_decoration (s, face, fgCol, width, x);
             }
+          else
+            {
+              NSRectFill (r[i]);
+            }
+
+          /* Draw overlining, etc. on the stretch glyph (or the part
+             of the stretch glyph after the cursor). */
+          ns_draw_text_decoration (s, face, fgCol, r[i].size.width,
+                                   r[i].origin.x);
         }
-
-      ns_focus (s->f, r, n);
-
-      if (s->hl == DRAW_MOUSE_FACE)
-       {
-         face = FACE_FROM_ID (s->f, MOUSE_HL_INFO (s->f)->mouse_face_face_id);
-         if (!face)
-           face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
-       }
-      else
-       face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
-
-      [ns_lookup_indexed_color (NS_FACE_BACKGROUND (face), s->f) set];
-
-      NSRectFill (r[0]);
-      NSRectFill (r[1]);
       ns_unfocus (s->f);
       s->background_filled_p = 1;
     }
@@ -4104,6 +4257,16 @@ ns_term_shutdown (int sig)
 /*  NSTRACE (sendEvent); */
 /*fprintf (stderr, "received event of type %d\t%d\n", type);*/
 
+#ifdef NS_IMPL_COCOA
+  if (type == NSApplicationDefined
+      && [theEvent data2] == NSAPP_DATA2_RUNASSCRIPT)
+    {
+      ns_run_ascript ();
+      [self stop: self];
+      return;
+    }
+#endif
+
   if (type == NSCursorUpdate && window == nil)
     {
       fprintf (stderr, "Dropping external cursor update event.\n");
@@ -4514,7 +4677,9 @@ ns_term_shutdown (int sig)
   unsigned fnKeysym = 0;
   int flags;
   static NSMutableArray *nsEvArray;
+#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
   static BOOL firstTime = YES;
+#endif
   int left_is_none;
 
   NSTRACE (keyDown);
@@ -4702,13 +4867,15 @@ ns_term_shutdown (int sig)
         }
     }
 
+  
+#if !defined (NS_IMPL_COCOA) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
   /* if we get here we should send the key for input manager processing */
   if (firstTime && [[NSInputManager currentInputManager]
                      wantsToDelayTextChangeNotifications] == NO)
     fprintf (stderr,
           "Emacs: WARNING: TextInput mgr wants marked text to be permanent!\n");
   firstTime = NO;
-
+#endif
   if (NS_KEYLOG && !processingCompose)
     fprintf (stderr, "keyDown: Begin compose sequence.\n");
 
@@ -5299,6 +5466,9 @@ ns_term_shutdown (int sig)
   win = [[EmacsWindow alloc]
             initWithContentRect: r
                       styleMask: (NSResizableWindowMask |
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+                                  NSTitledWindowMask |
+#endif
                                   NSMiniaturizableWindowMask |
                                   NSClosableWindowMask)
                         backing: NSBackingStoreBuffered
@@ -5363,6 +5533,9 @@ ns_term_shutdown (int sig)
     [win setOpaque: NO];
 
   [self allocateGState];
+
+  [NSApp registerServicesMenuSendTypes: ns_send_types
+                           returnTypes: nil];
 
   ns_window_num++;
   return self;
@@ -5735,13 +5908,16 @@ ns_term_shutdown (int sig)
 }
 
 
-- validRequestorForSendType: (NSString *)typeSent
-                 returnType: (NSString *)typeReturned
+- (id) validRequestorForSendType: (NSString *)typeSent
+                      returnType: (NSString *)typeReturned
 {
   NSTRACE (validRequestorForSendType);
-  if ([ns_send_types indexOfObjectIdenticalTo: typeSent] != NSNotFound &&
-      [ns_return_types indexOfObjectIdenticalTo: typeSent] != NSNotFound)
-    return self;
+  if (typeSent != nil && [ns_send_types indexOfObject: typeSent] != NSNotFound
+      && typeReturned == nil)
+    {
+      if (! NILP (ns_get_local_selection (QPRIMARY, QUTF8_STRING)))
+        return self;
+    }
 
   return [super validRequestorForSendType: typeSent
                                returnType: typeReturned];
@@ -5765,8 +5941,28 @@ ns_term_shutdown (int sig)
 
 - (BOOL) writeSelectionToPasteboard: (NSPasteboard *)pb types: (NSArray *)types
 {
-  /* supposed to write for as many of types as we are able */
-  return NO;
+  NSArray *typesDeclared;
+  Lisp_Object val;
+
+  /* We only support NSStringPboardType */
+  if ([types containsObject:NSStringPboardType] == NO) {
+    return NO;
+  }
+
+  val = ns_get_local_selection (QPRIMARY, QUTF8_STRING);
+  if (CONSP (val) && SYMBOLP (XCAR (val)))
+    {
+      val = XCDR (val);
+      if (CONSP (val) && NILP (XCDR (val)))
+        val = XCAR (val);
+    }
+  if (! STRINGP (val))
+    return NO;
+
+  typesDeclared = [NSArray arrayWithObject:NSStringPboardType];
+  [pb declareTypes:typesDeclared owner:nil];
+  ns_string_to_pasteboard (pb, val);
+  return YES;
 }
 
 
@@ -6038,14 +6234,26 @@ ns_term_shutdown (int sig)
   em_whole = whole;
 
   if (portion >= whole)
-    [self setFloatValue: 0.0 knobProportion: 1.0];
+    {
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
+      [self setKnobProportion: 1.0];
+      [self setDoubleValue: 1.0];
+#else
+      [self setFloatValue: 0.0 knobProportion: 1.0];
+#endif
+    }
   else
     {
       float pos, por;
       portion = max ((float)whole*min_portion/pixel_height, portion);
       pos = (float)position / (whole - portion);
       por = (float)portion/whole;
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5
+      [self setKnobProportion: por];
+      [self setDoubleValue: pos];
+#else
       [self setFloatValue: pos knobProportion: por];
+#endif
     }
   return self;
 }
@@ -6390,6 +6598,8 @@ syms_of_nsterm (void)
   DEFSYM (Qsuper, "super");
   DEFSYM (Qcontrol, "control");
   DEFSYM (Qnone, "none");
+  DEFSYM (QUTF8_STRING, "UTF8_STRING");
+
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
   Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
   Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
@@ -6508,23 +6718,17 @@ Only works on OSX 10.6 or later.  */);
   Vx_toolkit_scroll_bars = Qnil;
 #endif
 
-  /* these are unsupported but we need the declarations to avoid whining
-     messages from cus-start.el */
   DEFVAR_BOOL ("x-use-underline-position-properties",
 	       x_use_underline_position_properties,
-     doc: /* NOT SUPPORTED UNDER NS.
-*Non-nil means make use of UNDERLINE_POSITION font properties.
+     doc: /*Non-nil means make use of UNDERLINE_POSITION font properties.
 A value of nil means ignore them.  If you encounter fonts with bogus
 UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
-to 4.1, set this to nil.
-
-NOTE: Not supported on Mac yet.  */);
+to 4.1, set this to nil. */);
   x_use_underline_position_properties = 0;
 
   DEFVAR_BOOL ("x-underline-at-descent-line",
 	       x_underline_at_descent_line,
-     doc: /* NOT SUPPORTED UNDER NS.
-*Non-nil means to draw the underline at the same place as the descent line.
+     doc: /* Non-nil means to draw the underline at the same place as the descent line.
 A value of nil means to draw the underline according to the value of the
 variable `x-use-underline-position-properties', which is usually at the
 baseline level.  The default value is nil.  */);

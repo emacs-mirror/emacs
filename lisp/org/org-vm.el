@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -53,8 +53,10 @@
 ;; Implementation
 (defun org-vm-store-link ()
   "Store a link to a VM folder or message."
-  (when (or (eq major-mode 'vm-summary-mode)
-	    (eq major-mode 'vm-presentation-mode))
+  (when (and (or (eq major-mode 'vm-summary-mode)
+		 (eq major-mode 'vm-presentation-mode))
+	     (save-window-excursion
+	       (vm-select-folder-buffer) buffer-file-name))
     (and (eq major-mode 'vm-presentation-mode) (vm-summarize))
     (vm-follow-summary-cursor)
     (save-excursion
@@ -136,6 +138,7 @@
 	(vm-summarize)))))
 
 (provide 'org-vm)
+
 
 
 ;;; org-vm.el ends here

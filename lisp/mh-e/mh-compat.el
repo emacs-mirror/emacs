@@ -122,16 +122,6 @@ introduced in Emacs 22."
   "XEmacs does not have `font-lock-add-keywords'.
 This function returns nil on that system.")
 
-(defun-mh mh-window-full-height-p
-  window-full-height-p (&optional WINDOW)
-  "Return non-nil if WINDOW is not the result of a vertical split.
-This function is defined in XEmacs as it lacks
-`window-full-height-p'. The values of the functions
-`window-height' and `frame-height' are compared instead. The
-argument WINDOW is ignored."
-  (= (1+ (window-height))
-     (frame-height)))
-
 (defun-mh mh-image-load-path-for-library
   image-load-path-for-library (library image &optional path no-error)
   "Return a suitable search path for images used by LIBRARY.
@@ -311,6 +301,16 @@ The arguments RETURN-TO and EXIT-ACTION are ignored."
   (if return-to nil)
   (if exit-action nil)
   (view-mode 1))
+
+(defun-mh mh-window-full-height-p
+  window-full-height-p (&optional WINDOW)
+  "Return non-nil if WINDOW is not the result of a vertical split.
+This function is defined in XEmacs as it lacks
+`window-full-height-p'. The values of the functions
+`window-height' and `frame-height' are compared instead. The
+argument WINDOW is ignored."
+  (= (1+ (window-height))
+     (frame-height)))
 
 (defmacro mh-write-file-functions ()
   "Return `write-file-functions' if it exists.

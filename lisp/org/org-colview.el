@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -170,7 +170,6 @@ This is the compiled version of the format.")
 	 (color (list :foreground (face-attribute ref-face :foreground)))
 	 (face (list color 'org-column ref-face))
 	 (face1 (list color 'org-agenda-column-dateline ref-face))
-	 (pl (or (get-text-property (point-at-bol) 'prefix-length) 0))
 	 (cphr (get-text-property (point-at-bol) 'org-complex-heading-regexp))
 	 pom property ass width f string ov column val modval s2 title calc)
     ;; Check if the entry is in another buffer.
@@ -186,11 +185,17 @@ This is the compiled version of the format.")
 	    title (nth 1 column)
 	    ass (if (equal property "ITEM")
 		    (cons "ITEM"
-			  (save-match-data
+			  ;; When in a buffer, get the whole line,
+			  ;; we'll clean it later…
+			  (if (org-mode-p)
+			      (save-match-data
+				(org-no-properties
+				 (org-remove-tabs
+				  (buffer-substring-no-properties
+				   (point-at-bol) (point-at-eol)))))
+			    ;; In agenda, just get the `txt' property
 			    (org-no-properties
-			     (org-remove-tabs
-			      (buffer-substring-no-properties
-			       (point-at-bol) (point-at-eol))))))
+			     (org-get-at-bol 'txt))))
 		  (assoc property props))
 	    width (or (cdr (assoc property org-columns-current-maxwidths))
 		      (nth 2 column)
@@ -206,9 +211,7 @@ This is the compiled version of the format.")
 			 ((equal property "ITEM")
 			  (if (org-mode-p)
 			      (org-columns-cleanup-item
-			       val org-columns-current-fmt-compiled)
-			    (org-agenda-columns-cleanup-item
-			     val pl cphr org-columns-current-fmt-compiled)))
+			       val org-columns-current-fmt-compiled)))
 			 ((and calc (functionp calc)
 			       (not (string= val ""))
 			       (not (get-text-property 0 'org-computed val)))
@@ -364,20 +367,6 @@ for the duration of the command.")
 	     (concat "[" (match-string (if (match-end 3) 3 1) s) "]")
 	     t t s)))
   s)
-
-(defvar org-agenda-columns-remove-prefix-from-item)
-
-(defun org-agenda-columns-cleanup-item (item pl cphr fmt)
-  "Cleanup the time property for agenda column view.
-See also the variable `org-agenda-columns-remove-prefix-from-item'."
-  (let* ((org-complex-heading-regexp cphr)
-	 (prefix (substring item 0 pl))
-	 (rest (substring item pl))
-	 (fake (concat "* " rest))
-	 (cleaned (org-trim (substring (org-columns-cleanup-item fake fmt) 1))))
-    (if org-agenda-columns-remove-prefix-from-item
-	cleaned
-      (concat prefix cleaned))))
 
 (defun org-columns-show-value ()
   "Show the full value of the property."
@@ -706,7 +695,7 @@ around it."
 	  (save-restriction
 	    (narrow-to-region beg end)
 	    (org-clock-sum))))
-      (while (re-search-forward (concat "^" outline-regexp) end t)
+      (while (re-search-forward org-outline-regexp-bol end t)
 	(if (and org-columns-skip-archived-trees
 		 (looking-at (concat ".*:" org-archive-tag ":")))
 	    (org-end-of-subtree t)
@@ -939,7 +928,7 @@ Don't set this, this is meant for dynamic scoping.")
 (defun org-columns-compute (property)
   "Sum the values of property PROPERTY hierarchically, for the entire buffer."
   (interactive)
-  (let* ((re (concat "^" outline-regexp))
+  (let* ((re org-outline-regexp-bol)
 	 (lmax 30) ; Does anyone use deeper levels???
 	 (lvals (make-vector lmax nil))
 	 (lflag (make-vector lmax nil))
@@ -1535,6 +1524,7 @@ The string should be two numbers joined with a \"-\"."
     (list (string-to-number s) (string-to-number s))))
 
 (provide 'org-colview)
+
 
 
 ;;; org-colview.el ends here

@@ -97,6 +97,9 @@ Lisp_Object Fx_open_connection (Lisp_Object, Lisp_Object, Lisp_Object);
 
 extern BOOL ns_in_resize;
 
+/* Static variables to handle applescript execution.  */
+static Lisp_Object as_script, *as_result;
+static int as_status;
 
 /* ==========================================================================
 
@@ -162,7 +165,7 @@ check_ns_display_info (Lisp_Object frame)
       struct terminal *t = get_terminal (frame, 1);
 
       if (t->type != output_ns)
-        error ("Terminal %d is not a Nextstep display", XINT (frame));
+        error ("Terminal %ld is not a Nextstep display", (long) XINT (frame));
 
       return t->display_info.ns;
     }
@@ -321,6 +324,7 @@ static void
 x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   NSColor *col;
+  CGFloat r, g, b, alpha;
 
   if (ns_lisp_to_color (arg, &col))
     {
@@ -331,6 +335,10 @@ x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   [col retain];
   [f->output_data.ns->foreground_color release];
   f->output_data.ns->foreground_color = col;
+
+  [col getRed: &r green: &g blue: &b alpha: &alpha];
+  FRAME_FOREGROUND_PIXEL (f) =
+    ARGB_TO_ULONG ((int)(alpha*0xff), (int)(r*0xff), (int)(g*0xff), (int)(b*0xff));
 
   if (FRAME_NS_VIEW (f))
     {
@@ -348,7 +356,7 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   struct face *face;
   NSColor *col;
   NSView *view = FRAME_NS_VIEW (f);
-  float alpha;
+  CGFloat r, g, b, alpha;
 
   if (ns_lisp_to_color (arg, &col))
     {
@@ -364,10 +372,14 @@ x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
   [col retain];
   [f->output_data.ns->background_color release];
   f->output_data.ns->background_color = col;
+
+  [col getRed: &r green: &g blue: &b alpha: &alpha];
+  FRAME_BACKGROUND_PIXEL (f) =
+    ARGB_TO_ULONG ((int)(alpha*0xff), (int)(r*0xff), (int)(g*0xff), (int)(b*0xff));
+
   if (view != nil)
     {
       [[view window] setBackgroundColor: col];
-      alpha = [col alphaComponent];
 
       if (alpha != 1.0)
           [[view window] setOpaque: NO];
@@ -1728,8 +1740,9 @@ terminate Emacs if we can't open the connection.
 
   /* Register our external input/output types, used for determining
      applicable services and also drag/drop eligibility. */
-  ns_send_types = [[NSArray arrayWithObject: NSStringPboardType] retain];
-  ns_return_types = [[NSArray arrayWithObject: NSStringPboardType] retain];
+  ns_send_types = [[NSArray arrayWithObjects: NSStringPboardType, nil] retain];
+  ns_return_types = [[NSArray arrayWithObjects: NSStringPboardType, nil]
+                      retain];
   ns_drag_types = [[NSArray arrayWithObjects:
                             NSStringPboardType,
                             NSTabularTextPboardType,
@@ -1876,6 +1889,10 @@ DEFUN ("ns-list-services", Fns_list_services, Sns_list_services, 0, 0, 0,
        doc: /* List available Nextstep services by querying NSApp.  */)
      (void)
 {
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+  /* You can't get services like this in 10.6+.  */
+  return Qnil;
+#else
   Lisp_Object ret = Qnil;
   NSMenu *svcs;
   id delegate;
@@ -1919,6 +1936,7 @@ DEFUN ("ns-list-services", Fns_list_services, Sns_list_services, 0, 0, 0,
 
   ret = interpret_services_menu (svcs, Qnil, ret);
   return ret;
+#endif
 }
 
 
@@ -2037,6 +2055,15 @@ ns_do_applescript (Lisp_Object script, Lisp_Object *result)
   return 0;
 }
 
+/* Helper function called from sendEvent to run applescript
+   from within the main event loop.  */
+
+void
+ns_run_ascript (void)
+{
+  as_status = ns_do_applescript (as_script, as_result);
+}
+
 DEFUN ("ns-do-applescript", Fns_do_applescript, Sns_do_applescript, 1, 1, 0,
        doc: /* Execute AppleScript SCRIPT and return the result.
 If compilation and execution are successful, the resulting script value
@@ -2046,12 +2073,37 @@ In case the execution fails, an error is signaled. */)
 {
   Lisp_Object result;
   int status;
+  NSEvent *nxev;
 
   CHECK_STRING (script);
   check_ns ();
 
   BLOCK_INPUT;
-  status = ns_do_applescript (script, &result);
+
+  as_script = script;
+  as_result = &result;
+
+  /* executing apple script requires the event loop to run, otherwise
+     errors aren't returned and executeAndReturnError hangs forever.
+     Post an event that runs applescript and then start the event loop.
+     The event loop is exited when the script is done.  */
+  nxev = [NSEvent otherEventWithType: NSApplicationDefined
+                            location: NSMakePoint (0, 0)
+                       modifierFlags: 0
+                           timestamp: 0
+                        windowNumber: [[NSApp mainWindow] windowNumber]
+                             context: [NSApp context]
+                             subtype: 0
+                               data1: 0
+                               data2: NSAPP_DATA2_RUNASSCRIPT];
+
+  [NSApp postEvent: nxev atStart: NO];
+  [NSApp run];
+
+  status = as_status;
+  as_status = 0;
+  as_script = Qnil;
+  as_result = 0;
   UNBLOCK_INPUT;
   if (status == 0)
     return result;
@@ -2655,4 +2707,7 @@ be used as the image of the icon representing the frame.  */);
   /* used only in fontset.c */
   check_window_system_func = check_ns;
 
+  as_status = 0;
+  as_script = Qnil;
+  as_result = 0;
 }

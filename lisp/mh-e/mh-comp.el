@@ -213,7 +213,7 @@ Elements look like (HEADER . VALUE) where both HEADER and VALUE
 are strings.
 
 CONTINUE, SWITCH-FUNCTION, YANK-ACTION, SEND-ACTIONS, and
-RETURN-ACTION are ignored."
+RETURN-ACTION and any additional arguments are IGNORED."
   (mh-find-path)
   (let ((mh-error-if-no-draft t))
     (mh-send to "" subject)

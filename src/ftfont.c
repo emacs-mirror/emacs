@@ -214,6 +214,10 @@ ftfont_pattern_entity (FcPattern *p, Lisp_Object extra)
 
       for (i = 0; i < FONT_OBJLIST_INDEX; i++)
 	ASET (val, i, AREF (entity, i));
+
+      ASET (val, FONT_EXTRA_INDEX, Fcopy_sequence (extra));
+      font_put_extra (val, QCfont_entity, key);
+
       return val;
     }
   entity = font_make_entity ();

@@ -1546,7 +1546,8 @@ produce_glyphs (struct it *it)
   /* Nothing but characters are supported on terminal frames.  */
   xassert (it->what == IT_CHARACTER
 	   || it->what == IT_COMPOSITION
-	   || it->what == IT_STRETCH);
+	   || it->what == IT_STRETCH
+	   || it->what == IT_GLYPHLESS);
 
   if (it->what == IT_STRETCH)
     {
@@ -3096,7 +3097,6 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   char *area = NULL;
   char **address = &area;
   int buffer_size = 4096;
-  register char *p = NULL;
   int status;
   struct tty_display_info *tty = NULL;
   struct terminal *terminal = NULL;
@@ -3502,55 +3502,6 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
       /* LF can't be trusted either -- can alter hpos */
       /* if move at column 0 thru a line with TS_standout_mode */
       Down (tty) = 0;
-    }
-
-  /* Special handling for certain terminal types known to need it */
-
-  if (!strcmp (terminal_type, "supdup"))
-    {
-      terminal->memory_below_frame = 1;
-      tty->Wcm->cm_losewrap = 1;
-    }
-  if (!strncmp (terminal_type, "c10", 3)
-      || !strcmp (terminal_type, "perq"))
-    {
-      /* Supply a makeshift :wi string.
-	 This string is not valid in general since it works only
-	 for windows starting at the upper left corner;
-	 but that is all Emacs uses.
-
-	 This string works only if the frame is using
-	 the top of the video memory, because addressing is memory-relative.
-	 So first check the :ti string to see if that is true.
-
-	 It would be simpler if the :wi string could go in the termcap
-	 entry, but it can't because it is not fully valid.
-	 If it were in the termcap entry, it would confuse other programs.  */
-      if (!tty->TS_set_window)
-	{
-	  const char *m = tty->TS_termcap_modes;
-	  while (*m && strcmp (m, "\033v  "))
-	    m++;
-	  if (*m)
-	    tty->TS_set_window = "\033v%C %C %C %C ";
-	}
-      /* Termcap entry often fails to have :in: flag */
-      terminal->must_write_spaces = 1;
-      /* :ti string typically fails to have \E^G! in it */
-      /* This limits scope of insert-char to one line.  */
-      strcpy (area, tty->TS_termcap_modes);
-      strcat (area, "\033\007!");
-      tty->TS_termcap_modes = area;
-      area += strlen (area) + 1;
-      p = AbsPosition (tty);
-      /* Change all %+ parameters to %C, to handle
-         values above 96 correctly for the C100.  */
-      while (*p)
-        {
-          if (p[0] == '%' && p[1] == '+')
-            p[1] = 'C';
-          p++;
-        }
     }
 
   tty->specified_window = FrameRows (tty);

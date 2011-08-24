@@ -5,7 +5,7 @@
 ;; Author: Benjamin Andresen
 ;; Keywords: literate programming, interactive shell
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 
 ;; This file is part of GNU Emacs.
 
@@ -141,6 +141,7 @@ The terminal should shortly flicker."
                          "DOESN'T work.")))))
 
 (provide 'ob-screen)
+
 
 
 ;;; ob-screen.el ends here

@@ -1435,6 +1435,7 @@ list, Gnus will try all the methods in the list until it finds a match."
 		 (const current)
 		 (const :tag "Google" (nnweb "refer" (nnweb-type google)))
 		 gnus-select-method
+		 sexp
 		 (repeat :menu-tag "Try multiple"
 			 :tag "Multiple"
 			 :value (current (nnweb "refer" (nnweb-type google)))
@@ -1874,7 +1875,7 @@ total number of articles in the group.")
  :variable-default (mapcar
                     (lambda (g) (list g t))
                     '("delayed$" "drafts$" "queue$" "INBOX$"
-                      "^nnmairix:" "archive"))
+                      "^nnmairix:" "^nnir:" "archive"))
  :variable-document
  "*Groups in which the registry should be turned off."
  :variable-group gnus-registry
@@ -4381,12 +4382,11 @@ prompt the user for the name of an NNTP server to use."
     (gnus-1 arg dont-connect slave)
     (gnus-final-warning)))
 
-(autoload 'debbugs-emacs "debbugs-gnu")
+(autoload 'debbugs-gnu "debbugs-gnu")
 (defun gnus-list-debbugs ()
   "List all open Gnus bug reports."
   (interactive)
-  (debbugs-emacs '("important" "normal" "minor" "wishlist")
-		 "gnus"))
+  (debbugs-gnu nil "gnus"))
 
 ;; Allow redefinition of Gnus functions.
 

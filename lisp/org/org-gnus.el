@@ -6,7 +6,7 @@
 ;;         Tassilo Horn <tassilo at member dot fsf dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -150,12 +150,17 @@ If `org-store-link' was called with a prefix arg the meaning of
 		     (gnus-summary-article-header)))
 	   (from (mail-header-from header))
 	   (message-id (org-remove-angle-brackets (mail-header-id header)))
-	   (date (mail-header-date header))
-	   (date-ts (and date (format-time-string
-			       (org-time-stamp-format t) (date-to-time date))))
-	   (date-ts-ia (and date (format-time-string
-				  (org-time-stamp-format t t)
-				  (date-to-time date))))
+	   (date (org-trim (mail-header-date header)))
+	   (date-ts (and date
+			 (ignore-errors
+			   (format-time-string
+			    (org-time-stamp-format t)
+			    (date-to-time date)))))
+	   (date-ts-ia (and date
+			    (ignore-errors
+			      (format-time-string
+			       (org-time-stamp-format t t)
+			       (date-to-time date)))))
 	   (subject (copy-sequence (mail-header-subject header)))
 	   (to (cdr (assq 'To (mail-header-extra header))))
 	   newsgroups x-no-archive desc link)
@@ -180,7 +185,35 @@ If `org-store-link' was called with a prefix arg the meaning of
 	    link (org-gnus-article-link
 		  group	newsgroups message-id x-no-archive))
       (org-add-link-props :link link :description desc)
-      link))))
+      link))
+   ((eq major-mode 'message-mode)
+    (setq org-store-link-plist nil)  ; reset
+    (save-excursion
+      (save-restriction
+        (message-narrow-to-headers)
+        (and (not (message-fetch-field "Message-ID"))
+             (message-generate-headers '(Message-ID)))
+        (goto-char (point-min))
+        (re-search-forward "^Message-ID: *.*$" nil t)
+        (put-text-property (match-beginning 0) (match-end 0) 'message-deletable nil)
+        (let ((gcc (car (last
+                         (message-unquote-tokens
+                          (message-tokenize-header (mail-fetch-field "gcc" nil t) " ,")))))
+              (id (org-remove-angle-brackets (mail-fetch-field "Message-ID")))
+              (to (mail-fetch-field "To"))
+              (from (mail-fetch-field "From"))
+              (subject (mail-fetch-field "Subject"))
+              desc link
+              newsgroup xarchive)       ; those are always nil for gcc
+          (and (not gcc)
+               (error "Can not create link: No Gcc header found."))
+          (org-store-link-props :type "gnus" :from from :subject subject
+                                :message-id id :group gcc :to to)
+          (setq desc (org-email-link-description)
+                link (org-gnus-article-link
+                      gcc newsgroup id xarchive))
+          (org-add-link-props :link link :description desc)
+          link))))))
 
 (defun org-gnus-open-nntp (path)
   "Follow the nntp: link specified by PATH."
@@ -215,7 +248,7 @@ If `org-store-link' was called with a prefix arg the meaning of
   (when article
     (setq article (org-substring-no-properties article)))
   (cond ((and group article)
-	 (gnus-activate-group group t)
+	 (gnus-activate-group group)
 	 (condition-case nil
 	     (let* ((method (gnus-find-method-for-group group))
 		    (backend (car method))
@@ -256,6 +289,7 @@ If `org-store-link' was called with a prefix arg the meaning of
   (if (not (gnus-alive-p)) (gnus)))
 
 (provide 'org-gnus)
+
 
 
 ;;; org-gnus.el ends here

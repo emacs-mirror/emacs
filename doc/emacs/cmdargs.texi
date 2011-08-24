@@ -289,9 +289,14 @@ like this, the Customize facility does not allow options to be saved
 @item --no-site-file
 @opindex --no-site-file
 @cindex @file{site-start.el} file, not loading
-Do not load @file{site-start.el}.  The options @samp{-q}, @samp{-u}
-and @samp{--batch} have no effect on the loading of this file---this
-option and @samp{-Q} are the only options that block it.
+Do not load @file{site-start.el} (@pxref{Init File}).  The @samp{-Q}
+option does this too, but other options like @samp{-q} do not.
+
+@item --no-site-lisp
+@opindex --no-site-lisp
+@cindex @file{site-start.el} file, not loading
+Do not include the @file{site-lisp} directories in @code{load-path}
+(@pxref{Init File}).  The @samp{-Q} option does this too.
 
 @item --no-splash
 @opindex --no-splash
@@ -307,9 +312,9 @@ in your initialization file (@pxref{Entering Emacs}).
 @itemx --quick
 @opindex --quick
 Start emacs with minimum customizations, similar to using @samp{-q},
-@samp{--no-site-file}, and @samp{--no-splash} together.  This also
-stops Emacs from processing X resources by setting
-@code{inhibit-x-resources} to @code{t} (@pxref{Resources}).
+@samp{--no-site-file}, @samp{--no-site-lisp}, and @samp{--no-splash}
+together.  This also stops Emacs from processing X resources by
+setting @code{inhibit-x-resources} to @code{t} (@pxref{Resources}).
 
 @item -daemon
 @opindex -daemon
@@ -427,10 +432,11 @@ software) inherit the environment from Emacs, too.
 @vindex initial-environment
   Inside Emacs, the command @kbd{M-x getenv} gets the value of an
 environment variable.  @kbd{M-x setenv} sets a variable in the Emacs
-environment.  (Environment variable substitutions with @samp{$} work
-in the value just as in file names; see @ref{File Names with $}.)  The
-variable @code{initial-environment} stores the initial environment
-inherited by Emacs.
+environment, and @kbd{C-u M-x setenv} removes a variable.
+(Environment variable substitutions with @samp{$} work in the value
+just as in file names; see @ref{File Names with $}.)  The variable
+@code{initial-environment} stores the initial environment inherited by
+Emacs.
 
   The way to set environment variables outside of Emacs depends on the
 operating system, and especially the shell that you are using.  For
@@ -1129,6 +1135,11 @@ use---usually just a small rectangle containing the frame's title.
 @c @c @cindex horizontal scroll bars, command-line argument
 @c Enable horizontal scroll bars.  Since horizontal scroll bars
 @c are not yet implemented, this actually does nothing.
+
+@item --parent-id @var{ID}
+Open Emacs as a client X window via the XEmbed protocol, with @var{ID}
+as the parent X window id.  Currently, this option is mainly useful
+for developers.
 
 @item -vb
 @opindex -vb

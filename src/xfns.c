@@ -2001,11 +2001,8 @@ xic_create_fontsetname (const char *base_fontname, int motif)
 
 #ifdef DEBUG_XIC_FONTSET
 static void
-print_fontset_result (xfs, name, missing_list, missing_count)
-     XFontSet xfs;
-     char *name;
-     char **missing_list;
-     int missing_count;
+print_fontset_result (XFontSet xfs, char *name, char **missing_list,
+		      int missing_count)
 {
   if (xfs)
     fprintf (stderr, "XIC Fontset created: %s\n", name);
@@ -2936,7 +2933,7 @@ unwind_create_frame (Lisp_Object frame)
 #if GLYPH_DEBUG
       /* Check that reference counts are indeed correct.  */
       xassert (dpyinfo->reference_count == dpyinfo_refcount);
-      xassert (dpyinfo->image_cache->refcount == image_cache_refcount);
+      xassert (dpyinfo->terminal->image_cache->refcount == image_cache_refcount);
 #endif
       return Qt;
     }

@@ -935,14 +935,6 @@ IRC command completion is performed only if '/' is the first input char."
     map)
   "Keymap for rcirc mode.")
 
-(defvar rcirc-browse-url-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'rcirc-browse-url-at-point)
-    (define-key map (kbd "<mouse-2>") 'rcirc-browse-url-at-mouse)
-    (define-key map [follow-link] 'mouse-face)
-    map)
-  "Keymap used for browsing URLs in `rcirc-mode'.")
-
 (defvar rcirc-short-buffer-name nil
   "Generated abbreviation to use to indicate buffer activity.")
 
@@ -2351,21 +2343,6 @@ keywords when no KEYWORD is given."
     (browse-url (completing-read "rcirc browse-url: "
                                  completions nil nil initial-input 'history)
                 arg)))
-
-(defun rcirc-browse-url-at-point (point)
-  "Send URL at point to `browse-url'."
-  (interactive "d")
-  (let ((beg (previous-single-property-change (1+ point) 'mouse-face))
-	(end (next-single-property-change point 'mouse-face)))
-    (browse-url (buffer-substring-no-properties beg end))))
-
-(defun rcirc-browse-url-at-mouse (event)
-  "Send URL at mouse click to `browse-url'."
-  (interactive "e")
-  (let ((position (event-end event)))
-    (with-current-buffer (window-buffer (posn-window position))
-      (rcirc-browse-url-at-point (posn-point position)))))
-
 
 (defun rcirc-markup-timestamp (sender response)
   (goto-char (point-min))
@@ -2406,12 +2383,16 @@ keywords when no KEYWORD is given."
   (while (and rcirc-url-regexp ;; nil means disable URL catching
               (re-search-forward rcirc-url-regexp nil t))
     (let ((start (match-beginning 0))
-	  (end (match-end 0)))
-      (rcirc-add-face start end 'rcirc-url)
-      (add-text-properties start end (list 'mouse-face 'highlight
-					   'keymap rcirc-browse-url-map))
+	  (end (match-end 0))
+	  (url (match-string-no-properties 0)))
+      (make-button start end
+		   'face 'rcirc-url
+		   'follow-link t
+		   'rcirc-url url
+		   'action (lambda (button)
+			     (browse-url (button-get button 'rcirc-url))))
       ;; record the url
-      (push (buffer-substring-no-properties start end) rcirc-urls))))
+      (push url rcirc-urls))))
 
 (defun rcirc-markup-keywords (sender response)
   (when (and (string= response "PRIVMSG")
@@ -2714,7 +2695,8 @@ the only argument."
       (setq rcirc-topic (caddr args)))))
 
 (defun rcirc-handler-333 (process sender args text)
-  "Not in rfc1459.txt"
+  "333 says who set the topic and when.
+Not in rfc1459.txt"
   (let ((buffer (or (rcirc-get-buffer process (cadr args))
 		    (rcirc-get-temp-buffer-create process (cadr args)))))
     (with-current-buffer buffer

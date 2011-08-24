@@ -490,7 +490,7 @@ SEQ must be a list, vector, or string.  The comparison is done with `equal'."
   "Return LIST with all occurrences of ELT removed.
 The comparison is done with `eq'.  Contrary to `delq', this does not use
 side-effects, and the argument LIST is not modified."
-  (while (eq elt (car list)) (setq list (cdr list)))
+  (while (and (eq elt (car list)) (setq list (cdr list))))
   (if (memq elt list)
       (delq elt (copy-sequence list))
     list))
@@ -525,6 +525,20 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 	(while (<= loop ?9)
 	  (define-key map (char-to-string loop) 'digit-argument)
 	  (setq loop (1+ loop))))))
+
+(defun make-composed-keymap (maps &optional parent)
+  "Construct a new keymap composed of MAPS and inheriting from PARENT.
+When looking up a key in the returned map, the key is looked in each
+keymap of MAPS in turn until a binding is found.
+If no binding is found in MAPS, the lookup continues in PARENT, if non-nil.
+As always with keymap inheritance, a nil binding in MAPS overrides
+any corresponding binding in PARENT, but it does not override corresponding
+bindings in other keymaps of MAPS.
+MAPS can be a list of keymaps or a single keymap.
+PARENT if non-nil should be a keymap."
+  `(keymap
+    ,@(if (keymapp maps) (list maps) maps)
+    ,@parent))
 
 (defun define-key-after (keymap key definition &optional after)
   "Add binding in KEYMAP for KEY => DEFINITION, right after AFTER's binding.
@@ -1262,10 +1276,10 @@ unless the optional argument APPEND is non-nil, in which case
 FUNCTION is added at the end.
 
 The optional fourth argument, LOCAL, if non-nil, says to modify
-the hook's buffer-local value rather than its default value.
-This makes the hook buffer-local if needed, and it makes t a member
-of the buffer-local value.  That acts as a flag to run the hook
-functions in the default value as well as in the local value.
+the hook's buffer-local value rather than its global value.
+This makes the hook buffer-local, and it makes t a member of the
+buffer-local value.  That acts as a flag to run the hook
+functions of the global value as well as in the local value.
 
 HOOK should be a symbol, and FUNCTION may be any valid function.  If
 HOOK is void, it is first set to nil.  If HOOK's value is a single
@@ -2145,23 +2159,34 @@ If optional argument INHIBIT-KEYBOARD-QUIT is non-nil, ignore
 keyboard-quit events while waiting for a valid input."
   (unless (consp chars)
     (error "Called `read-char-choice' without valid char choices"))
-  (let (char done)
+  (let (char done show-help (helpbuf " *Char Help*"))
     (let ((cursor-in-echo-area t)
           (executing-kbd-macro executing-kbd-macro))
-      (while (not done)
-        (unless (get-text-property 0 'face prompt)
-          (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
-        (setq char (let ((inhibit-quit inhibit-keyboard-quit))
-                     (read-key prompt)))
-        (cond
-         ((not (numberp char)))
-         ((memq char chars)
-          (setq done t))
-         ((and executing-kbd-macro (= char -1))
-          ;; read-event returns -1 if we are in a kbd macro and
-          ;; there are no more events in the macro.  Attempt to
-          ;; get an event interactively.
-          (setq executing-kbd-macro nil)))))
+      (save-window-excursion	      ; in case we call help-form-show
+	(while (not done)
+	  (unless (get-text-property 0 'face prompt)
+	    (setq prompt (propertize prompt 'face 'minibuffer-prompt)))
+	  (setq char (let ((inhibit-quit inhibit-keyboard-quit))
+		       (read-key prompt)))
+	  (and show-help (buffer-live-p helpbuf)
+	       (kill-buffer helpbuf))
+	  (cond
+	   ((not (numberp char)))
+	   ;; If caller has set help-form, that's enough.
+	   ;; They don't explicitly have to add help-char to chars.
+	   ((and help-form
+		 (eq char help-char)
+		 (setq show-help t)
+		 (help-form-show)))
+	   ((memq char chars)
+	    (setq done t))
+	   ((and executing-kbd-macro (= char -1))
+	    ;; read-event returns -1 if we are in a kbd macro and
+	    ;; there are no more events in the macro.  Attempt to
+	    ;; get an event interactively.
+	    (setq executing-kbd-macro nil))
+	   ((and (not inhibit-keyboard-quit) (eq char ?\C-g))
+	    (keyboard-quit))))))
     ;; Display the question with the answer.  But without cursor-in-echo-area.
     (message "%s%s" prompt (char-to-string char))
     char))
@@ -3072,8 +3097,15 @@ See also `with-temp-file' and `with-output-to-string'."
   "Execute BODY, pretending it does not modify the buffer.
 If BODY performs real modifications to the buffer's text, other
 than cosmetic ones, undo data may become corrupted.
-Typically used around modifications of text-properties which do not really
-affect the buffer's content."
+
+This macro will run BODY normally, but doesn't count its buffer
+modifications as being buffer modifications.  This affects things
+like buffer-modified-p, checking whether the file is locked by
+someone else, running buffer modification hooks, and other things
+of that nature.
+
+Typically used around modifications of text-properties which do
+not really affect the buffer's content."
   (declare (debug t) (indent 0))
   (let ((modified (make-symbol "modified")))
     `(let* ((,modified (buffer-modified-p))
@@ -3506,6 +3538,24 @@ If IGNORE-CASE is non-nil, the comparison is done without paying attention
 to case differences."
   (eq t (compare-strings str1 nil nil
                          str2 0 (length str1) ignore-case)))
+
+(defun bidi-string-mark-left-to-right (str)
+  "Return a string that can be safely inserted in left-to-right text.
+
+Normally, inserting a string with right-to-left (RTL) script into
+a buffer may cause some subsequent text to be displayed as part
+of the RTL segment (usually this affects punctuation characters).
+This function returns a string which displays as STR but forces
+subsequent text to be displayed as left-to-right.
+
+If STR contains any RTL character, this function returns a string
+consisting of STR followed by an invisible left-to-right mark
+\(LRM) character.  Otherwise, it returns STR."
+  (unless (stringp str)
+    (signal 'wrong-type-argument (list 'stringp str)))
+  (if (string-match "\\cR" str)
+      (concat str (propertize (string ?\x200e) 'invisible t))
+    str))
 
 ;;;; invisibility specs
 
@@ -4080,7 +4130,8 @@ If all LST elements are zeros or LST is nil, return zero."
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
 etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
-which is higher than \"1alpha\"."
+which is higher than \"1alpha\".  Also, \"-CVS\" and \"-NNN\" are treated
+as alpha versions."
   (version-list-< (version-to-list v1) (version-to-list v2)))
 
 
@@ -4090,7 +4141,8 @@ which is higher than \"1alpha\"."
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
 etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
-which is higher than \"1alpha\"."
+which is higher than \"1alpha\".  Also, \"-CVS\" and \"-NNN\" are treated
+as alpha versions."
   (version-list-<= (version-to-list v1) (version-to-list v2)))
 
 (defun version= (v1 v2)
@@ -4099,7 +4151,8 @@ which is higher than \"1alpha\"."
 Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
 etc.  That is, the trailing \".0\"s are insignificant.  Also, version
 string \"1\" is higher (newer) than \"1pre\", which is higher than \"1beta\",
-which is higher than \"1alpha\"."
+which is higher than \"1alpha\".  Also, \"-CVS\" and \"-NNN\" are treated
+as alpha versions."
   (version-list-= (version-to-list v1) (version-to-list v2)))
 
 

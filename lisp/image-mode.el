@@ -271,7 +271,7 @@ stopping if the top or bottom edge of the image is reached."
 ;; Adjust frame and image size.
 
 (defun image-mode-fit-frame ()
-  "Fit the frame to the current image.
+  "Toggle whether to fit the frame to the current image.
 This function assumes the current frame has only one window."
   ;; FIXME: This does not take into account decorations like mode-line,
   ;; minibuffer, header-line, ...

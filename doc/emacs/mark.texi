@@ -68,8 +68,9 @@ Set point and the mark around the text you drag across.
 @item Mouse-3
 Set the mark at point, then move point to where you click
 (@code{mouse-save-then-kill}).
-@item @samp{Shifted motion keys}
+@item @samp{Shifted cursor motion keys}
 Set the mark at point if the mark is inactive, then move point.
+@xref{Shift Selection}.
 @end table
 
 @kindex C-SPC
@@ -252,7 +253,9 @@ Another effect of this mode is that some keys, such as @key{DEL} and
 @cindex mark ring
   Aside from delimiting the region, the mark is also useful for
 remembering spots that you may want to go back to.  Each buffer
-remembers 16 previous locations of the mark, in the @dfn{mark ring}.
+remembers @code{mark-ring-max} previous locations of the mark, in the
+@dfn{mark ring}.  This defaults to 16 locations.
+
 Commands that set the mark also push the old mark onto this ring.
 
 @table @kbd
@@ -307,17 +310,19 @@ is non-@code{nil} by default.
 
   If you want to move back to the same place over and over, the mark
 ring may not be convenient enough.  If so, you can record the position
-in a register for later retrieval (@pxref{RegPos,, Saving Positions in
-Registers}).
+in a register for later retrieval (@pxref{Position Registers,, Saving
+Positions in Registers}).
 
 @node Global Mark Ring
 @section The Global Mark Ring
 @cindex global mark ring
 
+@vindex global-mark-ring-max
   In addition to the ordinary mark ring that belongs to each buffer,
 Emacs has a single @dfn{global mark ring}.  Each time you set a mark,
 in any buffer, this is recorded in the global mark ring in addition to
-the current buffer's own mark ring.
+the current buffer's own mark ring.  The length of this ring can be
+controlled by @code{global-mark-ring-max}, and is 16 by default.
 
 @kindex C-x C-@key{SPC}
 @findex pop-global-mark

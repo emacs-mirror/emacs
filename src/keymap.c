@@ -150,17 +150,6 @@ in case you use it as a menu with `x-popup-menu'.  */)
   return Fcons (Qkeymap, Qnil);
 }
 
-DEFUN ("make-composed-keymap", Fmake_composed_keymap, Smake_composed_keymap,
-       0, MANY, 0,
-       doc: /* Construct and return a new keymap composed of KEYMAPS.
-When looking up a key in the returned map, the key is looked in each
-keymap in turn until a binding is found.
-usage: (make-composed-keymap &rest KEYMAPS)  */)
-  (ptrdiff_t nargs, Lisp_Object *args)
-{
-  return Fcons (Qkeymap, Flist (nargs, args));
-}
-
 /* This function is used for installing the standard key bindings
    at initialization time.
 
@@ -1216,13 +1205,20 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 
       keymap = get_keymap (cmd, 0, 1);
       if (!CONSP (keymap))
-	/* We must use Fkey_description rather than just passing key to
-	   error; key might be a vector, not a string.  */
-	error ("Key sequence %s starts with non-prefix key %s",
-	       SDATA (Fkey_description (key, Qnil)),
-	       SDATA (Fkey_description (Fsubstring (key, make_number (0),
-						    make_number (idx)),
-					Qnil)));
+	{
+	  const char *trailing_esc = ((EQ (c, meta_prefix_char) && metized)
+				      ? (idx == 0 ? "ESC" : " ESC")
+				      : "");
+
+	  /* We must use Fkey_description rather than just passing key to
+	     error; key might be a vector, not a string.  */
+	  error ("Key sequence %s starts with non-prefix key %s%s",
+		 SDATA (Fkey_description (key, Qnil)),
+		 SDATA (Fkey_description (Fsubstring (key, make_number (0),
+						      make_number (idx)),
+					  Qnil)),
+		 trailing_esc);
+	}
     }
 }
 
@@ -2951,9 +2947,11 @@ You type        Translation\n\
    to look through.
 
    If MENTION_SHADOW is nonzero, then when something is shadowed by SHADOW,
-   don't omit it; instead, mention it but say it is shadowed.  */
+   don't omit it; instead, mention it but say it is shadowed.
 
-void
+   Return whether something was inserted or not.  */
+
+int
 describe_map_tree (Lisp_Object startmap, int partial, Lisp_Object shadow,
 		   Lisp_Object prefix, const char *title, int nomenu, int transl,
 		   int always_title, int mention_shadow)
@@ -3063,10 +3061,8 @@ key             binding\n\
     skip: ;
     }
 
-  if (something)
-    insert_string ("\n");
-
   UNGCPRO;
+  return something;
 }
 
 static int previous_description_column;
@@ -3712,11 +3708,11 @@ the same way.  The "active" keymaps in each alist are used before
   Vemulation_mode_map_alists = Qnil;
 
   DEFVAR_LISP ("where-is-preferred-modifier", Vwhere_is_preferred_modifier,
-	       doc: /* Preferred modifier to use for `where-is'.
+	       doc: /* Preferred modifier key to use for `where-is'.
 When a single binding is requested, `where-is' will return one that
-uses this modifier if possible.  If nil, or if no such binding exists,
-bindings using keys without modifiers (or only with meta) will be
-preferred.  */);
+uses this modifier key if possible.  If nil, or if no such binding
+exists, bindings using keys without modifiers (or only with meta) will
+be preferred.  */);
   Vwhere_is_preferred_modifier = Qnil;
   where_is_preferred_modifier = 0;
 
@@ -3754,7 +3750,6 @@ preferred.  */);
   defsubr (&Sset_keymap_parent);
   defsubr (&Smake_keymap);
   defsubr (&Smake_sparse_keymap);
-  defsubr (&Smake_composed_keymap);
   defsubr (&Smap_keymap_internal);
   defsubr (&Smap_keymap);
   defsubr (&Scopy_keymap);

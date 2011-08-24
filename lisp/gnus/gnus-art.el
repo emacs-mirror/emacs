@@ -163,8 +163,7 @@
   "*All headers that start with this regexp will be hidden.
 This variable can also be a list of regexps of headers to be ignored.
 If `gnus-visible-headers' is non-nil, this variable will be ignored."
-  :type '(choice :custom-show nil
-		 regexp
+  :type '(choice regexp
 		 (repeat regexp))
   :group 'gnus-article-hiding)
 
@@ -1040,7 +1039,7 @@ Some of these headers are updated automatically.  See
 	  (item :tag "ISO8601 format" :value 'iso8601)
 	  (item :tag "User-defined" :value 'user-defined)))
 
-(defcustom gnus-article-update-date-headers 1
+(defcustom gnus-article-update-date-headers nil
   "A number that says how often to update the date header (in seconds).
 If nil, don't update it at all."
   :version "24.1"
@@ -2268,6 +2267,8 @@ unfolded."
       (dolist (elem gnus-article-image-alist)
 	(gnus-delete-images (car elem))))))
 
+(autoload 'w3m-toggle-inline-images "w3m")
+
 (defun gnus-article-show-images ()
   "Show any images that are in the HTML-rendered article buffer.
 This only works if the article in question is HTML."
@@ -2275,11 +2276,14 @@ This only works if the article in question is HTML."
   (gnus-with-article-buffer
     (save-restriction
       (widen)
-      (dolist (region (gnus-find-text-property-region (point-min) (point-max)
-						      'image-displayer))
-	(destructuring-bind (start end function) region
-	  (funcall function (get-text-property start 'image-url)
-		   start end))))))
+      (if (eq mm-text-html-renderer 'w3m)
+	  (let ((mm-inline-text-html-with-images nil))
+	    (w3m-toggle-inline-images))
+	(dolist (region (gnus-find-text-property-region (point-min) (point-max)
+							'image-displayer))
+	  (destructuring-bind (start end function) region
+	    (funcall function (get-text-property start 'image-url)
+		     start end)))))))
 
 (defun gnus-article-treat-fold-newsgroups ()
   "Unfold folded message headers.
@@ -4537,7 +4541,7 @@ commands:
 (defun gnus-article-stop-animations ()
   (dolist (timer (and (boundp 'timer-list)
 		      timer-list))
-    (when (eq (aref timer 5) 'image-animate-timeout)
+    (when (eq (elt timer 5) 'image-animate-timeout)
       (cancel-timer timer))))
 
 ;; Set article window start at LINE, where LINE is the number of lines
@@ -5696,7 +5700,8 @@ all parts."
 	      gnus-callback gnus-mm-display-part
 	      gnus-part ,gnus-tmp-id
 	      article-type annotation
-	      gnus-data ,handle))
+	      gnus-data ,handle
+	      rear-nonsticky t))
     (setq e (if (bolp)
 		;; Exclude a newline.
 		(1- (point))
@@ -6009,7 +6014,8 @@ If displaying \"text/html\" is discouraged \(see
 	     ,gnus-mouse-face-prop ,gnus-article-mouse-face
 	     face ,gnus-article-button-face
 	     gnus-part ,id
-	     article-type multipart))
+	     article-type multipart
+	     rear-nonsticky t))
 	  (widget-convert-button 'link from (point)
 				 :action 'gnus-widget-press-button
 				 :button-keymap gnus-widget-button-keymap)
@@ -6033,7 +6039,8 @@ If displaying \"text/html\" is discouraged \(see
 	       ,gnus-mouse-face-prop ,gnus-article-mouse-face
 	       face ,gnus-article-button-face
 	       gnus-part ,id
-	       gnus-data ,handle))
+	       gnus-data ,handle
+	       rear-nonsticky t))
 	    (widget-convert-button 'link from (point)
 				   :action 'gnus-widget-press-button
 				   :button-keymap gnus-widget-button-keymap)

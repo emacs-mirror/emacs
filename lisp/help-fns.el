@@ -65,7 +65,9 @@
 
 (defun help-split-fundoc (docstring def)
   "Split a function DOCSTRING into the actual doc and the usage info.
-Return (USAGE . DOC) or nil if there's no usage info.
+Return (USAGE . DOC) or nil if there's no usage info, where USAGE info
+is a string describing the argument list of DEF, such as
+\"(apply FUNCTION &rest ARGUMENTS)\".
 DEF is the function whose usage we're looking for in DOCSTRING."
   ;; Functions can get the calling sequence at the end of the doc string.
   ;; In cases where `function' has been fset to a subr we can't search for
@@ -156,12 +158,7 @@ the same names as used in the original source code, when possible."
 (defun help-make-usage (function arglist)
   (cons (if (symbolp function) function 'anonymous)
 	(mapcar (lambda (arg)
-		  (if (not (symbolp arg))
-		      (if (and (consp arg) (symbolp (car arg)))
-			  ;; CL style default values for optional args.
-			  (cons (intern (upcase (symbol-name (car arg))))
-				(cdr arg))
-			arg)
+		  (if (not (symbolp arg)) arg
 		    (let ((name (symbol-name arg)))
 		      (cond
                        ((string-match "\\`&" name) arg)

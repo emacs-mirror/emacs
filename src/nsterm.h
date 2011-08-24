@@ -25,6 +25,21 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_NS
 
+#ifdef NS_IMPL_COCOA
+#ifndef MAC_OS_X_VERSION_10_3
+#define MAC_OS_X_VERSION_10_3 1030
+#endif
+#ifndef MAC_OS_X_VERSION_10_4
+#define MAC_OS_X_VERSION_10_4 1040
+#endif
+#ifndef MAC_OS_X_VERSION_10_5
+#define MAC_OS_X_VERSION_10_5 1050
+#endif
+#ifndef MAC_OS_X_VERSION_10_6
+#define MAC_OS_X_VERSION_10_6 1060
+#endif
+#endif /* NS_IMPL_COCOA */
+
 #ifdef __OBJC__
 
 /* ==========================================================================
@@ -55,7 +70,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 @class EmacsToolbar;
 
-@interface EmacsView : NSView <NSTextInput> /* 10.6+: NSWindowDelegate */
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+@interface EmacsView : NSView <NSTextInput, NSWindowDelegate>
+#else
+@interface EmacsView : NSView <NSTextInput>
+#endif
    {
    char *old_title;
    BOOL windowClosing;
@@ -106,7 +125,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
    ========================================================================== */
 
-@interface EmacsMenu : NSMenu  /* 10.6+: <NSMenuDelegate> */
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+@interface EmacsMenu : NSMenu  <NSMenuDelegate>
+#else
+@interface EmacsMenu : NSMenu
+#endif
 {
   struct frame *frame;
   unsigned long keyEquivModMask;
@@ -133,7 +156,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 @class EmacsImage;
 
-@interface EmacsToolbar : NSToolbar  /* 10.6+: <NSToolbarDelegate> */
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+@interface EmacsToolbar : NSToolbar <NSToolbarDelegate>
+#else
+@interface EmacsToolbar : NSToolbar
+#endif
    {
      EmacsView *emacsView;
      NSMutableDictionary *identifierToItem;
@@ -176,7 +203,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (Lisp_Object)runDialogAt: (NSPoint)p;
 @end
 
-@interface EmacsTooltip : NSObject  /* 10.6+: <NSWindowDelegate> */
+#if defined (NS_IMPL_COCOA) && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+@interface EmacsTooltip : NSObject <NSWindowDelegate>
+#else
+@interface EmacsTooltip : NSObject
+#endif
   {
     NSWindow *win;
     NSTextField *textField;
@@ -436,7 +467,6 @@ struct nsfont_info
 #endif
   char bold, ital;  /* convenience flags */
   char synthItal;
-  float voffset;  /* mean of ascender/descender offsets */
   XCharStruct max_bounds;
   /* we compute glyph codes and metrics on-demand in blocks of 256 indexed
      by hibyte, lobyte */
@@ -700,6 +730,8 @@ extern void check_ns (void);
 extern Lisp_Object ns_map_event_to_object ();
 extern Lisp_Object ns_string_from_pasteboard ();
 extern void ns_string_to_pasteboard ();
+extern Lisp_Object ns_get_local_selection (Lisp_Object selection_name,
+                                           Lisp_Object target_type);
 extern void nxatoms_of_nsselect ();
 extern int ns_lisp_to_cursor_type ();
 extern Lisp_Object ns_cursor_type_to_lisp (int arg);
@@ -763,6 +795,9 @@ extern void x_set_tool_bar_lines (struct frame *f,
 extern void x_activate_menubar (struct frame *);
 extern void free_frame_menubar (struct frame *);
 
+#define NSAPP_DATA2_RUNASSCRIPT 10
+extern void ns_run_ascript (void);
+
 extern void ns_init_paths (void);
 extern void syms_of_nsterm (void);
 extern void syms_of_nsfns (void);
@@ -791,6 +826,13 @@ extern int ns_select (int nfds, fd_set *readfds, fd_set *writefds,
 extern unsigned long ns_get_rgb_color (struct frame *f,
                                        float r, float g, float b, float a);
 extern NSPoint last_mouse_motion_position;
+
+/* From nsterm.m, needed in nsfont.m. */
+#ifdef __OBJC__
+extern void
+ns_draw_text_decoration (struct glyph_string *s, struct face *face,
+                         NSColor *defaultCol, CGFloat width, CGFloat x);
+#endif
 
 #ifdef NS_IMPL_GNUSTEP
 extern char gnustep_base_version[];  /* version tracking */

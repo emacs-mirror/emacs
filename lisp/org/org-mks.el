@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 7.4
+;; Version: 7.7
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -131,6 +131,7 @@ only the bare key is returned."
     rtn))
 
 (provide 'org-mks)
+
 
 
 ;;; org-mks.el ends here

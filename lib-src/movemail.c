@@ -68,9 +68,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 #include "syswait.h"
 #ifdef MAIL_USE_POP
 #include "pop.h"

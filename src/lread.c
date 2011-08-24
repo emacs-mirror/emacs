@@ -1124,6 +1124,22 @@ Return t if the file exists and loads successfully.  */)
 	handler = Ffind_file_name_handler (found, Qload);
       if (! NILP (handler))
 	return call5 (handler, Qload, found, noerror, nomessage, Qt);
+#ifdef DOS_NT
+      /* Tramp has to deal with semi-broken packages that prepend
+	 drive letters to remote files.  For that reason, Tramp
+	 catches file operations that test for file existence, which
+	 makes openp think X:/foo.elc files are remote.  However,
+	 Tramp does not catch `load' operations for such files, so we
+	 end up with a nil as the `load' handler above.  If we would
+	 continue with fd = -2, we will behave wrongly, and in
+	 particular try reading a .elc file in the "rt" mode instead
+	 of "rb".  See bug #9311 for the results.  To work around
+	 this, we try to open the file locally, and go with that if it
+	 succeeds.  */
+      fd = emacs_open (SSDATA (ENCODE_FILE (found)), O_RDONLY, 0);
+      if (fd == -1)
+	fd = -2;
+#endif
     }
 
   /* Check if we're stuck in a recursive load cycle.
@@ -1247,9 +1263,17 @@ Return t if the file exists and loads successfully.  */)
   GCPRO3 (file, found, hist_file_name);
 
 #ifdef WINDOWSNT
-  emacs_close (fd);
   efound = ENCODE_FILE (found);
-  stream = fopen (SSDATA (efound), fmode);
+  /* If we somehow got here with fd == -2, meaning the file is deemed
+     to be remote, don't even try to reopen the file locally; just
+     force a failure instead.  */
+  if (fd >= 0)
+    {
+      emacs_close (fd);
+      stream = fopen (SSDATA (efound), fmode);
+    }
+  else
+    stream = NULL;
 #else  /* not WINDOWSNT */
   stream = fdopen (fd, fmode);
 #endif /* not WINDOWSNT */
@@ -2327,8 +2351,7 @@ read_integer (Lisp_Object readcharfun, EMACS_INT radix)
 	  c = READCHAR;
 	}
 
-      if (c >= 0)
-	UNREAD (c);
+      UNREAD (c);
       *p = '\0';
     }
 
@@ -2583,8 +2606,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      nskip *= 10;
 	      nskip += c - '0';
 	    }
-	  if (c >= 0)
-	    UNREAD (c);
+	  UNREAD (c);
 
 	  if (load_force_doc_strings
 	      && (EQ (readcharfun, Qget_file_char)
@@ -2660,8 +2682,21 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	{
 	  uninterned_symbol = 1;
 	  c = READCHAR;
-	  goto default_label;
+	  if (!(c > 040
+		&& c != 0x8a0
+		&& (c >= 0200
+		    || strchr ("\"';()[]#`,", c) == NULL)))
+	    {
+	      /* No symbol character follows, this is the empty
+		 symbol.  */
+	      UNREAD (c);
+	      return Fmake_symbol (build_string (""));
+	    }
+	  goto read_symbol;
 	}
+      /* ## is the empty symbol.  */
+      if (c == '#')
+	return Fintern (build_string (""), Qnil);
       /* Reader forms that can reuse previously read objects.  */
       if (c >= '0' && c <= '9')
 	{
@@ -2841,7 +2876,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	next_char = READCHAR;
 	ok = (next_char <= 040
 	      || (next_char < 0200
-		  && (strchr ("\"';()[]#?`,.", next_char))));
+		  && strchr ("\"';()[]#?`,.", next_char) != NULL));
 	UNREAD (next_char);
 	if (ok)
 	  return make_number (c);
@@ -2966,11 +3001,6 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	    /* Otherwise, READ_BUFFER contains only ASCII.  */
 	  }
 
-	/* We want readchar_count to be the number of characters, not
-	   bytes.  Hence we adjust for multibyte characters in the
-	   string.  ... But it doesn't seem to be necessary, because
-	   READCHAR *does* read multibyte characters from buffers. */
-	/* readchar_count -= (p - read_buffer) - nchars; */
 	if (read_pure)
 	  return make_pure_string (read_buffer, nchars, p - read_buffer,
 				   (force_multibyte
@@ -2987,7 +3017,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	if (next_char <= 040
 	    || (next_char < 0200
-		&& (strchr ("\"';([#?`,", next_char))))
+		&& strchr ("\"';([#?`,", next_char) != NULL))
 	  {
 	    *pch = c;
 	    return Qnil;
@@ -3002,9 +3032,12 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
       if (c <= 040) goto retry;
       if (c == 0x8a0) /* NBSP */
 	goto retry;
+
+    read_symbol:
       {
 	char *p = read_buffer;
 	int quoted = 0;
+	EMACS_INT start_position = readchar_count - 1;
 
 	{
 	  char *end = read_buffer + read_buffer_size;
@@ -3035,10 +3068,11 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      else
 		*p++ = c;
 	      c = READCHAR;
-	    } while (c > 040
-		     && c != 0x8a0 /* NBSP */
-		     && (c >= 0200
-			 || !(strchr ("\"';()[]#`,", c))));
+	    }
+	  while (c > 040
+		 && c != 0x8a0 /* NBSP */
+		 && (c >= 0200
+		     || strchr ("\"';()[]#`,", c) == NULL));
 
 	  if (p == end)
 	    {
@@ -3051,8 +3085,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      end = read_buffer + read_buffer_size;
 	    }
 	  *p = 0;
-	  if (c >= 0)
-	    UNREAD (c);
+	  UNREAD (c);
 	}
 
 	if (!quoted && !uninterned_symbol)
@@ -3080,12 +3113,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  if (EQ (Vread_with_symbol_positions, Qt)
 	      || EQ (Vread_with_symbol_positions, readcharfun))
 	    Vread_symbol_positions_list =
-	      /* Kind of a hack; this will probably fail if characters
-		 in the symbol name were escaped.  Not really a big
-		 deal, though.  */
-	      Fcons (Fcons (result,
-			    make_number (readchar_count
-					 - XFASTINT (Flength (Fsymbol_name (result))))),
+	      Fcons (Fcons (result, make_number (start_position)),
 		     Vread_symbol_positions_list);
 	  return result;
 	}
@@ -3647,8 +3675,6 @@ static Lisp_Object initial_obarray;
 
 static size_t oblookup_last_bucket_number;
 
-static size_t hash_string (const char *ptr, size_t len);
-
 /* Get an error if OBARRAY is not an obarray.
    If it is one, return it.  */
 
@@ -3891,23 +3917,6 @@ oblookup (Lisp_Object obarray, register const char *ptr, EMACS_INT size, EMACS_I
   XSETINT (tem, hash);
   return tem;
 }
-
-static size_t
-hash_string (const char *ptr, size_t len)
-{
-  register const char *p = ptr;
-  register const char *end = p + len;
-  register unsigned char c;
-  register size_t hash = 0;
-
-  while (p != end)
-    {
-      c = *p++;
-      if (c >= 0140) c -= 40;
-      hash = (hash << 3) + (hash >> (CHAR_BIT * sizeof hash - 4)) + c;
-    }
-  return hash;
-}
 
 void
 map_obarray (Lisp_Object obarray, void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg)
@@ -4000,9 +4009,7 @@ defsubr (struct Lisp_Subr *sname)
 
 #ifdef NOTDEF /* use fset in subr.el now */
 void
-defalias (sname, string)
-     struct Lisp_Subr *sname;
-     char *string;
+defalias (struct Lisp_Subr *sname, char *string)
 {
   Lisp_Object sym;
   sym = intern (string);
@@ -4511,10 +4518,11 @@ to load.  See also `load-dangerous-libraries'.  */);
   Qlexical_binding = intern ("lexical-binding");
   staticpro (&Qlexical_binding);
   DEFVAR_LISP ("lexical-binding", Vlexical_binding,
-	       doc: /* If non-nil, use lexical binding when evaluating code.
-This only applies to code evaluated by `eval-buffer' and `eval-region'.
-This variable is automatically set from the file variables of an interpreted
-  Lisp file read using `load'.  */);
+	       doc: /* Whether to use lexical binding when evaluating code.
+Non-nil means that the code in the current buffer should be evaluated
+with lexical binding.
+This variable is automatically set from the file variables of an
+interpreted Lisp file read using `load'.  */);
   Fmake_variable_buffer_local (Qlexical_binding);
 
   DEFVAR_LISP ("eval-buffer-list", Veval_buffer_list,
