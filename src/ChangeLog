@@ -1,5 +1,8 @@
 2011-08-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (Fcurrent_bidi_paragraph_direction): For unibyte
+	buffers, return left-to-right.
+
 	* bidi.c (bidi_check_type): Use xassert.
 	(bidi_cache_iterator_state): Update the disp_pos and disp_prop_p
 	members.

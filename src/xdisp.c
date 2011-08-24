@@ -19014,7 +19014,8 @@ See also `bidi-paragraph-direction'.  */)
       buf = XBUFFER (buffer);
     }
 
-  if (NILP (BVAR (buf, bidi_display_reordering)))
+  if (NILP (BVAR (buf, bidi_display_reordering))
+      || NILP (BVAR (buf, enable_multibyte_characters)))
     return Qleft_to_right;
   else if (!NILP (BVAR (buf, bidi_paragraph_direction)))
     return BVAR (buf, bidi_paragraph_direction);
