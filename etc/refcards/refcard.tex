@@ -332,6 +332,7 @@ If Emacs is still searching, \kbd{C-g} cancels only the part not matched.
 
 \shortcopyrightnotice
 
+\newcolumn
 \section{Motion}
 
 \paralign to \hsize{#\tabskip=10pt plus 1 fil&#\tabskip=0pt&#\cr
@@ -352,7 +353,10 @@ If Emacs is still searching, \kbd{C-g} cancels only the part not matched.
 \key{scroll to previous screen}{M-v}
 \key{scroll left}{C-x <}
 \key{scroll right}{C-x >}
-\key{scroll current line to center of screen}{C-u C-l}
+\key{scroll current line to center, top, bottom}{C-l}
+
+\key{goto line}{M-g g}
+\key{back to indentation}{M-m}
 
 \section{Killing and Deleting}
 
@@ -393,14 +397,15 @@ If Emacs is still searching, \kbd{C-g} cancels only the part not matched.
 
 Valid responses in query-replace mode are
 
-\key{{\bf replace} this one, go on to next}{SPC}
+\key{{\bf replace} this one, go on to next}{SPC {\rm or} y}
 \key{replace this one, don't move}{,}
-\key{{\bf skip} to next without replacing}{DEL}
+\key{{\bf skip} to next without replacing}{DEL {\rm or} n}
 \key{replace all remaining matches}{!}
 \key{{\bf back up} to the previous match}{^}
 \key{{\bf exit} query-replace}{RET}
 \key{enter recursive edit (\kbd{C-M-c} to exit)}{C-r}
 
+\newcolumn
 \section{Multiple Windows}
 
 When two commands are shown, the second is a similar command for a
@@ -438,6 +443,7 @@ frame instead of a window.
 \key{indent {\bf region} (mode-dependent)}{C-M-\\}
 \key{indent {\bf sexp} (mode-dependent)}{C-M-q}
 \key{indent region rigidly {\it arg\/} columns}{C-x TAB}
+\key{indent for comment}{M-;}
 
 \key{insert newline after point}{C-o}
 \key{move rest of line vertically down}{C-M-o}
@@ -536,6 +542,13 @@ minibuffer.  Type \kbd{F10} to activate menu bar items on text terminals.
 
 \key{expand previous word dynamically}{M-/}
 
+\section{Miscellaneous}
+
+\key{numeric argument}{C-u {\it num}}
+\key{negative argument}{M--}
+\key{quoted insert}{C-q {\it char}}
+
+\newcolumn
 \section{Regular Expressions}
 
 \key{any single character except a newline}{. {\rm(dot)}}
@@ -604,6 +617,7 @@ Other:
 
 \endindentedkeys
 
+\newcolumn
 \section{Registers}
 
 \key{save region in register}{C-x r s}
