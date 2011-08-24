@@ -576,9 +576,9 @@ current buffer. "
 	(cond
 	 ((or all-windows view-exits-all-viewing-windows)
 	  (dolist (window (get-buffer-window-list))
-	    (quit-restore-window window)))
+	    (quit-window nil window)))
 	 ((eq (window-buffer) (current-buffer))
-	  (quit-restore-window)))
+	  (quit-window)))
 
 	(when exit-action
 	  (funcall exit-action buffer))

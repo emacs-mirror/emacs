@@ -1,4 +1,4 @@
-2011-08-19  Paul Eggert  <eggert@cs.ucla.edu>
+2011-08-24  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
 
@@ -422,6 +422,77 @@
 	(gs_load): Use printmax_t to print the widest integers possible.
 	Check for integer overflow when computing image height and width.
 
+2011-08-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fcurrent_bidi_paragraph_direction): For unibyte
+	buffers, return left-to-right.
+	(set_cursor_from_row): Consider candidate row a win if its glyph
+	represents a newline and point is on that newline.  Fixes cursor
+	positioning on the newline at EOL of R2L text within L2R
+	paragraph, and vice versa.
+	(try_cursor_movement): Check continued rows, in addition to
+	continuation rows.  Fixes unwarranted scroll when point enters a
+	continued line of R2L text within an L2R paragraph, or vice versa.
+	(cursor_row_p): Consider the case of point being equal to
+	MATRIX_ROW_END_CHARPOS.  Prevents cursor being stuck when moving
+	from the end of a short line to the beginning of a continued line
+	of R2L text within L2R paragraph.
+	(RECORD_MAX_MIN_POS): For max_pos, use IT_CHARPOS even for
+	composed characters.
+
+	* bidi.c (bidi_check_type): Use xassert.
+	(bidi_cache_iterator_state): Update the disp_pos and disp_prop_p
+	members.
+
+2011-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_get_type): Abort if we get zero as the bidi type of
+	a character.
+
+2011-08-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nsfont.m (ns_otf_to_script): Fix typo.
+
+2011-08-22  Kenichi Handa  <handa@m17n.org>
+
+	* chartab.c (Fset_char_table_extra_slot): Do not inhibit setting a
+	extra slot even if the purpose is char-code-property-table.
+
+2011-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): When computing centering_position,
+	account for the height of the header line.  (Bug#8874)
+
+	* dispnew.c (buffer_posn_from_coords): Use buf_charpos_to_bytepos
+	instead of CHAR_TO_BYTE.  Fixes a crash when a completion
+	candidate is selected by the mouse, and that candidate has a
+	composed character under the mouse.
+
+	* xdisp.c (x_produce_glyphs): Set it->nglyphs to 1.  Fixes pixel
+	coordinates reported by pos-visible-in-window-p for a composed
+	character in column zero.
+
+2011-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cmds.c (Fself_insert_command): Mention post-self-insert-hook.
+
+2011-08-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (BUFFER_POS_REACHED_P): If this is a composition,
+	consider it a hit if to_charpos is anywhere in the range of the
+	composed buffer positions.
+
+2011-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (gif_load): Don't assume that each subimage has the same
+	dimensions as the base image.  Handle disposal method that is
+	"undefined" by the gif spec (Bug#9335).
+
+2011-08-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eval.c (Fsignal): Handle `debug' symbol in error handler (Bug#9329).
+	(Fcondition_case): Document `debug' symbol in error handler.
+
 2011-08-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* xfaces.c (face_at_buffer_position): Avoid repeated evaluation of
@@ -452,8 +523,8 @@
 2011-08-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* eval.c (internal_condition_case, internal_condition_case_1)
-	(internal_condition_case_2, internal_condition_case_n): Remove
-	unnecessary aborts (Bug#9081).
+	(internal_condition_case_2, internal_condition_case_n):
+	Remove unnecessary aborts (Bug#9081).
 
 2011-08-17  Eli Zaretskii  <eliz@gnu.org>
 
@@ -476,8 +547,8 @@
 	* unexcw.c ( __malloc_initialized): Declare external variable.
 	(fixup_executable): Force the dumped emacs to reinitialize malloc.
 
-	* gmalloc.c [CYGWIN] (bss_sbrk_heapbase, bss_sbrk_heapinfo): New
-	variables.
+	* gmalloc.c [CYGWIN] (bss_sbrk_heapbase, bss_sbrk_heapinfo):
+	New variables.
 	(malloc_initialize_1) [CYGWIN]: Prepare for reinitializing the
 	dumped emacs.
 	(_free_internal_nolock) [CYGWIN]: Ignore requests to free storage
@@ -579,8 +650,8 @@
 	* xdisp.c (iterate_out_of_display_property): xassert that
 	IT->position is set to within IT->object's boundaries.  Break from
 	the loop as soon as EOB is reached; avoids infloops in redisplay
-	when IT->position is set up wrongly due to some bug.  Set
-	IT->current to match the bidi iterator unconditionally.
+	when IT->position is set up wrongly due to some bug.
+	Set IT->current to match the bidi iterator unconditionally.
 	(push_display_prop): Allow GET_FROM_STRING as IT->method on
 	entry.  Force push_it to save on the stack the current
 	buffer/string position, to be restored by pop_it.  Fix flags in
@@ -603,8 +674,8 @@
 2011-08-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (forward_to_next_line_start): Allow to use the
-	no-display-properties-and-no-overlays under bidi display.  Set
-	disp_pos in the bidi iterator to avoid searches for display
+	no-display-properties-and-no-overlays under bidi display.
+	Set disp_pos in the bidi iterator to avoid searches for display
 	properties and overlays.
 
 2011-08-08  Chong Yidong  <cyd@stupidchicken.com>
@@ -642,7 +713,7 @@
 	* bidi.c <bidi_cache_total_alloc>: Now static.
 	(bidi_initialize): Initialize bidi_cache_total_alloc.
 
-	*xdisp.c (display_line): Release buffer allocated for shelved bidi
+	* xdisp.c (display_line): Release buffer allocated for shelved bidi
 	cache.  (Bug#9221)
 
 	* bidi.c (bidi_shelve_cache, bidi_unshelve_cache): Track total

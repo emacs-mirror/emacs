@@ -1,3 +1,23 @@
+2011-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-prop-alist): Update the default
+	values of bidi-class according to DerivedBidiClass.txt from the
+	latest UCD.
+
+2011-08-23  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/unidata-gen.el (unidata-prop-alist): Provide default
+	values for name, general-category, canonical-combining-class,
+	mirrored, and bidi-class.  Describe the meaning of value nil for
+	decimal-digit-value, digit-value, numeric-value, uppercase,
+	lowercase, titlecase, and mirroring.
+	(unidata-gen-table): Handle the case that default-value is a
+	list.  Set default values of characters not listed in a table.
+	(unidata-get-name): Return an empty string if a value in a
+	char-table is nil.
+	(unidata-get-decomposition): Return a list of character itself if
+	a value in a char-table is nil.
+
 2011-08-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* unidata/bidimirror.awk: File removed.

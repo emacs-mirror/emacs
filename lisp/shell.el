@@ -383,6 +383,21 @@ to `dirtrack-mode'."
   :group 'shell
   :type '(choice (const nil) regexp))
 
+(defun shell-parse-pcomplete-arguments ()
+  "Parse whitespace separated arguments in the current region."
+  (let ((begin (save-excursion (shell-backward-command 1) (point)))
+	(end (point))
+	begins args)
+    (save-excursion
+      (goto-char begin)
+      (while (< (point) end)
+	(skip-chars-forward " \t\n")
+	(push (point) begins)
+        (looking-at "\\(?:[^\s\t\n\\]\\|'[^']*'\\|\"\\(?:[^\"\\]\\|\\\\.\\)*\"\\|\\\\.\\)*\\(?:\\\\\\|'[^']*\\|\"\\(?:[^\"\\]\\|\\\\.\\)*\\)?")
+        (goto-char (match-end 0))
+	(push (buffer-substring-no-properties (car begins) (point))
+              args))
+      (cons (nreverse args) (nreverse begins)))))
 
 (defun shell-completion-vars ()
   "Setup completion vars for `shell-mode' and `read-shell-command'."
@@ -396,8 +411,9 @@ to `dirtrack-mode'."
   (set (make-local-variable 'comint-dynamic-complete-functions)
        shell-dynamic-complete-functions)
   (set (make-local-variable 'pcomplete-parse-arguments-function)
-       ;; FIXME: This function should be moved to shell.el.
-       #'pcomplete-parse-comint-arguments)
+       #'shell-parse-pcomplete-arguments)
+  (set (make-local-variable 'pcomplete-arg-quote-list)
+       (append "\\ \t\n\r\"'`$|&;(){}[]<>#" nil))
   (set (make-local-variable 'pcomplete-termination-string)
        (cond ((not comint-completion-addsuffix) "")
              ((stringp comint-completion-addsuffix)

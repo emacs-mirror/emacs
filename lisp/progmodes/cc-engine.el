@@ -6325,7 +6325,9 @@ comment at the start of cc-engine.el for more info."
 	(let* ((start (point)) kwd-sym kwd-clause-end found-type)
 
 	  ;; Look for a specifier keyword clause.
-	  (when (looking-at c-prefix-spec-kwds-re)
+	  (when (or (looking-at c-prefix-spec-kwds-re)
+		    (and (c-major-mode-is 'java-mode)
+			 (looking-at "@[A-Za-z0-9]+")))
 	    (if (looking-at c-typedef-key)
 		(setq at-typedef t))
 	    (setq kwd-sym (c-keyword-sym (match-string 1)))

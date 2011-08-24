@@ -29,15 +29,18 @@ one of these symbols representing compatibility formatting tag:
 ;; FILE: uni-decimal.el
 (define-char-code-property 'decimal-digit-value "uni-decimal.el"
   "Unicode numeric value (decimal digit).
-Property value is an integer.")
+Property value is an integer 0..9, or nil.
+The value nil stands for NaN \"Numeric_Value\".")
 ;; FILE: uni-digit.el
 (define-char-code-property 'digit-value "uni-digit.el"
   "Unicode numeric value (digit).
-Property value is an integer.")
+Property value is an integer 0..9, or nil.
+The value nil stands for NaN \"Numeric_Value\".")
 ;; FILE: uni-numeric.el
 (define-char-code-property 'numeric-value "uni-numeric.el"
   "Unicode numeric value (numeric).
-Property value is an integer or a floating point.")
+Property value is an integer, a floating point, or nil.
+The value nil stands for NaN \"Numeric_Value\".")
 ;; FILE: uni-mirrored.el
 (define-char-code-property 'mirrored "uni-mirrored.el"
   "Unicode bidi mirrored flag.
@@ -53,20 +56,27 @@ Property value is a string.")
 ;; FILE: uni-uppercase.el
 (define-char-code-property 'uppercase "uni-uppercase.el"
   "Unicode simple uppercase mapping.
-Property value is a character.")
+Property value is a character or nil.
+The value nil means that the actual property value of a character
+is the character itself.")
 ;; FILE: uni-lowercase.el
 (define-char-code-property 'lowercase "uni-lowercase.el"
   "Unicode simple lowercase mapping.
-Property value is a character.")
+Property value is a character or nil.
+The value nil means that the actual property value of a character
+is the character itself.")
 ;; FILE: uni-titlecase.el
 (define-char-code-property 'titlecase "uni-titlecase.el"
   "Unicode simple titlecase mapping.
-Property value is a character.")
+Property value is a character or nil.
+The value nil means that the actual property value of a character
+is the character itself.")
 ;; FILE: uni-mirrored.el
 (define-char-code-property 'mirroring "uni-mirrored.el"
   "Unicode bidi-mirroring characters.
-Property value is a character that has the corresponding mirroring image,
-or nil for non-mirrored character.")
+Property value is a character that has the corresponding mirroring image or nil.
+The value nil means that the actual property value of a character
+is the character itself.")
 ;; Local Variables:
 ;; coding: utf-8
 ;; no-byte-compile: t

@@ -3003,9 +3003,10 @@ mode, if there is one, otherwise nil."
 						"-mode"))))
 		   (or (equal keyname "coding")
 		       (condition-case nil
-			   (push (cons (if (eq key 'eval)
-					   'eval
-					 (indirect-variable key))
+			   (push (cons (cond ((eq key 'eval) 'eval)
+					     ;; Downcase "Mode:".
+					     ((equal keyname "mode") 'mode)
+					     (t (indirect-variable key)))
 				       val) result)
 			 (error nil))))
 		 (skip-chars-forward " \t;")))
@@ -3153,6 +3154,8 @@ major-mode."
 			   (var (let ((read-circle nil))
 				  (read str)))
 			   val val2)
+		      (and (equal (downcase (symbol-name var)) "mode")
+			   (setq var 'mode))
 		      ;; Read the variable value.
 		      (skip-chars-forward "^:")
 		      (forward-char 1)

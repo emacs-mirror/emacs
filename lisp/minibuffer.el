@@ -1119,27 +1119,13 @@ It also eliminates runs of equal strings."
 				       `(display (space :align-to ,column)))
 		  nil))))
             (if (not (consp str))
-                (put-text-property (point)
-				   (progn
-				     (insert (bidi-string-mark-left-to-right
-					      str))
-				     (point))
+                (put-text-property (point) (progn (insert str) (point))
                                    'mouse-face 'highlight)
-              (put-text-property (point)
-				 (progn
-				   (insert
-				    (bidi-string-mark-left-to-right
-				     (car str)))
-				   (point))
+              (put-text-property (point) (progn (insert (car str)) (point))
                                  'mouse-face 'highlight)
-              (add-text-properties (point)
-				   (progn
-				     (insert
-				      (bidi-string-mark-left-to-right
-				       (cadr str)))
-				     (point))
+              (add-text-properties (point) (progn (insert (cadr str)) (point))
                                    '(mouse-face nil
-						face completions-annotations)))
+                                     face completions-annotations)))
 	    (cond
 	     ((eq completions-format 'vertical)
 	      ;; Vertical format

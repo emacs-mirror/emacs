@@ -1039,7 +1039,7 @@ Some of these headers are updated automatically.  See
 	  (item :tag "ISO8601 format" :value 'iso8601)
 	  (item :tag "User-defined" :value 'user-defined)))
 
-(defcustom gnus-article-update-date-headers 1
+(defcustom gnus-article-update-date-headers nil
   "A number that says how often to update the date header (in seconds).
 If nil, don't update it at all."
   :version "24.1"

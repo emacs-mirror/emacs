@@ -811,15 +811,19 @@ this is `comint-dynamic-complete-functions'."
       (while (< (point) end)
 	(skip-chars-forward " \t\n")
 	(push (point) begins)
-	(let ((skip t))
-	  (while skip
-	    (skip-chars-forward "^ \t\n")
-	    (if (eq (char-before) ?\\)
-		(skip-chars-forward " \t\n")
-	      (setq skip nil))))
+        (while
+            (progn
+              (skip-chars-forward "^ \t\n\\")
+              (when (eq (char-after) ?\\)
+                (forward-char 1)
+                (unless (eolp)
+                  (forward-char 1)
+                  t))))
 	(push (buffer-substring-no-properties (car begins) (point))
               args))
       (cons (nreverse args) (nreverse begins)))))
+(make-obsolete 'pcomplete-parse-comint-arguments
+               'comint-parse-pcomplete-arguments "24.1")
 
 (defun pcomplete-parse-arguments (&optional expand-p)
   "Parse the command line arguments.  Most completions need this info."
@@ -879,7 +883,7 @@ Magic characters are those in `pcomplete-arg-quote-list'."
                        (or (run-hook-with-args-until-success
                             'pcomplete-quote-arg-hook filename index)
                            (when (memq c pcomplete-arg-quote-list)
-                             (string "\\" c))
+                             (string ?\\ c))
                            (char-to-string c))
                      (setq index (1+ index))))
                  filename

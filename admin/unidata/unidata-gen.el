@@ -146,7 +146,7 @@
     (setq unidata-list (cdr table))))
 
 ;; Alist of this form:
-;;   (PROP INDEX GENERATOR FILENAME DOCSTRING DESCRIBER VAL-LIST)
+;;   (PROP INDEX GENERATOR FILENAME DOCSTRING DESCRIBER DEFAULT VAL-LIST)
 ;; PROP: character property
 ;; INDEX: index to each element of unidata-list for PROP.
 ;;   It may be a function that generates an alist of character codes
@@ -155,14 +155,20 @@
 ;; FILENAME: filename to store the char-table
 ;; DOCSTRING: docstring for the property
 ;; DESCRIBER: function to call to get a description string of property value
-;; DEFAULT: the default value of the property
+;; DEFAULT: the default value of the property.  It may have the form
+;;   (VAL0 (FROM1 TO1 VAL1) ...) which indicates that the default
+;;   value is VAL0 except for characters in the ranges specified by
+;;   FROMn and TOn (incusive).  The default value of characters
+;;   between FROMn and TOn is VALn.
 ;; VAL-LIST: list of specially ordered property values
 
 (defconst unidata-prop-alist
   '((name
      1 unidata-gen-table-name "uni-name.el"
      "Unicode character name.
-Property value is a string.")
+Property value is a string."
+     nil
+     "")
     (general-category
      2 unidata-gen-table-symbol "uni-category.el"
      "Unicode general category.
@@ -170,7 +176,7 @@ Property value is one of the following symbols:
   Lu, Ll, Lt, Lm, Lo, Mn, Mc, Me, Nd, Nl, No, Pc, Pd, Ps, Pe, Pi, Pf, Po,
   Sm, Sc, Sk, So, Zs, Zl, Zp, Cc, Cf, Cs, Co, Cn"
      unidata-describe-general-category
-     nil
+     Cn
      ;; The order of elements must be in sync with unicode_category_t
      ;; in src/character.h.
      (Lu Ll Lt Lm Lo Mn Mc Me Nd Nl No Pc Pd Ps Pe Pi Pf Po
@@ -179,7 +185,8 @@ Property value is one of the following symbols:
      3 unidata-gen-table-integer "uni-combining.el"
      "Unicode canonical combining class.
 Property value is an integer."
-     unidata-describe-canonical-combining-class)
+     unidata-describe-canonical-combining-class
+     0)
     (bidi-class
      4 unidata-gen-table-symbol "uni-bidi.el"
      "Unicode bidi class.
@@ -187,7 +194,12 @@ Property value is one of the following symbols:
   L, LRE, LRO, R, AL, RLE, RLO, PDF, EN, ES, ET,
   AN, CS, NSM, BN, B, S, WS, ON"
      unidata-describe-bidi-class
-     L
+     ;; The assignment of default values to blocks of code points
+     ;; follows the file DerivedBidiClass.txt from the Unicode
+     ;; Character Database (UCD).
+     (L (#x0600 #x06FF AL) (#xFB50 #xFDFF AL) (#xFE70 #xFEFF AL)
+	(#x0590 #x05FF R) (#x07C0 #x08FF R)
+	(#xFB1D #xFB4F R) (#x10800 #x10FFF R) (#x1E800 #x1EFFF R))
      ;; The order of elements must be in sync with bidi_type_t in
      ;; src/dispextern.h.
      (L R EN AN BN B AL LRE LRO RLE RLO PDF ES ET CS NSM S WS ON))
@@ -202,19 +214,24 @@ one of these symbols representing compatibility formatting tag:
     (decimal-digit-value
      6 unidata-gen-table-integer "uni-decimal.el"
      "Unicode numeric value (decimal digit).
-Property value is an integer.")
+Property value is an integer 0..9, or nil.
+The value nil stands for NaN \"Numeric_Value\".")
     (digit-value
      7 unidata-gen-table-integer "uni-digit.el"
      "Unicode numeric value (digit).
-Property value is an integer.")
+Property value is an integer 0..9, or nil.
+The value nil stands for NaN \"Numeric_Value\".")
     (numeric-value
      8 unidata-gen-table-numeric "uni-numeric.el"
      "Unicode numeric value (numeric).
-Property value is an integer or a floating point.")
+Property value is an integer, a floating point, or nil.
+The value nil stands for NaN \"Numeric_Value\".")
     (mirrored
      9 unidata-gen-table-symbol "uni-mirrored.el"
      "Unicode bidi mirrored flag.
-Property value is a symbol `Y' or `N'.  See also the property `mirroring'.")
+Property value is a symbol `Y' or `N'.  See also the property `mirroring'."
+     nil
+     N)
     (old-name
      10 unidata-gen-table-name "uni-old-name.el"
      "Unicode old names as published in Unicode 1.0.
@@ -226,23 +243,30 @@ Property value is a string.")
     (uppercase
      12 unidata-gen-table-character "uni-uppercase.el"
      "Unicode simple uppercase mapping.
-Property value is a character."
+Property value is a character or nil.
+The value nil means that the actual property value of a character
+is the character itself."
      string)
     (lowercase
      13 unidata-gen-table-character "uni-lowercase.el"
      "Unicode simple lowercase mapping.
-Property value is a character."
+Property value is a character or nil.
+The value nil means that the actual property value of a character
+is the character itself."
      string)
     (titlecase
      14 unidata-gen-table-character "uni-titlecase.el"
      "Unicode simple titlecase mapping.
-Property value is a character."
+Property value is a character or nil.
+The value nil means that the actual property value of a character
+is the character itself."
      string)
     (mirroring
      unidata-gen-mirroring-list unidata-gen-table-character "uni-mirrored.el"
      "Unicode bidi-mirroring characters.
-Property value is a character that has the corresponding mirroring image,
-or nil for non-mirrored character.")))
+Property value is a character that has the corresponding mirroring image or nil.
+The value nil means that the actual property value of a character
+is the character itself.")))
 
 ;; Functions to access the above data.
 (defsubst unidata-prop-index (prop) (nth 1 (assq prop unidata-prop-alist)))
@@ -393,9 +417,18 @@ or nil for non-mirrored character.")))
     (while tail
       (setcar tail (cons (car tail) val-code))
       (setq tail (cdr tail) val-code (1+ val-code)))
-    (setq default-value (unidata-encode-val val-list default-value))
-    (set-char-table-range table t default-value)
-    (set-char-table-range table nil default-value)
+    (if (consp default-value)
+	(setq default-value (copy-sequence default-value))
+      (setq default-value (list default-value)))
+    (setcar default-value
+	    (unidata-encode-val val-list (car default-value)))
+    (set-char-table-range table t (car default-value))
+    (set-char-table-range table nil (car default-value))
+    (dolist (elm (cdr default-value))
+      (setcar (nthcdr 2 elm)
+	      (unidata-encode-val val-list (nth 2 elm)))
+      (set-char-table-range table (cons (car elm) (nth 1 elm)) (nth 2 elm)))
+
     (setq tail unidata-list)
     (while tail
       (setq elt (car tail) tail (cdr tail))
@@ -419,17 +452,27 @@ or nil for non-mirrored character.")))
 		(setq prev-range-data (cons (cons from to) val-code)))))
 	(let* ((start (lsh (lsh range -7) 7))
 	       (limit (+ start 127))
-	       str count new-val)
-	  (fillarray vec 0)
-	  ;; See the comment above.
-	  (when (and prev-range-data
-		     (>= (cdr (car prev-range-data)) start))
-	    (let ((from (car (car prev-range-data)))
-		  (to (cdr (car prev-range-data)))
-		  (vcode (cdr prev-range-data)))
+	       str count new-val from to vcode)
+	  (fillarray vec (car default-value))
+	  (dolist (elm (cdr default-value))
+	    (setq from (car elm) to (nth 1 elm))
+	    (when (and (<= from limit)
+		       (or (>= from start) (>= to start)))
+	      (setq from (max from start)
+		    to (min to limit)
+		    vcode (nth 2 elm))
 	      (while (<= from to)
 		(aset vec (- from start) vcode)
 		(setq from (1+ from)))))
+	  ;; See the comment above.
+	  (when (and prev-range-data
+		     (>= (cdr (car prev-range-data)) start))
+	    (setq from (car (car prev-range-data))
+		  to (cdr (car prev-range-data))
+		  vcode (cdr prev-range-data))
+	    (while (<= from to)
+	      (aset vec (- from start) vcode)
+	      (setq from (1+ from))))
 	  (setq prev-range-data nil)
 	  (if val-code
 	      (aset vec (- range start) val-code))
@@ -669,7 +712,7 @@ or nil for non-mirrored character.")))
 	    (aset table c name)
 	    (if (= c char)
 		(setq val name))))
-	val)))
+	(or val ""))))
 
    ((and (integerp val) (> val 0))
     (let* ((symbol-table (aref (char-table-extra-slot table 4) 1))
@@ -695,7 +738,9 @@ or nil for non-mirrored character.")))
 	    ((eq sym 'CJK\ COMPATIBILITY\ IDEOGRAPH)
 	     (format "%s-%04X" sym char))
 	    ((eq sym 'VARIATION\ SELECTOR)
-	     (format "%s-%d" sym (+ (- char #xe0100) 17))))))))
+	     (format "%s-%d" sym (+ (- char #xe0100) 17))))))
+
+   (t "")))
 
 ;; Store VAL as the name of CHAR in TABLE.
 
@@ -707,6 +752,9 @@ or nil for non-mirrored character.")))
 
 (defun unidata-get-decomposition (char val table)
   (cond
+   ((not val)
+    (list char))
+
    ((consp val)
     val)
 
@@ -747,7 +795,8 @@ or nil for non-mirrored character.")))
 	    (aset vec idx (nconc word-list tail-list)))
 	(dotimes (i 128)
 	  (aset table (+ first-char i) (aref vec i)))
-	(aref vec (- char first-char)))))
+	(setq val (aref vec (- char first-char)))
+	(or val (list char)))))
 
    ;; Hangul syllable
    ((and (eq val 0) (>= char #xAC00) (<= char #xD7A3))

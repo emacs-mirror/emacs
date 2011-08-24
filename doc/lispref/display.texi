@@ -6104,7 +6104,9 @@ omitted or @code{nil}, it defaults to the current buffer.  If the
 buffer-local value of the variable @code{bidi-paragraph-direction} is
 non-@code{nil}, the returned value will be identical to that value;
 otherwise, the returned value reflects the paragraph direction
-determined dynamically by Emacs.
+determined dynamically by Emacs.  For buffers whose value of
+@code{bidi-display-reordering} is @code{nil} as well as unibyte
+buffers, this function always returns @code{left-to-right}.
 @end defun
 
 @cindex layout on display, and bidirectional text

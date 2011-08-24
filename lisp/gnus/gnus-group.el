@@ -3471,13 +3471,14 @@ sort in reverse order."
   "Clear all marks and read ranges from the current group.
 Obeys the process/prefix convention."
   (interactive "P")
-  (gnus-group-iterate arg
-    (lambda (group)
-      (let (info)
-	(gnus-info-clear-data (setq info (gnus-get-info group)))
-	(gnus-get-unread-articles-in-group info (gnus-active group) t)
-	(when (gnus-group-goto-group group)
-	  (gnus-group-update-group-line))))))
+  (when (gnus-y-or-n-p "Really clear data? ")
+    (gnus-group-iterate arg
+      (lambda (group)
+	(let (info)
+	  (gnus-info-clear-data (setq info (gnus-get-info group)))
+	  (gnus-get-unread-articles-in-group info (gnus-active group) t)
+	  (when (gnus-group-goto-group group)
+	    (gnus-group-update-group-line)))))))
 
 (defun gnus-group-clear-data-on-native-groups ()
   "Clear all marks and read ranges from all native groups."

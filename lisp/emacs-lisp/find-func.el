@@ -312,13 +312,17 @@ The search is done in the source for library LIBRARY."
 	      (cons (current-buffer) nil))))))))
 
 ;;;###autoload
-(defun find-function-noselect (function)
+(defun find-function-noselect (function &optional lisp-only)
   "Return a pair (BUFFER . POINT) pointing to the definition of FUNCTION.
 
 Finds the source file containing the definition of FUNCTION
 in a buffer and the point of the definition.  The buffer is
 not selected.  If the function definition can't be found in
 the buffer, returns (BUFFER).
+
+If FUNCTION is a built-in function, this function normally
+attempts to find it in the Emacs C sources; however, if LISP-ONLY
+is non-nil, signal an error instead.
 
 If the file where FUNCTION is defined is not known, then it is
 searched for in `find-function-source-path' if non-nil, otherwise
@@ -345,6 +349,8 @@ in `load-path'."
 	   (cond ((eq (car-safe def) 'autoload)
 		  (nth 1 def))
 		 ((subrp def)
+		  (if lisp-only
+		      (error "%s is a built-in function" function))
 		  (help-C-file-name def 'subr))
 		 ((symbol-file function 'defun)))))
       (find-function-search-for-symbol function nil library))))

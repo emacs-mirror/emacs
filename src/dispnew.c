@@ -5314,7 +5314,8 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
       if (STRINGP (it.string))
 	BYTEPOS (pos->pos) = string_char_to_byte (string, CHARPOS (pos->pos));
       else
-	BYTEPOS (pos->pos) = CHAR_TO_BYTE (CHARPOS (pos->pos));
+	BYTEPOS (pos->pos) = buf_charpos_to_bytepos (XBUFFER (w->buffer),
+						     CHARPOS (pos->pos));
     }
 
 #ifdef HAVE_WINDOW_SYSTEM

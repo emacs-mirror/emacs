@@ -1,3 +1,218 @@
+2011-08-24  Juri Linkov  <juri@jurta.org>
+
+	* proced.el (proced-marked): Inherit from `error' instead of
+	`font-lock-warning-face'.
+
+	* ibuffer.el (ibuffer-marked-face): Change default face from
+	`font-lock-warning-face' to `warning'.
+	(ibuffer-deletion-face): Change default face from
+	`font-lock-type-face' to `error'.
+
+	* battery.el (battery-update): Use the face `error' instead of
+	`font-lock-warning-face' (bug#6117).
+
+2011-08-24  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (success): Change face color from "Green3" to
+	"ForestGreen" on light background (bug#9353).
+
+2011-08-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (quit-window): Renamed from quit-restore-window.  Use
+	same arglist as old quit-window.
+	(frame-auto-delete): Doc fix.
+
+	* view.el (view-mode-exit): Use quit-window.
+
+2011-08-24  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-ring-adjust1): Start visiting previous
+	search strings from the index 0 (-1 + 1) instead of 1 (0 + 1).
+	(isearch-repeat, isearch-edit-string): Call `isearch-ring-adjust1'
+	for empty search string (when the last search string is reused
+	automatically) to adjust the isearch ring to the last element and
+	prepare the correct index for further M-p commands (bug#9185).
+
+2011-08-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/ucs-normalize.el: If decomposition property of
+	CHAR is the default one (i.e. a list of CHAR itself), treat it as
+	nil.
+	(nfd, nfkd): Likewise.
+
+2011-08-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mpc.el (mpc--proc-filter): Don't signal mpc-proc-error since signals
+	from process filters aren't reliably transmitted to the surrounding
+	accept-process-output.
+	(mpc-proc-check): New function.
+	(mpc-proc-sync): Use it (bug#8293)
+
+2011-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/eieio.el (eieio-defmethod, eieio-defgeneric):
+	Add compatibility functions (bug#9313).
+
+2011-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* cus-start.el (all): Add entry for bidi-paragraph-direction.
+
+	* international/uni-bidi.el: Regenerated.
+
+2011-08-23  Kenichi Handa  <handa@m17n.org>
+
+	* international/charprop.el:
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-combining.el:
+	* international/uni-comment.el:
+	* international/uni-decimal.el:
+	* international/uni-decomposition.el:
+	* international/uni-digit.el:
+	* international/uni-lowercase.el:
+	* international/uni-mirrored.el:
+	* international/uni-name.el:
+	* international/uni-numeric.el:
+	* international/uni-old-name.el:
+	* international/uni-titlecase.el:
+	* international/uni-uppercase.el: Regenerate.
+
+2011-08-23  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.el (help-window-setup): Fix message displayed when other
+	window is reused.  (Bug#9341)
+
+2011-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* shell.el (shell-completion-vars): Set pcomplete-arg-quote-list.
+	* pcomplete.el (pcomplete-quote-argument): Fix thinko (bug#9161).
+
+	* pcomplete.el (pcomplete-parse-comint-arguments): Fix inf-loop.
+	Mark obsolete.
+	* shell.el (shell-parse-pcomplete-arguments): New function.
+	(shell-completion-vars): Use it instead (bug#9160).
+
+2011-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-maybe-here-document): Disable magic in
+	strings and comments (bug#9333).
+
+	* emacs-lisp/debug.el (debug-arglist): New function.
+	(debug-convert-byte-code): Use it.  Handle lexical byte-codes.
+	(debug-on-entry-1): Handle interpreted closures (bug#9120).
+
+2011-08-22  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Revert regexp that highlights output switches to its old
+	pre-2010-10-28 value and remove one `?' from it (bug#9319).
+
+	* progmodes/grep.el (grep-process-setup): Use `buffer-modified-p'
+	to check for empty output (bug#9226).
+
+2011-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/scheme.el (scheme-mode-syntax-table): Don't use
+	symbol-constituent as the default, as that stops font-lock from
+	working properly (Bug#8843).
+
+2011-08-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Only bind
+	`coding-system-for-*' around the process open call to avoid
+	auth-source side effects.
+	(smtpmail-try-auth-methods): Expand the secret password.
+	(smtpmail-query-smtp-server): Allow `quit'-ing out in case the
+	probe hangs.
+
+2011-08-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term.el (term-mouse-paste): Yank primary selection (Bug#6845).
+
+	* emacs-lisp/find-func.el (find-function-noselect): New arg
+	lisp-only.
+
+	* emacs-lisp/edebug.el (edebug-instrument-function): Use it to
+	signal an error for built-in functions (Bug#6664).
+
+2011-08-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-smtp-user): New variable.
+	(smtpmail-try-auth-methods): Use it.
+
+2011-08-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* font-lock.el (font-lock-fontify-region)
+	(font-lock-unfontify-region, font-lock-default-fontify-buffer)
+	(font-lock-default-unfontify-buffer)
+	(font-lock-default-fontify-region)
+	(font-lock-default-unfontify-region): Add docstrings (Bug#8624).
+
+	* progmodes/compile.el (compilation-error-properties):
+	Fix confusion between file struct and message struct (Bug#9319).
+	(compilation-error-regexp-alist-alist): Fix 2011-05-09 change to
+	`ant' regexp.
+
+	* net/browse-url.el (browse-url-firefox): Don't call
+	browse-url-firefox-sentinel unless using -remote (Bug#9328).
+
+2011-08-20  Glenn Morris  <rgm@gnu.org>
+
+	* tutorial.el (help-with-tutorial): Avoid an error on short screens.
+
+	* tutorial.el (tutorial--default-keys): Update some default bindings.
+
+	* files.el (hack-local-variables): Fully ignore case for "mode:".
+
+2011-08-20  Alan Mackenzie  <acm@muc.de>
+
+	Resolve invalid use of a regexp in regexp-opt.
+
+	* cc-fonts.el (c-complex-decl-matchers): Add in special detection
+	for a java annotation.
+
+	* cc-engine.el (c-forward-decl-or-cast-1): Add in special
+	detection for a java annotation.
+
+	* cc-langs.el (c-prefix-spec-kwds-re): Remove the special handling
+	for java.
+	(c-modifier-kwds): Remove the regexp "@[A-za-z0-9]+".
+
+2011-08-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (normal-top-level-add-subdirs-to-load-path): Doc fix
+	(Bug#9274).
+
+2011-08-20  Alan Mackenzie  <acm@muc.de>
+
+	* Fontify CPP expressions correctly when starting in the middle of
+	such a construct.  Mainly for when jit-lock etc. starts a chunk
+	here.
+
+	* progmodes/cc-fonts.el (c-font-lock-context): new buffer local
+	variable.
+	(c-make-font-lock-search-form): new function, extracted from
+	c-make-font-lock-search-function.
+	(c-make-font-lock-search-function): Use the above function.
+	(c-make-font-lock-context-search-function): New function.
+	(c-cpp-matchers): Enhance the preprocessor expression case with
+	the above function
+	(c-font-lock-complex-decl-prepare): Test for being in a CPP form
+	which takes an expression.
+
+	* progmodes/cc-langs.el (c-cpp-expr-intro-re): New lang-variable.
+
+2011-08-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-reuse-window)
+	(display-buffer-pop-up-window): Don't reuse or split a side
+	window.
+
+2011-08-19  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (hack-local-variables-prop-line, hack-local-variables):
+	Downcase "Mode:". (Bug#9331)
+
 2011-08-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* international/characters.el: Add L and R categories.
@@ -28,8 +243,8 @@
 	binding variables (bug#9298).  Also clean up some unused
 	autoloads.
 
-	* net/network-stream.el (network-stream-open-starttls): Support
-	using starttls.el without using gnutls-cli.
+	* net/network-stream.el (network-stream-open-starttls):
+	Support using starttls.el without using gnutls-cli.
 
 2011-08-17  Juri Linkov  <juri@jurta.org>
 
