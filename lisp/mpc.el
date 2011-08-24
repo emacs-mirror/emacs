@@ -246,11 +246,12 @@ and HOST defaults to localhost."
             (process-put proc 'ready t)
             (unless (eq (match-end 0) (point-max))
               (error "Unexpected trailing text"))
-            (let ((error (match-string 1)))
+            (let ((error-text (match-string 1)))
               (delete-region (point) (point-max))
               (let ((callback (process-get proc 'callback)))
                 (process-put proc 'callback nil)
-                (if error (signal 'mpc-proc-error error))
+                (if error-text
+                    (process-put proc 'mpc-proc-error error-text))
                 (funcall callback)))))))))
 
 (defun mpc--proc-connect (host)
@@ -314,19 +315,23 @@ and HOST defaults to localhost."
            mpc-proc)
       (setq mpc-proc (mpc--proc-connect mpc-host))))
 
+(defun mpc-proc-check (proc)
+  (let ((error-text (process-get proc 'mpc-proc-error)))
+    (when error-text
+      (process-put proc 'mpc-proc-error nil)
+      (signal 'mpc-proc-error error-text))))
+
 (defun mpc-proc-sync (&optional proc)
   "Wait for MPC process until it is idle again.
 Return the buffer in which the process is/was running."
   (unless proc (setq proc (mpc-proc)))
   (unwind-protect
-      (condition-case err
-          (progn
-            (while (and (not (process-get proc 'ready))
-                        (accept-process-output proc)))
-            (if (process-get proc 'ready) (process-buffer proc)
-              ;; (delete-process proc)
-              (error "No response from MPD")))
-        (error (message "MPC: %s" err) (signal (car err) (cdr err))))
+      (progn
+        (while (and (not (process-get proc 'ready))
+                    (accept-process-output proc)))
+        (mpc-proc-check proc)
+        (if (process-get proc 'ready) (process-buffer proc)
+          (error "No response from MPD")))
     (unless (process-get proc 'ready)
       ;; (debug)
       (message "Killing hung process")
@@ -358,13 +363,13 @@ which will be concatenated with proper quoting before passing them to MPD."
                       "\n")))
       (if callback
           ;; (let ((buf (current-buffer)))
-            (process-put proc 'callback
-                         callback
-                         ;; (lambda ()
-                         ;;   (funcall callback
-                         ;;            (prog1 (current-buffer)
-                         ;;              (set-buffer buf)))))
-                         )
+          (process-put proc 'callback
+                       callback
+                       ;; (lambda ()
+                       ;;   (funcall callback
+                       ;;            (prog1 (current-buffer)
+                       ;;              (set-buffer buf)))))
+                       )
         ;; If `callback' is nil, we're executing synchronously.
         (process-put proc 'callback 'ignore)
         ;; This returns the process's buffer.

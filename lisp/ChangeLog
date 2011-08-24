@@ -1,3 +1,11 @@
+2011-08-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mpc.el (mpc--proc-filter): Don't signal mpc-proc-error since signals
+	from process filters aren't reliably transmitted to the surrounding
+	accept-process-output.
+	(mpc-proc-check): New function.
+	(mpc-proc-sync): Use it (bug#8293)
+
 2011-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/eieio.el (eieio-defmethod, eieio-defgeneric):
