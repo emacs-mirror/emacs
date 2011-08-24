@@ -1,3 +1,8 @@
+2011-08-24  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (success): Change face color from "Green3" to
+	"ForestGreen" on light background (bug#9353).
+
 2011-08-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* window.el (quit-window): Renamed from quit-restore-window.  Use
