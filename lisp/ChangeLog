@@ -1,3 +1,12 @@
+2011-08-24  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-ring-adjust1): Start visiting previous
+	search strings from the index 0 (-1 + 1) instead of 1 (0 + 1).
+	(isearch-repeat, isearch-edit-string): Call `isearch-ring-adjust1'
+	for empty search string (when the last search string is reused
+	automatically) to adjust the isearch ring to the last element and
+	prepare the correct index for further M-p commands (bug#9185).
+
 2011-08-24  Kenichi Handa  <handa@m17n.org>
 
 	* international/ucs-normalize.el: If decomposition property of

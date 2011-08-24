@@ -1191,19 +1191,17 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 		  isearch-word isearch-new-word))
 
 	  ;; Empty isearch-string means use default.
-	  (if (= 0 (length isearch-string))
-	      (setq isearch-string (or (car (if isearch-regexp
-						regexp-search-ring
-					      search-ring))
-				       "")
+	  (when (= 0 (length isearch-string))
+	    (setq isearch-string (or (car (if isearch-regexp
+					      regexp-search-ring
+					    search-ring))
+				     "")
 
-		    isearch-message
-		    (mapconcat 'isearch-text-char-description
-			       isearch-string ""))
-	    ;; This used to set the last search string,
-	    ;; but I think it is not right to do that here.
-	    ;; Only the string actually used should be saved.
-	    ))
+		  isearch-message
+		  (mapconcat 'isearch-text-char-description
+			     isearch-string ""))
+	    ;; After taking the last element, adjust ring to previous one.
+	    (isearch-ring-adjust1 nil)))
 
 	;; This used to push the state as of before this C-s, but it adds
 	;; an inconsistent state where part of variables are from the
@@ -1290,7 +1288,9 @@ Use `isearch-exit' to quit without signaling."
 		  isearch-message
 		  (mapconcat 'isearch-text-char-description
 			     isearch-string "")
-		  isearch-case-fold-search isearch-last-case-fold-search))
+		  isearch-case-fold-search isearch-last-case-fold-search)
+	    ;; After taking the last element, adjust ring to previous one.
+	    (isearch-ring-adjust1 nil))
 	;; If already have what to search for, repeat it.
 	(or isearch-success
 	    (progn
@@ -2071,7 +2071,7 @@ Isearch mode."
 	()
       (set yank-pointer-name
 	   (setq yank-pointer
-		 (mod (+ (or yank-pointer 0)
+		 (mod (+ (or yank-pointer (if advance 0 -1))
 			 (if advance -1 1))
 		      length)))
       (setq isearch-string (nth yank-pointer ring)
