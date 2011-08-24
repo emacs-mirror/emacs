@@ -356,12 +356,12 @@ directory, like `default-directory'."
   :type 'hook
   :group 'ibuffer)
 
-(defcustom ibuffer-marked-face 'font-lock-warning-face
+(defcustom ibuffer-marked-face 'warning
   "Face used for displaying marked buffers."
   :type 'face
   :group 'ibuffer)
 
-(defcustom ibuffer-deletion-face 'font-lock-type-face
+(defcustom ibuffer-deletion-face 'error
   "Face used for displaying buffers marked for deletion."
   :type 'face
   :group 'ibuffer)

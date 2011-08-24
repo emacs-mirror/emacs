@@ -1,5 +1,18 @@
 2011-08-24  Juri Linkov  <juri@jurta.org>
 
+	* proced.el (proced-marked): Inherit from `error' instead of
+	`font-lock-warning-face'.
+
+	* ibuffer.el (ibuffer-marked-face): Change default face from
+	`font-lock-warning-face' to `warning'.
+	(ibuffer-deletion-face): Change default face from
+	`font-lock-type-face' to `error'.
+
+	* battery.el (battery-update): Use the face `error' instead of
+	`font-lock-warning-face' (bug#6117).
+
+2011-08-24  Juri Linkov  <juri@jurta.org>
+
 	* faces.el (success): Change face color from "Green3" to
 	"ForestGreen" on light background (bug#9353).
 
