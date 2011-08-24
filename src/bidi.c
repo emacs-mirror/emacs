@@ -146,11 +146,10 @@ bidi_get_type (int ch, bidi_dir_t override)
     }
 }
 
-static void
+static inline void
 bidi_check_type (bidi_type_t type)
 {
-  if (type < UNKNOWN_BT || type > NEUTRAL_ON)
-    abort ();
+  xassert (UNKNOWN_BT <= type && type <= NEUTRAL_ON);
 }
 
 /* Given a bidi TYPE of a character, return its category.  */
@@ -540,6 +539,8 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
       bidi_cache[idx].next_for_neutral = bidi_it->next_for_neutral;
       bidi_cache[idx].next_for_ws = bidi_it->next_for_ws;
       bidi_cache[idx].ignore_bn_limit = bidi_it->ignore_bn_limit;
+      bidi_cache[idx].disp_pos = bidi_it->disp_pos;
+      bidi_cache[idx].disp_prop_p = bidi_it->disp_prop_p;
     }
 
   bidi_cache_last_idx = idx;
