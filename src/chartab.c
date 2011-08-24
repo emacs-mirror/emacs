@@ -589,8 +589,6 @@ DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
   (Lisp_Object char_table, Lisp_Object n, Lisp_Object value)
 {
   CHECK_CHAR_TABLE (char_table);
-  if (EQ (XCHAR_TABLE (char_table)->purpose, Qchar_code_property_table))
-    error ("Can't change extra-slot of char-code-property-table");
   CHECK_NUMBER (n);
   if (XINT (n) < 0
       || XINT (n) >= CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (char_table)))

@@ -7699,7 +7699,12 @@ move_it_in_display_line_to (struct it *it,
   ((op & MOVE_TO_POS) != 0					\
    && BUFFERP (it->object)					\
    && (IT_CHARPOS (*it) == to_charpos				\
-       || (!it->bidi_p && IT_CHARPOS (*it) > to_charpos))	\
+       || (!it->bidi_p && IT_CHARPOS (*it) > to_charpos)	\
+       || (it->what == IT_COMPOSITION				\
+	   && ((IT_CHARPOS (*it) > to_charpos			\
+		&& to_charpos >= it->cmp_it.charpos)		\
+	       || (IT_CHARPOS (*it) < to_charpos		\
+		   && to_charpos <= it->cmp_it.charpos))))	\
    && (it->method == GET_FROM_BUFFER				\
        || (it->method == GET_FROM_DISPLAY_VECTOR		\
 	   && it->dpvec + it->current.dpvec_index + 1 >= it->dpend)))
@@ -13791,7 +13796,14 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 			  && glyph->charpos != pt_old)))))
 	return 0;
       /* If this candidate gives an exact match, use that.  */
-      if (!(BUFFERP (glyph->object) && glyph->charpos == pt_old)
+      if (!((BUFFERP (glyph->object) && glyph->charpos == pt_old)
+	    /* If this candidate is a glyph created for the
+	       terminating newline of a line, and point is on that
+	       newline, it wins because it's an exact match.  */
+	    || (!row->continued_p
+		&& INTEGERP (glyph->object)
+		&& glyph->charpos == 0
+		&& pt_old == MATRIX_ROW_END_CHARPOS (row) - 1))
 	  /* Otherwise, keep the candidate that comes from a row
 	     spanning less buffer positions.  This may win when one or
 	     both candidate positions are on glyphs that came from
@@ -14573,7 +14585,8 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		    }
 		  ++row;
 		}
-	      while ((MATRIX_ROW_CONTINUATION_LINE_P (row)
+	      while (((MATRIX_ROW_CONTINUATION_LINE_P (row)
+		       || row->continued_p)
 		      && MATRIX_ROW_BOTTOM_Y (row) <= last_y)
 		     || (MATRIX_ROW_START_CHARPOS (row) == PT
 			 && MATRIX_ROW_BOTTOM_Y (row) < last_y));
@@ -15239,7 +15252,8 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	      if (pt_offset)
 		centering_position -= pt_offset;
 	      centering_position -=
-		FRAME_LINE_HEIGHT (f) * (1 + margin + (last_line_misfit != 0));
+		FRAME_LINE_HEIGHT (f) * (1 + margin + (last_line_misfit != 0))
+		+ WINDOW_HEADER_LINE_HEIGHT (w);
 	      /* Don't let point enter the scroll margin near top of
 		 the window.  */
 	      if (centering_position < margin * FRAME_LINE_HEIGHT (f))
@@ -18003,7 +18017,8 @@ cursor_row_p (struct glyph_row *row)
 {
   int result = 1;
 
-  if (PT == CHARPOS (row->end.pos))
+  if (PT == CHARPOS (row->end.pos)
+      || PT == MATRIX_ROW_END_CHARPOS (row))
     {
       /* Suppose the row ends on a string.
 	 Unless the row is continued, that means it ends on a newline
@@ -18386,15 +18401,22 @@ display_line (struct it *it)
 #define RECORD_MAX_MIN_POS(IT)					\
   do								\
     {								\
-      if (IT_CHARPOS (*(IT)) < min_pos)				\
+      int composition_p = (IT)->what == IT_COMPOSITION;		\
+      EMACS_INT current_pos =					\
+	composition_p ? (IT)->cmp_it.charpos			\
+		      : IT_CHARPOS (*(IT));			\
+      EMACS_INT current_bpos =					\
+	composition_p ? CHAR_TO_BYTE (current_pos)		\
+		      : IT_BYTEPOS (*(IT));			\
+      if (current_pos < min_pos)				\
 	{							\
-	  min_pos = IT_CHARPOS (*(IT));				\
-	  min_bpos = IT_BYTEPOS (*(IT));			\
+	  min_pos = current_pos;				\
+	  min_bpos = current_bpos;				\
 	}							\
-      if (IT_CHARPOS (*(IT)) > max_pos)				\
+      if (IT_CHARPOS (*it) > max_pos)				\
 	{							\
-	  max_pos = IT_CHARPOS (*(IT));				\
-	  max_bpos = IT_BYTEPOS (*(IT));			\
+	  max_pos = IT_CHARPOS (*it);				\
+	  max_bpos = IT_BYTEPOS (*it);				\
 	}							\
     }								\
   while (0)
@@ -19001,7 +19023,8 @@ See also `bidi-paragraph-direction'.  */)
       buf = XBUFFER (buffer);
     }
 
-  if (NILP (BVAR (buf, bidi_display_reordering)))
+  if (NILP (BVAR (buf, bidi_display_reordering))
+      || NILP (BVAR (buf, enable_multibyte_characters)))
     return Qleft_to_right;
   else if (!NILP (BVAR (buf, bidi_paragraph_direction)))
     return BVAR (buf, bidi_paragraph_direction);
@@ -24051,6 +24074,8 @@ x_produce_glyphs (struct it *it)
       struct face *face = FACE_FROM_ID (it->f, it->face_id);
       Lisp_Object gstring;
       struct font_metrics metrics;
+
+      it->nglyphs = 1;
 
       gstring = composition_gstring_from_id (it->cmp_it.id);
       it->pixel_width

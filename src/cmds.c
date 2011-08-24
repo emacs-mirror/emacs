@@ -271,7 +271,8 @@ Whichever character you type to run this command is inserted.
 Before insertion, `expand-abbrev' is executed if the inserted character does
 not have word syntax and the previous character in the buffer does.
 After insertion, the value of `auto-fill-function' is called if the
-`auto-fill-chars' table has a non-nil value for the inserted character.  */)
+`auto-fill-chars' table has a non-nil value for the inserted character.
+At the end, it runs `post-self-insert-hook'.  */)
   (Lisp_Object n)
 {
   int remove_boundary = 1;

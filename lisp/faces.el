@@ -2435,7 +2435,7 @@ It is used for characters of no fonts too."
 
 (defface success
   '((((class color) (min-colors 16) (background light))
-     (:foreground "Green3" :weight bold))
+     (:foreground "ForestGreen" :weight bold))
     (((class color) (min-colors 88) (background dark))
      (:foreground "Green1" :weight bold))
     (((class color) (min-colors 16) (background dark))

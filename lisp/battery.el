@@ -199,7 +199,7 @@ seconds."
 		      'face
 		      (and (<= (car (read-from-string (cdr (assq ?p data))))
 				   battery-load-critical)
-			   'font-lock-warning-face)
+			   'error)
 		      'help-echo "Battery status information")))
   (force-mode-line-update))
 

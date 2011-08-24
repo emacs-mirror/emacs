@@ -253,7 +253,7 @@ LEFT and RIGHT are the elements to compare."
              ;; * INSERTING AND DELETING
              ;; C-u 8 * to insert ********.
              (delete-backward-char "\d")
-             (delete-forward-char [?\C-d])
+             (delete-char [?\C-d])
              (backward-kill-word [?\M-\d])
              (kill-word [?\M-d])
              (kill-line [?\C-k])
@@ -298,7 +298,7 @@ LEFT and RIGHT are the elements to compare."
              (isearch-backward [?\C-r])
 
              ;; * MULTIPLE WINDOWS
-             (split-window-vertically [?\C-x ?2])
+             (split-window-above-each-other [?\C-x ?2])
              (scroll-other-window [?\C-\M-v])
              (other-window [?\C-x ?o])
              (find-file-other-window [?\C-x ?4 ?\C-f])
@@ -889,6 +889,11 @@ Run the Viper tutorial? "))
                  (search-forward ">>")
                  (replace-match "]")))
           (beginning-of-line)
+          ;; FIXME: if the window is not tall, and especially if the
+          ;; big red "NOTICE: The main purpose..." text has been
+          ;; inserted at the start of the buffer, the "type C-v to
+          ;; move to the next screen" might not be visible on the
+          ;; first screen (n < 0).  How will the novice know what to do?
           (let ((n (- (window-height (selected-window))
                       (count-lines (point-min) (point))
                       6)))
@@ -897,7 +902,7 @@ Run the Viper tutorial? "))
                   ;; For a short gap, we don't need the [...] line,
                   ;; so delete it.
                   (delete-region (point) (progn (end-of-line) (point)))
-                  (newline n))
+                  (if (> n 0) (newline n)))
               ;; Some people get confused by the large gap.
               (newline (/ n 2))
 

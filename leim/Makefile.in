@@ -124,6 +124,7 @@ OTHERS= \
 	${srcdir}/quail/arabic.elc \
 	${srcdir}/quail/ethiopic.elc \
 	${srcdir}/quail/ipa.elc \
+	${srcdir}/quail/ipa-praat.elc \
 	${srcdir}/quail/hebrew.elc \
 	${srcdir}/quail/georgian.elc \
 	$(srcdir)/quail/persian.elc \

@@ -7139,7 +7139,6 @@ gif_load (struct frame *f, struct image *img)
   ColorMapObject *gif_color_map;
   unsigned long pixel_colors[256];
   GifFileType *gif;
-  int image_height, image_width;
   gif_memory_source memsrc;
   Lisp_Object specified_bg = image_spec_value (img->spec, QCbackground, NULL);
   Lisp_Object specified_file = image_spec_value (img->spec, QCfile, NULL);
@@ -7216,19 +7215,13 @@ gif_load (struct frame *f, struct image *img)
       }
   }
 
-  img->corners[TOP_CORNER] = gif->SavedImages[idx].ImageDesc.Top;
-  img->corners[LEFT_CORNER] = gif->SavedImages[idx].ImageDesc.Left;
-  image_height = gif->SavedImages[idx].ImageDesc.Height;
-  img->corners[BOT_CORNER] = img->corners[TOP_CORNER] + image_height;
-  image_width = gif->SavedImages[idx].ImageDesc.Width;
-  img->corners[RIGHT_CORNER] = img->corners[LEFT_CORNER] + image_width;
+  width = img->width = gif->SWidth;
+  height = img->height = gif->SHeight;
 
-  width = img->width = max (gif->SWidth,
-			    max (gif->Image.Left + gif->Image.Width,
-				 img->corners[RIGHT_CORNER]));
-  height = img->height = max (gif->SHeight,
-			      max (gif->Image.Top + gif->Image.Height,
-				   img->corners[BOT_CORNER]));
+  img->corners[TOP_CORNER] = gif->SavedImages[0].ImageDesc.Top;
+  img->corners[LEFT_CORNER] = gif->SavedImages[0].ImageDesc.Left;
+  img->corners[BOT_CORNER] = img->corners[TOP_CORNER] + height;
+  img->corners[RIGHT_CORNER] = img->corners[LEFT_CORNER] + width;
 
   if (!check_image_size (f, width, height))
     {
@@ -7283,6 +7276,10 @@ gif_load (struct frame *f, struct image *img)
       unsigned char *raster = (unsigned char *) subimage->RasterBits;
       int transparency_color_index = -1;
       int disposal = 0;
+      int subimg_width = subimage->ImageDesc.Width;
+      int subimg_height = subimage->ImageDesc.Height;
+      int subimg_top = subimage->ImageDesc.Top;
+      int subimg_left = subimage->ImageDesc.Left;
 
       /* Find the Graphic Control Extension block for this sub-image.
 	 Extract the disposal method and transparency color.  */
@@ -7305,6 +7302,13 @@ gif_load (struct frame *f, struct image *img)
       /* We can't "keep in place" the first subimage.  */
       if (j == 0)
 	disposal = 2;
+
+      /* For disposal == 0, the spec says "No disposal specified. The
+	 decoder is not required to take any action."  In practice, it
+	 seems we need to treat this like "keep in place", see e.g.
+	 http://upload.wikimedia.org/wikipedia/commons/3/37/Clock.gif */
+      if (disposal == 0)
+	disposal = 1;
 
       /* Allocate subimage colors.  */
       memset (pixel_colors, 0, sizeof pixel_colors);
@@ -7333,34 +7337,34 @@ gif_load (struct frame *f, struct image *img)
 	  int row, pass;
 
 	  for (y = 0, row = interlace_start[0], pass = 0;
-	       y < image_height;
+	       y < subimg_height;
 	       y++, row += interlace_increment[pass])
 	    {
-	      if (row >= image_height)
+	      if (row >= subimg_height)
 		{
 		  row = interlace_start[++pass];
-		  while (row >= image_height)
+		  while (row >= subimg_height)
 		    row = interlace_start[++pass];
 		}
 
-	      for (x = 0; x < image_width; x++)
+	      for (x = 0; x < subimg_width; x++)
 		{
-		  int c = raster[y * image_width + x];
+		  int c = raster[y * subimg_width + x];
 		  if (transparency_color_index != c || disposal != 1)
-		    XPutPixel (ximg, x + img->corners[LEFT_CORNER],
-			       row + img->corners[TOP_CORNER], pixel_colors[c]);
+		    XPutPixel (ximg, x + subimg_left, row + subimg_top,
+			       pixel_colors[c]);
 		}
 	    }
 	}
       else
 	{
-	  for (y = 0; y < image_height; ++y)
-	    for (x = 0; x < image_width; ++x)
+	  for (y = 0; y < subimg_height; ++y)
+	    for (x = 0; x < subimg_width; ++x)
 	      {
-		int c = raster[y * image_width + x];
+		int c = raster[y * subimg_width + x];
 		if (transparency_color_index != c || disposal != 1)
-		  XPutPixel (ximg, x + img->corners[LEFT_CORNER],
-			     y + img->corners[TOP_CORNER], pixel_colors[c]);
+		  XPutPixel (ximg, x + subimg_left, y + subimg_top,
+			     pixel_colors[c]);
 	      }
 	}
     }
