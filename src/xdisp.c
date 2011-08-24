@@ -13796,7 +13796,14 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 			  && glyph->charpos != pt_old)))))
 	return 0;
       /* If this candidate gives an exact match, use that.  */
-      if (!(BUFFERP (glyph->object) && glyph->charpos == pt_old)
+      if (!((BUFFERP (glyph->object) && glyph->charpos == pt_old)
+	    /* If this candidate is a glyph created for the
+	       terminating newline of a line, and point is on that
+	       newline, it wins because it's an exact match.  */
+	    || (!row->continued_p
+		&& INTEGERP (glyph->object)
+		&& glyph->charpos == 0
+		&& pt_old == MATRIX_ROW_END_CHARPOS (row) - 1))
 	  /* Otherwise, keep the candidate that comes from a row
 	     spanning less buffer positions.  This may win when one or
 	     both candidate positions are on glyphs that came from
@@ -14578,7 +14585,8 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		    }
 		  ++row;
 		}
-	      while ((MATRIX_ROW_CONTINUATION_LINE_P (row)
+	      while (((MATRIX_ROW_CONTINUATION_LINE_P (row)
+		       || row->continued_p)
 		      && MATRIX_ROW_BOTTOM_Y (row) <= last_y)
 		     || (MATRIX_ROW_START_CHARPOS (row) == PT
 			 && MATRIX_ROW_BOTTOM_Y (row) < last_y));
@@ -18009,7 +18017,8 @@ cursor_row_p (struct glyph_row *row)
 {
   int result = 1;
 
-  if (PT == CHARPOS (row->end.pos))
+  if (PT == CHARPOS (row->end.pos)
+      || PT == MATRIX_ROW_END_CHARPOS (row))
     {
       /* Suppose the row ends on a string.
 	 Unless the row is continued, that means it ends on a newline
@@ -18404,10 +18413,10 @@ display_line (struct it *it)
 	  min_pos = current_pos;				\
 	  min_bpos = current_bpos;				\
 	}							\
-      if (current_pos > max_pos)				\
+      if (IT_CHARPOS (*it) > max_pos)				\
 	{							\
-	  max_pos = current_pos;				\
-	  max_bpos = current_bpos;				\
+	  max_pos = IT_CHARPOS (*it);				\
+	  max_bpos = IT_BYTEPOS (*it);				\
 	}							\
     }								\
   while (0)
