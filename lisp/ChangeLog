@@ -1,3 +1,10 @@
+2011-08-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/ucs-normalize.el: If decomposition property of
+	CHAR is the default one (i.e. a list of CHAR itself), treat it as
+	nil.
+	(nfd, nfkd): Likewise.
+
 2011-08-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mpc.el (mpc--proc-filter): Don't signal mpc-proc-error since signals
