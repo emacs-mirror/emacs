@@ -10,9 +10,9 @@ else: viewing ``document files'', reading netnews, running shell
 commands and shell subprocesses, using a single shared Emacs for
 utilities that expect to run an editor as a subprocess, printing
 hardcopy, sorting text, narrowing display to part of the buffer,
-editing double-column files and binary files, saving an Emacs session
-for later resumption, following hyperlinks, browsing images, emulating
-other editors, and various diversions and amusements.
+editing binary files, saving an Emacs session for later resumption,
+following hyperlinks, browsing images, emulating other editors, and
+various diversions and amusements.
 
 @end iftex
 
@@ -166,7 +166,7 @@ look at.
 (@code{doc-view-set-slice}); then enter the top left pixel position
 and the slice's width and height.
 @c ??? how does this work?
-                
+
   A more convenient graphical way to specify the slice is with @kbd{s
 m} (@code{doc-view-set-slice-using-mouse}), where you use the mouse to
 select the slice.
@@ -1999,7 +1999,7 @@ to print, you start the print job using the @samp{Print} button (click
 further information on the various options, use the @samp{Interface
 Help} button.
 
-@node Sorting, Narrowing, Printing, Top
+@node Sorting
 @section Sorting Text
 @cindex sorting
 
@@ -2134,163 +2134,13 @@ rectangle moves along with the text inside the rectangle.
   Many of the sort commands ignore case differences when comparing, if
 @code{sort-fold-case} is non-@code{nil}.
 
-@node Narrowing, Two-Column, Sorting, Top
-@section Narrowing
-@cindex widening
-@cindex restriction
-@cindex narrowing
-@cindex accessible portion
+@c Picture Mode documentation
+@ifnottex
+@include picture-xtra.texi
+@end ifnottex
 
-  @dfn{Narrowing} means focusing in on some portion of the buffer,
-making the rest temporarily inaccessible.  The portion which you can
-still get to is called the @dfn{accessible portion}.  Canceling the
-narrowing, which makes the entire buffer once again accessible, is
-called @dfn{widening}.  The bounds of narrowing in effect in a buffer
-are called the buffer's @dfn{restriction}.
 
-  Narrowing can make it easier to concentrate on a single subroutine or
-paragraph by eliminating clutter.  It can also be used to limit the
-range of operation of a replace command or repeating keyboard macro.
-
-@table @kbd
-@item C-x n n
-Narrow down to between point and mark (@code{narrow-to-region}).
-@item C-x n w
-Widen to make the entire buffer accessible again (@code{widen}).
-@item C-x n p
-Narrow down to the current page (@code{narrow-to-page}).
-@item C-x n d
-Narrow down to the current defun (@code{narrow-to-defun}).
-@end table
-
-  When you have narrowed down to a part of the buffer, that part appears
-to be all there is.  You can't see the rest, you can't move into it
-(motion commands won't go outside the accessible part), you can't change
-it in any way.  However, it is not gone, and if you save the file all
-the inaccessible text will be saved.  The word @samp{Narrow} appears in
-the mode line whenever narrowing is in effect.
-
-@kindex C-x n n
-@findex narrow-to-region
-  The primary narrowing command is @kbd{C-x n n} (@code{narrow-to-region}).
-It sets the current buffer's restrictions so that the text in the current
-region remains accessible, but all text before the region or after the
-region is inaccessible.  Point and mark do not change.
-
-@kindex C-x n p
-@findex narrow-to-page
-@kindex C-x n d
-@findex narrow-to-defun
-  Alternatively, use @kbd{C-x n p} (@code{narrow-to-page}) to narrow
-down to the current page.  @xref{Pages}, for the definition of a page.
-@kbd{C-x n d} (@code{narrow-to-defun}) narrows down to the defun
-containing point (@pxref{Defuns}).
-
-@kindex C-x n w
-@findex widen
-  The way to cancel narrowing is to widen with @kbd{C-x n w}
-(@code{widen}).  This makes all text in the buffer accessible again.
-
-  You can get information on what part of the buffer you are narrowed down
-to using the @kbd{C-x =} command.  @xref{Position Info}.
-
-  Because narrowing can easily confuse users who do not understand it,
-@code{narrow-to-region} is normally a disabled command.  Attempting to use
-this command asks for confirmation and gives you the option of enabling it;
-if you enable the command, confirmation will no longer be required for
-it.  @xref{Disabling}.
-
-@node Two-Column, Editing Binary Files, Narrowing, Top
-@section Two-Column Editing
-@cindex two-column editing
-@cindex splitting columns
-@cindex columns, splitting
-
-  Two-column mode lets you conveniently edit two side-by-side columns of
-text.  It uses two side-by-side windows, each showing its own
-buffer.
-
-  There are three ways to enter two-column mode:
-
-@table @asis
-@item @kbd{@key{F2} 2} or @kbd{C-x 6 2}
-@kindex F2 2
-@kindex C-x 6 2
-@findex 2C-two-columns
-Enter two-column mode with the current buffer on the left, and on the
-right, a buffer whose name is based on the current buffer's name
-(@code{2C-two-columns}).  If the right-hand buffer doesn't already
-exist, it starts out empty; the current buffer's contents are not
-changed.
-
-This command is appropriate when the current buffer is empty or contains
-just one column and you want to add another column.
-
-@item @kbd{@key{F2} s} or @kbd{C-x 6 s}
-@kindex F2 s
-@kindex C-x 6 s
-@findex 2C-split
-Split the current buffer, which contains two-column text, into two
-buffers, and display them side by side (@code{2C-split}).  The current
-buffer becomes the left-hand buffer, but the text in the right-hand
-column is moved into the right-hand buffer.  The current column
-specifies the split point.  Splitting starts with the current line and
-continues to the end of the buffer.
-
-This command is appropriate when you have a buffer that already contains
-two-column text, and you wish to separate the columns temporarily.
-
-@item @kbd{@key{F2} b @var{buffer} @key{RET}}
-@itemx @kbd{C-x 6 b @var{buffer} @key{RET}}
-@kindex F2 b
-@kindex C-x 6 b
-@findex 2C-associate-buffer
-Enter two-column mode using the current buffer as the left-hand buffer,
-and using buffer @var{buffer} as the right-hand buffer
-(@code{2C-associate-buffer}).
-@end table
-
-  @kbd{@key{F2} s} or @kbd{C-x 6 s} looks for a column separator, which
-is a string that appears on each line between the two columns.  You can
-specify the width of the separator with a numeric argument to
-@kbd{@key{F2} s}; that many characters, before point, constitute the
-separator string.  By default, the width is 1, so the column separator
-is the character before point.
-
-  When a line has the separator at the proper place, @kbd{@key{F2} s}
-puts the text after the separator into the right-hand buffer, and
-deletes the separator.  Lines that don't have the column separator at
-the proper place remain unsplit; they stay in the left-hand buffer, and
-the right-hand buffer gets an empty line to correspond.  (This is the
-way to write a line that ``spans both columns while in two-column
-mode'': write it in the left-hand buffer, and put an empty line in the
-right-hand buffer.)
-
-@kindex F2 RET
-@kindex C-x 6 RET
-@findex 2C-newline
-  The command @kbd{C-x 6 @key{RET}} or @kbd{@key{F2} @key{RET}}
-(@code{2C-newline}) inserts a newline in each of the two buffers at
-corresponding positions.  This is the easiest way to add a new line to
-the two-column text while editing it in split buffers.
-
-@kindex F2 1
-@kindex C-x 6 1
-@findex 2C-merge
-  When you have edited both buffers as you wish, merge them with
-@kbd{@key{F2} 1} or @kbd{C-x 6 1} (@code{2C-merge}).  This copies the
-text from the right-hand buffer as a second column in the other buffer.
-To go back to two-column editing, use @kbd{@key{F2} s}.
-
-@kindex F2 d
-@kindex C-x 6 d
-@findex 2C-dissociate
-  Use @kbd{@key{F2} d} or @kbd{C-x 6 d} to dissociate the two buffers,
-leaving each as it stands (@code{2C-dissociate}).  If the other buffer,
-the one not current when you type @kbd{@key{F2} d}, is empty,
-@kbd{@key{F2} d} kills it.
-
-@node Editing Binary Files, Saving Emacs Sessions, Two-Column, Top
+@node Editing Binary Files
 @section Editing Binary Files
 
 @cindex Hexl mode

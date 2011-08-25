@@ -187,16 +187,12 @@ Major Structures of Emacs
 Advanced Features
 * Modes::               Major and minor modes alter Emacs' basic behavior.
 * Indentation::         Editing the white space at the beginnings of lines.
-* Text::                Commands and modes for editing English.
+* Text::                Commands and modes for editing human languages.
 * Programs::            Commands and modes for editing programs.
 * Building::            Compiling, running and debugging programs.
 * Maintaining::         Features for maintaining large programs.
 * Abbrevs::             Defining text abbreviations to reduce
                           the number of characters you must type.
-@c AFAICS, the tex stuff generates its own index and does not use this one.
-@ifnottex
-* Picture Mode::        Editing pictures made up of text characters.
-@end ifnottex
 * Dired::               Directory and file manager.
 * Calendar/Diary::      Calendar and diary facilities.
 * Document View::       Viewing PDF, PS and DVI files.
@@ -207,15 +203,12 @@ Advanced Features
 * Emacs Server::        Using Emacs as an editing server.
 * Printing::            Printing hardcopies of buffers or regions.
 * Sorting::             Sorting lines, paragraphs or pages within Emacs.
-* Narrowing::           Restricting display and editing to a portion
-                          of the buffer.
-* Two-Column::          Splitting apart columns to edit them
-                          in side-by-side windows.
-* Editing Binary Files::Using Hexl mode to edit binary files.
+@ifnottex
+* Picture Mode::        Editing pictures made up of text characters.
+@end ifnottex
+* Editing Binary Files:: Editing binary files with Hexl mode.
 * Saving Emacs Sessions:: Saving Emacs state from one session to the next.
-* Recursive Edit::      A command can allow you to do editing
-                          "within the command".  This is called a
-                          "recursive editing level".
+* Recursive Edit::      Performing edits while "within another command".
 * Emulation::           Emulating some other editors with Emacs.
 * Hyperlinking::        Following links in buffers.
 * Amusements::          Various games and hacks.
@@ -349,6 +342,8 @@ Controlling the Display
 * Scrolling::              Commands to move text up and down in a window.
 * Auto Scrolling::         Redisplay scrolls text automatically when needed.
 * Horizontal Scrolling::   Moving text left and right in a window.
+* Narrowing::              Restricting display and editing to a portion
+                             of the buffer.
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::                  How to change the display style using faces.
 * Standard Faces::         Emacs' predefined faces.
@@ -576,6 +571,7 @@ Commands for Human Languages
 * Nroff Mode::          Editing input to the formatter nroff.
 * Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
 * Text Based Tables::   Editing text-based tables in WYSIWYG fashion.
+* Two-Column::          Splitting text columns into separate windows.
 
 Filling Text
 
@@ -1493,9 +1489,6 @@ Lisp programming.
 @c Includes vc1-xtra, emerge-xtra.
 @include maintaining.texi
 @include abbrevs.texi
-@ifnottex
-@include picture-xtra.texi
-@end ifnottex
 @include sending.texi
 @include rmail.texi
 @c Includes dired-xtra.

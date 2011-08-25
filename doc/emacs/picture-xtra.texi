@@ -5,7 +5,7 @@
 @c This file is included either in emacs-xtra.texi (when producing the
 @c printed version) or in the main Emacs manual (for the on-line version).
 @node Picture Mode
-@chapter Editing Pictures
+@section Editing Pictures
 @cindex pictures
 @cindex making pictures out of text characters
 @findex picture-mode
@@ -59,7 +59,7 @@ Additional extensions to Picture mode can be found in
 @end menu
 
 @node Basic Picture
-@section Basic Editing in Picture Mode
+@subsection Basic Editing in Picture Mode
 
 @findex picture-forward-column
 @findex picture-backward-column
@@ -124,7 +124,7 @@ modes), or one of the picture rectangle commands (@pxref{Rectangles in
 Picture}).
 
 @node Insert in Picture
-@section Controlling Motion after Insert
+@subsection Controlling Motion after Insert
 
 @findex picture-movement-up
 @findex picture-movement-down
@@ -188,7 +188,7 @@ same direction as motion after ``insertion'' currently does, while @kbd{C-c
 C-b} (@code{picture-motion-reverse}) moves in the opposite direction.
 
 @node Tabs in Picture
-@section Picture Mode Tabs
+@subsection Picture Mode Tabs
 
 @kindex M-TAB @r{(Picture mode)}
 @findex picture-tab-search
@@ -228,7 +228,7 @@ up the picture.  You can do this by setting the variable
 @code{indent-tabs-mode} to @code{nil}.
 
 @node Rectangles in Picture
-@section Picture Mode Rectangle Commands
+@subsection Picture Mode Rectangle Commands
 @cindex rectangles and Picture mode
 @cindex Picture mode and rectangles
 

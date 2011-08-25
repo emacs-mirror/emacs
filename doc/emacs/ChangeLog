@@ -1,5 +1,12 @@
 2011-08-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* text.texi (Two-Column): Move into Text chapter.
+
+	* picture-xtra.texi (Picture Mode): Group with Editing Binary
+	Files section.  Convert from chapter into section.
+
+	* display.texi (Narrowing): Move into display chapter.
+
 	* sending.texi (Sending Mail):
 	* rmail.texi (Rmail):
 	* misc.texi (Gnus, Document View):
