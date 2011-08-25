@@ -1,3 +1,23 @@
+2011-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* buff-menu.el (Buffer-menu-buffer+size): Remove calls to
+	bidi-string-mark-left-to-right; they are unnecessary now.
+
+2011-08-25  Deniz Dogan  <deniz@dogan.se>
+
+	* net/quickurl.el: Documentation typo fixes.
+
+2011-08-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (bury-buffer, quit-window): Use bury-buffer-internal.
+
+2011-08-25  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/derived.el (define-derived-mode): Doc fix.
+
+	* mail/smtpmail.el (smtpmail-smtp-user): Add version: tag.
+	(smtpmail-via-smtp): Handle nil response from smtp.
+
 2011-08-24  Juri Linkov  <juri@jurta.org>
 
 	* proced.el (proced-marked): Inherit from `error' instead of

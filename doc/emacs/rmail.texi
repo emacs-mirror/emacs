@@ -2,7 +2,7 @@
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2001-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Rmail, Dired, Sending Mail, Top
+@node Rmail
 @chapter Reading Mail with Rmail
 @cindex Rmail
 @cindex reading mail

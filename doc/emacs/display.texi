@@ -15,6 +15,8 @@ want to see, and how to display it.
 * Scrolling::              Commands to move text up and down in a window.
 * Auto Scrolling::         Redisplay scrolls text automatically when needed.
 * Horizontal Scrolling::   Moving text left and right in a window.
+* Narrowing::              Restricting display and editing to a portion
+                             of the buffer.
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::                  How to change the display style using faces.
 * Standard Faces::         Emacs' predefined faces.
@@ -299,6 +301,72 @@ sufficiently large argument will restore the normal display.
 a lower bound for automatic horizontal scrolling.  Automatic scrolling
 will continue to scroll the window, but never farther to the right
 than the amount you previously set by @code{scroll-left}.
+
+@node Narrowing
+@section Narrowing
+@cindex widening
+@cindex restriction
+@cindex narrowing
+@cindex accessible portion
+
+  @dfn{Narrowing} means focusing in on some portion of the buffer,
+making the rest temporarily inaccessible.  The portion which you can
+still get to is called the @dfn{accessible portion}.  Canceling the
+narrowing, which makes the entire buffer once again accessible, is
+called @dfn{widening}.  The bounds of narrowing in effect in a buffer
+are called the buffer's @dfn{restriction}.
+
+  Narrowing can make it easier to concentrate on a single subroutine or
+paragraph by eliminating clutter.  It can also be used to limit the
+range of operation of a replace command or repeating keyboard macro.
+
+@table @kbd
+@item C-x n n
+Narrow down to between point and mark (@code{narrow-to-region}).
+@item C-x n w
+Widen to make the entire buffer accessible again (@code{widen}).
+@item C-x n p
+Narrow down to the current page (@code{narrow-to-page}).
+@item C-x n d
+Narrow down to the current defun (@code{narrow-to-defun}).
+@end table
+
+  When you have narrowed down to a part of the buffer, that part appears
+to be all there is.  You can't see the rest, you can't move into it
+(motion commands won't go outside the accessible part), you can't change
+it in any way.  However, it is not gone, and if you save the file all
+the inaccessible text will be saved.  The word @samp{Narrow} appears in
+the mode line whenever narrowing is in effect.
+
+@kindex C-x n n
+@findex narrow-to-region
+  The primary narrowing command is @kbd{C-x n n} (@code{narrow-to-region}).
+It sets the current buffer's restrictions so that the text in the current
+region remains accessible, but all text before the region or after the
+region is inaccessible.  Point and mark do not change.
+
+@kindex C-x n p
+@findex narrow-to-page
+@kindex C-x n d
+@findex narrow-to-defun
+  Alternatively, use @kbd{C-x n p} (@code{narrow-to-page}) to narrow
+down to the current page.  @xref{Pages}, for the definition of a page.
+@kbd{C-x n d} (@code{narrow-to-defun}) narrows down to the defun
+containing point (@pxref{Defuns}).
+
+@kindex C-x n w
+@findex widen
+  The way to cancel narrowing is to widen with @kbd{C-x n w}
+(@code{widen}).  This makes all text in the buffer accessible again.
+
+  You can get information on what part of the buffer you are narrowed down
+to using the @kbd{C-x =} command.  @xref{Position Info}.
+
+  Because narrowing can easily confuse users who do not understand it,
+@code{narrow-to-region} is normally a disabled command.  Attempting to use
+this command asks for confirmation and gives you the option of enabling it;
+if you enable the command, confirmation will no longer be required for
+it.  @xref{Disabling}.
 
 @node Follow Mode
 @section Follow Mode

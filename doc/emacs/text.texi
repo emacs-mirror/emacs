@@ -70,6 +70,7 @@ for editing such pictures.
 * Nroff Mode::          Editing input to the formatter nroff.
 * Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
 * Text Based Tables::   Editing text-based tables in WYSIWYG fashion.
+* Two-Column::          Splitting text columns into separate windows.
 @end menu
 
 @node Words
@@ -2837,3 +2838,93 @@ then inserts the generated table in the proper syntax into the
 destination buffer.  The default destination buffer is
 @code{table.@var{lang}}, where @var{lang} is the language you
 specified.
+
+@node Two-Column
+@section Two-Column Editing
+@cindex two-column editing
+@cindex splitting columns
+@cindex columns, splitting
+
+  Two-column mode lets you conveniently edit two side-by-side columns of
+text.  It uses two side-by-side windows, each showing its own
+buffer.
+
+  There are three ways to enter two-column mode:
+
+@table @asis
+@item @kbd{@key{F2} 2} or @kbd{C-x 6 2}
+@kindex F2 2
+@kindex C-x 6 2
+@findex 2C-two-columns
+Enter two-column mode with the current buffer on the left, and on the
+right, a buffer whose name is based on the current buffer's name
+(@code{2C-two-columns}).  If the right-hand buffer doesn't already
+exist, it starts out empty; the current buffer's contents are not
+changed.
+
+This command is appropriate when the current buffer is empty or contains
+just one column and you want to add another column.
+
+@item @kbd{@key{F2} s} or @kbd{C-x 6 s}
+@kindex F2 s
+@kindex C-x 6 s
+@findex 2C-split
+Split the current buffer, which contains two-column text, into two
+buffers, and display them side by side (@code{2C-split}).  The current
+buffer becomes the left-hand buffer, but the text in the right-hand
+column is moved into the right-hand buffer.  The current column
+specifies the split point.  Splitting starts with the current line and
+continues to the end of the buffer.
+
+This command is appropriate when you have a buffer that already contains
+two-column text, and you wish to separate the columns temporarily.
+
+@item @kbd{@key{F2} b @var{buffer} @key{RET}}
+@itemx @kbd{C-x 6 b @var{buffer} @key{RET}}
+@kindex F2 b
+@kindex C-x 6 b
+@findex 2C-associate-buffer
+Enter two-column mode using the current buffer as the left-hand buffer,
+and using buffer @var{buffer} as the right-hand buffer
+(@code{2C-associate-buffer}).
+@end table
+
+  @kbd{@key{F2} s} or @kbd{C-x 6 s} looks for a column separator, which
+is a string that appears on each line between the two columns.  You can
+specify the width of the separator with a numeric argument to
+@kbd{@key{F2} s}; that many characters, before point, constitute the
+separator string.  By default, the width is 1, so the column separator
+is the character before point.
+
+  When a line has the separator at the proper place, @kbd{@key{F2} s}
+puts the text after the separator into the right-hand buffer, and
+deletes the separator.  Lines that don't have the column separator at
+the proper place remain unsplit; they stay in the left-hand buffer, and
+the right-hand buffer gets an empty line to correspond.  (This is the
+way to write a line that ``spans both columns while in two-column
+mode'': write it in the left-hand buffer, and put an empty line in the
+right-hand buffer.)
+
+@kindex F2 RET
+@kindex C-x 6 RET
+@findex 2C-newline
+  The command @kbd{C-x 6 @key{RET}} or @kbd{@key{F2} @key{RET}}
+(@code{2C-newline}) inserts a newline in each of the two buffers at
+corresponding positions.  This is the easiest way to add a new line to
+the two-column text while editing it in split buffers.
+
+@kindex F2 1
+@kindex C-x 6 1
+@findex 2C-merge
+  When you have edited both buffers as you wish, merge them with
+@kbd{@key{F2} 1} or @kbd{C-x 6 1} (@code{2C-merge}).  This copies the
+text from the right-hand buffer as a second column in the other buffer.
+To go back to two-column editing, use @kbd{@key{F2} s}.
+
+@kindex F2 d
+@kindex C-x 6 d
+@findex 2C-dissociate
+  Use @kbd{@key{F2} d} or @kbd{C-x 6 d} to dissociate the two buffers,
+leaving each as it stands (@code{2C-dissociate}).  If the other buffer,
+the one not current when you type @kbd{@key{F2} d}, is empty,
+@kbd{@key{F2} d} kills it.

@@ -10,9 +10,9 @@ else: viewing ``document files'', reading netnews, running shell
 commands and shell subprocesses, using a single shared Emacs for
 utilities that expect to run an editor as a subprocess, printing
 hardcopy, sorting text, narrowing display to part of the buffer,
-editing double-column files and binary files, saving an Emacs session
-for later resumption, following hyperlinks, browsing images, emulating
-other editors, and various diversions and amusements.
+editing binary files, saving an Emacs session for later resumption,
+following hyperlinks, browsing images, emulating other editors, and
+various diversions and amusements.
 
 @end iftex
 
@@ -20,187 +20,7 @@ other editors, and various diversions and amusements.
 @raisesections
 @end ifnottex
 
-@node Document View, Gnus, Calendar/Diary, Top
-@section Document Viewing
-@cindex DVI file
-@cindex PDF file
-@cindex PS file
-@cindex Postscript file
-@cindex OpenDocument file
-@cindex Microsoft Office file
-@cindex DocView mode
-@cindex mode, DocView
-@cindex document viewer (DocView)
-@findex doc-view-mode
-
-DocView mode (@code{doc-view-mode}) is a viewer for DVI, Postscript
-(PS), PDF, OpenDocument, and Microsoft Office documents.  It provides
-features such as slicing, zooming, and searching inside documents.  It
-works by converting the document to a set of images using the
-@command{gs} (GhostScript) command and other external tools
-@footnote{@code{gs} is a hard requirement.  For DVI files,
-@code{dvipdf} or @code{dvipdfm} is needed.  For OpenDocument and
-Microsoft Office documents, the @code{unoconv} tool is needed.}, and
-displaying those images.
-
-@findex doc-view-toggle-display
-@findex doc-view-toggle-display
-@cindex doc-view-minor-mode
-  When you visit a document file with the exception of Postscript
-files, Emacs automatically switches to DocView mode if possible
-@footnote{The needed external tools for this document type have to be
-available, emacs needs to run in a graphical frame, and PNG image
-support has to be compiled into emacs.  If any of these requirements
-is not fulfilled, DocView falls back to an appropriate mode.}.  When
-you visit a Postscript file, Emacs switches to PS mode, a major mode
-for editing Postscript files as text; however, it also enables DocView
-minor mode, so you can type @kbd{C-c C-c} to view the document with
-DocView.  (PDF and DVI files, unlike Postscript files, are not usually
-human-editable.)  In either case, repeating @kbd{C-c C-c}
-(@code{doc-view-toggle-display}) toggles between DocView and the file
-text.
-
-  You can explicitly toggle DocView mode with the command @code{M-x
-doc-view-mode}, and DocView minor mode with the command @code{M-x
-doc-view-minor-mode}.
-
-  When DocView mode starts, it displays a welcome screen and begins
-formatting the file, page by page.  It displays the first page once
-that has been formatted.
-
-@findex doc-view-enlarge
-@findex doc-view-shrink
-@vindex doc-view-resolution
-  When in DocView mode, you can enlarge or shrink the document with
-@kbd{+} (@code{doc-view-enlarge}) and @kbd{-}
-(@code{doc-view-shrink}).  To specify the default size for DocView,
-set or customize the variable @code{doc-view-resolution}.
-
-  To kill the DocView buffer, type @kbd{k}
-(@code{doc-view-kill-proc-and-buffer}).  To bury it, type @kbd{q}
-(@code{quit-window}).
-
-@menu
-* Navigation::  Navigation inside DocView buffers.
-* Searching::   Searching inside documents.
-* Slicing::     Specifying which part of pages should be displayed.
-* Conversion::  Influencing and triggering conversion.
-@end menu
-
-@node Navigation
-@subsection Navigation
-
-When in DocView mode, you can scroll the current page using the usual
-Emacs movement keys: @kbd{C-p}, @kbd{C-n}, @kbd{C-b}, @kbd{C-f}, and
-the arrow keys.
-
-@vindex doc-view-continuous
-  By default, the line-motion keys @kbd{C-p} and @kbd{C-n} stop
-scrolling at the beginning and end of the current page, respectively.
-However, if you change the variable @code{doc-view-continuous} to a
-non-@code{nil} value, then @kbd{C-p} displays the previous page if you
-are already at the beginning of the current page, and @kbd{C-n}
-displays the next page if you are at the end of the current page.
-
-@findex doc-view-next-page
-@findex doc-view-previous-page
-  You can also display the next page by typing @kbd{n}, @key{next} or
-@kbd{C-x ]} (@code{doc-view-next-page}).  To display the previous
-page, type @kbd{p}, @key{prior} or @kbd{C-x [}
-(@code{doc-view-previous-page}).
-
-@findex doc-view-scroll-up-or-next-page
-@findex doc-view-scroll-down-or-previous-page
-  The @key{SPC} (@code{doc-view-scroll-up-or-next-page}) key is a
-convenient way to advance through the document.  It scrolls within the
-current page or advances to the next.  @key{DEL} moves backwards in a
-similar way (@code{doc-view-scroll-down-or-previous-page}).
-
-@findex doc-view-first-page
-@findex doc-view-last-page
-@findex doc-view-goto-page
-  To go to the first page, type @kbd{M-<}
-(@code{doc-view-first-page}); to go to the last one, type @kbd{M->}
-(@code{doc-view-last-page}).  To jump to a page by its number, type
-@kbd{M-g M-g} or @kbd{M-g g} (@code{doc-view-goto-page}).
-
-@node Searching
-@subsection Searching
-
-While in DocView mode, you can search the file's text for a regular
-expression (@pxref{Regexps}).  The interface for searching is inspired
-by @code{isearch} (@pxref{Incremental Search}).
-
-@findex doc-view-search
-@findex doc-view-search-backward
-@findex doc-view-show-tooltip
-  To begin a search, type @kbd{C-s} (@code{doc-view-search}) or
-@kbd{C-r} (@code{doc-view-search-backward}).  This reads a regular
-expression using a minibuffer, then echoes the number of matches found
-within the document.  You can move forward and back among the matches
-by typing @kbd{C-s} and @kbd{C-r}.  DocView mode has no way to show
-the match inside the page image; instead, it displays a tooltip (at
-the mouse position) listing all matching lines in the current page.
-To force display of this tooltip, type @kbd{C-t}
-(@code{doc-view-show-tooltip}).
-
-  To start a new search, use the search command with a prefix
-argument; i.e., @kbd{C-u C-s} for a forward search or @kbd{C-u C-r}
-for a backward search.
-
-@node Slicing
-@subsection Slicing
-
-Documents often have wide margins for printing.  They are annoying
-when reading the document on the screen, because they use up screen
-space and can cause inconvenient scrolling.
-
-@findex doc-view-set-slice
-@findex doc-view-set-slice-using-mouse
-  With DocView you can hide these margins by selecting a @dfn{slice}
-of pages to display.  A slice is a rectangle within the page area;
-once you specify a slice in DocView, it applies to whichever page you
-look at.
-
-  To specify the slice numerically, type @kbd{s s}
-(@code{doc-view-set-slice}); then enter the top left pixel position
-and the slice's width and height.
-@c ??? how does this work?
-                
-  A more convenient graphical way to specify the slice is with @kbd{s
-m} (@code{doc-view-set-slice-using-mouse}), where you use the mouse to
-select the slice.
-@c ??? How does this work?
-
-@findex doc-view-reset-slice
-  To cancel the selected slice, type @kbd{s r}
-(@code{doc-view-reset-slice}).  Then DocView shows the entire page
-including its entire margins.
-
-@node Conversion
-@subsection Conversion
-
-@vindex doc-view-cache-directory
-@findex doc-view-clear-cache
-For efficiency, DocView caches the images produced by @command{gs}.
-The name of this directory is given by the variable
-@code{doc-view-cache-directory}.  You can clear the cache directory by
-typing @code{M-x doc-view-clear-cache}.
-
-@findex doc-view-kill-proc
-@findex doc-view-kill-proc-and-buffer
-  To force a reconversion of the currently viewed document, type
-@kbd{r} or @kbd{g} (@code{revert-buffer}).  To kill the converter
-process associated with the current buffer, type @kbd{K}
-(@code{doc-view-kill-proc}).  The command @kbd{k}
-(@code{doc-view-kill-proc-and-buffer}) kills the converter process and
-the DocView buffer.
-
-  The zoom commands @kbd{+} (@code{doc-view-enlarge}) and @kbd{-}
-(@code{doc-view-shrink}) need to reconvert the document at the new
-size.  The current page is converted first.
-
-@node Gnus, Shell, Document View, Top
+@node Gnus
 @section Gnus
 @cindex Gnus
 @cindex reading netnews
@@ -411,82 +231,187 @@ for @var{regexp}.
 
 @end table
 
-@ignore
-@node Where to Look
-@subsection Where to Look Further
+@node Document View
+@section Document Viewing
+@cindex DVI file
+@cindex PDF file
+@cindex PS file
+@cindex Postscript file
+@cindex OpenDocument file
+@cindex Microsoft Office file
+@cindex DocView mode
+@cindex mode, DocView
+@cindex document viewer (DocView)
+@findex doc-view-mode
 
-@c Too many references to the name of the manual if done with xref in TeX!
-Gnus is powerful and customizable.  Here are references to a few
-@ifnottex
-additional topics:
+DocView mode (@code{doc-view-mode}) is a viewer for DVI, Postscript
+(PS), PDF, OpenDocument, and Microsoft Office documents.  It provides
+features such as slicing, zooming, and searching inside documents.  It
+works by converting the document to a set of images using the
+@command{gs} (GhostScript) command and other external tools
+@footnote{@code{gs} is a hard requirement.  For DVI files,
+@code{dvipdf} or @code{dvipdfm} is needed.  For OpenDocument and
+Microsoft Office documents, the @code{unoconv} tool is needed.}, and
+displaying those images.
 
-@end ifnottex
-@iftex
-additional topics in @cite{The Gnus Manual}:
+@findex doc-view-toggle-display
+@findex doc-view-toggle-display
+@cindex doc-view-minor-mode
+  When you visit a document file with the exception of Postscript
+files, Emacs automatically switches to DocView mode if possible
+@footnote{The needed external tools for this document type have to be
+available, emacs needs to run in a graphical frame, and PNG image
+support has to be compiled into emacs.  If any of these requirements
+is not fulfilled, DocView falls back to an appropriate mode.}.  When
+you visit a Postscript file, Emacs switches to PS mode, a major mode
+for editing Postscript files as text; however, it also enables DocView
+minor mode, so you can type @kbd{C-c C-c} to view the document with
+DocView.  (PDF and DVI files, unlike Postscript files, are not usually
+human-editable.)  In either case, repeating @kbd{C-c C-c}
+(@code{doc-view-toggle-display}) toggles between DocView and the file
+text.
 
-@itemize @bullet
-@item
-Follow discussions on specific topics.@*
-See section ``Threading.''
+  You can explicitly toggle DocView mode with the command @code{M-x
+doc-view-mode}, and DocView minor mode with the command @code{M-x
+doc-view-minor-mode}.
 
-@item
-Read digests.  See section ``Document Groups.''
+  When DocView mode starts, it displays a welcome screen and begins
+formatting the file, page by page.  It displays the first page once
+that has been formatted.
 
-@item
-Refer to and jump to the parent of the current article.@*
-See section ``Finding the Parent.''
+@findex doc-view-enlarge
+@findex doc-view-shrink
+@vindex doc-view-resolution
+  When in DocView mode, you can enlarge or shrink the document with
+@kbd{+} (@code{doc-view-enlarge}) and @kbd{-}
+(@code{doc-view-shrink}).  To specify the default size for DocView,
+set or customize the variable @code{doc-view-resolution}.
 
-@item
-Refer to articles by using Message-IDs included in the messages.@*
-See section ``Article Keymap.''
+  To kill the DocView buffer, type @kbd{k}
+(@code{doc-view-kill-proc-and-buffer}).  To bury it, type @kbd{q}
+(@code{quit-window}).
 
-@item
-Save articles.  See section ``Saving Articles.''
+@menu
+* Navigation::  Navigation inside DocView buffers.
+* Searching::   Searching inside documents.
+* Slicing::     Specifying which part of pages should be displayed.
+* Conversion::  Influencing and triggering conversion.
+@end menu
 
-@item
-Have Gnus score articles according to various criteria, like author
-name, subject, or string in the body of the articles.@*
-See section ``Scoring.''
+@node Navigation
+@subsection Navigation
 
-@item
-Send an article to a newsgroup.@*
-See section ``Composing Messages.''
-@end itemize
-@end iftex
-@ifnottex
-@itemize @bullet
-@item
-Follow discussions on specific topics.@*
-@xref{Threading, , Reading Based on Conversation Threads,
-gnus, The Gnus Manual}.
+When in DocView mode, you can scroll the current page using the usual
+Emacs movement keys: @kbd{C-p}, @kbd{C-n}, @kbd{C-b}, @kbd{C-f}, and
+the arrow keys.
 
-@item
-Read digests. @xref{Document Groups, , , gnus, The Gnus Manual}.
+@vindex doc-view-continuous
+  By default, the line-motion keys @kbd{C-p} and @kbd{C-n} stop
+scrolling at the beginning and end of the current page, respectively.
+However, if you change the variable @code{doc-view-continuous} to a
+non-@code{nil} value, then @kbd{C-p} displays the previous page if you
+are already at the beginning of the current page, and @kbd{C-n}
+displays the next page if you are at the end of the current page.
 
-@item
-Refer to and jump to the parent of the current article.@*
-@xref{Finding the Parent, , , gnus, The Gnus Manual}.
+@findex doc-view-next-page
+@findex doc-view-previous-page
+  You can also display the next page by typing @kbd{n}, @key{next} or
+@kbd{C-x ]} (@code{doc-view-next-page}).  To display the previous
+page, type @kbd{p}, @key{prior} or @kbd{C-x [}
+(@code{doc-view-previous-page}).
 
-@item
-Refer to articles by using Message-IDs included in the messages.@*
-@xref{Article Keymap, , , gnus, The Gnus Manual}.
+@findex doc-view-scroll-up-or-next-page
+@findex doc-view-scroll-down-or-previous-page
+  The @key{SPC} (@code{doc-view-scroll-up-or-next-page}) key is a
+convenient way to advance through the document.  It scrolls within the
+current page or advances to the next.  @key{DEL} moves backwards in a
+similar way (@code{doc-view-scroll-down-or-previous-page}).
 
-@item
-Save articles. @xref{Saving Articles, , , gnus, The Gnus Manual}.
+@findex doc-view-first-page
+@findex doc-view-last-page
+@findex doc-view-goto-page
+  To go to the first page, type @kbd{M-<}
+(@code{doc-view-first-page}); to go to the last one, type @kbd{M->}
+(@code{doc-view-last-page}).  To jump to a page by its number, type
+@kbd{M-g M-g} or @kbd{M-g g} (@code{doc-view-goto-page}).
 
-@item
-Have Gnus score articles according to various criteria, like author
-name, subject, or string in the body of the articles.@*
-@xref{Scoring, , , gnus, The Gnus Manual}.
+@node Searching
+@subsection Searching
 
-@item
-Send an article to a newsgroup.@*
-@xref{Composing Messages, , , gnus, The Gnus Manual}.
-@end itemize
-@end ifnottex
-@end ignore
+While in DocView mode, you can search the file's text for a regular
+expression (@pxref{Regexps}).  The interface for searching is inspired
+by @code{isearch} (@pxref{Incremental Search}).
 
-@node Shell, Emacs Server, Gnus, Top
+@findex doc-view-search
+@findex doc-view-search-backward
+@findex doc-view-show-tooltip
+  To begin a search, type @kbd{C-s} (@code{doc-view-search}) or
+@kbd{C-r} (@code{doc-view-search-backward}).  This reads a regular
+expression using a minibuffer, then echoes the number of matches found
+within the document.  You can move forward and back among the matches
+by typing @kbd{C-s} and @kbd{C-r}.  DocView mode has no way to show
+the match inside the page image; instead, it displays a tooltip (at
+the mouse position) listing all matching lines in the current page.
+To force display of this tooltip, type @kbd{C-t}
+(@code{doc-view-show-tooltip}).
+
+  To start a new search, use the search command with a prefix
+argument; i.e., @kbd{C-u C-s} for a forward search or @kbd{C-u C-r}
+for a backward search.
+
+@node Slicing
+@subsection Slicing
+
+Documents often have wide margins for printing.  They are annoying
+when reading the document on the screen, because they use up screen
+space and can cause inconvenient scrolling.
+
+@findex doc-view-set-slice
+@findex doc-view-set-slice-using-mouse
+  With DocView you can hide these margins by selecting a @dfn{slice}
+of pages to display.  A slice is a rectangle within the page area;
+once you specify a slice in DocView, it applies to whichever page you
+look at.
+
+  To specify the slice numerically, type @kbd{s s}
+(@code{doc-view-set-slice}); then enter the top left pixel position
+and the slice's width and height.
+@c ??? how does this work?
+
+  A more convenient graphical way to specify the slice is with @kbd{s
+m} (@code{doc-view-set-slice-using-mouse}), where you use the mouse to
+select the slice.
+@c ??? How does this work?
+
+@findex doc-view-reset-slice
+  To cancel the selected slice, type @kbd{s r}
+(@code{doc-view-reset-slice}).  Then DocView shows the entire page
+including its entire margins.
+
+@node Conversion
+@subsection Conversion
+
+@vindex doc-view-cache-directory
+@findex doc-view-clear-cache
+For efficiency, DocView caches the images produced by @command{gs}.
+The name of this directory is given by the variable
+@code{doc-view-cache-directory}.  You can clear the cache directory by
+typing @code{M-x doc-view-clear-cache}.
+
+@findex doc-view-kill-proc
+@findex doc-view-kill-proc-and-buffer
+  To force a reconversion of the currently viewed document, type
+@kbd{r} or @kbd{g} (@code{revert-buffer}).  To kill the converter
+process associated with the current buffer, type @kbd{K}
+(@code{doc-view-kill-proc}).  The command @kbd{k}
+(@code{doc-view-kill-proc-and-buffer}) kills the converter process and
+the DocView buffer.
+
+  The zoom commands @kbd{+} (@code{doc-view-enlarge}) and @kbd{-}
+(@code{doc-view-shrink}) need to reconvert the document at the new
+size.  The current page is converted first.
+
+@node Shell
 @section Running Shell Commands from Emacs
 @cindex subshell
 @cindex shell commands
@@ -1788,7 +1713,7 @@ not compatible with @code{lpr}.
 @end menu
 
 @node PostScript, PostScript Variables,, Printing
-@section PostScript Hardcopy
+@subsection PostScript Hardcopy
 
   These commands convert buffer contents to PostScript,
 either printing it or leaving it in another Emacs buffer.
@@ -1878,7 +1803,7 @@ supports ISO 8859-1 characters.
 @end ifnottex
 
 @node PostScript Variables, Printing Package, PostScript, Printing
-@section Variables for PostScript Hardcopy
+@subsection Variables for PostScript Hardcopy
 
 @vindex ps-lpr-command
 @vindex ps-lpr-switches
@@ -1973,7 +1898,7 @@ includes a single directory @file{/usr/local/share/emacs/fonts/bdf}.
 described in the Lisp files @file{ps-print.el} and @file{ps-mule.el}.
 
 @node Printing Package,, PostScript Variables, Printing
-@section Printing Package
+@subsection Printing Package
 @cindex Printing package
 
   The basic Emacs facilities for printing hardcopy can be extended
@@ -1999,7 +1924,7 @@ to print, you start the print job using the @samp{Print} button (click
 further information on the various options, use the @samp{Interface
 Help} button.
 
-@node Sorting, Narrowing, Printing, Top
+@node Sorting
 @section Sorting Text
 @cindex sorting
 
@@ -2134,163 +2059,13 @@ rectangle moves along with the text inside the rectangle.
   Many of the sort commands ignore case differences when comparing, if
 @code{sort-fold-case} is non-@code{nil}.
 
-@node Narrowing, Two-Column, Sorting, Top
-@section Narrowing
-@cindex widening
-@cindex restriction
-@cindex narrowing
-@cindex accessible portion
+@c Picture Mode documentation
+@ifnottex
+@include picture-xtra.texi
+@end ifnottex
 
-  @dfn{Narrowing} means focusing in on some portion of the buffer,
-making the rest temporarily inaccessible.  The portion which you can
-still get to is called the @dfn{accessible portion}.  Canceling the
-narrowing, which makes the entire buffer once again accessible, is
-called @dfn{widening}.  The bounds of narrowing in effect in a buffer
-are called the buffer's @dfn{restriction}.
 
-  Narrowing can make it easier to concentrate on a single subroutine or
-paragraph by eliminating clutter.  It can also be used to limit the
-range of operation of a replace command or repeating keyboard macro.
-
-@table @kbd
-@item C-x n n
-Narrow down to between point and mark (@code{narrow-to-region}).
-@item C-x n w
-Widen to make the entire buffer accessible again (@code{widen}).
-@item C-x n p
-Narrow down to the current page (@code{narrow-to-page}).
-@item C-x n d
-Narrow down to the current defun (@code{narrow-to-defun}).
-@end table
-
-  When you have narrowed down to a part of the buffer, that part appears
-to be all there is.  You can't see the rest, you can't move into it
-(motion commands won't go outside the accessible part), you can't change
-it in any way.  However, it is not gone, and if you save the file all
-the inaccessible text will be saved.  The word @samp{Narrow} appears in
-the mode line whenever narrowing is in effect.
-
-@kindex C-x n n
-@findex narrow-to-region
-  The primary narrowing command is @kbd{C-x n n} (@code{narrow-to-region}).
-It sets the current buffer's restrictions so that the text in the current
-region remains accessible, but all text before the region or after the
-region is inaccessible.  Point and mark do not change.
-
-@kindex C-x n p
-@findex narrow-to-page
-@kindex C-x n d
-@findex narrow-to-defun
-  Alternatively, use @kbd{C-x n p} (@code{narrow-to-page}) to narrow
-down to the current page.  @xref{Pages}, for the definition of a page.
-@kbd{C-x n d} (@code{narrow-to-defun}) narrows down to the defun
-containing point (@pxref{Defuns}).
-
-@kindex C-x n w
-@findex widen
-  The way to cancel narrowing is to widen with @kbd{C-x n w}
-(@code{widen}).  This makes all text in the buffer accessible again.
-
-  You can get information on what part of the buffer you are narrowed down
-to using the @kbd{C-x =} command.  @xref{Position Info}.
-
-  Because narrowing can easily confuse users who do not understand it,
-@code{narrow-to-region} is normally a disabled command.  Attempting to use
-this command asks for confirmation and gives you the option of enabling it;
-if you enable the command, confirmation will no longer be required for
-it.  @xref{Disabling}.
-
-@node Two-Column, Editing Binary Files, Narrowing, Top
-@section Two-Column Editing
-@cindex two-column editing
-@cindex splitting columns
-@cindex columns, splitting
-
-  Two-column mode lets you conveniently edit two side-by-side columns of
-text.  It uses two side-by-side windows, each showing its own
-buffer.
-
-  There are three ways to enter two-column mode:
-
-@table @asis
-@item @kbd{@key{F2} 2} or @kbd{C-x 6 2}
-@kindex F2 2
-@kindex C-x 6 2
-@findex 2C-two-columns
-Enter two-column mode with the current buffer on the left, and on the
-right, a buffer whose name is based on the current buffer's name
-(@code{2C-two-columns}).  If the right-hand buffer doesn't already
-exist, it starts out empty; the current buffer's contents are not
-changed.
-
-This command is appropriate when the current buffer is empty or contains
-just one column and you want to add another column.
-
-@item @kbd{@key{F2} s} or @kbd{C-x 6 s}
-@kindex F2 s
-@kindex C-x 6 s
-@findex 2C-split
-Split the current buffer, which contains two-column text, into two
-buffers, and display them side by side (@code{2C-split}).  The current
-buffer becomes the left-hand buffer, but the text in the right-hand
-column is moved into the right-hand buffer.  The current column
-specifies the split point.  Splitting starts with the current line and
-continues to the end of the buffer.
-
-This command is appropriate when you have a buffer that already contains
-two-column text, and you wish to separate the columns temporarily.
-
-@item @kbd{@key{F2} b @var{buffer} @key{RET}}
-@itemx @kbd{C-x 6 b @var{buffer} @key{RET}}
-@kindex F2 b
-@kindex C-x 6 b
-@findex 2C-associate-buffer
-Enter two-column mode using the current buffer as the left-hand buffer,
-and using buffer @var{buffer} as the right-hand buffer
-(@code{2C-associate-buffer}).
-@end table
-
-  @kbd{@key{F2} s} or @kbd{C-x 6 s} looks for a column separator, which
-is a string that appears on each line between the two columns.  You can
-specify the width of the separator with a numeric argument to
-@kbd{@key{F2} s}; that many characters, before point, constitute the
-separator string.  By default, the width is 1, so the column separator
-is the character before point.
-
-  When a line has the separator at the proper place, @kbd{@key{F2} s}
-puts the text after the separator into the right-hand buffer, and
-deletes the separator.  Lines that don't have the column separator at
-the proper place remain unsplit; they stay in the left-hand buffer, and
-the right-hand buffer gets an empty line to correspond.  (This is the
-way to write a line that ``spans both columns while in two-column
-mode'': write it in the left-hand buffer, and put an empty line in the
-right-hand buffer.)
-
-@kindex F2 RET
-@kindex C-x 6 RET
-@findex 2C-newline
-  The command @kbd{C-x 6 @key{RET}} or @kbd{@key{F2} @key{RET}}
-(@code{2C-newline}) inserts a newline in each of the two buffers at
-corresponding positions.  This is the easiest way to add a new line to
-the two-column text while editing it in split buffers.
-
-@kindex F2 1
-@kindex C-x 6 1
-@findex 2C-merge
-  When you have edited both buffers as you wish, merge them with
-@kbd{@key{F2} 1} or @kbd{C-x 6 1} (@code{2C-merge}).  This copies the
-text from the right-hand buffer as a second column in the other buffer.
-To go back to two-column editing, use @kbd{@key{F2} s}.
-
-@kindex F2 d
-@kindex C-x 6 d
-@findex 2C-dissociate
-  Use @kbd{@key{F2} d} or @kbd{C-x 6 d} to dissociate the two buffers,
-leaving each as it stands (@code{2C-dissociate}).  If the other buffer,
-the one not current when you type @kbd{@key{F2} d}, is empty,
-@kbd{@key{F2} d} kills it.
-
-@node Editing Binary Files, Saving Emacs Sessions, Two-Column, Top
+@node Editing Binary Files
 @section Editing Binary Files
 
 @cindex Hexl mode

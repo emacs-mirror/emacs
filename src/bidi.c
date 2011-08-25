@@ -553,7 +553,7 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
       bidi_cache[idx].next_for_ws = bidi_it->next_for_ws;
       bidi_cache[idx].ignore_bn_limit = bidi_it->ignore_bn_limit;
       bidi_cache[idx].disp_pos = bidi_it->disp_pos;
-      bidi_cache[idx].disp_prop_p = bidi_it->disp_prop_p;
+      bidi_cache[idx].disp_prop = bidi_it->disp_prop;
     }
 
   bidi_cache_last_idx = idx;
@@ -827,7 +827,7 @@ bidi_init_it (EMACS_INT charpos, EMACS_INT bytepos, int frame_window_p,
     bidi_it->prev_for_neutral.orig_type = UNKNOWN_BT;
   bidi_it->sor = L2R;	 /* FIXME: should it be user-selectable? */
   bidi_it->disp_pos = -1;	/* invalid/unknown */
-  bidi_it->disp_prop_p = 0;
+  bidi_it->disp_prop = 0;
   /* We can only shrink the cache if we are at the bottom level of its
      "stack".  */
   if (bidi_cache_start == 0)
@@ -907,19 +907,22 @@ bidi_char_at_pos (EMACS_INT bytepos, const unsigned char *s, int unibyte)
 
 /* Fetch and return the character at BYTEPOS/CHARPOS.  If that
    character is covered by a display string, treat the entire run of
-   covered characters as a single character u+FFFC, and return their
-   combined length in CH_LEN and NCHARS.  DISP_POS specifies the
-   character position of the next display string, or -1 if not yet
-   computed.  DISP_PROP_P non-zero means that there's really a display
-   string at DISP_POS, as opposed to when we searched till DISP_POS
-   without findingone.  When the next character is at or beyond that
-   position, the function updates DISP_POS with the position of the
-   next display string.  STRING->s is the C string to iterate, or NULL
-   if iterating over a buffer or a Lisp string; in the latter case,
-   STRING->lstring is the Lisp string.  */
+   covered characters as a single character, either u+2029 or u+FFFC,
+   and return their combined length in CH_LEN and NCHARS.  DISP_POS
+   specifies the character position of the next display string, or -1
+   if not yet computed.  DISP_PROP non-zero means that there's really
+   a display string at DISP_POS, as opposed to when we searched till
+   DISP_POS without finding one.  If DISP_PROP is 2, it means the
+   display spec is of the form `(space ...)', which is replaced with
+   u+2029 to handle it as a paragraph separator.  When the next
+   character is at or beyond that position, the function updates
+   DISP_POS with the position of the next display string.  STRING->s
+   is the C string to iterate, or NULL if iterating over a buffer or a
+   Lisp string; in the latter case, STRING->lstring is the Lisp
+   string.  */
 static inline int
 bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
-		 int *disp_prop_p, struct bidi_string_data *string,
+		 int *disp_prop, struct bidi_string_data *string,
 		 int frame_window_p, EMACS_INT *ch_len, EMACS_INT *nchars)
 {
   int ch;
@@ -933,7 +936,7 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
     {
       SET_TEXT_POS (pos, charpos, bytepos);
       *disp_pos = compute_display_string_pos (&pos, string, frame_window_p,
-					      disp_prop_p);
+					      disp_prop);
     }
 
   /* Fetch the character at BYTEPOS.  */
@@ -943,9 +946,9 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
       *ch_len = 1;
       *nchars = 1;
       *disp_pos = endpos;
-      *disp_prop_p = 0;
+      *disp_prop = 0;
     }
-  else if (charpos >= *disp_pos && *disp_prop_p)
+  else if (charpos >= *disp_pos && *disp_prop)
     {
       EMACS_INT disp_end_pos;
 
@@ -953,9 +956,23 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
 	 property.  Hopefully, it will never be needed.  */
       if (charpos > *disp_pos)
 	abort ();
-      /* Return the Unicode Object Replacement Character to represent
-	 the entire run of characters covered by the display string.  */
-      ch = 0xFFFC;
+      /* Text covered by `display' properties and overlays with
+	 display properties or display strings is handled as a single
+	 character that represents the entire run of characters
+	 covered by the display property.  */
+      if (*disp_prop == 2)
+	{
+	  /* `(space ...)' display specs are handled as paragraph
+	     separators for the purposes of the reordering; see UAX#9
+	     section 3 and clause HL1 in section 4.3 there.  */
+	  ch = 0x2029;
+	}
+      else
+	{
+	  /* All other display specs are handled as the Unicode Object
+	     Replacement Character.  */
+	  ch = 0xFFFC;
+	}
       disp_end_pos = compute_display_string_end (*disp_pos, string);
       *nchars = disp_end_pos - *disp_pos;
       if (*nchars <= 0)
@@ -1013,11 +1030,11 @@ bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
   /* If we just entered a run of characters covered by a display
      string, compute the position of the next display string.  */
   if (charpos + *nchars <= endpos && charpos + *nchars > *disp_pos
-      && *disp_prop_p)
+      && *disp_prop)
     {
       SET_TEXT_POS (pos, charpos + *nchars, bytepos + *ch_len);
       *disp_pos = compute_display_string_pos (&pos, string, frame_window_p,
-					      disp_prop_p);
+					      disp_prop);
     }
 
   return ch;
@@ -1125,7 +1142,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
       int ch;
       EMACS_INT ch_len, nchars;
       EMACS_INT pos, disp_pos = -1;
-      int disp_prop_p = 0;
+      int disp_prop = 0;
       bidi_type_t type;
       const unsigned char *s;
 
@@ -1173,7 +1190,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 	bytepos = pstartbyte;
 	if (!string_p)
 	  pos = BYTE_TO_CHAR (bytepos);
-	ch = bidi_fetch_char (bytepos, pos, &disp_pos, &disp_prop_p,
+	ch = bidi_fetch_char (bytepos, pos, &disp_pos, &disp_prop,
 			      &bidi_it->string,
 			      bidi_it->frame_window_p, &ch_len, &nchars);
 	type = bidi_get_type (ch, NEUTRAL_DIR);
@@ -1198,7 +1215,7 @@ bidi_paragraph_init (bidi_dir_t dir, struct bidi_it *bidi_it, int no_default_p)
 	      break;
 	    /* Fetch next character and advance to get past it.  */
 	    ch = bidi_fetch_char (bytepos, pos, &disp_pos,
-				  &disp_prop_p, &bidi_it->string,
+				  &disp_prop, &bidi_it->string,
 				  bidi_it->frame_window_p, &ch_len, &nchars);
 	    pos += nchars;
 	    bytepos += ch_len;
@@ -1335,7 +1352,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
       bidi_it->ch_len = 1;
       bidi_it->nchars = 1;
       bidi_it->disp_pos = (string_p ? bidi_it->string.schars : ZV);
-      bidi_it->disp_prop_p = 0;
+      bidi_it->disp_prop = 0;
     }
   else
     {
@@ -1343,7 +1360,7 @@ bidi_resolve_explicit_1 (struct bidi_it *bidi_it)
 	 display string, treat the entire run of covered characters as
 	 a single character u+FFFC.  */
       curchar = bidi_fetch_char (bidi_it->bytepos, bidi_it->charpos,
-				 &bidi_it->disp_pos, &bidi_it->disp_prop_p,
+				 &bidi_it->disp_pos, &bidi_it->disp_prop,
 				 &bidi_it->string, bidi_it->frame_window_p,
 				 &bidi_it->ch_len, &bidi_it->nchars);
     }
@@ -2078,7 +2095,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
       struct bidi_string_data bs = bidi_it->string;
       bidi_type_t chtype;
       int fwp = bidi_it->frame_window_p;
-      int dpp = bidi_it->disp_prop_p;
+      int dpp = bidi_it->disp_prop;
 
       if (bidi_it->nchars <= 0)
 	abort ();

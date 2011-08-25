@@ -1861,8 +1861,9 @@ struct bidi_it {
   bidi_dir_t sor;		/* direction of start-of-run in effect */
   int scan_dir;			/* direction of text scan, 1: forw, -1: back */
   EMACS_INT disp_pos;		/* position of display string after ch */
-  int disp_prop_p;		/* if non-zero, there really is a
-				   `display' property/string at disp_pos */
+  int disp_prop;		/* if non-zero, there really is a
+				   `display' property/string at disp_pos;
+				   if 2, the property is a `space' spec */
   int stack_idx;		/* index of current data on the stack */
   /* Note: Everything from here on is not copied/saved when the bidi
      iterator state is saved, pushed, or popped.  So only put here

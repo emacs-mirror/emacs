@@ -3794,6 +3794,10 @@ with a @dfn{pixel ascent} specification (@pxref{Pixel Specification}).
 non-graphic terminals, but the other space properties in this section
 are not.
 
+  Note that space properties are treated as paragraph separators for
+the purposes of reordering bidirectional text for display.
+@xref{Bidirectional Display}, for the details.
+
 @node Pixel Specification
 @subsection Pixel Specification for Spaces
 @cindex spaces, pixel specification
@@ -6126,8 +6130,8 @@ with bidirectional content can be displayed @emph{to the left} of the
 preceding field, producing a jumbled display and messing up the
 expected layout.
 
-  To countermand this, you can use one of the following techniques for
-forcing correct order of fields on display:
+  To countermand this, we recommend that you use one of the following
+techniques for forcing correct order of fields on display:
 
 @itemize @minus
 @item
@@ -6146,6 +6150,15 @@ Include the tab character in the field separator.  The tab character
 plays the role of @dfn{segment separator} in the @acronym{UBA}
 reordering, whose effect is to make each field a separate segment, and
 thus reorder them separately.
+
+@cindex @code{space} display spec, and bidirectional text
+@item
+Separate fields with a @code{display} property or overlay with the
+property value of the form @code{(space . PROPS)} (@pxref{Specified
+Space}).  This display specification is treated by Emacs as a
+@dfn{paragraph separator}; the text before and after the separator is
+reordered separately, which avoids the influence of any field on its
+neighboring fields.
 @end itemize
 
 @defun bidi-string-mark-left-to-right string
