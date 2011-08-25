@@ -1,5 +1,7 @@
 2011-08-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* misc.texi (Printing): Convert subnodes into subsections.
+
 	* text.texi (Two-Column): Move into Text chapter.
 
 	* picture-xtra.texi (Picture Mode): Group with Editing Binary

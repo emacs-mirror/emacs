@@ -195,10 +195,10 @@ Advanced Features
                           the number of characters you must type.
 * Dired::               Directory and file manager.
 * Calendar/Diary::      Calendar and diary facilities.
-* Document View::       Viewing PDF, PS and DVI files.
 * Sending Mail::        Sending mail in Emacs.
 * Rmail::               Reading mail in Emacs.
 * Gnus::                A flexible mail and news reader.
+* Document View::       Viewing PDF, PS and DVI files.
 * Shell::               Executing shell commands from Emacs.
 * Emacs Server::        Using Emacs as an editing server.
 * Printing::            Printing hardcopies of buffers or regions.
@@ -1489,12 +1489,13 @@ Lisp programming.
 @c Includes vc1-xtra, emerge-xtra.
 @include maintaining.texi
 @include abbrevs.texi
-@include sending.texi
-@include rmail.texi
 @c Includes dired-xtra.
 @include dired.texi
 @c Includes cal-xtra.
 @include calendar.texi
+@include sending.texi
+@include rmail.texi
+@c Includes picture-xtra.texi
 @include misc.texi
 @include custom.texi
 @include trouble.texi
