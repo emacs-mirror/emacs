@@ -7,6 +7,8 @@
 	(handle_single_display_spec): If the display spec is of the form
 	`(space ...)', and specifies display in the text area, return 2
 	rather than 1.
+	(try_cursor_movement): Check for the need to scroll more
+	accurately, and prefer exact match for point under bidi.
 
 	* dispextern.h (struct bidi_it): Rename the disp_prop_p member
 	into disp_prop; all users changed.

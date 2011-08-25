@@ -14593,15 +14593,33 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 
 	      do
 		{
+		  int at_zv_p = 0, exact_match_p = 0;
+
 		  if (MATRIX_ROW_START_CHARPOS (row) <= PT
 		      && PT <= MATRIX_ROW_END_CHARPOS (row)
 		      && cursor_row_p (row))
 		    rv |= set_cursor_from_row (w, row, w->current_matrix,
 					       0, 0, 0, 0);
-		  /* As soon as we've found the first suitable row
-		     whose ends_at_zv_p flag is set, we are done.  */
-		  if (rv
-		      && MATRIX_ROW (w->current_matrix, w->cursor.vpos)->ends_at_zv_p)
+		  /* As soon as we've found the exact match for point,
+		     or the first suitable row whose ends_at_zv_p flag
+		     is set, we are done.  */
+		  at_zv_p =
+		    MATRIX_ROW (w->current_matrix, w->cursor.vpos)->ends_at_zv_p;
+		  if (!at_zv_p)
+		    {
+		      struct glyph_row *candidate =
+			MATRIX_ROW (w->current_matrix, w->cursor.vpos);
+		      struct glyph *g =
+			candidate->glyphs[TEXT_AREA] + w->cursor.hpos;
+		      EMACS_INT endpos = MATRIX_ROW_END_CHARPOS (candidate);
+
+		      exact_match_p =
+			(BUFFERP (g->object) && g->charpos == PT)
+			|| (INTEGERP (g->object)
+			    && (g->charpos == PT
+				|| (g->charpos == 0 && endpos - 1 == PT)));
+		    }
+		  if (rv && (at_zv_p || exact_match_p))
 		    {
 		      rc = CURSOR_MOVEMENT_SUCCESS;
 		      break;
@@ -14617,7 +14635,9 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		 loop before all the candidates were examined, signal
 		 to the caller that this method failed.  */
 	      if (rc != CURSOR_MOVEMENT_SUCCESS
-		  && (!rv || MATRIX_ROW_CONTINUATION_LINE_P (row)))
+		  && !(rv
+		       && !MATRIX_ROW_CONTINUATION_LINE_P (row)
+		       && !row->continued_p))
 		rc = CURSOR_MOVEMENT_MUST_SCROLL;
 	      else if (rv)
 		rc = CURSOR_MOVEMENT_SUCCESS;
