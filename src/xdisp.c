@@ -14624,6 +14624,8 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		      rc = CURSOR_MOVEMENT_SUCCESS;
 		      break;
 		    }
+		  if (MATRIX_ROW_BOTTOM_Y (row) == last_y)
+		    break;
 		  ++row;
 		}
 	      while (((MATRIX_ROW_CONTINUATION_LINE_P (row)

@@ -8,7 +8,8 @@
 	`(space ...)', and specifies display in the text area, return 2
 	rather than 1.
 	(try_cursor_movement): Check for the need to scroll more
-	accurately, and prefer exact match for point under bidi.
+	accurately, and prefer exact match for point under bidi.  Don't
+	advance `row' beyond the last row of the window.
 
 	* dispextern.h (struct bidi_it): Rename the disp_prop_p member
 	into disp_prop; all users changed.
