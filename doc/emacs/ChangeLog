@@ -1,3 +1,20 @@
+2011-08-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (Printing): Convert subnodes into subsections.
+
+	* text.texi (Two-Column): Move into Text chapter.
+
+	* picture-xtra.texi (Picture Mode): Group with Editing Binary
+	Files section.  Convert from chapter into section.
+
+	* display.texi (Narrowing): Move into display chapter.
+
+	* sending.texi (Sending Mail):
+	* rmail.texi (Rmail):
+	* misc.texi (Gnus, Document View):
+	* dired.texi (Dired):
+	* emacs.texi: Group the mail, rmail, and gnus chapters together.
+
 2011-08-07  Juri Linkov  <juri@jurta.org>
 
 	* dired.texi (Operating on Files): Rewrite according to the fact

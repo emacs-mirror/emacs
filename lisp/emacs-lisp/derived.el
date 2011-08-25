@@ -133,10 +133,10 @@ BODY can start with a bunch of keyword arguments.  The following keyword
 	Declare the customization group that corresponds to this mode.
 	The command `customize-mode' uses this.
 :syntax-table TABLE
-	Use TABLE instead of the default.
+	Use TABLE instead of the default (CHILD-syntax-table).
 	A nil value means to simply use the same syntax-table as the parent.
 :abbrev-table TABLE
-	Use TABLE instead of the default.
+	Use TABLE instead of the default (CHILD-abbrev-table).
 	A nil value means to simply use the same abbrev-table as the parent.
 
 Here is how you could define LaTeX-Thesis mode as a variant of LaTeX mode:

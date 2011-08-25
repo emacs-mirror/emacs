@@ -187,36 +187,28 @@ Major Structures of Emacs
 Advanced Features
 * Modes::               Major and minor modes alter Emacs' basic behavior.
 * Indentation::         Editing the white space at the beginnings of lines.
-* Text::                Commands and modes for editing English.
+* Text::                Commands and modes for editing human languages.
 * Programs::            Commands and modes for editing programs.
 * Building::            Compiling, running and debugging programs.
 * Maintaining::         Features for maintaining large programs.
 * Abbrevs::             Defining text abbreviations to reduce
                           the number of characters you must type.
-@c AFAICS, the tex stuff generates its own index and does not use this one.
-@ifnottex
-* Picture Mode::        Editing pictures made up of characters using
-                          the quarter-plane screen model.
-@end ifnottex
+* Dired::               Directory and file manager.
+* Calendar/Diary::      Calendar and diary facilities.
 * Sending Mail::        Sending mail in Emacs.
 * Rmail::               Reading mail in Emacs.
-* Dired::               You can "edit" a directory to manage files in it.
-* Calendar/Diary::      The calendar and diary facilities.
-* Document View::       Viewing PDF, PS and DVI files.
 * Gnus::                A flexible mail and news reader.
+* Document View::       Viewing PDF, PS and DVI files.
 * Shell::               Executing shell commands from Emacs.
 * Emacs Server::        Using Emacs as an editing server.
 * Printing::            Printing hardcopies of buffers or regions.
 * Sorting::             Sorting lines, paragraphs or pages within Emacs.
-* Narrowing::           Restricting display and editing to a portion
-                          of the buffer.
-* Two-Column::          Splitting apart columns to edit them
-                          in side-by-side windows.
-* Editing Binary Files::Using Hexl mode to edit binary files.
+@ifnottex
+* Picture Mode::        Editing pictures made up of text characters.
+@end ifnottex
+* Editing Binary Files:: Editing binary files with Hexl mode.
 * Saving Emacs Sessions:: Saving Emacs state from one session to the next.
-* Recursive Edit::      A command can allow you to do editing
-                          "within the command".  This is called a
-                          "recursive editing level".
+* Recursive Edit::      Performing edits while "within another command".
 * Emulation::           Emulating some other editors with Emacs.
 * Hyperlinking::        Following links in buffers.
 * Amusements::          Various games and hacks.
@@ -350,6 +342,8 @@ Controlling the Display
 * Scrolling::              Commands to move text up and down in a window.
 * Auto Scrolling::         Redisplay scrolls text automatically when needed.
 * Horizontal Scrolling::   Moving text left and right in a window.
+* Narrowing::              Restricting display and editing to a portion
+                             of the buffer.
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::                  How to change the display style using faces.
 * Standard Faces::         Emacs' predefined faces.
@@ -577,6 +571,7 @@ Commands for Human Languages
 * Nroff Mode::          Editing input to the formatter nroff.
 * Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
 * Text Based Tables::   Editing text-based tables in WYSIWYG fashion.
+* Two-Column::          Splitting text columns into separate windows.
 
 Filling Text
 
@@ -885,52 +880,6 @@ Editing Pictures
 * Rectangles in Picture:: Clearing and superimposing rectangles.
 @end ifnottex
 
-Sending Mail
-
-* Mail Format::         Format of the mail being composed.
-* Mail Headers::        Details of some standard mail header fields.
-* Mail Aliases::        Abbreviating and grouping mail addresses.
-* Mail Commands::       Special commands for editing mail being composed.
-* Mail Signature::      Adding a signature to every message.
-* Mail Amusements::     Distracting the NSA; adding fortune messages.
-* Mail Methods::        Using alternative mail-composition methods.
-
-Mail Commands
-
-* Mail Sending::        Commands to send the message.
-* Header Editing::      Commands to move to header fields and edit them.
-* Citing Mail::         Quoting a message you are replying to.
-* Mail Misc::           Attachments, spell checking, etc.
-
-Reading Mail with Rmail
-
-* Rmail Basics::        Basic concepts of Rmail, and simple use.
-* Rmail Scrolling::     Scrolling through a message.
-* Rmail Motion::        Moving to another message.
-* Rmail Deletion::      Deleting and expunging messages.
-* Rmail Inbox::         How mail gets into the Rmail file.
-* Rmail Files::         Using multiple Rmail files.
-* Rmail Output::        Copying message out to files.
-* Rmail Labels::        Classifying messages by labeling them.
-* Rmail Attributes::    Certain standard labels, called attributes.
-* Rmail Reply::         Sending replies to messages you are viewing.
-* Rmail Summary::       Summaries show brief info on many messages.
-* Rmail Sorting::       Sorting messages in Rmail.
-* Rmail Display::       How Rmail displays a message; customization.
-* Rmail Coding::        How Rmail handles decoding character sets.
-* Rmail Editing::       Editing message text and headers in Rmail.
-* Rmail Digest::        Extracting the messages from a digest message.
-* Rmail Rot13::         Reading messages encoded in the rot13 code.
-* Movemail::            More details of fetching new mail.
-* Remote Mailboxes::    Retrieving mail from remote mailboxes.
-* Other Mailbox Formats:: Retrieving mail from local mailboxes in
-                          various formats.
-
-Summaries
-
-* Rmail Make Summary::       Making various sorts of summaries.
-* Rmail Summary Edit::       Manipulating messages from the summary.
-
 Dired, the Directory Editor
 
 * Dired Enter::              How to invoke Dired.
@@ -1013,6 +962,52 @@ Document Viewing
 * Searching::   Searching inside documents.
 * Slicing::     Specifying which part of pages should be displayed.
 * Conversion::  Influencing and triggering conversion.
+
+Sending Mail
+
+* Mail Format::         Format of the mail being composed.
+* Mail Headers::        Details of some standard mail header fields.
+* Mail Aliases::        Abbreviating and grouping mail addresses.
+* Mail Commands::       Special commands for editing mail being composed.
+* Mail Signature::      Adding a signature to every message.
+* Mail Amusements::     Distracting the NSA; adding fortune messages.
+* Mail Methods::        Using alternative mail-composition methods.
+
+Mail Commands
+
+* Mail Sending::        Commands to send the message.
+* Header Editing::      Commands to move to header fields and edit them.
+* Citing Mail::         Quoting a message you are replying to.
+* Mail Misc::           Attachments, spell checking, etc.
+
+Reading Mail with Rmail
+
+* Rmail Basics::        Basic concepts of Rmail, and simple use.
+* Rmail Scrolling::     Scrolling through a message.
+* Rmail Motion::        Moving to another message.
+* Rmail Deletion::      Deleting and expunging messages.
+* Rmail Inbox::         How mail gets into the Rmail file.
+* Rmail Files::         Using multiple Rmail files.
+* Rmail Output::        Copying message out to files.
+* Rmail Labels::        Classifying messages by labeling them.
+* Rmail Attributes::    Certain standard labels, called attributes.
+* Rmail Reply::         Sending replies to messages you are viewing.
+* Rmail Summary::       Summaries show brief info on many messages.
+* Rmail Sorting::       Sorting messages in Rmail.
+* Rmail Display::       How Rmail displays a message; customization.
+* Rmail Coding::        How Rmail handles decoding character sets.
+* Rmail Editing::       Editing message text and headers in Rmail.
+* Rmail Digest::        Extracting the messages from a digest message.
+* Rmail Rot13::         Reading messages encoded in the rot13 code.
+* Movemail::            More details of fetching new mail.
+* Remote Mailboxes::    Retrieving mail from remote mailboxes.
+* Other Mailbox Formats:: Retrieving mail from local mailboxes in
+                          various formats.
+
+Rmail Summaries
+
+* Rmail Make Summary::       Making various sorts of summaries.
+* Rmail Summary Edit::       Manipulating messages from the summary.
 
 Gnus
 
@@ -1494,15 +1489,13 @@ Lisp programming.
 @c Includes vc1-xtra, emerge-xtra.
 @include maintaining.texi
 @include abbrevs.texi
-@ifnottex
-@include picture-xtra.texi
-@end ifnottex
-@include sending.texi
-@include rmail.texi
 @c Includes dired-xtra.
 @include dired.texi
 @c Includes cal-xtra.
 @include calendar.texi
+@include sending.texi
+@include rmail.texi
+@c Includes picture-xtra.texi
 @include misc.texi
 @include custom.texi
 @include trouble.texi
