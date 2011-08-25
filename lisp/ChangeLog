@@ -1,3 +1,8 @@
+2011-08-25  Glenn Morris  <rgm@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-smtp-user): Add version: tag.
+	(smtpmail-via-smtp): Handle nil response from smtp.
+
 2011-08-24  Juri Linkov  <juri@jurta.org>
 
 	* proced.el (proced-marked): Inherit from `error' instead of

@@ -88,6 +88,7 @@ The default value would be \"smtp\" or 25."
 
 (defcustom smtpmail-smtp-user nil
   "User name to use when looking up credentials."
+  :version "24.1"
   :type '(choice (const nil) string)
   :group 'smtpmail)
 
@@ -677,7 +678,7 @@ The list is in preference order.")
 	      (throw 'done (format "No greeting: %s" greeting)))
 	    (when (>= code 400)
 	      (throw 'done (format "Connection not allowed: %s" greeting))))
-	  
+
 	  (with-current-buffer process-buffer
 	    (set-buffer-process-coding-system 'raw-text-unix 'raw-text-unix)
 	    (make-local-variable 'smtpmail-read-point)
@@ -730,7 +731,7 @@ The list is in preference order.")
 
 	    (when (member 'xusr supported-extensions)
 	      (smtpmail-command-or-throw process (format "XUSR")))
-	    
+
 	    ;; MAIL FROM:<sender>
 	    (let ((size-part
 		   (if (or (member 'size supported-extensions)
@@ -769,7 +770,7 @@ The list is in preference order.")
 		)
 	       ((and auth-mechanisms
 		     (not ask-for-password)
-		     (= (car result) 530))
+		     (eq (car result) 530))
 		;; We got a "530 auth required", so we close and try
 		;; again, this time asking the user for a password.
 		(smtpmail-send-command process "QUIT")
@@ -796,6 +797,7 @@ The list is in preference order.")
 		  nil)
 		 ((and auth-mechanisms
 		       (not ask-for-password)
+		       (integerp (car result))
 		       (>= (car result) 550)
 		       (<= (car result) 554))
 		  ;; We got a "550 relay not permitted" (or the like),
