@@ -4,6 +4,8 @@
 
 2011-08-25  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/derived.el (define-derived-mode): Doc fix.
+
 	* mail/smtpmail.el (smtpmail-smtp-user): Add version: tag.
 	(smtpmail-via-smtp): Handle nil response from smtp.
 
