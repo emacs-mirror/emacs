@@ -1,5 +1,10 @@
 2011-08-25  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-occur): Let-bind `search-spaces-regexp' to
+	`search-whitespace-regexp' (bug#9364).
+
+2011-08-25  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-edit-string): Let-bind `search-ring' and
 	`regexp-search-ring' to their global values to protect from
 	updating by `read-from-minibuffer' (bug#9185).
