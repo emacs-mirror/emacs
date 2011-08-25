@@ -1132,6 +1132,14 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 	      ;; Save current configuration so we can restore it here.
 	      (isearch-window-configuration (current-window-configuration))
 
+	      ;; This could protect the index of the search rings,
+	      ;; but we can't reliably count the number of typed M-p
+	      ;; in `read-from-minibuffer' to adjust the index accordingly.
+	      ;; So when the following is commented out, `isearch-mode'
+	      ;; below resets the index to the predictable value nil.
+	      ;; (search-ring-yank-pointer search-ring-yank-pointer)
+	      ;; (regexp-search-ring-yank-pointer regexp-search-ring-yank-pointer)
+
 	      ;; Temporarily restore `minibuffer-message-timeout'.
 	      (minibuffer-message-timeout
 	       isearch-original-minibuffer-message-timeout)
@@ -1152,13 +1160,18 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 
 	  (unwind-protect
 	      (let* ((message-log-max nil)
+		     ;; Protect global value of search rings from updating
+		     ;; by `read-from-minibuffer'.  It should be updated only
+		     ;; by `isearch-update-ring' in `isearch-done', not here.
+		     (search-ring search-ring)
+		     (regexp-search-ring regexp-search-ring)
 		     ;; Binding minibuffer-history-symbol to nil is a work-around
 		     ;; for some incompatibility with gmhist.
 		     (minibuffer-history-symbol))
 		(setq isearch-new-string
                       (read-from-minibuffer
                        (isearch-message-prefix nil nil isearch-nonincremental)
-                        (cons isearch-string (1+ (isearch-fail-pos)))
+		       (cons isearch-string (1+ (isearch-fail-pos)))
                        minibuffer-local-isearch-map nil
                        (if isearch-regexp
 			   (cons 'regexp-search-ring
