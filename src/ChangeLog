@@ -1,3 +1,20 @@
+2011-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (compute_display_string_pos): Return 2 in DISP_PROP when
+	the display spec is of the form `(space ...)'.
+	(handle_display_spec): Return the value returned by
+	handle_single_display_spec, not just 1 or zero.
+	(handle_single_display_spec): If the display spec is of the form
+	`(space ...)', and specifies display in the text area, return 2
+	rather than 1.
+
+	* dispextern.h (struct bidi_it): Rename the disp_prop_p member
+	into disp_prop; all users changed.
+
+	* bidi.c (bidi_fetch_char): If compute_display_string_pos returns
+	DISP_PROP = 2, substitute the u+2029 PARAGRAPH SEPARATOR character
+	for the text covered by the display property.
+
 2011-08-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* buffer.c (Fbury_buffer_internal): Rename from Funrecord_buffer.
