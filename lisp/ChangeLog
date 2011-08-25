@@ -1,3 +1,9 @@
+2011-08-25  Juri Linkov  <juri@jurta.org>
+
+	* battery.el (display-battery-mode): If `battery-status-function'
+	or `battery-mode-line-format' is nil, display the message and set
+	`display-battery-mode' to nil (bug#9363).
+
 2011-08-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* buff-menu.el (Buffer-menu-buffer+size): Remove calls to
