@@ -20,7 +20,7 @@ other editors, and various diversions and amusements.
 @raisesections
 @end ifnottex
 
-@node Document View, Gnus, Calendar/Diary, Top
+@node Document View, Sending Mail, Calendar/Diary, Top
 @section Document Viewing
 @cindex DVI file
 @cindex PDF file
@@ -200,7 +200,7 @@ the DocView buffer.
 (@code{doc-view-shrink}) need to reconvert the document at the new
 size.  The current page is converted first.
 
-@node Gnus, Shell, Document View, Top
+@node Gnus, Shell, Rmail, Top
 @section Gnus
 @cindex Gnus
 @cindex reading netnews

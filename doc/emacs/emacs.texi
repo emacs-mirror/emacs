@@ -195,14 +195,13 @@ Advanced Features
                           the number of characters you must type.
 @c AFAICS, the tex stuff generates its own index and does not use this one.
 @ifnottex
-* Picture Mode::        Editing pictures made up of characters using
-                          the quarter-plane screen model.
+* Picture Mode::        Editing pictures made up of text characters.
 @end ifnottex
+* Dired::               Directory and file manager.
+* Calendar/Diary::      Calendar and diary facilities.
+* Document View::       Viewing PDF, PS and DVI files.
 * Sending Mail::        Sending mail in Emacs.
 * Rmail::               Reading mail in Emacs.
-* Dired::               You can "edit" a directory to manage files in it.
-* Calendar/Diary::      The calendar and diary facilities.
-* Document View::       Viewing PDF, PS and DVI files.
 * Gnus::                A flexible mail and news reader.
 * Shell::               Executing shell commands from Emacs.
 * Emacs Server::        Using Emacs as an editing server.
@@ -885,52 +884,6 @@ Editing Pictures
 * Rectangles in Picture:: Clearing and superimposing rectangles.
 @end ifnottex
 
-Sending Mail
-
-* Mail Format::         Format of the mail being composed.
-* Mail Headers::        Details of some standard mail header fields.
-* Mail Aliases::        Abbreviating and grouping mail addresses.
-* Mail Commands::       Special commands for editing mail being composed.
-* Mail Signature::      Adding a signature to every message.
-* Mail Amusements::     Distracting the NSA; adding fortune messages.
-* Mail Methods::        Using alternative mail-composition methods.
-
-Mail Commands
-
-* Mail Sending::        Commands to send the message.
-* Header Editing::      Commands to move to header fields and edit them.
-* Citing Mail::         Quoting a message you are replying to.
-* Mail Misc::           Attachments, spell checking, etc.
-
-Reading Mail with Rmail
-
-* Rmail Basics::        Basic concepts of Rmail, and simple use.
-* Rmail Scrolling::     Scrolling through a message.
-* Rmail Motion::        Moving to another message.
-* Rmail Deletion::      Deleting and expunging messages.
-* Rmail Inbox::         How mail gets into the Rmail file.
-* Rmail Files::         Using multiple Rmail files.
-* Rmail Output::        Copying message out to files.
-* Rmail Labels::        Classifying messages by labeling them.
-* Rmail Attributes::    Certain standard labels, called attributes.
-* Rmail Reply::         Sending replies to messages you are viewing.
-* Rmail Summary::       Summaries show brief info on many messages.
-* Rmail Sorting::       Sorting messages in Rmail.
-* Rmail Display::       How Rmail displays a message; customization.
-* Rmail Coding::        How Rmail handles decoding character sets.
-* Rmail Editing::       Editing message text and headers in Rmail.
-* Rmail Digest::        Extracting the messages from a digest message.
-* Rmail Rot13::         Reading messages encoded in the rot13 code.
-* Movemail::            More details of fetching new mail.
-* Remote Mailboxes::    Retrieving mail from remote mailboxes.
-* Other Mailbox Formats:: Retrieving mail from local mailboxes in
-                          various formats.
-
-Summaries
-
-* Rmail Make Summary::       Making various sorts of summaries.
-* Rmail Summary Edit::       Manipulating messages from the summary.
-
 Dired, the Directory Editor
 
 * Dired Enter::              How to invoke Dired.
@@ -1013,6 +966,52 @@ Document Viewing
 * Searching::   Searching inside documents.
 * Slicing::     Specifying which part of pages should be displayed.
 * Conversion::  Influencing and triggering conversion.
+
+Sending Mail
+
+* Mail Format::         Format of the mail being composed.
+* Mail Headers::        Details of some standard mail header fields.
+* Mail Aliases::        Abbreviating and grouping mail addresses.
+* Mail Commands::       Special commands for editing mail being composed.
+* Mail Signature::      Adding a signature to every message.
+* Mail Amusements::     Distracting the NSA; adding fortune messages.
+* Mail Methods::        Using alternative mail-composition methods.
+
+Mail Commands
+
+* Mail Sending::        Commands to send the message.
+* Header Editing::      Commands to move to header fields and edit them.
+* Citing Mail::         Quoting a message you are replying to.
+* Mail Misc::           Attachments, spell checking, etc.
+
+Reading Mail with Rmail
+
+* Rmail Basics::        Basic concepts of Rmail, and simple use.
+* Rmail Scrolling::     Scrolling through a message.
+* Rmail Motion::        Moving to another message.
+* Rmail Deletion::      Deleting and expunging messages.
+* Rmail Inbox::         How mail gets into the Rmail file.
+* Rmail Files::         Using multiple Rmail files.
+* Rmail Output::        Copying message out to files.
+* Rmail Labels::        Classifying messages by labeling them.
+* Rmail Attributes::    Certain standard labels, called attributes.
+* Rmail Reply::         Sending replies to messages you are viewing.
+* Rmail Summary::       Summaries show brief info on many messages.
+* Rmail Sorting::       Sorting messages in Rmail.
+* Rmail Display::       How Rmail displays a message; customization.
+* Rmail Coding::        How Rmail handles decoding character sets.
+* Rmail Editing::       Editing message text and headers in Rmail.
+* Rmail Digest::        Extracting the messages from a digest message.
+* Rmail Rot13::         Reading messages encoded in the rot13 code.
+* Movemail::            More details of fetching new mail.
+* Remote Mailboxes::    Retrieving mail from remote mailboxes.
+* Other Mailbox Formats:: Retrieving mail from local mailboxes in
+                          various formats.
+
+Rmail Summaries
+
+* Rmail Make Summary::       Making various sorts of summaries.
+* Rmail Summary Edit::       Manipulating messages from the summary.
 
 Gnus
 

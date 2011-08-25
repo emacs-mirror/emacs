@@ -2,7 +2,7 @@
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Dired, Calendar/Diary, Rmail, Top
+@node Dired
 @chapter Dired, the Directory Editor
 @c This node is referenced in the tutorial.  When renaming or deleting
 @c it, the tutorial needs to be adjusted.
