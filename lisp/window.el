@@ -2795,7 +2795,7 @@ displayed there."
   (let* ((buffer (window-normalize-buffer buffer-or-name)))
     ;; If `buffer-or-name' is not on the selected frame we unrecord it
     ;; although it's not "here" (call it a feature).
-    (unrecord-buffer buffer)
+    (bury-buffer-internal buffer)
     ;; Handle case where `buffer-or-name' is nil and the current buffer
     ;; is shown in the selected window.
     (cond
@@ -2928,12 +2928,9 @@ one.  If non-nil, reset `quit-restore' parameter to nil."
 		    (eq (window-buffer window) (nth 1 quit-restore)))
 	       (window-dedicated-p window))
 	   (setq deletable (window-deletable-p window)))
-      ;; WINDOW can be deleted.
-      (unrecord-buffer buffer)
+      ;; Check if WINDOW's frame can be deleted.
       (if (eq deletable 'frame)
-	  ;; WINDOW's frame can be deleted.
 	  (delete-frame (window-frame window))
-	;; Just delete WINDOW.
 	(delete-window window))
       ;; If the previously selected window is still alive, select it.
       (when (window-live-p (nth 2 quit-restore))
@@ -2944,17 +2941,17 @@ one.  If non-nil, reset `quit-restore' parameter to nil."
 	   ;; in the first place.
 	   (eq (window-buffer window) (nth 3 quit-restore)))
       (setq resize (with-current-buffer buffer temp-buffer-resize-mode))
-      ;; Unrecord buffer.
-      (unrecord-buffer buffer)
       (unrecord-window-buffer window buffer)
       ;; Display buffer stored in the quit-restore parameter.
       (set-window-dedicated-p window nil)
       (set-window-buffer window (nth 0 quit-restore))
       (set-window-start window (nth 1 quit-restore))
       (set-window-point window (nth 2 quit-restore))
-      (when (and resize (/= (nth 4 quit-restore) (window-total-size window)))
-	(window-resize
-	 window (- (nth 4 quit-restore) (window-total-size window))))
+      (and resize
+	   (/= (nth 4 quit-restore) (window-total-size window))
+	   (window-resize window
+			  (- (nth 4 quit-restore)
+			     (window-total-size window))))
       ;; Reset the quit-restore parameter.
       (set-window-parameter window 'quit-restore nil)
       (when (window-live-p (nth 5 quit-restore))
@@ -2963,11 +2960,12 @@ one.  If non-nil, reset `quit-restore' parameter to nil."
       ;; Otherwise, show another buffer in WINDOW and reset the
       ;; quit-restore parameter.
       (set-window-parameter window 'quit-restore nil)
-      (unrecord-buffer buffer)
       (switch-to-prev-buffer window 'bury-or-kill)))
 
     ;; Kill WINDOW's old-buffer if requested
-    (if kill (kill-buffer buffer))))
+    (if kill
+	(kill-buffer buffer)
+      (bury-buffer-internal buffer))))
 
 ;;; Splitting windows.
 (defsubst window-split-min-size (&optional horizontal)

@@ -1698,27 +1698,16 @@ record_buffer (Lisp_Object buffer)
     call1 (Vrun_hooks, Qbuffer_list_update_hook);
 }
 
-DEFUN ("record-buffer", Frecord_buffer, Srecord_buffer, 1, 1, 0,
-       doc: /* Move BUFFER to the front of the buffer list.
-Return BUFFER.  */)
-  (Lisp_Object buffer)
-{
-  CHECK_BUFFER (buffer);
 
-  record_buffer (buffer);
+/* Move BUFFER to the end of the buffer (a)lists.  Do nothing if the
+   buffer is killed.  For the selected frame's buffer list this moves
+   BUFFER to its end even if it was never shown in that frame.  If
+   this happens we have a feature, hence `unrecord-buffer' should be
+   called only when BUFFER was shown in the selected frame.  */
 
-  return buffer;
-}
-
-  /* Move BUFFER to the end of the buffer (a)lists.  Do nothing if the
-     buffer is killed.  For the selected frame's buffer list this moves
-     BUFFER to its end even if it was never shown in that frame.  If
-     this happens we have a feature, hence `unrecord-buffer' should be
-     called only when BUFFER was shown in the selected frame.  */
-
-DEFUN ("unrecord-buffer", Funrecord_buffer, Sunrecord_buffer, 1, 1, 0,
-       doc: /* Move BUFFER to the end of the buffer list.
-Return BUFFER.  */)
+DEFUN ("bury-buffer-internal", Fbury_buffer_internal, Sbury_buffer_internal,
+       1, 1, 0,
+       doc: /* Move BUFFER to the end of the buffer list.  */)
   (Lisp_Object buffer)
 {
   Lisp_Object aelt, aelt_cons, tem;
@@ -1746,7 +1735,7 @@ Return BUFFER.  */)
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qbuffer_list_update_hook);
 
-  return buffer;
+  return Qnil;
 }
 
 DEFUN ("set-buffer-major-mode", Fset_buffer_major_mode, Sset_buffer_major_mode, 1, 1, 0,
@@ -6034,8 +6023,7 @@ Functions running this hook are `get-buffer-create',
   defsubr (&Sother_buffer);
   defsubr (&Sbuffer_enable_undo);
   defsubr (&Skill_buffer);
-  defsubr (&Srecord_buffer);
-  defsubr (&Sunrecord_buffer);
+  defsubr (&Sbury_buffer_internal);
   defsubr (&Sset_buffer_major_mode);
   defsubr (&Scurrent_buffer);
   defsubr (&Sset_buffer);
