@@ -1,5 +1,10 @@
 2011-08-25  Juri Linkov  <juri@jurta.org>
 
+	* textmodes/ispell.el (ispell-command-loop): Add newline
+	at the end of the "Use option `i'..." line.
+
+2011-08-25  Juri Linkov  <juri@jurta.org>
+
 	* battery.el (display-battery-mode): If `battery-status-function'
 	or `battery-mode-line-format' is nil, display the message and set
 	`display-battery-mode' to nil (bug#9363).
