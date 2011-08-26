@@ -1610,22 +1610,25 @@ If BITMAP already exists, the existing definition is replaced.  */)
 
 	  if (n == max_fringe_bitmaps)
 	    {
-	      if ((max_fringe_bitmaps + 20) > MAX_FRINGE_BITMAPS)
+	      int bitmaps = max_fringe_bitmaps + 20;
+	      if (MAX_FRINGE_BITMAPS < bitmaps)
 		error ("No free fringe bitmap slots");
 
 	      i = max_fringe_bitmaps;
-	      max_fringe_bitmaps += 20;
 	      fringe_bitmaps
 		= ((struct fringe_bitmap **)
-		   xrealloc (fringe_bitmaps, max_fringe_bitmaps * sizeof (struct fringe_bitmap *)));
+		   xrealloc (fringe_bitmaps, bitmaps * sizeof *fringe_bitmaps));
 	      fringe_faces
-		= (Lisp_Object *) xrealloc (fringe_faces, max_fringe_bitmaps * sizeof (Lisp_Object));
+		= (Lisp_Object *) xrealloc (fringe_faces,
+					    bitmaps * sizeof *fringe_faces);
 
-	      for (; i < max_fringe_bitmaps; i++)
+	      for (i = max_fringe_bitmaps; i < bitmaps; i++)
 		{
 		  fringe_bitmaps[i] = NULL;
 		  fringe_faces[i] = Qnil;
 		}
+
+	      max_fringe_bitmaps = bitmaps;
 	    }
 	}
 

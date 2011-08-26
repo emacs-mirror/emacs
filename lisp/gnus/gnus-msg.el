@@ -435,7 +435,7 @@ Thank you for your help in stamping out bugs.
 	   (progn
 	     ,@forms)
 	 (gnus-inews-add-send-actions ,winconf ,buffer ,article ,config
-				      ,yanked ',winconf-name)
+				      ,yanked ,winconf-name)
 	 (setq gnus-message-buffer (current-buffer))
 	 (set (make-local-variable 'gnus-message-group-art)
 	      (cons ,group ,article))

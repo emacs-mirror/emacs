@@ -1390,7 +1390,7 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
    if test $HAVE_GNU_MAKE = yes; then
       AC_MSG_CHECKING([whether gcc understands -MMD -MF])
       SAVE_CFLAGS="$CFLAGS"
-      CFLAGS="$CFLAGS -MMD -MF deps.d"
+      CFLAGS="$CFLAGS -MMD -MF deps.d -MP"
       AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])], , ac_enable_autodepend=no)
       CFLAGS="$SAVE_CFLAGS"
       test -f deps.d || ac_enable_autodepend=no
@@ -1398,7 +1398,7 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
       AC_MSG_RESULT([$ac_enable_autodepend])
    fi
    if test $ac_enable_autodepend = yes; then
-      DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d'
+      DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d -MP'
       ## In parallel builds, another make might create depdir between
       ## the first test and mkdir, so stick another test on the end.
       ## Or use install-sh -d?  mkdir -p is not portable.

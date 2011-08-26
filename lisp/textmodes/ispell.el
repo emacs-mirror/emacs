@@ -1914,7 +1914,7 @@ Global `ispell-quit' set to start location to continue spell session."
 		    (setq line (1+ line))))
 	      (insert (car guess) "    ")
 	      (setq guess (cdr guess)))
-	    (insert "\nUse option `i' to accept this spelling and put it in your private dictionary.")
+	    (insert "\nUse option `i' to accept this spelling and put it in your private dictionary.\n")
 	    (setq line (+ line (if choices 3 2)))))
       (while (and choices
 		  (< (if (> (+ 7 (current-column) (length (car choices))

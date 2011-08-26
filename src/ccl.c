@@ -1303,7 +1303,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 	    case CCL_LookupIntConstTbl:
 	      {
-		EMACS_INT eop;
+		ptrdiff_t eop;
 		struct Lisp_Hash_Table *h;
 		GET_CCL_RANGE (eop, ccl_prog, ic++, 0,
 			       (VECTORP (Vtranslation_hash_table_vector)
@@ -1329,7 +1329,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 	    case CCL_LookupCharConstTbl:
 	      {
-		EMACS_INT eop;
+		ptrdiff_t eop;
 		struct Lisp_Hash_Table *h;
 		GET_CCL_RANGE (eop, ccl_prog, ic++, 0,
 			       (VECTORP (Vtranslation_hash_table_vector)
@@ -2061,12 +2061,13 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
   Lisp_Object val;
   struct ccl_program ccl;
   int i;
-  EMACS_INT outbufsize;
+  ptrdiff_t outbufsize;
   unsigned char *outbuf, *outp;
-  EMACS_INT str_chars, str_bytes;
+  ptrdiff_t str_chars, str_bytes;
 #define CCL_EXECUTE_BUF_SIZE 1024
   int source[CCL_EXECUTE_BUF_SIZE], destination[CCL_EXECUTE_BUF_SIZE];
-  EMACS_INT consumed_chars, consumed_bytes, produced_chars;
+  ptrdiff_t consumed_chars, consumed_bytes, produced_chars;
+  int buf_magnification;
 
   if (setup_ccl_program (&ccl, ccl_prog) < 0)
     error ("Invalid CCL program");
@@ -2093,6 +2094,10 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	ccl.ic = i;
     }
 
+  buf_magnification = ccl.buf_magnification ? ccl.buf_magnification : 1;
+
+  if ((min (PTRDIFF_MAX, SIZE_MAX) - 256) / buf_magnification < str_bytes)
+    memory_full (SIZE_MAX);
   outbufsize = (ccl.buf_magnification
 		? str_bytes * ccl.buf_magnification + 256
 		: str_bytes + 256);
@@ -2127,12 +2132,18 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	  produced_chars += ccl.produced;
 	  if (NILP (unibyte_p))
 	    {
-	      if (outp - outbuf + MAX_MULTIBYTE_LENGTH * ccl.produced
-		  > outbufsize)
+	      /* FIXME: Surely this should be buf_magnification instead.
+		 MAX_MULTIBYTE_LENGTH overestimates the storage needed.  */
+	      int magnification = MAX_MULTIBYTE_LENGTH;
+
+	      ptrdiff_t offset = outp - outbuf;
+	      ptrdiff_t shortfall;
+	      if (INT_MULTIPLY_OVERFLOW (ccl.produced, magnification))
+		memory_full (SIZE_MAX);
+	      shortfall = ccl.produced * magnification - (outbufsize - offset);
+	      if (0 < shortfall)
 		{
-		  EMACS_INT offset = outp - outbuf;
-		  outbufsize += MAX_MULTIBYTE_LENGTH * ccl.produced;
-		  outbuf = (unsigned char *) xrealloc (outbuf, outbufsize);
+		  outbuf = xpalloc (outbuf, &outbufsize, shortfall, -1, 1);
 		  outp = outbuf + offset;
 		}
 	      for (j = 0; j < ccl.produced; j++)
@@ -2140,11 +2151,11 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 	    }
 	  else
 	    {
-	      if (outp - outbuf + ccl.produced > outbufsize)
+	      ptrdiff_t offset = outp - outbuf;
+	      ptrdiff_t shortfall = ccl.produced - (outbufsize - offset);
+	      if (0 < shortfall)
 		{
-		  EMACS_INT offset = outp - outbuf;
-		  outbufsize += ccl.produced;
-		  outbuf = (unsigned char *) xrealloc (outbuf, outbufsize);
+		  outbuf = xpalloc (outbuf, &outbufsize, shortfall, -1, 1);
 		  outp = outbuf + offset;
 		}
 	      for (j = 0; j < ccl.produced; j++)

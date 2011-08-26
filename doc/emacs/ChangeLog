@@ -1,3 +1,11 @@
+2011-08-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* package.texi: New file, documenting the package manager.
+
+	* emacs.texi: Include it.
+
+	* help.texi (Help Summary): Add describe-package.
+
 2011-08-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* misc.texi (Printing): Convert subnodes into subsections.

@@ -212,6 +212,7 @@ Advanced Features
 * Emulation::           Emulating some other editors with Emacs.
 * Hyperlinking::        Following links in buffers.
 * Amusements::          Various games and hacks.
+* Packages::            Installing additional features.
 * Customization::       Modifying the behavior of Emacs.
 
 Recovery from Problems
@@ -1497,6 +1498,7 @@ Lisp programming.
 @include rmail.texi
 @c Includes picture-xtra.texi
 @include misc.texi
+@include package.texi
 @include custom.texi
 @include trouble.texi
 

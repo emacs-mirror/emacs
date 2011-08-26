@@ -142,10 +142,10 @@ Lisp_Object Qcomposition;
 struct composition **composition_table;
 
 /* The current size of `composition_table'.  */
-static int composition_table_size;
+static ptrdiff_t composition_table_size;
 
 /* Number of compositions currently made. */
-int n_compositions;
+ptrdiff_t n_compositions;
 
 /* Hash table for compositions.  The key is COMPONENTS-VEC of
    `composition' property.  The value is the corresponding
@@ -172,18 +172,29 @@ Lisp_Object composition_temp;
 
    If the composition is invalid, return -1.  */
 
-int
+ptrdiff_t
 get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 		    Lisp_Object prop, Lisp_Object string)
 {
   Lisp_Object id, length, components, key, *key_contents;
-  int glyph_len;
+  ptrdiff_t glyph_len;
   struct Lisp_Hash_Table *hash_table = XHASH_TABLE (composition_hash_table);
-  EMACS_INT hash_index;
+  ptrdiff_t hash_index;
   EMACS_UINT hash_code;
+  enum composition_method method;
   struct composition *cmp;
   EMACS_INT i;
   int ch;
+
+  /* Maximum length of a string of glyphs.  XftGlyphExtents limits
+     this to INT_MAX, and Emacs limits it further.  Divide INT_MAX - 1
+     by 2 because x_produce_glyphs computes glyph_len * 2 + 1.  Divide
+     the size by MAX_MULTIBYTE_LENGTH because encode_terminal_code
+     multiplies glyph_len by MAX_MULTIBYTE_LENGTH.  */
+  enum {
+    GLYPH_LEN_MAX = min ((INT_MAX - 1) / 2,
+			 min (PTRDIFF_MAX, SIZE_MAX) / MAX_MULTIBYTE_LENGTH)
+  };
 
   /* PROP should be
 	Form-A: ((LENGTH . COMPONENTS) . MODIFICATION-FUNC)
@@ -258,21 +269,9 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
   /* This composition is a new one.  We must register it.  */
 
   /* Check if we have sufficient memory to store this information.  */
-  if (composition_table_size == 0)
-    {
-      composition_table_size = 256;
-      composition_table
-	= (struct composition **) xmalloc (sizeof (composition_table[0])
-					   * composition_table_size);
-    }
-  else if (composition_table_size <= n_compositions)
-    {
-      composition_table_size += 256;
-      composition_table
-	= (struct composition **) xrealloc (composition_table,
-					    sizeof (composition_table[0])
-					    * composition_table_size);
-    }
+  if (composition_table_size <= n_compositions)
+    composition_table = xpalloc (composition_table, &composition_table_size,
+				 1, -1, sizeof *composition_table);
 
   key_contents = XVECTOR (key)->contents;
 
@@ -316,20 +315,26 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
   /* Register the composition in composition_hash_table.  */
   hash_index = hash_put (hash_table, key, id, hash_code);
 
+  method = (NILP (components)
+	    ? COMPOSITION_RELATIVE
+	    : ((INTEGERP (components) || STRINGP (components))
+	       ? COMPOSITION_WITH_ALTCHARS
+	       : COMPOSITION_WITH_RULE_ALTCHARS));
+
+  glyph_len = (method == COMPOSITION_WITH_RULE_ALTCHARS
+	       ? (ASIZE (key) + 1) / 2
+	       : ASIZE (key));
+
+  if (GLYPH_LEN_MAX < glyph_len)
+    memory_full (SIZE_MAX);
+
   /* Register the composition in composition_table.  */
   cmp = (struct composition *) xmalloc (sizeof (struct composition));
 
-  cmp->method = (NILP (components)
-		 ? COMPOSITION_RELATIVE
-		 : ((INTEGERP (components) || STRINGP (components))
-		    ? COMPOSITION_WITH_ALTCHARS
-		    : COMPOSITION_WITH_RULE_ALTCHARS));
+  cmp->method = method;
   cmp->hash_index = hash_index;
-  glyph_len = (cmp->method == COMPOSITION_WITH_RULE_ALTCHARS
-	       ? (ASIZE (key) + 1) / 2
-	       : ASIZE (key));
   cmp->glyph_len = glyph_len;
-  cmp->offsets = (short *) xmalloc (sizeof (short) * glyph_len * 2);
+  cmp->offsets = xnmalloc (glyph_len, 2 * sizeof *cmp->offsets);
   cmp->font = NULL;
 
   if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
@@ -656,7 +661,7 @@ static Lisp_Object
 gstring_lookup_cache (Lisp_Object header)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
-  EMACS_INT i = hash_lookup (h, header, NULL);
+  ptrdiff_t i = hash_lookup (h, header, NULL);
 
   return (i >= 0 ? HASH_VALUE (h, i) : Qnil);
 }
@@ -691,7 +696,7 @@ composition_gstring_put_cache (Lisp_Object gstring, EMACS_INT len)
 }
 
 Lisp_Object
-composition_gstring_from_id (int id)
+composition_gstring_from_id (ptrdiff_t id)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
 

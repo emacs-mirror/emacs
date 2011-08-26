@@ -1358,24 +1358,17 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     /* If we have the form --display=NAME,
        convert it into  -d name.
        This requires inserting a new element into argv.  */
-    if (displayname != 0 && skip_args - count_before == 1)
+    if (displayname && count_before < skip_args)
       {
-	char **new = (char **) xmalloc (sizeof (char *) * (argc + 2));
-	int j;
-
-	for (j = 0; j < count_before + 1; j++)
-	  new[j] = argv[j];
-	new[count_before + 1] = (char *) "-d";
-	new[count_before + 2] = displayname;
-	for (j = count_before + 2; j <argc; j++)
-	  new[j + 1] = argv[j];
-	argv = new;
-	argc++;
+	if (skip_args == count_before + 1)
+	  {
+	    memmove (argv + count_before + 3, argv + count_before + 2,
+		     (argc - (count_before + 2)) * sizeof *argv);
+	    argv[count_before + 2] = displayname;
+	    argc++;
+	  }
+	argv[count_before + 1] = (char *) "-d";
       }
-    /* Change --display to -d, when its arg is separate.  */
-    else if (displayname != 0 && skip_args > count_before
-	     && argv[count_before + 1][1] == '-')
-      argv[count_before + 1] = (char *) "-d";
 
     if (! no_site_lisp)
       {
@@ -1838,8 +1831,8 @@ sort_args (int argc, char **argv)
      0 for an option that takes no arguments,
      1 for an option that takes one argument, etc.
      -1 for an ordinary non-option argument.  */
-  int *options = (int *) xmalloc (sizeof (int) * argc);
-  int *priority = (int *) xmalloc (sizeof (int) * argc);
+  int *options = xnmalloc (argc, sizeof *options);
+  int *priority = xnmalloc (argc, sizeof *priority);
   int to = 1;
   int incoming_used = 1;
   int from;

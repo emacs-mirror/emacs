@@ -46,6 +46,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "syssignal.h"
 #include "termhooks.h"		/* For struct terminal.  */
 #include <setjmp.h>
+#include <verify.h>
 
 /* GC_MALLOC_CHECK defined means perform validity checks of malloc'd
    memory.  Can do this only if using gmalloc.c.  */
@@ -730,6 +731,93 @@ xfree (POINTER_TYPE *block)
   /* We don't call refill_memory_reserve here
      because that duplicates doing so in emacs_blocked_free
      and the criterion should go there.  */
+}
+
+
+/* Other parts of Emacs pass large int values to allocator functions
+   expecting ptrdiff_t.  This is portable in practice, but check it to
+   be safe.  */
+verify (INT_MAX <= PTRDIFF_MAX);
+
+
+/* Allocate an array of NITEMS items, each of size ITEM_SIZE.
+   Signal an error on memory exhaustion, and block interrupt input.  */
+
+void *
+xnmalloc (ptrdiff_t nitems, ptrdiff_t item_size)
+{
+  xassert (0 <= nitems && 0 < item_size);
+  if (min (PTRDIFF_MAX, SIZE_MAX) / item_size < nitems)
+    memory_full (SIZE_MAX);
+  return xmalloc (nitems * item_size);
+}
+
+
+/* Reallocate an array PA to make it of NITEMS items, each of size ITEM_SIZE.
+   Signal an error on memory exhaustion, and block interrupt input.  */
+
+void *
+xnrealloc (void *pa, ptrdiff_t nitems, ptrdiff_t item_size)
+{
+  xassert (0 <= nitems && 0 < item_size);
+  if (min (PTRDIFF_MAX, SIZE_MAX) / item_size < nitems)
+    memory_full (SIZE_MAX);
+  return xrealloc (pa, nitems * item_size);
+}
+
+
+/* Grow PA, which points to an array of *NITEMS items, and return the
+   location of the reallocated array, updating *NITEMS to reflect its
+   new size.  The new array will contain at least NITEMS_INCR_MIN more
+   items, but will not contain more than NITEMS_MAX items total.
+   ITEM_SIZE is the size of each item, in bytes.
+
+   ITEM_SIZE and NITEMS_INCR_MIN must be positive.  *NITEMS must be
+   nonnegative.  If NITEMS_MAX is -1, it is treated as if it were
+   infinity.
+
+   If PA is null, then allocate a new array instead of reallocating
+   the old one.  Thus, to grow an array A without saving its old
+   contents, invoke xfree (A) immediately followed by xgrowalloc (0,
+   &NITEMS, ...).
+
+   Block interrupt input as needed.  If memory exhaustion occurs, set
+   *NITEMS to zero if PA is null, and signal an error (i.e., do not
+   return).  */
+
+void *
+xpalloc (void *pa, ptrdiff_t *nitems, ptrdiff_t nitems_incr_min,
+	 ptrdiff_t nitems_max, ptrdiff_t item_size)
+{
+  /* The approximate size to use for initial small allocation
+     requests.  This is the largest "small" request for the GNU C
+     library malloc.  */
+  enum { DEFAULT_MXFAST = 64 * sizeof (size_t) / 4 };
+
+  /* If the array is tiny, grow it to about (but no greater than)
+     DEFAULT_MXFAST bytes.  Otherwise, grow it by about 50%.  */
+  ptrdiff_t n = *nitems;
+  ptrdiff_t tiny_max = DEFAULT_MXFAST / item_size - n;
+  ptrdiff_t half_again = n >> 1;
+  ptrdiff_t incr_estimate = max (tiny_max, half_again);
+
+  /* Adjust the increment according to three constraints: NITEMS_INCR_MIN,
+     NITEMS_MAX, and what the C language can represent safely.  */
+  ptrdiff_t C_language_max = min (PTRDIFF_MAX, SIZE_MAX) / item_size;
+  ptrdiff_t n_max = (0 <= nitems_max && nitems_max < C_language_max
+		     ? nitems_max : C_language_max);
+  ptrdiff_t nitems_incr_max = n_max - n;
+  ptrdiff_t incr = max (nitems_incr_min, min (incr_estimate, nitems_incr_max));
+
+  xassert (0 < item_size && 0 < nitems_incr_min && 0 <= n && -1 <= nitems_max);
+  if (! pa)
+    *nitems = 0;
+  if (nitems_incr_max < incr)
+    memory_full (SIZE_MAX);
+  n += incr;
+  pa = xrealloc (pa, n * item_size);
+  *nitems = n;
+  return pa;
 }
 
 

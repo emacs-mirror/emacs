@@ -2513,7 +2513,7 @@ Display a menu of files and URLs mentioned in current buffer, then
 find the one you select (@code{ffap-menu}).
 @end table
 
-@node Amusements, Customization, Hyperlinking, Top
+@node Amusements, Packages, Hyperlinking, Top
 @section Other Amusements
 @cindex boredom
 

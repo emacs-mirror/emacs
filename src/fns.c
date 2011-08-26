@@ -602,7 +602,7 @@ concat (ptrdiff_t nargs, Lisp_Object *args,
 
   prev = Qnil;
   if (STRINGP (val))
-    SAFE_ALLOCA (textprops, struct textprop_rec *, sizeof (struct textprop_rec) * nargs);
+    SAFE_NALLOCA (textprops, 1, nargs);
 
   for (argnum = 0; argnum < nargs; argnum++)
     {
@@ -3395,11 +3395,13 @@ check_hash_table (Lisp_Object obj)
 
 
 /* Value is the next integer I >= N, N >= 0 which is "almost" a prime
-   number.  */
+   number.  A number is "almost" a prime number if it is not divisible
+   by any integer in the range 2 .. (NEXT_ALMOST_PRIME_LIMIT - 1).  */
 
 EMACS_INT
 next_almost_prime (EMACS_INT n)
 {
+  verify (NEXT_ALMOST_PRIME_LIMIT == 11);
   for (n |= 1; ; n += 2)
     if (n % 3 != 0 && n % 5 != 0 && n % 7 != 0)
       return n;
@@ -3787,11 +3789,11 @@ maybe_resize_hash_table (struct Lisp_Hash_Table *h)
    the hash code of KEY.  Value is the index of the entry in H
    matching KEY, or -1 if not found.  */
 
-EMACS_INT
+ptrdiff_t
 hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, EMACS_UINT *hash)
 {
   EMACS_UINT hash_code;
-  EMACS_INT start_of_bucket;
+  ptrdiff_t start_of_bucket;
   Lisp_Object idx;
 
   hash_code = h->hashfn (h, key);
@@ -3821,11 +3823,11 @@ hash_lookup (struct Lisp_Hash_Table *h, Lisp_Object key, EMACS_UINT *hash)
    HASH is a previously computed hash code of KEY.
    Value is the index of the entry in H matching KEY.  */
 
-EMACS_INT
+ptrdiff_t
 hash_put (struct Lisp_Hash_Table *h, Lisp_Object key, Lisp_Object value,
 	  EMACS_UINT hash)
 {
-  EMACS_INT start_of_bucket, i;
+  ptrdiff_t start_of_bucket, i;
 
   xassert ((hash & ~INTMASK) == 0);
 
@@ -4482,7 +4484,7 @@ If KEY is not found, return DFLT which defaults to nil.  */)
   (Lisp_Object key, Lisp_Object table, Lisp_Object dflt)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
-  EMACS_INT i = hash_lookup (h, key, NULL);
+  ptrdiff_t i = hash_lookup (h, key, NULL);
   return i >= 0 ? HASH_VALUE (h, i) : dflt;
 }
 
@@ -4494,7 +4496,7 @@ VALUE.  In any case, return VALUE.  */)
   (Lisp_Object key, Lisp_Object value, Lisp_Object table)
 {
   struct Lisp_Hash_Table *h = check_hash_table (table);
-  EMACS_INT i;
+  ptrdiff_t i;
   EMACS_UINT hash;
 
   i = hash_lookup (h, key, &hash);

@@ -326,7 +326,7 @@ usage: (char-width CHAR)  */)
   disp = dp ? DISP_CHAR_VECTOR (dp, c) : Qnil;
 
   if (VECTORP (disp))
-    width = ASIZE (disp);
+    width = sanitize_char_width (ASIZE (disp));
   else
     width = CHAR_WIDTH (c);
 
@@ -358,7 +358,7 @@ c_string_width (const unsigned char *str, EMACS_INT len, int precision,
 	{
 	  val = DISP_CHAR_VECTOR (dp, c);
 	  if (VECTORP (val))
-	    thiswidth = ASIZE (val);
+	    thiswidth = sanitize_char_width (ASIZE (val));
 	  else
 	    thiswidth = CHAR_WIDTH (c);
 	}
@@ -423,7 +423,7 @@ lisp_string_width (Lisp_Object string, EMACS_INT precision,
     {
       EMACS_INT chars, bytes, thiswidth;
       Lisp_Object val;
-      int cmp_id;
+      ptrdiff_t cmp_id;
       EMACS_INT ignore, end;
 
       if (find_composition (i, -1, &ignore, &end, &val, string)
@@ -451,7 +451,7 @@ lisp_string_width (Lisp_Object string, EMACS_INT precision,
 	    {
 	      val = DISP_CHAR_VECTOR (dp, c);
 	      if (VECTORP (val))
-		thiswidth = ASIZE (val);
+		thiswidth = sanitize_char_width (ASIZE (val));
 	      else
 		thiswidth = CHAR_WIDTH (c);
 	    }
@@ -902,7 +902,7 @@ usage: (string &rest CHARACTERS)  */)
   Lisp_Object str;
   USE_SAFE_ALLOCA;
 
-  SAFE_ALLOCA (buf, unsigned char *, MAX_MULTIBYTE_LENGTH * n);
+  SAFE_NALLOCA (buf, MAX_MULTIBYTE_LENGTH, n);
   p = buf;
 
   for (i = 0; i < n; i++)

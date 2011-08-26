@@ -852,18 +852,26 @@ using `package-compute-transaction'."
        (t
 	(error "Unknown package kind: %s" (symbol-name kind)))))))
 
+(defvar package--initialized nil)
+
 ;;;###autoload
 (defun package-install (name)
   "Install the package named NAME.
-Interactively, prompt for the package name.
-The package is found on one of the archives in `package-archives'."
+NAME should be the name of one of the available packages in an
+archive in `package-archives'.  Interactively, prompt for NAME."
   (interactive
-   (list (intern (completing-read "Install package: "
-				  (mapcar (lambda (elt)
-					    (cons (symbol-name (car elt))
-						  nil))
-					  package-archive-contents)
-				  nil t))))
+   (progn
+     ;; Initialize the package system to get the list of package
+     ;; symbols for completion.
+     (unless package--initialized
+       (package-initialize t))
+     (list (intern (completing-read
+		    "Install package: "
+		    (mapcar (lambda (elt)
+			      (cons (symbol-name (car elt))
+				    nil))
+			    package-archive-contents)
+		    nil t)))))
   (let ((pkg-desc (assq name package-archive-contents)))
     (unless pkg-desc
       (error "Package `%s' is not available for installation"
@@ -1075,8 +1083,6 @@ makes them available for download."
       (error (message "Failed to download `%s' archive."
 		      (car archive)))))
   (package-read-all-archive-contents))
-
-(defvar package--initialized nil)
 
 ;;;###autoload
 (defun package-initialize (&optional no-activate)

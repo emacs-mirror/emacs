@@ -2637,14 +2637,14 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	      if (saved_doc_string_size == 0)
 		{
+		  saved_doc_string = (char *) xmalloc (nskip + extra);
 		  saved_doc_string_size = nskip + extra;
-		  saved_doc_string = (char *) xmalloc (saved_doc_string_size);
 		}
 	      if (nskip > saved_doc_string_size)
 		{
-		  saved_doc_string_size = nskip + extra;
 		  saved_doc_string = (char *) xrealloc (saved_doc_string,
-							saved_doc_string_size);
+							nskip + extra);
+		  saved_doc_string_size = nskip + extra;
 		}
 
 	      saved_doc_string_position = file_tell (instream);
@@ -2907,7 +2907,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
 		  memory_full (SIZE_MAX);
 		read_buffer = (char *) xrealloc (read_buffer,
-						 read_buffer_size *= 2);
+						 read_buffer_size * 2);
+		read_buffer_size *= 2;
 		p = read_buffer + offset;
 		end = read_buffer + read_buffer_size;
 	      }
@@ -3050,7 +3051,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
 		    memory_full (SIZE_MAX);
 		  read_buffer = (char *) xrealloc (read_buffer,
-						   read_buffer_size *= 2);
+						   read_buffer_size * 2);
+		  read_buffer_size *= 2;
 		  p = read_buffer + offset;
 		  end = read_buffer + read_buffer_size;
 		}
@@ -3080,7 +3082,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
 		memory_full (SIZE_MAX);
 	      read_buffer = (char *) xrealloc (read_buffer,
-					       read_buffer_size *= 2);
+					       read_buffer_size * 2);
+	      read_buffer_size *= 2;
 	      p = read_buffer + offset;
 	      end = read_buffer + read_buffer_size;
 	    }
@@ -3962,6 +3965,7 @@ void
 init_obarray (void)
 {
   Lisp_Object oblength;
+  ptrdiff_t size = 100 + MAX_MULTIBYTE_LENGTH;
 
   XSETFASTINT (oblength, OBARRAY_SIZE);
 
@@ -3994,8 +3998,8 @@ init_obarray (void)
 
   DEFSYM (Qvariable_documentation, "variable-documentation");
 
-  read_buffer_size = 100 + MAX_MULTIBYTE_LENGTH;
-  read_buffer = (char *) xmalloc (read_buffer_size);
+  read_buffer = (char *) xmalloc (size);
+  read_buffer_size = size;
 }
 
 void

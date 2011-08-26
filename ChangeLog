@@ -1,3 +1,7 @@
+2011-08-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Add -MP to DEPFLAGS (Bug#9372).
+
 2011-08-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Add header check: sys/socket.h (Bug#8477),

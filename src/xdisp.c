@@ -2478,10 +2478,7 @@ init_iterator (struct it *it, struct window *w,
   else if (INTEGERP (w->redisplay_end_trigger))
     it->redisplay_end_trigger_charpos = XINT (w->redisplay_end_trigger);
 
-  /* Correct bogus values of tab_width.  */
-  it->tab_width = XINT (BVAR (current_buffer, tab_width));
-  if (it->tab_width <= 0 || it->tab_width > 1000)
-    it->tab_width = 8;
+  it->tab_width = SANE_TAB_WIDTH (current_buffer);
 
   /* Are lines in the display truncated?  */
   if (base_face_id != DEFAULT_FACE_ID
@@ -10440,13 +10437,14 @@ static void
 store_mode_line_noprop_char (char c)
 {
   /* If output position has reached the end of the allocated buffer,
-     double the buffer's size.  */
+     increase the buffer's size.  */
   if (mode_line_noprop_ptr == mode_line_noprop_buf_end)
     {
-      int len = MODE_LINE_NOPROP_LEN (0);
-      int new_size = 2 * len * sizeof *mode_line_noprop_buf;
-      mode_line_noprop_buf = (char *) xrealloc (mode_line_noprop_buf, new_size);
-      mode_line_noprop_buf_end = mode_line_noprop_buf + new_size;
+      ptrdiff_t len = MODE_LINE_NOPROP_LEN (0);
+      ptrdiff_t size = len;
+      mode_line_noprop_buf =
+	xpalloc (mode_line_noprop_buf, &size, 1, STRING_BYTES_BOUND, 1);
+      mode_line_noprop_buf_end = mode_line_noprop_buf + size;
       mode_line_noprop_ptr = mode_line_noprop_buf + len;
     }
 
@@ -10508,9 +10506,9 @@ x_consider_frame_title (Lisp_Object frame)
       /* Do we have more than one visible frame on this X display?  */
       Lisp_Object tail;
       Lisp_Object fmt;
-      int title_start;
+      ptrdiff_t title_start;
       char *title;
-      int len;
+      ptrdiff_t len;
       struct it it;
       int count = SPECPDL_INDEX ();
 
@@ -15099,6 +15097,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	       || (XFASTINT (w->last_modified) >= MODIFF
 		   && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF)))
     {
+      int d1, d2, d3, d4, d5, d6;
 
       /* If first window line is a continuation line, and window start
 	 is inside the modified region, but the first change is before
@@ -15120,7 +15119,14 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	     compute_window_start_on_continuation_line.  (See also
 	     bug#197).  */
 	  && XMARKER (w->start)->buffer == current_buffer
-	  && compute_window_start_on_continuation_line (w))
+	  && compute_window_start_on_continuation_line (w)
+	  /* It doesn't make sense to force the window start like we
+	     do at label force_start if it is already known that point
+	     will not be visible in the resulting window, because
+	     doing so will move point from its correct position
+	     instead of scrolling the window to bring point into view.
+	     See bug#9324.  */
+	  && pos_visible_p (w, PT, &d1, &d2, &d3, &d4, &d5, &d6))
 	{
 	  w->force_start = Qt;
 	  SET_TEXT_POS_FROM_MARKER (startp, w->start);
@@ -21396,7 +21402,7 @@ calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 	  if (FRAME_WINDOW_P (it->f)
 	      && valid_image_p (prop))
 	    {
-	      int id = lookup_image (it->f, prop);
+	      ptrdiff_t id = lookup_image (it->f, prop);
 	      struct image *img = IMAGE_FROM_ID (it->f, id);
 
 	      return OK_PIXELS (width_p ? img->width : img->height);
@@ -22268,7 +22274,7 @@ compute_overhangs_and_x (struct glyph_string *s, int x, int backward_p)
   do {									    \
     int face_id = (row)->glyphs[area][START].face_id;			    \
     struct face *base_face = FACE_FROM_ID (f, face_id);			    \
-    int cmp_id = (row)->glyphs[area][START].u.cmp.id;			    \
+    ptrdiff_t cmp_id = (row)->glyphs[area][START].u.cmp.id;		    \
     struct composition *cmp = composition_table[cmp_id];		    \
     XChar2b *char2b;							    \
     struct glyph_string *first_s IF_LINT (= NULL);			    \

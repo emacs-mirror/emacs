@@ -145,7 +145,8 @@ static Lisp_Object Qcompound_text, Qcancel_timer;
 Lisp_Object Qfont_param;
 
 #if GLYPH_DEBUG
-static int image_cache_refcount, dpyinfo_refcount;
+static ptrdiff_t image_cache_refcount;
+static int dpyinfo_refcount;
 #endif
 
 #if defined (USE_GTK) && defined (HAVE_FREETYPE)
@@ -1470,7 +1471,8 @@ x_set_scroll_bar_background (struct frame *f, Lisp_Object value, Lisp_Object old
    the result should be `COMPOUND_TEXT'.  */
 
 static unsigned char *
-x_encode_text (Lisp_Object string, Lisp_Object coding_system, int selectionp, int *text_bytes, int *stringp, int *freep)
+x_encode_text (Lisp_Object string, Lisp_Object coding_system, int selectionp,
+	       ptrdiff_t *text_bytes, int *stringp, int *freep)
 {
   int result = string_xstring_p (string);
   struct coding_system coding;
@@ -1488,8 +1490,8 @@ x_encode_text (Lisp_Object string, Lisp_Object coding_system, int selectionp, in
   coding.mode |= (CODING_MODE_SAFE_ENCODING | CODING_MODE_LAST_BLOCK);
   /* We suppress producing escape sequences for composition.  */
   coding.common_flags &= ~CODING_ANNOTATION_MASK;
+  coding.destination = xnmalloc (SCHARS (string), 2);
   coding.dst_bytes = SCHARS (string) * 2;
-  coding.destination = (unsigned char *) xmalloc (coding.dst_bytes);
   encode_coding_object (&coding, string, 0, 0,
 			SCHARS (string), SBYTES (string), Qnil);
   *text_bytes = coding.produced;
@@ -1511,7 +1513,8 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
       BLOCK_INPUT;
       {
 	XTextProperty text, icon;
-	int bytes, stringp;
+	ptrdiff_t bytes;
+	int stringp;
         int do_free_icon_value = 0, do_free_text_value = 0;
 	Lisp_Object coding_system;
 	Lisp_Object encoded_name;
@@ -1550,6 +1553,8 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	text.format = 8;
 	text.nitems = bytes;
+	if (text.nitems != bytes)
+	  error ("Window name too large");
 
 	if (!STRINGP (f->icon_name))
 	  {
@@ -1565,6 +1570,8 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	    icon.format = 8;
 	    icon.nitems = bytes;
+	    if (icon.nitems != bytes)
+	      error ("Icon name too large");
 
 	    encoded_icon_name = ENCODE_UTF_8 (f->icon_name);
 	  }
@@ -4193,21 +4200,19 @@ FRAME.  Default is to change on the edit X window.  */)
 
   if (CONSP (value))
     {
+      ptrdiff_t elsize;
+
       nelements = x_check_property_data (value);
       if (nelements == -1)
         error ("Bad data in VALUE, must be number, string or cons");
 
-      if (element_format == 8)
-        data = (unsigned char *) xmalloc (nelements);
-      else if (element_format == 16)
-        data = (unsigned char *) xmalloc (nelements*2);
-      else /* format == 32 */
-        /* The man page for XChangeProperty:
-               "If the specified format is 32, the property data must be a
-                long array."
-           This applies even if long is more than 64 bits.  The X library
-           converts to 32 bits before sending to the X server.  */
-        data = (unsigned char *) xmalloc (nelements * sizeof(long));
+      /* The man page for XChangeProperty:
+	     "If the specified format is 32, the property data must be a
+	      long array."
+	 This applies even if long is more than 32 bits.  The X library
+	 converts to 32 bits before sending to the X server.  */
+      elsize = element_format == 32 ? sizeof (long) : element_format >> 3;
+      data = xnmalloc (nelements, elsize);
 
       x_fill_property_data (FRAME_X_DISPLAY (f), value, data, element_format);
     }
@@ -4215,7 +4220,9 @@ FRAME.  Default is to change on the edit X window.  */)
     {
       CHECK_STRING (value);
       data = SDATA (value);
-      nelements = SCHARS (value);
+      if (INT_MAX < SBYTES (value))
+	error ("VALUE too long");
+      nelements = SBYTES (value);
     }
 
   BLOCK_INPUT;

@@ -1,3 +1,9 @@
+2011-08-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mailcap.el (mailcap-mime-data): Regexp-quote MIME subtype.
+
+	* gnus-msg.el (gnus-setup-message): Remove extra apostrophe.
+
 2011-08-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnmail.el (nnmail-get-new-mail-1): If one mail source bugs out,

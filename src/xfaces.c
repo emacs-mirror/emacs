@@ -403,7 +403,7 @@ static int next_lface_id;
 /* A vector mapping Lisp face Id's to face names.  */
 
 static Lisp_Object *lface_id_to_name;
-static int lface_id_to_name_size;
+static ptrdiff_t lface_id_to_name_size;
 
 /* TTY color-related functions (defined in tty-colors.el).  */
 
@@ -2682,12 +2682,10 @@ Value is a vector of face attributes.  */)
 	 The mapping from Lisp face to Lisp face id is given by the
 	 property `face' of the Lisp face name.  */
       if (next_lface_id == lface_id_to_name_size)
-	{
-	  int new_size = max (50, 2 * lface_id_to_name_size);
-	  int sz = new_size * sizeof *lface_id_to_name;
-	  lface_id_to_name = (Lisp_Object *) xrealloc (lface_id_to_name, sz);
-	  lface_id_to_name_size = new_size;
-	}
+	lface_id_to_name =
+	  xpalloc (lface_id_to_name, &lface_id_to_name_size, 1,
+		   min (INT_MAX, MOST_POSITIVE_FIXNUM),
+		   sizeof *lface_id_to_name);
 
       lface_id_to_name[next_lface_id] = face;
       Fput (face, Qface, make_number (next_lface_id));
@@ -4428,15 +4426,8 @@ cache_face (struct face_cache *c, struct face *face, unsigned int hash)
   if (i == c->used)
     {
       if (c->used == c->size)
-	{
-	  int new_size, sz;
-	  new_size = min (2 * c->size, MAX_FACE_ID);
-	  if (new_size == c->size)
-	    abort ();  /* Alternatives?  ++kfs */
-	  sz = new_size * sizeof *c->faces_by_id;
-	  c->faces_by_id = (struct face **) xrealloc (c->faces_by_id, sz);
-	  c->size = new_size;
-	}
+	c->faces_by_id = xpalloc (c->faces_by_id, &c->size, 1, MAX_FACE_ID,
+				  sizeof *c->faces_by_id);
       c->used++;
     }
 

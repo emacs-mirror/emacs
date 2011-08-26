@@ -1399,7 +1399,7 @@ silly_event_symbol_error (Lisp_Object c)
    some systems, static gets macro-defined to be the empty string.
    Ickypoo.  */
 static Lisp_Object *cmm_modes = NULL, *cmm_maps = NULL;
-static int cmm_size = 0;
+static ptrdiff_t cmm_size = 0;
 
 /* Store a pointer to an array of the currently active minor modes in
    *modeptr, a pointer to an array of the keymaps of the currently
@@ -1419,10 +1419,10 @@ static int cmm_size = 0;
    loop.  Instead, we'll use realloc/malloc and silently truncate the
    list, let the key sequence be read, and hope some other piece of
    code signals the error.  */
-int
+ptrdiff_t
 current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 {
-  int i = 0;
+  ptrdiff_t i = 0;
   int list_number = 0;
   Lisp_Object alist, assoc, var, val;
   Lisp_Object emulation_alists;
@@ -1465,8 +1465,15 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 
 	    if (i >= cmm_size)
 	      {
-		int newsize, allocsize;
+		ptrdiff_t newsize, allocsize;
 		Lisp_Object *newmodes, *newmaps;
+
+		/* Check for size calculation overflow.  Other code
+		   (e.g., read_key_sequence) adds 3 to the count
+		   later, so subtract 3 from the limit here.  */
+		if (min (PTRDIFF_MAX, SIZE_MAX) / (2 * sizeof *newmodes) - 3
+		    < cmm_size)
+		  break;
 
 		newsize = cmm_size == 0 ? 30 : cmm_size * 2;
 		allocsize = newsize * sizeof *newmodes;
