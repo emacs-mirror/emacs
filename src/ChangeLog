@@ -1,3 +1,8 @@
+2011-08-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): Don't force window start if point
+	will be invisible in the resulting window.  (Bug#9324)
+
 2011-08-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (compute_display_string_pos): Return 2 in DISP_PROP when
