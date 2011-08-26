@@ -1704,6 +1704,11 @@ typedef struct {
 #define NUMBERP(x) (INTEGERP (x) || FLOATP (x))
 #define NATNUMP(x) (INTEGERP (x) && XINT (x) >= 0)
 
+#define RANGED_INTEGERP(lo, x, hi) \
+  (INTEGERP (x) && (lo) <= XINT (x) && XINT (x) <= (hi))
+#define TYPE_RANGED_INTEGERP(type, x) \
+  RANGED_INTEGERP (TYPE_MINIMUM (type), x, TYPE_MAXIMUM (type))
+
 #define INTEGERP(x) (LISP_INT_TAG_P (XTYPE ((x))))
 #define SYMBOLP(x) (XTYPE ((x)) == Lisp_Symbol)
 #define MISCP(x) (XTYPE ((x)) == Lisp_Misc)
@@ -2551,6 +2556,7 @@ extern void syms_of_syntax (void);
 
 /* Defined in fns.c */
 extern Lisp_Object QCrehash_size, QCrehash_threshold;
+enum { NEXT_ALMOST_PRIME_LIMIT = 11 };
 extern EMACS_INT next_almost_prime (EMACS_INT);
 extern Lisp_Object larger_vector (Lisp_Object, EMACS_INT, Lisp_Object);
 extern void sweep_weak_hash_tables (void);
@@ -2562,8 +2568,8 @@ EMACS_UINT sxhash (Lisp_Object, int);
 Lisp_Object make_hash_table (Lisp_Object, Lisp_Object, Lisp_Object,
                              Lisp_Object, Lisp_Object, Lisp_Object,
                              Lisp_Object);
-EMACS_INT hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, EMACS_UINT *);
-EMACS_INT hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
+ptrdiff_t hash_lookup (struct Lisp_Hash_Table *, Lisp_Object, EMACS_UINT *);
+ptrdiff_t hash_put (struct Lisp_Hash_Table *, Lisp_Object, Lisp_Object,
 		    EMACS_UINT);
 void init_weak_hash_tables (void);
 extern void init_fns (void);
@@ -3569,6 +3575,9 @@ extern int immediate_quit;	    /* Nonzero means ^G can quit instantly */
 extern POINTER_TYPE *xmalloc (size_t);
 extern POINTER_TYPE *xrealloc (POINTER_TYPE *, size_t);
 extern void xfree (POINTER_TYPE *);
+extern void *xnmalloc (ptrdiff_t, ptrdiff_t);
+extern void *xnrealloc (void *, ptrdiff_t, ptrdiff_t);
+extern void *xpalloc (void *, ptrdiff_t *, ptrdiff_t, ptrdiff_t, ptrdiff_t);
 
 extern char *xstrdup (const char *);
 
@@ -3684,6 +3693,23 @@ extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 	record_unwind_protect (safe_alloca_unwind,	  \
 			       make_save_value (buf, 0)); \
       }							  \
+  } while (0)
+
+/* SAFE_NALLOCA sets BUF to a newly allocated array of MULTIPLIER *
+   NITEMS items, each of the same type as *BUF.  MULTIPLIER must
+   positive.  The code is tuned for MULTIPLIER being a constant.  */
+
+#define SAFE_NALLOCA(buf, multiplier, nitems)			\
+  do {								\
+    if ((nitems) <= MAX_ALLOCA / sizeof *(buf) / (multiplier))	\
+      (buf) = alloca (sizeof *(buf) * (multiplier) * (nitems));	\
+    else							\
+      {								 \
+	(buf) = xnmalloc (nitems, sizeof *(buf) * (multiplier)); \
+	sa_must_free = 1;					 \
+	record_unwind_protect (safe_alloca_unwind,		 \
+			       make_save_value (buf, 0));	 \
+      }								 \
   } while (0)
 
 /* SAFE_FREE frees xmalloced memory and enables GC as needed.  */

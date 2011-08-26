@@ -2912,7 +2912,7 @@ symbolic notation, like the `chmod' command from GNU Coreutils.  */)
 
   encoded_absname = ENCODE_FILE (absname);
 
-  if (chmod (SSDATA (encoded_absname), XINT (mode)) < 0)
+  if (chmod (SSDATA (encoded_absname), XINT (mode) & 07777) < 0)
     report_file_error ("Doing chmod", Fcons (absname, Qnil));
 
   return Qnil;
@@ -5114,11 +5114,11 @@ auto_save_1 (void)
     {
       if (stat (SSDATA (BVAR (current_buffer, filename)), &st) >= 0)
 	/* But make sure we can overwrite it later!  */
-	auto_save_mode_bits = st.st_mode | 0600;
+	auto_save_mode_bits = (st.st_mode | 0600) & 0777;
       else if ((modes = Ffile_modes (BVAR (current_buffer, filename)),
 		INTEGERP (modes)))
 	/* Remote files don't cooperate with stat.  */
-	auto_save_mode_bits = XINT (modes) | 0600;
+	auto_save_mode_bits = (XINT (modes) | 0600) & 0777;
     }
 
   return

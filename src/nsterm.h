@@ -416,8 +416,8 @@ struct ns_bitmap_record
 /* this to map between emacs color indices and NSColor objects */
 struct ns_color_table
 {
-  unsigned int size;
-  unsigned int avail;
+  ptrdiff_t size;
+  ptrdiff_t avail;
 #ifdef __OBJC__
   NSColor **colors;
   NSMutableSet *empty_indices;

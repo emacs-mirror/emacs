@@ -39,7 +39,7 @@ Lisp_Object Qfunction_documentation;
 extern Lisp_Object Qclosure;
 /* Buffer used for reading from documentation file.  */
 static char *get_doc_string_buffer;
-static int get_doc_string_buffer_size;
+static ptrdiff_t get_doc_string_buffer_size;
 
 static unsigned char *read_bytecode_pointer;
 static Lisp_Object Fdocumentation_property (Lisp_Object, Lisp_Object,
@@ -166,20 +166,19 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
   p = get_doc_string_buffer;
   while (1)
     {
-      EMACS_INT space_left = (get_doc_string_buffer_size
+      ptrdiff_t space_left = (get_doc_string_buffer_size - 1
 			      - (p - get_doc_string_buffer));
       int nread;
 
       /* Allocate or grow the buffer if we need to.  */
-      if (space_left == 0)
+      if (space_left <= 0)
 	{
-	  EMACS_INT in_buffer = p - get_doc_string_buffer;
-	  get_doc_string_buffer_size += 16 * 1024;
-	  get_doc_string_buffer
-	    = (char *) xrealloc (get_doc_string_buffer,
-				 get_doc_string_buffer_size + 1);
+	  ptrdiff_t in_buffer = p - get_doc_string_buffer;
+	  get_doc_string_buffer =
+	    xpalloc (get_doc_string_buffer, &get_doc_string_buffer_size,
+		     16 * 1024, -1, 1);
 	  p = get_doc_string_buffer + in_buffer;
-	  space_left = (get_doc_string_buffer_size
+	  space_left = (get_doc_string_buffer_size - 1
 			- (p - get_doc_string_buffer));
 	}
 
@@ -713,16 +712,16 @@ a new string, without any text properties, is returned.  */)
   int changed = 0;
   register unsigned char *strp;
   register char *bufp;
-  EMACS_INT idx;
-  EMACS_INT bsize;
+  ptrdiff_t idx;
+  ptrdiff_t bsize;
   Lisp_Object tem;
   Lisp_Object keymap;
   unsigned char *start;
-  EMACS_INT length, length_byte;
+  ptrdiff_t length, length_byte;
   Lisp_Object name;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int multibyte;
-  EMACS_INT nchars;
+  ptrdiff_t nchars;
 
   if (NILP (string))
     return Qnil;
@@ -774,7 +773,7 @@ a new string, without any text properties, is returned.  */)
 	}
       else if (strp[0] == '\\' && strp[1] == '[')
 	{
-	  EMACS_INT start_idx;
+	  ptrdiff_t start_idx;
 	  int follow_remap = 1;
 
 	  changed = 1;
@@ -813,7 +812,9 @@ a new string, without any text properties, is returned.  */)
 
 	  if (NILP (tem))	/* but not on any keys */
 	    {
-	      EMACS_INT offset = bufp - buf;
+	      ptrdiff_t offset = bufp - buf;
+	      if (STRING_BYTES_BOUND - 4 < bsize)
+		string_overflow ();
 	      buf = (char *) xrealloc (buf, bsize += 4);
 	      bufp = buf + offset;
 	      memcpy (bufp, "M-x ", 4);
@@ -836,7 +837,7 @@ a new string, without any text properties, is returned.  */)
       else if (strp[0] == '\\' && (strp[1] == '{' || strp[1] == '<'))
 	{
 	  struct buffer *oldbuf;
-	  EMACS_INT start_idx;
+	  ptrdiff_t start_idx;
 	  /* This is for computing the SHADOWS arg for describe_map_tree.  */
 	  Lisp_Object active_maps = Fcurrent_active_maps (Qnil, Qnil);
 	  Lisp_Object earlier_maps;
@@ -907,7 +908,9 @@ a new string, without any text properties, is returned.  */)
 	  length_byte = SBYTES (tem);
 	subst:
 	  {
-	    EMACS_INT offset = bufp - buf;
+	    ptrdiff_t offset = bufp - buf;
+	    if (STRING_BYTES_BOUND - length_byte < bsize)
+	      string_overflow ();
 	    buf = (char *) xrealloc (buf, bsize += length_byte);
 	    bufp = buf + offset;
 	    memcpy (bufp, start, length_byte);

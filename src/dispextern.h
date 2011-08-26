@@ -575,7 +575,7 @@ struct glyph_pool
   struct glyph *glyphs;
 
   /* Allocated size of `glyphs'.  */
-  int nglyphs;
+  ptrdiff_t nglyphs;
 
   /* Number of rows and columns in a matrix.  */
   int nrows, ncolumns;
@@ -625,7 +625,7 @@ struct glyph_matrix
   struct glyph_row *rows;
 
   /* Number of elements allocated for the vector rows above.  */
-  int rows_allocated;
+  ptrdiff_t rows_allocated;
 
   /* The number of rows used by the window if all lines were displayed
      with the smallest possible character height.  */
@@ -1240,7 +1240,7 @@ struct glyph_string
   struct composition *cmp;
 
   /* If not negative, this string describes a compos.  */
-  int cmp_id;
+  ptrdiff_t cmp_id;
 
   /* Start and end glyph indices in a glyph-string.  */
   int cmp_from, cmp_to;
@@ -1708,7 +1708,8 @@ struct face_cache
   struct face **faces_by_id;
 
   /* The allocated size, and number of used slots of faces_by_id.  */
-  int size, used;
+  ptrdiff_t size;
+  int used;
 
   /* Flag indicating that attributes of the `menu' face have been
      changed.  */
@@ -2059,7 +2060,7 @@ struct composition_it
   EMACS_INT stop_pos;
   /* ID number of the composition or glyph-string.  If negative, we
      are not iterating over a composition now.  */
-  int id;
+  ptrdiff_t id;
   /* If non-negative, character that triggers the automatic
      composition at `stop_pos', and this is an automatic composition.
      If negative, this is a static composition.  This is set to -2
@@ -2249,7 +2250,7 @@ struct it
       struct {
 	Lisp_Object object;
 	struct it_slice slice;
-	int image_id;
+	ptrdiff_t image_id;
       } image;
       /* method == GET_FROM_COMPOSITION */
       struct {
@@ -2379,7 +2380,7 @@ struct it
   enum glyphless_display_method glyphless_method;
 
   /* If what == IT_IMAGE, the id of the image to display.  */
-  int image_id;
+  ptrdiff_t image_id;
 
   /* Values from `slice' property.  */
   struct it_slice slice;
@@ -2829,7 +2830,7 @@ struct image
   EMACS_UINT hash;
 
   /* Image id of this image.  */
-  int id;
+  ptrdiff_t id;
 
   /* Hash collision chain.  */
   struct image *next, *prev;
@@ -2848,13 +2849,13 @@ struct image_cache
   struct image **images;
 
   /* Allocated size of `images'.  */
-  unsigned size;
+  ptrdiff_t size;
 
   /* Number of images in the cache.  */
-  unsigned used;
+  ptrdiff_t used;
 
   /* Reference count (number of frames sharing this cache).  */
-  int refcount;
+  ptrdiff_t refcount;
 };
 
 
@@ -3121,7 +3122,7 @@ void w32_reset_fringes (void);
 extern int x_bitmap_height (struct frame *, ptrdiff_t);
 extern int x_bitmap_width (struct frame *, ptrdiff_t);
 extern int x_bitmap_pixmap (struct frame *, ptrdiff_t);
-extern void x_reference_bitmap (struct frame *, int);
+extern void x_reference_bitmap (struct frame *, ptrdiff_t);
 extern ptrdiff_t x_create_bitmap_from_data (struct frame *, char *,
 					    unsigned int, unsigned int);
 extern ptrdiff_t x_create_bitmap_from_file (struct frame *, Lisp_Object);
@@ -3142,7 +3143,7 @@ void clear_image_caches (Lisp_Object);
 void mark_image_cache (struct image_cache *);
 int valid_image_p (Lisp_Object);
 void prepare_image_for_display (struct frame *, struct image *);
-int lookup_image (struct frame *, Lisp_Object);
+ptrdiff_t lookup_image (struct frame *, Lisp_Object);
 
 unsigned long image_background (struct image *, struct frame *,
                                 XImagePtr_or_DC ximg);

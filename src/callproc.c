@@ -252,7 +252,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  val = Qraw_text;
 	else
 	  {
-	    SAFE_ALLOCA (args2, Lisp_Object *, (nargs + 1) * sizeof *args2);
+	    SAFE_NALLOCA (args2, 1, nargs + 1);
 	    args2[0] = Qcall_process;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	    coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
@@ -726,7 +726,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	    {
 	      ptrdiff_t i;
 
-	      SAFE_ALLOCA (args2, Lisp_Object *, (nargs + 1) * sizeof *args2);
+	      SAFE_NALLOCA (args2, 1, nargs + 1);
 	      args2[0] = Qcall_process;
 	      for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	      coding_systems
@@ -1024,7 +1024,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   else
     {
       USE_SAFE_ALLOCA;
-      SAFE_ALLOCA (args2, Lisp_Object *, (nargs + 1) * sizeof *args2);
+      SAFE_NALLOCA (args2, 1, nargs + 1);
       args2[0] = Qcall_process_region;
       for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
       coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
@@ -1153,7 +1153,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
      cleaned up in the usual way. */
   {
     register char *temp;
-    register int i;
+    size_t i; /* size_t, because ptrdiff_t might overflow here!  */
 
     i = SBYTES (current_dir);
 #ifdef MSDOS

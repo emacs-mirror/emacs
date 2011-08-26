@@ -284,7 +284,7 @@ skip_invisible (EMACS_INT pos, EMACS_INT *next_boundary_p, EMACS_INT to, Lisp_Ob
     else								\
       {									\
 	if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, ch)))		\
-	  width = ASIZE (DISP_CHAR_VECTOR (dp, ch));			\
+	  width = sanitize_char_width (ASIZE (DISP_CHAR_VECTOR (dp, ch))); \
 	else								\
 	  width = CHAR_WIDTH (ch);					\
       }									\
@@ -318,15 +318,6 @@ invalidate_current_column (void)
   last_known_column_point = 0;
 }
 
-/* Return a non-outlandish value for the tab width.  */
-
-static int
-sane_tab_width (void)
-{
-  EMACS_INT n = XFASTINT (BVAR (current_buffer, tab_width));
-  return 0 < n && n <= 1000 ? n : 8;
-}
-
 EMACS_INT
 current_column (void)
 {
@@ -335,7 +326,7 @@ current_column (void)
   register int tab_seen;
   EMACS_INT post_tab;
   register int c;
-  int tab_width = sane_tab_width ();
+  int tab_width = SANE_TAB_WIDTH (current_buffer);
   int ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
   register struct Lisp_Char_Table *dp = buffer_display_table ();
 
@@ -515,7 +506,7 @@ check_display_width (EMACS_INT pos, EMACS_INT col, EMACS_INT *endpos)
 static void
 scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 {
-  int tab_width = sane_tab_width ();
+  int tab_width = SANE_TAB_WIDTH (current_buffer);
   register int ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
   register struct Lisp_Char_Table *dp = buffer_display_table ();
   int multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
@@ -732,7 +723,7 @@ string_display_width (Lisp_Object string, Lisp_Object beg, Lisp_Object end)
   register int tab_seen;
   int post_tab;
   register int c;
-  int tab_width = sane_tab_width ();
+  int tab_width = SANE_TAB_WIDTH (current_buffer);
   int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   register struct Lisp_Char_Table *dp = buffer_display_table ();
   int b, e;
@@ -808,7 +799,7 @@ The return value is COLUMN.  */)
 {
   EMACS_INT mincol;
   register EMACS_INT fromcol;
-  int tab_width = sane_tab_width ();
+  int tab_width = SANE_TAB_WIDTH (current_buffer);
 
   CHECK_NUMBER (column);
   if (NILP (minimum))
@@ -867,7 +858,7 @@ static EMACS_INT
 position_indentation (register int pos_byte)
 {
   register EMACS_INT column = 0;
-  int tab_width = sane_tab_width ();
+  int tab_width = SANE_TAB_WIDTH (current_buffer);
   register unsigned char *p;
   register unsigned char *stop;
   unsigned char *start;
@@ -1116,7 +1107,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
   register EMACS_INT pos;
   EMACS_INT pos_byte;
   register int c = 0;
-  int tab_width = sane_tab_width ();
+  int tab_width = SANE_TAB_WIDTH (current_buffer);
   register int ctl_arrow = !NILP (BVAR (current_buffer, ctl_arrow));
   register struct Lisp_Char_Table *dp = window_display_table (win);
   EMACS_INT selective
@@ -1432,7 +1423,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
          the text character-by-character.  */
       if (current_buffer->width_run_cache && pos >= next_width_run)
         {
-          EMACS_INT run_end;
+          ptrdiff_t run_end;
           int common_width
             = region_cache_forward (current_buffer,
                                     current_buffer->width_run_cache,

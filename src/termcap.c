@@ -480,7 +480,7 @@ tgetent (char *bp, const char *name)
       /* If BP is malloc'd by us, make sure it is big enough.  */
       if (malloc_size)
 	{
-	  int offset1 = bp1 - bp, offset2 = tc_search_point - bp;
+	  ptrdiff_t offset1 = bp1 - bp, offset2 = tc_search_point - bp;
 	  malloc_size = offset1 + buf.size;
 	  bp = termcap_name = (char *) xrealloc (bp, malloc_size);
 	  bp1 = termcap_name + offset1;
@@ -619,7 +619,6 @@ gobble_line (int fd, register struct termcap_buffer *bufp, char *append_end)
   register char *end;
   register int nread;
   register char *buf = bufp->beg;
-  register char *tem;
 
   if (!append_end)
     append_end = bufp->ptr;
@@ -636,14 +635,14 @@ gobble_line (int fd, register struct termcap_buffer *bufp, char *append_end)
 	{
 	  if (bufp->full == bufp->size)
 	    {
-	      if ((PTRDIFF_MAX - 1) / 2 < bufp->size)
-		memory_full (SIZE_MAX);
-	      bufp->size *= 2;
+	      ptrdiff_t ptr_offset = bufp->ptr - buf;
+	      ptrdiff_t append_end_offset = append_end - buf;
 	      /* Add 1 to size to ensure room for terminating null.  */
-	      tem = (char *) xrealloc (buf, bufp->size + 1);
-	      bufp->ptr = (bufp->ptr - buf) + tem;
-	      append_end = (append_end - buf) + tem;
-	      bufp->beg = buf = tem;
+	      ptrdiff_t size = bufp->size + 1;
+	      bufp->beg = buf = xpalloc (buf, &size, 1, -1, 1);
+	      bufp->size = size - 1;
+	      bufp->ptr = buf + ptr_offset;
+	      append_end = buf + append_end_offset;
 	    }
 	}
       else

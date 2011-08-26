@@ -1659,19 +1659,18 @@ x_color_cells (Display *dpy, int *ncells)
   if (dpyinfo->color_cells == NULL)
     {
       Screen *screen = dpyinfo->screen;
+      int ncolor_cells = XDisplayCells (dpy, XScreenNumberOfScreen (screen));
       int i;
 
-      dpyinfo->ncolor_cells
-	= XDisplayCells (dpy, XScreenNumberOfScreen (screen));
-      dpyinfo->color_cells
-	= (XColor *) xmalloc (dpyinfo->ncolor_cells
-			      * sizeof *dpyinfo->color_cells);
+      dpyinfo->color_cells = xnmalloc (ncolor_cells,
+				       sizeof *dpyinfo->color_cells);
+      dpyinfo->ncolor_cells = ncolor_cells;
 
-      for (i = 0; i < dpyinfo->ncolor_cells; ++i)
+      for (i = 0; i < ncolor_cells; ++i)
 	dpyinfo->color_cells[i].pixel = i;
 
       XQueryColors (dpy, dpyinfo->cmap,
-		    dpyinfo->color_cells, dpyinfo->ncolor_cells);
+		    dpyinfo->color_cells, ncolor_cells);
     }
 
   *ncells = dpyinfo->ncolor_cells;
@@ -4224,7 +4223,7 @@ xt_action_hook (Widget widget, XtPointer client_data, String action_name,
    x_send_scroll_bar_event and x_scroll_bar_to_input_event.  */
 
 static struct window **scroll_bar_windows;
-static size_t scroll_bar_windows_size;
+static ptrdiff_t scroll_bar_windows_size;
 
 
 /* Send a client message with message type Xatom_Scrollbar for a
@@ -4239,7 +4238,7 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
   XClientMessageEvent *ev = (XClientMessageEvent *) &event;
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
-  size_t i;
+  ptrdiff_t i;
 
   BLOCK_INPUT;
 
@@ -4260,16 +4259,15 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
 
   if (i == scroll_bar_windows_size)
     {
-      size_t new_size = max (10, 2 * scroll_bar_windows_size);
-      size_t nbytes = new_size * sizeof *scroll_bar_windows;
-      size_t old_nbytes = scroll_bar_windows_size * sizeof *scroll_bar_windows;
-
-      if ((size_t) -1 / sizeof *scroll_bar_windows < new_size)
-	memory_full (SIZE_MAX);
-      scroll_bar_windows = (struct window **) xrealloc (scroll_bar_windows,
-							nbytes);
+      ptrdiff_t old_nbytes =
+	scroll_bar_windows_size * sizeof *scroll_bar_windows;
+      ptrdiff_t nbytes;
+      enum { XClientMessageEvent_MAX = 0x7fffffff };
+      scroll_bar_windows =
+	xpalloc (scroll_bar_windows, &scroll_bar_windows_size, 1,
+		 XClientMessageEvent_MAX, sizeof *scroll_bar_windows);
+      nbytes = scroll_bar_windows_size * sizeof *scroll_bar_windows;
       memset (&scroll_bar_windows[i], 0, nbytes - old_nbytes);
-      scroll_bar_windows_size = new_size;
     }
 
   scroll_bar_windows[i] = w;
@@ -5847,11 +5845,12 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
   } inev;
   int count = 0;
   int do_help = 0;
-  int nbytes = 0;
+  ptrdiff_t nbytes = 0;
   struct frame *f = NULL;
   struct coding_system coding;
   XEvent event = *eventptr;
   Mouse_HLInfo *hlinfo = &dpyinfo->mouse_highlight;
+  USE_SAFE_ALLOCA;
 
   *finish = X_EVENT_NORMAL;
 
@@ -6547,7 +6546,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 	    }
 
 	  {	/* Raw bytes, not keysym.  */
-	    register int i;
+	    ptrdiff_t i;
 	    int nchars, len;
 
 	    for (i = 0, nchars = 0; i < nbytes; i++)
@@ -6560,7 +6559,6 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 	    if (nchars < nbytes)
 	      {
 		/* Decode the input data.  */
-		int require;
 
 		/* The input should be decoded with `coding_system'
 		   which depends on which X*LookupString function
@@ -6573,9 +6571,9 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
 		   gives us composition information.  */
 		coding.common_flags &= ~CODING_ANNOTATION_MASK;
 
-		require = MAX_MULTIBYTE_LENGTH * nbytes;
-		coding.destination = alloca (require);
-		coding.dst_bytes = require;
+		SAFE_NALLOCA (coding.destination, MAX_MULTIBYTE_LENGTH,
+			      nbytes);
+		coding.dst_bytes = MAX_MULTIBYTE_LENGTH * nbytes;
 		coding.mode |= CODING_MODE_LAST_BLOCK;
 		decode_coding_c_string (&coding, copy_bufptr, nbytes, Qnil);
 		nbytes = coding.produced;
@@ -7034,6 +7032,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventptr,
       count++;
     }
 
+  SAFE_FREE ();
   *eventptr = event;
   return count;
 }
@@ -9858,6 +9857,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   struct x_display_info *dpyinfo;
   XrmDatabase xrdb;
   Mouse_HLInfo *hlinfo;
+  ptrdiff_t lim;
 
   BLOCK_INPUT;
 
@@ -10076,12 +10076,15 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   XSetAfterFunction (x_current_display, x_trace_wire);
 #endif /* ! 0 */
 
+  lim = min (PTRDIFF_MAX, SIZE_MAX) - sizeof "@";
+  if (lim - SBYTES (Vinvocation_name) < SBYTES (Vsystem_name))
+    memory_full (SIZE_MAX);
   dpyinfo->x_id_name
     = (char *) xmalloc (SBYTES (Vinvocation_name)
 			+ SBYTES (Vsystem_name)
 			+ 2);
-  sprintf (dpyinfo->x_id_name, "%s@%s",
-	   SSDATA (Vinvocation_name), SSDATA (Vsystem_name));
+  strcat (strcat (strcpy (dpyinfo->x_id_name, SSDATA (Vinvocation_name)), "@"),
+	  SSDATA (Vsystem_name));
 
   /* Figure out which modifier bits mean what.  */
   x_find_modifier_meanings (dpyinfo);

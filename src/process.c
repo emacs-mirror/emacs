@@ -3573,52 +3573,27 @@ format; see the description of ADDRESS in `make-network-process'.  */)
   struct ifconf ifconf;
   struct ifreq *ifreq;
   void *buf = NULL;
-  int buf_size = 512, s, i;
+  ptrdiff_t buf_size = 512;
+  int s, i;
   Lisp_Object res;
 
   s = socket (AF_INET, SOCK_STREAM, 0);
   if (s < 0)
     return Qnil;
 
-  ifconf.ifc_buf = 0;
-  ifconf.ifc_len = 0;
-  if (ioctl (s, SIOCGIFCONF, &ifconf) == 0 && ifconf.ifc_len > 0)
+  do
     {
-      ifconf.ifc_buf = xmalloc (ifconf.ifc_len);
-      if (ifconf.ifc_buf == NULL)
-	{
-	  close (s);
-	  return Qnil;
-	}
+      buf = xpalloc (buf, &buf_size, 1, INT_MAX, 1);
+      ifconf.ifc_buf = buf;
+      ifconf.ifc_len = buf_size;
       if (ioctl (s, SIOCGIFCONF, &ifconf))
 	{
 	  close (s);
-	  xfree (ifconf.ifc_buf);
+	  xfree (buf);
 	  return Qnil;
 	}
     }
-  else
-    do
-      {
-	buf_size *= 2;
-	buf = xrealloc (buf, buf_size);
-	if (!buf)
-	  {
-	    close (s);
-	    return Qnil;
-	  }
-
-	ifconf.ifc_buf = buf;
-	ifconf.ifc_len = buf_size;
-	if (ioctl (s, SIOCGIFCONF, &ifconf))
-	  {
-	    close (s);
-	    xfree (buf);
-	    return Qnil;
-	  }
-
-      }
-    while (ifconf.ifc_len == buf_size);
+  while (ifconf.ifc_len == buf_size);
 
   close (s);
 

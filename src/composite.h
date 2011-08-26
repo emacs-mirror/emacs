@@ -170,7 +170,7 @@ extern Lisp_Object composition_temp;
 
 struct composition {
   /* Number of glyphs of the composition components.  */
-  unsigned glyph_len;
+  int glyph_len;
 
   /* Width, ascent, and descent pixels of the composition.  */
   short pixel_width, ascent, descent;
@@ -193,7 +193,7 @@ struct composition {
   void *font;
 
   /* Pointer to an array of x-offset and y-offset (by pixels) of
-     glyphs.  This points to a sufficient memory space (sizeof (int) *
+     glyphs.  This points to a sufficient memory space (sizeof (short) *
      glyph_len * 2) that is allocated when the composition is
      registered in composition_table.  X-offset and Y-offset of Nth
      glyph are (2N)th and (2N+1)th elements respectively.  */
@@ -204,7 +204,7 @@ struct composition {
    COMPOSITION-ID.  */
 extern struct composition **composition_table;
 /* Number of the currently registered compositions.  */
-extern int n_compositions;
+extern ptrdiff_t n_compositions;
 
 /* Mask bits for CHECK_MASK arg to update_compositions.
    For a change in the region FROM and TO, check compositions ... */
@@ -216,8 +216,8 @@ extern int n_compositions;
 
 extern Lisp_Object Qcomposition;
 extern Lisp_Object composition_hash_table;
-extern int get_composition_id (EMACS_INT, EMACS_INT, EMACS_INT,
-			       Lisp_Object, Lisp_Object);
+extern ptrdiff_t get_composition_id (EMACS_INT, EMACS_INT, EMACS_INT,
+				     Lisp_Object, Lisp_Object);
 extern int find_composition (EMACS_INT, EMACS_INT, EMACS_INT *, EMACS_INT *,
 			     Lisp_Object *, Lisp_Object);
 extern void update_compositions (EMACS_INT, EMACS_INT, int);
@@ -299,7 +299,7 @@ struct face;
 struct font_metrics;
 
 extern Lisp_Object composition_gstring_put_cache (Lisp_Object, EMACS_INT);
-extern Lisp_Object composition_gstring_from_id (int);
+extern Lisp_Object composition_gstring_from_id (ptrdiff_t);
 extern int composition_gstring_p (Lisp_Object);
 extern int composition_gstring_width (Lisp_Object, EMACS_INT, EMACS_INT,
                                       struct font_metrics *);

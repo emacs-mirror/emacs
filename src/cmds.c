@@ -472,7 +472,7 @@ internal_self_insert (int c, EMACS_INT n)
     {
       USE_SAFE_ALLOCA;
       char *strn, *p;
-      SAFE_ALLOCA (strn, char *, n * len);
+      SAFE_NALLOCA (strn, len, n);
       for (p = strn; n > 0; n--, p += len)
 	memcpy (p, str, len);
       insert_and_inherit (strn, p - strn);

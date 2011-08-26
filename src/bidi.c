@@ -316,6 +316,21 @@ static ptrdiff_t bidi_cache_last_idx;	/* slot of last cache hit */
 static ptrdiff_t bidi_cache_start = 0;	/* start of cache for this
 					   "stack" level */
 
+/* 5-slot stack for saving the start of the previous level of the
+   cache.  xdisp.c maintains a 5-slot stack for its iterator state,
+   and we need the same size of our stack.  */
+static ptrdiff_t bidi_cache_start_stack[IT_STACK_SIZE];
+static int bidi_cache_sp;
+
+/* Size of header used by bidi_shelve_cache.  */
+enum
+  {
+    bidi_shelve_header_size =
+      (sizeof (bidi_cache_idx) + sizeof (bidi_cache_start_stack)
+       + sizeof (bidi_cache_sp) + sizeof (bidi_cache_start)
+       + sizeof (bidi_cache_last_idx))
+  };
+
 /* Reset the cache state to the empty state.  We only reset the part
    of the cache relevant to iteration of the current object.  Previous
    objects, which are pushed on the display iterator's stack, are left
@@ -338,9 +353,9 @@ bidi_cache_shrink (void)
 {
   if (bidi_cache_size > BIDI_CACHE_CHUNK)
     {
-      bidi_cache_size = BIDI_CACHE_CHUNK;
       bidi_cache =
-	(struct bidi_it *) xrealloc (bidi_cache, bidi_cache_size * elsz);
+	(struct bidi_it *) xrealloc (bidi_cache, BIDI_CACHE_CHUNK * elsz);
+      bidi_cache_size = BIDI_CACHE_CHUNK;
     }
   bidi_cache_reset ();
 }
@@ -473,21 +488,19 @@ bidi_cache_ensure_space (ptrdiff_t idx)
   /* Enlarge the cache as needed.  */
   if (idx >= bidi_cache_size)
     {
-      ptrdiff_t new_size;
-
       /* The bidi cache cannot be larger than the largest Lisp string
 	 or buffer.  */
       ptrdiff_t string_or_buffer_bound =
 	max (BUF_BYTES_MAX, STRING_BYTES_BOUND);
 
       /* Also, it cannot be larger than what C can represent.  */
-      ptrdiff_t c_bound = min (PTRDIFF_MAX, SIZE_MAX) / elsz;
+      ptrdiff_t c_bound =
+	(min (PTRDIFF_MAX, SIZE_MAX) - bidi_shelve_header_size) / elsz;
 
-      if (min (string_or_buffer_bound, c_bound) <= idx)
-	memory_full (SIZE_MAX);
-      new_size = idx - idx % BIDI_CACHE_CHUNK + BIDI_CACHE_CHUNK;
-      bidi_cache = (struct bidi_it *) xrealloc (bidi_cache, new_size * elsz);
-      bidi_cache_size = new_size;
+      bidi_cache =
+	xpalloc (bidi_cache, &bidi_cache_size,
+		 max (BIDI_CACHE_CHUNK, idx - bidi_cache_size + 1),
+		 min (string_or_buffer_bound, c_bound), elsz);
     }
 }
 
@@ -580,11 +593,6 @@ bidi_peek_at_next_level (struct bidi_it *bidi_it)
 /***********************************************************************
 	     Pushing and popping the bidi iterator state
  ***********************************************************************/
-/* 5-slot stack for saving the start of the previous level of the
-   cache.  xdisp.c maintains a 5-slot stack for its iterator state,
-   and we need the same size of our stack.  */
-static ptrdiff_t bidi_cache_start_stack[IT_STACK_SIZE];
-static int bidi_cache_sp;
 
 /* Push the bidi iterator state in preparation for reordering a
    different object, e.g. display string found at certain buffer
@@ -639,21 +647,16 @@ void *
 bidi_shelve_cache (void)
 {
   unsigned char *databuf;
+  ptrdiff_t alloc;
 
   /* Empty cache.  */
   if (bidi_cache_idx == 0)
     return NULL;
 
-  databuf = xmalloc (sizeof (bidi_cache_idx)
-		     + bidi_cache_idx * sizeof (struct bidi_it)
-		     + sizeof (bidi_cache_start_stack)
-		     + sizeof (bidi_cache_sp) + sizeof (bidi_cache_start)
-		     + sizeof (bidi_cache_last_idx));
-  bidi_cache_total_alloc +=
-    sizeof (bidi_cache_idx) + bidi_cache_idx * sizeof (struct bidi_it)
-    + sizeof (bidi_cache_start_stack)
-    + sizeof (bidi_cache_sp) + sizeof (bidi_cache_start)
-    + sizeof (bidi_cache_last_idx);
+  alloc = (bidi_shelve_header_size
+	   + bidi_cache_idx * sizeof (struct bidi_it));
+  databuf = xmalloc (alloc);
+  bidi_cache_total_alloc += alloc;
 
   memcpy (databuf, &bidi_cache_idx, sizeof (bidi_cache_idx));
   memcpy (databuf + sizeof (bidi_cache_idx),
@@ -706,9 +709,7 @@ bidi_unshelve_cache (void *databuf, int just_free)
 
 	  memcpy (&idx, p, sizeof (bidi_cache_idx));
 	  bidi_cache_total_alloc -=
-	    sizeof (bidi_cache_idx) + idx * sizeof (struct bidi_it)
-	    + sizeof (bidi_cache_start_stack) + sizeof (bidi_cache_sp)
-	    + sizeof (bidi_cache_start) + sizeof (bidi_cache_last_idx);
+	    bidi_shelve_header_size + idx * sizeof (struct bidi_it);
 	}
       else
 	{
@@ -737,9 +738,7 @@ bidi_unshelve_cache (void *databuf, int just_free)
 		  + sizeof (bidi_cache_start),
 		  sizeof (bidi_cache_last_idx));
 	  bidi_cache_total_alloc -=
-	    sizeof (bidi_cache_idx) + bidi_cache_idx * sizeof (struct bidi_it)
-	    + sizeof (bidi_cache_start_stack) + sizeof (bidi_cache_sp)
-	    + sizeof (bidi_cache_start) + sizeof (bidi_cache_last_idx);
+	    bidi_shelve_header_size + bidi_cache_idx * sizeof (struct bidi_it);
 	}
 
       xfree (p);

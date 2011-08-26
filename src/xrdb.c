@@ -426,24 +426,22 @@ get_environ_db (void)
 {
   XrmDatabase db;
   char *p;
-  char *path = 0, *home = 0;
-  const char *host;
+  char *path = 0;
 
   if ((p = getenv ("XENVIRONMENT")) == NULL)
     {
-      home = gethomedir ();
-      host = get_system_name ();
-      path = (char *) xmalloc (strlen (home)
-			      + sizeof (".Xdefaults-")
-			      + strlen (host));
-      sprintf (path, "%s%s%s", home, ".Xdefaults-", host);
+      static char const xdefaults[] = ".Xdefaults-";
+      char *home = gethomedir ();
+      char const *host = get_system_name ();
+      ptrdiff_t pathsize = strlen (home) + sizeof xdefaults + strlen (host);
+      path = (char *) xrealloc (home, pathsize);
+      strcat (strcat (path, xdefaults), host);
       p = path;
     }
 
   db = XrmGetFileDatabase (p);
 
   xfree (path);
-  xfree (home);
 
   return db;
 }

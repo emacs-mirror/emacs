@@ -133,8 +133,9 @@ static Lisp_Object Ffetch_bytecode (Lisp_Object);
 void
 init_eval_once (void)
 {
-  specpdl_size = 50;
-  specpdl = (struct specbinding *) xmalloc (specpdl_size * sizeof (struct specbinding));
+  enum { size = 50 };
+  specpdl = (struct specbinding *) xmalloc (size * sizeof (struct specbinding));
+  specpdl_size = size;
   specpdl_ptr = specpdl;
   /* Don't forget to update docs (lispref node "Local Variables").  */
   max_specpdl_size = 1300; /* 1000 is not enough for CEDET's c-by.el.  */
@@ -192,7 +193,7 @@ call_debugger (Lisp_Object arg)
   if (lisp_eval_depth + 40 > max_lisp_eval_depth)
     max_lisp_eval_depth = lisp_eval_depth + 40;
 
-  if (SPECPDL_INDEX () + 100 > max_specpdl_size)
+  if (max_specpdl_size - 100 < SPECPDL_INDEX ())
     max_specpdl_size = SPECPDL_INDEX () + 100;
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -3254,17 +3255,21 @@ static void
 grow_specpdl (void)
 {
   register int count = SPECPDL_INDEX ();
-  if (specpdl_size >= max_specpdl_size)
+  int max_size =
+    min (max_specpdl_size,
+	 min (max (PTRDIFF_MAX, SIZE_MAX) / sizeof (struct specbinding),
+	      INT_MAX));
+  int size;
+  if (max_size <= specpdl_size)
     {
       if (max_specpdl_size < 400)
-	max_specpdl_size = 400;
-      if (specpdl_size >= max_specpdl_size)
+	max_size = max_specpdl_size = 400;
+      if (max_size <= specpdl_size)
 	signal_error ("Variable binding depth exceeds max-specpdl-size", Qnil);
     }
-  specpdl_size *= 2;
-  if (specpdl_size > max_specpdl_size)
-    specpdl_size = max_specpdl_size;
-  specpdl = (struct specbinding *) xrealloc (specpdl, specpdl_size * sizeof (struct specbinding));
+  size = specpdl_size < max_size / 2 ? 2 * specpdl_size : max_size;
+  specpdl = xnrealloc (specpdl, size, sizeof *specpdl);
+  specpdl_size = size;
   specpdl_ptr = specpdl + count;
 }
 

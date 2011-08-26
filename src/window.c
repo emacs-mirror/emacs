@@ -5069,7 +5069,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	  && (!EQ (Vrecenter_redisplay, Qtty)
 	      || !NILP (Ftty_type (selected_frame))))
 	{
-	  int i;
+	  ptrdiff_t i;
 
 	  /* Invalidate pixel data calculated for all compositions.  */
 	  for (i = 0; i < n_compositions; i++)

@@ -136,10 +136,6 @@ enum no_color_bit
 
 static int max_frame_cols;
 
-/* The largest frame height in any call to calculate_costs.  */
-
-static int max_frame_lines;
-
 /* Non-zero if we have dropped our controlling tty and therefore
    should not open a frame on stdout. */
 static int no_controlling_tty;
@@ -497,8 +493,8 @@ tty_clear_end_of_line (struct frame *f, int first_unused_hpos)
 static unsigned char *encode_terminal_src;
 static unsigned char *encode_terminal_dst;
 /* Allocated sizes of the above buffers.  */
-static int encode_terminal_src_size;
-static int encode_terminal_dst_size;
+static ptrdiff_t encode_terminal_src_size;
+static ptrdiff_t encode_terminal_dst_size;
 
 /* Encode SRC_LEN glyphs starting at SRC to terminal output codes.
    Set CODING->produced to the byte-length of the resulting byte
@@ -509,8 +505,8 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 {
   struct glyph *src_end = src + src_len;
   unsigned char *buf;
-  int nchars, nbytes, required;
-  register int tlen = GLYPH_TABLE_LENGTH;
+  ptrdiff_t nchars, nbytes, required;
+  ptrdiff_t tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
   Lisp_Object charset_list;
 
@@ -518,13 +514,13 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
      multibyte-form.  But, it may be enlarged on demand if
      Vglyph_table contains a string or a composite glyph is
      encountered.  */
-  required = MAX_MULTIBYTE_LENGTH * src_len;
+  if (min (PTRDIFF_MAX, SIZE_MAX) / MAX_MULTIBYTE_LENGTH < src_len)
+    memory_full (SIZE_MAX);
+  required = src_len;
+  required *= MAX_MULTIBYTE_LENGTH;
   if (encode_terminal_src_size < required)
     {
-      if (encode_terminal_src)
-	encode_terminal_src = xrealloc (encode_terminal_src, required);
-      else
-	encode_terminal_src = xmalloc (required);
+      encode_terminal_src = xrealloc (encode_terminal_src, required);
       encode_terminal_src_size = required;
     }
 
@@ -544,19 +540,21 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 	  if (src->u.cmp.automatic)
 	    {
 	      gstring = composition_gstring_from_id (src->u.cmp.id);
-	      required = src->slice.cmp.to + 1 - src->slice.cmp.from;
+	      required = src->slice.cmp.to - src->slice.cmp.from + 1;
 	    }
 	  else
 	    {
 	      cmp = composition_table[src->u.cmp.id];
-	      required = MAX_MULTIBYTE_LENGTH * cmp->glyph_len;
+	      required = cmp->glyph_len;
+	      required *= MAX_MULTIBYTE_LENGTH;
 	    }
 
-	  if (encode_terminal_src_size < nbytes + required)
+	  if (encode_terminal_src_size - nbytes < required)
 	    {
-	      encode_terminal_src_size = nbytes + required;
-	      encode_terminal_src = xrealloc (encode_terminal_src,
-					      encode_terminal_src_size);
+	      encode_terminal_src =
+		xpalloc (encode_terminal_src, &encode_terminal_src_size,
+			 required - (encode_terminal_src_size - nbytes),
+			 -1, 1);
 	      buf = encode_terminal_src + nbytes;
 	    }
 
@@ -627,11 +625,11 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 	  if (NILP (string))
 	    {
 	      nbytes = buf - encode_terminal_src;
-	      if (encode_terminal_src_size < nbytes + MAX_MULTIBYTE_LENGTH)
+	      if (encode_terminal_src_size - nbytes < MAX_MULTIBYTE_LENGTH)
 		{
-		  encode_terminal_src_size = nbytes + MAX_MULTIBYTE_LENGTH;
-		  encode_terminal_src = xrealloc (encode_terminal_src,
-						  encode_terminal_src_size);
+		  encode_terminal_src =
+		    xpalloc (encode_terminal_src, &encode_terminal_src_size,
+			     MAX_MULTIBYTE_LENGTH, -1, 1);
 		  buf = encode_terminal_src + nbytes;
 		}
 	      if (CHAR_BYTE8_P (c)
@@ -659,11 +657,13 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 	      if (! STRING_MULTIBYTE (string))
 		string = string_to_multibyte (string);
 	      nbytes = buf - encode_terminal_src;
-	      if (encode_terminal_src_size < nbytes + SBYTES (string))
+	      if (encode_terminal_src_size - nbytes < SBYTES (string))
 		{
-		  encode_terminal_src_size = nbytes + SBYTES (string);
-		  encode_terminal_src = xrealloc (encode_terminal_src,
-						  encode_terminal_src_size);
+		  encode_terminal_src =
+		    xpalloc (encode_terminal_src, &encode_terminal_src_size,
+			     (SBYTES (string)
+			      - (encode_terminal_src_size - nbytes)),
+			     -1, 1);
 		  buf = encode_terminal_src + nbytes;
 		}
 	      memcpy (buf, SDATA (string), SBYTES (string));
@@ -684,12 +684,9 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
   coding->source = encode_terminal_src;
   if (encode_terminal_dst_size == 0)
     {
+      encode_terminal_dst = xrealloc (encode_terminal_dst,
+				      encode_terminal_src_size);
       encode_terminal_dst_size = encode_terminal_src_size;
-      if (encode_terminal_dst)
-	encode_terminal_dst = xrealloc (encode_terminal_dst,
-					encode_terminal_dst_size);
-      else
-	encode_terminal_dst = xmalloc (encode_terminal_dst_size);
     }
   coding->destination = encode_terminal_dst;
   coding->dst_bytes = encode_terminal_dst_size;
@@ -1156,21 +1153,17 @@ calculate_costs (struct frame *frame)
          char_ins_del_vector (i.e., char_ins_del_cost) isn't used because
          X turns off char_ins_del_ok. */
 
-      max_frame_lines = max (max_frame_lines, FRAME_LINES (frame));
       max_frame_cols = max (max_frame_cols, FRAME_COLS (frame));
+      if ((min (PTRDIFF_MAX, SIZE_MAX) / sizeof (int) - 1) / 2
+	  < max_frame_cols)
+	memory_full (SIZE_MAX);
 
-      if (char_ins_del_vector != 0)
-        char_ins_del_vector
-          = (int *) xrealloc (char_ins_del_vector,
-                              (sizeof (int)
-                               + 2 * max_frame_cols * sizeof (int)));
-      else
-        char_ins_del_vector
-          = (int *) xmalloc (sizeof (int)
-                             + 2 * max_frame_cols * sizeof (int));
+      char_ins_del_vector =
+	xrealloc (char_ins_del_vector,
+		  (sizeof (int) + 2 * sizeof (int) * max_frame_cols));
 
       memset (char_ins_del_vector, 0,
-	      (sizeof (int) + 2 * max_frame_cols * sizeof (int)));
+	      (sizeof (int) + 2 * sizeof (int) * max_frame_cols));
 
 
       if (f && (!tty->TS_ins_line && !tty->TS_del_line))

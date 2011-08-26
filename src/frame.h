@@ -258,11 +258,11 @@ struct frame
 
   /* Size of this frame, excluding fringes, scroll bars etc.,
      in units of canonical characters.  */
-  EMACS_INT text_lines, text_cols;
+  int text_lines, text_cols;
 
   /* Total size of this frame (i.e. its native window), in units of
      canonical characters.  */
-  EMACS_INT total_lines, total_cols;
+  int total_lines, total_cols;
 
   /* New text height and width for pending size change.
      0 if no change pending.  */
