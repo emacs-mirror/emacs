@@ -1,4 +1,4 @@
-2011-08-25  Paul Eggert  <eggert@cs.ucla.edu>
+2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
 
@@ -421,6 +421,11 @@
 	size_t fits in 'long'.
 	(gs_load): Use printmax_t to print the widest integers possible.
 	Check for integer overflow when computing image height and width.
+
+2011-08-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (redisplay_window): Don't force window start if point
+	will be invisible in the resulting window.  (Bug#9324)
 
 2011-08-25  Eli Zaretskii  <eliz@gnu.org>
 

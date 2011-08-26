@@ -126,16 +126,20 @@ The complete Emacs manual is available on-line in Info.
 Display the name and documentation of the command that @var{key} runs
 (@code{describe-key}).
 @item C-h l
-Display a description of your last 300 keystrokes 
+Display a description of your last 300 keystrokes
 (@code{view-lossage}).
 @item C-h m
 Display documentation of the current major mode (@code{describe-mode}).
 @item C-h n
 Display news of recent Emacs changes (@code{view-emacs-news}).
 @item C-h p
-Find packages by topic keyword (@code{finder-by-keyword}).  For an
-alternative interface to the same information, try the @code{info-finder}
-command.
+Find packages by topic keyword (@code{finder-by-keyword}).  This lists
+packages using a package menu buffer (@pxref{Package Menu}); for an
+alternative interface to the same information, try the
+@code{info-finder} command.
+@item C-h P @var{package} @key{RET}
+Display documentation about the package named @var{package}
+(@code{describe-package}; @pxref{Packages}).
 @item C-h r
 Display the Emacs manual in Info (@code{info-emacs-manual}).
 @item C-h s

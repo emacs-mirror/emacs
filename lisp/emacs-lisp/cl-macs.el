@@ -2416,9 +2416,8 @@ value, that slot cannot be set via `setf'.
 			(append
 			 (and pred-check
 			      (list (list 'or pred-check
-					  (list 'error
-						(format "%s accessing a non-%s"
-							accessor name)))))
+					  `(error "%s accessing a non-%s"
+						  ',accessor ',name))))
 			 (list (if (eq type 'vector) (list 'aref 'cl-x pos)
 				 (if (= pos 0) '(car cl-x)
 				   (list 'nth pos 'cl-x)))))) forms)
@@ -2426,9 +2425,8 @@ value, that slot cannot be set via `setf'.
 	      (push (list 'define-setf-method accessor '(cl-x)
 			     (if (cadr (memq :read-only (cddr desc)))
                                  (list 'progn '(ignore cl-x)
-                                       (list 'error
-                                             (format "%s is a read-only slot"
-                                                     'accessor)))
+                                       `(error "%s is a read-only slot"
+					       ',accessor))
 			       ;; If cl is loaded only for compilation,
 			       ;; the call to cl-struct-setf-expander would
 			       ;; cause a warning because it may not be

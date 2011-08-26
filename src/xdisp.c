@@ -15097,6 +15097,7 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	       || (XFASTINT (w->last_modified) >= MODIFF
 		   && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF)))
     {
+      int d1, d2, d3, d4, d5, d6;
 
       /* If first window line is a continuation line, and window start
 	 is inside the modified region, but the first change is before
@@ -15118,7 +15119,14 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 	     compute_window_start_on_continuation_line.  (See also
 	     bug#197).  */
 	  && XMARKER (w->start)->buffer == current_buffer
-	  && compute_window_start_on_continuation_line (w))
+	  && compute_window_start_on_continuation_line (w)
+	  /* It doesn't make sense to force the window start like we
+	     do at label force_start if it is already known that point
+	     will not be visible in the resulting window, because
+	     doing so will move point from its correct position
+	     instead of scrolling the window to bring point into view.
+	     See bug#9324.  */
+	  && pos_visible_p (w, PT, &d1, &d2, &d3, &d4, &d5, &d6))
 	{
 	  w->force_start = Qt;
 	  SET_TEXT_POS_FROM_MARKER (startp, w->start);
