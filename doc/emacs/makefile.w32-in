@@ -88,6 +88,7 @@ EMACSSOURCES= \
 	$(srcdir)/dired.texi \
 	$(srcdir)/calendar.texi \
 	$(srcdir)/misc.texi \
+	$(srcdir)/package.texi \
 	$(srcdir)/custom.texi \
 	$(srcdir)/trouble.texi \
 	$(srcdir)/cmdargs.texi \
