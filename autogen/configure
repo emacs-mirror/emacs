@@ -9112,7 +9112,7 @@ $as_echo "$HAVE_GNU_MAKE" >&6; }
       { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether gcc understands -MMD -MF" >&5
 $as_echo_n "checking whether gcc understands -MMD -MF... " >&6; }
       SAVE_CFLAGS="$CFLAGS"
-      CFLAGS="$CFLAGS -MMD -MF deps.d"
+      CFLAGS="$CFLAGS -MMD -MF deps.d -MP"
       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -9137,7 +9137,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 $as_echo "$ac_enable_autodepend" >&6; }
    fi
    if test $ac_enable_autodepend = yes; then
-      DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d'
+      DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d -MP'
       ## In parallel builds, another make might create depdir between
       ## the first test and mkdir, so stick another test on the end.
       ## Or use install-sh -d?  mkdir -p is not portable.
