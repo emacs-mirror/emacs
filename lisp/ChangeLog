@@ -1,3 +1,7 @@
+2011-08-26  Leo Liu  <sdl.web@gmail.com>
+
+	* emacs-lisp/cl-macs.el (defstruct): Fix format.  (Bug#9357)
+
 2011-08-25  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-occur): Let-bind `search-spaces-regexp' to
