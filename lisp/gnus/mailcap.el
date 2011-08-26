@@ -90,7 +90,7 @@ This is a compatibility function for different Emacsen."
 ;; files for the rest?  -- fx
 (defvar mailcap-mime-data
   `(("application"
-     ("vnd.ms-excel"
+     ("vnd\\.ms-excel"
       (viewer . "gnumeric %s")
       (test   . (getenv "DISPLAY"))
       (type . "application/vnd.ms-excel"))
