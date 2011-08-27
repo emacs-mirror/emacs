@@ -1,3 +1,13 @@
+2011-08-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* ccl.c: Improve and simplify overflow checking (Bug#9196).
+	(ccl_driver): Do not generate an out-of-range pointer.
+	(Fccl_execute_on_string): Remove unnecessary check for
+	integer overflow, noted by Stefan Monnier in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-08/msg00979.html>.
+	Remove a FIXME that didn't need fixing.
+	Simplify the newly-introduced buffer reallocation code.
+
 2011-08-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/alloc.$(O)): Depend on lib/verify.h.

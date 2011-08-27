@@ -1770,7 +1770,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	}
 
       msglen = strlen (msg);
-      if (dst + msglen <= dst_end)
+      if (msglen <= dst_end - dst)
 	{
 	  for (i = 0; i < msglen; i++)
 	    *dst++ = msg[i];
@@ -2127,37 +2127,25 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
       src_size = j;
       while (1)
 	{
+	  int max_expansion = NILP (unibyte_p) ? MAX_MULTIBYTE_LENGTH : 1;
+	  ptrdiff_t offset, shortfall;
 	  ccl_driver (&ccl, src, destination, src_size, CCL_EXECUTE_BUF_SIZE,
 		      Qnil);
 	  produced_chars += ccl.produced;
+	  offset = outp - outbuf;
+	  shortfall = ccl.produced * max_expansion - (outbufsize - offset);
+	  if (0 < shortfall)
+	    {
+	      outbuf = xpalloc (outbuf, &outbufsize, shortfall, -1, 1);
+	      outp = outbuf + offset;
+	    }
 	  if (NILP (unibyte_p))
 	    {
-	      /* FIXME: Surely this should be buf_magnification instead.
-		 MAX_MULTIBYTE_LENGTH overestimates the storage needed.  */
-	      int magnification = MAX_MULTIBYTE_LENGTH;
-
-	      ptrdiff_t offset = outp - outbuf;
-	      ptrdiff_t shortfall;
-	      if (INT_MULTIPLY_OVERFLOW (ccl.produced, magnification))
-		memory_full (SIZE_MAX);
-	      shortfall = ccl.produced * magnification - (outbufsize - offset);
-	      if (0 < shortfall)
-		{
-		  outbuf = xpalloc (outbuf, &outbufsize, shortfall, -1, 1);
-		  outp = outbuf + offset;
-		}
 	      for (j = 0; j < ccl.produced; j++)
 		CHAR_STRING_ADVANCE (destination[j], outp);
 	    }
 	  else
 	    {
-	      ptrdiff_t offset = outp - outbuf;
-	      ptrdiff_t shortfall = ccl.produced - (outbufsize - offset);
-	      if (0 < shortfall)
-		{
-		  outbuf = xpalloc (outbuf, &outbufsize, shortfall, -1, 1);
-		  outp = outbuf + offset;
-		}
 	      for (j = 0; j < ccl.produced; j++)
 		*outp++ = destination[j];
 	    }
