@@ -1,3 +1,8 @@
+2011-08-27  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-menus.el (cc-imenu-c++-generic-expression): Make it
+	handle function pointer parameters properly.
+
 2011-08-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-reuse-window): Fix case where

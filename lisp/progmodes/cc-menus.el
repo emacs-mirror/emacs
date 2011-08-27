@@ -108,8 +108,11 @@ A sample value might look like: `\\(_P\\|_PROTO\\)'.")
        "[^" c-alnum "_:<>~]"                  ; match any non-identifier char
        "\\([" c-alpha "_][" c-alnum "_:<>~]*\\)" ; match function name
        "\\([ \t\n]\\|\\\\\n\\)*("	      ; see above, BUT the arg list
-       "\\([ \t\n]\\|\\\\\n\\)*\\([^ \t\n(*][^)]*\\)?)" ; must not start
-       "\\([ \t\n]\\|\\\\\n\\)*[^ \t\n;(]"    ; with an asterisk or parentheses
+       "\\([ \t\n]\\|\\\\\n\\)*"	      ; must not start
+       "\\([^ \t\n(*]"			      ; with an asterisk or parentheses
+       "[^()]*\\(([^()]*)[^()]*\\)*"	      ; Maybe function pointer arguments
+       "\\)?)"
+       "\\([ \t\n]\\|\\\\\n\\)*[^ \t\n;(]"
        ) 1)
     ;; Special case for definitions using phony prototype macros like:
     ;; `int main _PROTO( (int argc,char *argv[]) )'.
