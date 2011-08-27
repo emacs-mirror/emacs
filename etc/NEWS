@@ -174,10 +174,12 @@ to the --parent-id argument to Emacs.
 +++
 *** Emacs now supports display and editing of bidirectional text.
 
-Right-to-left (RTL) text is displayed in a right-to-left direction.
-This display reordering is a "Full bidirectionality" class
-implementation of the Unicode Bidirectional Algorithm.  Buffers with
-no right-to-left (RTL) text should look exactly the same as before.
+Text that includes characters from right-to-left (RTL) scripts, such
+as Arabic, Farsi, or Hebrew, is displayed in the correct visual order
+as expected by users of those scripts.  This display reordering is a
+"Full bidirectionality" class implementation of the Unicode
+Bidirectional Algorithm.  Buffers RTL text should look exactly the
+same as before.
 
 For more information, see the node "Bidirectional Editing" in the
 Emacs Manual.
@@ -194,6 +196,9 @@ Algorithm.
 
 Setting this to `right-to-left' or `left-to-right' forces a particular
 base direction on each paragraph in the buffer.
+
+Paragraphs whose base direction is right-to-left are displayed
+starting at the right margin of the window.
 
 +++
 *** Enhanced support for characters with no glyphs in available fonts.
@@ -928,21 +933,24 @@ Emacs Lisp developers can use this tool to write automated tests for
 their code.  See the ERT info manual for details.
 
 ** Changes for bidirectional display and editing
+
 +++
 *** New function `current-bidi-paragraph-direction'.
-This returns the actual value of paragraph base direction at point.
+This returns the actual value of base direction of the paragraph at
+point.
 
 +++
 *** New function `bidi-string-mark-left-to-right'.
-Given a string containing right-to-left (RTL) script, this function
-returns another string which can be safely inserted into a buffer as a
-distinct RTL "segment", without causing any following text to be
-displayed as RTL.  (This is done by appending a Unicode "left-to-right
-mark" character.)
+Given a string containing characters from right-to-left (RTL) scripts,
+this function returns another string which can be safely inserted into
+a buffer, such that any following text will be always displayed to the
+right of that string.  (This works by appending the Unicode
+"LEFT-TO-RIGHT MARK" character when the argument string might need that.)
 
 This is useful when the buffer has overall left-to-right (LTR)
 paragraph direction and you need to insert a string whose contents and
-directionality are not known in advance.
+directionality are not known in advance, without disrupting the layout
+of the line.
 
 ** Window changes
 
