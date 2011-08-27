@@ -1,3 +1,7 @@
+2011-08-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/alloc.$(O)): Depend on lib/verify.h.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
