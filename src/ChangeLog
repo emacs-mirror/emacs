@@ -1,3 +1,10 @@
+2011-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_to): Don't bail out early when reaching
+	position beyond to_charpos, if we are scanning backwards.
+	(move_it_vertically_backward): When DY == 0, make sure we get to
+	the first character in the line after the newline.
+
 2011-08-27  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* ccl.c: Improve and simplify overflow checking (Bug#9196).
