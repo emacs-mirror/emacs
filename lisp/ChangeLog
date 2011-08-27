@@ -1,3 +1,7 @@
+2011-08-27  Glenn Morris  <rgm@gnu.org>
+
+	* saveplace.el (save-place-limit): Make it finite.  (Bug#9352)
+
 2011-08-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package-install): Call package-initialize
