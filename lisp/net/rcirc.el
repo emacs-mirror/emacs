@@ -2514,6 +2514,7 @@ the only argument."
                 (member message
                         (list
                          (format "You are now identified for \C-b%s\C-b." rcirc-nick)
+			 (format "You are successfully identified as \C-b%s\C-b." rcirc-nick)
                          "Password accepted - you are now recognized."
                          )))
                (and ;; quakenet
