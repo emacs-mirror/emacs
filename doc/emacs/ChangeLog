@@ -1,3 +1,8 @@
+2011-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Frame Commands): Advise setting focus-follows-mouse
+	even on MS-Windows.  Fix a typo.
+
 2011-08-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* package.texi: New file, documenting the package manager.
