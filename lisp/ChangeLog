@@ -1,3 +1,8 @@
+2011-08-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-menu-mark-delete): Allow marking
+	obsolete packages for deletion.
+
 2011-08-28  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* help-mode.el (help-mode-map): Add special-mode-map to parent.
