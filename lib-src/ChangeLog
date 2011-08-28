@@ -26,6 +26,10 @@
 	greater than BUFSIZ or 2*BUFSIZ + 20. Do not use sprintf when its
 	result might not fit in 'int'.
 
+	* movemail.c (main): Do not use sprintf when its result might not fit
+	in 'int'.  Instead, put the possibly-long file name into the
+	output of pfatal_with_name.
+
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume freestanding C89 headers, string.h, stdlib.h.
