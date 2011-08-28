@@ -1,3 +1,12 @@
+2011-08-28  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-fonts.el
+	(c-make-font-lock-BO-decl-search-function): New function.
+	(c-basic-matchers-after - "Fontify the clauses after various
+	keywords"): Extract the three keyword lists for the 3 erroneous
+	constructs from the list of four, and use the new function above
+	in place of an old one.
+
 2011-08-28  Deniz Dogan  <deniz@dogan.se>
 
 	* net/rcirc.el (rcirc-insert-prev-input)
