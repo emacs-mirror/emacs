@@ -1,3 +1,7 @@
+2011-08-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* misc.texi (emacsclient Options): Document server-port.
+
 2011-08-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Frame Commands): Advise setting focus-follows-mouse

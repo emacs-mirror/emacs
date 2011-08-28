@@ -1054,6 +1054,12 @@ Hyperlinking and Navigation Features
 * Goto Address mode::   Activating URLs.
 * FFAP::                Finding files etc. at point.
 
+Emacs Lisp Packages
+
+* Package Menu::         Buffer for viewing and managing packages.
+* Package Installation:: Options for package installation.
+* Package Files::        Where packages are installed.
+
 Customization
 
 * Easy Customization::  Convenient way to browse and change settings.

@@ -55,11 +55,12 @@ With it, Emacs integers typically have 62 bits, even on 32-bit machines.
 Type `C-u C-h t' to choose it in case your language setup doesn't
 automatically select it.
 
-** Emacs can be compiled with support for the ImageMagick library.
+** Emacs can be compiled with ImageMagick support.
 Emacs links to ImageMagick if version 6.2.8 or newer of the library is
-present at build time.  To disable ImageMagick support, use the
-`--without-imagemagick' configure option.
+present at build time.  To inhibit ImageMagick, use the configure
+option `--without-imagemagick' .
 
+---
 ** The standalone programs digest-doc and sorted-doc are removed.
 Emacs now uses Lisp commands `doc-file-to-man' and `doc-file-to-info'.
 
@@ -153,7 +154,7 @@ If you had that set, then then you need to put
 in your ~/.authinfo file instead.
 
 ** Emacs server and client changes
-
++++
 *** New option `server-port' specifies the port on which the Emacs
 server should listen.
 +++
@@ -212,6 +213,7 @@ the variable `glyphless-char-display-control'.
 On character terminals, these methods are used for characters that
 cannot be encoded by the `terminal-coding-system'.
 
+---
 *** New input methods for Farsi: farsi and farsi-translit.
 
 ** Improved GTK integration
@@ -267,10 +269,10 @@ for remote machines which support SELinux.
 higher-resolution time stamps.
 
 ** Changes for exiting Emacs
-
++++
 *** The function kill-emacs is now run upon receipt of the signals
 SIGTERM and SIGHUP, and upon SIGINT in batch mode.
-
++++
 *** kill-emacs-hook is now also run in batch mode.
 If you have code that adds something to kill-emacs-hook, you should
 consider if it is still appropriate to add it in the noninteractive case.
@@ -410,9 +412,9 @@ also deletes newlines around point.
 ** Deletion changes
 
 *** New option `delete-active-region'.
-If non-nil, C-d, [delete], and DEL delete the region if it is active
-and no prefix argument is given.  If set to `kill', these commands
-kill instead.
+If non-nil, [delete] and DEL delete the region if it is active and no
+prefix argument is given.  If set to `kill', these commands kill
+instead.
 
 *** New command `delete-forward-char', bound to [delete].
 This is meant for interactive use, and obeys `delete-active-region'.
@@ -422,7 +424,7 @@ The command `delete-char' does not obey `delete-active-region'.
 Apart from obeying `delete-active-region', its behavior is unchanged.
 However, the byte compiler now warns if it is called from Lisp; you
 should use delete-char with a negative argument instead.
-
+---
 *** The option `mouse-region-delete-keys' has been deleted.
 
 ** Selection changes.
@@ -669,6 +671,7 @@ in the Rmail incoming message.
 ** shell-mode can track your cwd by reading it from your prompt.
 Just set shell-dir-cookie-re to an appropriate regexp.
 
+---
 ** SQL Mode enhancements.
 
 *** `sql-dialect' is an alias for `sql-product'.
@@ -865,7 +868,7 @@ coordinate in the POSITION list now counts from the top of the text
 area, excluding any header line.  Previously, it counted from the top
 of the header line.
 
-** Remove obsolete name `e' (use `float-e' instead).
+** Removed obsolete name `e' (use `float-e' instead).
 
 ** A backquote not followed by a space is now always treated as new-style.
 
@@ -876,6 +879,7 @@ programmer-visible consequences.
 ** Passing a nil argument to a minor mode function now turns the mode
 ON unconditionally.
 
++++
 ** During startup, Emacs no longer adds entries for `menu-bar-lines'
 and `tool-bar-lines' to `default-frame-alist' and `initial-frame-alist'.
 With these alist entries omitted, `make-frame' checks the value of the
@@ -990,6 +994,7 @@ connection, directly or via STARTTLS.  To do STARTTLS, additional
 parameters (`:end-of-command', `:success', `:capabilities-command')
 must also be supplied.
 
++++
 ** pre/post-command-hook are not reset to nil upon error.
 Instead, the offending function is removed.
 
@@ -1105,6 +1110,7 @@ the GnuTLS logging conventions.  The output is in *Messages*.
 
 *** New hook `isearch-update-post-hook' that runs in `isearch-update'.
 
++++
 ** Progress reporters can now "spin".
 The MIN-VALUE and MAX-VALUE arguments of `make-progress-reporter' can
 now be nil, or omitted.  This makes a "non-numeric" reporter.  Each
@@ -1127,6 +1133,7 @@ as well as those in the -*- line.
 
 ** keymaps can inherit from multiple parents.
 
++++
 ** New reader macro ## which stands for the empty symbol.
 This means that the empty symbol can now be read back.  Also, #: by itself
 (when not immediately followed by a possible symbol character) stands for

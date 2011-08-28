@@ -1,3 +1,16 @@
+2011-08-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Layout Parameters): The defaults for the
+	menu-bar-lines and tool-bar-lines parameters depend on the mode.
+
+	* display.texi (Progress): Document spinner functionality.
+
+	* os.texi (Killing Emacs): Note that kill-emacs can be called by
+	operating system signals.  Refer to save-buffers-kill-terminal
+	instead of save-buffers-kill-emacs.
+
+	* objects.texi (Symbol Type): Document ## print representation.
+
 2011-08-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Specified Space): Mention that `space' specs

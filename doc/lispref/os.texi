@@ -544,10 +544,11 @@ parent process normally resumes control.  The low-level primitive for
 killing Emacs is @code{kill-emacs}.
 
 @deffn Command kill-emacs &optional exit-data
-This command exits the Emacs process and kills it.
+This command calls the hook @code{kill-emacs-hook}, then exits the
+Emacs process and kills it.
 
-If @var{exit-data} is an integer, then it is used as the exit status
-of the Emacs process.  (This is useful primarily in batch operation; see
+If @var{exit-data} is an integer, that is used as the exit status of
+the Emacs process.  (This is useful primarily in batch operation; see
 @ref{Batch Mode}.)
 
 If @var{exit-data} is a string, its contents are stuffed into the
@@ -555,35 +556,44 @@ terminal input buffer so that the shell (or whatever program next reads
 input) can read them.
 @end deffn
 
-  All the information in the Emacs process, aside from files that have
-been saved, is lost when the Emacs process is killed.  Because killing
-Emacs inadvertently can lose a lot of work, Emacs queries for
-confirmation before actually terminating if you have buffers that need
-saving or subprocesses that are running.  This is done in the function
-@code{save-buffers-kill-emacs}, the higher level function from which
-@code{kill-emacs} is usually called.
-
-@defvar kill-emacs-query-functions
-After asking the standard questions, @code{save-buffers-kill-emacs}
-calls the functions in the list @code{kill-emacs-query-functions}, in
-order of appearance, with no arguments.  These functions can ask for
-additional confirmation from the user.  If any of them returns
-@code{nil}, @code{save-buffers-kill-emacs} does not kill Emacs, and
-does not run the remaining functions in this hook.  Calling
-@code{kill-emacs} directly does not run this hook.
-@end defvar
+@cindex SIGTERM
+@cindex SIGHUP
+@cindex SIGINT
+@cindex operating system signal
+  The @code{kill-emacs} function is normally called via the
+higher-level command @kbd{C-x C-c}
+(@code{save-buffers-kill-terminal}).  @xref{Exiting,,, emacs, The GNU
+Emacs Manual}.  It is also called automatically if Emacs receives a
+@code{SIGTERM} or @code{SIGHUP} operating system signal (e.g. when the
+controlling terminal is disconnected), or if it receives a
+@code{SIGINT} signal while running in batch mode (@pxref{Batch Mode}).
 
 @defvar kill-emacs-hook
-This variable is a normal hook; once @code{save-buffers-kill-emacs} is
-finished with all file saving and confirmation, it calls
-@code{kill-emacs} which runs the functions in this hook.
+This normal hook is run by @code{kill-emacs}, before it kills Emacs.
 
-@code{kill-emacs} may be invoked directly (that is not via
-@code{save-buffers-kill-emacs}) if the terminal is disconnected, or in
-similar situations where interaction with the user is not possible.
-Thus, if your hook needs to interact with the user, put it on
-@code{kill-emacs-query-functions}; if it needs to run regardless of
-how Emacs is killed, put it on @code{kill-emacs-hook}.
+Because @code{kill-emacs} can be called in situations where user
+interaction is impossible (e.g. when the terminal is disconnected),
+functions on this hook should not attempt to interact with the user.
+If you want to interact with the user when Emacs is shutting down, use
+@code{kill-emacs-query-functions}, described below.
+@end defvar
+
+  When Emacs is killed, all the information in the Emacs process,
+aside from files that have been saved, is lost.  Because killing Emacs
+inadvertently can lose a lot of work, the
+@code{save-buffers-kill-terminal} command queries for confirmation if
+you have buffers that need saving or subprocesses that are running.
+It also runs the abnormal hook @code{kill-emacs-query-functions}:
+
+@defvar kill-emacs-query-functions
+When @code{save-buffers-kill-terminal} is killing Emacs, it calls the
+functions in this hook, after asking the standard questions and before
+calling @code{kill-emacs}.  The functions are called in order of
+appearance, with no arguments.  Each function can ask for additional
+confirmation from the user.  If any of them returns @code{nil},
+@code{save-buffers-kill-emacs} does not kill Emacs, and does not run
+the remaining functions in this hook.  Calling @code{kill-emacs}
+directly does not run this hook.
 @end defvar
 
 @node Suspending Emacs
