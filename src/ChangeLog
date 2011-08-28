@@ -1,3 +1,8 @@
+2011-08-28  Johan Bockgård  <bojohan@gnu.org>
+
+	* term.c (init_tty) [HAVE_GPM]: Move mouse settings after
+	set_tty_hooks.
+
 2011-08-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (move_it_to): Don't bail out early when reaching
