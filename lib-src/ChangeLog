@@ -1,3 +1,24 @@
+2011-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Integer and memory overflow issues.
+
+	* emacsclient.c (xmalloc): Accept size_t, not unsigned int, to
+	avoid potential buffer overflow issues on typical 64-bit hosts.
+	Return void *, not long *.
+	(get_current_dir_name): Report a failure, instead of looping
+	forever, if buffer size calculation overflows.  Treat malloc
+	failures like realloc failures, as that has better behavior and is
+	more consistent.  Do not check whether xmalloc returns NULL, as
+	that's not possible.
+	(message): Do not arbitrarily truncate message to 2048 bytes when
+	sending it to stderr; use vfprintf instead.
+	(get_server_config, set_local_socket)
+	(start_daemon_and_retry_set_socket): Do not alloca
+	arbitrarily-large buffers; that's not safe.
+	(get_server_config, set_local_socket): Do not use sprintf when its
+	result might not fit in 'int'.
+	(set_local_socket): Do not assume uid fits in 'int'.
+
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume freestanding C89 headers, string.h, stdlib.h.

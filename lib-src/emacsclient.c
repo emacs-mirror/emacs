@@ -194,10 +194,10 @@ struct option longopts[] =
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-static long *
-xmalloc (unsigned int size)
+static void *
+xmalloc (size_t size)
 {
-  long *result = (long *) malloc (size);
+  void *result = malloc (size);
   if (result == NULL)
     {
       perror ("malloc");
@@ -250,32 +250,33 @@ get_current_dir_name (void)
       )
     {
       buf = (char *) xmalloc (strlen (pwd) + 1);
-      if (!buf)
-        return NULL;
       strcpy (buf, pwd);
     }
 #ifdef HAVE_GETCWD
   else
     {
       size_t buf_size = 1024;
-      buf = (char *) xmalloc (buf_size);
-      if (!buf)
-        return NULL;
       for (;;)
         {
+	  int tmp_errno;
+	  buf = malloc (buf_size);
+	  if (! buf)
+	    break;
           if (getcwd (buf, buf_size) == buf)
             break;
-          if (errno != ERANGE)
+	  tmp_errno = errno;
+	  free (buf);
+	  if (tmp_errno != ERANGE)
             {
-              int tmp_errno = errno;
-              free (buf);
               errno = tmp_errno;
               return NULL;
             }
           buf_size *= 2;
-          buf = (char *) realloc (buf, buf_size);
-          if (!buf)
-            return NULL;
+	  if (! buf_size)
+	    {
+	      errno = ENOMEM;
+	      return NULL;
+	    }
         }
     }
 #else
@@ -283,8 +284,6 @@ get_current_dir_name (void)
     {
       /* We need MAXPATHLEN here.  */
       buf = (char *) xmalloc (MAXPATHLEN + 1);
-      if (!buf)
-        return NULL;
       if (getwd (buf) == NULL)
         {
           int tmp_errno = errno;
@@ -494,16 +493,17 @@ static void message (int, const char *, ...) ATTRIBUTE_FORMAT_PRINTF (2, 3);
 static void
 message (int is_error, const char *format, ...)
 {
-  char msg[2048];
   va_list args;
 
   va_start (args, format);
-  vsprintf (msg, format, args);
-  va_end (args);
 
 #ifdef WINDOWSNT
   if (w32_window_app ())
     {
+      char msg[2048];
+      vsnprintf (msg, sizeof msg, format, args);
+      msg[sizeof msg - 1] = '\0';
+
       if (is_error)
 	MessageBox (NULL, msg, "Emacsclient ERROR", MB_ICONERROR);
       else
@@ -514,9 +514,11 @@ message (int is_error, const char *format, ...)
     {
       FILE *f = is_error ? stderr : stdout;
 
-      fputs (msg, f);
+      vfprintf (f, format, args);
       fflush (f);
     }
+
+  va_end (args);
 }
 
 /* Decode the options from argv and argc.
@@ -959,18 +961,24 @@ get_server_config (struct sockaddr_in *server, char *authentication)
 
       if (home)
         {
-          char *path = alloca (strlen (home) + strlen (server_file)
-			       + EXTRA_SPACE);
-          sprintf (path, "%s/.emacs.d/server/%s", home, server_file);
+	  char *path = xmalloc (strlen (home) + strlen (server_file)
+				+ EXTRA_SPACE);
+	  strcpy (path, home);
+	  strcat (path, "/.emacs.d/server/");
+	  strcat (path, server_file);
           config = fopen (path, "rb");
+	  free (path);
         }
 #ifdef WINDOWSNT
       if (!config && (home = egetenv ("APPDATA")))
         {
-          char *path = alloca (strlen (home) + strlen (server_file)
-			       + EXTRA_SPACE);
-          sprintf (path, "%s/.emacs.d/server/%s", home, server_file);
+	  char *path = xmalloc (strlen (home) + strlen (server_file)
+				+ EXTRA_SPACE);
+	  strcpy (path, home);
+	  strcat (path, "/.emacs.d/server/");
+	  strcat (path, server_file);
           config = fopen (path, "rb");
+	  free (path);
         }
 #endif
     }
@@ -1243,6 +1251,8 @@ set_local_socket (void)
     int saved_errno = 0;
     const char *server_name = "server";
     const char *tmpdir IF_LINT ( = NULL);
+    char *tmpdir_storage = NULL;
+    char *socket_name_storage = NULL;
 
     if (socket_name && !strchr (socket_name, '/')
 	&& !strchr (socket_name, '\\'))
@@ -1255,6 +1265,8 @@ set_local_socket (void)
 
     if (default_sock)
       {
+	long uid = geteuid ();
+	ptrdiff_t tmpdirlen;
 	tmpdir = egetenv ("TMPDIR");
 	if (!tmpdir)
           {
@@ -1265,17 +1277,19 @@ set_local_socket (void)
             size_t n = confstr (_CS_DARWIN_USER_TEMP_DIR, NULL, (size_t) 0);
             if (n > 0)
               {
-                tmpdir = alloca (n);
+		tmpdir = tmpdir_storage = xmalloc (n);
                 confstr (_CS_DARWIN_USER_TEMP_DIR, tmpdir, n);
               }
             else
 #endif
               tmpdir = "/tmp";
           }
-	socket_name = alloca (strlen (tmpdir) + strlen (server_name)
-			      + EXTRA_SPACE);
-	sprintf (socket_name, "%s/emacs%d/%s",
-		 tmpdir, (int) geteuid (), server_name);
+	tmpdirlen = strlen (tmpdir);
+	socket_name = socket_name_storage =
+	  xmalloc (tmpdirlen + strlen (server_name) + EXTRA_SPACE);
+	strcpy (socket_name, tmpdir);
+	sprintf (socket_name + tmpdirlen, "/emacs%ld/", uid);
+	strcat (socket_name + tmpdirlen, server_name);
       }
 
     if (strlen (socket_name) < sizeof (server.sun_path))
@@ -1309,10 +1323,13 @@ set_local_socket (void)
 	    if (pw && (pw->pw_uid != geteuid ()))
 	      {
 		/* We're running under su, apparently. */
-		socket_name = alloca (strlen (tmpdir) + strlen (server_name)
-				      + EXTRA_SPACE);
-		sprintf (socket_name, "%s/emacs%d/%s",
-			 tmpdir, (int) pw->pw_uid, server_name);
+		long uid = pw->pw_uid;
+		ptrdiff_t tmpdirlen = strlen (tmpdir);
+		socket_name = xmalloc (tmpdirlen + strlen (server_name)
+				       + EXTRA_SPACE);
+		strcpy (socket_name, tmpdir);
+		sprintf (socket_name + tmpdirlen, "/emacs%ld/", uid);
+		strcat (socket_name + tmpdirlen, server_name);
 
 		if (strlen (socket_name) < sizeof (server.sun_path))
 		  strcpy (server.sun_path, socket_name);
@@ -1322,6 +1339,7 @@ set_local_socket (void)
 			     progname, socket_name);
 		    exit (EXIT_FAILURE);
 		  }
+		free (socket_name);
 
 		sock_status = socket_status (server.sun_path);
                 saved_errno = errno;
@@ -1330,6 +1348,9 @@ set_local_socket (void)
 	      errno = saved_errno;
 	  }
       }
+
+    free (socket_name_storage);
+    free (tmpdir_storage);
 
     switch (sock_status)
       {
@@ -1526,8 +1547,8 @@ start_daemon_and_retry_set_socket (void)
 	{
 	  /* Pass  --daemon=socket_name as argument.  */
 	  const char *deq = "--daemon=";
-	  char *daemon_arg = alloca (strlen (deq)
-				     + strlen (socket_name) + 1);
+	  char *daemon_arg = xmalloc (strlen (deq)
+				      + strlen (socket_name) + 1);
 	  strcpy (daemon_arg, deq);
 	  strcat (daemon_arg, socket_name);
 	  d_argv[1] = daemon_arg;
