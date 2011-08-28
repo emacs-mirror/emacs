@@ -815,18 +815,19 @@ If SILENT is non-nil, do not print the message in any irc buffer."
 
 (defvar rcirc-input-ring nil)
 (defvar rcirc-input-ring-index 0)
+
 (defun rcirc-prev-input-string (arg)
   (ring-ref rcirc-input-ring (+ rcirc-input-ring-index arg)))
 
-(defun rcirc-insert-prev-input (arg)
-  (interactive "p")
+(defun rcirc-insert-prev-input ()
+  (interactive)
   (when (<= rcirc-prompt-end-marker (point))
     (delete-region rcirc-prompt-end-marker (point-max))
     (insert (rcirc-prev-input-string 0))
     (setq rcirc-input-ring-index (1+ rcirc-input-ring-index))))
 
-(defun rcirc-insert-next-input (arg)
-  (interactive "p")
+(defun rcirc-insert-next-input ()
+  (interactive)
   (when (<= rcirc-prompt-end-marker (point))
     (delete-region rcirc-prompt-end-marker (point-max))
     (setq rcirc-input-ring-index (1- rcirc-input-ring-index))

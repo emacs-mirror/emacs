@@ -1,3 +1,8 @@
+2011-08-28  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-insert-prev-input)
+	(rcirc-insert-next-input): Remove unused argument.
+
 2011-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* shell.el (shell-parse-pcomplete-arguments): Unquote args (bug#9160).
