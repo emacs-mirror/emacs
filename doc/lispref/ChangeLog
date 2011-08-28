@@ -1,3 +1,7 @@
+2011-08-28  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+
+	* lists.texi (Building Lists): Fix typo.
+
 2011-07-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* customize.texi (Composite Types): Move alist and plist to here
