@@ -1,5 +1,10 @@
 2011-08-28  Chong Yidong  <cyd@stupidchicken.com>
 
+	* files.texi (Misc File Ops): Document new
+	delete-by-moving-to-trash behavior.
+
+	* dired.texi (Dired Deletion): Shorten description of Trash.
+
 	* misc.texi (emacsclient Options): Document server-port.
 
 2011-08-27  Eli Zaretskii  <eliz@gnu.org>

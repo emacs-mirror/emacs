@@ -247,9 +247,6 @@ Emacs.pane.menubar.font:  Courier-12
 Also, the first dash (which does not indicate anything) is just
 displayed as a space.
 
-** On Nextstep/OSX, the menu bar can be hidden by customizing
-ns-auto-hide-menu-bar.
-
 ** Basic SELinux support has been added.
 This requires Emacs to be linked with libselinux at build time.
 
@@ -305,10 +302,10 @@ scrolls the window so as to avoid positioning point inside the scroll
 margin.
 
 ** Trash changes
-
++++
 *** `delete-by-moving-to-trash' now only affects commands that specify
 trashing.  This avoids inadvertently trashing temporary files.
-
++++
 *** Calling `delete-file' or `delete-directory' with a prefix argument
 now forces true deletion, regardless of `delete-by-moving-to-trash'.
 
@@ -1006,7 +1003,8 @@ Emacs server instances.
 ** `call-process' allows a `(:file "file")' spec to redirect STDOUT to
 a file.
 
-** Removed the stack-trace-on-error variable.
+---
+** Variable `stack-trace-on-error' removed.
 Also the debugger can now "continue" from an error, which means it will jump
 to the error handler as if the debugger had not been invoked instead of
 jumping all the way to the top-level.
@@ -1019,8 +1017,8 @@ The variable is now used to load all kind of supported dynamic libraries,
 not just image libraries.  The previous name is still available as an
 obsolete alias.
 
-** New variable syntax-propertize-function to set syntax-table properties.
-Replaces font-lock-syntactic-keywords which are now obsolete.
+** New variable `syntax-propertize-function'.
+This replaces `font-lock-syntactic-keywords' which is now obsolete.
 This allows syntax-table properties to be set independently from font-lock:
 just call syntax-propertize to make sure the text is propertized.
 Together with this new variable come a new hook
@@ -1045,6 +1043,7 @@ programming modes.
 
 ** define-minor-mode accepts a new keyword :variable.
 
++++
 ** `delete-file' and `delete-directory' now accept optional arg TRASH.
 Trashing is performed if TRASH and `delete-by-moving-to-trash' are
 both non-nil.  Interactively, TRASH defaults to t, unless a prefix
@@ -1164,6 +1163,9 @@ GnuTLS detection.
 with the USER_LIBS build variable.
 
 ** New make target `dist' to create binary distribution for MS Windows.
+
+** On Nextstep/OSX, the menu bar can be hidden by customizing
+ns-auto-hide-menu-bar.
 
 
 ----------------------------------------------------------------------

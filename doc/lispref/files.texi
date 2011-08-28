@@ -1529,19 +1529,26 @@ This function is not available on systems that don't support symbolic
 links.
 @end deffn
 
-@deffn Command delete-file filename
+@cindex trash
+@vindex delete-by-moving-to-trash
+@deffn Command delete-file filename &optional trash
 @pindex rm
-This command deletes the file @var{filename}, like the shell command
-@samp{rm @var{filename}}.  If the file has multiple names, it continues
-to exist under the other names.
+This command deletes the file @var{filename}.  If the file has
+multiple names, it continues to exist under the other names.  If
+@var{filename} is a symbolic link, @code{delete-file} deletes only the
+symbolic link and not its target (though it does follow symbolic links
+at all levels of parent directories).
 
-A suitable kind of @code{file-error} error is signaled if the file does
-not exist, or is not deletable.  (On Unix and GNU/Linux, a file is
-deletable if its directory is writable.)
+A suitable kind of @code{file-error} error is signaled if the file
+does not exist, or is not deletable.  (On Unix and GNU/Linux, a file
+is deletable if its directory is writable.)
 
-If @var{filename} is a symbolic link, @code{delete-file} does not
-replace it with its target, but it does follow symbolic links at all
-levels of parent directories.
+If the optional argument @var{trash} is non-@code{nil} and the
+variable @code{delete-by-moving-to-trash} is non-@code{nil}, this
+command moves the file into the system Trash instead of deleting it.
+@xref{Misc File Ops,,Miscellaneous File Operations, emacs, The GNU
+Emacs Manual}.  When called interactively, @var{trash} is @code{t} if
+no prefix argument is given, and @code{nil} otherwise.
 
 See also @code{delete-directory} in @ref{Create/Delete Dirs}.
 @end deffn
@@ -2524,7 +2531,9 @@ create parent directories if they don't exist.  Interactively,
 this happens by default.
 @end deffn
 
-@deffn Command delete-directory dirname &optional recursive
+@cindex trash
+@vindex delete-by-moving-to-trash
+@deffn Command delete-directory dirname &optional recursive trash
 This command deletes the directory named @var{dirname}.  The function
 @code{delete-file} does not work for files that are directories; you
 must use @code{delete-directory} for them.  If @var{recursive} is
@@ -2533,6 +2542,13 @@ must use @code{delete-directory} for them.  If @var{recursive} is
 
 @code{delete-directory} only follows symbolic links at the level of
 parent directories.
+
+If the optional argument @var{trash} is non-@code{nil} and the
+variable @code{delete-by-moving-to-trash} is non-@code{nil}, this
+command moves the file into the system Trash instead of deleting it.
+@xref{Misc File Ops,,Miscellaneous File Operations, emacs, The GNU
+Emacs Manual}.  When called interactively, @var{trash} is @code{t} if
+no prefix argument is given, and @code{nil} otherwise.
 @end deffn
 
 @node Magic File Names
