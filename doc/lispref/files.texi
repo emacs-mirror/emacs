@@ -203,17 +203,6 @@ When this command is called interactively, it prompts for
 @var{filename}.
 @end deffn
 
-@deffn Command view-file filename
-This command visits @var{filename} using View mode, returning to the
-previous buffer when you exit View mode.  View mode is a minor mode that
-provides commands to skim rapidly through the file, but does not let you
-modify the text.  Entering View mode runs the normal hook
-@code{view-mode-hook}.  @xref{Hooks}.
-
-When @code{view-file} is called interactively, it prompts for
-@var{filename}.
-@end deffn
-
 @defopt find-file-wildcards
 If this variable is non-@code{nil}, then the various @code{find-file}
 commands check for wildcard characters and visit all the files that

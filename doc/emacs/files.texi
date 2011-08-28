@@ -1657,13 +1657,13 @@ Tar mode is used also for compressed archives---files with extensions
   The keys @kbd{e}, @kbd{f} and @key{RET} all extract a component file
 into its own buffer.  You can edit it there, and if you save the
 buffer, the edited version will replace the version in the Tar buffer.
-@kbd{v} extracts a file into a buffer in View mode.  @kbd{o} extracts
-the file and displays it in another window, so you could edit the file
-and operate on the archive simultaneously.  @kbd{d} marks a file for
-deletion when you later use @kbd{x}, and @kbd{u} unmarks a file, as in
-Dired.  @kbd{C} copies a file from the archive to disk and @kbd{R}
-renames a file within the archive.  @kbd{g} reverts the buffer from
-the archive on disk.
+@kbd{v} extracts a file into a buffer in View mode (@pxref{View
+Mode}).  @kbd{o} extracts the file and displays it in another window,
+so you could edit the file and operate on the archive simultaneously.
+@kbd{d} marks a file for deletion when you later use @kbd{x}, and
+@kbd{u} unmarks a file, as in Dired.  @kbd{C} copies a file from the
+archive to disk and @kbd{R} renames a file within the archive.
+@kbd{g} reverts the buffer from the archive on disk.
 
   The keys @kbd{M}, @kbd{G}, and @kbd{O} change the file's permission
 bits, group, and owner, respectively.

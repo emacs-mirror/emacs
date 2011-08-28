@@ -378,10 +378,11 @@ it.  @xref{Disabling}.
 screenfuls.  It provides commands for scrolling through the buffer
 conveniently but not for changing it.  Apart from the usual Emacs
 cursor motion commands, you can type @key{SPC} to scroll forward one
-windowful, or @key{DEL} to scroll backward.
+windowful, @key{DEL} to scroll backward, and @kbd{s} to start an
+incremental search.
 
   Typing @kbd{q} disables View mode, and switches back to the buffer
-and position before View mode was enabled.  Alternatively, type
+and position before View mode was enabled.  Alternatively, typing
 @kbd{e} disables View mode, keeping the current buffer and position.
 
 @findex view-buffer

@@ -2,6 +2,8 @@
 
 	* files.texi (Changing Files, Create/Delete Dirs): Document new
 	arguments for delete-file, delete-directory, and copy-directory.
+	(Visiting Functions): Remove view-file; it is documented in the
+	Emacs manual.
 
 	* frames.texi (Layout Parameters): The defaults for the
 	menu-bar-lines and tool-bar-lines parameters depend on the mode.
