@@ -1047,21 +1047,21 @@
 
 2011-07-28  Achim Gratz  <stromeko@nexgo.de>
 
-	* org.el (defcustom org-log-into-drawer): correct typo.
+	* org.el (org-log-into-drawer): Correct typo.
 
 	* org-clock.el (org-clock-into-drawer): New function to change the
 	location of clock events based on properties CLOCK_INTO_DRAWER or,
 	as fallback, LOG_INTO_DRAWER, like it is already possible for
 	state change logs.
 
-	* org-clock.el (org-clock-jump-to-current-clock): add statement to
-	let clause to bind org-clock-into-drawer to result of function
-	eval
+	* org-clock.el (org-clock-jump-to-current-clock): Add statement to
+	let clause to bind `org-clock-into-drawer' to result of function
+	eval.
 
-	* org-clock.el (org-clock-find-position): add statement to let
-	clause to bind org-clock-into-drawer to result of function eval,
+	* org-clock.el (org-clock-find-position): Add statement to let
+	clause to bind `org-clock-into-drawer' to result of function eval,
 	change let to let* since the binding is used later in the same
-	clause
+	clause.
 
 2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
 
