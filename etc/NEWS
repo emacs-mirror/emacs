@@ -384,15 +384,12 @@ pops up *Messages*" feature, which can now easily be changed.
 * Editing Changes in Emacs 24.1
 
 ** Search changes
-
 +++
 *** C-y in Isearch is now bound to isearch-yank-kill, instead of
 isearch-yank-line.
-
 ---
 *** M-y in Isearch is now bound to isearch-yank-pop, instead of
 isearch-yank-kill.
-
 +++
 *** M-s C-e in Isearch is now bound to isearch-yank-line.
 
@@ -850,6 +847,7 @@ bidirectional editing introduced in Emacs 24.  If you need the
 bidirectional properties of a character, use `get-char-code-property'
 with the last argument `bidi-class'.
 
++++
 ** `copy-directory' now copies the source directory as a subdirectory
 of the target directory, if the latter is an existing directory.  The
 new optional arg COPY-CONTENTS, if non-nil, makes the function copy

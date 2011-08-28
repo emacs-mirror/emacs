@@ -1,7 +1,12 @@
 2011-08-28  Chong Yidong  <cyd@stupidchicken.com>
 
+	* display.texi (View Mode): New node.  Move view-file here from
+	Misc File Ops.  Move view-buffer here from Misc Buffer.
+
+	* buffers.texi (Misc Buffer): Move view-buffer to View Mode.
+
 	* files.texi (Misc File Ops): Document new
-	delete-by-moving-to-trash behavior.
+	delete-by-moving-to-trash behavior.  Remove view-file.
 
 	* dired.texi (Dired Deletion): Shorten description of Trash.
 

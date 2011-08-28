@@ -1,7 +1,7 @@
 2011-08-28  Chong Yidong  <cyd@stupidchicken.com>
 
-	* files.texi (Changing Files, Create/Delete Dirs): Document TRASH
-	argument.
+	* files.texi (Changing Files, Create/Delete Dirs): Document new
+	arguments for delete-file, delete-directory, and copy-directory.
 
 	* frames.texi (Layout Parameters): The defaults for the
 	menu-bar-lines and tool-bar-lines parameters depend on the mode.

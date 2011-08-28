@@ -2514,7 +2514,7 @@ if they don't already exist.
 @code{mkdir} is an alias for this.
 @end deffn
 
-@deffn Command copy-directory dirname newname &optional keep-time parents
+@deffn Command copy-directory dirname newname &optional keep-time parents copy-contents
 This command copies the directory named @var{dirname} to
 @var{newname}.  If @var{newname} names an existing directory,
 @var{dirname} will be copied to a subdirectory there.
@@ -2522,13 +2522,18 @@ This command copies the directory named @var{dirname} to
 It always sets the file modes of the copied files to match the
 corresponding original file.
 
-The third arg @var{keep-time} non-@code{nil} means to preserve the
+The third argument @var{keep-time} non-@code{nil} means to preserve the
 modification time of the copied files.  A prefix arg makes
 @var{keep-time} non-@code{nil}.
 
-Noninteractively, the last argument @var{parents} says whether to
+The fourth argument @var{parents} says whether to
 create parent directories if they don't exist.  Interactively,
 this happens by default.
+
+The fifth argument @var{copy-contents}, if non-@code{nil}, means to
+copy the contents of @var{dirname} directly into @var{newname} if the
+latter is an existing directory, instead of copying @var{dirname} into
+it as a subdirectory.
 @end deffn
 
 @cindex trash
