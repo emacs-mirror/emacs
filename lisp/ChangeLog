@@ -1,3 +1,12 @@
+2011-08-28  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* help-mode.el (help-mode-map): Add special-mode-map to parent.
+	(help-mode): Derive help-mode from special-mode. Don't invoke
+	view-mode from help-mode.
+	(help-xref-override-view-map): Remove.
+	(help-make-xrefs): Remove minor-mode-overriding-map-alist since
+	view-mode is not used anymore.
+
 2011-08-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* server.el (server-port): Doc fix.
