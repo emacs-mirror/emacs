@@ -11,6 +11,10 @@
 
 	* server.el (server-port): Doc fix.
 
+	* cus-theme.el (custom-theme-choose-mode): Inherit from
+	special-mode (Bug#9124).
+	(custom-theme-choose-mode-map): Add special-mode to parent.
+
 2011-08-28  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-fonts.el
