@@ -30,6 +30,9 @@
 	in 'int'.  Instead, put the possibly-long file name into the
 	output of pfatal_with_name.
 
+	* update-game-score.c: Include <limits.h>
+	(get_user_id): Do not assume uid fits in 'int'.  Simplify.
+
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume freestanding C89 headers, string.h, stdlib.h.
