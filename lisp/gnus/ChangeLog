@@ -1,3 +1,9 @@
+2011-08-27  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml-smime.el (mml-smime-epg-verify): Don't use the 4th arg of
+	mm-replace-in-string for compatibility issues.
+	* mml2015.el (mml2015-epg-verify): Ditto.
+
 2011-08-26  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mailcap.el (mailcap-mime-data): Regexp-quote MIME subtype.
