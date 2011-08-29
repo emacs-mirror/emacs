@@ -691,7 +691,7 @@ enum image_value_type
   IMAGE_STRING_OR_NIL_VALUE,
   IMAGE_SYMBOL_VALUE,
   IMAGE_POSITIVE_INTEGER_VALUE,
-  IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,
+  IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR,
   IMAGE_NON_NEGATIVE_INTEGER_VALUE,
   IMAGE_ASCENT_VALUE,
   IMAGE_INTEGER_VALUE,
@@ -798,12 +798,12 @@ parse_image_spec (Lisp_Object spec, struct image_keyword *keywords,
 	    return 0;
 	  break;
 
-	case IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR:
-	  if (RANGED_INTEGERP (1, value, INT_MAX))
+	case IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR:
+	  if (RANGED_INTEGERP (0, value, INT_MAX))
 	    break;
 	  if (CONSP (value)
-	      && RANGED_INTEGERP (1, XCAR (value), INT_MAX)
-	      && RANGED_INTEGERP (1, XCDR (value), INT_MAX))
+	      && RANGED_INTEGERP (0, XCAR (value), INT_MAX)
+	      && RANGED_INTEGERP (0, XCDR (value), INT_MAX))
 	    break;
 	  return 0;
 
@@ -2256,7 +2256,7 @@ static const struct image_keyword xbm_format[XBM_LAST] =
   {":foreground",	IMAGE_STRING_OR_NIL_VALUE,		0},
   {":background",	IMAGE_STRING_OR_NIL_VALUE,		0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":margin",		IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR, 0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -3051,7 +3051,7 @@ static const struct image_keyword xpm_format[XPM_LAST] =
   {":file",		IMAGE_STRING_VALUE,			0},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":margin",		IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR, 0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -4980,7 +4980,7 @@ static const struct image_keyword pbm_format[PBM_LAST] =
   {":file",		IMAGE_STRING_VALUE,			0},
   {":data",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":margin",		IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR, 0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -5395,7 +5395,7 @@ static const struct image_keyword png_format[PNG_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":margin",		IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR, 0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -6015,7 +6015,7 @@ static const struct image_keyword jpeg_format[JPEG_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":margin",		IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR, 0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversions",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -6565,7 +6565,7 @@ static const struct image_keyword tiff_format[TIFF_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":margin",		IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR, 0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversions",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -7002,7 +7002,7 @@ static const struct image_keyword gif_format[GIF_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":margin",		IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR, 0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -7487,7 +7487,7 @@ static struct image_keyword imagemagick_format[IMAGEMAGICK_LAST] =
     {":data",		IMAGE_STRING_VALUE,			0},
     {":file",		IMAGE_STRING_VALUE,			0},
     {":ascent",		IMAGE_ASCENT_VALUE,			0},
-    {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+    {":margin",		IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR, 0},
     {":relief",		IMAGE_INTEGER_VALUE,			0},
     {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
     {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -8010,7 +8010,7 @@ static const struct image_keyword svg_format[SVG_LAST] =
   {":data",		IMAGE_STRING_VALUE,			0},
   {":file",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":margin",		IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR, 0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
@@ -8405,7 +8405,7 @@ static const struct image_keyword gs_format[GS_LAST] =
   {":loader",		IMAGE_FUNCTION_VALUE,			0},
   {":bounding-box",	IMAGE_DONT_CHECK_VALUE_TYPE,		1},
   {":ascent",		IMAGE_ASCENT_VALUE,			0},
-  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":margin",		IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR, 0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
   {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
   {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
