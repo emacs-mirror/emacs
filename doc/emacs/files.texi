@@ -1272,11 +1272,11 @@ this, it runs the program specified by
   The command @kbd{M-x delete-directory} prompts for a directory name
 using the minibuffer, and deletes the directory if it is empty.  If
 the directory is not empty, you will be asked whether you want to
-delete it recursively.  On systems that have a ``Trash'' or ``Recycle
-Bin'' feature, you can make this command move the specified directory
-to the Trash or Recycle Bin, instead of deleting it outright, by
-changing the variable @code{delete-by-moving-to-trash} to @code{t}.
-@xref{Misc File Ops}, for more information about using the Trash.
+delete it recursively.  On systems that have a ``Trash'' (or ``Recycle
+Bin'') feature, you can make this command move the specified directory
+to the Trash instead of deleting it outright, by changing the variable
+@code{delete-by-moving-to-trash} to @code{t}.  @xref{Misc File Ops},
+for more information about using the Trash.
 
 @node Comparing Files
 @section Comparing Files
@@ -1503,23 +1503,78 @@ patch syntax (@pxref{Useless Whitespace}).
   Emacs has commands for performing many other operations on files.
 All operate on one file; they do not accept wildcard file names.
 
-@findex view-file
-@cindex viewing
-@cindex View mode
-@cindex mode, View
-  @kbd{M-x view-file} allows you to scan or read a file by sequential
-screenfuls.  It reads a file name argument using the minibuffer.  After
-reading the file into an Emacs buffer, @code{view-file} displays the
-beginning.  You can then type @key{SPC} to scroll forward one windowful,
-or @key{DEL} to scroll backward.  Various other commands are provided
-for moving around in the file, but none for changing it; type @kbd{?}
-while viewing for a list of them.  They are mostly the same as normal
-Emacs cursor motion commands.  To exit from viewing, type @kbd{q}.
-The commands for viewing are defined by a special minor mode called View
-mode.
+@findex delete-file
+@cindex deletion (of files)
+  @kbd{M-x delete-file} prompts for a file and deletes it.  If you are
+deleting many files in one directory, it may be more convenient to use
+Dired rather than @code{delete-file}.  @xref{Dired Deletion}.
 
-  A related command, @kbd{M-x view-buffer}, views a buffer already present
-in Emacs.  @xref{Misc Buffer}.
+@cindex trash
+@cindex recycle bin
+  @kbd{M-x move-file-to-trash} moves a file into the system
+@dfn{Trash} (or @dfn{Recycle Bin}).  This is a facility available on
+most operating systems; files that are moved into the Trash can be
+brought back later if you change your mind.
+
+@vindex delete-by-moving-to-trash
+  By default, Emacs deletion commands do @emph{not} use the Trash.  To
+use the Trash (when it is available) for common deletion commands,
+change the variable @code{delete-by-moving-to-trash} to @code{t}.
+This affects the commands @kbd{M-x delete-file} and @kbd{M-x
+delete-directory} (@pxref{Directories}), as well as the deletion
+commands in Dired (@pxref{Dired Deletion}).  Supplying a prefix
+argument to @kbd{M-x delete-file} or @kbd{M-x delete-directory} makes
+them delete outright, instead of using the Trash, regardless of
+@code{delete-by-moving-to-trash}.
+
+@findex copy-file
+@cindex copying files
+  @kbd{M-x copy-file} reads the file @var{old} and writes a new file
+named @var{new} with the same contents.
+
+@findex copy-directory
+  @kbd{M-x copy-directory} copies directories, similar to the
+@command{cp -r} shell command.  It prompts for a directory @var{old}
+and a destination @var{new}.  If @var{new} is an existing directory,
+it creates a copy of the @var{old} directory and puts it in @var{new}.
+If @var{new} is not an existing directory, it copies all the contents
+of @var{old} into a new directory named @var{new}.
+
+@findex rename-file
+  @kbd{M-x rename-file} reads two file names @var{old} and @var{new}
+using the minibuffer, then renames file @var{old} as @var{new}.  If
+the file name @var{new} already exists, you must confirm with
+@kbd{yes} or renaming is not done; this is because renaming causes the
+old meaning of the name @var{new} to be lost.  If @var{old} and
+@var{new} are on different file systems, the file @var{old} is copied
+and deleted.  If the argument @var{new} is just a directory name, the
+real new name is in that directory, with the same non-directory
+component as @var{old}.  For example, @kbd{M-x rename-file RET ~/foo
+RET /tmp RET} renames @file{~/foo} to @file{/tmp/foo}.  The same rule
+applies to all the remaining commands in this section.  All of them
+ask for confirmation when the new file name already exists, too.
+
+@findex add-name-to-file
+@cindex hard links (creation)
+  @kbd{M-x add-name-to-file} adds an additional name to an existing
+file without removing its old name.  The new name is created as a
+``hard link'' to the existing file.  The new name must belong on the
+same file system that the file is on.  On MS-Windows, this command
+works only if the file resides in an NTFS file system.  On MS-DOS, it
+works by copying the file.
+
+@findex make-symbolic-link
+@cindex symbolic links (creation)
+  @kbd{M-x make-symbolic-link} reads two file names @var{target} and
+@var{linkname}, then creates a symbolic link named @var{linkname},
+which points at @var{target}.  The effect is that future attempts to
+open file @var{linkname} will refer to whatever file is named
+@var{target} at the time the opening is done, or will get an error if
+the name @var{target} is nonexistent at that time.  This command does
+not expand the argument @var{target}, so that it allows you to specify
+a relative name as the target of the link.  Not all systems support
+symbolic links; on systems that don't support them, this command is
+not defined.
 
 @kindex C-x i
 @findex insert-file
@@ -1543,74 +1598,6 @@ append-to-file} adds the text of the region to the end of the
 specified file.  @xref{Accumulating Text}.  The variable
 @code{write-region-inhibit-fsync} applies to these commands, as well
 as saving files; see @ref{Customize Save}.
-
-@findex delete-file
-@cindex deletion (of files)
-@vindex delete-by-moving-to-trash
-  @kbd{M-x delete-file} deletes the specified file, like the @code{rm}
-command in the shell.  If you are deleting many files in one
-directory, it may be more convenient to use Dired rather than
-@code{delete-file}.  @xref{Dired}.
-
-@cindex trash
-@cindex recycle bin
-  On some systems, there is a facility called the ``Trash'' (or
-``Recycle Bin''); ``deleting'' a file normally means moving it into
-the Trash, and you can bring the file back from the Trash if you later
-change your mind.  By default, Emacs does @emph{not} use the Trash for
-file deletion---when Emacs deletes a file, it is gone forever.  You
-can tell Emacs to use the Trash by changing the variable
-@code{delete-by-moving-to-trash} to @code{t}.  This applies to file
-deletion via @kbd{M-x delete-file}, as well as @kbd{M-x
-delete-directory} (@pxref{Directories}) and file deletion in Dired
-(@pxref{Dired Deletion}).  In addition, you can explicitly move a file
-into the Trash with the command @kbd{M-x move-file-to-trash}.
-
-@findex rename-file
-  @kbd{M-x rename-file} reads two file names @var{old} and @var{new} using
-the minibuffer, then renames file @var{old} as @var{new}.  If the file name
-@var{new} already exists, you must confirm with @kbd{yes} or renaming is not
-done; this is because renaming causes the old meaning of the name @var{new}
-to be lost.  If @var{old} and @var{new} are on different file systems, the
-file @var{old} is copied and deleted.
-
-  If the argument @var{new} is just a directory name, the real new
-name is in that directory, with the same non-directory component as
-@var{old}.  For example, @kbd{M-x rename-file RET ~/foo RET /tmp RET}
-renames @file{~/foo} to @file{/tmp/foo}.  The same rule applies to all
-the remaining commands in this section.  All of them ask for
-confirmation when the new file name already exists, too.
-
-@findex add-name-to-file
-@cindex hard links (creation)
-  The similar command @kbd{M-x add-name-to-file} is used to add an
-additional name to an existing file without removing its old name.
-The new name is created as a ``hard link'' to the existing file.
-The new name must belong on the same file system that the file is on.
-On MS-Windows, this command works only if the file resides in an NTFS
-file system.  On MS-DOS, it works by copying the file.
-
-@findex copy-file
-@findex copy-directory
-@cindex copying files
-  @kbd{M-x copy-file} reads the file @var{old} and writes a new file
-named @var{new} with the same contents.  @kbd{M-x copy-directory} does
-the same for directories, by recursive copying all files and
-subdirectories.
-
-@findex make-symbolic-link
-@cindex symbolic links (creation)
-  @kbd{M-x make-symbolic-link} reads two file names @var{target} and
-@var{linkname}, then creates a symbolic link named @var{linkname},
-which points at @var{target}.  The effect is that future attempts to
-open file @var{linkname} will refer to whatever file is named
-@var{target} at the time the opening is done, or will get an error if
-the name @var{target} is nonexistent at that time.  This command does
-not expand the argument @var{target}, so that it allows you to specify
-a relative name as the target of the link.
-
-  Not all systems support symbolic links; on systems that don't
-support them, this command is not defined.
 
 @findex set-file-modes
 @cindex file modes
@@ -1670,13 +1657,13 @@ Tar mode is used also for compressed archives---files with extensions
   The keys @kbd{e}, @kbd{f} and @key{RET} all extract a component file
 into its own buffer.  You can edit it there, and if you save the
 buffer, the edited version will replace the version in the Tar buffer.
-@kbd{v} extracts a file into a buffer in View mode.  @kbd{o} extracts
-the file and displays it in another window, so you could edit the file
-and operate on the archive simultaneously.  @kbd{d} marks a file for
-deletion when you later use @kbd{x}, and @kbd{u} unmarks a file, as in
-Dired.  @kbd{C} copies a file from the archive to disk and @kbd{R}
-renames a file within the archive.  @kbd{g} reverts the buffer from
-the archive on disk.
+@kbd{v} extracts a file into a buffer in View mode (@pxref{View
+Mode}).  @kbd{o} extracts the file and displays it in another window,
+so you could edit the file and operate on the archive simultaneously.
+@kbd{d} marks a file for deletion when you later use @kbd{x}, and
+@kbd{u} unmarks a file, as in Dired.  @kbd{C} copies a file from the
+archive to disk and @kbd{R} renames a file within the archive.
+@kbd{g} reverts the buffer from the archive on disk.
 
   The keys @kbd{M}, @kbd{G}, and @kbd{O} change the file's permission
 bits, group, and owner, respectively.

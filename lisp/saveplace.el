@@ -89,8 +89,9 @@ value of `version-control'."
 (defvar save-place-loaded nil
   "Non-nil means that the `save-place-file' has been loaded.")
 
-(defcustom save-place-limit nil
+(defcustom save-place-limit 400
   "Maximum number of entries to retain in the list; nil means no limit."
+  :version "24.1"                       ; nil -> 400
   :type '(choice (integer :tag "Entries" :value 1)
 		 (const :tag "No Limit" nil))
   :group 'save-place)

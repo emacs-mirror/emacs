@@ -1596,6 +1596,11 @@ runs, and (ii) provide @command{emacsclient} with the server file.
 (One convenient way to do the latter is to put the server file on a
 networked file system such as NFS.)
 
+@vindex server-port
+  When the Emacs server is using TCP, the variable @code{server-port}
+determines the port number to listen on; the default value,
+@code{nil}, means to choose a random port when the server starts.
+
 @item -n
 @itemx --no-wait
 Let @command{emacsclient} exit immediately, instead of waiting until

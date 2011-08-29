@@ -398,6 +398,59 @@
 
 	nil)))
 
+  (defun c-make-font-lock-BO-decl-search-function (regexp &rest highlights)
+    ;; This function makes a byte compiled function that first moves back
+    ;; to the beginning of the current declaration (if any), then searches
+    ;; forward for matcher elements (as in `font-lock-keywords') and
+    ;; fontifies them.
+    ;;
+    ;; The motivation for moving back to the declaration start is to
+    ;; establish a context for the current text when, e.g., a character
+    ;; is typed on a C++ inheritance continuation line, or a jit-lock
+    ;; chunk starts there.
+    ;; 
+    ;; The new function works much like a matcher element in
+    ;; `font-lock-keywords'.  It cuts out a little bit of the overhead
+    ;; compared to a real matcher.  The main reason is however to pass the
+    ;; real search limit to the anchored matcher(s), since most (if not
+    ;; all) font-lock implementations arbitrarily limit anchored matchers
+    ;; to the same line, and also to insulate against various other
+    ;; irritating differences between the different (X)Emacs font-lock
+    ;; packages.
+    ;;
+    ;; REGEXP is the matcher, which must be a regexp.  Only matches
+    ;; where the beginning is outside any comment or string literal are
+    ;; significant.
+    ;;
+    ;; HIGHLIGHTS is a list of highlight specs, just like in
+    ;; `font-lock-keywords', with these limitations: The face is always
+    ;; overridden (no big disadvantage, since hits in comments etc are
+    ;; filtered anyway), there is no "laxmatch", and an anchored matcher
+    ;; is always a form which must do all the fontification directly.
+    ;; `limit' is a variable bound to the real limit in the context of
+    ;; the anchored matcher forms.
+    ;;
+    ;; This function does not do any hidden buffer changes, but the
+    ;; generated functions will.  (They are however used in places
+    ;; covered by the font-lock context.)
+
+    ;; Note: Replace `byte-compile' with `eval' to debug the generated
+    ;; lambda more easily.
+    (byte-compile
+     `(lambda (limit)
+	(let ( ;; The font-lock package in Emacs is known to clobber
+	      ;; `parse-sexp-lookup-properties' (when it exists).
+	      (parse-sexp-lookup-properties
+	       (cc-eval-when-compile
+		 (boundp 'parse-sexp-lookup-properties))))
+	  (goto-char
+	   (let ((here (point)))
+	     (if (eq (car (c-beginning-of-decl-1)) 'same)
+		 (point)
+	       here)))
+	  ,(c-make-font-lock-search-form regexp highlights))
+	nil)))
+
   (defun c-make-font-lock-context-search-function (normal &rest state-stanzas)
     ;; This function makes a byte compiled function that works much like
     ;; a matcher element in `font-lock-keywords', with the following
@@ -1828,24 +1881,32 @@ higher."
 			  c-label-face-name nil t))))))
 
       ;; Fontify the clauses after various keywords.
-      ,@(when (or (c-lang-const c-type-list-kwds)
-		  (c-lang-const c-ref-list-kwds)
-		  (c-lang-const c-colon-type-list-kwds)
-		  (c-lang-const c-paren-type-kwds))
-	  `((,(c-make-font-lock-search-function
-	       (concat "\\<\\("
-		       (c-make-keywords-re nil
-			 (append (c-lang-const c-type-list-kwds)
-				 (c-lang-const c-ref-list-kwds)
-				 (c-lang-const c-colon-type-list-kwds)
-				 (c-lang-const c-paren-type-kwds)))
-		       "\\)\\>")
-	       '((c-fontify-types-and-refs ((c-promote-possible-types t))
-		   (c-forward-keyword-clause 1)
-		   (if (> (point) limit) (goto-char limit))))))))
+	,@(when (or (c-lang-const c-type-list-kwds)
+		    (c-lang-const c-ref-list-kwds)
+		    (c-lang-const c-colon-type-list-kwds))
+	    `((,(c-make-font-lock-BO-decl-search-function
+		 (concat "\\<\\("
+			 (c-make-keywords-re nil
+			   (append (c-lang-const c-type-list-kwds)
+				   (c-lang-const c-ref-list-kwds)
+				   (c-lang-const c-colon-type-list-kwds)))
+			 "\\)\\>")
+		 '((c-fontify-types-and-refs ((c-promote-possible-types t))
+		     (c-forward-keyword-clause 1)
+		     (if (> (point) limit) (goto-char limit))))))))
 
-      ,@(when (c-major-mode-is 'java-mode)
-	  `((eval . (list "\\<\\(@[a-zA-Z0-9]+\\)\\>" 1 c-annotation-face))))
+	,@(when (c-lang-const c-paren-type-kwds)
+	    `((,(c-make-font-lock-search-function
+		 (concat "\\<\\("
+			 (c-make-keywords-re nil
+			   (c-lang-const c-paren-type-kwds))
+			 "\\)\\>")
+		 '((c-fontify-types-and-refs ((c-promote-possible-types t))
+		     (c-forward-keyword-clause 1)
+		     (if (> (point) limit) (goto-char limit))))))))
+
+	,@(when (c-major-mode-is 'java-mode)
+	    `((eval . (list "\\<\\(@[a-zA-Z0-9]+\\)\\>" 1 c-annotation-face))))
       ))
 
 (c-lang-defconst c-matchers-1

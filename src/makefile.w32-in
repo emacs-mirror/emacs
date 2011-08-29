@@ -469,6 +469,7 @@ $(BLD)/alloc.$(O) : \
 	$(SRC)/syssignal.h \
 	$(SRC)/w32.h \
 	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/verify.h \
 	$(BLOCKINPUT_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \

@@ -3138,11 +3138,6 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   encode_terminal_src_size = 0;
   encode_terminal_dst_size = 0;
 
-#ifdef HAVE_GPM
-  terminal->mouse_position_hook = term_mouse_position;
-  tty->mouse_highlight.mouse_face_window = Qnil;
-#endif
-
 
 #ifndef DOS_NT
   set_tty_hooks (terminal);
@@ -3401,6 +3396,11 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 
   tty->TN_max_colors = 16;  /* Required to be non-zero for tty-display-color-p */
 #endif	/* DOS_NT */
+
+#ifdef HAVE_GPM
+  terminal->mouse_position_hook = term_mouse_position;
+  tty->mouse_highlight.mouse_face_window = Qnil;
+#endif
 
   terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);

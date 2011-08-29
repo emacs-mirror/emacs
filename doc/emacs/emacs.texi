@@ -345,6 +345,7 @@ Controlling the Display
 * Horizontal Scrolling::   Moving text left and right in a window.
 * Narrowing::              Restricting display and editing to a portion
                              of the buffer.
+* View Mode::              Viewing read-only buffers.
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::                  How to change the display style using faces.
 * Standard Faces::         Emacs' predefined faces.
@@ -1053,6 +1054,12 @@ Hyperlinking and Navigation Features
 * Browse-URL::          Following URLs.
 * Goto Address mode::   Activating URLs.
 * FFAP::                Finding files etc. at point.
+
+Emacs Lisp Packages
+
+* Package Menu::         Buffer for viewing and managing packages.
+* Package Installation:: Options for package installation.
+* Package Files::        Where packages are installed.
 
 Customization
 

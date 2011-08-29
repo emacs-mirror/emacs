@@ -17,6 +17,7 @@ want to see, and how to display it.
 * Horizontal Scrolling::   Moving text left and right in a window.
 * Narrowing::              Restricting display and editing to a portion
                              of the buffer.
+* View Mode::              Viewing read-only buffers.
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Faces::                  How to change the display style using faces.
 * Standard Faces::         Emacs' predefined faces.
@@ -367,6 +368,28 @@ to using the @kbd{C-x =} command.  @xref{Position Info}.
 this command asks for confirmation and gives you the option of enabling it;
 if you enable the command, confirmation will no longer be required for
 it.  @xref{Disabling}.
+
+@node View Mode
+@section View Mode
+@cindex View mode
+@cindex mode, View
+
+  View mode is a minor mode that lets you scan a buffer by sequential
+screenfuls.  It provides commands for scrolling through the buffer
+conveniently but not for changing it.  Apart from the usual Emacs
+cursor motion commands, you can type @key{SPC} to scroll forward one
+windowful, @key{DEL} to scroll backward, and @kbd{s} to start an
+incremental search.
+
+  Typing @kbd{q} disables View mode, and switches back to the buffer
+and position before View mode was enabled.  Alternatively, typing
+@kbd{e} disables View mode, keeping the current buffer and position.
+
+@findex view-buffer
+@findex view-file
+  @kbd{M-x view-buffer} prompts for an existing Emacs buffer, switches
+to it, and enables View mode.  @kbd{M-x view-file} prompts for a file
+and visits it with View mode enabled.
 
 @node Follow Mode
 @section Follow Mode

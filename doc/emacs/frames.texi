@@ -467,12 +467,14 @@ for Emacs to detect this automatically, so you should set the variable
 @code{focus-follows-mouse}.  The default is @code{nil}, meaning you
 have to click on the window to select it (the default for most modern
 window managers).  You should change it to @code{t} if your window
-manager selects and window and gives it focus anytime you move the
-mouse onto the window.
+manager selects a window and gives it focus anytime you move the mouse
+onto the window.
 
   The window manager that is part of MS-Windows always gives focus to
 a frame that raises, so this variable has no effect in the native
-MS-Windows build of Emacs.
+MS-Windows build of Emacs.  However, you may still wish to set this
+variable to @code{t} to have Emacs automatically move the mouse
+pointer to the raised frame.
 
 @node Fonts
 @section Fonts

@@ -367,10 +367,9 @@ echo area, or @code{nil} if there is none.
   When an operation can take a while to finish, you should inform the
 user about the progress it makes.  This way the user can estimate
 remaining time and clearly see that Emacs is busy working, not hung.
+A convenient way to do this is to use a @dfn{progress reporter}.
 
-  Functions listed in this section provide simple and efficient way of
-reporting operation progress.  Here is a working example that does
-nothing useful:
+  Here is a working example that does nothing useful:
 
 @smallexample
 (let ((progress-reporter
@@ -382,11 +381,11 @@ nothing useful:
   (progress-reporter-done progress-reporter))
 @end smallexample
 
-@defun make-progress-reporter message min-value max-value &optional current-value min-change min-time
-This function creates and returns a @dfn{progress reporter}---an
-object you will use as an argument for all other functions listed
-here.  The idea is to precompute as much data as possible to make
-progress reporting very fast.
+@defun make-progress-reporter message &optional min-value max-value current-value min-change min-time
+This function creates and returns a progress reporter object, which
+you will use as an argument for the other functions listed below.  The
+idea is to precompute as much data as possible to make progress
+reporting very fast.
 
 When this progress reporter is subsequently used, it will display
 @var{message} in the echo area, followed by progress percentage.
@@ -394,24 +393,28 @@ When this progress reporter is subsequently used, it will display
 on a filename, for instance, use @code{format} before calling this
 function.
 
-@var{min-value} and @var{max-value} arguments stand for starting and
-final states of your operation.  For instance, if you scan a buffer,
-they should be the results of @code{point-min} and @code{point-max}
-correspondingly.  It is required that @var{max-value} is greater than
-@var{min-value}.  If you create progress reporter when some part of
-the operation has already been completed, then specify
-@var{current-value} argument.  But normally you should omit it or set
-it to @code{nil}---it will default to @var{min-value} then.
+The arguments @var{min-value} and @var{max-value} should be numbers
+standing for the starting and final states of the operation.  For
+instance, an operation that ``scans'' a buffer should set these to the
+results of @code{point-min} and @code{point-max} correspondingly.
+@var{max-value} should be greater than @var{min-value}.
 
-Remaining arguments control the rate of echo area updates.  Progress
-reporter will wait for at least @var{min-change} more percents of the
-operation to be completed before printing next message.
-@var{min-time} specifies the minimum time in seconds to pass between
-successive prints.  It can be fractional.  Depending on Emacs and
-system capabilities, progress reporter may or may not respect this
-last argument or do it with varying precision.  Default value for
-@var{min-change} is 1 (one percent), for @var{min-time}---0.2
-(seconds.)
+Alternatively, you can set @var{min-value} and @var{max-value} to
+@code{nil}.  In that case, the progress reporter does not report
+process percentages; it instead displays a ``spinner'' that rotates a
+notch each time you update the progress reporter.
+
+If @var{min-value} and @var{max-value} are numbers, you can give the
+argument @var{current-value} a numerical value specifying the initial
+progress; if omitted, this defaults to @var{min-value}.
+
+The remaining arguments control the rate of echo area updates.  The
+progress reporter will wait for at least @var{min-change} more
+percents of the operation to be completed before printing next
+message; the default is one percent.  @var{min-time} specifies the
+minimum time in seconds to pass between successive prints; the default
+is 0.2 seconds.  (On some operating systems, the progress reporter may
+handle fractions of seconds with varying precision).
 
 This function calls @code{progress-reporter-update}, so the first
 message is printed immediately.

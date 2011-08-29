@@ -112,7 +112,10 @@ If set, the server accepts remote connections; otherwise it is local."
 (put 'server-host 'risky-local-variable t)
 
 (defcustom server-port nil
-  "The port number that the server process should listen on."
+  "The port number that the server process should listen on.
+This variable only takes effect when the Emacs server is using
+TCP instead of local sockets.  A nil value means to use a random
+port number."
   :group 'server
   :type '(choice
           (string :tag "Port number")

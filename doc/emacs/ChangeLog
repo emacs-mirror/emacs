@@ -1,3 +1,28 @@
+2011-08-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (File Archives):
+	* cal-xtra.texi (Diary Display):
+	* help.texi (Help Mode): Add xref to View Mode.
+
+2011-08-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (View Mode): New node.  Move view-file here from
+	Misc File Ops.  Move view-buffer here from Misc Buffer.
+
+	* buffers.texi (Misc Buffer): Move view-buffer to View Mode.
+
+	* files.texi (Misc File Ops): Document new
+	delete-by-moving-to-trash behavior.  Remove view-file.
+
+	* dired.texi (Dired Deletion): Shorten description of Trash.
+
+	* misc.texi (emacsclient Options): Document server-port.
+
+2011-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* frames.texi (Frame Commands): Advise setting focus-follows-mouse
+	even on MS-Windows.  Fix a typo.
+
 2011-08-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* package.texi: New file, documenting the package manager.

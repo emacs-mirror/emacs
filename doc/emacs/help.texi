@@ -405,8 +405,8 @@ the variable @code{apropos-documentation-sort-by-scores} is
 @node Help Mode
 @section Help Mode Commands
 
-  Help buffers provide the same commands as View mode (@pxref{Misc File
-Ops}), plus a few special commands of their own.
+  Help buffers provide the same commands as View mode (@pxref{View
+Mode}), plus a few special commands of their own.
 
 @table @kbd
 @item @key{SPC}
