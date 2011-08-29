@@ -26,6 +26,10 @@
 	* dispnew.c (add_window_display_history): Don't overrun buffer.
 	Truncate instead; this is OK since it's just a log.
 
+	* editfns.c (Fcurrent_time_zone): Don't overrun buffer
+	even if the time zone offset is outlandishly large.
+	Don't mishandle offset == INT_MIN.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
