@@ -97,6 +97,8 @@
 	* xfns.c (x_window): Make sprintf buffer a bit bigger
 	to avoid potential buffer overrun.
 
+	* xterm.c (x_io_error_quitter): Don't overrun sprintf buffer.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
