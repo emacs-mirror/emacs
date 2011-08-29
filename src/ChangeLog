@@ -30,6 +30,9 @@
 	even if the time zone offset is outlandishly large.
 	Don't mishandle offset == INT_MIN.
 
+	* emacs.c (main) [NS_IMPL_COCOA]: Don't overrun buffer
+	when creating daemon; the previous buffer-overflow check was incorrect.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
