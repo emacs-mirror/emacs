@@ -271,6 +271,7 @@ xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lis
 {
   unsigned int subtype;
   Lisp_Object elt;
+  char const *subsig;
   char x[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   elt = object;
@@ -328,12 +329,13 @@ xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lis
       if (NILP (elt))
 	{
 	  subtype = DBUS_TYPE_STRING;
-	  strcpy (x, DBUS_TYPE_STRING_AS_STRING);
+	  subsig = DBUS_TYPE_STRING_AS_STRING;
 	}
       else
 	{
 	  subtype = XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt));
 	  xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
+	  subsig = x;
 	}
 
       /* If the element type is DBUS_TYPE_SIGNATURE, and this is the
@@ -342,7 +344,7 @@ xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lis
       if ((subtype == DBUS_TYPE_SIGNATURE)
 	  && STRINGP (CAR_SAFE (XD_NEXT_VALUE (elt)))
 	  && NILP (CDR_SAFE (XD_NEXT_VALUE (elt))))
-	strcpy (x, SSDATA (CAR_SAFE (XD_NEXT_VALUE (elt))));
+	subsig = SSDATA (CAR_SAFE (XD_NEXT_VALUE (elt)));
 
       while (!NILP (elt))
 	{
@@ -351,7 +353,10 @@ xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lis
 	  elt = CDR_SAFE (XD_NEXT_VALUE (elt));
 	}
 
-      sprintf (signature, "%c%s", dtype, x);
+      if (esnprintf (signature, DBUS_MAXIMUM_SIGNATURE_LENGTH,
+		     "%c%s", dtype, subsig)
+	  == DBUS_MAXIMUM_SIGNATURE_LENGTH - 1)
+	string_overflow ();
       break;
 
     case DBUS_TYPE_VARIANT:
@@ -2026,7 +2031,7 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
   DBusConnection *connection;
   ptrdiff_t i;
   char rule[DBUS_MAXIMUM_MATCH_RULE_LENGTH];
-  char x[DBUS_MAXIMUM_MATCH_RULE_LENGTH];
+  int rulelen;
   DBusError derror;
 
   /* Check parameters.  */
@@ -2071,33 +2076,31 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
       connection = xd_initialize (bus, TRUE);
 
       /* Create a rule to receive related signals.  */
-      sprintf (rule,
-	       "type='signal',interface='%s',member='%s'",
-	       SDATA (interface),
-	       SDATA (signal));
+      rulelen = esnprintf (rule, sizeof rule,
+			   "type='signal',interface='%s',member='%s'",
+			   SDATA (interface),
+			   SDATA (signal));
 
       /* Add unique name and path to the rule if they are non-nil.  */
       if (!NILP (uname))
-	{
-	  sprintf (x, ",sender='%s'", SDATA (uname));
-	  strcat (rule, x);
-	}
+	rulelen += esnprintf (rule + rulelen, sizeof rule - rulelen,
+			      ",sender='%s'", SDATA (uname));
 
       if (!NILP (path))
-	{
-	  sprintf (x, ",path='%s'", SDATA (path));
-	  strcat (rule, x);
-	}
+	rulelen += esnprintf (rule + rulelen, sizeof rule - rulelen,
+			      ",path='%s'", SDATA (path));
 
       /* Add arguments to the rule if they are non-nil.  */
       for (i = 6; i < nargs; ++i)
 	if (!NILP (args[i]))
 	  {
 	    CHECK_STRING (args[i]);
-	    sprintf (x, ",arg%"pD"d='%s'", i - 6,
-		     SDATA (args[i]));
-	    strcat (rule, x);
+	    rulelen += esnprintf (rule + rulelen, sizeof rule - rulelen,
+				  ",arg%"pD"d='%s'", i - 6, SDATA (args[i]));
 	  }
+
+      if (rulelen == sizeof rule - 1)
+	string_overflow ();
 
       /* Add the rule to the bus.  */
       dbus_error_init (&derror);

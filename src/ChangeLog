@@ -20,6 +20,9 @@
 	(esprintf, esnprintf, exprintf, evxprintf): New decls.
 	* window.h (command_loop_level, minibuf_level): Reflect API changes.
 
+	* dbusbind.c (xd_signature, Fdbus_register_signal):
+	Do not overrun buffer; instead, report string overflow.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
