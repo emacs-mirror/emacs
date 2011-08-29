@@ -36,6 +36,9 @@
 	* eval.c (verror): Simplify by rewriting in terms of evxprintf,
 	which has the guts of the old verror function.
 
+	* filelock.c (lock_file_1, lock_file): Don't blindly alloca long name;
+	use SAFE_ALLOCA instead.  Use esprintf to avoid int-overflow issues.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
