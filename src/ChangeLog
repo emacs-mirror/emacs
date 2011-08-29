@@ -1,3 +1,25 @@
+2011-08-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	sprintf-related integer and memory overflow issues.
+
+	* doprnt.c (doprnt): Support printing ptrdiff_t and intmax_t values.
+	(esprintf, esnprintf, exprintf, evxprintf): New functions.
+	* keyboard.c (command_loop_level): Now EMACS_INT, not int.
+	(cmd_error): kbd macro iterations count is now EMACS_INT, not int.
+	(modify_event_symbol): Do not assume that the length of
+	name_alist_or_stem is safe to alloca and fits in int.
+	(Fexecute_extended_command): Likewise for function name and binding.
+	(Frecursion_depth): Wrap around reliably on integer overflow.
+	* keymap.c (push_key_description): First arg is now EMACS_INT, not int,
+	since some callers pass EMACS_INT values.
+	(Fsingle_key_description): Don't crash if symbol name contains more
+	than MAX_ALLOCA bytes.
+	* minibuf.c (minibuf_level): Now EMACS_INT, not int.
+	(get_minibuffer): Arg is now EMACS_INT, not int.
+	* lisp.h (get_minibuffer, push_key_description): Reflect API changes.
+	(esprintf, esnprintf, exprintf, evxprintf): New decls.
+	* window.h (command_loop_level, minibuf_level): Reflect API changes.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
