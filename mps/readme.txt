@@ -52,6 +52,12 @@ This document is not confidential.
 record of changes.  In a release of the MPS-Kit, this section becomes
 the summary of what is new for that release.)
 
+2011-08
+   Master change to standardise on an NT build environment of
+   NT6.1 (Windows 7) and it its SDK version 7.1.  Previous versions
+   of Windows that are still supported by Microsoft can be accomodated
+   through this framework if required.
+
 [
 After a release, bracket the previous section, and start a new section like this:
 
@@ -70,14 +76,14 @@ Changes from release 1.109.0:
 Functional changes to MPS code:
 
 <http://www.ravenbrook.com/project/mps/issue/job002248/>
-Improvement: return virtual memory (address space) from 
-mps_arena_class_vm to the operating system, when complete chunks are 
-unused after a garbage collection.  Whether, and how much, virtual 
-memory is returned depends on many factors.  Small chunks may be more 
-likely to be returnable than big chunks.  The mps_arena_vm_growth() 
-function controls the size of chunks by which VM arena may grow.  The 
-default, if this function is never called, is for new chunks to be the 
-same size as the original arena created by mps_arena_create(), if 
+Improvement: return virtual memory (address space) from
+mps_arena_class_vm to the operating system, when complete chunks are
+unused after a garbage collection.  Whether, and how much, virtual
+memory is returned depends on many factors.  Small chunks may be more
+likely to be returnable than big chunks.  The mps_arena_vm_growth()
+function controls the size of chunks by which VM arena may grow.  The
+default, if this function is never called, is for new chunks to be the
+same size as the original arena created by mps_arena_create(), if
 possible.
 
 
@@ -89,22 +95,22 @@ Functional changes to MPS code:
 <http://www.ravenbrook.com/project/mps/issue/job001570/>
 <http://www.ravenbrook.com/project/mps/issue/job001989/>
 Defects discovered in mps_message_type_gc_start lifecycle:
-  - enabling mps_message_type_gc_start and then failing to promptly 
-    mps_message_get the resulting messages could corrupt the MPS 
+  - enabling mps_message_type_gc_start and then failing to promptly
+    mps_message_get the resulting messages could corrupt the MPS
     message queue;
-  - a corrupted message queue could cause an assert, incorrect 
-    behaviour, or an infinite loop, when getting or discarding 
+  - a corrupted message queue could cause an assert, incorrect
+    behaviour, or an infinite loop, when getting or discarding
     messages, or when calling mps_arena_destroy;
-  - also, the _gc_start message could change while the client read it, 
+  - also, the _gc_start message could change while the client read it,
     and the message for a new GC start could be silently skipped.
 Fixed: redesign _gc_start message lifecycle:
-  - if mps_message_type_gc_start is enabled, a separate GC start 
-    message is issued for each collection, as long as there is 
+  - if mps_message_type_gc_start is enabled, a separate GC start
+    message is issued for each collection, as long as there is
     sufficient memory to create the message;
-  - these messages will be queued indefinitely until the client gets 
+  - these messages will be queued indefinitely until the client gets
     and discards them;
-  - therefore: a client that enables mps_message_type_gc_start must 
-    call mps_message_get() and mps_message_discard() to get and 
+  - therefore: a client that enables mps_message_type_gc_start must
+    call mps_message_get() and mps_message_discard() to get and
     discard these messages;
   - warning: failure to do so will eventually exhaust memory.
 
@@ -112,28 +118,28 @@ Fixed: redesign _gc_start message lifecycle:
 <http://www.ravenbrook.com/project/mps/issue/job001969/>
 New features to inform client of activity and timing of collections:
   mps_message_clock():
-    - for a _gc_start or _gc message, returns the time at which the 
+    - for a _gc_start or _gc message, returns the time at which the
       MPS posted it; see Reference Manual for documentation;
   mps_alert_collection_set():
-    - set a client-supplied function which the MPS will synchronously 
+    - set a client-supplied function which the MPS will synchronously
       call when a collection begins or ends;
-    - there are restrictions on what the client-supplied function is 
-      permitted to do; please ask Ravenbrook if you require further 
+    - there are restrictions on what the client-supplied function is
+      permitted to do; please ask Ravenbrook if you require further
       details.
 
 <http://www.ravenbrook.com/project/mps/issue/job001811/>
-Improvement: reduce the risk of ambiguous retention, when the client 
+Improvement: reduce the risk of ambiguous retention, when the client
 allocates large objects in mps_class_amc and mps_class_amcz.
 
 <http://www.ravenbrook.com/project/mps/issue/job002205/>
 Defect discovered:
   - collections run too slow if client allocates big objects.
 Fix:
-  - improved collection scheduling, when client allocates large 
+  - improved collection scheduling, when client allocates large
     objects.
 
 <http://www.ravenbrook.com/project/mps/issue/job002209/>
-New features for client to determine pool or format, given object 
+New features for client to determine pool or format, given object
 address:
   mps_addr_pool()
   mps_addr_fmt()
@@ -143,14 +149,14 @@ Other changes:
 
 <http://www.ravenbrook.com/project/mps/issue/job001934/>
 <http://www.ravenbrook.com/project/mps/issue/job001944/>
-MPS may now be built with Microsoft's Visual C++ 9.0 compiler.  
+MPS may now be built with Microsoft's Visual C++ 9.0 compiler.
 See manual/build-notes.
 
 <http://www.ravenbrook.com/project/mps/issue/job001936/>
 <http://www.ravenbrook.com/project/mps/issue/job001935/>
 <http://www.ravenbrook.com/project/mps/issue/job002148/>
-Configura releases include a .def file to allow re-export of MPS 
-functions from a client executable that includes the MPS, such that 
+Configura releases include a .def file to allow re-export of MPS
+functions from a client executable that includes the MPS, such that
 other client DLLs can link to and call those MPS functions.
 See also manual/build-notes.
 ]
@@ -162,60 +168,60 @@ Functional changes to MPS code:
 
 <http://www.ravenbrook.com/project/mps/issue/job001784/>
 Defect discovered:
-  - when using an auto_header format (mps_fmt_create_auto_header) 
-    with AMC pools (mps_class_amc), the MPS leaks a small amount of 
+  - when using an auto_header format (mps_fmt_create_auto_header)
+    with AMC pools (mps_class_amc), the MPS leaks a small amount of
     memory on each collection.
 Impact:
-  - the leak is likely to be a few bytes per collection, and at most 
-    one byte per page (typically 2^12 bytes) of the address-space 
+  - the leak is likely to be a few bytes per collection, and at most
+    one byte per page (typically 2^12 bytes) of the address-space
     currently in use for objects in AMC pools;
-  - the leak is of temporary memory that the MPS uses to process 
-    ambiguous references (typically references on the stack and in 
-    registers), so a larger stack when a collection starts will 
+  - the leak is of temporary memory that the MPS uses to process
+    ambiguous references (typically references on the stack and in
+    registers), so a larger stack when a collection starts will
     tend to cause a larger leak;
-  - the leaked bytes are widely-spaced single bytes which therefore 
+  - the leaked bytes are widely-spaced single bytes which therefore
     also cause fragmentation;
-  - the leaked bytes are not reclaimed until the client calls 
+  - the leaked bytes are not reclaimed until the client calls
     mps_arena_destroy().
 Fixed: correctly release all of this temporary memory.
 
 <http://www.ravenbrook.com/project/mps/issue/job001809/>
 Defect discovered:
   - AMC pools (mps_class_amc) temporarily retain the memory that was
-    used for a dead object, if there is an ambiguous reference (such 
-    as a value on the stack) that happens to point at the interior of 
+    used for a dead object, if there is an ambiguous reference (such
+    as a value on the stack) that happens to point at the interior of
     the (dead) object.
 Impact:
-  - if the (dead) object was small- or medium-sized, this temporary 
+  - if the (dead) object was small- or medium-sized, this temporary
     retention is unlikely to cause a problem;
   - if the (dead) object was very large, then this retention is more
     likely, and will retain a large amount of memory;
-  - if many large objects are allocated, this retention can cause 
+  - if many large objects are allocated, this retention can cause
     memory to be exhausted when it should not be.
 Fix:
-  - it is usually possible for AMC pools to free the memory 
-    immediately (that is, during the collection that identifies the 
+  - it is usually possible for AMC pools to free the memory
+    immediately (that is, during the collection that identifies the
     object as being dead), and AMC pools now do so;
 Future work:
-  - occasionally, there are adjacently located objects that are 
+  - occasionally, there are adjacently located objects that are
     ambiguously referenced and are not dead;
-  - in this case it is not possible to free the memory immediately, 
-    and so temporary retention still occurs (this is not expected to 
+  - in this case it is not possible to free the memory immediately,
+    and so temporary retention still occurs (this is not expected to
     be very common).
-  - however, the MPS could prevent this by avoiding locating small 
+  - however, the MPS could prevent this by avoiding locating small
     objects adjacent to very large objects, see:
       <http://www.ravenbrook.com/project/mps/issue/job001811/>
 
 <http://www.ravenbrook.com/project/mps/issue/job001737/>
 Further changes to arena growth (see notes below for version 1.108.1).
-When the arena cannot grow by the desired increment, the MPS 
-attempts successively smaller increments, but with a more fine-grained 
-search than in version 1.108.1, thereby achieveing an increment that 
-more closely matches the largest available chunk of remaining 
+When the arena cannot grow by the desired increment, the MPS
+attempts successively smaller increments, but with a more fine-grained
+search than in version 1.108.1, thereby achieveing an increment that
+more closely matches the largest available chunk of remaining
 address-space.
 New interface function mps_arena_vm_growth().  This function allows
-the client more control over how a VM arena (mps_arena_class_vm) 
-grows.  The interface is under development and is likely to change; 
+the client more control over how a VM arena (mps_arena_class_vm)
+grows.  The interface is under development and is likely to change;
 please contact us if you would like further details.
 ]
 
@@ -226,22 +232,22 @@ Functional changes to MPS code:
 
 <http://www.ravenbrook.com/project/mps/issue/job001737/>
 Limitation:
-  - if a VM arena (of mps_arena_class_vm) needed to be extended, 
-    and the attempt to extend it was refused by the OS (usually 
-    because the requested address-space was not available), MPS 
+  - if a VM arena (of mps_arena_class_vm) needed to be extended,
+    and the attempt to extend it was refused by the OS (usually
+    because the requested address-space was not available), MPS
     would not try a smaller extension.
-Fixed: MPS now tries to extend the arena by successively smaller 
+Fixed: MPS now tries to extend the arena by successively smaller
     amounts, until the extension succeeds.
 
 <http://www.ravenbrook.com/project/mps/issue/job001706/>
 Defect discovered:
-  - internal memory-protection state in AMC pools (mps_class_amc) 
-    was incorrect for a brief period of time during a collection, 
+  - internal memory-protection state in AMC pools (mps_class_amc)
+    was incorrect for a brief period of time during a collection,
     which could (theoretically) have caused an assert and failure.
 However:
-  - during this brief period, the MPS protection cache masks the 
-    defect.  As a result, we believe this defect is unlikely to be 
-    observed in practice (and we have no evidence that it has 
+  - during this brief period, the MPS protection cache masks the
+    defect.  As a result, we believe this defect is unlikely to be
+    observed in practice (and we have no evidence that it has
     ever occurred in practice).
 Fixed: maintain memory-protection state correctly in AMC pools.
 
@@ -250,14 +256,14 @@ Other changes:
 <http://www.ravenbrook.com/project/mps/issue/job001714/>
   - in the Mac OS X (PowerPC) build, remove outdated compiler flags.
 
-The MPS diagnostic system -- which produces diagnostic output for the 
-purpose of helping MPS programmers and client-code programmers -- is 
+The MPS diagnostic system -- which produces diagnostic output for the
+purpose of helping MPS programmers and client-code programmers -- is
 undergoing improvement.  Some early documentation is at
  <http://www.ravenbrook.com/project/mps/master/design/diag>
 There is a new build variety "di" that emits diagnostics.
 
-Note: for further details of this release (including a 'live' report 
-of defects found after these release-notes were written), and details 
+Note: for further details of this release (including a 'live' report
+of defects found after these release-notes were written), and details
 of earlier and later releases, please see:
   <http://www.ravenbrook.com/project/mps/release/>
 ]
@@ -269,40 +275,40 @@ Functional changes to MPS code:
 
 <http://www.ravenbrook.com/project/mps/issue/job001548/>
 Defect discovered:
-  - an assert could, rarely, be incorrectly triggered when a pool 
+  - an assert could, rarely, be incorrectly triggered when a pool
     of mps_class_amc is in a constrained memory condition.
-Fixed: in this rare case, calculate a certain value correctly, 
-    such that the assert which checks it is not incorrectly 
+Fixed: in this rare case, calculate a certain value correctly,
+    such that the assert which checks it is not incorrectly
     triggered.
 
 <http://www.ravenbrook.com/project/mps/issue/job001658/>
 Defect discovered:
-  - finalization messages could suffer an unnecessary delay, of 
-    several full collections (in the worst case), if there were 
+  - finalization messages could suffer an unnecessary delay, of
+    several full collections (in the worst case), if there were
     more than 1024 finalization-registered objects;
-Fixed: the number of finalization-registered objects should 
-    no longer cause such a delay, so more finalization messages 
+Fixed: the number of finalization-registered objects should
+    no longer cause such a delay, so more finalization messages
     are likely to be produced by a single collection.
 
 <http://www.ravenbrook.com/project/mps/issue/job001147/>
-  - on Mac OS X (PowerPC and Intel), MPS now has memory-protection 
+  - on Mac OS X (PowerPC and Intel), MPS now has memory-protection
     code, so collections are much faster.
 
 <http://www.ravenbrook.com/project/mps/issue/job001619/>
-  - on Mac OS X (Intel), MPS now has stack-scanner code, so the 
-    stack may be declared an ambiguous root.  (Note: there was 
+  - on Mac OS X (Intel), MPS now has stack-scanner code, so the
+    stack may be declared an ambiguous root.  (Note: there was
     already a stack-scanner for Mac OS X PowerPC).
 
 <http://www.ravenbrook.com/project/mps/issue/job001622/>
-  - on Mac OS X (PowerPC and Intel), MPS now has locking code, so 
-    multiple client threads may use the MPS.  (But note: the thread 
-    module has not been implemented for Mac OS X, so threads may 
+  - on Mac OS X (PowerPC and Intel), MPS now has locking code, so
+    multiple client threads may use the MPS.  (But note: the thread
+    module has not been implemented for Mac OS X, so threads may
     not yet have their stacks as roots, I think.  See:
     <http://www.ravenbrook.com/project/mps/issue/job001621/>).
-    
+
 <http://www.ravenbrook.com/project/mps/issue/job001556/>
 Defect discovered:
-  - a macro used only in asserts was incorrect; this could have made 
+  - a macro used only in asserts was incorrect; this could have made
     some checks ineffective.
 Fixed: corrected the macro.
 
@@ -315,7 +321,7 @@ Other changes:
   - now builds on Linux.
 
 <http://www.ravenbrook.com/project/mps/issue/job001617/>
-  - on Mac OS X (Intel) default "all" build works (fix broken 
+  - on Mac OS X (Intel) default "all" build works (fix broken
     compile of amsss stress test).
 ]
 
@@ -327,15 +333,15 @@ Functional changes to MPS code:
 <http://www.ravenbrook.com/project/mps/issue/job001455/>
 Defect discovered:
   - if there was a pool of pool-class LO (leaf-only objects,
-    see mps_class_lo), the mps_arena_formatted_objects_walk() 
+    see mps_class_lo), the mps_arena_formatted_objects_walk()
     call would fail.
 Fixed: mps_arena_formatted_objects_walk() will now work.
 
 <http://www.ravenbrook.com/project/mps/issue/job000666/>
-  - when MPS starts a garbage collection, it now tells 
+  - when MPS starts a garbage collection, it now tells
     the client by posting a message of the new type
-    mps_message_type_gc_start().  The message includes 
-    a textual explanation (for the client programmer) 
+    mps_message_type_gc_start().  The message includes
+    a textual explanation (for the client programmer)
     of why this collection was triggered.
 
 <http://www.ravenbrook.com/project/mps/issue/job001545/>
@@ -346,7 +352,7 @@ Fixed: mps_arena_formatted_objects_walk() will now work.
 Other changes:
 
 <http://www.ravenbrook.com/project/mps/issue/job001421/>
-  - the default "all" build now builds mps library and plinth, on 
+  - the default "all" build now builds mps library and plinth, on
     all platforms.
 
 <http://www.ravenbrook.com/project/mps/issue/job001530/>
@@ -364,7 +370,7 @@ No functional changes to MPS implementation code.
 Fixed <http://www.ravenbrook.com/project/mps/issue/job001352/>
   - the "mps.a" library does not (now) contain plinth files;
   - therefore, if your MPS client code needs the example plinth
-    ("mpsplan.a"), you must link with it explicitly to obtain 
+    ("mpsplan.a"), you must link with it explicitly to obtain
     _mps_lib_assert_fail, _mps_clock, etc;
   - the default "all" build now succeeds on Unix-like platforms
     (in 1.106.1 the "all" build only worked on Mac OS X).
@@ -381,7 +387,7 @@ Fixed <http://www.ravenbrook.com/project/mps/issue/job001367/>
       example/hello-world/index.txt
 ]
 
-For more information about the status and progress of the MPS project, 
+For more information about the status and progress of the MPS project,
 consult the project home-page: <http://www.ravenbrook.com/project/mps/>.
 
 
@@ -403,7 +409,7 @@ The top-level file "index.html" in the sources indexes many other files,
 and is a good place to start.  You should read the user manuals and the
 high level design documents.
 
-A quick start to writing code that uses the MPS is the "hello-world" 
+A quick start to writing code that uses the MPS is the "hello-world"
 example:
     example/hello-world/index.txt
 
@@ -606,9 +612,9 @@ B. DOCUMENT HISTORY
 
 C. COPYRIGHT AND LICENSE
 
-Copyright (C) 2001-2002, 2006-2007, 2008, 2010 Ravenbrook Limited.  
-All rights reserved.  <http://www.ravenbrook.com/>.  
-This is an open source license.  
+Copyright (C) 2001-2002, 2006-2007, 2008, 2010 Ravenbrook Limited.
+All rights reserved.  <http://www.ravenbrook.com/>.
+This is an open source license.
 Contact Ravenbrook for commercial licensing options.
 
 Redistribution and use in source and binary forms, with or without

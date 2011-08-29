@@ -1,21 +1,24 @@
 #!/usr/bin/python
-#How to test a release before shipping it to Configura
+# How to test a release before shipping it to Configura
 
-#You have a candidate release.  This document tells you how to test it before shipping it -- quick tests.  
-#Readership: all.  Confidential: no.  Status: rough notes.  
-#Background: knowing the history of MPS development for Configura is an advantage.  
-#Peer documents:
+# You have a candidate release.  This document tells you how to test it
+# before shipping it -- quick tests.
+# Readership: all.  Confidential: no.  Status: rough notes.
+# Background: knowing the history of MPS development for Configura is
+# an advantage.
+# Peer documents:
 #  <http://info.ravenbrook.com/project/mps/master/procedure/release-build/>.
 #  <http://info.ravenbrook.com/project/mps/master/procedure/release-configura/>.
 
-#What do we test?
-#Not much -- this procedure is for a quick test before shipping, principally to make sure that the build isn't crock in some way.  
+# What do we test?
+# Not much -- this procedure is for a quick test before shipping,
+# principally to make sure that the build isn't crock in some way.
 
-#How to run the test:
-#You need python (eg. 2.3).  Cd to where you would type w3build.bat.  
-#Type ..\tool\test-runner.py
-#Each test should report "Conclusion:  Failed to find any defects."
-#Also check full log placed in file a1.txt.
+# How to run the test:
+# You need python (eg. 2.3).  Cd to where you would type w3build.bat.
+# Type ..\tool\test-runner.py
+# Each test should report "Conclusion:  Failed to find any defects."
+# Also check full log placed in file a1.txt.
 
 
 import os
@@ -50,6 +53,7 @@ def mpsplatformcode() :
     # under Rosetta, so I'm not confident it's right).
     arch = {'Power Macintosh':'pp',
             'i386':'i3',
+            'x86':'i3',
            }[platform.machine()]
   except :
     # Windows specific hack.  On Python 2.4 and 2.5 platform.machine
@@ -64,7 +68,7 @@ def mpsplatformcode() :
   # Here, we simplify and get it right for Windows and Macs.
   try :
     compiler = {'xc':'gc',
-                'w3':'m9',
+                'w3':'mv',
                }[os]
   except :
     pass
@@ -76,10 +80,14 @@ def mpsplatformcode() :
 
 mpsplatform = mpsplatformcode()
 
+print "mpsplatform = ", mpsplatform
+
+exit
+
 make = ''
 if mpsplatform[4:6] == 'gc' :
   make = "make -r -f %s.gmk VARIETY=%%s %%s >> %%s" % mpsplatform
-elif mpsplatform[4:6] == 'm9' :
+elif mpsplatform[4:6] == 'mv' :
   make = "nmake /f %s.nmk VARIETY=%%s %%s.exe >>%%s" % mpsplatform
 
 run = ''
@@ -133,18 +141,18 @@ os.system("echo DONE")
  * Copyright (C) 2005 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
- * 
+ *
  * 3. Redistributions in any form must be accompanied by information on how
  * to obtain complete source code for this software and any accompanying
  * software that uses this software.  The source code must either be
@@ -155,7 +163,7 @@ os.system("echo DONE")
  * include source code for modules or files that typically accompany the
  * major components of the operating system on which the executable file
  * runs.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
