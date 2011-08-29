@@ -45,7 +45,7 @@
 <ul>
 
 <li> <a href= "#int">Introduction</a> </li>
-
+<li> <a href= "#reldoc">Related documents</a> </li>
 <li> <a href="#plasup">Platform support</a> </li>
 
 <li> <a href="#uni">Unix</a> </li>
@@ -81,7 +81,35 @@ easy to modify such that it builds on many more.
 </p>
 <p>
 This document is not confidential.
-<p>
+</p>
+
+<h2 id = "reldoc">Related documents</h2>
+
+<dl>
+<dt><a href = ../../readme.txt>readme.txt</a></dt>
+<dd>
+This contains notes on building the MPS from a "kit".
+</dd>
+
+<dt>
+<a HREF = ../wiki/buildsystem.html>MPS build system</a>
+</dt>
+<dd>
+Brief notes on the keywords used in the build system commands.
+</dd>
+
+<dt>
+<a href = ../../procedure/index.html>MPS product procedures</a>
+</dt>
+<dd>
+Links to separate procedures for making builds for a release.
+</dd>
+
+
+
+</dl>
+
+
 
 <h2 id = "plasup">Platform support</h2>
 
@@ -256,16 +284,20 @@ This platform is a clone of w3i3mv; the only differences are:
 <li>use w3i3m9.nmk (not w3i3mv.nmk) to build it;</li>
 <li>the MPS_PF_STRING in version.c is "w3i3m9" (not "w3i3mv").</li>
 </ul>
-The only reason for this to be separate from the w3i3mv platform is
+The only reason for this to be separate from the w3i3mv platform was
 to enable builds with version 6.0 and version 9.0 compilers to be
-kept separate, to enable performance comparisons.  The w3i3m9
-clone may merge back into w3i3mv in the future.<br />
+kept separate, to enable performance comparisons.
+<br />
 See
 &lt;<a href = http://ravenbrook.com/project/mps/issue/job001944/
    title = "Link to ravenbrook.com/project/mps/issue/job001944/"
 >ravenbrook.com/project/mps/issue/job001944/</A>&gt;
 </p>
-
+<p>
+2011-08<br />
+The w3i3m9 platform has been withdrawn from the mainline and w3i3mv
+is once again the master NT platform.
+</p>
 <p>
 The Windows linker can accept a .def file to allow re-export of MPS
 functions from a client executable that includes the MPS, such that
@@ -302,6 +334,9 @@ See
 <dt>2011-08-18  PNJ</dt>
 <dd>Converted to HTML so the hyperlinks work, ready for further
 enhancements.</dd>
+<dt>2011-08-28  PNJ</dt>
+<dd>w3i3m9 platform withdrawn.  Mainline now focussed on NT6.1 and its
+SDK as its Windows build platform.</dd>
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 

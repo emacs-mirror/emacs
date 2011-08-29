@@ -5,6 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
+<link rel = "stylesheet" type = "text/css" href = "/style/project.css">
 
 <title>Memory Pool System Experimental-Release Procedure</title>
 
@@ -42,10 +43,14 @@
 
 <p> This is the procedure for making an experimental release of the Memory Pool System. </p>
 
-<p>An experimental release is a cheap and quick way to make under-development MPS code available to external parties (eg. customers), typically to let them evaluate new functionality.  See <a href="#Justification">Justification</a>, below.</p>
+<p>An experimental release is a quick way to make under-development MPS
+code available to external parties for testing.  Such releases aren't
+part of a formal chain of supported releases and are only tested prior
+to shipping to the degree required by the experiment.
+See <a href="#Justification">Justification</a>, below.</p>
 
-<p> The intended readership of this document is Ravenbrook development staff.  
-	(If you are a user of the MPS, and want to build object code from 
+<p> Readership of this document is Ravenbrook development staff.
+	(If you are a user of the MPS, and want to build object code from
 	an mps-kit, please see the readme.txt file in the kit). </p>
 
 <p> This document is not confidential. </p>
@@ -56,30 +61,55 @@
 
 <h3><a id="section-2.1" name="section-2.1">2.1. Prepare your modified MPS source</a></h3>
 
-<p>Make your changes in a development branch: <code>branch/YYYY-MM-DD/NAME/</code>.  (In the rest of this procedure, relative paths assume you have cd'd to this directory).</p>
+<p>
+Experimental releases come from a task codeline and the released
+material is stored in that codeline:
+<code>branch/YYYY-MM-DD/NAME/</code>.
+(In the rest of this procedure, relative paths assume that this is your
+current directory).
+</p>
 
 
 <h3><a id="section-2.2" name="section-2.2">2.2. Determine release name and origin</a></h3>
 
-<p>An experimental release's name is simply the Perforce changelevel of its origin, prefixed with "<code>exp-</code>".</p>
+<p>An experimental release's name is the Perforce changelevel of its
+origin, prefixed with "<code>exp-</code>".</p>
 
-<p>The following procedure is cheap and usually works, despite the race condition.</p>
+<p>The following procedure is cheap and usually works,
+despite the race condition.</p>
 
 <ol>
 
-<li><p> <code>p4 changes -m 1</code>, add 1: this is the expected changelevel NNNNNN for your experimental release.</p></li>
+<li>
+<p> <kbd>p4 changes -m 1</kbd>, add 1:
+this is the expected changelevel NNNNNN for your experimental release.
+</p>
+</li>
 
-<li><p>Edit <code>code/version.c</code>: set MPS_RELEASE to <code>"exp-NNNNNN"</code>.</p></li>
+<li>
+<p>Edit <code>code/version.c</code>: set MPS_RELEASE to
+<code>"exp-NNNNNN"</code>.
+</p>
+</li>
 
 <li><p>Edit <code>code/w3build.bat</code>: @set mpsreleasename to <code>"exp-NNNNNN"</code>.</p></li>
 
 <li><p>Submit <code>code/version.c</code> and <code>code/w3build.bat</code>.</p></li>
 
-<li><p><code>p4 changes -m 1</code> to check that you did indeed get changelevel NNNNNN.</p></li>
+<li>
+<p>
+Inspect the output from the submission to ensure that you got the
+changelist number you expected.  If you missed this for some reason,
+try <kbd>p4 changes -m1 code/...#have</kbd>, which will show the highest
+changelist number for the code that you have synced.
+</p>
+</li>
 
 </ol>
 
-<p>If someone else grabbed your intended changelevel, repeat until you win.</p>
+<p>
+If someone else grabbed your intended changelevel, repeat until you win.
+</p>
 
 
 <h3><a id="section-2.3" name="section-2.3">2.3. Make the release package</a></h3>
@@ -88,25 +118,56 @@
 
 <ol>
 
-<li><p> Clean directory, Sync to origin, Build: </p>
-  <blockquote><pre><code># (you may wish to check for opened files first)
-p4 revert code/...
-rm -rf code
-p4 sync -f code/...@NNNNNN
-cd code
+<li>
+<p>
+Check that you have no opened files in the code directory.  If you have,
+either submit or revert them.
+</p>
+</li>
+
+<li>
+Ensure that the SDK build environment is configured in this console
+window.  This can be done using
+<kbd>code/configure_sdk</kbd>
+</li>
+
+<li>
+<p> Clean directory, Sync to origin, Build: </p>
+<pre>
+p4 sync code/...#none
+rmdir/s/q code
+p4 sync code/...@<var>NNNNNN</var>
+pushd code
+ntbuild exp-<var>NNNNNN</var>
+</pre>
+</li>
+
+<li>
+Note that in previous incarnations of the MPS, the build was with
+earlier versions of MS Visual C installed in a specific location and
+the build sequence was:
+<pre>
 \vc6path.bat
 w3build.bat
 \vc9vars.bat
-w3vc9.bat</code></pre></blockquote>
-</li>
+w3vc9.bat
+</pre>
+<p>
+The old build command procedures are retained in case we wish to
+reproduce these builds, but they should be considered obsolete and will
+be removed in due course.
+</p>
 
-<li><p> Make Zip Archive, in development branch's release directory, using Windows GUI:</p>
-  <ul>
-    <li>browse to code/exp-NNNNNN</li>
-    <li>right-click > Send To > Compressed (zipped) folder</li>
-    <li>prefix archive name with "MMconfigura-"</li>
-    <li>place in release/</li>
-  </ul>
+<li>
+<p>
+Make Zip Archive, in the local release directory.  The example below
+uses the 7-ZIP utility, but a similar result can be achieved
+with the Info-ZIP utility, if preferred.</p>
+<pre>
+if not exist ..\release\nul md ..\release
+7z a ..\release\MMconfigura-exp-<var>NNNNNN</var>.ZIP ./exp-<var>NNNNNN</var>\*
+</pre>
+
   <p> <code>release/</code> is a new "branch release directory", a peer of the /code directory.  It is only present in branches from which we make experimental releases.  Experimentally released files go here, for example: //info.ravenbrook.com/project/mps/branch/2007-04-18/diag/release/MMconfigura-exp-162399.zip.</p>
 </li>
 
@@ -115,7 +176,7 @@ w3vc9.bat</code></pre></blockquote>
   p4 submit ...</code></pre></blockquote>
   <p>or equivalent.</p>
 </li>
-    
+
 </ol>
 
 
@@ -183,6 +244,19 @@ w3vc9.bat</code></pre></blockquote>
 </tr>
 
 </table>
+
+<dl>
+<dt>
+2011-08-22
+<A HREF = http://ravenbrook.com/consultants/pnj
+   TITLE = "Link to ravenbrook.com/consultants/pnj">PNJ</A>
+</dt>
+<dd>
+Updated to reflect NT6.1 and SDK build environment.
+</dd>
+
+
+</dl>
 
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
