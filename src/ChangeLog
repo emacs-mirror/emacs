@@ -39,6 +39,16 @@
 	* filelock.c (lock_file_1, lock_file): Don't blindly alloca long name;
 	use SAFE_ALLOCA instead.  Use esprintf to avoid int-overflow issues.
 
+	* font.c (font_unparse_xlfd): Don't blindly alloca long strings.
+	Don't assume XINT result fits in int, or that XFLOAT_DATA * 10
+	fits in int, when using sprintf.  Use single snprintf to count
+	length of string rather than counting it via multiple sprintfs;
+	that's simpler and more reliable.
+	(APPEND_SPRINTF): New macro.
+	(font_unparse_fcname): Use it to avoid sprintf buffer overrun.
+	(generate_otf_features) [0 && HAVE_LIBOTF]: Use esprintf, not
+	sprintf, in case result does not fit in int.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
