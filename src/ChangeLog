@@ -33,6 +33,9 @@
 	* emacs.c (main) [NS_IMPL_COCOA]: Don't overrun buffer
 	when creating daemon; the previous buffer-overflow check was incorrect.
 
+	* eval.c (verror): Simplify by rewriting in terms of evxprintf,
+	which has the guts of the old verror function.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
