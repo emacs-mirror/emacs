@@ -62,6 +62,9 @@
 	use SAFE_ALLOCA.  Use esprintf, not sprintf, in case result does
 	not fit in int.
 
+	* gtkutil.c (xg_check_special_colors, xg_set_geometry):
+	Make sprintf buffers a bit bigger, to avoid potential buffer overrun.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
