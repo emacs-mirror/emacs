@@ -77,6 +77,14 @@
 	* nsterm.m ((NSSize)windowWillResize): Use esprintf, not sprintf,
 	in case result does not fit in int.
 
+	* print.c (float_to_string): Detect width overflow more reliably.
+	(print_object): Make sprintf buffer a bit bigger, to avoid potential
+	buffer overrun.  Don't assume list length fits in 'int'.  Treat
+	print length of 0 as 0, not as infinity; to be consistent with other
+	uses of print length in this function.  Don't overflow print length
+	index.  Don't assume hash table size fits in 'long', or that
+	vectorlike size fits in 'unsigned long'.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
