@@ -80,10 +80,6 @@ def mpsplatformcode() :
 
 mpsplatform = mpsplatformcode()
 
-print "mpsplatform = ", mpsplatform
-
-exit
-
 make = ''
 if mpsplatform[4:6] == 'gc' :
   make = "make -r -f %s.gmk VARIETY=%%s %%s >> %%s" % mpsplatform
