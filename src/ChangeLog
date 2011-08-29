@@ -23,6 +23,9 @@
 	* dbusbind.c (xd_signature, Fdbus_register_signal):
 	Do not overrun buffer; instead, report string overflow.
 
+	* dispnew.c (add_window_display_history): Don't overrun buffer.
+	Truncate instead; this is OK since it's just a log.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
