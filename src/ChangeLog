@@ -49,6 +49,9 @@
 	(generate_otf_features) [0 && HAVE_LIBOTF]: Use esprintf, not
 	sprintf, in case result does not fit in int.
 
+	* fontset.c (num_auto_fontsets): Now printmax_t, not int.
+	(fontset_from_font): Print it.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
