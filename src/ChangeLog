@@ -68,6 +68,12 @@
 	* lread.c (dir_warning): Don't blindly alloca buffer; use SAFE_ALLOCA.
 	Use esprintf, not sprintf, in case result does not fit in int.
 
+	* macros.c (executing_kbd_macro_iterations): Now EMACS_INT, not int.
+	(Fend_kbd_macro): Don't mishandle MOST_NEGATIVE_FIXNUM by treating
+	it as a large positive number.
+	(Fexecute_kbd_macro): Don't assume repeat count fits in int.
+	* macros.h (executing_kbd_macro_iterations): Now EMACS_INT, not int.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
