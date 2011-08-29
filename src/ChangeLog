@@ -52,6 +52,16 @@
 	* fontset.c (num_auto_fontsets): Now printmax_t, not int.
 	(fontset_from_font): Print it.
 
+	* frame.c (tty_frame_count): Now printmax_t, not int.
+	(make_terminal_frame, set_term_frame_name): Print it.
+	(x_report_frame_params): In X, window IDs are unsigned long,
+	not signed long, so print them as unsigned.
+	(validate_x_resource_name): Check for implausibly long names,
+	and don't assume name length fits in 'int'.
+	(x_get_resource_string): Don't blindly alloca invocation name;
+	use SAFE_ALLOCA.  Use esprintf, not sprintf, in case result does
+	not fit in int.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
