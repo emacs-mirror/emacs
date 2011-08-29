@@ -50,8 +50,8 @@ to shipping to the degree required by the experiment.
 See <a href="#Justification">Justification</a>, below.</p>
 
 <p> Readership of this document is Ravenbrook development staff.
-	(If you are a user of the MPS, and want to build object code from
-	an mps-kit, please see the readme.txt file in the kit). </p>
+(If you are a user of the MPS, and want to build object code from
+an mps-kit, please see the readme.txt file in the kit). </p>
 
 <p> This document is not confidential. </p>
 
@@ -92,9 +92,7 @@ this is the expected changelevel NNNNNN for your experimental release.
 </p>
 </li>
 
-<li><p>Edit <code>code/w3build.bat</code>: @set mpsreleasename to <code>"exp-NNNNNN"</code>.</p></li>
-
-<li><p>Submit <code>code/version.c</code> and <code>code/w3build.bat</code>.</p></li>
+<li><p>Submit <code>code/version.c</code>.</p></li>
 
 <li>
 <p>
@@ -132,14 +130,14 @@ window.  This can be done using
 </li>
 
 <li>
-<p> Clean directory, Sync to origin, Build: </p>
-<pre>
-p4 sync code/...#none
-rmdir/s/q code
-p4 sync code/...@<var>NNNNNN</var>
-pushd code
-ntbuild exp-<var>NNNNNN</var>
-</pre>
+<p> Clean directory, Sync to origin, Build:</p>
+<kbd>
+P4 sync code/...#none<br />
+RMDIR/S/Q code<br />
+P4 sync code/...@<var>NNNNNN</var><br />
+PUSHD code<br />
+NTBUILD exp-<var>NNNNNN</var><br />
+</kbd>
 </li>
 
 <li>
@@ -157,23 +155,60 @@ The old build command procedures are retained in case we wish to
 reproduce these builds, but they should be considered obsolete and will
 be removed in due course.
 </p>
+</li>
+
+<li>
+The build step should have produced two new subdirectories:
+<dl>
+<dt>w3i3mv</dt>
+<dd>Contains all the generated files from the build;</dd>
+<dt>exp-<var>NNNNNN</var></dt>
+<dd>A release directory explicitly populated by the build command
+procedure with the artefacts we want to ship.</dd>
+</dl>
+</li>
+
+<li>
+Run the standard smoke tests for the release with the command:
+<kbd>../tool/test-runner</kbd>
+<p>
+Note that this is actually a source level test - it isn't explicitly
+testing the contents of the release directory because the current
+release manifest doesn't include a mechanism to do that.
+</p>
+<p>
+The test-runner program builds and executes a number of tests in each
+of the four build variants we produce.  The results are written to a
+file called <code>a1.txt</code> in the current directory.
+Inspect this file to check that no unexpected errors occurred.
+</p>
 
 <li>
 <p>
-Make Zip Archive, in the local release directory.  The example below
+Make a Zip Archive, in the local release directory.  The example below
 uses the 7-ZIP utility, but a similar result can be achieved
 with the Info-ZIP utility, if preferred.</p>
 <pre>
 if not exist ..\release\nul md ..\release
-7z a ..\release\MMconfigura-exp-<var>NNNNNN</var>.ZIP ./exp-<var>NNNNNN</var>\*
+7z a ..\release\MMconfigura-exp-<var>NNNNNN</var>.ZIP .\exp-<var>NNNNNN</var>\*
 </pre>
+<p>
+Also archive the test log file:
+<pre>
+7z a ..\release\exp-<var>NNNNNN</var>_test_log.ZIP a1.txt
+</pre>
+</p>
 
   <p> <code>release/</code> is a new "branch release directory", a peer of the /code directory.  It is only present in branches from which we make experimental releases.  Experimentally released files go here, for example: //info.ravenbrook.com/project/mps/branch/2007-04-18/diag/release/MMconfigura-exp-162399.zip.</p>
 </li>
 
 <li><p> Add to perforce: </p>
-  <blockquote><pre><code>  p4 add -t binary release/MMconfigura-exp-162399.zip
-  p4 submit ...</code></pre></blockquote>
+  <blockquote>
+  <pre><code>
+  p4 add -t binary ..\release\MMconfigura-exp-162399.ZIP
+  p4 add -t binary ..\release\exp-162399_test_log.ZIP
+  p4 submit
+  </code></pre></blockquote>
   <p>or equivalent.</p>
 </li>
 
@@ -184,11 +219,33 @@ if not exist ..\release\nul md ..\release
 
 <ol>
 
-<li><p> Test as appropriate.</p> </li>
+<li>
+Test as appropriate.  For example, check that the ZIP file
+contents appear similar in number and size to a previous release that's
+known to be sound.
+</li>
 
-<li><p> Make webserver allow access to the release: see <a href="http://info.ravenbrook.com/procedure/webserver/">http://info.ravenbrook.com/procedure/webserver/</a>.</p> </li>
+<li>
+Update the release list in
+<code>
+//info.ravenbrook.com/project/mps/release/index.html
+</code>
+with details of the release you are making.
+</li>
 
-<li><p> Send email, including your (informal) release notes, and a link to the release on <strong>www.ravenbrook.com</strong>...zip (<em>not</em> info.ravenbrook.com!).</p> </li>
+<li>
+If necessary, make the webserver allow access to the release:
+see <a href="http://info.ravenbrook.com/procedure/webserver/"
+>http://info.ravenbrook.com/procedure/webserver/</a>
+for details of what's involved.
+</li>
+
+<li>
+Send mail, including your (informal) release notes, and a link to the
+release on
+<strong>www.ravenbrook.com</strong>...zip
+(<em>not</em> info.ravenbrook.com!).
+</li>
 
 </ol>
 
@@ -255,6 +312,15 @@ if not exist ..\release\nul md ..\release
 Updated to reflect NT6.1 and SDK build environment.
 </dd>
 
+<dt>
+2011-08-29
+<A HREF = http://ravenbrook.com/consultants/pnj
+   TITLE = "Link to ravenbrook.com/consultants/pnj">PNJ</A>
+</dt>
+<dd>
+Corrections and additions made while exercising the procedure for
+exp-175969.
+</dd>
 
 </dl>
 
