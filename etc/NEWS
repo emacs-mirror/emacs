@@ -43,10 +43,12 @@ to configure.  Note that other libraries used by Emacs, RSVG and GConf,
 also depend on Gtk+.  You can disable them with --without-rsvg and
 --without-gconf.
 
+---
 ** There is a new configure option --enable-use-lisp-union-type.
 This is only useful for Emacs developers to debug certain types of bugs.
 This is not a new feature; only the configure flag is new.
 
+---
 ** There is a new configure option --with-wide-int.
 With it, Emacs integers typically have 62 bits, even on 32-bit machines.
 
@@ -87,6 +89,7 @@ and also when HOME is set to C:\ by default.
 
 * Changes in Emacs 24.1
 
++++
 ** auto-mode-case-fold is now enabled by default.
 
 ** Completion
@@ -314,15 +317,12 @@ for `list-colors-display'.
 
 ** An Emacs Lisp package manager is now included.
 This is a convenient way to download and install additional packages,
-from a package repository at elpa.gnu.org.
-
+from a package repository at http://elpa.gnu.org.
 +++
 *** `M-x list-packages' shows a list of packages, which can be
 selected for installation.
-
 +++
 *** New command `describe-package', bound to `C-h P'.
-
 +++
 *** By default, all installed packages are loaded and activated
 automatically when Emacs starts up.  To disable this, set
@@ -479,10 +479,8 @@ between applications.
 +++
 *** Support for X cut buffers has been removed.
 
-*** Support for X clipboard managers has been added.
-
-**** To inhibit use of the clipboard manager, set
-`x-select-enable-clipboard-manager' to nil.
+*** X clipboard managers are now supported.
+To inhibit this, change `x-select-enable-clipboard-manager' to nil.
 
 ** New command `rectangle-number-lines', bound to `C-x r N', numbers
 the lines in the current rectangle.  With an prefix argument, this
@@ -1032,6 +1030,7 @@ syntactic rules.
 
 ** frame-local variables cannot be let-bound any more.
 
++++
 ** prog-mode is a new major-mode meant to be the parent of programming mode.
 The prog-mode-hook it defines can be used to enable features for
 programming modes.  For example:
