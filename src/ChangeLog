@@ -85,6 +85,9 @@
 	index.  Don't assume hash table size fits in 'long', or that
 	vectorlike size fits in 'unsigned long'.
 
+	* process.c (make_process): Use printmax_t, not int, to format
+	process-name gensyms.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
