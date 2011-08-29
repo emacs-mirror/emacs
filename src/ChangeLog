@@ -88,6 +88,9 @@
 	* process.c (make_process): Use printmax_t, not int, to format
 	process-name gensyms.
 
+	* term.c (produce_glyphless_glyph): Make sprintf buffer a bit bigger
+	to avoid potential buffer overrun.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
