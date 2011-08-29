@@ -74,6 +74,9 @@
 	(Fexecute_kbd_macro): Don't assume repeat count fits in int.
 	* macros.h (executing_kbd_macro_iterations): Now EMACS_INT, not int.
 
+	* nsterm.m ((NSSize)windowWillResize): Use esprintf, not sprintf,
+	in case result does not fit in int.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
