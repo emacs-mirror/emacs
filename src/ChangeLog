@@ -99,6 +99,8 @@
 
 	* xterm.c (x_io_error_quitter): Don't overrun sprintf buffer.
 
+	* xterm.h (x_check_errors): Add ATTRIBUTE_FORMAT_PRINTF.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
