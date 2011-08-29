@@ -1,3 +1,11 @@
+2011-08-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (parse_image_spec): Check for nonnegative, not for positive,
+	when checking :margin (Bug#9390).
+	(IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR):
+	Renamed from IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,
+	so that the name doesn't mislead.  All uses changed.
+
 2011-08-28  Johan Bockgård  <bojohan@gnu.org>
 
 	* term.c (init_tty) [HAVE_GPM]: Move mouse settings after
