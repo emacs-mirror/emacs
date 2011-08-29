@@ -285,16 +285,6 @@ buffers with particular names.  (With some of these features, such as
 switch to some other buffer before using the command, in order for it
 to make a different buffer.)
 
-@findex view-buffer
-  @kbd{M-x view-buffer} is much like @kbd{M-x view-file} (@pxref{Misc
-File Ops}) except that it examines an already existing Emacs buffer.
-View mode provides commands for scrolling through the buffer
-conveniently but not for changing it.  When you exit View mode with
-@kbd{q}, that switches back to the buffer (and the position) which was
-previously displayed in the window.  Alternatively, if you exit View
-mode with @kbd{e}, the buffer and the value of point that resulted from
-your perusal remain in effect.
-
   The commands @kbd{M-x append-to-buffer} and @kbd{M-x insert-buffer}
 can be used to copy text from one buffer to another.  @xref{Accumulating
 Text}.

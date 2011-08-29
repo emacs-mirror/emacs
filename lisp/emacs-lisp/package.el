@@ -1440,7 +1440,7 @@ If optional arg BUTTON is non-nil, describe its associated package."
 (defun package-menu-mark-delete (num)
   "Mark a package for deletion and move to the next line."
   (interactive "p")
-  (if (string-equal (package-menu-get-status) "installed")
+  (if (member (package-menu-get-status) '("installed" "obsolete"))
       (tabulated-list-put-tag "D" t)
     (forward-line)))
 

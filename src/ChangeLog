@@ -101,6 +101,40 @@
 
 	* xterm.h (x_check_errors): Add ATTRIBUTE_FORMAT_PRINTF.
 
+2011-08-29  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* image.c (parse_image_spec): Check for nonnegative, not for positive,
+	when checking :margin (Bug#9390).
+	(IMAGE_NON_NEGATIVE_INTEGER_VALUE_OR_PAIR):
+	Renamed from IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,
+	so that the name doesn't mislead.  All uses changed.
+
+2011-08-28  Johan Bockgård  <bojohan@gnu.org>
+
+	* term.c (init_tty) [HAVE_GPM]: Move mouse settings after
+	set_tty_hooks.
+
+2011-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_to): Don't bail out early when reaching
+	position beyond to_charpos, if we are scanning backwards.
+	(move_it_vertically_backward): When DY == 0, make sure we get to
+	the first character in the line after the newline.
+
+2011-08-27  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* ccl.c: Improve and simplify overflow checking (Bug#9196).
+	(ccl_driver): Do not generate an out-of-range pointer.
+	(Fccl_execute_on_string): Remove unnecessary check for
+	integer overflow, noted by Stefan Monnier in
+	<http://lists.gnu.org/archive/html/emacs-devel/2011-08/msg00979.html>.
+	Remove a FIXME that didn't need fixing.
+	Simplify the newly-introduced buffer reallocation code.
+
+2011-08-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/alloc.$(O)): Depend on lib/verify.h.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).

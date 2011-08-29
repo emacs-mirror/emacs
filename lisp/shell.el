@@ -393,10 +393,28 @@ to `dirtrack-mode'."
       (while (< (point) end)
 	(skip-chars-forward " \t\n")
 	(push (point) begins)
-        (looking-at "\\(?:[^\s\t\n\\]\\|'[^']*'\\|\"\\(?:[^\"\\]\\|\\\\.\\)*\"\\|\\\\.\\)*\\(?:\\\\\\|'[^']*\\|\"\\(?:[^\"\\]\\|\\\\.\\)*\\)?")
-        (goto-char (match-end 0))
-	(push (buffer-substring-no-properties (car begins) (point))
-              args))
+        (let ((arg ()))
+          (while (looking-at
+                  (eval-when-compile
+                    (concat
+                     "\\(?:[^\s\t\n\\\"']+"
+                     "\\|'\\([^']*\\)'?"
+                     "\\|\"\\(\\(?:[^\"\\]\\|\\\\.\\)*\\)\"?"
+                     "\\|\\\\\\(\\(?:.\\|\n\\)?\\)\\)")))
+            (goto-char (match-end 0))
+            (cond
+             ((match-beginning 3)       ;Backslash escape.
+              (push (if (= (match-beginning 3) (match-end 3))
+                        "\\" (match-string 3))
+                    arg))
+             ((match-beginning 2)       ;Double quote.
+              (push (replace-regexp-in-string
+                     "\\\\\\(.\\)" "\\1" (match-string 2))
+                    arg))
+             ((match-beginning 1)       ;Single quote.
+              (push (match-string 1) arg))
+             (t (push (match-string 0) arg))))
+          (push (mapconcat #'identity (nreverse arg) "") args)))
       (cons (nreverse args) (nreverse begins)))))
 
 (defun shell-completion-vars ()

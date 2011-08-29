@@ -910,16 +910,15 @@ bidi_char_at_pos (EMACS_INT bytepos, const unsigned char *s, int unibyte)
    covered characters as a single character, either u+2029 or u+FFFC,
    and return their combined length in CH_LEN and NCHARS.  DISP_POS
    specifies the character position of the next display string, or -1
-   if not yet computed.  DISP_PROP non-zero means that there's really
+   if not yet computed.  When the next character is at or beyond that
+   position, the function updates DISP_POS with the position of the
+   next display string.  DISP_PROP non-zero means that there's really
    a display string at DISP_POS, as opposed to when we searched till
    DISP_POS without finding one.  If DISP_PROP is 2, it means the
    display spec is of the form `(space ...)', which is replaced with
-   u+2029 to handle it as a paragraph separator.  When the next
-   character is at or beyond that position, the function updates
-   DISP_POS with the position of the next display string.  STRING->s
-   is the C string to iterate, or NULL if iterating over a buffer or a
-   Lisp string; in the latter case, STRING->lstring is the Lisp
-   string.  */
+   u+2029 to handle it as a paragraph separator.  STRING->s is the C
+   string to iterate, or NULL if iterating over a buffer or a Lisp
+   string; in the latter case, STRING->lstring is the Lisp string.  */
 static inline int
 bidi_fetch_char (EMACS_INT bytepos, EMACS_INT charpos, EMACS_INT *disp_pos,
 		 int *disp_prop, struct bidi_string_data *string,

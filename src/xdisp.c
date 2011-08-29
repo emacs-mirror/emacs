@@ -8360,7 +8360,14 @@ move_it_to (struct it *it, EMACS_INT to_charpos, int to_x, int to_y, int to_vpos
       else if (BUFFERP (it->object)
 	       && (it->method == GET_FROM_BUFFER
 		   || it->method == GET_FROM_STRETCH)
-	       && IT_CHARPOS (*it) >= to_charpos)
+	       && IT_CHARPOS (*it) >= to_charpos
+	       /* Under bidi iteration, a call to set_iterator_to_next
+		  can scan far beyond to_charpos if the initial
+		  portion of the next line needs to be reordered.  In
+		  that case, give move_it_in_display_line_to another
+		  chance below.  */
+	       && !(it->bidi_p
+		    && it->bidi_it.scan_dir == -1))
 	skip = MOVE_POS_MATCH_OR_ZV;
       else
 	skip = move_it_in_display_line_to (it, to_charpos, -1, MOVE_TO_POS);
@@ -8495,7 +8502,8 @@ move_it_vertically_backward (struct it *it, int dy)
   reseat_1 (it, it->current.pos, 1);
 
   /* We are now surely at a line start.  */
-  it->current_x = it->hpos = 0;
+  it->current_x = it->hpos = 0;	/* FIXME: this is incorrect when bidi
+				   reordering is in effect.  */
   it->continuation_lines_width = 0;
 
   /* Move forward and see what y-distance we moved.  First move to the
@@ -8529,10 +8537,25 @@ move_it_vertically_backward (struct it *it, int dy)
   if (dy == 0)
     {
       /* DY == 0 means move to the start of the screen line.  The
-	 value of nlines is > 0 if continuation lines were involved.  */
+	 value of nlines is > 0 if continuation lines were involved,
+	 or if the original IT position was at start of a line.  */
       RESTORE_IT (it, it, it2data);
       if (nlines > 0)
 	move_it_by_lines (it, nlines);
+      /* The above code moves us to some position NLINES down,
+	 usually to its first glyph (leftmost in an L2R line), but
+	 that's not necessarily the start of the line, under bidi
+	 reordering.  We want to get to the character position
+	 that is immediately after the newline of the previous
+	 line.  */
+      if (it->bidi_p && IT_CHARPOS (*it) > BEGV
+	  && FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n')
+	{
+	  EMACS_INT nl_pos =
+	    find_next_newline_no_quit (IT_CHARPOS (*it) - 1, -1);
+
+	  move_it_to (it, nl_pos, -1, -1, -1, MOVE_TO_POS);
+	}
       bidi_unshelve_cache (it3data, 1);
     }
   else

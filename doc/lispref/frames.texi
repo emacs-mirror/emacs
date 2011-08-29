@@ -695,20 +695,19 @@ right fringe.  However, you can force one fringe or the other to a
 precise width by specifying that width as a negative integer.  If both
 widths are negative, only the left fringe gets the specified width.
 
-@vindex menu-bar-lines, a frame parameter
+@vindex menu-bar-lines frame parameter
 @item menu-bar-lines
 The number of lines to allocate at the top of the frame for a menu
-bar.  The default is 1.  A value of @code{nil} means don't display a
-menu bar.  @xref{Menu Bar}.  (The X toolkit and GTK allow at most one
-menu bar line; they treat larger values as 1.)
+bar.  The default is 1 if Menu Bar mode is enabled, and 0 otherwise.
+@xref{Menu Bars,,,emacs, The GNU Emacs Manual}.
 
-@vindex tool-bar-lines, a frame parameter
+@vindex tool-bar-lines frame parameter
 @item tool-bar-lines
-The number of lines to use for the tool bar.  A value of @code{nil}
-means don't display a tool bar.  (GTK and Nextstep allow at most one
-tool bar line; they treat larger values as 1.)
+The number of lines to use for the tool bar.  The default is 1 if Tool
+Bar mode is enabled, and 0 otherwise.  @xref{Tool Bars,,,emacs, The
+GNU Emacs Manual}.
 
-@vindex tool-bar-position, a frame parameter
+@vindex tool-bar-position frame parameter
 @item tool-bar-position
 The position of the tool bar.  Currently only for the GTK tool bar.
 Value can be one of @code{top}, @code{bottom} @code{left}, @code{right}.

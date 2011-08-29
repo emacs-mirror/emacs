@@ -521,7 +521,8 @@ It includes all faces in list FACES."
 
 (defvar custom-theme-choose-mode-map
   (let ((map (make-keymap)))
-    (set-keymap-parent map widget-keymap)
+    (set-keymap-parent map (make-composed-keymap widget-keymap
+						 special-mode-map))
     (suppress-keymap map)
     (define-key map "\C-x\C-s" 'custom-theme-save)
     (define-key map "n" 'widget-forward)
@@ -530,7 +531,7 @@ It includes all faces in list FACES."
     map)
   "Keymap for `custom-theme-choose-mode'.")
 
-(define-derived-mode custom-theme-choose-mode nil "Themes"
+(define-derived-mode custom-theme-choose-mode special-mode "Themes"
   "Major mode for selecting Custom themes.
 Do not call this mode function yourself.  It is meant for internal use."
   (use-local-map custom-theme-choose-mode-map)

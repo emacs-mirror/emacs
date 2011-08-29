@@ -596,25 +596,6 @@ forms are elided.
 @end smallexample
 @end deffn
 
-@ignore @c Not worth mentioning
-@defopt stack-trace-on-error
-@cindex stack trace
-This variable controls whether Lisp automatically displays a
-backtrace buffer after every error that is not handled.  A quit signal
-counts as an error for this variable.  If it is non-@code{nil} then a
-backtrace is shown in a pop-up buffer named @samp{*Backtrace*} on every
-error.  If it is @code{nil}, then a backtrace is not shown.
-
-When a backtrace is shown, that buffer is not selected.  If either
-@code{debug-on-quit} or @code{debug-on-error} is also non-@code{nil}, then
-a backtrace is shown in one buffer, and the debugger is popped up in
-another buffer with its own backtrace.
-
-We consider this feature to be obsolete and superseded by the debugger
-itself.
-@end defopt
-@end ignore
-
 @defvar debug-on-next-call
 @cindex @code{eval}, and debugging
 @cindex @code{apply}, and debugging
