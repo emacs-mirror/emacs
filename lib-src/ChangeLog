@@ -1,6 +1,6 @@
 2011-08-28  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Integer and memory overflow issues.
+	Integer and memory overflow issues (Bug#9397).
 
 	* emacsclient.c (xmalloc): Accept size_t, not unsigned int, to
 	avoid potential buffer overflow issues on typical 64-bit hosts.
