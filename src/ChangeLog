@@ -91,6 +91,9 @@
 	* term.c (produce_glyphless_glyph): Make sprintf buffer a bit bigger
 	to avoid potential buffer overrun.
 
+	* xfaces.c (x_update_menu_appearance): Don't overrun buffer
+	if X resource line is longer than 512 bytes.
+
 2011-08-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9196).
