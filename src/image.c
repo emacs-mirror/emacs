@@ -196,7 +196,8 @@ x_bitmap_width (FRAME_PTR f, ptrdiff_t id)
 int
 x_bitmap_pixmap (FRAME_PTR f, ptrdiff_t id)
 {
-  return FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].pixmap;
+  /* HAVE_NTGUI needs the explicit cast here.  */
+  return (int) FRAME_X_DISPLAY_INFO (f)->bitmaps[id - 1].pixmap;
 }
 #endif
 
