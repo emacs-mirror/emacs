@@ -1,6 +1,6 @@
 2011-08-30  Paul Eggert  <eggert@cs.ucla.edu>
 
-	sprintf-related integer and memory overflow issues.
+	sprintf-related integer and memory overflow issues (Bug#9412).
 
 	* doprnt.c (doprnt): Support printing ptrdiff_t and intmax_t values.
 	(esprintf, esnprintf, exprintf, evxprintf): New functions.
