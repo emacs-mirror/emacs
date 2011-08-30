@@ -225,9 +225,9 @@ several major modes, in files such as @file{text-mode.el},
 study these libraries to see how modes are written.
 
 @defopt major-mode
-The buffer-local value of this variable is a symbol naming the buffer's
-current major mode.  Its default value holds the default major mode for
-new buffers.  The standard default value is @code{fundamental-mode}.
+The buffer-local value of this variable holds the symbol for the current
+major mode.  Its default value holds the default major mode for new
+buffers.  The standard default value is @code{fundamental-mode}.
 
 If the default value is @code{nil}, then whenever Emacs creates a new
 buffer via a command such as @kbd{C-x b} (@code{switch-to-buffer}), the
@@ -403,28 +403,7 @@ setting up a buffer-local value for the variable
 
 @item
 Each face that the mode defines should, if possible, inherit from an
-existing Emacs face.  This reduces the chance of conflicting with a
-user's face customizations.  Useful faces include:
-
-@table @asis
-@item @code{highlight}
-for stretches of text that should temporarily stand out.
-
-@item @code{match}
-for text matching a search command.
-
-@item @code{link} and @code{link-visited}
-for clickable text buttons that send the user to a different buffer or
-``location''.
-
-@item @code{button}
-for clickable text buttons that perform other actions.
-
-@item @asis{Font Lock faces}
-for other kinds of syntactic highlighting, if highlighting is not
-handled by Font Lock mode or some Font Lock faces are not in use.
-@xref{Faces for Font Lock}, for how to assign Font Lock faces.
-@end table
+existing Emacs face.  @xref{Basic Faces}, and @ref{Faces for Font Lock}.
 
 @item
 The mode should specify how Imenu should find the definitions or
@@ -702,8 +681,8 @@ init file.)
 
   The @code{describe-mode} function is provides information about major
 modes.  It is normally bound to @kbd{C-h m}.  It uses the value of the
-variable @code{major-mode} (which is why every major mode command needs
-to set this variable).
+variable @code{major-mode} (@pxref{Major Modes}), which is why every
+major mode command needs to set that variable.
 
 @deffn Command describe-mode
 This function displays the documentation of the current major mode.
@@ -713,14 +692,6 @@ function using the value of @code{major-mode} as an argument.  Thus, it
 displays the documentation string of the major mode command.
 (@xref{Accessing Documentation}.)
 @end deffn
-
-@defvar major-mode
-This buffer-local variable holds the symbol for the current buffer's
-major mode.  This symbol should have a function definition that is the
-command to switch to that major mode.  The @code{describe-mode}
-function uses the documentation string of the function as the
-documentation of the major mode.
-@end defvar
 
 @node Derived Modes
 @subsection Defining Derived Modes
