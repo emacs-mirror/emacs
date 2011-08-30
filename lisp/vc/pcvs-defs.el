@@ -183,7 +183,7 @@ If set to nil, `cvs-mode-add' will always prompt for a message."
 
 (defcustom cvs-find-file-and-jump nil
   "Jump to the modified area when finding a file.
-If non-nil, `cvs-mode-file-file' will place the cursor at the beginning of
+If non-nil, `cvs-mode-find-file' will place the cursor at the beginning of
 the modified area.  If the file is not locally modified, this will obviously
 have no effect."
   :group 'pcl-cvs

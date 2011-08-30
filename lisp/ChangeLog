@@ -1,3 +1,7 @@
+2011-08-30  Reuben Thomas  <rrt@sc3d.org>  (tiny change)
+
+	* vc/pcvs-defs.el (cvs-find-file-and-jump): Typo in docstring (bug#9369).
+
 2011-08-29  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-done): Don't display message "Mark saved"
@@ -134,8 +138,8 @@
 
 2011-08-24  Chong Yidong  <cyd@stupidchicken.com>
 
-	* window.el (quit-window): Renamed from quit-restore-window.  Use
-	same arglist as old quit-window.
+	* window.el (quit-window): Rename from quit-restore-window.
+	Use same arglist as old quit-window.
 	(frame-auto-delete): Doc fix.
 
 	* view.el (view-mode-exit): Use quit-window.
