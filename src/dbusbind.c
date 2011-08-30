@@ -259,6 +259,18 @@ xd_symbol_to_dbus_type (Lisp_Object object)
     }									\
   while (0)
 
+/* Append to SIGNATURE the a copy of X, making sure SIGNATURE does
+   not become too long.  */
+static void
+signature_cat (char *signature, char const *x)
+{
+  ptrdiff_t siglen = strlen (signature);
+  ptrdiff_t xlen = strlen (x);
+  if (DBUS_MAXIMUM_SIGNATURE_LENGTH - xlen <= siglen)
+    string_overflow ();
+  strcat (signature, x);
+}
+
 /* Compute SIGNATURE of OBJECT.  It must have a form that it can be
    used in dbus_message_iter_open_container.  DTYPE is the DBusType
    the object is related to.  It is passed as argument, because it
@@ -388,10 +400,10 @@ xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lis
 	{
 	  subtype = XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt));
 	  xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
-	  strcat (signature, x);
+	  signature_cat (signature, x);
 	  elt = CDR_SAFE (XD_NEXT_VALUE (elt));
 	}
-      strcat (signature, DBUS_STRUCT_END_CHAR_AS_STRING);
+      signature_cat (signature, DBUS_STRUCT_END_CHAR_AS_STRING);
       break;
 
     case DBUS_TYPE_DICT_ENTRY:
@@ -412,7 +424,7 @@ xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lis
       elt = XD_NEXT_VALUE (elt);
       subtype = XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt));
       xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
-      strcat (signature, x);
+      signature_cat (signature, x);
 
       if (!XD_BASIC_DBUS_TYPE (subtype))
 	wrong_type_argument (intern ("D-Bus"), CAR_SAFE (XD_NEXT_VALUE (elt)));
@@ -421,14 +433,14 @@ xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lis
       elt = CDR_SAFE (XD_NEXT_VALUE (elt));
       subtype = XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt));
       xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
-      strcat (signature, x);
+      signature_cat (signature, x);
 
       if (!NILP (CDR_SAFE (XD_NEXT_VALUE (elt))))
 	wrong_type_argument (intern ("D-Bus"),
 			     CAR_SAFE (CDR_SAFE (XD_NEXT_VALUE (elt))));
 
       /* Closing signature.  */
-      strcat (signature, DBUS_DICT_ENTRY_END_CHAR_AS_STRING);
+      signature_cat (signature, DBUS_DICT_ENTRY_END_CHAR_AS_STRING);
       break;
 
     default:
