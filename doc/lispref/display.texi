@@ -1833,9 +1833,10 @@ particular face name a special meaning in one frame if you wish.
 * Face Attributes::     What is in a face?
 * Attribute Functions::  Functions to examine and set face attributes.
 * Displaying Faces::     How Emacs combines the faces specified for a character.
-* Face Remapping::     Remapping faces to alternative definitions.
+* Face Remapping::      Remapping faces to alternative definitions.
 * Face Functions::      How to define and examine faces.
 * Auto Faces::          Hook for automatic face assignment.
+* Basic Faces::         Faces that are defined by default.
 * Font Selection::      Finding the best available font for a face.
 * Font Lookup::         Looking up the names of available fonts
                           and information about them.
@@ -2686,6 +2687,62 @@ function finishes are the ones that really matter.
 For efficiency, we recommend writing these functions so that they
 usually assign faces to around 400 to 600 characters at each call.
 @end defvar
+
+@node Basic Faces
+@subsection Basic Faces
+
+If your Emacs Lisp program needs to assign some faces to text, it is
+often a good idea to use certain existing faces or inherit from them,
+rather than defining entirely new faces.  This way, if other users
+have customized the basic faces to give Emacs a certain look, your
+program will ``fit in'' without additional customization.
+
+  Some of the basic faces defined in Emacs are listed below.  In
+addition to these, you might want to make use of the Font Lock faces
+for syntactic highlighting, if highlighting is not already handled by
+Font Lock mode, or if some Font Lock faces are not in use.
+@xref{Faces for Font Lock}.
+
+@table @code
+@item default
+The default face, whose attributes are all specified.  All other faces
+implicitly inherit from it: any unspecified attribute defaults to the
+attribute on this face (@pxref{Face Attributes}).
+
+@item bold
+@itemx italic
+@itemx bold-italic
+@itemx underline
+@itemx fixed-pitch
+@itemx variable-pitch
+These have the attributes indicated by their names (e.g. @code{bold}
+has a bold @code{:weight} attribute), with all other attributes
+unspecified (and so given by @code{default}).
+
+@item shadow
+For ``dimmed out'' text.  For example, it is used for the ignored
+part of a filename in the minibuffer (@pxref{Minibuffer File,,
+Minibuffers for File Names, emacs, The GNU Emacs Manual}).
+
+@item link
+@itemx link-visited
+For clickable text buttons that send the user to a different
+buffer or ``location''.
+
+@item highlight
+For stretches of text that should temporarily stand out.  For example,
+it is commonly assigned to the @code{mouse-face} property for cursor
+highlighting (@pxref{Special Properties}).
+
+@item match
+For text matching a search command.
+
+@item error
+@itemx warning
+@itemx success
+For text concerning errors, warnings, or successes.  For example,
+these are used for messages in @samp{*Compilation*} buffers.
+@end table
 
 @node Font Selection
 @subsection Font Selection
