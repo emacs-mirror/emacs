@@ -1,3 +1,7 @@
+2011-08-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* PROBLEMS: Remove obsolete comment re Yellow Dog (Bug#9403).
+
 2011-08-24  Steve Chapel  <schapel@laptop.stevechapel.com>  (tiny change)
 
 	* refcards/refcard.tex: Add a few more commands. (Bug#9343)
