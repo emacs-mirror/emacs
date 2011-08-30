@@ -1,3 +1,8 @@
+2011-08-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* syntax.c (find_defun_start): Update all cache variables if
+	exiting early (Bug#9401).
+
 2011-08-19  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* keyboard.c: Include "process.h"
