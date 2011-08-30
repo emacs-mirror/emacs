@@ -239,6 +239,7 @@ theme when Emacs is built with GTK.
 *** Emacs uses GTK tooltips by default if built with GTK.  You can turn that
 off by customizing x-gtk-use-system-tooltips.
 
++++
 ** New basic faces `error', `warning', `success' are available to
 highlight strings that indicate failure, caution or successful operation.
 

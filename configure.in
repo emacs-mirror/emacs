@@ -410,8 +410,8 @@ dnl quotation begins
 machine='' opsys='' unported=no
 case "${canonical}" in
 
-  ## GNU/Linux ports
-  *-*-linux-gnu*)
+  ## GNU/Linux and similar ports
+  *-*-linux* )
     opsys=gnu-linux
     case ${canonical} in
       alpha*)	machine=alpha ;;
@@ -506,17 +506,6 @@ case "${canonical}" in
   hppa*-hp-hpux1[1-9]* )
     opsys=hpux11
     CFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CFLAGS"
-  ;;
-
-  ia64*-hp-hpux1[1-9]* )
-    machine=hp800 opsys=hpux11
-    ## FIXME.  Peter O'Gorman reports that dumping using unexelf.o doesn't
-    ## work either: http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6811
-    CANNOT_DUMP=yes
-  ;;
-
-  hppa*-*-linux-gnu* )
-    machine=hp800 opsys=gnu-linux
   ;;
 
   ## IBM machines

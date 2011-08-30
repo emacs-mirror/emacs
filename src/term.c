@@ -1440,7 +1440,6 @@ term_get_fkeys_1 (void)
 		       Character Display Information
  ***********************************************************************/
 static void append_glyph (struct it *);
-static void produce_stretch_glyph (struct it *);
 static void append_composite_glyph (struct it *);
 static void produce_composite_glyph (struct it *);
 static void append_glyphless_glyph (struct it *, int, const char *);
@@ -1511,6 +1510,14 @@ append_glyph (struct it *it)
       ++glyph;
     }
 }
+
+/* For external use.  */
+void
+tty_append_glyph (struct it *it)
+{
+  append_glyph (it);
+}
+
 
 /* Produce glyphs for the display element described by IT.  *IT
    specifies what we want to produce a glyph for (character, image, ...),
@@ -1637,83 +1644,6 @@ produce_glyphs (struct it *it)
   it->ascent = it->max_ascent = it->phys_ascent = it->max_phys_ascent = 0;
   it->descent = it->max_descent = it->phys_descent = it->max_phys_descent = 1;
 }
-
-
-/* Produce a stretch glyph for iterator IT.  IT->object is the value
-   of the glyph property displayed.  The value must be a list
-   `(space KEYWORD VALUE ...)' with the following KEYWORD/VALUE pairs
-   being recognized:
-
-   1. `:width WIDTH' specifies that the space should be WIDTH *
-   canonical char width wide.  WIDTH may be an integer or floating
-   point number.
-
-   2. `:align-to HPOS' specifies that the space should be wide enough
-   to reach HPOS, a value in canonical character units.  */
-
-static void
-produce_stretch_glyph (struct it *it)
-{
-  /* (space :width WIDTH ...)  */
-  Lisp_Object prop, plist;
-  int width = 0, align_to = -1;
-  int zero_width_ok_p = 0;
-  double tem;
-
-  /* List should start with `space'.  */
-  xassert (CONSP (it->object) && EQ (XCAR (it->object), Qspace));
-  plist = XCDR (it->object);
-
-  /* Compute the width of the stretch.  */
-  if ((prop = Fplist_get (plist, QCwidth), !NILP (prop))
-      && calc_pixel_width_or_height (&tem, it, prop, 0, 1, 0))
-    {
-      /* Absolute width `:width WIDTH' specified and valid.  */
-      zero_width_ok_p = 1;
-      width = (int)(tem + 0.5);
-    }
-  else if ((prop = Fplist_get (plist, QCalign_to), !NILP (prop))
-	   && calc_pixel_width_or_height (&tem, it, prop, 0, 1, &align_to))
-    {
-      if (it->glyph_row == NULL || !it->glyph_row->mode_line_p)
-	align_to = (align_to < 0
-		    ? 0
-		    : align_to - window_box_left_offset (it->w, TEXT_AREA));
-      else if (align_to < 0)
-	align_to = window_box_left_offset (it->w, TEXT_AREA);
-      width = max (0, (int)(tem + 0.5) + align_to - it->current_x);
-      zero_width_ok_p = 1;
-    }
-  else
-    /* Nothing specified -> width defaults to canonical char width.  */
-    width = FRAME_COLUMN_WIDTH (it->f);
-
-  if (width <= 0 && (width < 0 || !zero_width_ok_p))
-    width = 1;
-
-  if (width > 0 && it->line_wrap != TRUNCATE
-      && it->current_x + width > it->last_visible_x)
-    width = it->last_visible_x - it->current_x - 1;
-
-  if (width > 0 && it->glyph_row)
-    {
-      Lisp_Object o_object = it->object;
-      Lisp_Object object = it->stack[it->sp - 1].string;
-      int n = width;
-
-      if (!STRINGP (object))
-	object = it->w->buffer;
-      it->object = object;
-      it->char_to_display = ' ';
-      it->pixel_width = it->len = 1;
-      while (n--)
-	append_glyph (it);
-      it->object = o_object;
-    }
-  it->pixel_width = width;
-  it->nglyphs = width;
-}
-
 
 /* Append glyphs to IT's glyph_row for the composition IT->cmp_id.
    Called from produce_composite_glyph for terminal frames if

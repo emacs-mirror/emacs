@@ -104,6 +104,20 @@
 
 	* xterm.h (x_check_errors): Add ATTRIBUTE_FORMAT_PRINTF.
 
+2011-08-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (x_bitmap_pixmap): Cast to int to avoid compiler warnings.
+
+	* xdisp.c (produce_stretch_glyph): No longer static, compiled also
+	when HAVE_WINDOW_SYSTEM is not defined.  Support both GUI and TTY
+	frames.  Call tty_append_glyph in the TTY case.  (Bug#9402)
+
+	* term.c (tty_append_glyph): New function.
+	(produce_stretch_glyph): Static function and its prototype deleted.
+
+	* dispextern.h (produce_stretch_glyph, tty_append_glyph): Add
+	prototypes.
+
 2011-08-29  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* image.c (parse_image_spec): Check for nonnegative, not for positive,

@@ -1,3 +1,11 @@
+2011-08-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in (opsys): Change pattern to *-*-linux*
+	to recognize powerpc-gnu-linux-uclibc (Bug#9403).
+	Remove unreachable pattern hppa*-*-linux-gnu*.
+	Also, remove ia64*-hp-hpux1[1-9]*, as it also sets machine=hp800,
+	and that can't possibly work now that src/m/hp800.h no longer exists.
+
 2011-08-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Add -MP to DEPFLAGS (Bug#9372).

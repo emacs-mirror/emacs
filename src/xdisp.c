@@ -23086,6 +23086,7 @@ append_stretch_glyph (struct it *it, Lisp_Object object,
     IT_EXPAND_MATRIX_WIDTH (it, area);
 }
 
+#endif	/* HAVE_WINDOW_SYSTEM */
 
 /* Produce a stretch glyph for iterator IT.  IT->object is the value
    of the glyph property displayed.  The value must be a list
@@ -23118,19 +23119,28 @@ append_stretch_glyph (struct it *it, Lisp_Object object,
    of the stretch should be used for the ascent of the stretch.
    ASCENT must be in the range 0 <= ASCENT <= 100.  */
 
-static void
+void
 produce_stretch_glyph (struct it *it)
 {
   /* (space :width WIDTH :height HEIGHT ...)  */
   Lisp_Object prop, plist;
   int width = 0, height = 0, align_to = -1;
-  int zero_width_ok_p = 0, zero_height_ok_p = 0;
+  int zero_width_ok_p = 0;
   int ascent = 0;
   double tem;
-  struct face *face = FACE_FROM_ID (it->f, it->face_id);
-  struct font *font = face->font ? face->font : FRAME_FONT (it->f);
+  struct face *face = NULL;
+  struct font *font = NULL;
 
-  PREPARE_FACE_FOR_DISPLAY (it->f, face);
+#ifdef HAVE_WINDOW_SYSTEM
+  int zero_height_ok_p = 0;
+
+  if (FRAME_WINDOW_P (it->f))
+    {
+      face = FACE_FROM_ID (it->f, it->face_id);
+      font = face->font ? face->font : FRAME_FONT (it->f);
+      PREPARE_FACE_FOR_DISPLAY (it->f, face);
+    }
+#endif
 
   /* List should start with `space'.  */
   xassert (CONSP (it->object) && EQ (XCAR (it->object), Qspace));
@@ -23144,8 +23154,9 @@ produce_stretch_glyph (struct it *it)
       zero_width_ok_p = 1;
       width = (int)tem;
     }
-  else if (prop = Fplist_get (plist, QCrelative_width),
-	   NUMVAL (prop) > 0)
+#ifdef HAVE_WINDOW_SYSTEM
+  else if (FRAME_WINDOW_P (it->f)
+	   && (prop = Fplist_get (plist, QCrelative_width), NUMVAL (prop) > 0))
     {
       /* Relative width `:relative-width FACTOR' specified and valid.
 	 Compute the width of the characters having the `glyph'
@@ -23168,6 +23179,7 @@ produce_stretch_glyph (struct it *it)
       x_produce_glyphs (&it2);
       width = NUMVAL (prop) * it2.pixel_width;
     }
+#endif	/* HAVE_WINDOW_SYSTEM */
   else if ((prop = Fplist_get (plist, QCalign_to), !NILP (prop))
 	   && calc_pixel_width_or_height (&tem, it, prop, font, 1, &align_to))
     {
@@ -23187,33 +23199,40 @@ produce_stretch_glyph (struct it *it)
   if (width <= 0 && (width < 0 || !zero_width_ok_p))
     width = 1;
 
+#ifdef HAVE_WINDOW_SYSTEM
   /* Compute height.  */
-  if ((prop = Fplist_get (plist, QCheight), !NILP (prop))
-      && calc_pixel_width_or_height (&tem, it, prop, font, 0, 0))
+  if (FRAME_WINDOW_P (it->f))
     {
-      height = (int)tem;
-      zero_height_ok_p = 1;
+      if ((prop = Fplist_get (plist, QCheight), !NILP (prop))
+	  && calc_pixel_width_or_height (&tem, it, prop, font, 0, 0))
+	{
+	  height = (int)tem;
+	  zero_height_ok_p = 1;
+	}
+      else if (prop = Fplist_get (plist, QCrelative_height),
+	       NUMVAL (prop) > 0)
+	height = FONT_HEIGHT (font) * NUMVAL (prop);
+      else
+	height = FONT_HEIGHT (font);
+
+      if (height <= 0 && (height < 0 || !zero_height_ok_p))
+	height = 1;
+
+      /* Compute percentage of height used for ascent.  If
+	 `:ascent ASCENT' is present and valid, use that.  Otherwise,
+	 derive the ascent from the font in use.  */
+      if (prop = Fplist_get (plist, QCascent),
+          NUMVAL (prop) > 0 && NUMVAL (prop) <= 100)
+	ascent = height * NUMVAL (prop) / 100.0;
+      else if (!NILP (prop)
+	       && calc_pixel_width_or_height (&tem, it, prop, font, 0, 0))
+	ascent = min (max (0, (int)tem), height);
+      else
+	ascent = (height * FONT_BASE (font)) / FONT_HEIGHT (font);
     }
-  else if (prop = Fplist_get (plist, QCrelative_height),
-	   NUMVAL (prop) > 0)
-    height = FONT_HEIGHT (font) * NUMVAL (prop);
   else
-    height = FONT_HEIGHT (font);
-
-  if (height <= 0 && (height < 0 || !zero_height_ok_p))
+#endif	/* HAVE_WINDOW_SYSTEM */
     height = 1;
-
-  /* Compute percentage of height used for ascent.  If
-     `:ascent ASCENT' is present and valid, use that.  Otherwise,
-     derive the ascent from the font in use.  */
-  if (prop = Fplist_get (plist, QCascent),
-      NUMVAL (prop) > 0 && NUMVAL (prop) <= 100)
-    ascent = height * NUMVAL (prop) / 100.0;
-  else if (!NILP (prop)
-	   && calc_pixel_width_or_height (&tem, it, prop, font, 0, 0))
-    ascent = min (max (0, (int)tem), height);
-  else
-    ascent = (height * FONT_BASE (font)) / FONT_HEIGHT (font);
 
   if (width > 0 && it->line_wrap != TRUNCATE
       && it->current_x + width > it->last_visible_x)
@@ -23221,19 +23240,36 @@ produce_stretch_glyph (struct it *it)
 
   if (width > 0 && height > 0 && it->glyph_row)
     {
+      Lisp_Object o_object = it->object;
       Lisp_Object object = it->stack[it->sp - 1].string;
+      int n = width;
+
       if (!STRINGP (object))
 	object = it->w->buffer;
-      append_stretch_glyph (it, object, width, height, ascent);
+#ifdef HAVE_WINDOW_SYSTEM
+      if (FRAME_WINDOW_P (it->f))
+	{
+	  append_stretch_glyph (it, object, width, height, ascent);
+	  it->ascent = it->phys_ascent = ascent;
+	  it->descent = it->phys_descent = height - it->ascent;
+	  it->nglyphs = width > 0 && height > 0 ? 1 : 0;
+	  take_vertical_position_into_account (it);
+	}
+      else
+#endif
+	{
+	  it->object = object;
+	  it->char_to_display = ' ';
+	  it->pixel_width = it->len = 1;
+	  while (n--)
+	    tty_append_glyph (it);
+	  it->object = o_object;
+	  it->pixel_width = width;
+	}
     }
-
-  it->pixel_width = width;
-  it->ascent = it->phys_ascent = ascent;
-  it->descent = it->phys_descent = height - it->ascent;
-  it->nglyphs = width > 0 && height > 0 ? 1 : 0;
-
-  take_vertical_position_into_account (it);
 }
+
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Calculate line-height and line-spacing properties.
    An integer value specifies explicit pixel value.
