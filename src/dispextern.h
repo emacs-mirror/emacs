@@ -3043,6 +3043,8 @@ extern EMACS_INT compute_display_string_pos (struct text_pos *,
 					     int, int *);
 extern EMACS_INT compute_display_string_end (EMACS_INT,
 					     struct bidi_string_data *);
+extern void produce_stretch_glyph (struct it *);
+
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -3337,6 +3339,7 @@ extern struct terminal *get_named_tty (const char *);
 EXFUN (Ftty_type, 1);
 extern void create_tty_output (struct frame *);
 extern struct terminal *init_tty (const char *, const char *, int);
+extern void tty_append_glyph (struct it *);
 
 
 /* Defined in scroll.c */
