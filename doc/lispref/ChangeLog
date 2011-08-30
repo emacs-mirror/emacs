@@ -1,3 +1,10 @@
+2011-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Basic Major Modes): New node.  Callers updated.
+	(Major Modes): Document fundamental-mode and major-mode.
+	(Major Mode Basics): Node deleted; text moved to Major Modes.
+	(Derived Modes): Document derived-mode-p.
+
 2011-08-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.texi (Changing Files, Create/Delete Dirs): Document new

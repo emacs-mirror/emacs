@@ -353,12 +353,13 @@ the element has the form @code{(@var{regexp} @var{mode-function}
 @var{regexp} and searches the list again for another match.
 
 @vindex auto-mode-case-fold
-  On systems with case-insensitive file names, such as Microsoft
-Windows, Emacs performs a single case-insensitive search through
-@code{auto-mode-alist}.  On other systems, Emacs normally performs a
-single case-sensitive search through the alist.  However, if you
-change the variable @code{auto-mode-case-fold} to @code{t}, Emacs
-performs a second case-insensitive search if the first search fails.
+  On GNU/Linux and other systems with case-sensitive file names, Emacs
+performs a case-sensitive search through @code{auto-mode-alist}; if
+this search fails, it performs a second case-insensitive search
+through the alist.  To suppress the second search, change the variable
+@code{auto-mode-case-fold} to @code{nil}.  On systems with
+case-insensitive file names, such as Microsoft Windows, Emacs performs
+a single case-insensitive search through @code{auto-mode-alist}.
 
 @vindex magic-fallback-mode-alist
   Finally, if Emacs @emph{still} hasn't found a major mode to use, it
