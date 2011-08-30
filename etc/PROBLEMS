@@ -2648,43 +2648,6 @@ of PURESIZE in puresize.h.
 But in some of the cases listed above, this problem is a consequence
 of something else that is wrong.  Be sure to check and fix the real problem.
 
-*** Linux: Emacs crashes when dumping itself on Mac PPC running Yellow Dog GNU/Linux.
-
-The crashes happen inside the function Fmake_symbol; here's a typical
-C backtrace printed by GDB:
-
-  0x190c0c0 in Fmake_symbol ()
-  (gdb) where
-  #0  0x190c0c0 in Fmake_symbol ()
-  #1  0x1942ca4 in init_obarray ()
-  #2  0x18b3500 in main ()
-  #3  0x114371c in __libc_start_main (argc=5, argv=0x7ffff5b4, envp=0x7ffff5cc,
-
-This could happen because GCC version 2.95 and later changed the base
-of the load address to 0x10000000.  Emacs needs to be told about this,
-but we currently cannot do that automatically, because that breaks
-other versions of GNU/Linux on the MacPPC.  Until we find a way to
-distinguish between the Yellow Dog and the other varieties of
-GNU/Linux systems on the PPC, you will have to manually uncomment the
-following section near the end of the file src/m/macppc.h in the Emacs
-distribution:
-
-  #if 0  /* This breaks things on PPC GNU/Linux except for Yellowdog,
-            even with identical GCC, as, ld.  Let's take it out until we
-            know what's really going on here.  */
-  /* GCC 2.95 and newer on GNU/Linux PPC changed the load address to
-     0x10000000.  */
-  #if defined __linux__
-  #if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 95)
-  #define DATA_SEG_BITS  0x10000000
-  #endif
-  #endif
-  #endif /* 0 */
-
-Remove the "#if 0" and "#endif" directives which surround this, save
-the file, and then reconfigure and rebuild Emacs.  The dumping process
-should now succeed.
-
 *** OpenBSD 4.0 macppc: Segfault during dumping.
 
 The build aborts with signal 11 when the command `./temacs --batch
