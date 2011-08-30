@@ -1,6 +1,11 @@
+2011-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (event-modifiers): Fix "missing modifier" part of docstring
+	(bug#9356).
+
 2011-08-30  Reuben Thomas  <rrt@sc3d.org>  (tiny change)
 
-	* vc/pcvs-defs.el (cvs-find-file-and-jump): Typo in docstring (bug#9369).
+	* vc/pcvs-defs.el (cvs-find-file-and-jump): Docstring typo (bug#9369).
 
 2011-08-29  Juri Linkov  <juri@jurta.org>
 
