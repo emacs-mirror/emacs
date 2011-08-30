@@ -411,7 +411,7 @@ machine='' opsys='' unported=no
 case "${canonical}" in
 
   ## GNU/Linux ports
-  *-*-linux-gnu*)
+  *-*-linux-gnu* | *-gnu-linux*)
     opsys=gnu-linux
     case ${canonical} in
       alpha*)	machine=alpha ;;
