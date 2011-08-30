@@ -952,7 +952,7 @@ NOPUSH is t and EDIT is t."
       (or (and transient-mark-mode mark-active)
 	  (progn
 	    (push-mark isearch-opoint t)
-	    (or executing-kbd-macro (> (minibuffer-depth) 0)
+	    (or executing-kbd-macro (> (minibuffer-depth) 0) edit
 		(message "Mark saved where search started")))))
 
   (and (not edit) isearch-recursive-edit (exit-recursive-edit)))
