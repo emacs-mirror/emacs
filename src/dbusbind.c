@@ -259,7 +259,7 @@ xd_symbol_to_dbus_type (Lisp_Object object)
     }									\
   while (0)
 
-/* Append to SIGNATURE the a copy of X, making sure SIGNATURE does
+/* Append to SIGNATURE a copy of X, making sure SIGNATURE does
    not become too long.  */
 static void
 signature_cat (char *signature, char const *x)
