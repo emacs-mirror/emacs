@@ -1,3 +1,11 @@
+2011-08-31  Richard Stallman  <rms@gnu.org>
+
+	* mail/rmail.el (rmail-epa-decrypt): Rewrite to take account
+	of the separation of rmail-view-buffer from rmail-buffer.
+	If you say no to "replace original", the decrypt is in the
+	view buffer.  If you say yes, the decrypt goes into the
+	rmail buffer also.
+
 2011-08-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (display-buffer-window): Rewrite doc-string.
