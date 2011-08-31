@@ -1,3 +1,13 @@
+2011-08-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Avoid the use of snprintf.
+	* font.c (APPEND_SNPRINTF): Remove.
+	(font_unparse_xlfd):
+	* xterm.c (x_io_error_quitter):
+	Use esnprintf, not snprintf.  That way, we don't have to worry
+	about porting to ancient platforms that lack snprintf.
+	(x_term_init): Use sprintf, not snprintf.
+
 2011-08-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	sprintf-related integer and memory overflow issues (Bug#9412).
