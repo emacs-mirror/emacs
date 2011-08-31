@@ -1,3 +1,13 @@
+2011-08-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-root-regexp): Remove.
+	(tramp-completion-file-name-regexp-unified)
+	(tramp-completion-file-name-regexp-separate)
+	(tramp-completion-file-name-regexp-url): Don't use leading volume
+	letter on win32 systems.  (Bug#5303, Bug#9311)
+	(tramp-drop-volume-letter): Simplify definition.  Suggested by
+	Stefan Monnier <monnier@iro.umontreal.ca>.
+
 2011-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (event-modifiers): Fix "missing modifier" part of docstring

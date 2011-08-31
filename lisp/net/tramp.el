@@ -861,19 +861,9 @@ updated after changing this variable.
 Also see `tramp-file-name-structure'.")
 
 ;;;###autoload
-(defconst tramp-root-regexp
-  (if (memq system-type '(cygwin windows-nt))
-      "\\`\\([a-zA-Z]:\\)?/"
-    "\\`/")
-  "Beginning of an incomplete Tramp file name.
-Usually, it is just \"\\\\`/\".  On W32 systems, there might be a
-volume letter, which will be removed by `tramp-drop-volume-letter'.")
-
-;;;###autoload
 (defconst tramp-completion-file-name-regexp-unified
   (if (memq system-type '(cygwin windows-nt))
-      (concat tramp-root-regexp "[^/]\\{2,\\}\\'")
-    (concat tramp-root-regexp "[^/]*\\'"))
+      "\\`/[^/]\\{2,\\}\\'" "\\`/[^/]*\\'")
   "Value for `tramp-completion-file-name-regexp' for unified remoting.
 GNU Emacs uses a unified filename syntax for Tramp and Ange-FTP.
 See `tramp-file-name-structure' for more explanations.
@@ -882,14 +872,14 @@ On W32 systems, the volume letter must be ignored.")
 
 ;;;###autoload
 (defconst tramp-completion-file-name-regexp-separate
-  (concat tramp-root-regexp "\\([[][^]]*\\)?\\'")
+  "\\`/\\([[][^]]*\\)?\\'"
   "Value for `tramp-completion-file-name-regexp' for separate remoting.
 XEmacs uses a separate filename syntax for Tramp and EFS.
 See `tramp-file-name-structure' for more explanations.")
 
 ;;;###autoload
 (defconst tramp-completion-file-name-regexp-url
-  (concat tramp-root-regexp "[^/:]+\\(:\\(/\\(/[^/]*\\)?\\)?\\)?\\'")
+  "\\`/[^/:]+\\(:\\(/\\(/[^/]*\\)?\\)?\\)?\\'"
   "Value for `tramp-completion-file-name-regexp' for URL-like remoting.
 See `tramp-file-name-structure' for more explanations.")
 
@@ -1494,20 +1484,20 @@ progress reporter."
 (tramp-compat-font-lock-add-keywords
  'emacs-lisp-mode '("\\<tramp-with-progress-reporter\\>"))
 
-(eval-and-compile			;; Silence compiler.
+(defalias 'tramp-drop-volume-letter
   (if (memq system-type '(cygwin windows-nt))
-      (defun tramp-drop-volume-letter (name)
+      (lambda (name)
 	"Cut off unnecessary drive letter from file NAME.
 The functions `tramp-*-handle-expand-file-name' call `expand-file-name'
 locally on a remote file name.  When the local system is a W32 system
 but the remote system is Unix, this introduces a superfluous drive
 letter into the file name.  This function removes it."
 	(save-match-data
-	  (if (string-match tramp-root-regexp name)
+	  (if (string-match "\\`[a-zA-Z]:/" name)
 	      (replace-match "/" nil t name)
 	    name)))
 
-    (defalias 'tramp-drop-volume-letter 'identity)))
+    'identity))
 
 ;;; Config Manipulation Functions:
 
