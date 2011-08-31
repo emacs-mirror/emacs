@@ -1,15 +1,5 @@
 2011-08-31  Paul Eggert  <eggert@cs.ucla.edu>
 
-	Avoid the use of snprintf.
-	* font.c (APPEND_SNPRINTF): Remove.
-	(font_unparse_xlfd):
-	* xterm.c (x_io_error_quitter):
-	Use esnprintf, not snprintf.  That way, we don't have to worry
-	about porting to ancient platforms that lack snprintf.
-	(x_term_init): Use sprintf, not snprintf.
-
-2011-08-30  Paul Eggert  <eggert@cs.ucla.edu>
-
 	sprintf-related integer and memory overflow issues (Bug#9412).
 
 	* doprnt.c (doprnt): Support printing ptrdiff_t and intmax_t values.
@@ -53,10 +43,9 @@
 	* font.c: Include <float.h>, for DBL_MAX_10_EXP.
 	(font_unparse_xlfd): Don't blindly alloca long strings.
 	Don't assume XINT result fits in int, or that XFLOAT_DATA * 10
-	fits in int, when using sprintf.  Use single snprintf to count
+	fits in int, when using sprintf.  Use single esnprintf to count
 	length of string rather than counting it via multiple sprintfs;
 	that's simpler and more reliable.
-	(APPEND_SPRINTF): New macro.
 	(font_unparse_fcname): Use it to avoid sprintf buffer overrun.
 	(generate_otf_features) [0 && HAVE_LIBOTF]: Use esprintf, not
 	sprintf, in case result does not fit in int.
@@ -111,8 +100,16 @@
 	to avoid potential buffer overrun.
 
 	* xterm.c (x_io_error_quitter): Don't overrun sprintf buffer.
+	(x_term_init): Use sprintf, not snprintf, so that we need not
+	worry about ancient hosts that lack snprintf.  The buffer cannot
+	possibly be overrun, so this is safe.
 
 	* xterm.h (x_check_errors): Add ATTRIBUTE_FORMAT_PRINTF.
+
+2011-08-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* syntax.c (find_defun_start): Update all cache variables if
+	exiting early (Bug#9401).
 
 2011-08-30  Eli Zaretskii  <eliz@gnu.org>
 

@@ -1,3 +1,71 @@
+2011-08-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-window): Rewrite doc-string.
+	(display-buffer-record-window): New function.
+	(display-buffer-macro-specifiers)
+	(display-buffer-even-window-sizes, display-buffer-set-height)
+	(display-buffer-set-width, display-buffer-in-window)
+	(display-buffer-reuse-window, display-buffer-split-specifiers)
+	(display-buffer-side-specifiers, display-buffer-split-window-1)
+	(display-buffer-split-window, display-buffer-split-atom-window)
+	(display-buffer-pop-up-window, display-buffer-pop-up-frame)
+	(display-buffer-pop-up-side-window, display-buffer-in-side-window)
+	(display-buffer-other-window-means-other-frame)
+	(display-buffer-normalize-special)
+	(display-buffer-normalize-default)
+	(display-buffer-normalize-argument)
+	(display-buffer-normalize-alist-1, display-buffer-normalize-alist)
+	(display-buffer-normalize-specifiers, display-buffer-frame)
+	(display-buffer-same-window, display-buffer-same-frame)
+	(display-buffer-other-window)
+	(display-buffer-same-frame-other-window)
+	(display-buffer-other-frame, pop-to-buffer-same-window)
+	(pop-to-buffer-same-frame, pop-to-buffer-other-window)
+	(pop-to-buffer-same-frame-other-window, pop-to-buffer-other-frame)
+	(switch-to-buffer-same-frame)
+	(switch-to-buffer-other-window-same-frame)
+	(display-buffer-alist-of-strings-p, display-buffer-alist-add)
+	(display-buffer-alist-set-1, display-buffer-alist-set-2)
+	(display-buffer-alist-set): Remove.
+	(display-buffer-function, special-display-buffer-names)
+	(special-display-regexps, special-display-function): In
+	doc-string refer to display-buffer-window and quit-restore
+	parameter.
+	(pop-up-frame-alist, pop-up-frame-function, special-display-p)
+	(special-display-frame-alist, special-display-popup-frame)
+	(same-window-buffer-names, same-window-regexps, same-window-p)
+	(pop-up-frames, display-buffer-reuse-frames, pop-up-windows)
+	(split-window-preferred-function, split-height-threshold)
+	(split-width-threshold, window-splittable-p)
+	(split-window-sensibly, window--try-to-split-window)
+	(window--frame-usable-p, even-window-heights)
+	(window--even-window-heights, window--display-buffer-1)
+	(window--display-buffer-2, display-buffer-other-frame): Restore
+	old Emacs 23 code, order and doc-strings where applicable.
+	(display-buffer-default, display-buffer-assq-regexp): New functions.
+	(display-buffer-alist): Rewrite doc-string.
+	(display-buffer-default-action)
+	(display-buffer-overriding-action): New variables.
+	(display-buffer, switch-to-buffer): Rewrite.
+	(pop-to-buffer): Restore Emacs 23 behavior but use
+	window-normalize-buffer-to-display.
+	(switch-to-buffer-other-window, switch-to-buffer-other-frame):
+	Restore Emacs 23 behavior but use
+	window-normalize-buffer-to-switch-to.
+	(pop-to-buffer-same-window): Rewrite.
+	(pop-to-buffer-other-window, pop-to-buffer-other-frame): Rewrite
+	using Emacs 23 options.
+
+2011-08-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-root-regexp): Remove.
+	(tramp-completion-file-name-regexp-unified)
+	(tramp-completion-file-name-regexp-separate)
+	(tramp-completion-file-name-regexp-url): Don't use leading volume
+	letter on win32 systems.  (Bug#5303, Bug#9311)
+	(tramp-drop-volume-letter): Simplify definition.  Suggested by
+	Stefan Monnier <monnier@iro.umontreal.ca>.
+
 2011-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (event-modifiers): Fix "missing modifier" part of docstring

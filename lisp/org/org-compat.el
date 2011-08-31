@@ -438,7 +438,7 @@ With two arguments, return floor and remainder of their quotient."
   "Pop to buffer specified by BUFFER-OR-NAME in the selected window."
   (if (fboundp 'pop-to-buffer-same-window)
       (funcall
-       'pop-to-buffer-same-window buffer-or-name norecord label)
+       'pop-to-buffer-same-window buffer-or-name norecord)
     (funcall 'switch-to-buffer buffer-or-name norecord)))
 
 (provide 'org-compat)

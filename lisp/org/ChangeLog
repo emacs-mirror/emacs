@@ -1,3 +1,8 @@
+2011-08-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* org-compat.el (org-pop-to-buffer-same-window): Remove LABEL
+	argument from pop-to-buffer-same-window call.
+
 2011-07-30  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* ob.el (org-babel-src-block-regexp): If a code block has a body,
