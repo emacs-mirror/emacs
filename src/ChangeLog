@@ -90,6 +90,8 @@
 	* process.c (make_process): Use printmax_t, not int, to format
 	process-name gensyms.
 
+	* sysdep.c (snprintf) [! HAVE_SNPRINTF]: New function.
+
 	* term.c (produce_glyphless_glyph): Make sprintf buffer a bit bigger
 	to avoid potential buffer overrun.
 
