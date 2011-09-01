@@ -1,3 +1,7 @@
+2011-09-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.el (frame-auto-delete, window-deletable-p): Doc fix.
+
 2011-09-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* window.el (display-buffer): Restore interactive spec.

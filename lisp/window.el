@@ -2259,10 +2259,10 @@ and no others."
 
 ;;; Deleting windows.
 (defcustom frame-auto-delete 'automatic
-  "If non-nil, quitting a window can delete it's frame.
+  "If non-nil, quitting a window can delete its frame.
 If this variable is nil, functions that quit a window never
-delete the associated frame.  If this variable equals the symbol
-`automatic', a frame is deleted only if it the window is
+delete the associated frame.  If this variable's value is the
+symbol `automatic', a frame is deleted only if the window is
 dedicated or was created by `display-buffer'.  If this variable
 is t, a frame can be always deleted, even if it was created by
 `make-frame-command'.  Other values should not be used.
@@ -2282,8 +2282,8 @@ variable are `switch-to-prev-buffer', `delete-windows-on',
 
 (defun window-deletable-p (&optional window)
   "Return t if WINDOW can be safely deleted from its frame.
-Return `frame' if deleting WINDOW should delete its frame
-instead."
+Return `frame' if deleting WINDOW should also delete its
+frame."
   (setq window (window-normalize-any-window window))
   (unless ignore-window-parameters
     ;; Handle atomicity.
@@ -2304,7 +2304,7 @@ instead."
 		 (other-visible-frames-p frame))
 	;; WINDOW is the root window of its frame.  Return `frame' but
 	;; only if WINDOW is (1) either dedicated or quit-restore's car
-	;; is new-frame and the window still displays the same buffer
+	;; is `new-frame' and the window still displays the same buffer
 	;; and (2) there are other frames left.
 	'frame))
      ((and (not ignore-window-parameters)
