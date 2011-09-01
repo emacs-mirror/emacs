@@ -272,16 +272,16 @@ add_window_display_history (struct window *w, const char *msg, int paused_p)
   buf = redisplay_history[history_idx].trace;
   ++history_idx;
 
-  esnprintf (buf, sizeof redisplay_history[0].trace,
-	     "%"pMu": window %p (`%s')%s\n%s",
-	     history_tick++,
-	     w,
-	     ((BUFFERP (w->buffer)
-	       && STRINGP (BVAR (XBUFFER (w->buffer), name)))
-	      ? SSDATA (BVAR (XBUFFER (w->buffer), name))
-	      : "???"),
-	     paused_p ? " ***paused***" : "",
-	     msg);
+  snprintf (buf, sizeof redisplay_history[0].trace,
+	    "%"pMu": window %p (`%s')%s\n%s",
+	    history_tick++,
+	    w,
+	    ((BUFFERP (w->buffer)
+	      && STRINGP (BVAR (XBUFFER (w->buffer), name)))
+	     ? SSDATA (BVAR (XBUFFER (w->buffer), name))
+	     : "???"),
+	    paused_p ? " ***paused***" : "",
+	    msg);
 }
 
 

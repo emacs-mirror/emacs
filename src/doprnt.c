@@ -486,27 +486,6 @@ esprintf (char *buf, char const *format, ...)
   return nbytes;
 }
 
-/* Format to a buffer BUF of positive size BUFSIZE.  This is like
-   snprintf, except it is not limited to returning an 'int' so it
-   doesn't have a silly 2 GiB limit on typical 64-bit hosts.  However,
-   it is limited to the Emacs-style formats that doprnt supports, and
-   BUFSIZE must be positive.
-
-   Return the number of bytes put into BUF, excluding the terminating
-   '\0'.  Unlike snprintf, always return a nonnegative value less than
-   BUFSIZE; if the output is truncated, return BUFSIZE - 1, which is
-   the length of the truncated output.  */
-ptrdiff_t
-esnprintf (char *buf, ptrdiff_t bufsize, char const *format, ...)
-{
-  ptrdiff_t nbytes;
-  va_list ap;
-  va_start (ap, format);
-  nbytes = doprnt (buf, bufsize, format, 0, ap);
-  va_end (ap);
-  return nbytes;
-}
-
 /* Format to buffer *BUF of positive size *BUFSIZE, reallocating *BUF
    and updating *BUFSIZE if the buffer is too small, and otherwise
    behaving line esprintf.  When reallocating, free *BUF unless it is

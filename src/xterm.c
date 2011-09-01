@@ -7900,8 +7900,8 @@ x_io_error_quitter (Display *display)
 {
   char buf[256];
 
-  esnprintf (buf, sizeof buf, "Connection lost to X server `%s'",
-	     DisplayString (display));
+  snprintf (buf, sizeof buf, "Connection lost to X server `%s'",
+	    DisplayString (display));
   x_connection_closed (display, buf);
   return 0;
 }
@@ -10278,8 +10278,8 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       atom_names[i] = (char *) atom_refs[i].name;
 
     /* Build _XSETTINGS_SN atom name */
-    sprintf (xsettings_atom_name,
-	     "_XSETTINGS_S%d", XScreenNumberOfScreen (dpyinfo->screen));
+    snprintf (xsettings_atom_name, sizeof (xsettings_atom_name),
+              "_XSETTINGS_S%d", XScreenNumberOfScreen (dpyinfo->screen));
     atom_names[i] = xsettings_atom_name;
 
     XInternAtoms (dpyinfo->display, atom_names, total_atom_count,

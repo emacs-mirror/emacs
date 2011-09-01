@@ -1285,14 +1285,14 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
     }
   else
     f[XLFD_AVGWIDTH_INDEX] = "*";
-  len = esnprintf (name, nbytes, "-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s",
-		   f[XLFD_FOUNDRY_INDEX], f[XLFD_FAMILY_INDEX],
-		   f[XLFD_WEIGHT_INDEX], f[XLFD_SLANT_INDEX],
-		   f[XLFD_SWIDTH_INDEX], f[XLFD_ADSTYLE_INDEX],
-		   f[XLFD_PIXEL_INDEX], f[XLFD_RESX_INDEX],
-		   f[XLFD_SPACING_INDEX], f[XLFD_AVGWIDTH_INDEX],
-		   f[XLFD_REGISTRY_INDEX]);
-  return len == nbytes - 1 ? -1 : len;
+  len = snprintf (name, nbytes, "-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s",
+		  f[XLFD_FOUNDRY_INDEX], f[XLFD_FAMILY_INDEX],
+		  f[XLFD_WEIGHT_INDEX], f[XLFD_SLANT_INDEX],
+		  f[XLFD_SWIDTH_INDEX], f[XLFD_ADSTYLE_INDEX],
+		  f[XLFD_PIXEL_INDEX], f[XLFD_RESX_INDEX],
+		  f[XLFD_SPACING_INDEX], f[XLFD_AVGWIDTH_INDEX],
+		  f[XLFD_REGISTRY_INDEX]);
+  return len < nbytes ? len : -1;
 }
 
 /* Parse NAME (null terminated) and store information in FONT
@@ -1593,31 +1593,75 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
   p = name;
   lim = name + nbytes;
   if (! NILP (family))
-    p += esnprintf (p, lim - p, "%s", SSDATA (family));
+    {
+      int len = snprintf (p, lim - p, "%s", SSDATA (family));
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
   if (point_size > 0)
-    p += esnprintf (p, lim - p, "-%d" + (p == name), point_size);
+    {
+      int len = snprintf (p, lim - p, "-%d" + (p == name), point_size);
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
   else if (pixel_size > 0)
-    p += esnprintf (p, lim - p, ":pixelsize=%d", pixel_size);
+    {
+      int len = snprintf (p, lim - p, ":pixelsize=%d", pixel_size);
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
   if (! NILP (AREF (font, FONT_FOUNDRY_INDEX)))
-    p += esnprintf (p, lim - p, ":foundry=%s",
-		    SSDATA (SYMBOL_NAME (AREF (font,
-					       FONT_FOUNDRY_INDEX))));
+    {
+      int len = snprintf (p, lim - p, ":foundry=%s",
+			  SSDATA (SYMBOL_NAME (AREF (font,
+						     FONT_FOUNDRY_INDEX))));
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
   for (i = 0; i < 3; i++)
     if (! NILP (styles[i]))
-      p += esnprintf (p, lim - p, ":%s=%s", style_names[i],
-		      SSDATA (SYMBOL_NAME (styles[i])));
+      {
+	int len = snprintf (p, lim - p, ":%s=%s", style_names[i],
+			    SSDATA (SYMBOL_NAME (styles[i])));
+	if (! (0 <= len && len < lim - p))
+	  return -1;
+	p += len;
+      }
+
   if (INTEGERP (AREF (font, FONT_DPI_INDEX)))
-    p += esnprintf (p, lim - p, ":dpi=%"pI"d",
-		    XINT (AREF (font, FONT_DPI_INDEX)));
+    {
+      int len = snprintf (p, lim - p, ":dpi=%"pI"d",
+			  XINT (AREF (font, FONT_DPI_INDEX)));
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
+
   if (INTEGERP (AREF (font, FONT_SPACING_INDEX)))
-    p += esnprintf (p, lim - p, ":spacing=%"pI"d",
-		    XINT (AREF (font, FONT_SPACING_INDEX)));
+    {
+      int len = snprintf (p, lim - p, ":spacing=%"pI"d",
+			  XINT (AREF (font, FONT_SPACING_INDEX)));
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
+
   if (INTEGERP (AREF (font, FONT_AVGWIDTH_INDEX)))
-    p += esnprintf (p, lim - p,
-		    (XINT (AREF (font, FONT_AVGWIDTH_INDEX)) == 0
-		     ? ":scalable=true"
-		     : ":scalable=false"));
-  return lim - p == 1 ? -1 : p - name;
+    {
+      int len = snprintf (p, lim - p,
+			  (XINT (AREF (font, FONT_AVGWIDTH_INDEX)) == 0
+			   ? ":scalable=true"
+			   : ":scalable=false"));
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
+
+  return (p - name);
 }
 
 /* Parse NAME (null terminated) and store information in FONT

@@ -1,9 +1,9 @@
-2011-08-31  Paul Eggert  <eggert@cs.ucla.edu>
+2011-09-01  Paul Eggert  <eggert@cs.ucla.edu>
 
 	sprintf-related integer and memory overflow issues (Bug#9412).
 
 	* doprnt.c (doprnt): Support printing ptrdiff_t and intmax_t values.
-	(esprintf, esnprintf, exprintf, evxprintf): New functions.
+	(esprintf, exprintf, evxprintf): New functions.
 	* keyboard.c (command_loop_level): Now EMACS_INT, not int.
 	(cmd_error): kbd macro iterations count is now EMACS_INT, not int.
 	(modify_event_symbol): Do not assume that the length of
@@ -17,7 +17,7 @@
 	* minibuf.c (minibuf_level): Now EMACS_INT, not int.
 	(get_minibuffer): Arg is now EMACS_INT, not int.
 	* lisp.h (get_minibuffer, push_key_description): Reflect API changes.
-	(esprintf, esnprintf, exprintf, evxprintf): New decls.
+	(esprintf, exprintf, evxprintf): New decls.
 	* window.h (command_loop_level, minibuf_level): Reflect API changes.
 
 	* dbusbind.c (signature_cat): New function.
@@ -43,7 +43,7 @@
 	* font.c: Include <float.h>, for DBL_MAX_10_EXP.
 	(font_unparse_xlfd): Don't blindly alloca long strings.
 	Don't assume XINT result fits in int, or that XFLOAT_DATA * 10
-	fits in int, when using sprintf.  Use single esnprintf to count
+	fits in int, when using sprintf.  Use single snprintf to count
 	length of string rather than counting it via multiple sprintfs;
 	that's simpler and more reliable.
 	(font_unparse_fcname): Use it to avoid sprintf buffer overrun.
@@ -102,9 +102,6 @@
 	to avoid potential buffer overrun.
 
 	* xterm.c (x_io_error_quitter): Don't overrun sprintf buffer.
-	(x_term_init): Use sprintf, not snprintf, so that we need not
-	worry about ancient hosts that lack snprintf.  The buffer cannot
-	possibly be overrun, so this is safe.
 
 	* xterm.h (x_check_errors): Add ATTRIBUTE_FORMAT_PRINTF.
 

@@ -284,6 +284,7 @@ xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lis
   unsigned int subtype;
   Lisp_Object elt;
   char const *subsig;
+  int subsiglen;
   char x[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   elt = object;
@@ -365,9 +366,9 @@ xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lis
 	  elt = CDR_SAFE (XD_NEXT_VALUE (elt));
 	}
 
-      if (esnprintf (signature, DBUS_MAXIMUM_SIGNATURE_LENGTH,
-		     "%c%s", dtype, subsig)
-	  == DBUS_MAXIMUM_SIGNATURE_LENGTH - 1)
+      subsiglen = snprintf (signature, DBUS_MAXIMUM_SIGNATURE_LENGTH,
+			    "%c%s", dtype, subsig);
+      if (! (0 <= subsiglen && subsiglen < DBUS_MAXIMUM_SIGNATURE_LENGTH))
 	string_overflow ();
       break;
 
@@ -2088,31 +2089,44 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
       connection = xd_initialize (bus, TRUE);
 
       /* Create a rule to receive related signals.  */
-      rulelen = esnprintf (rule, sizeof rule,
-			   "type='signal',interface='%s',member='%s'",
-			   SDATA (interface),
-			   SDATA (signal));
+      rulelen = snprintf (rule, sizeof rule,
+			  "type='signal',interface='%s',member='%s'",
+			  SDATA (interface),
+			  SDATA (signal));
+      if (! (0 <= rulelen && rulelen < sizeof rule))
+	string_overflow ();
 
       /* Add unique name and path to the rule if they are non-nil.  */
       if (!NILP (uname))
-	rulelen += esnprintf (rule + rulelen, sizeof rule - rulelen,
+	{
+	  int len = snprintf (rule + rulelen, sizeof rule - rulelen,
 			      ",sender='%s'", SDATA (uname));
+	  if (! (0 <= len && len < sizeof rule - rulelen))
+	    string_overflow ();
+	  rulelen += len;
+	}
 
       if (!NILP (path))
-	rulelen += esnprintf (rule + rulelen, sizeof rule - rulelen,
+	{
+	  int len = snprintf (rule + rulelen, sizeof rule - rulelen,
 			      ",path='%s'", SDATA (path));
+	  if (! (0 <= len && len < sizeof rule - rulelen))
+	    string_overflow ();
+	  rulelen += len;
+	}
 
       /* Add arguments to the rule if they are non-nil.  */
       for (i = 6; i < nargs; ++i)
 	if (!NILP (args[i]))
 	  {
+	    int len;
 	    CHECK_STRING (args[i]);
-	    rulelen += esnprintf (rule + rulelen, sizeof rule - rulelen,
-				  ",arg%"pD"d='%s'", i - 6, SDATA (args[i]));
+	    len = snprintf (rule + rulelen, sizeof rule - rulelen,
+			    ",arg%"pD"d='%s'", i - 6, SDATA (args[i]));
+	    if (! (0 <= len && len < sizeof rule - rulelen))
+	      string_overflow ();
+	    rulelen += len;
 	  }
-
-      if (rulelen == sizeof rule - 1)
-	string_overflow ();
 
       /* Add the rule to the bus.  */
       dbus_error_init (&derror);
