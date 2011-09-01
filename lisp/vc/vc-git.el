@@ -988,7 +988,8 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	      (setq command nil))
 	(setq dir (file-name-as-directory (expand-file-name dir)))
 	(setq command
-	      (grep-expand-template "git grep -n -e <R> -- <F>" regexp files))
+	      (grep-expand-template "git grep --no-color -n -e <R> -- <F>"
+                                    regexp files))
 	(when command
 	  (if (equal current-prefix-arg '(4))
 	      (setq command
