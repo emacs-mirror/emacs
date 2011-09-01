@@ -1,3 +1,11 @@
+2011-09-01  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* vc/vc-rcs.el (vc-rcs-responsible-p): Handle directories.  (Bug#9391)
+
+2011-09-01  Wilfred Hughes  <wilfred@potatolondon.com>  (tiny change)
+
+	* vc/vc-git.el (vc-git-grep): Use --no-color.  (Bug#9408)
+
 2011-08-31  Richard Stallman  <rms@gnu.org>
 
 	* mail/rmail.el (rmail-epa-decrypt): Rewrite to take account
