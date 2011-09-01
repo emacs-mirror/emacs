@@ -4308,7 +4308,7 @@ encoded string (and the same mask) will decode the string."
   ;; change it in one of the calls to `epa-decrypt-region'.
 
   (save-excursion
-    (let (new-buffer not-first-armor)
+    (let (decrypts)
       (goto-char (point-min))
 
       ;; In case the encrypted data is inside a mime attachment,
@@ -4324,8 +4324,8 @@ encoded string (and the same mask) will decode the string."
       ;; and decrypt them one by one.
       (goto-char (point-min))
       (while (re-search-forward "-----BEGIN PGP MESSAGE-----$" nil t)
-	(let (armor-start armor-end
-			  (coding-system-for-read coding-system-for-read))
+	(let ((coding-system-for-read coding-system-for-read)
+	      armor-start armor-end after-end)
 	  (setq armor-start (match-beginning 0)
 		armor-end (re-search-forward "^-----END PGP MESSAGE-----$"
 					     nil t))
@@ -4345,64 +4345,39 @@ encoded string (and the same mask) will decode the string."
 
 	  ;; Advance over this armor.
 	  (goto-char armor-end)
+	  (setq after-end (- (point-max) armor-end))
 
 	  ;; Decrypt it, maybe in place, maybe making new buffer.
 	  (epa-decrypt-region
 	   armor-start armor-end
 	   ;; Call back this function to prepare the output.
 	   (lambda ()
-	     (if (or not-first-armor
-		     (y-or-n-p "Replace the original message? "))
-		 ;; User wants to decrypt in place,
-		 ;; or this isn't the first armor.
-		 ;; We only ask the question for the first armor.
-		 (let ((inhibit-read-only t))
-		   (delete-region armor-start armor-end)
-		   (goto-char armor-start)
-		   (current-buffer))
-	       ;; User says not to replace the original text.
-	       (or new-buffer
-		   (let ((from-buffer
-			  (if (rmail-buffers-swapped-p)
-			      rmail-view-buffer rmail-buffer))
-			 (from-pruned (rmail-msg-is-pruned))
-			 (beg (rmail-msgbeg rmail-current-message))
-			 (end (rmail-msgend rmail-current-message)))
-		     (with-current-buffer (generate-new-buffer "*Decrypt*")
-		       (setq buffer-read-only nil)
-		       (insert-buffer-substring from-buffer beg end)
-		       (rmail-mode)
-		       ;; This should be pruned if the original message was.
-		       (unless from-pruned (rmail-toggle-header))
-		       (goto-char (point-min))
+	     (let ((inhibit-read-only t))
+	       (delete-region armor-start armor-end)
+	       (goto-char armor-start)
+	       (current-buffer))))
 
-		       ;; Find the first armor in the text we just copied.
-		       ;; What we copied may not be identical
-		       ;; to the initial text.
-		       (re-search-forward "-----BEGIN PGP MESSAGE-----$")
-		       (setq armor-start (match-beginning 0))
-		       (re-search-forward "^-----END PGP MESSAGE-----$")
-		       (setq armor-end (point))
-		       ;; Delete it and put point there.
-		       (let ((inhibit-read-only t))
-			 (delete-region armor-start armor-end))
-		       (goto-char armor-start)
-		       (setq new-buffer (current-buffer))
-		       ;; Return; epa-decrypt-region will insert plaintext.
-		       ))))))
+	  (push (list armor-start (- (point-max) after-end))
+		decrypts)))
 
-	  (setq not-first-armor t)
-
-	  ;; If we copied the buffer, switch to the copy
-	  ;; for the rest of this loop.
-	  ;; Point is the only buffer pointer that is live here,
-	  ;; and it was properly set in NEW-BUFFER by `epa-decrypt-region'
-	  ;; when it inserted the decrypted epa
-	  (if new-buffer (set-buffer new-buffer))))
-
-      ;; If we decrypted into a new buffer, show it.
-      (if new-buffer
-	  (display-buffer new-buffer)))))
+      (when (and decrypts (rmail-buffers-swapped-p))
+	(when (y-or-n-p "Replace the original message? ")
+	  (setq decrypts (nreverse decrypts))
+	  (let ((beg (rmail-msgbeg rmail-current-message))
+		(end (rmail-msgend rmail-current-message))
+		(from-buffer (current-buffer)))
+	    (with-current-buffer rmail-view-buffer
+	      (narrow-to-region beg end)
+	      (goto-char (point-min))
+	      (dolist (d decrypts)
+		(if (re-search-forward "-----BEGIN PGP MESSAGE-----$" nil t)
+		    (let (armor-start armor-end)
+		      (setq armor-start (match-beginning 0)
+			    armor-end (re-search-forward "^-----END PGP MESSAGE-----$"
+							 nil t))
+		      (when armor-end
+			(delete-region armor-start armor-end)
+			(insert-buffer-substring from-buffer (nth 0 d) (nth 1 d)))))))))))))
 
 ;;;;  Desktop support
 

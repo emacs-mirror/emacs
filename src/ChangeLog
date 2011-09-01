@@ -1,3 +1,8 @@
+2011-08-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* syntax.c (find_defun_start): Update all cache variables if
+	exiting early (Bug#9401).
+
 2011-08-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* image.c (x_bitmap_pixmap): Cast to int to avoid compiler warnings.

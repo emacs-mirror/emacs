@@ -1194,21 +1194,27 @@ The following commands are available:
     (gnus-group-mode)))
 
 (defun gnus-group-name-charset (method group)
-  (if (null method)
-      (setq method (gnus-find-method-for-group group)))
-  (let ((item (or (assoc method gnus-group-name-charset-method-alist)
-		  (and (consp method)
-		       (assoc (list (car method) (cadr method))
-			      gnus-group-name-charset-method-alist))))
-	(alist gnus-group-name-charset-group-alist)
-	result)
-    (if item
-	(cdr item)
-      (while (setq item (pop alist))
-	(if (string-match (car item) group)
-	    (setq alist nil
-		  result (cdr item))))
-      result)))
+  (unless method
+    (setq method (gnus-find-method-for-group group)))
+  (when (stringp method)
+    (setq method (gnus-server-to-method method)))
+  (if (eq (car method) 'nnimap)
+      ;; IMAP groups should not be encoded, since they do the encoding
+      ;; in utf7 in the protocol.
+      nil
+    (let ((item (or (assoc method gnus-group-name-charset-method-alist)
+		    (and (consp method)
+			 (assoc (list (car method) (cadr method))
+				gnus-group-name-charset-method-alist))))
+	  (alist gnus-group-name-charset-group-alist)
+	  result)
+      (if item
+	  (cdr item)
+	(while (setq item (pop alist))
+	  (if (string-match (car item) group)
+	      (setq alist nil
+		    result (cdr item))))
+	result))))
 
 (defun gnus-group-name-decode (string charset)
   ;; Fixme: Don't decode in unibyte mode.
