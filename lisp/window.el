@@ -4674,6 +4674,7 @@ This is an ACTION just like in `display-buffer-alist'.")
 
 (defun display-buffer (&optional buffer-or-name action frame)
   "Display BUFFER in some window."
+  (interactive "BDisplay buffer:\nP")
   (let* ((buffer (window-normalize-buffer-to-display buffer-or-name))
 	 (buffer-name (buffer-name buffer))
 	 (user-action
@@ -4736,6 +4737,27 @@ its documentation for additional customization information."
     ;;(make-frame-visible (window-frame old-window))
     ))
 
+;;; Functions for use via `display-buffer-alist'.
+
+(defun display-buffer-same-window (buffer alist)
+  "Display BUFFER in the selected window, and return the window.
+If BUFFER cannot be displayed in the selected window (usually
+because it is dedicated to another buffer), return nil."
+  (let ((norecord (cadr (assq 'norecord alist))))
+    (cond
+     ((eq buffer (window-buffer))
+      (selected-window))
+     ((not (or (window-minibuffer-p) (window-dedicated-p)))
+      (set-window-buffer nil buffer)
+      (selected-window)))))
+
+(defun display-buffer-other-window (buffer alist)
+  "Display BUFFER in another window, and return BUFFER.
+If BUFFER cannot be displayed in another window, just return nil."
+  (display-buffer-default buffer t))
+
+;;; Display + selection commands:
+
 (defun pop-to-buffer (buffer-or-name &optional other-window norecord)
   "Select buffer BUFFER-OR-NAME in some window, preferably a different one.
 BUFFER-OR-NAME may be a buffer, a string \(a buffer name), or
@@ -4759,20 +4781,7 @@ of `display-buffer' for additional customization information.
 Optional third arg NORECORD non-nil means do not put this buffer
 at the front of the list of recently selected ones."
   (interactive "BPop to buffer:\nP")
-  (let ((buffer (window-normalize-buffer-to-display buffer-or-name))
-	(old-window (selected-window))
-	(old-frame (selected-frame))
-	new-window new-frame)
-    (set-buffer buffer)
-    (setq new-window (display-buffer buffer other-window))
-    (setq new-frame (window-frame new-window))
-    (if (eq old-frame new-frame)
-	;; Make sure new-window gets selected (Bug#8615), (Bug#6954).
-	(select-window new-window norecord)
-      ;; `display-buffer' has chosen another frame, make sure it gets
-      ;; input focus and is risen.
-      (select-frame-set-input-focus new-frame norecord))
-    buffer))
+  (pop-to-buffer-1 buffer-or-name (if other-window t nil) norecord))
 
 (defun pop-to-buffer-same-window (&optional buffer-or-name norecord)
   "Pop to buffer specified by BUFFER-OR-NAME in the selected window.
@@ -4781,40 +4790,39 @@ the selected window, usually because it is dedicated to another
 buffer.  Optional arguments BUFFER-OR-NAME and NORECORD are as
 for `pop-to-buffer'."
   (interactive "BPop to buffer in selected window:\nP")
-  (let ((buffer (window-normalize-buffer-to-display buffer-or-name)))
-    (cond
-     ((eq buffer (window-buffer))
-      (unless norecord
-	(select-window (selected-window)))
-      (set-buffer buffer))
-     ((or (window-minibuffer-p) (window-dedicated-p))
-      (pop-to-buffer buffer norecord))
-     (t
-      (set-window-buffer nil buffer)
-      (unless norecord
-	(select-window (selected-window)))
-      (set-buffer buffer)))))
+  (pop-to-buffer-1 buffer-or-name 'same-window norecord))
 
-(defun pop-to-buffer-other-window (&optional buffer-or-name norecord)
-  "Pop to buffer specified by BUFFER-OR-NAME in another window.
-The selected window will be used only if there is no other
-choice.  Windows on the selected frame are preferred to windows
-on other frames.  Optional arguments BUFFER-OR-NAME and NORECORD
-are as for `pop-to-buffer'."
-  (interactive "BPop to buffer in another window:\nP")
-  (let ((pop-up-windows t)
-	same-window-buffer-names same-window-regexps)
-    (pop-to-buffer buffer-or-name t norecord)))
-
-(defun pop-to-buffer-other-frame (&optional buffer-or-name norecord)
-  "Pop to buffer specified by BUFFER-OR-NAME on another frame.
-The selected frame will be used only if there's no other choice.
-Optional arguments BUFFER-OR-NAME and NORECORD are as for
-`pop-to-buffer'."
-  (interactive "BPop to buffer on another frame:\nP")
-  (let ((pop-up-frames t)
-	same-window-buffer-names same-window-regexps)
-    (pop-to-buffer buffer-or-name t norecord)))
+(defun pop-to-buffer-1 (buffer-or-name window-choice norecord)
+  (set-buffer (window-normalize-buffer-to-display
+	       ;; BUFFER-OR-NAME nil means another buffer.
+	       (or buffer-or-name
+		   (other-buffer (current-buffer)))))
+  (let ((old-window (selected-window))
+	(old-frame (selected-frame))
+	(same-window-buffer-names same-window-buffer-names)
+	(same-window-regexps same-window-regexps))
+    (if (eq window-choice t)
+	(setq same-window-buffer-names nil
+	      same-window-regexps nil))
+    (let* ((action
+	    ;; Based on the WINDOW-CHOICE argument, choose an action
+	    ;; argument to pass to `display-buffer'.
+	    (cond
+	     ((null window-choice)
+	      '((display-buffer-other-window display-buffer-same-window)))
+	     ((eq window-choice 'same-window)
+	      '((display-buffer-same-window display-buffer-other-window)))
+	     (t
+	      '((display-buffer-other-window)))))
+	   (window (display-buffer (current-buffer) action))
+	   (frame (window-frame window)))
+      (if (eq frame old-frame)
+	  ;; Make sure new window gets selected (Bug#8615), (Bug#6954).
+	  (select-window window norecord)
+	;; If `display-buffer' has chosen another frame, make sure it
+	;; gets input focus.
+	(select-frame-set-input-focus frame norecord))
+      (current-buffer))))
 
 (defun read-buffer-to-switch (prompt)
   "Read the name of a buffer to switch to, prompting with PROMPT.

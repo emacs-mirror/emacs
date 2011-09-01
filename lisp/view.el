@@ -338,7 +338,8 @@ Optional argument EXIT-ACTION is either nil or a function with buffer as
 argument.  This function is called when finished viewing buffer.  Use
 this argument instead of explicitly setting `view-exit-action'."
   (interactive "bIn other window view buffer:\nP")
-  (pop-to-buffer-other-window buffer)
+  (let ((pop-up-windows t))
+    (pop-to-buffer buffer t))
   (view-mode-enter nil exit-action))
 
 ;;;###autoload
@@ -358,7 +359,8 @@ Optional argument EXIT-ACTION is either nil or a function with buffer as
 argument.  This function is called when finished viewing buffer.  Use
 this argument instead of explicitly setting `view-exit-action'."
   (interactive "bView buffer in other frame: \nP")
-  (pop-to-buffer-other-frame buffer)
+  (let ((pop-up-frames t))
+    (pop-to-buffer buffer t))
   (view-mode-enter nil exit-action))
 
 ;;;###autoload

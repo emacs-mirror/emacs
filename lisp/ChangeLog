@@ -1,3 +1,15 @@
+2011-09-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (display-buffer): Restore interactive spec.
+	(display-buffer-same-window, display-buffer-other-window): New
+	functions.
+	(pop-to-buffer-1): New function.  Use the above.
+	(pop-to-buffer, pop-to-buffer-same-window): Use it.
+	(pop-to-buffer-other-window, pop-to-buffer-other-frame): Deleted.
+
+	* view.el (view-buffer-other-window, view-buffer-other-frame):
+	Just use pop-to-buffer.
+
 2011-09-01  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* vc/vc-rcs.el (vc-rcs-responsible-p): Handle directories.  (Bug#9391)
