@@ -4564,16 +4564,17 @@ alist.  It should either display the buffer and return the
 window, or return nil if it is unable to display the buffer.
 
 `display-buffer' constructs a list of action functions and an
-action alist from `display-buffer-overriding-action',
-`user-action', ACTION, and `display-buffer-default-action' (in
-order).  It calls each action function in turn, passing the
-consolidated action alist as the second argument, until one of
-the functions returns non-nil.
+action alist by combining `display-buffer-overriding-action',
+`display-buffer-alist', the ACTION argument, and
+`display-buffer-default-action' (in that order).  It calls each
+action function in turn, passing the combined action alist as the
+second argument, until one of the functions returns non-nil.
 
-ACTION can also have a non-nil and non-list value.  This means to
-display the buffer in a window other than the selected one, even
-if it is already displayed in the selected window.  If called
-interactively with a prefix argument, ACTION is t.
+The ACTION argument to `display-buffer' can also have a non-nil
+and non-list value.  This means to display the buffer in a window
+other than the selected one, even if it is already displayed in
+the selected window.  If called interactively with a prefix
+argument, ACTION is t.
 
 Optional argument FRAME specifies where to look for a window that
 already displays the buffer.  If nil, check only the selected
