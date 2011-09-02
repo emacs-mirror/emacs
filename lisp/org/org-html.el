@@ -34,8 +34,6 @@
 
 (declare-function org-id-find-id-file "org-id" (id))
 (declare-function htmlize-region "ext:htmlize" (beg end))
-(declare-function org-pop-to-buffer-same-window 
-		  "org-compat" (&optional buffer-or-name norecord label))
 
 (defgroup org-export-html nil
   "Options specific for HTML export of Org-mode files."
@@ -2265,7 +2263,7 @@ that uses these same face definitions."
 	(when (and (symbolp f) (or (not i) (not (listp i))))
 	  (insert (org-add-props (copy-sequence "1") nil 'face f))))
       (htmlize-region (point-min) (point-max))))
-  (org-pop-to-buffer-same-window "*html*")
+  (switch-to-buffer "*html*")
   (goto-char (point-min))
   (if (re-search-forward "<style" nil t)
       (delete-region (point-min) (match-beginning 0)))

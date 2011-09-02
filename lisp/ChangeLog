@@ -1,5 +1,22 @@
 2011-09-02  Chong Yidong  <cyd@stupidchicken.com>
 
+	* window.el (pop-to-buffer-1, pop-to-buffer-same-window): Deleted.
+	(pop-to-buffer): Change interactive spec.  Pass second argument
+	directly to display-buffer.
+	(display-buffer): Fix interactive spec.  Use functionp to
+	distinguish between a function and a list of functions.
+
+	* abbrev.el (edit-abbrevs):
+	* arc-mode.el (archive-extract):
+	* autoinsert.el (auto-insert):
+	* bookmark.el (bookmark-bmenu-list):
+	* files.el (find-file):
+	* view.el (view-buffer):
+	* progmodes/compile.el (compilation-goto-locus):
+	* textmodes/bibtex.el (bibtex-initialize): Use switch-to-buffer.
+
+2011-09-02  Chong Yidong  <cyd@stupidchicken.com>
+
 	* window.el (display-buffer-alist): Doc fix.
 	(display-buffer): Add docstring.  Don't treat
 	display-buffer-default specially.

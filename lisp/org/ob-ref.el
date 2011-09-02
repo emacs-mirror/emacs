@@ -61,8 +61,6 @@
 (declare-function org-narrow-to-subtree "org" ())
 (declare-function org-id-find-id-in-file "org-id" (id file &optional markerp))
 (declare-function org-show-context "org" (&optional key))
-(declare-function org-pop-to-buffer-same-window 
-		  "org-compat" (&optional buffer-or-name norecord label))
 
 (defvar org-babel-ref-split-regexp
   "[ \f\t\n\r\v]*\\(.+?\\)[ \f\t\n\r\v]*=[ \f\t\n\r\v]*\\(.+\\)[ \f\t\n\r\v]*")
@@ -96,7 +94,7 @@ the variable."
 	       (m (when file (org-id-find-id-in-file id file 'marker))))
 	  (when (and file m)
 	    (message "file:%S" file)
-	    (org-pop-to-buffer-same-window (marker-buffer m))
+	    (switch-to-buffer (marker-buffer m))
 	    (goto-char m)
 	    (move-marker m nil)
 	    (org-show-context)

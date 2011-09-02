@@ -105,7 +105,6 @@
 (declare-function org-inlinetask-at-task-p "org-inlinetask" ())
 (declare-function org-inlinetask-outline-regexp "org-inlinetask" ())
 (declare-function org-inlinetask-toggle-visibility "org-inlinetask" ())
-(declare-function org-pop-to-buffer-same-window "org-compat" (&optional buffer-or-name norecord label))
 (declare-function org-at-clock-log-p "org-clock" ())
 (declare-function org-clock-timestamps-up "org-clock" ())
 (declare-function org-clock-timestamps-down "org-clock" ())
@@ -6651,7 +6650,7 @@ or nil."
       (save-window-excursion
 	(delete-other-windows)
 	(and (get-buffer "*org-goto*") (kill-buffer "*org-goto*"))
-	(org-pop-to-buffer-same-window
+	(switch-to-buffer
 	 (condition-case nil
 	     (make-indirect-buffer (current-buffer) "*org-goto*")
 	   (error (make-indirect-buffer (current-buffer) "*org-goto*"))))
@@ -6789,7 +6788,7 @@ frame is not changed."
 	  (and arg (eq org-indirect-buffer-display 'dedicated-frame)))
       (select-frame (make-frame))
       (delete-other-windows)
-      (org-pop-to-buffer-same-window ibuf)
+      (switch-to-buffer ibuf)
       (org-set-frame-title heading))
      ((eq org-indirect-buffer-display 'dedicated-frame)
       (raise-frame
@@ -6798,10 +6797,10 @@ frame is not changed."
 			      org-indirect-dedicated-frame)
 			 (setq org-indirect-dedicated-frame (make-frame)))))
       (delete-other-windows)
-      (org-pop-to-buffer-same-window ibuf)
+      (switch-to-buffer ibuf)
       (org-set-frame-title (concat "Indirect: " heading)))
      ((eq org-indirect-buffer-display 'current-window)
-      (org-pop-to-buffer-same-window ibuf))
+      (switch-to-buffer ibuf))
      ((eq org-indirect-buffer-display 'other-window)
       (pop-to-buffer ibuf))
      (t (error "Invalid value")))
@@ -9833,7 +9832,7 @@ onto the ring."
       (setq p org-mark-ring))
     (setq org-mark-ring-last-goto p)
     (setq m (car p))
-    (org-pop-to-buffer-same-window (marker-buffer m))
+    (switch-to-buffer (marker-buffer m))
     (goto-char m)
     (if (or (outline-invisible-p) (org-invisible-p2)) (org-show-context 'mark-goto))))
 
@@ -10429,7 +10428,7 @@ prefix argument (`C-u C-u C-u C-c C-w')."
 			 (find-file-noselect file)))
 	  (if goto
 	      (progn
-		(org-pop-to-buffer-same-window nbuf)
+		(switch-to-buffer nbuf)
 		(goto-char pos)
 		(org-show-context 'org-goto))
 	    (if regionp
@@ -12041,7 +12040,7 @@ EXTRA is additional text that will be inserted into the notes buffer."
   (setq org-log-note-window-configuration (current-window-configuration))
   (delete-other-windows)
   (move-marker org-log-note-return-to (point))
-  (org-pop-to-buffer-same-window (marker-buffer org-log-note-marker))
+  (switch-to-buffer (marker-buffer org-log-note-marker))
   (goto-char org-log-note-marker)
   (org-switch-to-buffer-other-window "*Org Note*")
   (erase-buffer)
@@ -15883,7 +15882,7 @@ changes from another.  I believe the procedure must be like this:
        (lambda (b)
 	 (when (and (with-current-buffer b (org-mode-p))
 		    (with-current-buffer b buffer-file-name))
-	   (org-pop-to-buffer-same-window b)
+	   (switch-to-buffer b)
 	   (revert-buffer t 'no-confirm)))
        (buffer-list))
       (when (and (featurep 'org-id) org-id-track-globally)
@@ -15907,7 +15906,7 @@ Set `org-completion-use-ido' to make it use ido instead."
 	(org-completion-use-ido org-completion-use-ido))
     (unless (or org-completion-use-ido org-completion-use-iswitchb)
       (setq org-completion-use-iswitchb t))
-    (org-pop-to-buffer-same-window
+    (switch-to-buffer
      (org-icompleting-read "Org buffer: "
 			   (mapcar 'list (mapcar 'buffer-name blist))
 			   nil t))))
@@ -16074,7 +16073,7 @@ If the current buffer does not, find the first agenda file."
 	      (find-file (car files))
 	      (throw 'exit t))))
       (find-file (car fs)))
-    (if (buffer-base-buffer) (org-pop-to-buffer-same-window (buffer-base-buffer)))))
+    (if (buffer-base-buffer) (switch-to-buffer (buffer-base-buffer)))))
 
 (defun org-agenda-file-to-front (&optional to-end)
   "Move/add the current file to the top of the agenda file list.
@@ -18511,7 +18510,7 @@ information about your Org-mode version and configuration."
      (org-version)
      (let (list)
        (save-window-excursion
-	 (org-pop-to-buffer-same-window (get-buffer-create "*Warn about privacy*"))
+	 (switch-to-buffer (get-buffer-create "*Warn about privacy*"))
 	 (delete-other-windows)
 	 (erase-buffer)
 	 (insert "You are about to submit a bug report to the Org-mode mailing list.
@@ -18708,7 +18707,7 @@ With prefix arg UNCOMPILED, load the uncompiled versions."
   (if (and marker (marker-buffer marker)
 	   (buffer-live-p (marker-buffer marker)))
       (progn
-	(org-pop-to-buffer-same-window (marker-buffer marker))
+	(switch-to-buffer (marker-buffer marker))
 	(if (or (> marker (point-max)) (< marker (point-min)))
 	    (widen))
 	(goto-char marker)

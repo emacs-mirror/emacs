@@ -159,7 +159,7 @@ where NAME and EXPANSION are strings with quotes,
 USECOUNT is an integer, and HOOK is any valid function
 or may be omitted (it is usually omitted)."
   (interactive)
-  (pop-to-buffer-same-window (prepare-abbrev-list-buffer)))
+  (switch-to-buffer (prepare-abbrev-list-buffer)))
 
 (defun edit-abbrevs-redefine ()
   "Redefine abbrevs according to current buffer contents."

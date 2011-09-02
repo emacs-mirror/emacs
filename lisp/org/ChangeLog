@@ -1,3 +1,29 @@
+2011-09-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* org-compat.el (org-pop-to-buffer-same-window): Deleted.
+
+	* ob-ref.el (org-babel-ref-goto-headline-id):
+	* org.el (org-get-location, org-tree-to-indirect-buffer)
+	(org-mark-ring-goto, org-refile, org-add-log-note)
+	(org-revert-all-org-buffers, org-switchb)
+	(org-cycle-agenda-files, org-submit-bug-report)
+	(org-goto-marker-or-bmk):
+	* org-agenda.el (org-prepare-agenda, org-agenda-switch-to):
+	* org-capture.el (org-capture-goto-target)
+	(org-capture-fill-template):
+	* org-clock.el (org-clock-goto):
+	* org-ctags.el (org-ctags-visit-buffer-or-file):
+	* org-exp.el (org-export-as-org):
+	* org-feed.el (org-feed-show-raw-feed):
+	* org-html.el (org-export-htmlize-generate-css):
+	* org-id.el (org-id-goto):
+	* org-irc.el (org-irc-visit-erc):
+	* org-mobile.el (org-mobile-apply):
+	* org-publish.el (org-publish-org-to, org-publish-find-date):
+	* org-remember.el (org-go-to-remember-target):
+	* org-src.el (org-src-switch-to-buffer)
+	(org-edit-fixed-width-region): Use switch-to-buffer.
+
 2011-08-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* org-compat.el (org-pop-to-buffer-same-window): Remove LABEL

@@ -318,7 +318,7 @@ EXIT-ACTION to `kill-buffer-if-not-modified' avoids this."
       (progn
 	(switch-to-buffer buffer)
 	(message "Not using View mode because the major mode is special"))
-    (pop-to-buffer-same-window buffer)
+    (switch-to-buffer buffer)
     (view-mode-enter nil exit-action)))
 
 ;;;###autoload

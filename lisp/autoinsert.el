@@ -360,7 +360,7 @@ Matches the visited file name against the elements of `auto-insert-alist'."
 		   (save-window-excursion
 		     ;; make buffer visible before skeleton or function
 		     ;; which might ask the user for something
-		     (pop-to-buffer-same-window (current-buffer))
+		     (switch-to-buffer (current-buffer))
 		     (if (and (consp action)
 			      (not (eq (car action) 'lambda)))
 			 (skeleton-insert action)
