@@ -1,3 +1,18 @@
+2011-09-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (display-buffer-alist): Doc fix.
+	(display-buffer): Add docstring.  Don't treat
+	display-buffer-default specially.
+	(display-buffer-reuse-selected-window)
+	(display-buffer-same-window, display-buffer-maybe-same-window)
+	(display-buffer-reuse-window, display-buffer-pop-up-frame)
+	(display-buffer-pop-up-window)
+	(display-buffer-reuse-or-pop-window)
+	(display-buffer-use-some-window): New functions.
+	(display-buffer-default-action): Use them.
+	(display-buffer-default): Deleted.
+	(pop-to-buffer-1): Fix choice of actions.
+
 2011-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuffer.el (completion--insert-strings): Don't get confused by
