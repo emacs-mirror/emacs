@@ -47,8 +47,6 @@
 (declare-function org-inlinetask-remove-END-maybe "org-inlinetask" ())
 (declare-function org-table-cookie-line-p "org-table" (line))
 (declare-function org-table-colgroup-line-p "org-table" (line))
-(declare-function org-pop-to-buffer-same-window "org-compat" 
-		  (&optional buffer-or-name norecord label))
 
 (autoload 'org-export-generic "org-export-generic" "Export using the generic exporter" t)
 
@@ -2974,7 +2972,7 @@ directory."
 	 (region (buffer-string))
          str-ret)
     (save-excursion
-      (org-pop-to-buffer-same-window buffer)
+      (switch-to-buffer buffer)
       (erase-buffer)
       (insert region)
       (let ((org-inhibit-startup t)) (org-mode))

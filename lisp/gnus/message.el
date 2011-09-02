@@ -6530,7 +6530,9 @@ are not included."
   (message-position-point)
   ;; Allow correct handling of `message-checksum' in `message-yank-original':
   (set-buffer-modified-p nil)
-  (undo-boundary))
+  (undo-boundary)
+  ;; rmail-start-mail expects message-mail to return t (Bug#9392)
+  t)
 
 (defun message-set-auto-save-file-name ()
   "Associate the message buffer with a file in the drafts directory."

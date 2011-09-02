@@ -36,7 +36,6 @@
 
 (declare-function calendar-absolute-from-iso "cal-iso" (&optional date))
 (declare-function notifications-notify "notifications" (&rest params))
-(declare-function org-pop-to-buffer-same-window "org-compat" (&optional buffer-or-name norecord label))
 (defvar org-time-stamp-formats)
 (defvar org-ts-what)
 
@@ -1498,7 +1497,7 @@ With prefix arg SELECT, offer recently clocked tasks for selection."
 	      (setq recent t)
 	      (car org-clock-history))
 	     (t (error "No active or recent clock task")))))
-    (org-pop-to-buffer-same-window (marker-buffer m))
+    (switch-to-buffer (marker-buffer m))
     (if (or (< m (point-min)) (> m (point-max))) (widen))
     (goto-char m)
     (org-show-entry)
