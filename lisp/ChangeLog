@@ -1,3 +1,8 @@
+2011-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--insert-strings): Don't get confused by
+	completion entries that end with an LF char.
+
 2011-09-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* window.el (frame-auto-delete, window-deletable-p): Doc fix.
@@ -5,11 +10,11 @@
 2011-09-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* window.el (display-buffer): Restore interactive spec.
-	(display-buffer-same-window, display-buffer-other-window): New
-	functions.
+	(display-buffer-same-window, display-buffer-other-window):
+	New functions.
 	(pop-to-buffer-1): New function.  Use the above.
 	(pop-to-buffer, pop-to-buffer-same-window): Use it.
-	(pop-to-buffer-other-window, pop-to-buffer-other-frame): Deleted.
+	(pop-to-buffer-other-window, pop-to-buffer-other-frame): Delete.
 
 	* view.el (view-buffer-other-window, view-buffer-other-frame):
 	Just use pop-to-buffer.
@@ -60,8 +65,8 @@
 	(display-buffer-alist-set-1, display-buffer-alist-set-2)
 	(display-buffer-alist-set): Remove.
 	(display-buffer-function, special-display-buffer-names)
-	(special-display-regexps, special-display-function): In
-	doc-string refer to display-buffer-window and quit-restore
+	(special-display-regexps, special-display-function):
+	In doc-string refer to display-buffer-window and quit-restore
 	parameter.
 	(pop-up-frame-alist, pop-up-frame-function, special-display-p)
 	(special-display-frame-alist, special-display-popup-frame)
@@ -72,8 +77,8 @@
 	(split-window-sensibly, window--try-to-split-window)
 	(window--frame-usable-p, even-window-heights)
 	(window--even-window-heights, window--display-buffer-1)
-	(window--display-buffer-2, display-buffer-other-frame): Restore
-	old Emacs 23 code, order and doc-strings where applicable.
+	(window--display-buffer-2, display-buffer-other-frame):
+	Restore old Emacs 23 code, order and doc-strings where applicable.
 	(display-buffer-default, display-buffer-assq-regexp): New functions.
 	(display-buffer-alist): Rewrite doc-string.
 	(display-buffer-default-action)
@@ -85,8 +90,8 @@
 	Restore Emacs 23 behavior but use
 	window-normalize-buffer-to-switch-to.
 	(pop-to-buffer-same-window): Rewrite.
-	(pop-to-buffer-other-window, pop-to-buffer-other-frame): Rewrite
-	using Emacs 23 options.
+	(pop-to-buffer-other-window, pop-to-buffer-other-frame):
+	Rewrite using Emacs 23 options.
 
 2011-08-31  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -95,8 +100,8 @@
 	(tramp-completion-file-name-regexp-separate)
 	(tramp-completion-file-name-regexp-url): Don't use leading volume
 	letter on win32 systems.  (Bug#5303, Bug#9311)
-	(tramp-drop-volume-letter): Simplify definition.  Suggested by
-	Stefan Monnier <monnier@iro.umontreal.ca>.
+	(tramp-drop-volume-letter): Simplify definition.
+	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
 
 2011-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
