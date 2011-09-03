@@ -1,3 +1,11 @@
+2011-09-03  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* progmodes/python.el (python-mode-map): Use correct function to
+	start python interpreter from menu-bar (as reported by Geert
+	Kloosterman).
+	(inferior-python-mode-map): Fix typo.
+	(python-shell-map): Removed.
+
 2011-09-03  Deniz Dogan  <deniz@dogan.se>
 
 	* net/rcirc.el (rcirc-print): Simplify code for
