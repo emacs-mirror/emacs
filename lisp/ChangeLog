@@ -1,3 +1,11 @@
+2011-09-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-deletable-p): Don't return a non-nil value
+	when there's a buffer that was shown in the window before.
+	(Bug#9419)
+	(display-buffer-pop-up-frame, display-buffer-pop-up-window): Set
+	window's previous buffers to nil.
+
 2011-09-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmailmm.el (rmail-mime-insert-tagline): Insert an extra
