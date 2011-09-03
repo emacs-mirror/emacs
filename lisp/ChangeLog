@@ -1,3 +1,7 @@
+2011-09-03  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* help.el (help-return-method): Doc fix.
+
 2011-09-03  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-deletable-p): Don't return a non-nil value
