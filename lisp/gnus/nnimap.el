@@ -350,7 +350,6 @@ textual parts.")
   (with-current-buffer (nnimap-make-process-buffer buffer)
     (let* ((coding-system-for-read 'binary)
 	   (coding-system-for-write 'binary)
-	   (port nil)
 	   (ports
 	    (cond
 	     ((memq nnimap-stream '(network plain starttls))
@@ -395,7 +394,7 @@ textual parts.")
 	(if (not stream)
 	    (progn
 	      (nnheader-report 'nnimap "Unable to contact %s:%s via %s"
-			       nnimap-address port nnimap-stream)
+			       nnimap-address (car ports) nnimap-stream)
 	      'no-connect)
 	  (gnus-set-process-query-on-exit-flag stream nil)
 	  (if (not (gnus-string-match-p "[*.] \\(OK\\|PREAUTH\\)" greeting))
