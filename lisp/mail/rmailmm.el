@@ -426,7 +426,7 @@ The value is a vector [ INDEX HEADER TAGLINE BODY END], where
   "Insert a tag line for MIME-entity ENTITY.
 ITEM-LIST is a list of strings or button-elements (list) to be added
 to the tag line."
-  (insert "[")
+  (insert "\n[")
   (let ((tag (aref (rmail-mime-entity-tagline entity) 0)))
     (if (> (length tag) 0) (insert (substring tag 1) ":")))
   (insert (car (rmail-mime-entity-type entity)) " ")
@@ -439,7 +439,7 @@ to the tag line."
       (if (stringp item)
 	  (insert item)
 	(apply 'insert-button item))))
-  (insert "]\n"))
+  (insert "]\n\n"))
 
 (defun rmail-mime-update-tagline (entity)
   "Update the current tag line for MIME-entity ENTITY."
