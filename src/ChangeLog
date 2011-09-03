@@ -1,5 +1,7 @@
 2011-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* Require libxml/parser.h to avoid compilation warning.
+
 	* emacs.c (shut_down_emacs): Call xmlCleanupParser on shutdown.
 
 	* xml.c (parse_region): Don't call xmlCleanupParser after parsing,
