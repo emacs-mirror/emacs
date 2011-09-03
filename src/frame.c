@@ -160,7 +160,7 @@ set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
   if (FRAME_MINIBUF_ONLY_P (f))
     return;
 
-  if (INTEGERP (value))
+  if (TYPE_RANGED_INTEGERP (int, value))
     nlines = XINT (value);
   else
     nlines = 0;
@@ -2992,7 +2992,7 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
 	f->size_hint_flags &= ~ (XNegative | YNegative);
 	if (EQ (left, Qminus))
 	  f->size_hint_flags |= XNegative;
-	else if (INTEGERP (left))
+	else if (TYPE_RANGED_INTEGERP (int, left))
 	  {
 	    leftpos = XINT (left);
 	    if (leftpos < 0)
@@ -3000,21 +3000,21 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
 	  }
 	else if (CONSP (left) && EQ (XCAR (left), Qminus)
 		 && CONSP (XCDR (left))
-		 && INTEGERP (XCAR (XCDR (left))))
+		 && RANGED_INTEGERP (-INT_MAX, XCAR (XCDR (left)), INT_MAX))
 	  {
 	    leftpos = - XINT (XCAR (XCDR (left)));
 	    f->size_hint_flags |= XNegative;
 	  }
 	else if (CONSP (left) && EQ (XCAR (left), Qplus)
 		 && CONSP (XCDR (left))
-		 && INTEGERP (XCAR (XCDR (left))))
+		 && TYPE_RANGED_INTEGERP (int, XCAR (XCDR (left))))
 	  {
 	    leftpos = XINT (XCAR (XCDR (left)));
 	  }
 
 	if (EQ (top, Qminus))
 	  f->size_hint_flags |= YNegative;
-	else if (INTEGERP (top))
+	else if (TYPE_RANGED_INTEGERP (int, top))
 	  {
 	    toppos = XINT (top);
 	    if (toppos < 0)
@@ -3022,14 +3022,14 @@ x_set_frame_parameters (FRAME_PTR f, Lisp_Object alist)
 	  }
 	else if (CONSP (top) && EQ (XCAR (top), Qminus)
 		 && CONSP (XCDR (top))
-		 && INTEGERP (XCAR (XCDR (top))))
+		 && RANGED_INTEGERP (-INT_MAX, XCAR (XCDR (top)), INT_MAX))
 	  {
 	    toppos = - XINT (XCAR (XCDR (top)));
 	    f->size_hint_flags |= YNegative;
 	  }
 	else if (CONSP (top) && EQ (XCAR (top), Qplus)
 		 && CONSP (XCDR (top))
-		 && INTEGERP (XCAR (XCDR (top))))
+		 && TYPE_RANGED_INTEGERP (int, XCAR (XCDR (top))))
 	  {
 	    toppos = XINT (XCAR (XCDR (top)));
 	  }
@@ -3481,7 +3481,7 @@ x_set_scroll_bar_width (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
         x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
       do_pending_window_change (0);
     }
-  else if (INTEGERP (arg) && XINT (arg) > 0
+  else if (RANGED_INTEGERP (1, arg, INT_MAX)
 	   && XFASTINT (arg) != FRAME_CONFIG_SCROLL_BAR_WIDTH (f))
     {
       if (XFASTINT (arg) <= 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM)
@@ -3520,7 +3520,7 @@ x_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   double alpha = 1.0;
   double newval[2];
-  int i, ialpha;
+  int i;
   Lisp_Object item;
 
   for (i = 0; i < 2; i++)
@@ -3544,7 +3544,7 @@ x_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 	}
       else if (INTEGERP (item))
 	{
-	  ialpha = XINT (item);
+	  EMACS_INT ialpha = XINT (item);
 	  if (ialpha < 0 || 100 < ialpha)
 	    args_out_of_range (make_number (0), make_number (100));
 	  else
@@ -4031,11 +4031,15 @@ x_figure_window_size (struct frame *f, Lisp_Object parms, int toolbar_p)
       if (!EQ (tem0, Qunbound))
 	{
 	  CHECK_NUMBER (tem0);
+	  if (! (0 <= XINT (tem0) && XINT (tem0) <= INT_MAX))
+	    xsignal1 (Qargs_out_of_range, tem0);
 	  FRAME_LINES (f) = XINT (tem0);
 	}
       if (!EQ (tem1, Qunbound))
 	{
 	  CHECK_NUMBER (tem1);
+	  if (! (0 <= XINT (tem1) && XINT (tem1) <= INT_MAX))
+	    xsignal1 (Qargs_out_of_range, tem1);
 	  SET_FRAME_COLS (f, XINT (tem1));
 	}
       if (!NILP (tem2) && !EQ (tem2, Qunbound))
@@ -4066,12 +4070,10 @@ x_figure_window_size (struct frame *f, Lisp_Object parms, int toolbar_p)
 		? tool_bar_button_relief
 		: DEFAULT_TOOL_BAR_BUTTON_RELIEF);
 
-      if (INTEGERP (Vtool_bar_button_margin)
-	  && XINT (Vtool_bar_button_margin) > 0)
+      if (RANGED_INTEGERP (1, Vtool_bar_button_margin, INT_MAX))
 	margin = XFASTINT (Vtool_bar_button_margin);
       else if (CONSP (Vtool_bar_button_margin)
-	       && INTEGERP (XCDR (Vtool_bar_button_margin))
-	       && XINT (XCDR (Vtool_bar_button_margin)) > 0)
+	       && RANGED_INTEGERP (1, XCDR (Vtool_bar_button_margin), INT_MAX))
 	margin = XFASTINT (XCDR (Vtool_bar_button_margin));
       else
 	margin = 0;
@@ -4097,14 +4099,14 @@ x_figure_window_size (struct frame *f, Lisp_Object parms, int toolbar_p)
 	}
       else if (CONSP (tem0) && EQ (XCAR (tem0), Qminus)
 	       && CONSP (XCDR (tem0))
-	       && INTEGERP (XCAR (XCDR (tem0))))
+	       && RANGED_INTEGERP (-INT_MAX, XCAR (XCDR (tem0)), INT_MAX))
 	{
 	  f->top_pos = - XINT (XCAR (XCDR (tem0)));
 	  window_prompting |= YNegative;
 	}
       else if (CONSP (tem0) && EQ (XCAR (tem0), Qplus)
 	       && CONSP (XCDR (tem0))
-	       && INTEGERP (XCAR (XCDR (tem0))))
+	       && TYPE_RANGED_INTEGERP (int, XCAR (XCDR (tem0))))
 	{
 	  f->top_pos = XINT (XCAR (XCDR (tem0)));
 	}
@@ -4125,14 +4127,14 @@ x_figure_window_size (struct frame *f, Lisp_Object parms, int toolbar_p)
 	}
       else if (CONSP (tem1) && EQ (XCAR (tem1), Qminus)
 	       && CONSP (XCDR (tem1))
-	       && INTEGERP (XCAR (XCDR (tem1))))
+	       && RANGED_INTEGERP (-INT_MAX, XCAR (XCDR (tem1)), INT_MAX))
 	{
 	  f->left_pos = - XINT (XCAR (XCDR (tem1)));
 	  window_prompting |= XNegative;
 	}
       else if (CONSP (tem1) && EQ (XCAR (tem1), Qplus)
 	       && CONSP (XCDR (tem1))
-	       && INTEGERP (XCAR (XCDR (tem1))))
+	       && TYPE_RANGED_INTEGERP (int, XCAR (XCDR (tem1))))
 	{
 	  f->left_pos = XINT (XCAR (XCDR (tem1)));
 	}

@@ -230,20 +230,20 @@ functionality.
 	       (or builtin-starttls
 		   (and (or require-tls
 			    (plist-get parameters :use-starttls-if-possible))
-			(executable-find "gnutls-cli")))
+			(starttls-available-p)))
 	       (not (eq (plist-get parameters :type) 'plain)))
       ;; If using external STARTTLS, drop this connection and start
       ;; anew with `starttls-open-stream'.
       (unless builtin-starttls
 	(delete-process stream)
 	(setq start (with-current-buffer buffer (point-max)))
-	(let* ((starttls-use-gnutls t)
-	       (starttls-extra-arguments
+	(let* ((starttls-extra-arguments
 		(if require-tls
 		    starttls-extra-arguments
 		  ;; For opportunistic TLS upgrades, we don't really
 		  ;; care about the identity of the peer.
 		  (cons "--insecure" starttls-extra-arguments)))
+	       (starttls-extra-args starttls-extra-args)
 	       (cert (network-stream-certificate host service parameters)))
 	  ;; There are client certificates requested, so add them to
 	  ;; the command line.
@@ -251,7 +251,11 @@ functionality.
 	    (setq starttls-extra-arguments
 		  (nconc (list "--x509keyfile" (expand-file-name (nth 0 cert))
 			       "--x509certfile" (expand-file-name (nth 1 cert)))
-			 starttls-extra-arguments)))
+			 starttls-extra-arguments)
+		  starttls-extra-args
+		  (nconc (list "--key-file" (expand-file-name (nth 0 cert))
+			       "--cert-file" (expand-file-name (nth 1 cert)))
+			 starttls-extra-args)))
 	  (setq stream (starttls-open-stream name buffer host service)))
 	(network-stream-get-response stream start eoc)
 	;; Requery capabilities for protocols that require it; i.e.,

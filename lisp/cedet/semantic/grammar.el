@@ -801,7 +801,7 @@ Block definitions are read from the current table of lexical types."
     (with-current-buffer semantic--grammar-input-buffer
       (setq tokens (semantic-grammar-tokens)
             props  (semantic-grammar-token-properties tokens)))
-    (insert "(require 'semantic-lex)\n\n")
+    (insert "(require 'semantic/lex)\n\n")
     (let ((semantic-lex-types-obarray
            (semantic-lex-make-type-table tokens props))
           semantic-grammar--lex-block-specs)

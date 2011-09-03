@@ -296,7 +296,7 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
 	 :filter (lambda (&rest junk)
                    (abbrev-table-menu python-mode-abbrev-table)))
 	"-"
-	["Start interpreter" python-shell
+	["Start interpreter" run-python
 	 :help "Run `inferior' Python in separate buffer"]
 	["Import/reload file" python-load-file
 	 :help "Load into inferior Python session"]
@@ -327,14 +327,6 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
 ;; region, at least.  (Shouldn't be specific to Python, obviously.)
 ;; eric has items including: (un)indent, (un)comment, restart script,
 ;; run script, debug script; also things for profiling, unit testing.
-
-(defvar python-shell-map
-  (let ((map (copy-keymap comint-mode-map)))
-    (define-key map [tab]   'tab-to-tab-stop)
-    (define-key map "\C-c-" 'py-up-exception)
-    (define-key map "\C-c=" 'py-down-exception)
-    map)
-  "Keymap used in *Python* shell buffers.")
 
 (defvar python-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -1345,7 +1337,7 @@ local value.")
     (define-key map "\C-c\C-l" 'python-load-file)
     (define-key map "\C-c\C-v" 'python-check)
     ;; Note that we _can_ still use these commands which send to the
-    ;; Python process even at the prompt iff we have a normal prompt,
+    ;; Python process even at the prompt if we have a normal prompt,
     ;; i.e. '>>> ' and not '... '.  See the comment before
     ;; python-send-region.  Fixme: uncomment these if we address that.
 

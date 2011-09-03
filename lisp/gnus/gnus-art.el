@@ -1039,7 +1039,7 @@ Some of these headers are updated automatically.  See
 	  (item :tag "ISO8601 format" :value 'iso8601)
 	  (item :tag "User-defined" :value 'user-defined)))
 
-(defcustom gnus-article-update-date-headers 1
+(defcustom gnus-article-update-date-headers nil
   "A number that says how often to update the date header (in seconds).
 If nil, don't update it at all."
   :version "24.1"
@@ -4541,7 +4541,7 @@ commands:
 (defun gnus-article-stop-animations ()
   (dolist (timer (and (boundp 'timer-list)
 		      timer-list))
-    (when (eq (aref timer 5) 'image-animate-timeout)
+    (when (eq (elt timer 5) 'image-animate-timeout)
       (cancel-timer timer))))
 
 ;; Set article window start at LINE, where LINE is the number of lines
@@ -5700,7 +5700,8 @@ all parts."
 	      gnus-callback gnus-mm-display-part
 	      gnus-part ,gnus-tmp-id
 	      article-type annotation
-	      gnus-data ,handle))
+	      gnus-data ,handle
+	      rear-nonsticky t))
     (setq e (if (bolp)
 		;; Exclude a newline.
 		(1- (point))
@@ -6013,7 +6014,8 @@ If displaying \"text/html\" is discouraged \(see
 	     ,gnus-mouse-face-prop ,gnus-article-mouse-face
 	     face ,gnus-article-button-face
 	     gnus-part ,id
-	     article-type multipart))
+	     article-type multipart
+	     rear-nonsticky t))
 	  (widget-convert-button 'link from (point)
 				 :action 'gnus-widget-press-button
 				 :button-keymap gnus-widget-button-keymap)
@@ -6037,7 +6039,8 @@ If displaying \"text/html\" is discouraged \(see
 	       ,gnus-mouse-face-prop ,gnus-article-mouse-face
 	       face ,gnus-article-button-face
 	       gnus-part ,id
-	       gnus-data ,handle))
+	       gnus-data ,handle
+	       rear-nonsticky t))
 	    (widget-convert-button 'link from (point)
 				   :action 'gnus-widget-press-button
 				   :button-keymap gnus-widget-button-keymap)

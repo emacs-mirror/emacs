@@ -1,7 +1,6 @@
 ;;; org-vm.el --- Support for links to VM messages from within Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -140,6 +139,6 @@
 
 (provide 'org-vm)
 
-;; arch-tag: cbc3047b-935e-4d2a-96e7-c5b0117aaa6d
+
 
 ;;; org-vm.el ends here

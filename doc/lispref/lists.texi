@@ -462,7 +462,7 @@ element is @var{object}.  Compare @code{make-list} with
      @result{} nil
 @end group
 @group
-(setq l (make-list 3 '(a b))
+(setq l (make-list 3 '(a b)))
      @result{} ((a b) (a b) (a b))
 (eq (car l) (cadr l))
      @result{} t

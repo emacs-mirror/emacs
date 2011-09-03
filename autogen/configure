@@ -1139,6 +1139,7 @@ IMAGEMAGICK_LIBS
 IMAGEMAGICK_CFLAGS
 RSVG_LIBS
 RSVG_CFLAGS
+LIB_PTHREAD
 VMLIMIT_OBJ
 GMALLOC_OBJ
 HAVE_XSERVER
@@ -2467,63 +2468,6 @@ $as_echo "$ac_res" >&6; }
 
 } # ac_fn_c_check_header_preproc
 
-# ac_fn_c_check_member LINENO AGGR MEMBER VAR INCLUDES
-# ----------------------------------------------------
-# Tries to find if the field MEMBER exists in type AGGR, after including
-# INCLUDES, setting cache variable VAR accordingly.
-ac_fn_c_check_member ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2.$3" >&5
-$as_echo_n "checking for $2.$3... " >&6; }
-if { as_var=$4; eval "test \"\${$as_var+set}\" = set"; }; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$5
-int
-main ()
-{
-static $2 ac_aggr;
-if (ac_aggr.$3)
-return 0;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  eval "$4=yes"
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$5
-int
-main ()
-{
-static $2 ac_aggr;
-if (sizeof ac_aggr.$3)
-return 0;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  eval "$4=yes"
-else
-  eval "$4=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-eval ac_res=\$$4
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-  eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
-
-} # ac_fn_c_check_member
-
 # ac_fn_c_check_func LINENO FUNC VAR
 # ----------------------------------
 # Tests whether FUNC exists, setting the cache variable VAR accordingly
@@ -2590,6 +2534,63 @@ $as_echo "$ac_res" >&6; }
   eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
 
 } # ac_fn_c_check_func
+
+# ac_fn_c_check_member LINENO AGGR MEMBER VAR INCLUDES
+# ----------------------------------------------------
+# Tries to find if the field MEMBER exists in type AGGR, after including
+# INCLUDES, setting cache variable VAR accordingly.
+ac_fn_c_check_member ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2.$3" >&5
+$as_echo_n "checking for $2.$3... " >&6; }
+if { as_var=$4; eval "test \"\${$as_var+set}\" = set"; }; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$5
+int
+main ()
+{
+static $2 ac_aggr;
+if (ac_aggr.$3)
+return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$4=yes"
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$5
+int
+main ()
+{
+static $2 ac_aggr;
+if (sizeof ac_aggr.$3)
+return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$4=yes"
+else
+  eval "$4=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+eval ac_res=\$$4
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; test "x$as_lineno_stack" = x && { as_lineno=; unset as_lineno;}
+
+} # ac_fn_c_check_member
 
 # ac_fn_c_check_type LINENO TYPE VAR INCLUDES
 # -------------------------------------------
@@ -4373,8 +4374,8 @@ configuration=${host_alias-${build_alias-$host}}
 machine='' opsys='' unported=no
 case "${canonical}" in
 
-  ## GNU/Linux ports
-  *-*-linux-gnu*)
+  ## GNU/Linux and similar ports
+  *-*-linux* )
     opsys=gnu-linux
     case ${canonical} in
       alpha*)	machine=alpha ;;
@@ -4469,17 +4470,6 @@ case "${canonical}" in
   hppa*-hp-hpux1[1-9]* )
     opsys=hpux11
     CFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CFLAGS"
-  ;;
-
-  ia64*-hp-hpux1[1-9]* )
-    machine=hp800 opsys=hpux11
-    ## FIXME.  Peter O'Gorman reports that dumping using unexelf.o doesn't
-    ## work either: http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6811
-    CANNOT_DUMP=yes
-  ;;
-
-  hppa*-*-linux-gnu* )
-    machine=hp800 opsys=gnu-linux
   ;;
 
   ## IBM machines
@@ -8358,6 +8348,18 @@ $as_echo "#define NO_MATHERR 1" >>confdefs.h
 
 fi
 
+for ac_header in sys/socket.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/socket.h" "ac_cv_header_sys_socket_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_socket_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYS_SOCKET_H 1
+_ACEOF
+
+fi
+
+done
+
 for ac_header in net/if.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "net/if.h" "ac_cv_header_net_if_h" "$ac_includes_default
@@ -8372,6 +8374,51 @@ _ACEOF
 
 fi
 
+done
+
+for ac_header in ifaddrs.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "ifaddrs.h" "ac_cv_header_ifaddrs_h" "$ac_includes_default
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+"
+if test "x$ac_cv_header_ifaddrs_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_IFADDRS_H 1
+_ACEOF
+
+fi
+
+done
+
+for ac_header in net/if_dl.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "net/if_dl.h" "ac_cv_header_net_if_dl_h" "$ac_includes_default
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+"
+if test "x$ac_cv_header_net_if_dl_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_NET_IF_DL_H 1
+_ACEOF
+
+fi
+
+done
+
+for ac_func in getifaddrs freeifaddrs
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
 done
 
 
@@ -8561,6 +8608,22 @@ if test "x$ac_cv_member_struct_ifreq_ifr_addr" = x""yes; then :
 
 cat >>confdefs.h <<_ACEOF
 #define HAVE_STRUCT_IFREQ_IFR_ADDR 1
+_ACEOF
+
+
+fi
+ac_fn_c_check_member "$LINENO" "struct ifreq" "ifr_addr.sa_len" "ac_cv_member_struct_ifreq_ifr_addr_sa_len" "$ac_includes_default
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#if HAVE_NET_IF_H
+#include <net/if.h>
+#endif
+"
+if test "x$ac_cv_member_struct_ifreq_ifr_addr_sa_len" = x""yes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_STRUCT_IFREQ_IFR_ADDR_SA_LEN 1
 _ACEOF
 
 
@@ -9038,7 +9101,7 @@ $as_echo "$HAVE_GNU_MAKE" >&6; }
       { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether gcc understands -MMD -MF" >&5
 $as_echo_n "checking whether gcc understands -MMD -MF... " >&6; }
       SAVE_CFLAGS="$CFLAGS"
-      CFLAGS="$CFLAGS -MMD -MF deps.d"
+      CFLAGS="$CFLAGS -MMD -MF deps.d -MP"
       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -9063,7 +9126,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 $as_echo "$ac_enable_autodepend" >&6; }
    fi
    if test $ac_enable_autodepend = yes; then
-      DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d'
+      DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d -MP'
       ## In parallel builds, another make might create depdir between
       ## the first test and mkdir, so stick another test on the end.
       ## Or use install-sh -d?  mkdir -p is not portable.
@@ -9949,6 +10012,72 @@ if test "x$ac_cv_lib_Xbsd_main" = x""yes; then :
 fi
 
 
+LIB_PTHREAD=
+for ac_header in pthread.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "pthread.h" "ac_cv_header_pthread_h" "$ac_includes_default"
+if test "x$ac_cv_header_pthread_h" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_PTHREAD_H 1
+_ACEOF
+
+fi
+
+done
+
+if test "$ac_cv_header_pthread_h"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_self in -lpthread" >&5
+$as_echo_n "checking for pthread_self in -lpthread... " >&6; }
+if test "${ac_cv_lib_pthread_pthread_self+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpthread  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pthread_self ();
+int
+main ()
+{
+return pthread_self ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_pthread_pthread_self=yes
+else
+  ac_cv_lib_pthread_pthread_self=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthread_pthread_self" >&5
+$as_echo "$ac_cv_lib_pthread_pthread_self" >&6; }
+if test "x$ac_cv_lib_pthread_pthread_self" = x""yes; then :
+  HAVE_PTHREAD=yes
+fi
+
+fi
+if test "$HAVE_PTHREAD" = yes; then
+  case "${canonical}" in
+    *-hpux*) ;;
+    *) LIB_PTHREAD="-lpthread" ;;
+  esac
+
+$as_echo "#define HAVE_PTHREAD 1" >>confdefs.h
+
+fi
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cma_open in -lpthreads" >&5
 $as_echo_n "checking for cma_open in -lpthreads... " >&6; }
 if test "${ac_cv_lib_pthreads_cma_open+set}" = set; then :
@@ -10774,70 +10903,6 @@ done
 
   fi
 
-        HAVE_GTK_AND_PTHREAD=no
-    for ac_header in pthread.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "pthread.h" "ac_cv_header_pthread_h" "$ac_includes_default"
-if test "x$ac_cv_header_pthread_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_PTHREAD_H 1
-_ACEOF
-
-fi
-
-done
-
-    if test "$ac_cv_header_pthread_h"; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_self in -lpthread" >&5
-$as_echo_n "checking for pthread_self in -lpthread... " >&6; }
-if test "${ac_cv_lib_pthread_pthread_self+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpthread  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char pthread_self ();
-int
-main ()
-{
-return pthread_self ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pthread_pthread_self=yes
-else
-  ac_cv_lib_pthread_pthread_self=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthread_pthread_self" >&5
-$as_echo "$ac_cv_lib_pthread_pthread_self" >&6; }
-if test "x$ac_cv_lib_pthread_pthread_self" = x""yes; then :
-  HAVE_GTK_AND_PTHREAD=yes
-fi
-
-    fi
-    if test "$HAVE_GTK_AND_PTHREAD" = yes; then
-      case "${canonical}" in
-        *-hpux*) ;;
-        *) GTK_LIBS="$GTK_LIBS -lpthread" ;;
-      esac
-
-$as_echo "#define HAVE_GTK_AND_PTHREAD 1" >>confdefs.h
-
-    fi
 
     for ac_func in gtk_widget_get_window gtk_widget_set_has_window \
                  gtk_dialog_get_action_area gtk_widget_get_sensitive \

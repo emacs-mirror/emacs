@@ -411,8 +411,8 @@ dnl quotation begins
 machine='' opsys='' unported=no
 case "${canonical}" in
 
-  ## GNU/Linux ports
-  *-*-linux-gnu*)
+  ## GNU/Linux and similar ports
+  *-*-linux* )
     opsys=gnu-linux
     case ${canonical} in
       alpha*)	machine=alpha ;;
@@ -507,17 +507,6 @@ case "${canonical}" in
   hppa*-hp-hpux1[1-9]* )
     opsys=hpux11
     CFLAGS="-D_INCLUDE__STDC_A1_SOURCE $CFLAGS"
-  ;;
-
-  ia64*-hp-hpux1[1-9]* )
-    machine=hp800 opsys=hpux11
-    ## FIXME.  Peter O'Gorman reports that dumping using unexelf.o doesn't
-    ## work either: http://debbugs.gnu.org/cgi/bugreport.cgi?bug=6811
-    CANNOT_DUMP=yes
-  ;;
-
-  hppa*-*-linux-gnu* )
-    machine=hp800 opsys=gnu-linux
   ;;
 
   ## IBM machines
@@ -1300,10 +1289,20 @@ if test $emacs_cv_struct_exception != yes; then
   AC_DEFINE(NO_MATHERR, 1, [Define to 1 if you don't have struct exception in math.h.])
 fi
 
+AC_CHECK_HEADERS(sys/socket.h)
 AC_CHECK_HEADERS(net/if.h, , , [AC_INCLUDES_DEFAULT
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif])
+AC_CHECK_HEADERS(ifaddrs.h, , , [AC_INCLUDES_DEFAULT
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif])
+AC_CHECK_HEADERS(net/if_dl.h, , , [AC_INCLUDES_DEFAULT
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif])
+AC_CHECK_FUNCS(getifaddrs freeifaddrs)
 
 dnl checks for structure members
 AC_STRUCT_TM
@@ -1314,7 +1313,8 @@ AC_CHECK_MEMBER(struct tm.tm_gmtoff,
 		[#include <time.h>])
 AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr,
 		  struct ifreq.ifr_netmask, struct ifreq.ifr_broadaddr,
-		  struct ifreq.ifr_addr], , ,
+		  struct ifreq.ifr_addr,
+		  struct ifreq.ifr_addr.sa_len], , ,
 		 [AC_INCLUDES_DEFAULT
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
@@ -1380,7 +1380,7 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
    if test $HAVE_GNU_MAKE = yes; then
       AC_MSG_CHECKING([whether gcc understands -MMD -MF])
       SAVE_CFLAGS="$CFLAGS"
-      CFLAGS="$CFLAGS -MMD -MF deps.d"
+      CFLAGS="$CFLAGS -MMD -MF deps.d -MP"
       AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])], , ac_enable_autodepend=no)
       CFLAGS="$SAVE_CFLAGS"
       test -f deps.d || ac_enable_autodepend=no
@@ -1388,7 +1388,7 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
       AC_MSG_RESULT([$ac_enable_autodepend])
    fi
    if test $ac_enable_autodepend = yes; then
-      DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d'
+      DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d -MP'
       ## In parallel builds, another make might create depdir between
       ## the first test and mkdir, so stick another test on the end.
       ## Or use install-sh -d?  mkdir -p is not portable.
@@ -1688,6 +1688,21 @@ dnl AC_CHECK_LIB(resolv, gethostbyname)
 dnl FIXME replace main with a function we actually want from this library.
 AC_CHECK_LIB(Xbsd, main, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
+dnl Check if pthreads is available.
+LIB_PTHREAD=
+AC_CHECK_HEADERS(pthread.h)
+if test "$ac_cv_header_pthread_h"; then
+  AC_CHECK_LIB(pthread, pthread_self, HAVE_PTHREAD=yes)
+fi
+if test "$HAVE_PTHREAD" = yes; then
+  case "${canonical}" in
+    *-hpux*) ;;
+    *) LIB_PTHREAD="-lpthread" ;;
+  esac
+  AC_DEFINE(HAVE_PTHREAD, 1, [Define to 1 if you have pthread (-lpthread).])
+fi
+AC_SUBST([LIB_PTHREAD])
+
 AC_CHECK_LIB(pthreads, cma_open)
 
 ## Note: when using cpp in s/aix4.2.h, this definition depended on
@@ -1944,21 +1959,6 @@ if test "${HAVE_GTK}" = "yes"; then
     AC_CHECK_FUNCS(gtk_file_selection_new)
   fi
 
-  dnl Check if pthreads are available.  Emacs only needs this when using
-  dnl gtk_file_chooser under Gnome.
-    HAVE_GTK_AND_PTHREAD=no
-    AC_CHECK_HEADERS(pthread.h)
-    if test "$ac_cv_header_pthread_h"; then
-      AC_CHECK_LIB(pthread, pthread_self, HAVE_GTK_AND_PTHREAD=yes)
-    fi
-    if test "$HAVE_GTK_AND_PTHREAD" = yes; then
-      case "${canonical}" in
-        *-hpux*) ;;
-        *) GTK_LIBS="$GTK_LIBS -lpthread" ;;
-      esac
-      AC_DEFINE(HAVE_GTK_AND_PTHREAD, 1,
-               [Define to 1 if you have GTK and pthread (-lpthread).])
-    fi
 
   dnl Check for functions introduced in 2.14 and later.
   AC_CHECK_FUNCS(gtk_widget_get_window gtk_widget_set_has_window \

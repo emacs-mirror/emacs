@@ -1,6 +1,6 @@
 ;;; ob-ditaa.el --- org-babel functions for ditaa evaluation
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -74,6 +74,6 @@ This function is called by `org-babel-execute-src-block'."
 
 (provide 'ob-ditaa)
 
-;; arch-tag: 492cd006-07d9-4fac-bef6-5bb60b48842e
+
 
 ;;; ob-ditaa.el ends here

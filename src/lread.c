@@ -1124,6 +1124,22 @@ Return t if the file exists and loads successfully.  */)
 	handler = Ffind_file_name_handler (found, Qload);
       if (! NILP (handler))
 	return call5 (handler, Qload, found, noerror, nomessage, Qt);
+#ifdef DOS_NT
+      /* Tramp has to deal with semi-broken packages that prepend
+	 drive letters to remote files.  For that reason, Tramp
+	 catches file operations that test for file existence, which
+	 makes openp think X:/foo.elc files are remote.  However,
+	 Tramp does not catch `load' operations for such files, so we
+	 end up with a nil as the `load' handler above.  If we would
+	 continue with fd = -2, we will behave wrongly, and in
+	 particular try reading a .elc file in the "rt" mode instead
+	 of "rb".  See bug #9311 for the results.  To work around
+	 this, we try to open the file locally, and go with that if it
+	 succeeds.  */
+      fd = emacs_open (SSDATA (ENCODE_FILE (found)), O_RDONLY, 0);
+      if (fd == -1)
+	fd = -2;
+#endif
     }
 
   /* Check if we're stuck in a recursive load cycle.
@@ -1247,9 +1263,17 @@ Return t if the file exists and loads successfully.  */)
   GCPRO3 (file, found, hist_file_name);
 
 #ifdef WINDOWSNT
-  emacs_close (fd);
   efound = ENCODE_FILE (found);
-  stream = fopen (SSDATA (efound), fmode);
+  /* If we somehow got here with fd == -2, meaning the file is deemed
+     to be remote, don't even try to reopen the file locally; just
+     force a failure instead.  */
+  if (fd >= 0)
+    {
+      emacs_close (fd);
+      stream = fopen (SSDATA (efound), fmode);
+    }
+  else
+    stream = NULL;
 #else  /* not WINDOWSNT */
   stream = fdopen (fd, fmode);
 #endif /* not WINDOWSNT */
@@ -2613,14 +2637,14 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	      if (saved_doc_string_size == 0)
 		{
+		  saved_doc_string = (char *) xmalloc (nskip + extra);
 		  saved_doc_string_size = nskip + extra;
-		  saved_doc_string = (char *) xmalloc (saved_doc_string_size);
 		}
 	      if (nskip > saved_doc_string_size)
 		{
-		  saved_doc_string_size = nskip + extra;
 		  saved_doc_string = (char *) xrealloc (saved_doc_string,
-							saved_doc_string_size);
+							nskip + extra);
+		  saved_doc_string_size = nskip + extra;
 		}
 
 	      saved_doc_string_position = file_tell (instream);
@@ -2883,7 +2907,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
 		  memory_full (SIZE_MAX);
 		read_buffer = (char *) xrealloc (read_buffer,
-						 read_buffer_size *= 2);
+						 read_buffer_size * 2);
+		read_buffer_size *= 2;
 		p = read_buffer + offset;
 		end = read_buffer + read_buffer_size;
 	      }
@@ -3026,7 +3051,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		  if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
 		    memory_full (SIZE_MAX);
 		  read_buffer = (char *) xrealloc (read_buffer,
-						   read_buffer_size *= 2);
+						   read_buffer_size * 2);
+		  read_buffer_size *= 2;
 		  p = read_buffer + offset;
 		  end = read_buffer + read_buffer_size;
 		}
@@ -3056,7 +3082,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      if (min (PTRDIFF_MAX, SIZE_MAX) / 2 < read_buffer_size)
 		memory_full (SIZE_MAX);
 	      read_buffer = (char *) xrealloc (read_buffer,
-					       read_buffer_size *= 2);
+					       read_buffer_size * 2);
+	      read_buffer_size *= 2;
 	      p = read_buffer + offset;
 	      end = read_buffer + read_buffer_size;
 	    }
@@ -3938,6 +3965,7 @@ void
 init_obarray (void)
 {
   Lisp_Object oblength;
+  ptrdiff_t size = 100 + MAX_MULTIBYTE_LENGTH;
 
   XSETFASTINT (oblength, OBARRAY_SIZE);
 
@@ -3970,8 +3998,8 @@ init_obarray (void)
 
   DEFSYM (Qvariable_documentation, "variable-documentation");
 
-  read_buffer_size = 100 + MAX_MULTIBYTE_LENGTH;
-  read_buffer = (char *) xmalloc (read_buffer_size);
+  read_buffer = (char *) xmalloc (size);
+  read_buffer_size = size;
 }
 
 void

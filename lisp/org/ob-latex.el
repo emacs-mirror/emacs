@@ -1,6 +1,6 @@
 ;;; ob-latex.el --- org-babel functions for latex "evaluation"
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -176,6 +176,6 @@ Extracted from `org-export-as-pdf' in org-latex.el."
 
 (provide 'ob-latex)
 
-;; arch-tag: 1f13f7e2-26de-4c24-9274-9f331d4c6ff3
+
 
 ;;; ob-latex.el ends here

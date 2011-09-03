@@ -1,8 +1,9 @@
 ;;; ob.el --- working with code blocks in org-mode
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
-;; Author: Eric Schulte, Dan Davison
+;; Author: Eric Schulte
+;;	Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
 ;; Version: 7.7
@@ -137,7 +138,7 @@ remove code block execution from the C-c C-c keybinding."
    ;; (4) header arguments
    "\\([^\n]*\\)\n"
    ;; (5) body
-   "\\([^\000]*?\\)[ \t]*#\\+end_src")
+   "\\([^\000]*?\n\\)?[ \t]*#\\+end_src")
   "Regexp used to identify code blocks.")
 
 (defvar org-babel-inline-src-block-regexp
@@ -2198,6 +2199,6 @@ of `org-babel-temporary-directory'."
 
 (provide 'ob)
 
-;; arch-tag: 01a7ebee-06c5-4ee4-a709-e660d28c0af1
+
 
 ;;; ob.el ends here

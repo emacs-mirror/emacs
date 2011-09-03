@@ -1,6 +1,6 @@
 ;;; ob-gnuplot.el --- org-babel functions for gnuplot evaluation
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -230,6 +230,6 @@ Pass PARAMS through to `orgtbl-to-generic' when exporting TABLE."
 
 (provide 'ob-gnuplot)
 
-;; arch-tag: 50490ace-a9e1-4b29-a6e5-0db9f16c610b
+
 
 ;;; ob-gnuplot.el ends here

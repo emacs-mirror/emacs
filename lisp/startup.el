@@ -105,6 +105,11 @@ This is a convenience alias, so that one can write \(pop argv\)
 inside of --eval command line arguments in order to access
 following arguments.")
 
+(with-no-warnings
+  ;; FIXME: Bad name for a dynamically bound variable
+  (defvar argi nil
+    "Current command-line argument."))
+
 (defvar command-line-functions nil    ;; lrs 7/31/89
   "List of functions to process unrecognized command-line arguments.
 Each function should access the dynamically bound variables
@@ -404,7 +409,7 @@ The regexp should not contain a starting \"\\`\" or a trailing
  \"\\'\"; those are added automatically by callers.")
 
 (defun normal-top-level-add-subdirs-to-load-path ()
-  "Add all subdirectories of current directory to `load-path'.
+  "Add all subdirectories of `default-directory' to `load-path'.
 More precisely, this uses only the subdirectories whose names
 start with letters or digits; it excludes any subdirectory named `RCS'
 or `CVS', and any subdirectory that contains a file named `.nosearch'."

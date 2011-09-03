@@ -516,6 +516,14 @@ before warning the user."
   :type 'integer
   :group 'image-dired)
 
+(defmacro image-dired--with-db-file (&rest body)
+  "Run BODY in a temp buffer containing `image-dired-db-file'.
+Return the last form in BODY."
+  `(with-temp-buffer
+     (if (file-exists-p image-dired-db-file)
+	 (insert-file-contents image-dired-db-file))
+     ,@body))
+
 (defun image-dired-dir ()
   "Return the current thumbnails directory (from variable `image-dired-dir').
 Create the thumbnails directory if it does not exist."
@@ -898,76 +906,69 @@ FILE-TAGS is an alist in the following form:
  ((FILE . TAG) ... )"
   (image-dired-sane-db-file)
   (let (end file tag)
-    (with-temp-file image-dired-db-file
-      (insert-file-contents image-dired-db-file)
-      (dolist (elt file-tags)
-	(setq file (car elt)
-	      tag (cdr elt))
-	(goto-char (point-min))
-	(if (search-forward-regexp (format "^%s.*$" file) nil t)
-	    (progn
-	      (setq end (point))
-	      (beginning-of-line)
-	      (when (not (search-forward (format ";%s" tag) end t))
-		(end-of-line)
-		(insert (format ";%s" tag))))
-	  (goto-char (point-max))
-	  (insert (format "\n%s;%s" file tag)))))))
+    (image-dired--with-db-file
+     (setq buffer-file-name image-dired-db-file)
+     (dolist (elt file-tags)
+       (setq file (car elt)
+	     tag (cdr elt))
+       (goto-char (point-min))
+       (if (search-forward-regexp (format "^%s.*$" file) nil t)
+	   (progn
+	     (setq end (point))
+	     (beginning-of-line)
+	     (when (not (search-forward (format ";%s" tag) end t))
+	       (end-of-line)
+	       (insert (format ";%s" tag))))
+	 (goto-char (point-max))
+	 (insert (format "\n%s;%s" file tag))))
+     (save-buffer))))
 
 (defun image-dired-remove-tag (files tag)
   "For all FILES, remove TAG from the image database."
   (image-dired-sane-db-file)
-  (save-excursion
-    (let (end buf)
-      (setq buf (find-file image-dired-db-file))
-      (if (not (listp files))
-          (if (stringp files)
-              (setq files (list files))
-            (error "Files must be a string or a list of strings!")))
-      (mapc
-       (lambda (file)
-         (goto-char (point-min))
-         (when (search-forward-regexp
-                (format "^%s" file) nil t)
-           (end-of-line)
-           (setq end (point))
-           (beginning-of-line)
-           (when (search-forward-regexp (format "\\(;%s\\)" tag) end t)
-             (delete-region (match-beginning 1) (match-end 1))
-             ;; Check if file should still be in the database. If
-             ;; it has no tags or comments, it will be removed.
-             (end-of-line)
-             (setq end (point))
-             (beginning-of-line)
-             (when (not (search-forward ";" end t))
-               (kill-line 1)
-               ;; If on empty line at end of buffer
-               (when (and (eobp)
-                          (looking-at "^$"))
-                 (delete-char -1))))))
-       files)
-      (save-buffer)
-      (kill-buffer buf))))
+  (image-dired--with-db-file
+   (setq buffer-file-name image-dired-db-file)
+   (let (end)
+     (unless (listp files)
+       (if (stringp files)
+	   (setq files (list files))
+	 (error "Files must be a string or a list of strings!")))
+     (dolist (file files)
+       (goto-char (point-min))
+       (when (search-forward-regexp (format "^%s" file) nil t)
+	 (end-of-line)
+	 (setq end (point))
+	 (beginning-of-line)
+	 (when (search-forward-regexp (format "\\(;%s\\)" tag) end t)
+	   (delete-region (match-beginning 1) (match-end 1))
+	   ;; Check if file should still be in the database. If
+	   ;; it has no tags or comments, it will be removed.
+	   (end-of-line)
+	   (setq end (point))
+	   (beginning-of-line)
+	   (when (not (search-forward ";" end t))
+	     (kill-line 1)
+	     ;; If on empty line at end of buffer
+	     (and (eobp)
+		  (looking-at "^$")
+		  (delete-char -1)))))))
+   (save-buffer)))
 
 (defun image-dired-list-tags (file)
   "Read all tags for image FILE from the image database."
   (image-dired-sane-db-file)
-  (save-excursion
-    (let (end buf (tags ""))
-      (setq buf (find-file image-dired-db-file))
-      (goto-char (point-min))
-      (when (search-forward-regexp
-             (format "^%s" file) nil t)
-        (end-of-line)
-        (setq end (point))
-        (beginning-of-line)
-        (if (search-forward ";" end t)
-            (if (search-forward "comment:" end t)
-                (if (search-forward ";" end t)
-                    (setq tags (buffer-substring (point) end)))
-              (setq tags (buffer-substring (point) end)))))
-      (kill-buffer buf)
-      (split-string tags ";"))))
+  (image-dired--with-db-file
+   (let (end (tags ""))
+     (when (search-forward-regexp (format "^%s" file) nil t)
+       (end-of-line)
+       (setq end (point))
+       (beginning-of-line)
+       (if (search-forward ";" end t)
+	   (if (search-forward "comment:" end t)
+	       (if (search-forward ";" end t)
+		   (setq tags (buffer-substring (point) end)))
+	     (setq tags (buffer-substring (point) end)))))
+     (split-string tags ";"))))
 
 ;;;###autoload
 (defun image-dired-tag-files (arg)
@@ -2061,34 +2062,35 @@ FILE-COMMENTS is an alist on the following form:
  ((FILE . COMMENT) ... )"
   (image-dired-sane-db-file)
   (let (end comment-beg-pos comment-end-pos file comment)
-    (with-temp-file image-dired-db-file
-      (insert-file-contents image-dired-db-file)
-      (dolist (elt file-comments)
-	(setq file (car elt)
-	      comment (cdr elt))
-	(goto-char (point-min))
-	(if (search-forward-regexp (format "^%s.*$" file) nil t)
-	    (progn
-	      (setq end (point))
-	      (beginning-of-line)
-	      ;; Delete old comment, if any
-	      (when (search-forward ";comment:" end t)
-		(setq comment-beg-pos (match-beginning 0))
-		;; Any tags after the comment?
-		(if (search-forward ";" end t)
-		    (setq comment-end-pos (- (point) 1))
-		  (setq comment-end-pos end))
-		;; Delete comment tag and comment
-		(delete-region comment-beg-pos comment-end-pos))
-	      ;; Insert new comment
-	      (beginning-of-line)
-	      (unless (search-forward ";" end t)
-		(end-of-line)
-		(insert ";"))
-	      (insert (format "comment:%s;" comment)))
-	  ;; File does not exist in database - add it.
-	  (goto-char (point-max))
-	  (insert (format "\n%s;comment:%s" file comment)))))))
+    (image-dired--with-db-file
+     (setq buffer-file-name image-dired-db-file)
+     (dolist (elt file-comments)
+       (setq file (car elt)
+	     comment (cdr elt))
+       (goto-char (point-min))
+       (if (search-forward-regexp (format "^%s.*$" file) nil t)
+	   (progn
+	     (setq end (point))
+	     (beginning-of-line)
+	     ;; Delete old comment, if any
+	     (when (search-forward ";comment:" end t)
+	       (setq comment-beg-pos (match-beginning 0))
+	       ;; Any tags after the comment?
+	       (if (search-forward ";" end t)
+		   (setq comment-end-pos (- (point) 1))
+		 (setq comment-end-pos end))
+	       ;; Delete comment tag and comment
+	       (delete-region comment-beg-pos comment-end-pos))
+	     ;; Insert new comment
+	     (beginning-of-line)
+	     (unless (search-forward ";" end t)
+	       (end-of-line)
+	       (insert ";"))
+	     (insert (format "comment:%s;" comment)))
+	 ;; File does not exist in database - add it.
+	 (goto-char (point-max))
+	 (insert (format "\n%s;comment:%s" file comment))))
+     (save-buffer))))
 
 (defun image-dired-update-property (prop value)
   "Update text property PROP with value VALUE at point."
@@ -2130,24 +2132,20 @@ Optionally use old comment from FILE as initial value."
 (defun image-dired-get-comment (file)
   "Get comment for file FILE."
   (image-dired-sane-db-file)
-  (save-excursion
-    (let (end buf comment-beg-pos comment-end-pos comment)
-      (setq buf (find-file image-dired-db-file))
-      (goto-char (point-min))
-      (when (search-forward-regexp
-             (format "^%s" file) nil t)
-        (end-of-line)
-        (setq end (point))
-        (beginning-of-line)
-        (cond ((search-forward ";comment:" end t)
-               (setq comment-beg-pos (point))
-               (if (search-forward ";" end t)
-                   (setq comment-end-pos (- (point) 1))
-                 (setq comment-end-pos end))
-               (setq comment (buffer-substring
-                              comment-beg-pos comment-end-pos)))))
-      (kill-buffer buf)
-      comment)))
+  (image-dired--with-db-file
+   (let (end comment-beg-pos comment-end-pos comment)
+     (when (search-forward-regexp (format "^%s" file) nil t)
+       (end-of-line)
+       (setq end (point))
+       (beginning-of-line)
+       (when (search-forward ";comment:" end t)
+	 (setq comment-beg-pos (point))
+	 (if (search-forward ";" end t)
+	     (setq comment-end-pos (- (point) 1))
+	   (setq comment-end-pos end))
+	 (setq comment (buffer-substring
+			comment-beg-pos comment-end-pos))))
+     comment)))
 
 ;;;###autoload
 (defun image-dired-mark-tagged-files ()
@@ -2161,32 +2159,26 @@ matching tag will be marked in the dired buffer."
   (image-dired-sane-db-file)
   (let ((tag (read-string "Mark tagged files (regexp): "))
         (hits 0)
-        files buf)
-    (save-excursion
-      (setq buf (find-file image-dired-db-file))
-      (goto-char (point-min))
-      ;; Collect matches
-      (while (search-forward-regexp
-              (concat "\\(^[^;\n]+\\);.*" tag ".*$") nil t)
-        (setq files (append (list (match-string 1)) files)))
-      (kill-buffer buf)
-      ;; Mark files
-      (mapc
-       ;; I tried using `dired-mark-files-regexp' but it was
-       ;; waaaay to slow.
-       (lambda (curr-file)
-         ;; Don't bother about hits found in other directories than
-         ;; the current one.
-         (when (string= (file-name-as-directory
-                         (expand-file-name default-directory))
-                      (file-name-as-directory
-                       (file-name-directory curr-file)))
-           (setq curr-file (file-name-nondirectory curr-file))
-           (goto-char (point-min))
-           (when (search-forward-regexp (format "\\s %s$" curr-file) nil t)
-             (setq hits (+ hits 1))
-             (dired-mark 1))))
-       files))
+        files)
+    (image-dired--with-db-file
+     ;; Collect matches
+     (while (search-forward-regexp
+	     (concat "\\(^[^;\n]+\\);.*" tag ".*$") nil t)
+       (push (match-string 1) files)))
+    ;; Mark files
+    (dolist (curr-file files)
+      ;; I tried using `dired-mark-files-regexp' but it was waaaay to
+      ;; slow.  Don't bother about hits found in other directories
+      ;; than the current one.
+      (when (string= (file-name-as-directory
+		      (expand-file-name default-directory))
+		     (file-name-as-directory
+		      (file-name-directory curr-file)))
+	(setq curr-file (file-name-nondirectory curr-file))
+	(goto-char (point-min))
+	(when (search-forward-regexp (format "\\s %s$" curr-file) nil t)
+	  (setq hits (+ hits 1))
+	  (dired-mark 1))))
     (message "%d files with matching tag marked." hits)))
 
 (defun image-dired-mouse-display-image (event)
@@ -2322,29 +2314,26 @@ image-dired-file-comment-list:
 (defun image-dired-create-gallery-lists ()
   "Create temporary lists used by `image-dired-gallery-generate'."
   (image-dired-sane-db-file)
-  (let ((buf (find-file image-dired-db-file))
-        end beg file row-tags)
-    (setq image-dired-tag-file-list nil)
-    (setq image-dired-file-tag-list nil)
-    (setq image-dired-file-comment-list nil)
-    (goto-char (point-min))
-    (while (search-forward-regexp "^." nil t)
-      (end-of-line)
-      (setq end (point))
-      (beginning-of-line)
-      (setq beg (point))
-      (if (not (search-forward ";" end nil))
-          (error "Something is really wrong, check format of database"))
-      (setq row-tags (split-string
-                      (buffer-substring beg end) ";"))
-      (setq file (car row-tags))
-      (mapc
-       (lambda (x)
-         (if (not (string-match "^comment:\\(.*\\)" x))
-             (image-dired-add-to-tag-file-lists x file)
-           (image-dired-add-to-file-comment-list file (match-string 1 x))))
-       (cdr row-tags)))
-    (kill-buffer buf))
+  (image-dired--with-db-file
+   (let (end beg file row-tags)
+     (setq image-dired-tag-file-list nil)
+     (setq image-dired-file-tag-list nil)
+     (setq image-dired-file-comment-list nil)
+     (goto-char (point-min))
+     (while (search-forward-regexp "^." nil t)
+       (end-of-line)
+       (setq end (point))
+       (beginning-of-line)
+       (setq beg (point))
+       (unless (search-forward ";" end nil)
+	 (error "Something is really wrong, check format of database"))
+       (setq row-tags (split-string
+		       (buffer-substring beg end) ";"))
+       (setq file (car row-tags))
+       (dolist (x (cdr row-tags))
+	 (if (not (string-match "^comment:\\(.*\\)" x))
+	     (image-dired-add-to-tag-file-lists x file)
+	   (image-dired-add-to-file-comment-list file (match-string 1 x)))))))
   ;; Sort tag-file list
   (setq image-dired-tag-file-list
         (sort image-dired-tag-file-list
@@ -2372,7 +2361,8 @@ it easier to generate, then HTML-files are created in
 when using per-directory thumbnail file storage"))
   (image-dired-create-gallery-lists)
   (let ((tags image-dired-tag-file-list)
-        count tag index-buf tag-buf
+	(index-file (format "%s/index.html" image-dired-gallery-dir))
+        count tag tag-file
         comment file-tags tag-link tag-link-list)
     ;; Make sure gallery root exist
     (if (file-exists-p image-dired-gallery-dir)
@@ -2380,85 +2370,75 @@ when using per-directory thumbnail file storage"))
             (error "Variable image-dired-gallery-dir is not a directory"))
       (make-directory image-dired-gallery-dir))
     ;; Open index file
-    (setq index-buf (find-file
-                     (format "%s/index.html" image-dired-gallery-dir)))
-    (erase-buffer)
-    (insert "<html>\n")
-    (insert "  <body>\n")
-    (insert "   <h2>Image-Dired Gallery</h2>\n")
-    (insert (format "<p>\n    Gallery generated %s\n   <p>\n"
-                    (current-time-string)))
-    (insert "   <h3>Tag index</h3>\n")
-    (setq count 1)
-    ;; Pre-generate list of all tag links
-    (mapc
-     (lambda (curr)
-       (setq tag (car curr))
-       (when (not (member tag image-dired-gallery-hidden-tags))
-         (setq tag-link (format "<a href=\"%d.html\">%s</a>" count tag))
-         (if tag-link-list
-             (setq tag-link-list
-                   (append tag-link-list (list (cons tag tag-link))))
-           (setq tag-link-list (list (cons tag tag-link))))
-         (setq count (1+ count))))
-     tags)
-    (setq count 1)
-    ;; Main loop where we generated thumbnail pages per tag
-    (mapc
-     (lambda (curr)
-       (setq tag (car curr))
-       ;; Don't display hidden tags
-       (when (not (member tag image-dired-gallery-hidden-tags))
-         ;; Insert link to tag page in index
-         (insert (format "    %s<br>\n" (cdr (assoc tag tag-link-list))))
-         ;; Open per-tag file
-         (setq tag-buf (find-file
-                        (format "%s/%s.html" image-dired-gallery-dir count)))
-         (erase-buffer)
-         (insert "<html>\n")
-         (insert "  <body>\n")
-         (insert "  <p><a href=\"index.html\">Index</a></p>\n")
-         (insert (format "  <h2>Images with tag &quot;%s&quot;</h2>" tag))
-         ;; Main loop for files per tag page
-         (mapc
-          (lambda (file)
-            (when (not (image-dired-hidden-p file))
-              ;; Insert thumbnail with link to full image
-              (insert
-               (format "<a href=\"%s/%s\"><img src=\"%s/%s\"%s></a>\n"
-                       image-dired-gallery-image-root-url
-		       (file-name-nondirectory file)
-                       image-dired-gallery-thumb-image-root-url
-                       (file-name-nondirectory (image-dired-thumb-name file)) file))
-              ;; Insert comment, if any
-              (if (setq comment (cdr (assoc file image-dired-file-comment-list)))
-                  (insert (format "<br>\n%s<br>\n" comment))
-                (insert "<br>\n"))
-              ;; Insert links to other tags, if any
-              (when (> (length
-                        (setq file-tags (assoc file image-dired-file-tag-list))) 2)
-                (insert "[ ")
-                (mapc
-                 (lambda (extra-tag)
-                   ;; Only insert if not file name or the main tag
-                   (if (and (not (equal extra-tag tag))
-                            (not (equal extra-tag file)))
-                       (insert
-                        (format "%s " (cdr (assoc extra-tag tag-link-list))))))
-                 file-tags)
-                (insert "]<br>\n"))))
-          (cdr curr))
-         (insert "  <p><a href=\"index.html\">Index</a></p>\n")
-         (insert "  </body>\n")
-         (insert "</html>\n")
-         (save-buffer)
-         (kill-buffer tag-buf)
-         (setq count (1+ count))))
-       tags)
-    (insert "  </body>\n")
-    (insert "</html>")
-    (save-buffer)
-    (kill-buffer index-buf)))
+    (with-temp-file index-file
+      (if (file-exists-p index-file)
+	  (insert-file-contents index-file))
+      (insert "<html>\n")
+      (insert "  <body>\n")
+      (insert "   <h2>Image-Dired Gallery</h2>\n")
+      (insert (format "<p>\n    Gallery generated %s\n   <p>\n"
+		      (current-time-string)))
+      (insert "   <h3>Tag index</h3>\n")
+      (setq count 1)
+      ;; Pre-generate list of all tag links
+      (dolist (curr tags)
+	(setq tag (car curr))
+	(when (not (member tag image-dired-gallery-hidden-tags))
+	  (setq tag-link (format "<a href=\"%d.html\">%s</a>" count tag))
+	  (if tag-link-list
+	      (setq tag-link-list
+		    (append tag-link-list (list (cons tag tag-link))))
+	    (setq tag-link-list (list (cons tag tag-link))))
+	  (setq count (1+ count))))
+      (setq count 1)
+      ;; Main loop where we generated thumbnail pages per tag
+      (dolist (curr tags)
+	(setq tag (car curr))
+	;; Don't display hidden tags
+	(when (not (member tag image-dired-gallery-hidden-tags))
+	  ;; Insert link to tag page in index
+	  (insert (format "    %s<br>\n" (cdr (assoc tag tag-link-list))))
+	  ;; Open per-tag file
+	  (setq tag-file (format "%s/%s.html" image-dired-gallery-dir count))
+	  (with-temp-file tag-file
+	    (if (file-exists-p tag-file)
+		(insert-file-contents tag-file))
+	    (erase-buffer)
+	    (insert "<html>\n")
+	    (insert "  <body>\n")
+	    (insert "  <p><a href=\"index.html\">Index</a></p>\n")
+	    (insert (format "  <h2>Images with tag &quot;%s&quot;</h2>" tag))
+	    ;; Main loop for files per tag page
+	    (dolist (file (cdr curr))
+	      (unless (image-dired-hidden-p file)
+		;; Insert thumbnail with link to full image
+		(insert
+		 (format "<a href=\"%s/%s\"><img src=\"%s/%s\"%s></a>\n"
+			 image-dired-gallery-image-root-url
+			 (file-name-nondirectory file)
+			 image-dired-gallery-thumb-image-root-url
+			 (file-name-nondirectory (image-dired-thumb-name file)) file))
+		;; Insert comment, if any
+		(if (setq comment (cdr (assoc file image-dired-file-comment-list)))
+		    (insert (format "<br>\n%s<br>\n" comment))
+		  (insert "<br>\n"))
+		;; Insert links to other tags, if any
+		(when (> (length
+			  (setq file-tags (assoc file image-dired-file-tag-list))) 2)
+		  (insert "[ ")
+		  (dolist (extra-tag file-tags)
+		    ;; Only insert if not file name or the main tag
+		    (if (and (not (equal extra-tag tag))
+			     (not (equal extra-tag file)))
+			(insert
+			 (format "%s " (cdr (assoc extra-tag tag-link-list))))))
+		  (insert "]<br>\n"))))
+	    (insert "  <p><a href=\"index.html\">Index</a></p>\n")
+	    (insert "  </body>\n")
+	    (insert "</html>\n"))
+	  (setq count (1+ count))))
+      (insert "  </body>\n")
+      (insert "</html>"))))
 
 (defun image-dired-kill-buffer-and-window ()
   "Kill the current buffer and, if possible, also the window."

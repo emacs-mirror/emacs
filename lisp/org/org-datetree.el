@@ -1,6 +1,6 @@
 ;;; org-datetree.el --- Create date entries in a tree
 
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -195,6 +195,6 @@ before running this command, even though the command tries to be smart."
 
 (provide 'org-datetree)
 
-;; arch-tag: 1daea962-fd08-448b-9f98-6e8b511b3601
+
 
 ;;; org-datetree.el ends here

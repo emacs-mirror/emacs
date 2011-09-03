@@ -1,6 +1,6 @@
 ;;; org-habit.el --- The habit tracking code for Org-mode
 
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw at gnu dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -358,6 +358,6 @@ current time."
 
 (provide 'org-habit)
 
-;; arch-tag: 64e070d9-bd09-4917-bd44-44465f5ed348
+
 
 ;;; org-habit.el ends here

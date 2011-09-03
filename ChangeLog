@@ -1,4 +1,4 @@
-2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+2011-09-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, using build-aux to remove clutter (Bug#9169).
 	* autogen/README: Update destination list.
@@ -31,6 +31,29 @@
 	Solaris, enables MacOS extensions, and enables nocrash during
 	'configure'.
 	* make-dist: Adjust to new build-aux and build-aux/snippit dirs.
+
+2011-08-30  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in (opsys): Change pattern to *-*-linux*
+	to recognize powerpc-gnu-linux-uclibc (Bug#9403).
+	Remove unreachable pattern hppa*-*-linux-gnu*.
+	Also, remove ia64*-hp-hpux1[1-9]*, as it also sets machine=hp800,
+	and that can't possibly work now that src/m/hp800.h no longer exists.
+
+2011-08-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Add -MP to DEPFLAGS (Bug#9372).
+
+2011-08-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Add header check: sys/socket.h (Bug#8477),
+	ifaddrs.h, net/if_dl.h.  Check for getifaddrs and freeifaddrs.
+	Check for sa_len in struct ifreq.ifr_addr (Bug#8477).
+
+2011-08-04  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_PTHREAD): Add check for -lpthread (Bug#9216).
+	(HAVE_GTK_AND_PTHREAD): Remove.
 
 2011-07-28  Alp Aker  <alp.tekin.aker@gmail.com>
 

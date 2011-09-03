@@ -24,8 +24,6 @@
 
 ;;; Commentary:
 
-;;; Commentary:
-
 ;; Babel's awk can use special header argument:
 ;; 
 ;; - :in-file takes a path to a file of data to be processed by awk
@@ -114,6 +112,6 @@ Emacs-lisp table, otherwise return the results as a string."
 
 (provide 'ob-awk)
 
-;; arch-tag: 844e2c88-6aad-4018-868d-a2df6bcdf68f
+
 
 ;;; ob-awk.el ends here

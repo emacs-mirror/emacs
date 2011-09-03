@@ -51,7 +51,8 @@
   nil " epa-mail" epa-mail-mode-map)
 
 (defun epa-mail--find-usable-key (keys usage)
-  "Find a usable key from KEYS for USAGE."
+  "Find a usable key from KEYS for USAGE.
+USAGE would be `sign' or `encrypt'."
   (catch 'found
     (while keys
       (let ((pointer (epg-key-sub-key-list (car keys))))
@@ -116,6 +117,7 @@ Don't use this command in Lisp programs!"
   (interactive
    (save-excursion
      (let ((verbose current-prefix-arg)
+	   (config (epg-configuration))
 	   (context (epg-make-context epa-protocol))
 	   recipients-string recipients recipient-key sign)
        (goto-char (point-min))
@@ -140,6 +142,17 @@ Don't use this command in Lisp programs!"
 	   (setq recipients (delete ""
 				    (split-string recipients
 						  "[ \t\n]*,[ \t\n]*"))))
+
+       ;; Process all the recipients thru the list of GnuPG groups.
+       ;; Expand GnuPG group names to what they stand for.
+       (setq recipients
+	     (apply #'nconc
+		    (mapcar
+		     (lambda (recipient)
+		       (or (epg-expand-group config recipient)
+			   (list recipient)))
+		     recipients)))
+
        (goto-char (point-min))
        (if (search-forward mail-header-separator nil t)
 	   (forward-line))

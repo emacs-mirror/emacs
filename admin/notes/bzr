@@ -72,18 +72,20 @@ removes a file, then remove the corresponding files by hand.
 The following description uses bound branches, presumably it works in
 a similar way with unbound ones.
 
-0) (First time only) Get the bzr changelog_merge plugin
-(this will be included by default in bzr 2.4 onwards):
+0) (This step is only necessary if using bzr older than 2.4.0.)
+Get the bzr changelog_merge plugin:
 
 cd ~/.bazaar/plugins
-bzr branch http://bazaar.launchpad.net/~spiv/bzr-changelog-merge/trunk 
-mv trunk changelog_merge
+bzr branch http://bazaar.launchpad.net/~spiv/bzr-changelog-merge/trunk changelog_merge
 
-This should make merging ChangeLogs smoother.  It merges new entries
-to the top of the file, rather than trying to fit them in mid-way
-through.  Newer versions of the plugin should also be able to deal
-with changes to *old* ChangeLog entries, that should not be floated to
-the head of the file (see launchpad#723968).
+This plugin should make merging ChangeLogs smoother.  It merges new
+entries to the top of the file, rather than trying to fit them in
+mid-way through.  Newer versions of the plugin should also be able to
+deal with changes to *old* ChangeLog entries, that should not be
+floated to the head of the file (see launchpad#723968).
+
+It is included in bzr from 2.4.0 onwards, so remember to delete the
+copy in ~/.bazaar if you upgrade bzr.
 
 Maybe the default Emacs behavior without this plugin is better,
 though, it's not clear yet.

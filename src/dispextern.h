@@ -575,7 +575,7 @@ struct glyph_pool
   struct glyph *glyphs;
 
   /* Allocated size of `glyphs'.  */
-  int nglyphs;
+  ptrdiff_t nglyphs;
 
   /* Number of rows and columns in a matrix.  */
   int nrows, ncolumns;
@@ -625,7 +625,7 @@ struct glyph_matrix
   struct glyph_row *rows;
 
   /* Number of elements allocated for the vector rows above.  */
-  int rows_allocated;
+  ptrdiff_t rows_allocated;
 
   /* The number of rows used by the window if all lines were displayed
      with the smallest possible character height.  */
@@ -1240,7 +1240,7 @@ struct glyph_string
   struct composition *cmp;
 
   /* If not negative, this string describes a compos.  */
-  int cmp_id;
+  ptrdiff_t cmp_id;
 
   /* Start and end glyph indices in a glyph-string.  */
   int cmp_from, cmp_to;
@@ -1708,7 +1708,8 @@ struct face_cache
   struct face **faces_by_id;
 
   /* The allocated size, and number of used slots of faces_by_id.  */
-  int size, used;
+  ptrdiff_t size;
+  int used;
 
   /* Flag indicating that attributes of the `menu' face have been
      changed.  */
@@ -1776,7 +1777,7 @@ extern int face_change_count;
    3 bits for it, so we cannot use there values larger than 7.
 
    The order of members must be in sync with the 8th element of the
-   member of unidata-prop-alist (in admin/unidata/unidata-getn.el) for
+   member of unidata-prop-alist (in admin/unidata/unidata-gen.el) for
    Unicode character property `bidi-class'.  */
 typedef enum {
   UNKNOWN_BT = 0,
@@ -1859,6 +1860,10 @@ struct bidi_it {
   EMACS_INT ignore_bn_limit;	/* position until which to ignore BNs */
   bidi_dir_t sor;		/* direction of start-of-run in effect */
   int scan_dir;			/* direction of text scan, 1: forw, -1: back */
+  EMACS_INT disp_pos;		/* position of display string after ch */
+  int disp_prop;		/* if non-zero, there really is a
+				   `display' property/string at disp_pos;
+				   if 2, the property is a `space' spec */
   int stack_idx;		/* index of current data on the stack */
   /* Note: Everything from here on is not copied/saved when the bidi
      iterator state is saved, pushed, or popped.  So only put here
@@ -1867,7 +1872,6 @@ struct bidi_it {
   struct bidi_string_data string;	/* string to reorder */
   bidi_dir_t paragraph_dir;	/* current paragraph direction */
   EMACS_INT separator_limit;	/* where paragraph separator should end */
-  EMACS_INT disp_pos;		/* position of display string after ch */
   unsigned first_elt : 1;	/* if non-zero, examine current char first */
   unsigned new_paragraph : 1;	/* if non-zero, we expect a new paragraph */
   unsigned frame_window_p : 1;	/* non-zero if displaying on a GUI frame */
@@ -2056,7 +2060,7 @@ struct composition_it
   EMACS_INT stop_pos;
   /* ID number of the composition or glyph-string.  If negative, we
      are not iterating over a composition now.  */
-  int id;
+  ptrdiff_t id;
   /* If non-negative, character that triggers the automatic
      composition at `stop_pos', and this is an automatic composition.
      If negative, this is a static composition.  This is set to -2
@@ -2246,7 +2250,7 @@ struct it
       struct {
 	Lisp_Object object;
 	struct it_slice slice;
-	int image_id;
+	ptrdiff_t image_id;
       } image;
       /* method == GET_FROM_COMPOSITION */
       struct {
@@ -2376,7 +2380,7 @@ struct it
   enum glyphless_display_method glyphless_method;
 
   /* If what == IT_IMAGE, the id of the image to display.  */
-  int image_id;
+  ptrdiff_t image_id;
 
   /* Values from `slice' property.  */
   struct it_slice slice;
@@ -2826,7 +2830,7 @@ struct image
   EMACS_UINT hash;
 
   /* Image id of this image.  */
-  int id;
+  ptrdiff_t id;
 
   /* Hash collision chain.  */
   struct image *next, *prev;
@@ -2845,13 +2849,13 @@ struct image_cache
   struct image **images;
 
   /* Allocated size of `images'.  */
-  unsigned size;
+  ptrdiff_t size;
 
   /* Number of images in the cache.  */
-  unsigned used;
+  ptrdiff_t used;
 
   /* Reference count (number of frames sharing this cache).  */
-  int refcount;
+  ptrdiff_t refcount;
 };
 
 
@@ -2976,7 +2980,7 @@ extern int  bidi_mirror_char (int);
 extern void bidi_push_it (struct bidi_it *);
 extern void bidi_pop_it (struct bidi_it *);
 extern void *bidi_shelve_cache (void);
-extern void bidi_unshelve_cache (void *);
+extern void bidi_unshelve_cache (void *, int);
 
 /* Defined in xdisp.c */
 
@@ -3035,9 +3039,12 @@ extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
 extern int calc_pixel_width_or_height (double *, struct it *, Lisp_Object,
                                        struct font *, int, int *);
 extern EMACS_INT compute_display_string_pos (struct text_pos *,
-					     struct bidi_string_data *, int);
+					     struct bidi_string_data *,
+					     int, int *);
 extern EMACS_INT compute_display_string_end (EMACS_INT,
 					     struct bidi_string_data *);
+extern void produce_stretch_glyph (struct it *);
+
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -3117,7 +3124,7 @@ void w32_reset_fringes (void);
 extern int x_bitmap_height (struct frame *, ptrdiff_t);
 extern int x_bitmap_width (struct frame *, ptrdiff_t);
 extern int x_bitmap_pixmap (struct frame *, ptrdiff_t);
-extern void x_reference_bitmap (struct frame *, int);
+extern void x_reference_bitmap (struct frame *, ptrdiff_t);
 extern ptrdiff_t x_create_bitmap_from_data (struct frame *, char *,
 					    unsigned int, unsigned int);
 extern ptrdiff_t x_create_bitmap_from_file (struct frame *, Lisp_Object);
@@ -3138,7 +3145,7 @@ void clear_image_caches (Lisp_Object);
 void mark_image_cache (struct image_cache *);
 int valid_image_p (Lisp_Object);
 void prepare_image_for_display (struct frame *, struct image *);
-int lookup_image (struct frame *, Lisp_Object);
+ptrdiff_t lookup_image (struct frame *, Lisp_Object);
 
 unsigned long image_background (struct image *, struct frame *,
                                 XImagePtr_or_DC ximg);
@@ -3199,7 +3206,6 @@ int merge_faces (struct frame *, Lisp_Object, EMACS_INT, int);
 int compute_char_face (struct frame *, int, Lisp_Object);
 void free_all_realized_faces (Lisp_Object);
 extern Lisp_Object Qforeground_color, Qbackground_color;
-extern Lisp_Object Qframe_set_background_mode;
 extern char unspecified_fg[], unspecified_bg[];
 
 /* Defined in xfns.c  */
@@ -3333,6 +3339,7 @@ extern struct terminal *get_named_tty (const char *);
 EXFUN (Ftty_type, 1);
 extern void create_tty_output (struct frame *);
 extern struct terminal *init_tty (const char *, const char *, int);
+extern void tty_append_glyph (struct it *);
 
 
 /* Defined in scroll.c */

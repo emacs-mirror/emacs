@@ -538,13 +538,7 @@ are no diary entries, even if that day is a holiday.  If you want such
 days to be shown in the fancy diary buffer, set the variable
 @code{diary-list-include-blanks} to @code{t}.@refill
 
-@c View mode does not seem to be described in the manual.
-@c buffers.texi has a brief mention.
-  The fancy diary buffer enables View mode, a minor mode that provides
-commands for scrolling and searching the text.  For example, @key{SPC}
-and @key{DEL} scroll forward and backward, and @key{s} starts an
-incremental search.  See the documentation of the function
-@code{view-mode} for more information.
+  The fancy diary buffer enables View mode (@pxref{View Mode}).
 
   The alternative display method @code{diary-simple-display} shows the
 actual diary buffer, and uses invisible text to hide entries that don't

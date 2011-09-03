@@ -463,9 +463,12 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
   (set (make-local-variable 'compilation-exit-message-function)
        (lambda (status code msg)
 	 (if (eq status 'exit)
-	     (cond ((zerop code)
+	     ;; This relies on the fact that `compilation-start'
+	     ;; sets buffer-modified to nil before running the command,
+	     ;; so the buffer is still unmodified if there is no output.
+	     (cond ((and (zerop code) (buffer-modified-p))
 		    '("finished (matches found)\n" . "matched"))
-		   ((= code 1)
+		   ((or (= code 1) (not (buffer-modified-p)))
 		    '("finished with no matches found\n" . "no match"))
 		   (t
 		    (cons msg code)))
@@ -965,7 +968,9 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
     (unless (and dir (file-directory-p dir) (file-readable-p dir))
       (setq dir default-directory))
     (if (null files)
-	(if (not (string= regexp grep-find-command))
+	(if (not (string= regexp (if (consp grep-find-command)
+				     (car grep-find-command)
+				   grep-find-command)))
 	    (compilation-start regexp 'grep-mode))
       (setq dir (file-name-as-directory (expand-file-name dir)))
       (require 'find-dired)		; for `find-name-arg'
@@ -1023,8 +1028,7 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
 		    (read-from-minibuffer "Confirm: "
 					  command nil nil 'grep-find-history))
 	    (add-to-history 'grep-find-history command))
-	  (let ((default-directory dir)
-		(process-connection-type nil))
+	  (let ((default-directory dir))
 	    (compilation-start command 'grep-mode))
 	  ;; Set default-directory if we started rgrep in the *grep* buffer.
 	  (if (eq next-error-last-buffer (current-buffer))

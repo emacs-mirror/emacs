@@ -1,6 +1,6 @@
 ;;; org-latex.el --- LaTeX exporter for org-mode
 ;;
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007-2011 Free Software Foundation, Inc.
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-latex.el
@@ -2769,6 +2769,6 @@ The conversion is made depending of STRING-BEFORE and STRING-AFTER."
 (provide 'org-export-latex)
 (provide 'org-latex)
 
-;; arch-tag: 23c2b87d-da04-4c2d-ad2d-1eb6487bc3ad
+
 
 ;;; org-latex.el ends here

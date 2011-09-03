@@ -1,6 +1,6 @@
 ;;; org-w3m.el --- Support from copy and paste from w3m to Org-mode
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
 ;; Author: Andy Stewart <lazycat dot manatee at gmail dot com>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -168,6 +168,6 @@ Return t if there is no previous link; otherwise, return nil."
 
 (provide 'org-w3m)
 
-;; arch-tag: 851d7447-488d-49f0-a14d-46c092e84352
+
 
 ;;; org-w3m.el ends here

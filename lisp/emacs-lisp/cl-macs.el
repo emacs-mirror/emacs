@@ -238,6 +238,37 @@ It is a list of elements of the form either:
 
 (declare-function help-add-fundoc-usage "help-fns" (docstring arglist))
 
+(defun cl--make-usage-var (x)
+  "X can be a var or a (destructuring) lambda-list."
+  (cond
+   ((symbolp x) (make-symbol (upcase (symbol-name x))))
+   ((consp x) (cl--make-usage-args x))
+   (t x)))
+
+(defun cl--make-usage-args (arglist)
+  ;; `orig-args' can contain &cl-defs (an internal
+  ;; CL thingy I don't understand), so remove it.
+  (let ((x (memq '&cl-defs arglist)))
+    (when x (setq arglist (delq (car x) (remq (cadr x) arglist)))))
+  (let ((state nil))
+    (mapcar (lambda (x)
+              (cond
+               ((symbolp x)
+                (if (eq ?\& (aref (symbol-name x) 0))
+                    (setq state x)
+                  (make-symbol (upcase (symbol-name x)))))
+               ((not (consp x)) x)
+               ((memq state '(nil &rest)) (cl--make-usage-args x))
+               (t        ;(VAR INITFORM SVAR) or ((KEYWORD VAR) INITFORM SVAR).
+                (list*
+                 (if (and (consp (car x)) (eq state '&key))
+                     (list (caar x) (cl--make-usage-var (nth 1 (car x))))
+                   (cl--make-usage-var (car x)))
+                 (nth 1 x)                          ;INITFORM.
+                 (cl--make-usage-args (nthcdr 2 x)) ;SVAR.
+                 ))))
+            arglist)))
+
 (defun cl-transform-lambda (form bind-block)
   (let* ((args (car form)) (body (cdr form)) (orig-args args)
 	 (bind-defs nil) (bind-enquote nil)
@@ -282,11 +313,8 @@ It is a list of elements of the form either:
                         (require 'help-fns)
                         (cons (help-add-fundoc-usage
                                (if (stringp (car hdr)) (pop hdr))
-                               ;; orig-args can contain &cl-defs (an internal
-                               ;; CL thingy I don't understand), so remove it.
-                               (let ((x (memq '&cl-defs orig-args)))
-                                 (if (null x) orig-args
-                                   (delq (car x) (remq (cadr x) orig-args)))))
+                               (format "(fn %S)"
+                                       (cl--make-usage-args orig-args)))
                               hdr)))
 		    (list (nconc (list 'let* bind-lets)
 				 (nreverse bind-forms) body)))))))
@@ -1233,6 +1261,7 @@ Valid clauses are:
   "Loop over a list.
 Evaluate BODY with VAR bound to each `car' from LIST, in turn.
 Then evaluate RESULT to get return value, default nil.
+An implicit nil block is established around the loop.
 
 \(fn (VAR LIST [RESULT]) BODY...)"
   (let ((temp (make-symbol "--cl-dolist-temp--")))
@@ -2387,9 +2416,8 @@ value, that slot cannot be set via `setf'.
 			(append
 			 (and pred-check
 			      (list (list 'or pred-check
-					  (list 'error
-						(format "%s accessing a non-%s"
-							accessor name)))))
+					  `(error "%s accessing a non-%s"
+						  ',accessor ',name))))
 			 (list (if (eq type 'vector) (list 'aref 'cl-x pos)
 				 (if (= pos 0) '(car cl-x)
 				   (list 'nth pos 'cl-x)))))) forms)
@@ -2397,9 +2425,8 @@ value, that slot cannot be set via `setf'.
 	      (push (list 'define-setf-method accessor '(cl-x)
 			     (if (cadr (memq :read-only (cddr desc)))
                                  (list 'progn '(ignore cl-x)
-                                       (list 'error
-                                             (format "%s is a read-only slot"
-                                                     'accessor)))
+                                       `(error "%s is a read-only slot"
+					       ',accessor))
 			       ;; If cl is loaded only for compilation,
 			       ;; the call to cl-struct-setf-expander would
 			       ;; cause a warning because it may not be

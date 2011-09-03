@@ -1,6 +1,7 @@
 ;;; semantic/wisent/python-wy.el --- Generated parser support file
 
 ;; Copyright (C) 2002-2004, 2007, 2010-2011  Free Software Foundation, Inc.
+;; Copyright (C) 2001-2010 Python Software Foundation
 
 ;; This file is part of GNU Emacs.
 
@@ -19,8 +20,7 @@
 
 ;;; Commentary:
 ;;
-;; This file was generated from the grammar file
-;; semantic/wisent/wisent-python.wy in the CEDET repository.
+;; This file was generated from etc/grammars/python.wy.
 
 ;;; Code:
 

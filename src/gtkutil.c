@@ -487,7 +487,8 @@ get_utf8_string (const char *str)
   if (!utf8_str)
     {
       /* Probably some control characters in str.  Escape them. */
-      size_t nr_bad = 0;
+      ptrdiff_t len;
+      ptrdiff_t nr_bad = 0;
       gsize bytes_read;
       gsize bytes_written;
       unsigned char *p = (unsigned char *)str;
@@ -511,7 +512,10 @@ get_utf8_string (const char *str)
         }
       if (cp) g_free (cp);
 
-      up = utf8_str = xmalloc (strlen (str) + nr_bad * 4 + 1);
+      len = strlen (str);
+      if ((min (PTRDIFF_MAX, SIZE_MAX) - len - 1) / 4 < nr_bad)
+	memory_full (SIZE_MAX);
+      up = utf8_str = xmalloc (len + nr_bad * 4 + 1);
       p = (unsigned char *)str;
 
       while (! (cp = g_locale_to_utf8 ((char *)p, -1, &bytes_read,
@@ -1907,12 +1911,12 @@ xg_get_file_name (FRAME_PTR f,
   int filesel_done = 0;
   xg_get_file_func func;
 
-#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
   /* I really don't know why this is needed, but without this the GLIBC add on
      library linuxthreads hangs when the Gnome file chooser backend creates
      threads.  */
   sigblock (sigmask (__SIGRTMIN));
-#endif /* HAVE_GTK_AND_PTHREAD */
+#endif /* HAVE_PTHREAD */
 
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
 
@@ -1932,7 +1936,7 @@ xg_get_file_name (FRAME_PTR f,
 
   filesel_done = xg_dialog_run (f, w);
 
-#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
   sigunblock (sigmask (__SIGRTMIN));
 #endif
 
@@ -1960,9 +1964,9 @@ xg_get_font_name (FRAME_PTR f, const char *default_name)
   char *fontname = NULL;
   int done = 0;
 
-#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
   sigblock (sigmask (__SIGRTMIN));
-#endif /* HAVE_GTK_AND_PTHREAD */
+#endif /* HAVE_PTHREAD */
 
   w = gtk_font_selection_dialog_new ("Pick a font");
   if (!default_name)
@@ -1974,7 +1978,7 @@ xg_get_font_name (FRAME_PTR f, const char *default_name)
 
   done = xg_dialog_run (f, w);
 
-#if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
+#if defined (HAVE_PTHREAD) && defined (__SIGRTMIN)
   sigunblock (sigmask (__SIGRTMIN));
 #endif
 
@@ -3296,8 +3300,8 @@ static int scroll_bar_width_for_theme;
 static struct
 {
   GtkWidget **widgets;
-  int max_size;
-  int used;
+  ptrdiff_t max_size;
+  ptrdiff_t used;
 } id_to_widget;
 
 /* Grow this much every time we need to allocate more  */
@@ -3306,17 +3310,20 @@ static struct
 
 /* Store the widget pointer W in id_to_widget and return the integer index.  */
 
-static int
+static ptrdiff_t
 xg_store_widget_in_map (GtkWidget *w)
 {
-  int i;
+  ptrdiff_t i;
 
   if (id_to_widget.max_size == id_to_widget.used)
     {
-      int new_size = id_to_widget.max_size + ID_TO_WIDGET_INCR;
+      ptrdiff_t new_size;
+      if (TYPE_MAXIMUM (Window) - ID_TO_WIDGET_INCR < id_to_widget.max_size)
+	memory_full (SIZE_MAX);
 
-      id_to_widget.widgets = xrealloc (id_to_widget.widgets,
-                                       sizeof (GtkWidget *)*new_size);
+      new_size = id_to_widget.max_size + ID_TO_WIDGET_INCR;
+      id_to_widget.widgets = xnrealloc (id_to_widget.widgets,
+					new_size, sizeof (GtkWidget *));
 
       for (i = id_to_widget.max_size; i < new_size; ++i)
         id_to_widget.widgets[i] = 0;
@@ -3345,7 +3352,7 @@ xg_store_widget_in_map (GtkWidget *w)
    Called when scroll bar is destroyed.  */
 
 static void
-xg_remove_widget_from_map (int idx)
+xg_remove_widget_from_map (ptrdiff_t idx)
 {
   if (idx < id_to_widget.max_size && id_to_widget.widgets[idx] != 0)
     {
@@ -3357,7 +3364,7 @@ xg_remove_widget_from_map (int idx)
 /* Get the widget pointer at IDX from id_to_widget. */
 
 static GtkWidget *
-xg_get_widget_from_map (int idx)
+xg_get_widget_from_map (ptrdiff_t idx)
 {
   if (idx < id_to_widget.max_size && id_to_widget.widgets[idx] != 0)
     return id_to_widget.widgets[idx];
@@ -3396,10 +3403,10 @@ xg_get_default_scrollbar_width (void)
 /* Return the scrollbar id for X Window WID on display DPY.
    Return -1 if WID not in id_to_widget.  */
 
-int
+ptrdiff_t
 xg_get_scroll_id_for_window (Display *dpy, Window wid)
 {
-  int idx;
+  ptrdiff_t idx;
   GtkWidget *w;
 
   w = xg_win_to_widget (dpy, wid);
@@ -3421,7 +3428,7 @@ xg_get_scroll_id_for_window (Display *dpy, Window wid)
 static void
 xg_gtk_scroll_destroy (GtkWidget *widget, gpointer data)
 {
-  int id = (intptr_t) data;
+  intptr_t id = (intptr_t) data;
   xg_remove_widget_from_map (id);
 }
 
@@ -3496,7 +3503,7 @@ xg_create_scroll_bar (FRAME_PTR f,
 /* Remove the scroll bar represented by SCROLLBAR_ID from the frame F.  */
 
 void
-xg_remove_scroll_bar (FRAME_PTR f, int scrollbar_id)
+xg_remove_scroll_bar (FRAME_PTR f, ptrdiff_t scrollbar_id)
 {
   GtkWidget *w = xg_get_widget_from_map (scrollbar_id);
   if (w)
@@ -3515,7 +3522,7 @@ xg_remove_scroll_bar (FRAME_PTR f, int scrollbar_id)
 
 void
 xg_update_scrollbar_pos (FRAME_PTR f,
-                         int scrollbar_id,
+                         ptrdiff_t scrollbar_id,
                          int top,
                          int left,
                          int width,
@@ -4429,7 +4436,7 @@ update_frame_tool_bar (FRAME_PTR f)
       int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
       int idx;
-      int img_id;
+      ptrdiff_t img_id;
       int icon_size = 0;
       struct image *img = NULL;
       Lisp_Object image;

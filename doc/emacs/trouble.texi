@@ -15,7 +15,7 @@ also considered.
 @raisesections
 @end ifnottex
 
-@node Quitting, Lossage, Customization, Top
+@node Quitting
 @section Quitting and Aborting
 @cindex quitting
 

@@ -1439,7 +1439,7 @@ x_draw_glyphless_glyph_string_foreground (struct glyph_string *s)
 
    Nominally, highlight colors for `3d' faces are calculated by
    brightening an object's color by a constant scale factor, but this
-   doesn't yield good results for dark colors, so for colors who's
+   doesn't yield good results for dark colors, so for colors whose
    brightness is less than this value (on a scale of 0-255) have to
    use an additional additive factor.
 
@@ -1618,8 +1618,9 @@ x_setup_relief_colors (struct glyph_string *s)
 
 static void
 w32_draw_relief_rect (struct frame *f,
-		      int left_x, int top_y, int right_x, int bottom_y, int width,
-		      int raised_p, int top_p, int bot_p, int left_p, int right_p,
+		      int left_x, int top_y, int right_x, int bottom_y,
+		      int width, int raised_p,
+		      int top_p, int bot_p, int left_p, int right_p,
 		      RECT *clip_rect)
 {
   int i;
@@ -1880,7 +1881,8 @@ x_draw_image_relief (struct glyph_string *s)
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
     {
-      thick = tool_bar_button_relief >= 0 ? tool_bar_button_relief : DEFAULT_TOOL_BAR_BUTTON_RELIEF;
+      thick = tool_bar_button_relief >= 0 ? tool_bar_button_relief
+	: DEFAULT_TOOL_BAR_BUTTON_RELIEF;
       raised_p = s->hl == DRAW_IMAGE_RAISED;
     }
   else
@@ -3486,7 +3488,7 @@ my_destroy_window (struct frame * f, HWND hwnd)
 
 /* Create a scroll bar and return the scroll bar vector for it.  W is
    the Emacs window on which to create the scroll bar. TOP, LEFT,
-   WIDTH and HEIGHT are.the pixel coordinates and dimensions of the
+   WIDTH and HEIGHT are the pixel coordinates and dimensions of the
    scroll bar. */
 
 static struct scroll_bar *
@@ -3872,7 +3874,7 @@ w32_scroll_bar_handle_click (struct scroll_bar *bar, W32Msg *msg,
 	  si.fMask = SIF_POS;
 	  si.nPos = y;
 	  /* Remember apparent position (we actually lag behind the real
-	     position, so don't set that directly.  */
+	     position, so don't set that directly).  */
 	  last_scroll_bar_drag_pos = y;
 
 	  SetScrollInfo (SCROLL_BAR_W32_WINDOW (bar), SB_CTL, &si, FALSE);
@@ -4771,7 +4773,7 @@ w32_read_socket (struct terminal *terminal, int expected,
       pending_autoraise_frame = 0;
     }
 
-  /* Check which frames are still visisble, if we have enqueued any user
+  /* Check which frames are still visible, if we have enqueued any user
      events or been notified of events that may affect visibility.  We
      do this here because there doesn't seem to be any direct
      notification from Windows that the visibility of a window has

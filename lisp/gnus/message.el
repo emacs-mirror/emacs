@@ -1310,7 +1310,7 @@ text and it replaces `self-insert-command' with the other command, e.g.
   :type '(repeat function))
 
 (defcustom message-auto-save-directory
-  (if (file-exists-p message-directory)
+  (if (file-writable-p message-directory)
       (file-name-as-directory (expand-file-name "drafts" message-directory))
     "~/")
   "*Directory where Message auto-saves buffers if Gnus isn't running.
@@ -1353,7 +1353,8 @@ candidates:
 `quoted-text-only'  Allow you to post quoted text only;
 `multiple-copies'   Allow you to post multiple copies;
 `cancel-messages'   Allow you to cancel or supersede messages from
-		    your other email addresses.")
+		    your other email addresses;
+`canlock-verify'    Allow you to cancel messages without verifying canlock.")
 
 (defsubst message-gnksa-enable-p (feature)
   (or (not (listp message-shoot-gnksa-feet))
@@ -4253,8 +4254,10 @@ conformance."
 		 "Invisible text found and made visible; continue sending? ")
 	  (error "Invisible text found and made visible")))))
   (message-check 'illegible-text
-    (let (char found choice)
+    (let (char found choice nul-chars)
       (message-goto-body)
+      (setq nul-chars (save-excursion
+			(search-forward "\000" nil t)))
       (while (progn
 	       (skip-chars-forward mm-7bit-chars)
 	       (when (get-text-property (point) 'no-illegible-text)
@@ -4280,7 +4283,9 @@ conformance."
       (when found
 	(setq choice
 	      (gnus-multiple-choice
-	       "Non-printable characters found.  Continue sending?"
+	       (if nul-chars
+		   "NUL characters found, which may cause problems.  Continue sending?"
+		 "Non-printable characters found.  Continue sending?")
 	       `((?d "Remove non-printable characters and send")
 		 (?r ,(format
 		       "Replace non-printable characters with \"%s\" and send"
@@ -6525,7 +6530,9 @@ are not included."
   (message-position-point)
   ;; Allow correct handling of `message-checksum' in `message-yank-original':
   (set-buffer-modified-p nil)
-  (undo-boundary))
+  (undo-boundary)
+  ;; rmail-start-mail expects message-mail to return t (Bug#9392)
+  t)
 
 (defun message-set-auto-save-file-name ()
   "Associate the message buffer with a file in the drafts directory."
@@ -7037,7 +7044,8 @@ regexp to match all of yours addresses."
   (save-excursion
     (save-restriction
       (message-narrow-to-head-1)
-      (if (message-fetch-field "Cancel-Lock")
+      (if (and (message-fetch-field "Cancel-Lock")
+	       (message-gnksa-enable-p 'canlock-verify))
 	  (if (null (canlock-verify))
 	      t
 	    (error "Failed to verify Cancel-lock: This article is not yours"))

@@ -1,22 +1,49 @@
-2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
+2011-08-30  Paul Eggert  <eggert@cs.ucla.edu>
 
-	* NEWS: Document ## and #:.
+	* MACHINES: Remove obsolete info and update a bit (Bug#9404).
 
-2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+	* PROBLEMS: Remove obsolete comment re Yellow Dog (Bug#9403).
+
+2011-08-24  Steve Chapel  <schapel@laptop.stevechapel.com>  (tiny change)
+
+	* refcards/refcard.tex: Add a few more commands. (Bug#9343)
+
+2011-08-22  Juri Linkov  <juri@jurta.org>
+
+	* compilation.txt: Add more samples of output and non-output
+	switches (bug#9319).
+
+2011-08-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* themes/dichromacy-theme.el:
+	* themes/wheatgrass-theme.el:
+	* themes/tango-theme.el:
+	* themes/tango-dark-theme.el: Add error, warning, and success
+	faces.
+
+2011-08-15  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* refcards/orgcard.tex: Document `org-copy-visible'.
 
-2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
 	* refcards/orgcard.tex: Documentation of new Babel function.
 
-2011-07-28  Eric Schulte  <schulte.eric@gmail.com>
+2011-08-15  Eric Schulte  <schulte.eric@gmail.com>
 
 	* refcards/orgcard.tex: Adding line for org-babel-check-src-block.
 
-2011-07-28  Carsten Dominik  <carsten.dominik@gmail.com>
+2011-08-15  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* refcards/orgcard.tex: Document key for clock consistency check.
+
+2011-07-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* grammars: New directory.
+
+2011-07-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* NEWS: Document ## and #:.
 
 2011-07-18  Andreas Schwab  <schwab@linux-m68k.org>
 

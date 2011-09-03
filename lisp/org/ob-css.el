@@ -1,6 +1,6 @@
 ;;; ob-css.el --- org-babel functions for css evaluation
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -44,6 +44,6 @@ CSS does not support sessions."
 
 (provide 'ob-css)
 
-;; arch-tag: f4447e8c-50ab-41f9-b322-b7b9574d9fbe
+
 
 ;;; ob-css.el ends here

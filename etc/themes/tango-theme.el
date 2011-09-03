@@ -66,6 +66,9 @@ Semantic, and Ansi-Color faces are included.")
    ;; Escape and prompt faces
    `(minibuffer-prompt ((,class (:weight bold :foreground ,blue-3))))
    `(escape-glyph ((,class (:foreground ,red-3))))
+   `(error ((,class (:foreground ,red-3))))
+   `(warning ((,class (:foreground ,orange-3))))
+   `(success ((,class (:foreground ,cham-3))))
    ;; Font lock faces
    `(font-lock-builtin-face ((,class (:foreground ,plum-2))))
    `(font-lock-comment-face ((,class (:slant italic :foreground ,alum-5))))
@@ -75,7 +78,6 @@ Semantic, and Ansi-Color faces are included.")
    `(font-lock-string-face ((,class (:foreground ,plum-3))))
    `(font-lock-type-face ((,class (:foreground ,blue-3))))
    `(font-lock-variable-name-face ((,class (:foreground ,orange-4))))
-   `(font-lock-warning-face ((,class (:foreground ,red-2))))
    ;; Button and link faces
    `(link ((,class (:underline t :foreground ,blue-3))))
    `(link-visited ((,class (:underline t :foreground ,blue-2))))

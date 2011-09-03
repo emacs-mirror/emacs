@@ -1,7 +1,6 @@
 ;;; org-xoxo.el --- XOXO export for Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -124,5 +123,5 @@ The XOXO buffer is named *xoxo-<source buffer name>*"
 
 (provide 'org-xoxo)
 
-;; arch-tag: 16e6a31f-f4f5-46f1-af18-48dc89faa702
+
 ;;; org-xoxo.el ends here

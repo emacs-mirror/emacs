@@ -2130,13 +2130,17 @@ comment at the start of cc-engine.el for more info."
       pos))
 
 (defsubst c-state-cache-non-literal-place (pos state)
-  ;; Return a position outside of a string/comment at or before POS.
+  ;; Return a position outside of a string/comment/macro at or before POS.
   ;; STATE is the parse-partial-sexp state at POS.
-  (if (or (nth 3 state)			; in a string?
-	  (nth 4 state))		; in a comment?
-      (nth 8 state)
-    pos))
-
+  (let ((res (if (or (nth 3 state)	; in a string?
+		     (nth 4 state))	; in a comment?
+		 (nth 8 state)
+	       pos)))
+    (save-excursion
+      (goto-char res)
+      (if (c-beginning-of-macro)
+	  (point)
+	res))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Stuff to do with point-min, and coping with any literal there.
@@ -6321,7 +6325,9 @@ comment at the start of cc-engine.el for more info."
 	(let* ((start (point)) kwd-sym kwd-clause-end found-type)
 
 	  ;; Look for a specifier keyword clause.
-	  (when (looking-at c-prefix-spec-kwds-re)
+	  (when (or (looking-at c-prefix-spec-kwds-re)
+		    (and (c-major-mode-is 'java-mode)
+			 (looking-at "@[A-Za-z0-9]+")))
 	    (if (looking-at c-typedef-key)
 		(setq at-typedef t))
 	    (setq kwd-sym (c-keyword-sym (match-string 1)))

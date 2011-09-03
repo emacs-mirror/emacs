@@ -1,6 +1,6 @@
 ;;; ob-haskell.el --- org-babel functions for haskell evaluation
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -213,6 +213,6 @@ constructs (header arguments, no-web syntax etc...) are ignored."
 
 (provide 'ob-haskell)
 
-;; arch-tag: b53f75f3-ba1a-4b05-82d9-a2a0d4e70804
+
 
 ;;; ob-haskell.el ends here

@@ -1,6 +1,6 @@
 ;;; ob-lilypond.el --- org-babel functions for lilypond evaluation
 
-;; Copyright (C) 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 ;; Author: Martyn Jago
 ;; Keywords: babel language, literate programming
@@ -442,6 +442,6 @@ dependent on LY-ARRANGE-MODE"
 
 (provide 'ob-lilypond)
 
-;; arch-tag: ac449eea-2cf2-4dc5-ae33-426f57ba4894
+
 
 ;;; ob-lilypond.el ends here

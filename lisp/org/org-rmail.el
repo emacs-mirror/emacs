@@ -1,7 +1,6 @@
 ;;; org-rmail.el --- Support for links to Rmail messages from within Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -115,6 +114,6 @@
 
 (provide 'org-rmail)
 
-;; arch-tag: c6cf4a8b-6639-4b7f-821f-bdf10746b173
+
 
 ;;; org-rmail.el ends here

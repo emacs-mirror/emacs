@@ -2834,8 +2834,7 @@ The list is determined from the variable `gnus-score-file-alist'."
       ;; handle the multiple match alist
       (while alist
 	(when (string-match (caar alist) group)
-	  (setq score-files
-		(nconc score-files (copy-sequence (cdar alist)))))
+	  (setq score-files (append (cdar alist) score-files)))
 	(setq alist (cdr alist)))
       (setq alist gnus-score-file-single-match-alist)
       ;; handle the single match alist
@@ -2845,8 +2844,7 @@ The list is determined from the variable `gnus-score-file-alist'."
 	  ;; and score-files is still nil.  -sj
 	  ;; this can be construed as a "stop searching here" feature :>
 	  ;; and used to simplify regexps in the single-alist
-	  (setq score-files
-		(nconc score-files (copy-sequence (cdar alist))))
+	  (setq score-files (append (cdar alist) score-files))
 	  (setq alist nil))
 	(setq alist (cdr alist)))
       ;; cache the score files
@@ -2866,7 +2864,7 @@ The list is determined from the variable `gnus-score-file-alist'."
       (when gnus-score-use-all-scores
 	;; Get the initial score files for this group.
 	(when funcs
-	  (setq score-files (nreverse (gnus-score-find-alist group))))
+	  (setq score-files (copy-sequence (gnus-score-find-alist group))))
 	;; Add any home adapt files.
 	(let ((home (gnus-home-score-file group t)))
 	  (when home
@@ -3013,7 +3011,7 @@ If ADAPT, return the home adaptive file instead."
 
 (defun gnus-current-home-score-file (group)
   "Return the \"current\" regular score file."
-  (car (nreverse (gnus-score-find-alist group))))
+  (car (gnus-score-find-alist group)))
 
 ;;;
 ;;; Score decays

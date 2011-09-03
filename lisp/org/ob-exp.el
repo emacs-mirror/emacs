@@ -1,8 +1,9 @@
 ;;; ob-exp.el --- Exportation of org-babel source blocks
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
-;; Author: Eric Schulte, Dan Davison
+;; Author: Eric Schulte
+;;	Dan Davison
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
 ;; Version: 7.7
@@ -266,6 +267,6 @@ inhibit insertion of results into the buffer."
 
 (provide 'ob-exp)
 
-;; arch-tag: 523abf4c-76d1-44ed-9f27-e3bddf34bf0f
+
 
 ;;; ob-exp.el ends here

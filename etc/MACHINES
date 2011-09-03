@@ -24,227 +24,13 @@ file, and then edit the `configure' script to tell it which
 configuration name(s) should select your new machine description and
 system description files.
 
-Some obsolete platforms are unsupported beginning with Emacs 23.1, see
+Some obsolete platforms are unsupported beginning with Emacs 23.1.  See
 the list at the end of this file.
 
 
-** Alpha (DEC) running GNU/Linux (alpha-dec-linux-gnu)
-
-  DEC C compiler version 5.9 (DEC C V5.9-005 on Digital UNIX V4.0f)
-  is reported to produce bogus binaries of Emacs 21.2 when the
-  command-line switches "-O4 -arch ev6 -tune ev6" are used.  Using
-  just -O4 produces a good executable.
-
-  For 4.0 revision 564, and 4.0A and 4.0B, Emacs 20 seems to work
-  with no special configuration options.  However, if you use GCC as
-  your compiler, you will need version 2.8.1 or later, as older
-  versions fail to build with a message "Invalid dimension for the
-  charset-ID 160".
-
-** Apple Macintosh running Mac OS X
-
-** Apple PowerPC Macintosh running GNU/Linux
-
-** HP 9000 series 700 or 800 (Spectrum) (hppa1.0-hp-hpux or hppa1.1-hp-hpux)
-
-  Emacs 20 may work on HPUX 10.  You need patch PHSS_6202 to install
-  the Xaw and Xmu libraries.  On HPUX 10.20 you may need to compile with GCC;
-  when Emacs was compiled with HP's C compiler, HP92453-01 A.10.32.03,
-  the subprocess features failed to work.
-
-  If you turn on the DSUSP character (delayed suspend), Emacs 19.26
-  does not know how to turn it off on HPUX. You need to turn it off manually.
-
-  If you are running HP/UX release 8.0 or later, you need the optional
-  "C/ANSI C" software in order to build Emacs (older releases of HP/UX
-  do not require any special software).  If the file "/etc/filesets/C"
-  exists on your machine, you have this software, otherwise you do not.
-
-** IBM RS/6000 (rs6000-ibm-aix*)
-
-  Emacs 19.26 is believed to work; its pretest was tested.
-
-  Compiling with the system's `cc' and CFLAGS containing `-O5' might
-  fail because libXbsd isn't found.  This is a compiler bug;
-  re-configure Emacs so that it isn't compiled with `-O5'.
-
-  On AIX 4.3.x and 4.4, compiling with /bin/c89 fails because it
-  treats certain warnings as errors.  Use `cc' instead.
-
-  At last report, Emacs didn't run well on terminals.  Informed
-  persons say that the tty VMIN and VTIME settings have been
-  corrupted; if you have a fix, please send it to us.
-
-  Compiling with -O using the IBM compiler has been known to make
-  Emacs work incorrectly.  There are reports that IBM compiler versions
-  earlier than 1.03.00.02 fail even without -O.
-
-  As of 19.11, if you strip the Emacs executable, it ceases to work.
-
-  If anyone can fix the above problems, or confirm that they don't happen
-  with certain versions of various programs, we would appreciate it.
-
-** IBM System/390 running GNU/Linux (s390-*-linux-gnu)
-
-  As of Emacs 21.2, a 31-bit only version is supported on this system.
-
-** Intel 386 (i386-*-freebsd,      i386-*-linux-gnu,
-	   i386-*-cygwin,       i386-*-msdos,	i386-*-windowsnt.
-	   i386 can be replaced with i486, i586, or i686)
-
-  In the above configurations, * means that the manufacturer's name
-  you specify does not matter, and you can use any name you like
-  (but it should not contain any dashes or stars).
-
-  Use i386-*-linux-gnu for GNU/Linux systems; Emacs runs as of version 19.26.
-  Use i386-*-cygwin for Cygwin; Emacs builds as of version 22.1, in both X11
-  and non-X11 modes.  (The Cygwin site has source and binaries for 21.2.)
-
-  On GNU/Linux systems, Emacs 19.23 was said to work properly with libc
-  version 4.5.21, but not with 4.5.19.
-
-  On GNU/Linux, configure may fail to put these definitions in config.h:
-
-    #define HAVE_GETTIMEOFDAY
-    #define HAVE_MKDIR
-    #define HAVE_RMDIR
-    #define HAVE_XSCREENNUMBEROFSCREEN
-
-  To work around the problem, add those definitions by hand.
-  It is possible that this problem happens only with X11R6.
-  Newer system versions have fixed it.
-
-  On NetBSD and FreeBSD, at one time, it was necessary to use
-  GNU make, not the system's make.  Assuming it's installed as gmake,
-  do `gmake install MAKE=gmake'.  However, more recently it is
-  reported that using the system Make on NetBSD 1.3.1 works ok.
-
-  Note that use of Linux with GCC 2.4 and the DLL 4.4 libraries
-  requires the experimental "net 2" network patches (no relation to
-  Berkeley Net 2).  There is a report that (some version of) Linux
-  requires including `/usr/src/linux/include/linux' in buffer.c
-  but no coherent explanation of why that might be so.  If it is so,
-  in current versions of Linux, something else should probably be changed.
-
-  You may find that adding -I/usr/X/include or -I/usr/netinclude or both
-  to CFLAGS avoids compilation errors on certain systems.
-
-  Some versions convince sysdep.c to try to use `struct tchars'
-  but define `struct tc' instead; add `#define tchars tc'
-  to config.h to solve this problem.
-
-** Iris 4D (mips-sgi-irix6.*)
-
-  Emacs 21.3 is reported to work on IRIX 6.5.x.
-
-  You can build a 64-bit executable (with larger maximum buffer size)
-  on Irix 6.5 by specifying the 64-bit ABI using the `-64' compiler
-  flag or otherwise (see cc(1)).
-
-  If compiling with GCC on Irix 6 yields an error "conflicting types
-  for `initstate'", install GCC 2.95 or a newer version, and this
-  problem should go away.  It is possible that this problem results
-  from upgrading the operating system without reinstalling GCC; so you
-  could also try reinstalling the same version of GCC, and telling us
-  whether that fixes the problem.
-
-** Sun 4 (sparc), Sun 386 (sparc-sun-solaris2.*,
-    			       i386-sun-solaris2.*, sparc*-*-linux-gnu)
-
-  To build a 32-bit Emacs (i.e. if you are having any sort of problem
-  bootstrapping a 64-bit version), you can use the Sun Studio compiler
-  and configure Emacs with:
-    env CC="cc -xarch=v7" CFLAGS='' ./configure    # on SPARC systems
-    env CC="cc -xarch=386" CFLAGS='' ./configure   # on x86 systems
-  On Solaris 2.10, it is also possible to use /usr/sfw/bin/gcc to build
-  a 32-bit version of Emacs.  Just make sure you point ./configure to
-  the right compiler:
-
-    env CC='/usr/sfw/bin/gcc -m32' ./configure
-
-  To build a 64-bit Emacs (with larger maximum buffer size and
-  including large file support) on a Solaris system which supports
-  64-bit executables, use the Sun compiler, configuring something like
-  this (see the cc documentation for information on 64-bit
-  compilation):
-
-    env CC="cc -xarch=v9" CFLAGS='' ./configure    # on SPARC systems
-    env CC="cc -xarch=amd64" CFLAGS='' ./configure # on x86 systems
-
-  As of version 2.95, GCC doesn't support the 64-bit ABI properly, but
-  later releases may.
-
-  Some versions of Solaris 8 have a bug in their XIM (X Input Method)
-  implementation which causes Emacs to dump core when one of several
-  frames is closed.  To avoid this, either install patch 108773-12
-  (for Sparc) or 108874-12 (for x86), or configure Emacs with the
-  `--with-xim=no' switch (you can use Leim input methods instead).
-
-  On Solaris 2.7, building Emacs with WorkShop Compilers 5.0 98/12/15
-  C 5.0 failed, apparently with non-default CFLAGS, most probably due to
-  compiler bugs.  Using Sun Solaris 2.7 Sun WorkShop 6 update 1 C
-  release was reported to work without problems.  It worked OK on
-  another system with Solaris 8 using apparently the same 5.0 compiler
-  and the default CFLAGS.
-
-  Emacs 21.1 and 21.2 built with Sun's ProWorks PC3.0.1 compiler on
-  Intel/Solaris 8 was reported to abort and dump core during startup.
-  Using GCC or a newer SUN compiler (Sun WokShop 6 update 2 C 5.3
-  2001/05/15) solves the problem.
-
-  Emacs 20.5 and later work on SPARC GNU/Linux with the 32-bit ABI.
-  As of release 2.95, GCC doesn't work properly with the 64-bit ABI
-  (applicable on UltraSPARC), but that isn't the default mode.
-
-  There are reports that using SunSoft cc with -xO4 -xdepend produces
-  bad code for some part of Emacs.
-
-  Some people report that Emacs crashes immediately on startup when
-  used with a non-X terminal, but we think this is due to compiling
-  with GCC and failing to use GCC's "fixed" system header files.
-
-  Some Sun versions of X windows use the clipboard, not the selections,
-  for transferring text between clients.  The Cut, Paste and Copy items
-  in the menu bar Edit menu work with the clipboard.
-
-  If you compile with Sun's ANSI compiler acc, you need additional options
-  when linking temacs, such as
-     /usr/lang/SC2.0.1/values-Xt.o -L/usr/lang/SC2.0.1/cg87 -L/usr/lang/SC2.0.1
-  (those should be added just before the libraries) and you need to
-  add -lansi just before -lc.  The precise file names depend on the
-  compiler version, so we cannot easily arrange to supply them.
-
-  On Solaris 2, you need to install patch 100947-02 to fix a system bug.
-  Presumably this patch comes from Sun.  You must alter the definition of
-  LD_SWITCH_SYSTEM if your X11 libraries are not in /usr/openwin/lib.
-  You must make sure that /usr/ucblib is not in your LD_LIBRARY_PATH.
-
-  On Solaris, do not use /usr/ucb/cc.  Use /opt/SUNWspro/bin/cc.  Make
-  sure that /usr/ccs/bin and /opt/SUNWspro/bin are in your PATH before
-  /usr/ucb.  (Most free software packages have the same requirement on
-  Solaris.)  With this compiler, use `/opt/SUNWspro/bin/cc -E' as the
-  preprocessor.  If this inserts extra whitespace into its output (see
-  the PROBLEMS file) then add the option `-Xs'.
-
-  If you have trouble using open-network-stream, get the distribution
-  of `bind' (the BSD name-server), build libresolv.a, and link Emacs
-  with -lresolv, by editing LIBRESOLV in src/Makefile.  This problem is
-  due to obsolete software in the nonshared standard library.
-
-  Note that Emacs on a Sun is not really as big as it looks.  As
-  dumped, it includes around 200k of zeros between the original text
-  section and the original data section (now remapped as part of the
-  text). These are never swapped in.
-
-** SuperH (sh[34]*-*-linux-gnu)
-
-  Emacs 23.0.60 was reported to work on GNU/Linux (October 2008).
-  Tested on a little-endian sh4 system (cpu type SH7751R) running
-  Gentoo Linux 2008.0.
-
 * Here are notes about some of the systems supported:
 
-** Linux (actually GNU/Linux)
+** GNU/Linux
 
   Most of the complete systems which use the Linux kernel are close
   enough to the GNU system to be considered variant GNU systems.  We
@@ -263,31 +49,63 @@ the list at the end of this file.
   people to write more free software.  See the file LINUX-GNU in this
   directory for more explanation.
 
+*** 64-bit GNU/Linux
+
+  No special procedures should be needed to build a 64-bit Emacs on a
+  64-bit GNU/Linux system.  To build a 32-bit Emacs, first ensure that
+  the necessary 32-bit system libraries and include files are
+  installed.  Then use:
+
+    ./configure CC='gcc -m32' --build=i386-linux-gnu \
+      --x-libraries=/usr/X11R6/lib
+
+  (using the location of the 32-bit X libraries on your system).
+
+*** IBM System/390 running GNU/Linux (s390-*-linux-gnu)
+
+  As of Emacs 21.2, a 31-bit only version is supported on this system.
+
+*** SuperH (sh[34]*-*-linux-gnu)
+
+  Emacs 23.0.60 was reported to work on GNU/Linux (October 2008).
+  This was tested on a little-endian sh4 system (cpu type SH7751R) running
+  Gentoo Linux 2008.0.
+
 ** Mac OS X
 
   For installation instructions see the file nextstep/INSTALL.
 
-** MSDOS
+** Microsoft Windows
 
-  For installation on MSDOS, see the file msdos/INSTALL.
+  For installation instructions see the file nt/INSTALL.
+
+** MS-DOS
+
+  For installation instructions see the file msdos/INSTALL.
   See the "MS-DOS" chapter of the manual for information about using
-  Emacs on MSDOS.
+  Emacs on MS-DOS.
 
-** MS-Windows NT/95/98/ME/2000
+** Solaris
 
-  For installation on all versions of the MS-Windows platform, see the
-  file nt/INSTALL.
+  On Solaris it is also possible to use either GCC or Solaris Studio
+  to build Emacs, by pointing ./configure to the right compiler:
 
-** X86_64 GNU/Linux
+    ./configure CC='/usr/sfw/bin/gcc'  # GCC
+    ./configure CC='cc'                # Solaris Studio
 
-  No special procedures should be needed to build a 64-bit Emacs.  To
-  build a 32-bit Emacs, first ensure that the necessary 32-bit system
-  libraries and include files are installed.  Then use:
+  On Solaris, do not use /usr/ucb/cc.  Use /opt/SUNWspro/bin/cc.  Make
+  sure that /usr/ccs/bin and /opt/SUNWspro/bin are in your PATH before
+  /usr/ucb.  (Most free software packages have the same requirement on
+  Solaris.)  With this compiler, use `/opt/SUNWspro/bin/cc -E' as the
+  preprocessor.  If this inserts extra whitespace into its output (see
+  the PROBLEMS file) then add the option `-Xs'.
 
-    env CC="gcc -m32" ./configure --build=i386-linux-gnu \
-      --x-libraries=/usr/X11R6/lib
+  To build a 64-bit Emacs (with larger maximum buffer size) on a
+  Solaris system which supports 64-bit executables, specify the -m64
+  compiler option.  For example:
 
-  (using the location of the 32-bit X libraries on your system).
+    ./configure CC='/usr/sfw/bin/gcc -m64'  # GCC
+    ./configure CC='cc -m64'                # Solaris Studio
 
 
 * Obsolete platforms

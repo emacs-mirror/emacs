@@ -1194,21 +1194,27 @@ The following commands are available:
     (gnus-group-mode)))
 
 (defun gnus-group-name-charset (method group)
-  (if (null method)
-      (setq method (gnus-find-method-for-group group)))
-  (let ((item (or (assoc method gnus-group-name-charset-method-alist)
-		  (and (consp method)
-		       (assoc (list (car method) (cadr method))
-			      gnus-group-name-charset-method-alist))))
-	(alist gnus-group-name-charset-group-alist)
-	result)
-    (if item
-	(cdr item)
-      (while (setq item (pop alist))
-	(if (string-match (car item) group)
-	    (setq alist nil
-		  result (cdr item))))
-      result)))
+  (unless method
+    (setq method (gnus-find-method-for-group group)))
+  (when (stringp method)
+    (setq method (gnus-server-to-method method)))
+  (if (eq (car method) 'nnimap)
+      ;; IMAP groups should not be encoded, since they do the encoding
+      ;; in utf7 in the protocol.
+      nil
+    (let ((item (or (assoc method gnus-group-name-charset-method-alist)
+		    (and (consp method)
+			 (assoc (list (car method) (cadr method))
+				gnus-group-name-charset-method-alist))))
+	  (alist gnus-group-name-charset-group-alist)
+	  result)
+      (if item
+	  (cdr item)
+	(while (setq item (pop alist))
+	  (if (string-match (car item) group)
+	      (setq alist nil
+		    result (cdr item))))
+	result))))
 
 (defun gnus-group-name-decode (string charset)
   ;; Fixme: Don't decode in unibyte mode.
@@ -3471,13 +3477,14 @@ sort in reverse order."
   "Clear all marks and read ranges from the current group.
 Obeys the process/prefix convention."
   (interactive "P")
-  (gnus-group-iterate arg
-    (lambda (group)
-      (let (info)
-	(gnus-info-clear-data (setq info (gnus-get-info group)))
-	(gnus-get-unread-articles-in-group info (gnus-active group) t)
-	(when (gnus-group-goto-group group)
-	  (gnus-group-update-group-line))))))
+  (when (gnus-y-or-n-p "Really clear data? ")
+    (gnus-group-iterate arg
+      (lambda (group)
+	(let (info)
+	  (gnus-info-clear-data (setq info (gnus-get-info group)))
+	  (gnus-get-unread-articles-in-group info (gnus-active group) t)
+	  (when (gnus-group-goto-group group)
+	    (gnus-group-update-group-line)))))))
 
 (defun gnus-group-clear-data-on-native-groups ()
   "Clear all marks and read ranges from all native groups."

@@ -526,6 +526,20 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 	  (define-key map (char-to-string loop) 'digit-argument)
 	  (setq loop (1+ loop))))))
 
+(defun make-composed-keymap (maps &optional parent)
+  "Construct a new keymap composed of MAPS and inheriting from PARENT.
+When looking up a key in the returned map, the key is looked in each
+keymap of MAPS in turn until a binding is found.
+If no binding is found in MAPS, the lookup continues in PARENT, if non-nil.
+As always with keymap inheritance, a nil binding in MAPS overrides
+any corresponding binding in PARENT, but it does not override corresponding
+bindings in other keymaps of MAPS.
+MAPS can be a list of keymaps or a single keymap.
+PARENT if non-nil should be a keymap."
+  `(keymap
+    ,@(if (keymapp maps) (list maps) maps)
+    ,@parent))
+
 (defun define-key-after (keymap key definition &optional after)
   "Add binding in KEYMAP for KEY => DEFINITION, right after AFTER's binding.
 This is like `define-key' except that the binding for KEY is placed
@@ -874,8 +888,8 @@ The elements of the list may include `meta', `control',
 and `down'.
 EVENT may be an event or an event type.  If EVENT is a symbol
 that has never been used in an event that has been read as input
-in the current Emacs session, then this function can return nil,
-even when EVENT actually has modifiers."
+in the current Emacs session, then this function may fail to include
+the `click' modifier."
   (let ((type event))
     (if (listp type)
 	(setq type (car type)))
@@ -3524,6 +3538,24 @@ If IGNORE-CASE is non-nil, the comparison is done without paying attention
 to case differences."
   (eq t (compare-strings str1 nil nil
                          str2 0 (length str1) ignore-case)))
+
+(defun bidi-string-mark-left-to-right (str)
+  "Return a string that can be safely inserted in left-to-right text.
+
+Normally, inserting a string with right-to-left (RTL) script into
+a buffer may cause some subsequent text to be displayed as part
+of the RTL segment (usually this affects punctuation characters).
+This function returns a string which displays as STR but forces
+subsequent text to be displayed as left-to-right.
+
+If STR contains any RTL character, this function returns a string
+consisting of STR followed by an invisible left-to-right mark
+\(LRM) character.  Otherwise, it returns STR."
+  (unless (stringp str)
+    (signal 'wrong-type-argument (list 'stringp str)))
+  (if (string-match "\\cR" str)
+      (concat str (propertize (string ?\x200e) 'invisible t))
+    str))
 
 ;;;; invisibility specs
 

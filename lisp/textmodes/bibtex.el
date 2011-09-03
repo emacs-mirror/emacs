@@ -3060,7 +3060,7 @@ When called interactively, FORCE is t, CURRENT is t if current buffer uses
     ;; select BibTeX buffer
     (if select
         (if buffer-list
-            (pop-to-buffer-same-window
+            (switch-to-buffer
              (completing-read "Switch to BibTeX buffer: "
                               (mapcar 'buffer-name buffer-list)
                               nil t

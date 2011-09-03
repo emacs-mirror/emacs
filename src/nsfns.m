@@ -97,6 +97,9 @@ Lisp_Object Fx_open_connection (Lisp_Object, Lisp_Object, Lisp_Object);
 
 extern BOOL ns_in_resize;
 
+/* Static variables to handle applescript execution.  */
+static Lisp_Object as_script, *as_result;
+static int as_status;
 
 /* ==========================================================================
 
@@ -2052,6 +2055,15 @@ ns_do_applescript (Lisp_Object script, Lisp_Object *result)
   return 0;
 }
 
+/* Helper function called from sendEvent to run applescript
+   from within the main event loop.  */
+
+void
+ns_run_ascript (void)
+{
+  as_status = ns_do_applescript (as_script, as_result);
+}
+
 DEFUN ("ns-do-applescript", Fns_do_applescript, Sns_do_applescript, 1, 1, 0,
        doc: /* Execute AppleScript SCRIPT and return the result.
 If compilation and execution are successful, the resulting script value
@@ -2061,12 +2073,37 @@ In case the execution fails, an error is signaled. */)
 {
   Lisp_Object result;
   int status;
+  NSEvent *nxev;
 
   CHECK_STRING (script);
   check_ns ();
 
   BLOCK_INPUT;
-  status = ns_do_applescript (script, &result);
+
+  as_script = script;
+  as_result = &result;
+
+  /* executing apple script requires the event loop to run, otherwise
+     errors aren't returned and executeAndReturnError hangs forever.
+     Post an event that runs applescript and then start the event loop.
+     The event loop is exited when the script is done.  */
+  nxev = [NSEvent otherEventWithType: NSApplicationDefined
+                            location: NSMakePoint (0, 0)
+                       modifierFlags: 0
+                           timestamp: 0
+                        windowNumber: [[NSApp mainWindow] windowNumber]
+                             context: [NSApp context]
+                             subtype: 0
+                               data1: 0
+                               data2: NSAPP_DATA2_RUNASSCRIPT];
+
+  [NSApp postEvent: nxev atStart: NO];
+  [NSApp run];
+
+  status = as_status;
+  as_status = 0;
+  as_script = Qnil;
+  as_result = 0;
   UNBLOCK_INPUT;
   if (status == 0)
     return result;
@@ -2670,4 +2707,7 @@ be used as the image of the icon representing the frame.  */);
   /* used only in fontset.c */
   check_window_system_func = check_ns;
 
+  as_status = 0;
+  as_script = Qnil;
+  as_result = 0;
 }

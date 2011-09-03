@@ -261,6 +261,8 @@ See `nnml-marks-is-evil' for more information.")
 					  (const :format "" "password")
 					  (string :format "Password: %v")))))))
 
+(make-obsolete 'nntp-authinfo-file nil "Emacs 24.1")
+
 
 
 (defvoo nntp-connection-timeout nil
@@ -430,6 +432,9 @@ be restored and the command retried."
 
 (defun nntp-kill-buffer (buffer)
   (when (buffer-name buffer)
+    (let ((process (get-buffer-process buffer)))
+      (when process
+	(delete-process process)))
     (kill-buffer buffer)
     (nnheader-init-server-buffer)))
 

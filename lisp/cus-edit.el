@@ -4409,25 +4409,14 @@ if only the first line of the docstring is shown."))
 
 (defun custom-file (&optional no-error)
   "Return the file name for saving customizations."
-  (let ((file
-	 (or custom-file
-	     (let ((user-init-file user-init-file)
-		   (default-init-file
-		     (if (eq system-type 'ms-dos) "~/_emacs" "~/.emacs")))
-	       (when (null user-init-file)
-		 (if (or (file-exists-p default-init-file)
-			 (and (eq system-type 'windows-nt)
-			      (file-exists-p "~/_emacs")))
-		     ;; Started with -q, i.e. the file containing
-		     ;; Custom settings hasn't been read.  Saving
-		     ;; settings there would overwrite other settings.
-		     (if no-error
-			 nil
-		       (error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
-		   (setq user-init-file default-init-file)))
-	       user-init-file))))
-    (and file
-	 (file-chase-links file))))
+  (if (null user-init-file)
+      ;; Started with -q, i.e. the file containing Custom settings
+      ;; hasn't been read.  Saving settings there won't make much
+      ;; sense.
+      (if no-error
+	  nil
+	(error "Saving settings from \"emacs -q\" would overwrite existing customizations"))
+    (file-chase-links (or custom-file user-init-file))))
 
 ;; If recentf-mode is non-nil, this is defined.
 (declare-function recentf-expand-file-name "recentf" (name))

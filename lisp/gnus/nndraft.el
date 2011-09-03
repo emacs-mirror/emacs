@@ -177,6 +177,8 @@ are generated if and only if they are also in `message-draft-headers'.")
 						       (list 'nndraft "")))
 			   (nnmail-get-active)))
 	   (gnus-group-marked (copy-sequence groups))
+	   ;; Don't send delayed articles.
+	   (gnus-get-new-news-hook nil)
 	   (inhibit-read-only t))
       (gnus-group-get-new-news-this-group nil t)
       (dolist (group groups)

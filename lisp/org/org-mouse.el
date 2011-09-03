@@ -1,6 +1,6 @@
 ;;; org-mouse.el --- Better mouse support for org-mode
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation
+;; Copyright (C) 2006-2011 Free Software Foundation
 ;;
 ;; Author: Piotr Zielinski <piotr dot zielinski at gmail dot com>
 ;; Maintainer: Carsten Dominik <carsten at orgmode dot org>
@@ -1146,6 +1146,6 @@ This means, between the beginning of line and the point."
 
 (provide 'org-mouse)
 
-;; arch-tag: ff1ae557-3529-41a3-95c6-baaebdcc280f
+
 
 ;;; org-mouse.el ends here

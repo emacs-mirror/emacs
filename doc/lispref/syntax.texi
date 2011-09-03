@@ -1084,6 +1084,24 @@ defaults to the current buffer's category table.
 @defun define-category char docstring &optional table
 This function defines a new category, with name @var{char} and
 documentation @var{docstring}, for the category table @var{table}.
+
+Here's an example of defining a new category for characters that have
+strong right-to-left directionality (@pxref{Bidirectional Display})
+and using it in a special category table:
+
+@example
+(defvar special-category-table-for-bidi
+  (let ((category-table (make-category-table))
+	(uniprop-table (unicode-property-table-internal 'bidi-class)))
+    (define-category ?R "Characters of bidi-class R, AL, or RLO"
+                     category-table)
+    (map-char-table
+     #'(lambda (key val)
+	 (if (memq val '(R AL RLO))
+	     (modify-category-entry key ?R category-table)))
+     uniprop-table)
+    category-table))
+@end example
 @end defun
 
 @defun category-docstring category &optional table

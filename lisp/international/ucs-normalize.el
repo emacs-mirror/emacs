@@ -139,14 +139,17 @@
   (defun nfd (char)
     (let ((decomposition
            (get-char-code-property char 'decomposition)))
-      (if (and decomposition (numberp (car decomposition)))
+      (if (and decomposition (numberp (car decomposition))
+	       (or (> (length decomposition) 1)
+		   (/= (car decomposition) char)))
           decomposition)))
 
   (defun nfkd (char)
     (let ((decomposition
            (get-char-code-property char 'decomposition)))
       (if (symbolp (car decomposition)) (cdr decomposition)
-        decomposition)))
+        (if (or (> (length decomposition) 1)
+		(/= (car decomposition) char)) decomposition))))
 
   (defun hfs-nfd (char)
     (when (or (and (>= char 0) (< char #x2000))
@@ -180,6 +183,9 @@
          (setq ccc (ucs-normalize-ccc char))
          (setq decomposition (get-char-code-property
                               char 'decomposition))
+	 (if (and (= (length decomposition) 1)
+		  (= (car decomposition) char))
+	     (setq decomposition nil))
          (if (and ccc (/= 0 ccc)) (add-to-list 'combining-chars char))
          (if (and (numberp (car decomposition))
                   (/= (ucs-normalize-ccc (car decomposition))

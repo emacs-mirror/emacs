@@ -786,8 +786,7 @@ Major and Minor Modes
 * Major Modes::        Defining major modes.
 * Minor Modes::        Defining minor modes.
 * Mode Line Format::   Customizing the text that appears in the mode line.
-* Imenu::              How a mode can provide a menu
-                         of definitions in the buffer.
+* Imenu::              Providing a menu of definitions made in a buffer.
 * Font Lock Mode::     How modes can highlight text according to syntax.
 * Desktop Save Mode::  How modes can have buffer state saved between
                          Emacs sessions.
@@ -799,15 +798,15 @@ Hooks
 
 Major Modes
 
-* Major Mode Basics::
 * Major Mode Conventions::  Coding conventions for keymaps, etc.
 * Auto Major Mode::         How Emacs chooses the major mode automatically.
 * Mode Help::               Finding out how to use a mode.
 * Derived Modes::           Defining a new major mode based on another major
                               mode.
+* Basic Major Modes::       Modes that other modes are often derived from.
 * Generic Modes::           Defining a simple major mode that supports
                               comment syntax and Font Lock mode.
-* Mode Hooks::              Hooks run at the end of major mode functions.
+* Mode Hooks::              Hooks run at the end of major mode commands.
 * Example Major Modes::     Text mode and Lisp modes.
 
 Minor Modes
@@ -1330,6 +1329,7 @@ Faces
 * Face Remapping::         Remapping faces to alternative definitions.
 * Face Functions::          How to define and examine faces.
 * Auto Faces::              Hook for automatic face assignment.
+* Basic Faces::             Faces that are defined by default.
 * Font Selection::          Finding the best available font for a face.
 * Font Lookup::             Looking up the names of available fonts
                               and information about them.

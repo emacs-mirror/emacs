@@ -1,3 +1,97 @@
+2011-08-30  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+
+	* lists.texi (Building Lists): Fix typo.
+
+2011-08-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Basic Faces): New node.  Document new faces.
+
+	* modes.texi (Major Mode Conventions): Move some text there.
+	(Mode Help): Remove major-mode var, duplicated in Major Modes.
+
+2011-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Basic Major Modes): New node.  Callers updated.
+	(Major Modes): Document fundamental-mode and major-mode.
+	(Major Mode Basics): Node deleted; text moved to Major Modes.
+	(Derived Modes): Document derived-mode-p.
+
+2011-08-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.texi (Changing Files, Create/Delete Dirs): Document new
+	arguments for delete-file, delete-directory, and copy-directory.
+	(Visiting Functions): Remove view-file; it is documented in the
+	Emacs manual.
+
+	* frames.texi (Layout Parameters): The defaults for the
+	menu-bar-lines and tool-bar-lines parameters depend on the mode.
+
+	* display.texi (Progress): Document spinner functionality.
+
+	* os.texi (Killing Emacs): Note that kill-emacs can be called by
+	operating system signals.  Refer to save-buffers-kill-terminal
+	instead of save-buffers-kill-emacs.
+
+	* objects.texi (Symbol Type): Document ## print representation.
+
+2011-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Specified Space): Mention that `space' specs
+	influence bidi reordering.
+	(Bidirectional Display): Explain how to use `(space . PROPS)' for
+	separating fields with bidirectional content.
+
+2011-08-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Bidirectional Display): Document return value in
+	buffers that are not bidi-reordered for display, and in unibyte
+	buffers.
+
+2011-08-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Character Properties): Document the values for
+	unassigned codepoints.
+
+2011-08-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* nonascii.texi (Character Properties): Document use of
+	`bidi-class' and `mirroring' properties as part of reordering.
+	Provide cross-references to "Bidirectional Display".
+
+	* display.texi (Bidirectional Display): Document the pitfalls of
+	concatenating strings with bidirectional content, with possible
+	solutions.  Document bidi-string-mark-left-to-right.  Mention
+	paragraph direction in modes that inherit from prog-mode.
+	Document use of `bidi-class' and `mirroring' properties as part of
+	reordering.
+
+2011-08-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* modes.texi (Major Mode Conventions): Improve the documentation
+	of `mode-class' `special' modes.
+
+	* nonascii.texi (Character Properties): Document the `mirroring'
+	property.  Add index entries.
+
+	* syntax.texi (Categories): Add an example of defining a new
+	category and category table.
+
+	* searching.texi (Regexp Backslash): Document how to display
+	existing categories.  Mention the possibility of adding
+	categories, and add an xref to where this is described.  Add an
+	index entry.
+
+2011-08-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Special Properties):
+	* display.texi (Overlay Properties): Note that mouse-face cannot
+	change the text size (Bug#8530).
+
+2011-08-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Time of Day): Remove set-time-zone-rule, and recommend
+	using setenv instead.
+
 2011-07-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Bidirectional Display): Document the fact that

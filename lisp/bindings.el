@@ -834,6 +834,7 @@ if `inhibit-field-text-motion' is non-nil."
     (setq i (1+ i))))
 (define-key global-map [?\C-\M--] 'negative-argument)
 
+;; Update tutorial--default-keys if you change these.
 (define-key global-map "\177" 'delete-backward-char)
 (define-key global-map "\C-d" 'delete-char)
 

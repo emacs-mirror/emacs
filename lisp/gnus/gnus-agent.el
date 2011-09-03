@@ -3560,7 +3560,7 @@ articles in every agentized group? "))
                 units (cdr units)))
 
         (format "Expiry recovered %d NOV entries, deleted %d files,\
- and freed %f %s."
+ and freed %.f %s."
                 (nth 0 stats)
                 (nth 1 stats)
                 size (car units)))

@@ -1,6 +1,6 @@
 ;;; ob-ruby.el --- org-babel functions for ruby evaluation
 
-;; Copyright (C) 2009, 2010  Free Software Foundation
+;; Copyright (C) 2009-2011  Free Software Foundation
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -241,6 +241,6 @@ return the value of the last statement in BODY, as elisp."
 
 (provide 'ob-ruby)
 
-;; arch-tag: 3e9726db-4520-49e2-b263-e8f571ac88f5
+
 
 ;;; ob-ruby.el ends here

@@ -1723,7 +1723,7 @@ the values STRING, PREDICATE and `lambda'.  */)
   (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate)
 {
   Lisp_Object regexps, tail, tem = Qnil;
-  EMACS_INT i = 0;
+  ptrdiff_t i = 0;
 
   CHECK_STRING (string);
 

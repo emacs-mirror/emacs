@@ -1,6 +1,6 @@
 ;;; ob-screen.el --- org-babel support for interactive terminal
 
-;; Copyright (C) 2009, 2010  Free Software Foundation
+;; Copyright (C) 2009-2011  Free Software Foundation
 
 ;; Author: Benjamin Andresen
 ;; Keywords: literate programming, interactive shell
@@ -142,6 +142,6 @@ The terminal should shortly flicker."
 
 (provide 'ob-screen)
 
-;; arch-tag: 908e5afe-89a0-4f27-b982-23f1f2e3bac9
+
 
 ;;; ob-screen.el ends here

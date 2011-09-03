@@ -778,6 +778,7 @@ Redefining FUNCTION also cancels it."
 			 (not (debugger-special-form-p symbol))))
 		t nil nil (symbol-name fn)))
      (list (if (equal val "") fn (intern val)))))
+  ;; FIXME: Use advice.el.
   (when (debugger-special-form-p function)
     (error "Function %s is a special form" function))
   (if (or (symbolp (symbol-function function))
@@ -835,24 +836,30 @@ To specify a nil argument interactively, exit with an empty minibuffer."
     (message "Cancelling debug-on-entry for all functions")
     (mapcar 'cancel-debug-on-entry debug-function-list)))
 
+(defun debug-arglist (definition)
+  ;; FIXME: copied from ad-arglist.
+  "Return the argument list of DEFINITION."
+  (require 'help-fns)
+  (help-function-arglist definition 'preserve-names))
+
 (defun debug-convert-byte-code (function)
   (let* ((defn (symbol-function function))
 	 (macro (eq (car-safe defn) 'macro)))
     (when macro (setq defn (cdr defn)))
-    (unless (consp defn)
-      ;; Assume a compiled code object.
-      (let* ((contents (append defn nil))
+    (when (byte-code-function-p defn)
+      (let* ((args (debug-arglist defn))
 	     (body
-	      (list (list 'byte-code (nth 1 contents)
-			  (nth 2 contents) (nth 3 contents)))))
-	(if (nthcdr 5 contents)
-	    (setq body (cons (list 'interactive (nth 5 contents)) body)))
-	(if (nth 4 contents)
+              `((,(if (memq '&rest args) #'apply #'funcall)
+                 ,defn
+                 ,@(remq '&rest (remq '&optional args))))))
+	(if (> (length defn) 5)
+	    (push `(interactive ,(aref defn 5)) body))
+	(if (aref defn 4)
 	    ;; Use `documentation' here, to get the actual string,
 	    ;; in case the compiled function has a reference
 	    ;; to the .elc file.
 	    (setq body (cons (documentation function) body)))
-	(setq defn (cons 'lambda (cons (car contents) body))))
+	(setq defn `(closure (t) ,args ,@body)))
       (when macro (setq defn (cons 'macro defn)))
       (fset function defn))))
 
@@ -861,11 +868,12 @@ To specify a nil argument interactively, exit with an empty minibuffer."
 	 (tail defn))
     (when (eq (car-safe tail) 'macro)
       (setq tail (cdr tail)))
-    (if (not (eq (car-safe tail) 'lambda))
+    (if (not (memq (car-safe tail) '(closure lambda)))
 	;; Only signal an error when we try to set debug-on-entry.
 	;; When we try to clear debug-on-entry, we are now done.
 	(when flag
 	  (error "%s is not a user-defined Lisp function" function))
+      (if (eq (car tail) 'closure) (setq tail (cdr tail)))
       (setq tail (cdr tail))
       ;; Skip the docstring.
       (when (and (stringp (cadr tail)) (cddr tail))
@@ -875,9 +883,9 @@ To specify a nil argument interactively, exit with an empty minibuffer."
 	(setq tail (cdr tail)))
       (unless (eq flag (equal (cadr tail) '(implement-debug-on-entry)))
 	;; Add/remove debug statement as needed.
-	(if flag
-	    (setcdr tail (cons '(implement-debug-on-entry) (cdr tail)))
-	  (setcdr tail (cddr tail)))))
+	(setcdr tail (if flag
+                         (cons '(implement-debug-on-entry) (cdr tail))
+                       (cddr tail)))))
     defn))
 
 (defun debugger-list-functions ()

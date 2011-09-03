@@ -252,7 +252,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  val = Qraw_text;
 	else
 	  {
-	    SAFE_ALLOCA (args2, Lisp_Object *, (nargs + 1) * sizeof *args2);
+	    SAFE_NALLOCA (args2, 1, nargs + 1);
 	    args2[0] = Qcall_process;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	    coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
@@ -603,6 +603,9 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
     /* vfork, and prevent local vars from being clobbered by the vfork.  */
     {
+      Lisp_Object volatile buffer_volatile = buffer;
+      Lisp_Object volatile coding_systems_volatile = coding_systems;
+      Lisp_Object volatile current_dir_volatile = current_dir;
       int volatile fd1_volatile = fd1;
       int volatile fd_error_volatile = fd_error;
       int volatile fd_output_volatile = fd_output;
@@ -611,6 +614,9 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
       pid = vfork ();
 
+      buffer = buffer_volatile;
+      coding_systems = coding_systems_volatile;
+      current_dir = current_dir_volatile;
       fd1 = fd1_volatile;
       fd_error = fd_error_volatile;
       fd_output = fd_output_volatile;
@@ -720,7 +726,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	    {
 	      ptrdiff_t i;
 
-	      SAFE_ALLOCA (args2, Lisp_Object *, (nargs + 1) * sizeof *args2);
+	      SAFE_NALLOCA (args2, 1, nargs + 1);
 	      args2[0] = Qcall_process;
 	      for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	      coding_systems
@@ -1018,7 +1024,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   else
     {
       USE_SAFE_ALLOCA;
-      SAFE_ALLOCA (args2, Lisp_Object *, (nargs + 1) * sizeof *args2);
+      SAFE_NALLOCA (args2, 1, nargs + 1);
       args2[0] = Qcall_process_region;
       for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
       coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
@@ -1147,7 +1153,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
      cleaned up in the usual way. */
   {
     register char *temp;
-    register int i;
+    size_t i; /* size_t, because ptrdiff_t might overflow here!  */
 
     i = SBYTES (current_dir);
 #ifdef MSDOS

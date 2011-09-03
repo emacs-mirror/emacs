@@ -1539,7 +1539,7 @@ deletion, or > if it is flagged for displaying."
   (bookmark-maybe-load-default-file)
   (let ((buf (get-buffer-create "*Bookmark List*")))
     (if (called-interactively-p 'interactive)
-        (pop-to-buffer-same-window buf)
+        (switch-to-buffer buf)
       (set-buffer buf)))
   (let ((inhibit-read-only t))
     (erase-buffer)

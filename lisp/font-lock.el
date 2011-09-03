@@ -1018,14 +1018,20 @@ The region it returns may start or end in the middle of a line.")
   (funcall font-lock-unfontify-buffer-function))
 
 (defun font-lock-fontify-region (beg end &optional loudly)
+  "Fontify the text between BEG and END.
+If LOUDLY is non-nil, print status messages while fontifying.
+This works by calling `font-lock-fontify-region-function'."
   (font-lock-set-defaults)
   (funcall font-lock-fontify-region-function beg end loudly))
 
 (defun font-lock-unfontify-region (beg end)
+  "Unfontify the text between BEG and END.
+This works by calling `font-lock-unfontify-region-function'."
   (save-buffer-state
     (funcall font-lock-unfontify-region-function beg end)))
 
 (defun font-lock-default-fontify-buffer ()
+  "Fontify the whole buffer using `font-lock-fontify-region-function'."
   (let ((verbose (if (numberp font-lock-verbose)
 		     (> (buffer-size) font-lock-verbose)
 		   font-lock-verbose)))
@@ -1045,6 +1051,7 @@ The region it returns may start or end in the middle of a line.")
 	  (quit (font-lock-unfontify-buffer)))))))
 
 (defun font-lock-default-unfontify-buffer ()
+  "Unfontify the whole buffer using `font-lock-unfontify-region-function'."
   ;; Make sure we unfontify etc. in the whole buffer.
   (save-restriction
     (widen)
@@ -1114,6 +1121,9 @@ Put first the functions more likely to cause a change and cheaper to compute.")
     changed))
 
 (defun font-lock-default-fontify-region (beg end loudly)
+  "Fontify the text between BEG and END.
+If LOUDLY is non-nil, print status messages while fontifying.
+This function is the default `font-lock-fontify-region-function'."
   (save-buffer-state
     ;; Use the fontification syntax table, if any.
     (with-syntax-table (or font-lock-syntax-table (syntax-table))
@@ -1162,6 +1172,8 @@ This is used by `font-lock-default-unfontify-region' to decide
 what properties to clear before refontifying a region.")
 
 (defun font-lock-default-unfontify-region (beg end)
+  "Unfontify the text between BEG and END.
+This function is the default `font-lock-unfontify-region-function'."
   (remove-list-of-text-properties
    beg end (append
 	    font-lock-extra-managed-props
@@ -1959,12 +1971,7 @@ Sets various variables using `font-lock-defaults' and
   :group 'font-lock-faces)
 
 (defface font-lock-warning-face
-  '((((class color) (min-colors 88) (background light)) (:foreground "Red1" :weight bold))
-    (((class color) (min-colors 88) (background dark)) (:foreground "Pink" :weight bold))
-    (((class color) (min-colors 16) (background light)) (:foreground "Red1" :weight bold))
-    (((class color) (min-colors 16) (background dark)) (:foreground "Pink" :weight bold))
-    (((class color) (min-colors 8)) (:foreground "red"))
-    (t (:inverse-video t :weight bold)))
+  '((t :inherit error))
   "Font Lock mode face used to highlight warnings."
   :group 'font-lock-faces)
 

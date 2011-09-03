@@ -469,6 +469,7 @@ $(BLD)/alloc.$(O) : \
 	$(SRC)/syssignal.h \
 	$(SRC)/w32.h \
 	$(NT_INC)/unistd.h \
+	$(GNU_LIB)/verify.h \
 	$(BLOCKINPUT_H) \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \
@@ -493,8 +494,6 @@ $(BLD)/atimer.$(O) : \
 
 $(BLD)/bidi.$(O) : \
 	$(SRC)/bidi.c \
-	$(SRC)/bidimirror.h \
-	$(SRC)/biditype.h \
 	$(SRC)/buffer.h \
 	$(CHARACTER_H) \
 	$(CONFIG_H) \

@@ -1,6 +1,6 @@
 ;;; ob-org.el --- org-babel functions for org code block evaluation
 
-;; Copyright (C) 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -66,6 +66,6 @@ This function is called by `org-babel-execute-src-block'."
 
 (provide 'ob-org)
 
-;; arch-tag: 130af5fe-cc56-46bd-9508-fa0ebd94cb1f
+
 
 ;;; ob-org.el ends here

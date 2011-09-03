@@ -1,8 +1,9 @@
 ;;; ob-clojure.el --- org-babel functions for clojure evaluation
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
-;; Author: Joel Boehland, Eric Schulte
+;; Author: Joel Boehland
+;;	Eric Schulte
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
 ;; Version: 7.7
@@ -92,6 +93,6 @@
 
 (provide 'ob-clojure)
 
-;; arch-tag: a43b33f2-653e-46b1-ac56-2805cf05b7d1
+
 
 ;;; ob-clojure.el ends here

@@ -1,5 +1,5 @@
 ;;; org-indent.el --- Dynamic indentation for  Org-mode
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -322,5 +322,5 @@ Point is assumed to be at the beginning of a headline."
 
 (provide 'org-indent)
 
-;; arch-tag: b76736bc-9f4a-43cd-977c-ecfd6689846a
+
 ;;; org-indent.el ends here

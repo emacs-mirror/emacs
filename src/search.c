@@ -683,7 +683,7 @@ scan_buffer (register int target, EMACS_INT start, EMACS_INT end,
            to see where we can avoid some scanning.  */
         if (target == '\n' && newline_cache)
           {
-            EMACS_INT next_change;
+            ptrdiff_t next_change;
             immediate_quit = 0;
             while (region_cache_forward
                    (current_buffer, newline_cache, start_byte, &next_change))
@@ -755,7 +755,7 @@ scan_buffer (register int target, EMACS_INT start, EMACS_INT end,
         /* Consult the newline cache, if appropriate.  */
         if (target == '\n' && newline_cache)
           {
-            EMACS_INT next_change;
+            ptrdiff_t next_change;
             immediate_quit = 0;
             while (region_cache_backward
                    (current_buffer, newline_cache, start_byte, &next_change))
@@ -2640,15 +2640,17 @@ since only regular expressions have distinguished subexpressions.  */)
      perform substitution on the replacement string.  */
   if (NILP (literal))
     {
-      EMACS_INT length = SBYTES (newtext);
+      ptrdiff_t length = SBYTES (newtext);
       unsigned char *substed;
-      EMACS_INT substed_alloc_size, substed_len;
+      ptrdiff_t substed_alloc_size, substed_len;
       int buf_multibyte = !NILP (BVAR (current_buffer, enable_multibyte_characters));
       int str_multibyte = STRING_MULTIBYTE (newtext);
       int really_changed = 0;
 
-      substed_alloc_size = length * 2 + 100;
-      substed = (unsigned char *) xmalloc (substed_alloc_size + 1);
+      substed_alloc_size = ((STRING_BYTES_BOUND - 100) / 2 < length
+			    ? STRING_BYTES_BOUND
+			    : length * 2 + 100);
+      substed = (unsigned char *) xmalloc (substed_alloc_size);
       substed_len = 0;
 
       /* Go thru NEWTEXT, producing the actual text to insert in
@@ -2659,7 +2661,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	{
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  const unsigned char *add_stuff = NULL;
-	  EMACS_INT add_len = 0;
+	  ptrdiff_t add_len = 0;
 	  int idx = -1;
 
 	  if (str_multibyte)
@@ -2723,7 +2725,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	     set up ADD_STUFF and ADD_LEN to point to it.  */
 	  if (idx >= 0)
 	    {
-	      EMACS_INT begbyte = CHAR_TO_BYTE (search_regs.start[idx]);
+	      ptrdiff_t begbyte = CHAR_TO_BYTE (search_regs.start[idx]);
 	      add_len = CHAR_TO_BYTE (search_regs.end[idx]) - begbyte;
 	      if (search_regs.start[idx] < GPT && GPT < search_regs.end[idx])
 		move_gap (search_regs.start[idx]);
@@ -2734,12 +2736,11 @@ since only regular expressions have distinguished subexpressions.  */)
 	     is invariably ADD_LEN bytes starting at ADD_STUFF.  */
 
 	  /* Make sure SUBSTED is big enough.  */
-	  if (substed_len + add_len >= substed_alloc_size)
-	    {
-	      substed_alloc_size = substed_len + add_len + 500;
-	      substed = (unsigned char *) xrealloc (substed,
-						    substed_alloc_size + 1);
-	    }
+	  if (substed_alloc_size - substed_len < add_len)
+	    substed =
+	      xpalloc (substed, &substed_alloc_size,
+		       add_len - (substed_alloc_size - substed_len),
+		       STRING_BYTES_BOUND, 1);
 
 	  /* Now add to the end of SUBSTED.  */
 	  if (add_stuff)
@@ -2973,7 +2974,7 @@ LIST should have been created by calling `match-data' previously.
 If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
   (register Lisp_Object list, Lisp_Object reseat)
 {
-  register int i;
+  ptrdiff_t i;
   register Lisp_Object marker;
 
   if (running_asynch_code)
@@ -2987,31 +2988,21 @@ If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
 
   /* Allocate registers if they don't already exist.  */
   {
-    int length = XFASTINT (Flength (list)) / 2;
+    ptrdiff_t length = XFASTINT (Flength (list)) / 2;
 
     if (length > search_regs.num_regs)
       {
-	if (search_regs.num_regs == 0)
-	  {
-	    search_regs.start
-	      = (regoff_t *) xmalloc (length * sizeof (regoff_t));
-	    search_regs.end
-	      = (regoff_t *) xmalloc (length * sizeof (regoff_t));
-	  }
-	else
-	  {
-	    search_regs.start
-	      = (regoff_t *) xrealloc (search_regs.start,
-				       length * sizeof (regoff_t));
-	    search_regs.end
-	      = (regoff_t *) xrealloc (search_regs.end,
-				       length * sizeof (regoff_t));
-	  }
+	ptrdiff_t num_regs = search_regs.num_regs;
+	search_regs.start =
+	  xpalloc (search_regs.start, &num_regs, length - num_regs,
+		   min (PTRDIFF_MAX, UINT_MAX), sizeof (regoff_t));
+	search_regs.end =
+	  xrealloc (search_regs.end, num_regs * sizeof (regoff_t));
 
-	for (i = search_regs.num_regs; i < length; i++)
+	for (i = search_regs.num_regs; i < num_regs; i++)
 	  search_regs.start[i] = -1;
 
-	search_regs.num_regs = length;
+	search_regs.num_regs = num_regs;
       }
 
     for (i = 0; CONSP (list); i++)

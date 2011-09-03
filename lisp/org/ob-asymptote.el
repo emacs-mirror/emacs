@@ -1,6 +1,6 @@
 ;;; ob-asymptote.el --- org-babel functions for asymptote evaluation
 
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -160,6 +160,6 @@ of int, where every cell must be of int type."
 
 (provide 'ob-asymptote)
 
-;; arch-tag: f2f5bd0d-78e8-412b-8e6c-6dadc94cc06b
+
 
 ;;; ob-asymptote.el ends here

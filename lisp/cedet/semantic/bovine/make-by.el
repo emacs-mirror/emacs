@@ -19,8 +19,7 @@
 
 ;;; Commentary:
 ;;
-;; This file was generated from the grammar file
-;; semantic/bovine/make.by in the CEDET repository.
+;; This file was generated from etc/grammars/make.by.
 
 ;;; Code:
 

@@ -318,7 +318,7 @@ EXIT-ACTION to `kill-buffer-if-not-modified' avoids this."
       (progn
 	(switch-to-buffer buffer)
 	(message "Not using View mode because the major mode is special"))
-    (pop-to-buffer-same-window buffer)
+    (switch-to-buffer buffer)
     (view-mode-enter nil exit-action)))
 
 ;;;###autoload
@@ -338,7 +338,8 @@ Optional argument EXIT-ACTION is either nil or a function with buffer as
 argument.  This function is called when finished viewing buffer.  Use
 this argument instead of explicitly setting `view-exit-action'."
   (interactive "bIn other window view buffer:\nP")
-  (pop-to-buffer-other-window buffer)
+  (let ((pop-up-windows t))
+    (pop-to-buffer buffer t))
   (view-mode-enter nil exit-action))
 
 ;;;###autoload
@@ -358,7 +359,8 @@ Optional argument EXIT-ACTION is either nil or a function with buffer as
 argument.  This function is called when finished viewing buffer.  Use
 this argument instead of explicitly setting `view-exit-action'."
   (interactive "bView buffer in other frame: \nP")
-  (pop-to-buffer-other-frame buffer)
+  (let ((pop-up-frames t))
+    (pop-to-buffer buffer t))
   (view-mode-enter nil exit-action))
 
 ;;;###autoload
@@ -576,9 +578,9 @@ current buffer. "
 	(cond
 	 ((or all-windows view-exits-all-viewing-windows)
 	  (dolist (window (get-buffer-window-list))
-	    (quit-restore-window window)))
+	    (quit-window nil window)))
 	 ((eq (window-buffer) (current-buffer))
-	  (quit-restore-window)))
+	  (quit-window)))
 
 	(when exit-action
 	  (funcall exit-action buffer))

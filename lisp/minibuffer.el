@@ -1076,12 +1076,15 @@ It also eliminates runs of equal strings."
            (column 0)
 	   (rows (/ (length strings) columns))
 	   (row 0)
+           (first t)
 	   (laststring nil))
       ;; The insertion should be "sensible" no matter what choices were made
       ;; for the parameters above.
       (dolist (str strings)
 	(unless (equal laststring str) ; Remove (consecutive) duplicates.
 	  (setq laststring str)
+          ;; FIXME: `string-width' doesn't pay attention to
+          ;; `display' properties.
           (let ((length (if (consp str)
                             (+ (string-width (car str))
                                (string-width (cadr str)))
@@ -1100,11 +1103,11 @@ It also eliminates runs of equal strings."
 		    (forward-line 1)
 		    (end-of-line)))
 		(insert " \t")
-		(set-text-properties (- (point) 1) (point)
+		(set-text-properties (1- (point)) (point)
 				     `(display (space :align-to ,column)))))
 	     (t
 	      ;; Horizontal format
-	      (unless (bolp)
+	      (unless first
 		(if (< wwidth (+ (max colwidth length) column))
 		    ;; No space for `str' at point, move to next line.
 		    (progn (insert "\n") (setq column 0))
@@ -1112,12 +1115,13 @@ It also eliminates runs of equal strings."
 		  ;; Leave the space unpropertized so that in the case we're
 		  ;; already past the goal column, there is still
 		  ;; a space displayed.
-		  (set-text-properties (- (point) 1) (point)
+		  (set-text-properties (1- (point)) (point)
 				       ;; We can't just set tab-width, because
 				       ;; completion-setup-function will kill
 				       ;; all local variables :-(
 				       `(display (space :align-to ,column)))
 		  nil))))
+            (setq first nil)
             (if (not (consp str))
                 (put-text-property (point) (progn (insert str) (point))
                                    'mouse-face 'highlight)
@@ -2299,7 +2303,7 @@ the commands start with a \"-\" or a SPC."
 (defun completion-pcm--string->pattern (string &optional point)
   "Split STRING into a pattern.
 A pattern is a list where each element is either a string
-or a symbol chosen among `any', `star', `point', `prefix'."
+or a symbol, see `completion-pcm--merge-completions'."
   (if (and point (< point (length string)))
       (let ((prefix (substring string 0 point))
             (suffix (substring string point)))
@@ -2515,7 +2519,19 @@ filter out additional entries (because TABLE migth not obey PRED)."
     (mapcar 'completion--sreverse strs))))
 
 (defun completion-pcm--merge-completions (strs pattern)
-  "Extract the commonality in STRS, with the help of PATTERN."
+  "Extract the commonality in STRS, with the help of PATTERN.
+PATTERN can contain strings and symbols chosen among `star', `any', `point',
+and `prefix'.  They all match anything (aka \".*\") but are merged differently:
+`any' only grows from the left (when matching \"a1b\" and \"a2b\" it gets
+  completed to just \"a\").
+`prefix' only grows from the right (when matching \"a1b\" and \"a2b\" it gets
+  completed to just \"b\").
+`star' grows from both ends and is reified into a \"*\"  (when matching \"a1b\"
+  and \"a2b\" it gets completed to \"a*b\").
+`point' is like `star' except that it gets reified as the position of point
+  instead of being reified as a \"*\" character.
+The underlying idea is that we should return a string which still matches
+the same set of elements."
   ;; When completing while ignoring case, we want to try and avoid
   ;; completing "fo" to "foO" when completing against "FOO" (bug#4219).
   ;; So we try and make sure that the string we return is all made up
@@ -2568,7 +2584,9 @@ filter out additional entries (because TABLE migth not obey PRED)."
               (let* ((prefix (try-completion fixed comps))
                      (unique (or (and (eq prefix t) (setq prefix fixed))
                                  (eq t (try-completion prefix comps)))))
-                (unless (equal prefix "") (push prefix res))
+                (unless (or (eq elem 'prefix)
+                            (equal prefix ""))
+                  (push prefix res))
                 ;; If there's only one completion, `elem' is not useful
                 ;; any more: it can only match the empty string.
                 ;; FIXME: in some cases, it may be necessary to turn an
@@ -2754,15 +2772,12 @@ See `completing-read' for the meaning of the arguments."
                      base-keymap
                    ;; Layer minibuffer-local-filename-completion-map
                    ;; on top of the base map.
-                   ;; Use make-composed-keymap so that set-keymap-parent
-                   ;; doesn't modify minibuffer-local-filename-completion-map.
-                   (let ((map (make-composed-keymap
-                               minibuffer-local-filename-completion-map)))
-                     ;; Set base-keymap as the parent, so that nil bindings
-                     ;; in minibuffer-local-filename-completion-map can
-                     ;; override bindings in base-keymap.
-                     (set-keymap-parent map base-keymap)
-                     map)))
+                   (make-composed-keymap
+                    minibuffer-local-filename-completion-map
+                    ;; Set base-keymap as the parent, so that nil bindings
+                    ;; in minibuffer-local-filename-completion-map can
+                    ;; override bindings in base-keymap.
+                    base-keymap)))
          (result (read-from-minibuffer prompt initial-input keymap
                                        nil hist def inherit-input-method)))
     (when (and (equal result "") def)

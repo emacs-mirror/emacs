@@ -1,3 +1,226 @@
+2011-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection-1): Use the correct port number in
+	the error message.
+
+2011-09-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* message.el (message-setup-1): Return t (Bug#9392).
+
+2011-09-01  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-sum.el: When adding article headers to a summary buffer also
+	update gnus-newsgroup-articles (bug#9386).
+
+2011-08-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* auth-source.el: Autoload help-mode.
+
+2011-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-name-charset): Don't bug out on server
+	names.
+
+2011-08-27  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml-smime.el (mml-smime-epg-verify): Don't use the 4th arg of
+	mm-replace-in-string for compatibility issues.
+	* mml2015.el (mml2015-epg-verify): Ditto.
+
+2011-08-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mailcap.el (mailcap-mime-data): Regexp-quote MIME subtype.
+
+	* gnus-msg.el (gnus-setup-message): Remove extra apostrophe.
+
+2011-08-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnmail.el (nnmail-get-new-mail-1): If one mail source bugs out,
+	continue on and do the clean-up phase (bug#9188).
+
+	* gnus-sum.el (gnus-summary-expire-articles): When expiring articles,
+	just ignore groups that can't be opened instead of erroring out
+	(bug#9225).
+
+	* gnus-art.el (gnus-article-update-date-headers): Flip the default to
+	nil since some many people are fuddy-duddies.
+
+	* gnus-html.el (gnus-html-image-fetched): Don't cache zero-length
+	images.
+
+	* nntp.el (nntp-authinfo-file): Mark as obsolete -- use auth-source
+	instead.
+
+	* pop3.el (pop3-wait-for-messages): Don't use Gnus functions here.
+
+	* gnus-util.el (gnus-process-live-p): Copy over compat function.
+
+	* pop3.el (pop3-wait-for-messages): If the pop3 process dies, stop
+	processing.
+
+	* nntp.el (nntp-kill-buffer): Kill the process before killing the
+	buffer to avoid warnings.
+
+2011-08-20  Simon Josefsson  <simon@josefsson.org>
+
+	* gnus-agent.el (gnus-agent-expire-done-message): Use %.f as format
+	specified to reduce precision.
+
+2011-08-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-transform-headers): Protect against (NIL ...)
+	bodystructures (bug#9314).
+
+2011-08-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-insert-mime-button, gnus-mime-display-alternative):
+	Make button keymap non-sticky after buttons.
+
+2011-08-18  David Engster  <dengste@eml.cc>
+
+	* nnmairix.el (nnmairix-request-set-mark)
+	(nnmairix-goto-original-article): Remove adding of article to registry,
+	since `gnus-registry-add-group' isn't available anymore.
+	(nnmairix-determine-original-group-from-registry): Use
+	`gnus-registry-get-id-key' since `gnus-registry-fetch-groups' isn't
+	available anymore.
+
+2011-08-12  Simon Josefsson  <simon@josefsson.org>
+
+	* starttls.el (starttls-any-program-available): Define as obsolete
+	function.
+
+2011-08-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-util.el (gnus-y-or-n-p): Reinstate the message-clearing y-or-n-p
+	versions which Gnus use when appropriate.
+
+	* gnus-group.el (gnus-group-clear-data): Add a y-or-n query, since it's
+	a pretty destructive command.
+
+	* nnmail.el (nnmail-extra-headers): Clarify slightly (bug#9302).
+
+2011-08-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-fix-before-sending): Make a different warning
+	about NUL characters (bug#9270).
+
+	* gnus-sum.el (gnus-auto-select-subject): Allow specifying a function
+	from custom (bug#9260).
+
+	* gnus-spec.el (gnus-lrm-string): Use 8206 instead of ?\x200e to make
+	things work in Emacs 22 and XEmacs, too.
+
+	* gnus-sum.el (gnus-summary-from-or-to-or-newsgroups): LRM-ify the
+	default From.
+
+	* gnus-spec.el (gnus-lrm-string-p): New macro.
+	(gnus-lrm-string): New constant.
+	(gnus-summary-line-format-spec): LRM-ify the from.
+	(gnus-tilde-max-form): LRM-ify string chopping.
+
+	* gnus-ems.el (gnus-string-mark-left-to-right): New function.
+
+	* message.el (message-is-yours-p): Allow disabling canlock checking
+	(bug#9295).
+	(message-shoot-gnksa-feet): Add `canlock-verify'.
+	(message-auto-save-directory): Use ~/ as the auto-save directory if the
+	message directory isn't writable (bug#9304).
+
+	* auth-source.el (auth-source-netrc-saver): Make the .authinfo file
+	non-world-readable.
+
+2011-08-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nndraft.el (nndraft-update-unread-articles): Don't send delayed
+	articles.
+
+2011-08-13  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnus-score.el (gnus-all-score-files): Use copy-sequence instead of
+	copy-list.
+
+2011-08-12  Sam Steingold  <sds@gnu.org>
+
+	* gnus-score.el (gnus-score-find-alist): Keep the score files already
+	in the reverse order to avoid modifying the cache with `nreverse'.
+	(gnus-all-score-files): Do not modify the value returned by
+	`gnus-score-find-alist' because it lives in a cache variable.
+	(gnus-current-home-score-file): No need to `nreverse' the return value
+	of `gnus-score-find-alist', it is already in the correct order.
+
+2011-08-11  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnimap.el (nnimap-transform-headers): BODYSTRUCTURE for messages of
+	type MESSAGE and subtype RFC822 is slightly different from those of
+	type TEXT.
+
+2011-08-05  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-sum.el (gnus-summary-refer-article): Warp to article. This
+	allows article-referral to work from an nnir group.
+
+2011-08-04  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus.el (registry-ignore): Add nnir groups to the ignore-list.
+
+2011-08-04  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml1991.el (mml1991-epg-find-usable-key)
+	(mml1991-epg-find-usable-secret-key): New function.
+	(mml1991-epg-sign): Check if signing key is usable.
+	(mml1991-epg-encrypt): Check if encrypting key is usable (bug#8955).
+
+2011-08-03  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-read-server-parm): Add an argument to restrict to
+	server-variables only. This should fix a bug introduced with commit
+	e1889675b7f4adf057833c5513c9374134c4e053.
+	(nnir-run-query): 'nnir-search-engine should not be set from the global
+	environment.
+
+2011-08-02  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-search-thread): Position point on referring article
+	line.
+	(nnir-warp-to-article): Clean up summary buffers.
+
+	* nnimap.el (nnimap-request-thread): Whitespace fix.
+
+2011-08-02  Steve Purcell  <steve@sanityinc.com>  (tiny change)
+
+	* nnimap.el (nnimap-get-groups): Decode "&" correctly.
+
+2011-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* starttls.el (starttls-available-p): Renamed from
+	`starttls-any-program-available' and changed return convention.
+
+2011-07-31  Lars Ingebrigtsen  <larsi@gnus.org>
+
+	* nnmaildir.el (nnmaildir-request-accept-article): Don't call
+	`unix-sync' unless it's defined.
+
+2011-07-31  Marcus Harnisch  <marcus.harnisch@gmx.net>  (tiny change)
+
+	* gnus-art.el (gnus-article-stop-animations): Use `elt' instead of
+	`aref' for XEmacs compatibiltiy.
+
+2011-07-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* spam.el (spam-fetch-field-fast): Rewrite slightly for clarity.
+
+2011-07-31  Dave Abrahams  <dave@boostpro.com>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-refer-thread): Since lambdas aren't
+	closures, quote the form properly (bug#9194).
+
+2011-07-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-insert-new-articles): Clean up slightly.
+	(gnus-summary-insert-new-articles): Protect against servers that are
+	down.
+
 2011-07-29  Daniel Dehennin  <daniel.dehennin@baby-gnu.org>
 
 	* mm-decode.el (mm-dissect-buffer): Add a default content-disposition

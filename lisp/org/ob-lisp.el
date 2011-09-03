@@ -1,8 +1,10 @@
 ;;; ob-lisp.el --- org-babel functions for common lisp evaluation
 
-;; Copyright (C) 2009, 2010, 2011  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
-;; Author: Joel Boehland, Eric Schulte, David T. O'Toole <dto@gnu.org>
+;; Author: Joel Boehland
+;;	Eric Schulte
+;;	David T. O'Toole <dto@gnu.org>
 ;; Keywords: literate programming, reproducible research
 ;; Homepage: http://orgmode.org
 ;; Version: 7.7
@@ -101,6 +103,6 @@ current directory string."
 
 (provide 'ob-lisp)
 
-;; arch-tag: 18086168-009f-4947-bbb5-3532375d851d
+
 
 ;;; ob-lisp.el ends here

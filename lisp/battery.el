@@ -173,13 +173,16 @@ seconds."
   (setq battery-mode-line-string "")
   (or global-mode-string (setq global-mode-string '("")))
   (and battery-update-timer (cancel-timer battery-update-timer))
-  (if (not display-battery-mode)
-      (setq global-mode-string
-	    (delq 'battery-mode-line-string global-mode-string))
-    (add-to-list 'global-mode-string 'battery-mode-line-string t)
-    (setq battery-update-timer (run-at-time nil battery-update-interval
-					    'battery-update-handler))
-    (battery-update)))
+  (if (and battery-status-function battery-mode-line-format)
+      (if (not display-battery-mode)
+	  (setq global-mode-string
+		(delq 'battery-mode-line-string global-mode-string))
+	(add-to-list 'global-mode-string 'battery-mode-line-string t)
+	(setq battery-update-timer (run-at-time nil battery-update-interval
+						'battery-update-handler))
+	(battery-update))
+    (message "Battery status not available")
+    (setq display-battery-mode nil)))
 
 (defun battery-update-handler ()
   (battery-update)
@@ -199,7 +202,7 @@ seconds."
 		      'face
 		      (and (<= (car (read-from-string (cdr (assq ?p data))))
 				   battery-load-critical)
-			   'font-lock-warning-face)
+			   'error)
 		      'help-echo "Battery status information")))
   (force-mode-line-update))
 

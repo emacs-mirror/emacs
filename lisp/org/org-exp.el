@@ -1,7 +1,6 @@
 ;;; org-exp.el --- ASCII, HTML, XOXO and iCalendar export for Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -48,8 +47,6 @@
 (declare-function org-inlinetask-remove-END-maybe "org-inlinetask" ())
 (declare-function org-table-cookie-line-p "org-table" (line))
 (declare-function org-table-colgroup-line-p "org-table" (line))
-(declare-function org-pop-to-buffer-same-window "org-compat" 
-		  (&optional buffer-or-name norecord label))
 
 (autoload 'org-export-generic "org-export-generic" "Export using the generic exporter" t)
 
@@ -2975,7 +2972,7 @@ directory."
 	 (region (buffer-string))
          str-ret)
     (save-excursion
-      (org-pop-to-buffer-same-window buffer)
+      (switch-to-buffer buffer)
       (erase-buffer)
       (insert region)
       (let ((org-inhibit-startup t)) (org-mode))
@@ -3231,6 +3228,6 @@ The depends on the variable `org-export-copy-to-kill'."
 
 (provide 'org-exp)
 
-;; arch-tag: 65985fe9-095c-49c7-a7b6-cb4ee15c0a95
+
 
 ;;; org-exp.el ends here

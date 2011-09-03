@@ -69,6 +69,6 @@
 
 (provide 'ob-java)
 
-;; arch-tag: dd1cfb00-7f76-4ecf-922c-f7031b68b85e
+
 
 ;;; ob-java.el ends here

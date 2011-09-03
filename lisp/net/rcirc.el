@@ -815,18 +815,19 @@ If SILENT is non-nil, do not print the message in any irc buffer."
 
 (defvar rcirc-input-ring nil)
 (defvar rcirc-input-ring-index 0)
+
 (defun rcirc-prev-input-string (arg)
   (ring-ref rcirc-input-ring (+ rcirc-input-ring-index arg)))
 
-(defun rcirc-insert-prev-input (arg)
-  (interactive "p")
+(defun rcirc-insert-prev-input ()
+  (interactive)
   (when (<= rcirc-prompt-end-marker (point))
     (delete-region rcirc-prompt-end-marker (point-max))
     (insert (rcirc-prev-input-string 0))
     (setq rcirc-input-ring-index (1+ rcirc-input-ring-index))))
 
-(defun rcirc-insert-next-input (arg)
-  (interactive "p")
+(defun rcirc-insert-next-input ()
+  (interactive)
   (when (<= rcirc-prompt-end-marker (point))
     (delete-region rcirc-prompt-end-marker (point-max))
     (setq rcirc-input-ring-index (1- rcirc-input-ring-index))
@@ -1555,18 +1556,16 @@ record activity."
 
 	  ;; keep window on bottom line if it was already there
 	  (when rcirc-scroll-show-maximum-output
-	    (walk-windows (lambda (w)
-			    (when (eq (window-buffer w) (current-buffer))
-			      (with-current-buffer (window-buffer w)
-				(when (eq major-mode 'rcirc-mode)
-				  (with-selected-window w
-				    (when (<= (- (window-height)
-						 (count-screen-lines (window-point)
-								     (window-start))
-						 1)
-					      0)
-				      (recenter -1)))))))
-				  nil t))
+	    (let ((window (get-buffer-window)))
+	      (when window
+		(with-selected-window window
+		  (when (eq major-mode 'rcirc-mode)
+		    (when (<= (- (window-height)
+				 (count-screen-lines (window-point)
+						     (window-start))
+				 1)
+			      0)
+		      (recenter -1)))))))
 
 	  ;; flush undo (can we do something smarter here?)
 	  (buffer-disable-undo)
@@ -2514,6 +2513,7 @@ the only argument."
                 (member message
                         (list
                          (format "You are now identified for \C-b%s\C-b." rcirc-nick)
+			 (format "You are successfully identified as \C-b%s\C-b." rcirc-nick)
                          "Password accepted - you are now recognized."
                          )))
                (and ;; quakenet
@@ -2695,7 +2695,8 @@ the only argument."
       (setq rcirc-topic (caddr args)))))
 
 (defun rcirc-handler-333 (process sender args text)
-  "Not in rfc1459.txt"
+  "333 says who set the topic and when.
+Not in rfc1459.txt"
   (let ((buffer (or (rcirc-get-buffer process (cadr args))
 		    (rcirc-get-temp-buffer-create process (cadr args)))))
     (with-current-buffer buffer

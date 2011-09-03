@@ -39,7 +39,7 @@
 atimer.o: atimer.c atimer.h syssignal.h systime.h lisp.h blockinput.h \
  globals.h ../lib/unistd.h $(config_h)
 bidi.o: bidi.c buffer.h character.h dispextern.h msdos.h lisp.h \
-   biditype.h bidimirror.h globals.h $(config_h)
+   globals.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
    $(INTERVALS_H) blockinput.h atimer.h systime.h character.h ../lib/unistd.h \
    indent.h keyboard.h coding.h keymap.h frame.h lisp.h globals.h $(config_h)

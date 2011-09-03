@@ -4249,7 +4249,7 @@ TEXT and INDENT are not used."
    ;; rmail-output expands non-absolute filenames against rmail-default-file.
    ;; What is the point of that, anyway?
    (rmail-output (expand-file-name token))))
-
+
 ;; Functions for setting, getting and encoding the POP password.
 ;; The password is encoded to prevent it from being easily accessible
 ;; to "prying eyes."  Obviously, this encoding isn't "real security,"
@@ -4300,6 +4300,85 @@ encoded string (and the same mask) will decode the string."
      (setq i (1+ i)))
    (concat string-vector)))
 
+(defun rmail-epa-decrypt ()
+  "Decrypt OpenPGP armors in current message."
+  (interactive)
+
+  ;; Save the current buffer here for cleanliness, in case we
+  ;; change it in one of the calls to `epa-decrypt-region'.
+
+  (save-excursion
+    (let (decrypts)
+      (goto-char (point-min))
+
+      ;; In case the encrypted data is inside a mime attachment,
+      ;; show it.  This is a kludge; to be clean, it should not
+      ;; modify the buffer, but I don't see how to do that.
+      (when (search-forward "octet-stream" nil t)
+	(beginning-of-line)
+	(forward-button 1)
+	(if (looking-at "Show")
+	    (rmail-mime-toggle-hidden)))
+
+      ;; Now find all armored messages in the buffer
+      ;; and decrypt them one by one.
+      (goto-char (point-min))
+      (while (re-search-forward "-----BEGIN PGP MESSAGE-----$" nil t)
+	(let ((coding-system-for-read coding-system-for-read)
+	      armor-start armor-end after-end)
+	  (setq armor-start (match-beginning 0)
+		armor-end (re-search-forward "^-----END PGP MESSAGE-----$"
+					     nil t))
+	  (unless armor-end
+	    (error "Encryption armor beginning has no matching end"))
+	  (goto-char armor-start)
+
+	  ;; Because epa--find-coding-system-for-mime-charset not autoloaded.
+	  (require 'epa)
+
+	  ;; Use the charset specified in the armor.
+	  (unless coding-system-for-read
+	    (if (re-search-forward "^Charset: \\(.*\\)" armor-end t)
+		(setq coding-system-for-read
+		      (epa--find-coding-system-for-mime-charset
+		       (intern (downcase (match-string 1)))))))
+
+	  ;; Advance over this armor.
+	  (goto-char armor-end)
+	  (setq after-end (- (point-max) armor-end))
+
+	  ;; Decrypt it, maybe in place, maybe making new buffer.
+	  (epa-decrypt-region
+	   armor-start armor-end
+	   ;; Call back this function to prepare the output.
+	   (lambda ()
+	     (let ((inhibit-read-only t))
+	       (delete-region armor-start armor-end)
+	       (goto-char armor-start)
+	       (current-buffer))))
+
+	  (push (list armor-start (- (point-max) after-end))
+		decrypts)))
+
+      (when (and decrypts (rmail-buffers-swapped-p))
+	(when (y-or-n-p "Replace the original message? ")
+	  (setq decrypts (nreverse decrypts))
+	  (let ((beg (rmail-msgbeg rmail-current-message))
+		(end (rmail-msgend rmail-current-message))
+		(from-buffer (current-buffer)))
+	    (with-current-buffer rmail-view-buffer
+	      (narrow-to-region beg end)
+	      (goto-char (point-min))
+	      (dolist (d decrypts)
+		(if (re-search-forward "-----BEGIN PGP MESSAGE-----$" nil t)
+		    (let (armor-start armor-end)
+		      (setq armor-start (match-beginning 0)
+			    armor-end (re-search-forward "^-----END PGP MESSAGE-----$"
+							 nil t))
+		      (when armor-end
+			(delete-region armor-start armor-end)
+			(insert-buffer-substring from-buffer (nth 0 d) (nth 1 d)))))))))))))
+
 ;;;;  Desktop support
 
 (defun rmail-restore-desktop-buffer (desktop-buffer-file-name
@@ -4403,7 +4482,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "a7d3e7205efa4e20ca9038c9b260ce83")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "2c8675d7c069c68bc36a4003b15448d1")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\

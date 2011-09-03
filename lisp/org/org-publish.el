@@ -1,6 +1,5 @@
 ;;; org-publish.el --- publish related org-mode files as a website
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010
-;;          Free Software Foundation, Inc.
+;; Copyright (C) 2006-2011  Free Software Foundation, Inc.
 
 ;; Author: David O'Toole <dto@gnu.org>
 ;; Maintainer: Carsten Dominik <carsten DOT dominik AT gmail DOT com>
@@ -370,8 +369,6 @@ This is a compatibility function for Emacsen without `delete-dups'."
 
 (declare-function org-publish-delete-dups "org-publish" (list))
 (declare-function find-lisp-find-files "find-lisp" (directory regexp))
-(declare-function org-pop-to-buffer-same-window 
-		  "org-compat" (&optional buffer-or-name norecord label))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Getting project information out of org-publish-project-alist
@@ -562,7 +559,7 @@ PUB-DIR is the publishing directory."
     (make-directory pub-dir t))
   (let ((visiting (find-buffer-visiting filename)))
     (save-excursion
-      (org-pop-to-buffer-same-window (or visiting (find-file filename)))
+      (switch-to-buffer (or visiting (find-file filename)))
       (let* ((plist (cons :buffer-will-be-killed (cons t plist)))
 	     (init-buf (current-buffer))
 	     (init-point (point))
@@ -863,7 +860,7 @@ system's modification time.
 It returns time in `current-time' format."
   (let ((visiting (find-buffer-visiting file)))
     (save-excursion
-      (org-pop-to-buffer-same-window (or visiting (find-file-noselect file nil t)))
+      (switch-to-buffer (or visiting (find-file-noselect file nil t)))
       (let* ((plist (org-infile-export-plist))
 	     (date (plist-get plist :date)))
 	(unless visiting
@@ -1183,6 +1180,6 @@ Returns value on success, else nil."
 
 (provide 'org-publish)
 
-;; arch-tag: 72807f3c-8af0-4a6b-8dca-c3376eb25adb
+
 
 ;;; org-publish.el ends here

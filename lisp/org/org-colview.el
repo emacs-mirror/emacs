@@ -1,7 +1,6 @@
 ;;; org-colview.el --- Column View in Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -1526,6 +1525,6 @@ The string should be two numbers joined with a \"-\"."
 
 (provide 'org-colview)
 
-;; arch-tag: 61f5128d-747c-4983-9479-e3871fa3d73c
+
 
 ;;; org-colview.el ends here

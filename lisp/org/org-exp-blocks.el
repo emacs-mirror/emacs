@@ -1,7 +1,6 @@
 ;;; org-exp-blocks.el --- pre-process blocks when exporting org files
 
-;; Copyright (C) 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Version: 7.7
@@ -377,5 +376,5 @@ other backends, it converts the comment into an EXAMPLE segment."
 
 (provide 'org-exp-blocks)
 
-;; arch-tag: 1c365fe9-8808-4f72-bb15-0b00f36d8024
+
 ;;; org-exp-blocks.el ends here

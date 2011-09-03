@@ -29,7 +29,7 @@ along with GNU Emacs.  If not, see <http§://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 
 static GPollFD *gfds;
-static int gfds_size;
+static ptrdiff_t gfds_size;
 
 int
 xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
@@ -54,10 +54,9 @@ xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   do {
     if (n_gfds > gfds_size)
       {
-        while (n_gfds > gfds_size)
-          gfds_size *= 2;
         xfree (gfds);
-        gfds = xmalloc (sizeof (*gfds) * gfds_size);
+	gfds = xpalloc (0, &gfds_size, n_gfds - gfds_size, INT_MAX,
+			sizeof *gfds);
       }
 
     n_gfds = g_main_context_query (context,

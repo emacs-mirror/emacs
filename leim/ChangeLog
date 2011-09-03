@@ -1,6 +1,15 @@
-2011-07-25  Paul Eggert  <eggert@cs.ucla.edu>
+2011-09-03  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (install): install-sh is now in build-aux (Bug#9169).
+
+2011-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Complete the super and subscript letters.
+
+2011-08-20  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (OTHERS):
+	* makefile.w32-in (MISC): Add ipa-praat.elc.
 
 2011-07-23  Yair F  <yair.f.lists@gmail.com>
 

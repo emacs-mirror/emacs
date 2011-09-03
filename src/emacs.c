@@ -82,6 +82,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/personality.h>
 #endif
 
+#ifdef HAVE_LIBXML2
+#include <libxml/parser.h>
+#endif
+
 #ifndef O_RDWR
 #define O_RDWR 2
 #endif
@@ -1120,7 +1124,7 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
 #if defined (USG5) && defined (INTERRUPT_INPUT)
       setpgrp ();
 #endif
-#if defined (HAVE_GTK_AND_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
+#if defined (HAVE_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
       {
         extern void malloc_enable_thread (void);
 
@@ -1358,24 +1362,17 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
     /* If we have the form --display=NAME,
        convert it into  -d name.
        This requires inserting a new element into argv.  */
-    if (displayname != 0 && skip_args - count_before == 1)
+    if (displayname && count_before < skip_args)
       {
-	char **new = (char **) xmalloc (sizeof (char *) * (argc + 2));
-	int j;
-
-	for (j = 0; j < count_before + 1; j++)
-	  new[j] = argv[j];
-	new[count_before + 1] = (char *) "-d";
-	new[count_before + 2] = displayname;
-	for (j = count_before + 2; j <argc; j++)
-	  new[j + 1] = argv[j];
-	argv = new;
-	argc++;
+	if (skip_args == count_before + 1)
+	  {
+	    memmove (argv + count_before + 3, argv + count_before + 2,
+		     (argc - (count_before + 2)) * sizeof *argv);
+	    argv[count_before + 2] = displayname;
+	    argc++;
+	  }
+	argv[count_before + 1] = (char *) "-d";
       }
-    /* Change --display to -d, when its arg is separate.  */
-    else if (displayname != 0 && skip_args > count_before
-	     && argv[count_before + 1][1] == '-')
-      argv[count_before + 1] = (char *) "-d";
 
     if (! no_site_lisp)
       {
@@ -1838,8 +1835,8 @@ sort_args (int argc, char **argv)
      0 for an option that takes no arguments,
      1 for an option that takes one argument, etc.
      -1 for an ordinary non-option argument.  */
-  int *options = (int *) xmalloc (sizeof (int) * argc);
-  int *priority = (int *) xmalloc (sizeof (int) * argc);
+  int *options = xnmalloc (argc, sizeof *options);
+  int *priority = xnmalloc (argc, sizeof *priority);
   int to = 1;
   int incoming_used = 1;
   int from;
@@ -2104,6 +2101,10 @@ shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
 #ifdef HAVE_NS
   ns_term_shutdown (sig);
 #endif
+
+#ifdef HAVE_LIBXML2
+  xmlCleanupParser ();
+#endif
 }
 
 
@@ -2185,7 +2186,7 @@ You must run Emacs in batch mode in order to dump it.  */)
     memory_warnings (my_edata, malloc_warning);
   }
 #endif /* not WINDOWSNT */
-#if defined (HAVE_GTK_AND_PTHREAD) && !defined SYNC_INPUT
+#if defined (HAVE_PTHREAD) && !defined SYNC_INPUT
   /* Pthread may call malloc before main, and then we will get an endless
      loop, because pthread_self (see alloc.c) calls malloc the first time
      it is called on some systems.  */

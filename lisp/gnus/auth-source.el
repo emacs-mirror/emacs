@@ -70,6 +70,8 @@
 (autoload 'epg-context-set-armor "epg")
 (autoload 'epg-encrypt-string "epg")
 
+(autoload 'help-mode "help-mode" nil t)
+
 (defvar secrets-enabled)
 
 (defgroup auth-source nil
@@ -1377,6 +1379,8 @@ Respects `auth-source-save-behavior'.  Uses
                 (insert "\n"))
               (insert add "\n")
               (write-region (point-min) (point-max) file nil 'silent)
+	      ;; Make the .authinfo file non-world-readable.
+	      (set-file-modes file #o600)
               (auth-source-do-debug
                "auth-source-netrc-create: wrote 1 new line to %s"
                file)

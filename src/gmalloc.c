@@ -37,7 +37,7 @@ Fifth Floor, Boston, MA 02110-1301, USA.
 #include <config.h>
 #endif
 
-#ifdef HAVE_GTK_AND_PTHREAD
+#ifdef HAVE_PTHREAD
 #define USE_PTHREAD
 #endif
 
@@ -351,10 +351,21 @@ Fifth Floor, Boston, MA 02110-1301, USA.
 #endif
 #include <errno.h>
 
-/* How to really get more memory.  */
-#if defined(CYGWIN)
+/* On Cygwin there are two heaps.  temacs uses the static heap
+   (defined in sheap.c and managed with bss_sbrk), and the dumped
+   emacs uses the Cygwin heap (managed with sbrk).  When emacs starts
+   on Cygwin, it reinitializes malloc, and we save the old info for
+   use by free and realloc if they're called with a pointer into the
+   static heap.
+
+   Currently (2011-08-16) the Cygwin build doesn't use ralloc.c; if
+   this is changed in the future, we'll have to similarly deal with
+   reinitializing ralloc. */
+#ifdef CYGWIN
 extern __ptr_t bss_sbrk PP ((ptrdiff_t __size));
 extern int bss_sbrk_did_unexec;
+char *bss_sbrk_heapbase;	/* _heapbase for static heap */
+malloc_info *bss_sbrk_heapinfo;	/* _heapinfo for static heap */
 #endif
 __ptr_t (*__morecore) PP ((__malloc_ptrdiff_t __size)) = __default_morecore;
 
@@ -582,6 +593,16 @@ malloc_initialize_1 ()
 {
 #ifdef GC_MCHECK
   mcheck (NULL);
+#endif
+
+#ifdef CYGWIN
+  if (bss_sbrk_did_unexec)
+    /* we're reinitializing the dumped emacs */
+    {
+      bss_sbrk_heapbase = _heapbase;
+      bss_sbrk_heapinfo = _heapinfo;
+      memset (_fraghead, 0, BLOCKLOG * sizeof (struct list));
+    }
 #endif
 
   if (__malloc_initialize_hook)
@@ -1054,6 +1075,12 @@ _free_internal_nolock (ptr)
   if (ptr == NULL)
     return;
 
+#ifdef CYGWIN
+  if (ptr < _heapbase)
+    /* We're being asked to free something in the static heap. */
+    return;
+#endif
+
   PROTECT_MALLOC_STATE (0);
 
   LOCK_ALIGNED_BLOCKS ();
@@ -1349,6 +1376,31 @@ Fifth Floor, Boston, MA 02110-1301, USA.
 
 #define min(A, B) ((A) < (B) ? (A) : (B))
 
+/* On Cygwin the dumped emacs may try to realloc storage allocated in
+   the static heap.  We just malloc space in the new heap and copy the
+   data.  */
+#ifdef CYGWIN
+__ptr_t
+special_realloc (ptr, size)
+     __ptr_t ptr;
+     __malloc_size_t size;
+{
+  __ptr_t result;
+  int type;
+  __malloc_size_t block, oldsize;
+
+  block = ((char *) ptr - bss_sbrk_heapbase) / BLOCKSIZE + 1;
+  type = bss_sbrk_heapinfo[block].busy.type;
+  oldsize =
+    type == 0 ? bss_sbrk_heapinfo[block].busy.info.size * BLOCKSIZE
+    : (__malloc_size_t) 1 << type;
+  result = _malloc_internal_nolock (size);
+  if (result != NULL)
+    memcpy (result, ptr, min (oldsize, size));
+  return result;
+}
+#endif
+
 /* Debugging hook for realloc.  */
 __ptr_t (*__realloc_hook) PP ((__ptr_t __ptr, __malloc_size_t __size));
 
@@ -1374,6 +1426,12 @@ _realloc_internal_nolock (ptr, size)
     }
   else if (ptr == NULL)
     return _malloc_internal_nolock (size);
+
+#ifdef CYGWIN
+  if (ptr < _heapbase)
+    /* ptr points into the static heap */
+    return special_realloc (ptr, size);
+#endif
 
   block = BLOCK (ptr);
 

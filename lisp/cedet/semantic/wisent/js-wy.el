@@ -1,6 +1,7 @@
 ;;; semantic/wisent/js-wy.el --- Generated parser support file
 
 ;; Copyright (C) 2005, 2009-2011  Free Software Foundation, Inc.
+;; Copyright (C) Ecma International.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,8 +20,7 @@
 
 ;;; Commentary:
 ;;
-;; This file was generated from the grammar file
-;; semantic/wisent/wisent-javascript-jv.wy in the CEDET repository.
+;; This file was generated from etc/grammars/javascript-jv.wy.
 
 ;;; Code:
 (require 'semantic/lex)

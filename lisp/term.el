@@ -1227,9 +1227,9 @@ without any interpretation."
 			      (make-string 1 char)
 			    (format "\e%c" char)))))
 
-(defun term-mouse-paste (click arg)
-  "Insert the last stretch of killed text at the position clicked on."
-  (interactive "e\nP")
+(defun term-mouse-paste (click)
+  "Insert the primary selection at the position clicked on."
+  (interactive "e")
   (if (featurep 'xemacs)
       (term-send-raw-string
        (or (condition-case () (x-get-selection) (error ()))
@@ -1238,10 +1238,17 @@ without any interpretation."
     (run-hooks 'mouse-leave-buffer-hook)
     (setq this-command 'yank)
     (mouse-set-point click)
-    (term-send-raw-string (current-kill (cond
-					 ((listp arg) 0)
-					 ((eq arg '-) -1)
-					 (t (1- arg)))))))
+    (term-send-raw-string
+     (or (cond  ; From `mouse-yank-primary':
+	  ((eq system-type 'windows-nt)
+	   (or (x-get-selection 'PRIMARY)
+	       (x-get-selection-value)))
+	  ((fboundp 'x-get-selection-value)
+	   (or (x-get-selection-value)
+	       (x-get-selection 'PRIMARY)))
+	  (t
+	   (x-get-selection 'PRIMARY)))
+	 (error "No selection is available")))))
 
 (defun term-paste ()
   "Insert the last stretch of killed text at point."

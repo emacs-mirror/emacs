@@ -35,13 +35,12 @@
 
 (defvar help-mode-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map button-buffer-map)
-
+    (set-keymap-parent map (make-composed-keymap button-buffer-map
+                                                 special-mode-map))
     (define-key map [mouse-2] 'help-follow-mouse)
     (define-key map "\C-c\C-b" 'help-go-back)
     (define-key map "\C-c\C-f" 'help-go-forward)
     (define-key map "\C-c\C-c" 'help-follow-symbol)
-    ;; Documentation only, since we use minor-mode-overriding-map-alist.
     (define-key map "\r" 'help-follow)
     map)
   "Keymap for help mode.")
@@ -266,37 +265,13 @@ The format is (FUNCTION ARGS...).")
   'help-function 'customize-create-theme
   'help-echo (purecopy "mouse-2, RET: edit this theme file"))
 
-;;;###autoload
-(defun help-mode ()
+(define-derived-mode help-mode special-mode "Help"
   "Major mode for viewing help text and navigating references in it.
 Entry to this mode runs the normal hook `help-mode-hook'.
 Commands:
 \\{help-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map help-mode-map)
-  (setq mode-name "Help")
-  (setq major-mode 'help-mode)
-
-  (view-mode)
-  (set (make-local-variable 'view-no-disable-on-exit) t)
-  ;; With Emacs 22 `view-exit-action' could delete the selected window
-  ;; disregarding whether the help buffer was shown in that window at
-  ;; all.  Since `view-exit-action' is called with the help buffer as
-  ;; argument it seems more appropriate to have it work on the buffer
-  ;; only and leave it to `view-mode-exit' to delete any associated
-  ;; window(s).
-  (setq view-exit-action
-	(lambda (buffer)
-	  ;; Use `with-current-buffer' to make sure that `bury-buffer'
-	  ;; also removes BUFFER from the selected window.
-	  (with-current-buffer buffer
-	    (bury-buffer))))
-
   (set (make-local-variable 'revert-buffer-function)
-       'help-mode-revert-buffer)
-
-  (run-mode-hooks 'help-mode-hook))
+       'help-mode-revert-buffer))
 
 ;;;###autoload
 (defun help-mode-setup ()
@@ -402,13 +377,6 @@ it does not already exist."
      (unless (derived-mode-p 'help-mode)
        (error "Current buffer is not in Help mode"))
      (current-buffer))))
-
-(defvar help-xref-override-view-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map view-mode-map)
-    (define-key map "\r" nil)
-    map)
-  "Replacement keymap for `view-mode' in help buffers.")
 
 ;;;###autoload
 (defun help-make-xrefs (&optional buffer)
@@ -594,9 +562,6 @@ that."
                                      (current-buffer)))
           (when (or help-xref-stack help-xref-forward-stack)
             (insert "\n")))
-        ;; View mode steals RET from us.
-        (set (make-local-variable 'minor-mode-overriding-map-alist)
-             (list (cons 'view-mode help-xref-override-view-map)))
         (set-buffer-modified-p old-modified)))))
 
 ;;;###autoload

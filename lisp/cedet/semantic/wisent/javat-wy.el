@@ -19,8 +19,7 @@
 
 ;;; Commentary:
 ;;
-;; This file was generated from the grammar file
-;; semantic/wisent/wisent-java-tags.wy in the CEDET repository.
+;; This file was generated from etc/java-tags.wy.
 
 ;;; Code:
 

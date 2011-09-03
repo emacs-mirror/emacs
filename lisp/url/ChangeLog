@@ -1,3 +1,8 @@
+2011-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-http.el (url-http-parse-headers): For HTTP 301/302/307,
+	don't convert to a GET request (Bug#701).
+
 2011-07-13  Chris Newton  <redshodan@gmail.com>  (tiny change)
 
 	* url-http.el (url-http): Copy over `url-show-status' to the async

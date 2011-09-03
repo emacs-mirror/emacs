@@ -1381,7 +1381,8 @@ by nnmaildir-request-article.")
 	(error
 	 (gmm-write-region (point-min) (point-max) tmpfile nil 'no-message nil
 			   'excl)
-	 (unix-sync))) ;; no fsync :(
+	 (when (fboundp 'unix-sync)
+	   (unix-sync)))) ;; no fsync :(
       (nnheader-cancel-timer 24h)
       (condition-case err
 	  (add-name-to-file tmpfile curfile)

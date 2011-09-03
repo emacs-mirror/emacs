@@ -132,7 +132,7 @@
   "What to do to \"exit\" the help buffer.
 This is a list
  (WINDOW . t)              delete the selected window (and possibly its frame,
-                           see `quit-window' and `View-quit'), go to WINDOW.
+                           see `quit-window'), go to WINDOW.
  (WINDOW . quit-window)    do quit-window, then select WINDOW.
  (WINDOW BUF START POINT)  display BUF at START, POINT, then select WINDOW.")
 
@@ -1104,7 +1104,7 @@ This relies on `display-buffer-window' being correctly set up by
 	  ((eq help-value 'new-window)
 	   "Type \\[delete-other-windows] to delete the help window")
 	  ((eq help-value 'reuse-other-window)
-	   "Type \\[switch-to-prev-buffer] RET to restore previous buffer"))
+	   "Type \"q\" in other window to quit"))
 	 help-window 'other))
        (t
 	;; Not much to say here.

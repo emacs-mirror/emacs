@@ -1,6 +1,6 @@
 ;;; ob-ledger.el --- org-babel functions for ledger evaluation
 
-;; Copyright (C) 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2010-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric S Fraga
 ;; Keywords: literate programming, reproducible research, accounting
@@ -67,6 +67,6 @@ called by `org-babel-execute-src-block'."
 
 (provide 'ob-ledger)
 
-;; arch-tag: 7bbb529e-95a1-4236-9d29-b0000b918c7c
+
 
 ;;; ob-ledger.el ends here

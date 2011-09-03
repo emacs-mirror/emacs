@@ -55,24 +55,24 @@
 (defvar scheme-mode-syntax-table
   (let ((st (make-syntax-table))
 	(i 0))
-
-    ;; Default is atom-constituent.
-    (while (< i 256)
+    ;; Symbol constituents
+    ;; We used to treat chars 128-256 as symbol-constituent, but they
+    ;; should be valid word constituents (Bug#8843).  Note that valid
+    ;; identifier characters are Scheme-implementation dependent.
+    (while (< i ?0)
       (modify-syntax-entry i "_   " st)
       (setq i (1+ i)))
-
-    ;; Word components.
-    (setq i ?0)
-    (while (<= i ?9)
-      (modify-syntax-entry i "w   " st)
+    (setq i (1+ ?9))
+    (while (< i ?A)
+      (modify-syntax-entry i "_   " st)
       (setq i (1+ i)))
-    (setq i ?A)
-    (while (<= i ?Z)
-      (modify-syntax-entry i "w   " st)
+    (setq i (1+ ?Z))
+    (while (< i ?a)
+      (modify-syntax-entry i "_   " st)
       (setq i (1+ i)))
-    (setq i ?a)
-    (while (<= i ?z)
-      (modify-syntax-entry i "w   " st)
+    (setq i (1+ ?z))
+    (while (< i 128)
+      (modify-syntax-entry i "_   " st)
       (setq i (1+ i)))
 
     ;; Whitespace

@@ -1342,8 +1342,8 @@ automatically choosing a major mode, use \\[find-file-literally]."
                         (confirm-nonexistent-file-or-buffer)))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
-	(mapcar #'pop-to-buffer-same-window (nreverse value))
-      (pop-to-buffer-same-window value))))
+	(mapcar 'switch-to-buffer (nreverse value))
+      (switch-to-buffer value))))
 
 (defun find-file-other-window (filename &optional wildcards)
   "Edit file FILENAME, in another window.
@@ -1638,11 +1638,6 @@ home directory is a root directory) and removes automounter prefixes
 			(match-string 1 filename)
 			(substring filename (match-end 0)))))
       filename)))
-
-(defcustom find-file-not-true-dirname-list nil
-  "List of logical names for which visiting shouldn't save the true dirname."
-  :type '(repeat (string :tag "Name"))
-  :group 'find-file)
 
 (defun find-buffer-visiting (filename &optional predicate)
   "Return the buffer visiting file FILENAME (a string).
@@ -3003,9 +2998,10 @@ mode, if there is one, otherwise nil."
 						"-mode"))))
 		   (or (equal keyname "coding")
 		       (condition-case nil
-			   (push (cons (if (eq key 'eval)
-					   'eval
-					 (indirect-variable key))
+			   (push (cons (cond ((eq key 'eval) 'eval)
+					     ;; Downcase "Mode:".
+					     ((equal keyname "mode") 'mode)
+					     (t (indirect-variable key)))
 				       val) result)
 			 (error nil))))
 		 (skip-chars-forward " \t;")))
@@ -3153,6 +3149,8 @@ major-mode."
 			   (var (let ((read-circle nil))
 				  (read str)))
 			   val val2)
+		      (and (equal (downcase (symbol-name var)) "mode")
+			   (setq var 'mode))
 		      ;; Read the variable value.
 		      (skip-chars-forward "^:")
 		      (forward-char 1)

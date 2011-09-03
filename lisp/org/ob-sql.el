@@ -1,6 +1,6 @@
 ;;; ob-sql.el --- org-babel functions for sql evaluation
 
-;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011  Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
 ;; Keywords: literate programming, reproducible research
@@ -140,6 +140,6 @@ This function is called by `org-babel-execute-src-block'."
 
 (provide 'ob-sql)
 
-;; arch-tag: a43ff944-6de1-4566-a83c-626814e3dad2
+
 
 ;;; ob-sql.el ends here

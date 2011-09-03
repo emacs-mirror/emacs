@@ -375,7 +375,8 @@ place point on some subject line."
 		 (const unread)
 		 (const first)
 		 (const unseen)
-	         (const unseen-or-unread)))
+	         (const unseen-or-unread)
+		 (function :tag "Function to call")))
 
 (defcustom gnus-auto-select-next t
   "*If non-nil, offer to go to the next group from the end of the previous.
@@ -3709,7 +3710,9 @@ buffer that was in action when the last article was fetched."
                                 gnus-newsgroup-name)) 'nntp)
 		      (gnus-group-real-name gnus-newsgroup-name))))
 	      (concat gnus-summary-newsgroup-prefix newsgroups)))))
-     (inline (gnus-summary-extract-address-component gnus-tmp-from)))))
+     (gnus-string-mark-left-to-right
+      (inline
+       (gnus-summary-extract-address-component gnus-tmp-from))))))
 
 (defun gnus-summary-insert-line (gnus-tmp-header
 				 gnus-tmp-level gnus-tmp-current
@@ -8627,6 +8630,8 @@ fetched for this group."
 	   'list gnus-newsgroup-headers
 	   (gnus-fetch-headers articles nil t)
 	   'gnus-article-sort-by-number))
+    (setq gnus-newsgroup-articles
+	  (gnus-sorted-nunion gnus-newsgroup-articles articles))
     (gnus-summary-limit (append articles gnus-newsgroup-limit))))
 
 (defun gnus-summary-limit-exclude-dormant ()
@@ -9015,13 +9020,15 @@ non-numeric or nil fetch the number specified by the
 		   (refs (split-string (or (mail-header-references header)
 					   "")))
 		   (gnus-parse-headers-hook
-		    (lambda () (goto-char (point-min))
+		    `(lambda () (goto-char (point-min))
 		      (keep-lines
-		       (regexp-opt (append refs (list id subject)))))))
+		       (regexp-opt ',(append refs (list id subject)))))))
 	      (gnus-fetch-headers (list last) (if (numberp limit)
-						  (* 2 limit) limit) t)))))
+						  (* 2 limit) limit) t))))
+	 article-ids)
     (when (listp new-headers)
       (dolist (header new-headers)
+	(push (mail-header-number header) article-ids)
 	(when (member (mail-header-number header) gnus-newsgroup-unselected)
           (push (mail-header-number header) gnus-newsgroup-unreads)
           (setq gnus-newsgroup-unselected
@@ -9032,11 +9039,14 @@ non-numeric or nil fetch the number specified by the
              (gnus-merge
               'list gnus-newsgroup-headers new-headers
               'gnus-article-sort-by-number)))
+      (setq gnus-newsgroup-articles
+      	    (gnus-sorted-nunion gnus-newsgroup-articles (nreverse article-ids)))
       (gnus-summary-limit-include-thread id))))
 
 (defun gnus-summary-refer-article (message-id)
   "Fetch an article specified by MESSAGE-ID."
   (interactive "sMessage-ID: ")
+  (gnus-warp-to-article)
   (when (and (stringp message-id)
 	     (not (zerop (length message-id))))
     (setq message-id (gnus-replace-in-string message-id " " ""))
@@ -10283,34 +10293,33 @@ This will be the case if the article has both been mailed and posted."
 	;; There are expirable articles in this group, so we run them
 	;; through the expiry process.
 	(gnus-message 6 "Expiring articles...")
-	(unless (gnus-check-group gnus-newsgroup-name)
-	  (error "Can't open server for %s" gnus-newsgroup-name))
-	;; The list of articles that weren't expired is returned.
-	(save-excursion
-	  (if expiry-wait
-	      (let ((nnmail-expiry-wait-function nil)
-		    (nnmail-expiry-wait expiry-wait))
-		(setq es (gnus-request-expire-articles
-			  expirable gnus-newsgroup-name)))
-	    (setq es (gnus-request-expire-articles
-		      expirable gnus-newsgroup-name)))
-	  (unless total
-	    (setq gnus-newsgroup-expirable es))
-	  ;; We go through the old list of expirable, and mark all
-	  ;; really expired articles as nonexistent.
-	  (unless (eq es expirable) ;If nothing was expired, we don't mark.
-	    (let ((gnus-use-cache nil))
-	      (dolist (article expirable)
-		(when (and (not (memq article es))
-			   (gnus-data-find article))
-		  (gnus-summary-mark-article article gnus-canceled-mark)
-		  (run-hook-with-args 'gnus-summary-article-expire-hook
-				      'delete
-				      (gnus-data-header
-				       (assoc article (gnus-data-list nil)))
-				      gnus-newsgroup-name
-				      nil
-				      nil))))))
+	(when (gnus-check-group gnus-newsgroup-name)
+	  ;; The list of articles that weren't expired is returned.
+	  (save-excursion
+	    (if expiry-wait
+		(let ((nnmail-expiry-wait-function nil)
+		      (nnmail-expiry-wait expiry-wait))
+		  (setq es (gnus-request-expire-articles
+			    expirable gnus-newsgroup-name)))
+	      (setq es (gnus-request-expire-articles
+			expirable gnus-newsgroup-name)))
+	    (unless total
+	      (setq gnus-newsgroup-expirable es))
+	    ;; We go through the old list of expirable, and mark all
+	    ;; really expired articles as nonexistent.
+	    (unless (eq es expirable) ;If nothing was expired, we don't mark.
+	      (let ((gnus-use-cache nil))
+		(dolist (article expirable)
+		  (when (and (not (memq article es))
+			     (gnus-data-find article))
+		    (gnus-summary-mark-article article gnus-canceled-mark)
+		    (run-hook-with-args 'gnus-summary-article-expire-hook
+					'delete
+					(gnus-data-header
+					 (assoc article (gnus-data-list nil)))
+					gnus-newsgroup-name
+					nil
+					nil)))))))
 	(gnus-message 6 "Expiring articles...done")))))
 
 (defun gnus-summary-expire-articles-now ()
@@ -12740,6 +12749,8 @@ returned."
 		      gnus-newsgroup-headers
 		      (gnus-fetch-headers articles)
 		      'gnus-article-sort-by-number))
+    (setq gnus-newsgroup-articles
+	  (gnus-sorted-nunion gnus-newsgroup-articles articles))
     ;; Suppress duplicates?
     (when gnus-suppress-duplicates
       (gnus-dup-suppress-articles))
@@ -12851,26 +12862,26 @@ If ALL is a number, fetch this number of articles."
 (defun gnus-summary-insert-new-articles ()
   "Insert all new articles in this group."
   (interactive)
-  (prog1
-      (let ((old (sort (mapcar 'car gnus-newsgroup-data) '<))
-	    (old-high gnus-newsgroup-highest)
-	    (nnmail-fetched-sources (list t))
-	    i new)
-	(setq gnus-newsgroup-active
-	      (gnus-copy-sequence
-	       (gnus-activate-group gnus-newsgroup-name 'scan)))
-	(setq i (cdr gnus-newsgroup-active)
-	      gnus-newsgroup-highest i)
-	(while (> i old-high)
-	  (push i new)
-	  (decf i))
-	(if (not new)
-	    (message "No gnus is bad news")
-	  (gnus-summary-insert-articles new)
-	  (setq gnus-newsgroup-unreads
-		(gnus-sorted-nunion gnus-newsgroup-unreads new))
-	  (gnus-summary-limit (gnus-sorted-nunion old new))))
-    (gnus-summary-position-point)))
+  (let ((old (sort (mapcar 'car gnus-newsgroup-data) '<))
+	(old-high gnus-newsgroup-highest)
+	(nnmail-fetched-sources (list t))
+	(new-active (gnus-activate-group gnus-newsgroup-name 'scan))
+	i new)
+    (unless new-active
+      (error "Couldn't fetch new data"))
+    (setq gnus-newsgroup-active (gnus-copy-sequence new-active))
+    (setq i (cdr gnus-newsgroup-active)
+	  gnus-newsgroup-highest i)
+    (while (> i old-high)
+      (push i new)
+      (decf i))
+    (if (not new)
+	(message "No gnus is bad news")
+      (gnus-summary-insert-articles new)
+      (setq gnus-newsgroup-unreads
+	    (gnus-sorted-nunion gnus-newsgroup-unreads new))
+      (gnus-summary-limit (gnus-sorted-nunion old new))))
+  (gnus-summary-position-point))
 
 ;;; Bookmark support for Gnus.
 (declare-function bookmark-make-record-default

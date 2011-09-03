@@ -395,7 +395,7 @@ It is a list of lists (KEY PREDICATE REVERSE).")
   :group 'proced-faces)
 
 (defface proced-marked
-  '((t (:inherit font-lock-warning-face)))
+  '((t (:inherit error)))
   "Face used for marked processes."
   :group 'proced-faces)
 

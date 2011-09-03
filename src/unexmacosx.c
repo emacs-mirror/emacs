@@ -599,6 +599,16 @@ print_load_command_name (int lc)
       printf ("LC_DYLD_INFO_ONLY");
       break;
 #endif
+#ifdef LC_VERSION_MIN_MACOSX
+    case LC_VERSION_MIN_MACOSX:
+      printf ("LC_VERSION_MIN_MACOSX");
+      break;
+#endif
+#ifdef LC_FUNCTION_STARTS
+    case LC_FUNCTION_STARTS:
+      printf ("LC_FUNCTION_STARTS");
+      break;
+#endif
     default:
       printf ("unknown          ");
     }
@@ -1135,6 +1145,28 @@ copy_dyld_info (struct load_command *lc, long delta)
 }
 #endif
 
+#ifdef LC_FUNCTION_STARTS
+/* Copy a LC_FUNCTION_STARTS load command from the input file to the
+   output file, adjusting the data offset field.  */
+static void
+copy_linkedit_data (struct load_command *lc, long delta)
+{
+  struct linkedit_data_command *ldp = (struct linkedit_data_command *) lc;
+
+  if (ldp->dataoff > 0)
+    ldp->dataoff += delta;
+
+  printf ("Writing ");
+  print_load_command_name (lc->cmd);
+  printf (" command\n");
+
+  if (!unexec_write (curr_header_offset, lc, lc->cmdsize))
+    unexec_error ("cannot write linkedit data command to header");
+
+  curr_header_offset += lc->cmdsize;
+}
+#endif
+
 /* Copy other kinds of load commands from the input file to the output
    file, ones that do not require adjustments of file offsets.  */
 static void
@@ -1205,6 +1237,11 @@ dump_it (void)
       case LC_DYLD_INFO:
       case LC_DYLD_INFO_ONLY:
 	copy_dyld_info (lca[i], linkedit_delta);
+	break;
+#endif
+#ifdef LC_FUNCTION_STARTS
+      case LC_FUNCTION_STARTS:
+	copy_linkedit_data (lca[i], linkedit_delta);
 	break;
 #endif
       default:

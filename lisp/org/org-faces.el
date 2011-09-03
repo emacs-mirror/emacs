@@ -1,7 +1,6 @@
 ;;; org-faces.el --- Face definitions for Org-mode.
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -736,6 +735,6 @@ level org-n-level-faces"
 
 (provide 'org-faces)
 
-;; arch-tag: 9dab5f91-c4b9-4d6f-bac3-1f6211ad0a04
+
 
 ;;; org-faces.el ends here

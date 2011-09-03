@@ -141,7 +141,6 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
 			Fcons (Qnil, Fnreverse (Fcons (r, result))));
 
       xmlFreeDoc (doc);
-      xmlCleanupParser ();
     }
 
   return result;

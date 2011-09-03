@@ -247,6 +247,10 @@ Whether the passphrase is cached at all is controlled by
 (autoload 'epg-context-set-textmode "epg")
 (autoload 'epg-context-set-signers "epg")
 (autoload 'epg-context-set-passphrase-callback "epg")
+(autoload 'epg-key-sub-key-list "epg")
+(autoload 'epg-sub-key-capability "epg")
+(autoload 'epg-sub-key-validity "epg")
+(autoload 'epg-sub-key-fingerprint "epg")
 (autoload 'epg-sign-string "epg")
 (autoload 'epg-encrypt-string "epg")
 (autoload 'epg-configuration "epg-config")
@@ -274,17 +278,59 @@ Whether the passphrase is cached at all is controlled by
 	      (cons key-id mml1991-epg-secret-key-id-list))
 	(copy-sequence passphrase)))))
 
+(defun mml1991-epg-find-usable-key (keys usage)
+  (catch 'found
+    (while keys
+      (let ((pointer (epg-key-sub-key-list (car keys))))
+	(while pointer
+	  (if (and (memq usage (epg-sub-key-capability (car pointer)))
+		   (not (memq 'disabled (epg-sub-key-capability (car pointer))))
+		   (not (memq (epg-sub-key-validity (car pointer))
+			      '(revoked expired))))
+	      (throw 'found (car keys)))
+	  (setq pointer (cdr pointer))))
+      (setq keys (cdr keys)))))
+
+;; XXX: since gpg --list-secret-keys does not return validity of each
+;; key, `mml1991-epg-find-usable-key' defined above is not enough for
+;; secret keys.  The function `mml1991-epg-find-usable-secret-key'
+;; below looks at appropriate public keys to check usability.
+(defun mml1991-epg-find-usable-secret-key (context name usage)
+  (let ((secret-keys (epg-list-keys context name t))
+	secret-key)
+    (while (and (not secret-key) secret-keys)
+      (if (mml1991-epg-find-usable-key
+	   (epg-list-keys context (epg-sub-key-fingerprint
+				   (car (epg-key-sub-key-list
+					 (car secret-keys)))))
+	   usage)
+	  (setq secret-key (car secret-keys)
+		secret-keys nil)
+	(setq secret-keys (cdr secret-keys))))
+    secret-key))
+
 (defun mml1991-epg-sign (cont)
   (let ((context (epg-make-context))
-	headers cte signers signature)
+	headers cte signer-key signers signature)
     (if (eq mm-sign-option 'guided)
 	(setq signers (epa-select-keys context "Select keys for signing.
 If no one is selected, default secret key is used.  "
 				       mml1991-signers t))
       (if mml1991-signers
-	  (setq signers (mapcar (lambda (name)
-				  (car (epg-list-keys context name t)))
-				mml1991-signers))))
+	  (setq signers (delq nil
+			      (mapcar
+			       (lambda (name)
+				 (setq signer-key
+				       (mml1991-epg-find-usable-secret-key
+					context name 'sign))
+				 (unless (or signer-key
+					     (y-or-n-p
+					      (format
+					       "No secret key for %s; skip it? "
+					       name)))
+				   (error "No secret key for %s" name))
+				 signer-key)
+			       mml1991-signers)))))
     (epg-context-set-armor context t)
     (epg-context-set-textmode context t)
     (epg-context-set-signers context signers)
@@ -344,7 +390,11 @@ If no one is selected, default secret key is used.  "
 	     (split-string
 	      (message-options-get 'message-recipients)
 	      "[ \f\t\n\r\v,]+")))
-	cipher signers config)
+	recipient-key signer-key cipher signers config)
+    (when mml1991-encrypt-to-self
+      (unless mml1991-signers
+	(error "mml1991-signers is not set"))
+      (setq recipients (nconc recipients mml1991-signers)))
     ;; We should remove this check if epg-0.0.6 is released.
     (if (and (condition-case nil
 		 (require 'epg-config)
@@ -363,26 +413,32 @@ If no one is selected, default secret key is used.  "
 If no one is selected, symmetric encryption will be performed.  "
 			       recipients))
       (setq recipients
-	    (delq nil (mapcar (lambda (name)
-				(car (epg-list-keys context name)))
-			      recipients))))
-    (if mml1991-encrypt-to-self
-	(if mml1991-signers
-	    (setq recipients
-		  (nconc recipients
-			 (mapcar (lambda (name)
-				   (car (epg-list-keys context name)))
-				 mml1991-signers)))
-	  (error "mml1991-signers not set")))
+	    (delq nil (mapcar
+		       (lambda (name)
+			 (setq recipient-key (mml1991-epg-find-usable-key
+					      (epg-list-keys context name)
+					      'encrypt))
+			 (unless (or recipient-key
+				   (y-or-n-p
+				    (format "No public key for %s; skip it? "
+					    name)))
+			   (error "No public key for %s" name))
+			 recipient-key)
+		       recipients)))
+      (unless recipients
+	(error "No recipient specified")))
     (when sign
       (if (eq mm-sign-option 'guided)
 	  (setq signers (epa-select-keys context "Select keys for signing.
 If no one is selected, default secret key is used.  "
 					 mml1991-signers t))
 	(if mml1991-signers
-	    (setq signers (mapcar (lambda (name)
-				    (car (epg-list-keys context name t)))
-				  mml1991-signers))))
+	    (setq signers (delq nil
+				(mapcar
+				 (lambda (name)
+				   (mml1991-epg-find-usable-secret-key
+				    context name 'sign))
+				 mml1991-signers)))))
       (epg-context-set-signers context signers))
     (epg-context-set-armor context t)
     (epg-context-set-textmode context t)

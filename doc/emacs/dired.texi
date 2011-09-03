@@ -2,7 +2,7 @@
 @c Copyright (C) 1985-1987, 1993-1995, 1997, 2000-2011
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Dired, Calendar/Diary, Rmail, Top
+@node Dired
 @chapter Dired, the Directory Editor
 @c This node is referenced in the tutorial.  When renaming or deleting
 @c it, the tutorial needs to be adjusted.
@@ -201,12 +201,10 @@ delete nonempty directories including all their contents.  That can
 be somewhat risky.
 
 @vindex delete-by-moving-to-trash
-  On some systems, there is a facility called the ``Trash'' or
-``Recycle Bin'', but Emacs does @emph{not} use it by default.  Thus,
-when you delete a file in Dired, it is gone forever.  However, you can
-tell Emacs to use the Trash for file deletion, by changing the
-variable @code{delete-by-moving-to-trash} to @code{t}.  @xref{Misc
-File Ops}, for more information about the Trash.
+  If you change the variable @code{delete-by-moving-to-trash} to
+@code{t}, the above deletion commands will move the affected files or
+directories into the operating system's Trash, instead of deleting
+them outright.  @xref{Misc File Ops}.
 
 @node Flagging Many Files
 @section Flagging Many Files at Once
@@ -645,8 +643,8 @@ link.
 @cindex changing file permissions (in Dired)
 @item M @var{modespec} @key{RET}
 Change the mode (also called ``permission bits'') of the specified files
-(@code{dired-do-chmod}).  This uses the @code{chmod} program, so
-@var{modespec} can be any argument that @code{chmod} can handle.
+(@code{dired-do-chmod}).  @var{modespec} can be in octal or symbolic
+notation like arguments handled by the @code{chmod} program.
 
 @findex dired-do-chgrp
 @kindex G @r{(Dired)}

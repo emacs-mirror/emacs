@@ -1,7 +1,6 @@
 ;;; org-remember.el --- Fast note taking in Org-mode
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2004-2011  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -41,8 +40,6 @@
 (declare-function remember "remember" (&optional initial))
 (declare-function remember-buffer-desc "remember" ())
 (declare-function remember-finalize "remember" ())
-(declare-function org-pop-to-buffer-same-window 
-		  "org-compat" (&optional buffer-or-name norecord label))
 
 (defvar remember-save-after-remembering)
 (defvar remember-register)
@@ -789,7 +786,7 @@ The user is queried for the template."
       (setq heading org-remember-default-headline))
     (setq visiting (org-find-base-buffer-visiting file))
     (if (not visiting) (find-file-noselect file))
-    (org-pop-to-buffer-same-window (or visiting (get-file-buffer file)))
+    (switch-to-buffer (or visiting (get-file-buffer file)))
     (widen)
     (goto-char (point-min))
     (if (re-search-forward
@@ -1153,7 +1150,7 @@ See also the variable `org-reverse-note-order'."
 
 (provide 'org-remember)
 
-;; arch-tag: 497f30d0-4bc3-4097-8622-2d27ac5f2698
+
 
 ;;; org-remember.el ends here
 

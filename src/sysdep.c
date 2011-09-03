@@ -2640,7 +2640,7 @@ system_process_attributes (Lisp_Object pid)
   ssize_t nread;
   const char *cmd = NULL;
   char *cmdline = NULL;
-  size_t cmdsize = 0, cmdline_size;
+  ptrdiff_t cmdsize = 0, cmdline_size;
   unsigned char c;
   int proc_id, ppid, uid, gid, pgrp, sess, tty, tpgid, thcount;
   unsigned long long u_time, s_time, cutime, cstime, start;
@@ -2822,8 +2822,10 @@ system_process_attributes (Lisp_Object pid)
   if (fd >= 0)
     {
       char ch;
-      for (cmdline_size = 0; emacs_read (fd, &ch, 1) == 1; cmdline_size++)
+      for (cmdline_size = 0; cmdline_size < STRING_BYTES_BOUND; cmdline_size++)
 	{
+	  if (emacs_read (fd, &ch, 1) != 1)
+	    break;
 	  c = ch;
 	  if (isspace (c) || c == '\\')
 	    cmdline_size++;	/* for later quoting, see below */
@@ -2844,7 +2846,7 @@ system_process_attributes (Lisp_Object pid)
 	      nread = 0;
 	    }
 	  /* We don't want trailing null characters.  */
-	  for (p = cmdline + nread - 1; p > cmdline && !*p; p--)
+	  for (p = cmdline + nread; p > cmdline + 1 && !p[-1]; p--)
 	    nread--;
 	  for (p = cmdline; p < cmdline + nread; p++)
 	    {

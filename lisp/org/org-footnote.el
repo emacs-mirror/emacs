@@ -1,6 +1,6 @@
 ;;; org-footnote.el --- Footnote support in Org and elsewhere
 ;;
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009-2011 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
@@ -862,6 +862,6 @@ If LABEL is non-nil, delete that footnote instead."
 
 (provide 'org-footnote)
 
-;; arch-tag: 1b5954df-fb5d-4da5-8709-78d944dbfc37
+
 
 ;;; org-footnote.el ends here

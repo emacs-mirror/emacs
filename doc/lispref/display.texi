@@ -367,10 +367,9 @@ echo area, or @code{nil} if there is none.
   When an operation can take a while to finish, you should inform the
 user about the progress it makes.  This way the user can estimate
 remaining time and clearly see that Emacs is busy working, not hung.
+A convenient way to do this is to use a @dfn{progress reporter}.
 
-  Functions listed in this section provide simple and efficient way of
-reporting operation progress.  Here is a working example that does
-nothing useful:
+  Here is a working example that does nothing useful:
 
 @smallexample
 (let ((progress-reporter
@@ -382,11 +381,11 @@ nothing useful:
   (progress-reporter-done progress-reporter))
 @end smallexample
 
-@defun make-progress-reporter message min-value max-value &optional current-value min-change min-time
-This function creates and returns a @dfn{progress reporter}---an
-object you will use as an argument for all other functions listed
-here.  The idea is to precompute as much data as possible to make
-progress reporting very fast.
+@defun make-progress-reporter message &optional min-value max-value current-value min-change min-time
+This function creates and returns a progress reporter object, which
+you will use as an argument for the other functions listed below.  The
+idea is to precompute as much data as possible to make progress
+reporting very fast.
 
 When this progress reporter is subsequently used, it will display
 @var{message} in the echo area, followed by progress percentage.
@@ -394,24 +393,28 @@ When this progress reporter is subsequently used, it will display
 on a filename, for instance, use @code{format} before calling this
 function.
 
-@var{min-value} and @var{max-value} arguments stand for starting and
-final states of your operation.  For instance, if you scan a buffer,
-they should be the results of @code{point-min} and @code{point-max}
-correspondingly.  It is required that @var{max-value} is greater than
-@var{min-value}.  If you create progress reporter when some part of
-the operation has already been completed, then specify
-@var{current-value} argument.  But normally you should omit it or set
-it to @code{nil}---it will default to @var{min-value} then.
+The arguments @var{min-value} and @var{max-value} should be numbers
+standing for the starting and final states of the operation.  For
+instance, an operation that ``scans'' a buffer should set these to the
+results of @code{point-min} and @code{point-max} correspondingly.
+@var{max-value} should be greater than @var{min-value}.
 
-Remaining arguments control the rate of echo area updates.  Progress
-reporter will wait for at least @var{min-change} more percents of the
-operation to be completed before printing next message.
-@var{min-time} specifies the minimum time in seconds to pass between
-successive prints.  It can be fractional.  Depending on Emacs and
-system capabilities, progress reporter may or may not respect this
-last argument or do it with varying precision.  Default value for
-@var{min-change} is 1 (one percent), for @var{min-time}---0.2
-(seconds.)
+Alternatively, you can set @var{min-value} and @var{max-value} to
+@code{nil}.  In that case, the progress reporter does not report
+process percentages; it instead displays a ``spinner'' that rotates a
+notch each time you update the progress reporter.
+
+If @var{min-value} and @var{max-value} are numbers, you can give the
+argument @var{current-value} a numerical value specifying the initial
+progress; if omitted, this defaults to @var{min-value}.
+
+The remaining arguments control the rate of echo area updates.  The
+progress reporter will wait for at least @var{min-change} more
+percents of the operation to be completed before printing next
+message; the default is one percent.  @var{min-time} specifies the
+minimum time in seconds to pass between successive prints; the default
+is 0.2 seconds.  (On some operating systems, the progress reporter may
+handle fractions of seconds with varying precision).
 
 This function calls @code{progress-reporter-update}, so the first
 message is printed immediately.
@@ -1454,7 +1457,10 @@ specify just the foreground color or just the background color.
 @item mouse-face
 @kindex mouse-face @r{(overlay property)}
 This property is used instead of @code{face} when the mouse is within
-the range of the overlay.
+the range of the overlay.  However, Emacs ignores all face attributes
+from this property that alter the text size (e.g.  @code{:height},
+@code{:weight}, and @code{:slant}).  Those attributes are always the
+same as in the unhighlighted text.
 
 @item display
 @kindex display @r{(overlay property)}
@@ -1827,9 +1833,10 @@ particular face name a special meaning in one frame if you wish.
 * Face Attributes::     What is in a face?
 * Attribute Functions::  Functions to examine and set face attributes.
 * Displaying Faces::     How Emacs combines the faces specified for a character.
-* Face Remapping::     Remapping faces to alternative definitions.
+* Face Remapping::      Remapping faces to alternative definitions.
 * Face Functions::      How to define and examine faces.
 * Auto Faces::          Hook for automatic face assignment.
+* Basic Faces::         Faces that are defined by default.
 * Font Selection::      Finding the best available font for a face.
 * Font Lookup::         Looking up the names of available fonts
                           and information about them.
@@ -2680,6 +2687,62 @@ function finishes are the ones that really matter.
 For efficiency, we recommend writing these functions so that they
 usually assign faces to around 400 to 600 characters at each call.
 @end defvar
+
+@node Basic Faces
+@subsection Basic Faces
+
+If your Emacs Lisp program needs to assign some faces to text, it is
+often a good idea to use certain existing faces or inherit from them,
+rather than defining entirely new faces.  This way, if other users
+have customized the basic faces to give Emacs a certain look, your
+program will ``fit in'' without additional customization.
+
+  Some of the basic faces defined in Emacs are listed below.  In
+addition to these, you might want to make use of the Font Lock faces
+for syntactic highlighting, if highlighting is not already handled by
+Font Lock mode, or if some Font Lock faces are not in use.
+@xref{Faces for Font Lock}.
+
+@table @code
+@item default
+The default face, whose attributes are all specified.  All other faces
+implicitly inherit from it: any unspecified attribute defaults to the
+attribute on this face (@pxref{Face Attributes}).
+
+@item bold
+@itemx italic
+@itemx bold-italic
+@itemx underline
+@itemx fixed-pitch
+@itemx variable-pitch
+These have the attributes indicated by their names (e.g. @code{bold}
+has a bold @code{:weight} attribute), with all other attributes
+unspecified (and so given by @code{default}).
+
+@item shadow
+For ``dimmed out'' text.  For example, it is used for the ignored
+part of a filename in the minibuffer (@pxref{Minibuffer File,,
+Minibuffers for File Names, emacs, The GNU Emacs Manual}).
+
+@item link
+@itemx link-visited
+For clickable text buttons that send the user to a different
+buffer or ``location''.
+
+@item highlight
+For stretches of text that should temporarily stand out.  For example,
+it is commonly assigned to the @code{mouse-face} property for cursor
+highlighting (@pxref{Special Properties}).
+
+@item match
+For text matching a search command.
+
+@item error
+@itemx warning
+@itemx success
+For text concerning errors, warnings, or successes.  For example,
+these are used for messages in @samp{*Compilation*} buffers.
+@end table
 
 @node Font Selection
 @subsection Font Selection
@@ -3790,6 +3853,10 @@ with a @dfn{pixel ascent} specification (@pxref{Pixel Specification}).
   The @code{:width} and @code{:align-to} properties are supported on
 non-graphic terminals, but the other space properties in this section
 are not.
+
+  Note that space properties are treated as paragraph separators for
+the purposes of reordering bidirectional text for display.
+@xref{Bidirectional Display}, for the details.
 
 @node Pixel Specification
 @subsection Pixel Specification for Spaces
@@ -5989,6 +6056,7 @@ left-to-right and right-to-left characters.
 for editing and displaying bidirectional text.
 
 @cindex logical order
+@cindex reading order
 @cindex visual order
 @cindex unicode bidirectional algorithm
   Emacs stores right-to-left and bidirectional text in the so-called
@@ -6003,17 +6071,16 @@ for display.  Reordering of bidirectional text for display in Emacs is
 a ``Full bidirectionality'' class implementation of the @acronym{UBA}.
 
 @defvar bidi-display-reordering
-  The buffer-local variable @code{bidi-display-reordering} controls
-whether text in the buffer is reordered for display.  If its value is
-non-@code{nil}, Emacs reorders characters that have right-to-left
-directionality when they are displayed.  The default value is
-@code{t}.  Text in overlay strings (@pxref{Overlay
-Properties,,before-string}), display strings (@pxref{Overlay
-Properties,,display}), and @code{display} text properties
-(@pxref{Display Property}) is also reordered if the buffer whose text
-includes these strings is reordered for display.  Turning off
-@code{bidi-display-reordering} for a buffer turns off reordering of
-all the overlay and display strings in that buffer.
+  This buffer-local variable controls whether text in the buffer is
+reordered for display.  If its value is non-@code{nil}, Emacs reorders
+characters that have right-to-left directionality when they are
+displayed.  The default value is @code{t}.  Text in overlay strings
+(@pxref{Overlay Properties,,before-string}), display strings
+(@pxref{Overlay Properties,,display}), and @code{display} text
+properties (@pxref{Display Property}) is also reordered for display if
+the buffer whose text includes these strings is reordered.  Turning
+off @code{bidi-display-reordering} for a buffer turns off reordering
+of all the overlay and display strings in that buffer.
 
   Reordering of strings that are unrelated to any buffer, such as text
 displayed on the mode line (@pxref{Mode Line Format}) or header line
@@ -6053,7 +6120,7 @@ it is reordered for display.  That is, the entire chunk of text
 covered by these properties is reordered together.  Moreover, the
 bidirectional properties of the characters in this chunk of text are
 ignored, and Emacs reorders them as if they were replaced with a
-single character @code{u+FFFC}, known as the @dfn{Object Replacement
+single character @code{U+FFFC}, known as the @dfn{Object Replacement
 Character}.  This means that placing a display property over a portion
 of text may change the way that the surrounding text is reordered for
 display.  To prevent this unexpected effect, always place such
@@ -6070,9 +6137,9 @@ begins at the right margin and is continued or truncated at the left
 margin.
 
 @defvar bidi-paragraph-direction
-  Emacs determines the base direction of each paragraph dynamically,
-based on the text at the beginning of the paragraph.  The precise
-method of determining the base direction is specified by the
+  By default, Emacs determines the base direction of each paragraph
+dynamically, based on the text at the beginning of the paragraph.  The
+precise method of determining the base direction is specified by the
 @acronym{UBA}; in a nutshell, the first character in a paragraph that
 has an explicit directionality determines the base direction of the
 paragraph.  However, sometimes a buffer may need to force a certain
@@ -6084,6 +6151,13 @@ dynamic determination of the base direction, and instead forces all
 paragraphs in the buffer to have the direction specified by its
 buffer-local value.  The value can be either @code{right-to-left} or
 @code{left-to-right}.  Any other value is interpreted as @code{nil}.
+The default is @code{nil}.
+
+@cindex @code{prog-mode}, and @code{bidi-paragraph-direction}
+Modes that are meant to display program source code should force a
+@code{left-to-right} paragraph direction.  The easiest way of doing so
+is to derive the mode from Prog Mode, which already sets
+@code{bidi-paragraph-direction} to that value.
 @end defvar
 
 @defun current-bidi-paragraph-direction &optional buffer
@@ -6094,5 +6168,83 @@ omitted or @code{nil}, it defaults to the current buffer.  If the
 buffer-local value of the variable @code{bidi-paragraph-direction} is
 non-@code{nil}, the returned value will be identical to that value;
 otherwise, the returned value reflects the paragraph direction
-determined dynamically by Emacs.
+determined dynamically by Emacs.  For buffers whose value of
+@code{bidi-display-reordering} is @code{nil} as well as unibyte
+buffers, this function always returns @code{left-to-right}.
 @end defun
+
+@cindex layout on display, and bidirectional text
+@cindex jumbled display of bidirectional text
+@cindex concatenating bidirectional strings
+  Reordering of bidirectional text for display can have surprising and
+unpleasant effects when two strings with bidirectional content are
+juxtaposed in a buffer, or otherwise programmatically concatenated
+into a string of text.  A typical example is a buffer whose lines are
+actually sequences of items, or fields, separated by whitespace or
+punctuation characters.  This is used in specialized modes such as
+Buffer-menu Mode or various email summary modes, like Rmail Summary
+Mode.  Because these separator characters are @dfn{weak}, i.e.@: have
+no strong directionality, they take on the directionality of
+surrounding text.  As result, a numeric field that follows a field
+with bidirectional content can be displayed @emph{to the left} of the
+preceding field, producing a jumbled display and messing up the
+expected layout.
+
+  To countermand this, we recommend that you use one of the following
+techniques for forcing correct order of fields on display:
+
+@itemize @minus
+@item
+Append the special character @code{U+200E}, LEFT-TO-RIGHT MARK, or
+@acronym{LRM}, to the end of each field that may have bidirectional
+content, or prepend it to the beginning of the following field.  The
+function @code{bidi-string-mark-left-to-right}, described below, comes
+in handy for this purpose.  (In a right-to-left paragraph, use
+@code{U+200F}, RIGHT-TO-LEFT MARK, or @acronym{RLM}, instead.)  This
+is one of the solutions recommended by
+@uref{http://www.unicode.org/reports/tr9/#Separators, the
+@acronym{UBA}}.
+
+@item
+Include the tab character in the field separator.  The tab character
+plays the role of @dfn{segment separator} in the @acronym{UBA}
+reordering, whose effect is to make each field a separate segment, and
+thus reorder them separately.
+
+@cindex @code{space} display spec, and bidirectional text
+@item
+Separate fields with a @code{display} property or overlay with the
+property value of the form @code{(space . PROPS)} (@pxref{Specified
+Space}).  This display specification is treated by Emacs as a
+@dfn{paragraph separator}; the text before and after the separator is
+reordered separately, which avoids the influence of any field on its
+neighboring fields.
+@end itemize
+
+@defun bidi-string-mark-left-to-right string
+This subroutine returns its argument @var{string}, possibly modified,
+such that the result can be safely concatenated with another string,
+or juxtaposed with another string in a buffer, without disrupting the
+relative layout of this string and the next one on display.  If the
+string returned by this function is displayed as part of a
+left-to-right paragraph, it will always appear on display to the left
+of the text that follows it.  The function works by examining the
+characters of its argument, and if any of those characters could cause
+reordering on display, the function appends the @acronym{LRM}
+character to the string.  The appended @acronym{LRM} character is made
+@emph{invisible} (@pxref{Invisible Text}), to hide it on display.
+@end defun
+
+  The reordering algorithm uses the bidirectional properties of the
+characters stored as their @code{bidi-class} property
+(@pxref{Character Properties}).  Lisp programs can change these
+properties by calling the @code{put-char-code-property} function.
+However, doing this requires a thorough understanding of the
+@acronym{UBA}, and is therefore not recommended.  Any changes to the
+bidirectional properties of a character have global effect: they
+affect all Emacs frames and windows.
+
+  Similarly, the @code{mirroring} property is used to display the
+appropriate mirrored character in the reordered text.  Lisp programs
+can affect the mirrored display by changing this property.  Again, any
+such changes affect all of Emacs display.
