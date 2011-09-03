@@ -1,3 +1,9 @@
+2011-09-03  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-print): Simplify code for
+	rcirc-scroll-show-maximum-output.  There is no need to walk
+	through all windows to find the right one.
+
 2011-09-03  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* help.el (help-return-method): Doc fix.
