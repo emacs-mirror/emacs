@@ -1,4 +1,4 @@
-# pthread_sigmask.m4 serial 11
+# pthread_sigmask.m4 serial 12
 dnl Copyright (C) 2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -13,8 +13,8 @@ AC_DEFUN([gl_FUNC_PTHREAD_SIGMASK],
   dnl Some packages like Emacs use --avoid=threadlib.
   dnl Write the symbol in such a way that it does not cause 'aclocal' to pick
   dnl the threadlib.m4 file that is installed in $PREFIX/share/aclocal/.
-  m4_ifdef([gl_[]THREADLIB], [
-    AC_REQUIRE([gl_[]THREADLIB])
+  m4_ifdef([gl_][THREADLIB], [
+    AC_REQUIRE([gl_][THREADLIB])
 
     if test "$gl_threads_api" = posix; then
       if test $ac_cv_func_pthread_sigmask = yes; then

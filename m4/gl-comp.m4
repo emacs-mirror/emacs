@@ -25,7 +25,7 @@ AC_DEFUN([gl_EARLY],
   m4_pattern_allow([^gl_ES$])dnl a valid locale name
   m4_pattern_allow([^gl_LIBOBJS$])dnl a variable
   m4_pattern_allow([^gl_LTLIBOBJS$])dnl a variable
-  AC_REQUIRE([AC_PROG_RANLIB])
+  AC_REQUIRE([gl_PROG_AR_RANLIB])
   # Code from module alloca-opt:
   # Code from module allocator:
   # Code from module careadlinkat:
@@ -48,6 +48,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module intprops:
   # Code from module inttypes-incomplete:
   # Code from module largefile:
+  AC_REQUIRE([AC_SYS_LARGEFILE])
   # Code from module lstat:
   # Code from module mktime:
   # Code from module multiarch:
@@ -174,13 +175,13 @@ gl_STDIO_H
 gl_STDLIB_H
 gl_FUNC_GNU_STRFTIME
 gl_FUNC_STRTOIMAX
-if test "$ac_cv_have_decl_strtoimax" != yes && test $ac_cv_func_strtoimax = no; then
+if test $ac_cv_func_strtoimax = no; then
   AC_LIBOBJ([strtoimax])
   gl_PREREQ_STRTOIMAX
 fi
 gl_INTTYPES_MODULE_INDICATOR([strtoimax])
 gl_FUNC_STRTOUMAX
-if test "$ac_cv_have_decl_strtoumax" != yes && test $ac_cv_func_strtoumax = no; then
+if test $ac_cv_func_strtoumax = no; then
   AC_LIBOBJ([strtoumax])
   gl_PREREQ_STRTOUMAX
 fi
@@ -297,16 +298,16 @@ gl_STDLIB_MODULE_INDICATOR([strtoull])
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     func_gl_gnulib_m4code_stat
   fi
-  if test "$ac_cv_have_decl_strtoimax" != yes && test $ac_cv_func_strtoimax = no; then
+  if test $ac_cv_func_strtoimax = no; then
     func_gl_gnulib_m4code_verify
   fi
-  if test "$ac_cv_have_decl_strtoimax" != yes && test $ac_cv_func_strtoimax = no && test $ac_cv_type_long_long_int = yes; then
+  if test $ac_cv_func_strtoimax = no && test $ac_cv_type_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoll
   fi
-  if test "$ac_cv_have_decl_strtoumax" != yes && test $ac_cv_func_strtoumax = no; then
+  if test $ac_cv_func_strtoumax = no; then
     func_gl_gnulib_m4code_verify
   fi
-  if test "$ac_cv_have_decl_strtoumax" != yes && test $ac_cv_func_strtoumax = no && test $ac_cv_type_unsigned_long_long_int = yes; then
+  if test $ac_cv_func_strtoumax = no && test $ac_cv_type_unsigned_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoull
   fi
   m4_pattern_allow([^gl_GNULIB_ENABLED_])

@@ -19,8 +19,8 @@ m4_define([_AC_SYS_LARGEFILE_TEST_INCLUDES],
     incorrectly reject 9223372036854775807.  */
 @%:@define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
   int off_t_is_large[[(LARGE_OFF_T % 2147483629 == 721
-		       && LARGE_OFF_T % 2147483647 == 1)
-		      ? 1 : -1]];[]dnl
+                       && LARGE_OFF_T % 2147483647 == 1)
+                      ? 1 : -1]];[]dnl
 ])
 
 
@@ -58,7 +58,7 @@ rm -rf conftest*[]dnl
 # http://www.unix-systems.org/version2/whatsnew/lfs20mar.html
 AC_DEFUN([AC_SYS_LARGEFILE],
 [AC_ARG_ENABLE(largefile,
-	       [  --disable-largefile     omit support for large files])
+               [  --disable-largefile     omit support for large files])
 if test "$enable_largefile" != no; then
 
   AC_CACHE_CHECK([for special C compiler options needed for large files],
@@ -67,13 +67,13 @@ if test "$enable_largefile" != no; then
      if test "$GCC" != yes; then
        ac_save_CC=$CC
        while :; do
-	 # IRIX 6.2 and later do not support large files by default,
-	 # so use the C compiler's -n32 option if that helps.
-	 AC_LANG_CONFTEST([AC_LANG_PROGRAM([_AC_SYS_LARGEFILE_TEST_INCLUDES])])
-	 AC_COMPILE_IFELSE([], [break])
-	 CC="$CC -n32"
-	 AC_COMPILE_IFELSE([], [ac_cv_sys_largefile_CC=' -n32'; break])
-	 break
+         # IRIX 6.2 and later do not support large files by default,
+         # so use the C compiler's -n32 option if that helps.
+         AC_LANG_CONFTEST([AC_LANG_PROGRAM([_AC_SYS_LARGEFILE_TEST_INCLUDES])])
+         AC_COMPILE_IFELSE([], [break])
+         CC="$CC -n32"
+         AC_COMPILE_IFELSE([], [ac_cv_sys_largefile_CC=' -n32'; break])
+         break
        done
        CC=$ac_save_CC
        rm -f conftest.$ac_ext
