@@ -1639,11 +1639,6 @@ home directory is a root directory) and removes automounter prefixes
 			(substring filename (match-end 0)))))
       filename)))
 
-(defcustom find-file-not-true-dirname-list nil
-  "List of logical names for which visiting shouldn't save the true dirname."
-  :type '(repeat (string :tag "Name"))
-  :group 'find-file)
-
 (defun find-buffer-visiting (filename &optional predicate)
   "Return the buffer visiting file FILENAME (a string).
 This is like `get-file-buffer', except that it checks for any buffer
