@@ -2097,6 +2097,10 @@ shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
 #ifdef HAVE_NS
   ns_term_shutdown (sig);
 #endif
+
+#ifdef HAVE_LIBXML2
+  xmlCleanupParser ();
+#endif
 }
 
 

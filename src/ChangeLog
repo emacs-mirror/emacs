@@ -1,3 +1,10 @@
+2011-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* emacs.c (shut_down_emacs): Call xmlCleanupParser on shutdown.
+
+	* xml.c (parse_region): Don't call xmlCleanupParser after parsing,
+	since this reportedly can destroy thread storage.
+
 2011-08-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* syntax.c (find_defun_start): Update all cache variables if
