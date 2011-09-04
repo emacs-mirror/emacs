@@ -2291,29 +2291,45 @@ frame."
       (setq window (window-atom-root window))))
   (let ((parent (window-parent window))
 	(frame (window-frame window))
+	(buffer (window-buffer window))
 	(dedicated (and (window-buffer window) (window-dedicated-p window)))
 	(quit-restore (window-parameter window 'quit-restore)))
     (cond
      ((frame-root-window-p window)
+     ;; Don't delete FRAME if `frame-auto-delete' is nil.
       (when (and (or (eq frame-auto-delete t)
 		     (and (eq frame-auto-delete 'automatic)
+			  ;; Delete FRAME only if it's either dedicated
+			  ;; or quit-restore's car is `new-frame' and
+			  ;; WINDOW still displays the same buffer
 			  (or dedicated
 			      (and (eq (car-safe quit-restore) 'new-frame)
 				   (eq (nth 1 quit-restore)
 				       (window-buffer window))))))
+		 ;; Don't delete FRAME if we have another buffer in
+		 ;; WINDOW's previous buffers.  Bug#9419.
+		 (or (not (window-prev-buffers window))
+		     (eq (caar (window-prev-buffers window)) buffer))
+		 ;; Don't try to delete FRAME when there are no other
+		 ;; visible frames left.
 		 (other-visible-frames-p frame))
-	;; WINDOW is the root window of its frame.  Return `frame' but
-	;; only if WINDOW is (1) either dedicated or quit-restore's car
-	;; is `new-frame' and the window still displays the same buffer
-	;; and (2) there are other frames left.
 	'frame))
-     ((and (not ignore-window-parameters)
-	   (eq (window-parameter window 'window-side) 'none)
-	   (or (not parent)
-	       (not (eq (window-parameter parent 'window-side) 'none))))
-      ;; Can't delete last main window.
-      nil)
-     (t))))
+     ;; Don't delete WINDOW if we find another buffer in WINDOW's
+     ;; previous buffers.
+     ((and (or (not (window-prev-buffers window))
+	       (eq (caar (window-prev-buffers window)) buffer))
+	   ;; Delete WINDOW only if it's dedicated or quit-restore's car
+	   ;; is `new-frame' or `new-window' and it still displays the
+	   ;; same buffer.
+	   (or dedicated
+	       (and (memq (car-safe quit-restore) '(new-window new-frame))
+		    (eq (nth 1 quit-restore) (window-buffer window))))
+	   ;; Don't delete the last main window.
+	   (or ignore-window-parameters
+	       (not (eq (window-parameter window 'window-side) 'none))
+	       (and parent
+		    (eq (window-parameter parent 'window-side) 'none))))
+      t))))
 
 (defun window-or-subwindow-p (subwindow window)
   "Return t if SUBWINDOW is either WINDOW or a subwindow of WINDOW."
@@ -4714,7 +4730,10 @@ return the window on the new frame; otherwise return nil."
 	       (setq frame (funcall fun))
 	       (setq window (frame-selected-window frame)))
       (display-buffer-record-window 'pop-up-frame window buffer)
-      (window--display-buffer-2 buffer window))))
+      (window--display-buffer-2 buffer window)
+      ;; Reset list of WINDOW's previous buffers to nil.
+      (set-window-prev-buffers window nil)
+      window)))
 
 (defun display-buffer-pop-up-window (buffer alist)
   "Display BUFFER by popping up a new window.
@@ -4737,7 +4756,10 @@ If sucessful, return the new window; otherwise return nil."
 				(window--try-to-split-window
 				 (get-lru-window frame t)))))
       (display-buffer-record-window 'pop-up-window window buffer)
-      (window--display-buffer-2 buffer window))))
+      (window--display-buffer-2 buffer window)
+      ;; Reset list of WINDOW's previous buffers to nil.
+      (set-window-prev-buffers window nil)
+      window)))
 
 ;; This display action function groups together some lower-level ones:
 (defun display-buffer-reuse-or-pop-window (buffer alist)
