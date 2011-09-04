@@ -1697,7 +1697,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	}
       else if (BOOL_VECTOR_P (obj))
 	{
-	  register int i;
+	  ptrdiff_t i;
 	  register unsigned char c;
 	  struct gcpro gcpro1;
 	  EMACS_INT size_in_chars

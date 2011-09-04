@@ -1,5 +1,9 @@
 2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* print.c: Integer overflow fix.
+	(print_object): Use ptrdiff_t, not int, for index that can
+	exceed INT_MAX.
+
 	* indent.c: Integer overflow fixes.
 	(position_indentation): Now takes ptrdiff_t, not int.
 	(Fvertical_motion): Don't wrap around LINES values that don't fit
