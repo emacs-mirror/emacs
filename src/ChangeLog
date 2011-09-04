@@ -1,3 +1,11 @@
+2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* indent.c: Integer overflow fixes.
+	(position_indentation): Now takes ptrdiff_t, not int.
+	(Fvertical_motion): Don't wrap around LINES values that don't fit
+	in 'int'.  Instead, treat them as extreme values.  This is good
+	enough for windows, which can't have more than INT_MAX lines anyway.
+
 2011-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* Require libxml/parser.h to avoid compilation warning.
