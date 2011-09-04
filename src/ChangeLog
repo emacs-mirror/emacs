@@ -1,5 +1,15 @@
 2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* window.c: Integer overflow fixes.
+	(window_scroll_line_based, Frecenter):
+	Check that an Emacs fixnum is in range before assigning it to 'int'.
+	(Frecenter, Fmove_to_window_line): Use EMACS_INT, not int, for
+	values converted from Emacs fixnums.
+	(Frecenter): Don't wrap around a line count if it is out of 'int'
+	range; instead, treat it as an extreme value.
+	(Fset_window_configuration, compare_window_configurations):
+	Use ptrdiff_t, not int, for index that might exceed 2 GiB.
+
 	* search.c: Integer overflow fixes
 	(Freplace_match): Use ptrdiff_t, not int, for indexes that can
 	exceed INT_MAX.  Check that EMACS_INT value is in range before
