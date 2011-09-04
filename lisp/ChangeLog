@@ -1,3 +1,19 @@
+2011-09-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top): Require 'shell.  Use `tramp-unload-hook' but
+	`tramp-cache-unload-hook' where appropriate.
+	(tramp-methods): Rename `tramp-remote-sh' to
+	`tramp-remote-shell'.  Add `tramp-remote-shell-args'.
+	(tramp-handle-shell-command): New defun, moved from tramp-sh.el.
+
+	* net/tramp-sh.el (top): Don't require 'shell.
+	(tramp-methods): Add `tramp-remote-shell' and
+	`tramp-remote-shell-args' entries.
+	(tramp-sh-file-name-handler-alist): Use `tramp-handle-shell-command'.
+	(tramp-sh-handle-shell-command): Remove.
+	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
+	Use `tramp-remote-shell'.
+
 2011-09-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mail/sendmail.el (sendmail-query-once-function): Deleted.
