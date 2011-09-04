@@ -1,5 +1,8 @@
 2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* xdisp.c: Integer overflow fix.
+	(try_window_id): Check Emacs fixnum range before converting to 'int'.
+
 	* window.c: Integer overflow fixes.
 	(window_scroll_line_based, Frecenter):
 	Check that an Emacs fixnum is in range before assigning it to 'int'.
