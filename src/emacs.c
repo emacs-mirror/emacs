@@ -82,6 +82,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/personality.h>
 #endif
 
+#ifdef HAVE_LIBXML2
+#include <libxml/parser.h>
+#endif
+
 #ifndef O_RDWR
 #define O_RDWR 2
 #endif
@@ -2098,6 +2102,10 @@ shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
 
 #ifdef HAVE_NS
   ns_term_shutdown (sig);
+#endif
+
+#ifdef HAVE_LIBXML2
+  xmlCleanupParser ();
 #endif
 }
 

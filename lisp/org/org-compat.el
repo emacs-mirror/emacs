@@ -432,15 +432,6 @@ With two arguments, return floor and remainder of their quotient."
   (let ((q (floor x y)))
     (list q (- x (if y (* y q) q)))))
 
-;; `pop-to-buffer-same-window' has been introduced with Emacs 24.1.
-(defun org-pop-to-buffer-same-window
-  (&optional buffer-or-name norecord label)
-  "Pop to buffer specified by BUFFER-OR-NAME in the selected window."
-  (if (fboundp 'pop-to-buffer-same-window)
-      (funcall
-       'pop-to-buffer-same-window buffer-or-name norecord)
-    (funcall 'switch-to-buffer buffer-or-name norecord)))
-
 (provide 'org-compat)
 
 

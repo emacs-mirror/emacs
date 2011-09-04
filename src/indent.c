@@ -56,7 +56,7 @@ EMACS_INT last_known_column_point;
 static int last_known_column_modified;
 
 static EMACS_INT current_column_1 (void);
-static EMACS_INT position_indentation (int);
+static EMACS_INT position_indentation (ptrdiff_t);
 
 /* Cache of beginning of line found by the last call of
    current_column. */
@@ -855,7 +855,7 @@ following any initial whitespace.  */)
 }
 
 static EMACS_INT
-position_indentation (register int pos_byte)
+position_indentation (ptrdiff_t pos_byte)
 {
   register EMACS_INT column = 0;
   int tab_width = SANE_TAB_WIDTH (current_buffer);
@@ -2063,7 +2063,7 @@ whether or not it is currently displayed in some window.  */)
 	  /* Do this even if LINES is 0, so that we move back to the
 	     beginning of the current line as we ought.  */
 	  if (XINT (lines) == 0 || IT_CHARPOS (it) > 0)
-	    move_it_by_lines (&it, XINT (lines));
+	    move_it_by_lines (&it, max (INT_MIN, XINT (lines)));
 	}
       else
 	{
@@ -2083,7 +2083,7 @@ whether or not it is currently displayed in some window.  */)
 		      && it.c == '\n'))
 		move_it_by_lines (&it, -1);
 	      it.vpos = 0;
-	      move_it_by_lines (&it, XINT (lines));
+	      move_it_by_lines (&it, min (INT_MAX, XINT (lines)));
 	    }
 	  else
 	    {
@@ -2099,12 +2099,12 @@ whether or not it is currently displayed in some window.  */)
 		      move_it_by_lines (&it, 1);
 		    }
 		  if (XINT (lines) > 1)
-		    move_it_by_lines (&it, XINT (lines) - 1);
+		    move_it_by_lines (&it, min (INT_MAX, XINT (lines) - 1));
 		}
 	      else
 		{
 		  it.vpos = 0;
-		  move_it_by_lines (&it, XINT (lines));
+		  move_it_by_lines (&it, min (INT_MAX, XINT (lines)));
 		}
 	    }
 	}

@@ -16919,8 +16919,8 @@ try_window_id (struct window *w)
   {
     int this_scroll_margin, cursor_height;
 
-    this_scroll_margin = max (0, scroll_margin);
-    this_scroll_margin = min (this_scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
+    this_scroll_margin =
+      max (0, min (scroll_margin, WINDOW_TOTAL_LINES (w) / 4));
     this_scroll_margin *= FRAME_LINE_HEIGHT (it.f);
     cursor_height = MATRIX_ROW (w->desired_matrix, w->cursor.vpos)->height;
 
