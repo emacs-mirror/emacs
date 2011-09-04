@@ -1,5 +1,11 @@
 2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* search.c: Integer overflow fixes
+	(Freplace_match): Use ptrdiff_t, not int, for indexes that can
+	exceed INT_MAX.  Check that EMACS_INT value is in range before
+	assigning it to the (possibly-narrower) index.
+	(match_limit): Don't assume that a fixnum can fit in 'int'.
+
 	* print.c: Integer overflow fix.
 	(print_object): Use ptrdiff_t, not int, for index that can
 	exceed INT_MAX.

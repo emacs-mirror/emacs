@@ -2404,7 +2404,7 @@ since only regular expressions have distinguished subexpressions.  */)
   int some_uppercase;
   int some_nonuppercase_initial;
   register int c, prevc;
-  int sub;
+  ptrdiff_t sub;
   EMACS_INT opoint, newpoint;
 
   CHECK_STRING (newtext);
@@ -2423,9 +2423,9 @@ since only regular expressions have distinguished subexpressions.  */)
   else
     {
       CHECK_NUMBER (subexp);
-      sub = XINT (subexp);
-      if (sub < 0 || sub >= search_regs.num_regs)
+      if (! (0 <= XINT (subexp) && XINT (subexp) < search_regs.num_regs))
 	args_out_of_range (subexp, make_number (search_regs.num_regs));
+      sub = XINT (subexp);
     }
 
   if (NILP (string))
@@ -2662,7 +2662,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  const unsigned char *add_stuff = NULL;
 	  ptrdiff_t add_len = 0;
-	  int idx = -1;
+	  ptrdiff_t idx = -1;
 
 	  if (str_multibyte)
 	    {
@@ -2813,7 +2813,7 @@ since only regular expressions have distinguished subexpressions.  */)
 static Lisp_Object
 match_limit (Lisp_Object num, int beginningp)
 {
-  register int n;
+  EMACS_INT n;
 
   CHECK_NUMBER (num);
   n = XINT (num);
