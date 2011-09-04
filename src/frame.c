@@ -497,7 +497,7 @@ make_minibuffer_frame (void)
 
 /* Construct a frame that refers to a terminal.  */
 
-static int tty_frame_count;
+static printmax_t tty_frame_count;
 
 struct frame *
 make_initial_frame (void)
@@ -551,7 +551,7 @@ make_terminal_frame (struct terminal *terminal)
 {
   register struct frame *f;
   Lisp_Object frame;
-  char name[20];
+  char name[sizeof "F" + INT_STRLEN_BOUND (printmax_t)];
 
   if (!terminal->name)
     error ("Terminal is not live, can't create new frames on it");
@@ -562,7 +562,7 @@ make_terminal_frame (struct terminal *terminal)
   Vframe_list = Fcons (frame, Vframe_list);
 
   tty_frame_count++;
-  sprintf (name, "F%d", tty_frame_count);
+  sprintf (name, "F%"pMd, tty_frame_count);
   f->name = build_string (name);
 
   f->visible = 1;		/* FRAME_SET_VISIBLE wd set frame_garbaged. */
@@ -2074,7 +2074,7 @@ set_term_frame_name (struct frame *f, Lisp_Object name)
   /* If NAME is nil, set the name to F<num>.  */
   if (NILP (name))
     {
-      char namebuf[20];
+      char namebuf[sizeof "F" + INT_STRLEN_BOUND (printmax_t)];
 
       /* Check for no change needed in this very common case
 	 before we do any consing.  */
@@ -2083,7 +2083,7 @@ set_term_frame_name (struct frame *f, Lisp_Object name)
 	return;
 
       tty_frame_count++;
-      sprintf (namebuf, "F%d", tty_frame_count);
+      sprintf (namebuf, "F%"pMd, tty_frame_count);
       name = build_string (namebuf);
     }
   else
@@ -3065,6 +3065,7 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
 {
   char buf[16];
   Lisp_Object tem;
+  unsigned long w;
 
   /* Represent negative positions (off the top or left screen edge)
      in a way that Fmodify_frame_parameters will understand correctly.  */
@@ -3097,7 +3098,8 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
 		      for non-toolkit scroll bar.
 		      ruler-mode.el depends on this.  */
 		   : Qnil));
-  sprintf (buf, "%ld", (long) FRAME_X_WINDOW (f));
+  w = FRAME_X_WINDOW (f);
+  sprintf (buf, "%lu", w);
   store_in_alist (alistptr, Qwindow_id,
 		  build_string (buf));
 #ifdef HAVE_X_WINDOWS
@@ -3105,7 +3107,10 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
   /* Tooltip frame may not have this widget.  */
   if (FRAME_X_OUTPUT (f)->widget)
 #endif
-    sprintf (buf, "%ld", (long) FRAME_OUTER_WINDOW (f));
+    {
+      w = FRAME_OUTER_WINDOW (f);
+      sprintf (buf, "%lu", w);
+    }
   store_in_alist (alistptr, Qouter_window_id,
 		  build_string (buf));
 #endif
@@ -3576,13 +3581,13 @@ x_set_alpha (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 void
 validate_x_resource_name (void)
 {
-  int len = 0;
+  ptrdiff_t len = 0;
   /* Number of valid characters in the resource name.  */
-  int good_count = 0;
+  ptrdiff_t good_count = 0;
   /* Number of invalid characters in the resource name.  */
-  int bad_count = 0;
+  ptrdiff_t bad_count = 0;
   Lisp_Object new;
-  int i;
+  ptrdiff_t i;
 
   if (!STRINGP (Vx_resource_class))
     Vx_resource_class = build_string (EMACS_CLASS);
@@ -3615,8 +3620,9 @@ validate_x_resource_name (void)
   if (bad_count == 0)
     return;
 
-  /* If name is entirely invalid, or nearly so, use `emacs'.  */
-  if (good_count < 2)
+  /* If name is entirely invalid, or nearly so, or is so implausibly
+     large that alloca might not work, use `emacs'.  */
+  if (good_count < 2 || MAX_ALLOCA - sizeof ".customization" < len)
     {
       Vx_resource_name = build_string ("emacs");
       return;
@@ -3745,20 +3751,24 @@ x_get_resource_string (const char *attribute, const char *class)
 {
   char *name_key;
   char *class_key;
+  char *result;
   struct frame *sf = SELECTED_FRAME ();
+  ptrdiff_t invocation_namelen = SBYTES (Vinvocation_name);
+  USE_SAFE_ALLOCA;
 
   /* Allocate space for the components, the dots which separate them,
      and the final '\0'.  */
-  name_key = (char *) alloca (SBYTES (Vinvocation_name)
-			      + strlen (attribute) + 2);
+  SAFE_ALLOCA (name_key, char *, invocation_namelen + strlen (attribute) + 2);
   class_key = (char *) alloca ((sizeof (EMACS_CLASS) - 1)
 			       + strlen (class) + 2);
 
-  sprintf (name_key, "%s.%s", SSDATA (Vinvocation_name), attribute);
+  esprintf (name_key, "%s.%s", SSDATA (Vinvocation_name), attribute);
   sprintf (class_key, "%s.%s", EMACS_CLASS, class);
 
-  return x_get_string_resource (FRAME_X_DISPLAY_INFO (sf)->xrdb,
-				name_key, class_key);
+  result = x_get_string_resource (FRAME_X_DISPLAY_INFO (sf)->xrdb,
+				  name_key, class_key);
+  SAFE_FREE ();
+  return result;
 }
 #endif
 

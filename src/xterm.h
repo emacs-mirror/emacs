@@ -955,7 +955,8 @@ XrmDatabase x_load_resources (Display *, const char *, const char *,
 extern int x_text_icon (struct frame *, const char *);
 extern int x_bitmap_icon (struct frame *, Lisp_Object);
 extern void x_catch_errors (Display *);
-extern void x_check_errors (Display *, const char *);
+extern void x_check_errors (Display *, const char *)
+  ATTRIBUTE_FORMAT_PRINTF (2, 0);
 extern int x_had_errors_p (Display *);
 extern int x_catching_errors (void);
 extern void x_uncatch_errors (void);

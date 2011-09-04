@@ -1817,7 +1817,7 @@ produce_glyphless_glyph (struct it *it, int for_no_font, Lisp_Object acronym)
 {
   int face_id;
   int len;
-  char buf[9];
+  char buf[sizeof "\\x" + max (6, (sizeof it->c * CHAR_BIT + 3) / 4)];
   char const *str = "    ";
 
   /* Get a face ID for the glyph by utilizing a cache (the same way as

@@ -1,3 +1,38 @@
+2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Integer and memory overflow issues (Bug#9397).
+
+	* emacsclient.c (xmalloc): Accept size_t, not unsigned int, to
+	avoid potential buffer overflow issues on typical 64-bit hosts.
+	Return void *, not long *.
+	(get_current_dir_name): Report a failure, instead of looping
+	forever, if buffer size calculation overflows.  Treat malloc
+	failures like realloc failures, as that has better behavior and is
+	more consistent.  Do not check whether xmalloc returns NULL, as
+	that's not possible.
+	(message): Do not arbitrarily truncate message to 2048 bytes when
+	sending it to stderr; use vfprintf instead.
+	(get_server_config, set_local_socket)
+	(start_daemon_and_retry_set_socket): Do not alloca
+	arbitrarily-large buffers; that's not safe.
+	(get_server_config, set_local_socket): Do not use sprintf when its
+	result might not fit in 'int'.
+	(set_local_socket): Do not assume uid fits in 'int'.
+
+	* etags.c (xmalloc, xrealloc): Accept size_t, not unsigned int,
+	to avoid potential buffer overflow issues on typical 64-bit hosts.
+	(whatlen_max): New static var.
+	(main): Avoid buffer overflow if subsidiary command length is
+	greater than BUFSIZ or 2*BUFSIZ + 20. Do not use sprintf when its
+	result might not fit in 'int'.
+
+	* movemail.c (main): Do not use sprintf when its result might not fit
+	in 'int'.  Instead, put the possibly-long file name into the
+	output of pfatal_with_name.
+
+	* update-game-score.c: Include <limits.h>
+	(get_user_id): Do not assume uid fits in 'int'.  Simplify.
+
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume freestanding C89 headers, string.h, stdlib.h.

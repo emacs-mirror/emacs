@@ -4295,14 +4295,20 @@ init_lread (void)
 void
 dir_warning (const char *format, Lisp_Object dirname)
 {
-  char *buffer
-    = (char *) alloca (SCHARS (dirname) + strlen (format) + 5);
-
   fprintf (stderr, format, SDATA (dirname));
-  sprintf (buffer, format, SDATA (dirname));
+
   /* Don't log the warning before we've initialized!! */
   if (initialized)
-    message_dolog (buffer, strlen (buffer), 0, STRING_MULTIBYTE (dirname));
+    {
+      char *buffer;
+      ptrdiff_t message_len;
+      USE_SAFE_ALLOCA;
+      SAFE_ALLOCA (buffer, char *,
+		   SBYTES (dirname) + strlen (format) - (sizeof "%s" - 1) + 1);
+      message_len = esprintf (buffer, format, SDATA (dirname));
+      message_dolog (buffer, message_len, 0, STRING_MULTIBYTE (dirname));
+      SAFE_FREE ();
+    }
 }
 
 void

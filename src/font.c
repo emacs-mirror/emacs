@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
+#include <float.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <setjmp.h>
@@ -1180,7 +1181,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
   char *p;
   const char *f[XLFD_REGISTRY_INDEX + 1];
   Lisp_Object val;
-  int i, j, len = 0;
+  int i, j, len;
 
   font_assert (FONTP (font));
 
@@ -1195,9 +1196,9 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
       if (NILP (val))
 	{
 	  if (j == XLFD_REGISTRY_INDEX)
-	    f[j] = "*-*", len += 4;
+	    f[j] = "*-*";
 	  else
-	    f[j] = "*", len += 2;
+	    f[j] = "*";
 	}
       else
 	{
@@ -1207,21 +1208,15 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
 	      && ! strchr (SSDATA (val), '-'))
 	    {
 	      /* Change "jisx0208*" and "jisx0208" to "jisx0208*-*".  */
-	      if (SDATA (val)[SBYTES (val) - 1] == '*')
-		{
-		  f[j] = p = alloca (SBYTES (val) + 3);
-		  sprintf (p, "%s-*", SDATA (val));
-		  len += SBYTES (val) + 3;
-		}
-	      else
-		{
-		  f[j] = p = alloca (SBYTES (val) + 4);
-		  sprintf (p, "%s*-*", SDATA (val));
-		  len += SBYTES (val) + 4;
-		}
+	      ptrdiff_t alloc = SBYTES (val) + 4;
+	      if (nbytes <= alloc)
+		return -1;
+	      f[j] = p = alloca (alloc);
+	      sprintf (p, "%s%s-*", SDATA (val),
+		       "*" + (SDATA (val)[SBYTES (val) - 1] == '*'));
 	    }
 	  else
-	    f[j] = SSDATA (val), len += SBYTES (val) + 1;
+	    f[j] = SSDATA (val);
 	}
     }
 
@@ -1230,11 +1225,11 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
     {
       val = font_style_symbolic (font, i, 0);
       if (NILP (val))
-	f[j] = "*", len += 2;
+	f[j] = "*";
       else
 	{
 	  val = SYMBOL_NAME (val);
-	  f[j] = SSDATA (val), len += SBYTES (val) + 1;
+	  f[j] = SSDATA (val);
 	}
     }
 
@@ -1242,64 +1237,62 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
   font_assert (NUMBERP (val) || NILP (val));
   if (INTEGERP (val))
     {
-      i = XINT (val);
-      if (i <= 0)
-	i = pixel_size;
-      if (i > 0)
+      EMACS_INT v = XINT (val);
+      if (v <= 0)
+	v = pixel_size;
+      if (v > 0)
 	{
-	  f[XLFD_PIXEL_INDEX] = p = alloca (22);
-	  len += sprintf (p, "%d-*", i) + 1;
+	  f[XLFD_PIXEL_INDEX] = p =
+	    alloca (sizeof "-*" + INT_STRLEN_BOUND (EMACS_INT));
+	  sprintf (p, "%"pI"d-*", v);
 	}
       else
-	f[XLFD_PIXEL_INDEX] = "*-*", len += 4;
+	f[XLFD_PIXEL_INDEX] = "*-*";
     }
   else if (FLOATP (val))
     {
-      i = XFLOAT_DATA (val) * 10;
-      f[XLFD_PIXEL_INDEX] = p = alloca (12);
-      len += sprintf (p, "*-%d", i) + 1;
+      double v = XFLOAT_DATA (val) * 10;
+      f[XLFD_PIXEL_INDEX] = p = alloca (sizeof "*-" + 1 + DBL_MAX_10_EXP + 1);
+      sprintf (p, "*-%.0f", v);
     }
   else
-    f[XLFD_PIXEL_INDEX] = "*-*", len += 4;
+    f[XLFD_PIXEL_INDEX] = "*-*";
 
   if (INTEGERP (AREF (font, FONT_DPI_INDEX)))
     {
-      i = XINT (AREF (font, FONT_DPI_INDEX));
-      f[XLFD_RESX_INDEX] = p = alloca (22);
-      len += sprintf (p, "%d-%d", i, i) + 1;
+      EMACS_INT v = XINT (AREF (font, FONT_DPI_INDEX));
+      f[XLFD_RESX_INDEX] = p =
+	alloca (sizeof "-" + 2 * INT_STRLEN_BOUND (EMACS_INT));
+      sprintf (p, "%"pI"d-%"pI"d", v, v);
     }
   else
-    f[XLFD_RESX_INDEX] = "*-*", len += 4;
+    f[XLFD_RESX_INDEX] = "*-*";
   if (INTEGERP (AREF (font, FONT_SPACING_INDEX)))
     {
-      int spacing = XINT (AREF (font, FONT_SPACING_INDEX));
+      EMACS_INT spacing = XINT (AREF (font, FONT_SPACING_INDEX));
 
       f[XLFD_SPACING_INDEX] = (spacing <= FONT_SPACING_PROPORTIONAL ? "p"
 			       : spacing <= FONT_SPACING_DUAL ? "d"
 			       : spacing <= FONT_SPACING_MONO ? "m"
 			       : "c");
-      len += 2;
     }
   else
-    f[XLFD_SPACING_INDEX] = "*", len += 2;
+    f[XLFD_SPACING_INDEX] = "*";
   if (INTEGERP (AREF (font,  FONT_AVGWIDTH_INDEX)))
     {
-      f[XLFD_AVGWIDTH_INDEX] = p = alloca (22);
-      len += sprintf (p, "%"pI"d",
-		      XINT (AREF (font, FONT_AVGWIDTH_INDEX))) + 1;
+      f[XLFD_AVGWIDTH_INDEX] = p = alloca (INT_BUFSIZE_BOUND (EMACS_INT));
+      sprintf (p, "%"pI"d", XINT (AREF (font, FONT_AVGWIDTH_INDEX)));
     }
   else
-    f[XLFD_AVGWIDTH_INDEX] = "*", len += 2;
-  len++;	/* for terminating '\0'.  */
-  if (len >= nbytes)
-    return -1;
-  return sprintf (name, "-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s",
+    f[XLFD_AVGWIDTH_INDEX] = "*";
+  len = snprintf (name, nbytes, "-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s-%s",
 		  f[XLFD_FOUNDRY_INDEX], f[XLFD_FAMILY_INDEX],
 		  f[XLFD_WEIGHT_INDEX], f[XLFD_SLANT_INDEX],
 		  f[XLFD_SWIDTH_INDEX], f[XLFD_ADSTYLE_INDEX],
 		  f[XLFD_PIXEL_INDEX], f[XLFD_RESX_INDEX],
 		  f[XLFD_SPACING_INDEX], f[XLFD_AVGWIDTH_INDEX],
 		  f[XLFD_REGISTRY_INDEX]);
+  return len < nbytes ? len : -1;
 }
 
 /* Parse NAME (null terminated) and store information in FONT
@@ -1553,23 +1546,19 @@ int
 font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
 {
   Lisp_Object family, foundry;
-  Lisp_Object tail, val;
+  Lisp_Object val;
   int point_size;
   int i;
-  ptrdiff_t len = 1;
   char *p;
+  char *lim;
   Lisp_Object styles[3];
   const char *style_names[3] = { "weight", "slant", "width" };
-  char work[256];
 
   family = AREF (font, FONT_FAMILY_INDEX);
   if (! NILP (family))
     {
       if (SYMBOLP (family))
-	{
-	  family = SYMBOL_NAME (family);
-	  len += SBYTES (family);
-	}
+	family = SYMBOL_NAME (family);
       else
 	family = Qnil;
     }
@@ -1580,7 +1569,6 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
       if (XINT (val) != 0)
 	pixel_size = XINT (val);
       point_size = -1;
-      len += 21;		/* for ":pixelsize=NUM" */
     }
   else
     {
@@ -1588,80 +1576,91 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
 	abort ();
       pixel_size = -1;
       point_size = (int) XFLOAT_DATA (val);
-      len += 11;		/* for "-NUM" */
     }
 
   foundry = AREF (font, FONT_FOUNDRY_INDEX);
   if (! NILP (foundry))
     {
       if (SYMBOLP (foundry))
-	{
-	  foundry = SYMBOL_NAME (foundry);
-	  len += 9 + SBYTES (foundry); /* ":foundry=NAME" */
-	}
+	foundry = SYMBOL_NAME (foundry);
       else
 	foundry = Qnil;
     }
 
   for (i = 0; i < 3; i++)
-    {
-      styles[i] = font_style_symbolic (font, FONT_WEIGHT_INDEX + i, 0);
-      if (! NILP (styles[i]))
-	len += sprintf (work, ":%s=%s", style_names[i],
-			SDATA (SYMBOL_NAME (styles[i])));
-    }
+    styles[i] = font_style_symbolic (font, FONT_WEIGHT_INDEX + i, 0);
 
-  if (INTEGERP (AREF (font, FONT_DPI_INDEX)))
-    len += sprintf (work, ":dpi=%"pI"d", XINT (AREF (font, FONT_DPI_INDEX)));
-  if (INTEGERP (AREF (font, FONT_SPACING_INDEX)))
-    len += strlen (":spacing=100");
-  if (INTEGERP (AREF (font, FONT_AVGWIDTH_INDEX)))
-    len += strlen (":scalable=false"); /* or ":scalable=true" */
-  for (tail = AREF (font, FONT_EXTRA_INDEX); CONSP (tail); tail = XCDR (tail))
-    {
-      Lisp_Object key = XCAR (XCAR (tail)), value = XCDR (XCAR (tail));
-
-      len += SBYTES (SYMBOL_NAME (key)) + 1; /* for :KEY= */
-      if (STRINGP (value))
-	len += SBYTES (value);
-      else if (INTEGERP (value))
-	len += sprintf (work, "%"pI"d", XINT (value));
-      else if (SYMBOLP (value))
-	len += (NILP (value) ? 5 : 4); /* for "false" or "true" */
-    }
-
-  if (len > nbytes)
-    return -1;
   p = name;
+  lim = name + nbytes;
   if (! NILP (family))
-    p += sprintf (p, "%s", SDATA (family));
+    {
+      int len = snprintf (p, lim - p, "%s", SSDATA (family));
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
   if (point_size > 0)
     {
-      if (p == name)
-	p += sprintf (p, "%d", point_size);
-      else
-	p += sprintf (p, "-%d", point_size);
+      int len = snprintf (p, lim - p, "-%d" + (p == name), point_size);
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
     }
   else if (pixel_size > 0)
-    p += sprintf (p, ":pixelsize=%d", pixel_size);
+    {
+      int len = snprintf (p, lim - p, ":pixelsize=%d", pixel_size);
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
   if (! NILP (AREF (font, FONT_FOUNDRY_INDEX)))
-    p += sprintf (p, ":foundry=%s",
-		  SDATA (SYMBOL_NAME (AREF (font, FONT_FOUNDRY_INDEX))));
+    {
+      int len = snprintf (p, lim - p, ":foundry=%s",
+			  SSDATA (SYMBOL_NAME (AREF (font,
+						     FONT_FOUNDRY_INDEX))));
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
   for (i = 0; i < 3; i++)
     if (! NILP (styles[i]))
-      p += sprintf (p, ":%s=%s", style_names[i],
-		    SDATA (SYMBOL_NAME (styles[i])));
+      {
+	int len = snprintf (p, lim - p, ":%s=%s", style_names[i],
+			    SSDATA (SYMBOL_NAME (styles[i])));
+	if (! (0 <= len && len < lim - p))
+	  return -1;
+	p += len;
+      }
+
   if (INTEGERP (AREF (font, FONT_DPI_INDEX)))
-    p += sprintf (p, ":dpi=%"pI"d", XINT (AREF (font, FONT_DPI_INDEX)));
+    {
+      int len = snprintf (p, lim - p, ":dpi=%"pI"d",
+			  XINT (AREF (font, FONT_DPI_INDEX)));
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
+
   if (INTEGERP (AREF (font, FONT_SPACING_INDEX)))
-    p += sprintf (p, ":spacing=%"pI"d", XINT (AREF (font, FONT_SPACING_INDEX)));
+    {
+      int len = snprintf (p, lim - p, ":spacing=%"pI"d",
+			  XINT (AREF (font, FONT_SPACING_INDEX)));
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
+    }
+
   if (INTEGERP (AREF (font, FONT_AVGWIDTH_INDEX)))
     {
-      if (XINT (AREF (font, FONT_AVGWIDTH_INDEX)) == 0)
-	p += sprintf (p, ":scalable=true");
-      else
-	p += sprintf (p, ":scalable=false");
+      int len = snprintf (p, lim - p,
+			  (XINT (AREF (font, FONT_AVGWIDTH_INDEX)) == 0
+			   ? ":scalable=true"
+			   : ":scalable=false"));
+      if (! (0 <= len && len < lim - p))
+	return -1;
+      p += len;
     }
+
   return (p - name);
 }
 
@@ -1952,12 +1951,12 @@ generate_otf_features (Lisp_Object spec, char *features)
       else if (! asterisk)
 	{
 	  val = SYMBOL_NAME (val);
-	  p += sprintf (p, "%s", SDATA (val));
+	  p += esprintf (p, "%s", SDATA (val));
 	}
       else
 	{
 	  val = SYMBOL_NAME (val);
-	  p += sprintf (p, "~%s", SDATA (val));
+	  p += esprintf (p, "~%s", SDATA (val));
 	}
     }
   if (CONSP (spec))
