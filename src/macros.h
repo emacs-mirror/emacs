@@ -22,7 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    This is not bound at each level,
    so after an error, it describes the innermost interrupted macro.  */
 
-extern int executing_kbd_macro_iterations;
+extern EMACS_INT executing_kbd_macro_iterations;
 
 /* This is the macro that was executing.
    This is not bound at each level,
@@ -42,4 +42,3 @@ extern void finalize_kbd_macro_chars (void);
 /* Store a character into kbd macro being defined */
 
 extern void store_kbd_macro_char (Lisp_Object);
-

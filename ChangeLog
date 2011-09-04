@@ -1,3 +1,7 @@
+2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in (snprintf): New check.
+
 2011-08-30  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.in (opsys): Change pattern to *-*-linux*

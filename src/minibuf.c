@@ -49,7 +49,7 @@ static Lisp_Object minibuf_save_list;
 
 /* Depth in minibuffer invocations.  */
 
-int minibuf_level;
+EMACS_INT minibuf_level;
 
 /* The maximum length of a minibuffer history.  */
 
@@ -772,10 +772,10 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
  used for nonrecursive minibuffer invocations.  */
 
 Lisp_Object
-get_minibuffer (int depth)
+get_minibuffer (EMACS_INT depth)
 {
   Lisp_Object tail, num, buf;
-  char name[24];
+  char name[sizeof " *Minibuf-*" + INT_STRLEN_BOUND (EMACS_INT)];
 
   XSETFASTINT (num, depth);
   tail = Fnthcdr (num, Vminibuffer_list);
@@ -787,7 +787,7 @@ get_minibuffer (int depth)
   buf = Fcar (tail);
   if (NILP (buf) || NILP (BVAR (XBUFFER (buf), name)))
     {
-      sprintf (name, " *Minibuf-%d*", depth);
+      sprintf (name, " *Minibuf-%"pI"d*", depth);
       buf = Fget_buffer_create (build_string (name));
 
       /* Although the buffer's name starts with a space, undo should be

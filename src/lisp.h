@@ -2895,6 +2895,14 @@ extern void syms_of_print (void);
 /* Defined in doprnt.c */
 extern ptrdiff_t doprnt (char *, ptrdiff_t, const char *, const char *,
 			 va_list);
+extern ptrdiff_t esprintf (char *, char const *, ...)
+  ATTRIBUTE_FORMAT_PRINTF (2, 3);
+extern ptrdiff_t exprintf (char **, ptrdiff_t *, char const *, ptrdiff_t,
+			   char const *, ...)
+  ATTRIBUTE_FORMAT_PRINTF (5, 6);
+extern ptrdiff_t evxprintf (char **, ptrdiff_t *, char const *, ptrdiff_t,
+			    char const *, va_list)
+  ATTRIBUTE_FORMAT_PRINTF (5, 0);
 
 /* Defined in lread.c.  */
 extern Lisp_Object Qvariable_documentation, Qstandard_input;
@@ -3186,7 +3194,7 @@ EXFUN (Fread_minibuffer, 2);
 EXFUN (Feval_minibuffer, 2);
 EXFUN (Fread_string, 5);
 EXFUN (Fassoc_string, 3);
-extern Lisp_Object get_minibuffer (int);
+extern Lisp_Object get_minibuffer (EMACS_INT);
 extern void init_minibuf_once (void);
 extern void syms_of_minibuf (void);
 
@@ -3250,7 +3258,7 @@ extern void force_auto_save_soon (void);
 extern void init_keyboard (void);
 extern void syms_of_keyboard (void);
 extern void keys_of_keyboard (void);
-extern char *push_key_description (unsigned int, char *, int);
+extern char *push_key_description (EMACS_INT, char *, int);
 
 
 /* Defined in indent.c */
