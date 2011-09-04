@@ -522,9 +522,10 @@ of the last successful match.")
 (defun gnus-summary-lower-score (&optional score symp)
   "Make a score entry based on the current article.
 The user will be prompted for header to score on, match type,
-permanence, and the string to be used.  The numerical prefix will be
-used as score.  A symbolic prefix of `a' says to use the `all.SCORE'
-file for the command instead of the current score file."
+permanence, and the string to be used.  The numerical prefix will
+be used as SCORE.  A symbolic prefix of `a' (the SYMP parameter)
+says to use the `all.SCORE' file for the command instead of the
+current score file."
   (interactive (gnus-interactive "P\ny"))
   (gnus-summary-increase-score (- (gnus-score-delta-default score)) symp))
 
@@ -537,9 +538,10 @@ file for the command instead of the current score file."
 (defun gnus-summary-increase-score (&optional score symp)
   "Make a score entry based on the current article.
 The user will be prompted for header to score on, match type,
-permanence, and the string to be used.  The numerical prefix will be
-used as score.  A symbolic prefix of `a' says to use the `all.SCORE'
-file for the command instead of the current score file."
+permanence, and the string to be used.  The numerical prefix will
+be used as SCORE.  A symbolic prefix of `a' (the SYMP parameter)
+says to use the `all.SCORE' file for the command instead of the
+current score file."
   (interactive (gnus-interactive "P\ny"))
   (let* ((nscore (gnus-score-delta-default score))
 	 (prefix (if (< nscore 0) ?L ?I))
