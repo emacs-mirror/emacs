@@ -1,3 +1,39 @@
+2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Integer overflow fixes for scrolling, etc.
+	Without this fix, Emacs silently mishandles large integers sometimes.
+	For example, "C-u 4294967297 M-x recenter" was be treated as if
+	it were "C-u 1 M-x recenter" on a typical 64-bit host.
+
+	* xdisp.c: Integer overflow fix.
+	(try_window_id): Check Emacs fixnum range before converting to 'int'.
+
+	* window.c: Integer overflow fixes.
+	(window_scroll_line_based, Frecenter):
+	Check that an Emacs fixnum is in range before assigning it to 'int'.
+	(Frecenter, Fmove_to_window_line): Use EMACS_INT, not int, for
+	values converted from Emacs fixnums.
+	(Frecenter): Don't wrap around a line count if it is out of 'int'
+	range; instead, treat it as an extreme value.
+	(Fset_window_configuration, compare_window_configurations):
+	Use ptrdiff_t, not int, for index that might exceed 2 GiB.
+
+	* search.c: Integer overflow fixes
+	(Freplace_match): Use ptrdiff_t, not int, for indexes that can
+	exceed INT_MAX.  Check that EMACS_INT value is in range before
+	assigning it to the (possibly-narrower) index.
+	(match_limit): Don't assume that a fixnum can fit in 'int'.
+
+	* print.c: Integer overflow fix.
+	(print_object): Use ptrdiff_t, not int, for index that can
+	exceed INT_MAX.
+
+	* indent.c: Integer overflow fixes.
+	(position_indentation): Now takes ptrdiff_t, not int.
+	(Fvertical_motion): Don't wrap around LINES values that don't fit
+	in 'int'.  Instead, treat them as extreme values.  This is good
+	enough for windows, which can't have more than INT_MAX lines anyway.
+
 2011-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* Require libxml/parser.h to avoid compilation warning.
