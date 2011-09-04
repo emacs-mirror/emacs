@@ -1,4 +1,4 @@
-2011-09-03  Paul Eggert  <eggert@cs.ucla.edu>
+2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge from gnulib, using build-aux to remove clutter (Bug#9169).
 	* autogen/README: Update destination list.
@@ -31,6 +31,10 @@
 	Solaris, enables MacOS extensions, and enables nocrash during
 	'configure'.
 	* make-dist: Adjust to new build-aux and build-aux/snippit dirs.
+
+2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* configure.in (snprintf): New check.
 
 2011-08-30  Paul Eggert  <eggert@cs.ucla.edu>
 

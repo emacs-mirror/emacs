@@ -70,9 +70,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
      %<flags><width><precision><length>character
 
    where flags is [+ -0], width is [0-9]+, precision is .[0-9]+, and length
-   is empty or l or the value of the pI macro.  Also, %% in a format
-   stands for a single % in the output.  A % that does not introduce a
-   valid %-sequence causes undefined behavior.
+   is empty or l or the value of the pD or pI or pMd (sans "d") macros.
+   Also, %% in a format stands for a single % in the output.  A % that
+   does not introduce a valid %-sequence causes undefined behavior.
 
    The + flag character inserts a + before any positive number, while a space
    inserts a space before any positive number; these flags only affect %d, %o,
@@ -85,8 +85,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    modifier: it is supported for %d, %o, and %x conversions of integral
    arguments, must immediately precede the conversion specifier, and means that
    the respective argument is to be treated as `long int' or `unsigned long
-   int'.  Similarly, the value of the pI macro means to use EMACS_INT or
-   EMACS_UINT and the empty length modifier means `int' or `unsigned int'.
+   int'.  Similarly, the value of the pD macro means to use ptrdiff_t,
+   the value of the pI macro means to use EMACS_INT or EMACS_UINT, the
+   value of the pMd etc. macros means to use intmax_t or uintmax_t,
+   and the empty length modifier means `int' or `unsigned int'.
 
    The width specifier supplies a lower limit for the length of the printed
    representation.  The padding, if any, normally goes on the left, but it goes
@@ -173,8 +175,17 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	{
 	  ptrdiff_t size_bound = 0;
 	  EMACS_INT width;  /* Columns occupied by STRING on display.  */
-	  int long_flag = 0;
-	  int pIlen = sizeof pI - 1;
+	  enum {
+	    pDlen = sizeof pD - 1,
+	    pIlen = sizeof pI - 1,
+	    pMlen = sizeof pMd - 2
+	  };
+	  enum {
+	    no_modifier, long_modifier, pD_modifier, pI_modifier, pM_modifier
+	  } length_modifier = no_modifier;
+	  static char const modifier_len[] = { 0, 1, pDlen, pIlen, pMlen };
+	  int maxmlen = max (max (1, pDlen), max (pIlen, pMlen));
+	  int mlen;
 
 	  fmt++;
 	  /* Copy this one %-spec into fmtcpy.  */
@@ -213,19 +224,26 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	      fmt++;
 	    }
 
-	  if (0 < pIlen && pIlen <= format_end - fmt
-	      && memcmp (fmt, pI, pIlen) == 0)
+	  /* Check for the length modifiers in textual length order, so
+	     that longer modifiers override shorter ones.  */
+	  for (mlen = 1; mlen <= maxmlen; mlen++)
 	    {
-	      long_flag = 2;
-	      memcpy (string, fmt + 1, pIlen);
-	      string += pIlen;
-	      fmt += pIlen;
+	      if (format_end - fmt < mlen)
+		break;
+	      if (mlen == 1 && *fmt == 'l')
+		length_modifier = long_modifier;
+	      if (mlen == pDlen && memcmp (fmt, pD, pDlen) == 0)
+		length_modifier = pD_modifier;
+	      if (mlen == pIlen && memcmp (fmt, pI, pIlen) == 0)
+		length_modifier = pI_modifier;
+	      if (mlen == pMlen && memcmp (fmt, pMd, pMlen) == 0)
+		length_modifier = pM_modifier;
 	    }
-	  else if (fmt < format_end && *fmt == 'l')
-	    {
-	      long_flag = 1;
-	      *string++ = *++fmt;
-	    }
+
+	  mlen = modifier_len[length_modifier];
+	  memcpy (string, fmt + 1, mlen);
+	  string += mlen;
+	  fmt += mlen;
 	  *string = 0;
 
 	  /* Make the size bound large enough to handle floating point formats
@@ -252,55 +270,78 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 /*	    case 'b': */
 	    case 'l':
 	    case 'd':
-	      {
-		int i;
-		long l;
-
-		if (1 < long_flag)
+	      switch (length_modifier)
+		{
+		case no_modifier:
 		  {
-		    EMACS_INT ll = va_arg (ap, EMACS_INT);
-		    sprintf (sprintf_buffer, fmtcpy, ll);
+		    int v = va_arg (ap, int);
+		    sprintf (sprintf_buffer, fmtcpy, v);
 		  }
-		else if (long_flag)
+		  break;
+		case long_modifier:
 		  {
-		    l = va_arg(ap, long);
-		    sprintf (sprintf_buffer, fmtcpy, l);
+		    long v = va_arg (ap, long);
+		    sprintf (sprintf_buffer, fmtcpy, v);
 		  }
-		else
+		  break;
+		case pD_modifier:
+		signed_pD_modifier:
 		  {
-		    i = va_arg(ap, int);
-		    sprintf (sprintf_buffer, fmtcpy, i);
+		    ptrdiff_t v = va_arg (ap, ptrdiff_t);
+		    sprintf (sprintf_buffer, fmtcpy, v);
 		  }
-		/* Now copy into final output, truncating as necessary.  */
-		string = sprintf_buffer;
-		goto doit;
-	      }
+		  break;
+		case pI_modifier:
+		  {
+		    EMACS_INT v = va_arg (ap, EMACS_INT);
+		    sprintf (sprintf_buffer, fmtcpy, v);
+		  }
+		  break;
+		case pM_modifier:
+		  {
+		    intmax_t v = va_arg (ap, intmax_t);
+		    sprintf (sprintf_buffer, fmtcpy, v);
+		  }
+		  break;
+		}
+	      /* Now copy into final output, truncating as necessary.  */
+	      string = sprintf_buffer;
+	      goto doit;
 
 	    case 'o':
 	    case 'x':
-	      {
-		unsigned u;
-		unsigned long ul;
-
-		if (1 < long_flag)
+	      switch (length_modifier)
+		{
+		case no_modifier:
 		  {
-		    EMACS_UINT ull = va_arg (ap, EMACS_UINT);
-		    sprintf (sprintf_buffer, fmtcpy, ull);
+		    unsigned v = va_arg (ap, unsigned);
+		    sprintf (sprintf_buffer, fmtcpy, v);
 		  }
-		else if (long_flag)
+		  break;
+		case long_modifier:
 		  {
-		    ul = va_arg(ap, unsigned long);
-		    sprintf (sprintf_buffer, fmtcpy, ul);
+		    unsigned long v = va_arg (ap, unsigned long);
+		    sprintf (sprintf_buffer, fmtcpy, v);
 		  }
-		else
+		  break;
+		case pD_modifier:
+		  goto signed_pD_modifier;
+		case pI_modifier:
 		  {
-		    u = va_arg(ap, unsigned);
-		    sprintf (sprintf_buffer, fmtcpy, u);
+		    EMACS_UINT v = va_arg (ap, EMACS_UINT);
+		    sprintf (sprintf_buffer, fmtcpy, v);
 		  }
-		/* Now copy into final output, truncating as necessary.  */
-		string = sprintf_buffer;
-		goto doit;
-	      }
+		  break;
+		case pM_modifier:
+		  {
+		    uintmax_t v = va_arg (ap, uintmax_t);
+		    sprintf (sprintf_buffer, fmtcpy, v);
+		  }
+		  break;
+		}
+	      /* Now copy into final output, truncating as necessary.  */
+	      string = sprintf_buffer;
+	      goto doit;
 
 	    case 'f':
 	    case 'e':
@@ -425,4 +466,62 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 
   SAFE_FREE ();
   return bufptr - buffer;
+}
+
+/* Format to an unbounded buffer BUF.  This is like sprintf, except it
+   is not limited to returning an 'int' so it doesn't have a silly 2
+   GiB limit on typical 64-bit hosts.  However, it is limited to the
+   Emacs-style formats that doprnt supports.
+
+   Return the number of bytes put into BUF, excluding the terminating
+   '\0'.  */
+ptrdiff_t
+esprintf (char *buf, char const *format, ...)
+{
+  ptrdiff_t nbytes;
+  va_list ap;
+  va_start (ap, format);
+  nbytes = doprnt (buf, TYPE_MAXIMUM (ptrdiff_t), format, 0, ap);
+  va_end (ap);
+  return nbytes;
+}
+
+/* Format to buffer *BUF of positive size *BUFSIZE, reallocating *BUF
+   and updating *BUFSIZE if the buffer is too small, and otherwise
+   behaving line esprintf.  When reallocating, free *BUF unless it is
+   equal to NONHEAPBUF, and if BUFSIZE_MAX is nonnegative then signal
+   memory exhaustion instead of growing the buffer size past
+   BUFSIZE_MAX.  */
+ptrdiff_t
+exprintf (char **buf, ptrdiff_t *bufsize,
+	  char const *nonheapbuf, ptrdiff_t bufsize_max,
+	  char const *format, ...)
+{
+  ptrdiff_t nbytes;
+  va_list ap;
+  va_start (ap, format);
+  nbytes = evxprintf (buf, bufsize, nonheapbuf, bufsize_max, format, ap);
+  va_end (ap);
+  return nbytes;
+}
+
+/* Act like exprintf, except take a va_list.  */
+ptrdiff_t
+evxprintf (char **buf, ptrdiff_t *bufsize,
+	   char const *nonheapbuf, ptrdiff_t bufsize_max,
+	   char const *format, va_list ap)
+{
+  for (;;)
+    {
+      ptrdiff_t nbytes;
+      va_list ap_copy;
+      va_copy (ap_copy, ap);
+      nbytes = doprnt (*buf, *bufsize, format, 0, ap_copy);
+      va_end (ap_copy);
+      if (nbytes < *bufsize - 1)
+	return nbytes;
+      if (*buf != nonheapbuf)
+	xfree (*buf);
+      *buf = xpalloc (NULL, bufsize, 1, bufsize_max, 1);
+    }
 }

@@ -1,3 +1,7 @@
+2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* config.nt (HAVE_SNPRINTF): New macro.
+
 2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Assume freestanding C89 headers, string.h, stdlib.h.

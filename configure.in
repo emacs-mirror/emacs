@@ -3072,6 +3072,8 @@ fi
 
 AC_FUNC_FORK
 
+AC_CHECK_FUNCS(snprintf)
+
 dnl Adapted from Haible's version.
 AC_CACHE_CHECK([for nl_langinfo and CODESET], emacs_cv_langinfo_codeset,
   [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <langinfo.h>]],

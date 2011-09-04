@@ -264,11 +264,30 @@ Return a list of updated types."
       (push (cons 'version emacs-version) gnus-format-specs))
     updated))
 
-(defvar gnus-mouse-face-0 'highlight)
-(defvar gnus-mouse-face-1 'highlight)
-(defvar gnus-mouse-face-2 'highlight)
-(defvar gnus-mouse-face-3 'highlight)
-(defvar gnus-mouse-face-4 'highlight)
+(defcustom gnus-mouse-face-0 'highlight
+  "The \"%(hello%)\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-mouse-face-1 'highlight
+  "The \"%1(hello%)\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-mouse-face-2 'highlight
+  "The \"%2(hello%)\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-mouse-face-3 'highlight
+  "The \"%3(hello%)\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-mouse-face-4 'highlight
+  "The \"%4(hello%)\" face."
+  :group 'gnus-format
+  :type 'face)
 
 (defun gnus-mouse-face-function (form type)
   `(gnus-put-text-property
@@ -278,11 +297,30 @@ Return a list of updated types."
 	 'gnus-mouse-face
        `(quote ,(symbol-value (intern (format "gnus-mouse-face-%d" type)))))))
 
-(defvar gnus-face-0 'bold)
-(defvar gnus-face-1 'italic)
-(defvar gnus-face-2 'bold-italic)
-(defvar gnus-face-3 'bold)
-(defvar gnus-face-4 'bold)
+(defcustom gnus-face-0 'bold
+  "The \"%{hello%}\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-face-1 'italic
+  "The \"%1{hello%}\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-face-2 'bold-italic
+  "The \"%2{hello%}\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-face-3 'bold
+  "The \"%3{hello%}\" face."
+  :group 'gnus-format
+  :type 'face)
+
+(defcustom gnus-face-4 'bold
+  "The \"%4{hello%}\" face."
+  :group 'gnus-format
+  :type 'face)
 
 (defun gnus-face-face-function (form type)
   `(gnus-add-text-properties

@@ -1016,12 +1016,15 @@ float_to_string (char *buf, double data)
 	{
 	  width = 0;
 	  do
-	    width = (width * 10) + (*cp++ - '0');
+	    {
+	      width = (width * 10) + (*cp++ - '0');
+	      if (DBL_DIG < width)
+		goto lose;
+	    }
 	  while (*cp >= '0' && *cp <= '9');
 
 	  /* A precision of zero is valid only for %f.  */
-	  if (width > DBL_DIG
-	      || (width == 0 && *cp != 'f'))
+	  if (width == 0 && *cp != 'f')
 	    goto lose;
 	}
 
@@ -1314,7 +1317,9 @@ print_prune_string_charset (Lisp_Object string)
 static void
 print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag)
 {
-  char buf[40];
+  char buf[max (sizeof "from..to..in " + 2 * INT_STRLEN_BOUND (EMACS_INT),
+		max (sizeof " . #" + INT_STRLEN_BOUND (printmax_t),
+		     40))];
 
   QUIT;
 
@@ -1614,8 +1619,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	  PRINTCHAR ('(');
 
 	  {
-	    EMACS_INT print_length;
-	    int i;
+	    printmax_t i, print_length;
 	    Lisp_Object halftail = obj;
 
 	    /* Negative values of print-length are invalid in CL.
@@ -1623,7 +1627,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    if (NATNUMP (Vprint_length))
 	      print_length = XFASTINT (Vprint_length);
 	    else
-	      print_length = 0;
+	      print_length = TYPE_MAXIMUM (printmax_t);
 
 	    i = 0;
 	    while (CONSP (obj))
@@ -1634,7 +1638,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		    /* Simple but imcomplete way.  */
 		    if (i != 0 && EQ (obj, halftail))
 		      {
-			sprintf (buf, " . #%d", i / 2);
+			sprintf (buf, " . #%"pMd, i / 2);
 			strout (buf, -1, -1, printcharfun);
 			goto end_of_list;
 		      }
@@ -1654,15 +1658,16 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 		      }
 		  }
 
-		if (i++)
+		if (i)
 		  PRINTCHAR (' ');
 
-		if (print_length && i > print_length)
+		if (print_length <= i)
 		  {
 		    strout ("...", 3, 3, printcharfun);
 		    goto end_of_list;
 		  }
 
+		i++;
 		print_object (XCAR (obj), printcharfun, escapeflag);
 
 		obj = XCDR (obj);
@@ -1697,7 +1702,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	}
       else if (BOOL_VECTOR_P (obj))
 	{
-	  register int i;
+	  ptrdiff_t i;
 	  register unsigned char c;
 	  struct gcpro gcpro1;
 	  EMACS_INT size_in_chars
@@ -1798,19 +1803,17 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	      PRINTCHAR (' ');
 	      strout (SDATA (SYMBOL_NAME (h->weak)), -1, -1, printcharfun);
 	      PRINTCHAR (' ');
-	      sprintf (buf, "%ld/%ld", (long) h->count,
-		       (long) ASIZE (h->next));
+	      sprintf (buf, "%"pI"d/%"pI"d", h->count, ASIZE (h->next));
 	      strout (buf, -1, -1, printcharfun);
 	    }
-	  sprintf (buf, " 0x%lx", (unsigned long) h);
+	  sprintf (buf, " %p", h);
 	  strout (buf, -1, -1, printcharfun);
 	  PRINTCHAR ('>');
 #endif
 	  /* Implement a readable output, e.g.:
 	    #s(hash-table size 2 test equal data (k1 v1 k2 v2)) */
 	  /* Always print the size. */
-	  sprintf (buf, "#s(hash-table size %ld",
-		   (long) ASIZE (h->next));
+	  sprintf (buf, "#s(hash-table size %"pI"d", ASIZE (h->next));
 	  strout (buf, -1, -1, printcharfun);
 
 	  if (!NILP (h->test))
@@ -2038,7 +2041,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	if (MISCP (obj))
 	  sprintf (buf, "(MISC 0x%04x)", (int) XMISCTYPE (obj));
 	else if (VECTORLIKEP (obj))
-	  sprintf (buf, "(PVEC 0x%08lx)", (unsigned long) ASIZE (obj));
+	  sprintf (buf, "(PVEC 0x%08"pI"x)", ASIZE (obj));
 	else
 	  sprintf (buf, "(0x%02x)", (int) XTYPE (obj));
 	strout (buf, -1, -1, printcharfun);

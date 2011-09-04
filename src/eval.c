@@ -1951,35 +1951,11 @@ verror (const char *m, va_list ap)
   char buf[4000];
   ptrdiff_t size = sizeof buf;
   ptrdiff_t size_max = STRING_BYTES_BOUND + 1;
-  char const *m_end = m + strlen (m);
   char *buffer = buf;
   ptrdiff_t used;
   Lisp_Object string;
 
-  while (1)
-    {
-      va_list ap_copy;
-      va_copy (ap_copy, ap);
-      used = doprnt (buffer, size, m, m_end, ap_copy);
-      va_end (ap_copy);
-
-      /* Note: the -1 below is because `doprnt' returns the number of bytes
-	 excluding the terminating null byte, and it always terminates with a
-	 null byte, even when producing a truncated message.  */
-      if (used < size - 1)
-	break;
-      if (size <= size_max / 2)
-	size *= 2;
-      else if (size < size_max)
-	size = size_max;
-      else
-	break;	/* and leave the message truncated */
-
-      if (buffer != buf)
-	xfree (buffer);
-      buffer = (char *) xmalloc (size);
-    }
-
+  used = evxprintf (&buffer, &size, buf, size_max, m, ap);
   string = make_string (buffer, used);
   if (buffer != buf)
     xfree (buffer);

@@ -35,6 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
 #include <errno.h>
+#include <limits.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -128,19 +129,13 @@ lose_syserr (const char *msg)
 static char *
 get_user_id (void)
 {
-  char *name;
   struct passwd *buf = getpwuid (getuid ());
   if (!buf)
     {
-      int count = 1;
-      int uid = (int) getuid ();
-      int tuid = uid;
-      while (tuid /= 10)
-	count++;
-      name = malloc (count+1);
-      if (!name)
-	return NULL;
-      sprintf (name, "%d", uid);
+      long uid = getuid ();
+      char *name = malloc (sizeof uid * CHAR_BIT / 3 + 1);
+      if (name)
+	sprintf (name, "%ld", uid);
       return name;
     }
   return buf->pw_name;

@@ -3549,6 +3549,8 @@ x_update_menu_appearance (struct frame *f)
 	  rdb != NULL))
     {
       char line[512];
+      char *buf = line;
+      ptrdiff_t bufsize = sizeof line;
       Lisp_Object lface = lface_from_face_name (f, Qmenu, 1);
       struct face *face = FACE_FROM_ID (f, MENU_FACE_ID);
       const char *myname = SSDATA (Vx_resource_name);
@@ -3561,24 +3563,25 @@ x_update_menu_appearance (struct frame *f)
 
       if (STRINGP (LFACE_FOREGROUND (lface)))
 	{
-	  sprintf (line, "%s.%s*foreground: %s",
-		   myname, popup_path,
-		   SDATA (LFACE_FOREGROUND (lface)));
+	  exprintf (&buf, &bufsize, line, -1, "%s.%s*foreground: %s",
+		    myname, popup_path,
+		    SDATA (LFACE_FOREGROUND (lface)));
 	  XrmPutLineResource (&rdb, line);
-	  sprintf (line, "%s.pane.menubar*foreground: %s",
-		   myname, SDATA (LFACE_FOREGROUND (lface)));
+	  exprintf (&buf, &bufsize, line, -1, "%s.pane.menubar*foreground: %s",
+		    myname, SDATA (LFACE_FOREGROUND (lface)));
 	  XrmPutLineResource (&rdb, line);
 	  changed_p = 1;
 	}
 
       if (STRINGP (LFACE_BACKGROUND (lface)))
 	{
-	  sprintf (line, "%s.%s*background: %s",
-		   myname, popup_path,
-		   SDATA (LFACE_BACKGROUND (lface)));
+	  exprintf (&buf, &bufsize, line, -1, "%s.%s*background: %s",
+		    myname, popup_path,
+		    SDATA (LFACE_BACKGROUND (lface)));
 	  XrmPutLineResource (&rdb, line);
-	  sprintf (line, "%s.pane.menubar*background: %s",
-		   myname, SDATA (LFACE_BACKGROUND (lface)));
+
+	  exprintf (&buf, &bufsize, line, -1, "%s.pane.menubar*background: %s",
+		    myname, SDATA (LFACE_BACKGROUND (lface)));
 	  XrmPutLineResource (&rdb, line);
 	  changed_p = 1;
 	}
@@ -3616,11 +3619,12 @@ x_update_menu_appearance (struct frame *f)
 #else
 	      char *fontsetname = SSDATA (xlfd);
 #endif
-	      sprintf (line, "%s.pane.menubar*font%s: %s",
-		       myname, suffix, fontsetname);
+	      exprintf (&buf, &bufsize, line, -1, "%s.pane.menubar*font%s: %s",
+			myname, suffix, fontsetname);
 	      XrmPutLineResource (&rdb, line);
-	      sprintf (line, "%s.%s*font%s: %s",
-		       myname, popup_path, suffix, fontsetname);
+
+	      exprintf (&buf, &bufsize, line, -1, "%s.%s*font%s: %s",
+			myname, popup_path, suffix, fontsetname);
 	      XrmPutLineResource (&rdb, line);
 	      changed_p = 1;
 	      if (fontsetname != SSDATA (xlfd))
@@ -3630,6 +3634,9 @@ x_update_menu_appearance (struct frame *f)
 
       if (changed_p && f->output_data.x->menubar_widget)
 	free_frame_menubar (f);
+
+      if (buf != line)
+	xfree (buf);
     }
 }
 
