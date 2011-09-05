@@ -262,7 +262,7 @@ xd_symbol_to_dbus_type (Lisp_Object object)
 /* Append to SIGNATURE a copy of X, making sure SIGNATURE does
    not become too long.  */
 static void
-signature_cat (char *signature, char const *x)
+xd_signature_cat (char *signature, char const *x)
 {
   ptrdiff_t siglen = strlen (signature);
   ptrdiff_t xlen = strlen (x);
@@ -401,10 +401,10 @@ xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lis
 	{
 	  subtype = XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt));
 	  xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
-	  signature_cat (signature, x);
+	  xd_signature_cat (signature, x);
 	  elt = CDR_SAFE (XD_NEXT_VALUE (elt));
 	}
-      signature_cat (signature, DBUS_STRUCT_END_CHAR_AS_STRING);
+      xd_signature_cat (signature, DBUS_STRUCT_END_CHAR_AS_STRING);
       break;
 
     case DBUS_TYPE_DICT_ENTRY:
@@ -425,7 +425,7 @@ xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lis
       elt = XD_NEXT_VALUE (elt);
       subtype = XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt));
       xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
-      signature_cat (signature, x);
+      xd_signature_cat (signature, x);
 
       if (!XD_BASIC_DBUS_TYPE (subtype))
 	wrong_type_argument (intern ("D-Bus"), CAR_SAFE (XD_NEXT_VALUE (elt)));
@@ -434,14 +434,14 @@ xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lis
       elt = CDR_SAFE (XD_NEXT_VALUE (elt));
       subtype = XD_OBJECT_TO_DBUS_TYPE (CAR_SAFE (elt));
       xd_signature (x, subtype, dtype, CAR_SAFE (XD_NEXT_VALUE (elt)));
-      signature_cat (signature, x);
+      xd_signature_cat (signature, x);
 
       if (!NILP (CDR_SAFE (XD_NEXT_VALUE (elt))))
 	wrong_type_argument (intern ("D-Bus"),
 			     CAR_SAFE (CDR_SAFE (XD_NEXT_VALUE (elt))));
 
       /* Closing signature.  */
-      signature_cat (signature, DBUS_DICT_ENTRY_END_CHAR_AS_STRING);
+      xd_signature_cat (signature, DBUS_DICT_ENTRY_END_CHAR_AS_STRING);
       break;
 
     default:
