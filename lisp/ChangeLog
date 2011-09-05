@@ -1,3 +1,7 @@
+2011-09-05  Juri Linkov  <juri@jurta.org>
+
+	* subr.el (y-or-n-p): Capitalize "yes".
+
 2011-09-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (top): Require 'shell.  Use `tramp-unload-hook' but
