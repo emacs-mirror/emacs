@@ -1,5 +1,15 @@
 2011-09-05  Juri Linkov  <juri@jurta.org>
 
+	* progmodes/grep.el (grep-filter): Avoid incomplete processing by
+	keeping point where processing of grep matches begins, and
+	continue to delete remaining escape sequences from the same point.
+	(grep-filter): Make leading zero optional in "0?1;31m" because
+	git-grep emits "\033[1;31m" escape sequences unlike expected
+	"\033[01;31m" as GNU Grep does (bug#9408).
+	(grep-process-setup): Replace obsolete "ml=" with newer "sl=".
+
+2011-09-05  Juri Linkov  <juri@jurta.org>
+
 	* subr.el (y-or-n-p): Capitalize "yes".
 
 2011-09-04  Michael Albinus  <michael.albinus@gmx.de>
