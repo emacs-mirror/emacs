@@ -1083,7 +1083,7 @@ using `make-temp-file', and the generated name is returned."
 	    (view-buffer buffer (and just-created 'kill-buffer-if-not-modified)))
            ((eq other-window-p 'display) (display-buffer buffer))
            (other-window-p (switch-to-buffer-other-window buffer))
-           (t (pop-to-buffer-same-window buffer))))))
+           (t (switch-to-buffer buffer))))))
 
 (defun archive-*-extract (archive name command)
   (let* ((default-directory (file-name-as-directory archive-tmpdir))

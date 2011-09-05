@@ -2413,7 +2413,7 @@ and overlay is highlighted between MK and END-MK."
         ;; display the source in another window.
         (let ((pop-up-windows t))
           (pop-to-buffer (marker-buffer mk) 'other-window))
-      (pop-to-buffer-same-window (marker-buffer mk)))
+      (switch-to-buffer (marker-buffer mk)))
     (unless (eq (goto-char mk) (point))
       ;; If narrowing gets in the way of going to the right place, widen.
       (widen)

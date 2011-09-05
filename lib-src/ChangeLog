@@ -1,4 +1,4 @@
-2011-08-28  Paul Eggert  <eggert@cs.ucla.edu>
+2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Integer and memory overflow issues (Bug#9397).
 

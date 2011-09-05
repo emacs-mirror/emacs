@@ -1245,7 +1245,12 @@ REST is a plist of following:
 
 (defcustom gnus-home-directory "~/"
   "Directory variable that specifies the \"home\" directory.
-All other Gnus file and directory variables are initialized from this variable."
+All other Gnus file and directory variables are initialized from this variable.
+
+Note that Gnus is mostly loaded when the `.gnus.el' file is read.
+This means that other directory variables that are initialized
+from this variable won't be set properly if you set this variable
+in `.gnus.el'.  Set this variable in `.emacs' instead."
   :group 'gnus-files
   :type 'directory)
 

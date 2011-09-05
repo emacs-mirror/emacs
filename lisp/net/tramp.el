@@ -58,6 +58,7 @@
 ;;; Code:
 
 (require 'tramp-compat)
+(require 'shell)
 
 ;;; User Customizable Internal Variables:
 
@@ -190,13 +191,16 @@ See the variable `tramp-encoding-shell' for more information."
 This is a list of entries of the form (NAME PARAM1 PARAM2 ...).
 Each NAME stands for a remote access method.  Each PARAM is a
 pair of the form (KEY VALUE).  The following KEYs are defined:
-  * `tramp-remote-sh'
+  * `tramp-remote-shell'
     This specifies the Bourne shell to use on the remote host.  This
     MUST be a Bourne-like shell.  It is normally not necessary to set
     this to any value other than \"/bin/sh\": Tramp wants to use a shell
     which groks tilde expansion, but it can search for it.  Also note
     that \"/bin/sh\" exists on all Unixen, this might not be true for
     the value that you decide to use.  You Have Been Warned.
+  * `tramp-remote-shell-args'
+    For implementation of `shell-command', this specifies the
+    argument to let `tramp-remote-shell' run a command.
   * `tramp-login-program'
     This specifies the name of the program to use for logging in to the
     remote host.  This may be the name of rsh or a workalike program,
@@ -2959,6 +2963,92 @@ User is always nil."
 	      (delete-file local-copy)))))
       t)))
 
+(defun tramp-handle-shell-command
+  (command &optional output-buffer error-buffer)
+  "Like `shell-command' for Tramp files."
+  (let* ((asynchronous (string-match "[ \t]*&[ \t]*\\'" command))
+	 ;; We cannot use `shell-file-name' and `shell-command-switch',
+	 ;; they are variables of the local host.
+	 (args (append
+		(cons
+		 (tramp-get-method-parameter
+		  (tramp-file-name-method
+		   (tramp-dissect-file-name default-directory))
+		  'tramp-remote-shell)
+		 (tramp-get-method-parameter
+		  (tramp-file-name-method
+		   (tramp-dissect-file-name default-directory))
+		  'tramp-remote-shell-args))
+		(list (substring command 0 asynchronous))))
+	 current-buffer-p
+	 (output-buffer
+	  (cond
+	   ((bufferp output-buffer) output-buffer)
+	   ((stringp output-buffer) (get-buffer-create output-buffer))
+	   (output-buffer
+	    (setq current-buffer-p t)
+	    (current-buffer))
+	   (t (get-buffer-create
+	       (if asynchronous
+		   "*Async Shell Command*"
+		 "*Shell Command Output*")))))
+	 (error-buffer
+	  (cond
+	   ((bufferp error-buffer) error-buffer)
+	   ((stringp error-buffer) (get-buffer-create error-buffer))))
+	 (buffer
+	  (if (and (not asynchronous) error-buffer)
+	      (with-parsed-tramp-file-name default-directory nil
+		(list output-buffer (tramp-make-tramp-temp-file v)))
+	    output-buffer))
+	 (p (get-buffer-process output-buffer)))
+
+    ;; Check whether there is another process running.  Tramp does not
+    ;; support 2 (asynchronous) processes in parallel.
+    (when p
+      (if (yes-or-no-p "A command is running.  Kill it? ")
+	  (ignore-errors (kill-process p))
+	(error "Shell command in progress")))
+
+    (if current-buffer-p
+	(progn
+	  (barf-if-buffer-read-only)
+	  (push-mark nil t))
+      (with-current-buffer output-buffer
+	(setq buffer-read-only nil)
+	(erase-buffer)))
+
+    (if (and (not current-buffer-p) (integerp asynchronous))
+	(prog1
+	    ;; Run the process.
+	    (apply 'start-file-process "*Async Shell*" buffer args)
+	  ;; Display output.
+	  (pop-to-buffer output-buffer)
+	  (setq mode-line-process '(":%s"))
+	  (shell-mode))
+
+      (prog1
+	  ;; Run the process.
+	  (apply 'process-file (car args) nil buffer nil (cdr args))
+	;; Insert error messages if they were separated.
+	(when (listp buffer)
+	  (with-current-buffer error-buffer
+	    (insert-file-contents (cadr buffer)))
+	  (delete-file (cadr buffer)))
+	(if current-buffer-p
+	    ;; This is like exchange-point-and-mark, but doesn't
+	    ;; activate the mark.  It is cleaner to avoid activation,
+	    ;; even though the command loop would deactivate the mark
+	    ;; because we inserted text.
+	    (goto-char (prog1 (mark t)
+			 (set-marker (mark-marker) (point)
+				     (current-buffer))))
+	  ;; There's some output, display it.
+	  (when (with-current-buffer output-buffer (> (point-max) (point-min)))
+	    (if (functionp 'display-message-or-buffer)
+		(tramp-compat-funcall 'display-message-or-buffer output-buffer)
+	      (pop-to-buffer output-buffer))))))))
+
 (defun tramp-handle-substitute-in-file-name (filename)
   "Like `substitute-in-file-name' for Tramp files.
 \"//\" and \"/~\" substitute only in the local filename part.
@@ -3477,7 +3567,7 @@ Return the local name of the temporary file."
     (ignore-errors (delete-file tramp-temp-buffer-file-name))))
 
 (add-hook 'kill-buffer-hook 'tramp-delete-temp-file-function)
-(add-hook 'tramp-cache-unload-hook
+(add-hook 'tramp-unload-hook
 	  (lambda ()
 	    (remove-hook 'kill-buffer-hook
 			 'tramp-delete-temp-file-function)))

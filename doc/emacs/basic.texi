@@ -101,7 +101,9 @@ character to insert (@pxref{Arguments}).
 
 @findex ucs-insert
 @kindex C-x 8 RET
-@cindex Unicode
+@cindex Unicode characters, inserting
+@cindex insert Unicode character
+@cindex characters, inserting by name or code-point
   Instead of @kbd{C-q}, you can use @kbd{C-x 8 @key{RET}}
 (@code{ucs-insert}) to insert a character based on its Unicode name or
 code-point.  This command prompts for a character to insert, using
