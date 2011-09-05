@@ -1,5 +1,9 @@
 2011-09-05  Juri Linkov  <juri@jurta.org>
 
+	* progmodes/grep.el (grep-process-setup): Fix comments (bug#8084).
+
+2011-09-05  Juri Linkov  <juri@jurta.org>
+
 	* progmodes/grep.el (grep-filter): Avoid incomplete processing by
 	keeping point where processing of grep matches begins, and
 	continue to delete remaining escape sequences from the same point.

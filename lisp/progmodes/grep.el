@@ -446,9 +446,10 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
   (when (eq grep-highlight-matches 'auto-detect)
     (grep-compute-defaults))
   (unless (or (eq grep-highlight-matches 'auto-detect)
-	      ;; Uses font-lock to parse color escapes.  (Bug#8084)
-	      (null font-lock-mode)
-	      (null grep-highlight-matches))
+	      (null grep-highlight-matches)
+	      ;; Don't output color escapes if they can't be
+	      ;; highlighted with `font-lock-face' by `grep-filter'.
+	      (null font-lock-mode))
     ;; `setenv' modifies `process-environment' let-bound in `compilation-start'
     ;; Any TERM except "dumb" allows GNU grep to use `--color=auto'
     (setenv "TERM" "emacs-grep")
