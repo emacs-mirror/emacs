@@ -989,7 +989,8 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
 		      dir
 		      (concat
 		       (and grep-find-ignored-directories
-			    (concat (shell-quote-argument "(")
+			    (concat "-type d "
+				    (shell-quote-argument "(")
 				    ;; we should use shell-quote-argument here
 				    " -path "
 				    (mapconcat
