@@ -325,11 +325,10 @@ main (int argc, char **argv)
 	  if (desc < 0)
 	    {
 	      int mkstemp_errno = errno;
-	      char *message = (char *) xmalloc (strlen (tempname) + 50);
-	      sprintf (message, "creating %s, which would become the lock file",
-		       tempname);
+	      error ("error while creating what would become the lock file",
+		     0, 0);
 	      errno = mkstemp_errno;
-	      pfatal_with_name (message);
+	      pfatal_with_name (tempname);
 	    }
 	  close (desc);
 

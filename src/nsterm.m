@@ -5316,7 +5316,7 @@ ns_term_shutdown (int sig)
             strcpy (old_title, t);
           }
         size_title = xmalloc (strlen (old_title) + 40);
-        sprintf (size_title, "%s  —  (%d x %d)", old_title, cols, rows);
+	esprintf (size_title, "%s  —  (%d x %d)", old_title, cols, rows);
         [window setTitle: [NSString stringWithUTF8String: size_title]];
         [window display];
         xfree (size_title);

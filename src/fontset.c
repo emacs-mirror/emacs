@@ -1700,7 +1700,7 @@ FONT-SPEC is a vector, a cons, or a string.  See the documentation of
 static Lisp_Object auto_fontset_alist;
 
 /* Number of automatically created fontsets.  */
-static int num_auto_fontsets;
+static printmax_t num_auto_fontsets;
 
 /* Retun a fontset synthesized from FONT-OBJECT.  This is called from
    x_new_font when FONT-OBJECT is used for the default ASCII font of a
@@ -1727,9 +1727,9 @@ fontset_from_font (Lisp_Object font_object)
     alias = intern ("fontset-startup");
   else
     {
-      char temp[32];
+      char temp[sizeof "fontset-auto" + INT_STRLEN_BOUND (printmax_t)];
 
-      sprintf (temp, "fontset-auto%d", num_auto_fontsets - 1);
+      sprintf (temp, "fontset-auto%"pMd, num_auto_fontsets - 1);
       alias = intern (temp);
     }
   fontset_spec = copy_font_spec (font_spec);

@@ -156,51 +156,6 @@ This is used by the default mail-sending commands.  See also
   :version "24.1"
   :group 'sendmail)
 
-(defvar sendmail-query-once-function 'query
-  "Either a function to send email, or the symbol `query'.")
-
-;;;###autoload
-(defun sendmail-query-once ()
-  "Send an email via `sendmail-query-once-function'.
-If `sendmail-query-once-function' is `query', ask the user what
-function to use, and then save that choice."
-  (when (equal sendmail-query-once-function 'query)
-    (let* ((mail-buffer (current-buffer))
-	   (default
-	     (cond
-	      ((or (and window-system (eq system-type 'darwin))
-		   (eq system-type 'windows-nt))
-	       'mailclient-send-it)
-	      ((and sendmail-program
-		    (executable-find sendmail-program))
-	       'sendmail-send-it)))
-	   (function
-	    (if (or (not default)
-		    ;; We have detected no OS-level mail senders, or we
-		    ;; have already configured smtpmail, so we use the
-		    ;; internal SMTP service.
-		    (and (boundp 'smtpmail-smtp-server)
-			 smtpmail-smtp-server))
-		'smtpmail-send-it
-	      ;; Query the user.
-	      (unwind-protect
-		  (progn
-		    (pop-to-buffer "*Mail Help*")
-		    (erase-buffer)
-		    (insert "Sending mail from Emacs hasn't been set up yet.\n\n"
-			    "Type `y' to configure outgoing SMTP, or `n' to use\n"
-			    "the default mail sender on your system.\n\n"
-			    "To change this again at a later date, customize the\n"
-			    "`send-mail-function' variable.\n")
-		    (goto-char (point-min))
-		    (if (y-or-n-p "Configure outgoing SMTP in Emacs? ")
-			'smtpmail-send-it
-		      default))
-		(kill-buffer (current-buffer))
-		(set-buffer mail-buffer)))))
-      (customize-save-variable 'sendmail-query-once-function function)))
-  (funcall sendmail-query-once-function))
-
 ;;;###autoload
 (defcustom mail-header-separator (purecopy "--text follows this line--")
   "Line used to separate headers from text in messages being composed."
@@ -542,6 +497,51 @@ by Emacs.)")
 	      . font-lock-string-face))))
   "Additional expressions to highlight in Mail mode.")
 
+
+;;;###autoload
+(defun sendmail-query-once ()
+  "Query for `send-mail-function' and send mail with it.
+This also saves the value of `send-mail-function' via Customize."
+  (let* ((mail-buffer (current-buffer))
+	 ;; Compute default mail sender, preferring smtpmail if it's
+	 ;; already configured.
+	 (default (cond
+		   ((and (boundp 'smtpmail-smtp-server)
+			 smtpmail-smtp-server)
+		    'smtpmail-send-it)
+		   ((or (and window-system (eq system-type 'darwin))
+			(eq system-type 'windows-nt))
+		    'mailclient-send-it)
+		   ((and sendmail-program
+			 (executable-find sendmail-program))
+		    'sendmail-send-it)))
+	 (send-function (if (eq default 'smtpmail-send-it)
+			    'smtpmail-send-it)))
+    (unless send-function
+      ;; Query the user.
+      (with-temp-buffer
+	(rename-buffer "*Mail Help*" t)
+	(erase-buffer)
+	(insert "Emacs has not been set up for sending mail.\n
+Type `y' to configure and use Emacs as a mail client,
+or `n' to use your system's default mailer.\n
+To change your decision later, customize `send-mail-function'.\n")
+	(goto-char (point-min))
+	(display-buffer (current-buffer))
+	(if (y-or-n-p "Set up Emacs for sending SMTP mail? ")
+	    ;; FIXME: We should check and correct the From: field too.
+	    (setq send-function 'smtpmail-send-it)
+	  (setq send-function default))))
+    (when send-function
+      (customize-save-variable 'send-mail-function send-function)
+      ;; HACK: Message mode stupidly has `message-send-mail-function',
+      ;; so we must update it too or sending again in the current
+      ;; Emacs session will still call `sendmail-query-once'.
+      (and (boundp 'message-send-mail-function)
+	   (eq message-send-mail-function 'sendmail-query-once)
+	   (customize-set-variable 'message-send-mail-function
+				   send-function))
+      (funcall send-function))))
 
 (defun sendmail-sync-aliases ()
   (when mail-personal-alias-file

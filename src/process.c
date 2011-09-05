@@ -616,8 +616,8 @@ make_process (Lisp_Object name)
 {
   register Lisp_Object val, tem, name1;
   register struct Lisp_Process *p;
-  char suffix[10];
-  register int i;
+  char suffix[sizeof "<>" + INT_STRLEN_BOUND (printmax_t)];
+  printmax_t i;
 
   p = allocate_process ();
 
@@ -651,7 +651,7 @@ make_process (Lisp_Object name)
     {
       tem = Fget_process (name1);
       if (NILP (tem)) break;
-      sprintf (suffix, "<%d>", i);
+      sprintf (suffix, "<%"pMd">", i);
       name1 = concat2 (name, build_string (suffix));
     }
   name = name1;

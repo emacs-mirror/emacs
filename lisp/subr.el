@@ -2254,7 +2254,7 @@ is nil and `use-dialog-box' is non-nil."
              (listp last-nonmenu-event)
              use-dialog-box)
         (setq answer
-              (x-popup-dialog t `(,prompt ("yes" . act) ("No" . skip))))
+              (x-popup-dialog t `(,prompt ("Yes" . act) ("No" . skip))))
       (setq prompt (concat prompt
                            (if (eq ?\s (aref prompt (1- (length prompt))))
                                "" " ")

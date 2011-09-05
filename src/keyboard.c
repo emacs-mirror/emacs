@@ -196,7 +196,7 @@ int immediate_quit;
 int quit_char;
 
 /* Current depth in recursive edits.  */
-int command_loop_level;
+EMACS_INT command_loop_level;
 
 /* If not Qnil, this is a switch-frame event which we decided to put
    off until the end of a key sequence.  This should be read as the
@@ -998,7 +998,8 @@ static Lisp_Object
 cmd_error (Lisp_Object data)
 {
   Lisp_Object old_level, old_length;
-  char macroerror[50];
+  char macroerror[sizeof "After..kbd macro iterations: "
+		  + INT_STRLEN_BOUND (EMACS_INT)];
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -1010,7 +1011,7 @@ cmd_error (Lisp_Object data)
       if (executing_kbd_macro_iterations == 1)
 	sprintf (macroerror, "After 1 kbd macro iteration: ");
       else
-	sprintf (macroerror, "After %d kbd macro iterations: ",
+	sprintf (macroerror, "After %"pI"d kbd macro iterations: ",
 		 executing_kbd_macro_iterations);
     }
   else
@@ -6463,11 +6464,15 @@ modify_event_symbol (EMACS_INT symbol_num, unsigned int modifiers, Lisp_Object s
 	value = Fcdr_safe (Fassq (symbol_int, name_alist_or_stem));
       else if (STRINGP (name_alist_or_stem))
 	{
-	  int len = SBYTES (name_alist_or_stem);
-	  char *buf = (char *) alloca (len + 50);
-          sprintf (buf, "%s-%"pI"d", SDATA (name_alist_or_stem),
-                   XINT (symbol_int) + 1);
+	  char *buf;
+	  ptrdiff_t len = (SBYTES (name_alist_or_stem)
+			   + sizeof "-" + INT_STRLEN_BOUND (EMACS_INT));
+	  USE_SAFE_ALLOCA;
+	  SAFE_ALLOCA (buf, char *, len);
+	  esprintf (buf, "%s-%"pI"d", SDATA (name_alist_or_stem),
+		    XINT (symbol_int) + 1);
 	  value = intern (buf);
+	  SAFE_FREE ();
 	}
       else if (name_table != 0 && name_table[symbol_num])
 	value = intern (name_table[symbol_num]);
@@ -6483,7 +6488,7 @@ modify_event_symbol (EMACS_INT symbol_num, unsigned int modifiers, Lisp_Object s
 
       if (NILP (value))
 	{
-	  char buf[20];
+	  char buf[sizeof "key-" + INT_STRLEN_BOUND (EMACS_INT)];
 	  sprintf (buf, "key-%"pI"d", symbol_num);
 	  value = intern (buf);
 	}
@@ -10382,19 +10387,21 @@ give to the command you invoke, if it asks for an argument.  */)
 	  char *newmessage;
 	  int message_p = push_message ();
 	  int count = SPECPDL_INDEX ();
+	  ptrdiff_t newmessage_len, newmessage_alloc;
+	  USE_SAFE_ALLOCA;
 
 	  record_unwind_protect (pop_message_unwind, Qnil);
 	  binding = Fkey_description (bindings, Qnil);
-
-	  newmessage
-	    = (char *) alloca (SCHARS (SYMBOL_NAME (function))
-			       + SBYTES (binding)
-			       + 100);
-	  sprintf (newmessage, "You can run the command `%s' with %s",
-		   SDATA (SYMBOL_NAME (function)),
-		   SDATA (binding));
+	  newmessage_alloc =
+	    (sizeof "You can run the command `' with "
+	     + SBYTES (SYMBOL_NAME (function)) + SBYTES (binding));
+	  SAFE_ALLOCA (newmessage, char *, newmessage_alloc);
+	  newmessage_len =
+	    esprintf (newmessage, "You can run the command `%s' with %s",
+		      SDATA (SYMBOL_NAME (function)),
+		      SDATA (binding));
 	  message2 (newmessage,
-		    strlen (newmessage),
+		    newmessage_len,
 		    STRING_MULTIBYTE (binding));
 	  if (NUMBERP (Vsuggest_key_bindings))
 	    waited = sit_for (Vsuggest_key_bindings, 0, 2);
@@ -10404,6 +10411,7 @@ give to the command you invoke, if it asks for an argument.  */)
 	  if (!NILP (waited) && message_p)
 	    restore_message ();
 
+	  SAFE_FREE ();
 	  unbind_to (count, Qnil);
 	}
     }
@@ -10633,7 +10641,9 @@ DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
   (void)
 {
   Lisp_Object temp;
-  XSETFASTINT (temp, command_loop_level + minibuf_level);
+  /* Wrap around reliably on integer overflow.  */
+  EMACS_INT sum = (command_loop_level & INTMASK) + (minibuf_level & INTMASK);
+  XSETINT (temp, sum);
   return temp;
 }
 

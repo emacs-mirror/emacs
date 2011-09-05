@@ -414,8 +414,8 @@ static bool filename_is_absolute (char *f);
 static void canonicalize_filename (char *);
 static void linebuffer_init (linebuffer *);
 static void linebuffer_setlen (linebuffer *, int);
-static PTR xmalloc (unsigned int);
-static PTR xrealloc (char *, unsigned int);
+static PTR xmalloc (size_t);
+static PTR xrealloc (char *, size_t);
 
 
 static char searchar = '/';	/* use /.../ searches */
@@ -425,6 +425,7 @@ static char *progname;		/* name this program was invoked with */
 static char *cwd;		/* current working directory */
 static char *tagfiledir;	/* directory of tagfile */
 static FILE *tagf;		/* ioptr for tags file */
+static ptrdiff_t whatlen_max;	/* maximum length of any 'what' member */
 
 static fdesc *fdhead;		/* head of file description list */
 static fdesc *curfdp;		/* current file description */
@@ -1066,6 +1067,7 @@ main (int argc, char **argv)
   int current_arg, file_count;
   linebuffer filename_lb;
   bool help_asked = FALSE;
+  ptrdiff_t len;
  char *optstring;
  int opt;
 
@@ -1110,6 +1112,9 @@ main (int argc, char **argv)
 	/* This means that a file name has been seen.  Record it. */
 	argbuffer[current_arg].arg_type = at_filename;
 	argbuffer[current_arg].what     = optarg;
+	len = strlen (optarg);
+	if (whatlen_max < len)
+	  whatlen_max = len;
 	++current_arg;
 	++file_count;
 	break;
@@ -1118,6 +1123,9 @@ main (int argc, char **argv)
 	/* Parse standard input.  Idea by Vivek <vivek@etla.org>. */
 	argbuffer[current_arg].arg_type = at_stdin;
 	argbuffer[current_arg].what     = optarg;
+	len = strlen (optarg);
+	if (whatlen_max < len)
+	  whatlen_max = len;
 	++current_arg;
 	++file_count;
 	if (parsing_stdin)
@@ -1160,6 +1168,9 @@ main (int argc, char **argv)
       case 'r':
 	argbuffer[current_arg].arg_type = at_regexp;
 	argbuffer[current_arg].what = optarg;
+	len = strlen (optarg);
+	if (whatlen_max < len)
+	  whatlen_max = len;
 	++current_arg;
 	break;
       case 'R':
@@ -1198,6 +1209,9 @@ main (int argc, char **argv)
     {
       argbuffer[current_arg].arg_type = at_filename;
       argbuffer[current_arg].what = argv[optind];
+      len = strlen (argv[optind]);
+      if (whatlen_max < len)
+	whatlen_max = len;
       ++current_arg;
       ++file_count;
     }
@@ -1331,7 +1345,9 @@ main (int argc, char **argv)
   /* From here on, we are in (CTAGS && !cxref_style) */
   if (update)
     {
-      char cmd[BUFSIZ];
+      char *cmd =
+	xmalloc (strlen (tagfile) + whatlen_max +
+		 sizeof "mv..OTAGS;fgrep -v '\t\t' OTAGS >;rm OTAGS");
       for (i = 0; i < current_arg; ++i)
 	{
 	  switch (argbuffer[i].arg_type)
@@ -1342,12 +1358,17 @@ main (int argc, char **argv)
 	    default:
 	      continue;		/* the for loop */
 	    }
-	  sprintf (cmd,
-		   "mv %s OTAGS;fgrep -v '\t%s\t' OTAGS >%s;rm OTAGS",
-		   tagfile, argbuffer[i].what, tagfile);
+	  strcpy (cmd, "mv ");
+	  strcat (cmd, tagfile);
+	  strcat (cmd, " OTAGS;fgrep -v '\t");
+	  strcat (cmd, argbuffer[i].what);
+	  strcat (cmd, "\t' OTAGS >");
+	  strcat (cmd, tagfile);
+	  strcat (cmd, ";rm OTAGS");
 	  if (system (cmd) != EXIT_SUCCESS)
 	    fatal ("failed to execute shell command", (char *)NULL);
 	}
+      free (cmd);
       append_to_tagfile = TRUE;
     }
 
@@ -1363,11 +1384,14 @@ main (int argc, char **argv)
   if (CTAGS)
     if (append_to_tagfile || update)
       {
-	char cmd[2*BUFSIZ+20];
+	char *cmd = xmalloc (2 * strlen (tagfile) + sizeof "sort -u -o..");
 	/* Maybe these should be used:
 	   setenv ("LC_COLLATE", "C", 1);
 	   setenv ("LC_ALL", "C", 1); */
-	sprintf (cmd, "sort -u -o %.*s %.*s", BUFSIZ, tagfile, BUFSIZ, tagfile);
+	strcpy (cmd, "sort -u -o ");
+	strcat (cmd, tagfile);
+	strcat (cmd, " ");
+	strcat (cmd, tagfile);
 	exit (system (cmd));
       }
   return EXIT_SUCCESS;
@@ -6656,7 +6680,7 @@ linebuffer_setlen (linebuffer *lbp, int toksize)
 
 /* Like malloc but get fatal error if memory is exhausted. */
 static PTR
-xmalloc (unsigned int size)
+xmalloc (size_t size)
 {
   PTR result = (PTR) malloc (size);
   if (result == NULL)
@@ -6665,7 +6689,7 @@ xmalloc (unsigned int size)
 }
 
 static PTR
-xrealloc (char *ptr, unsigned int size)
+xrealloc (char *ptr, size_t size)
 {
   PTR result = (PTR) realloc (ptr, size);
   if (result == NULL)

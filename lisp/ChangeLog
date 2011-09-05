@@ -1,3 +1,81 @@
+2011-09-05  Oleksandr Gavenko  <gavenkoa@gmail.com>  (tiny change)
+
+	* progmodes/grep.el (rgrep): Add "-type d" (bug#9414).
+
+2011-09-05  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-process-setup): Fix comments (bug#8084).
+
+2011-09-05  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-filter): Avoid incomplete processing by
+	keeping point where processing of grep matches begins, and
+	continue to delete remaining escape sequences from the same point.
+	(grep-filter): Make leading zero optional in "0?1;31m" because
+	git-grep emits "\033[1;31m" escape sequences unlike expected
+	"\033[01;31m" as GNU Grep does (bug#9408).
+	(grep-process-setup): Replace obsolete "ml=" with newer "sl=".
+
+2011-09-05  Juri Linkov  <juri@jurta.org>
+
+	* subr.el (y-or-n-p): Capitalize "yes".
+
+2011-09-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top): Require 'shell.  Use `tramp-unload-hook' but
+	`tramp-cache-unload-hook' where appropriate.
+	(tramp-methods): Rename `tramp-remote-sh' to
+	`tramp-remote-shell'.  Add `tramp-remote-shell-args'.
+	(tramp-handle-shell-command): New defun, moved from tramp-sh.el.
+
+	* net/tramp-sh.el (top): Don't require 'shell.
+	(tramp-methods): Add `tramp-remote-shell' and
+	`tramp-remote-shell-args' entries.
+	(tramp-sh-file-name-handler-alist): Use `tramp-handle-shell-command'.
+	(tramp-sh-handle-shell-command): Remove.
+	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
+	Use `tramp-remote-shell'.
+
+2011-09-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/sendmail.el (sendmail-query-once-function): Deleted.
+	(sendmail-query-once): Save directly to send-mail-function.
+	Update message-send-mail-function too.
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods): Clarify prompt.
+
+2011-09-03  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* progmodes/python.el (python-mode-map): Use correct function to
+	start python interpreter from menu-bar (as reported by Geert
+	Kloosterman).
+	(inferior-python-mode-map): Fix typo.
+	(python-shell-map): Removed.
+
+2011-09-03  Deniz Dogan  <deniz@dogan.se>
+
+	* net/rcirc.el (rcirc-print): Simplify code for
+	rcirc-scroll-show-maximum-output.  There is no need to walk
+	through all windows to find the right one.
+
+2011-09-03  Christoph Scholtes  <cschol2112@googlemail.com>
+
+	* help.el (help-return-method): Doc fix.
+
+2011-09-03  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-deletable-p): Don't return a non-nil value
+	when there's a buffer that was shown in the window before.
+	(Bug#9419)
+	(display-buffer-pop-up-frame, display-buffer-pop-up-window): Set
+	window's previous buffers to nil.
+
+2011-09-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-insert-tagline): Insert an extra
+	newline before and after the tag line, so it doesn't interfere
+	with determining the paragraph direction of bidirectional text.
+
 2011-09-03  Leo Liu  <sdl.web@gmail.com>
 
 	* files.el (find-file-not-true-dirname-list): Remove.  (Bug#9422)

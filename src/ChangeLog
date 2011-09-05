@@ -1,4 +1,4 @@
-2011-09-03  Paul Eggert  <eggert@cs.ucla.edu>
+2011-09-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c: Fix bugs with large file offsets (Bug#9428).
 	The previous code assumed that file offsets (off_t values) fit in
@@ -16,6 +16,158 @@
 	ZV_BYTE was intended.
 	(Fwrite_region): Don't assume off_t fits into 'long'.
 	* buffer.h (struct buffer.modtime_size): Now off_t, not EMACS_INT.
+
+2011-09-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_signature_cat): Rename from signature_cat.
+
+2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	sprintf-related integer and memory overflow issues (Bug#9412).
+
+	* doprnt.c (doprnt): Support printing ptrdiff_t and intmax_t values.
+	(esprintf, exprintf, evxprintf): New functions.
+	* keyboard.c (command_loop_level): Now EMACS_INT, not int.
+	(cmd_error): kbd macro iterations count is now EMACS_INT, not int.
+	(modify_event_symbol): Do not assume that the length of
+	name_alist_or_stem is safe to alloca and fits in int.
+	(Fexecute_extended_command): Likewise for function name and binding.
+	(Frecursion_depth): Wrap around reliably on integer overflow.
+	* keymap.c (push_key_description): First arg is now EMACS_INT, not int,
+	since some callers pass EMACS_INT values.
+	(Fsingle_key_description): Don't crash if symbol name contains more
+	than MAX_ALLOCA bytes.
+	* minibuf.c (minibuf_level): Now EMACS_INT, not int.
+	(get_minibuffer): Arg is now EMACS_INT, not int.
+	* lisp.h (get_minibuffer, push_key_description): Reflect API changes.
+	(esprintf, exprintf, evxprintf): New decls.
+	* window.h (command_loop_level, minibuf_level): Reflect API changes.
+
+	* dbusbind.c (signature_cat): New function.
+	(xd_signature, Fdbus_register_signal):
+	Do not overrun buffer; instead, report string overflow.
+
+	* dispnew.c (add_window_display_history): Don't overrun buffer.
+	Truncate instead; this is OK since it's just a log.
+
+	* editfns.c (Fcurrent_time_zone): Don't overrun buffer
+	even if the time zone offset is outlandishly large.
+	Don't mishandle offset == INT_MIN.
+
+	* emacs.c (main) [NS_IMPL_COCOA]: Don't overrun buffer
+	when creating daemon; the previous buffer-overflow check was incorrect.
+
+	* eval.c (verror): Simplify by rewriting in terms of evxprintf,
+	which has the guts of the old verror function.
+
+	* filelock.c (lock_file_1, lock_file): Don't blindly alloca long name;
+	use SAFE_ALLOCA instead.  Use esprintf to avoid int-overflow issues.
+
+	* font.c: Include <float.h>, for DBL_MAX_10_EXP.
+	(font_unparse_xlfd): Don't blindly alloca long strings.
+	Don't assume XINT result fits in int, or that XFLOAT_DATA * 10
+	fits in int, when using sprintf.  Use single snprintf to count
+	length of string rather than counting it via multiple sprintfs;
+	that's simpler and more reliable.
+	(font_unparse_fcname): Use it to avoid sprintf buffer overrun.
+	(generate_otf_features) [0 && HAVE_LIBOTF]: Use esprintf, not
+	sprintf, in case result does not fit in int.
+
+	* fontset.c (num_auto_fontsets): Now printmax_t, not int.
+	(fontset_from_font): Print it.
+
+	* frame.c (tty_frame_count): Now printmax_t, not int.
+	(make_terminal_frame, set_term_frame_name): Print it.
+	(x_report_frame_params): In X, window IDs are unsigned long,
+	not signed long, so print them as unsigned.
+	(validate_x_resource_name): Check for implausibly long names,
+	and don't assume name length fits in 'int'.
+	(x_get_resource_string): Don't blindly alloca invocation name;
+	use SAFE_ALLOCA.  Use esprintf, not sprintf, in case result does
+	not fit in int.
+
+	* gtkutil.c: Include <float.h>, for DBL_MAX_10_EXP.
+	(xg_check_special_colors, xg_set_geometry):
+	Make sprintf buffers a bit bigger, to avoid potential buffer overrun.
+
+	* lread.c (dir_warning): Don't blindly alloca buffer; use SAFE_ALLOCA.
+	Use esprintf, not sprintf, in case result does not fit in int.
+
+	* macros.c (executing_kbd_macro_iterations): Now EMACS_INT, not int.
+	(Fend_kbd_macro): Don't mishandle MOST_NEGATIVE_FIXNUM by treating
+	it as a large positive number.
+	(Fexecute_kbd_macro): Don't assume repeat count fits in int.
+	* macros.h (executing_kbd_macro_iterations): Now EMACS_INT, not int.
+
+	* nsterm.m ((NSSize)windowWillResize): Use esprintf, not sprintf,
+	in case result does not fit in int.
+
+	* print.c (float_to_string): Detect width overflow more reliably.
+	(print_object): Make sprintf buffer a bit bigger, to avoid potential
+	buffer overrun.  Don't assume list length fits in 'int'.  Treat
+	print length of 0 as 0, not as infinity; to be consistent with other
+	uses of print length in this function.  Don't overflow print length
+	index.  Don't assume hash table size fits in 'long', or that
+	vectorlike size fits in 'unsigned long'.
+
+	* process.c (make_process): Use printmax_t, not int, to format
+	process-name gensyms.
+
+	* sysdep.c (snprintf) [! HAVE_SNPRINTF]: New function.
+
+	* term.c (produce_glyphless_glyph): Make sprintf buffer a bit bigger
+	to avoid potential buffer overrun.
+
+	* xfaces.c (x_update_menu_appearance): Don't overrun buffer
+	if X resource line is longer than 512 bytes.
+
+	* xfns.c (x_window): Make sprintf buffer a bit bigger
+	to avoid potential buffer overrun.
+
+	* xterm.c (x_io_error_quitter): Don't overrun sprintf buffer.
+
+	* xterm.h (x_check_errors): Add ATTRIBUTE_FORMAT_PRINTF.
+
+2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Integer overflow fixes for scrolling, etc.
+	Without these, Emacs silently mishandles large integers sometimes.
+	For example, "C-u 4294967297 M-x recenter" was treated as if
+	it were "C-u 1 M-x recenter" on a typical 64-bit host.
+
+	* xdisp.c (try_window_id): Check Emacs fixnum range before
+	converting to 'int'.
+
+	* window.c (window_scroll_line_based, Frecenter):
+	Check that an Emacs fixnum is in range before assigning it to 'int'.
+	(Frecenter, Fmove_to_window_line): Use EMACS_INT, not int, for
+	values converted from Emacs fixnums.
+	(Frecenter): Don't wrap around a line count if it is out of 'int'
+	range; instead, treat it as an extreme value.
+	(Fset_window_configuration, compare_window_configurations):
+	Use ptrdiff_t, not int, for index that might exceed 2 GiB.
+
+	* search.c (Freplace_match): Use ptrdiff_t, not int, for indexes
+	that can exceed INT_MAX.  Check that EMACS_INT value is in range
+	before assigning it to the (possibly-narrower) index.
+	(match_limit): Don't assume that a fixnum can fit in 'int'.
+
+	* print.c (print_object): Use ptrdiff_t, not int, for index that can
+	exceed INT_MAX.
+
+	* indent.c (position_indentation): Now takes ptrdiff_t, not int.
+	(Fvertical_motion): Don't wrap around LINES values that don't fit
+	in 'int'.  Instead, treat them as extreme values.  This is good
+	enough for windows, which can't have more than INT_MAX lines anyway.
+
+2011-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* Require libxml/parser.h to avoid compilation warning.
+
+	* emacs.c (shut_down_emacs): Call xmlCleanupParser on shutdown.
+
+	* xml.c (parse_region): Don't call xmlCleanupParser after parsing,
+	since this reportedly can destroy thread storage.
 
 2011-08-30  Chong Yidong  <cyd@stupidchicken.com>
 
