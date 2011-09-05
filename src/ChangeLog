@@ -1,3 +1,7 @@
+2011-09-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_signature_cat): Rename from signature_cat.
+
 2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
 	sprintf-related integer and memory overflow issues (Bug#9412).
