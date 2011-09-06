@@ -1,5 +1,9 @@
 2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* configure.in (isnan): Remove now-unnecessary check.
+
+2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
 	Merge from gnulib, using build-aux to remove clutter (Bug#9169).
 	This is to fix the following problems:
 	 . On FreeBSD 6.4, HP-UX 11.31, and Solaris 9, and when Emacs is

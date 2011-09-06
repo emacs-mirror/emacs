@@ -1,5 +1,19 @@
 2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	isnan: Fix porting problem to Solaris 10 with bundled gcc.
+	Without this fix, the command to link temacs failed due to an
+	undefined symbol __builtin_isnan.  This is because
+	/usr/include/iso/math_c99.h #defines isnan(x) to
+	__builtin_isnan(x), but the bundled gcc, which identifies itself
+	as gcc 3.4.3 (csl-sol210-3_4-branch+sol_rpath), does not have
+	a __builtin_isnan.
+	* floatfns.c (isnan): #undef, and then #define to a clone of
+	what's in data.c.
+	(Fisnan): Always define, since it's always available now.
+	(syms_of_floatfns): Always define isnan at the Lisp level.
+
+2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
 	* Makefile.in (gl-stamp): move-if-change now in build-aux (Bug#9169).
 
 2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
