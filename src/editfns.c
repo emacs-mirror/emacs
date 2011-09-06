@@ -2014,7 +2014,7 @@ the data it can't find.  */)
     {
       int offset = tm_diff (t, &gmt);
       char *s = 0;
-      char buf[6];
+      char buf[sizeof "+00" + INT_STRLEN_BOUND (int)];
 
 #ifdef HAVE_TM_ZONE
       if (t->tm_zone)
@@ -2029,7 +2029,8 @@ the data it can't find.  */)
       if (!s)
 	{
 	  /* No local time zone name is available; use "+-NNNN" instead.  */
-	  int am = (offset < 0 ? -offset : offset) / 60;
+	  int m = offset / 60;
+	  int am = offset < 0 ? - m : m;
 	  sprintf (buf, "%c%02d%02d", (offset < 0 ? '-' : '+'), am/60, am%60);
 	  s = buf;
 	}

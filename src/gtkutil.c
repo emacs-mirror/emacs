@@ -20,6 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #ifdef USE_GTK
+#include <float.h>
 #include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
@@ -567,7 +568,7 @@ xg_check_special_colors (struct frame *f,
     GtkStyleContext *gsty
       = gtk_widget_get_style_context (FRAME_GTK_OUTER_WIDGET (f));
     GdkRGBA col;
-    char buf[64];
+    char buf[sizeof "rgbi://" + 3 * (DBL_MAX_10_EXP + sizeof "-1.000000" - 1)];
     int state = GTK_STATE_FLAG_SELECTED|GTK_STATE_FLAG_FOCUSED;
     if (get_fg)
       gtk_style_context_get_color (gsty, state, &col);
@@ -797,7 +798,7 @@ xg_set_geometry (FRAME_PTR f)
       int xneg = f->size_hint_flags & XNegative;
       int top = f->top_pos;
       int yneg = f->size_hint_flags & YNegative;
-      char geom_str[32];
+      char geom_str[sizeof "=x--" + 4 * INT_STRLEN_BOUND (int)];
 
       if (xneg)
         left = -left;

@@ -1,3 +1,7 @@
+2011-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Complete the super and subscript letters.
+
 2011-08-20  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (OTHERS):

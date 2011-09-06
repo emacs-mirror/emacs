@@ -341,6 +341,9 @@ lock_file_1 (char *lfname, int force)
   const char *user_name;
   const char *host_name;
   char *lock_info_str;
+  ptrdiff_t lock_info_size;
+  int symlink_errno;
+  USE_SAFE_ALLOCA;
 
   /* Call this first because it can GC.  */
   boot = get_boot_time ();
@@ -353,17 +356,14 @@ lock_file_1 (char *lfname, int force)
     host_name = SSDATA (Fsystem_name ());
   else
     host_name = "";
-  lock_info_str = (char *)alloca (strlen (user_name) + strlen (host_name)
-				  + 2 * INT_STRLEN_BOUND (printmax_t)
-				  + sizeof "@.:");
+  lock_info_size = (strlen (user_name) + strlen (host_name)
+		    + 2 * INT_STRLEN_BOUND (printmax_t)
+		    + sizeof "@.:");
+  SAFE_ALLOCA (lock_info_str, char *, lock_info_size);
   pid = getpid ();
 
-  if (boot)
-    sprintf (lock_info_str, "%s@%s.%"pMd":%"pMd,
-	     user_name, host_name, pid, boot);
-  else
-    sprintf (lock_info_str, "%s@%s.%"pMd,
-	     user_name, host_name, pid);
+  esprintf (lock_info_str, boot ? "%s@%s.%"pMd":%"pMd : "%s@%s.%"pMd,
+	    user_name, host_name, pid, boot);
 
   err = symlink (lock_info_str, lfname);
   if (errno == EEXIST && force)
@@ -372,6 +372,9 @@ lock_file_1 (char *lfname, int force)
       err = symlink (lock_info_str, lfname);
     }
 
+  symlink_errno = errno;
+  SAFE_FREE ();
+  errno = symlink_errno;
   return err == 0;
 }
 
@@ -541,9 +544,11 @@ lock_file (Lisp_Object fn)
 {
   register Lisp_Object attack, orig_fn, encoded_fn;
   register char *lfname, *locker;
+  ptrdiff_t locker_size;
   lock_info_type lock_info;
   printmax_t pid;
   struct gcpro gcpro1;
+  USE_SAFE_ALLOCA;
 
   /* Don't do locking while dumping Emacs.
      Uncompressing wtmp files uses call-process, which does not work
@@ -580,15 +585,17 @@ lock_file (Lisp_Object fn)
     return;
 
   /* Else consider breaking the lock */
-  locker = (char *) alloca (strlen (lock_info.user) + strlen (lock_info.host)
-			    + INT_STRLEN_BOUND (printmax_t)
-			    + sizeof "@ (pid )");
+  locker_size = (strlen (lock_info.user) + strlen (lock_info.host)
+		 + INT_STRLEN_BOUND (printmax_t)
+		 + sizeof "@ (pid )");
+  SAFE_ALLOCA (locker, char *, locker_size);
   pid = lock_info.pid;
-  sprintf (locker, "%s@%s (pid %"pMd")",
-	   lock_info.user, lock_info.host, pid);
+  esprintf (locker, "%s@%s (pid %"pMd")",
+	    lock_info.user, lock_info.host, pid);
   FREE_LOCK_INFO (lock_info);
 
   attack = call2 (intern ("ask-user-about-lock"), fn, build_string (locker));
+  SAFE_FREE ();
   if (!NILP (attack))
     /* User says take the lock */
     {

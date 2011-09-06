@@ -1811,6 +1811,45 @@ strerror (int errnum)
 }
 #endif /* not WINDOWSNT */
 #endif /* ! HAVE_STRERROR */
+
+#ifndef HAVE_SNPRINTF
+/* Approximate snprintf as best we can on ancient hosts that lack it.  */
+int
+snprintf (char *buf, size_t bufsize, char const *format, ...)
+{
+  ptrdiff_t size = min (bufsize, PTRDIFF_MAX);
+  ptrdiff_t nbytes = size - 1;
+  va_list ap;
+
+  if (size)
+    {
+      va_start (ap, format);
+      nbytes = doprnt (buf, size, format, 0, ap);
+      va_end (ap);
+    }
+
+  if (nbytes == size - 1)
+    {
+      /* Calculate the length of the string that would have been created
+	 had the buffer been large enough.  */
+      char stackbuf[4000];
+      char *b = stackbuf;
+      ptrdiff_t bsize = sizeof stackbuf;
+      va_start (ap, format);
+      nbytes = evxprintf (&b, &bsize, stackbuf, -1, format, ap);
+      va_end (ap);
+      if (b != stackbuf)
+	xfree (b);
+    }
+
+  if (INT_MAX < nbytes)
+    {
+      errno = EOVERFLOW;
+      return -1;
+    }
+  return nbytes;
+}
+#endif
 
 int
 emacs_open (const char *path, int oflag, int mode)

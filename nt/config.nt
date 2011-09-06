@@ -240,6 +240,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_SETSOCKOPT 1
 #define HAVE_GETSOCKNAME 1
 #define HAVE_GETPEERNAME 1
+#define HAVE_SNPRINTF 1
 #define HAVE_LANGINFO_CODESET 1
 /* Local (unix) sockets are not supported.  */
 #undef HAVE_SYS_UN_H

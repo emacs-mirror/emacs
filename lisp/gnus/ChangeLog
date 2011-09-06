@@ -1,3 +1,52 @@
+2011-09-05  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-sum.el (gnus-summary-exit): Ensure we kill the proper
+	original-article-buffer.
+
+2011-09-05  Kan-Ru Chen  <kanru@kanru.info>
+
+	* nnir.el (nnir-compose-result): Fix matching of server type.
+	(nnir-run-swish++): Ditto.
+	(nnir-run-namazu): Ditto.
+	(nnir-run-notmuch): Ditto.
+
+2011-09-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-home-directory): Add warning about setting in .gnus.el
+	(bug#9405).
+
+	* gnus-score.el (gnus-summary-increase-score): Doc clarification
+	(bug#9421).
+
+	* gnus-spec.el (gnus-face-0): Make all the face specs into defcustoms
+	(bug#9425).
+
+	* gnus-art.el (gnus-treatment-function-alist): Remove CRs as the first
+	thing (bug#9426).
+
+2011-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection-1): Use the correct port number in
+	the error message.
+
+2011-09-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* message.el (message-setup-1): Return t (Bug#9392).
+
+2011-09-01  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-sum.el: When adding article headers to a summary buffer also
+	update gnus-newsgroup-articles (bug#9386).
+
+2011-08-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* auth-source.el: Autoload help-mode.
+
+2011-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-name-charset): Don't bug out on server
+	names.
+
 2011-08-27  Daiki Ueno  <ueno@unixuser.org>
 
 	* mml-smime.el (mml-smime-epg-verify): Don't use the 4th arg of

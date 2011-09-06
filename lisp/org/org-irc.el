@@ -60,8 +60,6 @@
 (declare-function erc-server-buffer "erc" ())
 (declare-function erc-get-server-nickname-list "erc" ())
 (declare-function erc-cmd-JOIN "erc" (channel &optional key))
-(declare-function org-pop-to-buffer-same-window 
-		  "org-compat" (&optional buffer-or-name norecord label))
 
 (defvar org-irc-client 'erc
   "The IRC client to act on.")
@@ -234,7 +232,7 @@ default."
 				      (throw 'found x))))))
 		(if chan-buf
 		    (progn
-		      (org-pop-to-buffer-same-window chan-buf)
+		      (switch-to-buffer chan-buf)
 		      ;; if we got a nick, and they're in the chan,
 		      ;; then start a chat with them
 		      (let ((nick (pop link)))
@@ -245,9 +243,9 @@ default."
 				(insert (concat nick ": ")))
 			      (error "%s not found in %s" nick chan-name)))))
 		    (progn
-		      (org-pop-to-buffer-same-window server-buffer)
+		      (switch-to-buffer server-buffer)
 		      (erc-cmd-JOIN chan-name))))
-	      (org-pop-to-buffer-same-window server-buffer)))
+	      (switch-to-buffer server-buffer)))
 	;; no server match, make new connection
 	(erc-select :server server :port port))))
 

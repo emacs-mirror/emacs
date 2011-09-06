@@ -60,8 +60,6 @@
 (declare-function org-is-habit-p "org-habit" (&optional pom))
 (declare-function org-habit-parse-todo "org-habit" (&optional pom))
 (declare-function org-habit-get-priority "org-habit" (habit &optional moment))
-(declare-function org-pop-to-buffer-same-window "org-compat" 
-		  (&optional buffer-or-name norecord label))
 
 (defvar calendar-mode-map)
 (defvar org-clock-current-task) ; defined in org-clock.el
@@ -3067,7 +3065,7 @@ the global options and expect it to be applied to the entire view.")
        (awin (select-window awin))
        ((not (setq org-pre-agenda-window-conf (current-window-configuration))))
        ((equal org-agenda-window-setup 'current-window)
-	(org-pop-to-buffer-same-window abuf))
+	(switch-to-buffer abuf))
        ((equal org-agenda-window-setup 'other-window)
 	(org-switch-to-buffer-other-window abuf))
        ((equal org-agenda-window-setup 'other-frame)
@@ -3078,7 +3076,7 @@ the global options and expect it to be applied to the entire view.")
       ;; additional test in case agenda is invoked from within agenda
       ;; buffer via elisp link
       (unless (equal (current-buffer) abuf)
-	(org-pop-to-buffer-same-window abuf)))
+	(switch-to-buffer abuf)))
     (setq buffer-read-only nil)
     (let ((inhibit-read-only t)) (erase-buffer))
     (org-agenda-mode)
@@ -6972,7 +6970,7 @@ at the text of the entry itself."
 		       (org-agenda-error)))
 	   (buffer (marker-buffer marker))
 	   (pos (marker-position marker)))
-      (org-pop-to-buffer-same-window buffer)
+      (switch-to-buffer buffer)
       (and delete-other-windows (delete-other-windows))
       (widen)
       (goto-char pos)

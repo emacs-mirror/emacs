@@ -398,7 +398,12 @@ find_defun_start (EMACS_INT pos, EMACS_INT pos_byte)
 
   if (!open_paren_in_column_0_is_defun_start)
     {
+      find_start_value = BEGV;
       find_start_value_byte = BEGV_BYTE;
+      find_start_buffer = current_buffer;
+      find_start_modiff = MODIFF;
+      find_start_begv = BEGV;
+      find_start_pos = pos;
       return BEGV;
     }
 

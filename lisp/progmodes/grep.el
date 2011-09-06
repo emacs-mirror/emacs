@@ -446,9 +446,10 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
   (when (eq grep-highlight-matches 'auto-detect)
     (grep-compute-defaults))
   (unless (or (eq grep-highlight-matches 'auto-detect)
-	      ;; Uses font-lock to parse color escapes.  (Bug#8084)
-	      (null font-lock-mode)
-	      (null grep-highlight-matches))
+	      (null grep-highlight-matches)
+	      ;; Don't output color escapes if they can't be
+	      ;; highlighted with `font-lock-face' by `grep-filter'.
+	      (null font-lock-mode))
     ;; `setenv' modifies `process-environment' let-bound in `compilation-start'
     ;; Any TERM except "dumb" allows GNU grep to use `--color=auto'
     (setenv "TERM" "emacs-grep")
@@ -459,7 +460,7 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
     ;; GREP_COLOR is used in GNU grep 2.5.1, but deprecated in later versions
     (setenv "GREP_COLOR" "01;31")
     ;; GREP_COLORS is used in GNU grep 2.5.2 and later versions
-    (setenv "GREP_COLORS" "mt=01;31:fn=:ln=:bn=:se=:ml=:cx=:ne"))
+    (setenv "GREP_COLORS" "mt=01;31:fn=:ln=:bn=:se=:sl=:cx=:ne"))
   (set (make-local-variable 'compilation-exit-message-function)
        (lambda (status code msg)
 	 (if (eq status 'exit)
@@ -480,20 +481,21 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 This function is called from `compilation-filter-hook'."
   (save-excursion
     (forward-line 0)
-    (let ((end (point)))
+    (let ((end (point)) beg)
       (goto-char compilation-filter-start)
       (forward-line 0)
+      (setq beg (point))
       ;; Only operate on whole lines so we don't get caught with part of an
       ;; escape sequence in one chunk and the rest in another.
       (when (< (point) end)
         (setq end (copy-marker end))
         ;; Highlight grep matches and delete marking sequences.
-        (while (re-search-forward "\033\\[01;31m\\(.*?\\)\033\\[[0-9]*m" end 1)
+        (while (re-search-forward "\033\\[0?1;31m\\(.*?\\)\033\\[[0-9]*m" end 1)
           (replace-match (propertize (match-string 1)
                                      'face nil 'font-lock-face grep-match-face)
                          t t))
         ;; Delete all remaining escape sequences
-        (goto-char compilation-filter-start)
+        (goto-char beg)
         (while (re-search-forward "\033\\[[0-9;]*[mK]" end 1)
           (replace-match "" t t))))))
 
@@ -987,7 +989,8 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
 		      dir
 		      (concat
 		       (and grep-find-ignored-directories
-			    (concat (shell-quote-argument "(")
+			    (concat "-type d "
+				    (shell-quote-argument "(")
 				    ;; we should use shell-quote-argument here
 				    " -path "
 				    (mapconcat

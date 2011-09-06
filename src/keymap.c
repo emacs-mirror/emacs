@@ -2143,12 +2143,12 @@ spaces are put between sequence elements, etc.  */)
 
 
 char *
-push_key_description (register unsigned int c, register char *p, int force_multibyte)
+push_key_description (EMACS_INT ch, char *p, int force_multibyte)
 {
-  unsigned c2;
+  int c, c2;
 
   /* Clear all the meaningless bits above the meta bit.  */
-  c &= meta_modifier | ~ - meta_modifier;
+  c = ch & (meta_modifier | ~ - meta_modifier);
   c2 = c & ~(alt_modifier | ctrl_modifier | hyper_modifier
 	     | meta_modifier | shift_modifier | super_modifier);
 
@@ -2283,10 +2283,15 @@ around function keys and event symbols.  */)
     {
       if (NILP (no_angles))
 	{
-	  char *buffer
-	    = (char *) alloca (SBYTES (SYMBOL_NAME (key)) + 5);
-	  sprintf (buffer, "<%s>", SDATA (SYMBOL_NAME (key)));
-	  return build_string (buffer);
+	  char *buffer;
+	  Lisp_Object result;
+	  USE_SAFE_ALLOCA;
+	  SAFE_ALLOCA (buffer, char *,
+		       sizeof "<>" + SBYTES (SYMBOL_NAME (key)));
+	  esprintf (buffer, "<%s>", SDATA (SYMBOL_NAME (key)));
+	  result = build_string (buffer);
+	  SAFE_FREE ();
+	  return result;
 	}
       else
 	return Fsymbol_name (key);

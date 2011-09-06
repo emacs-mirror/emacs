@@ -490,7 +490,7 @@ The list is in preference order.")
   (let* ((mechs (cdr-safe (assoc 'auth supported-extensions)))
 	 (mech (car (smtpmail-intersection mechs smtpmail-auth-supported)))
 	 (auth-source-creation-prompts
-          '((user  . "SMTP user at %h: ")
+          '((user  . "SMTP user name for %h: ")
             (secret . "SMTP password for %u@%h: ")))
          (auth-info (car
 		     (auth-source-search

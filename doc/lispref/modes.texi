@@ -19,16 +19,15 @@ user.  For related topics such as keymaps and syntax tables, see
 @ref{Keymaps}, and @ref{Syntax Tables}.
 
 @menu
-* Hooks::                       How to use hooks; how to write code that provides hooks.
-* Major Modes::                 Defining major modes.
-* Minor Modes::                 Defining minor modes.
-* Mode Line Format::            Customizing the text that appears in the mode line.
-* Imenu::                       How a mode can provide a menu
-                         of definitions in the buffer.
-* Font Lock Mode::              How modes can highlight text according to syntax.
-* Auto-Indentation::            How to teach Emacs to indent for a major mode.
-* Desktop Save Mode::           How modes can have buffer state saved between
-                         Emacs sessions.
+* Hooks::             How to use hooks; how to write code that provides hooks.
+* Major Modes::       Defining major modes.
+* Minor Modes::       Defining minor modes.
+* Mode Line Format::  Customizing the text that appears in the mode line.
+* Imenu::             Providing a menu of definitions made in a buffer.
+* Font Lock Mode::    How modes can highlight text according to syntax.
+* Auto-Indentation::  How to teach Emacs to indent for a major mode.
+* Desktop Save Mode:: How modes can have buffer state saved between
+                        Emacs sessions.
 @end menu
 
 @node Hooks
@@ -48,12 +47,12 @@ convention, whenever the hook name ends in @samp{-hook}, that tells
 you it is normal.  We try to make all hooks normal, as much as
 possible, so that you can use them in a uniform way.
 
-  Every major mode function is supposed to run a normal hook called
-the @dfn{mode hook} as the one of the last steps of initialization.
-This makes it easy for a user to customize the behavior of the mode,
-by overriding the buffer-local variable assignments already made by
-the mode.  Most minor mode functions also run a mode hook at the end.
-But hooks are used in other contexts too.  For example, the hook
+  Every major mode command is supposed to run a normal hook called the
+@dfn{mode hook} as the one of the last steps of initialization.  This
+makes it easy for a user to customize the behavior of the mode, by
+overriding the buffer-local variable assignments already made by the
+mode.  Most minor mode functions also run a mode hook at the end.  But
+hooks are used in other contexts too.  For example, the hook
 @code{suspend-hook} runs just before Emacs suspends itself
 (@pxref{Suspending Emacs}).
 
@@ -78,8 +77,8 @@ convention.
 its value is just a single function, not a list of functions.
 
 @menu
-* Running Hooks::               How to run a hook.
-* Setting Hooks::               How to put functions on a hook, or remove them.
+* Running Hooks::    How to run a hook.
+* Setting Hooks::    How to put functions on a hook, or remove them.
 @end menu
 
 @node Running Hooks
@@ -195,115 +194,98 @@ from the buffer-local hook list instead of from the global hook list.
 @section Major Modes
 @cindex major mode
 
+@cindex major mode command
   Major modes specialize Emacs for editing particular kinds of text.
-Each buffer has only one major mode at a time.  For each major mode
-there is a function to switch to that mode in the current buffer; its
-name should end in @samp{-mode}.  These functions work by setting
-buffer-local variable bindings and other data associated with the
-buffer, such as a local keymap.  The effect lasts until you switch
-to another major mode in the same buffer.
+Each buffer has one major mode at a time.  Every major mode is
+associated with a @dfn{major mode command}, whose name should end in
+@samp{-mode}.  This command takes care of switching to that mode in the
+current buffer, by setting various buffer-local variables such as a
+local keymap.  @xref{Major Mode Conventions}.
+
+  The least specialized major mode is called @dfn{Fundamental mode},
+which has no mode-specific definitions or variable settings.
+
+@deffn Command fundamental-mode
+This is the major mode command for Fundamental mode.  Unlike other mode
+commands, it does @emph{not} run any mode hooks (@pxref{Major Mode
+Conventions}), since you are not supposed to customize this mode.
+@end deffn
+
+  The easiest way to write a major mode is to use the macro
+@code{define-derived-mode}, which sets up the new mode as a variant of
+an existing major mode.  @xref{Derived Modes}.  We recommend using
+@code{define-derived-mode} even if the new mode is not an obvious
+derivative of another mode, as it automatically enforces many coding
+conventions for you.  @xref{Basic Major Modes}, for common modes to
+derive from.
+
+  The standard GNU Emacs Lisp directory tree contains the code for
+several major modes, in files such as @file{text-mode.el},
+@file{texinfo.el}, @file{lisp-mode.el}, and @file{rmail.el}.  You can
+study these libraries to see how modes are written.
+
+@defopt major-mode
+The buffer-local value of this variable holds the symbol for the current
+major mode.  Its default value holds the default major mode for new
+buffers.  The standard default value is @code{fundamental-mode}.
+
+If the default value is @code{nil}, then whenever Emacs creates a new
+buffer via a command such as @kbd{C-x b} (@code{switch-to-buffer}), the
+new buffer is put in the major mode of the previously current buffer.
+As an exception, if the major mode of the previous buffer has a
+@code{mode-class} symbol property with value @code{special}, the new
+buffer is put in Fundamental mode (@pxref{Major Mode Conventions}).
+@end defopt
 
 @menu
-* Major Mode Basics::           
-* Major Mode Conventions::      Coding conventions for keymaps, etc.
-* Auto Major Mode::             How Emacs chooses the major mode automatically.
-* Mode Help::                   Finding out how to use a mode.
-* Derived Modes::               Defining a new major mode based on another major
+* Major Mode Conventions::  Coding conventions for keymaps, etc.
+* Auto Major Mode::         How Emacs chooses the major mode automatically.
+* Mode Help::               Finding out how to use a mode.
+* Derived Modes::           Defining a new major mode based on another major
                               mode.
-* Generic Modes::               Defining a simple major mode that supports
+* Basic Major Modes::       Modes that other modes are often derived from.
+* Generic Modes::           Defining a simple major mode that supports
                               comment syntax and Font Lock mode.
-* Mode Hooks::                  Hooks run at the end of major mode functions.
-* Example Major Modes::         Text mode and Lisp modes.
+* Mode Hooks::              Hooks run at the end of major mode commands.
+* Example Major Modes::     Text mode and Lisp modes.
 @end menu
-
-@node Major Mode Basics
-@subsection Major Mode Basics
-@cindex Fundamental mode
-
-  The least specialized major mode is called @dfn{Fundamental mode}.
-This mode has no mode-specific definitions or variable settings, so each
-Emacs command behaves in its default manner, and each option is in its
-default state.  All other major modes redefine various keys and options.
-For example, Lisp Interaction mode provides special key bindings for
-@kbd{C-j} (@code{eval-print-last-sexp}), @key{TAB}
-(@code{lisp-indent-line}), and other keys.
-
-  When you need to write several editing commands to help you perform a
-specialized editing task, creating a new major mode is usually a good
-idea.  In practice, writing a major mode is easy (in contrast to
-writing a minor mode, which is often difficult).
-
-  If the new mode is similar to an old one, it is often unwise to
-modify the old one to serve two purposes, since it may become harder
-to use and maintain.  Instead, copy and rename an existing major mode
-definition and alter the copy---or use the @code{define-derived-mode}
-macro to define a @dfn{derived mode} (@pxref{Derived Modes}).  For
-example, Rmail Edit mode is a major mode that is very similar to Text
-mode except that it provides two additional commands.  Its definition
-is distinct from that of Text mode, but uses that of Text mode.
-
-  Even if the new mode is not an obvious derivative of any other mode,
-we recommend to use @code{define-derived-mode}, since it automatically
-enforces the most important coding conventions for you.
-
-  For a very simple programming language major mode that handles
-comments and fontification, you can use @code{define-generic-mode}.
-@xref{Generic Modes}.
-
-  Rmail Edit mode offers an example of changing the major mode
-temporarily for a buffer, so it can be edited in a different way (with
-ordinary Emacs commands rather than Rmail commands).  In such cases, the
-temporary major mode usually provides a command to switch back to the
-buffer's usual mode (Rmail mode, in this case).  You might be tempted to
-present the temporary redefinitions inside a recursive edit and restore
-the usual ones when the user exits; but this is a bad idea because it
-constrains the user's options when it is done in more than one buffer:
-recursive edits must be exited most-recently-entered first.  Using an
-alternative major mode avoids this limitation.  @xref{Recursive
-Editing}.
-
-  The standard GNU Emacs Lisp library directory tree contains the code
-for several major modes, in files such as @file{text-mode.el},
-@file{texinfo.el}, @file{lisp-mode.el}, @file{c-mode.el}, and
-@file{rmail.el}.  They are found in various subdirectories of the
-@file{lisp} directory.  You can study these libraries to see how modes
-are written.  Text mode is perhaps the simplest major mode aside from
-Fundamental mode.  Rmail mode is a complicated and specialized mode.
 
 @node Major Mode Conventions
 @subsection Major Mode Conventions
 @cindex major mode conventions
 @cindex conventions for writing major modes
 
-  The code for existing major modes follows various coding conventions,
-including conventions for local keymap and syntax table initialization,
-global names, and hooks.  Please follow these conventions when you
-define a new major mode.  (Fundamental mode is an exception to many
-of these conventions, because its definition is to present the global
-state of Emacs.)
+  The code for every major mode should follow various coding
+conventions, including conventions for local keymap and syntax table
+initialization, function and variable names, and hooks.
 
-  This list of conventions is only partial, because each major mode
-should aim for consistency in general with other Emacs major modes.
-This makes Emacs as a whole more coherent.  It is impossible to list
+  If you use the @code{define-derived-mode} macro, it will take care of
+many of these conventions automatically.  @xref{Derived Modes}.  Note
+also that fundamental mode is an exception to many of these conventions,
+because its definition is to present the global state of Emacs.
+
+  The following list of conventions is only partial.  Each major mode
+should aim for consistency in general with other Emacs major modes, as
+this makes Emacs as a whole more coherent.  It is impossible to list
 here all the possible points where this issue might come up; if the
 Emacs developers point out an area where your major mode deviates from
 the usual conventions, please make it compatible.
 
 @itemize @bullet
 @item
-Define a command whose name ends in @samp{-mode}, with no arguments,
-that switches to the new mode in the current buffer.  This command
-should set up the keymap, syntax table, and buffer-local variables in an
-existing buffer, without changing the buffer's contents.
+Define a major mode command whose name ends in @samp{-mode}.  When
+called with no arguments, this command should switch to the new mode in
+the current buffer by setting up the keymap, syntax table, and
+buffer-local variables in an existing buffer.  It should not change the
+buffer's contents.
 
 @item
-Write a documentation string for this command that describes the
-special commands available in this mode.  @kbd{C-h m}
-(@code{describe-mode}) in your mode will display this string.
+Write a documentation string for this command that describes the special
+commands available in this mode.  @xref{Mode Help}.
 
 The documentation string may include the special documentation
 substrings, @samp{\[@var{command}]}, @samp{\@{@var{keymap}@}}, and
-@samp{\<@var{keymap}>}, which enable the documentation to adapt
+@samp{\<@var{keymap}>}, which allow the help display to adapt
 automatically to the user's own key bindings.  @xref{Keys in
 Documentation}.
 
@@ -421,28 +403,7 @@ setting up a buffer-local value for the variable
 
 @item
 Each face that the mode defines should, if possible, inherit from an
-existing Emacs face.  This reduces the chance of conflicting with a
-user's face customizations.  Useful faces include:
-
-@table @asis
-@item @code{highlight}
-for stretches of text that should temporarily stand out.
-
-@item @code{match}
-for text matching a search command.
-
-@item @code{link} and @code{link-visited}
-for clickable text buttons that send the user to a different buffer or
-``location''.
-
-@item @code{button}
-for clickable text buttons that perform other actions.
-
-@item @asis{Font Lock faces}
-for other kinds of syntactic highlighting, if highlighting is not
-handled by Font Lock mode or some Font Lock faces are not in use.
-@xref{Faces for Font Lock}, for how to assign Font Lock faces.
-@end table
+existing Emacs face.  @xref{Basic Faces}, and @ref{Faces for Font Lock}.
 
 @item
 The mode should specify how Imenu should find the definitions or
@@ -527,10 +488,9 @@ mode when creating new buffers (@pxref{Auto Major Mode}), but with such
 Dired, Rmail, and Buffer List use this feature.
 
 The @code{define-derived-mode} macro automatically marks the derived
-mode as special if the parent mode is special.  The special mode
-@code{special-mode} provides a convenient parent for other special
-modes to inherit from; it sets @code{buffer-read-only} to @code{t},
-and does little else.
+mode as special if the parent mode is special.  Special mode is a
+convenient parent for such modes to inherit from; @xref{Basic Major
+Modes}.
 
 @item
 If you want to make the new mode the default for files with certain
@@ -564,16 +524,6 @@ Even if you never load the file more than once, someone else will.
 automatically selects a major mode for the new buffer when a file is
 visited.  It also processes local variables specified in the file text.
 
-@deffn Command fundamental-mode
-  Fundamental mode is a major mode that is not specialized for anything
-in particular.  Other major modes are defined in effect by comparison
-with this one---their definitions say what to change, starting from
-Fundamental mode.  The @code{fundamental-mode} function does @emph{not}
-run any mode hooks; you're not supposed to customize it.  (If you want Emacs
-to behave differently in Fundamental mode, change the @emph{global}
-state of Emacs.)
-@end deffn
-
 @deffn Command normal-mode &optional find-file
 This function establishes the proper major mode and buffer-local variable
 bindings for the current buffer.  First it calls @code{set-auto-mode}
@@ -599,23 +549,22 @@ by the default value of @code{major-mode} (see below).
 
 @cindex file mode specification error
 @code{normal-mode} uses @code{condition-case} around the call to the
-major mode function, so errors are caught and reported as a @samp{File
-mode specification error},  followed by the original error message.
+major mode command, so errors are caught and reported as a @samp{File
+mode specification error}, followed by the original error message.
 @end deffn
 
 @defun set-auto-mode &optional keep-mode-if-same
 @cindex visited file mode
   This function selects the major mode that is appropriate for the
-current buffer.  It bases its decision (in order of precedence) on
-the @w{@samp{-*-}} line, on any @samp{mode:} local variable near the
-end of a file, on the @w{@samp{#!}} line (using
-@code{interpreter-mode-alist}), on the text at the beginning of the
-buffer (using @code{magic-mode-alist}), and finally on the visited
-file name (using @code{auto-mode-alist}).  @xref{Choosing Modes, , How
-Major Modes are Chosen, emacs, The GNU Emacs Manual}. 
-If @code{enable-local-variables} is @code{nil}, @code{set-auto-mode}
-does not check the @w{@samp{-*-}} line, or near the end of the file,
-for any mode tag.
+current buffer.  It bases its decision (in order of precedence) on the
+@w{@samp{-*-}} line, on any @samp{mode:} local variable near the end of
+a file, on the @w{@samp{#!}} line (using @code{interpreter-mode-alist}),
+on the text at the beginning of the buffer (using
+@code{magic-mode-alist}), and finally on the visited file name (using
+@code{auto-mode-alist}).  @xref{Choosing Modes, , How Major Modes are
+Chosen, emacs, The GNU Emacs Manual}.  If @code{enable-local-variables}
+is @code{nil}, @code{set-auto-mode} does not check the @w{@samp{-*-}}
+line, or near the end of the file, for any mode tag.
 
 If @var{keep-mode-if-same} is non-@code{nil}, this function does not
 call the mode command if the buffer is already in the proper major
@@ -623,21 +572,6 @@ mode.  For instance, @code{set-visited-file-name} sets this to
 @code{t} to avoid killing buffer local variables that the user may
 have set.
 @end defun
-
-@defopt major-mode
-The buffer-local value of this variable holds the major mode
-currently active.  The default value of this variable holds the
-default major mode for new buffers.  The standard default value is
-@code{fundamental-mode}.
-
-If the default value of @code{major-mode} is @code{nil}, Emacs uses
-the (previously) current buffer's major mode as the default major mode
-of a new buffer.  However, if that major mode symbol has a @code{mode-class}
-property with value @code{special}, then it is not used for new buffers;
-Fundamental mode is used instead.  The modes that have this property are
-those such as Dired and Rmail that are useful only with text that has
-been specially prepared.
-@end defopt
 
 @defun set-buffer-major-mode buffer
 This function sets the major mode of @var{buffer} to the default value of
@@ -745,38 +679,30 @@ init file.)
 @cindex help for major mode
 @cindex documentation for major mode
 
-  The @code{describe-mode} function is used to provide information
-about major modes.  It is normally called with @kbd{C-h m}.  The
-@code{describe-mode} function uses the value of @code{major-mode},
-which is why every major mode function needs to set the
-@code{major-mode} variable.
+  The @code{describe-mode} function is provides information about major
+modes.  It is normally bound to @kbd{C-h m}.  It uses the value of the
+variable @code{major-mode} (@pxref{Major Modes}), which is why every
+major mode command needs to set that variable.
 
 @deffn Command describe-mode
 This function displays the documentation of the current major mode.
 
 The @code{describe-mode} function calls the @code{documentation}
 function using the value of @code{major-mode} as an argument.  Thus, it
-displays the documentation string of the major mode function.
+displays the documentation string of the major mode command.
 (@xref{Accessing Documentation}.)
 @end deffn
-
-@defvar major-mode
-This buffer-local variable holds the symbol for the current buffer's
-major mode.  This symbol should have a function definition that is the
-command to switch to that major mode.  The @code{describe-mode}
-function uses the documentation string of the function as the
-documentation of the major mode.
-@end defvar
 
 @node Derived Modes
 @subsection Defining Derived Modes
 @cindex derived mode
 
-  The recommended way to define a new major mode is to derive it
-from an existing one using @code{define-derived-mode}.  If there is no
-closely related mode, you can inherit from @code{text-mode},
-@code{special-mode}, @code{prog-mode}, or in the worst case
-@code{fundamental-mode}.
+  The recommended way to define a new major mode is to derive it from an
+existing one using @code{define-derived-mode}.  If there is no closely
+related mode, you should inherit from either @code{text-mode},
+@code{special-mode}, or @code{prog-mode}.  @xref{Basic Major Modes}.  If
+none of these are suitable, you can inherit from @code{fundamental-mode}
+(@pxref{Major Modes}).
 
 @defmac define-derived-mode variant parent name docstring keyword-args@dots{} body@dots{}
 This macro defines @var{variant} as a major mode command, using
@@ -877,6 +803,64 @@ Do not write an @code{interactive} spec in the definition;
 @code{define-derived-mode} does that automatically.
 @end defmac
 
+@defun derived-mode-p &rest modes
+This function returns non-@code{nil} if the current major mode is
+derived from any of the major modes given by the symbols @var{modes}.
+@end defun
+
+@node Basic Major Modes
+@subsection Basic Major Modes
+
+  Apart from Fundamental mode, there are three major modes that other
+major modes commonly derive from: Text mode, Prog mode, and Special
+mode.  While Text mode is useful in its own right (e.g. for editing
+files ending in @file{.txt}), Prog mode and Special mode exist mainly to
+let other modes derive from them.
+
+@vindex prog-mode-hook
+  As far as possible, new major modes should be derived, either directly
+or indirectly, from one of these three modes.  One reason is that this
+allows users to customize a single mode hook
+(e.g. @code{prog-mode-hook}) for an entire family of relevant modes
+(e.g. all programming language modes).
+
+@deffn Command text-mode
+Text mode is a major mode for editing human languages.  It defines the
+@samp{"} and @samp{\} characters as having punctuation syntax
+(@pxref{Syntax Class Table}), and binds @kbd{M-@key{TAB}} to
+@code{ispell-complete-word} (@pxref{Spelling,,, emacs, The GNU Emacs
+Manual}).
+
+An example of a major mode derived from Text mode is HTML mode.
+@xref{HTML Mode,,SGML and HTML Modes, emacs, The GNU Emacs Manual}.
+@end deffn
+
+@deffn Command prog-mode
+Prog mode is a basic major mode for buffers containing programming
+language source code.  Most of the programming language major modes
+built into Emacs are derived from it.
+
+Prog mode binds @code{parse-sexp-ignore-comments} to @code{t}
+(@pxref{Motion via Parsing}) and @code{bidi-paragraph-direction} to
+@code{left-to-right} (@pxref{Bidirectional Display}).
+@end deffn
+
+@deffn Command special-mode
+Special mode is a basic major mode for buffers containing text that is
+produced specially by Emacs, rather than from a file.  Major modes
+derived from Special mode are given a @code{mode-class} property of
+@code{special} (@pxref{Major Mode Conventions}).
+
+Special mode sets the buffer to read-only.  Its keymap defines several
+common bindings, including @kbd{q} for @code{quit-window}, @kbd{z} for
+@code{kill-this-buffer}, and @kbd{g} for @code{revert-buffer}
+(@pxref{Reverting}).
+
+An example of a major mode derived from Special mode is Buffer Menu
+mode, which is used by the @samp{*Buffer List*} buffer.  @xref{List
+Buffers,,Listing Existing Buffers, emacs, The GNU Emacs Manual}.
+@end deffn
+
 @node Generic Modes
 @subsection Generic Modes
 @cindex generic mode
@@ -921,7 +905,7 @@ before it runs the mode hook variable @code{@var{mode}-hook}.
 @node Mode Hooks
 @subsection Mode Hooks
 
-  Every major mode function should finish by running its mode hook and
+  Every major mode command should finish by running its mode hook and
 the mode-independent normal hook @code{after-change-major-mode-hook}.
 It does this by calling @code{run-mode-hooks}.  If the major mode is a
 derived mode, that is if it calls another major mode (the parent mode)
@@ -966,7 +950,7 @@ construct.
 
 @defvar after-change-major-mode-hook
 This is a normal hook run by @code{run-mode-hooks}.  It is run at the
-very end of every properly-written major mode function.
+very end of every properly-written major mode command.
 @end defvar
 
 @node Example Major Modes
@@ -1194,8 +1178,8 @@ And here is the code to set up the keymap for Lisp mode:
 @end group
 @end smallexample
 
-  Finally, here is the complete major mode function definition for
-Lisp mode.
+  Finally, here is the complete major mode command definition for Lisp
+mode.
 
 @smallexample
 @group
@@ -2752,10 +2736,10 @@ highlighting patterns.  See the variables
 @code{c-font-lock-extra-types}, @code{c++-font-lock-extra-types},
 and @code{java-font-lock-extra-types}, for example.
 
-@strong{Warning:} major mode functions must not call
+@strong{Warning:} major mode commands must not call
 @code{font-lock-add-keywords} under any circumstances, either directly
-or indirectly, except through their mode hooks.  (Doing so would lead
-to incorrect behavior for some minor modes.)  They should set up their
+or indirectly, except through their mode hooks.  (Doing so would lead to
+incorrect behavior for some minor modes.)  They should set up their
 rules for search-based fontification by setting
 @code{font-lock-keywords}.
 @end defun

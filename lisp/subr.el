@@ -888,8 +888,8 @@ The elements of the list may include `meta', `control',
 and `down'.
 EVENT may be an event or an event type.  If EVENT is a symbol
 that has never been used in an event that has been read as input
-in the current Emacs session, then this function can return nil,
-even when EVENT actually has modifiers."
+in the current Emacs session, then this function may fail to include
+the `click' modifier."
   (let ((type event))
     (if (listp type)
 	(setq type (car type)))
@@ -2254,7 +2254,7 @@ is nil and `use-dialog-box' is non-nil."
              (listp last-nonmenu-event)
              use-dialog-box)
         (setq answer
-              (x-popup-dialog t `(,prompt ("yes" . act) ("No" . skip))))
+              (x-popup-dialog t `(,prompt ("Yes" . act) ("No" . skip))))
       (setq prompt (concat prompt
                            (if (eq ?\s (aref prompt (1- (length prompt))))
                                "" " ")

@@ -35,7 +35,7 @@ static Lisp_Object Qkbd_macro_termination_hook;
    This is not bound at each level,
    so after an error, it describes the innermost interrupted macro.  */
 
-int executing_kbd_macro_iterations;
+EMACS_INT executing_kbd_macro_iterations;
 
 /* This is the macro that was executing.
    This is not bound at each level,
@@ -175,11 +175,11 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 
   if (XFASTINT (repeat) == 0)
     Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro), repeat, loopfunc);
-  else
+  else if (XINT (repeat) > 1)
     {
       XSETINT (repeat, XINT (repeat)-1);
-      if (XINT (repeat) > 0)
-	Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro), repeat, loopfunc);
+      Fexecute_kbd_macro (KVAR (current_kboard, Vlast_kbd_macro),
+			  repeat, loopfunc);
     }
   return Qnil;
 }
@@ -302,9 +302,9 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
   Lisp_Object final;
   Lisp_Object tem;
   int pdlcount = SPECPDL_INDEX ();
-  int repeat = 1;
+  EMACS_INT repeat = 1;
   struct gcpro gcpro1, gcpro2;
-  int success_count = 0;
+  EMACS_INT success_count = 0;
 
   executing_kbd_macro_iterations = 0;
 

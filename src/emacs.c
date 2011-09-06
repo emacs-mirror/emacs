@@ -82,6 +82,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/personality.h>
 #endif
 
+#ifdef HAVE_LIBXML2
+#include <libxml/parser.h>
+#endif
+
 #ifndef O_RDWR
 #define O_RDWR 2
 #endif
@@ -1068,15 +1072,17 @@ Using an Emacs configured with --with-x-toolkit=lucid does not have this problem
         if (!dname_arg || !strchr (dname_arg, '\n'))
           {  /* In orig, child: now exec w/special daemon name. */
             char fdStr[80];
+	    int fdStrlen =
+	      snprintf (fdStr, sizeof fdStr,
+			"--daemon=\n%d,%d\n%s", daemon_pipe[0],
+			daemon_pipe[1], dname_arg ? dname_arg : "");
 
-            if (dname_arg && strlen (dname_arg) > 70)
+	    if (! (0 <= fdStrlen && fdStrlen < sizeof fdStr))
               {
                 fprintf (stderr, "daemon: child name too long\n");
                 exit (1);
               }
 
-            sprintf (fdStr, "--daemon=\n%d,%d\n%s", daemon_pipe[0],
-                     daemon_pipe[1], dname_arg ? dname_arg : "");
             argv[skip_args] = fdStr;
 
             execv (argv[0], argv);
@@ -2096,6 +2102,10 @@ shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
 
 #ifdef HAVE_NS
   ns_term_shutdown (sig);
+#endif
+
+#ifdef HAVE_LIBXML2
+  xmlCleanupParser ();
 #endif
 }
 

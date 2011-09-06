@@ -7214,6 +7214,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	 (quit-config (gnus-group-quit-config gnus-newsgroup-name))
 	 (gnus-group-is-exiting-p t)
 	 (article-buffer gnus-article-buffer)
+	 (original-article-buffer gnus-original-article-buffer)
 	 (mode major-mode)
 	 (group-point nil)
 	 (buf (current-buffer))
@@ -7290,7 +7291,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	    (unless (eq major-mode 'gnus-sticky-article-mode)
 	      (gnus-kill-buffer article-buffer)
 	      (setq gnus-article-current nil))))
-	(gnus-kill-buffer gnus-original-article-buffer))
+	(gnus-kill-buffer original-article-buffer))
 
       ;; Clear the current group name.
       (unless quit-config
@@ -8630,6 +8631,8 @@ fetched for this group."
 	   'list gnus-newsgroup-headers
 	   (gnus-fetch-headers articles nil t)
 	   'gnus-article-sort-by-number))
+    (setq gnus-newsgroup-articles
+	  (gnus-sorted-nunion gnus-newsgroup-articles articles))
     (gnus-summary-limit (append articles gnus-newsgroup-limit))))
 
 (defun gnus-summary-limit-exclude-dormant ()
@@ -9022,9 +9025,11 @@ non-numeric or nil fetch the number specified by the
 		      (keep-lines
 		       (regexp-opt ',(append refs (list id subject)))))))
 	      (gnus-fetch-headers (list last) (if (numberp limit)
-						  (* 2 limit) limit) t)))))
+						  (* 2 limit) limit) t))))
+	 article-ids)
     (when (listp new-headers)
       (dolist (header new-headers)
+	(push (mail-header-number header) article-ids)
 	(when (member (mail-header-number header) gnus-newsgroup-unselected)
           (push (mail-header-number header) gnus-newsgroup-unreads)
           (setq gnus-newsgroup-unselected
@@ -9035,6 +9040,8 @@ non-numeric or nil fetch the number specified by the
              (gnus-merge
               'list gnus-newsgroup-headers new-headers
               'gnus-article-sort-by-number)))
+      (setq gnus-newsgroup-articles
+      	    (gnus-sorted-nunion gnus-newsgroup-articles (nreverse article-ids)))
       (gnus-summary-limit-include-thread id))))
 
 (defun gnus-summary-refer-article (message-id)
@@ -12743,6 +12750,8 @@ returned."
 		      gnus-newsgroup-headers
 		      (gnus-fetch-headers articles)
 		      'gnus-article-sort-by-number))
+    (setq gnus-newsgroup-articles
+	  (gnus-sorted-nunion gnus-newsgroup-articles articles))
     ;; Suppress duplicates?
     (when gnus-suppress-duplicates
       (gnus-dup-suppress-articles))

@@ -74,8 +74,6 @@
 (require 'org)
 
 (declare-function message-make-fqdn "message" ())
-(declare-function org-pop-to-buffer-same-window 
-		  "org-compat" (&optional buffer-or-name norecord label))
 
 ;;; Customization
 
@@ -255,7 +253,7 @@ Move the cursor to that entry in that buffer."
   (let ((m (org-id-find id 'marker)))
     (unless m
       (error "Cannot find entry with ID \"%s\"" id))
-    (org-pop-to-buffer-same-window (marker-buffer m))
+    (switch-to-buffer (marker-buffer m))
     (goto-char m)
     (move-marker m nil)
     (org-show-context)))

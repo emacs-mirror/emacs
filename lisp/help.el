@@ -132,7 +132,7 @@
   "What to do to \"exit\" the help buffer.
 This is a list
  (WINDOW . t)              delete the selected window (and possibly its frame,
-                           see `quit-window' and `View-quit'), go to WINDOW.
+                           see `quit-window'), go to WINDOW.
  (WINDOW . quit-window)    do quit-window, then select WINDOW.
  (WINDOW BUF START POINT)  display BUF at START, POINT, then select WINDOW.")
 

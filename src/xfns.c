@@ -2440,7 +2440,7 @@ x_window (struct frame *f, long window_prompting, int minibuffer_only)
   /* Do some needed geometry management.  */
   {
     ptrdiff_t len;
-    char *tem, shell_position[32];
+    char *tem, shell_position[sizeof "=x++" + 4 * INT_STRLEN_BOUND (int)];
     Arg gal[10];
     int gac = 0;
     int extra_borders = 0;
