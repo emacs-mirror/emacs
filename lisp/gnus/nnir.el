@@ -806,7 +806,7 @@ ready to be added to the list of search results."
     ;; remove trailing slash and, for nnmaildir, cur/new/tmp
     (setq dirnam
 	  (substring dirnam 0
-		     (if (string= (gnus-group-server server) "nnmaildir")
+		     (if (string-match "^nnmaildir:" (gnus-group-server server))
 			 -5 -1)))
 
     ;; Set group to dirnam without any leading dots or slashes,
@@ -816,7 +816,7 @@ ready to be added to the list of search results."
                  "[/\\]" "." t)))
 
     (vector (gnus-group-full-name group server)
-	    (if (string= (gnus-group-server server) "nnmaildir")
+	    (if (string-match "^nnmaildir:" (gnus-group-server server))
 		(nnmaildir-base-name-to-article-number
 		 (substring article 0 (string-match ":" article))
 		 group nil)
@@ -1073,7 +1073,8 @@ Windows NT 4.0."
 	   ;; is sufficient.  Note that we can't only use the value of
 	   ;; nnml-use-compressed-files because old articles might have been
 	   ;; saved with a different value.
-	   (article-pattern (if (string= (gnus-group-server server) "nnmaildir")
+	   (article-pattern (if (string-match "^nnmaildir:"
+					      (gnus-group-server server))
 				":[0-9]+"
 			      "^[0-9]+\\(\\.[a-z0-9]+\\)?$"))
            score artno dirnam filenam)
@@ -1315,7 +1316,8 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
   ;; (when group
   ;;   (error "The Namazu backend cannot search specific groups"))
   (save-excursion
-    (let ((article-pattern (if (string= (gnus-group-server server) "nnmaildir")
+    (let ((article-pattern (if (string-match "^nnmaildir:"
+					     (gnus-group-server server))
 			       ":[0-9]+"
 			     "^[0-9]+$"))
           artlist
@@ -1388,7 +1390,8 @@ actually)."
 	   (groupspec (cdr (assq 'group query)))
 	   (prefix (nnir-read-server-parm 'nnir-notmuch-remove-prefix server))
            artlist
-           (article-pattern (if (string= (gnus-group-server server) "nnmaildir")
+	   (article-pattern (if (string-match "^nnmaildir:"
+					      (gnus-group-server server))
 			       ":[0-9]+"
 			     "^[0-9]+$"))
            artno dirnam filenam)

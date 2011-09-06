@@ -1,4 +1,4 @@
-2011-09-05  Paul Eggert  <eggert@cs.ucla.edu>
+2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* fileio.c: Fix bugs with large file offsets (Bug#9428).
 	The previous code assumed that file offsets (off_t values) fit in
