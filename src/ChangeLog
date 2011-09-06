@@ -1,5 +1,9 @@
 2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
 
+	* Makefile.in (gl-stamp): move-if-change now in build-aux (Bug#9169).
+
+2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
 	* fileio.c: Fix bugs with large file offsets (Bug#9428).
 	The previous code assumed that file offsets (off_t values) fit in
 	EMACS_INT variables, which is not true on typical 32-bit hosts.
@@ -1075,7 +1079,7 @@
 	(re_exec): Fix return type.
 	(regexec): Fix type of `ret'.  (Bug#9203)
 
-2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* image.c (check_image_size): Use 1024x1024 if unknown frame (Bug#9189).
 	This is needed if max-image-size is a floating-point number.

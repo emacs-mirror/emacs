@@ -222,7 +222,7 @@ MV_DIRS = for i in $$dir; do rm -fr `basename "$$i"` ; mv "$$i" . ; done
 
 install: all
 	if [ ! -d ${INSTALLDIR} ] ; then \
-          umask 022; ${srcdir}/../install-sh -d ${INSTALLDIR}; \
+          umask 022; ${srcdir}/../build-aux/install-sh -d ${INSTALLDIR}; \
 	else true; fi
 	if [ x`(cd ${INSTALLDIR} && /bin/pwd)` != x`(/bin/pwd)` ] ; then \
 	  rm -f ${INSTALLDIR}/leim-list.el; \

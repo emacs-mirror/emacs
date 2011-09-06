@@ -25,6 +25,7 @@ AC_PREREQ(2.65)
 AC_INIT(emacs, 24.0.50)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
+AC_CONFIG_AUX_DIR(build-aux)
 AM_INIT_AUTOMAKE
 
 dnl Support for --program-prefix, --program-suffix and
