@@ -300,7 +300,7 @@ epaths-force: FRC
 	  -e 's;\(#.*PATH_X_DEFAULTS\).*$$;\1 "${x_default_search_path}";' \
 	  -e 's;\(#.*PATH_GAME\).*$$;\1 "${gamedir}";' \
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
-	${srcdir}/move-if-change epaths.h.$$$$ src/epaths.h
+	${srcdir}/build-aux/move-if-change epaths.h.$$$$ src/epaths.h
 
 # For parallel make, src should be built before leim.
 # "export PARALLEL=0" is for SGI's Make, to prevent it from
@@ -339,6 +339,7 @@ GNULIB_MODULES = \
   mktime pthread_sigmask readlink \
   socklen stdarg stdio strftime strtoimax strtoumax symlink sys_stat
 GNULIB_TOOL_FLAGS = \
+ --avoid=threadlib \
  --conditional-dependencies --import --no-changelog --no-vc-files \
  --makefile-name=gnulib.mk
 sync-from-gnulib: $(gnulib_srcdir)
@@ -350,7 +351,7 @@ sync-from-gnulib: $(gnulib_srcdir)
 	cp $(gnulib_srcdir)/build-aux/texinfo.tex $(srcdir)/doc/misc
 	cp \
 	  $(gnulib_srcdir)/build-aux/move-if-change \
-	  $(srcdir)
+	  $(srcdir)/build-aux
 	cd $(srcdir) && autoreconf -i -I m4
 .PHONY: sync-from-gnulib
 
@@ -688,7 +689,7 @@ mkdir: FRC
 	done ; \
 	icondirs=`echo "$${icondirs}" | sed 's,$(srcdir)/etc/images/icons,$(DESTDIR)${icondir},g'` ; \
 	umask 022 ; \
-	$(srcdir)/install-sh -d $(DESTDIR)${datadir} ${COPYDESTS} \
+	$(srcdir)/build-aux/install-sh -d $(DESTDIR)${datadir} ${COPYDESTS} \
 	  $(DESTDIR)${infodir} $(DESTDIR)${man1dir} \
 	  $(DESTDIR)${bindir} $(DESTDIR)${docdir} $(DESTDIR)${libexecdir} \
 	  $(DESTDIR)${datadir}/emacs/site-lisp \

@@ -1,3 +1,8 @@
+2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* sedlibmk.inp (CONFIG_CLEAN_VPATH_FILES): Adjust to snippet moves
+	from top level to build-aux/snippet (Bug#9169).
+
 2011-06-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedlibmk.inp (PTRDIFF_T_SUFFIX): Edit to nothing.

@@ -282,7 +282,9 @@ DEFUN ("tan", Ftan, Stan, 1, 1, 0,
   return make_float (d);
 }
 
-#if defined HAVE_ISNAN && defined HAVE_COPYSIGN
+#undef isnan
+#define isnan(x) ((x) != (x))
+
 DEFUN ("isnan", Fisnan, Sisnan, 1, 1, 0,
        doc: /* Return non nil iff argument X is a NaN.  */)
   (Lisp_Object x)
@@ -291,6 +293,7 @@ DEFUN ("isnan", Fisnan, Sisnan, 1, 1, 0,
   return isnan (XFLOAT_DATA (x)) ? Qt : Qnil;
 }
 
+#ifdef HAVE_COPYSIGN
 DEFUN ("copysign", Fcopysign, Scopysign, 1, 2, 0,
        doc: /* Copy sign of X2 to value of X1, and return the result.
 Cause an error if X1 or X2 is not a float.  */)
@@ -1030,8 +1033,8 @@ syms_of_floatfns (void)
   defsubr (&Scos);
   defsubr (&Ssin);
   defsubr (&Stan);
-#if defined HAVE_ISNAN && defined HAVE_COPYSIGN
   defsubr (&Sisnan);
+#ifdef HAVE_COPYSIGN
   defsubr (&Scopysign);
   defsubr (&Sfrexp);
   defsubr (&Sldexp);

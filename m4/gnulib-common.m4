@@ -1,4 +1,4 @@
-# gnulib-common.m4 serial 26
+# gnulib-common.m4 serial 30
 dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -12,6 +12,19 @@ AC_DEFUN([gl_COMMON], [
   AC_REQUIRE([gl_COMMON_BODY])
 ])
 AC_DEFUN([gl_COMMON_BODY], [
+  AH_VERBATIM([_Noreturn],
+[/* The _Noreturn keyword of draft C1X.  */
+#ifndef _Noreturn
+# if (3 <= __GNUC__ || (__GNUC__ == 2 && 8 <= __GNUC_MINOR__) \
+      || 0x5110 <= __SUNPRO_C)
+#  define _Noreturn __attribute__ ((__noreturn__))
+# elif 1200 <= _MSC_VER
+#  define _Noreturn __declspec (noreturn)
+# else
+#  define _Noreturn
+# endif
+#endif
+])
   AH_VERBATIM([isoc99_inline],
 [/* Work around a bug in Apple GCC 4.0.1 build 5465: In C99 mode, it supports
    the ISO C 99 semantics of 'extern inline' (unlike the GNU C semantics of
@@ -197,6 +210,60 @@ m4_ifndef([m4_foreach_w],
 m4_ifndef([AS_VAR_IF],
 [m4_define([AS_VAR_IF],
 [AS_IF([test x"AS_VAR_GET([$1])" = x""$2], [$3], [$4])])])
+
+# gl_PROG_AR_RANLIB
+# Determines the values for AR, ARFLAGS, RANLIB that fit with the compiler.
+# The user can set the variables AR, ARFLAGS, RANLIB if he wants to override
+# the values.
+AC_DEFUN([gl_PROG_AR_RANLIB],
+[
+  dnl Minix 3 comes with two toolchains: The Amsterdam Compiler Kit compiler
+  dnl as "cc", and GCC as "gcc". They have different object file formats and
+  dnl library formats. In particular, the GNU binutils programs ar, ranlib
+  dnl produce libraries that work only with gcc, not with cc.
+  AC_REQUIRE([AC_PROG_CC])
+  AC_CACHE_CHECK([for Minix Amsterdam compiler], [gl_cv_c_amsterdam_compiler],
+    [
+      AC_EGREP_CPP([Amsterdam],
+        [
+#ifdef __ACK__
+Amsterdam
+#endif
+        ],
+        [gl_cv_c_amsterdam_compiler=yes],
+        [gl_cv_c_amsterdam_compiler=no])
+    ])
+  if test -z "$AR"; then
+    if test $gl_cv_c_amsterdam_compiler = yes; then
+      AR='cc -c.a'
+      if test -z "$ARFLAGS"; then
+        ARFLAGS='-o'
+      fi
+    else
+      dnl Use the Automake-documented default values for AR and ARFLAGS,
+      dnl but prefer ${host}-ar over ar (useful for cross-compiling).
+      AC_CHECK_TOOL([AR], [ar], [ar])
+      if test -z "$ARFLAGS"; then
+        ARFLAGS='cru'
+      fi
+    fi
+  else
+    if test -z "$ARFLAGS"; then
+      ARFLAGS='cru'
+    fi
+  fi
+  AC_SUBST([AR])
+  AC_SUBST([ARFLAGS])
+  if test -z "$RANLIB"; then
+    if test $gl_cv_c_amsterdam_compiler = yes; then
+      RANLIB=':'
+    else
+      dnl Use the ranlib program if it is available.
+      AC_PROG_RANLIB
+    fi
+  fi
+  AC_SUBST([RANLIB])
+])
 
 # AC_PROG_MKDIR_P
 # is a backport of autoconf-2.60's AC_PROG_MKDIR_P, with a fix

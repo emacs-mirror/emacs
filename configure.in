@@ -25,6 +25,7 @@ AC_PREREQ(2.65)
 AC_INIT(emacs, 24.0.50)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
+AC_CONFIG_AUX_DIR(build-aux)
 AM_INIT_AUTOMAKE
 
 dnl Support for --program-prefix, --program-suffix and
@@ -2707,7 +2708,7 @@ __fpending mblen mbrlen mbsinit strsignal setitimer ualarm \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap fsync sync \
 difftime mempcpy mblen mbrlen posix_memalign \
-cfmakeraw cfsetspeed isnan copysign __executable_start)
+cfmakeraw cfsetspeed copysign __executable_start)
 
 dnl Cannot use AC_CHECK_FUNCS
 AC_CACHE_CHECK([for __builtin_unwind_init],

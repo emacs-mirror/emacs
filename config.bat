@@ -275,10 +275,10 @@ for %%d in (emacs lispref lispintro lispintr misc) do sed -f ../msdos/sed6.inp <
 cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the lib directory...
-If Exist c++defs.h update c++defs.h cxxdefs.h
+If Exist build-aux\snippet\c++defs.h update build-aux/snippet/c++defs.h build-aux/snippet/cxxdefs.h
 cd lib
 Rem Rename files like djtar on plain DOS filesystem would.
-If Exist c++defs.h update c++defs.h cxxdefs.h
+If Exist build-aux\snippet\c++defs.h update build-aux/snippet/c++defs.h build-aux/snippet/cxxdefs.h
 If Exist getopt.in.h update getopt.in.h getopt.in-h
 If Exist stdbool.in.h update stdbool.in.h stdbool.in-h
 If Exist stddef.in.h update stddef.in.h  stddef.in-h

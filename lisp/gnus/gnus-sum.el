@@ -7214,6 +7214,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	 (quit-config (gnus-group-quit-config gnus-newsgroup-name))
 	 (gnus-group-is-exiting-p t)
 	 (article-buffer gnus-article-buffer)
+	 (original-article-buffer gnus-original-article-buffer)
 	 (mode major-mode)
 	 (group-point nil)
 	 (buf (current-buffer))
@@ -7290,7 +7291,7 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	    (unless (eq major-mode 'gnus-sticky-article-mode)
 	      (gnus-kill-buffer article-buffer)
 	      (setq gnus-article-current nil))))
-	(gnus-kill-buffer gnus-original-article-buffer))
+	(gnus-kill-buffer original-article-buffer))
 
       ;; Clear the current group name.
       (unless quit-config
