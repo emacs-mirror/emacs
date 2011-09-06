@@ -1920,6 +1920,7 @@ Isearch mode."
 	   (if (lookup-key global-map key)
 	       (progn
 		 (isearch-done)
+		 (setq prefix-arg arg)
 		 (apply 'isearch-unread keylist))
 	     (setq keylist
 		   (listify-key-sequence (lookup-key local-function-key-map key)))
@@ -1935,6 +1936,7 @@ Isearch mode."
 		     (setq keylist (cdr keylist)))
 		 ;; As the remaining keys in KEYLIST can't be handled
 		 ;; here, we must reread them.
+		 (setq prefix-arg arg)
 		 (apply 'isearch-unread keylist)
 		 (setq keylist nil)))))
 	  (
@@ -1957,8 +1959,10 @@ Isearch mode."
 			       isearch-other-control-char)))))
 	   (setcar keylist (- main-event (- ?\C-\S-a ?\C-a)))
 	   (cancel-kbd-macro-events)
+	   (setq prefix-arg arg)
 	   (apply 'isearch-unread keylist))
 	  ((eq search-exit-option 'edit)
+	   (setq prefix-arg arg)
 	   (apply 'isearch-unread keylist)
 	   (isearch-edit-string))
           ;; Handle a scrolling function.
@@ -1987,6 +1991,7 @@ Isearch mode."
 	   (isearch-edit-string))
 	  (search-exit-option
 	   (let (window)
+	     (setq prefix-arg arg)
              (isearch-unread-key-sequence keylist)
              (setq main-event (car unread-command-events))
 

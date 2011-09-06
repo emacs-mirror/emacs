@@ -1,6 +1,29 @@
-2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
+2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in (gl-stamp): move-if-change now in build-aux (Bug#9169).
+
+2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c: Fix bugs with large file offsets (Bug#9428).
+	The previous code assumed that file offsets (off_t values) fit in
+	EMACS_INT variables, which is not true on typical 32-bit hosts.
+	The code messed up by falsely reporting buffer overflow in cases
+	such as (insert-file-contents "big" nil 1 2) into an empty buffer
+	when "big" contains more than 2**29 bytes, even though this
+	inserts just one byte and does not overflow the buffer.
+	(Finsert_file_contents): Store file offsets as off_t
+	values, not as EMACS_INT values.  Check for overflow when
+	converting between EMACS_INT and off_t.  When checking for
+	buffer overflow or for overlap, take the offsets into account.
+	Don't use EMACS_INT for small values where int suffices.
+	When checking for overlap, fix a typo: ZV was used where
+	ZV_BYTE was intended.
+	(Fwrite_region): Don't assume off_t fits into 'long'.
+	* buffer.h (struct buffer.modtime_size): Now off_t, not EMACS_INT.
+
+2011-09-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_signature_cat): Rename from signature_cat.
 
 2011-09-04  Paul Eggert  <eggert@cs.ucla.edu>
 
