@@ -25,11 +25,9 @@ AC_DEFUN([gl_EARLY],
   m4_pattern_allow([^gl_ES$])dnl a valid locale name
   m4_pattern_allow([^gl_LIBOBJS$])dnl a variable
   m4_pattern_allow([^gl_LTLIBOBJS$])dnl a variable
-  AC_REQUIRE([AC_PROG_RANLIB])
+  AC_REQUIRE([gl_PROG_AR_RANLIB])
   # Code from module alloca-opt:
   # Code from module allocator:
-  # Code from module arg-nonnull:
-  # Code from module c++defs:
   # Code from module careadlinkat:
   # Code from module crypto/md5:
   # Code from module crypto/sha1:
@@ -49,13 +47,20 @@ AC_DEFUN([gl_EARLY],
   # Code from module include_next:
   # Code from module intprops:
   # Code from module inttypes-incomplete:
+  # Code from module largefile:
+  AC_REQUIRE([AC_SYS_LARGEFILE])
   # Code from module lstat:
   # Code from module mktime:
   # Code from module multiarch:
+  # Code from module nocrash:
   # Code from module pthread_sigmask:
   # Code from module readlink:
   # Code from module signal:
   # Code from module sigprocmask:
+  # Code from module snippet/_Noreturn:
+  # Code from module snippet/arg-nonnull:
+  # Code from module snippet/c++defs:
+  # Code from module snippet/warn-on-use:
   # Code from module socklen:
   # Code from module ssize_t:
   # Code from module stat:
@@ -82,7 +87,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module u64:
   # Code from module unistd:
   # Code from module verify:
-  # Code from module warn-on-use:
 ])
 
 # This macro should be invoked from ./configure.in, in the section
@@ -109,6 +113,9 @@ gl_SHA256
 gl_SHA512
 AC_REQUIRE([gl_C99_STRTOLD])
 gl_FUNC_DUP2
+if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
+  AC_LIBOBJ([dup2])
+fi
 gl_UNISTD_MODULE_INDICATOR([dup2])
 gl_FILEMODE
 gl_GETLOADAVG
@@ -148,6 +155,7 @@ gl_MULTIARCH
 gl_FUNC_PTHREAD_SIGMASK
 if test $HAVE_PTHREAD_SIGMASK = 0 || test $REPLACE_PTHREAD_SIGMASK = 1; then
   AC_LIBOBJ([pthread_sigmask])
+  gl_PREREQ_PTHREAD_SIGMASK
 fi
 gl_SIGNAL_MODULE_INDICATOR([pthread_sigmask])
 gl_FUNC_READLINK
@@ -167,13 +175,13 @@ gl_STDIO_H
 gl_STDLIB_H
 gl_FUNC_GNU_STRFTIME
 gl_FUNC_STRTOIMAX
-if test "$ac_cv_have_decl_strtoimax" != yes && test $ac_cv_func_strtoimax = no; then
+if test $ac_cv_func_strtoimax = no; then
   AC_LIBOBJ([strtoimax])
   gl_PREREQ_STRTOIMAX
 fi
 gl_INTTYPES_MODULE_INDICATOR([strtoimax])
 gl_FUNC_STRTOUMAX
-if test "$ac_cv_have_decl_strtoumax" != yes && test $ac_cv_func_strtoumax = no; then
+if test $ac_cv_func_strtoumax = no; then
   AC_LIBOBJ([strtoumax])
   gl_PREREQ_STRTOUMAX
 fi
@@ -290,16 +298,16 @@ gl_STDLIB_MODULE_INDICATOR([strtoull])
   if test $HAVE_READLINK = 0 || test $REPLACE_READLINK = 1; then
     func_gl_gnulib_m4code_stat
   fi
-  if test "$ac_cv_have_decl_strtoimax" != yes && test $ac_cv_func_strtoimax = no; then
+  if test $ac_cv_func_strtoimax = no; then
     func_gl_gnulib_m4code_verify
   fi
-  if test "$ac_cv_have_decl_strtoimax" != yes && test $ac_cv_func_strtoimax = no && test $ac_cv_type_long_long_int = yes; then
+  if test $ac_cv_func_strtoimax = no && test $ac_cv_type_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoll
   fi
-  if test "$ac_cv_have_decl_strtoumax" != yes && test $ac_cv_func_strtoumax = no; then
+  if test $ac_cv_func_strtoumax = no; then
     func_gl_gnulib_m4code_verify
   fi
-  if test "$ac_cv_have_decl_strtoumax" != yes && test $ac_cv_func_strtoumax = no && test $ac_cv_type_unsigned_long_long_int = yes; then
+  if test $ac_cv_func_strtoumax = no && test $ac_cv_type_unsigned_long_long_int = yes; then
     func_gl_gnulib_m4code_strtoull
   fi
   m4_pattern_allow([^gl_GNULIB_ENABLED_])
@@ -451,9 +459,10 @@ AC_DEFUN([gltests_LIBSOURCES], [
 # This macro records the list of files which have been installed by
 # gnulib-tool and may be removed by future gnulib-tool invocations.
 AC_DEFUN([gl_FILE_LIST], [
-  build-aux/arg-nonnull.h
-  build-aux/c++defs.h
-  build-aux/warn-on-use.h
+  build-aux/snippet/_Noreturn.h
+  build-aux/snippet/arg-nonnull.h
+  build-aux/snippet/c++defs.h
+  build-aux/snippet/warn-on-use.h
   lib/alloca.in.h
   lib/allocator.c
   lib/allocator.h
@@ -523,11 +532,13 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/gnulib-common.m4
   m4/include_next.m4
   m4/inttypes.m4
+  m4/largefile.m4
   m4/longlong.m4
   m4/lstat.m4
   m4/md5.m4
   m4/mktime.m4
   m4/multiarch.m4
+  m4/nocrash.m4
   m4/pthread_sigmask.m4
   m4/readlink.m4
   m4/sha1.m4

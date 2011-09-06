@@ -3,7 +3,7 @@
 % Load plain if necessary, i.e., if running under initex.
 \expandafter\ifx\csname fmtname\endcsname\relax\input plain\fi
 %
-\def\texinfoversion{2011-08-15.20}
+\def\texinfoversion{2011-08-14.17}
 %
 % Copyright 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
 % 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
@@ -5855,7 +5855,6 @@ end
   % This is purely so the last item on the list is a known \penalty >
   % 10000.  This is so \startdefun can avoid allowing breakpoints after
   % section headings.  Otherwise, it would insert a valid breakpoint between:
-  %
   %   @section sec-whatever
   %   @deffn def-whatever
   \penalty 10001
@@ -6273,6 +6272,12 @@ end
   \normbskip=\baselineskip \normpskip=\parskip \normlskip=\lineskip
   % Flag to tell @lisp, etc., not to narrow margin.
   \let\nonarrowing = t%
+  %
+  % If this cartouche directly follows a sectioning command, we need the
+  % \parskip glue (backspaced over by default) or the cartouche can
+  % collide with the section heading.
+  \ifnum\lastpenalty>10000 \vskip\parskip \fi
+  %
   \vbox\bgroup
       \baselineskip=0pt\parskip=0pt\lineskip=0pt
       \carttop
@@ -6286,7 +6291,7 @@ end
 	      \lineskip=\normlskip
 	      \parskip=\normpskip
 	      \vskip -\parskip
-	      \comment % For explanation, see the end of \def\group.
+	      \comment % For explanation, see the end of def\group.
 }
 \def\Ecartouche{%
               \ifhmode\par\fi
@@ -9620,3 +9625,6 @@ directory should work if nowhere else does.}
 
 @c vim:sw=2:
 
+@ignore
+   arch-tag: e1b36e32-c96e-4135-a41a-0b2efa2ea115
+@end ignore

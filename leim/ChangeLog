@@ -1,3 +1,7 @@
+2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (install): install-sh is now in build-aux (Bug#9169).
+
 2011-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* quail/latin-ltx.el: Complete the super and subscript letters.
