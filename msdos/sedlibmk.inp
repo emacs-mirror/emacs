@@ -569,11 +569,11 @@ s/^@GL_GENERATE_STDDEF_H_FALSE@/\#/
 s/^@GL_GENERATE_STDINT_H_TRUE@//
 s/^@GL_GENERATE_STDINT_H_FALSE@/\#/
 /^arg-nonnull\.h:/,/^[ 	][ 	]*mv /c\
-arg-nonnull.h: $(top_srcdir)/./arg-nonnull.h\
-	sed -n -e '/GL_ARG_NONNULL/,$$p' < $(top_srcdir)/./arg-nonnull.h > $@
+arg-nonnull.h: $(top_srcdir)/build-aux/snippet/arg-nonnull.h\
+	sed -n -e '/GL_ARG_NONNULL/,$$p' < $(top_srcdir)/build-aux/snippet/arg-nonnull.h > $@
 /^cxxdefs\.h:/,/^[ 	][ 	]*mv /c\
-cxxdefs.h: $(top_srcdir)/./cxxdefs.h\
-	sed -n -e '/_GL_CXXDEFS/,$$p' < $(top_srcdir)/./cxxdefs.h > $@
+cxxdefs.h: $(top_srcdir)/build-aux/snippet/cxxdefs.h\
+	sed -n -e '/_GL_CXXDEFS/,$$p' < $(top_srcdir)/build-aux/snippet/cxxdefs.h > $@
 s/^	[ 	]*{ echo \(.*\); \\/	 djecho \1 > $@-t/
 s/^	[ 	]*{ echo \(.*\) && \\/	 djecho \1 > $@-t/
 s/ \&\& \\ *$//

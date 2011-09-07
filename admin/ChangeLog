@@ -1,3 +1,12 @@
+2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib (Bug#9169).
+	* notes/copyright: The files compile, config.guess, config.sub,
+	depcomp, install-sh, missing, and move-if-change are now in the
+	new build-aux subdirectory.  The files arg-nonnull.h, c++defs.h,
+	and warn-on-use.h are now in build-aux/snippets.  New file
+	build-aux/snippets/_Noreturn.h.
+
 2011-08-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* unidata/unidata-gen.el (unidata-prop-alist): Update the default

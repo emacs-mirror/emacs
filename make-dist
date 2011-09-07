@@ -283,18 +283,16 @@ mkdir ${tempdir}
 ### tar file; this means that people can start reading the INSTALL and
 ### README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Making links to top-level files"
-ln INSTALL README BUGS move-if-change ${tempdir}
+ln INSTALL README BUGS ${tempdir}
 ln ChangeLog Makefile.in configure configure.in ${tempdir}
 ln config.bat make-dist update-subdirs vpath.sed .dir-locals.el ${tempdir}
-ln config.sub config.guess install-sh ${tempdir}
 ln aclocal.m4 ${tempdir}
-ln compile depcomp missing ${tempdir}
-ln arg-nonnull.h c++defs.h warn-on-use.h ${tempdir}
 
 echo "Creating subdirectories"
 for subdir in site-lisp \
 	      leim leim/CXTERM-DIC leim/MISC-DIC \
 	      leim/SKK-DIC leim/ja-dic leim/quail \
+	      build-aux build-aux/snippet \
 	      src src/m src/s src/bitmaps lib lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
 	      `find etc lisp admin -type d` \
@@ -346,6 +344,15 @@ echo "Making links to \`leim' and its subdirectories"
  rm -f ../${tempdir}/leim/quail/tsang-b5.*
  rm -f ../${tempdir}/leim/quail/tsang-cns.*)
 
+echo "Making links to \`build-aux'"
+(cd build-aux
+ ln compile config.guess config.sub depcomp ../${tempdir}/build-aux
+ ln install-sh missing move-if-change ../${tempdir}/build-aux)
+
+echo "Making links to \`build-aux/snippet'"
+(cd build-aux/snippet
+ ln *.h ../../${tempdir}/build-aux/snippet)
+
 echo "Making links to \`src'"
 ### Don't distribute the configured versions of
 ### config.in, paths.in, buildobj.h, or Makefile.in.
@@ -373,12 +380,13 @@ echo "Making links to \`src/s'"
  ln README [a-zA-Z0-9]*.h ../../${tempdir}/src/s)
 
 echo "Making links to \`lib'"
-(build_aux_h=`(ls *.h)`
+(snippet_h=`(cd build-aux/snippet && ls *.h)`
  cd lib
  ln [a-zA-Z]*.[ch] ../${tempdir}/lib
  ln gnulib.mk Makefile.am Makefile.in ../${tempdir}/lib
  cd ../${tempdir}/lib
- rm -f `(echo "$build_aux_h"; ls *.in.h) | sed '/[*]/d; s/.in.h$/.h/'`)
+ script='/[*]/d; s/\.in\.h$/.h/'
+ rm -f `(echo "$snippet_h"; ls *.in.h) | sed "$script"`)
 
 echo "Making links to \`lib-src'"
 (cd lib-src

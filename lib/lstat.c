@@ -17,6 +17,10 @@
 
 /* written by Jim Meyering */
 
+/* If the user's config.h happens to include <sys/stat.h>, let it include only
+   the system's <sys/stat.h> here, so that orig_lstat doesn't recurse to
+   rpl_lstat.  */
+#define __need_system_sys_stat_h
 #include <config.h>
 
 #if !HAVE_LSTAT
@@ -27,7 +31,6 @@ typedef int dummy;
 #else /* HAVE_LSTAT */
 
 /* Get the original definition of lstat.  It might be defined as a macro.  */
-# define __need_system_sys_stat_h
 # include <sys/types.h>
 # include <sys/stat.h>
 # undef __need_system_sys_stat_h

@@ -1,3 +1,40 @@
+2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	isnan: Fix porting problem to Solaris 10 with bundled gcc.
+	Without this fix, the command to link temacs failed due to an
+	undefined symbol __builtin_isnan.  This is because
+	/usr/include/iso/math_c99.h #defines isnan(x) to
+	__builtin_isnan(x), but the bundled gcc, which identifies itself
+	as gcc 3.4.3 (csl-sol210-3_4-branch+sol_rpath), does not have
+	a __builtin_isnan.
+	* floatfns.c (isnan): #undef, and then #define to a clone of
+	what's in data.c.
+	(Fisnan): Always define, since it's always available now.
+	(syms_of_floatfns): Always define isnan at the Lisp level.
+
+2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* Makefile.in (gl-stamp): move-if-change now in build-aux (Bug#9169).
+
+2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* fileio.c: Fix bugs with large file offsets (Bug#9428).
+	The previous code assumed that file offsets (off_t values) fit in
+	EMACS_INT variables, which is not true on typical 32-bit hosts.
+	The code messed up by falsely reporting buffer overflow in cases
+	such as (insert-file-contents "big" nil 1 2) into an empty buffer
+	when "big" contains more than 2**29 bytes, even though this
+	inserts just one byte and does not overflow the buffer.
+	(Finsert_file_contents): Store file offsets as off_t
+	values, not as EMACS_INT values.  Check for overflow when
+	converting between EMACS_INT and off_t.  When checking for
+	buffer overflow or for overlap, take the offsets into account.
+	Don't use EMACS_INT for small values where int suffices.
+	When checking for overlap, fix a typo: ZV was used where
+	ZV_BYTE was intended.
+	(Fwrite_region): Don't assume off_t fits into 'long'.
+	* buffer.h (struct buffer.modtime_size): Now off_t, not EMACS_INT.
+
 2011-09-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_signature_cat): Rename from signature_cat.
@@ -1056,7 +1093,7 @@
 	(re_exec): Fix return type.
 	(regexec): Fix type of `ret'.  (Bug#9203)
 
-2011-07-29  Paul Eggert  <eggert@cs.ucla.edu>
+2011-07-28  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* image.c (check_image_size): Use 1024x1024 if unknown frame (Bug#9189).
 	This is needed if max-image-size is a floating-point number.

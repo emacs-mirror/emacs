@@ -80,7 +80,11 @@ lboot_flag=
 ldefs_in=lisp/loaddefs.el
 ldefs_out=lisp/ldefs-boot.el
 sources="configure.in lib/Makefile.am"
-genfiles="configure aclocal.m4 src/config.in lib/Makefile.in compile config.guess config.sub depcomp install-sh missing"
+genfiles="
+  configure aclocal.m4 src/config.in lib/Makefile.in
+  build-aux/compile build-aux/config.guess build-aux/config.sub
+  build-aux/depcomp build-aux/install-sh build-aux/missing
+"
 
 for g in $genfiles; do
     basegen="$basegen ${g##*/}"
