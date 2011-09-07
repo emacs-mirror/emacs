@@ -265,6 +265,7 @@ The format is (FUNCTION ARGS...).")
   'help-function 'customize-create-theme
   'help-echo (purecopy "mouse-2, RET: edit this theme file"))
 
+;;;###autoload
 (define-derived-mode help-mode special-mode "Help"
   "Major mode for viewing help text and navigating references in it.
 Entry to this mode runs the normal hook `help-mode-hook'.
