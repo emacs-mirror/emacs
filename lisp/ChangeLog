@@ -1,5 +1,13 @@
 2011-09-07  Juri Linkov  <juri@jurta.org>
 
+	* progmodes/grep.el (grep-regexp-alist): Calculate column positions
+	based on text properties put by `grep-filter' instead of matching
+	escape sequences.
+	(grep-mode): Set buffer-local `compilation-error-screen-columns'
+	to the value of `grep-error-screen-columns' (bug#9438).
+
+2011-09-07  Juri Linkov  <juri@jurta.org>
+
 	* simple.el (next-error-highlight, next-error-highlight-no-select):
 	Doc fix (bug#9432).
 
