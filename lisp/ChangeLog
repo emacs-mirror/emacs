@@ -1,3 +1,8 @@
+2011-09-07  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (next-error-highlight, next-error-highlight-no-select):
+	Doc fix (bug#9432).
+
 2011-09-07  OKAZAKI Tetsurou  <okazaki.tetsurou@gmail.com>  (tiny change)
 
 	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls):

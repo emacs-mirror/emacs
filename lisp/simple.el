@@ -73,7 +73,8 @@ in seconds, or until the next command is executed.
 If t, highlight the locus until the next command is executed, or until
 some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
-If `fringe-arrow', indicate the locus by the fringe arrow."
+If `fringe-arrow', indicate the locus by the fringe arrow
+indefinitely until some other locus replaces it."
   :type '(choice (number :tag "Highlight for specified time")
                  (const :tag "Semipermanent highlighting" t)
                  (const :tag "No highlighting" nil)
@@ -86,7 +87,8 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
 If number, highlight the locus in `next-error' face for given time in seconds.
 If t, highlight the locus indefinitely until some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
-If `fringe-arrow', indicate the locus by the fringe arrow."
+If `fringe-arrow', indicate the locus by the fringe arrow
+indefinitely until some other locus replaces it."
   :type '(choice (number :tag "Highlight for specified time")
                  (const :tag "Semipermanent highlighting" t)
                  (const :tag "No highlighting" nil)
