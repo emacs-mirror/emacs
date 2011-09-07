@@ -4051,6 +4051,9 @@ Fortran_functions (FILE *inf)
       if (LOOKING_AT_NOCASE (dbp, "pure"))
 	dbp = skip_spaces (dbp);
 
+      if (LOOKING_AT_NOCASE (dbp, "elemental"))
+	dbp = skip_spaces (dbp);
+
       switch (lowcase (*dbp))
 	{
 	case 'i':
