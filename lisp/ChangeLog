@@ -1,5 +1,16 @@
 2011-09-07  Juri Linkov  <juri@jurta.org>
 
+	* progmodes/compile.el (compilation-start): Let-bind `thisenv' to
+	`compilation-environment'.  Set buffer-local
+	`compilation-environment' to `thisenv' later after (funcall mode).
+	(Bug#8340)
+
+	* vc/vc-git.el (vc-git-grep): Remove --no-color.  (Bug#9408)
+	(vc-git-grep): Prepend "PAGER=" to `compilation-environment'
+	instead of replacing its value.  (Bug#8340)
+
+2011-09-07  Juri Linkov  <juri@jurta.org>
+
 	* progmodes/grep.el (grep-regexp-alist): Calculate column positions
 	based on text properties put by `grep-filter' instead of matching
 	escape sequences.
