@@ -1,3 +1,7 @@
+2011-09-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_make_tool_item): Insert comment about eventbox.
+
 2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	isnan: Fix porting problem to Solaris 10 with bundled gcc.
