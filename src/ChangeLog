@@ -1,3 +1,8 @@
+2011-09-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): Call RESTORE_IT on ppos_it
+	only under bidi iteration.
+
 2011-09-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_make_tool_item): Insert comment about eventbox.
