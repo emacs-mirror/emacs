@@ -1,3 +1,47 @@
+2011-09-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help-mode.el (help-mode): Restore autoload.
+
+2011-09-07  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-start): Let-bind `thisenv' to
+	`compilation-environment'.  Set buffer-local
+	`compilation-environment' to `thisenv' later after (funcall mode).
+	(Bug#8340)
+
+	* vc/vc-git.el (vc-git-grep): Remove --no-color.  (Bug#9408)
+	(vc-git-grep): Prepend "PAGER=" to `compilation-environment'
+	instead of replacing its value.  (Bug#8340)
+
+2011-09-07  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-regexp-alist): Calculate column positions
+	based on text properties put by `grep-filter' instead of matching
+	escape sequences.
+	(grep-mode): Set buffer-local `compilation-error-screen-columns'
+	to the value of `grep-error-screen-columns' (bug#9438).
+
+2011-09-07  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (next-error-highlight, next-error-highlight-no-select):
+	Doc fix (bug#9432).
+
+2011-09-07  OKAZAKI Tetsurou  <okazaki.tetsurou@gmail.com>  (tiny change)
+
+	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls):
+	Check for null c-opt-block-decls-with-vars-key.  (Bug#9443)
+
+2011-09-07  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-mode): Conditionally initialize
+	rcirc-input-ring.
+
+2011-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/find-func.el (find-function-C-source): Only set
+	find-function-C-source-directory after checking that we found a source
+	file there (bug#9440).
+
 2011-09-06  Alan Mackenzie  <acm@muc.de>
 
 	* isearch.el (isearch-other-meta-char): Wherever a key list is

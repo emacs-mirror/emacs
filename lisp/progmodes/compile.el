@@ -1482,6 +1482,7 @@ Returns the compilation buffer created."
 	      "compilation"
 	    (replace-regexp-in-string "-mode\\'" "" (symbol-name mode))))
 	 (thisdir default-directory)
+	 (thisenv compilation-environment)
 	 outwin outbuf)
     (with-current-buffer
 	(setq outbuf
@@ -1528,8 +1529,9 @@ Returns the compilation buffer created."
         ;; Remember the original dir, so we can use it when we recompile.
         ;; default-directory' can't be used reliably for that because it may be
         ;; affected by the special handling of "cd ...;".
-        ;; NB: must be fone after (funcall mode) as that resets local variables
+        ;; NB: must be done after (funcall mode) as that resets local variables
         (set (make-local-variable 'compilation-directory) thisdir)
+	(set (make-local-variable 'compilation-environment) thisenv)
 	(if highlight-regexp
 	    (set (make-local-variable 'compilation-highlight-regexp)
 		 highlight-regexp))

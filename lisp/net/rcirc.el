@@ -964,7 +964,13 @@ This number is independent of the number of lines in the buffer.")
   (setq mode-line-process nil)
 
   (set (make-local-variable 'rcirc-input-ring)
-       (make-ring rcirc-input-ring-size))
+       ;; If rcirc-input-ring is already a ring with desired size do
+       ;; not re-initialize.
+       (if (and (ring-p rcirc-input-ring)
+		(= (ring-size rcirc-input-ring)
+		   rcirc-input-ring-size))
+	   rcirc-input-ring
+	 (make-ring rcirc-input-ring-size)))
   (set (make-local-variable 'rcirc-server-buffer) (process-buffer process))
   (set (make-local-variable 'rcirc-target) target)
   (set (make-local-variable 'rcirc-topic) nil)
