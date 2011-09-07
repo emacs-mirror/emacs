@@ -8116,7 +8116,8 @@ move_it_in_display_line_to (struct it *it,
 		      && !saw_smaller_pos
 		      && IT_CHARPOS (*it) > to_charpos))
 		{
-		  if (!at_eob_p && IT_CHARPOS (ppos_it) < ZV)
+		  if (it->bidi_p
+		      && !at_eob_p && IT_CHARPOS (ppos_it) < ZV)
 		    RESTORE_IT (it, &ppos_it, ppos_data);
 		  result = MOVE_POS_MATCH_OR_ZV;
 		  break;
