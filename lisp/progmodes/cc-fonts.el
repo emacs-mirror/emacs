@@ -1559,7 +1559,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	(setq decl-context (c-beginning-of-decl-1)
 	      in-typedef (looking-at c-typedef-key))
 	(if in-typedef (c-forward-token-2))
-	(when (looking-at c-opt-block-decls-with-vars-key)
+	(when (and c-opt-block-decls-with-vars-key
+		   (looking-at c-opt-block-decls-with-vars-key))
 	  (goto-char ps-elt)
 	  (when (c-safe (c-forward-sexp))
 	    (c-forward-syntactic-ws)
