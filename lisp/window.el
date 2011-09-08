@@ -2305,7 +2305,8 @@ its buffer or has no previous buffer to show instead."
 	 (dedicated (and (window-buffer window) (window-dedicated-p window)))
 	 ;; prev non-nil means there is another buffer we can show
 	 ;; in WINDOW instead.
-	 (prev (and (window-prev-buffers window)
+	 (prev (and (window-live-p window)
+		    (window-prev-buffers window)
 		    (or (cdr (window-prev-buffers window))
 			(not (eq (caar (window-prev-buffers window))
 				 buffer))))))
