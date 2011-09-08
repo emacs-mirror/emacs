@@ -1,3 +1,14 @@
+2011-09-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (frame-auto-delete): Rename to window-auto-delete.
+	Make it control auto-deletion of windows and/or frames.
+	(window-deletable-p): New argument FORCE.  Rewrite conditions
+	for deleting window/frame. (Bug#9419)
+	(switch-to-prev-buffer, replace-buffer-in-windows, quit-window):
+	Rewrite handling of case when window/frame can be deleted.
+	(delete-windows-on): Call window-deletable-p with new FORCE
+	argument t. (Bug#9456)
+
 2011-09-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help-mode.el (help-mode): Restore autoload.

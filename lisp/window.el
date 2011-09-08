@@ -2258,77 +2258,75 @@ and no others."
 	(next-window base-window (if nomini 'arg) all-frames))))
 
 ;;; Deleting windows.
-(defcustom frame-auto-delete 'automatic
-  "If non-nil, quitting a window can delete its frame.
-If this variable is nil, functions that quit a window never
-delete the associated frame.  If this variable's value is the
-symbol `automatic', a frame is deleted only if the window is
-dedicated or was created by `display-buffer'.  If this variable
-is t, a frame can be always deleted, even if it was created by
-`make-frame-command'.  Other values should not be used.
+(defcustom window-auto-delete t
+  "If non-nil, quitting a window can delete the window.
+If this variable is t, functions that quit a window can delete
+the window and, if applicable, the corresponding frame.  If it is
+'frame, these functions can delete a window and its frame,
+provided there are no other windows on the frame.  If it is
+'window, these functions can delete the window, provided there
+are other windows on the corresponding frame.  If this variable
+is nil, functions that quit a window never delete the window or
+the associated frame.
 
-Note that a frame will be effectively deleted if and only if
+Note that a frame can be effectively deleted if and only if
 another frame still exists.
 
 Functions quitting a window and consequently affected by this
-variable are `switch-to-prev-buffer', `delete-windows-on',
-`replace-buffer-in-windows' and `quit-window'."
+variable are `switch-to-prev-buffer' including its callers like
+`bury-buffer', `replace-buffer-in-windows' and its callers like
+`kill-buffer', and `quit-window'."
   :type '(choice
-	  (const :tag "Never" nil)
-	  (const :tag "Automatic" automatic)
-	  (const :tag "Always" t))
-  :group 'windows
-  :group 'frames)
+	  (const :tag "Always" t)
+	  (const :tag "Window" window)
+	  (const :tag "Frame" frame)
+	  (const :tag "Never" nil))
+  :group 'windows)
 
-(defun window-deletable-p (&optional window)
+(defun window-deletable-p (&optional window force)
   "Return t if WINDOW can be safely deleted from its frame.
 Return `frame' if deleting WINDOW should also delete its
-frame."
+frame.
+
+Optional argument FORCE non-nil means return non-nil unless
+WINDOW is the root window of the only visible frame.  FORCE nil
+or omitted means return nil unless WINDOW is either dedicated to
+its buffer or has no previous buffer to show instead."
   (setq window (window-normalize-any-window window))
+
   (unless ignore-window-parameters
     ;; Handle atomicity.
     (when (window-parameter window 'window-atom)
       (setq window (window-atom-root window))))
-  (let ((parent (window-parent window))
-	(frame (window-frame window))
-	(buffer (window-buffer window))
-	(dedicated (and (window-buffer window) (window-dedicated-p window)))
-	(quit-restore (window-parameter window 'quit-restore)))
+
+  (let* ((parent (window-parent window))
+	 (frame (window-frame window))
+	 (buffer (window-buffer window))
+	 (dedicated (and (window-buffer window) (window-dedicated-p window)))
+	 ;; prev non-nil means there is another buffer we can show
+	 ;; in WINDOW instead.
+	 (prev (and (window-prev-buffers window)
+		    (or (cdr (window-prev-buffers window))
+			(not (eq (caar (window-prev-buffers window))
+				 buffer))))))
     (cond
      ((frame-root-window-p window)
-     ;; Don't delete FRAME if `frame-auto-delete' is nil.
-      (when (and (or (eq frame-auto-delete t)
-		     (and (eq frame-auto-delete 'automatic)
-			  ;; Delete FRAME only if it's either dedicated
-			  ;; or quit-restore's car is `new-frame' and
-			  ;; WINDOW still displays the same buffer
-			  (or dedicated
-			      (and (eq (car-safe quit-restore) 'new-frame)
-				   (eq (nth 1 quit-restore)
-				       (window-buffer window))))))
-		 ;; Don't delete FRAME if we have another buffer in
-		 ;; WINDOW's previous buffers.  Bug#9419.
-		 (or (not (window-prev-buffers window))
-		     (eq (caar (window-prev-buffers window)) buffer))
-		 ;; Don't try to delete FRAME when there are no other
-		 ;; visible frames left.
+      (when (and (or force dedicated
+		     (and (not prev) (memq window-auto-delete '(t frame))))
 		 (other-visible-frames-p frame))
+	;; We can delete WINDOW's frame if (1) either FORCE is non-nil,
+	;; WINDOW is dedicated to its buffer, or there are no previous
+	;; buffers to show and (2) there are other visible frames left.
 	'frame))
-     ;; Don't delete WINDOW if we find another buffer in WINDOW's
-     ;; previous buffers.
-     ((and (or (not (window-prev-buffers window))
-	       (eq (caar (window-prev-buffers window)) buffer))
-	   ;; Delete WINDOW only if it's dedicated or quit-restore's car
-	   ;; is `new-frame' or `new-window' and it still displays the
-	   ;; same buffer.
-	   (or dedicated
-	       (and (memq (car-safe quit-restore) '(new-window new-frame))
-		    (eq (nth 1 quit-restore) (window-buffer window))))
-	   ;; Don't delete the last main window.
+     ((and (or force dedicated
+	       (and (not prev) (memq window-auto-delete '(t window))))
 	   (or ignore-window-parameters
 	       (not (eq (window-parameter window 'window-side) 'none))
 	       (and parent
 		    (eq (window-parameter parent 'window-side) 'none))))
+      ;; We can delete WINDOW if (1) either FORCE is non-nil, WINDOW is
+      ;; dedicated to its buffer, or there are no previous buffers to
+      ;; show and (2) WINDOW is not the main window of its frame.
       t))))
 
 (defun window-or-subwindow-p (subwindow window)
@@ -2601,11 +2599,7 @@ shall not be switched to in future invocations of this command."
      ;; When BURY-OR-KILL is non-nil, there's no previous buffer for
      ;; this window, and we can delete the window (or the frame) do
      ;; that.
-     ((and bury-or-kill
-	   (or (not (window-prev-buffers window))
-	       (and (eq (caar (window-prev-buffers window)) old-buffer)
-		    (not (cdr (car (window-prev-buffers window))))))
-	   (setq deletable (window-deletable-p window)))
+     ((and bury-or-kill (setq deletable (window-deletable-p window)))
       (if (eq deletable 'frame)
 	  (delete-frame (window-frame window))
 	(delete-window window)))
@@ -2877,7 +2871,7 @@ frames left."
 	(all-frames (cond ((not frame) t) ((eq frame t) nil) (t frame))))
     (dolist (window (window-list-1 nil nil all-frames))
       (if (eq (window-buffer window) buffer)
-	  (let ((deletable (window-deletable-p window)))
+	  (let ((deletable (window-deletable-p window t)))
 	    (cond
 	     ((eq deletable 'frame)
 	      ;; Delete frame.
@@ -2913,7 +2907,7 @@ all window-local buffer lists."
 	     ((eq deletable 'frame)
 	      ;; Delete frame.
 	      (delete-frame (window-frame window)))
-	     ((and (window-dedicated-p window) deletable)
+	     (deletable
 	      ;; Delete window.
 	      (delete-window window))
 	     (t
@@ -2939,11 +2933,7 @@ one.  If non-nil, reset `quit-restore' parameter to nil."
 	(quit-restore (window-parameter window 'quit-restore))
 	deletable resize)
     (cond
-     ((and (or (and (memq (car-safe quit-restore) '(new-window new-frame))
-		    ;; Check that WINDOW's buffer is still the same.
-		    (eq (window-buffer window) (nth 1 quit-restore)))
-	       (window-dedicated-p window))
-	   (setq deletable (window-deletable-p window)))
+     ((setq deletable (window-deletable-p window))
       ;; Check if WINDOW's frame can be deleted.
       (if (eq deletable 'frame)
 	  (delete-frame (window-frame window))
