@@ -637,11 +637,15 @@ This should be a function of three arguments: process status, exit status,
 and exit message; it returns a cons (MESSAGE . MODELINE) of the strings to
 write into the compilation buffer, and to put in its mode line.")
 
-(defvar compilation-environment nil
-  "*List of environment variables for compilation to inherit.
+(defcustom compilation-environment nil
+  "List of environment variables for compilation to inherit.
 Each element should be a string of the form ENVVARNAME=VALUE.
 This list is temporarily prepended to `process-environment' prior to
-starting the compilation process.")
+starting the compilation process."
+  :type '(repeat (string :tag "ENVVARNAME=VALUE"))
+  :options '(("LANG=C"))
+  :group 'compilation
+  :version "24.1")
 
 ;; History of compile commands.
 (defvar compile-history nil)
