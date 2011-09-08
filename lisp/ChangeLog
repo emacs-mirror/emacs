@@ -1,3 +1,28 @@
+2011-09-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-deletable-p): Make sure window is live before
+	invoking window-prev-buffers.
+
+2011-09-08  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-cmd-invite): New rcirc command.  (Bug#9453)
+
+2011-09-08  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-environment): Make it
+	a defcustom (bug#8340).
+
+2011-09-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (frame-auto-delete): Rename to window-auto-delete.
+	Make it control auto-deletion of windows and/or frames.
+	(window-deletable-p): New argument FORCE.  Rewrite conditions
+	for deleting window/frame. (Bug#9419)
+	(switch-to-prev-buffer, replace-buffer-in-windows, quit-window):
+	Rewrite handling of case when window/frame can be deleted.
+	(delete-windows-on): Call window-deletable-p with new FORCE
+	argument t. (Bug#9456)
+
 2011-09-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help-mode.el (help-mode): Restore autoload.

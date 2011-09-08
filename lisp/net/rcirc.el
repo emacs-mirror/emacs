@@ -2141,6 +2141,16 @@ CHANNELS is a comma- or space-separated string of channel names."
       (dolist (b buffers) ;; order the new channel buffers in the buffer list
         (switch-to-buffer b)))))
 
+(defun-rcirc-command invite (nick-channel)
+  "Invite NICK to CHANNEL."
+  (interactive (list
+		(concat
+		 (completing-read "Invite nick: "
+				  (with-rcirc-server-buffer rcirc-nick-table))
+		 " "
+		 (read-string "Channel: "))))
+  (rcirc-send-string process (concat "INVITE " nick-channel)))
+
 ;; TODO: /part #channel reason, or consider removing #channel altogether
 (defun-rcirc-command part (channel)
   "Part CHANNEL."
