@@ -171,8 +171,10 @@ int display_arg;
    Tells GC how to save a copy of the stack.  */
 char *stack_bottom;
 
+#if defined (DOUG_LEA_MALLOC) || defined (GNU_LINUX)
 /* The address where the heap starts (from the first sbrk (0) call).  */
 static void *my_heap_start;
+#endif
 
 #ifdef GNU_LINUX
 /* The gap between BSS end and heap start as far as we can tell.  */
