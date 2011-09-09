@@ -102,7 +102,7 @@ extern void malloc_enable_thread PP ((void));
    receive a fragment of a block.  Fragment sizes are powers of two,
    and all fragments of a block are the same size.  When all the
    fragments in a block have been freed, the block itself is freed.  */
-#define INT_BIT		(CHAR_BIT * sizeof(int))
+#define INT_BIT		(CHAR_BIT * sizeof (int))
 #define BLOCKLOG	(INT_BIT > 16 ? 12 : 9)
 #define BLOCKSIZE	(1 << BLOCKLOG)
 #define BLOCKIFY(SIZE)	(((SIZE) + BLOCKSIZE - 1) / BLOCKSIZE)
@@ -445,7 +445,7 @@ protect_malloc_state (protect_p)
     }
 }
 
-#define PROTECT_MALLOC_STATE(PROT) protect_malloc_state(PROT)
+#define PROTECT_MALLOC_STATE(PROT) protect_malloc_state (PROT)
 
 #else
 #define PROTECT_MALLOC_STATE(PROT)	/* empty */
@@ -1541,7 +1541,7 @@ _realloc_internal (ptr, size)
 {
   __ptr_t result;
 
-  LOCK();
+  LOCK ();
   result = _realloc_internal_nolock (ptr, size);
   UNLOCK ();
 
@@ -1625,7 +1625,7 @@ MA 02110-1301, USA.  */
 
 /* uClibc defines __GNU_LIBRARY__, but it is not completely
    compatible.  */
-#if !defined(__GNU_LIBRARY__) || defined(__UCLIBC__)
+#if !defined (__GNU_LIBRARY__) || defined (__UCLIBC__)
 #define	__sbrk	sbrk
 #else /* __GNU_LIBRARY__ && ! defined (__UCLIBC__) */
 /* It is best not to declare this and cast its result on foreign operating
@@ -1647,7 +1647,7 @@ __default_morecore (increment)
      __malloc_ptrdiff_t increment;
 {
   __ptr_t result;
-#if defined(CYGWIN)
+#if defined (CYGWIN)
   if (!bss_sbrk_did_unexec)
     {
       return bss_sbrk (increment);
@@ -1830,7 +1830,7 @@ extern size_t __getpagesize PP ((void));
 #endif
 #else
 #include "getpagesize.h"
-#define	 __getpagesize()	getpagesize()
+#define	 __getpagesize()	getpagesize ()
 #endif
 
 #ifndef	_MALLOC_INTERNAL

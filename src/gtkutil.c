@@ -422,7 +422,7 @@ xg_get_image_for_pixmap (FRAME_PTR f,
 static void
 xg_set_cursor (GtkWidget *w, GdkCursor *cursor)
 {
-  GdkWindow *window = gtk_widget_get_window(w);
+  GdkWindow *window = gtk_widget_get_window (w);
   GList *children = gdk_window_peek_children (window);
 
   gdk_window_set_cursor (window, cursor);

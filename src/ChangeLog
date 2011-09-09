@@ -896,7 +896,7 @@
 
 	* nsfns.m (as_script, as_result, as_status): New static variables.
 	(ns_run_ascript): New function.
-	(Fns_do_applescript): Set variables as_*. Make an NSApplicationDefined
+	(Fns_do_applescript): Set variables as_*.  Make an NSApplicationDefined
 	event with data2 set to NSAPP_DATA2_RUNASSCRIPT, post it and then start
 	the event loop.  Get status from as_status (Bug#7276).
 
@@ -1072,7 +1072,7 @@
 
 	* xdisp.c: Remove one-slot cache of display string positions.
 	(compute_display_string_pos): Accept an additional argument
-	DISP_PROP_P; callers changed. Scan at most 5K characters forward
+	DISP_PROP_P; callers changed.  Scan at most 5K characters forward
 	for a display string or property.  If found, set DISP_PROP_P
 	non-zero.
 
@@ -2090,7 +2090,7 @@
 	(Fput_unicode_property_internal): New functions.
 	(syms_of_chartab): DEFSYM Qchar_code_property_table, defsubr
 	Sunicode_property_table_internal, Sget_unicode_property_internal,
-	and Sput_unicode_property_internal. Defvar_lisp
+	and Sput_unicode_property_internal.  Defvar_lisp
 	char-code-property-alist.
 
 	* composite.c (CHAR_COMPOSABLE_P): Adjust for the change of
@@ -2122,7 +2122,7 @@
 	(store_config_changed_event): Add comment.
 	(dpyinfo_valid, store_font_name_changed, map_tool_bar_style)
 	(store_tool_bar_style_changed): New functions.
-	(store_monospaced_changed): Add comment. Call dpyinfo_valid.
+	(store_monospaced_changed): Add comment.  Call dpyinfo_valid.
 	(struct xsettings): Move font inside HAVE_XFT.
 	(GSETTINGS_TOOL_BAR_STYLE, GSETTINGS_FONT_NAME): New defines.
 	(GSETTINGS_MONO_FONT): Rename from SYSTEM_MONO_FONT.
@@ -2131,7 +2131,7 @@
 	Check for changes in GSETTINGS_TOOL_BAR_STYLE and GSETTINGS_FONT_NAME
 	also.
 	(GCONF_TOOL_BAR_STYLE, GCONF_FONT_NAME): New defines.
-	(GCONF_MONO_FONT): Rename from SYSTEM_MONO_FONT. Move inside HAVE_XFT.
+	(GCONF_MONO_FONT): Rename from SYSTEM_MONO_FONT.  Move inside HAVE_XFT.
 	(something_changed_gconfCB): Rename from something_changedCB.
 	Check for changes in GCONF_TOOL_BAR_STYLE and GCONF_FONT_NAME also.
 	(parse_settings): Move check for font inside HAVE_XFT.

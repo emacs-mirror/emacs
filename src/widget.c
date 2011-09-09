@@ -86,12 +86,12 @@ static XtGeometryResult EmacsFrameQueryGeometry (Widget widget, XtWidgetGeometry
 #undef XtOffset
 #define XtOffset(p_type,field) \
 	((Cardinal) (((char *) (&(((p_type)0)->field))) - ((char *)0)))
-#define offset(field) XtOffset(EmacsFrame, emacs_frame.field)
+#define offset(field) XtOffset (EmacsFrame, emacs_frame.field)
 
 static XtResource resources[] = {
-  {XtNgeometry, XtCGeometry, XtRString, sizeof(String),
+  {XtNgeometry, XtCGeometry, XtRString, sizeof (String),
      offset (geometry), XtRString, (XtPointer) 0},
-  {XtNiconic, XtCIconic, XtRBoolean, sizeof(Boolean),
+  {XtNiconic, XtCIconic, XtRBoolean, sizeof (Boolean),
      offset (iconic), XtRImmediate, (XtPointer) False},
 
   {XtNemacsFrame, XtCEmacsFrame, XtRPointer, sizeof (XtPointer),
@@ -105,12 +105,12 @@ static XtResource resources[] = {
      offset (internal_border_width), XtRImmediate, (XtPointer)4},
   {XtNinterline, XtCInterline, XtRInt, sizeof (int),
      offset (interline), XtRImmediate, (XtPointer)0},
-  {XtNfont,  XtCFont, XtRFontStruct, sizeof(struct font *),
-     offset(font),XtRString, DEFAULT_FACE_FONT},
-  {XtNforeground, XtCForeground, XtRPixel, sizeof(Pixel),
-     offset(foreground_pixel), XtRString, "XtDefaultForeground"},
-  {XtNcursorColor, XtCForeground, XtRPixel, sizeof(Pixel),
-     offset(cursor_color), XtRString, "XtDefaultForeground"},
+  {XtNfont,  XtCFont, XtRFontStruct, sizeof (struct font *),
+     offset (font),XtRString, DEFAULT_FACE_FONT},
+  {XtNforeground, XtCForeground, XtRPixel, sizeof (Pixel),
+     offset (foreground_pixel), XtRString, "XtDefaultForeground"},
+  {XtNcursorColor, XtCForeground, XtRPixel, sizeof (Pixel),
+     offset (cursor_color), XtRString, "XtDefaultForeground"},
   {XtNbarCursor, XtCBarCursor, XtRBoolean, sizeof (Boolean),
      offset (bar_cursor), XtRImmediate, (XtPointer)0},
   {XtNvisualBell, XtCVisualBell, XtRBoolean, sizeof (Boolean),
@@ -141,7 +141,7 @@ static EmacsFrameClassRec emacsFrameClassRec = {
     { /* core fields */
     /* superclass		*/	&widgetClassRec,
     /* class_name		*/	"EmacsFrame",
-    /* widget_size		*/	sizeof(EmacsFrameRec),
+    /* widget_size		*/	sizeof (EmacsFrameRec),
     /* class_initialize		*/	0,
     /* class_part_initialize	*/	0,
     /* class_inited		*/	FALSE,
@@ -151,7 +151,7 @@ static EmacsFrameClassRec emacsFrameClassRec = {
     /* actions			*/	0, /*emacsFrameActionsTable*/
     /* num_actions		*/	0, /*XtNumber (emacsFrameActionsTable)*/
     /* resources		*/	resources,
-    /* resource_count		*/	XtNumber(resources),
+    /* resource_count		*/	XtNumber (resources),
     /* xrm_class		*/	NULLQUARK,
     /* compress_motion		*/	TRUE,
     /* compress_exposure	*/	TRUE,
@@ -574,7 +574,7 @@ setup_frame_gcs (EmacsFrame ew)
      never actually get used as a background tile!
    */
   blank_tile
-    = XCreatePixmapFromBitmapData (XtDisplay(ew),
+    = XCreatePixmapFromBitmapData (XtDisplay (ew),
 				   RootWindowOfScreen (XtScreen (ew)),
 				   setup_frame_cursor_bits, 2, 2,
 				   0, 1, ew->core.depth);

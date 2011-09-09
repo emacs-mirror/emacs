@@ -2579,7 +2579,7 @@ merge_face_ref (struct frame *f, Lisp_Object face_ref, Lisp_Object *to,
 		}
 	      else if (EQ (keyword, QCstipple))
 		{
-#if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_NS)
 		  Lisp_Object pixmap_p = Fbitmap_spec_p (value);
 		  if (!NILP (pixmap_p))
 		    to[LFACE_STIPPLE_INDEX] = value;
@@ -3095,7 +3095,7 @@ FRAME 0 means change the face on all frames, and change the default
     }
   else if (EQ (attr, QCstipple))
     {
-#if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_NS)
       if (!UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value)
 	  && !NILP (value)
 	  && NILP (Fbitmap_spec_p (value)))

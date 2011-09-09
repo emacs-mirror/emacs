@@ -110,7 +110,7 @@ identify_winoldap_version (void)
                         <> 1700H: AL = Major version number
 				  AH = Minor version number */
   regs.x.ax = 0x1700;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
   return regs.x.ax;
 }
 
@@ -133,7 +133,7 @@ open_clipboard (void)
      Return Values   AX == 0: Clipboard already open
 			<> 0: Clipboard opened */
   regs.x.ax = 0x1701;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
   return regs.x.ax;
 }
 
@@ -147,7 +147,7 @@ empty_clipboard (void)
      Return Values   AX == 0: Error occurred
 			<> 0: OK, Clipboard emptied */
   regs.x.ax = 0x1702;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
   return regs.x.ax;
 }
 
@@ -294,7 +294,7 @@ set_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
   regs.x.cx = truelen & 0xffff;
   regs.x.es = xbuf_addr >> 4;
   regs.x.bx = xbuf_addr & 15;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
 
   free_xfer_buf ();
 
@@ -320,7 +320,7 @@ get_clipboard_data_size (unsigned Format)
 			   the clipboard.  */
   regs.x.ax = 0x1704;
   regs.x.dx = Format;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
   return ( (((unsigned)regs.x.dx) << 16) | regs.x.ax);
 }
 
@@ -353,7 +353,7 @@ get_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
   regs.x.dx = Format;
   regs.x.es = xbuf_addr >> 4;
   regs.x.bx = xbuf_addr & 15;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
   if (regs.x.ax != 0)
     {
       unsigned char null_char = '\0';
@@ -415,7 +415,7 @@ close_clipboard (void)
      Return Values   AX == 0: Error occurred
                         <> 0: OK */
   regs.x.ax = 0x1708;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
   return regs.x.ax;
 }
 
@@ -432,7 +432,7 @@ clipboard_compact (unsigned Size)
   regs.x.ax = 0x1709;
   regs.x.si = Size >> 16;
   regs.x.cx = Size & 0xffff;
-  __dpmi_int(0x2f, &regs);
+  __dpmi_int (0x2f, &regs);
   return ((unsigned)regs.x.dx << 16) | regs.x.ax;
 }
 

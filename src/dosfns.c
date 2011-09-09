@@ -343,13 +343,13 @@ init_dosfns (void)
 	{
 	  dpmiregs.x.ax = 0x168e;
 	  dpmiregs.x.dx = 3;	/* get VM title */
-	  dpmiregs.x.cx = sizeof(parent_vm_title) - 1;
+	  dpmiregs.x.cx = sizeof (parent_vm_title) - 1;
 	  dpmiregs.x.es = __tb >> 4;
 	  dpmiregs.x.di = __tb & 15;
 	  dpmiregs.x.sp = dpmiregs.x.ss = dpmiregs.x.flags = 0;
 	  _go32_dpmi_simulate_int (0x2f, &dpmiregs);
 	  if (dpmiregs.x.ax == 1)
-	    dosmemget (__tb, sizeof(parent_vm_title), parent_vm_title);
+	    dosmemget (__tb, sizeof (parent_vm_title), parent_vm_title);
 	}
     }
   else
@@ -573,7 +573,7 @@ system_process_attributes (Lisp_Object pid)
 			    Fsymbol_value (intern ("before-init-time"))),
 		     attrs);
       attrs = Fcons (Fcons (Qvsize,
-			    make_fixnum_or_float ((unsigned long)sbrk(0)/1024)),
+			    make_fixnum_or_float ((unsigned long)sbrk (0)/1024)),
 		     attrs);
       attrs = Fcons (Fcons (Qetime, tem), attrs);
 #ifndef SYSTEM_MALLOC

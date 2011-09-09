@@ -1472,7 +1472,7 @@ search_embedded_absfilename (char *nm, char *endp)
       if ((0
 	   || IS_DIRECTORY_SEP (p[-1]))
 	  && file_name_absolute_p (p)
-#if defined (WINDOWSNT) || defined(CYGWIN)
+#if defined (WINDOWSNT) || defined (CYGWIN)
 	  /* // at start of file name is meaningful in Apollo,
 	     WindowsNT and Cygwin systems.  */
 	  && !(IS_DIRECTORY_SEP (p[0]) && p - 1 == nm)
@@ -2497,7 +2497,7 @@ See also `file-exists-p' and `file-attributes'.  */)
 
   absname = ENCODE_FILE (absname);
 
-#if defined(DOS_NT) || defined(macintosh)
+#if defined (DOS_NT) || defined (macintosh)
   /* Under MS-DOS, Windows, and Macintosh, open does not work for
      directories.  */
   if (access (SDATA (absname), 0) == 0)
@@ -2782,7 +2782,7 @@ if file does not exist, is not accessible, or SELinux is disabled */)
     }
 #endif
 
-  return Flist (sizeof(values) / sizeof(values[0]), values);
+  return Flist (sizeof (values) / sizeof (values[0]), values);
 }
 
 DEFUN ("set-file-selinux-context", Fset_file_selinux_context,
@@ -2853,7 +2853,7 @@ is disabled. */)
 	  context_free (parsed_con);
 	}
       else
-	report_file_error("Doing lgetfilecon", Fcons (absname, Qnil));
+	report_file_error ("Doing lgetfilecon", Fcons (absname, Qnil));
 
       if (con)
 	freecon (con);

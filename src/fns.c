@@ -4704,13 +4704,13 @@ secure_hash (Lisp_Object algorithm, Lisp_Object object, Lisp_Object start, Lisp_
 		    force_raw_text = 1;
 		}
 
-	      if (NILP (coding_system) && !NILP (Fbuffer_file_name(object)))
+	      if (NILP (coding_system) && !NILP (Fbuffer_file_name (object)))
 		{
 		  /* Check file-coding-system-alist.  */
 		  Lisp_Object args[4], val;
 
 		  args[0] = Qwrite_region; args[1] = start; args[2] = end;
-		  args[3] = Fbuffer_file_name(object);
+		  args[3] = Fbuffer_file_name (object);
 		  val = Ffind_operation_coding_system (4, args);
 		  if (CONSP (val) && !NILP (XCDR (val)))
 		    coding_system = XCDR (val);

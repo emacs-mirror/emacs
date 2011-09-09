@@ -408,7 +408,7 @@ int interrupts_deferred;
 
 /* If we support a window system, turn on the code to poll periodically
    to detect C-g.  It isn't actually used when doing interrupt input.  */
-#if defined(HAVE_WINDOW_SYSTEM) && !defined(USE_ASYNC_EVENTS)
+#if defined (HAVE_WINDOW_SYSTEM) && !defined (USE_ASYNC_EVENTS)
 #define POLL_FOR_INPUT
 #endif
 
@@ -3955,7 +3955,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 	  kbd_fetch_ptr = event + 1;
 	}
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
-    || defined(HAVE_NS) || defined (USE_GTK)
+    || defined (HAVE_NS) || defined (USE_GTK)
       else if (event->kind == MENU_BAR_ACTIVATE_EVENT)
 	{
 	  kbd_fetch_ptr = event + 1;
@@ -4065,7 +4065,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 	      obj = make_lispy_event (event);
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
-    || defined(HAVE_NS) || defined (USE_GTK)
+    || defined (HAVE_NS) || defined (USE_GTK)
 	      /* If this was a menu selection, then set the flag to inhibit
 		 writing to last_nonmenu_event.  Don't do this if the event
 		 we're returning is (menu-bar), though; that indicates the
@@ -5881,7 +5881,7 @@ make_lispy_event (struct input_event *event)
 #endif /* HAVE_MOUSE */
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
-    || defined(HAVE_NS) || defined (USE_GTK)
+    || defined (HAVE_NS) || defined (USE_GTK)
     case MENU_BAR_EVENT:
       if (EQ (event->arg, event->frame_or_window))
 	/* This is the prefix key.  We translate this to
@@ -5996,7 +5996,7 @@ make_lispy_event (struct input_event *event)
     }
 }
 
-#if defined(HAVE_MOUSE) || defined(HAVE_GPM)
+#if defined (HAVE_MOUSE) || defined (HAVE_GPM)
 
 static Lisp_Object
 make_lispy_movement (FRAME_PTR frame, Lisp_Object bar_window, enum scroll_bar_part part,
@@ -7008,7 +7008,7 @@ tty_read_avail_input (struct terminal *terminal,
   if (n_to_read > sizeof cbuf)
     n_to_read = sizeof cbuf;
 #else /* no FIONREAD */
-#if defined (USG) || defined(CYGWIN)
+#if defined (USG) || defined (CYGWIN)
   /* Read some input if available, but don't wait.  */
   n_to_read = sizeof cbuf;
   fcntl (fileno (tty->input), F_SETFL, O_NDELAY);

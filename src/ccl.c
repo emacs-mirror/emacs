@@ -61,7 +61,7 @@ static Lisp_Object Vccl_program_table;
 
 /* Return a hash table of id number ID.  */
 #define GET_HASH_TABLE(id) \
-  (XHASH_TABLE (XCDR(XVECTOR(Vtranslation_hash_table_vector)->contents[(id)])))
+  (XHASH_TABLE (XCDR (XVECTOR (Vtranslation_hash_table_vector)->contents[(id)])))
 
 /* CCL (Code Conversion Language) is a simple language which has
    operations on one input buffer, one output buffer, and 7 registers.
@@ -706,7 +706,7 @@ do					\
     ccl->status = CCL_STAT_SUCCESS;	\
     goto ccl_finish;			\
   }					\
-while(0)
+while (0)
 
 /* Suspend CCL program because of reading from empty input buffer or
    writing to full output buffer.  When this program is resumed, the
@@ -730,7 +730,7 @@ do					\
     ccl->status = CCL_STAT_INVALID_CMD;	\
     goto ccl_error_handler;	     	\
   }					\
-while(0)
+while (0)
 
 #else
 
@@ -741,7 +741,7 @@ do					\
     ccl->status = CCL_STAT_INVALID_CMD;	\
     goto ccl_error_handler;	     	\
   }					\
-while(0)
+while (0)
 
 #endif
 
@@ -1419,7 +1419,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		    else if (INTEGERP (content) && IN_INT_RANGE (XINT (content)))
 		      {
 			reg[RRR] = i;
-			reg[rrr] = XINT(content);
+			reg[rrr] = XINT (content);
 			break;
 		      }
 		    else if (EQ (content, Qt) || EQ (content, Qlambda))
@@ -1692,7 +1692,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		    value = XCDR (content);
 		    if (!INTEGERP (attrib) || !INTEGERP (value))
 		      continue;
-		    reg[rrr] = XINT(value);
+		    reg[rrr] = XINT (value);
 		    break;
 		  }
 		else if (SYMBOLP (content))
@@ -1729,8 +1729,8 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
       switch (ccl->status)
 	{
 	case CCL_STAT_INVALID_CMD:
-	  sprintf(msg, "\nCCL: Invalid command %x (ccl_code = %x) at %d.",
-		  code & 0x1F, code, this_ic);
+	  sprintf (msg, "\nCCL: Invalid command %x (ccl_code = %x) at %d.",
+                   code & 0x1F, code, this_ic);
 #ifdef CCL_DEBUG
 	  {
 	    int i = ccl_backtrace_idx - 1;
@@ -1748,7 +1748,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		if (i < 0) i = CCL_DEBUG_BACKTRACE_LEN - 1;
 		if (ccl_backtrace_table[i] == 0)
 		  break;
-		sprintf(msg, " %d", ccl_backtrace_table[i]);
+		sprintf (msg, " %d", ccl_backtrace_table[i]);
 		msglen = strlen (msg);
 		if (dst + msglen > (dst_bytes ? dst_end : src))
 		  break;
@@ -1762,11 +1762,11 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 
 	case CCL_STAT_QUIT:
 	  if (! ccl->quit_silently)
-	    sprintf(msg, "\nCCL: Quited.");
+	    sprintf (msg, "\nCCL: Quited.");
 	  break;
 
 	default:
-	  sprintf(msg, "\nCCL: Unknown error type (%d)", ccl->status);
+	  sprintf (msg, "\nCCL: Unknown error type (%d)", ccl->status);
 	}
 
       msglen = strlen (msg);

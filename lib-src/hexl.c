@@ -48,7 +48,7 @@ int base = DEFAULT_BASE, un_flag = FALSE, iso_flag = FALSE, endian = 1;
 int group_by = DEFAULT_GROUPING;
 char *progname;
 
-void usage(void) NO_RETURN;
+void usage (void) NO_RETURN;
 
 int
 main (int argc, char **argv)

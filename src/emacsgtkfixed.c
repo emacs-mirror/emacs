@@ -1,4 +1,4 @@
-/* A Gtk Widget that inherits GtkFixed, but can be shrinked. 
+/* A Gtk Widget that inherits GtkFixed, but can be shrinked.
 This file is only use when compiling with Gtk+ 3.
 
 Copyright (C) 2011  Free Software Foundation, Inc.
@@ -116,10 +116,10 @@ emacs_fixed_get_preferred_height (GtkWidget *widget,
    (Bug#8919), and so users can resize our frames as they wish.  */
 
 void
-XSetWMSizeHints(Display* d,
-                Window w,
-                XSizeHints* hints,
-                Atom prop)
+XSetWMSizeHints (Display* d,
+                 Window w,
+                 XSizeHints* hints,
+                 Atom prop)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (d);
   struct frame *f = x_top_window_to_frame (dpyinfo, w);
@@ -158,7 +158,7 @@ XSetWMSizeHints(Display* d,
 /* Override this X11 function.
    This function is in the same X11 file as the one above.  So we must
    provide it also.  */
-   
+
 void
 XSetWMNormalHints (Display *d, Window w, XSizeHints *hints)
 {

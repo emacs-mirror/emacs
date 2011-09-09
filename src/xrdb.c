@@ -602,8 +602,8 @@ x_get_resource (XrmDatabase rdb, const char *name, const char *class,
   XrmClass classlist[100];
   XrmRepresentation type;
 
-  XrmStringToNameList(name, namelist);
-  XrmStringToClassList(class, classlist);
+  XrmStringToNameList (name, namelist);
+  XrmStringToClassList (class, classlist);
 
   if (XrmQGetResource (rdb, namelist, classlist, &type, &value) == True
       && (type == expected_type))
