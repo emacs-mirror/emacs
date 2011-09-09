@@ -2945,6 +2945,7 @@ interpolated by `\*x' and `\*(xx' escapes."
     ("ti" "~")
     ("oq" "‘")                          ; u2018
     ("cq" "’")                          ; u2019
+    ("hy" "‐")                          ; u2010
     )
   "Alist of special character codes with ASCII and extended-font equivalents.
 Each alist elements has the form
