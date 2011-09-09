@@ -1,3 +1,8 @@
+2011-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* woman.el (woman-if-body): When processing an .el block,
+	do not delete the next .el block as well.  (Bug#9447)
+
 2011-09-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-deletable-p): Make sure window is live before
