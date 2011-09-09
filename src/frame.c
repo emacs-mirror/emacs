@@ -3098,7 +3098,11 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
 		      for non-toolkit scroll bar.
 		      ruler-mode.el depends on this.  */
 		   : Qnil));
-  w = FRAME_X_WINDOW (f);
+  /* FRAME_X_WINDOW is not guaranteed to return an integer.  E.g., on
+     MS-Windows it returns a value whose type is HANDLE, which is
+     actually a pointer.  Explicit casting avoids compiler
+     warnings.  */
+  w = (unsigned long) FRAME_X_WINDOW (f);
   sprintf (buf, "%lu", w);
   store_in_alist (alistptr, Qwindow_id,
 		  build_string (buf));
@@ -3108,7 +3112,7 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
   if (FRAME_X_OUTPUT (f)->widget)
 #endif
     {
-      w = FRAME_OUTER_WINDOW (f);
+      w = (unsigned long) FRAME_OUTER_WINDOW (f);
       sprintf (buf, "%lu", w);
     }
   store_in_alist (alistptr, Qouter_window_id,
