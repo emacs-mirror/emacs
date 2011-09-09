@@ -103,7 +103,7 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #   define PTR void *
 # endif
 #else  /* no config.h */
-# if defined(__STDC__) && (__STDC__ || defined(__SUNPRO_C))
+# if defined (__STDC__) && (__STDC__ || defined (__SUNPRO_C))
 #   define PTR void *		/* for generic pointers */
 # else /* not standard C */
 #   define const		/* remove const for old compilers' sake */
@@ -202,25 +202,25 @@ If you want regular expression support, you should delete this notice and
 # define CTAGS FALSE
 #endif
 
-#define streq(s,t)	(assert((s)!=NULL || (t)!=NULL), !strcmp (s, t))
-#define strcaseeq(s,t)	(assert((s)!=NULL && (t)!=NULL), !etags_strcasecmp (s, t))
-#define strneq(s,t,n)	(assert((s)!=NULL || (t)!=NULL), !strncmp (s, t, n))
-#define strncaseeq(s,t,n) (assert((s)!=NULL && (t)!=NULL), !etags_strncasecmp (s, t, n))
+#define streq(s,t)	(assert ((s)!=NULL || (t)!=NULL), !strcmp (s, t))
+#define strcaseeq(s,t)	(assert ((s)!=NULL && (t)!=NULL), !etags_strcasecmp (s, t))
+#define strneq(s,t,n)	(assert ((s)!=NULL || (t)!=NULL), !strncmp (s, t, n))
+#define strncaseeq(s,t,n) (assert ((s)!=NULL && (t)!=NULL), !etags_strncasecmp (s, t, n))
 
 #define CHARS 256		/* 2^sizeof(char) */
 #define CHAR(x)		((unsigned int)(x) & (CHARS - 1))
-#define	iswhite(c)	(_wht[CHAR(c)]) /* c is white (see white) */
-#define notinname(c)	(_nin[CHAR(c)]) /* c is not in a name (see nonam) */
-#define	begtoken(c)	(_btk[CHAR(c)]) /* c can start token (see begtk) */
-#define	intoken(c)	(_itk[CHAR(c)]) /* c can be in token (see midtk) */
-#define	endtoken(c)	(_etk[CHAR(c)]) /* c ends tokens (see endtk) */
+#define	iswhite(c)	(_wht[CHAR (c)]) /* c is white (see white) */
+#define notinname(c)	(_nin[CHAR (c)]) /* c is not in a name (see nonam) */
+#define	begtoken(c)	(_btk[CHAR (c)]) /* c can start token (see begtk) */
+#define	intoken(c)	(_itk[CHAR (c)]) /* c can be in token (see midtk) */
+#define	endtoken(c)	(_etk[CHAR (c)]) /* c ends tokens (see endtk) */
 
-#define ISALNUM(c)	isalnum (CHAR(c))
-#define ISALPHA(c)	isalpha (CHAR(c))
-#define ISDIGIT(c)	isdigit (CHAR(c))
-#define ISLOWER(c)	islower (CHAR(c))
+#define ISALNUM(c)	isalnum (CHAR (c))
+#define ISALPHA(c)	isalpha (CHAR (c))
+#define ISDIGIT(c)	isdigit (CHAR (c))
+#define ISLOWER(c)	islower (CHAR (c))
 
-#define lowcase(c)	tolower (CHAR(c))
+#define lowcase(c)	tolower (CHAR (c))
 
 
 /*
@@ -1725,16 +1725,16 @@ init (void)
   register int i;
 
   for (i = 0; i < CHARS; i++)
-    iswhite(i) = notinname(i) = begtoken(i) = intoken(i) = endtoken(i) = FALSE;
+    iswhite (i) = notinname (i) = begtoken (i) = intoken (i) = endtoken (i) = FALSE;
   for (sp = white; *sp != '\0'; sp++) iswhite (*sp) = TRUE;
   for (sp = nonam; *sp != '\0'; sp++) notinname (*sp) = TRUE;
-  notinname('\0') = notinname('\n');
+  notinname ('\0') = notinname ('\n');
   for (sp = begtk; *sp != '\0'; sp++) begtoken (*sp) = TRUE;
-  begtoken('\0') = begtoken('\n');
+  begtoken ('\0') = begtoken ('\n');
   for (sp = midtk; *sp != '\0'; sp++) intoken (*sp) = TRUE;
-  intoken('\0') = intoken('\n');
+  intoken ('\0') = intoken ('\n');
   for (sp = endtk; *sp != '\0'; sp++) endtoken (*sp) = TRUE;
-  endtoken('\0') = endtoken('\n');
+  endtoken ('\0') = endtoken ('\n');
 }
 
 /*
@@ -3959,16 +3959,16 @@ Yacc_entries (FILE *inf)
       )
 
 #define LOOKING_AT(cp, kw)  /* kw is the keyword, a literal string */	\
-  ((assert("" kw), TRUE)   /* syntax error if not a literal string */	\
-   && strneq ((cp), kw, sizeof(kw)-1)		/* cp points at kw */	\
-   && notinname ((cp)[sizeof(kw)-1])		/* end of kw */		\
-   && ((cp) = skip_spaces((cp)+sizeof(kw)-1)))	/* skip spaces */
+  ((assert ("" kw), TRUE)   /* syntax error if not a literal string */	\
+   && strneq ((cp), kw, sizeof (kw)-1)		/* cp points at kw */	\
+   && notinname ((cp)[sizeof (kw)-1])		/* end of kw */		\
+   && ((cp) = skip_spaces ((cp)+sizeof (kw)-1))) /* skip spaces */
 
 /* Similar to LOOKING_AT but does not use notinname, does not skip */
 #define LOOKING_AT_NOCASE(cp, kw) /* the keyword is a literal string */	\
-  ((assert("" kw), TRUE)     /* syntax error if not a literal string */	\
-   && strncaseeq ((cp), kw, sizeof(kw)-1)	/* cp points at kw */	\
-   && ((cp) += sizeof(kw)-1))			/* skip spaces */
+  ((assert ("" kw), TRUE) /* syntax error if not a literal string */	\
+   && strncaseeq ((cp), kw, sizeof (kw)-1)	/* cp points at kw */	\
+   && ((cp) += sizeof (kw)-1))			/* skip spaces */
 
 /*
  * Read a file, but do no processing.  This is used to do regexp
@@ -4141,7 +4141,7 @@ Ada_getit (FILE *inf, const char *name_qualifier)
 	  readline (&lb, inf);
 	  dbp = lb.buffer;
 	}
-      switch (lowcase(*dbp))
+      switch (lowcase (*dbp))
         {
         case 'b':
           if (nocase_tail ("body"))
@@ -4245,7 +4245,7 @@ Ada_funcs (FILE *inf)
 	    }
 
 	  /* We are at the beginning of a token. */
-	  switch (lowcase(*dbp))
+	  switch (lowcase (*dbp))
 	    {
 	    case 'f':
 	      if (!packages_only && nocase_tail ("function"))
@@ -4371,7 +4371,7 @@ Perl_functions (FILE *inf)
 	      *cp = '\0';
 	      name = concat (package, "::", sp);
 	      *cp = savechar;
-	      make_tag (name, strlen(name), TRUE,
+	      make_tag (name, strlen (name), TRUE,
 			lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	      free (name);
 	    }
@@ -4466,9 +4466,9 @@ PHP_functions (FILE *inf)
 	}
       else if (LOOKING_AT (cp, "function"))
 	{
-	  if(*cp == '&')
+	  if (*cp == '&')
 	    cp = skip_spaces (cp+1);
-	  if(*cp != '\0')
+	  if (*cp != '\0')
 	    {
 	      name = cp;
 	      while (!notinname (*cp))
@@ -4509,7 +4509,7 @@ PHP_functions (FILE *inf)
 	       && *cp == '$')
 	{
 	  name = cp;
-	  while (!notinname(*cp))
+	  while (!notinname (*cp))
 	    cp++;
 	  make_tag (name, cp - name, FALSE,
 		    lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
@@ -4890,13 +4890,13 @@ Forth_words (FILE *inf)
 
   LOOP_ON_INPUT_LINES (inf, lb, bp)
     while ((bp = skip_spaces (bp))[0] != '\0')
-      if (bp[0] == '\\' && iswhite(bp[1]))
+      if (bp[0] == '\\' && iswhite (bp[1]))
 	break;			/* read next line */
-      else if (bp[0] == '(' && iswhite(bp[1]))
+      else if (bp[0] == '(' && iswhite (bp[1]))
 	do			/* skip to ) or eol */
 	  bp++;
 	while (*bp != ')' && *bp != '\0');
-      else if ((bp[0] == ':' && iswhite(bp[1]) && bp++)
+      else if ((bp[0] == ':' && iswhite (bp[1]) && bp++)
 	       || LOOKING_AT_NOCASE (bp, "constant")
 	       || LOOKING_AT_NOCASE (bp, "code")
 	       || LOOKING_AT_NOCASE (bp, "create")
@@ -5285,7 +5285,7 @@ Prolog_functions (FILE *inf)
 	  /* Predicate or rule.  Store the function name so that we
 	     only generate a tag for the first clause.  */
 	  if (last == NULL)
-	    last = xnew(len + 1, char);
+	    last = xnew (len + 1, char);
 	  else if (len + 1 > allocated)
 	    xrnew (last, len + 1, char);
 	  allocated = len + 1;
@@ -5309,7 +5309,7 @@ prolog_skip_comment (linebuffer *plb, FILE *inf)
 	  return;
       readline (plb, inf);
     }
-  while (!feof(inf));
+  while (!feof (inf));
 }
 
 /*
@@ -5368,11 +5368,11 @@ prolog_atom (char *s, size_t pos)
 
   origpos = pos;
 
-  if (ISLOWER(s[pos]) || (s[pos] == '_'))
+  if (ISLOWER (s[pos]) || (s[pos] == '_'))
     {
       /* The atom is unquoted. */
       pos++;
-      while (ISALNUM(s[pos]) || (s[pos] == '_'))
+      while (ISALNUM (s[pos]) || (s[pos] == '_'))
 	{
 	  pos++;
 	}
@@ -5715,7 +5715,7 @@ add_regex (char *regexp_pattern, language *lang)
     single_line = FALSE;	/* dot does not match newline */
 
 
-  if (strlen(regexp_pattern) < 3)
+  if (strlen (regexp_pattern) < 3)
     {
       error ("null regexp", (char *)NULL);
       return;
@@ -6626,7 +6626,7 @@ filename_is_absolute (char *fn)
 {
   return (fn[0] == '/'
 #ifdef DOS_NT
-	  || (ISALPHA(fn[0]) && fn[1] == ':' && fn[2] == '/')
+	  || (ISALPHA (fn[0]) && fn[1] == ':' && fn[2] == '/')
 #endif
 	  );
 }
@@ -6641,7 +6641,7 @@ canonicalize_filename (register char *fn)
 
 #ifdef DOS_NT
   /* Canonicalize drive letter case.  */
-# define ISUPPER(c)	isupper (CHAR(c))
+# define ISUPPER(c)	isupper (CHAR (c))
   if (fn[0] != '\0' && fn[1] == ':' && ISUPPER (fn[0]))
     fn[0] = lowcase (fn[0]);
 

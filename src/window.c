@@ -775,7 +775,7 @@ of just the text area, use `window-inside-pixel-edges'.  */)
 }
 
 static void
-calc_absolute_offset(struct window *w, int *add_x, int *add_y)
+calc_absolute_offset (struct window *w, int *add_x, int *add_y)
 {
   struct frame *f = XFRAME (w->frame);
   *add_y = f->top_pos;

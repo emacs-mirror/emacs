@@ -1880,7 +1880,7 @@ xd_read_queued_messages (int fd, void *data, int for_read)
 	busp = CDR_SAFE (busp);
       }
 
-  if (NILP(bus))
+  if (NILP (bus))
     return;
 
   /* We ignore all Lisp errors during the call.  */

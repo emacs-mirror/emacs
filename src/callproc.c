@@ -691,7 +691,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   /* Enable sending signal if user quits below.  */
   call_process_exited = 0;
 
-#if defined(MSDOS)
+#if defined (MSDOS)
   /* MSDOS needs different cleanup information.  */
   record_unwind_protect (call_process_cleanup,
 			 Fcons (Fcurrent_buffer (),
@@ -1315,7 +1315,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
   if (err != in && err != out)
     emacs_close (err);
 
-#if defined(USG)
+#if defined (USG)
 #ifndef SETPGRP_RELEASES_CTTY
   setpgrp ();			/* No arguments but equivalent in this case */
 #endif

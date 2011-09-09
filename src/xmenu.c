@@ -1947,7 +1947,7 @@ create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
   LWLIB_ID dialog_id;
 
   if (!FRAME_X_P (f))
-    abort();
+    abort ();
 
   dialog_id = widget_id_tick++;
 #ifdef USE_LUCID
@@ -2095,7 +2095,7 @@ xdialog_show (FRAME_PTR f,
     /*  Frame title: 'Q' = Question, 'I' = Information.
         Can also have 'E' = Error if, one day, we want
         a popup for errors. */
-    if (NILP(header))
+    if (NILP (header))
       dialog_name[0] = 'Q';
     else
       dialog_name[0] = 'I';

@@ -100,7 +100,7 @@ static int extra_bytes;
 		       & ~(page_size - 1))
 #define ROUND_TO_PAGE(addr) (addr & (~(page_size - 1)))
 
-#define MEM_ALIGN sizeof(double)
+#define MEM_ALIGN sizeof (double)
 #define MEM_ROUNDUP(addr) (((unsigned long int)(addr) + MEM_ALIGN - 1) \
 				   & ~(MEM_ALIGN - 1))
 
@@ -468,7 +468,7 @@ relocate_blocs (bloc_ptr bloc, heap_ptr heap, POINTER address)
 
   /* No need to ever call this if arena is frozen, bug somewhere!  */
   if (r_alloc_freeze_level)
-    abort();
+    abort ();
 
   while (b)
     {
@@ -592,7 +592,7 @@ resize_bloc (bloc_ptr bloc, SIZE size)
 
   /* No need to ever call this if arena is frozen, bug somewhere!  */
   if (r_alloc_freeze_level)
-    abort();
+    abort ();
 
   if (bloc == NIL_BLOC || size == bloc->size)
     return 1;

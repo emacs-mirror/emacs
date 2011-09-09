@@ -183,8 +183,8 @@ main (int argc, char **argv)
 # define ARGSTR "p"
 #endif /* MAIL_USE_POP */
 
-  uid_t real_gid = getgid();
-  uid_t priv_gid = getegid();
+  uid_t real_gid = getgid ();
+  uid_t priv_gid = getegid ();
 
 #ifdef WINDOWSNT
   /* Ensure all file i/o is in binary mode. */

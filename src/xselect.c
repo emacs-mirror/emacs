@@ -592,7 +592,8 @@ static int x_reply_selection_request_cnt;
 #endif  /* TRACE_SELECTION */
 
 static void
-x_reply_selection_request (struct input_event *event, struct x_display_info *dpyinfo)
+x_reply_selection_request (struct input_event *event,
+                           struct x_display_info *dpyinfo)
 {
   XEvent reply_base;
   XSelectionEvent *reply = &(reply_base.xselection);
@@ -1079,7 +1080,8 @@ waiting_for_other_props_on_window (Display *display, Window window)
    this awaited property change.  */
 
 static struct prop_location *
-expect_property_change (Display *display, Window window, Atom property, int state)
+expect_property_change (Display *display, Window window,
+                        Atom property, int state)
 {
   struct prop_location *pl = (struct prop_location *) xmalloc (sizeof *pl);
   pl->identifier = ++prop_location_identifier;
@@ -2472,7 +2474,8 @@ FRAME is on.  If FRAME is nil, the selected frame is used.  */)
 /* Convert an XClientMessageEvent to a Lisp event of type DRAG_N_DROP_EVENT.  */
 
 int
-x_handle_dnd_message (struct frame *f, XClientMessageEvent *event, struct x_display_info *dpyinfo, struct input_event *bufp)
+x_handle_dnd_message (struct frame *f, XClientMessageEvent *event,
+                      struct x_display_info *dpyinfo, struct input_event *bufp)
 {
   Lisp_Object vec;
   Lisp_Object frame;
@@ -2550,22 +2553,24 @@ the Atom is sent.  If a value is a cons, it is converted to a 32 bit number
 with the high 16 bits from the car and the lower 16 bit from the cdr.
 If more values than fits into the event is given, the excessive values
 are ignored.  */)
-  (Lisp_Object display, Lisp_Object dest, Lisp_Object from, Lisp_Object message_type, Lisp_Object format, Lisp_Object values)
+  (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
+   Lisp_Object message_type, Lisp_Object format, Lisp_Object values)
 {
   struct x_display_info *dpyinfo = check_x_display_info (display);
 
   CHECK_STRING (message_type);
-  x_send_client_event(display, dest, from,
-                      XInternAtom (dpyinfo->display,
-                                   SSDATA (message_type),
-                                   False),
-                      format, values);
+  x_send_client_event (display, dest, from,
+                       XInternAtom (dpyinfo->display,
+                                    SSDATA (message_type),
+                                    False),
+                       format, values);
 
   return Qnil;
 }
 
 void
-x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from, Atom message_type, Lisp_Object format, Lisp_Object values)
+x_send_client_event (Lisp_Object display, Lisp_Object dest, Lisp_Object from,
+                     Atom message_type, Lisp_Object format, Lisp_Object values)
 {
   struct x_display_info *dpyinfo = check_x_display_info (display);
   Window wdest;

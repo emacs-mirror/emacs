@@ -134,7 +134,7 @@ typedef struct {
 } XRectangle;
 
 #ifndef __OBJC__
-#if defined(__LP64__) && __LP64__
+#if defined (__LP64__) && __LP64__
 typedef double CGFloat;
 #else
 typedef float CGFloat;

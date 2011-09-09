@@ -17,11 +17,11 @@
 	* window.el (frame-auto-delete): Rename to window-auto-delete.
 	Make it control auto-deletion of windows and/or frames.
 	(window-deletable-p): New argument FORCE.  Rewrite conditions
-	for deleting window/frame. (Bug#9419)
+	for deleting window/frame.  (Bug#9419)
 	(switch-to-prev-buffer, replace-buffer-in-windows, quit-window):
 	Rewrite handling of case when window/frame can be deleted.
 	(delete-windows-on): Call window-deletable-p with new FORCE
-	argument t. (Bug#9456)
+	argument t.  (Bug#9456)
 
 2011-09-07  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -313,7 +313,7 @@
 2011-08-28  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* help-mode.el (help-mode-map): Add special-mode-map to parent.
-	(help-mode): Derive help-mode from special-mode. Don't invoke
+	(help-mode): Derive help-mode from special-mode.  Don't invoke
 	view-mode from help-mode.
 	(help-xref-override-view-map): Remove.
 	(help-make-xrefs): Remove minor-mode-overriding-map-alist since
@@ -629,7 +629,7 @@
 2011-08-19  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (hack-local-variables-prop-line, hack-local-variables):
-	Downcase "Mode:". (Bug#9331)
+	Downcase "Mode:".  (Bug#9331)
 
 2011-08-18  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -685,7 +685,7 @@
 	(epa-mail-expand-recipients-2, epa-mail-expand-recipients):
 	Remove.
 
-2011-08-16  Feng Li <fengli@gmail.com> (tiny change)
+2011-08-16  Feng Li  <fengli@gmail.com>  (tiny change)
 
 	* calc/calc-ext.el (math-defintegral-2): Remove nested backquote.
 

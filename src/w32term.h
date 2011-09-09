@@ -68,7 +68,7 @@ struct w32_palette_entry {
 #endif
 };
 
-extern void w32_regenerate_palette(struct frame *f);
+extern void w32_regenerate_palette (struct frame *f);
 
 
 /* For each display (currently only one on w32), we have a structure that

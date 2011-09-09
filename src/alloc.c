@@ -1880,7 +1880,7 @@ check_string_free_list (void)
   while (s != NULL)
     {
       if ((uintptr_t) s < 1024)
-	abort();
+	abort ();
       s = NEXT_FREE_LISP_STRING (s);
     }
 }
@@ -2531,17 +2531,17 @@ make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
    / (sizeof (struct Lisp_Float) * CHAR_BIT + 1))
 
 #define GETMARKBIT(block,n)				\
-  (((block)->gcmarkbits[(n) / (sizeof(int) * CHAR_BIT)]	\
-    >> ((n) % (sizeof(int) * CHAR_BIT)))		\
+  (((block)->gcmarkbits[(n) / (sizeof (int) * CHAR_BIT)]	\
+    >> ((n) % (sizeof (int) * CHAR_BIT)))		\
    & 1)
 
 #define SETMARKBIT(block,n)				\
-  (block)->gcmarkbits[(n) / (sizeof(int) * CHAR_BIT)]	\
-  |= 1 << ((n) % (sizeof(int) * CHAR_BIT))
+  (block)->gcmarkbits[(n) / (sizeof (int) * CHAR_BIT)]	\
+  |= 1 << ((n) % (sizeof (int) * CHAR_BIT))
 
 #define UNSETMARKBIT(block,n)				\
-  (block)->gcmarkbits[(n) / (sizeof(int) * CHAR_BIT)]	\
-  &= ~(1 << ((n) % (sizeof(int) * CHAR_BIT)))
+  (block)->gcmarkbits[(n) / (sizeof (int) * CHAR_BIT)]	\
+  &= ~(1 << ((n) % (sizeof (int) * CHAR_BIT)))
 
 #define FLOAT_BLOCK(fptr) \
   ((struct float_block *) (((uintptr_t) (fptr)) & ~(BLOCK_ALIGN - 1)))
@@ -2553,7 +2553,7 @@ struct float_block
 {
   /* Place `floats' at the beginning, to ease up FLOAT_INDEX's job.  */
   struct Lisp_Float floats[FLOAT_BLOCK_SIZE];
-  int gcmarkbits[1 + FLOAT_BLOCK_SIZE / (sizeof(int) * CHAR_BIT)];
+  int gcmarkbits[1 + FLOAT_BLOCK_SIZE / (sizeof (int) * CHAR_BIT)];
   struct float_block *next;
 };
 
@@ -2659,7 +2659,7 @@ struct cons_block
 {
   /* Place `conses' at the beginning, to ease up CONS_INDEX's job.  */
   struct Lisp_Cons conses[CONS_BLOCK_SIZE];
-  int gcmarkbits[1 + CONS_BLOCK_SIZE / (sizeof(int) * CHAR_BIT)];
+  int gcmarkbits[1 + CONS_BLOCK_SIZE / (sizeof (int) * CHAR_BIT)];
   struct cons_block *next;
 };
 
@@ -2964,7 +2964,7 @@ allocate_hash_table (void)
 struct window *
 allocate_window (void)
 {
-  return ALLOCATE_PSEUDOVECTOR(struct window, current_matrix, PVEC_WINDOW);
+  return ALLOCATE_PSEUDOVECTOR (struct window, current_matrix, PVEC_WINDOW);
 }
 
 
@@ -4159,7 +4159,7 @@ mark_maybe_pointer (void *p)
 	  break;
 
 	case MEM_TYPE_BUFFER:
-	  if (live_buffer_p (m, p) && !VECTOR_MARKED_P((struct buffer *)p))
+	  if (live_buffer_p (m, p) && !VECTOR_MARKED_P ((struct buffer *)p))
 	    XSETVECTOR (obj, p);
 	  break;
 

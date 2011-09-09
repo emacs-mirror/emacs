@@ -364,7 +364,7 @@ single_menu_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy, void *sk
       return;
     }
 
-#if defined(HAVE_X_WINDOWS) || defined(MSDOS)
+#if defined (HAVE_X_WINDOWS) || defined (MSDOS)
 #ifndef HAVE_BOXES
   /* Simulate radio buttons and toggle boxes by putting a prefix in
      front of them.  */
@@ -977,7 +977,7 @@ find_and_return_menu_selection (FRAME_PTR f, int keymaps, void *client_data)
   prefix = entry = Qnil;
   i = 0;
   subprefix_stack =
-    (Lisp_Object *)alloca(menu_items_used * sizeof (Lisp_Object));
+    (Lisp_Object *)alloca (menu_items_used * sizeof (Lisp_Object));
 
   while (i < menu_items_used)
     {

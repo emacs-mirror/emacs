@@ -71,7 +71,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern double logb (double);
 #endif /* not HPUX and HAVE_LOGB and no logb macro */
 
-#if defined(DOMAIN) && defined(SING) && defined(OVERFLOW)
+#if defined (DOMAIN) && defined (SING) && defined (OVERFLOW)
     /* If those are defined, then this is probably a `matherr' machine. */
 # ifndef HAVE_MATHERR
 #  define HAVE_MATHERR
@@ -519,7 +519,7 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
   if (f1 == 0.0 && f2 == 0.0)
     f1 = 1.0;
 #ifdef FLOAT_CHECK_DOMAIN
-  else if ((f1 == 0.0 && f2 < 0.0) || (f1 < 0 && f2 != floor(f2)))
+  else if ((f1 == 0.0 && f2 < 0.0) || (f1 < 0 && f2 != floor (f2)))
     domain_error2 ("expt", arg1, arg2);
 #endif
   IN_FLOAT2 (f3 = pow (f1, f2), "expt", arg1, arg2);
