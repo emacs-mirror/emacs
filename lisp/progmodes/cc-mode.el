@@ -1545,6 +1545,10 @@ initialization, then `awk-mode-hook'.
 
 Key bindings:
 \\{awk-mode-map}"
+  ;; We need the next line to stop the macro defining
+  ;; `awk-mode-syntax-table'.  This would mask the real table which is
+  ;; declared in cc-awk.el and hasn't yet been loaded.
+  :syntax-table nil
   (require 'cc-awk)			; Added 2003/6/10.
   (c-initialize-cc-mode t)
   (set-syntax-table awk-mode-syntax-table)

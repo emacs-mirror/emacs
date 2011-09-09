@@ -5729,6 +5729,11 @@ else the end of the last line.  This function obeys RFC822."
 	 "^\\([:\n]\\|[^: \t\n]+[ \t\n]\\)" nil 'move)
     (goto-char (match-beginning 0))))
 
+;; Used by Rmail (e.g., rmail-forward).
+(defvar mail-encode-mml nil
+  "If non-nil, mail-user-agent's `sendfunc' command should mml-encode
+the outgoing message before sending it.")
+
 (defun compose-mail (&optional to subject other-headers continue
 		     switch-function yank-action send-actions
 		     return-action)

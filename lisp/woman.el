@@ -2621,15 +2621,27 @@ If DELETE is non-nil then delete from point."
     ;; Process matching .el anything:
     (cond ((string= request "ie")
 	   ;; Discard unless previous .ie c `evaluated to false'.
+	   ;; IIUC, an .ie must be followed by an .el.
+	   ;; (An if with no else uses .if rather than .ie.)
+	   ;; TODO warn if no .el found?
+	   ;; The .el should come immediately after the .ie (modulo
+	   ;; comments etc), but this searches to eob.
 	   (cond ((re-search-forward "^[.'][ \t]*el[ \t]*" nil t)
 		  (woman-delete-match 0)
 		  (woman-if-body "el" nil (not delete)))))
+;;; FIXME neither the comment nor the code here make sense to me.
+;;; This branch was executed for an else (any else, AFAICS).
+;;; At this point, the else in question has already been processed above.
+;;; The re-search will find the _next_ else, if there is one, and
+;;; delete it.  If there is one, it belongs to another if block.  (Bug#9447)
+;;; woman0-el does not need this bit either.
 	  ;; Got here after processing a single-line `.ie' as a body
 	  ;; clause to be discarded:
-	  ((string= request "el")
-	   (cond ((re-search-forward "^[.'][ \t]*el[ \t]*" nil t)
-		  (woman-delete-match 0)
-		  (woman-if-body "el" nil t)))))
+;;;	  ((string= request "el")
+;;;	   (cond ((re-search-forward "^[.'][ \t]*el[ \t]*" nil t)
+;;;		  (woman-delete-match 0)
+;;;		  (woman-if-body "el" nil t)))))
+          )
     (goto-char from)))
 
 (defun woman0-el ()
@@ -2925,11 +2937,15 @@ interpolated by `\*x' and `\*(xx' escapes."
     ("bv" "|")				; bold vertical
 
     ;; groff etc. extensions:
+    ;; List these via eg man -Tdvi groff_char > groff_char.dvi.
     ("lq" "\"")
     ("rq" "\"")
     ("aq" "'")
     ("ha" "^")
     ("ti" "~")
+    ("oq" "‘")                          ; u2018
+    ("cq" "’")                          ; u2019
+    ("hy" "‐")                          ; u2010
     )
   "Alist of special character codes with ASCII and extended-font equivalents.
 Each alist elements has the form
@@ -4581,5 +4597,10 @@ logging the message."
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
 
 (provide 'woman)
+
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 ;;; woman.el ends here

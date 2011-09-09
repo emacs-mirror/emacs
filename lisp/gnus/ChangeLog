@@ -1,3 +1,8 @@
+2011-09-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-date-ut): Work properly even when there are
+	things like Date header in the body; work for forwarded parts.
+
 2011-09-05  Andrew Cohen  <cohen@andy.bu.edu>
 
 	* gnus-sum.el (gnus-summary-exit): Ensure we kill the proper
