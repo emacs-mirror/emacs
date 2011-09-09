@@ -31,6 +31,9 @@
 
 (require 'rfc2047)
 
+(autoload 'mml-to-mime "mml"
+  "Translate the current buffer from MML to MIME.")
+
 (defgroup sendmail nil
   "Mail sending commands for Emacs."
   :prefix "mail-"
@@ -678,6 +681,7 @@ switching to, the `*mail*' buffer.  See also `mail-setup-hook'."
   :options '(footnote-mode))
 
 (defvar mail-mode-abbrev-table text-mode-abbrev-table)
+(defvar mail-encode-mml)
 ;;;###autoload
 (define-derived-mode mail-mode text-mode "Mail"
   "Major mode for editing mail to be sent.
@@ -701,6 +705,8 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   (make-local-variable 'mail-reply-action)
   (make-local-variable 'mail-send-actions)
   (make-local-variable 'mail-return-action)
+  (make-local-variable 'mail-encode-mml)
+  (setq mail-encode-mml nil)
   (setq buffer-offer-save t)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(mail-font-lock-keywords t t))
@@ -934,6 +940,9 @@ the user from the mailer."
 	      (error "Invalid header line (maybe a continuation line lacks initial whitespace)"))
 	    (forward-line 1)))
 	(goto-char opoint)
+	(when mail-encode-mml
+	  (mml-to-mime)
+	  (setq mail-encode-mml nil))
 	(run-hooks 'mail-send-hook)
 	(message "Sending...")
 	(funcall send-mail-function)

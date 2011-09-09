@@ -91,6 +91,7 @@ its character representation and its display representation.")
 (defvar messages-head)
 (defvar total-messages)
 (defvar tool-bar-map)
+(defvar mail-encode-mml)
 
 (defvar rmail-header-style 'normal
   "The current header display style choice, one of
@@ -642,7 +643,7 @@ unless the feature specified by `rmail-mime-feature' is available."
   :version "23.3"
   :group 'rmail)
 
-(defvar rmail-enable-mime-composing nil
+(defvar rmail-enable-mime-composing t
   "*If non-nil, RMAIL uses `rmail-insert-mime-forwarded-message-function' to forward.")
 
 ;; FIXME unused.
@@ -3794,9 +3795,17 @@ see the documentation of `rmail-resend'."
 	    ;; Insert after header separator--before signature if any.
 	    (rfc822-goto-eoh)
 	    (forward-line 1)
-	    (if (or rmail-enable-mime rmail-enable-mime-composing)
-		(funcall rmail-insert-mime-forwarded-message-function
-			 forward-buffer)
+	    (if (and rmail-enable-mime rmail-enable-mime-composing)
+		(prog1
+		    (funcall rmail-insert-mime-forwarded-message-function
+			     forward-buffer)
+		  ;; rmail-insert-mime-forwarded-message-function
+		  ;; works by inserting MML tags into forward-buffer.
+		  ;; The MUA will need to convert it to MIME before
+		  ;; sending.  mail-encode-mml tells them to do that.
+		  ;; message.el does that automagically.
+		  (or (eq mail-user-agent 'message-user-agent)
+		      (setq mail-encode-mml t)))
 	      (insert "------- Start of forwarded message -------\n")
 	      ;; Quote lines with `- ' if they start with `-'.
 	      (let ((beg (point)) end)

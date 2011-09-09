@@ -1,3 +1,21 @@
+2011-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix for Savannah bug#9392.
+	* simple.el (mail-encode-mml): New defvar.
+
+	* mail/rmail.el (mail-encode-mml): Add a defvar.
+	(rmail-enable-mime-composing): Default to t.
+	(rmail-forward): Use MIME method of forwarding only if both
+	rmail-enable-mime-composing and rmail-enable-mime are non-nil.
+	Set mail-encode-mml non-nil if the MIME method was used.
+
+	* mail/sendmail.el (mml-to-mime): Add autoload form.
+	(mail-encode-mml): Add a defvar.
+	(mail-mode): Make mail-encode-mml buffer-local and initialize it
+	to nil.
+	(mail-send): If mail-encode-mml is non-nil, run the outgoing
+	message through mml-to-mime, and reset mail-encode-mml to nil.
+
 2011-09-09  Glenn Morris  <rgm@gnu.org>
 
 	* woman.el (woman-if-body): When processing an .el block,
