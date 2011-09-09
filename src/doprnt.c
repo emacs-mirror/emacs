@@ -347,7 +347,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 	    case 'e':
 	    case 'g':
 	      {
-		double d = va_arg(ap, double);
+		double d = va_arg (ap, double);
 		sprintf (sprintf_buffer, fmtcpy, d);
 		/* Now copy into final output, truncating as necessary.  */
 		string = sprintf_buffer;
@@ -427,7 +427,7 @@ doprnt (char *buffer, ptrdiff_t bufsize, const char *format,
 
 	    case 'c':
 	      {
-		int chr = va_arg(ap, int);
+		int chr = va_arg (ap, int);
 		tem = CHAR_STRING (chr, (unsigned char *) charbuf);
 		string = charbuf;
 		string[tem] = 0;

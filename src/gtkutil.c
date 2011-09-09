@@ -422,7 +422,7 @@ xg_get_image_for_pixmap (FRAME_PTR f,
 static void
 xg_set_cursor (GtkWidget *w, GdkCursor *cursor)
 {
-  GdkWindow *window = gtk_widget_get_window(w);
+  GdkWindow *window = gtk_widget_get_window (w);
   GList *children = gdk_window_peek_children (window);
 
   gdk_window_set_cursor (window, cursor);
@@ -4219,6 +4219,7 @@ xg_make_tool_item (FRAME_PTR f,
   GtkToolItem *ti = gtk_tool_item_new ();
   GtkWidget *vb = horiz ? gtk_hbox_new (FALSE, 0) : gtk_vbox_new (FALSE, 0);
   GtkWidget *wb = gtk_button_new ();
+  /* The eventbox is here so we can have tooltips on disabled items.  */
   GtkWidget *weventbox = gtk_event_box_new ();
 
   if (wimage && !text_image)

@@ -812,7 +812,7 @@ init_gsettings (void)
   g_type_init ();
 #endif
 
-  schemas = g_settings_list_schemas();
+  schemas = g_settings_list_schemas ();
   if (schemas == NULL) return;
   while (! schema_found && *schemas != NULL)
     schema_found = strcmp (*schemas++, GSETTINGS_SCHEMA) == 0;

@@ -300,7 +300,7 @@ wait_for_termination_1 (int pid, int interruptible)
 {
   while (1)
     {
-#if (defined (BSD_SYSTEM) || defined (HPUX)) && !defined(__GNU__)
+#if (defined (BSD_SYSTEM) || defined (HPUX)) && !defined (__GNU__)
       /* Note that kill returns -1 even if the process is just a zombie now.
 	 But inevitably a SIGCHLD interrupt should be generated
 	 and child_sig will do wait3 and make the process go away. */
@@ -1326,7 +1326,7 @@ setup_pty (int fd)
      Since the latter lossage is more benign, we may as well
      lose that way.  -- cph */
 #ifdef FIONBIO
-#if defined(UNIX98_PTYS)
+#if defined (UNIX98_PTYS)
   {
     int on = 1;
     ioctl (fd, FIONBIO, &on);
@@ -1499,7 +1499,7 @@ sys_signal (int signal_number, signal_handler_t action)
      after a signal that sets the interrupt_input_pending flag.  */
   /* Non-interactive keyboard input goes through stdio, where we always
      want restartable system calls.  */
-# if defined (BROKEN_SA_RESTART) || defined(SYNC_INPUT)
+# if defined (BROKEN_SA_RESTART) || defined (SYNC_INPUT)
   if (noninteractive)
 # endif
     new_action.sa_flags = SA_RESTART;
@@ -2040,7 +2040,7 @@ rename (const char *from, const char *to)
 #endif
 
 
-#if defined(HPUX) && !defined(HAVE_PERROR)
+#if defined (HPUX) && !defined (HAVE_PERROR)
 
 /* HPUX curses library references perror, but as far as we know
    it won't be called.  Anyway this definition will do for now.  */

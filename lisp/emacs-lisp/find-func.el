@@ -198,13 +198,14 @@ If FUNC is not the symbol of an advised function, just returns FUNC."
 (defun find-function-C-source (fun-or-var file type)
   "Find the source location where FUN-OR-VAR is defined in FILE.
 TYPE should be nil to find a function, or `defvar' to find a variable."
-  (unless find-function-C-source-directory
-    (setq find-function-C-source-directory
-	  (read-directory-name "Emacs C source dir: " nil nil t)))
-  (setq file (expand-file-name file find-function-C-source-directory))
-  (unless (file-readable-p file)
-    (error "The C source file %s is not available"
-	   (file-name-nondirectory file)))
+  (let ((dir (or find-function-C-source-directory
+                 (read-directory-name "Emacs C source dir: " nil nil t))))
+    (setq file (expand-file-name file dir))
+    (if (file-readable-p file)
+        (if (null find-function-C-source-directory)
+            (setq find-function-C-source-directory dir))
+      (error "The C source file %s is not available"
+             (file-name-nondirectory file))))
   (unless type
     ;; Either or both an alias and its target might be advised.
     (setq fun-or-var (find-function-advised-original

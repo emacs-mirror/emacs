@@ -1284,7 +1284,7 @@ Return t if the file exists and loads successfully.  */)
     }
 
   if (! NILP (Vpurify_flag))
-    Vpreloaded_file_list = Fcons (Fpurecopy(file), Vpreloaded_file_list);
+    Vpreloaded_file_list = Fcons (Fpurecopy (file), Vpreloaded_file_list);
 
   if (NILP (nomessage) || force_load_messages)
     {

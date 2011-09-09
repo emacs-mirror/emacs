@@ -478,7 +478,7 @@ find_emacs_zone_regions (void)
 {
   num_unexec_regions = 0;
 
-  emacs_zone->introspect->enumerator (mach_task_self(), 0,
+  emacs_zone->introspect->enumerator (mach_task_self (), 0,
 				      MALLOC_PTR_REGION_RANGE_TYPE
 				      | MALLOC_ADMIN_REGION_RANGE_TYPE,
 				      (vm_address_t) emacs_zone,

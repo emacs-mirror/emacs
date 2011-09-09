@@ -223,7 +223,7 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   record_change (start, end - start);
   start_byte = CHAR_TO_BYTE (start);
 
-  SETUP_BUFFER_SYNTAX_TABLE();	/* For syntax_prefix_flag_p.  */
+  SETUP_BUFFER_SYNTAX_TABLE ();	/* For syntax_prefix_flag_p.  */
 
   while (start < end)
     {
@@ -434,9 +434,9 @@ syms_of_casefiddle (void)
 void
 keys_of_casefiddle (void)
 {
-  initial_define_key (control_x_map, Ctl('U'), "upcase-region");
+  initial_define_key (control_x_map, Ctl ('U'), "upcase-region");
   Fput (intern ("upcase-region"), Qdisabled, Qt);
-  initial_define_key (control_x_map, Ctl('L'), "downcase-region");
+  initial_define_key (control_x_map, Ctl ('L'), "downcase-region");
   Fput (intern ("downcase-region"), Qdisabled, Qt);
 
   initial_define_key (meta_map, 'u', "upcase-word");

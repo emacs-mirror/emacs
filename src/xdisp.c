@@ -606,7 +606,7 @@ int current_mode_line_height, current_header_line_height;
     if (CACHE)					\
       bidi_unshelve_cache (CACHE, 1);		\
     ITCOPY = ITORIG;				\
-    CACHE = bidi_shelve_cache();		\
+    CACHE = bidi_shelve_cache ();		\
   } while (0)
 
 #define RESTORE_IT(pITORIG,pITCOPY,CACHE)	\
@@ -1916,7 +1916,7 @@ get_phys_cursor_geometry (struct window *w, struct glyph_row *row,
      rectangle as wide as the glyph, but use a canonical character
      width instead.  */
   wd = glyph->pixel_width - 1;
-#if defined(HAVE_NTGUI) || defined(HAVE_NS)
+#if defined (HAVE_NTGUI) || defined (HAVE_NS)
   wd++; /* Why? */
 #endif
 
@@ -8116,7 +8116,8 @@ move_it_in_display_line_to (struct it *it,
 		      && !saw_smaller_pos
 		      && IT_CHARPOS (*it) > to_charpos))
 		{
-		  if (!at_eob_p && IT_CHARPOS (ppos_it) < ZV)
+		  if (it->bidi_p
+		      && !at_eob_p && IT_CHARPOS (ppos_it) < ZV)
 		    RESTORE_IT (it, &ppos_it, ppos_data);
 		  result = MOVE_POS_MATCH_OR_ZV;
 		  break;

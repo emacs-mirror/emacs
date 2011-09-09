@@ -1,3 +1,11 @@
+2011-09-07  Glenn Morris  <rgm@gnu.org>
+
+	* etags.c (Fortran_functions): Handle "elemental" functions.
+
+2011-09-07  Dieter Schuster  <didischuster@arcor.de>  (tiny change)
+
+	* etags.c (Fortran_functions): Handle "pure" functions.  (Bug#9359)
+
 2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* Makefile.in ($(DESTDIR)${archlibdir}): install-sh moved

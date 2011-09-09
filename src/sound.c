@@ -1013,7 +1013,7 @@ alsa_configure (struct sound_device *sd)
 
   err = snd_pcm_hw_params_get_buffer_size (p->hwparams, &buffer_size);
   if (err < 0)
-    alsa_sound_perror("Unable to get buffer size for playback", err);
+    alsa_sound_perror ("Unable to get buffer size for playback", err);
 
   err = snd_pcm_sw_params_current (p->handle, p->swparams);
   if (err < 0)
@@ -1071,7 +1071,7 @@ alsa_configure (struct sound_device *sd)
                       snd_mixer_selem_set_playback_volume (e, chn, vol);
                   }
               }
-          snd_mixer_close(handle);
+          snd_mixer_close (handle);
         }
     }
 }
@@ -1182,7 +1182,7 @@ alsa_write (struct sound_device *sd, const char *buffer, EMACS_INT nbytes)
           else if (err == -ESTRPIPE)
             {
               while ((err = snd_pcm_resume (p->handle)) == -EAGAIN)
-                sleep(1);	/* wait until the suspend flag is released */
+                sleep (1);	/* wait until the suspend flag is released */
               if (err < 0)
                 {
                   err = snd_pcm_prepare (p->handle);

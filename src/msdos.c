@@ -296,7 +296,7 @@ mouse_get_pos (FRAME_PTR *f, int insist, Lisp_Object *bar_window,
   FOR_EACH_FRAME (tail, frame)
     XFRAME (frame)->mouse_moved = 0;
 
-  *f = SELECTED_FRAME();
+  *f = SELECTED_FRAME ();
   *bar_window = Qnil;
   mouse_get_xy (&ix, &iy);
   *time = event_timestamp ();
@@ -310,7 +310,7 @@ mouse_check_moved (void)
   int x, y;
 
   mouse_get_xy (&x, &y);
-  SELECTED_FRAME()->mouse_moved |= (x != mouse_last_x || y != mouse_last_y);
+  SELECTED_FRAME ()->mouse_moved |= (x != mouse_last_x || y != mouse_last_y);
   mouse_last_x = x;
   mouse_last_y = y;
 }
@@ -582,7 +582,7 @@ dos_set_window_size (int *rows, int *cols)
   /* If the dimensions changed, the mouse highlight info is invalid.  */
   if (current_rows != *rows || current_cols != *cols)
     {
-      struct frame *f = SELECTED_FRAME();
+      struct frame *f = SELECTED_FRAME ();
       Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (f);
       Lisp_Object window = hlinfo->mouse_face_window;
 
@@ -639,7 +639,7 @@ msdos_set_cursor_shape (struct frame *f, int start_line, int width)
   /* Avoid the costly BIOS call if F isn't the currently selected
      frame.  Allow for NULL as unconditionally meaning the selected
      frame.  */
-  if (f && f != SELECTED_FRAME())
+  if (f && f != SELECTED_FRAME ())
     return;
 
   if (tty->termscript)
@@ -776,7 +776,7 @@ IT_ring_bell (struct frame *f)
 static void
 IT_set_face (int face)
 {
-  struct frame *sf = SELECTED_FRAME();
+  struct frame *sf = SELECTED_FRAME ();
   struct face *fp  = FACE_FROM_ID (sf, face);
   struct face *dfp = FACE_FROM_ID (sf, DEFAULT_FACE_ID);
   unsigned long fg, bg, dflt_fg, dflt_bg;
@@ -868,7 +868,7 @@ IT_write_glyphs (struct frame *f, struct glyph *str, int str_len)
 
   if (str_len <= 0) return;
 
-  sf = SELECTED_FRAME();
+  sf = SELECTED_FRAME ();
 
   /* Since faces get cached and uncached behind our back, we can't
      rely on their indices in the cache being consistent across
@@ -1755,7 +1755,7 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
   if (redraw)
     {
       face_change_count++;	/* forces xdisp.c to recompute basic faces */
-      if (f == SELECTED_FRAME())
+      if (f == SELECTED_FRAME ())
 	redraw_frame (f);
     }
 }
@@ -1772,7 +1772,7 @@ internal_terminal_init (void)
 {
   static int init_needed = 1;
   char *term = getenv ("TERM"), *colors;
-  struct frame *sf = SELECTED_FRAME();
+  struct frame *sf = SELECTED_FRAME ();
   struct tty_display_info *tty;
 
 #ifdef HAVE_X_WINDOWS
@@ -1923,7 +1923,7 @@ dos_get_saved_screen (char **screen, int *rows, int *cols)
 void
 check_x (void)
 {
-  if (! FRAME_MSDOS_P (SELECTED_FRAME()))
+  if (! FRAME_MSDOS_P (SELECTED_FRAME ()))
     error ("Not running under a window system");
 }
 
@@ -2442,12 +2442,12 @@ dos_rawgetc (void)
 {
   struct input_event event;
   union REGS regs;
-  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (SELECTED_FRAME());
+  Mouse_HLInfo *hlinfo = MOUSE_HL_INFO (SELECTED_FRAME ());
   EVENT_INIT (event);
 
 #ifndef HAVE_X_WINDOWS
   /* Maybe put the cursor where it should be.  */
-  IT_cmgoto (SELECTED_FRAME());
+  IT_cmgoto (SELECTED_FRAME ());
 #endif
 
   /* The following condition is equivalent to `kbhit ()', except that
@@ -2692,7 +2692,7 @@ dos_rawgetc (void)
 	  /* Generate SELECT_WINDOW_EVENTs when needed.  */
 	  if (!NILP (Vmouse_autoselect_window))
 	    {
-	      mouse_window = window_from_coordinates (SELECTED_FRAME(),
+	      mouse_window = window_from_coordinates (SELECTED_FRAME (),
 						      mouse_last_x,
 						      mouse_last_y,
 						      0, 0);
@@ -2718,7 +2718,7 @@ dos_rawgetc (void)
 	  previous_help_echo_string = help_echo_string;
 	  help_echo_string = help_echo_object = help_echo_window = Qnil;
 	  help_echo_pos = -1;
-	  note_mouse_highlight (SELECTED_FRAME(), mouse_last_x, mouse_last_y);
+	  note_mouse_highlight (SELECTED_FRAME (), mouse_last_x, mouse_last_y);
 	  /* If the contents of the global variable help_echo has
 	     changed, generate a HELP_EVENT.  */
 	  if (!NILP (help_echo_string) || !NILP (previous_help_echo_string))
@@ -2913,7 +2913,7 @@ IT_menu_display (XMenu *menu, int y, int x, int pn, int *faces, int disp_help)
   int i, j, face, width,  mx, my, enabled, mousehere, row, col;
   struct glyph *text, *p;
   const unsigned char *q;
-  struct frame *sf = SELECTED_FRAME();
+  struct frame *sf = SELECTED_FRAME ();
 
   menu_help_message = NULL;
 
@@ -3092,7 +3092,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   int statecount, x, y, i, b, screensize, leave, result, onepane;
   int title_faces[4];		/* face to display the menu title */
   int faces[4], buffers_num_deleted = 0;
-  struct frame *sf = SELECTED_FRAME();
+  struct frame *sf = SELECTED_FRAME ();
   Lisp_Object saved_echo_area_message, selectface;
 
   /* Just in case we got here without a mouse present...  */
@@ -3539,10 +3539,10 @@ init_environment (int argc, char **argv, int skip_args)
 	  /* Some lusers set TMPDIR=e:, probably because some losing
 	     programs cannot handle multiple slashes if they use e:/.
 	     e: fails in `access' below, so we interpret e: as e:/.  */
-	  tmp_len = strlen(tmp);
+	  tmp_len = strlen (tmp);
 	  if (tmp[tmp_len - 1] != '/' && tmp[tmp_len - 1] != '\\')
 	    {
-	      strcpy(buf, tmp);
+	      strcpy (buf, tmp);
 	      buf[tmp_len++] = '/', buf[tmp_len] = 0;
 	      tmp = buf;
 	    }

@@ -237,7 +237,7 @@ check_memory_limits (void)
     (*warn_function) ("Warning: memory in use exceeds lisp pointer size");
 }
 
-#if !defined(CANNOT_DUMP) || !defined(SYSTEM_MALLOC)
+#if !defined (CANNOT_DUMP) || !defined (SYSTEM_MALLOC)
 /* Some systems that cannot dump also cannot implement these.  */
 
 /*

@@ -67,7 +67,7 @@
 # define regexec(pr, st, nm, pm, ef) __regexec (pr, st, nm, pm, ef)
 # define regcomp(preg, pattern, cflags) __regcomp (preg, pattern, cflags)
 # define regerror(err_code, preg, errbuf, errbuf_size) \
-	__regerror(err_code, preg, errbuf, errbuf_size)
+	__regerror (err_code, preg, errbuf, errbuf_size)
 # define re_set_registers(bu, re, nu, st, en) \
 	__re_set_registers (bu, re, nu, st, en)
 # define re_match_2(bufp, string1, size1, string2, size2, pos, regs, stop) \
@@ -376,12 +376,12 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 # define ISUPPER(c) isupper (c)
 # define ISXDIGIT(c) isxdigit (c)
 
-# define ISWORD(c) ISALPHA(c)
+# define ISWORD(c) ISALPHA (c)
 
 # ifdef _tolower
-#  define TOLOWER(c) _tolower(c)
+#  define TOLOWER(c) _tolower (c)
 # else
-#  define TOLOWER(c) tolower(c)
+#  define TOLOWER(c) tolower (c)
 # endif
 
 /* How many characters in the character set.  */
@@ -2112,7 +2112,7 @@ re_iswctype (int ch, re_wctype_t cc)
     case RECC_WORD: return ISWORD (ch) != 0;
     case RECC_ERROR: return false;
     default:
-      abort();
+      abort ();
     }
 }
 
@@ -2133,7 +2133,7 @@ re_wctype_to_bit (re_wctype_t cc)
     case RECC_ASCII: case RECC_DIGIT: case RECC_XDIGIT: case RECC_CNTRL:
     case RECC_BLANK: case RECC_UNIBYTE: case RECC_ERROR: return 0;
     default:
-      abort();
+      abort ();
     }
 }
 #endif
@@ -4537,10 +4537,10 @@ WEAK_ALIAS (__re_search_2, re_search_2)
 
 /* Declarations and macros for re_match_2.  */
 
-static int bcmp_translate _RE_ARGS((re_char *s1, re_char *s2,
-				    register ssize_t len,
-				    RE_TRANSLATE_TYPE translate,
-				    const int multibyte));
+static int bcmp_translate _RE_ARGS ((re_char *s1, re_char *s2,
+                                     register ssize_t len,
+                                     RE_TRANSLATE_TYPE translate,
+                                     const int multibyte));
 
 /* This converts PTR, a pointer into one of the search strings `string1'
    and `string2' into an offset from the beginning of that string.  */
@@ -6276,7 +6276,7 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1,
 	      goto fail;
 
 	    default:
-	      abort();
+	      abort ();
 	    }
 
 	  assert (p >= bufp->buffer && p <= pend);

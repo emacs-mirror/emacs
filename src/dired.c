@@ -1003,7 +1003,7 @@ so last access time will always be midnight of that day.  */)
   values[10] = INTEGER_TO_CONS (s.st_ino);
   values[11] = INTEGER_TO_CONS (s.st_dev);
 
-  return Flist (sizeof(values) / sizeof(values[0]), values);
+  return Flist (sizeof (values) / sizeof (values[0]), values);
 }
 
 DEFUN ("file-attributes-lessp", Ffile_attributes_lessp, Sfile_attributes_lessp, 2, 2, 0,

@@ -45,16 +45,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* The character used as a separator in path lists (like $PATH).  */
 
-#if defined(__MSDOS__)
+#if defined (__MSDOS__)
 #define PATH_LIST_SEPARATOR ';'
-#define FILENAME_EQ(X,Y)    (strcasecmp(X,Y) == 0)
+#define FILENAME_EQ(X,Y)    (strcasecmp (X,Y) == 0)
 #else
-#if defined(WINDOWSNT)
+#if defined (WINDOWSNT)
 #define PATH_LIST_SEPARATOR ';'
-#define FILENAME_EQ(X,Y)    (stricmp(X,Y) == 0)
+#define FILENAME_EQ(X,Y)    (stricmp (X,Y) == 0)
 #else
 #define PATH_LIST_SEPARATOR ':'
-#define FILENAME_EQ(X,Y)    (streq(X,Y))
+#define FILENAME_EQ(X,Y)    (streq (X,Y))
 #endif
 #endif
 /* The default output file name.  */
@@ -2511,7 +2511,7 @@ member (struct sym *cls, int vis)
 
           /* A function or class may follow.  */
         case TEMPLATE:
-          MATCH();
+          MATCH ();
           SET_FLAG (flags, F_TEMPLATE);
           /* Skip over template argument list */
           SKIP_MATCHING_IF ('<');
@@ -2930,7 +2930,7 @@ parse_qualified_ident_or_type (char **last_id)
     }
 
   while (enter--)
-    leave_namespace();
+    leave_namespace ();
 
   return cls;
 }

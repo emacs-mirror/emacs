@@ -105,7 +105,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "../lwlib/xlwmenu.h"
 #endif
 
-#if !defined(NO_EDITRES)
+#if !defined (NO_EDITRES)
 #define HACK_EDITRES
 extern void _XEditResCheckMessages (Widget, XtPointer, XEvent *, Boolean *);
 #endif /* not defined NO_EDITRES */
@@ -3274,7 +3274,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "internalBorderWidth", "internalBorderWidth",
 		       RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qvertical_scroll_bars,
-#if defined(USE_GTK) && defined(USE_TOOLKIT_SCROLL_BARS)
+#if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
 		       Qright,
 #else
 		       Qleft,
@@ -3443,7 +3443,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   BLOCK_INPUT;
 
   /* Set machine name and pid for the purpose of window managers.  */
-  set_machine_and_pid_properties(f);
+  set_machine_and_pid_properties (f);
 
   /* Set the WM leader property.  GTK does this itself, so this is not
      needed when using GTK.  */
@@ -5594,7 +5594,7 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
 
   BLOCK_INPUT;
 
-  GCPRO2(font_param, font);
+  GCPRO2 (font_param, font);
 
   XSETFONT (font, FRAME_FONT (f));
   font_param = Ffont_get (font, intern (":name"));

@@ -453,7 +453,7 @@ typedef struct {
 	long cbRfdOffset;
 	long cbExtOffset;
 } HDRR, *pHDRR;
-#define cbHDRR sizeof(HDRR)
+#define cbHDRR sizeof (HDRR)
 #define hdrNil ((pHDRR)0)
 #endif
 
@@ -549,11 +549,11 @@ typedef struct {
    */
 
 #define OLD_SECTION_H(n) \
-     (*(ElfW(Shdr) *) ((byte *) old_section_h + old_file_h->e_shentsize * (n)))
+     (*(ElfW (Shdr) *) ((byte *) old_section_h + old_file_h->e_shentsize * (n)))
 #define NEW_SECTION_H(n) \
-     (*(ElfW(Shdr) *) ((byte *) new_section_h + new_file_h->e_shentsize * (n)))
+     (*(ElfW (Shdr) *) ((byte *) new_section_h + new_file_h->e_shentsize * (n)))
 #define NEW_PROGRAM_H(n) \
-     (*(ElfW(Phdr) *) ((byte *) new_program_h + new_file_h->e_phentsize * (n)))
+     (*(ElfW (Phdr) *) ((byte *) new_program_h + new_file_h->e_phentsize * (n)))
 
 #define PATCH_INDEX(n) \
   do { \
@@ -563,8 +563,8 @@ typedef unsigned char byte;
 
 /* Round X up to a multiple of Y.  */
 
-static ElfW(Addr)
-round_up (ElfW(Addr) x, ElfW(Addr) y)
+static ElfW (Addr)
+round_up (ElfW (Addr) x, ElfW (Addr) y)
 {
   int rem = x % y;
   if (rem == 0)
@@ -581,7 +581,7 @@ round_up (ElfW(Addr) x, ElfW(Addr) y)
 
 static int
 find_section (const char *name, const char *section_names, const char *file_name,
-	      ElfW(Ehdr) *old_file_h, ElfW(Shdr) *old_section_h, int noerror)
+	      ElfW (Ehdr) *old_file_h, ElfW (Shdr) *old_section_h, int noerror)
 {
   int idx;
 
@@ -635,19 +635,19 @@ unexec (const char *new_name, const char *old_name)
 
   /* Pointers to the file, program and section headers for the old and
      new files.  */
-  ElfW(Ehdr) *old_file_h, *new_file_h;
-  ElfW(Phdr) *old_program_h, *new_program_h;
-  ElfW(Shdr) *old_section_h, *new_section_h;
+  ElfW (Ehdr) *old_file_h, *new_file_h;
+  ElfW (Phdr) *old_program_h, *new_program_h;
+  ElfW (Shdr) *old_section_h, *new_section_h;
 
   /* Point to the section name table in the old file.  */
   char *old_section_names;
 
-  ElfW(Addr) old_bss_addr, new_bss_addr;
-  ElfW(Word) old_bss_size, new_data2_size;
-  ElfW(Off)  new_data2_offset;
-  ElfW(Addr) new_data2_addr;
-  ElfW(Off)  old_bss_offset;
-  ElfW(Word) new_data2_incr;
+  ElfW (Addr) old_bss_addr, new_bss_addr;
+  ElfW (Word) old_bss_size, new_data2_size;
+  ElfW (Off)  new_data2_offset;
+  ElfW (Addr) new_data2_addr;
+  ElfW (Off)  old_bss_offset;
+  ElfW (Word) new_data2_incr;
 
   int n, nn;
   int old_bss_index, old_sbss_index, old_plt_index;
@@ -690,9 +690,9 @@ unexec (const char *new_name, const char *old_name)
 
   /* Get pointers to headers & section names */
 
-  old_file_h = (ElfW(Ehdr) *) old_base;
-  old_program_h = (ElfW(Phdr) *) ((byte *) old_base + old_file_h->e_phoff);
-  old_section_h = (ElfW(Shdr) *) ((byte *) old_base + old_file_h->e_shoff);
+  old_file_h = (ElfW (Ehdr) *) old_base;
+  old_program_h = (ElfW (Phdr) *) ((byte *) old_base + old_file_h->e_phoff);
+  old_section_h = (ElfW (Shdr) *) ((byte *) old_base + old_file_h->e_shoff);
   old_section_names = (char *) old_base
     + OLD_SECTION_H (old_file_h->e_shstrndx).sh_offset;
 
@@ -759,7 +759,7 @@ unexec (const char *new_name, const char *old_name)
 
 #if defined (emacs) || !defined (DEBUG)
   new_break = sbrk (0);
-  new_bss_addr = (ElfW(Addr)) new_break;
+  new_bss_addr = (ElfW (Addr)) new_break;
 #else
   new_bss_addr = old_bss_addr + old_bss_size + 0x1234;
 #endif
@@ -806,9 +806,9 @@ unexec (const char *new_name, const char *old_name)
   if (new_base == MAP_FAILED)
     fatal ("Can't allocate buffer for %s\n", old_name, 0);
 
-  new_file_h = (ElfW(Ehdr) *) new_base;
-  new_program_h = (ElfW(Phdr) *) ((byte *) new_base + old_file_h->e_phoff);
-  new_section_h = (ElfW(Shdr) *)
+  new_file_h = (ElfW (Ehdr) *) new_base;
+  new_program_h = (ElfW (Phdr) *) ((byte *) new_base + old_file_h->e_phoff);
+  new_section_h = (ElfW (Shdr) *)
     ((byte *) new_base + old_file_h->e_shoff + new_data2_incr);
 
   /* Make our new file, program and section headers as copies of the
@@ -844,7 +844,7 @@ unexec (const char *new_name, const char *old_name)
   for (n = new_file_h->e_phnum - 1; n >= 0; n--)
     {
       /* Compute maximum of all requirements for alignment of section.  */
-      ElfW(Word) alignment = (NEW_PROGRAM_H (n)).p_align;
+      ElfW (Word) alignment = (NEW_PROGRAM_H (n)).p_align;
       if ((OLD_SECTION_H (old_bss_index)).sh_addralign > alignment)
 	alignment = OLD_SECTION_H (old_bss_index).sh_addralign;
 
@@ -1078,8 +1078,8 @@ temacs:
       if (NEW_SECTION_H (nn).sh_type == SHT_MIPS_DEBUG
 	  && old_mdebug_index != -1)
 	{
-	  int diff = NEW_SECTION_H(nn).sh_offset
-		- OLD_SECTION_H(old_mdebug_index).sh_offset;
+	  int diff = NEW_SECTION_H (nn).sh_offset
+		- OLD_SECTION_H (old_mdebug_index).sh_offset;
 	  HDRR *phdr = (HDRR *)(NEW_SECTION_H (nn).sh_offset + new_base);
 
 	  if (diff)
@@ -1158,9 +1158,9 @@ temacs:
       if (NEW_SECTION_H (nn).sh_type == SHT_SYMTAB
 	  || NEW_SECTION_H (nn).sh_type == SHT_DYNSYM)
 	{
-	  ElfW(Shdr) *spt = &NEW_SECTION_H (nn);
+	  ElfW (Shdr) *spt = &NEW_SECTION_H (nn);
 	  unsigned int num = spt->sh_size / spt->sh_entsize;
-	  ElfW(Sym) * sym = (ElfW(Sym) *) (NEW_SECTION_H (nn).sh_offset +
+	  ElfW (Sym) * sym = (ElfW (Sym) *) (NEW_SECTION_H (nn).sh_offset +
 					   new_base);
 	  for (; num--; sym++)
 	    {
@@ -1178,7 +1178,7 @@ temacs:
   for (n = new_file_h->e_shnum - 1; n; n--)
     {
       byte *symnames;
-      ElfW(Sym) *symp, *symendp;
+      ElfW (Sym) *symp, *symendp;
 
       if (NEW_SECTION_H (n).sh_type != SHT_DYNSYM
 	  && NEW_SECTION_H (n).sh_type != SHT_SYMTAB)
@@ -1186,8 +1186,8 @@ temacs:
 
       symnames = ((byte *) new_base
 		  + NEW_SECTION_H (NEW_SECTION_H (n).sh_link).sh_offset);
-      symp = (ElfW(Sym) *) (NEW_SECTION_H (n).sh_offset + new_base);
-      symendp = (ElfW(Sym) *) ((byte *)symp + NEW_SECTION_H (n).sh_size);
+      symp = (ElfW (Sym) *) (NEW_SECTION_H (n).sh_offset + new_base);
+      symendp = (ElfW (Sym) *) ((byte *)symp + NEW_SECTION_H (n).sh_size);
 
       for (; symp < symendp; symp ++)
 	{
@@ -1231,7 +1231,7 @@ temacs:
      that it can undo relocations performed by the runtime linker.  */
   for (n = new_file_h->e_shnum - 1; n; n--)
     {
-      ElfW(Shdr) section = NEW_SECTION_H (n);
+      ElfW (Shdr) section = NEW_SECTION_H (n);
 
       /* Cause a compilation error if anyone uses n instead of nn below.  */
       #define n ((void) 0);
@@ -1263,21 +1263,21 @@ temacs:
 	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
 			  ".data1"))
 	    {
-	      ElfW(Addr) offset = (NEW_SECTION_H (nn).sh_addr
+	      ElfW (Addr) offset = (NEW_SECTION_H (nn).sh_addr
 				   - NEW_SECTION_H (nn).sh_offset);
 	      caddr_t reloc = old_base + section.sh_offset, end;
 	      for (end = reloc + section.sh_size; reloc < end;
 		   reloc += section.sh_entsize)
 		{
-		  ElfW(Addr) addr = ((ElfW(Rel) *) reloc)->r_offset - offset;
+		  ElfW (Addr) addr = ((ElfW (Rel) *) reloc)->r_offset - offset;
 #ifdef __alpha__
 		  /* The Alpha ELF binutils currently have a bug that
 		     sometimes results in relocs that contain all
 		     zeroes.  Work around this for now...  */
-		  if (((ElfW(Rel) *) reloc)->r_offset == 0)
+		  if (((ElfW (Rel) *) reloc)->r_offset == 0)
 		    continue;
 #endif
-		  memcpy (new_base + addr, old_base + addr, sizeof(ElfW(Addr)));
+		  memcpy (new_base + addr, old_base + addr, sizeof (ElfW (Addr)));
 		}
 	    }
 	  break;

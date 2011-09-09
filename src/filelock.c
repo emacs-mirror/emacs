@@ -630,7 +630,7 @@ unlock_all_files (void)
       b = XBUFFER (XCDR (XCAR (tail)));
       if (STRINGP (BVAR (b, file_truename)) && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))
 	{
-	  unlock_file(BVAR (b, file_truename));
+	  unlock_file (BVAR (b, file_truename));
 	}
     }
 }

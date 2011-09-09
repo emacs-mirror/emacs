@@ -95,7 +95,7 @@ typedef struct _MEMORY_STATUS_EX {
 #include <tlhelp32.h>
 #include <psapi.h>
 #include <w32api.h>
-#if !defined(__MINGW32__) || __W32API_MAJOR_VERSION < 3 || (__W32API_MAJOR_VERSION == 3 && __W32API_MINOR_VERSION < 15)
+#if !defined (__MINGW32__) || __W32API_MAJOR_VERSION < 3 || (__W32API_MAJOR_VERSION == 3 && __W32API_MINOR_VERSION < 15)
 /* This either is not in psapi.h or guarded by higher value of
    _WIN32_WINNT than what we use.  w32api supplied with MinGW 3.15
    defines it in psapi.h  */
@@ -6212,7 +6212,7 @@ emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
 
   for (;;)
     {
-      n = sys_read(fd, (char*)buf, sz);
+      n = sys_read (fd, (char*)buf, sz);
 
       if (n >= 0)
         return n;
@@ -6222,7 +6222,7 @@ emacs_gnutls_pull (gnutls_transport_ptr_t p, void* buf, size_t sz)
       if (err == EWOULDBLOCK)
         {
           /* Set a small timeout.  */
-          EMACS_SET_SECS_USECS(timeout, 1, 0);
+          EMACS_SET_SECS_USECS (timeout, 1, 0);
           FD_ZERO (&fdset);
           FD_SET ((int)fd, &fdset);
 
@@ -6252,7 +6252,7 @@ emacs_gnutls_push (gnutls_transport_ptr_t p, const void* buf, size_t sz)
 {
   struct Lisp_Process *process = (struct Lisp_Process *)p;
   int fd = process->outfd;
-  ssize_t n = sys_write(fd, buf, sz);
+  ssize_t n = sys_write (fd, buf, sz);
 
   /* 0 or more bytes written means everything went fine.  */
   if (n >= 0)
