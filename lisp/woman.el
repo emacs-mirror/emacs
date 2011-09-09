@@ -2937,11 +2937,14 @@ interpolated by `\*x' and `\*(xx' escapes."
     ("bv" "|")				; bold vertical
 
     ;; groff etc. extensions:
+    ;; List these via eg man -Tdvi groff_char > groff_char.dvi.
     ("lq" "\"")
     ("rq" "\"")
     ("aq" "'")
     ("ha" "^")
     ("ti" "~")
+    ("oq" "‘")                          ; u2018
+    ("cq" "’")                          ; u2019
     )
   "Alist of special character codes with ASCII and extended-font equivalents.
 Each alist elements has the form
@@ -4593,5 +4596,10 @@ logging the message."
      `("" (buffer . ,buf) . ,(bookmark-get-bookmark-record bookmark)))))
 
 (provide 'woman)
+
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
 ;;; woman.el ends here
