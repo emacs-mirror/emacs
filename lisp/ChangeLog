@@ -1,3 +1,9 @@
+2011-09-09  Juri Linkov  <juri@jurta.org>
+
+	* wdired.el (wdired-change-to-wdired-mode): Set buffer-local
+	`isearch-filter-predicate' to `wdired-isearch-filter-read-only'.
+	(wdired-isearch-filter-read-only): New function.  (Bug#6362)
+
 2011-09-09  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el (awk-mode): Prevent `define-derived-mode'
