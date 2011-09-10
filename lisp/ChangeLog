@@ -1,5 +1,11 @@
 2011-09-10  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-edit-string): Remove obsolete mention of
+	`C-w' (`isearch-yank-word-or-char') from docstring.
+	(isearch-query-replace): Fix typo in docstring (bug#9466).
+
+2011-09-10  Juri Linkov  <juri@jurta.org>
+
 	* paren.el (show-paren-function): Don't show escaped parens.
 	Let-bind `unescaped' to `t' when paren is not escaped.  (Bug#9461)
 
