@@ -91,8 +91,10 @@ text properties. This is only needed on XEmacs, as Emacs does this anyway."
                   (header gnus-tmp-from))
 
 (defmacro gnus-lrm-string-p (string)
-  (if (fboundp 'string-mark-left-to-rigth)
-      `(eq (aref ,string (1- (length ,string))) 8206)
+  (if (fboundp 'bidi-string-mark-left-to-right)
+      ;; LRM, RLM, PDF characters as integers to avoid breaking Emacs
+      ;; 23.
+      `(memq (aref ,string (1- (length ,string))) '(8206 8207 8236))
     nil))
 
 (defvar gnus-lrm-string (if (ignore-errors (string 8206))

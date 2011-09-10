@@ -2983,7 +2983,7 @@ The available operators are @code{not}, @code{and} and @code{or}.
 Predicates include @code{tick}, @code{unsend}, @code{undownload},
 @code{unread}, @code{dormant}, @code{expire}, @code{reply},
 @code{killed}, @code{bookmark}, @code{score}, @code{save},
-@code{cache}, @code{forward}, @code{unseen} and @code{recent}.
+@code{cache}, @code{forward}, and @code{unseen}.
 
 @end table
 
@@ -6165,18 +6165,9 @@ religiously) are marked with an @samp{S} in the second column
 (@code{gnus-saved-mark}).
 
 @item
-@vindex gnus-recent-mark
-Articles that according to the server haven't been shown to the user
-before are marked with a @samp{N} in the second column
-(@code{gnus-recent-mark}).  Note that not all servers support this
-mark, in which case it simply never appears.  Compare with
-@code{gnus-unseen-mark}.
-
-@item
 @vindex gnus-unseen-mark
 Articles that haven't been seen before in Gnus by the user are marked
 with a @samp{.} in the second column (@code{gnus-unseen-mark}).
-Compare with @code{gnus-recent-mark}.
 
 @item
 @vindex gnus-downloaded-mark
@@ -22265,8 +22256,9 @@ is @code{t} by default.
 
 @item gnus-interactive-exit
 @vindex gnus-interactive-exit
-Require confirmation before exiting Gnus.  This variable is @code{t} by
-default.
+If non-@code{nil}, require a confirmation when exiting Gnus.  If
+@code{quiet}, update any active summary buffers automatically without
+querying.  The default value is @code{t}.
 @end table
 
 
@@ -27993,10 +27985,6 @@ non-@code{nil}, the summary buffer is shown and updated as it's being
 built.
 
 @item
-The new @code{recent} mark @samp{.} indicates newly arrived messages (as
-opposed to old but unread messages).
-
-@item
 Gnus supports RFC 2369 mailing list headers, and adds a number of
 related commands in mailing list groups.  @xref{Mailing List}.
 
@@ -29572,9 +29560,9 @@ propagate the mark information to the server.
 marks (preserving all marks not mentioned).  @var{mark} is a list of
 marks; where each mark is a symbol.  Currently used marks are
 @code{read}, @code{tick}, @code{reply}, @code{expire}, @code{killed},
-@code{dormant}, @code{save}, @code{download}, @code{unsend},
-@code{forward} and @code{recent}, but your back end should, if
-possible, not limit itself to these.
+@code{dormant}, @code{save}, @code{download}, @code{unsend}, and
+@code{forward}, but your back end should, if possible, not limit
+itself to these.
 
 Given contradictory actions, the last action in the list should be the
 effective one.  That is, if your action contains a request to add the
