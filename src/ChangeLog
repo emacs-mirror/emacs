@@ -1,3 +1,8 @@
+2011-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (MAX_DISP_SCAN): Decrease to 250.  Prevents sluggish
+	redisplay in small windows.
+
 2011-09-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* frame.c (x_report_frame_params): Cast to avoid compiler warnings.

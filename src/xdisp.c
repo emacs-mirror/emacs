@@ -3132,9 +3132,9 @@ next_overlay_change (EMACS_INT pos)
 }
 
 /* How many characters forward to search for a display property or
-   display string.  Enough for a screenful of 100 lines x 50
-   characters in a line.  */
-#define MAX_DISP_SCAN 5000
+   display string.  Searching too far forward makes the bidi display
+   sluggish, especially in small windows.  */
+#define MAX_DISP_SCAN 250
 
 /* Return the character position of a display string at or after
    position specified by POSITION.  If no display string exists at or
