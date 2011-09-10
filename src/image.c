@@ -7229,8 +7229,10 @@ gif_load (struct frame *f, struct image *img)
 
   img->corners[TOP_CORNER] = gif->SavedImages[0].ImageDesc.Top;
   img->corners[LEFT_CORNER] = gif->SavedImages[0].ImageDesc.Left;
-  img->corners[BOT_CORNER] = img->corners[TOP_CORNER] + height;
-  img->corners[RIGHT_CORNER] = img->corners[LEFT_CORNER] + width;
+  img->corners[BOT_CORNER]
+    = img->corners[TOP_CORNER] + gif->SavedImages[0].ImageDesc.Height;
+  img->corners[RIGHT_CORNER]
+    = img->corners[LEFT_CORNER] + gif->SavedImages[0].ImageDesc.Width;
 
   if (!check_image_size (f, width, height))
     {
