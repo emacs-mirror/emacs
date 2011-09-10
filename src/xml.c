@@ -124,6 +124,8 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
 
   if (doc != NULL)
     {
+      /* If the document is just comments, then this should get us the
+	 nodes anyway. */
       xmlNode *n = doc->children->next;
       Lisp_Object r = Qnil;
 
@@ -134,9 +136,13 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
 	n = n->next;
       }
 
-      if (NILP (result))
-	result = r;
-      else
+      if (NILP (result)) {
+	/* The document isn't just comments, so get the tree the
+	   proper way. */
+	xmlNode *node = xmlDocGetRootElement (doc);
+	if (node != NULL)
+	  result = make_dom (node);
+      } else
 	result = Fcons (intern ("top"),
 			Fcons (Qnil, Fnreverse (Fcons (r, result))));
 
