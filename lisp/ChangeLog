@@ -1,3 +1,8 @@
+2011-09-10  Juri Linkov  <juri@jurta.org>
+
+	* paren.el (show-paren-function): Don't show escaped parens.
+	Let-bind `unescaped' to `t' when paren is not escaped.  (Bug#9461)
+
 2011-09-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/sendmail.el (mml-to-mime, mml-attach-file)
