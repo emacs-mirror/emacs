@@ -565,11 +565,7 @@ To change your decision later, customize `send-mail-function'.\n")
 				    send-actions return-action
 				    &rest ignored)
   (if switch-function
-      (let ((special-display-buffer-names nil)
-	    (special-display-regexps nil)
-	    (same-window-buffer-names nil)
-	    (same-window-regexps nil))
-	(funcall switch-function "*mail*")))
+      (funcall switch-function "*mail*"))
   (let ((cc (cdr (assoc-string "cc" other-headers t)))
 	(in-reply-to (cdr (assoc-string "in-reply-to" other-headers t)))
 	(body (cdr (assoc-string "body" other-headers t))))
@@ -1966,24 +1962,14 @@ you can move to one of them and type C-c C-c to recover that one."
 (defun mail-other-window (&optional noerase to subject in-reply-to cc replybuffer sendactions)
   "Like `mail' command, but display mail buffer in another window."
   (interactive "P")
-  (let ((pop-up-windows t)
-	(special-display-buffer-names nil)
-	(special-display-regexps nil)
-	(same-window-buffer-names nil)
-	(same-window-regexps nil))
-    (pop-to-buffer "*mail*"))
+  (switch-to-buffer-other-window "*mail*")
   (mail noerase to subject in-reply-to cc replybuffer sendactions))
 
 ;;;###autoload
 (defun mail-other-frame (&optional noerase to subject in-reply-to cc replybuffer sendactions)
   "Like `mail' command, but display mail buffer in another frame."
   (interactive "P")
-  (let ((pop-up-frames t)
-	(special-display-buffer-names nil)
-	(special-display-regexps nil)
-	(same-window-buffer-names nil)
-	(same-window-regexps nil))
-    (pop-to-buffer "*mail*"))
+  (switch-to-buffer-other-frame "*mail*")
   (mail noerase to subject in-reply-to cc replybuffer sendactions))
 
 ;; Do not add anything but external entries on this page.

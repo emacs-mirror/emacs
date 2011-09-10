@@ -928,7 +928,7 @@ To return to ordinary Occur mode, use \\[occur-mode]."
 
 (defalias 'occur-mode-mouse-goto 'occur-mode-goto-occurrence)
 (defun occur-mode-goto-occurrence (&optional event)
-  "Go to the occurrence the current line describes."
+  "Go to the occurrence on the current line."
   (interactive (list last-nonmenu-event))
   (let ((pos
          (if (null event)
@@ -939,10 +939,8 @@ To return to ordinary Occur mode, use \\[occur-mode]."
            (with-current-buffer (window-buffer (posn-window (event-end event)))
              (save-excursion
                (goto-char (posn-point (event-end event)))
-               (occur-mode-find-occurrence)))))
-        same-window-buffer-names
-        same-window-regexps)
-    (pop-to-buffer (marker-buffer pos))
+               (occur-mode-find-occurrence))))))
+    (pop-to-buffer (marker-buffer pos) t)
     (goto-char pos)
     (run-hooks 'occur-mode-find-occurrence-hook)))
 
@@ -958,11 +956,8 @@ To return to ordinary Occur mode, use \\[occur-mode]."
   "Display in another window the occurrence the current line describes."
   (interactive)
   (let ((pos (occur-mode-find-occurrence))
-	window
-	;; Bind these to ensure `display-buffer' puts it in another window.
-	same-window-buffer-names
-	same-window-regexps)
-    (setq window (display-buffer (marker-buffer pos)))
+	window)
+    (setq window (display-buffer (marker-buffer pos) t))
     ;; This is the way to set point in the proper window.
     (save-selected-window
       (select-window window)

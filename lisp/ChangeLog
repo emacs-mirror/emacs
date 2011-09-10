@@ -1,5 +1,35 @@
 2011-09-10  Chong Yidong  <cyd@stupidchicken.com>
 
+	* buff-menu.el (Buffer-menu-switch-other-window): Use second arg
+	of display-buffer.
+	(Buffer-menu-2-window): Use switch-to-buffer-other-window.
+
+	* replace.el (occur-mode-goto-occurrence)
+	(occur-mode-display-occurrence) Use second arg of pop-to-buffer
+	and display-buffer.
+
+	* mail/reporter.el (reporter-submit-bug-report): Use second arg of
+	display-buffer.
+
+	* mail/sendmail.el (sendmail-user-agent-compose): Don't bind the
+	special-display and same-window variables.
+	(mail-other-window): Use switch-to-buffer-other-window.
+	(mail-other-frame): USe switch-to-buffer-other-frame.
+
+	* progmodes/gdb-mi.el (gdb-frame-gdb-buffer): Use
+	display-buffer-other-frame.
+	(gdb-display-gdb-buffer): Use pop-to-buffer.
+
+	* progmodes/gud.el (gud-goto-info): Use info-other-window.
+
+	* progmodes/python.el: Don't set same-window-buffer-names.
+
+	* textmodes/bibtex.el (bibtex-search-entry): Use switch-to-buffer.
+
+	* window.el (display-buffer-alist): Add *Python*.
+
+2011-09-10  Chong Yidong  <cyd@stupidchicken.com>
+
 	* window.el (display-buffer-alist): Add entry for buffers
 	previously handled same-window-*.
 	(display-buffer-alist, display-buffer-default-action)
