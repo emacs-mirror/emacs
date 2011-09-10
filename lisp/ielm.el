@@ -553,8 +553,6 @@ Customized bindings may be defined in `ielm-map', which currently contains:
 
 ;;; User command
 
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*ielm*"))
-
 ;;;###autoload
 (defun ielm nil
   "Interactively evaluate Emacs Lisp expressions.

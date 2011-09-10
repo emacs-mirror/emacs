@@ -2466,10 +2466,6 @@ comint mode, which see."
   (set (make-local-variable 'gud-delete-prompt-marker) (make-marker))
   (add-hook 'kill-buffer-hook 'gud-kill-buffer-hook nil t))
 
-;; Cause our buffers to be displayed, by default,
-;; in the selected window.
-;;;###autoload (add-hook 'same-window-regexps (purecopy "\\*gud-.*\\*\\(\\|<[0-9]+>\\)"))
-
 (defcustom gud-chdir-before-run t
   "Non-nil if GUD should `cd' to the debugged executable."
   :group 'gud

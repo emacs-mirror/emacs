@@ -1738,9 +1738,6 @@ If the current line has `mail-yank-prefix', insert it on the new line."
 ;; Put these commands last, to reduce chance of lossage from quitting
 ;; in middle of loading the file.
 
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*mail*"))
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*unsent mail*"))
-
 ;;;###autoload
 (defun mail (&optional noerase to subject in-reply-to cc replybuffer
 		       actions return-action)

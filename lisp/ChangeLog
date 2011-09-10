@@ -1,3 +1,37 @@
+2011-09-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (display-buffer-alist): Add entry for buffers
+	previously handled same-window-*.
+	(display-buffer-alist, display-buffer-default-action)
+	(display-buffer-overriding-action): Mark as risky.
+	(display-buffer-alist): Document action function changes.
+	(display-buffer--same-window-action)
+	(display-buffer--other-frame-action): New variables.
+	(switch-to-buffer, display-buffer-other-frame): Use them.
+	(display-buffer): Rename reuse-frame entry to reusable-frames.
+	(display-buffer-reuse-selected-window): Function deleted.
+	(display-buffer-reuse-window): Handle reusable-frames alist entry.
+	If it's omitted, check pop-up-frames/display-buffer-reuse-frames.
+	(display-buffer-special): New function.
+	(display-buffer--maybe-pop-up-frame-or-window): Rename from
+	display-buffer-reuse-or-pop-window.  Split off special-display
+	part into display-buffer-special.
+	(display-buffer-use-some-window): Don't perform any special
+	pop-up-frames handling.
+	(pop-to-buffer): Use window-normalize-buffer-to-switch-to.
+
+	* cus-edit.el:
+	* info.el:
+	* net/rlogin.el:
+	* net/telnet.el:
+	* progmodes/gud.el: Don't set same-window-regexps.
+
+	* cmuscheme.el:
+	* ielm.el:
+	* shell.el:
+	* mail/sendmail.el:
+	* progmodes/inf-lisp.el: Don't set same-window-buffer-names.
+
 2011-09-10  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-edit-string): Remove obsolete mention of

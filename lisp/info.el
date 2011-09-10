@@ -613,8 +613,6 @@ in `Info-file-supports-index-cookies-list'."
   (let (same-window-buffer-names same-window-regexps)
     (info file-or-node)))
 
-;;;###autoload (add-hook 'same-window-regexps (purecopy "\\*info\\*\\(\\|<[0-9]+>\\)"))
-
 ;;;###autoload (put 'info 'info-file (purecopy "emacs"))
 ;;;###autoload
 (defun info (&optional file-or-node buffer)
