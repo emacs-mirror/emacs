@@ -19,6 +19,8 @@
 	(display-buffer-use-some-window): Don't perform any special
 	pop-up-frames handling.
 	(pop-to-buffer): Use window-normalize-buffer-to-switch-to.
+	(display-buffer--maybe-same-window): Renamed from
+	display-buffer-maybe-same-window.
 
 	* cus-edit.el:
 	* info.el:

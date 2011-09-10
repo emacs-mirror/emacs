@@ -4515,7 +4515,7 @@ This is a list of elements (CONDITION . ACTION), where:
 (put 'display-buffer-alist 'risky-local-variable t)
 
 (defvar display-buffer-default-action
-  '((display-buffer-maybe-same-window
+  '((display-buffer--maybe-same-window
      display-buffer-reuse-window
      display-buffer--special
      display-buffer--maybe-pop-up-frame-or-window
@@ -4585,7 +4585,6 @@ alist as the second argument, until a function returns non-nil.
 
 Available action functions include:
  `display-buffer-same-window'
- `display-buffer-maybe-same-window'
  `display-buffer-reuse-window'
  `display-buffer-pop-up-frame'
  `display-buffer-pop-up-window'
@@ -4668,7 +4667,7 @@ selected window."
     (display-buffer-record-window 'reuse-window (selected-window) buffer)
     (window--display-buffer-2 buffer (selected-window))))
 
-(defun display-buffer-maybe-same-window (buffer alist)
+(defun display-buffer--maybe-same-window (buffer alist)
   "Conditionally display BUFFER in the selected window.
 If `same-window-p' returns non-nil for BUFFER's name, call
 `display-buffer-same-window' and return its value.  Otherwise,
