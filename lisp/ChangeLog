@@ -1,3 +1,7 @@
+2011-09-10  Reuben Thomas  <rrt@sc3d.org>
+
+	* simple.el (count-words-region): Use buffer if there's no region.
+
 2011-09-09  Juri Linkov  <juri@jurta.org>
 
 	* wdired.el (wdired-change-to-wdired-mode): Set buffer-local
