@@ -22,8 +22,16 @@
 	(display-buffer--maybe-same-window): Renamed from
 	display-buffer-maybe-same-window.
 
-	* cus-edit.el:
-	* info.el:
+	* info.el: Don't set same-window-regexps.
+	(info-setup): New function.
+	(info-other-window, info): Call it.
+
+	* cus-edit.el: Don't set same-window-regexps.
+	(customize-group): New argument.
+	(customize-group-other-window): Use it.
+	(customize-face, customize-face-other-window): Likewise.
+	(custom-buffer-create-other-window): Use pop-to-buffer directly.
+
 	* net/rlogin.el:
 	* net/telnet.el:
 	* progmodes/gud.el: Don't set same-window-regexps.

@@ -610,8 +610,7 @@ in `Info-file-supports-index-cookies-list'."
   "Like `info' but show the Info buffer in another window."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Info file name: " nil nil t))))
-  (let (same-window-buffer-names same-window-regexps)
-    (info file-or-node)))
+  (info-setup file-or-node (pop-to-buffer "*info*" t)))
 
 ;;;###autoload (put 'info 'info-file (purecopy "emacs"))
 ;;;###autoload
@@ -641,7 +640,10 @@ See a list of available Info commands in `Info-mode'."
                     (read-file-name "Info file name: " nil nil t))
                 (if (numberp current-prefix-arg)
                     (format "*info*<%s>" current-prefix-arg))))
-  (pop-to-buffer (or buffer "*info*"))
+  (info-setup file-or-node (pop-to-buffer (or buffer "*info*"))))
+
+(defun info-setup (file-or-node buffer)
+  "Display Info node FILE-OR-NODE in BUFFER."
   (if (and buffer (not (eq major-mode 'Info-mode)))
       (Info-mode))
   (if file-or-node
