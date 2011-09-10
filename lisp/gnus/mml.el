@@ -897,6 +897,7 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
 (autoload 'message-encode-message-body "message")
 (declare-function message-narrow-to-headers-or-head "message" ())
 
+;;;###autoload
 (defun mml-to-mime ()
   "Translate the current buffer from MML to MIME."
   ;; `message-encode-message-body' will insert an encoded Content-Description
@@ -1294,6 +1295,7 @@ to specify options."
   :version "22.1" ;; Gnus 5.10.9
   :group 'message)
 
+;;;###autoload
 (defun mml-attach-file (file &optional type description disposition)
   "Attach a file to the outgoing MIME message.
 The file is not inserted or encoded until you send the message with

@@ -31,9 +31,6 @@
 
 (require 'rfc2047)
 
-(autoload 'mml-to-mime "mml"
-  "Translate the current buffer from MML to MIME.")
-
 (defgroup sendmail nil
   "Mail sending commands for Emacs."
   :prefix "mail-"
@@ -309,6 +306,9 @@ The default value matches citations like `foo-bar>' plus whitespace."
 
     (define-key map [menu-bar mail]
       (cons "Mail" (make-sparse-keymap "Mail")))
+
+    (define-key map [menu-bar mail attachment]
+      '("Attach File" . mail-add-attachment))
 
     (define-key map [menu-bar mail fill]
       '("Fill Citation" . mail-fill-yanked-message))
@@ -700,6 +700,8 @@ Here are commands that move to a header field (and create it if there isn't):
 \\[mail-signature]  mail-signature (insert `mail-signature-file' file).
 \\[mail-yank-original]  mail-yank-original (insert current message, in Rmail).
 \\[mail-fill-yanked-message]  mail-fill-yanked-message (fill what was yanked).
+\\[mail-insert-file] insert a text file into the message.
+\\[mail-add-attachment] attach to the message a file as binary attachment.
 Turning on Mail mode runs the normal hooks `text-mode-hook' and
 `mail-mode-hook' (in that order)."
   (make-local-variable 'mail-reply-action)
@@ -868,6 +870,7 @@ header when sending a message to a mailing list."
   :type '(repeat string)
   :group 'sendmail)
 
+(declare-function mml-to-mime "mml" ())
 
 (defun mail-send ()
   "Send the message in the current buffer.
@@ -1697,7 +1700,7 @@ If the current line has `mail-yank-prefix', insert it on the new line."
   (split-line mail-yank-prefix))
 
 
-(defun mail-attach-file (&optional file)
+(defun mail-insert-file (&optional file)
   "Insert a file at the end of the buffer, with separator lines around it."
   (interactive "fAttach file: ")
   (save-excursion
@@ -1716,6 +1719,21 @@ If the current line has `mail-yank-prefix', insert it on the new line."
       (insert-file-contents file)
       (or (bolp) (newline))
       (goto-char start))))
+
+(define-obsolete-function-alias 'mail-attach-file 'mail-insert-file "24.1")
+
+(declare-function mml-attach-file "mml"
+		  (file &optional type description disposition))
+(declare-function mm-default-file-encoding "mm-encode" (file))
+
+(defun mail-add-attachment (file)
+  "Add FILE as a MIME attachment to the end of the mail message being composed."
+  (interactive "fAttach file: ")
+  (mml-attach-file file
+		   (or (mm-default-file-encoding file)
+		       "application/octet-stream") nil)
+  (setq mail-encode-mml t))
+
 
 ;; Put these commands last, to reduce chance of lossage from quitting
 ;; in middle of loading the file.

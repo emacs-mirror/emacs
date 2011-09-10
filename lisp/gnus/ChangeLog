@@ -1,3 +1,10 @@
+2011-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	Add autoload cookies for functions used by sendmail.el.
+	* mm-encode.el (mm-default-file-encoding): Add autoload cookie.
+
+	* mml.el (mml-to-mime, mml-attach-file): Add autoload cookies.
+
 2011-09-09  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (article-date-ut): Work properly even when there are

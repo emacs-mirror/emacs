@@ -1,3 +1,14 @@
+2011-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/sendmail.el (mml-to-mime, mml-attach-file)
+	(mm-default-file-encoding): Remove autoload forms, they are
+	replaced with autoload cookies in mml.el and mm-encode.el.
+	(mail-add-attachment): New command.
+	(mail-mode-map): Add a menu-bar item for mail-add-attachment.
+	(mail-mode): Mention mail-insert-file and mail-add-attachment in
+	the doc string.
+	(mml-to-mime, mml-attach-file, mm-default-file-encoding): Declare.
+
 2011-09-10  Reuben Thomas  <rrt@sc3d.org>
 
 	* simple.el (count-words-region): Use buffer if there's no region.
