@@ -1,3 +1,9 @@
+2011-09-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.h: Include <sys/types.h> instead of <time.h>.
+	Otherwise, off_t wasn't defined on FreeBSD 9.0-BETA2 i386.
+	Problem reported by Herbert J. Skuhra.
+
 2011-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* xml.c (parse_region): Make the parsing work for
