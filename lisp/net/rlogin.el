@@ -125,8 +125,6 @@ this variable is set from that."
 
 
 
-;;;###autoload (add-hook 'same-window-regexps (purecopy "^\\*rlogin-.*\\*\\(\\|<[0-9]+>\\)"))
-
 (defvar rlogin-history nil)
 
 ;;;###autoload

@@ -556,8 +556,8 @@ package, which provides more flexible citation
 @cindex Multipurpose Internet Mail Extensions
   You can @dfn{attach} a file to an outgoing message by typing
 @kbd{C-c C-a} (@code{mml-attach-file}) in the mail buffer.  Attaching
-is done using the MIME (Multipurpose Internet Mail Extensions)
-standard.
+is done using the Multipurpose Internet Mail Extensions
+(@acronym{MIME}) standard.
 
   The @code{mml-attach-file} command prompts for the name of the file,
 and for the attachment's @dfn{content type}, @dfn{description}, and
@@ -569,6 +569,13 @@ disposition is either @samp{inline} (the default), which means the
 recipient will see a link to the attachment within the message body,
 or @samp{attachment}, which means the link will be separate from the
 body.
+
+@findex mail-add-attachment
+  The @code{mml-attach-file} command is specific to Message mode; in
+Mail mode use @kbd{mail-add-attachment} instead.  It will prompt only
+for the name of the file, and will determine the content type and the
+disposition automatically.  If you want to include some description of
+the attached file, type that in the message body.
 
   The actual contents of the attached file are not inserted into the
 mail buffer.  Instead, some placeholder text is inserted into the mail

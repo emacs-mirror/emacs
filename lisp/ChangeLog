@@ -1,3 +1,69 @@
+2011-09-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (display-buffer-alist): Add entry for buffers
+	previously handled same-window-*.
+	(display-buffer-alist, display-buffer-default-action)
+	(display-buffer-overriding-action): Mark as risky.
+	(display-buffer-alist): Document action function changes.
+	(display-buffer--same-window-action)
+	(display-buffer--other-frame-action): New variables.
+	(switch-to-buffer, display-buffer-other-frame): Use them.
+	(display-buffer): Rename reuse-frame entry to reusable-frames.
+	(display-buffer-reuse-selected-window): Function deleted.
+	(display-buffer-reuse-window): Handle reusable-frames alist entry.
+	If it's omitted, check pop-up-frames/display-buffer-reuse-frames.
+	(display-buffer-special): New function.
+	(display-buffer--maybe-pop-up-frame-or-window): Rename from
+	display-buffer-reuse-or-pop-window.  Split off special-display
+	part into display-buffer-special.
+	(display-buffer-use-some-window): Don't perform any special
+	pop-up-frames handling.
+	(pop-to-buffer): Use window-normalize-buffer-to-switch-to.
+
+	* cus-edit.el:
+	* info.el:
+	* net/rlogin.el:
+	* net/telnet.el:
+	* progmodes/gud.el: Don't set same-window-regexps.
+
+	* cmuscheme.el:
+	* ielm.el:
+	* shell.el:
+	* mail/sendmail.el:
+	* progmodes/inf-lisp.el: Don't set same-window-buffer-names.
+
+2011-09-10  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-edit-string): Remove obsolete mention of
+	`C-w' (`isearch-yank-word-or-char') from docstring.
+	(isearch-query-replace): Fix typo in docstring (bug#9466).
+
+2011-09-10  Juri Linkov  <juri@jurta.org>
+
+	* paren.el (show-paren-function): Don't show escaped parens.
+	Let-bind `unescaped' to `t' when paren is not escaped.  (Bug#9461)
+
+2011-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/sendmail.el (mml-to-mime, mml-attach-file)
+	(mm-default-file-encoding): Remove autoload forms, they are
+	replaced with autoload cookies in mml.el and mm-encode.el.
+	(mail-add-attachment): New command.
+	(mail-mode-map): Add a menu-bar item for mail-add-attachment.
+	(mail-mode): Mention mail-insert-file and mail-add-attachment in
+	the doc string.
+	(mml-to-mime, mml-attach-file, mm-default-file-encoding): Declare.
+
+2011-09-10  Reuben Thomas  <rrt@sc3d.org>
+
+	* simple.el (count-words-region): Use buffer if there's no region.
+
+2011-09-09  Juri Linkov  <juri@jurta.org>
+
+	* wdired.el (wdired-change-to-wdired-mode): Set buffer-local
+	`isearch-filter-predicate' to `wdired-isearch-filter-read-only'.
+	(wdired-isearch-filter-read-only): New function.  (Bug#6362)
+
 2011-09-09  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el (awk-mode): Prevent `define-derived-mode'

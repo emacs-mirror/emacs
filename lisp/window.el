@@ -4498,53 +4498,44 @@ BUFFER-OR-NAME and return that buffer."
 	    buffer))
     (current-buffer)))
 
-(defvar display-buffer-alist nil
+(defvar display-buffer-alist
+  '(("\\`\\*\\(scheme\\|ielm\\|shell\\|\\(unsent \\)?mail\\|inferior-lisp\
+\\|Customiz.*\\|info\\|rlogin-.*\\|telnet-.*\\|rsh-.*\\|gud-.*\\)\\*\\(<[0-9]+>\\)?"
+     . (display-buffer-same-window)))
   "Alist of conditional actions for `display-buffer'.
 This is a list of elements (CONDITION . ACTION), where:
 
  CONDITION is either a regexp matching buffer names, or a function
   that takes a buffer and returns a boolean.
 
- ACTION is a cons cell (FUNCTION . ALIST), where FUNCTION is
-  either a function or a list of functions.  Each such function
-  should accept 2 arguments: a buffer to display and an alist of
-  the same form as ALIST.  It should return the window used, or
-  nil if it fails to display the window.  See `display-buffer'
-  for more details.
-
-Usable action functions include:
- `display-buffer-reuse-selected-window'
- `display-buffer-same-window'
- `display-buffer-maybe-same-window'
- `display-buffer-reuse-window'
- `display-buffer-pop-up-frame'
- `display-buffer-pop-up-window'
- `display-buffer-reuse-or-pop-window'
- `display-buffer-use-some-window'
-
-The above functions recognize the following alist entries:
- - `inhibit-same-window', if non-nil, prevents the same window
-   from being used for display.
- - `reuse-frame' specifies the frames that can be searched for a
-   window displaying the buffer.  Its values have the same
-   meaning as the ALL-FRAMES arg to `get-buffer-window-list'.")
+ ACTION is a cons cell (FUNCTION . ALIST), where FUNCTION is a
+  function or a list of functions.  Each such function should
+  accept 2 arguments: a buffer to display and an alist of the
+  same form as ALIST.  See `display-buffer' for details.")
+(put 'display-buffer-alist 'risky-local-variable t)
 
 (defvar display-buffer-default-action
-  '((display-buffer-reuse-selected-window
-     display-buffer-maybe-same-window
-     display-buffer-reuse-or-pop-window
+  '((display-buffer-maybe-same-window
+     display-buffer-reuse-window
+     display-buffer--special
+     display-buffer--maybe-pop-up-frame-or-window
      display-buffer-use-some-window
-     ;; If all else fails, pop up a new frame regardless of
-     ;; restrictions.
+     ;; If all else fails, pop up a new frame.
      display-buffer-pop-up-frame))
   "List of default actions for `display-buffer'.
-It should be a cons cell of the form (FUNCTION . ALIST), which
-has the same meaning as in `display-buffer-alist'.")
+It should be a cons cell (FUNCTION . ALIST), where FUNCTION is a
+function or a list of functions.  Each function should accept 2
+arguments: a buffer to display and an alist of the same form as
+ALIST.  See `display-buffer' for details.")
+(put 'display-buffer-default-action 'risky-local-variable t)
 
 (defvar display-buffer-overriding-action nil
   "Overriding action to perform to display a buffer.
-If non-nil, it should be a cons cell (FUNCTION . ALIST), which
-has the same meaning as in `display-buffer-alist'.")
+If non-nil, it should be a cons cell (FUNCTION . ALIST), where
+FUNCTION is a function or a list of functions.  Each function
+should accept 2 arguments: a buffer to display and an alist of
+the same form as ALIST.  See `display-buffer' for details.")
+(put 'display-buffer-overriding-action 'risky-local-variable t)
 
 (defun display-buffer-assq-regexp (buffer-name alist)
   "Retrieve ALIST entry corresponding to BUFFER-NAME."
@@ -4558,6 +4549,21 @@ has the same meaning as in `display-buffer-alist'.")
 		       (funcall key buffer-name alist)))
 	  (throw 'match (cdr entry)))))))
 
+(defvar display-buffer--same-window-action
+  '(display-buffer-same-window
+    (inhibit-same-window . nil))
+  "A `display-buffer' action for displaying in the same window.")
+(put 'display-buffer--same-window-action 'risky-local-variable t)
+
+(defvar display-buffer--other-frame-action
+  '((display-buffer-reuse-window
+     display-buffer--special
+     display-buffer-pop-up-frame)
+    (reusable-frames . 0)
+    (inhibit-same-window . t))
+  "A `display-buffer' action for displaying in another frame.")
+(put 'display-buffer--other-frame-action 'risky-local-variable t)
+
 (defun display-buffer (&optional buffer-or-name action frame)
   "Display BUFFER-OR-NAME in some window.
 BUFFER-OR-NAME must be a buffer or the name of an existing
@@ -4570,12 +4576,29 @@ function is called with 2 arguments: the buffer to display and an
 alist.  It should either display the buffer and return the
 window, or return nil if it is unable to display the buffer.
 
-`display-buffer' constructs a list of action functions and an
-action alist by combining `display-buffer-overriding-action',
-`display-buffer-alist', the ACTION argument, and
-`display-buffer-default-action' (in that order).  It calls each
-action function in turn, passing the combined action alist as the
-second argument, until one of the functions returns non-nil.
+`display-buffer' builds a function list and an alist from
+`display-buffer-overriding-action', `display-buffer-alist',
+ACTION, and `display-buffer-default-action' (in that order).
+Then it calls each function in the combined function list in
+turn, passing the buffer as the first argument and the combined
+alist as the second argument, until a function returns non-nil.
+
+Available action functions include:
+ `display-buffer-same-window'
+ `display-buffer-maybe-same-window'
+ `display-buffer-reuse-window'
+ `display-buffer-pop-up-frame'
+ `display-buffer-pop-up-window'
+ `display-buffer-use-some-window'
+
+Recognized alist entries include:
+
+ `inhibit-same-window' -- A non-nil value prevents the same
+                          window from being used for display.
+
+ `reusable-frames' -- Value specifies frame(s) to search for a
+                      window that already displays the buffer.
+                      See `display-buffer-reuse-window'.
 
 The ACTION argument to `display-buffer' can also have a non-nil
 and non-list value.  This means to display the buffer in a window
@@ -4583,14 +4606,10 @@ other than the selected one, even if it is already displayed in
 the selected window.  If called interactively with a prefix
 argument, ACTION is t.
 
-Optional argument FRAME specifies where to look for a window that
-already displays the buffer.  If nil, check only the selected
-frame (actually the last non-minibuffer frame), except if
-`display-buffer-reuse-frames' or `pop-up-frames' is non-nil
-\(non-nil and not graphic-only on a text-only terminal), in which
-case check all visible or iconified frames.  Otherwise, FRAME can
-be a specific frame, `visible' (all visible frames), 0 (all
-frames on the current terminal), or t (all frames)."
+Optional argument FRAME, if non-nil, acts like an additional
+ALIST entry (reusable-frames . FRAME), specifying the frame(s) to
+search for a window that is already displaying the buffer.  See
+`display-buffer-reuse-window'."
   (interactive (list (read-buffer "Display buffer: " (other-buffer))
 		     (if current-prefix-arg t)))
   (let ((buffer (window-normalize-buffer-to-display buffer-or-name))
@@ -4609,7 +4628,7 @@ frames on the current terminal), or t (all frames)."
 	      (cons nil (append (if inhibit-same-window
 				    '((inhibit-same-window . t)))
 				(if frame
-				    `((reuse-frame . ,frame))))))
+				    `((reusable-frames . ,frame))))))
 	     ;; Construct action function list and action alist.
 	     (actions (list display-buffer-overriding-action
 			    user-action action extra-action
@@ -4633,45 +4652,16 @@ frames on the current terminal), or t (all frames)."
 This uses the function `display-buffer' as a subroutine; see
 its documentation for additional customization information."
   (interactive "BDisplay buffer in other frame: ")
-  (let ((pop-up-frames t)
-	same-window-buffer-names same-window-regexps
-        ;;(old-window (selected-window))
-	new-window)
-    (setq new-window (display-buffer buffer t))
-    ;; This may have been here in order to prevent the new frame from hiding
-    ;; the old frame.  But it does more harm than good.
-    ;; Maybe we should call `raise-window' on the old-frame instead?  --Stef
-    ;;(lower-frame (window-frame new-window))
-
-    ;; This may have been here in order to make sure the old-frame gets the
-    ;; focus.  But not only can it cause an annoying flicker, with some
-    ;; window-managers it just makes the window invisible, with no easy
-    ;; way to recover it.  --Stef
-    ;;(make-frame-invisible (window-frame old-window))
-    ;;(make-frame-visible (window-frame old-window))
-    ))
+  (display-buffer buffer display-buffer--other-frame-action t))
 
 ;;; `display-buffer' action functions:
 
-(defun display-buffer-reuse-selected-window (buffer alist)
-  "Try to display BUFFER in the selected window if it is already there.
-If this succeeds, return the selected window.
-
-This fails if BUFFER is not displayed in the selected window, or
-if ALIST has a non-nil `inhibit-same-window' entry.  In that
-case, return nil."
-  (when (and (not (cdr (assq 'inhibit-same-window alist)))
-	     (eq buffer (window-buffer)))
-    (display-buffer-record-window 'reuse-window (selected-window) buffer)
-    (window--display-buffer-1 (selected-window))))
-
 (defun display-buffer-same-window (buffer alist)
-  "Try to display BUFFER in the selected window.
-If this succeeds, return the selected window.
-
-This fails if the selected window is a minibuffer window or is
-dedicated to another buffer, or if ALIST has a non-nil
-`inhibit-same-window' entry.  In that case, return nil."
+  "Display BUFFER in the selected window.
+This fails if ALIST has a non-nil `inhibit-same-window' entry, or
+if the selected window is a minibuffer window or is dedicated to
+another buffer; in that case, return nil.  Otherwise, return the
+selected window."
   (unless (or (cdr (assq 'inhibit-same-window alist))
 	      (window-minibuffer-p)
 	      (window-dedicated-p))
@@ -4679,42 +4669,66 @@ dedicated to another buffer, or if ALIST has a non-nil
     (window--display-buffer-2 buffer (selected-window))))
 
 (defun display-buffer-maybe-same-window (buffer alist)
-  "Try to display BUFFER in the selected window.
-This acts like `display-buffer-same-window', except that it also
-fails if `same-window-p' returns nil for this buffer."
+  "Conditionally display BUFFER in the selected window.
+If `same-window-p' returns non-nil for BUFFER's name, call
+`display-buffer-same-window' and return its value.  Otherwise,
+return nil."
   (and (same-window-p (buffer-name buffer))
        (display-buffer-same-window buffer alist)))
 
 (defun display-buffer-reuse-window (buffer alist)
   "Return a window that is already displaying BUFFER.
-If no usable window is found, return nil.
+Return nil if no usable window is found.
 
-If ALIST has a non-nil `inhibit-same-window' entry, the same
-window cannot be reused.
+If ALIST has a non-nil `inhibit-same-window' entry, the selected
+window is not eligible for reuse.
 
-If ALIST contains a `reuse-frame' entry, that determines the
-frames to check for a window displaying the buffer.  If the entry
-is omitted or the value is nil, check only this frame.  The value
-can also be a specific frame, `visible' (all visible frames),
-0 (all frames on the current terminal), or t (all frames)."
-  (let* ((can-use-selected-window
-	  (not (cdr (assq 'inhibit-same-window alist))))
-	 (frames (or (cdr (assq 'reuse-frame alist))
-		     (last-nonminibuffer-frame)))
-	 (window (catch 'found
-		   (dolist (window (get-buffer-window-list
-				    buffer 'nomini frames))
-		     (when (or can-use-selected-window
-			       (not (eq (selected-window) window)))
-		       (throw 'found window))))))
+If ALIST contains a `reusable-frames' entry, its value determines
+which frames to search for a reusable window:
+  nil -- the selected frame (actually the last non-minibuffer frame)
+  A frame   -- just that frame
+  `visible' -- all visible frames
+  0   -- all frames on the current terminal
+  t   -- all frames.
+
+If ALIST contains no `reusable-frames' entry, search just the
+selected frame if `display-buffer-reuse-frames' and
+`pop-up-frames' are both nil; search all frames on the current
+terminal if either of those variables is non-nil."
+  (let* ((alist-entry (assq 'reusable-frames alist))
+	 (frames (cond (alist-entry (cdr alist-entry))
+		       ((if (eq pop-up-frames 'graphic-only)
+			    (display-graphic-p)
+			  pop-up-frames)
+			0)
+		       (display-buffer-reuse-frames 0)
+		       (t (last-nonminibuffer-frame))))
+	 (window (if (and (eq buffer (window-buffer))
+			  (not (cdr (assq 'inhibit-same-window alist))))
+		     (selected-window)
+		   (car (delq (selected-window)
+			      (get-buffer-window-list buffer 'nomini
+						      frames))))))
     (when window
       (display-buffer-record-window 'reuse-window window buffer)
       (window--display-buffer-1 window))))
 
+(defun display-buffer--special (buffer alist)
+  "Try to display BUFFER using `special-display-function'.
+Call `special-display-p' on BUFFER's name, and if that returns
+non-nil, call `special-display-function' on BUFFER."
+  (and special-display-function
+       ;; `special-display-p' returns either t or a list of frame
+       ;; parameters to pass to `special-display-function'.
+       (let ((pars (special-display-p (buffer-name buffer))))
+	 (when pars
+	   (funcall special-display-function
+		    buffer (if (listp pars) pars))))))
+
 (defun display-buffer-pop-up-frame (buffer alist)
   "Display BUFFER in a new frame.
-This works by calling `pop-up-frame-function'.  If sucessful,
-return the window on the new frame; otherwise return nil."
+This works by calling `pop-up-frame-function'.  If successful,
+return the window used; otherwise return nil."
   (let ((fun pop-up-frame-function)
 	frame window)
     (when (and fun
@@ -4752,42 +4766,20 @@ If sucessful, return the new window; otherwise return nil."
       (set-window-prev-buffers window nil)
       window)))
 
-;; This display action function groups together some lower-level ones:
-(defun display-buffer-reuse-or-pop-window (buffer alist)
-  "Display BUFFER in some window other than the selected one.
-This attempts to call the following functions (in order):
- - `display-buffer-reuse-window', ensuring that it checks all
-   frames on this terminal if `display-buffer-reuse-frames' or
-   `pop-up-frames' is non-nil.
- - `special-display-function', if it is available.
- - `display-buffer-pop-up-frame', if specified by `pop-up-frames'.
- - `display-buffer-pop-up-window', if specified by `pop-up-windows'.
+(defun display-buffer--maybe-pop-up-frame-or-window (buffer alist)
+  "Try displaying BUFFER based on `pop-up-frames' or `pop-up-windows'.
 
-If BUFFER is sucessfully display, return its window; otherwise
-return nil."
-  (let ((use-pop-up-frames (if (eq pop-up-frames 'graphic-only)
-			       (display-graphic-p)
-			     pop-up-frames)))
-    (or (display-buffer-reuse-window
-    	 buffer
-    	 ;; If `display-buffer-reuse-frames' or `pop-up-frames' is
-    	 ;; non-nil, check all frames on this terminal.
-    	 (if (and (null (cdr (assq 'reuse-frame alist)))
-    		  (or use-pop-up-frames display-buffer-reuse-frames))
-    	     (cons '(reuse-frame . 0) alist)
-    	   alist))
-    	;; Try with `special-display-function':
-    	(and special-display-function
-    	     ;; `special-display-p' returns either t or a list of frame
-    	     ;; parameters to pass to `special-display-function'.
-    	     (let ((pars (special-display-p (buffer-name buffer))))
-    	       (when pars
-    		 (funcall special-display-function
-    			  buffer (if (listp pars) pars)))))
-    	(and use-pop-up-frames
-    	     (display-buffer-pop-up-frame buffer alist))
-    	(and pop-up-windows
-    	     (display-buffer-pop-up-window buffer alist)))))
+If `pop-up-frames' is non-nil (and not `graphic-only' on a
+text-only terminal), try with `display-buffer-pop-up-frame'.
+
+If that cannot be done, and `pop-up-windows' is non-nil, try
+again with `display-buffer-pop-up-window'."
+  (or (and (if (eq pop-up-frames 'graphic-only)
+	       (display-graphic-p)
+	     pop-up-frames)
+	   (display-buffer-pop-up-frame buffer alist))
+      (and pop-up-windows
+	   (display-buffer-pop-up-window buffer alist))))
 
 (defun display-buffer-use-some-window (buffer alist)
   "Display BUFFER in an existing window.
@@ -4803,10 +4795,7 @@ return the window.  If no suitable window is found, return nil."
 	       (selected-window)))
 	 (frame (or (window--frame-usable-p (selected-frame))
 		    (window--frame-usable-p (last-nonminibuffer-frame))))
-	 (use-pop-up-frames (if (eq pop-up-frames 'graphic-only)
-				(display-graphic-p)
-			      pop-up-frames))
-	 window popped-up-frame)
+	 window)
     (unwind-protect
 	(setq window
 	      ;; Reuse an existing window.
@@ -4820,17 +4809,12 @@ return the window.  If no suitable window is found, return nil."
 		    (unless (and not-this-window
 				 (eq window (selected-window)))
 		      window))
-		  (get-largest-window 0)
-		  (and use-pop-up-frames
-		       (prog1
-			   (frame-selected-window (funcall pop-up-frame-function))
-			 (setq popped-up-frame t)))))
+		  (get-largest-window 0)))
       (when (window-live-p window-to-undedicate)
 	;; Restore dedicated status of selected window.
 	(set-window-dedicated-p window-to-undedicate nil)))
     (when window
-      (display-buffer-record-window
-       (if popped-up-frame 'pop-up-frame 'reuse-window) window buffer)
+      (display-buffer-record-window 'reuse-window window buffer)
       (window--even-window-heights window)
       (window--display-buffer-2 buffer window))))
 
@@ -4857,13 +4841,11 @@ Optional third arg NORECORD non-nil means do not put this buffer
 at the front of the list of recently selected ones."
   (interactive (list (read-buffer "Pop to buffer: " (other-buffer))
 		     (if current-prefix-arg t)))
-  (setq buffer (window-normalize-buffer-to-display
-		;; BUFFER nil means another buffer.
-		(or buffer (other-buffer))))
+  (setq buffer (window-normalize-buffer-to-switch-to buffer))
   (set-buffer buffer)
   (let* ((old-window (selected-window))
 	 (old-frame (selected-frame))
-	 (window (display-buffer (current-buffer) action))
+	 (window (display-buffer buffer action))
 	 (frame (window-frame window)))
     (if (eq frame old-frame)
 	;; Make sure new window is selected (Bug#8615), (Bug#6954).
@@ -4937,18 +4919,7 @@ Return the buffer switched to."
    (list (read-buffer-to-switch "Switch to buffer: ") nil nil))
   (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name)))
     (if (null force-same-window)
-	(cond
-	 ((eq buffer (window-buffer))
-	  (unless norecord
-	    (select-window (selected-window)))
-	  (set-buffer buffer))
-	 ((or (window-minibuffer-p) (window-dedicated-p))
-	  (pop-to-buffer buffer))
-	 (t
-	  (set-window-buffer nil buffer)
-	  (unless norecord
-	    (select-window (selected-window)))
-	  (set-buffer buffer)))
+	(pop-to-buffer buffer display-buffer--same-window-action norecord)
       (cond
        ;; Don't call set-window-buffer if it's not needed since it
        ;; might signal an error (e.g. if the window is dedicated).
@@ -4984,10 +4955,8 @@ This uses the function `display-buffer' as a subroutine; see its
 documentation for additional customization information."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other window: ")))
-  (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name))
-	(pop-up-windows t)
-	same-window-buffer-names same-window-regexps)
-    (pop-to-buffer buffer t norecord)))
+  (let ((pop-up-windows t))
+    (pop-to-buffer buffer-or-name t norecord)))
 
 (defun switch-to-buffer-other-frame (buffer-or-name &optional norecord)
   "Switch to buffer BUFFER-OR-NAME in another frame.
@@ -5010,10 +4979,7 @@ This uses the function `display-buffer' as a subroutine; see its
 documentation for additional customization information."
   (interactive
    (list (read-buffer-to-switch "Switch to buffer in other frame: ")))
-  (let ((buffer (window-normalize-buffer-to-switch-to buffer-or-name))
-	(pop-up-frames t)
-	same-window-buffer-names same-window-regexps)
-    (pop-to-buffer buffer t norecord)))
+  (pop-to-buffer buffer-or-name display-buffer--other-frame-action norecord))
 
 (defun set-window-text-height (window height)
   "Set the height in lines of the text display area of WINDOW to HEIGHT.

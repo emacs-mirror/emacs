@@ -1087,9 +1087,7 @@ The following additional command keys are active while editing.
 \\[isearch-nonincremental-exit-minibuffer] to do one nonincremental search.
 \\[isearch-forward-exit-minibuffer] to resume isearching forward.
 \\[isearch-reverse-exit-minibuffer] to resume isearching backward.
-\\[isearch-complete-edit] to complete the search string using the search ring.
-\\<isearch-mode-map>
-If first char entered is \\[isearch-yank-word-or-char], then do word search instead."
+\\[isearch-complete-edit] to complete the search string using the search ring."
 
   ;; This code is very hairy for several reasons, explained in the code.
   ;; Mainly, isearch-mode must be terminated while editing and then restarted.
@@ -1381,8 +1379,8 @@ Use `isearch-exit' to quit without signaling."
   "Start `query-replace' with string to replace from last search string.
 The arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.  Note that using the prefix arg
-is possible only when `isearch-allow-scroll' is non-nil, and it don't
-always provides the correct matches for `query-replace', so the preferred
+is possible only when `isearch-allow-scroll' is non-nil, and it doesn't
+always provide the correct matches for `query-replace', so the preferred
 way to run word replacements from Isearch is `M-s w ... M-%'."
   (interactive
    (list current-prefix-arg))

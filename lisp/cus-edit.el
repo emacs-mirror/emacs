@@ -699,8 +699,6 @@ If `last', order groups after non-groups."
 		 (const :tag "none" nil))
   :group 'custom-menu)
 
-;;;###autoload (add-hook 'same-window-regexps (purecopy "\\`\\*Customiz.*\\*\\'"))
-
 (defun custom-sort-items (items sort-alphabetically order-groups)
   "Return a sorted copy of ITEMS.
 ITEMS should be a `custom-group' property.
