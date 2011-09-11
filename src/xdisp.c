@@ -23251,6 +23251,7 @@ produce_stretch_glyph (struct it *it)
       if (FRAME_WINDOW_P (it->f))
 	{
 	  append_stretch_glyph (it, object, width, height, ascent);
+	  it->pixel_width = width;
 	  it->ascent = it->phys_ascent = ascent;
 	  it->descent = it->phys_descent = height - it->ascent;
 	  it->nglyphs = width > 0 && height > 0 ? 1 : 0;
@@ -23265,7 +23266,6 @@ produce_stretch_glyph (struct it *it)
 	  while (n--)
 	    tty_append_glyph (it);
 	  it->object = o_object;
-	  it->pixel_width = width;
 	}
     }
 }

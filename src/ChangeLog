@@ -1,3 +1,8 @@
+2011-09-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (produce_stretch_glyph): Fix a typo made in changes from
+	2011-08-30 (revision 105619).  (Bug#9475)
+
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* fileio.c (Fvisited_file_modtime): Document `(-1 65535)' as a
