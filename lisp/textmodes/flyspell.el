@@ -33,9 +33,6 @@
 ;; M-x flyspell-prog-mode.
 ;; In that mode only text inside comments is checked.
 ;;
-;; Note: consider setting the variable ispell-parser to `tex' to
-;; avoid TeX command checking; use `(setq ispell-parser 'tex)'.
-;;
 ;; Some user variables control the behavior of flyspell.  They are
 ;; those defined under the `User variables' comment.
 

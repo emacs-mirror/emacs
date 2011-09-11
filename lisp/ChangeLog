@@ -1,5 +1,7 @@
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* textmodes/flyspell.el: Remove obsolete comment (bug#9368).
+
 	* subr.el (match-string): Mention that the current buffer should
 	be the same as the search was done in (bug#9282).
 
