@@ -1,3 +1,11 @@
+2011-09-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-pop-to-buffer): Default to switch-to-buffer.
+	(message-mail-other-window, message-mail-other-frame)
+	(message-news-other-window, message-news-other-frame): Use
+	switch-to-buffer-other-frame and switch-to-buffer-other-window instead
+	of setting buffer display varibles.
+
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-dup.el (gnus-dup-suppress-articles): Move "Suppressing

@@ -1,3 +1,29 @@
+2011-09-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	Change modes that used same-window-* vars to use switch-to-buffer.
+
+	* progmodes/gdb-mi.el (gdb-restore-windows, gdb-setup-windows):
+	Use switch-to-buffer.
+
+	* cus-edit.el (customize-group, custom-buffer-create)
+	(customize-browse, custom-buffer-create-other-window): Use
+	switch-to-buffer or switch-to-buffer-other-window.
+
+	* info.el (info, Info-find-node, Info-revert-find-node, Info-next)
+	(Info-prev, Info-up, Info-speedbar-goto-node)
+	(info-display-manual): Use switch-to-buffer.
+	(Info-speedbar-goto-node): Use switch-to-buffer-other-frame.
+
+	* mail/sendmail.el (mail): Use switch-to-buffer.
+	(mail-recover): Use switch-to-buffer-other-window.
+
+	* cmuscheme.el (run-scheme, switch-to-scheme):
+	* ielm.el (ielm):
+	* shell.el (shell):
+	* net/rlogin.el (rlogin):
+	* net/telnet.el (telnet, rsh):
+	* progmodes/inf-lisp.el (inferior-lisp): Use switch-to-buffer.
+
 2011-09-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* dired.el (dired-sort-toggle-or-edit): Revert last changes.

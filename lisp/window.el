@@ -4498,11 +4498,7 @@ BUFFER-OR-NAME and return that buffer."
 	    buffer))
     (current-buffer)))
 
-(defvar display-buffer-alist
-  '(("\\`\\*\\(scheme\\|ielm\\|shell\\|\\(unsent \\)?mail\\|\
-inferior-lisp\\|Python\\|Customiz.*\\|info\\|rlogin-.*\\|\
-telnet-.*\\|rsh-.*\\|gud-.*\\)\\*\\(<[0-9]+>\\)?"
-     . (display-buffer-same-window)))
+(defvar display-buffer-alist nil
   "Alist of conditional actions for `display-buffer'.
 This is a list of elements (CONDITION . ACTION), where:
 

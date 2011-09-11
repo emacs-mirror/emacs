@@ -194,7 +194,7 @@ variable."
           (t
            (setq buffer-name (generate-new-buffer-name buffer-name))))
     (setq buffer (get-buffer-create buffer-name))
-    (pop-to-buffer buffer-name)
+    (switch-to-buffer buffer-name)
     (unless (comint-check-proc buffer-name)
       (comint-exec buffer buffer-name rlogin-program nil args)
       (rlogin-mode)
