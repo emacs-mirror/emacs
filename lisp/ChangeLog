@@ -1,5 +1,8 @@
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* faces.el (face-spec-set-match-display): Make `(type graphic)'
+	match `x', `w32' and `ns', like the manual says (bug#9029).
+
 	* subr.el (eval-after-load): Doc string clarification (bug#9125).
 	(process-kill-buffer-query-function): Mention the buffer name in
 	the query.
