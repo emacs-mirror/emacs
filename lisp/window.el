@@ -4498,7 +4498,33 @@ BUFFER-OR-NAME and return that buffer."
 	    buffer))
     (current-buffer)))
 
-(defvar display-buffer-alist nil
+(defconst display-buffer--action-function-custom-type
+  '(choice :tag "Function"
+	   (const :tag "--" ignore) ; default for insertion
+	   (const display-buffer--maybe-same-window)
+	   (const display-buffer-reuse-window)
+	   (const display-buffer--special)
+	   (const display-buffer--maybe-pop-up-frame-or-window)
+	   (const display-buffer-use-some-window)
+	   (const display-buffer-same-window)
+	   (const display-buffer-pop-up-frame)
+	   (const display-buffer-use-some-window)
+	   (function :tag "Other function"))
+  "Custom type for `display-buffer' action functions.")
+
+(defconst display-buffer--action-custom-type
+  `(cons :tag "Action"
+	 (choice :tag "Action functions"
+		 ,display-buffer--action-function-custom-type
+		 (repeat
+		  :tag "List of functions"
+		  ,display-buffer--action-function-custom-type))
+	 (alist :tag "Action arguments"
+		:key-type symbol
+		:value-type (sexp :tag "Value")))
+  "Custom type for `display-buffer' actions.")
+
+(defcustom display-buffer-alist nil
   "Alist of conditional actions for `display-buffer'.
 This is a list of elements (CONDITION . ACTION), where:
 
@@ -4508,10 +4534,17 @@ This is a list of elements (CONDITION . ACTION), where:
  ACTION is a cons cell (FUNCTION . ALIST), where FUNCTION is a
   function or a list of functions.  Each such function should
   accept 2 arguments: a buffer to display and an alist of the
-  same form as ALIST.  See `display-buffer' for details.")
-(put 'display-buffer-alist 'risky-local-variable t)
+  same form as ALIST.  See `display-buffer' for details."
+  :type `(alist :key-type
+		(choice :tag "Condition"
+			regexp
+			(function :tag "Matcher function"))
+		:value-type ,display-buffer--action-custom-type)
+  :risky t
+  :version "24.1"
+  :group 'windows)
 
-(defvar display-buffer-default-action
+(defcustom display-buffer-default-action
   '((display-buffer--maybe-same-window
      display-buffer-reuse-window
      display-buffer--special
@@ -4522,17 +4555,23 @@ This is a list of elements (CONDITION . ACTION), where:
   "List of default actions for `display-buffer'.
 It should be a cons cell (FUNCTION . ALIST), where FUNCTION is a
 function or a list of functions.  Each function should accept 2
-arguments: a buffer to display and an alist of the same form as
-ALIST.  See `display-buffer' for details.")
-(put 'display-buffer-default-action 'risky-local-variable t)
+arguments: a buffer to display and an alist similar to ALIST.
+See `display-buffer' for details."
+  :type display-buffer--action-custom-type
+  :risky t
+  :version "24.1"
+  :group 'windows)
 
-(defvar display-buffer-overriding-action nil
+(defcustom display-buffer-overriding-action '(nil . nil)
   "Overriding action to perform to display a buffer.
-If non-nil, it should be a cons cell (FUNCTION . ALIST), where
-FUNCTION is a function or a list of functions.  Each function
-should accept 2 arguments: a buffer to display and an alist of
-the same form as ALIST.  See `display-buffer' for details.")
-(put 'display-buffer-overriding-action 'risky-local-variable t)
+It should be a cons cell (FUNCTION . ALIST), where FUNCTION is a
+function or a list of functions.  Each function should accept 2
+arguments: a buffer to display and an alist similar to ALIST.
+See `display-buffer' for details."
+  :type display-buffer--action-custom-type
+  :risky t
+  :version "24.1"
+  :group 'windows)
 
 (defun display-buffer-assq-regexp (buffer-name alist)
   "Retrieve ALIST entry corresponding to BUFFER-NAME."
@@ -4571,7 +4610,7 @@ Optional argument ACTION should have the form (FUNCTION . ALIST).
 FUNCTION is either a function or a list of functions.  Each such
 function is called with 2 arguments: the buffer to display and an
 alist.  It should either display the buffer and return the
-window, or return nil if it is unable to display the buffer.
+window, or return nil if unable to display the buffer.
 
 `display-buffer' builds a function list and an alist from
 `display-buffer-overriding-action', `display-buffer-alist',
