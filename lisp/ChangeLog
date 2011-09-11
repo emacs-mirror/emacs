@@ -1,5 +1,7 @@
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* subr.el (eval-after-load): Doc string clarification (bug#9125).
+
 	* image-mode.el (image-next-line): The line parameter is mandatory
 	(bug#9258).
 

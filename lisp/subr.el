@@ -1747,7 +1747,7 @@ Return nil if there isn't one."
 
 (put 'eval-after-load 'lisp-indent-function 1)
 (defun eval-after-load (file form)
-  "Arrange that, if FILE is ever loaded, FORM will be run at that time.
+  "Arrange that if FILE is loaded, FORM will be run immediately afterwards.
 If FILE is already loaded, evaluate FORM right now.
 
 If a matching file is loaded again, FORM will be evaluated again.
