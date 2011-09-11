@@ -914,12 +914,11 @@ Fifth arg HIST, if non-nil, specifies a history list and optionally
   history commands.  For consistency, you should also specify that
   element of the history as the value of INITIAL-CONTENTS.  Positions
   are counted starting from 1 at the beginning of the list.
-Sixth arg DEFAULT-VALUE is the default value or the list of default values.
-  If non-nil, it is available for history commands, and as the value
-  (or the first element of the list of default values) to return
-  if the user enters the empty string.  But, unless READ is non-nil,
-  `read-from-minibuffer' does NOT return DEFAULT-VALUE if the user enters
-  empty input!  It returns the empty string.
+Sixth arg DEFAULT-VALUE is a default value or list of default values.
+  If non-nil, it is available via history commands.  If READ is
+  non-nil, it is also the default to `read' if the user enters empty
+  input.  If READ is non-nil, `read-from-minibuffer' does NOT return
+  DEFAULT-VALUE for empty input!  It returns the empty string.
 Seventh arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
  the current input method and the setting of `enable-multibyte-characters'.
 If the variable `minibuffer-allow-text-properties' is non-nil,
