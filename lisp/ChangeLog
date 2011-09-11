@@ -1,3 +1,26 @@
+2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* faces.el (face-spec-set-match-display): Make `(type graphic)'
+	match `x', `w32' and `ns', like the manual says (bug#9029).
+
+	* subr.el (eval-after-load): Doc string clarification (bug#9125).
+	(process-kill-buffer-query-function): Mention the buffer name in
+	the query.
+
+	* image-mode.el (image-next-line): The line parameter is mandatory
+	(bug#9258).
+
+	* dired.el (dired-sort-toggle-or-edit): Mention -o and -g, too,
+	which can be useful (bug#9301).
+
+	* textmodes/flyspell.el: Remove obsolete comment (bug#9368).
+
+	* subr.el (match-string): Mention that the current buffer should
+	be the same as the search was done in (bug#9282).
+
+	* facemenu.el: Disable the remove-* commands if the mark isn't
+	active (bug#9162).
+
 2011-09-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* buff-menu.el (Buffer-menu-switch-other-window): Use second arg

@@ -241,10 +241,12 @@ it will remove any faces not explicitly in the list."
   (define-key map [df] (cons (purecopy "Display Faces") 'list-faces-display))
   (define-key map [dp] (cons (purecopy "Describe Properties")
 			     'describe-text-properties))
-  (define-key map [ra] (cons (purecopy "Remove Text Properties")
-			     'facemenu-remove-all))
-  (define-key map [rm] (cons (purecopy "Remove Face Properties")
-			     'facemenu-remove-face-props))
+  (define-key map [ra] (list 'menu-item (purecopy "Remove Text Properties")
+			     'facemenu-remove-all
+			     :enable 'mark-active))
+  (define-key map [rm] (list 'menu-item (purecopy "Remove Face Properties")
+			     'facemenu-remove-face-props
+			     :enable 'mark-active))
   (define-key map [s1] (list (purecopy "--"))))
 (let ((map facemenu-menu))
   (define-key map [in] (cons (purecopy "Indentation")

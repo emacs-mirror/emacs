@@ -363,12 +363,13 @@ for decoding when the cdr that the data specify is not available.")
 
 (deffoo nnrss-retrieve-groups (groups &optional server)
   (dolist (group groups)
+    (setq group (nnrss-decode-group-name group))
     (nnrss-possibly-change-group group server)
     (nnrss-check-group group server))
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (dolist (group groups)
-      (let ((elem (assoc group nnrss-server-data)))
+      (let ((elem (assoc (gnus-group-decoded-name group) nnrss-server-data)))
 	(insert (format "%S %s 1 y\n" group (or (cadr elem) 0)))))
     'active))
 

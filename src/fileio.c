@@ -3253,6 +3253,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       if (NILP (visit))
 	report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
       st.st_mtime = -1;
+      st.st_size = -1;
       how_much = 0;
       if (!NILP (Vcoding_system_for_read))
 	Fset (Qbuffer_file_coding_system, Vcoding_system_for_read);
