@@ -8,11 +8,22 @@
 
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-group.el (gnus-group-list-limit): Explain what the command
+	does.
+
+	* gnus-sum.el (gnus-fetch-headers): Bump message level.
+
+2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
 	* gnus-dup.el (gnus-dup-suppress-articles): Move "Suppressing
 	duplicates" to a higher level.
 
 	* gnus-util.el (gnus-verbose): Lower default to 6 to get rid of the
 	most egregious messages.
+
+2011-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-summary-mail-forward): Minuscule doc fix.
 
 2011-09-10  Tetsuo Tsukamoto  <tt.tetsuo.tsukamoto@gmail.com>  (tiny change)
 

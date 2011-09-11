@@ -4636,7 +4636,12 @@ This command may read the active file."
     (gnus-group-list-plus args)))
 
 (defun gnus-group-list-limit (&optional args)
-  "List groups limited within the current selection."
+  "List groups limited within the current selection.
+If you've limited the groups, you can further limit the selection
+with this command.  If you've first limited to groups with
+dormant articles with `A ?', you can then further limit with
+`A / c', which will then limit to groups with cached articles, giving
+you the groups that have both dormant articles and cached articles."
   (interactive "P")
   (let ((gnus-group-list-option 'limit))
     (gnus-group-list-plus args)))

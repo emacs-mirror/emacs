@@ -5543,7 +5543,7 @@ or a straight list of headers."
 (defun gnus-fetch-headers (articles &optional limit force-new dependencies)
   "Fetch headers of ARTICLES."
   (let ((name (gnus-group-decoded-name gnus-newsgroup-name)))
-    (gnus-message 5 "Fetching headers for %s..." name)
+    (gnus-message 7 "Fetching headers for %s..." name)
     (prog1
 	(if (eq 'nov
 		(setq gnus-headers-retrieved-by
@@ -5560,7 +5560,7 @@ or a straight list of headers."
 	    (gnus-get-newsgroup-headers-xover
 	     articles force-new dependencies gnus-newsgroup-name t)
 	  (gnus-get-newsgroup-headers dependencies force-new))
-      (gnus-message 5 "Fetching headers for %s...done" name))))
+      (gnus-message 7 "Fetching headers for %s...done" name))))
 
 (defun gnus-select-newsgroup (group &optional read-all select-articles)
   "Select newsgroup GROUP.
