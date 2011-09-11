@@ -1,5 +1,8 @@
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-dup.el (gnus-dup-suppress-articles): Move "Suppressing
+	duplicates" to a higher level.
+
 	* gnus-util.el (gnus-verbose): Lower default to 6 to get rid of the
 	most egregious messages.
 
