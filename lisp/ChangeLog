@@ -1,5 +1,8 @@
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* image-mode.el (image-next-line): The line parameter is mandatory
+	(bug#9258).
+
 	* dired.el (dired-sort-toggle-or-edit): Mention -o and -g, too,
 	which can be useful (bug#9301).
 
