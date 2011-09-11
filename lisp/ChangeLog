@@ -1,6 +1,8 @@
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* subr.el (eval-after-load): Doc string clarification (bug#9125).
+	(process-kill-buffer-query-function): Mention the buffer name in
+	the query.
 
 	* image-mode.el (image-next-line): The line parameter is mandatory
 	(bug#9258).
