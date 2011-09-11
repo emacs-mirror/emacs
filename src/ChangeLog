@@ -1,3 +1,8 @@
+2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* fileio.c (Fvisited_file_modtime): Document `(-1 65535)' as a
+	value for non-existent files.
+
 2011-09-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Finsert_file_contents): If the file cannot be opened,

@@ -5045,9 +5045,10 @@ Next attempt to save will certainly not complain of a discrepancy.  */)
 DEFUN ("visited-file-modtime", Fvisited_file_modtime,
        Svisited_file_modtime, 0, 0, 0,
        doc: /* Return the current buffer's recorded visited file modification time.
-The value is a list of the form (HIGH LOW), like the time values
-that `file-attributes' returns.  If the current buffer has no recorded
-file modification time, this function returns 0.
+The value is a list of the form (HIGH LOW), like the time values that
+`file-attributes' returns.  If the current buffer has no recorded file
+modification time, this function returns 0.  If the visited file
+doesn't exist, `(-1 65535)' will be returned.
 See Info node `(elisp)Modification Time' for more details.  */)
   (void)
 {
