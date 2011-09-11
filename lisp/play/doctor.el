@@ -163,6 +163,7 @@ reads the sentence before point, and prints the Doctor's answer."
 		 (you7re you\'re (i am))
 		 (you7ve you\'ve (i have))
 		 (you7ll you\'ll (i will)))))
+  (set (make-local-variable 'doctor-sent) nil)
   (set (make-local-variable 'doctor-found) nil)
   (set (make-local-variable 'doctor-owner) nil)
   (set (make-local-variable 'doctor--history) nil)
