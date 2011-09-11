@@ -5048,7 +5048,7 @@ DEFUN ("visited-file-modtime", Fvisited_file_modtime,
 The value is a list of the form (HIGH LOW), like the time values that
 `file-attributes' returns.  If the current buffer has no recorded file
 modification time, this function returns 0.  If the visited file
-doesn't exist, `(-1 65535)' will be returned.
+doesn't exist, HIGH will be -1.
 See Info node `(elisp)Modification Time' for more details.  */)
   (void)
 {
