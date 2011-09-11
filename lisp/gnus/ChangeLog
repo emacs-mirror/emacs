@@ -1,3 +1,8 @@
+2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-util.el (gnus-verbose): Lower default to 6 to get rid of the
+	most egregious messages.
+
 2011-09-10  Tetsuo Tsukamoto  <tt.tetsuo.tsukamoto@gmail.com>  (tiny change)
 
 	* nnrss.el (nnrss-retrieve-groups): Decode the charset before looking
