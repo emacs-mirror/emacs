@@ -1,5 +1,8 @@
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* dired.el (dired-sort-toggle-or-edit): Mention -o and -g, too,
+	which can be useful (bug#9301).
+
 	* textmodes/flyspell.el: Remove obsolete comment (bug#9368).
 
 	* subr.el (match-string): Mention that the current buffer should
