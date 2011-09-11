@@ -1,5 +1,8 @@
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* subr.el (match-string): Mention that the current buffer should
+	be the same as the search was done in (bug#9282).
+
 	* facemenu.el: Disable the remove-* commands if the mark isn't
 	active (bug#9162).
 

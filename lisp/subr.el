@@ -3249,7 +3249,9 @@ The value returned is the value of the last form in BODY."
 NUM specifies which parenthesized expression in the last regexp.
  Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
 Zero means the entire text matched by the whole regexp or whole string.
-STRING should be given if the last search was by `string-match' on STRING."
+STRING should be given if the last search was by `string-match' on STRING.
+If STRING is nil, the current buffer should be the same buffer
+the search/match was performed in."
   (if (match-beginning num)
       (if string
 	  (substring string (match-beginning num) (match-end num))
@@ -3260,7 +3262,9 @@ STRING should be given if the last search was by `string-match' on STRING."
 NUM specifies which parenthesized expression in the last regexp.
  Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
 Zero means the entire text matched by the whole regexp or whole string.
-STRING should be given if the last search was by `string-match' on STRING."
+STRING should be given if the last search was by `string-match' on STRING.
+If STRING is nil, the current buffer should be the same buffer
+the search/match was performed in."
   (if (match-beginning num)
       (if string
 	  (substring-no-properties string (match-beginning num)
