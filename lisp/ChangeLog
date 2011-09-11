@@ -2,6 +2,7 @@
 
 	* dired.el (dired-sort-toggle-or-edit): -o doesn't exist on *BSD,
 	so don't mention it (bug#9301).
+	(dired-sort-toggle-or-edit): Clarify string further.
 
 	* faces.el (face-spec-set-match-display): Make `(type graphic)'
 	match `x', `w32' and `ns', like the manual says (bug#9029).

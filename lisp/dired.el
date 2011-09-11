@@ -3413,7 +3413,7 @@ With a prefix argument, edit the current listing switches instead."
     (error "Cannot sort this dired buffer"))
   (if arg
       (dired-sort-other
-       (read-string "ls switches (must contain -l or -g): "
+       (read-string "ls switches (must contain -l or similar): "
 		    dired-actual-switches))
     (dired-sort-toggle)))
 
