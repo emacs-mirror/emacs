@@ -1,5 +1,8 @@
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* dired.el (dired-sort-toggle-or-edit): -o doesn't exist on *BSD,
+	so don't mention it (bug#9301).
+
 	* faces.el (face-spec-set-match-display): Make `(type graphic)'
 	match `x', `w32' and `ns', like the manual says (bug#9029).
 
