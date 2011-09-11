@@ -4038,10 +4038,8 @@ A prefix arg negates the value of `bibtex-search-entry-globally'."
                 ;; `bibtex-search-entry' moves point if key found
                 (setq found (bibtex-search-entry key)))))
         (cond ((and found display)
-               (let ((same-window-buffer-names
-                      (cons (buffer-name buffer) same-window-buffer-names)))
-                 (pop-to-buffer buffer)
-                 (bibtex-reposition-window)))
+	       (switch-to-buffer buffer)
+	       (bibtex-reposition-window))
               (found (set-buffer buffer))
               (display (message "Key `%s' not found" key)))
         found)

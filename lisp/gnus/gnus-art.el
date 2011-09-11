@@ -1237,9 +1237,12 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :type gnus-article-treat-custom)
 
 (defcustom gnus-treat-hide-citation-maybe nil
-  "Hide cited text.
+  "Hide cited text according to certain conditions.
 Valid values are nil, t, `head', `first', `last', an integer or a
-predicate.  See Info node `(gnus)Customizing Articles'."
+predicate.  See Info node `(gnus)Customizing Articles'.
+
+See `gnus-cite-hide-percentage' and `gnus-cite-hide-absolute' for
+how to control what it hides."
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
@@ -3429,32 +3432,43 @@ possible values."
 	 (visible-date (mail-fetch-field "Date"))
 	 pos date bface eface)
     (save-excursion
-      (save-restriction
-	(goto-char (point-min))
-	(when (re-search-forward "^Date:" nil t)
-	  (setq bface (get-text-property (point-at-bol) 'face)
-		eface (get-text-property (1- (point-at-eol)) 'face)))
-	(goto-char (point-min))
-	;; Delete any old Date headers.
-	(if date-position
-	    (progn
-	      (goto-char date-position)
-	      (setq date (get-text-property (point) 'original-date))
-	      (delete-region (point)
-			     (progn
-			       (gnus-article-forward-header)
-			       (point)))
+      (goto-char (point-min))
+      (when (re-search-forward "^Date:" nil t)
+	(setq bface (get-text-property (point-at-bol) 'face)
+	      eface (get-text-property (1- (point-at-eol)) 'face)))
+      ;; Delete any old Date headers.
+      (if date-position
+	  (progn
+	    (goto-char date-position)
+	    (setq date (get-text-property (point) 'original-date))
+	    (delete-region (point)
+			   (progn
+			     (gnus-article-forward-header)
+			     (point)))
+	    (article-transform-date date type bface eface))
+	(save-restriction
+	  (widen)
+	  (goto-char (point-min))
+	  (while (or (get-text-property (setq pos (point)) 'original-date)
+		     (and (setq pos (next-single-property-change
+				     (point) 'original-date))
+			  (goto-char pos)))
+	    (narrow-to-region pos (if (search-forward "\n\n" nil t)
+				      (1+ (match-beginning 0))
+				    (point-max)))
+	    (goto-char (point-min))
+	    (while (re-search-forward "^Date:" nil t)
+	      (setq date (get-text-property (match-beginning 0) 'original-date))
+	      (delete-region (point-at-bol) (progn
+					      (gnus-article-forward-header)
+					      (point))))
+	    (when (and (not date)
+		       visible-date)
+	      (setq date visible-date))
+	    (when date
 	      (article-transform-date date type bface eface))
-	  (while (re-search-forward "^Date:" nil t)
-	    (setq date (get-text-property (match-beginning 0) 'original-date))
-	    (delete-region (point-at-bol) (progn
-					    (gnus-article-forward-header)
-					    (point))))
-	  (when (and (not date)
-		     visible-date)
-	    (setq date visible-date))
-	  (when date
-	    (article-transform-date date type bface eface)))))))
+	    (goto-char (point-max))
+	    (widen)))))))
 
 (defun article-transform-date (date type bface eface)
   (dolist (this-type (cond

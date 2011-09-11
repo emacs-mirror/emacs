@@ -1,3 +1,45 @@
+2011-09-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Finsert_file_contents): If the file cannot be opened,
+	set its "size" to -1.  This will set the modtime_size field of
+	the corresponding buffer to -1, which is what
+	verify-visited-file-modtime expects for files that do not exist.
+	(Bug#9139)
+
+2011-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keymap.h (KEY_DESCRIPTION_SIZE, push_key_description): Move decls
+	here ...
+	* lisp.h: ... from here.  push_key_description is no longer
+	defined in keyboard.c, so its declaration should not be in
+	lisp.h's "Defined in keyboard.c" section, and KEY_DESCRIPTION_SIZE
+	logically belongs with push_key_description.
+
+2011-09-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.h: Include <sys/types.h> instead of <time.h>.
+	Otherwise, off_t wasn't defined on FreeBSD 9.0-BETA2 i386.
+	Problem reported by Herbert J. Skuhra.
+
+2011-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (parse_region): Make the parsing work for
+	non-comment-starting XML files again (bug#9144).
+
+2011-09-10  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* image.c (gif_load): Fix calculation of bottom and right corner.
+	(Bug#9468)
+
+2011-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (MAX_DISP_SCAN): Decrease to 250.  Prevents sluggish
+	redisplay in small windows.
+
+2011-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (x_report_frame_params): Cast to avoid compiler warnings.
+
 2011-09-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fset_window_prev_buffers, Fset_window_next_buffers):

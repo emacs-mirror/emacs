@@ -210,8 +210,8 @@
 		end nil))))))
 
 (defmacro gnus-string-mark-left-to-right (string)
-  (if (fboundp 'string-mark-left-to-right)
-      `(string-mark-left-to-right ,string)
+  (if (fboundp 'bidi-string-mark-left-to-right)
+      `(bidi-string-mark-left-to-right ,string)
     string))
 
 (eval-and-compile

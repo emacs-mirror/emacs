@@ -163,7 +163,7 @@ Stop if the left edge of the image is reached."
   (interactive "p")
   (image-forward-hscroll (- n)))
 
-(defun image-next-line (&optional n)
+(defun image-next-line (n)
   "Scroll image in current window upward by N lines.
 Stop if the bottom edge of the image is reached."
   (interactive "p")

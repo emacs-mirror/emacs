@@ -112,20 +112,9 @@ Used to grey out relevant toolbar icons.")
 (defun gud-goto-info ()
   "Go to relevant Emacs info node."
   (interactive)
-  (let ((same-window-regexps same-window-regexps)
-	(display-buffer-reuse-frames t))
-    (catch 'info-found
-      (walk-windows
-       (lambda (window)
-         (if (eq (window-buffer window) (get-buffer "*info*"))
-             (progn
-               (setq same-window-regexps nil)
-               (throw 'info-found nil))))
-       nil 0)
-      (select-frame (make-frame)))
-    (if (eq gud-minor-mode 'gdbmi)
-	(info "(emacs)GDB Graphical Interface")
-      (info "(emacs)Debuggers"))))
+  (if (eq gud-minor-mode 'gdbmi)
+      (info-other-window "(emacs)GDB Graphical Interface")
+    (info-other-window "(emacs)Debuggers")))
 
 (defun gud-tool-bar-item-visible-no-fringe ()
   (not (or (eq (buffer-local-value 'major-mode (window-buffer)) 'speedbar-mode)
@@ -2465,10 +2454,6 @@ comint mode, which see."
   (make-local-variable 'paragraph-start)
   (set (make-local-variable 'gud-delete-prompt-marker) (make-marker))
   (add-hook 'kill-buffer-hook 'gud-kill-buffer-hook nil t))
-
-;; Cause our buffers to be displayed, by default,
-;; in the selected window.
-;;;###autoload (add-hook 'same-window-regexps (purecopy "\\*gud-.*\\*\\(\\|<[0-9]+>\\)"))
 
 (defcustom gud-chdir-before-run t
   "Non-nil if GUD should `cd' to the debugged executable."

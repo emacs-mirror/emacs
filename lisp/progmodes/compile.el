@@ -2408,9 +2408,8 @@ and overlay is highlighted between MK and END-MK."
 			     ;; also do this while we change buffer
 			     (compilation-set-window w msg)
 			     compilation-highlight-regexp)))
-    ;; Ideally, the window-size should be passed to `display-buffer' (via
-    ;; something like special-display-buffer) so it's only used when
-    ;; creating a new window.
+    ;; Ideally, the window-size should be passed to `display-buffer'
+    ;; so it's only used when creating a new window.
     (unless pre-existing (compilation-set-window-height w))
 
     (if from-compilation-buffer

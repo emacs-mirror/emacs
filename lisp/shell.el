@@ -669,9 +669,6 @@ Otherwise, one argument `-i' is passed to the shell.
       (shell-mode)))
   buffer)
 
-;; Don't do this when shell.el is loaded, only while dumping.
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*shell*"))
-
 ;;; Directory tracking
 ;;
 ;; This code provides the shell mode input sentinel
