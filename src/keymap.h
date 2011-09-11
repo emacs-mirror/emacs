@@ -19,6 +19,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef KEYMAP_H
 #define KEYMAP_H
 
+/* The maximum byte size consumed by push_key_description.
+   All callers should assure that at least this size of memory is
+   allocated at the place pointed by the second argument.
+
+   There are 6 modifiers, each consumes 2 chars.
+   The octal form of a character code consumes
+   (1 + CHARACTERBITS / 3 + 1) chars (including backslash at the head).
+   We need one more byte for string terminator `\0'.  */
+#define KEY_DESCRIPTION_SIZE ((2 * 6) + 1 + (CHARACTERBITS / 3) + 1 + 1)
+
 #define KEYMAPP(m) (!NILP (get_keymap (m, 0, 0)))
 extern Lisp_Object Qkeymap, Qmenu_bar;
 extern Lisp_Object Qremap;
@@ -30,6 +40,7 @@ EXFUN (Fdefine_key, 3);
 EXFUN (Fcommand_remapping, 3);
 EXFUN (Fkey_binding, 4);
 EXFUN (Fkey_description, 2);
+extern char *push_key_description (EMACS_INT, char *, int);
 EXFUN (Fsingle_key_description, 2);
 EXFUN (Fwhere_is_internal, 5);
 EXFUN (Fcurrent_active_maps, 2);

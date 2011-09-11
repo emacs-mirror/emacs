@@ -1599,16 +1599,6 @@ typedef unsigned char UCHAR;
    itself.  */
 #define CHARACTERBITS 22
 
-/* The maximum byte size consumed by push_key_description.
-   All callers should assure that at least this size of memory is
-   allocated at the place pointed by the second argument.
-
-   There are 6 modifiers, each consumes 2 chars.
-   The octal form of a character code consumes
-   (1 + CHARACTERBITS / 3 + 1) chars (including backslash at the head).
-   We need one more byte for string terminator `\0'.  */
-#define KEY_DESCRIPTION_SIZE ((2 * 6) + 1 + (CHARACTERBITS / 3) + 1 + 1)
-
 
 /* The glyph datatype, used to represent characters on the display.
    It consists of a char code and a face id.  */
@@ -3258,8 +3248,6 @@ extern void force_auto_save_soon (void);
 extern void init_keyboard (void);
 extern void syms_of_keyboard (void);
 extern void keys_of_keyboard (void);
-extern char *push_key_description (EMACS_INT, char *, int);
-
 
 /* Defined in indent.c */
 EXFUN (Fvertical_motion, 2);

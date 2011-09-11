@@ -1,3 +1,12 @@
+2011-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keymap.h (KEY_DESCRIPTION_SIZE, push_key_description): Move decls
+	here ...
+	* lisp.h: ... from here.  push_key_description is no longer
+	defined in keyboard.c, so its declaration should not be in
+	lisp.h's "Defined in keyboard.c" section, and KEY_DESCRIPTION_SIZE
+	logically belongs with push_key_description.
+
 2011-09-10  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* buffer.h: Include <sys/types.h> instead of <time.h>.
