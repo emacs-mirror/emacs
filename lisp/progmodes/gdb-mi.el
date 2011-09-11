@@ -3980,18 +3980,12 @@ SPLIT-HORIZONTAL and show BUF in the new window."
 (defun gdb-frame-gdb-buffer ()
   "Display GUD buffer in a new frame."
   (interactive)
-  (let ((special-display-regexps (append special-display-regexps '(".*")))
-	(special-display-frame-alist
-	 (remove '(menu-bar-lines) (remove '(tool-bar-lines)
-					   gdb-frame-parameters)))
-	(same-window-regexps nil))
-    (display-buffer gud-comint-buffer)))
+  (display-buffer-other-frame gud-comint-buffer))
 
 (defun gdb-display-gdb-buffer ()
   "Display GUD buffer."
   (interactive)
-  (let ((same-window-regexps nil))
-    (select-window (display-buffer gud-comint-buffer nil 0))))
+  (pop-to-buffer gud-comint-buffer nil 0))
 
 (defun gdb-set-window-buffer (name &optional ignore-dedicated window)
   "Set buffer of selected window to NAME and dedicate window.

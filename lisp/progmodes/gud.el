@@ -112,20 +112,9 @@ Used to grey out relevant toolbar icons.")
 (defun gud-goto-info ()
   "Go to relevant Emacs info node."
   (interactive)
-  (let ((same-window-regexps same-window-regexps)
-	(display-buffer-reuse-frames t))
-    (catch 'info-found
-      (walk-windows
-       (lambda (window)
-         (if (eq (window-buffer window) (get-buffer "*info*"))
-             (progn
-               (setq same-window-regexps nil)
-               (throw 'info-found nil))))
-       nil 0)
-      (select-frame (make-frame)))
-    (if (eq gud-minor-mode 'gdbmi)
-	(info "(emacs)GDB Graphical Interface")
-      (info "(emacs)Debuggers"))))
+  (if (eq gud-minor-mode 'gdbmi)
+      (info-other-window "(emacs)GDB Graphical Interface")
+    (info-other-window "(emacs)Debuggers")))
 
 (defun gud-tool-bar-item-visible-no-fringe ()
   (not (or (eq (buffer-local-value 'major-mode (window-buffer)) 'speedbar-mode)

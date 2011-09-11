@@ -1591,7 +1591,9 @@ commands will still require prompting."
   :type 'boolean)
 
 (defcustom gnus-interactive-exit t
-  "*If non-nil, require your confirmation when exiting Gnus."
+  "*If non-nil, require your confirmation when exiting Gnus.
+If `quiet', update any active summary buffers automatically
+first before exiting."
   :group 'gnus-exit
   :type 'boolean)
 
@@ -2623,7 +2625,7 @@ a string, be sure to use a valid format, see RFC 2616."
     (scored . score) (saved . save)
     (cached . cache) (downloadable . download)
     (unsendable . unsend) (forwarded . forward)
-    (recent . recent) (seen . seen)))
+    (seen . seen)))
 
 (defconst gnus-article-special-mark-lists
   '((seen range)
@@ -2689,8 +2691,7 @@ such as a mark that says whether an article is stored in the cache
 			gnus-newsrc-last-checked-date
 			gnus-newsrc-alist gnus-server-alist
 			gnus-killed-list gnus-zombie-list
-			gnus-topic-topology gnus-topic-alist
-			gnus-format-specs)
+			gnus-topic-topology gnus-topic-alist)
   "Gnus variables saved in the quick startup file.")
 
 (defvar gnus-newsrc-alist nil

@@ -1237,9 +1237,12 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :type gnus-article-treat-custom)
 
 (defcustom gnus-treat-hide-citation-maybe nil
-  "Hide cited text.
+  "Hide cited text according to certain conditions.
 Valid values are nil, t, `head', `first', `last', an integer or a
-predicate.  See Info node `(gnus)Customizing Articles'."
+predicate.  See Info node `(gnus)Customizing Articles'.
+
+See `gnus-cite-hide-percentage' and `gnus-cite-hide-absolute' for
+how to control what it hides."
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)

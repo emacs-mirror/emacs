@@ -255,7 +255,8 @@ If it is down, start it up (again)."
     ;; If this method was previously denied, we just return nil.
     (if (eq (nth 1 elem) 'denied)
 	(progn
-	  (gnus-message 1 "Denied server %s" server)
+	  (gnus-message
+	   1 "Server %s previously determined to be down; not retrying" server)
 	  nil)
       ;; Open the server.
       (let* ((open-server-function

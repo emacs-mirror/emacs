@@ -18,7 +18,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include <time.h> /* for time_t */
+#include <sys/types.h> /* for off_t, time_t */
 
 /* Accessing the parameters of the current buffer.  */
 
