@@ -5,6 +5,8 @@
 	(display-buffer-alist, display-buffer-default-action)
 	(display-buffer-overriding-action): Add defcustom types.
 
+	* frame.el (delete-other-frames): Doc fix (Bug#276).
+
 2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* play/doctor.el (make-doctor-variables): Define `doctor-sent'.
