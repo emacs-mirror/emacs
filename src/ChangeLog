@@ -1,3 +1,26 @@
+2011-09-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* indent.c (compute_motion): Process display vector front to back
+	rather than the other way around.  (Bug#2496)
+
+2011-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents): Don't assume beg_offset is 0.
+
+2011-09-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.c (Fread_from_minibuffer): Doc fix.
+
+2011-09-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (produce_stretch_glyph): Fix a typo made in changes from
+	2011-08-30 (revision 105619).  (Bug#9475)
+
+2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* fileio.c (Fvisited_file_modtime): Document `(-1 65535)' as a
+	value for non-existent files.
+
 2011-09-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Finsert_file_contents): If the file cannot be opened,

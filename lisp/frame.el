@@ -1457,7 +1457,7 @@ the opposite frame edge from the edge indicated in the input spec."
 
 
 (defun delete-other-frames (&optional frame)
-  "Delete all frames except FRAME.
+  "Delete all frames on the current terminal, except FRAME.
 If FRAME uses another frame's minibuffer, the minibuffer frame is
 left untouched.  FRAME nil or omitted means use the selected frame."
   (interactive)

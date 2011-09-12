@@ -1,4 +1,4 @@
-# include_next.m4 serial 20
+# include_next.m4 serial 21
 dnl Copyright (C) 2006-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -207,17 +207,34 @@ dnl until we can assume autoconf 2.64 or newer.
                  aix*) gl_absname_cpp="$ac_cpp -C" ;;
                  *)    gl_absname_cpp="$ac_cpp" ;;
                esac
+changequote(,)
+               case "$host_os" in
+                 mingw*)
+                   dnl For the sake of native Windows compilers (excluding gcc),
+                   dnl treat backslash as a directory separator, like /.
+                   dnl Actually, these compilers use a double-backslash as
+                   dnl directory separator, inside the
+                   dnl   # line "filename"
+                   dnl directives.
+                   gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='/'
+                   ;;
+               esac
+changequote([,])
+               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"']m4_defn([gl_HEADER_NAME])[#{
+                   s#.*"\(.*'"${gl_dirsep_regex}"']m4_defn([gl_HEADER_NAME])[\)".*#\1#
+                   s#^/[^/]#//&#
+                   p
+                   q
+                 }'
                dnl eval is necessary to expand gl_absname_cpp.
                dnl Ultrix and Pyramid sh refuse to redirect output of eval,
                dnl so use subshell.
                AS_VAR_SET(gl_next_header,
                  ['"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&AS_MESSAGE_LOG_FD |
-                  sed -n '\#/]m4_defn([gl_HEADER_NAME])[#{
-                    s#.*"\(.*/]m4_defn([gl_HEADER_NAME])[\)".*#\1#
-                    s#^/[^/]#//&#
-                    p
-                    q
-                  }'`'"'])
+                      sed -n "$gl_absolute_header_sed"`'"'])
           m4_if([$2], [check],
             [else
                AS_VAR_SET(gl_next_header, ['<'gl_HEADER_NAME'>'])

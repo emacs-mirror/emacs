@@ -217,8 +217,8 @@ Normally input is edited in Emacs and sent a line at a time."
 	 (telnet-options (if (cdr properties) (cons "-l" (cdr properties))))
 	 process)
     (if (and buffer (get-buffer-process buffer))
-	(pop-to-buffer (concat "*" name "*"))
-      (pop-to-buffer
+	(switch-to-buffer (concat "*" name "*"))
+      (switch-to-buffer
        (apply 'make-comint name telnet-program nil telnet-options))
       (setq process (get-buffer-process (current-buffer)))
       (set-process-filter process 'telnet-initial-filter)
@@ -252,7 +252,7 @@ Normally input is edited in Emacs and sent a line at a time."
   (interactive "sOpen rsh connection to host: ")
   (require 'shell)
   (let ((name (concat "rsh-" host )))
-    (pop-to-buffer (make-comint name remote-shell-program nil host))
+    (switch-to-buffer (make-comint name remote-shell-program nil host))
     (set-process-filter (get-process name) 'telnet-initial-filter)
     (telnet-mode)
     (setq telnet-count -16)))
