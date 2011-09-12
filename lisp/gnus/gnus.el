@@ -1588,7 +1588,8 @@ commands will still require prompting."
 If `quiet', update any active summary buffers automatically
 first before exiting."
   :group 'gnus-exit
-  :type 'boolean)
+  :type '(choice boolean
+		 (const quiet)))
 
 (defcustom gnus-extract-address-components 'gnus-extract-address-components
   "*Function for extracting address components from a From header.

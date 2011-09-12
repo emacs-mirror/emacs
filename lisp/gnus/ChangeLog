@@ -1,3 +1,7 @@
+2011-09-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-interactive-exit): Update defcustom spec.
+
 2011-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus.el (gnus-nntp-server): Move to gnus-int.el to silence bytecomp.
