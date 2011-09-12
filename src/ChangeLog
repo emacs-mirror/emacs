@@ -1,3 +1,7 @@
+2011-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents): Don't assume beg_offset is 0.
+
 2011-09-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuf.c (Fread_from_minibuffer): Doc fix.

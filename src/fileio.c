@@ -3546,7 +3546,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       immediate_quit = 0;
       /* If the file matches the buffer completely,
 	 there's no need to replace anything.  */
-      if (same_at_start - BEGV_BYTE == end_offset)
+      if (same_at_start - BEGV_BYTE == end_offset - beg_offset)
 	{
 	  emacs_close (fd);
 	  specpdl_ptr--;
