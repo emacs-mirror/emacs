@@ -2914,10 +2914,6 @@ on encoding."
 	    (setq c (1+ c))))
         (setq ucs-names names))))
 
-(defvar ucs-completions (lazy-completion-table ucs-completions ucs-names)
-  "Lazy completion table for completing on Unicode character names.")
-(put 'ucs-completions 'risky-local-variable t)
-
 (defun read-char-by-name (prompt)
   "Read a character by its Unicode name or hex number string.
 Display PROMPT and read a string that represents a character by its
@@ -2935,7 +2931,12 @@ This function also accepts a hexadecimal number of Unicode code
 point or a number in hash notation, e.g. #o21430 for octal,
 #x2318 for hex, or #10r8984 for decimal."
   (let* ((completion-ignore-case t)
-	 (input (completing-read prompt ucs-completions)))
+	 (input (completing-read
+                 prompt
+                 (lambda (string pred action)
+                   (if (eq action 'metadata)
+                       '(metadata (category . unicode-name))
+                     (complete-with-action action (ucs-names) string pred))))))
     (cond
      ((string-match-p "^[0-9a-fA-F]+$" input)
       (string-to-number input 16))

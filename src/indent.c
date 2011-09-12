@@ -1543,7 +1543,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 	      n = 1;
 	    }
 
-	  for (i = n - 1; i >= 0; --i)
+	  for (i = 0; i < n; ++i)
 	    {
 	      if (VECTORP (charvec))
 		{

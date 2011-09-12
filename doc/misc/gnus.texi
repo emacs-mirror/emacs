@@ -1011,7 +1011,7 @@ The @code{gnus-select-method} variable says where Gnus should look for
 news.  This variable should be a list where the first element says
 @dfn{how} and the second element says @dfn{where}.  This method is your
 native method.  All groups not fetched with this method are
-foreign groups.
+secondary or foreign groups.
 
 For instance, if the @samp{news.somewhere.edu} @acronym{NNTP} server is where
 you want to get your daily dosage of news from, you'd say:
@@ -3335,8 +3335,12 @@ List all groups with ticked articles (@code{gnus-group-list-ticked}).
 @item A /
 @kindex A / (Group)
 @findex gnus-group-list-limit
-List groups limited within the current selection
-(@code{gnus-group-list-limit}).
+Further limit groups within the current selection
+(@code{gnus-group-list-limit}).  If you've first limited to groups
+with dormant articles with @kbd{A ?}, you can then further limit with
+@kbd{A / c}, which will then limit to groups with cached articles,
+giving you the groups that have both dormant articles and cached
+articles.
 
 @item A f
 @kindex A f (Group)
@@ -28572,18 +28576,21 @@ confusing.
 @item native
 @cindex native
 Gnus will always use one method (and back end) as the @dfn{native}, or
-default, way of getting news.
+default, way of getting news.  Groups from the native select method
+have names like @samp{gnu.emacs.gnus}.
 
 @item foreign
 @cindex foreign
-You can also have any number of foreign groups active at the same time.
-These are groups that use non-native non-secondary back ends for getting
-news.
+You can also have any number of foreign groups active at the same
+time.  These are groups that use non-native non-secondary back ends
+for getting news.  Foreign groups have names like
+@samp{nntp+news.gmane.org:gmane.emacs.gnus.devel}.
 
 @item secondary
 @cindex secondary
-Secondary back ends are somewhere half-way between being native and being
-foreign, but they mostly act like they are native.
+Secondary back ends are somewhere half-way between being native and
+being foreign, but they mostly act like they are native, but they, too
+have names like @samp{nntp+news.gmane.org:gmane.emacs.gnus.devel}.
 
 @item article
 @cindex article
