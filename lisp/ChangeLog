@@ -1,3 +1,8 @@
+2011-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (ucs-completions): Remove.
+	(read-char-by-name): Use complete-with-action instead; add metadata.
+
 2011-09-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* window.el (display-buffer--action-function-custom-type)
@@ -19,8 +24,8 @@
 	Use switch-to-buffer.
 
 	* cus-edit.el (customize-group, custom-buffer-create)
-	(customize-browse, custom-buffer-create-other-window): Use
-	switch-to-buffer or switch-to-buffer-other-window.
+	(customize-browse, custom-buffer-create-other-window):
+	Use switch-to-buffer or switch-to-buffer-other-window.
 
 	* info.el (info, Info-find-node, Info-revert-find-node, Info-next)
 	(Info-prev, Info-up, Info-speedbar-goto-node)
@@ -86,8 +91,8 @@
 	(mail-other-window): Use switch-to-buffer-other-window.
 	(mail-other-frame): USe switch-to-buffer-other-frame.
 
-	* progmodes/gdb-mi.el (gdb-frame-gdb-buffer): Use
-	display-buffer-other-frame.
+	* progmodes/gdb-mi.el (gdb-frame-gdb-buffer):
+	Use display-buffer-other-frame.
 	(gdb-display-gdb-buffer): Use pop-to-buffer.
 
 	* progmodes/gud.el (gud-goto-info): Use info-other-window.
@@ -119,7 +124,7 @@
 	(display-buffer-use-some-window): Don't perform any special
 	pop-up-frames handling.
 	(pop-to-buffer): Use window-normalize-buffer-to-switch-to.
-	(display-buffer--maybe-same-window): Renamed from
+	(display-buffer--maybe-same-window): Rename from
 	display-buffer-maybe-same-window.
 
 	* info.el: Don't set same-window-regexps.
@@ -317,7 +322,7 @@
 
 2011-09-03  Chong Yidong  <cyd@stupidchicken.com>
 
-	* mail/sendmail.el (sendmail-query-once-function): Deleted.
+	* mail/sendmail.el (sendmail-query-once-function): Delete.
 	(sendmail-query-once): Save directly to send-mail-function.
 	Update message-send-mail-function too.
 
@@ -329,7 +334,7 @@
 	start python interpreter from menu-bar (as reported by Geert
 	Kloosterman).
 	(inferior-python-mode-map): Fix typo.
-	(python-shell-map): Removed.
+	(python-shell-map): Remove.
 
 2011-09-03  Deniz Dogan  <deniz@dogan.se>
 
@@ -346,8 +351,8 @@
 	* window.el (window-deletable-p): Don't return a non-nil value
 	when there's a buffer that was shown in the window before.
 	(Bug#9419)
-	(display-buffer-pop-up-frame, display-buffer-pop-up-window): Set
-	window's previous buffers to nil.
+	(display-buffer-pop-up-frame, display-buffer-pop-up-window):
+	Set window's previous buffers to nil.
 
 2011-09-03  Eli Zaretskii  <eliz@gnu.org>
 
@@ -361,7 +366,7 @@
 
 2011-09-02  Chong Yidong  <cyd@stupidchicken.com>
 
-	* window.el (pop-to-buffer-1, pop-to-buffer-same-window): Deleted.
+	* window.el (pop-to-buffer-1, pop-to-buffer-same-window): Delete.
 	(pop-to-buffer): Change interactive spec.  Pass second argument
 	directly to display-buffer.
 	(display-buffer): Fix interactive spec.  Use functionp to
@@ -388,7 +393,7 @@
 	(display-buffer-reuse-or-pop-window)
 	(display-buffer-use-some-window): New functions.
 	(display-buffer-default-action): Use them.
-	(display-buffer-default): Deleted.
+	(display-buffer-default): Delete.
 	(pop-to-buffer-1): Fix choice of actions.
 
 2011-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
