@@ -1395,13 +1395,6 @@ non-numeric prefix - `C-u M-x gnus', in short."
   :type '(repeat string))
 (make-obsolete-variable 'gnus-secondary-servers 'gnus-select-method "24.1")
 
-(defcustom gnus-nntp-server nil
-  "The name of the host running the NNTP server."
-  :group 'gnus-server
-  :type '(choice (const :tag "disable" nil)
-		 string))
-(make-obsolete-variable 'gnus-nntp-server 'gnus-select-method "24.1")
-
 (defcustom gnus-secondary-select-methods nil
   "A list of secondary methods that will be used for reading news.
 This is a list where each element is a complete select method (see
