@@ -236,18 +236,16 @@ List has a form of (file-name full-file-name (attribute-list))."
   ;; OP-SYMBOL is the type of operation (for use in `dired-mark-pop-up').
   ;; ARG describes which files to use, as in `dired-get-marked-files'.
   (let* ((files (dired-get-marked-files t arg))
-	 (initial
-	  (if (eq op-symbol 'touch)
-	      (format-time-string "%Y%m%d%H%M.%S")))
-	 (default
-	   (if (eq op-symbol 'touch)
-	       (and (stringp (car files))
-		    (format-time-string "%Y%m%d%H%M.%S"
-					(nth 5 (file-attributes (car files)))))))
-	 (new-attribute
-	  (dired-mark-read-string
-	   (concat "Change " attribute-name " of %s to: ")
-	   initial op-symbol arg files default))
+	 (default (and (eq op-symbol 'touch)
+		       (stringp (car files))
+		       (format-time-string "%Y%m%d%H%M.%S"
+					   (nth 5 (file-attributes (car files))))))
+	 (prompt (concat "Change " attribute-name " of %s to"
+			 (if (eq op-symbol 'touch)
+			     " (default now): "
+			   ": ")))
+	 (new-attribute (dired-mark-read-string prompt nil op-symbol
+						arg files default))
 	 (operation (concat program " " new-attribute))
 	 failures)
     (setq failures
@@ -255,9 +253,10 @@ List has a form of (file-name full-file-name (attribute-list))."
 			     (function dired-check-process)
 			     (append
 			      (list operation program)
-			      (if (eq op-symbol 'touch)
-				  '("-t") nil)
-			      (list new-attribute)
+			      (unless (string-equal new-attribute "")
+				(if (eq op-symbol 'touch)
+				    (list "-t" new-attribute)
+				  (list new-attribute)))
 			      (if (string-match "gnu" system-configuration)
 				  '("--") nil))
 			     files))
@@ -285,10 +284,19 @@ Symbolic modes like `g+w' are allowed."
 			 (match-string 2 modestr)
 			 (match-string 3 modestr)))))
 	 (modes (dired-mark-read-string
-		 "Change mode of %s to: " nil
+		 "Change mode of %s to: "
+		 ;; Insert initial input if there's only one file.
+		 (unless (cadr files) default)
 		 'chmod arg files default))
-	 (num-modes (if (string-match "^[0-7]+" modes)
-			(string-to-number modes 8))))
+	 num-modes)
+
+    (cond ((equal modes "")
+	   ;; We used to treat empty input as DEFAULT, but that is not
+	   ;; such a good idea (Bug#9361).
+	   (error "No file mode specified"))
+	  ((string-match "^[0-7]+" modes)
+	   (setq num-modes (string-to-number modes 8))))
+
     (dolist (file files)
       (set-file-modes
        file
@@ -379,22 +387,24 @@ Uses the shell command coming from variables `lpr-command' and
 		   'print arg file-list)))
     (dired-run-shell-command (dired-shell-stuff-it command file-list nil))))
 
-;; Read arguments for a marked-files command that wants a string
-;; that is not a file name,
-;; perhaps popping up the list of marked files.
-;; ARG is the prefix arg and indicates whether the files came from
-;; marks (ARG=nil) or a repeat factor (integerp ARG).
-;; If the current file was used, the list has but one element and ARG
-;; does not matter. (It is non-nil, non-integer in that case, namely '(4)).
+(defun dired-mark-read-string (prompt initial op-symbol arg files
+			       &optional standard-value)
+  "Read args for a Dired marked-files command, prompting with PROMPT.
+Return the user input (a string).
 
-(defun dired-mark-read-string (prompt initial op-symbol arg files &optional default)
-  ;; PROMPT for a string, with INITIAL input and DEFAULT value.
-  ;; Other args are used to give user feedback and pop-up:
-  ;; OP-SYMBOL of command, prefix ARG, marked FILES.
-  (dired-mark-pop-up
-   nil op-symbol files
-   (function read-string)
-   (format prompt (dired-mark-prompt arg files)) initial nil default))
+INITIAL, if non-nil, is the initial minibuffer input.
+OP-SYMBOL is an operation symbol (see `dired-no-confirm').
+ARG is normally the prefix argument for the calling command.
+FILES should be a list of file names.
+
+STANDARD-VALUE, if non-nil, should be a \"standard\" value or
+list of such values, available via history commands.  Note that
+if the user enters empty input, this function returns the empty
+string, not STANDARD-VALUE."
+  (dired-mark-pop-up nil op-symbol files
+		     'read-from-minibuffer
+		     (format prompt (dired-mark-prompt arg files))
+		     initial nil nil nil standard-value))
 
 ;;; Cleaning a directory: flagging some backups for deletion.
 

@@ -1,3 +1,14 @@
+2011-09-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired-aux.el (dired-mark-read-string): Don't return default
+	value on empty input (Bug#9361).
+	(dired-do-chxxx): Treat empty input for "touch" as no -t option.
+	Omit initial minibuffer contents.
+	(dired-do-chmod): Signal an error on empty input.
+	(dired-mark-read-string): Don't return default on empty input.
+
+	* files.el (file-modes-symbolic-to-number): Doc fix.
+
 2011-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-cmds.el (ucs-completions): Remove.
