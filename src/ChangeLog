@@ -1,3 +1,8 @@
+2011-09-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* indent.c (compute_motion): Process display vector front to back
+	rather than the other way around.  (Bug#2496)
+
 2011-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Finsert_file_contents): Don't assume beg_offset is 0.
