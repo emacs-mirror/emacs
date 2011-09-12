@@ -710,7 +710,8 @@ simple manner.")
   "M"  gnus-group-list-limit
   "l"  gnus-group-list-limit
   "c"  gnus-group-list-limit
-  "?"  gnus-group-list-limit)
+  "?"  gnus-group-list-limit
+  "!"  gnus-group-list-limit)
 
 (gnus-define-keys (gnus-group-list-flush-map "f" gnus-group-list-map)
   "k"  gnus-group-list-flush
@@ -722,7 +723,8 @@ simple manner.")
   "M"  gnus-group-list-flush
   "l"  gnus-group-list-flush
   "c"  gnus-group-list-flush
-  "?"  gnus-group-list-flush)
+  "?"  gnus-group-list-flush
+  "!"  gnus-group-list-flush)
 
 (gnus-define-keys (gnus-group-list-plus-map "p" gnus-group-list-map)
   "k"  gnus-group-list-plus
@@ -734,7 +736,8 @@ simple manner.")
   "M"  gnus-group-list-plus
   "l"  gnus-group-list-plus
   "c"  gnus-group-list-plus
-  "?"  gnus-group-list-plus)
+  "?"  gnus-group-list-plus
+  "!"  gnus-group-list-plus)
 
 (gnus-define-keys (gnus-group-score-map "W" gnus-group-mode-map)
   "f" gnus-score-flush-cache
