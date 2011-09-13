@@ -1,3 +1,8 @@
+2011-09-13  Scott Frazer  <frazer.scott@gmail.com>
+
+	* themes/whiteboard-theme.el:
+	* themes/deeper-blue-theme.el (deeper-blue): New files.
+
 2011-09-05  Juri Linkov  <juri@jurta.org>
 
 	* grep.txt: Add `eval' to the Local Variables section that
