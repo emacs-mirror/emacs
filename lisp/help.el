@@ -527,7 +527,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
   (unless definition (error "No command"))
   (let ((func (indirect-function definition))
         (defs nil)
-        (standard-output (if insert (current-buffer) t)))
+        (standard-output (if insert (current-buffer) standard-output)))
     ;; In DEFS, find all symbols that are aliases for DEFINITION.
     (mapatoms (lambda (symbol)
 		(and (fboundp symbol)
