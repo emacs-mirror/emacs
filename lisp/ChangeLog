@@ -18,8 +18,7 @@
 	(replace-buffer-in-windows): Delete buffer's window or frame if
 	and only if window is dedicated.
 	(quit-window): Handle quit-restore as before last change.
-	(bury-buffer): Delete window only if window-deletable-p returns
-	t.
+	(bury-buffer): Delete window only if window-deletable-p returns t.
 
 2011-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -848,14 +847,14 @@
 
 	Resolve invalid use of a regexp in regexp-opt.
 
-	* cc-fonts.el (c-complex-decl-matchers): Add in special detection
-	for a java annotation.
-
-	* cc-engine.el (c-forward-decl-or-cast-1): Add in special
+	* progmodes/cc-fonts.el (c-complex-decl-matchers): Add in special
 	detection for a java annotation.
 
-	* cc-langs.el (c-prefix-spec-kwds-re): Remove the special handling
-	for java.
+	* progmodes/cc-engine.el (c-forward-decl-or-cast-1): Add in special
+	detection for a java annotation.
+
+	* progmodes/cc-langs.el (c-prefix-spec-kwds-re): Remove the special
+	handling for java.
 	(c-modifier-kwds): Remove the regexp "@[A-za-z0-9]+".
 
 2011-08-20  Chong Yidong  <cyd@stupidchicken.com>
@@ -1233,7 +1232,7 @@
 	* progmodes/cc-mode.el: Remove two autoload forms which loaded
 	cc-langs.
 
-	* /progmodes/cc-langs.el (c-make-init-lang-vars-fun): Don't emit
+	* progmodes/cc-langs.el (c-make-init-lang-vars-fun): Don't emit
 	"(require 'cc-langs)".  Quote a form so it will evaluate at
 	(cc-mode's) compilation time.
 
@@ -3897,7 +3896,7 @@
 
 2011-05-31  Helmut Eller  <eller.helmut@gmail.com>
 
-	* debug.el (debug): Restore the previous content of the
+	* emacs-lisp/debug.el (debug): Restore the previous content of the
 	*Backtrace* buffer when we exit with C-M-c.
 
 2011-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -4546,7 +4545,8 @@
 2011-05-13  Didier Verna  <didier@xemacs.org>
 
 	Common Lisp indentation improvements on defmethod and lambda-lists.
-	* cl-indent.el: Advertise the changes and remove obsolete TODO entries.
+	* emacs-lisp/cl-indent.el: Advertise the changes and remove obsolete
+	TODO entries.
 	(lisp-lambda-list-keyword-parameter-indentation)
 	(lisp-lambda-list-keyword-parameter-alignment)
 	(lisp-lambda-list-keyword-alignment): New customizable user options.
@@ -4596,7 +4596,7 @@
 
 2011-05-12  Eli Zaretskii  <eliz@gnu.org>
 
-	* smerge-mode.el (smerge-resolve): Use null-device rather than a
+	* vc/smerge-mode.el (smerge-resolve): Use null-device rather than a
 	literal "/dev/null".
 
 2011-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -6040,7 +6040,7 @@
 
 2011-04-08  Juanma Barranquero  <lekktu@gmail.com>
 
-	* vc-annotate.el (vc-annotate-show-log-revision-at-line):
+	* vc/vc-annotate.el (vc-annotate-show-log-revision-at-line):
 	Fix typo in docstring.
 
 2011-04-08  Eli Zaretskii  <eliz@gnu.org>
@@ -6712,7 +6712,7 @@
 
 2011-03-19  Eli Zaretskii  <eliz@gnu.org>
 
-	* emerge.el (emerge-metachars): Separate value for ms-dos and
+	* vc/emerge.el (emerge-metachars): Separate value for ms-dos and
 	windows-nt systems.
 	(emerge-protect-metachars): Quote correctly for ms-dos and
 	windows-nt systems.
