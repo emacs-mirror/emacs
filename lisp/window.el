@@ -2258,40 +2258,10 @@ and no others."
 	(next-window base-window (if nomini 'arg) all-frames))))
 
 ;;; Deleting windows.
-(defcustom window-auto-delete t
-  "If non-nil, quitting a window can delete the window.
-If this variable is t, functions that quit a window can delete
-the window and, if applicable, the corresponding frame.  If it is
-'frame, these functions can delete a window and its frame,
-provided there are no other windows on the frame.  If it is
-'window, these functions can delete the window, provided there
-are other windows on the corresponding frame.  If this variable
-is nil, functions that quit a window never delete the window or
-the associated frame.
-
-Note that a frame can be effectively deleted if and only if
-another frame still exists.
-
-Functions quitting a window and consequently affected by this
-variable are `switch-to-prev-buffer' including its callers like
-`bury-buffer', `replace-buffer-in-windows' and its callers like
-`kill-buffer', and `quit-window'."
-  :type '(choice
-	  (const :tag "Always" t)
-	  (const :tag "Window" window)
-	  (const :tag "Frame" frame)
-	  (const :tag "Never" nil))
-  :group 'windows)
-
-(defun window-deletable-p (&optional window force)
+(defun window-deletable-p (&optional window)
   "Return t if WINDOW can be safely deleted from its frame.
 Return `frame' if deleting WINDOW should also delete its
-frame.
-
-Optional argument FORCE non-nil means return non-nil unless
-WINDOW is the root window of the only visible frame.  FORCE nil
-or omitted means return nil unless WINDOW is either dedicated to
-its buffer or has no previous buffer to show instead."
+frame."
   (setq window (window-normalize-any-window window))
 
   (unless ignore-window-parameters
@@ -2301,39 +2271,23 @@ its buffer or has no previous buffer to show instead."
 
   (let* ((parent (window-parent window))
 	 (frame (window-frame window))
-	 (buffer (window-buffer window))
-	 (dedicated (and (window-buffer window) (window-dedicated-p window)))
-	 ;; prev non-nil means there is another buffer we can show
-	 ;; in WINDOW instead.
-	 (prev (and (window-live-p window)
-		    (window-prev-buffers window)
-		    (or (cdr (window-prev-buffers window))
-			(not (eq (caar (window-prev-buffers window))
-				 buffer))))))
+	 (buffer (window-buffer window)))
     (cond
      ((frame-root-window-p window)
-      ;; We can delete the frame if (1) FORCE is non-nil, WINDOW is
-      ;; dedicated to its buffer, or there are no previous buffers to
-      ;; show and (2) there are other visible frames on this terminal.
-      (and (or force dedicated
-	       (and (not prev) (memq window-auto-delete '(t frame))))
-	   ;; Are there visible frames on the same terminal?
-	   (let ((terminal (frame-terminal frame)))
-	     (catch 'found
-	       (dolist (f (delq frame (frame-list)))
-		 (and (eq terminal (frame-terminal f))
-		      (frame-visible-p f)
-		      (throw 'found t)))))
+      ;; WINDOW's frame can be deleted only if there are other visible
+      ;; frames on the same terminal.
+      (when (let ((terminal (frame-terminal frame)))
+	      (catch 'found
+		(dolist (f (delq frame (frame-list)))
+		  (and (eq terminal (frame-terminal f))
+		       (frame-visible-p f)
+		       (throw 'found t)))))
 	   'frame))
-     ((and (or force dedicated
-	       (and (not prev) (memq window-auto-delete '(t window))))
-	   (or ignore-window-parameters
-	       (not (eq (window-parameter window 'window-side) 'none))
-	       (and parent
-		    (eq (window-parameter parent 'window-side) 'none))))
-      ;; We can delete WINDOW if (1) either FORCE is non-nil, WINDOW is
-      ;; dedicated to its buffer, or there are no previous buffers to
-      ;; show and (2) WINDOW is not the main window of its frame.
+     ((or ignore-window-parameters
+	  (not (eq (window-parameter window 'window-side) 'none))
+	  (and parent (eq (window-parameter parent 'window-side) 'none)))
+      ;; WINDOW can be deleted unless it is the main window of its
+      ;; frame.
       t))))
 
 (defun window-or-subwindow-p (subwindow window)
@@ -2601,84 +2555,75 @@ shall not be switched to in future invocations of this command."
 	 (old-buffer (window-buffer window))
 	 ;; Save this since it's destroyed by `set-window-buffer'.
 	 (next-buffers (window-next-buffers window))
-	 entry new-buffer killed-buffers deletable visible)
-    (cond
-     ;; When BURY-OR-KILL is non-nil, there's no previous buffer for
-     ;; this window, and we can delete the window (or the frame) do
-     ;; that.
-     ((and bury-or-kill (setq deletable (window-deletable-p window)))
-      (if (eq deletable 'frame)
-	  (delete-frame (window-frame window))
-	(delete-window window)))
-     ((window-dedicated-p window)
-      (error "Window %s is dedicated to buffer %s" window old-buffer)))
+	 entry new-buffer killed-buffers visible)
+    (when (window-dedicated-p window)
+      (error "Window %s is dedicated to buffer %s" window old-buffer))
 
-    (unless deletable
-      (catch 'found
-	;; Scan WINDOW's previous buffers first, skipping entries of next
-	;; buffers.
-	(dolist (entry (window-prev-buffers window))
-	  (when (and (setq new-buffer (car entry))
-		     (or (buffer-live-p new-buffer)
-			 (not (setq killed-buffers
-				    (cons new-buffer killed-buffers))))
-		     (not (eq new-buffer old-buffer))
-		     (or bury-or-kill
-			 (not (memq new-buffer next-buffers))))
-	    (set-window-buffer-start-and-point
-	     window new-buffer (nth 1 entry) (nth 2 entry))
-	    (throw 'found t)))
-	;; Scan reverted buffer list of WINDOW's frame next, skipping
-	;; entries of next buffers.  Note that when we bury or kill a
-	;; buffer we don't reverse the global buffer list to avoid showing
-	;; a buried buffer instead.  Otherwise, we must reverse the global
-	;; buffer list in order to make sure that switching to the
-	;; previous/next buffer traverse it in opposite directions.
-	(dolist (buffer (if bury-or-kill
-			    (buffer-list (window-frame window))
-			  (nreverse (buffer-list (window-frame window)))))
-	  (when (and (buffer-live-p buffer)
-		     (not (eq buffer old-buffer))
-		     (not (eq (aref (buffer-name buffer) 0) ?\s))
-		     (or bury-or-kill (not (memq buffer next-buffers))))
-	    (if (get-buffer-window buffer)
-		;; Try to avoid showing a buffer visible in some other window.
-		(setq visible buffer)
+    (catch 'found
+      ;; Scan WINDOW's previous buffers first, skipping entries of next
+      ;; buffers.
+      (dolist (entry (window-prev-buffers window))
+	(when (and (setq new-buffer (car entry))
+		   (or (buffer-live-p new-buffer)
+		       (not (setq killed-buffers
+				  (cons new-buffer killed-buffers))))
+		   (not (eq new-buffer old-buffer))
+		   (or bury-or-kill
+		       (not (memq new-buffer next-buffers))))
+	  (set-window-buffer-start-and-point
+	   window new-buffer (nth 1 entry) (nth 2 entry))
+	  (throw 'found t)))
+      ;; Scan reverted buffer list of WINDOW's frame next, skipping
+      ;; entries of next buffers.  Note that when we bury or kill a
+      ;; buffer we don't reverse the global buffer list to avoid showing
+      ;; a buried buffer instead.  Otherwise, we must reverse the global
+      ;; buffer list in order to make sure that switching to the
+      ;; previous/next buffer traverse it in opposite directions.
+      (dolist (buffer (if bury-or-kill
+			  (buffer-list (window-frame window))
+			(nreverse (buffer-list (window-frame window)))))
+	(when (and (buffer-live-p buffer)
+		   (not (eq buffer old-buffer))
+		   (not (eq (aref (buffer-name buffer) 0) ?\s))
+		   (or bury-or-kill (not (memq buffer next-buffers))))
+	  (if (get-buffer-window buffer)
+	      ;; Try to avoid showing a buffer visible in some other window.
+	      (setq visible buffer)
 	    (setq new-buffer buffer)
 	    (set-window-buffer-start-and-point window new-buffer)
 	    (throw 'found t))))
-	(unless bury-or-kill
-	  ;; Scan reverted next buffers last (must not use nreverse
-	  ;; here!).
-	  (dolist (buffer (reverse next-buffers))
-	    ;; Actually, buffer _must_ be live here since otherwise it
-	    ;; would have been caught in the scan of previous buffers.
-	    (when (and (or (buffer-live-p buffer)
-			   (not (setq killed-buffers
-				      (cons buffer killed-buffers))))
-		       (not (eq buffer old-buffer))
-		       (setq entry (assq buffer (window-prev-buffers window))))
-	      (setq new-buffer buffer)
-	      (set-window-buffer-start-and-point
-	       window new-buffer (nth 1 entry) (nth 2 entry))
-	      (throw 'found t))))
+      (unless bury-or-kill
+	;; Scan reverted next buffers last (must not use nreverse
+	;; here!).
+	(dolist (buffer (reverse next-buffers))
+	  ;; Actually, buffer _must_ be live here since otherwise it
+	  ;; would have been caught in the scan of previous buffers.
+	  (when (and (or (buffer-live-p buffer)
+			 (not (setq killed-buffers
+				    (cons buffer killed-buffers))))
+		     (not (eq buffer old-buffer))
+		     (setq entry (assq buffer (window-prev-buffers window))))
+	    (setq new-buffer buffer)
+	    (set-window-buffer-start-and-point
+	     window new-buffer (nth 1 entry) (nth 2 entry))
+	    (throw 'found t))))
 
-	;; Show a buffer visible in another window.
-	(when visible
-	  (setq new-buffer visible)
-	  (set-window-buffer-start-and-point window new-buffer)))
+      ;; Show a buffer visible in another window.
+      (when visible
+	(setq new-buffer visible)
+	(set-window-buffer-start-and-point window new-buffer)))
 
-      (if bury-or-kill
-	  ;; Remove `old-buffer' from WINDOW's previous and (restored list
-	  ;; of) next buffers.
-	  (progn
-	    (set-window-prev-buffers
-	     window (assq-delete-all old-buffer (window-prev-buffers window)))
-	    (set-window-next-buffers window (delq old-buffer next-buffers)))
-	;; Move `old-buffer' to head of WINDOW's restored list of next
-	;; buffers.
-	(set-window-next-buffers
-	 window (cons old-buffer (delq old-buffer next-buffers)))))
+    (if bury-or-kill
+	;; Remove `old-buffer' from WINDOW's previous and (restored list
+	;; of) next buffers.
+	(progn
+	  (set-window-prev-buffers
+	   window (assq-delete-all old-buffer (window-prev-buffers window)))
+	  (set-window-next-buffers window (delq old-buffer next-buffers)))
+      ;; Move `old-buffer' to head of WINDOW's restored list of next
+      ;; buffers.
+      (set-window-next-buffers
+       window (cons old-buffer (delq old-buffer next-buffers))))
 
     ;; Remove killed buffers from WINDOW's previous and next buffers.
     (when killed-buffers
@@ -2823,8 +2768,9 @@ displayed there."
            ;; Don't iconify if it's the only frame.
            (not (eq (next-frame nil 0) (selected-frame))))
       (iconify-frame (window-frame (selected-window))))
-     ((window-deletable-p)
+     ((eq (window-deletable-p) t)
       (delete-window)))
+
     ;; Always return nil.
     nil))
 
@@ -2878,13 +2824,13 @@ frames left."
 	(all-frames (cond ((not frame) t) ((eq frame t) nil) (t frame))))
     (dolist (window (window-list-1 nil nil all-frames))
       (if (eq (window-buffer window) buffer)
-	  (let ((deletable (window-deletable-p window t)))
+	  (let ((deletable (window-deletable-p window)))
 	    (cond
-	     ((eq deletable 'frame)
-	      ;; Delete frame.
+	     ((and (eq deletable 'frame) (window-dedicated-p window))
+	      ;; Delete frame if and only if window is dedicated.
 	      (delete-frame (window-frame window)))
-	     (deletable
-	      ;; Delete window only.
+	     ((eq deletable t)
+	      ;; Delete window.
 	      (delete-window window))
 	     (t
 	      ;; In window switch to previous buffer.
@@ -2909,7 +2855,8 @@ all window-local buffer lists."
   (let ((buffer (window-normalize-buffer buffer-or-name)))
     (dolist (window (window-list-1 nil nil t))
       (if (eq (window-buffer window) buffer)
-	  (let ((deletable (window-deletable-p window)))
+	  (let ((deletable (and (window-dedicated-p window)
+				(window-deletable-p window))))
 	    (cond
 	     ((eq deletable 'frame)
 	      ;; Delete frame.
@@ -2938,13 +2885,21 @@ one.  If non-nil, reset `quit-restore' parameter to nil."
   (setq window (window-normalize-live-window window))
   (let ((buffer (window-buffer window))
 	(quit-restore (window-parameter window 'quit-restore))
-	deletable resize)
+	resize)
     (cond
-     ((setq deletable (window-deletable-p window))
-      ;; Check if WINDOW's frame can be deleted.
-      (if (eq deletable 'frame)
-	  (delete-frame (window-frame window))
-	(delete-window window))
+     ((and (eq (car-safe quit-restore) 'new-frame)
+	   (eq (nth 1 quit-restore) (window-buffer window))
+	   (eq (window-deletable-p window) 'frame))
+      ;; WINDOW's frame can be deleted.
+      (delete-frame (window-frame window))
+      ;; If the previously selected window is still alive, select it.
+      (when (window-live-p (nth 2 quit-restore))
+	(select-window (nth 2 quit-restore))))
+     ((and (eq (car-safe quit-restore) 'new-window)
+	   (eq (nth 1 quit-restore) (window-buffer window))
+	   (eq (window-deletable-p window) t))
+      ;; WINDOW's can be deleted.
+      (delete-window window)
       ;; If the previously selected window is still alive, select it.
       (when (window-live-p (nth 2 quit-restore))
 	(select-window (nth 2 quit-restore))))

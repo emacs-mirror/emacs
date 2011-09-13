@@ -1,3 +1,17 @@
+2011-09-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-auto-delete): Remove.
+	(window-deletable-p): Remove argument FORCE.  Don't deal with
+	dedicatedness and previous buffers.
+	(switch-to-prev-buffer): Don't delete window.
+	(delete-windows-on): Delete a window's frame if and only if the
+	window is dedicated.
+	(replace-buffer-in-windows): Delete buffer's window or frame if
+	and only if window is dedicated.
+	(quit-window): Handle quit-restore as before last change.
+	(bury-buffer): Delete window only if window-deletable-p returns
+	t.
+
 2011-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* window.el (window-deletable-p): Never delete the last frame on a
