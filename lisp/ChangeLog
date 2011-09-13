@@ -1,3 +1,7 @@
+2011-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (window-deletable-p): Use next-frame.
+
 2011-09-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-auto-delete): Remove.

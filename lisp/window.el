@@ -2274,15 +2274,10 @@ frame."
 	 (buffer (window-buffer window)))
     (cond
      ((frame-root-window-p window)
-      ;; WINDOW's frame can be deleted only if there are other visible
-      ;; frames on the same terminal.
-      (when (let ((terminal (frame-terminal frame)))
-	      (catch 'found
-		(dolist (f (delq frame (frame-list)))
-		  (and (eq terminal (frame-terminal f))
-		       (frame-visible-p f)
-		       (throw 'found t)))))
-	   'frame))
+      ;; WINDOW's frame can be deleted only if there are other frames
+      ;; on the same terminal.
+      (unless (eq frame (next-frame frame 0))
+	'frame))
      ((or ignore-window-parameters
 	  (not (eq (window-parameter window 'window-side) 'none))
 	  (and parent (eq (window-parameter parent 'window-side) 'none)))
