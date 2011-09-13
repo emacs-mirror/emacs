@@ -452,7 +452,7 @@ This behaves like the function `lisp-indent-function', except that:
 i) it checks for a non-nil value of the property `scheme-indent-function'
 \(or the deprecated `scheme-indent-hook'), rather than `lisp-indent-function'.
 
-ii) if that property specifes a function, it is called with three
+ii) if that property specifies a function, it is called with three
 arguments (not two), the third argument being the default (i.e., current)
 indentation."
   (let ((normal-indent (current-column)))
