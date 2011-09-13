@@ -2312,13 +2312,19 @@ its buffer or has no previous buffer to show instead."
 				 buffer))))))
     (cond
      ((frame-root-window-p window)
-      (when (and (or force dedicated
-		     (and (not prev) (memq window-auto-delete '(t frame))))
-		 (other-visible-frames-p frame))
-	;; We can delete WINDOW's frame if (1) either FORCE is non-nil,
-	;; WINDOW is dedicated to its buffer, or there are no previous
-	;; buffers to show and (2) there are other visible frames left.
-	'frame))
+      ;; We can delete the frame if (1) FORCE is non-nil, WINDOW is
+      ;; dedicated to its buffer, or there are no previous buffers to
+      ;; show and (2) there are other visible frames on this terminal.
+      (and (or force dedicated
+	       (and (not prev) (memq window-auto-delete '(t frame))))
+	   ;; Are there visible frames on the same terminal?
+	   (let ((terminal (frame-terminal frame)))
+	     (catch 'found
+	       (dolist (f (delq frame (frame-list)))
+		 (and (eq terminal (frame-terminal f))
+		      (frame-visible-p f)
+		      (throw 'found t)))))
+	   'frame))
      ((and (or force dedicated
 	       (and (not prev) (memq window-auto-delete '(t window))))
 	   (or ignore-window-parameters

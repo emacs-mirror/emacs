@@ -1,3 +1,8 @@
+2011-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (window-deletable-p): Never delete the last frame on a
+	given terminal.
+
 2011-09-13  Glenn Morris  <rgm@gnu.org>
 
 	* help.el (describe-key-briefly): Copy previous standard-output change.
