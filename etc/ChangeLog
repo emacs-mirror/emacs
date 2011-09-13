@@ -1,7 +1,11 @@
+2011-09-13  William Stevenson  <yhvh2000@gmail.com>
+
+	* themes/adwaita-theme.el: New file.
+
 2011-09-13  Scott Frazer  <frazer.scott@gmail.com>
 
 	* themes/whiteboard-theme.el:
-	* themes/deeper-blue-theme.el (deeper-blue): New files.
+	* themes/deeper-blue-theme.el: New files.
 
 2011-09-05  Juri Linkov  <juri@jurta.org>
 

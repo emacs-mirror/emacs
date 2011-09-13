@@ -35,7 +35,6 @@
    `(compilation-error ((,class (:foreground "Red1"))))
    `(compilation-info ((,class (:weight normal :foreground "DeepSkyBlue4"))))
    `(compilation-line-number ((,class (:foreground "DarkGreen"))))
-   `(compilation-warning ((,class (:foreground "Yellow4"))))
    `(cperl-array-face ((,class (:foreground "SlateBlue3"))))
    `(cperl-hash-face ((,class (:foreground "turquoise3"))))
    `(cperl-nonoverridable-face ((,class (:foreground "orchid3"))))
@@ -86,7 +85,8 @@
    `(primary-selection ((,class (:background "blue3"))))
    `(region ((,class (:background "SkyBlue1"))))
    `(show-paren-match-face ((,class (:background "dodgerblue1" :foreground "white"))))
-   `(show-paren-mismatch-face ((,class (:background "red1" :foreground "white"))))))
+   `(show-paren-mismatch-face ((,class (:background "red1" :foreground "white"))))
+   `(warning ((,class (:foreground "Yellow4"))))))
 
 (provide-theme 'whiteboard)
 
