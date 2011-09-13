@@ -442,9 +442,19 @@ that variable's value is a string."
 
 (defvar calculate-lisp-indent-last-sexp)
 
-;; Copied from lisp-indent-function, but with gets of
-;; scheme-indent-{function,hook}.
+
+;; FIXME this duplicates almost all of lisp-indent-function.
+;; Extract common code to a subroutine.
 (defun scheme-indent-function (indent-point state)
+  "Scheme mode function for the value of the variable `lisp-indent-function'.
+This behaves like the function `lisp-indent-function', except that:
+
+i) it checks for a non-nil value of the property `scheme-indent-function'
+\(or the deprecated `scheme-indent-hook'), rather than `lisp-indent-function'.
+
+ii) if that property specifies a function, it is called with three
+arguments (not two), the third argument being the default (i.e., current)
+indentation."
   (let ((normal-indent (current-column)))
     (goto-char (1+ (elt state 1)))
     (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)

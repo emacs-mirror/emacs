@@ -527,7 +527,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
   (unless definition (error "No command"))
   (let ((func (indirect-function definition))
         (defs nil)
-        (standard-output (if insert (current-buffer) t)))
+        (standard-output (if insert (current-buffer) standard-output)))
     ;; In DEFS, find all symbols that are aliases for DEFINITION.
     (mapatoms (lambda (symbol)
 		(and (fboundp symbol)
@@ -625,7 +625,7 @@ temporarily enables it to allow getting help on disabled items and buttons."
 		    (aref key 1)
 		  (aref key 0)))
 	 (modifiers (event-modifiers event))
-	 (standard-output (if insert (current-buffer) t))
+	 (standard-output (if insert (current-buffer) standard-output))
 	 (mouse-msg (if (or (memq 'click modifiers) (memq 'down modifiers)
 			    (memq 'drag modifiers)) " at that spot" ""))
 	 (defn (key-binding key t))

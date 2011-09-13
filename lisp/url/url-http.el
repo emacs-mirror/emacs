@@ -180,6 +180,10 @@ request.")
 		   ;; Drop the temp buffer link before killing the buffer.
 		   (set-process-buffer proc nil))
                  proc)
+	     ;; If there was an error on connect, make sure we don't
+	     ;; get queried.
+	     (when (get-buffer-process buf)
+	       (set-process-query-on-exit-flag (get-buffer-process buf) nil))
              (kill-buffer buf)))))))
 
 ;; Building an HTTP request

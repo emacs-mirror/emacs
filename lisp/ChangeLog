@@ -1,3 +1,46 @@
+2011-09-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-auto-delete): Remove.
+	(window-deletable-p): Remove argument FORCE.  Don't deal with
+	dedicatedness and previous buffers.
+	(switch-to-prev-buffer): Don't delete window.
+	(delete-windows-on): Delete a window's frame if and only if the
+	window is dedicated.
+	(replace-buffer-in-windows): Delete buffer's window or frame if
+	and only if window is dedicated.
+	(quit-window): Handle quit-restore as before last change.
+	(bury-buffer): Delete window only if window-deletable-p returns
+	t.
+
+2011-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (window-deletable-p): Never delete the last frame on a
+	given terminal.
+
+2011-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* help.el (describe-key-briefly): Copy previous standard-output change.
+
+2011-09-13  PJ Weisberg  <pj@irregularexpressions.net>  (tiny change)
+
+	* help.el (where-is): Respect non-standard standard-output.  (Bug#9030)
+
+2011-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-indent-function):
+	* progmodes/scheme.el (scheme-indent-function): Doc fixes.
+
+2011-09-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired-aux.el (dired-mark-read-string): Don't return default
+	value on empty input (Bug#9361).
+	(dired-do-chxxx): Treat empty input for "touch" as no -t option.
+	Omit initial minibuffer contents.
+	(dired-do-chmod): Signal an error on empty input.
+	(dired-mark-read-string): Don't return default on empty input.
+
+	* files.el (file-modes-symbolic-to-number): Doc fix.
+
 2011-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-cmds.el (ucs-completions): Remove.

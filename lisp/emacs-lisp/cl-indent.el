@@ -167,6 +167,7 @@ is set to `defun'.")
 	   (+ loop-indentation lisp-loop-forms-indentation)))))
 
 
+;; Cf (info "(elisp)Specification List")
 ;;;###autoload
 (defun common-lisp-indent-function (indent-point state)
   "Function to indent the arguments of a Lisp function call.
