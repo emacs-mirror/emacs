@@ -1685,9 +1685,9 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
      convert it to a cons of integers, 16 bits in each half.
    */
   else if (format == 32 && size == sizeof (int))
-    return INTEGER_TO_CONS (((unsigned int *) data) [0]);
+    return INTEGER_TO_CONS (((int *) data) [0]);
   else if (format == 16 && size == sizeof (short))
-    return make_number (((unsigned short *) data) [0]);
+    return make_number (((short *) data) [0]);
 
   /* Convert any other kind of data to a vector of numbers, represented
      as above (as an integer, or a cons of two 16 bit integers.)
@@ -1699,7 +1699,7 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
       v = Fmake_vector (make_number (size / 2), make_number (0));
       for (i = 0; i < size / 2; i++)
 	{
-	  EMACS_INT j = ((unsigned short *) data) [i];
+	  EMACS_INT j = ((short *) data) [i];
 	  Faset (v, make_number (i), make_number (j));
 	}
       return v;
@@ -1711,7 +1711,7 @@ selection_data_to_lisp_data (Display *display, const unsigned char *data,
 				    make_number (0));
       for (i = 0; i < size / X_LONG_SIZE; i++)
 	{
-	  unsigned int j = ((unsigned int *) data) [i];
+	  int j = ((int *) data) [i];
 	  Faset (v, make_number (i), INTEGER_TO_CONS (j));
 	}
       return v;
