@@ -7686,14 +7686,6 @@ x_fully_uncatch_errors (void)
 }
 #endif
 
-/* Nonzero if x_catch_errors has been done and not yet canceled.  */
-
-int
-x_catching_errors (void)
-{
-  return x_error_message != 0;
-}
-
 #if 0
 static unsigned int x_wire_count;
 x_trace_wire (void)
