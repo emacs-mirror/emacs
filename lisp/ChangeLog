@@ -1,3 +1,8 @@
+2011-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-send-command): Don't include AUTH
+	passwords in the log buffer.
+
 2011-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/bibtex.el (bibtex-complete-string-cleanup)
