@@ -1454,7 +1454,7 @@ For example:
 l
      @result{} ((2) (1))
 ;; @r{If you want to change @code{l} reliably,}
-;; @r{write @code{(setq l (delete elt l))}.}
+;; @r{write @code{(setq l (delete '(2) l))}.}
 @end group
 @group
 (setq l '((2) (1) (2)))
