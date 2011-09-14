@@ -285,11 +285,8 @@ Symbolic modes like `g+w' are allowed."
 			 (match-string 3 modestr)))))
 	 (modes (dired-mark-read-string
 		 "Change mode of %s to: "
-		 ;; Insert initial input if there's only one file.
-		 (unless (cadr files) default)
-		 'chmod arg files default))
+		 nil 'chmod arg files default))
 	 num-modes)
-
     (cond ((equal modes "")
 	   ;; We used to treat empty input as DEFAULT, but that is not
 	   ;; such a good idea (Bug#9361).
@@ -388,7 +385,7 @@ Uses the shell command coming from variables `lpr-command' and
     (dired-run-shell-command (dired-shell-stuff-it command file-list nil))))
 
 (defun dired-mark-read-string (prompt initial op-symbol arg files
-			       &optional standard-value)
+			       &optional default-value)
   "Read args for a Dired marked-files command, prompting with PROMPT.
 Return the user input (a string).
 
@@ -397,14 +394,14 @@ OP-SYMBOL is an operation symbol (see `dired-no-confirm').
 ARG is normally the prefix argument for the calling command.
 FILES should be a list of file names.
 
-STANDARD-VALUE, if non-nil, should be a \"standard\" value or
-list of such values, available via history commands.  Note that
-if the user enters empty input, this function returns the empty
-string, not STANDARD-VALUE."
+DEFAULT-VALUE, if non-nil, should be a \"standard\" value or list
+of such values, available via history commands.  Note that if the
+user enters empty input, this function returns the empty string,
+not DEFAULT-VALUE."
   (dired-mark-pop-up nil op-symbol files
 		     'read-from-minibuffer
 		     (format prompt (dired-mark-prompt arg files))
-		     initial nil nil nil standard-value))
+		     initial nil nil nil default-value))
 
 ;;; Cleaning a directory: flagging some backups for deletion.
 
