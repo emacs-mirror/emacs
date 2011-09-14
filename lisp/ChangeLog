@@ -1,3 +1,17 @@
+2011-09-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (display-buffer-window): Remove.
+	(display-buffer-record-window): Use help-setup window parameter
+	instead of variable display-buffer-window.
+	(display-buffer-function, special-display-buffer-names)
+	(special-display-function): Mention help-setup parameter instead
+	of display-buffer-window in doc-string.
+	* help.el (help-window-setup): New argument help-window.  Use
+	help-window-setup parameter instead of display-buffer-window.
+	Reword some messages.
+	(with-help-window): Pass window used for displaying the buffer
+	to help-window-setup.  Don't set display-buffer-window.
+
 2011-09-13  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/debug.el (debugger-make-xrefs):
