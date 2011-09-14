@@ -240,7 +240,7 @@
 
 	* m4/lstat.m4: Merge from gnulib (Bug#8878).
 
-2011-06-16  Miles Bader <miles@gnu.org>
+2011-06-16  Miles Bader  <miles@gnu.org>
 
 	* configure.in: Try to determine CRT_DIR automatically when
 	using gcc.
