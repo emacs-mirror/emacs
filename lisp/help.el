@@ -1060,14 +1060,13 @@ window."
     (message "%s"
      (substitute-command-keys (concat quit-part scroll-part)))))
 
-(defun help-window-setup ()
+(defun help-window-setup (help-window)
   "Set up help window for `with-help-window'.
-This relies on `display-buffer-window' being correctly set up by
-`display-buffer'."
-  (let* ((help-window (car-safe display-buffer-window))
-	 (help-buffer (when (window-live-p help-window)
+HELP-WINDOW is the window used for displaying the help buffer."
+  (let* ((help-buffer (when (window-live-p help-window)
 			(window-buffer help-window)))
-	 (help-value (cdr-safe display-buffer-window)))
+	 (help-setup (when (window-live-p help-window)
+		       (window-parameter help-window 'help-setup))))
     (when help-buffer
       ;; Handle `help-window-point-marker'.
       (when (eq (marker-buffer help-window-point-marker) help-buffer)
@@ -1078,6 +1077,7 @@ This relies on `display-buffer-window' being correctly set up by
       (cond
        ((or (eq help-window (selected-window))
 	    (and (or (eq help-window-select t)
+		     (eq help-setup 'new-frame)
 		     (and (eq help-window-select 'other)
 			  (eq (window-frame help-window) (selected-frame))
 			  (> (length (window-list nil 'no-mini)) 2)))
@@ -1085,13 +1085,12 @@ This relies on `display-buffer-window' being correctly set up by
 	;; The help window is or gets selected ...
 	(help-window-display-message
 	 (cond
-	  ((eq help-value 'new-window)
+	  ((eq help-setup 'new-window)
 	   ;; ... and is new, ...
-	   "Type \"q\" to delete this window")
-	  ((eq help-value 'new-frame)
-	   ;; ... is on a new frame ...
-	   "Type \"q\" to delete this frame")
-	  ((eq help-value 'reuse-other-window)
+	   "Type \"q\" to delete help window")
+	  ((eq help-setup 'new-frame)
+	   "Type \"q\" to delete help frame")
+	  ((eq help-setup 'reuse-other)
 	   ;; ... or displayed some other buffer before.
 	   "Type \"q\" to restore previous buffer"))
 	 help-window t))
@@ -1101,15 +1100,22 @@ This relies on `display-buffer-window' being correctly set up by
 	;; other one is the selected one.
 	(help-window-display-message
 	 (cond
-	  ((eq help-value 'new-window)
+	  ((eq help-setup 'new-window)
 	   "Type \\[delete-other-windows] to delete the help window")
-	  ((eq help-value 'reuse-other-window)
-	   "Type \"q\" in other window to quit"))
+	  ((eq help-setup 'reuse-other)
+	   "Type \"q\" in help window to restore its previous buffer"))
 	 help-window 'other))
        (t
-	;; Not much to say here.
+	;; The help window is not selected ...
 	(help-window-display-message
-	 "Type \"q\" in help window to quit" help-window))))))
+	 (cond
+	  ((eq help-setup 'new-window)
+	   ;; ... and is new, ...
+	   "Type \"q\" in help window to delete it")
+	  ((eq help-setup 'reuse-other)
+	   ;; ... or displayed some other buffer before.
+	   "Type \"q\" in help window to restore previous buffer"))
+	 help-window))))))
 
 ;; `with-help-window' is a wrapper for `with-output-to-temp-buffer'
 ;; providing the following additional twists:
@@ -1134,18 +1140,18 @@ You can specify where and how to show the buffer by binding the
 variable `temp-buffer-show-specifiers' to an appropriate value."
   (declare (indent 1) (debug t))
   `(progn
-     ;; Reset `display-buffer-window': `display-buffer' is
-     ;; supposed to set this to the window displaying the buffer plus
-     ;; some additional information.
-     (setq display-buffer-window nil)
      ;; Make `help-window-point-marker' point nowhere.  The only place
      ;; where this should be set to a buffer position is within BODY.
      (set-marker help-window-point-marker nil)
-     (prog1
-	 ;; Return value returned by `with-output-to-temp-buffer'.
-	 (with-output-to-temp-buffer ,buffer-name
-	   (progn ,@body))
-       (when display-buffer-window (help-window-setup)))))
+     (let* (help-window
+            (temp-buffer-show-hook
+             (cons (lambda () (setq help-window (selected-window)))
+                   temp-buffer-show-hook)))
+       ;; Return value returned by `with-output-to-temp-buffer'.
+       (prog1
+	   (with-output-to-temp-buffer ,buffer-name
+	     (progn ,@body))
+	 (help-window-setup help-window)))))
 
 ;; Called from C, on encountering `help-char' when reading a char.
 ;; Don't print to *Help*; that would clobber Help history.

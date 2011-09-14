@@ -1,3 +1,9 @@
+2011-09-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_window_reusing_current_matrix): Fix incorrect
+	computation of loop end.  Reported by Johan Bockgård
+	<bojohan@gnu.org>.
+
 2011-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (Fother_visible_frames_p): Function deleted.

@@ -16077,7 +16077,7 @@ try_window_reusing_current_matrix (struct window *w)
 	  if (row < bottom_row)
 	    {
 	      struct glyph *glyph = row->glyphs[TEXT_AREA] + w->cursor.hpos;
-	      struct glyph *end = glyph + row->used[TEXT_AREA];
+	      struct glyph *end = row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
 
 	      /* Can't use this optimization with bidi-reordered glyph
 		 rows, unless cursor is already at point. */

@@ -1,3 +1,7 @@
+2011-09-14  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
+
+	* lists.texi (Sets And Lists): Fix typo.  (Bug#9393)
+
 2011-09-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* processes.texi (Network Servers): Clarify what the process
