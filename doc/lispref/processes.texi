@@ -1981,9 +1981,9 @@ not get a separate process buffer; otherwise, Emacs creates a new
 buffer for the purpose.  The buffer name is the server's buffer name
 or process name, concatenated with the client identification string.
 
-The server's process buffer value is never used directly by Emacs, but
-it is passed to the log function, which can log connections by
-inserting text there.
+The server's process buffer value is never used directly, but the log
+function can retrieve it and use it to log connections by inserting
+text there.
 
 @item
 The communication type and the process filter and sentinel are

@@ -156,6 +156,15 @@ If you had that set, then then you need to put
 
 in your ~/.authinfo file instead.
 
+*** sendmail changes
++++
+You can now add MIME attachments to outgoing messages with the new
+command `mail-add-attachment'.
+
+---
+The command `mail-attach-file' was renamed to `mail-insert-file'; the
+old name is now an obsolete alias to the new name.
+
 ** Emacs server and client changes
 +++
 *** New option `server-port' specifies the port on which the Emacs
@@ -484,7 +493,7 @@ between applications.
 To inhibit this, change `x-select-enable-clipboard-manager' to nil.
 
 ** New command `rectangle-number-lines', bound to `C-x r N', numbers
-the lines in the current rectangle.  With an prefix argument, this
+the lines in the current rectangle.  With a prefix argument, this
 prompts for a number to count from and for a format string.
 
 ** The command shell prompts for the shell path name, when the default

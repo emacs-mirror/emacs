@@ -146,7 +146,7 @@ init_editfns (void)
   /* If the user name claimed in the environment vars differs from
      the real uid, use the claimed name to find the full name.  */
   tem = Fstring_equal (Vuser_login_name, Vuser_real_login_name);
-  Vuser_full_name = Fuser_full_name (NILP (tem)? make_number (geteuid())
+  Vuser_full_name = Fuser_full_name (NILP (tem)? make_number (geteuid ())
 				     : Vuser_login_name);
 
   p = getenv ("NAME");
@@ -3254,7 +3254,7 @@ save_restriction_save (void)
       end = buildmark (ZV, ZV_BYTE);
 
       /* END must move forward if text is inserted at its exact location.  */
-      XMARKER(end)->insertion_type = 1;
+      XMARKER (end)->insertion_type = 1;
 
       return Fcons (beg, end);
     }

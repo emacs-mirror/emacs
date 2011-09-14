@@ -682,7 +682,7 @@ enum
 #define GDK_WINDOW_XID(w) GDK_WINDOW_XWINDOW (w)
 #define DEFAULT_GDK_DISPLAY() GDK_DISPLAY ()
 #define gtk_widget_get_preferred_size(a, ign, b) \
-  gtk_widget_size_request(a, b)
+  gtk_widget_size_request (a, b)
 #endif
 
 #define GTK_WIDGET_TO_X_WIN(w) \

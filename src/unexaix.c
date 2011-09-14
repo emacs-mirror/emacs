@@ -221,24 +221,24 @@ make_hdr (int new, int a_out,
 	  }
 
 #define CHECK_SCNHDR(ptr, name, flags) \
-  if (strcmp(s->s_name, name) == 0) { \
+  if (strcmp (s->s_name, name) == 0) { \
     if (s->s_flags != flags) { \
-      fprintf(stderr, "unexec: %lx flags where %x expected in %s section.\n", \
-	      (unsigned long)s->s_flags, flags, name); \
+      fprintf (stderr, "unexec: %lx flags where %x expected in %s section.\n", \
+               (unsigned long)s->s_flags, flags, name);                 \
     } \
     if (ptr) { \
-      fprintf(stderr, "unexec: duplicate section header for section %s.\n", \
-	      name); \
+      fprintf (stderr, "unexec: duplicate section header for section %s.\n", \
+               name);                                                   \
     } \
     ptr = s; \
   }
-	CHECK_SCNHDR(f_thdr, _TEXT, STYP_TEXT);
-	CHECK_SCNHDR(f_dhdr, _DATA, STYP_DATA);
-	CHECK_SCNHDR(f_bhdr, _BSS, STYP_BSS);
-	CHECK_SCNHDR(f_lhdr, _LOADER, STYP_LOADER);
-	CHECK_SCNHDR(f_dbhdr, _DEBUG,  STYP_DEBUG);
-	CHECK_SCNHDR(f_tchdr, _TYPCHK,  STYP_TYPCHK);
-	CHECK_SCNHDR(f_xhdr, _EXCEPT,  STYP_EXCEPT);
+	CHECK_SCNHDR (f_thdr, _TEXT, STYP_TEXT);
+	CHECK_SCNHDR (f_dhdr, _DATA, STYP_DATA);
+	CHECK_SCNHDR (f_bhdr, _BSS, STYP_BSS);
+	CHECK_SCNHDR (f_lhdr, _LOADER, STYP_LOADER);
+	CHECK_SCNHDR (f_dbhdr, _DEBUG,  STYP_DEBUG);
+	CHECK_SCNHDR (f_tchdr, _TYPCHK,  STYP_TYPCHK);
+	CHECK_SCNHDR (f_xhdr, _EXCEPT,  STYP_EXCEPT);
       }
 
       if (f_thdr == 0)
@@ -541,7 +541,7 @@ unrelocate_symbols (int new, int a_out, char *a_name, char *new_name)
 #else
   /* This worked (and was needed) before AIX 4.2.
      I have no idea why. -- Mike */
-  ulong d_reloc = (ulong) &_data - ALIGN(f_ohdr.data_start, 2);
+  ulong d_reloc = (ulong) &_data - ALIGN (f_ohdr.data_start, 2);
 #endif
   int * p;
 

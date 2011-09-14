@@ -1,4 +1,4 @@
-# signal_h.m4 serial 16
+# signal_h.m4 serial 17
 dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -16,6 +16,9 @@ AC_DEFUN([gl_SIGNAL_H],
     [HAVE_TYPE_VOLATILE_SIG_ATOMIC_T=0], [[
 #include <signal.h>
     ]])
+
+  dnl Ensure the type pid_t gets defined.
+  AC_REQUIRE([AC_TYPE_PID_T])
 
   AC_REQUIRE([AC_TYPE_UID_T])
 

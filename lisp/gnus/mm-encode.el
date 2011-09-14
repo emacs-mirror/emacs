@@ -97,6 +97,7 @@ This variable should never be set directly, but bound before a call to
     (insert "Content-Type: multipart/mixed; boundary=\"" boundary "\"\n")
     boundary))
 
+;;;###autoload
 (defun mm-default-file-encoding (file)
   "Return a default encoding for FILE."
   (if (not (string-match "\\.[^.]+$" file))

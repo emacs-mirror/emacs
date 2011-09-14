@@ -1,3 +1,12 @@
+2011-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge from gnulib, porting to Tru64.
+	* lib/lstat.c, lib/stat.c, m4/include_next.m4, m4/nocrash.m4:
+	* m4/signal_h.m4, m4/time_h.m4, m4/unistd_h.m4:
+	Merge from gnulib.  This fixes a compilation error on Tru64 UNIX
+	aka OSF/1 5.1 DTK cc.  There is also some mingw stuff here that
+	doesn't affect Emacs.
+
 2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* configure.in (isnan): Remove now-unnecessary check.
@@ -231,7 +240,7 @@
 
 	* m4/lstat.m4: Merge from gnulib (Bug#8878).
 
-2011-06-16  Miles Bader <miles@gnu.org>
+2011-06-16  Miles Bader  <miles@gnu.org>
 
 	* configure.in: Try to determine CRT_DIR automatically when
 	using gcc.

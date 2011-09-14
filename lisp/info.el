@@ -610,10 +610,7 @@ in `Info-file-supports-index-cookies-list'."
   "Like `info' but show the Info buffer in another window."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Info file name: " nil nil t))))
-  (let (same-window-buffer-names same-window-regexps)
-    (info file-or-node)))
-
-;;;###autoload (add-hook 'same-window-regexps (purecopy "\\*info\\*\\(\\|<[0-9]+>\\)"))
+  (info-setup file-or-node (switch-to-buffer-other-window "*info*")))
 
 ;;;###autoload (put 'info 'info-file (purecopy "emacs"))
 ;;;###autoload
@@ -643,7 +640,10 @@ See a list of available Info commands in `Info-mode'."
                     (read-file-name "Info file name: " nil nil t))
                 (if (numberp current-prefix-arg)
                     (format "*info*<%s>" current-prefix-arg))))
-  (pop-to-buffer (or buffer "*info*"))
+  (info-setup file-or-node (switch-to-buffer (or buffer "*info*"))))
+
+(defun info-setup (file-or-node buffer)
+  "Display Info node FILE-OR-NODE in BUFFER."
   (if (and buffer (not (eq major-mode 'Info-mode)))
       (Info-mode))
   (if file-or-node
@@ -775,7 +775,7 @@ it says do not attempt further (recursive) error recovery."
   (info-initialize)
   (setq filename (Info-find-file filename))
   ;; Go into Info buffer.
-  (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+  (or (eq major-mode 'Info-mode) (switch-to-buffer "*info*"))
   ;; Record the node we are leaving, if we were in one.
   (and (not no-going-back)
        Info-current-file
@@ -809,7 +809,7 @@ otherwise, that defaults to `Top'."
   "Go to an Info node FILENAME and NODENAME, re-reading disk contents.
 When *info* is already displaying FILENAME and NODENAME, the window position
 is preserved, if possible."
-  (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+  (or (eq major-mode 'Info-mode) (switch-to-buffer "*info*"))
   (let ((old-filename Info-current-file)
 	(old-nodename Info-current-node)
 	(old-buffer-name (buffer-name))
@@ -821,7 +821,7 @@ is preserved, if possible."
 	(new-history  (and Info-current-file
 			   (list Info-current-file Info-current-node (point)))))
     (kill-buffer (current-buffer))
-    (pop-to-buffer (or old-buffer-name "*info*"))
+    (switch-to-buffer (or old-buffer-name "*info*"))
     (Info-mode)
     (Info-find-node filename nodename)
     (setq Info-history-forward old-history-forward)
@@ -2021,7 +2021,7 @@ End of submatch 0, 1, and 3 are the same, so you can safely concat."
   (interactive)
   ;; In case another window is currently selected
   (save-window-excursion
-    (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+    (or (eq major-mode 'Info-mode) (switch-to-buffer "*info*"))
     (Info-goto-node (Info-extract-pointer "next"))))
 
 (defun Info-prev ()
@@ -2029,7 +2029,7 @@ End of submatch 0, 1, and 3 are the same, so you can safely concat."
   (interactive)
   ;; In case another window is currently selected
   (save-window-excursion
-    (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+    (or (eq major-mode 'Info-mode) (switch-to-buffer "*info*"))
     (Info-goto-node (Info-extract-pointer "prev[ious]*" "previous"))))
 
 (defun Info-up (&optional same-file)
@@ -2038,7 +2038,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
   (interactive)
   ;; In case another window is currently selected
   (save-window-excursion
-    (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
+    (or (eq major-mode 'Info-mode) (switch-to-buffer "*info*"))
     (let ((old-node Info-current-node)
 	  (old-file Info-current-file)
 	  (node (Info-extract-pointer "up")) p)
@@ -4775,7 +4775,7 @@ The INDENT level is ignored."
 	  (select-window bwin)
 	  (raise-frame (window-frame bwin)))
       (if speedbar-power-click
-	  (let ((pop-up-frames t)) (select-window (display-buffer buff)))
+	  (switch-to-buffer-other-frame buff)
 	(speedbar-select-attached-frame)
 	(switch-to-buffer buff)))
     (if (not (string-match "^(\\([^)]+\\))\\([^.]+\\)$" node))
@@ -4954,7 +4954,7 @@ type returned by `Info-bookmark-make-record', which see."
 	  (setq found buffer
 		blist nil))))
     (if found
-	(pop-to-buffer found)
+	(switch-to-buffer found)
       (info-initialize)
       (info (Info-find-file manual)))))
 

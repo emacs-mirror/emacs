@@ -1,3 +1,322 @@
+2011-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-make-xrefs):
+	Preserve point.  (Bug#9462)
+
+2011-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (window-deletable-p): Use next-frame.
+
+2011-09-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-auto-delete): Remove.
+	(window-deletable-p): Remove argument FORCE.  Don't deal with
+	dedicatedness and previous buffers.
+	(switch-to-prev-buffer): Don't delete window.
+	(delete-windows-on): Delete a window's frame if and only if the
+	window is dedicated.
+	(replace-buffer-in-windows): Delete buffer's window or frame if
+	and only if window is dedicated.
+	(quit-window): Handle quit-restore as before last change.
+	(bury-buffer): Delete window only if window-deletable-p returns t.
+
+2011-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (window-deletable-p): Never delete the last frame on a
+	given terminal.
+
+2011-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* help.el (describe-key-briefly): Copy previous standard-output change.
+
+2011-09-13  PJ Weisberg  <pj@irregularexpressions.net>  (tiny change)
+
+	* help.el (where-is): Respect non-standard standard-output.  (Bug#9030)
+
+2011-09-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-indent-function):
+	* progmodes/scheme.el (scheme-indent-function): Doc fixes.
+
+2011-09-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired-aux.el (dired-mark-read-string): Don't return default
+	value on empty input (Bug#9361).
+	(dired-do-chxxx): Treat empty input for "touch" as no -t option.
+	Omit initial minibuffer contents.
+	(dired-do-chmod): Signal an error on empty input.
+	(dired-mark-read-string): Don't return default on empty input.
+
+	* files.el (file-modes-symbolic-to-number): Doc fix.
+
+2011-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (ucs-completions): Remove.
+	(read-char-by-name): Use complete-with-action instead; add metadata.
+
+2011-09-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (display-buffer--action-function-custom-type)
+	(display-buffer--action-custom-type): New vars.
+	(display-buffer-alist, display-buffer-default-action)
+	(display-buffer-overriding-action): Add defcustom types.
+
+	* frame.el (delete-other-frames): Doc fix (Bug#276).
+
+2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* play/doctor.el (make-doctor-variables): Define `doctor-sent'.
+
+2011-09-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	Change modes that used same-window-* vars to use switch-to-buffer.
+
+	* progmodes/gdb-mi.el (gdb-restore-windows, gdb-setup-windows):
+	Use switch-to-buffer.
+
+	* cus-edit.el (customize-group, custom-buffer-create)
+	(customize-browse, custom-buffer-create-other-window):
+	Use switch-to-buffer or switch-to-buffer-other-window.
+
+	* info.el (info, Info-find-node, Info-revert-find-node, Info-next)
+	(Info-prev, Info-up, Info-speedbar-goto-node)
+	(info-display-manual): Use switch-to-buffer.
+	(Info-speedbar-goto-node): Use switch-to-buffer-other-frame.
+
+	* mail/sendmail.el (mail): Use switch-to-buffer.
+	(mail-recover): Use switch-to-buffer-other-window.
+
+	* cmuscheme.el (run-scheme, switch-to-scheme):
+	* ielm.el (ielm):
+	* shell.el (shell):
+	* net/rlogin.el (rlogin):
+	* net/telnet.el (telnet, rsh):
+	* progmodes/inf-lisp.el (inferior-lisp): Use switch-to-buffer.
+
+2011-09-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* dired.el (dired-sort-toggle-or-edit): Revert last changes.
+
+2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* dired.el (dired-sort-toggle-or-edit): -o doesn't exist on *BSD,
+	so don't mention it (bug#9301).
+	(dired-sort-toggle-or-edit): Clarify string further.
+
+	* faces.el (face-spec-set-match-display): Make `(type graphic)'
+	match `x', `w32' and `ns', like the manual says (bug#9029).
+
+	* subr.el (eval-after-load): Doc string clarification (bug#9125).
+	(process-kill-buffer-query-function): Mention the buffer name in
+	the query.
+
+	* image-mode.el (image-next-line): The line parameter is mandatory
+	(bug#9258).
+
+	* dired.el (dired-sort-toggle-or-edit): Mention -o and -g, too,
+	which can be useful (bug#9301).
+
+	* textmodes/flyspell.el: Remove obsolete comment (bug#9368).
+
+	* subr.el (match-string): Mention that the current buffer should
+	be the same as the search was done in (bug#9282).
+
+	* facemenu.el: Disable the remove-* commands if the mark isn't
+	active (bug#9162).
+
+2011-09-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buff-menu.el (Buffer-menu-switch-other-window): Use second arg
+	of display-buffer.
+	(Buffer-menu-2-window): Use switch-to-buffer-other-window.
+
+	* replace.el (occur-mode-goto-occurrence)
+	(occur-mode-display-occurrence) Use second arg of pop-to-buffer
+	and display-buffer.
+
+	* mail/reporter.el (reporter-submit-bug-report): Use second arg of
+	display-buffer.
+
+	* mail/sendmail.el (sendmail-user-agent-compose): Don't bind the
+	special-display and same-window variables.
+	(mail-other-window): Use switch-to-buffer-other-window.
+	(mail-other-frame): USe switch-to-buffer-other-frame.
+
+	* progmodes/gdb-mi.el (gdb-frame-gdb-buffer):
+	Use display-buffer-other-frame.
+	(gdb-display-gdb-buffer): Use pop-to-buffer.
+
+	* progmodes/gud.el (gud-goto-info): Use info-other-window.
+
+	* progmodes/python.el: Don't set same-window-buffer-names.
+
+	* textmodes/bibtex.el (bibtex-search-entry): Use switch-to-buffer.
+
+	* window.el (display-buffer-alist): Add *Python*.
+
+2011-09-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* window.el (display-buffer-alist): Add entry for buffers
+	previously handled same-window-*.
+	(display-buffer-alist, display-buffer-default-action)
+	(display-buffer-overriding-action): Mark as risky.
+	(display-buffer-alist): Document action function changes.
+	(display-buffer--same-window-action)
+	(display-buffer--other-frame-action): New variables.
+	(switch-to-buffer, display-buffer-other-frame): Use them.
+	(display-buffer): Rename reuse-frame entry to reusable-frames.
+	(display-buffer-reuse-selected-window): Function deleted.
+	(display-buffer-reuse-window): Handle reusable-frames alist entry.
+	If it's omitted, check pop-up-frames/display-buffer-reuse-frames.
+	(display-buffer-special): New function.
+	(display-buffer--maybe-pop-up-frame-or-window): Rename from
+	display-buffer-reuse-or-pop-window.  Split off special-display
+	part into display-buffer-special.
+	(display-buffer-use-some-window): Don't perform any special
+	pop-up-frames handling.
+	(pop-to-buffer): Use window-normalize-buffer-to-switch-to.
+	(display-buffer--maybe-same-window): Rename from
+	display-buffer-maybe-same-window.
+
+	* info.el: Don't set same-window-regexps.
+	(info-setup): New function.
+	(info-other-window, info): Call it.
+
+	* cus-edit.el: Don't set same-window-regexps.
+	(customize-group): New argument.
+	(customize-group-other-window): Use it.
+	(customize-face, customize-face-other-window): Likewise.
+	(custom-buffer-create-other-window): Use pop-to-buffer directly.
+
+	* net/rlogin.el:
+	* net/telnet.el:
+	* progmodes/gud.el: Don't set same-window-regexps.
+
+	* cmuscheme.el:
+	* ielm.el:
+	* shell.el:
+	* mail/sendmail.el:
+	* progmodes/inf-lisp.el: Don't set same-window-buffer-names.
+
+2011-09-10  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-edit-string): Remove obsolete mention of
+	`C-w' (`isearch-yank-word-or-char') from docstring.
+	(isearch-query-replace): Fix typo in docstring (bug#9466).
+
+2011-09-10  Juri Linkov  <juri@jurta.org>
+
+	* paren.el (show-paren-function): Don't show escaped parens.
+	Let-bind `unescaped' to `t' when paren is not escaped.  (Bug#9461)
+
+2011-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/sendmail.el (mml-to-mime, mml-attach-file)
+	(mm-default-file-encoding): Remove autoload forms, they are
+	replaced with autoload cookies in mml.el and mm-encode.el.
+	(mail-add-attachment): New command.
+	(mail-mode-map): Add a menu-bar item for mail-add-attachment.
+	(mail-mode): Mention mail-insert-file and mail-add-attachment in
+	the doc string.
+	(mml-to-mime, mml-attach-file, mm-default-file-encoding): Declare.
+
+2011-09-10  Reuben Thomas  <rrt@sc3d.org>
+
+	* simple.el (count-words-region): Use buffer if there's no region.
+
+2011-09-09  Juri Linkov  <juri@jurta.org>
+
+	* wdired.el (wdired-change-to-wdired-mode): Set buffer-local
+	`isearch-filter-predicate' to `wdired-isearch-filter-read-only'.
+	(wdired-isearch-filter-read-only): New function.  (Bug#6362)
+
+2011-09-09  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (awk-mode): Prevent `define-derived-mode'
+	spuriously generating `awk-mode-syntax-table'.  (Bug #9448).
+
+2011-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix for Savannah bug#9392.
+	* simple.el (mail-encode-mml): New defvar.
+
+	* mail/rmail.el (mail-encode-mml): Add a defvar.
+	(rmail-enable-mime-composing): Default to t.
+	(rmail-forward): Use MIME method of forwarding only if both
+	rmail-enable-mime-composing and rmail-enable-mime are non-nil.
+	Set mail-encode-mml non-nil if the MIME method was used.
+
+	* mail/sendmail.el (mml-to-mime): Add autoload form.
+	(mail-encode-mml): Add a defvar.
+	(mail-mode): Make mail-encode-mml buffer-local and initialize it
+	to nil.
+	(mail-send): If mail-encode-mml is non-nil, run the outgoing
+	message through mml-to-mime, and reset mail-encode-mml to nil.
+
+2011-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* woman.el (woman-if-body): When processing an .el block,
+	do not delete the next .el block as well.  (Bug#9447)
+	(woman-special-characters): Add oq, cq, and hy characters.
+
+2011-09-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (window-deletable-p): Make sure window is live before
+	invoking window-prev-buffers.
+
+2011-09-08  Leo Liu  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-cmd-invite): New rcirc command.  (Bug#9453)
+
+2011-09-08  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-environment): Make it
+	a defcustom (bug#8340).
+
+2011-09-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (frame-auto-delete): Rename to window-auto-delete.
+	Make it control auto-deletion of windows and/or frames.
+	(window-deletable-p): New argument FORCE.  Rewrite conditions
+	for deleting window/frame.  (Bug#9419)
+	(switch-to-prev-buffer, replace-buffer-in-windows, quit-window):
+	Rewrite handling of case when window/frame can be deleted.
+	(delete-windows-on): Call window-deletable-p with new FORCE
+	argument t.  (Bug#9456)
+
+2011-09-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help-mode.el (help-mode): Restore autoload.
+
+2011-09-07  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-start): Let-bind `thisenv' to
+	`compilation-environment'.  Set buffer-local
+	`compilation-environment' to `thisenv' later after (funcall mode).
+	(Bug#8340)
+
+	* vc/vc-git.el (vc-git-grep): Remove --no-color.  (Bug#9408)
+	(vc-git-grep): Prepend "PAGER=" to `compilation-environment'
+	instead of replacing its value.  (Bug#8340)
+
+2011-09-07  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-regexp-alist): Calculate column positions
+	based on text properties put by `grep-filter' instead of matching
+	escape sequences.
+	(grep-mode): Set buffer-local `compilation-error-screen-columns'
+	to the value of `grep-error-screen-columns' (bug#9438).
+
+2011-09-07  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (next-error-highlight, next-error-highlight-no-select):
+	Doc fix (bug#9432).
+
+2011-09-07  OKAZAKI Tetsurou  <okazaki.tetsurou@gmail.com>  (tiny change)
+
+	* progmodes/cc-fonts.el (c-font-lock-enclosing-decls):
+	Check for null c-opt-block-decls-with-vars-key.  (Bug#9443)
+
 2011-09-07  Leo Liu  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-mode): Conditionally initialize
@@ -54,7 +373,7 @@
 
 2011-09-03  Chong Yidong  <cyd@stupidchicken.com>
 
-	* mail/sendmail.el (sendmail-query-once-function): Deleted.
+	* mail/sendmail.el (sendmail-query-once-function): Delete.
 	(sendmail-query-once): Save directly to send-mail-function.
 	Update message-send-mail-function too.
 
@@ -66,7 +385,7 @@
 	start python interpreter from menu-bar (as reported by Geert
 	Kloosterman).
 	(inferior-python-mode-map): Fix typo.
-	(python-shell-map): Removed.
+	(python-shell-map): Remove.
 
 2011-09-03  Deniz Dogan  <deniz@dogan.se>
 
@@ -83,8 +402,8 @@
 	* window.el (window-deletable-p): Don't return a non-nil value
 	when there's a buffer that was shown in the window before.
 	(Bug#9419)
-	(display-buffer-pop-up-frame, display-buffer-pop-up-window): Set
-	window's previous buffers to nil.
+	(display-buffer-pop-up-frame, display-buffer-pop-up-window):
+	Set window's previous buffers to nil.
 
 2011-09-03  Eli Zaretskii  <eliz@gnu.org>
 
@@ -98,7 +417,7 @@
 
 2011-09-02  Chong Yidong  <cyd@stupidchicken.com>
 
-	* window.el (pop-to-buffer-1, pop-to-buffer-same-window): Deleted.
+	* window.el (pop-to-buffer-1, pop-to-buffer-same-window): Delete.
 	(pop-to-buffer): Change interactive spec.  Pass second argument
 	directly to display-buffer.
 	(display-buffer): Fix interactive spec.  Use functionp to
@@ -125,7 +444,7 @@
 	(display-buffer-reuse-or-pop-window)
 	(display-buffer-use-some-window): New functions.
 	(display-buffer-default-action): Use them.
-	(display-buffer-default): Deleted.
+	(display-buffer-default): Delete.
 	(pop-to-buffer-1): Fix choice of actions.
 
 2011-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -255,7 +574,7 @@
 2011-08-28  Christoph Scholtes  <cschol2112@googlemail.com>
 
 	* help-mode.el (help-mode-map): Add special-mode-map to parent.
-	(help-mode): Derive help-mode from special-mode. Don't invoke
+	(help-mode): Derive help-mode from special-mode.  Don't invoke
 	view-mode from help-mode.
 	(help-xref-override-view-map): Remove.
 	(help-make-xrefs): Remove minor-mode-overriding-map-alist since
@@ -528,14 +847,14 @@
 
 	Resolve invalid use of a regexp in regexp-opt.
 
-	* cc-fonts.el (c-complex-decl-matchers): Add in special detection
-	for a java annotation.
-
-	* cc-engine.el (c-forward-decl-or-cast-1): Add in special
+	* progmodes/cc-fonts.el (c-complex-decl-matchers): Add in special
 	detection for a java annotation.
 
-	* cc-langs.el (c-prefix-spec-kwds-re): Remove the special handling
-	for java.
+	* progmodes/cc-engine.el (c-forward-decl-or-cast-1): Add in special
+	detection for a java annotation.
+
+	* progmodes/cc-langs.el (c-prefix-spec-kwds-re): Remove the special
+	handling for java.
 	(c-modifier-kwds): Remove the regexp "@[A-za-z0-9]+".
 
 2011-08-20  Chong Yidong  <cyd@stupidchicken.com>
@@ -571,7 +890,7 @@
 2011-08-19  Glenn Morris  <rgm@gnu.org>
 
 	* files.el (hack-local-variables-prop-line, hack-local-variables):
-	Downcase "Mode:". (Bug#9331)
+	Downcase "Mode:".  (Bug#9331)
 
 2011-08-18  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -627,7 +946,7 @@
 	(epa-mail-expand-recipients-2, epa-mail-expand-recipients):
 	Remove.
 
-2011-08-16  Feng Li <fengli@gmail.com> (tiny change)
+2011-08-16  Feng Li  <fengli@gmail.com>  (tiny change)
 
 	* calc/calc-ext.el (math-defintegral-2): Remove nested backquote.
 
@@ -913,7 +1232,7 @@
 	* progmodes/cc-mode.el: Remove two autoload forms which loaded
 	cc-langs.
 
-	* /progmodes/cc-langs.el (c-make-init-lang-vars-fun): Don't emit
+	* progmodes/cc-langs.el (c-make-init-lang-vars-fun): Don't emit
 	"(require 'cc-langs)".  Quote a form so it will evaluate at
 	(cc-mode's) compilation time.
 
@@ -3577,7 +3896,7 @@
 
 2011-05-31  Helmut Eller  <eller.helmut@gmail.com>
 
-	* debug.el (debug): Restore the previous content of the
+	* emacs-lisp/debug.el (debug): Restore the previous content of the
 	*Backtrace* buffer when we exit with C-M-c.
 
 2011-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -4226,7 +4545,8 @@
 2011-05-13  Didier Verna  <didier@xemacs.org>
 
 	Common Lisp indentation improvements on defmethod and lambda-lists.
-	* cl-indent.el: Advertise the changes and remove obsolete TODO entries.
+	* emacs-lisp/cl-indent.el: Advertise the changes and remove obsolete
+	TODO entries.
 	(lisp-lambda-list-keyword-parameter-indentation)
 	(lisp-lambda-list-keyword-parameter-alignment)
 	(lisp-lambda-list-keyword-alignment): New customizable user options.
@@ -4276,7 +4596,7 @@
 
 2011-05-12  Eli Zaretskii  <eliz@gnu.org>
 
-	* smerge-mode.el (smerge-resolve): Use null-device rather than a
+	* vc/smerge-mode.el (smerge-resolve): Use null-device rather than a
 	literal "/dev/null".
 
 2011-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -5720,7 +6040,7 @@
 
 2011-04-08  Juanma Barranquero  <lekktu@gmail.com>
 
-	* vc-annotate.el (vc-annotate-show-log-revision-at-line):
+	* vc/vc-annotate.el (vc-annotate-show-log-revision-at-line):
 	Fix typo in docstring.
 
 2011-04-08  Eli Zaretskii  <eliz@gnu.org>
@@ -6392,7 +6712,7 @@
 
 2011-03-19  Eli Zaretskii  <eliz@gnu.org>
 
-	* emerge.el (emerge-metachars): Separate value for ms-dos and
+	* vc/emerge.el (emerge-metachars): Separate value for ms-dos and
 	windows-nt systems.
 	(emerge-protect-metachars): Quote correctly for ms-dos and
 	windows-nt systems.

@@ -1,3 +1,14 @@
+2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Listing Groups): Explain `gnus-group-list-limit'.
+	(Finding the News): Doc clarification.
+	(Terminology): Mention naming.
+
+2011-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi: Remove mentions of `recent', which are now obsolete.
+	(Interactive): Document `quiet'.
+
 2011-08-15  Suvayu Ali  <fatkasuvayu+linux@gmail.com>  (tiny change)
 
 	* org.texi (Images in LaTeX export): rewrite.

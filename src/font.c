@@ -1334,7 +1334,7 @@ font_parse_fcname (char *name, Lisp_Object font)
 	{
 	  int decimal = 0, size_found = 1;
 	  for (q = p + 1; *q && *q != ':'; q++)
-	    if (! isdigit(*q))
+	    if (! isdigit (*q))
 	      {
 		if (*q != '.' || decimal)
 		  {
@@ -3239,7 +3239,7 @@ font_open_for_lface (FRAME_PTR f, Lisp_Object entity, Lisp_Object *attrs, Lisp_O
 	  if (INTEGERP (height))
 	    pt = XINT (height);
 	  else
-	    abort(); /* We should never end up here.  */
+	    abort (); /* We should never end up here.  */
 	}
 
       pt /= 10;
@@ -3247,7 +3247,7 @@ font_open_for_lface (FRAME_PTR f, Lisp_Object entity, Lisp_Object *attrs, Lisp_O
 #ifdef HAVE_NS
       if (size == 0)
         {
-          Lisp_Object ffsize = get_frame_param(f, Qfontsize);
+          Lisp_Object ffsize = get_frame_param (f, Qfontsize);
           size = NUMBERP (ffsize) ? POINT_TO_PIXEL (XINT (ffsize), f->resy) : 0;
         }
 #endif

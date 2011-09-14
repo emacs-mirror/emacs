@@ -699,8 +699,6 @@ If `last', order groups after non-groups."
 		 (const :tag "none" nil))
   :group 'custom-menu)
 
-;;;###autoload (add-hook 'same-window-regexps (purecopy "\\`\\*Customiz.*\\*\\'"))
-
 (defun custom-sort-items (items sort-alphabetically order-groups)
   "Return a sorted copy of ITEMS.
 ITEMS should be a `custom-group' property.
@@ -1103,8 +1101,9 @@ then prompt for the MODE to customize."
                      t)))
 
 ;;;###autoload
-(defun customize-group (&optional group)
-  "Customize GROUP, which must be a customization group."
+(defun customize-group (&optional group other-window)
+  "Customize GROUP, which must be a customization group.
+If OTHER-WINDOW is non-nil, display in another window."
   (interactive (list (customize-read-group)))
   (when (stringp group)
     (if (string-equal "" group)
@@ -1113,21 +1112,20 @@ then prompt for the MODE to customize."
   (let ((name (format "*Customize Group: %s*"
 		      (custom-unlispify-tag-name group))))
     (if (get-buffer name)
-        (pop-to-buffer name)
-      (custom-buffer-create
-       (list (list group 'custom-group))
-       name
-       (concat " for group "
-               (custom-unlispify-tag-name group))))))
+        (switch-to-buffer name other-window)
+      (funcall (if other-window
+		   'custom-buffer-create-other-window
+		 'custom-buffer-create)
+	       (list (list group 'custom-group))
+	       name
+	       (concat " for group "
+		       (custom-unlispify-tag-name group))))))
 
 ;;;###autoload
 (defun customize-group-other-window (&optional group)
   "Customize GROUP, which must be a customization group, in another window."
   (interactive (list (customize-read-group)))
-  (let ((pop-up-windows t)
-        (same-window-buffer-names nil)
-        (same-window-regexps nil))
-    (customize-group group)))
+  (customize-group group t))
 
 ;;;###autoload
 (defalias 'customize-variable 'customize-option)
@@ -1308,10 +1306,12 @@ Emacs that is associated with version VERSION of PACKAGE."
 	     (< minor1 minor2)))))
 
 ;;;###autoload
-(defun customize-face (&optional face)
+(defun customize-face (&optional face other-window)
   "Customize FACE, which should be a face name or nil.
 If FACE is nil, customize all faces.  If FACE is actually a
 face-alias, customize the face it is aliased to.
+
+If OTHER-WINDOW is non-nil, display in another window.
 
 Interactively, when point is on text which has a face specified,
 suggest to customize that face, if it's customizable."
@@ -1320,21 +1320,24 @@ suggest to customize that face, if it's customizable."
       (setq face (face-list)))
   (if (and (listp face) (null (cdr face)))
       (setq face (car face)))
-  (if (listp face)
-      (custom-buffer-create
-       (custom-sort-items
-        (mapcar (lambda (s) (list s 'custom-face)) face)
-        t nil)
-       "*Customize Faces*")
-    ;; If FACE is actually an alias, customize the face it is aliased to.
-    (if (get face 'face-alias)
-        (setq face (get face 'face-alias)))
-    (unless (facep face)
-      (error "Invalid face %S" face))
-    (custom-buffer-create
-     (list (list face 'custom-face))
-     (format "*Customize Face: %s*"
-             (custom-unlispify-tag-name face)))))
+  (let ((display-fun (if other-window
+			 'custom-buffer-create-other-window
+		       'custom-buffer-create)))
+    (if (listp face)
+	(funcall display-fun
+		 (custom-sort-items
+		  (mapcar (lambda (s) (list s 'custom-face)) face)
+		  t nil)
+		 "*Customize Faces*")
+      ;; If FACE is actually an alias, customize the face it is aliased to.
+      (if (get face 'face-alias)
+	  (setq face (get face 'face-alias)))
+      (unless (facep face)
+	(error "Invalid face %S" face))
+      (funcall display-fun
+	       (list (list face 'custom-face))
+	       (format "*Customize Face: %s*"
+		       (custom-unlispify-tag-name face))))))
 
 ;;;###autoload
 (defun customize-face-other-window (&optional face)
@@ -1344,10 +1347,7 @@ If FACE is actually a face-alias, customize the face it is aliased to.
 Interactively, when point is on text which has a face specified,
 suggest to customize that face, if it's customizable."
   (interactive (list (read-face-name "Customize face" "all faces" t)))
-  (let ((pop-up-windows t)
-        (same-window-buffer-names nil)
-        (same-window-regexps nil))
-    (customize-face face)))
+  (customize-face face t))
 
 (defalias 'customize-customized 'customize-unsaved)
 
@@ -1533,7 +1533,7 @@ Optional NAME is the name of the buffer.
 OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
 SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
-  (pop-to-buffer (custom-get-fresh-buffer (or name "*Customization*")))
+  (switch-to-buffer (custom-get-fresh-buffer (or name "*Customization*")))
   (custom-buffer-create-internal options description))
 
 ;;;###autoload
@@ -1545,11 +1545,8 @@ OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
 SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
   (unless name (setq name "*Customization*"))
-  (let ((pop-up-windows t)
-	(same-window-buffer-names nil)
-	(same-window-regexps nil))
-    (pop-to-buffer (custom-get-fresh-buffer name))
-    (custom-buffer-create-internal options description)))
+  (switch-to-buffer-other-window (custom-get-fresh-buffer name))
+  (custom-buffer-create-internal options description))
 
 (defcustom custom-reset-button-menu nil
   "If non-nil, only show a single reset button in customize buffers.
@@ -1724,7 +1721,7 @@ Otherwise use brackets."
   (unless group
     (setq group 'emacs))
   (let ((name "*Customize Browser*"))
-    (pop-to-buffer (custom-get-fresh-buffer name)))
+    (switch-to-buffer (custom-get-fresh-buffer name)))
   (Custom-mode)
   (widget-insert (format "\
 %s buttons; type RET or click mouse-1

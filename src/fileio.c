@@ -1472,7 +1472,7 @@ search_embedded_absfilename (char *nm, char *endp)
       if ((0
 	   || IS_DIRECTORY_SEP (p[-1]))
 	  && file_name_absolute_p (p)
-#if defined (WINDOWSNT) || defined(CYGWIN)
+#if defined (WINDOWSNT) || defined (CYGWIN)
 	  /* // at start of file name is meaningful in Apollo,
 	     WindowsNT and Cygwin systems.  */
 	  && !(IS_DIRECTORY_SEP (p[0]) && p - 1 == nm)
@@ -2497,7 +2497,7 @@ See also `file-exists-p' and `file-attributes'.  */)
 
   absname = ENCODE_FILE (absname);
 
-#if defined(DOS_NT) || defined(macintosh)
+#if defined (DOS_NT) || defined (macintosh)
   /* Under MS-DOS, Windows, and Macintosh, open does not work for
      directories.  */
   if (access (SDATA (absname), 0) == 0)
@@ -2782,7 +2782,7 @@ if file does not exist, is not accessible, or SELinux is disabled */)
     }
 #endif
 
-  return Flist (sizeof(values) / sizeof(values[0]), values);
+  return Flist (sizeof (values) / sizeof (values[0]), values);
 }
 
 DEFUN ("set-file-selinux-context", Fset_file_selinux_context,
@@ -2853,7 +2853,7 @@ is disabled. */)
 	  context_free (parsed_con);
 	}
       else
-	report_file_error("Doing lgetfilecon", Fcons (absname, Qnil));
+	report_file_error ("Doing lgetfilecon", Fcons (absname, Qnil));
 
       if (con)
 	freecon (con);
@@ -3253,6 +3253,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       if (NILP (visit))
 	report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
       st.st_mtime = -1;
+      st.st_size = -1;
       how_much = 0;
       if (!NILP (Vcoding_system_for_read))
 	Fset (Qbuffer_file_coding_system, Vcoding_system_for_read);
@@ -3545,7 +3546,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       immediate_quit = 0;
       /* If the file matches the buffer completely,
 	 there's no need to replace anything.  */
-      if (same_at_start - BEGV_BYTE == end_offset)
+      if (same_at_start - BEGV_BYTE == end_offset - beg_offset)
 	{
 	  emacs_close (fd);
 	  specpdl_ptr--;
@@ -5044,9 +5045,10 @@ Next attempt to save will certainly not complain of a discrepancy.  */)
 DEFUN ("visited-file-modtime", Fvisited_file_modtime,
        Svisited_file_modtime, 0, 0, 0,
        doc: /* Return the current buffer's recorded visited file modification time.
-The value is a list of the form (HIGH LOW), like the time values
-that `file-attributes' returns.  If the current buffer has no recorded
-file modification time, this function returns 0.
+The value is a list of the form (HIGH LOW), like the time values that
+`file-attributes' returns.  If the current buffer has no recorded file
+modification time, this function returns 0.  If the visited file
+doesn't exist, HIGH will be -1.
 See Info node `(elisp)Modification Time' for more details.  */)
   (void)
 {

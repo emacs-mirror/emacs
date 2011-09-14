@@ -246,8 +246,7 @@ is run).
 	(inferior-scheme-mode)))
   (setq scheme-program-name cmd)
   (setq scheme-buffer "*scheme*")
-  (pop-to-buffer "*scheme*"))
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*scheme*"))
+  (switch-to-buffer "*scheme*"))
 
 (defun scheme-start-file (prog)
   "Return the name of the start file corresponding to PROG.
@@ -372,7 +371,7 @@ With argument, position cursor at end of buffer."
   (interactive "P")
   (if (or (and scheme-buffer (get-buffer scheme-buffer))
           (scheme-interactively-start-process))
-      (pop-to-buffer scheme-buffer)
+      (switch-to-buffer scheme-buffer)
     (error "No current process buffer.  See variable `scheme-buffer'"))
   (when eob-p
     (push-mark)

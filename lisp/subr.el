@@ -1747,7 +1747,7 @@ Return nil if there isn't one."
 
 (put 'eval-after-load 'lisp-indent-function 1)
 (defun eval-after-load (file form)
-  "Arrange that, if FILE is ever loaded, FORM will be run at that time.
+  "Arrange that if FILE is loaded, FORM will be run immediately afterwards.
 If FILE is already loaded, evaluate FORM right now.
 
 If a matching file is loaded again, FORM will be evaluated again.
@@ -1904,7 +1904,9 @@ Value is t if a query was formerly required."
     (or (not process)
         (not (memq (process-status process) '(run stop open listen)))
         (not (process-query-on-exit-flag process))
-        (yes-or-no-p "Buffer has a running process; kill it? "))))
+        (yes-or-no-p
+	 (format "Buffer %S has a running process; kill it? "
+		 (buffer-name (current-buffer)))))))
 
 (add-hook 'kill-buffer-query-functions 'process-kill-buffer-query-function)
 
@@ -3249,7 +3251,9 @@ The value returned is the value of the last form in BODY."
 NUM specifies which parenthesized expression in the last regexp.
  Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
 Zero means the entire text matched by the whole regexp or whole string.
-STRING should be given if the last search was by `string-match' on STRING."
+STRING should be given if the last search was by `string-match' on STRING.
+If STRING is nil, the current buffer should be the same buffer
+the search/match was performed in."
   (if (match-beginning num)
       (if string
 	  (substring string (match-beginning num) (match-end num))
@@ -3260,7 +3264,9 @@ STRING should be given if the last search was by `string-match' on STRING."
 NUM specifies which parenthesized expression in the last regexp.
  Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
 Zero means the entire text matched by the whole regexp or whole string.
-STRING should be given if the last search was by `string-match' on STRING."
+STRING should be given if the last search was by `string-match' on STRING.
+If STRING is nil, the current buffer should be the same buffer
+the search/match was performed in."
   (if (match-beginning num)
       (if string
 	  (substring-no-properties string (match-beginning num)

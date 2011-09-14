@@ -168,6 +168,8 @@ textual parts.")
 		   nnmail-extra-headers))))
 
 (deffoo nnimap-retrieve-headers (articles &optional group server fetch-old)
+  (when group
+    (setq group (nnimap-decode-gnus-group group)))
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (when (nnimap-possibly-change-group group server)
@@ -190,7 +192,7 @@ textual parts.")
   (let (article bytes lines size string)
     (block nil
       (while (not (eobp))
-	(while (not (looking-at "\\* [0-9]+ FETCH.+UID \\([0-9]+\\)"))
+	(while (not (looking-at "\\* [0-9]+ FETCH.+?UID \\([0-9]+\\)"))
 	  (delete-region (point) (progn (forward-line 1) (point)))
 	  (when (eobp)
 	    (return)))
@@ -523,6 +525,8 @@ textual parts.")
   nnimap-status-string)
 
 (deffoo nnimap-request-article (article &optional group server to-buffer)
+  (when group
+    (setq group (nnimap-decode-gnus-group group)))
   (with-current-buffer nntp-server-buffer
     (let ((result (nnimap-possibly-change-group group server))
 	  parts structure)
@@ -554,6 +558,8 @@ textual parts.")
 	    (cons group article)))))))
 
 (deffoo nnimap-request-head (article &optional group server to-buffer)
+  (when group
+    (setq group (nnimap-decode-gnus-group group)))
   (when (nnimap-possibly-change-group group server)
     (with-current-buffer (nnimap-buffer)
       (when (stringp article)
@@ -700,7 +706,11 @@ textual parts.")
 	(incf num)))
     (nreverse parts)))
 
+(defun nnimap-decode-gnus-group (group)
+  (decode-coding-string group 'utf-8))
+
 (deffoo nnimap-request-group (group &optional server dont-check info)
+  (setq group (nnimap-decode-gnus-group group))
   (let ((result (nnimap-possibly-change-group
 		 ;; Don't SELECT the group if we're going to select it
 		 ;; later, anyway.
@@ -750,16 +760,19 @@ textual parts.")
 	t))))
 
 (deffoo nnimap-request-create-group (group &optional server args)
+  (setq group (nnimap-decode-gnus-group group))
   (when (nnimap-possibly-change-group nil server)
     (with-current-buffer (nnimap-buffer)
       (car (nnimap-command "CREATE %S" (utf7-encode group t))))))
 
 (deffoo nnimap-request-delete-group (group &optional force server)
+  (setq group (nnimap-decode-gnus-group group))
   (when (nnimap-possibly-change-group nil server)
     (with-current-buffer (nnimap-buffer)
       (car (nnimap-command "DELETE %S" (utf7-encode group t))))))
 
 (deffoo nnimap-request-rename-group (group new-name &optional server)
+  (setq group (nnimap-decode-gnus-group group))
   (when (nnimap-possibly-change-group nil server)
     (with-current-buffer (nnimap-buffer)
       (nnimap-unselect-group)
@@ -774,6 +787,7 @@ textual parts.")
   (nnimap-command "EXAMINE DOES.NOT.EXIST"))
 
 (deffoo nnimap-request-expunge-group (group &optional server)
+  (setq group (nnimap-decode-gnus-group group))
   (when (nnimap-possibly-change-group group server)
     (with-current-buffer (nnimap-buffer)
       (car (nnimap-command "EXPUNGE")))))
@@ -801,6 +815,7 @@ textual parts.")
 
 (deffoo nnimap-request-move-article (article group server accept-form
 					     &optional last internal-move-group)
+  (setq group (nnimap-decode-gnus-group group))
   (with-temp-buffer
     (mm-disable-multibyte)
     (when (funcall (if internal-move-group
@@ -829,6 +844,7 @@ textual parts.")
 	      result)))))))
 
 (deffoo nnimap-request-expire-articles (articles group &optional server force)
+  (setq group (nnimap-decode-gnus-group group))
   (cond
    ((null articles)
     nil)
@@ -956,6 +972,8 @@ textual parts.")
                                 "delete this article now"))))))
 
 (deffoo nnimap-request-scan (&optional group server)
+  (when group
+    (setq group (nnimap-decode-gnus-group group)))
   (when (and (nnimap-possibly-change-group nil server)
 	     nnimap-inbox
 	     nnimap-split-methods)
@@ -971,6 +989,7 @@ textual parts.")
     flags))
 
 (deffoo nnimap-request-update-group-status (group status &optional server)
+  (setq group (nnimap-decode-gnus-group group))
   (when (nnimap-possibly-change-group nil server)
     (let ((command (assoc
 		    status
@@ -981,6 +1000,7 @@ textual parts.")
 	  (nnimap-command "%s %S" (cadr command) (utf7-encode group t)))))))
 
 (deffoo nnimap-request-set-mark (group actions &optional server)
+  (setq group (nnimap-decode-gnus-group group))
   (when (nnimap-possibly-change-group group server)
     (let (sequence)
       (with-current-buffer (nnimap-buffer)
@@ -1005,6 +1025,7 @@ textual parts.")
 	  (nnimap-wait-for-response sequence))))))
 
 (deffoo nnimap-request-accept-article (group &optional server last)
+  (setq group (nnimap-decode-gnus-group group))
   (when (nnimap-possibly-change-group nil server)
     (nnmail-check-syntax)
     (let ((message-id (message-field-value "message-id"))
@@ -1081,6 +1102,7 @@ textual parts.")
     result))
 
 (deffoo nnimap-request-replace-article (article group buffer)
+  (setq group (nnimap-decode-gnus-group group))
   (let (group-art)
     (when (and (nnimap-possibly-change-group group nil)
 	       ;; Put the article into the group.
@@ -1186,7 +1208,8 @@ textual parts.")
 	;; what and how to request the data.
 	(dolist (info infos)
 	  (setq params (gnus-info-params info)
-		group (gnus-group-real-name (gnus-info-group info))
+		group (nnimap-decode-gnus-group
+		       (gnus-group-real-name (gnus-info-group info)))
 		active (cdr (assq 'active params))
 		uidvalidity (cdr (assq 'uidvalidity params))
 		modseq (cdr (assq 'modseq params)))
@@ -1262,13 +1285,15 @@ textual parts.")
 		   (active (gnus-active group)))
 	      (when active
 		(insert (format "%S %d %d y\n"
-				(gnus-group-real-name group)
+				(decode-coding-string
+				 (gnus-group-real-name group) 'utf-8)
 				(cdr active)
 				(car active)))))))))))
 
 (defun nnimap-update-infos (flags infos)
   (dolist (info infos)
-    (let* ((group (gnus-group-real-name (gnus-info-group info)))
+    (let* ((group (nnimap-decode-gnus-group
+		   (gnus-group-real-name (gnus-info-group info))))
 	   (marks (cdr (assoc group flags))))
       (when marks
 	(nnimap-update-info info marks)))))
@@ -1570,6 +1595,8 @@ textual parts.")
 		  (articles &optional limit force-new dependencies))
 
 (deffoo nnimap-request-thread (header &optional group server)
+  (when group
+    (setq group (nnimap-decode-gnus-group group)))
   (if gnus-refer-thread-use-nnir
       (nnir-search-thread header)
     (when (nnimap-possibly-change-group group server)

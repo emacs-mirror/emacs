@@ -135,13 +135,23 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 ;; and show it until input arrives.
 (defun show-paren-function ()
   (if show-paren-mode
-      (let ((oldpos (point))
-	    (dir (cond ((eq (syntax-class (syntax-after (1- (point)))) 5) -1)
-                       ((eq (syntax-class (syntax-after (point)))      4) 1)))
-	    pos mismatch face)
+      (let* ((oldpos (point))
+	     (dir (cond ((eq (syntax-class (syntax-after (1- (point)))) 5) -1)
+			((eq (syntax-class (syntax-after (point)))      4) 1)))
+	     (unescaped
+	      (when dir
+		;; Verify an even number of quoting characters precede the paren.
+		;; Follow the same logic as in `blink-matching-open'.
+		(= (if (= dir -1) 1 0)
+		   (logand 1 (- (point)
+				(save-excursion
+				  (if (= dir -1) (forward-char -1))
+				  (skip-syntax-backward "/\\")
+				  (point)))))))
+	     pos mismatch face)
 	;;
 	;; Find the other end of the sexp.
-	(when dir
+	(when unescaped
 	  (save-excursion
 	    (save-restriction
 	      ;; Determine the range within which to look for a match.

@@ -710,7 +710,8 @@ simple manner.")
   "M"  gnus-group-list-limit
   "l"  gnus-group-list-limit
   "c"  gnus-group-list-limit
-  "?"  gnus-group-list-limit)
+  "?"  gnus-group-list-limit
+  "!"  gnus-group-list-limit)
 
 (gnus-define-keys (gnus-group-list-flush-map "f" gnus-group-list-map)
   "k"  gnus-group-list-flush
@@ -722,7 +723,8 @@ simple manner.")
   "M"  gnus-group-list-flush
   "l"  gnus-group-list-flush
   "c"  gnus-group-list-flush
-  "?"  gnus-group-list-flush)
+  "?"  gnus-group-list-flush
+  "!"  gnus-group-list-flush)
 
 (gnus-define-keys (gnus-group-list-plus-map "p" gnus-group-list-map)
   "k"  gnus-group-list-plus
@@ -734,7 +736,8 @@ simple manner.")
   "M"  gnus-group-list-plus
   "l"  gnus-group-list-plus
   "c"  gnus-group-list-plus
-  "?"  gnus-group-list-plus)
+  "?"  gnus-group-list-plus
+  "!"  gnus-group-list-plus)
 
 (gnus-define-keys (gnus-group-score-map "W" gnus-group-mode-map)
   "f" gnus-score-flush-cache
@@ -1201,7 +1204,7 @@ The following commands are available:
   (if (eq (car method) 'nnimap)
       ;; IMAP groups should not be encoded, since they do the encoding
       ;; in utf7 in the protocol.
-      nil
+      'utf-8
     (let ((item (or (assoc method gnus-group-name-charset-method-alist)
 		    (and (consp method)
 			 (assoc (list (car method) (cadr method))
@@ -4069,7 +4072,7 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
 	    (gnus-group-update-group group nil t))
 	(if (eq (gnus-server-status (gnus-find-method-for-group group))
 		'denied)
-	    (gnus-error 3 "Server denied access")
+	    (gnus-error 3 "Server previously determined to be down; not retrying")
 	  (gnus-error 3 "%s error: %s" group (gnus-status-message group)))))
     (when beg
       (goto-char beg))
@@ -4636,7 +4639,12 @@ This command may read the active file."
     (gnus-group-list-plus args)))
 
 (defun gnus-group-list-limit (&optional args)
-  "List groups limited within the current selection."
+  "List groups limited within the current selection.
+If you've limited the groups, you can further limit the selection
+with this command.  If you've first limited to groups with
+dormant articles with `A ?', you can then further limit with
+`A / c', which will then limit to groups with cached articles, giving
+you the groups that have both dormant articles and cached articles."
   (interactive "P")
   (let ((gnus-group-list-option 'limit))
     (gnus-group-list-plus args)))

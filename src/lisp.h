@@ -132,9 +132,9 @@ extern int suppress_checking EXTERNALLY_VISIBLE;
 #define eassert(X) ((void) (0 && (X))) /* Check that X compiles.  */
 #else /* ENABLE_CHECKING */
 #if defined (__GNUC__) && __GNUC__ >= 2 && defined (__STDC__)
-#define eassert(cond) CHECK(cond,"assertion failed: " #cond)
+#define eassert(cond) CHECK (cond, "assertion failed: " #cond)
 #else
-#define eassert(cond) CHECK(cond,"assertion failed")
+#define eassert(cond) CHECK (cond, "assertion failed")
 #endif
 #endif /* ENABLE_CHECKING */
 
@@ -584,20 +584,20 @@ extern Lisp_Object make_number (EMACS_INT);
 
 /* Extract a value or address from a Lisp_Object.  */
 
-#define XCONS(a) (eassert (CONSP(a)),(struct Lisp_Cons *) XPNTR(a))
-#define XVECTOR(a) (eassert (VECTORLIKEP(a)),(struct Lisp_Vector *) XPNTR(a))
-#define XSTRING(a) (eassert (STRINGP(a)),(struct Lisp_String *) XPNTR(a))
-#define XSYMBOL(a) (eassert (SYMBOLP(a)),(struct Lisp_Symbol *) XPNTR(a))
-#define XFLOAT(a) (eassert (FLOATP(a)),(struct Lisp_Float *) XPNTR(a))
+#define XCONS(a) (eassert (CONSP (a)), (struct Lisp_Cons *) XPNTR (a))
+#define XVECTOR(a) (eassert (VECTORLIKEP (a)), (struct Lisp_Vector *) XPNTR (a))
+#define XSTRING(a) (eassert (STRINGP (a)), (struct Lisp_String *) XPNTR (a))
+#define XSYMBOL(a) (eassert (SYMBOLP (a)), (struct Lisp_Symbol *) XPNTR (a))
+#define XFLOAT(a) (eassert (FLOATP (a)), (struct Lisp_Float *) XPNTR (a))
 
 /* Misc types.  */
 
-#define XMISC(a)   ((union Lisp_Misc *) XPNTR(a))
-#define XMISCANY(a)	(eassert (MISCP (a)), &(XMISC(a)->u_any))
+#define XMISC(a)   ((union Lisp_Misc *) XPNTR (a))
+#define XMISCANY(a)	(eassert (MISCP (a)), &(XMISC (a)->u_any))
 #define XMISCTYPE(a)   (XMISCANY (a)->type)
-#define XMARKER(a)	(eassert (MARKERP (a)), &(XMISC(a)->u_marker))
-#define XOVERLAY(a)	(eassert (OVERLAYP (a)), &(XMISC(a)->u_overlay))
-#define XSAVE_VALUE(a)	(eassert (SAVE_VALUEP (a)), &(XMISC(a)->u_save_value))
+#define XMARKER(a)	(eassert (MARKERP (a)), &(XMISC (a)->u_marker))
+#define XOVERLAY(a)	(eassert (OVERLAYP (a)), &(XMISC (a)->u_overlay))
+#define XSAVE_VALUE(a)	(eassert (SAVE_VALUEP (a)), &(XMISC (a)->u_save_value))
 
 /* Forwarding object types.  */
 
@@ -612,14 +612,14 @@ extern Lisp_Object make_number (EMACS_INT);
 
 /* Pseudovector types.  */
 
-#define XPROCESS(a) (eassert (PROCESSP(a)),(struct Lisp_Process *) XPNTR(a))
-#define XWINDOW(a) (eassert (WINDOWP(a)),(struct window *) XPNTR(a))
-#define XTERMINAL(a) (eassert (TERMINALP(a)),(struct terminal *) XPNTR(a))
-#define XSUBR(a) (eassert (SUBRP(a)),(struct Lisp_Subr *) XPNTR(a))
-#define XBUFFER(a) (eassert (BUFFERP(a)),(struct buffer *) XPNTR(a))
-#define XCHAR_TABLE(a) (eassert (CHAR_TABLE_P (a)), (struct Lisp_Char_Table *) XPNTR(a))
-#define XSUB_CHAR_TABLE(a) (eassert (SUB_CHAR_TABLE_P (a)), (struct Lisp_Sub_Char_Table *) XPNTR(a))
-#define XBOOL_VECTOR(a) (eassert (BOOL_VECTOR_P (a)), (struct Lisp_Bool_Vector *) XPNTR(a))
+#define XPROCESS(a) (eassert (PROCESSP (a)), (struct Lisp_Process *) XPNTR (a))
+#define XWINDOW(a) (eassert (WINDOWP (a)), (struct window *) XPNTR (a))
+#define XTERMINAL(a) (eassert (TERMINALP (a)), (struct terminal *) XPNTR (a))
+#define XSUBR(a) (eassert (SUBRP (a)), (struct Lisp_Subr *) XPNTR (a))
+#define XBUFFER(a) (eassert (BUFFERP (a)), (struct buffer *) XPNTR (a))
+#define XCHAR_TABLE(a) (eassert (CHAR_TABLE_P (a)), (struct Lisp_Char_Table *) XPNTR (a))
+#define XSUB_CHAR_TABLE(a) (eassert (SUB_CHAR_TABLE_P (a)), (struct Lisp_Sub_Char_Table *) XPNTR (a))
+#define XBOOL_VECTOR(a) (eassert (BOOL_VECTOR_P (a)), (struct Lisp_Bool_Vector *) XPNTR (a))
 
 /* Construct a Lisp_Object from a value or address.  */
 
@@ -637,7 +637,7 @@ extern Lisp_Object make_number (EMACS_INT);
 
 /* Pseudovector types.  */
 
-#define XSETPVECTYPE(v, code) XSETTYPED_PVECTYPE(v, header.size, code)
+#define XSETPVECTYPE(v, code) XSETTYPED_PVECTYPE (v, header.size, code)
 #define XSETTYPED_PVECTYPE(v, size_member, code) \
   ((v)->size_member |= PSEUDOVECTOR_FLAG | (code))
 #define XSETPVECTYPESIZE(v, code, sizeval) \
@@ -749,8 +749,8 @@ struct Lisp_Cons
 #endif
 
 /* Use these from normal code.  */
-#define XCAR(c)	LISP_MAKE_RVALUE(XCAR_AS_LVALUE(c))
-#define XCDR(c) LISP_MAKE_RVALUE(XCDR_AS_LVALUE(c))
+#define XCAR(c)	LISP_MAKE_RVALUE (XCAR_AS_LVALUE (c))
+#define XCDR(c) LISP_MAKE_RVALUE (XCDR_AS_LVALUE (c))
 
 /* Use these to set the fields of a cons cell.
 
@@ -758,8 +758,8 @@ struct Lisp_Cons
    should not be read after 'c' is first modified.  Also, neither
    argument should be evaluated more than once; side effects are
    especially common in the second argument.  */
-#define XSETCAR(c,n) (XCAR_AS_LVALUE(c) = (n))
-#define XSETCDR(c,n) (XCDR_AS_LVALUE(c) = (n))
+#define XSETCAR(c,n) (XCAR_AS_LVALUE (c) = (n))
+#define XSETCDR(c,n) (XCDR_AS_LVALUE (c) = (n))
 
 /* Take the car or cdr of something whose type is not known.  */
 #define CAR(c)					\
@@ -872,14 +872,14 @@ struct Lisp_Vector
    of the shortest vector that would hold that struct.  */
 #define VECSIZE(type) ((sizeof (type)					  \
 			- offsetof (struct Lisp_Vector, contents[0])      \
-                        + sizeof(Lisp_Object) - 1) /* round up */	  \
+                        + sizeof (Lisp_Object) - 1) /* round up */	  \
 		       / sizeof (Lisp_Object))
 
 /* Like VECSIZE, but used when the pseudo-vector has non-Lisp_Object fields
    at the end and we need to compute the number of Lisp_Object fields (the
    ones that the GC needs to trace).  */
 #define PSEUDOVECSIZE(type, nonlispfield) \
-  ((offsetof(type, nonlispfield) - offsetof(struct Lisp_Vector, contents[0])) \
+  ((offsetof (type, nonlispfield) - offsetof (struct Lisp_Vector, contents[0])) \
    / sizeof (Lisp_Object))
 
 /* A char-table is a kind of vectorlike, with contents are like a
@@ -1598,16 +1598,6 @@ typedef unsigned char UCHAR;
 /* Actually, the current Emacs uses 22 bits for the character value
    itself.  */
 #define CHARACTERBITS 22
-
-/* The maximum byte size consumed by push_key_description.
-   All callers should assure that at least this size of memory is
-   allocated at the place pointed by the second argument.
-
-   There are 6 modifiers, each consumes 2 chars.
-   The octal form of a character code consumes
-   (1 + CHARACTERBITS / 3 + 1) chars (including backslash at the head).
-   We need one more byte for string terminator `\0'.  */
-#define KEY_DESCRIPTION_SIZE ((2 * 6) + 1 + (CHARACTERBITS / 3) + 1 + 1)
 
 
 /* The glyph datatype, used to represent characters on the display.
@@ -3258,8 +3248,6 @@ extern void force_auto_save_soon (void);
 extern void init_keyboard (void);
 extern void syms_of_keyboard (void);
 extern void keys_of_keyboard (void);
-extern char *push_key_description (EMACS_INT, char *, int);
-
 
 /* Defined in indent.c */
 EXFUN (Fvertical_motion, 2);
@@ -3296,7 +3284,7 @@ extern void syms_of_frame (void);
 /* Defined in emacs.c */
 extern char **initial_argv;
 extern int initial_argc;
-#if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
+#if defined (HAVE_X_WINDOWS) || defined (HAVE_NS)
 extern int display_arg;
 #endif
 extern Lisp_Object decode_env_path (const char *, const char *);
@@ -3642,7 +3630,7 @@ extern void init_system_name (void);
 /* We used to use `abs', but that clashes with system headers on some
    platforms, and using a name reserved by Standard C is a bad idea
    anyway.  */
-#if !defined(eabs)
+#if !defined (eabs)
 #define eabs(x)         ((x) < 0 ? -(x) : (x))
 #endif
 

@@ -63,6 +63,13 @@ server denied."
 		 (const :tag "Deny server" denied)
 		 (const :tag "Unplug Agent" offline)))
 
+(defcustom gnus-nntp-server nil
+  "The name of the host running the NNTP server."
+  :group 'gnus-server
+  :type '(choice (const :tag "disable" nil)
+		 string))
+(make-obsolete-variable 'gnus-nntp-server 'gnus-select-method "24.1")
+
 (defvar gnus-internal-registry-spool-current-method nil
   "The current method, for the registry.")
 
@@ -255,7 +262,8 @@ If it is down, start it up (again)."
     ;; If this method was previously denied, we just return nil.
     (if (eq (nth 1 elem) 'denied)
 	(progn
-	  (gnus-message 1 "Denied server %s" server)
+	  (gnus-message
+	   1 "Server %s previously determined to be down; not retrying" server)
 	  nil)
       ;; Open the server.
       (let* ((open-server-function

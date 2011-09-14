@@ -467,7 +467,7 @@ usage: (setq [SYM VAL]...)  */)
 
       args_left = Fcdr (Fcdr (args_left));
     }
-  while (!NILP(args_left));
+  while (!NILP (args_left));
 
   UNGCPRO;
   return val;

@@ -650,9 +650,9 @@ Otherwise, one argument `-i' is passed to the shell.
 		t shell-file-name))
 	      'localname))))
 
-  ;; Pop to buffer, so that the buffer's window will be correctly set
-  ;; when we call comint (so that comint sets the COLUMNS env var properly).
-  (pop-to-buffer buffer)
+  ;; The buffer's window must be correctly set when we call comint (so
+  ;; that comint sets the COLUMNS env var properly).
+  (switch-to-buffer buffer)
   (unless (comint-check-proc buffer)
     (let* ((prog (or explicit-shell-file-name
 		     (getenv "ESHELL") shell-file-name))
@@ -668,9 +668,6 @@ Otherwise, one argument `-i' is passed to the shell.
 	       '("-i")))
       (shell-mode)))
   buffer)
-
-;; Don't do this when shell.el is loaded, only while dumping.
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*shell*"))
 
 ;;; Directory tracking
 ;;

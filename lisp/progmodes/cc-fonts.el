@@ -208,7 +208,7 @@
   ;; from within a #if preprocessor construct.
   (defvar c-font-lock-context nil)
   (make-variable-buffer-local 'c-font-lock-context)
-  
+
   (defmacro c-put-font-lock-face (from to face)
     ;; Put a face on a region (overriding any existing face) in the way
     ;; font-lock would do it.  In XEmacs that means putting an
@@ -408,7 +408,7 @@
     ;; establish a context for the current text when, e.g., a character
     ;; is typed on a C++ inheritance continuation line, or a jit-lock
     ;; chunk starts there.
-    ;; 
+    ;;
     ;; The new function works much like a matcher element in
     ;; `font-lock-keywords'.  It cuts out a little bit of the overhead
     ;; compared to a real matcher.  The main reason is however to pass the
@@ -482,7 +482,7 @@
     ;; This function does not do any hidden buffer changes, but the
     ;; generated functions will.  (They are however used in places
     ;; covered by the font-lock context.)
-    ;; 
+    ;;
     ;; Note: Replace `byte-compile' with `eval' to debug the generated
     ;; lambda more easily.
     (byte-compile
@@ -1427,7 +1427,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	      ;; to check this.  If we get there, check whether a "typedef"
 	      ;; is there, then fontify the declarators accordingly.
 	      (let ((decl-search-lim (max (- (point) 50000) (point-min)))
-		    paren-state bod-res encl-pos is-typedef 
+		    paren-state bod-res encl-pos is-typedef
 		    c-recognize-knr-p) ; Strictly speaking, bogus, but it
 				       ; speeds up lisp.h tremendously.
 		(save-excursion
@@ -1525,7 +1525,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
   ;; Fontify the declarators of (nested) declarations we're in the middle of.
   ;; This is mainly for when a jit-lock etc. chunk starts inside the brace
   ;; block of a struct/union/class, etc.
-  ;; 
+  ;;
   ;; This function will be called from font-lock for a region bounded by POINT
   ;; and LIMIT, as though it were to identify a keyword for
   ;; font-lock-keyword-face.  It always returns NIL to inhibit this and
@@ -1559,12 +1559,13 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	(setq decl-context (c-beginning-of-decl-1)
 	      in-typedef (looking-at c-typedef-key))
 	(if in-typedef (c-forward-token-2))
-	(when (looking-at c-opt-block-decls-with-vars-key)
+	(when (and c-opt-block-decls-with-vars-key
+		   (looking-at c-opt-block-decls-with-vars-key))
 	  (goto-char ps-elt)
 	  (when (c-safe (c-forward-sexp))
 	    (c-forward-syntactic-ws)
 	    (c-font-lock-declarators limit t in-typedef)))))))
-	
+
 (c-lang-defconst c-simple-decl-matchers
   "Simple font lock matchers for types and declarations.  These are used
 on level 2 only and so aren't combined with `c-complex-decl-matchers'."
@@ -2512,7 +2513,7 @@ need for `pike-font-lock-extra-types'.")
 (defconst gtkdoc-font-lock-doc-comments
   (let ((symbol "[a-zA-Z0-9_]+")
 	(header "^ \\* "))
-    `((,(concat header "\\("     symbol "\\):[ \t]*$") 
+    `((,(concat header "\\("     symbol "\\):[ \t]*$")
        1 ,c-doc-markup-face-name prepend nil)
       (,(concat                  symbol     "()")
        0 ,c-doc-markup-face-name prepend nil)

@@ -553,8 +553,6 @@ Customized bindings may be defined in `ielm-map', which currently contains:
 
 ;;; User command
 
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*ielm*"))
-
 ;;;###autoload
 (defun ielm nil
   "Interactively evaluate Emacs Lisp expressions.
@@ -565,7 +563,7 @@ Switches to the buffer `*ielm*', or creates it if it does not exist."
       (with-current-buffer (get-buffer-create "*ielm*")
 	(unless (zerop (buffer-size)) (setq old-point (point)))
 	(inferior-emacs-lisp-mode)))
-    (pop-to-buffer "*ielm*")
+    (switch-to-buffer "*ielm*")
     (when old-point (push-mark old-point))))
 
 (provide 'ielm)

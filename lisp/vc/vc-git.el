@@ -988,7 +988,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	      (setq command nil))
 	(setq dir (file-name-as-directory (expand-file-name dir)))
 	(setq command
-	      (grep-expand-template "git grep --no-color -n -e <R> -- <F>"
+	      (grep-expand-template "git grep -n -e <R> -- <F>"
                                     regexp files))
 	(when command
 	  (if (equal current-prefix-arg '(4))
@@ -998,7 +998,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	    (add-to-history 'grep-history command))))
       (when command
 	(let ((default-directory dir)
-	      (compilation-environment '("PAGER=")))
+	      (compilation-environment (cons "PAGER=" compilation-environment)))
 	  ;; Setting process-setup-function makes exit-message-function work
 	  ;; even when async processes aren't supported.
 	  (compilation-start command 'grep-mode))

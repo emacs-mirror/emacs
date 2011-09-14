@@ -1395,13 +1395,6 @@ non-numeric prefix - `C-u M-x gnus', in short."
   :type '(repeat string))
 (make-obsolete-variable 'gnus-secondary-servers 'gnus-select-method "24.1")
 
-(defcustom gnus-nntp-server nil
-  "The name of the host running the NNTP server."
-  :group 'gnus-server
-  :type '(choice (const :tag "disable" nil)
-		 string))
-(make-obsolete-variable 'gnus-nntp-server 'gnus-select-method "24.1")
-
 (defcustom gnus-secondary-select-methods nil
   "A list of secondary methods that will be used for reading news.
 This is a list where each element is a complete select method (see
@@ -1591,9 +1584,12 @@ commands will still require prompting."
   :type 'boolean)
 
 (defcustom gnus-interactive-exit t
-  "*If non-nil, require your confirmation when exiting Gnus."
+  "*If non-nil, require your confirmation when exiting Gnus.
+If `quiet', update any active summary buffers automatically
+first before exiting."
   :group 'gnus-exit
-  :type 'boolean)
+  :type '(choice boolean
+		 (const quiet)))
 
 (defcustom gnus-extract-address-components 'gnus-extract-address-components
   "*Function for extracting address components from a From header.
@@ -2623,7 +2619,7 @@ a string, be sure to use a valid format, see RFC 2616."
     (scored . score) (saved . save)
     (cached . cache) (downloadable . download)
     (unsendable . unsend) (forwarded . forward)
-    (recent . recent) (seen . seen)))
+    (seen . seen)))
 
 (defconst gnus-article-special-mark-lists
   '((seen range)
@@ -2689,8 +2685,7 @@ such as a mark that says whether an article is stored in the cache
 			gnus-newsrc-last-checked-date
 			gnus-newsrc-alist gnus-server-alist
 			gnus-killed-list gnus-zombie-list
-			gnus-topic-topology gnus-topic-alist
-			gnus-format-specs)
+			gnus-topic-topology gnus-topic-alist)
   "Gnus variables saved in the quick startup file.")
 
 (defvar gnus-newsrc-alist nil

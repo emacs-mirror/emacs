@@ -1102,25 +1102,31 @@ is the buffer position of the start of the containing expression."
 
 (defun lisp-indent-function (indent-point state)
   "This function is the normal value of the variable `lisp-indent-function'.
-It is used when indenting a line within a function call, to see if the
-called function says anything special about how to indent the line.
+The function `calculate-lisp-indent' calls this to determine
+if the arguments of a Lisp function call should be indented specially.
 
 INDENT-POINT is the position where the user typed TAB, or equivalent.
 Point is located at the point to indent under (for default indentation);
 STATE is the `parse-partial-sexp' state for that position.
 
-If the current line is in a call to a Lisp function
-which has a non-nil property `lisp-indent-function',
-that specifies how to do the indentation.  The property value can be
-* `defun', meaning indent `defun'-style;
-* an integer N, meaning indent the first N arguments specially
-  like ordinary function arguments and then indent any further
-  arguments like a body;
-* a function to call just as this function was called.
-  If that function returns nil, that means it doesn't specify
-  the indentation.
+If the current line is in a call to a Lisp function that has a non-nil
+property `lisp-indent-function' (or the deprecated `lisp-indent-hook'),
+it specifies how to indent.  The property value can be:
 
-This function also returns nil meaning don't specify the indentation."
+* `defun', meaning indent `defun'-style
+  \(this is also the case if there is no property and the function
+  has a name that begins with \"def\", and three or more arguments);
+
+* an integer N, meaning indent the first N arguments specially
+  (like ordinary function arguments), and then indent any further
+  arguments like a body;
+
+* a function to call that returns the indentation (or nil).
+  `lisp-indent-function' calls this function with the same two arguments
+  that it itself received.
+
+This function returns either the indentation to use, or nil if the
+Lisp function does not specify a special indentation."
   (let ((normal-indent (current-column)))
     (goto-char (1+ (elt state 1)))
     (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)

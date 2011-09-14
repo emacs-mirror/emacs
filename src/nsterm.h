@@ -362,7 +362,7 @@ extern EmacsMenu *mainMenu, *svcsMenu, *dockMenu;
 #endif
 
 #ifndef NS_HAVE_NSINTEGER
-#if defined(__LP64__) && __LP64__
+#if defined (__LP64__) && __LP64__
 typedef double CGFloat;
 typedef long NSInteger;
 typedef unsigned long NSUInteger;

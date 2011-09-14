@@ -1155,17 +1155,6 @@ other_visible_frames (FRAME_PTR f)
   return 1;
 }
 
-DEFUN ("other-visible-frames-p", Fother_visible_frames_p, Sother_visible_frames_p, 0, 1, 0,
-       doc: /* Return t if there are other visible frames beside FRAME.
-FRAME defaults to the selected frame.  */)
-  (Lisp_Object frame)
-{
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  return other_visible_frames (XFRAME (frame)) ? Qt : Qnil;
-}
-
 /* Delete FRAME.  When FORCE equals Qnoelisp, delete FRAME
   unconditionally.  x_connection_closed and delete_terminal use
   this.  Any other value of FORCE implements the semantics
@@ -3098,7 +3087,11 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
 		      for non-toolkit scroll bar.
 		      ruler-mode.el depends on this.  */
 		   : Qnil));
-  w = FRAME_X_WINDOW (f);
+  /* FRAME_X_WINDOW is not guaranteed to return an integer.  E.g., on
+     MS-Windows it returns a value whose type is HANDLE, which is
+     actually a pointer.  Explicit casting avoids compiler
+     warnings.  */
+  w = (unsigned long) FRAME_X_WINDOW (f);
   sprintf (buf, "%lu", w);
   store_in_alist (alistptr, Qwindow_id,
 		  build_string (buf));
@@ -3108,7 +3101,7 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
   if (FRAME_X_OUTPUT (f)->widget)
 #endif
     {
-      w = FRAME_OUTER_WINDOW (f);
+      w = (unsigned long) FRAME_OUTER_WINDOW (f);
       sprintf (buf, "%lu", w);
     }
   store_in_alist (alistptr, Qouter_window_id,
@@ -4370,7 +4363,7 @@ Setting this variable does not affect existing frames, only new ones.  */);
   DEFVAR_LISP ("default-frame-scroll-bars", Vdefault_frame_scroll_bars,
 	       doc: /* Default position of scroll bars on this window-system.  */);
 #ifdef HAVE_WINDOW_SYSTEM
-#if defined(HAVE_NTGUI) || defined(NS_IMPL_COCOA) || (defined(USE_GTK) && defined(USE_TOOLKIT_SCROLL_BARS))
+#if defined (HAVE_NTGUI) || defined (NS_IMPL_COCOA) || (defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS))
   /* MS-Windows, Mac OS X, and GTK have scroll bars on the right by
      default.  */
   Vdefault_frame_scroll_bars = Qright;
@@ -4471,7 +4464,6 @@ automatically.  See also `mouse-autoselect-window'.  */);
   defsubr (&Sframe_list);
   defsubr (&Snext_frame);
   defsubr (&Sprevious_frame);
-  defsubr (&Sother_visible_frames_p);
   defsubr (&Sdelete_frame);
   defsubr (&Smouse_position);
   defsubr (&Smouse_pixel_position);

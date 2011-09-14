@@ -56,7 +56,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define COLOR_TABLE_SUPPORT 1
 
 typedef struct x_bitmap_record Bitmap_Record;
-#define GET_PIXEL(ximg, x, y) XGetPixel(ximg, x, y)
+#define GET_PIXEL(ximg, x, y) XGetPixel (ximg, x, y)
 #define NO_PIXMAP None
 
 #define RGB_PIXEL_COLOR unsigned long
@@ -74,7 +74,7 @@ typedef struct x_bitmap_record Bitmap_Record;
 #undef COLOR_TABLE_SUPPORT
 
 typedef struct w32_bitmap_record Bitmap_Record;
-#define GET_PIXEL(ximg, x, y) GetPixel(ximg, x, y)
+#define GET_PIXEL(ximg, x, y) GetPixel (ximg, x, y)
 #define NO_PIXMAP 0
 
 #define RGB_PIXEL_COLOR COLORREF
@@ -106,7 +106,7 @@ Lisp_Object Qlibpng_version;
 
 typedef struct ns_bitmap_record Bitmap_Record;
 
-#define GET_PIXEL(ximg, x, y) XGetPixel(ximg, x, y)
+#define GET_PIXEL(ximg, x, y) XGetPixel (ximg, x, y)
 #define NO_PIXMAP 0
 
 #define RGB_PIXEL_COLOR unsigned long
@@ -115,7 +115,7 @@ typedef struct ns_bitmap_record Bitmap_Record;
 #define PIX_MASK_RETAIN	0
 #define PIX_MASK_DRAW	1
 
-#define FRAME_X_VISUAL FRAME_NS_DISPLAY_INFO(f)->visual
+#define FRAME_X_VISUAL FRAME_NS_DISPLAY_INFO (f)->visual
 #define x_defined_color(f, name, color_def, alloc) \
   ns_defined_color (f, name, color_def, alloc, 0)
 #define FRAME_X_SCREEN(f) 0
@@ -1106,8 +1106,8 @@ image_ascent (struct image *img, struct face *face, struct glyph_slice *slice)
 	     because a typical font is `top-heavy' (due to the presence
 	     uppercase letters), so the image placement should err towards
 	     being top-heavy too.  It also just generally looks better.  */
-	  ascent = (height + FONT_BASE(face->font)
-                    - FONT_DESCENT(face->font) + 1) / 2;
+	  ascent = (height + FONT_BASE (face->font)
+                    - FONT_DESCENT (face->font) + 1) / 2;
 #endif /* HAVE_NTGUI */
 	}
       else
@@ -5545,7 +5545,7 @@ init_png_functions (Lisp_Object libraries)
 /* In libpng version 1.5, the jmpbuf member is hidden. (Bug#7908)  */
 #define PNG_LONGJMP(ptr) (fn_png_longjmp ((ptr), 1))
 #define PNG_JMPBUF(ptr) \
-  (*fn_png_set_longjmp_fn((ptr), longjmp, sizeof (jmp_buf)))
+  (*fn_png_set_longjmp_fn ((ptr), longjmp, sizeof (jmp_buf)))
 #endif
 
 /* Error and warning handlers installed when the PNG library
@@ -5966,9 +5966,9 @@ png_load (struct frame *f, struct image *img)
 static int
 png_load (struct frame *f, struct image *img)
 {
-  return ns_load_image(f, img,
-                       image_spec_value (img->spec, QCfile, NULL),
-                       image_spec_value (img->spec, QCdata, NULL));
+  return ns_load_image (f, img,
+                        image_spec_value (img->spec, QCfile, NULL),
+                        image_spec_value (img->spec, QCdata, NULL));
 }
 #endif  /* HAVE_NS */
 
@@ -6115,7 +6115,7 @@ jpeg_resync_to_restart_wrapper (j_decompress_ptr cinfo, int desired)
 
 #else
 
-#define fn_jpeg_CreateDecompress(a,b,c)	jpeg_create_decompress(a)
+#define fn_jpeg_CreateDecompress(a,b,c)	jpeg_create_decompress (a)
 #define fn_jpeg_start_decompress	jpeg_start_decompress
 #define fn_jpeg_finish_decompress	jpeg_finish_decompress
 #define fn_jpeg_destroy_decompress	jpeg_destroy_decompress
@@ -7229,8 +7229,10 @@ gif_load (struct frame *f, struct image *img)
 
   img->corners[TOP_CORNER] = gif->SavedImages[0].ImageDesc.Top;
   img->corners[LEFT_CORNER] = gif->SavedImages[0].ImageDesc.Left;
-  img->corners[BOT_CORNER] = img->corners[TOP_CORNER] + height;
-  img->corners[RIGHT_CORNER] = img->corners[LEFT_CORNER] + width;
+  img->corners[BOT_CORNER]
+    = img->corners[TOP_CORNER] + gif->SavedImages[0].ImageDesc.Height;
+  img->corners[RIGHT_CORNER]
+    = img->corners[LEFT_CORNER] + gif->SavedImages[0].ImageDesc.Width;
 
   if (!check_image_size (f, width, height))
     {
@@ -7623,7 +7625,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
       return 0;
     }
 
-  if (MagickGetNumberImages(ping_wand) > 1)
+  if (MagickGetNumberImages (ping_wand) > 1)
     img->lisp_data =
       Fcons (Qcount,
              Fcons (make_number (MagickGetNumberImages (ping_wand)),
@@ -7648,7 +7650,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
       if (im_image == NULL)
 	goto imagemagick_no_wand;
       image_wand = NewMagickWandFromImage (im_image);
-      DestroyImage(im_image);
+      DestroyImage (im_image);
     }
   else
     {
@@ -7769,7 +7771,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 #ifdef COLOR_TABLE_SUPPORT
 	  free_color_table ();
 #endif
-          image_error("Imagemagick X bitmap allocation failure", Qnil, Qnil);
+          image_error ("Imagemagick X bitmap allocation failure", Qnil, Qnil);
           goto imagemagick_error;
         }
 
@@ -7823,7 +7825,7 @@ imagemagick_load_image (struct frame *f, struct image *img,
 #ifdef COLOR_TABLE_SUPPORT
 	  free_color_table ();
 #endif
-	  image_error("Imagemagick X bitmap allocation failure", Qnil, Qnil);
+	  image_error ("Imagemagick X bitmap allocation failure", Qnil, Qnil);
 	  goto imagemagick_error;
 	}
 

@@ -606,7 +606,7 @@ int current_mode_line_height, current_header_line_height;
     if (CACHE)					\
       bidi_unshelve_cache (CACHE, 1);		\
     ITCOPY = ITORIG;				\
-    CACHE = bidi_shelve_cache();		\
+    CACHE = bidi_shelve_cache ();		\
   } while (0)
 
 #define RESTORE_IT(pITORIG,pITCOPY,CACHE)	\
@@ -1916,7 +1916,7 @@ get_phys_cursor_geometry (struct window *w, struct glyph_row *row,
      rectangle as wide as the glyph, but use a canonical character
      width instead.  */
   wd = glyph->pixel_width - 1;
-#if defined(HAVE_NTGUI) || defined(HAVE_NS)
+#if defined (HAVE_NTGUI) || defined (HAVE_NS)
   wd++; /* Why? */
 #endif
 
@@ -3132,9 +3132,9 @@ next_overlay_change (EMACS_INT pos)
 }
 
 /* How many characters forward to search for a display property or
-   display string.  Enough for a screenful of 100 lines x 50
-   characters in a line.  */
-#define MAX_DISP_SCAN 5000
+   display string.  Searching too far forward makes the bidi display
+   sluggish, especially in small windows.  */
+#define MAX_DISP_SCAN 250
 
 /* Return the character position of a display string at or after
    position specified by POSITION.  If no display string exists at or
@@ -8116,7 +8116,8 @@ move_it_in_display_line_to (struct it *it,
 		      && !saw_smaller_pos
 		      && IT_CHARPOS (*it) > to_charpos))
 		{
-		  if (!at_eob_p && IT_CHARPOS (ppos_it) < ZV)
+		  if (it->bidi_p
+		      && !at_eob_p && IT_CHARPOS (ppos_it) < ZV)
 		    RESTORE_IT (it, &ppos_it, ppos_data);
 		  result = MOVE_POS_MATCH_OR_ZV;
 		  break;
@@ -23250,6 +23251,7 @@ produce_stretch_glyph (struct it *it)
       if (FRAME_WINDOW_P (it->f))
 	{
 	  append_stretch_glyph (it, object, width, height, ascent);
+	  it->pixel_width = width;
 	  it->ascent = it->phys_ascent = ascent;
 	  it->descent = it->phys_descent = height - it->ascent;
 	  it->nglyphs = width > 0 && height > 0 ? 1 : 0;
@@ -23264,7 +23266,6 @@ produce_stretch_glyph (struct it *it)
 	  while (n--)
 	    tty_append_glyph (it);
 	  it->object = o_object;
-	  it->pixel_width = width;
 	}
     }
 }

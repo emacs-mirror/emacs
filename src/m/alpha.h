@@ -31,7 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef __ELF__
 
-#if !defined(GNU_LINUX) && !defined(__NetBSD__)
+#if !defined (GNU_LINUX) && !defined (__NetBSD__)
 #define DATA_START    0x140000000
 #endif
 

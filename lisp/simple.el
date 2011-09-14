@@ -73,7 +73,8 @@ in seconds, or until the next command is executed.
 If t, highlight the locus until the next command is executed, or until
 some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
-If `fringe-arrow', indicate the locus by the fringe arrow."
+If `fringe-arrow', indicate the locus by the fringe arrow
+indefinitely until some other locus replaces it."
   :type '(choice (number :tag "Highlight for specified time")
                  (const :tag "Semipermanent highlighting" t)
                  (const :tag "No highlighting" nil)
@@ -86,7 +87,8 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
 If number, highlight the locus in `next-error' face for given time in seconds.
 If t, highlight the locus indefinitely until some other locus replaces it.
 If nil, don't highlight the locus in the source buffer.
-If `fringe-arrow', indicate the locus by the fringe arrow."
+If `fringe-arrow', indicate the locus by the fringe arrow
+indefinitely until some other locus replaces it."
   :type '(choice (number :tag "Highlight for specified time")
                  (const :tag "Semipermanent highlighting" t)
                  (const :tag "No highlighting" nil)
@@ -936,9 +938,10 @@ rather than line counts."
       (forward-line (1- line)))))
 
 (defun count-words-region (start end)
-  "Print the number of words in the region.
-When called interactively, the word count is printed in echo area."
-  (interactive "r")
+  "Count the number of words in the active region.
+If the region is not active, counts the number of words in the buffer."
+  (interactive (if (use-region-p) (list (region-beginning) (region-end))
+                 (list (point-min) (point-max))))
   (let ((count 0))
     (save-excursion
       (save-restriction
@@ -946,8 +949,10 @@ When called interactively, the word count is printed in echo area."
         (goto-char (point-min))
         (while (forward-word 1)
           (setq count (1+ count)))))
-    (if (called-interactively-p 'interactive)
-        (message "Region has %d words" count))
+    (when (called-interactively-p 'interactive)
+      (message "%s has %d words"
+               (if (use-region-p) "Region" "Buffer")
+               count))
     count))
 
 (defun count-lines-region (start end)
@@ -981,12 +986,12 @@ and the greater of them is not at the start of a line."
       (if (eq selective-display t)
 	  (save-match-data
 	    (let ((done 0))
-	      (while (re-search-forward "[\n\C-m]" nil t 40)
-		(setq done (+ 40 done)))
-	      (while (re-search-forward "[\n\C-m]" nil t 1)
-		(setq done (+ 1 done)))
-	      (goto-char (point-max))
-	      (if (and (/= start end)
+                     (while (re-search-forward "[\n\C-m]" nil t 40)
+                       (setq done (+ 40 done)))
+                     (while (re-search-forward "[\n\C-m]" nil t 1)
+                       (setq done (+ 1 done)))
+                     (goto-char (point-max))
+                     (if (and (/= start end)
 		       (not (bolp)))
 		  (1+ done)
 		done)))
@@ -5726,6 +5731,11 @@ else the end of the last line.  This function obeys RFC822."
   (when (re-search-forward
 	 "^\\([:\n]\\|[^: \t\n]+[ \t\n]\\)" nil 'move)
     (goto-char (match-beginning 0))))
+
+;; Used by Rmail (e.g., rmail-forward).
+(defvar mail-encode-mml nil
+  "If non-nil, mail-user-agent's `sendfunc' command should mml-encode
+the outgoing message before sending it.")
 
 (defun compose-mail (&optional to subject other-headers continue
 		     switch-function yank-action send-actions

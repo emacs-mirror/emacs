@@ -307,6 +307,9 @@ The default value matches citations like `foo-bar>' plus whitespace."
     (define-key map [menu-bar mail]
       (cons "Mail" (make-sparse-keymap "Mail")))
 
+    (define-key map [menu-bar mail attachment]
+      '("Attach File" . mail-add-attachment))
+
     (define-key map [menu-bar mail fill]
       '("Fill Citation" . mail-fill-yanked-message))
 
@@ -562,11 +565,7 @@ To change your decision later, customize `send-mail-function'.\n")
 				    send-actions return-action
 				    &rest ignored)
   (if switch-function
-      (let ((special-display-buffer-names nil)
-	    (special-display-regexps nil)
-	    (same-window-buffer-names nil)
-	    (same-window-regexps nil))
-	(funcall switch-function "*mail*")))
+      (funcall switch-function "*mail*"))
   (let ((cc (cdr (assoc-string "cc" other-headers t)))
 	(in-reply-to (cdr (assoc-string "in-reply-to" other-headers t)))
 	(body (cdr (assoc-string "body" other-headers t))))
@@ -678,6 +677,7 @@ switching to, the `*mail*' buffer.  See also `mail-setup-hook'."
   :options '(footnote-mode))
 
 (defvar mail-mode-abbrev-table text-mode-abbrev-table)
+(defvar mail-encode-mml)
 ;;;###autoload
 (define-derived-mode mail-mode text-mode "Mail"
   "Major mode for editing mail to be sent.
@@ -696,11 +696,15 @@ Here are commands that move to a header field (and create it if there isn't):
 \\[mail-signature]  mail-signature (insert `mail-signature-file' file).
 \\[mail-yank-original]  mail-yank-original (insert current message, in Rmail).
 \\[mail-fill-yanked-message]  mail-fill-yanked-message (fill what was yanked).
+\\[mail-insert-file] insert a text file into the message.
+\\[mail-add-attachment] attach to the message a file as binary attachment.
 Turning on Mail mode runs the normal hooks `text-mode-hook' and
 `mail-mode-hook' (in that order)."
   (make-local-variable 'mail-reply-action)
   (make-local-variable 'mail-send-actions)
   (make-local-variable 'mail-return-action)
+  (make-local-variable 'mail-encode-mml)
+  (setq mail-encode-mml nil)
   (setq buffer-offer-save t)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(mail-font-lock-keywords t t))
@@ -862,6 +866,7 @@ header when sending a message to a mailing list."
   :type '(repeat string)
   :group 'sendmail)
 
+(declare-function mml-to-mime "mml" ())
 
 (defun mail-send ()
   "Send the message in the current buffer.
@@ -934,6 +939,9 @@ the user from the mailer."
 	      (error "Invalid header line (maybe a continuation line lacks initial whitespace)"))
 	    (forward-line 1)))
 	(goto-char opoint)
+	(when mail-encode-mml
+	  (mml-to-mime)
+	  (setq mail-encode-mml nil))
 	(run-hooks 'mail-send-hook)
 	(message "Sending...")
 	(funcall send-mail-function)
@@ -1688,7 +1696,7 @@ If the current line has `mail-yank-prefix', insert it on the new line."
   (split-line mail-yank-prefix))
 
 
-(defun mail-attach-file (&optional file)
+(defun mail-insert-file (&optional file)
   "Insert a file at the end of the buffer, with separator lines around it."
   (interactive "fAttach file: ")
   (save-excursion
@@ -1707,12 +1715,24 @@ If the current line has `mail-yank-prefix', insert it on the new line."
       (insert-file-contents file)
       (or (bolp) (newline))
       (goto-char start))))
+
+(define-obsolete-function-alias 'mail-attach-file 'mail-insert-file "24.1")
+
+(declare-function mml-attach-file "mml"
+		  (file &optional type description disposition))
+(declare-function mm-default-file-encoding "mm-encode" (file))
+
+(defun mail-add-attachment (file)
+  "Add FILE as a MIME attachment to the end of the mail message being composed."
+  (interactive "fAttach file: ")
+  (mml-attach-file file
+		   (or (mm-default-file-encoding file)
+		       "application/octet-stream") nil)
+  (setq mail-encode-mml t))
+
 
 ;; Put these commands last, to reduce chance of lossage from quitting
 ;; in middle of loading the file.
-
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*mail*"))
-;;;###autoload (add-hook 'same-window-buffer-names (purecopy "*unsent mail*"))
 
 ;;;###autoload
 (defun mail (&optional noerase to subject in-reply-to cc replybuffer
@@ -1765,11 +1785,11 @@ The seventh argument ACTIONS is a list of actions to take
  This is how Rmail arranges to mark messages `answered'."
   (interactive "P")
   (if (eq noerase 'new)
-      (pop-to-buffer (generate-new-buffer "*mail*"))
+      (switch-to-buffer (generate-new-buffer "*mail*"))
     (and noerase
 	 (not (get-buffer "*mail*"))
 	 (setq noerase nil))
-    (pop-to-buffer "*mail*"))
+    (switch-to-buffer "*mail*"))
 
   ;; Avoid danger that the auto-save file can't be written.
   (let ((dir (expand-file-name
@@ -1919,7 +1939,7 @@ you can move to one of them and type C-c C-c to recover that one."
 		  (dired-noselect file-name
 				  (concat dired-listing-switches " -t"))))
 	     (save-selected-window
-	       (select-window (display-buffer dispbuf t))
+	       (switch-to-buffer-other-window dispbuf)
 	       (goto-char (point-min))
 	       (forward-line 2)
 	       (dired-move-to-filename)
@@ -1942,24 +1962,14 @@ you can move to one of them and type C-c C-c to recover that one."
 (defun mail-other-window (&optional noerase to subject in-reply-to cc replybuffer sendactions)
   "Like `mail' command, but display mail buffer in another window."
   (interactive "P")
-  (let ((pop-up-windows t)
-	(special-display-buffer-names nil)
-	(special-display-regexps nil)
-	(same-window-buffer-names nil)
-	(same-window-regexps nil))
-    (pop-to-buffer "*mail*"))
+  (switch-to-buffer-other-window "*mail*")
   (mail noerase to subject in-reply-to cc replybuffer sendactions))
 
 ;;;###autoload
 (defun mail-other-frame (&optional noerase to subject in-reply-to cc replybuffer sendactions)
   "Like `mail' command, but display mail buffer in another frame."
   (interactive "P")
-  (let ((pop-up-frames t)
-	(special-display-buffer-names nil)
-	(special-display-regexps nil)
-	(same-window-buffer-names nil)
-	(same-window-regexps nil))
-    (pop-to-buffer "*mail*"))
+  (switch-to-buffer-other-frame "*mail*")
   (mail noerase to subject in-reply-to cc replybuffer sendactions))
 
 ;; Do not add anything but external entries on this page.

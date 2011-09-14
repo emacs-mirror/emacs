@@ -1499,9 +1499,6 @@ the type of the variable (string, integer, character, etc).")
 (defvar gnus-newsgroup-forwarded nil
   "List of articles that have been forwarded in the current newsgroup.")
 
-(defvar gnus-newsgroup-recent nil
-  "List of articles that have are recent in the current newsgroup.")
-
 (defvar gnus-newsgroup-expirable nil
   "Sorted list of articles in the current newsgroup that can be expired.")
 
@@ -1578,7 +1575,6 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
     gnus-newsgroup-saved
     gnus-newsgroup-replied
     gnus-newsgroup-forwarded
-    gnus-newsgroup-recent
     gnus-newsgroup-expirable
     gnus-newsgroup-killed
     gnus-newsgroup-unseen
@@ -3743,8 +3739,6 @@ buffer that was in action when the last article was fetched."
 		 gnus-forwarded-mark)
 		((memq gnus-tmp-current gnus-newsgroup-saved)
 		 gnus-saved-mark)
-		((memq gnus-tmp-number gnus-newsgroup-recent)
-		 gnus-recent-mark)
 		((memq gnus-tmp-number gnus-newsgroup-unseen)
 		 gnus-unseen-mark)
 		(t gnus-no-mark)))
@@ -5395,8 +5389,6 @@ or a straight list of headers."
 		    gnus-forwarded-mark)
 		   ((memq number gnus-newsgroup-saved)
 		    gnus-saved-mark)
-		   ((memq number gnus-newsgroup-recent)
-		    gnus-recent-mark)
 		   ((memq number gnus-newsgroup-unseen)
 		    gnus-unseen-mark)
 		   (t gnus-no-mark))
@@ -5551,7 +5543,7 @@ or a straight list of headers."
 (defun gnus-fetch-headers (articles &optional limit force-new dependencies)
   "Fetch headers of ARTICLES."
   (let ((name (gnus-group-decoded-name gnus-newsgroup-name)))
-    (gnus-message 5 "Fetching headers for %s..." name)
+    (gnus-message 7 "Fetching headers for %s..." name)
     (prog1
 	(if (eq 'nov
 		(setq gnus-headers-retrieved-by
@@ -5568,7 +5560,7 @@ or a straight list of headers."
 	    (gnus-get-newsgroup-headers-xover
 	     articles force-new dependencies gnus-newsgroup-name t)
 	  (gnus-get-newsgroup-headers dependencies force-new))
-      (gnus-message 5 "Fetching headers for %s...done" name))))
+      (gnus-message 7 "Fetching headers for %s...done" name))))
 
 (defun gnus-select-newsgroup (group &optional read-all select-articles)
   "Select newsgroup GROUP.
@@ -5807,8 +5799,6 @@ If SELECT-ARTICLES, only select those articles from GROUP."
       (memq article gnus-newsgroup-forwarded))
      ((eq type 'seen)
       (not (memq article gnus-newsgroup-unseen)))
-     ((eq type 'recent)
-      (memq article gnus-newsgroup-recent))
      (t t))))
 
 (defun gnus-articles-to-read (group &optional read-all)
@@ -10985,8 +10975,6 @@ If NO-EXPIRE, auto-expiry will be inhibited."
 	  gnus-forwarded-mark)
 	 ((memq article gnus-newsgroup-saved)
 	  gnus-saved-mark)
-	 ((memq article gnus-newsgroup-recent)
-	  gnus-recent-mark)
 	 ((memq article gnus-newsgroup-unseen)
 	  gnus-unseen-mark)
 	 (t gnus-no-mark))
@@ -12594,12 +12582,16 @@ UNREAD is a sorted list."
     ;; Go through all these summary buffers and offer to save them.
     (when buffers
       (save-excursion
-	(map-y-or-n-p
-	 "Update summary buffer %s? "
-	 (lambda (buf)
-	   (switch-to-buffer buf)
-	   (gnus-summary-exit))
-	 buffers)))))
+	(if (eq gnus-interactive-exit 'quiet)
+	    (dolist (buffer buffers)
+	      (switch-to-buffer buffer)
+	      (gnus-summary-exit))
+	  (map-y-or-n-p
+	   "Update summary buffer %s? "
+	   (lambda (buf)
+	     (switch-to-buffer buf)
+	     (gnus-summary-exit))
+	   buffers))))))
 
 (defun gnus-summary-setup-default-charset ()
   "Setup newsgroup default charset."

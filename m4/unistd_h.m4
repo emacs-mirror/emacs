@@ -1,4 +1,4 @@
-# unistd_h.m4 serial 56
+# unistd_h.m4 serial 57
 dnl Copyright (C) 2006-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -20,6 +20,9 @@ AC_DEFUN([gl_UNISTD_H],
     HAVE_UNISTD_H=0
   fi
   AC_SUBST([HAVE_UNISTD_H])
+
+  dnl Ensure the type pid_t gets defined.
+  AC_REQUIRE([AC_TYPE_PID_T])
 
   dnl Check for declarations of anything we want to poison if the
   dnl corresponding gnulib module is not in use.

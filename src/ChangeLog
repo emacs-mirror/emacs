@@ -1,3 +1,90 @@
+2011-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Fother_visible_frames_p): Function deleted.
+
+2011-09-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* indent.c (compute_motion): Process display vector front to back
+	rather than the other way around.  (Bug#2496)
+
+2011-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents): Don't assume beg_offset is 0.
+
+2011-09-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuf.c (Fread_from_minibuffer): Doc fix.
+
+2011-09-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (produce_stretch_glyph): Fix a typo made in changes from
+	2011-08-30 (revision 105619).  (Bug#9475)
+
+2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* fileio.c (Fvisited_file_modtime): Document `(-1 65535)' as a
+	value for non-existent files.
+
+2011-09-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Finsert_file_contents): If the file cannot be opened,
+	set its "size" to -1.  This will set the modtime_size field of
+	the corresponding buffer to -1, which is what
+	verify-visited-file-modtime expects for files that do not exist.
+	(Bug#9139)
+
+2011-09-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* keymap.h (KEY_DESCRIPTION_SIZE, push_key_description): Move decls
+	here ...
+	* lisp.h: ... from here.  push_key_description is no longer
+	defined in keyboard.c, so its declaration should not be in
+	lisp.h's "Defined in keyboard.c" section, and KEY_DESCRIPTION_SIZE
+	logically belongs with push_key_description.
+
+2011-09-10  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* buffer.h: Include <sys/types.h> instead of <time.h>.
+	Otherwise, off_t wasn't defined on FreeBSD 9.0-BETA2 i386.
+	Problem reported by Herbert J. Skuhra.
+
+2011-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (parse_region): Make the parsing work for
+	non-comment-starting XML files again (bug#9144).
+
+2011-09-10  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* image.c (gif_load): Fix calculation of bottom and right corner.
+	(Bug#9468)
+
+2011-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (MAX_DISP_SCAN): Decrease to 250.  Prevents sluggish
+	redisplay in small windows.
+
+2011-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* frame.c (x_report_frame_params): Cast to avoid compiler warnings.
+
+2011-09-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fset_window_prev_buffers, Fset_window_next_buffers):
+	Operate on live windows only.
+
+2011-09-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (my_heap_start): #ifdef to avoid warnings when unused.
+
+2011-09-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (move_it_in_display_line_to): Call RESTORE_IT on ppos_it
+	only under bidi iteration.
+
+2011-09-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_make_tool_item): Insert comment about eventbox.
+
 2011-09-06  Paul Eggert  <eggert@cs.ucla.edu>
 
 	isnan: Fix porting problem to Solaris 10 with bundled gcc.
@@ -878,7 +965,7 @@
 
 	* nsfns.m (as_script, as_result, as_status): New static variables.
 	(ns_run_ascript): New function.
-	(Fns_do_applescript): Set variables as_*. Make an NSApplicationDefined
+	(Fns_do_applescript): Set variables as_*.  Make an NSApplicationDefined
 	event with data2 set to NSAPP_DATA2_RUNASSCRIPT, post it and then start
 	the event loop.  Get status from as_status (Bug#7276).
 
@@ -1054,7 +1141,7 @@
 
 	* xdisp.c: Remove one-slot cache of display string positions.
 	(compute_display_string_pos): Accept an additional argument
-	DISP_PROP_P; callers changed. Scan at most 5K characters forward
+	DISP_PROP_P; callers changed.  Scan at most 5K characters forward
 	for a display string or property.  If found, set DISP_PROP_P
 	non-zero.
 
@@ -2072,7 +2159,7 @@
 	(Fput_unicode_property_internal): New functions.
 	(syms_of_chartab): DEFSYM Qchar_code_property_table, defsubr
 	Sunicode_property_table_internal, Sget_unicode_property_internal,
-	and Sput_unicode_property_internal. Defvar_lisp
+	and Sput_unicode_property_internal.  Defvar_lisp
 	char-code-property-alist.
 
 	* composite.c (CHAR_COMPOSABLE_P): Adjust for the change of
@@ -2104,7 +2191,7 @@
 	(store_config_changed_event): Add comment.
 	(dpyinfo_valid, store_font_name_changed, map_tool_bar_style)
 	(store_tool_bar_style_changed): New functions.
-	(store_monospaced_changed): Add comment. Call dpyinfo_valid.
+	(store_monospaced_changed): Add comment.  Call dpyinfo_valid.
 	(struct xsettings): Move font inside HAVE_XFT.
 	(GSETTINGS_TOOL_BAR_STYLE, GSETTINGS_FONT_NAME): New defines.
 	(GSETTINGS_MONO_FONT): Rename from SYSTEM_MONO_FONT.
@@ -2113,7 +2200,7 @@
 	Check for changes in GSETTINGS_TOOL_BAR_STYLE and GSETTINGS_FONT_NAME
 	also.
 	(GCONF_TOOL_BAR_STYLE, GCONF_FONT_NAME): New defines.
-	(GCONF_MONO_FONT): Rename from SYSTEM_MONO_FONT. Move inside HAVE_XFT.
+	(GCONF_MONO_FONT): Rename from SYSTEM_MONO_FONT.  Move inside HAVE_XFT.
 	(something_changed_gconfCB): Rename from something_changedCB.
 	Check for changes in GCONF_TOOL_BAR_STYLE and GCONF_FONT_NAME also.
 	(parse_settings): Move check for font inside HAVE_XFT.

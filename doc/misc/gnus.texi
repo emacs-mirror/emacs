@@ -1011,7 +1011,7 @@ The @code{gnus-select-method} variable says where Gnus should look for
 news.  This variable should be a list where the first element says
 @dfn{how} and the second element says @dfn{where}.  This method is your
 native method.  All groups not fetched with this method are
-foreign groups.
+secondary or foreign groups.
 
 For instance, if the @samp{news.somewhere.edu} @acronym{NNTP} server is where
 you want to get your daily dosage of news from, you'd say:
@@ -2983,7 +2983,7 @@ The available operators are @code{not}, @code{and} and @code{or}.
 Predicates include @code{tick}, @code{unsend}, @code{undownload},
 @code{unread}, @code{dormant}, @code{expire}, @code{reply},
 @code{killed}, @code{bookmark}, @code{score}, @code{save},
-@code{cache}, @code{forward}, @code{unseen} and @code{recent}.
+@code{cache}, @code{forward}, and @code{unseen}.
 
 @end table
 
@@ -3335,8 +3335,12 @@ List all groups with ticked articles (@code{gnus-group-list-ticked}).
 @item A /
 @kindex A / (Group)
 @findex gnus-group-list-limit
-List groups limited within the current selection
-(@code{gnus-group-list-limit}).
+Further limit groups within the current selection
+(@code{gnus-group-list-limit}).  If you've first limited to groups
+with dormant articles with @kbd{A ?}, you can then further limit with
+@kbd{A / c}, which will then limit to groups with cached articles,
+giving you the groups that have both dormant articles and cached
+articles.
 
 @item A f
 @kindex A f (Group)
@@ -6165,18 +6169,9 @@ religiously) are marked with an @samp{S} in the second column
 (@code{gnus-saved-mark}).
 
 @item
-@vindex gnus-recent-mark
-Articles that according to the server haven't been shown to the user
-before are marked with a @samp{N} in the second column
-(@code{gnus-recent-mark}).  Note that not all servers support this
-mark, in which case it simply never appears.  Compare with
-@code{gnus-unseen-mark}.
-
-@item
 @vindex gnus-unseen-mark
 Articles that haven't been seen before in Gnus by the user are marked
 with a @samp{.} in the second column (@code{gnus-unseen-mark}).
-Compare with @code{gnus-recent-mark}.
 
 @item
 @vindex gnus-downloaded-mark
@@ -22265,8 +22260,9 @@ is @code{t} by default.
 
 @item gnus-interactive-exit
 @vindex gnus-interactive-exit
-Require confirmation before exiting Gnus.  This variable is @code{t} by
-default.
+If non-@code{nil}, require a confirmation when exiting Gnus.  If
+@code{quiet}, update any active summary buffers automatically without
+querying.  The default value is @code{t}.
 @end table
 
 
@@ -27993,10 +27989,6 @@ non-@code{nil}, the summary buffer is shown and updated as it's being
 built.
 
 @item
-The new @code{recent} mark @samp{.} indicates newly arrived messages (as
-opposed to old but unread messages).
-
-@item
 Gnus supports RFC 2369 mailing list headers, and adds a number of
 related commands in mailing list groups.  @xref{Mailing List}.
 
@@ -28584,18 +28576,21 @@ confusing.
 @item native
 @cindex native
 Gnus will always use one method (and back end) as the @dfn{native}, or
-default, way of getting news.
+default, way of getting news.  Groups from the native select method
+have names like @samp{gnu.emacs.gnus}.
 
 @item foreign
 @cindex foreign
-You can also have any number of foreign groups active at the same time.
-These are groups that use non-native non-secondary back ends for getting
-news.
+You can also have any number of foreign groups active at the same
+time.  These are groups that use non-native non-secondary back ends
+for getting news.  Foreign groups have names like
+@samp{nntp+news.gmane.org:gmane.emacs.gnus.devel}.
 
 @item secondary
 @cindex secondary
-Secondary back ends are somewhere half-way between being native and being
-foreign, but they mostly act like they are native.
+Secondary back ends are somewhere half-way between being native and
+being foreign, but they mostly act like they are native, but they, too
+have names like @samp{nntp+news.gmane.org:gmane.emacs.gnus.devel}.
 
 @item article
 @cindex article
@@ -29572,9 +29567,9 @@ propagate the mark information to the server.
 marks (preserving all marks not mentioned).  @var{mark} is a list of
 marks; where each mark is a symbol.  Currently used marks are
 @code{read}, @code{tick}, @code{reply}, @code{expire}, @code{killed},
-@code{dormant}, @code{save}, @code{download}, @code{unsend},
-@code{forward} and @code{recent}, but your back end should, if
-possible, not limit itself to these.
+@code{dormant}, @code{save}, @code{download}, @code{unsend}, and
+@code{forward}, but your back end should, if possible, not limit
+itself to these.
 
 Given contradictory actions, the last action in the list should be the
 effective one.  That is, if your action contains a request to add the

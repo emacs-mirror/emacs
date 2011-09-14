@@ -637,11 +637,15 @@ This should be a function of three arguments: process status, exit status,
 and exit message; it returns a cons (MESSAGE . MODELINE) of the strings to
 write into the compilation buffer, and to put in its mode line.")
 
-(defvar compilation-environment nil
-  "*List of environment variables for compilation to inherit.
+(defcustom compilation-environment nil
+  "List of environment variables for compilation to inherit.
 Each element should be a string of the form ENVVARNAME=VALUE.
 This list is temporarily prepended to `process-environment' prior to
-starting the compilation process.")
+starting the compilation process."
+  :type '(repeat (string :tag "ENVVARNAME=VALUE"))
+  :options '(("LANG=C"))
+  :group 'compilation
+  :version "24.1")
 
 ;; History of compile commands.
 (defvar compile-history nil)
@@ -1482,6 +1486,7 @@ Returns the compilation buffer created."
 	      "compilation"
 	    (replace-regexp-in-string "-mode\\'" "" (symbol-name mode))))
 	 (thisdir default-directory)
+	 (thisenv compilation-environment)
 	 outwin outbuf)
     (with-current-buffer
 	(setq outbuf
@@ -1528,8 +1533,9 @@ Returns the compilation buffer created."
         ;; Remember the original dir, so we can use it when we recompile.
         ;; default-directory' can't be used reliably for that because it may be
         ;; affected by the special handling of "cd ...;".
-        ;; NB: must be fone after (funcall mode) as that resets local variables
+        ;; NB: must be done after (funcall mode) as that resets local variables
         (set (make-local-variable 'compilation-directory) thisdir)
+	(set (make-local-variable 'compilation-environment) thisenv)
 	(if highlight-regexp
 	    (set (make-local-variable 'compilation-highlight-regexp)
 		 highlight-regexp))
@@ -2402,9 +2408,8 @@ and overlay is highlighted between MK and END-MK."
 			     ;; also do this while we change buffer
 			     (compilation-set-window w msg)
 			     compilation-highlight-regexp)))
-    ;; Ideally, the window-size should be passed to `display-buffer' (via
-    ;; something like special-display-buffer) so it's only used when
-    ;; creating a new window.
+    ;; Ideally, the window-size should be passed to `display-buffer'
+    ;; so it's only used when creating a new window.
     (unless pre-existing (compilation-set-window-height w))
 
     (if from-compilation-buffer
