@@ -2,6 +2,8 @@
 
 	* mail/smtpmail.el (smtpmail-send-command): Don't include AUTH
 	passwords in the log buffer.
+	(smtpmail-process-filter): Update the process marker so that the
+	"broken by peer" status message is inserted in the right place.
 
 2011-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
