@@ -1,5 +1,7 @@
 2011-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* newcomment.el (comment-add, comment-valid-prefix-p): Docfix.
+
 	* mpc.el (mpc-constraints-tag-lookup): New function.
 	(mpc-constraints-restore): Use it to make jumping to "album=Foo" apply
 	also to browser "album|playlist".
