@@ -1,3 +1,13 @@
+2011-09-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* xterm.c (x_draw_composite_glyph_string_foreground):
+	* w32term.c (x_draw_composite_glyph_string_foreground):
+	* term.c (encode_terminal_code):
+	* composite.c (composition_update_it, get_composition_id):
+	* xdisp.c (get_next_display_element)
+	(fill_composite_glyph_string): Add comments about special meaning
+	of TAB characters in a composition.
+
 2011-09-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* editfns.c (Fformat): Fix off-by-1 bug for "%%b" (Bug#9514).

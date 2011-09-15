@@ -1306,6 +1306,8 @@ x_draw_composite_glyph_string_foreground (struct glyph_string *s)
       int y = s->ybase;
 
       for (i = 0, j = s->cmp_from; i < s->nchars; i++, j++)
+	/* TAB in a composition means display glyphs with padding
+	   space on the left or right.  */
 	if (COMPOSITION_GLYPH (s->cmp, j) != '\t')
 	  {
 	    int xx = x + s->cmp->offsets[j * 2];
