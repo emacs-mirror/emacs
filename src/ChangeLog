@@ -1,3 +1,28 @@
+2011-09-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* editfns.c (Fformat): Correctly handle text properties on "%%".
+
+2011-09-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* xterm.c (x_draw_composite_glyph_string_foreground):
+	* w32term.c (x_draw_composite_glyph_string_foreground):
+	* term.c (encode_terminal_code):
+	* composite.c (composition_update_it, get_composition_id):
+	* xdisp.c (get_next_display_element)
+	(fill_composite_glyph_string): Add comments about special meaning
+	of TAB characters in a composition.
+
+2011-09-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* editfns.c (Fformat): Fix off-by-1 bug for "%%b" (Bug#9514).
+	This occurs when processing a multibyte format, which can happen
+	when using 'eval'.  Problem reported by Wolfgang Jenker.
+
+2011-09-15  Johan Bockgård  <bojohan@gnu.org>
+
+	* xdisp.c (try_cursor_movement): Only check for exact match if
+	cursor hpos found by set_cursor_from_row is valid.  (Bug#9495)
+
 2011-09-14  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Remove unused external symbols.

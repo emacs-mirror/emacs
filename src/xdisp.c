@@ -11916,9 +11916,9 @@ hscroll_window_tree (Lisp_Object window)
 		}
 	      hscroll = max (hscroll, XFASTINT (w->min_hscroll));
 
-	      /* Don't call Fset_window_hscroll if value hasn't
-		 changed because it will prevent redisplay
-		 optimizations.  */
+	      /* Don't will prevent redisplay optimizations if hscroll
+		 hasn't changed, as it will unnecessarily slow down
+		 redisplay.  */
 	      if (XFASTINT (w->hscroll) != hscroll)
 		{
 		  XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
@@ -14627,7 +14627,10 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		     is set, we are done.  */
 		  at_zv_p =
 		    MATRIX_ROW (w->current_matrix, w->cursor.vpos)->ends_at_zv_p;
-		  if (!at_zv_p)
+		  if (rv && !at_zv_p
+		      && w->cursor.hpos >= 0
+		      && w->cursor.hpos < MATRIX_ROW_USED (w->current_matrix,
+							   w->cursor.vpos))
 		    {
 		      struct glyph_row *candidate =
 			MATRIX_ROW (w->current_matrix, w->cursor.vpos);

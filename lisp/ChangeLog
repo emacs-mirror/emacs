@@ -1,5 +1,12 @@
 2011-09-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* window.el (display-buffer-base-action): Rename from
+	display-buffer-default-action.  Make default value empty.
+	(display-buffer-overriding-action): Convert to defvar.
+	(display-buffer-fallback-action): New var.
+
+2011-09-15  Chong Yidong  <cyd@stupidchicken.com>
+
 	* emacs-lisp/package.el (package-alist): Fix risky-local-variable
 	declaration.
 	(package--add-to-archive-contents): If there is a duplicate entry
