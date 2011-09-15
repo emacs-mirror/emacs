@@ -1349,6 +1349,16 @@ when constructing the set of constraints."
         (push (cons tag select) constraints)))
     constraints))
 
+(defun mpc-constraints-tag-lookup (buffer-tag constraints)
+  (let (res)
+    (dolist (constraint constraints)
+      (when (or (eq (car constraint) buffer-tag)
+                (and (string-match "|" (symbol-name buffer-tag))
+                     (member (symbol-name (car constraint))
+                             (split-string (symbol-name buffer-tag) "|"))))
+        (setq res (cdr constraint))))
+    res))
+
 (defun mpc-constraints-restore (constraints)
   (let ((search (assq 'Search constraints)))
     (setq mpc--song-search (cadr search))
@@ -1357,10 +1367,10 @@ when constructing the set of constraints."
     (setq buf (cdr buf))
     (when (buffer-live-p buf)
       (let* ((tag (buffer-local-value 'mpc-tag buf))
-             (constraint (assq tag constraints)))
+             (constraint (mpc-constraints-tag-lookup tag constraints)))
         (when tag
           (with-current-buffer buf
-            (mpc-select-restore (cdr constraint)))))))
+            (mpc-select-restore constraint))))))
   (mpc-selection-refresh))
 
 ;; I don't get the ring.el code.  I think it doesn't do what I need, but

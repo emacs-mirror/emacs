@@ -309,7 +309,7 @@ The vector DESC has the form [VERSION-LIST REQS DOCSTRING].
 This variable is set automatically by `package-load-descriptor',
 called via `package-initialize'.  To change which packages are
 loaded and/or activated, customize `package-load-list'.")
-(put 'package-archive-contents 'risky-local-variable t)
+(put 'package-alist 'risky-local-variable t)
 
 (defvar package-activated-list nil
   "List of the names of currently activated packages.")
@@ -820,13 +820,19 @@ If the archive version is too new, signal an error."
   "Add the PACKAGE from the given ARCHIVE if necessary.
 Also, add the originating archive to the end of the package vector."
   (let* ((name    (car package))
-         (version (aref (cdr package) 0))
-         (entry   (cons (car package)
+         (version (package-desc-vers (cdr package)))
+         (entry   (cons name
 			(vconcat (cdr package) (vector archive))))
-         (existing-package (cdr (assq name package-archive-contents))))
-    (when (or (not existing-package)
-              (version-list-< (aref existing-package 0) version))
-      (add-to-list 'package-archive-contents entry))))
+         (existing-package (assq name package-archive-contents)))
+    (cond ((not existing-package)
+	   (add-to-list 'package-archive-contents entry))
+	  ((version-list-< (package-desc-vers (cdr existing-package))
+			   version)
+	   ;; Replace the entry with this one.
+	   (setq package-archive-contents
+		 (cons entry
+		       (delq existing-package
+			     package-archive-contents)))))))
 
 (defun package-download-transaction (package-list)
   "Download and install all the packages in PACKAGE-LIST.
@@ -1269,6 +1275,7 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
     (define-key map "\177" 'package-menu-backup-unmark)
     (define-key map "d" 'package-menu-mark-delete)
     (define-key map "i" 'package-menu-mark-install)
+    (define-key map "U" 'package-menu-mark-upgrades)
     (define-key map "r" 'package-menu-refresh)
     (define-key map "~" 'package-menu-mark-obsolete-for-deletion)
     (define-key map "x" 'package-menu-execute)
@@ -1298,6 +1305,9 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
     (define-key menu-map [mi]
       '(menu-item "Mark for install" package-menu-mark-install
 		  :help "Mark a package for installation and move to the next line"))
+    (define-key menu-map [mupgrades]
+      '(menu-item "Mark upgradable packages" package-menu-mark-upgrades
+		  :help "Mark packages that have a newer version for upgrading"))
     (define-key menu-map [s3] '("--"))
     (define-key menu-map [mg]
       '(menu-item "Update package list" revert-buffer
@@ -1422,7 +1432,7 @@ identifier (NAME . VERSION-LIST)."
 This fetches the contents of each archive specified in
 `package-archives', and then refreshes the package menu."
   (interactive)
-  (unless (eq major-mode 'package-menu-mode)
+  (unless (derived-mode-p 'package-menu-mode)
     (error "The current buffer is not a Package Menu"))
   (package-refresh-contents)
   (package-menu--generate t t))
@@ -1437,21 +1447,21 @@ If optional arg BUTTON is non-nil, describe its associated package."
 	(describe-package package))))
 
 ;; fixme numeric argument
-(defun package-menu-mark-delete (num)
+(defun package-menu-mark-delete (&optional num)
   "Mark a package for deletion and move to the next line."
   (interactive "p")
   (if (member (package-menu-get-status) '("installed" "obsolete"))
       (tabulated-list-put-tag "D" t)
     (forward-line)))
 
-(defun package-menu-mark-install (num)
+(defun package-menu-mark-install (&optional num)
   "Mark a package for installation and move to the next line."
   (interactive "p")
   (if (string-equal (package-menu-get-status) "available")
       (tabulated-list-put-tag "I" t)
     (forward-line)))
 
-(defun package-menu-mark-unmark (num)
+(defun package-menu-mark-unmark (&optional num)
   "Clear any marks on a package and move to the next line."
   (interactive "p")
   (tabulated-list-put-tag " " t))
@@ -1467,9 +1477,8 @@ If optional arg BUTTON is non-nil, describe its associated package."
   (interactive)
   (save-excursion
     (goto-char (point-min))
-    (forward-line 2)
     (while (not (eobp))
-      (if (looking-at ".*\\s obsolete\\s ")
+      (if (equal (package-menu-get-status) "obsolete")
 	  (tabulated-list-put-tag "D" t)
 	(forward-line 1)))))
 
@@ -1482,17 +1491,66 @@ If optional arg BUTTON is non-nil, describe its associated package."
   'package-menu-view-commentary 'package-menu-describe-package "24.1")
 
 (defun package-menu-get-status ()
-  (save-excursion
-    (if (looking-at ". [^ \t]*[ \t]*[^ \t]*[ \t]*\\([^ \t]*\\)")
-	(match-string 1)
+  (let* ((pkg (tabulated-list-get-id))
+	 (entry (and pkg (assq pkg tabulated-list-entries))))
+    (if entry
+	(aref (cadr entry) 2)
       "")))
+
+(defun package-menu--find-upgrades ()
+  (let (installed available upgrades)
+    ;; Build list of installed/available packages in this buffer.
+    (dolist (entry tabulated-list-entries)
+      ;; ENTRY is ((NAME . VERSION) [NAME VERSION STATUS DOC])
+      (let ((pkg (car entry))
+	    (status (aref (cadr entry) 2))
+	    old)
+	(cond ((equal status "installed")
+	       (push pkg installed))
+	      ((equal status "available")
+	       (push pkg available)))))
+    ;; Loop through list of installed packages, finding upgrades
+    (dolist (pkg installed)
+      (let ((avail-pkg (assq (car pkg) available)))
+	(and avail-pkg
+	     (version-list-< (cdr pkg) (cdr avail-pkg))
+	     (push avail-pkg upgrades))))
+    upgrades))
+
+(defun package-menu-mark-upgrades ()
+  "Mark all upgradable packages in the Package Menu.
+For each installed package with a newer version available, place
+an (I)nstall flag on the available version and a (D)elete flag on
+the installed version.  A subsequent \\[package-menu-execute]
+call will upgrade the package."
+  (interactive)
+  (unless (derived-mode-p 'package-menu-mode)
+    (error "The current buffer is not a Package Menu"))
+  (let ((upgrades (package-menu--find-upgrades)))
+    (if (null upgrades)
+	(message "No packages to upgrade.")
+      (widen)
+      (save-excursion
+	(goto-char (point-min))
+	(while (not (eobp))
+	  (let* ((pkg (tabulated-list-get-id))
+		 (upgrade (assq (car pkg) upgrades)))
+	    (cond ((null upgrade)
+		   (forward-line 1))
+		  ((equal pkg upgrade)
+		   (package-menu-mark-install))
+		  (t
+		   (package-menu-mark-delete))))))
+      (message "%d package%s marked for upgrading."
+	       (length upgrades)
+	       (if (= (length upgrades) 1) "" "s")))))
 
 (defun package-menu-execute ()
   "Perform marked Package Menu actions.
 Packages marked for installation are downloaded and installed;
 packages marked for deletion are removed."
   (interactive)
-  (unless (eq major-mode 'package-menu-mode)
+  (unless (derived-mode-p 'package-menu-mode)
     (error "The current buffer is not in Package Menu mode"))
   (let (install-list delete-list cmd id)
     (save-excursion
@@ -1509,6 +1567,14 @@ packages marked for deletion are removed."
 		((eq cmd ?I)
 		 (push (car id) install-list))))
 	(forward-line)))
+    (when install-list
+      (if (yes-or-no-p
+	   (if (= (length install-list) 1)
+	       (format "Install package `%s'? " (car install-list))
+	     (format "Install these %d packages (%s)? "
+		     (length install-list)
+		     (mapconcat 'symbol-name install-list ", "))))
+	  (mapc 'package-install install-list)))
     ;; Delete packages, prompting if necessary.
     (when delete-list
       (if (yes-or-no-p
@@ -1527,14 +1593,6 @@ packages marked for deletion are removed."
 		(package-delete (car elt) (cdr elt))
 	      (error (message (cadr err)))))
 	(error "Aborted")))
-    (when install-list
-      (if (yes-or-no-p
-	   (if (= (length install-list) 1)
-	       (format "Install package `%s'? " (car install-list))
-	     (format "Install these %d packages (%s)? "
-		     (length install-list)
-		     (mapconcat 'symbol-name install-list ", "))))
-	  (mapc 'package-install install-list)))
     ;; If we deleted anything, regenerate `package-alist'.  This is done
     ;; automatically if we installed a package.
     (and delete-list (null install-list)
@@ -1597,7 +1655,13 @@ The list is displayed in a buffer named `*Packages*'."
       (package-menu--generate nil t))
     ;; The package menu buffer has keybindings.  If the user types
     ;; `M-x list-packages', that suggests it should become current.
-    (switch-to-buffer buf)))
+    (switch-to-buffer buf))
+  (let ((upgrades (package-menu--find-upgrades)))
+    (if upgrades
+	(message "%d package%s can be upgraded; type `%s' to mark them for upgrading."
+		 (length upgrades)
+		 (if (= (length upgrades) 1) "" "s")
+		 (substitute-command-keys "\\[package-menu-mark-upgrades]")))))
 
 ;;;###autoload
 (defalias 'package-list-packages 'list-packages)

@@ -1,5 +1,15 @@
 2011-09-14  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Remove unused external symbols.
+	* dispextern.h (calc_pixel_width_or_height): Remove decl.
+	* xdisp.c (calc_pixel_width_or_height): Now static.
+	* doprnt.c (exprintf) [! (HAVE_X_WINDOWS && USE_X_TOOLKIT)]: Remove.
+	* indent.c (check_display_width):
+	* w32term.c: Fix comment to match code.
+	* xterm.c, xterm.h (x_catching_errors): Remove.
+
+2011-09-14  Paul Eggert  <eggert@cs.ucla.edu>
+
 	* xselect.c: Use signed conversions more consistently (Bug#9498).
 	(selection_data_to_lisp_data): Assume incoming selection data are
 	signed integers, not unsigned.  This is to be consistent with

@@ -3068,24 +3068,28 @@ When called interactively, FORCE is t, CURRENT is t if current buffer uses
           (message "No BibTeX buffers defined")))
     buffer-list))
 
-(defun bibtex-complete-string-cleanup (str compl)
+(defun bibtex-complete-string-cleanup (compl) (lambda (str status) ;Curried.
   "Cleanup after inserting string STR.
 Remove enclosing field delimiters for STR.  Display message with
 expansion of STR using expansion list COMPL."
-  ;; point is at position inside field where completion was requested
-  (save-excursion
-    (let ((abbr (cdr (if (stringp str)
-                         (assoc-string str compl t)))))
-      (if abbr (message "Abbreviation for `%s'" abbr))
-      (bibtex-remove-delimiters))))
+  (when (memq status '(exact finished sole))
+    (let ((abbr (cdr (assoc-string str compl t))))
+      (when abbr
+        (message "%s = abbreviation for `%s'" str abbr)))
+    (when (eq status 'finished)
+      (save-excursion (bibtex-remove-delimiters))))))
 
-(defun bibtex-complete-crossref-cleanup (key)
+(defun bibtex-complete-crossref-cleanup (buf) (lambda (key status) ;Curried.
   "Display summary message on entry KEY after completion of a crossref key.
 Use `bibtex-summary-function' to generate summary."
-  (save-excursion
-    (if (and (stringp key)
-             (bibtex-search-entry key t))
-        (message "Ref: %s" (funcall bibtex-summary-function)))))
+  (when (memq status '(exact sole finished))
+    (let ((summary
+           (with-current-buffer buf
+             (save-excursion
+               (if (bibtex-search-entry key t)
+                   (funcall bibtex-summary-function))))))
+      (when summary
+        (message "%s %s" key summary))))))
 
 (defun bibtex-copy-summary-as-kill (&optional arg)
   "Push summery of current BibTeX entry to kill ring.
@@ -4985,16 +4989,7 @@ entries from minibuffer."
                       (t (let ((completion-ignore-case nil))
                            (complete-with-action
                             a (bibtex-global-key-alist) s p)))))
-                   :exit-function
-                   (lambda (string status)
-                     (when (memq status '(exact sole finished))
-                       (let ((summary
-                              (with-current-buffer buf
-                                (save-excursion
-                                  (if (bibtex-search-entry string)
-                                      (funcall bibtex-summary-function))))))
-                         (when summary
-                           (message "%s %s" string summary))))))))
+                   :exit-function (bibtex-complete-crossref-cleanup buf))))
 
           ((eq compl 'string)
            ;; String key completion: no cleanup needed.
@@ -5011,14 +5006,7 @@ entries from minibuffer."
                     ((eq a 'metadata) `(metadata (category . bibtex-string)))
                     (t (let ((completion-ignore-case t))
                          (complete-with-action a compl s p)))))
-                 :exit-function
-                 (lambda (string status)
-                   (when (memq status '(exact finished sole))
-                     (let ((abbr (cdr (assoc-string string compl t))))
-                       (when abbr
-                         (message "%s = abbreviation for `%s'" string abbr))))
-                   (when (eq status 'finished)
-                     (save-excursion (bibtex-remove-delimiters)))))))))
+                 :exit-function (bibtex-complete-string-cleanup compl))))))
 
 (defun bibtex-String (&optional key)
   "Insert a new BibTeX @String entry with key KEY."

@@ -1489,6 +1489,7 @@ tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
 TEMACS_LDFLAGS2="\${LDFLAGS}"
+GNU_OBJC_CFLAGS=
 dnl I don't think it's especially important, but src/Makefile.in
 dnl (now the only user of ns_appdir) used to go to the trouble of adding a
 dnl trailing "/" to it, so now we do it here.
@@ -1521,7 +1522,28 @@ if test "${with_ns}" != no; then
      LIB_STANDARD=
      START_FILES=
      TEMACS_LDFLAGS2=
+     dnl GNUstep defines BASE_NATIVE_OBJC_EXCEPTIONS to 0 or 1.
+     dnl If they had chosen to either define it or not, we could have
+     dnl just used AC_CHECK_DECL here.
+     AC_CACHE_CHECK(if GNUstep defines BASE_NATIVE_OBJC_EXCEPTIONS,
+       emacs_cv_objc_exceptions,
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <GNUstepBase/GSConfig.h>]],
+[[#if defined BASE_NATIVE_OBJC_EXCEPTIONS && BASE_NATIVE_OBJC_EXCEPTIONS > 0
+1;
+#else
+fail;
+#endif]])], emacs_cv_objc_exceptions=yes, emacs_cv_objc_exceptions=no ) )
+     if test $emacs_cv_objc_exceptions = yes; then
+       dnl _NATIVE_OBJC_EXCEPTIONS is used by the GNUstep headers.
+       AC_DEFINE(_NATIVE_OBJC_EXCEPTIONS, 1,
+         [Define if GNUstep uses ObjC exceptions.])
+       GNU_OBJC_CFLAGS="-fobjc-exceptions"
+     fi
   fi
+
+  dnl This is only used while we test the NS headers, it gets reset below.
+  CFLAGS="$CFLAGS $GNU_OBJC_CFLAGS"
+
   AC_CHECK_HEADER([AppKit/AppKit.h], [HAVE_NS=yes],
   		  [AC_MSG_ERROR([`--with-ns' was specified, but the include
   files are missing or cannot be compiled.])])
@@ -2555,14 +2577,14 @@ if test "${HAVE_NS}" = "yes"; then
   AC_DEFINE(HAVE_NS, 1, [Define to 1 if you are using the NeXTstep API, either GNUstep or Cocoa on Mac OS X.])
   if test "${NS_IMPL_COCOA}" = "yes"; then
     AC_DEFINE(NS_IMPL_COCOA, 1, [Define to 1 if you are using NS windowing under MacOS X.])
-    GNU_OBJC_CFLAGS=
   fi
   if test "${NS_IMPL_GNUSTEP}" = "yes"; then
     AC_DEFINE(NS_IMPL_GNUSTEP, 1, [Define to 1 if you are using NS windowing under GNUstep.])
     # See also .m.o rule in Makefile.in */
     # FIXME: are all these flags really needed?  Document here why.  */
-    C_SWITCH_X_SYSTEM="-D_REENTRANT -fPIC -fno-strict-aliasing"
-    GNU_OBJC_CFLAGS="-fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
+    C_SWITCH_X_SYSTEM="-D_REENTRANT -fPIC -fno-strict-aliasing -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
+    ## Extra CFLAGS applied to src/*.m files.
+    GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
   fi
   if test "${NS_HAVE_NSINTEGER}" = "yes"; then
     AC_DEFINE(NS_HAVE_NSINTEGER, 1, [Define to 1 if `NSInteger' is defined.])
