@@ -14627,7 +14627,10 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		     is set, we are done.  */
 		  at_zv_p =
 		    MATRIX_ROW (w->current_matrix, w->cursor.vpos)->ends_at_zv_p;
-		  if (!at_zv_p)
+		  if (rv && !at_zv_p
+		      && w->cursor.hpos >= 0
+		      && w->cursor.hpos < MATRIX_ROW_USED (w->current_matrix,
+							   w->cursor.vpos))
 		    {
 		      struct glyph_row *candidate =
 			MATRIX_ROW (w->current_matrix, w->cursor.vpos);
