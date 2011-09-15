@@ -1,3 +1,21 @@
+2011-09-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-alist): Fix risky-local-variable
+	declaration.
+	(package--add-to-archive-contents): If there is a duplicate entry
+	with an older version, remove it.
+	(package-menu-mark-delete, package-menu-mark-install)
+	(package-menu-mark-unmark): Make unused args optional.
+	(package-menu-mark-obsolete-for-deletion): Use
+	package-menu-get-status instead of a regexp search.
+	(package-menu-get-status): Use tabulated-list-entry.
+	(package-menu-mark-upgrades): New command.
+	(package-menu-mode-map): Bind it to U.
+	(package-menu-execute): Do installation before deletion.
+	(package-menu-refresh, package-menu-execute): Use derived-mode-p
+	instead of checking major-mode.
+	(package-menu--find-upgrades): New function.
+
 2011-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-send-command): Don't include AUTH
