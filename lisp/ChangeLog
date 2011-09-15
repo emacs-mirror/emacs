@@ -10,7 +10,7 @@
 	package-menu-get-status instead of a regexp search.
 	(package-menu-get-status): Use tabulated-list-entry.
 	(package-menu-mark-upgrades): New command.
-	(package-menu-mode-map): Bind it to U.
+	(package-menu-mode-map): Bind it to U.  Add it to menu bar.
 	(package-menu-execute): Do installation before deletion.
 	(package-menu-refresh, package-menu-execute): Use derived-mode-p
 	instead of checking major-mode.

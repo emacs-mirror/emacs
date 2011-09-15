@@ -1305,6 +1305,9 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
     (define-key menu-map [mi]
       '(menu-item "Mark for install" package-menu-mark-install
 		  :help "Mark a package for installation and move to the next line"))
+    (define-key menu-map [mupgrades]
+      '(menu-item "Mark upgradable packages" package-menu-mark-upgrades
+		  :help "Mark packages that have a newer version for upgrading"))
     (define-key menu-map [s3] '("--"))
     (define-key menu-map [mg]
       '(menu-item "Update package list" revert-buffer
