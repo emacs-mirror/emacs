@@ -1,3 +1,8 @@
+2011-09-15  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* editfns.c (Fformat): Fix bug in text-property fix (Bug#9514).
+	Don't mishandle (length (format "%%")) and (format "%4000s%%" "").
+
 2011-09-15  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* editfns.c (Fformat): Correctly handle text properties on "%%".

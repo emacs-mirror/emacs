@@ -3721,11 +3721,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	  memset (&discarded[format0 - format_start], 1, format - format0);
 	  conversion = *format;
 	  if (conversion == '%')
-	    {
-	      format0++;
-	      nchars++;
-	      goto copy_char;
-	    }
+	    goto copy_char;
 	  discarded[format - format_start] = 1;
 	  format++;
 
@@ -4142,7 +4138,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	      while (! CHAR_HEAD_P (*format));
 
 	      convbytes = format - src;
-	      memset (&discarded[format0 + 1 - format_start], 2, convbytes - 1);
+	      memset (&discarded[src + 1 - format_start], 2, convbytes - 1);
 	    }
 	  else
 	    {
