@@ -3,6 +3,7 @@
 	* configure.in: Make configure work with recent GNUsteps.
 	(_NATIVE_OBJC_EXCEPTIONS): New AC_DEFINE.
 	(GNU_OBJC_CFLAGS): Add -fobjc-exceptions when needed.
+	(C_SWITCH_X_SYSTEM): Enable GNUstep to find its headers.
 
 2011-09-11  Paul Eggert  <eggert@cs.ucla.edu>
 

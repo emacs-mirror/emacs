@@ -2582,7 +2582,7 @@ if test "${HAVE_NS}" = "yes"; then
     AC_DEFINE(NS_IMPL_GNUSTEP, 1, [Define to 1 if you are using NS windowing under GNUstep.])
     # See also .m.o rule in Makefile.in */
     # FIXME: are all these flags really needed?  Document here why.  */
-    C_SWITCH_X_SYSTEM="-D_REENTRANT -fPIC -fno-strict-aliasing"
+    C_SWITCH_X_SYSTEM="-D_REENTRANT -fPIC -fno-strict-aliasing -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
     ## Extra CFLAGS applied to src/*.m files.
     GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
   fi
