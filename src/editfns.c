@@ -4137,8 +4137,9 @@ usage: (format STRING &rest OBJECTS)  */)
 		format++;
 	      while (! CHAR_HEAD_P (*format));
 
-	      convbytes = format - format0;
-	      memset (&discarded[format0 + 1 - format_start], 2, convbytes - 1);
+	      convbytes = format - src;
+	      memset (&discarded[format0 + 1 - format_start], 2,
+		      format - (format0 + 1));
 	    }
 	  else
 	    {
