@@ -9814,6 +9814,7 @@ tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
 TEMACS_LDFLAGS2="\${LDFLAGS}"
+GNU_OBJC_CFLAGS=
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
@@ -9841,7 +9842,45 @@ if test "${with_ns}" != no; then
      LIB_STANDARD=
      START_FILES=
      TEMACS_LDFLAGS2=
+                    { $as_echo "$as_me:${as_lineno-$LINENO}: checking if GNUstep defines BASE_NATIVE_OBJC_EXCEPTIONS" >&5
+$as_echo_n "checking if GNUstep defines BASE_NATIVE_OBJC_EXCEPTIONS... " >&6; }
+if test "${emacs_cv_objc_exceptions+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <GNUstepBase/GSConfig.h>
+int
+main ()
+{
+#if defined BASE_NATIVE_OBJC_EXCEPTIONS && BASE_NATIVE_OBJC_EXCEPTIONS > 0
+1;
+#else
+fail;
+#endif
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  emacs_cv_objc_exceptions=yes
+else
+  emacs_cv_objc_exceptions=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_objc_exceptions" >&5
+$as_echo "$emacs_cv_objc_exceptions" >&6; }
+     if test $emacs_cv_objc_exceptions = yes; then
+
+$as_echo "#define _NATIVE_OBJC_EXCEPTIONS 1" >>confdefs.h
+
+       GNU_OBJC_CFLAGS="-fobjc-exceptions"
+     fi
   fi
+
+    CFLAGS="$CFLAGS $GNU_OBJC_CFLAGS"
+
   ac_fn_c_check_header_mongrel "$LINENO" "AppKit/AppKit.h" "ac_cv_header_AppKit_AppKit_h" "$ac_includes_default"
 if test "x$ac_cv_header_AppKit_AppKit_h" = x""yes; then :
   HAVE_NS=yes
@@ -13541,7 +13580,6 @@ $as_echo "#define HAVE_NS 1" >>confdefs.h
 
 $as_echo "#define NS_IMPL_COCOA 1" >>confdefs.h
 
-    GNU_OBJC_CFLAGS=
   fi
   if test "${NS_IMPL_GNUSTEP}" = "yes"; then
 
@@ -13549,8 +13587,9 @@ $as_echo "#define NS_IMPL_GNUSTEP 1" >>confdefs.h
 
     # See also .m.o rule in Makefile.in */
     # FIXME: are all these flags really needed?  Document here why.  */
-    C_SWITCH_X_SYSTEM="-D_REENTRANT -fPIC -fno-strict-aliasing"
-    GNU_OBJC_CFLAGS="-fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
+    C_SWITCH_X_SYSTEM="-D_REENTRANT -fPIC -fno-strict-aliasing -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
+    ## Extra CFLAGS applied to src/*.m files.
+    GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
   fi
   if test "${NS_HAVE_NSINTEGER}" = "yes"; then
 
