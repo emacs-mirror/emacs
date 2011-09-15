@@ -15,8 +15,8 @@
 2011-09-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* editfns.c (Fformat): Fix off-by-1 bug for "%%b" (Bug#9514).
-	This occurs when processing a multibyte format, which can happen
-	when using 'eval'.  Problem reported by Wolfgang Jenker.
+	This occurs when processing a multibyte format.
+	Problem reported by Wolfgang Jenker.
 
 2011-09-15  Johan Bockgård  <bojohan@gnu.org>
 
