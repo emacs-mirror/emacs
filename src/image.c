@@ -6745,10 +6745,20 @@ tiff_size_of_memory (thandle_t data)
   return ((tiff_memory_source *) data)->len;
 }
 
+/* GCC 3.x on x86 Windows targets has a bug that triggers an internal
+   compiler error compiling tiff_handler, see Bugzilla bug #17406
+   (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=17406).  Declaring
+   this function as external works around that problem.  */
+#if defined (__MINGW32__) && __GNUC__ == 3
+# define MINGW_STATIC
+#else
+# define MINGW_STATIC static
+#endif
 
-static void tiff_handler (const char *, const char *, const char *, va_list)
+MINGW_STATIC void
+tiff_handler (const char *, const char *, const char *, va_list)
   ATTRIBUTE_FORMAT_PRINTF (3, 0);
-static void
+MINGW_STATIC void
 tiff_handler (const char *log_format, const char *title,
 	      const char *format, va_list ap)
 {
@@ -6762,6 +6772,7 @@ tiff_handler (const char *log_format, const char *title,
   add_to_log (log_format, build_string (title),
 	      make_string (buf, max (0, min (len, sizeof buf - 1))));
 }
+#undef MINGW_STATIC
 
 static void tiff_error_handler (const char *, const char *, va_list)
   ATTRIBUTE_FORMAT_PRINTF (2, 0);
