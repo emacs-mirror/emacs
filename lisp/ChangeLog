@@ -1,3 +1,7 @@
+2011-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image.el (imagemagick-register-types): Use regexp-opt.
+
 2011-09-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* window.el (display-buffer-base-action): Rename from
@@ -13,8 +17,8 @@
 	with an older version, remove it.
 	(package-menu-mark-delete, package-menu-mark-install)
 	(package-menu-mark-unmark): Make unused args optional.
-	(package-menu-mark-obsolete-for-deletion): Use
-	package-menu-get-status instead of a regexp search.
+	(package-menu-mark-obsolete-for-deletion):
+	Use package-menu-get-status instead of a regexp search.
 	(package-menu-get-status): Use tabulated-list-entry.
 	(package-menu-mark-upgrades): New command.
 	(package-menu-mode-map): Bind it to U.  Add it to menu bar.
@@ -296,7 +300,8 @@
 
 2011-09-10  Reuben Thomas  <rrt@sc3d.org>
 
-	* simple.el (count-words-region): Use buffer if there's no region.
+	* simple.el (count-words-region): Use buffer if there's no region
+	(bug#9429).
 
 2011-09-09  Juri Linkov  <juri@jurta.org>
 

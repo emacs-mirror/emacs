@@ -695,16 +695,14 @@ Emacs visits them in Image mode.
 
 If Emacs is compiled without ImageMagick support, do nothing."
   (when (fboundp 'imagemagick-types)
-    (let ((im-types (imagemagick-types)))
-      (dolist (im-inhibit imagemagick-types-inhibit)
-	(setq im-types (delq im-inhibit im-types)))
-      (dolist (im-type im-types)
-	(let ((extension
-	       (concat "\\." (downcase (symbol-name im-type))
-		       "\\'")))
-	  (push (cons extension 'image-mode) auto-mode-alist)
-	  (push (cons extension 'imagemagick)
-		image-type-file-name-regexps))))))
+    (let ((im-types '()))
+      (dolist (im-type (imagemagick-types))
+        (unless (memq im-type imagemagick-types-inhibit)
+          (push (downcase (symbol-name im-type)) im-types)))
+      (let ((extension (concat "\\." (regexp-opt im-types) "\\'")))
+        (push (cons extension 'image-mode) auto-mode-alist)
+        (push (cons extension 'imagemagick)
+              image-type-file-name-regexps)))))
 
 (provide 'image)
 
