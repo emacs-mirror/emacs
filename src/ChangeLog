@@ -1,3 +1,11 @@
+2011-09-16  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* xselect.c: Relax test for outgoing X longs (Bug#9498).
+	(cons_to_x_long): New function.
+	(lisp_data_to_selection_data): Use it.  Correct the test for
+	short-versus-long data; it was negated.  Break out of vector
+	loop, for efficiency, when a long datum is discovered.
+
 2011-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fquote): Document its non-consing behavior (bug#9482).
