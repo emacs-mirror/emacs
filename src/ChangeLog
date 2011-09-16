@@ -1,3 +1,8 @@
+2011-09-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (tiff_handler): Work around a bug in MinGW GCC 3.x (see
+	GCC PR/17406) by declaring this function with external scope.
+
 2011-09-15  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* editfns.c (Fformat): Fix bug in text-property fix (Bug#9514).
