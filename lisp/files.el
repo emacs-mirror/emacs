@@ -6301,7 +6301,7 @@ as in \"og+rX-w\"."
   "Convert symbolic file modes to numeric file modes.
 MODES is the string to convert, it should match
 \"[ugoa]*([+-=][rwxXstugo]*)+,...\".
-See (info \"(coreutils)File permissions\") for more information on this
+See Info node `(coreutils)File permissions' for more information on this
 notation.
 FROM (or 0 if nil) gives the mode bits on which to base permissions if
 MODES request to add, remove, or set permissions based on existing ones,

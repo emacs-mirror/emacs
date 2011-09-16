@@ -1,3 +1,53 @@
+2011-09-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-read-group-1): Bump the "Retrieving"
+	message level.
+
+2011-09-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-read-from-minibuffer): Make abbrev expansion work.
+
+2011-09-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-interactive-exit): Update defcustom spec.
+
+2011-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus.el (gnus-nntp-server): Move to gnus-int.el to silence bytecomp.
+	* gnus-int.el (gnus-nntp-server): Move from gnus.el.
+
+2011-09-12  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-group.el (gnus-group-list-limit-map, gnus-group-list-flush-map)
+	(gnus-group-list-plus-map): Allow limiting, flushing and plusing ticked
+	articles.
+
+2011-09-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-pop-to-buffer): Default to switch-to-buffer.
+	(message-mail-other-window, message-mail-other-frame)
+	(message-news-other-window, message-news-other-frame):
+	Use switch-to-buffer-other-frame and switch-to-buffer-other-window
+	instead of setting buffer display varibles.
+
+2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-list-limit): Explain what the command does.
+
+	* gnus-sum.el (gnus-fetch-headers): Bump message level.
+
+2011-09-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-dup.el (gnus-dup-suppress-articles): Move "Suppressing
+	duplicates" to a higher level.
+
+	* gnus-util.el (gnus-verbose): Lower default to 6 to get rid of the
+	most egregious messages.
+
+2011-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-summary-mail-forward): Minuscule doc fix.
+
 2011-09-10  Tetsuo Tsukamoto  <tt.tetsuo.tsukamoto@gmail.com>  (tiny change)
 
 	* nnrss.el (nnrss-retrieve-groups): Decode the charset before looking
@@ -33,7 +83,7 @@
 	* plstore.el (plstore--get-buffer): Silence compiler warnings by
 	renaming function arguments from `this'.
 
-	* gnus-sum.el (gnus-newsgroup-recent): Removed.
+	* gnus-sum.el (gnus-newsgroup-recent): Remove.
 
 	* gnus-spec.el (gnus-lrm-string-p): `bidi-string-mark-left-to-right'
 	has been renamed.
@@ -163,8 +213,8 @@
 	* nnmairix.el (nnmairix-request-set-mark)
 	(nnmairix-goto-original-article): Remove adding of article to registry,
 	since `gnus-registry-add-group' isn't available anymore.
-	(nnmairix-determine-original-group-from-registry): Use
-	`gnus-registry-get-id-key' since `gnus-registry-fetch-groups' isn't
+	(nnmairix-determine-original-group-from-registry):
+	Use `gnus-registry-get-id-key' since `gnus-registry-fetch-groups' isn't
 	available anymore.
 
 2011-08-12  Simon Josefsson  <simon@josefsson.org>
@@ -275,7 +325,7 @@
 
 2011-08-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* starttls.el (starttls-available-p): Renamed from
+	* starttls.el (starttls-available-p): Rename from
 	`starttls-any-program-available' and changed return convention.
 
 2011-07-31  Lars Ingebrigtsen  <larsi@gnus.org>
@@ -331,8 +381,8 @@
 
 	* nnir.el (gnus-group-make-nnir-group): Allow optional search query
 	argument.
-	(gnus-group-make-nnir-group, nnir-request-group, nnir-run-query): Use
-	`nnir-address' to handle server info rather than passing an arg.
+	(gnus-group-make-nnir-group, nnir-request-group, nnir-run-query):
+	Use `nnir-address' to handle server info rather than passing an arg.
 
 	* nnimap.el (nnimap-make-thread-query): New utility function to format
 	an imap thread search query.
@@ -385,7 +435,7 @@
 
 2011-07-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* gnus.el (debbugs-gnu): Renamed from debbugs-emacs.
+	* gnus.el (debbugs-gnu): Rename from debbugs-emacs.
 
 	* message.el (message-reply): Work around mysterious bug where
 	`message-mode' seems to overwrite the locally bound `subject' variable.
@@ -414,9 +464,9 @@
 
 	* gnus-msg.el (gnus-bug): Don't insert user variables.  It usually
 	isn't very interesting any more, and it leaks potentially secret data.
-	(gnus-debug): Removed.
+	(gnus-debug): Remove.
 
-	* gnus-art.el (gnus-ignored-headers): Removed obsolete and non-working
+	* gnus-art.el (gnus-ignored-headers): Remove obsolete and non-working
 	use of :custom-show.
 
 2011-07-07  Daiki Ueno  <ueno@unixuser.org>
@@ -603,8 +653,8 @@
 	* gnus-group.el (gnus-read-ephemeral-emacs-bug-group): Take an optional
 	quit window configuration.
 
-	* auth-source.el (epg-context-set-passphrase-callback): Remove
-	duplicate autoload.
+	* auth-source.el (epg-context-set-passphrase-callback):
+	Remove duplicate autoload.
 
 2011-06-30  Andrew Cohen  <cohen@andy.bu.edu>
 
@@ -721,7 +771,7 @@
 	* spam.el (spam-stat): Require in a normal fashion without binding
 	`spam-stat-install-hooks' to avoid compilation warnings.
 
-	* spam-stat.el (spam-stat-install-hooks): Removed.
+	* spam-stat.el (spam-stat-install-hooks): Remove.
 	(spam-stat-install-hooks): Don't run automatically.
 
 2011-06-26  Timo Juhani Lindfors  <timo.lindfors@iki.fi>  (tiny change)

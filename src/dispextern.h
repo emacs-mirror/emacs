@@ -3036,8 +3036,6 @@ extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
 extern void reseat_at_previous_visible_line_start (struct it *);
 extern Lisp_Object lookup_glyphless_char_display (int, struct it *);
-extern int calc_pixel_width_or_height (double *, struct it *, Lisp_Object,
-                                       struct font *, int, int *);
 extern EMACS_INT compute_display_string_pos (struct text_pos *,
 					     struct bidi_string_data *,
 					     int, int *);

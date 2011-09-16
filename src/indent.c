@@ -471,7 +471,7 @@ check_display_width (EMACS_INT pos, EMACS_INT col, EMACS_INT *endpos)
   if (CONSP (val = get_char_property_and_overlay
 	     (make_number (pos), Qdisplay, Qnil, &overlay))
       && EQ (Qspace, XCAR (val)))
-    { /* FIXME: Use calc_pixel_width_or_height, as in term.c.  */
+    { /* FIXME: Use calc_pixel_width_or_height.  */
       Lisp_Object plist = XCDR (val), prop;
       int width = -1;
 
@@ -1543,7 +1543,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
 	      n = 1;
 	    }
 
-	  for (i = n - 1; i >= 0; --i)
+	  for (i = 0; i < n; ++i)
 	    {
 	      if (VECTORP (charvec))
 		{

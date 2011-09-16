@@ -1112,7 +1112,7 @@ If OTHER-WINDOW is non-nil, display in another window."
   (let ((name (format "*Customize Group: %s*"
 		      (custom-unlispify-tag-name group))))
     (if (get-buffer name)
-        (pop-to-buffer name other-window)
+        (switch-to-buffer name other-window)
       (funcall (if other-window
 		   'custom-buffer-create-other-window
 		 'custom-buffer-create)
@@ -1533,7 +1533,7 @@ Optional NAME is the name of the buffer.
 OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
 SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
-  (pop-to-buffer (custom-get-fresh-buffer (or name "*Customization*")))
+  (switch-to-buffer (custom-get-fresh-buffer (or name "*Customization*")))
   (custom-buffer-create-internal options description))
 
 ;;;###autoload
@@ -1545,7 +1545,7 @@ OPTIONS should be an alist of the form ((SYMBOL WIDGET)...), where
 SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
   (unless name (setq name "*Customization*"))
-  (pop-to-buffer (custom-get-fresh-buffer name) t)
+  (switch-to-buffer-other-window (custom-get-fresh-buffer name))
   (custom-buffer-create-internal options description))
 
 (defcustom custom-reset-button-menu nil
@@ -1721,7 +1721,7 @@ Otherwise use brackets."
   (unless group
     (setq group 'emacs))
   (let ((name "*Customize Browser*"))
-    (pop-to-buffer (custom-get-fresh-buffer name)))
+    (switch-to-buffer (custom-get-fresh-buffer name)))
   (Custom-mode)
   (widget-insert (format "\
 %s buttons; type RET or click mouse-1

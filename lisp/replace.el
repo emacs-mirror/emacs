@@ -940,7 +940,7 @@ To return to ordinary Occur mode, use \\[occur-mode]."
              (save-excursion
                (goto-char (posn-point (event-end event)))
                (occur-mode-find-occurrence))))))
-    (pop-to-buffer (marker-buffer pos) t)
+    (pop-to-buffer (marker-buffer pos))
     (goto-char pos)
     (run-hooks 'occur-mode-find-occurrence-hook)))
 

@@ -3546,7 +3546,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       immediate_quit = 0;
       /* If the file matches the buffer completely,
 	 there's no need to replace anything.  */
-      if (same_at_start - BEGV_BYTE == end_offset)
+      if (same_at_start - BEGV_BYTE == end_offset - beg_offset)
 	{
 	  emacs_close (fd);
 	  specpdl_ptr--;
@@ -5045,9 +5045,10 @@ Next attempt to save will certainly not complain of a discrepancy.  */)
 DEFUN ("visited-file-modtime", Fvisited_file_modtime,
        Svisited_file_modtime, 0, 0, 0,
        doc: /* Return the current buffer's recorded visited file modification time.
-The value is a list of the form (HIGH LOW), like the time values
-that `file-attributes' returns.  If the current buffer has no recorded
-file modification time, this function returns 0.
+The value is a list of the form (HIGH LOW), like the time values that
+`file-attributes' returns.  If the current buffer has no recorded file
+modification time, this function returns 0.  If the visited file
+doesn't exist, HIGH will be -1.
 See Info node `(elisp)Modification Time' for more details.  */)
   (void)
 {

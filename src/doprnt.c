@@ -486,6 +486,8 @@ esprintf (char *buf, char const *format, ...)
   return nbytes;
 }
 
+#if defined HAVE_X_WINDOWS && defined USE_X_TOOLKIT
+
 /* Format to buffer *BUF of positive size *BUFSIZE, reallocating *BUF
    and updating *BUFSIZE if the buffer is too small, and otherwise
    behaving line esprintf.  When reallocating, free *BUF unless it is
@@ -504,6 +506,8 @@ exprintf (char **buf, ptrdiff_t *bufsize,
   va_end (ap);
   return nbytes;
 }
+
+#endif
 
 /* Act like exprintf, except take a va_list.  */
 ptrdiff_t

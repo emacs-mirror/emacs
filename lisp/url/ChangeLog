@@ -1,3 +1,9 @@
+2011-09-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-http.el (url-http-find-free-connection): If there was an
+	error on connect, make sure the user isn't bothered with
+	irrelevant questions.
+
 2011-08-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-http.el (url-http-parse-headers): For HTTP 301/302/307,

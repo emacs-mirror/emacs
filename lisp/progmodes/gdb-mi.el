@@ -4006,7 +4006,7 @@ window is dedicated."
   (gdb-display-breakpoints-buffer)
   (delete-other-windows)
   ;; Don't dedicate.
-  (pop-to-buffer gud-comint-buffer)
+  (switch-to-buffer gud-comint-buffer)
   (let ((win0 (selected-window))
         (win1 (split-window nil ( / ( * (window-height) 3) 4)))
         (win2 (split-window nil ( / (window-height) 3)))
@@ -4065,7 +4065,7 @@ With arg, display additional buffers iff arg is positive."
   "Restore the basic arrangement of windows used by gdb.
 This arrangement depends on the value of `gdb-many-windows'."
   (interactive)
-  (pop-to-buffer gud-comint-buffer) ;Select the right window and frame.
+  (switch-to-buffer gud-comint-buffer) ;Select the right window and frame.
   (delete-other-windows)
   (if gdb-many-windows
       (gdb-setup-windows)

@@ -9814,6 +9814,7 @@ tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
 TEMACS_LDFLAGS2="\${LDFLAGS}"
+GNU_OBJC_CFLAGS=
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
@@ -9841,7 +9842,45 @@ if test "${with_ns}" != no; then
      LIB_STANDARD=
      START_FILES=
      TEMACS_LDFLAGS2=
+                    { $as_echo "$as_me:${as_lineno-$LINENO}: checking if GNUstep defines BASE_NATIVE_OBJC_EXCEPTIONS" >&5
+$as_echo_n "checking if GNUstep defines BASE_NATIVE_OBJC_EXCEPTIONS... " >&6; }
+if test "${emacs_cv_objc_exceptions+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <GNUstepBase/GSConfig.h>
+int
+main ()
+{
+#if defined BASE_NATIVE_OBJC_EXCEPTIONS && BASE_NATIVE_OBJC_EXCEPTIONS > 0
+1;
+#else
+fail;
+#endif
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  emacs_cv_objc_exceptions=yes
+else
+  emacs_cv_objc_exceptions=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $emacs_cv_objc_exceptions" >&5
+$as_echo "$emacs_cv_objc_exceptions" >&6; }
+     if test $emacs_cv_objc_exceptions = yes; then
+
+$as_echo "#define _NATIVE_OBJC_EXCEPTIONS 1" >>confdefs.h
+
+       GNU_OBJC_CFLAGS="-fobjc-exceptions"
+     fi
   fi
+
+    CFLAGS="$CFLAGS $GNU_OBJC_CFLAGS"
+
   ac_fn_c_check_header_mongrel "$LINENO" "AppKit/AppKit.h" "ac_cv_header_AppKit_AppKit_h" "$ac_includes_default"
 if test "x$ac_cv_header_AppKit_AppKit_h" = x""yes; then :
   HAVE_NS=yes
@@ -13541,7 +13580,6 @@ $as_echo "#define HAVE_NS 1" >>confdefs.h
 
 $as_echo "#define NS_IMPL_COCOA 1" >>confdefs.h
 
-    GNU_OBJC_CFLAGS=
   fi
   if test "${NS_IMPL_GNUSTEP}" = "yes"; then
 
@@ -13549,8 +13587,9 @@ $as_echo "#define NS_IMPL_GNUSTEP 1" >>confdefs.h
 
     # See also .m.o rule in Makefile.in */
     # FIXME: are all these flags really needed?  Document here why.  */
-    C_SWITCH_X_SYSTEM="-D_REENTRANT -fPIC -fno-strict-aliasing"
-    GNU_OBJC_CFLAGS="-fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
+    C_SWITCH_X_SYSTEM="-D_REENTRANT -fPIC -fno-strict-aliasing -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
+    ## Extra CFLAGS applied to src/*.m files.
+    GNU_OBJC_CFLAGS="$GNU_OBJC_CFLAGS -fgnu-runtime -Wno-import -fconstant-string-class=NSConstantString -DGNUSTEP_BASE_LIBRARY=1 -DGNU_GUI_LIBRARY=1 -DGNU_RUNTIME=1 -DGSWARN -DGSDIAGNOSE"
   fi
   if test "${NS_HAVE_NSINTEGER}" = "yes"; then
 
@@ -16935,13 +16974,24 @@ _ACEOF
                  aix*) gl_absname_cpp="$ac_cpp -C" ;;
                  *)    gl_absname_cpp="$ac_cpp" ;;
                esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='/'
+                   ;;
+               esac
+
+               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'getopt.h#{
+                   s#.*"\(.*'"${gl_dirsep_regex}"'getopt.h\)".*#\1#
+                   s#^/[^/]#//&#
+                   p
+                   q
+                 }'
                                                             gl_cv_next_getopt_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-                  sed -n '\#/getopt.h#{
-                    s#.*"\(.*/getopt.h\)".*#\1#
-                    s#^/[^/]#//&#
-                    p
-                    q
-                  }'`'"'
+                      sed -n "$gl_absolute_header_sed"`'"'
           else
                gl_cv_next_getopt_h='<'getopt.h'>'
              fi
@@ -17260,6 +17310,34 @@ nocrash_init (void)
       }
     }
   }
+}
+#elif (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
+/* Avoid a crash on native Windows.  */
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <winerror.h>
+static LONG WINAPI
+exception_filter (EXCEPTION_POINTERS *ExceptionInfo)
+{
+  switch (ExceptionInfo->ExceptionRecord->ExceptionCode)
+    {
+    case EXCEPTION_ACCESS_VIOLATION:
+    case EXCEPTION_IN_PAGE_ERROR:
+    case EXCEPTION_STACK_OVERFLOW:
+    case EXCEPTION_GUARD_PAGE:
+    case EXCEPTION_PRIV_INSTRUCTION:
+    case EXCEPTION_ILLEGAL_INSTRUCTION:
+    case EXCEPTION_DATATYPE_MISALIGNMENT:
+    case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+    case EXCEPTION_NONCONTINUABLE_EXCEPTION:
+      exit (1);
+    }
+  return EXCEPTION_CONTINUE_SEARCH;
+}
+static void
+nocrash_init (void)
+{
+  SetUnhandledExceptionFilter ((LPTOP_LEVEL_EXCEPTION_FILTER) exception_filter);
 }
 #else
 /* Avoid a crash on POSIX systems.  */
@@ -17653,13 +17731,24 @@ _ACEOF
                  aix*) gl_absname_cpp="$ac_cpp -C" ;;
                  *)    gl_absname_cpp="$ac_cpp" ;;
                esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='/'
+                   ;;
+               esac
+
+               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'stdint.h#{
+                   s#.*"\(.*'"${gl_dirsep_regex}"'stdint.h\)".*#\1#
+                   s#^/[^/]#//&#
+                   p
+                   q
+                 }'
                                                             gl_cv_next_stdint_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-                  sed -n '\#/stdint.h#{
-                    s#.*"\(.*/stdint.h\)".*#\1#
-                    s#^/[^/]#//&#
-                    p
-                    q
-                  }'`'"'
+                      sed -n "$gl_absolute_header_sed"`'"'
           else
                gl_cv_next_stdint_h='<'stdint.h'>'
              fi
@@ -18349,13 +18438,24 @@ _ACEOF
                  aix*) gl_absname_cpp="$ac_cpp -C" ;;
                  *)    gl_absname_cpp="$ac_cpp" ;;
                esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='/'
+                   ;;
+               esac
+
+               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'inttypes.h#{
+                   s#.*"\(.*'"${gl_dirsep_regex}"'inttypes.h\)".*#\1#
+                   s#^/[^/]#//&#
+                   p
+                   q
+                 }'
                                                             gl_cv_next_inttypes_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-                  sed -n '\#/inttypes.h#{
-                    s#.*"\(.*/inttypes.h\)".*#\1#
-                    s#^/[^/]#//&#
-                    p
-                    q
-                  }'`'"'
+                      sed -n "$gl_absolute_header_sed"`'"'
           else
                gl_cv_next_inttypes_h='<'inttypes.h'>'
              fi
@@ -19045,13 +19145,24 @@ _ACEOF
                  aix*) gl_absname_cpp="$ac_cpp -C" ;;
                  *)    gl_absname_cpp="$ac_cpp" ;;
                esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='/'
+                   ;;
+               esac
+
+               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'time.h#{
+                   s#.*"\(.*'"${gl_dirsep_regex}"'time.h\)".*#\1#
+                   s#^/[^/]#//&#
+                   p
+                   q
+                 }'
                                                             gl_cv_next_time_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-                  sed -n '\#/time.h#{
-                    s#.*"\(.*/time.h\)".*#\1#
-                    s#^/[^/]#//&#
-                    p
-                    q
-                  }'`'"'
+                      sed -n "$gl_absolute_header_sed"`'"'
 
 
 fi
@@ -19068,6 +19179,8 @@ $as_echo "$gl_cv_next_time_h" >&6; }
        gl_next_as_first_directive=$gl_cv_next_time_h
      fi
      NEXT_AS_FIRST_DIRECTIVE_TIME_H=$gl_next_as_first_directive
+
+
 
 
 
@@ -20579,13 +20692,24 @@ _ACEOF
                  aix*) gl_absname_cpp="$ac_cpp -C" ;;
                  *)    gl_absname_cpp="$ac_cpp" ;;
                esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='/'
+                   ;;
+               esac
+
+               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'signal.h#{
+                   s#.*"\(.*'"${gl_dirsep_regex}"'signal.h\)".*#\1#
+                   s#^/[^/]#//&#
+                   p
+                   q
+                 }'
                                                             gl_cv_next_signal_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-                  sed -n '\#/signal.h#{
-                    s#.*"\(.*/signal.h\)".*#\1#
-                    s#^/[^/]#//&#
-                    p
-                    q
-                  }'`'"'
+                      sed -n "$gl_absolute_header_sed"`'"'
 
 
 fi
@@ -20618,6 +20742,8 @@ if test "x$ac_cv_type_volatile_sig_atomic_t" = x""yes; then :
 else
   HAVE_TYPE_VOLATILE_SIG_ATOMIC_T=0
 fi
+
+
 
 
 
@@ -20810,13 +20936,24 @@ _ACEOF
                  aix*) gl_absname_cpp="$ac_cpp -C" ;;
                  *)    gl_absname_cpp="$ac_cpp" ;;
                esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='/'
+                   ;;
+               esac
+
+               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'stdarg.h#{
+                   s#.*"\(.*'"${gl_dirsep_regex}"'stdarg.h\)".*#\1#
+                   s#^/[^/]#//&#
+                   p
+                   q
+                 }'
                                                             gl_cv_next_stdarg_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-                  sed -n '\#/stdarg.h#{
-                    s#.*"\(.*/stdarg.h\)".*#\1#
-                    s#^/[^/]#//&#
-                    p
-                    q
-                  }'`'"'
+                      sed -n "$gl_absolute_header_sed"`'"'
 
 
 fi
@@ -20999,13 +21136,24 @@ _ACEOF
                  aix*) gl_absname_cpp="$ac_cpp -C" ;;
                  *)    gl_absname_cpp="$ac_cpp" ;;
                esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='/'
+                   ;;
+               esac
+
+               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'stddef.h#{
+                   s#.*"\(.*'"${gl_dirsep_regex}"'stddef.h\)".*#\1#
+                   s#^/[^/]#//&#
+                   p
+                   q
+                 }'
                                                             gl_cv_next_stddef_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-                  sed -n '\#/stddef.h#{
-                    s#.*"\(.*/stddef.h\)".*#\1#
-                    s#^/[^/]#//&#
-                    p
-                    q
-                  }'`'"'
+                      sed -n "$gl_absolute_header_sed"`'"'
 
 
 fi
@@ -21058,13 +21206,24 @@ _ACEOF
                  aix*) gl_absname_cpp="$ac_cpp -C" ;;
                  *)    gl_absname_cpp="$ac_cpp" ;;
                esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='/'
+                   ;;
+               esac
+
+               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'stdio.h#{
+                   s#.*"\(.*'"${gl_dirsep_regex}"'stdio.h\)".*#\1#
+                   s#^/[^/]#//&#
+                   p
+                   q
+                 }'
                                                             gl_cv_next_stdio_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-                  sed -n '\#/stdio.h#{
-                    s#.*"\(.*/stdio.h\)".*#\1#
-                    s#^/[^/]#//&#
-                    p
-                    q
-                  }'`'"'
+                      sed -n "$gl_absolute_header_sed"`'"'
 
 
 fi
@@ -21139,13 +21298,24 @@ _ACEOF
                  aix*) gl_absname_cpp="$ac_cpp -C" ;;
                  *)    gl_absname_cpp="$ac_cpp" ;;
                esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='/'
+                   ;;
+               esac
+
+               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'stdlib.h#{
+                   s#.*"\(.*'"${gl_dirsep_regex}"'stdlib.h\)".*#\1#
+                   s#^/[^/]#//&#
+                   p
+                   q
+                 }'
                                                             gl_cv_next_stdlib_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-                  sed -n '\#/stdlib.h#{
-                    s#.*"\(.*/stdlib.h\)".*#\1#
-                    s#^/[^/]#//&#
-                    p
-                    q
-                  }'`'"'
+                      sed -n "$gl_absolute_header_sed"`'"'
 
 
 fi
@@ -21385,13 +21555,24 @@ _ACEOF
                  aix*) gl_absname_cpp="$ac_cpp -C" ;;
                  *)    gl_absname_cpp="$ac_cpp" ;;
                esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='/'
+                   ;;
+               esac
+
+               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'sys/stat.h#{
+                   s#.*"\(.*'"${gl_dirsep_regex}"'sys/stat.h\)".*#\1#
+                   s#^/[^/]#//&#
+                   p
+                   q
+                 }'
                                                             gl_cv_next_sys_stat_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-                  sed -n '\#/sys/stat.h#{
-                    s#.*"\(.*/sys/stat.h\)".*#\1#
-                    s#^/[^/]#//&#
-                    p
-                    q
-                  }'`'"'
+                      sed -n "$gl_absolute_header_sed"`'"'
           else
                gl_cv_next_sys_stat_h='<'sys/stat.h'>'
              fi
@@ -21552,13 +21733,24 @@ _ACEOF
                  aix*) gl_absname_cpp="$ac_cpp -C" ;;
                  *)    gl_absname_cpp="$ac_cpp" ;;
                esac
+
+               case "$host_os" in
+                 mingw*)
+                                                                                                                                     gl_dirsep_regex='[/\\]'
+                   ;;
+                 *)
+                   gl_dirsep_regex='/'
+                   ;;
+               esac
+
+               gl_absolute_header_sed='\#'"${gl_dirsep_regex}"'unistd.h#{
+                   s#.*"\(.*'"${gl_dirsep_regex}"'unistd.h\)".*#\1#
+                   s#^/[^/]#//&#
+                   p
+                   q
+                 }'
                                                             gl_cv_next_unistd_h='"'`(eval "$gl_absname_cpp conftest.$ac_ext") 2>&5 |
-                  sed -n '\#/unistd.h#{
-                    s#.*"\(.*/unistd.h\)".*#\1#
-                    s#^/[^/]#//&#
-                    p
-                    q
-                  }'`'"'
+                      sed -n "$gl_absolute_header_sed"`'"'
           else
                gl_cv_next_unistd_h='<'unistd.h'>'
              fi
@@ -21587,6 +21779,8 @@ $as_echo "$gl_cv_next_unistd_h" >&6; }
   else
     HAVE_UNISTD_H=0
   fi
+
+
 
 
 

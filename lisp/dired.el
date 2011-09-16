@@ -3413,7 +3413,7 @@ With a prefix argument, edit the current listing switches instead."
     (error "Cannot sort this dired buffer"))
   (if arg
       (dired-sort-other
-       (read-string "ls switches (must contain -l, -o, or -g): " dired-actual-switches))
+       (read-string "ls switches (must contain -l): " dired-actual-switches))
     (dired-sort-toggle)))
 
 (defun dired-sort-toggle ()
@@ -3663,7 +3663,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "bbb53a5b6bf56c413fe0f898559bef8d")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "0ffe89ae728efb341dfacff6c85e2ba4")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\

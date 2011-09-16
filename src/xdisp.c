@@ -6441,6 +6441,8 @@ get_next_display_element (struct it *it)
 
 	      c = ' ';
 	      for (i = 0; i < cmp->glyph_len; i++)
+		/* TAB in a composition means display glyphs with
+		   padding space on the left or right.  */
 		if ((c = COMPOSITION_GLYPH (cmp, i)) != '\t')
 		  break;
 	    }
@@ -11916,9 +11918,9 @@ hscroll_window_tree (Lisp_Object window)
 		}
 	      hscroll = max (hscroll, XFASTINT (w->min_hscroll));
 
-	      /* Don't call Fset_window_hscroll if value hasn't
-		 changed because it will prevent redisplay
-		 optimizations.  */
+	      /* Don't prevent redisplay optimizations if hscroll
+		 hasn't changed, as it will unnecessarily slow down
+		 redisplay.  */
 	      if (XFASTINT (w->hscroll) != hscroll)
 		{
 		  XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
@@ -14627,7 +14629,10 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		     is set, we are done.  */
 		  at_zv_p =
 		    MATRIX_ROW (w->current_matrix, w->cursor.vpos)->ends_at_zv_p;
-		  if (!at_zv_p)
+		  if (rv && !at_zv_p
+		      && w->cursor.hpos >= 0
+		      && w->cursor.hpos < MATRIX_ROW_USED (w->current_matrix,
+							   w->cursor.vpos))
 		    {
 		      struct glyph_row *candidate =
 			MATRIX_ROW (w->current_matrix, w->cursor.vpos);
@@ -16077,7 +16082,7 @@ try_window_reusing_current_matrix (struct window *w)
 	  if (row < bottom_row)
 	    {
 	      struct glyph *glyph = row->glyphs[TEXT_AREA] + w->cursor.hpos;
-	      struct glyph *end = glyph + row->used[TEXT_AREA];
+	      struct glyph *end = row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
 
 	      /* Can't use this optimization with bidi-reordered glyph
 		 rows, unless cursor is already at point. */
@@ -21293,7 +21298,7 @@ else if the text is replaced by an ellipsis.  */)
       ? XFLOATINT (X)				\
       : - 1)
 
-int
+static int
 calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 			    struct font *font, int width_p, int *align_to)
 {
@@ -21723,6 +21728,8 @@ fill_composite_glyph_string (struct glyph_string *s, struct face *base_face,
     {
       int c = COMPOSITION_GLYPH (s->cmp, i);
 
+      /* TAB in a composition means display glyphs with padding space
+	 on the left or right.  */
       if (c != '\t')
 	{
 	  int face_id = FACE_FOR_CHAR (s->f, base_face->ascii_face, c,
@@ -23251,6 +23258,7 @@ produce_stretch_glyph (struct it *it)
       if (FRAME_WINDOW_P (it->f))
 	{
 	  append_stretch_glyph (it, object, width, height, ascent);
+	  it->pixel_width = width;
 	  it->ascent = it->phys_ascent = ascent;
 	  it->descent = it->phys_descent = height - it->ascent;
 	  it->nglyphs = width > 0 && height > 0 ? 1 : 0;
@@ -23265,7 +23273,6 @@ produce_stretch_glyph (struct it *it)
 	  while (n--)
 	    tty_append_glyph (it);
 	  it->object = o_object;
-	  it->pixel_width = width;
 	}
     }
 }

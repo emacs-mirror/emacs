@@ -1933,7 +1933,7 @@ article numbers will be returned."
       (with-current-buffer nntp-server-buffer
         (if articles
             (progn
-	      (gnus-message 7 "Fetching headers for %s..."
+	      (gnus-message 8 "Fetching headers for %s..."
 			    (gnus-agent-decoded-group-name group))
 
               ;; Fetch them.

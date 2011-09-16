@@ -448,16 +448,22 @@ terminal.
 @item C-x 5 1
 @kindex C-x 5 1
 @findex delete-other-frames
-Delete all frames except the selected one.
+Delete all frames on the current terminal, except the selected one.
 @end table
 
-  The @kbd{C-x 5 0} (@code{delete-frame}) command will never delete
-the last frame, to prevent you from losing the ability to interact
+  The @kbd{C-x 5 0} (@code{delete-frame}) command never deletes the
+last frame.  This prevents you from losing the ability to interact
 with the Emacs process.  Note that when Emacs is run as a daemon
 (@pxref{Emacs Server}), there is always a ``virtual frame'' that
 remains after all the ordinary, interactive frames are deleted.  In
 this case, @kbd{C-x 5 0} can delete the last interactive frame; you
 can use @command{emacsclient} to reconnect to the Emacs session.
+
+  The @kbd{C-x 5 1} (@code{delete-other-frames}) command only deletes
+frames on the current terminal.  For example, if you call it from an X
+frame, it deletes the other frames on that X display; if the Emacs
+process has frames open on other X displays or text terminals, those
+are not deleted.
 
 @vindex focus-follows-mouse
   On X, you may have to tell Emacs how the window manager handles

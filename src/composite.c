@@ -345,6 +345,8 @@ get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
 	{
 	  int this_width;
 	  ch = XINT (key_contents[i]);
+	  /* TAB in a composition means display glyphs with padding
+	     space on the left or right.  */
 	  this_width = (ch == '\t' ? 1 : CHAR_WIDTH (ch));
 	  if (cmp->width < this_width)
 	    cmp->width = this_width;
@@ -1384,6 +1386,8 @@ composition_update_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
       else
 	{
 	  for (i = 0; i < cmp->glyph_len; i++)
+	    /* TAB in a composition means display glyphs with padding
+	       space on the left or right.  */
 	    if ((c = COMPOSITION_GLYPH (cmp, i)) != '\t')
 	      break;
 	  if (c == '\t')

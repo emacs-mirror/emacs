@@ -987,8 +987,8 @@ indentation to be kept as it was before narrowing."
 		   (setq ,bindent (- ,bindent n)))))))))))
 
 (defun comment-add (arg)
-  "Compute the number of extra comment starter characters
-\(extra semicolons in Lisp mode, extra stars in C mode, etc.)
+  "Compute the number of extra comment starter characters.
+\(Extra semicolons in Lisp mode, extra stars in C mode, etc.)
 If ARG is non-nil, just follow ARG.
 If the comment starter is multi-char, just follow ARG.
 Otherwise obey `comment-add'."
@@ -1243,7 +1243,7 @@ This has no effect in modes that do not define a comment syntax."
   :group 'comment)
 
 (defun comment-valid-prefix-p (prefix compos)
-    "Check that the adaptive-fill-prefix is consistent with the context.
+    "Check that the adaptive fill prefix is consistent with the context.
 PREFIX is the prefix (presumably guessed by `adaptive-fill-mode').
 COMPOS is the position of the beginning of the comment we're in, or nil
 if we're not inside a comment."
