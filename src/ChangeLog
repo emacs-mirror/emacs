@@ -1,3 +1,7 @@
+2011-09-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fquote): Document its non-consing behavior (bug#9482).
+
 2011-09-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* image.c (tiff_handler): Work around a bug in MinGW GCC 3.x (see

@@ -475,6 +475,14 @@ usage: (setq [SYM VAL]...)  */)
 
 DEFUN ("quote", Fquote, Squote, 1, UNEVALLED, 0,
        doc: /* Return the argument, without evaluating it.  `(quote x)' yields `x'.
+Warning: `quote' does not construct its return value, but just returns
+the value that was pre-constructed by the Lisp reader (see info node
+`(elisp)Printed Representation').
+This means that '(a . b) is not identical to (cons 'a 'b): the former
+does not cons.  Quoting should be reserved for constants that will
+never be modified by side-effects, unless you like self-modifying code.
+See the common pitfall in info node `(elisp)Rearrangement' for an example
+of unexpected results when a quoted object is modified.
 usage: (quote ARG)  */)
   (Lisp_Object args)
 {
