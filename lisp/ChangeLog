@@ -1,3 +1,8 @@
+2011-09-17  Juri Linkov  <juri@jurta.org>
+
+	* window.el (window-safe-min-height, window-safe-min-width):
+	Fix typos (followup to bug#9522).
+
 2011-09-17  Sven Joachim  <svenjoac@gmx.de>
 
 	* window.el (window-min-width, window-state-put): Fix typos (bug#9522).

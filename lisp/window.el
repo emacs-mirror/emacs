@@ -158,7 +158,7 @@ An application may bind this to a non-nil value around calls to
 these functions to inhibit processing of window parameters.")
 
 (defconst window-safe-min-height 1
-  "The absolut minimum number of lines of a window.
+  "The absolute minimum number of lines of a window.
 Anything less might crash Emacs.")
 
 (defcustom window-min-height 4
@@ -177,7 +177,7 @@ shorter, explictly specify the SIZE argument of that function."
   :group 'windows)
 
 (defconst window-safe-min-width 2
-  "The absolut minimum number of columns of a window.
+  "The absolute minimum number of columns of a window.
 Anything less might crash Emacs.")
 
 (defcustom window-min-width 10
