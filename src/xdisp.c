@@ -23298,14 +23298,7 @@ produce_stretch_glyph (struct it *it)
 	object = it->w->buffer;
 #ifdef HAVE_WINDOW_SYSTEM
       if (FRAME_WINDOW_P (it->f))
-	{
-	  append_stretch_glyph (it, object, width, height, ascent);
-	  it->pixel_width = width;
-	  it->ascent = it->phys_ascent = ascent;
-	  it->descent = it->phys_descent = height - it->ascent;
-	  it->nglyphs = width > 0 && height > 0 ? 1 : 0;
-	  take_vertical_position_into_account (it);
-	}
+	append_stretch_glyph (it, object, width, height, ascent);
       else
 #endif
 	{
@@ -23317,6 +23310,19 @@ produce_stretch_glyph (struct it *it)
 	  it->object = o_object;
 	}
     }
+
+  it->pixel_width = width;
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (it->f))
+    {
+      it->ascent = it->phys_ascent = ascent;
+      it->descent = it->phys_descent = height - it->ascent;
+      it->nglyphs = width > 0 && height > 0 ? 1 : 0;
+      take_vertical_position_into_account (it);
+    }
+  else
+#endif
+    it->nglyphs = width;
 }
 
 #ifdef HAVE_WINDOW_SYSTEM

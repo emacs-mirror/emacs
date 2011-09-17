@@ -1,5 +1,10 @@
 2011-09-17  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (produce_stretch_glyph): Another fix for changes made on
+	2011-08-30 (revision 105619).  (Bug#9530)
+
+2011-09-17  Eli Zaretskii  <eliz@gnu.org>
+
 	* xdisp.c (reseat_at_next_visible_line_start): Keep information
 	about the current paragraph and restore it after the call to
 	reseat.
