@@ -1,3 +1,7 @@
+2011-09-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-inline-media-tests): Support imagemagick images.
+
 2011-09-15  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-summary-read-group-1): Bump the "Retrieving"

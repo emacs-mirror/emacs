@@ -1,3 +1,8 @@
+2011-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* numbers.texi (Integer Basics): Add indexing for
+	most-positive-fixnum and most-negative-fixnum.  (Bug#9525)
+
 2011-09-14  Dani Moncayo  <dmoncayo@gmail.com>  (tiny change)
 
 	* lists.texi (Sets And Lists): Fix typo.  (Bug#9393)

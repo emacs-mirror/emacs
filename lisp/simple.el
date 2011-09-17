@@ -4134,7 +4134,9 @@ a semipermanent goal column for this command.
 Then instead of trying to move exactly vertically (or as close as possible),
 this command moves to the specified goal column (or as close as possible).
 The goal column is stored in the variable `goal-column', which is nil
-when there is no goal column.
+when there is no goal column.  Note that setting `goal-column'
+overrides `line-move-visual' and causes this command to move by buffer
+lines rather than by display lines.
 
 If you are thinking of using this in a Lisp program, consider
 using `forward-line' instead.  It is usually easier to use
@@ -4172,7 +4174,9 @@ a semipermanent goal column for this command.
 Then instead of trying to move exactly vertically (or as close as possible),
 this command moves to the specified goal column (or as close as possible).
 The goal column is stored in the variable `goal-column', which is nil
-when there is no goal column.
+when there is no goal column.  Note that setting `goal-column'
+overrides `line-move-visual' and causes this command to move by buffer
+lines rather than by display lines.
 
 If you are thinking of using this in a Lisp program, consider using
 `forward-line' with a negative argument instead.  It is usually easier
@@ -4196,7 +4200,8 @@ This has no effect when `line-move-visual' is non-nil."
   :group 'editing-basics)
 
 (defcustom goal-column nil
-  "Semipermanent goal column for vertical motion, as set by \\[set-goal-column], or nil."
+  "Semipermanent goal column for vertical motion, as set by \\[set-goal-column], or nil.
+A non-nil setting overrides `line-move-visual', which see."
   :type '(choice integer
 		 (const :tag "None" nil))
   :group 'editing-basics)
@@ -4226,7 +4231,9 @@ Outline mode sets this."
 This movement is based on where the cursor is displayed on the
 screen, instead of relying on buffer contents alone.  It takes
 into account variable-width characters and line continuation.
-If nil, `line-move' moves point by logical lines."
+If nil, `line-move' moves point by logical lines.
+A non-nil setting of `goal-column' overrides the value of this variable
+and forces movement by logical lines."
   :type 'boolean
   :group 'editing-basics
   :version "23.1")
@@ -4303,7 +4310,7 @@ If nil, `line-move' moves point by logical lines."
 	       (not executing-kbd-macro)
 	       (line-move-partial arg noerror to-end))
     (set-window-vscroll nil 0 t)
-    (if line-move-visual
+    (if (and line-move-visual (not goal-column))
 	(line-move-visual arg noerror)
       (line-move-1 arg noerror to-end))))
 

@@ -158,7 +158,7 @@ An application may bind this to a non-nil value around calls to
 these functions to inhibit processing of window parameters.")
 
 (defconst window-safe-min-height 1
-  "The absolut minimum number of lines of a window.
+  "The absolute minimum number of lines of a window.
 Anything less might crash Emacs.")
 
 (defcustom window-min-height 4
@@ -177,12 +177,12 @@ shorter, explictly specify the SIZE argument of that function."
   :group 'windows)
 
 (defconst window-safe-min-width 2
-  "The absolut minimum number of columns of a window.
+  "The absolute minimum number of columns of a window.
 Anything less might crash Emacs.")
 
 (defcustom window-min-width 10
   "The minimum number of columns of any window.
-The value has to accomodate margins, fringes, or scrollbars if
+The value has to accommodate margins, fringes, or scrollbars if
 present.  A value less than `window-safe-min-width' is ignored.
 The value of this variable is honored when windows are resized or
 split.
@@ -3772,7 +3772,7 @@ subwindows can get as small as `window-safe-min-height' and
 	;; issues - so IGNORE equal 'safe might not always produce the
 	;; minimum possible state.  But such configurations hardly make
 	;; sense anyway.
-	(error "Window %s too small to accomodate state" window)
+	(error "Window %s too small to accommodate state" window)
       (setq state (cdr state))
       (setq window-state-put-list nil)
       ;; Work on the windows of a temporary buffer to make sure that

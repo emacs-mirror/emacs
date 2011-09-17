@@ -148,11 +148,15 @@ arguments to such functions may be either numbers or markers, we often
 give these arguments the name @var{number-or-marker}.  When the argument
 value is a marker, its position value is used and its buffer is ignored.
 
+@cindex largest Lisp integer number
+@cindex maximum Lisp integer number
 @defvar most-positive-fixnum
 The value of this variable is the largest integer that Emacs Lisp
 can handle.
 @end defvar
 
+@cindex smallest Lisp integer number
+@cindex minimum Lisp integer number
 @defvar most-negative-fixnum
 The value of this variable is the smallest integer that Emacs Lisp can
 handle.  It is negative.
