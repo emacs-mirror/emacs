@@ -195,7 +195,7 @@ before the external MIME handler is invoked."
     ("image/tiff"
      mm-inline-image
      (lambda (handle)
-       (mm-valid-and-fit-image-p 'tiff handle)) )
+       (mm-valid-and-fit-image-p 'tiff handle)))
     ("image/xbm"
      mm-inline-image
      (lambda (handle)
@@ -265,6 +265,20 @@ before the external MIME handler is invoked."
     ("multipart/alternative" ignore identity)
     ("multipart/mixed" ignore identity)
     ("multipart/related" ignore identity)
+    ("image/*"
+     mm-inline-image
+     (lambda (handle)
+       (and (mm-valid-image-format-p 'imagemagick)
+	    (mm-with-unibyte-buffer
+	      (mm-insert-part handle)
+	      (let ((image
+		     (ignore-errors
+		       (if (fboundp 'create-image)
+			   (create-image (buffer-string) 'imagemagick 'data-p)
+			 (mm-create-image-xemacs type)))))
+		(when image
+		  (setcar (cdr handle) (list "image/imagemagick"))
+		  (mm-image-fit-p handle)))))))
     ;; Disable audio and image
     ("audio/.*" ignore ignore)
     ("image/.*" ignore ignore)
