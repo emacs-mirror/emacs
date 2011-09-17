@@ -1,3 +1,7 @@
+2011-09-17  Sven Joachim  <svenjoac@gmx.de>
+
+	* window.el (window-min-width, window-state-put): Fix typos (bug#9522).
+
 2011-09-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (line-move): If goal-column is set, move by logical
