@@ -13637,15 +13637,17 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	       /* A truncated row may not include PT among its
 		  character positions.  Setting the cursor inside the
 		  scroll margin will trigger recalculation of hscroll
-		  in hscroll_window_tree.  */
-	       || (row->truncated_on_left_p && pt_old < bpos_min)
-	       || (row->truncated_on_right_p && pt_old > bpos_max)
-	       /* Zero-width characters produce no glyphs.  */
+		  in hscroll_window_tree.  But if a display string
+		  covers point, defer to the string-handling code
+		  below to figure this out.  */
 	       || (!string_seen
-		   && !empty_line_p
-		   && (row->reversed_p
-		       ? glyph_after > glyphs_end
-		       : glyph_after < glyphs_end)))
+		   && ((row->truncated_on_left_p && pt_old < bpos_min)
+		       || (row->truncated_on_right_p && pt_old > bpos_max)
+		       /* Zero-width characters produce no glyphs.  */
+		       || (!empty_line_p
+			   && (row->reversed_p
+			       ? glyph_after > glyphs_end
+			       : glyph_after < glyphs_end)))))
 	{
 	  cursor = glyph_after;
 	  x = -1;

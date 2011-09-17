@@ -1,3 +1,8 @@
+2011-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): Don't invoke special treatment of
+	truncated lines if point is covered by a display string.  (Bug#9524)
+
 2011-09-16  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* xselect.c: Relax test for outgoing X longs (Bug#9498).
