@@ -5722,6 +5722,9 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
 {
   int newline_found_p, skipped_p = 0;
   struct bidi_it bidi_it_prev;
+  int new_paragraph, first_elt, disp_prop;
+  EMACS_INT paragraph_end, disp_pos;
+  bidi_dir_t paragraph_dir;
 
   newline_found_p = forward_to_next_line_start (it, &skipped_p, &bidi_it_prev);
 
@@ -5737,6 +5740,23 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
 	newline_found_p =
 	  forward_to_next_line_start (it, &skipped_p, &bidi_it_prev);
       }
+
+  /* Under bidi iteration, save the attributes of the paragraph we are
+     in, to be restored after the call to `reseat' below.  That's
+     because `reseat' overwrites them, which requires unneeded and
+     potentially expensive backward search for paragraph beginning.
+     This search is unnecessary because we will be `reseat'ed to the
+     same position where we are now, for which we already have all the
+     information we need in the bidi iterator.  */
+  if (it->bidi_p && !STRINGP (it->string))
+    {
+      new_paragraph = it->bidi_it.new_paragraph;
+      first_elt = it->bidi_it.first_elt;
+      paragraph_end = it->bidi_it.separator_limit;
+      paragraph_dir = it->bidi_it.paragraph_dir;
+      disp_pos = it->bidi_it.disp_pos;
+      disp_prop = it->bidi_it.disp_prop;
+    }
 
   /* Position on the newline if that's what's requested.  */
   if (on_newline_p && newline_found_p)
@@ -5777,10 +5797,30 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	    }
 	  reseat (it, it->current.pos, 0);
+	  if (it->bidi_p)
+	    {
+	      it->bidi_it.new_paragraph = new_paragraph;
+	      it->bidi_it.first_elt = first_elt;
+	      it->bidi_it.separator_limit = paragraph_end;
+	      it->bidi_it.paragraph_dir = paragraph_dir;
+	      it->bidi_it.disp_pos = disp_pos;
+	      it->bidi_it.disp_prop = disp_prop;
+	    }
 	}
     }
   else if (skipped_p)
-    reseat (it, it->current.pos, 0);
+    {
+      reseat (it, it->current.pos, 0);
+      if (it->bidi_p)
+	{
+	  it->bidi_it.new_paragraph = new_paragraph;
+	  it->bidi_it.first_elt = first_elt;
+	  it->bidi_it.separator_limit = paragraph_end;
+	  it->bidi_it.paragraph_dir = paragraph_dir;
+	  it->bidi_it.disp_pos = disp_pos;
+	  it->bidi_it.disp_prop = disp_prop;
+	}
+    }
 
   CHECK_IT (it);
 }
@@ -6441,6 +6481,8 @@ get_next_display_element (struct it *it)
 
 	      c = ' ';
 	      for (i = 0; i < cmp->glyph_len; i++)
+		/* TAB in a composition means display glyphs with
+		   padding space on the left or right.  */
 		if ((c = COMPOSITION_GLYPH (cmp, i)) != '\t')
 		  break;
 	    }
@@ -11916,9 +11958,9 @@ hscroll_window_tree (Lisp_Object window)
 		}
 	      hscroll = max (hscroll, XFASTINT (w->min_hscroll));
 
-	      /* Don't call Fset_window_hscroll if value hasn't
-		 changed because it will prevent redisplay
-		 optimizations.  */
+	      /* Don't prevent redisplay optimizations if hscroll
+		 hasn't changed, as it will unnecessarily slow down
+		 redisplay.  */
 	      if (XFASTINT (w->hscroll) != hscroll)
 		{
 		  XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
@@ -13635,15 +13677,17 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	       /* A truncated row may not include PT among its
 		  character positions.  Setting the cursor inside the
 		  scroll margin will trigger recalculation of hscroll
-		  in hscroll_window_tree.  */
-	       || (row->truncated_on_left_p && pt_old < bpos_min)
-	       || (row->truncated_on_right_p && pt_old > bpos_max)
-	       /* Zero-width characters produce no glyphs.  */
+		  in hscroll_window_tree.  But if a display string
+		  covers point, defer to the string-handling code
+		  below to figure this out.  */
 	       || (!string_seen
-		   && !empty_line_p
-		   && (row->reversed_p
-		       ? glyph_after > glyphs_end
-		       : glyph_after < glyphs_end)))
+		   && ((row->truncated_on_left_p && pt_old < bpos_min)
+		       || (row->truncated_on_right_p && pt_old > bpos_max)
+		       /* Zero-width characters produce no glyphs.  */
+		       || (!empty_line_p
+			   && (row->reversed_p
+			       ? glyph_after > glyphs_end
+			       : glyph_after < glyphs_end)))))
 	{
 	  cursor = glyph_after;
 	  x = -1;
@@ -14627,7 +14671,10 @@ try_cursor_movement (Lisp_Object window, struct text_pos startp, int *scroll_ste
 		     is set, we are done.  */
 		  at_zv_p =
 		    MATRIX_ROW (w->current_matrix, w->cursor.vpos)->ends_at_zv_p;
-		  if (!at_zv_p)
+		  if (rv && !at_zv_p
+		      && w->cursor.hpos >= 0
+		      && w->cursor.hpos < MATRIX_ROW_USED (w->current_matrix,
+							   w->cursor.vpos))
 		    {
 		      struct glyph_row *candidate =
 			MATRIX_ROW (w->current_matrix, w->cursor.vpos);
@@ -16077,7 +16124,7 @@ try_window_reusing_current_matrix (struct window *w)
 	  if (row < bottom_row)
 	    {
 	      struct glyph *glyph = row->glyphs[TEXT_AREA] + w->cursor.hpos;
-	      struct glyph *end = glyph + row->used[TEXT_AREA];
+	      struct glyph *end = row->glyphs[TEXT_AREA] + row->used[TEXT_AREA];
 
 	      /* Can't use this optimization with bidi-reordered glyph
 		 rows, unless cursor is already at point. */
@@ -21293,7 +21340,7 @@ else if the text is replaced by an ellipsis.  */)
       ? XFLOATINT (X)				\
       : - 1)
 
-int
+static int
 calc_pixel_width_or_height (double *res, struct it *it, Lisp_Object prop,
 			    struct font *font, int width_p, int *align_to)
 {
@@ -21723,6 +21770,8 @@ fill_composite_glyph_string (struct glyph_string *s, struct face *base_face,
     {
       int c = COMPOSITION_GLYPH (s->cmp, i);
 
+      /* TAB in a composition means display glyphs with padding space
+	 on the left or right.  */
       if (c != '\t')
 	{
 	  int face_id = FACE_FOR_CHAR (s->f, base_face->ascii_face, c,

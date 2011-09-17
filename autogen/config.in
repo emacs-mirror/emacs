@@ -1172,6 +1172,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if on MINIX. */
 #undef _MINIX
 
+/* Define if GNUstep uses ObjC exceptions. */
+#undef _NATIVE_OBJC_EXCEPTIONS
+
 /* The _Noreturn keyword of draft C1X.  */
 #ifndef _Noreturn
 # if (3 <= __GNUC__ || (__GNUC__ == 2 && 8 <= __GNUC_MINOR__) \

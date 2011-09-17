@@ -1155,17 +1155,6 @@ other_visible_frames (FRAME_PTR f)
   return 1;
 }
 
-DEFUN ("other-visible-frames-p", Fother_visible_frames_p, Sother_visible_frames_p, 0, 1, 0,
-       doc: /* Return t if there are other visible frames beside FRAME.
-FRAME defaults to the selected frame.  */)
-  (Lisp_Object frame)
-{
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  return other_visible_frames (XFRAME (frame)) ? Qt : Qnil;
-}
-
 /* Delete FRAME.  When FORCE equals Qnoelisp, delete FRAME
   unconditionally.  x_connection_closed and delete_terminal use
   this.  Any other value of FORCE implements the semantics
@@ -4475,7 +4464,6 @@ automatically.  See also `mouse-autoselect-window'.  */);
   defsubr (&Sframe_list);
   defsubr (&Snext_frame);
   defsubr (&Sprevious_frame);
-  defsubr (&Sother_visible_frames_p);
   defsubr (&Sdelete_frame);
   defsubr (&Smouse_position);
   defsubr (&Smouse_pixel_position);

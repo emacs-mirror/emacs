@@ -1063,21 +1063,24 @@ nonincremental search instead via `isearch-edit-string'."
 
 (defvar minibuffer-history-symbol) ;; from external package gmhist.el
 
-(defun isearch-fail-pos ()
-  "Position of first mismatch in search string, or its length if none."
-  (let ((cmds isearch-cmds))
-    (if (and isearch-success (not isearch-error))
-        (length isearch-message)
+(defun isearch-fail-pos (&optional msg)
+  "Return position of first mismatch in search string, or nil if none.
+If MSG is non-nil, use `isearch-message', otherwise `isearch-string'."
+  (let ((cmds isearch-cmds)
+	(curr-msg (if msg isearch-message isearch-string))
+	succ-msg)
+    (when (or (not isearch-success) isearch-error)
       (while (or (not (isearch-success-state (car cmds)))
                  (isearch-error-state (car cmds)))
         (pop cmds))
-      (let ((succ-msg (and cmds (isearch-message-state (car cmds)))))
-        (if (and (stringp succ-msg)
-                 (< (length succ-msg) (length isearch-message))
-                 (equal succ-msg
-                        (substring isearch-message 0 (length succ-msg))))
-            (length succ-msg)
-          0)))))
+      (setq succ-msg (and cmds (if msg (isearch-message-state (car cmds))
+				 (isearch-string-state (car cmds)))))
+      (if (and (stringp succ-msg)
+	       (< (length succ-msg) (length curr-msg))
+	       (equal succ-msg
+		      (substring curr-msg 0 (length succ-msg))))
+	  (length succ-msg)
+	0))))
 
 (defun isearch-edit-string ()
   "Edit the search string in the minibuffer.
@@ -1169,7 +1172,8 @@ The following additional command keys are active while editing.
 		(setq isearch-new-string
                       (read-from-minibuffer
                        (isearch-message-prefix nil nil isearch-nonincremental)
-		       (cons isearch-string (1+ (isearch-fail-pos)))
+		       (cons isearch-string (1+ (or (isearch-fail-pos)
+						    (length isearch-string))))
                        minibuffer-local-isearch-map nil
                        (if isearch-regexp
 			   (cons 'regexp-search-ring
@@ -2174,22 +2178,11 @@ If there is no completion possible, say so and continue searching."
   ;; Generate and print the message string.
   (let ((cursor-in-echo-area ellipsis)
 	(m isearch-message)
-	(cmds isearch-cmds)
-	succ-msg)
-    (when (or (not isearch-success) isearch-error)
-      ;; Highlight failed part
-      (while (or (not (isearch-success-state (car cmds)))
-		 (isearch-error-state (car cmds)))
-	(pop cmds))
-      (setq succ-msg (and cmds (isearch-message-state (car cmds)))
-	    m (copy-sequence m))
-      (add-text-properties
-       (if (and (stringp succ-msg)
-		(< (length succ-msg) (length m))
-		(equal succ-msg (substring m 0 (length succ-msg))))
-	   (length succ-msg)
-	 0)
-       (length m) '(face isearch-fail) m)
+	(fail-pos (isearch-fail-pos t)))
+    ;; Highlight failed part
+    (when fail-pos
+      (setq m (copy-sequence m))
+      (add-text-properties fail-pos (length m) '(face isearch-fail) m)
       ;; Highlight failed trailing whitespace
       (when (string-match " +$" m)
 	(add-text-properties (match-beginning 0) (match-end 0)

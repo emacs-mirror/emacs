@@ -1071,15 +1071,25 @@ bidi_at_paragraph_end (EMACS_INT charpos, EMACS_INT bytepos)
   return val;
 }
 
+/* On my 2005-vintage machine, searching back for paragraph start
+   takes ~1 ms per line.  And bidi_paragraph_init is called 4 times
+   when user types C-p.  The number below limits each call to
+   bidi_paragraph_init to about 10 ms.  */
+#define MAX_PARAGRAPH_SEARCH 7500
+
 /* Find the beginning of this paragraph by looking back in the buffer.
-   Value is the byte position of the paragraph's beginning.  */
+   Value is the byte position of the paragraph's beginning, or
+   BEGV_BYTE if paragraph_start_re is still not found after looking
+   back MAX_PARAGRAPH_SEARCH lines in the buffer.  */
 static EMACS_INT
 bidi_find_paragraph_start (EMACS_INT pos, EMACS_INT pos_byte)
 {
   Lisp_Object re = paragraph_start_re;
   EMACS_INT limit = ZV, limit_byte = ZV_BYTE;
+  EMACS_INT n = 0;
 
   while (pos_byte > BEGV_BYTE
+	 && n++ < MAX_PARAGRAPH_SEARCH
 	 && fast_looking_at (re, pos, pos_byte, limit, limit_byte, Qnil) < 0)
     {
       /* FIXME: What if the paragraph beginning is covered by a
@@ -1089,6 +1099,8 @@ bidi_find_paragraph_start (EMACS_INT pos, EMACS_INT pos_byte)
       pos = find_next_newline_no_quit (pos - 1, -1);
       pos_byte = CHAR_TO_BYTE (pos);
     }
+  if (n >= MAX_PARAGRAPH_SEARCH)
+    pos_byte = BEGV_BYTE;
   return pos_byte;
 }
 
@@ -2239,7 +2251,8 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
     GCPRO1 (bidi_it->string.lstring);
 
   /* If we just passed a newline, initialize for the next line.  */
-  if (!bidi_it->first_elt && bidi_it->orig_type == NEUTRAL_B)
+  if (!bidi_it->first_elt
+      && (bidi_it->ch == '\n' || bidi_it->ch == BIDI_EOB))
     bidi_line_init (bidi_it);
 
   /* Prepare the sentinel iterator state, and cache it.  When we bump
@@ -2320,7 +2333,8 @@ bidi_move_to_visually_next (struct bidi_it *bidi_it)
      reordering, whereas we _must_ know the paragraph base direction
      _before_ we process the paragraph's text, since the base
      direction affects the reordering.  */
-  if (bidi_it->scan_dir == 1 && bidi_it->orig_type == NEUTRAL_B)
+  if (bidi_it->scan_dir == 1
+      && (bidi_it->ch == '\n' || bidi_it->ch == BIDI_EOB))
     {
       /* The paragraph direction of the entire string, once
 	 determined, is in effect for the entire string.  Setting the

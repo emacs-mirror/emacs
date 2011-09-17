@@ -1294,6 +1294,8 @@ x_draw_composite_glyph_string_foreground (struct glyph_string *s)
       old_font = SelectObject (s->hdc, FONT_HANDLE (font));
 
       for (i = 0, j = s->cmp_from; i < s->nchars; i++, j++)
+	/* TAB in a composition means display glyphs with padding
+	   space on the left or right.  */
 	if (COMPOSITION_GLYPH (s->cmp, j) != '\t')
 	  {
 	    int xx = x + s->cmp->offsets[j * 2];
@@ -5197,7 +5199,6 @@ x_catch_errors (dpy)
 x_catch_errors_unwind (old_val)
 x_check_errors (dpy, format)
 x_fully_uncatch_errors ()
-x_catching_errors ()
 x_had_errors_p (dpy)
 x_clear_errors (dpy)
 x_uncatch_errors (dpy, count)
