@@ -1,3 +1,14 @@
+2011-09-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* replace.el (occur-mode-map): Rebind occur-edit-mode to "e" (Bug#8463).
+	(occur-edit-mode-map): Bind C-c C-c to occur-cease-edit and C-o to
+	occur-mode-display-occurrence.
+	(occur-edit-mode): Add usage message.
+	(occur-cease-edit): New command.
+	(occur-after-change-function): Use text properties to find the
+	position of the prefix text.
+	(occur-engine): Set stickiness of prefix text properties.
+
 2011-09-17  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/etags.el (complete-tag):
