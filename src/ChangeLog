@@ -1,5 +1,16 @@
 2011-09-17  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (reseat_at_next_visible_line_start): Keep information
+	about the current paragraph and restore it after the call to
+	reseat.
+
+	* bidi.c (MAX_PARAGRAPH_SEARCH): New macro.
+	(bidi_find_paragraph_start): Search back for paragraph beginning
+	at most MAX_PARAGRAPH_SEARCH lines; if not found, return BEGV_BYTE.
+	(bidi_move_to_visually_next): Only trigger paragraph-related
+	computations when the last character is a newline or at EOB, not
+	just any NEUTRAL_B.  (Bug#9470)
+
 	* xdisp.c (set_cursor_from_row): Don't invoke special treatment of
 	truncated lines if point is covered by a display string.  (Bug#9524)
 

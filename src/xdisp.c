@@ -5722,6 +5722,9 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
 {
   int newline_found_p, skipped_p = 0;
   struct bidi_it bidi_it_prev;
+  int new_paragraph, first_elt, disp_prop;
+  EMACS_INT paragraph_end, disp_pos;
+  bidi_dir_t paragraph_dir;
 
   newline_found_p = forward_to_next_line_start (it, &skipped_p, &bidi_it_prev);
 
@@ -5737,6 +5740,23 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
 	newline_found_p =
 	  forward_to_next_line_start (it, &skipped_p, &bidi_it_prev);
       }
+
+  /* Under bidi iteration, save the attributes of the paragraph we are
+     in, to be restored after the call to `reseat' below.  That's
+     because `reseat' overwrites them, which requires unneeded and
+     potentially expensive backward search for paragraph beginning.
+     This search is unnecessary because we will be `reseat'ed to the
+     same position where we are now, for which we already have all the
+     information we need in the bidi iterator.  */
+  if (it->bidi_p && !STRINGP (it->string))
+    {
+      new_paragraph = it->bidi_it.new_paragraph;
+      first_elt = it->bidi_it.first_elt;
+      paragraph_end = it->bidi_it.separator_limit;
+      paragraph_dir = it->bidi_it.paragraph_dir;
+      disp_pos = it->bidi_it.disp_pos;
+      disp_prop = it->bidi_it.disp_prop;
+    }
 
   /* Position on the newline if that's what's requested.  */
   if (on_newline_p && newline_found_p)
@@ -5777,10 +5797,30 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	    }
 	  reseat (it, it->current.pos, 0);
+	  if (it->bidi_p)
+	    {
+	      it->bidi_it.new_paragraph = new_paragraph;
+	      it->bidi_it.first_elt = first_elt;
+	      it->bidi_it.separator_limit = paragraph_end;
+	      it->bidi_it.paragraph_dir = paragraph_dir;
+	      it->bidi_it.disp_pos = disp_pos;
+	      it->bidi_it.disp_prop = disp_prop;
+	    }
 	}
     }
   else if (skipped_p)
-    reseat (it, it->current.pos, 0);
+    {
+      reseat (it, it->current.pos, 0);
+      if (it->bidi_p)
+	{
+	  it->bidi_it.new_paragraph = new_paragraph;
+	  it->bidi_it.first_elt = first_elt;
+	  it->bidi_it.separator_limit = paragraph_end;
+	  it->bidi_it.paragraph_dir = paragraph_dir;
+	  it->bidi_it.disp_pos = disp_pos;
+	  it->bidi_it.disp_prop = disp_prop;
+	}
+    }
 
   CHECK_IT (it);
 }
