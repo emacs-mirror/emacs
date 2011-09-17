@@ -742,7 +742,7 @@ menu_highlight_callback (GtkWidget *widget, gpointer call_data)
   /* If popup_activated_flag is greater than 1 we are in a popup menu.
      Don't pass the frame to show_help_event for those.
      Passing frame creates an Emacs event.  As we are looping in
-     popup_widget_loop, it won't be handeled.  Passing NULL shows the tip
+     popup_widget_loop, it won't be handled.  Passing NULL shows the tip
      directly without using an Emacs event.  This is what the Lucid code
      does below.  */
   show_help_event (popup_activated_flag <= 1 ? cb_data->cl_data->f : NULL,

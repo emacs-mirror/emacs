@@ -1303,7 +1303,7 @@
 	underline, overline, and strike-through.
 	(ns_dumpglyphs_image, ns_dumpglyphs_stretch): Add call to
 	ns_draw_text_decoration.  Change treatment of cursor drawing to
-	accomomdate underlining, etc.
+	accommodate underlining, etc.
 
 2011-07-28  Eli Zaretskii  <eliz@gnu.org>
 
