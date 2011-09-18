@@ -1,5 +1,24 @@
 2011-09-18  Juri Linkov  <juri@jurta.org>
 
+	* buff-menu.el (Buffer-menu-mode-map):
+	* dired.el (dired-mode-map):
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map)
+	(lisp-interaction-mode-map):
+	* emacs-lisp/package.el (package-menu-mode-map):
+	* epa.el (epa-key-list-mode-map):
+	* menu-bar.el (menu-bar-showhide-tool-bar-menu)
+	(menu-bar-options-menu):
+	* outline.el (outline-mode-menu-bar-map):
+	* vc/vc-bzr.el (vc-bzr-shelve-menu-map, vc-bzr-extra-menu-map):
+	* vc/vc-dir.el (vc-dir-menu-map):
+	* vc/vc-git.el (vc-git-stash-menu-map, vc-git-extra-menu-map):
+	Capitalize non-function content words in menu item strings.
+
+	* dired.el (dired-mode-map): Add menu item for
+	`image-dired-dired-toggle-marked-thumbs'.
+
+2011-09-18  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-edit-string): Bind `isearch-new-case-fold'
 	to `isearch-case-fold-search' and restore its original value
 	after the `isearch-mode' call.

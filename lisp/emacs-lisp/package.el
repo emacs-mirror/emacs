@@ -1297,30 +1297,30 @@ If optional arg NO-ACTIVATE is non-nil, don't activate packages."
       '(menu-item "Unmark" package-menu-mark-unmark
 		  :help "Clear any marks on a package and move to the next line"))
     (define-key menu-map [munm]
-      '(menu-item "Unmark backwards" package-menu-backup-unmark
+      '(menu-item "Unmark Backwards" package-menu-backup-unmark
 		  :help "Back up one line and clear any marks on that package"))
     (define-key menu-map [md]
-      '(menu-item "Mark for deletion" package-menu-mark-delete
+      '(menu-item "Mark for Deletion" package-menu-mark-delete
 		  :help "Mark a package for deletion and move to the next line"))
     (define-key menu-map [mi]
-      '(menu-item "Mark for install" package-menu-mark-install
+      '(menu-item "Mark for Install" package-menu-mark-install
 		  :help "Mark a package for installation and move to the next line"))
     (define-key menu-map [mupgrades]
-      '(menu-item "Mark upgradable packages" package-menu-mark-upgrades
+      '(menu-item "Mark Upgradable Packages" package-menu-mark-upgrades
 		  :help "Mark packages that have a newer version for upgrading"))
     (define-key menu-map [s3] '("--"))
     (define-key menu-map [mg]
-      '(menu-item "Update package list" revert-buffer
+      '(menu-item "Update Package List" revert-buffer
 		  :help "Update the list of packages"))
     (define-key menu-map [mr]
-      '(menu-item "Refresh package list" package-menu-refresh
+      '(menu-item "Refresh Package List" package-menu-refresh
 		  :help "Download the ELPA archive"))
     (define-key menu-map [s4] '("--"))
     (define-key menu-map [mt]
-      '(menu-item "Mark obsolete packages" package-menu-mark-obsolete-for-deletion
+      '(menu-item "Mark Obsolete Packages" package-menu-mark-obsolete-for-deletion
 		  :help "Mark all obsolete packages for deletion"))
     (define-key menu-map [mx]
-      '(menu-item "Execute actions" package-menu-execute
+      '(menu-item "Execute Actions" package-menu-execute
 		  :help "Perform all the marked actions"))
     (define-key menu-map [s5] '("--"))
     (define-key menu-map [mh]

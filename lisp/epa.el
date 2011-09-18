@@ -239,7 +239,7 @@ You should bind this variable with `let', but do not set it globally.")
 		  :help "Encrypt FILE for RECIPIENTS"))
     (define-key menu-map [separator-epa-key-list] '(menu-item "--"))
     (define-key menu-map [epa-key-list-delete-keys]
-      '(menu-item "Delete keys" epa-delete-keys
+      '(menu-item "Delete Keys" epa-delete-keys
 		  :help "Delete Marked Keys"))
     (define-key menu-map [epa-key-list-import-keys]
       '(menu-item "Import Keys" epa-import-keys
