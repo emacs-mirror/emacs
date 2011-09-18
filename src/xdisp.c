@@ -5722,9 +5722,10 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
 {
   int newline_found_p, skipped_p = 0;
   struct bidi_it bidi_it_prev;
-  int new_paragraph, first_elt, disp_prop;
-  EMACS_INT paragraph_end, disp_pos;
-  bidi_dir_t paragraph_dir;
+  int new_paragraph IF_LINT (= 0), first_elt IF_LINT (= 0);
+  int disp_prop IF_LINT (= 0);
+  EMACS_INT paragraph_end IF_LINT (= 0), disp_pos IF_LINT (= 0);
+  bidi_dir_t paragraph_dir IF_LINT (= 0);
 
   newline_found_p = forward_to_next_line_start (it, &skipped_p, &bidi_it_prev);
 

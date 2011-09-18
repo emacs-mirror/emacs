@@ -1,5 +1,9 @@
 2011-09-18  Paul Eggert  <eggert@cs.ucla.edu>
 
+	Fix minor problem found by static checking.
+	* xdisp.c (reseat_at_next_visible_line_start): Mark locals as
+	initialized, to pacify gcc -Wuninitialized.
+
 	* fileio.c: Report proper errno when syscall falls.
 	(Finsert_file_contents): Save and restore errno,
 	so that report_file_error outputs the correct diagnostic.
