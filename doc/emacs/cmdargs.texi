@@ -1107,7 +1107,7 @@ Start Emacs in an iconified (``minimized'') state.
 @itemx --no-bitmap-icon
 @opindex --no-bitmap-icon
 @cindex Emacs icon, a gnu
-Do not use a picture of a gnu as the Emacs icon.
+Do not display the Emacs icon.
 @end table
 
   Most window managers allow you to ``iconify'' (or ``minimize'') an
