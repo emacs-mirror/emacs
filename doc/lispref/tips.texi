@@ -320,6 +320,10 @@ any context prevents recognition of escape sequences as function keys in
 that context.
 
 @item
+Similarly, don't bind a key sequence ending in @key{C-g}, since that
+is commonly used to cancel a key sequence.
+
+@item
 Anything which acts like a temporary mode or state which the user can
 enter and leave should define @kbd{@key{ESC} @key{ESC}} or
 @kbd{@key{ESC} @key{ESC} @key{ESC}} as a way to escape.
