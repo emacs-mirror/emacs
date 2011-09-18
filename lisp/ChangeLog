@@ -1,5 +1,10 @@
 2011-09-18  Juri Linkov  <juri@jurta.org>
 
+	* progmodes/grep.el (grep-process-setup): Don't check code for 1
+	because `zgrep' returns 1 for successful matches (bug#9226).
+
+2011-09-18  Juri Linkov  <juri@jurta.org>
+
 	* info.el (Info-extract-menu-node-name): Check the second match
 	for empty string (second test-case of bug#9528).
 	(Info-last-preorder): Let-bind `Info-history' to nil to not add
