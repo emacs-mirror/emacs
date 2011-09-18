@@ -1,5 +1,11 @@
 2011-09-18  Juri Linkov  <juri@jurta.org>
 
+	* isearch.el (isearch-edit-string): Bind `isearch-new-case-fold'
+	to `isearch-case-fold-search' and restore its original value
+	after the `isearch-mode' call.
+
+2011-09-18  Juri Linkov  <juri@jurta.org>
+
 	* progmodes/grep.el (grep-process-setup): Don't check code for 1
 	because `zgrep' returns 1 for successful matches (bug#9226).
 
