@@ -1,5 +1,8 @@
 2011-09-18  Chong Yidong  <cyd@stupidchicken.com>
 
+	* woman.el (woman2-process-escapes): Don't delete unrecognized
+	escapes (Bug#7843).
+
 	* files.el (inhibit-first-line-modes-regexps): Add image files.
 	(hack-local-variables-prop-line): Return nil for malformed
 	prop-lines (Bug#9044).
