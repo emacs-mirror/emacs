@@ -1,3 +1,9 @@
+2011-09-18  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-file-supports-index-cookies): Increment
+	line-beginning-position's arg from 3 to 4 because makeinfo outputs
+	one more line for long file names (bug#4142).
+
 2011-09-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* newcomment.el (comment-normalize-vars): If prompting for

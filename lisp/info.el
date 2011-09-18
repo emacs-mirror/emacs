@@ -540,7 +540,7 @@ in `Info-file-supports-index-cookies-list'."
 	  (condition-case ()
 	      (if (and (re-search-forward
 			"makeinfo[ \n]version[ \n]\\([0-9]+.[0-9]+\\)"
-			(line-beginning-position 3) t)
+			(line-beginning-position 4) t)
 		       (not (version< (match-string 1) "4.7")))
 		  (setq found t))
 	    (error nil))
