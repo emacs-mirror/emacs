@@ -8,6 +8,9 @@
 	(produce_stretch_glyph): Fix a bug in :align-to on a TTY when the
 	column is beyond frame width: don't subtract 1 "pixel" when
 	computing width of the stretch.
+	(reseat_at_next_visible_line_start): Undo the change made on
+	2011-09-17 that saved paragraph information and restored it after
+	the call to `reseat'.  (Bug#9545)
 
 2011-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
