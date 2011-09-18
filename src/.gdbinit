@@ -483,83 +483,83 @@ end
 define pgx
   set $g = $arg0
   # CHAR_GLYPH
-  if ($g->type == 0)
-    if ($g->u.ch >= ' ' && $g->u.ch < 127)
-      printf "CHAR[%c]", $g->u.ch
+  if ($g.type == 0)
+    if ($g.u.ch >= ' ' && $g.u.ch < 127)
+      printf "CHAR[%c]", $g.u.ch
     else
-      printf "CHAR[0x%x]", $g->u.ch
+      printf "CHAR[0x%x]", $g.u.ch
     end
   end
   # COMPOSITE_GLYPH
-  if ($g->type == 1)
-    printf "COMP[%d (%d..%d)]", $g->u.cmp.id, $g->slice.cmp.from, $g->slice.cmp.to
+  if ($g.type == 1)
+    printf "COMP[%d (%d..%d)]", $g.u.cmp.id, $g.slice.cmp.from, $g.slice.cmp.to
   end
   # GLYPHLESS_GLYPH
-  if ($g->type == 2)
+  if ($g.type == 2)
     printf "GLYPHLESS["
-    if ($g->u.glyphless.method == 0)
+    if ($g.u.glyphless.method == 0)
       printf "THIN]"
     end
-    if ($g->u.glyphless.method == 1)
+    if ($g.u.glyphless.method == 1)
       printf "EMPTY]"
     end
-    if ($g->u.glyphless.method == 2)
+    if ($g.u.glyphless.method == 2)
       printf "ACRO]"
     end
-    if ($g->u.glyphless.method == 3)
+    if ($g.u.glyphless.method == 3)
       printf "HEX]"
     end
   end
   # IMAGE_GLYPH
-  if ($g->type == 3)
-    printf "IMAGE[%d]", $g->u.img_id
+  if ($g.type == 3)
+    printf "IMAGE[%d]", $g.u.img_id
   end
   # STRETCH_GLYPH
-  if ($g->type == 4)
-    printf "STRETCH[%d+%d]", $g->u.stretch.height, $g->u.stretch.ascent
+  if ($g.type == 4)
+    printf "STRETCH[%d+%d]", $g.u.stretch.height, $g.u.stretch.ascent
   end
-  xgettype ($g->object)
+  xgettype ($g.object)
   if ($type == Lisp_String)
-    printf " str=%x[%d]", $g->object, $g->charpos
+    printf " str=%x[%d]", $g.object, $g.charpos
   else
-    printf " pos=%d", $g->charpos
+    printf " pos=%d", $g.charpos
   end
   # For characters, print their resolved level and bidi type
-  if ($g->type == 0)
-    printf " blev=%d,btyp=", $g->resolved_level
-    pbiditype $g->bidi_type
+  if ($g.type == 0)
+    printf " blev=%d,btyp=", $g.resolved_level
+    pbiditype $g.bidi_type
   end
-  printf " w=%d a+d=%d+%d", $g->pixel_width, $g->ascent, $g->descent
+  printf " w=%d a+d=%d+%d", $g.pixel_width, $g.ascent, $g.descent
   # If not DEFAULT_FACE_ID
-  if ($g->face_id != 0)
-    printf " face=%d", $g->face_id
+  if ($g.face_id != 0)
+    printf " face=%d", $g.face_id
   end
-  if ($g->voffset)
-    printf " vof=%d", $g->voffset
+  if ($g.voffset)
+    printf " vof=%d", $g.voffset
   end
-  if ($g->multibyte_p)
+  if ($g.multibyte_p)
     printf " MB"
   end
-  if ($g->padding_p)
+  if ($g.padding_p)
     printf " PAD"
   end
-  if ($g->glyph_not_available_p)
+  if ($g.glyph_not_available_p)
     printf " N/A"
   end
-  if ($g->overlaps_vertically_p)
+  if ($g.overlaps_vertically_p)
     printf " OVL"
   end
-  if ($g->avoid_cursor_p)
+  if ($g.avoid_cursor_p)
     printf " AVOID"
   end
-  if ($g->left_box_line_p)
+  if ($g.left_box_line_p)
     printf " ["
   end
-  if ($g->right_box_line_p)
+  if ($g.right_box_line_p)
     printf " ]"
   end
-  if ($g->slice.img.x || $g->slice.img.y || $g->slice.img.width || $g->slice.img.height)
-    printf " slice=%d,%d,%d,%d" ,$g->slice.img.x, $g->slice.img.y, $g->slice.img.width, $g->slice.img.height
+  if ($g.slice.img.x || $g.slice.img.y || $g.slice.img.width || $g.slice.img.height)
+    printf " slice=%d,%d,%d,%d" ,$g.slice.img.x, $g.slice.img.y, $g.slice.img.width, $g.slice.img.height
   end
   printf "\n"
 end
