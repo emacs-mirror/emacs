@@ -5,6 +5,9 @@
 	stretch).  Fixes bug#9530 on a TTY.  Under word-wrap, don't record
 	buffer positions that will be removed from the glyph row because
 	they don't fit.
+	(produce_stretch_glyph): Fix a bug in :align-to on a TTY when the
+	column is beyond frame width: don't subtract 1 "pixel" when
+	computing width of the stretch.
 
 2011-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
