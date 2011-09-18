@@ -1,3 +1,8 @@
+2011-09-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail/smtpmail.el (smtpmail-via-smtp): Ignore errors that arise
+	when sending QUIT (bug#9312).
+
 2011-09-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* replace.el (occur-mode-map): Rebind occur-edit-mode to "e" (Bug#8463).

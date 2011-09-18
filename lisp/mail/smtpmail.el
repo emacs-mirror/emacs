@@ -773,8 +773,12 @@ The list is in preference order.")
 		     (eq (car result) 530))
 		;; We got a "530 auth required", so we close and try
 		;; again, this time asking the user for a password.
-		(smtpmail-send-command process "QUIT")
-		(smtpmail-read-response process)
+		;; We ignore any errors here, because some MTAs just
+		;; close the connection immediately after giving the
+		;; error message.
+		(ignore-errors
+		  (smtpmail-send-command process "QUIT")
+		  (smtpmail-read-response process))
 		(delete-process process)
 		(setq process nil)
 		(throw 'done
