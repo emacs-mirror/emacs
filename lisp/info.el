@@ -3887,6 +3887,14 @@ With a zero prefix arg, put the name inside a function call to `info'."
 (defvar tool-bar-map)
 (defvar bookmark-make-record-function)
 
+(defvar Info-mode-syntax-table
+  (let ((st (copy-syntax-table text-mode-syntax-table)))
+    ;; Use punctuation syntax for apostrophe because of
+    ;; extensive use of quotes like `this' in Info manuals.
+    (modify-syntax-entry ?' "." st)
+    st)
+  "Syntax table used in `Info-mode'.")
+
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
 (define-derived-mode Info-mode nil "Info"
@@ -3951,7 +3959,7 @@ Advanced commands:
 \\[clone-buffer]	Select a new cloned Info buffer in another window.
 \\[universal-argument] \\[info]	Move to new Info file with completion.
 \\[universal-argument] N \\[info]	Select Info buffer with prefix number in the name *info*<N>."
-  :syntax-table text-mode-syntax-table
+  :syntax-table Info-mode-syntax-table
   :abbrev-table text-mode-abbrev-table
   (setq tab-width 8)
   (add-hook 'activate-menubar-hook 'Info-menu-update nil t)

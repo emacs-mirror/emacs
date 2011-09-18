@@ -1,5 +1,10 @@
 2011-09-18  Juri Linkov  <juri@jurta.org>
 
+	* info.el (Info-mode-syntax-table): New variable.
+	(Info-mode): Set `:syntax-table' to `Info-mode-syntax-table'.  (Bug#3312)
+
+2011-09-18  Juri Linkov  <juri@jurta.org>
+
 	* info.el (Info-file-supports-index-cookies): Increment
 	line-beginning-position's arg from 3 to 4 because makeinfo outputs
 	one more line for long file names (bug#4142).
