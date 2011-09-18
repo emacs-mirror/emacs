@@ -5812,7 +5812,7 @@ reseat_at_next_visible_line_start (struct it *it, int on_newline_p)
   else if (skipped_p)
     {
       reseat (it, it->current.pos, 0);
-      if (it->bidi_p)
+      if (it->bidi_p && !STRINGP (it->string))
 	{
 	  it->bidi_it.new_paragraph = new_paragraph;
 	  it->bidi_it.first_elt = first_elt;
