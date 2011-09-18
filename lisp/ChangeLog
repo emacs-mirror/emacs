@@ -1,5 +1,12 @@
 2011-09-18  Juri Linkov  <juri@jurta.org>
 
+	* info.el (Info-extract-menu-node-name): Check the second match
+	for empty string (second test-case of bug#9528).
+	(Info-last-preorder): Let-bind `Info-history' to nil to not add
+	intermediate nodes to the history (first test-case of bug#9528).
+
+2011-09-18  Juri Linkov  <juri@jurta.org>
+
 	* info.el (Info-mode-syntax-table): New variable.
 	(Info-mode): Set `:syntax-table' to `Info-mode-syntax-table'.  (Bug#3312)
 

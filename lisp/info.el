@@ -2440,7 +2440,8 @@ Because of ambiguities, this should be concatenated with something like
       )
     (replace-regexp-in-string
      "[ \n]+" " "
-     (or (match-string-no-properties 2)
+     (or (and (not (equal (match-string-no-properties 2) ""))
+	      (match-string-no-properties 2))
 	 ;; If the node name is the menu entry name (using `entry::').
 	 (buffer-substring-no-properties
 	  (match-beginning 0) (1- (match-beginning 1)))))))
@@ -2765,22 +2766,24 @@ N is the digit argument used to invoke this command."
 	  ;; so we can scroll back through it.
 	  (goto-char (point-max)))
 	 ;; Keep going down, as long as there are nested menu nodes.
-	 (while (Info-no-error
-		 (Info-last-menu-item)
-		 ;; If we go down a menu item, go to the end of the node
-		 ;; so we can scroll back through it.
-		 (goto-char (point-max))))
+	 (let (Info-history) ; Don't add intermediate nodes to the history.
+	   (while (Info-no-error
+		   (Info-last-menu-item)
+		   ;; If we go down a menu item, go to the end of the node
+		   ;; so we can scroll back through it.
+		   (goto-char (point-max)))))
 	 (recenter -1))
 	((and (Info-no-error (Info-extract-pointer "prev"))
 	      (not (equal (Info-extract-pointer "up")
 			  (Info-extract-pointer "prev"))))
 	 (Info-no-error (Info-prev))
 	 (goto-char (point-max))
-	 (while (Info-no-error
-		 (Info-last-menu-item)
-		 ;; If we go down a menu item, go to the end of the node
-		 ;; so we can scroll back through it.
-		 (goto-char (point-max))))
+	 (let (Info-history) ; Don't add intermediate nodes to the history.
+	   (while (Info-no-error
+		   (Info-last-menu-item)
+		   ;; If we go down a menu item, go to the end of the node
+		   ;; so we can scroll back through it.
+		   (goto-char (point-max)))))
 	 (recenter -1))
 	((Info-no-error (Info-up t))
 	 (goto-char (point-min))
