@@ -316,7 +316,8 @@ the variables are properly set."
       (let ((cs (read-string "No comment syntax is defined.  Use: ")))
 	(if (zerop (length cs))
 	    (error "No comment syntax defined")
-	  (set (make-local-variable 'comment-start) cs))))
+	  (set (make-local-variable 'comment-start) cs)
+	  (set (make-local-variable 'comment-start-skip) cs))))
     ;; comment-use-syntax
     (when (eq comment-use-syntax 'undecided)
       (set (make-local-variable 'comment-use-syntax)

@@ -1,3 +1,8 @@
+2011-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* newcomment.el (comment-normalize-vars): If prompting for
+	comment-start, set comment-start-skip too (Bug#8424).
+
 2011-09-18  Johan Bockgård  <bojohan@gnu.org>
 
 	* icomplete.el: Fix previous fix of Bug#5849.
