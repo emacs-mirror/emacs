@@ -18703,6 +18703,11 @@ display_line (struct it *it)
 		      it->current_x = new_x;
 		      it->continuation_lines_width += new_x;
 		      ++it->hpos;
+		      /* Record the maximum and minimum buffer
+			 positions seen so far in glyphs that will be
+			 displayed by this row.  */
+		      if (it->bidi_p)
+			RECORD_MAX_MIN_POS (it);
 		      if (i == nglyphs - 1)
 			{
 			  /* If line-wrap is on, check if a previous
@@ -18717,11 +18722,6 @@ display_line (struct it *it)
 				  || IT_DISPLAYING_WHITESPACE (it)))
 			    goto back_to_wrap;
 
-			  /* Record the maximum and minimum buffer
-			     positions seen so far in glyphs that will be
-			     displayed by this row.  */
-			  if (it->bidi_p)
-			    RECORD_MAX_MIN_POS (it);
 			  set_iterator_to_next (it, 1);
 			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 			    {
@@ -18739,8 +18739,6 @@ display_line (struct it *it)
 				}
 			    }
 			}
-		      else if (it->bidi_p)
-			RECORD_MAX_MIN_POS (it);
 		    }
 		  else if (CHAR_GLYPH_PADDING_P (*glyph)
 			   && !FRAME_WINDOW_P (it->f))
@@ -18871,10 +18869,6 @@ display_line (struct it *it)
 		  xassert (it->first_visible_x <= it->last_visible_x);
 		}
 	    }
-	  /* Even if this display element produced no glyphs at all,
-	     we want to record its position.  */
-	  if (it->bidi_p && nglyphs == 0)
-	    RECORD_MAX_MIN_POS (it);
 
 	  row->ascent = max (row->ascent, it->max_ascent);
 	  row->height = max (row->height, it->max_ascent + it->max_descent);
