@@ -2461,7 +2461,9 @@ of a script, mode MODE is enabled.
 
 See also `auto-mode-alist'.")
 
-(defvar inhibit-first-line-modes-regexps (mapcar 'purecopy '("\\.tar\\'" "\\.tgz\\'"))
+(defvar inhibit-first-line-modes-regexps
+  (mapcar 'purecopy '("\\.tar\\'" "\\.tgz\\'" "\\.tiff?\\'"
+		      "\\.gif\\'" "\\.png\\'" "\\.jpe?g\\'"))
   "List of regexps; if one matches a file name, don't look for `-*-'.")
 
 (defvar inhibit-first-line-modes-suffixes nil
@@ -2952,60 +2954,62 @@ Returns an alist of elements (VAR . VAL), where VAR is a variable
 and VAL is the specified value.  Ignores any specification for
 `mode:' and `coding:' (which should have already been handled
 by `set-auto-mode' and `set-auto-coding', respectively).
-Throws an error if the -*- line is malformed.
+Return nil if the -*- line is malformed.
 
 If MODE-ONLY is non-nil, just returns the symbol specifying the
 mode, if there is one, otherwise nil."
-  (save-excursion
-    (goto-char (point-min))
-    (let ((end (set-auto-mode-1))
-	  result)
-      (cond ((not end)
-	     nil)
-	    ((looking-at "[ \t]*\\([^ \t\n\r:;]+\\)\\([ \t]*-\\*-\\)")
-	     ;; Simple form: "-*- MODENAME -*-".
-	     (if mode-only
-		 (intern (concat (match-string 1) "-mode"))))
-	    (t
-	     ;; Hairy form: '-*-' [ <variable> ':' <value> ';' ]* '-*-'
-	     ;; (last ";" is optional).
-	     ;; If MODE-ONLY, just check for `mode'.
-	     ;; Otherwise, parse the -*- line into the RESULT alist.
-	     (while (and (or (not mode-only)
-			     (not result))
-			 (< (point) end))
-	       (or (looking-at "[ \t]*\\([^ \t\n:]+\\)[ \t]*:[ \t]*")
-		   (error "Malformed -*- line"))
-	       (goto-char (match-end 0))
-	       ;; There used to be a downcase here,
-	       ;; but the manual didn't say so,
-	       ;; and people want to set var names that aren't all lc.
-	       (let* ((key (intern (match-string 1)))
-		      (val (save-restriction
-			     (narrow-to-region (point) end)
-			     (let ((read-circle nil))
-			       (read (current-buffer)))))
-		      ;; It is traditional to ignore
-		      ;; case when checking for `mode' in set-auto-mode,
-		      ;; so we must do that here as well.
-		      ;; That is inconsistent, but we're stuck with it.
-		      ;; The same can be said for `coding' in set-auto-coding.
-		      (keyname (downcase (symbol-name key))))
-		 (if mode-only
-		     (and (equal keyname "mode")
-			  (setq result
-				(intern (concat (downcase (symbol-name val))
-						"-mode"))))
-		   (or (equal keyname "coding")
-		       (condition-case nil
-			   (push (cons (cond ((eq key 'eval) 'eval)
-					     ;; Downcase "Mode:".
-					     ((equal keyname "mode") 'mode)
-					     (t (indirect-variable key)))
-				       val) result)
-			 (error nil))))
-		 (skip-chars-forward " \t;")))
-	     result)))))
+  (catch 'malformed-line
+    (save-excursion
+      (goto-char (point-min))
+      (let ((end (set-auto-mode-1))
+	    result)
+	(cond ((not end)
+	       nil)
+	      ((looking-at "[ \t]*\\([^ \t\n\r:;]+\\)\\([ \t]*-\\*-\\)")
+	       ;; Simple form: "-*- MODENAME -*-".
+	       (if mode-only
+		   (intern (concat (match-string 1) "-mode"))))
+	      (t
+	       ;; Hairy form: '-*-' [ <variable> ':' <value> ';' ]* '-*-'
+	       ;; (last ";" is optional).
+	       ;; If MODE-ONLY, just check for `mode'.
+	       ;; Otherwise, parse the -*- line into the RESULT alist.
+	       (while (and (or (not mode-only)
+			       (not result))
+			   (< (point) end))
+		 (unless (looking-at "[ \t]*\\([^ \t\n:]+\\)[ \t]*:[ \t]*")
+		   (message "Malformed mode-line")
+		   (throw 'malformed-line nil))
+		 (goto-char (match-end 0))
+		 ;; There used to be a downcase here,
+		 ;; but the manual didn't say so,
+		 ;; and people want to set var names that aren't all lc.
+		 (let* ((key (intern (match-string 1)))
+			(val (save-restriction
+			       (narrow-to-region (point) end)
+			       (let ((read-circle nil))
+				 (read (current-buffer)))))
+			;; It is traditional to ignore
+			;; case when checking for `mode' in set-auto-mode,
+			;; so we must do that here as well.
+			;; That is inconsistent, but we're stuck with it.
+			;; The same can be said for `coding' in set-auto-coding.
+			(keyname (downcase (symbol-name key))))
+		   (if mode-only
+		       (and (equal keyname "mode")
+			    (setq result
+				  (intern (concat (downcase (symbol-name val))
+						  "-mode"))))
+		     (or (equal keyname "coding")
+			 (condition-case nil
+			     (push (cons (cond ((eq key 'eval) 'eval)
+					       ;; Downcase "Mode:".
+					       ((equal keyname "mode") 'mode)
+					       (t (indirect-variable key)))
+					 val) result)
+			   (error nil))))
+		   (skip-chars-forward " \t;")))
+	       result))))))
 
 (defun hack-local-variables-filter (variables dir-name)
   "Filter local variable settings, querying the user if necessary.
