@@ -1,3 +1,25 @@
+2011-09-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (top): Don't require 'shell.
+	(tramp-methods): Fix docstring.
+	(tramp-get-remote-tmpdir): New defun, moved from tramp-sh.el.
+	Return complete remote file name.  Handle "smb" case.  Use
+	`tramp-tmpdir', if defined for the respective method.
+	(tramp-make-tramp-temp-file): Adapt call of `tramp-get-remote-tmpdir'.
+
+	* net/tramp-compat.el (top): Require 'shell.
+
+	* net/tramp-sh.el (tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-maybe-open-connection): Use `tramp-file-name-real-host' for
+	`tramp-current-host'.
+	(tramp-get-remote-tmpdir): Remove.
+
+	* net/tramp-smb.el (tramp-methods): Add `tramp-remote-shell' and
+	`tramp-tmpdir' entries.
+	(tramp-smb-errors): Add "NT_STATUS_IMAGE_ALREADY_LOADED".
+	(tramp-smb-handle-file-attributes): Ignore errors.
+	(tramp-smb-wait-for-output): Check also for process end.
+
 2011-09-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Ignore errors that arise

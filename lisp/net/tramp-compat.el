@@ -41,6 +41,7 @@
   (require 'advice)
   (require 'custom)
   (require 'format-spec)
+  (require 'shell)
 
   ;; As long as password.el is not part of (X)Emacs, it shouldn't be
   ;; mandatory.
