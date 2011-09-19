@@ -1,3 +1,8 @@
+2011-09-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/ldap.el (ldap-search-internal): Don't push empty search
+	result (Bug#9508).
+
 2011-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* whitespace.el (whitespace-newline-mode): Disable it right (bug#9550).
