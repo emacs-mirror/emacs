@@ -1,3 +1,8 @@
+2011-09-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* lread.c (Fread_from_string): Document what FINAL-STRING-INDEX is
+	(bug#9493).
+
 2011-09-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfns.c (Fx_create_frame): Handle the bitmapIcon resource as
