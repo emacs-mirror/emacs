@@ -4025,6 +4025,7 @@ means discard it)."
 (defconst tramp-inline-compress-commands
   '(("gzip" "gzip -d")
     ("bzip2" "bzip2 -d")
+    ("xz" "xz -d")
     ("compress" "compress -d"))
   "List of compress and decompress commands for inline transfer.
 Each item is a list that looks like this:

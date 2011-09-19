@@ -779,10 +779,10 @@ Whether deselecting the frame lowers it (non-@code{nil} means yes).
 
 @vindex icon-type, a frame parameter
 @item icon-type
-The type of icon to use for this frame when it is iconified.  If the
-value is a string, that specifies a file containing a bitmap to use.
-Any other non-@code{nil} value specifies the default bitmap icon (a
-picture of a gnu); @code{nil} specifies a text icon.
+The type of icon to use for this frame.  If the value is a string,
+that specifies a file containing a bitmap to use; @code{nil} specifies
+no icon (in which case the window manager decides what to show); any
+other non-@code{nil} value specifies the default Emacs icon.
 
 @vindex icon-name, a frame parameter
 @item icon-name

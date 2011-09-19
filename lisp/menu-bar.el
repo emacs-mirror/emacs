@@ -985,7 +985,7 @@ by \"Save Options\" in Custom buffers.")
     (let ((menu (make-sparse-keymap "Tool-bar")))
 
       (define-key menu [showhide-tool-bar-left]
-        `(menu-item ,(purecopy "On the left")
+        `(menu-item ,(purecopy "On the Left")
                     menu-bar-showhide-tool-bar-menu-customize-enable-left
                     :help ,(purecopy "Tool-bar at the left side")
                     :visible (display-graphic-p)
@@ -997,7 +997,7 @@ by \"Save Options\" in Custom buffers.")
                                        'left)))))
 
       (define-key menu [showhide-tool-bar-right]
-        `(menu-item ,(purecopy "On the right")
+        `(menu-item ,(purecopy "On the Right")
                     menu-bar-showhide-tool-bar-menu-customize-enable-right
                     :help ,(purecopy "Tool-bar at the right side")
                     :visible (display-graphic-p)
@@ -1009,7 +1009,7 @@ by \"Save Options\" in Custom buffers.")
                                        'right)))))
 
       (define-key menu [showhide-tool-bar-bottom]
-        `(menu-item ,(purecopy "On the bottom")
+        `(menu-item ,(purecopy "On the Bottom")
                     menu-bar-showhide-tool-bar-menu-customize-enable-bottom
                     :help ,(purecopy "Tool-bar at the bottom")
                     :visible (display-graphic-p)
@@ -1021,7 +1021,7 @@ by \"Save Options\" in Custom buffers.")
                                        'bottom)))))
 
       (define-key menu [showhide-tool-bar-top]
-        `(menu-item ,(purecopy "On the top")
+        `(menu-item ,(purecopy "On the Top")
                     menu-bar-showhide-tool-bar-menu-customize-enable-top
                     :help ,(purecopy "Tool-bar at the top")
                     :visible (display-graphic-p)
@@ -1200,7 +1200,7 @@ mail status in mode line"))
         (define-key menu [menu-system-font]
           (menu-bar-make-toggle
            toggle-use-system-font font-use-system-font
-           "Use system font"
+           "Use System Font"
            "Use system font: %s"
            "Use the monospaced font defined by the system")))
 
@@ -1304,7 +1304,7 @@ mail status in mode line"))
 			     (eq 'turn-on-auto-fill text-mode-hook)))))
 
     (define-key menu [line-wrapping]
-      `(menu-item ,(purecopy "Line Wrapping in this Buffer")
+      `(menu-item ,(purecopy "Line Wrapping in This Buffer")
 		  ,menu-bar-line-wrapping-menu))
 
 

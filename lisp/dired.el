@@ -1552,6 +1552,10 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
       [menu-bar immediate image-dired-dired-display-image]
       '(menu-item "Display Image" image-dired-dired-display-image
                   :help "Display sized image in a separate window"))
+    (define-key map
+      [menu-bar immediate image-dired-dired-toggle-marked-thumbs]
+      '(menu-item "Toggle Image Thumbnails in This Buffer" image-dired-dired-toggle-marked-thumbs
+                  :help "Add or remove image thumbnails in front of marked file names"))
 
     (define-key map [menu-bar immediate revert-buffer]
       '(menu-item "Refresh" revert-buffer
@@ -1708,7 +1712,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
                   :help "Add image comment to current or marked files"))
     (define-key map
       [menu-bar operate image-dired-display-thumbs]
-      '(menu-item "Display image thumbnails" image-dired-display-thumbs
+      '(menu-item "Display Image Thumbnails" image-dired-display-thumbs
                   :help "Display image thumbnails for current or marked image files"))
 
     (define-key map [menu-bar operate dashes-4]

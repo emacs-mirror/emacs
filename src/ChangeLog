@@ -1,3 +1,13 @@
+2011-09-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* lread.c (Fread_from_string): Document what FINAL-STRING-INDEX is
+	(bug#9493).
+
+2011-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_create_frame): Handle the bitmapIcon resource as
+	boolean (Bug#9154).
+
 2011-09-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (display_line): Record maximum and minimum buffer
@@ -8,6 +18,9 @@
 	(produce_stretch_glyph): Fix a bug in :align-to on a TTY when the
 	column is beyond frame width: don't subtract 1 "pixel" when
 	computing width of the stretch.
+	(reseat_at_next_visible_line_start): Undo the change made on
+	2011-09-17 that saved paragraph information and restored it after
+	the call to `reseat'.  (Bug#9545)
 
 2011-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 

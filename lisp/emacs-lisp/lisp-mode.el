@@ -297,7 +297,7 @@ font-lock keywords will not be case sensitive."
       `(menu-item ,(purecopy "Untrace All") untrace-all
 		  :help ,(purecopy "Untrace all currently traced functions")))
     (define-key tracing-map [tr-uf]
-      `(menu-item ,(purecopy "Untrace function...") untrace-function
+      `(menu-item ,(purecopy "Untrace Function...") untrace-function
 		  :help ,(purecopy "Untrace function, and possibly activate all remaining advice")))
     (define-key tracing-map [tr-sep] menu-bar-separator)
     (define-key tracing-map [tr-q]
@@ -358,7 +358,7 @@ font-lock keywords will not be case sensitive."
       `(menu-item ,(purecopy "Byte-compile and Load") emacs-lisp-byte-compile-and-load
 		  :help ,(purecopy "Byte-compile the current file (if it has changed), then load compiled code")))
     (define-key menu-map [byte-compile]
-      `(menu-item ,(purecopy "Byte-compile this File") emacs-lisp-byte-compile
+      `(menu-item ,(purecopy "Byte-compile This File") emacs-lisp-byte-compile
 		  :help ,(purecopy "Byte compile the file containing the current buffer")))
     (define-key menu-map [separator-eval] menu-bar-separator)
     (define-key menu-map [ielm]
@@ -509,7 +509,7 @@ if that value is non-nil."
       `(menu-item ,(purecopy "Evaluate Defun") eval-defun
 		  :help ,(purecopy "Evaluate the top-level form containing point, or after point")))
     (define-key menu-map [eval-print-last-sexp]
-      `(menu-item ,(purecopy "Evaluate and print") eval-print-last-sexp
+      `(menu-item ,(purecopy "Evaluate and Print") eval-print-last-sexp
 		  :help ,(purecopy "Evaluate sexp before point; print value into current buffer")))
     (define-key menu-map [edebug-defun-lisp-interaction]
       `(menu-item ,(purecopy "Instrument Function for Debugging") edebug-defun

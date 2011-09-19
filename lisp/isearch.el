@@ -1110,6 +1110,7 @@ The following additional command keys are active while editing.
 	      (isearch-new-message isearch-message)
 	      (isearch-new-forward isearch-forward)
 	      (isearch-new-word isearch-word)
+	      (isearch-new-case-fold isearch-case-fold-search)
 
 	      (isearch-regexp isearch-regexp)
 	      (isearch-op-fun isearch-op-fun)
@@ -1203,7 +1204,8 @@ The following additional command keys are active while editing.
 	    (setq isearch-string isearch-new-string
 		  isearch-message isearch-new-message
 		  isearch-forward isearch-new-forward
-		  isearch-word isearch-new-word))
+		  isearch-word isearch-new-word
+		  isearch-case-fold-search isearch-new-case-fold))
 
 	  ;; Empty isearch-string means use default.
 	  (when (= 0 (length isearch-string))

@@ -465,7 +465,7 @@ Remove text properties that display the image."
 	(buffer-undo-list t)
 	(modified (buffer-modified-p)))
     (remove-list-of-text-properties (point-min) (point-max)
-				    '(display intangible read-nonsticky
+				    '(display read-nonsticky ;; intangible
 					      read-only front-sticky))
     (set-buffer-modified-p modified)
     (if (called-interactively-p 'any)
@@ -506,8 +506,8 @@ was inserted."
     (setq image (append image (image-transform-properties image)))
     (setq props
 	  `(display ,image
-		    intangible ,image
-		    rear-nonsticky (display intangible)
+		    ;; intangible ,image
+		    rear-nonsticky (display) ;; intangible
 		    read-only t front-sticky (read-only)))
 
     (let ((buffer-file-truename nil)) ; avoid changing dir mtime by lock_file

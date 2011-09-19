@@ -137,24 +137,23 @@ in the file it applies to."
       (cons "Headings" (make-sparse-keymap "Headings")))
 
     (define-key map [headings demote-subtree]
-      '(menu-item "Demote subtree" outline-demote
+      '(menu-item "Demote Subtree" outline-demote
 		  :help "Demote headings lower down the tree"))
     (define-key map [headings promote-subtree]
-      '(menu-item "Promote subtree" outline-promote
+      '(menu-item "Promote Subtree" outline-promote
 		  :help "Promote headings higher up the tree"))
     (define-key map [headings move-subtree-down]
-      '(menu-item "Move subtree down" outline-move-subtree-down
+      '(menu-item "Move Subtree Down" outline-move-subtree-down
 		  :help "Move the currrent subtree down past arg headlines of the same level"))
     (define-key map [headings move-subtree-up]
-      '(menu-item "Move subtree up" outline-move-subtree-up
+      '(menu-item "Move Subtree Up" outline-move-subtree-up
 		  :help "Move the currrent subtree up past arg headlines of the same level"))
     (define-key map [headings copy]
-      '(menu-item "Copy to kill ring" outline-headers-as-kill
+      '(menu-item "Copy to Kill Ring" outline-headers-as-kill
 		  :enable mark-active
 		  :help "Save the visible outline headers in region at the start of the kill ring"))
     (define-key map [headings outline-insert-heading]
-
-      '(menu-item "New heading" outline-insert-heading
+      '(menu-item "New Heading" outline-insert-heading
 		  :help "Insert a new heading at same depth at point"))
     (define-key map [headings outline-backward-same-level]
 
