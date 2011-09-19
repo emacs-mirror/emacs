@@ -1,3 +1,8 @@
+2011-09-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* errors.texi (Standard Errors): Remove apparent placeholder text
+	(bug#9491).
+
 2011-09-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frames.texi (Management Parameters): Fix description of
