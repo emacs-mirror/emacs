@@ -98,6 +98,16 @@ and `debugger-reenable' to temporarily disable debug-on-entry.")
 
 (defvar inhibit-trace)                  ;Not yet implemented.
 
+(defvar debugger-args nil
+  "Arguments with which the debugger was called.
+It is a list expected to take the form (CAUSE . REST)
+where CAUSE can be:
+- debug: called for entry to a flagged function.
+- t: called because of debug-on-next-call.
+- lambda: same thing but via `funcall'.
+- exit: called because of exit of a flagged function.
+- error: called because of `debug-on-error'.")
+
 ;;;###autoload
 (setq debugger 'debug)
 ;;;###autoload
@@ -296,32 +306,33 @@ That buffer should be current already."
   (insert "Debugger entered")
   ;; lambda is for debug-on-call when a function call is next.
   ;; debug is for debug-on-entry function called.
-  (cond ((memq (car debugger-args) '(lambda debug))
-	 (insert "--entering a function:\n"))
-	;; Exiting a function.
-	((eq (car debugger-args) 'exit)
-	 (insert "--returning value: ")
-	 (setq debugger-value (nth 1 debugger-args))
-	 (prin1 debugger-value (current-buffer))
-	 (insert ?\n)
-	 (delete-char 1)
-	 (insert ? )
-	 (beginning-of-line))
-	;; Debugger entered for an error.
-	((eq (car debugger-args) 'error)
-	 (insert "--Lisp error: ")
-	 (prin1 (nth 1 debugger-args) (current-buffer))
-	 (insert ?\n))
-	;; debug-on-call, when the next thing is an eval.
-	((eq (car debugger-args) t)
-	 (insert "--beginning evaluation of function call form:\n"))
-	;; User calls debug directly.
-	(t
-	 (insert ": ")
-	 (prin1 (if (eq (car debugger-args) 'nil)
-		    (cdr debugger-args) debugger-args)
-		(current-buffer))
-	 (insert ?\n)))
+  (pcase (car debugger-args)
+    ((or `lambda `debug)
+     (insert "--entering a function:\n"))
+    ;; Exiting a function.
+    (`exit
+     (insert "--returning value: ")
+     (setq debugger-value (nth 1 debugger-args))
+     (prin1 debugger-value (current-buffer))
+     (insert ?\n)
+     (delete-char 1)
+     (insert ? )
+     (beginning-of-line))
+    ;; Debugger entered for an error.
+    (`error
+     (insert "--Lisp error: ")
+     (prin1 (nth 1 debugger-args) (current-buffer))
+     (insert ?\n))
+    ;; debug-on-call, when the next thing is an eval.
+    (`t
+     (insert "--beginning evaluation of function call form:\n"))
+    ;; User calls debug directly.
+    (_
+     (insert ": ")
+     (prin1 (if (eq (car debugger-args) 'nil)
+                (cdr debugger-args) debugger-args)
+            (current-buffer))
+     (insert ?\n)))
   ;; After any frame that uses eval-buffer,
   ;; insert a line that states the buffer position it's reading at.
   (save-excursion
@@ -439,6 +450,10 @@ Enter another debugger on next entry to eval, apply or funcall."
 This is only useful when the value returned from the debugger
 will be used, such as in a debug on exit from a frame."
   (interactive "XReturn value (evaluated): ")
+  (when (memq (car debugger-args) '(t lambda error debug))
+    (error "Cannot return a value %s"
+           (if (eq (car debugger-args) 'error)
+               "from an error" "at function entrance")))
   (setq debugger-value val)
   (princ "Returning " t)
   (prin1 debugger-value)

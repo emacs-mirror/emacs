@@ -1,5 +1,9 @@
 2011-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/debug.el (debugger-args): Give it a docstring.
+	(debugger-return-value): Signal an error if the debugging context does
+	not await any return value.
+
 	* ps-mule.el (ps-mule-plot-string): Don't inf-loop (bug#5108).
 	* image-mode.el (image-toggle-display-text)
 	(image-toggle-display-image): Stay away from evil `intangible'.
